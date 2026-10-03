@@ -292,8 +292,7 @@ function eventLogRow(
       type: event.type,
       description: event.conjureEquipped ? `Equipped ${String(event.conjureEquipped)}` : 'Dropped conjured weapon',
       className: 'resource',
-      order: 20,
-      flags: []
+      order: 20
     };
   }
 
@@ -303,8 +302,7 @@ function eventLogRow(
       type: event.type,
       description: `${String(event.from)} → ${String(event.to)}`,
       className: 'resource',
-      order: 20,
-      flags: []
+      order: 20
     };
   }
 
@@ -313,8 +311,7 @@ function eventLogRow(
       type: event.type,
       description: `${String(event.aura)} from ${String(event.skillName)}`,
       className: 'buff',
-      order: 25,
-      flags: []
+      order: 25
     };
   }
 

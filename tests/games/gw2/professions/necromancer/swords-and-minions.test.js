@@ -293,7 +293,8 @@ test('Taste for Blood procs use Overflowing Thirst artwork and log their trigger
 
   assert.equal(wanderlustProc?.icon, traitIcon);
   assert.equal(
-    eventRows.some((row) => row.description === 'BUFF Taste for Blood x3 (10s)'),
+    // The grant names its owning trait while the damage packet still names its triggering skill.
+    eventRows.some((row) => /^Overflowing Thirst → Taste for Blood x3 · .*10s$/.test(row.description)),
     true
   );
   assert.equal(

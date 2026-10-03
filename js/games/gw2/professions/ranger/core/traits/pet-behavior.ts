@@ -157,7 +157,8 @@ export function triggerGoForTheThroat(context: RangerResolverContext, event: Gw2
     buildResolverBuff({
       at: event.at,
       source: 'Trait',
-      sourceId: ID.LESSER_SIC_EM,
+      // The trait owns the grant while the lesser command keeps its skill identity and artwork.
+      sourceId: TRAIT.GO_FOR_THE_THROAT,
       actorType: 'effect',
       skillId: ID.LESSER_SIC_EM,
       skillName: 'Lesser "Sic \'Em!"',

@@ -127,8 +127,8 @@ export function applyDeathlyHaste(runtime: NecromancerRuntime, skill: Skill): vo
     (profile.effects ?? []).map((effect) => ({
       ...effect,
       audience: party(runtime),
-      source: skill.id === ID.DARK_BARRAGE ? 'Trait' : 'necromancer',
-      sourceId: skill.id === ID.DARK_BARRAGE ? TRAIT.DEATHLY_HASTE : skill.id
+      source: 'Trait',
+      sourceId: TRAIT.DEATHLY_HASTE
     }))
   );
 }
@@ -157,7 +157,7 @@ export function applyCascadingCorruption(
         state.cascadingCorruptionStacks -= threshold;
         if (meltdown)
           state.meltdownUntil = canonicalTime(runtime.time + effectNumber(corruption, meltdown, 'duration'));
-        runtime.emit({
+        const proc = runtime.emit({
           type: 'proc',
           procType: 'trait',
           at: runtime.time,
@@ -179,7 +179,9 @@ export function applyCascadingCorruption(
               sourceId: TRAIT.CASCADING_CORRUPTION,
               atMs: quantizeGw2ActionTimingMs(effect.atMs ?? 0)
             })),
-          cast
+          cast,
+          undefined,
+          proc
         );
       }
     }
@@ -196,6 +198,9 @@ export function applyBolsteringBrew(runtime: NecromancerRuntime, cast: RuntimeCa
       (profile.effects ?? []).map((effect) => ({
         ...effect,
         atMs: 0,
+        // Elixir casting owns the timing; Bolstering Brew owns these additional grants.
+        source: 'Trait',
+        sourceId: TRAIT.BOLSTERING_BREW,
         audience: hasTrait(runtime, TRAIT.TWISTED_MEDICINE) ? party(runtime) : undefined
       })),
       cast
@@ -242,7 +247,16 @@ export function applyHarbingerEntryTraits(runtime: NecromancerRuntime, skill: Sk
     );
   applyDeathlyHaste(runtime, skill);
   if (hasTrait(runtime, TRAIT.IMPLACABLE_FOE))
-    emitHarbingerEffects(runtime, skill, requireBalanceProfileFromContext(runtime, TRAIT.IMPLACABLE_FOE).effects ?? []);
+    emitHarbingerEffects(
+      runtime,
+      skill,
+      (requireBalanceProfileFromContext(runtime, TRAIT.IMPLACABLE_FOE).effects ?? []).map((effect) => ({
+        ...effect,
+        // Keep the shroud entry as the trigger while naming the trait that grants Stability.
+        source: 'Trait',
+        sourceId: TRAIT.IMPLACABLE_FOE
+      }))
+    );
 }
 
 /** Selects and materializes Doom Approaches before the skill scheduler owns the resulting pulses. */

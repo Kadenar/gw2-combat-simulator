@@ -1,6 +1,8 @@
 import { expect, test } from '@playwright/test';
+import { mockGw2Icons } from '#tests/helpers/browser-icons.js';
 
 test.beforeEach(async ({ page }) => {
+  await mockGw2Icons(page);
   await page.goto('/mesmer.html', { waitUntil: 'domcontentloaded' });
   await expect(page.locator('#loading-overlay')).toHaveClass(/hidden/);
 });

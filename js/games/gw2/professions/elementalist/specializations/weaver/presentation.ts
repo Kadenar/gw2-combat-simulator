@@ -89,8 +89,7 @@ function eventLogRow(
     type: event.type,
     description: `${String(event.from)}/${String(event.fromSecondaryAttunement)} → ${String(event.to)}`,
     className: 'resource',
-    order: 20,
-    flags: []
+    order: 20
   };
 }
 

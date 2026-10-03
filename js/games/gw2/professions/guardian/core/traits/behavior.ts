@@ -214,7 +214,7 @@ export function righteousMight(runtime: Runtime, event: Gw2ResolverEvent): boole
   emitGuardianBoon(runtime, {
     type: 'buff',
     at: runtime.time,
-    source: 'guardian',
+    source: 'Trait',
     sourceId: TRAIT.RIGHTEOUS_INSTINCTS,
     actorType: 'player',
     skillId: TRAIT.RIGHTEOUS_INSTINCTS,
@@ -354,7 +354,7 @@ function virtueBuff(
   const event = {
     type: 'buff' as const,
     at: runtime.time,
-    source: 'guardian',
+    source: 'Trait',
     sourceId: trait,
     actorType: 'player' as const,
     skillId: cast.skill.id,

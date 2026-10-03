@@ -160,12 +160,11 @@ function assertEventDescriptors(entry, profession) {
       assert.notEqual(descriptor, undefined, `${entry.id}/${specialization} must present or suppress ${type}`);
 
       if (descriptor === null) continue;
-      assert.deepEqual(Object.keys(descriptor).sort(), ['className', 'description', 'flags', 'order', 'type'].sort());
+      assert.deepEqual(Object.keys(descriptor).sort(), ['className', 'description', 'order', 'type'].sort());
       assert.ok(String(descriptor.type).trim());
       assert.ok(String(descriptor.description).trim());
       assert.equal(typeof descriptor.className, 'string');
       assert.equal(Number.isFinite(descriptor.order), true);
-      assert.equal(Array.isArray(descriptor.flags), true);
     }
   }
 }

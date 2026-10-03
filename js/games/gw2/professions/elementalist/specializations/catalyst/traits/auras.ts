@@ -26,7 +26,7 @@ export function applyEmpoweringAura(context: ElementalistRuntime, event: Gw2Reso
     refreshElementalistBuffs(context, 'Empowering Auras', event.at, () => event.at + duration);
     const activeStacks = current.reduce((total, application) => total + (application.stacks || 1), 0);
     if (activeStacks < maximumStacks) {
-      queueElementalistBuff(context, event, 'Empowering Auras', 1, duration, resolverSourceSkill(event));
+      queueElementalistBuff(context, event, 'Empowering Auras', 1, duration, TRAIT.EMPOWERING_AURAS);
     }
 
     // Report refreshes even at the cap, where no new gameplay stack is granted.
@@ -60,7 +60,7 @@ export function applyEpitomeAura(context: ElementalistRuntime, event: Gw2Resolve
     'Elemental Empowerment',
     empowerment.stacks,
     empowerment.duration,
-    resolverSourceSkill(event)
+    TRAIT.ELEMENTAL_EPITOME
   );
 }
 
@@ -98,7 +98,7 @@ export function applySynergyCombo(context: ElementalistRuntime, event: Gw2Resolv
   ) {
     if (attunement === 'Fire' || attunement === 'Earth') {
       const boon = elementalSynergyBoon(context, attunement);
-      if (boon) queueElementalistBuff(context, event, boon.kind, boon.stacks, boon.duration, 'Elemental Synergy');
+      if (boon) queueElementalistBuff(context, event, boon.kind, boon.stacks, boon.duration, TRAIT.ELEMENTAL_SYNERGY);
     } else if (attunement === 'Air') {
       const elementalSynergyProfile = requireBalanceProfileFromContext(context, TRAIT.ELEMENTAL_SYNERGY);
 

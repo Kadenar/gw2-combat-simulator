@@ -76,7 +76,7 @@ function queueCatalystBuff(
   stacks: number,
   duration: number
 ): void {
-  queueElementalistBuff(context, event, kind, stacks, duration, 'Vicious Empowerment');
+  queueElementalistBuff(context, event, kind, stacks, duration, TRAIT.VICIOUS_EMPOWERMENT);
 }
 
 /**
@@ -122,8 +122,8 @@ export function renewBaseEmpowerment(runtime: ElementalistRuntime): void {
   if (renewAt <= runtime.time) throw new RangeError('Elemental Empowerment renewal must advance the simulation clock.');
   emitElementalistBuff(runtime, {
     at: runtime.time,
-    source: 'Elemental Empowerment',
-    sourceId: 'Elemental Empowerment',
+    source: 'Trait',
+    sourceId: TRAIT.ELEMENTAL_EMPOWERMENT,
     actorType: 'player',
     skillName: 'Elemental Empowerment',
     kind: 'elemental empowerment',

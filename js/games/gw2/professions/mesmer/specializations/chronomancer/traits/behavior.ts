@@ -1,3 +1,4 @@
+import { emitMesmerTraitBuffs } from '#gw2/professions/mesmer/core/mechanics/trait-buffs.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
 import {
@@ -25,15 +26,14 @@ export function observeChronomancerEvent(context: MesmerRuntime, event: Simulati
 
   const skillName = event.skillName || event.name || 'Control effect';
   const dangerTimeProfile = requireBalanceProfileFromContext(context, TRAIT.DANGER_TIME);
-  runtime.addEvent({
-    type: 'buff',
-    at: event.at,
-    kind: 'danger-time',
-    stacks: 1,
-    duration: balanceProfileNumber(dangerTimeProfile, 'durationMultiplier'),
-    sourceSkill: skillName
-  });
-  runtime.addTraitProc('Danger Time', event.at, skillName);
+  emitMesmerTraitBuffs(runtime, TRAIT.DANGER_TIME, event.at, skillName, [
+    {
+      kind: 'danger-time',
+      stacks: 1,
+      duration: balanceProfileNumber(dangerTimeProfile, 'durationMultiplier'),
+      sourceSkill: skillName
+    }
+  ]);
 }
 
 /** Supply repeat policy while the shared illusion lifecycle owns entities, cancellation, and conversion. */
@@ -58,7 +58,6 @@ const triggerShatterBoon = (
   context: MesmerRuntime,
   resolution: MesmerShatterResolution,
   traitId: number,
-  traitName: string,
   effectName: 'alacrity' | 'quickness'
 ): void => {
   const runtime = mesmerMechanicsFor(context);
@@ -70,23 +69,22 @@ const triggerShatterBoon = (
   const kind = String(effect.boon);
   const baseDuration = effect.duration + (resolution.spent + 1) * balanceProfileNumber(traitProfile, 'durationPerTier');
   const duration = baseDuration;
-  runtime.addEvent({
-    type: 'buff',
-    at: resolution.at,
-    kind,
-    stacks: Number(effect.stacks),
-    duration,
-    skillName: resolution.skill.name,
-    sourceSkill: resolution.skill.name,
-    audience: effect.audience
-  });
-  runtime.addTraitProc(traitName, resolution.at, resolution.skill.name, `${duration}s ${kind}`);
+  emitMesmerTraitBuffs(runtime, traitId, resolution.at, resolution.skill.name, [
+    {
+      kind,
+      stacks: Number(effect.stacks),
+      duration,
+      skillName: resolution.skill.name,
+      sourceSkill: resolution.skill.name,
+      audience: effect.audience
+    }
+  ]);
 };
 
 /** Grants Chronomancer shatter boons using player-plus-clone tiers from the committed resource spend. */
 export function resolveChronomancerShatterBoons(context: MesmerRuntime, resolution: MesmerShatterResolution): void {
-  triggerShatterBoon(context, resolution, TRAIT.STRETCHED_TIME, 'Stretched Time', 'alacrity');
-  triggerShatterBoon(context, resolution, TRAIT.SEIZE_THE_MOMENT, 'Seize the Moment', 'quickness');
+  triggerShatterBoon(context, resolution, TRAIT.STRETCHED_TIME, 'alacrity');
+  triggerShatterBoon(context, resolution, TRAIT.SEIZE_THE_MOMENT, 'quickness');
 }
 
 /** Refunds one clone only when a Chronomancer shatter commits the configured full-clone threshold. */

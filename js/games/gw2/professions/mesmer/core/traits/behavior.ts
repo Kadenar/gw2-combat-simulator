@@ -1,3 +1,4 @@
+import { emitMesmerTraitBuffs } from '#gw2/professions/mesmer/core/mechanics/trait-buffs.js';
 import { professionStaticRulesApplied } from '#gw2/platform/builds/attribute-provenance.js';
 import { advanceCriticalProc, criticalOpportunity } from '#gw2/platform/combat/critical-procs.js';
 import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
@@ -95,16 +96,15 @@ export function triggerIllusionaryMembrane(
   const illusionaryMembraneProfile = requireBalanceProfileFromContext(context.context, TRAIT.ILLUSIONARY_MEMBRANE);
   const effect = requireEffect(illusionaryMembraneProfile, 'buff', 'illusionary-membrane');
   if (!effect) return;
-  context.addEvent({
-    type: 'buff',
-    at,
-    // Resolve after the same-time shatter packets without inventing elapsed time.
-    priority: 5,
-    kind: 'illusionary-membrane',
-    stacks: Number(effect.stacks),
-    duration: effect.duration
-  });
-  context.addTraitProc('Illusionary Membrane', at, skillName);
+  emitMesmerTraitBuffs(context, TRAIT.ILLUSIONARY_MEMBRANE, at, skillName, [
+    {
+      // Resolve after the same-time shatter packets without inventing elapsed time.
+      priority: 5,
+      kind: 'illusionary-membrane',
+      stacks: Number(effect.stacks),
+      duration: effect.duration
+    }
+  ]);
 }
 
 /** Emits Method of Madness at the owning healing-skill completion position. */
@@ -282,31 +282,35 @@ export function triggerBlindingDissipation(
 }
 
 /** Emits one Fencer's Finesse stack after each eligible resolved sword hit. */
-function emitFencersFinesseStacks(context: FencersFinesseContext, skill: MesmerSkill, at: number): number {
+function emitFencersFinesseStacks(
+  context: FencersFinesseContext,
+  skill: MesmerSkill,
+  at: number,
+  announce: boolean
+): void {
   if (!hasTrait(context.context, TRAIT.FENCERS_FINESSE) || skill.weapon !== 'Sword') {
-    return Infinity;
+    return;
   }
 
   const fencersFinesseProfile = requireBalanceProfileFromContext(context.context, TRAIT.FENCERS_FINESSE);
   // The profile supplies stack lifetime; the attribute modifier owns the cap.
   const duration = balanceProfileNumber(fencersFinesseProfile, 'durationMultiplier');
-  context.addEvent({
-    type: 'buff',
+  emitMesmerTraitBuffs(
+    context,
+    TRAIT.FENCERS_FINESSE,
     at,
-    // The triggering sword packet resolves before its same-time stack.
-    priority: 5,
-    kind: 'fencer',
-    stacks: 1,
-    duration
-  });
-  return at;
-}
-
-/** Records a Fencer's Finesse proc for an eligible hit selected by the caller. */
-function recordFencersFinesseProc(context: FencersFinesseContext, skill: MesmerSkill, at: number): void {
-  if (Number.isFinite(at)) {
-    context.addTraitProc("Fencer's Finesse", at, skill.name);
-  }
+    skill.name,
+    [
+      {
+        // The triggering sword packet resolves before its same-time stack.
+        priority: 5,
+        kind: 'fencer',
+        stacks: 1,
+        duration
+      }
+    ],
+    { announce }
+  );
 }
 
 /** Materializes Master Fencer before later critical-hit trait effects. */
@@ -349,9 +353,19 @@ export function triggerMasterFencer(
     )
   )
     return;
-  context.addTraitProc('Master Fencer', event.at, event.skillName, '8s self fury, 4s allied fury');
+  // Record one canonical proc as the cause of both grants so the log can summarize their resolved durations.
+  const proc = context.state.emitDerived(event, {
+    type: 'proc',
+    procType: 'trait',
+    at: event.at,
+    name: masterFencerProfile.name,
+    sourceSkill: event.skillName,
+    source: 'Trait',
+    sourceId: TRAIT.MASTER_FENCER,
+    actorType: 'effect'
+  });
   for (const effect of furyEffects) {
-    context.emitEvent(event, {
+    context.emitEvent(proc, {
       type: 'buff',
       at: event.at,
       source: 'Trait',
@@ -434,8 +448,8 @@ export function applyFencersFinesse(runtime: MesmerRuntime, event: SimulationEve
   const mechanics = mesmerMechanicsFor(runtime);
   const skill = runtime.helpers.skillsById.get(event.skillId ?? '');
   if (!skill) return;
-  const triggerAt = event.summonKind === 'clone' ? Infinity : emitFencersFinesseStacks(mechanics, skill, event.at);
-  if (Number(event.hitIndex ?? 1) === 1) recordFencersFinesseProc(mechanics, skill, triggerAt);
+  if (event.summonKind !== 'clone')
+    emitFencersFinesseStacks(mechanics, skill, event.at, Number(event.hitIndex ?? 1) === 1);
 }
 
 /** The dispatcher supplies the duration callback while Master Fencer owns its boon attribution. */
@@ -528,18 +542,19 @@ export function triggerCompoundingPower(
   if (!hasTrait(context.context, TRAIT.COMPOUNDING_POWER) || count <= 0) return;
   const compoundingPowerProfile = requireBalanceProfileFromContext(context.context, TRAIT.COMPOUNDING_POWER);
   const duration = balanceProfileNumber(compoundingPowerProfile, 'durationMultiplier');
-  for (let index = 0; index < count; index += 1) {
-    context.addEvent({
-      type: 'buff',
-      // Simultaneous resource gains create simultaneous independent stacks.
-      at,
+  // Simultaneous gains retain independent applications under one trait activation.
+  emitMesmerTraitBuffs(
+    context,
+    TRAIT.COMPOUNDING_POWER,
+    at,
+    sourceSkill,
+    Array.from({ length: count }, () => ({
       kind: 'compounding',
       stacks: 1,
       duration
-    });
-  }
-
-  context.addTraitProc('Compounding Power', at, sourceSkill, detail);
+    })),
+    { detail }
+  );
 }
 
 /** Applies Maim the Disillusioned to the first-strike groups reported by the shatter resolver. */

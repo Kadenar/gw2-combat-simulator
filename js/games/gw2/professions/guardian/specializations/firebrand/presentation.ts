@@ -45,8 +45,7 @@ function firebrandEventLogRow(
     type: event.type,
     description: event.skillId === GUARDIAN_SKILL_IDS.STOW_TOME ? 'TOME STOWED' : 'TOME EQUIPPED ' + event.skillName,
     className: 'resource',
-    order: 30,
-    flags: []
+    order: 30
   };
 }
 

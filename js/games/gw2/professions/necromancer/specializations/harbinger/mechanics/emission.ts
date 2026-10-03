@@ -1,5 +1,5 @@
 import { isHostileTargetEvent } from '#gw2/platform/combat/state/targets.js';
-import type { EffectMetadata } from '#gw2/platform/engine/events/events.js';
+import type { EffectMetadata, SimulationEvent } from '#gw2/platform/engine/events/events.js';
 import type { Skill, SkillEffect } from '#gw2/platform/engine/skills/types.js';
 import { emitEffects } from '#gw2/platform/simulation/procedural-emission.js';
 import type { RuntimeCast } from '#gw2/platform/simulation/runtime-state.js';
@@ -12,9 +12,12 @@ export function emitHarbingerEffects(
   skill: Skill,
   effects: readonly SkillEffect[],
   cast?: RuntimeCast<NecromancerSkill>,
-  metadata?: EffectMetadata
+  metadata?: EffectMetadata,
+  cause?: SimulationEvent
 ): void {
   emitEffects(runtime, {
+    // Trait packages preserve their announcement as a common cause without changing packet timing or activation.
+    cause,
     owner: skill,
     effects,
     baseEvent: (effect) => ({

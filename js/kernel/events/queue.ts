@@ -67,16 +67,20 @@ export class StableEventQueue<T extends QueuedEvent = QueuedEvent> {
   private current: { at: number; phase: number } | null = null;
   private sameTimeCount = 0;
   private readonly phaseFor?: (event: T, current: Readonly<{ at: number; phase: number }> | null) => number;
+  private readonly prepare?: (event: T) => T;
   private readonly safetyLimit: number;
 
   constructor(
     events: readonly T[] = [],
     options: {
       phaseFor?: (event: T, current: Readonly<{ at: number; phase: number }> | null) => number;
+      /** Lets the owner stamp identity on every enqueued event before its ordering keys are captured. */
+      prepare?: (event: T) => T;
       safetyLimit?: number;
     } = {}
   ) {
     this.phaseFor = options.phaseFor;
+    this.prepare = options.prepare;
     this.safetyLimit = options.safetyLimit ?? ACTION_SAFETY_LIMIT;
     if (!Number.isSafeInteger(this.safetyLimit) || this.safetyLimit < 1) {
       throw new RangeError('Event safety limit must be a positive safe integer.');
@@ -129,7 +133,7 @@ export class StableEventQueue<T extends QueuedEvent = QueuedEvent> {
   }
 
   enqueue(event: T): T {
-    const entry = this.entry(event, this.nextSequence);
+    const entry = this.entry(this.prepare ? this.prepare(event) : event, this.nextSequence);
     this.nextSequence += 1;
     this.heap.push(entry);
     let index = this.heap.length - 1;

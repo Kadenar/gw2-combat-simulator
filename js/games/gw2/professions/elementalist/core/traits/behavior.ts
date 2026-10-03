@@ -112,9 +112,8 @@ function zephyrsBoonEffects(context: unknown) {
 /** Grants resolver-side Zephyr's Boon effects for one classified aura event. */
 export function applyResolverZephyrsBoon(context: Gw2ResolverRuntime, event: Gw2ResolverEvent): void {
   if (!hasTrait(context, TRAIT.ZEPHYRS_BOON)) return;
-  const source = event.skillName || event.name || event.source || '';
   for (const boon of zephyrsBoonEffects(context)) {
-    queueElementalistBuff(context, event, boon.kind, boon.stacks, boon.duration, source);
+    queueElementalistBuff(context, event, boon.kind, boon.stacks, boon.duration, TRAIT.ZEPHYRS_BOON);
   }
 }
 
@@ -252,8 +251,8 @@ export function applyArcaneLightning(
     emitElementalistBuff(context, {
       skill: skill,
       at,
-      source: skill.name,
-      sourceId: skill.id,
+      source: 'Trait',
+      sourceId: TRAIT.ARCANE_LIGHTNING,
       actorType: 'player',
       kind: 'arcane lightning',
       stacks: Number(arcaneWindow.stacks),
@@ -270,8 +269,8 @@ export function applyArcaneLightning(
     context.emit({
       type: 'blind',
       at,
-      source: skill.name,
-      sourceId: skill.id,
+      source: 'Trait',
+      sourceId: TRAIT.ARCANE_LIGHTNING,
       actorType: 'effect',
       skillName: skill.name,
       controlKind: 'blind'
@@ -421,7 +420,7 @@ export function applyResolverElementalShielding(context: Gw2ResolverRuntime, eve
     protection.kind,
     protection.stacks,
     protection.duration,
-    event.skillName || event.name || event.source || ''
+    TRAIT.ELEMENTAL_SHIELDING
   );
 }
 

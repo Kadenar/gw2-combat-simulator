@@ -110,15 +110,13 @@ const MESMER_EVENT_ROWS: Readonly<Record<string, (event: MesmerResolverEvent) =>
       type: event.type,
       description: `PHANTASM SUMMONED ${event.name} x${event.count}`,
       className: 'phantasm',
-      order: 20,
-      flags: ['phantasm-clone']
+      order: 20
     }),
     'mesmer.phantasm-attack': (event) => ({
       type: event.type,
       description: `PHANTASM DAMAGE COMPLETE ${event.name} x${event.count}` + (event.repeat ? ' [repeat]' : ''),
       className: 'phantasm',
-      order: 22,
-      flags: ['phantasm-clone']
+      order: 22
     })
   });
 

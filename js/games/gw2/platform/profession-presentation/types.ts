@@ -13,7 +13,6 @@ export interface ProfessionEventLogDescriptor {
   readonly description: string;
   readonly className?: string;
   readonly order?: number;
-  readonly flags?: readonly string[];
 }
 
 interface ProfessionResourceStatusItem {

@@ -60,7 +60,9 @@ test('real and synthetic Air entry honor trait gates and patched buff versus boo
         );
         for (const event of buffs) {
           assert.equal(event.at, 4);
-          assert.equal(event.sourceId, skill.id);
+          // The trait owns the grant; the triggering skill remains available for timing and attribution.
+          assert.equal(event.source, 'Trait');
+          assert.equal(event.sourceId, event.kind === 'superspeed' ? TRAIT.ONE_WITH_AIR : TRAIT.INSCRIPTION);
           assert.equal(event.skillName, skill.name);
           assert.equal(event.actorType, 'player');
         }

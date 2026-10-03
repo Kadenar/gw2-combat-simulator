@@ -1,3 +1,4 @@
+import { emitMesmerTraitBuffs } from '#gw2/professions/mesmer/core/mechanics/trait-buffs.js';
 import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
 import { professionStaticRulesApplied } from '#gw2/platform/builds/attribute-provenance.js';
 import { advanceCriticalProc, criticalOpportunity } from '#gw2/platform/combat/critical-procs.js';
@@ -30,16 +31,15 @@ export function resolveDeadlyBlades(context: MesmerRuntime, resolution: MesmerSh
 
   const at = resolution.at;
   const deadlyBladesProfile = requireBalanceProfileFromContext(context, TRAIT.DEADLY_BLADES);
-  runtime.addEvent({
-    type: 'buff',
-    at,
-    // Deadly Blades starts after the Bladesong's same-time resolution work.
-    priority: 5,
-    kind: 'deadly-blades',
-    stacks: 1,
-    duration: balanceProfileNumber(deadlyBladesProfile, 'durationMultiplier')
-  });
-  runtime.addTraitProc('Deadly Blades', at, resolution.skill.name);
+  emitMesmerTraitBuffs(runtime, TRAIT.DEADLY_BLADES, at, resolution.skill.name, [
+    {
+      // Deadly Blades starts after the Bladesong's same-time resolution work.
+      priority: 5,
+      kind: 'deadly-blades',
+      stacks: 1,
+      duration: balanceProfileNumber(deadlyBladesProfile, 'durationMultiplier')
+    }
+  ]);
 }
 
 export function phantasmalBladesDamage(context: MesmerRuntime): MesmerTraitDamage {

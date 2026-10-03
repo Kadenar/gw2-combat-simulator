@@ -321,7 +321,7 @@ test('core attunement and aura traits emit named boon and damage payloads', () =
   assert.ok(Math.abs(fireAura.duration - 5.32) < 0.001);
   for (const source of ['Sunspot', 'Arcane Prowess', 'Elemental Attunement']) {
     assert.equal(
-      fire.events.some((event) => event.source === source),
+      fire.events.some((event) => event.skillName === source),
       true,
       source
     );
@@ -332,7 +332,11 @@ test('core attunement and aura traits emit named boon and damage payloads', () =
     true
   );
   assert.deepEqual(
-    fire.events.filter((event) => event.type === 'buff' && event.source === 'Conjurer').map((event) => event.kind),
+    fire.events
+      .filter(
+        (event) => event.type === 'buff' && event.sourceId === TRAIT.ZEPHYRS_BOON && event.triggeredBy === 'Conjurer'
+      )
+      .map((event) => event.kind),
     ['fury', 'swiftness']
   );
 
@@ -351,7 +355,7 @@ test('core attunement and aura traits emit named boon and damage payloads', () =
 
   for (const source of ["Earth's Embrace", 'Earthen Blast', 'Rock Solid', 'Written in Stone']) {
     assert.equal(
-      earth.events.some((event) => event.source === source),
+      earth.events.some((event) => event.skillName === source),
       true,
       source
     );
@@ -402,7 +406,7 @@ test('core critical-hit and control traits enforce their proc rules', () => {
     'Arcane Precision'
   ]) {
     assert.equal(
-      resolvedAndScheduledEvents(critical).some((event) => event.source === source),
+      resolvedAndScheduledEvents(critical).some((event) => event.skillName === source),
       true,
       source
     );
@@ -429,7 +433,9 @@ test('core critical-hit and control traits enforce their proc rules', () => {
   });
 
   assert.equal(
-    resolvedAndScheduledEvents(stamina).some((event) => event.type === 'buff' && event.source === 'Renewing Stamina'),
+    resolvedAndScheduledEvents(stamina).some(
+      (event) => event.type === 'buff' && event.sourceId === TRAIT.RENEWING_STAMINA
+    ),
     true
   );
 });
@@ -479,7 +485,7 @@ test('Tempest traits enforce overload dwell, auras, boons, and damage windows', 
   });
 
   assert.equal(
-    healingAndShout.events.some((event) => event.source === 'Gale Song'),
+    healingAndShout.events.some((event) => event.sourceId === TRAIT.GALE_SONG),
     true
   );
   assert.equal(
@@ -521,7 +527,7 @@ test('Weaver traits enforce dual-attunement, boon, modifier, and recharge rules'
     dual.events
       .filter(
         (event) =>
-          event.type === 'buff' && event.source === 'Pyro Vortex' && ['might', 'swiftness'].includes(event.kind)
+          event.type === 'buff' && event.sourceId === TRAIT.SWIFT_REVENGE && ['might', 'swiftness'].includes(event.kind)
       )
       .map((event) => event.kind),
     ['might', 'swiftness']
@@ -586,7 +592,7 @@ test('Weaver traits enforce dual-attunement, boon, modifier, and recharge rules'
     true
   );
   assert.equal(
-    pursuit.events.some((event) => String(event.source).startsWith('Primordial Stance') && event.kind === 'protection'),
+    pursuit.events.some((event) => event.sourceId === TRAIT.BOLSTERED_ELEMENTS && event.kind === 'protection'),
     true
   );
 });
@@ -704,7 +710,7 @@ test('Evoker traits enforce familiar boons, enchantments, and charge rules', () 
   });
 
   assert.equal(
-    boons.events.some((event) => event.type === 'buff' && event.source === "Familiar's Blessing"),
+    boons.events.some((event) => event.type === 'buff' && event.sourceId === TRAIT.FAMILIARS_BLESSING),
     true
   );
   assert.equal(

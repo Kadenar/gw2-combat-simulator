@@ -166,8 +166,7 @@ function engineerEventLogRow(
       type: event.type,
       description: charges ? `Kinetic Charge - ${charges}/5` : 'Kinetic Battery activated - charges reset to 0/5',
       className: 'resource',
-      order: 30,
-      flags: []
+      order: 30
     };
   }
 

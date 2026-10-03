@@ -1,3 +1,4 @@
+import { emitMesmerTraitBuffs } from '#gw2/professions/mesmer/core/mechanics/trait-buffs.js';
 import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
 import type { Gw2ResolvedStats } from '#gw2/platform/combat/query/combat-query.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
@@ -223,17 +224,16 @@ export function triggerRaconteur(context: MesmerRuntime, skill: MesmerSkill, at:
     const raconteurProfile = requireBalanceProfileFromContext(context, TRAIT.RACONTEUR);
     const protection = requireEffect(raconteurProfile, 'boon', 'protection');
     if (!protection) return;
-    runtime.addEvent({
-      type: 'buff',
-      at,
-      kind: String(protection.boon),
-      stacks: Number(protection.stacks),
-      duration: protection.duration,
-      skillName: skill.name,
-      sourceSkill: skill.name,
-      ...partyRecipients
-    });
-    runtime.addTraitProc('Raconteur', at, skill.name);
+    emitMesmerTraitBuffs(runtime, TRAIT.RACONTEUR, at, skill.name, [
+      {
+        kind: String(protection.boon),
+        stacks: Number(protection.stacks),
+        duration: protection.duration,
+        skillName: skill.name,
+        sourceSkill: skill.name,
+        ...partyRecipients
+      }
+    ]);
   }
 }
 

@@ -1014,6 +1014,390 @@ body:not([data-rotation-focus]) .rotation-panel:has(.rotation-event-log .res-log
   color: var(--condi);
 }
 
+/* Causal tree layout: rows nest under the cast, spawned entity, or hit that produced them. */
+.log-segmented {
+  display: inline-flex;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+
+.log-segmented button {
+  padding: 4px 10px;
+  background: var(--bg-panel-alt);
+  border: 0;
+  color: var(--text-dim);
+  font-size: 11px;
+  cursor: pointer;
+}
+
+.log-segmented button + button {
+  border-left: 1px solid var(--border);
+}
+
+.log-segmented button[aria-pressed='true'] {
+  background: var(--accent);
+  color: #000;
+}
+
+.log-tree-tools {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.log-tree-tools[hidden] {
+  display: none;
+}
+
+.log-sources {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  padding-top: 2px;
+  font-size: 11px;
+  color: var(--text-dim);
+}
+
+.log-source {
+  --log-source-color: var(--text);
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 1px 8px 1px 6px;
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  color: var(--text);
+  font-size: 11px;
+  cursor: pointer;
+}
+
+.log-source::before {
+  content: '';
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--log-source-color);
+}
+
+.log-source[aria-pressed='false'] {
+  color: var(--text-dim);
+  text-decoration: line-through;
+}
+
+.log-source[aria-pressed='false']::before {
+  background: transparent;
+  box-shadow: inset 0 0 0 1px var(--log-source-color);
+}
+
+.log-source-trait,
+.log-badge-trait {
+  --log-source-color: #77cc77;
+}
+
+.log-source-relic,
+.log-badge-relic {
+  --log-source-color: #ff9955;
+}
+
+.log-source-sigil,
+.log-badge-sigil {
+  --log-source-color: #aa88ff;
+}
+
+.log-source-rune,
+.log-badge-rune {
+  --log-source-color: #e1c070;
+}
+
+.log-source-food,
+.log-badge-food {
+  --log-source-color: #c8b48a;
+}
+
+.log-source-summon,
+.log-source-clone,
+.log-badge-summon,
+.log-badge-clone {
+  --log-source-color: #c49cff;
+}
+
+.log-source-entity,
+.log-badge-entity {
+  --log-source-color: #7fd1c4;
+}
+
+.log-segmented button:focus-visible,
+.log-source:focus-visible,
+.log-toggle:focus-visible,
+.log-owner:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+
+.log-line.log-tree-line {
+  gap: 0;
+}
+
+.log-tree-line .log-time {
+  padding-right: 10px;
+}
+
+.log-tree-line .log-desc {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.log-tree-line .log-desc.cast {
+  color: var(--text-bright);
+  font-weight: 700;
+}
+
+.log-line .log-desc.entity {
+  color: #7fd1c4;
+  font-weight: 700;
+}
+
+.log-tree-root {
+  box-shadow: inset 0 1px 0 var(--border);
+}
+
+.log-time-offset {
+  color: color-mix(in srgb, var(--text-dim) 75%, transparent);
+}
+
+.log-time-late {
+  color: #e0b050;
+}
+
+.log-guides {
+  display: flex;
+  flex: none;
+}
+
+/* Guides overlap the row's bottom border so connectors stay continuous between rows. */
+.log-guide {
+  position: relative;
+  width: 16px;
+  flex: none;
+}
+
+.log-guide-pipe::before,
+.log-guide-tee::before,
+.log-guide-elbow::before {
+  content: '';
+  position: absolute;
+  left: 7px;
+  top: 0;
+  bottom: -1px;
+  border-left: 1px solid var(--border-light);
+}
+
+.log-guide-elbow::before {
+  bottom: auto;
+  height: 0.75em;
+}
+
+.log-guide-tee::after,
+.log-guide-elbow::after {
+  content: '';
+  position: absolute;
+  left: 7px;
+  right: 2px;
+  top: 0.75em;
+  border-top: 1px solid var(--border-light);
+}
+
+.log-guide-inferred::after {
+  border-top: 1px dashed #d95926;
+}
+
+.log-toggle,
+.log-toggle-space {
+  flex: 0 0 16px;
+}
+
+.log-toggle {
+  padding: 0;
+  background: none;
+  border: 0;
+  color: var(--text-dim);
+  font: inherit;
+  text-align: center;
+  cursor: pointer;
+}
+
+.log-toggle:hover {
+  color: var(--text-bright);
+}
+
+.log-badge {
+  flex: none;
+  align-self: flex-start;
+  margin: 2px 6px 0 0;
+  padding: 0 4px;
+  border: 1px solid var(--log-source-color, var(--text-dim));
+  border-radius: 3px;
+  color: var(--log-source-color, var(--text-dim));
+  font:
+    600 9px/1.4 'Segoe UI',
+    system-ui,
+    sans-serif;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.log-badge-orphan {
+  border-style: dashed;
+}
+
+.log-dimmed .log-desc,
+.log-dimmed .log-badge {
+  opacity: 0.4;
+}
+
+.log-line.log-family {
+  background: color-mix(in srgb, var(--accent) 6%, transparent);
+}
+
+.log-line.log-chain {
+  background: color-mix(in srgb, var(--accent) 16%, transparent);
+}
+
+.log-flash {
+  animation: log-flash 1.4s ease-out;
+}
+
+@keyframes log-flash {
+  from {
+    background: color-mix(in srgb, var(--accent) 45%, transparent);
+  }
+}
+
+.log-summary {
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-left: auto;
+  padding: 0 8px 0 12px;
+  color: var(--text-dim);
+  font-size: 10.5px;
+  white-space: nowrap;
+}
+
+.log-summary-hidden {
+  color: var(--accent);
+}
+
+.log-summary-metric {
+  color: var(--text);
+  font-variant-numeric: tabular-nums;
+}
+
+.log-chip {
+  padding: 0 5px;
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  line-height: 15px;
+}
+
+.log-chip.trigger {
+  color: #e1c070;
+}
+
+.log-chip.condition {
+  color: var(--condi);
+}
+
+.log-owner {
+  flex: 0 0 38px;
+  padding: 0 4px 0 0;
+  background: none;
+  border: 0;
+  border-right: 2px solid var(--border-light);
+  color: var(--text-dim);
+  font: inherit;
+  text-align: right;
+  cursor: pointer;
+}
+
+.log-owner:hover,
+.log-family .log-owner,
+.log-chain .log-owner {
+  color: var(--accent);
+  border-right-color: var(--accent);
+}
+
+.log-owner-none {
+  cursor: default;
+  border-right-color: transparent;
+}
+
+.log-trace {
+  min-height: 36px;
+  margin-top: 6px;
+  padding: 6px 10px;
+  background: var(--bg-panel-alt);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  color: var(--text-dim);
+  font-family: 'Consolas', 'Courier New', monospace;
+  font-size: 11px;
+  line-height: 1.6;
+  overflow-wrap: anywhere;
+}
+
+.log-trace-node {
+  color: var(--text-bright);
+}
+
+.log-trace-hop {
+  white-space: nowrap;
+}
+
+.log-trace-inferred {
+  color: #d95926;
+}
+
+.log-empty {
+  padding: 12px;
+  color: var(--text-dim);
+}
+
+@media (max-width: 640px) {
+  .log-summary .log-chip,
+  .log-summary-metric {
+    display: none;
+  }
+
+  .log-guide {
+    width: 12px;
+  }
+
+  .log-guide-pipe::before,
+  .log-guide-tee::before,
+  .log-guide-elbow::before,
+  .log-guide-tee::after,
+  .log-guide-elbow::after {
+    left: 5px;
+  }
+
+  .log-owner {
+    flex-basis: 30px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .log-flash {
+    animation: none;
+  }
+}
+
 .chart-wrap {
   background: var(--bg-panel);
   border: 1px solid var(--border);

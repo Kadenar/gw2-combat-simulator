@@ -4,7 +4,6 @@ import {
   requireBalanceProfileFromContext
 } from '#gw2/platform/engine/skills/balance-profiles.js';
 import type { Skill, SkillEffect } from '#gw2/platform/engine/skills/types.js';
-import { resolverSourceSkill } from '#gw2/platform/resolver/packets.js';
 import type { Gw2ResolverRuntime } from '#gw2/platform/resolver/runtime-state.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import type { RuntimeCast } from '#gw2/platform/simulation/runtime-state.js';
@@ -111,7 +110,7 @@ function grantPersistingFlames(context: Gw2ResolverRuntime, event: Gw2ResolverEv
     'Persisting Flames',
     1,
     balanceProfileNumber(persistingFlamesProfile, 'durationMultiplier'),
-    resolverSourceSkill(event)
+    TRAIT.PERSISTING_FLAMES
   );
 }
 

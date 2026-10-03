@@ -389,7 +389,8 @@ test('Earth-specialized Evoker gives Earthen Blast and Rock Solid independent co
     result.events.filter((event) => event.type === 'elementalist.attunement' && event.to === 'Earth');
   const earthenBlasts = (result) =>
     result.events.filter((event) => event.type === 'damage' && event.skillName === 'Earthen Blast');
-  const rockSolid = (result) => result.events.filter((event) => event.type === 'buff' && event.source === 'Rock Solid');
+  const rockSolid = (result) =>
+    result.events.filter((event) => event.type === 'buff' && event.sourceId === TRAIT.ROCK_SOLID);
   const earth = simulate('Earth');
   const entries = earthEntries(earth);
 

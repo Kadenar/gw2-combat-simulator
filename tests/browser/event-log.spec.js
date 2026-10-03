@@ -37,7 +37,10 @@ test('damage capture reruns the baseline and exports its calculations without pe
   await expect(page.locator('#rotation-event-log .btn-csv-export')).toHaveCount(1);
   expect(await page.evaluate(() => window.professionApp.results.totalDamage)).toBe(original.damage);
   expect(await page.evaluate(() => window.professionApp.buildRevision)).toBe(original.revision);
-  const hit = page.locator('#rotation-event-log .log-desc summary').first();
+  const hit = page
+    .locator('#rotation-event-log .log-desc summary')
+    .filter({ hasText: /^(CLONE )?HIT / })
+    .first();
   await hit.click();
   await expect(page.locator('#rotation-event-log .log-desc[open]')).toContainText('Unrounded damage:');
 
@@ -61,7 +64,10 @@ test('damage capture reruns the baseline and exports its calculations without pe
   const restoredCsvFile = page.waitForEvent('download');
   await download.click();
   expect((await restoredCsvFile).suggestedFilename()).toMatch(/\.csv$/);
-  await expect(page.locator('#rotation-event-log .log-desc summary')).toHaveCount(0);
+  // Trait application disclosures remain available when optional damage calculations are switched off.
+  await expect(page.locator('#rotation-event-log .log-desc summary').filter({ hasText: /^(CLONE )?HIT / })).toHaveCount(
+    0
+  );
   await capture.check();
   await expect(download).toBeEnabled();
   await page.setViewportSize({ width: 390, height: 844 });
@@ -139,6 +145,68 @@ test('event log preserves reading position and follows the end across updates', 
   await page.evaluate(() => window.renderLog(2));
   await expect.poll(() => log.evaluate((element) => element.scrollTop)).toBe(0);
   await expect(page.getByRole('searchbox', { name: 'Filter events' })).toHaveValue('CAST');
+
+  await page.setViewportSize({ width: 390, height: 844 });
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+});
+
+// Real event handling verifies collapsing, ancestry tracing, and revealing a chronological row inside the tree.
+test('event log tree collapses groups, traces causes, and reveals rows from the chronological layout', async ({
+  page
+}) => {
+  await page.goto('/', { waitUntil: 'domcontentloaded' });
+  await page.addStyleTag({ url: '/css/style.css' });
+  await page.evaluate(async () => {
+    const { mountEventLog } = await import('/js/ui/results/event-log.ts');
+    document.body.innerHTML = '<div id="log" class="rotation-event-log"></div>';
+    const partOf = { kind: 'recorded', label: 'part of' };
+    mountEventLog(
+      document.getElementById('log'),
+      [
+        { at: 0, type: 'cast', description: 'CAST Strike (500ms)', id: 'c1', ordinal: 1, span: 0.5 },
+        {
+          at: 0.5,
+          type: 'damage',
+          description: 'HIT Strike',
+          id: 'h1',
+          parentId: 'c1',
+          parentLink: partOf,
+          metric: 10
+        },
+        {
+          at: 0.5,
+          type: 'trigger',
+          description: 'BUFF Might',
+          id: 'b1',
+          parentId: 'h1',
+          parentLink: { kind: 'recorded', label: 'triggered by' }
+        },
+        { at: 0.5, type: 'cast_end', description: 'END Strike', parentId: 'c1', layout: 'flat' },
+        { at: 0.9, type: 'damage', description: 'HIT Echo', id: 'h2', parentId: 'c1', parentLink: partOf, metric: 20 }
+      ],
+      { initiallyOpen: true }
+    );
+  });
+  const rows = page.locator('[data-role="event-log-rows"] .log-line');
+  await expect(rows).toHaveCount(4);
+
+  await page.getByRole('button', { name: 'Collapse CAST Strike (500ms)' }).click();
+  await expect(rows).toHaveCount(1);
+  await expect(rows.first()).toContainText('+3 rows');
+  await page.getByRole('button', { name: 'Expand CAST Strike (500ms)' }).click();
+  await expect(rows).toHaveCount(4);
+
+  await rows.filter({ hasText: 'BUFF Might' }).hover();
+  await expect(page.locator('[data-role="event-log-trace"]')).toHaveText(
+    'BUFF Might ← triggered by ← HIT Strike ← part of ← CAST Strike (500ms) · #1'
+  );
+
+  await page.getByRole('button', { name: 'Chronological', exact: true }).click();
+  await expect(rows).toHaveCount(5);
+  await expect(rows.filter({ hasText: 'END Strike' })).toHaveCount(1);
+  await rows.filter({ hasText: 'HIT Echo' }).getByRole('button', { name: '#1' }).click();
+  await expect(page.getByRole('button', { name: 'Tree', exact: true })).toHaveAttribute('aria-pressed', 'true');
+  await expect(rows.filter({ hasText: 'HIT Echo' })).toBeFocused();
 
   await page.setViewportSize({ width: 390, height: 844 });
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);

@@ -1,4 +1,9 @@
 import { expect, test } from '@playwright/test';
+import { mockGw2Icons } from '#tests/helpers/browser-icons.js';
+
+test.beforeEach(async ({ page }) => {
+  await mockGw2Icons(page);
+});
 
 // A narrow embedded optimizer must collapse its artwork even inside a wide browser window.
 test('preview responds to panel width without cropping the artwork', async ({ page }) => {

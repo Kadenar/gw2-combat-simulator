@@ -4,6 +4,7 @@ import { assertFlooredDamageMultiplier } from '#tests/helpers/rounded-damage.js'
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { skillBreakdownRows } from '#gw2/app/results/skill-breakdown.js';
+import { simulationEventLogRows } from '#gw2/app/results/event-log.js';
 import { buildChartSeries } from '#gw2/app/results/model.js';
 import { createNecromancerBuildDefaults } from '#gw2/professions/necromancer/build/build.js';
 import { necromancerCatalog, necromancerProfession } from '#gw2/professions/necromancer/profession.js';
@@ -33,6 +34,33 @@ const baseConfig = Object.freeze({
 const simulate = createObservedProfessionSimulator(necromancerProfession, baseConfig);
 
 const observationTail = (durationMs) => ({ kind: 'tail', durationMs });
+
+// Meltdown's summary owns its buff while the delayed strike and condition remain independently visible.
+test('Cascading Corruption links its grants without hiding its offensive effects', () => {
+  const result = simulate('Harbinger', ['Elixir of Promise', { type: 'wait', durationMs: 1000 }], {
+    initialBlight: 5,
+    initialCascadingCorruptionStacks: 15,
+    selectedSkills: ['Elixir of Promise'],
+    selectedTraitIds: [TRAIT.CASCADING_CORRUPTION]
+  });
+  assert.deepEqual(result.warnings, []);
+  const proc = result.events.find((event) => event.type === 'proc' && event.sourceId === TRAIT.CASCADING_CORRUPTION);
+  assert.ok(proc);
+  const effects = result.events.filter((event) => event.parentEventOrder === proc.eventOrder);
+  for (const type of ['buff', 'damage', 'condition'])
+    assert.ok(
+      effects.some((event) => event.type === type),
+      type
+    );
+  const rows = simulationEventLogRows(result, null, necromancerProfession);
+  const summary = rows.find((row) => row.id === `event:${proc.eventOrder}`);
+  assert.match(summary.description, /^Cascading Corruption.*Meltdown/i);
+  for (const effect of effects) {
+    const row = rows.find((entry) => entry.id === `event:${effect.eventOrder}`);
+    if (effect.type === 'buff') assert.equal(row, undefined);
+    else assert.equal(row?.parentId, summary.id);
+  }
+});
 
 test('cancelled Essence Blast attempts emit no damage while committed blasts survive interruption', () => {
   // Exercise the custom handler's cancellation contract using the catalog's cutoff rather than pinning its value.
@@ -933,14 +961,18 @@ test('current Harbinger grandmaster traits use their live PvE mechanics', () => 
     deathlyHaste.events.filter((event) => event.kind === 'quickness' && event.sourceId !== TRAIT.SOUL_BARBS).length,
     2
   );
-  // Entry retains its skill source; Dark Barrage's grants belong to the trait at cast completion.
+  // Both grants identify Deathly Haste while retaining the particular skill and completion time.
   for (const [skillId, sourceId] of [
-    [ID.HARBINGER_SHROUD, ID.HARBINGER_SHROUD],
+    [ID.HARBINGER_SHROUD, TRAIT.DEATHLY_HASTE],
     [ID.DARK_BARRAGE, TRAIT.DEATHLY_HASTE]
   ]) {
     const action = deathlyHaste.events.find((event) => event.type === 'action' && event.skillId === skillId);
     const boons = deathlyHaste.events.filter(
-      (event) => event.type === 'buff' && event.sourceId === sourceId && ['quickness', 'fury'].includes(event.kind)
+      (event) =>
+        event.type === 'buff' &&
+        event.sourceId === sourceId &&
+        event.skillId === skillId &&
+        ['quickness', 'fury'].includes(event.kind)
     );
     assert.deepEqual(
       boons.map((event) => event.kind),

@@ -43,7 +43,7 @@ export function applyTempestResolverAura(context: ElementalistResolverContext, e
         previousExpiry === current.expiresAt ? expiresAt : previousExpiry
       );
     } else {
-      queueElementalistBuff(context, event, 'Tempestuous Aria', 1, extension, resolverSourceSkill(event));
+      queueElementalistBuff(context, event, 'Tempestuous Aria', 1, extension, TRAIT.TEMPESTUOUS_ARIA);
     }
 
     // Preserve each extension's deadline so cursor snapshots do not read a stale initial buff duration.
@@ -59,7 +59,7 @@ export function applyTempestResolverAura(context: ElementalistResolverContext, e
     if (!hasTrait(context, traitId)) continue;
     const boons = tempestAuraBoons(context, trait);
     for (const boon of boons) {
-      queueElementalistBuff(context, event, boon.kind, boon.stacks, boon.duration, resolverSourceSkill(event));
+      queueElementalistBuff(context, event, boon.kind, boon.stacks, boon.duration, traitId);
     }
 
     if (boons.length) recordElementalistTraitProc(context, event, trait);

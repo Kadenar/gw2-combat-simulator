@@ -18,6 +18,10 @@ test('Master Fencer only claims its strict ICD on a sampled critical hit', () =>
     const events = [];
     const context = {
       state: {
+        emitDerived(_cause, event) {
+          assert.equal(context.state.procs.readyAt[TRAIT.MASTER_FENCER], event.at + duration);
+          return event;
+        },
         profession: { core, specialization: { kind: 'Core', state: {} } },
         traits: new Set(),
         helpers: {
@@ -31,9 +35,6 @@ test('Master Fencer only claims its strict ICD on a sampled critical hit', () =>
       },
       stochastic: false,
       boonDuration: (_boon, duration) => duration,
-      addTraitProc(_name, at) {
-        assert.equal(context.state.procs.readyAt[TRAIT.MASTER_FENCER], at + duration);
-      },
       emitEvent(_cause, event) {
         events.push(event);
       }

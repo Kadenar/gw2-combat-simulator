@@ -67,7 +67,14 @@ export function emitProfiledBuff(
     reactionGroup: effect.reactions === undefined ? undefined : context.effectReactions.register(profile, effect),
     start: at,
     fullEnd: at,
-    baseEvent: { source, sourceId, actorType: 'player', skillId: skill.id, skillName: source }
+    // A trait profile owns the boon; the casting skill remains its trigger and duration-sampling context.
+    baseEvent: {
+      source: profile.profileKind === 'trait' ? 'Trait' : source,
+      sourceId: profile.profileKind === 'trait' ? profile.id : sourceId,
+      actorType: 'player',
+      skillId: skill.id,
+      skillName: source
+    }
   }))
     emitElementalistBuff(context, {
       ...event,

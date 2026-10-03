@@ -2,6 +2,7 @@ import { resolverSourceSkill, buildResolverCondition, buildResolverBuff } from '
 /** Shared resolver-side state, attribution, boon, and condition helpers for Elementalist behavior. */
 import { isTimeInWindow } from '#kernel/core/clock.js';
 import type { SkillId } from '#gw2/platform/engine/skills/types.js';
+import { requireBalanceProfileFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { queueResolverBoon } from '#gw2/platform/resolver/boons.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import type { Gw2ResolverRuntime } from '#gw2/platform/resolver/runtime-state.js';
@@ -42,25 +43,26 @@ export function applyElementalistDerivedCondition(
   context.applyCondition(application);
 }
 
-/** Queues a resolver-derived boon with Elementalist attribution and boon-duration scaling. */
+/** Trait grants retain the granting trait's identity separately from the attack or aura that triggered them. */
 export function queueElementalistBuff(
   context: Gw2ResolverRuntime,
   event: Gw2ResolverEvent,
   kind: string,
   stacks: number,
   duration: number,
-  source: string
+  traitId: SkillId
 ): void {
+  const profile = requireBalanceProfileFromContext(context, traitId);
   // The shared buff handler records the application when it actually resolves.
   queueResolverBoon(
     context,
     event,
     buildResolverBuff({
       at: event.at,
-      source,
-      sourceId: event.skillId ?? event.sourceId,
+      source: 'Trait',
+      sourceId: traitId,
       actorType: 'player',
-      skillName: source,
+      skillName: profile.name,
 
       kind: kind.toLowerCase(),
       stacks,

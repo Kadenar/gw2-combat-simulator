@@ -1029,7 +1029,8 @@ test('event log finishes an activation before the next same-time cast', () => {
   );
 });
 
-test('event-log mounting filters rows, escapes descriptions, and configures filename', () => {
+// A remount keeps the previous search, so only matching rows render with their escaped details.
+test('event-log mounting keeps the search, escapes descriptions, and configures filename', () => {
   let html = '';
   let mounted = false;
   const container = {
@@ -1041,15 +1042,13 @@ test('event-log mounting filters rows, escapes descriptions, and configures file
       mounted = true;
     },
     querySelector(selector) {
-      if (!mounted && selector.includes('event-log-details')) return { open: true };
+      if (mounted) return null;
+      if (selector.includes('event-log-details')) return { open: true };
+      if (selector.includes('event-log-search')) return { value: 'safe' };
 
       return null;
     },
-    querySelectorAll(selector) {
-      if (!mounted && selector.includes(':checked')) {
-        return [{ dataset: { filterId: 'kept' } }];
-      }
-
+    querySelectorAll() {
       return [];
     }
   };
@@ -1057,27 +1056,17 @@ test('event-log mounting filters rows, escapes descriptions, and configures file
   mountEventLog(
     container,
     [
-      { at: 0, type: 'one', description: 'Keep <safe>', details: ['Power <1000>'], keep: true },
-      { at: 1, type: 'two', description: 'Drop me', keep: false }
+      { at: 0, type: 'one', description: 'Keep <safe>', details: ['Power <1000>'] },
+      { at: 1, type: 'two', description: 'Drop me' }
     ],
-    {
-      filename: 'custom"name.csv',
-      filters: [
-        {
-          id: 'kept',
-          label: 'Kept only',
-          predicate: (row) => row.keep
-        }
-      ]
-    }
+    { filename: 'custom"name.csv' }
   );
 
-  assert.match(html, /Keep &lt;safe&gt;/);
-  assert.match(html, /<details class="log-desc"><summary>Keep &lt;safe&gt;<\/summary>/);
+  assert.match(html, /<details class="log-desc"><summary>Keep &lt;<mark>safe<\/mark>&gt;<\/summary>/);
   assert.match(html, /<li>Power &lt;1000&gt;<\/li>/);
   assert.doesNotMatch(html, /Drop me/);
   assert.match(html, /data-filename="custom&quot;name\.csv"/);
-  assert.match(html, /log-filter-kept/);
+  assert.match(html, /value="safe"/);
 });
 
 // Calculation details retain microseconds and actual factors without changing rows from older results.

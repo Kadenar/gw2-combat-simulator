@@ -623,8 +623,7 @@ test('profession event-log hooks present, hide, and diagnose custom events', () 
             type: 'trigger',
             description: `KIT EQUIPPED ${event.kitName}`,
             className: 'trigger',
-            order: 20,
-            flags: []
+            order: 20
           };
         }
 

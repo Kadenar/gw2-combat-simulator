@@ -94,6 +94,22 @@ import type { CastCommand } from '#gw2/platform/execution/types.js';
 import type { Skill, SkillId } from '#gw2/platform/engine/skills/types.js';
 import type { Gw2EventDraft } from '#gw2/platform/equipment/relics/types.js';
 
+/** Condition pulses are scheduled for every active stack at once, so they deliberately carry no causal identity. */
+const SHARED_PULSE_TYPES = new Set(['condition_tick', 'condition_buffer']);
+
+/** The packet fields that decide identity and causal parentage, shared by events and condition drafts. */
+interface PacketIdentity {
+  readonly type: string;
+  readonly kind?: unknown;
+  readonly eventOrder?: unknown;
+  readonly causalOrder?: unknown;
+  readonly parentEventOrder?: unknown;
+  readonly activationId?: unknown;
+  readonly actorType?: unknown;
+  readonly skillId?: unknown;
+  readonly sourceId?: unknown;
+}
+
 /** Derived copies cannot reuse the parent's declaration, including after serialization or deferral. */
 function withoutInheritedReaction(event: SimulationEventBase, cause?: Gw2ResolverEvent | null): SimulationEventBase {
   if (
@@ -139,7 +155,11 @@ export function runGw2Runtime<T extends object>({
     throw new RangeError('Combat Start must be finite and non-negative.');
   const explicitCombat = markers.length > 0 || combatStartTime != null;
   const history: Gw2ResolverEvent[] = [];
-  const queue = new StableEventQueue<Gw2ResolverEvent>([], { phaseFor: gw2ResolverPhase });
+  // Resolver code may enqueue directly; those packets receive the same identity and cause as emitted ones.
+  const queue = new StableEventQueue<Gw2ResolverEvent>([], {
+    phaseFor: gw2ResolverPhase,
+    prepare: (event) => identify(event)
+  });
   const query = createGw2CombatQuery({
     profession,
     config,
@@ -162,7 +182,70 @@ export function runGw2Runtime<T extends object>({
   const makeWork = createInternalWorkFactory<RuntimeWork>(internal);
   let runtime: Gw2Runtime<T>;
   let eventOrder = 0;
+  // The event whose handlers or reactions are running; packets created meanwhile are its reactions.
+  let currentCause: Gw2ResolverEvent | null = null;
+  // Set while scheduled work runs: summon attack loops reschedule themselves and must not inherit the first cause.
+  let causeIsScheduled = false;
+  // Each accepted cast's action, so work done for the cast outside event handling still knows its cause.
+  const castActions = new Map<string, Gw2ResolverEvent>();
+  // The cause active when each piece of internal work was scheduled.
+  const workCauses = new WeakMap<object, Gw2ResolverEvent>();
   let lethalActivation: string | undefined;
+
+  /**
+   * Names the event that caused a packet created while another event is being handled. Shared condition pulses have
+   * no single cause; a packet of another cast (a trap released at Combat Start, mines detonated by a different hit) or
+   * of the cast being handled already has its owner; and follow-up packets of the same skill are its own impacts
+   * rather than reactions. None of those record a parent.
+   */
+  function reactionParent(event: PacketIdentity): number | undefined {
+    const cause = currentCause;
+    const causeOrder = cause?.eventOrder;
+    if (!cause || causeOrder == null || SHARED_PULSE_TYPES.has(event.type)) return undefined;
+    // Summons own their scheduled attack loops; only direct reactions (a pet hit's bleed) record a cause.
+    if (causeIsScheduled && event.actorType === 'summon') return undefined;
+    const activationId = typeof event.activationId === 'string' ? event.activationId : undefined;
+    if (activationId != null && activationId !== cause.activationId && castActions.has(activationId)) return undefined;
+    if (cause.type === 'action') return activationId === cause.activationId ? undefined : causeOrder;
+    // Only a shared activation makes a same-skill packet a continuation; unattributed procs remain reactions.
+    const continuesCause =
+      activationId != null &&
+      activationId === cause.activationId &&
+      event.actorType === cause.actorType &&
+      (event.skillId ?? event.sourceId) === (cause.skillId ?? cause.sourceId);
+    return continuesCause ? undefined : causeOrder;
+  }
+
+  /**
+   * Gives a packet created outside `emit` (direct enqueues, immediate condition applications) the identity, causal
+   * placement, and parent that `emit` assigns, so every reported packet can be traced to its cause.
+   */
+  function identify<E extends PacketIdentity>(event: E): E {
+    if (event.kind === 'internal' || event.eventOrder != null || SHARED_PULSE_TYPES.has(event.type)) return event;
+    const order = ++eventOrder;
+    const parent = event.parentEventOrder ?? reactionParent(event);
+    return {
+      ...event,
+      eventOrder: order,
+      causalOrder: event.causalOrder ?? queue.currentCausalOrder ?? order,
+      ...(parent == null ? {} : { parentEventOrder: parent })
+    };
+  }
+
+  /** Runs an event's handlers, reactions, or scheduled work with it as the cause of anything they create. */
+  function withCause<R>(cause: Gw2ResolverEvent | null, run: () => R, scheduled = false): R {
+    const previous = currentCause;
+    const previousScheduled = causeIsScheduled;
+    currentCause = cause;
+    causeIsScheduled = scheduled;
+    try {
+      return run();
+    } finally {
+      currentCause = previous;
+      causeIsScheduled = previousScheduled;
+    }
+  }
+
   const executed: Gw2ResolverEvent[] = [];
   const preparedCombos = new WeakSet<Gw2ResolverEvent>();
 
@@ -224,7 +307,8 @@ export function runGw2Runtime<T extends object>({
     dispatch(stage, context, event, details) {
       // One gate protects both profession and equipment grants after the lethal packet has committed.
       if (runtime.deathTime != null && (isHostileTargetEvent(event) || event.comboId != null)) return;
-      return actualReactions.dispatch(stage, context, event, details);
+      // Reactions run inside the resolved packet's scope, so chains through immediate conditions keep exact parents.
+      return withCause(event, () => actualReactions.dispatch(stage, context, event, details));
     }
   };
   const conditions = createGw2ConditionResolution({ config, reactions });
@@ -278,7 +362,8 @@ export function runGw2Runtime<T extends object>({
         (runtime.combatStartTime != null && runtime.time < runtime.combatStartTime)
       )
         return [];
-      return conditions.applyCondition(runtime, event);
+      // Immediate applications never pass through the queue, so they take their identity here.
+      return conditions.applyCondition(runtime, identify(event));
     },
     emitDerived(cause: Gw2ResolverEvent, event: SimulationEventBase) {
       event = withoutInheritedReaction(event, cause);
@@ -298,8 +383,10 @@ export function runGw2Runtime<T extends object>({
       const { cause } = options;
       event = withoutInheritedReaction(event, cause);
       // A future buff waits for its own instant so its duration samples live stats there; a future owner-bound packet
-      // waits so retiring the owner cancels it. The work inherits the current causal placement, like any other task.
+      // waits so retiring the owner cancels it. The work inherits the current causal placement, like any other task,
+      // and records its cause now because no event is being handled when the deferred packet is finally emitted.
       if (at > runtime.time && (event.type === 'buff' || options.owner)) {
+        const parent = cause?.eventOrder ?? reactionParent(event);
         enqueueWork(
           makeWork({
             type: 'runtime.procedural',
@@ -311,6 +398,7 @@ export function runGw2Runtime<T extends object>({
                 ...(cause
                   ? { activationId: cause.activationId, causalOrder: cause.causalOrder ?? cause.eventOrder }
                   : {}),
+                ...(parent == null ? {} : { parentEventOrder: parent }),
                 ...event,
                 at
               },
@@ -361,6 +449,7 @@ export function runGw2Runtime<T extends object>({
       event = prepareGw2ComboEvent(prepared ?? event);
       if (event.kind === 'internal') throw new TypeError('Internal work must use the work factory.');
       const order = ++eventOrder;
+      const parent = reactionParent(event);
       // An equipped-weapon strike scales from the weapon wielded when it is emitted, so a delayed packet cannot
       // observe a later swap and the resolver never falls back to the skill's nonweapon profile.
       const equippedProfileId =
@@ -379,7 +468,8 @@ export function runGw2Runtime<T extends object>({
           ...(equippedProfileId ? { weaponStrengthProfileId: equippedProfileId } : {}),
           at: canonicalTime(event.at),
           eventOrder: order,
-          causalOrder: event.causalOrder ?? queue.currentCausalOrder ?? order
+          causalOrder: event.causalOrder ?? queue.currentCausalOrder ?? order,
+          ...(event.parentEventOrder == null && parent != null ? { parentEventOrder: parent } : {})
         })
       );
       if (packet.at < runtime.time) throw new RangeError('Events cannot backdate the live clock.');
@@ -447,7 +537,9 @@ export function runGw2Runtime<T extends object>({
   /** Internal packets share queue ordering but cannot become public history or report rows. */
   function enqueueWork(work: RuntimeWork): void {
     if (work.at < runtime.time) throw new RangeError('Internal work cannot backdate the live clock.');
-    queue.enqueue({ ...work, source: 'Runtime', sourceId: work.type, actorType: 'effect' });
+    const queued = queue.enqueue({ ...work, source: 'Runtime', sourceId: work.type, actorType: 'effect' });
+    // Delayed work acts for whatever scheduled it, so its unattributed effects stay that event's reactions.
+    if (currentCause) workCauses.set(queued, currentCause);
   }
 
   internal.register('runtime.effect', (_context, work) => {
@@ -488,10 +580,16 @@ export function runGw2Runtime<T extends object>({
   internal.register('runtime.cast-task', (_context, work) => {
     if (work.type !== 'runtime.cast-task') return;
     const { name, cast, skillId, data } = work.payload;
-    profession.tasks![name](runtime, {
-      ...data,
-      cast: { ...cast, skill: profession.catalog.skillsById.get(skillId)! }
-    });
+    // A cast's delayed work acts for that cast, so its unattributed effects are the cast's reactions.
+    withCause(
+      castActions.get(cast.id) ?? null,
+      () =>
+        profession.tasks![name](runtime, {
+          ...data,
+          cast: { ...cast, skill: profession.catalog.skillsById.get(skillId)! }
+        }),
+      true
+    );
   });
   internal.register('runtime.flip-expiry', (_context, work) => {
     if (work.type === 'runtime.flip-expiry')
@@ -748,6 +846,22 @@ export function runGw2Runtime<T extends object>({
       ...(comboFields ? { comboFields } : {}),
       cancelled
     });
+    castActions.set(cast.id, action);
+    // Acceptance work runs for the cast: its own packets keep their activation, other effects become its reactions.
+    withCause(action, () => acceptCastWork(cast, action, attribution, interrupted));
+  }
+
+  /** Reserves completion, pays acceptance costs, and enqueues the cast's authored packets. */
+  function acceptCastWork(
+    cast: RuntimeCast,
+    action: Gw2ResolverEvent,
+    attribution: Pick<
+      SimulationEventBase,
+      'source' | 'sourceId' | 'actorType' | 'skillId' | 'skillName' | 'activationId'
+    >,
+    interrupted: boolean
+  ): void {
+    const { skill, command, start, fullEnd, effectiveEnd } = cast;
     enqueueWork(
       makeWork({
         type: 'runtime.complete',
@@ -817,10 +931,15 @@ export function runGw2Runtime<T extends object>({
   /** Hostile rejection never stops self-state or command execution; lethal siblings settle before the combat capture. */
   function dispatch(event: Gw2ResolverEvent): void {
     if (event.kind === 'internal') {
-      internal.dispatch(event as unknown as RuntimeWork, runtime);
+      withCause(workCauses.get(event) ?? null, () => internal.dispatch(event as unknown as RuntimeWork, runtime), true);
       return;
     }
 
+    // Everything the event's handlers and equipment hooks create is a reaction to it.
+    withCause(event, () => dispatchEvent(event));
+  }
+
+  function dispatchEvent(event: Gw2ResolverEvent): void {
     event = normalizeBoonDuration(event);
     // Inherited combat boundaries remain pending until their queued marker actually executes.
     if (event.type === 'combat_start') runtime.combatStartPending = false;

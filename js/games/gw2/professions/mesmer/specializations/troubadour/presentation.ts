@@ -45,8 +45,7 @@ function troubadourEventLogRow(
     description:
       `INSTRUMENT ${event.instrument}` + (event.expiresAt ? ` until ${Number(event.expiresAt).toFixed(3)}s` : ''),
     className: 'trigger',
-    order: 55,
-    flags: []
+    order: 55
   };
 }
 

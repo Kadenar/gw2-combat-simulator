@@ -11,9 +11,23 @@ import { resultCombatReferenceMs } from '#gw2/app/shared/result-clock.js';
 import type { Gw2CanonicalBuild } from '#gw2/platform/builds/types.js';
 import { downloadJson } from '#gw2/app/import-export/files.js';
 import { damageDebugPayload } from '#gw2/app/results/damage-debug.js';
+import { consolidateTraitBuffRows } from '#gw2/app/results/trait-buff-rows.js';
+import type { AttributedEventLogRow } from '#gw2/app/results/trait-buff-rows.js';
+import {
+  CAST_LINK,
+  ENTITY_SOURCE,
+  deriveEventLogOwnership,
+  eventLogSource,
+  minionAttackerLabel
+} from '#gw2/app/results/event-ownership.js';
 
-type Gw2EventLogRow = EventLogRow & { readonly phantasmClone?: boolean };
-type OrderedEventLogRow = Gw2EventLogRow & { readonly order: number; readonly activationOrder: number };
+/** Rows keep their source event until ownership is resolved; END rows borrow their cast's event. */
+type OrderedEventLogRow = EventLogRow & {
+  readonly order: number;
+  readonly activationOrder: number;
+  readonly event?: SimulationEvent;
+  readonly castEnd?: boolean;
+};
 
 /** Show recorded formula inputs at full clock precision; the log's activation grouping is not an execution trace. */
 function damageCalculationDetails(event: SimulationEvent): string[] {
@@ -37,23 +51,11 @@ function damageCalculationDetails(event: SimulationEvent): string[] {
   ];
 }
 
-/** Converts stable minion ownership ids into readable per-minion log labels. */
-function minionAttackerLabel(event: SimulationEvent): string {
-  const match = /^minion:([^:]+):(\d+)$/.exec(String(event.summonOwner || ''));
-  if (!match) return '';
-  const name = match[1]
-    .split('-')
-    .filter(Boolean)
-    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
-    .join(' ');
-  return name ? `${name} #${Number(match[2]) + 1}` : '';
-}
-
 export function simulationEventLogRows(
   result: Gw2SimulationResult | null | undefined,
   build: Gw2CanonicalBuild | null = null,
   profession: ProfessionAppContract | null = null
-): Gw2EventLogRow[] {
+): EventLogRow[] {
   const rows: OrderedEventLogRow[] = [];
   // At equal times, finish each activation's effects and END before the next CAST,
   // while keeping instant casts before their own END and timestamps authoritative.
@@ -101,7 +103,6 @@ export function simulationEventLogRows(
     type: string,
     description: string,
     className = '',
-    phantasmClone = false,
     at: unknown = event.at
   ): void => {
     const displayAt = Number(at || 0) - displayReferenceSeconds;
@@ -111,9 +112,10 @@ export function simulationEventLogRows(
       description,
       ...(type === 'damage' && event.damageCalculation ? { details: damageCalculationDetails(event) } : {}),
       className,
-      phantasmClone,
       activationOrder: activationOrder(event),
-      order: EVENT_LOG_ORDER[type] ?? 80
+      order: EVENT_LOG_ORDER[type] ?? 80,
+      event,
+      ...(type === 'cast_end' ? { castEnd: true } : {})
     });
   };
 
@@ -132,13 +134,12 @@ export function simulationEventLogRows(
     );
     if (normalized === null) return;
     if (normalized) {
-      const { flags, ...descriptor } = normalized;
       const displayAt = Number(event.at || 0) - displayReferenceSeconds;
       rows.push({
         at: Math.abs(displayAt) < 1e-12 ? 0 : displayAt,
-        ...descriptor,
+        ...normalized,
         activationOrder: activationOrder(event),
-        phantasmClone: flags.includes('phantasm-clone')
+        event
       });
       return;
     }
@@ -170,41 +171,40 @@ export function simulationEventLogRows(
         break;
       case 'action': {
         const durationMs = Math.max(0, Math.round((Number(event.endsAt || event.at) - Number(event.at || 0)) * 1000));
-        push(event, 'cast', `CAST ${event.name} (${durationMs}ms)`);
-        push(event, 'cast_end', `END ${event.name}`, '', false, event.endsAt);
+        push(event, 'cast', `CAST ${event.name} (${durationMs}ms)`, 'cast');
+        push(event, 'cast_end', `END ${event.name}`, '', event.endsAt);
         break;
       }
 
       case 'resource': {
-        const amount = Number(event.amount || 0);
-        const resource = String(event.resource || 'resource');
-        const singular = resource.endsWith('s') ? resource.slice(0, -1) : resource;
-        const reason = event.reason ? ` [${event.reason}]` : '';
-        const created = (Array.isArray(event.created) ? event.created : [])
-          .map((rawClone: unknown) => {
-            const clone = rawClone && typeof rawClone === 'object' ? (rawClone as UnvalidatedFields) : {};
-            return `Clone #${String(clone.id ?? '')}${clone.weapon ? ` [${String(clone.weapon)}]` : ''}`;
-          })
-          .join(', ');
-        const isCloneResource = resource === 'clones';
-        if (amount > 0) {
-          push(
-            event,
-            event.type,
-            `${singular.toUpperCase()} SPAWNED x${amount} -> ${event.value}/${maximumResource}${reason}${created ? ` (${created})` : ''}`,
-            'resource',
-            isCloneResource
-          );
-        } else {
-          push(
-            event,
-            event.type,
-            `${resource.toUpperCase()} SPENT x${Math.abs(amount)} -> ${event.value}/${maximumResource}${reason}`,
-            'resource',
-            isCloneResource
-          );
-        }
-
+        // Profession resource snapshots may have no delta; let their presenter explain the actual state.
+        pushProfessionRow(event, () => {
+          const amount = Number(event.amount || 0);
+          const resource = String(event.resource || 'resource');
+          const singular = resource.endsWith('s') ? resource.slice(0, -1) : resource;
+          const reason = event.reason ? ` [${event.reason}]` : '';
+          const created = (Array.isArray(event.created) ? event.created : [])
+            .map((rawClone: unknown) => {
+              const clone = rawClone && typeof rawClone === 'object' ? (rawClone as UnvalidatedFields) : {};
+              return `Clone #${String(clone.id ?? '')}${clone.weapon ? ` [${String(clone.weapon)}]` : ''}`;
+            })
+            .join(', ');
+          if (amount > 0) {
+            push(
+              event,
+              event.type,
+              `${singular.toUpperCase()} SPAWNED x${amount} -> ${event.value}/${maximumResource}${reason}${created ? ` (${created})` : ''}`,
+              'resource'
+            );
+          } else {
+            push(
+              event,
+              event.type,
+              `${resource.toUpperCase()} SPENT x${Math.abs(amount)} -> ${event.value}/${maximumResource}${reason}`,
+              'resource'
+            );
+          }
+        });
         break;
       }
 
@@ -280,8 +280,7 @@ export function simulationEventLogRows(
         event,
         'damage',
         `${source} ${event.name}${attribution ? ` [${attribution}]` : ''} x${event.hits || 1} -> ${Math.round(Number(event.damage || 0)).toLocaleString()} damage`,
-        isCloneHit ? 'resource' : '',
-        isCloneHit
+        isCloneHit ? 'resource' : ''
       );
     } else if (event.type === 'condition') {
       // Preserve milliseconds for condition durations, matching buff durations.
@@ -294,11 +293,60 @@ export function simulationEventLogRows(
     }
   }
 
-  return rows
+  // Resolve causal ownership once every visible row exists, so parent links can skip events the log hides.
+  const shown = [...new Set(rows.flatMap((row) => (row.event && !row.castEnd ? [row.event] : [])))];
+  const { owners, entities } = deriveEventLogOwnership(shown, [
+    ...(result?.events || []),
+    ...(result?.resolvedEvents || [])
+  ]);
+  for (const entity of entities) {
+    const displayAt = Number(entity.firstEvent.at || 0) - displayReferenceSeconds;
+    rows.push({
+      at: Math.abs(displayAt) < 1e-12 ? 0 : displayAt,
+      type: 'entity',
+      description: entity.label,
+      className: 'entity',
+      activationOrder: activationOrder(entity.firstEvent),
+      order: EVENT_LOG_ORDER.entity,
+      id: entity.id,
+      parentId: entity.parentId,
+      parentLink: entity.parentLink,
+      source: ENTITY_SOURCE,
+      layout: 'tree'
+    });
+  }
+
+  let ordinal = 0;
+  const attributedRows = rows
     .sort(
       (left, right) => left.at - right.at || left.activationOrder - right.activationOrder || left.order - right.order
     )
-    .map(({ order: _order, activationOrder: _activationOrder, ...row }) => row);
+    .map(({ order: _order, activationOrder: _activationOrder, event, castEnd, ...row }): AttributedEventLogRow => {
+      const owner = event ? owners.get(event) : undefined;
+      if (!event || !owner) return row;
+      const source = eventLogSource(event);
+      // END markers fold into their cast in the tree but stay linked so the chronological layout names the owner.
+      if (castEnd)
+        return { ...row, parentId: owner.id, parentLink: CAST_LINK, ...(source ? { source } : {}), layout: 'flat' };
+      return {
+        ...row,
+        event,
+        id: owner.id,
+        ...(owner.parentId ? { parentId: owner.parentId, parentLink: owner.parentLink } : {}),
+        ...(owner.orphan ? { orphan: true } : {}),
+        ...(source ? { source } : {}),
+        // Casts carry their number and duration; hits, boons, and conditions feed the cast's summary.
+        ...(event.type === 'action'
+          ? { ordinal: ++ordinal, span: Math.max(0, Number(event.endsAt ?? event.at) - Number(event.at || 0)) }
+          : {}),
+        ...(event.type === 'damage' ? { metric: Number(event.damage || 0) } : {}),
+        ...(event.type === 'buff'
+          ? { tag: { label: effectName(event.kind, event, effectPresentations), className: 'trigger' } }
+          : {}),
+        ...(event.type === 'condition' ? { tag: { label: String(event.condition), className: 'condition' } } : {})
+      };
+    });
+  return consolidateTraitBuffRows(attributedRows, profession?.catalog?.traits ?? []);
 }
 
 export function renderEventLog(app: ProfessionAppState): void {
@@ -309,28 +357,11 @@ export function renderEventLog(app: ProfessionAppState): void {
     return;
   }
 
-  const eventLog = simulationEventLogRows(result, app.build, app.profession);
-  const hasPhantasmClone = eventLog.some((event) => event.phantasmClone);
-  mountEventLog(
-    element,
-    eventLog.map((event) => ({
-      ...event,
-      rowClassName: event.phantasmClone ? 'log-phantasm' : ''
-    })),
-    {
-      title: 'Event Log',
-      filename: app.adapter?.filenames?.eventLog || 'event-log.csv',
-      filters: hasPhantasmClone
-        ? [
-            {
-              id: 'phantasm',
-              label: 'Phantasm & Clone only',
-              predicate: (event) => Boolean(event.phantasmClone)
-            }
-          ]
-        : []
-    }
-  );
+  mountEventLog(element, simulationEventLogRows(result, app.build, app.profession), {
+    title: 'Event Log',
+    filename: app.adapter?.filenames?.eventLog || 'event-log.csv',
+    metricUnit: ['hit', 'hits']
+  });
   // Keep GW2 debug controls beside the log while the shared renderer remains game-independent.
   const controls = element.querySelector('.log-controls');
   if (!controls) return;

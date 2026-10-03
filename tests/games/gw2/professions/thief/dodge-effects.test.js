@@ -35,9 +35,10 @@ test('on-hit traits wait for damage and consumed Weakening Strikes stays consume
   assert.equal(poison.length, 2);
   assert.equal(poison[0].at, strikes[0].at);
   const log = simulationEventLogRows(result, null, withPatchPreview(thiefProfession));
-  assert.ok(log.some((row) => row.description === 'BUFF Lotus Training x1 (6s)'));
-  assert.ok(log.some((row) => row.description === 'BUFF Weakening Strikes x1 (4s)'));
-  assert.ok(log.some((row) => row.description.startsWith('BUFF Lead Attacks')));
+  // Identically named traits and buffs show their name once, with the actual grant alongside it.
+  assert.ok(log.some((row) => row.description === 'Lotus Training x1 · self 6s'));
+  assert.ok(log.some((row) => row.description === 'Weakening Strikes x1 · self 4s'));
+  assert.ok(log.some((row) => row.description.startsWith('Lead Attacks x')));
 });
 
 test('Weakening Strikes expires without a hit and a later dodge grants a fresh proc', () => {

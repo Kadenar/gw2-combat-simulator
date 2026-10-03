@@ -209,8 +209,7 @@ export function bindNecromancerCoreUi(catalog: Readonly<CanonicalCatalog<Necroma
             type: 'Self condition',
             description: String(event.name ?? event.condition ?? 'Self condition'),
             className: 'event-condition',
-            order: 0,
-            flags: []
+            order: 0
           }
         : undefined,
     assumptionControls: [...SIMULATION_RANDOMNESS_ASSUMPTION_CONTROLS, ...PERMANENT_COMBO_FIELD_ASSUMPTION_CONTROLS],

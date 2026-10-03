@@ -138,7 +138,7 @@ test('Alacrity shortens overload dwell and Lucid Singularity follows hit timing'
 
   const attunement = result.events.find((event) => event.type === 'elementalist.attunement' && event.to === 'Fire');
   const overload = result.events.find((event) => event.type === 'action' && event.skillName === 'Overload Fire');
-  const alacrity = result.events.filter((event) => event.type === 'buff' && event.source === 'Lucid Singularity');
+  const alacrity = result.events.filter((event) => event.type === 'buff' && event.sourceId === TRAIT.LUCID_SINGULARITY);
 
   const baseEntry = baseline.events.find((event) => event.type === 'elementalist.attunement' && event.to === 'Fire');
   const baseOverload = baseline.events.find((event) => event.type === 'action' && event.skillName === 'Overload Fire');

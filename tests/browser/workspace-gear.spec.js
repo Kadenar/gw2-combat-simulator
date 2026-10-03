@@ -38,22 +38,10 @@ async function chooseEquipment(page, selector, value) {
   }
 
   await display.locator('.gear-select-trigger').click();
-  await display
-    .getByRole('option')
-    .filter({ has: page.locator(`.gear-option-name`, { hasText: value }) })
-    .first()
-    .click();
+  // Match the saved value exactly so empty weapon slots and similarly named choices remain selectable.
+  await display.locator(`[role="option"][data-value="${value}"]`).click();
   await expect(page.locator(selector)).toHaveValue(value);
   if ((await editor.count()) && (await editor.isVisible())) await page.keyboard.press('Escape');
-}
-
-async function chooseWeapon(page, selector, value) {
-  const editor = page.locator(selector).locator('xpath=ancestor::*[contains(@class,"weapon-editor")]');
-  const id = await editor.getAttribute('id');
-  if (!(await editor.isVisible())) await page.locator(`[popovertarget="${id}"]`).first().click();
-  await page.locator(selector).selectOption(value);
-  await expect(page.locator(selector)).toHaveValue(value);
-  await page.keyboard.press('Escape');
 }
 
 // Replacement edits the equipped slot, preserves queued casts, and remains accessible without a mouse.
@@ -358,7 +346,7 @@ for (const profession of ['elementalist', 'engineer']) {
     });
     const alternate = profession === 'elementalist' ? 'Staff' : 'Pistol';
     const alternateSkill = profession === 'elementalist' ? 'Fireball' : 'Static Shot';
-    await chooseWeapon(page, '#sel-mh2', alternate);
+    await chooseEquipment(page, '#sel-mh2', alternate);
     await chooseEquipment(page, '#sel-stat2-1', 'Celestial');
     await chooseEquipment(page, '#sel-sig2-1', 'Corruption');
     expect(await page.evaluate(() => window.professionApp.attributeData.attributes['Condition Damage'].sigils)).toBe(
@@ -407,8 +395,8 @@ test('both weapon sets keep their own stats and sigils when switching handedness
   await expect(page.locator('#loading-overlay')).toHaveClass(/hidden/);
   for (const set of [1, 2]) {
     const section = page.getByRole('region', { name: `Weapon set ${set}`, exact: true });
-    await chooseWeapon(page, `#sel-mh${set}`, 'Sword');
-    await chooseWeapon(page, `#sel-oh${set}`, 'Focus');
+    await chooseEquipment(page, `#sel-mh${set}`, 'Sword');
+    await chooseEquipment(page, `#sel-oh${set}`, 'Focus');
     await expect(section.locator('.weapon-slot:visible')).toHaveCount(2);
     const mainHand = await section.locator('.weapon-slot').nth(0).boundingBox();
     const offHand = await section.locator('.weapon-slot').nth(1).boundingBox();
@@ -422,12 +410,12 @@ test('both weapon sets keep their own stats and sigils when switching handedness
     await chooseEquipment(page, `#sel-stat${set}-2`, "Berserker's");
     await chooseEquipment(page, `#sel-sig${set}-1`, 'Force');
     await chooseEquipment(page, `#sel-sig${set}-2`, 'Impact');
-    await chooseWeapon(page, `#sel-mh${set}`, 'Greatsword');
+    await chooseEquipment(page, `#sel-mh${set}`, 'Greatsword');
     await expect(section.locator('.weapon-slot:visible')).toHaveCount(1);
     await expect(section.locator('.weapon-slot:visible .weapon-sigil')).toHaveCount(2);
     await expect(page.locator(`#sel-oh${set}`)).toBeDisabled();
     await expect(page.locator(`#sel-stat${set}-1`)).toHaveValue("Viper's");
-    await chooseWeapon(page, `#sel-mh${set}`, 'Sword');
+    await chooseEquipment(page, `#sel-mh${set}`, 'Sword');
     await expect(page.locator(`#sel-oh${set}`)).toBeEnabled();
     await expect(page.locator(`#sel-stat${set}-2`)).toHaveValue("Berserker's");
     await expect(page.locator(`#sel-sig${set}-1`)).toHaveValue('Force');
@@ -443,7 +431,7 @@ test('both weapon sets keep their own stats and sigils when switching handedness
       return [b.gear.Weapon1, b.gear.Weapon2, ...b.alternateWeaponPrefixes, ...b.weaponSigils.flat(), b.gear.Ring1];
     })
   ).toEqual(["Viper's", "Berserker's", "Viper's", "Berserker's", 'Force', 'Impact', 'Force', 'Impact', 'Celestial']);
-  await chooseWeapon(page, '#sel-mh2', '');
+  await chooseEquipment(page, '#sel-mh2', '');
   await expect(page.locator('.weapon-set').nth(1).locator('.weapon-sigil:visible')).toHaveCount(0);
   await expect(page.locator('#attribute-preview .attribute-effects-title')).toBeVisible();
 });

@@ -30,6 +30,7 @@ export function applyBountifulTheft(runtime: ThiefRuntime, cast: RuntimeCast<Thi
       stealBoon(
         runtime,
         cast,
+        TRAIT.BOUNTIFUL_THEFT,
         String(effect.boon),
         effectNumber(profile, effect, 'duration'),
         effectNumber(profile, effect, 'stacks')
@@ -208,6 +209,7 @@ export function sleightOfHandRechargeReduction(runtime: ThiefRuntime): number {
 export function stealBoon(
   runtime: ThiefRuntime,
   cast: RuntimeCast<ThiefSkill>,
+  traitId: number,
   boon: string,
   duration: number,
   stacks: number
@@ -215,7 +217,7 @@ export function stealBoon(
   emitThiefBuff(runtime, cast.skill, {
     at: runtime.time,
     source: 'Trait',
-    sourceId: `thief.steal.${boon}`,
+    sourceId: traitId,
     activationId: cast.id,
     name: `Steal — ${boon}`,
     kind: boon,
@@ -232,6 +234,7 @@ export function applyThrillOfTheCrime(runtime: ThiefRuntime, cast: RuntimeCast<T
     stealBoon(
       runtime,
       cast,
+      TRAIT.THRILL_OF_THE_CRIME,
       String(effect.boon),
       effectNumber(profile, effect, 'duration'),
       effectNumber(profile, effect, 'stacks')

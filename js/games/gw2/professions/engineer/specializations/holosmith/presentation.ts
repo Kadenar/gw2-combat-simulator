@@ -53,8 +53,7 @@ function holosmithEventLogRow(
     type: event.type,
     description: `${event.reason || 'State'} - ` + `Heat ${Number(event.heat || 0).toFixed(1)}`,
     className: 'resource',
-    order: 30,
-    flags: []
+    order: 30
   };
 }
 

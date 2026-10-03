@@ -81,6 +81,17 @@ function evokerStateSnapshot(context: ElementalistUiContext): RotationStateSnaps
 
 /** Projects the active familiar, its availability, resources, and rotation snapshot. */
 export const evokerUi: ElementalistUiSlice = Object.freeze({
+  // Familiar packets record absolute charge totals, with a delta only when weapon skills award charges.
+  eventLogRow: (_context, event) => {
+    if (event.type !== 'resource' || event.kind !== 'evoker-charges') return undefined;
+    const change =
+      typeof event.change === 'number' && event.change !== 0 ? ` (${event.change > 0 ? '+' : ''}${event.change})` : '';
+    return {
+      type: 'resource',
+      description: `FAMILIAR CHARGES${change} → ${event.value}/${event.maximum} · empowered ${event.empowered}`,
+      className: 'resource'
+    };
+  },
   // Edit the build's familiar independently of attunement or a previous simulation's state.
   skillBarGroups: (context: ElementalistUiContext): ProfessionSkillBarGroup[] => {
     const element = selectedElement({ build: context.build });

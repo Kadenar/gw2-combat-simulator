@@ -54,6 +54,8 @@ export interface MesmerConditionApplication {
 
 /** Optional fields emitted by Mesmer controllers, beyond the shared event envelope. */
 export interface MesmerEventExtra {
+  /** Explicit cause connects scheduled trait grants to their proc announcement. */
+  readonly parentEventOrder?: number;
   /** Captures the accepted cast that owns an immediate or delayed outcome. */
   readonly activationId?: string;
   readonly metadata?: EffectMetadata;

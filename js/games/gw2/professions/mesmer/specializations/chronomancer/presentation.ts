@@ -30,8 +30,7 @@ function chronomancerEventLogRow(
     type: event.type,
     description: `PHANTASM RESUMMONED ${event.name} x${event.count} [Chronophantasma]`,
     className: 'phantasm',
-    order: 21,
-    flags: ['phantasm-clone']
+    order: 21
   };
 }
 

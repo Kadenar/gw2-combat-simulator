@@ -45,7 +45,7 @@ function applyRagingStorm(context: Gw2ResolverRuntime, event: Gw2ResolverEvent):
   const ragingStormProfile = requireBalanceProfileFromContext(context, TRAIT.RAGING_STORM);
   const fury = requireEffect(ragingStormProfile, 'boon', 'Fury');
   if (fury) {
-    queueElementalistBuff(context, event, String(fury.boon), Number(fury.stacks), fury.duration, 'Raging Storm');
+    queueElementalistBuff(context, event, String(fury.boon), Number(fury.stacks), fury.duration, TRAIT.RAGING_STORM);
   }
 }
 
@@ -145,7 +145,14 @@ function applyRenewingStamina(context: Gw2ResolverRuntime, event: Gw2ResolverEve
   const renewingStaminaProfile = requireBalanceProfileFromContext(context, TRAIT.RENEWING_STAMINA);
   const vigor = requireEffect(renewingStaminaProfile, 'boon', 'Vigor');
   if (vigor) {
-    queueElementalistBuff(context, event, String(vigor.boon), Number(vigor.stacks), vigor.duration, 'Renewing Stamina');
+    queueElementalistBuff(
+      context,
+      event,
+      String(vigor.boon),
+      Number(vigor.stacks),
+      vigor.duration,
+      TRAIT.RENEWING_STAMINA
+    );
   }
 }
 

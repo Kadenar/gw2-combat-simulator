@@ -1,3 +1,4 @@
+import { emitMesmerTraitBuffs } from '#gw2/professions/mesmer/core/mechanics/trait-buffs.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import {
@@ -9,7 +10,7 @@ import type { RuntimeCast } from '#gw2/platform/simulation/runtime-state.js';
 import { mesmerMechanicsFor } from '#gw2/professions/mesmer/core/mechanics/runtime.js';
 import { MESMER_SKILL_IDS as ID, MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
 import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
-import { emitMirageBoon, statusFromEffect } from '#gw2/professions/mesmer/specializations/mirage/mechanics/boons.js';
+import { statusFromEffect } from '#gw2/professions/mesmer/specializations/mirage/mechanics/boons.js';
 import { mirageControllerFor } from '#gw2/professions/mesmer/specializations/mirage/mechanics/runtime.js';
 import { mirageState } from '#gw2/professions/mesmer/specializations/mirage/state.js';
 import type { MesmerMirageController } from '#gw2/professions/mesmer/specializations/mirage/types.js';
@@ -54,14 +55,15 @@ export function applyMirageCloakTraits(
   executeCloneAmbushes: MesmerMirageController['executeCloneAmbushes']
 ): void {
   const runtime = mesmerMechanicsFor(state);
-  const { addEvent, addTraitProc } = runtime;
+  const { addTraitProc } = runtime;
 
   const renewingOasis = hasTrait(state, TRAIT.RENEWING_OASIS)
     ? requireEffect(requireBalanceProfileFromContext(state, TRAIT.RENEWING_OASIS), 'boon', 'regeneration')
     : undefined;
   if (renewingOasis) {
-    emitMirageBoon(addEvent, at, statusFromEffect(renewingOasis), source);
-    addTraitProc('Renewing Oasis', at, source, '4s regeneration');
+    emitMesmerTraitBuffs(runtime, TRAIT.RENEWING_OASIS, at, source, [
+      { kind: String(renewingOasis.boon), stacks: renewingOasis.stacks, duration: renewingOasis.duration }
+    ]);
   }
 
   if (hasTrait(state, TRAIT.ELUSIVE_MIND)) {
@@ -83,7 +85,8 @@ export function applyMirageCloakTraits(
 
 /** Accepted ambushes consume Riddle of Sand and emit Mirage Mantle before their window closes. */
 export function applyMirageAmbushTraits(state: MesmerRuntime, ambush: MesmerAmbushAttack, impactAt: number): void {
-  const { addEvent, addTraitProc, addCondition } = mesmerMechanicsFor(state);
+  const runtime = mesmerMechanicsFor(state);
+  const { addTraitProc, addCondition } = runtime;
 
   const riddleOfSand =
     mirageState.from(state).riddleOfSandReady && hasTrait(state, TRAIT.RIDDLE_OF_SAND)
@@ -99,8 +102,14 @@ export function applyMirageAmbushTraits(state: MesmerRuntime, ambush: MesmerAmbu
     ? requireEffect(requireBalanceProfileFromContext(state, TRAIT.MIRAGE_MANTLE), 'boon', 'alacrity')
     : undefined;
   if (mirageMantle) {
-    emitMirageBoon(addEvent, impactAt, statusFromEffect(mirageMantle), ambush.name, 'player', 'party');
-    addTraitProc('Mirage Mantle', impactAt, ambush.name, '4s alacrity');
+    emitMesmerTraitBuffs(runtime, TRAIT.MIRAGE_MANTLE, impactAt, ambush.name, [
+      {
+        kind: String(mirageMantle.boon),
+        stacks: mirageMantle.stacks,
+        duration: mirageMantle.duration,
+        audience: { recipients: 'party', maximumRecipients: 5 }
+      }
+    ]);
   }
 }
 
@@ -115,7 +124,7 @@ export function applyMirageShatterTraits(
   grantMirageCloak: MesmerMirageController['grantMirageCloak']
 ): void {
   const runtime = mesmerMechanicsFor(state);
-  const { addEvent, addTraitProc } = runtime;
+  const { addTraitProc } = runtime;
 
   if (state.config.specialization !== 'Mirage') return;
   if (
@@ -130,22 +139,22 @@ export function applyMirageShatterTraits(
     ? requireEffect(requireBalanceProfileFromContext(state, TRAIT.NOMADS_ENDURANCE), 'boon', 'vigor')
     : undefined;
   if (nominalEndurance) {
-    emitMirageBoon(addEvent, at, statusFromEffect(nominalEndurance), skill.name);
-    addTraitProc("Nomad's Endurance", at, skill.name, '3s vigor');
+    emitMesmerTraitBuffs(runtime, TRAIT.NOMADS_ENDURANCE, at, skill.name, [
+      { kind: String(nominalEndurance.boon), stacks: nominalEndurance.stacks, duration: nominalEndurance.duration }
+    ]);
   }
 
   if (hasTrait(state, TRAIT.PHANTOM_PAIN)) {
     const phantomPainProfile = requireBalanceProfileFromContext(state, TRAIT.PHANTOM_PAIN);
-    addEvent({
-      type: 'buff',
-      at,
-      // Phantom Pain starts after the same-time shatter packets resolve.
-      priority: 5,
-      kind: 'phantom-pain',
-      stacks: Math.min(balanceProfileNumber(phantomPainProfile, 'maximumStacks'), spent + 1),
-      duration: balanceProfileNumber(phantomPainProfile, 'durationMultiplier')
-    });
-    addTraitProc('Phantom Pain', at, skill.name);
+    emitMesmerTraitBuffs(runtime, TRAIT.PHANTOM_PAIN, at, skill.name, [
+      {
+        // Phantom Pain starts after the same-time shatter packets resolve.
+        priority: 5,
+        kind: 'phantom-pain',
+        stacks: Math.min(balanceProfileNumber(phantomPainProfile, 'maximumStacks'), spent + 1),
+        duration: balanceProfileNumber(phantomPainProfile, 'durationMultiplier')
+      }
+    ]);
   }
 
   if (skill.id === ID.DISTORTION && hasTrait(state, TRAIT.DESERT_DISTORTION)) {

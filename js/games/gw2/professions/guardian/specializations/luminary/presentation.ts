@@ -44,8 +44,7 @@ function luminaryEventLogRow(
     type: event.type,
     description: 'RADIANT FORGE ' + (entered ? 'ENTERED' : 'EXITED') + (event.automatic ? ' [automatic]' : ''),
     className: 'resource',
-    order: 30,
-    flags: []
+    order: 30
   };
 }
 

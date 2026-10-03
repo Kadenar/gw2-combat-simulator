@@ -87,8 +87,7 @@ const traitCases = [
       assert.ok(
         hasEvent(
           result,
-          (event) =>
-            event.type === 'buff' && event.source === 'Glyph of Elemental Harmony' && event.kind === 'swiftness'
+          (event) => event.type === 'buff' && event.sourceId === TRAIT.INSCRIPTION && event.kind === 'swiftness'
         )
       );
     }
@@ -115,7 +114,8 @@ const traitCases = [
     rotation: criticalRotation,
     startAttunement: 'Air',
     stats: criticalStats,
-    verify: (result) => assert.ok(hasEvent(result, (event) => event.type === 'buff' && event.source === 'Raging Storm'))
+    verify: (result) =>
+      assert.ok(hasEvent(result, (event) => event.type === 'buff' && event.sourceId === TRAIT.RAGING_STORM))
   },
   {
     name: "Zephyr's Boon",
@@ -124,7 +124,9 @@ const traitCases = [
     startAttunement: 'Air',
     verify: (result) =>
       assert.deepEqual(
-        result.events.filter((event) => event.type === 'buff' && event.source === 'Sunspot').map((event) => event.kind),
+        result.events
+          .filter((event) => event.type === 'buff' && event.sourceId === TRAIT.ZEPHYRS_BOON)
+          .map((event) => event.kind),
         ['fury', 'swiftness']
       )
   },
@@ -133,21 +135,21 @@ const traitCases = [
     traits: [TRAIT.ARCANE_PROWESS],
     rotation: ['Fire Attunement'],
     startAttunement: 'Air',
-    verify: (result) => assert.ok(hasEvent(result, (event) => event.source === 'Arcane Prowess'))
+    verify: (result) => assert.ok(hasEvent(result, (event) => event.sourceId === TRAIT.ARCANE_PROWESS))
   },
   {
     name: 'Elemental Attunement',
     traits: [TRAIT.ELEMENTAL_ATTUNEMENT],
     rotation: ['Fire Attunement'],
     startAttunement: 'Air',
-    verify: (result) => assert.ok(hasEvent(result, (event) => event.source === 'Elemental Attunement'))
+    verify: (result) => assert.ok(hasEvent(result, (event) => event.sourceId === TRAIT.ELEMENTAL_ATTUNEMENT))
   },
   {
     name: 'Bountiful Power',
     traits: [TRAIT.BOUNTIFUL_POWER],
     rotation: ['Air Attunement', 'Water Attunement', 'Earth Attunement', 'Fire Attunement', 'Air Attunement'],
     verify: (result) =>
-      assert.ok(hasEvent(result, (event) => event.source === 'Bountiful Power' && event.kind === 'quickness'))
+      assert.ok(hasEvent(result, (event) => event.sourceId === TRAIT.BOUNTIFUL_POWER && event.kind === 'quickness'))
   },
   {
     name: 'Evasive Arcana',
@@ -170,7 +172,7 @@ const traitCases = [
     rotation: ['Updraft'],
     startAttunement: 'Air',
     verify: (result) =>
-      assert.ok(hasEvent(result, (event) => event.type === 'buff' && event.source === 'Elemental Lockdown'))
+      assert.ok(hasEvent(result, (event) => event.type === 'buff' && event.sourceId === TRAIT.ELEMENTAL_LOCKDOWN))
   },
   {
     name: 'Arcane Precision',
@@ -188,7 +190,7 @@ const traitCases = [
     startAttunement: 'Air',
     stats: criticalStats,
     verify: (result) =>
-      assert.ok(hasEvent(result, (event) => event.type === 'buff' && event.source === 'Renewing Stamina'))
+      assert.ok(hasEvent(result, (event) => event.type === 'buff' && event.sourceId === TRAIT.RENEWING_STAMINA))
   },
   {
     name: 'Earthen Blast',
@@ -203,14 +205,15 @@ const traitCases = [
     traits: [TRAIT.ROCK_SOLID],
     rotation: ['Earth Attunement'],
     startAttunement: 'Water',
-    verify: (result) => assert.ok(hasEvent(result, (event) => event.type === 'buff' && event.source === 'Rock Solid'))
+    verify: (result) =>
+      assert.ok(hasEvent(result, (event) => event.type === 'buff' && event.sourceId === TRAIT.ROCK_SOLID))
   },
   {
     name: "Earth's Embrace",
     traits: [TRAIT.EARTHS_EMBRACE],
     rotation: ['Glyph of Elemental Harmony'],
     verify: (result) =>
-      assert.ok(hasEvent(result, (event) => event.type === 'buff' && event.source === "Earth's Embrace"))
+      assert.ok(hasEvent(result, (event) => event.type === 'buff' && event.sourceId === TRAIT.EARTHS_EMBRACE))
   },
   {
     name: 'Written in Stone',
@@ -300,7 +303,7 @@ const traitCases = [
     rotation: ['Glyph of Elemental Harmony'],
     verify: (result) => {
       assert.ok(result.events.some((event) => event.type === 'elementalist.aura' && event.source === 'Soothing Ice'));
-      assert.ok(result.events.some((event) => event.type === 'buff' && event.source === 'Soothing Ice'));
+      assert.ok(result.events.some((event) => event.type === 'buff' && event.sourceId === TRAIT.SOOTHING_ICE));
     }
   }
 ];
@@ -328,7 +331,7 @@ test('Elementalist critical reactions emit effects in registration order', (t) =
       ]) {
         const original = owner[method].bind(owner);
         t.mock.method(owner, method, (event) => {
-          if (expected.includes(event.source)) effects.push(event.source);
+          if (expected.includes(event.skillName)) effects.push(event.skillName);
           return original(event);
         });
       }
