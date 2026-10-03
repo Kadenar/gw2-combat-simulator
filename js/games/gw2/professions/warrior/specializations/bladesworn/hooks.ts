@@ -8,6 +8,7 @@ import type { Gw2Runtime, RuntimeCast, RuntimeProfession } from '#gw2/platform/s
 import { resetAutoattackChains } from '#gw2/platform/skills/autoattack-chain-controller.js';
 import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
 import { GW2_ACTION_TICK_MS } from '#gw2/platform/skills/timing.js';
+import { lockTransitionInput } from '#gw2/platform/skills/transition-delays.js';
 import { grantWarriorAdrenaline } from '#gw2/professions/warrior/core/mechanics/adrenaline.js';
 import { warriorAmmunition } from '#gw2/professions/warrior/core/mechanics/ammunition.js';
 import {
@@ -83,6 +84,8 @@ function flowTick(runtime: Runtime): void {
 /** Both sides share the already committed recharge and notify equipment without changing the configured weapon set. */
 function swapGunsaber(runtime: Runtime, cast: RuntimeCast<WarriorSkill>, active: boolean): void {
   bladeswornState.from(runtime).gunsaberActive = active;
+  // Every actual Gunsaber entry or exit shares weapon-swap recovery, including entry through Dragon Trigger.
+  lockTransitionInput(runtime, 'weaponSwapMs', cast.skill);
   resetAutoattackChains(runtime);
   resetSoldierFocus(runtime);
   const swapId = cast.skill.id === ID.DRAGON_TRIGGER ? ID.UNSHEATHE_GUNSABER : cast.skill.id;

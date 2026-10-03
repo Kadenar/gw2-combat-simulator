@@ -30,7 +30,7 @@ export function mountSimulationSettings(app: ProfessionAppState, root: Document 
     <thead><tr><th scope="col">Transition</th><th scope="col">Entry</th><th scope="col">Exit</th></tr></thead>`;
   const body = table.createTBody();
   for (const [name, entry, exit] of [
-    ['Weapon swap', 'weaponSwapMs', null],
+    ['Weapon swap / Gunsaber', 'weaponSwapMs', null],
     ['Radiant / Photon Forge', 'forgeEntryMs', 'forgeExitMs'],
     ['Thief / Necromancer Shroud', 'shroudEntryMs', 'shroudExitMs']
   ] as const) {
