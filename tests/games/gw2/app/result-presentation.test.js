@@ -1,3 +1,4 @@
+import { effectFields } from '#tests/helpers/effect-report.js';
 import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
@@ -68,23 +69,40 @@ test('shared chart lookup and series cover damage timing and configurable effect
       combatEndTime: 2,
       deathTime: 2,
       dpsStartTime: 0.5,
-      resolvedEvents: [
-        { type: 'damage', at: 0.5, damage: 100 },
-        {
-          type: 'condition',
-          at: 1,
-          condition: 'Burning',
-          duration: 2,
-          expiresAt: 2,
-          naturalExpiresAt: 3,
-          stacks: 3,
-          damage: 0,
-          damageTicks: [
-            { at: 1, damage: 50 },
-            { at: 2, damage: 250 }
-          ]
-        }
-      ],
+      ...effectFields(
+        [
+          {
+            type: 'buff',
+            at: 0,
+            kind: 'power',
+            stacks: 2,
+            duration: 2,
+            resolvedAudience: {
+              includesSelf: true,
+              includesSummons: false,
+              alliedPlayerCount: 0,
+              companionIds: [],
+              recipientCount: 1
+            }
+          },
+          { type: 'damage', at: 0.5, damage: 100 },
+          {
+            type: 'condition',
+            at: 1,
+            condition: 'Burning',
+            duration: 2,
+            expiresAt: 2,
+            naturalExpiresAt: 3,
+            stacks: 3,
+            damage: 0,
+            damageTicks: [
+              { at: 1, damage: 50 },
+              { at: 2, damage: 250 }
+            ]
+          }
+        ],
+        2
+      ),
       events: [
         {
           type: 'buff',
@@ -104,8 +122,7 @@ test('shared chart lookup and series cover damage timing and configurable effect
     },
     1000,
     {
-      effectName: (value) => `Effect <${value}>`,
-      stackCaps: { 'Effect <Burning>': 2 }
+      effectName: (value) => `Effect <${value}>`
     }
   );
 
@@ -114,8 +131,8 @@ test('shared chart lookup and series cover damage timing and configurable effect
   assert.equal(series.dps[1].v, 150);
   assert.equal(series.dps.at(-1).v, 400 / 1.5);
   assert.equal(series.cumulativeDamage.at(-1).v, 400);
-  assert.equal(series.effects['Effect <Burning>'][1].v, 2);
-  assert.equal(series.effects['Effect <Burning>'].at(-1).v, 2);
+  assert.equal(series.effects['Effect <Burning>'][1].v, 3);
+  assert.equal(series.effects['Effect <Burning>'].at(-1).v, 3);
   assert.equal(series.effects['Effect <power>'][0].v, 2);
   assert.deepEqual(series.effectTypes, {
     'Effect <Burning>': 'condition',
@@ -129,10 +146,13 @@ test('shared DPS charts start their sample grid at the first hit', () => {
     observationEndTime: 2,
     combatEndTime: 2,
     dpsStartTime: 1.156,
-    resolvedEvents: [
-      { type: 'damage', at: 1.156, damage: 3567 },
-      { type: 'damage', at: 1.32, damage: 916 }
-    ]
+    ...effectFields(
+      [
+        { type: 'damage', at: 1.156, damage: 3567 },
+        { type: 'damage', at: 1.32, damage: 916 }
+      ],
+      2
+    )
   });
 
   assert.equal(series.durationMs, 844);
@@ -152,24 +172,27 @@ test('DPS samples accumulate unordered hits and ticks without changing reporting
     deathTime: 2.1,
     totalDamage: 212,
     dps: 212 / 1.1,
-    resolvedEvents: Object.freeze([
-      Object.freeze({ type: 'damage', at: 2, damage: 20 }),
-      Object.freeze({
-        type: 'condition',
-        at: 1,
-        condition: 'Bleeding',
-        damage: 999,
-        damageTicks: Object.freeze([
-          Object.freeze({ at: 2.2, damage: 10000 }),
-          Object.freeze({ at: 1.5, damage: 30 }),
-          Object.freeze({ at: 1.25, damage: 10 }),
-          Object.freeze({ at: 2.1, damage: 40 })
-        ])
-      }),
-      Object.freeze({ type: 'damage', at: 1, damage: 100 }),
-      Object.freeze({ type: 'damage', at: 1.5, damage: 5 }),
-      Object.freeze({ type: 'damage', at: 0.75, damage: 7 })
-    ])
+    ...effectFields(
+      Object.freeze([
+        Object.freeze({ type: 'damage', at: 2, damage: 20 }),
+        Object.freeze({
+          type: 'condition',
+          at: 1,
+          condition: 'Bleeding',
+          damage: 999,
+          damageTicks: Object.freeze([
+            Object.freeze({ at: 2.2, damage: 10000 }),
+            Object.freeze({ at: 1.5, damage: 30 }),
+            Object.freeze({ at: 1.25, damage: 10 }),
+            Object.freeze({ at: 2.1, damage: 40 })
+          ])
+        }),
+        Object.freeze({ type: 'damage', at: 1, damage: 100 }),
+        Object.freeze({ type: 'damage', at: 1.5, damage: 5 }),
+        Object.freeze({ type: 'damage', at: 0.75, damage: 7 })
+      ]),
+      2.1
+    )
   };
   const metrics = baseResultSummaryMetrics(result);
   const series = buildTimeSeries(result, 500);
@@ -207,17 +230,11 @@ test('Analysis charts are prepared only when the Analysis view is active', (t) =
       combatEndTime: 1,
       totalDamage: 100,
       dps: 100,
-      procSteps: [
-        {
-          type: 'relic_proc',
-          skill: 'Test relic',
-          start: 0,
-          get expiresAt() {
-            chartReads++;
-            return 1000;
-          }
-        }
-      ]
+      ...effectFields([], 1),
+      get effectReport() {
+        chartReads++;
+        return effectFields([], 1).effectReport;
+      }
     }
   };
   for (const view of ['workspace', 'gear-optimizer', 'analysis', 'workspace', 'analysis']) {
@@ -242,20 +259,23 @@ test('target health breakpoints use cumulative damage and individual condition t
   const snapshots = targetHealthBreakpointSnapshots(
     {
       dpsStartTime: 0.5,
-      resolvedEvents: [
-        { type: 'damage', at: 0.5, damage: 100 },
-        {
-          type: 'condition',
-          at: 0.75,
-          damage: 350,
-          damageTicks: [
-            { at: 1, damage: 150 },
-            { at: 1.5, damage: 200 }
-          ]
-        },
-        { type: 'damage', at: 1.5, damage: 200 },
-        { type: 'damage', at: 2, damage: 200 }
-      ]
+      ...effectFields(
+        [
+          { type: 'damage', at: 0.5, damage: 100 },
+          {
+            type: 'condition',
+            at: 0.75,
+            damage: 350,
+            damageTicks: [
+              { at: 1, damage: 150 },
+              { at: 1.5, damage: 200 }
+            ]
+          },
+          { type: 'damage', at: 1.5, damage: 200 },
+          { type: 'damage', at: 2, damage: 200 }
+        ],
+        120
+      )
     },
     1000
   );
@@ -280,10 +300,13 @@ test('target health breakpoints use cumulative damage and individual condition t
     targetHealthBreakpointSnapshots(
       {
         dpsStartTime: 0,
-        resolvedEvents: [
-          { type: 'damage', at: 1, damage: 100 },
-          { type: 'damage', at: 2, damage: 100 }
-        ]
+        ...effectFields(
+          [
+            { type: 'damage', at: 1, damage: 100 },
+            { type: 'damage', at: 2, damage: 100 }
+          ],
+          120
+        )
       },
       1000,
       [80, 40, 20],
@@ -298,7 +321,7 @@ test('target health breakpoints use environment damage for timing but player dam
   const snapshots = targetHealthBreakpointSnapshots(
     {
       dpsStartTime: 0.5,
-      resolvedEvents: [{ type: 'damage', at: 0.5, damage: 100 }],
+      ...effectFields([{ type: 'damage', at: 0.5, damage: 100 }], 120),
       environmentConditionBreakdown: [
         {
           name: 'Burning',
@@ -495,10 +518,13 @@ for (const [startingHealthPercent, targetDied] of [
         deathTime: targetDied ? 10 : null,
         totalDamage: startingHealthPercent - (targetDied ? 0 : 10),
         conditionDamage: 0,
-        resolvedEvents: [
-          { type: 'damage', at: 8, damage: startingHealthPercent - 20 },
-          { type: 'damage', at: 10, damage: targetDied ? 20 : 10 }
-        ]
+        ...effectFields(
+          [
+            { type: 'damage', at: 8, damage: startingHealthPercent - 20 },
+            { type: 'damage', at: 10, damage: targetDied ? 20 : 10 }
+          ],
+          10
+        )
       }
     });
     view.analysis.panels[0].mount(container);
@@ -1087,7 +1113,7 @@ test('event log exposes optional damage calculations at full simulation precisio
     damage: 10,
     criticalChance: 0
   };
-  const result = { events: [], resolvedEvents: [event] };
+  const result = { events: [], ...effectFields([event], 120) };
   assert.equal(simulationEventLogRows(result)[0].details, undefined);
   const damageCalculation = {
     phase: 'Ordinary',
@@ -1101,7 +1127,7 @@ test('event log exposes optional damage calculations at full simulation precisio
     unroundedDamage: 10,
     rounding: 'floor'
   };
-  const row = simulationEventLogRows({ ...result, resolvedEvents: [{ ...event, damageCalculation }] })[0];
+  const row = simulationEventLogRows({ ...result, ...effectFields([{ ...event, damageCalculation }], 120) })[0];
   assert.ok(row.details.includes('Simulation time: 0.600001s; phase: Ordinary'));
   assert.ok(row.details.includes('Target health before: unbounded; fraction: unbounded'));
   assert.ok(row.details.includes('Unrounded damage: 10; rounding: floor; damage: 10'));

@@ -1,3 +1,5 @@
+import { timedEffectState } from '#gw2/platform/combat/effect-state.js';
+import { BLIGHT_MAXIMUM_STACKS } from '#gw2/professions/necromancer/specializations/harbinger/state.js';
 import { isHostileTargetEvent } from '#gw2/platform/combat/state/targets.js';
 import { effectFirstAt, scaleCastBoundTiming } from '#gw2/platform/engine/effects/materializer.js';
 import type { EffectMetadata, SimulationEvent } from '#gw2/platform/engine/events/events.js';
@@ -152,6 +154,25 @@ function launchMovement(runtime: NecromancerRuntime, cast: RuntimeCast<Necromanc
 
 /** Blight lives on the one runtime; shroud callbacks own every entry and exit, including automatic depletion. */
 export const harbingerHooks: Partial<RuntimeProfession<NecromancerRuntimeState, NecromancerSkill>> = {
+  // Observe the same retained pools and mode flags that Harbinger combat mutates.
+  observeEffects(runtime) {
+    const state = harbingerState.from(runtime);
+    return [
+      timedEffectState(
+        'harbinger-blight',
+        state.blightExpiries.map((expiresAt) => ({ expiresAt, stacks: 1 })),
+        BLIGHT_MAXIMUM_STACKS,
+        { name: 'Blight' }
+      ),
+      timedEffectState(
+        'harbinger-shroud',
+        runtime.profession.core.activeShroud ? [{ stacks: 1, expiresAt: null }] : [],
+        1,
+        { name: 'Harbinger Shroud' }
+      ),
+      timedEffectState('meltdown', [{ stacks: 1, expiresAt: state.meltdownUntil }], 1)
+    ];
+  },
   initialize(runtime) {
     initializeAlchemicVigor(runtime);
 

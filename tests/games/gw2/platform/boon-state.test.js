@@ -148,8 +148,15 @@ test('buff recording requires an audience and retains normalized application his
   assert.equal(boons.get('might'), history);
   assert.equal(boons.size, 1);
   assert.deepEqual(history, [
-    { at: 1, expiresAt: 3, stacks: 3, source: 'Trait', resolvedAudience },
-    { at: 5, expiresAt: 5, stacks: 1, source: 'Trait', resolvedAudience }
+    { at: 1, expiresAt: 3, stacks: 3, source: 'Trait', resolvedAudience, event: { ...event, resolvedAudience } },
+    {
+      at: 5,
+      expiresAt: 5,
+      stacks: 1,
+      source: 'Trait',
+      resolvedAudience,
+      event: { ...event, kind: 'might', at: 5, duration: 0, stacks: 0, resolvedAudience }
+    }
   ]);
 });
 

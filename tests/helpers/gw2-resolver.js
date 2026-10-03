@@ -9,6 +9,7 @@ export function resolveTestGw2Events({
   warnings = [],
   profession,
   professionReactions = {},
+  buffPolicies = [],
   query = {},
   helpers = {},
   traits,
@@ -22,7 +23,9 @@ export function resolveTestGw2Events({
     combatStartTime,
     rotation: [{ type: 'wait', durationMs: endTime * 1000 }],
     profession: {
+      // Fixture-only effects declare their reporting policy alongside their injected packets.
       ...native,
+      buffPolicies: (runtime) => [...(native.buffPolicies?.(runtime) ?? []), ...buffPolicies],
       reactions: { ...native.reactions, ...professionReactions },
       initialize(runtime) {
         native.initialize?.(runtime);

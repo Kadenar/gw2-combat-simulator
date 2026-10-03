@@ -1,10 +1,10 @@
+import { timedBuffAt, timedBuffStacksAt } from '#gw2/platform/results/query.js';
 import type {
   ProfessionAttributePreviewContext,
   ProfessionAttributePreviewPreparation
 } from '#gw2/platform/profession-presentation/attribute-preview.js';
 import { createAttributePreviewControls } from '#gw2/professions/shared/attribute-preview.js';
 import { readProfessionSpecializationState } from '#gw2/platform/engine/profession/state.js';
-import { activeStackCount } from '#gw2/platform/combat/resources/timed-stacks.js';
 import {
   balanceProfileNumber,
   requireBalanceProfileFromContext
@@ -28,45 +28,12 @@ function uiState(context: ElementalistUiContext): Partial<CatalystState> {
   return context.professionState || {};
 }
 
-// Replay grants and refresh observations together so capped refreshes preserve
-// live stacks without adding stacks or reviving expired ones.
-function empoweringAurasAt(context: ElementalistUiContext, at: number): { stacks: number; remaining: number } | null {
-  const empoweringAurasProfile = requireBalanceProfileFromContext(context.balanceContext, TRAIT.EMPOWERING_AURAS);
-  const maximum = balanceProfileNumber(empoweringAurasProfile, 'maximumStacks');
-  let expiries: number[] = [];
-  const applications = (context.result?.events || [])
-    .filter((event) => event.type === 'buff' && event.kind === 'empowering auras')
-    .map((event) => ({
-      at: event.at,
-      expiresAt: event.at + (event.duration || 0),
-      stacks: Math.max(1, event.stacks || 1)
-    }));
-  const refreshes = (context.result?.procSteps || [])
-    .filter((proc) => proc.type === 'trait_proc' && proc.skill === 'Empowering Auras')
-    .map((proc) => ({ at: proc.start / 1000, expiresAt: (proc.expiresAt || 0) / 1000, stacks: 0 }));
-  for (const event of [...applications, ...refreshes].sort((a, b) => a.at - b.at)) {
-    const applicationAt = event.at;
-    if (applicationAt > at) break;
-    expiries = expiries.filter((expiry) => expiry > applicationAt);
-    const expiresAt = event.expiresAt;
-    // Empowering Auras refreshes every active stack whenever another aura is
-    // gained, then adds one stack up to five; replay that refresh contract.
-    expiries = expiries.map(() => expiresAt);
-    for (let stack = 0; stack < event.stacks && expiries.length < maximum; stack += 1) {
-      if (expiresAt > applicationAt) expiries.push(expiresAt);
-    }
-  }
-
-  expiries = expiries.filter((expiry) => expiry > at);
-  return expiries.length ? { stacks: expiries.length, remaining: Math.min(...expiries) - at } : null;
-}
-
 /** Shows timed Catalyst combat state that changes decisions at the inspected rotation point. */
 function catalystStateSnapshot(context: ElementalistUiContext): RotationStateSnapshotItem[] {
   const state = uiState(context);
   const at = Math.max(0, context.atSeconds || 0);
   const items: RotationStateSnapshotItem[] = [];
-  const empowerment = activeStackCount(state.elementalEmpowermentExpiries || [], at);
+  const empowerment = timedBuffStacksAt(context.result, 'elemental empowerment', at);
   if (empowerment > 0) {
     const elementalEmpowermentProfile = requireBalanceProfileFromContext(
       context.balanceContext,
@@ -76,18 +43,18 @@ function catalystStateSnapshot(context: ElementalistUiContext): RotationStateSna
     items.push({
       id: 'catalyst-elemental-empowerment',
       label: 'Elemental Empowerment',
-      value: `${Math.min(maximum, empowerment)}/${maximum}`,
+      value: `${empowerment}/${maximum}`,
       title: 'Active Elemental Empowerment stacks'
     });
   }
 
-  const empoweringAuras = empoweringAurasAt(context, at);
+  const empoweringAuras = timedBuffAt(context.result, 'empowering auras', at);
   if (empoweringAuras) {
     const empoweringAurasProfile = requireBalanceProfileFromContext(context.balanceContext, TRAIT.EMPOWERING_AURAS);
     items.push({
       id: 'catalyst-empowering-auras',
       label: 'Empowering Auras',
-      value: `${empoweringAuras.stacks}/${balanceProfileNumber(empoweringAurasProfile, 'maximumStacks')} · ${empoweringAuras.remaining.toFixed(1)}s`,
+      value: `${timedBuffStacksAt(context.result, 'empowering auras', at)}/${balanceProfileNumber(empoweringAurasProfile, 'maximumStacks')} · ${empoweringAuras.remaining.toFixed(1)}s`,
       title: 'Active Empowering Auras stacks and refreshed duration remaining'
     });
   }
@@ -107,14 +74,12 @@ function catalystStateSnapshot(context: ElementalistUiContext): RotationStateSna
 }
 
 /** Publishes Catalyst effect presentation from its active balance profile. */
-function catalystEffectPresentations(context: ElementalistUiContext): ProfessionEffectPresentation[] {
-  const elementalEmpowermentProfile = requireBalanceProfileFromContext(context, TRAIT.ELEMENTAL_EMPOWERMENT);
+function catalystEffectPresentations(_context: ElementalistUiContext): ProfessionEffectPresentation[] {
   return [
     {
       id: 'elementalist-elemental-empowerment',
       kind: 'elemental empowerment',
-      name: 'Elemental Empowerment',
-      maximumStacks: balanceProfileNumber(elementalEmpowermentProfile, 'maximumStacks')
+      name: 'Elemental Empowerment'
     }
   ];
 }

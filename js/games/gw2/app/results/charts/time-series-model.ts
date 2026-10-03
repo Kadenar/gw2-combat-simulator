@@ -1,10 +1,7 @@
-import type { Gw2ProcStep, Gw2ResolverEvent, Gw2ResolverResult } from '#gw2/platform/resolver/types.js';
-import { buffApplicationStacks, isStandardBoon, remainingDurationStackSeconds } from '#gw2/platform/combat/boons.js';
-import { boonApplicationsAt } from '#gw2/platform/combat/boons.js';
+import { effectStateAt, effectSummary } from '#gw2/platform/results/effect-report.js';
+import type { Gw2ResolverEvent, Gw2ResolverResult } from '#gw2/platform/resolver/types.js';
 import type { SkillHit } from '#gw2/app/results/charts/hit-timeline-model.js';
-import { eventCausalOrder } from '#kernel/events/queue.js';
-import { gw2EffectExpiresAt } from '#gw2/platform/skills/timing.js';
-import { buildBoonGeneration, type BoonGenerationByAudience } from '#gw2/app/results/charts/boon-generation.js';
+import { type BoonGenerationByAudience } from '#gw2/platform/results/boon-generation.js';
 import { clamp } from '#kernel/core/numeric.js';
 
 // Builds renderer-independent chart data so simulations and views share one time-series contract.
@@ -61,29 +58,9 @@ export interface ChartSeries {
 
 export interface BuildChartSeriesOptions {
   readonly effectName?: (value: unknown, event: Gw2ResolverEvent) => string;
-  readonly effectType?: (value: unknown, event: Gw2ResolverEvent) => ChartEffectType;
-  readonly replacementGroup?: (value: unknown, event: Gw2ResolverEvent) => string;
-  readonly timedProcEffect?: (proc: Gw2ProcStep) => { readonly name: string; readonly type?: ChartEffectType } | null;
-  readonly stateEffects?: (event: Gw2ResolverEvent) => readonly {
-    readonly name: string;
-    readonly stacks: number;
-    readonly expiresAt?: number;
-  }[];
-  readonly stackCaps?: Readonly<Record<string, number>>;
-  readonly durationStackCaps?: Readonly<Record<string, number>>;
   // Attributes a resolved damage/condition event to a skill breakdown row key
   // (`group|name`), or null to omit it from the per-skill damage series.
   readonly skillKey?: (event: Gw2ResolverEvent) => string | null;
-}
-
-interface ChartEffectApplication {
-  readonly extension?: boolean;
-  readonly name: string;
-  readonly type: ChartEffectType;
-  readonly start: number;
-  readonly end: number;
-  readonly stacks: number;
-  readonly replacementGroup: string;
 }
 
 function eventDamageTicks(event: Gw2ResolverEvent): Array<{ at: number; damage: number; fraction?: number }> {
@@ -105,21 +82,12 @@ export function chartValueAt(points: readonly ChartPoint[], time: number): numbe
 export function buildTimeSeries(
   result: Gw2ResolverResult,
   sampleStepMs = 250,
-  {
-    effectName = (value) => String(value || ''),
-    effectType = (_value, event) => (event.type === 'condition' ? 'condition' : 'buff'),
-    replacementGroup = () => '',
-    timedProcEffect,
-    stateEffects,
-    stackCaps = {},
-    durationStackCaps = {},
-    skillKey
-  }: BuildChartSeriesOptions = {}
+  { effectName = (value) => String(value || ''), skillKey }: BuildChartSeriesOptions = {}
 ): ChartSeries {
   // Chart time is relative to the DPS window, while simulation events use
   // absolute seconds. Keep the conversion at this boundary.
   const dpsStartMs = Math.max(0, Number(result.dpsStartTime ?? result.firstHitTime ?? 0) * 1000);
-  const endMs = Math.max(dpsStartMs, Math.round(result.combatEndTime * 1000));
+  const endMs = Math.max(dpsStartMs, result.combatEndTime * 1000);
   const durationMs = Math.max(1, endMs - dpsStartMs);
   const interval = clamp(Number(sampleStepMs) || 250, 50, 1000);
   const times: number[] = [];
@@ -151,262 +119,100 @@ export function buildTimeSeries(
 
     return { t: time, v: damage / elapsed };
   });
-  const applications: ChartEffectApplication[] = [];
-  // State snapshots persist until replaced or expired, including zero states that close an active window.
-  for (const event of result.events || resolved) {
-    for (const effect of stateEffects?.(event) || []) {
-      applications.push({
-        name: effect.name,
-        type: 'buff',
-        start: event.at * 1000 - dpsStartMs,
-        end: effect.expiresAt == null ? endMs - dpsStartMs : effect.expiresAt * 1000 - dpsStartMs,
-        stacks: effect.stacks,
-        replacementGroup: `state:${effect.name}`
-      });
-    }
-  }
-
-  // Convert conditions and buffs to half-open [start, end) stack intervals.
-  for (const event of resolved) {
-    if (event.type !== 'condition') continue;
-    const start = Number(event.at || 0) * 1000 - dpsStartMs;
-    const end =
-      Number(
-        event.naturalExpiresAt ??
-          event.expiresAt ??
-          Number(event.at || 0) + Number(event.effectiveDuration ?? event.duration ?? 0)
-      ) *
-        1000 -
-      dpsStartMs;
-    if (end > start) {
-      applications.push({
-        name: effectName(event.condition, event),
-        type: effectType(event.condition, event),
-        start,
-        end,
-        stacks: Number(event.stacks || 1),
-        replacementGroup: replacementGroup(event.condition, event)
-      });
-    }
-  }
-
-  // Resolved buffs include trait procs and final audiences; scheduled-only results remain supported.
-  const combatMarker = [...(result.events || []), ...resolved].find((event) => event.type === 'combat_start');
-  const combatStart = Number(result.combatStartTime ?? combatMarker?.at ?? dpsStartMs / 1000);
-  const markerOrder = combatMarker ? eventCausalOrder(combatMarker) : null;
-  // Combat strips prepared boons. Discard their history before computing graphs, uptime, or generation;
-  // an explicit marker can precede the first hit, and its causal order separates same-time preparation.
-  const buffs = (resolved.some((event) => event.type === 'buff') ? resolved : result.events || []).filter((event) => {
-    if (event.cancelled || event.actorType === 'environment') return false;
-    if (event.type !== 'boon_extension' && !(event.type === 'buff' && isStandardBoon(event.kind))) return true;
-    const order = eventCausalOrder(event);
-    return (
-      event.at >= combatStart &&
-      !(event.at === combatStart && markerOrder != null && order != null && order < markerOrder)
-    );
-  });
-  const boonGeneration = buildBoonGeneration(buffs, combatStart, endMs / 1000);
-  const generation = new Map(
-    [...boonGeneration.boons].map(([kind, value]) => [
-      effectName(
-        kind,
-        buffs.find((event) => event.type === 'buff' && String(event.kind).toLowerCase() === kind)!
-      ),
-      value
-    ])
-  );
-  const hasExtensions = buffs.some((event) => event.type === 'boon_extension');
-  const extendedKinds = new Set<string>();
-  for (const event of buffs) {
-    // Reconstruct standard boon history once so plots show the same extensions and caps as combat queries.
-    if (hasExtensions && event.type === 'buff' && isStandardBoon(event.kind)) {
-      const kind = String(event.kind);
-      if (extendedKinds.has(kind)) continue;
-      extendedKinds.add(kind);
-      for (const application of boonApplicationsAt(buffs, kind, Infinity)) {
-        if (!application.resolvedAudience.includesSelf) continue;
-        applications.push({
-          name: effectName(kind, event),
-          type: effectType(kind, event),
-          start: application.at * 1000 - dpsStartMs,
-          end: application.expiresAt * 1000 - dpsStartMs,
-          stacks: application.stacks,
-          extension: application.extension,
-          replacementGroup: replacementGroup(kind, event)
-        });
-      }
-
-      continue;
-    }
-
-    // Generic buffs and materialized boons share timed-effect visualization.
-    if (event.type !== 'buff' || event.resolvedAudience?.includesSelf !== true || !Number(event.duration || 0)) {
-      continue;
-    }
-
-    const start = Number(event.at || 0) * 1000 - dpsStartMs;
-    applications.push({
-      name: effectName(event.kind, event),
-      type: effectType(event.kind, event),
-      start,
-      end: gw2EffectExpiresAt(Number(event.at || 0), Number(event.duration)) * 1000 - dpsStartMs,
-      stacks: Number(event.stacks || 1),
-      replacementGroup: replacementGroup(event.kind, event)
-    });
-  }
-
-  // Timed proc records describe state windows that do not necessarily emit a
-  // buff event. A refresh replaces the previous stack state instead of adding to it.
-  const procStackCaps: Record<string, number> = {};
-  const relicEffects = new Set<string>();
-  if (timedProcEffect) {
-    for (const proc of result.procSteps || []) {
-      const effect = timedProcEffect(proc);
-      const start = Number(proc.start) - dpsStartMs;
-      const end = Number(proc.expiresAt ?? (proc.effectState ? endMs : NaN)) - dpsStartMs;
-      if (!effect?.name || !Number.isFinite(start) || !Number.isFinite(end) || end <= start) continue;
-      applications.push({
-        name: effect.name,
-        type: effect.type || 'buff',
-        start,
-        end,
-        stacks: proc.effectState?.stacks ?? 1,
-        replacementGroup: `timed-proc:${effect.name}`
-      });
-      if (proc.effectState) procStackCaps[effect.name] = proc.effectState.maximumStacks;
-      if (proc.type === 'relic_proc') relicEffects.add(effect.name);
-    }
-  }
-
+  // Engine timelines contain accepted state and exact lifetimes; charts only select and sample tracks.
+  const report = result.effectReport;
   const effects: Record<string, ChartPoint[]> = {};
-  const effectTypes: Record<string, ChartEffectType> = {};
-  const effectSummaries: Record<string, ChartEffectSummary> = {};
-  for (const name of new Set(applications.map((entry) => entry.name))) {
-    if (!applications.some((entry) => entry.name === name && entry.stacks > 0 && entry.end > entry.start)) continue;
-    const matching = applications
-      .filter((entry) => entry.name === name)
-      .sort((left, right) => left.start - right.start);
-    effectTypes[name] = matching[0]?.type || 'buff';
-    const durationApplications = matching.map((entry) => ({
-      extension: entry.extension,
-      at: entry.start / 1000,
-      duration: (entry.end - entry.start) / 1000,
-      stacks: entry.stacks
-    }));
-    const maximumStacks = procStackCaps[name] ?? stackCaps[name];
-    const valueAt = (time: number): number => {
-      if (durationStackCaps[name] != null) {
-        return remainingDurationStackSeconds(durationApplications, time / 1000, {
-          maximum: durationStackCaps[name]
-        });
-      }
-
-      const activeReplacements = new Map<string, (typeof applications)[number]>();
-      for (const entry of applications) {
-        if (!entry.replacementGroup || entry.start > time) continue;
-        const active = activeReplacements.get(entry.replacementGroup);
-        if (!active || entry.start >= active.start) {
-          activeReplacements.set(entry.replacementGroup, entry);
-        }
-      }
-
-      return Math.min(
-        maximumStacks ?? Infinity,
-        matching.reduce(
-          (sum, entry) =>
-            sum +
-            (entry.start <= time &&
-            entry.end > time &&
-            (!entry.replacementGroup || activeReplacements.get(entry.replacementGroup) === entry)
-              ? entry.stacks
-              : 0),
-          0
-        )
-      );
-    };
-
-    effects[name] = times.map((time) => ({ t: time, v: valueAt(time) }));
-    if (effectTypes[name] === 'condition') continue;
-
-    // Integrate at actual transitions, including other effects that replace this one. Duration pools drain
-    // between grants, so their contribution is active time, never the area under the remaining-seconds graph.
-    const groups = new Set(matching.map((entry) => entry.replacementGroup).filter(Boolean));
-    const boundaries = [
-      0,
-      ...new Set(
-        applications
-          .filter((entry) => entry.name === name || groups.has(entry.replacementGroup))
-          .flatMap((entry) => [entry.start, entry.end])
-          .filter((time) => time > 0 && time < endMs - dpsStartMs)
-      ),
-      endMs - dpsStartMs
-    ].sort((left, right) => left - right);
-    let activeMs = 0;
-    let stackMs = 0;
-    let maximumMs = 0;
-    const durationStacking = durationStackCaps[name] != null;
-    for (let index = 1; index < boundaries.length; index++) {
-      const start = boundaries[index - 1]!;
-      const elapsed = boundaries[index]! - start;
-      const value = valueAt(start);
-      const active = durationStacking ? Math.min(elapsed, value * 1000) : value > 0 ? elapsed : 0;
-      activeMs += active;
-      stackMs += durationStacking ? active : value * elapsed;
-      if (maximumStacks != null && value >= maximumStacks) maximumMs += elapsed;
-    }
-
-    effectSummaries[name] = {
-      ...(relicEffects.has(name) ? { relic: true } : {}),
-      uptime: activeMs / durationMs,
-      averageStacks: stackMs / durationMs,
-      ...(maximumStacks == null || durationStacking
-        ? {}
-        : { maximumStacks, maximumStackUptime: maximumMs / durationMs })
-    };
-  }
-
-  // Average capped state across all four projected allies, including recipients with no boon.
   const alliedEffects: Record<string, ChartPoint[]> = {};
   const alliedAverageStacks: Record<string, number> = {};
-  for (const kind of boonGeneration.boons.keys()) {
-    const event = buffs.find((entry) => entry.type === 'buff' && String(entry.kind).toLowerCase() === kind)!;
-    const name = effectName(kind, event);
-    effectTypes[name] = 'boon';
-    const recipients = boonGeneration.alliedApplications.map((history) => {
-      const applications = history.get(kind) || [];
-      const durationStacking = durationStackCaps[name] != null;
-      const valueAt = (at: number): number =>
-        durationStacking
-          ? remainingDurationStackSeconds(applications, at, { maximum: durationStackCaps[name] })
-          : buffApplicationStacks(applications, kind, at, stackCaps[name] ?? Infinity);
-      // Integrate each recipient at exact transitions so caps, downtime, and partial audiences affect averages.
-      const boundaries = [
-        dpsStartMs / 1000,
-        ...new Set(
-          applications
-            .flatMap((application) => [application.at, application.expiresAt])
-            .filter((at) => at > dpsStartMs / 1000 && at < endMs / 1000)
-        ),
-        endMs / 1000
-      ].sort((left, right) => left - right);
-      let stackSeconds = 0;
-      for (let index = 1; index < boundaries.length; index++) {
-        const start = boundaries[index - 1]!;
-        const elapsed = boundaries[index]! - start;
-        const value = valueAt(start);
-        stackSeconds += durationStacking ? Math.min(elapsed, value) : value * elapsed;
-      }
+  const effectTypes: Record<string, ChartEffectType> = {};
+  const effectUnits: Record<string, string> = {};
+  const effectSummaries: Record<string, ChartEffectSummary> = {};
+  const label = (kind: string, _category: ChartEffectType, name?: string): string =>
+    name ?? effectName(kind, { type: 'buff', kind, at: 0, source: 'effect', sourceId: kind, actorType: 'effect' });
+  const valueAt = (track: (typeof report.tracks)[number], at: number): number => {
+    const state = effectStateAt(report, track, at);
+    return track.measure === 'remaining-duration'
+      ? state?.count
+        ? Math.max(0, (state.expiresAt ?? at) - at)
+        : 0
+      : (state?.count ?? 0);
+  };
 
-      return { valueAt, averageStacks: (stackSeconds * 1000) / durationMs };
-    });
-    alliedAverageStacks[name] =
-      recipients.reduce((sum, recipient) => sum + recipient.averageStacks, 0) / boonGeneration.alliedPlayerCount;
-    alliedEffects[name] = times.map((time) => ({
-      t: time,
+  for (const original of report.tracks) {
+    const displayName = (source?: Gw2ResolverEvent) =>
+      original.name ??
+      effectName(
+        original.kind,
+        source ?? {
+          type: 'buff',
+          kind: original.kind,
+          at: 0,
+          source: 'effect',
+          sourceId: original.kind,
+          actorType: 'effect'
+        }
+      );
+    // A metadata-dependent label can split an already-resolved track into visual variants without replaying mechanics.
+    const names = new Set(original.segments.map((segment) => displayName(segment.source)));
+    if (original.terminal.count) names.add(displayName(original.terminal.source));
+    for (const display of names) {
+      const track = {
+        ...original,
+        segments: original.segments.filter((segment) => displayName(segment.source) === display),
+        terminal: displayName(original.terminal.source) === display ? original.terminal : { count: 0, expiresAt: null }
+      };
+      if (
+        track.origin !== 'simulated' ||
+        !['self', 'target'].includes(track.recipient) ||
+        (!track.segments.length && !track.terminal.count)
+      )
+        continue;
+      const name = Object.hasOwn(effects, display) ? `${display} (${track.id})` : display;
+      const points = [
+        ...new Set([
+          ...times,
+          ...track.segments
+            .flatMap((segment) => [segment.start * 1000 - dpsStartMs, segment.end * 1000 - dpsStartMs])
+            .filter((at) => at >= 0 && at <= durationMs)
+        ])
+      ].sort((a, b) => a - b);
+      effects[name] = points.map((t) => ({ t, v: valueAt(track, (dpsStartMs + t) / 1000) }));
+      effectTypes[name] = track.category;
+      if (track.measure === 'remaining-duration') effectUnits[name] = 's';
+      if (track.category !== 'condition')
+        effectSummaries[name] = {
+          ...effectSummary(track, dpsStartMs / 1000, endMs / 1000),
+          ...(track.kind.startsWith('relic:') ? { relic: true } : {})
+        };
+    }
+  }
+
+  const boonGeneration = result.boonGeneration;
+  const generation = new Map(Object.entries(boonGeneration.boons).map(([kind, value]) => [label(kind, 'boon'), value]));
+  for (const kind of Object.keys(boonGeneration.boons)) {
+    const tracks = report.tracks.filter((track) => track.kind === kind && track.origin === 'party-projection');
+    const name = label(kind, 'boon');
+    effectTypes[name] = 'boon';
+    if (tracks.some((track) => track.measure === 'remaining-duration')) effectUnits[name] = 's';
+    const alliedTimes = [
+      ...new Set([
+        ...times,
+        ...tracks
+          .flatMap((track) =>
+            track.segments.flatMap((segment) => [segment.start * 1000 - dpsStartMs, segment.end * 1000 - dpsStartMs])
+          )
+          .filter((at) => at >= 0 && at <= durationMs)
+      ])
+    ].sort((a, b) => a - b);
+    alliedEffects[name] = alliedTimes.map((t) => ({
+      t,
       v:
-        recipients.reduce((sum, recipient) => sum + recipient.valueAt((dpsStartMs + time) / 1000), 0) /
+        tracks.reduce((sum, track) => sum + valueAt(track, (dpsStartMs + t) / 1000), 0) /
         boonGeneration.alliedPlayerCount
     }));
+    alliedAverageStacks[name] =
+      tracks.reduce((sum, track) => sum + effectSummary(track, dpsStartMs / 1000, endMs / 1000).averageStacks, 0) /
+      boonGeneration.alliedPlayerCount;
   }
 
   const cumulativeDamage = dps.map((point) => ({
@@ -513,12 +319,14 @@ export function buildTimeSeries(
         name,
         {
           ...value,
-          maximumStacks: stackCaps[name]
+          maximumStacks:
+            report.tracks.find((track) => label(track.kind, track.category, track.name) === name)?.countLimit ??
+            undefined
         }
       ])
     ),
     alliedPlayerCount: boonGeneration.alliedPlayerCount,
-    effectUnits: Object.fromEntries(Object.keys(durationStackCaps).map((name) => [name, 's'])),
+    effectUnits,
     cumulativeDamage,
     skillDamage,
     conditionDamage: Object.fromEntries(

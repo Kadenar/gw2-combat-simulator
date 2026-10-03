@@ -121,8 +121,7 @@ const GUARDIAN_CORE_EFFECT_PRESENTATIONS: readonly ProfessionEffectPresentation[
   {
     id: 'guardian-inspiring-virtue',
     kind: 'guardian-inspiring-virtue',
-    name: 'Inspiring Virtue',
-    maximumStacks: 1
+    name: 'Inspiring Virtue'
   }
 ]);
 

@@ -164,7 +164,11 @@ function completeThiefCast(runtime: ThiefRuntime, cast: RuntimeCast<ThiefSkill>)
 }
 
 /** Core hooks: initiative, endurance, stealth, steals, weapon follow-ups, utilities, and resolved trait reactions. */
+import { thiefBuffPolicies, thiefEffectStates } from '#gw2/professions/thief/core/effect-state.js';
+
 export const thiefCoreHooks: Partial<RuntimeProfession<ThiefRuntimeState, ThiefSkill>> = {
+  buffPolicies: thiefBuffPolicies,
+  observeEffects: thiefEffectStates,
   sideEffectHandlers: {
     'thief.restart-signet': restartThiefInfiltratorsSignet,
     'thief.assassins-signet': activateAssassinsSignet,

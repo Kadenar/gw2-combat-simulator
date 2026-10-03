@@ -5,6 +5,7 @@ test('boon charts switch between self, allies, and comparison without losing eff
   await page.goto('/', { waitUntil: 'domcontentloaded' });
   await page.addStyleTag({ url: '/css/style.css' });
   await page.evaluate(async () => {
+    const { effectFields } = await import('/tests/helpers/effect-report.js');
     const { buildChartSeries } = await import('/js/games/gw2/app/results/model.ts');
     const { mountTimeSeriesCharts } = await import('/js/games/gw2/app/results/charts/time-series-view.ts');
     const resolvedAudience = {
@@ -18,25 +19,28 @@ test('boon charts switch between self, allies, and comparison without losing eff
       rotationEndTime: 10,
       observationEndTime: 10,
       combatEndTime: 10,
-      resolvedEvents: [
-        { type: 'buff', kind: 'might', at: 0, duration: 10, stacks: 20, resolvedAudience },
-        {
-          type: 'buff',
-          kind: 'might',
-          at: 0,
-          duration: 10,
-          stacks: 3,
-          resolvedAudience: { ...resolvedAudience, includesSelf: false, alliedPlayerCount: 1 }
-        },
-        {
-          type: 'buff',
-          kind: 'stability',
-          at: 0,
-          duration: 10,
-          stacks: 2,
-          resolvedAudience: { ...resolvedAudience, includesSelf: false, alliedPlayerCount: 4, recipientCount: 4 }
-        }
-      ]
+      ...effectFields(
+        [
+          { type: 'buff', kind: 'might', at: 0, duration: 10, stacks: 20, resolvedAudience },
+          {
+            type: 'buff',
+            kind: 'might',
+            at: 0,
+            duration: 10,
+            stacks: 3,
+            resolvedAudience: { ...resolvedAudience, includesSelf: false, alliedPlayerCount: 1 }
+          },
+          {
+            type: 'buff',
+            kind: 'stability',
+            at: 0,
+            duration: 10,
+            stacks: 2,
+            resolvedAudience: { ...resolvedAudience, includesSelf: false, alliedPlayerCount: 4, recipientCount: 4 }
+          }
+        ],
+        10
+      )
     });
     document.body.innerHTML = '<main style="max-width: 1000px; margin: auto"><div id="charts"></div></main>';
     mountTimeSeriesCharts(document.querySelector('#charts'), series, {
@@ -82,6 +86,8 @@ test('effect summaries show average stacks and stay readable on narrow screens',
   await page.goto('/', { waitUntil: 'domcontentloaded' });
   await page.addStyleTag({ url: '/css/style.css' });
   await page.evaluate(async () => {
+    const { effectFields } = await import('/tests/helpers/effect-report.js');
+    const { timedEffectState } = await import('/js/games/gw2/platform/combat/effect-state.ts');
     const { buildChartSeries } = await import('/js/games/gw2/app/results/model.ts');
     const { mountTimeSeriesCharts } = await import('/js/games/gw2/app/results/charts/time-series-view.ts');
     const resolvedAudience = {
@@ -96,32 +102,45 @@ test('effect summaries show average stacks and stay readable on narrow screens',
       observationEndTime: 60,
       combatEndTime: 60,
       alliedPlayerCount: 0,
-      resolvedEvents: [
-        { type: 'buff', kind: 'alacrity', at: -1, duration: 30, audience: { recipients: 'party' }, resolvedAudience },
-        { type: 'buff', kind: 'quickness', at: 0, duration: 60, resolvedAudience },
+      ...effectFields(
+        [
+          { type: 'buff', kind: 'quickness', at: 0, duration: 60, resolvedAudience },
+          {
+            type: 'buff',
+            kind: 'quickness',
+            at: 40,
+            duration: 15,
+            audience: { recipients: 'party' },
+            resolvedAudience
+          },
+          {
+            type: 'buff',
+            kind: 'might',
+            at: 0,
+            duration: 30,
+            stacks: 25,
+            audience: { recipients: 'party' },
+            resolvedAudience
+          },
+          { type: 'buff', kind: 'fury', at: 0, duration: 30, resolvedAudience },
+          { type: 'buff', kind: 'resolution', at: 0, duration: 15, resolvedAudience },
+          { type: 'buff', kind: 'ashes-of-the-just', at: 0, duration: 2, stacks: 3, resolvedAudience },
+          { type: 'buff', kind: 'bad"><img src=x>', at: 0, duration: 2, resolvedAudience }
+        ],
+        60,
         {
-          type: 'buff',
-          kind: 'quickness',
-          at: 40,
-          duration: 15,
-          audience: { recipients: 'party' },
-          resolvedAudience
-        },
-        {
-          type: 'buff',
-          kind: 'might',
-          at: 0,
-          duration: 30,
-          stacks: 25,
-          audience: { recipients: 'party' },
-          resolvedAudience
-        },
-        { type: 'buff', kind: 'fury', at: 0, duration: 30, resolvedAudience },
-        { type: 'buff', kind: 'resolution', at: 0, duration: 15, resolvedAudience },
-        { type: 'buff', kind: 'ashes-of-the-just', at: 0, duration: 2, stacks: 3, resolvedAudience },
-        { type: 'buff', kind: 'bad"><img src=x>', at: 0, duration: 2, resolvedAudience }
-      ],
-      procSteps: [{ type: 'relic_proc', skill: 'Relic of Fireworks', start: 0, expiresAt: 30000 }]
+          frames: [
+            {
+              at: 0,
+              states: [
+                timedEffectState('relic:Relic of Fireworks', [{ stacks: 1, expiresAt: 30 }], 1, {
+                  name: 'Relic of Fireworks'
+                })
+              ]
+            }
+          ]
+        }
+      )
     });
     document.body.innerHTML = '<main style="max-width: 1000px; margin: auto"><div id="charts"></div></main>';
     mountTimeSeriesCharts(document.querySelector('#charts'), series, {

@@ -149,6 +149,7 @@ test('live modifier hooks read executed history independently of report collecti
   for (const output of ['detailed', 'score']) {
     const observations = [];
     const source = native({
+      buffPolicies: () => [{ kind: 'custom-window', maximumStacks: 1 }],
       initialize(runtime) {
         runtime.effects.emit({
           kind: 'packet',

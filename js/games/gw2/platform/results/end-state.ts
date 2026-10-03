@@ -1,3 +1,4 @@
+import type { EffectState } from '#gw2/platform/combat/effect-state.js';
 import { flattenProfessionState } from '#gw2/platform/engine/profession/state.js';
 import { gw2CooldownReadyAt } from '#gw2/platform/skills/timing.js';
 import type { AmmoState, AvailabilityResult } from '#gw2/platform/execution/types.js';
@@ -12,7 +13,8 @@ export function planningState<T extends object>(
   },
   project: ((input: Gw2PlanningStateInput<T>) => unknown) | undefined,
   maximumEndurance: number | undefined,
-  availability: (skill: Skill) => AvailabilityResult
+  availability: (skill: Skill) => AvailabilityResult,
+  effects: readonly EffectState[]
 ): Gw2SimulationPlanningState {
   const endTime = input.time;
   const skillName = (id: SkillId): string => input.catalog.skillsById.get(id)?.name || String(id);
@@ -59,6 +61,7 @@ export function planningState<T extends object>(
           .map((skill) => [String(skill.id), availability(skill)])
       )
     ),
+    effects: structuredClone(effects),
     atSeconds: endTime,
     cooldowns,
     ammo,

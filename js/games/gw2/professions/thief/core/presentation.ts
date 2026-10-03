@@ -5,14 +5,9 @@ import type {
 import { createAttributePreviewControls } from '#gw2/professions/shared/attribute-preview.js';
 import { readProfessionCoreState } from '#gw2/platform/engine/profession/state.js';
 import type { ThiefCoreState } from '#gw2/professions/thief/core/state.js';
-import { THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
 import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
 import { flattenProfessionState } from '#gw2/platform/engine/profession/state.js';
 import { activeStackCount } from '#gw2/platform/combat/resources/timed-stacks.js';
-import {
-  requireBalanceProfileFromContext,
-  balanceProfileNumber
-} from '#gw2/platform/engine/skills/balance-profiles.js';
 
 import { SIMULATION_RANDOMNESS_ASSUMPTION_CONTROLS } from '#gw2/platform/simulation/randomness.js';
 import { PERMANENT_COMBO_FIELD_ASSUMPTION_CONTROLS } from '#gw2/platform/combos/permanent-field-assumption.js';
@@ -181,15 +176,11 @@ export const thiefCoreUi = Object.freeze({
     };
   },
   // Equal-duration grants replace oldest stacks, so capping their active sum matches the engine's stack count.
-  effectPresentations: (context: ThiefUiContext) => [
+  effectPresentations: (_context: ThiefUiContext) => [
     {
       id: 'thief-lead-attacks',
       kind: 'lead-attacks',
-      name: 'Lead Attacks',
-      maximumStacks: balanceProfileNumber(
-        requireBalanceProfileFromContext(context, TRAIT.LEAD_ATTACKS),
-        'maximumStacks'
-      )
+      name: 'Lead Attacks'
     }
   ],
   assumptionControls: Object.freeze([

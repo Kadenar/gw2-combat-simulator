@@ -1,3 +1,5 @@
+import { warriorBuffPolicies } from '#gw2/professions/warrior/core/effect-state.js';
+import { effectFields } from '#tests/helpers/effect-report.js';
 import { warriorProfession } from '#gw2/professions/warrior/profession.js';
 import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
 import assert from 'node:assert/strict';
@@ -9,50 +11,54 @@ import { warriorCoreUi } from '#gw2/professions/warrior/core/presentation.js';
 // only comes up after the first two lapse. Mirrors how the trait stacks the
 // "signet-mastery" boon in the simulation's own buff timeline.
 const RESULT = {
-  resolvedEvents: [
-    {
-      type: 'buff',
-      resolvedAudience: {
-        includesSelf: true,
-        includesSummons: false,
-        companionIds: [],
-        alliedPlayerCount: 0,
-        recipientCount: 1
+  ...effectFields(
+    [
+      {
+        type: 'buff',
+        resolvedAudience: {
+          includesSelf: true,
+          includesSummons: false,
+          companionIds: [],
+          alliedPlayerCount: 0,
+          recipientCount: 1
+        },
+        kind: 'signet-mastery',
+        at: 1,
+        duration: 60,
+        stacks: 1
       },
-      kind: 'signet-mastery',
-      at: 1,
-      duration: 60,
-      stacks: 1
-    },
-    {
-      type: 'buff',
-      resolvedAudience: {
-        includesSelf: true,
-        includesSummons: false,
-        companionIds: [],
-        alliedPlayerCount: 0,
-        recipientCount: 1
+      {
+        type: 'buff',
+        resolvedAudience: {
+          includesSelf: true,
+          includesSummons: false,
+          companionIds: [],
+          alliedPlayerCount: 0,
+          recipientCount: 1
+        },
+        kind: 'signet-mastery',
+        at: 2,
+        duration: 60,
+        stacks: 1
       },
-      kind: 'signet-mastery',
-      at: 2,
-      duration: 60,
-      stacks: 1
-    },
-    {
-      type: 'buff',
-      resolvedAudience: {
-        includesSelf: true,
-        includesSummons: false,
-        companionIds: [],
-        alliedPlayerCount: 0,
-        recipientCount: 1
-      },
-      kind: 'signet-mastery',
-      at: 61.5,
-      duration: 60,
-      stacks: 1
-    }
-  ]
+      {
+        type: 'buff',
+        resolvedAudience: {
+          includesSelf: true,
+          includesSummons: false,
+          companionIds: [],
+          alliedPlayerCount: 0,
+          recipientCount: 1
+        },
+        kind: 'signet-mastery',
+        at: 61.5,
+        duration: 60,
+        stacks: 1
+      }
+    ],
+    120,
+    { policies: warriorBuffPolicies({ catalog: warriorProfession.catalog }) }
+  )
 };
 
 // Arms tier-1 major slot picks position 2 (Signet Mastery); position 1 does not.
@@ -85,20 +91,24 @@ test('Signet Mastery bar counts only applications still within their window', ()
 
 test('Signet Mastery bar caps at 5 stacks', () => {
   const overstacked = {
-    resolvedEvents: Array.from({ length: 7 }, (_unused, index) => ({
-      type: 'buff',
-      resolvedAudience: {
-        includesSelf: true,
-        includesSummons: false,
-        companionIds: [],
-        alliedPlayerCount: 0,
-        recipientCount: 1
-      },
-      kind: 'signet-mastery',
-      at: index * 0.1,
-      duration: 60,
-      stacks: 1
-    }))
+    ...effectFields(
+      Array.from({ length: 7 }, (_unused, index) => ({
+        type: 'buff',
+        resolvedAudience: {
+          includesSelf: true,
+          includesSummons: false,
+          companionIds: [],
+          alliedPlayerCount: 0,
+          recipientCount: 1
+        },
+        kind: 'signet-mastery',
+        at: index * 0.1,
+        duration: 60,
+        stacks: 1
+      })),
+      120,
+      { policies: warriorBuffPolicies({ catalog: warriorProfession.catalog }) }
+    )
   };
   const [item] = warriorCoreUi.rotationStateSnapshot({
     balanceContext: withPatchPreview(warriorProfession).balanceContextFor(),

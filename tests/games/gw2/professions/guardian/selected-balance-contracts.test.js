@@ -1,3 +1,4 @@
+import { effectFields } from '#tests/helpers/effect-report.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { luminaryImpactAt } from '#gw2/professions/guardian/specializations/luminary/mechanics/effects.js';
@@ -103,7 +104,7 @@ test('Guardian snapshots display selected caps and modifier bonuses', () => {
     adapter: { eliteSpecialization: () => 'Luminary' },
     results: {
       events,
-      resolvedEvents: events,
+      ...effectFields(events, 120),
       planningState: {
         atSeconds: 1,
         profession: { symbolicAvengerExpirations: [5, 6], effulgentStacks: 12, effulgentActiveUntil: 4 }
@@ -116,10 +117,11 @@ test('Guardian snapshots display selected caps and modifier bonuses', () => {
   assert.equal(items.get('luminary-radiant-armaments').title, 'Dazzling Hammer: +9% strike damage');
   assert.equal(items.get('luminary-piercing-stance').title, 'Piercing Stance: +12.5% strike damage');
   assert.equal(items.get('luminary-daring-advance').title, 'Daring Advance: +20% strike damage');
+  // Public observations are detached from the source events.
   events[0].metadata.radiantWeapon = 'staff';
   assert.equal(
     rotationStateSnapshot(app).items.some((item) => item.id === 'luminary-radiant-armaments'),
-    false
+    true
   );
 });
 

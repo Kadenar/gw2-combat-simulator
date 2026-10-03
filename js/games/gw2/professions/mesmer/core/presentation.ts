@@ -16,7 +16,7 @@ import type {
   RotationStateSnapshotItem
 } from '#gw2/platform/profession-presentation/types.js';
 import { SIMULATION_RANDOMNESS_ASSUMPTION_CONTROLS } from '#gw2/platform/simulation/randomness.js';
-import { MESMER_SKILL_IDS as ID, MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
+import { MESMER_SKILL_IDS as ID } from '#gw2/professions/mesmer/data/ids.js';
 import { mesmerResourceProfileId } from '#gw2/professions/mesmer/family-state.js';
 import type {
   MesmerResolverEvent,
@@ -134,30 +134,25 @@ function mesmerEventLogRow(
 const CORE_MECHANIC_SKILLS = Object.freeze([ID.MIND_WRACK, ID.CRY_OF_FRUSTRATION, ID.DIVERSION, ID.DISTORTION]);
 
 /** Publishes Core Mesmer effect labels, colors, and patch-aware stack caps to result views. */
-function mesmerCoreEffectPresentations(context: MesmerUiContext): ProfessionEffectPresentation[] {
-  const compoundingPowerProfile = requireBalanceProfileFromContext(context, TRAIT.COMPOUNDING_POWER);
-  const fencersFinesseProfile = requireBalanceProfileFromContext(context, TRAIT.FENCERS_FINESSE);
+function mesmerCoreEffectPresentations(_context: MesmerUiContext): ProfessionEffectPresentation[] {
   return [
     {
       id: 'mesmer-compounding-power',
       kind: 'compounding',
       name: 'Compounding Power',
-      color: '#cfb5ff',
-      maximumStacks: balanceProfileNumber(compoundingPowerProfile, 'maximumStacks')
+      color: '#cfb5ff'
     },
     {
       id: 'mesmer-illusionary-membrane',
       kind: 'illusionary-membrane',
       name: 'Illusionary Membrane',
-      color: '#6ec9d8',
-      maximumStacks: 1
+      color: '#6ec9d8'
     },
     {
       id: 'mesmer-fencers-finesse',
       kind: 'fencer',
       name: "Fencer's Finesse",
-      color: '#e1c070',
-      maximumStacks: balanceProfileNumber(fencersFinesseProfile, 'maximumStacks')
+      color: '#e1c070'
     }
   ];
 }

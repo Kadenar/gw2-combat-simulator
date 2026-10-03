@@ -1,3 +1,6 @@
+import { chartValueAt } from '#gw2/app/results/charts/time-series-model.js';
+import { timedEffectState } from '#gw2/platform/combat/effect-state.js';
+import { effectFields } from '#tests/helpers/effect-report.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { buildChartSeries, resultSummaryMetrics } from '#gw2/app/results/model.js';
@@ -34,20 +37,23 @@ test('Embrace application markers preserve pulse identity within the observation
     rotationEndTime: 4,
     observationEndTime: 4,
     combatEndTime: 4,
-    resolvedEvents: [
-      application(0.5),
-      application(1),
-      application(2, {
-        name: 'Empowered application',
-        metadata: { trigger: 'empowered-upkeep-pulse' },
-        damageTicks: [
-          { at: 2.5, damage: 10 },
-          { at: 3.5, damage: 10 }
-        ]
-      }),
-      application(3, { skillId: 999 }),
-      application(4)
-    ]
+    ...effectFields(
+      [
+        application(0.5),
+        application(1),
+        application(2, {
+          name: 'Empowered application',
+          metadata: { trigger: 'empowered-upkeep-pulse' },
+          damageTicks: [
+            { at: 2.5, damage: 10 },
+            { at: 3.5, damage: 10 }
+          ]
+        }),
+        application(3, { skillId: 999 }),
+        application(4)
+      ],
+      4
+    )
   };
   const applications = revenantProfession.ui.chartApplications({ result, specialization: 'Core' });
   const series = buildChartSeries(result, 250, [], applications);
@@ -80,7 +86,7 @@ test('total idle time excludes explicit waits before combat start', () => {
     observationEndTime: 1,
     combatEndTime: 1,
     deathTime: null,
-    events: [{ type: 'combat_start', at: 0.5 }],
+    ...effectFields([{ type: 'combat_start', at: 0.5 }], 1),
     steps: [
       { ri: 0, skill: 'Wait', start: 0, end: 500, type: 'wait' },
       { ri: 1, skill: 'Combat Start', start: 500, end: 500, type: 'combat_start' },
@@ -98,32 +104,35 @@ test('total idle time excludes explicit waits before combat start', () => {
   });
 });
 
-test('profession effect descriptors supply chart labels and stack caps', () => {
+test('profession effect descriptors supply labels for engine-capped stacks', () => {
   const series = buildChartSeries(
     {
       rotationEndTime: 8,
       observationEndTime: 8,
       combatEndTime: 8,
-      events: [
-        playerBuff({
-          at: 0,
-          kind: 'custom-armaments',
-          duration: 6
-        }),
-        playerBuff({
-          at: 1,
-          kind: 'custom-armaments',
-          duration: 7
-        })
-      ]
+      ...effectFields(
+        [
+          playerBuff({
+            at: 0,
+            kind: 'custom-armaments',
+            duration: 6
+          }),
+          playerBuff({
+            at: 1,
+            kind: 'custom-armaments',
+            duration: 7
+          })
+        ],
+        8,
+        { policies: [{ kind: 'custom-armaments', maximumStacks: 1 }] }
+      )
     },
     1000,
     [
       {
         id: 'custom-armaments',
         kind: 'custom-armaments',
-        name: 'Custom Armaments',
-        maximumStacks: 1
+        name: 'Custom Armaments'
       }
     ]
   );
@@ -140,7 +149,7 @@ test('generic buffs remain visible on the timed-effects chart', () => {
       rotationEndTime: 3,
       observationEndTime: 3,
       combatEndTime: 3,
-      events: [playerBuff({ at: 0, kind: 'custom-effect', stacks: 3, duration: 2 })]
+      ...effectFields([playerBuff({ at: 0, kind: 'custom-effect', stacks: 3, duration: 2 })], 3)
     },
     1000
   );
@@ -160,17 +169,21 @@ test('resolved buffs supply final audiences and stack caps without counting sche
       observationEndTime: 2,
       combatEndTime: 2,
       events: [scheduled, playerBuff({ at: 0, kind: 'fury', duration: 5 })],
-      resolvedEvents: [
-        { ...scheduled },
-        playerBuff({ at: 0, kind: 'derived-effect', stacks: 3, duration: 2 }),
-        {
-          ...playerBuff({ at: 0, kind: 'fury', duration: 5 }),
-          resolvedAudience: { ...PLAYER_AUDIENCE, includesSelf: false }
-        }
-      ]
+      ...effectFields(
+        [
+          { ...scheduled },
+          playerBuff({ at: 0, kind: 'derived-effect', stacks: 3, duration: 2 }),
+          {
+            ...playerBuff({ at: 0, kind: 'fury', duration: 5 }),
+            resolvedAudience: { ...PLAYER_AUDIENCE, includesSelf: false }
+          }
+        ],
+        2,
+        { policies: [{ kind: 'derived-effect', maximumStacks: 1 }] }
+      )
     },
     1000,
-    [{ id: 'derived-effect', kind: 'derived-effect', name: 'Derived Effect', maximumStacks: 1 }]
+    [{ id: 'derived-effect', kind: 'derived-effect', name: 'Derived Effect' }]
   );
   assert.equal(series.effects.Might[0].v, 3);
   assert.equal(series.effects['Derived Effect'][0].v, 1);
@@ -184,41 +197,28 @@ test('timed relic proc chart series shows binary uptime across refreshes', () =>
       observationEndTime: 8,
       combatEndTime: 8,
       dpsStartTime: 1,
-      procSteps: [
-        {
-          type: 'relic_proc',
-          skill: 'Relic of Fireworks',
-          start: 500,
-          end: 500,
-          expiresAt: 3500
-        },
-        {
-          type: 'relic_proc',
-          skill: 'Relic of Fireworks',
-          start: 2500,
-          end: 2500,
-          expiresAt: 6000
-        },
-        {
-          type: 'trait_proc',
-          skill: 'Timed Trait',
-          start: 1000,
-          end: 1000,
-          expiresAt: 7000
-        },
-        {
-          type: 'relic_proc',
-          skill: 'Relic without duration',
-          start: 1000,
-          end: 1000
-        }
-      ]
+      ...effectFields([], 8, {
+        frames: [
+          {
+            at: 0.5,
+            states: [
+              timedEffectState('relic:fireworks', [{ stacks: 1, expiresAt: 3.5 }], 1, { name: 'Relic of Fireworks' })
+            ]
+          },
+          {
+            at: 2.5,
+            states: [
+              timedEffectState('relic:fireworks', [{ stacks: 1, expiresAt: 6 }], 1, { name: 'Relic of Fireworks' })
+            ]
+          }
+        ]
+      })
     },
     1000
   );
 
   assert.deepEqual(
-    series.effects['Relic of Fireworks'].map((point) => point.v),
+    Array.from({ length: 8 }, (_, i) => chartValueAt(series.effects['Relic of Fireworks'], i * 1000)),
     [1, 1, 1, 1, 1, 0, 0, 0]
   );
   assert.equal(series.effectTypes['Relic of Fireworks'], 'buff');
@@ -232,15 +232,20 @@ test('chart series classify boons, conditions, and profession buffs', () => {
       rotationEndTime: 2,
       observationEndTime: 2,
       combatEndTime: 2,
-      resolvedEvents: [
-        {
-          type: 'condition',
-          at: 0,
-          condition: 'burning',
-          duration: 2,
-          stacks: 1
-        }
-      ],
+      ...effectFields(
+        [
+          playerBuff({ at: 0, kind: 'might', duration: 2 }),
+          playerBuff({ at: 0, kind: 'custom-effect', duration: 2 }),
+          {
+            type: 'condition',
+            at: 0,
+            condition: 'burning',
+            duration: 2,
+            stacks: 1
+          }
+        ],
+        2
+      ),
       events: [
         playerBuff({ at: 0, kind: 'might', duration: 2 }),
         playerBuff({
@@ -266,26 +271,29 @@ test('duration-stacking boon charts show remaining stacked seconds', () => {
       rotationEndTime: 7,
       observationEndTime: 7,
       combatEndTime: 7,
-      events: [
-        playerBuff({ at: 0, kind: 'quickness', duration: 3 }),
-        playerBuff({ at: 1, kind: 'quickness', duration: 3 }),
-        playerBuff({ at: 0, kind: 'alacrity', duration: 2 }),
-        playerBuff({ at: 3, kind: 'alacrity', duration: 2 }),
-        playerBuff({ at: 0, kind: 'fury', duration: 3 }),
-        playerBuff({ at: 1, kind: 'fury', duration: 3 }),
-        playerBuff({ at: 0, kind: 'protection', duration: 3 }),
-        playerBuff({ at: 1, kind: 'protection', duration: 3 }),
-        playerBuff({ at: 0, kind: 'regeneration', duration: 3 }),
-        playerBuff({ at: 1, kind: 'regeneration', duration: 3 }),
-        playerBuff({ at: 0, kind: 'resistance', duration: 3 }),
-        playerBuff({ at: 1, kind: 'resistance', duration: 3 }),
-        playerBuff({ at: 0, kind: 'resolution', duration: 3 }),
-        playerBuff({ at: 1, kind: 'resolution', duration: 3 }),
-        playerBuff({ at: 0, kind: 'vigor', duration: 3 }),
-        playerBuff({ at: 1, kind: 'vigor', duration: 3 }),
-        playerBuff({ at: 0, kind: 'swiftness', duration: 3 }),
-        playerBuff({ at: 1, kind: 'swiftness', duration: 3 })
-      ]
+      ...effectFields(
+        [
+          playerBuff({ at: 0, kind: 'quickness', duration: 3 }),
+          playerBuff({ at: 1, kind: 'quickness', duration: 3 }),
+          playerBuff({ at: 0, kind: 'alacrity', duration: 2 }),
+          playerBuff({ at: 3, kind: 'alacrity', duration: 2 }),
+          playerBuff({ at: 0, kind: 'fury', duration: 3 }),
+          playerBuff({ at: 1, kind: 'fury', duration: 3 }),
+          playerBuff({ at: 0, kind: 'protection', duration: 3 }),
+          playerBuff({ at: 1, kind: 'protection', duration: 3 }),
+          playerBuff({ at: 0, kind: 'regeneration', duration: 3 }),
+          playerBuff({ at: 1, kind: 'regeneration', duration: 3 }),
+          playerBuff({ at: 0, kind: 'resistance', duration: 3 }),
+          playerBuff({ at: 1, kind: 'resistance', duration: 3 }),
+          playerBuff({ at: 0, kind: 'resolution', duration: 3 }),
+          playerBuff({ at: 1, kind: 'resolution', duration: 3 }),
+          playerBuff({ at: 0, kind: 'vigor', duration: 3 }),
+          playerBuff({ at: 1, kind: 'vigor', duration: 3 }),
+          playerBuff({ at: 0, kind: 'swiftness', duration: 3 }),
+          playerBuff({ at: 1, kind: 'swiftness', duration: 3 })
+        ],
+        7
+      )
     },
     1000
   );
@@ -325,10 +333,10 @@ test('duration-stacking boon charts discard grants above the 30-second cap', () 
       rotationEndTime: 32,
       observationEndTime: 32,
       combatEndTime: 32,
-      events: [
-        playerBuff({ at: 0, kind: 'quickness', duration: 29 }),
-        playerBuff({ at: 1, kind: 'quickness', duration: 5 })
-      ]
+      ...effectFields(
+        [playerBuff({ at: 0, kind: 'quickness', duration: 29 }), playerBuff({ at: 1, kind: 'quickness', duration: 5 })],
+        32
+      )
     },
     1000
   );
@@ -344,10 +352,10 @@ test('Swiftness duration stacking caps at 60 seconds', () => {
       rotationEndTime: 62,
       observationEndTime: 62,
       combatEndTime: 62,
-      events: [
-        playerBuff({ at: 0, kind: 'swiftness', duration: 59 }),
-        playerBuff({ at: 1, kind: 'swiftness', duration: 5 })
-      ]
+      ...effectFields(
+        [playerBuff({ at: 0, kind: 'swiftness', duration: 59 }), playerBuff({ at: 1, kind: 'swiftness', duration: 5 })],
+        62
+      )
     },
     1000
   );
@@ -362,21 +370,24 @@ test('chart series excludes buffs that do not affect the simulated player', () =
     rotationEndTime: 2,
     observationEndTime: 2,
     combatEndTime: 2,
-    events: [
-      {
-        type: 'buff',
-        at: 0,
-        kind: 'pet-only-quickness',
-        duration: 2,
-        resolvedAudience: {
-          includesSelf: false,
-          includesSummons: true,
-          alliedPlayerCount: 0,
-          companionIds: ['ranger-pet:1'],
-          recipientCount: 1
+    ...effectFields(
+      [
+        {
+          type: 'buff',
+          at: 0,
+          kind: 'pet-only-quickness',
+          duration: 2,
+          resolvedAudience: {
+            includesSelf: false,
+            includesSummons: true,
+            alliedPlayerCount: 0,
+            companionIds: ['ranger-pet:1'],
+            recipientCount: 1
+          }
         }
-      }
-    ]
+      ],
+      2
+    )
   });
 
   assert.equal(series.effects['Pet Only Quickness'], undefined);

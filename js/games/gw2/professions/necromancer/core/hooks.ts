@@ -85,7 +85,11 @@ function damage(runtime: NecromancerRuntime, event: Gw2ResolverEvent): void {
 }
 
 /** Core mechanics share one live queue and resource owner with the active specialization. */
+import { necromancerBuffPolicies, necromancerEffectStates } from '#gw2/professions/necromancer/core/effect-state.js';
+
 export const necromancerCoreHooks: Partial<RuntimeProfession<NecromancerRuntimeState, NecromancerSkill>> = {
+  buffPolicies: necromancerBuffPolicies,
+  observeEffects: necromancerEffectStates,
   resources: { lifeForce: necromancerLifeForce },
   // Standard endurance recovery applies equally inside and outside shroud.
   endurance: {

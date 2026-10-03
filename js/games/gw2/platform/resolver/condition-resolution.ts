@@ -3,7 +3,11 @@ import { CONDITION_FORMULAS, conditionTickDamage } from '#gw2/platform/combat/fo
 import { conditionApplicationDuration } from '#gw2/platform/combat/query/combat-query.js';
 import { GW2_EVENT_ACTOR_TYPES } from '#gw2/platform/engine/events/actors.js';
 import type { Gw2RuntimeConditionEntry, Gw2RuntimeConditionStack } from '#gw2/platform/combat/state/targets.js';
-import { createPermanentTargetConditionStacks, GW2_DAMAGING_CONDITIONS } from '#gw2/platform/combat/state/targets.js';
+import {
+  conditionStackLimit,
+  createPermanentTargetConditionStacks,
+  GW2_DAMAGING_CONDITIONS
+} from '#gw2/platform/combat/state/targets.js';
 import type { Gw2ResolverRuntime } from '#gw2/platform/resolver/runtime-state.js';
 import type { Gw2ResolverEvent, Gw2ResolverReactionRegistry } from '#gw2/platform/resolver/types.js';
 import { canonicalTime, isTimeInWindow, timeKey } from '#kernel/core/clock.js';
@@ -51,9 +55,10 @@ export function createGw2ConditionResolution({
   function activeConditionStackCount(ctx: Gw2ResolverRuntime, name: string, at: number): number {
     // Target configuration represents ambient stacks that have no application
     // event, so it is added separately from player-created stack state.
-    return (
+    return Math.min(
+      conditionStackLimit(name) ?? Infinity,
       permanentTargetConditionStacks(name) +
-      activeStacks(ctx, name, at).reduce((total, stack) => total + stack.weight, 0)
+        activeStacks(ctx, name, at).reduce((total, stack) => total + stack.weight, 0)
     );
   }
 

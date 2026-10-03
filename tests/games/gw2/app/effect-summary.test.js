@@ -1,9 +1,11 @@
+import { timedEffectState } from '#gw2/platform/combat/effect-state.js';
+import { effectFields } from '#tests/helpers/effect-report.js';
 import { captureEffectEmissions } from '#tests/helpers/effect-emission.js';
 import { recordProcStep } from '#gw2/platform/results/proc-steps.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { buildChartSeries } from '#gw2/app/results/model.js';
-import { buildBoonGeneration } from '#gw2/app/results/charts/boon-generation.js';
+import { buildBoonGeneration } from '#gw2/platform/results/boon-generation.js';
 import { chartValueAt } from '#gw2/app/results/charts/time-series-model.js';
 import { createGw2ResolverRuntimeState } from '#gw2/platform/resolver/runtime-state.js';
 import { invokeRelicHook } from '#gw2/platform/equipment/relics/runtime.js';
@@ -26,6 +28,112 @@ const buff = (kind, at, duration, stacks = 1, extra = {}) => ({
 });
 const close = (actual, expected) => assert.ok(Math.abs(actual - expected) < 1e-9, `${actual} != ${expected}`);
 
+// Repeated grants must use combat's caps and refresh semantics throughout the observation window.
+test('Bladesworn charts cap intensity and replace complete Glory duration windows', async () => {
+  const { warriorProfession } = await import('#gw2/professions/warrior/profession.js');
+  const { warriorCatalog } = await import('#gw2/professions/warrior/catalog.js');
+  const presentations = warriorProfession.ui.effectPresentations({
+    specialization: 'Bladesworn',
+    catalog: warriorCatalog
+  });
+  const result = {
+    combatEndTime: 20,
+    dpsStartTime: 2,
+    ...effectFields([buff('fierce-as-fire', 0, 15, 8), buff('fierce-as-fire', 2, 15, 5)], 20, {
+      policies: [{ kind: 'fierce-as-fire', maximumStacks: 10 }],
+      frames: [
+        {
+          at: 0,
+          states: [
+            timedEffectState('guns-and-glory', [{ stacks: 1, expiresAt: 3 }], 1, {
+              measure: 'remaining-duration',
+              durationLimit: 12
+            })
+          ]
+        },
+        {
+          at: 1,
+          states: [
+            timedEffectState('guns-and-glory', [{ stacks: 1, expiresAt: 6 }], 1, {
+              measure: 'remaining-duration',
+              durationLimit: 12
+            })
+          ]
+        },
+        {
+          at: 2,
+          states: [
+            timedEffectState('guns-and-glory', [{ stacks: 1, expiresAt: 14 }], 1, {
+              measure: 'remaining-duration',
+              durationLimit: 12
+            })
+          ]
+        }
+      ]
+    })
+  };
+  for (const sampleStep of [50, 1000]) {
+    const series = buildChartSeries(result, sampleStep, presentations);
+    const fire = series.effectSummaries['Fierce as Fire'];
+    assert.equal(fire.maximumStacks, 10);
+    close(fire.averageStacks, (13 * 10 + 2 * 5) / 18);
+    assert.equal(chartValueAt(series.effects['Fierce as Fire'], 0), 10);
+    assert.equal(chartValueAt(series.effects['Fierce as Fire'], 13000), 5);
+    assert.equal(series.effectUnits['Guns and Glory'], 's');
+    assert.equal(chartValueAt(series.effects['Guns and Glory'], 0), 12);
+    assert.equal(chartValueAt(series.effects['Guns and Glory'], 1000), 11);
+    assert.equal(chartValueAt(series.effects['Guns and Glory'], 12000), 0);
+    close(series.effectSummaries['Guns and Glory'].averageStacks, 12 / 18);
+    close(series.effectSummaries['Guns and Glory'].uptime, 12 / 18);
+  }
+});
+
+test('duration snapshots honor patched caps and never resurrect a replaced window', () => {
+  const series = buildChartSeries(
+    {
+      combatEndTime: 10,
+      ...effectFields([], 10, {
+        frames: [
+          {
+            at: 0,
+            states: [
+              timedEffectState('window', [{ stacks: 1, expiresAt: 3 }], 1, {
+                measure: 'remaining-duration',
+                durationLimit: 3
+              })
+            ]
+          },
+          {
+            at: 1,
+            states: [
+              timedEffectState('window', [{ stacks: 1, expiresAt: 2 }], 1, {
+                measure: 'remaining-duration',
+                durationLimit: 3
+              })
+            ]
+          },
+          {
+            at: 5,
+            states: [
+              timedEffectState('window', [{ stacks: 1, expiresAt: 8 }], 1, {
+                measure: 'remaining-duration',
+                durationLimit: 3
+              })
+            ]
+          }
+        ]
+      })
+    },
+    1000,
+    [{ id: 'window', kind: 'window', name: 'Window' }]
+  );
+  assert.deepEqual(
+    series.effects.Window.map(({ v }) => v),
+    [3, 1, 0, 0, 0, 3, 2, 1, 0, 0, 0]
+  );
+  assert.equal(series.effectSummaries.Window.averageStacks, 0.5);
+});
+
 // State windows include an open final shroud, close on exit, and refresh Meltdown without stacking it.
 test('Harbinger state uptime uses recorded transitions and clips to the observation window', async () => {
   const { bindHarbingerUi } = await import('#gw2/professions/necromancer/specializations/harbinger/presentation.js');
@@ -46,7 +154,21 @@ test('Harbinger state uptime uses recorded transitions and clips to the observat
   ];
   for (const sampleStep of [50, 1000]) {
     const summaries = buildChartSeries(
-      { dpsStartTime: 1, deathTime: 7, rotationEndTime: 10, observationEndTime: 10, combatEndTime: 7, events },
+      {
+        dpsStartTime: 1,
+        deathTime: 7,
+        rotationEndTime: 10,
+        observationEndTime: 10,
+        combatEndTime: 7,
+        ...effectFields(events, 7, {
+          policies: [{ kind: 'meltdown', maximumStacks: 1 }],
+          frames: [
+            { at: 0, states: [timedEffectState('harbinger-shroud', [{ stacks: 1, expiresAt: null }], 1)] },
+            { at: 3, states: [] },
+            { at: 4, states: [timedEffectState('harbinger-shroud', [{ stacks: 1, expiresAt: null }], 1)] }
+          ]
+        })
+      },
       sampleStep,
       presentations
     ).effectSummaries;
@@ -57,7 +179,7 @@ test('Harbinger state uptime uses recorded transitions and clips to the observat
 
   assert.deepEqual(
     buildChartSeries(
-      { rotationEndTime: 2, observationEndTime: 2, combatEndTime: 2, events: [transition(0, false)] },
+      { rotationEndTime: 2, observationEndTime: 2, combatEndTime: 2, ...effectFields([transition(0, false)], 2) },
       250,
       presentations
     ).effectSummaries,
@@ -74,18 +196,21 @@ test('allied boon state preserves recipient caps, extensions, expiry, and observ
       combatEndTime: 10,
       combatStartTime: 0,
       dpsStartTime: 1,
-      resolvedEvents: [
-        buff('might', -1, 30, 25, { audience: { recipients: 'party' } }),
-        buff('might', 0, 2, 30, { audience: { recipients: 'party', maximumRecipients: 3 } }),
-        buff('fury', 0, 2, 1, { audience: { recipients: 'party', maximumRecipients: 3 } }),
-        buff('fury', 0, 20),
-        buff('protection', 0, 20),
-        { type: 'boon_extension', at: 1, duration: 2, extensionAudience: 'self' },
-        { type: 'boon_extension', at: 1.5, duration: 1, extensionAudience: 'all' },
-        buff('stability', 4, 2, 3, {
-          resolvedAudience: { ...self, includesSelf: false, alliedPlayerCount: 1, recipientCount: 1 }
-        })
-      ]
+      ...effectFields(
+        [
+          buff('might', -1, 30, 25, { audience: { recipients: 'party' } }),
+          buff('might', 0, 2, 30, { audience: { recipients: 'party', maximumRecipients: 3 } }),
+          buff('fury', 0, 2, 1, { audience: { recipients: 'party', maximumRecipients: 3 } }),
+          buff('fury', 0, 20),
+          buff('protection', 0, 20),
+          { type: 'boon_extension', at: 1, duration: 2, extensionAudience: 'self' },
+          { type: 'boon_extension', at: 1.5, duration: 1, extensionAudience: 'all' },
+          buff('stability', 4, 2, 3, {
+            resolvedAudience: { ...self, includesSelf: false, alliedPlayerCount: 1, recipientCount: 1 }
+          })
+        ],
+        10
+      )
     },
     500
   );
@@ -113,13 +238,16 @@ test('allied averages integrate capped stacks and duration pools inside the obse
     combatStartTime: 0,
     dpsStartTime: 1,
     deathTime: 5,
-    resolvedEvents: [
-      buff('might', 1.12, 0.2, 30, party),
-      buff('might', 4.8, 10, 10, { audience: { recipients: 'party' } }),
-      buff('fury', 1.12, 0.2, 1, party),
-      buff('fury', 1.24, 0.2, 1, party),
-      buff('protection', 0, 30)
-    ]
+    ...effectFields(
+      [
+        buff('might', 1.12, 0.2, 30, party),
+        buff('might', 4.8, 10, 10, { audience: { recipients: 'party' } }),
+        buff('fury', 1.12, 0.2, 1, party),
+        buff('fury', 1.24, 0.2, 1, party),
+        buff('protection', 0, 30)
+      ],
+      5
+    )
   };
   for (const sampleStep of [50, 1000]) {
     const averages = buildChartSeries(result, sampleStep).alliedAverageStacks;
@@ -134,7 +262,7 @@ test('duration supply can exceed a full window while caps and gaps reduce actual
     rotationEndTime: 60,
     observationEndTime: 60,
     combatEndTime: 60,
-    resolvedEvents: [buff('quickness', 0, 30), buff('quickness', 0, 30), buff('quickness', 40, 15)]
+    ...effectFields([buff('quickness', 0, 30), buff('quickness', 0, 30), buff('quickness', 40, 15)], 60)
   };
   for (const sampleStep of [50, 1000]) {
     const series = buildChartSeries(result, sampleStep);
@@ -151,7 +279,7 @@ test('intensity averages apply caps and include downtime while generation retain
     rotationEndTime: 10,
     observationEndTime: 10,
     combatEndTime: 10,
-    resolvedEvents: [buff('might', 0, 5, 20), buff('might', 1, 3, 10)]
+    ...effectFields([buff('might', 0, 5, 20), buff('might', 1, 3, 10)], 10)
   });
   const summary = series.effectSummaries.Might;
   assert.equal(summary.uptime, 0.5);
@@ -161,7 +289,7 @@ test('intensity averages apply caps and include downtime while generation retain
   assert.equal(series.boonGeneration.Might.self.generatedStackSeconds, 130);
 });
 
-test('pre-combat boons are stripped and the death boundary excludes later grants', () => {
+test('engine-granted preparation boons persist and the death boundary excludes later grants', () => {
   const series = buildChartSeries({
     rotationEndTime: 20,
     observationEndTime: 20,
@@ -169,17 +297,21 @@ test('pre-combat boons are stripped and the death boundary excludes later grants
     dpsStartTime: 2,
     deathTime: 8,
     config: { boons: { quickness: true } },
-    resolvedEvents: [
-      buff('quickness', 0, 3),
-      buff('quickness', 3, 2),
-      buff('quickness', 4, 100, 1, { resolvedAudience: { ...self, includesSelf: false, alliedPlayerCount: 1 } }),
-      buff('quickness', 5, 100, 1, { actorType: 'environment' }),
-      buff('quickness', 6, 100, 1, { cancelled: true }),
-      buff('quickness', 8, 100)
-    ]
+    ...effectFields(
+      [
+        buff('quickness', 0, 3),
+        buff('quickness', 3, 2),
+        buff('quickness', 4, 100, 1, { resolvedAudience: { ...self, includesSelf: false, alliedPlayerCount: 1 } }),
+        buff('quickness', 5, 100, 1, { actorType: 'environment' }),
+        buff('quickness', 6, 100, 1, { cancelled: true }),
+        buff('quickness', 8, 100)
+      ],
+      8,
+      { start: 2 }
+    )
   });
   const summary = series.effectSummaries.Quickness;
-  assert.equal(summary.uptime, 1 / 3);
+  assert.equal(summary.uptime, 0.5);
   assert.equal(series.boonGeneration.Quickness.self.generatedStackSeconds, 2);
 });
 
@@ -196,7 +328,7 @@ test('extensions count only existing boons and retain independent intensity life
     rotationEndTime: 6,
     observationEndTime: 6,
     combatEndTime: 6,
-    resolvedEvents: events
+    ...effectFields(events, 6)
   });
   const summaries = series.effectSummaries;
   close(summaries.Fury.uptime, 5 / 6);
@@ -222,12 +354,17 @@ test('effect summaries integrate sub-sample transitions and never resurrect repl
       rotationEndTime: 1,
       observationEndTime: 1,
       combatEndTime: 1,
-      resolvedEvents: [buff('first', 0.1, 10), buff('second', 0.3, 0.1)]
+      ...effectFields([], 1, {
+        frames: [
+          { at: 0.1, states: [timedEffectState('first', [{ stacks: 1, expiresAt: 10.1 }], 1)] },
+          { at: 0.3, states: [timedEffectState('second', [{ stacks: 1, expiresAt: 0.4 }], 1)] }
+        ]
+      })
     },
     1000,
     [
-      { kind: 'first', name: 'First', replacementGroup: 'mode' },
-      { kind: 'second', name: 'Second', replacementGroup: 'mode' }
+      { kind: 'first', name: 'First' },
+      { kind: 'second', name: 'Second' }
     ]
   ).effectSummaries;
   close(summaries.First.uptime, 0.2);
@@ -246,6 +383,8 @@ test('relic proc state survives recording and refreshes replace stack counts', (
     rotationEndTime: 8,
     observationEndTime: 8,
     combatEndTime: 8,
+    ...effectFields([], 8),
+    effectReport: context.effectRecorder.finish(8),
     procSteps: context.procSteps
   }).effectSummaries['Relic of the Thief'];
   assert.equal(summary.uptime, 7 / 8);
@@ -263,6 +402,8 @@ test('relic proc state survives recording and refreshes replace stack counts', (
     rotationEndTime: 5,
     observationEndTime: 5,
     combatEndTime: 5,
+    ...effectFields([], 5),
+    effectReport: thorns.effectRecorder.finish(5),
     procSteps: thorns.procSteps
   }).effectSummaries['Relic of Thorns'];
   assert.equal(ramp.uptime, 1);
@@ -276,7 +417,7 @@ test('empty observation windows do not accrue uptime or generated duration', () 
     observationEndTime: 2,
     combatEndTime: 2,
     dpsStartTime: 2,
-    resolvedEvents: [buff('might', 2, 10, 25)]
+    ...effectFields([buff('might', 2, 10, 25)], 2)
   });
   const summary = series.effectSummaries.Might;
   assert.equal(summary.uptime, 0);
@@ -284,7 +425,7 @@ test('empty observation windows do not accrue uptime or generated duration', () 
   assert.equal(series.boonGeneration.Might, undefined);
 });
 
-test('combat stripping uses the marker and causal order, retaining boons granted in combat before the first hit', () => {
+test('charts retain accepted preparation state while generation uses the combat window', () => {
   const series = buildChartSeries({
     rotationEndTime: 10,
     observationEndTime: 10,
@@ -292,20 +433,33 @@ test('combat stripping uses the marker and causal order, retaining boons granted
     dpsStartTime: 4,
     combatStartTime: 2,
     events: [{ type: 'combat_start', at: 2, causalOrder: 2 }],
-    resolvedEvents: [
-      buff('alacrity', 1, 30, 1, { audience: { recipients: 'party' } }),
-      buff('quickness', 2, 30, 1, { causalOrder: 1, audience: { recipients: 'party' } }),
-      buff('quickness', 2, 5, 1, { causalOrder: 3, audience: { recipients: 'party' } }),
-      { type: 'boon_extension', at: 3, duration: 10, kind: 'alacrity', extensionAudience: 'all' },
-      buff('fury', 3, 2)
-    ],
-    procSteps: [{ type: 'relic_proc', skill: 'Relic of Fireworks', start: 0, expiresAt: 8000 }]
+    ...effectFields(
+      [
+        buff('alacrity', 1, 30, 1, { audience: { recipients: 'party' } }),
+        buff('quickness', 2, 30, 1, { causalOrder: 1, audience: { recipients: 'party' } }),
+        buff('quickness', 2, 5, 1, { causalOrder: 3, audience: { recipients: 'party' } }),
+        { type: 'boon_extension', at: 3, duration: 10, kind: 'alacrity', extensionAudience: 'all' },
+        buff('fury', 3, 2)
+      ],
+      10,
+      {
+        start: 2,
+        frames: [
+          {
+            at: 0,
+            states: [
+              timedEffectState('relic:fireworks', [{ stacks: 1, expiresAt: 8 }], 1, { name: 'Relic of Fireworks' })
+            ]
+          }
+        ]
+      }
+    )
   });
-  assert.equal(series.effects.Alacrity, undefined);
+  assert.equal(series.effectSummaries.Alacrity.uptime, 1);
   assert.equal(series.boonGeneration.Alacrity, undefined);
-  assert.equal(series.effectSummaries.Quickness.uptime, 0.5);
-  assert.equal(series.boonGeneration.Quickness.self.generatedStackSeconds, 5);
-  assert.equal(series.boonGeneration.Quickness.allies.generatedStackSeconds, 20);
+  assert.equal(series.effectSummaries.Quickness.uptime, 1);
+  assert.equal(series.boonGeneration.Quickness.self.generatedStackSeconds, 35);
+  assert.equal(series.boonGeneration.Quickness.allies.generatedStackSeconds, 140);
   assert.equal(series.effectSummaries.Fury.uptime, 1 / 6);
   assert.equal(series.boonGeneration.Fury.self.generatedStackSeconds, 2);
   assert.equal(series.effectSummaries['Relic of Fireworks'].uptime, 4 / 6);
@@ -317,13 +471,16 @@ test('personal boons and extensions cannot inflate shared generation, including 
     observationEndTime: 10,
     combatEndTime: 10,
     alliedPlayerCount: 4,
-    resolvedEvents: [
-      buff('quickness', 0, 5),
-      buff('alacrity', 0, 8),
-      buff('quickness', 0, 2, 1, { resolvedAudience: { ...self, alliedPlayerCount: 2, recipientCount: 3 } }),
-      { type: 'boon_extension', at: 1, duration: 3, extensionAudience: 'self' },
-      { type: 'boon_extension', at: 2, duration: 1, extensionAudience: 'all' }
-    ]
+    ...effectFields(
+      [
+        buff('quickness', 0, 5),
+        buff('alacrity', 0, 8),
+        buff('quickness', 0, 2, 1, { resolvedAudience: { ...self, alliedPlayerCount: 2, recipientCount: 3 } }),
+        { type: 'boon_extension', at: 1, duration: 3, extensionAudience: 'self' },
+        { type: 'boon_extension', at: 2, duration: 1, extensionAudience: 'all' }
+      ],
+      10
+    )
   });
   const quickness = series.boonGeneration.Quickness;
   assert.equal(series.alliedPlayerCount, 4);
@@ -339,20 +496,23 @@ test('allied-only intensity grants extend each reached recipient once and exclud
     observationEndTime: 10,
     combatEndTime: 10,
     alliedPlayerCount: 4,
-    resolvedEvents: [
-      buff('might', 0, 2, 2, {
-        resolvedAudience: {
-          ...self,
-          includesSelf: false,
-          alliedPlayerCount: 2,
-          includesSummons: true,
-          companionIds: ['pet'],
-          recipientCount: 3
-        }
-      }),
-      { type: 'boon_extension', at: 1, duration: 3, extensionAudience: 'all' },
-      { type: 'boon_extension', at: 2, duration: 1, extensionAudience: 'all' }
-    ]
+    ...effectFields(
+      [
+        buff('might', 0, 2, 2, {
+          resolvedAudience: {
+            ...self,
+            includesSelf: false,
+            alliedPlayerCount: 2,
+            includesSummons: true,
+            companionIds: ['pet'],
+            recipientCount: 3
+          }
+        }),
+        { type: 'boon_extension', at: 1, duration: 3, extensionAudience: 'all' },
+        { type: 'boon_extension', at: 2, duration: 1, extensionAudience: 'all' }
+      ],
+      10
+    )
   });
   assert.equal(series.effectSummaries.Might, undefined);
   assert.equal(series.boonGeneration.Might.self.generatedStackSeconds, 0);

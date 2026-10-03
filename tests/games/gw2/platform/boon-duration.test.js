@@ -15,6 +15,7 @@ test('boon grants round durations to milliseconds and expirations up to action t
   const profession = defineTestProfession({
     id: 'boon-rounding',
     name: 'Boon rounding',
+    hooks: { buffPolicies: () => [{ kind: 'custom' }] },
     catalog: createCanonicalCatalog({
       generated: [
         {
@@ -208,6 +209,7 @@ test('shared emissions scale live boons once and preserve fixed and custom durat
     id: 'duration-fixture',
     name: 'Duration fixture',
     hooks: {
+      buffPolicies: () => [{ kind: 'custom' }],
       initialize(runtime) {
         runtime.query = {
           ...runtime.query,
@@ -322,6 +324,7 @@ test('declarative generic buffs use shared timed state without boon-duration sca
     name: 'Buff State Fixture',
     // Observe the actual buff after the preceding instant cast has resolved.
     hooks: {
+      buffPolicies: () => [{ kind: 'trait-charge', maximumStacks: 25 }],
       onCastStart(runtime, cast) {
         if (cast.skill.id === 920012)
           observedAsBuff = runtime.query.timeline.buffStacksAt('trait-charge', runtime.time, 0, 25) > 0;

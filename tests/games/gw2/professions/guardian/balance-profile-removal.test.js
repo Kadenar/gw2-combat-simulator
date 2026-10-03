@@ -1,16 +1,15 @@
+import { guardianBuffPolicies } from '#gw2/professions/guardian/core/effect-state.js';
 import { applyBalanceProfilePatch } from '#gw2/integrations/patches/authoring/patches.js';
 import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
 import { guardianCatalog } from '#gw2/professions/guardian/catalog.js';
 import { GUARDIAN_SKILL_IDS as SKILL, GUARDIAN_TRAIT_IDS as TRAIT } from '#gw2/professions/guardian/data/ids.js';
 import { guardianProfession } from '#gw2/professions/guardian/profession.js';
 import { bindFirebrandUi } from '#gw2/professions/guardian/specializations/firebrand/presentation.js';
-import { bindWillbenderUi } from '#gw2/professions/guardian/specializations/willbender/presentation.js';
 import { lethalTempoParameters } from '#gw2/professions/guardian/specializations/willbender/traits/behavior.js';
 import { createObservedProfessionSimulator, observedRuntime } from '#tests/helpers/observed-runtime.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-const willbenderUi = bindWillbenderUi(guardianCatalog);
 const firebrandUi = bindFirebrandUi(guardianCatalog);
 
 // Small rotations isolate deletion, surviving edits, and owned state without benchmark-shaped assertions.
@@ -280,7 +279,10 @@ test('patched resource caps and zero recurrence survive initialization and prese
   const tempoCatalog = applyBalanceProfilePatch(guardianCatalog, {
     balanceProfiles: { [TRAIT.LETHAL_TEMPO]: { fields: { maximumStacks: { from: 5, to: 2 } } } }
   });
-  assert.equal(willbenderUi.effectPresentations({ catalog: tempoCatalog }).at(-1).maximumStacks, 2);
+  assert.equal(
+    guardianBuffPolicies({ catalog: tempoCatalog }).find((effect) => effect.kind === 'lethal-tempo').maximumStacks,
+    2
+  );
   assert.equal(guardianCatalog.balanceProfilesById.get(TRAIT.LETHAL_TEMPO).maximumStacks, 5);
 });
 

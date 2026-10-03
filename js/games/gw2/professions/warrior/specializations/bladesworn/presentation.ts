@@ -59,6 +59,19 @@ function resources(context: WarriorUiContext): ProfessionResourceView[] {
 }
 
 export const bladeswornUi: WarriorUiSlice = Object.freeze({
+  // Reports share combat's trait caps; Glory events already contain the complete refreshed window.
+  effectPresentations: () => [
+    {
+      id: 'bladesworn-fierce-as-fire',
+      kind: 'fierce-as-fire',
+      name: 'Fierce as Fire'
+    },
+    {
+      id: 'bladesworn-guns-and-glory',
+      kind: 'guns-and-glory',
+      name: 'Guns and Glory'
+    }
+  ],
   // Tile identity follows the active bar even when the visible skill cannot currently be cast.
   paletteOverride: (context, skill) => {
     const state = warriorUiState(context);
@@ -157,7 +170,7 @@ export const bladeswornUi: WarriorUiSlice = Object.freeze({
       requireBalanceProfileFromContext(context.balanceContext, TRAIT.FIERCE_AS_FIRE),
       'maximumStacks'
     );
-    const fierceAsFire = Math.min(maximum, timedBuffStacksAt(result, 'fierce-as-fire', at));
+    const fierceAsFire = timedBuffStacksAt(result, 'fierce-as-fire', at);
     if (fierceAsFire > 0) {
       items.push({
         id: 'bladesworn-fierce-as-fire',

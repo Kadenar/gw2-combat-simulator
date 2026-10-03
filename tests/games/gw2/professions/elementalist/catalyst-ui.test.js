@@ -1,3 +1,5 @@
+import { elementalistBuffPolicies } from '#gw2/professions/elementalist/core/effect-state.js';
+import { effectFields } from '#tests/helpers/effect-report.js';
 import { planningFixture } from '#tests/helpers/observed-runtime.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
@@ -35,24 +37,28 @@ test('Catalyst chart uses the Elemental Empowerment stack cap', () => {
       rotationEndTime: 2,
       observationEndTime: 2,
       combatEndTime: 2,
-      events: [
-        {
-          type: 'buff',
-          at: 0,
-          kind: 'elemental empowerment',
-          stacks: 3,
-          duration: 15,
-          resolvedAudience: PLAYER_AUDIENCE
-        },
-        {
-          type: 'buff',
-          at: 1,
-          kind: 'elemental empowerment',
-          stacks: 8,
-          duration: 15,
-          resolvedAudience: PLAYER_AUDIENCE
-        }
-      ]
+      ...effectFields(
+        [
+          {
+            type: 'buff',
+            at: 0,
+            kind: 'elemental empowerment',
+            stacks: 3,
+            duration: 15,
+            resolvedAudience: PLAYER_AUDIENCE
+          },
+          {
+            type: 'buff',
+            at: 1,
+            kind: 'elemental empowerment',
+            stacks: 8,
+            duration: 15,
+            resolvedAudience: PLAYER_AUDIENCE
+          }
+        ],
+        2,
+        { policies: elementalistBuffPolicies({ catalog: elementalistProfession.catalog }) }
+      )
     },
     1000,
     effectPresentations

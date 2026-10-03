@@ -1,4 +1,5 @@
 import { recordProcStep } from '#gw2/platform/results/proc-steps.js';
+import { observeRuntimeEffects } from '#gw2/platform/results/observe-effects.js';
 import {
   createEffectEmissionService,
   type EffectDelivery,
@@ -779,6 +780,7 @@ export function runGw2Runtime<T extends object>({
   const assumedField = permanentComboFieldAssumption(config, profession.id, runtime.time);
   if (assumedField) runtime.effects.emit({ kind: 'packet', event: assumedField });
   profession.initialize?.(runtime);
+  captureEffects();
 
   function reject(reason: string): void {
     const command = cursor.command;
@@ -920,6 +922,7 @@ export function runGw2Runtime<T extends object>({
     castActions.set(cast.id, action);
     // Acceptance work runs for the cast: its own packets keep their activation, other effects become its reactions.
     withCause(action, () => acceptCastWork(cast, action, attribution, interrupted));
+    captureEffects();
   }
 
   /** Reserves completion, pays acceptance costs, and enqueues the cast's authored packets. */
@@ -989,11 +992,19 @@ export function runGw2Runtime<T extends object>({
   function dispatch(event: Gw2ResolverEvent): void {
     if (event.kind === 'internal') {
       withCause(workCauses.get(event) ?? null, () => internal.dispatch(event as unknown as RuntimeWork, runtime), true);
+      captureEffects();
       return;
     }
 
     // Everything the event's handlers and equipment hooks create is a reaction to it.
     withCause(event, () => dispatchEvent(event));
+    captureEffects();
+  }
+
+  // Observe the existing owners after each accepted transaction, including custom tasks with no buff packet.
+  function captureEffects(): void {
+    if (!runtime.effectRecorder || (runtime.deathTime != null && runtime.time > runtime.deathTime)) return;
+    runtime.effectRecorder.capture(runtime.time, observeRuntimeEffects(runtime, profession));
   }
 
   function dispatchEvent(event: Gw2ResolverEvent): void {
@@ -1373,7 +1384,8 @@ export function runGw2Runtime<T extends object>({
       { ...runtime, catalog: profession.catalog },
       profession.projectPlanningState,
       profession.endurance?.maximum(runtime),
-      (skill) => profession.availability?.(runtime, skill, { type: 'cast', skillId: skill.id }) ?? { ready: true }
+      (skill) => profession.availability?.(runtime, skill, { type: 'cast', skillId: skill.id }) ?? { ready: true },
+      observeRuntimeEffects(runtime, profession)
     )
   };
   onPhase?.('reporting', performance.now() - reportingStarted);

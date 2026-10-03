@@ -1,3 +1,4 @@
+import { effectFields } from '#tests/helpers/effect-report.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
@@ -21,7 +22,7 @@ function result(id, dps = 100, totalDamage = 400, duration = 4, resolvedEvents =
     observationEndTime: duration,
     combatEndTime: duration,
     steps: [],
-    events: [],
+    ...effectFields(resolvedEvents, duration),
     breakdown: [],
     resolvedEvents
   };

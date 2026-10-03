@@ -1,3 +1,5 @@
+import { timedEffectState } from '#gw2/platform/combat/effect-state.js';
+import { effectFields } from '#tests/helpers/effect-report.js';
 import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
 import { projectObservedState } from '#tests/helpers/observed-runtime.js';
 import assert from 'node:assert/strict';
@@ -121,36 +123,42 @@ test('Elementalist snapshots include Weaver and Catalyst stack/timer windows', (
       },
       12,
       {
-        resolvedEvents: [
-          {
-            type: 'buff',
-            resolvedAudience: {
-              includesSelf: true,
-              includesSummons: false,
-              companionIds: [],
-              alliedPlayerCount: 0,
-              recipientCount: 1
+        ...effectFields([], 120, {
+          frames: [
+            {
+              at: 0,
+              states: [
+                timedEffectState(
+                  'elemental empowerment',
+                  [11, 14, 15].map((expiresAt) => ({ expiresAt, stacks: 1 })),
+                  10
+                )
+              ]
             },
-            kind: 'empowering auras',
-            at: 1,
-            duration: 10,
-            stacks: 1
-          },
-          {
-            type: 'buff',
-            resolvedAudience: {
-              includesSelf: true,
-              includesSummons: false,
-              companionIds: [],
-              alliedPlayerCount: 0,
-              recipientCount: 1
+            {
+              at: 1,
+              states: [
+                timedEffectState(
+                  'elemental empowerment',
+                  [11, 14, 15].map((expiresAt) => ({ expiresAt, stacks: 1 })),
+                  10
+                ),
+                timedEffectState('empowering auras', [{ expiresAt: 11, stacks: 1 }], 5)
+              ]
             },
-            kind: 'empowering auras',
-            at: 9,
-            duration: 10,
-            stacks: 1
-          }
-        ]
+            {
+              at: 9,
+              states: [
+                timedEffectState(
+                  'elemental empowerment',
+                  [11, 14, 15].map((expiresAt) => ({ expiresAt, stacks: 1 })),
+                  10
+                ),
+                timedEffectState('empowering auras', [{ expiresAt: 19, stacks: 2 }], 5)
+              ]
+            }
+          ]
+        })
       }
     )
   );
@@ -166,21 +174,24 @@ test('Elementalist snapshots include Weaver and Catalyst stack/timer windows', (
 test('Amalgam snapshot includes Evolve and all active duration-bearing strains', () => {
   const values = valuesById(
     snapshot(engineerProfession, 'Amalgam', { evolvedUntil: 12, rapaciousUntil: 10, titanicUntil: 11 }, 5, {
-      resolvedEvents: [
-        {
-          type: 'buff',
-          resolvedAudience: {
-            includesSelf: true,
-            includesSummons: false,
-            companionIds: [],
-            alliedPlayerCount: 0,
-            recipientCount: 1
-          },
-          sourceId: 'engineer.resiliant-strain',
-          at: 1,
-          duration: 8
-        }
-      ]
+      ...effectFields(
+        [
+          {
+            type: 'buff',
+            resolvedAudience: {
+              includesSelf: true,
+              includesSummons: false,
+              companionIds: [],
+              alliedPlayerCount: 0,
+              recipientCount: 1
+            },
+            sourceId: 'engineer.resiliant-strain',
+            at: 1,
+            duration: 8
+          }
+        ],
+        120
+      )
     })
   );
   assert.equal(values['amalgam-evolve'], '7.0s');
@@ -231,7 +242,36 @@ test('Mesmer and Harbinger snapshots expose their short decision windows', () =>
       { clarityRemaining: 3500, continuumActive: true, continuumRemaining: 4200 },
       10,
       {
-        resolvedEvents: [
+        ...effectFields(
+          [
+            {
+              type: 'buff',
+              resolvedAudience: {
+                includesSelf: true,
+                includesSummons: false,
+                companionIds: [],
+                alliedPlayerCount: 0,
+                recipientCount: 1
+              },
+              kind: 'danger-time',
+              at: 8,
+              duration: 10,
+              stacks: 1
+            }
+          ],
+          120
+        )
+      }
+    )
+  );
+  assert.equal(mesmer['mesmer-clarity'], '3.5s');
+  assert.equal(mesmer['chronomancer-continuum-split'], '4.2s');
+  assert.equal(mesmer['chronomancer-danger-time'], '8.0s');
+
+  const expiredDangerTime = valuesById(
+    snapshot(mesmerProfession, 'Chronomancer', {}, 19, {
+      ...effectFields(
+        [
           {
             type: 'buff',
             resolvedAudience: {
@@ -246,32 +286,9 @@ test('Mesmer and Harbinger snapshots expose their short decision windows', () =>
             duration: 10,
             stacks: 1
           }
-        ]
-      }
-    )
-  );
-  assert.equal(mesmer['mesmer-clarity'], '3.5s');
-  assert.equal(mesmer['chronomancer-continuum-split'], '4.2s');
-  assert.equal(mesmer['chronomancer-danger-time'], '8.0s');
-
-  const expiredDangerTime = valuesById(
-    snapshot(mesmerProfession, 'Chronomancer', {}, 19, {
-      resolvedEvents: [
-        {
-          type: 'buff',
-          resolvedAudience: {
-            includesSelf: true,
-            includesSummons: false,
-            companionIds: [],
-            alliedPlayerCount: 0,
-            recipientCount: 1
-          },
-          kind: 'danger-time',
-          at: 8,
-          duration: 10,
-          stacks: 1
-        }
-      ]
+        ],
+        120
+      )
     })
   );
   assert.equal(expiredDangerTime['chronomancer-danger-time'], undefined);
@@ -386,64 +403,67 @@ test('Thief snapshots expose stealth gates, Bounding Dodger, Combat High, and ar
 
 test('Warrior snapshots expose shared stacks, Bladesworn buffs, and Paragon refrain', () => {
   const result = {
-    resolvedEvents: [
-      {
-        type: 'buff',
-        resolvedAudience: {
-          includesSelf: true,
-          includesSummons: false,
-          companionIds: [],
-          alliedPlayerCount: 0,
-          recipientCount: 1
+    ...effectFields(
+      [
+        {
+          type: 'buff',
+          resolvedAudience: {
+            includesSelf: true,
+            includesSummons: false,
+            companionIds: [],
+            alliedPlayerCount: 0,
+            recipientCount: 1
+          },
+          kind: 'furious-surge',
+          at: 1,
+          duration: 10,
+          stacks: 3
         },
-        kind: 'furious-surge',
-        at: 1,
-        duration: 10,
-        stacks: 3
-      },
-      {
-        type: 'buff',
-        resolvedAudience: {
-          includesSelf: true,
-          includesSummons: false,
-          companionIds: [],
-          alliedPlayerCount: 0,
-          recipientCount: 1
+        {
+          type: 'buff',
+          resolvedAudience: {
+            includesSelf: true,
+            includesSummons: false,
+            companionIds: [],
+            alliedPlayerCount: 0,
+            recipientCount: 1
+          },
+          kind: 'berserkers-power',
+          at: 2,
+          duration: 15,
+          stacks: 2
         },
-        kind: 'berserkers-power',
-        at: 2,
-        duration: 15,
-        stacks: 2
-      },
-      {
-        type: 'buff',
-        resolvedAudience: {
-          includesSelf: true,
-          includesSummons: false,
-          companionIds: [],
-          alliedPlayerCount: 0,
-          recipientCount: 1
+        {
+          type: 'buff',
+          resolvedAudience: {
+            includesSelf: true,
+            includesSummons: false,
+            companionIds: [],
+            alliedPlayerCount: 0,
+            recipientCount: 1
+          },
+          kind: 'fierce-as-fire',
+          at: 2,
+          duration: 15,
+          stacks: 6
         },
-        kind: 'fierce-as-fire',
-        at: 2,
-        duration: 15,
-        stacks: 6
-      },
-      {
-        type: 'buff',
-        resolvedAudience: {
-          includesSelf: true,
-          includesSummons: false,
-          companionIds: [],
-          alliedPlayerCount: 0,
-          recipientCount: 1
-        },
-        kind: 'guns-and-glory',
-        at: 3,
-        duration: 10,
-        stacks: 1
-      }
-    ]
+        {
+          type: 'buff',
+          resolvedAudience: {
+            includesSelf: true,
+            includesSummons: false,
+            companionIds: [],
+            alliedPlayerCount: 0,
+            recipientCount: 1
+          },
+          kind: 'guns-and-glory',
+          at: 3,
+          duration: 10,
+          stacks: 1
+        }
+      ],
+      120
+    )
   };
   const bladesworn = valuesById(snapshot(warriorProfession, 'Bladesworn', {}, 4, result));
   assert.equal(bladesworn['furious-surge'], '3/25');

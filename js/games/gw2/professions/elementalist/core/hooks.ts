@@ -59,7 +59,11 @@ import type {
   ElementalistSkill
 } from '#gw2/professions/elementalist/types.js';
 /** Core casts, accepted hits, and owned expiry tasks share the runtime. */
+import { elementalistBuffPolicies, elementalistEffectStates } from '#gw2/professions/elementalist/core/effect-state.js';
+
 export const elementalistCoreHooks: Partial<RuntimeProfession<ElementalistRuntimeState, ElementalistSkill>> = {
+  buffPolicies: elementalistBuffPolicies,
+  observeEffects: elementalistEffectStates,
   sideEffectHandlers: elementalistCoreSideEffectHandlers,
   endurance: elementalistEndurance,
   availability: elementalistCoreAvailability,

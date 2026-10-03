@@ -78,6 +78,7 @@ test('shared buff handling records allied recipient scope before reactions run',
           // Reactions must see the new application and its resolved recipients immediately.
           assert.deepEqual(ctx.boons.get(event.kind), [
             {
+              event,
               at: event.at,
               expiresAt: event.at + event.duration,
               stacks: event.stacks,

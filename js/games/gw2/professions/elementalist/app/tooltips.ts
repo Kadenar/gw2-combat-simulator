@@ -731,7 +731,7 @@ export const elementalistTooltips: ProfessionTooltips = {
       'Eligible fire-field hits grant temporary strike-damage stacks. Weapon fire fields last longer and repeat their final damage and condition packets.',
       [
         fromModifier('elementalist.persisting-flames', 'damagePerStack', 'Strike damage per stack'),
-        fromModifier('elementalist.persisting-flames', 'maximumStacks', 'Maximum stacks', tooltipDecimal),
+        ['maximumStacks', 'Maximum stacks', tooltipDecimal],
         ['durationMultiplier', 'Stack duration', tooltipSeconds],
         ['durationPerTier', 'Additional weapon field duration', tooltipSeconds],
         ['summons', 'Additional weapon field packets']

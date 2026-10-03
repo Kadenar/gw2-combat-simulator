@@ -206,6 +206,7 @@ test('derived boons scale once using live stats while preserving fixed durations
   );
   const result = resolveTestGw2Events({
     events,
+    buffPolicies: [{ kind: 'twice-as-vicious', maximumStacks: 1 }],
     endTime: 2,
     query: { statsAt: (at) => ({ concentration: at === 1 ? 750 : 1500 }) }
   });

@@ -53,8 +53,7 @@ function willbenderStateSnapshot(context: GuardianUiContext): RotationStateSnaps
 }
 
 /** Labels Willbender's timed effects and treats refreshed states as replacements rather than additive grants. */
-function willbenderEffectPresentations(context: GuardianUiContext): ProfessionEffectPresentation[] {
-  const lethalTempoProfile = requireBalanceProfileFromContext(context, WILLBENDER_TRAIT.LETHAL_TEMPO);
+function willbenderEffectPresentations(_context: GuardianUiContext): ProfessionEffectPresentation[] {
   return [
     ...[
       ['justice', 'Rushing Justice'],
@@ -63,16 +62,12 @@ function willbenderEffectPresentations(context: GuardianUiContext): ProfessionEf
     ].map(([virtue, name]) => ({
       id: `guardian-willbender-${virtue}`,
       kind: `willbender-${virtue}`,
-      name,
-      maximumStacks: 1,
-      replacementGroup: `guardian-willbender-${virtue}`
+      name
     })),
     {
       id: 'guardian-lethal-tempo',
       kind: 'lethal-tempo',
-      name: 'Lethal Tempo',
-      maximumStacks: balanceProfileNumber(lethalTempoProfile, 'maximumStacks'),
-      replacementGroup: 'guardian-lethal-tempo'
+      name: 'Lethal Tempo'
     }
   ];
 }

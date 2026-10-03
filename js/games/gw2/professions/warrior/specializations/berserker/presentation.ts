@@ -22,7 +22,7 @@ import type { WarriorUiContext, WarriorUiSlice } from '#gw2/professions/warrior/
 
 const SKILLS = Object.freeze([ID.BERSERK]);
 const BERSERKER_EFFECT_PRESENTATIONS: readonly ProfessionEffectPresentation[] = Object.freeze([
-  { id: 'warrior-berserk', kind: 'berserk', name: 'Berserk', maximumStacks: 1 }
+  { id: 'warrior-berserk', kind: 'berserk', name: 'Berserk' }
 ]);
 const PRIMAL_BURSTS_BY_WEAPON: Readonly<Record<string, number>> = Object.freeze({
   Axe: ID.DECAPITATE,

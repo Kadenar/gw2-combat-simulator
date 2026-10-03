@@ -53,7 +53,10 @@ function detonatePrecastMines(runtime: EngineerRuntime): void {
   }
 }
 
+import { engineerBuffPolicies } from '#gw2/professions/engineer/core/effect-state.js';
+
 export const engineerCoreHooks: Partial<RuntimeProfession<EngineerRuntimeState, EngineerSkill>> = {
+  buffPolicies: engineerBuffPolicies,
   endurance: engineerEndurance,
   availability: engineerCoreCastAvailability,
   sideEffectHandlers: {

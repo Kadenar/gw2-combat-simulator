@@ -1,3 +1,4 @@
+import { timedEffectState } from '#gw2/platform/combat/effect-state.js';
 import type { SimulationEventBase } from '#gw2/platform/engine/events/events.js';
 import { denySkillCast } from '#gw2/platform/engine/skills/availability.js';
 import {
@@ -218,6 +219,19 @@ function summon(runtime: NecromancerRuntime, cast: RuntimeCast<NecromancerSkill>
 
 /** Ritualist uses the shared Core resource owner and actual creature callbacks, with specialization-owned lifetimes. */
 export const ritualistHooks: Partial<RuntimeProfession<NecromancerRuntimeState, NecromancerSkill>> = {
+  // Recipient pools already own replacement and charge consumption; publish their retained grants directly.
+  buffPolicies: () =>
+    ['nightmare', 'splinter', 'resilient'].map((spell) => ({ kind: spell + '-weapon', owner: 'profession' as const })),
+  observeEffects(runtime) {
+    return Object.entries(ritualistState.from(runtime).weaponSpells).flatMap(([spell, state]) =>
+      Object.entries(state.recipients ?? {}).map(([recipient, grant]) =>
+        timedEffectState(spell + '-weapon', [{ stacks: grant.charges, expiresAt: grant.expiresAt }], null, {
+          recipient:
+            recipient === 'player' ? 'self' : recipient.startsWith('ally:') ? recipient : 'companion:' + recipient
+        })
+      )
+    );
+  },
   ...ritualistSpellHooks,
   resources: {
     lifeForce: {

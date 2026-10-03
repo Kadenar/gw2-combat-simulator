@@ -38,7 +38,11 @@ import type { WarriorRuntimeState, WarriorSkill } from '#gw2/professions/warrior
 import { boundedNumber } from '#kernel/core/numeric.js';
 
 /** Core resources and burst packets execute in the Core hooks; elite behavior composes at the family boundary. */
+import { warriorBuffPolicies, warriorEffectStates } from '#gw2/professions/warrior/core/effect-state.js';
+
 export const warriorCoreHooks: Partial<RuntimeProfession<WarriorRuntimeState, WarriorSkill>> = {
+  buffPolicies: warriorBuffPolicies,
+  observeEffects: warriorEffectStates,
   // Custom verbs keep specialization-dependent resource conversion and catalog-matched targets in their owner.
   sideEffectHandlers: {
     'warrior.spend-magazine'(runtime, context) {

@@ -164,7 +164,7 @@ function warriorCoreStateSnapshot(
     const profile = requireBalanceProfileFromContext(balance, TRAIT.SIGNET_MASTERY);
     const maximum = balanceProfileNumber(profile, 'maximumStacks');
     const bonus = balanceProfileNumber(profile, 'attributeBonus');
-    const stacks = Math.min(maximum, timedBuffStacksAt(result, 'signet-mastery', at));
+    const stacks = timedBuffStacksAt(result, 'signet-mastery', at);
     if (stacks > 0) {
       items.push({
         id: 'signet-mastery',
@@ -191,7 +191,7 @@ function warriorCoreStateSnapshot(
       balanceProfileNumber(requireBalanceProfileFromContext(balance, TRAIT.BERSERKERS_POWER), 'maximumStacks')
     ]
   ] as const) {
-    const stacks = Math.min(maximum, timedBuffStacksAt(result, kind, at));
+    const stacks = timedBuffStacksAt(result, kind, at);
     if (stacks > 0) items.push({ id, label, value: `${stacks}/${maximum}`, title: `${label} active stacks` });
   }
 
@@ -199,16 +199,12 @@ function warriorCoreStateSnapshot(
 }
 
 /** Stack displays read the same profile cap as the damage formula. */
-function warriorCoreEffectPresentations(context: WarriorUiContext): ProfessionEffectPresentation[] {
+function warriorCoreEffectPresentations(_context: WarriorUiContext): ProfessionEffectPresentation[] {
   return [
     {
       id: 'warrior-berserkers-power',
       kind: 'berserkers-power',
-      name: "Berserker's Power",
-      maximumStacks: balanceProfileNumber(
-        requireBalanceProfileFromContext(context, TRAIT.BERSERKERS_POWER),
-        'maximumStacks'
-      )
+      name: "Berserker's Power"
     }
   ];
 }

@@ -106,6 +106,7 @@ test('combo boon resolution samples changing live concentration instead of confi
   ];
   const result = resolveTestGw2Events({
     ...{ events, endTime: 4 },
+    buffPolicies: [{ kind: 'concentration-fixture', maximumStacks: 1 }],
     config: { target: {}, stats: { concentration: 0 } },
     traits: new Set(),
     helpers,

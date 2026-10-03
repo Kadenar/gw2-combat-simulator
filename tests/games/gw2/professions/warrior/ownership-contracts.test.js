@@ -1,3 +1,5 @@
+import { warriorBuffPolicies } from '#gw2/professions/warrior/core/effect-state.js';
+import { effectFields } from '#tests/helpers/effect-report.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
@@ -68,14 +70,15 @@ test('Warrior displays use selected stack caps and bonuses', () => {
       [TRAIT.SIGNET_MASTERY]: { fields: { maximumStacks: 3, attributeBonus: 120 } },
       [TRAIT.FURIOUS]: { fields: { maximumStacks: 7 } },
       [TRAIT.BERSERKERS_POWER]: { fields: { maximumStacks: 6, damageIncreasePerStack: 0.0625 } },
-      [TRAIT.FIERCE_AS_FIRE]: { fields: { maximumStacks: 8, damageIncreasePerStack: 0.025 } }
+      [TRAIT.FIERCE_AS_FIRE]: { fields: { maximumStacks: 8, damageIncreasePerStack: 0.025 } },
+      [TRAIT.GUNS_AND_GLORY]: { fields: { maximumStacks: 9 } }
     }
   });
   const balanceContext = family.balanceContextFor(patchId);
   const result = {
     events: [],
-    resolvedEvents: ['signet-mastery', 'furious-surge', 'berserkers-power', 'peak-performance', 'fierce-as-fire'].map(
-      (kind) => ({
+    ...effectFields(
+      ['signet-mastery', 'furious-surge', 'berserkers-power', 'peak-performance', 'fierce-as-fire'].map((kind) => ({
         type: 'buff',
         kind,
         at: 0,
@@ -88,7 +91,9 @@ test('Warrior displays use selected stack caps and bonuses', () => {
           alliedPlayerCount: 0,
           recipientCount: 1
         }
-      })
+      })),
+      120,
+      { policies: warriorBuffPolicies(balanceContext) }
     )
   };
   const items = family.ui.rotationStateSnapshot({
@@ -105,9 +110,12 @@ test('Warrior displays use selected stack caps and bonuses', () => {
   assert.equal(item('berserkers-power').value, '6/6');
   assert.equal(item('bladesworn-fierce-as-fire').value, '8/8');
   assert.equal(item('peak-performance').title, 'Peak Performance active');
-  assert.equal(
-    family.ui.effectPresentations({ specialization: 'Core', catalog: balanceContext.catalog })[0].maximumStacks,
-    6
+  assert.equal(result.effectReport.tracks.find((track) => track.kind === 'berserkers-power').countLimit, 6);
+  assert.equal(result.effectReport.tracks.find((track) => track.kind === 'fierce-as-fire').countLimit, 8);
+  assert.ok(
+    family.ui
+      .effectPresentations({ specialization: 'Bladesworn', catalog: balanceContext.catalog })
+      .every((effect) => !Object.hasOwn(effect, 'maximumStacks') && !Object.hasOwn(effect, 'maximumDuration'))
   );
 
   // A single profile patch must change the capped damage formula and the trait's numeric tooltip together.

@@ -21,17 +21,9 @@ function tempestStateSnapshot(context: ElementalistUiContext): RotationStateSnap
     });
   }
 
-  let ariaExpiresAt = 0;
-  for (const proc of context.result?.procSteps || []) {
-    if (proc.type === 'trait_proc' && proc.skill === 'Tempestuous Aria' && proc.start <= at * 1000) {
-      ariaExpiresAt = Math.max(ariaExpiresAt, (proc.expiresAt || 0) / 1000);
-    }
-  }
-
-  if (ariaExpiresAt > at) {
-    items.push({ id: 'tempestuous-aria', label: 'Tempestuous Aria', value: `${(ariaExpiresAt - at).toFixed(1)}s` });
-  }
-
+  // Read the refreshed engine deadline instead of replaying trait announcements.
+  const aria = timedBuffAt(context.result, 'tempestuous aria', at);
+  if (aria) items.push({ id: 'tempestuous-aria', label: 'Tempestuous Aria', value: aria.remaining.toFixed(1) + 's' });
   return items;
 }
 

@@ -100,7 +100,7 @@ function luminaryStateSnapshot(context: GuardianUiContext): RotationStateSnapsho
 
   // Mirror the hammer-only modifier gate and read each bonus from the selected patch's rules.
   const radiant = timedBuffAt(result, 'guardian-radiant-armaments', at);
-  if (radiant && radiant.event.metadata?.radiantWeapon === 'hammer') {
+  if (radiant && radiant.event?.metadata?.radiantWeapon === 'hammer') {
     items.push({
       id: 'luminary-radiant-armaments',
       label: 'Radiant Armaments',
@@ -138,8 +138,7 @@ function luminaryEffectPresentations(): ProfessionEffectPresentation[] {
     {
       id: 'guardian-empowered-armaments',
       kind: 'guardian-empowered-armaments',
-      name: 'Empowered Armaments',
-      maximumStacks: 1
+      name: 'Empowered Armaments'
     },
     {
       id: 'guardian-radiant-armaments',
@@ -147,9 +146,7 @@ function luminaryEffectPresentations(): ProfessionEffectPresentation[] {
       name: (event) => {
         const weapon = RADIANT_ARMAMENT_NAMES[event.metadata?.radiantWeapon || ''];
         return weapon ? `Radiant Armaments (${weapon})` : 'Radiant Armaments';
-      },
-      maximumStacks: 1,
-      replacementGroup: 'guardian-radiant-armaments'
+      }
     }
   ];
 }

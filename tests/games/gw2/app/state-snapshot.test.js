@@ -1,3 +1,4 @@
+import { effectFields } from '#tests/helpers/effect-report.js';
 import { criticalChanceTooltip, rotationStateSnapshot } from '#gw2/app/rotation/state-snapshot/model.js';
 import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
 import { ELEMENTALIST_TRAIT_IDS as TRAIT } from '#gw2/professions/elementalist/data/ids.js';
@@ -32,7 +33,26 @@ test('Catalyst snapshots use the active balance catalog before and after simulat
   assert.ok(!rotationStateSnapshot(app).items.some((item) => item.id === 'catalyst-empowering-auras'));
   app.results = {
     planningState: { atSeconds: 1 },
-    events: [{ type: 'buff', kind: 'empowering auras', at: 0, duration: 5, stacks: 3 }]
+    ...effectFields(
+      [
+        {
+          type: 'buff',
+          kind: 'empowering auras',
+          at: 0,
+          duration: 5,
+          stacks: 3,
+          resolvedAudience: {
+            includesSelf: true,
+            includesSummons: false,
+            companionIds: [],
+            alliedPlayerCount: 0,
+            recipientCount: 1
+          }
+        }
+      ],
+      1,
+      { policies: [{ kind: 'empowering auras', maximumStacks: 2 }] }
+    )
   };
   const aura = rotationStateSnapshot(app).items.find((item) => item.id === 'catalyst-empowering-auras');
   assert.equal(aura.value, '2/2 · 4.0s');

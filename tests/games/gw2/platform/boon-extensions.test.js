@@ -1,3 +1,4 @@
+import { effectFields } from '#tests/helpers/effect-report.js';
 import { captureEffectEmissions } from '#tests/helpers/effect-emission.js';
 import { runElementalist } from '#tests/helpers/elementalist-simulation.js';
 import { runMesmer } from '#tests/helpers/mesmer-simulation.js';
@@ -180,7 +181,7 @@ test('extensions preserve past duration and intensity observations across recipi
   }
 
   const chart = buildTimeSeries(
-    { rotationEndTime: 15, observationEndTime: 15, combatEndTime: 15, dpsStartTime: 0, resolvedEvents: events },
+    { rotationEndTime: 15, observationEndTime: 15, combatEndTime: 15, dpsStartTime: 0, ...effectFields(events, 15) },
     1000,
     {
       durationStackCaps: { fury: 30 }

@@ -92,7 +92,10 @@ function completeWeapon(runtime: RangerRuntime, cast: RuntimeCast<RangerSkill>):
   synchronizePathOfScarsRecharge(runtime, cast);
 }
 
+import { rangerBuffPolicies } from '#gw2/professions/ranger/core/effect-state.js';
+
 export const rangerCoreHooks: Partial<RuntimeProfession<RangerRuntimeState, RangerSkill>> = {
+  buffPolicies: rangerBuffPolicies,
   sideEffectHandlers: {
     // Declarations choose the phase and payload; queued grants preserve same-time hit ordering.
     'ranger.sharpening-stone'(runtime, context) {

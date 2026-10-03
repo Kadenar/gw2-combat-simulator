@@ -79,7 +79,7 @@ test('Piercing Stance extends its live duration and imported armaments preserve 
 
 test('Radiant Armaments damage and display agree through the final live microsecond and weapon replacement', () => {
   const settings = { ...config, selectedTraitIds: [TRAIT.RADIANT_ARMAMENTS] };
-  const result = runGuardian([wait(1), ID.ENTER_RADIANT_FORGE, ID.DAZZLING_HAMMER], settings);
+  const result = runGuardian([wait(1), ID.ENTER_RADIANT_FORGE, ID.DAZZLING_HAMMER, wait(11000)], settings);
   const buff = result.events.find((event) => event.kind === 'guardian-radiant-armaments');
   const expiry = boonApplicationsAt(result.events, buff.kind, buff.at)[0].expiresAt;
   const rule = luminaryModule.modifiers.modifierRules.find((entry) => entry.id === 'guardian.radiant-armaments');

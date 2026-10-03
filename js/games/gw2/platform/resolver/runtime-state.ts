@@ -1,4 +1,5 @@
 import type { EffectEmissionService } from '#gw2/platform/simulation/effect-emission.js';
+import { EffectRecorder } from '#gw2/platform/results/effect-report.js';
 import { createSigilRuntimeState } from '#gw2/platform/equipment/sigils/runtime.js';
 import type { Gw2SigilRuntimeState } from '#gw2/platform/equipment/sigils/types.js';
 import { createProcRegistry } from '#gw2/platform/combat/procs.js';
@@ -50,6 +51,7 @@ export function createGw2ResolverRuntimeState({
     // Distribution trials always couple damage to crit outcomes, regardless of the baseline preference.
     criticalDamageMode: config.randomness?.mode === 'stochastic' ? 'rolled' : criticalDamageMode,
     reporting,
+    effectRecorder: reporting ? new EffectRecorder() : null,
     damageDiagnostics: reporting && damageDiagnostics,
     config,
     traits,
@@ -179,6 +181,7 @@ export function createGw2ResolverRuntimeState({
 // Resolution consumes kernel randomness and generic records without execution dependencies.
 
 export interface Gw2ResolverRuntime {
+  readonly effectRecorder: EffectRecorder | null;
   readonly criticalDamageMode: Gw2CriticalDamageMode;
   readonly procs: ReturnType<typeof createProcRegistry>;
   readonly reporting: boolean;

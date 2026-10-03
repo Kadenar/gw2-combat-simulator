@@ -28,9 +28,9 @@ interface DurationStackOptions<T> {
 
 const GW2_BOON_DURATION_CAP_SECONDS = 30;
 const GW2_SWIFTNESS_DURATION_CAP_SECONDS = 60;
-// Standard metadata is shared by combat stacking and presentation; Aegis and Stability keep their existing treatment.
+// Standard metadata is shared by combat queries and effect reporting.
 const STANDARD_BOON_DEFINITIONS: Readonly<Record<string, StandardBoonPresentation>> = Object.freeze({
-  aegis: Object.freeze({ name: 'Aegis' }),
+  aegis: Object.freeze({ name: 'Aegis', maximumStacks: 1 }),
   alacrity: Object.freeze({ name: 'Alacrity', maximumDuration: GW2_BOON_DURATION_CAP_SECONDS }),
   fury: Object.freeze({ name: 'Fury', maximumDuration: GW2_BOON_DURATION_CAP_SECONDS }),
   might: Object.freeze({ name: 'Might', maximumStacks: 25 }),
@@ -110,7 +110,7 @@ export function buffApplicationStacks<T extends BuffStackApplication>(
     }
   }
 
-  return clamp(stacks, 0, maximum);
+  return clamp(stacks, 0, Math.min(maximum, STANDARD_BOON_DEFINITIONS[kind]?.maximumStacks ?? Infinity));
 }
 
 /** Round final boon grants and extension amounts after bonuses, preserving application times and generic buffs. */
@@ -151,6 +151,7 @@ export function recordBuffApplication(
     ...(isDurationStackingBoon(kind) ? { duration } : {}),
     stacks: Math.max(1, event.stacks || 1),
     source: event.source,
+    event,
     resolvedAudience: event.resolvedAudience
   });
   boons.set(kind, applications);
@@ -462,6 +463,7 @@ export function boonApplicationsAt(
 export type Gw2BuffAudience = 'all' | 'summon' | 'summon-trait';
 
 export interface Gw2TimedBuffApplication {
+  readonly event?: SimulationEvent;
   readonly extension?: boolean;
   readonly at: number;
   readonly duration?: number;

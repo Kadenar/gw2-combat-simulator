@@ -66,24 +66,17 @@ const HARBINGER_EFFECT_PRESENTATIONS: readonly ProfessionEffectPresentation[] = 
   {
     id: 'harbinger-blight',
     kind: 'harbinger-blight',
-    name: 'Blight',
-    maximumStacks: 25,
-    replacementGroup: 'harbinger-blight'
+    name: 'Blight'
   },
   {
     id: 'harbinger-shroud',
     kind: 'harbinger-shroud',
-    name: 'Harbinger Shroud',
-    stateFromEvent: (event) =>
-      event.type === 'weapon_set' && event.shroudSwap
-        ? { stacks: Number(event.sourceId === 'necromancer.shroud-enter') }
-        : null
+    name: 'Harbinger Shroud'
   },
   {
     id: 'meltdown',
     kind: 'meltdown',
-    name: 'Meltdown',
-    replacementGroup: 'meltdown'
+    name: 'Meltdown'
   }
 ]);
 

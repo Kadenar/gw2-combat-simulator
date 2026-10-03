@@ -1,3 +1,4 @@
+import { effectFields } from '#tests/helpers/effect-report.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
@@ -831,7 +832,7 @@ function minimalResult(damageAt1s) {
     combatEndTime: 4,
     breakdown: [],
     events: [],
-    resolvedEvents: [{ type: 'damage', at: 1, damage: damageAt1s }]
+    ...effectFields([{ type: 'damage', at: 1, damage: damageAt1s }], 4)
   };
 }
 

@@ -1,3 +1,4 @@
+import { effectFields } from '#tests/helpers/effect-report.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
@@ -12,47 +13,50 @@ test('condition payouts retain full and partial attribution independently of ski
       dpsStartTime: 0.36,
       deathTime: 4.36,
       combatEndTime: 4.36,
-      resolvedEvents: [
-        {
-          type: 'condition',
-          condition: 'Torment',
-          name: 'Player application',
-          actorType: 'player',
-          at: 0.86,
-          stacks: 2,
-          damageTicks: [
-            { at: 0, damage: 999, fraction: 1 },
-            { at: 1.36, damage: 20, fraction: 0.5 },
-            { at: 2.36, damage: 40, fraction: 1 },
-            { at: 4.36, damage: 10, fraction: 0.25 },
-            { at: 5.36, damage: 999, fraction: 1 }
-          ]
-        },
-        {
-          type: 'condition',
-          condition: 'Torment',
-          name: 'Clone application',
-          actorType: 'summon',
-          summonKind: 'clone',
-          at: 2.32,
-          stacks: 1,
-          damageTicks: [
-            { at: 2.36, damage: 2, fraction: 0.04 },
-            { at: 3.36, damage: 50, fraction: 1 },
-            { at: 4.36, damage: 48, fraction: 0.96 }
-          ]
-        },
-        {
-          type: 'condition',
-          condition: 'Torment',
-          name: 'Rounded to zero',
-          at: 2.35,
-          stacks: 0.01,
-          damageTicks: [{ at: 2.36, damage: 0, fraction: 0.04 }]
-        },
-        { type: 'condition', condition: 'Burning', at: 1.36, stacks: 1, damageTicks: [{ at: 2.36, damage: 100 }] },
-        { type: 'damage', at: 2.36, damage: 500 }
-      ]
+      ...effectFields(
+        [
+          {
+            type: 'condition',
+            condition: 'Torment',
+            name: 'Player application',
+            actorType: 'player',
+            at: 0.86,
+            stacks: 2,
+            damageTicks: [
+              { at: 0, damage: 999, fraction: 1 },
+              { at: 1.36, damage: 20, fraction: 0.5 },
+              { at: 2.36, damage: 40, fraction: 1 },
+              { at: 4.36, damage: 10, fraction: 0.25 },
+              { at: 5.36, damage: 999, fraction: 1 }
+            ]
+          },
+          {
+            type: 'condition',
+            condition: 'Torment',
+            name: 'Clone application',
+            actorType: 'summon',
+            summonKind: 'clone',
+            at: 2.32,
+            stacks: 1,
+            damageTicks: [
+              { at: 2.36, damage: 2, fraction: 0.04 },
+              { at: 3.36, damage: 50, fraction: 1 },
+              { at: 4.36, damage: 48, fraction: 0.96 }
+            ]
+          },
+          {
+            type: 'condition',
+            condition: 'Torment',
+            name: 'Rounded to zero',
+            at: 2.35,
+            stacks: 0.01,
+            damageTicks: [{ at: 2.36, damage: 0, fraction: 0.04 }]
+          },
+          { type: 'condition', condition: 'Burning', at: 1.36, stacks: 1, damageTicks: [{ at: 2.36, damage: 100 }] },
+          { type: 'damage', at: 2.36, damage: 500 }
+        ],
+        4.36
+      )
     },
     250,
     { skillKey: () => null }
@@ -96,21 +100,24 @@ test('chart projection preserves activation ownership across burst grouping', ()
       dpsStartTime: 1,
       deathTime: 5,
       combatEndTime: 5,
-      resolvedEvents: [
-        { type: 'damage', at: 1, damage: 10, activationId: 'cast:1', didCrit: true, averagedCriticalDamage: true },
-        { type: 'damage', at: 2, damage: 20, activationId: 'cast:2' },
-        { type: 'damage', at: 3, damage: 30, activationId: 'cast:1' },
-        { type: 'damage', at: 3, damage: 40 },
-        { type: 'damage', at: 3, damage: 50 },
-        {
-          type: 'condition',
-          at: 3,
-          damageTicks: [
-            { at: 3, damage: 5 },
-            { at: 4, damage: 5 }
-          ]
-        }
-      ]
+      ...effectFields(
+        [
+          { type: 'damage', at: 1, damage: 10, activationId: 'cast:1', didCrit: true, averagedCriticalDamage: true },
+          { type: 'damage', at: 2, damage: 20, activationId: 'cast:2' },
+          { type: 'damage', at: 3, damage: 30, activationId: 'cast:1' },
+          { type: 'damage', at: 3, damage: 40 },
+          { type: 'damage', at: 3, damage: 50 },
+          {
+            type: 'condition',
+            at: 3,
+            damageTicks: [
+              { at: 3, damage: 5 },
+              { at: 4, damage: 5 }
+            ]
+          }
+        ],
+        5
+      )
     },
     250,
     { skillKey: () => 'skill' }
@@ -145,17 +152,20 @@ test('condition windows preserve damage kind and stay aligned to fight time', ()
       dpsStartTime: 0,
       deathTime: 12,
       combatEndTime: 12,
-      resolvedEvents: [
-        { type: 'damage', at: 0.1, damage: 10, activationId: 'cast:1' },
-        { type: 'damage', at: 9.1, damage: 20, activationId: 'cast:2' },
-        {
-          type: 'condition',
-          at: 0,
-          activationId: 'cast:1',
-          damageTicks: Array.from({ length: 12 }, (_, at) => ({ at, damage: 5 }))
-        },
-        { type: 'condition', at: 11.5, damage: 7, didCrit: false }
-      ]
+      ...effectFields(
+        [
+          { type: 'damage', at: 0.1, damage: 10, activationId: 'cast:1' },
+          { type: 'damage', at: 9.1, damage: 20, activationId: 'cast:2' },
+          {
+            type: 'condition',
+            at: 0,
+            activationId: 'cast:1',
+            damageTicks: Array.from({ length: 12 }, (_, at) => ({ at, damage: 5 }))
+          },
+          { type: 'condition', at: 11.5, damage: 7, didCrit: false }
+        ],
+        12
+      )
     },
     250,
     { skillKey: () => 'skill' }

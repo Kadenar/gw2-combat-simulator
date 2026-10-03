@@ -1,3 +1,4 @@
+import { effectFields } from '#tests/helpers/effect-report.js';
 import { RELIC_IDS } from '#gw2/platform/equipment/relics/data.js';
 import { revenantCatalog } from '#gw2/professions/revenant/catalog.js';
 import assert from 'node:assert/strict';
@@ -501,14 +502,18 @@ test("Kalla's Fervor chart uses the Renegade stack cap", () => {
       rotationEndTime: 2,
       observationEndTime: 2,
       combatEndTime: 2,
-      events: Array.from({ length: 7 }, (_, index) => ({
-        type: 'buff',
-        at: index * 0.01,
-        kind: 'kallas-fervor',
-        duration: 8,
-        stacks: 1,
-        resolvedAudience: PLAYER_AUDIENCE
-      }))
+      ...effectFields(
+        Array.from({ length: 7 }, (_, index) => ({
+          type: 'buff',
+          at: index * 0.01,
+          kind: 'kallas-fervor',
+          duration: 8,
+          stacks: 1,
+          resolvedAudience: PLAYER_AUDIENCE
+        })),
+        2,
+        { policies: [{ kind: 'kallas-fervor', maximumStacks: 5 }] }
+      )
     },
     100,
     effectPresentations

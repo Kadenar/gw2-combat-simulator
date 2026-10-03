@@ -1,3 +1,5 @@
+import { timedEffectState } from '#gw2/platform/combat/effect-state.js';
+import { effectFields } from '#tests/helpers/effect-report.js';
 import { runGuardian } from '#tests/helpers/guardian-simulation.js';
 import { assertFlooredDamageMultiplier } from '#tests/helpers/rounded-damage.js';
 import assert from 'node:assert/strict';
@@ -380,7 +382,26 @@ test('Luminary chart labels radiant weapons and replaces the previous armament',
       rotationEndTime: 4,
       observationEndTime: 4,
       combatEndTime: 4,
-      events: [radiantBuff(0, 'hammer'), radiantBuff(2, 'staff')]
+      ...effectFields([], 4, {
+        frames: [
+          {
+            at: 0,
+            states: [
+              timedEffectState('guardian-radiant-armaments', [{ stacks: 1, expiresAt: 10 }], 1, {
+                source: radiantBuff(0, 'hammer')
+              })
+            ]
+          },
+          {
+            at: 2,
+            states: [
+              timedEffectState('guardian-radiant-armaments', [{ stacks: 1, expiresAt: 12 }], 1, {
+                source: radiantBuff(2, 'staff')
+              })
+            ]
+          }
+        ]
+      })
     },
     1000,
     effectPresentations

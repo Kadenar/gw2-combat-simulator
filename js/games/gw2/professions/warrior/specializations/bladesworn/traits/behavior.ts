@@ -214,7 +214,11 @@ export function gunsAndGloryExplosion(runtime: Runtime, event: Gw2ResolverEvent)
       Math.max(0, state.gunsAndGloryUntil - runtime.time) + balanceProfileNumber(profile, 'resourceGain')
     );
     if (duration > 0) {
-      state.gunsAndGloryUntil = gw2EffectExpiresAt(runtime.time, duration);
+      // Tick rounding must not extend a full duration pool beyond its configured ceiling.
+      state.gunsAndGloryUntil = Math.min(
+        gw2EffectExpiresAt(runtime.time, duration),
+        runtime.time + balanceProfileNumber(profile, 'maximumStacks')
+      );
       runtime.effects.emit({
         kind: 'packet',
         cause: event,

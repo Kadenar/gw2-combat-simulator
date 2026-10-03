@@ -52,7 +52,11 @@ function complete(runtime: MesmerRuntime, cast: RuntimeCast<MesmerSkill>): void 
 }
 
 /** Core owns casts, clones, and accepted impact reactions on the shared clock. */
+import { mesmerBuffPolicies, mesmerEffectStates } from '#gw2/professions/mesmer/core/effect-state.js';
+
 export const mesmerCoreHooks: Partial<RuntimeProfession<MesmerRuntimeState, MesmerSkill>> = {
+  buffPolicies: mesmerBuffPolicies,
+  observeEffects: mesmerEffectStates,
   sideEffectHandlers: {
     'mesmer.shatter'(runtime, context) {
       if (context.kind === 'cast') commitMesmerShatter(runtime, context.cast);

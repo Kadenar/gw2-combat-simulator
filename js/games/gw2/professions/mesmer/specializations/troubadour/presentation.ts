@@ -36,8 +36,7 @@ const TROUBADOUR_EFFECT_PRESENTATIONS: readonly ProfessionEffectPresentation[] =
     id: 'mesmer-altered-chord',
     kind: 'altered-chord',
     name: 'Altered Chord',
-    color: '#80bce8',
-    maximumStacks: 1
+    color: '#80bce8'
   }
 ]);
 

@@ -1,3 +1,5 @@
+import { mesmerBuffPolicies } from '#gw2/professions/mesmer/core/effect-state.js';
+import { effectFields } from '#tests/helpers/effect-report.js';
 import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
@@ -61,17 +63,21 @@ test('result summary totals the same charge-aware dead-time gaps shown on the ti
     observationEndTime: 2,
     combatEndTime: 2,
     deathTime: null,
-    events: [
-      {
-        type: 'resource',
-        reason: 'profession mechanic',
-        activationId: 'second',
-        amount: -4,
-        resource: 'dragon charges',
-        sourceSkill: 'Second Cast',
-        chargingSeconds: 0.5
-      }
-    ],
+    ...effectFields(
+      [
+        {
+          type: 'resource',
+          reason: 'profession mechanic',
+          activationId: 'second',
+          amount: -4,
+          resource: 'dragon charges',
+          sourceSkill: 'Second Cast',
+          chargingSeconds: 0.5
+        }
+      ],
+      2,
+      { policies: mesmerBuffPolicies({ catalog: mesmerProfession.catalog }) }
+    ),
     steps: [
       { ri: 0, skill: 'First Cast', start: 0, end: 500 },
       { ri: 1, activationId: 'second', skill: 'Second Cast', start: 1250, end: 1750 }
@@ -92,7 +98,7 @@ test('result summary includes explicit wait shapes in total idle time', () => {
     observationEndTime: 1,
     combatEndTime: 1,
     deathTime: null,
-    events: [],
+    ...effectFields([], 1, { policies: mesmerBuffPolicies({ catalog: mesmerProfession.catalog }) }),
     steps: [
       { ri: 0, skill: 'First Cast', start: 0, end: 500 },
       { ri: 1, skill: 'Wait', start: 500, end: 900, type: 'wait' },
@@ -114,8 +120,8 @@ test('result summary details legitimate gaps and groups repeated missing-commit 
     observationEndTime: 1,
     combatEndTime: 1,
     deathTime: null,
-    events: [],
-    resolvedEvents: [],
+    ...effectFields([], 1, { policies: mesmerBuffPolicies({ catalog: mesmerProfession.catalog }) }),
+
     steps: [
       {
         ri: 0,
@@ -163,7 +169,9 @@ test('Kill Time accounts for an explicit Combat Start reference', () => {
     combatEndTime: 93.89,
     deathTime: 93.89,
     firstHitTime: 2.06,
-    events: [{ type: 'combat_start', at: 2.06 }]
+    ...effectFields([{ type: 'combat_start', at: 2.06 }], 93.89, {
+      policies: mesmerBuffPolicies({ catalog: mesmerProfession.catalog })
+    })
   });
 
   assert.equal(metrics[0].label, 'Kill Time');
@@ -408,15 +416,19 @@ test('Compounding Power chart series caps at five stacks', () => {
       rotationEndTime: 10,
       observationEndTime: 10,
       combatEndTime: 10,
-      resolvedEvents: [],
-      events: Array.from({ length: 7 }, (_, index) => ({
-        type: 'buff',
-        at: index * 0.1,
-        kind: 'compounding',
-        duration: 8,
-        stacks: 1,
-        resolvedAudience: PLAYER_RESOLVED_AUDIENCE
-      }))
+
+      ...effectFields(
+        Array.from({ length: 7 }, (_, index) => ({
+          type: 'buff',
+          at: index * 0.1,
+          kind: 'compounding',
+          duration: 8,
+          stacks: 1,
+          resolvedAudience: PLAYER_RESOLVED_AUDIENCE
+        })),
+        10,
+        { policies: mesmerBuffPolicies({ catalog: mesmerProfession.catalog }) }
+      )
     },
     100,
     mesmerProfession.ui.effectPresentations({
@@ -434,13 +446,17 @@ test('Vulnerability chart series caps at 25 stacks', () => {
       rotationEndTime: 10,
       observationEndTime: 10,
       combatEndTime: 10,
-      resolvedEvents: Array.from({ length: 30 }, (_, index) => ({
-        type: 'condition',
-        at: index * 0.01,
-        condition: 'Vulnerability',
-        duration: 8,
-        stacks: 1
-      })),
+      ...effectFields(
+        Array.from({ length: 30 }, (_, index) => ({
+          type: 'condition',
+          at: index * 0.01,
+          condition: 'Vulnerability',
+          duration: 8,
+          stacks: 1
+        })),
+        10,
+        { policies: mesmerBuffPolicies({ catalog: mesmerProfession.catalog }) }
+      ),
       events: []
     },
     100
@@ -455,15 +471,19 @@ test('Might chart series caps at 25 stacks', () => {
       rotationEndTime: 10,
       observationEndTime: 10,
       combatEndTime: 10,
-      resolvedEvents: [],
-      events: Array.from({ length: 30 }, (_, index) => ({
-        type: 'buff',
-        at: index * 0.01,
-        kind: 'might',
-        duration: 8,
-        stacks: 1,
-        resolvedAudience: PLAYER_RESOLVED_AUDIENCE
-      }))
+
+      ...effectFields(
+        Array.from({ length: 30 }, (_, index) => ({
+          type: 'buff',
+          at: index * 0.01,
+          kind: 'might',
+          duration: 8,
+          stacks: 1,
+          resolvedAudience: PLAYER_RESOLVED_AUDIENCE
+        })),
+        10,
+        { policies: mesmerBuffPolicies({ catalog: mesmerProfession.catalog }) }
+      )
     },
     100
   );
@@ -481,15 +501,19 @@ for (const [specialization, kind, name, maximumStacks] of [
         rotationEndTime: 10,
         observationEndTime: 10,
         combatEndTime: 10,
-        resolvedEvents: [],
-        events: Array.from({ length: maximumStacks + 2 }, (_, index) => ({
-          type: 'buff',
-          at: index * 0.01,
-          kind,
-          duration: 8,
-          stacks: 1,
-          resolvedAudience: PLAYER_RESOLVED_AUDIENCE
-        }))
+
+        ...effectFields(
+          Array.from({ length: maximumStacks + 2 }, (_, index) => ({
+            type: 'buff',
+            at: index * 0.01,
+            kind,
+            duration: 8,
+            stacks: 1,
+            resolvedAudience: PLAYER_RESOLVED_AUDIENCE
+          })),
+          10,
+          { policies: mesmerBuffPolicies({ catalog: mesmerProfession.catalog }) }
+        )
       },
       100,
       mesmerProfession.ui.effectPresentations({

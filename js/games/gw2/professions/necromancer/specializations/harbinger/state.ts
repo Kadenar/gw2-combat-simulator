@@ -10,7 +10,7 @@ import { boundedInteger } from '#kernel/core/numeric.js';
 import { canonicalTime } from '#kernel/core/clock.js';
 
 const BLIGHT_DURATION_SECONDS = 25;
-const BLIGHT_MAXIMUM_STACKS = 25;
+export const BLIGHT_MAXIMUM_STACKS = 25;
 
 export interface HarbingerState {
   blightGeneration: number;

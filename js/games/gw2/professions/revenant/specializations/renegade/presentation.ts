@@ -71,13 +71,12 @@ function renegadeStateSnapshot(context: RevenantUiContext): RotationStateSnapsho
 }
 
 /** Publishes Renegade effect presentation from the same patchable cap used by its mechanics. */
-function renegadeEffectPresentations(context: RevenantUiContext): ProfessionEffectPresentation[] {
+function renegadeEffectPresentations(_context: RevenantUiContext): ProfessionEffectPresentation[] {
   return [
     {
       id: 'revenant-kallas-fervor',
       kind: 'kallas-fervor',
-      name: "Kalla's Fervor",
-      maximumStacks: fervorMaximum(context)
+      name: "Kalla's Fervor"
     }
   ];
 }

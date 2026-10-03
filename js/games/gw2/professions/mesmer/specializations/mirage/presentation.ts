@@ -1,35 +1,28 @@
-import {
-  balanceProfileNumber,
-  requireBalanceProfileFromContext
-} from '#gw2/platform/engine/skills/balance-profiles.js';
 import type { ProfessionEffectPresentation } from '#gw2/platform/profession-presentation/types.js';
 import {
   mesmerMechanicPaletteGroups,
   mesmerResourceViews,
   mesmerUiState
 } from '#gw2/professions/mesmer/core/presentation.js';
-import { MESMER_SKILL_IDS as ID, MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
+import { MESMER_SKILL_IDS as ID } from '#gw2/professions/mesmer/data/ids.js';
 import type { MesmerUiContext, MesmerUiSlice } from '#gw2/professions/mesmer/types.js';
 
 const MIRAGE_MECHANIC_SKILLS = Object.freeze([ID.MIND_WRACK, ID.CRY_OF_FRUSTRATION, ID.DIVERSION, ID.DISTORTION]);
 
 /** Publishes Mirage-only timed effects and their chart limits. */
-function mirageEffectPresentations(context: MesmerUiContext): ProfessionEffectPresentation[] {
-  const phantomPainProfile = requireBalanceProfileFromContext(context, TRAIT.PHANTOM_PAIN);
+function mirageEffectPresentations(_context: MesmerUiContext): ProfessionEffectPresentation[] {
   return [
     {
       id: 'mesmer-phantom-pain',
       kind: 'phantom-pain',
       name: 'Phantom Pain',
-      color: '#df79bd',
-      maximumStacks: balanceProfileNumber(phantomPainProfile, 'maximumStacks')
+      color: '#df79bd'
     },
     {
       id: 'mesmer-mirage-cloak',
       kind: 'mirage-cloak',
       name: 'Mirage Cloak',
-      color: '#d6b46b',
-      maximumStacks: 1
+      color: '#d6b46b'
     }
   ];
 }

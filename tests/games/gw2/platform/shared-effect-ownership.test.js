@@ -24,6 +24,7 @@ test('owned effects prepare once at impact and retain their reserved identity', 
   const profession = {
     ...Object.fromEntries(MODIFIER_HOOK_NAMES.map((key) => [key, testProfession[key]])),
     id: 'effect-ownership-fixture',
+    buffPolicies: () => [{ kind: 'ownership-fixture' }],
     catalog: createCanonicalCatalog({ generated: [] }),
     createState: () => ({ value: 1 }),
     initialize(runtime) {

@@ -11,6 +11,9 @@ import type { Gw2TimedBuffApplication } from '#gw2/platform/combat/boons.js';
 import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
 import { canonicalEvent, eventCausalOrder } from '#kernel/events/queue.js';
 import { gw2BoonApplicationRecipients } from '#gw2/platform/combat/state/allied-players.js';
+import { observeBuffState } from '#gw2/platform/combat/effect-state.js';
+import { standardBoonPresentation } from '#gw2/platform/combat/boons.js';
+import { EffectRecorder } from '#gw2/platform/results/effect-report.js';
 
 // Reporting projects party grants onto a full subgroup without changing combat assumptions or events.
 export const PRESENTATION_ALLIED_PLAYER_COUNT = 4;
@@ -23,6 +26,36 @@ export interface BoonGenerationByAudience {
   readonly intensityStacking: boolean;
   readonly self: BoonGeneration;
   readonly allies: BoonGeneration;
+}
+
+/** Project four hypothetical allies with the existing boon helpers, isolated from live combat and RNG. */
+export function projectedPartyEffects(generation: ReturnType<typeof buildBoonGeneration>, end: number) {
+  const recorder = new EffectRecorder();
+  const times = new Set([0, end]);
+  for (const recipient of generation.alliedApplications)
+    for (const applications of recipient.values())
+      for (const application of applications) {
+        if (application.at <= end) times.add(application.at);
+        if (application.expiresAt <= end) times.add(application.expiresAt);
+      }
+
+  for (const at of [...times].sort((a, b) => a - b))
+    recorder.capture(
+      at,
+      generation.alliedApplications.flatMap((recipient, index) =>
+        [...recipient].map(([kind, applications]) => ({
+          ...observeBuffState(
+            kind,
+            applications,
+            at,
+            { kind, maximumStacks: standardBoonPresentation(kind)?.maximumStacks },
+            `ally:${index + 1}`
+          ),
+          origin: 'party-projection' as const
+        }))
+      )
+    );
+  return recorder.finish(end);
 }
 
 /** Projects authored audiences onto four allies; personal boons never seed an ally's extension history. */
@@ -91,7 +124,7 @@ export function buildBoonGeneration(
         )
           continue;
         const kind = String(event.kind).toLowerCase();
-        credit(kind, Math.max(0, Number(event.duration || 0)) * Math.max(1, Number(event.stacks || 1)));
+        credit(kind, Math.max(0, event.duration || 0) * Math.max(1, event.stacks || 1));
         // Each projection is local to this report; the original event and its recipients remain untouched.
         recordBuffApplication(boons, {
           ...event,
@@ -120,7 +153,7 @@ export function buildBoonGeneration(
                 sum + (application.at <= event.at && application.expiresAt > event.at ? application.stacks : 0),
               0
             );
-        credit(kind, stacks * Math.max(0, Number(event.duration || 0)));
+        credit(kind, stacks * Math.max(0, event.duration || 0));
       }
 
       applyBoonExtension(boons, { ...event, extensionAudience: 'self' });

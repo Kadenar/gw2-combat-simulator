@@ -68,7 +68,11 @@ function clearTorchLockout(runtime: Runtime, cast: RuntimeCast<GuardianSkill>): 
 }
 
 /** Core hooks: accepted virtues, shared recharge, endurance grants, and temporary weapon state. */
+import { guardianBuffPolicies, guardianEffectStates } from '#gw2/professions/guardian/core/effect-state.js';
+
 export const guardianCoreHooks: Partial<RuntimeProfession<GuardianRuntimeState, GuardianSkill>> = {
+  buffPolicies: guardianBuffPolicies,
+  observeEffects: guardianEffectStates,
   sideEffectHandlers: {
     ...guardianTorchActions,
     ...guardianSpearActions,

@@ -18,6 +18,12 @@ export function composeRuntimeHooks<State extends object, TSkill extends Skill =
 
   const stages = new Set(hooks.flatMap((hook) => Object.keys(hook.reactions ?? {}))) as Set<Gw2ResolverStage>;
   return {
+    buffPolicies(context) {
+      return hooks.flatMap((hook) => hook.buffPolicies?.(context) ?? []);
+    },
+    observeEffects(context) {
+      return hooks.flatMap((hook) => hook.observeEffects?.(context) ?? []);
+    },
     resources: Object.assign({}, ...hooks.map((hook) => hook.resources)),
     endurance: [...hooks].reverse().find((hook) => hook.endurance)?.endurance,
     playerAlacrityRechargeRate: [...hooks].reverse().find((hook) => hook.playerAlacrityRechargeRate != null)

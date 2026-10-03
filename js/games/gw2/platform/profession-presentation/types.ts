@@ -279,11 +279,6 @@ export interface ProfessionEffectPresentation {
   readonly kind: string;
   readonly name: string | ((event: SimulationEvent) => string);
   readonly color?: string;
-  readonly maximumStacks?: number;
-  /** Effects that publish complete state snapshots replace earlier applications in this group. */
-  readonly replacementGroup?: string;
-  /** Projects recorded state into a buff window; zero stacks close the previous window. Expiry is in seconds. */
-  readonly stateFromEvent?: (event: SimulationEvent) => { readonly stacks: number; readonly expiresAt?: number } | null;
 }
 
 /**

@@ -1,10 +1,11 @@
+import { timedEffectState } from '#gw2/platform/combat/effect-state.js';
 import type { AnnouncementEmission } from '#gw2/platform/simulation/effect-emission.js';
 import type { Gw2ResolverRuntime } from '#gw2/platform/resolver/runtime-state.js';
 import { gw2EffectExpiresAt } from '#gw2/platform/skills/timing.js';
 
 /** Project an executed announcement into the timeline without introducing a combat packet or consuming RNG identity. */
 export function recordProcStep(
-  context: Pick<Gw2ResolverRuntime, 'reporting' | 'procKeys' | 'procSteps'>,
+  context: Pick<Gw2ResolverRuntime, 'reporting' | 'procKeys' | 'procSteps' | 'effectRecorder' | 'deathTime'>,
   announcement: AnnouncementEmission['announcement']
 ): void {
   const {
@@ -20,6 +21,24 @@ export function recordProcStep(
   } = announcement;
   // Proc rows are presentation only; combat effects have already been applied by the caller.
   if (!context.reporting) return;
+  // Equipment already publishes its accepted state; record it once where the announcement executes.
+  if (
+    type === 'relic' &&
+    (expiresAt != null || effectState != null) &&
+    (context.deathTime == null || at <= context.deathTime)
+  )
+    context.effectRecorder?.capture(
+      at,
+      [
+        timedEffectState(
+          'relic:' + name,
+          [{ stacks: effectState?.stacks ?? 1, expiresAt }],
+          effectState?.maximumStacks ?? 1,
+          { name }
+        )
+      ],
+      'relic:' + name
+    );
   const start = Math.round(at * 1000);
   // Detail distinguishes genuinely sequential procs (e.g. per-blade stack counts)
   // landing at the same instant from the same skill; without it they'd collapse to one row.

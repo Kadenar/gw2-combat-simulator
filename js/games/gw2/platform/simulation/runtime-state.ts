@@ -132,6 +132,13 @@ export interface Gw2Runtime<T extends object = object, TSkill extends Skill = Sk
 
 /** Canonical live contract: mechanics read and mutate the same context at their actual execution phase. */
 export interface RuntimeProfession<T extends object, TSkill extends Skill = Skill> extends Gw2QueryProfession {
+  /** Native owners expose accepted state using their existing stores and balance values. */
+  buffPolicies?(
+    runtime: Gw2Runtime<T, TSkill>
+  ): readonly import('#gw2/platform/combat/effect-state.js').BuffStatePolicy[];
+  observeEffects?(
+    runtime: Gw2Runtime<T, TSkill>
+  ): readonly import('#gw2/platform/combat/effect-state.js').EffectState[];
   readonly catalog: CanonicalCatalog<TSkill>;
   readonly rechargeRules?: readonly RechargeRule<T, TSkill>[];
   readonly traitTriggers?: readonly TraitTrigger<T, TSkill>[];

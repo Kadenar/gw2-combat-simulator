@@ -1,4 +1,5 @@
 import { playerDamageTotal } from '#gw2/platform/combat/state/target-health.js';
+import { buildBoonGeneration, projectedPartyEffects } from '#gw2/platform/results/boon-generation.js';
 import type { Gw2SimulationScore } from '#gw2/platform/simulation/types.js';
 import type { Gw2ResolverEvent, Gw2ResolverResult } from '#gw2/platform/resolver/types.js';
 import type { Gw2ResolverRuntime } from '#gw2/platform/resolver/runtime-state.js';
@@ -93,8 +94,14 @@ export function buildCombatResult(
   const { output, ...numeric } = score;
   const effectiveEvents = events.filter((event) => event.at <= effectiveEnd);
   const casts = addCastsToBreakdown(ctx, effectiveEvents);
+  // Both actual and hypothetical party tracks are prepared by platform rules before crossing into the application.
+  const generation = buildBoonGeneration(ctx.resolved, score.combatStartTime ?? score.dpsStartTime, effectiveEnd);
+  const effectReport = ctx.effectRecorder!.finish(effectiveEnd);
+  const partyReport = projectedPartyEffects(generation, effectiveEnd);
   return {
     ...numeric,
+    effectReport: { ...effectReport, tracks: [...effectReport.tracks, ...partyReport.tracks] },
+    boonGeneration: { alliedPlayerCount: generation.alliedPlayerCount, boons: Object.fromEntries(generation.boons) },
     breakdown: [...ctx.breakdown.values()].sort((left, right) => right.damage - left.damage),
     conditionBreakdown: [...ctx.conditions.values()]
       .map((entry) => ({

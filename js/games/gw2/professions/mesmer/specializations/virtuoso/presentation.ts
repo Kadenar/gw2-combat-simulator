@@ -16,8 +16,7 @@ const VIRTUOSO_EFFECT_PRESENTATIONS: readonly ProfessionEffectPresentation[] = O
     id: 'mesmer-deadly-blades',
     kind: 'deadly-blades',
     name: 'Deadly Blades',
-    color: '#e38a8a',
-    maximumStacks: 1
+    color: '#e38a8a'
   }
 ]);
 

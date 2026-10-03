@@ -203,7 +203,11 @@ function swapLegend(runtime: RevenantRuntime, cast: RuntimeCast<RevenantSkill>):
 }
 
 /** Core hooks: Energy, upkeeps, legends, weapon follow-ups, and actual hit/application trait reactions. */
+import { revenantBuffPolicies, revenantEffectStates } from '#gw2/professions/revenant/core/effect-state.js';
+
 export const revenantCoreHooks: Partial<RuntimeProfession<RevenantRuntimeState, RevenantSkill>> = {
+  buffPolicies: revenantBuffPolicies,
+  observeEffects: revenantEffectStates,
   // Base-second reductions remain with the cooldown controller, including partial-ammo progress.
   sideEffectHandlers: {
     'revenant.imperial-guard'(runtime, context) {

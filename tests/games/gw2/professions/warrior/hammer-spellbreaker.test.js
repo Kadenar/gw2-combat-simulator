@@ -311,7 +311,7 @@ test("Spellbreaker only gains Attacker's Insight from control and lightning leap
 });
 
 test('Peak Performance and Magebane Tether use their logged recharge timing', () => {
-  const peak = simulate('Spellbreaker', ["Bull's Charge"], {
+  const peak = simulate('Spellbreaker', ["Bull's Charge", { type: 'wait', durationMs: 2100 }], {
     selectedTraitIds: [TRAIT.PEAK_PERFORMANCE]
   });
   const bull = peak.steps.find(({ skill }) => skill === "Bull's Charge");

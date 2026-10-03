@@ -540,8 +540,10 @@ test('Dazzling keeps accepted-control actor gates and effect removal through reg
 
 test('Persisting Flames patches transform packets before emission and display the same stack cap used by damage', () => {
   const family = patched(elementalistProfession, {
-    balanceProfiles: { [ELEMENTALIST.PERSISTING_FLAMES]: { fields: { summons: 1, durationPerTier: 3 } } },
-    modifierRules: { 'elementalist.persisting-flames': { parameters: { maximumStacks: 2, damagePerStack: 0.1 } } }
+    balanceProfiles: {
+      [ELEMENTALIST.PERSISTING_FLAMES]: { fields: { summons: 1, durationPerTier: 3, maximumStacks: 2 } }
+    },
+    modifierRules: { 'elementalist.persisting-flames': { parameters: { damagePerStack: 0.1 } } }
   });
   const effects = [
     {

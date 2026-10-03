@@ -2,32 +2,13 @@ import { buildTimeSeries, type ChartSeries } from '#gw2/app/results/charts/time-
 import { skillDamageIdentityKey, skillDamageKeyByIdentity } from '#gw2/app/results/skill-breakdown.js';
 import { baseResultSummaryMetrics } from '#gw2/app/results/summary-metrics.js';
 import { timelineIdleTimeMetric } from '#gw2/app/results/idle-time-metric.js';
-import { GW2_STANDARD_BOONS, isStandardBoon, standardBoonPresentation } from '#gw2/platform/combat/boons.js';
+import { standardBoonPresentation } from '#gw2/platform/combat/boons.js';
 import type {
   ProfessionChartApplication,
   ProfessionEffectPresentation
 } from '#gw2/platform/profession-presentation/types.js';
 import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
 import type { Gw2SimulationResult } from '#gw2/platform/simulation/types.js';
-
-const STANDARD_BOON_PRESENTATIONS = GW2_STANDARD_BOONS.map(standardBoonPresentation).filter(
-  (presentation) => presentation != null
-);
-const STANDARD_STACK_CAPS: Readonly<Record<string, number>> = Object.freeze({
-  Vulnerability: 25,
-  ...Object.fromEntries(
-    STANDARD_BOON_PRESENTATIONS.flatMap((presentation) =>
-      presentation.maximumStacks == null ? [] : [[presentation.name, presentation.maximumStacks]]
-    )
-  )
-});
-const STANDARD_DURATION_CAPS: Readonly<Record<string, number>> = Object.freeze(
-  Object.fromEntries(
-    STANDARD_BOON_PRESENTATIONS.flatMap((presentation) =>
-      presentation.maximumDuration == null ? [] : [[presentation.name, presentation.maximumDuration]]
-    )
-  )
-);
 
 export function resultSummaryMetrics(result: Gw2SimulationResult) {
   // Metric duration follows the resolver's DPS clock. This is intentionally
@@ -121,23 +102,6 @@ export function effectName(
     .join(' ');
 }
 
-/** Builds display-name keyed caps from the profession effects present in this result. */
-function effectStackCaps(
-  result: Gw2SimulationResult,
-  presentations: readonly ProfessionEffectPresentation[]
-): Readonly<Record<string, number>> {
-  const caps: Record<string, number> = { ...STANDARD_STACK_CAPS };
-  // Resolver-generated profession buffs need the same display caps as scheduled effects.
-  for (const event of [...(result.events || []), ...(result.resolvedEvents || [])]) {
-    if (event.type !== 'buff') continue;
-    const presentation = effectPresentation(event.kind, presentations);
-    if (presentation?.maximumStacks == null) continue;
-    caps[effectName(event.kind, event, presentations)] = presentation.maximumStacks;
-  }
-
-  return caps;
-}
-
 export function buildChartSeries(
   result: Gw2SimulationResult,
   sampleStepMs = 250,
@@ -149,22 +113,6 @@ export function buildChartSeries(
   const skillKeyByIdentity = skillDamageKeyByIdentity(result);
   const series = buildTimeSeries(result, sampleStepMs, {
     effectName: (kind, event) => effectName(kind, event, presentations),
-    effectType: (kind, event) => (event.type === 'condition' ? 'condition' : isStandardBoon(kind) ? 'boon' : 'buff'),
-    replacementGroup: (kind) => effectPresentation(kind, presentations)?.replacementGroup || '',
-    // Let profession-owned snapshots feed the existing timed-effect integration without changing combat events.
-    stateEffects: (event) =>
-      presentations.flatMap((presentation) => {
-        const state = presentation.stateFromEvent?.(event);
-        return state ? [{ ...state, name: effectName(presentation.kind, event, presentations) }] : [];
-      }),
-    // Relic activation records are the authoritative source for temporary
-    // relic state, including refreshes that extend the active window.
-    timedProcEffect: (proc) =>
-      proc.type === 'relic_proc' && (proc.expiresAt != null || proc.effectState != null)
-        ? { name: proc.skill, type: 'buff' }
-        : null,
-    stackCaps: effectStackCaps(result, presentations),
-    durationStackCaps: STANDARD_DURATION_CAPS,
     skillKey: (event) =>
       skillKeyByIdentity.get(
         skillDamageIdentityKey({

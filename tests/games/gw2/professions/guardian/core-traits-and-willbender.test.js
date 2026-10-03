@@ -1,3 +1,5 @@
+import { timedEffectState } from '#gw2/platform/combat/effect-state.js';
+import { effectFields } from '#tests/helpers/effect-report.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { buildChartSeries } from '#gw2/app/results/model.js';
@@ -16,14 +18,6 @@ const config = {
   },
   target: { armor: 2597 }
 };
-
-const PLAYER_AUDIENCE = Object.freeze({
-  includesSelf: true,
-  includesSummons: false,
-  alliedPlayerCount: 0,
-  companionIds: [],
-  recipientCount: 1
-});
 
 test('a summoned Sword of Justice completes its queued attacks after the player cancels the recovery animation', () => {
   // A completed summon owns its delayed damage and conditions independently of the remaining player animation.
@@ -432,24 +426,12 @@ test('Willbender chart treats Lethal Tempo events as refreshed stack snapshots',
       rotationEndTime: 3,
       observationEndTime: 3,
       combatEndTime: 3,
-      events: [
-        {
-          type: 'buff',
-          at: 0,
-          kind: 'lethal-tempo',
-          duration: 4,
-          stacks: 1,
-          resolvedAudience: PLAYER_AUDIENCE
-        },
-        {
-          type: 'buff',
-          at: 1,
-          kind: 'lethal-tempo',
-          duration: 4,
-          stacks: 2,
-          resolvedAudience: PLAYER_AUDIENCE
-        }
-      ]
+      ...effectFields([], 3, {
+        frames: [
+          { at: 0, states: [timedEffectState('lethal-tempo', [{ stacks: 1, expiresAt: 4 }], 5)] },
+          { at: 1, states: [timedEffectState('lethal-tempo', [{ stacks: 2, expiresAt: 5 }], 5)] }
+        ]
+      })
     },
     1000,
     effectPresentations

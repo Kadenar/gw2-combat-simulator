@@ -1,3 +1,4 @@
+import type { EffectState } from '#gw2/platform/combat/effect-state.js';
 /** Owns the simulation/types.ts contracts so type dependencies follow their runtime feature boundaries. */
 import type { NormalizedProfessionContract, ProfessionFamilyContract } from '#gw2/platform/engine/profession/types.js';
 import type { AmmoState, AvailabilityResult, SimulationStep } from '#gw2/platform/execution/types.js';
@@ -36,6 +37,8 @@ export type Gw2ProfessionSource<TProfessionState extends object = any> = Profess
 };
 
 export interface Gw2SimulationPlanningState {
+  /** Detached owner observations at the planning boundary, including continuation after death. */
+  readonly effects: readonly EffectState[];
   /** Default-command profession gates at this boundary, not predicted scheduler acceptance. */
   readonly availability: Readonly<Record<string, AvailabilityResult>>;
   /** Observed planning boundary in seconds; includes authoring continuation after target death. */

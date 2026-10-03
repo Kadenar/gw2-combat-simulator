@@ -290,7 +290,7 @@ test('buff history bounds preserve mixed lifetimes, fallback durations, and back
   assert.equal(timeline.timedStacks('might', 4, 0, 100), 2);
   assert.equal(timeline.timedStacks('might', 12, 10, 100), 4);
   events.push(buffEvent({ at: 0.5, duration: 30, stacks: 64 }));
-  assert.equal(timeline.timedStacks('might', 12, 2, 100), 64);
+  assert.equal(timeline.timedStacks('might', 12, 2, 100), 25);
   assert.equal(timeline.timedStacks('might', 0.25, 2, 100), 1);
 });
 

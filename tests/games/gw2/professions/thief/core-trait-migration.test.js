@@ -368,7 +368,7 @@ test('Lead Attacks replaces oldest stacks across and at the cap while preserving
     ]).flat();
     // An instant four-initiative attack with a pool large enough for every grant isolates the stack cap.
     const result = runThief(
-      rotation,
+      [...rotation, wait(14000)],
       { selectedTraitIds: [TRAIT.LEAD_ATTACKS], initialInitiative: 30 },
       {
         catalog: (live) =>
@@ -385,18 +385,7 @@ test('Lead Attacks replaces oldest stacks across and at the cap while preserving
         .flat()
         .slice(-15)
     );
-    const series = buildChartSeries(
-      {
-        rotationEndTime: 14,
-        observationEndTime: 14,
-        combatEndTime: 14,
-        events: result.events
-          .filter((event) => event.type === 'buff' && event.kind === 'lead-attacks')
-          .map((event) => ({ ...event, resolvedAudience: { includesSelf: true } }))
-      },
-      1000,
-      thiefCoreUi.effectPresentations({ catalog: thiefCatalog })
-    );
+    const series = buildChartSeries(result, 1000, thiefCoreUi.effectPresentations({ catalog: thiefCatalog }));
     assert.equal(chartValueAt(series.effects['Lead Attacks'], (grants - 1) * 1000), 15);
     const expected = grants === 4 ? [12, 8, 4, 0, 0] : [15, 12, 8, 4, 0];
     for (let index = 0; index < expected.length; index += 1) {

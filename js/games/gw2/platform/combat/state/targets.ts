@@ -70,6 +70,11 @@ export function isDamagingCondition(value: unknown): boolean {
   return DAMAGING_CONDITION_SET.has(canonicalTargetConditionName(value));
 }
 
+/** Effective intensity belongs to combat: non-damaging conditions represent presence, except Vulnerability. */
+export function conditionStackLimit(name: string): number | null {
+  return isDamagingCondition(name) ? null : canonicalTargetConditionName(name) === 'Vulnerability' ? 25 : 1;
+}
+
 function normalizeTargetConditions(
   conditions: Readonly<Record<string, number | boolean>>
 ): ReadonlyMap<string, number | boolean> {
@@ -116,13 +121,13 @@ export function createPermanentTargetConditionStacks(config: Gw2Config): (name: 
   return (name: string): number => {
     const value = configuredConditionValue(config, name, normalizedConditions);
     if (value === true) return 1;
-    return Math.max(0, Number(value) || 0);
+    return Math.min(conditionStackLimit(name) ?? Infinity, Math.max(0, Number(value) || 0));
   };
 }
 
 /**
  * Gets stack count of permanent condition on target.
- * Boolean true converts to 1 stack; numeric values preserved; falsy returns 0.
+ * Boolean true converts to one stack; numeric values respect the condition intensity cap.
  * Stack count (≥0)
  * @example
  * permanentTargetConditionStacks(config, "Vulnerability") // → 2
@@ -130,7 +135,7 @@ export function createPermanentTargetConditionStacks(config: Gw2Config): (name: 
 export function permanentTargetConditionStacks(config: Gw2Config, name: string): number {
   const value = configuredConditionValue(config, name);
   if (value === true) return 1;
-  return Math.max(0, Number(value) || 0);
+  return Math.min(conditionStackLimit(name) ?? Infinity, Math.max(0, Number(value) || 0));
 }
 
 function activeRuntimeStackWeight(stack: Gw2RuntimeConditionStack, at: number): number {
@@ -157,7 +162,10 @@ export function runtimeTargetConditionStacks(
   const canonicalName = canonicalTargetConditionName(name);
   // Runtime writers store canonical condition names, so queries need only one lookup.
   const entry = runtime.conditionState.get(canonicalName);
-  return (entry?.stacks || []).reduce((sum, stack) => sum + activeRuntimeStackWeight(stack, at), 0);
+  return Math.min(
+    conditionStackLimit(name) ?? Infinity,
+    (entry?.stacks || []).reduce((sum, stack) => sum + activeRuntimeStackWeight(stack, at), 0)
+  );
 }
 
 /**
@@ -170,7 +178,10 @@ export function targetConditionStacks(
   at: number,
   runtime: Gw2RuntimeStateLike | null = null
 ): number {
-  return permanentTargetConditionStacks(config, name) + runtimeTargetConditionStacks(runtime, name, at || 0);
+  return Math.min(
+    conditionStackLimit(name) ?? Infinity,
+    permanentTargetConditionStacks(config, name) + runtimeTargetConditionStacks(runtime, name, at || 0)
+  );
 }
 
 /** Reports whether permanent assumptions or runtime state give the target a condition. */

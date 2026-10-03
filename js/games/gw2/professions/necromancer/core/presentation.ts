@@ -38,8 +38,7 @@ const NECROMANCER_EFFECT_PRESENTATIONS: readonly ProfessionEffectPresentation[] 
   {
     id: 'necromancer-soul-barbs',
     kind: 'necromancer-soul-barbs',
-    name: 'Soul Barbs',
-    maximumStacks: 1
+    name: 'Soul Barbs'
   }
 ]);
 

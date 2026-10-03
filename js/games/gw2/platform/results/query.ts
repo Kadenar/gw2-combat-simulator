@@ -1,47 +1,9 @@
 import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import type { Gw2SimulationResult } from '#gw2/platform/simulation/types.js';
-import { gw2EffectExpiresAt } from '#gw2/platform/skills/timing.js';
-import { canonicalTime, isTimeInWindow } from '#kernel/core/clock.js';
-import {
-  type Gw2TimedBuffApplication,
-  boonApplicationsAt,
-  buffApplicationStacks,
-  buffMatchesAudience,
-  durationStackingBoonCapSeconds,
-  isDurationStackingBoon,
-  isStandardBoon,
-  remainingDurationStackSeconds
-} from '#gw2/platform/combat/boons.js';
-
-interface ResultEffectIndex {
-  readonly byKind: Map<string, SimulationEvent[]>;
-  readonly extensions: SimulationEvent[];
-}
-
-const effectIndexes = new WeakMap<readonly Gw2ResolverEvent[], ResultEffectIndex>();
-
-/** Completed results retain one index of committed effects; scheduled predictions never become report facts. */
-function resultEffects(result: Gw2SimulationResult | null | undefined, kind: string) {
-  const events = result?.resolvedEvents;
-  if (!events) return { buffs: [], extensions: [] };
-  let index = effectIndexes.get(events);
-  if (!index) {
-    index = { byKind: new Map(), extensions: [] };
-    for (const event of events) {
-      if (event.type === 'boon_extension') index.extensions.push(event);
-      if (event.type !== 'buff') continue;
-      const key = (event.kind || '').toLowerCase();
-      const bucket = index.byKind.get(key) || [];
-      bucket.push(event);
-      index.byKind.set(key, bucket);
-    }
-
-    effectIndexes.set(events, index);
-  }
-
-  return { buffs: index.byKind.get(kind) || [], extensions: index.extensions };
-}
+import { effectStateAt } from '#gw2/platform/results/effect-report.js';
+import { effectStateValue } from '#gw2/platform/combat/effect-state.js';
+import { canonicalTime } from '#kernel/core/clock.js';
 
 /**
  * Finds the player strike whose resolved critical chance best represents a
@@ -79,65 +41,38 @@ export function criticalChanceEventAt(
   return after ?? before;
 }
 
-/**
- * Returns the latest matching self-buff still active at the requested result
- * time, including its remaining duration and source event.
- */
+/** A prefix simulation supplies one planning boundary beyond combat; arbitrary future queries remain unavailable. */
+function observedBuffAt(result: Gw2SimulationResult, kind: string, at: number) {
+  const matches = (state: { kind: string; recipient: string; origin: string }) =>
+    state.kind === kind.toLowerCase() && state.recipient === 'self' && state.origin === 'simulated';
+  if (at > result.effectReport.end && canonicalTime(at) === canonicalTime(result.planningState.atSeconds)) {
+    const state = result.planningState.effects.find(matches);
+    return state ? effectStateValue(state, at) : null;
+  }
+
+  const track = result.effectReport.tracks.find(matches);
+  return track ? effectStateAt(result.effectReport, track, at) : null;
+}
+
+/** Cursor inspection uses the same accepted state and deadlines as effect charts. */
 export function timedBuffAt(
   result: Gw2SimulationResult | null | undefined,
   kind: string,
   atSeconds: number
-): { readonly remaining: number; readonly event: SimulationEvent } | null {
-  const at = canonicalTime(Math.max(0, atSeconds || 0));
-  kind = kind.toLowerCase();
-  const { buffs, extensions } = resultEffects(result, kind);
-  const applications = extensions.length ? boonApplicationsAt([...buffs, ...extensions], kind, at) : buffs;
-  const live = applications.filter((event) => buffMatchesAudience(event, 'all') && event.at <= at);
-  if (isDurationStackingBoon(kind)) {
-    const remaining = remainingDurationStackSeconds(live, at, { maximum: durationStackingBoonCapSeconds(kind) });
-    const event = buffs.filter((event) => event.at <= at && buffMatchesAudience(event, 'all')).at(-1);
-    return remaining > 0 && event ? { remaining, event } : null;
-  }
-
-  // Test each source's surviving applications so extensions retain the original buff identity.
-  for (let index = buffs.length - 1; index >= 0; index -= 1) {
-    const event = buffs[index];
-    if (event.at > at || !buffMatchesAudience(event, 'all')) continue;
-    const applications =
-      extensions.length && isStandardBoon(kind) ? boonApplicationsAt([event, ...extensions], kind, at) : [event];
-    const application = applications
-      .filter(
-        (application) =>
-          buffMatchesAudience(application, 'all') &&
-          isTimeInWindow(
-            at,
-            application.at,
-            'expiresAt' in application
-              ? Number(application.expiresAt)
-              : gw2EffectExpiresAt(application.at, application.duration || 0)
-          )
-      )
-      .at(-1);
-    if (!application) continue;
-    const expiresAt =
-      'expiresAt' in application
-        ? Number(application.expiresAt)
-        : gw2EffectExpiresAt(application.at, application.duration || 0);
-    return { remaining: expiresAt - at, event };
-  }
-
-  return null;
+): { readonly remaining: number; readonly event?: SimulationEvent } | null {
+  if (!result) return null;
+  const state = observedBuffAt(result, kind, Math.max(0, atSeconds));
+  return state && state.count > 0
+    ? { remaining: state.expiresAt == null ? Infinity : Math.max(0, state.expiresAt - atSeconds), event: state.source }
+    : null;
 }
 
-/** Sums every matching timed-buff application still active at a result time. */
+/** Effective counts are supplied by the engine owner, including consumption and replacements. */
 export function timedBuffStacksAt(
   result: Gw2SimulationResult | null | undefined,
   kind: string,
   atSeconds: number
 ): number {
-  const at = canonicalTime(Math.max(0, atSeconds || 0));
-  kind = kind.toLowerCase();
-  const { buffs, extensions } = resultEffects(result, kind);
-  const applications = extensions.length ? boonApplicationsAt([...buffs, ...extensions], kind, at) : buffs;
-  return buffApplicationStacks<SimulationEvent | Gw2TimedBuffApplication>(applications, kind, at, Infinity);
+  if (!result) return 0;
+  return observedBuffAt(result, kind, Math.max(0, atSeconds))?.count ?? 0;
 }

@@ -140,16 +140,20 @@ export const pyromancersPuissance = defineTrait({
 export const persistingFlames = defineTrait({
   id: TRAIT.PERSISTING_FLAMES,
   name: 'Persisting Flames',
-  balance: { durationMultiplier: 15, durationPerTier: 2, summons: 2 },
+  balance: { durationMultiplier: 15, durationPerTier: 2, summons: 2, maximumStacks: 5 },
   modifierRules: [
     {
       id: 'elementalist.persisting-flames',
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: 'damage-additive',
       order: -11,
-      parameters: { maximumStacks: 5, damagePerStack: 0.02 },
+      parameters: { damagePerStack: 0.02 },
       amount: (context, _target, parameters) =>
-        elementalistTimedBuffStacks(context, 'persisting flames', parameters.maximumStacks) * parameters.damagePerStack
+        elementalistTimedBuffStacks(
+          context,
+          'persisting flames',
+          balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.PERSISTING_FLAMES), 'maximumStacks')
+        ) * parameters.damagePerStack
     }
   ],
   hooks: {

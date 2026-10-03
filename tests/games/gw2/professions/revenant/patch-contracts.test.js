@@ -229,9 +229,11 @@ test('Revenant stack displays use patched skill and selected trait caps', () => 
       assert.equal(values['revenant-crushing-abyss'], '7/7 · 9.0s');
       assert.equal(values['renegade-kallas-fervor'], selected ? '8/8 · 9.0s' : '2/2 · 9.0s');
       assert.equal(
-        revenantProfession.ui.effectPresentations(context).find((effect) => effect.kind === 'kallas-fervor')
-          .maximumStacks,
-        selected ? 8 : 2
+        Object.hasOwn(
+          revenantProfession.ui.effectPresentations(context).find((effect) => effect.kind === 'kallas-fervor'),
+          'maximumStacks'
+        ),
+        false
       );
     }
   }

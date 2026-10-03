@@ -22,6 +22,9 @@ test('Fortifying Bond shares only player-sourced self boons and scales its durat
           stats: { concentration: 750 }
         },
         {
+          extend: (native) => ({
+            buffPolicies: (runtime) => [...native.buffPolicies(runtime), { kind: 'custom-buff' }]
+          }),
           initialize(runtime) {
             petId = rangerPetCompanionId(runtime);
             for (const [index, grant] of [
