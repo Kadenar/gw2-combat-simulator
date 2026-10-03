@@ -10,11 +10,20 @@ export const LUMINARY_BALANCE_PROFILE_IDS = Object.freeze({
   glaringBurstBulwark: 'guardian.luminary.glaring-burst.bulwark',
   glaringBurstVulnerability: 'guardian.luminary.glaring-burst.vulnerability',
   radiantJusticeImpact: 'guardian.luminary.radiant-justice-impact',
+  radiantCourageImmobilize: 'guardian.luminary.radiant-courage-immobilize',
   effulgentStance: 'guardian.luminary.effulgent-stance-detonation',
   lightAura: 'guardian.luminary.light-aura'
 });
 
 export const LUMINARY_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freeze([
+  // Radiant Courage adds two seconds of immobilize to the next Gleaming Blade impact (wiki: Radiant_Courage).
+  {
+    id: LUMINARY_BALANCE_PROFILE_IDS.radiantCourageImmobilize,
+    name: 'Radiant Courage - Gleaming Blade Immobilize',
+    profileKind: 'skill-variant',
+    parentId: ID.GLEAMING_BLADE,
+    effects: [{ type: 'condition', condition: 'Immobilized', stacks: 1, duration: 2 }]
+  },
   // Support weapons replace the strike with a party boon; every weapon applies the shared vulnerability afterward.
   {
     id: LUMINARY_BALANCE_PROFILE_IDS.glaringBurstStaff,

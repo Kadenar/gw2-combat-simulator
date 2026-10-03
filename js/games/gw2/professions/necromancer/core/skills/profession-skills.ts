@@ -281,6 +281,11 @@ export const NECROMANCER_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<numb
       {
         type: 'strike',
         ticks: [{ atMs: 4240, coefficient: 1.25 }]
+      },
+      {
+        // Binding immobilizes only with the final impact, after the four-second tether (wiki: Tainted_Shackles).
+        type: 'condition',
+        ticks: [{ atMs: 4240, condition: 'Immobilized', stacks: 1, duration: 2 }]
       }
     ]),
     type: 'Profession',

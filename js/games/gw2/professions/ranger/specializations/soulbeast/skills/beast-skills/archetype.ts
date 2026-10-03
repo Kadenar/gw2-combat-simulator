@@ -56,7 +56,9 @@ export const SOULBEAST_ARCHETYPE_BEAST_SKILL_MECHANICS: Readonly<Record<number, 
         type: 'strike',
         coefficient: 0.01,
         hits: 1
-      }
+      },
+      // The lash binds the target on impact in PvE (wiki: Prelude_Lash).
+      { type: 'condition', condition: 'Immobilized', stacks: 1, duration: 2 }
     ],
     castTimeMs: 167
   },

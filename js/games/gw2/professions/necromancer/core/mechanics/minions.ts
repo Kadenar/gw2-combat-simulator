@@ -37,8 +37,6 @@ interface MinionWork {
   attackGeneration: number;
   index: number;
   activationId: string;
-  controlUntil?: number;
-  controlKind?: string;
   attack?: MinionAttack;
   offTarget?: boolean;
   consumed?: boolean;
@@ -154,17 +152,19 @@ function emitAttack(
         independentSummonStrike: true
       })
     });
-  if (attack.condition)
+  // Only the command's authored projectiles carry its condition; resumed attacks retain their own payloads.
+  const condition = attack.condition;
+  if (condition)
     runtime.effects.emit({
       kind: 'packet',
       event: buildResolverCondition({
         ...attribution,
-        condition: String(attack.condition[0]),
-        stacks: Number(attack.condition[1]),
-        duration: Number(attack.condition[2])
+        condition: String(condition[0]),
+        stacks: Number(condition[1]),
+        duration: Number(condition[2])
       })
     });
-  const controlKind = attack.controlKind || (runtime.time <= (work.controlUntil ?? -1) ? work.controlKind : undefined);
+  const controlKind = attack.controlKind;
   if (controlKind) runtime.effects.emit({ kind: 'packet', event: { ...attribution, type: 'control', controlKind } });
 }
 
@@ -316,9 +316,7 @@ export function commandNecromancerMinion(runtime: NecromancerRuntime, cast: Runt
         index,
         generation: state.minionGenerations[key],
         attackGeneration: state.minionAttackGenerations[key],
-        activationId: `${cast.id}:resume:${index}`,
-        controlUntil: runtime.time + (command.controlWindow ?? 0),
-        controlKind: command.control
+        activationId: `${cast.id}:resume:${index}`
       });
   }
 

@@ -37,6 +37,17 @@ export const RANGER_CORE_JELLYFISH_PET_SKILL_MECHANICS: Readonly<Record<number, 
         atMs: 0,
         source: 'ranger-pet',
         actorType: 'summon'
+      },
+      {
+        // Pet-owned immobilize follows the attack's applications and uses pet condition duration.
+        type: 'condition',
+        condition: 'Immobilized',
+        stacks: 1,
+        duration: 1,
+        applications: 4,
+        intervalMs: 0,
+        source: 'ranger-pet',
+        actorType: 'summon'
       }
     ],
     quicknessCastTimeMs: 1833,

@@ -33,6 +33,7 @@ import {
 import { LUMINARY_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/guardian/specializations/luminary/profiles.js';
 import {
   BOON,
+  BLADE_IMMOBILIZE,
   glaringBurstDetail,
   glaringBurstDuration,
   HAMMER,
@@ -293,6 +294,15 @@ export const luminaryHooks: Partial<RuntimeProfession<GuardianRuntimeState, Guar
     },
     [EQUIP]: completeLuminaryEquipTraits,
     [HAMMER]: hammerImpact,
+    [BLADE_IMMOBILIZE](runtime, data) {
+      const { cast } = data as { cast: RuntimeCast<GuardianSkill> };
+      runtime.effects.emit({
+        kind: 'profile',
+        profile: requireBalanceProfileFromContext(runtime, PROFILE.radiantCourageImmobilize),
+        attribution: guardianCastCause(runtime, cast),
+        transform: (event) => ({ ...event, offTarget: cast.command.offTarget === true })
+      });
+    },
     [BOON](runtime, data) {
       const { cast, kind, duration, party } = data as {
         cast: RuntimeCast<GuardianSkill>;

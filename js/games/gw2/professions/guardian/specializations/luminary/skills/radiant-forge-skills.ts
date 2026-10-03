@@ -337,6 +337,7 @@ export const LUMINARY_RADIANT_FORGE_SKILL_MECHANICS: Readonly<Record<number, Par
 type Runtime = Gw2Runtime<GuardianRuntimeState, GuardianSkill>;
 export const HAMMER = 'guardian.luminary.hammer';
 export const BOON = 'guardian.luminary.weapon-boon';
+export const BLADE_IMMOBILIZE = 'guardian.luminary.blade-immobilize';
 
 /** Duration and label inspect the same cadence that selection advances only after acceptance. */
 export function glaringBurstDuration(runtime: Runtime, skill: Skill, duration: number): number {
@@ -396,6 +397,8 @@ export const luminaryWeaponActions: RuntimeProfession<GuardianRuntimeState, Guar
     const state = luminaryState.from(runtime);
     if (!state.radiantCourageSwordArmed) return;
     state.radiantCourageSwordArmed = false;
+    // Capture the consumed entitlement now, but apply its condition only if the blade reaches impact.
+    runtime.scheduleForCast(BLADE_IMMOBILIZE, luminaryImpactAt(context.cast), context.cast);
     runtime.scheduleForCast(
       BOON,
       luminaryImpactAt(context.cast),

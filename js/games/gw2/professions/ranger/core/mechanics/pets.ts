@@ -202,6 +202,8 @@ export function startRangerPet(context: RangerRuntime): void {
 
 export function resetRangerPet(context: RangerRuntime): void {
   const state = context.profession.core;
+  // A replaced or merged pet cannot carry an unspent venom into the next companion generation.
+  state.paralyzingVenomUntil = 0;
   context.cancelOwner(owner(context));
   context.cancelOwner(owner(context, PET_AI_ATTACK_OWNER));
   state.petAutoGeneration += 1;
@@ -216,6 +218,34 @@ export function setRangerPetActive(context: RangerRuntime, active: boolean): voi
   if (context.profession.core.petActive === active) return;
   context.profession.core.petActive = active;
   resetRangerPet(context);
+}
+
+/** The first accepted strike by the armed companion consumes its venom, retaining pet condition ownership. */
+export function consumeParalyzingVenom(context: RangerRuntime, event: Gw2ResolverEvent): void {
+  const state = context.profession.core;
+  if (
+    state.paralyzingVenomUntil <= context.time ||
+    !state.petActive ||
+    event.actorType !== 'summon' ||
+    event.source !== 'ranger-pet' ||
+    event.summonOwner !== rangerPetCompanionId(context) ||
+    !(Number(event.coefficient) > 0)
+  )
+    return;
+  state.paralyzingVenomUntil = 0;
+  context.effects.emit({
+    kind: 'profile',
+    profile: requireBalanceProfileFromContext(context, PROFILE.paralyzingVenom),
+    attribution: {
+      source: 'ranger-pet',
+      sourceId: ID.PARALYZING_VENOM,
+      actorType: 'summon',
+      skillId: ID.PARALYZING_VENOM,
+      skillName: 'Paralyzing Venom',
+      activationId: event.activationId
+    },
+    transform: (packet) => ({ ...packet, ...rangerPetCombatMetadata(context) })
+  });
 }
 
 /** Reproject command recharge from earned work so copied Alacrity cannot leave a stale deadline. */

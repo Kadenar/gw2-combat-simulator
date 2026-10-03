@@ -82,7 +82,8 @@ export const MESMER_CORE_SUPPLEMENTAL_SKILL_MECHANICS: Readonly<Record<SkillId, 
         ambiguousFieldSelection: 'oldest'
       }
     ],
-    effects: []
+    // Swapping applies immobilize when the instant follow-up completes (wiki: Swap).
+    effects: [{ type: 'condition', condition: 'Immobilized', stacks: 1, duration: 2 }]
   },
   [ID.COUNTER_BLADE]: {
     sideEffects: [{ on: 'castCommit', do: { type: 'flipConsume', skillId: ID.COUNTER_BLADE } }],

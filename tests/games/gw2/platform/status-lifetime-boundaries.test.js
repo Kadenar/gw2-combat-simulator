@@ -23,8 +23,6 @@ import { GUARDIAN_TRAIT_IDS as GT } from '#gw2/professions/guardian/data/ids.js'
 import { scheduleMesmerTrackedHits } from '#gw2/professions/mesmer/core/mechanics/tracked-hits.js';
 import { MESMER_SKILL_IDS as M, MESMER_TRAIT_IDS as MT } from '#gw2/professions/mesmer/data/ids.js';
 import { completeChronomancerTimeBomb } from '#gw2/professions/mesmer/specializations/chronomancer/traits/time-bomb.js';
-import { NECROMANCER_SKILL_IDS as N } from '#gw2/professions/necromancer/data/ids.js';
-import { necromancerProfession } from '#gw2/professions/necromancer/profession.js';
 import { rangerCatalog } from '#gw2/professions/ranger/catalog.js';
 import { RANGER_SKILL_IDS as RI } from '#gw2/professions/ranger/data/ids.js';
 import { bindGaleshotUi } from '#gw2/professions/ranger/specializations/galeshot/presentation.js';
@@ -33,7 +31,7 @@ import { vindicatorUi } from '#gw2/professions/revenant/specializations/vindicat
 import { runElementalist } from '#tests/helpers/elementalist-simulation.js';
 import { runGuardian } from '#tests/helpers/guardian-simulation.js';
 import { runMesmer } from '#tests/helpers/mesmer-simulation.js';
-import { observeGw2Runtime, observedRuntime } from '#tests/helpers/observed-runtime.js';
+import { observedRuntime } from '#tests/helpers/observed-runtime.js';
 import { runRanger } from '#tests/helpers/ranger-simulation.js';
 import { runRevenant } from '#tests/helpers/revenant-simulation.js';
 import { runThief } from '#tests/helpers/thief-simulation.js';
@@ -187,45 +185,6 @@ test('Solar Focusing Lens preserves inclusive expiry without early activation or
     const hit = { actorType: 'player', coefficient: 1, at };
     assert.equal(Boolean(consumeSolarFocusingLens(context, hit)), at >= 0.001 && at <= 1.04);
     assert.equal(consumeSolarFocusingLens(context, hit), undefined);
-  }
-});
-
-// Deliver an owned native attack at each boundary, preserving the command's inclusive control window.
-test('minion command control includes its deadline but excludes the following microsecond', () => {
-  const config = { specialization: 'Core' };
-  const native = necromancerProfession.runtimeFor(config);
-  for (const at of [1.999999, 2, 2.000001]) {
-    const result = observeGw2Runtime({
-      config,
-      rotation: [{ type: 'combat-start' }, { type: 'wait', durationMs: 2001 }],
-      profession: {
-        ...native,
-        initialize(runtime) {
-          native.initialize(runtime);
-          const state = runtime.profession.core;
-          state.activeMinions['flesh-golem'] = 1;
-          state.minionGenerations['flesh-golem'] = 1;
-          state.minionAttackGenerations['flesh-golem'] = 1;
-          state.minionAttackCursors['minion:flesh-golem:0'] = { cycleIndex: 1, attackIndex: 0 };
-          runtime.schedule('necromancer.minion-attack', at, {
-            skillId: N.SUMMON_FLESH_GOLEM,
-            key: 'flesh-golem',
-            generation: 1,
-            attackGeneration: 1,
-            index: 0,
-            activationId: 'test:golem',
-            controlUntil: 2,
-            controlKind: 'knockdown'
-          });
-        }
-      }
-    });
-    assert.deepEqual(result.warnings, []);
-    assert.ok(result.totalDamage > 0);
-    assert.equal(
-      result.events.find((event) => event.type === 'control')?.controlKind,
-      at <= 2 ? 'knockdown' : undefined
-    );
   }
 });
 

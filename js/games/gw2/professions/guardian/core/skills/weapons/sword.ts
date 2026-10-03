@@ -119,6 +119,13 @@ export const GUARDIAN_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Par
         ticks: [320, 360].map((atMs) => ({ atMs, coefficient: 1.75 })),
         timingAnchor: 'castStart',
         timingScale: 'cast'
+      },
+      {
+        // The first strike immobilizes once; the second strike does not refresh it (wiki: Advancing_Strike).
+        type: 'condition',
+        ticks: [{ atMs: 320, condition: 'Immobilized', stacks: 1, duration: 1 }],
+        timingAnchor: 'castStart',
+        timingScale: 'cast'
       }
     ]
   }

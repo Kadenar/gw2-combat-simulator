@@ -1226,11 +1226,11 @@ test('Rigor Mortis is instant and fires two immobilizing projectile finishers', 
   );
   const rigorStep = result.steps.find((step) => step.skill === 'Rigor Mortis');
   const attacks = result.resolvedEvents.filter((event) => event.type === 'damage' && event.skillId === 3634);
-  const controls = result.events.filter(
-    (event) => event.type === 'control' && event.skillId === 3634 && event.controlKind === 'immobilize'
+  const immobilizes = result.events.filter(
+    (event) => event.type === 'condition' && event.skillId === 3634 && event.condition === 'Immobilized'
   );
-  const controlledFollowup = result.events.filter(
-    (event) => event.type === 'control' && event.skillId === 3633 && event.controlKind === 'immobilize'
+  const immobilizingFollowup = result.events.filter(
+    (event) => event.type === 'condition' && event.skillId === 3633 && event.condition === 'Immobilized'
   );
   const disruptionTorment = result.resolvedEvents.filter(
     (event) => event.type === 'condition' && event.sourceId === TRAIT.INSIDIOUS_DISRUPTION
@@ -1258,11 +1258,15 @@ test('Rigor Mortis is instant and fires two immobilizing projectile finishers', 
     true
   );
   assert.deepEqual(
-    controls.map((event) => event.controlKind),
-    ['immobilize', 'immobilize']
+    immobilizes.map((event) => [event.condition, event.duration]),
+    [
+      ['Immobilized', 2],
+      ['Immobilized', 2]
+    ]
   );
-  assert.equal(controlledFollowup.length, 2);
-  assert.equal(disruptionTorment.length, 4);
+  assert.equal(immobilizingFollowup.length, 0);
+  // Immobilize is a condition, so the volley does not trigger disable-only traits.
+  assert.equal(disruptionTorment.length, 0);
   assert.equal(firstFollowup.skillId, 3644);
 });
 

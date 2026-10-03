@@ -62,7 +62,6 @@ const SKILL_FIELDS = new Set([
   'conditionsTransferred',
   'consume',
   'consumes',
-  'controlWindow',
   'cooldown',
   'cost',
   'countsAsToolbeltSkill',

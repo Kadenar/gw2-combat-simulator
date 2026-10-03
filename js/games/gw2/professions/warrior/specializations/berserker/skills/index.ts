@@ -406,7 +406,8 @@ export const BERSERKER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>>
         boon: 'regeneration',
         duration: 5,
         stacks: 1
-      }
+      },
+      { type: 'condition', condition: 'Immobilized', stacks: 1, duration: 2 }
     ],
     castTimeMs: 333,
     adrenalineCost: 10,

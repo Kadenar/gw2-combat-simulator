@@ -298,7 +298,6 @@ export const NECROMANCER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Pa
     effectVariants: [{ when: () => true, transform: () => [] }],
     castTimeMs: 0,
     minionKey: 'bone-fiend',
-    controlWindow: 4,
     effects: [
       {
         type: 'strike',
@@ -308,7 +307,6 @@ export const NECROMANCER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Pa
             coefficient: 0.25,
             sourceId: 3634,
             name: 'Rigor Mortis - Bone Shard',
-            controlKind: 'immobilize',
 
             comboFinishers: [
               {
@@ -324,7 +322,6 @@ export const NECROMANCER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Pa
             coefficient: 0.25,
             sourceId: 3634,
             name: 'Rigor Mortis - Bone Shard',
-            controlKind: 'immobilize',
 
             comboFinishers: [
               {
@@ -339,7 +336,9 @@ export const NECROMANCER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Pa
         timingAnchor: 'castEnd',
         timingScale: 'fixed',
         actorType: 'summon'
-      }
+      },
+      // Each commanded projectile immobilizes for two seconds (wiki: Rigor_Mortis).
+      { type: 'condition', condition: 'Immobilized', stacks: 1, duration: 2, actorType: 'summon' }
     ]
   },
   [ID.TASTE_OF_DEATH]: {

@@ -20,6 +20,7 @@ import {
 } from '#gw2/professions/ranger/core/mechanics/greatsword.js';
 import {
   rangerBoonDuration,
+  consumeParalyzingVenom,
   beginRangerPetCommand,
   prepareRangerPetEvent,
   rangerPetCompanionId,
@@ -191,6 +192,7 @@ export const rangerCoreHooks: Partial<RuntimeProfession<RangerRuntimeState, Rang
   },
   reactions: {
     'damage.resolved'(runtime, event, details) {
+      consumeParalyzingVenom(runtime, event);
       reactToRangerGreatswordDamage(runtime, event);
       reactToRangerCoreDamage(runtime, event);
       critical(runtime, event, details);
@@ -203,6 +205,14 @@ export const rangerCoreHooks: Partial<RuntimeProfession<RangerRuntimeState, Rang
     'buff.applied'(runtime, event) {
       reactToRangerCoreBuff(runtime, event);
       const state = runtime.profession.core;
+      // Only the currently active pet can arm its next-hit venom; stale launched buffs cannot arm a replacement.
+      if (
+        event.kind === 'paralyzing-venom' &&
+        event.sourceId === ID.PARALYZING_VENOM &&
+        state.petActive &&
+        event.summonOwner === rangerPetCompanionId(runtime)
+      )
+        state.paralyzingVenomUntil = runtime.time + Number(event.duration);
       if (event.kind === 'stealth' && event.resolvedAudience?.includesSelf && state.revealedUntil <= runtime.time)
         runtime.schedule('ranger.stealth', runtime.time, event.duration || 0, undefined, 10);
     }

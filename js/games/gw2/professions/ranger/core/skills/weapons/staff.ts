@@ -31,7 +31,9 @@ export const RANGER_CORE_STAFF_SKILL_MECHANICS: Readonly<Record<number, Partial<
         type: 'strike',
         coefficient: 0.5,
         hits: 1
-      }
+      },
+      // Each target is immobilized once by the advancing vines (wiki: Vine_Surge, PvE).
+      { type: 'condition', condition: 'Immobilized', stacks: 1, duration: 1.5 }
     ],
     castTimeMs: 500
   },

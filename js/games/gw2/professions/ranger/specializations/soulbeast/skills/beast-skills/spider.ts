@@ -24,7 +24,9 @@ export const SOULBEAST_SPIDER_BEAST_SKILL_MECHANICS: Readonly<Record<number, Par
         type: 'strike',
         coefficient: 0.5,
         hits: 1
-      }
+      },
+      // The merged spider web immobilizes on impact (wiki: Entangling_Web_(soulbeast), PvE).
+      { type: 'condition', condition: 'Immobilized', stacks: 1, duration: 3 }
     ]
   }
 });

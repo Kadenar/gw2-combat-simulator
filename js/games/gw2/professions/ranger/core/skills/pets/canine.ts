@@ -14,6 +14,16 @@ export const RANGER_CORE_CANINE_PET_SKILL_MECHANICS: Readonly<Record<number, Par
         hits: 1,
         source: 'ranger-pet',
         actorType: 'summon'
+      },
+      {
+        // Pet-owned immobilize follows the attack's applications and uses pet condition duration.
+        type: 'condition',
+        condition: 'Immobilized',
+        stacks: 1,
+        duration: 2,
+        applications: 1,
+        source: 'ranger-pet',
+        actorType: 'summon'
       }
     ],
     quicknessCastTimeMs: 1000,

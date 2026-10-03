@@ -21,7 +21,18 @@ export const RANGER_CORE_SPIDER_PET_SKILL_MECHANICS: Readonly<Record<number, Par
     petSkill: true
   },
   [ID.PARALYZING_VENOM]: {
-    effects: [],
+    // The venom arms the pet's next landed attack for twenty seconds (wiki: Paralyzing_Venom).
+    effects: [
+      {
+        type: 'buff',
+        kind: 'paralyzing-venom',
+        duration: 20,
+        stacks: 1,
+        source: 'ranger-pet',
+        actorType: 'summon',
+        audience: { recipients: 'self' }
+      }
+    ],
     quicknessCastTimeMs: 333,
     petSkill: true
   },

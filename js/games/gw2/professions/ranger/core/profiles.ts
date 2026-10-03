@@ -7,6 +7,7 @@ export const RANGER_CORE_BALANCE_PROFILE_IDS = Object.freeze({
   resources: 'ranger.core.resources',
   attackOfOpportunity: 'ranger.core.attack-of-opportunity',
   poisonousStrikes: 'ranger.core.poisonous-strikes',
+  paralyzingVenom: 'ranger.pet.paralyzing-venom',
   sharpeningStone: 'ranger.core.sharpening-stone',
   sunSpirit: 'ranger.core.sun-spirit',
   sicEm: 'ranger.core.sic-em',
@@ -18,6 +19,10 @@ export const RANGER_CORE_BALANCE_PROFILE_IDS = Object.freeze({
 });
 
 export const RANGER_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freeze([
+  // The spider owns the next-hit condition and its PvE duration independently of the venom buff.
+  variant(RANGER_CORE_BALANCE_PROFILE_IDS.paralyzingVenom, ID.PARALYZING_VENOM, 'Paralyzing Venom - Immobilized', {
+    effects: [{ type: 'condition', condition: 'Immobilized', stacks: 1, duration: 3 }]
+  }),
   // The observed quickness-specific pet recharge remains independently patchable.
   variant(
     RANGER_CORE_BALANCE_PROFILE_IDS.cripplingAnguishQuickness,

@@ -166,7 +166,9 @@ export const MESMER_VIRTUOSO_SKILL_MECHANICS: Readonly<Record<SkillId, Partial<M
         name: 'Damage',
         actorType: 'player',
         weapon: 'utility'
-      }
+      },
+      // The falling blade immobilizes at the same impact as its strike (wiki: Sword_of_Decimation, PvE).
+      { type: 'condition', condition: 'Immobilized', stacks: 1, duration: 4 }
     ]
   },
   [ID.BLADE_RENEWAL]: {

@@ -286,7 +286,9 @@ export const RANGER_CORE_SLOT_SKILL_MECHANICS: Readonly<Record<number, Partial<S
         condition: 'Slow',
         stacks: 1,
         duration: 1
-      }
+      },
+      // Immobilize applies once when the area is created, independently of its pulses (wiki: Muddy_Terrain).
+      { type: 'condition', condition: 'Immobilized', stacks: 1, duration: 3 }
     ],
     castTimeMs: 500
   },

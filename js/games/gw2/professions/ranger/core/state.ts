@@ -29,6 +29,7 @@ export interface RangerCoreState {
   playerOpeningStrikeReady: boolean;
   petOpeningStrikeReady: boolean;
   poisonMasterPetAttackReady: boolean;
+  paralyzingVenomUntil: number;
   poisonousStrikes: ChargeGrant;
   sharpeningStoneExpirations: number[];
   petSwapCount: number;
@@ -82,6 +83,7 @@ export function createRangerCoreState(config: RangerConfig = {}): RangerCoreStat
     playerOpeningStrikeReady: true,
     petOpeningStrikeReady: true,
     poisonMasterPetAttackReady: false,
+    paralyzingVenomUntil: 0,
     poisonousStrikes: grantCharges(0, 0),
     sharpeningStoneExpirations: [],
     petSwapCount: 0,

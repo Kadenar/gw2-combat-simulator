@@ -66,8 +66,11 @@ export const GUARDIAN_WEAPONS_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, P
         hits: 1
       },
       {
-        type: 'control',
-        controlKind: 'control'
+        // Chains of Light applies a duration condition, not a hard disable (wiki: Chains_of_Light).
+        type: 'condition',
+        condition: 'Immobilized',
+        stacks: 1,
+        duration: 5
       }
     ]
   }

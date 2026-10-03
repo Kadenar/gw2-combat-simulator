@@ -49,7 +49,6 @@ interface MinionCommandDefinition {
   readonly conditions?: readonly (readonly (string | number)[])[];
   readonly control?: string;
 
-  readonly controlWindow?: number;
   readonly blindDuration?: number;
   readonly impactDelay?: number;
   readonly consumes?: number;
@@ -135,17 +134,20 @@ export function commandDefinitionFor(skill: NecromancerSkill): MinionCommandDefi
   const strike = effects.find((effect) => effect.type === 'strike' && !Array.isArray(effect.ticks));
   const tickStrike = effects.find((effect) => effect.type === 'strike' && Array.isArray(effect.ticks));
   const ticks = Array.isArray(tickStrike?.ticks) ? tickStrike.ticks : [];
+  const conditions = effects
+    .filter((effect) => effect.type === 'condition')
+    .map((effect) => [effect.condition || '', effect.stacks ?? 1, effect.duration || 0] as const);
+  // A command's condition accompanies each projectile rather than becoming a generic disable.
   const attacks: MinionAttack[] = ticks.map((tick) => ({
     name: String(tick.name || skill.name),
     coefficient: Number(tick.coefficient || 0),
     offset: Number(tick.atMs || 0) / 1000,
     skillId: tick.sourceId as SkillId | undefined,
     comboFinishers: Array.isArray(tick.comboFinishers) ? tick.comboFinishers : undefined,
-    controlKind: String(tick.controlKind || '')
+    controlKind: String(tick.controlKind || ''),
+    condition: conditions[0]
   }));
-  const conditions = effects
-    .filter((effect) => effect.type === 'condition')
-    .map((effect) => [effect.condition || '', effect.stacks ?? 1, effect.duration || 0] as const);
+
   const controlEffect = effects.find((effect) => effect.type === 'control' || effect.type === 'blind');
   return {
     strike,
@@ -153,7 +155,6 @@ export function commandDefinitionFor(skill: NecromancerSkill): MinionCommandDefi
     conditions,
     control: controlEffect?.type === 'blind' ? 'blind' : controlEffect?.controlKind || attacks[0]?.controlKind || '',
 
-    controlWindow: Number(skill.controlWindow || 0),
     blindDuration: Number(controlEffect?.duration || 0),
     impactDelay: Number(skill.impactDelay || 0),
     consumes: Number(skill.consumes || 0),

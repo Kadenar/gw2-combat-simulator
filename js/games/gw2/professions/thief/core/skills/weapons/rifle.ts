@@ -255,7 +255,8 @@ export const THIEF_WEAPONS_RIFLE_SKILL_MECHANICS: Readonly<Record<number, Partia
           stacks: 1,
           duration: 4,
           actorType: 'player'
-        }
+        },
+        { type: 'condition', condition: 'Immobilized', stacks: 1, duration: 1, actorType: 'player' }
       ]),
       {
         type: 'boon',
