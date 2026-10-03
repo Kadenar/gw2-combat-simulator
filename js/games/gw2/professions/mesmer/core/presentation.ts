@@ -1,3 +1,6 @@
+import type { ProfessionAttributePreviewContext } from '#gw2/platform/profession-presentation/attribute-preview.js';
+import { createAttributePreviewControls } from '#gw2/professions/shared/attribute-preview.js';
+
 import { PERMANENT_COMBO_FIELD_ASSUMPTION_CONTROLS } from '#gw2/platform/combos/permanent-field-assumption.js';
 import { flattenProfessionState } from '#gw2/platform/engine/profession/state.js';
 import {
@@ -160,6 +163,17 @@ function mesmerCoreEffectPresentations(context: MesmerUiContext): ProfessionEffe
 }
 
 export const mesmerCoreUi: MesmerUiSlice = Object.freeze({
+  /** Declare this module's conditional inputs without adding simulation settings. */
+  attributePreviewControls(context: ProfessionAttributePreviewContext) {
+    const preview = createAttributePreviewControls(context);
+
+    preview.boon('regeneration', 'Chaotic Persistence');
+    preview.buff("Fencer's Finesse", 'fencer', 'fencer', 'Ferocity', true);
+    preview.targetHealth('Superiority Complex');
+    preview.passives('Signet of Domination', 'Signet of Midnight');
+    return preview.controls;
+  },
+
   assumptionControls: [...SIMULATION_RANDOMNESS_ASSUMPTION_CONTROLS, ...PERMANENT_COMBO_FIELD_ASSUMPTION_CONTROLS],
   effectPresentations: mesmerCoreEffectPresentations,
   eventLogRow: mesmerEventLogRow,

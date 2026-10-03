@@ -1,3 +1,9 @@
+import type {
+  ProfessionAttributePreviewContext,
+  ProfessionAttributePreviewPreparation
+} from '#gw2/platform/profession-presentation/attribute-preview.js';
+import { createAttributePreviewControls } from '#gw2/professions/shared/attribute-preview.js';
+import { readProfessionSpecializationState } from '#gw2/platform/engine/profession/state.js';
 import { activeStackCount } from '#gw2/platform/combat/resources/timed-stacks.js';
 import {
   balanceProfileNumber,
@@ -118,6 +124,27 @@ function catalystEffectPresentations(context: ElementalistUiContext): Profession
  * the energy resource bar, and the timed state shown at a rotation point.
  */
 export const catalystUi: ElementalistUiSlice = Object.freeze({
+  /** Declare this module's conditional inputs without adding simulation settings. */
+  attributePreviewControls(context: ProfessionAttributePreviewContext) {
+    const preview = createAttributePreviewControls(context);
+
+    if (preview.has('Elemental Empowerment'))
+      preview.trait('Elemental Empowerment', {
+        key: 'elementalEmpowerment',
+        kind: 'special',
+        max: preview.maximumStacks('Elemental Empowerment'),
+        description: 'stacks; includes Empowered Empowerment'
+      });
+    return preview.controls;
+  },
+  /** Seed only the detached attribute query; combat state and saved builds remain untouched. */
+  prepareAttributePreview(context: ProfessionAttributePreviewPreparation) {
+    readProfessionSpecializationState<CatalystState>(
+      context.professionState,
+      'Catalyst'
+    )!.elementalEmpowermentExpiries = Array(Number(context.values.elementalEmpowerment || 0)).fill(60);
+  },
+
   effectPresentations: catalystEffectPresentations,
   paletteGroups: () => [
     {

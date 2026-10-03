@@ -1,3 +1,10 @@
+import type {
+  ProfessionAttributePreviewContext,
+  ProfessionAttributePreviewPreparation
+} from '#gw2/platform/profession-presentation/attribute-preview.js';
+import { createAttributePreviewControls } from '#gw2/professions/shared/attribute-preview.js';
+import { readProfessionCoreState } from '#gw2/platform/engine/profession/state.js';
+import type { NecromancerCoreState } from '#gw2/professions/necromancer/core/state.js';
 import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
 import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
 import { flattenProfessionState } from '#gw2/platform/engine/profession/state.js';
@@ -196,6 +203,26 @@ function necromancerCoreResourceViews(context: NecromancerUiContext): Profession
 /** Captures this UI's catalog so other profession instances cannot change its projections. */
 export function bindNecromancerCoreUi(catalog: Readonly<CanonicalCatalog<NecromancerSkill>>): NecromancerUiSlice {
   return Object.freeze({
+    /** Declare this module's conditional inputs without adding simulation settings. */
+    attributePreviewControls(context: ProfessionAttributePreviewContext) {
+      const preview = createAttributePreviewControls(context);
+
+      preview.trait('Deadly Strength', {
+        key: 'carapace',
+        kind: 'special',
+        max: 30,
+        description: "Death's Carapace stacks"
+      });
+      preview.passives('Signet of Spite');
+      return preview.controls;
+    },
+    /** Seed only the detached attribute query; combat state and saved builds remain untouched. */
+    prepareAttributePreview(context: ProfessionAttributePreviewPreparation) {
+      const core = readProfessionCoreState<NecromancerCoreState>(context.professionState);
+      if ('carapace' in context.values) core.carapaceExpiries = Array(Number(context.values.carapace)).fill(60);
+      if ('shroud' in context.values) core.activeShroud = context.values.shroud ? 'death' : '';
+    },
+
     // Tile identity follows the active bar even when the visible skill cannot currently be cast.
     paletteOverride: (context, skill) => {
       const active = necromancerUiState(context).activeShroud || '';

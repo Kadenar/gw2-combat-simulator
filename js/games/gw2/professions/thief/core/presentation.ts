@@ -1,3 +1,10 @@
+import type {
+  ProfessionAttributePreviewContext,
+  ProfessionAttributePreviewPreparation
+} from '#gw2/platform/profession-presentation/attribute-preview.js';
+import { createAttributePreviewControls } from '#gw2/professions/shared/attribute-preview.js';
+import { readProfessionCoreState } from '#gw2/platform/engine/profession/state.js';
+import type { ThiefCoreState } from '#gw2/professions/thief/core/state.js';
 import { THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
 import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
 import { flattenProfessionState } from '#gw2/platform/engine/profession/state.js';
@@ -127,6 +134,39 @@ function thiefCoreStateSnapshot(context: ThiefUiContext): RotationStateSnapshotI
 }
 
 export const thiefCoreUi = Object.freeze({
+  /** Declare this module's conditional inputs without adding simulation settings. */
+  attributePreviewControls(context: ProfessionAttributePreviewContext) {
+    const preview = createAttributePreviewControls(context);
+
+    if (preview.has('Revealed Training', 'Hidden Killer'))
+      preview.add({
+        key: 'revealed',
+        label: 'Revealed',
+        group: 'Trait conditionals',
+        kind: 'special',
+        description: 'Revealed Training / Hidden Killer'
+      });
+    preview.trait('Hidden Killer', { key: 'stealth', kind: 'special', description: 'Stealthed; Critical Chance' });
+    preview.targetHealth('Ferocious Strikes');
+    preview.playerHealth(['Keen Observer', 'Twin Fangs'], preview.has('Keen Observer') ? 50 : 100);
+    if (preview.has('Twin Fangs'))
+      preview.add({
+        key: 'flanking',
+        label: 'Flanking',
+        group: 'Trait conditionals',
+        kind: 'special',
+        description: 'Positional Critical Chance'
+      });
+    preview.passives("Assassin's Signet");
+    return preview.controls;
+  },
+  /** Seed only the detached attribute query; combat state and saved builds remain untouched. */
+  prepareAttributePreview(context: ProfessionAttributePreviewPreparation) {
+    const core = readProfessionCoreState<ThiefCoreState>(context.professionState);
+    if ('revealed' in context.values) core.revealedUntil = context.values.revealed ? 60 : 0;
+    if ('stealth' in context.values) core.stealthUntil = context.values.stealth ? 60 : 0;
+  },
+
   // Stealth owns weapon slot one even when initiative or another cast gate blocks the replacement.
   paletteOverride: (context: ThiefUiContext, skill: ThiefSkill) => {
     if (!skill.stealthAttack) return;

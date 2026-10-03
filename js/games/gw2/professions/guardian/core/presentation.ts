@@ -1,3 +1,6 @@
+import type { ProfessionAttributePreviewContext } from '#gw2/platform/profession-presentation/attribute-preview.js';
+import { createAttributePreviewControls } from '#gw2/professions/shared/attribute-preview.js';
+
 import { type SkillFlipWindows, skillFlipReady } from '#gw2/platform/engine/skills/skill-flips.js';
 import { flattenProfessionState } from '#gw2/platform/engine/profession/state.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
@@ -126,6 +129,16 @@ const GUARDIAN_CORE_EFFECT_PRESENTATIONS: readonly ProfessionEffectPresentation[
 /** Captures this UI's catalog so other profession instances cannot change its projections. */
 export function bindGuardianCoreUi(catalog: Readonly<CanonicalCatalog<GuardianSkill>>): GuardianUiSlice {
   return Object.freeze({
+    /** Declare this module's conditional inputs without adding simulation settings. */
+    attributePreviewControls(context: ProfessionAttributePreviewContext) {
+      const preview = createAttributePreviewControls(context);
+
+      preview.boon('resolution', 'Righteous Instincts');
+      preview.condition('Burning', 'Radiant Power');
+      preview.passives('Bane Signet', 'Signet of Wrath');
+      return preview.controls;
+    },
+
     assumptionControls: [...SIMULATION_RANDOMNESS_ASSUMPTION_CONTROLS, ...PERMANENT_COMBO_FIELD_ASSUMPTION_CONTROLS],
     // Inspiring Virtue is a binary Core effect shared by every Guardian specialization.
     effectPresentations: () => [...GUARDIAN_CORE_EFFECT_PRESENTATIONS],

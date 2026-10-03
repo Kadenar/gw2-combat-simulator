@@ -1,3 +1,6 @@
+import type { ProfessionAttributePreviewContext } from '#gw2/platform/profession-presentation/attribute-preview.js';
+import { createAttributePreviewControls } from '#gw2/professions/shared/attribute-preview.js';
+
 import type { PaletteOverride } from '#gw2/platform/profession-presentation/types.js';
 import { PERMANENT_COMBO_FIELD_ASSUMPTION_CONTROLS } from '#gw2/platform/combos/permanent-field-assumption.js';
 import { flattenProfessionState } from '#gw2/platform/engine/profession/state.js';
@@ -211,6 +214,27 @@ function warriorCoreEffectPresentations(context: WarriorUiContext): ProfessionEf
 }
 
 export const warriorCoreUi: WarriorUiSlice = Object.freeze({
+  /** Declare this module's conditional inputs without adding simulation settings. */
+  attributePreviewControls(context: ProfessionAttributePreviewContext) {
+    const preview = createAttributePreviewControls(context);
+
+    preview.buff('Signet Mastery', 'signetMastery', 'signet-mastery', 'Ferocity', true);
+    preview.buff('Furious', 'furious', 'furious-surge', 'Condition Damage', true);
+    preview.buff('Burst Precision', 'burstPrecision', 'burst-precision', 'Critical Chance / Ferocity');
+    if (preview.has('Unsuspecting Foe'))
+      preview.add({
+        key: 'defiant',
+        label: 'Defiant target',
+        group: 'Trait conditionals',
+        kind: 'special',
+        initial: 1,
+        description: 'Defiant-target critical bonuses'
+      });
+    preview.condition('Bleeding', 'Deep Strikes');
+    preview.passives('Signet of Might', 'Signet of Fury');
+    return preview.controls;
+  },
+
   // Burst tiles are authored for a specific weapon set; inactive-set insertion needs an explicit swap.
   paletteOverride: (context, skill) => {
     if ((context.specialization || 'Core') === 'Core') return warriorBurstPaletteOverride(context, skill);

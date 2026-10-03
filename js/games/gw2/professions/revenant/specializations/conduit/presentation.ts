@@ -1,3 +1,10 @@
+import type {
+  ProfessionAttributePreviewContext,
+  ProfessionAttributePreviewPreparation
+} from '#gw2/platform/profession-presentation/attribute-preview.js';
+import { createAttributePreviewControls } from '#gw2/professions/shared/attribute-preview.js';
+import { readProfessionSpecializationState } from '#gw2/platform/engine/profession/state.js';
+import type { ConduitState } from '#gw2/professions/revenant/specializations/conduit/state.js';
 import { REVENANT_SKILL_IDS as SKILL } from '#gw2/professions/revenant/data/ids.js';
 import { REVENANT_RELEASE_POTENTIAL_SKILL_ID_BY_LEGEND } from '#gw2/professions/revenant/data/legends.js';
 import { activeRevenantLegend, revenantUiState } from '#gw2/professions/revenant/core/presentation.js';
@@ -21,6 +28,26 @@ function conduitStateSnapshot(context: RevenantUiContext): RotationStateSnapshot
 }
 
 export const conduitUi: RevenantUiSlice = Object.freeze({
+  /** Declare this module's conditional inputs without adding simulation settings. */
+  attributePreviewControls(context: ProfessionAttributePreviewContext) {
+    const preview = createAttributePreviewControls(context);
+    preview.add({
+      key: 'cosmicWisdom',
+      label: 'Cosmic Wisdom',
+      kind: 'special',
+      group: 'Other buffs',
+      description: 'Bolstered Bonds attributes'
+    });
+    return preview.controls;
+  },
+  /** Seed only the detached attribute query; combat state and saved builds remain untouched. */
+  prepareAttributePreview(context: ProfessionAttributePreviewPreparation) {
+    readProfessionSpecializationState<ConduitState>(context.professionState, 'Conduit')!.cosmicWisdomUntil = context
+      .values.cosmicWisdom
+      ? 60
+      : 0;
+  },
+
   rotationStateSnapshot: conduitStateSnapshot,
   paletteGroups: (context: RevenantUiContext) => {
     // Release Potential variant depends on the currently active legend, so the palette rebuilds on legend swap.

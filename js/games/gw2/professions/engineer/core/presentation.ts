@@ -1,3 +1,6 @@
+import type { ProfessionAttributePreviewContext } from '#gw2/platform/profession-presentation/attribute-preview.js';
+import { createAttributePreviewControls } from '#gw2/professions/shared/attribute-preview.js';
+
 import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
 import {
   requireBalanceProfileFromContext,
@@ -192,6 +195,23 @@ function engineerEventLogRow(
 /** Captures this UI's catalog so other profession instances cannot change its projections. */
 export function bindEngineerCoreUi(catalog: Readonly<CanonicalCatalog<EngineerSkill>>): EngineerUiSlice {
   return Object.freeze({
+    /** Declare this module's conditional inputs without adding simulation settings. */
+    attributePreviewControls(context: ProfessionAttributePreviewContext) {
+      const preview = createAttributePreviewControls(context);
+
+      preview.boon('regeneration', 'Energy Amplifier');
+      preview.buff('Explosive Temper', 'explosiveTemper', 'explosive-temper', 'Ferocity', true);
+      preview.buff('Grand Entrance', 'grandEntrance', 'grand-entrance', 'Critical Chance');
+      preview.trait('High Caliber', {
+        key: 'highCaliber',
+        kind: 'queryTrait',
+        field: 'High Caliber',
+        description: 'Within range; Critical Chance'
+      });
+      preview.targetHealth('Heavy Metal');
+      return preview.controls;
+    },
+
     // Tile identity follows the active bar even when the visible skill cannot currently be cast.
     paletteOverride: (context, skill) => {
       const state = engineerUiState(context);

@@ -1,3 +1,10 @@
+import type {
+  ProfessionAttributePreviewContext,
+  ProfessionAttributePreviewPreparation
+} from '#gw2/platform/profession-presentation/attribute-preview.js';
+import { createAttributePreviewControls } from '#gw2/professions/shared/attribute-preview.js';
+import { readProfessionSpecializationState } from '#gw2/platform/engine/profession/state.js';
+import type { ScourgeState } from '#gw2/professions/necromancer/specializations/scourge/state.js';
 import type { CanonicalCatalog } from '#gw2/platform/engine/skills/types.js';
 import { getActiveTraits } from '#gw2/professions/necromancer/data/traits-data.js';
 import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
@@ -21,6 +28,23 @@ const SCOURGE_SKILLS = Object.freeze([
 /** Captures this UI's catalog so other profession instances cannot change its projections. */
 export function bindScourgeUi(catalog: Readonly<CanonicalCatalog<NecromancerSkill>>): NecromancerUiSlice {
   return Object.freeze({
+    /** Declare this module's conditional inputs without adding simulation settings. */
+    attributePreviewControls(context: ProfessionAttributePreviewContext) {
+      const preview = createAttributePreviewControls(context);
+      preview.trait('Sand Sage', {
+        key: 'shade',
+        kind: 'special',
+        description: 'Shade active; Expertise / Concentration'
+      });
+      return preview.controls;
+    },
+    /** Seed only the detached attribute query; combat state and saved builds remain untouched. */
+    prepareAttributePreview(context: ProfessionAttributePreviewPreparation) {
+      readProfessionSpecializationState<ScourgeState>(context.professionState, 'Scourge')!.shades = Array(
+        Number(context.values.shade || 0)
+      ).fill(60);
+    },
+
     // The trait replacement owns F5 even when its resource cost cannot currently be paid.
     paletteOverride: (context, skill) => {
       if (skill.id !== ID.DESERT_SHROUD && skill.id !== ID.SANDSTORM_SHROUD) return;

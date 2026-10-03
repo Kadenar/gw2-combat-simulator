@@ -1,3 +1,10 @@
+import type {
+  ProfessionAttributePreviewContext,
+  ProfessionAttributePreviewPreparation
+} from '#gw2/platform/profession-presentation/attribute-preview.js';
+import { createAttributePreviewControls } from '#gw2/professions/shared/attribute-preview.js';
+import { readProfessionSpecializationState } from '#gw2/platform/engine/profession/state.js';
+import type { SoulbeastState } from '#gw2/professions/ranger/specializations/soulbeast/state.js';
 import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
 import { rangerPetPaletteGroup, rangerUiState, activeRangerUiPet } from '#gw2/professions/ranger/core/presentation.js';
 import type { CanonicalCatalog, SkillId } from '#gw2/platform/engine/skills/types.js';
@@ -51,6 +58,24 @@ function soulbeastStateSnapshot(context: RangerUiContext): RotationStateSnapshot
 /** Captures this UI's catalog so other profession instances cannot change its projections. */
 export function bindSoulbeastUi(catalog: Readonly<CanonicalCatalog<RangerSkill>>): RangerUiSlice {
   return Object.freeze({
+    /** Declare this module's conditional inputs without adding simulation settings. */
+    attributePreviewControls(context: ProfessionAttributePreviewContext) {
+      const preview = createAttributePreviewControls(context);
+      preview.add({
+        key: 'beastmode',
+        label: 'Beastmode',
+        kind: 'special',
+        group: 'Other buffs',
+        description: 'Pet archetype and merged trait attributes'
+      });
+      return preview.controls;
+    },
+    /** Seed only the detached attribute query; combat state and saved builds remain untouched. */
+    prepareAttributePreview(context: ProfessionAttributePreviewPreparation) {
+      readProfessionSpecializationState<SoulbeastState>(context.professionState, 'Soulbeast')!.beastmodeActive =
+        Boolean(context.values.beastmode);
+    },
+
     // Tile identity follows the active bar even when the visible skill cannot currently be cast.
     paletteOverride: (context, skill) => {
       if (BEASTMODE_TOGGLE_IDS.has(skill.id))

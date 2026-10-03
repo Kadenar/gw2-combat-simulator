@@ -1,3 +1,9 @@
+import type {
+  ProfessionAttributePreviewContext,
+  ProfessionAttributePreviewPreparation
+} from '#gw2/platform/profession-presentation/attribute-preview.js';
+import { createAttributePreviewControls } from '#gw2/professions/shared/attribute-preview.js';
+
 import {
   balanceProfileNumber,
   requireBalanceProfileFromContext
@@ -81,6 +87,25 @@ function evokerStateSnapshot(context: ElementalistUiContext): RotationStateSnaps
 
 /** Projects the active familiar, its availability, resources, and rotation snapshot. */
 export const evokerUi: ElementalistUiSlice = Object.freeze({
+  /** Declare this module's conditional inputs without adding simulation settings. */
+  attributePreviewControls(context: ProfessionAttributePreviewContext) {
+    const preview = createAttributePreviewControls(context);
+
+    preview.add({
+      key: 'evokerElement',
+      label: 'Familiar element',
+      group: 'Attunement',
+      kind: 'special',
+      options: ['None', 'Fire', 'Water', 'Air', 'Earth'],
+      description: 'Enhanced Potency'
+    });
+    return preview.controls;
+  },
+  /** Seed only the detached attribute query; combat state and saved builds remain untouched. */
+  prepareAttributePreview(context: ProfessionAttributePreviewPreparation) {
+    Object.assign(context.config, { evokerElement: context.values.evokerElement });
+  },
+
   // Familiar packets record absolute charge totals, with a delta only when weapon skills award charges.
   eventLogRow: (_context, event) => {
     if (event.type !== 'resource' || event.kind !== 'evoker-charges') return undefined;

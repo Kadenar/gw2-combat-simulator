@@ -1,4 +1,10 @@
 import type { FixedSlotLoadout } from '#gw2/platform/builds/slot-loadout.js';
+import type {
+  AttributeEffectControl,
+  ProfessionAttributePreviewContext,
+  ProfessionAttributePreviewInput,
+  ProfessionAttributePreviewPreparation
+} from '#gw2/platform/profession-presentation/attribute-preview.js';
 import type { ResourceKey } from '#gw2/platform/combat/resources/resource-policy.js';
 import type { ProfessionBalanceContext } from '#gw2/platform/profession-presentation/balance-context.js';
 /** Defines application presentation callbacks independently of the executable profession runtime. */
@@ -392,6 +398,9 @@ export type ProfessionUiCallbackContext<TProfessionState = unknown> = Profession
   Partial<ProfessionTimelineAnnotationContext<TProfessionState>>;
 
 export interface ProfessionUiContract<TProfessionState = unknown> {
+  readonly attributePreviewControls: (context: ProfessionAttributePreviewContext) => AttributeEffectControl[];
+  readonly attributePreviewDisabledTrait: (context: ProfessionAttributePreviewInput) => string | null;
+  readonly prepareAttributePreview: (context: ProfessionAttributePreviewPreparation) => void;
   readonly chartApplications: (context: ProfessionResultUiContext<TProfessionState>) => ProfessionChartApplication[];
   readonly timelineMarkers: (context: ProfessionResultUiContext<TProfessionState>) => ProfessionTimelineMarker[];
   readonly timelineOverlays: (context: ProfessionUiContext<TProfessionState>) => ProfessionTimelineOverlay[];

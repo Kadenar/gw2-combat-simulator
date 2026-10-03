@@ -1,3 +1,6 @@
+import type { ProfessionAttributePreviewContext } from '#gw2/platform/profession-presentation/attribute-preview.js';
+import { createAttributePreviewControls } from '#gw2/professions/shared/attribute-preview.js';
+
 import { MESMER_SKILL_IDS as ID } from '#gw2/professions/mesmer/data/ids.js';
 import {
   mesmerMechanicPaletteGroups,
@@ -80,6 +83,15 @@ function chronomancerStateSnapshot(context: MesmerUiContext): RotationStateSnaps
 }
 
 export const chronomancerUi: MesmerUiSlice = Object.freeze({
+  /** Declare this module's conditional inputs without adding simulation settings. */
+  attributePreviewControls(context: ProfessionAttributePreviewContext) {
+    const preview = createAttributePreviewControls(context);
+
+    preview.boon('alacrity', 'Flow of Time');
+    preview.buff('Danger Time', 'dangerTime', 'danger-time', 'Critical Damage');
+    return preview.controls;
+  },
+
   eventLogRow: chronomancerEventLogRow,
   // Only automatic expiry adds a marker; manually authored Continuum Shift already has a tile.
   timelineMarkers: ({ result }) =>

@@ -1,3 +1,10 @@
+import type {
+  ProfessionAttributePreviewContext,
+  ProfessionAttributePreviewPreparation
+} from '#gw2/platform/profession-presentation/attribute-preview.js';
+import { createAttributePreviewControls } from '#gw2/professions/shared/attribute-preview.js';
+import { readProfessionCoreState } from '#gw2/platform/engine/profession/state.js';
+import type { NecromancerCoreState } from '#gw2/professions/necromancer/core/state.js';
 import type { CanonicalCatalog } from '#gw2/platform/engine/skills/types.js';
 import { NECROMANCER_SKILL_IDS as ID } from '#gw2/professions/necromancer/data/ids.js';
 import {
@@ -11,6 +18,18 @@ import type { NecromancerSkill, NecromancerUiContext, NecromancerUiSlice } from 
 /** Captures this UI's catalog so other profession instances cannot change its projections. */
 export function bindReaperUi(catalog: Readonly<CanonicalCatalog<NecromancerSkill>>): NecromancerUiSlice {
   return Object.freeze({
+    /** Declare this module's conditional inputs without adding simulation settings. */
+    attributePreviewControls(context: ProfessionAttributePreviewContext) {
+      const preview = createAttributePreviewControls(context);
+      preview.condition('Vulnerability', 'Decimate Defenses');
+      return preview.controls;
+    },
+    /** Seed only the detached attribute query; combat state and saved builds remain untouched. */
+    prepareAttributePreview(context: ProfessionAttributePreviewPreparation) {
+      if (context.values.shroud)
+        readProfessionCoreState<NecromancerCoreState>(context.professionState).activeShroud = 'reaper';
+    },
+
     // Refresh the weapon row at this profession's transformation boundary.
     timelineWeaponLineTransition: (context: NecromancerUiContext) =>
       context.skill && [ID.REAPERS_SHROUD, ID.EXIT_REAPERS_SHROUD].some((id) => id === context.skill!.id)

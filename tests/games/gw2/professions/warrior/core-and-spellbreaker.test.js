@@ -63,6 +63,71 @@ const applyWarriorPatch = (patch) => applyBalanceProfilePatch(applySkillPatch(wa
 
 const authoringWarriorProfession = withActivePatchPreview(warriorProfession);
 
+test('Bladetrail schedules immobilize with both impacts, including its delayed return', () => {
+  // Observe beyond cast completion so the return application exercises delayed condition scheduling.
+  const result = simulate('Core', [ID.BLADETRAIL], { primaryWeapon: 'Greatsword' }, observationTail(2000));
+  const immobilizes = result.events.filter(
+    (event) => event.skillId === ID.BLADETRAIL && event.type === 'condition' && event.condition === 'Immobilized'
+  );
+  assert.deepEqual(
+    immobilizes.map(({ at, duration, stacks }) => [at, duration, stacks]),
+    [
+      [0.52, 1, 1],
+      [1.52, 1, 1]
+    ]
+  );
+  for (const application of immobilizes) {
+    assert.ok(
+      result.events.some(
+        (event) => event.skillId === ID.BLADETRAIL && event.type === 'damage' && event.at === application.at
+      )
+    );
+  }
+
+  assert.deepEqual(result.warnings, []);
+});
+
+test('Throw Bolas applies immobilize and resolves a projectile combo at impact', () => {
+  // A real fire field verifies that the finisher produces its condition through the shared combo scheduler.
+  const result = simulate('Core', [ID.COMBUSTIVE_SHOT, ID.THROW_BOLAS], {
+    primaryWeapon: 'Longbow',
+    initialResource: 30,
+    selectedSkills: ['Throw Bolas']
+  });
+  const impact = result.events.find((event) => event.skillId === ID.THROW_BOLAS && event.type === 'damage');
+  const immobilize = result.events.find(
+    (event) => event.skillId === ID.THROW_BOLAS && event.type === 'condition' && event.condition === 'Immobilized'
+  );
+  assert.equal(immobilize.at, impact.at);
+  assert.equal(immobilize.duration, 4);
+  assert.equal(immobilize.stacks, 1);
+  assert.ok(
+    result.events.some(
+      (event) =>
+        event.skillId === ID.THROW_BOLAS &&
+        event.type === 'condition' &&
+        event.condition === 'Burning' &&
+        event.finisherType === 'Projectile' &&
+        event.comboId &&
+        event.at === impact.at
+    )
+  );
+  assert.deepEqual(result.warnings, []);
+});
+
+test('Signet of Might grants might before the next action without delaying it', () => {
+  // Instant activation must commit its boon before the next same-time action is scheduled.
+  const result = simulate('Core', [ID.SIGNET_OF_MIGHT, ID.THROW_BOLAS], {
+    selectedSkills: ['Signet of Might', 'Throw Bolas']
+  });
+  const might = result.events.find((event) => event.skillId === ID.SIGNET_OF_MIGHT && event.kind === 'might');
+  const nextAction = result.events.find((event) => event.skillId === ID.THROW_BOLAS && event.type === 'action');
+  assert.equal(might.at, 0);
+  assert.equal(nextAction.at, might.at);
+  assert.ok(might.eventOrder < nextAction.eventOrder);
+  assert.deepEqual(result.warnings, []);
+});
+
 test('Dual Wielding uses only measured cast durations with an eligible offhand', () => {
   // The trait changes a measured skill's scheduled cast while unmeasured skills retain their authored timing.
   const duration = (skillId, overrides = {}) => {

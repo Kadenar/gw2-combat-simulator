@@ -91,6 +91,16 @@ export const WARRIOR_WEAPONS_GREATSWORD_SKILL_MECHANICS: Readonly<Record<number,
           }
         ],
         metadata: {}
+      },
+      {
+        // Both outgoing and returning impacts apply their own one-second immobilize.
+        type: 'condition',
+        ticks: [
+          { atMs: 520, condition: 'Immobilized', stacks: 1, duration: 1 },
+          { atMs: 1520, condition: 'Immobilized', stacks: 1, duration: 1 }
+        ],
+        timingAnchor: 'castStart',
+        timingScale: 'fixed'
       }
     ]
   },

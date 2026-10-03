@@ -1,3 +1,10 @@
+import type {
+  ProfessionAttributePreviewContext,
+  ProfessionAttributePreviewPreparation
+} from '#gw2/platform/profession-presentation/attribute-preview.js';
+import { createAttributePreviewControls } from '#gw2/professions/shared/attribute-preview.js';
+import { readProfessionCoreState } from '#gw2/platform/engine/profession/state.js';
+import { REVENANT_MAXIMUM_ENDURANCE, type RevenantCoreState } from '#gw2/professions/revenant/core/state.js';
 import { REVENANT_SKILL_IDS as SKILL, REVENANT_TRAIT_IDS as TRAIT } from '#gw2/professions/revenant/data/ids.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { getActiveTraits } from '#gw2/professions/revenant/data/traits-data.js';
@@ -76,6 +83,20 @@ function renegadeEffectPresentations(context: RevenantUiContext): ProfessionEffe
 }
 
 export const renegadeUi: RevenantUiSlice = Object.freeze({
+  /** Declare this module's conditional inputs without adding simulation settings. */
+  attributePreviewControls(context: ProfessionAttributePreviewContext) {
+    const preview = createAttributePreviewControls(context);
+    preview.trait('Brutal Momentum', { key: 'fullEndurance', kind: 'special', description: 'Full endurance' });
+    return preview.controls;
+  },
+  /** Seed only the detached attribute query; combat state and saved builds remain untouched. */
+  prepareAttributePreview(context: ProfessionAttributePreviewPreparation) {
+    if ('fullEndurance' in context.values)
+      readProfessionCoreState<RevenantCoreState>(context.professionState).endurance = context.values.fullEndurance
+        ? REVENANT_MAXIMUM_ENDURANCE
+        : 0;
+  },
+
   effectPresentations: renegadeEffectPresentations,
   rotationStateSnapshot: renegadeStateSnapshot,
   paletteGroups: () => [

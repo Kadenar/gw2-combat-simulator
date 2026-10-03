@@ -1,10 +1,6 @@
 import { escapeHtml as esc } from '#ui/shared/html.js';
 import { calculateBuffedAttributes } from '#gw2/app/build/buffed-attributes.js';
-import {
-  attributeEffectControls,
-  normalizeAttributePreview,
-  type AttributePreviewValues
-} from '#gw2/app/build/attribute-effects.js';
+import { attributeEffectControls, normalizeAttributePreview } from '#gw2/app/build/attribute-effects.js';
 import {
   DERIVED_ATTRIBUTES,
   PERCENT_ATTRIBUTES,
@@ -12,6 +8,7 @@ import {
   SPECIFIC_CONDITION_DURATION_ATTRIBUTES
 } from '#gw2/app/build/panels/metadata.js';
 
+import type { AttributePreviewValues } from '#gw2/platform/profession-presentation/attribute-preview.js';
 import type { ProfessionAppState } from '#gw2/app/types.js';
 
 export function renderAttributes(app: ProfessionAppState): void {

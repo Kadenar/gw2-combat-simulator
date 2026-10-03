@@ -1,3 +1,6 @@
+import type { ProfessionAttributePreviewContext } from '#gw2/platform/profession-presentation/attribute-preview.js';
+import { createAttributePreviewControls } from '#gw2/professions/shared/attribute-preview.js';
+
 import { flattenProfessionState } from '#gw2/platform/engine/profession/state.js';
 import { SIMULATION_RANDOMNESS_ASSUMPTION_CONTROLS } from '#gw2/platform/simulation/randomness.js';
 import { PERMANENT_COMBO_FIELD_ASSUMPTION_CONTROLS } from '#gw2/platform/combos/permanent-field-assumption.js';
@@ -89,6 +92,18 @@ function revenantCoreStateSnapshot(
 
 /** Core presentation reads the current legend and resource projection without a catalog binding. */
 export const revenantCoreUi: RevenantUiSlice = Object.freeze({
+  /** Declare this module's conditional inputs without adding simulation settings. */
+  attributePreviewControls(context: ProfessionAttributePreviewContext) {
+    const preview = createAttributePreviewControls(context);
+    preview.trait("Assassin's Presence", {
+      key: 'assassinsPresence',
+      kind: 'queryTrait',
+      field: "Assassin's Presence",
+      description: 'Periodic Fury window active'
+    });
+    return preview.controls;
+  },
+
   // Applications remain separate from damage totals and preserve the runtime's empowered pulse flag.
   chartApplications: ({ result }) =>
     (result?.resolvedEvents || [])

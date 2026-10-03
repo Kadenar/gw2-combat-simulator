@@ -25,12 +25,27 @@ const SIGNET_PULSE = 'warrior.signet-of-rage-pulse';
 
 export const WARRIOR_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
   [ID.THROW_BOLAS]: {
-    castTimeMs: 333,
+    // Bolas immobilizes on impact and always finishes a projectile combo in an eligible field.
+    castTimeMs: 520,
+    comboFinishers: [
+      {
+        ownerId: 'warrior',
+        finisherType: 'Projectile',
+        chance: 1,
+        ambiguousFieldSelection: 'oldest'
+      }
+    ],
     effects: [
       {
         type: 'strike',
         coefficient: 0.25,
         hits: 1
+      },
+      {
+        type: 'condition',
+        condition: 'Immobilized',
+        stacks: 1,
+        duration: 4
       }
     ]
   },
@@ -110,7 +125,8 @@ export const WARRIOR_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Partia
   },
   [ID.SIGNET_OF_MIGHT]: {
     cooldown: 20,
-    castTimeMs: 333,
+    // The instant activation grants might without occupying the cast timeline.
+    castTimeMs: 0,
     effects: [
       {
         type: 'boon',

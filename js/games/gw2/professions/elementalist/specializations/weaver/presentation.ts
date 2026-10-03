@@ -1,3 +1,9 @@
+import type {
+  ProfessionAttributePreviewContext,
+  ProfessionAttributePreviewPreparation
+} from '#gw2/platform/profession-presentation/attribute-preview.js';
+import { createAttributePreviewControls } from '#gw2/professions/shared/attribute-preview.js';
+import { readProfessionSpecializationState } from '#gw2/platform/engine/profession/state.js';
 import { elementalistWeaponGroups } from '#gw2/professions/elementalist/core/weapon-groups.js';
 import type {
   ElementalistState,
@@ -372,6 +378,31 @@ function renderWeaverWeaponPalette(
 
 /** The Weaver half of the Elementalist UI contract, registered by the module. */
 export const weaverUi: ElementalistUiSlice = Object.freeze({
+  /** Declare this module's conditional inputs without adding simulation settings. */
+  attributePreviewControls(context: ProfessionAttributePreviewContext) {
+    const preview = createAttributePreviewControls(context);
+
+    preview.add({
+      key: 'secondaryAttunement',
+      label: 'Secondary attunement',
+      group: 'Attunement',
+      kind: 'special',
+      options: ['None', 'Fire', 'Water', 'Air', 'Earth'],
+      description: 'Elemental Polyphony'
+    });
+    preview.condition('Weakness', 'Superior Elements');
+    return preview.controls;
+  },
+  /** Seed only the detached attribute query; combat state and saved builds remain untouched. */
+  prepareAttributePreview(context: ProfessionAttributePreviewPreparation) {
+    // Keep an explicit None value so preview queries do not fall back to the build's starting attunement.
+    const state = readProfessionSpecializationState<{ secondaryAttunement: string }>(
+      context.professionState,
+      'Weaver'
+    )!;
+    state.secondaryAttunement = String(context.values.secondaryAttunement);
+  },
+
   // Tile identity follows the active bar even when the visible skill cannot currently be cast.
   paletteOverride: (context, skill) => {
     if (skill.id === ID.WEAVE_SELF || skill.id === ID.TAILORED_VICTORY)

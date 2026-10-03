@@ -1,3 +1,9 @@
+import type {
+  ProfessionAttributePreviewContext,
+  ProfessionAttributePreviewPreparation
+} from '#gw2/platform/profession-presentation/attribute-preview.js';
+import { createAttributePreviewControls } from '#gw2/professions/shared/attribute-preview.js';
+import { readProfessionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { elementalistWeaponGroups } from '#gw2/professions/elementalist/core/weapon-groups.js';
 import { timedBuffAt } from '#gw2/platform/results/query.js';
 import type {
@@ -366,6 +372,58 @@ function rotationStateSnapshot(context: ElementalistUiContext): RotationStateSna
 /** Captures this UI's catalog so other profession instances cannot change its projections. */
 export function bindElementalistCoreUi(catalog: Readonly<CanonicalCatalog<ElementalistSkill>>): ElementalistUiSlice {
   return Object.freeze({
+    /** Declare this module's conditional inputs without adding simulation settings. */
+    attributePreviewControls(context: ProfessionAttributePreviewContext) {
+      const preview = createAttributePreviewControls(context);
+
+      preview.buff('Fresh Air', 'freshAir', 'fresh air', 'Ferocity while active');
+      preview.buff('Arcane Lightning', 'arcaneLightning', 'arcane lightning', 'Ferocity while active');
+      preview.add({
+        key: 'attunement',
+        label: 'Attunement',
+        group: 'Attunement',
+        kind: 'special',
+        options: ['None', 'Fire', 'Water', 'Air', 'Earth'],
+        description: 'Attunement-dependent traits'
+      });
+      if (context.weapons.includes('Hammer'))
+        preview.add({
+          key: 'crescentWind',
+          label: 'Crescent Wind',
+          group: 'Other buffs',
+          kind: 'buff',
+          field: 'hammer air orb',
+          description: '+15% Critical Chance'
+        });
+      const conjures = [
+        ['Conjure Fiery Greatsword', 'Fiery Greatsword'],
+        ['Conjure Lightning Hammer', 'Lightning Hammer'],
+        ['Conjure Frost Bow', 'Frost Bow']
+      ]
+        .filter(([skill]) => preview.skills.has(skill))
+        .map(([, weapon]) => weapon);
+      if (conjures.length)
+        preview.add({
+          key: 'conjure',
+          label: 'Conjured weapon',
+          group: 'Other buffs',
+          kind: 'special',
+          options: ['None', ...conjures],
+          description: 'Attributes while wielded'
+        });
+      preview.passives('Signet of Fire');
+      return preview.controls;
+    },
+    /** Seed only the detached attribute query; combat state and saved builds remain untouched. */
+    prepareAttributePreview(context: ProfessionAttributePreviewPreparation) {
+      // The isolated preview permits no attunement; live combat always has an elemental attunement.
+      const core = readProfessionCoreState<{ primaryAttunement: string }>(context.professionState);
+      core.primaryAttunement = String(context.values.attunement);
+      if (context.values.conjure && context.values.conjure !== 'None')
+        context.queryOptions.skillWeapon = String(context.values.conjure);
+      context.queryOptions.conditionDurations = context.values.conjure === 'Frost Bow';
+    },
+
     paletteWeaponGroups: (_context, skills) => elementalistWeaponGroups(skills),
     // Selected utilities follow the live primary attunement without mutating the saved loadout.
     paletteSelectedSlotSkills: (context, skills) => {

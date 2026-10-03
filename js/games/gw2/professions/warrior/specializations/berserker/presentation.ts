@@ -1,3 +1,10 @@
+import type {
+  ProfessionAttributePreviewContext,
+  ProfessionAttributePreviewPreparation
+} from '#gw2/platform/profession-presentation/attribute-preview.js';
+import { createAttributePreviewControls } from '#gw2/professions/shared/attribute-preview.js';
+import { readProfessionSpecializationState } from '#gw2/platform/engine/profession/state.js';
+import type { BerserkerState } from '#gw2/professions/warrior/specializations/berserker/state.js';
 import { WARRIOR_SKILL_IDS as ID } from '#gw2/professions/warrior/data/ids.js';
 import {
   formatSecondsRemaining,
@@ -31,6 +38,25 @@ const PRIMAL_BURSTS_BY_WEAPON: Readonly<Record<string, number>> = Object.freeze(
 });
 
 export const berserkerUi: WarriorUiSlice = Object.freeze({
+  /** Declare this module's conditional inputs without adding simulation settings. */
+  attributePreviewControls(context: ProfessionAttributePreviewContext) {
+    const preview = createAttributePreviewControls(context);
+    preview.add({
+      key: 'berserk',
+      label: 'Berserk',
+      kind: 'special',
+      group: 'Other buffs',
+      description: 'Power / Condition Damage and Berserk traits'
+    });
+    return preview.controls;
+  },
+  /** Seed only the detached attribute query; combat state and saved builds remain untouched. */
+  prepareAttributePreview(context: ProfessionAttributePreviewPreparation) {
+    readProfessionSpecializationState<BerserkerState>(context.professionState, 'Berserker')!.berserkActive = Boolean(
+      context.values.berserk
+    );
+  },
+
   // Only this specialization offers its trait-proc overlay; storage remains a browser concern.
   timelineOverlays: () => [
     {

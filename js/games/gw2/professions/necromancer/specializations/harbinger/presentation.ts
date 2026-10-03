@@ -1,3 +1,10 @@
+import type {
+  ProfessionAttributePreviewContext,
+  ProfessionAttributePreviewPreparation
+} from '#gw2/platform/profession-presentation/attribute-preview.js';
+import { createAttributePreviewControls } from '#gw2/professions/shared/attribute-preview.js';
+import { readProfessionCoreState } from '#gw2/platform/engine/profession/state.js';
+import type { NecromancerCoreState } from '#gw2/professions/necromancer/core/state.js';
 import type { CanonicalCatalog } from '#gw2/platform/engine/skills/types.js';
 import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
 import { getActiveTraits } from '#gw2/professions/necromancer/data/traits-data.js';
@@ -83,6 +90,29 @@ const HARBINGER_EFFECT_PRESENTATIONS: readonly ProfessionEffectPresentation[] = 
 /** Captures this UI's catalog so other profession instances cannot change its projections. */
 export function bindHarbingerUi(catalog: Readonly<CanonicalCatalog<NecromancerSkill>>): NecromancerUiSlice {
   return Object.freeze({
+    /** Declare this module's conditional inputs without adding simulation settings. */
+    attributePreviewControls(context: ProfessionAttributePreviewContext) {
+      const preview = createAttributePreviewControls(context);
+      preview.condition('Torment', 'Wicked Corruption');
+      return preview.controls;
+    },
+    /** Seed only the detached attribute query; combat state and saved builds remain untouched. */
+    prepareAttributePreview(context: ProfessionAttributePreviewPreparation) {
+      if (context.values.shroud)
+        readProfessionCoreState<NecromancerCoreState>(context.professionState).activeShroud = 'harbinger';
+    },
+
+    // Show when Cascading Corruption triggers Meltdown using the existing simulated trait procs.
+    timelineOverlays: () => [
+      {
+        id: 'meltdown',
+        storageKey: 'gw2-rotation-overlay-meltdown-procs',
+        label: 'Overlay Meltdown',
+        title: 'Show Meltdown activations at their simulated positions in the rotation',
+        matchesProc: (proc) => proc.type === 'trait_proc' && proc.skill === 'Meltdown'
+      }
+    ],
+
     // Refresh the weapon row at this profession's transformation boundary.
     timelineWeaponLineTransition: (context: NecromancerUiContext) =>
       context.skill && [ID.HARBINGER_SHROUD, ID.EXIT_HARBINGER_SHROUD].some((id) => id === context.skill!.id)

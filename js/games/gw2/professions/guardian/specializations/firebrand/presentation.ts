@@ -1,3 +1,6 @@
+import type { ProfessionAttributePreviewContext } from '#gw2/platform/profession-presentation/attribute-preview.js';
+import { createAttributePreviewControls } from '#gw2/professions/shared/attribute-preview.js';
+
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { flattenProfessionState } from '#gw2/platform/engine/profession/state.js';
 import {
@@ -103,6 +106,13 @@ function dormantTomeClasses(context: GuardianUiContext): string {
 /** Captures this UI's catalog so other profession instances cannot change its projections. */
 export function bindFirebrandUi(catalog: Readonly<CanonicalCatalog<GuardianSkill>>): GuardianUiSlice {
   return Object.freeze({
+    /** Declare this module's conditional inputs without adding simulation settings. */
+    attributePreviewControls(context: ProfessionAttributePreviewContext) {
+      const preview = createAttributePreviewControls(context);
+      preview.boon('quickness', 'Imbued Haste');
+      return preview.controls;
+    },
+
     rotationStateSnapshot: firebrandStateSnapshot,
     eventLogRow: firebrandEventLogRow,
     timelineWeaponLineTransition: (context: GuardianUiContext) => {

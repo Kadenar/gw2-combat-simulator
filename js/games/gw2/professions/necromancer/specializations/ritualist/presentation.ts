@@ -1,3 +1,6 @@
+import type { ProfessionAttributePreviewPreparation } from '#gw2/platform/profession-presentation/attribute-preview.js';
+import { readProfessionCoreState } from '#gw2/platform/engine/profession/state.js';
+import type { NecromancerCoreState } from '#gw2/professions/necromancer/core/state.js';
 import { NECROMANCER_SKILL_IDS as ID } from '#gw2/professions/necromancer/data/ids.js';
 import {
   necromancerTransformPaletteGroups,
@@ -26,6 +29,12 @@ const INNERVATE_BY_SPIRIT: Readonly<Record<string, SkillId>> = Object.freeze({
 /** Captures this UI's catalog so other profession instances cannot change its projections. */
 export function bindRitualistUi(catalog: Readonly<CanonicalCatalog<NecromancerSkill>>): NecromancerUiSlice {
   return Object.freeze({
+    /** Seed only the detached attribute query; combat state and saved builds remain untouched. */
+    prepareAttributePreview(context: ProfessionAttributePreviewPreparation) {
+      if (context.values.shroud)
+        readProfessionCoreState<NecromancerCoreState>(context.professionState).activeShroud = 'ritualist';
+    },
+
     // Refresh the weapon row at this profession's transformation boundary.
     timelineWeaponLineTransition: (context: NecromancerUiContext) =>
       context.skill && [ID.RITUALISTS_SHROUD, ID.EXIT_RITUALISTS_SHROUD].some((id) => id === context.skill!.id)

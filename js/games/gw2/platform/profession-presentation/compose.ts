@@ -1,4 +1,8 @@
 import type { ProfessionConfig } from '#gw2/platform/execution/types.js';
+import type {
+  ProfessionAttributePreviewInput,
+  ProfessionAttributePreviewPreparation
+} from '#gw2/platform/profession-presentation/attribute-preview.js';
 import type { ResourcePolicies } from '#gw2/platform/combat/resources/resource-policy.js';
 /**
  * Profession UI composition. Combines Core, active-specialization, and family
@@ -21,6 +25,7 @@ import type { ProfessionResourceDefinition } from '#gw2/platform/engine/professi
 type UiCallbackName = keyof ProfessionUiContract;
 
 const UI_LIST_CALLBACK_NAMES = Object.freeze([
+  'attributePreviewControls',
   'chartApplications',
   'timelineMarkers',
   'timelineOverlays',
@@ -92,11 +97,14 @@ function deduplicateUiEntries(values: readonly unknown[], callbackName: string):
   // Validate identity without filtering: every entry survives unless a duplicate is rejected.
   for (const [index, value] of values.entries()) {
     if (!value || typeof value !== 'object') continue;
-    const candidate = value as { readonly id?: unknown };
-    const key = candidate.id == null ? '' : String(candidate.id);
+    const candidate = value as { readonly id?: unknown; readonly key?: unknown };
+    // Preview inputs are persisted within the panel by key; duplicate owners would silently overwrite a value.
+    const identity = callbackName === 'attributePreviewControls' ? candidate.key : candidate.id;
+    const key = identity == null ? '' : String(identity);
     if (!key) continue;
     if (keys.has(key)) {
-      throw new TypeError(`ui.${callbackName} returned duplicate id ${key} at index ${index}.`);
+      const field = callbackName === 'attributePreviewControls' ? 'key' : 'id';
+      throw new TypeError(`ui.${callbackName} returned duplicate ${field} ${key} at index ${index}.`);
     }
 
     keys.add(key);
@@ -242,6 +250,24 @@ export function createProfessionFamilyUi(definition: ProfessionFamilyUiDefinitio
       return normalizeApplicationUiList(values, name);
     };
   }
+
+  // Prepare only Core, the active elite, and family preview state, in the same order as their controls.
+  ui.prepareAttributePreview = (context: ProfessionAttributePreviewPreparation) => {
+    const selected = active(context);
+    for (const slice of [...selected.slices, family])
+      slice.prepareAttributePreview?.(selected.context as ProfessionAttributePreviewPreparation);
+  };
+
+  ui.attributePreviewDisabledTrait = (context: ProfessionAttributePreviewInput) => {
+    const selected = active(context);
+    return firstUiMatch(
+      [...selected.slices, family],
+      'attributePreviewDisabledTrait',
+      [selected.context],
+      (value) => value != null,
+      null
+    );
+  };
 
   ui.paletteOverride = (context: unknown, skill: Skill) => {
     const selected = scalarSlices(context, skill);

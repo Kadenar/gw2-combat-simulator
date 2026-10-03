@@ -1,3 +1,6 @@
+import type { ProfessionAttributePreviewContext } from '#gw2/platform/profession-presentation/attribute-preview.js';
+import { createAttributePreviewControls } from '#gw2/professions/shared/attribute-preview.js';
+
 import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { DEADEYE_STOLEN_SKILL_IDS } from '#gw2/professions/thief/specializations/deadeye/mechanics/stolen-skills.js';
@@ -17,6 +20,13 @@ function deadeyeStolenSkillIds(context: ThiefUiContext = {}): SkillId[] {
 }
 
 export const deadeyeUi = Object.freeze({
+  /** Declare this module's conditional inputs without adding simulation settings. */
+  attributePreviewControls(context: ProfessionAttributePreviewContext) {
+    const preview = createAttributePreviewControls(context);
+    preview.boon('quickness', 'Be Quick or Be Killed');
+    return preview.controls;
+  },
+
   paletteGroups: (context: ThiefUiContext) => {
     const stolenSkillIds = deadeyeStolenSkillIds(context);
     // Keep every choice visible beside Mark; shared availability greys out skills that have not been stolen.

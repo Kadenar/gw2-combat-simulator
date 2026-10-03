@@ -1,3 +1,10 @@
+import type {
+  ProfessionAttributePreviewContext,
+  ProfessionAttributePreviewPreparation
+} from '#gw2/platform/profession-presentation/attribute-preview.js';
+import { createAttributePreviewControls } from '#gw2/professions/shared/attribute-preview.js';
+import { readProfessionCoreState } from '#gw2/platform/engine/profession/state.js';
+import type { RangerCoreState } from '#gw2/professions/ranger/core/state.js';
 import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
 import { flattenProfessionState } from '#gw2/platform/engine/profession/state.js';
 import { gw2ConfiguredWeaponSet } from '#gw2/platform/equipment/weapons/loadout.js';
@@ -168,6 +175,27 @@ function updateRangerCoreSelection(context: RangerUiContext, selection: RangerUi
 /** Captures this UI's catalog so other profession instances cannot change its projections. */
 export function bindRangerCoreUi(catalog: Readonly<CanonicalCatalog<RangerSkill>>): RangerUiSlice {
   return Object.freeze({
+    /** Declare this module's conditional inputs without adding simulation settings. */
+    attributePreviewControls(context: ProfessionAttributePreviewContext) {
+      const preview = createAttributePreviewControls(context);
+
+      if (preview.has("Hunter's Tactics"))
+        preview.add({
+          key: 'flanking',
+          label: 'Flanking',
+          group: 'Trait conditionals',
+          kind: 'special',
+          description: 'Positional Critical Chance'
+        });
+      preview.passives('Signet of the Wild');
+      return preview.controls;
+    },
+    /** Seed only the detached attribute query; combat state and saved builds remain untouched. */
+    prepareAttributePreview(context: ProfessionAttributePreviewPreparation) {
+      // Opening Strike is a single-hit bonus, so it does not belong in persistent attribute previews.
+      readProfessionCoreState<RangerCoreState>(context.professionState).playerOpeningStrikeReady = false;
+    },
+
     // Tile identity follows the active bar even when the visible skill cannot currently be cast.
     paletteOverride: (context, skill) => {
       const flip = RANGER_SPEAR_STEALTH_FLIP_BY_PARENT[Number(skill.id)];

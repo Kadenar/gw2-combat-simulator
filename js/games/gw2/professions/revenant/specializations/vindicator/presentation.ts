@@ -1,3 +1,9 @@
+import type {
+  ProfessionAttributePreviewContext,
+  ProfessionAttributePreviewInput
+} from '#gw2/platform/profession-presentation/attribute-preview.js';
+import { createAttributePreviewControls } from '#gw2/professions/shared/attribute-preview.js';
+
 import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
 import { REVENANT_MAXIMUM_ENDURANCE } from '#gw2/professions/revenant/core/state.js';
 import { REVENANT_SKILL_IDS as SKILL } from '#gw2/professions/revenant/data/ids.js';
@@ -98,6 +104,17 @@ function vindicatorStateSnapshot(context: RevenantUiContext): RotationStateSnaps
 }
 
 export const vindicatorUi: RevenantUiSlice = Object.freeze({
+  /** Declare this module's conditional inputs without adding simulation settings. */
+  attributePreviewControls(context: ProfessionAttributePreviewContext) {
+    const preview = createAttributePreviewControls(context);
+    preview.playerHealth(['Empire Divided']);
+    return preview.controls;
+  },
+  attributePreviewDisabledTrait(context: ProfessionAttributePreviewInput) {
+    // Remove the full-health static Power before rebuilding conversions for a low-health preview.
+    return Number(context.values.playerHealth ?? 100) <= 50 ? 'Empire Divided' : null;
+  },
+
   rotationStateSnapshot: vindicatorStateSnapshot,
   // Alliance has one supported skill bar; the specialization group only adds Energy Meld.
   paletteGroups: () => [

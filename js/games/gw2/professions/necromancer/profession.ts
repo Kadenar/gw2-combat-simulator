@@ -1,3 +1,4 @@
+import { necromancerFamilyUi } from '#gw2/professions/necromancer/family-presentation.js';
 import { defineNativeProfession } from '#gw2/platform/profession-definition/profession.js';
 import {
   createNecromancerBuildDefaults,
@@ -19,6 +20,7 @@ export const necromancerProfession = defineNativeProfession({
     validateBuild: validateNecromancerBuild
   },
   modules: necromancerNativeModules,
+  presentation: necromancerFamilyUi,
   autoattackChains: {
     overrides: [
       {

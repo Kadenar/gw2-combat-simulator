@@ -165,6 +165,27 @@ test('Elementalist attunement, Fresh Air and hammer orbs are independent and wea
   close(stats(app, { crescentWind: 1 })['Critical Chance'].final, stats(app)['Critical Chance'].final);
 });
 
+// Explicit None values must suppress configured starting elements, while active elite inputs remain independent.
+test('Weaver and Evoker preview elements override detached state and config without changing builds', () => {
+  const weaver = previewApp('elementalist', ['Elemental Polyphony']);
+  weaver.build.startAttunement = 'Fire';
+  weaver.build.secondaryAttunement = 'Air';
+  weaver.adapter.recalculate(weaver);
+  const original = structuredClone(weaver.build);
+  const base = stats(weaver, { attunement: 'None', secondaryAttunement: 'None' });
+  close(stats(weaver, { secondaryAttunement: 'Air' }).Ferocity.final, base.Ferocity.final + 200);
+  close(stats(weaver, { attunement: 'Fire' }).Power.final, base.Power.final + 200);
+  assert.deepEqual(weaver.build, original);
+
+  const evoker = previewApp('elementalist', ['Enhanced Potency']);
+  const before = structuredClone(evoker.build);
+  const withoutElement = stats(evoker, { fury: 1, evokerElement: 'None' });
+  const air = stats(evoker, { fury: 1, evokerElement: 'Air' });
+  close(air.Ferocity.final, withoutElement.Ferocity.final + 75);
+  close(air['Critical Chance'].final, withoutElement['Critical Chance'].final + 15);
+  assert.deepEqual(evoker.build, before);
+});
+
 test('Engineer previews stack counts and Might-dependent specialization traits', () => {
   const app = previewApp('engineer', ['Explosive Temper', 'Applied Force']);
   const base = stats(app);

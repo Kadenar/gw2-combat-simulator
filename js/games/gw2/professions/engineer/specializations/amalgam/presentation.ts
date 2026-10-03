@@ -1,3 +1,10 @@
+import type {
+  ProfessionAttributePreviewContext,
+  ProfessionAttributePreviewPreparation
+} from '#gw2/platform/profession-presentation/attribute-preview.js';
+import { createAttributePreviewControls } from '#gw2/professions/shared/attribute-preview.js';
+import { readProfessionSpecializationState } from '#gw2/platform/engine/profession/state.js';
+import type { AmalgamState } from '#gw2/professions/engineer/specializations/amalgam/state.js';
 import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
 import type { CanonicalCatalog, SkillId } from '#gw2/platform/engine/skills/types.js';
 import type {
@@ -199,6 +206,33 @@ function amalgamStateSnapshot(context: EngineerUiContext): RotationStateSnapshot
 /** Captures this UI's catalog so other profession instances cannot change its projections. */
 export function bindAmalgamUi(catalog: Readonly<CanonicalCatalog<EngineerSkill>>): EngineerUiSlice {
   return Object.freeze({
+    /** Declare this module's conditional inputs without adding simulation settings. */
+    attributePreviewControls(context: ProfessionAttributePreviewContext) {
+      const preview = createAttributePreviewControls(context);
+
+      preview.add({
+        key: 'evolved',
+        label: 'Evolved',
+        kind: 'special',
+        group: 'Other buffs',
+        description: 'All attributes; includes Double Helix'
+      });
+      preview.add({
+        key: 'titanic',
+        label: 'Titanic Strain',
+        kind: 'special',
+        group: 'Other buffs',
+        description: 'Additional attributes from Might'
+      });
+      return preview.controls;
+    },
+    /** Seed only the detached attribute query; combat state and saved builds remain untouched. */
+    prepareAttributePreview(context: ProfessionAttributePreviewPreparation) {
+      const state = readProfessionSpecializationState<AmalgamState>(context.professionState, 'Amalgam')!;
+      state.evolvedUntil = context.values.evolved ? 60 : 0;
+      state.titanicUntil = context.values.titanic ? 60 : 0;
+    },
+
     assumptionControls: ENGINEER_ASSUMPTION_CONTROLS,
     rotationStateSnapshot: amalgamStateSnapshot,
     skillBarGroups: (context: EngineerUiContext) => amalgamSkillBarGroups(catalog, context),

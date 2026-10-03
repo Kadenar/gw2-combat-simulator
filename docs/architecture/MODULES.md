@@ -165,6 +165,12 @@ This layer may translate a build into application state, but it must not impleme
 slot-loadout contracts and views come directly from `platform/builds/slot-loadout.ts`; profession presentation exposes
 that typed contract, including optional palette placement and child actions.
 
+Attribute previews use `profession-presentation/attribute-preview.ts` contracts. Core, the selected elite, and family
+presentation contribute controls, optional static-trait suppression before recalculation, and detached query-state
+preparation. `build/attribute-effects.ts` retains common controls and normalization; `build/buffed-attributes.ts` owns
+the isolated query lifecycle and result assembly. Profession owners handle private state, configuration, and synthetic
+events. Preview player health never becomes a saved build assumption or simulation input.
+
 ### `rotation/`
 
 | Module            | Responsibility                                               |
