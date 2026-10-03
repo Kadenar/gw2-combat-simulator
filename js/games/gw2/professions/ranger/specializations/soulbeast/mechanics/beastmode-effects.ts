@@ -15,8 +15,8 @@ import { buildResolverCondition, buildResolverStrike } from '#gw2/platform/resol
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import {
   isPlayerStrike,
-  queueProfileBuff,
-  queueProfileCondition
+  rangerBuffRequest,
+  rangerConditionRequest
 } from '#gw2/professions/ranger/core/mechanics/resolution-helpers.js';
 import { RANGER_CORE_BALANCE_PROFILE_IDS as CORE_PROFILE } from '#gw2/professions/ranger/core/profiles.js';
 import { rangerPetByName } from '#gw2/professions/ranger/core/state.js';
@@ -76,8 +76,9 @@ function triggerMergedPoisonousStrikes(context: RangerResolverContext, event: Gw
   const poison = requireEffect(profile, 'condition', 'Poisoned');
   // The charges exist only to deliver poison, so a removed packet leaves them unspent.
   if (!poison || !consumeCharge(core.poisonousStrikes, event.at, 0, true)) return;
-  context.queue.enqueue(
-    buildResolverCondition({
+  context.effects.emit({
+    kind: 'packet',
+    event: buildResolverCondition({
       at: event.at,
       source: 'ranger',
       sourceId: ID.DOUBLE_ARC,
@@ -90,7 +91,7 @@ function triggerMergedPoisonousStrikes(context: RangerResolverContext, event: Gw
       stacks: effectNumber(profile, poison, 'stacks'),
       triggeredBy: event.skillName
     })
-  );
+  });
 }
 
 /** Personal and allied echoes use the same delayed strike and source attributes. */
@@ -101,8 +102,9 @@ function queueOneWolfPackStrike(
   strike: StrikeEffect
 ): void {
   const hits = effectNumber(profile, strike, 'hits');
-  context.queue.enqueue(
-    buildResolverStrike({
+  context.effects.emit({
+    kind: 'packet',
+    event: buildResolverStrike({
       at: event.at + balanceProfileNumber(profile, 'initialDelay'),
       source: 'ranger',
       sourceId: ID.ONE_WOLF_PACK_STRIKE,
@@ -121,7 +123,7 @@ function queueOneWolfPackStrike(
       triggeredBy: event.skillName,
       metadata: event.metadata?.triggeredByAlly ? { triggeredByAlly: event.metadata.triggeredByAlly } : undefined
     })
-  );
+  });
 }
 
 /** Vulture's poison is attributed to the stance source; might stays on the triggering recipient. */
@@ -132,8 +134,8 @@ function queueVultureStanceEffects(
   poison: ConditionEffect | undefined,
   might: StatusEffect | undefined
 ): void {
-  if (poison) queueProfileCondition(context, event, profile, poison, ID.VULTURE_STANCE, 'Vulture Stance');
-  if (might) queueProfileBuff(context, event, profile, might, 'Vulture Stance', ID.VULTURE_STANCE);
+  if (poison) context.effects.emit(rangerConditionRequest(event, profile, poison, ID.VULTURE_STANCE, 'Vulture Stance'));
+  if (might) context.effects.emit(rangerBuffRequest(event, profile, might, 'Vulture Stance', ID.VULTURE_STANCE));
 }
 
 /**
@@ -214,7 +216,7 @@ export function reactToSoulbeastDamage(context: RangerResolverContext, event: Gw
 /** Quickness extends existing boons once; shared attacks wait for an actual combat boundary. */
 export function reactToSoulbeastBuff(context: RangerResolverContext, event: Gw2ResolverEvent): void {
   const extension = essenceOfSpeedExtension(context, event);
-  if (extension) context.queue.enqueue(extension);
+  if (extension) context.effects.emit({ kind: 'packet', event: extension });
   if (context.combatStartPending) {
     if (event.kind === 'one-wolf-pack' || event.kind === 'vulture-stance')
       soulbeastState.from(context).pendingSharedStances.push(event);
@@ -238,15 +240,18 @@ export function scheduleSharedStance(context: RangerResolverContext, event: Gw2R
     duration: Math.max(0, event.at + (event.duration || 0) - start),
     maximumAllies
   })) {
-    context.queue.enqueue({
-      type: 'ranger.shared-stance-hit',
-      at: proc.at,
-      source: 'ranger',
-      sourceId: event.sourceId,
-      kind: event.kind,
-      actorType: 'effect',
-      skillName: `Allied Player ${proc.allyIndex} Attack`,
-      metadata: { triggeredByAlly: proc.allyIndex }
+    context.effects.emit({
+      kind: 'packet',
+      event: {
+        type: 'ranger.shared-stance-hit',
+        at: proc.at,
+        source: 'ranger',
+        sourceId: event.sourceId,
+        kind: event.kind,
+        actorType: 'effect',
+        skillName: `Allied Player ${proc.allyIndex} Attack`,
+        metadata: { triggeredByAlly: proc.allyIndex }
+      }
     });
   }
 }
@@ -267,7 +272,8 @@ export function reactToRangerWinterBite(context: RangerResolverContext, event: G
   core.winterBiteReady = false;
   const profile = requireBalanceProfileFromContext(context, PROFILE.wintersBite);
   const weakness = requireEffect(profile, 'condition', 'Weakness');
-  if (weakness) queueProfileCondition(context, event, profile, weakness, ID.WINTERS_BITE, "Winter's Bite");
+  if (weakness)
+    context.effects.emit(rangerConditionRequest(event, profile, weakness, ID.WINTERS_BITE, "Winter's Bite"));
 }
 
 export function soulbeastCastAvailability(context: RangerRuntime, skill: RangerSkill): AvailabilityResult {

@@ -21,7 +21,16 @@ export const bloodstone = defineRelic({
     if (currentStacks < 3) {
       state.stacks = currentStacks + 1;
       state.expiresAt = gw2EffectExpiresAt(event.at, 10);
-      ctx.recordProc('relic', 'Bloodstone Volatility', event.at, event.skillName, `${state.stacks}/3 stacks`);
+      ctx.effects.emit({
+        kind: 'announcement',
+        announcement: {
+          type: 'relic',
+          name: 'Bloodstone Volatility',
+          at: event.at,
+          sourceSkill: event.skillName,
+          detail: `${state.stacks}/3 stacks`
+        }
+      });
       return;
     }
 
@@ -29,47 +38,56 @@ export const bloodstone = defineRelic({
     state.stacks = 0;
     state.expiresAt = 0;
     state.buffUntil = gw2EffectExpiresAt(event.at, 8);
-    ctx.recordProc(
-      'relic',
-      'Relic of Bloodstone',
-      event.at,
-      event.skillName,
-      'Bloodstone Fervor',
-      '',
-      null,
-      state.buffUntil
-    );
-    const explosionAt = event.at + 0.68;
-    ctx.queue.enqueue({
-      type: 'damage',
-      at: explosionAt,
-      name: 'Bloodstone Explosion',
-      skillName: 'Bloodstone Explosion',
-      coefficient: 3,
-      hits: 1,
-      hitIndex: 1,
-      totalHits: 1,
-      source: 'Relic',
-      sourceId: `relic.${RELIC_IDS.BLOODSTONE}`,
-      actorType: 'effect',
-      ownerActorType: 'player',
-      skillWeapon: 'Unequipped',
-      canCrit: true,
-      triggeredBy: event.skillName
+    ctx.effects.emit({
+      kind: 'announcement',
+      announcement: {
+        type: 'relic',
+        name: 'Relic of Bloodstone',
+        at: event.at,
+        sourceSkill: event.skillName,
+        detail: 'Bloodstone Fervor',
+        icon: '',
+        cooldownReduction: null,
+        expiresAt: state.buffUntil
+      }
     });
-    ctx.queue.enqueue({
-      type: 'condition',
-      at: explosionAt,
-      name: 'Bloodstone Explosion — Bleeding',
-      skillName: 'Bloodstone Explosion',
-      condition: 'Bleeding',
-      duration: 6,
-      stacks: 6,
-      source: 'Relic',
-      sourceId: `relic.${RELIC_IDS.BLOODSTONE}`,
-      actorType: 'effect',
-      ownerActorType: 'player',
-      triggeredBy: event.skillName
+    const explosionAt = event.at + 0.68;
+    ctx.effects.emit({
+      kind: 'packet',
+      event: {
+        type: 'damage',
+        at: explosionAt,
+        name: 'Bloodstone Explosion',
+        skillName: 'Bloodstone Explosion',
+        coefficient: 3,
+        hits: 1,
+        hitIndex: 1,
+        totalHits: 1,
+        source: 'Relic',
+        sourceId: `relic.${RELIC_IDS.BLOODSTONE}`,
+        actorType: 'effect',
+        ownerActorType: 'player',
+        skillWeapon: 'Unequipped',
+        canCrit: true,
+        triggeredBy: event.skillName
+      }
+    });
+    ctx.effects.emit({
+      kind: 'packet',
+      event: {
+        type: 'condition',
+        at: explosionAt,
+        name: 'Bloodstone Explosion — Bleeding',
+        skillName: 'Bloodstone Explosion',
+        condition: 'Bleeding',
+        duration: 6,
+        stacks: 6,
+        source: 'Relic',
+        sourceId: `relic.${RELIC_IDS.BLOODSTONE}`,
+        actorType: 'effect',
+        ownerActorType: 'player',
+        triggeredBy: event.skillName
+      }
     });
   },
   // Fervor follows outgoing modifier ownership and also affects the delayed explosion that activated it.

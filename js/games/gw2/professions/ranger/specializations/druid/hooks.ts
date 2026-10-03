@@ -6,7 +6,7 @@ import {
 import { armSkillFlip, consumeSkillFlip } from '#gw2/platform/engine/skills/skill-flips.js';
 import type { RuntimeProfession } from '#gw2/platform/simulation/runtime-state.js';
 import { resetAutoattackChains } from '#gw2/platform/skills/autoattack-chain-controller.js';
-import { rangerEvent } from '#gw2/professions/ranger/core/events.js';
+import { buildRangerPacket } from '#gw2/professions/ranger/core/events.js';
 import { applyRangerWeaponSwapTraits } from '#gw2/professions/ranger/core/traits/behavior.js';
 import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
 import { DRUID_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/ranger/specializations/druid/profiles.js';
@@ -52,12 +52,13 @@ function avatar(runtime: RangerRuntime, active: boolean, exhausted = false): voi
 
   resetAutoattackChains(runtime);
   const skill = runtime.helpers.skillsById.get(active ? ID.CELESTIAL_AVATAR : ID.RELEASE_CELESTIAL_AVATAR)!;
-  runtime.emit(
-    rangerEvent(
+  runtime.effects.emit({
+    kind: 'packet',
+    event: buildRangerPacket(
       { at: runtime.time, skillId: skill.id, skillName: skill.name, weaponSet: runtime.activeWeaponSet },
       'sigil_swap'
     )
-  );
+  });
   applyRangerWeaponSwapTraits(runtime, skill);
 }
 

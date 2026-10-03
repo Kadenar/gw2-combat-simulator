@@ -125,14 +125,17 @@ test('Effulgent counts the final live microsecond but excludes its exact detonat
   const result = runGuardian([wait(1), ID.EFFULGENT_STANCE, wait(4100)], config, {
     initialize: (runtime) => {
       for (const at of [4.000999, 4.001, 4.001001])
-        runtime.emit({
-          type: 'damage',
-          source: 'guardian',
-          sourceId: ID.ORB_OF_WRATH,
-          skillId: ID.ORB_OF_WRATH,
-          actorType: 'player',
-          coefficient: 1,
-          at
+        runtime.effects.emit({
+          kind: 'packet',
+          event: {
+            type: 'damage',
+            source: 'guardian',
+            sourceId: ID.ORB_OF_WRATH,
+            skillId: ID.ORB_OF_WRATH,
+            actorType: 'player',
+            coefficient: 1,
+            at
+          }
         });
     }
   });

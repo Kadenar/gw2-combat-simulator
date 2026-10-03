@@ -1,4 +1,6 @@
-import { emitMesmerTraitBuffs } from '#gw2/professions/mesmer/core/mechanics/trait-buffs.js';
+import type { EffectDelivery } from '#gw2/platform/simulation/effect-emission.js';
+import type { MesmerEventExtra } from '#gw2/professions/mesmer/data/types.js';
+import { buildMesmerConditions, mesmerPacketOwner } from '#gw2/professions/mesmer/core/mechanics/packets.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import {
@@ -18,9 +20,12 @@ import type { MesmerAmbushAttack, MesmerRuntime } from '#gw2/professions/mesmer/
 import { canonicalTime } from '#kernel/core/clock.js';
 
 /** Cloak rewards reduce the supported shatters through the shared cooldown controller. */
-function reduceDuneCloakShatters(state: MesmerRuntime, at: number, source: string): void {
-  const { addTraitProc } = mesmerMechanicsFor(state);
-
+function reduceDuneCloakShatters(
+  state: MesmerRuntime,
+  at: number,
+  source: string,
+  delivery: EffectDelivery = {}
+): void {
   if (!hasTrait(state, TRAIT.DUNE_CLOAK)) return;
   for (const id of [ID.MIND_WRACK, ID.CRY_OF_FRUSTRATION]) {
     const shatter = state.helpers.skillsById.get(id);
@@ -35,14 +40,43 @@ function reduceDuneCloakShatters(state: MesmerRuntime, at: number, source: strin
     }
   }
 
-  addTraitProc('Dune Cloak', at, source, 'Mind Wrack and Cry of Frustration recharge reduced by 1s');
+  state.effects.emit({
+    ...delivery,
+    kind: 'announcement',
+    log: true,
+    attribution: { source: 'Trait', sourceId: TRAIT.DUNE_CLOAK, actorType: 'effect' },
+    announcement: {
+      type: 'trait',
+      name: 'Dune Cloak',
+      at: at,
+      sourceSkill: source,
+      detail: 'Mind Wrack and Cry of Frustration recharge reduced by 1s'
+    }
+  });
 }
 
 /** Selection gates clone ambushes before any packets or diagnostic proc are emitted. */
-export function beginInfiniteHorizonAmbush(state: MesmerRuntime, at: number, count: number, weapon: string): boolean {
-  const { addTraitProc } = mesmerMechanicsFor(state);
+export function beginInfiniteHorizonAmbush(
+  state: MesmerRuntime,
+  at: number,
+  count: number,
+  weapon: string,
+  delivery: EffectDelivery = {}
+): boolean {
   if (!hasTrait(state, TRAIT.INFINITE_HORIZON) || !count) return false;
-  addTraitProc('Infinite Horizon', at, weapon, `${count} clone${count === 1 ? '' : 's'}`);
+  state.effects.emit({
+    ...delivery,
+    kind: 'announcement',
+    log: true,
+    attribution: { source: 'Trait', sourceId: TRAIT.INFINITE_HORIZON, actorType: 'effect' },
+    announcement: {
+      type: 'trait',
+      name: 'Infinite Horizon',
+      at: at,
+      sourceSkill: weapon,
+      detail: `${count} clone${count === 1 ? '' : 's'}`
+    }
+  });
   return true;
 }
 
@@ -52,49 +86,113 @@ export function applyMirageCloakTraits(
   at: number,
   source: string,
   duration: number,
-  executeCloneAmbushes: MesmerMirageController['executeCloneAmbushes']
+  executeCloneAmbushes: MesmerMirageController['executeCloneAmbushes'],
+  delivery: EffectDelivery = {}
 ): void {
   const runtime = mesmerMechanicsFor(state);
-  const { addTraitProc } = runtime;
 
   const renewingOasis = hasTrait(state, TRAIT.RENEWING_OASIS)
     ? requireEffect(requireBalanceProfileFromContext(state, TRAIT.RENEWING_OASIS), 'boon', 'regeneration')
     : undefined;
   if (renewingOasis) {
-    emitMesmerTraitBuffs(runtime, TRAIT.RENEWING_OASIS, at, source, [
-      { kind: String(renewingOasis.boon), stacks: renewingOasis.stacks, duration: renewingOasis.duration }
-    ]);
+    {
+      const grants: readonly MesmerEventExtra[] = [
+        { kind: String(renewingOasis.boon), stacks: renewingOasis.stacks, duration: renewingOasis.duration }
+      ];
+      const traitProfile = requireBalanceProfileFromContext(runtime.context, TRAIT.RENEWING_OASIS);
+      const traitSource = {
+        source: 'Trait',
+        sourceId: TRAIT.RENEWING_OASIS,
+        actorType: 'player' as const,
+        skillId: TRAIT.RENEWING_OASIS,
+        skillName: traitProfile.name
+      };
+      {
+        const proc = runtime.context.effects.emit({
+          ...delivery,
+          kind: 'announcement',
+          log: true,
+          attribution: { ...traitSource, actorType: 'effect' },
+          announcement: { type: 'trait', name: traitProfile.name, at: at, sourceSkill: source, detail: '' }
+        });
+        for (const grant of grants)
+          runtime.context.effects.emit({
+            ...delivery,
+            kind: 'packet',
+            cause: proc,
+            event: { ...grant, ...traitSource, type: 'buff', at: at, name: traitProfile.name, sourceSkill: source }
+          });
+      }
+    }
   }
 
   if (hasTrait(state, TRAIT.ELUSIVE_MIND)) {
     const elusiveMindProfile = requireBalanceProfileFromContext(state, TRAIT.ELUSIVE_MIND);
-    addTraitProc(
-      'Elusive Mind',
-      at,
-      source,
-      `${balanceProfileNumber(elusiveMindProfile, 'maximumStacks')} conditions removed`
-    );
+    state.effects.emit({
+      ...delivery,
+      kind: 'announcement',
+      log: true,
+      attribution: { source: 'Trait', sourceId: TRAIT.ELUSIVE_MIND, actorType: 'effect' },
+      announcement: {
+        type: 'trait',
+        name: 'Elusive Mind',
+        at: at,
+        sourceSkill: source,
+        detail: `${balanceProfileNumber(elusiveMindProfile, 'maximumStacks')} conditions removed`
+      }
+    });
   }
 
-  reduceDuneCloakShatters(state, at, source);
+  reduceDuneCloakShatters(state, at, source, delivery);
   if (hasTrait(state, TRAIT.INFINITE_HORIZON)) {
     mirageState.from(state).cloneAmbushUntil = canonicalTime(at + duration);
-    executeCloneAmbushes(at, professionCoreState(state).clones);
+    executeCloneAmbushes(at, professionCoreState(state).clones, delivery);
   }
 }
 
 /** Accepted ambushes consume Riddle of Sand and emit Mirage Mantle before their window closes. */
-export function applyMirageAmbushTraits(state: MesmerRuntime, ambush: MesmerAmbushAttack, impactAt: number): void {
+export function applyMirageAmbushTraits(
+  state: MesmerRuntime,
+  ambush: MesmerAmbushAttack,
+  impactAt: number,
+  delivery: EffectDelivery = {}
+): void {
   const runtime = mesmerMechanicsFor(state);
-  const { addTraitProc, addCondition } = runtime;
 
   const riddleOfSand =
     mirageState.from(state).riddleOfSandReady && hasTrait(state, TRAIT.RIDDLE_OF_SAND)
       ? requireEffect(requireBalanceProfileFromContext(state, TRAIT.RIDDLE_OF_SAND), 'condition', 'Confusion')
       : undefined;
   if (riddleOfSand) {
-    addCondition(ambush.name, impactAt, statusFromEffect(riddleOfSand), 'Player', `${ambush.name} — Riddle of Sand`);
-    addTraitProc('Riddle of Sand', impactAt, ambush.name, '2 confusion');
+    buildMesmerConditions(
+      state,
+      ambush.name,
+      impactAt,
+      statusFromEffect(riddleOfSand),
+      'Player',
+      `${ambush.name} — Riddle of Sand`
+    ).forEach((packet) => {
+      state.effects.emit({
+        ...delivery,
+        kind: 'packet',
+        event: packet,
+        owner: mesmerPacketOwner(packet),
+        priority: Number(packet.priority ?? 0)
+      });
+    });
+    state.effects.emit({
+      ...delivery,
+      kind: 'announcement',
+      log: true,
+      attribution: { source: 'Trait', sourceId: TRAIT.RIDDLE_OF_SAND, actorType: 'effect' },
+      announcement: {
+        type: 'trait',
+        name: 'Riddle of Sand',
+        at: impactAt,
+        sourceSkill: ambush.name,
+        detail: '2 confusion'
+      }
+    });
     mirageState.from(state).riddleOfSandReady = false;
   }
 
@@ -102,14 +200,47 @@ export function applyMirageAmbushTraits(state: MesmerRuntime, ambush: MesmerAmbu
     ? requireEffect(requireBalanceProfileFromContext(state, TRAIT.MIRAGE_MANTLE), 'boon', 'alacrity')
     : undefined;
   if (mirageMantle) {
-    emitMesmerTraitBuffs(runtime, TRAIT.MIRAGE_MANTLE, impactAt, ambush.name, [
+    {
+      const grants: readonly MesmerEventExtra[] = [
+        {
+          kind: String(mirageMantle.boon),
+          stacks: mirageMantle.stacks,
+          duration: mirageMantle.duration,
+          audience: { recipients: 'party', maximumRecipients: 5 }
+        }
+      ];
+      const traitProfile = requireBalanceProfileFromContext(runtime.context, TRAIT.MIRAGE_MANTLE);
+      const traitSource = {
+        source: 'Trait',
+        sourceId: TRAIT.MIRAGE_MANTLE,
+        actorType: 'player' as const,
+        skillId: TRAIT.MIRAGE_MANTLE,
+        skillName: traitProfile.name
+      };
       {
-        kind: String(mirageMantle.boon),
-        stacks: mirageMantle.stacks,
-        duration: mirageMantle.duration,
-        audience: { recipients: 'party', maximumRecipients: 5 }
+        const proc = runtime.context.effects.emit({
+          ...delivery,
+          kind: 'announcement',
+          log: true,
+          attribution: { ...traitSource, actorType: 'effect' },
+          announcement: { type: 'trait', name: traitProfile.name, at: impactAt, sourceSkill: ambush.name, detail: '' }
+        });
+        for (const grant of grants)
+          runtime.context.effects.emit({
+            ...delivery,
+            kind: 'packet',
+            cause: proc,
+            event: {
+              ...grant,
+              ...traitSource,
+              type: 'buff',
+              at: impactAt,
+              name: traitProfile.name,
+              sourceSkill: ambush.name
+            }
+          });
       }
-    ]);
+    }
   }
 }
 
@@ -119,12 +250,12 @@ export function applyMirageShatterTraits(
   skill: MesmerSkill,
   at: number,
   spent: number,
-  grantAmbushWindow: (at: number, source: string) => void,
+  grantAmbushWindow: (at: number, source: string, duration?: number, delivery?: EffectDelivery) => void,
   createMirrors: MesmerMirageController['createMirrors'],
-  grantMirageCloak: MesmerMirageController['grantMirageCloak']
+  grantMirageCloak: MesmerMirageController['grantMirageCloak'],
+  delivery: EffectDelivery = {}
 ): void {
   const runtime = mesmerMechanicsFor(state);
-  const { addTraitProc } = runtime;
 
   if (state.config.specialization !== 'Mirage') return;
   if (
@@ -132,36 +263,106 @@ export function applyMirageShatterTraits(
     requireEffect(requireBalanceProfileFromContext(state, TRAIT.RIDDLE_OF_SAND), 'condition', 'Confusion')
   ) {
     mirageState.from(state).riddleOfSandReady = true;
-    addTraitProc('Riddle of Sand', at, skill.name, 'ambush primed');
+    state.effects.emit({
+      ...delivery,
+      kind: 'announcement',
+      log: true,
+      attribution: { source: 'Trait', sourceId: TRAIT.RIDDLE_OF_SAND, actorType: 'effect' },
+      announcement: { type: 'trait', name: 'Riddle of Sand', at: at, sourceSkill: skill.name, detail: 'ambush primed' }
+    });
   }
 
   const nominalEndurance = hasTrait(state, TRAIT.NOMADS_ENDURANCE)
     ? requireEffect(requireBalanceProfileFromContext(state, TRAIT.NOMADS_ENDURANCE), 'boon', 'vigor')
     : undefined;
   if (nominalEndurance) {
-    emitMesmerTraitBuffs(runtime, TRAIT.NOMADS_ENDURANCE, at, skill.name, [
-      { kind: String(nominalEndurance.boon), stacks: nominalEndurance.stacks, duration: nominalEndurance.duration }
-    ]);
+    {
+      const grants: readonly MesmerEventExtra[] = [
+        { kind: String(nominalEndurance.boon), stacks: nominalEndurance.stacks, duration: nominalEndurance.duration }
+      ];
+      const traitProfile = requireBalanceProfileFromContext(runtime.context, TRAIT.NOMADS_ENDURANCE);
+      const traitSource = {
+        source: 'Trait',
+        sourceId: TRAIT.NOMADS_ENDURANCE,
+        actorType: 'player' as const,
+        skillId: TRAIT.NOMADS_ENDURANCE,
+        skillName: traitProfile.name
+      };
+      {
+        const proc = runtime.context.effects.emit({
+          ...delivery,
+          kind: 'announcement',
+          log: true,
+          attribution: { ...traitSource, actorType: 'effect' },
+          announcement: { type: 'trait', name: traitProfile.name, at: at, sourceSkill: skill.name, detail: '' }
+        });
+        for (const grant of grants)
+          runtime.context.effects.emit({
+            ...delivery,
+            kind: 'packet',
+            cause: proc,
+            event: { ...grant, ...traitSource, type: 'buff', at: at, name: traitProfile.name, sourceSkill: skill.name }
+          });
+      }
+    }
   }
 
   if (hasTrait(state, TRAIT.PHANTOM_PAIN)) {
     const phantomPainProfile = requireBalanceProfileFromContext(state, TRAIT.PHANTOM_PAIN);
-    emitMesmerTraitBuffs(runtime, TRAIT.PHANTOM_PAIN, at, skill.name, [
+    {
+      const grants: readonly MesmerEventExtra[] = [
+        {
+          // Phantom Pain starts after the same-time shatter packets resolve.
+          priority: 5,
+          kind: 'phantom-pain',
+          stacks: Math.min(balanceProfileNumber(phantomPainProfile, 'maximumStacks'), spent + 1),
+          duration: balanceProfileNumber(phantomPainProfile, 'durationMultiplier')
+        }
+      ];
+      const traitProfile = requireBalanceProfileFromContext(runtime.context, TRAIT.PHANTOM_PAIN);
+      const traitSource = {
+        source: 'Trait',
+        sourceId: TRAIT.PHANTOM_PAIN,
+        actorType: 'player' as const,
+        skillId: TRAIT.PHANTOM_PAIN,
+        skillName: traitProfile.name
+      };
       {
-        // Phantom Pain starts after the same-time shatter packets resolve.
-        priority: 5,
-        kind: 'phantom-pain',
-        stacks: Math.min(balanceProfileNumber(phantomPainProfile, 'maximumStacks'), spent + 1),
-        duration: balanceProfileNumber(phantomPainProfile, 'durationMultiplier')
+        const proc = runtime.context.effects.emit({
+          ...delivery,
+          kind: 'announcement',
+          log: true,
+          attribution: { ...traitSource, actorType: 'effect' },
+          announcement: { type: 'trait', name: traitProfile.name, at: at, sourceSkill: skill.name, detail: '' }
+        });
+        for (const grant of grants)
+          runtime.context.effects.emit({
+            ...delivery,
+            kind: 'packet',
+            cause: proc,
+            event: { ...grant, ...traitSource, type: 'buff', at: at, name: traitProfile.name, sourceSkill: skill.name }
+          });
       }
-    ]);
+    }
   }
 
   if (skill.id === ID.DISTORTION && hasTrait(state, TRAIT.DESERT_DISTORTION)) {
-    grantAmbushWindow(at, 'Desert Distortion');
+    grantAmbushWindow(at, 'Desert Distortion', undefined, delivery);
     const desertDistortionProfile = requireBalanceProfileFromContext(state, TRAIT.DESERT_DISTORTION);
     createMirrors(at, spent * balanceProfileNumber(desertDistortionProfile, 'resourceGain'));
-    addTraitProc('Desert Distortion', at, skill.name, `${spent} Mirage Mirror${spent === 1 ? '' : 's'} created`);
+    state.effects.emit({
+      ...delivery,
+      kind: 'announcement',
+      log: true,
+      attribution: { source: 'Trait', sourceId: TRAIT.DESERT_DISTORTION, actorType: 'effect' },
+      announcement: {
+        type: 'trait',
+        name: 'Desert Distortion',
+        at: at,
+        sourceSkill: skill.name,
+        detail: `${spent} Mirage Mirror${spent === 1 ? '' : 's'} created`
+      }
+    });
   }
 
   if (
@@ -169,9 +370,14 @@ export function applyMirageShatterTraits(
     spent >= balanceProfileNumber(requireBalanceProfileFromContext(state, TRAIT.DUNE_CLOAK), 'threshold')
   ) {
     const duneCloakProfile = requireBalanceProfileFromContext(state, TRAIT.DUNE_CLOAK);
-    grantMirageCloak(at, 'Dune Cloak', {
-      duration: balanceProfileNumber(duneCloakProfile, 'durationMultiplier')
-    });
+    grantMirageCloak(
+      at,
+      'Dune Cloak',
+      {
+        duration: balanceProfileNumber(duneCloakProfile, 'durationMultiplier')
+      },
+      delivery
+    );
   }
 }
 

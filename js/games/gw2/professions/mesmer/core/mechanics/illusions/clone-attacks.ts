@@ -1,6 +1,11 @@
+import {
+  buildMesmerStrikes,
+  mesmerPacketOwner,
+  buildMesmerConditions
+} from '#gw2/professions/mesmer/core/mechanics/packets.js';
 import type { MesmerRuntime } from '#gw2/professions/mesmer/types.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
-import type { MesmerAddCondition, MesmerAddDamage } from '#gw2/professions/mesmer/types.js';
+
 import type {
   MesmerClone,
   MesmerCloneAttack,
@@ -11,8 +16,6 @@ import type {
 interface CloneAttackSchedulerOptions {
   readonly state: MesmerRuntime;
   readonly cloneAttacks: Readonly<Record<string, MesmerCloneAttack>>;
-  readonly addDamage: MesmerAddDamage;
-  readonly addCondition: MesmerAddCondition;
   readonly scheduleTask: (clone: MesmerClone, at: number) => unknown;
 }
 
@@ -20,8 +23,6 @@ interface CloneAttackSchedulerOptions {
 export function createCloneAttackScheduler({
   state,
   cloneAttacks,
-  addDamage,
-  addCondition,
   scheduleTask
 }: CloneAttackSchedulerOptions): MesmerCloneAttackScheduler {
   // Clone ownership comes from the scheduler Core slice in every caller.
@@ -57,7 +58,8 @@ export function createCloneAttackScheduler({
       blade: false
     };
     const impactAt = at + (step.damageAtMs || 0) / 1000;
-    addDamage(
+    buildMesmerStrikes(
+      state,
       cloneSkill,
       impactAt,
       {
@@ -82,14 +84,28 @@ export function createCloneAttackScheduler({
         summonKind: 'clone',
         summonOwner: clone.ownerId
       }
-    );
+    ).forEach((packet) => {
+      state.effects.emit({
+        kind: 'packet',
+        event: packet,
+        owner: mesmerPacketOwner(packet),
+        priority: Number(packet.priority ?? 0)
+      });
+    });
     for (const condition of step.conditions || []) {
-      addCondition(skillName, impactAt, condition, 'Clone', '', {
+      buildMesmerConditions(state, skillName, impactAt, condition, 'Clone', '', {
         metadata: { cloneId: clone.id },
         skillId: step.id,
         actorType: 'summon',
         summonKind: 'clone',
         summonOwner: clone.ownerId
+      }).forEach((packet) => {
+        state.effects.emit({
+          kind: 'packet',
+          event: packet,
+          owner: mesmerPacketOwner(packet),
+          priority: Number(packet.priority ?? 0)
+        });
       });
     }
 

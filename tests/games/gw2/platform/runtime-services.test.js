@@ -150,18 +150,21 @@ test('live modifier hooks read executed history independently of report collecti
     const observations = [];
     const source = native({
       initialize(runtime) {
-        runtime.emit({
-          type: 'buff',
-          at: 1,
-          source: 'live',
-          sourceId: 991003,
-          actorType: 'player',
-          kind: 'custom-window',
-          duration: 2,
-          stacks: 1
+        runtime.effects.emit({
+          kind: 'packet',
+          event: {
+            type: 'buff',
+            at: 1,
+            source: 'live',
+            sourceId: 991003,
+            actorType: 'player',
+            kind: 'custom-window',
+            duration: 2,
+            stacks: 1
+          }
         });
-        runtime.emit(hit(0.5));
-        runtime.emit(hit(1.5));
+        runtime.effects.emit({ kind: 'packet', event: hit(0.5) });
+        runtime.effects.emit({ kind: 'packet', event: hit(1.5) });
       }
     }).runtimeFor({ specialization: 'Core' });
     runGw2Runtime({
@@ -513,10 +516,13 @@ test('Doom survives an off-target hit and is consumed once by the next actual hi
   const profession = native({
     initialize(runtime) {
       live = runtime;
-      runtime.emit({ type: 'weapon_set', at: 0, weaponSet: 2, source: 'live', sourceId: 'swap', actorType: 'player' });
-      runtime.emit(hit(0.1, { offTarget: true }));
-      runtime.emit(hit(0.2));
-      runtime.emit(hit(0.3));
+      runtime.effects.emit({
+        kind: 'packet',
+        event: { type: 'weapon_set', at: 0, weaponSet: 2, source: 'live', sourceId: 'swap', actorType: 'player' }
+      });
+      runtime.effects.emit({ kind: 'packet', event: hit(0.1, { offTarget: true }) });
+      runtime.effects.emit({ kind: 'packet', event: hit(0.2) });
+      runtime.effects.emit({ kind: 'packet', event: hit(0.3) });
     }
   });
   const result = run(
@@ -629,17 +635,23 @@ test('Energy sigils restore the selected endurance pool after actual Vigor recov
     },
     initialize(runtime) {
       runtime.endurance.spend(100);
-      runtime.emit({
-        type: 'buff',
-        kind: 'vigor',
-        at: 1,
-        duration: 10,
-        stacks: 1,
-        source: 'live',
-        sourceId: 'vigor',
-        actorType: 'player'
+      runtime.effects.emit({
+        kind: 'packet',
+        event: {
+          type: 'buff',
+          kind: 'vigor',
+          at: 1,
+          duration: 10,
+          stacks: 1,
+          source: 'live',
+          sourceId: 'vigor',
+          actorType: 'player'
+        }
       });
-      runtime.emit({ type: 'weapon_set', at: 2, weaponSet: 2, source: 'live', sourceId: 'swap', actorType: 'player' });
+      runtime.effects.emit({
+        kind: 'packet',
+        event: { type: 'weapon_set', at: 2, weaponSet: 2, source: 'live', sourceId: 'swap', actorType: 'player' }
+      });
     }
   });
   const result = run(
@@ -686,21 +698,25 @@ test('missed and precombat impacts retain self combos while their hostile outcom
         const profession = native({
           initialize(runtime) {
             owner = runtime;
-            runtime.emit({
-              type: 'combo_field',
-              ownerActorType: 'player',
-              at: 0,
-              source: 'live',
-              sourceId: 'fixture-field',
-              actorType: 'player',
-              fieldId: 'field',
-              ownerId: 'live',
-              fieldType: 'Fire',
-              expiresAt: 3
+            runtime.effects.emit({
+              kind: 'packet',
+              event: {
+                type: 'combo_field',
+                ownerActorType: 'player',
+                at: 0,
+                source: 'live',
+                sourceId: 'fixture-field',
+                actorType: 'player',
+                fieldId: 'field',
+                ownerId: 'live',
+                fieldType: 'Fire',
+                expiresAt: 3
+              }
             });
-            runtime.emit(
-              hit(1, { offTarget: !precombat, comboFinishers: [{ ownerId: 'live', finisherType, chance: 1 }] })
-            );
+            runtime.effects.emit({
+              kind: 'packet',
+              event: hit(1, { offTarget: !precombat, comboFinishers: [{ ownerId: 'live', finisherType, chance: 1 }] })
+            });
           }
         });
         const result = run([wait(2000), ...(precombat ? [{ type: 'combat-start' }] : [])], { output }, profession);
@@ -845,13 +861,16 @@ test('boon duration snapshots the weapon set at application, and history exclude
   const observed = [];
   const profession = native({
     initialize(runtime) {
-      runtime.emit({
-        type: 'weapon_set',
-        at: 0.5,
-        weaponSet: 2,
-        source: 'live',
-        sourceId: 'swap',
-        actorType: 'player'
+      runtime.effects.emit({
+        kind: 'packet',
+        event: {
+          type: 'weapon_set',
+          at: 0.5,
+          weaponSet: 2,
+          source: 'live',
+          sourceId: 'swap',
+          actorType: 'player'
+        }
       });
       runtime.schedule('inspect', 0.75);
     },
@@ -927,13 +946,16 @@ test('slot relic buffs activate at completion or delayed arrival and survive an 
 test('an accepted control opener establishes combat for sigils before the first damage payout', () => {
   const profession = native({
     initialize(runtime) {
-      runtime.emit({
-        type: 'control',
-        at: 0,
-        source: 'live',
-        sourceId: 'control',
-        actorType: 'player',
-        controlKind: 'stun'
+      runtime.effects.emit({
+        kind: 'packet',
+        event: {
+          type: 'control',
+          at: 0,
+          source: 'live',
+          sourceId: 'control',
+          actorType: 'player',
+          controlKind: 'stun'
+        }
       });
     }
   });
@@ -951,13 +973,16 @@ test('precombat control notifications cannot start live producers before an expl
     const starts = [];
     const profession = native({
       initialize(runtime) {
-        runtime.emit({
-          type: 'control',
-          at: 0,
-          source: 'live',
-          sourceId: 'control',
-          actorType: 'player',
-          controlKind: 'stun'
+        runtime.effects.emit({
+          kind: 'packet',
+          event: {
+            type: 'control',
+            at: 0,
+            source: 'live',
+            sourceId: 'control',
+            actorType: 'player',
+            controlKind: 'stun'
+          }
         });
       },
       onCombatStart(runtime) {
@@ -996,7 +1021,10 @@ test('Aristocracy records one actual stack claim and Brawler respects a pending 
   const aristocracy = native({
     initialize(runtime) {
       for (const at of [0, 0, 1.04])
-        runtime.emit({ ...source, type: 'condition', condition: 'Weakness', stacks: 1, duration: 2, at });
+        runtime.effects.emit({
+          kind: 'packet',
+          event: { ...source, type: 'condition', condition: 'Weakness', stacks: 1, duration: 2, at }
+        });
     }
   });
   const stacks = run([wait(1500)], { config: { ...config, relic: 'Aristocracy' } }, aristocracy);
@@ -1006,7 +1034,10 @@ test('Aristocracy records one actual stack claim and Brawler respects a pending 
   );
   const brawler = native({
     initialize(runtime) {
-      runtime.emit({ ...source, type: 'buff', kind: 'protection', duration: 2, stacks: 1, at: 0 });
+      runtime.effects.emit({
+        kind: 'packet',
+        event: { ...source, type: 'buff', kind: 'protection', duration: 2, stacks: 1, at: 0 }
+      });
     }
   });
   const rotation = [wait(1000), { type: 'combat-start' }, cast(991001)];

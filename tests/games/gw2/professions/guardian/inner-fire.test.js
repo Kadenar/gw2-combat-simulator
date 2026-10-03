@@ -16,15 +16,18 @@ test('Inner Fire checks live Burning and grants Fury only from eligible player s
             [0.2, 1, 1],
             [11, 3, 1]
           ])
-            runtime.emit({
-              type: 'condition',
-              at,
-              stacks,
-              duration,
-              condition: 'Burning',
-              source: 'guardian',
-              sourceId: ID.ZEALOTS_FLAME,
-              actorType: 'player'
+            runtime.effects.emit({
+              kind: 'packet',
+              event: {
+                type: 'condition',
+                at,
+                stacks,
+                duration,
+                condition: 'Burning',
+                source: 'guardian',
+                sourceId: ID.ZEALOTS_FLAME,
+                actorType: 'player'
+              }
             });
           for (const [at, overrides] of [
             [0.1, {}],
@@ -35,16 +38,19 @@ test('Inner Fire checks live Burning and grants Fury only from eligible player s
             [10.5, {}],
             [11.1, {}]
           ])
-            runtime.emit({
-              type: 'damage',
-              at,
-              coefficient: 1,
-              actorType: 'player',
-              source: 'guardian',
-              sourceId: ID.ORB_OF_WRATH,
-              skillId: ID.ORB_OF_WRATH,
-              skillName: 'Orb of Wrath',
-              ...overrides
+            runtime.effects.emit({
+              kind: 'packet',
+              event: {
+                type: 'damage',
+                at,
+                coefficient: 1,
+                actorType: 'player',
+                source: 'guardian',
+                sourceId: ID.ORB_OF_WRATH,
+                skillId: ID.ORB_OF_WRATH,
+                skillName: 'Orb of Wrath',
+                ...overrides
+              }
             });
         }
       }

@@ -1,3 +1,4 @@
+import { captureEffectEmissions } from '#tests/helpers/effect-emission.js';
 import { withProfile } from '#tests/helpers/catalog-overrides.js';
 import { projectObservedState } from '#tests/helpers/observed-runtime.js';
 import { thiefProfession } from '#gw2/professions/thief/profession.js';
@@ -78,7 +79,7 @@ test('Sharpening Stone prunes excluded hits and spends the earliest surviving ex
   const context = {
     catalog: rangerCatalog,
     profession: { core },
-    queue: { enqueue: (event) => queued.push(event) }
+    effects: captureEffectEmissions({ submit: (event) => queued.push(event) }).effects
   };
   const event = { type: 'damage', at: 1, actorType: 'effect', coefficient: 1 };
   triggerSharpeningStone(context, event);
@@ -128,15 +129,18 @@ test('Insight keeps newest grants in its single live state', () => {
             owner = runtime.profession.specialization.state;
             owner.attackerInsightExpiries = prior;
             snapshot = snapshotProfessionState(runtime.profession);
-            runtime.emit({
-              type: 'control',
-              at: 1,
-              actorType: 'player',
-              source: 'warrior',
-              sourceId: WARRIOR_SKILL_IDS.KICK,
-              skillId: WARRIOR_SKILL_IDS.KICK,
-              controlKind: 'knockback',
-              duration: 1
+            runtime.effects.emit({
+              kind: 'packet',
+              event: {
+                type: 'control',
+                at: 1,
+                actorType: 'player',
+                source: 'warrior',
+                sourceId: WARRIOR_SKILL_IDS.KICK,
+                skillId: WARRIOR_SKILL_IDS.KICK,
+                controlKind: 'knockback',
+                duration: 1
+              }
             });
           }
         }

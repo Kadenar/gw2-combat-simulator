@@ -174,11 +174,25 @@ test('procedural buffs wait for their own instant and owner-bound packets cancel
     {
       onCastStart(runtime) {
         const base = { source: 'fixture', sourceId: 'proc', actorType: 'player' };
-        returned.push(runtime.emitProcedural({ ...base, type: 'buff', at: 0, kind: 'might', stacks: 1, duration: 5 }));
-        returned.push(runtime.emitProcedural({ ...base, type: 'buff', at: 2, kind: 'fury', stacks: 1, duration: 5 }));
+        returned.push(
+          runtime.effects.emit({
+            kind: 'packet',
+            event: { ...base, type: 'buff', at: 0, kind: 'might', stacks: 1, duration: 5 }
+          })
+        );
+        returned.push(
+          runtime.effects.emit({
+            kind: 'packet',
+            event: { ...base, type: 'buff', at: 2, kind: 'fury', stacks: 1, duration: 5 }
+          })
+        );
         const owner = { id: 'fixture.owner', generation: 0 };
         returned.push(
-          runtime.emitProcedural({ ...base, type: 'damage', at: 3, coefficient: 1, skillWeapon: '' }, { owner })
+          runtime.effects.emit({
+            kind: 'packet',
+            event: { ...base, type: 'damage', at: 3, coefficient: 1, skillWeapon: '' },
+            ...{ owner }
+          })
         );
         runtime.cancelOwner(owner);
       }
@@ -186,7 +200,11 @@ test('procedural buffs wait for their own instant and owner-bound packets cancel
     [cast(991001), wait(5000)]
   );
   assert.equal(returned[0].kind, 'might');
-  assert.deepEqual(returned.slice(1), [null, null]);
+  assert.ok(returned.every((event) => Object.isFrozen(event) && Number.isInteger(event.eventOrder)));
+  assert.deepEqual(
+    returned.slice(1).map((event) => event.at),
+    [2, 3]
+  );
   assert.deepEqual(
     result.events.filter((event) => event.sourceId === 'proc').map((event) => [event.type, event.at, event.kind]),
     [
@@ -612,18 +630,21 @@ test('dynamic resolver attribution retains the triggering activation and causal 
   const result = run(
     {
       initialize(runtime) {
-        runtime.emit({
-          type: 'buff',
-          at: 0.1,
-          source: 'fixture',
-          sourceId: 'fury',
-          actorType: 'player',
-          skillId: 991001,
-          skillName: 'Trigger',
-          activationId: 'cause',
-          kind: 'fury',
-          stacks: 1,
-          duration: 2
+        runtime.effects.emit({
+          kind: 'packet',
+          event: {
+            type: 'buff',
+            at: 0.1,
+            source: 'fixture',
+            sourceId: 'fury',
+            actorType: 'player',
+            skillId: 991001,
+            skillName: 'Trigger',
+            activationId: 'cause',
+            kind: 'fury',
+            stacks: 1,
+            duration: 2
+          }
         });
       },
       traitTriggers: [
@@ -669,15 +690,18 @@ test('resolved trait predicates use actual damage and critical results and forwa
           [2, { canCrit: false }],
           [3, { coefficient: 0 }]
         ])
-          runtime.emit({
-            type: 'damage',
-            at,
-            source: 'fixture',
-            sourceId: 'hit',
-            actorType: 'player',
-            coefficient: 1,
-            skillWeapon: 'Unequipped',
-            ...fields
+          runtime.effects.emit({
+            kind: 'packet',
+            event: {
+              type: 'damage',
+              at,
+              source: 'fixture',
+              sourceId: 'hit',
+              actorType: 'player',
+              coefficient: 1,
+              skillWeapon: 'Unequipped',
+              ...fields
+            }
           });
       },
       traitTriggers: [
@@ -730,16 +754,19 @@ test('authored and procedural status caps apply after scaling and remain patchab
     profession: {
       ...fixture({
         onCastStart(runtime) {
-          runtime.emitProcedural({
-            type: 'buff',
-            at: 2,
-            source: 'fixture',
-            sourceId: 'future',
-            actorType: 'player',
-            kind: 'might',
-            duration: 4,
-            stacks: 1,
-            maximumDuration: 5
+          runtime.effects.emit({
+            kind: 'packet',
+            event: {
+              type: 'buff',
+              at: 2,
+              source: 'fixture',
+              sourceId: 'future',
+              actorType: 'player',
+              kind: 'might',
+              duration: 4,
+              stacks: 1,
+              maximumDuration: 5
+            }
           });
         }
       }),

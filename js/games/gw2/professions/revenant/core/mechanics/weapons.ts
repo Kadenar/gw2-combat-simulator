@@ -1,4 +1,3 @@
-import { canonicalTime } from '#kernel/core/clock.js';
 import { activeStackCount, addTimedStacks, purgeExpiredStacks } from '#gw2/platform/combat/resources/timed-stacks.js';
 import {
   conditionEffectTicks,
@@ -6,15 +5,16 @@ import {
   strikeEffectCoefficient
 } from '#gw2/platform/engine/effects/authoring.js';
 import { armSkillFlip, consumeSkillFlip } from '#gw2/platform/engine/skills/skill-flips.js';
+import type { Skill, StrikeEffect } from '#gw2/platform/engine/skills/types.js';
 import { gw2ConfiguredWeaponSet } from '#gw2/platform/equipment/weapons/loadout.js';
 import { buildResolverCondition, buildResolverStrike } from '#gw2/platform/resolver/packets.js';
-import { projectCastRelativeEffectTimingMs } from '#gw2/platform/skills/timing.js';
-import { REVENANT_SKILL_IDS as ID } from '#gw2/professions/revenant/data/ids.js';
-import type { Skill, StrikeEffect } from '#gw2/platform/engine/skills/types.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import type { RuntimeCast } from '#gw2/platform/simulation/runtime-state.js';
-import type { RevenantSkill } from '#gw2/professions/revenant/types.js';
+import { projectCastRelativeEffectTimingMs } from '#gw2/platform/skills/timing.js';
 import type { RevenantRuntime } from '#gw2/professions/revenant/core/events.js';
+import { REVENANT_SKILL_IDS as ID } from '#gw2/professions/revenant/data/ids.js';
+import type { RevenantSkill } from '#gw2/professions/revenant/types.js';
+import { canonicalTime } from '#kernel/core/clock.js';
 
 export const REVENANT_BLOSSOMING_AURA = 'revenant.blossoming-aura';
 
@@ -35,23 +35,26 @@ export function startRevenantImperialGuard(runtime: RevenantRuntime, cast: Runti
     identity: cast.id,
     expiryPriority: 0
   });
-  runtime.emitProcedural(
-    {
-      type: 'buff',
-      at: cast.start,
-      source: 'revenant',
-      sourceId: cast.skill.id,
-      actorType: 'player',
-      skillId: cast.skill.id,
-      skillName: cast.skill.name,
-      activationId: cast.id,
-      name: 'Imperial Guard — Blocking',
-      kind: 'blocking',
-      duration: Math.max(0, cast.effectiveEnd - cast.start),
-      stacks: 1
-    },
-    { fixedDuration: true }
-  );
+  runtime.effects.emit({
+    kind: 'packet',
+    event: {
+      ...{
+        type: 'buff',
+        at: cast.start,
+        source: 'revenant',
+        sourceId: cast.skill.id,
+        actorType: 'player',
+        skillId: cast.skill.id,
+        skillName: cast.skill.name,
+        activationId: cast.id,
+        name: 'Imperial Guard — Blocking',
+        kind: 'blocking',
+        duration: Math.max(0, cast.effectiveEnd - cast.start),
+        stacks: 1
+      },
+      fixedDuration: true
+    }
+  });
 }
 
 /** A completed True Strike consumes the window its Imperial Guard channel opened. */
@@ -106,24 +109,26 @@ function detonateAura(runtime: RevenantRuntime, activationId?: string): void {
     skillName: skill.name,
     ...(activationId ? { activationId } : {})
   };
-  runtime.emit(
-    buildResolverStrike({
+  runtime.effects.emit({
+    kind: 'packet',
+    event: buildResolverStrike({
       ...common,
       name: final.name,
       coefficient: Number(final.coefficient) * (1 + Number(final.damageIncreasePerStack) * stacks),
       skillWeapon: skill.weapon || ''
     })
-  );
+  });
   for (const effect of skill.effects ?? [])
     if (effect.type === 'condition' && effect.condition)
-      runtime.emit(
-        buildResolverCondition({
+      runtime.effects.emit({
+        kind: 'packet',
+        event: buildResolverCondition({
           ...common,
           condition: effect.condition,
           stacks: Number(effect.stacks),
           duration: Number(effect.duration)
         })
-      );
+      });
   consumeSkillFlip(flips, ID.DETONATE_BLOSSOMING_AURA);
 }
 
@@ -140,8 +145,9 @@ export function revenantBlossomingAuraPulse(runtime: RevenantRuntime, data: unkn
     return;
   }
 
-  runtime.emit(
-    buildResolverStrike({
+  runtime.effects.emit({
+    kind: 'packet',
+    event: buildResolverStrike({
       at: runtime.time,
       source: 'revenant',
       sourceId: skill.id,
@@ -155,7 +161,7 @@ export function revenantBlossomingAuraPulse(runtime: RevenantRuntime, data: unkn
       totalHits: ticks.length,
       skillWeapon: skill.weapon || ''
     })
-  );
+  });
 }
 
 /** Manual detonation resolves at acceptance of the committed follow-up. */
@@ -195,34 +201,37 @@ function abyssalRazePackets(
     ...(activationId ? { activationId } : {}),
     ...(triggeredBy ? { triggeredBy } : {})
   };
-  runtime.emit(
-    buildResolverStrike({
+  runtime.effects.emit({
+    kind: 'packet',
+    event: buildResolverStrike({
       ...common,
       name: triggeredBy ? 'Abyssal Raze — Crushing Abyss' : 'Abyssal Raze',
       coefficient: triggeredBy ? base : base * (1 + Number(strike.damageIncreasePerStack || 0) * stacks)
     })
-  );
+  });
   const baseTick = conditionEffectTicks(baseTorment)[0];
-  runtime.emit(
-    buildResolverCondition({
+  runtime.effects.emit({
+    kind: 'packet',
+    event: buildResolverCondition({
       ...common,
       name: 'Abyssal Raze — Torment',
       condition: 'Torment',
       stacks: baseTick?.stacks || 0,
       duration: baseTick?.duration || 0
     })
-  );
+  });
   if (stacks > 0) {
     const crushingTick = conditionEffectTicks(crushingTorment)[0];
-    runtime.emit(
-      buildResolverCondition({
+    runtime.effects.emit({
+      kind: 'packet',
+      event: buildResolverCondition({
         ...common,
         name: 'Abyssal Raze — Crushing Abyss Torment',
         condition: 'Torment',
         stacks: (crushingTick?.stacks || 0) * stacks,
         duration: crushingTick?.duration || 0
       })
-    );
+    });
   }
 }
 
@@ -251,37 +260,45 @@ export function revenantAbyssalRazeImpact(runtime: RevenantRuntime, data: unknow
   runtime.profession.core.crushingAbyss = grant.expiries;
   const effectId = effect.sourceId ?? ID.ABYSSAL_RAZE;
   const effectName = effect.name || 'Crushing Abyss';
-  runtime.emitProcedural(
-    {
-      type: 'buff',
-      at: runtime.time,
+  runtime.effects.emit({
+    kind: 'packet',
+    event: {
+      ...{
+        type: 'buff',
+        at: runtime.time,
+        source: 'revenant',
+        sourceId: ID.ABYSSAL_RAZE,
+        actorType: 'player',
+        skillId: effectId,
+        skillName: effectName,
+        activationId,
+        icon: skill.icon,
+        name: effectName,
+        kind: 'crushing-abyss',
+        duration,
+        stacks: 1
+      },
+      fixedDuration: true
+    }
+  });
+  runtime.effects.emit({
+    kind: 'announcement',
+    log: true,
+    attribution: {
       source: 'revenant',
       sourceId: ID.ABYSSAL_RAZE,
       actorType: 'player',
       skillId: effectId,
-      skillName: effectName,
-      activationId,
+      skillName: effectName
+    },
+    announcement: {
+      at: runtime.time,
+      sourceSkill: skill.name,
       icon: skill.icon,
       name: effectName,
-      kind: 'crushing-abyss',
-      duration,
-      stacks: 1
-    },
-    { fixedDuration: true }
-  );
-  runtime.emit({
-    type: 'proc',
-    procType: 'skill',
-    at: runtime.time,
-    source: 'revenant',
-    sourceId: ID.ABYSSAL_RAZE,
-    actorType: 'player',
-    skillId: effectId,
-    skillName: effectName,
-    sourceSkill: skill.name,
-    icon: skill.icon,
-    name: effectName,
-    detail: `${runtime.profession.core.crushingAbyss.length}/${maximum} stacks`
+      detail: `${runtime.profession.core.crushingAbyss.length}/${maximum} stacks`,
+      type: 'skill'
+    }
   });
 }
 
@@ -310,19 +327,25 @@ export function reactRevenantSpearRecharge(runtime: RevenantRuntime, event: Gw2R
   const reducedBy = runtime.cooldownController.reduceSkillRecharge(raze, seconds, runtime.time);
   if (reducedBy <= 0) return;
   const cooldownReduction = Number(reducedBy.toFixed(3));
-  runtime.emitDerived(event, {
-    type: 'proc',
-    procType: 'skill',
-    at: runtime.time,
-    source: 'revenant',
-    sourceId: source.id,
-    actorType: 'player',
-    skillId: source.id,
-    skillName: source.name,
-    sourceSkill: source.name,
-    icon: source.icon || '',
-    name: `${source.name} — Abyssal Raze recharge`,
-    detail: `${cooldownReduction}s`,
-    cooldownReduction
+  runtime.effects.emit({
+    kind: 'announcement',
+    log: true,
+    attribution: {
+      source: 'revenant',
+      sourceId: source.id,
+      actorType: 'player',
+      skillId: source.id,
+      skillName: source.name
+    },
+    announcement: {
+      at: runtime.time,
+      sourceSkill: source.name,
+      icon: source.icon || '',
+      name: `${source.name} — Abyssal Raze recharge`,
+      detail: `${cooldownReduction}s`,
+      cooldownReduction,
+      type: 'skill'
+    },
+    cause: event
   });
 }

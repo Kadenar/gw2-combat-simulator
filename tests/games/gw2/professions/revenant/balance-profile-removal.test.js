@@ -42,15 +42,18 @@ for (const [specialization, trait, profile, type, name] of [
           catalog: patched({ [profile]: { fields: { internalCooldown: 2 }, ...(removed ? remove(type, name) : {}) } }),
           initialize(runtime) {
             for (const at of [1, 3, 3.001])
-              runtime.emit({
-                at,
-                source: 'fixture',
-                sourceId: 'trigger',
-                actorType: 'player',
-                skillName: 'Trigger',
-                ...(type === 'condition'
-                  ? { type: 'control', controlKind: 'daze', duration: 1 }
-                  : { type: 'buff', kind: 'fury', stacks: 1, duration: 1 })
+              runtime.effects.emit({
+                kind: 'packet',
+                event: {
+                  at,
+                  source: 'fixture',
+                  sourceId: 'trigger',
+                  actorType: 'player',
+                  skillName: 'Trigger',
+                  ...(type === 'condition'
+                    ? { type: 'control', controlKind: 'daze', duration: 1 }
+                    : { type: 'buff', kind: 'fury', stacks: 1, duration: 1 })
+                }
               });
           }
         }
@@ -94,7 +97,7 @@ test('removed Battle Scars siphon keeps the scars it would have spent', () => {
     catalog: patched({ [CORE.battleScars]: remove('strike', 'Battle Scars — Life Siphon') }),
     initialize(runtime) {
       runtime.profession.core.battleScars = [30, 10];
-      runtime.emit(revenantHit(2));
+      runtime.effects.emit({ kind: 'packet', event: revenantHit(2) });
     }
   });
   assert.deepEqual(observedRuntime(result).profession.core.battleScars, [30, 10]);

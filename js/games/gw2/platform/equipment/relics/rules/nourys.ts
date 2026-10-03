@@ -36,19 +36,31 @@ export const nourys = defineRelic({
     let stacks = 0;
     for (let at = combatStart + NOURYS_STACK_INTERVAL; at <= rotationEndTime + EPSILON;) {
       stacks += 1;
-      ctx.recordProc('skill', 'Nourys', at, 'Combat duration', `${stacks}/${NOURYS_STACKS_NEEDED} stacks`);
+      ctx.effects.emit({
+        kind: 'announcement',
+        announcement: {
+          type: 'skill',
+          name: 'Nourys',
+          at: at,
+          sourceSkill: 'Combat duration',
+          detail: `${stacks}/${NOURYS_STACKS_NEEDED} stacks`
+        }
+      });
       if (stacks >= NOURYS_STACKS_NEEDED) {
         stacks = 0;
-        ctx.recordProc(
-          'relic',
-          'Relic of Nourys',
-          at,
-          'Nourys',
-          'activated',
-          '',
-          null,
-          gw2EffectExpiresAt(at, NOURYS_BUFF_DURATION)
-        );
+        ctx.effects.emit({
+          kind: 'announcement',
+          announcement: {
+            type: 'relic',
+            name: 'Relic of Nourys',
+            at: at,
+            sourceSkill: 'Nourys',
+            detail: 'activated',
+            icon: '',
+            cooldownReduction: null,
+            expiresAt: gw2EffectExpiresAt(at, NOURYS_BUFF_DURATION)
+          }
+        });
         at += NOURYS_BUFF_DURATION + NOURYS_STACK_INTERVAL;
       } else {
         at += NOURYS_STACK_INTERVAL;

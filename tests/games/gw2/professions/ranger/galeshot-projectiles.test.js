@@ -61,17 +61,20 @@ test('Galeshot projectile reactions reject pets and unowned effects', () => {
     {
       initialize(runtime) {
         for (const ownership of [{ actorType: 'summon', ownerActorType: 'player' }, { actorType: 'effect' }]) {
-          runtime.emit({
-            type: 'damage',
-            at: 1,
-            source: 'Test',
-            sourceId: 'test.non-player-projectile',
-            skillName: 'Non-player projectile',
-            coefficient: 0.15,
-            // Synthetic projectiles have no catalog skill from which to resolve weapon strength.
-            weaponStrength: 1000,
-            projectile: true,
-            ...ownership
+          runtime.effects.emit({
+            kind: 'packet',
+            event: {
+              type: 'damage',
+              at: 1,
+              source: 'Test',
+              sourceId: 'test.non-player-projectile',
+              skillName: 'Non-player projectile',
+              coefficient: 0.15,
+              // Synthetic projectiles have no catalog skill from which to resolve weapon strength.
+              weaponStrength: 1000,
+              projectile: true,
+              ...ownership
+            }
           });
         }
       }

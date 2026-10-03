@@ -1,3 +1,4 @@
+import { captureEffectEmissions } from '#tests/helpers/effect-emission.js';
 import { applyBalanceProfilePatch } from '#gw2/integrations/patches/authoring/patches.js';
 import { triggerBountifulPower } from '#gw2/professions/elementalist/core/traits/attunements.js';
 import {
@@ -28,14 +29,13 @@ for (const { threshold, progress, grants } of [
       query: { statsAt: () => ({}) },
       traits: new Set([TRAIT.BOUNTIFUL_POWER]),
       profession: { core },
-      emit(event) {
-        assert.ok(events.length < 8, 'Bountiful Power exceeded the expected grant bound');
-        events.push(event);
-        return event;
-      },
-      emitProcedural(event) {
-        return this.emit(event);
-      }
+      effects: captureEffectEmissions({
+        submit(event) {
+          assert.ok(events.length < 8, 'Bountiful Power exceeded expected grant bound');
+          events.push(event);
+          return event;
+        }
+      }).effects
     };
 
     for (const [index, stacks] of [1, 2, 2, 1].entries()) {

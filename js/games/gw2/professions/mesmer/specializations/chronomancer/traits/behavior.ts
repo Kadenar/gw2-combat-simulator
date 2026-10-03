@@ -1,4 +1,4 @@
-import { emitMesmerTraitBuffs } from '#gw2/professions/mesmer/core/mechanics/trait-buffs.js';
+import type { MesmerEventExtra } from '#gw2/professions/mesmer/data/types.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
 import {
@@ -26,14 +26,45 @@ export function observeChronomancerEvent(context: MesmerRuntime, event: Simulati
 
   const skillName = event.skillName || event.name || 'Control effect';
   const dangerTimeProfile = requireBalanceProfileFromContext(context, TRAIT.DANGER_TIME);
-  emitMesmerTraitBuffs(runtime, TRAIT.DANGER_TIME, event.at, skillName, [
+  {
+    const grants: readonly MesmerEventExtra[] = [
+      {
+        kind: 'danger-time',
+        stacks: 1,
+        duration: balanceProfileNumber(dangerTimeProfile, 'durationMultiplier'),
+        sourceSkill: skillName
+      }
+    ];
+    const traitProfile = requireBalanceProfileFromContext(runtime.context, TRAIT.DANGER_TIME);
+    const traitSource = {
+      source: 'Trait',
+      sourceId: TRAIT.DANGER_TIME,
+      actorType: 'player' as const,
+      skillId: TRAIT.DANGER_TIME,
+      skillName: traitProfile.name
+    };
     {
-      kind: 'danger-time',
-      stacks: 1,
-      duration: balanceProfileNumber(dangerTimeProfile, 'durationMultiplier'),
-      sourceSkill: skillName
+      const proc = runtime.context.effects.emit({
+        kind: 'announcement',
+        log: true,
+        attribution: { ...traitSource, actorType: 'effect' },
+        announcement: { type: 'trait', name: traitProfile.name, at: event.at, sourceSkill: skillName, detail: '' }
+      });
+      for (const grant of grants)
+        runtime.context.effects.emit({
+          kind: 'packet',
+          cause: proc,
+          event: {
+            ...grant,
+            ...traitSource,
+            type: 'buff',
+            at: event.at,
+            name: traitProfile.name,
+            sourceSkill: skillName
+          }
+        });
     }
-  ]);
+  }
 }
 
 /** Supply repeat policy while the shared illusion lifecycle owns entities, cancellation, and conversion. */
@@ -42,6 +73,7 @@ export function chronophantasmaPolicy(context: MesmerRuntime): Partial<MesmerPha
     ? {
         repeat: {
           label: 'Chronophantasma',
+          traitId: TRAIT.CHRONOPHANTASMA,
           traitName: 'Chronophantasma',
           damageMultiplier: balanceProfileNumber(
             requireBalanceProfileFromContext(context, TRAIT.CHRONOPHANTASMA),
@@ -69,16 +101,55 @@ const triggerShatterBoon = (
   const kind = String(effect.boon);
   const baseDuration = effect.duration + (resolution.spent + 1) * balanceProfileNumber(traitProfile, 'durationPerTier');
   const duration = baseDuration;
-  emitMesmerTraitBuffs(runtime, traitId, resolution.at, resolution.skill.name, [
+  {
+    const grants: readonly MesmerEventExtra[] = [
+      {
+        kind,
+        stacks: Number(effect.stacks),
+        duration,
+        skillName: resolution.skill.name,
+        sourceSkill: resolution.skill.name,
+        audience: effect.audience
+      }
+    ];
+    const traitProfile = requireBalanceProfileFromContext(runtime.context, traitId);
+    const traitSource = {
+      source: 'Trait',
+      sourceId: traitId,
+      actorType: 'player' as const,
+      skillId: traitId,
+      skillName: traitProfile.name
+    };
     {
-      kind,
-      stacks: Number(effect.stacks),
-      duration,
-      skillName: resolution.skill.name,
-      sourceSkill: resolution.skill.name,
-      audience: effect.audience
+      const proc = runtime.context.effects.emit({
+        ...resolution.delivery,
+        kind: 'announcement',
+        log: true,
+        attribution: { ...traitSource, actorType: 'effect' },
+        announcement: {
+          type: 'trait',
+          name: traitProfile.name,
+          at: resolution.at,
+          sourceSkill: resolution.skill.name,
+          detail: ''
+        }
+      });
+      for (const grant of grants)
+        runtime.context.effects.emit({
+          ...resolution.delivery,
+          kind: 'packet',
+          cause: proc,
+          event: {
+            ...grant,
+            ...traitSource,
+            type: 'buff',
+            at: resolution.at,
+            name: traitProfile.name,
+            sourceSkill: resolution.skill.name
+          }
+        });
     }
-  ]);
+  }
 };
 
 /** Grants Chronomancer shatter boons using player-plus-clone tiers from the committed resource spend. */

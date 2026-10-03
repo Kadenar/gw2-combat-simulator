@@ -1236,16 +1236,19 @@ test('elemental autonomous cooldowns require shared player Alacrity', () => {
                 at: 0.04,
                 run(runtime) {
                   if (grant)
-                    runtime.emit({
-                      type: 'buff',
-                      kind: 'alacrity',
-                      at: 0.04,
-                      duration: 30,
-                      stacks: 1,
-                      source: 'fixture',
-                      sourceId: 'fixture',
-                      actorType: 'player',
-                      audience: { recipients: 'party' }
+                    runtime.effects.emit({
+                      kind: 'packet',
+                      event: {
+                        type: 'buff',
+                        kind: 'alacrity',
+                        at: 0.04,
+                        duration: 30,
+                        stacks: 1,
+                        source: 'fixture',
+                        sourceId: 'fixture',
+                        actorType: 'player',
+                        audience: { recipients: 'party' }
+                      }
                     });
                 }
               }

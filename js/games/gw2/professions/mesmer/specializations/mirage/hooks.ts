@@ -1,7 +1,7 @@
 import type { SkillTask } from '#gw2/platform/engine/skills/types.js';
 import { skillTaskAt } from '#gw2/platform/simulation/internal-work.js';
 import type { RuntimeCast, RuntimeProfession } from '#gw2/platform/simulation/runtime-state.js';
-import { withMesmerCastEmission } from '#gw2/professions/mesmer/core/execution/cast-lifecycle.js';
+import { mesmerCastDelivery } from '#gw2/professions/mesmer/core/execution/cast-lifecycle.js';
 import { mesmerMechanicsFor } from '#gw2/professions/mesmer/core/mechanics/runtime.js';
 import { triggerDeceptiveEvasion } from '#gw2/professions/mesmer/core/traits/behavior.js';
 import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
@@ -27,8 +27,11 @@ export const mirageHooks: Partial<RuntimeProfession<MesmerRuntimeState, MesmerSk
   onCastStart(runtime, cast) {
     const skill = cast.skill;
     if (!skill.ambush || cast.cancelled) return;
-    withMesmerCastEmission(runtime, cast, skill, () =>
-      mirageControllerFor(mesmerMechanicsFor(runtime)).acceptPlayerAmbush(skill, cast.fullEnd, cast.start)
+    mirageControllerFor(mesmerMechanicsFor(runtime)).acceptPlayerAmbush(
+      skill,
+      cast.fullEnd,
+      cast.start,
+      mesmerCastDelivery(cast, skill)
     );
   },
   onCastCommit(runtime, cast) {

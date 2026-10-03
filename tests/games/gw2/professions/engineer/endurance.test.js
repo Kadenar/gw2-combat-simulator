@@ -24,7 +24,7 @@ function recover(waits, events, config = {}) {
     {
       initialize(runtime) {
         runtime.profession.core.endurance = 0;
-        for (const event of events) runtime.emit(event);
+        for (const event of events) runtime.effects.emit({ kind: 'packet', event: event });
       }
     }
   );

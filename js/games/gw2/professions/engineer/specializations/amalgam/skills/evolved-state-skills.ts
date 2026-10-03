@@ -2,7 +2,7 @@ import {
   requireBalanceProfileFromContext,
   balanceProfileNumber
 } from '#gw2/platform/engine/skills/balance-profiles.js';
-import { emitEngineerEvent } from '#gw2/professions/engineer/core/events.js';
+import { buildEngineerPackets } from '#gw2/professions/engineer/core/events.js';
 import { amalgamState } from '#gw2/professions/engineer/specializations/amalgam/state.js';
 import { AMALGAM_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/engineer/specializations/amalgam/profiles.js';
 import type { AmalgamMorphKind } from '#gw2/professions/engineer/specializations/amalgam/skills/protocol-skills.js';
@@ -220,7 +220,7 @@ export function applyAmalgamStrain(context: EngineerRuntime, morphKind: AmalgamM
     if (effect.metadata?.trigger !== morphKind) continue;
     if (!effect.sourceId || !effect.name) throw new Error('Missing Amalgam strain identity');
     if (effect.type === 'control') {
-      emitEngineerEvent(context, 'control', {
+      buildEngineerPackets('control', {
         at,
         source: 'engineer',
         sourceId: effect.sourceId,
@@ -228,7 +228,7 @@ export function applyAmalgamStrain(context: EngineerRuntime, morphKind: AmalgamM
         skillName: effect.name,
         name: effect.name,
         controlKind: effect.controlKind
-      });
+      }).forEach((packet) => context.effects.emit({ kind: 'packet', event: packet }));
       continue;
     }
 
@@ -243,8 +243,7 @@ export function applyAmalgamStrain(context: EngineerRuntime, morphKind: AmalgamM
     // Resolve each strain's catalog identity before direct canonical status emission.
     const sourceSkill = context.helpers.skillsById.get(effect.sourceId) ||
       context.helpers.skillsByName.get(effect.name) || { id: effect.sourceId, name: effect.name };
-    emitEngineerEvent(
-      context,
+    buildEngineerPackets(
       'buff',
       {
         at,
@@ -258,6 +257,6 @@ export function applyAmalgamStrain(context: EngineerRuntime, morphKind: AmalgamM
         stacks: effect.stacks
       },
       sourceSkill
-    );
+    ).forEach((packet) => context.effects.emit({ kind: 'packet', event: packet }));
   }
 }

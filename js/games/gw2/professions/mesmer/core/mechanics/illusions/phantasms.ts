@@ -1,12 +1,14 @@
+import type { EffectDelivery } from '#gw2/platform/simulation/effect-emission.js';
+import type { SimulationEventBase } from '#gw2/platform/engine/events/events.js';
+import {
+  buildMesmerStrikes,
+  mesmerPacketOwner,
+  buildMesmerPacket,
+  buildMesmerConditions
+} from '#gw2/professions/mesmer/core/mechanics/packets.js';
 import { materializeSkillEffectApplications } from '#gw2/platform/engine/effects/materializer.js';
 import { phantasmalHasteSpeed, triggerCompoundingPower } from '#gw2/professions/mesmer/core/traits/behavior.js';
-import type {
-  MesmerAddCondition,
-  MesmerAddDamage,
-  MesmerAddEvent,
-  MesmerAddTraitProc,
-  MesmerRuntime
-} from '#gw2/professions/mesmer/types.js';
+import type { MesmerRuntime } from '#gw2/professions/mesmer/types.js';
 import { canonicalTime } from '#kernel/core/clock.js';
 
 import type {
@@ -17,6 +19,7 @@ import type {
 import type { MesmerConditionEffect, MesmerSkill, MesmerStrikeEffect } from '#gw2/professions/mesmer/data/types.js';
 
 export interface MesmerPhantasmExecution {
+  readonly delivery: EffectDelivery;
   readonly skill: MesmerSkill;
   // Index among co-spawned entities (e.g. Bountiful Blades spawns 2 Berserkers: 0 and 1).
   readonly entityIndex: number;
@@ -47,7 +50,8 @@ export interface MesmerPhantasmEffectController {
     skill: MesmerSkill,
     castStart: number,
     summonAt: number,
-    clarityConsumed: boolean
+    clarityConsumed: boolean,
+    delivery?: EffectDelivery
   ): readonly MesmerPhantasmExecution[];
   scheduleLifecycle(executions: readonly MesmerPhantasmExecution[]): void;
   scheduleStrike(execution: MesmerPhantasmExecution, group: MesmerStrikeEffect, castStart: number): void;
@@ -60,27 +64,20 @@ interface PhantasmEffectControllerOptions {
   readonly phantasmAttackTimings: Readonly<Record<number, MesmerPhantasmAttackTiming>>;
   readonly phantasmPolicy: () => MesmerPhantasmPolicy;
   readonly queueResources: MesmerQueueResources;
-  readonly addEvent: MesmerAddEvent;
-  readonly addTraitProc: MesmerAddTraitProc;
-  readonly addCondition: MesmerAddCondition;
-  readonly addDamage: MesmerAddDamage;
 }
 
 export function createPhantasmEffectController({
   state,
   phantasmAttackTimings,
   phantasmPolicy,
-  queueResources,
-  addEvent,
-  addTraitProc,
-  addCondition,
-  addDamage
+  queueResources
 }: PhantasmEffectControllerOptions): MesmerPhantasmEffectController {
   const prepare = (
     skill: MesmerSkill,
     castStart: number,
     summonAt: number,
-    clarityConsumed: boolean
+    clarityConsumed: boolean,
+    delivery: EffectDelivery = {}
   ): readonly MesmerPhantasmExecution[] => {
     if (skill.resource?.mode !== 'phantasm') return [];
 
@@ -115,6 +112,7 @@ export function createPhantasmEffectController({
       // Blade ticks table may have fewer entries than phantasm count; clamp to last entry.
       const conversionTick = timing.conversionTicks?.[Math.min(entityIndex, timing.conversionTicks.length - 1)];
       return {
+        delivery,
         skill,
         entityIndex,
         damageMultiplier: spawnModifier?.damageMultiplier ?? 1,
@@ -144,7 +142,8 @@ export function createPhantasmEffectController({
   const addBonusStrike = (execution: MesmerPhantasmExecution, at: number): void => {
     const bonus = phantasmPolicy().bonusStrike;
     if (!bonus) return;
-    addDamage(
+    buildMesmerStrikes(
+      state,
       {
         id: bonus.name,
         name: bonus.name,
@@ -158,7 +157,15 @@ export function createPhantasmEffectController({
         source: 'Player',
         weaponStrength: bonus.damage.weaponStrength
       }
-    );
+    ).forEach((packet) => {
+      state.effects.emit({
+        ...execution.delivery,
+        kind: 'packet',
+        event: packet,
+        owner: mesmerPacketOwner(packet),
+        priority: Number(packet.priority ?? 0)
+      });
+    });
   };
 
   const scheduleLifecycle = (executions: readonly MesmerPhantasmExecution[]): void => {
@@ -175,80 +182,158 @@ export function createPhantasmEffectController({
     const initialBladeAt = Math.max(...executions.map((item) => item.initialBladeAt));
 
     triggerCompoundingPower(
-      { context: state, addEvent, addTraitProc },
+      { context: state },
       execution.summonAt,
       count,
       skill.name,
-      `${count} phantasm${count === 1 ? '' : 's'}`
+      `${count} phantasm${count === 1 ? '' : 's'}`,
+      execution.delivery
     );
 
-    addEvent({
-      type: 'mesmer.phantasm-summoned',
-      actorType: 'summon',
-      summonKind: 'phantasm',
-      at: execution.summonAt,
-      name: skill.name,
-      count,
-      // Expose each scheduled resource deadline, including staggered Chronophantasma conversions, for cursor inspection.
-      conversionTimes: executions.map((item) => canonicalTime(item.resourceAtOverride ?? item.conversionAt))
-    });
-    addEvent({
-      type: 'mesmer.phantasm-attack',
-      actorType: 'summon',
-      summonKind: 'phantasm',
-      at: damageAt,
-      name: skill.name,
-      count,
-      repeat: false,
-      complete: true
-    });
+    {
+      const packet = buildMesmerPacket({
+        type: 'mesmer.phantasm-summoned',
+        actorType: 'summon',
+        summonKind: 'phantasm',
+        at: execution.summonAt,
+        name: skill.name,
+        count,
+        // Expose each scheduled resource deadline, including staggered Chronophantasma conversions, for cursor inspection.
+        conversionTimes: executions.map((item) => canonicalTime(item.resourceAtOverride ?? item.conversionAt))
+      });
+      state.effects.emit({
+        ...execution.delivery,
+        kind: 'packet',
+        event: packet,
+        owner: mesmerPacketOwner(packet),
+        priority: Number(packet.priority ?? 0)
+      });
+    }
+
+    {
+      const packet = buildMesmerPacket({
+        type: 'mesmer.phantasm-attack',
+        actorType: 'summon',
+        summonKind: 'phantasm',
+        at: damageAt,
+        name: skill.name,
+        count,
+        repeat: false,
+        complete: true
+      });
+      state.effects.emit({
+        ...execution.delivery,
+        kind: 'packet',
+        event: packet,
+        owner: mesmerPacketOwner(packet),
+        priority: Number(packet.priority ?? 0)
+      });
+    }
+
     if (policy.bonusStrike) {
       // Each entity fires its specialization-defined bonus strike at its own initial timestamp.
       for (const item of executions) {
         addBonusStrike(item, item.initialBladeAt);
       }
 
-      addTraitProc(policy.bonusStrike.traitName, initialBladeAt, skill.name);
+      state.effects.emit({
+        ...execution.delivery,
+        kind: 'announcement',
+        log: true,
+        attribution: { source: 'Trait', sourceId: policy.bonusStrike.traitId, actorType: 'effect' },
+        announcement: {
+          type: 'trait',
+          name: policy.bonusStrike.traitName,
+          at: initialBladeAt,
+          sourceSkill: skill.name,
+          detail: ''
+        }
+      });
     }
 
     if (!execution.hasRepeat || !policy.repeat) return;
 
     // The active specialization repeat policy re-summons the phantasm for a second attack cycle.
     triggerCompoundingPower(
-      { context: state, addEvent, addTraitProc },
+      { context: state },
       execution.spawnAt,
       count,
       `${skill.name} - ${policy.repeat.label}`,
-      `${count} phantasm${count === 1 ? '' : 's'}`
+      `${count} phantasm${count === 1 ? '' : 's'}`,
+      execution.delivery
     );
 
-    addEvent({
-      type: 'mesmer.phantasm-resummoned',
-      actorType: 'summon',
-      summonKind: 'phantasm',
-      at: execution.spawnAt,
-      name: skill.name,
-      count
-    });
-    addEvent({
-      type: 'mesmer.phantasm-attack',
-      actorType: 'summon',
-      summonKind: 'phantasm',
-      at: repeatDamageAt,
-      name: skill.name,
-      count,
-      repeat: true,
-      complete: true
-    });
+    {
+      const packet = buildMesmerPacket({
+        type: 'mesmer.phantasm-resummoned',
+        actorType: 'summon',
+        summonKind: 'phantasm',
+        at: execution.spawnAt,
+        name: skill.name,
+        count
+      });
+      state.effects.emit({
+        ...execution.delivery,
+        kind: 'packet',
+        event: packet,
+        owner: mesmerPacketOwner(packet),
+        priority: Number(packet.priority ?? 0)
+      });
+    }
+
+    {
+      const packet = buildMesmerPacket({
+        type: 'mesmer.phantasm-attack',
+        actorType: 'summon',
+        summonKind: 'phantasm',
+        at: repeatDamageAt,
+        name: skill.name,
+        count,
+        repeat: true,
+        complete: true
+      });
+      state.effects.emit({
+        ...execution.delivery,
+        kind: 'packet',
+        event: packet,
+        owner: mesmerPacketOwner(packet),
+        priority: Number(packet.priority ?? 0)
+      });
+    }
+
     if (policy.bonusStrike) {
       for (const item of executions) {
         addBonusStrike(item, item.repeatDamageAt);
       }
 
-      addTraitProc(policy.bonusStrike.traitName, repeatDamageAt, `${skill.name} - ${policy.repeat.label}`);
+      state.effects.emit({
+        ...execution.delivery,
+        kind: 'announcement',
+        log: true,
+        attribution: { source: 'Trait', sourceId: policy.bonusStrike.traitId, actorType: 'effect' },
+        announcement: {
+          type: 'trait',
+          name: policy.bonusStrike.traitName,
+          at: repeatDamageAt,
+          sourceSkill: `${skill.name} - ${policy.repeat.label}`,
+          detail: ''
+        }
+      });
     }
 
-    addTraitProc(policy.repeat.traitName, execution.spawnAt, skill.name);
+    state.effects.emit({
+      ...execution.delivery,
+      kind: 'announcement',
+      log: true,
+      attribution: { source: 'Trait', sourceId: policy.repeat.traitId, actorType: 'effect' },
+      announcement: {
+        type: 'trait',
+        name: policy.repeat.traitName,
+        at: execution.spawnAt,
+        sourceSkill: skill.name,
+        detail: ''
+      }
+    });
   };
 
   const scheduleStrike = (execution: MesmerPhantasmExecution, group: MesmerStrikeEffect, castStart: number): void => {
@@ -286,7 +371,7 @@ export function createPhantasmEffectController({
       execution.timing.damageTicksByEntity?.[execution.entityIndex]?.[groupName] ??
       (Array.isArray(execution.timing.damageTicks?.[groupName]) ? execution.timing.damageTicks[groupName] : null);
     const fixedTicks = damageGroup.ticks?.length ? damageGroup.ticks : null;
-    let initialEvents: ReturnType<MesmerAddDamage>;
+    let initialEvents: readonly SimulationEventBase[];
 
     if (measuredTicks?.length) {
       const coefficients = fixedTicks?.map((tick) => tick.coefficient) ?? [damageGroup.coefficient || 0];
@@ -296,7 +381,8 @@ export function createPhantasmEffectController({
         );
       }
 
-      initialEvents = addDamage(
+      initialEvents = buildMesmerStrikes(
+        state,
         execution.skill,
         castStart,
         {
@@ -313,9 +399,19 @@ export function createPhantasmEffectController({
           timingScale: 'fixed'
         },
         initialEventExtra
-      );
+      ).map((packet) => {
+        state.effects.emit({
+          ...execution.delivery,
+          kind: 'packet',
+          event: packet,
+          owner: mesmerPacketOwner(packet),
+          priority: Number(packet.priority ?? 0)
+        });
+        return packet;
+      });
     } else if (fixedTicks?.length) {
-      initialEvents = addDamage(
+      initialEvents = buildMesmerStrikes(
+        state,
         execution.skill,
         castStart,
         {
@@ -331,9 +427,19 @@ export function createPhantasmEffectController({
           timingScale: 'fixed'
         },
         initialEventExtra
-      );
+      ).map((packet) => {
+        state.effects.emit({
+          ...execution.delivery,
+          kind: 'packet',
+          event: packet,
+          owner: mesmerPacketOwner(packet),
+          priority: Number(packet.priority ?? 0)
+        });
+        return packet;
+      });
     } else {
-      initialEvents = addDamage(
+      initialEvents = buildMesmerStrikes(
+        state,
         execution.skill,
         damageGroup.atMs == null ? execution.damageAt : execution.endpoint(damageGroup.atMs),
         {
@@ -344,7 +450,16 @@ export function createPhantasmEffectController({
           timingScale: undefined
         },
         initialEventExtra
-      );
+      ).map((packet) => {
+        state.effects.emit({
+          ...execution.delivery,
+          kind: 'packet',
+          event: packet,
+          owner: mesmerPacketOwner(packet),
+          priority: Number(packet.priority ?? 0)
+        });
+        return packet;
+      });
     }
 
     const initialHitTimes = initialEvents.map((event) => event.at);
@@ -365,7 +480,8 @@ export function createPhantasmEffectController({
           );
         }
 
-        addDamage(
+        buildMesmerStrikes(
+          state,
           execution.skill,
           castStart,
           {
@@ -386,14 +502,23 @@ export function createPhantasmEffectController({
             ...(attackDisplayName ? { parentSkillName: execution.skill.name } : {}),
             multiplier: repeatPolicy.damageMultiplier
           }
-        );
+        ).forEach((packet) => {
+          state.effects.emit({
+            ...execution.delivery,
+            kind: 'packet',
+            event: packet,
+            owner: mesmerPacketOwner(packet),
+            priority: Number(packet.priority ?? 0)
+          });
+        });
       } else {
         // No dedicated repeat ticks — shift each initial hit forward by the same offset.
         const repeatOffset = execution.repeatDamageAt - execution.damageAt;
         const shiftedHitTimes = initialHitTimes.map((hitAt) => hitAt + repeatOffset);
         if (shiftedHitTimes.length > 0) {
           const repeatOrigin = Math.min(...shiftedHitTimes);
-          addDamage(
+          buildMesmerStrikes(
+            state,
             execution.skill,
             repeatOrigin,
             {
@@ -414,7 +539,15 @@ export function createPhantasmEffectController({
               ...(attackDisplayName ? { parentSkillName: execution.skill.name } : {}),
               multiplier: repeatPolicy.damageMultiplier
             }
-          );
+          ).forEach((packet) => {
+            state.effects.emit({
+              ...execution.delivery,
+              kind: 'packet',
+              event: packet,
+              owner: mesmerPacketOwner(packet),
+              priority: Number(packet.priority ?? 0)
+            });
+          });
         }
       }
     }
@@ -440,8 +573,16 @@ export function createPhantasmEffectController({
             actorType: 'summon',
             summonKind: 'phantasm'
           }
-        }))
-          addEvent({ ...application.event, summonKind: 'phantasm' });
+        })) {
+          const packet = buildMesmerPacket({ ...application.event, summonKind: 'phantasm' });
+          state.effects.emit({
+            ...execution.delivery,
+            kind: 'packet',
+            event: packet,
+            owner: mesmerPacketOwner(packet),
+            priority: Number(packet.priority ?? 0)
+          });
+        }
       }
     }
 
@@ -477,7 +618,8 @@ export function createPhantasmEffectController({
         const packetStacks = (condition.stacks ?? 1) / conditionTicks.length;
         const applicationTimes = conditionTicks.map((tick) => execution.endpoint(tick.atMs));
         const conditionOrigin = Math.min(...applicationTimes);
-        addCondition(
+        buildMesmerConditions(
+          state,
           execution.skill.name,
           conditionOrigin,
           {
@@ -495,9 +637,33 @@ export function createPhantasmEffectController({
           'Phantasm',
           '',
           conditionEventExtra
-        );
+        ).forEach((packet) => {
+          state.effects.emit({
+            ...execution.delivery,
+            kind: 'packet',
+            event: packet,
+            owner: mesmerPacketOwner(packet),
+            priority: Number(packet.priority ?? 0)
+          });
+        });
       } else {
-        addCondition(execution.skill.name, execution.damageAt, condition, 'Phantasm', '', conditionEventExtra);
+        buildMesmerConditions(
+          state,
+          execution.skill.name,
+          execution.damageAt,
+          condition,
+          'Phantasm',
+          '',
+          conditionEventExtra
+        ).forEach((packet) => {
+          state.effects.emit({
+            ...execution.delivery,
+            kind: 'packet',
+            event: packet,
+            owner: mesmerPacketOwner(packet),
+            priority: Number(packet.priority ?? 0)
+          });
+        });
       }
     }
 
@@ -529,7 +695,8 @@ export function createPhantasmEffectController({
           repeatConditionTicks ? execution.endpoint(tick.atMs) : execution.endpoint(tick.atMs) + repeatOffset
         );
         const conditionOrigin = Math.min(...applicationTimes);
-        addCondition(
+        buildMesmerConditions(
+          state,
           execution.skill.name,
           conditionOrigin,
           {
@@ -547,16 +714,33 @@ export function createPhantasmEffectController({
           'Phantasm',
           `${execution.skill.name} - ${repeatPolicy.label}`,
           conditionEventExtra
-        );
+        ).forEach((packet) => {
+          state.effects.emit({
+            ...execution.delivery,
+            kind: 'packet',
+            event: packet,
+            owner: mesmerPacketOwner(packet),
+            priority: Number(packet.priority ?? 0)
+          });
+        });
       } else {
-        addCondition(
+        buildMesmerConditions(
+          state,
           execution.skill.name,
           execution.repeatDamageAt,
           condition,
           'Phantasm',
           `${execution.skill.name} - ${repeatPolicy.label}`,
           conditionEventExtra
-        );
+        ).forEach((packet) => {
+          state.effects.emit({
+            ...execution.delivery,
+            kind: 'packet',
+            event: packet,
+            owner: mesmerPacketOwner(packet),
+            priority: Number(packet.priority ?? 0)
+          });
+        });
       }
     }
   };
@@ -565,17 +749,31 @@ export function createPhantasmEffectController({
     // Resource tasks use their real conversion time; task priority keeps them after same-time illusion work.
     if (execution.resourceAtOverride != null) {
       // An active specialization may align conversion to a measured per-phantasm tick.
-      queueResources(execution.resourceAtOverride, amount, null, `${execution.skill.name} phantasm conversion`, {
-        kind: 'phantasm-conversion',
-        sourceSkillId: execution.skill.id
-      });
+      queueResources(
+        execution.resourceAtOverride,
+        amount,
+        null,
+        `${execution.skill.name} phantasm conversion`,
+        {
+          kind: 'phantasm-conversion',
+          sourceSkillId: execution.skill.id
+        },
+        execution.delivery
+      );
       return;
     }
 
-    queueResources(execution.conversionAt, amount, null, `${execution.skill.name} phantasm conversion`, {
-      kind: 'phantasm-conversion',
-      sourceSkillId: execution.skill.id
-    });
+    queueResources(
+      execution.conversionAt,
+      amount,
+      null,
+      `${execution.skill.name} phantasm conversion`,
+      {
+        kind: 'phantasm-conversion',
+        sourceSkillId: execution.skill.id
+      },
+      execution.delivery
+    );
   };
 
   return {

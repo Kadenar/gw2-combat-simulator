@@ -9,21 +9,17 @@ import {
   requireEffect
 } from '#gw2/platform/engine/skills/balance-profiles.js';
 import type { BalanceProfile, ConditionEffect } from '#gw2/platform/engine/skills/types.js';
-import { queueResolverBoon } from '#gw2/platform/resolver/boons.js';
 import { buildResolverBuff, buildResolverCondition } from '#gw2/platform/resolver/packets.js';
 import type { RuntimeCast } from '#gw2/platform/simulation/runtime-state.js';
 import { cloneNecromancerAttributes } from '#gw2/professions/necromancer/core/mechanics/modifier-queries.js';
-import {
-  emitNecromancerShroudTrait,
-  queueTraitCoefficientDamage
-} from '#gw2/professions/necromancer/core/mechanics/trait-effects.js';
+import { emitNecromancerShroudTrait } from '#gw2/professions/necromancer/core/mechanics/trait-effects.js';
 import { NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
 import type {
-  NecromancerSkill,
   NecromancerConfig,
   NecromancerResolverContext,
   NecromancerResolverEvent,
-  NecromancerRuntime
+  NecromancerRuntime,
+  NecromancerSkill
 } from '#gw2/professions/necromancer/types.js';
 
 /** The accepted player strike reads post-hit target health before its shared percentage grant. */
@@ -49,10 +45,9 @@ export function applyReapersMight(
   const effect = requireEffect(profile, 'boon', 'might');
   // The proc record reports only a delivered boon.
   if (!effect) return;
-  queueResolverBoon(
-    context,
-    event,
-    buildResolverBuff({
+  context.effects.emit({
+    kind: 'packet',
+    event: buildResolverBuff({
       at: event.at,
 
       skillName: "Reaper's Might",
@@ -63,9 +58,13 @@ export function applyReapersMight(
       sourceId: TRAIT.REAPERS_MIGHT,
       actorType: 'effect',
       triggeredBy: event.skillName
-    })
-  );
-  context.recordProc('trait', "Reaper's Might", event.at, event.skillName);
+    }),
+    durationContext: event
+  });
+  context.effects.emit({
+    kind: 'announcement',
+    announcement: { type: 'trait', name: "Reaper's Might", at: event.at, sourceSkill: event.skillName }
+  });
 }
 
 export function applySiphonedPower(context: NecromancerResolverContext, event: NecromancerResolverEvent): void {
@@ -76,10 +75,9 @@ export function applySiphonedPower(context: NecromancerResolverContext, event: N
   // might, so a removed boon leaves it ready.
   if (!effect || !context.procs.claimCooldown('siphonedPower', event.at, balanceProfileNumber(profile, 'cooldown')))
     return;
-  queueResolverBoon(
-    context,
-    event,
-    buildResolverBuff({
+  context.effects.emit({
+    kind: 'packet',
+    event: buildResolverBuff({
       at: event.at,
 
       skillName: 'Siphoned Power',
@@ -90,9 +88,13 @@ export function applySiphonedPower(context: NecromancerResolverContext, event: N
       sourceId: TRAIT.SIPHONED_POWER,
       actorType: 'effect',
       triggeredBy: event.skillName
-    })
-  );
-  context.recordProc('trait', 'Siphoned Power', event.at, event.skillName);
+    }),
+    durationContext: event
+  });
+  context.effects.emit({
+    kind: 'announcement',
+    announcement: { type: 'trait', name: 'Siphoned Power', at: event.at, sourceSkill: event.skillName }
+  });
 }
 
 export function applyChillOfDeath(context: NecromancerResolverContext, event: NecromancerResolverEvent): void {
@@ -108,13 +110,29 @@ export function applyChillOfDeath(context: NecromancerResolverContext, event: Ne
     !context.procs.claimCooldown('chillOfDeath', event.at, balanceProfileNumber(profile, 'cooldown'))
   )
     return;
-  if (strike)
-    queueTraitCoefficientDamage(context, event, {
-      name: 'Lesser Spinal Shivers',
-      traitId: TRAIT.CHILL_OF_DEATH,
-      coefficient: effectNumber(profile, strike, 'coefficient'),
-      canCrit: false
+  if (strike) {
+    /* Trait payloads and their timeline annotation share the same emission boundary. */ context.effects.emit({
+      kind: 'packet',
+      event: {
+        at: event.at,
+        source: 'Trait',
+        sourceId: TRAIT.CHILL_OF_DEATH,
+        actorType: 'effect',
+        skillName: 'Lesser Spinal Shivers',
+        triggeredBy: event.skillName,
+        type: 'damage',
+        coefficient: effectNumber(profile, strike, 'coefficient'),
+        skillWeapon: 'Unequipped',
+        canCrit: false,
+        hits: 1,
+        ...(event.summonOwner ? { summonOwner: event.summonOwner } : {})
+      }
     });
+    context.effects.emit({
+      kind: 'announcement',
+      announcement: { type: 'trait', name: 'Lesser Spinal Shivers', at: event.at, sourceSkill: event.skillName }
+    });
+  }
   // Without its strike, Chill has no resolved hit to follow and applies at the trigger instead.
   else if (chilled) queueChillOfDeathCondition(context, event, profile, chilled);
 }
@@ -125,8 +143,9 @@ function queueChillOfDeathCondition(
   profile: BalanceProfile,
   chilled: ConditionEffect
 ): void {
-  context.queue.enqueue(
-    buildResolverCondition({
+  context.effects.emit({
+    kind: 'packet',
+    event: buildResolverCondition({
       condition: String(chilled.condition),
       stacks: effectNumber(profile, chilled, 'stacks'),
       name: 'Lesser Spinal Shivers — Chilled',
@@ -137,7 +156,7 @@ function queueChillOfDeathCondition(
       skillName: 'Lesser Spinal Shivers',
       duration: effectNumber(profile, chilled, 'duration')
     })
-  );
+  });
 }
 
 /** Queue Chill from the resolved trait strike so sibling strikes keep their pre-Chill state. */
@@ -203,8 +222,9 @@ export function applyBitterChill(context: NecromancerResolverContext, event: Nec
   const profile = requireBalanceProfileFromContext(context, TRAIT.BITTER_CHILL);
   const vulnerability = requireEffect(profile, 'condition', 'Vulnerability');
   if (!vulnerability) return;
-  context.queue.enqueue(
-    buildResolverCondition({
+  context.effects.emit({
+    kind: 'packet',
+    event: buildResolverCondition({
       at: event.at,
       name: 'Bitter Chill',
       skillName: 'Bitter Chill',
@@ -216,8 +236,11 @@ export function applyBitterChill(context: NecromancerResolverContext, event: Nec
       actorType: 'effect',
       triggeredBy: event.skillName
     })
-  );
-  context.recordProc('trait', 'Bitter Chill', event.at, event.skillName);
+  });
+  context.effects.emit({
+    kind: 'announcement',
+    announcement: { type: 'trait', name: 'Bitter Chill', at: event.at, sourceSkill: event.skillName }
+  });
 }
 
 /** Fear refreshes the existing observation window; Dread's selected modifier decides whether it contributes. */

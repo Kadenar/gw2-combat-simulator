@@ -10,7 +10,6 @@ import {
 } from '#gw2/platform/engine/skills/balance-profiles.js';
 import type { Skill, SkillId } from '#gw2/platform/engine/skills/types.js';
 import { compileRechargeRules } from '#gw2/platform/profession-definition/trigger-rules.js';
-import { emitEffects } from '#gw2/platform/simulation/procedural-emission.js';
 import type { RuntimeCast } from '#gw2/platform/simulation/runtime-state.js';
 import type { RevenantRuntime } from '#gw2/professions/revenant/core/events.js';
 import {
@@ -214,10 +213,11 @@ export function grantLingeringDetermination(runtime: RevenantRuntime, combat: bo
 export function emitCosmicMistfire(runtime: RevenantRuntime, cast: RuntimeCast<RevenantSkill>): void {
   if (hasTrait(runtime, TRAIT.MISTFIRE)) {
     const profile = requireBalanceProfileFromContext(runtime, PROFILE.mistfire);
-    emitEffects(runtime, {
-      owner: profile,
+    runtime.effects.emit({
+      kind: 'profile',
+      profile: profile,
       effects: profile.effects?.filter((effect) => effect.type === 'strike' || effect.type === 'condition'),
-      baseEvent: {
+      attribution: {
         source: 'revenant',
         sourceId: TRAIT.MISTFIRE,
         actorType: 'effect',

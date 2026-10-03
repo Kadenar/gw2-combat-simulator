@@ -15,16 +15,14 @@ import {
   requireEffect
 } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { projectCastRelativeEffectTimingMs } from '#gw2/platform/skills/timing.js';
+import { elementalistBuffRequest, elementalistStrikeRequest } from '#gw2/professions/elementalist/core/events.js';
 import {
-  emitElementalistBuff,
-  emitElementalistDamage,
-  withElementalistCast
-} from '#gw2/professions/elementalist/core/events.js';
-import { emitProfiledBuff, emitProfiledCondition } from '#gw2/professions/elementalist/core/mechanics/effects.js';
+  elementalistProfiledBuffRequest,
+  elementalistProfiledConditionRequest
+} from '#gw2/professions/elementalist/core/mechanics/effects.js';
 import { ELEMENTALIST_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/elementalist/core/profiles.js';
 import { applyElementalistAura } from '#gw2/professions/elementalist/core/traits/dispatch.js';
-import type { ElementalistSkill, ElementalistRuntimeState } from '#gw2/professions/elementalist/types.js';
-
+import type { ElementalistRuntimeState, ElementalistSkill } from '#gw2/professions/elementalist/types.js';
 /** Reads the completion-time bullet before the declaration's final load/spend action changes it. */
 export function hasPistolBullet(context: Gw2Runtime, cast: RuntimeCast<ElementalistSkill>): boolean {
   return readProfessionCoreState<ElementalistCoreState>(context.profession).pistolBullets![
@@ -51,15 +49,27 @@ export const elementalistPistolSideEffects: RuntimeProfession<
     if (trigger.kind !== 'cast') throw new TypeError('Pistol enhancements require a cast trigger.');
     const { cast, skill } = trigger;
     const at = cast.effectiveEnd;
-    withElementalistCast(context, cast, () => {
-      emitProfiledBuff(context, at, PROFILE.ragingRicochet, 'Fire', skill.name, skill.id);
-    });
+    {
+      context.effects.emit(
+        elementalistProfiledBuffRequest(
+          context,
+          at,
+          PROFILE.ragingRicochet,
+          'Fire',
+          skill.name,
+          skill.id,
+          undefined,
+          undefined,
+          { activationId: cast.id, skillId: cast.skill.id, offTarget: cast.command.offTarget }
+        )
+      );
+    }
   },
   'elementalist.pistol.searing-salvo'(context, trigger) {
     if (trigger.kind !== 'cast') throw new TypeError('Pistol enhancements require a cast trigger.');
     const { cast, skill } = trigger;
     const at = cast.effectiveEnd;
-    withElementalistCast(context, cast, () => {
+    {
       const searingSalvoProfile = requireBalanceProfileFromContext(context, PROFILE.searingSalvo);
       const aura = requireEffect(searingSalvoProfile, 'buff', 'Fire');
       if (aura) {
@@ -71,12 +81,12 @@ export const elementalistPistolSideEffects: RuntimeProfession<
           sourceId: skill.id
         });
       }
-    });
+    }
   },
   'elementalist.pistol.frozen-fusillade'(context, trigger) {
     if (trigger.kind !== 'cast') throw new TypeError('Pistol enhancements require a cast trigger.');
     const { cast, skill } = trigger;
-    withElementalistCast(context, cast, () => {
+    {
       const frozenFusilladeProfile = requireBalanceProfileFromContext(context, PROFILE.frozenFusillade);
       // The field's four-second lifetime starts at projectile release, so
       // aftercast length and cancellation cannot move its enhanced detonation.
@@ -88,76 +98,104 @@ export const elementalistPistolSideEffects: RuntimeProfession<
         delay;
       const frozenFusilladeWaterBulletStrike = requireEffect(frozenFusilladeProfile, 'strike', 'Water Bullet');
       if (frozenFusilladeWaterBulletStrike) {
-        emitElementalistDamage(context, {
-          at: detonationAt,
-          source: skill.name,
-          sourceId: skill.id,
-          actorType: 'player',
-          skillName: skill.name,
-          skillId: skill.id,
-          coefficient: effectNumber(frozenFusilladeProfile, frozenFusilladeWaterBulletStrike, 'coefficient'),
-          skillWeapon: 'Pistol'
-        });
+        context.effects.emit(
+          elementalistStrikeRequest(
+            context,
+            {
+              at: detonationAt,
+              source: skill.name,
+              sourceId: skill.id,
+              actorType: 'player',
+              skillName: skill.name,
+              skillId: skill.id,
+              coefficient: effectNumber(frozenFusilladeProfile, frozenFusilladeWaterBulletStrike, 'coefficient'),
+              skillWeapon: 'Pistol'
+            },
+            { activationId: cast.id, skillId: cast.skill.id, offTarget: cast.command.offTarget }
+          )
+        );
       }
 
-      emitProfiledCondition(context, detonationAt, PROFILE.frozenFusillade, 'Water Bullet', skill.name, skill.id);
-    });
+      context.effects.emit(
+        elementalistProfiledConditionRequest(
+          context,
+          detonationAt,
+          PROFILE.frozenFusillade,
+          'Water Bullet',
+          skill.name,
+          skill.id,
+          undefined,
+          { activationId: cast.id, skillId: cast.skill.id, offTarget: cast.command.offTarget }
+        )
+      ).length > 0;
+    }
   },
   'elementalist.pistol.dazing-discharge'(context, trigger) {
     if (trigger.kind !== 'cast') throw new TypeError('Pistol enhancements require a cast trigger.');
     const { cast } = trigger;
     const at = cast.effectiveEnd;
-    withElementalistCast(context, cast, () => {
+    {
       const dazingDischargeProfile = requireBalanceProfileFromContext(context, PROFILE.dazingDischarge);
       // Arms a window that shortens the next pistol skill's recharge; the
       // reduction is consumed in `mechanics/recharge.ts`.
       professionCoreState(context).dazingDischargeUntil =
         at + balanceProfileNumber(dazingDischargeProfile, 'durationMultiplier');
-    });
+    }
   },
   'elementalist.pistol.shattering-stone'(context, trigger) {
     if (trigger.kind !== 'cast') throw new TypeError('Pistol enhancements require a cast trigger.');
     const { cast, skill } = trigger;
     const at = cast.effectiveEnd;
-    withElementalistCast(context, cast, () => {
+    {
       const shatteringStoneProfile = requireBalanceProfileFromContext(context, PROFILE.shatteringStone);
       // Arm the buff on the event timeline so the resolver consumes its charges
       // in impact order, including attacks scheduled before this cast.
-      emitElementalistBuff(context, {
-        skill: skill,
-        at,
-        source: skill.name,
-        kind: 'shattering stone',
-        stacks: balanceProfileNumber(shatteringStoneProfile, 'maximumStacks'),
-        duration: balanceProfileNumber(shatteringStoneProfile, 'durationMultiplier')
-      });
-    });
+      context.effects.emit(
+        elementalistBuffRequest(
+          {
+            skill: skill,
+            at,
+            source: skill.name,
+            kind: 'shattering stone',
+            stacks: balanceProfileNumber(shatteringStoneProfile, 'maximumStacks'),
+            duration: balanceProfileNumber(shatteringStoneProfile, 'durationMultiplier')
+          },
+          { activationId: cast.id, skillId: cast.skill.id, offTarget: cast.command.offTarget }
+        )
+      );
+    }
   },
   'elementalist.pistol.boulder-blast'(context, trigger) {
     if (trigger.kind !== 'cast') throw new TypeError('Pistol enhancements require a cast trigger.');
     const { cast, skill } = trigger;
     const at = cast.effectiveEnd;
-    withElementalistCast(context, cast, () => {
+    {
       // The projectile finisher is a separate non-weapon activation from the
       // pistol strike, so downstream combo damage must not reuse its roll.
-      emitElementalistDamage(context, {
-        at,
-        source: skill.name,
-        sourceId: skill.id,
-        actorType: 'effect',
-        skillName: skill.name,
-        skillId: skill.id,
-        coefficient: 0,
-        canCrit: false,
-        activationId: `${cast.id}:boulder-finisher`,
-        comboFinishers: [
+      context.effects.emit(
+        elementalistStrikeRequest(
+          context,
           {
-            ownerId: 'elementalist',
-            finisherType: 'Projectile',
-            ambiguousFieldSelection: 'oldest'
-          }
-        ]
-      });
-    });
+            at,
+            source: skill.name,
+            sourceId: skill.id,
+            actorType: 'effect',
+            skillName: skill.name,
+            skillId: skill.id,
+            coefficient: 0,
+            canCrit: false,
+            activationId: `${cast.id}:boulder-finisher`,
+            comboFinishers: [
+              {
+                ownerId: 'elementalist',
+                finisherType: 'Projectile',
+                ambiguousFieldSelection: 'oldest'
+              }
+            ]
+          },
+          { activationId: cast.id, skillId: cast.skill.id, offTarget: cast.command.offTarget }
+        )
+      );
+    }
   }
 };

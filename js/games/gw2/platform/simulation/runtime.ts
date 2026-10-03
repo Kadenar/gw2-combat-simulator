@@ -1,3 +1,9 @@
+import { recordProcStep } from '#gw2/platform/results/proc-steps.js';
+import {
+  createEffectEmissionService,
+  type EffectDelivery,
+  type AnnouncementEmission
+} from '#gw2/platform/simulation/effect-emission.js';
 import { RELIC_IDS } from '#gw2/platform/equipment/relics/data.js';
 import { createEffectReactions, type EffectReactionStage } from '#gw2/platform/simulation/effect-reactions.js';
 import { canonicalTime, EPSILON } from '#kernel/core/clock.js';
@@ -33,7 +39,7 @@ import {
 } from '#gw2/platform/combat/state/targets.js';
 import { targetHealthLoss } from '#gw2/platform/combat/state/target-health.js';
 import { assertSimulationEvent, type SimulationEventBase } from '#gw2/platform/engine/events/events.js';
-import { materializeSkillEffectApplications, scaleCastBoundTiming } from '#gw2/platform/engine/effects/materializer.js';
+import { scaleCastBoundTiming } from '#gw2/platform/engine/effects/materializer.js';
 import { applySkillSideEffects } from '#gw2/platform/simulation/side-effects.js';
 import { selectSkillEffects } from '#gw2/platform/simulation/effect-selection.js';
 import { gw2BaseRecharge } from '#gw2/platform/engine/skills/recharge.js';
@@ -86,14 +92,12 @@ import type { Gw2Config } from '#gw2/platform/simulation/config.js';
 import type {
   FlipWindowOptions,
   Gw2Runtime,
-  ProceduralEmissionOptions,
   RuntimeCast,
   RuntimeProfession,
   RuntimeWork
 } from '#gw2/platform/simulation/runtime-state.js';
 import type { CastCommand } from '#gw2/platform/execution/types.js';
 import type { Skill, SkillId } from '#gw2/platform/engine/skills/types.js';
-import type { Gw2EventDraft } from '#gw2/platform/equipment/relics/types.js';
 
 /** Condition pulses are scheduled for every active stack at once, so they deliberately carry no causal identity. */
 const SHARED_PULSE_TYPES = new Set(['condition_tick', 'condition_buffer']);
@@ -218,8 +222,7 @@ export function runGw2Runtime<T extends object>({
   }
 
   /**
-   * Gives a packet created outside `emit` (direct enqueues, immediate condition applications) the identity, causal
-   * placement, and parent that `emit` assigns, so every reported packet can be traced to its cause.
+   * Gives engine-owned pulse output an identity and parent consistent with service-submitted effects.
    */
   function identify<E extends PacketIdentity>(event: E): E {
     if (event.kind === 'internal' || event.eventOrder != null || SHARED_PULSE_TYPES.has(event.type)) return event;
@@ -313,6 +316,165 @@ export function runGw2Runtime<T extends object>({
     }
   };
   const conditions = createGw2ConditionResolution({ config, reactions });
+  // Emission owns transport; profession hooks select payloads and keep their gameplay rules.
+  const packetDelivery = new WeakMap<Gw2ResolverEvent, EffectDelivery>();
+  const pendingPreparation = new WeakSet<Gw2ResolverEvent>();
+  let announcementOrder = 0;
+  let derivedActivationOrder = 0;
+  const effects = createEffectEmissionService({
+    now: () => runtime.time,
+    registerReaction: (profile, effect) => effectReactions.register(profile, effect),
+    submit: submitEffect,
+    announce: announceEffect
+  });
+
+  function submitEffect(
+    input: SimulationEventBase,
+    delivery: EffectDelivery & { settlement?: 'reaction' }
+  ): Gw2ResolverEvent {
+    const cause = delivery.cause;
+    let event = withoutInheritedReaction(input, cause);
+    if (delivery.cast)
+      event = {
+        activationId:
+          delivery.cast.independentSourceStrike && event.type === 'damage' && event.sourceId !== delivery.cast.skillId
+            ? `${delivery.cast.activationId}:effect:${event.sourceId}`
+            : delivery.cast.activationId,
+        offTarget: delivery.cast.offTarget,
+        ...event
+      };
+    const cancelledByCast =
+      delivery.cast?.effectiveEnd != null &&
+      event.at > delivery.cast.effectiveEnd + EPSILON &&
+      event.persistsAfterInterrupt !== true;
+    if (cause)
+      event = {
+        activationId:
+          event.type === 'damage' && (event.sourceId !== cause.sourceId || event.actorType !== cause.actorType)
+            ? `effect:derived:${++derivedActivationOrder}`
+            : cause.activationId,
+        causalOrder: cause.causalOrder ?? cause.eventOrder,
+        parentEventOrder: cause.eventOrder,
+        ...event
+      };
+    if (delivery.priority != null) event = { ...event, priority: delivery.priority };
+    // Future boons and owned packets reserve identity now, then prepare from live application state.
+    const owner = delivery.owner ?? profession.effectOwner?.(runtime, event);
+    if (owner) {
+      if (typeof owner.id !== 'string' || !owner.id || !Number.isSafeInteger(owner.generation) || owner.generation < 0)
+        throw new TypeError('Effect lifetime requires an owner id and a nonnegative safe integer generation.');
+      delivery = { ...delivery, owner };
+    }
+
+    const deferPreparation = (owner != null || event.type === 'buff') && canonicalTime(event.at) > runtime.time;
+    const prepared =
+      cancelledByCast || deferPreparation
+        ? event
+        : profession.prepareEvent
+          ? profession.prepareEvent(runtime, event)
+          : event;
+    event = prepareGw2ComboEvent(prepared ?? event);
+    if (event.kind === 'internal') throw new TypeError('Internal work must use the work factory.');
+    const order = ++eventOrder;
+    const parent = reactionParent(event);
+    const equippedProfileId =
+      !cancelledByCast &&
+      !deferPreparation &&
+      event.weaponStrengthSource === 'equipped' &&
+      event.weaponStrengthProfileId == null &&
+      event.weaponStrength == null
+        ? weaponStrengthProfileIdForEvent(event, {
+            skill: profession.catalog.skillsById.get(event.skillId ?? event.sourceId) ?? null,
+            state: runtime as unknown as Record<string, unknown>,
+            config
+          })
+        : null;
+    const packet = assertSimulationEvent({
+      ...event,
+      ...(equippedProfileId ? { weaponStrengthProfileId: equippedProfileId } : {}),
+      at: canonicalTime(event.at),
+      eventOrder: order,
+      causalOrder: event.causalOrder ?? queue.currentCausalOrder ?? order,
+      ...(event.parentEventOrder == null && parent != null ? { parentEventOrder: parent } : {})
+    });
+    if (packet.at < runtime.time) throw new RangeError('Events cannot backdate the live clock.');
+    if (!handlers.has(packet.type)) throw new TypeError(`No event handler registered for ${packet.type}.`);
+    const cast = packet.activationId == null ? undefined : reservations.get(packet.activationId);
+    if (
+      !cancelledByCast &&
+      prepared !== null &&
+      cast &&
+      packet.type === 'damage' &&
+      packet.actorType === 'player' &&
+      packet.skillId === cast.skill.id
+    )
+      cast.firstStrikeAt = Math.min(cast.firstStrikeAt, packet.at);
+    if (prepared !== null && !cancelledByCast) {
+      packetDelivery.set(packet, delivery);
+      if (deferPreparation) pendingPreparation.add(packet);
+      if (delivery.settlement === 'reaction') {
+        // A reaction transaction exposes its condition before the caller's next query, while its queued children remain pending.
+        if (!['condition', 'boon_extension'].includes(packet.type) || packet.at !== runtime.time)
+          throw new RangeError('Reaction settlement requires a condition or boon extension at the live clock.');
+        withCause(packet, () => {
+          if (packet.type === 'condition') applyConditionNow(packet);
+          else handlers.dispatch(packet, runtime);
+        });
+      } else queue.enqueue(packet);
+    }
+
+    // Callers can retain causality without mutating queued ordering or future combat state.
+    return packet;
+  }
+
+  function announceEffect(request: AnnouncementEmission): Gw2ResolverEvent {
+    const { announcement } = request;
+    const at = canonicalTime(announcement.at);
+    // Retrospective timeline annotations describe completed combat; visible activations must respect the live clock.
+    if (at < runtime.time && request.log) throw new RangeError('Visible announcements cannot backdate the live clock.');
+    const event = assertSimulationEvent({
+      ...(request.cast ? { activationId: request.cast.activationId, offTarget: request.cast.offTarget } : {}),
+      ...request.attribution,
+      source: request.attribution?.source ?? announcement.type,
+      sourceId: request.attribution?.sourceId ?? announcement.name,
+      actorType: request.attribution?.actorType ?? 'effect',
+      type: 'proc',
+      procType: announcement.type,
+      name: announcement.name,
+      at,
+      sourceSkill: announcement.sourceSkill,
+      detail: announcement.detail,
+      icon: announcement.icon,
+      cooldownReduction: announcement.cooldownReduction ?? undefined,
+      eventOrder: --announcementOrder,
+      causalOrder: request.cause?.causalOrder ?? queue.currentCausalOrder ?? eventOrder,
+      ...((request.cause?.eventOrder ?? reactionParent({ type: 'proc', ...request.attribution })) != null
+        ? { parentEventOrder: request.cause?.eventOrder ?? reactionParent({ type: 'proc', ...request.attribution }) }
+        : {})
+    });
+    const cancelled = request.cast?.effectiveEnd != null && at > request.cast.effectiveEnd + EPSILON;
+    if (cancelled) return event;
+    // An owned activation at the current instant must remain cancellable until its heap turn.
+    if (at < runtime.time || (at === runtime.time && !request.owner)) publishAnnouncement(request, event);
+    else
+      enqueueWork(
+        makeWork({
+          type: 'runtime.announcement',
+          at,
+          priority: request.priority ?? 0,
+          owner: request.owner,
+          payload: { request, event }
+        })
+      );
+    return event;
+  }
+
+  function publishAnnouncement(request: AnnouncementEmission, event: Gw2ResolverEvent): void {
+    const info = request.announcement;
+    recordProcStep(runtime, info);
+    if (request.log && runtime.reporting) executed.push(event);
+  }
+
   const base = createGw2ResolverRuntimeState({
     config,
     traits: normalizeSelectedTraitIds(config.selectedTraitIds),
@@ -321,12 +483,27 @@ export function runGw2Runtime<T extends object>({
     horizon: policy.kind === 'absolute' ? canonicalTime(policy.endTimeMs / 1000) : null,
     query,
     queue,
+    effects,
     professionState: profession.createState(config),
     helpers: { conditionName: canonicalTargetConditionName, ...profession.catalog },
-    applyCondition: conditions.applyCondition,
     onFirstDamage: conditions.startDamageClock,
     reactions
   });
+  function applyConditionNow(event: SimulationEventBase) {
+    // Immediate derived applications obey the same live clock and target gates as queued applications.
+    if (canonicalTime(event.at) !== runtime.time)
+      throw new RangeError('Immediate conditions must apply at the live clock.');
+    if (
+      ('offTarget' in event && event.offTarget === true) ||
+      runtime.deathTime != null ||
+      runtime.combatStartPending ||
+      (runtime.combatStartTime != null && runtime.time < runtime.combatStartTime)
+    )
+      return [];
+    // Immediate applications never pass through the queue, so they take their identity here.
+    return conditions.applyCondition(runtime, identify(event));
+  }
+
   const clocks = { time: 0, cooldowns: new Map(), rechargeProgress: new Map(), ammo: new Map() };
   // Controller closures follow the one runtime clock; the initializer object is not retained as separate state.
   const cooldownController = createCooldownController({
@@ -352,67 +529,6 @@ export function runGw2Runtime<T extends object>({
     hasExplicitCombatStart: explicitCombat,
     combatStartTime: combatStartTime == null ? null : canonicalTime(combatStartTime),
     combatStartPending: markers.length > 0 || (combatStartTime != null && combatStartTime > 0),
-    applyCondition(event: Gw2EventDraft) {
-      // Immediate derived applications obey the same live clock and target gates as queued applications.
-      if (canonicalTime(event.at) !== runtime.time)
-        throw new RangeError('Immediate conditions must apply at the live clock.');
-      if (
-        ('offTarget' in event && event.offTarget === true) ||
-        runtime.deathTime != null ||
-        runtime.combatStartPending ||
-        (runtime.combatStartTime != null && runtime.time < runtime.combatStartTime)
-      )
-        return [];
-      // Immediate applications never pass through the queue, so they take their identity here.
-      return conditions.applyCondition(runtime, identify(event));
-    },
-    emitDerived(cause: Gw2ResolverEvent, event: SimulationEventBase) {
-      event = withoutInheritedReaction(event, cause);
-      return runtime.emit({
-        // Causality orders a proc beside its trigger; its independent activation owns a separate weapon-strength roll.
-        activationId:
-          event.type === 'damage' && (event.sourceId !== cause.sourceId || event.actorType !== cause.actorType)
-            ? `effect:derived:${eventOrder + 1}`
-            : cause.activationId,
-        causalOrder: cause.causalOrder ?? cause.eventOrder,
-        parentEventOrder: cause.eventOrder,
-        ...event
-      });
-    },
-    emitProcedural(event: SimulationEventBase, options: ProceduralEmissionOptions = {}) {
-      const at = canonicalTime(event.at);
-      const { cause } = options;
-      event = withoutInheritedReaction(event, cause);
-      // A future buff waits for its own instant so its duration samples live stats there; a future owner-bound packet
-      // waits so retiring the owner cancels it. The work inherits the current causal placement, like any other task,
-      // and records its cause now because no event is being handled when the deferred packet is finally emitted.
-      if (at > runtime.time && (event.type === 'buff' || options.owner)) {
-        const parent = cause?.eventOrder ?? reactionParent(event);
-        enqueueWork(
-          makeWork({
-            type: 'runtime.procedural',
-            at,
-            priority: options.priority ?? 0,
-            owner: options.owner,
-            payload: {
-              event: {
-                ...(cause
-                  ? { activationId: cause.activationId, causalOrder: cause.causalOrder ?? cause.eventOrder }
-                  : {}),
-                ...(parent == null ? {} : { parentEventOrder: parent }),
-                ...event,
-                at
-              },
-              ...(options.fixedDuration == null ? {} : { fixedDuration: options.fixedDuration })
-            }
-          })
-        );
-        return null;
-      }
-
-      const packet = event.type === 'buff' ? scaleProceduralBuff(event, options) : event;
-      return cause ? runtime.emitDerived(cause, packet) : runtime.emit(packet);
-    },
     armFlip(
       skillId: SkillId,
       {
@@ -445,43 +561,6 @@ export function runGw2Runtime<T extends object>({
       if (runtime.combatStartPending || runtime.cursor.command?.type === 'combat-start') return false;
       return runtime.combatStartTime != null && at + EPSILON >= runtime.combatStartTime;
     },
-    emit(event: SimulationEventBase) {
-      const prepared = profession.prepareEvent ? profession.prepareEvent(runtime, event) : event;
-      event = prepareGw2ComboEvent(prepared ?? event);
-      if (event.kind === 'internal') throw new TypeError('Internal work must use the work factory.');
-      const order = ++eventOrder;
-      const parent = reactionParent(event);
-      // An equipped-weapon strike scales from the weapon wielded when it is emitted, so a delayed packet cannot
-      // observe a later swap and the resolver never falls back to the skill's nonweapon profile.
-      const equippedProfileId =
-        event.weaponStrengthSource === 'equipped' &&
-        event.weaponStrengthProfileId == null &&
-        event.weaponStrength == null
-          ? weaponStrengthProfileIdForEvent(event, {
-              skill: profession.catalog.skillsById.get(event.skillId ?? event.sourceId) ?? null,
-              state: runtime as unknown as Record<string, unknown>,
-              config
-            })
-          : null;
-      const packet = normalizeBoonDuration(
-        assertSimulationEvent({
-          ...event,
-          ...(equippedProfileId ? { weaponStrengthProfileId: equippedProfileId } : {}),
-          at: canonicalTime(event.at),
-          eventOrder: order,
-          causalOrder: event.causalOrder ?? queue.currentCausalOrder ?? order,
-          ...(event.parentEventOrder == null && parent != null ? { parentEventOrder: parent } : {})
-        })
-      );
-      if (packet.at < runtime.time) throw new RangeError('Events cannot backdate the live clock.');
-      if (!handlers.has(packet.type)) throw new TypeError(`No event handler registered for ${packet.type}.`);
-      // Retain only the earliest owned packet boundary for cast commitment; target acceptance does not control chain progression.
-      const cast = packet.activationId == null ? undefined : reservations.get(packet.activationId);
-      if (cast && packet.type === 'damage' && packet.actorType === 'player' && packet.skillId === cast.skill.id)
-        cast.firstStrikeAt = Math.min(cast.firstStrikeAt, packet.at);
-      // Deferred actor actions retain their causal identity without publishing a future activation that may be canceled.
-      return prepared === null ? packet : queue.enqueue(packet);
-    },
     schedule(name: string, at: number, data: unknown = null, owner?: { id: string; generation: number }, priority = 0) {
       if (!profession.tasks?.[name]) throw new TypeError(`No task handler registered for ${name}.`);
       enqueueWork(makeWork({ type: 'runtime.task', at, priority, payload: { name, data }, owner }));
@@ -511,9 +590,10 @@ export function runGw2Runtime<T extends object>({
     cancelOwner(owner: { id: string; generation: number }) {
       queue.cancelWhere(
         (event) =>
-          event.kind === 'internal' &&
-          (event.owner as RuntimeWork['owner'])?.id === owner.id &&
-          (event.owner as RuntimeWork['owner'])?.generation === owner.generation
+          (event.kind === 'internal' ? (event.owner as RuntimeWork['owner']) : packetDelivery.get(event)?.owner)?.id ===
+            owner.id &&
+          (event.kind === 'internal' ? (event.owner as RuntimeWork['owner']) : packetDelivery.get(event)?.owner)
+            ?.generation === owner.generation
       );
     }
     // Services bind to this identity immediately below, before any initialization hook can observe it.
@@ -522,11 +602,16 @@ export function runGw2Runtime<T extends object>({
     .registerAll(
       createGw2ResolverEventHandlers({
         hitResolution: createGw2HitResolution({ strikeMultiplier: relicStrikeMultiplier }),
-        conditions,
+        conditions: { ...conditions, applyCondition: (_context, event) => applyConditionNow(event) },
         reactions
       })
     )
     .registerAll({
+      action_update(_context, update) {
+        // Lifetime changes update the executed action, never a mutable reference to a pending packet.
+        const action = executed.find((event) => event.type === 'action' && event.activationId === update.activationId);
+        if (action) Object.assign(action, { endsAt: update.endsAt, interrupted: update.interrupted });
+      },
       'relic.activate'(context, event) {
         // Delayed relic activations own their state only when this queue packet executes.
         for (const relic of [context.relic, ...(context.precastRelics ?? [])])
@@ -543,27 +628,10 @@ export function runGw2Runtime<T extends object>({
     if (currentCause) workCauses.set(queued, currentCause);
   }
 
-  internal.register('runtime.effect', (_context, work) => {
-    if (work.type !== 'runtime.effect') return;
-    const event = assertSimulationEvent(work.payload.event);
-    // Duration snapshots belong to application time, after earlier same-time state changes.
-    runtime.emit({
-      ...event,
-      duration: gw2ResolverBoonDuration(runtime, event, String(event.kind), event.duration ?? 0)
-    });
+  internal.register('runtime.announcement', (_context, work) => {
+    if (work.type === 'runtime.announcement')
+      publishAnnouncement(work.payload.request, assertSimulationEvent(work.payload.event));
   });
-  /** Standard boons scale with boon duration at their application instant; other buffs keep their authored duration. */
-  function scaleProceduralBuff(
-    event: SimulationEventBase,
-    { fixedDuration }: Pick<ProceduralEmissionOptions, 'fixedDuration'>
-  ): SimulationEventBase {
-    const kind = event.kind ?? '';
-    const duration =
-      !(fixedDuration ?? event.fixedDuration === true) && isStandardBoon(kind)
-        ? gw2ResolverBoonDuration(runtime, event as Gw2ResolverEvent, kind, Number(event.duration))
-        : event.duration;
-    return duration === event.duration ? event : { ...event, duration };
-  }
 
   /** Authored skill tasks become live work at their deadlines; cast-scaled offsets follow the reserved duration. */
   function scheduleSkillTasks(cast: RuntimeCast): void {
@@ -596,10 +664,6 @@ export function runGw2Runtime<T extends object>({
     if (work.type === 'runtime.flip-expiry')
       expireSkillFlip(flipWindows(), work.payload.skillId, runtime.time, work.payload.identity);
   });
-  internal.register('runtime.procedural', (_context, work) => {
-    // The deferred packet applies at the live clock now; its cause attribution already travels on the event.
-    if (work.type === 'runtime.procedural') runtime.emitProcedural(work.payload.event, work.payload);
-  });
   internal.register('runtime.task', (_context, work) => {
     if (work.type === 'runtime.task') profession.tasks![work.payload.name](runtime, work.payload.data);
   });
@@ -619,16 +683,19 @@ export function runGw2Runtime<T extends object>({
     if (cast.skill.inputCategory === 'weapon-swap' && !castWasInterrupted(cast)) {
       runtime.activeWeaponSet = runtime.activeWeaponSet === 1 ? 2 : 1;
       resetAutoattackChains(runtime);
-      runtime.emit({
-        type: 'weapon_set',
-        at: runtime.time,
-        source: profession.id,
-        sourceId: cast.skill.id,
-        actorType: 'player',
-        skillId: cast.skill.id,
-        skillName: cast.skill.name,
-        activationId: cast.id,
-        weaponSet: runtime.activeWeaponSet
+      runtime.effects.emit({
+        kind: 'packet',
+        event: {
+          type: 'weapon_set',
+          at: runtime.time,
+          source: profession.id,
+          sourceId: cast.skill.id,
+          actorType: 'player',
+          skillId: cast.skill.id,
+          skillName: cast.skill.name,
+          activationId: cast.id,
+          weaponSet: runtime.activeWeaponSet
+        }
       });
       lockTransitionInput(runtime, 'weaponSwapMs', cast.skill);
     }
@@ -704,13 +771,13 @@ export function runGw2Runtime<T extends object>({
     });
     for (const relic of [runtime.relic, ...runtime.precastRelics]) relic.state.combatMarker = marker;
     // An inherited marker is also an executed boundary, so timed profession producers see the same start as rotation markers.
-    runtime.emit(marker);
+    runtime.effects.emit({ kind: 'packet', event: marker });
   }
 
   conditions.initializeEnvironment(runtime);
   // A configured permanent field is an initial executed fact, available to the first eligible finisher.
   const assumedField = permanentComboFieldAssumption(config, profession.id, runtime.time);
-  if (assumedField) runtime.emit(assumedField);
+  if (assumedField) runtime.effects.emit({ kind: 'packet', event: assumedField });
   profession.initialize?.(runtime);
 
   function reject(reason: string): void {
@@ -829,23 +896,26 @@ export function runGw2Runtime<T extends object>({
       throw new RangeError('Reserved recharge work must be finite and non-negative.');
     // Select fields from current acceptance state once; their registrations still execute on the common queue.
     const comboFields = profession.modifyComboFields?.(runtime, cast, skill.comboFields) ?? skill.comboFields;
-    const action = runtime.emit({
-      ...attribution,
-      type: 'action',
-      at: start,
-      name: skill.name,
-      skillType: skill.type,
-      offTarget: command.offTarget,
-      interrupted,
-      evades: skill.evades,
-      fullEndsAt: fullEnd,
-      endsAt: effectiveEnd,
-      // Queued mechanic windows can extend through a retained animation lockout, independently of packet completion.
-      castLockoutEndsAt: laneEnd,
-      rechargeProgress: { startedAt: cast.rechargeStart, work: cast.rechargeWork },
-      ...(detail == null ? {} : { detail }),
-      ...(comboFields ? { comboFields } : {}),
-      cancelled
+    const action = runtime.effects.emit({
+      kind: 'packet',
+      event: {
+        ...attribution,
+        type: 'action',
+        at: start,
+        name: skill.name,
+        skillType: skill.type,
+        offTarget: command.offTarget,
+        interrupted,
+        evades: skill.evades,
+        fullEndsAt: fullEnd,
+        endsAt: effectiveEnd,
+        // Queued mechanic windows can extend through a retained animation lockout, independently of packet completion.
+        castLockoutEndsAt: laneEnd,
+        rechargeProgress: { startedAt: cast.rechargeStart, work: cast.rechargeWork },
+        ...(detail == null ? {} : { detail }),
+        ...(comboFields ? { comboFields } : {}),
+        cancelled
+      }
     });
     castActions.set(cast.id, action);
     // Acceptance work runs for the cast: its own packets keep their activation, other effects become its reactions.
@@ -884,13 +954,13 @@ export function runGw2Runtime<T extends object>({
       const perPacket = skill.interruptMode === 'per-packet';
       if (interrupted && !perPacket && cancelledBeforeEffectCommit(skill, effect, start, fullEnd, effectiveEnd))
         continue;
-      for (const application of materializeSkillEffectApplications({
-        skill,
-        effect: scaleCastBoundTiming(cast, skill, effect),
-        reactionGroup: effectReactions.register(skill, effect),
-        start,
+      runtime.effects.emit({
+        kind: 'profile',
+        profile: skill,
+        effects: [scaleCastBoundTiming(cast, skill, effect)],
+        at: start,
         fullEnd,
-        baseEvent: {
+        attribution: {
           ...attribution,
           source: effect.source || profession.id,
           sourceId: effect.sourceId ?? skill.id,
@@ -898,34 +968,20 @@ export function runGw2Runtime<T extends object>({
           // Derived effects retain the declared gameplay owner independently of their display actor.
           ...(effect.ownerActorType ? { ownerActorType: effect.ownerActorType } : {})
         },
-        skillWeaponFallback: ['Heal', 'Utility', 'Elite'].includes(skill.type ?? '') ? 'Unequipped' : ''
-      })) {
-        // Compare on the same clock as the reservation; raw addition can place an equal-time impact just beyond it.
-        if (
-          interrupted &&
-          (perPacket || !effect.persistsAfterInterrupt) &&
-          canonicalTime(application.at) > effectiveEnd
-        )
-          continue;
-        const event = application.event;
-        const packet = {
-          ...event,
-          at: event.at + (isHostileTargetEvent(event) ? (command.impactDelayMs ?? 0) / 1000 : 0),
-          offTarget: command.offTarget
-        };
-        if (event.type === 'buff' && effect.fixedDuration !== true)
-          enqueueWork(
-            makeWork({
-              type: 'runtime.effect',
-              at: packet.at,
-              priority: 0,
-              payload: { event: packet },
-              activationId: cast.id,
-              causalOrder: action.eventOrder
-            })
-          );
-        else runtime.emit(packet);
-      }
+        skillWeaponFallback: ['Heal', 'Utility', 'Elite'].includes(skill.type ?? '') ? 'Unequipped' : '',
+        transform(event) {
+          // Compare on the same clock as the reservation; raw addition can place an equal-time impact just beyond it.
+          if (interrupted && (perPacket || !effect.persistsAfterInterrupt) && canonicalTime(event.at) > effectiveEnd)
+            return null;
+          return {
+            ...event,
+            at: event.at + (isHostileTargetEvent(event) ? (command.impactDelayMs ?? 0) / 1000 : 0),
+            offTarget: command.offTarget,
+            // Authored boons settle before sibling impacts, preserving the owning activation's queue position.
+            ...(event.type === 'buff' ? { causalOrder: action.eventOrder } : {})
+          };
+        }
+      });
     }
   }
 
@@ -941,6 +997,52 @@ export function runGw2Runtime<T extends object>({
   }
 
   function dispatchEvent(event: Gw2ResolverEvent): void {
+    if (pendingPreparation.has(event)) {
+      pendingPreparation.delete(event);
+      const reserved = event;
+      const prepared = profession.prepareEvent ? profession.prepareEvent(runtime, event) : event;
+      if (prepared === null) return;
+      const equippedProfileId =
+        prepared.weaponStrengthSource === 'equipped' &&
+        prepared.weaponStrengthProfileId == null &&
+        prepared.weaponStrength == null
+          ? weaponStrengthProfileIdForEvent(prepared, {
+              skill: profession.catalog.skillsById.get(prepared.skillId ?? prepared.sourceId) ?? null,
+              state: runtime as unknown as Record<string, unknown>,
+              config
+            })
+          : null;
+      // Preparation cannot reserve another queue position or detach the packet from its original cause.
+      event = assertSimulationEvent({
+        ...prepareGw2ComboEvent(prepared),
+        ...(equippedProfileId ? { weaponStrengthProfileId: equippedProfileId } : {}),
+        eventOrder: reserved.eventOrder,
+        causalOrder: reserved.causalOrder
+      });
+      const delivery = packetDelivery.get(reserved);
+      if (delivery) packetDelivery.set(event, delivery);
+    }
+
+    // Every boon samples live modifiers exactly once at application, retaining its reserved queue position.
+    const delivery = packetDelivery.get(event);
+    if (event.type === 'buff' && isStandardBoon(event.kind ?? '')) {
+      const baseDuration = event.duration ?? 0;
+      const scaledDuration = gw2ResolverBoonDuration(
+        runtime,
+        delivery?.durationContext ? { ...delivery.durationContext, at: event.at } : event,
+        event.kind ?? '',
+        baseDuration,
+        { fixedDuration: event.fixedDuration === true }
+      );
+      event = {
+        ...event,
+        duration:
+          event.fixedDuration === true
+            ? scaledDuration
+            : (profession.boonDuration?.(runtime, event, baseDuration, scaledDuration) ?? scaledDuration)
+      };
+    }
+
     event = normalizeBoonDuration(event);
     // Inherited combat boundaries remain pending until their queued marker actually executes.
     if (event.type === 'combat_start') runtime.combatStartPending = false;
@@ -1001,21 +1103,22 @@ export function runGw2Runtime<T extends object>({
       invokeRelicHook(runtime, 'emitConditionEffects', event);
     // Proc rows keep recharge reductions for timeline badges and timed procs keep their deadline.
     if (event.type === 'proc')
-      runtime.recordProc(
-        event.procType ?? 'skill',
-        event.name ?? '',
-        event.at,
-        event.sourceSkill,
-        event.detail,
-        event.icon,
-        event.cooldownReduction,
-        Number(event.duration) > 0 ? event.at + Number(event.duration) : null
-      );
+      recordProcStep(runtime, {
+        type: event.procType ?? 'skill',
+        name: event.name ?? '',
+        at: event.at,
+        sourceSkill: event.sourceSkill,
+        detail: event.detail,
+        icon: event.icon,
+        cooldownReduction: event.cooldownReduction,
+        expiresAt: Number(event.duration) > 0 ? event.at + Number(event.duration) : null
+      });
     if (event.type === 'weapon_set' || event.type === 'sigil_swap') applyRuntimeSigils(runtime, 'swap', event);
     if (['action', 'cooldown_snapshot', 'weapon_set', 'buff', 'boon_extension', 'marker'].includes(event.type))
       history.push(event);
     if (!preparedCombos.has(event)) produceRuntimeCombos(runtime, profession.catalog, event);
-    if (runtime.reporting && !['condition_buffer', 'condition_tick'].includes(event.type)) executed.push(event);
+    if (runtime.reporting && !['condition_buffer', 'condition_tick', 'action_update'].includes(event.type))
+      executed.push(event);
     if (runtime.deathTime == null && targetHealthLoss(config, runtime) >= targetHealth) {
       runtime.deathTime = event.at;
       lethalActivation = event.activationId;
@@ -1095,12 +1198,15 @@ export function runGw2Runtime<T extends object>({
             });
           runtime.combatStartPending = false;
           runtime.combatStartTime = runtime.time;
-          runtime.emit({
-            type: 'combat_start',
-            at: runtime.time,
-            source: 'Runtime',
-            sourceId: 'combat-start',
-            actorType: 'environment'
+          runtime.effects.emit({
+            kind: 'packet',
+            event: {
+              type: 'combat_start',
+              at: runtime.time,
+              source: 'Runtime',
+              sourceId: 'combat-start',
+              actorType: 'environment'
+            }
           });
           cursor.consume();
           continue;
@@ -1120,14 +1226,17 @@ export function runGw2Runtime<T extends object>({
           runtime.lockouts.clear();
           profession.onCooldownReset?.(runtime);
           // Publish the accepted reset after its resource and recharge transitions.
-          runtime.emit({
-            type: 'marker',
-            at: runtime.time,
-            source: 'platform',
-            sourceId: 'cooldown-reset',
-            actorType: 'environment',
-            action: 'cooldown-reset',
-            name: 'Cooldown Reset'
+          runtime.effects.emit({
+            kind: 'packet',
+            event: {
+              type: 'marker',
+              at: runtime.time,
+              source: 'platform',
+              sourceId: 'cooldown-reset',
+              actorType: 'environment',
+              action: 'cooldown-reset',
+              name: 'Cooldown Reset'
+            }
           });
           cursor.consume();
           continue;

@@ -45,16 +45,19 @@ export function recordTimedBuffProc(
   state.buffUntil = Math.max(state.buffUntil || 0, gw2EffectExpiresAt(event.at, duration));
   // Preserve the authoritative effect deadline so the timeline can distinguish
   // a true expiry from a refresh that keeps the same relic window active.
-  ctx.recordProc(
-    'relic',
-    name,
-    event.at,
-    event.skillName,
-    detail ?? (wasActive ? 'refreshed' : 'activated'),
-    '',
-    null,
-    state.buffUntil
-  );
+  ctx.effects.emit({
+    kind: 'announcement',
+    announcement: {
+      type: 'relic',
+      name: name,
+      at: event.at,
+      sourceSkill: event.skillName,
+      detail: detail ?? (wasActive ? 'refreshed' : 'activated'),
+      icon: '',
+      cooldownReduction: null,
+      expiresAt: state.buffUntil
+    }
+  });
 }
 
 /**
@@ -82,22 +85,37 @@ export function skillUseStrikeRelic(skillType: 'Heal' | 'Elite'): Readonly<Gw2Re
   function activate(ctx: Gw2RelicContext, state: Gw2RelicState, event: SimulationEvent) {
     const at = event.at;
     (state.activationTimes as number[]).push(at);
-    ctx.recordProc('relic', name, at, event.skillName, 'activated', '', null, at + 6);
+    ctx.effects.emit({
+      kind: 'announcement',
+      announcement: {
+        type: 'relic',
+        name: name,
+        at: at,
+        sourceSkill: event.skillName,
+        detail: 'activated',
+        icon: '',
+        cooldownReduction: null,
+        expiresAt: at + 6
+      }
+    });
     if (director) {
-      ctx.queue.enqueue({
-        type: 'condition',
-        at,
-        source: 'Relic',
-        sourceId: `relic.${RELIC_IDS.DIRECTOR}`,
-        actorType: 'effect',
-        ownerActorType: 'player',
-        skillName: name,
-        name,
-        triggeredBy: event.skillName,
-        offTarget: Boolean(event.offTarget),
-        condition: 'Vulnerability',
-        stacks: 8,
-        duration: 8
+      ctx.effects.emit({
+        kind: 'packet',
+        event: {
+          type: 'condition',
+          at,
+          source: 'Relic',
+          sourceId: `relic.${RELIC_IDS.DIRECTOR}`,
+          actorType: 'effect',
+          ownerActorType: 'player',
+          skillName: name,
+          name,
+          triggeredBy: event.skillName,
+          offTarget: Boolean(event.offTarget),
+          condition: 'Vulnerability',
+          stacks: 8,
+          duration: 8
+        }
       });
     }
   }
@@ -117,7 +135,10 @@ export function skillUseStrikeRelic(skillType: 'Heal' | 'Elite'): Readonly<Gw2Re
         return;
       if (!isInternalCooldownReady(event.at, state.readyAt)) return;
       state.readyAt = event.at + (director ? 15 : 30);
-      ctx.queue.enqueue({ ...event, type: 'relic.activate', sourceId: relicId, at: event.at + (director ? 0 : 1) });
+      ctx.effects.emit({
+        kind: 'packet',
+        event: { ...event, type: 'relic.activate', sourceId: relicId, at: event.at + (director ? 0 : 1) }
+      });
     },
     strikeMultiplier(ctx, state, event) {
       const active = (state.activationTimes as number[]).some((at) => at <= event.at && event.at < at + 6);

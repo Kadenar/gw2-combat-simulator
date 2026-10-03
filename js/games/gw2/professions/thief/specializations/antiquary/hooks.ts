@@ -11,7 +11,7 @@ import type { SkillId } from '#gw2/platform/engine/skills/types.js';
 import type { AvailabilityResult } from '#gw2/platform/execution/types.js';
 import type { RuntimeCast, RuntimeProfession } from '#gw2/platform/simulation/runtime-state.js';
 import type { ThiefRuntime } from '#gw2/professions/thief/core/events.js';
-import { emitThiefCondition, emitThiefDamage } from '#gw2/professions/thief/core/events.js';
+import { buildThiefCondition, buildThiefStrikes } from '#gw2/professions/thief/core/events.js';
 import { grantThiefInitiative } from '#gw2/professions/thief/core/mechanics/resources.js';
 import {
   applyKleptomaniac,
@@ -113,7 +113,7 @@ function forgedSurfer(runtime: ThiefRuntime, data: unknown): void {
   const burning = requireEffect(profile, 'condition', packet);
   const name = occurrence === 0 ? 'Forged Surfer Dash' : 'Forged Surfer Dash — Bomb';
   if (strike)
-    emitThiefDamage(runtime, null, {
+    buildThiefStrikes(null, {
       at: runtime.time,
       sourceId: skillId,
       skillId,
@@ -121,16 +121,19 @@ function forgedSurfer(runtime: ThiefRuntime, data: unknown): void {
       name,
       coefficient: effectNumber(profile, strike, 'coefficient'),
       hits: effectNumber(profile, strike, 'hits')
-    });
+    }).forEach((packet) => runtime.effects.emit({ kind: 'packet', event: packet }));
   if (burning)
-    emitThiefCondition(runtime, null, {
-      at: runtime.time,
-      skillId,
-      skillName: 'Forged Surfer Dash',
-      name: `${name} — Burning`,
-      condition: String(burning.condition),
-      stacks: effectNumber(profile, burning, 'stacks'),
-      duration: effectNumber(profile, burning, 'duration')
+    runtime.effects.emit({
+      kind: 'packet',
+      event: buildThiefCondition(null, {
+        at: runtime.time,
+        skillId,
+        skillName: 'Forged Surfer Dash',
+        name: `${name} — Burning`,
+        condition: String(burning.condition),
+        stacks: effectNumber(profile, burning, 'stacks'),
+        duration: effectNumber(profile, burning, 'duration')
+      })
     });
   if (occurrence + 1 < count)
     runtime.schedule(

@@ -8,11 +8,11 @@ import { triggerRendingShatter } from '#gw2/professions/mesmer/core/traits/domin
 
 /** Preserve Maim before Illusionary Membrane after shared shatter materialization. */
 export function triggerMesmerPostShatterTraits(
-  context: Readonly<Pick<MesmerMechanics, 'context' | 'addEvent' | 'addCondition' | 'addTraitProc'>>,
+  context: Readonly<Pick<MesmerMechanics, 'context'>>,
   shatter: MesmerShatter | undefined,
   resolution: MesmerShatterResolution
 ): void {
   triggerMaimTheDisillusioned(context, resolution);
   triggerRendingShatter(context.context, resolution);
-  triggerIllusionaryMembrane(context, shatter, resolution.skill.name, resolution.at);
+  triggerIllusionaryMembrane(context, shatter, resolution.skill.name, resolution.at, resolution.delivery);
 }

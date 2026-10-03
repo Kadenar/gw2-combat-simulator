@@ -1,3 +1,4 @@
+import type { EffectDelivery } from '#gw2/platform/simulation/effect-emission.js';
 import type { MesmerActivePrimaryWeapon } from '#gw2/professions/mesmer/types.js';
 import type {
   MesmerPhantasmEffectController,
@@ -9,7 +10,13 @@ import type { MesmerResourceDefinition } from '#gw2/professions/mesmer/core/mech
 import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
 
 interface MesmerIllusionResourceController {
-  schedule(skill: MesmerSkill, at: number, castStart: number, phantasms: readonly MesmerPhantasmExecution[]): void;
+  schedule(
+    skill: MesmerSkill,
+    at: number,
+    castStart: number,
+    phantasms: readonly MesmerPhantasmExecution[],
+    delivery?: EffectDelivery
+  ): void;
 }
 
 interface IllusionResourceControllerOptions {
@@ -33,14 +40,22 @@ export function createIllusionResourceController({
     skill: MesmerSkill,
     at: number,
     castStart: number,
-    phantasmExecutions: readonly MesmerPhantasmExecution[]
+    phantasmExecutions: readonly MesmerPhantasmExecution[],
+    delivery: EffectDelivery = {}
   ): void => {
     if (skill.resource?.mode === 'fill') {
       // Resource tasks run after the completion task; a synthetic delay would hide the gain from the next cast.
-      queueResources(at, resourceDefinition.maximum, skill.weapon || activePrimaryWeapon(), skill.name, {
-        kind: 'skill',
-        sourceSkillId: skill.id
-      });
+      queueResources(
+        at,
+        resourceDefinition.maximum,
+        skill.weapon || activePrimaryWeapon(),
+        skill.name,
+        {
+          kind: 'skill',
+          sourceSkillId: skill.id
+        },
+        delivery
+      );
       return;
     }
 
@@ -49,10 +64,17 @@ export function createIllusionResourceController({
         skill.resource.timingAnchor === 'castStart'
           ? castStart + (skill.resource.atMs || 0) / 1000
           : at + (skill.resource.atMs || 0) / 1000;
-      queueResources(resourceAt, skill.resource.count || 0, skill.weapon || activePrimaryWeapon(), skill.name, {
-        kind: 'skill',
-        sourceSkillId: skill.id
-      });
+      queueResources(
+        resourceAt,
+        skill.resource.count || 0,
+        skill.weapon || activePrimaryWeapon(),
+        skill.name,
+        {
+          kind: 'skill',
+          sourceSkillId: skill.id
+        },
+        delivery
+      );
       return;
     }
 

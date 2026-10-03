@@ -17,12 +17,26 @@ export function createSigilRuntimeState(): Gw2SigilRuntimeState {
 function consumeRuntimeDoom(runtime: Gw2Runtime, event: Gw2ResolverEvent): void {
   if (!runtime.sigil.doomPending || !isGw2PlayerActorEvent(event) || !(Number(event.coefficient) > 0)) return;
   runtime.sigil.doomPending = false;
-  runtime.emitDerived(event, {
-    ...createSigilConditionEvent(SIGIL_IDS.DOOM, procs[SIGIL_IDS.DOOM], event.skillName || ''),
-    at: event.at
+  runtime.effects.emit({
+    kind: 'packet',
+    cause: event,
+    event: {
+      ...createSigilConditionEvent(SIGIL_IDS.DOOM, procs[SIGIL_IDS.DOOM], event.skillName || ''),
+      at: event.at
+    }
   });
   // The delayed proc carries Doom's artwork so every view displays the sigil's icon.
-  runtime.recordProc('sigil', 'Sigil of Doom', event.at, event.skillName, '', procs[SIGIL_IDS.DOOM].icon);
+  runtime.effects.emit({
+    kind: 'announcement',
+    announcement: {
+      type: 'sigil',
+      name: 'Sigil of Doom',
+      at: event.at,
+      sourceSkill: event.skillName,
+      detail: '',
+      icon: procs[SIGIL_IDS.DOOM].icon
+    }
+  });
 }
 
 /** Accepted strikes consume armed sigils before triggering ordinary strike procs. */
@@ -55,21 +69,43 @@ export function applyRuntimeSigils(
     }
 
     if (proc.effect === 'strike' || proc.effect === 'strike-condition')
-      runtime.emitDerived(event, { ...createSigilStrikeEvent(id, proc, sourceSkill), at: event.at });
+      runtime.effects.emit({
+        kind: 'packet',
+        cause: event,
+        event: { ...createSigilStrikeEvent(id, proc, sourceSkill), at: event.at }
+      });
     if (proc.effect === 'condition' || (proc.effect === 'strike-condition' && proc.condition))
-      runtime.emitDerived(event, { ...createSigilConditionEvent(id, proc, sourceSkill), at: event.at });
+      runtime.effects.emit({
+        kind: 'packet',
+        cause: event,
+        event: { ...createSigilConditionEvent(id, proc, sourceSkill), at: event.at }
+      });
     if (proc.effect === 'endurance') runtime.endurance.grant(proc.amount ?? 0);
     if (proc.effect === 'severance')
-      runtime.emitDerived(event, {
-        type: 'buff',
-        at: event.at,
-        kind: 'sigil-severance',
-        stacks: 1,
-        duration: proc.duration,
-        source: 'Sigil',
-        sourceId: `sigil.${SIGIL_IDS.SEVERANCE}`,
-        actorType: 'effect'
+      runtime.effects.emit({
+        kind: 'packet',
+        cause: event,
+        event: {
+          type: 'buff',
+          at: event.at,
+          kind: 'sigil-severance',
+          stacks: 1,
+          duration: proc.duration,
+          source: 'Sigil',
+          sourceId: `sigil.${SIGIL_IDS.SEVERANCE}`,
+          actorType: 'effect'
+        }
       });
-    runtime.recordProc('sigil', `Sigil of ${SIGIL_BY_ID[id].name}`, event.at, sourceSkill, '', proc.icon);
+    runtime.effects.emit({
+      kind: 'announcement',
+      announcement: {
+        type: 'sigil',
+        name: `Sigil of ${SIGIL_BY_ID[id].name}`,
+        at: event.at,
+        sourceSkill: sourceSkill,
+        detail: '',
+        icon: proc.icon
+      }
+    });
   }
 }

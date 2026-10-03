@@ -23,6 +23,7 @@ import { THIEF_SKILL_IDS as THIEF } from '#gw2/professions/thief/data/ids.js';
 import { thiefProfession } from '#gw2/professions/thief/profession.js';
 import { antiquaryResolverEventReactions } from '#gw2/professions/thief/specializations/antiquary/mechanics/artifact-effects.js';
 import { withSkill } from '#tests/helpers/catalog-overrides.js';
+import { captureEffectEmissions } from '#tests/helpers/effect-emission.js';
 import { projectObservedState } from '#tests/helpers/observed-runtime.js';
 import { runThief } from '#tests/helpers/thief-simulation.js';
 import assert from 'node:assert/strict';
@@ -33,11 +34,8 @@ function contextFor(profession, specialization, selectedTraitIds = []) {
   const config = { specialization, selectedTraitIds };
   const runtime = profession.resolveProfession(config);
   const state = runtime.createState(config);
-  const events = [];
-  const emit = (event) => {
-    events.push(event);
-    return event;
-  };
+  // Capture the real shared materialization boundary while keeping grant state transitions isolated.
+  const { effects, events } = captureEffectEmissions();
 
   return {
     config,
@@ -46,12 +44,8 @@ function contextFor(profession, specialization, selectedTraitIds = []) {
     helpers: runtime.catalog,
     state: { time: 0, profession: state, cooldowns: new Map() },
     events,
-    emit,
-    emitDerived: (_cause, event) => emit(event),
-    queue: { enqueue: emit },
-    applyCondition: emit,
+    effects,
     boons: new Map(),
-    recordProc() {},
     cooldownController: { reduceSkillRecharge() {} },
     start: 0,
     effectiveEnd: 1

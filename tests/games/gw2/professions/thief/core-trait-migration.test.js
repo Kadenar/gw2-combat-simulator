@@ -1,3 +1,5 @@
+import { createEffectEmissionService } from '#gw2/platform/simulation/effect-emission.js';
+import { applyBoonExtension } from '#gw2/platform/combat/boons.js';
 import { chartValueAt } from '#gw2/app/results/charts/time-series-model.js';
 import { buildChartSeries } from '#gw2/app/results/model.js';
 import { applyBalanceProfilePatch } from '#gw2/integrations/patches/authoring/patches.js';
@@ -37,8 +39,12 @@ test('Thief critical boons read pre-hit Fury with same-time ordering and expiry'
       {
         initialize(runtime) {
           const owner = { source: 'fixture', sourceId: 'strike', actorType: 'player' };
-          if (initialFury) runtime.emit({ ...owner, type: 'buff', at: 0, kind: 'fury', stacks: 1, duration: 2 });
-          for (const at of [1, 1, initialFury ? 8 : 7]) runtime.emit(thiefHit(at));
+          if (initialFury)
+            runtime.effects.emit({
+              kind: 'packet',
+              event: { ...owner, type: 'buff', at: 0, kind: 'fury', stacks: 1, duration: 2 }
+            });
+          for (const at of [1, 1, initialFury ? 8 : 7]) runtime.effects.emit({ kind: 'packet', event: thiefHit(at) });
         },
         extend: (native) => ({
           reactions: {
@@ -139,18 +145,32 @@ function traitContext(selectedTraitIds = [], config = {}) {
       furyActiveAt: () => true,
       targetHasCondition: () => true
     },
-    emit(event) {
-      events.push(event);
-      return event;
-    },
-    emitDerived(_cause, event) {
-      events.push(event);
-      return event;
-    },
-    applyCondition(event) {
+    settleCondition(event) {
       conditions.push(event);
       return event;
-    }
+    },
+    effects: createEffectEmissionService({
+      now: () => context.time,
+      registerReaction: () => undefined,
+      submit(event, delivery) {
+        if (delivery.settlement === 'reaction') {
+          if (event.type === 'boon_extension') {
+            applyBoonExtension(context.boons, event);
+            return event;
+          }
+
+          return context.settleCondition(event);
+        }
+
+        events.push(event);
+        return context.queue.enqueue(event);
+      },
+      announce(request) {
+        const event = { type: 'proc', ...request.attribution, ...request.announcement };
+        context.queue.enqueue(event);
+        return event;
+      }
+    })
   };
 
   return { context, core, events, conditions };
@@ -174,7 +194,7 @@ for (const [name, traitId, invoke, output] of [
     'Panic Strike',
     TRAIT.PANIC_STRIKE,
     (c) => reactThiefCoreDamage(c, { type: 'damage', at: c.effectiveEnd, actorType: 'player', coefficient: 1 }, {}),
-    'applyCondition'
+    'settleCondition'
   ]
 ]) {
   test(`${name} preserves eligibility, scoped claims, strict boundaries and zero overrides`, () => {
@@ -487,8 +507,8 @@ test('No Quarter extends active self Fury for each threshold proc', () => {
   assert.equal(context.queue.dequeue().sourceId, TRAIT.NO_QUARTER);
 });
 
-test('Thief critical proc batches reread patched effects and retain live boon scaling', () => {
-  // Each batch selects its canonical effect; Unrelenting Strikes samples concentration for each queued boon.
+test('Thief critical proc batches reread patched effects and leave duration sampling to dispatch', () => {
+  // Each batch selects its canonical effect; boon requests carry base durations and extensions settle immediately.
   for (const [id, reaction] of [
     [TRAIT.UNRELENTING_STRIKES, unrelentingStrikesCriticalReaction],
     [TRAIT.NO_QUARTER, noQuarterCriticalReaction]
@@ -503,8 +523,14 @@ test('Thief critical proc batches reread patched effects and retain live boon sc
       let statReads = 0;
       context.query.statsAt = () => ({ concentration: 1500 * statReads++ });
       reaction.handler(context, { at: 1, actorType: 'player', skillName: 'Test' }, {}, { quantity: 2 });
-      assert.equal(context.queue.dequeue().duration, duration);
-      assert.equal(context.queue.dequeue().duration, id === TRAIT.UNRELENTING_STRIKES ? duration * 2 : duration);
+      const packets = [context.queue.dequeue(), context.queue.dequeue()];
+      if (id === TRAIT.UNRELENTING_STRIKES)
+        assert.deepEqual(
+          packets.map((packet) => packet.duration),
+          [duration, duration]
+        );
+      else assert.ok(packets.every((packet) => packet.name === 'No Quarter - Fury Extension'));
+      assert.equal(statReads, 0);
       assert.equal(context.queue.length, 0);
       if (id === TRAIT.NO_QUARTER) {
         assert.equal(remainingDurationStackSeconds(context.boons.get('fury'), 1, { maximum: 30 }), 4 + 2 * duration);
@@ -550,16 +576,19 @@ test("Assassin's Fury queues Might from self Fury", () => {
     { selectedTraitIds: [TRAIT.ASSASSINS_FURY] },
     {
       initialize(runtime) {
-        runtime.emit({
-          type: 'buff',
-          at: 1,
-          kind: 'fury',
-          duration: 1,
-          stacks: 1,
-          source: 'fixture',
-          sourceId: 'fixture',
-          actorType: 'player',
-          skillName: 'Fury Test'
+        runtime.effects.emit({
+          kind: 'packet',
+          event: {
+            type: 'buff',
+            at: 1,
+            kind: 'fury',
+            duration: 1,
+            stacks: 1,
+            source: 'fixture',
+            sourceId: 'fixture',
+            actorType: 'player',
+            skillName: 'Fury Test'
+          }
         });
       }
     }
@@ -603,9 +632,15 @@ test('Shadow Siphoning uses eligible stealth hits, a strict profile ICD, and aut
             { coefficient: 0 },
             { skillId: ID.DOUBLE_STRIKE, skillName: 'Double Strike' }
           ])
-            runtime.emit(thiefHit(0.5, { skillId: stealth.id, skillName: stealth.name, ...fields }));
+            runtime.effects.emit({
+              kind: 'packet',
+              event: thiefHit(0.5, { skillId: stealth.id, skillName: stealth.name, ...fields })
+            });
           for (const at of [1, 1, 1 + internalCooldown, 3])
-            runtime.emit(thiefHit(at, { skillId: stealth.id, skillName: stealth.name }));
+            runtime.effects.emit({
+              kind: 'packet',
+              event: thiefHit(at, { skillId: stealth.id, skillName: stealth.name })
+            });
         }
       }
     );
@@ -653,16 +688,19 @@ test('Cloaked in Shadow emits its authored noncritical packet only for applied B
             : catalog,
         initialize(runtime) {
           for (const condition of ['Blindness', 'Poisoned'])
-            runtime.emit({
-              type: 'condition',
-              at: 1,
-              source: 'fixture',
-              sourceId: 'blind',
-              actorType: 'player',
-              skillName: 'Blind Test',
-              condition,
-              stacks: 1,
-              duration: 1
+            runtime.effects.emit({
+              kind: 'packet',
+              event: {
+                type: 'condition',
+                at: 1,
+                source: 'fixture',
+                sourceId: 'blind',
+                actorType: 'player',
+                skillName: 'Blind Test',
+                condition,
+                stacks: 1,
+                duration: 1
+              }
             });
         }
       }
@@ -743,27 +781,33 @@ test("Assassin's Fury preserves recipient gating, removed effects, and patched I
             initialize(runtime) {
               runtime.procs.readyAt.unrelated = 99;
               for (const at of [1, 1 + duration, 1 + duration + 0.001])
-                runtime.emit({
+                runtime.effects.emit({
+                  kind: 'packet',
+                  event: {
+                    type: 'buff',
+                    at,
+                    source: 'fixture',
+                    sourceId: 'fury',
+                    actorType: 'player',
+                    skillName: 'Fury Test',
+                    kind: 'fury',
+                    duration: 1,
+                    stacks: 1
+                  }
+                });
+              runtime.effects.emit({
+                kind: 'packet',
+                event: {
                   type: 'buff',
-                  at,
+                  at: 0.5,
                   source: 'fixture',
-                  sourceId: 'fury',
+                  sourceId: 'ally-fury',
                   actorType: 'player',
-                  skillName: 'Fury Test',
                   kind: 'fury',
                   duration: 1,
-                  stacks: 1
-                });
-              runtime.emit({
-                type: 'buff',
-                at: 0.5,
-                source: 'fixture',
-                sourceId: 'ally-fury',
-                actorType: 'player',
-                kind: 'fury',
-                duration: 1,
-                stacks: 1,
-                audience: { recipients: 'party', affectsSelf: false }
+                  stacks: 1,
+                  audience: { recipients: 'party', affectsSelf: false }
+                }
               });
             }
           }
@@ -797,8 +841,9 @@ test('Lead Attacks boosts canonical flat life steal independently of its display
           ['siphon', 'life-steal'],
           ['ordinary', 'strike']
         ])
-          runtime.emit(
-            thiefHit(1, {
+          runtime.effects.emit({
+            kind: 'packet',
+            event: thiefHit(1, {
               sourceId,
               actorType: 'effect',
               ownerActorType: 'player',
@@ -808,7 +853,7 @@ test('Lead Attacks boosts canonical flat life steal independently of its display
               canCrit: false,
               damageKind
             })
-          );
+          });
       }
     }
   );

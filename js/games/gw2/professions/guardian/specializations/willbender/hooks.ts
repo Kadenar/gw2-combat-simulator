@@ -1,4 +1,3 @@
-import { SIGIL_IDS } from '#gw2/platform/equipment/sigils/data.js';
 import { denySkillCast } from '#gw2/platform/engine/skills/availability.js';
 import {
   effectNumber,
@@ -6,6 +5,7 @@ import {
   requireEffect
 } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { skillFlipReady } from '#gw2/platform/engine/skills/skill-flips.js';
+import { SIGIL_IDS } from '#gw2/platform/equipment/sigils/data.js';
 import type { NativeResolvedDamageDetails } from '#gw2/platform/profession-definition/module-types.js';
 import { buildResolverCondition, buildResolverStrike } from '#gw2/platform/resolver/packets.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
@@ -20,7 +20,7 @@ import {
   triggerGuardianFuriousFocus
 } from '#gw2/professions/guardian/core/traits/behavior.js';
 import { GUARDIAN_SKILL_IDS as ID } from '#gw2/professions/guardian/data/ids.js';
-import { willbenderBoon as boon } from '#gw2/professions/guardian/specializations/willbender/mechanics/boons.js';
+
 import { WILLBENDER_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/guardian/specializations/willbender/profiles.js';
 import {
   ACTIVATE,
@@ -34,7 +34,7 @@ import {
   triggerPhoenixProtocol,
   willbenderVirtueWindowProfile
 } from '#gw2/professions/guardian/specializations/willbender/traits/behavior.js';
-import type { GuardianRuntimeState, GuardianVirtue, GuardianSkill } from '#gw2/professions/guardian/types.js';
+import type { GuardianRuntimeState, GuardianSkill, GuardianVirtue } from '#gw2/professions/guardian/types.js';
 import { canonicalTime } from '#kernel/core/clock.js';
 
 type Runtime = Gw2Runtime<GuardianRuntimeState, GuardianSkill>;
@@ -61,12 +61,15 @@ function activate(runtime: Runtime, data: unknown): void {
   const cause = guardianCastCause(runtime, cast);
   state[`${virtue}Until`] = window ? gw2EffectExpiresAt(runtime.time, effectNumber(profile, window, 'duration')) : 0;
   if (window)
-    runtime.emit({
-      ...cause,
-      kind: `willbender-${virtue}`,
-      duration: effectNumber(profile, window, 'duration'),
-      stacks: 1,
-      audience: { recipients: 'self' }
+    runtime.effects.emit({
+      kind: 'packet',
+      event: {
+        ...cause,
+        kind: `willbender-${virtue}`,
+        duration: effectNumber(profile, window, 'duration'),
+        stacks: 1,
+        audience: { recipients: 'self' }
+      }
     });
   applyWillbenderActivationTraits(runtime, cause, virtue);
 }
@@ -131,9 +134,10 @@ function hit(runtime: Runtime, event: Gw2ResolverEvent, details: NativeResolvedD
       const burn = requireEffect(profile, 'condition', 'Burning (active)');
       if (burn) {
         runtime.profession.core.justiceActiveBurns++;
-        runtime.emitDerived(
-          event,
-          buildResolverCondition({
+        runtime.effects.emit({
+          kind: 'packet',
+          cause: event,
+          event: buildResolverCondition({
             at: runtime.time,
             priority: 5,
             source: 'guardian',
@@ -148,13 +152,39 @@ function hit(runtime: Runtime, event: Gw2ResolverEvent, details: NativeResolvedD
             duration: effectNumber(profile, burn, 'duration'),
             triggeredBy: event.skillName
           })
-        );
+        });
       }
     }
 
     if (virtue === 'courage')
-      for (const name of ['aegis', 'stability'])
-        boon(runtime, event, PROFILE.courageTrigger, name, ID.CRASHING_COURAGE);
+      for (const name of ['aegis', 'stability']) {
+        const profile = requireBalanceProfileFromContext(runtime, PROFILE.courageTrigger);
+        const effect = requireEffect(profile, 'boon', name);
+        if (effect) {
+          runtime.effects.emit({
+            kind: 'profile',
+            profile: profile,
+            effects: [effect],
+            attribution: {
+              source: 'guardian',
+              sourceId: ID.CRASHING_COURAGE,
+              actorType: 'player',
+              skillId: ID.CRASHING_COURAGE,
+              skillName: profile.name,
+              activationId: event.activationId,
+              triggeredBy: event.skillName
+            },
+            transform: (packet) => ({
+              ...packet,
+              duration: packet.duration,
+              name: profile.name + ' — ' + name,
+              causalOrder: event.causalOrder ?? event.eventOrder,
+              audience: { recipients: 'self' }
+            })
+          });
+        }
+      }
+
     triggerPhoenixProtocol(runtime, event, virtue);
   }
 }
@@ -189,7 +219,10 @@ export const willbenderHooks: Partial<RuntimeProfession<GuardianRuntimeState, Gu
     [FLAMES]: flames,
     [PULSE](runtime, data) {
       const event = data as Gw2ResolverEvent;
-      runtime.emit(buildResolverStrike({ ...event, at: runtime.time, coefficient: Number(event.coefficient) }));
+      runtime.effects.emit({
+        kind: 'packet',
+        event: buildResolverStrike({ ...event, at: runtime.time, coefficient: Number(event.coefficient) })
+      });
     }
   },
   reactions: {

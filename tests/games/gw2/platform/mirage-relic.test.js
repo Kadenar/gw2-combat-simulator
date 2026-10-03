@@ -37,7 +37,7 @@ test('Mirage follows executed rotation dodges with a one-second ICD', () => {
             action(7, { skillName: 'Flying Cutter', evades: false }),
             action(9)
           ])
-            runtime.emit(event);
+            runtime.effects.emit({ kind: 'packet', event: event });
         }
       },
       config: { relic: 'Mirage' },

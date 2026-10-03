@@ -11,11 +11,11 @@ import {
   balanceProfileNumber
 } from '#gw2/platform/engine/skills/balance-profiles.js';
 import type { RuntimeCast } from '#gw2/platform/simulation/runtime-state.js';
-import { emitEngineerEvent } from '#gw2/professions/engineer/core/events.js';
+import { buildEngineerPackets } from '#gw2/professions/engineer/core/events.js';
 import { ENGINEER_SKILL_IDS as ID, ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
 import type { SimulationEventBase } from '#gw2/platform/engine/events/events.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
-import { queueBuff, recordTrait } from '#gw2/professions/engineer/core/mechanics/resolution-helpers.js';
+import { buildEngineerBuff } from '#gw2/professions/engineer/core/mechanics/resolution-helpers.js';
 import { isInternalCooldownReady } from '#gw2/platform/combat/procs.js';
 import { professionStaticRulesApplied } from '#gw2/platform/builds/attribute-provenance.js';
 import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
@@ -42,8 +42,7 @@ export function applyHghAcidBomb(context: EngineerRuntime, cast: RuntimeCast<Eng
   const hghProfile = requireBalanceProfileFromContext(context, TRAIT.HGH);
   const strike = requireEffect(hghProfile, 'strike', 'HGH');
   if (strike) {
-    emitEngineerEvent(
-      context,
+    buildEngineerPackets(
       'damage',
       {
         at: cast.fullEnd + 6,
@@ -54,7 +53,7 @@ export function applyHghAcidBomb(context: EngineerRuntime, cast: RuntimeCast<Eng
         actorType: 'player'
       },
       skill
-    );
+    ).forEach((packet) => context.effects.emit({ kind: 'packet', event: packet }));
   }
 }
 
@@ -100,16 +99,25 @@ export function applySanguineArray(context: EngineerResolverContext, event: Engi
   const sanguineArrayProfile = requireBalanceProfileFromContext(context, TRAIT.SANGUINE_ARRAY);
   const sanguineArrayMight = requireEffect(sanguineArrayProfile, 'boon', 'might');
   if (sanguineArrayMight) {
-    queueBuff(context, event, {
-      name: 'Sanguine Array',
-      kind: String(sanguineArrayMight.boon).toLowerCase(),
-      stacks: Math.max(1, event.stacks || 1),
-      duration: sanguineArrayMight.duration,
-      sourceId: TRAIT.SANGUINE_ARRAY,
-      actorType: 'effect'
+    context.effects.emit({
+      kind: 'packet',
+      event: buildEngineerBuff(event, {
+        name: 'Sanguine Array',
+        kind: String(sanguineArrayMight.boon).toLowerCase(),
+        stacks: Math.max(1, event.stacks || 1),
+        duration: sanguineArrayMight.duration,
+        sourceId: TRAIT.SANGUINE_ARRAY,
+        actorType: 'effect'
+      }),
+      durationContext: event
     });
 
-    recordTrait(context, 'Sanguine Array', event);
+    context.effects.emit({
+      attribution: { source: 'Trait', sourceId: TRAIT.SANGUINE_ARRAY, actorType: 'effect' },
+      kind: 'announcement',
+      cause: event,
+      announcement: { type: 'trait', name: 'Sanguine Array', at: event.at, sourceSkill: event.skillName, icon: '' }
+    });
   }
 }
 
@@ -125,16 +133,25 @@ export function applyHematicFocus(context: EngineerResolverContext, event: Engin
   const hematicFocusFury = requireEffect(hematicFocusProfile, 'boon', 'fury');
   if (hematicFocusFury) {
     state.hematicFocus = event.at + balanceProfileNumber(hematicFocusProfile, 'internalCooldown');
-    queueBuff(context, event, {
-      name: 'Hematic Focus',
-      kind: String(hematicFocusFury.boon).toLowerCase(),
-      stacks: Number(hematicFocusFury.stacks),
-      duration: hematicFocusFury.duration,
-      sourceId: TRAIT.HEMATIC_FOCUS,
-      actorType: 'effect'
+    context.effects.emit({
+      kind: 'packet',
+      event: buildEngineerBuff(event, {
+        name: 'Hematic Focus',
+        kind: String(hematicFocusFury.boon).toLowerCase(),
+        stacks: Number(hematicFocusFury.stacks),
+        duration: hematicFocusFury.duration,
+        sourceId: TRAIT.HEMATIC_FOCUS,
+        actorType: 'effect'
+      }),
+      durationContext: event
     });
 
-    recordTrait(context, 'Hematic Focus', event);
+    context.effects.emit({
+      attribution: { source: 'Trait', sourceId: TRAIT.HEMATIC_FOCUS, actorType: 'effect' },
+      kind: 'announcement',
+      cause: event,
+      announcement: { type: 'trait', name: 'Hematic Focus', at: event.at, sourceSkill: event.skillName, icon: '' }
+    });
   }
 }
 

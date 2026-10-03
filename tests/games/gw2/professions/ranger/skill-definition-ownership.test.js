@@ -170,16 +170,19 @@ test('merged Maul consumes the old charge and leaves one fresh charge after stan
     },
     {
       initialize(runtime) {
-        runtime.emit({
-          type: 'buff',
-          at: 0,
-          source: 'test',
-          sourceId: 'old-charge',
-          actorType: 'effect',
-          kind: 'attack-of-opportunity-player',
-          duration: 10,
-          stacks: 1,
-          audience: { recipients: 'self' }
+        runtime.effects.emit({
+          kind: 'packet',
+          event: {
+            type: 'buff',
+            at: 0,
+            source: 'test',
+            sourceId: 'old-charge',
+            actorType: 'effect',
+            kind: 'attack-of-opportunity-player',
+            duration: 10,
+            stacks: 1,
+            audience: { recipients: 'self' }
+          }
         });
       }
     }

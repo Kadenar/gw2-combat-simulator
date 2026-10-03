@@ -1,3 +1,4 @@
+import { captureEffectEmissions } from '#tests/helpers/effect-emission.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
@@ -101,7 +102,7 @@ test('condition stage runs once after state and ticks, including profession and 
       // Profession reactions use the runtime capability directly; no resolver
       // callback needs to be threaded through reaction details.
       if (application.sourceId === 'fixture.bleed') {
-        context.applyCondition({
+        conditions.applyCondition(context, {
           type: 'condition',
           at: application.at,
           source: 'Fixture reaction',
@@ -146,12 +147,12 @@ test('condition stage runs once after state and ticks, including profession and 
     },
     helpers: { conditionName: (value) => String(value) },
     queue,
-    applyCondition: conditions.applyCondition
+    effects: captureEffectEmissions({ submit: (event) => conditions.applyCondition(context, event) }).effects
   });
 
-  assert.equal(typeof context.applyCondition, 'function');
+  assert.equal(typeof context.effects.emit, 'function');
   assert.deepEqual(
-    context.applyCondition({
+    conditions.applyCondition(context, {
       type: 'condition',
       at: 0,
       source: 'Fixture',
@@ -163,7 +164,7 @@ test('condition stage runs once after state and ticks, including profession and 
   );
   assert.deepEqual(trace, []);
 
-  const [application] = context.applyCondition({
+  const [application] = conditions.applyCondition(context, {
     type: 'condition',
     at: 0,
     source: 'Fixture',
@@ -184,7 +185,7 @@ test('condition stage runs once after state and ticks, including profession and 
     [6, 1]
   );
 
-  context.applyCondition({
+  conditions.applyCondition(context, {
     type: 'condition',
     at: 0.1,
     source: 'Fixture',

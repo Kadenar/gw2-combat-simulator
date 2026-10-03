@@ -1,3 +1,4 @@
+import { captureEffectEmissions } from '#tests/helpers/effect-emission.js';
 import { createProcRegistry } from '#gw2/platform/combat/procs.js';
 import { createMesmerCoreState } from '#gw2/professions/mesmer/core/state.js';
 import { triggerMesmerCriticalTraits } from '#gw2/professions/mesmer/core/traits/behavior.js';
@@ -18,10 +19,6 @@ test('Master Fencer only claims its strict ICD on a sampled critical hit', () =>
     const events = [];
     const context = {
       state: {
-        emitDerived(_cause, event) {
-          assert.equal(context.state.procs.readyAt[TRAIT.MASTER_FENCER], event.at + duration);
-          return event;
-        },
         profession: { core, specialization: { kind: 'Core', state: {} } },
         traits: new Set(),
         helpers: {
@@ -32,13 +29,15 @@ test('Master Fencer only claims its strict ICD on a sampled critical hit', () =>
             ]
           ])
         }
-      },
-      stochastic: false,
-      boonDuration: (_boon, duration) => duration,
-      emitEvent(_cause, event) {
-        events.push(event);
       }
     };
+    context.state.effects = captureEffectEmissions({
+      submit: (event) => {
+        assert.equal(context.state.procs.readyAt[TRAIT.MASTER_FENCER], event.at + duration);
+        events.push(event);
+        return event;
+      }
+    }).effects;
     context.state.procs = createProcRegistry(() => context.state);
     context.state.procs.readyAt[TRAIT.MASTER_FENCER] = 2;
     const opportunity = (at, didCrit = true) =>
@@ -229,8 +228,11 @@ test('Maim the Disillusioned resolves before Illusionary Membrane', () => {
       selectedTraitIds: [TRAIT.MAIM_THE_DISILLUSIONED, TRAIT.ILLUSIONARY_MEMBRANE]
     })
   );
-  const maim = result.events.find((event) => event.type === 'proc' && event.name === 'Maim the Disillusioned');
-  const membrane = result.events.find((event) => event.type === 'proc' && event.name === 'Illusionary Membrane');
+  // Announcement identities are independent of combat order; compare the actual applied effects.
+  const maim = result.events.find(
+    (event) => event.type === 'condition' && event.name.includes('Maim the Disillusioned')
+  );
+  const membrane = result.events.find((event) => event.type === 'buff' && event.kind === 'illusionary-membrane');
 
   assert.ok(maim);
   assert.ok(membrane);
@@ -247,15 +249,14 @@ test('canonical phantasm ownership triggers Sharper Images without Master Fencer
         core: createMesmerCoreState(),
         specialization: { kind: 'Core', state: {} }
       }
-    },
-    stochastic: true,
-    emitEvent: () => null,
-    boonDuration: (_boon, duration) => duration,
-    addTraitProc: (name) => {
-      procs.push(name);
-      return null;
     }
   };
+  context.state.effects = captureEffectEmissions({
+    announce: (request) => {
+      procs.push(request.announcement.name);
+      return { type: 'proc', ...request.attribution, ...request.announcement };
+    }
+  }).effects;
 
   // Canonical summon ownership prevents an illusion hit from also counting as a player hit.
   triggerMesmerCriticalTraits(
@@ -300,17 +301,20 @@ test('Dazzling preserves ownership and live profile edits for eligible control',
             }),
             initialize(runtime) {
               native.initialize(runtime);
-              runtime.emit({
-                type: 'control',
-                source: 'Mesmer',
-                sourceId: ID.MAGIC_BULLET,
-                at: 0.1,
-                actorType,
-                offTarget,
-                controlKind: 'stun',
-                skillId: ID.MAGIC_BULLET,
-                skillName: 'Magic Bullet',
-                activationId: 'test.control'
+              runtime.effects.emit({
+                kind: 'packet',
+                event: {
+                  type: 'control',
+                  source: 'Mesmer',
+                  sourceId: ID.MAGIC_BULLET,
+                  at: 0.1,
+                  actorType,
+                  offTarget,
+                  controlKind: 'stun',
+                  skillId: ID.MAGIC_BULLET,
+                  skillName: 'Magic Bullet',
+                  activationId: 'test.control'
+                }
               });
             },
             reactions: {

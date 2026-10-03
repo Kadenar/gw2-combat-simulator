@@ -1,5 +1,4 @@
 import { grantCapped } from '#gw2/platform/combat/resources/pool.js';
-import { materializeSkillEffectApplications } from '#gw2/platform/engine/effects/materializer.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import {
   balanceProfileNumber,
@@ -8,7 +7,7 @@ import {
 import type { RuntimeCast, RuntimeProfession } from '#gw2/platform/simulation/runtime-state.js';
 import { castWasInterrupted } from '#gw2/platform/skills/timing.js';
 import { lockTransitionInput } from '#gw2/platform/skills/transition-delays.js';
-import { emitEngineerEvent } from '#gw2/professions/engineer/core/events.js';
+import { buildEngineerPackets } from '#gw2/professions/engineer/core/events.js';
 import { emitEngineerBarSwap } from '#gw2/professions/engineer/core/mechanics/event-handlers.js';
 import { ENGINEER_SKILL_IDS as ID } from '#gw2/professions/engineer/data/ids.js';
 import {
@@ -41,11 +40,11 @@ const PHOTON_FORGE_OVERHEAT_PENALTY_TASK = 'engineer.photon-forge-overheat-penal
 /** Heat observations describe an executed transition; consuming them never restores or mutates profession state. */
 function reportHeat(context: EngineerRuntime<HolosmithSkill>, reason: string): void {
   const state = holosmithState.from(context);
-  emitEngineerEvent(context, 'engineer.heat', {
+  buildEngineerPackets('engineer.heat', {
     at: context.time,
     reason,
     heat: state.heat
-  });
+  }).forEach((packet) => context.effects.emit({ kind: 'packet', event: packet }));
 }
 
 /** Converts the profiled passive heat rate, including Light Density Amplifier, to one cadence tick. */
@@ -299,38 +298,35 @@ export function triggerVentExhaust(
 ): void {
   const ventExhaust: HolosmithSkill | undefined = context.helpers.skillsById.get(ID.VENT_EXHAUST);
   if (!ventExhaust) return;
-  context.emit({
-    type: 'proc',
-    at,
-    source: 'engineer',
-    sourceId: ventExhaust.id,
-    actorType: 'player',
-    name: ventExhaust.name,
-    procType: 'skill',
-    sourceSkill: triggeringSkill.name,
-    icon: ventExhaust.icon
+  context.effects.emit({
+    kind: 'announcement',
+    log: true,
+    attribution: { source: 'engineer', sourceId: ventExhaust.id, actorType: 'player' },
+    announcement: {
+      name: ventExhaust.name,
+      at: at,
+      icon: ventExhaust.icon,
+      type: 'skill',
+      sourceSkill: triggeringSkill.name
+    }
   });
   // Materialize the canonical effect list so UI identity, packets, and trait attribution stay aligned.
   const activationId = `engineer.vent-exhaust:${at}`;
-  for (const effect of ventExhaust.effects || []) {
-    const applications = materializeSkillEffectApplications({
-      skill: ventExhaust,
-      effect,
-      start: at,
-      fullEnd: at,
-      baseEvent: {
-        activationId,
-        source: 'engineer',
-        sourceId: ventExhaust.id,
-        actorType: effect.actorType || 'player',
-        skillId: ventExhaust.id,
-        skillName: ventExhaust.name,
-        triggeredBy: triggeringSkill.name
-      },
-      skillWeaponFallback: 'Unequipped'
-    });
-    for (const application of applications) context.emit(application.event);
-  }
+  context.effects.emit({
+    kind: 'profile',
+    profile: ventExhaust,
+    at,
+    attribution: (effect) => ({
+      activationId,
+      source: 'engineer',
+      sourceId: ventExhaust.id,
+      actorType: effect.actorType || 'player',
+      skillId: ventExhaust.id,
+      skillName: ventExhaust.name,
+      triggeredBy: triggeringSkill.name
+    }),
+    skillWeaponFallback: 'Unequipped'
+  });
 
   // Vent heat immediately after its combat packets are queued at the same timestamp.
   const state = holosmithState.from(context);

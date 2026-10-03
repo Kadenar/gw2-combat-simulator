@@ -1,8 +1,6 @@
-import { materializeSkillEffectApplications } from '#gw2/platform/engine/effects/materializer.js';
 import type { SkillEffect } from '#gw2/platform/engine/skills/types.js';
 import type { RuntimeCast, RuntimeProfession, SkillTaskData } from '#gw2/platform/simulation/runtime-state.js';
 import type { ActionContext, SideEffectAction } from '#gw2/platform/simulation/side-effects.js';
-import { withElementalistCast } from '#gw2/professions/elementalist/core/events.js';
 import { applySpecializedElementsTrait } from '#gw2/professions/elementalist/specializations/evoker/traits/attunements.js';
 import { applyFamiliarTraitProcs } from '#gw2/professions/elementalist/specializations/evoker/traits/familiars.js';
 /**
@@ -22,12 +20,8 @@ import {
 } from '#gw2/platform/engine/skills/balance-profiles.js';
 import type { Skill } from '#gw2/platform/engine/skills/types.js';
 import { GW2_QUICKNESS_ACTION_RATE, castRelativeEffectTimingScale } from '#gw2/platform/skills/timing.js';
-import {
-  emitElementalistBuff,
-  emitElementalistCondition,
-  emitElementalistDamage
-} from '#gw2/professions/elementalist/core/events.js';
-import { emitElementalistProc } from '#gw2/professions/elementalist/core/mechanics/effects.js';
+import { elementalistBuffRequest } from '#gw2/professions/elementalist/core/events.js';
+import { elementalistAnnouncement } from '#gw2/professions/elementalist/core/mechanics/effects.js';
 import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';
 import {
   BASIC_FAMILIARS,
@@ -46,11 +40,10 @@ import {
 import { EVOKER_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/elementalist/specializations/evoker/profiles.js';
 import { evokerState, grantElectricEnchantments } from '#gw2/professions/elementalist/specializations/evoker/state.js';
 import type {
-  ElementalistSkill,
   ElementalistRuntime,
-  ElementalistRuntimeState
+  ElementalistRuntimeState,
+  ElementalistSkill
 } from '#gw2/professions/elementalist/types.js';
-
 // Replay all four empowered familiar effects with their native F5 strength so balance patches propagate here.
 export function releaseElementalProcession(
   context: ElementalistRuntime,
@@ -65,36 +58,27 @@ export function releaseElementalProcession(
       // Procession preserves the familiar's unquickened timing and each surviving packet's representation.
       const runtimeCastMs = Math.max(0, (familiar.castTimeMs || 0) * GW2_QUICKNESS_ACTION_RATE);
       const scale = effect.timingScale === 'cast' ? castRelativeEffectTimingScale(familiar, runtimeCastMs) : 1;
-      for (const application of materializeSkillEffectApplications({
-        skill: familiar,
-        effect,
-        start: 0,
+      context.effects.emit({
+        kind: 'profile',
+        profile: familiar,
+        effects: [effect],
+        at: 0,
         fullEnd: 0,
-        baseEvent: { source: familiar.name, sourceId: familiar.id, actorType: 'player', triggeredBy: sourceSkill.name }
-      })) {
-        const { event } = application;
-        const at = cast.effectiveEnd + application.at * scale;
-        if (event.type === 'damage')
-          emitElementalistDamage(context, {
-            ...event,
-            at,
-            coefficient: Number(event.coefficient),
-            skillId: familiar.id,
-            skillName: familiar.name,
-            skillWeapon: 'Profession mechanic'
-          });
-        else if (event.type === 'condition')
-          emitElementalistCondition(context, {
-            ...event,
-            at,
-            skillId: familiar.id,
-            skillName: familiar.name,
-            condition: String(event.condition),
-            stacks: Number(event.stacks),
-            duration: Number(event.duration)
-          });
-        else context.emit({ ...event, at, skillId: familiar.id, skillName: familiar.name });
-      }
+        cast: { activationId: cast.id, skillId: cast.skill.id, offTarget: cast.command.offTarget },
+        attribution: {
+          source: familiar.name,
+          sourceId: familiar.id,
+          actorType: 'player',
+          triggeredBy: sourceSkill.name,
+          skillId: familiar.id,
+          skillName: familiar.name
+        },
+        transform: (event) => ({
+          ...event,
+          at: cast.effectiveEnd + event.at * scale,
+          ...(event.type === 'damage' ? { skillWeapon: 'Profession mechanic' } : {})
+        })
+      });
     }
   }
 }
@@ -158,7 +142,6 @@ export function beginFamiliarCast(
 }
 
 const igniteBurningByCast = new WeakMap<RuntimeCast<ElementalistSkill>, SkillEffect | undefined>();
-
 /** Capture and advance the tier once at acceptance; effect selection only reads this immutable choice. */
 export function captureIgniteTier(context: ElementalistRuntime, cast: RuntimeCast<ElementalistSkill>): void {
   const state = evokerState.from(context);
@@ -223,52 +206,58 @@ export const evokerSkillCommitTasks: NonNullable<
     const skill = cast.skill;
     const state = evokerState.from(context);
     const at = cast.effectiveEnd;
-    withElementalistCast(context, cast, () => {
+    {
       const familiarUtilityProfile = requireBalanceProfileFromContext(context, PROFILE.familiarUtility);
       const stacks = balanceProfileNumber(familiarUtilityProfile, 'resourceGain');
       const enchantment = requireEffect(familiarUtilityProfile, 'buff', 'Lightning Blitz Enchantment');
       if (enchantment) {
         grantElectricEnchantments(state, at, stacks, enchantment.duration);
-
-        emitElementalistProc(context, {
-          at,
-          name: 'Electric Enchantment',
-          procType: 'skill',
-          sourceId: skill.id,
-          sourceSkill: skill.name,
-          detail: `+${stacks} ${stacks === 1 ? 'stack' : 'stacks'}`,
-          icon: ELECTRIC_ENCHANTMENT_ICON
-        });
+        context.effects.emit(
+          elementalistAnnouncement({
+            at,
+            name: 'Electric Enchantment',
+            procType: 'skill',
+            sourceId: skill.id,
+            sourceSkill: skill.name,
+            detail: `+${stacks} ${stacks === 1 ? 'stack' : 'stacks'}`,
+            icon: ELECTRIC_ENCHANTMENT_ICON
+          })
+        );
       }
-    });
+    }
   },
   'elementalist.evoker.zap'(context, data) {
     const { cast } = data as SkillTaskData<ElementalistSkill>;
     const skill = cast.skill;
     const at = cast.effectiveEnd;
-    withElementalistCast(context, cast, () => {
+    {
       const familiarUtilityProfile = requireBalanceProfileFromContext(context, PROFILE.familiarUtility);
       const zap = requireEffect(familiarUtilityProfile, 'buff', 'Zap Window');
       if (zap) {
-        emitElementalistBuff(context, {
-          at,
-          source: skill.name,
-          sourceId: skill.id,
-          actorType: 'player',
-          skillName: skill.name,
-          kind: 'zap buff',
-          stacks: Number(zap.stacks),
-          duration: zap.duration
-        });
+        context.effects.emit(
+          elementalistBuffRequest(
+            {
+              at,
+              source: skill.name,
+              sourceId: skill.id,
+              actorType: 'player',
+              skillName: skill.name,
+              kind: 'zap buff',
+              stacks: Number(zap.stacks),
+              duration: zap.duration
+            },
+            { activationId: cast.id, skillId: cast.skill.id, offTarget: cast.command.offTarget }
+          )
+        );
       }
-    });
+    }
   },
   'elementalist.evoker.settle-basic-familiar'(context, data) {
     const { cast } = data as SkillTaskData<ElementalistSkill>;
     const skill = cast.skill;
     const state = evokerState.from(context);
     const at = cast.effectiveEnd;
-    withElementalistCast(context, cast, () => {
+    {
       state.charges = 0;
       const resourcesProfile = requireBalanceProfileFromContext(context, PROFILE.resources);
       state.empowered = Math.min(balanceProfileNumber(resourcesProfile, 'minimumStacks'), state.empowered + 1);
@@ -286,78 +275,84 @@ export const evokerSkillCommitTasks: NonNullable<
       }
 
       emitResource(context, cast, skill, state);
-    });
+    }
   },
   'elementalist.evoker.settle-empowered-familiar'(context, data) {
     const { cast } = data as SkillTaskData<ElementalistSkill>;
     const skill = cast.skill;
     const state = evokerState.from(context);
-    withElementalistCast(context, cast, () => {
+    {
       state.empowered = 0;
       emitResource(context, cast, skill, state);
-    });
+    }
   },
   'elementalist.evoker.rejuvenate'(context, data) {
     const { cast } = data as SkillTaskData<ElementalistSkill>;
     const skill = cast.skill;
     const state = evokerState.from(context);
-    withElementalistCast(context, cast, () => {
+    {
       state.charges = state.maximumCharges;
       emitResource(context, cast, skill, state);
-    });
+    }
   },
   'elementalist.evoker.hares-agility'(context, data) {
     const { cast } = data as SkillTaskData<ElementalistSkill>;
     const skill = cast.skill;
     const state = evokerState.from(context);
     const at = cast.effectiveEnd;
-    withElementalistCast(context, cast, () => {
+    {
       const familiarUtilityProfile = requireBalanceProfileFromContext(context, PROFILE.familiarUtility);
       const stacks = balanceProfileNumber(familiarUtilityProfile, 'playerStacks');
       const enchantment = requireEffect(familiarUtilityProfile, 'buff', 'Hare Enchantment');
       if (enchantment) {
         grantElectricEnchantments(state, at, stacks, enchantment.duration);
-
-        emitElementalistProc(context, {
-          at,
-          name: 'Electric Enchantment',
-          procType: 'skill',
-          sourceId: skill.id,
-          sourceSkill: skill.name,
-          detail: `+${stacks} stacks`,
-          icon: ELECTRIC_ENCHANTMENT_ICON
-        });
+        context.effects.emit(
+          elementalistAnnouncement({
+            at,
+            name: 'Electric Enchantment',
+            procType: 'skill',
+            sourceId: skill.id,
+            sourceSkill: skill.name,
+            detail: `+${stacks} stacks`,
+            icon: ELECTRIC_ENCHANTMENT_ICON
+          })
+        );
       }
-    });
+    }
   },
   'elementalist.evoker.toads-fortitude'(context, data) {
     const { cast } = data as SkillTaskData<ElementalistSkill>;
     const skill = cast.skill;
     const at = cast.effectiveEnd;
-    withElementalistCast(context, cast, () => {
+    {
       const familiarUtilityProfile = requireBalanceProfileFromContext(context, PROFILE.familiarUtility);
       const resistance = requireEffect(familiarUtilityProfile, 'boon', 'Toad Resistance');
       if (resistance) {
-        emitElementalistBuff(context, {
-          skill: skill,
-          at,
-          source: skill.name,
-          sourceId: skill.id,
-          actorType: 'player',
-          kind: String(resistance.boon).toLowerCase(),
-          stacks: Number(resistance.stacks),
-          duration: resistance.duration,
-          skillName: skill.name
-        });
+        context.effects.emit(
+          elementalistBuffRequest(
+            {
+              skill: skill,
+              at,
+              source: skill.name,
+              sourceId: skill.id,
+              actorType: 'player',
+              kind: String(resistance.boon).toLowerCase(),
+              stacks: Number(resistance.stacks),
+              duration: resistance.duration,
+              skillName: skill.name
+            },
+            { activationId: cast.id, skillId: cast.skill.id, offTarget: cast.command.offTarget }
+          )
+        );
       }
-    });
+    }
   },
   'elementalist.evoker.foxs-fury'(context, data) {
     const { cast } = data as SkillTaskData<ElementalistSkill>;
     const skill = cast.skill;
     const state = evokerState.from(context);
     const at = cast.effectiveEnd;
-    withElementalistCast(context, cast, () => {
+    {
       const familiarUtilityProfile = requireBalanceProfileFromContext(context, PROFILE.familiarUtility);
       const might = requireEffect(familiarUtilityProfile, 'boon', 'Fox Might');
       const fireMight = requireEffect(familiarUtilityProfile, 'boon', 'Fox Fire Bonus');
@@ -374,21 +369,25 @@ export const evokerSkillCommitTasks: NonNullable<
           stacks: Number(effect.stacks),
           duration: effect.duration
         };
-        emitElementalistBuff(context, {
-          skill: skill,
-          at,
-          source: skill.name,
-          sourceId: skill.id,
-          actorType: 'player',
-          skillName: skill.name,
-          audience: { recipients: 'party' as const, maximumRecipients: 5 },
-          ...boon
-        });
+        context.effects.emit(
+          elementalistBuffRequest(
+            {
+              skill: skill,
+              at,
+              source: skill.name,
+              sourceId: skill.id,
+              actorType: 'player',
+              skillName: skill.name,
+              audience: { recipients: 'party' as const, maximumRecipients: 5 },
+              ...boon
+            },
+            { activationId: cast.id, skillId: cast.skill.id, offTarget: cast.command.offTarget }
+          )
+        );
       }
-    });
+    }
   }
 };
-
 /** Release each deferred grant after the familiar reset, then run the final familiar trait observer. */
 export function finishEvokerCast(
   context: ElementalistRuntime,

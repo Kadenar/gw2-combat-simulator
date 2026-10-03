@@ -82,13 +82,13 @@ test('Righteous Instincts preserves stacked self Resolution without accepting ot
       { selectedTraitIds: [TRAIT.RIGHTEOUS_INSTINCTS], allies: { count: 4 } },
       {
         initialize: (runtime) => {
-          runtime.emit(others);
+          runtime.effects.emit({ kind: 'packet', event: others });
           if (self) {
-            runtime.emit(buff('resolution'));
-            runtime.emit(buff('resolution'));
+            runtime.effects.emit({ kind: 'packet', event: buff('resolution') });
+            runtime.effects.emit({ kind: 'packet', event: buff('resolution') });
           }
 
-          runtime.emit(others);
+          runtime.effects.emit({ kind: 'packet', event: others });
         }
       }
     );

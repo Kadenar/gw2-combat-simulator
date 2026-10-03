@@ -41,8 +41,9 @@ export function applyCatalystResolvedDamage(context: Gw2ResolverRuntime, event: 
   const strike = requireEffect(shatteringIceProfile, 'strike', 'Shattering Ice - Triggered Packet');
   const chilled = requireEffect(shatteringIceProfile, 'condition', 'Chilled');
   if (strike) {
-    context.queue.enqueue(
-      buildResolverStrike({
+    context.effects.emit({
+      kind: 'packet',
+      event: buildResolverStrike({
         at: event.at,
         source: 'Shattering Ice Proc',
         sourceId: event.skillId ?? event.sourceId,
@@ -54,12 +55,13 @@ export function applyCatalystResolvedDamage(context: Gw2ResolverRuntime, event: 
         triggeredBy: event.skillName,
         metadata: { packetKind: SHATTERING_ICE_PACKET }
       })
-    );
+    });
   }
 
   if (chilled) {
-    context.queue.enqueue(
-      buildResolverCondition({
+    context.effects.emit({
+      kind: 'packet',
+      event: buildResolverCondition({
         at: event.at,
         source: 'Shattering Ice Proc',
         sourceId: event.skillId ?? event.sourceId,
@@ -71,6 +73,6 @@ export function applyCatalystResolvedDamage(context: Gw2ResolverRuntime, event: 
         duration: Number(chilled.duration),
         triggeredBy: event.skillName
       })
-    );
+    });
   }
 }

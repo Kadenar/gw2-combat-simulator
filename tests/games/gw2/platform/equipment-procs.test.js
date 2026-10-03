@@ -1,3 +1,4 @@
+import { captureEffectEmissions } from '#tests/helpers/effect-emission.js';
 import { SIGIL_IDS } from '#gw2/platform/equipment/sigils/data.js';
 import { assertFlooredDamageMultiplier } from '#tests/helpers/rounded-damage.js';
 import assert from 'node:assert/strict';
@@ -19,8 +20,10 @@ test('Mischief shares its nine-second cooldown across equipped copies', () => {
     combatActive: false,
     activeWeaponSet: 1,
     config: { sigilSets: [{ names: ['Mischief'] }, { names: [] }] },
-    emitDerived: (_cause, event) => emitted.push(event),
-    recordProc: (...args) => procs.push(args)
+    effects: captureEffectEmissions({
+      submit: (event) => emitted.push(event),
+      announce: (request) => procs.push(request)
+    }).effects
   };
   const swap = { type: 'weapon_set', at: 1, weaponSet: 1, skillName: 'Swap Weapons' };
   applyRuntimeSigils(runtime, 'swap', swap);
@@ -90,8 +93,7 @@ test('Ice rejects non-defiant hits without consuming its shared cooldown', () =>
       combatActive: true,
       activeWeaponSet: 1,
       config: { target: { defiant: false }, sigilSets: [{ names: ['Ice', 'Ice'] }] },
-      emitDerived: (_cause, event) => emitted.push(event),
-      recordProc() {}
+      effects: captureEffectEmissions({ submit: (event) => emitted.push(event) }).effects
     };
     const hit = { type: 'damage', at: 1, actorType: 'player', coefficient: 1, didCrit };
     applyRuntimeSigils(runtime, 'strike', hit);
@@ -924,4 +926,33 @@ test('Relic of Aristocracy requires more than its one-second ICD', () => {
     aristocracyProcs(481).map((proc) => proc.detail),
     ['1/5 stacks', '2/5 stacks']
   );
+});
+
+// A relic siphon is one flat effect packet: no crit scaling, no recursive player-hit proc, and normal target gates.
+test('Mist Stranger submits its flat siphon through shared damage resolution', () => {
+  const hit = {
+    type: 'damage',
+    at: 1,
+    source: 'Fixture',
+    sourceId: 'mist-trigger',
+    actorType: 'player',
+    skillName: 'Fixture hit',
+    flatDamage: 10,
+    hits: 1
+  };
+  const config = { relic: 'Mist Stranger', target: { health: 110 } };
+  const result = resolveTestGw2Events({ events: [hit], endTime: 2, config });
+  const siphons = result.resolvedEvents.filter((event) => event.skillName === 'Relic of the Mist Stranger');
+  assert.equal(siphons.length, 1);
+  assert.equal(siphons[0].damage, 105);
+  assert.equal(siphons[0].damageKind, 'life-steal');
+  assert.equal(siphons[0].actorType, 'effect');
+  assert.equal(siphons[0].critEligible, false);
+  assert.equal(
+    siphons[0].parentEventOrder,
+    result.events.find((event) => event.sourceId === 'mist-trigger').eventOrder
+  );
+  assert.equal(result.totalDamage, 115);
+  assert.equal(result.deathTime, 1);
+  assert.equal(resolveTestGw2Events({ events: [{ ...hit, offTarget: true }], endTime: 2, config }).totalDamage, 0);
 });

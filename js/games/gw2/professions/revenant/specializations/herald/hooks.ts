@@ -49,19 +49,22 @@ function facetPulse(runtime: RevenantRuntime, data: unknown): void {
   const skill: RevenantSkill | undefined = runtime.helpers.skillsById.get(skillId);
   const pulse = skill?.upkeepPulse;
   if (!skill || !pulse) return;
-  runtime.emitProcedural({
-    type: 'buff',
-    at: runtime.time,
-    source: 'revenant',
-    sourceId: skill.id,
-    actorType: 'player',
-    skillId: skill.id,
-    skillName: skill.name,
-    name: `${skill.name} - ${pulse.kind}`,
-    kind: pulse.kind,
-    duration: pulse.duration,
-    stacks: pulse.stacks,
-    audience: { recipients: 'party' }
+  runtime.effects.emit({
+    kind: 'packet',
+    event: {
+      type: 'buff',
+      at: runtime.time,
+      source: 'revenant',
+      sourceId: skill.id,
+      actorType: 'player',
+      skillId: skill.id,
+      skillName: skill.name,
+      name: `${skill.name} - ${pulse.kind}`,
+      kind: pulse.kind,
+      duration: pulse.duration,
+      stacks: pulse.stacks,
+      audience: { recipients: 'party' }
+    }
   });
   const next = canonicalTime(runtime.time + Math.max(EPSILON, skill.pulseInterval ?? 3));
   if (heraldFacetPassiveActive(runtime.profession.core, state, skillId, next))
@@ -120,20 +123,23 @@ function trueNatureDragon(runtime: RevenantRuntime, cast: RuntimeCast<RevenantSk
   if (!authored) return;
   const extension = Math.max(0, authored.duration || 0) + coreValueExtension(runtime);
   if (extension <= 0) return;
-  runtime.emit({
-    type: 'boon_extension',
-    at: runtime.time,
-    source: 'revenant',
-    sourceId: cast.skill.id,
-    actorType: 'player',
-    skillId: cast.skill.id,
-    skillName: cast.skill.name,
-    activationId: cast.id,
-    procType: 'boon-extension',
-    name: authored.name,
-    duration: extension,
-    ...(authored.audience ? { audience: authored.audience } : {}),
-    extensionAudience: 'all'
+  runtime.effects.emit({
+    kind: 'packet',
+    event: {
+      type: 'boon_extension',
+      at: runtime.time,
+      source: 'revenant',
+      sourceId: cast.skill.id,
+      actorType: 'player',
+      skillId: cast.skill.id,
+      skillName: cast.skill.name,
+      activationId: cast.id,
+      procType: 'boon-extension',
+      name: authored.name,
+      duration: extension,
+      ...(authored.audience ? { audience: authored.audience } : {}),
+      extensionAudience: 'all'
+    }
   });
 }
 
@@ -157,9 +163,10 @@ function natureSiphon(runtime: RevenantRuntime, event: Gw2ResolverEvent): void {
     )
   )
     return;
-  runtime.emitDerived(
-    event,
-    buildResolverStrike({
+  runtime.effects.emit({
+    kind: 'packet',
+    cause: event,
+    event: buildResolverStrike({
       at: runtime.time,
       source: 'revenant',
       sourceId: ID.FACET_OF_NATURE,
@@ -176,7 +183,7 @@ function natureSiphon(runtime: RevenantRuntime, event: Gw2ResolverEvent): void {
       skillWeapon: 'Unequipped',
       triggeredBy: event.skillName
     })
-  );
+  });
 }
 
 /** Herald owns facet availability, lifecycle, passives, and Dragon invocation on the shared live state. */

@@ -1,5 +1,4 @@
-import { emitMesmerTraitBuffs } from '#gw2/professions/mesmer/core/mechanics/trait-buffs.js';
-import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
+import type { MesmerEventExtra } from '#gw2/professions/mesmer/data/types.js';
 import { professionStaticRulesApplied } from '#gw2/platform/builds/attribute-provenance.js';
 import { advanceCriticalProc, criticalOpportunity } from '#gw2/platform/combat/critical-procs.js';
 import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
@@ -22,6 +21,7 @@ import { mesmerMechanicsFor } from '#gw2/professions/mesmer/core/mechanics/runti
 import type { MesmerShatterResolution } from '#gw2/professions/mesmer/core/mechanics/shatter-types.js';
 import { mesmerProfiledTraitDamage } from '#gw2/professions/mesmer/core/profiles.js';
 import { MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
+import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
 import type { MesmerRuntime, MesmerRuntimeState } from '#gw2/professions/mesmer/types.js';
 
 /** Activates Deadly Blades only after a successfully resolved Virtuoso Bladesong. */
@@ -31,15 +31,48 @@ export function resolveDeadlyBlades(context: MesmerRuntime, resolution: MesmerSh
 
   const at = resolution.at;
   const deadlyBladesProfile = requireBalanceProfileFromContext(context, TRAIT.DEADLY_BLADES);
-  emitMesmerTraitBuffs(runtime, TRAIT.DEADLY_BLADES, at, resolution.skill.name, [
+  {
+    const grants: readonly MesmerEventExtra[] = [
+      {
+        // Deadly Blades starts after the Bladesong's same-time resolution work.
+        priority: 5,
+        kind: 'deadly-blades',
+        stacks: 1,
+        duration: balanceProfileNumber(deadlyBladesProfile, 'durationMultiplier')
+      }
+    ];
+    const traitProfile = requireBalanceProfileFromContext(runtime.context, TRAIT.DEADLY_BLADES);
+    const traitSource = {
+      source: 'Trait',
+      sourceId: TRAIT.DEADLY_BLADES,
+      actorType: 'player' as const,
+      skillId: TRAIT.DEADLY_BLADES,
+      skillName: traitProfile.name
+    };
     {
-      // Deadly Blades starts after the Bladesong's same-time resolution work.
-      priority: 5,
-      kind: 'deadly-blades',
-      stacks: 1,
-      duration: balanceProfileNumber(deadlyBladesProfile, 'durationMultiplier')
+      const proc = runtime.context.effects.emit({
+        ...resolution.delivery,
+        kind: 'announcement',
+        log: true,
+        attribution: { ...traitSource, actorType: 'effect' },
+        announcement: { type: 'trait', name: traitProfile.name, at: at, sourceSkill: resolution.skill.name, detail: '' }
+      });
+      for (const grant of grants)
+        runtime.context.effects.emit({
+          ...resolution.delivery,
+          kind: 'packet',
+          cause: proc,
+          event: {
+            ...grant,
+            ...traitSource,
+            type: 'buff',
+            at: at,
+            name: traitProfile.name,
+            sourceSkill: resolution.skill.name
+          }
+        });
     }
-  ]);
+  }
 }
 
 export function phantasmalBladesDamage(context: MesmerRuntime): MesmerTraitDamage {
@@ -53,7 +86,14 @@ export function phantasmalBladesPolicy(
   damage: MesmerTraitDamage
 ): Partial<MesmerPhantasmPolicy> {
   return hasTrait(context, TRAIT.PHANTASMAL_BLADES) && damage.type === 'strike'
-    ? { bonusStrike: { name: 'Phantasmal Blade', traitName: 'Phantasmal Blades', damage } }
+    ? {
+        bonusStrike: {
+          name: 'Phantasmal Blade',
+          traitId: TRAIT.PHANTASMAL_BLADES,
+          traitName: 'Phantasmal Blades',
+          damage
+        }
+      }
     : {};
 }
 
@@ -77,9 +117,10 @@ export const resolveBladeCriticalTraits: NonNullable<
       at: runtime.time
     });
     if (!application) continue;
-    runtime.emitDerived(
-      event,
-      buildResolverCondition({
+    runtime.effects.emit({
+      kind: 'packet',
+      cause: event,
+      event: buildResolverCondition({
         at: runtime.time,
         name: `${event.name} — ${name}`,
         skillName: event.skillName,
@@ -92,8 +133,14 @@ export const resolveBladeCriticalTraits: NonNullable<
         actorType: id === TRAIT.DEADLY_BLADES ? 'effect' : event.actorType,
         ...(id === TRAIT.DEADLY_BLADES ? { ownerActorType: 'player' as const } : {})
       })
-    );
-    if (id === TRAIT.JAGGED_MIND) mechanics.addTraitProc(name, runtime.time, event.skillName);
+    });
+    if (id === TRAIT.JAGGED_MIND)
+      mechanics.context.effects.emit({
+        kind: 'announcement',
+        log: true,
+        attribution: { source: 'Trait', sourceId: id, actorType: 'effect' },
+        announcement: { type: 'trait', name: name, at: runtime.time, sourceSkill: event.skillName, detail: '' }
+      });
   }
 };
 

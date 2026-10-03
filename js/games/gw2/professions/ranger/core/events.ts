@@ -1,10 +1,9 @@
 import { splitStrikeHits } from '#gw2/platform/simulation/procedural-emission.js';
 import type { SimulationEventBase } from '#gw2/platform/engine/events/events.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
-import type { RangerRuntime } from '#gw2/professions/ranger/types.js';
 
 /** Cast and trait effects supply their own attribution; pet ownership is captured by the pet producer. */
-export function rangerEvent(
+export function buildRangerPacket(
   fields: Pick<SimulationEventBase, 'at'> & Partial<SimulationEventBase>,
   type: string
 ): Gw2ResolverEvent {
@@ -19,7 +18,6 @@ export function rangerEvent(
 }
 
 /** A proc's total coefficient is divided into ordered hits, each with an independent resolved-hit fact. */
-export function emitRangerDamage(runtime: RangerRuntime, event: SimulationEventBase): void {
-  for (const packet of splitStrikeHits({ ...event, type: 'damage', coefficient: Number(event.coefficient) }))
-    runtime.emitProcedural(packet);
+export function buildRangerStrikes(event: SimulationEventBase): SimulationEventBase[] {
+  return splitStrikeHits({ ...event, type: 'damage', coefficient: Number(event.coefficient) });
 }

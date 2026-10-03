@@ -11,13 +11,13 @@ import { gw2ConfiguredWeaponSet } from '#gw2/platform/equipment/weapons/loadout.
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import type { Gw2Runtime } from '#gw2/platform/simulation/runtime-state.js';
 import { gw2EffectExpiresAt } from '#gw2/platform/skills/timing.js';
-import { battlePresenceSharesBoons, recordGuardianTraitProc } from '#gw2/professions/guardian/core/traits/behavior.js';
+import { battlePresenceSharesBoons, guardianTraitIcon } from '#gw2/professions/guardian/core/traits/behavior.js';
 import { GUARDIAN_TRAIT_IDS as TRAIT } from '#gw2/professions/guardian/data/ids.js';
-import { willbenderBoon as boon } from '#gw2/professions/guardian/specializations/willbender/mechanics/boons.js';
+
 import { WILLBENDER_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/guardian/specializations/willbender/profiles.js';
 import type { GuardianWillbenderState } from '#gw2/professions/guardian/specializations/willbender/state.js';
 import { willbenderState } from '#gw2/professions/guardian/specializations/willbender/state.js';
-import type { GuardianRuntimeState, GuardianVirtue, GuardianSkill } from '#gw2/professions/guardian/types.js';
+import type { GuardianRuntimeState, GuardianSkill, GuardianVirtue } from '#gw2/professions/guardian/types.js';
 import { canonicalTime } from '#kernel/core/clock.js';
 
 type Runtime = Gw2Runtime<GuardianRuntimeState, GuardianSkill>;
@@ -63,30 +63,38 @@ function tempo(runtime: Runtime, event: Gw2ResolverEvent): void {
   const parameters = lethalTempoParameters(runtime);
   if (!parameters) return;
   const stacks = gainLethalTempo(willbenderState.from(runtime), runtime.time, parameters);
-  runtime.emit({
-    type: 'buff',
-    at: runtime.time,
-    source: 'guardian',
-    sourceId: TRAIT.LETHAL_TEMPO,
-    actorType: 'player',
-    skillId: TRAIT.LETHAL_TEMPO,
-    skillName: 'Lethal Tempo',
-    name: 'Lethal Tempo',
-    kind: 'lethal-tempo',
-    stacks,
-    duration: parameters.duration,
-    activationId: event.activationId,
-    causalOrder: event.causalOrder ?? event.eventOrder,
-    triggeredBy: event.skillName
+  runtime.effects.emit({
+    kind: 'packet',
+    event: {
+      type: 'buff',
+      at: runtime.time,
+      source: 'guardian',
+      sourceId: TRAIT.LETHAL_TEMPO,
+      actorType: 'player',
+      skillId: TRAIT.LETHAL_TEMPO,
+      skillName: 'Lethal Tempo',
+      name: 'Lethal Tempo',
+      kind: 'lethal-tempo',
+      stacks,
+      duration: parameters.duration,
+      activationId: event.activationId,
+      causalOrder: event.causalOrder ?? event.eventOrder,
+      triggeredBy: event.skillName
+    }
   });
-  recordGuardianTraitProc(
-    runtime,
-    TRAIT.LETHAL_TEMPO,
-    'Lethal Tempo',
-    runtime.time,
-    event.skillName,
-    `${stacks}/${parameters.maximumStacks} stacks`
-  );
+  {
+    runtime.effects.emit({
+      kind: 'announcement',
+      announcement: {
+        type: 'trait',
+        name: 'Lethal Tempo',
+        at: runtime.time,
+        sourceSkill: event.skillName,
+        detail: `${stacks}/${parameters.maximumStacks} stacks`,
+        icon: guardianTraitIcon(TRAIT.LETHAL_TEMPO)
+      }
+    });
+  }
 }
 
 /** Earned base work applies to equipped weapon cooldowns and reservations before speed conversion. */
@@ -118,15 +126,19 @@ function reduceWeapons(runtime: Runtime, cause: Gw2ResolverEvent): void {
     reduction += gain / runtime.cooldownController.rate(skill);
   }
 
-  if (reduction > 0)
-    recordGuardianTraitProc(
-      runtime,
-      TRAIT.RESTORATIVE_VIRTUES,
-      'Restorative Virtues',
-      runtime.time,
-      cause.skillName,
-      `${Number(reduction.toFixed(3))}s weapon recharge`
-    );
+  if (reduction > 0) {
+    runtime.effects.emit({
+      kind: 'announcement',
+      announcement: {
+        type: 'trait',
+        name: 'Restorative Virtues',
+        at: runtime.time,
+        sourceSkill: cause.skillName,
+        detail: `${Number(reduction.toFixed(3))}s weapon recharge`,
+        icon: guardianTraitIcon(TRAIT.RESTORATIVE_VIRTUES)
+      }
+    });
+  }
 }
 
 /** The mechanic opens the chosen profile window at its authored activation boundary. */
@@ -139,15 +151,33 @@ export function willbenderVirtueWindowProfile(runtime: Runtime, virtue: Guardian
 
 /** Triggered Resolve Alacrity follows the cycle's ordinary virtue effects. */
 export function triggerPhoenixProtocol(runtime: Runtime, event: Gw2ResolverEvent, virtue: GuardianVirtue): void {
-  if (virtue === 'resolve' && hasTrait(runtime, TRAIT.PHOENIX_PROTOCOL))
-    boon(
-      runtime,
-      event,
-      TRAIT.PHOENIX_PROTOCOL,
-      'alacrity (triggered)',
-      TRAIT.PHOENIX_PROTOCOL,
-      battlePresenceSharesBoons(runtime)
-    );
+  if (virtue === 'resolve' && hasTrait(runtime, TRAIT.PHOENIX_PROTOCOL)) {
+    const profile = requireBalanceProfileFromContext(runtime, TRAIT.PHOENIX_PROTOCOL);
+    const effect = requireEffect(profile, 'boon', 'alacrity (triggered)');
+    if (effect) {
+      runtime.effects.emit({
+        kind: 'profile',
+        profile: profile,
+        effects: [effect],
+        attribution: {
+          source: 'guardian',
+          sourceId: TRAIT.PHOENIX_PROTOCOL,
+          actorType: 'player',
+          skillId: TRAIT.PHOENIX_PROTOCOL,
+          skillName: profile.name,
+          activationId: event.activationId,
+          triggeredBy: event.skillName
+        },
+        transform: (packet) => ({
+          ...packet,
+          duration: packet.duration,
+          name: profile.name + ' — ' + 'alacrity (triggered)',
+          causalOrder: event.causalOrder ?? event.eventOrder,
+          audience: { recipients: battlePresenceSharesBoons(runtime) ? 'party' : 'self' }
+        })
+      });
+    }
+  }
 }
 
 /** Activation rewards run after the mechanic installs the virtue window and before any later hit. */
@@ -157,27 +187,123 @@ export function applyWillbenderActivationTraits(
   virtue: GuardianVirtue
 ): void {
   tempo(runtime, cause);
-  if (virtue === 'justice' && hasTrait(runtime, TRAIT.HOLY_RECKONING))
-    boon(runtime, cause, TRAIT.HOLY_RECKONING, 'fury', TRAIT.HOLY_RECKONING);
+  if (virtue === 'justice' && hasTrait(runtime, TRAIT.HOLY_RECKONING)) {
+    const profile = requireBalanceProfileFromContext(runtime, TRAIT.HOLY_RECKONING);
+    const effect = requireEffect(profile, 'boon', 'fury');
+    if (effect) {
+      runtime.effects.emit({
+        kind: 'profile',
+        profile: profile,
+        effects: [effect],
+        attribution: {
+          source: 'guardian',
+          sourceId: TRAIT.HOLY_RECKONING,
+          actorType: 'player',
+          skillId: TRAIT.HOLY_RECKONING,
+          skillName: profile.name,
+          activationId: cause.activationId,
+          triggeredBy: cause.skillName
+        },
+        transform: (packet) => ({
+          ...packet,
+          duration: packet.duration,
+          name: profile.name + ' — ' + 'fury',
+          causalOrder: cause.causalOrder ?? cause.eventOrder,
+          audience: { recipients: 'self' }
+        })
+      });
+    }
+  }
+
   if (virtue === 'resolve') {
-    if (hasTrait(runtime, TRAIT.RESTORATIVE_VIRTUES))
-      boon(runtime, cause, TRAIT.RESTORATIVE_VIRTUES, 'vigor', TRAIT.RESTORATIVE_VIRTUES);
-    if (hasTrait(runtime, TRAIT.PHOENIX_PROTOCOL))
-      boon(
-        runtime,
-        cause,
-        TRAIT.PHOENIX_PROTOCOL,
-        'alacrity',
-        TRAIT.PHOENIX_PROTOCOL,
-        battlePresenceSharesBoons(runtime)
-      );
+    if (hasTrait(runtime, TRAIT.RESTORATIVE_VIRTUES)) {
+      const profile = requireBalanceProfileFromContext(runtime, TRAIT.RESTORATIVE_VIRTUES);
+      const effect = requireEffect(profile, 'boon', 'vigor');
+      if (effect) {
+        runtime.effects.emit({
+          kind: 'profile',
+          profile: profile,
+          effects: [effect],
+          attribution: {
+            source: 'guardian',
+            sourceId: TRAIT.RESTORATIVE_VIRTUES,
+            actorType: 'player',
+            skillId: TRAIT.RESTORATIVE_VIRTUES,
+            skillName: profile.name,
+            activationId: cause.activationId,
+            triggeredBy: cause.skillName
+          },
+          transform: (packet) => ({
+            ...packet,
+            duration: packet.duration,
+            name: profile.name + ' — ' + 'vigor',
+            causalOrder: cause.causalOrder ?? cause.eventOrder,
+            audience: { recipients: 'self' }
+          })
+        });
+      }
+    }
+
+    if (hasTrait(runtime, TRAIT.PHOENIX_PROTOCOL)) {
+      const profile = requireBalanceProfileFromContext(runtime, TRAIT.PHOENIX_PROTOCOL);
+      const effect = requireEffect(profile, 'boon', 'alacrity');
+      if (effect) {
+        runtime.effects.emit({
+          kind: 'profile',
+          profile: profile,
+          effects: [effect],
+          attribution: {
+            source: 'guardian',
+            sourceId: TRAIT.PHOENIX_PROTOCOL,
+            actorType: 'player',
+            skillId: TRAIT.PHOENIX_PROTOCOL,
+            skillName: profile.name,
+            activationId: cause.activationId,
+            triggeredBy: cause.skillName
+          },
+          transform: (packet) => ({
+            ...packet,
+            duration: packet.duration,
+            name: profile.name + ' — ' + 'alacrity',
+            causalOrder: cause.causalOrder ?? cause.eventOrder,
+            audience: { recipients: battlePresenceSharesBoons(runtime) ? 'party' : 'self' }
+          })
+        });
+      }
+    }
   }
 }
 
 /** Completed hit cycles grant Tempo, Might, and recharge reduction before the virtue's own effects. */
 export function applyWillbenderTriggerTraits(runtime: Runtime, event: Gw2ResolverEvent): void {
   tempo(runtime, event);
-  if (hasTrait(runtime, TRAIT.HOLY_RECKONING))
-    boon(runtime, event, TRAIT.HOLY_RECKONING, 'might', TRAIT.HOLY_RECKONING, true);
+  if (hasTrait(runtime, TRAIT.HOLY_RECKONING)) {
+    const profile = requireBalanceProfileFromContext(runtime, TRAIT.HOLY_RECKONING);
+    const effect = requireEffect(profile, 'boon', 'might');
+    if (effect) {
+      runtime.effects.emit({
+        kind: 'profile',
+        profile: profile,
+        effects: [effect],
+        attribution: {
+          source: 'guardian',
+          sourceId: TRAIT.HOLY_RECKONING,
+          actorType: 'player',
+          skillId: TRAIT.HOLY_RECKONING,
+          skillName: profile.name,
+          activationId: event.activationId,
+          triggeredBy: event.skillName
+        },
+        transform: (packet) => ({
+          ...packet,
+          duration: packet.duration,
+          name: profile.name + ' — ' + 'might',
+          causalOrder: event.causalOrder ?? event.eventOrder,
+          audience: { recipients: 'party' }
+        })
+      });
+    }
+  }
+
   if (hasTrait(runtime, TRAIT.RESTORATIVE_VIRTUES)) reduceWeapons(runtime, event);
 }

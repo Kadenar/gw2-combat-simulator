@@ -10,8 +10,6 @@ import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import {
   activeElementalistBuffs,
   queueElementalistAura,
-  queueElementalistBuff,
-  recordElementalistTraitProc,
   refreshElementalistBuffs
 } from '#gw2/professions/elementalist/core/mechanics/reactions.js';
 import type { ElementalistAttunement } from '#gw2/professions/elementalist/core/state.js';
@@ -26,20 +24,39 @@ export function applyEmpoweringAura(context: ElementalistRuntime, event: Gw2Reso
     refreshElementalistBuffs(context, 'Empowering Auras', event.at, () => event.at + duration);
     const activeStacks = current.reduce((total, application) => total + (application.stacks || 1), 0);
     if (activeStacks < maximumStacks) {
-      queueElementalistBuff(context, event, 'Empowering Auras', 1, duration, TRAIT.EMPOWERING_AURAS);
+      context.effects.emit({
+        kind: 'packet',
+        durationContext: event,
+        event: {
+          type: 'buff',
+          at: event.at,
+          source: 'Trait',
+          sourceId: TRAIT.EMPOWERING_AURAS,
+          actorType: 'player',
+          skillName: requireBalanceProfileFromContext(context, TRAIT.EMPOWERING_AURAS).name,
+          kind: 'Empowering Auras'.toLowerCase(),
+          stacks: 1,
+          duration: duration,
+          triggeredBy: resolverSourceSkill(event),
+          priority: Number(event.priority || 0)
+        }
+      });
     }
 
     // Report refreshes even at the cap, where no new gameplay stack is granted.
-    context.recordProc(
-      'trait',
-      'Empowering Auras',
-      event.at,
-      resolverSourceSkill(event),
-      '',
-      '',
-      null,
-      event.at + duration
-    );
+    context.effects.emit({
+      kind: 'announcement',
+      announcement: {
+        type: 'trait',
+        name: 'Empowering Auras',
+        at: event.at,
+        sourceSkill: resolverSourceSkill(event),
+        detail: '',
+        icon: '',
+        cooldownReduction: null,
+        expiresAt: event.at + duration
+      }
+    });
   }
 }
 
@@ -54,14 +71,23 @@ export function applyEpitomeAura(context: ElementalistRuntime, event: Gw2Resolve
 
   const empowerment = elementalEpitomeEmpowerment(context);
   if (!empowerment) return;
-  queueElementalistBuff(
-    context,
-    event,
-    'Elemental Empowerment',
-    empowerment.stacks,
-    empowerment.duration,
-    TRAIT.ELEMENTAL_EPITOME
-  );
+  context.effects.emit({
+    kind: 'packet',
+    durationContext: event,
+    event: {
+      type: 'buff',
+      at: event.at,
+      source: 'Trait',
+      sourceId: TRAIT.ELEMENTAL_EPITOME,
+      actorType: 'player',
+      skillName: requireBalanceProfileFromContext(context, TRAIT.ELEMENTAL_EPITOME).name,
+      kind: 'Elemental Empowerment'.toLowerCase(),
+      stacks: empowerment.stacks,
+      duration: empowerment.duration,
+      triggeredBy: resolverSourceSkill(event),
+      priority: Number(event.priority || 0)
+    }
+  });
 }
 
 /** Epitome claims its per-element combo interval before emitting the selected aura. */
@@ -79,7 +105,15 @@ export function applyEpitomeCombo(context: ElementalistRuntime, event: Gw2Resolv
     const aura = elementalEpitomeAura(context, attunement);
     if (aura) {
       queueElementalistAura(context, event, aura.aura, aura.duration, 'Elemental Epitome');
-      recordElementalistTraitProc(context, event, 'Elemental Epitome');
+      context.effects.emit({
+        kind: 'announcement',
+        announcement: {
+          type: 'trait',
+          name: 'Elemental Epitome',
+          at: event.at,
+          sourceSkill: resolverSourceSkill(event)
+        }
+      });
     }
   }
 }
@@ -98,14 +132,34 @@ export function applySynergyCombo(context: ElementalistRuntime, event: Gw2Resolv
   ) {
     if (attunement === 'Fire' || attunement === 'Earth') {
       const boon = elementalSynergyBoon(context, attunement);
-      if (boon) queueElementalistBuff(context, event, boon.kind, boon.stacks, boon.duration, TRAIT.ELEMENTAL_SYNERGY);
+      if (boon)
+        context.effects.emit({
+          kind: 'packet',
+          durationContext: event,
+          event: {
+            type: 'buff',
+            at: event.at,
+            source: 'Trait',
+            sourceId: TRAIT.ELEMENTAL_SYNERGY,
+            actorType: 'player',
+            skillName: requireBalanceProfileFromContext(context, TRAIT.ELEMENTAL_SYNERGY).name,
+            kind: boon.kind.toLowerCase(),
+            stacks: boon.stacks,
+            duration: boon.duration,
+            triggeredBy: resolverSourceSkill(event),
+            priority: Number(event.priority || 0)
+          }
+        });
     } else if (attunement === 'Air') {
       const elementalSynergyProfile = requireBalanceProfileFromContext(context, TRAIT.ELEMENTAL_SYNERGY);
 
       context.endurance.grant(balanceProfileNumber(elementalSynergyProfile, 'resourceGain'));
     }
 
-    recordElementalistTraitProc(context, event, 'Elemental Synergy');
+    context.effects.emit({
+      kind: 'announcement',
+      announcement: { type: 'trait', name: 'Elemental Synergy', at: event.at, sourceSkill: resolverSourceSkill(event) }
+    });
   }
 }
 

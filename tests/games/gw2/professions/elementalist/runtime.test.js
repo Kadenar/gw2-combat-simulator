@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { runElementalist, runNative } from '#tests/helpers/elementalist-simulation.js';
 import { observedRuntime } from '#tests/helpers/observed-runtime.js';
-import { emitElementalistDamage } from '#gw2/professions/elementalist/core/events.js';
+import { elementalistStrikeRequest } from '#gw2/professions/elementalist/core/events.js';
 import { evokerHooks } from '#gw2/professions/elementalist/specializations/evoker/hooks.js';
 import {
   grantWeaponSkillCharges,
@@ -22,15 +22,17 @@ test('Catalyst energy ignores missed packets and arrives at the accepted impact'
           [0.5, true],
           [1, false]
         ])
-          emitElementalistDamage(runtime, {
-            at,
-            offTarget,
-            coefficient: 1,
-            actorType: 'player',
-            skillId: 42,
-            skillName: 'Fixture',
-            skillWeapon: 'Unequipped'
-          });
+          runtime.effects.emit(
+            elementalistStrikeRequest(runtime, {
+              at,
+              offTarget,
+              coefficient: 1,
+              actorType: 'player',
+              skillId: 42,
+              skillName: 'Fixture',
+              skillWeapon: 'Unequipped'
+            })
+          );
       },
       timeline: [{ at: 0.75, run: (runtime) => assert.equal(runtime.profession.specialization.state.energy, 0) }]
     }

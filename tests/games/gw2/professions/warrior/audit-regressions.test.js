@@ -289,14 +289,17 @@ test('endurance integration and Dodge readiness follow actual pooled Vigor windo
             profession.initialize?.(runtime);
             runtime.endurance.spend(100);
             for (const event of events)
-              runtime.emit({
-                ...event,
-                type: 'buff',
-                kind: 'vigor',
-                stacks: 1,
-                source: 'fixture',
-                sourceId: 'vigor',
-                actorType: 'player'
+              runtime.effects.emit({
+                kind: 'packet',
+                event: {
+                  ...event,
+                  type: 'buff',
+                  kind: 'vigor',
+                  stacks: 1,
+                  source: 'fixture',
+                  sourceId: 'vigor',
+                  actorType: 'player'
+                }
               });
           }
         },

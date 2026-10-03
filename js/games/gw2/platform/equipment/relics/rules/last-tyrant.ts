@@ -13,7 +13,7 @@ const LAST_TYRANT_EXPLOSION_COEFFICIENT = 3;
 
 export const lastTyrant = defineRelic({
   createState: () => ({ readyAt: 0, stackReadyAt: 0, stacks: 0 }),
-  condition(ctx, state, application, { applyCondition }) {
+  condition(ctx, state, application, _helpers) {
     // The explosion's own burning cannot feed Tyrant's Fury.
     if (
       application.condition !== 'Burning' ||
@@ -37,55 +37,74 @@ export const lastTyrant = defineRelic({
       if (application.at < (state.stackReadyAt || 0)) return;
       state.stacks = stacks + 1;
       state.stackReadyAt = gw2EffectExpiresAt(application.at, LAST_TYRANT_STACK_INTERNAL_COOLDOWN);
-      ctx.recordProc(
-        'relic',
-        'Relic of the Last Tyrant',
-        application.at,
-        application.skillName,
-        `${state.stacks}/${LAST_TYRANT_STACKS_NEEDED} stacks`,
-        '',
-        null,
-        null,
-        { stacks: state.stacks, maximumStacks: LAST_TYRANT_STACKS_NEEDED }
-      );
+      ctx.effects.emit({
+        kind: 'announcement',
+        announcement: {
+          type: 'relic',
+          name: 'Relic of the Last Tyrant',
+          at: application.at,
+          sourceSkill: application.skillName,
+          detail: `${state.stacks}/${LAST_TYRANT_STACKS_NEEDED} stacks`,
+          icon: '',
+          cooldownReduction: null,
+          expiresAt: null,
+          effectState: { stacks: state.stacks, maximumStacks: LAST_TYRANT_STACKS_NEEDED }
+        }
+      });
       return;
     }
 
     // At max Fury stacks, the next burning application explodes even while the short marker is active.
     state.stacks = 0;
     state.readyAt = application.at + LAST_TYRANT_INTERNAL_COOLDOWN;
-    ctx.recordProc('relic', 'Relic of the Last Tyrant', application.at, application.skillName, 'explosion');
-    ctx.queue.enqueue({
-      type: 'damage',
-      at: application.at,
-      name: 'Relic of the Last Tyrant',
-      skillName: 'Relic of the Last Tyrant',
-      coefficient: LAST_TYRANT_EXPLOSION_COEFFICIENT,
-      hits: 1,
-      hitIndex: 1,
-      totalHits: 1,
-      source: 'Relic',
-      sourceId: `relic.${RELIC_IDS.LAST_TYRANT}`,
-      actorType: 'effect',
-      ownerActorType: 'player',
-      skillWeapon: 'Unequipped',
-      canCrit: true,
-      triggeredBy: application.skillName
+    ctx.effects.emit({
+      kind: 'announcement',
+      announcement: {
+        type: 'relic',
+        name: 'Relic of the Last Tyrant',
+        at: application.at,
+        sourceSkill: application.skillName,
+        detail: 'explosion'
+      }
+    });
+    ctx.effects.emit({
+      kind: 'packet',
+      event: {
+        type: 'damage',
+        at: application.at,
+        name: 'Relic of the Last Tyrant',
+        skillName: 'Relic of the Last Tyrant',
+        coefficient: LAST_TYRANT_EXPLOSION_COEFFICIENT,
+        hits: 1,
+        hitIndex: 1,
+        totalHits: 1,
+        source: 'Relic',
+        sourceId: `relic.${RELIC_IDS.LAST_TYRANT}`,
+        actorType: 'effect',
+        ownerActorType: 'player',
+        skillWeapon: 'Unequipped',
+        canCrit: true,
+        triggeredBy: application.skillName
+      }
     });
 
-    applyCondition(ctx, {
-      type: 'condition',
-      at: application.at,
-      name: 'Relic of the Last Tyrant — Burning',
-      skillName: 'Relic of the Last Tyrant',
-      condition: 'Burning',
-      duration: 8,
-      stacks: 2,
-      source: 'Relic',
-      sourceId: `relic.${RELIC_IDS.LAST_TYRANT}`,
-      actorType: 'effect',
-      ownerActorType: 'player',
-      triggeredBy: application.skillName
+    ctx.effects.emit({
+      kind: 'packet',
+      settlement: 'reaction',
+      event: {
+        type: 'condition',
+        at: application.at,
+        name: 'Relic of the Last Tyrant — Burning',
+        skillName: 'Relic of the Last Tyrant',
+        condition: 'Burning',
+        duration: 8,
+        stacks: 2,
+        source: 'Relic',
+        sourceId: `relic.${RELIC_IDS.LAST_TYRANT}`,
+        actorType: 'effect',
+        ownerActorType: 'player',
+        triggeredBy: application.skillName
+      }
     });
   }
 });

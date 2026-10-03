@@ -10,7 +10,7 @@ import {
 import type { AvailabilityResult } from '#gw2/platform/execution/types.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import type { SkillSideEffect } from '#gw2/platform/simulation/side-effects.js';
-import { emitRangerDamage, rangerEvent } from '#gw2/professions/ranger/core/events.js';
+import { buildRangerStrikes, buildRangerPacket } from '#gw2/professions/ranger/core/events.js';
 import { RANGER_PET_STRIKE_SCALING } from '#gw2/professions/ranger/core/mechanics/pets.js';
 import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
 import { galeshotState } from '#gw2/professions/ranger/specializations/galeshot/state.js';
@@ -35,9 +35,8 @@ export function applyShrike(context: RangerRuntime, event: Gw2ResolverEvent): vo
   const hits = effectNumber(profile, strike, 'hits');
   const coefficient = effectNumber(profile, strike, 'coefficient');
   for (let hitIndex = 1; hitIndex <= hits; hitIndex += 1) {
-    emitRangerDamage(
-      context,
-      rangerEvent(
+    buildRangerStrikes(
+      buildRangerPacket(
         {
           at: at,
           source: 'Trait',
@@ -57,7 +56,7 @@ export function applyShrike(context: RangerRuntime, event: Gw2ResolverEvent): vo
         },
         'damage'
       )
-    );
+    ).forEach((packet) => context.effects.emit({ kind: 'packet', event: packet }));
   }
 }
 
@@ -83,23 +82,20 @@ export function reactToGaleshotPet(context: RangerRuntime, event: Gw2ResolverEve
   if (!strike) return;
   state.wutheringWindReady = false;
   if (activationId) state.wutheringWindActivationIds[activationId] = true;
-  context.emit({
-    type: 'proc',
-    at: at,
-    source: 'Trait',
-    sourceId: TRAIT.WUTHERING_WIND,
-    actorType: 'effect',
-    ownerActorType: 'player',
-    skillId: ID.WUTHERING_WIND,
-    skillName: 'Wuthering Wind',
-    name: 'Wuthering Wind',
-    procType: 'trait',
-    sourceSkill: event.skillName,
-    detail: 'activated'
+  context.effects.emit({
+    kind: 'announcement',
+    log: true,
+    attribution: {
+      source: 'Trait',
+      sourceId: TRAIT.WUTHERING_WIND,
+      actorType: 'effect',
+      skillId: ID.WUTHERING_WIND,
+      skillName: 'Wuthering Wind'
+    },
+    announcement: { name: 'Wuthering Wind', at: at, detail: 'activated', type: 'trait', sourceSkill: event.skillName }
   });
-  emitRangerDamage(
-    context,
-    rangerEvent(
+  buildRangerStrikes(
+    buildRangerPacket(
       {
         at: at,
         source: 'Trait',
@@ -124,7 +120,7 @@ export function reactToGaleshotPet(context: RangerRuntime, event: Gw2ResolverEve
       },
       'damage'
     )
-  );
+  ).forEach((packet) => context.effects.emit({ kind: 'packet', event: packet }));
 }
 
 /** Accepted controls refund arrows at the trait's own cooldown boundary. */
@@ -159,8 +155,9 @@ export function completeGaleshotSkill(context: RangerRuntime, skill: RangerSkill
   const quickness = requireEffect(profile, 'boon', 'quickness');
   // The cooldown gates only quickness, so a removed boon leaves it ready.
   if (!quickness || !context.procs.claim(TRAIT.FLOCK_TOGETHER, 'ranger.galeshot.flockTogether', context.time)) return;
-  context.emitProcedural(
-    rangerEvent(
+  context.effects.emit({
+    kind: 'packet',
+    event: buildRangerPacket(
       {
         at: context.time,
         source: 'Trait',
@@ -177,7 +174,7 @@ export function completeGaleshotSkill(context: RangerRuntime, skill: RangerSkill
       },
       'buff'
     )
-  );
+  });
 }
 
 export function applyGaleshotCycloneBowTraits(context: RangerRuntime, skill: RangerSkill): void {
@@ -191,8 +188,9 @@ export function applyGaleshotCycloneBowTraits(context: RangerRuntime, skill: Ran
         const duration = effectNumber(profile, effect, 'duration');
         // galeForceUntil is a timestamp, not a duration; compare against context.time in modifiers.
         state.galeForceUntil = context.time + duration;
-        context.emitProcedural(
-          rangerEvent(
+        context.effects.emit({
+          kind: 'packet',
+          event: buildRangerPacket(
             {
               at: context.time,
               source: 'Trait',
@@ -207,7 +205,7 @@ export function applyGaleshotCycloneBowTraits(context: RangerRuntime, skill: Ran
             },
             'buff'
           )
-        );
+        });
       }
     }
 
@@ -236,8 +234,9 @@ function emitCloudburstBoons(context: RangerRuntime, skill: RangerSkill): void {
     const effect = requireEffect(profile, 'boon', name);
     if (!effect) continue;
     const kind = String(effect.boon);
-    context.emitProcedural(
-      rangerEvent(
+    context.effects.emit({
+      kind: 'packet',
+      event: buildRangerPacket(
         {
           at: context.time,
           source: 'Trait',
@@ -255,7 +254,7 @@ function emitCloudburstBoons(context: RangerRuntime, skill: RangerSkill): void {
         },
         'buff'
       )
-    );
+    });
   }
 }
 

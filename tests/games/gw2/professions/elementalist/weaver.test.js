@@ -1,3 +1,4 @@
+import { captureEffectEmissions } from '#tests/helpers/effect-emission.js';
 import { observedRuntime } from '#tests/helpers/observed-runtime.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
@@ -27,14 +28,22 @@ test('Core and Weaver orb creation refresh existing buffs without duplicating th
         {
           at: 1,
           run(runtime) {
-            createHammerOrbs(runtime, { id: 'single', effectiveEnd: runtime.time }, single, ['Fire']);
+            createHammerOrbs(
+              runtime,
+              { id: 'single', effectiveEnd: runtime.time, skill: single, command: {} },
+              single,
+              ['Fire']
+            );
             originalExpiry = runtime.profession.core.hammerOrbs.Fire;
           }
         },
         {
           at: 2,
           run(runtime) {
-            createHammerOrbs(runtime, { id: 'dual', effectiveEnd: runtime.time }, dual, ['Fire', 'Air']);
+            createHammerOrbs(runtime, { id: 'dual', effectiveEnd: runtime.time, skill: dual, command: {} }, dual, [
+              'Fire',
+              'Air'
+            ]);
             const state = runtime.profession.core;
             assert.equal(state.hammerOrbs.Fire, originalExpiry + 1);
             assert.equal(state.hammerOrbs.Air, state.hammerOrbs.Fire);
@@ -265,7 +274,7 @@ test('Primordial Stance does not restore removed profile effects through fallbac
       specialization: { kind: 'Weaver', state: { secondaryAttunement: 'Fire' } }
     },
     tasks: { schedule: () => 'pulse', cancel: () => {} },
-    emit: () => assert.fail('Removed profile effects must not emit')
+    effects: captureEffectEmissions({ submit: () => assert.fail('Removed profile effects must not emit') }).effects
   };
   primordialStancePulse(context, {
     cast: {

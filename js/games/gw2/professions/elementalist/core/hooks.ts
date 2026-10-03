@@ -9,7 +9,6 @@ import {
   elementalistOnCastStart
 } from '#gw2/professions/elementalist/core/cast-lifecycle.js';
 import { CONJURED_WEAPONS, HAMMER_ORB_SKILLS } from '#gw2/professions/elementalist/core/constants.js';
-import { withElementalistCast } from '#gw2/professions/elementalist/core/events.js';
 import { elementalistCoreAvailability } from '#gw2/professions/elementalist/core/mechanics/availability.js';
 import {
   elementalistElementalCompanionId,
@@ -55,12 +54,10 @@ import {
   reactElementalistCoreCritical
 } from '#gw2/professions/elementalist/core/traits/dispatch.js';
 import type {
-  ElementalistSkill,
   ElementalistRuntimeState,
-  ElementalistSimulationEvent
+  ElementalistSimulationEvent,
+  ElementalistSkill
 } from '#gw2/professions/elementalist/types.js';
-import { canonicalTime } from '#kernel/core/clock.js';
-
 /** Core casts, accepted hits, and owned expiry tasks share the runtime. */
 export const elementalistCoreHooks: Partial<RuntimeProfession<ElementalistRuntimeState, ElementalistSkill>> = {
   sideEffectHandlers: elementalistCoreSideEffectHandlers,
@@ -69,22 +66,17 @@ export const elementalistCoreHooks: Partial<RuntimeProfession<ElementalistRuntim
   rechargeWork: elementalistRechargeWork,
   reserveRecharge: reserveElementalistRecharge,
   onCombatStart: ensureElementalistElemental,
+  // Orb contact ownership is admission data; preparation waits until the surviving packet executes.
+  effectOwner(_runtime, event) {
+    if (HAMMER_ORB_SKILLS[Number(event.skillId)] && (event.type === 'damage' || event.type === 'condition'))
+      return { id: String(event.activationId), generation: 0 };
+    return undefined;
+  },
   prepareEvent(runtime, event) {
     const elemental = runtime.profession.core.summonedElemental;
     if (event.type === 'damage' && CONJURED_WEAPONS.has(String(event.skillWeapon)))
       event = { ...event, weaponStrengthSource: 'equipped' };
     observeFreshAirCandidate(runtime, event);
-
-    // Orb contacts stay cancellable until impact, so Grand Finale can retire their pending work.
-    if (
-      HAMMER_ORB_SKILLS[Number(event.skillId)] &&
-      (event.type === 'damage' || event.type === 'condition') &&
-      canonicalTime(event.at) > runtime.time
-    ) {
-      runtime.emitProcedural(event, { owner: { id: String(event.activationId), generation: 0 } });
-      return null;
-    }
-
     let prepared = prepareGw2BuffCompanionCandidates(
       event,
       elemental.element && elemental.activeUntil >= event.at
@@ -95,14 +87,15 @@ export const elementalistCoreHooks: Partial<RuntimeProfession<ElementalistRuntim
     return empowerElementalistSpearPacket(
       runtime,
       prepared as ElementalistSimulationEvent,
-      runtime.profession.core.spearFollowups[String(prepared.activationId)]
+      runtime.profession.core.spearFollowups[String(prepared.activationId)],
+      undefined
     );
   },
   onCastStart(runtime, cast) {
-    if (!cast.cancelled) withElementalistCast(runtime, cast, () => elementalistOnCastStart(runtime, cast, cast.skill));
+    if (!cast.cancelled) elementalistOnCastStart(runtime, cast, cast.skill);
   },
   onCastCommit(runtime, cast) {
-    withElementalistCast(runtime, cast, () => elementalistOnCastCommit(runtime, cast, cast.skill));
+    elementalistOnCastCommit(runtime, cast, cast.skill);
     // Authored strikes are prepared, and delayed sequences now own their snapshots.
     delete runtime.profession.core.spearFollowups[cast.id];
   },

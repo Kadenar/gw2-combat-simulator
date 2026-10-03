@@ -48,7 +48,10 @@ test('passive cooldown queries integrate committed recharge and retain historica
         return {
           ...profession.runtimeFor(config),
           initialize(runtime) {
-            runtime.emit({ ...owner, type: 'buff', kind: 'alacrity', at: 2, duration: 4, stacks: 1 });
+            runtime.effects.emit({
+              kind: 'packet',
+              event: { ...owner, type: 'buff', kind: 'alacrity', at: 2, duration: 4, stacks: 1 }
+            });
           }
         };
       }
@@ -77,8 +80,11 @@ test('passive cooldown queries honor recharge anchors and completion ticks despi
         return {
           ...profession.runtimeFor(config),
           initialize(runtime) {
-            runtime.emit({ ...owner, type: 'buff', kind: 'alacrity', at: 1, duration: 4, stacks: 1 });
-            runtime.emit({ ...owner, type: 'boon_extension', at: 3, duration: 2 });
+            runtime.effects.emit({
+              kind: 'packet',
+              event: { ...owner, type: 'buff', kind: 'alacrity', at: 1, duration: 4, stacks: 1 }
+            });
+            runtime.effects.emit({ kind: 'packet', event: { ...owner, type: 'boon_extension', at: 3, duration: 2 } });
           }
         };
       }

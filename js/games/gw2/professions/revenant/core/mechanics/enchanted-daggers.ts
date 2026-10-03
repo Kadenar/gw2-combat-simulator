@@ -1,13 +1,13 @@
-import type { RevenantSkill } from '#gw2/professions/revenant/types.js';
-import { canonicalTime } from '#kernel/core/clock.js';
 import { isInternalCooldownReady } from '#gw2/platform/combat/procs.js';
 import { consumeCharge, grantCharges } from '#gw2/platform/combat/resources/charges.js';
 import { effectNumber, requireEffect } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { buildResolverStrike } from '#gw2/platform/resolver/packets.js';
-import { REVENANT_SKILL_IDS as ID } from '#gw2/professions/revenant/data/ids.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import type { RuntimeCast } from '#gw2/platform/simulation/runtime-state.js';
 import type { RevenantRuntime } from '#gw2/professions/revenant/core/events.js';
+import { REVENANT_SKILL_IDS as ID } from '#gw2/professions/revenant/data/ids.js';
+import type { RevenantSkill } from '#gw2/professions/revenant/types.js';
+import { canonicalTime } from '#kernel/core/clock.js';
 
 /** A ready, unexpired Enchanted Daggers charge becomes a delayed siphon after a landed player strike. */
 export function enchantedDaggers(runtime: RevenantRuntime, event: Gw2ResolverEvent): void {
@@ -29,9 +29,10 @@ export function enchantedDaggers(runtime: RevenantRuntime, event: Gw2ResolverEve
   if (!consumeCharge(daggers, runtime.time, delay)) return;
   // Preserve strict same-timestamp gating even when a patched strike has no delay.
   if (delay === 0) daggers.readyAt = runtime.time;
-  runtime.emitDerived(
-    event,
-    buildResolverStrike({
+  runtime.effects.emit({
+    kind: 'packet',
+    cause: event,
+    event: buildResolverStrike({
       at: canonicalTime(runtime.time + delay),
       source: 'revenant',
       sourceId: ID.ENCHANTED_DAGGERS,
@@ -48,7 +49,7 @@ export function enchantedDaggers(runtime: RevenantRuntime, event: Gw2ResolverEve
       hitIndex: totalHits - daggers.charges,
       totalHits
     })
-  );
+  });
 }
 
 /** A committed Enchanted Daggers arms its finite charge window at completion. */
@@ -62,21 +63,24 @@ export function completeRevenantEnchantedDaggers(runtime: RevenantRuntime, cast:
     ...grantCharges(charges, runtime.time + duration),
     readyAt: runtime.time
   };
-  runtime.emitProcedural(
-    {
-      type: 'buff',
-      at: runtime.time,
-      source: 'revenant',
-      sourceId: cast.skill.id,
-      actorType: 'player',
-      skillId: cast.skill.id,
-      skillName: cast.skill.name,
-      activationId: cast.id,
-      name: 'Enchanted Daggers',
-      kind: 'enchanted-daggers',
-      duration,
-      stacks: charges
-    },
-    { fixedDuration: true }
-  );
+  runtime.effects.emit({
+    kind: 'packet',
+    event: {
+      ...{
+        type: 'buff',
+        at: runtime.time,
+        source: 'revenant',
+        sourceId: cast.skill.id,
+        actorType: 'player',
+        skillId: cast.skill.id,
+        skillName: cast.skill.name,
+        activationId: cast.id,
+        name: 'Enchanted Daggers',
+        kind: 'enchanted-daggers',
+        duration,
+        stacks: charges
+      },
+      fixedDuration: true
+    }
+  });
 }

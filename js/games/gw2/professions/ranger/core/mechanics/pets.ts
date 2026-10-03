@@ -1,8 +1,8 @@
 import { selectedSkillNameSet } from '#gw2/platform/builds/selected-skills.js';
-import { buffApplicationStacks, gw2BoonDurationMultiplier, isStandardBoon } from '#gw2/platform/combat/boons.js';
+import { buffApplicationStacks, gw2BoonDurationMultiplier } from '#gw2/platform/combat/boons.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { STANDARD_TARGET_ARMOR } from '#gw2/platform/combat/formulas.js';
-import { materializeSkillEffectApplications, scaleCastBoundTiming } from '#gw2/platform/engine/effects/materializer.js';
+import { scaleCastBoundTiming } from '#gw2/platform/engine/effects/materializer.js';
 import type { SimulationEventBase } from '#gw2/platform/engine/events/events.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import {
@@ -11,7 +11,6 @@ import {
 } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { GW2_ALACRITY_RECHARGE_RATE } from '#gw2/platform/engine/skills/recharge.js';
 import { cancelledBeforeEffectCommit } from '#gw2/platform/execution/effect-adapter.js';
-import { gw2ResolverBoonDuration } from '#gw2/platform/resolver/boons.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import type { RuntimeCast } from '#gw2/platform/simulation/runtime-state.js';
 import {
@@ -272,41 +271,40 @@ function emitPetSkill(
       cancelledBeforeEffectCommit(skill, effect, cast.start, cast.fullEnd, cast.effectiveEnd)
     )
       continue;
-    for (const { event } of materializeSkillEffectApplications({
-      skill,
-      effect: cast ? scaleCastBoundTiming(cast, skill, effect) : effect,
-      start,
+    // Preserve pet commitment, measured timing, and generation cancellation on the shared heap.
+    context.effects.emit({
+      kind: 'profile',
+      profile: skill,
+      effects: [cast ? scaleCastBoundTiming(cast, skill, effect) : effect],
+      at: start,
       fullEnd,
-      baseEvent: {
+      owner: cast || effect.persistsAfterInterrupt ? undefined : owner(context, PET_AI_ATTACK_OWNER),
+      // Actual impacts follow same-time commitment rewards; the removed -20 task only prepared these packets.
+      priority: 0,
+      attribution: {
         activationId,
         source: effect.source ?? (cast ? 'ranger' : 'ranger-pet'),
         sourceId: effect.sourceId ?? skill.id,
         actorType: effect.actorType ?? (cast ? 'player' : 'summon'),
         skillId: skill.id,
         skillName: skill.name
+      },
+      transform(event) {
+        const offsetMs = Math.round((event.at - start) * 1000);
+        const at = gw2CooldownReadyAt(
+          timing && !quickness ? start + (timing.unbuffedImpactMs[offsetMs] ?? offsetMs) / 1000 : event.at
+        );
+        if (
+          cast &&
+          castWasInterrupted(cast) &&
+          (timing || skill.interruptMode === 'per-packet') &&
+          at > cast.effectiveEnd + (start - cast.start) + EPSILON &&
+          !effect.persistsAfterInterrupt
+        )
+          return null;
+        return { ...prepareRangerPetEvent(context, event), at, icon: skill.icon };
       }
-    })) {
-      // Measured effect timelines describe Quickness impacts; project unbuffed packets before interruption checks.
-      const offsetMs = Math.round((event.at - start) * 1000);
-      const at = gw2CooldownReadyAt(
-        timing && !quickness ? start + (timing.unbuffedImpactMs[offsetMs] ?? offsetMs) / 1000 : event.at
-      );
-      if (
-        cast &&
-        castWasInterrupted(cast) &&
-        (timing || skill.interruptMode === 'per-packet') &&
-        at > cast.effectiveEnd + (start - cast.start) + EPSILON &&
-        !effect.persistsAfterInterrupt
-      )
-        continue;
-      context.schedule(
-        'ranger.pet-effect',
-        at,
-        { ...prepareRangerPetEvent(context, event), at, icon: skill.icon },
-        cast || effect.persistsAfterInterrupt ? undefined : owner(context, PET_AI_ATTACK_OWNER),
-        -20
-      );
-    }
+    });
   }
 }
 
@@ -371,21 +369,26 @@ export const rangerPetTasks = {
         context.time +
           (RANGER_PET_SKILL_TIMINGS[String(selected.id)] ? rangerPetCastDurationMs(context, skill, 0) / 1000 : recovery)
       );
-      const action = context.emit({
-        type: 'action',
-        at: context.time,
-        source: 'ranger-pet',
-        sourceId: skill.id,
-        actorType: 'summon',
-        skillId: skill.id,
-        skillName: skill.name,
-        name: skill.name,
-        endsAt: fullEnd,
-        fullEndsAt: fullEnd,
-        icon: skill.icon
+      // Combat activation identity is independent of event and announcement allocation.
+      const activationId = `ranger-pet:${++state.petAutoSequence}`;
+      context.effects.emit({
+        kind: 'packet',
+        event: {
+          activationId,
+          type: 'action',
+          at: context.time,
+          source: 'ranger-pet',
+          sourceId: skill.id,
+          actorType: 'summon',
+          skillId: skill.id,
+          skillName: skill.name,
+          name: skill.name,
+          endsAt: fullEnd,
+          fullEndsAt: fullEnd,
+          icon: skill.icon
+        }
       });
-      const activationId = 'ranger-pet:' + action.eventOrder;
-      state.petAutoAction = action;
+      state.petAutoAction = { activationId, endsAt: fullEnd };
       emitPetSkill(context, skill, context.time, fullEnd, activationId);
     }
 
@@ -423,8 +426,21 @@ export const rangerPetTasks = {
     // Queued commands and already launched persistent effects retain their separate ownership.
     if (rangerPetSkillsRequireCommands(context.config.specialization || 'Core') && state.petAutoAction) {
       context.cancelOwner(owner(context, PET_AI_ATTACK_OWNER));
-      if (Number(state.petAutoAction.endsAt) > context.time) {
-        Object.assign(state.petAutoAction, { endsAt: context.time, interrupted: true });
+      if (state.petAutoAction.endsAt > context.time) {
+        // Publish a lifecycle transition; shared emission references remain immutable.
+        context.effects.emit({
+          kind: 'packet',
+          event: {
+            type: 'action_update',
+            at: context.time,
+            source: 'ranger-pet',
+            sourceId: state.activePet,
+            actorType: 'summon',
+            activationId: state.petAutoAction.activationId,
+            endsAt: context.time,
+            interrupted: true
+          }
+        });
       }
 
       state.petAutoBusyUntil = context.time;
@@ -450,20 +466,23 @@ export const rangerPetTasks = {
       context.time + Math.max(petCommandRecovery(context, cast), cast.effectiveEnd - cast.start)
     );
 
-    context.emit({
-      type: 'action',
-      at: context.time,
-      source: 'ranger-pet',
-      sourceId: cast.skill.id,
-      actorType: 'summon',
-      skillId: cast.skill.id,
-      skillName: cast.skill.name,
-      name: cast.skill.name,
-      activationId: cast.id,
-      icon: cast.skill.icon,
-      endsAt: gw2CooldownReadyAt(cast.effectiveEnd + context.time - cast.start),
-      fullEndsAt: gw2CooldownReadyAt(cast.fullEnd + context.time - cast.start),
-      cancelled: castWasInterrupted(cast)
+    context.effects.emit({
+      kind: 'packet',
+      event: {
+        type: 'action',
+        at: context.time,
+        source: 'ranger-pet',
+        sourceId: cast.skill.id,
+        actorType: 'summon',
+        skillId: cast.skill.id,
+        skillName: cast.skill.name,
+        name: cast.skill.name,
+        activationId: cast.id,
+        icon: cast.skill.icon,
+        endsAt: gw2CooldownReadyAt(cast.effectiveEnd + context.time - cast.start),
+        fullEndsAt: gw2CooldownReadyAt(cast.fullEnd + context.time - cast.start),
+        cancelled: castWasInterrupted(cast)
+      }
     });
     state.petAutoBusyUntil = Math.max(state.petAutoBusyUntil, busyUntil);
     state.petAutoAction = null;
@@ -472,33 +491,19 @@ export const rangerPetTasks = {
     context.cooldownController.startRecharge(cast.skill, context.time, cast.rechargeWork);
     emitPetSkill(context, cast.skill, context.time, cast.fullEnd + context.time - cast.start, cast.id, cast);
     schedulePet(context, state.petAutoBusyUntil);
-  },
-  'ranger.pet-effect'(context: RangerRuntime, data: unknown): void {
-    const event = data as SimulationEventBase;
-    // Pet boons inherit only Lingering Magic, never the ranger's equipment, sigils, or precomputed boon duration.
-    if (event.type === 'buff' && event.actorType === 'summon' && isStandardBoon(String(event.kind))) {
-      const concentration = hasTrait(context, TRAIT.LINGERING_MAGIC)
-        ? balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.LINGERING_MAGIC), 'attributeBonus')
-        : 0;
-      context.emit({
-        ...event,
-        duration: Number(event.duration) * gw2BoonDurationMultiplier(String(event.kind), { concentration })
-      });
-      return;
-    }
-
-    context.emit(
-      event.type === 'buff'
-        ? {
-            ...event,
-            duration: gw2ResolverBoonDuration(
-              context,
-              event as Gw2ResolverEvent,
-              String(event.kind),
-              Number(event.duration)
-            )
-          }
-        : event
-    );
   }
 };
+
+/** Pet-created boons use companion concentration; recipient alone never changes the granting actor's stats. */
+export function rangerBoonDuration(
+  context: RangerRuntime,
+  event: Gw2ResolverEvent,
+  baseDuration: number,
+  scaledDuration: number
+): number {
+  if (event.source !== 'ranger-pet' || event.actorType !== 'summon') return scaledDuration;
+  const concentration = hasTrait(context, TRAIT.LINGERING_MAGIC)
+    ? balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.LINGERING_MAGIC), 'attributeBonus')
+    : 0;
+  return baseDuration * gw2BoonDurationMultiplier(String(event.kind), { concentration });
+}

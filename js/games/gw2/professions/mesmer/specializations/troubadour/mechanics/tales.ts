@@ -1,3 +1,4 @@
+import { buildMesmerPacket, mesmerPacketOwner } from '#gw2/professions/mesmer/core/mechanics/packets.js';
 import {
   balanceProfileNumber,
   requireBalanceProfileFromContext
@@ -23,16 +24,24 @@ export function resolveTroubadourTale({ context, skill, at, eligible }: Troubado
   const partyRecipients = { audience: { recipients: 'party' as const, maximumRecipients: 5 } };
 
   for (const boon of (profile?.effects || []).filter((effect) => effect.type === 'boon')) {
-    runtime.addEvent({
-      type: 'buff',
-      at,
-      kind: String(boon.boon || ''),
-      stacks: Number(boon.stacks),
-      duration: Number(boon.duration),
-      skillName: skill.name,
-      sourceSkill: skill.name,
-      ...partyRecipients
-    });
+    {
+      const packet = buildMesmerPacket({
+        type: 'buff',
+        at,
+        kind: String(boon.boon || ''),
+        stacks: Number(boon.stacks),
+        duration: Number(boon.duration),
+        skillName: skill.name,
+        sourceSkill: skill.name,
+        ...partyRecipients
+      });
+      runtime.context.effects.emit({
+        kind: 'packet',
+        event: packet,
+        owner: mesmerPacketOwner(packet),
+        priority: Number(packet.priority ?? 0)
+      });
+    }
   }
 
   if (eligible && profileId) {

@@ -19,12 +19,10 @@ import {
   requireEffect
 } from '#gw2/platform/engine/skills/balance-profiles.js';
 import {
-  applyEngineerDerivedCondition,
-  queueBuff,
-  recordTrait
+  buildEngineerCondition,
+  buildEngineerBuff
 } from '#gw2/professions/engineer/core/mechanics/resolution-helpers.js';
 import { isInternalCooldownReady } from '#gw2/platform/combat/procs.js';
-import { emitEffects } from '#gw2/platform/simulation/procedural-emission.js';
 import { mechanistState } from '#gw2/professions/engineer/specializations/mechanist/state.js';
 import { MECHANIST_ATTACK_TIMING } from '#gw2/professions/engineer/specializations/mechanist/mechanics/constants.js';
 import { overclockSignetApplies } from '#gw2/professions/engineer/specializations/mechanist/skills/signet-skills.js';
@@ -58,17 +56,32 @@ export function reactToMechArmDamage(context: EngineerResolverContext, event: En
     if (packet) {
       // A removed arm effect cannot consume its own proc cooldown.
       state.singleEdgeCutters = event.at + balanceProfileNumber(mechArmsSingleEdgeCuttersProfile, 'internalCooldown');
-      applyEngineerDerivedCondition(context, event, {
-        name: 'Mech Arms: Single-Edge Cutters',
-        condition: String(packet.condition),
-        stacks: Number(packet.stacks),
-        duration: Number(packet.duration),
-        sourceId: TRAIT.MECH_ARMS_SINGLE_EDGE_CUTTERS,
-        actorType: 'summon',
-        metadata: { engineerMech: true }
+      context.effects.emit({
+        kind: 'packet',
+        event: buildEngineerCondition(event, {
+          name: 'Mech Arms: Single-Edge Cutters',
+          condition: String(packet.condition),
+          stacks: Number(packet.stacks),
+          duration: Number(packet.duration),
+          sourceId: TRAIT.MECH_ARMS_SINGLE_EDGE_CUTTERS,
+          actorType: 'summon',
+          metadata: { engineerMech: true }
+        }),
+        settlement: 'reaction'
       });
 
-      recordTrait(context, 'Mech Arms: Single-Edge Cutters', event);
+      context.effects.emit({
+        attribution: { source: 'Trait', sourceId: TRAIT.MECH_ARMS_SINGLE_EDGE_CUTTERS, actorType: 'effect' },
+        kind: 'announcement',
+        cause: event,
+        announcement: {
+          type: 'trait',
+          name: 'Mech Arms: Single-Edge Cutters',
+          at: event.at,
+          sourceSkill: event.skillName,
+          icon: ''
+        }
+      });
     }
   }
 
@@ -83,16 +96,31 @@ export function reactToMechArmDamage(context: EngineerResolverContext, event: En
     const packet = requireEffect(mechArmsHighImpactDriversProfile, 'boon', 'might');
     if (packet) {
       state.highImpactDrivers = event.at + balanceProfileNumber(mechArmsHighImpactDriversProfile, 'internalCooldown');
-      queueBuff(context, event, {
-        name: 'Mech Arms: High-Impact Drivers',
-        kind: String(packet.boon).toLowerCase(),
-        stacks: Number(packet.stacks),
-        duration: packet.duration,
-        sourceId: TRAIT.MECH_ARMS_HIGH_IMPACT_DRIVERS,
-        actorType: 'effect'
+      context.effects.emit({
+        kind: 'packet',
+        event: buildEngineerBuff(event, {
+          name: 'Mech Arms: High-Impact Drivers',
+          kind: String(packet.boon).toLowerCase(),
+          stacks: Number(packet.stacks),
+          duration: packet.duration,
+          sourceId: TRAIT.MECH_ARMS_HIGH_IMPACT_DRIVERS,
+          actorType: 'effect'
+        }),
+        durationContext: event
       });
 
-      recordTrait(context, 'Mech Arms: High-Impact Drivers', event);
+      context.effects.emit({
+        attribution: { source: 'Trait', sourceId: TRAIT.MECH_ARMS_HIGH_IMPACT_DRIVERS, actorType: 'effect' },
+        kind: 'announcement',
+        cause: event,
+        announcement: {
+          type: 'trait',
+          name: 'Mech Arms: High-Impact Drivers',
+          at: event.at,
+          sourceSkill: event.skillName,
+          icon: ''
+        }
+      });
     }
   }
 
@@ -100,14 +128,18 @@ export function reactToMechArmDamage(context: EngineerResolverContext, event: En
     const mechArmsJadeCannonsProfile = requireBalanceProfileFromContext(context, TRAIT.MECH_ARMS_JADE_CANNONS);
     const vulnerability = requireEffect(mechArmsJadeCannonsProfile, 'condition', 'Vulnerability');
     if (vulnerability)
-      applyEngineerDerivedCondition(context, event, {
-        name: 'Mech Arms: Jade Cannons',
-        condition: String(vulnerability.condition),
-        stacks: Number(vulnerability.stacks),
-        duration: Number(vulnerability.duration),
-        sourceId: TRAIT.MECH_ARMS_JADE_CANNONS,
-        actorType: 'summon',
-        metadata: { engineerMech: true }
+      context.effects.emit({
+        kind: 'packet',
+        event: buildEngineerCondition(event, {
+          name: 'Mech Arms: Jade Cannons',
+          condition: String(vulnerability.condition),
+          stacks: Number(vulnerability.stacks),
+          duration: Number(vulnerability.duration),
+          sourceId: TRAIT.MECH_ARMS_JADE_CANNONS,
+          actorType: 'summon',
+          metadata: { engineerMech: true }
+        }),
+        settlement: 'reaction'
       });
   }
 }
@@ -116,11 +148,12 @@ export function reactToMechArmDamage(context: EngineerResolverContext, event: En
 function emitRocketPunch(context: EngineerRuntime, skill: EngineerSkill, at: number): void {
   // The trait invokes the skill payload with a separate summon activation and native weapon roll.
   const punch = context.helpers.skillsById.get(ID.ROCKET_PUNCH_MECH)!;
-  emitEffects(context, {
-    owner: punch,
+  context.effects.emit({
+    kind: 'profile',
+    profile: punch,
     at,
     skillWeaponFallback: 'Unequipped',
-    baseEvent: {
+    attribution: {
       source: 'Trait',
       sourceId: TRAIT.MECH_FIGHTER,
       actorType: 'summon',

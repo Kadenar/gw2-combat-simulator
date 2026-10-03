@@ -198,8 +198,10 @@ export const ENGINEER_FLAMETHROWER_SKILL_MECHANICS: Readonly<Record<string, Part
 export function handleAirBlast(context: EngineerResolverContext, event: EngineerResolverEvent): void {
   if (!context.query.targetHasCondition('Burning', event.at, context)) return;
   // Materialize the deferred missile without importing unrelated proc or strike state from its trigger.
-  context.applyCondition(
-    buildResolverCondition({
+  context.effects.emit({
+    kind: 'packet',
+    settlement: 'reaction',
+    event: buildResolverCondition({
       at: event.at,
       priority: event.priority,
       source: event.source,
@@ -217,7 +219,7 @@ export function handleAirBlast(context: EngineerResolverContext, event: Engineer
       applicationIndex: event.applicationIndex,
       totalApplications: event.totalApplications
     })
-  );
+  });
   applyAimAssistedRocket(context, event);
 }
 

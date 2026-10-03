@@ -5,9 +5,9 @@ import {
   requireEffect
 } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { buildResolverStrike } from '#gw2/platform/resolver/packets.js';
-import { REVENANT_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/revenant/core/profiles.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import type { RevenantRuntime } from '#gw2/professions/revenant/core/events.js';
+import { REVENANT_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/revenant/core/profiles.js';
 
 /** One active Battle Scar becomes a life siphon on a landed player strike. */
 export function consumeBattleScar(runtime: RevenantRuntime, event: Gw2ResolverEvent): void {
@@ -19,9 +19,10 @@ export function consumeBattleScar(runtime: RevenantRuntime, event: Gw2ResolverEv
   const { expiries, consumed } = consumeNewestStacks(core.battleScars, 1, runtime.time);
   core.battleScars = expiries;
   if (!consumed) return;
-  runtime.emitDerived(
-    event,
-    buildResolverStrike({
+  runtime.effects.emit({
+    kind: 'packet',
+    cause: event,
+    event: buildResolverStrike({
       at: runtime.time,
       source: 'revenant',
       sourceId: 'revenant.battle-scars',
@@ -36,5 +37,5 @@ export function consumeBattleScar(runtime: RevenantRuntime, event: Gw2ResolverEv
       canCrit: false,
       skillWeapon: 'Unequipped'
     })
-  );
+  });
 }

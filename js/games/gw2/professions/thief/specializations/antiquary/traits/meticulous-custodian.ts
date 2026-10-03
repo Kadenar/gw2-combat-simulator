@@ -9,7 +9,7 @@ import {
 import { buildResolverCondition } from '#gw2/platform/resolver/packets.js';
 import type { RuntimeCast } from '#gw2/platform/simulation/runtime-state.js';
 import type { ThiefRuntime } from '#gw2/professions/thief/core/events.js';
-import { emitThiefDamage } from '#gw2/professions/thief/core/events.js';
+import { buildThiefStrikes } from '#gw2/professions/thief/core/events.js';
 import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
 import { ANTIQUARY_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/thief/specializations/antiquary/profiles.js';
 import type { ThiefResolverContext, ThiefResolverEvent, ThiefSkill } from '#gw2/professions/thief/types.js';
@@ -67,7 +67,7 @@ export function applyMeticulousChakShield(runtime: ThiefRuntime, cast: RuntimeCa
     const profile = requireBalanceProfileFromContext(runtime, TRAIT.METICULOUS_CUSTODIAN);
     const strike = requireEffect(profile, 'strike', 'Meticulous Custodian');
     if (strike)
-      emitThiefDamage(runtime, null, {
+      buildThiefStrikes(null, {
         at: runtime.time,
         sourceId: skill.id,
         skillId: skill.id,
@@ -76,7 +76,7 @@ export function applyMeticulousChakShield(runtime: ThiefRuntime, cast: RuntimeCa
         name: 'Chak Shield',
         coefficient: effectNumber(profile, strike, 'coefficient'),
         hits: effectNumber(profile, strike, 'hits')
-      });
+      }).forEach((packet) => runtime.effects.emit({ kind: 'packet', event: packet }));
   }
 }
 
@@ -108,8 +108,10 @@ export function applyMeticulousSunCrystal(context: ThiefResolverContext, event: 
   const burning = requireEffect(sunCrystalMeticulousProfile, 'condition', 'Burning');
   // Explicit removal suppresses this packet without restoring baseline tuning.
   if (!burning) return;
-  context.applyCondition(
-    buildResolverCondition({
+  context.effects.emit({
+    kind: 'packet',
+    settlement: 'reaction',
+    event: buildResolverCondition({
       at: event.at,
       source: 'thief',
       sourceId: ID.ZEPHYRITE_SUN_CRYSTAL,
@@ -123,5 +125,5 @@ export function applyMeticulousSunCrystal(context: ThiefResolverContext, event: 
       stacks: effectNumber(sunCrystalMeticulousProfile, burning, 'stacks'),
       duration: effectNumber(sunCrystalMeticulousProfile, burning, 'duration')
     })
-  );
+  });
 }

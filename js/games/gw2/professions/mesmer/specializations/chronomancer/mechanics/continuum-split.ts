@@ -1,3 +1,4 @@
+import { buildMesmerPacket, mesmerPacketOwner } from '#gw2/professions/mesmer/core/mechanics/packets.js';
 import type { MesmerRuntime } from '#gw2/professions/mesmer/types.js';
 import { gw2CooldownReadyAt } from '#gw2/platform/skills/timing.js';
 import { chronomancerState } from '#gw2/professions/mesmer/specializations/chronomancer/state.js';
@@ -8,7 +9,7 @@ import { replaceAutoattackChains } from '#gw2/platform/skills/autoattack-chain-c
  */
 import type { AvailabilityResult, CooldownController } from '#gw2/platform/execution/types.js';
 import type { SkillId } from '#gw2/platform/engine/skills/types.js';
-import type { MesmerAddEvent, MesmerRefreshAmmo } from '#gw2/professions/mesmer/types.js';
+import type { MesmerRefreshAmmo } from '#gw2/professions/mesmer/types.js';
 import type { MesmerResourceSpendDetails } from '#gw2/professions/mesmer/core/mechanics/resource-types.js';
 import type { MesmerShatterResolution } from '#gw2/professions/mesmer/core/mechanics/shatter-types.js';
 
@@ -23,7 +24,6 @@ interface ContinuumControllerOptions {
   readonly refreshAmmo: MesmerRefreshAmmo;
   readonly consumeResources: (at: number, details?: MesmerResourceSpendDetails) => number;
   readonly triggerShatterTraits: (resolution: MesmerShatterResolution) => void;
-  readonly addEvent: MesmerAddEvent;
   readonly durationPerSource: number;
   readonly bonusDuration?: number;
   readonly scheduleExpiry?: ((at: number) => unknown) | null;
@@ -36,7 +36,6 @@ export function createContinuumController({
   refreshAmmo,
   consumeResources,
   triggerShatterTraits,
-  addEvent,
   durationPerSource,
   bonusDuration = 0,
   scheduleExpiry = null
@@ -92,12 +91,21 @@ export function createContinuumController({
       if (ammoSkill) refreshAmmo(ammoSkill, at);
     }
 
-    addEvent({
-      type: 'marker',
-      at,
-      name: 'Continuum Shift',
-      detail: reason
-    });
+    {
+      const packet = buildMesmerPacket({
+        type: 'marker',
+        at,
+        name: 'Continuum Shift',
+        detail: reason
+      });
+      state.effects.emit({
+        kind: 'packet',
+        event: packet,
+        owner: mesmerPacketOwner(packet),
+        priority: Number(packet.priority ?? 0)
+      });
+    }
+
     chronomancer.continuum = null;
   };
 
@@ -167,15 +175,25 @@ export function createContinuumController({
       skill,
       at,
       spent,
-      traitHits: [{ at, count: spent + 1 }]
+      traitHits: [{ at, count: spent + 1 }],
+      delivery: {}
     };
     triggerShatterTraits(resolution);
-    addEvent({
-      type: 'marker',
-      at,
-      name: 'Continuum Split',
-      detail: `${duration.toFixed(1)}s window`
-    });
+    {
+      const packet = buildMesmerPacket({
+        type: 'marker',
+        at,
+        name: 'Continuum Split',
+        detail: `${duration.toFixed(1)}s window`
+      });
+      state.effects.emit({
+        kind: 'packet',
+        event: packet,
+        owner: mesmerPacketOwner(packet),
+        priority: Number(packet.priority ?? 0)
+      });
+    }
+
     return resolution;
   };
 

@@ -1,14 +1,14 @@
+import { buildMesmerStrikes, mesmerPacketOwner } from '#gw2/professions/mesmer/core/mechanics/packets.js';
 import type { MesmerRuntime } from '#gw2/professions/mesmer/types.js';
 import { canonicalTime } from '#kernel/core/clock.js';
 /** Owns hit history that survives one Mesmer cast and triggers threshold packets across activations. */
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
-import type { MesmerAddDamage } from '#gw2/professions/mesmer/types.js';
+
 import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
 
 /** Records actual player hit times and emits each completed tracked-hit group. */
 export function scheduleMesmerTrackedHits(
   state: MesmerRuntime,
-  addDamage: MesmerAddDamage,
   skill: MesmerSkill,
   playerHitTimes: readonly number[]
 ): void {
@@ -25,7 +25,8 @@ export function scheduleMesmerTrackedHits(
       const triggerHits = recentHits.splice(0, required);
       const triggerAt = triggerHits[triggerHits.length - 1];
       const hasTicks = Array.isArray(tracking.ticks) && tracking.ticks.length > 0;
-      addDamage(
+      buildMesmerStrikes(
+        state,
         skill,
         triggerAt,
         {
@@ -47,7 +48,14 @@ export function scheduleMesmerTrackedHits(
           sourceId: tracking.skillId ?? skill.id,
           skillId: tracking.skillId ?? skill.id
         }
-      );
+      ).forEach((packet) => {
+        state.effects.emit({
+          kind: 'packet',
+          event: packet,
+          owner: mesmerPacketOwner(packet),
+          priority: Number(packet.priority ?? 0)
+        });
+      });
     }
   }
 

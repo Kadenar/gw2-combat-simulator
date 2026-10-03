@@ -1,4 +1,3 @@
-import { materializeSkillEffectApplications } from '#gw2/platform/engine/effects/materializer.js';
 import { denySkillCast } from '#gw2/platform/engine/skills/availability.js';
 import { gw2BaseRecharge } from '#gw2/platform/engine/skills/recharge.js';
 import { armSkillFlip, consumeSkillFlip } from '#gw2/platform/engine/skills/skill-flips.js';
@@ -75,16 +74,15 @@ function spawnHorror(runtime: NecromancerRuntime, data: unknown): void {
       summonOwner: companion(key, 0),
       summonOwnerBase: `minion:${key}`
     };
-    for (const { event } of materializeSkillEffectApplications({
-      skill,
-      effect,
-      start: runtime.time,
-      fullEnd: runtime.time,
-      baseEvent: attribution
-    })) {
-      // The terminal explosion is allowed at expiry; profile ticks beyond this creature's lifetime cannot attack.
-      if (canonicalTime(event.at) <= expiresAt) runtime.emit(event);
-    }
+    // The terminal explosion survives at expiry; later authored ticks are outside this creature's lifetime.
+    runtime.effects.emit({
+      kind: 'profile',
+      profile: skill,
+      effects: [effect],
+      at: runtime.time,
+      attribution,
+      transform: (event) => (canonicalTime(event.at) <= expiresAt ? event : null)
+    });
   }
 }
 
@@ -136,8 +134,9 @@ function emitAttack(
   };
   const reactionGroup = attack.effect && runtime.effectReactions.register(skill, attack.effect);
   if (Number(attack.coefficient) > 0)
-    runtime.emit(
-      buildResolverStrike({
+    runtime.effects.emit({
+      kind: 'packet',
+      event: buildResolverStrike({
         ...attribution,
         coefficient: Number(attack.coefficient),
         // Register the selected command effect so summon strikes retain their owned reactions.
@@ -154,18 +153,19 @@ function emitAttack(
         summonStrikeMultiplier: necromanticCorruptionMultiplier(runtime) * necromancerCreatureStrikeMultiplier(runtime),
         independentSummonStrike: true
       })
-    );
+    });
   if (attack.condition)
-    runtime.emit(
-      buildResolverCondition({
+    runtime.effects.emit({
+      kind: 'packet',
+      event: buildResolverCondition({
         ...attribution,
         condition: String(attack.condition[0]),
         stacks: Number(attack.condition[1]),
         duration: Number(attack.condition[2])
       })
-    );
+    });
   const controlKind = attack.controlKind || (runtime.time <= (work.controlUntil ?? -1) ? work.controlKind : undefined);
-  if (controlKind) runtime.emit({ ...attribution, type: 'control', controlKind });
+  if (controlKind) runtime.effects.emit({ kind: 'packet', event: { ...attribution, type: 'control', controlKind } });
 }
 
 function replaceAttacks(runtime: NecromancerRuntime, key: string): void {
@@ -246,15 +246,17 @@ function commandImpact(runtime: NecromancerRuntime, data: unknown): void {
     summonOwnerBase: `minion:${work.key}`
   };
   for (const condition of command.conditions ?? [])
-    runtime.emit(
-      buildResolverCondition({
+    runtime.effects.emit({
+      kind: 'packet',
+      event: buildResolverCondition({
         ...attribution,
         condition: String(condition[0]),
         stacks: Number(condition[1]),
         duration: Number(condition[2])
       })
-    );
-  if (command.control === 'blind') runtime.emit({ ...attribution, type: 'blind', duration: command.blindDuration });
+    });
+  if (command.control === 'blind')
+    runtime.effects.emit({ kind: 'packet', event: { ...attribution, type: 'blind', duration: command.blindDuration } });
 }
 
 /** Staggered horrors outlive their creating cast and Lich Form. */

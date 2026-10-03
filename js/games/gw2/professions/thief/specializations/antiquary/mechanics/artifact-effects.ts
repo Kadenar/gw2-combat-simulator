@@ -27,8 +27,10 @@ function applyMistburnCharge(context: ThiefResolverContext, event: ThiefResolver
   const burning = requireEffect(mistburnProcProfile, 'condition', 'Burning');
   // Explicit removal suppresses this packet without restoring baseline tuning.
   if (!burning) return;
-  context.applyCondition(
-    buildResolverCondition({
+  context.effects.emit({
+    kind: 'packet',
+    settlement: 'reaction',
+    event: buildResolverCondition({
       at: event.at,
       source: 'thief',
       sourceId: ID.MISTBURN_MORTAR,
@@ -41,7 +43,7 @@ function applyMistburnCharge(context: ThiefResolverContext, event: ThiefResolver
       duration: effectNumber(mistburnProcProfile, burning, 'duration'),
       triggeredBy: event.skillName
     })
-  );
+  });
 }
 
 function applyAntiquaryDamageReactions(context: ThiefResolverContext, event: ThiefResolverEvent): void {

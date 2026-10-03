@@ -17,17 +17,16 @@ import {
   requireBalanceProfileFromContext,
   requireEffect
 } from '#gw2/platform/engine/skills/balance-profiles.js';
-import { queueResolverBoon } from '#gw2/platform/resolver/boons.js';
 import { buildResolverBuff } from '#gw2/platform/resolver/packets.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
-import { rangerEvent } from '#gw2/professions/ranger/core/events.js';
+import { buildRangerPacket } from '#gw2/professions/ranger/core/events.js';
 import { rangerPetBaseAttributes } from '#gw2/professions/ranger/core/mechanics/pet-profiles.js';
 import { rangerPetCompanionId } from '#gw2/professions/ranger/core/mechanics/pets.js';
 import { rangerPetByName } from '#gw2/professions/ranger/core/state.js';
 import {
   eventSkill,
-  queueProfileBuff,
-  queueProfileCondition
+  rangerBuffRequest,
+  rangerConditionRequest
 } from '#gw2/professions/ranger/core/mechanics/resolution-helpers.js';
 import { weaponSetIncludes } from '#gw2/professions/ranger/core/traits/modifier-queries.js';
 import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
@@ -96,8 +95,9 @@ export function applyRangerCommandTraits(
               .map((application) => application.expiresAt - at)
           );
     // Copied durations already include the original caster's boon duration.
-    context.queue.enqueue(
-      rangerEvent(
+    context.effects.emit({
+      kind: 'packet',
+      event: buildRangerPacket(
         {
           at,
           source: 'Trait',
@@ -108,6 +108,7 @@ export function applyRangerCommandTraits(
           name: `Resounding Timbre - ${kind}`,
           kind,
           duration,
+          fixedDuration: true,
           stacks,
           audience: {
             recipients: 'summons' as const,
@@ -119,7 +120,7 @@ export function applyRangerCommandTraits(
         },
         'buff'
       )
-    );
+    });
   }
 }
 
@@ -143,18 +144,24 @@ export function triggerGoForTheThroat(context: RangerResolverContext, event: Gw2
   // The pet cooldown gates only the pet buff, so a removed buff leaves it ready.
   if (!lesserSicEm || !context.procs.claim(TRAIT.GO_FOR_THE_THROAT, 'ranger.core.goForTheThroatPet', event.at)) return;
   const duration = effectNumber(profile, lesserSicEm, 'duration');
-  context.recordProc(
-    'trait',
-    'Lesser "Sic \'Em!"',
-    event.at,
-    event.skillName,
-    `${duration}s, +40% pet strike damage`,
-    context.helpers.skillsById?.get(ID.LESSER_SIC_EM)?.icon || context.helpers.skillsById?.get(ID.SIC_EM)?.icon || ''
-  );
-  queueResolverBoon(
-    context,
-    event,
-    buildResolverBuff({
+  context.effects.emit({
+    attribution: { source: 'Trait', sourceId: TRAIT.GO_FOR_THE_THROAT, actorType: 'effect' },
+    kind: 'announcement',
+    announcement: {
+      type: 'trait',
+      name: 'Lesser "Sic \'Em!"',
+      at: event.at,
+      sourceSkill: event.skillName,
+      detail: `${duration}s, +40% pet strike damage`,
+      icon:
+        context.helpers.skillsById?.get(ID.LESSER_SIC_EM)?.icon ||
+        context.helpers.skillsById?.get(ID.SIC_EM)?.icon ||
+        ''
+    }
+  });
+  context.effects.emit({
+    kind: 'packet',
+    event: buildResolverBuff({
       at: event.at,
       source: 'Trait',
       // The trait owns the grant while the lesser command keeps its skill identity and artwork.
@@ -173,8 +180,9 @@ export function triggerGoForTheThroat(context: RangerResolverContext, event: Gw2
         eligibleCompanionIds: [rangerPetCompanionId(context)]
       },
       triggeredBy: event.skillName
-    })
-  );
+    }),
+    durationContext: event
+  });
   // Lesser Sic 'Em is a command too: its accepted proc copies boons at the beast skill's impact.
   applyRangerCommandTraits(context, { name: 'Lesser "Sic \'Em!"' }, event.at);
 }
@@ -286,17 +294,22 @@ export function triggerMergedGoForTheThroat(context: RangerResolverContext, even
     const lesserSicEm = requireEffect(profile, 'buff', 'lesser-sic-em');
     if (lesserSicEm && context.procs.claim(TRAIT.GO_FOR_THE_THROAT, 'ranger.soulbeast.goForTheThroat', event.at)) {
       const duration = effectNumber(profile, lesserSicEm, 'duration');
-      context.recordProc(
-        'trait',
-        'Lesser "Sic \'Em!"',
-        event.at,
-        event.skillName,
-        `${duration}s, +15% strike damage`,
-        context.helpers.skillsById?.get(ID.LESSER_SIC_EM)?.icon ||
-          context.helpers.skillsById?.get(ID.SIC_EM)?.icon ||
-          ''
-      );
-      queueProfileBuff(context, event, profile, lesserSicEm, 'Lesser "Sic \'Em!"', ID.LESSER_SIC_EM);
+      context.effects.emit({
+        attribution: { source: 'Trait', sourceId: TRAIT.GO_FOR_THE_THROAT, actorType: 'effect' },
+        kind: 'announcement',
+        announcement: {
+          type: 'trait',
+          name: 'Lesser "Sic \'Em!"',
+          at: event.at,
+          sourceSkill: event.skillName,
+          detail: `${duration}s, +15% strike damage`,
+          icon:
+            context.helpers.skillsById?.get(ID.LESSER_SIC_EM)?.icon ||
+            context.helpers.skillsById?.get(ID.SIC_EM)?.icon ||
+            ''
+        }
+      });
+      context.effects.emit(rangerBuffRequest(event, profile, lesserSicEm, 'Lesser "Sic \'Em!"', ID.LESSER_SIC_EM));
       applyMergedResoundingTimbre(context, { id: ID.LESSER_SIC_EM, categories: ['Command'] }, event.at);
     }
   }
@@ -309,16 +322,19 @@ export function triggerMergedGoForTheEyes(context: RangerResolverContext, event:
     const blind = requireEffect(profile, 'blind', 'Blind');
     // The cooldown gates only the blind, so a removed blind leaves it ready.
     if (blind && context.procs.claim(TRAIT.GO_FOR_THE_EYES, 'ranger.soulbeast.goForTheEyes', event.at)) {
-      context.queue.enqueue({
-        type: 'blind',
-        at: event.at,
-        source: 'Trait',
-        sourceId: TRAIT.GO_FOR_THE_EYES,
-        actorType: 'effect',
-        skillId: TRAIT.GO_FOR_THE_EYES,
-        skillName: 'Go for the Eyes',
-        duration: effectNumber(profile, blind, 'duration'),
-        triggeredBy: event.skillName
+      context.effects.emit({
+        kind: 'packet',
+        event: {
+          type: 'blind',
+          at: event.at,
+          source: 'Trait',
+          sourceId: TRAIT.GO_FOR_THE_EYES,
+          actorType: 'effect',
+          skillId: TRAIT.GO_FOR_THE_EYES,
+          skillName: 'Go for the Eyes',
+          duration: effectNumber(profile, blind, 'duration'),
+          triggeredBy: event.skillName
+        }
       });
     }
   }
@@ -329,7 +345,8 @@ export function triggerMergedWiltingStrike(context: RangerResolverContext, event
   if (hasTrait(context, TRAIT.WILTING_STRIKE)) {
     const profile = requireBalanceProfileFromContext(context, TRAIT.WILTING_STRIKE);
     const weakness = requireEffect(profile, 'condition', 'Weakness');
-    if (weakness) queueProfileCondition(context, event, profile, weakness, TRAIT.WILTING_STRIKE, 'Wilting Strike');
+    if (weakness)
+      context.effects.emit(rangerConditionRequest(event, profile, weakness, TRAIT.WILTING_STRIKE, 'Wilting Strike'));
   }
 }
 
@@ -340,8 +357,9 @@ export function applyMergedResoundingTimbre(
   at: number
 ): void {
   if (skill.categories?.includes('Command') && hasTrait(runtime, TRAIT.RESOUNDING_TIMBRE))
-    runtime.queue.enqueue(
-      rangerEvent(
+    runtime.effects.emit({
+      kind: 'packet',
+      event: buildRangerPacket(
         {
           at,
           sourceId: TRAIT.RESOUNDING_TIMBRE,
@@ -354,5 +372,5 @@ export function applyMergedResoundingTimbre(
         },
         'boon_extension'
       )
-    );
+    });
 }

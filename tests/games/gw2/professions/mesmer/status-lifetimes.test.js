@@ -1,3 +1,4 @@
+import { captureEffectEmissions } from '#tests/helpers/effect-emission.js';
 import { applySkillSideEffects } from '#gw2/platform/simulation/side-effects.js';
 import { mesmerCoreHooks } from '#gw2/professions/mesmer/core/hooks.js';
 import { projectObservedState } from '#tests/helpers/observed-runtime.js';
@@ -45,15 +46,24 @@ function lifetimeContext(traits = []) {
       shatterResolvedHandlers: [],
       activePrimaryWeapon: () => config.primaryWeapon,
       resourceDefinition: { singular: 'clone', plural: 'clones', maximum: 3 },
-      resources: { queueResources() {}, addGainHandler: (handler) => gainHandlers.push(handler) },
-      addEvent: (event) => events.push(event),
-      addTraitProc() {},
-      addCondition() {},
-      addDamage: (skill, at) => events.push({ type: 'damage', skillId: skill.id, at })
+      resources: { queueResources() {}, addGainHandler: (handler) => gainHandlers.push(handler) }
     }
   };
   Object.assign(context, context.state);
   context.helpers = context.catalog;
+  context.effects = captureEffectEmissions({
+    now: () => context.time,
+    submit: (event) => {
+      events.push(event);
+      return event;
+    },
+    announce: (request) => {
+      const event = { ...request.attribution, ...request.announcement, type: 'proc' };
+      if (request.log) events.push(event);
+      return event;
+    }
+  }).effects;
+  context.mesmerRuntime.context = context;
   context.history = events;
   context.schedule = () => {};
 
@@ -202,7 +212,10 @@ test('Mirror availability, palette, projection, and one-time pickup agree on exa
     assert.equal(state.mirrors.length, 1, 'Availability does not purge the live owner');
     assert.equal(controller.pickUpMirror(at, context.catalog.skillsById.get(ID.PICK_UP_MIRAGE_MIRROR)), active);
     assert.equal(controller.pickUpMirror(at, context.catalog.skillsById.get(ID.PICK_UP_MIRAGE_MIRROR)), false);
-    assert.equal(context.events.filter((event) => event.skillId === ID.MIRAGE_MIRROR_DAMAGE).length, Number(active));
+    assert.equal(
+      context.events.filter((event) => event.type === 'damage' && event.skillId === ID.MIRAGE_MIRROR_DAMAGE).length,
+      Number(active)
+    );
   }
 });
 

@@ -2,8 +2,6 @@ import {
   balanceProfileNumber,
   requireBalanceProfileFromContext
 } from '#gw2/platform/engine/skills/balance-profiles.js';
-import type { BalanceProfile, Skill, SkillEffect } from '#gw2/platform/engine/skills/types.js';
-import { emitEffects } from '#gw2/platform/simulation/procedural-emission.js';
 import type { Gw2Runtime, RuntimeCast, RuntimeProfession } from '#gw2/platform/simulation/runtime-state.js';
 import { grantWarriorAdrenaline } from '#gw2/professions/warrior/core/mechanics/adrenaline.js';
 import {
@@ -32,29 +30,6 @@ type Runtime = Gw2Runtime<WarriorRuntimeState, WarriorSkill>;
 
 const ECHO = 'warrior.paragon-command-echo';
 
-/** Opening packets, refrain pulses, and echoes share actual application-time duration and party ownership. */
-function boon(
-  runtime: Runtime,
-  skill: Skill,
-  profile: BalanceProfile,
-  effects: readonly SkillEffect[],
-  activationId?: string
-): void {
-  emitEffects(runtime, {
-    owner: profile,
-    effects,
-    baseEvent: {
-      source: 'Paragon',
-      sourceId: skill.id,
-      actorType: 'player',
-      skillId: skill.id,
-      skillName: skill.name,
-      activationId
-    },
-    transform: (event) => ({ ...event, name: skill.name + ' — ' + event.kind, audience: { recipients: 'party' } })
-  });
-}
-
 /** Each pulse uses the tier before spending, rewards actual spend, and stops when Motivation is exhausted. */
 function pulseRefrain(runtime: Runtime): void {
   const state = paragonState.from(runtime);
@@ -77,10 +52,17 @@ function pulseRefrain(runtime: Runtime): void {
 
   const refrain = requireBalanceProfileFromContext(runtime, PROFILE.refrain);
   // Select the tier before spending; only Might scales its stacks with the tier and Enduring Refrain.
-  emitEffects(runtime, {
-    owner: refrain,
+  runtime.effects.emit({
+    kind: 'profile',
+    profile: refrain,
     effects: refrain.effects?.filter((effect) => effect.type === 'boon' && kinds.includes(String(effect.boon))),
-    baseEvent: { source: 'Paragon', sourceId: skill.id, actorType: 'player', skillId: skill.id, skillName: skill.name },
+    attribution: {
+      source: 'Paragon',
+      sourceId: skill.id,
+      actorType: 'player',
+      skillId: skill.id,
+      skillName: skill.name
+    },
     transform: (event) => ({
       ...event,
       name: `${skill.name} — ${event.kind}`,
@@ -112,13 +94,28 @@ function activateChant(runtime: Runtime, cast: RuntimeCast<WarriorSkill>): void 
   gainMotivation(runtime, balanceProfileNumber(profile, 'resourceGain') + enduringRefrainMotivation(runtime));
   startRefrain(runtime);
   const kinds = paragonRefrains[Number(cast.skill.id)].openingBoons;
-  boon(
-    runtime,
-    cast.skill,
-    profile,
-    (profile.effects ?? []).filter((effect) => effect.type === 'boon' && kinds.includes(String(effect.boon))),
-    cast.id
-  );
+  {
+    runtime.effects.emit({
+      kind: 'profile',
+      profile: profile,
+      effects: (profile.effects ?? []).filter(
+        (effect) => effect.type === 'boon' && kinds.includes(String(effect.boon))
+      ),
+      attribution: {
+        source: 'Paragon',
+        sourceId: cast.skill.id,
+        actorType: 'player',
+        skillId: cast.skill.id,
+        skillName: cast.skill.name,
+        activationId: cast.id
+      },
+      transform: (event) => ({
+        ...event,
+        name: cast.skill.name + ' — ' + event.kind,
+        audience: { recipients: 'party' }
+      })
+    });
+  }
 
   applyFeverishPulse(runtime, cast);
 }
@@ -134,9 +131,10 @@ function consumeEcho(runtime: Runtime, activationId: string): void {
   const profileId = PARAGON_COMMAND_ECHO_PROFILES[Number(skill.id)];
   if (profileId) {
     const payload = requireBalanceProfileFromContext(runtime, profileId);
-    emitEffects(runtime, {
-      owner: payload,
-      baseEvent: {
+    runtime.effects.emit({
+      kind: 'profile',
+      profile: payload,
+      attribution: {
         source: 'Paragon',
         sourceId: skill.id,
         actorType: 'player',

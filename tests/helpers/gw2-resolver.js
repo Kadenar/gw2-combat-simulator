@@ -30,7 +30,7 @@ export function resolveTestGw2Events({
         runtime.helpers = { ...runtime.helpers, ...helpers };
         if (traits) runtime.traits = traits;
         runtime.warnings.push(...warnings);
-        for (const event of events) runtime.emit(event);
+        for (const event of events) runtime.effects.emit({ kind: 'packet', event: event });
       }
     }
   });

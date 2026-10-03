@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { gw2BoonDurationMultiplier } from '#gw2/platform/combat/boons.js';
 import { gw2StaticAttributes } from '#gw2/platform/combat/query/combat-query.js';
-import { gw2ResolverBoonDuration, queueResolverBoon } from '#gw2/platform/resolver/boons.js';
+import { gw2ResolverBoonDuration } from '#gw2/platform/resolver/boons.js';
 import { createCanonicalCatalog } from '#gw2/platform/engine/skills/canonical-skill-catalog.js';
 import { defineTestProfession } from '#tests/helpers/profession.js';
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
@@ -93,13 +93,19 @@ test('resolver boon grants and extensions retain rounded expiry in detailed and 
       professionReactions: {
         'damage.resolved': (ctx, event) => {
           if (event.at === 0.375) {
-            ctx.queue.enqueue({ ...owner, type: 'buff', at: event.at, kind: 'fury', duration: 1.01, stacks: 1 });
-            ctx.queue.enqueue({
-              ...owner,
-              type: 'boon_extension',
-              at: 0.875,
-              duration: 0.0105,
-              extensionAudience: 'self'
+            ctx.effects.emit({
+              kind: 'packet',
+              event: { ...owner, type: 'buff', at: event.at, kind: 'fury', duration: 1.01, stacks: 1 }
+            });
+            ctx.effects.emit({
+              kind: 'packet',
+              event: {
+                ...owner,
+                type: 'boon_extension',
+                at: 0.875,
+                duration: 0.0105,
+                extensionAudience: 'self'
+              }
             });
           } else {
             seen.push([event.at, ctx.query.mightStacksAt(event.at, ctx), ctx.query.furyActiveAt(event.at, ctx)]);
@@ -183,28 +189,12 @@ test('resolver-owned boons sample timestamp stats and the currently active sigil
   assert.equal(observations.length, 1);
 });
 
-// Queueing preserves application ownership while sampling live stats from the supplied trigger for each grant.
-test('shared resolver boon queueing preserves metadata and scales each application once', () => {
-  const queued = [];
-  let concentration = 750;
-  const trigger = Object.freeze({ type: 'damage', at: 7, skillId: 2, actorType: 'player' });
-  const context = {
-    activeWeaponSet: 1,
-    config: { sigilSets: [{}, { boonDurationBonus: 10 }] },
-    queue: { enqueue: (application) => queued.push(application) },
-    query: {
-      statsAt(at, event) {
-        assert.equal(at, trigger.at);
-        assert.equal(event.skillId, trigger.skillId);
-        assert.equal(event.actorType, 'player');
-        return { concentration };
-      }
-    }
-  };
-  const application = Object.freeze({
+// Future grants sample at application while retaining the granting trait and trigger modifier context.
+test('shared emissions scale live boons once and preserve fixed and custom durations', () => {
+  const sampled = [];
+  const application = {
     type: 'buff',
-    at: 8,
-    priority: -5,
+    at: 2,
     source: 'Trait',
     sourceId: 3,
     skillId: 3,
@@ -212,26 +202,40 @@ test('shared resolver boon queueing preserves metadata and scales each applicati
     actorType: 'effect',
     kind: 'might',
     duration: 10,
-    stacks: 3,
-    audience: { recipients: 'party' },
-    triggeredBy: 'Trigger skill'
+    stacks: 3
+  };
+  const profession = defineTestProfession({
+    id: 'duration-fixture',
+    name: 'Duration fixture',
+    hooks: {
+      initialize(runtime) {
+        runtime.query = {
+          ...runtime.query,
+          statsAt(at, event) {
+            sampled.push([at, event.skillId, event.actorType]);
+            return { concentration: at === 2 ? 750 : 0 };
+          }
+        };
+        runtime.effects.emit({
+          kind: 'packet',
+          event: application,
+          durationContext: { type: 'damage', at: 0, skillId: 2, actorType: 'player' }
+        });
+        runtime.effects.emit({ kind: 'packet', event: { ...application, at: 3, fixedDuration: true } });
+        runtime.effects.emit({ kind: 'packet', event: { ...application, at: 3, kind: 'custom' } });
+      }
+    }
   });
-
-  queueResolverBoon(context, trigger, application);
-  assert.deepEqual(queued[0], { ...application, duration: 15 });
-  concentration = 0;
-  context.activeWeaponSet = 2;
-  queueResolverBoon(context, trigger, application);
-  assert.deepEqual(queued[1], { ...application, duration: 11 });
+  const result = simulateGw2({ profession, rotation: [{ type: 'wait', durationMs: 4000 }] });
+  assert.deepEqual(
+    result.events.filter((e) => e.type === 'buff').map((e) => e.duration),
+    [15, 10, 10]
+  );
+  assert.deepEqual(
+    sampled.filter((x) => x[1] === 2),
+    [[2, 2, 'player']]
+  );
   assert.equal(application.duration, 10);
-
-  // Custom buffs and explicitly fixed durations must bypass live boon scaling.
-  context.query.statsAt = () => assert.fail('unscaled buffs must not query stats');
-  const fixed = { ...application, fixedDuration: true };
-  const custom = { ...application, kind: 'profession-specific-buff' };
-  queueResolverBoon(context, trigger, fixed);
-  queueResolverBoon(context, trigger, custom);
-  assert.deepEqual(queued.slice(2), [fixed, custom]);
 });
 
 test('declarative boons can gate dynamic skill availability', () => {

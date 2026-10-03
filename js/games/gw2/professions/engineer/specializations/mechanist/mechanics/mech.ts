@@ -1,7 +1,6 @@
 import { STANDARD_TARGET_ARMOR } from '#gw2/platform/combat/formulas.js';
 import { scaleCastBoundTiming } from '#gw2/platform/engine/effects/materializer.js';
-import { emitEffects } from '#gw2/platform/simulation/procedural-emission.js';
-import { emitEngineerEvent } from '#gw2/professions/engineer/core/events.js';
+import { buildEngineerPackets } from '#gw2/professions/engineer/core/events.js';
 import { isEngineerMechCommand } from '#gw2/professions/engineer/specializations/mechanist/mechanics/mech-ownership.js';
 import {
   jadeCannonsAttack,
@@ -101,12 +100,13 @@ function mechAttackRate(context: EngineerRuntime, at: number): number {
 /** The autonomous phase already reached impact; canonical ticks collapse onto that phase without changing replay timing. */
 function emitMechAttack(context: EngineerRuntime, skillId: SkillId, at: number): void {
   const skill = context.helpers.skillsById.get(skillId)!;
-  emitEffects(context, {
-    owner: skill,
+  context.effects.emit({
+    kind: 'profile',
+    profile: skill,
     at,
     effects: skill.effects?.map((effect) => scaleCastBoundTiming({ start: at, fullEnd: at }, skill, effect)),
     skillWeaponFallback: 'Unequipped',
-    baseEvent: {
+    attribution: {
       source: 'engineer',
       sourceId: skillId,
       actorType: 'summon',
@@ -128,7 +128,7 @@ export function copyEngineerMechBoon(context: EngineerRuntime, event: EngineerRe
     mechanistState.from(context).mech.active &&
     shiftSignetPassive(context, event.at)
   ) {
-    emitEngineerEvent(context, 'buff', {
+    buildEngineerPackets('buff', {
       at: event.at,
       source: 'engineer',
       sourceId: ID.SHIFT_SIGNET,
@@ -144,7 +144,7 @@ export function copyEngineerMechBoon(context: EngineerRuntime, event: EngineerRe
         maximumRecipients: 1,
         eligibleCompanionIds: ['engineer.mech']
       }
-    });
+    }).forEach((packet) => context.effects.emit({ kind: 'packet', event: packet }));
   }
 }
 
@@ -180,7 +180,7 @@ export function prepareEngineerMechEvent(context: EngineerRuntime, event: Simula
   return { ...event, ...updates };
 }
 
-/** Emits the mech fighter trait's strike, burning, and defiance-damage packets as one activation. */
+/** Builds the mech fighter trait's strike, burning, and defiance-damage packets as one activation. */
 
 /** Applies post-cast mech lane recovery and Mechanist trait procs for the completed skill. */
 export function completeEngineerMechCast(context: EngineerRuntime, skill: EngineerSkill): void {
@@ -244,13 +244,14 @@ export function activateOverclockSignet(context: EngineerRuntime, skill: Enginee
   const fullEnd = at + Number(cannon.castTimeMs) / 1000 / rate;
   // The lane reservation survives effect removal; cadence and payload both come from the canonical cannon.
   state.mech.busyUntil = Math.max(state.mech.busyUntil || 0, fullEnd);
-  emitEffects(context, {
-    owner: cannon,
+  context.effects.emit({
+    kind: 'profile',
+    profile: cannon,
     at,
     fullEnd,
     skillWeaponFallback: 'Unequipped',
     effects: cannon.effects?.map((effect) => scaleCastBoundTiming({ start: at, fullEnd }, cannon, effect)),
-    baseEvent: {
+    attribution: {
       source: 'engineer',
       sourceId: cannon.id,
       actorType: 'summon',

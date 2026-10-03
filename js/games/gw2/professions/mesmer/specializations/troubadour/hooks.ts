@@ -1,5 +1,5 @@
 import type { RuntimeCast, RuntimeProfession } from '#gw2/platform/simulation/runtime-state.js';
-import { withMesmerCastEmission } from '#gw2/professions/mesmer/core/execution/cast-lifecycle.js';
+import { mesmerCastDelivery } from '#gw2/professions/mesmer/core/execution/cast-lifecycle.js';
 import { mesmerMechanicsFor } from '#gw2/professions/mesmer/core/mechanics/runtime.js';
 import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
 import { troubadourEndurance } from '#gw2/professions/mesmer/specializations/troubadour/mechanics/endurance.js';
@@ -64,9 +64,7 @@ export const troubadourHooks: Partial<RuntimeProfession<MesmerRuntimeState, Mesm
   tasks: {
     'mesmer.crescendo'(runtime, data) {
       const { cast } = data as { cast: RuntimeCast<MesmerSkill> };
-      withMesmerCastEmission(runtime, cast, cast.skill, () =>
-        resolveCrescendo(runtime, cast, cast.skill, cast.fullEnd)
-      );
+      resolveCrescendo(runtime, cast, cast.skill, cast.fullEnd, mesmerCastDelivery(cast, cast.skill));
     }
   },
   eventHandlers: {

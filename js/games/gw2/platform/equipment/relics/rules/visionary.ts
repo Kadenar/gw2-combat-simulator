@@ -25,24 +25,39 @@ export const visionary = defineRelic({
     const stacks = (state.stacks || 0) + 1;
     if (stacks < VISIONARY_STACKS_NEEDED) {
       state.stacks = stacks;
-      ctx.recordProc(
-        'relic',
-        'Relic of the Visionary',
-        event.at,
-        event.skillName,
-        `${stacks}/${VISIONARY_STACKS_NEEDED} stacks`,
-        '',
-        null,
-        null,
-        { stacks, maximumStacks: VISIONARY_STACKS_NEEDED }
-      );
+      ctx.effects.emit({
+        kind: 'announcement',
+        announcement: {
+          type: 'relic',
+          name: 'Relic of the Visionary',
+          at: event.at,
+          sourceSkill: event.skillName,
+          detail: `${stacks}/${VISIONARY_STACKS_NEEDED} stacks`,
+          icon: '',
+          cooldownReduction: null,
+          expiresAt: null,
+          effectState: { stacks, maximumStacks: VISIONARY_STACKS_NEEDED }
+        }
+      });
       return;
     }
 
     state.stacks = 0;
     const until = gw2EffectExpiresAt(event.at, VISIONARY_BUFF_DURATION);
     windows.push({ from: event.at, until });
-    ctx.recordProc('relic', 'Relic of the Visionary', event.at, event.skillName, "Vloxx's Vision", '', null, until);
+    ctx.effects.emit({
+      kind: 'announcement',
+      announcement: {
+        type: 'relic',
+        name: 'Relic of the Visionary',
+        at: event.at,
+        sourceSkill: event.skillName,
+        detail: "Vloxx's Vision",
+        icon: '',
+        cooldownReduction: null,
+        expiresAt: until
+      }
+    });
   },
   // Windows are retained so out-of-order condition tick queries still see the buff active at their own time.
   outgoingDamageBonus(_ctx, state, _damageType, at) {

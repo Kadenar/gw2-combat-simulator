@@ -12,14 +12,13 @@ import {
   requireBalanceProfileFromContext,
   requireEffect
 } from '#gw2/platform/engine/skills/balance-profiles.js';
-import type { Skill, SkillEffect, SkillId } from '#gw2/platform/engine/skills/types.js';
+import type { SkillEffect, SkillId } from '#gw2/platform/engine/skills/types.js';
 import { gw2ConfiguredWeaponSet } from '#gw2/platform/equipment/weapons/loadout.js';
 import { buildResolverCondition, isFlatLifeStealPacket } from '#gw2/platform/resolver/packets.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
-import { emitEffects } from '#gw2/platform/simulation/procedural-emission.js';
 import type { RuntimeCast } from '#gw2/platform/simulation/runtime-state.js';
 import type { RevenantRuntime } from '#gw2/professions/revenant/core/events.js';
-import { emitRevenantProfile, revenantBoonActive } from '#gw2/professions/revenant/core/events.js';
+import { revenantBoonActive } from '#gw2/professions/revenant/core/events.js';
 import { activeRevenantUpkeep } from '#gw2/professions/revenant/core/mechanics/upkeep.js';
 import { REVENANT_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/revenant/core/profiles.js';
 import { REVENANT_CORE_CALL_BY_LEGEND } from '#gw2/professions/revenant/core/skills/legend-call-skills.js';
@@ -40,9 +39,10 @@ export function reactAbyssalChill(runtime: RevenantRuntime, event: Gw2ResolverEv
     const condition = requireEffect(profile, 'condition', 'Torment');
     if (condition) {
       const name = String(condition.condition);
-      runtime.emitDerived(
-        event,
-        buildResolverCondition({
+      runtime.effects.emit({
+        kind: 'packet',
+        cause: event,
+        event: buildResolverCondition({
           at: runtime.time,
           source: 'revenant',
           sourceId: TRAIT.ABYSSAL_CHILL,
@@ -54,7 +54,7 @@ export function reactAbyssalChill(runtime: RevenantRuntime, event: Gw2ResolverEv
           stacks: Math.max(0, effectNumber(profile, condition, 'stacks')) * Math.max(1, event.stacks ?? 1),
           duration: effectNumber(profile, condition, 'duration')
         })
-      );
+      });
     }
   }
 }
@@ -74,11 +74,24 @@ export function revenantAssassinsPresencePulse(runtime: RevenantRuntime): void {
   const boon = requireEffect(profile, 'boon', 'fury');
   // The pulse cadence is trait-owned and continues; only the removed Fury packet is skipped.
   if (!boon) return;
-  traitBuff(runtime, profile, boon, {
-    sourceId: TRAIT.ASSASSINS_PRESENCE,
-    skillId: TRAIT.ASSASSINS_PRESENCE,
-    skillName: profile.name,
-    audience: { recipients: 'party', maximumRecipients: 5 }
+  runtime.effects.emit({
+    kind: 'profile',
+    profile: profile,
+    effects: [boon],
+    attribution: {
+      source: 'Trait',
+      actorType: 'player',
+      sourceId: TRAIT.ASSASSINS_PRESENCE,
+      skillId: TRAIT.ASSASSINS_PRESENCE,
+      skillName: profile.name
+    },
+    transform: (event) => ({
+      ...event,
+      sourceId: TRAIT.ASSASSINS_PRESENCE,
+      skillId: TRAIT.ASSASSINS_PRESENCE,
+      skillName: profile.name,
+      audience: { recipients: 'party', maximumRecipients: 5 }
+    })
   });
 }
 
@@ -118,12 +131,26 @@ export function completeRevenantBrutality(runtime: RevenantRuntime, cast: Runtim
   // The cooldown gates only quickness, so a removed boon leaves it ready.
   if (!boon) return;
   if (!runtime.procs.claimCooldown('brutality', runtime.time, balanceProfileNumber(profile, 'cooldown'))) return;
-  traitBuff(runtime, profile, boon, {
-    sourceId: TRAIT.BRUTALITY,
-    skillId: TRAIT.BRUTALITY,
-    skillName: 'Brutality',
-    name: 'Brutality — quickness',
-    activationId: cast.id
+  runtime.effects.emit({
+    kind: 'profile',
+    profile: profile,
+    effects: [boon],
+    attribution: {
+      source: 'Trait',
+      actorType: 'player',
+      sourceId: TRAIT.BRUTALITY,
+      skillId: TRAIT.BRUTALITY,
+      skillName: 'Brutality',
+      activationId: cast.id
+    },
+    transform: (event) => ({
+      ...event,
+      sourceId: TRAIT.BRUTALITY,
+      skillId: TRAIT.BRUTALITY,
+      skillName: 'Brutality',
+      name: 'Brutality — quickness',
+      activationId: cast.id
+    })
   });
 }
 
@@ -187,9 +214,10 @@ export function exposeDefenses(runtime: RevenantRuntime, event: Gw2ResolverEvent
   if (!condition) return;
   core.exposeDefensesUsed = true;
   const name = String(condition.condition);
-  runtime.emitDerived(
-    event,
-    buildResolverCondition({
+  runtime.effects.emit({
+    kind: 'packet',
+    cause: event,
+    event: buildResolverCondition({
       at: runtime.time,
       source: 'revenant',
       sourceId: TRAIT.EXPOSE_DEFENSES,
@@ -201,7 +229,7 @@ export function exposeDefenses(runtime: RevenantRuntime, event: Gw2ResolverEvent
       stacks: effectNumber(profile, condition, 'stacks'),
       duration: effectNumber(profile, condition, 'duration')
     })
-  );
+  });
 }
 
 /** Explicit life-steal packets bypass ordinary strike modifiers; labels never decide their Core bonus. */
@@ -215,20 +243,48 @@ export function revenantLifeSiphonBonus(context: RevenantResolverContext, event:
 
 /** Runs the trait at its original ordered mechanic boundary. */
 export function invokeInvokersRage(runtime: RevenantRuntime): void {
-  if (hasTrait(runtime, TRAIT.INVOKERS_RAGE))
-    emitRevenantInvocationProfile(runtime, TRAIT.INVOKERS_RAGE, TRAIT.INVOKERS_RAGE);
+  if (hasTrait(runtime, TRAIT.INVOKERS_RAGE)) {
+    const invocationProfile = requireBalanceProfileFromContext(runtime, TRAIT.INVOKERS_RAGE);
+    runtime.effects.emit({
+      kind: 'profile',
+      profile: invocationProfile,
+      effects: invocationProfile.effects,
+      attribution: (effect) => ({
+        activationId: `legend-invocation:${TRAIT.INVOKERS_RAGE}:${runtime.time}`,
+        source: 'Trait',
+        sourceId: TRAIT.INVOKERS_RAGE,
+        actorType: effect.actorType || 'player',
+        skillId: invocationProfile.id,
+        skillName: invocationProfile.name
+      }),
+      skillWeaponFallback: 'Unequipped'
+    });
+  }
 }
 
 /** Runs the trait at its original ordered mechanic boundary. */
 export function invokeTorment(runtime: RevenantRuntime): void {
   if (hasTrait(runtime, TRAIT.INVOKING_TORMENT)) {
     const diabolicInferno = diabolicInfernoSelected(runtime);
-    emitRevenantInvocationProfile(
-      runtime,
-      TRAIT.INVOKING_TORMENT,
-      TRAIT.INVOKING_TORMENT,
-      (effect) => effect.metadata?.trigger !== 'diabolic-inferno' || diabolicInferno
-    );
+    {
+      const invocationProfile = requireBalanceProfileFromContext(runtime, TRAIT.INVOKING_TORMENT);
+      runtime.effects.emit({
+        kind: 'profile',
+        profile: invocationProfile,
+        effects: invocationProfile.effects?.filter(
+          (effect) => effect.metadata?.trigger !== 'diabolic-inferno' || diabolicInferno
+        ),
+        attribution: (effect) => ({
+          activationId: `legend-invocation:${TRAIT.INVOKING_TORMENT}:${runtime.time}`,
+          source: 'Trait',
+          sourceId: TRAIT.INVOKING_TORMENT,
+          actorType: effect.actorType || 'player',
+          skillId: invocationProfile.id,
+          skillName: invocationProfile.name
+        }),
+        skillWeaponFallback: 'Unequipped'
+      });
+    }
   }
 }
 
@@ -265,12 +321,26 @@ export function completeNotoriety(runtime: RevenantRuntime, cast: RuntimeCast<Re
     const profile = requireBalanceProfileFromContext(runtime, TRAIT.NOTORIETY);
     const boon = requireEffect(profile, 'boon', 'might');
     if (boon)
-      traitBuff(runtime, profile, boon, {
-        sourceId: TRAIT.NOTORIETY,
-        skillId: skill.id,
-        skillName: skill.name,
-        name: 'Notoriety — might',
-        activationId: cast.id
+      runtime.effects.emit({
+        kind: 'profile',
+        profile: profile,
+        effects: [boon],
+        attribution: {
+          source: 'Trait',
+          actorType: 'player',
+          sourceId: TRAIT.NOTORIETY,
+          skillId: skill.id,
+          skillName: skill.name,
+          activationId: cast.id
+        },
+        transform: (event) => ({
+          ...event,
+          sourceId: TRAIT.NOTORIETY,
+          skillId: skill.id,
+          skillName: skill.name,
+          name: 'Notoriety — might',
+          activationId: cast.id
+        })
       });
   }
 }
@@ -303,47 +373,23 @@ export function completeSereneRejuvenation(runtime: RevenantRuntime, cast: Runti
   if (!hasTrait(runtime, TRAIT.SERENE_REJUVENATION)) return;
   const skillId = skill.id === ID.PROTECTIVE_SOLACE_ID_29310 ? ID.PROTECTIVE_SOLACE : skill.id;
   if (skillId === ID.PROTECTIVE_SOLACE && !activeRevenantUpkeep(runtime, skill.id)) return;
-  emitRevenantInvocationProfile(
-    runtime,
-    TRAIT.SERENE_REJUVENATION,
-    TRAIT.SERENE_REJUVENATION,
-    (effect) => effect.metadata?.trigger === String(skillId)
-  );
-}
-
-export interface TraitBuff {
-  readonly sourceId: SkillId;
-  readonly skillId: SkillId;
-  readonly skillName: string;
-  readonly name?: string;
-  readonly audience?: SkillEffect['audience'];
-  readonly activationId?: string;
-  readonly actorType?: 'player' | 'effect';
-}
-
-/** Trait boons apply at the current instant, retaining their trigger's attribution when one exists. */
-export function traitBuff(runtime: RevenantRuntime, profile: Skill, effect: SkillEffect, fields: TraitBuff): void {
-  const { actorType = 'player', ...rest } = fields;
-  emitEffects(runtime, {
-    owner: profile,
-    effects: [effect],
-    baseEvent: { source: 'revenant', actorType, ...rest },
-    transform: (event) => ({ ...event, ...rest })
-  });
-}
-
-/** Invocation and legend packages share one profile materialization at the current instant. */
-export function emitRevenantInvocationProfile(
-  runtime: RevenantRuntime,
-  profileId: SkillId,
-  sourceId: SkillId,
-  predicate: (effect: SkillEffect) => boolean = () => true
-): void {
-  emitRevenantProfile(runtime, requireBalanceProfileFromContext(runtime, profileId), {
-    sourceId,
-    activationId: `legend-invocation:${sourceId}:${runtime.time}`,
-    predicate
-  });
+  {
+    const invocationProfile = requireBalanceProfileFromContext(runtime, TRAIT.SERENE_REJUVENATION);
+    runtime.effects.emit({
+      kind: 'profile',
+      profile: invocationProfile,
+      effects: invocationProfile.effects?.filter((effect) => effect.metadata?.trigger === String(skillId)),
+      attribution: (effect) => ({
+        activationId: `legend-invocation:${TRAIT.SERENE_REJUVENATION}:${runtime.time}`,
+        source: 'Trait',
+        sourceId: TRAIT.SERENE_REJUVENATION,
+        actorType: effect.actorType || 'player',
+        skillId: invocationProfile.id,
+        skillName: invocationProfile.name
+      }),
+      skillWeaponFallback: 'Unequipped'
+    });
+  }
 }
 
 /** Adds expiring Battle Scars up to the shared cap and publishes only the stacks actually granted. */
@@ -383,8 +429,9 @@ export function grantBattleScars(
   );
   core.battleScars = expiries;
   if (!added) return;
-  runtime.emitProcedural(
-    {
+  runtime.effects.emit({
+    kind: 'packet',
+    event: {
       type: 'buff',
       at: runtime.time,
       source: 'revenant',
@@ -397,8 +444,8 @@ export function grantBattleScars(
       duration,
       stacks: added
     },
-    { cause }
-  );
+    cause
+  });
 }
 
 /** Runs the trait at its original ordered mechanic boundary. */
@@ -414,9 +461,20 @@ export function invokeSongOfTheMists(runtime: RevenantRuntime): void {
     // Calls share catalog mechanics while retaining the invocation trait as their triggering source.
     const song = runtime.helpers.skillsById.get(elite?.song ?? REVENANT_CORE_CALL_BY_LEGEND[legendId]);
     if (song)
-      emitRevenantProfile(runtime, song, {
-        sourceId: TRAIT.SONG_OF_THE_MISTS,
-        activationId: `legend-invocation:${TRAIT.SONG_OF_THE_MISTS}:${runtime.time}`
+      runtime.effects.emit({
+        kind: 'profile',
+        profile: song,
+        effects: song.effects ?? [],
+        attribution: (effect) => ({
+          activationId: `legend-invocation:${TRAIT.SONG_OF_THE_MISTS}:${runtime.time}`,
+          source: 'revenant',
+          sourceId: TRAIT.SONG_OF_THE_MISTS,
+          actorType: effect.actorType || 'player',
+          skillId: song.id,
+          skillName: song.name
+        }),
+        skillWeaponFallback: 'Unequipped',
+        cause: null
       });
   }
 }
@@ -450,8 +508,23 @@ export function invokeSpiritBoon(runtime: RevenantRuntime): void {
       : core.activeLegendId;
   const elite = legendId ? REVENANT_ELITE_INVOCATIONS[legendId] : undefined;
   const matchesLegend = (effect: SkillEffect) => elite != null || effect.metadata?.legendId === legendId;
-  if (legendId && hasTrait(runtime, TRAIT.SPIRIT_BOON))
-    emitRevenantInvocationProfile(runtime, elite?.spiritBoon ?? TRAIT.SPIRIT_BOON, TRAIT.SPIRIT_BOON, matchesLegend);
+  if (legendId && hasTrait(runtime, TRAIT.SPIRIT_BOON)) {
+    const invocationProfile = requireBalanceProfileFromContext(runtime, elite?.spiritBoon ?? TRAIT.SPIRIT_BOON);
+    runtime.effects.emit({
+      kind: 'profile',
+      profile: invocationProfile,
+      effects: invocationProfile.effects?.filter(matchesLegend),
+      attribution: (effect) => ({
+        activationId: `legend-invocation:${TRAIT.SPIRIT_BOON}:${runtime.time}`,
+        source: 'Trait',
+        sourceId: TRAIT.SPIRIT_BOON,
+        actorType: effect.actorType || 'player',
+        skillId: invocationProfile.id,
+        skillName: invocationProfile.name
+      }),
+      skillWeaponFallback: 'Unequipped'
+    });
+  }
 }
 
 // Catch Thrill of Combat up to this hit, retaining only grants that can still be active under the shared cap.
@@ -479,8 +552,9 @@ export function thrillOfCombat(runtime: RevenantRuntime, event: Gw2ResolverEvent
 
   core.nextThrillOfCombatAt = next + elapsed * interval;
   if (!granted) return;
-  runtime.emitProcedural(
-    {
+  runtime.effects.emit({
+    kind: 'packet',
+    event: {
       type: 'buff',
       at: runtime.time,
       source: 'revenant',
@@ -493,8 +567,8 @@ export function thrillOfCombat(runtime: RevenantRuntime, event: Gw2ResolverEvent
       duration,
       stacks: granted
     },
-    { cause: event }
-  );
+    cause: event
+  });
 }
 
 /** Vicious Reprisal grants Might from landed strikes while Resolution is active, once per its cooldown. */
@@ -506,9 +580,18 @@ export function viciousReprisal(runtime: RevenantRuntime, event: Gw2ResolverEven
   if (!boon) return;
   if (!runtime.procs.claimCooldown('viciousReprisal', runtime.time, balanceProfileNumber(profile, 'cooldown'))) return;
   // Keep its position among resolved-hit traits while sharing profile expansion and causal placement.
-  emitRevenantProfile(runtime, profile, {
-    sourceId: TRAIT.VICIOUS_REPRISAL,
+  runtime.effects.emit({
+    kind: 'profile',
+    profile: profile,
     effects: [{ ...boon, name: 'Vicious Reprisal — might' }],
+    attribution: (effect) => ({
+      source: 'revenant',
+      sourceId: TRAIT.VICIOUS_REPRISAL,
+      actorType: effect.actorType || 'player',
+      skillId: profile.id,
+      skillName: profile.name
+    }),
+    skillWeaponFallback: 'Unequipped',
     cause: event
   });
 }

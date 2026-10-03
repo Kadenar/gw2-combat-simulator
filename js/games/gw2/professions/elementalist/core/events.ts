@@ -1,12 +1,11 @@
 import { normalizeEffectMetadata } from '#gw2/platform/engine/effects/contracts.js';
-import { buildResolverBuff, buildResolverCondition, buildResolverStrike } from '#gw2/platform/resolver/packets.js';
-import { proceduralSkillWeapon, splitStrikeHits } from '#gw2/platform/simulation/procedural-emission.js';
 import type { SimulationEventBase } from '#gw2/platform/engine/events/events.js';
-import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import type { Skill } from '#gw2/platform/engine/skills/types.js';
-import type { RuntimeCast } from '#gw2/platform/simulation/runtime-state.js';
-import type { ElementalistSkill, ElementalistRuntime } from '#gw2/professions/elementalist/types.js';
-
+import { buildResolverBuff, buildResolverCondition } from '#gw2/platform/resolver/packets.js';
+import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
+import type { EffectDelivery, PacketEmission, ProfileEmission } from '#gw2/platform/simulation/effect-emission.js';
+import { proceduralSkillWeapon, splitStrikeHits } from '#gw2/platform/simulation/procedural-emission.js';
+import type { ElementalistRuntime } from '#gw2/professions/elementalist/types.js';
 /** Procedural packets retain explicit source identities and the owning cast's targeting policy. */
 type Packet = Partial<SimulationEventBase> & {
   fixedDuration?: boolean;
@@ -19,38 +18,12 @@ type Packet = Partial<SimulationEventBase> & {
   stacks?: number;
   condition?: string;
   controlKind?: string;
-} & { at: number; skill?: Skill; cause?: Gw2ResolverEvent; interval?: number };
-const emissions = new WeakMap<ElementalistRuntime, RuntimeCast<ElementalistSkill>>();
-
-/** Captures cast ownership only while a lifecycle callback materializes its procedural packets. */
-export function withElementalistCast(
-  runtime: ElementalistRuntime,
-  cast: RuntimeCast<ElementalistSkill>,
-  callback: () => void
-): void {
-  const previous = emissions.get(runtime);
-  emissions.set(runtime, cast);
-  try {
-    callback();
-  } finally {
-    if (previous) emissions.set(runtime, previous);
-    else emissions.delete(runtime);
-  }
-}
-
-/** Procedural packets inherit the owning cast's activation and targeting while a lifecycle callback runs. */
-function emitElementalistPacket(
-  runtime: ElementalistRuntime,
-  event: SimulationEventBase,
-  cause?: Gw2ResolverEvent
-): void {
-  const cast = emissions.get(runtime);
-  runtime.emitProcedural(
-    { ...(cast ? { activationId: cast.id, offTarget: cast.command.offTarget } : {}), ...event },
-    { cause }
-  );
-}
-
+} & {
+  at: number;
+  skill?: Skill;
+  cause?: Gw2ResolverEvent;
+  interval?: number;
+};
 /** Normalizes the procedural envelope before the shared runtime validates and queues it. */
 function fields(packet: Packet) {
   const { skill, cause: _cause, interval: _interval, ...rest } = packet;
@@ -67,59 +40,103 @@ function fields(packet: Packet) {
   };
 }
 
-/** Splits a procedural coefficient into its authored hit sequence without predicting any accepted-hit rewards. */
-export function emitElementalistDamage(runtime: ElementalistRuntime, packet: Packet & { coefficient: number }): void {
-  // Trait and effect packets own their strength roll independently of the triggering cast.
+/** Selects the authored hit plan; only the shared service expands and publishes its effects. */
+export function elementalistStrikeRequest(
+  runtime: ElementalistRuntime,
+  packet: Packet & {
+    coefficient: number;
+  },
+  emissionCast?: EffectDelivery['cast']
+): ProfileEmission {
   if (packet.activationId == null && packet.actorType === 'effect')
     packet = { ...packet, activationId: 'elementalist.effect:' + ++runtime.weaponStrengthActivationOrder };
-  const { at, coefficient, hits, hitIndex, totalHits } = packet;
-  for (const hit of splitStrikeHits({ at, coefficient, hits, hitIndex, totalHits }, packet.interval ?? 0))
-    emitElementalistPacket(
-      runtime,
-      buildResolverStrike({
-        ...fields(packet),
-        ...hit,
-        skillWeapon: packet.skillWeapon ?? (packet.skill ? proceduralSkillWeapon(packet.skill) : ''),
+  const attribution = fields(packet);
+  const hits = splitStrikeHits(
+    {
+      at: packet.at,
+      coefficient: packet.coefficient,
+      hits: packet.hits,
+      hitIndex: packet.hitIndex,
+      totalHits: packet.totalHits
+    },
+    packet.interval ?? 0
+  );
+  return {
+    kind: 'profile',
+    profile: packet.skill ?? { id: attribution.skillId ?? attribution.sourceId, name: attribution.skillName },
+    at: packet.at,
+    fullEnd: packet.at,
+    cause: packet.cause,
+    cast: emissionCast,
+    attribution,
+    effects: [
+      {
+        type: 'strike',
+        timingAnchor: 'castStart',
+        timingScale: 'fixed',
+        ticks: hits.map((hit) => ({ atMs: (hit.at - packet.at) * 1000, coefficient: hit.coefficient })),
         canCrit: packet.canCrit !== false
-      }),
-      packet.cause
-    );
+      }
+    ],
+    transform: (event) => ({
+      ...attribution,
+      ...event,
+      skillWeapon: packet.skillWeapon ?? (packet.skill ? proceduralSkillWeapon(packet.skill) : ''),
+      hitIndex: packet.hitIndex ?? event.hitIndex,
+      totalHits: packet.totalHits ?? event.totalHits
+    })
+  };
 }
 
-/** Conditions retain unscaled duration for the shared application owner. */
-export function emitElementalistCondition(
-  runtime: ElementalistRuntime,
-  packet: Packet & { condition: string; stacks: number; duration: number }
-): void {
-  emitElementalistPacket(
-    runtime,
-    buildResolverCondition({
+/** Conditions retain authored duration for the shared application transaction. */
+export function elementalistConditionRequest(
+  packet: Packet & {
+    condition: string;
+    stacks: number;
+    duration: number;
+  },
+  emissionCast?: EffectDelivery['cast']
+): PacketEmission {
+  return {
+    kind: 'packet',
+    cause: packet.cause,
+    cast: emissionCast,
+    event: buildResolverCondition({
       ...fields(packet),
       condition: packet.condition,
       stacks: packet.stacks,
       duration: packet.duration
-    }),
-    packet.cause
-  );
+    })
+  };
 }
 
-/** Positive effects share one duration-scaling path at the actual application boundary. */
-export function emitElementalistBuff(
-  runtime: ElementalistRuntime,
-  packet: Packet & { kind: string; duration: number }
-): void {
-  emitElementalistPacket(
-    runtime,
-    buildResolverBuff({ ...fields(packet), kind: packet.kind, duration: packet.duration, stacks: packet.stacks ?? 1 }),
-    packet.cause
-  );
+/** Boon duration is sampled once when the shared service dispatches the application. */
+export function elementalistBuffRequest(
+  packet: Packet & {
+    kind: string;
+    duration: number;
+  },
+  emissionCast?: EffectDelivery['cast']
+): PacketEmission {
+  return {
+    kind: 'packet',
+    cause: packet.cause,
+    cast: emissionCast,
+    event: buildResolverBuff({
+      ...fields(packet),
+      kind: packet.kind,
+      duration: packet.duration,
+      stacks: packet.stacks ?? 1
+    })
+  };
 }
 
-/** Procedural controls join the same accepted-control and combo pipeline as authored effects. */
-export function emitElementalistControl(runtime: ElementalistRuntime, packet: Packet): void {
-  emitElementalistPacket(
-    runtime,
-    { ...fields(packet), type: 'control', at: packet.at, controlKind: packet.controlKind ?? 'crowd-control' },
-    packet.cause
-  );
+/** Controls retain their authored category while joining the shared accepted-control pipeline. */
+export function elementalistControlRequest(packet: Packet, emissionCast?: EffectDelivery['cast']): PacketEmission {
+  return {
+    kind: 'packet',
+    cause: packet.cause,
+    cast: emissionCast,
+    event: { ...fields(packet), type: 'control', at: packet.at, controlKind: packet.controlKind ?? 'crowd-control' }
+  };
 }

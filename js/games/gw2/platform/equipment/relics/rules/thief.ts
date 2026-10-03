@@ -13,17 +13,20 @@ export const thief = defineRelic({
     if ((state.expiresAt || 0) <= event.at) state.stacks = 0;
     state.stacks = Math.min(5, (state.stacks || 0) + 1);
     state.expiresAt = gw2EffectExpiresAt(event.at, 6);
-    ctx.recordProc(
-      'relic',
-      'Relic of the Thief',
-      event.at,
-      event.skillName,
-      `${state.stacks}/5 stacks`,
-      '',
-      null,
-      state.expiresAt,
-      { stacks: state.stacks, maximumStacks: 5 }
-    );
+    ctx.effects.emit({
+      kind: 'announcement',
+      announcement: {
+        type: 'relic',
+        name: 'Relic of the Thief',
+        at: event.at,
+        sourceSkill: event.skillName,
+        detail: `${state.stacks}/5 stacks`,
+        icon: '',
+        cooldownReduction: null,
+        expiresAt: state.expiresAt,
+        effectState: { stacks: state.stacks, maximumStacks: 5 }
+      }
+    });
   },
   // Returns 1 (not 0) when no stacks are active — it's a multiplier, not additive.
   strikeMultiplier(_ctx, state, event) {

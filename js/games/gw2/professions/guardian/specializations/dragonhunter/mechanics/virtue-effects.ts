@@ -30,8 +30,10 @@ export function reactToDragonhunterJusticeHit(
     const tetherProfile = requireBalanceProfileFromContext(context, PROFILE.tether);
     const crippled = requireEffect(tetherProfile, 'condition', 'Crippled (passive)');
     if (crippled) {
-      context.applyCondition(
-        buildResolverCondition({
+      context.effects.emit({
+        kind: 'packet',
+        settlement: 'reaction',
+        event: buildResolverCondition({
           at: event.at,
           source: 'guardian',
           sourceId: ID.SPEAR_OF_JUSTICE,
@@ -46,7 +48,7 @@ export function reactToDragonhunterJusticeHit(
           stacks: effectNumber(tetherProfile, crippled, 'stacks'),
           duration: effectNumber(tetherProfile, crippled, 'duration')
         })
-      );
+      });
     }
   }
 }

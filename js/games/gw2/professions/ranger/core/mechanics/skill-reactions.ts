@@ -1,6 +1,5 @@
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import { buildResolverCondition, buildResolverBuff } from '#gw2/platform/resolver/packets.js';
-import { queueResolverBoon } from '#gw2/platform/resolver/boons.js';
 import { consumeCharge, expireCharges } from '#gw2/platform/combat/resources/charges.js';
 /** Owns Core Ranger skill-armed hit reactions that are not trait-line definitions. */
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
@@ -13,7 +12,7 @@ import {
 import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
 import { rangerPetCompanionId } from '#gw2/professions/ranger/core/mechanics/pets.js';
 import {
-  queueBleeding,
+  buildRangerBleeding,
   isPetStrike,
   isPlayerStrike,
   petDerivedConditionMetadata
@@ -31,8 +30,9 @@ export function triggerPoisonousStrikes(context: RangerResolverContext, event: G
   const poison = requireEffect(profile, 'condition', 'Poisoned');
   // The charges exist only to deliver poison, so a removed packet leaves them unspent.
   if (!poison || !consumeCharge(state.poisonousStrikes, event.at, 0, true)) return;
-  context.queue.enqueue(
-    buildResolverCondition({
+  context.effects.emit({
+    kind: 'packet',
+    event: buildResolverCondition({
       ...petDerivedConditionMetadata(context, event),
 
       at: event.at,
@@ -47,7 +47,7 @@ export function triggerPoisonousStrikes(context: RangerResolverContext, event: G
       stacks: effectNumber(profile, poison, 'stacks'),
       triggeredBy: event.skillName
     })
-  );
+  });
 }
 
 export function triggerSharpeningStone(context: RangerResolverContext, event: Gw2ResolverEvent): void {
@@ -60,8 +60,9 @@ export function triggerSharpeningStone(context: RangerResolverContext, event: Gw
   const { expiries, consumed } = consumeOldestStacks(state.sharpeningStoneExpirations, bleeding ? 1 : 0, event.at);
   state.sharpeningStoneExpirations = expiries;
   if (!consumed || !profile || !bleeding) return;
-  context.queue.enqueue(
-    buildResolverCondition({
+  context.effects.emit({
+    kind: 'packet',
+    event: buildResolverCondition({
       at: event.at,
       source: 'ranger',
       sourceId: ID.SHARPENING_STONE,
@@ -75,7 +76,7 @@ export function triggerSharpeningStone(context: RangerResolverContext, event: Gw
       stacks: effectNumber(profile, bleeding, 'stacks'),
       triggeredBy: event.skillName
     })
-  );
+  });
 }
 
 // Mirror the active Strength of the Pack proc between Ranger and companion hits
@@ -90,10 +91,9 @@ export function triggerStrengthOfThePack(context: RangerResolverContext, event: 
   const profile = requireBalanceProfileFromContext(context, PROFILE.strengthOfThePack);
   const might = requireEffect(profile, 'boon', 'might');
   if (!might) return;
-  queueResolverBoon(
-    context,
-    event,
-    buildResolverBuff({
+  context.effects.emit({
+    kind: 'packet',
+    event: buildResolverBuff({
       at: event.at,
       source: 'ranger',
       sourceId: ID.STRENGTH_OF_THE_PACK,
@@ -111,8 +111,9 @@ export function triggerStrengthOfThePack(context: RangerResolverContext, event: 
         eligibleCompanionIds: [rangerPetCompanionId(context)]
       },
       triggeredBy: event.skillName
-    })
-  );
+    }),
+    durationContext: event
+  });
 }
 
 /** Add Stalker's Strike's bonus poison only against movement-impaired targets. */
@@ -122,8 +123,9 @@ export function triggerStalkersStrike(context: RangerResolverContext, event: Gw2
   const profile = requireBalanceProfileFromContext(context, PROFILE.stalkersStrikeImpaired);
   const poison = requireEffect(profile, 'condition', 'Poisoned');
   if (!poison) return;
-  context.queue.enqueue(
-    buildResolverCondition({
+  context.effects.emit({
+    kind: 'packet',
+    event: buildResolverCondition({
       at: event.at,
       source: 'ranger',
       sourceId: skill.id,
@@ -136,7 +138,7 @@ export function triggerStalkersStrike(context: RangerResolverContext, event: Gw2
       stacks: effectNumber(profile, poison, 'stacks'),
       activationId: event.activationId
     })
-  );
+  });
 }
 
 /** Consume one live Blood Thirst charge per qualifying hit, excluding its arming skill and exact expiry. */
@@ -148,13 +150,16 @@ export function triggerBloodThirst(context: RangerResolverContext, event: Gw2Res
   const bleeding = requireEffect(profile, 'condition', 'Bleeding');
   // Charges exist only to deliver bleeding, so a removed packet leaves them unspent.
   if (bleeding && consumeCharge(state.bloodThirst, event.at)) {
-    queueBleeding(
-      context,
-      event,
-      effectNumber(profile, bleeding, 'duration'),
-      ID.CRIPPLING_SHOT,
-      'Blood Thirst',
-      effectNumber(profile, bleeding, 'stacks')
-    );
+    context.effects.emit({
+      kind: 'packet',
+      event: buildRangerBleeding(
+        context,
+        event,
+        effectNumber(profile, bleeding, 'duration'),
+        ID.CRIPPLING_SHOT,
+        'Blood Thirst',
+        effectNumber(profile, bleeding, 'stacks')
+      )
+    });
   }
 }

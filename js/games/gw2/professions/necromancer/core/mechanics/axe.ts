@@ -1,7 +1,5 @@
-import { buildResolverCondition } from '#gw2/platform/resolver/packets.js';
 import { remainingTargetHealthBelow } from '#gw2/platform/combat/state/target-health.js';
-import { materializeSkillEffectApplications } from '#gw2/platform/engine/effects/materializer.js';
-import type { DamageEvent } from '#gw2/platform/engine/events/events.js';
+import { buildResolverCondition } from '#gw2/platform/resolver/packets.js';
 import { NECROMANCER_SKILL_IDS as ID } from '#gw2/professions/necromancer/data/ids.js';
 import type { NecromancerResolverContext, NecromancerResolverEvent } from '#gw2/professions/necromancer/types.js';
 
@@ -21,8 +19,9 @@ export function reactToNecromancerAxeHealth(
     ];
     if (!vulnerability || !('condition' in vulnerability)) return;
     // Duplicate only this hit's authored Vulnerability application below half health.
-    context.queue.enqueue(
-      buildResolverCondition({
+    context.effects.emit({
+      kind: 'packet',
+      event: buildResolverCondition({
         at: event.at,
         source: 'necromancer',
         sourceId: skill.id,
@@ -33,30 +32,27 @@ export function reactToNecromancerAxeHealth(
         stacks: vulnerability.stacks,
         duration: vulnerability.duration
       })
-    );
+    });
     return;
   }
 
   const burst = context.helpers.skillsById?.get(ID.UNHOLY_BURST);
   if (!burst) return;
-  for (const effect of burst.effects || []) {
-    if (effect.type !== 'strike') continue;
-    for (const { event: packet } of materializeSkillEffectApplications({
-      skill: burst,
-      effect,
-      start: event.at,
-      fullEnd: event.at,
-      baseEvent: {
-        source: 'necromancer',
-        sourceId: burst.id,
-        skillId: burst.id,
-        skillName: burst.name,
-        actorType: 'player',
-        triggeredBy: skill.name,
-        activationId: event.activationId
-      }
-    })) {
-      context.queue.enqueue(packet as DamageEvent);
+  // The shared service expands the selected strike profile at the resolved crossing hit.
+  context.effects.emit({
+    kind: 'profile',
+    profile: burst,
+    effects: (burst.effects ?? []).filter((effect) => effect.type === 'strike'),
+    at: event.at,
+    fullEnd: event.at,
+    attribution: {
+      source: 'necromancer',
+      sourceId: burst.id,
+      skillId: burst.id,
+      skillName: burst.name,
+      actorType: 'player',
+      triggeredBy: skill.name,
+      activationId: event.activationId
     }
-  }
+  });
 }

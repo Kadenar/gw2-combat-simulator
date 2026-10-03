@@ -11,11 +11,7 @@ import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import type { Gw2Runtime, RuntimeCast } from '#gw2/platform/simulation/runtime-state.js';
 import { gw2EffectExpiresAt } from '#gw2/platform/skills/timing.js';
 import { buildGuardianStrike, guardianCastCause } from '#gw2/professions/guardian/core/mechanics/event-handlers.js';
-import {
-  emitGuardianBoon,
-  emitJusticeIsBlind,
-  justiceIsBlindEligible
-} from '#gw2/professions/guardian/core/traits/behavior.js';
+import { emitJusticeIsBlind, justiceIsBlindEligible } from '#gw2/professions/guardian/core/traits/behavior.js';
 import { GUARDIAN_SKILL_IDS as ID } from '#gw2/professions/guardian/data/ids.js';
 import { LUMINARY_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/guardian/specializations/luminary/profiles.js';
 import {
@@ -64,12 +60,15 @@ function initialState(runtime: Runtime, cast: RuntimeCast<GuardianSkill>): void 
   const event = { ...guardianCastCause(runtime, cast), duration, stacks: 1 };
   const id = cast.skill.id;
   if (id === INITIAL.claw) {
-    runtime.emit({ ...event, type: 'control', controlKind: 'initial-state', initialStateDuration: duration });
+    runtime.effects.emit({
+      kind: 'packet',
+      event: { ...event, type: 'control', controlKind: 'initial-state', initialStateDuration: duration }
+    });
     return;
   }
 
   if (restoreLuminaryArmaments(runtime, cast, duration)) return;
-  if (id === INITIAL.resolution) runtime.emit({ ...event, kind: 'resolution' });
+  if (id === INITIAL.resolution) runtime.effects.emit({ kind: 'packet', event: { ...event, kind: 'resolution' } });
 }
 
 /** Schedule finite activation effects; all state mutations happen when their boundary executes. */
@@ -104,12 +103,15 @@ export const luminaryEffectTasks = {
     const state = luminaryState.from(runtime);
     const duration = 8 + (piercing ? Math.max(0, state.piercingStanceUntil - runtime.time) : 0);
     if (piercing) state.piercingStanceUntil = gw2EffectExpiresAt(runtime.time, duration);
-    emitGuardianBoon(runtime, {
-      ...guardianCastCause(runtime, cast),
-      kind: piercing ? 'guardian-piercing-stance' : 'guardian-daring-advance',
-      duration,
-      stacks: 1,
-      priority: piercing ? -20 : 0
+    runtime.effects.emit({
+      kind: 'packet',
+      event: {
+        ...guardianCastCause(runtime, cast),
+        kind: piercing ? 'guardian-piercing-stance' : 'guardian-daring-advance',
+        duration,
+        stacks: 1,
+        priority: piercing ? -20 : 0
+      }
     });
   },
   [EFFULGENT](runtime: Runtime, data: unknown) {
@@ -124,10 +126,20 @@ export const luminaryEffectTasks = {
     state.effulgentActivationId = null;
     const strike = requireEffect(profile, 'strike', 'Strike');
     if (strike) {
-      runtime.recordProc('skill', 'Effulgent Stance', runtime.time, 'Effulgent Stance', `${stacks}/${maximum} stacks`);
-      runtime.emitDerived(
-        event,
-        buildGuardianStrike({
+      runtime.effects.emit({
+        kind: 'announcement',
+        announcement: {
+          type: 'skill',
+          name: 'Effulgent Stance',
+          at: runtime.time,
+          sourceSkill: 'Effulgent Stance',
+          detail: `${stacks}/${maximum} stacks`
+        }
+      });
+      runtime.effects.emit({
+        kind: 'packet',
+        cause: event,
+        event: buildGuardianStrike({
           at: runtime.time,
           priority: 5,
           sourceId: ID.EFFULGENT_STANCE_DAMAGE,
@@ -140,21 +152,25 @@ export const luminaryEffectTasks = {
           weaponStrengthProfileId: 'nonweapon.unequipped',
           offTarget: event.offTarget === true
         })
-      );
+      });
     }
 
     if (stacks === maximum && requireEffect(profile, 'control', 'Control'))
-      runtime.emitDerived(event, {
-        type: 'control',
-        at: runtime.time,
-        priority: 6,
-        source: 'guardian',
-        sourceId: ID.EFFULGENT_STANCE_DAMAGE,
-        actorType: 'player',
-        skillId: ID.EFFULGENT_STANCE_DAMAGE,
-        skillName: 'Effulgent Stance',
-        controlKind: 'daze',
-        offTarget: event.offTarget === true
+      runtime.effects.emit({
+        kind: 'packet',
+        cause: event,
+        event: {
+          type: 'control',
+          at: runtime.time,
+          priority: 6,
+          source: 'guardian',
+          sourceId: ID.EFFULGENT_STANCE_DAMAGE,
+          actorType: 'player',
+          skillId: ID.EFFULGENT_STANCE_DAMAGE,
+          skillName: 'Effulgent Stance',
+          controlKind: 'daze',
+          offTarget: event.offTarget === true
+        }
       });
   }
 };

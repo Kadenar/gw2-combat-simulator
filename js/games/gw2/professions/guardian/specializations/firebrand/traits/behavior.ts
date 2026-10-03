@@ -10,17 +10,17 @@ import type { Skill } from '#gw2/platform/engine/skills/types.js';
 import type { NativeResolvedDamageDetails } from '#gw2/platform/profession-definition/module-types.js';
 import { buildResolverCondition } from '#gw2/platform/resolver/packets.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
-import { emitEffects } from '#gw2/platform/simulation/procedural-emission.js';
 import type { Gw2Runtime, RuntimeCast } from '#gw2/platform/simulation/runtime-state.js';
 import { gw2EffectExpiresAt } from '#gw2/platform/skills/timing.js';
 import { guardianCastCause } from '#gw2/professions/guardian/core/mechanics/event-handlers.js';
 import { reactToJusticeHitWithOptions } from '#gw2/professions/guardian/core/mechanics/virtues.js';
-import { guardianBoonDuration, recordGuardianTraitProc } from '#gw2/professions/guardian/core/traits/behavior.js';
+import { guardianTraitIcon } from '#gw2/professions/guardian/core/traits/behavior.js';
+
+import { isInternalCooldownReady } from '#gw2/platform/combat/procs.js';
 import { GUARDIAN_SKILL_IDS as ID, GUARDIAN_TRAIT_IDS as TRAIT } from '#gw2/professions/guardian/data/ids.js';
 import {
   alliedAshes,
   attribution,
-  boon,
   FIREBRAND_ASHES_EXPIRE
 } from '#gw2/professions/guardian/specializations/firebrand/mechanics/effects.js';
 import { FIREBRAND_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/guardian/specializations/firebrand/profiles.js';
@@ -33,7 +33,6 @@ import type {
   GuardianSkill
 } from '#gw2/professions/guardian/types.js';
 import { canonicalTime } from '#kernel/core/clock.js';
-import { isInternalCooldownReady } from '#gw2/platform/combat/procs.js';
 
 type Runtime = Gw2Runtime<GuardianRuntimeState, GuardianSkill>;
 
@@ -48,45 +47,39 @@ export function resetSwiftScholar(runtime: Runtime, virtue?: string): void {
 
 /** Ready tome activations grant Swift Scholar after the shared virtue rewards. */
 export function activateSwiftScholar(runtime: Runtime, cast: RuntimeCast<GuardianSkill>): void {
-  if (boon(runtime, TRAIT.SWIFT_SCHOLAR, 'quickness', guardianCastCause(runtime, cast)))
-    recordGuardianTraitProc(
-      runtime,
-      TRAIT.SWIFT_SCHOLAR,
-      'Swift Scholar',
-      runtime.time,
-      cast.skill.name,
-      'Tome activation'
-    );
+  {
+    const boonProfile = requireBalanceProfileFromContext(runtime, TRAIT.SWIFT_SCHOLAR);
+    const selectedBoon = requireEffect(boonProfile, 'boon', 'quickness');
+    const boonCause = guardianCastCause(runtime, cast);
+    if (selectedBoon) {
+      runtime.effects.emit({
+        kind: 'profile',
+        profile: boonProfile,
+        effects: [selectedBoon],
+        attribution: boonCause,
+        cause: boonCause,
+        transform: (event) => ({ ...boonCause, ...event, audience: { recipients: 'self' } })
+      });
+      {
+        runtime.effects.emit({
+          kind: 'announcement',
+          announcement: {
+            type: 'trait',
+            name: 'Swift Scholar',
+            at: runtime.time,
+            sourceSkill: cast.skill.name,
+            detail: 'Tome activation',
+            icon: guardianTraitIcon(TRAIT.SWIFT_SCHOLAR)
+          }
+        });
+      }
+    }
+  }
 }
 
 /** Stoic Demeanor retains Courage's passive on the mechanic's unchanged cadence. */
 export function stoicDemeanorRetainsCourage(runtime: Runtime): boolean {
   return hasTrait(runtime, TRAIT.STOIC_DEMEANOR);
-}
-
-/** Derived boons retain authored order and actual recipients. */
-function traitBoons(
-  runtime: Runtime,
-  trait: number,
-  profileId: string | number,
-  event: Gw2ResolverEvent,
-  party = false
-): boolean {
-  const profile = requireBalanceProfileFromContext(runtime, profileId);
-  const effects = (profile.effects ?? []).filter((effect) => effect.type === 'boon');
-  emitEffects(runtime, {
-    owner: profile,
-    effects,
-    baseEvent: { ...attribution(event), sourceId: trait, skillId: trait, skillName: profile.name },
-    transform: (packet) => ({
-      ...packet,
-      duration: guardianBoonDuration(runtime, packet),
-      causalOrder: event.causalOrder ?? event.eventOrder,
-      audience: { recipients: party ? 'party' : 'self' }
-    })
-  });
-  if (effects.length) recordGuardianTraitProc(runtime, trait, profile.name, runtime.time, event.skillName, 'Boons');
-  return effects.length > 0;
 }
 
 /** Accepted axe hits apply Bleeding after consuming any Ashes charge. */
@@ -105,8 +98,10 @@ export function reactToUnrelentingCriticism(
   const profile = requireBalanceProfileFromContext(runtime, TRAIT.UNRELENTING_CRITICISM);
   const effect = requireEffect(profile, 'condition', 'Bleeding');
   if (effect)
-    runtime.applyCondition(
-      buildResolverCondition({
+    runtime.effects.emit({
+      kind: 'packet',
+      settlement: 'reaction',
+      event: buildResolverCondition({
         ...attribution(event),
         at: runtime.time,
         sourceId: event.skillId,
@@ -116,13 +111,43 @@ export function reactToUnrelentingCriticism(
         stacks: effectNumber(profile, effect, 'stacks'),
         duration: effectNumber(profile, effect, 'duration')
       })
-    );
+    });
 }
 
 /** Accepted player controls grant the surviving Stoic Demeanor boons. */
 export function reactToFirebrandControl(runtime: Runtime, event: Gw2ResolverEvent): void {
-  if (event.actorType === 'player' && hasTrait(runtime, TRAIT.STOIC_DEMEANOR))
-    traitBoons(runtime, TRAIT.STOIC_DEMEANOR, TRAIT.STOIC_DEMEANOR, event);
+  if (event.actorType === 'player' && hasTrait(runtime, TRAIT.STOIC_DEMEANOR)) {
+    const boonProfile = requireBalanceProfileFromContext(runtime, TRAIT.STOIC_DEMEANOR);
+    const selectedBoons = (boonProfile.effects ?? []).filter((effect) => effect.type === 'boon');
+    const boonCause = event;
+    if (selectedBoons.length) {
+      runtime.effects.emit({
+        kind: 'profile',
+        profile: boonProfile,
+        effects: selectedBoons,
+        attribution: {
+          ...attribution(boonCause),
+          source: 'Trait',
+          sourceId: TRAIT.STOIC_DEMEANOR,
+          skillId: TRAIT.STOIC_DEMEANOR,
+          skillName: boonProfile.name
+        },
+        cause: boonCause,
+        transform: (packet) => ({ ...packet, audience: { recipients: 'self' } })
+      });
+      runtime.effects.emit({
+        kind: 'announcement',
+        announcement: {
+          type: 'trait',
+          name: boonProfile.name,
+          at: runtime.time,
+          sourceSkill: boonCause.skillName,
+          detail: 'Boons',
+          icon: guardianTraitIcon(TRAIT.STOIC_DEMEANOR)
+        }
+      });
+    }
+  }
 }
 
 /** Delivered boons claim the existing intervals only when their derived effects survive. */
@@ -136,11 +161,42 @@ export function reactToFirebrandBuff(runtime: Runtime, event: Gw2ResolverEvent):
     hasTrait(runtime, TRAIT.STALWART_SPEED) &&
     isInternalCooldownReady(runtime.time, runtime.procs.deadline('guardian.firebrand.stalwartSpeed'))
   ) {
-    if (traitBoons(runtime, TRAIT.STALWART_SPEED, TRAIT.STALWART_SPEED, event, true))
-      runtime.procs.readyAt['guardian.firebrand.stalwartSpeed'] = canonicalTime(
-        runtime.time +
-          balanceProfileNumber(requireBalanceProfileFromContext(runtime, TRAIT.STALWART_SPEED), 'internalCooldown')
-      );
+    {
+      const boonProfile = requireBalanceProfileFromContext(runtime, TRAIT.STALWART_SPEED);
+      const selectedBoons = (boonProfile.effects ?? []).filter((effect) => effect.type === 'boon');
+      const boonCause = event;
+      if (selectedBoons.length) {
+        runtime.effects.emit({
+          kind: 'profile',
+          profile: boonProfile,
+          effects: selectedBoons,
+          attribution: {
+            ...attribution(boonCause),
+            source: 'Trait',
+            sourceId: TRAIT.STALWART_SPEED,
+            skillId: TRAIT.STALWART_SPEED,
+            skillName: boonProfile.name
+          },
+          cause: boonCause,
+          transform: (packet) => ({ ...packet, audience: { recipients: 'party' } })
+        });
+        runtime.effects.emit({
+          kind: 'announcement',
+          announcement: {
+            type: 'trait',
+            name: boonProfile.name,
+            at: runtime.time,
+            sourceSkill: boonCause.skillName,
+            detail: 'Boons',
+            icon: guardianTraitIcon(TRAIT.STALWART_SPEED)
+          }
+        });
+        runtime.procs.readyAt['guardian.firebrand.stalwartSpeed'] = canonicalTime(
+          runtime.time +
+            balanceProfileNumber(requireBalanceProfileFromContext(runtime, TRAIT.STALWART_SPEED), 'internalCooldown')
+        );
+      }
+    }
   }
 
   if (event.kind !== 'quickness' || !hasTrait(runtime, TRAIT.QUICKFIRE)) return;
@@ -164,7 +220,19 @@ export function reactToFirebrandBuff(runtime: Runtime, event: Gw2ResolverEvent):
     runtime.schedule(FIREBRAND_ASHES_EXPIRE, expiresAt, undefined, undefined, 10);
   }
 
-  recordGuardianTraitProc(runtime, TRAIT.QUICKFIRE, 'Quickfire', runtime.time, event.skillName, '+1 Ashes of the Just');
+  {
+    runtime.effects.emit({
+      kind: 'announcement',
+      announcement: {
+        type: 'trait',
+        name: 'Quickfire',
+        at: runtime.time,
+        sourceSkill: event.skillName,
+        detail: '+1 Ashes of the Just',
+        icon: guardianTraitIcon(TRAIT.QUICKFIRE)
+      }
+    });
+  }
 }
 
 /** Quickfire retains the tome passive without changing the shared Justice hit tracker. */
@@ -199,6 +267,7 @@ export const weightyTermsRewards: NonNullable<Skill['sideEffects']> = [
     do: {
       type: 'emitProfile',
       profileId: TRAIT.WEIGHTY_TERMS,
+      // Keep the granting trait visible while the shared profile preserves cast lineage.
       attribution: { source: 'guardian', actorType: 'player', name: 'Weighty Terms — Slow' }
     }
   }

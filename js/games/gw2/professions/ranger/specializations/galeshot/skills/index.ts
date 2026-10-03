@@ -8,7 +8,7 @@ import type { Skill } from '#gw2/platform/engine/skills/types.js';
 import type { RuntimeCast } from '#gw2/platform/simulation/runtime-state.js';
 import { resetAutoattackChains } from '#gw2/platform/skills/autoattack-chain-controller.js';
 import { castWasInterrupted } from '#gw2/platform/skills/timing.js';
-import { rangerEvent } from '#gw2/professions/ranger/core/events.js';
+import { buildRangerPacket } from '#gw2/professions/ranger/core/events.js';
 import { applyRangerWeaponSwapTraits } from '#gw2/professions/ranger/core/traits/behavior.js';
 import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
 import { GALESHOT_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/ranger/specializations/galeshot/profiles.js';
@@ -350,12 +350,13 @@ export function setCycloneBow(runtime: RangerRuntime, skill: Skill, active: bool
   state.cycloneBowActive = active;
   if (!active) state.windForce = 0;
   resetAutoattackChains(runtime);
-  runtime.emit(
-    rangerEvent(
+  runtime.effects.emit({
+    kind: 'packet',
+    event: buildRangerPacket(
       { at: runtime.time, skillId: skill.id, skillName: skill.name, weaponSet: runtime.activeWeaponSet },
       'weapon_set'
     )
-  );
+  });
   applyRangerWeaponSwapTraits(runtime, skill);
 }
 

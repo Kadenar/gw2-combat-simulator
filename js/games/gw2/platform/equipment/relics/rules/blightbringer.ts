@@ -10,7 +10,7 @@ export const blightbringer = defineRelic({
     count: 0,
     trackedActivations: new Set<string>()
   }),
-  condition(ctx, state, application, { applyCondition }) {
+  condition(ctx, state, application, _helpers) {
     if (application.condition !== 'Poisoned' || !isGw2PlayerActorEvent(application)) {
       return;
     }
@@ -29,24 +29,36 @@ export const blightbringer = defineRelic({
 
     state.count = 0;
     state.readyAt = application.at + 8;
-    ctx.recordProc('relic', 'Relic of Blightbringer', application.at, application.skillName);
+    ctx.effects.emit({
+      kind: 'announcement',
+      announcement: {
+        type: 'relic',
+        name: 'Relic of Blightbringer',
+        at: application.at,
+        sourceSkill: application.skillName
+      }
+    });
     for (const [condition, stacks, duration] of [
       ['Poisoned', 3, 10],
       ['Crippled', 1, 5],
       ['Weakness', 1, 5]
     ] as const) {
-      applyCondition(ctx, {
-        type: 'condition',
-        at: application.at,
-        name: `Relic of Blightbringer - ${condition}`,
-        skillName: 'Relic of Blightbringer',
-        condition,
-        duration,
-        stacks,
-        source: 'Relic',
-        sourceId: `relic.${RELIC_IDS.BLIGHTBRINGER}`,
-        actorType: 'effect',
-        ownerActorType: 'player'
+      ctx.effects.emit({
+        kind: 'packet',
+        settlement: 'reaction',
+        event: {
+          type: 'condition',
+          at: application.at,
+          name: `Relic of Blightbringer - ${condition}`,
+          skillName: 'Relic of Blightbringer',
+          condition,
+          duration,
+          stacks,
+          source: 'Relic',
+          sourceId: `relic.${RELIC_IDS.BLIGHTBRINGER}`,
+          actorType: 'effect',
+          ownerActorType: 'player'
+        }
       });
     }
   }

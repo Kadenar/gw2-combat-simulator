@@ -1,3 +1,9 @@
+import { mesmerCastDelivery } from '#gw2/professions/mesmer/core/execution/cast-lifecycle.js';
+import {
+  buildMesmerPacket,
+  mesmerPacketOwner,
+  buildMesmerStrikes
+} from '#gw2/professions/mesmer/core/mechanics/packets.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import {
   balanceProfileNumber,
@@ -30,15 +36,9 @@ export function completeChronomancerTimeBomb(context: MesmerRuntime, cast: Runti
   const duration = balanceProfileNumber(profile, 'durationMultiplier');
   // This is the delayed explosion timer; rearming is allowed exactly when it detonates.
   state.timeBombUntil = canonicalTime(at + duration);
-  const previousEmission = runtime.activeEmission;
-  runtime.activeEmission = {
-    skill,
-    effectiveEnd: Infinity,
-    activationId: cast.id,
-    offTarget: cast.command.offTarget
-  };
-  try {
-    runtime.addEvent({
+  const delivery = mesmerCastDelivery(cast, skill, Infinity);
+  {
+    const packet = buildMesmerPacket({
       type: 'buff',
       at,
       kind: 'time-bomb',
@@ -47,25 +47,52 @@ export function completeChronomancerTimeBomb(context: MesmerRuntime, cast: Runti
       expiresAt: state.timeBombUntil,
       sourceSkill: skill.name
     });
-    runtime.addDamage(
-      {
-        id: 'Time Bomb',
-        name: 'Time Bomb',
-        weapon: 'Utility',
-        blade: false
-      },
-      state.timeBombUntil,
-      {
-        ...timeBomb,
-        balanceProfileId: profile.id,
-        name: undefined,
-        summonKind: undefined,
-        source: 'Player',
-        weapon: 'utility'
-      }
-    );
-    runtime.addTraitProc('Time Bomb', at, skill.name, `explodes after ${duration}s`);
-  } finally {
-    runtime.activeEmission = previousEmission;
+    runtime.context.effects.emit({
+      ...delivery,
+      kind: 'packet',
+      event: packet,
+      owner: mesmerPacketOwner(packet),
+      priority: Number(packet.priority ?? 0)
+    });
   }
+
+  buildMesmerStrikes(
+    runtime.context,
+    {
+      id: 'Time Bomb',
+      name: 'Time Bomb',
+      weapon: 'Utility',
+      blade: false
+    },
+    state.timeBombUntil,
+    {
+      ...timeBomb,
+      balanceProfileId: profile.id,
+      name: undefined,
+      summonKind: undefined,
+      source: 'Player',
+      weapon: 'utility'
+    }
+  ).forEach((packet) => {
+    runtime.context.effects.emit({
+      ...delivery,
+      kind: 'packet',
+      event: packet,
+      owner: mesmerPacketOwner(packet),
+      priority: Number(packet.priority ?? 0)
+    });
+  });
+  runtime.context.effects.emit({
+    ...delivery,
+    kind: 'announcement',
+    log: true,
+    attribution: { source: 'Trait', sourceId: TRAIT.TIME_BOMB, actorType: 'effect' },
+    announcement: {
+      type: 'trait',
+      name: 'Time Bomb',
+      at: at,
+      sourceSkill: skill.name,
+      detail: `explodes after ${duration}s`
+    }
+  });
 }

@@ -24,8 +24,7 @@ for (const reporting of [true, false]) {
       },
       helpers: { conditionName: (name) => name },
       queue: new StableEventQueue(),
-      professionState: { core: createRangerCoreState() },
-      applyCondition: conditions.applyCondition
+      professionState: { core: createRangerCoreState() }
     });
     const outgoing = rangerPetCompanionId(context);
     // Mixed owners and natural expiries distinguish cancellation from ordinary expiry.
@@ -38,7 +37,7 @@ for (const reporting of [true, false]) {
       { sourceId: 'boundary-expiry', summonOwner: outgoing, duration: 2 }
     ];
     const applications = cases.flatMap(({ sourceId, source = 'ranger-pet', summonOwner, duration }) =>
-      context.applyCondition({
+      conditions.applyCondition(context, {
         type: 'condition',
         at: 0,
         sourceId,

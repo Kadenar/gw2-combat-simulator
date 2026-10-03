@@ -314,7 +314,7 @@ for (const { name, traits, rotation, startAttunement, selectedSkills, stats, ver
   });
 }
 
-test('Elementalist critical reactions emit effects in registration order', (t) => {
+test('Elementalist critical reactions emit effects in registration order', () => {
   const expected = ['Raging Storm', 'Arcane Precision', 'Renewing Stamina', 'Burning Precision'];
   const effects = [];
 
@@ -325,16 +325,14 @@ test('Elementalist critical reactions emit effects in registration order', (t) =
     stats: criticalStats,
     initialize(runtime) {
       runtime.random = { ...runtime.random, roll: () => true };
-      for (const [owner, method] of [
-        [runtime.queue, 'enqueue'],
-        [runtime, 'applyCondition']
-      ]) {
-        const original = owner[method].bind(owner);
-        t.mock.method(owner, method, (event) => {
-          if (expected.includes(event.skillName)) effects.push(event.skillName);
-          return original(event);
-        });
-      }
+      const emit = runtime.effects.emit.bind(runtime.effects);
+      runtime.effects = {
+        emit(request) {
+          if (request.kind === 'packet' && expected.includes(request.event.skillName))
+            effects.push(request.event.skillName);
+          return emit(request);
+        }
+      };
     }
   });
 

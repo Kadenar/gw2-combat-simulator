@@ -1,3 +1,4 @@
+import type { EffectDelivery } from '#gw2/platform/simulation/effect-emission.js';
 import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
 import { triggerMethodOfMadness } from '#gw2/professions/mesmer/core/traits/behavior.js';
 import { EPSILON } from '#kernel/core/clock.js';
@@ -17,28 +18,21 @@ export function dispatchShatterResolved(context: MesmerRuntime, resolution: Mesm
   }
 }
 
-/** Registers procedural packets with cast attribution while preserving interruption filtering. */
-export function withMesmerCastEmission(
-  context: MesmerRuntime,
+/** Cast ownership is explicit data passed with each effect, never mutable ambient runtime state. */
+export function mesmerCastDelivery(
   cast: RuntimeCast<MesmerSkill>,
-  skill: MesmerSkill,
-  emit: () => void,
+  skill: MesmerSkill = cast.skill,
   interruptedEnd = cast.effectiveEnd
-): void {
-  const runtime = mesmerMechanicsFor(context);
-  const previousEmission = runtime.activeEmission;
-  const interrupted = castWasInterrupted(cast);
-  runtime.activeEmission = {
-    skill,
-    effectiveEnd: interrupted ? interruptedEnd : Infinity,
-    activationId: cast.id,
-    offTarget: cast.command.offTarget
+): EffectDelivery {
+  return {
+    cast: {
+      activationId: cast.id,
+      skillId: skill.id,
+      effectiveEnd: castWasInterrupted(cast) ? interruptedEnd : Infinity,
+      offTarget: cast.command.offTarget,
+      independentSourceStrike: true
+    }
   };
-  try {
-    emit();
-  } finally {
-    runtime.activeEmission = previousEmission;
-  }
 }
 
 /** Recognizes interrupted casts that reached their authored summon point using the caller's phase tolerance. */
@@ -60,19 +54,11 @@ export function scheduleMesmerPhantasmEffects(
   const runtime = mesmerMechanicsFor(context);
   const details = runtime.castDetails.get(cast.id) || {};
   const completedInterruptedPhantasm = isCommittedInterruptedPhantasm(cast, skill);
-  withMesmerCastEmission(
-    context,
-    cast,
-    skill,
-    () =>
-      runtime.skillEffects.schedule(skill, cast.fullEnd, cast.start, {
-        clarityConsumed: Boolean(details.clarityConsumed),
-        ...(completedInterruptedPhantasm
-          ? { phantasmSummonAt: cast.effectiveEnd, playerEffectEnd: cast.effectiveEnd }
-          : {})
-      }),
-    completedInterruptedPhantasm ? Infinity : cast.effectiveEnd
-  );
+  runtime.skillEffects.schedule(skill, cast.fullEnd, cast.start, {
+    clarityConsumed: Boolean(details.clarityConsumed),
+    delivery: mesmerCastDelivery(cast, skill, completedInterruptedPhantasm ? Infinity : cast.effectiveEnd),
+    ...(completedInterruptedPhantasm ? { phantasmSummonAt: cast.effectiveEnd, playerEffectEnd: cast.effectiveEnd } : {})
+  });
 }
 
 /** A declared shatter commits exactly one resource transaction while its projectiles retain their own timeline. */
@@ -87,23 +73,17 @@ export function commitMesmerShatter(context: MesmerRuntime, cast: RuntimeCast<Me
     details.shatterSpendCommitted = true;
   }
 
-  withMesmerCastEmission(
+  const delivery = mesmerCastDelivery(cast, skill, Infinity);
+  const resolution = runtime.actions.handleShatter(
     context,
-    cast,
     skill,
-    () => {
-      const resolution = runtime.actions.handleShatter(
-        context,
-        skill,
-        context.time,
-        details.shatterSpent ?? null,
-        cast.start,
-        details.reservedShatterResources ? cast.fullEnd : context.time
-      );
-      if (resolution) dispatchShatterResolved(context, resolution);
-    },
-    Infinity
+    context.time,
+    details.shatterSpent ?? null,
+    cast.start,
+    details.reservedShatterResources ? cast.fullEnd : context.time,
+    delivery
   );
+  if (resolution) dispatchShatterResolved(context, resolution);
 }
 
 /** Commits skill effects and resources, restoring interrupted reservations and clearing cast-local state. */
@@ -119,12 +99,11 @@ export function completeMesmerCast(context: MesmerRuntime, cast: RuntimeCast<Mes
   const completedInterruptedPhantasm = isCommittedInterruptedPhantasm(cast, skill);
   // A committed bladesong keeps its projectile train and completion reactions on their authored timeline.
   const committedBladesong = details.reservedShatterResources && details.shatterSpendCommitted;
-  runtime.activeEmission = {
+  const delivery = mesmerCastDelivery(
+    cast,
     skill,
-    effectiveEnd: interrupted && !completedInterruptedPhantasm && !committedBladesong ? cast.effectiveEnd : Infinity,
-    activationId: cast.id,
-    offTarget: cast.command.offTarget
-  };
+    interrupted && !completedInterruptedPhantasm && !committedBladesong ? cast.effectiveEnd : Infinity
+  );
   try {
     if (cast.cancelled && details.reservedShatterResources && !details.shatterSpendCommitted) {
       runtime.actions.restoreReservedResources(details.shatterSpent || 0);
@@ -145,18 +124,13 @@ export function completeMesmerCast(context: MesmerRuntime, cast: RuntimeCast<Mes
       runtime.skillEffects.scheduleResources(
         skill,
         skill.resource?.timingAnchor === 'castEnd' ? cast.fullEnd : at,
-        cast.start
+        cast.start,
+        delivery
       );
     }
 
-    triggerMethodOfMadness(
-      { state: context, addDamage: runtime.addDamage, addTraitProc: runtime.addTraitProc },
-      skill,
-      at,
-      runtime.traitDamage['Lesser Chaos Storm']
-    );
+    triggerMethodOfMadness({ state: context }, skill, at, runtime.traitDamage['Lesser Chaos Storm'], delivery);
   } finally {
-    runtime.activeEmission = null;
     runtime.castDetails.delete(cast.id);
   }
 }

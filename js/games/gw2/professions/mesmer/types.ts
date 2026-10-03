@@ -1,7 +1,8 @@
+import type { EffectDelivery } from '#gw2/platform/simulation/effect-emission.js';
 import type { Gw2Runtime } from '#gw2/platform/simulation/runtime-state.js';
 import type { SkillFlipWindows } from '#gw2/platform/engine/skills/skill-flips.js';
 import type { ProfessionUiCallbackContext, ProfessionUiContract } from '#gw2/platform/profession-presentation/types.js';
-import type { Skill, SkillId, StrikeTick, StrikeEffect } from '#gw2/platform/engine/skills/types.js';
+import type { SkillId, StrikeTick, StrikeEffect } from '#gw2/platform/engine/skills/types.js';
 import type { SimulationEvent, SimulationEventBase } from '#gw2/platform/engine/events/events.js';
 import type { Gw2CanonicalBuild, Gw2Build } from '#gw2/platform/builds/types.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
@@ -34,19 +35,13 @@ import type {
   MesmerShatterTraitHit
 } from '#gw2/professions/mesmer/core/mechanics/shatter-types.js';
 import type {
-  MesmerActiveEmission,
   MesmerCastDetails,
   MesmerSkillEffectController
 } from '#gw2/professions/mesmer/core/execution/effect-types.js';
 import type { MesmerContinuumController } from '#gw2/professions/mesmer/specializations/chronomancer/types.js';
 import type { MesmerMirageController } from '#gw2/professions/mesmer/specializations/mirage/types.js';
 
-import type {
-  MesmerConditionApplication,
-  MesmerStrikeEffect,
-  MesmerEventExtra,
-  MesmerSkill
-} from '#gw2/professions/mesmer/data/types.js';
+import type { MesmerConditionApplication, MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
 
 // Module state is declared beside each state factory; re-export it for existing family type importers.
 interface MesmerProfessionState
@@ -117,7 +112,6 @@ export type MesmerRuntime = Gw2Runtime<MesmerRuntimeState, MesmerSkill>;
 export interface MesmerMechanics {
   context: MesmerRuntime;
   resourceDefinition: MesmerResourceDefinition;
-  activeEmission: MesmerActiveEmission | null;
   castDetails: Map<string, MesmerCastDetails>;
   weaponStrength: Readonly<Record<string, number>>;
   cloneAttacks: Readonly<Record<string, MesmerCloneAttack>>;
@@ -131,10 +125,6 @@ export interface MesmerMechanics {
   methodOfMadnessCommitted?: (at: number) => void;
   instruments: Record<number, MesmerInstrument>;
   activePrimaryWeapon: MesmerActivePrimaryWeapon;
-  addEvent: MesmerAddEvent;
-  addTraitProc: MesmerAddTraitProc;
-  addCondition: MesmerAddCondition;
-  addDamage: MesmerAddDamage;
   cloneAttackScheduler: MesmerCloneAttackScheduler;
   resources: MesmerResourceController;
   criticalTraits: MesmerCriticalTraitDispatcher;
@@ -201,38 +191,6 @@ export type MesmerShatterResolver = (
 
 export type MesmerShatterResolvedHandler = (context: MesmerRuntime, resolution: MesmerShatterResolution) => void;
 
-export type MesmerAddEvent = (
-  event: MesmerEventExtra & {
-    readonly type: string;
-    readonly at: number;
-    /** Instrument lifecycle events retain their payload; combat annotations belong in metadata. */
-    readonly instrument?: string;
-  }
-) => SimulationEvent | null;
-
-export type MesmerAddTraitProc = (
-  name: string,
-  at: number,
-  sourceSkill?: string,
-  detail?: string
-) => SimulationEvent | null;
-
-export type MesmerAddCondition = (
-  skillName: string,
-  at: number,
-  condition: MesmerConditionApplication,
-  source?: string,
-  label?: string,
-  extra?: MesmerEventExtra
-) => readonly SimulationEvent[];
-
-export type MesmerAddDamage = (
-  skill: Skill,
-  at: number,
-  group: Partial<MesmerStrikeEffect>,
-  extra?: MesmerEventExtra
-) => readonly SimulationEvent[];
-
 export type MesmerActivePrimaryWeapon = () => string;
 
 export interface MesmerProfessionActionController {
@@ -245,7 +203,8 @@ export interface MesmerProfessionActionController {
     at: number,
     resourcesSpent?: number | null,
     castStart?: number,
-    packetAt?: number
+    packetAt?: number,
+    delivery?: EffectDelivery
   ): MesmerShatterResolution | null;
   reserveResources(): number;
   restoreReservedResources(spent: number): void;

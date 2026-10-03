@@ -480,7 +480,7 @@ test('symbol and projectile ignition independently block through 240 ms without 
     procs: createProcRegistry(() => context),
     catalog: guardianCatalog,
     state: { profession: { core } },
-    queue: { enqueue: (e) => queued.push(e) }
+    effects: { emit: ({ event }) => queued.push(event) }
   };
   const strike = { type: 'damage', actorType: 'player', skillId: GUARDIAN_SKILL_IDS.PEACEKEEPER, coefficient: 1 };
   for (const at of [0.9, 1, 1.239, 1.24, 1.241, 5.001]) {

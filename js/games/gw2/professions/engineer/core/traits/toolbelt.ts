@@ -10,10 +10,9 @@ import {
   requireEffect,
   balanceProfileNumber
 } from '#gw2/platform/engine/skills/balance-profiles.js';
-import { emitEffects } from '#gw2/platform/simulation/procedural-emission.js';
 import { ENGINEER_SKILL_IDS as ID, ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
-import { emitEngineerEvent } from '#gw2/professions/engineer/core/events.js';
+import { buildEngineerPackets } from '#gw2/professions/engineer/core/events.js';
 import { resolverSkill } from '#gw2/professions/engineer/core/mechanics/resolution-helpers.js';
 import type { RuntimeCast } from '#gw2/platform/simulation/runtime-state.js';
 import { reduceEngineerRecharge } from '#gw2/professions/engineer/core/mechanics/recharge.js';
@@ -34,13 +33,14 @@ export function applyStreamlinedKits(context: EngineerRuntime, skill: EngineerSk
   )
     return;
   const profile = requireBalanceProfileFromContext(context, TRAIT.STREAMLINED_KITS);
-  emitEffects(context, {
-    owner: profile,
+  context.effects.emit({
+    kind: 'profile',
+    profile: profile,
     effects: profile.effects?.filter(
       (effect) => effect.type === 'boon' || (skill.id === ID.GRENADE_KIT && effect.type === 'strike')
     ),
     at,
-    baseEvent: (effect) => ({
+    attribution: (effect) => ({
       source: 'Trait',
       sourceId: TRAIT.STREAMLINED_KITS,
       actorType: effect.type === 'strike' ? 'effect' : 'player',
@@ -68,11 +68,12 @@ function applyOptimizedActivation(context: EngineerRuntime, skill: EngineerSkill
   const optimizedActivationProfile = requireBalanceProfileFromContext(context, TRAIT.OPTIMIZED_ACTIVATION);
   const optimizedActivationVigor = requireEffect(optimizedActivationProfile, 'boon', 'vigor');
   if (optimizedActivationVigor) {
-    emitEffects(context, {
-      owner: optimizedActivationProfile,
+    context.effects.emit({
+      kind: 'profile',
+      profile: optimizedActivationProfile,
       effects: [optimizedActivationVigor],
       at,
-      baseEvent: {
+      attribution: {
         source: 'Trait',
         sourceId: TRAIT.OPTIMIZED_ACTIVATION,
         actorType: 'player',
@@ -88,10 +89,11 @@ function applyOptimizedActivation(context: EngineerRuntime, skill: EngineerSkill
 function applyStaticDischarge(context: EngineerRuntime, skill: EngineerSkill, at: number): void {
   if (!hasTrait(context.config, TRAIT.STATIC_DISCHARGE)) return;
   const profile = requireBalanceProfileFromContext(context, TRAIT.STATIC_DISCHARGE);
-  emitEffects(context, {
-    owner: profile,
+  context.effects.emit({
+    kind: 'profile',
+    profile: profile,
     at,
-    baseEvent: {
+    attribution: {
       source: 'Trait',
       sourceId: TRAIT.STATIC_DISCHARGE,
       actorType: 'effect',
@@ -120,10 +122,11 @@ function applyKineticBattery(context: EngineerRuntime, skill: EngineerSkill, at:
   state.kineticCharges = Math.min(maximumCharges, (state.kineticCharges || 0) + 1);
   if (state.kineticCharges >= maximumCharges) {
     state.kineticCharges = 0;
-    emitEffects(context, {
-      owner: profile,
+    context.effects.emit({
+      kind: 'profile',
+      profile: profile,
       at,
-      baseEvent: {
+      attribution: {
         source: 'Trait',
         sourceId: TRAIT.KINETIC_BATTERY,
         actorType: 'player',
@@ -137,7 +140,9 @@ function applyKineticBattery(context: EngineerRuntime, skill: EngineerSkill, at:
     });
   }
 
-  emitEngineerEvent(context, 'engineer.kinetic-battery', { at, kineticCharges: state.kineticCharges });
+  buildEngineerPackets('engineer.kinetic-battery', { at, kineticCharges: state.kineticCharges }).forEach((packet) =>
+    context.effects.emit({ kind: 'packet', event: packet })
+  );
 }
 
 /** Applies all Core Tools traits triggered by a completed toolbelt cast in contract order. */
@@ -152,14 +157,18 @@ export function applyEngineerToolbeltTraits(context: EngineerRuntime, skill: Eng
 export function recordStaticDischargeProc(context: EngineerResolverContext, event: EngineerResolverEvent): void {
   if (event.staticDischarge !== true) return;
   // Scheduled trait damage is not a rotation step, so expose it with its toolbelt trigger in Procs.
-  context.recordProc(
-    'trait',
-    'Static Discharge',
-    event.at,
-    event.parentSkillName || event.triggeredBy || event.skillName,
-    '',
-    resolverSkill(context, ID.STATIC_DISCHARGE_TRAIT_SKILL)?.icon || ''
-  );
+  context.effects.emit({
+    attribution: { source: 'Trait', sourceId: TRAIT.STATIC_DISCHARGE, actorType: 'effect' },
+    kind: 'announcement',
+    announcement: {
+      type: 'trait',
+      name: 'Static Discharge',
+      at: event.at,
+      sourceSkill: event.parentSkillName || event.triggeredBy || event.skillName,
+      detail: '',
+      icon: resolverSkill(context, ID.STATIC_DISCHARGE_TRAIT_SKILL)?.icon || ''
+    }
+  });
 }
 
 /** Dodge rewards reduce elite recharge before toolbelt recharge, after the dodge event is emitted. */

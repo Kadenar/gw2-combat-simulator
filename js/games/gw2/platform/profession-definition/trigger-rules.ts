@@ -1,7 +1,6 @@
 import type { NativeResolvedDamageDetails } from '#gw2/platform/profession-definition/module-types.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { sideEffectAmount, type ProfileAmount } from '#gw2/platform/simulation/side-effects.js';
-import { emitEffects } from '#gw2/platform/simulation/procedural-emission.js';
 import { requireBalanceProfileFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
 import type { Skill, SkillId, SkillEffect } from '#gw2/platform/engine/skills/types.js';
 import type { Gw2Runtime, RuntimeCast, RuntimeProfession } from '#gw2/platform/simulation/runtime-state.js';
@@ -102,12 +101,13 @@ export function compileProfessionRules<T extends object, TSkill extends Skill = 
       // Resolve once, after eligibility and the ICD claim, so every sibling packet shares the same identity.
       const attribution = resolveAttribution();
       const profile = requireBalanceProfileFromContext(runtime, rule.emit);
-      emitEffects(runtime, {
-        owner: profile,
+      runtime.effects.emit({
+        kind: 'profile',
+        profile: profile,
         effects: rule.effects ? profile.effects?.filter(rule.effects) : profile.effects,
         cause,
         transform: (event) => ({ ...event, name: profile.name, ...attribution }),
-        baseEvent: {
+        attribution: {
           source: 'Trait',
           sourceId: rule.trait,
           actorType: 'effect',

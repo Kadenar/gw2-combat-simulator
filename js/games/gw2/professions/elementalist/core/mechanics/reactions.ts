@@ -10,7 +10,7 @@ import { requireBalanceProfileFromContext, requireEffect } from '#gw2/platform/e
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import type { Gw2ResolverRuntime } from '#gw2/platform/resolver/runtime-state.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
-import { applyElementalistDerivedCondition } from '#gw2/professions/elementalist/core/mechanics/resolution-helpers.js';
+
 import { ELEMENTALIST_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/elementalist/core/profiles.js';
 import { type ElementalistAuraState } from '#gw2/professions/elementalist/core/state.js';
 import { applyStrengthOfStone, elementalistAuraDuration } from '#gw2/professions/elementalist/core/traits/behavior.js';
@@ -20,8 +20,6 @@ import type { ElementalistResolverContext } from '#gw2/professions/elementalist/
 
 export {
   activeElementalistBuffs,
-  queueElementalistBuff,
-  recordElementalistTraitProc,
   refreshElementalistBuffs
 } from '#gw2/professions/elementalist/core/mechanics/resolution-helpers.js';
 
@@ -33,16 +31,19 @@ export function queueElementalistAura(
   duration: number,
   skillName: string
 ): void {
-  context.queue.enqueue({
-    type: 'elementalist.aura',
-    at: event.at,
-    source: skillName,
-    sourceId: event.skillId ?? event.sourceId,
-    actorType: 'effect',
-    skillName,
-    aura,
-    duration: elementalistAuraDuration(context, duration),
-    elementalistResolverGeneratedAura: true
+  context.effects.emit({
+    kind: 'packet',
+    event: {
+      type: 'elementalist.aura',
+      at: event.at,
+      source: skillName,
+      sourceId: event.skillId ?? event.sourceId,
+      actorType: 'effect',
+      skillName,
+      aura,
+      duration: elementalistAuraDuration(context, duration),
+      elementalistResolverGeneratedAura: true
+    }
   });
 }
 
@@ -91,12 +92,21 @@ export function applyElementalistResolvedDamage(context: ElementalistResolverCon
     const shatteringStoneProfile = requireBalanceProfileFromContext(context, PROFILE.shatteringStone);
     const bleeding = requireEffect(shatteringStoneProfile, 'condition', 'Triggered Bleeding');
     if (bleeding) {
-      applyElementalistDerivedCondition(context, event, {
-        source: 'Shattering Stone',
-        sourceId: ID.SHATTERING_STONE,
-        condition: String(bleeding.condition),
-        stacks: Number(bleeding.stacks),
-        duration: Number(bleeding.duration)
+      context.effects.emit({
+        kind: 'packet',
+        settlement: 'reaction',
+        event: {
+          type: 'condition',
+          at: event.at,
+          source: 'Shattering Stone',
+          sourceId: ID.SHATTERING_STONE,
+          actorType: 'player',
+          skillName: 'Shattering Stone',
+          condition: String(bleeding.condition),
+          stacks: Number(bleeding.stacks),
+          duration: Number(bleeding.duration),
+          triggeredBy: resolverSourceSkill(event)
+        }
       });
     }
   }

@@ -14,18 +14,24 @@ export function applyMesmerClarity(state: MesmerRuntime, event: Gw2ResolverEvent
   if (event.kind !== 'clarity' || !event.resolvedAudience?.includesSelf) return;
   const duration = Number(event.duration);
   professionCoreState(state).clarityUntil = event.at + duration;
-  state.emitDerived(event, {
-    type: 'proc',
-    procType: 'skill',
-    at: event.at,
-    source: event.source,
-    sourceId: event.sourceId,
-    actorType: 'player',
-    skillId: event.skillId,
-    activationId: event.activationId,
-    name: 'Clarity',
-    sourceSkill: event.skillName,
-    detail: `Spear skills 3-5 empowered for ${duration}s`,
-    icon: event.icon
+  state.effects.emit({
+    kind: 'announcement',
+    cause: event,
+    log: true,
+    attribution: {
+      source: event.source,
+      sourceId: event.sourceId,
+      actorType: 'player',
+      skillId: event.skillId,
+      activationId: event.activationId
+    },
+    announcement: {
+      type: 'skill',
+      at: event.at,
+      name: 'Clarity',
+      sourceSkill: event.skillName,
+      detail: `Spear skills 3-5 empowered for ${duration}s`,
+      icon: event.icon
+    }
   });
 }

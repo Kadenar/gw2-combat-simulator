@@ -1,3 +1,4 @@
+import { captureEffectEmissions } from '#tests/helpers/effect-emission.js';
 import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
 import { createRuntimeEndurance } from '#gw2/platform/combat/resources/runtime-resources.js';
 import { gw2BoonApplicationRecipients } from '#gw2/platform/combat/state/allied-players.js';
@@ -52,8 +53,6 @@ function instrumentContext() {
     mesmerRuntime: {
       instruments: {},
       castDetails: new Map(),
-      addEvent: emit,
-      addTraitProc() {},
       activePrimaryWeapon: () => 'Spear',
       resourceDefinition: { singular: 'note', plural: 'notes', maximum: 3 },
       actions: {
@@ -63,12 +62,12 @@ function instrumentContext() {
           return spent;
         }
       },
-      resources: { queueResources: (at, amount) => emit({ type: 'resource', at, amount }) },
-      addDamage: (skill, at, damage) => emit({ ...damage, type: 'damage', at, skillId: skill.id })
+      resources: { queueResources: (at, amount) => emit({ type: 'resource', at, amount }) }
     }
   };
   Object.assign(context, state);
   context.helpers = context.catalog;
+  context.effects = captureEffectEmissions({ now: () => context.time, submit: emit }).effects;
   context.history = events;
   context.schedule = () => {};
 
@@ -169,7 +168,10 @@ function beginTale(context, at) {
   const skill = context.catalog.skillsById.get(ID.TALE_OF_THE_TORTURED_MASTERMIND);
   const cast = { id: 'tale', skill, start: at, command: {} };
   context.time = at;
-  context.mesmerRuntime.addEvent({ type: 'action', at, activationId: cast.id });
+  context.effects.emit({
+    kind: 'packet',
+    event: { type: 'action', at, activationId: cast.id, actorType: 'player', source: 'Player', sourceId: cast.skill.id }
+  });
   context.mesmerRuntime.castDetails.set(cast.id, {});
   applySkillSideEffects(context, cast, 'castStart', troubadourHooks.sideEffectHandlers);
   return cast;

@@ -17,15 +17,18 @@ const virtues = [
 ];
 const state = (result) => observedRuntime(result).profession.specialization.state;
 const strike = (runtime, at) =>
-  runtime.emit({
-    type: 'damage',
-    at,
-    source: 'guardian',
-    sourceId: ID.ORB_OF_WRATH,
-    skillId: ID.ORB_OF_WRATH,
-    actorType: 'player',
-    coefficient: 1,
-    weaponStrengthProfileId: 'weapon.scepter'
+  runtime.effects.emit({
+    kind: 'packet',
+    event: {
+      type: 'damage',
+      at,
+      source: 'guardian',
+      sourceId: ID.ORB_OF_WRATH,
+      skillId: ID.ORB_OF_WRATH,
+      actorType: 'player',
+      coefficient: 1,
+      weaponStrengthProfileId: 'weapon.scepter'
+    }
   });
 
 // Exercise actual hit delivery and state projections at inclusive virtue deadlines.

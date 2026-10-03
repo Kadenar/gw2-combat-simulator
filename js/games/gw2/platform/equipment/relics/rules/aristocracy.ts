@@ -111,17 +111,20 @@ export const aristocracy = defineRelic({
     // Actual applications own both the stack claim and its report; previews still use pure timeline queries.
     const activation = applyAristocracyTrigger(state as AristocracyState, event);
     if (activation)
-      ctx.recordProc(
-        'relic',
-        'Relic of Aristocracy',
-        activation.at,
-        event.skillName,
-        `${activation.stacks}/${ARISTOCRACY_MAX_STACKS} stacks`,
-        '',
-        null,
-        activation.expiresAt,
-        { stacks: activation.stacks, maximumStacks: ARISTOCRACY_MAX_STACKS }
-      );
+      ctx.effects.emit({
+        kind: 'announcement',
+        announcement: {
+          type: 'relic',
+          name: 'Relic of Aristocracy',
+          at: activation.at,
+          sourceSkill: event.skillName,
+          detail: `${activation.stacks}/${ARISTOCRACY_MAX_STACKS} stacks`,
+          icon: '',
+          cooldownReduction: null,
+          expiresAt: activation.expiresAt,
+          effectState: { stacks: activation.stacks, maximumStacks: ARISTOCRACY_MAX_STACKS }
+        }
+      });
   },
   conditionDurationBonus(_ctx, state, at) {
     const activation = aristocracyActivationAt(state as AristocracyState, at);

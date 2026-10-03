@@ -1,7 +1,7 @@
+import type { SimulationEventBase } from '#gw2/platform/engine/events/events.js';
 import { activeBoonStacks as queryActiveBoonStacks } from '#gw2/platform/combat/query/runtime-query.js';
 import type { SimulationActorType } from '#gw2/platform/engine/events/actors.js';
 import type { SkillId } from '#gw2/platform/engine/skills/types.js';
-import { queueResolverBoon } from '#gw2/platform/resolver/boons.js';
 import type { EnqueueGw2OwnedComboFinisherOptions } from '#gw2/platform/resolver/combo-resolution.js';
 import { buildResolverBuff, buildResolverCondition, buildResolverStrike } from '#gw2/platform/resolver/packets.js';
 import type { EngineerResolverContext, EngineerResolverEvent, EngineerSkill } from '#gw2/professions/engineer/types.js';
@@ -55,9 +55,8 @@ export function resolverSkill(
   return context.helpers.skillsById?.get(skillId);
 }
 
-/** Queues one derived strike; the shared runtime attempts its finisher when the strike actually resolves. */
-export function queueDamage(
-  context: EngineerResolverContext,
+/** Builds an owned strike whose finisher is attempted by the shared runtime at impact. */
+export function buildEngineerStrike(
   event: EngineerResolverEvent,
   {
     name,
@@ -72,73 +71,65 @@ export function queueDamage(
     weaponStrength,
     weaponStrengthProfileId
   }: QueueDamageOptions
-): void {
-  context.queue.enqueue(
-    buildResolverStrike({
-      at,
-      skillName: name,
-      coefficient,
+): SimulationEventBase {
+  return buildResolverStrike({
+    at,
+    skillName: name,
+    coefficient,
 
-      source: actorType === 'effect' ? 'Trait' : 'engineer',
-      sourceId: sourceId ?? event.skillId ?? event.sourceId,
-      actorType,
-      // Effect-owned strikes can inherit player modifiers without becoming player actors for proc eligibility.
-      ...(ownerActorType == null ? {} : { ownerActorType }),
-      // skillId only on player events — summon/effect damage should not carry the parent skill ID
-      skillId: actorType === 'player' ? event.skillId : undefined,
-      ...(actorType === 'player' ? { activationId: event.activationId, offTarget: event.offTarget } : {}),
-      // "Spear" default for player spear skills; non-player damage uses "Unequipped" for weapon lookups
-      skillWeapon: actorType === 'player' ? 'Spear' : 'Unequipped',
-      canCrit,
-      explosion,
-      ...(comboFinisher
-        ? {
-            comboFinishers: [
-              {
-                ownerId: comboFinisher.ownerId,
-                finisherType: comboFinisher.finisherType,
-                chance: comboFinisher.chance ?? 1,
-                applications: comboFinisher.applications ?? 1,
-                successfulCombos: comboFinisher.successfulCombos ?? 1,
-                preferredFieldTypes: comboFinisher.preferredFieldTypes,
-                ambiguousFieldSelection: comboFinisher.ambiguousFieldSelection ?? 'none'
-              }
-            ]
-          }
-        : {}),
-      ...(weaponStrength == null ? {} : { weaponStrength }),
-      ...(weaponStrengthProfileId == null ? {} : { weaponStrengthProfileId }),
-      triggeredBy: event.skillName
-    })
-  );
+    source: actorType === 'effect' ? 'Trait' : 'engineer',
+    sourceId: sourceId ?? event.skillId ?? event.sourceId,
+    actorType,
+    // Effect-owned strikes can inherit player modifiers without becoming player actors for proc eligibility.
+    ...(ownerActorType == null ? {} : { ownerActorType }),
+    // skillId only on player events — summon/effect damage should not carry the parent skill ID
+    skillId: actorType === 'player' ? event.skillId : undefined,
+    ...(actorType === 'player' ? { activationId: event.activationId, offTarget: event.offTarget } : {}),
+    // "Spear" default for player spear skills; non-player damage uses "Unequipped" for weapon lookups
+    skillWeapon: actorType === 'player' ? 'Spear' : 'Unequipped',
+    canCrit,
+    explosion,
+    ...(comboFinisher
+      ? {
+          comboFinishers: [
+            {
+              ownerId: comboFinisher.ownerId,
+              finisherType: comboFinisher.finisherType,
+              chance: comboFinisher.chance ?? 1,
+              applications: comboFinisher.applications ?? 1,
+              successfulCombos: comboFinisher.successfulCombos ?? 1,
+              preferredFieldTypes: comboFinisher.preferredFieldTypes,
+              ambiguousFieldSelection: comboFinisher.ambiguousFieldSelection ?? 'none'
+            }
+          ]
+        }
+      : {}),
+    ...(weaponStrength == null ? {} : { weaponStrength }),
+    ...(weaponStrengthProfileId == null ? {} : { weaponStrengthProfileId }),
+    triggeredBy: event.skillName
+  });
 }
 
-/** Enqueues a derived Engineer buff after applying the shared boon-duration rules. */
-export function queueBuff(
-  context: EngineerResolverContext,
+/** Builds base-duration buff data; the shared service samples live duration when the grant executes. */
+export function buildEngineerBuff(
   event: EngineerResolverEvent,
   { name, kind, stacks, duration, sourceId = event.skillId, actorType = 'player' }: QueueBuffOptions
-): void {
-  queueResolverBoon(
-    context,
-    event,
-    buildResolverBuff({
-      at: event.at,
-      skillName: name,
-      kind,
-      stacks,
-      duration,
-      source: actorType === 'effect' ? 'Trait' : 'engineer',
-      sourceId: sourceId ?? event.skillId ?? event.sourceId,
-      actorType,
-      triggeredBy: event.skillName
-    })
-  );
+): SimulationEventBase {
+  return buildResolverBuff({
+    at: event.at,
+    skillName: name,
+    kind,
+    stacks,
+    duration,
+    source: actorType === 'effect' ? 'Trait' : 'engineer',
+    sourceId: sourceId ?? event.skillId ?? event.sourceId,
+    actorType,
+    triggeredBy: event.skillName
+  });
 }
 
-/** Applies a derived condition immediately so same-timestamp reactions observe it in order. */
-export function applyEngineerDerivedCondition(
-  context: EngineerResolverContext,
+/** Builds a fresh condition while preserving explicit companion ownership and rejecting inherited hit annotations. */
+export function buildEngineerCondition(
   event: EngineerResolverEvent,
   {
     name,
@@ -151,7 +142,7 @@ export function applyEngineerDerivedCondition(
     metadata = {},
     procCount
   }: ApplyConditionOptions
-): void {
+): SimulationEventBase {
   const application = buildResolverCondition({
     at: event.at,
 
@@ -174,19 +165,7 @@ export function applyEngineerDerivedCondition(
     // The primary condition records activations separately from its stack count and optional sibling effects.
     ...(procCount == null ? {} : { metadata: { procCount } })
   });
-  // Apply resolver-derived conditions immediately so downstream reactions at
-  // this timestamp observe the newly inserted condition state.
-  context.applyCondition(application);
-}
-
-/** Records a trait proc for result attribution without changing combat state. */
-export function recordTrait(
-  context: EngineerResolverContext,
-  name: string,
-  event: EngineerResolverEvent,
-  icon = ''
-): void {
-  context.recordProc('trait', name, event.at, event.skillName, '', icon);
+  return application;
 }
 
 /** Adapts resolver time and lowercase boon names to the shared permanent-plus-timed stack query. */

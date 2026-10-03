@@ -71,7 +71,7 @@ function run(
       catalog,
       initialize(runtime) {
         native.initialize(runtime);
-        for (const event of events) runtime.emit(event);
+        for (const event of events) runtime.effects.emit({ kind: 'packet', event: event });
       }
     },
     config,

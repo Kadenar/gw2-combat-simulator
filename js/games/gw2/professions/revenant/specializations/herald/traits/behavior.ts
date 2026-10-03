@@ -97,19 +97,22 @@ export function grantCompassion(runtime: RevenantRuntime): void {
   const effect = requireEffect(profile, 'boon', 'quickness');
   // The cooldown gates only quickness, so a removed boon leaves the pulse ready.
   if (!effect) return;
-  runtime.emitProcedural({
-    type: 'buff',
-    at: runtime.time,
-    source: 'revenant',
-    sourceId: TRAIT.ELEVATED_COMPASSION,
-    actorType: 'player',
-    skillId: TRAIT.ELEVATED_COMPASSION,
-    skillName: 'Elevated Compassion',
-    name: 'Elevated Compassion - quickness',
-    kind: String(effect.boon),
-    duration: Math.max(0, effectNumber(profile, effect, 'duration')),
-    stacks: Math.max(1, effectNumber(profile, effect, 'stacks')),
-    audience: effect.audience ?? { recipients: 'party', maximumRecipients: 5 }
+  runtime.effects.emit({
+    kind: 'packet',
+    event: {
+      type: 'buff',
+      at: runtime.time,
+      source: 'revenant',
+      sourceId: TRAIT.ELEVATED_COMPASSION,
+      actorType: 'player',
+      skillId: TRAIT.ELEVATED_COMPASSION,
+      skillName: 'Elevated Compassion',
+      name: 'Elevated Compassion - quickness',
+      kind: String(effect.boon),
+      duration: Math.max(0, effectNumber(profile, effect, 'duration')),
+      stacks: Math.max(1, effectNumber(profile, effect, 'stacks')),
+      audience: effect.audience ?? { recipients: 'party', maximumRecipients: 5 }
+    }
   });
   runtime.procs.readyAt['revenant.herald.elevatedCompassion'] = canonicalTime(
     runtime.time + Math.max(EPSILON, balanceProfileNumber(profile, 'cooldown'))

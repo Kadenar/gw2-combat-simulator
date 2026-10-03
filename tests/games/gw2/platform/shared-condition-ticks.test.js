@@ -828,11 +828,56 @@ test('settlement reactions inherit their phase while direct hits and future buff
       target: { health: 1000 },
       reactions: {
         'condition-tick.resolved': (ctx) => {
-          ctx.queue.enqueue({ type: 'buff', at: 1, sourceId: 'settled', kind: 'might', duration: 2, stacks: 1 });
-          ctx.queue.enqueue({ type: 'damage', at: 1, sourceId: 'proc', flatDamage: 1, damageKind: 'condition' });
-          ctx.queue.enqueue({ type: 'buff', at: 2, sourceId: 'future', kind: 'might', duration: 1, stacks: 1 });
-          assert.throws(() => ctx.queue.enqueue({ type: 'condition_buffer', at: 1, sourceId: 'rewind' }), /rewind/);
-          assert.throws(() => ctx.applyCondition(condition(0.999999)), /live clock/);
+          ctx.effects.emit({
+            kind: 'packet',
+            event: {
+              type: 'buff',
+              at: 1,
+              sourceId: 'settled',
+              source: 'Fixture',
+              actorType: 'player',
+              kind: 'might',
+              duration: 2,
+              stacks: 1
+            }
+          });
+          ctx.effects.emit({
+            kind: 'packet',
+            event: {
+              type: 'damage',
+              at: 1,
+              sourceId: 'proc',
+              source: 'Fixture',
+              actorType: 'player',
+              flatDamage: 1,
+              damageKind: 'condition'
+            }
+          });
+          ctx.effects.emit({
+            kind: 'packet',
+            event: {
+              type: 'buff',
+              at: 2,
+              sourceId: 'future',
+              source: 'Fixture',
+              actorType: 'player',
+              kind: 'might',
+              duration: 1,
+              stacks: 1
+            }
+          });
+          assert.throws(
+            () =>
+              ctx.effects.emit({
+                kind: 'packet',
+                event: { type: 'condition_buffer', at: 1, sourceId: 'rewind', source: 'Fixture', actorType: 'player' }
+              }),
+            /rewind/
+          );
+          assert.throws(
+            () => ctx.effects.emit({ kind: 'packet', settlement: 'reaction', event: condition(0.999999) }),
+            /live clock/
+          );
         },
         'buff.applied': (ctx, event) => observed.push([event.sourceId, ctx.queue.currentPhase]),
         'damage.resolved': (ctx, event) => observed.push([event.sourceId, ctx.queue.currentPhase])

@@ -35,8 +35,7 @@ test('condition duration preserves phase context, fixed durations, and natural e
       config: {},
       horizon: 5.5,
       helpers: { conditionName: (name) => name },
-      queue: new StableEventQueue(),
-      applyCondition: resolution.applyCondition
+      queue: new StableEventQueue()
     });
     for (const runtime of [resolver]) {
       runtime.query = {
@@ -71,7 +70,7 @@ test('condition duration preserves phase context, fixed durations, and natural e
       };
     }
 
-    const [application] = resolver.applyCondition(event);
+    const [application] = resolution.applyCondition(resolver, event);
     assert.equal(application.effectiveDuration, expectedDuration);
     assert.equal(application.expiresAt, 4 + expectedDuration);
     assert.equal(application.naturalExpiresAt, 4 + expectedDuration);

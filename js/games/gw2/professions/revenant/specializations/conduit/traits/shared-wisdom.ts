@@ -1,13 +1,12 @@
-import type { RevenantSkill } from '#gw2/professions/revenant/types.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { effectFirstAt } from '#gw2/platform/engine/effects/materializer.js';
 import { requireBalanceProfileFromContext, requireEffect } from '#gw2/platform/engine/skills/balance-profiles.js';
 import type { Skill } from '#gw2/platform/engine/skills/types.js';
-import { emitEffects } from '#gw2/platform/simulation/procedural-emission.js';
 import type { RuntimeCast } from '#gw2/platform/simulation/runtime-state.js';
 import type { RevenantRuntime } from '#gw2/professions/revenant/core/events.js';
 import { REVENANT_SKILL_IDS as ID, REVENANT_TRAIT_IDS as TRAIT } from '#gw2/professions/revenant/data/ids.js';
 import { CONDUIT_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/revenant/specializations/conduit/profiles.js';
+import type { RevenantSkill } from '#gw2/professions/revenant/types.js';
 
 /** One entity-specific Shared Wisdom boon accompanies the cast's completion. */
 export function completionSharedWisdom(
@@ -19,11 +18,12 @@ export function completionSharedWisdom(
   const profile = requireBalanceProfileFromContext(runtime, PROFILE.sharedWisdom);
   const shared = requireEffect(profile, 'boon', trigger);
   if (!shared) return;
-  emitEffects(runtime, {
-    owner: profile,
+  runtime.effects.emit({
+    kind: 'profile',
+    profile: profile,
     effects: [shared],
     at: cast.effectiveEnd,
-    baseEvent: {
+    attribution: {
       source: 'revenant',
       sourceId: cast.skill.id,
       actorType: 'player',

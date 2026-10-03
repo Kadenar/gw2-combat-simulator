@@ -34,14 +34,17 @@ export function exitLich(runtime: NecromancerRuntime): void {
 function transition(runtime: NecromancerRuntime, entering: boolean, skill?: NecromancerSkill): void {
   const kind = entering ? 'shroudEntryMs' : 'shroudExitMs';
   lockTransitionInput(runtime, kind, skill);
-  runtime.emit({
-    type: 'weapon_set',
-    at: runtime.time,
-    source: 'necromancer',
-    sourceId: entering ? 'necromancer.shroud-enter' : 'necromancer.shroud-exit',
-    actorType: 'player',
-    weaponSet: runtime.activeWeaponSet,
-    shroudSwap: true
+  runtime.effects.emit({
+    kind: 'packet',
+    event: {
+      type: 'weapon_set',
+      at: runtime.time,
+      source: 'necromancer',
+      sourceId: entering ? 'necromancer.shroud-enter' : 'necromancer.shroud-exit',
+      actorType: 'player',
+      weaponSet: runtime.activeWeaponSet,
+      shroudSwap: true
+    }
   });
 }
 

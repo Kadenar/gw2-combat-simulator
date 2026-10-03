@@ -62,15 +62,18 @@ function stabilizedFlow(at, applications) {
       initialize(runtime) {
         profession.initialize?.(runtime);
         for (const application of applications)
-          runtime.emit({
-            type: 'buff',
-            kind: 'fury',
-            duration: 5,
-            stacks: 1,
-            source: 'fixture',
-            sourceId: 'fixture',
-            actorType: 'player',
-            ...application
+          runtime.effects.emit({
+            kind: 'packet',
+            event: {
+              type: 'buff',
+              kind: 'fury',
+              duration: 5,
+              stacks: 1,
+              source: 'fixture',
+              sourceId: 'fixture',
+              actorType: 'player',
+              ...application
+            }
           });
       }
     },

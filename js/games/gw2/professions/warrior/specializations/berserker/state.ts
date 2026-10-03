@@ -1,10 +1,10 @@
-import type { Gw2Runtime, RuntimeCast } from '#gw2/platform/simulation/runtime-state.js';
-import type { WarriorRuntimeState, WarriorSkill } from '#gw2/professions/warrior/types.js';
-import { WARRIOR_SKILL_IDS as ID } from '#gw2/professions/warrior/data/ids.js';
 import {
-  definePublicStateDefaults,
-  defineProfessionSpecializationState
+  defineProfessionSpecializationState,
+  definePublicStateDefaults
 } from '#gw2/platform/engine/profession/state.js';
+import type { Gw2Runtime, RuntimeCast } from '#gw2/platform/simulation/runtime-state.js';
+import { WARRIOR_SKILL_IDS as ID } from '#gw2/professions/warrior/data/ids.js';
+import type { WarriorRuntimeState, WarriorSkill } from '#gw2/professions/warrior/types.js';
 
 type Runtime = Gw2Runtime<WarriorRuntimeState, WarriorSkill>;
 export const BERSERK_EXPIRE = 'warrior.berserk-expiry';
@@ -43,19 +43,22 @@ export const berserkerState = defineProfessionSpecializationState('Berserker', c
 /** The status and expiry task share one deadline; older wakes cannot close a refreshed mode. */
 export function publishBerserk(runtime: Runtime, cast: RuntimeCast<WarriorSkill>): void {
   const state = berserkerState.from(runtime);
-  runtime.emit({
-    type: 'buff',
-    at: runtime.time,
-    source: 'Berserker',
-    sourceId: ID.BERSERK,
-    actorType: 'effect',
-    activationId: cast.id,
-    skillId: cast.skill.id,
-    skillName: cast.skill.name,
-    name: 'Berserk',
-    kind: 'berserk',
-    stacks: 1,
-    duration: state.berserkUntil - runtime.time
+  runtime.effects.emit({
+    kind: 'packet',
+    event: {
+      type: 'buff',
+      at: runtime.time,
+      source: 'Berserker',
+      sourceId: ID.BERSERK,
+      actorType: 'effect',
+      activationId: cast.id,
+      skillId: cast.skill.id,
+      skillName: cast.skill.name,
+      name: 'Berserk',
+      kind: 'berserk',
+      stacks: 1,
+      duration: state.berserkUntil - runtime.time
+    }
   });
   runtime.schedule(BERSERK_EXPIRE, state.berserkUntil, state.berserkUntil, undefined, -220);
 }

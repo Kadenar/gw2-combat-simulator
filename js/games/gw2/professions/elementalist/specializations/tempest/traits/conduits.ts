@@ -7,12 +7,11 @@ import {
 } from '#gw2/platform/engine/skills/balance-profiles.js';
 import type { Skill } from '#gw2/platform/engine/skills/types.js';
 import type { RuntimeCast } from '#gw2/platform/simulation/runtime-state.js';
-import { emitProfiledBuff } from '#gw2/professions/elementalist/core/mechanics/effects.js';
+import { elementalistProfiledBuffRequest } from '#gw2/professions/elementalist/core/mechanics/effects.js';
 import { applyElementalistAura } from '#gw2/professions/elementalist/core/traits/dispatch.js';
 import { ELEMENTALIST_TRAIT_IDS as TRAIT } from '#gw2/professions/elementalist/data/ids.js';
 import { TEMPEST_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/elementalist/specializations/tempest/profiles.js';
-import type { ElementalistSkill, ElementalistRuntime } from '#gw2/professions/elementalist/types.js';
-
+import type { ElementalistRuntime, ElementalistSkill } from '#gw2/professions/elementalist/types.js';
 /** Schedule alacrity from accepted overload hits before packet emission, retaining shortened-channel behavior. */
 export function applyLucidSingularity(
   context: ElementalistRuntime,
@@ -49,7 +48,19 @@ export function applyLucidSingularity(
     .slice(0, balanceProfileNumber(lucidSingularityProfile, 'maximumStacks'));
   hits.forEach((event, index: number) => {
     const effectName = index === hits.length - 1 ? 'Final Alacrity' : 'Pulse Alacrity';
-    emitProfiledBuff(context, event.at, TRAIT.LUCID_SINGULARITY, effectName, 'Lucid Singularity', skill.id);
+    context.effects.emit(
+      elementalistProfiledBuffRequest(
+        context,
+        event.at,
+        TRAIT.LUCID_SINGULARITY,
+        effectName,
+        'Lucid Singularity',
+        skill.id,
+        undefined,
+        undefined,
+        { activationId: cast.id, skillId: cast.skill.id, offTarget: cast.command.offTarget }
+      )
+    );
   });
 }
 

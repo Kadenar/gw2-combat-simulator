@@ -75,17 +75,20 @@ for (const [name, profession, specialization, trait, profile, effect, fields] of
               [3, { offTarget: true }],
               [4, {}]
             ])
-              runtime.emit({
-                type: 'damage',
-                at,
-                source: 'fixture',
-                sourceId: 'fixture',
-                actorType: 'player',
-                coefficient: 1,
-                skillWeapon: 'Unequipped',
-                skillName: 'Trait trigger',
-                ...fields,
-                ...overrides
+              runtime.effects.emit({
+                kind: 'packet',
+                event: {
+                  type: 'damage',
+                  at,
+                  source: 'fixture',
+                  sourceId: 'fixture',
+                  actorType: 'player',
+                  coefficient: 1,
+                  skillWeapon: 'Unequipped',
+                  skillName: 'Trait trigger',
+                  ...fields,
+                  ...overrides
+                }
               });
           }
         },

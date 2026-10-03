@@ -66,23 +66,26 @@ export function renewForerunnerOfDeath(runtime: RevenantRuntime, profile: Revena
     if (window) {
       const duration = Math.max(0, effectNumber(forerunner, window, 'duration'));
       state.forerunnerOfDeathUntil = runtime.time + duration;
-      runtime.emitProcedural(
-        {
-          type: 'buff',
-          at: runtime.time,
-          source: 'revenant',
-          sourceId: TRAIT.FORERUNNER_OF_DEATH,
-          actorType: 'player',
-          skillId: TRAIT.FORERUNNER_OF_DEATH,
-          skillName: 'Forerunner of Death',
-          activationId,
-          name: 'Forerunner of Death',
-          kind: String(window.kind),
-          duration,
-          stacks: effectNumber(forerunner, window, 'stacks')
-        },
-        { fixedDuration: true }
-      );
+      runtime.effects.emit({
+        kind: 'packet',
+        event: {
+          ...{
+            type: 'buff',
+            at: runtime.time,
+            source: 'revenant',
+            sourceId: TRAIT.FORERUNNER_OF_DEATH,
+            actorType: 'player',
+            skillId: TRAIT.FORERUNNER_OF_DEATH,
+            skillName: 'Forerunner of Death',
+            activationId,
+            name: 'Forerunner of Death',
+            kind: String(window.kind),
+            duration,
+            stacks: effectNumber(forerunner, window, 'stacks')
+          },
+          fixedDuration: true
+        }
+      });
     }
   }
 }

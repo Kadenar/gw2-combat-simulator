@@ -1,5 +1,6 @@
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import type { NativeResolvedDamageDetails } from '#gw2/platform/profession-definition/module-types.js';
+import { resolverSourceSkill } from '#gw2/platform/resolver/packets.js';
 import type { Gw2ResolverRuntime } from '#gw2/platform/resolver/runtime-state.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 /** Core critical traits share player-hit eligibility while keeping separate accumulation and ICD state. */
@@ -26,11 +27,7 @@ import {
   requireEffect
 } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { criticalProcHandler } from '#gw2/platform/profession-definition/mechanics.js';
-import {
-  applyElementalistDerivedCondition,
-  queueElementalistBuff,
-  recordElementalistTraitProc
-} from '#gw2/professions/elementalist/core/mechanics/resolution-helpers.js';
+
 import { setElementalistAttunementReadyAt } from '#gw2/professions/elementalist/core/state.js';
 
 import {
@@ -45,7 +42,23 @@ function applyRagingStorm(context: Gw2ResolverRuntime, event: Gw2ResolverEvent):
   const ragingStormProfile = requireBalanceProfileFromContext(context, TRAIT.RAGING_STORM);
   const fury = requireEffect(ragingStormProfile, 'boon', 'Fury');
   if (fury) {
-    queueElementalistBuff(context, event, String(fury.boon), Number(fury.stacks), fury.duration, TRAIT.RAGING_STORM);
+    context.effects.emit({
+      kind: 'packet',
+      durationContext: event,
+      event: {
+        type: 'buff',
+        at: event.at,
+        source: 'Trait',
+        sourceId: TRAIT.RAGING_STORM,
+        actorType: 'player',
+        skillName: requireBalanceProfileFromContext(context, TRAIT.RAGING_STORM).name,
+        kind: String(fury.boon).toLowerCase(),
+        stacks: Number(fury.stacks),
+        duration: fury.duration,
+        triggeredBy: resolverSourceSkill(event),
+        priority: Number(event.priority || 0)
+      }
+    });
   }
 }
 
@@ -65,14 +78,18 @@ export function applyFreshAirCritical(
     return;
   if ((context.cooldowns.get(ELEMENTALIST_ATTUNEMENT_SKILL_IDS.Air) ?? 0) > event.at)
     setElementalistAttunementReadyAt(context, 'Air', event.at);
-  context.emitDerived(event, {
-    type: 'elementalist.fresh-air',
-    at: event.at,
-    source: 'Fresh Air',
-    sourceId: 'Fresh Air',
-    actorType: 'effect',
-    skillName: 'Fresh Air',
-    sourceSkill: event.skillName
+  context.effects.emit({
+    kind: 'packet',
+    cause: event,
+    event: {
+      type: 'elementalist.fresh-air',
+      at: event.at,
+      source: 'Fresh Air',
+      sourceId: 'Fresh Air',
+      actorType: 'effect',
+      skillName: 'Fresh Air',
+      sourceSkill: event.skillName
+    }
   });
 }
 
@@ -128,15 +145,27 @@ function applyArcanePrecision(context: ElementalistResolverContext, event: Gw2Re
   const condition = requireEffect(arcanePrecisionProfile, 'condition', attunement);
 
   if (condition) {
-    applyElementalistDerivedCondition(context, event, {
-      source: 'Arcane Precision',
-      sourceId: TRAIT.ARCANE_PRECISION,
-      condition: String(condition.condition),
-      stacks: Number(condition.stacks),
-      duration: Number(condition.duration)
+    context.effects.emit({
+      kind: 'packet',
+      settlement: 'reaction',
+      event: {
+        type: 'condition',
+        at: event.at,
+        source: 'Arcane Precision',
+        sourceId: TRAIT.ARCANE_PRECISION,
+        actorType: 'player',
+        skillName: 'Arcane Precision',
+        condition: String(condition.condition),
+        stacks: Number(condition.stacks),
+        duration: Number(condition.duration),
+        triggeredBy: resolverSourceSkill(event)
+      }
     });
 
-    recordElementalistTraitProc(context, event, 'Arcane Precision');
+    context.effects.emit({
+      kind: 'announcement',
+      announcement: { type: 'trait', name: 'Arcane Precision', at: event.at, sourceSkill: resolverSourceSkill(event) }
+    });
   }
 }
 
@@ -145,14 +174,23 @@ function applyRenewingStamina(context: Gw2ResolverRuntime, event: Gw2ResolverEve
   const renewingStaminaProfile = requireBalanceProfileFromContext(context, TRAIT.RENEWING_STAMINA);
   const vigor = requireEffect(renewingStaminaProfile, 'boon', 'Vigor');
   if (vigor) {
-    queueElementalistBuff(
-      context,
-      event,
-      String(vigor.boon),
-      Number(vigor.stacks),
-      vigor.duration,
-      TRAIT.RENEWING_STAMINA
-    );
+    context.effects.emit({
+      kind: 'packet',
+      durationContext: event,
+      event: {
+        type: 'buff',
+        at: event.at,
+        source: 'Trait',
+        sourceId: TRAIT.RENEWING_STAMINA,
+        actorType: 'player',
+        skillName: requireBalanceProfileFromContext(context, TRAIT.RENEWING_STAMINA).name,
+        kind: String(vigor.boon).toLowerCase(),
+        stacks: Number(vigor.stacks),
+        duration: vigor.duration,
+        triggeredBy: resolverSourceSkill(event),
+        priority: Number(event.priority || 0)
+      }
+    });
   }
 }
 
@@ -202,16 +240,28 @@ function applyBurningPrecision(context: Gw2ResolverRuntime, event: Gw2ResolverEv
   const burningPrecisionProfile = requireBalanceProfileFromContext(context, TRAIT.BURNING_PRECISION);
   const burning = requireEffect(burningPrecisionProfile, 'condition', 'Burning Precision');
   if (burning) {
-    applyElementalistDerivedCondition(context, event, {
-      source: 'Burning Precision',
-      procCount: 1,
-      sourceId: TRAIT.BURNING_PRECISION,
-      condition: String(burning.condition),
-      stacks: Number(burning.stacks),
-      duration: Number(burning.duration)
+    context.effects.emit({
+      kind: 'packet',
+      settlement: 'reaction',
+      event: {
+        type: 'condition',
+        at: event.at,
+        source: 'Burning Precision',
+        sourceId: TRAIT.BURNING_PRECISION,
+        actorType: 'player',
+        skillName: 'Burning Precision',
+        condition: String(burning.condition),
+        stacks: Number(burning.stacks),
+        duration: Number(burning.duration),
+        triggeredBy: resolverSourceSkill(event),
+        metadata: { procCount: 1 }
+      }
     });
 
-    recordElementalistTraitProc(context, event, 'Burning Precision');
+    context.effects.emit({
+      kind: 'announcement',
+      announcement: { type: 'trait', name: 'Burning Precision', at: event.at, sourceSkill: resolverSourceSkill(event) }
+    });
   }
 }
 

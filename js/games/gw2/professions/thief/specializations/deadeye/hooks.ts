@@ -30,7 +30,7 @@ import type { Gw2HitResolutionContext } from '#gw2/platform/resolver/hit-resolut
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import type { RuntimeCast, RuntimeProfession } from '#gw2/platform/simulation/runtime-state.js';
 import type { ThiefRuntime } from '#gw2/professions/thief/core/events.js';
-import { deferThiefCompletion, emitThiefCondition } from '#gw2/professions/thief/core/events.js';
+import { deferThiefCompletion, buildThiefCondition } from '#gw2/professions/thief/core/events.js';
 import { grantThiefInitiative } from '#gw2/professions/thief/core/mechanics/resources.js';
 import { completeThiefSteal } from '#gw2/professions/thief/core/mechanics/steal.js';
 import { emitThiefStealTraits } from '#gw2/professions/thief/core/traits/steal.js';
@@ -98,13 +98,17 @@ function maliceTorment(
   const profile = requireBalanceProfileFromContext(runtime, profileId);
   const torment = requireEffect(profile, 'condition', 'Torment');
   if (!torment) return;
-  emitThiefCondition(runtime, cast.skill, {
-    at: runtime.time,
-    ...(trait ? { source: 'Trait', name: 'Malicious Ashen Assault — Torment' } : {}),
-    activationId: cast.id,
-    condition: String(torment.condition),
-    duration: effectNumber(profile, torment, 'duration') + malice * balanceProfileNumber(profile, 'durationMultiplier'),
-    stacks: effectNumber(profile, torment, 'stacks')
+  runtime.effects.emit({
+    kind: 'packet',
+    event: buildThiefCondition(cast.skill, {
+      at: runtime.time,
+      ...(trait ? { source: 'Trait', name: 'Malicious Ashen Assault — Torment' } : {}),
+      activationId: cast.id,
+      condition: String(torment.condition),
+      duration:
+        effectNumber(profile, torment, 'duration') + malice * balanceProfileNumber(profile, 'durationMultiplier'),
+      stacks: effectNumber(profile, torment, 'stacks')
+    })
   });
 }
 

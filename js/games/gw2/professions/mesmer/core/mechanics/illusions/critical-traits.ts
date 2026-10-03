@@ -8,17 +8,9 @@ import { triggerMesmerCriticalTraits } from '#gw2/professions/mesmer/core/traits
  * dispatcher materializes Dueling effects in their required order.
  */
 export function createCriticalTraitDispatcher({
-  state,
-  emitEvent,
-  boonDuration,
-  addTraitProc
+  state
 }: MesmerDuelingCriticalContext): Readonly<MesmerCriticalTraitDispatcher> {
-  const traitContext = {
-    state,
-    emitEvent,
-    boonDuration,
-    addTraitProc
-  };
+  const traitContext = { state };
 
   return Object.freeze({
     process(event: SimulationEvent, chance: number): void {

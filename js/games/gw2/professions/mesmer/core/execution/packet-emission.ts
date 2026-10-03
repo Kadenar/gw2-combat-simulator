@@ -1,9 +1,16 @@
+import type { EffectDelivery } from '#gw2/platform/simulation/effect-emission.js';
+import type { MesmerRuntime } from '#gw2/professions/mesmer/types.js';
+import {
+  buildMesmerStrikes,
+  mesmerPacketOwner,
+  buildMesmerConditions
+} from '#gw2/professions/mesmer/core/mechanics/packets.js';
 import { EPSILON } from '#kernel/core/clock.js';
 /**
  * Emits phantasm-cast packets and tracks their eligible sword hits.
  * Effect ordering lives in `effect-controller.ts`; persistent illusion behavior lives under `mechanics/illusions/`.
  */
-import type { MesmerAddCondition, MesmerAddDamage } from '#gw2/professions/mesmer/types.js';
+
 import { castRelativeEffectTimingScale } from '#gw2/platform/skills/timing.js';
 import type {
   MesmerPhantasmEffectController,
@@ -19,26 +26,26 @@ interface MesmerSkillDamageController {
     castStart: number,
     playerEffectEnd: number,
     conditions: readonly MesmerConditionEffect[],
-    phantasms: readonly MesmerPhantasmExecution[]
+    phantasms: readonly MesmerPhantasmExecution[],
+    delivery?: EffectDelivery
   ): void;
 }
 
 interface SkillDamageControllerOptions {
+  readonly state: MesmerRuntime;
   readonly phantasms: MesmerPhantasmEffectController;
-  readonly addCondition: MesmerAddCondition;
-  readonly addDamage: MesmerAddDamage;
 }
 
 export function createSkillDamageController({
   phantasms,
-  addCondition,
-  addDamage
+  state
 }: SkillDamageControllerOptions): MesmerSkillDamageController {
   const schedulePlayerStrike = (
     skill: MesmerSkill,
     group: MesmerStrikeEffect,
     at: number,
-    castStart: number
+    castStart: number,
+    delivery: EffectDelivery
   ): readonly number[] => {
     const castScale =
       group.timingScale === 'cast' ? castRelativeEffectTimingScale(skill, Math.max(0, at - castStart) * 1000) : 1;
@@ -65,7 +72,18 @@ export function createSkillDamageController({
     };
     const fixedTicks = damageGroup.ticks?.length ? damageGroup.ticks : null;
     const emittedAt = (origin: number, effect: Partial<MesmerStrikeEffect>): readonly number[] =>
-      addDamage(skill, origin, effect).map((event) => event.at);
+      buildMesmerStrikes(state, skill, origin, effect)
+        .map((packet) => {
+          state.effects.emit({
+            ...delivery,
+            kind: 'packet',
+            event: packet,
+            owner: mesmerPacketOwner(packet),
+            priority: Number(packet.priority ?? 0)
+          });
+          return packet;
+        })
+        .map((event) => event.at);
     if (fixedTicks?.length) {
       const timingAnchorAt = damageGroup.timingAnchor === 'castStart' ? castStart : at;
       return emittedAt(timingAnchorAt, {
@@ -99,12 +117,21 @@ export function createSkillDamageController({
     skill: MesmerSkill,
     at: number,
     castStart: number,
-    conditions: readonly MesmerConditionEffect[]
+    conditions: readonly MesmerConditionEffect[],
+    delivery: EffectDelivery
   ): void => {
     for (const effect of conditions) {
       const condition = { ...effect, name: effect.condition };
       const timingAnchorAt = effect.timingAnchor === 'castStart' ? castStart : at;
-      addCondition(skill.name, timingAnchorAt, condition, 'Player');
+      buildMesmerConditions(state, skill.name, timingAnchorAt, condition, 'Player').forEach((packet) => {
+        state.effects.emit({
+          ...delivery,
+          kind: 'packet',
+          event: packet,
+          owner: mesmerPacketOwner(packet),
+          priority: Number(packet.priority ?? 0)
+        });
+      });
     }
   };
 
@@ -114,7 +141,8 @@ export function createSkillDamageController({
     castStart: number,
     playerEffectEnd: number,
     conditions: readonly MesmerConditionEffect[],
-    phantasmExecutions: readonly MesmerPhantasmExecution[]
+    phantasmExecutions: readonly MesmerPhantasmExecution[],
+    delivery: EffectDelivery = {}
   ): void => {
     const strikeEffects = (skill.effects || []).filter(
       (effect): effect is MesmerStrikeEffect => effect.type === 'strike'
@@ -141,13 +169,13 @@ export function createSkillDamageController({
           ? castStart + (at - castStart) * group.castProgress
           : timingOrigin + (firstPacketMs * firstPacketScale) / 1000;
       if (hitAt > playerEffectEnd + EPSILON) continue;
-      schedulePlayerStrike(skill, group, at, castStart);
+      schedulePlayerStrike(skill, group, at, castStart, delivery);
     }
 
     // Keep player conditions on the cast and summon conditions on each phantasm's own lifecycle.
     const playerConditions = conditions.filter((effect) => effect.summonKind !== 'phantasm');
     const phantasmConditions = conditions.filter((effect) => effect.summonKind === 'phantasm');
-    schedulePlayerConditions(skill, at, castStart, playerConditions);
+    schedulePlayerConditions(skill, at, castStart, playerConditions, delivery);
     for (const phantasm of phantasmExecutions) {
       phantasms.scheduleStatuses(phantasm, phantasmConditions);
     }

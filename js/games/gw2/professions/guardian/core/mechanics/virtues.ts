@@ -58,8 +58,10 @@ function applyJusticeBurn(
   const sourceId = active ? 'guardian.justice-active' : 'guardian.justice-passive';
   // Justice burns resolve immediately so passive/active counters and chained
   // condition reactions remain synchronized at the triggering hit timestamp.
-  context.applyCondition(
-    buildResolverCondition({
+  context.effects.emit({
+    kind: 'packet',
+    settlement: 'reaction',
+    event: buildResolverCondition({
       at: event.at,
       source: 'guardian',
       sourceId,
@@ -75,18 +77,21 @@ function applyJusticeBurn(
       duration:
         !active && passiveBurnDuration != null ? passiveBurnDuration : effectNumber(justiceProfile, burn, 'duration')
     })
-  );
+  });
   if (active) professionCoreState(context).justiceActiveBurns += 1;
   else professionCoreState(context).justicePassiveBurns += 1;
   // Proc rows use the owning virtue's artwork instead of the attack that triggered the burn.
-  context.recordProc(
-    'profession',
-    active ? 'Justice Active' : 'Justice Passive',
-    event.at,
-    event.skillName,
-    '',
-    context.helpers.skillsById?.get(skillId)?.icon || ''
-  );
+  context.effects.emit({
+    kind: 'announcement',
+    announcement: {
+      type: 'profession',
+      name: active ? 'Justice Active' : 'Justice Passive',
+      at: event.at,
+      sourceSkill: event.skillName,
+      detail: '',
+      icon: context.helpers.skillsById?.get(skillId)?.icon || ''
+    }
+  });
 }
 
 /** Applies Justice from canonical resolved-hit details with specialization-selected options. */

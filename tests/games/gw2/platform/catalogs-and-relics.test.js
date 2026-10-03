@@ -1,3 +1,4 @@
+import { captureEffectEmissions } from '#tests/helpers/effect-emission.js';
 import { RELIC_IDS } from '#gw2/platform/equipment/relics/data.js';
 import { SIGIL_IDS } from '#gw2/platform/equipment/sigils/data.js';
 import { gw2SigilIds } from '#gw2/platform/equipment/sigils/loadout.js';
@@ -454,7 +455,7 @@ test('Severance queries retain application windows across refreshes and gaps', (
 
 test('Aristocracy rule state owns strict ICD, stack cap, and expiry', () => {
   const relic = createRelicRuntime('Aristocracy');
-  const context = { relic, recordProc() {} };
+  const context = { relic, effects: captureEffectEmissions().effects };
   const trigger = (at) =>
     invokeRelicHook(context, 'condition', {
       type: 'condition',
@@ -539,7 +540,7 @@ test('Aristocracy requires a landed condition with eligible explicit ownership',
   ]) {
     for (const offTarget of [false, true]) {
       const relic = createRelicRuntime('Aristocracy');
-      invokeRelicHook({ relic, recordProc() {} }, 'condition', {
+      invokeRelicHook({ relic, effects: captureEffectEmissions().effects }, 'condition', {
         type: 'condition',
         at: 1,
         source: 'Trait',
@@ -588,7 +589,7 @@ test('Brawler requires player-cast Protection or Resolution that reaches the pla
       ['party including self', { recipients: 'party' }, 'player', true],
       ['summon-cast party', { recipients: 'party' }, 'summon', false]
     ]) {
-      const context = { relic: createRelicRuntime('Brawler'), recordProc() {} };
+      const context = { relic: createRelicRuntime('Brawler'), effects: captureEffectEmissions().effects };
       const event = {
         type: 'buff',
         kind,
@@ -760,17 +761,23 @@ test('Mistburn also grants once per eligible resolver-created player Might appli
     hooks: {
       initialize(context) {
         for (const at of [1, 2, 2.001])
-          context.emit({ type: 'fixture.might', at, source: 'fixture', sourceId: 930011, actorType: 'player' });
+          context.effects.emit({
+            kind: 'packet',
+            event: { type: 'fixture.might', at, source: 'fixture', sourceId: 930011, actorType: 'player' }
+          });
       },
       eventHandlers: {
         'fixture.might': (context, event) => {
-          context.queue.enqueue({
-            ...event,
-            type: 'buff',
-            kind: 'might',
-            stacks: 1,
-            duration: 3,
-            skillName: 'Resolved Might'
+          context.effects.emit({
+            kind: 'packet',
+            event: {
+              ...event,
+              type: 'buff',
+              kind: 'might',
+              stacks: 1,
+              duration: 3,
+              skillName: 'Resolved Might'
+            }
           });
         }
       }
@@ -798,11 +805,7 @@ test('Relic of Mistburn uses a strict one-second internal cooldown', () => {
   const relic = createRelicRuntime('Mistburn');
   const emitted = [];
   const context = {
-    queue: {
-      enqueue(event) {
-        emitted.push(event);
-      }
-    }
+    effects: captureEffectEmissions({ submit: (event) => emitted.push(event) }).effects
   };
   const grantMight = (at, extra = {}) =>
     relic.rules.boon(context, relic.state, {

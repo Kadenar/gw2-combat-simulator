@@ -1,5 +1,5 @@
-import { refreshElementalistBuffs } from '#gw2/professions/elementalist/core/mechanics/resolution-helpers.js';
 import type { RuntimeCast } from '#gw2/platform/simulation/runtime-state.js';
+import { refreshElementalistBuffs } from '#gw2/professions/elementalist/core/mechanics/resolution-helpers.js';
 /**
  * Owns Core hammer orb state, availability, and consumption.
  *
@@ -7,21 +7,20 @@ import type { RuntimeCast } from '#gw2/platform/simulation/runtime-state.js';
  * consumption that spends them, plus the queries availability uses to gate both.
  * Hammer skill effects, including Grand Finale's projectiles, live in `skills/weapons/hammer.ts`.
  */
-import {
-  requireBalanceProfileFromContext,
-  balanceProfileNumber
-} from '#gw2/platform/engine/skills/balance-profiles.js';
-import { emitElementalistBuff } from '#gw2/professions/elementalist/core/events.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
+import {
+  balanceProfileNumber,
+  requireBalanceProfileFromContext
+} from '#gw2/platform/engine/skills/balance-profiles.js';
 import type { Skill } from '#gw2/platform/engine/skills/types.js';
-import type { ElementalistSkill, ElementalistRuntime } from '#gw2/professions/elementalist/types.js';
+import { elementalistBuffRequest } from '#gw2/professions/elementalist/core/events.js';
+import { ELEMENTALIST_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/elementalist/core/profiles.js';
 import {
   ELEMENTALIST_ATTUNEMENTS,
   type ElementalistAttunement,
   type ElementalistCoreState
 } from '#gw2/professions/elementalist/core/state.js';
-import { ELEMENTALIST_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/elementalist/core/profiles.js';
-
+import type { ElementalistRuntime, ElementalistSkill } from '#gw2/professions/elementalist/types.js';
 /** Orb elements still live at `at`; shared by availability gating and the Weaver orb handler. */
 export function activeHammerOrbElements(state: ElementalistCoreState, at: number): ElementalistAttunement[] {
   return ELEMENTALIST_ATTUNEMENTS.filter((element) => {
@@ -56,17 +55,22 @@ export function createHammerOrbs(
     state.hammerOrbs[element] = at + duration;
     state.hammerOrbActivationIds[element] = cast.id;
     if (!previouslyActive.has(element)) {
-      emitElementalistBuff(context, {
-        skill,
-        at,
-        source: skill.name,
-        sourceId: skill.id,
-        actorType: 'player',
-        kind: `hammer ${element.toLowerCase()} orb`,
-        stacks: 1,
-        duration,
-        skillName: skill.name
-      });
+      context.effects.emit(
+        elementalistBuffRequest(
+          {
+            skill,
+            at,
+            source: skill.name,
+            sourceId: skill.id,
+            actorType: 'player',
+            kind: `hammer ${element.toLowerCase()} orb`,
+            stacks: 1,
+            duration,
+            skillName: skill.name
+          },
+          { activationId: cast.id, skillId: cast.skill.id, offTarget: cast.command.offTarget }
+        )
+      );
     }
   }
 
@@ -84,7 +88,6 @@ export function consumeHammerOrbs(context: ElementalistRuntime, cast: RuntimeCas
   });
   for (const element of active) {
     refreshElementalistBuffs(context, `hammer ${element} orb`, at, () => at + 1);
-
     state.hammerOrbs[element] = null;
     state.hammerOrbActivationIds[element] = null;
   }

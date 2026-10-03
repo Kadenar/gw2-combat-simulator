@@ -19,7 +19,11 @@ interface CreateGw2ResolverEventHandlersOptions {
   readonly hitResolution: Gw2HitResolution;
   readonly conditions: Pick<
     Gw2ConditionResolution,
-    'activeConditionStackCount' | 'handleConditionTick' | 'handleConditionBuffer' | 'handleEnvironmentConditionTick'
+    | 'activeConditionStackCount'
+    | 'handleConditionTick'
+    | 'handleConditionBuffer'
+    | 'handleEnvironmentConditionTick'
+    | 'applyCondition'
   >;
   readonly reactions: Gw2ResolverReactionRegistry;
 }
@@ -93,7 +97,7 @@ export function createGw2ResolverEventHandlers({
     condition(ctx, event) {
       // applyCondition schedules future tick events; it does not charge the
       // condition's full damage at application time.
-      ctx.applyCondition(event);
+      conditions.applyCondition(ctx, event);
     },
 
     // Buffering observes combat state without changing health or dispatching damage reactions.

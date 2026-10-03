@@ -220,14 +220,17 @@ function contractProfession() {
     hooks: {
       onCastStart(context, { skill, start }) {
         if (skill.id !== 990005) return;
-        context.emit({
-          type: 'damage',
-          actorType: 'player',
-          at: start + 2,
-          source: 'Metadata Bait',
-          sourceId: skill.id,
-          flatDamage: 100,
-          [forbiddenHorizonField]: true
+        context.effects.emit({
+          kind: 'packet',
+          event: {
+            type: 'damage',
+            actorType: 'player',
+            at: start + 2,
+            source: 'Metadata Bait',
+            sourceId: skill.id,
+            flatDamage: 100,
+            [forbiddenHorizonField]: true
+          }
         });
       },
       onCastCommit(context, { skill, effectiveEnd }) {
@@ -241,13 +244,16 @@ function contractProfession() {
             return;
           }
 
-          context.emit({
-            type: 'damage',
-            at: context.time,
-            source: 'Persistent Actor',
-            sourceId: 'fixture.actor',
-            actorType: 'summon',
-            flatDamage: 10
+          context.effects.emit({
+            kind: 'packet',
+            event: {
+              type: 'damage',
+              at: context.time,
+              source: 'Persistent Actor',
+              sourceId: 'fixture.actor',
+              actorType: 'summon',
+              flatDamage: 10
+            }
           });
           context.schedule('fixture.persistent-actor', context.time + 1);
         }

@@ -4,12 +4,13 @@ import {
   requireBalanceProfileFromContext
 } from '#gw2/platform/engine/skills/balance-profiles.js';
 import type { Skill, SkillEffect } from '#gw2/platform/engine/skills/types.js';
+import { resolverSourceSkill } from '#gw2/platform/resolver/packets.js';
 import type { Gw2ResolverRuntime } from '#gw2/platform/resolver/runtime-state.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import type { RuntimeCast } from '#gw2/platform/simulation/runtime-state.js';
-import { queueElementalistBuff } from '#gw2/professions/elementalist/core/mechanics/resolution-helpers.js';
+
 import { ELEMENTALIST_TRAIT_IDS as TRAIT } from '#gw2/professions/elementalist/data/ids.js';
-import type { ElementalistSkill, ElementalistRuntime } from '#gw2/professions/elementalist/types.js';
+import type { ElementalistRuntime, ElementalistSkill } from '#gw2/professions/elementalist/types.js';
 
 /** Extend authored weapon Fire fields without editing already queued packets. */
 export function extendPersistingFlamesEffects(
@@ -104,14 +105,23 @@ export function extendPersistingFlamesFields(
 function grantPersistingFlames(context: Gw2ResolverRuntime, event: Gw2ResolverEvent): void {
   if (!hasTrait(context, TRAIT.PERSISTING_FLAMES)) return;
   const persistingFlamesProfile = requireBalanceProfileFromContext(context, TRAIT.PERSISTING_FLAMES);
-  queueElementalistBuff(
-    context,
-    event,
-    'Persisting Flames',
-    1,
-    balanceProfileNumber(persistingFlamesProfile, 'durationMultiplier'),
-    TRAIT.PERSISTING_FLAMES
-  );
+  context.effects.emit({
+    kind: 'packet',
+    durationContext: event,
+    event: {
+      type: 'buff',
+      at: event.at,
+      source: 'Trait',
+      sourceId: TRAIT.PERSISTING_FLAMES,
+      actorType: 'player',
+      skillName: requireBalanceProfileFromContext(context, TRAIT.PERSISTING_FLAMES).name,
+      kind: 'Persisting Flames'.toLowerCase(),
+      stacks: 1,
+      duration: balanceProfileNumber(persistingFlamesProfile, 'durationMultiplier'),
+      triggeredBy: resolverSourceSkill(event),
+      priority: Number(event.priority || 0)
+    }
+  });
 }
 
 /** Fire-field rewards precede Shattering Stone; profession fields grant stacks without gaining extra packets. */

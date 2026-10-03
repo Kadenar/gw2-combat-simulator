@@ -135,7 +135,7 @@ test('owner cancellation gates deferred authored reactions', () => {
               skillId: accepted.skill.id
             }
           });
-          runtime.emitProcedural(structuredClone(event), { owner });
+          runtime.effects.emit({ kind: 'packet', event: structuredClone(event), ...{ owner } });
           if (cancel) runtime.cancelOwner(owner);
         }
       }
@@ -225,11 +225,16 @@ test('custom actions share typed contexts and derived packets do not inherit rea
           contexts.push(context.kind);
           if (context.kind === 'effect') {
             runtime.resourceController.grant('energy', 1);
-            runtime.emitDerived(context.trigger.event, { ...structuredClone(context.trigger.event), sourceId: 'copy' });
-            runtime.emitProcedural(
-              { ...structuredClone(context.trigger.event), at: runtime.time + 0.1, sourceId: 'delayed-copy' },
-              { cause: context.trigger.event, owner: { id: 'copy-owner', generation: 1 } }
-            );
+            runtime.effects.emit({
+              kind: 'packet',
+              cause: context.trigger.event,
+              event: { ...structuredClone(context.trigger.event), sourceId: 'copy' }
+            });
+            runtime.effects.emit({
+              kind: 'packet',
+              event: { ...structuredClone(context.trigger.event), at: runtime.time + 0.1, sourceId: 'delayed-copy' },
+              ...{ cause: context.trigger.event, owner: { id: 'copy-owner', generation: 1 } }
+            });
           }
         }
       }

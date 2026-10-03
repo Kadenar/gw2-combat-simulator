@@ -2,8 +2,8 @@ import { buildResolverCondition } from '#gw2/platform/resolver/packets.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { addTimedStacks } from '#gw2/platform/combat/resources/timed-stacks.js';
 import {
-  applyEngineerDerivedCondition,
-  queueDamage
+  buildEngineerCondition,
+  buildEngineerStrike
 } from '#gw2/professions/engineer/core/mechanics/resolution-helpers.js';
 import type {
   EngineerResolverContext,
@@ -19,17 +19,20 @@ import {
 } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { ENGINEER_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/engineer/core/profiles.js';
 
-/** Emits kit transitions as sigil swaps so shared equipment reactions observe the bar change. */
+/** Builds kit transitions as sigil swaps so shared equipment reactions observe the bar change. */
 export function emitEngineerBarSwap(context: EngineerRuntime, skill: EngineerSkill, at: number): void {
-  context.emit({
-    type: 'sigil_swap',
-    at,
-    source: 'engineer',
-    sourceId: skill.id,
-    actorType: 'player',
-    skillId: skill.id,
-    skillName: skill.name,
-    weaponSet: context.activeWeaponSet
+  context.effects.emit({
+    kind: 'packet',
+    event: {
+      type: 'sigil_swap',
+      at,
+      source: 'engineer',
+      sourceId: skill.id,
+      actorType: 'player',
+      skillId: skill.id,
+      skillName: skill.name,
+      weaponSet: context.activeWeaponSet
+    }
   });
 }
 
@@ -59,16 +62,23 @@ export function handleLightningRodPulse(context: EngineerResolverContext, event:
   const condition = requireEffect(idProfile, 'condition', 'Vulnerability');
   const strike = requireEffect(idProfile, 'strike', profile.name);
   if (strike)
-    queueDamage(context, event, {
-      name: 'Lightning Rod',
-      coefficient: Number(strike.coefficient)
+    context.effects.emit({
+      kind: 'packet',
+      event: buildEngineerStrike(event, {
+        name: 'Lightning Rod',
+        coefficient: Number(strike.coefficient)
+      })
     });
   if (condition)
-    applyEngineerDerivedCondition(context, event, {
-      name: 'Lightning Rod',
-      condition: String(condition.condition),
-      stacks: Number(condition.stacks),
-      duration: Number(condition.duration)
+    context.effects.emit({
+      kind: 'packet',
+      event: buildEngineerCondition(event, {
+        name: 'Lightning Rod',
+        condition: String(condition.condition),
+        stacks: Number(condition.stacks),
+        duration: Number(condition.duration)
+      }),
+      settlement: 'reaction'
     });
 }
 
@@ -89,19 +99,23 @@ export function handleConduitSurge(context: EngineerResolverContext, event: Engi
     );
   const strike = requireEffect(idProfile, 'strike', profile.name);
   if (strike)
-    queueDamage(context, event, {
-      name: 'Conduit Surge',
-      coefficient: Number(strike.coefficient),
-      // Attempt the leap only when the strike reaches impact.
-      comboFinisher: {
-        ownerId: 'engineer',
-        finisherType: 'Leap',
-        ambiguousFieldSelection: 'oldest'
-      }
+    context.effects.emit({
+      kind: 'packet',
+      event: buildEngineerStrike(event, {
+        name: 'Conduit Surge',
+        coefficient: Number(strike.coefficient),
+        // Attempt the leap only when the strike reaches impact.
+        comboFinisher: {
+          ownerId: 'engineer',
+          finisherType: 'Leap',
+          ambiguousFieldSelection: 'oldest'
+        }
+      })
     });
   if (burning)
-    context.queue.enqueue(
-      buildResolverCondition({
+    context.effects.emit({
+      kind: 'packet',
+      event: buildResolverCondition({
         at: event.at,
         name: 'Conduit Surge — Burning',
         skillName: 'Conduit Surge',
@@ -114,7 +128,7 @@ export function handleConduitSurge(context: EngineerResolverContext, event: Engi
         activationId: event.activationId,
         offTarget: event.offTarget
       })
-    );
+    });
 }
 
 /** Resolves Electric Artillery using its stored charges and current Focused state. */
@@ -132,37 +146,49 @@ export function handleElectricArtillery(context: EngineerResolverContext, event:
   const charges = boundedInteger(event.charges || 0, 0, 0, balanceProfileNumber(idProfile, 'maximumStacks'));
   const strike = requireEffect(idProfile, 'strike', profile.name);
   if (strike)
-    queueDamage(context, event, {
-      name: 'Electric Artillery',
-      coefficient: Number(strike.coefficient),
-      explosion: true
+    context.effects.emit({
+      kind: 'packet',
+      event: buildEngineerStrike(event, {
+        name: 'Electric Artillery',
+        coefficient: Number(strike.coefficient),
+        explosion: true
+      })
     });
   if (immobilize)
-    applyEngineerDerivedCondition(context, event, {
-      name: 'Electric Artillery',
-      condition: String(immobilize.condition),
-      stacks: Number(immobilize.stacks),
-      duration: Number(immobilize.duration)
+    context.effects.emit({
+      kind: 'packet',
+      event: buildEngineerCondition(event, {
+        name: 'Electric Artillery',
+        condition: String(immobilize.condition),
+        stacks: Number(immobilize.stacks),
+        duration: Number(immobilize.duration)
+      }),
+      settlement: 'reaction'
     });
   // The tooltip specifies charges required per stack: one when Focused, otherwise two.
   if (vulnerability) {
     const vulnerabilityStacks =
       Math.floor(charges / balanceProfileNumber(idProfile, 'chargesPerVulnerability')) * Number(vulnerability.stacks);
     if (vulnerabilityStacks > 0) {
-      applyEngineerDerivedCondition(context, event, {
-        name: 'Electric Artillery',
-        condition: String(vulnerability.condition),
-        stacks: vulnerabilityStacks,
-        duration: Number(vulnerability.duration),
-        // Artillery's Vulnerability does not scale with condition duration.
-        metadata: { fixedDuration: true }
+      context.effects.emit({
+        kind: 'packet',
+        event: buildEngineerCondition(event, {
+          name: 'Electric Artillery',
+          condition: String(vulnerability.condition),
+          stacks: vulnerabilityStacks,
+          duration: Number(vulnerability.duration),
+          // Artillery's Vulnerability does not scale with condition duration.
+          metadata: { fixedDuration: true }
+        }),
+        settlement: 'reaction'
       });
     }
   }
 
   if (burning) {
-    context.queue.enqueue(
-      buildResolverCondition({
+    context.effects.emit({
+      kind: 'packet',
+      event: buildResolverCondition({
         at: event.at,
         name: 'Electric Artillery — Burning',
         skillName: 'Electric Artillery',
@@ -175,6 +201,6 @@ export function handleElectricArtillery(context: EngineerResolverContext, event:
         activationId: event.activationId,
         offTarget: event.offTarget
       })
-    );
+    });
   }
 }

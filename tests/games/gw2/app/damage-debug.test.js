@@ -12,14 +12,17 @@ const profession = defineTestProfession({
   catalog: createCanonicalCatalog(),
   hooks: {
     initialize(context) {
-      context.emit({
-        type: 'damage',
-        at: 0.1,
-        source: 'fixture',
-        sourceId: 'strike',
-        actorType: 'player',
-        coefficient: 1,
-        weaponStrength: 1000
+      context.effects.emit({
+        kind: 'packet',
+        event: {
+          type: 'damage',
+          at: 0.1,
+          source: 'fixture',
+          sourceId: 'strike',
+          actorType: 'player',
+          coefficient: 1,
+          weaponStrength: 1000
+        }
       });
     }
   }

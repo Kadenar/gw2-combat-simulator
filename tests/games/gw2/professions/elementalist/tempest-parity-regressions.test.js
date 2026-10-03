@@ -30,15 +30,18 @@ test('Tempest attunement lockouts keep overload recharge unchanged by temporary 
     const grant = (at, duration) => ({
       at,
       run: (runtime) =>
-        runtime.emit({
-          type: 'buff',
-          kind: 'alacrity',
-          at,
-          duration,
-          stacks: 1,
-          source: 'fixture',
-          sourceId: 'fixture',
-          actorType: 'player'
+        runtime.effects.emit({
+          kind: 'packet',
+          event: {
+            type: 'buff',
+            kind: 'alacrity',
+            at,
+            duration,
+            stacks: 1,
+            source: 'fixture',
+            sourceId: 'fixture',
+            actorType: 'player'
+          }
         })
     });
     const result = runElementalist(
@@ -184,7 +187,7 @@ test('Transcendent Tempest precedes same-time Overload completion damage', () =>
   const joltWithTrait = damageAtCompletion(withTrait, 'Lightning Jolt');
   const joltWithoutTrait = damageAtCompletion(withoutTrait, 'Lightning Jolt');
   const completionOrder = withTrait.events
-    .filter((event) => Math.abs(event.at - action.endsAt) < 0.0001)
+    .filter((event) => ['damage', 'buff'].includes(event.type) && Math.abs(event.at - action.endsAt) < 0.0001)
     .map((event) => event.kind || event.skillName);
 
   assert.equal(buff.at, action.endsAt);

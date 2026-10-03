@@ -11,8 +11,8 @@ import { GW2_ACTION_TICK_MS } from '#gw2/platform/skills/timing.js';
 import { grantWarriorAdrenaline } from '#gw2/professions/warrior/core/mechanics/adrenaline.js';
 import { warriorAmmunition } from '#gw2/professions/warrior/core/mechanics/ammunition.js';
 import {
-  burstMasteryDragonSlash,
   berserkersPowerDragonSlash,
+  burstMasteryDragonSlash,
   resetSoldierFocus
 } from '#gw2/professions/warrior/core/traits/behavior.js';
 import { dragonChargeTickOffsetSeconds } from '#gw2/professions/warrior/data/dragon-charges.js';
@@ -20,10 +20,10 @@ import { WARRIOR_SKILL_IDS as ID } from '#gw2/professions/warrior/data/ids.js';
 import {
   DRAGON_TRIGGER_ENTRY_RESOURCE_REASON,
   DRAGON_TRIGGER_TICK_RESOURCE_REASON,
+  dragonChargesToAdrenalineSpent,
   ENTER_DRAGON_TRIGGER_REASON,
   exitDragonTrigger,
-  requestedDragonCharges,
-  dragonChargesToAdrenalineSpent
+  requestedDragonCharges
 } from '#gw2/professions/warrior/specializations/bladesworn/mechanics/dragon-trigger.js';
 import { BLADESWORN_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/warrior/specializations/bladesworn/profiles.js';
 import {
@@ -90,16 +90,19 @@ function swapGunsaber(runtime: Runtime, cast: RuntimeCast<WarriorSkill>, active:
     runtime.cooldownController.startRecharge(runtime.helpers.skillsById.get(ID.UNSHEATHE_GUNSABER)!, runtime.time);
   runtime.cooldownController.copy(swapId, ID.UNSHEATHE_GUNSABER);
   runtime.cooldownController.copy(swapId, ID.SHEATHE_GUNSABER);
-  runtime.emit({
-    type: 'sigil_swap',
-    at: runtime.time,
-    source: 'warrior',
-    sourceId: cast.skill.id,
-    actorType: 'player',
-    activationId: cast.id,
-    skillId: cast.skill.id,
-    skillName: cast.skill.name,
-    weaponSet: runtime.activeWeaponSet
+  runtime.effects.emit({
+    kind: 'packet',
+    event: {
+      type: 'sigil_swap',
+      at: runtime.time,
+      source: 'warrior',
+      sourceId: cast.skill.id,
+      actorType: 'player',
+      activationId: cast.id,
+      skillId: cast.skill.id,
+      skillName: cast.skill.name,
+      weaponSet: runtime.activeWeaponSet
+    }
   });
   if (active) gunsaberEntryTraits(runtime, cast);
 }
@@ -144,24 +147,27 @@ function enterDragonTrigger(runtime: Runtime, cast: RuntimeCast<WarriorSkill>): 
     undefined,
     -220
   );
-  runtime.emit({
-    type: 'resource',
-    at: runtime.time,
-    source: 'Warrior',
-    sourceId: ID.DRAGON_TRIGGER,
-    actorType: 'player',
-    skillId: ID.DRAGON_TRIGGER,
-    skillName: 'Dragon Trigger',
-    activationId: cast.id,
-    resource: 'flow',
-    reason: DRAGON_TRIGGER_ENTRY_RESOURCE_REASON,
-    amount: -cost,
-    value: state.flow,
-    maximumFlow: state.maximumFlow,
-    maximumCharges: maximumDragonCharges(runtime),
-    chargesPerInterval: state.dragonChargesPerInterval,
-    nextChargeAt: state.nextDragonChargeAt,
-    deadline: state.dragonTriggerChargeDeadline
+  runtime.effects.emit({
+    kind: 'packet',
+    event: {
+      type: 'resource',
+      at: runtime.time,
+      source: 'Warrior',
+      sourceId: ID.DRAGON_TRIGGER,
+      actorType: 'player',
+      skillId: ID.DRAGON_TRIGGER,
+      skillName: 'Dragon Trigger',
+      activationId: cast.id,
+      resource: 'flow',
+      reason: DRAGON_TRIGGER_ENTRY_RESOURCE_REASON,
+      amount: -cost,
+      value: state.flow,
+      maximumFlow: state.maximumFlow,
+      maximumCharges: maximumDragonCharges(runtime),
+      chargesPerInterval: state.dragonChargesPerInterval,
+      nextChargeAt: state.nextDragonChargeAt,
+      deadline: state.dragonTriggerChargeDeadline
+    }
   });
 }
 
@@ -194,22 +200,25 @@ function chargeTick(runtime: Runtime, identity: unknown): void {
   }
 
   state.dragonChargeTickCount++;
-  runtime.emit({
-    type: 'resource',
-    at: runtime.time,
-    source: 'Warrior',
-    sourceId: ID.DRAGON_TRIGGER,
-    actorType: 'player',
-    skillId: ID.DRAGON_TRIGGER,
-    skillName: 'Dragon Trigger',
-    activationId: state.dragonTriggerEventActivationId,
-    resource: 'dragon charges',
-    reason: DRAGON_TRIGGER_TICK_RESOURCE_REASON,
-    amount: state.dragonCharges - before,
-    value: state.dragonCharges,
-    flowAfter: state.flow,
-    flowSpent: granted ? cost : 0,
-    deadline: state.dragonTriggerChargeDeadline
+  runtime.effects.emit({
+    kind: 'packet',
+    event: {
+      type: 'resource',
+      at: runtime.time,
+      source: 'Warrior',
+      sourceId: ID.DRAGON_TRIGGER,
+      actorType: 'player',
+      skillId: ID.DRAGON_TRIGGER,
+      skillName: 'Dragon Trigger',
+      activationId: state.dragonTriggerEventActivationId,
+      resource: 'dragon charges',
+      reason: DRAGON_TRIGGER_TICK_RESOURCE_REASON,
+      amount: state.dragonCharges - before,
+      value: state.dragonCharges,
+      flowAfter: state.flow,
+      flowSpent: granted ? cost : 0,
+      deadline: state.dragonTriggerChargeDeadline
+    }
   });
   scheduleCharge(runtime);
 }

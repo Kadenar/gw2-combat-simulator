@@ -30,14 +30,11 @@ export function initializeMirageRuntime(context: MesmerRuntime): void {
     config: context.config,
     ambushAttacks: runtime.ambushAttacks,
     cloneAttacks: runtime.cloneAttacks,
-    addEvent: runtime.addEvent,
-    addCondition: runtime.addCondition,
-    addDamage: runtime.addDamage,
     activePrimaryWeapon: runtime.activePrimaryWeapon
   });
   runtime.mirage = mirage;
   runtime.shatterResolvedHandlers.push((_castContext, resolution) => {
-    mirage.handleMirageShatter(resolution.skill, resolution.at, resolution.spent);
+    mirage.handleMirageShatter(resolution.skill, resolution.at, resolution.spent, resolution.delivery);
   });
   initializeMirageTraits(context);
 }

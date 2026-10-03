@@ -8,22 +8,23 @@ import {
 import type { Skill } from '#gw2/platform/engine/skills/types.js';
 import { resolverSourceSkill } from '#gw2/platform/resolver/packets.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
+import type { EffectDelivery } from '#gw2/platform/simulation/effect-emission.js';
 import type { RuntimeCast } from '#gw2/platform/simulation/runtime-state.js';
-import { emitElementalistBuff } from '#gw2/professions/elementalist/core/events.js';
-import { elementalistEventSkill, emitProfiledBuff } from '#gw2/professions/elementalist/core/mechanics/effects.js';
+import { elementalistBuffRequest } from '#gw2/professions/elementalist/core/events.js';
+import {
+  elementalistEventSkill,
+  elementalistProfiledBuffRequest
+} from '#gw2/professions/elementalist/core/mechanics/effects.js';
 import {
   activeElementalistBuffs,
-  queueElementalistBuff,
-  recordElementalistTraitProc,
   refreshElementalistBuffs
 } from '#gw2/professions/elementalist/core/mechanics/reactions.js';
 import { ELEMENTALIST_TRAIT_IDS as TRAIT } from '#gw2/professions/elementalist/data/ids.js';
 import type {
-  ElementalistSkill,
   ElementalistResolverContext,
-  ElementalistRuntime
+  ElementalistRuntime,
+  ElementalistSkill
 } from '#gw2/professions/elementalist/types.js';
-
 /**
  * Convert resolved auras into Tempest trait boons and effects after the aura has been accepted by
  * the core resolver: refreshes Tempestuous Aria's damage window and queues the Invigorating
@@ -43,11 +44,39 @@ export function applyTempestResolverAura(context: ElementalistResolverContext, e
         previousExpiry === current.expiresAt ? expiresAt : previousExpiry
       );
     } else {
-      queueElementalistBuff(context, event, 'Tempestuous Aria', 1, extension, TRAIT.TEMPESTUOUS_ARIA);
+      context.effects.emit({
+        kind: 'packet',
+        durationContext: event,
+        event: {
+          type: 'buff',
+          at: event.at,
+          source: 'Trait',
+          sourceId: TRAIT.TEMPESTUOUS_ARIA,
+          actorType: 'player',
+          skillName: requireBalanceProfileFromContext(context, TRAIT.TEMPESTUOUS_ARIA).name,
+          kind: 'Tempestuous Aria'.toLowerCase(),
+          stacks: 1,
+          duration: extension,
+          triggeredBy: resolverSourceSkill(event),
+          priority: Number(event.priority || 0)
+        }
+      });
     }
 
     // Preserve each extension's deadline so cursor snapshots do not read a stale initial buff duration.
-    context.recordProc('trait', 'Tempestuous Aria', event.at, resolverSourceSkill(event), '', '', null, expiresAt);
+    context.effects.emit({
+      kind: 'announcement',
+      announcement: {
+        type: 'trait',
+        name: 'Tempestuous Aria',
+        at: event.at,
+        sourceSkill: resolverSourceSkill(event),
+        detail: '',
+        icon: '',
+        cooldownReduction: null,
+        expiresAt: expiresAt
+      }
+    });
   }
 
   // Both skill and combo auras grant their trait boons only after actual application. Selection is by trait ID; the
@@ -59,10 +88,30 @@ export function applyTempestResolverAura(context: ElementalistResolverContext, e
     if (!hasTrait(context, traitId)) continue;
     const boons = tempestAuraBoons(context, trait);
     for (const boon of boons) {
-      queueElementalistBuff(context, event, boon.kind, boon.stacks, boon.duration, traitId);
+      context.effects.emit({
+        kind: 'packet',
+        durationContext: event,
+        event: {
+          type: 'buff',
+          at: event.at,
+          source: 'Trait',
+          sourceId: traitId,
+          actorType: 'player',
+          skillName: requireBalanceProfileFromContext(context, traitId).name,
+          kind: boon.kind.toLowerCase(),
+          stacks: boon.stacks,
+          duration: boon.duration,
+          triggeredBy: resolverSourceSkill(event),
+          priority: Number(event.priority || 0)
+        }
+      });
     }
 
-    if (boons.length) recordElementalistTraitProc(context, event, trait);
+    if (boons.length)
+      context.effects.emit({
+        kind: 'announcement',
+        announcement: { type: 'trait', name: trait, at: event.at, sourceSkill: resolverSourceSkill(event) }
+      });
   }
 }
 
@@ -94,34 +143,67 @@ export function applyTempestShoutTraits(
 ): void {
   if (!hasTrait(context, TRAIT.TEMPESTUOUS_ARIA)) return;
   // Keep the party reward at this committed shout's completion while reusing named profile emission.
-  emitProfiledBuff(context, cast.effectiveEnd, TRAIT.TEMPESTUOUS_ARIA, 'Shout Might', skill.name, skill.id, 0, 'party');
+  context.effects.emit(
+    elementalistProfiledBuffRequest(
+      context,
+      cast.effectiveEnd,
+      TRAIT.TEMPESTUOUS_ARIA,
+      'Shout Might',
+      skill.name,
+      skill.id,
+      0,
+      'party',
+      { activationId: cast.id, skillId: cast.skill.id, offTarget: cast.command.offTarget }
+    )
+  );
 }
 
 /** Committed heals receive Gale Song before overload-specific completion work. */
 export function applyGaleSong(context: ElementalistRuntime, cast: RuntimeCast<ElementalistSkill>, skill: Skill): void {
   if (skill.type === 'Heal' && hasTrait(context, TRAIT.GALE_SONG))
-    emitProfiledBuff(context, cast.effectiveEnd, TRAIT.GALE_SONG, 'Protection', 'Gale Song', skill.id);
+    context.effects.emit(
+      elementalistProfiledBuffRequest(
+        context,
+        cast.effectiveEnd,
+        TRAIT.GALE_SONG,
+        'Protection',
+        'Gale Song',
+        skill.id,
+        undefined,
+        undefined,
+        { activationId: cast.id, skillId: cast.skill.id, offTarget: cast.command.offTarget }
+      )
+    );
 }
 
 /** Water entry claims the ICD even when a preview removes the optional Vigor effect. */
-export function applyLatentStamina(context: ElementalistRuntime, event: SimulationEvent): void {
+export function applyLatentStamina(
+  context: ElementalistRuntime,
+  event: SimulationEvent,
+  emissionCast?: EffectDelivery['cast']
+): void {
   if (event.type === 'elementalist.attunement' && event.to === 'Water' && hasTrait(context, TRAIT.LATENT_STAMINA)) {
     if (context.procs.claim(TRAIT.LATENT_STAMINA, 'elementalist.tempest.latentStamina', event.at)) {
       const latentStaminaProfile = requireBalanceProfileFromContext(context, TRAIT.LATENT_STAMINA);
       const vigor = requireEffect(latentStaminaProfile, 'boon', 'Vigor');
       const sourceId = event.skillId ?? event.sourceId;
       if (vigor) {
-        emitElementalistBuff(context, {
-          skill: elementalistEventSkill(context, 'Latent Stamina', sourceId),
-          at: event.at,
-          source: 'Latent Stamina',
-          sourceId,
-          actorType: 'player',
-          kind: String(vigor.boon).toLowerCase(),
-          stacks: Number(vigor.stacks),
-          duration: vigor.duration,
-          skillName: 'Latent Stamina'
-        });
+        context.effects.emit(
+          elementalistBuffRequest(
+            {
+              skill: elementalistEventSkill(context, 'Latent Stamina', sourceId),
+              at: event.at,
+              source: 'Latent Stamina',
+              sourceId,
+              actorType: 'player',
+              kind: String(vigor.boon).toLowerCase(),
+              stacks: Number(vigor.stacks),
+              duration: vigor.duration,
+              skillName: 'Latent Stamina'
+            },
+            emissionCast
+          )
+        );
       }
     }
 

@@ -1,6 +1,7 @@
+import { captureEffectEmissions } from '#tests/helpers/effect-emission.js';
 import { applyBalanceProfilePatch } from '#gw2/integrations/patches/authoring/patches.js';
 import { GW2_ALACRITY_RECHARGE_RATE, gw2BaseRecharge } from '#gw2/platform/engine/skills/recharge.js';
-import { emitElementalistDamage } from '#gw2/professions/elementalist/core/events.js';
+import { elementalistStrikeRequest } from '#gw2/professions/elementalist/core/events.js';
 import { ELEMENTALIST_TRAIT_IDS as TRAIT } from '#gw2/professions/elementalist/data/ids.js';
 import { elementalistCatalog, elementalistProfession } from '#gw2/professions/elementalist/profession.js';
 import { onAcceptedEvent } from '#gw2/professions/elementalist/specializations/evoker/mechanics/event-handlers.js';
@@ -76,16 +77,18 @@ function enchantments({ hits, grants, timeline = [] }) {
     {
       initialize: (r) => {
         for (const [at, fields = {}] of hits)
-          emitElementalistDamage(r, {
-            at,
-            sourceId: 42,
-            skillId: 42,
-            skillName: 'Fixture',
-            actorType: 'player',
-            coefficient: 1,
-            skillWeapon: 'Unequipped',
-            ...fields
-          });
+          r.effects.emit(
+            elementalistStrikeRequest(r, {
+              at,
+              sourceId: 42,
+              skillId: 42,
+              skillName: 'Fixture',
+              actorType: 'player',
+              coefficient: 1,
+              skillWeapon: 'Unequipped',
+              ...fields
+            })
+          );
       },
       timeline: [
         ...grants.map(([at, charges, duration]) => ({
@@ -239,7 +242,10 @@ test('Elemental Balance reports the same patched duration used for its active wi
     }),
     traits: new Set([TRAIT.ELEMENTAL_BALANCE]),
     profession: { specialization: { kind: 'Evoker', state } },
-    emit: (event) => events.push(event)
+    effects: captureEffectEmissions({
+      submit: (event) => events.push(event),
+      announce: (request) => events.push({ ...request.announcement, type: 'proc' })
+    }).effects
   };
   for (const at of [1, 2]) {
     onAcceptedEvent(context, { type: 'elementalist.attunement-enter', at, to: 'Fire' });
@@ -661,7 +667,7 @@ test('Evoker familiar grants enchant only hits at or after the grant', () => {
     (event) => event.type === 'damage' && event.skillName === 'Electric Enchantment'
   );
   const grant = result.events.find(
-    (event) => event.type === 'proc' && event.source === 'Electric Enchantment' && event.detail?.startsWith('+')
+    (event) => event.type === 'proc' && event.name === 'Electric Enchantment' && event.detail?.startsWith('+')
   );
 
   assert.deepEqual(result.warnings, []);

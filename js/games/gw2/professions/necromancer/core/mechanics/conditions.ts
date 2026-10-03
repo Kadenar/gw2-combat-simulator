@@ -4,7 +4,6 @@ import { effectFirstAtMs } from '#gw2/platform/engine/effects/authoring.js';
 import { scaleCastBoundTiming } from '#gw2/platform/engine/effects/materializer.js';
 import { effectNumber, requireBalanceProfileFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
 import type { SkillEffect, SkillId } from '#gw2/platform/engine/skills/types.js';
-import { queueResolverBoon } from '#gw2/platform/resolver/boons.js';
 import { buildResolverCondition, buildResolverStrike } from '#gw2/platform/resolver/packets.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import type { RuntimeCast } from '#gw2/platform/simulation/runtime-state.js';
@@ -59,7 +58,10 @@ function applySelfCondition(
     appliedAt: runtime.time,
     expiresAt
   });
-  runtime.emit({ ...event, name: `${skill.name} — self ${condition}`, duration: effectiveDuration, expiresAt });
+  runtime.effects.emit({
+    kind: 'packet',
+    event: { ...event, name: `${skill.name} — self ${condition}`, duration: effectiveDuration, expiresAt }
+  });
   runtime.schedule(EXPIRY, expiresAt, null, undefined, -20);
 }
 
@@ -93,8 +95,9 @@ export function transfer(
     : state.selfConditions.filter((application) => types.has(application.condition));
   state.selfConditions = state.selfConditions.filter((application) => !selected.includes(application));
   for (const application of selected)
-    runtime.emit(
-      buildResolverCondition({
+    runtime.effects.emit({
+      kind: 'packet',
+      event: buildResolverCondition({
         at: runtime.time,
         source: 'necromancer',
         sourceId: skill.id,
@@ -108,7 +111,7 @@ export function transfer(
         duration: application.expiresAt - runtime.time,
         fixedDuration: true
       })
-    );
+    });
   return selected.length;
 }
 
@@ -148,7 +151,7 @@ function corruption(runtime: NecromancerRuntime, data: unknown): void {
             ? { ...effect.audience, eligibleCompanionIds: necromancerActiveBoonCompanionIds(runtime) }
             : effect.audience
       };
-      queueResolverBoon(runtime, event, event);
+      runtime.effects.emit({ kind: 'packet', event: event, durationContext: event });
     }
   }
 }
@@ -168,9 +171,10 @@ export function resolveNecromancerSkillConditions(
     const duration = effectNumber(profile, effect, 'duration');
     if (effect.target === 'self') applySelfCondition(runtime, skill, condition, stacks, duration);
     else
-      runtime.emitDerived(
-        event,
-        buildResolverCondition({
+      runtime.effects.emit({
+        kind: 'packet',
+        cause: event,
+        event: buildResolverCondition({
           at: runtime.time,
           source: 'necromancer',
           sourceId: skill.id,
@@ -181,7 +185,7 @@ export function resolveNecromancerSkillConditions(
           stacks,
           duration
         })
-      );
+      });
   }
 }
 
@@ -254,23 +258,25 @@ function devouring(runtime: NecromancerRuntime, data: unknown): void {
   const torment = skill.effects?.find((effect) => effect.type === 'condition');
   const reactionGroup = strike && runtime.effectReactions.register(skill, strike);
   if (strike)
-    runtime.emit(
-      buildResolverStrike({
+    runtime.effects.emit({
+      kind: 'packet',
+      event: buildResolverStrike({
         ...event,
         ...(reactionGroup === undefined ? {} : { effectReaction: { group: reactionGroup, packet: 1 } }),
         coefficient: effectNumber(skill, strike, 'coefficient'),
         skillWeapon: skill.weapon
       })
-    );
+    });
   if (torment && count > 0)
-    runtime.emit(
-      buildResolverCondition({
+    runtime.effects.emit({
+      kind: 'packet',
+      event: buildResolverCondition({
         ...event,
         condition: String(torment.condition),
         stacks: count * effectNumber(skill, torment, 'stacks'),
         duration: effectNumber(skill, torment, 'duration')
       })
-    );
+    });
 }
 
 export const necromancerConditionTasks = {

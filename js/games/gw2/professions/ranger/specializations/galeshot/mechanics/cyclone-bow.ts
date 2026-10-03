@@ -7,7 +7,7 @@ import {
 } from '#gw2/platform/engine/skills/balance-profiles.js';
 import type { AvailabilityResult } from '#gw2/platform/execution/types.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
-import { emitRangerDamage, rangerEvent } from '#gw2/professions/ranger/core/events.js';
+import { buildRangerStrikes, buildRangerPacket } from '#gw2/professions/ranger/core/events.js';
 import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
 import { GALESHOT_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/ranger/specializations/galeshot/profiles.js';
 import { galeshotState } from '#gw2/professions/ranger/specializations/galeshot/state.js';
@@ -52,9 +52,8 @@ function applyMistral(context: RangerRuntime, event: Gw2ResolverEvent): void {
   // strike and condition packets remain grouped under one identity.
   const activationId = strike || chilled ? 'mistral:' + event.eventOrder : undefined;
   if (strike)
-    emitRangerDamage(
-      context,
-      rangerEvent(
+    buildRangerStrikes(
+      buildRangerPacket(
         {
           at: at,
           source: 'ranger',
@@ -72,10 +71,11 @@ function applyMistral(context: RangerRuntime, event: Gw2ResolverEvent): void {
         },
         'damage'
       )
-    );
+    ).forEach((packet) => context.effects.emit({ kind: 'packet', event: packet }));
   if (chilled)
-    context.emit(
-      rangerEvent(
+    context.effects.emit({
+      kind: 'packet',
+      event: buildRangerPacket(
         {
           at: at,
           skillId: ID.MISTRAL,
@@ -89,7 +89,7 @@ function applyMistral(context: RangerRuntime, event: Gw2ResolverEvent): void {
         },
         'condition'
       )
-    );
+    });
 }
 // Gate Galeshot casts by Cyclone Bow ownership, arrows, Wind Force, and the
 // Perilous Skies replacement before the shared Ranger checks run.

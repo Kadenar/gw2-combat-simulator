@@ -1,3 +1,4 @@
+import { captureEffectEmissions } from '#tests/helpers/effect-emission.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import {
@@ -6,20 +7,14 @@ import {
   buildResolverStrike,
   resolverSourceSkill
 } from '#gw2/platform/resolver/packets.js';
-import { queueResolverBoon } from '#gw2/platform/resolver/boons.js';
-import { applyElementalistDerivedCondition } from '#gw2/professions/elementalist/core/mechanics/resolution-helpers.js';
 import {
-  applyEngineerDerivedCondition,
-  queueDamage
+  buildEngineerCondition,
+  buildEngineerStrike
 } from '#gw2/professions/engineer/core/mechanics/resolution-helpers.js';
 import { engineerCatalog } from '#gw2/professions/engineer/profession.js';
 import { holosmithSlotEventHandlers } from '#gw2/professions/engineer/specializations/holosmith/skills/slot-skills.js';
-import {
-  applyTraitCondition,
-  applyTraitVulnerability
-} from '#gw2/professions/necromancer/core/mechanics/trait-effects.js';
 import { createRangerCoreState } from '#gw2/professions/ranger/core/state.js';
-import { queueCondition } from '#gw2/professions/ranger/core/mechanics/resolution-helpers.js';
+import { buildRangerCondition } from '#gw2/professions/ranger/core/mechanics/resolution-helpers.js';
 import { resolveTestGw2Events } from '#tests/helpers/gw2-resolver.js';
 
 const trigger = {
@@ -51,28 +46,63 @@ test('derived conditions preserve immediate visibility and same-time queued orde
     professionReactions: {
       'damage.resolved'(context, event) {
         if (event.sourceId === 'trigger') {
-          applyElementalistDerivedCondition(context, event, {
-            source: 'Elementalist proc',
-            condition: 'Burning',
-            stacks: 1,
-            duration: 1,
-            procCount: 2
+          // Computed applications enter the same service; only transaction visibility differs.
+          context.effects.emit({
+            kind: 'packet',
+            cause: event,
+            settlement: 'reaction',
+            event: buildResolverCondition({
+              at: event.at,
+              source: 'Elementalist proc',
+              sourceId: 1,
+              actorType: 'player',
+              condition: 'Burning',
+              stacks: 1,
+              duration: 1,
+              metadata: { procCount: 2 }
+            })
           });
-          applyEngineerDerivedCondition(context, event, {
-            name: 'Engineer proc',
-            condition: 'Bleeding',
-            stacks: 1,
-            duration: 1,
-            actorType: 'effect',
-            ownerActorType: 'player'
+          context.effects.emit({
+            kind: 'packet',
+            cause: event,
+            settlement: 'reaction',
+            event: buildEngineerCondition(event, {
+              name: 'Engineer proc',
+              condition: 'Bleeding',
+              stacks: 1,
+              duration: 1,
+              actorType: 'effect',
+              ownerActorType: 'player'
+            })
           });
-          applyTraitCondition(context, event, {
-            name: 'Necromancer proc',
-            traitId: 2,
-            condition: 'Poisoned',
-            duration: 1
+          context.effects.emit({
+            kind: 'packet',
+            cause: event,
+            settlement: 'reaction',
+            event: buildResolverCondition({
+              at: event.at,
+              source: 'Trait',
+              sourceId: 2,
+              actorType: 'effect',
+              ownerActorType: 'player',
+              condition: 'Poisoned',
+              stacks: 1,
+              duration: 1
+            })
           });
-          applyTraitVulnerability(context, event, { name: 'Queued proc', traitId: 3, stacks: 1, duration: 1 });
+          context.effects.emit({
+            kind: 'packet',
+            cause: event,
+            event: buildResolverCondition({
+              at: event.at,
+              source: 'Trait',
+              sourceId: 3,
+              actorType: 'effect',
+              condition: 'Vulnerability',
+              stacks: 1,
+              duration: 1
+            })
+          });
         } else {
           assert.ok(context.query.targetHasCondition('Burning', event.at, context));
           assert.ok(context.query.targetHasCondition('Bleeding', event.at, context));
@@ -99,43 +129,44 @@ test('derived conditions preserve immediate visibility and same-time queued orde
 });
 
 // Independent companion conditions need concrete owner identity even when the parent hit is player-attributed.
-test('profession condition adapters retain pet and mech ownership without copying trigger annotations', () => {
-  const packets = [];
+test('profession packet builders retain pet and mech ownership without copying trigger annotations', () => {
+  const { effects, events: packets } = captureEffectEmissions();
   const config = { selectedPet: 'Carrion Devourer', selectedTraitIds: [] };
-  const context = {
-    config,
-    profession: { core: createRangerCoreState(config) },
-    queue: { enqueue: (event) => packets.push(event) },
-    applyCondition: (event) => packets.push(event)
-  };
-  queueCondition(
-    context,
-    { ...trigger, source: 'ranger-pet', summonOwner: 'pet:old-generation' },
-    'Bleeding',
-    4,
-    2,
-    10,
-    'Pet proc'
-  );
+  const context = { config, profession: { core: createRangerCoreState(config) } };
+  effects.emit({
+    kind: 'packet',
+    event: buildRangerCondition(
+      context,
+      { ...trigger, source: 'ranger-pet', summonOwner: 'pet:old-generation' },
+      'Bleeding',
+      4,
+      2,
+      10,
+      'Pet proc'
+    )
+  });
   const pet = packets[0];
   assert.equal(pet.actorType, 'summon');
   assert.equal(pet.summonOwner, 'pet:old-generation');
   assert.equal(pet.independentConditionOwner, true);
   assert.equal(typeof pet.summonBaseConditionDamage, 'number');
   assert.equal(pet.metadata, undefined);
-  applyEngineerDerivedCondition(
-    context,
-    { ...trigger, actorType: 'summon', summonOwner: 'mech:1', independentConditionOwner: true },
-    {
-      name: 'Mech proc',
-      condition: 'Bleeding',
-      stacks: 3,
-      duration: 4,
-      actorType: 'summon',
-      metadata: { fixedDuration: true, engineerMech: true },
-      procCount: 2
-    }
-  );
+  effects.emit({
+    kind: 'packet',
+    settlement: 'reaction',
+    event: buildEngineerCondition(
+      { ...trigger, actorType: 'summon', summonOwner: 'mech:1', independentConditionOwner: true },
+      {
+        name: 'Mech proc',
+        condition: 'Bleeding',
+        stacks: 3,
+        duration: 4,
+        actorType: 'summon',
+        metadata: { fixedDuration: true, engineerMech: true },
+        procCount: 2
+      }
+    )
+  });
   const mech = packets[1];
   assert.equal(mech.summonOwner, 'mech:1');
   assert.equal(mech.independentConditionOwner, true);
@@ -146,62 +177,8 @@ test('profession condition adapters retain pet and mech ownership without copyin
 
 // Fresh boons sample live duration once; generic buffs and explicitly fixed durations bypass scaling.
 test('derived boons scale once using live stats while preserving fixed durations and recipients', () => {
-  const packets = [];
-  let concentration = 750;
-  let samples = 0;
-  const context = {
-    config: {},
-    activeWeaponSet: 1,
-    query: {
-      statsAt() {
-        samples++;
-        return { concentration };
-      }
-    },
-    queue: { enqueue: (event) => packets.push(event) }
-  };
-  queueResolverBoon(
-    context,
-    trigger,
-    buildResolverBuff({
-      at: 1,
-      source: 'Trait',
-      sourceId: 10,
-      actorType: 'effect',
-      kind: 'might',
-      duration: 4,
-      stacks: 1
-    })
-  );
-  concentration = 1500;
-  queueResolverBoon(
-    context,
-    trigger,
-    buildResolverBuff({
-      at: 1,
-      source: 'Trait',
-      sourceId: 10,
-      actorType: 'effect',
-      kind: 'might',
-      duration: 4,
-      stacks: 1
-    })
-  );
-  queueResolverBoon(
-    context,
-    trigger,
-    buildResolverBuff({
-      at: 1,
-      source: 'Trait',
-      sourceId: 11,
-      actorType: 'effect',
-      kind: 'twice-as-vicious',
-      duration: 4,
-      stacks: 1
-    })
-  );
   const fixed = buildResolverBuff({
-    at: 1,
+    at: 2,
     source: 'fixture',
     sourceId: 'fixed',
     actorType: 'effect',
@@ -212,35 +189,48 @@ test('derived boons scale once using live stats while preserving fixed durations
     priority: 5,
     audience: { recipients: 'summons', eligibleCompanionIds: ['pet:1'] }
   });
-  queueResolverBoon(context, trigger, fixed);
+  const events = [1, 2].map((at) =>
+    buildResolverBuff({ at, source: 'Trait', sourceId: 10, actorType: 'effect', kind: 'might', duration: 4, stacks: 1 })
+  );
+  events.push(
+    buildResolverBuff({
+      at: 2,
+      source: 'Trait',
+      sourceId: 11,
+      actorType: 'effect',
+      kind: 'twice-as-vicious',
+      duration: 4,
+      stacks: 1
+    }),
+    fixed
+  );
+  const result = resolveTestGw2Events({
+    events,
+    endTime: 2,
+    query: { statsAt: (at) => ({ concentration: at === 1 ? 750 : 1500 }) }
+  });
+  const packets = result.events.filter((event) => event.type === 'buff');
   assert.deepEqual(
     packets.map((event) => event.duration),
     [6, 8, 4, 4]
   );
-  assert.equal(samples, 2);
   assert.deepEqual(packets[3].audience, fixed.audience);
   assert.equal(packets[3].priority, 5);
 });
 
 // A derived strike owns its finisher and does not inherit the triggering player's proc eligibility.
 test('Engineer derived strikes retain their owner and one combo descriptor', () => {
-  const packets = [];
-  const context = {
-    combo: { fields: new Map() },
-    queue: {
-      enqueue(event) {
-        packets.push(event);
-        return event;
-      }
-    }
-  };
-  queueDamage(context, trigger, {
-    name: 'Derived blast',
-    sourceId: 42,
-    coefficient: 0.5,
-    actorType: 'effect',
-    ownerActorType: 'player',
-    comboFinisher: { ownerId: 'engineer', attemptId: 'blast:1', finisherType: 'Blast' }
+  const { effects, events: packets } = captureEffectEmissions();
+  effects.emit({
+    kind: 'packet',
+    event: buildEngineerStrike(trigger, {
+      name: 'Derived blast',
+      sourceId: 42,
+      coefficient: 0.5,
+      actorType: 'effect',
+      ownerActorType: 'player',
+      comboFinisher: { ownerId: 'engineer', finisherType: 'Blast' }
+    })
   });
   const [strike] = packets;
   assert.equal(packets.length, 1);
@@ -256,12 +246,12 @@ test('Engineer derived strikes retain their owner and one combo descriptor', () 
 
 // Delayed paired effects use the captured heat tier rather than current profession state.
 test('Holosmith delayed packets retain activation heat after live heat and traits change', () => {
-  const packets = [];
+  const { effects, events: packets } = captureEffectEmissions();
   const context = {
     config: { selectedTraitIds: [] },
     helpers: engineerCatalog,
     profession: { specialization: { kind: 'Holosmith', state: { heat: 0 } } },
-    queue: { enqueue: (event) => packets.push(event) }
+    effects
   };
   holosmithSlotEventHandlers['engineer.prime-light-beam-field'](context, {
     ...trigger,

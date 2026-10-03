@@ -1,4 +1,3 @@
-import { materializeSkillEffectApplications } from '#gw2/platform/engine/effects/materializer.js';
 import { armSkillFlip, consumeSkillFlip } from '#gw2/platform/engine/skills/skill-flips.js';
 import { activeStackCount } from '#gw2/platform/combat/resources/timed-stacks.js';
 import { produceRuntimeCombos } from '#gw2/platform/combos/runtime.js';
@@ -6,7 +5,7 @@ import type { RuntimeCast, RuntimeProfession, SkillTaskData } from '#gw2/platfor
 
 import type { EngineerSkill, EngineerRuntimeState } from '#gw2/professions/engineer/types.js';
 import { ENGINEER_SKILL_IDS as ID } from '#gw2/professions/engineer/data/ids.js';
-import { emitEngineerEvent } from '#gw2/professions/engineer/core/events.js';
+import { buildEngineerPackets } from '#gw2/professions/engineer/core/events.js';
 
 /** Skill declarations select each spear mutation; handlers retain lifetime ownership and release-time snapshots. */
 export const engineerSpearSideEffectHandlers: RuntimeProfession<
@@ -30,20 +29,18 @@ export const engineerSpearSideEffectHandlers: RuntimeProfession<
   'engineer.conduit-surge'(runtime, context) {
     if (context.kind !== 'cast') throw new TypeError('Conduit Surge requires a cast trigger.');
     const { cast } = context;
-    emitEngineerEvent(
-      runtime,
+    buildEngineerPackets(
       'engineer.conduit-surge',
       { at: runtime.time, activationId: cast.id, offTarget: cast.command.offTarget },
       cast.skill
-    );
+    ).forEach((packet) => runtime.effects.emit({ kind: 'packet', event: packet }));
   },
   'engineer.electric-artillery'(runtime, context) {
     if (context.kind !== 'cast') throw new TypeError('Electric Artillery requires a cast trigger.');
     const { cast } = context;
     const state = runtime.profession.core;
     const at = runtime.time;
-    emitEngineerEvent(
-      runtime,
+    buildEngineerPackets(
       'engineer.electric-artillery',
       {
         at: at + 0.6,
@@ -53,7 +50,7 @@ export const engineerSpearSideEffectHandlers: RuntimeProfession<
         persistsAfterInterrupt: true
       },
       cast.skill
-    );
+    ).forEach((packet) => runtime.effects.emit({ kind: 'packet', event: packet }));
     runtime.cancelOwner({ id: 'engineer.lightning-rod', generation: state.lightningRodGeneration });
     state.lightningRodChargeExpiries = [];
     consumeSkillFlip(state.availableFlips, ID.ELECTRIC_ARTILLERY);
@@ -62,8 +59,7 @@ export const engineerSpearSideEffectHandlers: RuntimeProfession<
     if (context.kind !== 'cast') throw new TypeError('Roiling Skies requires a cast trigger.');
     const { cast } = context;
     const focused = runtime.profession.core.focusedUntil > runtime.time;
-    emitEngineerEvent(
-      runtime,
+    buildEngineerPackets(
       'control',
       {
         at: runtime.time,
@@ -72,7 +68,7 @@ export const engineerSpearSideEffectHandlers: RuntimeProfession<
         controlKind: focused ? 'launch' : 'stun'
       },
       cast.skill
-    );
+    ).forEach((packet) => runtime.effects.emit({ kind: 'packet', event: packet }));
   }
 };
 
@@ -109,8 +105,7 @@ export const engineerTurretSideEffectHandlers: RuntimeProfession<
 export const engineerWeaponTasks: RuntimeProfession<EngineerRuntimeState, EngineerSkill>['tasks'] = {
   'engineer.rod-pulse'(runtime, data) {
     const { cast, index } = data as { cast: RuntimeCast<EngineerSkill>; index: number };
-    emitEngineerEvent(
-      runtime,
+    buildEngineerPackets(
       'engineer.lightning-rod-pulse',
       {
         at: runtime.time,
@@ -120,7 +115,7 @@ export const engineerWeaponTasks: RuntimeProfession<EngineerRuntimeState, Engine
         totalHits: 8
       },
       cast.skill
-    );
+    ).forEach((packet) => runtime.effects.emit({ kind: 'packet', event: packet }));
   },
   'engineer.rod-expire'(runtime) {
     runtime.profession.core.lightningRodChargeExpiries = [];
@@ -131,42 +126,33 @@ export const engineerWeaponTasks: RuntimeProfession<EngineerRuntimeState, Engine
     if (runtime.profession.core.focusedUntil <= runtime.time) return;
     const { cast } = data as SkillTaskData<EngineerSkill>;
     const followup = runtime.helpers.skillsById.get(ID.FOCUSED_DEVASTATION)!;
-    for (const effect of followup.effects ?? [])
-      for (const { at, event } of materializeSkillEffectApplications({
-        skill: followup,
-        effect,
-        start: runtime.time,
-        fullEnd: runtime.time,
-        baseEvent: {
-          source: 'engineer',
-          sourceId: followup.id,
-          actorType: 'player',
-          activationId: `${cast.id}:focused-devastation`
-        }
-      })) {
-        if (event.type === 'damage' || event.type === 'condition')
-          emitEngineerEvent(
-            runtime,
-            event.type,
-            {
-              ...event,
-              at,
-              offTarget: cast.command.offTarget,
-              skillWeapon: 'Spear',
-              weaponStrengthProfileId: 'nonweapon.unequipped',
-              persistsAfterInterrupt: true
-            },
-            followup
-          );
-      }
+    runtime.effects.emit({
+      kind: 'profile',
+      profile: followup,
+      effects: followup.effects?.filter((effect) => effect.type === 'strike' || effect.type === 'condition'),
+      attribution: {
+        source: 'engineer',
+        sourceId: followup.id,
+        actorType: 'player',
+        skillId: followup.id,
+        skillName: followup.name,
+        activationId: `${cast.id}:focused-devastation`
+      },
+      transform: (event) => ({
+        ...event,
+        offTarget: cast.command.offTarget,
+        skillWeapon: 'Spear',
+        weaponStrengthProfileId: 'nonweapon.unequipped',
+        persistsAfterInterrupt: true
+      })
+    });
   },
   'engineer.turret-pulse'(runtime, data) {
     const skill = runtime.helpers.skillsById.get(ID.CLEANSING_BURST)!;
     const activationId = `${data}:cleansing-burst`;
     for (const effect of skill.effects ?? [])
       if (effect.type === 'boon' || effect.type === 'buff') {
-        emitEngineerEvent(
-          runtime,
+        buildEngineerPackets(
           'buff',
           {
             at: runtime.time,
@@ -176,7 +162,7 @@ export const engineerWeaponTasks: RuntimeProfession<EngineerRuntimeState, Engine
             duration: effect.duration
           },
           skill
-        );
+        ).forEach((packet) => runtime.effects.emit({ kind: 'packet', event: packet }));
       }
 
     produceRuntimeCombos(runtime, runtime.helpers, {

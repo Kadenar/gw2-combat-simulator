@@ -34,14 +34,17 @@ test('Fortifying Bond shares only player-sourced self boons and scales its durat
               { kind: 'resolution', actorType: 'player', audience: { recipients: 'party', affectsSelf: false } },
               { kind: 'custom-buff', actorType: 'player' }
             ].entries())
-              runtime.emit({
-                type: 'buff',
-                at: index / 10,
-                duration: 30,
-                stacks: 1,
-                source: 'test',
-                sourceId: 'received-boon',
-                ...grant
+              runtime.effects.emit({
+                kind: 'packet',
+                event: {
+                  type: 'buff',
+                  at: index / 10,
+                  duration: 30,
+                  stacks: 1,
+                  source: 'test',
+                  sourceId: 'received-boon',
+                  ...grant
+                }
               });
           }
         }

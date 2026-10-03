@@ -236,14 +236,18 @@ test('derived proc activations own their strength roll independently of the trig
         reactions: {
           'damage.resolved'(runtime, cause) {
             if (cause.actorType !== 'player') return;
-            runtime.emitDerived(cause, {
-              type: 'damage',
-              at: runtime.time,
-              source: 'fixture',
-              sourceId: 'trait.proc',
-              actorType: 'effect',
-              coefficient: 1,
-              weaponStrengthProfileId: 'nonweapon.unequipped'
+            runtime.effects.emit({
+              kind: 'packet',
+              cause: cause,
+              event: {
+                type: 'damage',
+                at: runtime.time,
+                source: 'fixture',
+                sourceId: 'trait.proc',
+                actorType: 'effect',
+                coefficient: 1,
+                weaponStrengthProfileId: 'nonweapon.unequipped'
+              }
             });
           }
         }

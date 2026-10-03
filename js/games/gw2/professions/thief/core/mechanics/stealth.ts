@@ -7,7 +7,6 @@ import {
 import { grantLeechingVenomCharges } from '#gw2/professions/thief/core/traits/leeching-venoms.js';
 
 import type { SkillEffect } from '#gw2/platform/engine/skills/types.js';
-import { emitEffects } from '#gw2/platform/simulation/procedural-emission.js';
 
 import { thiefSkill } from '#gw2/professions/thief/core/events.js';
 
@@ -134,16 +133,17 @@ export function commitThiefStealth(runtime: ThiefRuntime, cast: RuntimeCast<Thie
   const duration = effects.reduce((sum, effect) => sum + Number(effect.duration || 0), 0);
   if (!(duration > 0)) return;
   grantThiefStealth(runtime, cast.skill, duration);
-  emitEffects(runtime, {
-    owner: cast.skill,
+  runtime.effects.emit({
+    kind: 'profile',
+    profile: cast.skill,
     effects: effects.map((effect) => ({
       ...effect,
       duration: runtime.profession.core.stealthUntil - runtime.time,
       atMs: 0,
-      timingAnchor: 'castStart',
+      timingAnchor: 'castStart' as const,
       when: undefined
     })),
-    baseEvent: {
+    attribution: {
       source: 'thief',
       sourceId: cast.skill.id,
       actorType: 'player',

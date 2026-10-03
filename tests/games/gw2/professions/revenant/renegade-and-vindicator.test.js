@@ -281,16 +281,19 @@ test('Impossible Odds uses a 280 ms interval and 280 ms delay for player-owned s
           [1.68, 'Player', 'player'],
           [2, 'Summon', 'summon']
         ])
-          runtime.emit({
-            type: 'damage',
-            at,
-            coefficient: 1,
-            weaponStrength: 1000,
-            skillName: source,
-            source,
-            sourceId: source,
-            actorType,
-            ownerActorType: 'player'
+          runtime.effects.emit({
+            kind: 'packet',
+            event: {
+              type: 'damage',
+              at,
+              coefficient: 1,
+              weaponStrength: 1000,
+              skillName: source,
+              source,
+              sourceId: source,
+              actorType,
+              ownerActorType: 'player'
+            }
           });
       }
     }
@@ -812,8 +815,8 @@ test('Brutal Momentum proc facts follow live endurance while preserving earlier 
     },
     {
       initialize(runtime) {
-        runtime.emit(revenantHit(0));
-        runtime.emit(revenantHit(1));
+        runtime.effects.emit({ kind: 'packet', event: revenantHit(0) });
+        runtime.effects.emit({ kind: 'packet', event: revenantHit(1) });
       }
     }
   );

@@ -9,7 +9,6 @@ import {
 } from '#gw2/platform/engine/skills/balance-profiles.js';
 import type { Skill, SkillId } from '#gw2/platform/engine/skills/types.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
-import { emitEffects } from '#gw2/platform/simulation/procedural-emission.js';
 import type { RuntimeCast, RuntimeProfession } from '#gw2/platform/simulation/runtime-state.js';
 import { gw2CooldownReadyAt } from '#gw2/platform/skills/timing.js';
 import type { RevenantRuntime } from '#gw2/professions/revenant/core/events.js';
@@ -75,10 +74,11 @@ function lesserDaggers(runtime: RevenantRuntime, source: Skill, cause?: Gw2Resol
   const hit = requireEffect(skill, 'strike', 'Lesser Enchanted Daggers');
   if (!hit) return;
   // Form procs retain player modifiers without recursively triggering player on-hit attacks.
-  emitEffects(runtime, {
-    owner: skill,
+  runtime.effects.emit({
+    kind: 'profile',
+    profile: skill,
     effects: [hit],
-    baseEvent: {
+    attribution: {
       source: 'revenant',
       sourceId: skill.id,
       actorType: 'effect',
@@ -105,11 +105,12 @@ function dervishAttack(runtime: RevenantRuntime, cast: RuntimeCast<RevenantSkill
   const hit = requireEffect(attack, 'strike', name);
   if (!hit) return;
   // A removed scythe leaves no attack; surviving hits keep their authored sequence.
-  emitEffects(runtime, {
-    owner: attack,
+  runtime.effects.emit({
+    kind: 'profile',
+    profile: attack,
     effects: [hit],
     at,
-    baseEvent: {
+    attribution: {
       source: 'revenant',
       sourceId: attack.id,
       actorType: 'effect',
@@ -171,7 +172,10 @@ function mesmerRelease(runtime: RevenantRuntime, data: unknown): void {
     return;
   }
 
-  runtime.emitProcedural({ ...event, duration: Number(event.duration) * (1 + affinity * durationPerAffinity) });
+  runtime.effects.emit({
+    kind: 'packet',
+    event: { ...event, duration: Number(event.duration) * (1 + affinity * durationPerAffinity) }
+  });
 }
 
 /** Mesmer form overrides these canonical Demon skills' Energy costs; other forms use native costs. */

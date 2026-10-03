@@ -22,7 +22,7 @@
         "label": "Condition (Pistol/Warhorn)",
         "build": "data/gw2/builds/elementalist/b-condi-weaver-pistol.json",
         "rotation": "data/gw2/rotations/elementalist/r-condi-weaver-pistol.json",
-        "benchmarkDps": 45722,
+        "benchmarkDps": 45723,
         "upToDate": true,
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/elementalist/condition-weaver-pistol-warhorn"
       },
@@ -30,7 +30,7 @@
         "label": "Condition (Pistol/Dagger)",
         "build": "data/gw2/builds/elementalist/b-condi-weaver-pistol-dagger.json",
         "rotation": "data/gw2/rotations/elementalist/r-condi-weaver-pistol-dagger.json",
-        "benchmarkDps": 43912,
+        "benchmarkDps": 43900,
         "upToDate": true,
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/elementalist/condition-weaver-pistol-dagger"
       },
@@ -82,7 +82,7 @@
         "label": "Power (Hammer) - FA",
         "build": "data/gw2/builds/elementalist/b-power-tempest-hammer.json",
         "rotation": "data/gw2/rotations/elementalist/r-power-tempest-hammer.json",
-        "benchmarkDps": 42269,
+        "benchmarkDps": 42273,
         "upToDate": true,
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/elementalist/power-tempest-hammer"
       },
@@ -113,7 +113,7 @@
         "label": "Condition (Pistol/Warhorn)",
         "build": "data/gw2/builds/elementalist/b-condi-tempest-pistol-warhorn.json",
         "rotation": "data/gw2/rotations/elementalist/r-condi-tempest-pistol-warhorn.json",
-        "benchmarkDps": 41566,
+        "benchmarkDps": 41563,
         "upToDate": true,
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/elementalist/condition-tempest-pistol-warhorn"
       },
@@ -129,7 +129,7 @@
         "label": "Condition Alacrity (Pistol/Warhorn)",
         "build": "data/gw2/builds/elementalist/b-condi-alac-tempest-pistol.json",
         "rotation": "data/gw2/rotations/elementalist/r-condi-alac-tempest-pistol.json",
-        "benchmarkDps": 32624,
+        "benchmarkDps": 32594,
         "upToDate": true,
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/elementalist/condition-alacrity-tempest-pistol-warhorn"
       },
@@ -279,21 +279,21 @@
         "build": "data/gw2/builds/elementalist/b-condi-evoker-pistol-dagger.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/elementalist/condition-evoker-pistol-dagger",
         "rotation": "data/gw2/rotations/elementalist/r-condi-evoker-pistol-dagger.json",
-        "benchmarkDps": 43042,
+        "benchmarkDps": 43038,
         "upToDate": true
       },
       {
         "label": "Condition Fox - (Pistol/Warhorn)",
         "build": "data/gw2/builds/elementalist/b-condi-evoker-pistol-warhorn.json",
         "rotation": "data/gw2/rotations/elementalist/r-condi-evoker-pistol-warhorn.json",
-        "benchmarkDps": 43070,
+        "benchmarkDps": 43052,
         "upToDate": true
       },
       {
         "label": "Condition Fox - (Pistol/Focus)",
         "build": "data/gw2/builds/elementalist/b-condi-evoker-pistol-focus.json",
         "rotation": "data/gw2/rotations/elementalist/r-condi-evoker-pistol-focus.json",
-        "benchmarkDps": 43290,
+        "benchmarkDps": 43327,
         "upToDate": true
       },
       {
@@ -309,7 +309,7 @@
         "build": "data/gw2/builds/elementalist/b-condi-quick-air-se-evoker.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/elementalist/condition-quickness-evoker-specialized-elements",
         "rotation": "data/gw2/rotations/elementalist/r-condi-quick-air-se-evoker.json",
-        "benchmarkDps": 39860,
+        "benchmarkDps": 39859,
         "upToDate": true
       },
       {
@@ -325,7 +325,7 @@
         "build": "data/gw2/builds/elementalist/b-condi-alac-evoker-pistol-warhorn-elemental-balance.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/elementalist/condition-alacrity-evoker-pistol-warhorn-elemental-balance",
         "rotation": "data/gw2/rotations/elementalist/r-condi-alac-evoker-pistol-warhorn-elemental-balance.json",
-        "benchmarkDps": 40420,
+        "benchmarkDps": 40439,
         "upToDate": true
       },
       {

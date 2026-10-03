@@ -13,7 +13,6 @@ import { projectCastRelativeEffectTimingMs } from '#gw2/platform/skills/timing.j
 import { guardianVirtueForSlot, refreshGuardianVirtues } from '#gw2/professions/guardian/core/mechanics/virtues.js';
 import {
   applyGuardianVirtueActivationTraits,
-  emitGuardianBoon,
   indomitableCourageInterval,
   triggerGuardianFuriousFocus
 } from '#gw2/professions/guardian/core/traits/behavior.js';
@@ -46,18 +45,21 @@ function couragePulse(runtime: Runtime): void {
   refreshGuardianVirtues(runtime);
   if (runtime.profession.core.virtueReadyAt.courage <= runtime.time) {
     const skill = runtime.helpers.skillsById.get(ID.SHIELD_OF_COURAGE)!;
-    emitGuardianBoon(runtime, {
-      type: 'buff',
-      at: runtime.time,
-      source: 'guardian',
-      sourceId: skill.id,
-      actorType: 'player',
-      skillId: skill.id,
-      skillName: skill.name,
-      name: 'Shield of Courage — Passive Aegis',
-      kind: 'aegis',
-      duration: effectNumber(profile, effect, 'duration'),
-      stacks: effectNumber(profile, effect, 'stacks')
+    runtime.effects.emit({
+      kind: 'packet',
+      event: {
+        type: 'buff',
+        at: runtime.time,
+        source: 'guardian',
+        sourceId: skill.id,
+        actorType: 'player',
+        skillId: skill.id,
+        skillName: skill.name,
+        name: 'Shield of Courage — Passive Aegis',
+        kind: 'aegis',
+        duration: effectNumber(profile, effect, 'duration'),
+        stacks: effectNumber(profile, effect, 'stacks')
+      }
     });
   }
 
@@ -98,9 +100,10 @@ function tetherBurn(runtime: Runtime, data: unknown): void {
   const profile = requireBalanceProfileFromContext(runtime, PROFILE.tether);
   const effect = requireEffect(profile, 'condition', 'Burning');
   if (!effect) return;
-  runtime.emitDerived(
-    pulse.event,
-    buildResolverCondition({
+  runtime.effects.emit({
+    kind: 'packet',
+    cause: pulse.event,
+    event: buildResolverCondition({
       at: runtime.time,
       source: 'guardian',
       sourceId: ID.SPEAR_OF_JUSTICE,
@@ -112,7 +115,7 @@ function tetherBurn(runtime: Runtime, data: unknown): void {
       stacks: effectNumber(profile, effect, 'stacks'),
       duration: effectNumber(profile, effect, 'duration')
     })
-  );
+  });
   const interval = balanceProfileNumber(profile, 'pulseInterval');
   const next = canonicalTime(runtime.time + interval);
   if (interval > 0 && next < pulse.deadline) runtime.schedule(BURN, next, data);

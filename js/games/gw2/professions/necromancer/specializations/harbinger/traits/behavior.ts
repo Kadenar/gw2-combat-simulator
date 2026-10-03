@@ -1,6 +1,8 @@
 import { professionStaticRulesApplied } from '#gw2/platform/builds/attribute-provenance.js';
 import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
+import { isHostileTargetEvent } from '#gw2/platform/combat/state/targets.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
+import type { EffectMetadata, SimulationEvent } from '#gw2/platform/engine/events/events.js';
 import {
   balanceProfileNumber,
   effectNumber,
@@ -12,25 +14,15 @@ import type { RuntimeCast } from '#gw2/platform/simulation/runtime-state.js';
 import { quantizeGw2ActionTimingMs } from '#gw2/platform/skills/timing.js';
 import { grantNecromancerLifeForce } from '#gw2/professions/necromancer/core/mechanics/life-force.js';
 import { cloneNecromancerAttributes } from '#gw2/professions/necromancer/core/mechanics/modifier-queries.js';
-import {
-  applyTraitCondition,
-  applyTraitVulnerability
-} from '#gw2/professions/necromancer/core/mechanics/trait-effects.js';
+import type { NecromancerRuntime, NecromancerSkill } from '#gw2/professions/necromancer/types.js';
+import { canonicalTime } from '#kernel/core/clock.js';
+
 import { necromancerLifeForceCostMultiplier } from '#gw2/professions/necromancer/core/state.js';
 import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
-import {
-  emitHarbingerEffects,
-  party
-} from '#gw2/professions/necromancer/specializations/harbinger/mechanics/emission.js';
+import { party } from '#gw2/professions/necromancer/specializations/harbinger/mechanics/audiences.js';
 import { HARBINGER_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/necromancer/specializations/harbinger/profiles.js';
 import { harbingerState } from '#gw2/professions/necromancer/specializations/harbinger/state.js';
-import type {
-  NecromancerSkill,
-  NecromancerResolverContext,
-  NecromancerResolverEvent,
-  NecromancerRuntime
-} from '#gw2/professions/necromancer/types.js';
-import { canonicalTime } from '#kernel/core/clock.js';
+import type { NecromancerResolverContext, NecromancerResolverEvent } from '#gw2/professions/necromancer/types.js';
 
 /** Applies Alchemic Vigor at the original attribute-conversion position. */
 export function modifyAlchemicVigorAttributes(
@@ -89,27 +81,58 @@ function reactToDamage(context: NecromancerResolverContext, event: NecromancerRe
   if (hasTrait(context, TRAIT.DOOM_APPROACHES) && firstHit && skill?.id === ID.TAINTED_BOLTS) {
     const profile = requireBalanceProfileFromContext(context, TRAIT.DOOM_APPROACHES);
     const vulnerability = requireEffect(profile, 'condition', 'Vulnerability');
-    if (vulnerability)
-      applyTraitVulnerability(context, event, {
-        name: 'Doom Approaches',
-        traitId: TRAIT.DOOM_APPROACHES,
-        stacks: effectNumber(profile, vulnerability, 'stacks'),
-        duration: effectNumber(profile, vulnerability, 'duration')
+    if (vulnerability) {
+      /* Trait payloads and their timeline annotation share the same emission boundary. */ context.effects.emit({
+        kind: 'packet',
+        event: {
+          at: event.at,
+          source: 'Trait',
+          sourceId: TRAIT.DOOM_APPROACHES,
+          actorType: 'effect',
+          skillName: 'Doom Approaches',
+          triggeredBy: event.skillName,
+          type: 'condition',
+          name: 'Doom Approaches',
+          condition: 'Vulnerability',
+          stacks: effectNumber(profile, vulnerability, 'stacks'),
+          duration: effectNumber(profile, vulnerability, 'duration')
+        }
       });
+      context.effects.emit({
+        kind: 'announcement',
+        announcement: { type: 'trait', name: 'Doom Approaches', at: event.at, sourceSkill: event.skillName }
+      });
+    }
   }
 
   // Septic Corruption procs on shroud slot 2 specifically (the pistol #2 skill), not all pistol hits.
   if (hasTrait(context, TRAIT.SEPTIC_CORRUPTION) && skill?.shroudSlot === 2) {
     const profile = requireBalanceProfileFromContext(context, TRAIT.SEPTIC_CORRUPTION);
     const condition = requireEffect(profile, 'condition', 'Poisoned');
-    if (condition)
-      applyTraitCondition(context, event, {
-        name: 'Septic Corruption',
-        traitId: TRAIT.SEPTIC_CORRUPTION,
-        condition: String(condition.condition),
-        stacks: effectNumber(profile, condition, 'stacks'),
-        duration: effectNumber(profile, condition, 'duration')
+    if (condition) {
+      /* Trait payloads and their timeline annotation share the same emission boundary. */ context.effects.emit({
+        kind: 'packet',
+        settlement: 'reaction',
+        event: {
+          at: event.at,
+          source: 'Trait',
+          sourceId: TRAIT.SEPTIC_CORRUPTION,
+          actorType: 'effect',
+          skillName: 'Septic Corruption',
+          triggeredBy: event.skillName,
+          type: 'condition',
+          ownerActorType: 'player',
+          name: 'Septic Corruption' + ' - ' + String(condition.condition),
+          condition: String(condition.condition),
+          stacks: effectNumber(profile, condition, 'stacks'),
+          duration: effectNumber(profile, condition, 'duration')
+        }
       });
+      context.effects.emit({
+        kind: 'announcement',
+        announcement: { type: 'trait', name: 'Septic Corruption', at: event.at, sourceSkill: event.skillName }
+      });
+    }
   }
 }
 
@@ -121,16 +144,42 @@ export const harbingerResolverEventReactions = Object.freeze({
 export function applyDeathlyHaste(runtime: NecromancerRuntime, skill: Skill): void {
   if (!hasTrait(runtime, TRAIT.DEATHLY_HASTE)) return;
   const profile = requireBalanceProfileFromContext(runtime, TRAIT.DEATHLY_HASTE);
-  emitHarbingerEffects(
-    runtime,
-    skill,
-    (profile.effects ?? []).map((effect) => ({
+  {
+    // Shared emission owns transport; the mechanic selects attribution and delivery.
+    const emissionRuntime: NecromancerRuntime = runtime;
+    const emissionSkill: Skill = skill;
+    const emissionEffects: readonly SkillEffect[] = (profile.effects ?? []).map((effect) => ({
       ...effect,
       audience: party(runtime),
       source: 'Trait',
       sourceId: TRAIT.DEATHLY_HASTE
-    }))
-  );
+    }));
+
+    const emissionMetadata: EffectMetadata | undefined = undefined;
+    const emissionCause: SimulationEvent | undefined = undefined;
+
+    emissionRuntime.effects.emit({
+      kind: 'profile',
+      cause: emissionCause,
+      profile: emissionSkill,
+      effects: emissionEffects,
+      attribution: (effect) => ({
+        source: effect.source ?? (emissionSkill.type === 'Trait' ? 'Trait' : 'necromancer'),
+        sourceId: effect.sourceId ?? emissionSkill.id,
+        skillId: emissionSkill.id,
+        skillName: emissionSkill.name,
+        actorType: effect.actorType ?? (emissionSkill.type === 'Trait' ? 'effect' : 'player'),
+        metadata: emissionMetadata
+      }),
+      skillWeaponFallback: 'Unequipped',
+      transform: (event) => ({
+        ...event,
+        ...(event.type === 'damage' ? { name: emissionSkill.name } : {}),
+        ...(event.type === 'condition' ? { name: emissionSkill.name + ' — ' + event.condition } : {}),
+        at: event.at
+      })
+    });
+  }
 }
 
 /** Consumed stacks claim one Meltdown threshold before the mechanic publishes the remaining Blight. */
@@ -157,32 +206,71 @@ export function applyCascadingCorruption(
         state.cascadingCorruptionStacks -= threshold;
         if (meltdown)
           state.meltdownUntil = canonicalTime(runtime.time + effectNumber(corruption, meltdown, 'duration'));
-        const proc = runtime.emit({
-          type: 'proc',
-          procType: 'trait',
-          at: runtime.time,
-          name: 'Meltdown',
-          icon: 'https://wiki.guildwars2.com/wiki/Special:FilePath/Meltdown.png',
-          sourceSkill: cast.skill.name,
-          source: 'Trait',
-          sourceId: TRAIT.CASCADING_CORRUPTION,
-          actorType: 'effect',
-          activationId: cast.id
+        const proc = runtime.effects.emit({
+          kind: 'announcement',
+          log: true,
+          attribution: {
+            source: 'Trait',
+            sourceId: TRAIT.CASCADING_CORRUPTION,
+            actorType: 'effect',
+            activationId: cast.id
+          },
+          announcement: {
+            type: 'trait',
+            at: runtime.time,
+            name: 'Meltdown',
+            icon: 'https://wiki.guildwars2.com/wiki/Special:FilePath/Meltdown.png',
+            sourceSkill: cast.skill.name
+          }
         });
-        emitHarbingerEffects(
-          runtime,
-          { id: ID.CASCADING_CORRUPTION, name: 'Cascading Corruption', type: 'Trait' },
-          [meltdown, strike, torment]
+        {
+          // Shared emission owns transport; the mechanic selects attribution and delivery.
+          const emissionRuntime: NecromancerRuntime = runtime;
+          const emissionSkill: Skill = { id: ID.CASCADING_CORRUPTION, name: 'Cascading Corruption', type: 'Trait' };
+          const emissionEffects: readonly SkillEffect[] = [meltdown, strike, torment]
             .filter((effect) => effect != null)
             .map((effect) => ({
               ...effect,
               sourceId: TRAIT.CASCADING_CORRUPTION,
               atMs: quantizeGw2ActionTimingMs(effect.atMs ?? 0)
-            })),
-          cast,
-          undefined,
-          proc
-        );
+            }));
+          const emissionCast = cast;
+          const emissionMetadata: EffectMetadata | undefined = undefined;
+          const emissionCause: SimulationEvent | undefined = proc;
+
+          emissionRuntime.effects.emit({
+            kind: 'profile',
+            cause: emissionCause,
+            profile: emissionSkill,
+            effects: emissionEffects,
+            attribution: (effect) => ({
+              source: effect.source ?? (emissionSkill.type === 'Trait' ? 'Trait' : 'necromancer'),
+              sourceId: effect.sourceId ?? emissionSkill.id,
+              skillId: emissionSkill.id,
+              skillName: emissionSkill.name,
+              actorType: effect.actorType ?? (emissionSkill.type === 'Trait' ? 'effect' : 'player'),
+              activationId:
+                emissionSkill.id !== emissionCast.skill.id
+                  ? emissionCast.id + ':effect:' + emissionSkill.id
+                  : emissionCast.id,
+              metadata: emissionMetadata
+            }),
+            skillWeaponFallback: 'Unequipped',
+            transform: (event) => ({
+              ...event,
+              parentSkillName: emissionCast.skill.id !== emissionSkill.id ? emissionCast.skill.name : undefined,
+              ...(event.type === 'damage' ? { name: emissionSkill.name } : {}),
+              ...(event.type === 'condition' ? { name: emissionSkill.name + ' — ' + event.condition } : {}),
+              offTarget: emissionCast.command.offTarget,
+              at: canonicalTime(
+                event.at +
+                  (emissionSkill.id === emissionCast.skill.id && isHostileTargetEvent(event)
+                    ? (emissionCast.command.impactDelayMs ?? 0) / 1000
+                    : 0)
+              )
+            })
+          });
+        }
       }
     }
   }
@@ -192,19 +280,55 @@ export function applyCascadingCorruption(
 export function applyBolsteringBrew(runtime: NecromancerRuntime, cast: RuntimeCast<NecromancerSkill>): void {
   if (hasTrait(runtime, TRAIT.BOLSTERING_BREW)) {
     const profile = requireBalanceProfileFromContext(runtime, TRAIT.BOLSTERING_BREW);
-    emitHarbingerEffects(
-      runtime,
-      cast.skill,
-      (profile.effects ?? []).map((effect) => ({
+    {
+      // Shared emission owns transport; the mechanic selects attribution and delivery.
+      const emissionRuntime: NecromancerRuntime = runtime;
+      const emissionSkill: Skill = cast.skill;
+      const emissionEffects: readonly SkillEffect[] = (profile.effects ?? []).map((effect) => ({
         ...effect,
         atMs: 0,
         // Elixir casting owns the timing; Bolstering Brew owns these additional grants.
         source: 'Trait',
         sourceId: TRAIT.BOLSTERING_BREW,
         audience: hasTrait(runtime, TRAIT.TWISTED_MEDICINE) ? party(runtime) : undefined
-      })),
-      cast
-    );
+      }));
+      const emissionCast = cast;
+      const emissionMetadata: EffectMetadata | undefined = undefined;
+      const emissionCause: SimulationEvent | undefined = undefined;
+
+      emissionRuntime.effects.emit({
+        kind: 'profile',
+        cause: emissionCause,
+        profile: emissionSkill,
+        effects: emissionEffects,
+        attribution: (effect) => ({
+          source: effect.source ?? (emissionSkill.type === 'Trait' ? 'Trait' : 'necromancer'),
+          sourceId: effect.sourceId ?? emissionSkill.id,
+          skillId: emissionSkill.id,
+          skillName: emissionSkill.name,
+          actorType: effect.actorType ?? (emissionSkill.type === 'Trait' ? 'effect' : 'player'),
+          activationId:
+            emissionSkill.id !== emissionCast.skill.id
+              ? emissionCast.id + ':effect:' + emissionSkill.id
+              : emissionCast.id,
+          metadata: emissionMetadata
+        }),
+        skillWeaponFallback: 'Unequipped',
+        transform: (event) => ({
+          ...event,
+          parentSkillName: emissionCast.skill.id !== emissionSkill.id ? emissionCast.skill.name : undefined,
+          ...(event.type === 'damage' ? { name: emissionSkill.name } : {}),
+          ...(event.type === 'condition' ? { name: emissionSkill.name + ' — ' + event.condition } : {}),
+          offTarget: emissionCast.command.offTarget,
+          at: canonicalTime(
+            event.at +
+              (emissionSkill.id === emissionCast.skill.id && isHostileTargetEvent(event)
+                ? (emissionCast.command.impactDelayMs ?? 0) / 1000
+                : 0)
+          )
+        })
+      });
+    }
   }
 }
 
@@ -246,17 +370,44 @@ export function applyHarbingerEntryTraits(runtime: NecromancerRuntime, skill: Sk
       balanceProfileNumber(requireBalanceProfileFromContext(runtime, TRAIT.CORRUPTED_TALENT), 'lifeForceGain')
     );
   applyDeathlyHaste(runtime, skill);
-  if (hasTrait(runtime, TRAIT.IMPLACABLE_FOE))
-    emitHarbingerEffects(
-      runtime,
-      skill,
-      (requireBalanceProfileFromContext(runtime, TRAIT.IMPLACABLE_FOE).effects ?? []).map((effect) => ({
-        ...effect,
-        // Keep the shroud entry as the trigger while naming the trait that grants Stability.
-        source: 'Trait',
-        sourceId: TRAIT.IMPLACABLE_FOE
-      }))
-    );
+  if (hasTrait(runtime, TRAIT.IMPLACABLE_FOE)) {
+    // Shared emission owns transport; the mechanic selects attribution and delivery.
+    const emissionRuntime: NecromancerRuntime = runtime;
+    const emissionSkill: Skill = skill;
+    const emissionEffects: readonly SkillEffect[] = (
+      requireBalanceProfileFromContext(runtime, TRAIT.IMPLACABLE_FOE).effects ?? []
+    ).map((effect) => ({
+      ...effect,
+      // Keep the shroud entry as the trigger while naming the trait that grants Stability.
+      source: 'Trait',
+      sourceId: TRAIT.IMPLACABLE_FOE
+    }));
+
+    const emissionMetadata: EffectMetadata | undefined = undefined;
+    const emissionCause: SimulationEvent | undefined = undefined;
+
+    emissionRuntime.effects.emit({
+      kind: 'profile',
+      cause: emissionCause,
+      profile: emissionSkill,
+      effects: emissionEffects,
+      attribution: (effect) => ({
+        source: effect.source ?? (emissionSkill.type === 'Trait' ? 'Trait' : 'necromancer'),
+        sourceId: effect.sourceId ?? emissionSkill.id,
+        skillId: emissionSkill.id,
+        skillName: emissionSkill.name,
+        actorType: effect.actorType ?? (emissionSkill.type === 'Trait' ? 'effect' : 'player'),
+        metadata: emissionMetadata
+      }),
+      skillWeaponFallback: 'Unequipped',
+      transform: (event) => ({
+        ...event,
+        ...(event.type === 'damage' ? { name: emissionSkill.name } : {}),
+        ...(event.type === 'condition' ? { name: emissionSkill.name + ' — ' + event.condition } : {}),
+        at: event.at
+      })
+    });
+  }
 }
 
 /** Selects and materializes Doom Approaches before the skill scheduler owns the resulting pulses. */

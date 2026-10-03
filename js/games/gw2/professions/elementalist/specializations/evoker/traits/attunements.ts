@@ -10,14 +10,18 @@ import {
 import { gw2BaseRecharge } from '#gw2/platform/engine/skills/recharge.js';
 import type { Skill } from '#gw2/platform/engine/skills/types.js';
 import type { AvailabilityResult } from '#gw2/platform/execution/types.js';
+import type { EffectDelivery } from '#gw2/platform/simulation/effect-emission.js';
 import type { RuntimeCast } from '#gw2/platform/simulation/runtime-state.js';
 import { gw2EffectExpiresAt } from '#gw2/platform/skills/timing.js';
-import { emitElementalistBuff } from '#gw2/professions/elementalist/core/events.js';
+import { elementalistBuffRequest } from '#gw2/professions/elementalist/core/events.js';
 import {
   targetAttunement,
   type ElementalistAttunementTraitTrigger
 } from '#gw2/professions/elementalist/core/mechanics/attunements.js';
-import { elementalistEventSkill, emitElementalistProc } from '#gw2/professions/elementalist/core/mechanics/effects.js';
+import {
+  elementalistAnnouncement,
+  elementalistEventSkill
+} from '#gw2/professions/elementalist/core/mechanics/effects.js';
 import { type ElementalistAttunement } from '#gw2/professions/elementalist/core/state.js';
 import {
   applyFreshAirSyntheticEntry,
@@ -35,8 +39,7 @@ import {
 } from '#gw2/professions/elementalist/specializations/evoker/mechanics/constants.js';
 import { EVOKER_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/elementalist/specializations/evoker/profiles.js';
 import { evokerState } from '#gw2/professions/elementalist/specializations/evoker/state.js';
-import type { ElementalistSkill, ElementalistRuntime } from '#gw2/professions/elementalist/types.js';
-
+import type { ElementalistRuntime, ElementalistSkill } from '#gw2/professions/elementalist/types.js';
 // Evocation's five-second trait ICD applies to some Fire and Earth entry effects
 const EVOKER_ATTUNEMENT_TRAIT_ICD_PROFILES = new Set<Skill['id']>([
   TRAIT.SUNSPOT,
@@ -44,7 +47,6 @@ const EVOKER_ATTUNEMENT_TRAIT_ICD_PROFILES = new Set<Skill['id']>([
   TRAIT.EARTHEN_BLAST,
   TRAIT.ROCK_SOLID
 ]);
-
 // reports whether the trait may proc now, arming its next Evocation ICD window when it may
 function consumeEvokerAttunementTraitCooldown(
   context: ElementalistRuntime,
@@ -70,7 +72,11 @@ export function evocationAllowsAttunementTrait(
 }
 
 /** Accepted Burning in Fire consumes Ignite's existing pulse interval only when its Might packet survives. */
-export function applyEvocationBurning(context: ElementalistRuntime, event: SimulationEvent): void {
+export function applyEvocationBurning(
+  context: ElementalistRuntime,
+  event: SimulationEvent,
+  emissionCast?: EffectDelivery['cast']
+): void {
   const state = evokerState.from(context);
   if (event.type === 'condition' && event.condition === 'Burning' && state.element === 'Fire') {
     const evocationProfile = requireBalanceProfileFromContext(context, TRAIT.EVOCATION);
@@ -84,17 +90,22 @@ export function applyEvocationBurning(context: ElementalistRuntime, event: Simul
         balanceProfileNumber(requireBalanceProfileFromContext(context, PROFILE.ignite), 'pulseInterval')
       )
     ) {
-      emitElementalistBuff(context, {
-        skill: elementalistEventSkill(context, 'Fire Familiar', sourceId),
-        at: event.at,
-        source: 'Fire Familiar',
-        sourceId,
-        actorType: 'player',
-        kind: String(might.boon).toLowerCase(),
-        stacks: Number(might.stacks),
-        duration: might.duration,
-        skillName: 'Fire Familiar'
-      });
+      context.effects.emit(
+        elementalistBuffRequest(
+          {
+            skill: elementalistEventSkill(context, 'Fire Familiar', sourceId),
+            at: event.at,
+            source: 'Fire Familiar',
+            sourceId,
+            actorType: 'player',
+            kind: String(might.boon).toLowerCase(),
+            stacks: Number(might.stacks),
+            duration: might.duration,
+            skillName: 'Fire Familiar'
+          },
+          emissionCast
+        )
+      );
     }
   }
 }
@@ -102,7 +113,6 @@ export function applyEvocationBurning(context: ElementalistRuntime, event: Simul
 /** Elemental Balance arms before Dynamo adds charges on each accepted entry into the familiar element. */
 export function applyEvokerEntryTraits(context: ElementalistRuntime, event: SimulationEvent): void {
   const state = evokerState.from(context);
-
   // everything past this point is an attunement-entry trait
   if (event.type !== 'elementalist.attunement' && event.type !== 'elementalist.attunement-enter') {
     return;
@@ -110,7 +120,6 @@ export function applyEvokerEntryTraits(context: ElementalistRuntime, event: Simu
 
   // only counts entering YOUR current element (Elemental Dynamo or Specialized Elements entry)
   if (event.to !== state.element) return;
-
   if (hasTrait(context, TRAIT.ELEMENTAL_BALANCE)) {
     state.elementalBalanceProgress += 1;
     const elementalBalanceProfile = requireBalanceProfileFromContext(context, TRAIT.ELEMENTAL_BALANCE);
@@ -121,39 +130,42 @@ export function applyEvokerEntryTraits(context: ElementalistRuntime, event: Simu
       // Temporary-effect expiry uses the absolute combat tick, including patched durations.
       const duration = balanceProfileNumber(elementalBalanceProfile, 'durationMultiplier');
       state.elementalBalanceUntil = gw2EffectExpiresAt(event.at, duration);
-      emitElementalistProc(context, {
-        at: event.at,
-        name: 'Elemental Balance',
-        procType: 'skill',
-        sourceId: event.skillId ?? event.sourceId,
-        sourceSkill: event.skillName || event.source || '',
-        detail: `CDR armed (${duration}s)`,
-        icon: 'https://wiki.guildwars2.com/images/4/4c/Elemental_Balance.png'
-      });
+      context.effects.emit(
+        elementalistAnnouncement({
+          at: event.at,
+          name: 'Elemental Balance',
+          procType: 'skill',
+          sourceId: event.skillId ?? event.sourceId,
+          sourceSkill: event.skillName || event.source || '',
+          detail: `CDR armed (${duration}s)`,
+          icon: 'https://wiki.guildwars2.com/images/4/4c/Elemental_Balance.png'
+        })
+      );
     }
   }
 
   // Elemental Dynamo turns each entry into familiar charges and reports the new total
   if (!hasTrait(context, TRAIT.ELEMENTAL_DYNAMO)) return;
-
   const elementalDynamoProfile = requireBalanceProfileFromContext(context, TRAIT.ELEMENTAL_DYNAMO);
-
   state.charges = Math.min(
     state.maximumCharges,
     state.charges + balanceProfileNumber(elementalDynamoProfile, 'resourceGain')
   );
-
-  context.emitDerived(event, {
-    type: 'resource',
-    at: event.at,
-    source: 'Elemental Dynamo',
-    sourceId: event.sourceId,
-    actorType: 'player',
-    skillName: 'Elemental Dynamo',
-    kind: 'evoker-charges',
-    value: state.charges,
-    maximum: state.maximumCharges,
-    empowered: state.empowered
+  context.effects.emit({
+    kind: 'packet',
+    cause: event,
+    event: {
+      type: 'resource',
+      at: event.at,
+      source: 'Elemental Dynamo',
+      sourceId: event.sourceId,
+      actorType: 'player',
+      skillName: 'Elemental Dynamo',
+      kind: 'evoker-charges',
+      value: state.charges,
+      maximum: state.maximumCharges,
+      empowered: state.empowered
+    }
   });
 }
 
@@ -188,33 +200,63 @@ export function triggerSpecializedElementEntry(
   const at = cast.effectiveEnd;
   const procReady = (profileId: Skill['id']): boolean =>
     hasTrait(context, profileId) && consumeEvokerAttunementTraitCooldown(context, at, profileId);
-
-  context.emit({
-    type: 'elementalist.attunement-enter',
-    at,
-    source: skill.name,
-    sourceId: skill.id,
-    actorType: 'player',
-    skillName: skill.name,
-    to: element
+  context.effects.emit({
+    kind: 'packet',
+    event: {
+      type: 'elementalist.attunement-enter',
+      at,
+      source: skill.name,
+      sourceId: skill.id,
+      actorType: 'player',
+      skillName: skill.name,
+      to: element
+    }
   });
   if (element === 'Fire') {
     if (procReady(TRAIT.SUNSPOT)) {
-      triggerSunspot(context, at, skill.id);
+      triggerSunspot(context, at, skill.id, {
+        activationId: cast.id,
+        skillId: cast.skill.id,
+        offTarget: cast.command.offTarget
+      });
     }
   } else if (element === 'Air') {
-    triggerElectricDischarge(context, at, skill.id);
+    triggerElectricDischarge(context, at, skill.id, {
+      activationId: cast.id,
+      skillId: cast.skill.id,
+      offTarget: cast.command.offTarget
+    });
     // Synthetic entry shares the Air grants; Fresh Air below has its own entry semantics.
-    applyOneWithAir(context, at, skill);
-    applyInscriptionAirEntry(context, at, skill);
-    applyFreshAirSyntheticEntry(context, at, skill);
+    applyOneWithAir(context, at, skill, {
+      activationId: cast.id,
+      skillId: cast.skill.id,
+      offTarget: cast.command.offTarget
+    });
+    applyInscriptionAirEntry(context, at, skill, {
+      activationId: cast.id,
+      skillId: cast.skill.id,
+      offTarget: cast.command.offTarget
+    });
+    applyFreshAirSyntheticEntry(context, at, skill, {
+      activationId: cast.id,
+      skillId: cast.skill.id,
+      offTarget: cast.command.offTarget
+    });
   } else if (element === 'Earth') {
     if (procReady(TRAIT.EARTHEN_BLAST)) {
-      triggerEarthenBlast(context, at, skill.id);
+      triggerEarthenBlast(context, at, skill.id, {
+        activationId: cast.id,
+        skillId: cast.skill.id,
+        offTarget: cast.command.offTarget
+      });
     }
 
     if (procReady(TRAIT.ROCK_SOLID)) {
-      grantElementalistRockSolid(context, at, skill.id);
+      grantElementalistRockSolid(context, at, skill.id, {
+        activationId: cast.id,
+        skillId: cast.skill.id,
+        offTarget: cast.command.offTarget
+      });
     }
   }
 }

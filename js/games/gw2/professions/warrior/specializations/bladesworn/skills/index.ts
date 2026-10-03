@@ -653,19 +653,22 @@ function activateCartridges(runtime: Runtime, cast: RuntimeCast<WarriorSkill>): 
     damageBonus: effectNumber(profile, buff, 'damageIncreasePerStack'),
     burningDuration: burning ? effectNumber(profile, burning, 'duration') : 0
   });
-  runtime.emit({
-    type: 'buff',
-    at: runtime.time,
-    source: 'Warrior',
-    sourceId: cast.skill.id,
-    actorType: 'player',
-    skillId: cast.skill.id,
-    skillName: cast.skill.name,
-    activationId: cast.id,
-    name: supercharged ? 'Supercharged Cartridges' : 'Overcharged Cartridges',
-    kind,
-    stacks: effectNumber(profile, buff, 'stacks'),
-    duration
+  runtime.effects.emit({
+    kind: 'packet',
+    event: {
+      type: 'buff',
+      at: runtime.time,
+      source: 'Warrior',
+      sourceId: cast.skill.id,
+      actorType: 'player',
+      skillId: cast.skill.id,
+      skillName: cast.skill.name,
+      activationId: cast.id,
+      name: supercharged ? 'Supercharged Cartridges' : 'Overcharged Cartridges',
+      kind,
+      stacks: effectNumber(profile, buff, 'stacks'),
+      duration
+    }
   });
 }
 
@@ -682,9 +685,10 @@ export function cartridgeExplosion(runtime: Runtime, event: Gw2ResolverEvent): v
     window.supercharged ? 'Supercharged Burning' : 'Overcharged Burning'
   );
   if (burning)
-    runtime.emitDerived(
-      event,
-      buildResolverCondition({
+    runtime.effects.emit({
+      kind: 'packet',
+      cause: event,
+      event: buildResolverCondition({
         at: runtime.time,
         source: 'Warrior',
         sourceId: ID.OVERCHARGED_CARTRIDGES,
@@ -697,7 +701,7 @@ export function cartridgeExplosion(runtime: Runtime, event: Gw2ResolverEvent): v
         stacks: effectNumber(profile, burning, 'stacks'),
         duration: window.burningDuration
       })
-    );
+    });
 }
 
 /** Successful commitment restores the longest-recharging round, clearing recharge when the pool becomes full. */
@@ -709,19 +713,22 @@ function tacticalReload(runtime: Runtime, cast: RuntimeCast<WarriorSkill>): void
 
   const state = bladeswornState.from(runtime);
   state.tacticalReloadUntil = gw2EffectExpiresAt(runtime.time, 10);
-  runtime.emit({
-    type: 'buff',
-    at: runtime.time,
-    source: 'Warrior',
-    sourceId: cast.skill.id,
-    actorType: 'player',
-    skillId: cast.skill.id,
-    skillName: cast.skill.name,
-    activationId: cast.id,
-    name: 'Tactical Reload',
-    kind: 'tactical-reload',
-    stacks: 1,
-    duration: 10
+  runtime.effects.emit({
+    kind: 'packet',
+    event: {
+      type: 'buff',
+      at: runtime.time,
+      source: 'Warrior',
+      sourceId: cast.skill.id,
+      actorType: 'player',
+      skillId: cast.skill.id,
+      skillName: cast.skill.name,
+      activationId: cast.id,
+      name: 'Tactical Reload',
+      kind: 'tactical-reload',
+      stacks: 1,
+      duration: 10
+    }
   });
 }
 
@@ -741,27 +748,30 @@ function captureSlash(runtime: Runtime, cast: RuntimeCast<WarriorSkill>): void {
     )
   };
   dragonSlashReleases.set(cast, release);
-  runtime.emit({
-    type: 'resource',
-    at: runtime.time,
-    source: 'Warrior',
-    sourceId: cast.skill.id,
-    actorType: 'player',
-    skillId: cast.skill.id,
-    skillName: cast.skill.name,
-    activationId: cast.id,
-    resource: 'dragon charges',
-    reason: 'profession mechanic',
-    amount: -release.charges,
-    value: 0,
-    requestedCharges: requestedDragonCharges(cast, release.maximum),
-    maximumCharges: release.maximum,
-    chargesReached: release.charges,
-    flowSpent: release.flowSpent,
-    flowAfter: state.flow,
-    coefficient: release.coefficient,
-    chargingSeconds: runtime.time - state.dragonTriggerStartedAt,
-    maximumChargingSeconds: dragonChargeTickOffsetSeconds(Math.ceil(release.maximum / state.dragonChargesPerInterval))
+  runtime.effects.emit({
+    kind: 'packet',
+    event: {
+      type: 'resource',
+      at: runtime.time,
+      source: 'Warrior',
+      sourceId: cast.skill.id,
+      actorType: 'player',
+      skillId: cast.skill.id,
+      skillName: cast.skill.name,
+      activationId: cast.id,
+      resource: 'dragon charges',
+      reason: 'profession mechanic',
+      amount: -release.charges,
+      value: 0,
+      requestedCharges: requestedDragonCharges(cast, release.maximum),
+      maximumCharges: release.maximum,
+      chargesReached: release.charges,
+      flowSpent: release.flowSpent,
+      flowAfter: state.flow,
+      coefficient: release.coefficient,
+      chargingSeconds: runtime.time - state.dragonTriggerStartedAt,
+      maximumChargingSeconds: dragonChargeTickOffsetSeconds(Math.ceil(release.maximum / state.dragonChargesPerInterval))
+    }
   });
   exitDragonTrigger(runtime);
 }

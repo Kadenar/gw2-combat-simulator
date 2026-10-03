@@ -1,4 +1,3 @@
-import type { RevenantSkill } from '#gw2/professions/revenant/types.js';
 import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
 import { resourceAtLeast } from '#gw2/platform/combat/resources/pool.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
@@ -25,6 +24,7 @@ import {
   RENEGADE_PROFILE_IDS
 } from '#gw2/professions/revenant/specializations/renegade/profiles.js';
 import { renegadeState } from '#gw2/professions/revenant/specializations/renegade/state.js';
+import type { RevenantSkill } from '#gw2/professions/revenant/types.js';
 
 /** Applies the trait at the mechanic's existing execution boundary. */
 export function grantAllForOneEnergy(runtime: RevenantRuntime, enhanced: boolean): void {
@@ -52,22 +52,26 @@ export function grantKallasFervor(
     state.kallasFervor.sort((left, right) => left.expiresAt - right.expiresAt).shift();
   const duration = Math.max(0, effectNumber(profile, effect, 'duration'));
   state.kallasFervor.push({ at: runtime.time, expiresAt: runtime.time + duration });
-  runtime.emitProcedural(
-    {
-      type: 'buff',
-      at: runtime.time,
-      source: 'revenant',
-      sourceId,
-      actorType: effect.actorType || 'player',
-      skillId: sourceId,
-      skillName: sourceName,
-      name: `${sourceName} — Kalla's Fervor`,
-      kind: String(effect.kind),
-      duration,
-      stacks: effectNumber(profile, effect, 'stacks')
+  runtime.effects.emit({
+    kind: 'packet',
+    event: {
+      ...{
+        type: 'buff',
+        at: runtime.time,
+        source: 'revenant',
+        sourceId,
+        actorType: effect.actorType || 'player',
+        skillId: sourceId,
+        skillName: sourceName,
+        name: `${sourceName} — Kalla's Fervor`,
+        kind: String(effect.kind),
+        duration,
+        stacks: effectNumber(profile, effect, 'stacks')
+      },
+      fixedDuration: true
     },
-    { cause, fixedDuration: true }
-  );
+    cause
+  });
 }
 
 /** Actual critical and positional facts drive Ambush Commander and Endless Enmity. */
@@ -88,20 +92,23 @@ export function ashenDemeanor(runtime: RevenantRuntime, cast: RuntimeCast<Revena
   for (let stack = 0; stack < Math.max(0, balanceProfileNumber(profile, 'fervorStacks')); stack += 1)
     grantKallasFervor(runtime, { sourceId: TRAIT.ASHEN_DEMEANOR, sourceName: profile.name });
   for (const effect of profile.effects?.filter((candidate) => candidate.type === 'boon') ?? [])
-    runtime.emitProcedural({
-      type: 'buff',
-      at: runtime.time,
-      source: 'revenant',
-      sourceId: TRAIT.ASHEN_DEMEANOR,
-      actorType: 'player',
-      skillId: TRAIT.ASHEN_DEMEANOR,
-      skillName: profile.name,
-      activationId: cast.id,
-      name: `${profile.name} — ${String(effect.boon)}`,
-      kind: String(effect.boon),
-      duration: effectNumber(profile, effect, 'duration'),
-      stacks: effectNumber(profile, effect, 'stacks'),
-      audience: effect.audience ?? { recipients: 'self' }
+    runtime.effects.emit({
+      kind: 'packet',
+      event: {
+        type: 'buff',
+        at: runtime.time,
+        source: 'revenant',
+        sourceId: TRAIT.ASHEN_DEMEANOR,
+        actorType: 'player',
+        skillId: TRAIT.ASHEN_DEMEANOR,
+        skillName: profile.name,
+        activationId: cast.id,
+        name: `${profile.name} — ${String(effect.boon)}`,
+        kind: String(effect.boon),
+        duration: effectNumber(profile, effect, 'duration'),
+        stacks: effectNumber(profile, effect, 'stacks'),
+        audience: effect.audience ?? { recipients: 'self' }
+      }
     });
 }
 

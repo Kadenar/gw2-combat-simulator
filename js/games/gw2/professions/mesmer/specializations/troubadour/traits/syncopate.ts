@@ -1,3 +1,9 @@
+import type { EffectDelivery } from '#gw2/platform/simulation/effect-emission.js';
+import {
+  buildMesmerStrikes,
+  mesmerPacketOwner,
+  buildMesmerPacket
+} from '#gw2/professions/mesmer/core/mechanics/packets.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
 import {
@@ -20,7 +26,8 @@ export function observeSyncopateEvent(context: MesmerRuntime, event: SimulationE
   if (!damage) return;
 
   const skillName = event.skillName || event.name || 'Control effect';
-  runtime.addDamage(
+  buildMesmerStrikes(
+    runtime.context,
     { id: 'Syncopate', name: 'Syncopate', weapon: 'Utility', blade: false },
     event.at,
     {
@@ -35,8 +42,20 @@ export function observeSyncopateEvent(context: MesmerRuntime, event: SimulationE
       weaponStrengthProfileId: 'nonweapon.unequipped'
     },
     { source: 'Trait', sourceId: TRAIT.SYNCOPATE, actorType: 'player' }
-  );
-  runtime.addTraitProc('Syncopate', event.at, skillName);
+  ).forEach((packet) => {
+    runtime.context.effects.emit({
+      kind: 'packet',
+      event: packet,
+      owner: mesmerPacketOwner(packet),
+      priority: Number(packet.priority ?? 0)
+    });
+  });
+  runtime.context.effects.emit({
+    kind: 'announcement',
+    log: true,
+    attribution: { source: 'Trait', sourceId: TRAIT.SYNCOPATE, actorType: 'effect' },
+    announcement: { type: 'trait', name: 'Syncopate', at: event.at, sourceSkill: skillName, detail: '' }
+  });
 }
 
 /** The committed heal triggers its immediate wave even when diagnostic proc output is suppressed. */
@@ -45,14 +64,31 @@ export function triggerMethodOfMadnessSyncopate(context: MesmerRuntime): void {
   if (!hasTrait(context, TRAIT.SYNCOPATE)) return;
   const damage = requireEffect(requireBalanceProfileFromContext(context, TRAIT.SYNCOPATE), 'strike', 'Immediate wave');
   if (!damage) return;
-  runtime.addDamage({ id: 'Syncopate', name: 'Syncopate', weapon: 'Utility', blade: false }, context.time, {
-    ...damage,
-    name: undefined,
-    summonKind: undefined,
-    source: 'Player',
-    weapon: 'utility'
+  buildMesmerStrikes(
+    runtime.context,
+    { id: 'Syncopate', name: 'Syncopate', weapon: 'Utility', blade: false },
+    context.time,
+    {
+      ...damage,
+      name: undefined,
+      summonKind: undefined,
+      source: 'Player',
+      weapon: 'utility'
+    }
+  ).forEach((packet) => {
+    runtime.context.effects.emit({
+      kind: 'packet',
+      event: packet,
+      owner: mesmerPacketOwner(packet),
+      priority: Number(packet.priority ?? 0)
+    });
   });
-  runtime.addTraitProc('Syncopate', context.time, 'Lesser Chaos Storm');
+  runtime.context.effects.emit({
+    kind: 'announcement',
+    log: true,
+    attribution: { source: 'Trait', sourceId: TRAIT.SYNCOPATE, actorType: 'effect' },
+    announcement: { type: 'trait', name: 'Syncopate', at: context.time, sourceSkill: 'Lesser Chaos Storm', detail: '' }
+  });
 }
 
 /** Adds the delayed wave and its daze to player and afterimage Drum impacts when Syncopate is selected. */
@@ -62,7 +98,8 @@ export function scheduleSyncopateDrumWave(
   instrument: MesmerInstrument,
   damageAt: number,
   source: string,
-  actorType: 'player' | 'summon'
+  actorType: 'player' | 'summon',
+  delivery: EffectDelivery = {}
 ): void {
   if (instrument.instrument !== 'Drum') return;
   const runtime = mesmerMechanicsFor(context);
@@ -74,7 +111,8 @@ export function scheduleSyncopateDrumWave(
   // The delayed strike and disable survive independently; empty output produces no proc.
   if (!delayedWave && !daze) return;
   if (delayedWave)
-    runtime.addDamage(
+    buildMesmerStrikes(
+      runtime.context,
       {
         id: 'Syncopate delayed wave',
         name: 'Syncopate',
@@ -100,9 +138,17 @@ export function scheduleSyncopateDrumWave(
         damageBreakdownName: 'Syncopate (Delay Wave)',
         name: 'Syncopate — delayed wave'
       }
-    );
-  if (daze)
-    runtime.addEvent({
+    ).forEach((packet) => {
+      runtime.context.effects.emit({
+        ...delivery,
+        kind: 'packet',
+        event: packet,
+        owner: mesmerPacketOwner(packet),
+        priority: Number(packet.priority ?? 0)
+      });
+    });
+  if (daze) {
+    const packet = buildMesmerPacket({
       type: 'control',
       at: delayedAt,
       skillId: skill.id,
@@ -113,7 +159,28 @@ export function scheduleSyncopateDrumWave(
       sourceId: TRAIT.SYNCOPATE,
       actorType
     });
-  runtime.addTraitProc('Syncopate', delayedAt, skill.name, 'delayed drum wave');
+    runtime.context.effects.emit({
+      ...delivery,
+      kind: 'packet',
+      event: packet,
+      owner: mesmerPacketOwner(packet),
+      priority: Number(packet.priority ?? 0)
+    });
+  }
+
+  runtime.context.effects.emit({
+    ...delivery,
+    kind: 'announcement',
+    log: true,
+    attribution: { source: 'Trait', sourceId: TRAIT.SYNCOPATE, actorType: 'effect' },
+    announcement: {
+      type: 'trait',
+      name: 'Syncopate',
+      at: delayedAt,
+      sourceSkill: skill.name,
+      detail: 'delayed drum wave'
+    }
+  });
 }
 
 /** Install the accepted-heal consequence after the Troubadour runtime has installed its instrument manifest. */

@@ -1,10 +1,13 @@
-import { assertSimulationEvent } from '#gw2/platform/engine/events/events.js';
 import { registerMesmerMechanics } from '#gw2/professions/mesmer/core/mechanics/runtime.js';
 import { mesmerCatalog } from '#gw2/professions/mesmer/profession.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { createMesmerEventEmitters } from '#gw2/professions/mesmer/core/mechanics/illusions/event-emission.js';
+import {
+  buildMesmerPacket,
+  buildMesmerConditions,
+  buildMesmerStrikes
+} from '#gw2/professions/mesmer/core/mechanics/packets.js';
 import { EPSILON } from '#kernel/core/clock.js';
 import { scheduleMesmerPhantasmEffects } from '#gw2/professions/mesmer/core/execution/cast-lifecycle.js';
 import { completeTroubadourPhantasm } from '#gw2/professions/mesmer/specializations/troubadour/traits/performance.js';
@@ -24,12 +27,11 @@ test('phantasm packet and Harmonize commitment preserve their interruption toler
         reservationId: 'phantasm',
         mesmerRuntime: {
           castDetails: new Map(),
-          activeEmission: null,
           activePrimaryWeapon: () => 'Sword',
           resources: { queueResources: (...args) => resources.push(args) },
           skillEffects: {
             schedule: (_skill, _end, _start, options) =>
-              packets.push({ ...options, emissionEnd: context.mesmerRuntime.activeEmission.effectiveEnd })
+              packets.push({ ...options, emissionEnd: options.delivery.cast.effectiveEnd })
           }
         }
       };
@@ -44,38 +46,29 @@ test('phantasm packet and Harmonize commitment preserve their interruption toler
       assert.equal(packets[0].emissionEnd, packetCommitted || effectiveEnd === 4 ? Infinity : effectiveEnd);
       assert.equal(resources.length, (progress === 0.5 && effectiveEnd >= 3 - EPSILON) || effectiveEnd === 4 ? 1 : 0);
       if (resources.length) assert.equal(resources[0][0], context.fullEnd);
-      assert.equal(context.mesmerRuntime.activeEmission, null);
     }
   }
 });
 
 function createFixture() {
-  const events = [];
-  const context = {
-    profession: { id: 'mesmer' },
-    helpers: { skillsById: new Map(), skillsByName: new Map() }
+  return {
+    events: [],
+    context: {
+      config: { primaryWeapon: 'Sword' },
+      activeWeaponSet: 1,
+      helpers: { skillsById: new Map(), skillsByName: new Map() }
+    }
   };
-  const emitters = createMesmerEventEmitters({
-    context,
-    emit(input) {
-      const event = assertSimulationEvent(input);
-      events.push(event);
-      return event;
-    },
-    activePrimaryWeapon: () => 'Sword',
-    weaponStrength: {}
-  });
-
-  return { events, emitters };
 }
 
-test('Mesmer wrappers merge application, tick, and explicit metadata without losing false or zero', () => {
+test('Mesmer packet builders merge application, tick, and explicit metadata without losing false or zero', () => {
   // Both procedural paths use packet overrides and keep unrelated annotations through validation.
-  const { emitters } = createFixture();
+  const { context } = createFixture();
   const metadata = { cloneId: 1, blade: true };
   const tickMetadata = { cloneId: 2, blade: false, shatterTraitEligible: true };
   const extra = { metadata: { cloneId: 0, shatterTraitEligible: false } };
-  const [condition] = emitters.addCondition(
+  const [condition] = buildMesmerConditions(
+    context,
     'Fixture',
     1,
     {
@@ -88,7 +81,8 @@ test('Mesmer wrappers merge application, tick, and explicit metadata without los
     '',
     extra
   );
-  const [damage] = emitters.addDamage(
+  const [damage] = buildMesmerStrikes(
+    context,
     { id: 1, name: 'Fixture', blade: true },
     1,
     {
@@ -103,11 +97,11 @@ test('Mesmer wrappers merge application, tick, and explicit metadata without los
     for (const key of Object.keys(event.metadata)) assert.equal(Object.hasOwn(event, key), false);
   }
 
-  const [untimed] = emitters.addCondition('Fixture', 0, { name: 'Bleeding', duration: 2, metadata });
+  const [untimed] = buildMesmerConditions(context, 'Fixture', 0, { name: 'Bleeding', duration: 2, metadata });
   assert.deepEqual(untimed.metadata, metadata);
   assert.throws(
     () =>
-      emitters.addCondition('Fixture', 0, {
+      buildMesmerConditions(context, 'Fixture', 0, {
         name: 'Bleeding',
         duration: 2,
         metadata: { cloneId: 'invalid' }
@@ -116,15 +110,17 @@ test('Mesmer wrappers merge application, tick, and explicit metadata without los
   );
 });
 
-test('Mesmer procedural emitters attach canonical skill and summon identity', () => {
-  const { events, emitters } = createFixture();
+test('Mesmer packet builders attach canonical skill and summon identity', () => {
+  const { events, context } = createFixture();
 
-  emitters.addEvent({ type: 'marker', at: 1, skillId: 123 });
-  emitters.addCondition('Condition Skill', 2, { name: 'Bleeding', duration: 3 }, 'Clone', '', {
-    actorType: 'summon',
-    summonKind: 'clone'
-  });
-  emitters.addDamage({ id: 456, name: 'Damage Skill' }, 3, { coefficient: 1 });
+  events.push(buildMesmerPacket({ type: 'marker', at: 1, skillId: 123 }));
+  events.push(
+    ...buildMesmerConditions(context, 'Condition Skill', 2, { name: 'Bleeding', duration: 3 }, 'Clone', '', {
+      actorType: 'summon',
+      summonKind: 'clone'
+    })
+  );
+  events.push(...buildMesmerStrikes(context, { id: 456, name: 'Damage Skill' }, 3, { coefficient: 1 }));
 
   assert.deepEqual(
     events.map(({ source, sourceId, actorType, summonKind, skillId }) => ({
@@ -148,20 +144,25 @@ test('Mesmer procedural emitters attach canonical skill and summon identity', ()
   );
 });
 
-test('Mesmer procedural emitters preserve explicit derived-effect identity', () => {
-  const { events, emitters } = createFixture();
+test('Mesmer packet builders preserve explicit derived-effect identity', () => {
+  const { events, context } = createFixture();
 
-  emitters.addCondition('Condition Skill', 2, { name: 'Bleeding', duration: 3 }, 'Player', '', {
-    source: 'Phantasm',
-    sourceId: 'explicit-condition',
-    actorType: 'summon',
-    summonKind: 'phantasm'
-  });
-  emitters.addDamage(
-    { id: 456, name: 'Damage Skill' },
-    3,
-    { coefficient: 1 },
-    { source: 'Clone', sourceId: 'explicit-damage', actorType: 'summon', summonKind: 'clone' }
+  events.push(
+    ...buildMesmerConditions(context, 'Condition Skill', 2, { name: 'Bleeding', duration: 3 }, 'Player', '', {
+      source: 'Phantasm',
+      sourceId: 'explicit-condition',
+      actorType: 'summon',
+      summonKind: 'phantasm'
+    })
+  );
+  events.push(
+    ...buildMesmerStrikes(
+      context,
+      { id: 456, name: 'Damage Skill' },
+      3,
+      { coefficient: 1 },
+      { source: 'Clone', sourceId: 'explicit-damage', actorType: 'summon', summonKind: 'clone' }
+    )
   );
 
   assert.deepEqual(
@@ -174,32 +175,45 @@ test('Mesmer procedural emitters preserve explicit derived-effect identity', () 
 });
 
 // Renaming display sources cannot change actor ownership or summon classification.
-test('Mesmer emitter ownership is independent of source labels', () => {
-  const { events, emitters } = createFixture();
+test('Mesmer packet ownership is independent of source labels', () => {
+  const { events, context } = createFixture();
   for (const source of ['Player', 'Clone', 'Phantasm', 'Trait', 'Renamed source']) {
-    emitters.addEvent({ type: 'marker', at: 0, source });
+    events.push(buildMesmerPacket({ type: 'marker', at: 0, source }));
     assert.equal(events.at(-1).actorType, 'player');
     assert.equal(events.at(-1).summonKind, undefined);
 
-    emitters.addEvent({ type: 'mesmer.phantasm-summoned', at: 0, source, actorType: 'summon', summonKind: 'phantasm' });
-    assert.equal(events.at(-1).actorType, 'summon');
-    assert.equal(events.at(-1).summonKind, 'phantasm');
-
-    emitters.addCondition('Condition Skill', 0, { name: 'Bleeding', duration: 3 }, source, '', {
-      summonKind: 'phantasm'
-    });
-    assert.equal(events.at(-1).actorType, 'summon');
-    assert.equal(events.at(-1).summonKind, 'phantasm');
-
-    emitters.addDamage(
-      { id: 456, name: 'Damage Skill' },
-      0,
-      { coefficient: 1 },
-      {
+    events.push(
+      buildMesmerPacket({
+        type: 'mesmer.phantasm-summoned',
+        at: 0,
         source,
-        actorType: 'effect',
-        ownerActorType: 'player'
-      }
+        actorType: 'summon',
+        summonKind: 'phantasm'
+      })
+    );
+    assert.equal(events.at(-1).actorType, 'summon');
+    assert.equal(events.at(-1).summonKind, 'phantasm');
+
+    events.push(
+      ...buildMesmerConditions(context, 'Condition Skill', 0, { name: 'Bleeding', duration: 3 }, source, '', {
+        summonKind: 'phantasm'
+      })
+    );
+    assert.equal(events.at(-1).actorType, 'summon');
+    assert.equal(events.at(-1).summonKind, 'phantasm');
+
+    events.push(
+      ...buildMesmerStrikes(
+        context,
+        { id: 456, name: 'Damage Skill' },
+        0,
+        { coefficient: 1 },
+        {
+          source,
+          actorType: 'effect',
+          ownerActorType: 'player'
+        }
+      )
     );
     assert.equal(events.at(-1).actorType, 'effect');
     assert.equal(events.at(-1).ownerActorType, 'player');

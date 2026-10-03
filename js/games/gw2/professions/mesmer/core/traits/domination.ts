@@ -1,3 +1,4 @@
+import { buildMesmerConditions, mesmerPacketOwner } from '#gw2/professions/mesmer/core/mechanics/packets.js';
 import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { targetHealthLoss } from '#gw2/platform/combat/state/target-health.js';
@@ -183,7 +184,8 @@ export function triggerRendingShatter(context: MesmerRuntime, resolution: Mesmer
         : resolution.traitHits;
   for (const hit of hits) {
     if (hit.count <= 0) continue;
-    mechanics.addCondition(
+    buildMesmerConditions(
+      mechanics.context,
       resolution.skill.name,
       hit.at,
       {
@@ -198,7 +200,15 @@ export function triggerRendingShatter(context: MesmerRuntime, resolution: Mesmer
         sourceId: TRAIT.RENDING_SHATTER,
         actorType: 'player'
       }
-    );
+    ).forEach((packet) => {
+      mechanics.context.effects.emit({
+        ...resolution.delivery,
+        kind: 'packet',
+        event: packet,
+        owner: mesmerPacketOwner(packet),
+        priority: Number(packet.priority ?? 0)
+      });
+    });
   }
 }
 

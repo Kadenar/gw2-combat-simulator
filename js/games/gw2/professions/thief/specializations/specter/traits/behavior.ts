@@ -12,7 +12,7 @@ import { gw2PrimaryWeapon } from '#gw2/platform/equipment/weapons/loadout.js';
 import { buildResolverStrike } from '#gw2/platform/resolver/packets.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import type { ThiefRuntime } from '#gw2/professions/thief/core/events.js';
-import { emitThiefBuff, emitThiefCondition } from '#gw2/professions/thief/core/events.js';
+import { buildThiefBuff, buildThiefCondition } from '#gw2/professions/thief/core/events.js';
 import { THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
 import { specterState } from '#gw2/professions/thief/specializations/specter/state.js';
 
@@ -45,19 +45,22 @@ export function applyDarkSentry(runtime: ThiefRuntime, data: unknown): void {
   if (!allies.length) return;
   const torment = requireEffect(profile, 'condition', 'Torment');
   const venomDuration = effectNumber(profile, venom, 'duration');
-  emitThiefBuff(runtime, null, {
-    at: runtime.time,
-    source: 'Trait',
-    sourceId: TRAIT.DARK_SENTRY,
-    skillId: TRAIT.DARK_SENTRY,
-    skillName: 'Dark Sentry',
-    name: 'Rot Wallow Venom',
-    icon: ROT_WALLOW_VENOM_ICON,
-    kind: 'rot-wallow-venom',
-    duration: venomDuration,
-    stacks: effectNumber(profile, venom, 'stacks'),
-    audience: { recipients: 'party', affectsSelf: false, maximumRecipients: allies.length },
-    fixedDuration: true
+  runtime.effects.emit({
+    kind: 'packet',
+    event: buildThiefBuff(null, {
+      at: runtime.time,
+      source: 'Trait',
+      sourceId: TRAIT.DARK_SENTRY,
+      skillId: TRAIT.DARK_SENTRY,
+      skillName: 'Dark Sentry',
+      name: 'Rot Wallow Venom',
+      icon: ROT_WALLOW_VENOM_ICON,
+      kind: 'rot-wallow-venom',
+      duration: venomDuration,
+      stacks: effectNumber(profile, venom, 'stacks'),
+      audience: { recipients: 'party', affectsSelf: false, maximumRecipients: allies.length },
+      fixedDuration: true
+    })
   });
   if (!torment) return;
   // The next allied strike must fit the grant, including the shared allied expiry boundary.
@@ -67,17 +70,20 @@ export function applyDarkSentry(runtime: ThiefRuntime, data: unknown): void {
     maximumPerAlly: 1
   }))
     if (allies.includes(proc.allyIndex))
-      emitThiefCondition(runtime, null, {
-        at: proc.at,
-        source: 'Trait',
-        skillId: TRAIT.DARK_SENTRY,
-        skillName: 'Rot Wallow Venom',
-        name: `Rot Wallow Venom - Ally ${proc.allyIndex} Torment`,
-        icon: ROT_WALLOW_VENOM_ICON,
-        condition: String(torment.condition),
-        stacks: effectNumber(profile, torment, 'stacks'),
-        duration: effectNumber(profile, torment, 'duration'),
-        metadata: { triggeredByAlly: proc.allyIndex }
+      runtime.effects.emit({
+        kind: 'packet',
+        event: buildThiefCondition(null, {
+          at: proc.at,
+          source: 'Trait',
+          skillId: TRAIT.DARK_SENTRY,
+          skillName: 'Rot Wallow Venom',
+          name: `Rot Wallow Venom - Ally ${proc.allyIndex} Torment`,
+          icon: ROT_WALLOW_VENOM_ICON,
+          condition: String(torment.condition),
+          stacks: effectNumber(profile, torment, 'stacks'),
+          duration: effectNumber(profile, torment, 'duration'),
+          metadata: { triggeredByAlly: proc.allyIndex }
+        })
       });
 }
 
@@ -97,9 +103,10 @@ export function applyLarcenousTorment(runtime: ThiefRuntime, application: Gw2Res
   const strike = requireEffect(profile, 'strike', 'Larcenous Torment');
   if (strike)
     for (let stack = 1; stack <= stacks; stack += 1)
-      runtime.emitDerived(
-        application,
-        buildResolverStrike({
+      runtime.effects.emit({
+        kind: 'packet',
+        cause: application,
+        event: buildResolverStrike({
           at: runtime.time,
           source: 'Trait',
           sourceId: TRAIT.LARCENOUS_TORMENT,
@@ -114,7 +121,7 @@ export function applyLarcenousTorment(runtime: ThiefRuntime, application: Gw2Res
           damageKind: 'life-steal',
           triggeredBy: application.skillName
         })
-      );
+      });
   if (!specterState.from(runtime).shadowShroudActive && stacks > 0)
     runtime.resourceController.grant('shadowForce', stacks * balanceProfileNumber(profile, 'resourceGain'));
 }

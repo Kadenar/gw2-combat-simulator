@@ -1,3 +1,4 @@
+import { captureEffectEmissions } from '#tests/helpers/effect-emission.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { activeBoonStacks, boonActive } from '#gw2/platform/combat/query/runtime-query.js';
@@ -18,9 +19,7 @@ function boonContext(events = []) {
   const timeline = createGw2TimelineIndex({ events: history });
   return {
     timeline,
-    emit(event) {
-      history.push(event);
-    }
+    effects: captureEffectEmissions({ submit: (event) => history.push(event) }).effects
   };
 }
 
@@ -71,14 +70,17 @@ test('summon boon queries keep capped recipients in separate duration pools', ()
   assert.equal(active(1, 2), true);
   assert.equal(active(1, 3), false);
   // A self-only extension must neither extend a companion nor change which companion owned the original boon.
-  context.emit({
-    type: 'boon_extension',
-    source: 'fixture',
-    sourceId: 'extension',
-    actorType: 'player',
-    at: 1.5,
-    duration: 4,
-    resolvedAudience: { includesSelf: true, includesSummons: false, companionIds: [] }
+  context.effects.emit({
+    kind: 'packet',
+    event: {
+      type: 'boon_extension',
+      source: 'fixture',
+      sourceId: 'extension',
+      actorType: 'player',
+      at: 1.5,
+      duration: 4,
+      resolvedAudience: { includesSelf: true, includesSummons: false, companionIds: [] }
+    }
   });
   assert.equal(active(0, 2), false);
   assert.equal(active(1, 2), true);

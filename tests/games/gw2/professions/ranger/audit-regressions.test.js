@@ -127,16 +127,20 @@ test('Resounding Timbre copies live boon pools and rejects other recipients and 
           ['vigor', 1, 1],
           ['regeneration', 10, 1, { recipients: 'party', affectsSelf: false }]
         ])
-          runtime.emit({
-            type: 'buff',
-            at: 0,
-            source: 'test',
-            sourceId: 'test-boon',
-            actorType: 'effect',
-            kind,
-            duration,
-            stacks,
-            audience
+          runtime.effects.emit({
+            kind: 'packet',
+            event: {
+              type: 'buff',
+              at: 0,
+              source: 'test',
+              sourceId: 'test-boon',
+              actorType: 'effect',
+              fixedDuration: true,
+              kind,
+              duration,
+              stacks,
+              audience
+            }
           });
       }
     }
@@ -179,16 +183,19 @@ test('Resounding Timbre combines configured and generated duration boons without
             ...grants.map((duration) => [duration, { recipients: 'self' }]),
             [20, { recipients: 'summons', affectsSelf: false, eligibleCompanionIds: [rangerPetCompanionId(runtime)] }]
           ])
-            runtime.emit({
-              type: 'buff',
-              at: 2.4,
-              source: 'test',
-              sourceId: 'test-boon',
-              actorType: 'effect',
-              kind: 'quickness',
-              duration,
-              stacks: 1,
-              audience
+            runtime.effects.emit({
+              kind: 'packet',
+              event: {
+                type: 'buff',
+                at: 2.4,
+                source: 'test',
+                sourceId: 'test-boon',
+                actorType: 'effect',
+                kind: 'quickness',
+                duration,
+                stacks: 1,
+                audience
+              }
             });
         }
       }
@@ -284,16 +291,19 @@ test('merged Lesser Sic Em extends player boons through Resounding Timbre', () =
     },
     {
       initialize(runtime) {
-        runtime.emit({
-          type: 'buff',
-          at: 0,
-          source: 'test',
-          sourceId: 'test-boon',
-          actorType: 'effect',
-          kind: 'vigor',
-          duration: 10,
-          stacks: 1,
-          audience: { recipients: 'self' }
+        runtime.effects.emit({
+          kind: 'packet',
+          event: {
+            type: 'buff',
+            at: 0,
+            source: 'test',
+            sourceId: 'test-boon',
+            actorType: 'effect',
+            kind: 'vigor',
+            duration: 10,
+            stacks: 1,
+            audience: { recipients: 'self' }
+          }
         });
       }
     }
@@ -466,16 +476,19 @@ test('Soulbeast control declarations preserve ally recipients across both boons 
     {
       initialize(runtime) {
         for (const at of [1, 1.25, 1.251])
-          runtime.emit({
-            type: 'control',
-            at,
-            source: 'fixture',
-            sourceId: 'control',
-            actorType: 'effect',
-            skillName: 'Ally Control',
-            controlKind: 'daze',
-            duration: 1,
-            metadata: { triggeredByAlly: 1 }
+          runtime.effects.emit({
+            kind: 'packet',
+            event: {
+              type: 'control',
+              at,
+              source: 'fixture',
+              sourceId: 'control',
+              actorType: 'effect',
+              skillName: 'Ally Control',
+              controlKind: 'daze',
+              duration: 1,
+              metadata: { triggeredByAlly: 1 }
+            }
           });
       }
     }
@@ -506,22 +519,25 @@ test('We Heal As One snapshots distinct audiences, intensity stacks, and boon li
     initialize(runtime) {
       petId = rangerPetCompanionId(runtime);
       const seed = (kind, duration, stacks, companionId = petId, at = 0) =>
-        runtime.emit({
-          type: 'buff',
-          at,
-          kind,
-          duration,
-          stacks,
-          source: 'test',
-          sourceId: 'test-boon',
-          actorType: 'effect',
-          audience: {
-            recipients: 'summons',
-            affectsSelf: false,
-            maximumRecipients: 1,
-            eligibleCompanionIds: [companionId]
-          },
-          companionCandidates: [companionId]
+        runtime.effects.emit({
+          kind: 'packet',
+          event: {
+            type: 'buff',
+            at,
+            kind,
+            duration,
+            stacks,
+            source: 'test',
+            sourceId: 'test-boon',
+            actorType: 'effect',
+            audience: {
+              recipients: 'summons',
+              affectsSelf: false,
+              maximumRecipients: 1,
+              eligibleCompanionIds: [companionId]
+            },
+            companionCandidates: [companionId]
+          }
         });
       seed('stability', 10, 4);
       seed('protection', 0.1, 1);

@@ -7,7 +7,7 @@ import {
 } from '#gw2/platform/engine/skills/balance-profiles.js';
 import type { SkillEffect } from '#gw2/platform/engine/skills/types.js';
 import type { RuntimeCast } from '#gw2/platform/simulation/runtime-state.js';
-import { rangerEvent } from '#gw2/professions/ranger/core/events.js';
+import { buildRangerPacket } from '#gw2/professions/ranger/core/events.js';
 import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
 import { DRUID_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/ranger/specializations/druid/profiles.js';
 import type { RangerSkill, RangerRuntime } from '#gw2/professions/ranger/types.js';
@@ -78,8 +78,9 @@ export function applyNaturalBalance(runtime: RangerRuntime): void {
     const profile = requireBalanceProfileFromContext(runtime, TRAIT.NATURAL_BALANCE);
     const effect = requireEffect(profile, 'buff', 'natural-balance');
     if (effect)
-      runtime.emitProcedural(
-        rangerEvent(
+      runtime.effects.emit({
+        kind: 'packet',
+        event: buildRangerPacket(
           {
             at: runtime.time,
             source: 'Trait',
@@ -92,7 +93,7 @@ export function applyNaturalBalance(runtime: RangerRuntime): void {
           },
           'buff'
         )
-      );
+      });
   }
 }
 

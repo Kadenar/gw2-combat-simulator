@@ -8,7 +8,6 @@ import {
   requireBalanceProfileFromContext,
   requireEffect
 } from '#gw2/platform/engine/skills/balance-profiles.js';
-import { queueResolverBoon } from '#gw2/platform/resolver/boons.js';
 import type { RuntimeCast } from '#gw2/platform/simulation/runtime-state.js';
 import { grantNecromancerLifeForce } from '#gw2/professions/necromancer/core/mechanics/life-force.js';
 import {
@@ -18,10 +17,10 @@ import {
 import { addCarapace } from '#gw2/professions/necromancer/core/mechanics/state-helpers.js';
 import { NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
 import type {
-  NecromancerSkill,
   NecromancerResolverContext,
   NecromancerResolverEvent,
-  NecromancerRuntime
+  NecromancerRuntime,
+  NecromancerSkill
 } from '#gw2/professions/necromancer/types.js';
 
 /** Completed heals grant Carapace and Protection together under one Dark Defense cooldown. */
@@ -52,7 +51,7 @@ export function applyDarkDefense(runtime: NecromancerRuntime, cast: RuntimeCast<
     stacks: effectNumber(profile, boon, 'stacks'),
     duration: effectNumber(profile, boon, 'duration')
   };
-  queueResolverBoon(runtime, event, event);
+  runtime.effects.emit({ kind: 'packet', event: event, durationContext: event });
 }
 
 export function applyCorruptorsFervor(context: NecromancerResolverContext, event: NecromancerResolverEvent): void {

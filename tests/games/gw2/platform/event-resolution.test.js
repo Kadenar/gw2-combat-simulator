@@ -24,7 +24,11 @@ test('resolver setup shares reactions and creates fresh profession state for eac
       eventHandlers: {
         'fixture.trigger': (context, event) => {
           context.dispatchReaction('control.resolved', event);
-          context.applyCondition({ ...event, type: 'condition', condition: 'Weakness', stacks: 1, duration: 1 });
+          context.effects.emit({
+            kind: 'packet',
+            settlement: 'reaction',
+            event: { ...event, type: 'condition', condition: 'Weakness', stacks: 1, duration: 1 }
+          });
         }
       },
       reactions: {
@@ -331,15 +335,19 @@ test('delayed-impact casts land hostile packets later without moving the cast or
           ...testProfession.runtimeFor(config).reactions,
           'damage.resolved'(context, event) {
             if (event.type !== 'damage' || event.name === 'Fixture Reaction') return;
-            context.emitDerived(event, {
-              type: 'damage',
-              at: event.at,
-              source: 'fixture',
-              sourceId: 'fixture.reaction',
-              actorType: 'effect',
-              name: 'Fixture Reaction',
-              skillName: 'Fixture Reaction',
-              coefficient: 0.1
+            context.effects.emit({
+              kind: 'packet',
+              cause: event,
+              event: {
+                type: 'damage',
+                at: event.at,
+                source: 'fixture',
+                sourceId: 'fixture.reaction',
+                actorType: 'effect',
+                name: 'Fixture Reaction',
+                skillName: 'Fixture Reaction',
+                coefficient: 0.1
+              }
             });
           }
         }

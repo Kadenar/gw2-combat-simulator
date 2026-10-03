@@ -26,7 +26,7 @@ import {
   completeProtectorsRestoration,
   eternalArmoryMaximumAmmo,
   glacialHeartAvailability,
-  guardianResolutionEffects,
+  guardianResolutionMultiplier,
   masterOfConsecrationsFields,
   radiantFireMaximumAmmo,
   reactToRighteousInstinctsBuff,
@@ -36,7 +36,7 @@ import {
   writOfPersistenceFields
 } from '#gw2/professions/guardian/core/traits/behavior.js';
 import { GUARDIAN_SKILL_IDS as ID } from '#gw2/professions/guardian/data/ids.js';
-import type { GuardianRuntimeState, GuardianVirtue, GuardianSkill } from '#gw2/professions/guardian/types.js';
+import type { GuardianRuntimeState, GuardianSkill, GuardianVirtue } from '#gw2/professions/guardian/types.js';
 
 type Runtime = Gw2Runtime<GuardianRuntimeState, GuardianSkill>;
 const readyVirtueActivations = new WeakSet<RuntimeCast<GuardianSkill>>();
@@ -111,9 +111,13 @@ export const guardianCoreHooks: Partial<RuntimeProfession<GuardianRuntimeState, 
     if (cast.skill.id === ID.SYMBOL_OF_IGNITION) fields = guardianIgnitionFields(runtime);
     return writOfPersistenceFields(runtime, cast, masterOfConsecrationsFields(runtime, cast, fields));
   },
-  // Added symbol boons receive the Resolution multiplier once, after pulse construction.
+  // Resolution samples its profession duration rule once when the shared service applies a boon.
+  boonDuration(runtime, event, _baseDuration, scaledDuration) {
+    return event.kind === 'resolution' ? scaledDuration * guardianResolutionMultiplier(runtime) : scaledDuration;
+  },
+  // Symbol variants extend authored pulses before shared materialization.
   modifyEffects(runtime, cast, effects) {
-    return guardianResolutionEffects(runtime, writOfPersistenceEffects(runtime, cast, effects));
+    return writOfPersistenceEffects(runtime, cast, effects);
   },
   availability(runtime, skill) {
     const replacement = glacialHeartAvailability(runtime, skill);

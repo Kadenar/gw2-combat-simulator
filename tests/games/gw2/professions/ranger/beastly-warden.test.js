@@ -17,29 +17,35 @@ function simulate(selectedPet, selected, swap = false) {
           ['ranger-pet', 'summon', pet],
           ['ranger', 'player', {}]
         ]) {
-          runtime.emit({
-            type: 'damage',
-            at: 1,
-            source,
-            sourceId: 'warden-fixture',
-            skillName: 'Warden fixture',
-            actorType,
-            coefficient: 1,
-            canCrit: false,
-            weaponStrength: 1000,
-            ...metadata
+          runtime.effects.emit({
+            kind: 'packet',
+            event: {
+              type: 'damage',
+              at: 1,
+              source,
+              sourceId: 'warden-fixture',
+              skillName: 'Warden fixture',
+              actorType,
+              coefficient: 1,
+              canCrit: false,
+              weaponStrength: 1000,
+              ...metadata
+            }
           });
-          runtime.emit({
-            type: 'condition',
-            at: 1,
-            source,
-            sourceId: 'warden-condition',
-            skillName: 'Warden condition',
-            actorType,
-            condition: 'Bleeding',
-            stacks: 1,
-            duration: 1,
-            ...metadata
+          runtime.effects.emit({
+            kind: 'packet',
+            event: {
+              type: 'condition',
+              at: 1,
+              source,
+              sourceId: 'warden-condition',
+              skillName: 'Warden condition',
+              actorType,
+              condition: 'Bleeding',
+              stacks: 1,
+              duration: 1,
+              ...metadata
+            }
           });
         }
       }

@@ -4,7 +4,7 @@ import {
   requireBalanceProfileFromContext,
   requireEffect
 } from '#gw2/platform/engine/skills/balance-profiles.js';
-import { emitEngineerEvent } from '#gw2/professions/engineer/core/events.js';
+import { buildEngineerPackets } from '#gw2/professions/engineer/core/events.js';
 import { AMALGAM_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/engineer/specializations/amalgam/profiles.js';
 import type { AmalgamMorphKind } from '#gw2/professions/engineer/specializations/amalgam/skills/protocol-skills.js';
 import { AMALGAM_MORPH_KIND_BY_SKILL_ID } from '#gw2/professions/engineer/specializations/amalgam/skills/protocol-skills.js';
@@ -41,7 +41,7 @@ export function scheduleThornsRetaliation(context: EngineerRuntime, skill: Engin
   for (let index = 0; index < hits; index += 1) {
     const morphsAmalgamMorphsStrike = requireEffect(morphsProfile, 'strike', 'Amalgam Morphs');
     if (morphsAmalgamMorphsStrike) {
-      emitEngineerEvent(context, 'damage', {
+      buildEngineerPackets('damage', {
         at: at + index * interval,
         source: 'engineer',
         sourceId: skill.id,
@@ -54,7 +54,7 @@ export function scheduleThornsRetaliation(context: EngineerRuntime, skill: Engin
         hitIndex: index + 1,
         totalHits: hits,
         skillWeapon: 'Unequipped'
-      });
+      }).forEach((packet) => context.effects.emit({ kind: 'packet', event: packet }));
     }
   }
 }

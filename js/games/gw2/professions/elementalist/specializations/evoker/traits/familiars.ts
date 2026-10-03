@@ -7,8 +7,8 @@ import {
 } from '#gw2/platform/engine/skills/balance-profiles.js';
 import type { Skill, SkillId } from '#gw2/platform/engine/skills/types.js';
 import type { RuntimeCast } from '#gw2/platform/simulation/runtime-state.js';
-import { emitElementalistBuff } from '#gw2/professions/elementalist/core/events.js';
-import { emitProfiledBuff } from '#gw2/professions/elementalist/core/mechanics/effects.js';
+import { elementalistBuffRequest } from '#gw2/professions/elementalist/core/events.js';
+import { elementalistProfiledBuffRequest } from '#gw2/professions/elementalist/core/mechanics/effects.js';
 import { elementalistMightStacks } from '#gw2/professions/elementalist/core/mechanics/modifier-queries.js';
 import {
   activeElementalistBuffs,
@@ -21,11 +21,10 @@ import {
 import { FAMILIAR_ELEMENTS } from '#gw2/professions/elementalist/specializations/evoker/mechanics/constants.js';
 import { applyGalvanicEnchantment } from '#gw2/professions/elementalist/specializations/evoker/traits/enchantments.js';
 import type {
-  ElementalistSkill,
   ElementalistModifierContext,
-  ElementalistRuntime
+  ElementalistRuntime,
+  ElementalistSkill
 } from '#gw2/professions/elementalist/types.js';
-
 /** Meditation skills whose named profile effects grant Altruistic Aspect boons. */
 const ALTRUISTIC_ASPECT_SKILLS: ReadonlySet<SkillId> = new Set([
   ID.FOXS_FURY,
@@ -33,7 +32,6 @@ const ALTRUISTIC_ASPECT_SKILLS: ReadonlySet<SkillId> = new Set([
   ID.TOADS_FORTITUDE,
   ID.ELEMENTAL_PROCESSION
 ]);
-
 /**
  * Grants Altruistic Aspect's per-meditation boon when the trait is slotted and
  * the completing skill is one of the four it covers; otherwise a no-op.
@@ -48,17 +46,22 @@ export function applyAltruisticAspect(
   const altruisticAspectProfile = requireBalanceProfileFromContext(context, TRAIT.ALTRUISTIC_ASPECT);
   const effect = requireEffect(altruisticAspectProfile, 'boon', skill.name);
   if (effect) {
-    emitElementalistBuff(context, {
-      skill: skill,
-      at: cast.effectiveEnd,
-      source: skill.name,
-      sourceId: skill.id,
-      actorType: 'player',
-      kind: String(effect.boon).toLowerCase(),
-      stacks: Number(effect.stacks),
-      duration: effect.duration,
-      skillName: skill.name
-    });
+    context.effects.emit(
+      elementalistBuffRequest(
+        {
+          skill: skill,
+          at: cast.effectiveEnd,
+          source: skill.name,
+          sourceId: skill.id,
+          actorType: 'player',
+          kind: String(effect.boon).toLowerCase(),
+          stacks: Number(effect.stacks),
+          duration: effect.duration,
+          skillName: skill.name
+        },
+        { activationId: cast.id, skillId: cast.skill.id, offTarget: cast.command.offTarget }
+      )
+    );
   }
 }
 
@@ -77,16 +80,21 @@ function grantFamiliarProwess(context: ElementalistRuntime, cast: RuntimeCast<El
     return;
   }
 
-  emitElementalistBuff(context, {
-    at,
-    source: "Familiar's Prowess",
-    sourceId: skill.id,
-    actorType: 'player',
-    skillName: "Familiar's Prowess",
-    kind: "familiar's-prowess",
-    stacks: 1,
-    duration: baseDuration
-  });
+  context.effects.emit(
+    elementalistBuffRequest(
+      {
+        at,
+        source: "Familiar's Prowess",
+        sourceId: skill.id,
+        actorType: 'player',
+        skillName: "Familiar's Prowess",
+        kind: "familiar's-prowess",
+        stacks: 1,
+        duration: baseDuration
+      },
+      { activationId: cast.id, skillId: cast.skill.id, offTarget: cast.command.offTarget }
+    )
+  );
 }
 
 // Familiar completions fan out through named steps so their ordering remains visible.
@@ -104,13 +112,18 @@ export function applyFamiliarTraitProcs(
   if (familiarElement && hasTrait(context, TRAIT.FAMILIARS_BLESSING)) {
     const quick = familiarElement === 'Fire' || familiarElement === 'Air';
     // Blessing stays after Prowess and before charge grants; only packet construction is shared.
-    emitProfiledBuff(
-      context,
-      at,
-      TRAIT.FAMILIARS_BLESSING,
-      quick ? 'Quickness' : 'Alacrity',
-      "Familiar's Blessing",
-      skill.id
+    context.effects.emit(
+      elementalistProfiledBuffRequest(
+        context,
+        at,
+        TRAIT.FAMILIARS_BLESSING,
+        quick ? 'Quickness' : 'Alacrity',
+        "Familiar's Blessing",
+        skill.id,
+        undefined,
+        undefined,
+        { activationId: cast.id, skillId: cast.skill.id, offTarget: cast.command.offTarget }
+      )
     );
   }
 

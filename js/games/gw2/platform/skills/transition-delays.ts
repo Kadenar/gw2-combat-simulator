@@ -1,5 +1,5 @@
 import { canonicalTime } from '#kernel/core/clock.js';
-import type { SimulationEventBase } from '#gw2/platform/engine/events/events.js';
+import type { EffectEmissionService } from '#gw2/platform/simulation/effect-emission.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
 import type { SkillId } from '#gw2/platform/engine/skills/types.js';
 
@@ -29,7 +29,7 @@ export function normalizeTransitionDelays(value: unknown): TransitionDelays {
 function emitTransitionLockout(
   context: {
     readonly config?: Gw2Config;
-    emit(event: SimulationEventBase): unknown;
+    readonly effects: EffectEmissionService;
   },
   kind: TransitionDelayKind,
   at: number,
@@ -37,16 +37,19 @@ function emitTransitionLockout(
 ): void {
   const duration = normalizeTransitionDelays(context.config?.transitionDelays)[kind] / 1000;
   if (!duration) return;
-  context.emit({
-    type: TRANSITION_LOCKOUT_EVENT,
-    at,
-    duration,
-    kind,
-    source: 'gw2',
-    sourceId: skill?.id ?? kind,
-    actorType: 'player',
-    ...(skill ? { skillId: skill.id, skillName: skill.name } : {}),
-    name: 'Transition delay'
+  context.effects.emit({
+    kind: 'packet',
+    event: {
+      type: TRANSITION_LOCKOUT_EVENT,
+      at,
+      duration,
+      kind,
+      source: 'gw2',
+      sourceId: skill?.id ?? kind,
+      actorType: 'player',
+      ...(skill ? { skillId: skill.id, skillName: skill.name } : {}),
+      name: 'Transition delay'
+    }
   });
 }
 
@@ -56,7 +59,7 @@ export function lockTransitionInput(
     readonly config?: Gw2Config;
     readonly time: number;
     inputReadyAt: number;
-    emit(event: SimulationEventBase): unknown;
+    readonly effects: EffectEmissionService;
   },
   kind: TransitionDelayKind,
   skill?: { readonly id: SkillId; readonly name: string }

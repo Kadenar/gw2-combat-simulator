@@ -23,28 +23,34 @@ test('Magebane Tether ignores Alacrity gained or lost during its recharge', () =
         ...profession,
         initialize(runtime) {
           profession.initialize(runtime);
-          runtime.emit({
-            type: 'buff',
-            kind: 'alacrity',
-            at: alacrityAt,
-            duration: 4.08,
-            stacks: 1,
-            source: 'fixture',
-            sourceId: 'fixture',
-            actorType: 'player'
+          runtime.effects.emit({
+            kind: 'packet',
+            event: {
+              type: 'buff',
+              kind: 'alacrity',
+              at: alacrityAt,
+              duration: 4.08,
+              stacks: 1,
+              source: 'fixture',
+              sourceId: 'fixture',
+              actorType: 'player'
+            }
           });
           for (const at of [0, 9.6, 9.64])
-            runtime.emit({
-              type: 'damage',
-              actorType: 'player',
-              coefficient: 1,
-              skillId: ID.BREACHING_STRIKE,
-              sourceId: ID.BREACHING_STRIKE,
-              source: 'warrior',
-              skillName: 'Breaching Strike',
-              weaponStrengthProfileId: 'weapon.dagger',
-              activationId: 'burst-' + at,
-              at
+            runtime.effects.emit({
+              kind: 'packet',
+              event: {
+                type: 'damage',
+                actorType: 'player',
+                coefficient: 1,
+                skillId: ID.BREACHING_STRIKE,
+                sourceId: ID.BREACHING_STRIKE,
+                source: 'warrior',
+                skillName: 'Breaching Strike',
+                weaponStrengthProfileId: 'weapon.dagger',
+                activationId: 'burst-' + at,
+                at
+              }
             });
         },
         reactions: {

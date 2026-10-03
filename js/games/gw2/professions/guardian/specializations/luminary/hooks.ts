@@ -21,7 +21,6 @@ import {
 } from '#gw2/professions/guardian/core/mechanics/virtues.js';
 import {
   applyGuardianVirtueActivationTraits,
-  emitGuardianBoon,
   triggerGuardianFuriousFocus
 } from '#gw2/professions/guardian/core/traits/behavior.js';
 import { GUARDIAN_SKILL_IDS as ID } from '#gw2/professions/guardian/data/ids.js';
@@ -96,18 +95,21 @@ function exitForge(runtime: Runtime, cast?: RuntimeCast<GuardianSkill>): void {
       consumeSkillFlip(runtime.profession.core.availableFlips, id);
   }
 
-  runtime.emit({
-    type: 'weapon_set',
-    at: runtime.time,
-    source: 'guardian',
-    sourceId: exit.id,
-    actorType: 'player',
-    skillId: exit.id,
-    skillName: exit.name,
-    weaponSet: runtime.activeWeaponSet,
-    weaponLine: exit.name,
-    activationId: cast?.id,
-    automatic: !cast
+  runtime.effects.emit({
+    kind: 'packet',
+    event: {
+      type: 'weapon_set',
+      at: runtime.time,
+      source: 'guardian',
+      sourceId: exit.id,
+      actorType: 'player',
+      skillId: exit.id,
+      skillName: exit.name,
+      weaponSet: runtime.activeWeaponSet,
+      weaponLine: exit.name,
+      activationId: cast?.id,
+      automatic: !cast
+    }
   });
   lockTransitionInput(runtime, 'forgeExitMs', exit);
 }
@@ -128,11 +130,14 @@ function enterForge(runtime: Runtime, cast: RuntimeCast<GuardianSkill>): void {
   resetAutoattackChains(runtime);
   armSkillFlip(runtime.profession.core.availableFlips, ID.EXIT_RADIANT_FORGE, runtime.time);
   runtime.schedule(EXIT, state.radiantForgeEndsAt, cast.id, undefined, -220);
-  runtime.emit({
-    ...guardianCastCause(runtime, cast),
-    type: 'weapon_set',
-    weaponSet: runtime.activeWeaponSet,
-    weaponLine: cast.skill.name
+  runtime.effects.emit({
+    kind: 'packet',
+    event: {
+      ...guardianCastCause(runtime, cast),
+      type: 'weapon_set',
+      weaponSet: runtime.activeWeaponSet,
+      weaponLine: cast.skill.name
+    }
   });
   lockTransitionInput(runtime, 'forgeEntryMs', cast.skill);
 }
@@ -148,9 +153,10 @@ function hammerImpact(runtime: Runtime, data: unknown): void {
   const strike = requireEffect(profile, 'strike', 'Strike');
   const condition = requireEffect(profile, 'condition', 'Vulnerability');
   if (strike)
-    runtime.emitDerived(
-      cause,
-      buildGuardianStrike({
+    runtime.effects.emit({
+      kind: 'packet',
+      cause: cause,
+      event: buildGuardianStrike({
         at: canonicalTime(runtime.time + effectNumber(profile, strike, 'atMs') / 1000),
         sourceId: cast.skill.id,
         skillId: cast.skill.id,
@@ -159,11 +165,12 @@ function hammerImpact(runtime: Runtime, data: unknown): void {
         coefficient: effectNumber(profile, strike, 'coefficient'),
         offTarget: cast.command.offTarget === true
       })
-    );
+    });
   if (condition)
-    runtime.emitDerived(
-      cause,
-      buildResolverCondition({
+    runtime.effects.emit({
+      kind: 'packet',
+      cause: cause,
+      event: buildResolverCondition({
         at: canonicalTime(runtime.time + effectNumber(profile, condition, 'atMs') / 1000),
         source: 'guardian',
         sourceId: cast.skill.id,
@@ -175,7 +182,7 @@ function hammerImpact(runtime: Runtime, data: unknown): void {
         duration: effectNumber(profile, condition, 'duration'),
         offTarget: cast.command.offTarget === true
       })
-    );
+    });
 }
 
 /** Luminary owns its live form, virtue entitlements, finite stance work, and actual combo-derived auras. */
@@ -209,7 +216,10 @@ export const luminaryHooks: Partial<RuntimeProfession<GuardianRuntimeState, Guar
         }
 
         if (cast.skill.flipSkillId != null) armSkillFlip(flips, cast.skill.flipSkillId, runtime.time);
-        runtime.emit({ ...guardianCastCause(runtime, cast), type: 'sigil_swap', weaponSet: runtime.activeWeaponSet });
+        runtime.effects.emit({
+          kind: 'packet',
+          event: { ...guardianCastCause(runtime, cast), type: 'sigil_swap', weaponSet: runtime.activeWeaponSet }
+        });
         runtime.scheduleForCast(EQUIP, canonicalTime(runtime.time + 0.001), cast);
       }
     },
@@ -290,13 +300,16 @@ export const luminaryHooks: Partial<RuntimeProfession<GuardianRuntimeState, Guar
         duration: number;
         party?: boolean;
       };
-      emitGuardianBoon(runtime, {
-        ...guardianCastCause(runtime, cast),
-        priority: kind === 'guardian-radiant-courage-sword' ? -5 : 0,
-        kind,
-        duration,
-        stacks: 1,
-        audience: { recipients: party ? 'party' : 'self' }
+      runtime.effects.emit({
+        kind: 'packet',
+        event: {
+          ...guardianCastCause(runtime, cast),
+          priority: kind === 'guardian-radiant-courage-sword' ? -5 : 0,
+          kind,
+          duration,
+          stacks: 1,
+          audience: { recipients: party ? 'party' : 'self' }
+        }
       });
     }
   }

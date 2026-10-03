@@ -1,24 +1,20 @@
 import { requireBalanceNumber } from '#gw2/platform/engine/skills/canonical-skill-catalog.js';
-import { emitEffects } from '#gw2/platform/simulation/procedural-emission.js';
+import type { EffectDelivery } from '#gw2/platform/simulation/effect-emission.js';
 import type { RuntimeCast, RuntimeProfession } from '#gw2/platform/simulation/runtime-state.js';
 import { applySideEffect, type ActionContext } from '#gw2/platform/simulation/side-effects.js';
-import { withElementalistCast } from '#gw2/professions/elementalist/core/events.js';
 import { registerElementalistEliteEvents } from '#gw2/professions/elementalist/core/mechanics/elite-events.js';
 import {
   applyCatalystResolvedDamage,
   applyShatteringIce
 } from '#gw2/professions/elementalist/specializations/catalyst/mechanics/reactions.js';
-
 import {
   applyEnergizedElements,
   applySphereSpecialistDurations,
   applySphereStartTraits,
   sphereSpecialistAllowsEnergy
 } from '#gw2/professions/elementalist/specializations/catalyst/traits/spheres.js';
-
-import type { ElementalistSkill, ElementalistRuntimeState } from '#gw2/professions/elementalist/types.js';
+import type { ElementalistRuntimeState, ElementalistSkill } from '#gw2/professions/elementalist/types.js';
 /** Owns sphere execution and energy accounting; trait owners run at their original mechanic boundaries. */
-
 import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { denyCast } from '#gw2/platform/engine/skills/availability.js';
@@ -28,20 +24,18 @@ import {
 } from '#gw2/platform/engine/skills/balance-profiles.js';
 import type { Skill } from '#gw2/platform/engine/skills/types.js';
 import type { AvailabilityResult } from '#gw2/platform/execution/types.js';
-
 import { CATALYST_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/elementalist/specializations/catalyst/profiles.js';
 import { catalystState } from '#gw2/professions/elementalist/specializations/catalyst/state.js';
 import type { ElementalistRuntime } from '#gw2/professions/elementalist/types.js';
-
 function maximumEnergy(context: unknown): number {
   const resourcesProfile = requireBalanceProfileFromContext(context, PROFILE.resources);
   return balanceProfileNumber(resourcesProfile, 'maximumStacks');
 }
 
 // Adopt the balance-profile energy cap before the fight and clamp any seeded energy to it.
-function initialize(context: ElementalistRuntime): void {
+function initialize(context: ElementalistRuntime, emissionCast?: EffectDelivery['cast']): void {
   registerElementalistEliteEvents(context, (runtime, event) => {
-    applyEnergizedElements(runtime, event);
+    applyEnergizedElements(runtime, event, emissionCast);
   });
   const state = catalystState.from(context);
   state.maximumEnergy = maximumEnergy(context);
@@ -86,17 +80,20 @@ function deployJadeSphere(context: ElementalistRuntime, cast: RuntimeCast<Elemen
     state.sphereExpiry[String(skill.attunement)] = cast.effectiveEnd + duration;
   }
 
-  context.emit({
-    type: 'resource',
-    at: cast.start,
-    source: skill.name,
-    sourceId: skill.id,
-    actorType: 'player',
-    skillName: skill.name,
-    kind: 'catalyst-energy',
-    value: state.energy,
-    maximum: maximumEnergy(context),
-    change: -sphereCost
+  context.effects.emit({
+    kind: 'packet',
+    event: {
+      type: 'resource',
+      at: cast.start,
+      source: skill.name,
+      sourceId: skill.id,
+      actorType: 'player',
+      skillName: skill.name,
+      kind: 'catalyst-energy',
+      value: state.energy,
+      maximum: maximumEnergy(context),
+      change: -sphereCost
+    }
   });
 }
 
@@ -139,17 +136,21 @@ function gainEnergy(runtime: ElementalistRuntime, event: SimulationEvent): void 
     before + balanceProfileNumber(requireBalanceProfileFromContext(runtime, PROFILE.resources), 'resourceGain')
   );
   if (state.energy !== before)
-    runtime.emitDerived(event, {
-      type: 'resource',
-      at: runtime.time,
-      source: 'Catalyst Energy',
-      sourceId: event.sourceId,
-      actorType: 'player',
-      skillName: event.skillName,
-      kind: 'catalyst-energy',
-      value: state.energy,
-      maximum: maximumEnergy(runtime),
-      change: state.energy - before
+    runtime.effects.emit({
+      kind: 'packet',
+      cause: event,
+      event: {
+        type: 'resource',
+        at: runtime.time,
+        source: 'Catalyst Energy',
+        sourceId: event.sourceId,
+        actorType: 'player',
+        skillName: event.skillName,
+        kind: 'catalyst-energy',
+        value: state.energy,
+        maximum: maximumEnergy(runtime),
+        change: state.energy - before
+      }
     });
 }
 
@@ -167,10 +168,11 @@ export const catalystHooks: Partial<RuntimeProfession<ElementalistRuntimeState, 
     'elementalist.catalyst.augment-window'(runtime, context) {
       if (context.kind !== 'cast') throw new TypeError('Catalyst augment windows require a cast trigger.');
       const { skill, cast } = context;
-      emitEffects(runtime, {
-        owner: skill,
+      runtime.effects.emit({
+        kind: 'profile',
+        profile: skill,
         effects: (skill.effects ?? []).filter((effect) => !effect.when || effect.when(runtime, cast)),
-        baseEvent: {
+        attribution: {
           source: 'elementalist',
           sourceId: skill.id,
           actorType: 'player',
@@ -186,10 +188,9 @@ export const catalystHooks: Partial<RuntimeProfession<ElementalistRuntimeState, 
     // The commit action owns augment emission so cast-start materialization cannot freeze the sphere choice.
     if (cast.skill.sideEffects?.some((effect) => effect.do.type === 'elementalist.catalyst.augment-window')) return [];
     if (cast.skill.skillFamily !== 'Jade Sphere') return effects;
-    withElementalistCast(runtime, cast, () => applySphereStartTraits(runtime, cast, cast.skill));
+    applySphereStartTraits(runtime, cast, cast.skill);
     return applySphereSpecialistDurations(runtime, effects);
   },
-
   reactions: {
     'damage.resolved'(runtime, event) {
       gainEnergy(runtime, event);

@@ -39,22 +39,26 @@ export function produceRuntimeCombos(runtime: Gw2Runtime, catalog: CanonicalCata
   if (!Array.isArray(event.comboFields) || Number(event.hitIndex ?? event.applicationIndex ?? 1) === 1) {
     fieldDescriptors(catalog, event).forEach((descriptor, index) => {
       const at = canonicalTime(fieldAt(event, descriptor));
-      runtime.emitDerived(event, {
-        ...comboCombatMetadata(event),
-        type: 'combo_field',
-        at,
-        source: event.source,
-        sourceId: event.sourceId,
-        actorType: event.actorType,
-        skillId: event.skillId,
-        skillName: event.skillName,
-        fieldId: `${descriptor.ownerId}:${event.activationId ?? event.eventOrder}:field:${index + 1}`,
-        fieldType: descriptor.fieldType,
-        expiresAt: canonicalTime(at + descriptor.duration),
-        ownerId: descriptor.ownerId,
-        ownerActorType: descriptor.ownerActorType ?? event.actorType,
-        inclusiveExpiry: descriptor.inclusiveExpiry,
-        comboBindingPriority: descriptor.comboBindingPriority
+      runtime.effects.emit({
+        kind: 'packet',
+        cause: event,
+        event: {
+          ...comboCombatMetadata(event),
+          type: 'combo_field',
+          at,
+          source: event.source,
+          sourceId: event.sourceId,
+          actorType: event.actorType,
+          skillId: event.skillId,
+          skillName: event.skillName,
+          fieldId: `${descriptor.ownerId}:${event.activationId ?? event.eventOrder}:field:${index + 1}`,
+          fieldType: descriptor.fieldType,
+          expiresAt: canonicalTime(at + descriptor.duration),
+          ownerId: descriptor.ownerId,
+          ownerActorType: descriptor.ownerActorType ?? event.actorType,
+          inclusiveExpiry: descriptor.inclusiveExpiry,
+          comboBindingPriority: descriptor.comboBindingPriority
+        }
       });
     });
   }
@@ -73,30 +77,34 @@ export function produceRuntimeCombos(runtime: Gw2Runtime, catalog: CanonicalCata
       throw new TypeError('Cast-start combo requires an owning action.');
     for (let attempt = 1; attempt <= descriptor.attempts; attempt++) {
       const packet = descriptor.finisherType === 'Projectile' ? `:${event.eventOrder ?? event.hitIndex}` : '';
-      runtime.emitDerived(event, {
-        ...comboCombatMetadata(event),
-        type: 'combo_finisher',
-        // A distinct provenance field survives derived-event isolation without inheriting hit reactions.
-        comboReaction: event.effectReaction,
-        at,
-        source: event.source,
-        sourceId: event.sourceId,
-        actorType: event.actorType,
-        skillId: event.skillId,
-        skillName: event.skillName,
-        attemptId: `${event.activationId ?? event.eventOrder}:${descriptor.finisherType}:${descriptor.attemptGroup ?? 'skill'}:${index}:${attempt}${packet}`,
-        finisherType: descriptor.finisherType,
-        fieldBinding: descriptor.fieldBinding ?? { kind: 'none' },
-        comboAllowRebind: descriptor.fieldBinding == null,
-        comboOwnerId: descriptor.ownerId,
-        comboPreferredFieldTypes: descriptor.preferredFieldTypes,
-        comboAmbiguousFieldSelection: descriptor.ambiguousFieldSelection,
-        comboExcludeOwnField: descriptor.excludeOwnField,
-        fieldSelectionAt: action?.at,
-        effectAt: Math.max(at, Number(descriptor.effectAt ?? at + Number(descriptor.effectDelay ?? 0))),
-        chance: descriptor.chance,
-        applications: descriptor.applications,
-        successfulCombos: descriptor.successfulCombos
+      runtime.effects.emit({
+        kind: 'packet',
+        cause: event,
+        event: {
+          ...comboCombatMetadata(event),
+          type: 'combo_finisher',
+          // A distinct provenance field survives derived-event isolation without inheriting hit reactions.
+          comboReaction: event.effectReaction,
+          at,
+          source: event.source,
+          sourceId: event.sourceId,
+          actorType: event.actorType,
+          skillId: event.skillId,
+          skillName: event.skillName,
+          attemptId: `${event.activationId ?? event.eventOrder}:${descriptor.finisherType}:${descriptor.attemptGroup ?? 'skill'}:${index}:${attempt}${packet}`,
+          finisherType: descriptor.finisherType,
+          fieldBinding: descriptor.fieldBinding ?? { kind: 'none' },
+          comboAllowRebind: descriptor.fieldBinding == null,
+          comboOwnerId: descriptor.ownerId,
+          comboPreferredFieldTypes: descriptor.preferredFieldTypes,
+          comboAmbiguousFieldSelection: descriptor.ambiguousFieldSelection,
+          comboExcludeOwnField: descriptor.excludeOwnField,
+          fieldSelectionAt: action?.at,
+          effectAt: Math.max(at, Number(descriptor.effectAt ?? at + Number(descriptor.effectDelay ?? 0))),
+          chance: descriptor.chance,
+          applications: descriptor.applications,
+          successfulCombos: descriptor.successfulCombos
+        }
       });
     }
   });

@@ -7,7 +7,6 @@ import {
   balanceProfileNumber,
   requireBalanceProfileFromContext
 } from '#gw2/platform/engine/skills/balance-profiles.js';
-import { emitEffects } from '#gw2/platform/simulation/procedural-emission.js';
 
 export type ProfileAmount = number | { readonly profile: SkillId; readonly field: string };
 // Resource grants may read the accepted skill's live tuning without duplicating it in a balance profile.
@@ -114,11 +113,12 @@ export function applySideEffect(
       return;
     case 'emitProfile': {
       const profile = requireBalanceProfileFromContext(runtime, action.profileId);
-      emitEffects(runtime, {
-        owner: profile,
+      runtime.effects.emit({
+        kind: 'profile',
+        profile: profile,
         effects: action.effects ? (profile.effects ?? []).filter(action.effects) : undefined,
         cause: context.kind === 'effect' ? context.trigger.event : undefined,
-        baseEvent: {
+        attribution: {
           source: 'Trait',
           sourceId: action.profileId,
           actorType: 'effect',

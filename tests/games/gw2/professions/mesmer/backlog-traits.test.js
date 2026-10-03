@@ -126,16 +126,19 @@ test('Critical Infusion grants scaled Vigor only on player critical hits', () =>
             [10.99, {}],
             [11.01, {}]
           ])
-            runtime.emit({
-              type: 'damage',
-              at,
-              actorType: 'player',
-              source: 'Player',
-              sourceId: ID.MIND_SLASH,
-              skillId: ID.MIND_SLASH,
-              skillName: 'Mind Slash',
-              coefficient: 1,
-              ...overrides
+            runtime.effects.emit({
+              kind: 'packet',
+              event: {
+                type: 'damage',
+                at,
+                actorType: 'player',
+                source: 'Player',
+                sourceId: ID.MIND_SLASH,
+                skillId: ID.MIND_SLASH,
+                skillName: 'Mind Slash',
+                coefficient: 1,
+                ...overrides
+              }
             });
         }
       }

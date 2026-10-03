@@ -1,19 +1,18 @@
-import { withElementalistCast } from '#gw2/professions/elementalist/core/events.js';
+import type { EffectDelivery } from '#gw2/platform/simulation/effect-emission.js';
 import type { RuntimeCast } from '#gw2/platform/simulation/runtime-state.js';
 import { EPSILON } from '#kernel/core/clock.js';
 /**
  * Owns Primordial Stance's scheduled pulses against the live Weaver attunement pair.
  * Skill packet templates remain in `skills/slot-skills.ts`.
  */
-import { requireBalanceProfileFromContext, requireEffect } from '#gw2/platform/engine/skills/balance-profiles.js';
-import { emitElementalistCondition, emitElementalistDamage } from '#gw2/professions/elementalist/core/events.js';
-import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { materializeSkillEffectApplications, scaleCastBoundTiming } from '#gw2/platform/engine/effects/materializer.js';
+import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
+import { requireBalanceProfileFromContext, requireEffect } from '#gw2/platform/engine/skills/balance-profiles.js';
 import type { Skill } from '#gw2/platform/engine/skills/types.js';
+import { elementalistConditionRequest, elementalistStrikeRequest } from '#gw2/professions/elementalist/core/events.js';
 import { WEAVER_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/elementalist/specializations/weaver/profiles.js';
 import { weaverState } from '#gw2/professions/elementalist/specializations/weaver/state.js';
-import type { ElementalistSkill, ElementalistRuntime } from '#gw2/professions/elementalist/types.js';
-
+import type { ElementalistRuntime, ElementalistSkill } from '#gw2/professions/elementalist/types.js';
 /** Reads canonical condition timing without emitting packets that the live-attunement tasks replace. */
 export function schedulePrimordialStance(
   context: ElementalistRuntime,
@@ -45,7 +44,10 @@ export function schedulePrimordialStance(
 function emitPrimordialStancePulse(
   context: ElementalistRuntime,
   at: number,
-  captured: { readonly sourceId: Skill['id'] }
+  captured: {
+    readonly sourceId: Skill['id'];
+  },
+  emissionCast?: EffectDelivery['cast']
 ): void {
   const core = professionCoreState(context);
   const state = weaverState.from(context);
@@ -56,38 +58,52 @@ function emitPrimordialStancePulse(
   const primordialStanceProfile = requireBalanceProfileFromContext(context, PROFILE.primordialStance);
   const strike = requireEffect(primordialStanceProfile, 'strike', 'Primordial Stance');
   if (strike)
-    emitElementalistDamage(context, {
-      at,
-      source: 'elementalist',
-      sourceId,
-      actorType: 'player',
-      skillName: 'Primordial Stance',
-      skillId: sourceId,
-      coefficient: Number(strike.coefficient),
-      skillWeapon: 'Unequipped',
-      damageKind: 'field-tick'
-    });
-
+    context.effects.emit(
+      elementalistStrikeRequest(
+        context,
+        {
+          at,
+          source: 'elementalist',
+          sourceId,
+          actorType: 'player',
+          skillName: 'Primordial Stance',
+          skillId: sourceId,
+          coefficient: Number(strike.coefficient),
+          skillWeapon: 'Unequipped',
+          damageKind: 'field-tick'
+        },
+        emissionCast
+      )
+    );
   for (const attunement of attunements) {
     const effect = requireEffect(primordialStanceProfile, 'condition', attunement);
     if (!effect) continue;
-
-    emitElementalistCondition(context, {
-      at,
-      source: 'Primordial Stance',
-      sourceId,
-      skillName: 'Primordial Stance',
-      condition: String(effect.condition),
-      stacks: Number(effect.stacks),
-      duration: Number(effect.duration)
-    });
+    context.effects.emit(
+      elementalistConditionRequest(
+        {
+          at,
+          source: 'Primordial Stance',
+          sourceId,
+          skillName: 'Primordial Stance',
+          condition: String(effect.condition),
+          stacks: Number(effect.stacks),
+          duration: Number(effect.duration)
+        },
+        emissionCast
+      )
+    );
   }
 }
 
 /** Every pulse retains the cast targeting policy but reads the current hand pair. */
 export function primordialStancePulse(runtime: ElementalistRuntime, data: unknown): void {
-  const { cast } = data as { cast: RuntimeCast<ElementalistSkill> };
-  withElementalistCast(runtime, cast, () =>
-    emitPrimordialStancePulse(runtime, runtime.time, { sourceId: cast.skill.id })
+  const { cast } = data as {
+    cast: RuntimeCast<ElementalistSkill>;
+  };
+  emitPrimordialStancePulse(
+    runtime,
+    runtime.time,
+    { sourceId: cast.skill.id },
+    { activationId: cast.id, skillId: cast.skill.id, offTarget: cast.command.offTarget }
   );
 }

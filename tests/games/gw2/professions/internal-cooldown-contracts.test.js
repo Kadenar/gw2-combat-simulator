@@ -44,6 +44,7 @@ import { WARRIOR_SKILL_IDS, WARRIOR_TRAIT_IDS } from '#gw2/professions/warrior/d
 import { warriorProfession } from '#gw2/professions/warrior/profession.js';
 import { StableEventQueue } from '#kernel/events/queue.js';
 import { withProfile, withSkill } from '#tests/helpers/catalog-overrides.js';
+import { captureEffectEmissions } from '#tests/helpers/effect-emission.js';
 import { observeGw2Runtime, observedRuntime } from '#tests/helpers/observed-runtime.js';
 import { revenantHit, runRevenant } from '#tests/helpers/revenant-simulation.js';
 import { runThief } from '#tests/helpers/thief-simulation.js';
@@ -107,9 +108,13 @@ test('Revenant Vicious Reprisal claims only eligible strikes and honors the excl
           catalog: revenantCooldown(REVENANT_TRAIT_IDS.VICIOUS_REPRISAL, duration),
           initialize(runtime) {
             // Summon-owned and zero-coefficient packets are ineligible even while Resolution is active.
-            runtime.emit(revenantHit(0.5, { actorType: 'summon', ownerActorType: 'player' }));
-            runtime.emit(revenantHit(0.5, { coefficient: 0 }));
-            for (const at of [1, 1 + duration, 1 + duration + 0.001]) runtime.emit(revenantHit(at));
+            runtime.effects.emit({
+              kind: 'packet',
+              event: revenantHit(0.5, { actorType: 'summon', ownerActorType: 'player' })
+            });
+            runtime.effects.emit({ kind: 'packet', event: revenantHit(0.5, { coefficient: 0 }) });
+            for (const at of [1, 1 + duration, 1 + duration + 0.001])
+              runtime.effects.emit({ kind: 'packet', event: revenantHit(at) });
           }
         }
       );
@@ -181,9 +186,12 @@ for (const [key, trait, invoke, literalDuration] of [
         effects += 1;
       };
 
-      context.emit = emitted;
-      context.applyCondition = emitted;
-      context.queue.enqueue = emitted;
+      context.effects = captureEffectEmissions({
+        submit(event) {
+          emitted(event);
+          return event;
+        }
+      }).effects;
       const opportunity = (at) => {
         context.effectiveEnd = at;
         invoke(context, {
@@ -210,7 +218,7 @@ for (const [key, trait, invoke, literalDuration] of [
   });
 }
 
-/** Builds the smallest scheduler/resolver context needed to exercise one profession-owned proc gate. */
+/** Captures shared-service submissions while isolating one profession-owned proc gate and nested reaction. */
 function professionContext({ id, catalog, core, specialization = {}, kind = 'Core', config = {}, traits = [] }) {
   const events = [];
   const procs = [];
@@ -234,16 +242,19 @@ function professionContext({ id, catalog, core, specialization = {}, kind = 'Cor
     boons: new Map(),
     events,
     query: { statsAt: () => ({}) },
-    recordProc: (...args) => procs.push(args),
-    applyCondition: (event) => conditions.push(event),
-    emit(event) {
-      events.push(event);
-      return event;
-    },
-    emitDerived(_cause, event) {
-      events.push(event);
-      return event;
-    }
+    effects: captureEffectEmissions({
+      now: () => context.time ?? 0,
+      submit(event, delivery) {
+        events.push(event);
+        if (delivery.settlement === 'reaction') conditions.push(event);
+        else context.queue.enqueue(event);
+        return event;
+      },
+      announce(request) {
+        procs.push(request);
+        return { type: 'proc', ...request.attribution, ...request.announcement };
+      }
+    }).effects
   };
   return { context, events, procs, conditions };
 }
@@ -369,15 +380,18 @@ test('Revenant boon traits stay blocked at the exact ICD boundary', () => {
       initialize(runtime) {
         runtime.procs.readyAt['revenant.renegade.bloodFury'] = READY_AT;
         for (const at of [READY_AT, AFTER_READY_AT])
-          runtime.emit({
-            type: 'buff',
-            kind: 'fury',
-            at,
-            duration: 1,
-            stacks: 1,
-            source: 'fixture',
-            sourceId: 'fixture',
-            actorType: 'player'
+          runtime.effects.emit({
+            kind: 'packet',
+            event: {
+              type: 'buff',
+              kind: 'fury',
+              at,
+              duration: 1,
+              stacks: 1,
+              source: 'fixture',
+              sourceId: 'fixture',
+              actorType: 'player'
+            }
           });
       }
     }
@@ -400,15 +414,18 @@ test('Thief boon traits stay blocked at the exact ICD boundary', () => {
       initialize(runtime) {
         runtime.procs.readyAt[THIEF_TRAIT_IDS.ASSASSINS_FURY] = READY_AT;
         for (const at of [READY_AT, AFTER_READY_AT])
-          runtime.emit({
-            type: 'buff',
-            kind: 'fury',
-            at,
-            duration: 1,
-            stacks: 1,
-            source: 'fixture',
-            sourceId: 'fixture',
-            actorType: 'player'
+          runtime.effects.emit({
+            kind: 'packet',
+            event: {
+              type: 'buff',
+              kind: 'fury',
+              at,
+              duration: 1,
+              stacks: 1,
+              source: 'fixture',
+              sourceId: 'fixture',
+              actorType: 'player'
+            }
           });
       }
     }
@@ -434,15 +451,18 @@ test('Warrior burst traits stay blocked at the exact ICD boundary', () => {
         initialize(runtime) {
           native.initialize(runtime);
           runtime.profession.specialization.state.magebaneTetherReadyAt = READY_AT;
-          runtime.emit({
-            type: 'damage',
-            at,
-            actorType: 'player',
-            source: 'warrior',
-            sourceId: WARRIOR_SKILL_IDS.BREACHING_STRIKE,
-            skillId: WARRIOR_SKILL_IDS.BREACHING_STRIKE,
-            coefficient: 1,
-            weaponStrengthProfileId: 'weapon.dagger'
+          runtime.effects.emit({
+            kind: 'packet',
+            event: {
+              type: 'damage',
+              at,
+              actorType: 'player',
+              source: 'warrior',
+              sourceId: WARRIOR_SKILL_IDS.BREACHING_STRIKE,
+              skillId: WARRIOR_SKILL_IDS.BREACHING_STRIKE,
+              coefficient: 1,
+              weaponStrengthProfileId: 'weapon.dagger'
+            }
           });
         }
       }
@@ -496,15 +516,18 @@ test('Necromancer condition traits stay blocked at the exact ICD boundary', () =
         initialize(runtime) {
           native.initialize(runtime);
           runtime.procs.readyAt['necromancer.scourge.nourishingAshes'] = READY_AT;
-          runtime.emit({
-            type: 'condition',
-            condition: 'Burning',
-            stacks: 1,
-            duration: 1,
-            at,
-            source: 'test',
-            sourceId: 'burning',
-            actorType: 'player'
+          runtime.effects.emit({
+            kind: 'packet',
+            event: {
+              type: 'condition',
+              condition: 'Burning',
+              stacks: 1,
+              duration: 1,
+              at,
+              source: 'test',
+              sourceId: 'burning',
+              actorType: 'player'
+            }
           });
         }
       }
@@ -541,11 +564,14 @@ test('Ineptitude claims only surviving effects on defiant targets at the event t
       assert.deepEqual({ ...context.procs.readyAt }, {});
       assert.equal(conditions.length, 0);
       context.catalog = catalog;
-      context.applyCondition = (condition) => {
-        conditions.push(condition);
-        assert.equal(context.procs.readyAt[key], defiant ? condition.at + duration : undefined);
-        if (defiant && conditions.length === 1) triggerIneptitudeFromInterrupt(context, event);
-      };
+      context.effects = captureEffectEmissions({
+        submit(condition) {
+          conditions.push(condition);
+          assert.equal(context.procs.readyAt[key], defiant ? condition.at + duration : undefined);
+          if (defiant && conditions.length === 1) triggerIneptitudeFromInterrupt(context, event);
+          return condition;
+        }
+      }).effects;
 
       triggerIneptitudeFromInterrupt(context, event);
       assert.equal(conditions.length, 1);
@@ -576,11 +602,14 @@ test('Demonic Lore claims its cooldown field only for a surviving Burning packet
   scourgeResolverEventReactions.condition(context, event);
   assert.deepEqual({ ...context.procs.readyAt }, {});
   context.catalog = catalog;
-  context.applyCondition = (condition) => {
-    assert.equal(context.procs.deadline(key), condition.at + 2);
-    conditions.push(condition);
-    if (conditions.length === 1) scourgeResolverEventReactions.condition(context, event);
-  };
+  context.effects = captureEffectEmissions({
+    submit(condition) {
+      assert.equal(context.procs.deadline(key), condition.at + 2);
+      conditions.push(condition);
+      if (conditions.length === 1) scourgeResolverEventReactions.condition(context, event);
+      return condition;
+    }
+  }).effects;
 
   scourgeResolverEventReactions.condition(context, event);
   assert.equal(conditions.length, 1);

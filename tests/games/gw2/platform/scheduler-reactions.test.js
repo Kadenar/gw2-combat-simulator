@@ -1,6 +1,6 @@
 import { runElementalist } from '#tests/helpers/elementalist-simulation.js';
 import { ELEMENTALIST_ATTUNEMENT_SKILL_IDS, ELEMENTALIST_TRAIT_IDS } from '#gw2/professions/elementalist/data/ids.js';
-import { emitElementalistDamage } from '#gw2/professions/elementalist/core/events.js';
+import { elementalistStrikeRequest } from '#gw2/professions/elementalist/core/events.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { projectedFreshAirReadyAt } from '#gw2/professions/elementalist/core/traits/critical-procs.js';
@@ -14,29 +14,35 @@ test('Ranger stealth follows its granting strike and ignores off-target impacts'
     {},
     {
       initialize(runtime) {
-        runtime.emit({
-          type: 'buff',
-          source: 'probe',
-          sourceId: 'stealth',
-          actorType: 'player',
-          at: 1,
-          kind: 'stealth',
-          duration: 5,
-          stacks: 1
+        runtime.effects.emit({
+          kind: 'packet',
+          event: {
+            type: 'buff',
+            source: 'probe',
+            sourceId: 'stealth',
+            actorType: 'player',
+            at: 1,
+            kind: 'stealth',
+            duration: 5,
+            stacks: 1
+          }
         });
         for (const [at, extra] of [
           [1, {}],
           [2, { offTarget: true }]
         ])
-          runtime.emit({
-            type: 'damage',
-            source: 'probe',
-            sourceId: 'hit',
-            actorType: 'player',
-            at,
-            coefficient: 1,
-            weaponStrength: 1000,
-            ...extra
+          runtime.effects.emit({
+            kind: 'packet',
+            event: {
+              type: 'damage',
+              source: 'probe',
+              sourceId: 'hit',
+              actorType: 'player',
+              at,
+              coefficient: 1,
+              weaponStrength: 1000,
+              ...extra
+            }
           });
       }
     }
@@ -63,15 +69,17 @@ test('Fresh Air candidates wait for the actual critical fact', () => {
           [2, { canCrit: false }],
           [2, { forceCrit: true }]
         ])
-          emitElementalistDamage(r, {
-            at,
-            skillId: 42,
-            skillName: 'Fixture',
-            actorType: 'player',
-            coefficient: 1,
-            skillWeapon: 'Unequipped',
-            ...fields
-          });
+          r.effects.emit(
+            elementalistStrikeRequest(r, {
+              at,
+              skillId: 42,
+              skillName: 'Fixture',
+              actorType: 'player',
+              coefficient: 1,
+              skillWeapon: 'Unequipped',
+              ...fields
+            })
+          );
       },
       timeline: [
         {

@@ -589,7 +589,7 @@ test('Sharpened Edges reads its patched player and pet critical proc chance', ()
 test('Sharpened Edges rereads patched effects between proc batches', () => {
   // One authored effect serves each batch, but the next invocation must see a replacement with the same ID.
   const queued = [];
-  const context = { catalog: rangerCatalog, queue: { enqueue: (event) => queued.push(event) } };
+  const context = { catalog: rangerCatalog, effects: { emit: ({ event }) => queued.push(event) } };
   const hit = { type: 'damage', at: 1, actorType: 'player', skillName: 'Test' };
   for (const duration of [3, 6]) {
     context.catalog = withProfile(rangerCatalog, TRAIT.SHARPENED_EDGES, {

@@ -229,8 +229,9 @@ export function reactToSymbolOfIgnition(context: GuardianResolverContext, event:
   const cooldownKey = projectile ? 'guardian.core.symbolProjectileIgnition' : 'guardian.core.symbolIgnition';
   // Match gw2combat's end-of-tick cooldown removal: the deadline itself is still blocked.
   if (!context.procs.claim(PROFILE.symbolOfIgnition, cooldownKey, event.at)) return;
-  context.queue.enqueue(
-    buildResolverCondition({
+  context.effects.emit({
+    kind: 'packet',
+    event: buildResolverCondition({
       at: event.at,
       priority: 5,
       source: 'guardian',
@@ -248,5 +249,5 @@ export function reactToSymbolOfIgnition(context: GuardianResolverContext, event:
       triggeredBy: event.skillName,
       projectile
     })
-  );
+  });
 }

@@ -1,3 +1,4 @@
+import type { WorkOwner } from '#gw2/platform/simulation/internal-work.js';
 import type { Skill } from '#gw2/platform/engine/skills/types.js';
 import type { Gw2ResolverEvent, Gw2ResolverStage } from '#gw2/platform/resolver/types.js';
 import type { Gw2Runtime, RuntimeCast, RuntimeProfession } from '#gw2/platform/simulation/runtime-state.js';
@@ -59,6 +60,24 @@ export function composeRuntimeHooks<State extends object, TSkill extends Skill =
     modifyEffects(context, cast, effects) {
       for (const hook of hooks) effects = hook.modifyEffects?.(context, cast, effects) ?? effects;
       return effects;
+    },
+    // Compose game rules after shared duration scaling; authors never need a profession-specific emitter.
+    boonDuration(context, event, baseDuration, scaledDuration) {
+      for (const hook of hooks)
+        scaledDuration = hook.boonDuration?.(context, event, baseDuration, scaledDuration) ?? scaledDuration;
+      return scaledDuration;
+    },
+    // Ownership is selected once at admission; conflicting lifetimes are an authoring error.
+    effectOwner(context, event) {
+      let owner: WorkOwner | undefined;
+      for (const hook of hooks) {
+        const candidate = hook.effectOwner?.(context, event);
+        if (candidate && owner && (candidate.id !== owner.id || candidate.generation !== owner.generation))
+          throw new TypeError('Conflicting effect lifetime owners.');
+        owner = candidate ?? owner;
+      }
+
+      return owner;
     },
     prepareEvent(context, event) {
       for (const hook of hooks) {

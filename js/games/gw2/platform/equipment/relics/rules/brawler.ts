@@ -37,7 +37,19 @@ export const brawler = defineRelic({
 
     state.readyAt = event.at + 8;
     state.buffUntil = gw2EffectExpiresAt(event.at, 4);
-    ctx.recordProc('relic', 'Relic of the Brawler', event.at, event.skillName, 'activated', '', null, state.buffUntil);
+    ctx.effects.emit({
+      kind: 'announcement',
+      announcement: {
+        type: 'relic',
+        name: 'Relic of the Brawler',
+        at: event.at,
+        sourceSkill: event.skillName,
+        detail: 'activated',
+        icon: '',
+        cooldownReduction: null,
+        expiresAt: state.buffUntil
+      }
+    });
   },
   strikeMultiplier: timedStrikeBuff(1.1)
 });

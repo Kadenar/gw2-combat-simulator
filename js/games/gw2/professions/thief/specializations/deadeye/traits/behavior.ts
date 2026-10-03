@@ -9,7 +9,6 @@ import {
   requireBalanceProfileFromContext
 } from '#gw2/platform/engine/skills/balance-profiles.js';
 import type { SkillId } from '#gw2/platform/engine/skills/types.js';
-import { emitEffects } from '#gw2/platform/simulation/procedural-emission.js';
 import type { RuntimeCast } from '#gw2/platform/simulation/runtime-state.js';
 import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
 import type { ThiefRuntime } from '#gw2/professions/thief/core/events.js';
@@ -39,7 +38,7 @@ export function grantBeQuickOrBeKilled(runtime: ThiefRuntime, cast: RuntimeCast<
     traitBoons(runtime, cast, 'Be Quick or Be Killed', TRAIT.BE_QUICK_OR_BE_KILLED, false, 'Quickness');
 }
 
-/** Emits a Deadeye trait boon package attributed to its trait source and triggering skill. */
+/** Builds a Deadeye trait boon package attributed to its trait source and triggering skill. */
 export function traitBoons(
   runtime: ThiefRuntime,
   cast: RuntimeCast<ThiefSkill> | null,
@@ -50,10 +49,11 @@ export function traitBoons(
 ): void {
   const profile = requireBalanceProfileFromContext(runtime, profileId);
   // Materialize the selected boons at this owner's deferred boundary, retaining its audience and attribution.
-  emitEffects(runtime, {
-    owner: profile,
+  runtime.effects.emit({
+    kind: 'profile',
+    profile: profile,
     effects: profile.effects?.filter((effect) => effect.type === 'boon' && (only == null || effect.name === only)),
-    baseEvent: {
+    attribution: {
       source: 'Trait',
       sourceId: `thief.deadeye.${source.toLowerCase().replaceAll(' ', '-')}`,
       actorType: 'player',

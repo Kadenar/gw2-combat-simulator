@@ -1,7 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { runMesmer } from '#tests/helpers/mesmer-simulation.js';
-import { emitMesmerPacket } from '#gw2/professions/mesmer/core/events.js';
 import { MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
 
 test('retired clone packets cannot grant accepted critical conditions', () => {
@@ -17,17 +16,21 @@ test('retired clone packets cannot grant accepted critical conditions', () => {
     {
       initialize(runtime) {
         for (const id of [0, 1])
-          emitMesmerPacket(runtime, {
-            type: 'damage',
-            at: 1,
-            source: 'Clone',
-            sourceId: 'clone-test',
-            actorType: 'summon',
-            summonKind: 'clone',
-            summonOwner: `mesmer.clone:${id}`,
-            metadata: { cloneId: id },
-            coefficient: 1,
-            weaponStrength: 1000
+          runtime.effects.emit({
+            kind: 'packet',
+            event: {
+              type: 'damage',
+              at: 1,
+              source: 'Clone',
+              sourceId: 'clone-test',
+              actorType: 'summon',
+              summonKind: 'clone',
+              summonOwner: `mesmer.clone:${id}`,
+              metadata: { cloneId: id },
+              coefficient: 1,
+              weaponStrength: 1000
+            },
+            owner: { id: `mesmer.clone:${id}`, generation: 0 }
           });
         runtime.cancelOwner({ id: 'mesmer.clone:0', generation: 0 });
       }

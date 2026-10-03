@@ -7,7 +7,7 @@ import { criticalProcHandler } from '#gw2/platform/profession-definition/mechani
 import { OBSERVABLE_EVENT_HANDLER } from '#gw2/platform/resolver/handler-registry.js';
 import type { RuntimeCast, RuntimeProfession } from '#gw2/platform/simulation/runtime-state.js';
 import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
-import { rangerEvent } from '#gw2/professions/ranger/core/events.js';
+import { buildRangerPacket } from '#gw2/professions/ranger/core/events.js';
 import { rangerCoreCastAvailability } from '#gw2/professions/ranger/core/mechanics/availability.js';
 import {
   handleRangerBloodThirst,
@@ -19,6 +19,7 @@ import {
   reactToRangerGreatswordDamage
 } from '#gw2/professions/ranger/core/mechanics/greatsword.js';
 import {
+  rangerBoonDuration,
   beginRangerPetCommand,
   prepareRangerPetEvent,
   rangerPetCompanionId,
@@ -67,8 +68,9 @@ function grantSkillCharges(
   profileId: number | string
 ): void {
   const profile = requireBalanceProfileFromContext(runtime, profileId);
-  runtime.emit(
-    rangerEvent(
+  runtime.effects.emit({
+    kind: 'packet',
+    event: buildRangerPacket(
       {
         at: runtime.time,
         skillId: cast.skill.id,
@@ -79,7 +81,7 @@ function grantSkillCharges(
       },
       type
     )
-  );
+  });
 }
 
 /** Commit and cancellation both synchronize the recharge already started by the runtime. */
@@ -132,6 +134,7 @@ export const rangerCoreHooks: Partial<RuntimeProfession<RangerRuntimeState, Rang
       if (context.kind === 'effect') grantMaulAttackOfOpportunity(runtime, context.trigger.event, 'pet');
     }
   },
+  boonDuration: rangerBoonDuration,
   endurance: rangerEndurance,
   availability: rangerCoreCastAvailability,
   castDurationMs: rangerPetCastDurationMs,

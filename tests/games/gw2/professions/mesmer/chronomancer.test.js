@@ -1,3 +1,4 @@
+import { captureEffectEmissions } from '#tests/helpers/effect-emission.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { defaultSimulationConfig } from '#tests/helpers/fixture-harness-core.js';
@@ -30,6 +31,7 @@ test('Continuum snapshots restore recharge work at the permanent Chronomancer ra
       { start, end, rate: gw2RechargeRate(skill, chronomancerHooks.playerAlacrityRechargeRate) }
     ]
   });
+  state.effects = captureEffectEmissions().effects;
   const continuum = createContinuumController({
     state,
     cooldownController: cooldown,
@@ -37,7 +39,6 @@ test('Continuum snapshots restore recharge work at the permanent Chronomancer ra
     refreshAmmo: cooldown.refreshAmmo,
     consumeResources: () => 0,
     triggerShatterTraits: () => {},
-    addEvent: () => {},
     durationPerSource: 3
   });
   cooldown.startRecharge(skill, 0);
@@ -59,6 +60,7 @@ test('Continuum Split restores ammo recharge and cast lockout deadlines independ
     profession: { core: { autoattackChains: {} }, specialization: { kind: 'Chronomancer', state: { continuum: null } } }
   };
   const cooldown = createCooldownController({ state, rechargeDuration: () => 10 });
+  state.effects = captureEffectEmissions().effects;
   const continuum = createContinuumController({
     state,
     cooldownController: cooldown,
@@ -66,7 +68,6 @@ test('Continuum Split restores ammo recharge and cast lockout deadlines independ
     refreshAmmo: cooldown.refreshAmmo,
     consumeResources: () => 0,
     triggerShatterTraits: () => {},
-    addEvent: () => {},
     durationPerSource: 3
   });
   cooldown.spendAmmo(skill, 0);

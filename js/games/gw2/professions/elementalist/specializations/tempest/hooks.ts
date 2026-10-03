@@ -1,5 +1,5 @@
+import type { EffectDelivery } from '#gw2/platform/simulation/effect-emission.js';
 import type { RuntimeCast, RuntimeProfession } from '#gw2/platform/simulation/runtime-state.js';
-import { withElementalistCast } from '#gw2/professions/elementalist/core/events.js';
 import { registerElementalistEliteEvents } from '#gw2/professions/elementalist/core/mechanics/elite-events.js';
 import { isElementalistAttunement } from '#gw2/professions/elementalist/core/state.js';
 import { tempestOverloadDwell } from '#gw2/professions/elementalist/specializations/tempest/mechanics/overload-dwell.js';
@@ -13,7 +13,7 @@ import {
   applyLucidSingularity,
   applyUnstableConduit
 } from '#gw2/professions/elementalist/specializations/tempest/traits/conduits.js';
-import type { ElementalistSkill, ElementalistRuntimeState } from '#gw2/professions/elementalist/types.js';
+import type { ElementalistRuntimeState, ElementalistSkill } from '#gw2/professions/elementalist/types.js';
 /**
  * Tempest hooks: the overload mechanic and its scheduler-phase traits.
  *
@@ -32,8 +32,8 @@ import {
 } from '#gw2/platform/engine/skills/balance-profiles.js';
 import type { Skill } from '#gw2/platform/engine/skills/types.js';
 import type { AvailabilityResult } from '#gw2/platform/execution/types.js';
-import { emitElementalistDamage } from '#gw2/professions/elementalist/core/events.js';
-import { emitElementalistProc } from '#gw2/professions/elementalist/core/mechanics/effects.js';
+import { elementalistStrikeRequest } from '#gw2/professions/elementalist/core/events.js';
+import { elementalistAnnouncement } from '#gw2/professions/elementalist/core/mechanics/effects.js';
 import { armElementalistElementalLightningJolt } from '#gw2/professions/elementalist/core/mechanics/elementals/runtime.js';
 import {
   triggerEarthenBlast,
@@ -49,10 +49,8 @@ import {
 import { TEMPEST_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/elementalist/specializations/tempest/profiles.js';
 import type { ElementalistRuntime } from '#gw2/professions/elementalist/types.js';
 import { EPSILON } from '#kernel/core/clock.js';
-
 // Every attunement's overload is attributed to the profession mechanic rather than the held weapon.
 const OVERLOAD_SKILL_IDS = new Set<number>(Object.values(ELEMENTALIST_OVERLOAD_SKILL_IDS));
-
 // Fire the traits that pay out as an overload begins: the conduit boons, and the core
 // attunement-entry proc matching the channeled element.
 function onCastStart(context: ElementalistRuntime, cast: RuntimeCast<ElementalistSkill>, skill: Skill): void {
@@ -60,11 +58,23 @@ function onCastStart(context: ElementalistRuntime, cast: RuntimeCast<Elementalis
   // Beginning an overload replays the core attunement-entry traits, so fire the proc that belongs
   // to the channeled element (Water has no such proc).
   if (skill.attunement === 'Fire') {
-    triggerSunspot(context, cast.start, skill.id);
+    triggerSunspot(context, cast.start, skill.id, {
+      activationId: cast.id,
+      skillId: cast.skill.id,
+      offTarget: cast.command.offTarget
+    });
   } else if (skill.attunement === 'Air') {
-    triggerElectricDischarge(context, cast.start, skill.id);
+    triggerElectricDischarge(context, cast.start, skill.id, {
+      activationId: cast.id,
+      skillId: cast.skill.id,
+      offTarget: cast.command.offTarget
+    });
   } else if (skill.attunement === 'Earth') {
-    triggerEarthenBlast(context, cast.start, skill.id);
+    triggerEarthenBlast(context, cast.start, skill.id, {
+      activationId: cast.id,
+      skillId: cast.skill.id,
+      offTarget: cast.command.offTarget
+    });
   }
 }
 
@@ -96,13 +106,15 @@ function availability(context: ElementalistRuntime, skill: Skill): AvailabilityR
 function onCastCommit(context: ElementalistRuntime, cast: RuntimeCast<ElementalistSkill>, skill: Skill): void {
   // Committed shortened heals retain the same reward before overload-specific completion work.
   applyGaleSong(context, cast, skill);
-
   if (!skill.overload) return;
   const attunement = String(skill.attunement);
   applyUnstableConduit(context, cast, skill);
-
   if (attunement === 'Fire') {
-    triggerFlameExpulsion(context, cast.effectiveEnd, skill.id);
+    triggerFlameExpulsion(context, cast.effectiveEnd, skill.id, {
+      activationId: cast.id,
+      skillId: cast.skill.id,
+      offTarget: cast.command.offTarget
+    });
   }
 }
 
@@ -115,7 +127,11 @@ function prepareEvent(_context: ElementalistRuntime, event: SimulationEventBase)
 
 // React to normalized attunement and aura events so Tempest traits share the
 // same timestamps as core state changes and resolver-generated auras.
-function onAttunementEvent(context: ElementalistRuntime, event: SimulationEvent): void {
+function onAttunementEvent(
+  context: ElementalistRuntime,
+  event: SimulationEvent,
+  emissionCast?: EffectDelivery['cast']
+): void {
   // Fresh Air re-attunes to Air off cooldown; clear Overload Air's recorded recharge with it.
   if (event.type === 'elementalist.fresh-air') {
     context.cooldownController.clear(ELEMENTALIST_OVERLOAD_SKILL_IDS.Air);
@@ -123,7 +139,7 @@ function onAttunementEvent(context: ElementalistRuntime, event: SimulationEvent)
   }
 
   // Attuning to Water claims Latent Stamina's interval even when its optional vigor packet is removed.
-  applyLatentStamina(context, event);
+  applyLatentStamina(context, event, emissionCast);
 }
 
 /** Tempest owns overload channels and reacts only to actual attunement and aura events. */
@@ -144,7 +160,7 @@ export const tempestHooks: Partial<RuntimeProfession<ElementalistRuntimeState, E
     'elementalist.tempest.lightning-jolt'(context, trigger) {
       if (trigger.kind !== 'cast') throw new TypeError('Lightning Jolt requires a cast trigger.');
       const { cast, skill } = trigger;
-      withElementalistCast(context, cast, () => {
+      {
         const lightningJoltProfile = requireBalanceProfileFromContext(context, PROFILE.lightningJolt);
         const lightningJoltOverloadAirLightningJoltStrike = requireEffect(
           lightningJoltProfile,
@@ -157,28 +173,36 @@ export const tempestHooks: Partial<RuntimeProfession<ElementalistRuntimeState, E
             lightningJoltOverloadAirLightningJoltStrike,
             'coefficient'
           );
-          emitElementalistDamage(context, {
-            at: cast.effectiveEnd,
-            source: 'Lightning Jolt',
-            sourceId: ID.LIGHTNING_JOLT,
-            actorType: 'effect',
-            ownerActorType: 'player',
-            skillId: ID.LIGHTNING_JOLT,
-            skillName: 'Lightning Jolt',
-            coefficient,
-            skillWeapon: 'Unequipped',
-            canCrit: false
-          });
+          context.effects.emit(
+            elementalistStrikeRequest(
+              context,
+              {
+                at: cast.effectiveEnd,
+                source: 'Lightning Jolt',
+                sourceId: ID.LIGHTNING_JOLT,
+                actorType: 'effect',
+                ownerActorType: 'player',
+                skillId: ID.LIGHTNING_JOLT,
+                skillName: 'Lightning Jolt',
+                coefficient,
+                skillWeapon: 'Unequipped',
+                canCrit: false
+              },
+              { activationId: cast.id, skillId: cast.skill.id, offTarget: cast.command.offTarget }
+            )
+          );
           armElementalistElementalLightningJolt(context, cast, ID.LIGHTNING_JOLT, coefficient);
-          emitElementalistProc(context, {
-            at: cast.effectiveEnd,
-            name: 'Lightning Jolt',
-            procType: 'skill',
-            sourceId: ID.LIGHTNING_JOLT,
-            sourceSkill: skill.name
-          });
+          context.effects.emit(
+            elementalistAnnouncement({
+              at: cast.effectiveEnd,
+              name: 'Lightning Jolt',
+              procType: 'skill',
+              sourceId: ID.LIGHTNING_JOLT,
+              sourceSkill: skill.name
+            })
+          );
         }
-      });
+      }
     },
     'elementalist.tempest.etching-credits'(context, trigger) {
       if (trigger.kind !== 'cast') throw new TypeError('Etching credit requires a cast trigger.');
@@ -197,26 +221,23 @@ export const tempestHooks: Partial<RuntimeProfession<ElementalistRuntimeState, E
     }
   },
   // Overload-start boons retain the triggering overload as source, including on interrupted channels.
-
   initialize(runtime) {
     registerElementalistEliteEvents(runtime, onAttunementEvent);
   },
   availability,
-
   prepareEvent,
   onCastStart(runtime, cast) {
-    withElementalistCast(runtime, cast, () => {
+    {
       onCastStart(runtime, cast, cast.skill);
       applyLucidSingularity(runtime, cast, cast.skill);
-    });
+    }
   },
   onCastCommit(runtime, cast) {
     if (cast.skill.overload && cast.effectiveEnd < cast.fullEnd) return;
-    withElementalistCast(runtime, cast, () => {
+    {
       onCastCommit(runtime, cast, cast.skill);
       if (cast.skill.skillFamily === 'Shout') applyTempestShoutTraits(runtime, cast, cast.skill);
-    });
+    }
   },
-
   reactions: { 'aura.applied': applyTempestResolverAura }
 };

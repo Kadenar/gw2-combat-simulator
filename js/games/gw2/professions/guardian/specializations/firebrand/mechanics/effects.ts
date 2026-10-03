@@ -8,10 +8,9 @@ import {
 } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { buildResolverCondition } from '#gw2/platform/resolver/packets.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
-import { emitEffects } from '#gw2/platform/simulation/procedural-emission.js';
 import type { Gw2Runtime, RuntimeCast } from '#gw2/platform/simulation/runtime-state.js';
 import { gw2EffectExpiresAt } from '#gw2/platform/skills/timing.js';
-import { emitGuardianBoon, guardianBoonDuration } from '#gw2/professions/guardian/core/traits/behavior.js';
+
 import { GUARDIAN_SKILL_IDS as ID } from '#gw2/professions/guardian/data/ids.js';
 import { FIREBRAND_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/guardian/specializations/firebrand/profiles.js';
 import { firebrandState } from '#gw2/professions/guardian/specializations/firebrand/state.js';
@@ -54,8 +53,9 @@ export function alliedAshes(
     internalCooldown: balanceProfileNumber(profile, 'internalCooldown')
   });
   for (const proc of procs)
-    runtime.emit(
-      buildResolverCondition({
+    runtime.effects.emit({
+      kind: 'packet',
+      event: buildResolverCondition({
         ...attribution(event),
         at: proc.at,
         priority: source.priority,
@@ -69,7 +69,7 @@ export function alliedAshes(
         duration: effectNumber(profile, burn, 'duration'),
         metadata: { triggeredByAlly: proc.allyIndex }
       })
-    );
+    });
 }
 
 /** Accepted Ashes casts grant after 560 ms, without exposing charges at acceptance or waiting for animation end. */
@@ -92,13 +92,16 @@ function grantFirebrandAshes(runtime: Runtime, cast: RuntimeCast<GuardianSkill>)
   const profile = requireBalanceProfileFromContext(runtime, PROFILE.ashes);
   const might = requireEffect(profile, 'boon', 'might');
   if (might)
-    emitGuardianBoon(runtime, {
-      ...event,
-      at: runtime.time,
-      kind: 'might',
-      stacks: effectNumber(profile, might, 'stacks'),
-      duration: effectNumber(profile, might, 'duration'),
-      audience: { recipients: 'party' }
+    runtime.effects.emit({
+      kind: 'packet',
+      event: {
+        ...event,
+        at: runtime.time,
+        kind: 'might',
+        stacks: effectNumber(profile, might, 'stacks'),
+        duration: effectNumber(profile, might, 'duration'),
+        audience: { recipients: 'party' }
+      }
     });
   const buff = requireEffect(profile, 'buff', 'ashes-of-the-just');
   const burn = requireEffect(profile, 'condition', 'Burning');
@@ -110,14 +113,17 @@ function grantFirebrandAshes(runtime: Runtime, cast: RuntimeCast<GuardianSkill>)
     gw2EffectExpiresAt(runtime.time, duration)
   );
   state.ashesBurnDuration = effectNumber(profile, burn, 'duration');
-  runtime.emit({
-    ...event,
-    at: runtime.time,
-    name: 'Ashes of the Just',
-    kind: 'ashes-of-the-just',
-    stacks: state.ashes.charges,
-    duration,
-    audience: { recipients: 'party' }
+  runtime.effects.emit({
+    kind: 'packet',
+    event: {
+      ...event,
+      at: runtime.time,
+      name: 'Ashes of the Just',
+      kind: 'ashes-of-the-just',
+      stacks: state.ashes.charges,
+      duration,
+      audience: { recipients: 'party' }
+    }
   });
   runtime.schedule(FIREBRAND_ASHES_EXPIRE, state.ashes.expiresAt, undefined, undefined, 10);
   alliedAshes(runtime, event, state.ashes.charges, state.ashes.expiresAt - runtime.time, {
@@ -136,28 +142,3 @@ export const firebrandEffectTasks = {
     expireCharges(firebrandState.from(runtime).ashes, runtime.time);
   }
 };
-
-/** Selected boon components retain application-time attributes and trigger lineage. */
-export function boon(
-  runtime: Runtime,
-  profileId: string | number,
-  kind: string,
-  cause: Gw2ResolverEvent,
-  party = false
-): boolean {
-  const profile = requireBalanceProfileFromContext(runtime, profileId);
-  const effect = requireEffect(profile, 'boon', kind);
-  if (!effect) return false;
-  emitEffects(runtime, {
-    owner: profile,
-    effects: [effect],
-    baseEvent: cause,
-    transform: (event) => ({
-      ...cause,
-      ...event,
-      duration: guardianBoonDuration(runtime, event),
-      audience: { recipients: party ? 'party' : 'self' }
-    })
-  });
-  return true;
-}

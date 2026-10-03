@@ -13,28 +13,34 @@ const burns = (result) =>
     (event) => event.type === 'condition' && event.sourceId === 'guardian.ashes-of-the-just'
   );
 const quickness = (runtime, at, audience = { recipients: 'self' }) =>
-  runtime.emit({
-    type: 'buff',
-    source: 'fixture',
-    sourceId: 'quickness',
-    actorType: 'player',
-    at,
-    kind: 'quickness',
-    duration: 1,
-    stacks: 1,
-    audience
+  runtime.effects.emit({
+    kind: 'packet',
+    event: {
+      type: 'buff',
+      source: 'fixture',
+      sourceId: 'quickness',
+      actorType: 'player',
+      at,
+      kind: 'quickness',
+      duration: 1,
+      stacks: 1,
+      audience
+    }
   });
 const strike = (runtime, at) =>
-  runtime.emit({
-    type: 'damage',
-    source: 'guardian',
-    sourceId: ID.ORB_OF_WRATH,
-    skillId: ID.ORB_OF_WRATH,
-    actorType: 'player',
-    at,
-    coefficient: 1,
-    weaponStrengthProfileId: 'weapon.scepter',
-    activationId: `hit-${at}`
+  runtime.effects.emit({
+    kind: 'packet',
+    event: {
+      type: 'damage',
+      source: 'guardian',
+      sourceId: ID.ORB_OF_WRATH,
+      skillId: ID.ORB_OF_WRATH,
+      actorType: 'player',
+      at,
+      coefficient: 1,
+      weaponStrengthProfileId: 'weapon.scepter',
+      activationId: `hit-${at}`
+    }
   });
 
 // Grants mutate one charge owner; emitted history and public snapshots remain detached.

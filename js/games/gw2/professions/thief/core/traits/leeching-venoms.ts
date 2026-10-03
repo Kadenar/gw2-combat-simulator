@@ -22,8 +22,9 @@ export function enqueueSiphon(
   coefficient: number,
   flatStrikeBase?: number
 ): void {
-  context.queue.enqueue(
-    buildResolverStrike({
+  context.effects.emit({
+    kind: 'packet',
+    event: buildResolverStrike({
       at: event.at,
       source: 'Trait',
       sourceId,
@@ -38,7 +39,7 @@ export function enqueueSiphon(
       damageKind: 'life-steal',
       triggeredBy: event.skillName
     })
-  );
+  });
 }
 
 export function applyLeechingVenoms(context: ThiefResolverContext, event: ThiefResolverEvent): void {

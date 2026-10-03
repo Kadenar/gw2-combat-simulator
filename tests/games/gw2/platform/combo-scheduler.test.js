@@ -47,9 +47,12 @@ const boundaryConfig = {
 test('combo boons and their relic grants settle before critical sampling in both phases', () => {
   for (const mode of ['deterministic', 'stochastic']) {
     const profession = fixtureProfession((context) => {
-      context.emit(boundaryField);
-      context.emit({ ...boundaryHit, comboFinishers: [{ ownerId: 'combo-fixture', finisherType: 'Blast' }] });
-      context.emit({ ...boundaryHit, skillName: 'Next same-time hit' });
+      context.effects.emit({ kind: 'packet', event: boundaryField });
+      context.effects.emit({
+        kind: 'packet',
+        event: { ...boundaryHit, comboFinishers: [{ ownerId: 'combo-fixture', finisherType: 'Blast' }] }
+      });
+      context.effects.emit({ kind: 'packet', event: { ...boundaryHit, skillName: 'Next same-time hit' } });
     });
     const options = {
       profession,
@@ -94,9 +97,12 @@ test('combo boons and their relic grants settle before critical sampling in both
 
 test('precombat combo boons carry into combat without counting precombat hits', () => {
   const profession = fixtureProfession((context) => {
-    context.emit(boundaryField);
-    context.emit({ ...boundaryHit, comboFinishers: [{ ownerId: 'combo-fixture', finisherType: 'Blast' }] });
-    context.emit({ ...boundaryHit, at: 2.5 });
+    context.effects.emit({ kind: 'packet', event: boundaryField });
+    context.effects.emit({
+      kind: 'packet',
+      event: { ...boundaryHit, comboFinishers: [{ ownerId: 'combo-fixture', finisherType: 'Blast' }] }
+    });
+    context.effects.emit({ kind: 'packet', event: { ...boundaryHit, at: 2.5 } });
   });
   const result = simulateGw2({
     profession,
@@ -124,11 +130,14 @@ test('precombat combo boons carry into combat without counting precombat hits', 
 
 test('precombat light finishers grant their aura even when aimed off target', () => {
   const profession = fixtureProfession((context) => {
-    context.emit({ ...boundaryField, fieldType: 'Light' });
-    context.emit({
-      ...boundaryHit,
-      offTarget: true,
-      comboFinishers: [{ ownerId: 'combo-fixture', finisherType: 'Leap' }]
+    context.effects.emit({ kind: 'packet', event: { ...boundaryField, fieldType: 'Light' } });
+    context.effects.emit({
+      kind: 'packet',
+      event: {
+        ...boundaryHit,
+        offTarget: true,
+        comboFinishers: [{ ownerId: 'combo-fixture', finisherType: 'Leap' }]
+      }
     });
   });
   const result = simulateGw2({
@@ -146,8 +155,11 @@ test('precombat combo conditions and siphons cannot affect the target', () => {
   // Finishers still succeed, but their enemy-facing outcomes cannot persist across Combat Start.
   for (const fieldType of ['Fire', 'Dark']) {
     const profession = fixtureProfession((context) => {
-      context.emit({ ...boundaryField, fieldType });
-      context.emit({ ...boundaryHit, comboFinishers: [{ ownerId: 'combo-fixture', finisherType: 'Projectile' }] });
+      context.effects.emit({ kind: 'packet', event: { ...boundaryField, fieldType } });
+      context.effects.emit({
+        kind: 'packet',
+        event: { ...boundaryHit, comboFinishers: [{ ownerId: 'combo-fixture', finisherType: 'Projectile' }] }
+      });
     });
     const result = simulateGw2({
       profession,
@@ -166,8 +178,11 @@ test('precombat combo conditions and siphons cannot affect the target', () => {
 test('off-target combo packets suppress hostile outcomes while retaining beneficial Blast effects', () => {
   for (const finisherType of ['Projectile', 'Blast']) {
     const profession = fixtureProfession((context) => {
-      context.emit(boundaryField);
-      context.emit({ ...boundaryHit, offTarget: true, comboFinishers: [{ ownerId: 'combo-fixture', finisherType }] });
+      context.effects.emit({ kind: 'packet', event: boundaryField });
+      context.effects.emit({
+        kind: 'packet',
+        event: { ...boundaryHit, offTarget: true, comboFinishers: [{ ownerId: 'combo-fixture', finisherType }] }
+      });
     });
     const result = simulateGw2({ profession, rotation: [{ type: 'wait', durationMs: 3000 }], config: boundaryConfig });
     assert.equal(result.totalDamage, 0);
@@ -184,28 +199,34 @@ test('off-target combo packets suppress hostile outcomes while retaining benefic
 
 test('combo outcomes settle before their originating damage packet', () => {
   const profession = fixtureProfession((context) => {
-    context.emit({
-      type: 'combo_field',
-      at: 0,
-      source: 'Fire Field',
-      sourceId: 'fixture.fire-field',
-      actorType: 'effect',
-      fieldId: 'fixture:fire',
-      fieldType: 'Fire',
-      expiresAt: 2,
-      ownerId: 'combo-fixture',
-      ownerActorType: 'player'
+    context.effects.emit({
+      kind: 'packet',
+      event: {
+        type: 'combo_field',
+        at: 0,
+        source: 'Fire Field',
+        sourceId: 'fixture.fire-field',
+        actorType: 'effect',
+        fieldId: 'fixture:fire',
+        fieldType: 'Fire',
+        expiresAt: 2,
+        ownerId: 'combo-fixture',
+        ownerActorType: 'player'
+      }
     });
-    context.emit({
-      type: 'damage',
-      weaponStrength: 1000,
-      at: 1,
-      source: 'Fixture Blast',
-      sourceId: 'fixture.blast',
-      actorType: 'player',
-      skillName: 'Fixture Blast',
-      coefficient: 1,
-      comboFinishers: [{ ownerId: 'combo-fixture', finisherType: 'Blast' }]
+    context.effects.emit({
+      kind: 'packet',
+      event: {
+        type: 'damage',
+        weaponStrength: 1000,
+        at: 1,
+        source: 'Fixture Blast',
+        sourceId: 'fixture.blast',
+        actorType: 'player',
+        skillName: 'Fixture Blast',
+        coefficient: 1,
+        comboFinishers: [{ ownerId: 'combo-fixture', finisherType: 'Blast' }]
+      }
     });
   });
   const result = simulateGw2({
@@ -243,17 +264,20 @@ test('combo boons use profession duration modifiers at the combo time with finis
     hooks: {
       initialize(context) {
         for (const fieldType of ['Fire', 'Smoke']) {
-          context.emit({
-            type: 'combo_field',
-            at: 0,
-            expiresAt: 5,
-            source: 'Fixture Field',
-            sourceId: 'fixture.field',
-            actorType: 'effect',
-            fieldId: fieldType,
-            fieldType,
-            ownerId: 'fixture',
-            ownerActorType: 'environment'
+          context.effects.emit({
+            kind: 'packet',
+            event: {
+              type: 'combo_field',
+              at: 0,
+              expiresAt: 5,
+              source: 'Fixture Field',
+              sourceId: 'fixture.field',
+              actorType: 'effect',
+              fieldId: fieldType,
+              fieldType,
+              ownerId: 'fixture',
+              ownerActorType: 'environment'
+            }
           });
         }
 
@@ -263,20 +287,23 @@ test('combo boons use profession duration modifiers at the combo time with finis
           ['pet', 3, 'summon', 'Fire'],
           ['fixed', 3, 'player', 'Smoke']
         ]) {
-          context.emit({
-            type: 'combo_finisher',
-            at: 1,
-            effectAt,
-            source: 'Fixture Blast',
-            sourceId: 'fixture.blast',
-            actorType,
-            ...(actorType === 'summon' ? { summonOwner: 'fixture-pet' } : {}),
-            attemptId,
-            finisherType: 'Blast',
-            fieldBinding: { kind: 'field-id', fieldId },
-            chance: 1,
-            applications: 1,
-            successfulCombos: 1
+          context.effects.emit({
+            kind: 'packet',
+            event: {
+              type: 'combo_finisher',
+              at: 1,
+              effectAt,
+              source: 'Fixture Blast',
+              sourceId: 'fixture.blast',
+              actorType,
+              ...(actorType === 'summon' ? { summonOwner: 'fixture-pet' } : {}),
+              attemptId,
+              finisherType: 'Blast',
+              fieldBinding: { kind: 'field-id', fieldId },
+              chance: 1,
+              applications: 1,
+              successfulCombos: 1
+            }
           });
         }
       }
@@ -355,17 +382,20 @@ test('cast-start field selection survives expiration but still requires a commit
   ]) {
     const profession = fixtureProfession((context) => {
       if (expiresAt != null) {
-        context.emit({
-          type: 'combo_field',
-          at: startsAt,
-          source: 'Initial Field',
-          sourceId: 'initial-field',
-          actorType: 'effect',
-          fieldId: 'field:initial',
-          fieldType: 'Fire',
-          expiresAt,
-          ownerId: 'combo-fixture',
-          ownerActorType: 'player'
+        context.effects.emit({
+          kind: 'packet',
+          event: {
+            type: 'combo_field',
+            at: startsAt,
+            source: 'Initial Field',
+            sourceId: 'initial-field',
+            actorType: 'effect',
+            fieldId: 'field:initial',
+            fieldType: 'Fire',
+            expiresAt,
+            ownerId: 'combo-fixture',
+            ownerActorType: 'player'
+          }
         });
       }
     }, catalog);
@@ -417,20 +447,30 @@ test('own-field exclusion survives rebinding and still allows fields from earlie
         ownerId: 'combo-fixture',
         ownerActorType: 'player'
       };
-      if (earlierField) context.emit({ ...field, fieldId: 'field:earlier', activationId: 'cast:earlier' });
-      context.emit({
-        type: 'damage',
-        weaponStrength: 1000,
-        at: 1,
-        source: 'Fixture Leap',
-        sourceId: 'fixture.leap',
-        actorType: 'player',
-        activationId: 'cast:current',
-        coefficient: 1,
-        comboFinishers: [{ ownerId: 'combo-fixture', finisherType: 'Leap', excludeOwnField }]
+      if (earlierField)
+        context.effects.emit({
+          kind: 'packet',
+          event: { ...field, fieldId: 'field:earlier', activationId: 'cast:earlier' }
+        });
+      context.effects.emit({
+        kind: 'packet',
+        event: {
+          type: 'damage',
+          weaponStrength: 1000,
+          at: 1,
+          source: 'Fixture Leap',
+          sourceId: 'fixture.leap',
+          actorType: 'player',
+          activationId: 'cast:current',
+          coefficient: 1,
+          comboFinishers: [{ ownerId: 'combo-fixture', finisherType: 'Leap', excludeOwnField }]
+        }
       });
       // Author a higher-priority own field last to exercise rebinding as well as initial selection.
-      context.emit({ ...field, fieldId: 'field:own', activationId: 'cast:current', comboBindingPriority: 1 });
+      context.effects.emit({
+        kind: 'packet',
+        event: { ...field, fieldId: 'field:own', activationId: 'cast:current', comboBindingPriority: 1 }
+      });
     });
     const rotation = [{ type: 'wait', durationMs: 2000 }];
     const predicted = simulateGw2({ profession, rotation: rotation });
@@ -510,26 +550,32 @@ test('pet fields retain their caster while combo conditions retain the finisher 
     summonBaseConditionDamage: 500
   };
   const profession = fixtureProfession((context) => {
-    context.emit({
-      ...pet,
-      type: 'action',
-      at: 0,
-      endsAt: 0,
-      sourceId: 'pet-field',
-      comboFields: [{ ownerId: 'combo-fixture', fieldType: 'Fire', duration: 5 }]
+    context.effects.emit({
+      kind: 'packet',
+      event: {
+        ...pet,
+        type: 'action',
+        at: 0,
+        endsAt: 0,
+        sourceId: 'pet-field',
+        comboFields: [{ ownerId: 'combo-fixture', fieldType: 'Fire', duration: 5 }]
+      }
     });
     for (const [at, actor] of [
       [1, pet],
       [2, { source: 'Player', actorType: 'player' }]
     ]) {
-      context.emit({
-        ...actor,
-        type: 'damage',
-        weaponStrength: 1000,
-        at,
-        sourceId: `projectile:${at}`,
-        coefficient: 1,
-        comboFinishers: [{ ownerId: 'combo-fixture', finisherType: 'Projectile' }]
+      context.effects.emit({
+        kind: 'packet',
+        event: {
+          ...actor,
+          type: 'damage',
+          weaponStrength: 1000,
+          at,
+          sourceId: `projectile:${at}`,
+          coefficient: 1,
+          comboFinishers: [{ ownerId: 'combo-fixture', finisherType: 'Projectile' }]
+        }
       });
     }
   });
@@ -560,48 +606,57 @@ test('pet fields retain their caster while combo conditions retain the finisher 
 
 test("an authoritative owned field overrides a finisher's field preference", () => {
   const profession = fixtureProfession((context) => {
-    context.emit({
-      type: 'combo_field',
-      at: 0,
-      source: 'Dark Field',
-      sourceId: 'dark.field',
-      actorType: 'effect',
-      fieldId: 'field:dark',
-      fieldType: 'Dark',
-      expiresAt: 5,
-      ownerId: 'combo-fixture',
-      ownerActorType: 'player'
+    context.effects.emit({
+      kind: 'packet',
+      event: {
+        type: 'combo_field',
+        at: 0,
+        source: 'Dark Field',
+        sourceId: 'dark.field',
+        actorType: 'effect',
+        fieldId: 'field:dark',
+        fieldType: 'Dark',
+        expiresAt: 5,
+        ownerId: 'combo-fixture',
+        ownerActorType: 'player'
+      }
     });
-    context.emit({
-      type: 'combo_field',
-      at: 0,
-      source: 'Authoritative Ice Field',
-      sourceId: 'ice.field',
-      actorType: 'effect',
-      fieldId: 'field:authoritative-ice',
-      fieldType: 'Ice',
-      expiresAt: 5,
-      ownerId: 'combo-fixture',
-      ownerActorType: 'player',
-      comboBindingPriority: 1
+    context.effects.emit({
+      kind: 'packet',
+      event: {
+        type: 'combo_field',
+        at: 0,
+        source: 'Authoritative Ice Field',
+        sourceId: 'ice.field',
+        actorType: 'effect',
+        fieldId: 'field:authoritative-ice',
+        fieldType: 'Ice',
+        expiresAt: 5,
+        ownerId: 'combo-fixture',
+        ownerActorType: 'player',
+        comboBindingPriority: 1
+      }
     });
-    context.emit({
-      type: 'damage',
-      weaponStrength: 1000,
-      at: 1,
-      source: 'Preferred Dark Projectile',
-      sourceId: 'preferred-dark-projectile',
-      actorType: 'player',
-      skillName: 'Preferred Dark Projectile',
-      coefficient: 1,
-      comboFinishers: [
-        {
-          ownerId: 'combo-fixture',
-          finisherType: 'Projectile',
-          preferredFieldTypes: ['Dark'],
-          ambiguousFieldSelection: 'oldest'
-        }
-      ]
+    context.effects.emit({
+      kind: 'packet',
+      event: {
+        type: 'damage',
+        weaponStrength: 1000,
+        at: 1,
+        source: 'Preferred Dark Projectile',
+        sourceId: 'preferred-dark-projectile',
+        actorType: 'player',
+        skillName: 'Preferred Dark Projectile',
+        coefficient: 1,
+        comboFinishers: [
+          {
+            ownerId: 'combo-fixture',
+            finisherType: 'Projectile',
+            preferredFieldTypes: ['Dark'],
+            ambiguousFieldSelection: 'oldest'
+          }
+        ]
+      }
     });
   });
   const result = simulateGw2({ profession, rotation: [{ type: 'wait', durationMs: 2000 }] });
@@ -660,36 +715,42 @@ test('pure movement skills resolve skill-level finishers end to end', () => {
 
 test('cancelled summon attacks do not create resolver combo outcomes', () => {
   const profession = fixtureProfession((context) => {
-    context.emit({
-      type: 'combo_field',
-      at: 0,
-      source: 'Summon Fire Field',
-      sourceId: 'summon.fire-field',
-      actorType: 'effect',
-      fieldId: 'field:summon-fire',
-      fieldType: 'Fire',
-      expiresAt: 5,
-      ownerId: 'combo-fixture',
-      ownerActorType: 'player'
+    context.effects.emit({
+      kind: 'packet',
+      event: {
+        type: 'combo_field',
+        at: 0,
+        source: 'Summon Fire Field',
+        sourceId: 'summon.fire-field',
+        actorType: 'effect',
+        fieldId: 'field:summon-fire',
+        fieldType: 'Fire',
+        expiresAt: 5,
+        ownerId: 'combo-fixture',
+        ownerActorType: 'player'
+      }
     });
-    context.emit({
-      type: 'damage',
-      weaponStrength: 1000,
-      at: 1,
-      source: 'Replaced Summon Attack',
-      sourceId: 'summon.replaced-attack',
-      actorType: 'summon',
-      activationId: 'summon:replaced',
-      coefficient: 1,
-      weaponStrengthProfileId: 'summon.weapon-type-1',
-      cancelled: true,
-      comboFinishers: [
-        {
-          ownerId: 'combo-fixture',
-          finisherType: 'Projectile',
-          ambiguousFieldSelection: 'oldest'
-        }
-      ]
+    context.effects.emit({
+      kind: 'packet',
+      event: {
+        type: 'damage',
+        weaponStrength: 1000,
+        at: 1,
+        source: 'Replaced Summon Attack',
+        sourceId: 'summon.replaced-attack',
+        actorType: 'summon',
+        activationId: 'summon:replaced',
+        coefficient: 1,
+        weaponStrengthProfileId: 'summon.weapon-type-1',
+        cancelled: true,
+        comboFinishers: [
+          {
+            ownerId: 'combo-fixture',
+            finisherType: 'Projectile',
+            ambiguousFieldSelection: 'oldest'
+          }
+        ]
+      }
     });
   });
   const result = simulateGw2({
@@ -710,31 +771,37 @@ test('cancelled summon attacks do not create resolver combo outcomes', () => {
 
 test('canonically equal fields register before finishers by default', () => {
   const profession = fixtureProfession((context) => {
-    context.emit({
-      type: 'combo_finisher',
-      at: 0.3,
-      effectAt: 0.3,
-      source: 'Leap',
-      sourceId: 'leap.skill',
-      actorType: 'player',
-      attemptId: 'leap:1',
-      finisherType: 'Leap',
-      fieldBinding: { kind: 'field-id', fieldId: 'field:same-time' },
-      chance: 1,
-      applications: 1,
-      successfulCombos: 1
+    context.effects.emit({
+      kind: 'packet',
+      event: {
+        type: 'combo_finisher',
+        at: 0.3,
+        effectAt: 0.3,
+        source: 'Leap',
+        sourceId: 'leap.skill',
+        actorType: 'player',
+        attemptId: 'leap:1',
+        finisherType: 'Leap',
+        fieldBinding: { kind: 'field-id', fieldId: 'field:same-time' },
+        chance: 1,
+        applications: 1,
+        successfulCombos: 1
+      }
     });
-    context.emit({
-      type: 'combo_field',
-      at: 0.1 + 0.2,
-      source: 'Ice Field',
-      sourceId: 'ice.field',
-      actorType: 'effect',
-      fieldId: 'field:same-time',
-      fieldType: 'Ice',
-      expiresAt: 1.3,
-      ownerId: 'combo-fixture',
-      ownerActorType: 'player'
+    context.effects.emit({
+      kind: 'packet',
+      event: {
+        type: 'combo_field',
+        at: 0.1 + 0.2,
+        source: 'Ice Field',
+        sourceId: 'ice.field',
+        actorType: 'effect',
+        fieldId: 'field:same-time',
+        fieldType: 'Ice',
+        expiresAt: 1.3,
+        ownerId: 'combo-fixture',
+        ownerActorType: 'player'
+      }
     });
   });
   const result = simulateGw2({ profession, rotation: [{ type: 'wait', durationMs: 400 }] });
@@ -747,16 +814,23 @@ test('canonically equal fields register before finishers by default', () => {
 test('combo rolls use source-local packet identities instead of global event numbers', () => {
   const run = (mode, seed, noisy, activationId, chance = 0.5) => {
     const profession = fixtureProfession((runtime) => {
-      runtime.emit({ ...boundaryField, fieldType: 'Ice' });
+      runtime.effects.emit({ kind: 'packet', event: { ...boundaryField, fieldType: 'Ice' } });
       for (let index = 0; index < 24; index++) {
         const at = 0.25 + Math.floor(index / 2) * 0.04;
-        if (noisy) runtime.emit({ ...boundaryOwner, type: 'buff', at, kind: 'protection', duration: 1, stacks: 1 });
-        runtime.emit({
-          ...boundaryHit,
-          at,
-          activationId,
-          hitIndex: 1,
-          comboFinishers: [{ ownerId: 'combo-fixture', finisherType: 'Projectile', chance }]
+        if (noisy)
+          runtime.effects.emit({
+            kind: 'packet',
+            event: { ...boundaryOwner, type: 'buff', at, kind: 'protection', duration: 1, stacks: 1 }
+          });
+        runtime.effects.emit({
+          kind: 'packet',
+          event: {
+            ...boundaryHit,
+            at,
+            activationId,
+            hitIndex: 1,
+            comboFinishers: [{ ownerId: 'combo-fixture', finisherType: 'Projectile', chance }]
+          }
         });
       }
     });

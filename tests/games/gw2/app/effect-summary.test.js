@@ -1,3 +1,5 @@
+import { captureEffectEmissions } from '#tests/helpers/effect-emission.js';
+import { recordProcStep } from '#gw2/platform/results/proc-steps.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { buildChartSeries } from '#gw2/app/results/model.js';
@@ -234,6 +236,9 @@ test('effect summaries integrate sub-sample transitions and never resurrect repl
 
 test('relic proc state survives recording and refreshes replace stack counts', () => {
   const context = createGw2ResolverRuntimeState({ config: { relic: 'Thief' } });
+  context.effects = captureEffectEmissions({
+    announce: (request) => recordProcStep(context, request.announcement)
+  }).effects;
   const hit = (at) => ({ type: 'damage', actorType: 'player', at, skillName: 'Weapon' });
   invokeRelicHook(context, 'afterHit', hit(0), { type: 'Weapon', cooldown: 1 });
   invokeRelicHook(context, 'afterHit', hit(1), { type: 'Weapon', cooldown: 1 });
@@ -250,6 +255,9 @@ test('relic proc state survives recording and refreshes replace stack counts', (
 
   // A persistent state without an expiry ends at the observation horizon and uses a fresh value on replacement.
   const thorns = createGw2ResolverRuntimeState({ config: { relic: 'Thorns', initialThornsStacks: 9 } });
+  thorns.effects = captureEffectEmissions({
+    announce: (request) => recordProcStep(thorns, request.announcement)
+  }).effects;
   invokeRelicHook(thorns, 'passiveTimeline', 5);
   const ramp = buildChartSeries({
     rotationEndTime: 5,

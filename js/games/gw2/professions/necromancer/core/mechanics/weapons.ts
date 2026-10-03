@@ -6,7 +6,6 @@ import {
   requireBalanceProfileFromContext,
   requireEffect
 } from '#gw2/platform/engine/skills/balance-profiles.js';
-import { queueResolverBoon } from '#gw2/platform/resolver/boons.js';
 import { buildResolverStrike } from '#gw2/platform/resolver/packets.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import {
@@ -33,9 +32,10 @@ export function perforate(runtime: NecromancerRuntime, event: Gw2ResolverEvent):
   const profile = requireBalanceProfileFromContext(runtime, PROFILE.soulShards);
   const strike = requireEffect(profile, 'strike', 'Soul Shards');
   if (!strike) return;
-  runtime.emitDerived(
-    event,
-    buildResolverStrike({
+  runtime.effects.emit({
+    kind: 'packet',
+    cause: event,
+    event: buildResolverStrike({
       at: runtime.time,
       source: 'necromancer',
       sourceId: ID.SOUL_SHARDS,
@@ -54,7 +54,7 @@ export function perforate(runtime: NecromancerRuntime, event: Gw2ResolverEvent):
       canCrit: strike.canCrit !== false,
       damageKind: strike.damageKind || ''
     })
-  );
+  });
 }
 
 /** Party Might samples live conditions and companion eligibility at the accepted impact. */
@@ -81,7 +81,7 @@ export function resolveNecromancerOppressiveCollapse(runtime: NecromancerRuntime
       eligibleCompanionIds: necromancerActiveBoonCompanionIds(runtime)
     }
   };
-  queueResolverBoon(runtime, event, boon);
+  runtime.effects.emit({ kind: 'packet', event: boon, durationContext: event });
 }
 
 export const necromancerWeaponTasks = {

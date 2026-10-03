@@ -1,17 +1,17 @@
-import { buildResolverStrike, buildResolverCondition } from '#gw2/platform/resolver/packets.js';
-import {
-  requireBalanceProfileFromContext,
-  requireEffect,
-  effectNumber,
-  balanceProfileNumber
-} from '#gw2/platform/engine/skills/balance-profiles.js';
-import { ritualistState } from '#gw2/professions/necromancer/specializations/ritualist/state.js';
 import { consumeCharge } from '#gw2/platform/combat/resources/charges.js';
+import {
+  balanceProfileNumber,
+  effectNumber,
+  requireBalanceProfileFromContext,
+  requireEffect
+} from '#gw2/platform/engine/skills/balance-profiles.js';
 import type { SkillId } from '#gw2/platform/engine/skills/types.js';
+import { buildResolverCondition, buildResolverStrike } from '#gw2/platform/resolver/packets.js';
 import { NECROMANCER_SKILL_IDS as ID } from '#gw2/professions/necromancer/data/ids.js';
+import { ritualistState } from '#gw2/professions/necromancer/specializations/ritualist/state.js';
 
-import type { NecromancerResolverContext, NecromancerResolverEvent } from '#gw2/professions/necromancer/types.js';
 import type { BalanceProfile } from '#gw2/platform/engine/skills/types.js';
+import type { NecromancerResolverContext, NecromancerResolverEvent } from '#gw2/professions/necromancer/types.js';
 
 import { RITUALIST_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/necromancer/specializations/ritualist/profiles.js';
 
@@ -45,8 +45,9 @@ function queueNightmareWeapon(
   // Materialize both components at the triggering strike's timestamp before recording the combined proc; each
   // survives the other's removal.
   if (strike)
-    context.queue.enqueue(
-      buildResolverStrike({
+    context.effects.emit({
+      kind: 'packet',
+      event: buildResolverStrike({
         at: event.at,
 
         skillName: 'Nightmare Weapon',
@@ -67,10 +68,11 @@ function queueNightmareWeapon(
           ? {}
           : { metadata: { triggeredByAlly: event.metadata.triggeredByAlly } })
       })
-    );
+    });
   if (vulnerability)
-    context.queue.enqueue(
-      buildResolverCondition({
+    context.effects.emit({
+      kind: 'packet',
+      event: buildResolverCondition({
         at: event.at,
         name: 'Nightmare Weapon',
         skillName: 'Nightmare Weapon',
@@ -86,15 +88,18 @@ function queueNightmareWeapon(
           ? {}
           : { metadata: { triggeredByAlly: event.metadata.triggeredByAlly } })
       })
-    );
-  context.recordProc(
-    'skill',
-    'Nightmare Weapon',
-    event.at,
-    event.skillName,
-    '',
-    spellIcon(context, ID.NIGHTMARE_WEAPON)
-  );
+    });
+  context.effects.emit({
+    kind: 'announcement',
+    announcement: {
+      type: 'skill',
+      name: 'Nightmare Weapon',
+      at: event.at,
+      sourceSkill: event.skillName,
+      detail: '',
+      icon: spellIcon(context, ID.NIGHTMARE_WEAPON)
+    }
+  });
 }
 
 // Resolve a Splinter Weapon stack as a derived strike while preserving ally
@@ -107,8 +112,9 @@ function queueSplinterWeapon(
   const strike = requireEffect(definition, 'strike', 'Strike');
   if (!strike) return;
   // Queue the derived strike first, then expose the same trigger through proc reporting.
-  context.queue.enqueue(
-    buildResolverStrike({
+  context.effects.emit({
+    kind: 'packet',
+    event: buildResolverStrike({
       at: event.at,
 
       skillName: 'Splinter Weapon',
@@ -125,8 +131,18 @@ function queueSplinterWeapon(
         ? {}
         : { metadata: { triggeredByAlly: event.metadata.triggeredByAlly } })
     })
-  );
-  context.recordProc('skill', 'Splinter Weapon', event.at, event.skillName, '', spellIcon(context, ID.SPLINTER_WEAPON));
+  });
+  context.effects.emit({
+    kind: 'announcement',
+    announcement: {
+      type: 'skill',
+      name: 'Splinter Weapon',
+      at: event.at,
+      sourceSkill: event.skillName,
+      detail: '',
+      icon: spellIcon(context, ID.SPLINTER_WEAPON)
+    }
+  });
 }
 
 // Spend eligible recipients' weapon-spell charges when their damaging strikes resolve.

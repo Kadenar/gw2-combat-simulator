@@ -410,18 +410,21 @@ test('axe half-health bonuses use the crossing impact and the burst keeps its de
         skill,
         skill.effects.find((effect) => effect.type === 'strike')
       );
-      runtime.emit({
-        type: 'damage',
-        effectReaction: { group, packet: 1 },
-        at: 0.1,
-        source: 'necromancer',
-        sourceId: ID.UNHOLY_FEAST,
-        skillId: ID.UNHOLY_FEAST,
-        skillName: 'Unholy Feast',
-        actorType: 'player',
-        coefficient: 1,
-        flatDamage: 11000,
-        activationId: 'test.crossing'
+      runtime.effects.emit({
+        kind: 'packet',
+        event: {
+          type: 'damage',
+          effectReaction: { group, packet: 1 },
+          at: 0.1,
+          source: 'necromancer',
+          sourceId: ID.UNHOLY_FEAST,
+          skillId: ID.UNHOLY_FEAST,
+          skillName: 'Unholy Feast',
+          actorType: 'player',
+          coefficient: 1,
+          flatDamage: 11000,
+          activationId: 'test.crossing'
+        }
       });
     }
   };
@@ -762,15 +765,18 @@ test('Devouring observes a condition arriving during travel and its condition su
     ...native,
     initialize(runtime) {
       native.initialize(runtime);
-      runtime.emit({
-        type: 'condition',
-        at: 0.8,
-        source: 'test',
-        sourceId: 'test.condition',
-        actorType: 'player',
-        condition: 'Bleeding',
-        stacks: 1,
-        duration: 5
+      runtime.effects.emit({
+        kind: 'packet',
+        event: {
+          type: 'condition',
+          at: 0.8,
+          source: 'test',
+          sourceId: 'test.condition',
+          actorType: 'player',
+          condition: 'Bleeding',
+          stacks: 1,
+          duration: 5
+        }
       });
     }
   };
@@ -824,18 +830,21 @@ test('the crossing strike grants Spiteful Fortitude and later dead-target packet
     initialize(runtime) {
       native.initialize(runtime);
       for (const [index, flatDamage] of [30, 30, 40, 50].entries())
-        runtime.emit({
-          type: 'damage',
-          at: 0.1,
-          source: 'necromancer',
-          sourceId: ID.RENDING_CLAWS,
-          skillId: ID.RENDING_CLAWS,
-          skillName: 'Rending Claws',
-          actorType: 'player',
-          activationId: `hit:${index}`,
-          coefficient: 1,
-          flatDamage,
-          canCrit: false
+        runtime.effects.emit({
+          kind: 'packet',
+          event: {
+            type: 'damage',
+            at: 0.1,
+            source: 'necromancer',
+            sourceId: ID.RENDING_CLAWS,
+            skillId: ID.RENDING_CLAWS,
+            skillName: 'Rending Claws',
+            actorType: 'player',
+            activationId: `hit:${index}`,
+            coefficient: 1,
+            flatDamage,
+            canCrit: false
+          }
         });
     },
     reactions: {
@@ -879,16 +888,19 @@ test('Gravedigger samples reset health at commitment rather than the retained an
         native.onCastStart(runtime, current);
         const at = (current.effectiveEnd + current.fullEnd) / 2;
         runtime.schedule('inspect-recharge', at);
-        runtime.emit({
-          type: 'damage',
-          at,
-          source: 'fixture',
-          sourceId: 'threshold-crossing',
-          actorType: 'player',
-          coefficient: 1,
-          flatDamage: 600000,
-          canCrit: false,
-          offTarget
+        runtime.effects.emit({
+          kind: 'packet',
+          event: {
+            type: 'damage',
+            at,
+            source: 'fixture',
+            sourceId: 'threshold-crossing',
+            actorType: 'player',
+            coefficient: 1,
+            flatDamage: 600000,
+            canCrit: false,
+            offTarget
+          }
         });
       },
       tasks: {
@@ -1071,30 +1083,36 @@ test('a Reaper summon projectile owns exactly one shared combo attempt', () => {
     ...native,
     initialize(runtime) {
       native.initialize(runtime);
-      runtime.emit({
-        type: 'combo_field',
-        ownerActorType: 'player',
-        at: 0,
-        source: 'necromancer',
-        sourceId: 'field',
-        actorType: 'player',
-        fieldId: 'field',
-        fieldType: 'Ice',
-        expiresAt: 1,
-        ownerId: 'necromancer'
+      runtime.effects.emit({
+        kind: 'packet',
+        event: {
+          type: 'combo_field',
+          ownerActorType: 'player',
+          at: 0,
+          source: 'necromancer',
+          sourceId: 'field',
+          actorType: 'player',
+          fieldId: 'field',
+          fieldType: 'Ice',
+          expiresAt: 1,
+          ownerId: 'necromancer'
+        }
       });
-      runtime.emit({
-        type: 'damage',
-        at: 0.1,
-        source: 'Minion',
-        sourceId: 3633,
-        skillId: 3633,
-        actorType: 'summon',
-        coefficient: 0.1,
-        weaponStrength: 1048,
-        canCrit: false,
-        activationId: 'projectile',
-        comboFinishers: [{ ownerId: 'necromancer', finisherType: 'Projectile', chance: 1 }]
+      runtime.effects.emit({
+        kind: 'packet',
+        event: {
+          type: 'damage',
+          at: 0.1,
+          source: 'Minion',
+          sourceId: 3633,
+          skillId: 3633,
+          actorType: 'summon',
+          coefficient: 0.1,
+          weaponStrength: 1048,
+          canCrit: false,
+          activationId: 'projectile',
+          comboFinishers: [{ ownerId: 'necromancer', finisherType: 'Projectile', chance: 1 }]
+        }
       });
     }
   };
@@ -1235,16 +1253,19 @@ test('Blighters Boon excludes Soul Barbs and boons delivered only to allies', ()
         ...native,
         initialize(runtime) {
           native.initialize(runtime);
-          runtime.emit({
-            type: 'buff',
-            at: 0,
-            source: 'Trait',
-            sourceId: TRAIT.AWAKEN_THE_PAIN,
-            actorType: 'player',
-            kind: 'might',
-            duration: 2,
-            stacks: 5,
-            audience: { recipients: 'party', affectsSelf, maximumRecipients: 5 }
+          runtime.effects.emit({
+            kind: 'packet',
+            event: {
+              type: 'buff',
+              at: 0,
+              source: 'Trait',
+              sourceId: TRAIT.AWAKEN_THE_PAIN,
+              actorType: 'player',
+              kind: 'might',
+              duration: 2,
+              stacks: 5,
+              audience: { recipients: 'party', affectsSelf, maximumRecipients: 5 }
+            }
           });
         }
       }
@@ -1583,14 +1604,17 @@ test('Fear of Death follows accepted fear with one cooldown and cannot fund entr
     initialize(runtime) {
       native.initialize(runtime);
       for (const at of [0.1, 0.2, 4.1, 4.2])
-        runtime.emit({
-          type: 'control',
-          at,
-          source: 'necromancer',
-          sourceId: ID.REAPERS_MARK,
-          skillId: ID.REAPERS_MARK,
-          actorType: 'player',
-          controlKind: 'fear'
+        runtime.effects.emit({
+          kind: 'packet',
+          event: {
+            type: 'control',
+            at,
+            source: 'necromancer',
+            sourceId: ID.REAPERS_MARK,
+            skillId: ID.REAPERS_MARK,
+            actorType: 'player',
+            controlKind: 'fear'
+          }
         });
     }
   };

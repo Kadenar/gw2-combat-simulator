@@ -9,9 +9,8 @@ import {
   requireEffect
 } from '#gw2/platform/engine/skills/balance-profiles.js';
 import {
-  applyEngineerDerivedCondition,
-  queueBuff,
-  recordTrait
+  buildEngineerCondition,
+  buildEngineerBuff
 } from '#gw2/professions/engineer/core/mechanics/resolution-helpers.js';
 import { ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
 
@@ -35,18 +34,27 @@ export const engineerCoreCriticalHitDefinitions = Object.freeze([
       const serratedSteelProfile = requireBalanceProfileFromContext(context, TRAIT.SERRATED_STEEL);
       const serratedSteelBleeding = requireEffect(serratedSteelProfile, 'condition', 'Bleeding');
       if (serratedSteelBleeding) {
-        applyEngineerDerivedCondition(context, event, {
-          name: 'Serrated Steel',
-          procCount: application.quantity,
-          condition: String(serratedSteelBleeding.condition),
-          stacks: Number(serratedSteelBleeding.stacks) * application.quantity,
-          duration: Number(serratedSteelBleeding.duration),
-          sourceId: TRAIT.SERRATED_STEEL,
-          actorType: 'effect',
-          ownerActorType: 'player'
+        context.effects.emit({
+          kind: 'packet',
+          event: buildEngineerCondition(event, {
+            name: 'Serrated Steel',
+            procCount: application.quantity,
+            condition: String(serratedSteelBleeding.condition),
+            stacks: Number(serratedSteelBleeding.stacks) * application.quantity,
+            duration: Number(serratedSteelBleeding.duration),
+            sourceId: TRAIT.SERRATED_STEEL,
+            actorType: 'effect',
+            ownerActorType: 'player'
+          }),
+          settlement: 'reaction'
         });
 
-        recordTrait(context, 'Serrated Steel', event);
+        context.effects.emit({
+          attribution: { source: 'Trait', sourceId: TRAIT.SERRATED_STEEL, actorType: 'effect' },
+          kind: 'announcement',
+          cause: event,
+          announcement: { type: 'trait', name: 'Serrated Steel', at: event.at, sourceSkill: event.skillName, icon: '' }
+        });
       }
     }
   },
@@ -66,16 +74,25 @@ export const engineerCoreCriticalHitDefinitions = Object.freeze([
       const noScopeProfile = requireBalanceProfileFromContext(context, TRAIT.NO_SCOPE);
       const noScopeFury = requireEffect(noScopeProfile, 'boon', 'fury');
       if (noScopeFury) {
-        queueBuff(context, event, {
-          name: 'No Scope',
-          kind: String(noScopeFury.boon).toLowerCase(),
-          stacks: Number(noScopeFury.stacks),
-          duration: noScopeFury.duration,
-          sourceId: TRAIT.NO_SCOPE,
-          actorType: 'effect'
+        context.effects.emit({
+          kind: 'packet',
+          event: buildEngineerBuff(event, {
+            name: 'No Scope',
+            kind: String(noScopeFury.boon).toLowerCase(),
+            stacks: Number(noScopeFury.stacks),
+            duration: noScopeFury.duration,
+            sourceId: TRAIT.NO_SCOPE,
+            actorType: 'effect'
+          }),
+          durationContext: event
         });
 
-        recordTrait(context, 'No Scope', event);
+        context.effects.emit({
+          attribution: { source: 'Trait', sourceId: TRAIT.NO_SCOPE, actorType: 'effect' },
+          kind: 'announcement',
+          cause: event,
+          announcement: { type: 'trait', name: 'No Scope', at: event.at, sourceSkill: event.skillName, icon: '' }
+        });
       }
     }
   },
@@ -95,17 +112,32 @@ export const engineerCoreCriticalHitDefinitions = Object.freeze([
       const incendiaryPowderProfile = requireBalanceProfileFromContext(context, TRAIT.INCENDIARY_POWDER);
       const incendiaryPowderBurning = requireEffect(incendiaryPowderProfile, 'condition', 'Burning');
       if (incendiaryPowderBurning) {
-        applyEngineerDerivedCondition(context, event, {
-          name: 'Incendiary Powder',
-          condition: String(incendiaryPowderBurning.condition),
-          stacks: Number(incendiaryPowderBurning.stacks),
-          duration: Number(incendiaryPowderBurning.duration),
-          sourceId: TRAIT.INCENDIARY_POWDER,
-          actorType: 'effect',
-          ownerActorType: 'player'
+        context.effects.emit({
+          kind: 'packet',
+          event: buildEngineerCondition(event, {
+            name: 'Incendiary Powder',
+            condition: String(incendiaryPowderBurning.condition),
+            stacks: Number(incendiaryPowderBurning.stacks),
+            duration: Number(incendiaryPowderBurning.duration),
+            sourceId: TRAIT.INCENDIARY_POWDER,
+            actorType: 'effect',
+            ownerActorType: 'player'
+          }),
+          settlement: 'reaction'
         });
 
-        recordTrait(context, 'Incendiary Powder', event);
+        context.effects.emit({
+          attribution: { source: 'Trait', sourceId: TRAIT.INCENDIARY_POWDER, actorType: 'effect' },
+          kind: 'announcement',
+          cause: event,
+          announcement: {
+            type: 'trait',
+            name: 'Incendiary Powder',
+            at: event.at,
+            sourceSkill: event.skillName,
+            icon: ''
+          }
+        });
       }
     }
   }
@@ -127,18 +159,33 @@ export function engineerMechCoreCriticalDefinitions(
         const serratedSteelProfile = requireBalanceProfileFromContext(context, TRAIT.SERRATED_STEEL);
         const serratedSteelBleeding = requireEffect(serratedSteelProfile, 'condition', 'Bleeding');
         if (serratedSteelBleeding) {
-          applyEngineerDerivedCondition(context, event, {
-            name: 'Serrated Steel',
-            procCount: application.quantity,
-            condition: String(serratedSteelBleeding.condition),
-            stacks: Number(serratedSteelBleeding.stacks) * application.quantity,
-            duration: Number(serratedSteelBleeding.duration),
-            sourceId: TRAIT.SERRATED_STEEL,
-            actorType: 'summon',
-            metadata: { engineerMech: true }
+          context.effects.emit({
+            kind: 'packet',
+            event: buildEngineerCondition(event, {
+              name: 'Serrated Steel',
+              procCount: application.quantity,
+              condition: String(serratedSteelBleeding.condition),
+              stacks: Number(serratedSteelBleeding.stacks) * application.quantity,
+              duration: Number(serratedSteelBleeding.duration),
+              sourceId: TRAIT.SERRATED_STEEL,
+              actorType: 'summon',
+              metadata: { engineerMech: true }
+            }),
+            settlement: 'reaction'
           });
 
-          recordTrait(context, 'Serrated Steel', event);
+          context.effects.emit({
+            attribution: { source: 'Trait', sourceId: TRAIT.SERRATED_STEEL, actorType: 'effect' },
+            kind: 'announcement',
+            cause: event,
+            announcement: {
+              type: 'trait',
+              name: 'Serrated Steel',
+              at: event.at,
+              sourceSkill: event.skillName,
+              icon: ''
+            }
+          });
         }
       }
     },
@@ -159,17 +206,32 @@ export function engineerMechCoreCriticalDefinitions(
         const incendiaryPowderProfile = requireBalanceProfileFromContext(context, TRAIT.INCENDIARY_POWDER);
         const incendiaryPowderBurning = requireEffect(incendiaryPowderProfile, 'condition', 'Burning');
         if (incendiaryPowderBurning) {
-          applyEngineerDerivedCondition(context, event, {
-            name: 'Incendiary Powder',
-            condition: String(incendiaryPowderBurning.condition),
-            stacks: Number(incendiaryPowderBurning.stacks),
-            duration: Number(incendiaryPowderBurning.duration),
-            sourceId: TRAIT.INCENDIARY_POWDER,
-            actorType: 'summon',
-            metadata: { engineerMech: true }
+          context.effects.emit({
+            kind: 'packet',
+            event: buildEngineerCondition(event, {
+              name: 'Incendiary Powder',
+              condition: String(incendiaryPowderBurning.condition),
+              stacks: Number(incendiaryPowderBurning.stacks),
+              duration: Number(incendiaryPowderBurning.duration),
+              sourceId: TRAIT.INCENDIARY_POWDER,
+              actorType: 'summon',
+              metadata: { engineerMech: true }
+            }),
+            settlement: 'reaction'
           });
 
-          recordTrait(context, 'Incendiary Powder', event);
+          context.effects.emit({
+            attribution: { source: 'Trait', sourceId: TRAIT.INCENDIARY_POWDER, actorType: 'effect' },
+            kind: 'announcement',
+            cause: event,
+            announcement: {
+              type: 'trait',
+              name: 'Incendiary Powder',
+              at: event.at,
+              sourceSkill: event.skillName,
+              icon: ''
+            }
+          });
         }
       }
     }

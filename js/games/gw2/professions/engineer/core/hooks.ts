@@ -1,5 +1,4 @@
 import { criticalProcHandler } from '#gw2/platform/profession-definition/mechanics.js';
-import { emitEffects } from '#gw2/platform/simulation/procedural-emission.js';
 import type { RuntimeProfession } from '#gw2/platform/simulation/runtime-state.js';
 import { sideEffectAmount } from '#gw2/platform/simulation/side-effects.js';
 import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
@@ -7,7 +6,7 @@ import { reduceEngineerRecharge } from '#gw2/professions/engineer/core/mechanics
 import { handleAirBlast } from '#gw2/professions/engineer/core/skills/kits/flamethrower.js';
 import { applyEngineerDodgeTraits } from '#gw2/professions/engineer/core/traits/toolbelt.js';
 
-import { emitEngineerEvent } from '#gw2/professions/engineer/core/events.js';
+import { buildEngineerPackets } from '#gw2/professions/engineer/core/events.js';
 import { engineerCoreCastAvailability } from '#gw2/professions/engineer/core/mechanics/availability.js';
 import {
   handleConduitSurge,
@@ -38,9 +37,10 @@ function detonatePrecastMines(runtime: EngineerRuntime): void {
   const skill = runtime.helpers.skillsById.get(ID.MINE_FIELD)!;
   const detonation = runtime.helpers.skillsById.get(ID.DETONATE_MINE_FIELD)!;
   for (const activationId of runtime.profession.core.pendingMineFieldActivationIds.splice(0)) {
-    emitEffects(runtime, {
-      owner: skill,
-      baseEvent: {
+    runtime.effects.emit({
+      kind: 'profile',
+      profile: skill,
+      attribution: {
         source: 'engineer',
         sourceId: skill.id,
         actorType: 'player',
@@ -65,12 +65,11 @@ export const engineerCoreHooks: Partial<RuntimeProfession<EngineerRuntimeState, 
       const skill = context.skill;
       // Persist bundle identity as the equip skill ID; labels belong to presentation.
       runtime.profession.core.activeKit = skill.kitTransition === 'equip' ? skill.id : null;
-      emitEngineerEvent(
-        runtime,
+      buildEngineerPackets(
         'sigil_swap',
         { at: runtime.time, activationId: cast.id, weaponSet: runtime.activeWeaponSet },
         skill
-      );
+      ).forEach((packet) => runtime.effects.emit({ kind: 'packet', event: packet }));
     },
     // Mine Field owns registration; the combat boundary still releases its pending activations.
     'engineer.mine-field'(runtime, context) {
@@ -102,7 +101,9 @@ export const engineerCoreHooks: Partial<RuntimeProfession<EngineerRuntimeState, 
   onCastStart(runtime, cast) {
     if (cast.skill.independentCast) applyEngineerToolbeltTraits(runtime, cast.skill, runtime.time);
     if (cast.skill.id !== SHARED_SKILL_IDS.DODGE) return;
-    emitEngineerEvent(runtime, 'engineer.dodge', { at: runtime.time, activationId: cast.id }, cast.skill);
+    buildEngineerPackets('engineer.dodge', { at: runtime.time, activationId: cast.id }, cast.skill).forEach((packet) =>
+      runtime.effects.emit({ kind: 'packet', event: packet })
+    );
     applyEngineerDodgeTraits(runtime, cast);
   },
   onCastCommit(runtime, cast) {

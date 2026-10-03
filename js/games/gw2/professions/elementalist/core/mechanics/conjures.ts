@@ -14,7 +14,7 @@ import { resetAutoattackChains } from '#gw2/platform/skills/autoattack-chain-con
 import { CONJURE_PICKUP_WEAPONS, CONJURE_SKILLS } from '#gw2/professions/elementalist/core/constants.js';
 import { ELEMENTALIST_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/elementalist/core/profiles.js';
 import { applyElementalistAura } from '#gw2/professions/elementalist/core/traits/dispatch.js';
-import type { ElementalistSkill, ElementalistRuntime } from '#gw2/professions/elementalist/types.js';
+import type { ElementalistRuntime, ElementalistSkill } from '#gw2/professions/elementalist/types.js';
 
 /** A conjure creates independent equipped and one-use ground copies before its trait and swap events. */
 export function equipConjure(context: ElementalistRuntime, cast: RuntimeCast<ElementalistSkill>, skill: Skill): void {
@@ -58,23 +58,29 @@ function finishConjureSwap(context: ElementalistRuntime, cast: RuntimeCast<Eleme
   for (const deadline of Object.values(state.conjurePickups))
     context.schedule('elementalist.expire-state', deadline, null);
   resetAutoattackChains(context);
-  context.emit({
-    type: 'elementalist.conjure',
-    at,
-    source: skill.name,
-    sourceId: skill.id,
-    actorType: 'player',
-    skillName: skill.name,
-    conjureEquipped: state.conjureEquipped,
-    conjureExpiresAt: state.conjureExpiresAt
+  context.effects.emit({
+    kind: 'packet',
+    event: {
+      type: 'elementalist.conjure',
+      at,
+      source: skill.name,
+      sourceId: skill.id,
+      actorType: 'player',
+      skillName: skill.name,
+      conjureEquipped: state.conjureEquipped,
+      conjureExpiresAt: state.conjureExpiresAt
+    }
   });
-  context.emit({
-    type: 'sigil_swap',
-    at,
-    source: skill.name,
-    sourceId: skill.id,
-    actorType: 'player',
-    skillName: skill.name
+  context.effects.emit({
+    kind: 'packet',
+    event: {
+      type: 'sigil_swap',
+      at,
+      source: skill.name,
+      sourceId: skill.id,
+      actorType: 'player',
+      skillName: skill.name
+    }
   });
 }
 

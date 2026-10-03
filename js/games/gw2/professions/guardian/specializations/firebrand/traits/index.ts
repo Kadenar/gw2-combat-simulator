@@ -3,20 +3,22 @@ import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import {
   balanceProfileNumber,
-  requireBalanceProfileFromContext
+  requireBalanceProfileFromContext,
+  requireEffect
 } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
 import type { RuntimeCast } from '#gw2/platform/simulation/runtime-state.js';
 import { guardianCastCause } from '#gw2/professions/guardian/core/mechanics/event-handlers.js';
 import { guardianBoonActive } from '#gw2/professions/guardian/core/mechanics/modifier-queries.js';
-import { recordGuardianTraitProc } from '#gw2/professions/guardian/core/traits/behavior.js';
+import { guardianTraitIcon } from '#gw2/professions/guardian/core/traits/behavior.js';
+
 import { GUARDIAN_TRAIT_IDS as TRAIT } from '#gw2/professions/guardian/data/ids.js';
 import { MANTRAS } from '#gw2/professions/guardian/data/mantra-definitions.js';
-import { boon } from '#gw2/professions/guardian/specializations/firebrand/mechanics/effects.js';
+
+import { isInternalCooldownReady } from '#gw2/platform/combat/procs.js';
 import { firebrandState } from '#gw2/professions/guardian/specializations/firebrand/state.js';
 import type { GuardianBuild, GuardianSkill } from '#gw2/professions/guardian/types.js';
 import { canonicalTime } from '#kernel/core/clock.js';
-import { isInternalCooldownReady } from '#gw2/platform/combat/procs.js';
 
 const refundByCast = new WeakMap<RuntimeCast<GuardianSkill>, number>();
 
@@ -52,14 +54,19 @@ export const swiftScholar = defineTrait({
       const refund = refundByCast.get(cast) ?? 0;
       if (refund > 0) {
         runtime.resourceController.grant('tomePages', refund);
-        recordGuardianTraitProc(
-          runtime,
-          TRAIT.SWIFT_SCHOLAR,
-          'Swift Scholar',
-          runtime.time,
-          skill.name,
-          `+${refund} tome pages`
-        );
+        {
+          runtime.effects.emit({
+            kind: 'announcement',
+            announcement: {
+              type: 'trait',
+              name: 'Swift Scholar',
+              at: runtime.time,
+              sourceSkill: skill.name,
+              detail: `+${refund} tome pages`,
+              icon: guardianTraitIcon(TRAIT.SWIFT_SCHOLAR)
+            }
+          });
+        }
       }
     }
   }
@@ -80,13 +87,29 @@ export const legendaryLore = defineTrait({
     onCastCommit(runtime, cast) {
       const skill = cast.skill;
       if (!skill.tome) return;
-      if (hasTrait(runtime, TRAIT.LEGENDARY_LORE))
-        boon(
-          runtime,
-          TRAIT.LEGENDARY_LORE,
-          skill.tome === 'justice' ? 'might' : skill.tome === 'resolve' ? 'regeneration' : 'protection',
-          { ...guardianCastCause(runtime, cast), sourceId: TRAIT.LEGENDARY_LORE, name: 'Legendary Lore' }
+      if (hasTrait(runtime, TRAIT.LEGENDARY_LORE)) {
+        const boonProfile = requireBalanceProfileFromContext(runtime, TRAIT.LEGENDARY_LORE);
+        const selectedBoon = requireEffect(
+          boonProfile,
+          'boon',
+          skill.tome === 'justice' ? 'might' : skill.tome === 'resolve' ? 'regeneration' : 'protection'
         );
+        const boonCause = {
+          ...guardianCastCause(runtime, cast),
+          sourceId: TRAIT.LEGENDARY_LORE,
+          name: 'Legendary Lore'
+        };
+        if (selectedBoon) {
+          runtime.effects.emit({
+            kind: 'profile',
+            profile: boonProfile,
+            effects: [selectedBoon],
+            attribution: boonCause,
+            cause: boonCause,
+            transform: (event) => ({ ...boonCause, ...event, audience: { recipients: 'self' } })
+          });
+        }
+      }
     }
   }
 });
@@ -150,19 +173,42 @@ export const liberatorsVow = defineTrait({
         hasTrait(runtime, TRAIT.LIBERATORS_VOW) &&
         isInternalCooldownReady(runtime.time, runtime.procs.deadline('guardian.firebrand.liberatorsVow'))
       ) {
-        if (boon(runtime, TRAIT.LIBERATORS_VOW, 'quickness', guardianCastCause(runtime, cast), true)) {
-          runtime.procs.readyAt['guardian.firebrand.liberatorsVow'] = canonicalTime(
-            runtime.time +
-              balanceProfileNumber(requireBalanceProfileFromContext(runtime, TRAIT.LIBERATORS_VOW), 'internalCooldown')
-          );
-          recordGuardianTraitProc(
-            runtime,
-            TRAIT.LIBERATORS_VOW,
-            "Liberator's Vow",
-            runtime.time,
-            skill.name,
-            'Quickness'
-          );
+        {
+          const boonProfile = requireBalanceProfileFromContext(runtime, TRAIT.LIBERATORS_VOW);
+          const selectedBoon = requireEffect(boonProfile, 'boon', 'quickness');
+          const boonCause = guardianCastCause(runtime, cast);
+          if (selectedBoon) {
+            runtime.effects.emit({
+              kind: 'profile',
+              profile: boonProfile,
+              effects: [selectedBoon],
+              attribution: boonCause,
+              cause: boonCause,
+              transform: (event) => ({ ...boonCause, ...event, audience: { recipients: 'party' } })
+            });
+            {
+              runtime.procs.readyAt['guardian.firebrand.liberatorsVow'] = canonicalTime(
+                runtime.time +
+                  balanceProfileNumber(
+                    requireBalanceProfileFromContext(runtime, TRAIT.LIBERATORS_VOW),
+                    'internalCooldown'
+                  )
+              );
+              {
+                runtime.effects.emit({
+                  kind: 'announcement',
+                  announcement: {
+                    type: 'trait',
+                    name: "Liberator's Vow",
+                    at: runtime.time,
+                    sourceSkill: skill.name,
+                    detail: 'Quickness',
+                    icon: guardianTraitIcon(TRAIT.LIBERATORS_VOW)
+                  }
+                });
+              }
+            }
+          }
         }
       }
     }
@@ -184,14 +230,19 @@ export const weightyTerms = defineTrait({
         const profile = requireBalanceProfileFromContext(runtime, TRAIT.WEIGHTY_TERMS);
         const gain = balanceProfileNumber(profile, 'resourceGain');
         // Skill side effects own the rewards; retain only the existing proc report here.
-        recordGuardianTraitProc(
-          runtime,
-          TRAIT.WEIGHTY_TERMS,
-          'Weighty Terms',
-          runtime.time,
-          skill.name,
-          `+${gain} tome pages`
-        );
+        {
+          runtime.effects.emit({
+            kind: 'announcement',
+            announcement: {
+              type: 'trait',
+              name: 'Weighty Terms',
+              at: runtime.time,
+              sourceSkill: skill.name,
+              detail: `+${gain} tome pages`,
+              icon: guardianTraitIcon(TRAIT.WEIGHTY_TERMS)
+            }
+          });
+        }
       }
     }
   }

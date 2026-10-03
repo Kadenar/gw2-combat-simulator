@@ -1,3 +1,5 @@
+import type { EffectDelivery } from '#gw2/platform/simulation/effect-emission.js';
+import { buildMesmerPacket, mesmerPacketOwner } from '#gw2/professions/mesmer/core/mechanics/packets.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import type {
@@ -13,12 +15,7 @@ import type {
 } from '#gw2/professions/mesmer/core/mechanics/resource-types.js';
 import { triggerCompoundingPower } from '#gw2/professions/mesmer/core/traits/behavior.js';
 import { mesmerNumericResourceState } from '#gw2/professions/mesmer/family-state.js';
-import type {
-  MesmerActivePrimaryWeapon,
-  MesmerAddEvent,
-  MesmerAddTraitProc,
-  MesmerRuntime
-} from '#gw2/professions/mesmer/types.js';
+import type { MesmerActivePrimaryWeapon, MesmerRuntime } from '#gw2/professions/mesmer/types.js';
 
 interface ResourceControllerOptions {
   readonly state: MesmerRuntime;
@@ -26,10 +23,8 @@ interface ResourceControllerOptions {
   readonly clamp: (value: number, minimum: number, maximum: number) => number;
   readonly activePrimaryWeapon: MesmerActivePrimaryWeapon;
   readonly cloneAttackScheduler: MesmerCloneAttackScheduler;
-  readonly addEvent: MesmerAddEvent;
-  readonly addTraitProc: MesmerAddTraitProc;
   readonly destroyClone: MesmerDestroyClone;
-  readonly scheduleResourceTask: (candidate: MesmerPendingResource) => unknown;
+  readonly scheduleResourceTask: (candidate: MesmerPendingResource, delivery?: EffectDelivery) => unknown;
 }
 
 /** Owns shared clone or numeric resource gains and exposes committed gains to active specialization reactions. */
@@ -39,8 +34,6 @@ export function createResourceController({
   clamp,
   activePrimaryWeapon,
   cloneAttackScheduler,
-  addEvent,
-  addTraitProc,
   destroyClone,
   scheduleResourceTask
 }: ResourceControllerOptions): MesmerResourceController {
@@ -88,31 +81,45 @@ export function createResourceController({
     }
 
     if (gained <= 0) return;
-    addEvent({
-      type: 'resource',
-      at,
-      amount: gained,
-      value:
-        resourceDefinition.singular === 'clone'
-          ? professionCoreState(state).clones.length
-          : numericResourceState().numericResource,
-      resource: resourceDefinition.plural,
-      reason,
-      created
-    });
-    if (cause.kind !== 'initial') {
-      triggerCompoundingPower(
-        { context: state, addEvent, addTraitProc },
+    {
+      const packet = buildMesmerPacket({
+        type: 'resource',
         at,
-        gained,
+        amount: gained,
+        value:
+          resourceDefinition.singular === 'clone'
+            ? professionCoreState(state).clones.length
+            : numericResourceState().numericResource,
+        resource: resourceDefinition.plural,
         reason,
-        `${gained} stack${gained === 1 ? '' : 's'}`
-      );
+        created
+      });
+      state.effects.emit({
+        kind: 'packet',
+        event: packet,
+        owner: mesmerPacketOwner(packet),
+        priority: Number(packet.priority ?? 0)
+      });
+    }
+
+    if (cause.kind !== 'initial') {
+      triggerCompoundingPower({ context: state }, at, gained, reason, `${gained} stack${gained === 1 ? '' : 's'}`);
     }
 
     const resourceTraitId = Number(cause.traitId);
     if (Number.isFinite(resourceTraitId) && hasTrait(state, resourceTraitId)) {
-      addTraitProc(cause.traitName || reason, at, reason, `+${gained} ${resourceDefinition.singular}`);
+      state.effects.emit({
+        kind: 'announcement',
+        log: true,
+        attribution: { source: 'Trait', sourceId: resourceTraitId, actorType: 'effect' },
+        announcement: {
+          type: 'trait',
+          name: cause.traitName || reason,
+          at: at,
+          sourceSkill: reason,
+          detail: `+${gained} ${resourceDefinition.singular}`
+        }
+      });
     }
 
     // Reactions use the committed gain's time, cause, and created clones to apply specialization effects.
@@ -124,9 +131,10 @@ export function createResourceController({
     count: number,
     weapon: string | null | undefined,
     reason: string,
-    cause: MesmerResourceCause = {}
+    cause: MesmerResourceCause = {},
+    delivery: EffectDelivery = {}
   ): void => {
-    scheduleResourceTask({ at, count, weapon, reason, cause });
+    scheduleResourceTask({ at, count, weapon, reason, cause }, delivery);
   };
 
   return {

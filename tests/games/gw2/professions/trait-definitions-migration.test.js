@@ -513,16 +513,19 @@ test('Dazzling keeps accepted-control actor gates and effect removal through reg
           ...native,
           initialize(runtime) {
             native.initialize(runtime);
-            runtime.emit({
-              type: 'control',
-              at: 1,
-              actorType,
-              source: 'mesmer',
-              sourceId: MESMER_SKILLS.MAGIC_BULLET,
-              skillId: MESMER_SKILLS.MAGIC_BULLET,
-              skillName: 'Magic Bullet',
-              controlKind: 'stun',
-              duration: 1
+            runtime.effects.emit({
+              kind: 'packet',
+              event: {
+                type: 'control',
+                at: 1,
+                actorType,
+                source: 'mesmer',
+                sourceId: MESMER_SKILLS.MAGIC_BULLET,
+                skillId: MESMER_SKILLS.MAGIC_BULLET,
+                skillName: 'Magic Bullet',
+                controlKind: 'stun',
+                duration: 1
+              }
             });
           }
         }

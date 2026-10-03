@@ -9,7 +9,7 @@ import {
 } from '#gw2/platform/engine/skills/balance-profiles.js';
 import type { RuntimeCast } from '#gw2/platform/simulation/runtime-state.js';
 import type { ThiefRuntime } from '#gw2/professions/thief/core/events.js';
-import { emitThiefBuff } from '#gw2/professions/thief/core/events.js';
+import { buildThiefBuff } from '#gw2/professions/thief/core/events.js';
 import { grantThiefInitiative } from '#gw2/professions/thief/core/mechanics/resources.js';
 import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
 import type { ThiefArtifactSlot } from '#gw2/professions/thief/specializations/antiquary/state.js';
@@ -71,15 +71,18 @@ export function applyPossessiveHoarder(
   for (const effect of boons) {
     if (!effect) continue;
     const boon = String(effect.boon);
-    emitThiefBuff(runtime, cast.skill, {
-      at: runtime.time,
-      sourceId: 'Possessive Hoarder',
-      activationId: cast.id,
-      name: 'Possessive Hoarder',
-      kind: boon,
-      boon,
-      duration: effectNumber(profile, effect, 'duration'),
-      stacks: effectNumber(profile, effect, 'stacks')
+    runtime.effects.emit({
+      kind: 'packet',
+      event: buildThiefBuff(cast.skill, {
+        at: runtime.time,
+        sourceId: 'Possessive Hoarder',
+        activationId: cast.id,
+        name: 'Possessive Hoarder',
+        kind: boon,
+        boon,
+        duration: effectNumber(profile, effect, 'duration'),
+        stacks: effectNumber(profile, effect, 'stacks')
+      })
     });
   }
 }

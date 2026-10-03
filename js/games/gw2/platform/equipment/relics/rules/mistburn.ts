@@ -41,12 +41,20 @@ export const mistburn = defineRelic({
   createState: () => ({ readyAt: 0 }),
   boon(ctx, state, event) {
     const grant = mistburnGrant(state, event);
-    if (grant) ctx.queue.enqueue(grant);
+    if (grant) ctx.effects.emit({ kind: 'packet', event: grant });
     if (event.type !== 'buff' || event.sourceId !== `relic.${RELIC_IDS.MISTBURN}`) {
       return;
     }
 
-    ctx.recordProc('relic', 'Relic of Mistburn', event.at, event.triggeredBy || event.skillName);
+    ctx.effects.emit({
+      kind: 'announcement',
+      announcement: {
+        type: 'relic',
+        name: 'Relic of Mistburn',
+        at: event.at,
+        sourceSkill: event.triggeredBy || event.skillName
+      }
+    });
   },
   criticalChanceBonus(_ctx, _state, event, mightStacks) {
     return isGw2PlayerActorEvent(event) && mightStacks >= 10 ? 0.1 : 0;

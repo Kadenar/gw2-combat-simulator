@@ -17,7 +17,6 @@ import {
   applyViciousEmpowerment,
   renewBaseEmpowerment
 } from '#gw2/professions/elementalist/specializations/catalyst/traits/empowerment.js';
-
 const boon = (name: string, boonName: string, stacks: number, duration: number): SkillEffect => ({
   type: 'boon',
   name,
@@ -25,7 +24,6 @@ const boon = (name: string, boonName: string, stacks: number, duration: number):
   stacks,
   duration
 });
-
 const aura = (name: string, auraName: string, duration: number): SkillEffect => ({
   type: 'buff',
   name,
@@ -33,7 +31,6 @@ const aura = (name: string, auraName: string, duration: number): SkillEffect => 
   stacks: 1,
   duration
 });
-
 /** Owns Empowering Auras tuning and its existing execution behavior. */
 export const empoweringAuras = defineTrait({
   id: TRAIT.EMPOWERING_AURAS,
@@ -63,7 +60,6 @@ export const empoweringAuras = defineTrait({
     }
   ]
 });
-
 /** Owns Elemental Epitome tuning and its existing execution behavior. */
 export const elementalEpitome = defineTrait({
   id: TRAIT.ELEMENTAL_EPITOME,
@@ -86,7 +82,6 @@ export const elementalEpitome = defineTrait({
     ]
   }
 });
-
 /** Owns Elemental Synergy tuning and its existing execution behavior. */
 export const elementalSynergy = defineTrait({
   id: TRAIT.ELEMENTAL_SYNERGY,
@@ -98,10 +93,8 @@ export const elementalSynergy = defineTrait({
     effects: [boon('Fire', 'might', 6, 10), boon('Earth', 'stability', 2, 6)]
   }
 });
-
 /** Shares the existing Elemental Empowerment profile's scaling fields without duplicating patch targets. */
 export const empoweredEmpowerment = defineTrait({ id: TRAIT.EMPOWERED_EMPOWERMENT, name: 'Empowered Empowerment' });
-
 /** Owns Elemental Empowerment tuning and its existing execution behavior. */
 export const elementalEmpowerment = defineTrait({
   id: TRAIT.ELEMENTAL_EMPOWERMENT,
@@ -125,7 +118,6 @@ export const elementalEmpowerment = defineTrait({
     tasks: { [CATALYST_BASE_EMPOWERMENT_TASK]: renewBaseEmpowerment }
   }
 });
-
 /** Owns Vicious Empowerment tuning and its existing execution behavior. */
 export const viciousEmpowerment = defineTrait({
   id: TRAIT.VICIOUS_EMPOWERMENT,
@@ -145,7 +137,6 @@ export const viciousEmpowerment = defineTrait({
     ]
   }
 });
-
 /** Owns Depth of Elements tuning and its existing execution behavior. */
 export const depthOfElements = defineTrait({
   id: TRAIT.DEPTH_OF_ELEMENTS,
@@ -154,7 +145,6 @@ export const depthOfElements = defineTrait({
     maximumStacks: 30
   }
 });
-
 /** Owns Energized Elements tuning and its existing execution behavior. */
 export const energizedElements = defineTrait({
   id: TRAIT.ENERGIZED_ELEMENTS,
@@ -164,7 +154,6 @@ export const energizedElements = defineTrait({
     effects: [boon('Fury', 'fury', 1, 2)]
   }
 });
-
 /** Owns Spectacular Sphere tuning and its existing execution behavior. */
 export const spectacularSphere = defineTrait({
   id: TRAIT.SPECTACULAR_SPHERE,
@@ -179,7 +168,6 @@ export const spectacularSphere = defineTrait({
     ]
   }
 });
-
 /** Owns Sphere Specialist tuning and its existing execution behavior. */
 export const sphereSpecialist = defineTrait({
   id: TRAIT.SPHERE_SPECIALIST,

@@ -17,13 +17,13 @@ import { isCorruptionCompletionEffect } from '#gw2/professions/necromancer/core/
 import { grantNecromancerLifeForce } from '#gw2/professions/necromancer/core/mechanics/life-force.js';
 import { NECROMANCER_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/necromancer/core/profiles.js';
 import type { NecromancerCoreState } from '#gw2/professions/necromancer/core/state.js';
+import { signetsOfSufferingPassive } from '#gw2/professions/necromancer/core/traits/behavior.js';
 import {
   masterOfCorruptionBloodIsPower,
   masterOfCorruptionConsumeConditions,
   masterOfCorruptionCorrosivePoisonCloud,
   masterOfCorruptionPlaguelands
 } from '#gw2/professions/necromancer/core/traits/conditions.js';
-import { signetsOfSufferingPassive } from '#gw2/professions/necromancer/core/traits/behavior.js';
 import { NECROMANCER_SKILL_IDS as ID } from '#gw2/professions/necromancer/data/ids.js';
 import type { NecromancerRuntime } from '#gw2/professions/necromancer/types.js';
 
@@ -612,8 +612,9 @@ export function applyNecromancerSignetPassive(
   else {
     const strike = requireEffect(profile, 'strike', 'Signet of Vampirism - Passive Life Siphon');
     if (strike)
-      runtime.emit(
-        buildResolverStrike({
+      runtime.effects.emit({
+        kind: 'packet',
+        event: buildResolverStrike({
           at: runtime.time,
           source: 'necromancer',
           sourceId: id,
@@ -627,6 +628,6 @@ export function applyNecromancerSignetPassive(
           canCrit: strike.canCrit !== false,
           damageKind: strike.damageKind || ''
         })
-      );
+      });
   }
 }

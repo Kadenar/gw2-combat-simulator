@@ -1,3 +1,4 @@
+import type { EffectDelivery } from '#gw2/platform/simulation/effect-emission.js';
 import type { SkillId, SkillEffect, StrikeTick, StrikeEffect } from '#gw2/platform/engine/skills/types.js';
 import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
 
@@ -25,6 +26,7 @@ export interface MesmerShatterTraitHit {
 }
 
 export interface MesmerShatterResolverRequest {
+  readonly delivery: EffectDelivery;
   readonly skill: MesmerSkill;
   readonly shatter: MesmerShatter;
   readonly at: number;
@@ -33,6 +35,7 @@ export interface MesmerShatterResolverRequest {
 }
 
 export interface MesmerShatterResolution {
+  readonly delivery: EffectDelivery;
   readonly skill: MesmerSkill;
   readonly at: number;
   readonly spent: number;

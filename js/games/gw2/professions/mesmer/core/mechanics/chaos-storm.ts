@@ -1,8 +1,8 @@
-import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { materializeSkillEffectApplications } from '#gw2/platform/engine/effects/materializer.js';
+import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import type { RuntimeCast } from '#gw2/platform/simulation/runtime-state.js';
-import type { MesmerRuntime } from '#gw2/professions/mesmer/types.js';
 import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
+import type { MesmerRuntime } from '#gw2/professions/mesmer/types.js';
 
 /** Alternates two and three whole Poison applications per completed storm, keeping each cast's pulses independent. */
 export function scheduleChaosStormPoison(context: MesmerRuntime, cast: RuntimeCast<MesmerSkill>): void {
@@ -24,6 +24,6 @@ export function scheduleChaosStormPoison(context: MesmerRuntime, cast: RuntimeCa
       skillName: skill.name
     }
   })) {
-    context.emit({ ...application.event, offTarget: cast.command.offTarget });
+    context.effects.emit({ kind: 'packet', event: { ...application.event, offTarget: cast.command.offTarget } });
   }
 }

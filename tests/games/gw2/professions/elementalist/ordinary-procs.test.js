@@ -1,3 +1,4 @@
+import { captureEffectEmissions } from '#tests/helpers/effect-emission.js';
 import { applyElementalistResolvedCondition } from '#gw2/professions/elementalist/core/mechanics/reactions.js';
 import {
   applyGenericPostCast,
@@ -18,6 +19,14 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 
 const skill = { id: 1, name: 'Fixture Heal', type: 'Heal' };
+const castFor = (context, skill) => ({
+  id: 'fixture-cast',
+  skill,
+  command: {},
+  start: context.time,
+  fullEnd: context.effectiveEnd,
+  effectiveEnd: context.effectiveEnd
+});
 
 // Use native services while collecting just the procedural output under test.
 function contextFor(kind = 'Core', specialization = {}) {
@@ -28,13 +37,17 @@ function contextFor(kind = 'Core', specialization = {}) {
   context.combatActive = true;
   context.traits = new Set();
   const events = [];
-  context.emit = (event) => {
-    events.push(event);
-    return event;
-  };
-
-  context.queue.enqueue = (event) => context.emit(event);
-  context.applyCondition = (event) => context.emit(event);
+  context.effects = captureEffectEmissions({
+    submit: (event) => {
+      events.push(event);
+      return event;
+    },
+    announce: (request) => {
+      const event = { ...request.announcement, type: 'proc' };
+      events.push(event);
+      return event;
+    }
+  }).effects;
   return { context, core, events };
 }
 
@@ -44,9 +57,15 @@ for (const [trait, traitId, key, profile, invoke] of [
     TRAIT.EARTHS_EMBRACE,
     'earthsEmbrace',
     TRAIT.EARTHS_EMBRACE,
-    (c) => applyGenericPostCast(c, c, skill)
+    (c) => applyGenericPostCast(c, castFor(c, skill), skill)
   ],
-  ['Soothing Ice', TRAIT.SOOTHING_ICE, 'soothingIce', TRAIT.SOOTHING_ICE, (c) => applyGenericPostCast(c, c, skill)],
+  [
+    'Soothing Ice',
+    TRAIT.SOOTHING_ICE,
+    'soothingIce',
+    TRAIT.SOOTHING_ICE,
+    (c) => applyGenericPostCast(c, castFor(c, skill), skill)
+  ],
   [
     'Elemental Lockdown',
     TRAIT.ELEMENTAL_LOCKDOWN,
@@ -66,7 +85,7 @@ for (const [trait, traitId, key, profile, invoke] of [
     TRAIT.EVASIVE_ARCANA,
     'evasiveArcanaWater',
     TRAIT.EVASIVE_ARCANA,
-    (c) => triggerEvasiveArcana(c, c, skill)
+    (c) => triggerEvasiveArcana(c, castFor(c, skill), skill)
   ]
 ]) {
   test(`${trait} retains eligibility, zero override and strict owner-local deadlines`, () => {
@@ -79,10 +98,13 @@ for (const [trait, traitId, key, profile, invoke] of [
       invoke(context);
       assert.deepEqual({ ...context.procs.readyAt }, {});
       context.traits.add(traitId);
-      const emit = context.emit.bind(context);
-      context.emit = (event) => {
-        assert.equal(context.procs.readyAt[key], event.at + duration);
-        return emit(event);
+      const emit = context.effects.emit.bind(context.effects);
+      context.effects = {
+        emit(request) {
+          const event = request.event ?? request.announcement ?? { at: request.at };
+          assert.equal(context.procs.readyAt[key], event.at + duration);
+          return emit(request);
+        }
       };
 
       invoke(context);
@@ -145,19 +167,19 @@ test('Evoker real and synthetic entry share profile timers without changing trai
   const { context, core } = contextFor('Evoker', state);
   const earth = elementalistCatalog.skillsByName.get('Earth Attunement');
   // Real entry intentionally consults the policy before downstream trait selection.
-  completeEvokerAttunement(context, context, earth);
+  completeEvokerAttunement(context, castFor(context, earth), earth);
   assert.equal(context.procs.readyAt[TRAIT.EARTHEN_BLAST], 6);
   assert.equal(context.procs.readyAt[TRAIT.ROCK_SOLID], 6);
   context.traits = new Set([TRAIT.EARTHEN_BLAST, TRAIT.ROCK_SOLID]);
   core.primaryAttunement = 'Earth';
   context.effectiveEnd = 6;
-  triggerSpecializedElementEntry(context, context, skill, 'Earth');
+  triggerSpecializedElementEntry(context, castFor(context, skill), skill, 'Earth');
   assert.equal(context.procs.readyAt[TRAIT.ROCK_SOLID], 6);
   context.effectiveEnd += 0.000001;
-  triggerSpecializedElementEntry(context, context, skill, 'Earth');
+  triggerSpecializedElementEntry(context, castFor(context, skill), skill, 'Earth');
   assert.equal(context.procs.readyAt[TRAIT.ROCK_SOLID], context.effectiveEnd + 5);
   assert.equal(context.procs.readyAt[TRAIT.EARTHEN_BLAST], context.effectiveEnd + 5);
   const other = contextFor('Evoker', evokerState.create());
-  triggerSpecializedElementEntry(other.context, other.context, skill, 'Earth');
+  triggerSpecializedElementEntry(other.context, castFor(other.context, skill), skill, 'Earth');
   assert.deepEqual({ ...other.context.procs.readyAt }, {});
 });

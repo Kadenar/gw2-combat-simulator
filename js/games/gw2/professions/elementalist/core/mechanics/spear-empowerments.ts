@@ -1,22 +1,22 @@
+import type { EffectDelivery } from '#gw2/platform/simulation/effect-emission.js';
 import type { RuntimeCast } from '#gw2/platform/simulation/runtime-state.js';
 import type { ElementalistCoreState } from '#gw2/professions/elementalist/core/state.js';
 /** Owns spear etching progress and one-shot empowerments that survive until a later cast consumes them. */
-import {
-  requireBalanceProfileFromContext,
-  balanceProfileNumber
-} from '#gw2/platform/engine/skills/balance-profiles.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
+import {
+  balanceProfileNumber,
+  requireBalanceProfileFromContext
+} from '#gw2/platform/engine/skills/balance-profiles.js';
 import type { Skill } from '#gw2/platform/engine/skills/types.js';
-import { emitElementalistControl } from '#gw2/professions/elementalist/core/events.js';
 import { ETCHING_CHAINS } from '#gw2/professions/elementalist/core/constants.js';
+import { elementalistControlRequest } from '#gw2/professions/elementalist/core/events.js';
 import { etchingChain, skillWeapon } from '#gw2/professions/elementalist/core/mechanics/effects.js';
 import { ELEMENTALIST_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/elementalist/core/profiles.js';
 import type {
-  ElementalistSkill,
   ElementalistRuntime,
-  ElementalistSimulationEvent
+  ElementalistSimulationEvent,
+  ElementalistSkill
 } from '#gw2/professions/elementalist/types.js';
-
 /** Snapshots armed one-shot bonuses for the next eligible spear activation. */
 export function beginElementalistSpearCast(
   context: ElementalistRuntime,
@@ -41,12 +41,13 @@ export function beginElementalistSpearCast(
 export function empowerElementalistSpearPacket(
   context: ElementalistRuntime,
   event: ElementalistSimulationEvent,
-  followup: ElementalistCoreState['spearFollowups'][string] | undefined
+  followup: ElementalistCoreState['spearFollowups'][string] | undefined,
+  emissionCast?: EffectDelivery['cast']
 ): ElementalistSimulationEvent {
   if (!followup || event.type !== 'damage' || !(Number(event.coefficient) > 0)) return event;
   if (followup.control) {
     followup.control = false;
-    emitElementalistControl(context, { ...event, controlKind: 'crowd-control' });
+    context.effects.emit(elementalistControlRequest({ ...event, controlKind: 'crowd-control' }, emissionCast));
   }
 
   return {
@@ -82,7 +83,6 @@ export function completeElementalistSpearProgression(context: ElementalistRuntim
   const state = professionCoreState(context);
   const chain = etchingChain(skill.id);
   if (chain && Number(skill.id) !== chain.etchingId) return;
-
   for (const candidate of ETCHING_CHAINS) {
     const progress = state.etchings[candidate.etching];
     if (!progress || progress.stage !== 'lesser' || Number(skill.id) === candidate.etchingId) continue;

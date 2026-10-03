@@ -11,7 +11,7 @@ export function gw2ResolverBoonDuration(
   baseDuration: number,
   { fixedDuration = false }: { readonly fixedDuration?: boolean } = {}
 ): number {
-  // Resolver reactions sample at the triggering event time so weapon swaps and
+  // Shared emissions supply the application time so weapon swaps and
   // profession attribute changes affect the new application deterministically.
   if (fixedDuration || !isStandardBoon(boon)) return baseDuration;
   const weaponSet = context.activeWeaponSet === 2 ? 2 : 1;
@@ -27,17 +27,4 @@ export function gw2ResolverBoonDuration(
     context
   );
   return baseDuration * gw2BoonDurationMultiplier(boon, stats, gw2SigilSet(context.config, weaponSet));
-}
-
-/** Scale a derived boon using its owner's live stats while preserving application attribution and timing. */
-export function queueResolverBoon(
-  context: Gw2ResolverRuntime,
-  trigger: Gw2ResolverEvent,
-  application: Gw2ResolverEvent & { readonly kind: string; readonly duration: number }
-): void {
-  context.queue.enqueue({
-    ...application,
-    type: 'buff',
-    duration: gw2ResolverBoonDuration(context, trigger, application.kind, application.duration, application)
-  });
 }

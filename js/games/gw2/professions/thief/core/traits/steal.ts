@@ -10,10 +10,10 @@ import { gw2BaseRecharge } from '#gw2/platform/engine/skills/recharge.js';
 import type { RuntimeCast } from '#gw2/platform/simulation/runtime-state.js';
 import type { ThiefRuntime } from '#gw2/professions/thief/core/events.js';
 import {
-  emitThiefBuff,
-  emitThiefCondition,
-  emitThiefControl,
-  emitThiefDamage
+  buildThiefBuff,
+  buildThiefCondition,
+  buildThiefControl,
+  buildThiefStrikes
 } from '#gw2/professions/thief/core/events.js';
 import { grantThiefInitiative } from '#gw2/professions/thief/core/mechanics/resources.js';
 import { potentPoisonStacks } from '#gw2/professions/thief/core/traits/poison.js';
@@ -43,17 +43,20 @@ export function applyDeadlyAmbush(runtime: ThiefRuntime, cast: RuntimeCast<Thief
   const profile = requireBalanceProfileFromContext(runtime, TRAIT.DEADLY_AMBUSH);
   const bleeding = requireEffect(profile, 'condition', 'Bleeding');
   if (!bleeding) return;
-  emitThiefCondition(runtime, null, {
-    at: runtime.time,
-    source: 'Trait',
-    skillId: TRAIT.DEADLY_AMBUSH,
-    skillName: 'Deadly Ambush',
-    triggeredBy: cast.skill.name,
-    activationId: cast.id,
-    name: 'Deadly Ambush — Bleeding',
-    condition: String(bleeding.condition),
-    duration: effectNumber(profile, bleeding, 'duration'),
-    stacks: effectNumber(profile, bleeding, 'stacks')
+  runtime.effects.emit({
+    kind: 'packet',
+    event: buildThiefCondition(null, {
+      at: runtime.time,
+      source: 'Trait',
+      skillId: TRAIT.DEADLY_AMBUSH,
+      skillName: 'Deadly Ambush',
+      triggeredBy: cast.skill.name,
+      activationId: cast.id,
+      name: 'Deadly Ambush — Bleeding',
+      condition: String(bleeding.condition),
+      duration: effectNumber(profile, bleeding, 'duration'),
+      stacks: effectNumber(profile, bleeding, 'stacks')
+    })
   });
 }
 
@@ -62,15 +65,18 @@ export function applyEvenTheOdds(runtime: ThiefRuntime, cast: RuntimeCast<ThiefS
   const profile = requireBalanceProfileFromContext(runtime, TRAIT.EVEN_THE_ODDS);
   const vulnerability = requireEffect(profile, 'condition', 'Vulnerability');
   if (!vulnerability) return;
-  emitThiefCondition(runtime, cast.skill, {
-    at: runtime.time,
-    source: 'Trait',
-    sourceId: TRAIT.EVEN_THE_ODDS,
-    activationId: cast.id,
-    name: 'Even the Odds — Vulnerability',
-    condition: String(vulnerability.condition),
-    duration: effectNumber(profile, vulnerability, 'duration'),
-    stacks: effectNumber(profile, vulnerability, 'stacks')
+  runtime.effects.emit({
+    kind: 'packet',
+    event: buildThiefCondition(cast.skill, {
+      at: runtime.time,
+      source: 'Trait',
+      sourceId: TRAIT.EVEN_THE_ODDS,
+      activationId: cast.id,
+      name: 'Even the Odds — Vulnerability',
+      condition: String(vulnerability.condition),
+      duration: effectNumber(profile, vulnerability, 'duration'),
+      stacks: effectNumber(profile, vulnerability, 'stacks')
+    })
   });
 }
 
@@ -87,15 +93,18 @@ export function applyHiddenThief(runtime: ThiefRuntime, cast: RuntimeCast<ThiefS
     ['Weakness', weakness]
   ] as const)
     if (effect)
-      emitThiefCondition(runtime, cast.skill, {
-        at: runtime.time,
-        source: 'Trait',
-        sourceId: TRAIT.HIDDEN_THIEF,
-        activationId: cast.id,
-        name: `Hidden Thief - ${condition}`,
-        condition,
-        duration: effectNumber(profile, effect, 'duration'),
-        stacks: effectNumber(profile, effect, 'stacks')
+      runtime.effects.emit({
+        kind: 'packet',
+        event: buildThiefCondition(cast.skill, {
+          at: runtime.time,
+          source: 'Trait',
+          sourceId: TRAIT.HIDDEN_THIEF,
+          activationId: cast.id,
+          name: `Hidden Thief - ${condition}`,
+          condition,
+          duration: effectNumber(profile, effect, 'duration'),
+          stacks: effectNumber(profile, effect, 'stacks')
+        })
       });
 }
 
@@ -149,7 +158,7 @@ export function applyMug(runtime: ThiefRuntime, cast: RuntimeCast<ThiefSkill>): 
   const profile = requireBalanceProfileFromContext(runtime, TRAIT.MUG);
   const strike = requireEffect(profile, 'strike', 'Mug');
   if (!strike) return;
-  emitThiefDamage(runtime, null, {
+  buildThiefStrikes(null, {
     at: runtime.time,
     source: 'Trait',
     sourceId: TRAIT.MUG,
@@ -160,7 +169,7 @@ export function applyMug(runtime: ThiefRuntime, cast: RuntimeCast<ThiefSkill>): 
     coefficient: effectNumber(profile, strike, 'coefficient'),
     hits: effectNumber(profile, strike, 'hits'),
     canCrit: false
-  });
+  }).forEach((packet) => runtime.effects.emit({ kind: 'packet', event: packet }));
 }
 
 /** Serpent's Touch Poison is attributed to its trait while retaining the triggering steal. */
@@ -169,17 +178,20 @@ export function applySerpentsTouch(runtime: ThiefRuntime, cast: RuntimeCast<Thie
   const profile = requireBalanceProfileFromContext(runtime, TRAIT.SERPENTS_TOUCH);
   const poison = requireEffect(profile, 'condition', 'Poisoned');
   if (!poison) return;
-  emitThiefCondition(runtime, null, {
-    at: runtime.time,
-    source: 'Trait',
-    skillId: TRAIT.SERPENTS_TOUCH,
-    skillName: "Serpent's Touch",
-    triggeredBy: cast.skill.name,
-    activationId: cast.id,
-    name: "Serpent's Touch — Poison",
-    condition: String(poison.condition),
-    duration: effectNumber(profile, poison, 'duration'),
-    stacks: potentPoisonStacks(runtime, profile, poison)
+  runtime.effects.emit({
+    kind: 'packet',
+    event: buildThiefCondition(null, {
+      at: runtime.time,
+      source: 'Trait',
+      skillId: TRAIT.SERPENTS_TOUCH,
+      skillName: "Serpent's Touch",
+      triggeredBy: cast.skill.name,
+      activationId: cast.id,
+      name: "Serpent's Touch — Poison",
+      condition: String(poison.condition),
+      duration: effectNumber(profile, poison, 'duration'),
+      stacks: potentPoisonStacks(runtime, profile, poison)
+    })
   });
 }
 
@@ -187,13 +199,16 @@ export function applySleightOfHand(runtime: ThiefRuntime, cast: RuntimeCast<Thie
   if (!hasTrait(runtime, TRAIT.SLEIGHT_OF_HAND)) return;
   const control = requireEffect(requireBalanceProfileFromContext(runtime, TRAIT.SLEIGHT_OF_HAND), 'control', 'daze');
   if (!control) return;
-  emitThiefControl(runtime, cast.skill, {
-    at: runtime.time,
-    source: 'Trait',
-    sourceId: TRAIT.SLEIGHT_OF_HAND,
-    activationId: cast.id,
-    name: 'Sleight of Hand - Daze',
-    controlKind: String(control.kind)
+  runtime.effects.emit({
+    kind: 'packet',
+    event: buildThiefControl(cast.skill, {
+      at: runtime.time,
+      source: 'Trait',
+      sourceId: TRAIT.SLEIGHT_OF_HAND,
+      activationId: cast.id,
+      name: 'Sleight of Hand - Daze',
+      controlKind: String(control.kind)
+    })
   });
 }
 
@@ -205,7 +220,7 @@ export function sleightOfHandRechargeReduction(runtime: ThiefRuntime): number {
   );
 }
 
-/** Emits a steal-owned boon attributed to its trait source, scaled by boon duration when it applies. */
+/** Builds a steal-owned boon attributed to its trait source, scaled by boon duration when it applies. */
 export function stealBoon(
   runtime: ThiefRuntime,
   cast: RuntimeCast<ThiefSkill>,
@@ -214,16 +229,19 @@ export function stealBoon(
   duration: number,
   stacks: number
 ): void {
-  emitThiefBuff(runtime, cast.skill, {
-    at: runtime.time,
-    source: 'Trait',
-    sourceId: traitId,
-    activationId: cast.id,
-    name: `Steal — ${boon}`,
-    kind: boon,
-    boon,
-    duration,
-    stacks
+  runtime.effects.emit({
+    kind: 'packet',
+    event: buildThiefBuff(cast.skill, {
+      at: runtime.time,
+      source: 'Trait',
+      sourceId: traitId,
+      activationId: cast.id,
+      name: `Steal — ${boon}`,
+      kind: boon,
+      boon,
+      duration,
+      stacks
+    })
   });
 }
 

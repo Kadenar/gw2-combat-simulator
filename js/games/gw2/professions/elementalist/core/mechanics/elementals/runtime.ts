@@ -1,6 +1,7 @@
 import { buffApplicationStacks } from '#gw2/platform/combat/boons.js';
+import { armSkillFlip, consumeSkillFlip } from '#gw2/platform/engine/skills/skill-flips.js';
+import type { EffectDelivery } from '#gw2/platform/simulation/effect-emission.js';
 import type { RuntimeCast } from '#gw2/platform/simulation/runtime-state.js';
-import { consumeSkillFlip, armSkillFlip } from '#gw2/platform/engine/skills/skill-flips.js';
 import { canonicalTime, EPSILON } from '#kernel/core/clock.js';
 /**
  * Owns the summoned-elemental lifecycle for Glyph of Elementals (Fire / Earth).
@@ -20,30 +21,21 @@ import { canonicalTime, EPSILON } from '#kernel/core/clock.js';
  *
  * Auto-summon supplies a slotted glyph's first companion; subsequent summons require an explicit glyph cast.
  */
-import {
-  requireBalanceProfileFromContext,
-  balanceProfileNumber
-} from '#gw2/platform/engine/skills/balance-profiles.js';
-import {
-  emitElementalistBuff,
-  emitElementalistCondition,
-  emitElementalistDamage
-} from '#gw2/professions/elementalist/core/events.js';
 import { selectedSkillNameSet } from '#gw2/platform/builds/selected-skills.js';
-import { GW2_ALACRITY_RECHARGE_RATE } from '#gw2/platform/engine/skills/recharge.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
-import type { AvailabilityResult } from '#gw2/platform/execution/types.js';
-import type { Skill } from '#gw2/platform/engine/skills/types.js';
 import { denyCast, retryCast } from '#gw2/platform/engine/skills/availability.js';
-import type { ElementalistSkill, ElementalistRuntime } from '#gw2/professions/elementalist/types.js';
-import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';
-import { isSelectedSlotSkill } from '#gw2/professions/elementalist/core/mechanics/weapon-state.js';
 import {
-  EARTH_ELEMENTAL_EVTC_PROFILE,
-  ELEMENTAL_LIGHTNING_JOLT_PROFILE,
-  FIRE_ELEMENTAL_EVTC_PROFILE
-} from '#gw2/professions/elementalist/core/mechanics/elementals/profiles.js';
-import { ELEMENTALIST_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/elementalist/core/profiles.js';
+  balanceProfileNumber,
+  requireBalanceProfileFromContext
+} from '#gw2/platform/engine/skills/balance-profiles.js';
+import { GW2_ALACRITY_RECHARGE_RATE } from '#gw2/platform/engine/skills/recharge.js';
+import type { Skill } from '#gw2/platform/engine/skills/types.js';
+import type { AvailabilityResult } from '#gw2/platform/execution/types.js';
+import {
+  elementalistBuffRequest,
+  elementalistConditionRequest,
+  elementalistStrikeRequest
+} from '#gw2/professions/elementalist/core/events.js';
 import {
   elementalCommandName,
   elementalForGlyphId,
@@ -54,7 +46,15 @@ import {
   type ElementalImpact,
   type ElementalKind
 } from '#gw2/professions/elementalist/core/mechanics/elementals/attacks.js';
-
+import {
+  EARTH_ELEMENTAL_EVTC_PROFILE,
+  ELEMENTAL_LIGHTNING_JOLT_PROFILE,
+  FIRE_ELEMENTAL_EVTC_PROFILE
+} from '#gw2/professions/elementalist/core/mechanics/elementals/profiles.js';
+import { isSelectedSlotSkill } from '#gw2/professions/elementalist/core/mechanics/weapon-state.js';
+import { ELEMENTALIST_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/elementalist/core/profiles.js';
+import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';
+import type { ElementalistRuntime, ElementalistSkill } from '#gw2/professions/elementalist/types.js';
 // Impact packets retain both generations so replacing an actor or action invalidates its pending hits.
 interface ElementalImpactTaskPayload {
   readonly summonGeneration: number;
@@ -63,11 +63,9 @@ interface ElementalImpactTaskPayload {
   readonly impact: ElementalImpact;
   readonly hitIndex: number;
 }
-
 // Re-summoning cancels pending impact packets separately from the shared actor lifetime.
 const ELEMENTAL_IMPACT_TASK = 'elementalist.elemental-impact';
 const ELEMENTAL_TASK_OWNER = 'elementalist.summoned-elemental';
-
 function ready(): AvailabilityResult {
   return { ready: true };
 }
@@ -160,7 +158,10 @@ function beginSummonAction(
   skillId: number,
   skillName: string,
   animationEnd: number
-): Readonly<{ actionGeneration: number; activationId: string }> {
+): Readonly<{
+  actionGeneration: number;
+  activationId: string;
+}> {
   const elemental = professionCoreState(context).summonedElemental;
   const element = elemental.element as ElementalKind;
   interruptCurrentAction(context, at);
@@ -169,19 +170,22 @@ function beginSummonAction(
   elemental.started = true;
   const activationId = `elementalist:${elemental.summonGeneration}:${elemental.actionGeneration}`;
   elemental.currentActivationId = activationId;
-  context.emit({
-    type: 'action',
-    activationId,
-    at,
-    source: `${element} Elemental`,
-    sourceId: skillId,
-    actorType: 'summon',
-    skillId,
-    skillName,
-    name: skillName,
-    endsAt: at + animationEnd,
-    fullEndsAt: at + animationEnd,
-    summonOwner: elementalistElementalCompanionId(elemental.summonGeneration)
+  context.effects.emit({
+    kind: 'packet',
+    event: {
+      type: 'action',
+      activationId,
+      at,
+      source: `${element} Elemental`,
+      sourceId: skillId,
+      actorType: 'summon',
+      skillId,
+      skillName,
+      name: skillName,
+      endsAt: at + animationEnd,
+      fullEndsAt: at + animationEnd,
+      summonOwner: elementalistElementalCompanionId(elemental.summonGeneration)
+    }
   });
   return {
     actionGeneration: elemental.actionGeneration,
@@ -195,7 +199,10 @@ function scheduleImpact(
   context: ElementalistRuntime,
   at: number,
   impact: ElementalImpact,
-  action: Readonly<{ actionGeneration: number; activationId: string }>,
+  action: Readonly<{
+    actionGeneration: number;
+    activationId: string;
+  }>,
   hitIndex = 1,
   priority = -20
 ): void {
@@ -240,7 +247,6 @@ function startSingleImpactAttack(
 // Each starter follows the same shape: read the EVTC-derived timing profile, scale
 // offsets by the quickness action rate, emit the action, queue its impact(s), mark
 // the elemental busy until the shared actor loop can select another attack.
-
 // Fire player command (flip skill): three projectiles + a final explosion hit.
 // Recovery is longer on the first-ever command vs subsequent ones (EVTC-observed).
 function startFlameBarrage(context: ElementalistRuntime, at: number): void {
@@ -308,7 +314,10 @@ function emitStrike(
   hitIndex: number,
   totalHits: number,
   coefficient = 1,
-  fields: { readonly summonUsesEquipmentModifiers?: boolean } = {}
+  fields: {
+    readonly summonUsesEquipmentModifiers?: boolean;
+  } = {},
+  emissionCast?: EffectDelivery['cast']
 ): void {
   const elemental = professionCoreState(context).summonedElemental;
   const element = elemental.element as ElementalKind;
@@ -316,48 +325,60 @@ function emitStrike(
   if (pendingLightningJolt) {
     // Lightning Jolt is an allied one-shot charge, so the elemental consumes its copy on its next strike.
     elemental.pendingLightningJolt = null;
-    emitElementalistDamage(context, {
-      activationId: `${payload.activationId}:lightning-jolt`,
-      at: context.time,
-      source: `${element} Elemental`,
-      sourceId: pendingLightningJolt.skillId,
-      actorType: 'summon',
-      skillId: pendingLightningJolt.skillId,
-      skillName: 'Lightning Jolt',
-      name: 'Lightning Jolt',
-      coefficient: pendingLightningJolt.coefficient,
-      hits: 1,
-      canCrit: false,
-      skillWeapon: 'Unequipped',
-      weaponStrengthProfileId: ELEMENTAL_LIGHTNING_JOLT_PROFILE.weaponStrengthProfileId,
-      independentSummonStrike: true,
-      summonInheritsAttributes: false,
-      summonBasePower: ELEMENTAL_LIGHTNING_JOLT_PROFILE.basePower,
-      summonBasePrecision: 1000,
-      summonBaseFerocity: 0,
-      summonUsesMight: false,
-      summonUsesEquipmentModifiers: false,
-      summonUsesProfessionModifiers: false,
-      summonOwner: elementalistElementalCompanionId(payload.summonGeneration || 0)
-    });
+    context.effects.emit(
+      elementalistStrikeRequest(
+        context,
+        {
+          activationId: `${payload.activationId}:lightning-jolt`,
+          at: context.time,
+          source: `${element} Elemental`,
+          sourceId: pendingLightningJolt.skillId,
+          actorType: 'summon',
+          skillId: pendingLightningJolt.skillId,
+          skillName: 'Lightning Jolt',
+          name: 'Lightning Jolt',
+          coefficient: pendingLightningJolt.coefficient,
+          hits: 1,
+          canCrit: false,
+          skillWeapon: 'Unequipped',
+          weaponStrengthProfileId: ELEMENTAL_LIGHTNING_JOLT_PROFILE.weaponStrengthProfileId,
+          independentSummonStrike: true,
+          summonInheritsAttributes: false,
+          summonBasePower: ELEMENTAL_LIGHTNING_JOLT_PROFILE.basePower,
+          summonBasePrecision: 1000,
+          summonBaseFerocity: 0,
+          summonUsesMight: false,
+          summonUsesEquipmentModifiers: false,
+          summonUsesProfessionModifiers: false,
+          summonOwner: elementalistElementalCompanionId(payload.summonGeneration || 0)
+        },
+        emissionCast
+      )
+    );
   }
 
-  emitElementalistDamage(context, {
-    activationId: payload.activationId,
-    at: context.time,
-    source: `${element} Elemental`,
-    sourceId: skillId,
-    actorType: 'summon',
-    skillId,
-    skillName,
-    name: skillName,
-    coefficient,
-    hits: 1,
-    hitIndex,
-    totalHits,
-    ...summonStrikeMetadata(element, payload.summonGeneration || 0, baseDamage),
-    ...fields
-  });
+  context.effects.emit(
+    elementalistStrikeRequest(
+      context,
+      {
+        activationId: payload.activationId,
+        at: context.time,
+        source: `${element} Elemental`,
+        sourceId: skillId,
+        actorType: 'summon',
+        skillId,
+        skillName,
+        name: skillName,
+        coefficient,
+        hits: 1,
+        hitIndex,
+        totalHits,
+        ...summonStrikeMetadata(element, payload.summonGeneration || 0, baseDamage),
+        ...fields
+      },
+      emissionCast
+    )
+  );
 }
 
 // Elemental-applied conditions use player ownership so they benefit from player condition attributes.
@@ -368,67 +389,95 @@ function emitPlayerOwnedCondition(
   skillName: string,
   condition: string,
   duration: number,
-  stacks = 1
+  stacks = 1,
+  emissionCast?: EffectDelivery['cast']
 ): void {
   const elemental = professionCoreState(context).summonedElemental;
-  emitElementalistCondition(context, {
-    activationId: payload.activationId,
-    at: context.time,
-    source: `${elemental.element} Elemental`,
-    skillId,
-    skillName,
-    name: `${skillName} — ${condition}`,
-    condition,
-    stacks,
-    duration
-  });
+  context.effects.emit(
+    elementalistConditionRequest(
+      {
+        activationId: payload.activationId,
+        at: context.time,
+        source: `${elemental.element} Elemental`,
+        skillId,
+        skillName,
+        name: `${skillName} — ${condition}`,
+        condition,
+        stacks,
+        duration
+      },
+      emissionCast
+    )
+  );
 }
 
 // Flame Burst shares Might to the 5-player party.
-function emitFlameBurstMight(context: ElementalistRuntime, payload: ElementalImpactTaskPayload): void {
+function emitFlameBurstMight(
+  context: ElementalistRuntime,
+  payload: ElementalImpactTaskPayload,
+  emissionCast?: EffectDelivery['cast']
+): void {
   const profile = FIRE_ELEMENTAL_EVTC_PROFILE.flameBurst;
   const sourceSkill = context.helpers.skillsById.get(ID.GLYPH_OF_ELEMENTALS);
   if (!sourceSkill) return;
-  emitElementalistBuff(context, {
-    activationId: payload.activationId,
-    at: context.time,
-    source: 'Fire Elemental',
-    sourceId: profile.skillId,
-    actorType: 'player',
-    skillId: profile.skillId,
-    skillName: 'Flame Burst',
-    name: 'Flame Burst — Might',
-    kind: 'might',
-    stacks: profile.mightStacks,
-    duration: profile.mightDuration,
-    audience: { recipients: 'party' as const, maximumRecipients: 5 }
-  });
+  context.effects.emit(
+    elementalistBuffRequest(
+      {
+        activationId: payload.activationId,
+        at: context.time,
+        source: 'Fire Elemental',
+        sourceId: profile.skillId,
+        actorType: 'player',
+        skillId: profile.skillId,
+        skillName: 'Flame Burst',
+        name: 'Flame Burst — Might',
+        kind: 'might',
+        stacks: profile.mightStacks,
+        duration: profile.mightDuration,
+        audience: { recipients: 'party' as const, maximumRecipients: 5 }
+      },
+      emissionCast
+    )
+  );
 }
 
 // Stomp shares Protection to the 5-player party.
-function emitStompProtection(context: ElementalistRuntime, payload: ElementalImpactTaskPayload): void {
+function emitStompProtection(
+  context: ElementalistRuntime,
+  payload: ElementalImpactTaskPayload,
+  emissionCast?: EffectDelivery['cast']
+): void {
   const profile = EARTH_ELEMENTAL_EVTC_PROFILE.stomp;
   const sourceSkill = context.helpers.skillsById.get(ID.GLYPH_OF_ELEMENTALS_EARTH);
   if (!sourceSkill) return;
-  emitElementalistBuff(context, {
-    activationId: payload.activationId,
-    at: context.time,
-    source: 'Earth Elemental',
-    sourceId: profile.skillId,
-    actorType: 'player',
-    skillId: profile.skillId,
-    skillName: 'Stomp',
-    name: 'Stomp — Protection',
-    kind: 'protection',
-    stacks: 1,
-    duration: profile.protectionDuration,
-    audience: { recipients: 'party' as const, maximumRecipients: 5 }
-  });
+  context.effects.emit(
+    elementalistBuffRequest(
+      {
+        activationId: payload.activationId,
+        at: context.time,
+        source: 'Earth Elemental',
+        sourceId: profile.skillId,
+        actorType: 'player',
+        skillId: profile.skillId,
+        skillName: 'Stomp',
+        name: 'Stomp — Protection',
+        kind: 'protection',
+        stacks: 1,
+        duration: profile.protectionDuration,
+        audience: { recipients: 'party' as const, maximumRecipients: 5 }
+      },
+      emissionCast
+    )
+  );
 }
 
 // IMPACT task handler: lands one hit. Bails if the summon expired/was replaced or the
 // action was superseded, then dispatches per impact kind to emit strike + effects.
-function handleElementalImpactTask(context: ElementalistRuntime, payload: ElementalImpactTaskPayload): void {
+function handleElementalImpactTask(
+  context: ElementalistRuntime,
+  payload: ElementalImpactTaskPayload,
+  emissionCast?: EffectDelivery['cast']
+): void {
   const elemental = professionCoreState(context).summonedElemental;
   if (
     !activeElemental(context, payload.summonGeneration, context.time) ||
@@ -439,13 +488,35 @@ function handleElementalImpactTask(context: ElementalistRuntime, payload: Elemen
 
   if (payload.impact === 'fireball') {
     const profile = FIRE_ELEMENTAL_EVTC_PROFILE.fireball;
-    emitStrike(context, payload, profile.skillId, 'Fireball', profile.baseDamage, 1, 1);
+    emitStrike(
+      context,
+      payload,
+      profile.skillId,
+      'Fireball',
+      profile.baseDamage,
+      1,
+      1,
+      undefined,
+      undefined,
+      emissionCast
+    );
     return;
   }
 
   if (payload.impact === 'flame-burst') {
     const profile = FIRE_ELEMENTAL_EVTC_PROFILE.flameBurst;
-    emitStrike(context, payload, profile.skillId, 'Flame Burst', profile.baseDamage, 1, 1);
+    emitStrike(
+      context,
+      payload,
+      profile.skillId,
+      'Flame Burst',
+      profile.baseDamage,
+      1,
+      1,
+      undefined,
+      undefined,
+      emissionCast
+    );
     // Read the burn count from the profile so balance changes reach the emitted condition.
     emitPlayerOwnedCondition(
       context,
@@ -454,9 +525,10 @@ function handleElementalImpactTask(context: ElementalistRuntime, payload: Elemen
       'Flame Burst',
       'Burning',
       profile.burningDuration,
-      profile.burningStacks
+      profile.burningStacks,
+      emissionCast
     );
-    emitFlameBurstMight(context, payload);
+    emitFlameBurstMight(context, payload, emissionCast);
     return;
   }
 
@@ -473,7 +545,8 @@ function handleElementalImpactTask(context: ElementalistRuntime, payload: Elemen
       4,
       profile.projectileCoefficient,
       // The elemental's own Might scales Barrage; owner equipment still does not.
-      { summonUsesEquipmentModifiers: false }
+      { summonUsesEquipmentModifiers: false },
+      emissionCast
     );
     emitPlayerOwnedCondition(
       context,
@@ -482,9 +555,9 @@ function handleElementalImpactTask(context: ElementalistRuntime, payload: Elemen
       'Flame Barrage',
       'Burning',
       profile.burningDuration,
-      profile.burningStacks
+      profile.burningStacks,
+      emissionCast
     );
-
     return;
   }
 
@@ -500,38 +573,80 @@ function handleElementalImpactTask(context: ElementalistRuntime, payload: Elemen
       4,
       4,
       profile.explosionCoefficient,
-      { summonUsesEquipmentModifiers: false }
+      { summonUsesEquipmentModifiers: false },
+      emissionCast
     );
     return;
   }
 
   if (payload.impact === 'punch') {
     const profile = EARTH_ELEMENTAL_EVTC_PROFILE.punch;
-    emitStrike(context, payload, profile.skillId, 'Punch', profile.baseDamage, 1, 1);
+    emitStrike(
+      context,
+      payload,
+      profile.skillId,
+      'Punch',
+      profile.baseDamage,
+      1,
+      1,
+      undefined,
+      undefined,
+      emissionCast
+    );
     return;
   }
 
   if (payload.impact === 'enervating-punch') {
     const profile = EARTH_ELEMENTAL_EVTC_PROFILE.enervatingPunch;
-    emitStrike(context, payload, profile.skillId, 'Enervating Punch', profile.baseDamage, 1, 1);
+    emitStrike(
+      context,
+      payload,
+      profile.skillId,
+      'Enervating Punch',
+      profile.baseDamage,
+      1,
+      1,
+      undefined,
+      undefined,
+      emissionCast
+    );
     emitPlayerOwnedCondition(
       context,
       payload,
       profile.skillId,
       'Enervating Punch',
       'Weakness',
-      profile.weaknessDuration
+      profile.weaknessDuration,
+      undefined,
+      emissionCast
     );
     return;
   }
 
   // All other impact variants returned above; the remaining command is Stomp.
-
   const profile = EARTH_ELEMENTAL_EVTC_PROFILE.stomp;
-  emitStrike(context, payload, profile.skillId, 'Stomp', profile.baseDamage, 1, 1);
-  emitPlayerOwnedCondition(context, payload, profile.skillId, 'Stomp', 'Crippled', profile.crippleDuration);
-  emitPlayerOwnedCondition(context, payload, profile.skillId, 'Stomp', 'Immobilized', profile.immobilizeDuration);
-  emitStompProtection(context, payload);
+  emitStrike(context, payload, profile.skillId, 'Stomp', profile.baseDamage, 1, 1, undefined, undefined, emissionCast);
+  emitPlayerOwnedCondition(
+    context,
+    payload,
+    profile.skillId,
+    'Stomp',
+    'Crippled',
+    profile.crippleDuration,
+    undefined,
+    emissionCast
+  );
+  emitPlayerOwnedCondition(
+    context,
+    payload,
+    profile.skillId,
+    'Stomp',
+    'Immobilized',
+    profile.immobilizeDuration,
+    undefined,
+    emissionCast
+  );
+  emitStompProtection(context, payload, emissionCast);
 }
 
 // Actor step: picks the next autonomous attack. Prefers the secondary attack
@@ -541,8 +656,15 @@ function handleElementalImpactTask(context: ElementalistRuntime, payload: Elemen
 function stepElemental(
   context: ElementalistRuntime,
   at: number,
-  state: { summonGeneration: number }
-): { at: number; state: { summonGeneration: number } } | null {
+  state: {
+    summonGeneration: number;
+  }
+): {
+  at: number;
+  state: {
+    summonGeneration: number;
+  };
+} | null {
   const elemental = professionCoreState(context).summonedElemental;
   if (
     !activeElemental(context, state.summonGeneration, at) ||
@@ -584,7 +706,13 @@ function scheduleElementalDecision(context: ElementalistRuntime, at: number): vo
 // Lifetime teardown: end of lifetime. Interrupts the in-flight action, clears all
 // elemental state, removes the command flip, and puts the glyph on its post-expiry
 // recharge so it can be re-summoned. Ignored if a newer summon already superseded it.
-function expireElemental(context: ElementalistRuntime, at: number, captured: { summonGeneration: number }): void {
+function expireElemental(
+  context: ElementalistRuntime,
+  at: number,
+  captured: {
+    summonGeneration: number;
+  }
+): void {
   const state = professionCoreState(context);
   const elemental = state.summonedElemental;
   if (captured.summonGeneration !== elemental.summonGeneration) return;
@@ -636,7 +764,6 @@ function summonElemental(
   element: ElementalKind
 ): void {
   const state = professionCoreState(context);
-
   // Replacement ends the old action and flip together with its queued work.
   interruptCurrentAction(context, at);
   const previousElement = state.summonedElemental.element;
@@ -790,20 +917,25 @@ export const elementalistElementalTasks = {
     if (next) scheduleElementalDecision(context, next.at);
   },
   'elementalist.elemental-expire'(context: ElementalistRuntime, data: unknown): void {
-    const captured = data as { summonGeneration: number };
+    const captured = data as {
+      summonGeneration: number;
+    };
     if (captured.summonGeneration !== context.profession.core.summonedElemental.summonGeneration) return;
     const element = context.profession.core.summonedElemental.element;
     expireElemental(context, context.time, captured);
-    context.emit({
-      type: 'marker',
-      at: context.time,
-      source: 'Elementalist',
-      sourceId: 'elementalist.elemental-expire',
-      actorType: 'summon',
-      name: element + ' Elemental expires'
+    context.effects.emit({
+      kind: 'packet',
+      event: {
+        type: 'marker',
+        at: context.time,
+        source: 'Elementalist',
+        sourceId: 'elementalist.elemental-expire',
+        actorType: 'summon',
+        name: element + ' Elemental expires'
+      }
     });
   },
   [ELEMENTAL_IMPACT_TASK](context: ElementalistRuntime, data: unknown): void {
-    handleElementalImpactTask(context, data as ElementalImpactTaskPayload);
+    handleElementalImpactTask(context, data as ElementalImpactTaskPayload, undefined);
   }
 };

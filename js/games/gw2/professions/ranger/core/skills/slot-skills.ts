@@ -6,7 +6,7 @@ import type { SimulationEventBase } from '#gw2/platform/engine/events/events.js'
 import { createGw2TimelineIndex } from '#gw2/platform/combat/query/timeline-index.js';
 import { buffApplicationStacks } from '#gw2/platform/combat/boons.js';
 import { rangerPetCompanionId } from '#gw2/professions/ranger/core/mechanics/pets.js';
-import { rangerEvent } from '#gw2/professions/ranger/core/events.js';
+import { buildRangerPacket } from '#gw2/professions/ranger/core/events.js';
 import {
   requireBalanceProfileFromContext,
   requireEffect,
@@ -511,20 +511,24 @@ export function copyHealingBoons(runtime: RangerRuntime, cast: RuntimeCast<Range
       };
     });
   for (const { kind, duration, player, pet } of copies) {
-    const event = rangerEvent(
+    const event = buildRangerPacket(
       { at: runtime.time, skillId: cast.skill.id, skillName: cast.skill.name, activationId: cast.id, kind, duration },
       'buff'
     );
-    if (pet > 0) runtime.emitProcedural({ ...event, stacks: pet, audience: { recipients: 'self' } });
+    if (pet > 0)
+      runtime.effects.emit({ kind: 'packet', event: { ...event, stacks: pet, audience: { recipients: 'self' } } });
     if (petActive && player > 0)
-      runtime.emitProcedural({
-        ...event,
-        stacks: player,
-        audience: {
-          recipients: 'summons',
-          affectsSelf: false,
-          maximumRecipients: 1,
-          eligibleCompanionIds: [companionId]
+      runtime.effects.emit({
+        kind: 'packet',
+        event: {
+          ...event,
+          stacks: player,
+          audience: {
+            recipients: 'summons',
+            affectsSelf: false,
+            maximumRecipients: 1,
+            eligibleCompanionIds: [companionId]
+          }
         }
       });
   }
@@ -535,8 +539,9 @@ export function emitSunSpiritBurning(runtime: RangerRuntime, skill: Skill, at: n
   const profile = requireBalanceProfileFromContext(runtime, PROFILE.sunSpirit);
   const burning = requireEffect(profile, 'condition', 'Burning');
   if (burning) {
-    runtime.emit(
-      rangerEvent(
+    runtime.effects.emit({
+      kind: 'packet',
+      event: buildRangerPacket(
         {
           at,
           skillId: ID.SOLAR_FLARE,
@@ -549,7 +554,7 @@ export function emitSunSpiritBurning(runtime: RangerRuntime, skill: Skill, at: n
         },
         'condition'
       )
-    );
+    });
   }
 }
 
@@ -558,8 +563,9 @@ export function activateSicEm(runtime: RangerRuntime, skill: Skill): void {
   const specialization = runtime.profession.specialization;
   const merged = specialization.kind === 'Soulbeast' && specialization.state.beastmodeActive;
   for (const kind of [...(runtime.profession.core.petActive ? ['sic-em-pet'] : []), ...(merged ? ['sic-em'] : [])])
-    runtime.emitProcedural(
-      rangerEvent(
+    runtime.effects.emit({
+      kind: 'packet',
+      event: buildRangerPacket(
         {
           at: runtime.time,
           skillId: skill.id,
@@ -571,7 +577,7 @@ export function activateSicEm(runtime: RangerRuntime, skill: Skill): void {
         },
         'buff'
       )
-    );
+    });
 }
 
 /** Hold deployed trap packets until explicit engagement, preserving their relative pulses and field lifetime. */
@@ -596,10 +602,13 @@ export function releaseFrostTrap(runtime: RangerRuntime): void {
   runtime.profession.core.pendingFrostTrapEvents = [];
   const delay = Math.max(0, runtime.time - Math.min(...pending.map((event) => event.at)));
   for (const event of pending)
-    runtime.emit({
-      ...event,
-      at: event.at + delay,
-      ...(event.type === 'combo_field' ? { expiresAt: Number(event.expiresAt) + delay } : {})
+    runtime.effects.emit({
+      kind: 'packet',
+      event: {
+        ...event,
+        at: event.at + delay,
+        ...(event.type === 'combo_field' ? { expiresAt: Number(event.expiresAt) + delay } : {})
+      }
     });
 }
 

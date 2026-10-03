@@ -1,3 +1,4 @@
+import { captureEffectEmissions } from '#tests/helpers/effect-emission.js';
 import { defineProfessionApp } from '#gw2/app/define-profession-app.js';
 import { tooltipFactIcon } from '#gw2/app/shared/icons.js';
 import {
@@ -914,13 +915,12 @@ test('Engineer spear resolver and tooltip use the same selected packet profile',
     {
       catalog: selected.catalog,
       profession: { core: { focusedUntil: 20 } },
-      queue: {
-        enqueue: (event) => {
+      effects: captureEffectEmissions({
+        submit: (event) => {
           packets.push(event);
           return event;
         }
-      },
-      applyCondition: (event) => packets.push(event)
+      }).effects
     },
     { at: 10, skillId: skill.id, skillName: skill.name, charges: 2 }
   );

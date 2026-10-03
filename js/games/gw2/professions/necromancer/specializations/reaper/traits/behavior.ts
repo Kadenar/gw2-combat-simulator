@@ -14,11 +14,7 @@ import {
   cloneNecromancerAttributes,
   necromancerActiveShroud
 } from '#gw2/professions/necromancer/core/mechanics/modifier-queries.js';
-import {
-  applyTraitCondition,
-  queueTraitCoefficientDamage,
-  targetIsChilled
-} from '#gw2/professions/necromancer/core/mechanics/trait-effects.js';
+import { targetIsChilled } from '#gw2/professions/necromancer/core/mechanics/trait-effects.js';
 import { NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
 import type { NecromancerResolverContext, NecromancerResolverEvent } from '#gw2/professions/necromancer/types.js';
 
@@ -58,12 +54,29 @@ const chillingNovaCriticalHit = criticalProcHandler<
     const strike = requireEffect(profile, 'strike', 'Strike');
     const chill = requireEffect(profile, 'condition', 'Chilled');
     for (let proc = 0; proc < application.quantity; proc += 1) {
-      if (strike)
-        queueTraitCoefficientDamage(context, event, {
-          name: 'Chilling Nova',
-          traitId: TRAIT.CHILLING_NOVA,
-          coefficient: effectNumber(profile, strike, 'coefficient')
+      if (strike) {
+        /* Trait payloads and their timeline annotation share the same emission boundary. */ context.effects.emit({
+          kind: 'packet',
+          event: {
+            at: event.at,
+            source: 'Trait',
+            sourceId: TRAIT.CHILLING_NOVA,
+            actorType: 'effect',
+            skillName: 'Chilling Nova',
+            triggeredBy: event.skillName,
+            type: 'damage',
+            coefficient: effectNumber(profile, strike, 'coefficient'),
+            skillWeapon: 'Unequipped',
+            canCrit: false,
+            hits: 1,
+            ...(event.summonOwner ? { summonOwner: event.summonOwner } : {})
+          }
         });
+        context.effects.emit({
+          kind: 'announcement',
+          announcement: { type: 'trait', name: 'Chilling Nova', at: event.at, sourceSkill: event.skillName }
+        });
+      }
       // Without its strike, Chill has no resolved hit to follow and applies at the trigger instead.
       else if (chill) queueChillingNovaChill(context, event, profile, chill);
     }
@@ -76,8 +89,9 @@ function queueChillingNovaChill(
   profile: BalanceProfile,
   chill: ConditionEffect
 ): void {
-  context.queue.enqueue(
-    buildResolverCondition({
+  context.effects.emit({
+    kind: 'packet',
+    event: buildResolverCondition({
       condition: String(chill.condition),
       stacks: effectNumber(profile, chill, 'stacks'),
       name: 'Chilling Nova — Chilled',
@@ -88,7 +102,7 @@ function queueChillingNovaChill(
       skillName: 'Chilling Nova',
       duration: effectNumber(profile, chill, 'duration')
     })
-  );
+  });
 }
 
 /** Resolves Chilling Nova from actual strikes; combo production belongs to the caller's runtime. */
@@ -112,14 +126,30 @@ export function reactToCondition(context: NecromancerResolverContext, event: Nec
   if (event.condition === 'Chilled' && hasTrait(context, TRAIT.DEATHLY_CHILL)) {
     const profile = requireBalanceProfileFromContext(context, TRAIT.DEATHLY_CHILL);
     const effect = requireEffect(profile, 'condition', 'Bleeding');
-    if (effect)
-      applyTraitCondition(context, event, {
-        name: 'Deathly Chill',
-        traitId: TRAIT.DEATHLY_CHILL,
-        condition: String(effect.condition),
-        stacks: effectNumber(profile, effect, 'stacks'),
-        duration: effectNumber(profile, effect, 'duration')
+    if (effect) {
+      /* Trait payloads and their timeline annotation share the same emission boundary. */ context.effects.emit({
+        kind: 'packet',
+        settlement: 'reaction',
+        event: {
+          at: event.at,
+          source: 'Trait',
+          sourceId: TRAIT.DEATHLY_CHILL,
+          actorType: 'effect',
+          skillName: 'Deathly Chill',
+          triggeredBy: event.skillName,
+          type: 'condition',
+          ownerActorType: 'player',
+          name: 'Deathly Chill' + ' - ' + String(effect.condition),
+          condition: String(effect.condition),
+          stacks: effectNumber(profile, effect, 'stacks'),
+          duration: effectNumber(profile, effect, 'duration')
+        }
       });
+      context.effects.emit({
+        kind: 'announcement',
+        announcement: { type: 'trait', name: 'Deathly Chill', at: event.at, sourceSkill: event.skillName }
+      });
+    }
   }
 }
 
@@ -133,8 +163,9 @@ export function reactToControl(context: NecromancerResolverContext, event: Necro
   const profile = requireBalanceProfileFromContext(context, TRAIT.SHIVERS_OF_DREAD);
   const chill = requireEffect(profile, 'condition', 'Chilled');
   if (!chill) return;
-  context.queue.enqueue(
-    buildResolverCondition({
+  context.effects.emit({
+    kind: 'packet',
+    event: buildResolverCondition({
       condition: String(chill.condition),
       stacks: effectNumber(profile, chill, 'stacks'),
       name: 'Shivers of Dread — Chilled',
@@ -145,5 +176,5 @@ export function reactToControl(context: NecromancerResolverContext, event: Necro
       skillName: 'Shivers of Dread',
       duration: effectNumber(profile, chill, 'duration')
     })
-  );
+  });
 }

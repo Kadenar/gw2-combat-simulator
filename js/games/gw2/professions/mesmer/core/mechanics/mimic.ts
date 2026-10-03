@@ -6,7 +6,6 @@ import {
 } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { MESMER_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/mesmer/core/profiles.js';
-import { mesmerMechanicsFor } from '#gw2/professions/mesmer/core/mechanics/runtime.js';
 import { MESMER_SKILL_IDS as ID } from '#gw2/professions/mesmer/data/ids.js';
 import type { RuntimeCast } from '#gw2/platform/simulation/runtime-state.js';
 import type { MesmerRuntime } from '#gw2/professions/mesmer/types.js';
@@ -37,14 +36,11 @@ export function completeMimicCast(context: MesmerRuntime, cast: RuntimeCast<Mesm
 
   context.cooldownController.clear(skill.id);
   core.mimicUntil = 0;
-  mesmerMechanicsFor(context).addEvent({
-    type: 'proc',
-    at,
-    source: 'Mimic',
-    sourceId: ID.MIMIC,
-    skillId: ID.MIMIC,
-    skillName: 'Mimic',
-    name: 'Mimic'
+  context.effects.emit({
+    kind: 'announcement',
+    log: true,
+    attribution: { source: 'Mimic', sourceId: ID.MIMIC, skillId: ID.MIMIC, skillName: 'Mimic', actorType: 'player' },
+    announcement: { type: 'skill', at, name: 'Mimic' }
   });
 }
 

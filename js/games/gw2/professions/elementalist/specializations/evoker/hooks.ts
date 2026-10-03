@@ -1,5 +1,4 @@
 import type { RuntimeProfession, SkillTaskData } from '#gw2/platform/simulation/runtime-state.js';
-import { withElementalistCast } from '#gw2/professions/elementalist/core/events.js';
 import { registerElementalistAttunementTransition } from '#gw2/professions/elementalist/core/mechanics/attunements.js';
 import { registerElementalistEliteEvents } from '#gw2/professions/elementalist/core/mechanics/elite-events.js';
 import { completeEvokerAttunement } from '#gw2/professions/elementalist/specializations/evoker/mechanics/attunements.js';
@@ -23,9 +22,7 @@ import {
 } from '#gw2/professions/elementalist/specializations/evoker/mechanics/resources.js';
 import { evokerState } from '#gw2/professions/elementalist/specializations/evoker/state.js';
 import { applyAltruisticAspect } from '#gw2/professions/elementalist/specializations/evoker/traits/familiars.js';
-import type { ElementalistSkill, ElementalistRuntimeState } from '#gw2/professions/elementalist/types.js';
-import { canonicalTime } from '#kernel/core/clock.js';
-
+import type { ElementalistRuntimeState, ElementalistSkill } from '#gw2/professions/elementalist/types.js';
 /** Familiar casts own pending packets; accepted impacts spend enchantments in chronological order. */
 export const evokerHooks: Partial<RuntimeProfession<ElementalistRuntimeState, ElementalistSkill>> = {
   initialize(runtime) {
@@ -36,14 +33,14 @@ export const evokerHooks: Partial<RuntimeProfession<ElementalistRuntimeState, El
     });
   },
   availability,
-  prepareEvent(runtime, event) {
-    if (!FAMILIAR_ELEMENTS.has(event.skillId ?? event.sourceId) || event.type === 'action') return event;
-    if (canonicalTime(event.at) > runtime.time && ['damage', 'condition', 'control', 'blind'].includes(event.type)) {
-      runtime.emitProcedural(event, { owner: { id: String(event.activationId), generation: 0 } });
-      return null;
-    }
-
-    return event;
+  // Familiar packets keep cancellable cast ownership without recursively resubmitting during preparation.
+  effectOwner(_runtime, event) {
+    if (
+      FAMILIAR_ELEMENTS.has(event.skillId ?? event.sourceId) &&
+      ['damage', 'condition', 'control', 'blind'].includes(event.type)
+    )
+      return { id: String(event.activationId), generation: 0 };
+    return undefined;
   },
   sideEffectHandlers: {
     ...Object.fromEntries(Object.keys(evokerSkillCommitTasks).map((type) => [type, scheduleEvokerSkillCommit])),
@@ -58,9 +55,7 @@ export const evokerHooks: Partial<RuntimeProfession<ElementalistRuntimeState, El
     // Replay payloads with Procession ownership without performing a familiar cast's resource or trait settlement.
     'elementalist.evoker.release-elemental-procession'(runtime, context) {
       if (context.kind !== 'cast') throw new TypeError('Elemental Procession requires a cast trigger.');
-      withElementalistCast(runtime, context.cast, () =>
-        releaseElementalProcession(runtime, context.cast, context.skill)
-      );
+      releaseElementalProcession(runtime, context.cast, context.skill);
     }
   },
   modifyEffects: modifyFamiliarEffects,
@@ -77,21 +72,21 @@ export const evokerHooks: Partial<RuntimeProfession<ElementalistRuntimeState, El
     }
   },
   onCastCommit(runtime, cast) {
-    withElementalistCast(runtime, cast, () => {
+    {
       onCastCommit(runtime, cast, cast.skill);
       // This tail follows the skill-declared intrinsic tasks, retaining reset -> deferred grants -> final trait order.
       runtime.scheduleForCast('elementalist.evoker.finish-commit', runtime.time, cast, {}, undefined, -101);
-    });
+    }
   },
-
   tasks: {
     ...evokerSkillCommitTasks,
     'elementalist.evoker.finish-commit'(runtime, data) {
       const { cast } = data as SkillTaskData<ElementalistSkill>;
-      withElementalistCast(runtime, cast, () => {
+      {
         finishEvokerCast(runtime, cast, cast.skill);
         applyAltruisticAspect(runtime, cast, cast.skill);
-      });
+      }
+
       delete evokerState.from(runtime).cancelledFamiliarActivations[cast.id];
     }
   },

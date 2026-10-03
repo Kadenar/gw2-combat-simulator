@@ -17,7 +17,7 @@ import {
   requireBalanceProfileFromContext
 } from '#gw2/platform/engine/skills/balance-profiles.js';
 import type { Skill } from '#gw2/platform/engine/skills/types.js';
-import type { ElementalistSkill, ElementalistRuntime } from '#gw2/professions/elementalist/types.js';
+import type { ElementalistRuntime, ElementalistSkill } from '#gw2/professions/elementalist/types.js';
 // Use Core's bundle names so conjure availability and familiar-charge exclusions agree.
 import { CONJURED_WEAPONS } from '#gw2/professions/elementalist/core/constants.js';
 import {
@@ -54,17 +54,20 @@ export function emitResource(
   skill: Skill,
   state: EvokerState
 ): void {
-  context.emit({
-    type: 'resource',
-    at: cast.effectiveEnd,
-    source: skill.name,
-    sourceId: skill.id,
-    actorType: 'player',
-    skillName: skill.name,
-    kind: 'evoker-charges',
-    value: state.charges,
-    maximum: state.maximumCharges,
-    empowered: state.empowered
+  context.effects.emit({
+    kind: 'packet',
+    event: {
+      type: 'resource',
+      at: cast.effectiveEnd,
+      source: skill.name,
+      sourceId: skill.id,
+      actorType: 'player',
+      skillName: skill.name,
+      kind: 'evoker-charges',
+      value: state.charges,
+      maximum: state.maximumCharges,
+      empowered: state.empowered
+    }
   });
 }
 
@@ -106,19 +109,22 @@ function applyWeaponSkillChargeGain(
   const before = state.charges;
   state.charges = Math.min(state.maximumCharges, state.charges + chargeGain.gain);
   if (state.charges === before) return;
-  context.emit({
-    type: 'resource',
-    activationId: chargeGain.activationId,
-    at: context.time,
-    source: chargeGain.source,
-    sourceId: chargeGain.sourceId,
-    actorType: 'player',
-    skillName: chargeGain.source,
-    kind: 'evoker-charges',
-    value: state.charges,
-    maximum: state.maximumCharges,
-    empowered: state.empowered,
-    change: state.charges - before
+  context.effects.emit({
+    kind: 'packet',
+    event: {
+      type: 'resource',
+      activationId: chargeGain.activationId,
+      at: context.time,
+      source: chargeGain.source,
+      sourceId: chargeGain.sourceId,
+      actorType: 'player',
+      skillName: chargeGain.source,
+      kind: 'evoker-charges',
+      value: state.charges,
+      maximum: state.maximumCharges,
+      empowered: state.empowered,
+      change: state.charges - before
+    }
   });
 }
 

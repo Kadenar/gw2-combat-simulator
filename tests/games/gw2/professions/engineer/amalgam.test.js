@@ -52,13 +52,18 @@ test('Amalgam resolver procs honor positive poison fields and zero strike coeffi
     });
     const conditions = [];
     const context = {
-      recordProc() {},
       procs: createProcRegistry(() => context),
       helpers: catalog,
       traits: new Set([TRAIT.CARBOLIC_COMPOSITION]),
       profession: { core: {}, specialization: { kind: 'Amalgam', state: { evolvedUntil: 10, rapaciousUntil: 10 } } },
       queue: new StableEventQueue(),
-      applyCondition: (event) => conditions.push(event)
+      effects: {
+        emit(request) {
+          if (request.kind === 'announcement') return;
+          if (request.settlement === 'reaction') conditions.push(request.event);
+          else context.queue.enqueue(request.event);
+        }
+      }
     };
     const event = {
       type: 'damage',
@@ -83,13 +88,18 @@ test('Rapacious with zero ICD cannot trigger itself but still triggers Carbolic 
   });
   const conditions = [];
   const context = {
-    recordProc() {},
     procs: createProcRegistry(() => context),
     helpers: catalog,
     traits: new Set([TRAIT.CARBOLIC_COMPOSITION]),
     queue: new StableEventQueue(),
     profession: { core: {}, specialization: { kind: 'Amalgam', state: { evolvedUntil: 10, rapaciousUntil: 10 } } },
-    applyCondition: (event) => conditions.push(event)
+    effects: {
+      emit(request) {
+        if (request.kind === 'announcement') return;
+        if (request.settlement === 'reaction') conditions.push(request.event);
+        else context.queue.enqueue(request.event);
+      }
+    }
   };
   amalgamResolverEventReactions.damage(context, {
     type: 'damage',

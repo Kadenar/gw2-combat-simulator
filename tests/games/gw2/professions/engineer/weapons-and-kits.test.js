@@ -115,8 +115,12 @@ test('Electric Artillery converts whole charges into Focused-sensitive Vulnerabi
         {
           catalog: engineerCatalog,
           profession: { core: { focusedUntil } },
-          queue: { enqueue: (event) => event },
-          applyCondition: (event) => conditions.push(event)
+          effects: {
+            emit(request) {
+              if (request.settlement === 'reaction') conditions.push(request.event);
+              return request.event;
+            }
+          }
         },
         { at: 10, skillId: ID.ELECTRIC_ARTILLERY, skillName: 'Electric Artillery', charges }
       );

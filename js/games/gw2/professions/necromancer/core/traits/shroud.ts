@@ -9,11 +9,7 @@ import {
 import type { RuntimeCast } from '#gw2/platform/simulation/runtime-state.js';
 import { grantNecromancerLifeForce } from '#gw2/professions/necromancer/core/mechanics/life-force.js';
 import { cloneNecromancerAttributes } from '#gw2/professions/necromancer/core/mechanics/modifier-queries.js';
-import {
-  applyTraitCondition,
-  applyTraitVulnerability,
-  emitNecromancerShroudTrait
-} from '#gw2/professions/necromancer/core/mechanics/trait-effects.js';
+import { emitNecromancerShroudTrait } from '#gw2/professions/necromancer/core/mechanics/trait-effects.js';
 import { NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
 import type {
   NecromancerConfig,
@@ -64,13 +60,30 @@ export function applyDhuumfire(
     return;
   }
 
-  applyTraitCondition(context, event, {
-    name: 'Dhuumfire',
-    traitId: TRAIT.DHUUMFIRE,
-    condition: String(effect.condition),
-    stacks: effectNumber(profile, effect, 'stacks'),
-    duration: Number(event.metadata?.dhuumfireDuration ?? skillDuration ?? effect.duration ?? 3)
-  });
+  {
+    /* Trait payloads and their timeline annotation share the same emission boundary. */ context.effects.emit({
+      kind: 'packet',
+      settlement: 'reaction',
+      event: {
+        at: event.at,
+        source: 'Trait',
+        sourceId: TRAIT.DHUUMFIRE,
+        actorType: 'effect',
+        skillName: 'Dhuumfire',
+        triggeredBy: event.skillName,
+        type: 'condition',
+        ownerActorType: 'player',
+        name: 'Dhuumfire' + ' - ' + String(effect.condition),
+        condition: String(effect.condition),
+        stacks: effectNumber(profile, effect, 'stacks'),
+        duration: Number(event.metadata?.dhuumfireDuration ?? skillDuration ?? effect.duration ?? 3)
+      }
+    });
+    context.effects.emit({
+      kind: 'announcement',
+      announcement: { type: 'trait', name: 'Dhuumfire', at: event.at, sourceSkill: event.skillName }
+    });
+  }
 }
 
 export function applyUnyieldingBlast(
@@ -83,12 +96,28 @@ export function applyUnyieldingBlast(
   const profile = requireBalanceProfileFromContext(context, TRAIT.UNYIELDING_BLAST);
   const effect = requireEffect(profile, 'condition', 'Vulnerability');
   if (!effect) return;
-  applyTraitVulnerability(context, event, {
-    name: 'Unyielding Blast',
-    traitId: TRAIT.UNYIELDING_BLAST,
-    stacks: effectNumber(profile, effect, 'stacks'),
-    duration: effectNumber(profile, effect, 'duration')
-  });
+  {
+    /* Trait payloads and their timeline annotation share the same emission boundary. */ context.effects.emit({
+      kind: 'packet',
+      event: {
+        at: event.at,
+        source: 'Trait',
+        sourceId: TRAIT.UNYIELDING_BLAST,
+        actorType: 'effect',
+        skillName: 'Unyielding Blast',
+        triggeredBy: event.skillName,
+        type: 'condition',
+        name: 'Unyielding Blast',
+        condition: 'Vulnerability',
+        stacks: effectNumber(profile, effect, 'stacks'),
+        duration: effectNumber(profile, effect, 'duration')
+      }
+    });
+    context.effects.emit({
+      kind: 'announcement',
+      announcement: { type: 'trait', name: 'Unyielding Blast', at: event.at, sourceSkill: event.skillName }
+    });
+  }
 }
 
 /** Applies Vital Persistence at the original attribute-conversion position. */
@@ -105,15 +134,18 @@ export function modifyVitalPersistenceAttributes(
 /** Actual entry and exit refresh Soul Barbs, including automatic depletion. */
 export function applySoulBarbs(runtime: NecromancerRuntime): void {
   if (!hasTrait(runtime, TRAIT.SOUL_BARBS)) return;
-  runtime.emit({
-    type: 'buff',
-    at: runtime.time,
-    source: 'Trait',
-    sourceId: TRAIT.SOUL_BARBS,
-    actorType: 'player',
-    kind: 'necromancer-soul-barbs',
-    stacks: 1,
-    duration: balanceProfileNumber(requireBalanceProfileFromContext(runtime, TRAIT.SOUL_BARBS), 'duration')
+  runtime.effects.emit({
+    kind: 'packet',
+    event: {
+      type: 'buff',
+      at: runtime.time,
+      source: 'Trait',
+      sourceId: TRAIT.SOUL_BARBS,
+      actorType: 'player',
+      kind: 'necromancer-soul-barbs',
+      stacks: 1,
+      duration: balanceProfileNumber(requireBalanceProfileFromContext(runtime, TRAIT.SOUL_BARBS), 'duration')
+    }
   });
 }
 
@@ -195,17 +227,20 @@ export function eternalLifeReadyAt(runtime: NecromancerRuntime, cost: number): n
 export function applyScourgeSoulBarbs(runtime: NecromancerRuntime, cast: RuntimeCast<NecromancerSkill>): void {
   const skill = cast.skill;
   if (hasTrait(runtime, TRAIT.SOUL_BARBS))
-    runtime.emit({
-      type: 'buff',
-      at: runtime.time,
-      source: 'necromancer',
-      sourceId: skill.id,
-      actorType: 'player',
-      skillId: skill.id,
-      skillName: skill.name,
-      activationId: cast.id,
-      kind: 'necromancer-soul-barbs',
-      stacks: 1,
-      duration: balanceProfileNumber(requireBalanceProfileFromContext(runtime, TRAIT.SOUL_BARBS), 'duration')
+    runtime.effects.emit({
+      kind: 'packet',
+      event: {
+        type: 'buff',
+        at: runtime.time,
+        source: 'necromancer',
+        sourceId: skill.id,
+        actorType: 'player',
+        skillId: skill.id,
+        skillName: skill.name,
+        activationId: cast.id,
+        kind: 'necromancer-soul-barbs',
+        stacks: 1,
+        duration: balanceProfileNumber(requireBalanceProfileFromContext(runtime, TRAIT.SOUL_BARBS), 'duration')
+      }
     });
 }

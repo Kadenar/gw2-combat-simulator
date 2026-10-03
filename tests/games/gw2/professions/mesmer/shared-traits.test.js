@@ -38,16 +38,24 @@ test('Method of Madness commits Syncopate independently of its proc marker', () 
                         }
                       })
                     }
-                  : {}),
-                prepareEvent(runtime, event) {
-                  if (suppress && event.type === 'proc' && event.sourceId === 'Method of Madness') return null;
-                  return native.prepareEvent(runtime, event);
-                }
+                  : {})
               };
             }
           },
           initialize(runtime) {
             if (scenario === 'cooldown') runtime.procs.readyAt[TRAIT.METHOD_OF_MADNESS] = 100;
+            // Hide only the announcement's event-log row; gameplay packets still use the real service.
+            if (suppress) {
+              const effects = runtime.effects;
+              runtime.effects = {
+                emit: (request) =>
+                  effects.emit(
+                    request.kind === 'announcement' && request.announcement.name === 'Method of Madness'
+                      ? { ...request, log: false }
+                      : request
+                  )
+              };
+            }
           }
         }
       );
@@ -57,7 +65,7 @@ test('Method of Madness commits Syncopate independently of its proc marker', () 
     const waves = suppressed.events.filter((event) => event.type === 'damage' && event.skillName === 'Syncopate');
     assert.equal(waves.length, scenario === 'completed' ? 1 : 0);
     assert.equal(
-      suppressed.events.some((event) => event.type === 'proc' && event.sourceId === 'Method of Madness'),
+      suppressed.events.some((event) => event.type === 'proc' && event.sourceId === TRAIT.METHOD_OF_MADNESS),
       false
     );
     if (waves.length) assert.equal(Math.round(waves[0].at * 1000), suppressed.steps[0].end);

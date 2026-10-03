@@ -69,16 +69,19 @@ test('Empowering Might requires player critical strikes and shares the one-secon
             [2, {}],
             [2.000001, {}]
           ])
-            runtime.emit({
-              type: 'damage',
-              source: 'guardian',
-              sourceId: GUARDIAN_SKILL_IDS.ORB_OF_WRATH,
-              skillId: GUARDIAN_SKILL_IDS.ORB_OF_WRATH,
-              skillName: 'Orb of Wrath',
-              actorType: 'player',
-              coefficient: 1,
-              at,
-              ...overrides
+            runtime.effects.emit({
+              kind: 'packet',
+              event: {
+                type: 'damage',
+                source: 'guardian',
+                sourceId: GUARDIAN_SKILL_IDS.ORB_OF_WRATH,
+                skillId: GUARDIAN_SKILL_IDS.ORB_OF_WRATH,
+                skillName: 'Orb of Wrath',
+                actorType: 'player',
+                coefficient: 1,
+                at,
+                ...overrides
+              }
             });
         }
       }
@@ -125,15 +128,18 @@ test('Symbolic Avenger replaces the oldest stack at its cap and expires stacks i
       {
         initialize: (runtime) => {
           for (const at of [0, 1, 2, 3, 4, 5, ...(extra ? [20] : [])])
-            runtime.emit({
-              type: 'damage',
-              source: 'guardian',
-              sourceId: GUARDIAN_SKILL_IDS.SYMBOL_OF_PUNISHMENT,
-              skillId: GUARDIAN_SKILL_IDS.SYMBOL_OF_PUNISHMENT,
-              actorType: 'player',
-              coefficient: 1,
-              isSymbol: true,
-              at
+            runtime.effects.emit({
+              kind: 'packet',
+              event: {
+                type: 'damage',
+                source: 'guardian',
+                sourceId: GUARDIAN_SKILL_IDS.SYMBOL_OF_PUNISHMENT,
+                skillId: GUARDIAN_SKILL_IDS.SYMBOL_OF_PUNISHMENT,
+                actorType: 'player',
+                coefficient: 1,
+                isSymbol: true,
+                at
+              }
             });
         }
       }
@@ -412,7 +418,10 @@ test("Protector's Restoration pulses Protection and symbol damage while its Ligh
   const field = result.events.find((event) => event.type === 'combo_field' && event.skillId === symbolId);
   assert.deepEqual([field.at, field.expiresAt, field.fieldType], [start, start + 2, 'Light']);
   const combo = result.resolvedEvents.find((event) => event.type === 'combo' && event.skillName === 'Mighty Blow');
-  assert.deepEqual([combo.fieldSourceId, combo.fieldType, combo.finisherType], [symbolId, 'Light', 'Blast']);
+  assert.deepEqual(
+    [combo.fieldSourceId, combo.fieldType, combo.finisherType],
+    [GUARDIAN_TRAIT_IDS.PROTECTORS_RESTORATION, 'Light', 'Blast']
+  );
   assert.deepEqual(
     result.events
       .filter((event) => event.type === 'condition' && event.skillName === 'Symbolic Exposure')

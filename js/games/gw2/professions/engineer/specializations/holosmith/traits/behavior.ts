@@ -5,7 +5,7 @@ import {
   requireEffect,
   balanceProfileNumber
 } from '#gw2/platform/engine/skills/balance-profiles.js';
-import { emitEngineerEvent } from '#gw2/professions/engineer/core/events.js';
+import { buildEngineerPackets } from '#gw2/professions/engineer/core/events.js';
 import { triggerVentExhaust } from '#gw2/professions/engineer/specializations/holosmith/mechanics/photon-forge.js';
 import { holosmithState } from '#gw2/professions/engineer/specializations/holosmith/state.js';
 import { preservesPhotonicHeat } from '#gw2/professions/engineer/specializations/holosmith/traits/heat.js';
@@ -39,7 +39,7 @@ export function triggerThermalReleaseValve(
   const thermalReleaseValveProfile = requireBalanceProfileFromContext(context, TRAIT.THERMAL_RELEASE_VALVE);
   const boon = requireEffect(thermalReleaseValveProfile, 'boon', 'vigor');
   if (boon) {
-    emitEngineerEvent(context, 'buff', {
+    buildEngineerPackets('buff', {
       at,
       source: 'Trait',
       sourceId: TRAIT.THERMAL_RELEASE_VALVE,
@@ -50,7 +50,7 @@ export function triggerThermalReleaseValve(
       kind: String(boon.boon).toLowerCase(),
       duration: boon.duration,
       stacks: Number(boon.stacks)
-    });
+    }).forEach((packet) => context.effects.emit({ kind: 'packet', event: packet }));
   }
 
   if (state.heat <= 0 || preservesPhotonicHeat(context)) return;
@@ -106,8 +106,9 @@ export function consumeSolarFocusingLens(
   if (event.at < (state.solarFocusingLens.readyAt ?? 0) || !consumeCharge(state.solarFocusingLens, event.at, 0, true))
     return;
 
-  context.queue.enqueue(
-    buildResolverCondition({
+  context.effects.emit({
+    kind: 'packet',
+    event: buildResolverCondition({
       at: event.at,
       source: 'Trait',
       sourceId: TRAIT.SOLAR_FOCUSING_LENS,
@@ -119,7 +120,7 @@ export function consumeSolarFocusingLens(
       stacks: Number(condition.stacks),
       duration: Number(condition.duration)
     })
-  );
+  });
 
   return { solarFocusingLens: true };
 }
@@ -133,13 +134,16 @@ export function grantSolarFocusingLens(
   if (!hasTrait(context.config, TRAIT.SOLAR_FOCUSING_LENS)) return;
   const solarFocusingLensProfile = requireBalanceProfileFromContext(context, TRAIT.SOLAR_FOCUSING_LENS);
   // Grants cross into the resolver at their activation time; only impacts spend charges.
-  context.emit({
-    type: 'engineer.solar-focusing-lens',
-    at,
-    source: 'Trait',
-    sourceId: TRAIT.SOLAR_FOCUSING_LENS,
-    actorType: 'player',
-    stacks: balanceProfileNumber(solarFocusingLensProfile, grant),
-    duration: balanceProfileNumber(solarFocusingLensProfile, 'durationMultiplier')
+  context.effects.emit({
+    kind: 'packet',
+    event: {
+      type: 'engineer.solar-focusing-lens',
+      at,
+      source: 'Trait',
+      sourceId: TRAIT.SOLAR_FOCUSING_LENS,
+      actorType: 'player',
+      stacks: balanceProfileNumber(solarFocusingLensProfile, grant),
+      duration: balanceProfileNumber(solarFocusingLensProfile, 'durationMultiplier')
+    }
   });
 }

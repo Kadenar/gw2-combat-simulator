@@ -33,7 +33,7 @@ export function buildResolverCondition<
   };
 }
 
-/** Builds an unscaled positive effect; fresh standard boons go through queueResolverBoon. */
+/** Builds an unscaled positive effect; the shared emission service scales standard boons at application. */
 export function buildResolverBuff<
   T extends PacketFields & { readonly kind: string; readonly duration: number; readonly stacks: number }
 >(fields: T) {

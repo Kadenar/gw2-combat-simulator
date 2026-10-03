@@ -29,7 +29,7 @@ export function createProfessionSimulator(defaultProfession, createDefaults = ()
           ...(extension.tasks ?? native.tasks),
           'test.timeline': (runtime, index) => timeline[index].run(runtime),
           'test.probe': (runtime, { index }) => probes[index][1](runtime),
-          'test.emit': (runtime, event) => runtime.emit(event)
+          'test.emit': (runtime, event) => runtime.effects.emit({ kind: 'packet', event: event })
         },
         initialize(runtime) {
           // Extensions replace other hooks; fixture initialization always follows the native owner's setup.

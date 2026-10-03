@@ -106,16 +106,19 @@ test("Fox's Fury selects one live Might tier and does not resample it at impact"
       {
         at: 0.1,
         run(runtime) {
-          runtime.emit({
-            type: 'buff',
-            at: runtime.time,
-            source: 'test',
-            sourceId: 'test',
-            actorType: 'player',
-            kind: 'might',
-            stacks: 25,
-            duration: 10,
-            audience: { recipients: 'self' }
+          runtime.effects.emit({
+            kind: 'packet',
+            event: {
+              type: 'buff',
+              at: runtime.time,
+              source: 'test',
+              sourceId: 'test',
+              actorType: 'player',
+              kind: 'might',
+              stacks: 25,
+              duration: 10,
+              audience: { recipients: 'self' }
+            }
           });
         }
       }

@@ -2,13 +2,11 @@ import { professionStaticRulesApplied } from '#gw2/platform/builds/attribute-pro
 import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
 import type { Gw2ResolvedStats } from '#gw2/platform/combat/query/combat-query.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
-import { materializeSkillEffectApplications } from '#gw2/platform/engine/effects/materializer.js';
 import {
   balanceProfileNumber,
   requireBalanceProfileFromContext
 } from '#gw2/platform/engine/skills/balance-profiles.js';
 import type { SkillEffect } from '#gw2/platform/engine/skills/types.js';
-import { queueResolverBoon } from '#gw2/platform/resolver/boons.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import { isPetStrike, isPlayerStrike } from '#gw2/professions/ranger/core/mechanics/resolution-helpers.js';
 import { rangerPetCompanionId } from '#gw2/professions/ranger/core/mechanics/pets.js';
@@ -78,36 +76,30 @@ export function triggerLetLoose(context: RangerResolverContext, event: Gw2Resolv
   activations[event.activationId] = true;
   const profile = requireBalanceProfileFromContext(context, TRAIT.LET_LOOSE);
   // Expand each surviving boon once per accepted ambush, preserving the party audience.
-  for (const effect of profile.effects ?? []) {
-    if (effect.type !== 'boon') continue;
-    for (const { event: packet } of materializeSkillEffectApplications({
-      skill: profile,
-      effect,
-      start: event.at,
-      fullEnd: event.at,
-      baseEvent: {
-        source: 'Trait',
-        sourceId: TRAIT.LET_LOOSE,
-        actorType: 'effect',
-        skillId: TRAIT.LET_LOOSE,
-        skillName: 'Let Loose',
-        triggeredBy: event.skillName
+  context.effects.emit({
+    kind: 'profile',
+    profile,
+    effects: profile.effects?.filter((effect) => effect.type === 'boon'),
+    at: event.at,
+    durationContext: event,
+    attribution: {
+      source: 'Trait',
+      sourceId: TRAIT.LET_LOOSE,
+      actorType: 'effect',
+      skillId: TRAIT.LET_LOOSE,
+      skillName: 'Let Loose',
+      triggeredBy: event.skillName
+    },
+    transform: (packet) => ({
+      ...packet,
+      name: 'Let Loose - ' + packet.kind,
+      audience: {
+        recipients: 'party',
+        maximumRecipients: 5,
+        eligibleCompanionIds: context.profession.core.petActive ? [rangerPetCompanionId(context)] : []
       }
-    }))
-      queueResolverBoon(context, event, {
-        ...packet,
-        type: 'buff',
-        kind: String(packet.kind),
-        duration: Number(packet.duration),
-        name: 'Let Loose - ' + packet.kind,
-        // Resolver-generated party boons need the same active-pet candidate as cast-generated boons.
-        audience: {
-          recipients: 'party',
-          maximumRecipients: 5,
-          eligibleCompanionIds: context.profession.core.petActive ? [rangerPetCompanionId(context)] : []
-        }
-      });
-  }
+    })
+  });
 }
 
 export function reactToUntamedDamage(context: RangerResolverContext, event: Gw2ResolverEvent): void {

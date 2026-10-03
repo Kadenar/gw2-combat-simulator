@@ -39,7 +39,10 @@ test('Endurance accrual and readiness integrate the same Vigor windows regardles
       { type: 'buff', at: 2, kind: 'vigor', duration: 1, stacks: 1 },
       { type: 'boon_extension', at: 3, kind: 'vigor', duration: 1, extensionAudience: 'self' }
     ])
-      runtime.emit({ ...event, source: 'fixture', sourceId: 'fixture', actorType: 'player' });
+      runtime.effects.emit({
+        kind: 'packet',
+        event: { ...event, source: 'fixture', sourceId: 'fixture', actorType: 'player' }
+      });
   };
 
   const run = (rotation) => runRevenant(rotation, base, { initialize });
@@ -210,8 +213,8 @@ test('Assassin Nature procs only on eligible resolved strikes while its passive 
         runtime.schedule('test.end-facet', 2);
         runtime.schedule('test.retain-facet', 3);
         // A zero-coefficient packet cannot proc; the second strike falls inside the 0.52-second cooldown.
-        runtime.emit(revenantHit(0.5, { coefficient: 0 }));
-        for (const at of [1, 1.2, 2.5, 4, 9]) runtime.emit(revenantHit(at));
+        runtime.effects.emit({ kind: 'packet', event: revenantHit(0.5, { coefficient: 0 }) });
+        for (const at of [1, 1.2, 2.5, 4, 9]) runtime.effects.emit({ kind: 'packet', event: revenantHit(at) });
       }
     }
   );

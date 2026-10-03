@@ -6,8 +6,8 @@ import {
   requireEffect
 } from '#gw2/platform/engine/skills/balance-profiles.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
-import { rangerEvent } from '#gw2/professions/ranger/core/events.js';
-import { queueProfileBuff } from '#gw2/professions/ranger/core/mechanics/resolution-helpers.js';
+import { buildRangerPacket } from '#gw2/professions/ranger/core/events.js';
+import { rangerBuffRequest } from '#gw2/professions/ranger/core/mechanics/resolution-helpers.js';
 import { RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
 import type { RangerResolverContext, RangerRuntime, RangerSkill } from '#gw2/professions/ranger/types.js';
 
@@ -17,8 +17,9 @@ export function applyUnstoppableUnion(context: RangerRuntime, skill: RangerSkill
   const profile = requireBalanceProfileFromContext(context, TRAIT.UNSTOPPABLE_UNION);
   const effect = requireEffect(profile, 'boon', 'protection');
   if (!effect) return;
-  context.emitProcedural(
-    rangerEvent(
+  context.effects.emit({
+    kind: 'packet',
+    event: buildRangerPacket(
       {
         at: context.time,
         source: 'Trait',
@@ -32,7 +33,7 @@ export function applyUnstoppableUnion(context: RangerRuntime, skill: RangerSkill
       },
       'buff'
     )
-  );
+  });
 }
 
 /** Share half the player's extended stance window without shortening the personal application. */
@@ -58,10 +59,11 @@ export function emitSoulbeastStance(
     duration,
     stacks: 1
   };
-  context.emitProcedural(rangerEvent(application, 'buff'));
+  context.effects.emit({ kind: 'packet', event: buildRangerPacket(application, 'buff') });
   if (shared) {
-    context.emitProcedural(
-      rangerEvent(
+    context.effects.emit({
+      kind: 'packet',
+      event: buildRangerPacket(
         {
           ...application,
           duration: duration * 0.5,
@@ -69,7 +71,7 @@ export function emitSoulbeastStance(
         },
         'buff'
       )
-    );
+    });
   }
 
   return duration;
@@ -81,8 +83,8 @@ export function triggerMergedLiveFast(context: RangerResolverContext, event: Gw2
     const profile = requireBalanceProfileFromContext(context, TRAIT.LIVE_FAST);
     const fury = requireEffect(profile, 'boon', 'fury');
     const quickness = requireEffect(profile, 'boon', 'quickness');
-    if (fury) queueProfileBuff(context, event, profile, fury, 'Live Fast', TRAIT.LIVE_FAST);
-    if (quickness) queueProfileBuff(context, event, profile, quickness, 'Live Fast', TRAIT.LIVE_FAST);
+    if (fury) context.effects.emit(rangerBuffRequest(event, profile, fury, 'Live Fast', TRAIT.LIVE_FAST));
+    if (quickness) context.effects.emit(rangerBuffRequest(event, profile, quickness, 'Live Fast', TRAIT.LIVE_FAST));
   }
 }
 

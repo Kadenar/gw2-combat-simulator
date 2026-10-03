@@ -4,13 +4,12 @@ import type { NativeResolvedDamageDetails } from '#gw2/platform/profession-defin
 import { OBSERVABLE_EVENT_HANDLER } from '#gw2/platform/resolver/handler-registry.js';
 import type { RuntimeCast, RuntimeProfession } from '#gw2/platform/simulation/runtime-state.js';
 import { sideEffectAmount } from '#gw2/platform/simulation/side-effects.js';
-import { emitMesmerEffects } from '#gw2/professions/mesmer/core/events.js';
 import {
   commitMesmerShatter,
   completeMesmerCast,
   scheduleMesmerPhantasmEffects,
   startMesmerCast,
-  withMesmerCastEmission
+  mesmerCastDelivery
 } from '#gw2/professions/mesmer/core/execution/cast-lifecycle.js';
 import { mesmerAvailability } from '#gw2/professions/mesmer/core/mechanics/availability.js';
 import { scheduleChaosStormPoison } from '#gw2/professions/mesmer/core/mechanics/chaos-storm.js';
@@ -94,14 +93,36 @@ export const mesmerCoreHooks: Partial<RuntimeProfession<MesmerRuntimeState, Mesm
     'mesmer.grant-clarity'(runtime, context) {
       if (context.kind !== 'cast') return;
       const skill = context.skill;
-      withMesmerCastEmission(runtime, context.cast, skill, () =>
-        emitMesmerEffects(
-          runtime,
-          { ...skill, effects: skill.effects?.filter((effect) => effect.type === 'buff' && effect.kind === 'clarity') },
-          runtime.time,
-          runtime.time
-        )
-      );
+      {
+        const delivery = mesmerCastDelivery(context.cast, skill);
+        runtime.effects.emit({
+          ...delivery,
+          kind: 'profile',
+          profile: {
+            ...skill,
+            effects: skill.effects?.filter((effect) => effect.type === 'buff' && effect.kind === 'clarity')
+          },
+          at: runtime.time,
+          fullEnd: runtime.time,
+          attribution: {
+            source: 'Player',
+            sourceId: {
+              ...skill,
+              effects: skill.effects?.filter((effect) => effect.type === 'buff' && effect.kind === 'clarity')
+            }.id,
+            actorType: 'player',
+            skillId: {
+              ...skill,
+              effects: skill.effects?.filter((effect) => effect.type === 'buff' && effect.kind === 'clarity')
+            }.id,
+            skillName: {
+              ...skill,
+              effects: skill.effects?.filter((effect) => effect.type === 'buff' && effect.kind === 'clarity')
+            }.name
+          },
+          priority: 0
+        });
+      }
     },
     'mesmer.signet-reset': applyMesmerSignetReset,
     // Impact-owned illusion gains use the same clone/blade/imagery resource owner as other skills.
@@ -118,9 +139,7 @@ export const mesmerCoreHooks: Partial<RuntimeProfession<MesmerRuntimeState, Mesm
     },
     'mesmer.tracked-hit'(runtime, context) {
       if (context.kind !== 'effect') return;
-      scheduleMesmerTrackedHits(runtime, mesmerMechanicsFor(runtime).addDamage, context.skill, [
-        context.trigger.event.at
-      ]);
+      scheduleMesmerTrackedHits(runtime, context.skill, [context.trigger.event.at]);
     }
   },
   initialize(runtime) {

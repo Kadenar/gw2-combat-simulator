@@ -1,3 +1,4 @@
+import { captureEffectEmissions } from '#tests/helpers/effect-emission.js';
 import { applyBalanceProfilePatch } from '#gw2/integrations/patches/authoring/patches.js';
 import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
 import { minionDefinitionForSkill } from '#gw2/professions/necromancer/core/mechanics/minion-profiles.js';
@@ -49,10 +50,9 @@ test('removed Dark Defense protection keeps its carapace and cooldown', () => {
 test('removed minion Vampiric siphon keeps the player siphon bound to its own values', () => {
   const queued = [];
   const context = {
-    recordProc() {},
     config: { selectedTraitIds: [TRAIT.VAMPIRIC] },
     catalog: patched({ [TRAIT.VAMPIRIC]: remove('strike', 'minion') }),
-    queue: { enqueue: (event) => queued.push(event) }
+    effects: captureEffectEmissions({ submit: (event) => queued.push(event) }).effects
   };
   applyVampiric(context, { type: 'damage', at: 1, actorType: 'summon', summonKind: 'minion', skillName: 'Bite' });
   assert.deepEqual(queued, []);

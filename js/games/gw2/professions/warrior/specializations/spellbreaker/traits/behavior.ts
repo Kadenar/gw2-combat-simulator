@@ -1,4 +1,5 @@
 import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
+import { isInternalCooldownReady } from '#gw2/platform/combat/procs.js';
 import { activeStackCount, grantTimedStacks } from '#gw2/platform/combat/resources/timed-stacks.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import type { Gw2MutableStats, Gw2Stats } from '#gw2/platform/combat/types.js';
@@ -14,11 +15,10 @@ import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import type { Gw2Runtime } from '#gw2/platform/simulation/runtime-state.js';
 import { gw2CooldownReadyAt } from '#gw2/platform/skills/timing.js';
 import { WARRIOR_SKILL_IDS as ID, WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/professions/warrior/data/ids.js';
-import { spellbreakerState } from '#gw2/professions/warrior/specializations/spellbreaker/state.js';
 import type { SpellbreakerState } from '#gw2/professions/warrior/specializations/spellbreaker/state.js';
+import { spellbreakerState } from '#gw2/professions/warrior/specializations/spellbreaker/state.js';
 import type { WarriorRuntimeState, WarriorSkill } from '#gw2/professions/warrior/types.js';
 import { canonicalTime } from '#kernel/core/clock.js';
-import { isInternalCooldownReady } from '#gw2/platform/combat/procs.js';
 
 type Runtime = Gw2Runtime<WarriorRuntimeState, WarriorSkill>;
 
@@ -84,7 +84,16 @@ export function reactToSpellbreakerDamage(context: Runtime, event: Gw2ResolverEv
 
   const skill = event.skillId == null ? undefined : context.helpers.skillsById.get(event.skillId);
   if (skill?.burst && triggerMagebaneTether(context, spellbreakerState.from(context), skill, event.at)) {
-    context.recordProc('trait', 'Magebane Tether', event.at, event.skillName, '15% strike damage for 8 seconds');
+    context.effects.emit({
+      kind: 'announcement',
+      announcement: {
+        type: 'trait',
+        name: 'Magebane Tether',
+        at: event.at,
+        sourceSkill: event.skillName,
+        detail: '15% strike damage for 8 seconds'
+      }
+    });
   }
 }
 

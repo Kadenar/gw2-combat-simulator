@@ -956,17 +956,20 @@ test('Core Revenant trait lines preserve same-time reaction order', () => {
     },
     {
       initialize(runtime) {
-        runtime.emit({
-          type: 'condition',
-          at: 1,
-          source: 'fixture',
-          sourceId: 'fixture',
-          actorType: 'player',
-          condition: 'Chilled',
-          stacks: 1,
-          duration: 1
+        runtime.effects.emit({
+          kind: 'packet',
+          event: {
+            type: 'condition',
+            at: 1,
+            source: 'fixture',
+            sourceId: 'fixture',
+            actorType: 'player',
+            condition: 'Chilled',
+            stacks: 1,
+            duration: 1
+          }
         });
-        runtime.emit(revenantHit(1));
+        runtime.effects.emit({ kind: 'packet', event: revenantHit(1) });
       }
     }
   );
@@ -1040,8 +1043,8 @@ test('Vicious Reprisal preserves its hit gate and expands authored repetitions',
             .effects.map((effect) => ({ ...effect, atMs: 500, applications: 2, intervalMs: 200 }))
         }),
       initialize(runtime) {
-        runtime.emit(revenantHit(0.1));
-        runtime.emit(revenantHit(0.2));
+        runtime.effects.emit({ kind: 'packet', event: revenantHit(0.1) });
+        runtime.effects.emit({ kind: 'packet', event: revenantHit(0.2) });
       }
     }
   );

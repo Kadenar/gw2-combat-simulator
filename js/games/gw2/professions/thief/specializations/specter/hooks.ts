@@ -19,7 +19,7 @@ import { THIEF_SKILL_IDS as ID } from '#gw2/professions/thief/data/ids.js';
 
 import type { ResourcePolicy } from '#gw2/platform/combat/resources/resource-policy.js';
 import type { AvailabilityResult } from '#gw2/platform/execution/types.js';
-import { emitThiefBuff } from '#gw2/professions/thief/core/events.js';
+import { buildThiefBuff } from '#gw2/professions/thief/core/events.js';
 import { completeThiefSteal } from '#gw2/professions/thief/core/mechanics/steal.js';
 import { emitThiefStealTraits } from '#gw2/professions/thief/core/traits/steal.js';
 import { SPECTER_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/thief/specializations/specter/profiles.js';
@@ -66,16 +66,19 @@ function setShadowShroud(runtime: ThiefRuntime, active: boolean, skill: { id: st
   lockTransitionInput(runtime, active ? 'shroudEntryMs' : 'shroudExitMs', skill);
   specterState.from(runtime).shadowShroudActive = active;
   runtime.resourceController.refresh('shadowForce');
-  runtime.emit({
-    type: 'weapon_set',
-    at: runtime.time,
-    source: 'thief',
-    sourceId: skill.id,
-    actorType: 'player',
-    skillId: skill.id,
-    skillName: skill.name,
-    weaponSet: runtime.activeWeaponSet,
-    shroudSwap: true
+  runtime.effects.emit({
+    kind: 'packet',
+    event: {
+      type: 'weapon_set',
+      at: runtime.time,
+      source: 'thief',
+      sourceId: skill.id,
+      actorType: 'player',
+      skillId: skill.id,
+      skillName: skill.name,
+      weaponSet: runtime.activeWeaponSet,
+      shroudSwap: true
+    }
   });
 }
 
@@ -102,19 +105,22 @@ function grantBarrier(
   );
   // Barrier removal also suppresses the barrier-triggered Dark Sentry reaction.
   if (!barrier || recipients <= 0) return;
-  emitThiefBuff(runtime, null, {
-    at: runtime.time,
-    source: 'thief',
-    sourceId: cast.skill.id,
-    skillId: cast.skill.id,
-    skillName: cast.skill.name,
-    activationId: cast.id,
-    name,
-    kind: 'barrier',
-    duration: effectNumber(profile, barrier, 'duration'),
-    stacks: effectNumber(profile, barrier, 'stacks'),
-    audience: { recipients: 'party', affectsSelf, maximumRecipients: recipients },
-    fixedDuration: true
+  runtime.effects.emit({
+    kind: 'packet',
+    event: buildThiefBuff(null, {
+      at: runtime.time,
+      source: 'thief',
+      sourceId: cast.skill.id,
+      skillId: cast.skill.id,
+      skillName: cast.skill.name,
+      activationId: cast.id,
+      name,
+      kind: 'barrier',
+      duration: effectNumber(profile, barrier, 'duration'),
+      stacks: effectNumber(profile, barrier, 'stacks'),
+      audience: { recipients: 'party', affectsSelf, maximumRecipients: recipients },
+      fixedDuration: true
+    })
   });
   runtime.schedule(DARK_SENTRY, runtime.time, {
     allyIndices: Array.from({ length: recipients - Number(affectsSelf) }, (_, index) => index + 1)

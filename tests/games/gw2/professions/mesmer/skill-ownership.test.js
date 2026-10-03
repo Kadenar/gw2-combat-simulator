@@ -1,3 +1,4 @@
+import { captureEffectEmissions } from '#tests/helpers/effect-emission.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { mesmerCatalog, mesmerProfession } from '#gw2/professions/mesmer/profession.js';
@@ -89,11 +90,20 @@ test('a replaced flip survives its old expiry task', () => {
 test('Axe variants retain acceptance snapshots versus live pre-cast clone selection', () => {
   const strikes = [],
     conditions = [];
-  const runtime = { time: 2, profession: { core: { clones: [{ id: 1, weapon: 'Axe', createdAt: 0 }] } } };
-  registerMesmerMechanics(runtime, {
-    addDamage: (_skill, _at, _strike, extra) => strikes.push(extra),
-    addCondition: (_name, _at, condition) => conditions.push(condition)
-  });
+  const runtime = {
+    time: 2,
+    config: { primaryWeapon: 'Axe' },
+    activeWeaponSet: 1,
+    helpers: mesmerCatalog,
+    profession: { core: { clones: [{ id: 1, weapon: 'Axe', createdAt: 0 }] } }
+  };
+  runtime.effects = captureEffectEmissions({
+    now: () => runtime.time,
+    submit: (event) => {
+      (event.type === 'damage' ? strikes : conditions).push(event);
+      return event;
+    }
+  }).effects;
   const cast = {
     id: 'axes',
     skill: mesmerCatalog.skillsById.get(ID.AXES_OF_SYMMETRY),

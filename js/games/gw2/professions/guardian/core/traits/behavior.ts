@@ -1,11 +1,10 @@
 import { durationStackingBoonCapSeconds, remainingDurationStackSeconds } from '#gw2/platform/combat/boons.js';
 import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
+import { isInternalCooldownReady } from '#gw2/platform/combat/procs.js';
 import { grantTimedStacks } from '#gw2/platform/combat/resources/timed-stacks.js';
 import { targetHealthLoss } from '#gw2/platform/combat/state/target-health.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { strikeEffectTicks } from '#gw2/platform/engine/effects/authoring.js';
-import { materializeSkillEffectApplications } from '#gw2/platform/engine/effects/materializer.js';
-import type { SimulationEventBase } from '#gw2/platform/engine/events/events.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { denySkillCast } from '#gw2/platform/engine/skills/availability.js';
 import {
@@ -33,7 +32,6 @@ import type {
   GuardianVirtue
 } from '#gw2/professions/guardian/types.js';
 import { canonicalTime } from '#kernel/core/clock.js';
-import { isInternalCooldownReady } from '#gw2/platform/combat/procs.js';
 
 export type Runtime = Gw2Runtime<GuardianRuntimeState, GuardianSkill>;
 
@@ -181,14 +179,17 @@ export function completeHealersResolution(runtime: Runtime, cast: RuntimeCast<Gu
     const effect = requireEffect(profile, 'boon', 'resolution');
     // Only a surviving Resolution packet consumes this trait's interval.
     if (effect && runtime.procs.claim(TRAIT.HEALERS_RESOLUTION, 'guardian.core.healersResolution', runtime.time)) {
-      emitGuardianBoon(runtime, {
-        ...cause,
-        type: 'buff',
-        sourceId: TRAIT.HEALERS_RESOLUTION,
-        name: profile.name,
-        kind: 'resolution',
-        stacks: effectNumber(profile, effect, 'stacks'),
-        duration: effectNumber(profile, effect, 'duration')
+      runtime.effects.emit({
+        kind: 'packet',
+        event: {
+          ...cause,
+          type: 'buff',
+          sourceId: TRAIT.HEALERS_RESOLUTION,
+          name: profile.name,
+          kind: 'resolution',
+          stacks: effectNumber(profile, effect, 'stacks'),
+          duration: effectNumber(profile, effect, 'duration')
+        }
       });
     }
   }
@@ -212,28 +213,37 @@ export function righteousMight(runtime: Runtime, event: Gw2ResolverEvent): boole
   const profile = requireBalanceProfileFromContext(runtime, TRAIT.RIGHTEOUS_INSTINCTS);
   const effect = requireEffect(profile, 'boon', 'might');
   if (!effect) return false;
-  emitGuardianBoon(runtime, {
-    type: 'buff',
-    at: runtime.time,
-    source: 'Trait',
-    sourceId: TRAIT.RIGHTEOUS_INSTINCTS,
-    actorType: 'player',
-    skillId: TRAIT.RIGHTEOUS_INSTINCTS,
-    skillName: profile.name,
-    activationId: event.activationId,
-    causalOrder: event.causalOrder ?? event.eventOrder,
-    kind: 'might',
-    duration: effectNumber(profile, effect, 'duration'),
-    stacks: effectNumber(profile, effect, 'stacks')
+  runtime.effects.emit({
+    kind: 'packet',
+    event: {
+      type: 'buff',
+      at: runtime.time,
+      source: 'Trait',
+      sourceId: TRAIT.RIGHTEOUS_INSTINCTS,
+      actorType: 'player',
+      skillId: TRAIT.RIGHTEOUS_INSTINCTS,
+      skillName: profile.name,
+      activationId: event.activationId,
+      causalOrder: event.causalOrder ?? event.eventOrder,
+      kind: 'might',
+      duration: effectNumber(profile, effect, 'duration'),
+      stacks: effectNumber(profile, effect, 'stacks')
+    }
   });
-  recordGuardianTraitProc(
-    runtime,
-    TRAIT.RIGHTEOUS_INSTINCTS,
-    profile.name,
-    runtime.time,
-    'Resolution',
-    'Resolution active'
-  );
+  {
+    runtime.effects.emit({
+      kind: 'announcement',
+      announcement: {
+        type: 'trait',
+        name: profile.name,
+        at: runtime.time,
+        sourceSkill: 'Resolution',
+        detail: 'Resolution active',
+        icon: guardianTraitIcon(TRAIT.RIGHTEOUS_INSTINCTS)
+      }
+    });
+  }
+
   return true;
 }
 
@@ -317,15 +327,18 @@ export function emitJusticeIsBlind(runtime: Runtime, event: Gw2ResolverEvent, sk
   const profile = requireBalanceProfileFromContext(runtime, TRAIT.JUSTICE_IS_BLIND);
   const blind = requireEffect(profile, 'blind', 'Blind');
   if (blind)
-    runtime.emit({
-      ...event,
-      type: 'blind',
-      sourceId: TRAIT.JUSTICE_IS_BLIND,
-      skillId: TRAIT.JUSTICE_IS_BLIND,
-      actorType: 'effect',
-      skillName: 'Justice is Blind',
-      triggeredBy: skill.name,
-      duration: effectNumber(profile, blind, 'duration')
+    runtime.effects.emit({
+      kind: 'packet',
+      event: {
+        ...event,
+        type: 'blind',
+        sourceId: TRAIT.JUSTICE_IS_BLIND,
+        skillId: TRAIT.JUSTICE_IS_BLIND,
+        actorType: 'effect',
+        skillName: 'Justice is Blind',
+        triggeredBy: skill.name,
+        duration: effectNumber(profile, blind, 'duration')
+      }
     });
 }
 
@@ -367,32 +380,11 @@ function virtueBuff(
     duration,
     audience: { recipients: party ? ('party' as const) : ('self' as const) }
   };
-  emitGuardianBoon(runtime, event);
-}
-
-/** Core and elite-created effects receive the same Resolution adjustment exactly once. */
-export function guardianResolutionEffects(runtime: Runtime, effects: readonly SkillEffect[]): readonly SkillEffect[] {
-  const multiplier = guardianResolutionMultiplier(runtime);
-  return effects.map((effect) =>
-    effect.type === 'boon' && String(effect.boon ?? effect.name).toLowerCase() === 'resolution'
-      ? { ...effect, duration: effect.duration * multiplier }
-      : effect
-  );
-}
-
-/** Guardian boons carry Virtue of Resolution's longer Resolution; the runtime defers and scales them like any boon. */
-export function emitGuardianBoon(runtime: Runtime, event: SimulationEventBase): void {
-  runtime.emitProcedural({ ...event, at: canonicalTime(event.at), duration: guardianBoonDuration(runtime, event) });
-}
-
-/** Procedural and materialized boons share Virtue of Resolution before ordinary boon-duration scaling. */
-export function guardianBoonDuration(runtime: Runtime, event: SimulationEventBase): number {
-  const multiplier = String(event.kind) === 'resolution' ? guardianResolutionMultiplier(runtime) : 1;
-  return Number(event.duration) * multiplier;
+  runtime.effects.emit({ kind: 'packet', event: event });
 }
 
 /** Both emission paths read one trait multiplier without applying ordinary boon-duration scaling twice. */
-function guardianResolutionMultiplier(runtime: Runtime): number {
+export function guardianResolutionMultiplier(runtime: Runtime): number {
   return hasTrait(runtime, GUARDIAN_TRAIT_IDS.VIRTUE_OF_RESOLUTION)
     ? balanceProfileNumber(
         requireBalanceProfileFromContext(runtime, GUARDIAN_TRAIT_IDS.VIRTUE_OF_RESOLUTION),
@@ -536,14 +528,19 @@ export function reactToZealDamage(runtime: Runtime, event: Gw2ResolverEvent, dam
         maximumStacks: balanceProfileNumber(profile, 'maximumStacks'),
         retain: 'latest-expiry'
       });
-      recordGuardianTraitProc(
-        runtime,
-        TRAIT.SYMBOLIC_AVENGER,
-        profile.name,
-        runtime.time,
-        event.skillName,
-        `${state.symbolicAvengerExpirations.length}/${balanceProfileNumber(profile, 'maximumStacks')} stacks`
-      );
+      {
+        runtime.effects.emit({
+          kind: 'announcement',
+          announcement: {
+            type: 'trait',
+            name: profile.name,
+            at: runtime.time,
+            sourceSkill: event.skillName,
+            detail: `${state.symbolicAvengerExpirations.length}/${balanceProfileNumber(profile, 'maximumStacks')} stacks`,
+            icon: guardianTraitIcon(TRAIT.SYMBOLIC_AVENGER)
+          }
+        });
+      }
     }
   }
 
@@ -606,17 +603,6 @@ export function guardianResolverState(context: GuardianResolverContext): Guardia
   return professionCoreState(context);
 }
 
-export function recordGuardianTraitProc(
-  context: GuardianResolverContext,
-  traitId: SkillId,
-  name: string,
-  at: number,
-  sourceSkill: string | undefined,
-  detail: string
-): void {
-  context.recordProc('trait', name, at, sourceSkill, detail, guardianTraitIcon(traitId));
-}
-
 // These child effects have packet identities but no player-selectable catalog entry.
 export const symbols: Readonly<Record<SkillId, Skill>> = {
   [ID.LESSER_SYMBOL_OF_BLADES]: {
@@ -657,37 +643,51 @@ export function emitTraitSymbol(
       ...(component.type === 'strike' ? { name: symbol.name, weapon: 'Unequipped' } : {}),
       ...(options.party && component.type === 'boon' ? { audience: { recipients: 'party' as const } } : {})
     };
-    for (const { event } of materializeSkillEffectApplications({
-      skill: symbol,
-      effect,
-      start: runtime.time,
-      fullEnd: runtime.time,
-      baseEvent: {
-        source: 'guardian',
-        sourceId: symbolId,
+    // Selected symbol components retain their field and activation while transport stays shared.
+    const fieldDuration = options.fieldDuration?.(component) ?? 0;
+    runtime.effects.emit({
+      kind: 'profile',
+      profile: symbol,
+      effects: [effect],
+      cause,
+      attribution: {
+        source: 'Trait',
+        sourceId: trait,
         actorType: 'player',
         skillId: symbolId,
         skillName: symbol.name,
         activationId
       },
-      skillWeaponFallback: 'Unequipped'
-    })) {
-      const packet = { ...event, causalOrder: cause.causalOrder ?? cause.eventOrder, triggeredBy: cause.skillName };
-      if (event.type === 'buff') emitGuardianBoon(runtime, packet);
-      else {
-        const fieldDuration = options.fieldDuration?.(component) ?? 0;
-        runtime.emit({
-          ...packet,
-          isSymbol: true,
-          ...(event.hitIndex === 1 && fieldDuration > 0
-            ? { comboFields: [{ ownerId: 'guardian', fieldType: 'Light', duration: fieldDuration }] }
-            : {})
-        });
-      }
-    }
+      skillWeaponFallback: 'Unequipped',
+      transform: (event) => ({
+        ...event,
+        triggeredBy: cause.skillName,
+        ...(event.type === 'damage'
+          ? {
+              isSymbol: true,
+              ...(event.hitIndex === 1 && fieldDuration > 0
+                ? { comboFields: [{ ownerId: 'guardian', fieldType: 'Light' as const, duration: fieldDuration }] }
+                : {})
+            }
+          : {})
+      })
+    });
   }
 
-  recordGuardianTraitProc(runtime, trait, symbol.name, runtime.time, cause.skillName, profile.name);
+  {
+    runtime.effects.emit({
+      kind: 'announcement',
+      announcement: {
+        type: 'trait',
+        name: symbol.name,
+        at: runtime.time,
+        sourceSkill: cause.skillName,
+        detail: profile.name,
+        icon: guardianTraitIcon(trait)
+      }
+    });
+  }
+
   return true;
 }
 

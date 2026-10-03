@@ -795,15 +795,18 @@ test('Beguiling Haze main recharge ignores transient Alacrity after its follow-u
   const originalReadyAt = observedRuntime(runRevenant(rotation.slice(0, 3), config)).ammo.get(skill.id).nextRechargeAt;
   const hasted = runRevenant(rotation, config, {
     initialize(runtime) {
-      runtime.emit({
-        type: 'buff',
-        kind: 'alacrity',
-        at: 2,
-        duration: 4,
-        stacks: 1,
-        source: 'fixture',
-        sourceId: 'fixture',
-        actorType: 'player'
+      runtime.effects.emit({
+        kind: 'packet',
+        event: {
+          type: 'buff',
+          kind: 'alacrity',
+          at: 2,
+          duration: 4,
+          stacks: 1,
+          source: 'fixture',
+          sourceId: 'fixture',
+          actorType: 'player'
+        }
       });
     }
   });

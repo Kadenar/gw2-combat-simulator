@@ -1,3 +1,5 @@
+import type { EffectDelivery } from '#gw2/platform/simulation/effect-emission.js';
+import { buildMesmerPacket, mesmerPacketOwner } from '#gw2/professions/mesmer/core/mechanics/packets.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 /**
  * Handles shared profession actions decorated by active modules.
@@ -14,9 +16,6 @@ import type { MesmerShatter, MesmerShatterResolution } from '#gw2/professions/me
 import { triggerMesmerPostShatterTraits } from '#gw2/professions/mesmer/core/traits/dispatch.js';
 import { mesmerNumericResourceState } from '#gw2/professions/mesmer/family-state.js';
 import type {
-  MesmerAddCondition,
-  MesmerAddEvent,
-  MesmerAddTraitProc,
   MesmerProfessionActionController,
   MesmerRuntime,
   MesmerShatterResolver
@@ -31,9 +30,6 @@ interface ProfessionActionControllerOptions {
   readonly destroyClone: MesmerDestroyClone;
   readonly shatters: Readonly<Record<number, MesmerShatter>>;
   readonly warnings: string[];
-  readonly addEvent: MesmerAddEvent;
-  readonly addTraitProc: MesmerAddTraitProc;
-  readonly addCondition: MesmerAddCondition;
   readonly shatterResolvers: Readonly<Record<string, MesmerShatterResolver>>;
 }
 
@@ -43,9 +39,6 @@ export function createProfessionActionController({
   destroyClone,
   shatters,
   warnings,
-  addEvent,
-  addTraitProc,
-  addCondition,
   shatterResolvers
 }: ProfessionActionControllerOptions): MesmerProfessionActionController {
   const numericResourceState = () => mesmerNumericResourceState(state);
@@ -61,15 +54,24 @@ export function createProfessionActionController({
     spent: number,
     { activationId }: MesmerResourceSpendDetails = {}
   ): number => {
-    addEvent({
-      type: 'resource',
-      at,
-      amount: -spent,
-      value: currentResource(),
-      resource: resourceDefinition.plural,
-      reason: 'profession mechanic',
-      activationId
-    });
+    {
+      const packet = buildMesmerPacket({
+        type: 'resource',
+        at,
+        amount: -spent,
+        value: currentResource(),
+        resource: resourceDefinition.plural,
+        reason: 'profession mechanic',
+        activationId
+      });
+      state.effects.emit({
+        kind: 'packet',
+        event: packet,
+        owner: mesmerPacketOwner(packet),
+        priority: Number(packet.priority ?? 0)
+      });
+    }
+
     return spent;
   };
 
@@ -128,11 +130,7 @@ export function createProfessionActionController({
 
   // Shared traits consume resolver-produced hit groups so Core does not need to know how a specialization attacks.
   const triggerShatterTraits = (resolution: MesmerShatterResolution): void => {
-    triggerMesmerPostShatterTraits(
-      { context: state, addEvent, addTraitProc, addCondition },
-      shatters[resolution.skill.id],
-      resolution
-    );
+    triggerMesmerPostShatterTraits({ context: state }, shatters[resolution.skill.id], resolution);
   };
 
   // Orchestrates resource spending and shared traits while the registered resolver owns packet behavior.
@@ -143,7 +141,8 @@ export function createProfessionActionController({
     at: number,
     resourcesSpent: number | null = null,
     castStart = at,
-    packetAt = at
+    packetAt = at,
+    delivery: EffectDelivery = {}
   ): MesmerShatterResolution | null => {
     const shatter = shatters[skill.id];
     if (!shatter) {
@@ -164,10 +163,12 @@ export function createProfessionActionController({
 
     const spent = resourcesSpent ?? consumeResources(at);
     const resolution: MesmerShatterResolution = {
+      delivery,
       skill,
       at,
       spent,
       traitHits: resolver(context, {
+        delivery,
         skill,
         shatter,
         at: packetAt,
@@ -176,12 +177,22 @@ export function createProfessionActionController({
       })
     };
     triggerShatterTraits(resolution);
-    addEvent({
-      type: 'marker',
-      at,
-      name: skill.name,
-      detail: `${spent} ${resourceDefinition.plural} spent`
-    });
+    {
+      const packet = buildMesmerPacket({
+        type: 'marker',
+        at,
+        name: skill.name,
+        detail: `${spent} ${resourceDefinition.plural} spent`
+      });
+      state.effects.emit({
+        ...delivery,
+        kind: 'packet',
+        event: packet,
+        owner: mesmerPacketOwner(packet),
+        priority: Number(packet.priority ?? 0)
+      });
+    }
+
     return resolution;
   };
 

@@ -7,9 +7,10 @@ import {
   requireEffect
 } from '#gw2/platform/engine/skills/balance-profiles.js';
 import type { Skill } from '#gw2/platform/engine/skills/types.js';
+import type { EffectDelivery } from '#gw2/platform/simulation/effect-emission.js';
 import type { RuntimeCast } from '#gw2/platform/simulation/runtime-state.js';
-import { emitElementalistCondition, emitElementalistDamage } from '#gw2/professions/elementalist/core/events.js';
-import { emitElementalistProc } from '#gw2/professions/elementalist/core/mechanics/effects.js';
+import { elementalistConditionRequest, elementalistStrikeRequest } from '#gw2/professions/elementalist/core/events.js';
+import { elementalistAnnouncement } from '#gw2/professions/elementalist/core/mechanics/effects.js';
 import { ELEMENTALIST_TRAIT_IDS as TRAIT } from '#gw2/professions/elementalist/data/ids.js';
 import {
   ELECTRIC_ENCHANTMENT_ICON,
@@ -21,68 +22,83 @@ import {
   grantElectricEnchantments,
   type EvokerState
 } from '#gw2/professions/elementalist/specializations/evoker/state.js';
-import type { ElementalistSkill, ElementalistRuntime } from '#gw2/professions/elementalist/types.js';
+import type { ElementalistRuntime, ElementalistSkill } from '#gw2/professions/elementalist/types.js';
 import { canonicalTime } from '#kernel/core/clock.js';
-
 // Materialize Electric Enchantment's strike and condition package for the invoking
 // skill while preserving shared event attribution.
-function emitElectricEnchantment(context: ElementalistRuntime, event: SimulationEvent): void {
+function emitElectricEnchantment(
+  context: ElementalistRuntime,
+  event: SimulationEvent,
+  emissionCast?: EffectDelivery['cast']
+): void {
   const galvanicEnchantmentProfile = requireBalanceProfileFromContext(context, TRAIT.GALVANIC_ENCHANTMENT);
   const strike = requireEffect(galvanicEnchantmentProfile, 'strike', 'Galvanic Enchantment');
   const burning = requireEffect(galvanicEnchantmentProfile, 'condition', 'Burning');
   if (strike) {
-    emitElementalistDamage(context, {
-      cause: event,
-
-      at: event.at,
-      source: 'Electric Enchantment',
-      sourceId: event.skillId ?? event.sourceId,
-      actorType: 'effect',
-      ownerActorType: 'player',
-      skillName: 'Electric Enchantment',
-      coefficient: Number(strike.coefficient),
-      skillWeapon: 'Unequipped'
-    });
+    context.effects.emit(
+      elementalistStrikeRequest(
+        context,
+        {
+          cause: event,
+          at: event.at,
+          source: 'Electric Enchantment',
+          sourceId: event.skillId ?? event.sourceId,
+          actorType: 'effect',
+          ownerActorType: 'player',
+          skillName: 'Electric Enchantment',
+          coefficient: Number(strike.coefficient),
+          skillWeapon: 'Unequipped'
+        },
+        emissionCast
+      )
+    );
   }
 
   if (burning) {
-    emitElementalistCondition(context, {
-      cause: event,
-
-      at: event.at,
-      source: 'Electric Enchantment',
-      sourceId: event.skillId ?? event.sourceId,
-      actorType: 'effect',
-      ownerActorType: 'player',
-      skillName: 'Electric Enchantment',
-      condition: String(burning.condition),
-      stacks: Number(burning.stacks),
-      duration: Number(burning.duration)
-    });
+    context.effects.emit(
+      elementalistConditionRequest(
+        {
+          cause: event,
+          at: event.at,
+          source: 'Electric Enchantment',
+          sourceId: event.skillId ?? event.sourceId,
+          actorType: 'effect',
+          ownerActorType: 'player',
+          skillName: 'Electric Enchantment',
+          condition: String(burning.condition),
+          stacks: Number(burning.stacks),
+          duration: Number(burning.duration)
+        },
+        emissionCast
+      )
+    );
   }
 
   if (strike || burning)
-    emitElementalistProc(context, {
-      at: event.at,
-      name: 'Electric Enchantment',
-      procType: 'trait',
-      sourceId: event.skillId ?? event.sourceId,
-      sourceSkill: event.skillName || event.source || '',
-      icon: ELECTRIC_ENCHANTMENT_ICON
-    });
+    context.effects.emit(
+      elementalistAnnouncement({
+        at: event.at,
+        name: 'Electric Enchantment',
+        procType: 'trait',
+        sourceId: event.skillId ?? event.sourceId,
+        sourceSkill: event.skillName || event.source || '',
+        icon: ELECTRIC_ENCHANTMENT_ICON
+      })
+    );
 }
 
 /** Consumes one currently active grant at an accepted hit, preferring the earliest expiry. */
 export function consumeElectricEnchantment(
   context: ElementalistRuntime,
   state: EvokerState,
-  event: SimulationEvent
+  event: SimulationEvent,
+  emissionCast?: EffectDelivery['cast']
 ): void {
   expireElectricEnchantments(state, context.time);
   const grant = state.electricEnchantmentGrants.find(
     (candidate) => event.at >= canonicalTime(candidate.at) && consumeCharge(candidate, event.at)
   );
-  if (grant) emitElectricEnchantment(context, event);
+  if (grant) emitElectricEnchantment(context, event, emissionCast);
 }
 
 /** Familiar completion grants trait enchantments before the skill's resource settlement. */
@@ -99,14 +115,16 @@ export function applyGalvanicEnchantment(
     const stacks = balanceProfileNumber(galvanicEnchantmentProfile, 'playerStacks');
     const duration = balanceProfileNumber(galvanicEnchantmentProfile, 'durationMultiplier');
     grantElectricEnchantments(state, at, stacks, duration);
-    emitElementalistProc(context, {
-      at,
-      name: 'Electric Enchantment',
-      procType: 'trait',
-      sourceId: skill.id,
-      sourceSkill: skill.name,
-      detail: `+${stacks} stacks`,
-      icon: ELECTRIC_ENCHANTMENT_ICON
-    });
+    context.effects.emit(
+      elementalistAnnouncement({
+        at,
+        name: 'Electric Enchantment',
+        procType: 'trait',
+        sourceId: skill.id,
+        sourceSkill: skill.name,
+        detail: `+${stacks} stacks`,
+        icon: ELECTRIC_ENCHANTMENT_ICON
+      })
+    );
   }
 }

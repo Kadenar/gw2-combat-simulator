@@ -1,3 +1,4 @@
+import { captureEffectEmissions } from '#tests/helpers/effect-emission.js';
 import { createModifierHooks } from '#gw2/platform/combat/modifiers.js';
 import { createProcRegistry } from '#gw2/platform/combat/procs.js';
 import { elementalistAppAdapter } from '#gw2/professions/elementalist/app/app-definition.js';
@@ -31,7 +32,7 @@ test('Catalyst baseline renewal rejects intervals that cannot advance the clock 
     const runtime = {
       time: 7,
       helpers: withProfile(elementalistCatalog, TRAIT.ELEMENTAL_EMPOWERMENT, { durationMultiplier: duration }),
-      emitProcedural: (event) => emitted.push(event),
+      effects: captureEffectEmissions({ submit: (event) => emitted.push(event) }).effects,
       schedule: (...args) => scheduled.push(args)
     };
     const renew = () => catalystModule.hooks.tasks['elementalist.catalyst-base-empowerment'](runtime);
@@ -310,7 +311,8 @@ test('Shattering Ice is proc-only and accepts player-owned effect and field atta
     catalog: elementalistCatalog,
     profession: { specialization: { kind: 'Catalyst', state } },
     config: {},
-    queue: new StableEventQueue()
+    queue: new StableEventQueue(),
+    effects: captureEffectEmissions({ submit: (event) => context.queue.enqueue(event) }).effects
   };
   state.shatteringIceUntil = 10;
 

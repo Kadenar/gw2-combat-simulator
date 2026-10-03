@@ -14,23 +14,23 @@ import {
   warriorBurstTier
 } from '#gw2/professions/warrior/core/mechanics/adrenaline.js';
 import { spendWarriorMagazine } from '#gw2/professions/warrior/core/mechanics/ammunition.js';
-import { traitEffects } from '#gw2/professions/warrior/core/mechanics/emission.js';
+
 import { WARRIOR_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/warrior/core/profiles.js';
 import { combustiveShotFields } from '#gw2/professions/warrior/core/skills/profession-skills.js';
 import { signetOfRageLifecycle } from '#gw2/professions/warrior/core/skills/slot-skills.js';
 import { fierceBlowDamage } from '#gw2/professions/warrior/core/skills/weapons/hammer.js';
 import { counterblowActions } from '#gw2/professions/warrior/core/skills/weapons/mace.js';
 import {
-  reactToWarriorDamage,
-  triggerOpportunist,
   burstMasteryCommit,
   completeTraits,
-  reactToWarriorBuff,
-  startTraits,
-  initializeEmpowerAllies,
   controlTraits,
-  firstBurstHit,
   criticalTraits,
+  firstBurstHit,
+  initializeEmpowerAllies,
+  reactToWarriorBuff,
+  reactToWarriorDamage,
+  startTraits,
+  triggerOpportunist,
   weaponSwapTraits
 } from '#gw2/professions/warrior/core/traits/behavior.js';
 import { WARRIOR_SKILL_IDS as ID } from '#gw2/professions/warrior/data/ids.js';
@@ -47,7 +47,28 @@ export const warriorCoreHooks: Partial<RuntimeProfession<WarriorRuntimeState, Wa
     ...counterblowActions,
     // Reuse existing delivery priority and labels; the skill declaration owns eligibility and its profile owns tuning.
     'warrior.critical-might'(runtime, context) {
-      if (context.kind === 'effect') traitEffects(runtime, context.trigger.event, Number(context.skill.id));
+      if (context.kind === 'effect') {
+        const traitProfile = requireBalanceProfileFromContext(runtime, Number(context.skill.id));
+        runtime.effects.emit({
+          kind: 'profile',
+          profile: traitProfile,
+          effects: traitProfile.effects?.filter((effect) => ['boon', 'buff', 'condition'].includes(effect.type)),
+          attribution: {
+            source: 'Trait',
+            sourceId: Number(context.skill.id),
+            actorType: 'effect',
+            skillId: context.trigger.event.skillId,
+            skillName: context.trigger.event.skillName
+          },
+          cause: context.trigger.event,
+          transform: (packet) => ({
+            ...packet,
+            priority: 5,
+            name: traitProfile.name,
+            stacks: 1 * Number(packet.stacks)
+          })
+        });
+      }
     },
     'warrior.adrenaline'(runtime, _cast, action) {
       if (action.type !== 'warrior.adrenaline' || action.amount == null)

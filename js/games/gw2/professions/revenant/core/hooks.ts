@@ -185,16 +185,19 @@ function swapLegend(runtime: RevenantRuntime, cast: RuntimeCast<RevenantSkill>):
   }
 
   runtime.resourceController.refresh('energy');
-  runtime.emit({
-    type: 'sigil_swap',
-    at: runtime.time,
-    source: 'revenant',
-    sourceId: cast.skill.id,
-    actorType: 'player',
-    skillId: cast.skill.id,
-    skillName: cast.skill.name,
-    activationId: cast.id,
-    weaponSet: runtime.activeWeaponSet
+  runtime.effects.emit({
+    kind: 'packet',
+    event: {
+      type: 'sigil_swap',
+      at: runtime.time,
+      source: 'revenant',
+      sourceId: cast.skill.id,
+      actorType: 'player',
+      skillId: cast.skill.id,
+      skillName: cast.skill.name,
+      activationId: cast.id,
+      weaponSet: runtime.activeWeaponSet
+    }
   });
   applyRevenantInvocationTraits(runtime);
 }

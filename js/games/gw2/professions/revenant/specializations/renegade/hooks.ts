@@ -1,6 +1,5 @@
 import { consumeCharge, grantCharges } from '#gw2/platform/combat/resources/charges.js';
 import { gw2AlliedPlayerAssumptions, gw2AlliedPlayerProcTimeline } from '#gw2/platform/combat/state/allied-players.js';
-import { materializeSkillEffectApplications } from '#gw2/platform/engine/effects/materializer.js';
 import {
   balanceProfileNumber,
   effectNumber,
@@ -13,7 +12,8 @@ import { buildResolverCondition } from '#gw2/platform/resolver/packets.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import type { RuntimeCast, RuntimeProfession } from '#gw2/platform/simulation/runtime-state.js';
 import type { RevenantRuntime } from '#gw2/professions/revenant/core/events.js';
-import { emitRevenantProfile } from '#gw2/professions/revenant/core/events.js';
+
+import { isInternalCooldownReady } from '#gw2/platform/combat/procs.js';
 import { activeRevenantUpkeep } from '#gw2/professions/revenant/core/mechanics/upkeep.js';
 import {
   grantRenegadeInvocationFervor,
@@ -39,7 +39,6 @@ import {
 } from '#gw2/professions/revenant/specializations/renegade/traits/behavior.js';
 import type { RevenantRuntimeState, RevenantSkill } from '#gw2/professions/revenant/types.js';
 import { canonicalTime } from '#kernel/core/clock.js';
-import { isInternalCooldownReady } from '#gw2/platform/combat/procs.js';
 
 const SOULCLEAVE_ALLIES = 'revenant.soulcleave-allied-proc';
 
@@ -68,13 +67,22 @@ function heroicCommand(runtime: RevenantRuntime, cast: RuntimeCast<RevenantSkill
   const source = heroicCommandProfile(runtime, cast);
   const might = requireEffect(source, 'boon', 'might');
   if (!might) return;
-  emitRevenantProfile(runtime, source, {
+  runtime.effects.emit({
+    kind: 'profile',
+    profile: source,
     at: cast.start,
     fullEnd: runtime.time,
-    sourceId: cast.skill.id,
-    eventSkill: cast.skill,
-    activationId: cast.id,
-    effects: [{ ...might, stacks: Math.max(1, effectNumber(source, might, 'stacks')) * stacks }]
+    effects: [{ ...might, stacks: Math.max(1, effectNumber(source, might, 'stacks')) * stacks }],
+    attribution: (effect) => ({
+      activationId: cast.id,
+      source: 'revenant',
+      sourceId: cast.skill.id,
+      actorType: effect.actorType || 'player',
+      skillId: cast.skill.id,
+      skillName: cast.skill.name
+    }),
+    skillWeaponFallback: 'Unequipped',
+    cause: null
   });
 }
 
@@ -87,12 +95,22 @@ function beginBandTogether(runtime: RevenantRuntime, cast: RuntimeCast<RevenantS
   state.bandTogetherExpiresAt = 0;
   grantAllForOneEnergy(runtime, enhanced);
   if (profile)
-    emitRevenantProfile(runtime, profile, {
+    runtime.effects.emit({
+      kind: 'profile',
+      profile: profile,
       at: cast.start,
       fullEnd: cast.effectiveEnd,
-      sourceId: cast.skill.id,
-      eventSkill: cast.skill,
-      activationId: cast.id
+      effects: profile.effects ?? [],
+      attribution: (effect) => ({
+        activationId: cast.id,
+        source: 'revenant',
+        sourceId: cast.skill.id,
+        actorType: effect.actorType || 'player',
+        skillId: cast.skill.id,
+        skillName: cast.skill.name
+      }),
+      skillWeaponFallback: 'Unequipped',
+      cause: null
     });
   bandTogether.set(cast, { enhanced, profileSkillId: profile?.id ?? cast.skill.id });
 }
@@ -117,8 +135,9 @@ function razorclawsRage(runtime: RevenantRuntime, cast: RuntimeCast<RevenantSkil
     maximumPerAlly: charges,
     internalCooldown: Math.max(0, proc.cooldown || 0)
   }))
-    runtime.emit(
-      buildResolverCondition({
+    runtime.effects.emit({
+      kind: 'packet',
+      event: buildResolverCondition({
         at: allied.at,
         source: 'revenant',
         sourceId: cast.skill.id,
@@ -132,7 +151,7 @@ function razorclawsRage(runtime: RevenantRuntime, cast: RuntimeCast<RevenantSkil
         duration: effectNumber(proc, bleed, 'duration'),
         metadata: { triggeredByAlly: allied.allyIndex }
       })
-    );
+    });
 }
 
 /** Completion arms Razorclaw's charges and, for an ordinary summon, the next Band Together enhancement. */
@@ -148,7 +167,21 @@ function completeBandTogether(runtime: RevenantRuntime, cast: RuntimeCast<Revena
   const state = renegadeState.from(runtime);
   state.bandTogetherReady = true;
   state.bandTogetherExpiresAt = runtime.time + Math.max(0, effectNumber(window, effect, 'duration'));
-  emitRevenantProfile(runtime, window, { sourceId: window.id, activationId: cast.id });
+  runtime.effects.emit({
+    kind: 'profile',
+    profile: window,
+    effects: window.effects ?? [],
+    attribution: (effect) => ({
+      activationId: cast.id,
+      source: 'revenant',
+      sourceId: window.id,
+      actorType: effect.actorType || 'player',
+      skillId: window.id,
+      skillName: window.name
+    }),
+    skillWeaponFallback: 'Unequipped',
+    cause: null
+  });
 }
 
 /** A ready, unexpired Razorclaw charge becomes an empowered Bleeding on a landed player strike. */
@@ -165,9 +198,10 @@ function razorclawProc(runtime: RevenantRuntime, event: Gw2ResolverEvent): void 
   const cooldown = Math.max(0, profile.cooldown || 0);
   if (!consumeCharge(razorclaw, runtime.time, cooldown)) return;
   if (cooldown === 0) razorclaw.readyAt = runtime.time;
-  runtime.emitDerived(
-    event,
-    buildResolverCondition({
+  runtime.effects.emit({
+    kind: 'packet',
+    cause: event,
+    event: buildResolverCondition({
       at: runtime.time,
       source: 'revenant',
       sourceId: ID.RAZORCLAWS_RAGE,
@@ -179,7 +213,7 @@ function razorclawProc(runtime: RevenantRuntime, event: Gw2ResolverEvent): void 
       stacks: effectNumber(profile, effect, 'stacks'),
       duration: effectNumber(profile, effect, 'duration')
     })
-  );
+  });
 }
 
 /** Soulcleave's Summit's player proc fires once per cooldown from a landed player strike while active. */
@@ -194,22 +228,20 @@ function soulcleavePlayer(runtime: RevenantRuntime, event: Gw2ResolverEvent): vo
     !runtime.procs.claimCooldown('revenant.renegade.soulcleave', runtime.time, Math.max(0, proc.cooldown || 0))
   )
     return;
-  for (const effect of proc.effects ?? [])
-    for (const { event: packet } of materializeSkillEffectApplications({
-      skill: proc,
-      effect,
-      start: runtime.time,
-      fullEnd: runtime.time,
-      baseEvent: {
-        source: 'revenant',
-        sourceId: soulcleave.id,
-        actorType: effect.actorType || 'effect',
-        skillId: soulcleave.id,
-        skillName: soulcleave.name
-      },
-      skillWeaponFallback: 'Unequipped'
-    }))
-      runtime.emitProcedural({ ...packet, triggeredBy: event.skillName }, { cause: event });
+  runtime.effects.emit({
+    kind: 'profile',
+    profile: proc,
+    cause: event,
+    attribution: (effect) => ({
+      source: 'revenant',
+      sourceId: soulcleave.id,
+      actorType: effect.actorType || 'effect',
+      skillId: soulcleave.id,
+      skillName: soulcleave.name
+    }),
+    skillWeaponFallback: 'Unequipped',
+    transform: (packet) => ({ ...packet, triggeredBy: event.skillName })
+  });
 }
 
 /** Each assumed ally's Soulcleave proc arrives on its own cadence while the upkeep activation remains. */
@@ -221,25 +253,25 @@ function soulcleaveAllies(runtime: RevenantRuntime, data: unknown): void {
   const allies = gw2AlliedPlayerAssumptions(runtime.config);
   if (!skill || !proc || !allies.count || !allies.strikesPerSecond) return;
   for (let allyIndex = 1; allyIndex <= allies.count; allyIndex += 1)
-    for (const effect of proc.effects ?? [])
-      for (const { event } of materializeSkillEffectApplications({
-        skill: proc,
-        effect,
-        start: runtime.time,
-        fullEnd: runtime.time,
-        baseEvent: {
-          source: 'revenant',
-          sourceId: skill.id,
-          actorType: effect.actorType || 'effect',
-          skillId: skill.id,
-          skillName: skill.name
-        },
-        skillWeaponFallback: 'Unequipped'
-      }))
-        runtime.emitProcedural({
-          ...event,
-          name: (event.name || proc.name).replace("Soulcleave's Summit — ", `Soulcleave's Summit — Ally ${allyIndex} `)
-        });
+    runtime.effects.emit({
+      kind: 'profile',
+      profile: proc,
+      attribution: (effect) => ({
+        source: 'revenant',
+        sourceId: skill.id,
+        actorType: effect.actorType || 'effect',
+        skillId: skill.id,
+        skillName: skill.name
+      }),
+      skillWeaponFallback: 'Unequipped',
+      transform: (event) => ({
+        ...event,
+        name: (event.name || proc.name).replace(
+          "Soulcleave's Summit \u2014 ",
+          `Soulcleave's Summit \u2014 Ally ${allyIndex} `
+        )
+      })
+    });
   runtime.schedule(
     SOULCLEAVE_ALLIES,
     canonicalTime(runtime.time + Math.max(proc.cooldown || 0, 1 / allies.strikesPerSecond)),

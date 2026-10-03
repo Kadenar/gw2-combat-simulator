@@ -1,3 +1,5 @@
+import { captureEffectEmissions } from '#tests/helpers/effect-emission.js';
+import { recordProcStep } from '#gw2/platform/results/proc-steps.js';
 import { RELIC_IDS } from '#gw2/platform/equipment/relics/data.js';
 import { createCanonicalCatalog } from '#gw2/platform/engine/skills/canonical-skill-catalog.js';
 import assert from 'node:assert/strict';
@@ -5,7 +7,7 @@ import test from 'node:test';
 
 import { createRelicRuntime } from '#gw2/platform/equipment/relics/runtime.js';
 import { materializeSkillEffectApplications } from '#gw2/platform/engine/effects/materializer.js';
-import { emitProfiledCondition } from '#gw2/professions/elementalist/core/mechanics/effects.js';
+import { elementalistProfiledConditionRequest } from '#gw2/professions/elementalist/core/mechanics/effects.js';
 import { StableEventQueue } from '#kernel/events/queue.js';
 import { canonicalTime } from '#kernel/core/clock.js';
 import { createGw2ConditionResolution } from '#gw2/platform/resolver/condition-resolution.js';
@@ -21,14 +23,18 @@ function conditionResolver() {
   const config = { relic: 'Last Tyrant' };
   const reactions = createGw2ResolverReactionRegistry({ contributions: createGw2EquipmentReactionContributions() });
   const conditions = createGw2ConditionResolution({ config, reactions });
-  return createGw2ResolverRuntimeState({
+  const ctx = createGw2ResolverRuntimeState({
     config,
     horizon: 20,
     query: createGw2CombatQuery({ profession: testProfession, config }),
     helpers: { conditionName: (name) => name },
-    queue: new StableEventQueue(),
-    applyCondition: conditions.applyCondition
+    queue: new StableEventQueue()
   });
+  ctx.effects = captureEffectEmissions({
+    submit: (event) => conditions.applyCondition(ctx, event),
+    announce: (request) => recordProcStep(ctx, request.announcement)
+  }).effects;
+  return { ctx, conditions };
 }
 
 function relicHarness(name) {
@@ -38,19 +44,22 @@ function relicHarness(name) {
   const queued = [];
   const ctx = {
     relic,
-    config: {},
-    queue: { enqueue: (event) => queued.push(event) },
-    recordProc: (kind, procName, at, sourceSkill, detail) => procs.push({ kind, procName, at, sourceSkill, detail })
+    config: {}
   };
   const helpers = {
-    activeConditionStackCount: () => 0,
-    applyCondition: (_ctx, event) => {
+    activeConditionStackCount: () => 0
+  };
+  ctx.effects = captureEffectEmissions({
+    announce: ({ announcement: a }) =>
+      procs.push({ kind: a.type, procName: a.name, at: a.at, sourceSkill: a.sourceSkill, detail: a.detail }),
+    submit: (event, delivery) => {
+      if (delivery.settlement !== 'reaction') return queued.push(event);
       conditions.push(event);
       // Relic-applied conditions re-enter the condition stage like the resolver does.
       relic.rules.condition?.(ctx, relic.state, event, helpers);
       return event;
     }
-  };
+  }).effects;
   return { relic, ctx, helpers, procs, conditions, queued };
 }
 
@@ -179,9 +188,9 @@ test('one-time multi-stack Burning skills expose each stack to Last Tyrant at th
         totalStacks,
         skill.name
       );
-      const ctx = conditionResolver();
+      const { ctx, conditions: resolution } = conditionResolver();
       ctx.relic.state.stacks = 4;
-      const applications = packets.flatMap((event) => ctx.applyCondition(event));
+      const applications = packets.flatMap((event) => resolution.applyCondition(ctx, event));
       assert.equal(
         applications.reduce((total, event) => total + event.stacks, 0),
         totalStacks,
@@ -228,17 +237,18 @@ test('profiled Burning procs preserve fractional totals and source attribution t
           }
         ]
       }),
-      emit: (event) => events.push(event),
-      emitProcedural: (event) => events.push(event)
+      effects: captureEffectEmissions({ submit: (event) => events.push(event) }).effects
     };
-    emitProfiledCondition(context, 3, 'fixture', 'Fire', 'Fixture Proc', 123, 'Fixture Skill');
+    context.effects.emit(
+      elementalistProfiledConditionRequest(context, 3, 'fixture', 'Fire', 'Fixture Proc', 123, 'Fixture Skill')
+    );
     assert.deepEqual(
       events.map((event) => event.stacks),
       [stacks]
     );
-    const ctx = conditionResolver();
+    const { ctx, conditions: resolution } = conditionResolver();
     ctx.relic.state.stacks = 4;
-    const applications = events.flatMap((event) => ctx.applyCondition(event));
+    const applications = events.flatMap((event) => resolution.applyCondition(ctx, event));
     assert.deepEqual(
       applications.map((event) => event.stacks),
       expected
@@ -283,11 +293,11 @@ test('bundled Burning triggers Tyrant on the fifth-stack impact and respects coo
 
 // Empty applications cannot progress the relic, and unbounded stack counts must never allocate split packets.
 test('condition application returns no packets for zero stacks or duration and rejects infinite stacks', () => {
-  const ctx = conditionResolver();
-  assert.deepEqual(ctx.applyCondition(burning(0, { stacks: 0 })), []);
-  assert.deepEqual(ctx.applyCondition(burning(0, { duration: 0 })), []);
+  const { ctx, conditions: resolution } = conditionResolver();
+  assert.deepEqual(resolution.applyCondition(ctx, burning(0, { stacks: 0 })), []);
+  assert.deepEqual(resolution.applyCondition(ctx, burning(0, { duration: 0 })), []);
   assert.equal(ctx.relic.state.stacks, 0);
-  assert.throws(() => ctx.applyCondition(burning(0, { stacks: Infinity })), /stacks must be finite/);
+  assert.throws(() => resolution.applyCondition(ctx, burning(0, { stacks: Infinity })), /stacks must be finite/);
 });
 
 function combo(at, finisherType = 'Blast') {

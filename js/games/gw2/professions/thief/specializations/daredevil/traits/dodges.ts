@@ -4,10 +4,9 @@ import {
   requireBalanceProfileFromContext
 } from '#gw2/platform/engine/skills/balance-profiles.js';
 import type { BalanceProfile, SkillId } from '#gw2/platform/engine/skills/types.js';
-import { emitEffects } from '#gw2/platform/simulation/procedural-emission.js';
 import type { RuntimeCast } from '#gw2/platform/simulation/runtime-state.js';
 import type { ThiefRuntime } from '#gw2/professions/thief/core/events.js';
-import { emitThiefBuff } from '#gw2/professions/thief/core/events.js';
+import { buildThiefBuff } from '#gw2/professions/thief/core/events.js';
 import { THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
 import { daredevilState } from '#gw2/professions/thief/specializations/daredevil/state.js';
 import type { ThiefConfig, ThiefDodge, ThiefSkill } from '#gw2/professions/thief/types.js';
@@ -39,14 +38,14 @@ export function queueDodgePackets(runtime: ThiefRuntime, cast: RuntimeCast<Thief
   if (!profile) return;
   const skill = cast.skill;
   const name = dodgeSkillName(runtime);
-  emitEffects(runtime, {
-    owner: profile,
-    // Dodge offsets default to acceptance; effects without offsets still land at completion.
-    effects: profile.effects?.map((effect) => ({ timingAnchor: 'castStart', ...effect })),
+  runtime.effects.emit({
+    kind: 'profile',
+    profile: profile,
+    effects: profile.effects?.map((effect) => ({ timingAnchor: 'castStart' as const, ...effect })),
     at: cast.start,
     fullEnd: cast.effectiveEnd,
     skillWeaponFallback: 'Unequipped',
-    baseEvent: (effect) => ({
+    attribution: (effect) => ({
       source: effect.type === 'strike' ? 'thief' : 'Trait',
       sourceId: profile.id,
       actorType: 'player',
@@ -80,13 +79,16 @@ export function openDodgeWindow(runtime: ThiefRuntime, cast: RuntimeCast<ThiefSk
     const duration = balanceProfileNumber(profile, 'durationMultiplier');
     state.lotusConditionDamageUntil = runtime.time + duration;
     // Expose the same timed window used by damage modifiers as a visible buff.
-    emitThiefBuff(runtime, cast.skill, {
-      at: runtime.time,
-      source: 'Trait',
-      sourceId: TRAIT.LOTUS_TRAINING,
-      activationId: cast.id,
-      kind: 'lotus-training',
-      duration
+    runtime.effects.emit({
+      kind: 'packet',
+      event: buildThiefBuff(cast.skill, {
+        at: runtime.time,
+        source: 'Trait',
+        sourceId: TRAIT.LOTUS_TRAINING,
+        activationId: cast.id,
+        kind: 'lotus-training',
+        duration
+      })
     });
   }
 }

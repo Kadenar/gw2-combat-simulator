@@ -24,7 +24,7 @@ function recipients(event: SimulationEvent): string {
   return `${audience.recipients}${audience.affectsSelf === false ? ' (excluding self)' : ''}`;
 }
 
-/** Combine only grants with the same recorded cause, trait, boon, and instant; unrelated procs stay separate. */
+/** Combine only grants with the same recorded cause, trait, and instant; unrelated procs stay separate. */
 export function consolidateTraitBuffRows(
   rows: readonly AttributedEventLogRow[],
   traits: readonly CatalogEntity[]
@@ -45,7 +45,7 @@ export function consolidateTraitBuffRows(
     const event = row.event;
     if (event?.type !== 'buff' || event.source !== 'Trait' || event.sourceId == null) continue;
     // Missing causal identity permits attribution, but never a guess at which activation to merge.
-    const key = JSON.stringify([event.sourceId, event.kind, event.at, event.parentEventOrder ?? row.id]);
+    const key = JSON.stringify([event.sourceId, event.at, event.parentEventOrder ?? row.id]);
     const group = groups.get(key) ?? [];
     group.push(row);
     groups.set(key, group);
@@ -76,17 +76,27 @@ export function consolidateTraitBuffRows(
       const grant = row.event!;
       return `x${grant.stacks ?? 1} · ${recipients(grant)}${grant.duration == null ? '' : ` ${Number(grant.duration.toFixed(3))}s`}`;
     });
-    const description = `${name === effect ? name : `${name} → ${effect}`} ${grants.join('; ')}${absorb && parent?.event?.detail ? ` · ${parent.event.detail}` : ''}`;
+    // One trait activation may grant several boon kinds; preserve each kind and audience within the summary.
+    const effects = new Map<string, string[]>();
+    for (const [index, row] of group.entries()) {
+      const label = row.tag?.label ?? row.event!.kind ?? 'Buff';
+      const applications = effects.get(label) ?? [];
+      applications.push(grants[index]);
+      effects.set(label, applications);
+    }
+
+    const benefits = [...effects].map(([label, applications]) => `${label} ${applications.join('; ')}`).join('; ');
+    const description = `${effects.size === 1 && name === effect ? '' : `${name} → `}${benefits}${absorb && parent?.event?.detail ? ` · ${parent.event.detail}` : ''}`;
     replacements.set(anchor, {
       ...anchor,
       description,
-      tag: first.tag,
+      tag: effects.size === 1 ? first.tag : undefined,
       // Each application remains inspectable even though the default log shows one summary.
       ...(group.length > 1
         ? {
             details: group.map(
               (row, index) =>
-                `${effect} ${grants[index]} · simulation time ${row.event!.at}s · event ${row.event!.eventOrder}`
+                `${row.tag?.label ?? row.event!.kind ?? 'Buff'} ${grants[index]} · simulation time ${row.event!.at}s · event ${row.event!.eventOrder}`
             )
           }
         : {})

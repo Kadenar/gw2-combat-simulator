@@ -1,6 +1,5 @@
 import { buildResolverCondition } from '#gw2/platform/resolver/packets.js';
 import { canonicalTime } from '#kernel/core/clock.js';
-import { emitEffects } from '#gw2/platform/simulation/procedural-emission.js';
 import type { ActionContext } from '#gw2/platform/simulation/side-effects.js';
 import { gw2AlliedPlayerProcTimeline } from '#gw2/platform/combat/state/allied-players.js';
 
@@ -17,7 +16,7 @@ import { spearChainStageForSkill } from '#gw2/professions/thief/data/spear-chain
 import { THIEF_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/thief/core/profiles.js';
 import { addVenomCharges, conditionEffects, venomForSkill } from '#gw2/professions/thief/core/mechanics/venoms.js';
 import { guildAttackConditions, thiefSpecializationGuildSummon } from '#gw2/professions/thief/family-state.js';
-import { emitThiefCondition, emitThiefDamage } from '#gw2/professions/thief/core/events.js';
+import { buildThiefCondition, buildThiefStrikes } from '#gw2/professions/thief/core/events.js';
 
 import type { AvailabilityResult } from '#gw2/platform/execution/types.js';
 import type { SkillId } from '#gw2/platform/engine/skills/types.js';
@@ -113,16 +112,19 @@ export function activateVenom(runtime: ThiefRuntime, cast: RuntimeCast<ThiefSkil
   }));
   for (const proc of alliedProcs)
     for (const [effectIndex, { effect, stacks, duration: conditionDuration }] of packets.entries())
-      emitThiefCondition(runtime, null, {
-        at: proc.at,
-        skillId: venom.skillId,
-        skillName: venom.skillName,
-        name: `${venom.skillName} — Ally ${proc.allyIndex} ${effect.condition}`,
-        condition: String(effect.condition),
-        stacks,
-        duration: conditionDuration,
-        activationId: `${cast.id}:ally:${proc.allyIndex}:${proc.procIndex}`,
-        metadata: { triggeredByAlly: proc.allyIndex, venomProcEffectIndex: effectIndex }
+      runtime.effects.emit({
+        kind: 'packet',
+        event: buildThiefCondition(null, {
+          at: proc.at,
+          skillId: venom.skillId,
+          skillName: venom.skillName,
+          name: `${venom.skillName} — Ally ${proc.allyIndex} ${effect.condition}`,
+          condition: String(effect.condition),
+          stacks,
+          duration: conditionDuration,
+          activationId: `${cast.id}:ally:${proc.allyIndex}:${proc.procIndex}`,
+          metadata: { triggeredByAlly: proc.allyIndex, venomProcEffectIndex: effectIndex }
+        })
       });
 }
 
@@ -220,8 +222,9 @@ export function recallThiefAxes(runtime: ThiefRuntime, context: ActionContext<Th
   arrivals.sort((a, b) => a.at - b.at);
   for (const [index, { skill, at }] of arrivals.entries()) {
     const projectiles = skill.id === ID.VENOMOUS_VOLLEY ? 3 : 1;
-    emitEffects(runtime, {
-      owner: skill,
+    runtime.effects.emit({
+      kind: 'profile',
+      profile: skill,
       effects: skill.effects?.map((effect) => ({
         ...effect,
         // Keep impact refunds, but returning projectiles never replenish the ground pool.
@@ -234,7 +237,7 @@ export function recallThiefAxes(runtime: ThiefRuntime, context: ActionContext<Th
         ...(effect.type === 'condition' ? { stacks: Number(effect.stacks) / projectiles } : {})
       })),
       skillWeaponFallback: 'Axe',
-      baseEvent: {
+      attribution: {
         source: 'thief',
         sourceId: skill.id,
         skillId: skill.id,
@@ -251,23 +254,29 @@ export function recallThiefAxes(runtime: ThiefRuntime, context: ActionContext<Th
       })
     });
     // Recall adds its condition per returning axe; a target's condition cap can hide later applications in EVTC.
-    emitThiefCondition(runtime, context.skill, {
-      at,
-      activationId: context.cast.id,
-      offTarget: context.cast.command.offTarget,
-      condition: torment ? 'Torment' : 'Weakness',
-      stacks: 1,
-      duration: torment ? 2 : 1
-    });
-    // Five returning hits trigger one immobilize; five is a threshold, not a cap on returning axes.
-    if (index === 4)
-      emitThiefCondition(runtime, context.skill, {
+    runtime.effects.emit({
+      kind: 'packet',
+      event: buildThiefCondition(context.skill, {
         at,
         activationId: context.cast.id,
         offTarget: context.cast.command.offTarget,
-        condition: 'Immobilized',
+        condition: torment ? 'Torment' : 'Weakness',
         stacks: 1,
-        duration: 1.5
+        duration: torment ? 2 : 1
+      })
+    });
+    // Five returning hits trigger one immobilize; five is a threshold, not a cap on returning axes.
+    if (index === 4)
+      runtime.effects.emit({
+        kind: 'packet',
+        event: buildThiefCondition(context.skill, {
+          at,
+          activationId: context.cast.id,
+          offTarget: context.cast.command.offTarget,
+          condition: 'Immobilized',
+          stacks: 1,
+          duration: 1.5
+        })
       });
   }
 }
@@ -378,7 +387,7 @@ export function thievesGuildAttack(runtime: ThiefRuntime, data: unknown): void {
     summonUsesEquipmentModifiers: false,
     activationId: `${work.ownerId}:${work.summonIndex}:${work.attackIndex}:${work.occurrence}`
   };
-  emitThiefDamage(runtime, null, {
+  buildThiefStrikes(null, {
     ...common,
     name: attackName,
     coefficient: (attack.coefficientPerHit || 0) * hits,
@@ -391,15 +400,18 @@ export function thievesGuildAttack(runtime: ThiefRuntime, data: unknown): void {
     summonBasePower: profile.basePower,
     summonCriticalChance: profile.criticalChance,
     summonCriticalDamage: profile.criticalDamage
-  });
+  }).forEach((packet) => runtime.effects.emit({ kind: 'packet', event: packet }));
   for (const condition of guildAttackConditions(runtime, attack))
-    emitThiefCondition(runtime, null, {
-      ...common,
-      name: `${attackName} — ${condition.condition}`,
-      condition: condition.condition,
-      stacks: condition.stacks,
-      duration: condition.duration || 0,
-      summonInheritsAttributes: true
+    runtime.effects.emit({
+      kind: 'packet',
+      event: buildThiefCondition(null, {
+        ...common,
+        name: `${attackName} — ${condition.condition}`,
+        condition: condition.condition,
+        stacks: condition.stacks,
+        duration: condition.duration || 0,
+        summonInheritsAttributes: true
+      })
     });
   const next = canonicalTime(runtime.time + (attack.interval || 0));
   if ((attack.interval || 0) > 0 && next < active.expiresAt)
@@ -417,9 +429,10 @@ export function expireThievesGuild(runtime: ThiefRuntime, data: unknown): void {
  * bonus keeps the original skill identity and cannot trigger itself.
  */
 export function unsuspectingStrikeBonus(runtime: ThiefRuntime, application: Gw2ResolverEvent): void {
-  runtime.emitDerived(
-    application,
-    buildResolverCondition({
+  runtime.effects.emit({
+    kind: 'packet',
+    cause: application,
+    event: buildResolverCondition({
       at: runtime.time,
       source: application.source,
       sourceId: application.sourceId,
@@ -435,5 +448,5 @@ export function unsuspectingStrikeBonus(runtime: ThiefRuntime, application: Gw2R
       duration: application.duration || 0,
       stacks: 3
     })
-  );
+  });
 }

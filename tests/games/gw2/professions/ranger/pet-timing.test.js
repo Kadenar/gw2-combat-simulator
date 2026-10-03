@@ -24,16 +24,19 @@ test('pet scheduling quantizes commands, autonomous work, and effects to 40 ms a
         {
           initialize(runtime) {
             if (!grantQuickness) return;
-            runtime.emit({
-              type: 'buff',
-              source: 'test',
-              sourceId: 'pet-timing',
-              actorType: 'effect',
-              kind: 'quickness',
-              at: 0,
-              duration: 5,
-              stacks: 1,
-              audience: { recipients: 'summons', affectsSelf: false, maximumRecipients: 1 }
+            runtime.effects.emit({
+              kind: 'packet',
+              event: {
+                type: 'buff',
+                source: 'test',
+                sourceId: 'pet-timing',
+                actorType: 'effect',
+                kind: 'quickness',
+                at: 0,
+                duration: 5,
+                stacks: 1,
+                audience: { recipients: 'summons', affectsSelf: false, maximumRecipients: 1 }
+              }
             });
           }
         }

@@ -1,3 +1,4 @@
+import { captureEffectEmissions } from '#tests/helpers/effect-emission.js';
 import { runElementalist } from '#tests/helpers/elementalist-simulation.js';
 import { runMesmer } from '#tests/helpers/mesmer-simulation.js';
 import { observedRuntime } from '#tests/helpers/observed-runtime.js';
@@ -227,8 +228,8 @@ test('extended Vigor preserves Elementalist and Mirage endurance through the new
           profession,
           initialize(runtime) {
             runtime.endurance.spend(100);
-            runtime.emit(buff(0, 2, self, 'vigor'));
-            runtime.emit({ ...buff(1, 2, self, 'vigor'), type: 'boon_extension' });
+            runtime.effects.emit({ kind: 'packet', event: buff(0, 2, self, 'vigor') });
+            runtime.effects.emit({ kind: 'packet', event: { ...buff(1, 2, self, 'vigor'), type: 'boon_extension' } });
           }
         });
         assert.equal(
@@ -253,15 +254,18 @@ test('No Quarter cannot consume Fury authored after its hit at the same timestam
     },
     {
       initialize(runtime) {
-        runtime.emit({
-          ...buff(1),
-          type: 'damage',
-          coefficient: 1,
-          weaponStrength: 1000,
-          skillId: 1,
-          skillName: 'Probe'
+        runtime.effects.emit({
+          kind: 'packet',
+          event: {
+            ...buff(1),
+            type: 'damage',
+            coefficient: 1,
+            weaponStrength: 1000,
+            skillId: 1,
+            skillName: 'Probe'
+          }
         });
-        runtime.emit(buff(1, 5));
+        runtime.effects.emit({ kind: 'packet', event: buff(1, 5) });
       }
     }
   );
@@ -277,8 +281,11 @@ test('forced critical hits preserve the Fury fact needed by No Quarter', () => {
     },
     {
       initialize(runtime) {
-        runtime.emit(buff(0, 2));
-        runtime.emit({ ...buff(1), type: 'damage', coefficient: 1, forceCrit: true, weaponStrength: 1000 });
+        runtime.effects.emit({ kind: 'packet', event: buff(0, 2) });
+        runtime.effects.emit({
+          kind: 'packet',
+          event: { ...buff(1), type: 'damage', coefficient: 1, forceCrit: true, weaponStrength: 1000 }
+        });
       }
     }
   );
@@ -303,14 +310,18 @@ const heraldExtensionAt = (extensionAt, tailMs = 0) => [
 function extend(profession, events, at) {
   if (profession === 'Herald') {
     const result = runRevenant(heraldExtensionAt(at), HERALD_CONFIG, {
-      initialize: (runtime) => events.forEach((event) => runtime.emit(event))
+      initialize: (runtime) => events.forEach((event) => runtime.effects.emit({ kind: 'packet', event: event }))
     });
     return boonApplicationsAt(result.events, 'fury', at);
   }
 
   const boons = new Map();
   for (const event of events) recordBuffApplication(boons, event);
-  const context = { boons, config: {}, queue: { enqueue() {} } };
+  const context = {
+    boons,
+    config: {},
+    effects: captureEffectEmissions({ submit: (event) => applyBoonExtension(boons, event) }).effects
+  };
   if (profession === 'Thief') {
     // Direct handler calls need the same selected balance source as resolver dispatch.
     noQuarterCriticalReaction.handler(
@@ -369,9 +380,12 @@ for (const enabled of [false, true]) {
     { ...HERALD_CONFIG, stats: { power: 1000, precision: 2470, ferocity: 0, conditionDamage: 0 } },
     {
       initialize(runtime) {
-        runtime.emit({ ...buff(0, 2), resolvedAudience: undefined, audience: { recipients: 'self' } });
-        runtime.emit(probe(1));
-        runtime.emit(probe(3));
+        runtime.effects.emit({
+          kind: 'packet',
+          event: { ...buff(0, 2), resolvedAudience: undefined, audience: { recipients: 'self' } }
+        });
+        runtime.effects.emit({ kind: 'packet', event: probe(1) });
+        runtime.effects.emit({ kind: 'packet', event: probe(3) });
       }
     }
   );
@@ -397,20 +411,24 @@ for (const name of ['Thief', 'Ranger'])
       const run = name === 'Thief' ? runThief : runRanger;
       const result = run([{ type: 'wait', durationMs: 3500 }], config, {
         initialize(runtime) {
-          runtime.emit(buff(0, 2));
+          runtime.effects.emit({ kind: 'packet', event: buff(0, 2) });
           const skill = runtime.helpers.skillsByName.get(name === 'Thief' ? 'Bola Shot' : 'Long Range Shot');
           for (const at of [1, 3])
-            runtime.emit({
-              type: 'damage',
-              at,
-              source: 'probe',
-              sourceId: skill.id,
-              skillId: skill.id,
-              skillName: skill.name,
-              actorType: 'player',
-              coefficient: 1
+            runtime.effects.emit({
+              kind: 'packet',
+              event: {
+                type: 'damage',
+                at,
+                source: 'probe',
+                sourceId: skill.id,
+                skillId: skill.id,
+                skillName: skill.name,
+                actorType: 'player',
+                coefficient: 1
+              }
             });
-          if (name === 'Ranger' && enabled) runtime.emit({ ...buff(1, 2), type: 'boon_extension' });
+          if (name === 'Ranger' && enabled)
+            runtime.effects.emit({ kind: 'packet', event: { ...buff(1, 2), type: 'boon_extension' } });
         }
       });
       assert.deepEqual(result.warnings, []);
@@ -439,16 +457,19 @@ test('critical boon grants affect later same-time hits exactly once', () => {
         initialize(runtime) {
           const skill = runtime.helpers.skillsByName.get('Bola Shot');
           for (const index of [1, 2, 3])
-            runtime.emit({
-              type: 'damage',
-              at: 1,
-              source: 'probe',
-              sourceId: skill.id,
-              actorType: 'player',
-              skillId: skill.id,
-              skillName: skill.name,
-              coefficient: 1,
-              activationId: 'same-' + index
+            runtime.effects.emit({
+              kind: 'packet',
+              event: {
+                type: 'damage',
+                at: 1,
+                source: 'probe',
+                sourceId: skill.id,
+                actorType: 'player',
+                skillId: skill.id,
+                skillName: skill.name,
+                coefficient: 1,
+                activationId: 'same-' + index
+              }
             });
         }
       }
@@ -474,9 +495,12 @@ test('Essence of Speed extends self Quickness once and ignores ally-only grants'
       },
       {
         initialize(runtime) {
-          runtime.emit(buff(0, 2));
-          runtime.emit(buff(1, 5, { ...self, includesSelf, alliedPlayerCount: includesSelf ? 0 : 1 }, 'quickness'));
-          runtime.emit(buff(1.5, 5, self, 'quickness'));
+          runtime.effects.emit({ kind: 'packet', event: buff(0, 2) });
+          runtime.effects.emit({
+            kind: 'packet',
+            event: buff(1, 5, { ...self, includesSelf, alliedPlayerCount: includesSelf ? 0 : 1 }, 'quickness')
+          });
+          runtime.effects.emit({ kind: 'packet', event: buff(1.5, 5, self, 'quickness') });
         }
       }
     );

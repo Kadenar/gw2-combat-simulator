@@ -1,3 +1,4 @@
+import { captureEffectEmissions } from '#tests/helpers/effect-emission.js';
 import { createCooldownController } from '#gw2/platform/execution/cooldowns.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
@@ -104,7 +105,7 @@ test('Fervent Stance grants dual-attack Might only inside an armed window', () =
       helpers: elementalistCatalog,
       config: { selectedTraitIds: [] },
       effectiveEnd: at,
-      emit: (event) => events.push(event),
+      effects: captureEffectEmissions({ submit: (event) => events.push(event) }).effects,
       emitProcedural: (event) => events.push(event)
     };
     if (armed) weaverHooks.tasks['elementalist.weaver.arm-fervent-stance'](context);
@@ -186,7 +187,7 @@ test('conjure pickup availability and consumption require a finite, unexpired gr
         schedule() {},
         query: { statsAt: () => ({}) },
         config: {},
-        emit: (event) => events.push(event),
+        effects: captureEffectEmissions({ submit: (event) => events.push(event) }).effects,
         emitProcedural: (event) => events.push(event)
       };
       const expected = expiry === 0.1 || expiry === 1;

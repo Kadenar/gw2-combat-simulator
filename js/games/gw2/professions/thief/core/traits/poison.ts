@@ -9,7 +9,6 @@ import {
   requireEffect
 } from '#gw2/platform/engine/skills/balance-profiles.js';
 import type { BalanceProfile, SkillEffect } from '#gw2/platform/engine/skills/types.js';
-import { queueResolverBoon } from '#gw2/platform/resolver/boons.js';
 import { buildResolverBuff, buildResolverCondition } from '#gw2/platform/resolver/packets.js';
 import { THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
 import type { ThiefResolverContext, ThiefResolverEvent } from '#gw2/professions/thief/types.js';
@@ -32,8 +31,10 @@ export function applyDeadlyAmbition(context: ThiefResolverContext, event: ThiefR
   // Explicit removal suppresses this packet without restoring baseline tuning.
   if (!poison) return;
   state.traitProcProgress[activation] = 1;
-  context.applyCondition(
-    buildResolverCondition({
+  context.effects.emit({
+    kind: 'packet',
+    settlement: 'reaction',
+    event: buildResolverCondition({
       at: event.at,
       source: 'Trait',
       actorType: 'player',
@@ -47,7 +48,7 @@ export function applyDeadlyAmbition(context: ThiefResolverContext, event: ThiefR
       sourceId: TRAIT.DEADLY_AMBITION,
       name: 'Deadly Ambition — Poison'
     })
-  );
+  });
 }
 
 /** Player-applied poison grants self Might and target Weakness once per shared ten-second cooldown. */
@@ -72,10 +73,9 @@ export function applyLotusPoison(context: ThiefResolverContext, event: ThiefReso
   const might = requireEffect(lotusPoisonProfile, 'boon', 'Might');
   if (might) {
     const boon = String(might.boon);
-    queueResolverBoon(
-      context,
-      event,
-      buildResolverBuff({
+    context.effects.emit({
+      kind: 'packet',
+      event: buildResolverBuff({
         at: event.at,
         source: 'Trait',
         sourceId: TRAIT.LOTUS_POISON,
@@ -88,14 +88,16 @@ export function applyLotusPoison(context: ThiefResolverContext, event: ThiefReso
         duration: effectNumber(lotusPoisonProfile, might, 'duration'),
         audience: { recipients: 'self' },
         triggeredBy: event.skillName
-      })
-    );
+      }),
+      durationContext: event
+    });
   }
 
   const weakness = requireEffect(lotusPoisonProfile, 'condition', 'Weakness');
   if (weakness)
-    context.queue.enqueue(
-      buildResolverCondition({
+    context.effects.emit({
+      kind: 'packet',
+      event: buildResolverCondition({
         at: event.at,
         source: 'Trait',
         sourceId: TRAIT.LOTUS_POISON,
@@ -109,7 +111,7 @@ export function applyLotusPoison(context: ThiefResolverContext, event: ThiefReso
         activationId: event.activationId,
         triggeredBy: event.skillName
       })
-    );
+    });
 }
 
 export function applyPanicStrike(context: ThiefResolverContext, event: ThiefResolverEvent): void {
@@ -130,8 +132,10 @@ export function applyPanicStrike(context: ThiefResolverContext, event: ThiefReso
     )
   )
     return;
-  context.applyCondition(
-    buildResolverCondition({
+  context.effects.emit({
+    kind: 'packet',
+    settlement: 'reaction',
+    event: buildResolverCondition({
       at: event.at,
       source: 'Trait',
       sourceId: TRAIT.PANIC_STRIKE,
@@ -145,7 +149,7 @@ export function applyPanicStrike(context: ThiefResolverContext, event: ThiefReso
       activationId: `panic-strike:${event.at}`,
       triggeredBy: event.skillName
     })
-  );
+  });
 }
 
 export function applyPanicStrikePoison(context: ThiefResolverContext, application: ThiefResolverEvent): void {
@@ -160,8 +164,9 @@ export function applyPanicStrikePoison(context: ThiefResolverContext, applicatio
   const poison = requireEffect(panicStrikeProfile, 'condition', 'Poisoned');
   // Explicit removal suppresses this packet without restoring baseline tuning.
   if (!poison) return;
-  context.queue.enqueue(
-    buildResolverCondition({
+  context.effects.emit({
+    kind: 'packet',
+    event: buildResolverCondition({
       at: application.at,
       source: 'Trait',
       sourceId: TRAIT.PANIC_STRIKE,
@@ -175,7 +180,7 @@ export function applyPanicStrikePoison(context: ThiefResolverContext, applicatio
       activationId: application.activationId || `panic-strike:${application.at}`,
       triggeredBy: application.skillName
     })
-  );
+  });
 }
 
 function targetConditionCount(context: ThiefResolverContext, at: number): number {

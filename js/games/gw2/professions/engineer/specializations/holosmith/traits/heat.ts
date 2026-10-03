@@ -5,7 +5,7 @@ import {
   balanceProfileNumber,
   effectNumber
 } from '#gw2/platform/engine/skills/balance-profiles.js';
-import { emitEngineerEvent } from '#gw2/professions/engineer/core/events.js';
+import { buildEngineerPackets } from '#gw2/professions/engineer/core/events.js';
 import { ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
 import type { EngineerRuntime, EngineerConfig } from '#gw2/professions/engineer/types.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
@@ -19,7 +19,7 @@ export function emitEnhancedCapacityMight(context: EngineerRuntime<HolosmithSkil
   const enhancedCapacityProfile = requireBalanceProfileFromContext(context, TRAIT.ENHANCED_CAPACITY_STORAGE_UNIT);
   const boon = requireEffect(enhancedCapacityProfile, 'boon', 'might');
   if (boon) {
-    emitEngineerEvent(context, 'buff', {
+    buildEngineerPackets('buff', {
       at,
       source: 'Trait',
       sourceId: TRAIT.ENHANCED_CAPACITY_STORAGE_UNIT,
@@ -28,7 +28,7 @@ export function emitEnhancedCapacityMight(context: EngineerRuntime<HolosmithSkil
       kind: String(boon.boon).toLowerCase(),
       duration: boon.duration,
       stacks: Number(boon.stacks)
-    });
+    }).forEach((packet) => context.effects.emit({ kind: 'packet', event: packet }));
   }
 }
 
@@ -59,7 +59,7 @@ export function emitPhotonicBlastingModuleEffects(context: EngineerRuntime<Holos
   const condition = requireEffect(photonicBlastingModuleProfile, 'condition', 'Burning');
   // The explosion owns the blast finisher and resolves before its same-time condition packet.
   if (strike) {
-    emitEngineerEvent(context, 'damage', {
+    buildEngineerPackets('damage', {
       at: effectAt,
       source: 'Trait',
       sourceId: TRAIT.PHOTONIC_BLASTING_MODULE,
@@ -79,12 +79,12 @@ export function emitPhotonicBlastingModuleEffects(context: EngineerRuntime<Holos
           ambiguousFieldSelection: 'oldest'
         }
       ]
-    });
+    }).forEach((packet) => context.effects.emit({ kind: 'packet', event: packet }));
   }
 
   // Burning shares the delayed PBM timestamp but remains a separate canonical effect application.
   if (condition) {
-    emitEngineerEvent(context, 'condition', {
+    buildEngineerPackets('condition', {
       at: effectAt,
       source: 'Trait',
       sourceId: TRAIT.PHOTONIC_BLASTING_MODULE,
@@ -93,7 +93,7 @@ export function emitPhotonicBlastingModuleEffects(context: EngineerRuntime<Holos
       condition: String(condition.condition),
       stacks: Number(condition.stacks),
       duration: Number(condition.duration)
-    });
+    }).forEach((packet) => context.effects.emit({ kind: 'packet', event: packet }));
   }
 }
 

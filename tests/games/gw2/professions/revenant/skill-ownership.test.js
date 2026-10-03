@@ -185,16 +185,19 @@ test('Cosmic Wisdom grants Core traits once before form activation', () => {
           ...native.sideEffectHandlers,
           'revenant.cosmic-wisdom'(runtime, context, action) {
             // Observe synchronous trait publication at the point it can still see pre-form attributes.
-            const emit = runtime.emitProcedural;
-            runtime.emitProcedural = (event, options) => {
-              if (event.sourceId === TRAIT.NOTORIETY) order.push(conduitState.from(runtime).conduitForm);
-              return emit(event, options);
+            const effects = runtime.effects;
+            runtime.effects = {
+              emit(request) {
+                const event = request.kind === 'packet' ? request.event : request.attribution;
+                if (event?.sourceId === TRAIT.NOTORIETY) order.push(conduitState.from(runtime).conduitForm);
+                return effects.emit(request);
+              }
             };
 
             try {
               native.sideEffectHandlers[action.type](runtime, context, action);
             } finally {
-              runtime.emitProcedural = emit;
+              runtime.effects = effects;
             }
           }
         }
@@ -220,11 +223,14 @@ test('Herald consume publishes Core rewards before establishing Echo retention',
     {
       initialize(runtime) {
         // Retaining Dragon Nature too early would change the duration of the consume's own Core reward.
-        const emit = runtime.emitProcedural;
-        runtime.emitProcedural = (event, options) => {
-          if (event.sourceId === TRAIT.NOTORIETY && event.skillId === ID.TRUE_NATURE_DRAGON)
-            retainedDuringReward.push(Boolean(heraldState.from(runtime).lingeringFacets[ID.FACET_OF_NATURE]));
-          return emit(event, options);
+        const effects = runtime.effects;
+        runtime.effects = {
+          emit(request) {
+            const event = request.kind === 'packet' ? request.event : request.attribution;
+            if (event?.sourceId === TRAIT.NOTORIETY && event.skillId === ID.TRUE_NATURE_DRAGON)
+              retainedDuringReward.push(Boolean(heraldState.from(runtime).lingeringFacets[ID.FACET_OF_NATURE]));
+            return effects.emit(request);
+          }
         };
       }
     }

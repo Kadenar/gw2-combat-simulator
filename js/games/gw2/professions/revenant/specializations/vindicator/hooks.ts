@@ -1,6 +1,5 @@
 import { strikeEffectCoefficient } from '#gw2/platform/engine/effects/authoring.js';
 import type { SkillId } from '#gw2/platform/engine/skills/types.js';
-import { emitEffects } from '#gw2/platform/simulation/procedural-emission.js';
 import type { RuntimeProfession } from '#gw2/platform/simulation/runtime-state.js';
 import { resetAutoattackChains } from '#gw2/platform/skills/autoattack-chain-controller.js';
 import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
@@ -21,7 +20,7 @@ import {
   reaversCurseMultiplier,
   renewForerunnerOfDeath
 } from '#gw2/professions/revenant/specializations/vindicator/traits/behavior.js';
-import type { RevenantSkill, RevenantRuntimeState } from '#gw2/professions/revenant/types.js';
+import type { RevenantRuntimeState, RevenantSkill } from '#gw2/professions/revenant/types.js';
 
 const ENERGY_MELD_IDS = new Set<SkillId>([ID.ENERGY_MELD, ID.ENERGY_MELD_ID_72058]);
 
@@ -35,11 +34,12 @@ function land(runtime: RevenantRuntime, data: unknown): void {
   const reaversCurse = consumeReaversCurse(runtime);
   if (effect.type === 'strike' && strikeEffectCoefficient(effect) > 0) {
     const forerunnerActive = forerunnerOfDeathActive(runtime);
-    emitEffects(runtime, {
-      owner: profile,
+    runtime.effects.emit({
+      kind: 'profile',
+      profile: profile,
       effects: profile.effects?.filter((effect) => effect.type === 'strike'),
       at: origin,
-      baseEvent: {
+      attribution: {
         source: 'revenant',
         sourceId: skillId,
         actorType: 'player',
@@ -59,12 +59,13 @@ function land(runtime: RevenantRuntime, data: unknown): void {
   }
 
   // Secondary effects retain their own timing and applications, independent of the strike timeline.
-  emitEffects(runtime, {
-    owner: profile,
+  runtime.effects.emit({
+    kind: 'profile',
+    profile: profile,
     effects: profile.effects?.filter((effect) => effect.type === 'boon' || effect.type === 'condition'),
     at: origin,
     fullEnd: runtime.time,
-    baseEvent: {
+    attribution: {
       source: 'revenant',
       sourceId: profile.id,
       actorType: 'player',

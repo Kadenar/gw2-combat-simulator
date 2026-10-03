@@ -1,4 +1,3 @@
-import { canonicalTime, EPSILON, timeKey } from '#kernel/core/clock.js';
 import { resourceDepletionAt } from '#gw2/platform/combat/resources/clock.js';
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
 import {
@@ -6,18 +5,19 @@ import {
   effectFirstAtMs,
   strikeEffectCoefficient
 } from '#gw2/platform/engine/effects/authoring.js';
-import { armSkillFlip, consumeSkillFlip } from '#gw2/platform/engine/skills/skill-flips.js';
 import { requireEffect } from '#gw2/platform/engine/skills/balance-profiles.js';
-import { buildResolverCondition, buildResolverStrike } from '#gw2/platform/resolver/packets.js';
-import { gw2CooldownReadyAt } from '#gw2/platform/skills/timing.js';
-import { REVENANT_SKILL_IDS as ID } from '#gw2/professions/revenant/data/ids.js';
-import { revenantEnergyCost } from '#gw2/professions/revenant/family-state.js';
+import { armSkillFlip, consumeSkillFlip } from '#gw2/platform/engine/skills/skill-flips.js';
 import type { SkillId } from '#gw2/platform/engine/skills/types.js';
+import { buildResolverCondition, buildResolverStrike } from '#gw2/platform/resolver/packets.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import type { RuntimeCast } from '#gw2/platform/simulation/runtime-state.js';
-import type { RevenantUpkeepState } from '#gw2/professions/revenant/core/state.js';
-import type { RevenantSkill } from '#gw2/professions/revenant/types.js';
+import { gw2CooldownReadyAt } from '#gw2/platform/skills/timing.js';
 import type { RevenantRuntime } from '#gw2/professions/revenant/core/events.js';
+import type { RevenantUpkeepState } from '#gw2/professions/revenant/core/state.js';
+import { REVENANT_SKILL_IDS as ID } from '#gw2/professions/revenant/data/ids.js';
+import { revenantEnergyCost } from '#gw2/professions/revenant/family-state.js';
+import type { RevenantSkill } from '#gw2/professions/revenant/types.js';
+import { canonicalTime, EPSILON, timeKey } from '#kernel/core/clock.js';
 
 export const REVENANT_UPKEEP_PULSE = 'revenant.upkeep-pulse';
 
@@ -126,16 +126,18 @@ function embracePulse(runtime: RevenantRuntime, skill: RevenantSkill, at: number
     skillId: skill.id,
     skillName: skill.name
   };
-  runtime.emit(
-    buildResolverStrike({
+  runtime.effects.emit({
+    kind: 'packet',
+    event: buildResolverStrike({
       ...common,
       name: skill.name,
       coefficient: strikeEffectCoefficient(strike),
       skillWeapon: 'Unequipped'
     })
-  );
-  runtime.emit(
-    buildResolverCondition({
+  });
+  runtime.effects.emit({
+    kind: 'packet',
+    event: buildResolverCondition({
       ...common,
       // Label empowered applications in chart attribution while keeping the shared skill identity.
       name: empowered ? `${skill.name} — Empowered Torment` : `${skill.name} — Torment`,
@@ -144,7 +146,7 @@ function embracePulse(runtime: RevenantRuntime, skill: RevenantSkill, at: number
       stacks: tick?.stacks || 0,
       duration: tick?.duration || 0
     })
-  );
+  });
 }
 
 /** Vengeful Hammers divides one pulse's coefficient across its simultaneous hammers. */
@@ -155,8 +157,9 @@ function hammerPulse(runtime: RevenantRuntime, skill: RevenantSkill, at: number)
   if (!(Number(strike.atMs) >= 0))
     throw new Error('Vengeful Hammers requires one explicit simultaneous-hit timestamp.');
   for (let index = 1; index <= hammers; index += 1)
-    runtime.emit(
-      buildResolverStrike({
+    runtime.effects.emit({
+      kind: 'packet',
+      event: buildResolverStrike({
         at: canonicalTime(at + Number(strike.atMs) / 1000),
         source: 'revenant',
         sourceId: skill.id,
@@ -169,7 +172,7 @@ function hammerPulse(runtime: RevenantRuntime, skill: RevenantSkill, at: number)
         totalHits: hammers,
         skillWeapon: 'Unequipped'
       })
-    );
+    });
 }
 
 /** A committed Embrace activation lands its opening pulse at the authored offset, before drain begins. */
@@ -279,9 +282,10 @@ export function reactRevenantImpossibleOdds(runtime: RevenantRuntime, event: Gw2
   // The trigger interval gates only this strike, so a removed strike leaves it ready.
   if (!impossible || !strike) return;
   runtime.procs.readyAt.impossibleOdds = canonicalTime(runtime.time + (impossible.triggerIntervalMs || 0) / 1000);
-  runtime.emitDerived(
-    event,
-    buildResolverStrike({
+  runtime.effects.emit({
+    kind: 'packet',
+    cause: event,
+    event: buildResolverStrike({
       at: canonicalTime(runtime.time + (effectFirstAtMs(strike) || 0) / 1000),
       source: 'revenant',
       sourceId: impossible.id,
@@ -295,5 +299,5 @@ export function reactRevenantImpossibleOdds(runtime: RevenantRuntime, event: Gw2
       skillWeapon: 'Unequipped',
       canTriggerCriticalSigils: true
     })
-  );
+  });
 }

@@ -22,18 +22,21 @@ import test from 'node:test';
 const wait = (durationMs) => ({ type: 'wait', durationMs });
 const core = (result) => observedRuntime(result).profession.core;
 const strike = (runtime, at, extra = {}) =>
-  runtime.emit({
-    type: 'damage',
-    source: 'guardian',
-    sourceId: ID.ORB_OF_WRATH,
-    skillId: ID.ORB_OF_WRATH,
-    skillName: 'Orb of Wrath',
-    actorType: 'player',
-    coefficient: 1,
-    weaponStrengthProfileId: 'weapon.scepter',
-    activationId: `impact-${at}`,
-    at,
-    ...extra
+  runtime.effects.emit({
+    kind: 'packet',
+    event: {
+      type: 'damage',
+      source: 'guardian',
+      sourceId: ID.ORB_OF_WRATH,
+      skillId: ID.ORB_OF_WRATH,
+      skillName: 'Orb of Wrath',
+      actorType: 'player',
+      coefficient: 1,
+      weaponStrengthProfileId: 'weapon.scepter',
+      activationId: `impact-${at}`,
+      at,
+      ...extra
+    }
   });
 
 const firebrand = { specialization: 'Firebrand' };
@@ -604,7 +607,6 @@ test('Firebrand mantra recharge wakes ignore transient Alacrity and preserve lat
 });
 
 test('Firebrand Ashes grants at application, ignores misses, and preserves hit lineage at inclusive expiry', () => {
-  const seen = [];
   const expiry = fb(run([ID.TOME_OF_JUSTICE, ID.ASHES_OF_THE_JUST], firebrand)).ashes.expiresAt;
   const result = run([ID.TOME_OF_JUSTICE, ID.ASHES_OF_THE_JUST, wait(11000)], firebrand, {
     initialize: (runtime) => {
@@ -614,14 +616,12 @@ test('Firebrand Ashes grants at application, ignores misses, and preserves hit l
       strike(runtime, 1);
       strike(runtime, 1.1);
       strike(runtime, expiry);
-      const apply = runtime.applyCondition;
-      runtime.applyCondition = (event) => {
-        if (event.sourceId === 'guardian.ashes-of-the-just') seen.push([event.at, event.activationId]);
-        return apply(event);
-      };
     }
   });
   assert.deepEqual(result.warnings, []);
+  const seen = result.resolvedEvents
+    .filter((event) => event.sourceId === 'guardian.ashes-of-the-just')
+    .map((event) => [event.at, event.activationId]);
   assert.deepEqual(seen, [
     [1, 'impact-1'],
     [expiry, `impact-${expiry}`]
@@ -679,15 +679,18 @@ test('Firebrand axe and disable traits react to accepted player outcomes only', 
           [0.5, 'summon', false],
           [0.6, 'player', false]
         ])
-          runtime.emit({
-            type: 'control',
-            at,
-            actorType,
-            offTarget,
-            source: 'fixture',
-            sourceId: 'control',
-            controlKind: 'daze',
-            activationId: `control-${at}`
+          runtime.effects.emit({
+            kind: 'packet',
+            event: {
+              type: 'control',
+              at,
+              actorType,
+              offTarget,
+              source: 'fixture',
+              sourceId: 'control',
+              controlKind: 'daze',
+              activationId: `control-${at}`
+            }
           });
       }
     }
@@ -879,15 +882,18 @@ test('permanent Alacrity readies the Core passive on the same action tick as its
     { patchId: 'short-justice' },
     {
       initialize: (runtime) => {
-        runtime.emit({
-          type: 'buff',
-          kind: 'alacrity',
-          at: 2,
-          duration: 4.08,
-          stacks: 1,
-          source: 'fixture',
-          sourceId: 'fixture',
-          actorType: 'player'
+        runtime.effects.emit({
+          kind: 'packet',
+          event: {
+            type: 'buff',
+            kind: 'alacrity',
+            at: 2,
+            duration: 4.08,
+            stacks: 1,
+            source: 'fixture',
+            sourceId: 'fixture',
+            actorType: 'player'
+          }
         });
         strike(runtime, 0.1);
         strike(runtime, 9.59);
@@ -1124,17 +1130,20 @@ test('spear selects remaining projectile components and shares its execution in 
 });
 
 const boon = (runtime, kind, at, duration, extra = {}) =>
-  runtime.emit({
-    type: 'buff',
-    kind,
-    at,
-    duration,
-    stacks: 1,
-    actorType: 'player',
-    source: 'fixture',
-    sourceId: 'fixture',
-    activationId: `${kind}-${at}`,
-    ...extra
+  runtime.effects.emit({
+    kind: 'packet',
+    event: {
+      type: 'buff',
+      kind,
+      at,
+      duration,
+      stacks: 1,
+      actorType: 'player',
+      source: 'fixture',
+      sourceId: 'fixture',
+      activationId: `${kind}-${at}`,
+      ...extra
+    }
   });
 
 test('symbol traits claim only accepted player impacts and retain delayed impact attribution', () => {
@@ -1227,14 +1236,17 @@ test('Righteous Instincts respects the shared Resolution duration cap and extens
       initialize: (runtime) => {
         boon(runtime, 'resolution', 0, 100);
         boon(runtime, 'resolution', 0.5, 100);
-        runtime.emit({
-          type: 'boon_extension',
-          kind: 'resolution',
-          at: 29,
-          duration: 1,
-          source: 'fixture',
-          sourceId: 'fixture',
-          actorType: 'player'
+        runtime.effects.emit({
+          kind: 'packet',
+          event: {
+            type: 'boon_extension',
+            kind: 'resolution',
+            at: 29,
+            duration: 1,
+            source: 'fixture',
+            sourceId: 'fixture',
+            actorType: 'player'
+          }
         });
       }
     }
@@ -1586,14 +1598,17 @@ test('Dragonhunter control traits exclude summon controls and retain accepted co
           [1.2, 'player'],
           [1.200001, 'player']
         ])
-          runtime.emit({
-            type: 'control',
-            controlKind: 'pull',
-            at,
-            actorType,
-            source: 'fixture',
-            sourceId: 'fixture',
-            activationId: `control-${at}`
+          runtime.effects.emit({
+            kind: 'packet',
+            event: {
+              type: 'control',
+              controlKind: 'pull',
+              at,
+              actorType,
+              source: 'fixture',
+              sourceId: 'fixture',
+              activationId: `control-${at}`
+            }
           });
       }
     }

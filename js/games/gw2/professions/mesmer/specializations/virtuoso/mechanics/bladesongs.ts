@@ -1,5 +1,9 @@
+import {
+  buildMesmerStrikes,
+  mesmerPacketOwner,
+  buildMesmerConditions
+} from '#gw2/professions/mesmer/core/mechanics/packets.js';
 import type { AvailabilityResult } from '#gw2/platform/execution/types.js';
-import { emitMesmerEffects } from '#gw2/professions/mesmer/core/events.js';
 import { mesmerConditionFromProfile, mesmerMechanicsFor } from '#gw2/professions/mesmer/core/mechanics/runtime.js';
 import type {
   MesmerShatterResolverRequest,
@@ -14,7 +18,7 @@ import { MESMER_SKILL_IDS as ID } from '#gw2/professions/mesmer/data/ids.js';
 /** Resolves Virtuoso Bladesong packets and reports their actual impact timing to shared shatter traits. */
 export function resolveBladesong(
   context: MesmerRuntime,
-  { skill, shatter, at, castStart, spent }: MesmerShatterResolverRequest
+  { skill, shatter, at, castStart, spent, delivery }: MesmerShatterResolverRequest
 ): readonly MesmerShatterTraitHit[] {
   const runtime = mesmerMechanicsFor(context);
   const strike = shatter.strikes[spent];
@@ -22,7 +26,8 @@ export function resolveBladesong(
 
   const addBladeDamage = (ticks: readonly { readonly atMs: number; readonly coefficient: number }[]) =>
     strike
-      ? runtime.addDamage(
+      ? buildMesmerStrikes(
+          runtime.context,
           skill,
           at,
           {
@@ -36,7 +41,16 @@ export function resolveBladesong(
             weaponStrengthProfileId: 'nonweapon.profession-mechanic'
           },
           { metadata: { shatterTraitEligible: true, blade: true } }
-        )
+        ).map((packet) => {
+          runtime.context.effects.emit({
+            ...delivery,
+            kind: 'packet',
+            event: packet,
+            owner: mesmerPacketOwner(packet),
+            priority: Number(packet.priority ?? 0)
+          });
+          return packet;
+        })
       : [];
 
   if (shatter.kind === 'blade-power') {
@@ -51,7 +65,7 @@ export function resolveBladesong(
 
     const hits = addBladeDamage(ticks);
     if (confusion)
-      runtime.addCondition(skill.name, at, {
+      buildMesmerConditions(runtime.context, skill.name, at, {
         name: 'Confusion',
         duration: confusion.duration,
         ticks: (strike?.ticks?.map((tick) => tick.atMs) ?? shatter.conditionAtMs?.[spent] ?? []).map((atMs) => ({
@@ -62,6 +76,14 @@ export function resolveBladesong(
         })),
         timingAnchor: 'castStart',
         timingScale: 'fixed'
+      }).forEach((packet) => {
+        runtime.context.effects.emit({
+          ...delivery,
+          kind: 'packet',
+          event: packet,
+          owner: mesmerPacketOwner(packet),
+          priority: Number(packet.priority ?? 0)
+        });
       });
     return hits.map((event) => ({ at: event.at, count: 1 }));
   }
@@ -70,7 +92,8 @@ export function resolveBladesong(
     // A blade cannot impact before the activation has actually committed its resource spend.
     const damageAt = Math.max(at, castStart + (shatter.damageAtMs || 0) / 1000);
     if (strike)
-      runtime.addDamage(
+      buildMesmerStrikes(
+        runtime.context,
         skill,
         damageAt,
         {
@@ -82,8 +105,30 @@ export function resolveBladesong(
           weaponStrengthProfileId: 'nonweapon.profession-mechanic'
         },
         { metadata: { shatterTraitEligible: true, blade: true } }
-      );
-    emitMesmerEffects(context, skill, castStart, damageAt);
+      ).forEach((packet) => {
+        runtime.context.effects.emit({
+          ...delivery,
+          kind: 'packet',
+          event: packet,
+          owner: mesmerPacketOwner(packet),
+          priority: Number(packet.priority ?? 0)
+        });
+      });
+    context.effects.emit({
+      ...delivery,
+      kind: 'profile',
+      profile: skill,
+      at: castStart,
+      fullEnd: damageAt,
+      attribution: {
+        source: 'Player',
+        sourceId: skill.id,
+        actorType: 'player',
+        skillId: skill.id,
+        skillName: skill.name
+      },
+      priority: 0
+    });
     return strike ? [{ at: damageAt, count: 1 }] : [];
   }
 

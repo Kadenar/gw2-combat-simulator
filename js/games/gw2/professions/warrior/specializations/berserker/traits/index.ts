@@ -157,27 +157,34 @@ export const kingOfFires = defineTrait({
         if (!aura) return;
         const duration = effectNumber(profile, aura, 'duration');
         armAura(runtime, gw2EffectExpiresAt(runtime.time, duration));
-        runtime.emitDerived(event, {
-          type: 'buff',
-          at: runtime.time,
-          source: 'Trait',
-          sourceId: TRAIT.KING_OF_FIRES,
-          actorType: 'effect',
-          skillId: event.skillId,
-          skillName: event.skillName,
-          name: 'King of Fires — Fire Aura',
-          kind: 'fire-aura',
-          stacks: effectNumber(profile, aura, 'stacks'),
-          duration
+        runtime.effects.emit({
+          kind: 'packet',
+          cause: event,
+          event: {
+            type: 'buff',
+            at: runtime.time,
+            source: 'Trait',
+            sourceId: TRAIT.KING_OF_FIRES,
+            actorType: 'effect',
+            skillId: event.skillId,
+            skillName: event.skillName,
+            name: 'King of Fires — Fire Aura',
+            kind: 'fire-aura',
+            stacks: effectNumber(profile, aura, 'stacks'),
+            duration
+          }
         });
-        runtime.recordProc(
-          'trait',
-          'Fire Aura',
-          runtime.time,
-          event.skillName,
-          'Granted by King of Fires',
-          'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Fire_Aura.png'
-        );
+        runtime.effects.emit({
+          kind: 'announcement',
+          announcement: {
+            type: 'trait',
+            name: 'Fire Aura',
+            at: runtime.time,
+            sourceSkill: event.skillName,
+            detail: 'Granted by King of Fires',
+            icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Fire_Aura.png'
+          }
+        });
         if (event.activationId != null && state.completedActivations[event.activationId] != null)
           runtime.schedule(
             DETONATE,

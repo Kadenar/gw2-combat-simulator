@@ -14,7 +14,7 @@ import {
   type EngineerModifierContext,
   type EngineerResolverContext
 } from '#gw2/professions/engineer/types.js';
-import { emitEngineerEvent } from '#gw2/professions/engineer/core/events.js';
+import { buildEngineerPackets } from '#gw2/professions/engineer/core/events.js';
 import { isInternalCooldownReady } from '#gw2/platform/combat/procs.js';
 import { eventSkill } from '#gw2/platform/combat/query/runtime-query.js';
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
@@ -24,10 +24,7 @@ import {
   type AmalgamMorphKind
 } from '#gw2/professions/engineer/specializations/amalgam/skills/protocol-skills.js';
 import { amalgamState } from '#gw2/professions/engineer/specializations/amalgam/state.js';
-import {
-  resolverSkill,
-  applyEngineerDerivedCondition
-} from '#gw2/professions/engineer/core/mechanics/resolution-helpers.js';
+import { resolverSkill, buildEngineerCondition } from '#gw2/professions/engineer/core/mechanics/resolution-helpers.js';
 
 // Keep Morph, Evolve, and their trait reactions together so form transitions share one behavior owner.
 const EVOLVE_SKILL_IDS = new Set<SkillId>([ID.EVOLVE_BASE, ID.EVOLVE_DOUBLE_HELIX]);
@@ -72,15 +69,17 @@ export function reactToMercurialTendencies(context: EngineerRuntime, event: Engi
 
   if (!(reducedBy > 0)) return;
   context.procs.readyAt.mercurialTendencies = at + balanceProfileNumber(profile, 'internalCooldown');
-  emitEngineerEvent(context, 'proc', {
-    at,
-    source: 'Trait',
-    sourceId: TRAIT.MERCURIAL_TENDENCIES,
-    actorType: 'effect',
-    name: 'Mercurial Tendencies',
-    procType: 'trait',
-    sourceSkill: event.skillName || event.name,
-    cooldownReduction: reducedBy
+  context.effects.emit({
+    kind: 'announcement',
+    log: true,
+    attribution: { source: 'Trait', sourceId: TRAIT.MERCURIAL_TENDENCIES, actorType: 'effect' },
+    announcement: {
+      name: 'Mercurial Tendencies',
+      at: at,
+      cooldownReduction: reducedBy,
+      type: 'trait',
+      sourceSkill: event.skillName || event.name
+    }
   });
 }
 
@@ -125,7 +124,7 @@ export function activateAmalgamMorph(context: EngineerRuntime, skill: EngineerSk
       const newGenesProfile = requireBalanceProfileFromContext(context, TRAIT.NEW_GENES);
       const boon = requireEffect(newGenesProfile, 'boon', name);
       if (!boon) continue;
-      emitEngineerEvent(context, 'buff', {
+      buildEngineerPackets('buff', {
         at,
         source: 'engineer',
         sourceId: TRAIT.NEW_GENES,
@@ -135,7 +134,7 @@ export function activateAmalgamMorph(context: EngineerRuntime, skill: EngineerSk
         kind: String(boon.boon),
         duration: boon.duration,
         stacks: boon.stacks
-      });
+      }).forEach((packet) => context.effects.emit({ kind: 'packet', event: packet }));
     }
   }
 }
@@ -148,8 +147,7 @@ function grantHardenedChrome(context: EngineerRuntime, durationField: 'minimumSt
       name: 'Hardened Chrome'
     };
     const hardenedChromeProfile = requireBalanceProfileFromContext(context, TRAIT.HARDENED_CHROME);
-    emitEngineerEvent(
-      context,
+    buildEngineerPackets(
       'buff',
       {
         at: context.time,
@@ -163,7 +161,7 @@ function grantHardenedChrome(context: EngineerRuntime, durationField: 'minimumSt
         stacks: 1
       },
       sourceSkill
-    );
+    ).forEach((packet) => context.effects.emit({ kind: 'packet', event: packet }));
   }
 }
 
@@ -213,14 +211,18 @@ export function applyCarbolicComposition(context: EngineerResolverContext, event
     const carbolicCompositionProfile = requireBalanceProfileFromContext(context, TRAIT.CARBOLIC_COMPOSITION);
     const poison = requireEffect(carbolicCompositionProfile, 'condition', 'Poisoned');
     if (poison) {
-      applyEngineerDerivedCondition(context, event, {
-        name: 'Carbolic Composition',
-        condition: String(poison.condition),
-        stacks: Number(poison.stacks),
-        duration: Number(poison.duration),
-        sourceId: TRAIT.CARBOLIC_COMPOSITION,
-        actorType: 'effect',
-        ownerActorType: 'player'
+      context.effects.emit({
+        kind: 'packet',
+        event: buildEngineerCondition(event, {
+          name: 'Carbolic Composition',
+          condition: String(poison.condition),
+          stacks: Number(poison.stacks),
+          duration: Number(poison.duration),
+          sourceId: TRAIT.CARBOLIC_COMPOSITION,
+          actorType: 'effect',
+          ownerActorType: 'player'
+        }),
+        settlement: 'reaction'
       });
     }
   }

@@ -29,7 +29,7 @@ test('Burst of Agility grants Lesser Haste self boons on defiant hits with a 60-
             [61, {}],
             [61.04, {}]
           ])
-            runtime.emit(thiefHit(at, fields));
+            runtime.effects.emit({ kind: 'packet', event: thiefHit(at, fields) });
         }
       }
     );

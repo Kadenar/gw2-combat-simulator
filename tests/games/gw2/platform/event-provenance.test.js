@@ -51,16 +51,20 @@ test('reactions queued directly or applied immediately receive identity and thei
     reactions: {
       'damage.resolved'(runtime, event) {
         if (event.skillId !== 991001) return;
-        runtime.queue.enqueue(buff(runtime.time, 'direct-buff'));
-        runtime.applyCondition({
-          type: 'condition',
-          at: runtime.time,
-          source: 'fixture',
-          sourceId: 'immediate-bleed',
-          actorType: 'effect',
-          condition: 'Bleeding',
-          stacks: 1,
-          duration: 2
+        runtime.effects.emit({ kind: 'packet', event: buff(runtime.time, 'direct-buff') });
+        runtime.effects.emit({
+          kind: 'packet',
+          settlement: 'reaction',
+          event: {
+            type: 'condition',
+            at: runtime.time,
+            source: 'fixture',
+            sourceId: 'immediate-bleed',
+            actorType: 'effect',
+            condition: 'Bleeding',
+            stacks: 1,
+            duration: 2
+          }
         });
       }
     }
@@ -80,7 +84,7 @@ test('reactions queued directly or applied immediately receive identity and thei
 test('work done for a cast names the cast, while its own packets keep only their activation', () => {
   const result = run([cast(991002)], {
     onCastStart(runtime) {
-      runtime.emit(buff(runtime.time, 'cast-side-effect'));
+      runtime.effects.emit({ kind: 'packet', event: buff(runtime.time, 'cast-side-effect') });
     }
   });
   const action = result.events.find((event) => event.type === 'action');
@@ -95,7 +99,8 @@ test('packets of another cast keep their own activation as owner instead of the 
   const result = run([cast(991002), wait(500), cast(991001)], {
     reactions: {
       'damage.resolved'(runtime, event) {
-        if (event.skillId === 991001) runtime.emit(buff(runtime.time, 'released', { activationId: 'cast:1' }));
+        if (event.skillId === 991001)
+          runtime.effects.emit({ kind: 'packet', event: buff(runtime.time, 'released', { activationId: 'cast:1' }) });
       }
     }
   });
@@ -112,8 +117,11 @@ test('scheduled work keeps the cause that scheduled it, except for summon packet
     },
     tasks: {
       later(runtime) {
-        runtime.emit(buff(runtime.time, 'delayed'));
-        runtime.emit(buff(runtime.time, 'summon-loop', { actorType: 'summon', summonKind: 'fixture' }));
+        runtime.effects.emit({ kind: 'packet', event: buff(runtime.time, 'delayed') });
+        runtime.effects.emit({
+          kind: 'packet',
+          event: buff(runtime.time, 'summon-loop', { actorType: 'summon', summonKind: 'fixture' })
+        });
       }
     }
   });

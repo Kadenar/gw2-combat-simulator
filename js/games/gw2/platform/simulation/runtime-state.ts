@@ -50,21 +50,6 @@ export interface RuntimeCast<TSkill extends Skill = Skill> {
   readonly cancelled: boolean;
 }
 
-/**
- * Controls a packet that a profession mechanic builds itself instead of materializing it from authored skill effects.
- * The runtime owns deferral, boon-duration sampling, and causal placement, so every profession emits the same way.
- */
-export interface ProceduralEmissionOptions {
-  /** The triggering packet: immediate packets queue beside it, and deferred packets keep its activation and order. */
-  readonly cause?: Gw2ResolverEvent | null;
-  /** A lifetime owner: a future packet waits in the queue and is cancelled together with its owner. */
-  readonly owner?: WorkOwner;
-  /** The queue priority of a deferred packet. */
-  readonly priority?: number;
-  /** Keep the buff's authored duration instead of applying boon-duration modifiers; defaults to the event's flag. */
-  readonly fixedDuration?: boolean;
-}
-
 /** The payload a profession task receives when a committed activation schedules its authored skill task. */
 export interface SkillTaskData<TSkill extends Skill = Skill> {
   readonly cast: RuntimeCast<TSkill>;
@@ -84,9 +69,14 @@ export interface FlipWindowOptions {
 }
 
 export type RuntimeWork =
-  | InternalWork<'runtime.effect', { event: SimulationEventBase }>
+  | InternalWork<
+      'runtime.announcement',
+      {
+        request: import('#gw2/platform/simulation/effect-emission.js').AnnouncementEmission;
+        event: SimulationEventBase;
+      }
+    >
   | InternalWork<'runtime.flip-expiry', { skillId: SkillId; identity: number | string }>
-  | InternalWork<'runtime.procedural', { event: SimulationEventBase; fixedDuration?: boolean }>
   | InternalWork<'runtime.complete', { reservationId: string }>
   | InternalWork<
       'runtime.cast-task',
@@ -117,13 +107,6 @@ export interface Gw2Runtime<T extends object = object, TSkill extends Skill = Sk
   resourceController: ReturnType<typeof createRuntimeResources<T>>;
   endurance: ReturnType<typeof createRuntimeEndurance<T>>;
   readonly hasExplicitCombatStart: boolean;
-  emitDerived(cause: Gw2ResolverEvent, event: SimulationEventBase): Gw2ResolverEvent;
-  emit(event: SimulationEventBase): Gw2ResolverEvent;
-  /**
-   * Emits a mechanic-built packet. A future buff waits until its own instant so its duration samples the stats live
-   * when it applies; a future owner-bound packet waits so retiring the owner cancels it. Returns null when deferred.
-   */
-  emitProcedural(event: SimulationEventBase, options?: ProceduralEmissionOptions): Gw2ResolverEvent | null;
   /**
    * Opens a follow-up window on the profession's Core state. A finite window retires itself at expiry, and only this
    * occurrence: a later rearm of the same skill survives the older deadline.
@@ -155,8 +138,17 @@ export interface RuntimeProfession<T extends object, TSkill extends Skill = Skil
   createState(config: Gw2Config): T;
   projectPlanningState?(input: Gw2PlanningStateInput<T>): unknown;
   initialize?(runtime: Gw2Runtime<T, TSkill>): void;
-  /** Capture immutable metadata before enqueueing; null defers/suppresses a packet without applying future state. */
+  /** Select cancellation ownership without publishing or transforming the packet. */
+  effectOwner?(runtime: Gw2Runtime<T, TSkill>, event: SimulationEventBase): WorkOwner | undefined;
+  /** Prepare at admission or an owned future impact; null suppresses the application. */
   prepareEvent?(runtime: Gw2Runtime<T, TSkill>, event: SimulationEventBase): SimulationEventBase | null;
+  /** Profession duration rules run once at application, independently of payload authoring and source identity. */
+  boonDuration?(
+    runtime: Gw2Runtime<T, TSkill>,
+    event: SimulationEventBase,
+    baseDuration: number,
+    scaledDuration: number
+  ): number;
   onCombatStart?(runtime: Gw2Runtime<T, TSkill>): void;
   readonly resources?: Partial<Record<ResourceKey, ResourcePolicy<Gw2Runtime<T, TSkill>>>>;
   readonly endurance?: EndurancePolicy<Gw2Runtime<T, TSkill>>;

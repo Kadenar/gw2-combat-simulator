@@ -6,14 +6,14 @@ import {
   requireEffect
 } from '#gw2/platform/engine/skills/balance-profiles.js';
 import type { Skill, SkillEffect } from '#gw2/platform/engine/skills/types.js';
+import type { EffectDelivery } from '#gw2/platform/simulation/effect-emission.js';
 import type { RuntimeCast } from '#gw2/platform/simulation/runtime-state.js';
-import { emitElementalistBuff } from '#gw2/professions/elementalist/core/events.js';
+import { elementalistBuffRequest } from '#gw2/professions/elementalist/core/events.js';
 import { elementalistEventSkill } from '#gw2/professions/elementalist/core/mechanics/effects.js';
 import { ELEMENTALIST_TRAIT_IDS as TRAIT } from '#gw2/professions/elementalist/data/ids.js';
 import { CATALYST_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/elementalist/specializations/catalyst/profiles.js';
 import { catalystState } from '#gw2/professions/elementalist/specializations/catalyst/state.js';
-import type { ElementalistSkill, ElementalistRuntime } from '#gw2/professions/elementalist/types.js';
-
+import type { ElementalistRuntime, ElementalistSkill } from '#gw2/professions/elementalist/types.js';
 /** Sphere traits observe the deployment after its intrinsic start action and before ordinary packet emission. */
 export function applySphereStartTraits(
   context: ElementalistRuntime,
@@ -27,37 +27,51 @@ export function applySphereStartTraits(
     const spectacularSphereProfile = requireBalanceProfileFromContext(context, TRAIT.SPECTACULAR_SPHERE);
     const quickness = requireEffect(spectacularSphereProfile, 'boon', 'Quickness');
     if (quickness) {
-      emitElementalistBuff(context, {
-        at: cast.start,
-        source: skill.name,
-        sourceId: skill.id,
-        actorType: 'player',
-        skillName: skill.name,
-        kind: String(quickness.boon).toLowerCase(),
-        stacks: Number(quickness.stacks),
-        duration: quickness.duration * durationMultiplier,
-        audience: { recipients: 'party' as const, maximumRecipients: 5 }
-      });
+      context.effects.emit(
+        elementalistBuffRequest(
+          {
+            at: cast.start,
+            source: skill.name,
+            sourceId: skill.id,
+            actorType: 'player',
+            skillName: skill.name,
+            kind: String(quickness.boon).toLowerCase(),
+            stacks: Number(quickness.stacks),
+            duration: quickness.duration * durationMultiplier,
+            audience: { recipients: 'party' as const, maximumRecipients: 5 }
+          },
+          { activationId: cast.id, skillId: cast.skill.id, offTarget: cast.command.offTarget }
+        )
+      );
     }
 
     const profiledBoon = requireEffect(spectacularSphereProfile, 'boon', String(skill.attunement));
     if (profiledBoon) {
-      emitElementalistBuff(context, {
-        at: cast.start,
-        source: skill.name,
-        sourceId: skill.id,
-        actorType: 'player',
-        skillName: skill.name,
-        kind: String(profiledBoon.boon),
-        stacks: Number(profiledBoon.stacks),
-        duration: profiledBoon.duration * durationMultiplier,
-        audience: { recipients: 'party' as const, maximumRecipients: 5 }
-      });
+      context.effects.emit(
+        elementalistBuffRequest(
+          {
+            at: cast.start,
+            source: skill.name,
+            sourceId: skill.id,
+            actorType: 'player',
+            skillName: skill.name,
+            kind: String(profiledBoon.boon),
+            stacks: Number(profiledBoon.stacks),
+            duration: profiledBoon.duration * durationMultiplier,
+            audience: { recipients: 'party' as const, maximumRecipients: 5 }
+          },
+          { activationId: cast.id, skillId: cast.skill.id, offTarget: cast.command.offTarget }
+        )
+      );
     }
   }
 }
 
-export function applyEnergizedElements(context: ElementalistRuntime, event: SimulationEvent): boolean {
+export function applyEnergizedElements(
+  context: ElementalistRuntime,
+  event: SimulationEvent,
+  emissionCast?: EffectDelivery['cast']
+): boolean {
   // Energized Elements refunds energy and grants fury on every attunement swap.
   if (event.type === 'elementalist.attunement' && hasTrait(context, TRAIT.ENERGIZED_ELEMENTS)) {
     const state = catalystState.from(context);
@@ -70,31 +84,40 @@ export function applyEnergizedElements(context: ElementalistRuntime, event: Simu
     );
     const fury = requireEffect(energizedElementsProfile, 'boon', 'Fury');
     if (fury) {
-      emitElementalistBuff(context, {
-        skill: elementalistEventSkill(context, 'Energized Elements', event.sourceId),
-        at: event.at,
-        source: 'Energized Elements',
-        sourceId: event.sourceId,
-        actorType: 'player',
-        kind: String(fury.boon).toLowerCase(),
-        stacks: Number(fury.stacks),
-        duration: fury.duration,
-        skillName: 'Energized Elements'
-      });
+      context.effects.emit(
+        elementalistBuffRequest(
+          {
+            skill: elementalistEventSkill(context, 'Energized Elements', event.sourceId),
+            at: event.at,
+            source: 'Energized Elements',
+            sourceId: event.sourceId,
+            actorType: 'player',
+            kind: String(fury.boon).toLowerCase(),
+            stacks: Number(fury.stacks),
+            duration: fury.duration,
+            skillName: 'Energized Elements'
+          },
+          emissionCast
+        )
+      );
     }
 
     if (state.energy !== before) {
-      context.emitDerived(event, {
-        type: 'resource',
-        at: event.at,
-        source: 'Energized Elements',
-        sourceId: event.sourceId,
-        actorType: 'player',
-        skillName: 'Energized Elements',
-        kind: 'catalyst-energy',
-        value: state.energy,
-        maximum: balanceProfileNumber(requireBalanceProfileFromContext(context, PROFILE.resources), 'maximumStacks'),
-        change: state.energy - before
+      context.effects.emit({
+        kind: 'packet',
+        cause: event,
+        event: {
+          type: 'resource',
+          at: event.at,
+          source: 'Energized Elements',
+          sourceId: event.sourceId,
+          actorType: 'player',
+          skillName: 'Energized Elements',
+          kind: 'catalyst-energy',
+          value: state.energy,
+          maximum: balanceProfileNumber(requireBalanceProfileFromContext(context, PROFILE.resources), 'maximumStacks'),
+          change: state.energy - before
+        }
       });
     }
 

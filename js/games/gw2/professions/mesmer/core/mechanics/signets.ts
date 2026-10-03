@@ -1,3 +1,4 @@
+import { buildMesmerPacket, mesmerPacketOwner } from '#gw2/professions/mesmer/core/mechanics/packets.js';
 import { EPSILON } from '#kernel/core/clock.js';
 /** Owns Signet of Illusions passive scheduling and Core Mesmer signet mechanic callbacks. */
 import {
@@ -17,7 +18,7 @@ const SIGNET_ILLUSIONS_OWNER = 'mesmer.signet-illusions-passive';
 
 /** Applies active signet resets to the cooldown and ammo state shared by later casts. */
 export function applyMesmerSignetReset(state: MesmerRuntime, context: ActionContext<MesmerSkill>): void {
-  const { shatters, instruments, addEvent } = mesmerMechanicsFor(state);
+  const { shatters, instruments } = mesmerMechanicsFor(state);
   const phantasms = context.skill.id === ID.SIGNET_OF_THE_ETHER;
   const targets = state.helpers.skills.filter((candidate) =>
     phantasms
@@ -33,12 +34,20 @@ export function applyMesmerSignetReset(state: MesmerRuntime, context: ActionCont
       count: 1
     });
   applySideEffect(state, context, { type: 'rechargeReset', skillIds: targets.map((target) => target.id) });
-  addEvent({
-    type: 'marker',
-    at: state.time,
-    name: context.skill.name,
-    detail: phantasms ? 'Phantasm skill cooldowns reset' : 'Eligible shatter and instrument cooldowns reset'
-  });
+  {
+    const packet = buildMesmerPacket({
+      type: 'marker',
+      at: state.time,
+      name: context.skill.name,
+      detail: phantasms ? 'Phantasm skill cooldowns reset' : 'Eligible shatter and instrument cooldowns reset'
+    });
+    state.effects.emit({
+      kind: 'packet',
+      event: packet,
+      owner: mesmerPacketOwner(packet),
+      priority: Number(packet.priority ?? 0)
+    });
+  }
 }
 
 /**

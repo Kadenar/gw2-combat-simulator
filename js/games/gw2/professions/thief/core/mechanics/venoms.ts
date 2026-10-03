@@ -77,8 +77,10 @@ export function applyActiveVenoms(context: ThiefResolverContext, event: ThiefRes
     const effects = conditionEffects(profile);
     for (let effectIndex = 0; effectIndex < effects.length; effectIndex += 1) {
       const effect = effects[effectIndex];
-      context.applyCondition(
-        buildResolverCondition({
+      context.effects.emit({
+        kind: 'packet',
+        settlement: 'reaction',
+        event: buildResolverCondition({
           at: event.at,
           source: 'thief',
           sourceId: venom.skillId,
@@ -93,7 +95,7 @@ export function applyActiveVenoms(context: ThiefResolverContext, event: ThiefRes
           triggeredBy: event.skillName,
           metadata: { venomProcEffectIndex: effectIndex }
         })
-      );
+      });
     }
   }
 

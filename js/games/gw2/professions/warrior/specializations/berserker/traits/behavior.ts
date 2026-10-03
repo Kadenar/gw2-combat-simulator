@@ -9,7 +9,6 @@ import {
   requireEffect
 } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { buildResolverCondition, buildResolverStrike } from '#gw2/platform/resolver/packets.js';
-import { emitEffects } from '#gw2/platform/simulation/procedural-emission.js';
 import type { Gw2Runtime, RuntimeCast } from '#gw2/platform/simulation/runtime-state.js';
 import { convertBerserkPower } from '#gw2/professions/warrior/core/traits/behavior.js';
 import { WARRIOR_SKILL_IDS as ID, WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/professions/warrior/data/ids.js';
@@ -59,31 +58,6 @@ export function isBerserkerSkill(skill: WarriorSkill): boolean {
   return skill.primalBurst || skill.categories?.includes('Rage') || skill.specialization === 'Berserker';
 }
 
-export function traitBoons(runtime: Runtime, cast: RuntimeCast<WarriorSkill>, trait: number, party = false): void {
-  const profile = requireBalanceProfileFromContext(runtime, trait);
-  emitEffects(runtime, {
-    owner: profile,
-    effects: profile.effects?.filter((effect) => effect.type === 'boon'),
-    baseEvent: {
-      source: 'Trait',
-      sourceId: trait,
-      actorType: 'effect',
-      activationId: cast.id,
-      skillId: cast.skill.id,
-      skillName: cast.skill.name
-    },
-    transform: (event) => ({
-      ...event,
-      name: profile.name,
-      duration:
-        trait === TRAIT.HEAT_THE_SOUL && event.kind === 'quickness' && cast.skill.id === ID.DECAPITATE
-          ? balanceProfileNumber(requireBalanceProfileFromContext(runtime, TRAIT.SMASH_BRAWLER), 'resourceGain')
-          : event.duration,
-      audience: { recipients: party ? 'party' : 'self' }
-    })
-  });
-}
-
 export function armAura(runtime: Runtime, until: number): void {
   const state = berserkerState.from(runtime);
   state.fireAuraUntil = Math.max(state.fireAuraUntil, until);
@@ -109,34 +83,40 @@ export function detonate(runtime: Runtime, payload: { activationId: string; skil
     skillId: skill.id,
     skillName: skill.name
   };
-  runtime.emit({
-    ...fields,
-    type: 'proc',
-    procType: 'trait',
-    name: 'King of Fires',
-    sourceSkill: skill.name,
-    detail: 'Fire Aura detonated'
+  runtime.effects.emit({
+    kind: 'announcement',
+    log: true,
+    attribution: { ...fields },
+    announcement: {
+      name: 'King of Fires',
+      sourceSkill: skill.name,
+      detail: 'Fire Aura detonated',
+      type: 'trait',
+      at: fields.at
+    }
   });
   if (strike)
-    runtime.emit(
-      buildResolverStrike({
+    runtime.effects.emit({
+      kind: 'packet',
+      event: buildResolverStrike({
         ...fields,
         name: 'King of Fires — Fire Aura Detonation',
         coefficient: effectNumber(profile, strike, 'coefficient'),
         canTriggerCriticalTraits: true,
         skillWeapon: ''
       })
-    );
+    });
   if (burning) {
-    runtime.emit(
-      buildResolverCondition({
+    runtime.effects.emit({
+      kind: 'packet',
+      event: buildResolverCondition({
         ...fields,
         name: 'King of Fires — Burning',
         condition: 'Burning',
         stacks: effectNumber(profile, burning, 'stacks'),
         duration: effectNumber(profile, burning, 'duration')
       })
-    );
+    });
   }
 }
 
@@ -144,8 +124,51 @@ type Runtime = Gw2Runtime<WarriorRuntimeState, WarriorSkill>;
 
 /** Entry rewards retain their intrinsic and selected eligibility. */
 export function berserkEntryTraits(runtime: Runtime, cast: RuntimeCast<WarriorSkill>): void {
-  traitBoons(runtime, cast, TRAIT.BURST_OF_AGGRESSION);
-  if (hasTrait(runtime, TRAIT.BLOODY_ROAR)) traitBoons(runtime, cast, TRAIT.BLOODY_ROAR);
+  {
+    const profile = requireBalanceProfileFromContext(runtime, TRAIT.BURST_OF_AGGRESSION);
+    runtime.effects.emit({
+      kind: 'profile',
+      profile: profile,
+      effects: profile.effects?.filter((effect) => effect.type === 'boon'),
+      attribution: {
+        source: 'Trait',
+        sourceId: TRAIT.BURST_OF_AGGRESSION,
+        actorType: 'effect',
+        activationId: cast.id,
+        skillId: cast.skill.id,
+        skillName: cast.skill.name
+      },
+      transform: (event) => ({
+        ...event,
+        name: profile.name,
+        duration: event.duration,
+        audience: { recipients: 'self' }
+      })
+    });
+  }
+
+  if (hasTrait(runtime, TRAIT.BLOODY_ROAR)) {
+    const profile = requireBalanceProfileFromContext(runtime, TRAIT.BLOODY_ROAR);
+    runtime.effects.emit({
+      kind: 'profile',
+      profile: profile,
+      effects: profile.effects?.filter((effect) => effect.type === 'boon'),
+      attribution: {
+        source: 'Trait',
+        sourceId: TRAIT.BLOODY_ROAR,
+        actorType: 'effect',
+        activationId: cast.id,
+        skillId: cast.skill.id,
+        skillName: cast.skill.name
+      },
+      transform: (event) => ({
+        ...event,
+        name: profile.name,
+        duration: event.duration,
+        audience: { recipients: 'self' }
+      })
+    });
+  }
 }
 
 /** Return trait extension before the mode owner publishes its new deadline. */
@@ -170,8 +193,32 @@ export function berserkTraitExtension(runtime: Runtime, cast: RuntimeCast<Warrio
 
 /** Completion observes the updated mode before granting heat and scheduling aura detonation. */
 export function berserkerCompletionTraits(runtime: Runtime, cast: RuntimeCast<WarriorSkill>): void {
-  if (cast.skill.primalBurst && hasTrait(runtime, TRAIT.HEAT_THE_SOUL))
-    traitBoons(runtime, cast, TRAIT.HEAT_THE_SOUL, true);
+  if (cast.skill.primalBurst && hasTrait(runtime, TRAIT.HEAT_THE_SOUL)) {
+    const profile = requireBalanceProfileFromContext(runtime, TRAIT.HEAT_THE_SOUL);
+    runtime.effects.emit({
+      kind: 'profile',
+      profile: profile,
+      effects: profile.effects?.filter((effect) => effect.type === 'boon'),
+      attribution: {
+        source: 'Trait',
+        sourceId: TRAIT.HEAT_THE_SOUL,
+        actorType: 'effect',
+        activationId: cast.id,
+        skillId: cast.skill.id,
+        skillName: cast.skill.name
+      },
+      transform: (event) => ({
+        ...event,
+        name: profile.name,
+        duration:
+          event.kind === 'quickness' && cast.skill.id === ID.DECAPITATE
+            ? balanceProfileNumber(requireBalanceProfileFromContext(runtime, TRAIT.SMASH_BRAWLER), 'resourceGain')
+            : event.duration,
+        audience: { recipients: 'party' }
+      })
+    });
+  }
+
   if (isBerserkerSkill(cast.skill) && hasTrait(runtime, TRAIT.KING_OF_FIRES)) {
     berserkerState.from(runtime).completedActivations[cast.id] = runtime.time;
     runtime.schedule(DETONATE, runtime.time, { activationId: cast.id, skillId: cast.skill.id }, undefined, 5);

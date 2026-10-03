@@ -1,5 +1,6 @@
-import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
+import { buildMesmerPacket, mesmerPacketOwner } from '#gw2/professions/mesmer/core/mechanics/packets.js';
 import { expireSkillFlip } from '#gw2/platform/engine/skills/skill-flips.js';
+import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
 /** Resolves Inspiring Imagery's mutually exclusive boon expiry and offensive detonation. */
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import type { RuntimeCast } from '#gw2/platform/simulation/runtime-state.js';
@@ -15,24 +16,27 @@ export function detonateInspiringImagery(context: MesmerRuntime, cast: RuntimeCa
   );
   if (!field) return;
   context.combo.fields.set(field.fieldId, { ...field, expiresAt: cast.start });
-  context.emit({
-    activationId: cast.id,
-    type: 'combo_finisher',
-    at: cast.start,
-    effectAt: cast.start,
-    source: 'mesmer',
-    sourceId: ID.ABSTRACTION,
-    skillId: ID.ABSTRACTION,
-    skillName: 'Abstraction',
-    actorType: 'player',
-    attemptId: `${cast.id}:abstraction`,
-    finisherType: 'Blast',
-    fieldBinding: { kind: 'field-id', fieldId: field.fieldId },
-    // Abstraction consumes this exact field at the shared detonation timestamp.
-    allowFieldAtExpiry: true,
-    chance: 1,
-    applications: 1,
-    successfulCombos: 1
+  context.effects.emit({
+    kind: 'packet',
+    event: {
+      activationId: cast.id,
+      type: 'combo_finisher',
+      at: cast.start,
+      effectAt: cast.start,
+      source: 'mesmer',
+      sourceId: ID.ABSTRACTION,
+      skillId: ID.ABSTRACTION,
+      skillName: 'Abstraction',
+      actorType: 'player',
+      attemptId: `${cast.id}:abstraction`,
+      finisherType: 'Blast',
+      fieldBinding: { kind: 'field-id', fieldId: field.fieldId },
+      // Abstraction consumes this exact field at the shared detonation timestamp.
+      allowFieldAtExpiry: true,
+      chance: 1,
+      applications: 1,
+      successfulCombos: 1
+    }
   });
 }
 
@@ -40,8 +44,8 @@ export function detonateInspiringImagery(context: MesmerRuntime, cast: RuntimeCa
 export function expireInspiringImagery(context: MesmerRuntime, cast: RuntimeCast<MesmerSkill>): void {
   if (!expireSkillFlip(context.profession.core.availableFlips, ID.ABSTRACTION, context.time, cast.id)) return;
   for (const effect of cast.skill.effects ?? [])
-    if (effect.type === 'boon')
-      mesmerMechanicsFor(context).addEvent({
+    if (effect.type === 'boon') {
+      const packet = buildMesmerPacket({
         type: 'buff',
         at: context.time,
         activationId: cast.id,
@@ -53,4 +57,11 @@ export function expireInspiringImagery(context: MesmerRuntime, cast: RuntimeCast
         stacks: effect.stacks ?? 1,
         duration: effect.duration
       });
+      mesmerMechanicsFor(context).context.effects.emit({
+        kind: 'packet',
+        event: packet,
+        owner: mesmerPacketOwner(packet),
+        priority: Number(packet.priority ?? 0)
+      });
+    }
 }

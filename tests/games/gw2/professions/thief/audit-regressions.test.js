@@ -420,25 +420,31 @@ test('THF-008: endurance and readiness are invariant across Vigor expiry, extens
         { initialEndurance: initial, boons: { vigor: false } },
         {
           initialize(runtime) {
-            runtime.emit({
-              type: 'buff',
-              at: 0,
-              source: 'Test',
-              sourceId: 'test.vigor',
-              actorType: 'player',
-              kind: 'vigor',
-              boon: 'vigor',
-              duration: 4,
-              stacks: 1
+            runtime.effects.emit({
+              kind: 'packet',
+              event: {
+                type: 'buff',
+                at: 0,
+                source: 'Test',
+                sourceId: 'test.vigor',
+                actorType: 'player',
+                kind: 'vigor',
+                boon: 'vigor',
+                duration: 4,
+                stacks: 1
+              }
             });
-            runtime.emit({
-              type: 'boon_extension',
-              at: 2,
-              source: 'Test',
-              sourceId: 'test.extension',
-              actorType: 'player',
-              kind: 'vigor',
-              duration: 2
+            runtime.effects.emit({
+              kind: 'packet',
+              event: {
+                type: 'boon_extension',
+                at: 2,
+                source: 'Test',
+                sourceId: 'test.extension',
+                actorType: 'player',
+                kind: 'vigor',
+                duration: 2
+              }
             });
           },
           // Intermediate observations must not change the settled pool or its readiness. Readiness is read once the
@@ -580,17 +586,20 @@ test('THF-011: Heartseeker produces a smoke leap only inside a live field', () =
       {
         initialize(runtime) {
           if (expiresAt)
-            runtime.emit({
-              type: 'combo_field',
-              at: 0,
-              expiresAt,
-              source: 'Test',
-              sourceId: 'test.smoke',
-              actorType: 'effect',
-              fieldId: 'test.smoke',
-              fieldType: 'Smoke',
-              ownerId: 'thief',
-              ownerActorType: 'player'
+            runtime.effects.emit({
+              kind: 'packet',
+              event: {
+                type: 'combo_field',
+                at: 0,
+                expiresAt,
+                source: 'Test',
+                sourceId: 'test.smoke',
+                actorType: 'effect',
+                fieldId: 'test.smoke',
+                fieldType: 'Smoke',
+                ownerId: 'thief',
+                ownerActorType: 'player'
+              }
             });
         }
       }

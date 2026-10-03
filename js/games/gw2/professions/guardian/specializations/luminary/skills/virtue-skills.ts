@@ -65,14 +65,17 @@ export const luminaryVirtueActions: RuntimeProfession<GuardianRuntimeState, Guar
   'guardian.arm-radiant-justice'(runtime, context) {
     if (context.kind !== 'cast') return;
     luminaryState.from(runtime).radiantJusticeArmed = true;
-    runtime.recordProc(
-      'skill',
-      'Empowered Hammer',
-      runtime.time,
-      context.skill.name,
-      'Next Dazzling Hammer creates a delayed secondary impact',
-      context.skill.icon
-    );
+    runtime.effects.emit({
+      kind: 'announcement',
+      announcement: {
+        type: 'skill',
+        name: 'Empowered Hammer',
+        at: runtime.time,
+        sourceSkill: context.skill.name,
+        detail: 'Next Dazzling Hammer creates a delayed secondary impact',
+        icon: context.skill.icon
+      }
+    });
   },
   'guardian.arm-radiant-resolve'(runtime) {
     luminaryState.from(runtime).radiantResolveArmed = true;
@@ -80,13 +83,16 @@ export const luminaryVirtueActions: RuntimeProfession<GuardianRuntimeState, Guar
   'guardian.arm-radiant-courage'(runtime, context) {
     if (context.kind !== 'cast') return;
     luminaryState.from(runtime).radiantCourageSwordArmed = true;
-    runtime.recordProc(
-      'skill',
-      'Empowered Sword',
-      runtime.time,
-      context.skill.name,
-      'Next Gleaming Blade deals 50% more damage',
-      context.skill.icon
-    );
+    runtime.effects.emit({
+      kind: 'announcement',
+      announcement: {
+        type: 'skill',
+        name: 'Empowered Sword',
+        at: runtime.time,
+        sourceSkill: context.skill.name,
+        detail: 'Next Gleaming Blade deals 50% more damage',
+        icon: context.skill.icon
+      }
+    });
   }
 };

@@ -209,8 +209,9 @@ function handlePrimeLightBeamField(context: EngineerResolverContext, event: Holo
   for (let pulse = 0; pulse < packets; pulse += 1) {
     const at = event.at + pulse * interval;
     if (strike) {
-      context.queue.enqueue(
-        buildResolverStrike({
+      context.effects.emit({
+        kind: 'packet',
+        event: buildResolverStrike({
           at,
           name: 'Field Damage',
           skillName: event.skillName,
@@ -226,12 +227,13 @@ function handlePrimeLightBeamField(context: EngineerResolverContext, event: Holo
           damageKind: 'explosion',
           holosmithStrikeFactor: strikeFactor
         })
-      );
+      });
     }
 
     if (condition) {
-      context.queue.enqueue(
-        buildResolverCondition({
+      context.effects.emit({
+        kind: 'packet',
+        event: buildResolverCondition({
           at,
           name: `${event.skillName} — Burning`,
           skillName: event.skillName,
@@ -246,7 +248,7 @@ function handlePrimeLightBeamField(context: EngineerResolverContext, event: Holo
           skillId: event.skillId,
           holosmithConditionBaseDurationFactor: conditionBaseDurationFactor
         })
-      );
+      });
     }
   }
 }
@@ -269,8 +271,9 @@ function handleLaserDisk(context: EngineerResolverContext, event: HolosmithResol
   for (let pulse = 0; pulse < pulses; pulse += 1) {
     const at = event.at + (pulse + 1) * interval;
     if (strike) {
-      context.queue.enqueue(
-        buildResolverStrike({
+      context.effects.emit({
+        kind: 'packet',
+        event: buildResolverStrike({
           at,
           name: 'Laser Disk',
           skillName: event.skillName,
@@ -285,12 +288,13 @@ function handleLaserDisk(context: EngineerResolverContext, event: HolosmithResol
           skillWeapon: 'Utility',
           holosmithStrikeFactor: strikeFactor
         })
-      );
+      });
     }
 
     if (condition) {
-      context.queue.enqueue(
-        buildResolverCondition({
+      context.effects.emit({
+        kind: 'packet',
+        event: buildResolverCondition({
           at,
           name: `${event.skillName} - Bleeding`,
           skillName: event.skillName,
@@ -304,7 +308,7 @@ function handleLaserDisk(context: EngineerResolverContext, event: HolosmithResol
           actorType: 'player',
           skillId: event.skillId
         })
-      );
+      });
     }
   }
 }
@@ -326,8 +330,9 @@ function handleLaunchWall(context: EngineerResolverContext, event: HolosmithReso
   // Every wall lands together and owns one explosion plus one vulnerability application.
   for (let wall = 0; wall < walls; wall += 1) {
     if (strike) {
-      context.queue.enqueue(
-        buildResolverStrike({
+      context.effects.emit({
+        kind: 'packet',
+        event: buildResolverStrike({
           at,
           name: 'Launch Wall',
           skillName: event.skillName,
@@ -343,12 +348,13 @@ function handleLaunchWall(context: EngineerResolverContext, event: HolosmithReso
           damageKind: 'explosion',
           holosmithStrikeFactor: strikeFactor
         })
-      );
+      });
     }
 
     if (condition) {
-      context.queue.enqueue(
-        buildResolverCondition({
+      context.effects.emit({
+        kind: 'packet',
+        event: buildResolverCondition({
           at,
           name: `${event.skillName} - Vulnerability`,
           skillName: event.skillName,
@@ -362,7 +368,7 @@ function handleLaunchWall(context: EngineerResolverContext, event: HolosmithReso
           actorType: 'player',
           skillId: event.skillId
         })
-      );
+      });
     }
   }
 }

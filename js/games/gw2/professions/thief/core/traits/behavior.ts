@@ -14,10 +14,9 @@ import {
 } from '#gw2/platform/engine/skills/balance-profiles.js';
 import type { Skill } from '#gw2/platform/engine/skills/types.js';
 import { isFlatLifeStealPacket } from '#gw2/platform/resolver/packets.js';
-import { emitEffects } from '#gw2/platform/simulation/procedural-emission.js';
 import type { RuntimeCast } from '#gw2/platform/simulation/runtime-state.js';
 import type { ThiefRuntime } from '#gw2/professions/thief/core/events.js';
-import { emitThiefBuff, emitThiefCondition } from '#gw2/professions/thief/core/events.js';
+import { buildThiefBuff, buildThiefCondition } from '#gw2/professions/thief/core/events.js';
 import {
   grantThiefEndurance,
   grantThiefInitiative,
@@ -31,14 +30,17 @@ import type { ThiefResolverContext, ThiefResolverEvent, ThiefSkill } from '#gw2/
 /** Applies Cloaked in Shadow at its established mechanical boundary. */
 export function enterCloakedInShadow(runtime: ThiefRuntime, skill: ThiefSkill, at: number): void {
   if (hasTrait(runtime, TRAIT.CLOAKED_IN_SHADOW))
-    emitThiefCondition(runtime, skill, {
-      at,
-      source: 'Trait',
-      sourceId: TRAIT.CLOAKED_IN_SHADOW,
-      name: 'Cloaked in Shadow — Blindness',
-      condition: 'Blindness',
-      stacks: 1,
-      duration: 5
+    runtime.effects.emit({
+      kind: 'packet',
+      event: buildThiefCondition(skill, {
+        at,
+        source: 'Trait',
+        sourceId: TRAIT.CLOAKED_IN_SHADOW,
+        name: 'Cloaked in Shadow — Blindness',
+        condition: 'Blindness',
+        stacks: 1,
+        duration: 5
+      })
     });
 }
 
@@ -106,14 +108,17 @@ export function applyLeadAttacks(runtime: ThiefRuntime, cast: RuntimeCast<ThiefS
     maximumStacks,
     retain: 'newest-grant'
   });
-  emitThiefBuff(runtime, skill, {
-    at: runtime.time,
-    source: 'Trait',
-    sourceId: TRAIT.LEAD_ATTACKS,
-    activationId: cast.id,
-    kind: 'lead-attacks',
-    duration,
-    stacks: Math.min(cost, maximumStacks)
+  runtime.effects.emit({
+    kind: 'packet',
+    event: buildThiefBuff(skill, {
+      at: runtime.time,
+      source: 'Trait',
+      sourceId: TRAIT.LEAD_ATTACKS,
+      activationId: cast.id,
+      kind: 'lead-attacks',
+      duration,
+      stacks: Math.min(cost, maximumStacks)
+    })
   });
 }
 
@@ -199,15 +204,18 @@ export function completeThiefStealthAttack(runtime: ThiefRuntime, cast: RuntimeC
   const vulnerability = requireEffect(profile, 'condition', 'Vulnerability');
   // Explicit removal suppresses this packet without restoring baseline tuning.
   if (!vulnerability) return;
-  emitThiefCondition(runtime, cast.skill, {
-    at: runtime.time,
-    source: 'Trait',
-    sourceId: TRAIT.SUNDERING_SHADE,
-    activationId: cast.id,
-    name: 'Sundering Shade — Vulnerability',
-    condition: String(vulnerability.condition),
-    duration: effectNumber(profile, vulnerability, 'duration'),
-    stacks: effectNumber(profile, vulnerability, 'stacks')
+  runtime.effects.emit({
+    kind: 'packet',
+    event: buildThiefCondition(cast.skill, {
+      at: runtime.time,
+      source: 'Trait',
+      sourceId: TRAIT.SUNDERING_SHADE,
+      activationId: cast.id,
+      name: 'Sundering Shade — Vulnerability',
+      condition: String(vulnerability.condition),
+      duration: effectNumber(profile, vulnerability, 'duration'),
+      stacks: effectNumber(profile, vulnerability, 'stacks')
+    })
   });
 }
 
@@ -217,12 +225,13 @@ export function startThiefDodge(runtime: ThiefRuntime, cast: RuntimeCast<ThiefSk
   // Each condition's authored timing is authoritative; removing one component leaves its sibling's pulses intact.
   const profile = requireBalanceProfileFromContext(runtime, TRAIT.UNCATCHABLE);
   const caltrops = runtime.helpers.skillsById.get(ID.LESSER_CALTROPS);
-  emitEffects(runtime, {
-    owner: profile,
+  runtime.effects.emit({
+    kind: 'profile',
+    profile: profile,
     effects: profile.effects?.filter(
       (effect) => effect.type === 'condition' && ['Bleeding', 'Crippled'].includes(String(effect.name))
     ),
-    baseEvent: {
+    attribution: {
       source: 'Trait',
       sourceId: TRAIT.UNCATCHABLE,
       actorType: 'player',

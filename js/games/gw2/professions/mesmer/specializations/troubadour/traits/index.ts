@@ -48,7 +48,12 @@ export const mayhem = defineTrait<MesmerSkill>({
           balanceProfileNumber(requireBalanceProfileFromContext(runtime, TRAIT.MAYHEM), 'rechargeReduction'),
           runtime.time
         );
-        mechanics.addTraitProc('Mayhem', runtime.time, cast.skill.name);
+        mechanics.context.effects.emit({
+          kind: 'announcement',
+          log: true,
+          attribution: { source: 'Trait', sourceId: TRAIT.MAYHEM, actorType: 'effect' },
+          announcement: { type: 'trait', name: 'Mayhem', at: runtime.time, sourceSkill: cast.skill.name, detail: '' }
+        });
       }
     }
   }

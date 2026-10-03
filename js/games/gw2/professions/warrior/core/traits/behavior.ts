@@ -10,24 +10,23 @@ import {
   requireEffect
 } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { gw2ConfiguredWeaponSet } from '#gw2/platform/equipment/weapons/loadout.js';
-import { queueResolverBoon } from '#gw2/platform/resolver/boons.js';
 import { buildResolverBuff } from '#gw2/platform/resolver/packets.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import type { Gw2Runtime, RuntimeCast } from '#gw2/platform/simulation/runtime-state.js';
 import { grantWarriorAdrenaline } from '#gw2/professions/warrior/core/mechanics/adrenaline.js';
-import { traitEffects, castTraitBuff, triggerTraitBuffs } from '#gw2/professions/warrior/core/mechanics/emission.js';
+
+import type { Gw2MutableStats } from '#gw2/platform/combat/types.js';
+import { scaleCastBoundTiming } from '#gw2/platform/engine/effects/materializer.js';
+import type { Gw2HitResolutionContext } from '#gw2/platform/resolver/hit-resolution.js';
+import type { WarriorModifierAttributes } from '#gw2/professions/warrior/core/traits/modifier-queries.js';
 import {
   warriorActiveBuffStacks,
   warriorBoonActive,
   warriorWieldingWeapon
 } from '#gw2/professions/warrior/core/traits/modifier-queries.js';
-import type { WarriorModifierAttributes } from '#gw2/professions/warrior/core/traits/modifier-queries.js';
 import { WARRIOR_SKILL_IDS as ID, WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/professions/warrior/data/ids.js';
-import type { WarriorRuntimeState, WarriorResolverContext, WarriorSkill } from '#gw2/professions/warrior/types.js';
-import type { Gw2MutableStats } from '#gw2/platform/combat/types.js';
-import { scaleCastBoundTiming } from '#gw2/platform/engine/effects/materializer.js';
+import type { WarriorResolverContext, WarriorRuntimeState, WarriorSkill } from '#gw2/professions/warrior/types.js';
 import { canonicalTime } from '#kernel/core/clock.js';
-import type { Gw2HitResolutionContext } from '#gw2/platform/resolver/hit-resolution.js';
 
 // Trigger Lesser Signet of Might after the first eligible below-half-health strike at that strike's exact timestamp.
 export function reactToWarriorDamage(
@@ -48,10 +47,10 @@ export function reactToWarriorDamage(
   if (!context.procs.claim(TRAIT.SIGNET_MASTERY)) return;
   for (const effect of signetMastery.effects || []) {
     const kind = String(effect.boon || effect.kind || '');
-    queueResolverBoon(
-      context,
-      event,
-      buildResolverBuff({
+    context.effects.emit({
+      kind: 'packet',
+      durationContext: event,
+      event: buildResolverBuff({
         at: event.at,
         priority: 5,
         source: 'Trait',
@@ -63,17 +62,20 @@ export function reactToWarriorDamage(
         stacks: effectNumber(signetMastery, effect, 'stacks'),
         duration: effectNumber(signetMastery, effect, 'duration')
       })
-    );
+    });
   }
 
-  context.recordProc(
-    'trait',
-    'Lesser Signet of Might',
-    event.at,
-    event.skillName,
-    '10 might; Signet Mastery stack',
-    context.helpers.skillsById.get(ID.SIGNET_OF_MIGHT)?.icon || ''
-  );
+  context.effects.emit({
+    kind: 'announcement',
+    announcement: {
+      type: 'trait',
+      name: 'Lesser Signet of Might',
+      at: event.at,
+      sourceSkill: event.skillName,
+      detail: '10 might; Signet Mastery stack',
+      icon: context.helpers.skillsById.get(ID.SIGNET_OF_MIGHT)?.icon || ''
+    }
+  });
 }
 
 // Resolve Arms-owned attributes, including live signet state and critical-proc stacks.
@@ -126,7 +128,23 @@ export function triggerOpportunist(runtime: WarriorRuntime, event: Gw2ResolverEv
     runtime,
     balanceProfileNumber(requireBalanceProfileFromContext(runtime, TRAIT.OPPORTUNIST), 'resourceGain')
   );
-  traitEffects(runtime, event, TRAIT.OPPORTUNIST);
+  {
+    const traitProfile = requireBalanceProfileFromContext(runtime, TRAIT.OPPORTUNIST);
+    runtime.effects.emit({
+      kind: 'profile',
+      profile: traitProfile,
+      effects: traitProfile.effects?.filter((effect) => ['boon', 'buff', 'condition'].includes(effect.type)),
+      attribution: {
+        source: 'Trait',
+        sourceId: TRAIT.OPPORTUNIST,
+        actorType: 'effect',
+        skillId: event.skillId,
+        skillName: event.skillName
+      },
+      cause: event,
+      transform: (packet) => ({ ...packet, priority: 5, name: traitProfile.name, stacks: 1 * Number(packet.stacks) })
+    });
+  }
 }
 
 type WarriorRuntime = Gw2Runtime<WarriorRuntimeState, WarriorSkill>;
@@ -144,16 +162,20 @@ export function burstPrecisionHit(runtime: WarriorRuntime, event: Gw2ResolverEve
   };
   if (hasTrait(runtime, TRAIT.BURST_PRECISION)) {
     const profile = requireBalanceProfileFromContext(runtime, TRAIT.BURST_PRECISION);
-    runtime.emitDerived(event, {
-      ...attribution,
-      sourceId: TRAIT.BURST_PRECISION,
-      type: 'buff',
-      name: 'Burst Precision',
-      kind: 'burst-precision',
-      duration: balanceProfileNumber(
-        profile,
-        Number(event.metadata?.warriorAdrenalineSpent) >= 30 ? 'maximumStacks' : 'minimumStacks'
-      )
+    runtime.effects.emit({
+      kind: 'packet',
+      cause: event,
+      event: {
+        ...attribution,
+        sourceId: TRAIT.BURST_PRECISION,
+        type: 'buff',
+        name: 'Burst Precision',
+        kind: 'burst-precision',
+        duration: balanceProfileNumber(
+          profile,
+          Number(event.metadata?.warriorAdrenalineSpent) >= 30 ? 'maximumStacks' : 'minimumStacks'
+        )
+      }
     });
   }
 }
@@ -177,20 +199,31 @@ export function armsCriticalRewards(
     if (proc) {
       const profile = requireBalanceProfileFromContext(runtime, TRAIT.BLOODLUST);
       const bleeding = requireEffect(profile, 'condition', 'Bleeding');
-      if (bleeding)
-        traitEffects(
-          runtime,
-          event,
-          TRAIT.BLOODLUST,
-          {
+      if (bleeding) {
+        const traitProfile = requireBalanceProfileFromContext(runtime, TRAIT.BLOODLUST);
+        runtime.effects.emit({
+          kind: 'profile',
+          profile: traitProfile,
+          effects: [bleeding],
+          attribution: {
+            source: 'Trait',
+            sourceId: TRAIT.BLOODLUST,
+            actorType: 'effect',
+            skillId: event.skillId,
+            skillName: event.skillName
+          },
+          cause: event,
+          transform: (packet) => ({
+            ...packet,
+            priority: 5,
+            stacks: proc.quantity * Number(packet.stacks),
             name: 'Bloodlust \u2014 Bleeding',
             skillName: 'Bloodlust',
             triggeredBy: event.skillName,
             metadata: { procCount: proc.quantity }
-          },
-          proc.quantity,
-          [bleeding]
-        );
+          })
+        });
+      }
     }
   }
 
@@ -199,14 +232,55 @@ export function armsCriticalRewards(
       runtime,
       criticals * balanceProfileNumber(requireBalanceProfileFromContext(runtime, TRAIT.FURIOUS), 'resourceGain')
     );
-    traitEffects(runtime, event, TRAIT.FURIOUS, {}, criticals);
+    {
+      const traitProfile = requireBalanceProfileFromContext(runtime, TRAIT.FURIOUS);
+      runtime.effects.emit({
+        kind: 'profile',
+        profile: traitProfile,
+        effects: traitProfile.effects?.filter((effect) => ['boon', 'buff', 'condition'].includes(effect.type)),
+        attribution: {
+          source: 'Trait',
+          sourceId: TRAIT.FURIOUS,
+          actorType: 'effect',
+          skillId: event.skillId,
+          skillName: event.skillName
+        },
+        cause: event,
+        transform: (packet) => ({
+          ...packet,
+          priority: 5,
+          name: traitProfile.name,
+          stacks: criticals * Number(packet.stacks)
+        })
+      });
+    }
   }
 
   if (firstBurst && claimTrait(runtime, TRAIT.SUNDERING_BURST)) {
     const profile = requireBalanceProfileFromContext(runtime, TRAIT.SUNDERING_BURST);
     const effect = requireEffect(profile, 'condition', criticals > 0 ? 'Critical burst' : 'Burst');
-    if (effect)
-      traitEffects(runtime, event, TRAIT.SUNDERING_BURST, { name: 'Sundering Burst — Vulnerability' }, 1, [effect]);
+    if (effect) {
+      const traitProfile = requireBalanceProfileFromContext(runtime, TRAIT.SUNDERING_BURST);
+      runtime.effects.emit({
+        kind: 'profile',
+        profile: traitProfile,
+        effects: [effect],
+        attribution: {
+          source: 'Trait',
+          sourceId: TRAIT.SUNDERING_BURST,
+          actorType: 'effect',
+          skillId: event.skillId,
+          skillName: event.skillName
+        },
+        cause: event,
+        transform: (packet) => ({
+          ...packet,
+          priority: 5,
+          stacks: 1 * Number(packet.stacks),
+          name: 'Sundering Burst — Vulnerability'
+        })
+      });
+    }
   }
 }
 
@@ -221,8 +295,23 @@ export function mercilessHammerControl(runtime: WarriorRuntime): void {
 
 /** Apply line-owned rewards at the shared reaction boundary. */
 export function cullTheWeakBurst(runtime: WarriorRuntime, event: Gw2ResolverEvent): void {
-  if (hasTrait(runtime, TRAIT.CULL_THE_WEAK) && runtime.procs.claim(TRAIT.CULL_THE_WEAK))
-    traitEffects(runtime, event, TRAIT.CULL_THE_WEAK);
+  if (hasTrait(runtime, TRAIT.CULL_THE_WEAK) && runtime.procs.claim(TRAIT.CULL_THE_WEAK)) {
+    const traitProfile = requireBalanceProfileFromContext(runtime, TRAIT.CULL_THE_WEAK);
+    runtime.effects.emit({
+      kind: 'profile',
+      profile: traitProfile,
+      effects: traitProfile.effects?.filter((effect) => ['boon', 'buff', 'condition'].includes(effect.type)),
+      attribution: {
+        source: 'Trait',
+        sourceId: TRAIT.CULL_THE_WEAK,
+        actorType: 'effect',
+        skillId: event.skillId,
+        skillName: event.skillName
+      },
+      cause: event,
+      transform: (packet) => ({ ...packet, priority: 5, name: traitProfile.name, stacks: 1 * Number(packet.stacks) })
+    });
+  }
 }
 
 /**
@@ -239,10 +328,36 @@ export function triggerHeightenedFocus(runtime: WarriorRuntime, event: Gw2Resolv
     !runtime.procs.claim(TRAIT.HEIGHTENED_FOCUS)
   )
     return;
-  traitEffects(runtime, event, TRAIT.HEIGHTENED_FOCUS);
+  {
+    const traitProfile = requireBalanceProfileFromContext(runtime, TRAIT.HEIGHTENED_FOCUS);
+    runtime.effects.emit({
+      kind: 'profile',
+      profile: traitProfile,
+      effects: traitProfile.effects?.filter((effect) => ['boon', 'buff', 'condition'].includes(effect.type)),
+      attribution: {
+        source: 'Trait',
+        sourceId: TRAIT.HEIGHTENED_FOCUS,
+        actorType: 'effect',
+        skillId: event.skillId,
+        skillName: event.skillName
+      },
+      cause: event,
+      transform: (packet) => ({ ...packet, priority: 5, name: traitProfile.name, stacks: 1 * Number(packet.stacks) })
+    });
+  }
+
   // The live catalog defines which skills are bursts, including elite primal bursts and chants.
   for (const skill of runtime.helpers.skills) if (skill.burst) runtime.cooldownController.clear(skill.id);
-  runtime.recordProc('trait', 'Heightened Focus', event.at, event.skillName, 'quickness; Burst skills recharged');
+  runtime.effects.emit({
+    kind: 'announcement',
+    announcement: {
+      type: 'trait',
+      name: 'Heightened Focus',
+      at: event.at,
+      sourceSkill: event.skillName,
+      detail: 'quickness; Burst skills recharged'
+    }
+  });
 }
 
 /**
@@ -292,17 +407,26 @@ export function burstMasteryCommit(runtime: WarriorRuntime, cast: RuntimeCast<Wa
       spent * balanceProfileNumber(requireBalanceProfileFromContext(runtime, TRAIT.BURST_MASTERY), 'resourceGain')
     );
     // The refund is live now; Swiftness resolves after same-time burst damage, preserving reward ordering.
-    castTraitBuff(
-      runtime,
-      cast,
-      TRAIT.BURST_MASTERY,
-      TRAIT.BURST_MASTERY,
-      'Burst Mastery — Swiftness',
-      'swiftness',
-      'boon',
-      runtime.time,
-      5
-    );
+    {
+      const traitProfile = requireBalanceProfileFromContext(runtime, TRAIT.BURST_MASTERY);
+      const selectedEffect = requireEffect(traitProfile, 'boon', 'swiftness');
+      if (selectedEffect)
+        runtime.effects.emit({
+          kind: 'profile',
+          profile: traitProfile,
+          effects: [selectedEffect],
+          at: runtime.time,
+          attribution: {
+            source: 'Trait',
+            sourceId: TRAIT.BURST_MASTERY,
+            actorType: 'effect',
+            skillId: cast.skill.id,
+            skillName: cast.skill.name,
+            activationId: cast.id
+          },
+          transform: (event) => ({ ...event, name: 'Burst Mastery — Swiftness', priority: 5 })
+        });
+    }
   }
 }
 
@@ -321,13 +445,40 @@ export function burstMasteryDragonSlash(
           'resourceGain'
         )
     );
-    triggerTraitBuffs(runtime, cast, TRAIT.BURST_MASTERY, undefined, 5);
+    {
+      if (hasTrait(runtime, TRAIT.BURST_MASTERY)) {
+        const traitProfile = requireBalanceProfileFromContext(runtime, TRAIT.BURST_MASTERY);
+        runtime.effects.emit({
+          kind: 'profile',
+          profile: traitProfile,
+          effects: traitProfile.effects?.filter((effect) => effect.type === 'boon' || effect.type === 'buff'),
+          attribution: {
+            source: 'Trait',
+            sourceId: TRAIT.BURST_MASTERY,
+            actorType: 'effect',
+            skillId: cast.skill.id,
+            skillName: cast.skill.name,
+            activationId: cast.id
+          },
+          transform: (event) => ({ ...event, name: traitProfile.name, stacks: event.stacks, priority: 5 })
+        });
+      }
+    }
   }
 }
 
 export function reactToWarriorBuff(context: WarriorResolverContext, event: Gw2ResolverEvent): void {
   if (Number(event.sourceId) !== TRAIT.PEAK_PERFORMANCE || event.kind !== 'peak-performance') return;
-  context.recordProc('trait', 'Peak Performance', event.at, event.skillName, '+10% strike damage for 6 seconds');
+  context.effects.emit({
+    kind: 'announcement',
+    announcement: {
+      type: 'trait',
+      name: 'Peak Performance',
+      at: event.at,
+      sourceSkill: event.skillName,
+      detail: '+10% strike damage for 6 seconds'
+    }
+  });
 }
 
 // Resolve Strength-owned attributes without hiding their formulas in the cross-line composer.
@@ -373,16 +524,26 @@ export function startTraits(runtime: WarriorRuntime, cast: RuntimeCast<WarriorSk
     at = Math.min(at, cast.start + offsetMs / 1000);
   }
 
-  castTraitBuff(
-    runtime,
-    cast,
-    TRAIT.PEAK_PERFORMANCE,
-    TRAIT.PEAK_PERFORMANCE,
-    'Peak Performance',
-    'peak-performance',
-    'buff',
-    at
-  );
+  {
+    const traitProfile = requireBalanceProfileFromContext(runtime, TRAIT.PEAK_PERFORMANCE);
+    const selectedEffect = requireEffect(traitProfile, 'buff', 'peak-performance');
+    if (selectedEffect)
+      runtime.effects.emit({
+        kind: 'profile',
+        profile: traitProfile,
+        effects: [selectedEffect],
+        at: at,
+        attribution: {
+          source: 'Trait',
+          sourceId: TRAIT.PEAK_PERFORMANCE,
+          actorType: 'effect',
+          skillId: cast.skill.id,
+          skillName: cast.skill.name,
+          activationId: cast.id
+        },
+        transform: (event) => ({ ...event, name: 'Peak Performance', priority: 0 })
+      });
+  }
 }
 
 export function completeTraits(runtime: WarriorRuntime, cast: RuntimeCast<WarriorSkill>): void {
@@ -392,7 +553,26 @@ export function completeTraits(runtime: WarriorRuntime, cast: RuntimeCast<Warrio
       runtime,
       balanceProfileNumber(requireBalanceProfileFromContext(runtime, TRAIT.BRAVE_STRIDE), 'resourceGain')
     );
-    castTraitBuff(runtime, cast, TRAIT.BRAVE_STRIDE, TRAIT.BRAVE_STRIDE, 'Brave Stride', 'stability', 'boon');
+    {
+      const traitProfile = requireBalanceProfileFromContext(runtime, TRAIT.BRAVE_STRIDE);
+      const selectedEffect = requireEffect(traitProfile, 'boon', 'stability');
+      if (selectedEffect)
+        runtime.effects.emit({
+          kind: 'profile',
+          profile: traitProfile,
+          effects: [selectedEffect],
+          at: runtime.time,
+          attribution: {
+            source: 'Trait',
+            sourceId: TRAIT.BRAVE_STRIDE,
+            actorType: 'effect',
+            skillId: cast.skill.id,
+            skillName: cast.skill.name,
+            activationId: cast.id
+          },
+          transform: (event) => ({ ...event, name: 'Brave Stride', priority: 0 })
+        });
+    }
   }
 }
 
@@ -410,8 +590,28 @@ export function berserkersPowerBurst(runtime: WarriorRuntime, event: Gw2Resolver
     !skill.dragonSlash &&
     hasTrait(runtime, TRAIT.BERSERKERS_POWER) &&
     Number(event.metadata?.warriorAdrenalineSpent) > 0
-  )
-    traitEffects(runtime, event, TRAIT.BERSERKERS_POWER, { stacks: Number(event.metadata?.warriorBurstTier) + 1 });
+  ) {
+    const traitProfile = requireBalanceProfileFromContext(runtime, TRAIT.BERSERKERS_POWER);
+    runtime.effects.emit({
+      kind: 'profile',
+      profile: traitProfile,
+      effects: traitProfile.effects?.filter((effect) => ['boon', 'buff', 'condition'].includes(effect.type)),
+      attribution: {
+        source: 'Trait',
+        sourceId: TRAIT.BERSERKERS_POWER,
+        actorType: 'effect',
+        skillId: event.skillId,
+        skillName: event.skillName
+      },
+      cause: event,
+      transform: (packet) => ({
+        ...packet,
+        priority: 5,
+        name: traitProfile.name,
+        stacks: Number(event.metadata?.warriorBurstTier) + 1
+      })
+    });
+  }
 }
 
 /** Apply line-owned rewards at the shared reaction boundary. */
@@ -433,7 +633,28 @@ export function forcefulGreatswordCritical(
       randomStream: 'warrior.forceful-greatsword',
       roll: (chance, stream) => runtime.random.roll(chance, stream)
     });
-    if (proc) traitEffects(runtime, event, TRAIT.FORCEFUL_GREATSWORD, {}, proc.quantity);
+    if (proc) {
+      const traitProfile = requireBalanceProfileFromContext(runtime, TRAIT.FORCEFUL_GREATSWORD);
+      runtime.effects.emit({
+        kind: 'profile',
+        profile: traitProfile,
+        effects: traitProfile.effects?.filter((effect) => ['boon', 'buff', 'condition'].includes(effect.type)),
+        attribution: {
+          source: 'Trait',
+          sourceId: TRAIT.FORCEFUL_GREATSWORD,
+          actorType: 'effect',
+          skillId: event.skillId,
+          skillName: event.skillName
+        },
+        cause: event,
+        transform: (packet) => ({
+          ...packet,
+          priority: 5,
+          name: traitProfile.name,
+          stacks: proc.quantity * Number(packet.stacks)
+        })
+      });
+    }
   }
 }
 
@@ -457,7 +678,25 @@ export function berserkersPowerDragonSlash(
   cast: RuntimeCast<WarriorSkill>,
   adrenalineSpent: number
 ): void {
-  triggerTraitBuffs(runtime, cast, TRAIT.BERSERKERS_POWER, adrenalineSpent / 10 + 1, 5);
+  {
+    if (hasTrait(runtime, TRAIT.BERSERKERS_POWER)) {
+      const traitProfile = requireBalanceProfileFromContext(runtime, TRAIT.BERSERKERS_POWER);
+      runtime.effects.emit({
+        kind: 'profile',
+        profile: traitProfile,
+        effects: traitProfile.effects?.filter((effect) => effect.type === 'boon' || effect.type === 'buff'),
+        attribution: {
+          source: 'Trait',
+          sourceId: TRAIT.BERSERKERS_POWER,
+          actorType: 'effect',
+          skillId: cast.skill.id,
+          skillName: cast.skill.name,
+          activationId: cast.id
+        },
+        transform: (event) => ({ ...event, name: traitProfile.name, stacks: adrenalineSpent / 10 + 1, priority: 5 })
+      });
+    }
+  }
 }
 
 export const EMPOWER_PULSE = 'warrior.empower-allies-pulse';
@@ -479,14 +718,24 @@ export function empowerPulse(runtime: WarriorRuntime): void {
   const interval = balanceProfileNumber(profile, 'pulseInterval');
   const might = requireEffect(profile, 'boon', 'might');
   if (!hasTrait(runtime, TRAIT.EMPOWER_ALLIES) || interval <= 0 || !might) return;
-  traitEffects(
-    runtime,
-    { type: 'buff', at: runtime.time, source: 'Trait', sourceId: TRAIT.EMPOWER_ALLIES, actorType: 'effect' },
-    TRAIT.EMPOWER_ALLIES,
-    { priority: 0, audience: { recipients: 'party' } },
-    1,
-    [might]
-  );
+  {
+    const traitProfile = requireBalanceProfileFromContext(runtime, TRAIT.EMPOWER_ALLIES);
+    runtime.effects.emit({
+      kind: 'profile',
+      profile: traitProfile,
+      effects: [might],
+      attribution: { source: 'Trait', sourceId: TRAIT.EMPOWER_ALLIES, actorType: 'effect' },
+      cause: { type: 'buff', at: runtime.time, source: 'Trait', sourceId: TRAIT.EMPOWER_ALLIES, actorType: 'effect' },
+      transform: (packet) => ({
+        ...packet,
+        name: traitProfile.name,
+        stacks: 1 * Number(packet.stacks),
+        priority: 0,
+        audience: { recipients: 'party' }
+      })
+    });
+  }
+
   runtime.schedule(EMPOWER_PULSE, canonicalTime(runtime.time + interval), null, undefined, -210);
 }
 
@@ -498,9 +747,77 @@ export function soldierFocusBurst(runtime: WarriorRuntime, event: Gw2ResolverEve
   ) {
     // All Soldier's Focus rewards share the claim; Martial Cadence still owns its explicit swap resets.
     const audience = { recipients: 'party' as const };
-    traitEffects(runtime, event, TRAIT.MARCHING_ORDERS, { audience });
-    if (hasTrait(runtime, TRAIT.SOLDIERS_COMFORT)) traitEffects(runtime, event, TRAIT.SOLDIERS_COMFORT, { audience });
-    if (hasTrait(runtime, TRAIT.MARTIAL_CADENCE)) traitEffects(runtime, event, TRAIT.MARTIAL_CADENCE, { audience });
+    {
+      const traitProfile = requireBalanceProfileFromContext(runtime, TRAIT.MARCHING_ORDERS);
+      runtime.effects.emit({
+        kind: 'profile',
+        profile: traitProfile,
+        effects: traitProfile.effects?.filter((effect) => ['boon', 'buff', 'condition'].includes(effect.type)),
+        attribution: {
+          source: 'Trait',
+          sourceId: TRAIT.MARCHING_ORDERS,
+          actorType: 'effect',
+          skillId: event.skillId,
+          skillName: event.skillName
+        },
+        cause: event,
+        transform: (packet) => ({
+          ...packet,
+          priority: 5,
+          name: traitProfile.name,
+          stacks: 1 * Number(packet.stacks),
+          audience
+        })
+      });
+    }
+
+    if (hasTrait(runtime, TRAIT.SOLDIERS_COMFORT)) {
+      const traitProfile = requireBalanceProfileFromContext(runtime, TRAIT.SOLDIERS_COMFORT);
+      runtime.effects.emit({
+        kind: 'profile',
+        profile: traitProfile,
+        effects: traitProfile.effects?.filter((effect) => ['boon', 'buff', 'condition'].includes(effect.type)),
+        attribution: {
+          source: 'Trait',
+          sourceId: TRAIT.SOLDIERS_COMFORT,
+          actorType: 'effect',
+          skillId: event.skillId,
+          skillName: event.skillName
+        },
+        cause: event,
+        transform: (packet) => ({
+          ...packet,
+          priority: 5,
+          name: traitProfile.name,
+          stacks: 1 * Number(packet.stacks),
+          audience
+        })
+      });
+    }
+
+    if (hasTrait(runtime, TRAIT.MARTIAL_CADENCE)) {
+      const traitProfile = requireBalanceProfileFromContext(runtime, TRAIT.MARTIAL_CADENCE);
+      runtime.effects.emit({
+        kind: 'profile',
+        profile: traitProfile,
+        effects: traitProfile.effects?.filter((effect) => ['boon', 'buff', 'condition'].includes(effect.type)),
+        attribution: {
+          source: 'Trait',
+          sourceId: TRAIT.MARTIAL_CADENCE,
+          actorType: 'effect',
+          skillId: event.skillId,
+          skillName: event.skillName
+        },
+        cause: event,
+        transform: (packet) => ({
+          ...packet,
+          priority: 5,
+          name: traitProfile.name,
+          stacks: 1 * Number(packet.stacks),
+          audience
+        })
+      });
+    }
   }
 }
 

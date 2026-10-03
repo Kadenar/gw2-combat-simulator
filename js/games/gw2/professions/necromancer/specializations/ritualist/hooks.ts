@@ -1,4 +1,3 @@
-import { materializeSkillEffectApplications } from '#gw2/platform/engine/effects/materializer.js';
 import type { SimulationEventBase } from '#gw2/platform/engine/events/events.js';
 import { denySkillCast } from '#gw2/platform/engine/skills/availability.js';
 import {
@@ -7,18 +6,20 @@ import {
   requireBalanceProfileFromContext,
   requireEffect
 } from '#gw2/platform/engine/skills/balance-profiles.js';
-import type { SkillId } from '#gw2/platform/engine/skills/types.js';
+import type { Skill, SkillEffect, SkillId } from '#gw2/platform/engine/skills/types.js';
 import { gw2ActivePrimaryWeapon } from '#gw2/platform/equipment/weapons/loadout.js';
 import { weaponStrengthProfileForName } from '#gw2/platform/equipment/weapons/strength.js';
 import { buildResolverStrike } from '#gw2/platform/resolver/packets.js';
-import { emitEffects } from '#gw2/platform/simulation/procedural-emission.js';
 import type { RuntimeCast, RuntimeProfession } from '#gw2/platform/simulation/runtime-state.js';
 import { grantNecromancerLifeForce } from '#gw2/professions/necromancer/core/mechanics/life-force.js';
 import { necromancerLifeForce } from '#gw2/professions/necromancer/core/mechanics/resources.js';
 import { registerNecromancerShroudLifecycle } from '#gw2/professions/necromancer/core/mechanics/shroud-lifecycle.js';
-import { runCreatureSummonReactions } from '#gw2/professions/necromancer/core/mechanics/state-helpers.js';
+import {
+  necromancerActiveBoonCompanionIds,
+  runCreatureSummonReactions
+} from '#gw2/professions/necromancer/core/mechanics/state-helpers.js';
 import { NECROMANCER_SKILL_IDS as ID } from '#gw2/professions/necromancer/data/ids.js';
-import { attribution, boon } from '#gw2/professions/necromancer/specializations/ritualist/mechanics/emission.js';
+import { attribution } from '#gw2/professions/necromancer/specializations/ritualist/mechanics/attribution.js';
 import { ritualistSpellHooks } from '#gw2/professions/necromancer/specializations/ritualist/mechanics/spells.js';
 import { spiritDefinition } from '#gw2/professions/necromancer/specializations/ritualist/mechanics/spirits.js';
 import { RITUALIST_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/necromancer/specializations/ritualist/profiles.js';
@@ -31,9 +32,9 @@ import {
   lingeringSpiritsActive
 } from '#gw2/professions/necromancer/specializations/ritualist/traits/behavior.js';
 import type {
-  NecromancerSkill,
   NecromancerRuntime,
-  NecromancerRuntimeState
+  NecromancerRuntimeState,
+  NecromancerSkill
 } from '#gw2/professions/necromancer/types.js';
 import { canonicalTime } from '#kernel/core/clock.js';
 
@@ -83,7 +84,7 @@ function spiritFields(key: string, attackType: string) {
 /** Finite player attacks are committed payloads; autonomous attacks alone retain spirit lifetime and busy-state checks. */
 function queuePacket(runtime: NecromancerRuntime, key: string, event: SimulationEventBase, autonomous = false): void {
   if (!autonomous) {
-    runtime.emit(event);
+    runtime.effects.emit({ kind: 'packet', event: event });
     return;
   }
 
@@ -266,8 +267,9 @@ export const ritualistHooks: Partial<RuntimeProfession<NecromancerRuntimeState, 
       const swing = spiritDefinition(runtime, cast.skill.id)?.summonTicks[0];
       if (!swing) return;
       const skillWeapon = gw2ActivePrimaryWeapon(runtime.config, runtime.activeWeaponSet) || 'Unequipped';
-      runtime.emit(
-        buildResolverStrike({
+      runtime.effects.emit({
+        kind: 'packet',
+        event: buildResolverStrike({
           ...attribution(cast),
           source: 'necromancer',
           at: canonicalTime(cast.start + swing.atMs / 1000 + (cast.command.impactDelayMs ?? 0) / 1000),
@@ -275,7 +277,7 @@ export const ritualistHooks: Partial<RuntimeProfession<NecromancerRuntimeState, 
           skillWeapon,
           weaponStrengthProfileId: weaponStrengthProfileForName(skillWeapon)?.id
         })
-      );
+      });
     },
     'ritualist.summon-anguish'(runtime, context) {
       if (context.kind !== 'cast') return;
@@ -284,10 +286,11 @@ export const ritualistHooks: Partial<RuntimeProfession<NecromancerRuntimeState, 
       const key = spirit.key;
       summon(runtime, cast, spirit);
       const opening = requireBalanceProfileFromContext(runtime, PROFILE.anguish);
-      emitEffects(runtime, {
-        owner: opening,
+      runtime.effects.emit({
+        kind: 'profile',
+        profile: opening,
         effects: opening.effects?.filter((effect) => effect.type === 'condition'),
-        baseEvent: attribution(cast),
+        attribution: attribution(cast),
         transform: (event) => ({
           ...event,
           name: `${cast.skill.name} — ${event.condition}`,
@@ -322,11 +325,12 @@ export const ritualistHooks: Partial<RuntimeProfession<NecromancerRuntimeState, 
       const first = spirit.lingeringTicks[0];
       if (first) {
         const opening = requireBalanceProfileFromContext(runtime, PROFILE.wanderlust);
-        emitEffects(runtime, {
-          owner: opening,
+        runtime.effects.emit({
+          kind: 'profile',
+          profile: opening,
           effects: opening.effects?.filter((effect) => effect.type === 'condition'),
           at: canonicalTime(runtime.time + first.atMs / 1000 + (cast.command.impactDelayMs ?? 0) / 1000),
-          baseEvent: { ...attribution(cast), ...spiritFields(key, 'initial') },
+          attribution: { ...attribution(cast), ...spiritFields(key, 'initial') },
           transform: (event) => ({
             ...event,
             name: `${cast.skill.name} — ${event.condition}`,
@@ -341,7 +345,30 @@ export const ritualistHooks: Partial<RuntimeProfession<NecromancerRuntimeState, 
       const spirit = spiritDefinition(runtime, cast.skill.id)!;
       summon(runtime, cast, spirit);
       for (const effect of cast.skill.effects ?? [])
-        if (effect.type === 'boon') boon(runtime, cast, cast.skill, [effect]);
+        if (effect.type === 'boon') {
+          // Shared emission owns transport; the mechanic selects attribution and delivery.
+          const emissionRuntime: NecromancerRuntime = runtime;
+          const emissionCast: RuntimeCast<NecromancerSkill> = cast;
+          const emissionProfile: Skill = cast.skill;
+          const emissionEffects: readonly SkillEffect[] = [effect];
+
+          emissionRuntime.effects.emit({
+            kind: 'profile',
+            profile: emissionProfile,
+            effects: emissionEffects,
+            attribution: { ...attribution(emissionCast), source: 'necromancer' },
+            transform: (event) => ({
+              ...event,
+              icon: emissionCast.skill.icon,
+              offTarget: emissionCast.command.offTarget,
+              audience: {
+                recipients: 'party',
+                maximumRecipients: 5,
+                eligibleCompanionIds: necromancerActiveBoonCompanionIds(emissionRuntime)
+              }
+            })
+          });
+        }
     },
     'ritualist.innervate'(runtime, context) {
       if (context.kind !== 'cast') return;
@@ -349,17 +376,39 @@ export const ritualistHooks: Partial<RuntimeProfession<NecromancerRuntimeState, 
       const innervate = INNERVATE.get(cast.skill.id)!;
       grantNecromancerLifeForce(runtime, Number(cast.skill.innervateLifeForceGain ?? 0));
       for (const effect of cast.skill.effects ?? []) {
-        if (effect.type === 'boon') boon(runtime, cast, cast.skill, [effect]);
-        else
-          for (const { event } of materializeSkillEffectApplications({
-            skill: cast.skill,
-            effect,
-            start: runtime.time,
-            fullEnd: runtime.time,
-            baseEvent: { ...attribution(cast), ...spiritFields(innervate, 'innervate') },
-            skillWeaponFallback: 'Profession mechanic'
-          }))
-            runtime.emit({ ...event, at: canonicalTime(event.at + (cast.command.impactDelayMs ?? 0) / 1000) });
+        if (effect.type === 'boon') {
+          // Shared emission owns transport; the mechanic selects attribution and delivery.
+          const emissionRuntime: NecromancerRuntime = runtime;
+          const emissionCast: RuntimeCast<NecromancerSkill> = cast;
+          const emissionProfile: Skill = cast.skill;
+          const emissionEffects: readonly SkillEffect[] = [effect];
+
+          emissionRuntime.effects.emit({
+            kind: 'profile',
+            profile: emissionProfile,
+            effects: emissionEffects,
+            attribution: { ...attribution(emissionCast), source: 'necromancer' },
+            transform: (event) => ({
+              ...event,
+              icon: emissionCast.skill.icon,
+              offTarget: emissionCast.command.offTarget,
+              audience: {
+                recipients: 'party',
+                maximumRecipients: 5,
+                eligibleCompanionIds: necromancerActiveBoonCompanionIds(emissionRuntime)
+              }
+            })
+          });
+        } else
+          runtime.effects.emit({
+            kind: 'profile',
+            profile: cast.skill,
+            effects: [effect],
+            at: runtime.time,
+            attribution: { ...attribution(cast), ...spiritFields(innervate, 'innervate') },
+            skillWeaponFallback: 'Profession mechanic',
+            transform: (event) => ({ ...event, at: canonicalTime(event.at + (cast.command.impactDelayMs ?? 0) / 1000) })
+          });
       }
     },
     'ritualist.summon-spirits'(runtime, context) {
@@ -399,7 +448,7 @@ export const ritualistHooks: Partial<RuntimeProfession<NecromancerRuntimeState, 
         state.spiritGenerations[work.key] === work.generation &&
         !(state.spiritBusyUntil[work.key] > runtime.time)
       )
-        runtime.emit(work.event);
+        runtime.effects.emit({ kind: 'packet', event: work.event });
     }
   }
 };

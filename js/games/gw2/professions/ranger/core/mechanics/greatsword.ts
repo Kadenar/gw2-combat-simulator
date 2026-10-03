@@ -47,8 +47,9 @@ export function grantMaulAttackOfOpportunity(
   event: Gw2ResolverEvent,
   recipient: 'pet' | 'player'
 ): void {
-  context.queue.enqueue(
-    buildResolverBuff({
+  context.effects.emit({
+    kind: 'packet',
+    event: buildResolverBuff({
       at: event.at,
       source: 'ranger',
       sourceId: event.skillId!,
@@ -68,7 +69,7 @@ export function grantMaulAttackOfOpportunity(
           : { recipients: 'self' },
       triggeredBy: event.skillName
     })
-  );
+  });
 }
 
 /** Consume after damage calculation, then let Maul grant a fresh, non-stacking charge. */

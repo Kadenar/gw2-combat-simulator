@@ -6,7 +6,6 @@ import {
   requireBalanceProfileFromContext
 } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
-import { emitEffects } from '#gw2/platform/simulation/procedural-emission.js';
 import { castWasInterrupted } from '#gw2/platform/skills/timing.js';
 import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
 import {
@@ -103,10 +102,11 @@ export const shadestep = defineTrait({
       'thief.dawn-shade-step'(runtime, context) {
         if (context.kind !== 'cast' || !hasTrait(runtime, TRAIT.SHADESTEP)) return;
         const profile = requireBalanceProfileFromContext(runtime, TRAIT.SHADESTEP);
-        emitEffects(runtime, {
-          owner: profile,
+        runtime.effects.emit({
+          kind: 'profile',
+          profile: profile,
           effects: profile.effects?.filter((effect) => effect.type === 'boon' && effect.name === 'protection'),
-          baseEvent: {
+          attribution: {
             source: 'Trait',
             sourceId: TRAIT.SHADESTEP,
             actorType: 'player',

@@ -1,3 +1,4 @@
+import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import { CAST_READY, denyCast } from '#gw2/platform/engine/skills/availability.js';
 import {
   balanceProfileNumber,
@@ -14,7 +15,6 @@ import {
 } from '#gw2/professions/guardian/core/traits/behavior.js';
 import { GUARDIAN_SKILL_IDS as ID } from '#gw2/professions/guardian/data/ids.js';
 import {
-  boon,
   firebrandEffectTasks,
   startFirebrandAshes
 } from '#gw2/professions/guardian/specializations/firebrand/mechanics/effects.js';
@@ -39,7 +39,7 @@ import {
   resetSwiftScholar,
   stoicDemeanorRetainsCourage
 } from '#gw2/professions/guardian/specializations/firebrand/traits/behavior.js';
-import type { GuardianRuntimeState, GuardianVirtue, GuardianSkill } from '#gw2/professions/guardian/types.js';
+import type { GuardianRuntimeState, GuardianSkill, GuardianVirtue } from '#gw2/professions/guardian/types.js';
 import { canonicalTime } from '#kernel/core/clock.js';
 
 type Runtime = Gw2Runtime<GuardianRuntimeState, GuardianSkill>;
@@ -65,11 +65,14 @@ function openTome(runtime: Runtime, cast: RuntimeCast<GuardianSkill>, virtue: Gu
     activateSwiftScholar(runtime, cast);
   }
 
-  runtime.emit({
-    ...guardianCastCause(runtime, cast),
-    type: 'weapon_set',
-    weaponSet: runtime.activeWeaponSet,
-    weaponLine: cast.skill.name
+  runtime.effects.emit({
+    kind: 'packet',
+    event: {
+      ...guardianCastCause(runtime, cast),
+      type: 'weapon_set',
+      weaponSet: runtime.activeWeaponSet,
+      weaponLine: cast.skill.name
+    }
   });
 }
 
@@ -78,8 +81,10 @@ function courage(runtime: Runtime): void {
   const profile = requireBalanceProfileFromContext(runtime, PROFILE.passiveCourage);
   const interval = balanceProfileNumber(profile, 'pulseInterval');
   if (!(interval > 0) || !requireEffect(profile, 'boon', 'aegis')) return;
-  if (runtime.profession.core.virtueReadyAt.courage <= runtime.time || stoicDemeanorRetainsCourage(runtime))
-    boon(runtime, PROFILE.passiveCourage, 'aegis', {
+  if (runtime.profession.core.virtueReadyAt.courage <= runtime.time || stoicDemeanorRetainsCourage(runtime)) {
+    const boonProfile = requireBalanceProfileFromContext(runtime, PROFILE.passiveCourage);
+    const selectedBoon = requireEffect(boonProfile, 'boon', 'aegis');
+    const boonCause: Gw2ResolverEvent = {
       type: 'buff',
       at: runtime.time,
       source: 'guardian',
@@ -88,7 +93,19 @@ function courage(runtime: Runtime): void {
       skillId: ID.TOME_OF_COURAGE,
       skillName: 'Tome of Courage',
       name: 'Tome of Courage — Passive Aegis'
-    });
+    };
+    if (selectedBoon) {
+      runtime.effects.emit({
+        kind: 'profile',
+        profile: boonProfile,
+        effects: [selectedBoon],
+        attribution: boonCause,
+        cause: boonCause,
+        transform: (event) => ({ ...boonCause, ...event, audience: { recipients: 'self' } })
+      });
+    }
+  }
+
   runtime.schedule(COURAGE, canonicalTime(runtime.time + interval), undefined, undefined, -200);
 }
 
@@ -112,11 +129,14 @@ export const firebrandHooks: Partial<RuntimeProfession<GuardianRuntimeState, Gua
       const state = firebrandState.from(runtime);
       state.activeTome = '';
       resetSwiftScholar(runtime);
-      runtime.emit({
-        ...guardianCastCause(runtime, cast),
-        type: 'weapon_set',
-        weaponSet: runtime.activeWeaponSet,
-        weaponLine: null
+      runtime.effects.emit({
+        kind: 'packet',
+        event: {
+          ...guardianCastCause(runtime, cast),
+          type: 'weapon_set',
+          weaponSet: runtime.activeWeaponSet,
+          weaponLine: null
+        }
       });
     },
     'guardian.start-ashes'(runtime, context) {

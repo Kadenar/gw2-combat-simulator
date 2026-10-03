@@ -1,3 +1,4 @@
+import { captureEffectEmissions } from '#tests/helpers/effect-emission.js';
 import { skillBreakdownRows } from '#gw2/app/results/skill-breakdown.js';
 import { rotationSelectedSlotSkills } from '#gw2/app/rotation/palette/model.js';
 import { compileProfessionRules } from '#gw2/platform/profession-definition/trigger-rules.js';
@@ -417,7 +418,7 @@ test('Elementalist behavior follows skill IDs after display labels change', () =
     query: { statsAt: () => ({}) },
     effectiveEnd: 1,
     config: { selectedTraitIds: [] },
-    emit: (event) => pistolEvents.push(event),
+    effects: captureEffectEmissions({ submit: (event) => pistolEvents.push(event) }).effects,
     emitProcedural: (event) => pistolEvents.push(event)
   };
   const shatteringStone = {

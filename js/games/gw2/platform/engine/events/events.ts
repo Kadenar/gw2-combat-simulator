@@ -21,6 +21,7 @@ function isFiniteNumber(value: unknown): value is number {
  */
 export const COMMON_EVENT_TYPES = Object.freeze([
   'action',
+  'action_update',
   'aura',
   'combo',
   'combo_field',

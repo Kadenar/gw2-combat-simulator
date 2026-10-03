@@ -26,16 +26,21 @@ const wait = (durationMs) => ({ type: 'wait', durationMs });
 const close = (actual, expected) => assert.ok(Math.abs(actual - expected) < 1e-8, `${actual} != ${expected}`);
 // Seed only initial state; every gain, expiry, extension, and wait runs on the common queue.
 const boon = (runtime, kind, at, duration, affectsSelf = true) =>
-  runtime.emit({
-    type: 'buff',
-    source: 'test',
-    sourceId: 'test-boon',
-    actorType: 'effect',
-    kind,
-    at,
-    duration,
-    stacks: 1,
-    audience: affectsSelf ? { recipients: 'self' } : { recipients: 'summons', affectsSelf: false, maximumRecipients: 1 }
+  runtime.effects.emit({
+    kind: 'packet',
+    event: {
+      type: 'buff',
+      source: 'test',
+      sourceId: 'test-boon',
+      actorType: 'effect',
+      kind,
+      at,
+      duration,
+      stacks: 1,
+      audience: affectsSelf
+        ? { recipients: 'self' }
+        : { recipients: 'summons', affectsSelf: false, maximumRecipients: 1 }
+    }
   });
 
 test('Ranger endurance and Dodge readiness are invariant under wait partitions', () => {
@@ -112,14 +117,17 @@ test('resource integration honors boon extensions and permanent boons', () => {
     initialize(runtime) {
       runtime.profession.core.endurance = 0;
       boon(runtime, 'vigor', 0, 2);
-      runtime.emit({
-        type: 'boon_extension',
-        source: 'test',
-        sourceId: 'extension',
-        actorType: 'effect',
-        at: 1,
-        kind: 'vigor',
-        duration: 2
+      runtime.effects.emit({
+        kind: 'packet',
+        event: {
+          type: 'boon_extension',
+          source: 'test',
+          sourceId: 'extension',
+          actorType: 'effect',
+          at: 1,
+          kind: 'vigor',
+          duration: 2
+        }
       });
     }
   });

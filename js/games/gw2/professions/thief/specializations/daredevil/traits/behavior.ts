@@ -11,7 +11,7 @@ import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import type { RuntimeCast } from '#gw2/platform/simulation/runtime-state.js';
 import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
 import type { ThiefRuntime } from '#gw2/professions/thief/core/events.js';
-import { emitThiefBuff } from '#gw2/professions/thief/core/events.js';
+import { buildThiefBuff } from '#gw2/professions/thief/core/events.js';
 import { grantThiefEndurance } from '#gw2/professions/thief/core/mechanics/resources.js';
 import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
 import { daredevilState } from '#gw2/professions/thief/specializations/daredevil/state.js';
@@ -62,13 +62,16 @@ export function armWeakeningStrikes(runtime: ThiefRuntime, cast: RuntimeCast<Thi
   const duration = balanceProfileNumber(weakening, 'durationMultiplier');
   state.weakeningStrikeReady = true;
   state.weakeningStrikeExpiresAt = runtime.time + duration;
-  emitThiefBuff(runtime, skill, {
-    at: runtime.time,
-    source: 'Trait',
-    sourceId: TRAIT.WEAKENING_STRIKES,
-    activationId: cast.id,
-    kind: 'weakening-strikes',
-    duration
+  runtime.effects.emit({
+    kind: 'packet',
+    event: buildThiefBuff(skill, {
+      at: runtime.time,
+      source: 'Trait',
+      sourceId: TRAIT.WEAKENING_STRIKES,
+      activationId: cast.id,
+      kind: 'weakening-strikes',
+      duration
+    })
   });
 }
 
@@ -88,8 +91,10 @@ export function weakeningStrike(runtime: ThiefRuntime, event: Gw2ResolverEvent):
   const weakness = requireEffect(profile, 'condition', 'Weakness');
   // Explicit removal suppresses this packet without restoring baseline tuning.
   if (!weakness) return;
-  runtime.applyCondition(
-    buildResolverCondition({
+  runtime.effects.emit({
+    kind: 'packet',
+    settlement: 'reaction',
+    event: buildResolverCondition({
       at: event.at,
       source: 'Trait',
       actorType: 'player',
@@ -103,5 +108,5 @@ export function weakeningStrike(runtime: ThiefRuntime, event: Gw2ResolverEvent):
       sourceId: TRAIT.WEAKENING_STRIKES,
       name: 'Weakening Strikes — Weakness'
     })
-  );
+  });
 }

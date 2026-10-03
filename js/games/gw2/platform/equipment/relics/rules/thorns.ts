@@ -26,20 +26,23 @@ export const thorns = defineRelic({
     const initialStacks = thornsStacksAt(0, ctx.config.initialThornsStacks);
     if (initialStacks > 0) {
       // Thorns stacks persist; numeric proc state lets charts and summaries retain the opening ramp.
-      ctx.recordProc(
-        'relic',
-        'Relic of Thorns',
-        0,
-        'Initial state',
-        `${initialStacks}/${THORNS_MAX_STACKS} stacks`,
-        '',
-        null,
-        null,
-        {
-          stacks: initialStacks,
-          maximumStacks: THORNS_MAX_STACKS
+      ctx.effects.emit({
+        kind: 'announcement',
+        announcement: {
+          type: 'relic',
+          name: 'Relic of Thorns',
+          at: 0,
+          sourceSkill: 'Initial state',
+          detail: `${initialStacks}/${THORNS_MAX_STACKS} stacks`,
+          icon: '',
+          cooldownReduction: null,
+          expiresAt: null,
+          effectState: {
+            stacks: initialStacks,
+            maximumStacks: THORNS_MAX_STACKS
+          }
         }
-      );
+      });
     }
 
     for (
@@ -47,20 +50,23 @@ export const thorns = defineRelic({
       at <= rotationEndTime + EPSILON && stacks <= THORNS_MAX_STACKS;
       at += THORNS_STACK_INTERVAL, stacks += 1
     ) {
-      ctx.recordProc(
-        'relic',
-        'Relic of Thorns',
-        at,
-        'Incoming enemy hit',
-        `${stacks}/${THORNS_MAX_STACKS} stacks`,
-        '',
-        null,
-        null,
-        {
-          stacks,
-          maximumStacks: THORNS_MAX_STACKS
+      ctx.effects.emit({
+        kind: 'announcement',
+        announcement: {
+          type: 'relic',
+          name: 'Relic of Thorns',
+          at: at,
+          sourceSkill: 'Incoming enemy hit',
+          detail: `${stacks}/${THORNS_MAX_STACKS} stacks`,
+          icon: '',
+          cooldownReduction: null,
+          expiresAt: null,
+          effectState: {
+            stacks,
+            maximumStacks: THORNS_MAX_STACKS
+          }
         }
-      );
+      });
     }
   },
   // Flat +30 Condition Damage per stack, sampled at tick time so ramping

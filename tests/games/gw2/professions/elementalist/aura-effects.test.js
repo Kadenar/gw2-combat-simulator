@@ -1,3 +1,4 @@
+import { captureEffectEmissions } from '#tests/helpers/effect-emission.js';
 import { applyBalanceProfilePatch } from '#gw2/integrations/patches/authoring/patches.js';
 import { withProfile } from '#tests/helpers/catalog-overrides.js';
 import {
@@ -17,7 +18,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 
 test('real and synthetic Air entry honor trait gates and patched buff versus boon durations', () => {
-  // Superspeed must read its buff profile without concentration scaling; Resistance scales once.
+  // Producers preserve authored duration; the shared dispatcher owns concentration scaling.
   for (const duration of [9, 1]) {
     const catalog = applyBalanceProfilePatch(elementalistCatalog, {
       balanceProfiles: {
@@ -36,9 +37,15 @@ test('real and synthetic Air entry honor trait gates and patched buff versus boo
           traits: new Set(selected),
           time: 4,
           effectiveEnd: 4,
-          emit: (event) => events.push(event)
+          effects: captureEffectEmissions({ submit: (event) => events.push(event) }).effects
         });
-        if (synthetic) triggerSpecializedElementEntry(context, context, skill, 'Air');
+        if (synthetic)
+          triggerSpecializedElementEntry(
+            context,
+            { id: 'fixture-cast', skill, command: {}, effectiveEnd: context.effectiveEnd },
+            skill,
+            'Air'
+          );
         else {
           applyElementalistAttunementTraits(context, {
             at: 4,
@@ -55,7 +62,7 @@ test('real and synthetic Air entry honor trait gates and patched buff versus boo
           buffs.map(({ kind, stacks, duration }) => ({ kind, stacks, duration })),
           [
             ...(selected.includes(TRAIT.ONE_WITH_AIR) ? [{ kind: 'superspeed', stacks: 1, duration }] : []),
-            ...(selected.includes(TRAIT.INSCRIPTION) ? [{ kind: 'resistance', stacks: 2, duration: 10.5 }] : [])
+            ...(selected.includes(TRAIT.INSCRIPTION) ? [{ kind: 'resistance', stacks: 2, duration: 7 }] : [])
           ]
         );
         for (const event of buffs) {
@@ -72,7 +79,7 @@ test('real and synthetic Air entry honor trait gates and patched buff versus boo
 });
 
 // Every aura enters one reaction pipeline, including patched boon payloads and duration scaling.
-test('Core and Tempest aura boons use patched effects and scale once', () => {
+test('Core and Tempest aura boons submit patched authored effects', () => {
   for (const [trait, traitId, profileId, names, resolve] of [
     ["Zephyr's Boon", TRAIT.ZEPHYRS_BOON, TRAIT.ZEPHYRS_BOON, ['Fury', 'Swiftness'], applyResolverZephyrsBoon],
     [
@@ -112,7 +119,7 @@ test('Core and Tempest aura boons use patched effects and scale once', () => {
       effects.map((effect) => ({
         kind: effect.boon.toLowerCase(),
         stacks: effect.stacks,
-        duration: effect.duration * 1.5
+        duration: effect.duration
       })),
       trait
     );
@@ -143,8 +150,7 @@ test('Tempest preserves aura damage windows and grants boons for every actual au
       config: {},
       query: { statsAt: () => ({ concentration: 0 }) },
       boons: new Map([['tempestuous aria', [{ at: 0, expiresAt: 3, stacks: 1 }]]]),
-      queue: { enqueue: (event) => queued.push(event) },
-      recordProc: () => {}
+      effects: captureEffectEmissions({ submit: (event) => queued.push(event) }).effects
     };
     applyTempestResolverAura(context, { type: 'elementalist.aura', at: 1, skillName: 'Fixture Aura', ...origin });
     assert.equal(context.boons.get('tempestuous aria')[0].expiresAt, 8);
@@ -168,8 +174,10 @@ test('Catalyst caps and refreshes Empowering Auras while granting Elemental Epit
       TRAIT.ELEMENTAL_EPITOME,
       { effects: [{ type: 'buff', name: 'Empowerment', stacks: 2, duration: 7 }] }
     ),
-    queue: { enqueue: (event) => queued.push(event) },
-    recordProc: (_type, name) => procs.push(name)
+    effects: captureEffectEmissions({
+      submit: (event) => queued.push(event),
+      announce: (request) => procs.push(request.announcement.name)
+    }).effects
   };
   const event = { type: 'elementalist.aura', at: 1, skillName: 'Fixture Aura', sourceId: 1 };
   catalystModule.hooks.reactions['aura.applied'](context, event);

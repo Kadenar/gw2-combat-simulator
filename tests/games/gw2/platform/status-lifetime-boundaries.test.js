@@ -1,3 +1,4 @@
+import { captureEffectEmissions } from '#tests/helpers/effect-emission.js';
 import { aristocracy } from '#gw2/platform/equipment/relics/rules/aristocracy.js';
 import { nourys } from '#gw2/platform/equipment/relics/rules/nourys.js';
 import { createCooldownController } from '#gw2/platform/execution/cooldowns.js';
@@ -21,7 +22,6 @@ import { solarFocusingLens } from '#gw2/professions/engineer/specializations/hol
 import { GUARDIAN_TRAIT_IDS as GT } from '#gw2/professions/guardian/data/ids.js';
 import { scheduleMesmerTrackedHits } from '#gw2/professions/mesmer/core/mechanics/tracked-hits.js';
 import { MESMER_SKILL_IDS as M, MESMER_TRAIT_IDS as MT } from '#gw2/professions/mesmer/data/ids.js';
-import { mesmerProfession } from '#gw2/professions/mesmer/profession.js';
 import { completeChronomancerTimeBomb } from '#gw2/professions/mesmer/specializations/chronomancer/traits/time-bomb.js';
 import { NECROMANCER_SKILL_IDS as N } from '#gw2/professions/necromancer/data/ids.js';
 import { necromancerProfession } from '#gw2/professions/necromancer/profession.js';
@@ -66,14 +66,11 @@ function contextFor(profession, specialization, selectedTraitIds = []) {
       rechargeProgress: new Map()
     },
     events,
-    emit,
-    emitDerived: (_cause, event) => emit(event),
+    effects: captureEffectEmissions({ submit: emit }).effects,
     eventByOrder: () => undefined,
     replaceEvent: (event, update) => Object.assign(event, update),
-    queue: { enqueue: emit },
     tasks: { schedule: emit },
     query: { statsAt: () => ({}) },
-    recordProc: () => {},
     createActivationId: () => `test-${events.length}`,
     start: 0,
     fullEnd: 0,
@@ -92,13 +89,13 @@ const specialization = (context) => context.state.profession.specialization.stat
 function elementalistContext(specialization, selectedTraitIds = []) {
   const runtime = observedRuntime(runElementalist([], { specialization, selectedTraitIds }));
   runtime.events = [];
-  runtime.emit = (event) => {
-    runtime.events.push(event);
-    return event;
-  };
-
-  runtime.emitDerived = (_cause, event) => runtime.emit(event);
-  runtime.queue.enqueue = (event) => runtime.emit(event);
+  runtime.effects = captureEffectEmissions({
+    now: () => runtime.time,
+    submit: (event) => {
+      runtime.events.push(event);
+      return event;
+    }
+  }).effects;
   return runtime;
 }
 
@@ -239,16 +236,19 @@ test('Righteous Instincts extends Resolution at the last live microsecond and st
     {
       initialize: (runtime) => {
         for (const at of [0.001, 1.039999])
-          runtime.emit({
-            type: 'buff',
-            source: 'fixture',
-            sourceId: 'resolution',
-            actorType: 'player',
-            kind: 'resolution',
-            duration: 1,
-            stacks: 1,
-            at,
-            audience: { recipients: 'self' }
+          runtime.effects.emit({
+            kind: 'packet',
+            event: {
+              type: 'buff',
+              source: 'fixture',
+              sourceId: 'resolution',
+              actorType: 'player',
+              kind: 'resolution',
+              duration: 1,
+              stacks: 1,
+              at,
+              audience: { recipients: 'self' }
+            }
           });
       }
     }
@@ -269,14 +269,17 @@ test('Symbol of Ignition includes its endpoint while Dragonhunter tether stops a
         initialize: (runtime) => {
           runtime.profession.core.symbolIgnitionStartsAt = 0.001;
           runtime.profession.core.symbolIgnitionUntil = 1.001;
-          runtime.emit({
-            type: 'damage',
-            source: 'guardian',
-            sourceId: 'fixture-hit',
-            actorType: 'player',
-            coefficient: 1,
-            weaponStrengthProfileId: 'weapon.scepter',
-            at
+          runtime.effects.emit({
+            kind: 'packet',
+            event: {
+              type: 'damage',
+              source: 'guardian',
+              sourceId: 'fixture-hit',
+              actorType: 'player',
+              coefficient: 1,
+              weaponStrengthProfileId: 'weapon.scepter',
+              at
+            }
           });
           const state = runtime.profession.specialization.state;
           state.tetherActivationId = 'fixture-tether';
@@ -312,15 +315,18 @@ test('Mistral requires an armed window and shares inclusive expiry with its disp
       {
         initialize(runtime) {
           runtime.profession.specialization.state.mistralUntil = deadline;
-          runtime.emit({
-            type: 'damage',
-            source: 'probe',
-            sourceId: RI.SPLITBLADE,
-            skillId: RI.SPLITBLADE,
-            projectile: true, // This fixture probes Mistral's lifetime with an eligible ranged packet.
-            actorType: 'player',
-            at,
-            coefficient: 1
+          runtime.effects.emit({
+            kind: 'packet',
+            event: {
+              type: 'damage',
+              source: 'probe',
+              sourceId: RI.SPLITBLADE,
+              skillId: RI.SPLITBLADE,
+              projectile: true, // This fixture probes Mistral's lifetime with an eligible ranged packet.
+              actorType: 'player',
+              at,
+              coefficient: 1
+            }
           });
         }
       }
@@ -378,11 +384,16 @@ test('Reavers Curse requires an arm, includes the final landing, and cannot be c
 
 test('tracked Mesmer hits expire at their exact age limit', () => {
   for (const at of [0.300999, 0.301, 0.301001]) {
-    const context = contextFor(mesmerProfession, 'Core');
-    const skill = { id: 1, trackedHitDamage: { duration: 0.3, hitsRequired: 2 } };
-    const damage = [];
-    scheduleMesmerTrackedHits(context.state, (...args) => damage.push(args), skill, [0.001, at]);
-    assert.equal(damage.length, at < 0.301 ? 1 : 0);
+    const context = observedRuntime(runMesmer([], { specialization: 'Core' }));
+    const capture = captureEffectEmissions();
+    context.effects = capture.effects;
+    const skill = {
+      id: 1,
+      name: 'Tracked fixture',
+      trackedHitDamage: { duration: 0.3, hitsRequired: 2, coefficient: 1 }
+    };
+    scheduleMesmerTrackedHits(context, skill, [0.001, at]);
+    assert.equal(capture.events.length, at < 0.301 ? 1 : 0);
   }
 });
 
@@ -460,7 +471,7 @@ test('Nourys recurring damage windows have exact starts and exclusive tick-align
 
 test('Aristocracy excludes its own trigger instant but benefits the following microsecond', () => {
   const state = aristocracy.createState();
-  aristocracy.condition({ recordProc() {} }, state, {
+  aristocracy.condition({ effects: captureEffectEmissions().effects }, state, {
     type: 'condition',
     actorType: 'player',
     at: 0.001,

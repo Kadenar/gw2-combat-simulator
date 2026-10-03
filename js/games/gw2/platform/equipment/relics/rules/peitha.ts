@@ -19,16 +19,20 @@ export const peitha = defineRelic({
     // Cast-end anchors follow variants whose cast length changes per activation; the event stores the total from activation.
     const anchorOffsetMs =
       skill.peithaImpactAnchor === 'castEnd' ? (Number(event.fullEndsAt ?? event.at) - event.at) * 1000 : 0;
-    ctx.emitDerived(event, {
-      type: 'peitha',
-      at: event.at,
-      source: event.source,
-      sourceId: skill.id,
-      actorType: 'player',
-      skillId: skill.id,
-      skillName: skill.name,
-      name: 'Relic of Peitha',
-      peithaImpactDelayMs: anchorOffsetMs + (skill.peithaImpactDelayMs ?? PEITHA_DEFAULT_IMPACT_DELAY_MS)
+    ctx.effects.emit({
+      kind: 'packet',
+      cause: event,
+      event: {
+        type: 'peitha',
+        at: event.at,
+        source: event.source,
+        sourceId: skill.id,
+        actorType: 'player',
+        skillId: skill.id,
+        skillName: skill.name,
+        name: 'Relic of Peitha',
+        peithaImpactDelayMs: anchorOffsetMs + (skill.peithaImpactDelayMs ?? PEITHA_DEFAULT_IMPACT_DELAY_MS)
+      }
     });
   },
   peitha(ctx, state, event) {
@@ -41,22 +45,37 @@ export const peitha = defineRelic({
     const impactAt = clamp(triggerAt + Math.max(0, Number(event.peithaImpactDelayMs)) / 1000, combatStart, Infinity);
     state.buffFrom = impactAt;
     state.buffUntil = gw2EffectExpiresAt(impactAt, 4);
-    ctx.recordProc('relic', 'Relic of Peitha', impactAt, event.skillName, '', '', null, state.buffUntil);
+    ctx.effects.emit({
+      kind: 'announcement',
+      announcement: {
+        type: 'relic',
+        name: 'Relic of Peitha',
+        at: impactAt,
+        sourceSkill: event.skillName,
+        detail: '',
+        icon: '',
+        cooldownReduction: null,
+        expiresAt: state.buffUntil
+      }
+    });
     // Delayed impacts enter the common queue so duration and condition reactions see impact-time state.
-    ctx.queue.enqueue({
-      type: 'condition',
-      at: impactAt,
-      name: 'Relic of Peitha — Torment',
-      skillName: 'Relic of Peitha',
-      condition: 'Torment',
-      duration: 7,
-      stacks: 2,
-      source: 'Relic',
-      actorType: 'effect',
-      ownerActorType: 'player',
-      sourceId: `relic.${RELIC_IDS.PEITHA}`,
-      activationId: event.activationId,
-      triggeredBy: event.skillName
+    ctx.effects.emit({
+      kind: 'packet',
+      event: {
+        type: 'condition',
+        at: impactAt,
+        name: 'Relic of Peitha — Torment',
+        skillName: 'Relic of Peitha',
+        condition: 'Torment',
+        duration: 7,
+        stacks: 2,
+        source: 'Relic',
+        actorType: 'effect',
+        ownerActorType: 'player',
+        sourceId: `relic.${RELIC_IDS.PEITHA}`,
+        activationId: event.activationId,
+        triggeredBy: event.skillName
+      }
     });
   },
   // Follow-up strikes inherit their owner's Peitha bonus; summoned actors remain excluded.

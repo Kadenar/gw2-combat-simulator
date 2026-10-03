@@ -1,6 +1,5 @@
 import { professionStaticRulesApplied } from '#gw2/platform/builds/attribute-provenance.js';
 import {
-  applyBoonExtension,
   buffMatchesAudience,
   durationStackingBoonCapSeconds,
   remainingDurationStackSeconds
@@ -19,7 +18,6 @@ import type { SkillId } from '#gw2/platform/engine/skills/types.js';
 import type { ResolvedCriticalHitOptions } from '#gw2/platform/profession-definition/mechanics.js';
 import { criticalProcHandler } from '#gw2/platform/profession-definition/mechanics.js';
 import type { NativeResolvedDamageDetails } from '#gw2/platform/profession-definition/module-types.js';
-import { queueResolverBoon } from '#gw2/platform/resolver/boons.js';
 import { buildResolverBuff } from '#gw2/platform/resolver/packets.js';
 import { THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
 import type { ThiefResolverContext, ThiefResolverEvent } from '#gw2/professions/thief/types.js';
@@ -82,10 +80,9 @@ export const unrelentingStrikesCriticalReaction = Object.freeze({
     if (!definition) return;
     const { boon, duration, stacks } = definition;
     for (let proc = 0; proc < application.quantity; proc += 1) {
-      queueResolverBoon(
-        context,
-        event,
-        buildResolverBuff({
+      context.effects.emit({
+        kind: 'packet',
+        event: buildResolverBuff({
           at: event.at,
           source: 'Trait',
           sourceId: TRAIT.UNRELENTING_STRIKES,
@@ -98,8 +95,9 @@ export const unrelentingStrikesCriticalReaction = Object.freeze({
           stacks,
           audience: { recipients: 'party' },
           triggeredBy: event.skillName
-        })
-      );
+        }),
+        durationContext: event
+      });
     }
   }
 } satisfies ThiefCriticalHitDefinition);
@@ -143,19 +141,26 @@ export function extendActiveFury(context: ThiefResolverContext, event: ThiefReso
     kind: 'fury',
     duration
   };
-  applyBoonExtension(context.boons, extension);
-  if (context.reporting) context.resolved.push(extension);
-  context.queue.enqueue({
-    type: 'proc',
-    at: event.at,
-    source: 'Trait',
-    sourceId: TRAIT.NO_QUARTER,
-    actorType: 'effect',
-    skillId: TRAIT.NO_QUARTER,
-    skillName: 'No Quarter',
-    name: 'No Quarter - Fury Extension',
-    duration,
-    triggeredBy: event.skillName
+  // Extension settles in the hit transaction before subsequent critical reactions inspect Fury.
+  context.effects.emit({ kind: 'packet', event: extension, cause: event, settlement: 'reaction' });
+  context.effects.emit({
+    kind: 'announcement',
+    cause: event,
+    log: true,
+    attribution: {
+      source: 'Trait',
+      sourceId: TRAIT.NO_QUARTER,
+      actorType: 'effect',
+      skillId: TRAIT.NO_QUARTER,
+      skillName: 'No Quarter'
+    },
+    announcement: {
+      type: 'trait',
+      name: 'No Quarter - Fury Extension',
+      at: event.at,
+      sourceSkill: event.skillName,
+      detail: `Fury extended by ${duration}s`
+    }
   });
 }
 

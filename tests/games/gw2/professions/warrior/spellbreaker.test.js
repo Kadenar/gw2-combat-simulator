@@ -107,27 +107,33 @@ test('Magebane recharge ignores temporary Alacrity and admits the next action ti
           ...native,
           initialize(runtime) {
             native.initialize(runtime);
-            runtime.emit({
-              type: 'buff',
-              at,
-              source: 'Fixture',
-              sourceId: 'alacrity',
-              actorType: 'player',
-              kind: 'alacrity',
-              stacks: 1,
-              duration: 4.08
+            runtime.effects.emit({
+              kind: 'packet',
+              event: {
+                type: 'buff',
+                at,
+                source: 'Fixture',
+                sourceId: 'alacrity',
+                actorType: 'player',
+                kind: 'alacrity',
+                stacks: 1,
+                duration: 4.08
+              }
             });
             for (const at of [0, 9.6, 9.64])
-              runtime.emit({
-                type: 'damage',
-                at,
-                source: 'Warrior',
-                sourceId: ID.BREACHING_STRIKE,
-                actorType: 'player',
-                skillId: ID.BREACHING_STRIKE,
-                skillName: 'Breaching Strike',
-                skillWeapon: 'Dagger',
-                coefficient: 1
+              runtime.effects.emit({
+                kind: 'packet',
+                event: {
+                  type: 'damage',
+                  at,
+                  source: 'Warrior',
+                  sourceId: ID.BREACHING_STRIKE,
+                  actorType: 'player',
+                  skillId: ID.BREACHING_STRIKE,
+                  skillName: 'Breaching Strike',
+                  skillWeapon: 'Dagger',
+                  coefficient: 1
+                }
               });
           }
         };
@@ -203,17 +209,20 @@ test('No Escape keeps Insight ordering, actor eligibility, and live profile payl
           }),
           initialize(runtime) {
             native.initialize(runtime);
-            runtime.emit({
-              type: 'control',
-              at: 0,
-              source: 'Warrior',
-              sourceId: ID.DISRUPTING_STAB,
-              skillId: ID.DISRUPTING_STAB,
-              skillName: 'Disrupting Stab',
-              activationId: 'test.control',
-              actorType,
-              controlKind,
-              offTarget
+            runtime.effects.emit({
+              kind: 'packet',
+              event: {
+                type: 'control',
+                at: 0,
+                source: 'Warrior',
+                sourceId: ID.DISRUPTING_STAB,
+                skillId: ID.DISRUPTING_STAB,
+                skillName: 'Disrupting Stab',
+                activationId: 'test.control',
+                actorType,
+                controlKind,
+                offTarget
+              }
             });
           },
           reactions: {

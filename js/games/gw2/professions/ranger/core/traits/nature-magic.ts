@@ -7,7 +7,6 @@ import { defineTrait, traitAttributeEffects } from '#gw2/platform/profession-def
 import { materializeSkillEffectApplications } from '#gw2/platform/engine/effects/materializer.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import type { RuntimeCast } from '#gw2/platform/simulation/runtime-state.js';
-import { emitEffects } from '#gw2/platform/simulation/procedural-emission.js';
 import { rangerPetCompanionId } from '#gw2/professions/ranger/core/mechanics/pets.js';
 import { emitSunSpiritBurning } from '#gw2/professions/ranger/core/skills/slot-skills.js';
 import { rangerActiveBoonCount, rangerPetEvent } from '#gw2/professions/ranger/core/traits/modifier-queries.js';
@@ -18,11 +17,12 @@ import type { RangerSkill, RangerRuntime } from '#gw2/professions/ranger/types.j
 function shareFortifyingBond(runtime: RangerRuntime, kind: string, stacks: number, cause?: Gw2ResolverEvent): void {
   if (!runtime.profession.core.petActive) return;
   const profile = requireBalanceProfileFromContext(runtime, TRAIT.FORTIFYING_BOND);
-  emitEffects(runtime, {
-    owner: profile,
+  runtime.effects.emit({
+    kind: 'profile',
+    profile: profile,
     effects: profile.effects?.filter((effect) => effect.type === 'boon' && effect.boon === kind),
     cause,
-    baseEvent: {
+    attribution: {
       source: 'Trait',
       sourceId: TRAIT.FORTIFYING_BOND,
       actorType: 'effect',

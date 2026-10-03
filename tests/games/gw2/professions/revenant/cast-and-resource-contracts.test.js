@@ -20,15 +20,18 @@ const wait = (durationMs) => ({ type: 'wait', durationMs });
 const core = (result) => observedRuntime(result).profession.core;
 const specialization = (result) => observedRuntime(result).profession.specialization.state;
 const alacrityAt = (at, duration) => (runtime) =>
-  runtime.emit({
-    type: 'buff',
-    kind: 'alacrity',
-    at,
-    duration,
-    stacks: 1,
-    source: 'fixture',
-    sourceId: 'fixture',
-    actorType: 'player'
+  runtime.effects.emit({
+    kind: 'packet',
+    event: {
+      type: 'buff',
+      kind: 'alacrity',
+      at,
+      duration,
+      stacks: 1,
+      source: 'fixture',
+      sourceId: 'fixture',
+      actorType: 'player'
+    }
   });
 
 // Invoking a legend always has a 10 second recharge; Alacrity during that recharge does not shorten it.
@@ -122,7 +125,7 @@ for (const [name, skillId, cooldown] of [
           catalog: daggers ? undefined : (catalog) => withSkill(catalog, procId, { cooldown }),
           initialize(runtime) {
             owner(runtime)[key] = seed;
-            for (const hit of hits) runtime.emit(hit);
+            for (const hit of hits) runtime.effects.emit({ kind: 'packet', event: hit });
           }
         }
       );
@@ -201,7 +204,7 @@ test('Razorclaw rejects a missing proc and keeps charges when its bleed is remov
         catalog,
         initialize(runtime) {
           runtime.profession.specialization.state.razorclawsRage = { charges: 2, expiresAt: 10, readyAt: 0 };
-          runtime.emit(revenantHit(1));
+          runtime.effects.emit({ kind: 'packet', event: revenantHit(1) });
         }
       }
     );
@@ -238,7 +241,7 @@ test('Battle Scars rejects overflow and consumes newest before longest-lived', (
           initialize(runtime) {
             runtime.profession.core.battleScars = [30, 10];
             for (const event of [revenantHit(2), vulnerability(4, 100), vulnerability(5, 1), revenantHit(14)])
-              runtime.emit(event);
+              runtime.effects.emit({ kind: 'packet', event: event });
           }
         }
       )
@@ -268,7 +271,8 @@ test('Thrill of Combat catches up on its original cadence while capped grants re
         { selectedTraitIds: [TRAIT.THRILL_OF_COMBAT] },
         {
           catalog: (catalog) => withProfile(withoutSiphon(catalog), profileId, { maximumStacks: 2 }),
-          initialize: (runtime) => [3, 12].forEach((at) => runtime.emit(revenantHit(at)))
+          initialize: (runtime) =>
+            [3, 12].forEach((at) => runtime.effects.emit({ kind: 'packet', event: revenantHit(at) }))
         }
       )
     );
@@ -300,9 +304,10 @@ test('Core strike reactions keep upkeep, trait, and dagger order with the origin
         });
         state.battleScars = [10];
         state.enchantedDaggers = { charges: 2, expiresAt: 10, readyAt: 0 };
-        runtime.emit(
-          revenantHit(1, { skillId: SKILL.PHASE_SMASH, sourceId: SKILL.PHASE_SMASH, skillName: 'Phase Smash' })
-        );
+        runtime.effects.emit({
+          kind: 'packet',
+          event: revenantHit(1, { skillId: SKILL.PHASE_SMASH, sourceId: SKILL.PHASE_SMASH, skillName: 'Phase Smash' })
+        });
       }
     }
   );
@@ -453,7 +458,7 @@ test('Fury reactions respect recipients, source ownership, combat gating, and bo
     const result = runRevenant(
       [wait(3000)],
       { specialization: 'Renegade', selectedTraitIds: [TRAIT.INCENSED_RESPONSE, TRAIT.BRUTAL_MOMENTUM] },
-      { combatStartTime, initialize: (runtime) => runtime.emit(event) }
+      { combatStartTime, initialize: (runtime) => runtime.effects.emit({ kind: 'packet', event: event }) }
     );
     const trigger = result.events.find((emitted) => emitted.sourceId === 'fixture');
     const derived = result.events.filter((emitted) => emitted.sourceId !== 'fixture' && emitted.type === 'buff');
@@ -512,7 +517,7 @@ test('Brutal Momentum Vigor stops increasing recovery when its self boon expires
     runRevenant(
       [wait(untilMs)],
       { specialization: 'Renegade', selectedTraitIds: [TRAIT.BRUTAL_MOMENTUM], initialEndurance: 0 },
-      { initialize: (runtime) => runtime.emit(fury) }
+      { initialize: (runtime) => runtime.effects.emit({ kind: 'packet', event: fury }) }
     );
   const probe = run(1000);
   const vigor = probe.events.find((event) => event.kind === 'vigor');
@@ -529,15 +534,18 @@ test('Brutal Momentum only rearms after its Vigor internal cooldown expires', ()
     {
       initialize: (runtime) =>
         [0, 1, 8, 8.01].forEach((at) =>
-          runtime.emit({
-            type: 'buff',
-            kind: 'fury',
-            at,
-            duration: 1,
-            stacks: 1,
-            source: 'fixture',
-            sourceId: 'fixture',
-            actorType: 'player'
+          runtime.effects.emit({
+            kind: 'packet',
+            event: {
+              type: 'buff',
+              kind: 'fury',
+              at,
+              duration: 1,
+              stacks: 1,
+              source: 'fixture',
+              sourceId: 'fixture',
+              actorType: 'player'
+            }
           })
         )
     }

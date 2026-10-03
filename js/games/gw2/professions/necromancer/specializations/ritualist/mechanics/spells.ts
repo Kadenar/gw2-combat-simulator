@@ -19,9 +19,9 @@ import { RITUALIST_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/necro
 import { ritualistState } from '#gw2/professions/necromancer/specializations/ritualist/state.js';
 import { wieldersBoonCharges } from '#gw2/professions/necromancer/specializations/ritualist/traits/behavior.js';
 import type {
-  NecromancerSkill,
   NecromancerRuntime,
-  NecromancerRuntimeState
+  NecromancerRuntimeState,
+  NecromancerSkill
 } from '#gw2/professions/necromancer/types.js';
 import { canonicalTime } from '#kernel/core/clock.js';
 
@@ -63,13 +63,16 @@ function applyBond(runtime: NecromancerRuntime, event: Gw2ResolverEvent): void {
   const profile = requireBalanceProfileFromContext(runtime, PROFILE.painfulBond);
   const buff = requireEffect(profile, 'buff', 'necromancer-painful-bond');
   if (!buff) return;
-  runtime.emit({
-    ...event,
-    type: 'buff',
-    at: runtime.time,
-    kind: String(buff.kind),
-    duration: Number(event.duration),
-    stacks: effectNumber(profile, buff, 'stacks')
+  runtime.effects.emit({
+    kind: 'packet',
+    event: {
+      ...event,
+      type: 'buff',
+      at: runtime.time,
+      kind: String(buff.kind),
+      duration: Number(event.duration),
+      stacks: effectNumber(profile, buff, 'stacks')
+    }
   });
   const interval = balanceProfileNumber(profile, 'pulseInterval');
   runtime.cancelOwner({ id: BOND, generation: state.painfulBondGeneration });
@@ -120,19 +123,22 @@ function grantWeaponSpell(
     skillName: cast.skill.name,
     recipients
   };
-  runtime.emit({
-    type: 'buff',
-    at: runtime.time,
-    source: 'necromancer',
-    sourceId: cast.skill.id,
-    actorType: 'player',
-    skillId: cast.skill.id,
-    skillName: cast.skill.name,
-    activationId: cast.id,
-    kind: String(effect.kind),
-    duration: Number(effect.duration ?? 0),
-    stacks: Number(effect.stacks ?? 0),
-    resolvedAudience: audience
+  runtime.effects.emit({
+    kind: 'packet',
+    event: {
+      type: 'buff',
+      at: runtime.time,
+      source: 'necromancer',
+      sourceId: cast.skill.id,
+      actorType: 'player',
+      skillId: cast.skill.id,
+      skillName: cast.skill.name,
+      activationId: cast.id,
+      kind: String(effect.kind),
+      duration: Number(effect.duration ?? 0),
+      stacks: Number(effect.stacks ?? 0),
+      resolvedAudience: audience
+    }
   });
   runtime.schedule(EXPIRE, expiresAt, { spell, generation }, owner(spell, generation), -20);
   const rate = gw2AlliedPlayerAssumptions(runtime.config).strikesPerSecond;
@@ -202,8 +208,9 @@ export const ritualistSpellHooks: Partial<RuntimeProfession<NecromancerRuntimeSt
       const profile = requireBalanceProfileFromContext(runtime, PROFILE.painfulBond);
       const strike = requireEffect(profile, 'strike', 'Strike');
       if (strike)
-        runtime.emit(
-          buildResolverStrike({
+        runtime.effects.emit({
+          kind: 'packet',
+          event: buildResolverStrike({
             at: runtime.time,
             source: 'Spirit',
             sourceId: 'ritualist.painful-bond',
@@ -218,7 +225,7 @@ export const ritualistSpellHooks: Partial<RuntimeProfession<NecromancerRuntimeSt
             canCrit: false,
             triggeredBy: (data as Gw2ResolverEvent).triggeredBy
           })
-        );
+        });
       const at = canonicalTime(runtime.time + balanceProfileNumber(profile, 'pulseInterval'));
       if (strike && at > runtime.time && at < state.painfulBondUntil)
         runtime.schedule(BOND, at, data, { id: BOND, generation: state.painfulBondGeneration });

@@ -35,7 +35,8 @@ export interface RangerCoreState {
   petAutoGeneration: number;
   petAutoNextAt: number;
   petAutoBusyUntil: number;
-  petAutoAction: SimulationEventBase | null;
+  petAutoAction: { activationId: string; endsAt: number } | null;
+  petAutoSequence: number;
   petAutoCooldowns: Record<string, number>;
   petAutoActivationUses: Record<string, number>;
   petAutoActivationCounts: [number, number];
@@ -88,6 +89,7 @@ export function createRangerCoreState(config: RangerConfig = {}): RangerCoreStat
     petAutoNextAt: 0,
     petAutoBusyUntil: 0,
     petAutoAction: null,
+    petAutoSequence: 0,
     petAutoCooldowns: {},
     petAutoActivationUses: {},
     petAutoActivationCounts: [1, 0],

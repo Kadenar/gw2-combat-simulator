@@ -61,20 +61,23 @@ for (const [key, trait, trigger, literalDuration] of [
               };
 
               if (trigger !== 'swap')
-                runtime.emit({
-                  type: trigger,
-                  at,
-                  actorType: 'player',
-                  source: 'warrior',
-                  sourceId: ID.KILL_SHOT,
-                  skillId: ID.KILL_SHOT,
-                  skillName: 'Kill Shot',
-                  activationId: 'burst',
-                  coefficient: 1,
-                  forceCrit: true,
-                  weaponStrengthProfileId: 'weapon.rifle',
-                  controlKind: 'stun',
-                  duration: 1
+                runtime.effects.emit({
+                  kind: 'packet',
+                  event: {
+                    type: trigger,
+                    at,
+                    actorType: 'player',
+                    source: 'warrior',
+                    sourceId: ID.KILL_SHOT,
+                    skillId: ID.KILL_SHOT,
+                    skillName: 'Kill Shot',
+                    activationId: 'burst',
+                    coefficient: 1,
+                    forceCrit: true,
+                    weaponStrengthProfileId: 'weapon.rifle',
+                    controlKind: 'stun',
+                    duration: 1
+                  }
                 });
             }
           },
@@ -106,7 +109,10 @@ test('Opportunist ignores summons, effect immobilization, and unrelated player c
           { type: 'condition', actorType: 'effect', condition: 'Immobilized' },
           { type: 'condition', actorType: 'player', condition: 'Bleeding' }
         ])
-          runtime.emit({ ...event, at: 1, source: 'fixture', sourceId: 'fixture', duration: 1, stacks: 1 });
+          runtime.effects.emit({
+            kind: 'packet',
+            event: { ...event, at: 1, source: 'fixture', sourceId: 'fixture', duration: 1, stacks: 1 }
+          });
       }
     }
   });

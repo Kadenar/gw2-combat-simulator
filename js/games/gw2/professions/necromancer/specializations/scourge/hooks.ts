@@ -1,5 +1,6 @@
 import { grantTimedStacks } from '#gw2/platform/combat/resources/timed-stacks.js';
-import { materializeSkillEffectApplications } from '#gw2/platform/engine/effects/materializer.js';
+import { isHostileTargetEvent } from '#gw2/platform/combat/state/targets.js';
+import type { SimulationEventBase } from '#gw2/platform/engine/events/events.js';
 import { assertSimulationEvent } from '#gw2/platform/engine/events/events.js';
 import {
   balanceProfileNumber,
@@ -8,13 +9,12 @@ import {
   requireEffect
 } from '#gw2/platform/engine/skills/balance-profiles.js';
 import type { SkillEffect } from '#gw2/platform/engine/skills/types.js';
-import { queueResolverBoon } from '#gw2/platform/resolver/boons.js';
 import { buildResolverCondition, buildResolverStrike } from '#gw2/platform/resolver/packets.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import type { RuntimeCast, RuntimeProfession } from '#gw2/platform/simulation/runtime-state.js';
 import { removeNecromancerSelfCondition } from '#gw2/professions/necromancer/core/mechanics/conditions.js';
 import { NECROMANCER_SKILL_IDS as ID } from '#gw2/professions/necromancer/data/ids.js';
-import { emitPacket, party } from '#gw2/professions/necromancer/specializations/scourge/mechanics/emission.js';
+import { party } from '#gw2/professions/necromancer/specializations/scourge/mechanics/audiences.js';
 import { SCOURGE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/necromancer/specializations/scourge/profiles.js';
 import { purgeScourgeTimedState, scourgeState } from '#gw2/professions/necromancer/specializations/scourge/state.js';
 import {
@@ -25,9 +25,9 @@ import {
   shadeTraits
 } from '#gw2/professions/necromancer/specializations/scourge/traits/behavior.js';
 import type {
-  NecromancerSkill,
   NecromancerRuntime,
-  NecromancerRuntimeState
+  NecromancerRuntimeState,
+  NecromancerSkill
 } from '#gw2/professions/necromancer/types.js';
 import { canonicalTime } from '#kernel/core/clock.js';
 
@@ -50,27 +50,35 @@ function emitShroudEffects(
   cast: RuntimeCast<NecromancerSkill>,
   effects: readonly SkillEffect[]
 ): void {
-  for (const effect of effects) {
-    for (const { event } of materializeSkillEffectApplications({
-      skill: cast.skill,
-      effect,
-      start: runtime.time,
-      fullEnd: runtime.time,
-      baseEvent: {
-        source: 'necromancer',
-        sourceId: cast.skill.id,
-        skillId: cast.skill.id,
-        skillName: cast.skill.name,
-        actorType: 'player',
-        activationId: cast.id
-      },
-      skillWeaponFallback: 'Unequipped'
-    })) {
-      if (event.type === 'buff') runtime.scheduleForCast(BARRIER, event.at, cast, { event });
-      // Keep authored profile-slot labels out of the public strike name.
-      else emitPacket(runtime, cast, event.type === 'damage' ? { ...event, name: cast.skill.name } : event);
+  runtime.effects.emit({
+    kind: 'profile',
+    profile: cast.skill,
+    effects,
+    at: runtime.time,
+    attribution: {
+      source: 'necromancer',
+      sourceId: cast.skill.id,
+      skillId: cast.skill.id,
+      skillName: cast.skill.name,
+      actorType: 'player',
+      activationId: cast.id
+    },
+    skillWeaponFallback: 'Unequipped',
+    transform: (event) => {
+      // Barrier pulses are mechanic transactions: their traits settle before the resulting party boon.
+      if (event.type === 'buff') {
+        runtime.scheduleForCast(BARRIER, event.at, cast, { event });
+        return null;
+      }
+
+      return {
+        ...event,
+        ...(event.type === 'damage' ? { name: cast.skill.name } : {}),
+        offTarget: cast.command.offTarget,
+        at: canonicalTime(event.at + (isHostileTargetEvent(event) ? (cast.command.impactDelayMs ?? 0) / 1000 : 0))
+      };
     }
-  }
+  });
 }
 
 /** Every shade command owns one common strike and Torment application, independent of the number of active shades. */
@@ -86,34 +94,61 @@ function shadeStrike(runtime: NecromancerRuntime, cast: RuntimeCast<NecromancerS
     parentSkillName: cast.skill.name
   };
   const strike = requireEffect(profile, 'strike', 'Strike');
-  if (strike)
-    emitPacket(
-      runtime,
-      cast,
-      buildResolverStrike({
-        ...attribution,
-        name: 'Sand Shade - Strike',
-        skillWeapon: 'Unequipped',
-        coefficient: effectNumber(profile, strike, 'coefficient'),
-        metadata: {
-          necromancerShroudSkillOne: true,
-          dhuumfireDuration: balanceProfileNumber(profile, 'dhuumfireDuration'),
-          dhuumfireInterval: balanceProfileNumber(profile, 'dhuumfireInterval')
-        }
-      })
-    );
+  if (strike) {
+    // Shared emission owns transport; the mechanic selects attribution and delivery.
+    const emissionRuntime: NecromancerRuntime = runtime;
+    const emissionCast: RuntimeCast<NecromancerSkill> = cast;
+    const emissionEvent: SimulationEventBase = buildResolverStrike({
+      ...attribution,
+      name: 'Sand Shade - Strike',
+      skillWeapon: 'Unequipped',
+      coefficient: effectNumber(profile, strike, 'coefficient'),
+      metadata: {
+        necromancerShroudSkillOne: true,
+        dhuumfireDuration: balanceProfileNumber(profile, 'dhuumfireDuration'),
+        dhuumfireInterval: balanceProfileNumber(profile, 'dhuumfireInterval')
+      }
+    });
+
+    emissionRuntime.effects.emit({
+      kind: 'packet',
+      event: {
+        ...emissionEvent,
+        activationId: emissionCast.id,
+        offTarget: emissionCast.command.offTarget,
+        at: canonicalTime(
+          emissionEvent.at +
+            (isHostileTargetEvent(emissionEvent) ? (emissionCast.command.impactDelayMs ?? 0) / 1000 : 0)
+        )
+      }
+    });
+  }
+
   const torment = requireEffect(profile, 'condition', 'Torment');
-  if (torment)
-    emitPacket(
-      runtime,
-      cast,
-      buildResolverCondition({
-        ...attribution,
-        condition: String(torment.condition),
-        stacks: effectNumber(profile, torment, 'stacks'),
-        duration: effectNumber(profile, torment, 'duration')
-      })
-    );
+  if (torment) {
+    // Shared emission owns transport; the mechanic selects attribution and delivery.
+    const emissionRuntime: NecromancerRuntime = runtime;
+    const emissionCast: RuntimeCast<NecromancerSkill> = cast;
+    const emissionEvent: SimulationEventBase = buildResolverCondition({
+      ...attribution,
+      condition: String(torment.condition),
+      stacks: effectNumber(profile, torment, 'stacks'),
+      duration: effectNumber(profile, torment, 'duration')
+    });
+
+    emissionRuntime.effects.emit({
+      kind: 'packet',
+      event: {
+        ...emissionEvent,
+        activationId: emissionCast.id,
+        offTarget: emissionCast.command.offTarget,
+        at: canonicalTime(
+          emissionEvent.at +
+            (isHostileTargetEvent(emissionEvent) ? (emissionCast.command.impactDelayMs ?? 0) / 1000 : 0)
+        )
+      }
+    });
+  }
 }
 
 /** Manifest refreshes the capped shade lifetime before its queued impact. */
@@ -161,8 +196,11 @@ export const scourgeHooks: Partial<RuntimeProfession<NecromancerRuntimeState, Ne
     'scourge.garish-pillar'(runtime, context) {
       if (context.kind !== 'cast') return;
       const profile = requireBalanceProfileFromContext(runtime, PROFILE.garishPillar);
-      if (requireEffect(profile, 'control', 'Control'))
-        emitPacket(runtime, context.cast, {
+      if (requireEffect(profile, 'control', 'Control')) {
+        // Shared emission owns transport; the mechanic selects attribution and delivery.
+        const emissionRuntime: NecromancerRuntime = runtime;
+        const emissionCast: RuntimeCast<NecromancerSkill> = context.cast;
+        const emissionEvent: SimulationEventBase = {
           type: 'control',
           at: runtime.time,
           source: 'necromancer',
@@ -171,7 +209,21 @@ export const scourgeHooks: Partial<RuntimeProfession<NecromancerRuntimeState, Ne
           skillId: context.skill.id,
           skillName: context.skill.name,
           controlKind: 'fear'
+        };
+
+        emissionRuntime.effects.emit({
+          kind: 'packet',
+          event: {
+            ...emissionEvent,
+            activationId: emissionCast.id,
+            offTarget: emissionCast.command.offTarget,
+            at: canonicalTime(
+              emissionEvent.at +
+                (isHostileTargetEvent(emissionEvent) ? (emissionCast.command.impactDelayMs ?? 0) / 1000 : 0)
+            )
+          }
         });
+      }
     },
     'scourge.desert-shroud'(runtime, context) {
       if (context.kind === 'cast')
@@ -203,7 +255,11 @@ export const scourgeHooks: Partial<RuntimeProfession<NecromancerRuntimeState, Ne
       const { cast, event } = data as { cast: RuntimeCast<NecromancerSkill>; event: Gw2ResolverEvent };
       barrierTraits(runtime, cast);
       const packet = assertSimulationEvent({ ...event, audience: party(runtime) });
-      queueResolverBoon(runtime, packet, { ...packet, kind: String(packet.kind), duration: Number(packet.duration) });
+      runtime.effects.emit({
+        kind: 'packet',
+        event: { ...packet, kind: String(packet.kind), duration: Number(packet.duration) },
+        durationContext: packet
+      });
     }
   },
   reactions: {

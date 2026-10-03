@@ -1,3 +1,4 @@
+import { captureEffectEmissions } from '#tests/helpers/effect-emission.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
@@ -98,11 +99,15 @@ test('combo outcomes retain summon condition scaling from the finisher', () => {
 
   // Resolver-authored follow-up finishers must retain the same independent caster too.
   let followup;
-  enqueueGw2OwnedComboFinisher({ combo: state, queue: { enqueue: (event) => (followup = event) } }, poison, {
-    ownerId: 'ranger',
-    attemptId: 'attempt:followup',
-    finisherType: 'Projectile'
-  });
+  enqueueGw2OwnedComboFinisher(
+    { combo: state, effects: captureEffectEmissions({ submit: (event) => (followup = event) }).effects },
+    poison,
+    {
+      ownerId: 'ranger',
+      attemptId: 'attempt:followup',
+      finisherType: 'Projectile'
+    }
+  );
   const [followupCombo] = resolveComboAttempt(state, followup, {
     roll: () => true,
     warn: () => {}

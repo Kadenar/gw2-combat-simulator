@@ -66,14 +66,17 @@ test('Blight procs supply condition-dependent readiness and expire without recur
     catalog: createCanonicalCatalog(),
     hooks: {
       initialize(context) {
-        context.emit({
-          type: 'damage',
-          at: 0.1,
-          coefficient: 1,
-          weaponStrength: 1000,
-          source: 'fixture',
-          sourceId: 'strike',
-          actorType: 'player'
+        context.effects.emit({
+          kind: 'packet',
+          event: {
+            type: 'damage',
+            at: 0.1,
+            coefficient: 1,
+            weaponStrength: 1000,
+            source: 'fixture',
+            sourceId: 'strike',
+            actorType: 'player'
+          }
         });
         for (const at of [0.2, 4.1]) context.schedule('fixture.consume-poison', at);
       },
@@ -83,13 +86,16 @@ test('Blight procs supply condition-dependent readiness and expire without recur
             context.conditionState.get('Poisoned')?.stacks.some((stack) => stack.expiresAt > context.time) ?? false;
           observed.push(poisoned);
           if (poisoned)
-            context.emit({
-              type: 'marker',
-              at: context.time,
-              name: 'Poison opportunity',
-              source: 'fixture',
-              sourceId: 'follow-up',
-              actorType: 'player'
+            context.effects.emit({
+              kind: 'packet',
+              event: {
+                type: 'marker',
+                at: context.time,
+                name: 'Poison opportunity',
+                source: 'fixture',
+                sourceId: 'follow-up',
+                actorType: 'player'
+              }
             });
         }
       },
@@ -127,12 +133,21 @@ test('critical sigil cooldowns persist across weapon swaps and cannot proc while
           initialize(context) {
             const owner = { source: 'Fixture', sourceId: 'fixture', actorType: 'player' };
             for (const at of [0.1, 0.3, 0.5]) {
-              context.emit({ ...owner, type: 'damage', at, coefficient: 1, weaponStrength: 1000 });
+              context.effects.emit({
+                kind: 'packet',
+                event: { ...owner, type: 'damage', at, coefficient: 1, weaponStrength: 1000 }
+              });
             }
 
-            context.emit({ ...owner, type: 'weapon_set', at: 0.2, weaponSet: otherSet });
+            context.effects.emit({
+              kind: 'packet',
+              event: { ...owner, type: 'weapon_set', at: 0.2, weaponSet: otherSet }
+            });
             if (startsEquipped) {
-              context.emit({ ...owner, type: 'weapon_set', at: 0.4, weaponSet: startingWeaponSet });
+              context.effects.emit({
+                kind: 'packet',
+                event: { ...owner, type: 'weapon_set', at: 0.4, weaponSet: startingWeaponSet }
+              });
             }
           }
         }

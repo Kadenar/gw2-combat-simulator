@@ -10,8 +10,7 @@ import type { EngineerResolverContext, EngineerRuntime } from '#gw2/professions/
 import type { SimulationEventBase } from '#gw2/platform/engine/events/events.js';
 import type { HolosmithResolverEvent } from '#gw2/professions/engineer/specializations/holosmith/mechanics/heat-tiers.js';
 import { requireBalanceNumber } from '#gw2/platform/engine/skills/canonical-skill-catalog.js';
-import { enqueueGw2OwnedComboFinisher } from '#gw2/platform/resolver/combo-resolution.js';
-import { queueBuff } from '#gw2/professions/engineer/core/mechanics/resolution-helpers.js';
+import { buildEngineerBuff } from '#gw2/professions/engineer/core/mechanics/resolution-helpers.js';
 import {
   holosmithEventMetadata,
   holosmithHeatTier,
@@ -220,11 +219,15 @@ export const HOLOSMITH_SWORD_SKILL_MECHANICS: Readonly<Record<string, HolosmithS
 
 /** Resolves the heat-scaled Quickness packet emitted by Holosmith's Radiant Arc variant. */
 function handleRadiantArcQuickness(context: EngineerResolverContext, event: HolosmithResolverEvent): void {
-  queueBuff(context, event, {
-    name: 'Radiant Arc - quickness',
-    kind: 'quickness',
-    stacks: 1,
-    duration: requireBalanceNumber(event.duration, 'Radiant Arc field=duration')
+  context.effects.emit({
+    kind: 'packet',
+    event: buildEngineerBuff(event, {
+      name: 'Radiant Arc - quickness',
+      kind: 'quickness',
+      stacks: 1,
+      duration: requireBalanceNumber(event.duration, 'Radiant Arc field=duration')
+    }),
+    durationContext: event
   });
 }
 
@@ -239,8 +242,9 @@ function handleRefractionCutterExtraBlades(context: EngineerResolverContext, eve
   for (let blade = 0; blade < extraBlades; blade += 1) {
     const at = event.at + delay;
     if (strike) {
-      const damage = context.queue.enqueue(
-        buildResolverStrike({
+      context.effects.emit({
+        kind: 'packet',
+        event: buildResolverStrike({
           at,
           name: 'Refraction Cutter Blade',
           // Heat-generated blades share the base projectile's separate damage identity.
@@ -266,24 +270,14 @@ function handleRefractionCutterExtraBlades(context: EngineerResolverContext, eve
             }
           ]
         })
-      );
-      // Register the owned finisher from the queued strike rather than emitting an uncorrelated combo event.
-      enqueueGw2OwnedComboFinisher(context, damage, {
-        ownerId: 'engineer',
-        attemptId: `${event.activationId || event.sourceId}:refraction-cutter:projectile:${blade + 2}`,
-        finisherType: 'Projectile',
-        at,
-        effectAt: at,
-        chance: 1,
-        preferredFieldTypes: ['Fire'],
-        ambiguousFieldSelection: 'oldest'
       });
     }
 
     // Pair the blade's bleed with the same delayed impact and application index.
     if (condition) {
-      context.queue.enqueue(
-        buildResolverCondition({
+      context.effects.emit({
+        kind: 'packet',
+        event: buildResolverCondition({
           at,
           name: `${event.skillName} - Bleeding`,
           skillName: event.skillName,
@@ -297,7 +291,7 @@ function handleRefractionCutterExtraBlades(context: EngineerResolverContext, eve
           actorType: 'player',
           skillId: event.skillId
         })
-      );
+      });
     }
   }
 }

@@ -1,3 +1,4 @@
+import type { EffectDelivery } from '#gw2/platform/simulation/effect-emission.js';
 import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
 import type { SkillId, StrikeTick, StrikeEffect } from '#gw2/platform/engine/skills/types.js';
 
@@ -30,11 +31,15 @@ export interface MesmerPhantasmPolicy {
   >;
   readonly repeat?: {
     readonly label: string;
+    /** Canonical granting trait identity is independent of the display name. */
+    readonly traitId: number;
     readonly traitName: string;
     readonly damageMultiplier: number;
   };
   readonly bonusStrike?: {
     readonly name: string;
+    /** Canonical granting trait identity is independent of the display name. */
+    readonly traitId: number;
     readonly traitName: string;
     readonly damage: MesmerTraitDamage;
   };
@@ -48,7 +53,8 @@ export type MesmerQueueResources = (
   count: number,
   weapon: string | null | undefined,
   reason: string,
-  cause?: MesmerResourceCause
+  cause?: MesmerResourceCause,
+  delivery?: EffectDelivery
 ) => void;
 
 interface MesmerResourceGain {

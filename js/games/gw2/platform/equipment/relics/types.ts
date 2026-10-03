@@ -1,9 +1,8 @@
+import type { EffectEmissionService } from '#gw2/platform/simulation/effect-emission.js';
 /** Owns the equipment/relics/types.ts contracts so type dependencies follow their runtime feature boundaries. */
-import type { StableEventQueue } from '#kernel/events/queue.js';
 import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
-import type { SimulationActorType } from '#gw2/platform/engine/events/actors.js';
 import type { Skill } from '#gw2/platform/engine/skills/types.js';
-import type { Gw2ProcStep, Gw2ResolverHelpers } from '#gw2/platform/resolver/types.js';
+import type { Gw2ResolverHelpers } from '#gw2/platform/resolver/types.js';
 import type { Gw2TargetConfig } from '#gw2/platform/combat/state/targets.js';
 
 /** Minimal configuration surface consumed by relic rules. */
@@ -46,7 +45,7 @@ export interface Gw2RelicRuntimeContext {
 interface Gw2RelicEmissionContext {
   readonly combatStartTime?: number | null;
   readonly hasExplicitCombatStart?: boolean;
-  emitDerived(cause: SimulationEvent, event: Gw2EventDraft): SimulationEvent;
+  readonly effects: EffectEmissionService;
 }
 
 export interface Gw2RelicContext {
@@ -54,81 +53,15 @@ export interface Gw2RelicContext {
   readonly helpers?: Gw2ResolverHelpers;
   precastRelics?: readonly Gw2RelicRuntime[];
   readonly config: Gw2RelicConfig;
-  readonly totals: { strike: number; condition: number };
-  /** Includes the direct life-siphon report, which is not queued as an owned simulation event. */
-  readonly resolved: Array<
-    | SimulationEvent
-    | {
-        readonly type: 'damage';
-        readonly at: number;
-        readonly source: string;
-        readonly name: string;
-        readonly skillName: string;
-        readonly triggeredBy?: string;
-        readonly coefficient: number;
-        readonly hits?: SimulationEvent['hits'];
-        readonly damage: number;
-      }
-  >;
-  readonly queue: StableEventQueue<SimulationEvent>;
+  /** Relics may query target thresholds; only shared damage resolution can update totals. */
+  readonly totals: { readonly strike: number; readonly condition: number };
+  readonly effects: EffectEmissionService;
   readonly combatStartTime?: number | null;
   readonly relic?: Gw2RelicRuntime;
-  recordProc(
-    kind: string,
-    name: string,
-    at: number,
-    sourceSkill?: string,
-    detail?: string,
-    icon?: string,
-    cooldownReduction?: number | null,
-    expiresAt?: number | null,
-    effectState?: Gw2ProcStep['effectState']
-  ): unknown;
-  addBreakdown(name: string, amount: number, kind: string, hits?: unknown): unknown;
 }
-
-export type Gw2EventDraft = {
-  readonly ownerActorType?: SimulationActorType;
-  readonly triggeredBy?: string;
-  readonly activationId?: string;
-  readonly procType?: string;
-  readonly coefficient?: number;
-  readonly controlKind?: string;
-  readonly sourceSkill?: string;
-  readonly detail?: string;
-  readonly hits?: number;
-  readonly hitIndex?: number;
-  readonly totalHits?: number;
-  readonly skillWeapon?: string;
-  readonly canCrit?: boolean;
-  readonly summonOwner?: SimulationEvent['summonOwner'];
-  readonly independentConditionOwner?: boolean;
-  readonly metadata?: SimulationEvent['metadata'];
-  readonly type: string;
-  readonly at: number;
-  readonly source: string;
-  readonly sourceId?: import('#gw2/platform/engine/skills/types.js').SkillId;
-  readonly actorType?: SimulationActorType;
-  readonly name?: string;
-  readonly skillName?: string;
-  readonly parentSkillName?: string;
-  readonly damageBreakdownName?: string;
-  readonly skillId?: import('#gw2/platform/engine/skills/types.js').SkillId | null;
-  readonly icon?: string;
-  readonly kind?: string;
-  readonly duration?: number;
-  readonly stacks?: number;
-  readonly condition?: string;
-  readonly fixedDuration?: boolean;
-  /** Relic of Peitha trigger: fixed milliseconds from activation to projectile impact. */
-  readonly peithaImpactDelayMs?: number;
-};
-
-type Gw2ApplyCondition = (context: Gw2RelicContext, event: Gw2EventDraft) => unknown;
 
 export interface Gw2ConditionHelpers {
   activeConditionStackCount(context: Gw2RelicContext, condition: string, at: number): number;
-  applyCondition: Gw2ApplyCondition;
 }
 
 export interface Gw2RelicRule {
@@ -187,12 +120,7 @@ export interface Gw2RelicRule {
     helpers: Gw2ConditionHelpers
   ) => unknown;
   readonly damageResolved?: (context: Gw2RelicContext, state: Gw2RelicState, event: SimulationEvent) => unknown;
-  readonly peitha?: (
-    context: Gw2RelicContext,
-    state: Gw2RelicState,
-    event: SimulationEvent,
-    applyCondition: Gw2ApplyCondition
-  ) => unknown;
+  readonly peitha?: (context: Gw2RelicContext, state: Gw2RelicState, event: SimulationEvent) => unknown;
 }
 
 export interface Gw2RelicRuntime {

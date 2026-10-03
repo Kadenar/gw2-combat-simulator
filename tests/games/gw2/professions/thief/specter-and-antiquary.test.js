@@ -56,7 +56,7 @@ test('allied Leeching Venoms triggers only for the first packet of an allied ven
         // Required life-steal tuning comes from the canonical catalog.
         catalog: thiefCatalog,
         config: { selectedTraitIds: [TRAIT.LEECHING_VENOMS] },
-        queue: { enqueue: (event) => queued.push(event) }
+        effects: { emit: ({ event }) => queued.push(event) }
       },
       {
         at: 1,
@@ -203,13 +203,12 @@ test('Shadow Shroud depletion executes at the live boundary', () => {
     ['Enter Shadow Shroud', { type: 'wait', durationMs: 1000 }],
     { specialization: 'Specter', initialShadowForce: 1 },
     {
-      initialize(runtime) {
-        const emit = runtime.emit;
-        runtime.emit = (event) => {
+      extend: (native) => ({
+        prepareEvent(runtime, event) {
           if (event.sourceId === DEPLETED) observed.push(runtime.time);
-          return emit(event);
-        };
-      }
+          return native.prepareEvent?.(runtime, event) ?? event;
+        }
+      })
     }
   );
   assert.deepEqual(result.warnings, []);

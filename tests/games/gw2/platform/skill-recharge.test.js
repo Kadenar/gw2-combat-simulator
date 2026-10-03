@@ -67,15 +67,18 @@ test('Alacrity gained during a cast leaves reserved recharge and the independent
           return {
             ...profession.runtimeFor(config),
             initialize(runtime) {
-              runtime.emit({
-                type: 'buff',
-                kind: 'alacrity',
-                at: 1,
-                duration: 4,
-                stacks: 1,
-                source: 'fixture',
-                sourceId: 'fixture',
-                actorType: 'player'
+              runtime.effects.emit({
+                kind: 'packet',
+                event: {
+                  type: 'buff',
+                  kind: 'alacrity',
+                  at: 1,
+                  duration: 4,
+                  stacks: 1,
+                  source: 'fixture',
+                  sourceId: 'fixture',
+                  actorType: 'player'
+                }
               });
             },
             onCastCommit(runtime, cast) {
@@ -341,23 +344,29 @@ test('summon recharge requires shared player Alacrity and accounts for its expir
                 ...profession.runtimeFor(config),
                 initialize(runtime) {
                   const owner = { source: 'fixture', sourceId: 'fixture', actorType: 'player' };
-                  runtime.emit({
-                    ...owner,
-                    type: 'buff',
-                    kind: 'alacrity',
-                    at: 2,
-                    duration: 4,
-                    stacks: 1,
-                    audience: { recipients: 'party', eligibleCompanionIds: ['fixture-summon'] }
+                  runtime.effects.emit({
+                    kind: 'packet',
+                    event: {
+                      ...owner,
+                      type: 'buff',
+                      kind: 'alacrity',
+                      at: 2,
+                      duration: 4,
+                      stacks: 1,
+                      audience: { recipients: 'party', eligibleCompanionIds: ['fixture-summon'] }
+                    }
                   });
                   if (extension)
-                    runtime.emit({
-                      ...owner,
-                      type: 'boon_extension',
-                      at: 3,
-                      kind: 'alacrity',
-                      duration: 2,
-                      extensionAudience: 'all'
+                    runtime.effects.emit({
+                      kind: 'packet',
+                      event: {
+                        ...owner,
+                        type: 'boon_extension',
+                        at: 3,
+                        kind: 'alacrity',
+                        duration: 2,
+                        extensionAudience: 'all'
+                      }
                     });
                 }
               };

@@ -74,11 +74,13 @@ test('trait and combo fire auras detonate once before their exclusive rounded ex
           skillName: 'Chop',
           actorType: 'player'
         };
-        runtime.emit(
-          source === 'trait'
-            ? { ...event, type: 'damage', coefficient: 1, forceCrit: true, weaponStrengthProfileId: 'weapon.axe' }
-            : { ...event, type: 'aura', aura: 'Fire Aura', duration: 5 }
-        );
+        runtime.effects.emit({
+          kind: 'packet',
+          event:
+            source === 'trait'
+              ? { ...event, type: 'damage', coefficient: 1, forceCrit: true, weaponStrengthProfileId: 'weapon.axe' }
+              : { ...event, type: 'aura', aura: 'Fire Aura', duration: 5 }
+        });
       });
       if (source === 'trait') assert.equal(boonApplicationsAt(result.events, 'fire-aura', 0.001)[0].expiresAt, 5.04);
       assert.equal(result.procSteps.filter((proc) => proc.skill === 'King of Fires').length, at < 5040 ? 1 : 0);
@@ -94,14 +96,17 @@ test('a shorter combo fire aura cannot truncate the current aura owner', () => {
       [0.001, 5],
       [1.001, 1]
     ])
-      runtime.emit({
-        type: 'aura',
-        aura: 'Fire Aura',
-        at,
-        duration,
-        source: 'combo',
-        sourceId: 'fixture',
-        actorType: 'player'
+      runtime.effects.emit({
+        kind: 'packet',
+        event: {
+          type: 'aura',
+          aura: 'Fire Aura',
+          at,
+          duration,
+          source: 'combo',
+          sourceId: 'fixture',
+          actorType: 'player'
+        }
       });
   });
   assert.equal(state(result).fireAuraUntil, 5.04);

@@ -4,11 +4,7 @@ import {
   requireBalanceProfileFromContext,
   requireEffect
 } from '#gw2/platform/engine/skills/balance-profiles.js';
-import {
-  activeBoonStacks,
-  queueBuff,
-  recordTrait
-} from '#gw2/professions/engineer/core/mechanics/resolution-helpers.js';
+import { activeBoonStacks, buildEngineerBuff } from '#gw2/professions/engineer/core/mechanics/resolution-helpers.js';
 import { ENGINEER_TRAIT_IDS as TRAIT, ENGINEER_SKILL_IDS as ID } from '#gw2/professions/engineer/data/ids.js';
 import { scrapperState } from '#gw2/professions/engineer/specializations/scrapper/state.js';
 import {
@@ -24,7 +20,6 @@ import { activeBoonStacks as modifierBoonStacks } from '#gw2/professions/enginee
 import { type SimulationEvent } from '#gw2/platform/engine/events/events.js';
 import { produceRuntimeCombos } from '#gw2/platform/combos/runtime.js';
 import { type RuntimeCast } from '#gw2/platform/simulation/runtime-state.js';
-import { queueResolverBoon } from '#gw2/platform/resolver/boons.js';
 
 /** Keeps one pending Stability pulse and rechecks selection and live Stability before each grant. */
 export function triggerMassMomentum(context: EngineerRuntime, event: EngineerResolverEvent): void | false {
@@ -36,16 +31,25 @@ export function triggerMassMomentum(context: EngineerRuntime, event: EngineerRes
     state.massMomentum = event.at + balanceProfileNumber(massMomentumProfile, 'pulseInterval');
     const massMomentumMight = requireEffect(massMomentumProfile, 'boon', 'might');
     if (massMomentumMight) {
-      queueBuff(context, event, {
-        name: 'Mass Momentum',
-        kind: String(massMomentumMight.boon).toLowerCase(),
-        stacks: Number(massMomentumMight.stacks),
-        duration: massMomentumMight.duration,
-        sourceId: TRAIT.MASS_MOMENTUM,
-        actorType: 'effect'
+      context.effects.emit({
+        kind: 'packet',
+        event: buildEngineerBuff(event, {
+          name: 'Mass Momentum',
+          kind: String(massMomentumMight.boon).toLowerCase(),
+          stacks: Number(massMomentumMight.stacks),
+          duration: massMomentumMight.duration,
+          sourceId: TRAIT.MASS_MOMENTUM,
+          actorType: 'effect'
+        }),
+        durationContext: event
       });
 
-      recordTrait(context, 'Mass Momentum', event);
+      context.effects.emit({
+        attribution: { source: 'Trait', sourceId: TRAIT.MASS_MOMENTUM, actorType: 'effect' },
+        kind: 'announcement',
+        cause: event,
+        announcement: { type: 'trait', name: 'Mass Momentum', at: event.at, sourceSkill: event.skillName, icon: '' }
+      });
     }
   }
 
@@ -82,16 +86,25 @@ export function reactToAppliedForceBuff(context: EngineerRuntime, event: Enginee
       state.appliedForce = event.at + balanceProfileNumber(appliedForceProfile, 'internalCooldown');
       const appliedForceStability = requireEffect(appliedForceProfile, 'boon', 'stability');
       if (appliedForceStability) {
-        queueBuff(context, event, {
-          name: 'Applied Force',
-          kind: String(appliedForceStability.boon).toLowerCase(),
-          stacks: Number(appliedForceStability.stacks),
-          duration: appliedForceStability.duration,
-          sourceId: TRAIT.APPLIED_FORCE,
-          actorType: 'effect'
+        context.effects.emit({
+          kind: 'packet',
+          event: buildEngineerBuff(event, {
+            name: 'Applied Force',
+            kind: String(appliedForceStability.boon).toLowerCase(),
+            stacks: Number(appliedForceStability.stacks),
+            duration: appliedForceStability.duration,
+            sourceId: TRAIT.APPLIED_FORCE,
+            actorType: 'effect'
+          }),
+          durationContext: event
         });
 
-        recordTrait(context, 'Applied Force', event);
+        context.effects.emit({
+          attribution: { source: 'Trait', sourceId: TRAIT.APPLIED_FORCE, actorType: 'effect' },
+          kind: 'announcement',
+          cause: event,
+          announcement: { type: 'trait', name: 'Applied Force', at: event.at, sourceSkill: event.skillName, icon: '' }
+        });
       }
     }
   }
@@ -183,6 +196,11 @@ export function applyKineticAcceleratorsCast(context: EngineerRuntime, cast: Run
 export function reactToScrapperCombo(context: EngineerRuntime, event: EngineerResolverEvent): void {
   const boons = kineticAcceleratorBoons(context, event);
   if (!boons.length) return;
-  for (const boon of boons) queueResolverBoon(context, event, boon);
-  recordTrait(context, 'Kinetic Accelerators', event);
+  for (const boon of boons) context.effects.emit({ kind: 'packet', event: boon, durationContext: event });
+  context.effects.emit({
+    attribution: { source: 'Trait', sourceId: TRAIT.KINETIC_ACCELERATORS, actorType: 'effect' },
+    kind: 'announcement',
+    cause: event,
+    announcement: { type: 'trait', name: 'Kinetic Accelerators', at: event.at, sourceSkill: event.skillName, icon: '' }
+  });
 }

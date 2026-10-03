@@ -23,14 +23,12 @@ import {
 } from '#gw2/professions/elementalist/core/state.js';
 import { applyElementalistAttunementTraits } from '#gw2/professions/elementalist/core/traits/dispatch.js';
 import { ELEMENTALIST_ATTUNEMENT_SKILL_IDS } from '#gw2/professions/elementalist/data/ids.js';
-import type { ElementalistSkill, ElementalistRuntime } from '#gw2/professions/elementalist/types.js';
-
+import type { ElementalistRuntime, ElementalistSkill } from '#gw2/professions/elementalist/types.js';
 /** Identifies one shared attunement-entry trait effect so a specialization can veto it. */
 export interface ElementalistAttunementTraitTrigger {
   readonly attunement: ElementalistAttunement;
   readonly profileId: Skill['id'];
 }
-
 /**
  * Specialization-supplied overrides for a single attunement swap: the secondary
  * attunement to report, a replacement recharge policy, and a trait-effect veto.
@@ -40,7 +38,6 @@ interface ElementalistAttunementTransition {
   readonly rechargeDuration?: number;
   readonly shouldTriggerAttunementTrait?: (trigger: ElementalistAttunementTraitTrigger) => boolean;
 }
-
 /** Maps an attunement-swap skill to the attunement it enters, or null for any other skill. */
 export function targetAttunement(skill: Skill): ElementalistAttunement | null {
   return (
@@ -120,44 +117,52 @@ export function onAttunementComplete(
 
   // Publish the swap for the resolver and presentation, then trigger weapon sigils.
   state.attunementEnteredAt = at;
-  context.emit({
-    type: 'elementalist.attunement',
-    at,
-    priority: -20,
-    source: skill.name,
-    sourceId: skill.id,
-    actorType: 'player',
-    skillId: skill.id,
-    skillName: skill.name,
-    from: previous,
-    to: target,
-    secondaryAttunement: transition.secondaryAttunement ?? null,
-    attunementReadyAtBefore
+  context.effects.emit({
+    kind: 'packet',
+    event: {
+      type: 'elementalist.attunement',
+      at,
+      priority: -20,
+      source: skill.name,
+      sourceId: skill.id,
+      actorType: 'player',
+      skillId: skill.id,
+      skillName: skill.name,
+      from: previous,
+      to: target,
+      secondaryAttunement: transition.secondaryAttunement ?? null,
+      attunementReadyAtBefore
+    }
   });
-  context.emit({
-    type: 'sigil_swap',
-    at,
-    source: skill.name,
-    sourceId: skill.id,
-    actorType: 'player',
-    skillId: skill.id,
-    skillName: skill.name
+  context.effects.emit({
+    kind: 'packet',
+    event: {
+      type: 'sigil_swap',
+      at,
+      source: skill.name,
+      sourceId: skill.id,
+      actorType: 'player',
+      skillId: skill.id,
+      skillName: skill.name
+    }
   });
   // Pre-combat swaps still move state and timers but grant no trait effects.
   if (!combatStarted(context, at)) return;
-
   // Specializations can gate shared attunement-trait effects without Core inspecting specialization state or policy.
   const shouldTriggerAttunementTrait = (attunement: ElementalistAttunement, profileId: Skill['id']): boolean =>
     transition.shouldTriggerAttunementTrait?.({ attunement, profileId }) !== false;
-
-  applyElementalistAttunementTraits(context, {
-    at,
-    skill,
-    previous,
-    target,
-    dualAttunement,
-    shouldTrigger: shouldTriggerAttunementTrait
-  });
+  applyElementalistAttunementTraits(
+    context,
+    {
+      at,
+      skill,
+      previous,
+      target,
+      dualAttunement,
+      shouldTrigger: shouldTriggerAttunementTrait
+    },
+    { activationId: cast.id, skillId: cast.skill.id, offTarget: cast.command.offTarget }
+  );
 }
 
 const transitions = new WeakMap<

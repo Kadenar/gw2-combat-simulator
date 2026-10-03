@@ -7,10 +7,9 @@ import {
 } from '#gw2/platform/engine/skills/balance-profiles.js';
 import type { Skill } from '#gw2/platform/engine/skills/types.js';
 import { gw2ActivePrimaryWeapon } from '#gw2/platform/equipment/weapons/loadout.js';
-import { queueResolverBoon } from '#gw2/platform/resolver/boons.js';
 import { buildResolverBuff, buildResolverCondition } from '#gw2/platform/resolver/packets.js';
 import type { Gw2Runtime, RuntimeCast } from '#gw2/platform/simulation/runtime-state.js';
-import { guardianTraitIcon, recordGuardianTraitProc } from '#gw2/professions/guardian/core/traits/behavior.js';
+import { guardianTraitIcon } from '#gw2/professions/guardian/core/traits/behavior.js';
 import { GUARDIAN_TRAIT_IDS as TRAIT } from '#gw2/professions/guardian/data/ids.js';
 import type {
   GuardianResolverContext,
@@ -28,8 +27,10 @@ export function reactToDragonhunterControl(context: GuardianResolverContext, eve
     // Control-triggered conditions resolve immediately so their reactions
     // share the originating control timestamp.
     if (crippled) {
-      context.applyCondition(
-        buildResolverCondition({
+      context.effects.emit({
+        kind: 'packet',
+        settlement: 'reaction',
+        event: buildResolverCondition({
           at: event.at,
           source: 'guardian',
           sourceId: TRAIT.DULLED_SENSES,
@@ -43,7 +44,7 @@ export function reactToDragonhunterControl(context: GuardianResolverContext, eve
           stacks: effectNumber(dulledSensesProfile, crippled, 'stacks'),
           duration: effectNumber(dulledSensesProfile, crippled, 'duration')
         })
-      );
+      });
     }
   }
 
@@ -55,10 +56,10 @@ export function reactToDragonhunterControl(context: GuardianResolverContext, eve
   const stability = requireEffect(heavyLightProfile, 'boon', 'stability');
   // Removing Stability leaves Heavy Light's interval unclaimed.
   if (!stability || !context.procs.claim(TRAIT.HEAVY_LIGHT, 'guardian.dragonhunter.heavyLight', event.at)) return;
-  queueResolverBoon(
-    context,
-    event,
-    buildResolverBuff({
+  context.effects.emit({
+    kind: 'packet',
+    durationContext: event,
+    event: buildResolverBuff({
       at: event.at,
       priority: 5,
       source: 'guardian',
@@ -72,15 +73,18 @@ export function reactToDragonhunterControl(context: GuardianResolverContext, eve
       stacks: effectNumber(heavyLightProfile, stability, 'stacks'),
       duration: effectNumber(heavyLightProfile, stability, 'duration')
     })
-  );
-  context.recordProc(
-    'trait',
-    'Heavy Light',
-    event.at,
-    event.skillName,
-    'Stability',
-    guardianTraitIcon(TRAIT.HEAVY_LIGHT)
-  );
+  });
+  context.effects.emit({
+    kind: 'announcement',
+    announcement: {
+      type: 'trait',
+      name: 'Heavy Light',
+      at: event.at,
+      sourceSkill: event.skillName,
+      detail: 'Stability',
+      icon: guardianTraitIcon(TRAIT.HEAVY_LIGHT)
+    }
+  });
 }
 
 /** The elite cast grants endurance after its accepted virtue activation rewards. */
@@ -91,14 +95,19 @@ export function completeHuntersDetermination(runtime: Runtime, cast: RuntimeCast
       'resourceGain'
     );
     runtime.endurance.grant(amount);
-    recordGuardianTraitProc(
-      runtime,
-      TRAIT.HUNTERS_DETERMINATION,
-      "Hunter's Determination",
-      runtime.time,
-      cast.skill.name,
-      `${amount} endurance`
-    );
+    {
+      runtime.effects.emit({
+        kind: 'announcement',
+        announcement: {
+          type: 'trait',
+          name: "Hunter's Determination",
+          at: runtime.time,
+          sourceSkill: cast.skill.name,
+          detail: `${amount} endurance`,
+          icon: guardianTraitIcon(TRAIT.HUNTERS_DETERMINATION)
+        }
+      });
+    }
   }
 }
 

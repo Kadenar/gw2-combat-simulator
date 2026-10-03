@@ -1,3 +1,4 @@
+import { createEffectEmissionService } from '#gw2/platform/simulation/effect-emission.js';
 import { applyBalanceProfilePatch } from '#gw2/integrations/patches/authoring/patches.js';
 import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
 import { createProcRegistry } from '#gw2/platform/combat/procs.js';
@@ -46,15 +47,18 @@ test('Untamed control declarations gate cooldowns on the selected surviving effe
             extend: () => ({ catalog: patched({ [profile]: remove(type, removed) }) }),
             initialize(runtime) {
               runtime.profession.specialization.state.rangerUnleashed = unleashed;
-              runtime.emit({
-                type: 'control',
-                at: 1,
-                source: 'fixture',
-                sourceId: 'control',
-                actorType: 'player',
-                skillName: 'Test',
-                controlKind: 'daze',
-                duration: 1
+              runtime.effects.emit({
+                kind: 'packet',
+                event: {
+                  type: 'control',
+                  at: 1,
+                  source: 'fixture',
+                  sourceId: 'control',
+                  actorType: 'player',
+                  skillName: 'Test',
+                  controlKind: 'daze',
+                  duration: 1
+                }
               });
             }
           }
@@ -101,7 +105,15 @@ function resolverContext(balanceProfiles, selectedTraitIds, specialization) {
     // Neutral stats keep derived boon durations at their authored values.
     query: { statsAt: () => ({}) },
     queued,
-    queue: { enqueue: (event) => queued.push(event) },
+    effects: createEffectEmissionService({
+      now: () => 0,
+      registerReaction: () => undefined,
+      submit: (event) => {
+        queued.push(event);
+        return event;
+      },
+      announce: () => undefined
+    }),
     profession: { core: createRangerCoreState(config), ...(specialization ? { specialization } : {}) }
   };
   return context;
@@ -146,7 +158,7 @@ test('removed Quick Draw quickness keeps the trait-owned recharge window and coo
     combatStartTime: 0,
     effectiveEnd: 1,
     state: { time: 1, profession: { core: createRangerCoreState(config) } },
-    emit: (event) => events.push(event)
+    effects: { emit: ({ event }) => events.push(event) }
   };
   applyRangerWeaponSwapTraits(context, rangerCatalog.skillsById.get(SHARED_SKILL_IDS.SWAP_WEAPONS), 1);
   const core = context.state.profession.core;
@@ -177,15 +189,18 @@ test('Bestial Rage keeps its sibling boon and cooldown, and releases the cooldow
           })
         }),
         initialize(runtime) {
-          runtime.emit({
-            type: 'control',
-            at: 1,
-            source: 'fixture',
-            sourceId: 'control',
-            actorType: 'player',
-            skillName: 'Test',
-            controlKind: 'daze',
-            duration: 1
+          runtime.effects.emit({
+            kind: 'packet',
+            event: {
+              type: 'control',
+              at: 1,
+              source: 'fixture',
+              sourceId: 'control',
+              actorType: 'player',
+              skillName: 'Test',
+              controlKind: 'daze',
+              duration: 1
+            }
           });
         }
       }
@@ -257,16 +272,19 @@ test('pet recharge consumes patched Pack Alpha and Crippling Anguish values', ()
         }),
         initialize(runtime) {
           if (quickness)
-            runtime.emit({
-              type: 'buff',
-              kind: 'quickness',
-              at: 0,
-              duration: 10,
-              stacks: 1,
-              source: 'fixture',
-              sourceId: 'fixture',
-              actorType: 'player',
-              audience: { recipients: 'summons' }
+            runtime.effects.emit({
+              kind: 'packet',
+              event: {
+                type: 'buff',
+                kind: 'quickness',
+                at: 0,
+                duration: 10,
+                stacks: 1,
+                source: 'fixture',
+                sourceId: 'fixture',
+                actorType: 'player',
+                audience: { recipients: 'summons' }
+              }
             });
         }
       }

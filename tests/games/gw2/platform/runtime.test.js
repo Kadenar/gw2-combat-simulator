@@ -217,8 +217,11 @@ test('companion steps report executed animations instead of queued reservations'
           fullEndsAt: 1.6,
           activationId: activation.id
         };
-        runtime.emit(action);
-        runtime.emit({ ...action, at: 2, endsAt: 3, fullEndsAt: 3, activationId: 'automatic' });
+        runtime.effects.emit({ kind: 'packet', event: action });
+        runtime.effects.emit({
+          kind: 'packet',
+          event: { ...action, at: 2, endsAt: 3, fullEndsAt: 3, activationId: 'automatic' }
+        });
       }
     })
   });
@@ -366,7 +369,7 @@ test('authored combat boundaries include simultaneous impacts before the marker 
   const profession = fixture({
     onCastStart(runtime, activation) {
       fixture().onCastStart(runtime, activation);
-      for (const at of [0, 0.499999, 0.5, 1]) runtime.emit(packet(at));
+      for (const at of [0, 0.499999, 0.5, 1]) runtime.effects.emit({ kind: 'packet', event: packet(at) });
     },
     reactions: {
       'damage.resolved'(runtime) {
@@ -441,10 +444,10 @@ test('lethal siblings finish but post-death hits grant nothing while self comman
   const profession = fixture({
     initialize(runtime) {
       owner = runtime;
-      runtime.emit(packet(0.5, { activationId: 'lethal' }));
-      runtime.emit(packet(0.5, { activationId: 'lethal' }));
-      runtime.emit(packet(0.5, { activationId: 'other' }));
-      runtime.emit(packet(1.5, { activationId: 'later' }));
+      runtime.effects.emit({ kind: 'packet', event: packet(0.5, { activationId: 'lethal' }) });
+      runtime.effects.emit({ kind: 'packet', event: packet(0.5, { activationId: 'lethal' }) });
+      runtime.effects.emit({ kind: 'packet', event: packet(0.5, { activationId: 'other' }) });
+      runtime.effects.emit({ kind: 'packet', event: packet(1.5, { activationId: 'later' }) });
     },
     reactions: {
       'damage.resolved': (runtime) => {
@@ -494,7 +497,7 @@ test('cooldown waits settle accepted resource gains before a hard affordability 
       profession: fixture({
         initialize(runtime) {
           runtime.cooldownController.startRecharge(catalog.skillsById.get(990002), 0, 2);
-          runtime.emit(packet(impactAt));
+          runtime.effects.emit({ kind: 'packet', event: packet(impactAt) });
         },
         reactions: { 'damage.resolved': (runtime) => runtime.resourceController.grant('energy', 1) },
         availability(runtime) {
@@ -628,14 +631,17 @@ test('derived effects inherit their cause and settle before an independent same-
   run([wait(1000)], {
     profession: fixture({
       initialize(runtime) {
-        runtime.emit(packet(1, { sourceId: 'first' }));
-        runtime.emit(packet(1, { sourceId: 'second' }));
+        runtime.effects.emit({ kind: 'packet', event: packet(1, { sourceId: 'first' }) });
+        runtime.effects.emit({ kind: 'packet', event: packet(1, { sourceId: 'second' }) });
       },
       reactions: {
         'damage.resolved': (runtime, event) => {
           observed.push([event.sourceId, runtime.profession.energy.value]);
           if (event.sourceId === 'first')
-            runtime.emit({ type: 'fixture.grant', at: 1, source: 'fixture', sourceId: 'gain', actorType: 'player' });
+            runtime.effects.emit({
+              kind: 'packet',
+              event: { type: 'fixture.grant', at: 1, source: 'fixture', sourceId: 'gain', actorType: 'player' }
+            });
         }
       },
       eventHandlers: {
@@ -655,15 +661,18 @@ test('transient Alacrity grants leave the permanent cooldown rate unchanged', ()
   const result = run([cast(990001), cast(990001)], {
     profession: fixture({
       initialize(runtime) {
-        runtime.emit({
-          type: 'buff',
-          kind: 'alacrity',
-          at: 2,
-          duration: 10,
-          stacks: 1,
-          source: 'fixture',
-          sourceId: 'alacrity',
-          actorType: 'player'
+        runtime.effects.emit({
+          kind: 'packet',
+          event: {
+            type: 'buff',
+            kind: 'alacrity',
+            at: 2,
+            duration: 10,
+            stacks: 1,
+            source: 'fixture',
+            sourceId: 'alacrity',
+            actorType: 'player'
+          }
         });
       }
     })

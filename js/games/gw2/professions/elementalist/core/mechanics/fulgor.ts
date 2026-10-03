@@ -1,24 +1,22 @@
-import { canonicalTime } from '#kernel/core/clock.js';
 import { requireBalanceProfileFromContext, requireEffect } from '#gw2/platform/engine/skills/balance-profiles.js';
+import type { EffectDelivery } from '#gw2/platform/simulation/effect-emission.js';
 import type { RuntimeCast } from '#gw2/platform/simulation/runtime-state.js';
-import type { ElementalistCoreState } from '#gw2/professions/elementalist/core/state.js';
-import type {
-  ElementalistSkill,
-  ElementalistRuntime,
-  ElementalistSimulationEvent
-} from '#gw2/professions/elementalist/types.js';
-import { emitElementalistDamage } from '#gw2/professions/elementalist/core/events.js';
+import { elementalistStrikeRequest } from '#gw2/professions/elementalist/core/events.js';
 import { empowerElementalistSpearPacket } from '#gw2/professions/elementalist/core/mechanics/spear-empowerments.js';
 import { ELEMENTALIST_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/elementalist/core/profiles.js';
-
+import type { ElementalistCoreState } from '#gw2/professions/elementalist/core/state.js';
+import type {
+  ElementalistRuntime,
+  ElementalistSimulationEvent,
+  ElementalistSkill
+} from '#gw2/professions/elementalist/types.js';
+import { canonicalTime } from '#kernel/core/clock.js';
 const FULGOR_OWNER = { id: 'elementalist.fulgor', generation: 0 };
-
 /** Pending work owns the snapshot, so completion or cancellation needs no separate state cleanup. */
 interface FulgorSequence {
   packets: ElementalistSimulationEvent[];
   empowerment: ElementalistCoreState['spearFollowups'][string] | undefined;
 }
-
 function scheduleNextPulse(context: ElementalistRuntime, sequence: FulgorSequence): void {
   if (sequence.packets.length)
     context.schedule('elementalist.fulgor-pulse', sequence.packets[0].at, sequence, FULGOR_OWNER);
@@ -53,12 +51,14 @@ export function replaceFulgor(context: ElementalistRuntime, cast: RuntimeCast<El
 }
 
 /** Carry the consumed control flag forward with the remaining pulses, releasing the snapshot after the last one. */
-export function fulgorPulse(context: ElementalistRuntime, data: unknown): void {
+export function fulgorPulse(context: ElementalistRuntime, data: unknown, emissionCast?: EffectDelivery['cast']): void {
   const {
     packets: [packet, ...remaining],
     empowerment
   } = data as FulgorSequence;
-  const empowered = empowerElementalistSpearPacket(context, packet, empowerment);
-  emitElementalistDamage(context, { ...empowered, coefficient: Number(empowered.coefficient) });
+  const empowered = empowerElementalistSpearPacket(context, packet, empowerment, emissionCast);
+  context.effects.emit(
+    elementalistStrikeRequest(context, { ...empowered, coefficient: Number(empowered.coefficient) }, emissionCast)
+  );
   scheduleNextPulse(context, { packets: remaining, empowerment });
 }

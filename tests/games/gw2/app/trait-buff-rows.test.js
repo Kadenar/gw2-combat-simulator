@@ -121,9 +121,10 @@ test('consolidation preserves proc details, other effects, and zero-recipient gr
       assert.match(rows.find((row) => row.id === 'event:2').description, /no recipients 12s.*Arms another effect/);
       assert.ok(!rows.some((row) => row.id === 'event:3'));
     } else {
-      assert.match(rows.find((row) => row.id === 'event:2').description, /^TRAIT Master Fencer/);
-      assert.match(rows.find((row) => row.id === 'event:3').description, /no recipients 12s/);
-      assert.equal(rows.find((row) => row.id === 'event:3').parentId, 'event:2');
+      const summary = rows.find((row) => row.id === 'event:2');
+      assert.match(summary.description, /Master Fencer → Fury.*no recipients 12s; Might.*self 12s/);
+      assert.equal(summary.details.length, 2);
+      assert.ok(!rows.some((row) => ['event:3', 'event:4'].includes(row.id)));
     }
   }
 });

@@ -1,18 +1,20 @@
+import type {
+  AnnouncementEmission,
+  EffectDelivery,
+  ProfileEmission
+} from '#gw2/platform/simulation/effect-emission.js';
 /**
- * Shared Elementalist emission helpers for the runtime hooks.
+ * Elementalist payload selection and attribution for the shared emission service.
  *
- * Balance-profile-driven buff, condition, proc, and aura emitters plus the small
+ * Balance-profile-driven buff, condition, and announcement request builders plus the small
  * catalog and state lookups they depend on. Skill and trait handlers depend on
  * this module; it must not depend on them.
  */
-import { emitElementalistBuff, emitElementalistCondition } from '#gw2/professions/elementalist/core/events.js';
 import { requireBalanceProfileFromContext, requireEffect } from '#gw2/platform/engine/skills/balance-profiles.js';
-import { materializeSkillEffectApplications } from '#gw2/platform/engine/effects/materializer.js';
 import type { Skill } from '#gw2/platform/engine/skills/types.js';
-import type { ElementalistRuntime } from '#gw2/professions/elementalist/types.js';
-import type { ElementalistAuraState, ElementalistCoreState } from '#gw2/professions/elementalist/core/state.js';
 import { ETCHING_CHAINS } from '#gw2/professions/elementalist/core/constants.js';
-
+import type { ElementalistAuraState, ElementalistCoreState } from '#gw2/professions/elementalist/core/state.js';
+import type { ElementalistRuntime } from '#gw2/professions/elementalist/types.js';
 /** Reads the weapon a skill belongs to, tolerating either catalog field spelling. */
 export function skillWeapon(skill: Skill): string {
   return skill.weapon || skill.skillWeapon || '';
@@ -37,8 +39,7 @@ export function combatStarted(context: ElementalistRuntime, at: number): boolean
   );
 }
 
-// Resolve procedural sources through the catalog so canonical emitters can
-// apply skill policy without hiding event construction behind another emitter.
+// Resolve procedural sources through the catalog so request attribution retains canonical skill policy.
 export function elementalistEventSkill(context: ElementalistRuntime, source: string, sourceId: Skill['id']): Skill {
   return (
     context.helpers.skillsById.get(sourceId) ||
@@ -46,8 +47,8 @@ export function elementalistEventSkill(context: ElementalistRuntime, source: str
   );
 }
 
-/** Expand the surviving named boon at its existing lifecycle position, retaining cast ownership and priority. */
-export function emitProfiledBuff(
+/** Select a surviving profile boon; the shared service owns expansion and live duration. */
+export function elementalistProfiledBuffRequest(
   context: ElementalistRuntime,
   at: number,
   profileId: Skill['id'],
@@ -55,113 +56,86 @@ export function emitProfiledBuff(
   source: string,
   sourceId: Skill['id'],
   priority = 0,
-  recipients: 'self' | 'party' = 'self'
-): void {
+  recipients: 'self' | 'party' = 'self',
+  emissionCast?: EffectDelivery['cast']
+): ProfileEmission {
   const profile = requireBalanceProfileFromContext(context, profileId);
   const effect = requireEffect(profile, 'boon', effectName);
-  if (!effect) return;
   const skill = elementalistEventSkill(context, source, sourceId);
-  for (const { event } of materializeSkillEffectApplications({
-    skill: profile,
-    effect,
-    reactionGroup: effect.reactions === undefined ? undefined : context.effectReactions.register(profile, effect),
-    start: at,
+  return {
+    kind: 'profile',
+    profile,
+    effects: effect ? [effect] : [],
+    at,
     fullEnd: at,
-    // A trait profile owns the boon; the casting skill remains its trigger and duration-sampling context.
-    baseEvent: {
+    cast: emissionCast,
+    priority,
+    attribution: {
       source: profile.profileKind === 'trait' ? 'Trait' : source,
       sourceId: profile.profileKind === 'trait' ? profile.id : sourceId,
       actorType: 'player',
       skillId: skill.id,
       skillName: source
-    }
-  }))
-    emitElementalistBuff(context, {
+    },
+    transform: (event) => ({
       ...event,
-      skill,
       name: source,
-      kind: String(event.kind),
-      duration: Number(event.duration),
       priority,
-      ...(recipients === 'party' ? { audience: { recipients: 'party' as const, maximumRecipients: 5 } } : {})
-    });
+      ...(recipients === 'party' ? { audience: { recipients: 'party', maximumRecipients: 5 } } : {})
+    })
+  };
 }
 
-/** Emits profile totals with authored timing; the condition resolver owns per-stack Burning applications. */
-export function emitProfiledCondition(
+/** Select the optional condition payload without manufacturing removed balance effects. */
+export function elementalistProfiledConditionRequest(
   context: ElementalistRuntime,
   at: number,
   profileId: Skill['id'],
   effectName: string,
   source: string,
   sourceId: Skill['id'],
-  triggeredBy = ''
-): boolean {
+  triggeredBy = '',
+  emissionCast?: EffectDelivery['cast']
+): ProfileEmission {
   const profile = requireBalanceProfileFromContext(context, profileId);
   const effect = requireEffect(profile, 'condition', effectName);
-  if (!effect) return false;
-  // Keep cast ownership while sharing authored timing and repetition.
-  let emitted = false;
   const skill = elementalistEventSkill(context, source, sourceId);
-  for (const { event } of materializeSkillEffectApplications({
-    skill: profile,
-    effect,
-    reactionGroup: effect.reactions === undefined ? undefined : context.effectReactions.register(profile, effect),
-    start: at,
+  return {
+    kind: 'profile',
+    profile,
+    effects: effect ? [effect] : [],
+    at,
     fullEnd: at,
-    baseEvent: { source, sourceId, actorType: 'player', skillId: skill.id, skillName: source, triggeredBy }
-  })) {
-    const condition = String(event.condition);
-    const packet = {
-      ...event,
-      skill,
-      name: `${source} — ${condition}`,
-      condition,
-      stacks: Number(event.stacks),
-      duration: Number(event.duration)
-    };
-    emitElementalistCondition(context, packet);
-    emitted = true;
-  }
-
-  return emitted;
+    cast: emissionCast,
+    attribution: { source, sourceId, actorType: 'player', skillId: skill.id, skillName: source, triggeredBy },
+    transform: (event) => ({ ...event, name: source + ' — ' + event.condition })
+  };
 }
 
-// Emit a consistently attributed proc marker for skill- and trait-owned
-// Elementalist effects without duplicating packet construction at call sites.
-export function emitElementalistProc(
-  context: ElementalistRuntime,
-  {
-    at,
-    name,
-    procType,
-    sourceId,
-    sourceSkill = '',
-    detail = '',
-    icon = ''
-  }: {
-    at: number;
-    name: string;
-    procType: 'trait' | 'skill';
-    sourceId: Skill['id'];
-    sourceSkill?: string;
-    detail?: string;
-    icon?: string;
-  }
-): void {
-  context.emit({
-    type: 'proc',
-    at,
-    source: name,
-    sourceId,
-    actorType: 'effect',
-    name,
-    skillName: name,
-    procType,
-    sourceSkill,
-    detail,
-    icon
-  });
+/** Announcements carry display identity independently from combat packets and strength rolls. */
+export function elementalistAnnouncement({
+  at,
+  name,
+  procType,
+  sourceId,
+  sourceSkill = '',
+  detail = '',
+  icon = ''
+}: {
+  at: number;
+  name: string;
+  procType: 'trait' | 'skill';
+  sourceId: Skill['id'];
+  sourceSkill?: string;
+  detail?: string;
+  icon?: string;
+}): AnnouncementEmission {
+  return {
+    kind: 'announcement',
+    log: true,
+    attribution: { source: procType === 'trait' ? 'Trait' : name, sourceId, actorType: 'effect', skillName: name },
+    announcement: { type: procType, name, at, sourceSkill, detail, icon }
+  };
 }
 
 export interface ElementalistAuraApplication {
@@ -172,23 +146,4 @@ export interface ElementalistAuraApplication {
   readonly sourceId: Skill['id'];
   readonly priority?: number;
 }
-
 export type ElementalistAuraApplier = (context: ElementalistRuntime, application: ElementalistAuraApplication) => void;
-
-// Register one finalized aura window and emit its canonical event; trait dispatchers adjust and react before calling in.
-export function emitElementalistAura(
-  context: ElementalistRuntime,
-  { at, aura, duration, skillName, sourceId, priority = 0 }: ElementalistAuraApplication
-): void {
-  context.emit({
-    type: 'elementalist.aura',
-    at,
-    source: skillName,
-    sourceId,
-    actorType: 'effect',
-    skillName,
-    aura,
-    duration,
-    ...(priority ? { priority } : {})
-  });
-}

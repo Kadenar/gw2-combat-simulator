@@ -1,6 +1,8 @@
 import { professionStaticRulesApplied } from '#gw2/platform/builds/attribute-provenance.js';
 import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
+import { isHostileTargetEvent } from '#gw2/platform/combat/state/targets.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
+import type { SimulationEventBase } from '#gw2/platform/engine/events/events.js';
 import { denySkillCast } from '#gw2/platform/engine/skills/availability.js';
 import {
   balanceProfileNumber,
@@ -8,7 +10,6 @@ import {
   requireBalanceProfileFromContext,
   requireEffect
 } from '#gw2/platform/engine/skills/balance-profiles.js';
-import { queueResolverBoon } from '#gw2/platform/resolver/boons.js';
 import { buildResolverCondition } from '#gw2/platform/resolver/packets.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import type { RuntimeCast, RuntimeProfession } from '#gw2/platform/simulation/runtime-state.js';
@@ -17,17 +18,17 @@ import {
   cloneNecromancerAttributes,
   necromancerRuntimeSpecializationState
 } from '#gw2/professions/necromancer/core/mechanics/modifier-queries.js';
-import { applyTraitCondition } from '#gw2/professions/necromancer/core/mechanics/trait-effects.js';
+import type { NecromancerRuntime, NecromancerSkill } from '#gw2/professions/necromancer/types.js';
+import { canonicalTime } from '#kernel/core/clock.js';
+
 import { armScourgePlagueSending } from '#gw2/professions/necromancer/core/traits/conditions.js';
 import { applyScourgeSoulBarbs } from '#gw2/professions/necromancer/core/traits/shroud.js';
 import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
-import { emitPacket, party } from '#gw2/professions/necromancer/specializations/scourge/mechanics/emission.js';
+import { party } from '#gw2/professions/necromancer/specializations/scourge/mechanics/audiences.js';
 import { SCOURGE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/necromancer/specializations/scourge/profiles.js';
 import type {
-  NecromancerSkill,
   NecromancerResolverContext,
   NecromancerResolverEvent,
-  NecromancerRuntime,
   NecromancerRuntimeState
 } from '#gw2/professions/necromancer/types.js';
 
@@ -84,13 +85,30 @@ function reactToCondition(context: NecromancerResolverContext, event: Necromance
     !context.procs.claimCooldown('necromancer.scourge.demonicLore', event.at, balanceProfileNumber(profile, 'cooldown'))
   )
     return;
-  applyTraitCondition(context, event, {
-    name: 'Demonic Lore',
-    traitId: TRAIT.DEMONIC_LORE,
-    condition: String(effect.condition),
-    stacks: effectNumber(profile, effect, 'stacks'),
-    duration: effectNumber(profile, effect, 'duration')
-  });
+  {
+    /* Trait payloads and their timeline annotation share the same emission boundary. */ context.effects.emit({
+      kind: 'packet',
+      settlement: 'reaction',
+      event: {
+        at: event.at,
+        source: 'Trait',
+        sourceId: TRAIT.DEMONIC_LORE,
+        actorType: 'effect',
+        skillName: 'Demonic Lore',
+        triggeredBy: event.skillName,
+        type: 'condition',
+        ownerActorType: 'player',
+        name: 'Demonic Lore' + ' - ' + String(effect.condition),
+        condition: String(effect.condition),
+        stacks: effectNumber(profile, effect, 'stacks'),
+        duration: effectNumber(profile, effect, 'duration')
+      }
+    });
+    context.effects.emit({
+      kind: 'announcement',
+      announcement: { type: 'trait', name: 'Demonic Lore', at: event.at, sourceSkill: event.skillName }
+    });
+  }
 }
 
 /** Exposes Scourge's condition-triggered trait reaction. */
@@ -121,7 +139,7 @@ export function barrierTraits(runtime: NecromancerRuntime, cast: RuntimeCast<Nec
       stacks: effectNumber(profile, effect, 'stacks'),
       audience: party(runtime)
     };
-    queueResolverBoon(runtime, event, event);
+    runtime.effects.emit({ kind: 'packet', event: event, durationContext: event });
   }
 }
 
@@ -137,23 +155,36 @@ export function shadeTraits(runtime: NecromancerRuntime, cast: RuntimeCast<Necro
   if (skill.id === ID.NEFARIOUS_FAVOR && hasTrait(runtime, TRAIT.SADISTIC_SEARING)) {
     const profile = requireBalanceProfileFromContext(runtime, TRAIT.SADISTIC_SEARING);
     const condition = requireEffect(profile, 'condition', 'Burning');
-    if (condition)
-      emitPacket(
-        runtime,
-        cast,
-        buildResolverCondition({
-          at: runtime.time,
-          source: 'Trait',
-          sourceId: TRAIT.SADISTIC_SEARING,
-          actorType: 'effect',
-          ownerActorType: 'player',
-          skillId: skill.id,
-          skillName: skill.name,
-          condition: String(condition.condition),
-          stacks: effectNumber(profile, condition, 'stacks'),
-          duration: effectNumber(profile, condition, 'duration')
-        })
-      );
+    if (condition) {
+      // Shared emission owns transport; the mechanic selects attribution and delivery.
+      const emissionRuntime: NecromancerRuntime = runtime;
+      const emissionCast: RuntimeCast<NecromancerSkill> = cast;
+      const emissionEvent: SimulationEventBase = buildResolverCondition({
+        at: runtime.time,
+        source: 'Trait',
+        sourceId: TRAIT.SADISTIC_SEARING,
+        actorType: 'effect',
+        ownerActorType: 'player',
+        skillId: skill.id,
+        skillName: skill.name,
+        condition: String(condition.condition),
+        stacks: effectNumber(profile, condition, 'stacks'),
+        duration: effectNumber(profile, condition, 'duration')
+      });
+
+      emissionRuntime.effects.emit({
+        kind: 'packet',
+        event: {
+          ...emissionEvent,
+          activationId: emissionCast.id,
+          offTarget: emissionCast.command.offTarget,
+          at: canonicalTime(
+            emissionEvent.at +
+              (isHostileTargetEvent(emissionEvent) ? (emissionCast.command.impactDelayMs ?? 0) / 1000 : 0)
+          )
+        }
+      });
+    }
   }
 }
 

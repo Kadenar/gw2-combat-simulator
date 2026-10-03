@@ -1,3 +1,4 @@
+import type { EffectEmissionService } from '#gw2/platform/simulation/effect-emission.js';
 import { createSigilRuntimeState } from '#gw2/platform/equipment/sigils/runtime.js';
 import type { Gw2SigilRuntimeState } from '#gw2/platform/equipment/sigils/types.js';
 import { createProcRegistry } from '#gw2/platform/combat/procs.js';
@@ -6,12 +7,8 @@ import type { Gw2CombatQuery, Gw2CriticalResult } from '#gw2/platform/combat/que
 import { createGw2ComboRuntimeState } from '#gw2/platform/combos/events.js';
 import type { Gw2ComboRuntimeState } from '#gw2/platform/combos/types.js';
 import { createRelicRuntime } from '#gw2/platform/equipment/relics/runtime.js';
-import type { Gw2EventDraft, Gw2RelicRuntime } from '#gw2/platform/equipment/relics/types.js';
-import type {
-  Gw2ConditionResolution,
-  Gw2ResolvedConditionApplication,
-  Gw2ResolverConditionState
-} from '#gw2/platform/resolver/condition-resolution.js';
+import type { Gw2RelicRuntime } from '#gw2/platform/equipment/relics/types.js';
+import type { Gw2ConditionResolution, Gw2ResolverConditionState } from '#gw2/platform/resolver/condition-resolution.js';
 import type { Gw2DamageBreakdownEntry } from '#gw2/platform/resolver/hit-resolution.js';
 import type {
   Gw2ConditionBreakdownEntry,
@@ -25,7 +22,6 @@ import type {
 } from '#gw2/platform/resolver/types.js';
 import type { Gw2Config, Gw2CriticalDamageMode } from '#gw2/platform/simulation/config.js';
 import { normalizeCriticalDamageMode } from '#gw2/platform/simulation/randomness.js';
-import { gw2EffectExpiresAt } from '#gw2/platform/skills/timing.js';
 import type { SimulationRandom } from '#kernel/core/simulation-random.js';
 import { createSimulationRandom } from '#kernel/core/simulation-random.js';
 
@@ -43,9 +39,9 @@ export function createGw2ResolverRuntimeState({
   query,
   helpers,
   queue,
+  effects,
   professionState = {},
   warnings = [],
-  applyCondition,
   onFirstDamage,
   reactions
 }: CreateGw2ResolverRuntimeStateOptions): Gw2ResolverRuntime {
@@ -61,6 +57,7 @@ export function createGw2ResolverRuntimeState({
     query,
     helpers,
     queue,
+    effects,
     warnings,
     breakdown: new Map(),
     conditions: new Map(),
@@ -91,49 +88,6 @@ export function createGw2ResolverRuntimeState({
 
     dispatchReaction(stage, event, details) {
       return reactions?.dispatch(stage, this, event, details);
-    },
-
-    // Derived resolver conditions must enter condition state immediately so
-    // same-timestamp profession and equipment reactions observe canonical state.
-    applyCondition(event) {
-      return applyCondition(this, event);
-    },
-
-    recordProc(
-      type: string,
-      name: string,
-      at: number,
-      sourceSkill = '',
-      detail = '',
-      icon = '',
-      cooldownReduction: number | null = null,
-      expiresAt: number | null = null,
-      effectState?: Gw2ProcStep['effectState']
-    ): void {
-      // Proc rows are presentation only; combat effects have already been applied by the caller.
-      if (!reporting) return;
-      const start = Math.round(at * 1000);
-      // Detail distinguishes genuinely sequential procs (e.g. per-blade stack counts)
-      // landing at the same instant from the same skill; without it they'd collapse to one row.
-      const key = `${type}|${name}|${start}|${sourceSkill}|${detail}`;
-      if (this.procKeys.has(key)) return;
-      this.procKeys.add(key);
-      const reducedBy = Number(cooldownReduction);
-      const expiry = Math.round(gw2EffectExpiresAt(at, Number(expiresAt) - at) * 1000);
-      this.procSteps.push({
-        ri: -1,
-        type: `${type}_proc`,
-        skill: name,
-        sourceSkill,
-        detail,
-        icon,
-        ...(Number.isFinite(reducedBy) && reducedBy > 0 ? { cooldownReduction: reducedBy } : {}),
-        ...(Number.isFinite(expiry) && expiry > start ? { expiresAt: expiry } : {}),
-        // Copy the numeric state so summaries never need to parse display text or inspect mutable relic state.
-        ...(effectState ? { effectState: { ...effectState } } : {}),
-        start,
-        end: start
-      });
     },
 
     addBreakdown(
@@ -236,6 +190,7 @@ export interface Gw2ResolverRuntime {
   query: Readonly<Gw2CombatQuery>;
   helpers: Gw2ResolverHelpers;
   queue: Gw2EventQueue;
+  readonly effects: EffectEmissionService;
   warnings: string[];
   breakdown: Map<string, Gw2DamageBreakdownEntry>;
   conditions: Map<string, Gw2ConditionBreakdownEntry>;
@@ -268,18 +223,6 @@ export interface Gw2ResolverRuntime {
     event: Gw2ResolverEvent,
     details?: Record<string, unknown>
   ): Record<string, unknown> | void;
-  applyCondition(event: Gw2EventDraft): Gw2ResolvedConditionApplication[];
-  recordProc(
-    type: string,
-    name: string,
-    at: number,
-    sourceSkill?: string,
-    detail?: string,
-    icon?: string,
-    cooldownReduction?: number | null,
-    expiresAt?: number | null,
-    effectState?: Gw2ProcStep['effectState']
-  ): void;
   addBreakdown(
     name: string,
     damage: number,
@@ -300,9 +243,9 @@ interface CreateGw2ResolverRuntimeStateOptions {
   readonly query: Readonly<Gw2CombatQuery>;
   readonly helpers: Gw2ResolverHelpers;
   readonly queue: Gw2EventQueue;
+  readonly effects: EffectEmissionService;
   readonly professionState?: object;
   readonly warnings?: string[];
-  readonly applyCondition: Gw2ConditionResolution['applyCondition'];
   readonly onFirstDamage?: Gw2ConditionResolution['startDamageClock'];
   readonly reactions?: Gw2ResolverReactionRegistry;
 }

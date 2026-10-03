@@ -6,13 +6,7 @@ import type { MesmerRuntime } from '#gw2/professions/mesmer/types.js';
 import { createIllusionResourceController } from '#gw2/professions/mesmer/core/mechanics/illusions/resources.js';
 import { createPhantasmEffectController } from '#gw2/professions/mesmer/core/mechanics/illusions/phantasms.js';
 import { createSkillDamageController } from '#gw2/professions/mesmer/core/execution/packet-emission.js';
-import type {
-  MesmerActivePrimaryWeapon,
-  MesmerAddCondition,
-  MesmerAddDamage,
-  MesmerAddEvent,
-  MesmerAddTraitProc
-} from '#gw2/professions/mesmer/types.js';
+import type { MesmerActivePrimaryWeapon } from '#gw2/professions/mesmer/types.js';
 import type {
   MesmerExceptionalProfileOptions,
   MesmerSkillEffectController
@@ -33,10 +27,6 @@ interface SkillEffectControllerOptions {
   readonly phantasmPolicy: () => MesmerPhantasmPolicy;
   readonly activePrimaryWeapon: MesmerActivePrimaryWeapon;
   readonly queueResources: MesmerQueueResources;
-  readonly addEvent: MesmerAddEvent;
-  readonly addTraitProc: MesmerAddTraitProc;
-  readonly addCondition: MesmerAddCondition;
-  readonly addDamage: MesmerAddDamage;
 }
 
 /**
@@ -50,47 +40,40 @@ export function createSkillEffectController({
   phantasmAttackTimings,
   phantasmPolicy,
   activePrimaryWeapon,
-  queueResources,
-  addEvent,
-  addTraitProc,
-  addCondition,
-  addDamage
+  queueResources
 }: SkillEffectControllerOptions): MesmerSkillEffectController {
-  const phantasms = createPhantasmEffectController({
-    state,
-    phantasmAttackTimings,
-    phantasmPolicy,
-    queueResources,
-    addEvent,
-    addTraitProc,
-    addCondition,
-    addDamage
-  });
+  const phantasms = createPhantasmEffectController({ state, phantasmAttackTimings, phantasmPolicy, queueResources });
   const illusionResources = createIllusionResourceController({
     resourceDefinition,
     activePrimaryWeapon,
     queueResources,
     phantasms
   });
-  const damage = createSkillDamageController({ phantasms, addCondition, addDamage });
+  const damage = createSkillDamageController({ phantasms, state });
   const schedule = (
     skill: MesmerSkill,
     at: number,
     castStart = at,
-    { clarityConsumed = false, phantasmSummonAt = at, playerEffectEnd = Infinity }: MesmerExceptionalProfileOptions = {}
+    {
+      clarityConsumed = false,
+      phantasmSummonAt = at,
+      playerEffectEnd = Infinity,
+      delivery = {}
+    }: MesmerExceptionalProfileOptions = {}
   ): void => {
     // Only phantasm casts reach this pipeline; ordinary pulses and hit tracking belong to the shared scheduler.
-    const phantasmExecutions = phantasms.prepare(skill, castStart, phantasmSummonAt, clarityConsumed);
+    const phantasmExecutions = phantasms.prepare(skill, castStart, phantasmSummonAt, clarityConsumed, delivery);
     phantasms.scheduleLifecycle(phantasmExecutions);
     const conditions = (skill.effects || []).filter(
       (effect): effect is MesmerConditionEffect => effect.type === 'condition'
     );
-    damage.schedule(skill, at, castStart, playerEffectEnd, conditions, phantasmExecutions);
-    illusionResources.schedule(skill, at, castStart, phantasmExecutions);
+    damage.schedule(skill, at, castStart, playerEffectEnd, conditions, phantasmExecutions, delivery);
+    illusionResources.schedule(skill, at, castStart, phantasmExecutions, delivery);
   };
 
   return {
     schedule,
-    scheduleResources: (skill, at, castStart = at) => illusionResources.schedule(skill, at, castStart, [])
+    scheduleResources: (skill, at, castStart = at, delivery = {}) =>
+      illusionResources.schedule(skill, at, castStart, [], delivery)
   };
 }

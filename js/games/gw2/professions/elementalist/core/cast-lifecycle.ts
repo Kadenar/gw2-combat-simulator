@@ -1,6 +1,5 @@
 import type { RuntimeCast, RuntimeProfession } from '#gw2/platform/simulation/runtime-state.js';
 import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
-import { withElementalistCast } from '#gw2/professions/elementalist/core/events.js';
 import type { ElementalistAttunement } from '#gw2/professions/elementalist/core/state.js';
 /**
  * Routes Core Elementalist casts to the skill families and persistent mechanics that own their behavior.
@@ -9,13 +8,11 @@ import type { ElementalistAttunement } from '#gw2/professions/elementalist/core/
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import type { Skill } from '#gw2/platform/engine/skills/types.js';
 import { AURA_TRANSMUTE_SKILLS } from '#gw2/professions/elementalist/core/constants.js';
+import { armArcaneEcho, completeArcaneEcho } from '#gw2/professions/elementalist/core/mechanics/arcane-echo.js';
 import {
   completeElementalistAttunement,
   targetAttunement
 } from '#gw2/professions/elementalist/core/mechanics/attunements.js';
-
-import { armArcaneEcho, completeArcaneEcho } from '#gw2/professions/elementalist/core/mechanics/arcane-echo.js';
-
 import {
   captureConjurePickup,
   dropConjure,
@@ -40,11 +37,10 @@ import { shareAttunementVariantRecharge } from '#gw2/professions/elementalist/co
 import { triggerEvasiveArcana } from '#gw2/professions/elementalist/core/traits/behavior.js';
 import { applyElementalistAura, applyGenericPostCast } from '#gw2/professions/elementalist/core/traits/dispatch.js';
 import type {
-  ElementalistSkill,
   ElementalistRuntime,
-  ElementalistRuntimeState
+  ElementalistRuntimeState,
+  ElementalistSkill
 } from '#gw2/professions/elementalist/types.js';
-
 // Skill data encodes a granted aura as "Element|seconds"; malformed or
 // zero-length values grant nothing.
 function applySkillAura(context: ElementalistRuntime, cast: RuntimeCast<ElementalistSkill>, skill: Skill): void {
@@ -100,9 +96,7 @@ export function elementalistOnCastCommit(
   shareAttunementVariantRecharge(context, skill);
   // The runtime has already paid the committed dodge's declared endurance cost.
   if (Number(skill.id) === SHARED_SKILL_IDS.DODGE) triggerEvasiveArcana(context, cast, skill);
-
   completeArcaneEcho(context, cast, skill);
-
   // Cross-skill traits observe the state settled by the skill declarations and shared observers.
   applyGenericPostCast(context, cast, skill);
 }
@@ -119,25 +113,23 @@ export const elementalistCoreSideEffectHandlers: RuntimeProfession<
   },
   'elementalist.equip-conjure'(context, trigger) {
     if (trigger.kind !== 'cast') throw new TypeError('Conjures require a cast trigger.');
-    withElementalistCast(context, trigger.cast, () => equipConjure(context, trigger.cast, trigger.skill));
+    equipConjure(context, trigger.cast, trigger.skill);
   },
   'elementalist.drop-conjure'(context, trigger) {
     if (trigger.kind !== 'cast') throw new TypeError('Dropping a conjure requires a cast trigger.');
-    withElementalistCast(context, trigger.cast, () => dropConjure(context, trigger.cast, trigger.skill));
+    dropConjure(context, trigger.cast, trigger.skill);
   },
   'elementalist.pick-up-conjure'(context, trigger) {
     if (trigger.kind !== 'cast') throw new TypeError('Conjure pickup requires a cast trigger.');
-    withElementalistCast(context, trigger.cast, () => pickUpConjure(context, trigger.cast, trigger.skill));
+    pickUpConjure(context, trigger.cast, trigger.skill);
   },
   'elementalist.create-hammer-orbs'(context, trigger) {
     if (trigger.kind !== 'cast') throw new TypeError('Hammer orbs require a cast trigger.');
-    withElementalistCast(context, trigger.cast, () =>
-      createHammerOrbs(
-        context,
-        trigger.cast,
-        trigger.skill,
-        String(trigger.skill.attunement).split('+') as ElementalistAttunement[]
-      )
+    createHammerOrbs(
+      context,
+      trigger.cast,
+      trigger.skill,
+      String(trigger.skill.attunement).split('+') as ElementalistAttunement[]
     );
   },
   'elementalist.cancel-hammer-orbits'(context) {
@@ -170,15 +162,11 @@ export const elementalistCoreSideEffectHandlers: RuntimeProfession<
   },
   'elementalist.summon-elemental'(context, trigger) {
     if (trigger.kind !== 'cast') throw new TypeError('Elemental summoning requires a cast trigger.');
-    withElementalistCast(context, trigger.cast, () =>
-      completeElementalistGlyphCast(context, trigger.cast, trigger.skill)
-    );
+    completeElementalistGlyphCast(context, trigger.cast, trigger.skill);
   },
   'elementalist.command-elemental'(context, trigger) {
     if (trigger.kind !== 'cast') throw new TypeError('Elemental commands require a cast trigger.');
-    withElementalistCast(context, trigger.cast, () =>
-      completeElementalistElementalCommand(context, trigger.cast, trigger.skill)
-    );
+    completeElementalistElementalCommand(context, trigger.cast, trigger.skill);
   },
   'elementalist.replace-fulgor'(context, trigger) {
     if (trigger.kind !== 'cast') throw new TypeError('Fulgor requires a cast trigger.');

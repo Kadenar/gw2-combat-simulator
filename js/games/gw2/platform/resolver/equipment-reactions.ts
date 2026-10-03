@@ -9,7 +9,6 @@ import { createCriticalSigilEvent } from '#gw2/platform/equipment/sigils/proc-ev
 import { isStandardBoon } from '#gw2/platform/combat/boons.js';
 import { invokeRelicHook } from '#gw2/platform/equipment/relics/runtime.js';
 import { skillForEvent } from '#gw2/platform/combat/query/event-skill.js';
-import { gw2ResolverBoonDuration } from '#gw2/platform/resolver/boons.js';
 
 import type { NativeResolvedDamageDetails } from '#gw2/platform/profession-definition/module-types.js';
 import type { Gw2ConditionHelpers } from '#gw2/platform/equipment/relics/types.js';
@@ -48,10 +47,7 @@ function conditionHelpers(context: Gw2ResolverRuntime, details: Record<string, u
   const activeConditionStackCount =
     details.activeConditionStackCount as Gw2ConditionResolution['activeConditionStackCount'];
   return {
-    activeConditionStackCount: (_relicContext, condition, at) => activeConditionStackCount(context, condition, at),
-    // Relic rules keep their narrow context-first contract while condition
-    // resolution is owned by the full runtime that dispatched the reaction.
-    applyCondition: (_relicContext, event) => context.applyCondition(event)
+    activeConditionStackCount: (_relicContext, condition, at) => activeConditionStackCount(context, condition, at)
   };
 }
 
@@ -74,11 +70,24 @@ function createResolvedCriticalSigilEffects(
     const proc = SIGIL_PROC_LOOKUP[id];
     // Decisions are synchronous; commit their deadlines before queueing any derived effects.
     ctx.procs.readyAt[`sigil.${id}`] = readyAt;
-    ctx.queue.enqueue({
-      ...createCriticalSigilEvent(id, proc, sourceSkill),
-      at: event.at
-    } as Gw2ResolverEvent);
-    ctx.recordProc('sigil', `Sigil of ${SIGIL_BY_ID[id].name}`, event.at, sourceSkill, '', proc.icon || '');
+    ctx.effects.emit({
+      kind: 'packet',
+      event: {
+        ...createCriticalSigilEvent(id, proc, sourceSkill),
+        at: event.at
+      }
+    });
+    ctx.effects.emit({
+      kind: 'announcement',
+      announcement: {
+        type: 'sigil',
+        name: `Sigil of ${SIGIL_BY_ID[id].name}`,
+        at: event.at,
+        sourceSkill: sourceSkill,
+        detail: '',
+        icon: proc.icon || ''
+      }
+    });
   }
 }
 
@@ -105,7 +114,7 @@ function createCriticalFoodEffect(ctx: Gw2ResolverRuntime, event: Gw2ResolverEve
       name: `${proc.name} — ${name}`,
       kind: name.toLowerCase(),
       stacks: conditionalEffect.stacks,
-      duration: gw2ResolverBoonDuration(ctx, event, name, conditionalEffect.duration)
+      duration: conditionalEffect.duration
     };
   } else if (conditionalEffect?.type === 'condition') {
     foodEvent = {
@@ -132,15 +141,18 @@ function createCriticalFoodEffect(ctx: Gw2ResolverRuntime, event: Gw2ResolverEve
     };
   }
 
-  ctx.queue.enqueue(foodEvent);
-  ctx.recordProc(
-    'food',
-    proc.name,
-    event.at,
-    event.skillName,
-    '',
-    String(FOOD_DATA[ctx.config.food || '']?.icon || NOURISHMENT_ICON)
-  );
+  ctx.effects.emit({ kind: 'packet', durationContext: event, event: foodEvent });
+  ctx.effects.emit({
+    kind: 'announcement',
+    announcement: {
+      type: 'food',
+      name: proc.name,
+      at: event.at,
+      sourceSkill: event.skillName,
+      detail: '',
+      icon: String(FOOD_DATA[ctx.config.food || '']?.icon || NOURISHMENT_ICON)
+    }
+  });
 }
 
 /** Resolver-time equipment hooks. Scheduler-owned sigil generation stays out. */
@@ -251,8 +263,8 @@ export function createGw2EquipmentReactionContributions(): Gw2ResolverReactionCo
       {
         id: `relic.${RELIC_IDS.PEITHA}`,
         order: GW2_REACTION_ORDER.COMMON,
-        handler(ctx, event, details = {}) {
-          invokeRelicHook(ctx, 'peitha', event, conditionHelpers(ctx, details).applyCondition);
+        handler(ctx, event) {
+          invokeRelicHook(ctx, 'peitha', event);
         }
       }
     ]

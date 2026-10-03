@@ -1,9 +1,9 @@
+import type { SimulationEventBase } from '#gw2/platform/engine/events/events.js';
 import { CONDITION_FORMULAS, conditionTickDamage } from '#gw2/platform/combat/formulas.js';
 import { conditionApplicationDuration } from '#gw2/platform/combat/query/combat-query.js';
 import { GW2_EVENT_ACTOR_TYPES } from '#gw2/platform/engine/events/actors.js';
 import type { Gw2RuntimeConditionEntry, Gw2RuntimeConditionStack } from '#gw2/platform/combat/state/targets.js';
 import { createPermanentTargetConditionStacks, GW2_DAMAGING_CONDITIONS } from '#gw2/platform/combat/state/targets.js';
-import type { Gw2EventDraft } from '#gw2/platform/equipment/relics/types.js';
 import type { Gw2ResolverRuntime } from '#gw2/platform/resolver/runtime-state.js';
 import type { Gw2ResolverEvent, Gw2ResolverReactionRegistry } from '#gw2/platform/resolver/types.js';
 import { canonicalTime, isTimeInWindow, timeKey } from '#kernel/core/clock.js';
@@ -326,7 +326,7 @@ export function createGw2ConditionResolution({
     scheduleBuffer(ctx, event.at);
   }
 
-  function applyCondition(ctx: Gw2ResolverRuntime, event: Gw2EventDraft): Gw2ResolvedConditionApplication[] {
+  function applyCondition(ctx: Gw2ResolverRuntime, event: SimulationEventBase): Gw2ResolvedConditionApplication[] {
     // Synchronous reaction applications bypass enqueue, so normalize before querying or inserting live state.
     event = canonicalEvent(event);
     if (ctx.queue.currentTime != null && event.at < ctx.queue.currentTime) {
@@ -349,7 +349,7 @@ export function createGw2ConditionResolution({
     for (const [index, packet] of packets.entries()) {
       const application = {
         ...packet,
-        sourceId: event.sourceId ?? event.skillId ?? event.skillName ?? event.type,
+        sourceId: event.sourceId,
         name: event.name || `${event.skillName || event.sourceId || 'Condition'} — ${name}`,
         condition: name,
         stacks: packet.stacks,
@@ -567,7 +567,7 @@ interface Gw2ConditionTickResult {
 
 export interface Gw2ConditionResolution {
   activeConditionStackCount(context: Gw2ResolverRuntime, name: string, at: number): number;
-  applyCondition(context: Gw2ResolverRuntime, event: Gw2EventDraft): Gw2ResolvedConditionApplication[];
+  applyCondition(context: Gw2ResolverRuntime, event: SimulationEventBase): Gw2ResolvedConditionApplication[];
   handleConditionTick(context: Gw2ResolverRuntime, event: Gw2ResolverEvent): Gw2ConditionTickResult | null;
   handleConditionBuffer(context: Gw2ResolverRuntime, event: Gw2ResolverEvent): void;
   initializeEnvironment(context: Gw2ResolverRuntime): void;

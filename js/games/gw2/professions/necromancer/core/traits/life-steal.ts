@@ -14,10 +14,10 @@ import { necromancerActiveMinionCompanionIds } from '#gw2/professions/necromance
 import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
 import { TRAITS as NECROMANCER_TRAITS } from '#gw2/professions/necromancer/data/traits-data.js';
 import type {
-  NecromancerSkill,
   NecromancerResolverContext,
   NecromancerResolverEvent,
-  NecromancerRuntime
+  NecromancerRuntime,
+  NecromancerSkill
 } from '#gw2/professions/necromancer/types.js';
 import { canonicalTime } from '#kernel/core/clock.js';
 
@@ -37,8 +37,9 @@ function queueBloodMagicLifeSteal(
   event: NecromancerResolverEvent,
   { name, traitId, flatStrikeBase, flatStrikePowerCoeff, icon }: TraitDamageDefinition
 ): void {
-  context.queue.enqueue(
-    buildResolverStrike({
+  context.effects.emit({
+    kind: 'packet',
+    event: buildResolverStrike({
       at: event.at,
       skillName: name,
       coefficient: 0,
@@ -55,9 +56,12 @@ function queueBloodMagicLifeSteal(
       ...(event.summonOwner ? { summonOwner: event.summonOwner } : {}),
       triggeredBy: event.skillName
     })
-  );
+  });
   // Mirror the scheduled packet in result-level trait attribution.
-  context.recordProc('trait', name, event.at, event.skillName, '', icon);
+  context.effects.emit({
+    kind: 'announcement',
+    announcement: { type: 'trait', name: name, at: event.at, sourceSkill: event.skillName, detail: '', icon: icon }
+  });
 }
 
 // Both packet variants explicitly use the granting trait's artwork so the
@@ -276,22 +280,25 @@ export function applyOverflowingThirstCast(runtime: NecromancerRuntime, cast: Ru
   const profile = requireBalanceProfileFromContext(runtime, TRAIT.OVERFLOWING_THIRST);
   const buff = requireEffect(profile, 'buff', 'taste-for-blood');
   if (!buff) return;
-  runtime.emit({
-    type: 'buff',
-    at: runtime.time,
-    source: 'Trait',
-    sourceId: TRAIT.OVERFLOWING_THIRST,
-    actorType: 'player',
-    skillId: cast.skill.id,
-    skillName: cast.skill.name,
-    activationId: cast.id,
-    kind: String(buff.kind),
-    duration: effectNumber(profile, buff, 'duration'),
-    stacks,
-    audience: {
-      recipients: 'party',
-      maximumRecipients: 5,
-      eligibleCompanionIds: necromancerActiveMinionCompanionIds(runtime)
+  runtime.effects.emit({
+    kind: 'packet',
+    event: {
+      type: 'buff',
+      at: runtime.time,
+      source: 'Trait',
+      sourceId: TRAIT.OVERFLOWING_THIRST,
+      actorType: 'player',
+      skillId: cast.skill.id,
+      skillName: cast.skill.name,
+      activationId: cast.id,
+      kind: String(buff.kind),
+      duration: effectNumber(profile, buff, 'duration'),
+      stacks,
+      audience: {
+        recipients: 'party',
+        maximumRecipients: 5,
+        eligibleCompanionIds: necromancerActiveMinionCompanionIds(runtime)
+      }
     }
   });
 }

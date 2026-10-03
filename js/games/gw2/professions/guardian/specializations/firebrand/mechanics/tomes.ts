@@ -34,8 +34,10 @@ export function reactToAshesHit(
 
   // Ashes burns resolve at charge consumption so same-timestamp condition
   // reactions cannot be reordered behind later damage packets.
-  context.applyCondition(
-    buildResolverCondition({
+  context.effects.emit({
+    kind: 'packet',
+    settlement: 'reaction',
+    event: buildResolverCondition({
       at: event.at,
       source: 'guardian',
       sourceId: 'guardian.ashes-of-the-just',
@@ -49,6 +51,9 @@ export function reactToAshesHit(
       stacks: effectNumber(ashesProfile, burn, 'stacks'),
       duration: state.ashesBurnDuration
     })
-  );
-  context.recordProc('profession', 'Ashes of the Just', event.at, event.skillName);
+  });
+  context.effects.emit({
+    kind: 'announcement',
+    announcement: { type: 'profession', name: 'Ashes of the Just', at: event.at, sourceSkill: event.skillName }
+  });
 }

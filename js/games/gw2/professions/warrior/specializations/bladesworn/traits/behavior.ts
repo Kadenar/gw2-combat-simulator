@@ -16,13 +16,13 @@ import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import type { Gw2Runtime, RuntimeCast } from '#gw2/platform/simulation/runtime-state.js';
 import { gw2EffectExpiresAt } from '#gw2/platform/skills/timing.js';
 import { warriorAmmunition } from '#gw2/professions/warrior/core/mechanics/ammunition.js';
-import { triggerTraitBuffs } from '#gw2/professions/warrior/core/mechanics/emission.js';
+
+import { isInternalCooldownReady } from '#gw2/platform/combat/procs.js';
 import { WARRIOR_SKILL_IDS as ID, WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/professions/warrior/data/ids.js';
 import { BLADESWORN_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/warrior/specializations/bladesworn/profiles.js';
 import { bladeswornState } from '#gw2/professions/warrior/specializations/bladesworn/state.js';
 import type { WarriorRuntimeState, WarriorSkill } from '#gw2/professions/warrior/types.js';
 import { canonicalTime } from '#kernel/core/clock.js';
-import { isInternalCooldownReady } from '#gw2/platform/combat/procs.js';
 
 export function modifyAttributes(context: Gw2ModifierContext, attributes: Gw2Stats): Gw2Stats {
   const result = { ...attributes } as Gw2MutableStats & { ferocity: number };
@@ -63,8 +63,9 @@ export function gunsaberEntryTraits(runtime: Runtime, cast: RuntimeCast<WarriorS
   if (trait === TRAIT.UNSEEN_SWORD) {
     const strike = requireEffect(profile, 'strike', 'Strike');
     if (strike)
-      runtime.emit(
-        buildResolverStrike({
+      runtime.effects.emit({
+        kind: 'packet',
+        event: buildResolverStrike({
           ...event,
           // Resolve damage and its modifiers at impact while the entry proc and cooldown start immediately.
           at: canonicalTime(runtime.time + effectNumber(profile, strike, 'atMs') / 1000),
@@ -75,13 +76,19 @@ export function gunsaberEntryTraits(runtime: Runtime, cast: RuntimeCast<WarriorS
           weaponStrengthProfileId: 'nonweapon.unequipped',
           coefficient: effectNumber(profile, strike, 'coefficient')
         })
-      );
-    runtime.emit({ ...event, type: 'proc', name: 'Unseen Sword', procType: 'trait', sourceSkill: cast.skill.name });
+      });
+    runtime.effects.emit({
+      kind: 'announcement',
+      log: true,
+      attribution: { ...event },
+      announcement: { name: 'Unseen Sword', sourceSkill: cast.skill.name, type: 'trait', at: event.at }
+    });
   } else if (trait === TRAIT.SHARP_AS_THE_WIND) {
     const burning = requireEffect(profile, 'condition', 'Burning');
     if (burning)
-      runtime.emit(
-        buildResolverCondition({
+      runtime.effects.emit({
+        kind: 'packet',
+        event: buildResolverCondition({
           ...event,
           ownerActorType: 'player',
           name: 'Sharp as the Wind — Burning',
@@ -89,18 +96,21 @@ export function gunsaberEntryTraits(runtime: Runtime, cast: RuntimeCast<WarriorS
           stacks: effectNumber(profile, burning, 'stacks'),
           duration: effectNumber(profile, burning, 'duration')
         })
-      );
+      });
   } else {
     const might = requireEffect(profile, 'boon', 'might');
     if (might)
-      runtime.emitProcedural({
-        ...event,
-        type: 'buff',
-        name: "River's Flow — Might",
-        kind: 'might',
-        stacks: effectNumber(profile, might, 'stacks'),
-        duration: effectNumber(profile, might, 'duration'),
-        audience: { recipients: 'party' }
+      runtime.effects.emit({
+        kind: 'packet',
+        event: {
+          ...event,
+          type: 'buff',
+          name: "River's Flow — Might",
+          kind: 'might',
+          stacks: effectNumber(profile, might, 'stacks'),
+          duration: effectNumber(profile, might, 'duration'),
+          audience: { recipients: 'party' }
+        }
       });
   }
 
@@ -113,20 +123,42 @@ export function gunsaberEntryTraits(runtime: Runtime, cast: RuntimeCast<WarriorS
   const duration = effectNumber(profile, flow, 'duration');
   state.traitPositiveFlowUntil = gw2EffectExpiresAt(runtime.time, duration);
   state.traitPositiveFlowStacks = effectNumber(profile, flow, 'stacks');
-  runtime.emit({
-    ...event,
-    type: 'buff',
-    name: 'Positive Flow',
-    kind: 'positive-flow',
-    stacks: state.traitPositiveFlowStacks,
-    duration
+  runtime.effects.emit({
+    kind: 'packet',
+    event: {
+      ...event,
+      type: 'buff',
+      name: 'Positive Flow',
+      kind: 'positive-flow',
+      stacks: state.traitPositiveFlowStacks,
+      duration
+    }
   });
 }
 
 export function ammoTraits(runtime: Runtime, cast: RuntimeCast<WarriorSkill>): void {
   const spent = warriorAmmunition.get(cast);
   if (!spent) return;
-  triggerTraitBuffs(runtime, cast, TRAIT.FIERCE_AS_FIRE, spent.rounds);
+  {
+    if (hasTrait(runtime, TRAIT.FIERCE_AS_FIRE)) {
+      const traitProfile = requireBalanceProfileFromContext(runtime, TRAIT.FIERCE_AS_FIRE);
+      runtime.effects.emit({
+        kind: 'profile',
+        profile: traitProfile,
+        effects: traitProfile.effects?.filter((effect) => effect.type === 'boon' || effect.type === 'buff'),
+        attribution: {
+          source: 'Trait',
+          sourceId: TRAIT.FIERCE_AS_FIRE,
+          actorType: 'effect',
+          skillId: cast.skill.id,
+          skillName: cast.skill.name,
+          activationId: cast.id
+        },
+        transform: (event) => ({ ...event, name: traitProfile.name, stacks: spent.rounds, priority: 0 })
+      });
+    }
+  }
+
   if (!spent.startedFull || cast.skill.id === ID.ARTILLERY_SLASH || !hasTrait(runtime, TRAIT.LUSH_FOREST)) return;
   const state = bladeswornState.from(runtime);
   const weapons = new Set(
@@ -155,18 +187,18 @@ export function ammoTraits(runtime: Runtime, cast: RuntimeCast<WarriorSkill>): v
       reduced += runtime.cooldownController.reduceSkillRecharge(skill, reduction, runtime.time);
   }
 
-  runtime.emit({
-    type: 'proc',
-    at: runtime.time,
-    source: 'Trait',
-    sourceId: TRAIT.LUSH_FOREST,
-    actorType: 'effect',
-    skillId: cast.skill.id,
-    skillName: cast.skill.name,
-    activationId: cast.id,
-    name: 'Lush Forest',
-    procType: 'trait',
-    cooldownReduction: reduced
+  runtime.effects.emit({
+    kind: 'announcement',
+    log: true,
+    attribution: {
+      source: 'Trait',
+      sourceId: TRAIT.LUSH_FOREST,
+      actorType: 'effect',
+      skillId: cast.skill.id,
+      skillName: cast.skill.name,
+      activationId: cast.id
+    },
+    announcement: { at: runtime.time, name: 'Lush Forest', cooldownReduction: reduced, type: 'trait' }
   });
 }
 
@@ -183,18 +215,22 @@ export function gunsAndGloryExplosion(runtime: Runtime, event: Gw2ResolverEvent)
     );
     if (duration > 0) {
       state.gunsAndGloryUntil = gw2EffectExpiresAt(runtime.time, duration);
-      runtime.emitDerived(event, {
-        type: 'buff',
-        at: runtime.time,
-        source: 'Trait',
-        sourceId: TRAIT.GUNS_AND_GLORY,
-        actorType: 'effect',
-        skillId: event.skillId,
-        skillName: event.skillName,
-        name: 'Guns and Glory',
-        kind: 'guns-and-glory',
-        stacks: 1,
-        duration
+      runtime.effects.emit({
+        kind: 'packet',
+        cause: event,
+        event: {
+          type: 'buff',
+          at: runtime.time,
+          source: 'Trait',
+          sourceId: TRAIT.GUNS_AND_GLORY,
+          actorType: 'effect',
+          skillId: event.skillId,
+          skillName: event.skillName,
+          name: 'Guns and Glory',
+          kind: 'guns-and-glory',
+          stacks: 1,
+          duration
+        }
       });
     }
   }

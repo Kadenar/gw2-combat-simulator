@@ -40,7 +40,7 @@ test('Core damage reactions preserve trait and skill ordering without spending c
     profession: { core: state },
     helpers: rangerCatalog,
     boons: new Map(),
-    queue: { enqueue: (event) => queued.push(event) }
+    effects: { emit: ({ event }) => queued.push(event) }
   };
   const event = {
     type: 'damage',

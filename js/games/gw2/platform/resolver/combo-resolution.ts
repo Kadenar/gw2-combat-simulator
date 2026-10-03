@@ -6,7 +6,6 @@ import {
   resolveComboAttempt,
   selectComboFieldForFinisher
 } from '#gw2/platform/combos/events.js';
-import { gw2ResolverBoonDuration } from '#gw2/platform/resolver/boons.js';
 
 import type {
   ComboFieldEvent,
@@ -47,26 +46,29 @@ export function enqueueGw2OwnedComboFinisher(
     (field) => field.ownerId === options.ownerId && isComboFieldActiveAt(field, at)
   );
   const { field, ambiguous } = selectComboFieldForFinisher(fields, options);
-  context.queue.enqueue({
-    // Resolver-authored finishers retain the same caster scaling as scheduled finishers.
-    ...comboCombatMetadata(event),
-    type: 'combo_finisher',
-    at,
-    effectAt: options.effectAt ?? at,
-    source: event.source,
-    sourceId: event.sourceId,
-    actorType: event.actorType,
-    skillId: event.skillId,
-    skillName: event.skillName,
-    parentSkillName: event.parentSkillName,
-    activationId: event.activationId,
-    attemptId: options.attemptId,
-    finisherType: normalizeComboFinisherType(options.finisherType),
-    fieldBinding: field ? { kind: 'field-id', fieldId: field.fieldId } : { kind: 'none' },
-    warnOnUnbound: ambiguous && !field,
-    chance: boundedNumber(options.chance ?? 1, 1, 0, 1),
-    applications: Math.max(1, Math.trunc(options.applications ?? 1)),
-    successfulCombos: Math.max(1, Math.trunc(options.successfulCombos ?? 1))
+  context.effects.emit({
+    kind: 'packet',
+    event: {
+      // Resolver-authored finishers retain the same caster scaling as scheduled finishers.
+      ...comboCombatMetadata(event),
+      type: 'combo_finisher',
+      at,
+      effectAt: options.effectAt ?? at,
+      source: event.source,
+      sourceId: event.sourceId,
+      actorType: event.actorType,
+      skillId: event.skillId,
+      skillName: event.skillName,
+      parentSkillName: event.parentSkillName,
+      activationId: event.activationId,
+      attemptId: options.attemptId,
+      finisherType: normalizeComboFinisherType(options.finisherType),
+      fieldBinding: field ? { kind: 'field-id', fieldId: field.fieldId } : { kind: 'none' },
+      warnOnUnbound: ambiguous && !field,
+      chance: boundedNumber(options.chance ?? 1, 1, 0, 1),
+      applications: Math.max(1, Math.trunc(options.applications ?? 1)),
+      successfulCombos: Math.max(1, Math.trunc(options.successfulCombos ?? 1))
+    }
   });
 }
 
@@ -89,21 +91,9 @@ export function createGw2ComboResolution({
         }
       });
       for (const combo of combos) {
-        context.queue.enqueue(combo);
+        context.effects.emit({ kind: 'packet', event: combo });
         for (const outcome of materializeComboOutcome(combo)) {
-          if (outcome.type === 'buff' && outcome.fixedDuration !== true) {
-            context.queue.enqueue({
-              ...outcome,
-              duration: gw2ResolverBoonDuration(
-                context,
-                combo,
-                outcome.kind || outcome.name || '',
-                outcome.duration || 0
-              )
-            } as Gw2ResolverEvent);
-          } else {
-            context.queue.enqueue(outcome as Gw2ResolverEvent);
-          }
+          context.effects.emit({ kind: 'packet', durationContext: combo, event: outcome });
         }
       }
     },

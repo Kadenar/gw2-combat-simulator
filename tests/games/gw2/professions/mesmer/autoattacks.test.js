@@ -1,3 +1,4 @@
+import { captureEffectEmissions } from '#tests/helpers/effect-emission.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { defaultSimulationConfig } from '#tests/helpers/fixture-harness-core.js';
@@ -341,10 +342,21 @@ test('sword, scepter, axe, and spear auto chains cast as separate attacks', () =
 
 test('clone attack selection returns the next cadence and ignores destroyed clones', () => {
   // Capture the production scheduling callback so only dispatched tasks emit attacks and advance cadence.
-  const state = { profession: { core: { clones: [] } } };
+  const state = {
+    config: { primaryWeapon: 'Sword' },
+    activeWeaponSet: 1,
+    helpers: { skillsById: new Map(), skillsByName: new Map() },
+    profession: { core: { clones: [] } }
+  };
   const damage = [];
   const conditions = [];
   const tasks = [];
+  state.effects = captureEffectEmissions({
+    submit: (event) => {
+      (event.type === 'damage' ? damage : conditions).push(event);
+      return event;
+    }
+  }).effects;
   const scheduler = createCloneAttackScheduler({
     state,
     cloneAttacks: {
@@ -356,8 +368,6 @@ test('clone attack selection returns the next cadence and ignores destroyed clon
         conditions: [{ name: 'Bleeding', duration: 1, stacks: 1 }]
       }
     },
-    addDamage: (...args) => damage.push(args),
-    addCondition: (...args) => conditions.push(args),
     scheduleTask: (clone, at) => tasks.push({ cloneId: clone.id, at })
   });
 
