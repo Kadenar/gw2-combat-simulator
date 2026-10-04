@@ -1593,6 +1593,21 @@ test('Transfusion keeps surviving conditions when its strike is removed and acce
   assert.equal(simulate(rotation, config, { profession, output: 'score' }).totalDamage, result.totalDamage);
 });
 
+// Accepted fear uses the shared grant conversion once; capacity traits cannot multiply the normalized percentage again.
+test('Fear of Death applies Gluttony once and caps gains with Soul Battery selected', () => {
+  for (const [traits, initialResource, expected] of [
+    [[], 0, 0],
+    [[TRAIT.FEAR_OF_DEATH], 0, 15],
+    [[TRAIT.FEAR_OF_DEATH, TRAIT.GLUTTONY], 0, 16.5],
+    [[TRAIT.FEAR_OF_DEATH, TRAIT.GLUTTONY, TRAIT.SOUL_BATTERY], 0, 16.5],
+    [[TRAIT.FEAR_OF_DEATH, TRAIT.GLUTTONY, TRAIT.SOUL_BATTERY], 99, 100]
+  ]) {
+    const result = simulate([cast(ID.REAPERS_MARK)], { ...base, initialResource, selectedTraitIds: traits });
+    assert.deepEqual(result.warnings, []);
+    assert.equal(result.planningState.profession.lifeForce.value, expected);
+  }
+});
+
 test('Fear of Death follows accepted fear with one cooldown and cannot fund entry from a miss or late impact', () => {
   const config = { ...base, selectedTraitIds: [TRAIT.FEAR_OF_DEATH] };
   const ordinary = simulate([cast(ID.REAPERS_MARK)]);

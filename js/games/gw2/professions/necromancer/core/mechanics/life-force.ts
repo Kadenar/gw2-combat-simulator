@@ -1,6 +1,6 @@
 import type { Skill } from '#gw2/platform/skills/types.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
-import { gluttonyLifeForceMultiplier } from '#gw2/professions/necromancer/core/traits/shroud.js';
+import { gluttonyLifeForceMultiplier } from '#gw2/professions/necromancer/core/traits/resource-queries.js';
 import type { NecromancerRuntime } from '#gw2/professions/necromancer/types.js';
 
 // Separate from the pool policy in resources.ts: passives grant life force while that policy reads passive timing.

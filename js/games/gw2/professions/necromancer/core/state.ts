@@ -6,7 +6,10 @@ import { projectPublicProfessionState, snapshotProfessionState } from '#gw2/plat
 import { type SkillFlipWindows } from '#gw2/platform/execution/skill-flips.js';
 import type { SkillId } from '#gw2/platform/skills/types.js';
 import type { Gw2PlanningStateInput } from '#gw2/platform/results/types.js';
-import { soulBatteryCapacity, vitalPersistenceVitality } from '#gw2/professions/necromancer/core/traits/shroud.js';
+import {
+  soulBatteryCapacity,
+  vitalPersistenceVitality
+} from '#gw2/professions/necromancer/core/traits/resource-queries.js';
 import { spitefulFortitudeVitality } from '#gw2/professions/necromancer/core/traits/behavior.js';
 import type { NecromancerConfig } from '#gw2/professions/necromancer/types.js';
 

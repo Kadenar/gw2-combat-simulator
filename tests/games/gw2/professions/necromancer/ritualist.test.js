@@ -354,6 +354,27 @@ test('Summon Spirits checks its initial window and busy state before an autonomo
   assert.deepEqual(result.warnings, []);
 });
 
+// A commanded attack can make a spirit busy after its autonomous animation starts but before its impact arrives.
+test('busy spirits suppress an in-flight autonomous impact without shifting later attacks', () => {
+  const resources = necromancerProfession.catalog.balanceProfilesById.get(PROFILE.resources);
+  const opening = [cast(ID.RITUALISTS_SHROUD), cast(ID.ANGUISH), wait(resources.initialDelay * 1000 + 40)];
+  const baseline = run([...opening, wait(resources.pulseInterval * 2000)]);
+  const commanded = run([...opening, cast(ID.SUMMON_SPIRITS), wait(resources.pulseInterval * 2000)]);
+  const autos = (result) => result.resolvedEvents.filter((event) => event.metadata?.spiritAttackType === 'autoattack');
+  const baselineAutos = autos(baseline);
+  const commandedAt = commanded.steps.find((step) => step.skillId === ID.SUMMON_SPIRITS).start / 1000;
+  assert.deepEqual(baseline.warnings, []);
+  assert.deepEqual(commanded.warnings, []);
+  assert.ok(commandedAt > state(baseline).spiritAutoAnchorAt);
+  assert.ok(commandedAt < baselineAutos[0].at);
+  assert.ok(baselineAutos.length > 1);
+  assert.deepEqual(
+    autos(commanded).map((event) => event.at),
+    baselineAutos.slice(1).map((event) => event.at)
+  );
+  assert.equal(state(commanded).spiritAutoAnchorAt, state(baseline).spiritAutoAnchorAt);
+});
+
 test('Innervate requires its live spirit and grants life force once even when hostile output misses', () => {
   assert.equal(run([cast(ID.INNERVATE_ANGUISH)]).steps[0].invalid, true);
   const config = { ...base, initialResource: 50 };

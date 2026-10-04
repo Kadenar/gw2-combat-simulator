@@ -14,3 +14,16 @@ export function attribution(cast: RuntimeCast<NecromancerSkill>) {
     offTarget: cast.command.offTarget
   };
 }
+
+/** Keep spirit attribution consistent across committed player payloads and autonomous creature attacks. */
+export function spiritFields(key: string, attackType: string) {
+  return {
+    summonKind: 'spirit',
+    summonOwner: `spirit:${key}`,
+    metadata: {
+      spirit: key,
+      spiritAttackType: attackType,
+      anguishConditionalDamage: key === 'anguish' && attackType !== 'innervate'
+    }
+  };
+}
