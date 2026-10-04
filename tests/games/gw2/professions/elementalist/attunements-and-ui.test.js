@@ -146,8 +146,8 @@ test('Catalyst mechanics execute through native hooks', () => {
     initialCatalystEnergy: 30
   });
 
-  assert.equal(result.planningState.profession.energy, 20);
-  assert.equal(result.planningState.profession.maximumEnergy, 30);
+  assert.equal(result.planningState.profession.catalystEnergy.value, 20);
+  assert.equal(result.planningState.profession.catalystEnergy.maximum, 30);
   assert.equal(
     resolvedAndScheduledEvents(result).some(
       (event) => event.type === 'combo' && event.fieldType === 'Fire' && event.finisherType === 'Blast'

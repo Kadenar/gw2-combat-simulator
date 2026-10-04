@@ -812,14 +812,14 @@ test('sphere declarations spend once and derive live windows from their fields b
       assert.equal(state.sphereActiveUntil > 0, mode === 'full');
       if (mode !== 'removed') assert.equal(spent[0].value, 30 + spent[0].change);
       assert.equal(
-        state.energy,
+        state.catalystEnergy.value,
         30 +
           result.events
             .filter((event) => event.type === 'resource' && event.kind === 'catalyst-energy')
             .reduce((total, event) => total + event.change, 0)
       );
       // Without a field, accepted strikes can immediately earn energy again.
-      if (mode === 'field-removed') assert.ok(state.energy > spent[0].value);
+      if (mode === 'field-removed') assert.ok(state.catalystEnergy.value > spent[0].value);
       assert.ok(
         result.resolvedEvents.some(
           (event) => event.type === 'buff' && event.kind === 'quickness' && event.audience?.recipients === 'party'

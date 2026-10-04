@@ -37,8 +37,10 @@ export type ProfessionModuleStateBoundaryAssertions = [
   Assert<Rejects<WeaverState, 'primaryAttunement'>>,
   Assert<Owns<WeaverState, 'unravelUntil'>>,
   Assert<Rejects<ElementalistCoreState, 'unravelUntil'>>,
-  Assert<Owns<CatalystState, 'energy'>>,
-  Assert<Rejects<ElementalistCoreState, 'energy'>>,
+  Assert<Owns<CatalystState, 'catalystEnergy'>>,
+  Assert<Rejects<ElementalistCoreState, 'catalystEnergy'>>,
+  Assert<Rejects<CatalystState, 'energy'>>,
+  Assert<Rejects<CatalystState, 'maximumEnergy'>>,
   Assert<Owns<EngineerCoreState, 'activeKit'>>,
   Assert<Rejects<HolosmithState, 'activeKit'>>,
   Assert<Owns<HolosmithState, 'heat'>>,
@@ -74,12 +76,12 @@ holosmithState.from(context).heat;
 mechanistState.from(context).mech;
 professionCoreState(elementalistContext).primaryAttunement;
 weaverState.from(elementalistContext).unravelUntil;
-catalystState.from(elementalistContext).energy;
+catalystState.from(elementalistContext).catalystEnergy.value;
 
 // @ts-expect-error Core does not own Weaver state.
 professionCoreState(elementalistContext).unravelUntil;
 // @ts-expect-error Weaver cannot access its Catalyst sibling.
-weaverState.from(elementalistContext).energy;
+weaverState.from(elementalistContext).catalystEnergy;
 
 // @ts-expect-error Core does not own Holosmith state.
 professionCoreState(context).heat;

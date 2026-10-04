@@ -2,19 +2,8 @@ import {
   defineProfessionSpecializationState,
   definePublicStateDefaults
 } from '#gw2/platform/profession-definition/state.js';
-import { requireBalanceNumber } from '#gw2/platform/effects/validation.js';
-import type { ElementalistConfig } from '#gw2/professions/elementalist/build/types.js';
-import {
-  CATALYST_BALANCE_PROFILES,
-  CATALYST_BALANCE_PROFILE_IDS as PROFILE
-} from '#gw2/professions/elementalist/specializations/catalyst/profiles.js';
-import { boundedNumber } from '#kernel/core/numeric.js';
-
-/** Default ceiling for the Jade Sphere energy resource before balance profiles retune it. */
-const CATALYST_MAXIMUM_ENERGY = requireBalanceNumber(
-  CATALYST_BALANCE_PROFILES.find((profile) => profile.id === PROFILE.resources)!.maximumStacks,
-  'Catalyst resources maximumStacks'
-);
+import type { ResourceClock } from '#gw2/platform/combat/resources/clock.js';
+import { createResourceClock } from '#gw2/platform/combat/resources/resource-policy.js';
 
 /**
  * Catalyst combat bookkeeping: Jade Sphere energy, the per-attunement sphere
@@ -22,43 +11,31 @@ const CATALYST_MAXIMUM_ENERGY = requireBalanceNumber(
  * cooldown timestamps for the traits that proc off auras, combos and control.
  */
 export interface CatalystState {
-  energy: number;
+  catalystEnergy: ResourceClock;
   elementalEmpowermentExpiries: number[];
   elementalEmpowermentRefreshStarted: boolean;
-  maximumEnergy: number;
   sphereActiveUntil: number;
   sphereExpiry: Record<string, number>;
   shatteringIceUntil: number;
 }
 
 /**
- * Declares the Catalyst specialization state slot, seeding energy from the build's
- * `initialCatalystEnergy` clamped into the resource range.
+ * Creates a detached energy clock; the selected policy owns profile-aware capacity and initial energy.
  */
-export const catalystState = defineProfessionSpecializationState(
-  'Catalyst',
-  (config: ElementalistConfig = {}): CatalystState => ({
-    energy: boundedNumber(
-      config.initialCatalystEnergy ?? CATALYST_MAXIMUM_ENERGY,
-      CATALYST_MAXIMUM_ENERGY,
-      0,
-      CATALYST_MAXIMUM_ENERGY
-    ),
-    elementalEmpowermentExpiries: [],
-    elementalEmpowermentRefreshStarted: false,
-    maximumEnergy: CATALYST_MAXIMUM_ENERGY,
-    sphereActiveUntil: 0,
-    sphereExpiry: { Fire: 0, Water: 0, Air: 0, Earth: 0 },
-    shatteringIceUntil: 0
-  })
-);
+export const catalystState = defineProfessionSpecializationState('Catalyst', (): CatalystState => ({
+  catalystEnergy: createResourceClock(),
+  elementalEmpowermentExpiries: [],
+  elementalEmpowermentRefreshStarted: false,
+  sphereActiveUntil: 0,
+  sphereExpiry: { Fire: 0, Water: 0, Air: 0, Earth: 0 },
+  shatteringIceUntil: 0
+}));
 
 // Catalyst exposes active stack expiries alongside its resource and sphere timing so
 // insertion-aware UI can report the exact Elemental Empowerment stack count.
 export const CATALYST_PUBLIC_STATE_PROJECTION = definePublicStateDefaults({
-  energy: 0,
+  catalystEnergy: createResourceClock(),
   elementalEmpowermentExpiries: [],
-  maximumEnergy: CATALYST_MAXIMUM_ENERGY,
   sphereActiveUntil: 0,
   sphereExpiry: { Fire: 0, Water: 0, Air: 0, Earth: 0 }
 } satisfies Partial<CatalystState>);

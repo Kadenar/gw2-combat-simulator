@@ -8,7 +8,8 @@ test('profession resource clocks render through the shared meter UI', async ({ p
     ['guardian', 'Firebrand', 'pages', 'tomePages'],
     ['ranger', 'Galeshot', 'arrows', 'arrows'],
     ['revenant', null, 'energy', 'energy'],
-    ['necromancer', null, 'life-force', 'lifeForce']
+    ['necromancer', null, 'life-force', 'lifeForce'],
+    ['elementalist', 'Catalyst', 'catalyst-energy', 'catalystEnergy']
   ]) {
     await page.goto(`/${profession}.html#workspace`, { waitUntil: 'domcontentloaded' });
     await expect(page.locator('#loading-overlay')).toHaveClass(/hidden/);

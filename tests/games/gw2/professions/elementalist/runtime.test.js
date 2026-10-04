@@ -34,10 +34,12 @@ test('Catalyst energy ignores missed packets and arrives at the accepted impact'
             })
           );
       },
-      timeline: [{ at: 0.75, run: (runtime) => assert.equal(runtime.profession.specialization.state.energy, 0) }]
+      timeline: [
+        { at: 0.75, run: (runtime) => assert.equal(runtime.profession.specialization.state.catalystEnergy.value, 0) }
+      ]
     }
   );
-  assert.equal(observedRuntime(result).profession.specialization.state.energy, 1);
+  assert.equal(observedRuntime(result).profession.specialization.state.catalystEnergy.value, 1);
   assert.equal(result.events.find((event) => event.kind === 'catalyst-energy').at, 1);
 });
 
