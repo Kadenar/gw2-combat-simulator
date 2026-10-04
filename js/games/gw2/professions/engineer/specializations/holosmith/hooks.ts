@@ -1,9 +1,8 @@
-import { composeRuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
+import { composeRuntimeHooks, type RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import { DamageCalculationError } from '#gw2/platform/skill-damage/errors.js';
 import { grantCharges } from '#gw2/platform/combat/resources/charges.js';
 import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import { ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
-import type { RuntimeProfession } from '#gw2/platform/profession-definition/runtime-contract.js';
 import { photonForgeHooks } from '#gw2/professions/engineer/specializations/holosmith/mechanics/photon-forge.js';
 import {
   holosmithSlotEventHandlers,
@@ -18,7 +17,7 @@ import type { HolosmithSkill } from '#gw2/professions/engineer/specializations/h
 import type { EngineerRuntimeState } from '#gw2/professions/engineer/types.js';
 
 /** Heat pulses execute during the cast; committed pulses may survive its animation or a later Forge exit. */
-export const holosmithHooks: Partial<RuntimeProfession<EngineerRuntimeState, HolosmithSkill>> = composeRuntimeHooks([
+export const holosmithHooks: RuntimeHooks<EngineerRuntimeState, HolosmithSkill> = composeRuntimeHooks([
   photonForgeHooks,
   {
     /** Initialize only damage-relevant form and scaling state for one assumed occurrence. */

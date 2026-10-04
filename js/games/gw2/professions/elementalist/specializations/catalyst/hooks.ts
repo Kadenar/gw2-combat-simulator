@@ -1,8 +1,8 @@
+import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
 import { requireBalanceNumber } from '#gw2/platform/effects/validation.js';
 import type { EffectDelivery } from '#gw2/platform/effects/emission.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
-import type { RuntimeProfession } from '#gw2/platform/profession-definition/runtime-contract.js';
 import { applySideEffect } from '#gw2/platform/effects/action-dispatch.js';
 import { type ActionContext } from '#gw2/platform/effects/actions.js';
 import { registerElementalistEliteEvents } from '#gw2/professions/elementalist/core/mechanics/elite-events.js';
@@ -155,7 +155,7 @@ function gainEnergy(runtime: ElementalistRuntime, event: SimulationEvent): void 
 }
 
 /** Sphere spending, weapon refreshes, and accepted-hit traits operate on the same live state. */
-export const catalystHooks: Partial<RuntimeProfession<ElementalistRuntimeState, ElementalistSkill>> = {
+export const catalystHooks: RuntimeHooks<ElementalistRuntimeState, ElementalistSkill> = {
   initialize,
   availability,
   sideEffectHandlers: {

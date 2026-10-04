@@ -1,3 +1,4 @@
+import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import { maximumDeadeyeMalice } from '#gw2/professions/thief/specializations/deadeye/traits/behavior.js';
 
 import { refundMaliciousTacticalStrike } from '#gw2/professions/thief/specializations/deadeye/skills/index.js';
@@ -29,7 +30,6 @@ import type { SkillId } from '#gw2/platform/skills/types.js';
 import type { Gw2HitResolutionContext } from '#gw2/platform/resolver/hit-resolution.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
-import type { RuntimeProfession } from '#gw2/platform/profession-definition/runtime-contract.js';
 import type { ThiefRuntime } from '#gw2/professions/thief/core/events.js';
 import { buildThiefCondition, deferThiefCompletion } from '#gw2/professions/thief/core/events.js';
 import { grantThiefInitiative } from '#gw2/professions/thief/core/mechanics/resources.js';
@@ -167,7 +167,7 @@ function reactDeadeyeMalice(runtime: ThiefRuntime, event: Gw2ResolverEvent, hit?
 }
 
 /** Deadeye hooks: the mark and malice, malicious attacks, stolen skills, Mercy, Shadow Flare, and cantrip traits. */
-export const deadeyeHooks: Partial<RuntimeProfession<ThiefRuntimeState, ThiefSkill>> = {
+export const deadeyeHooks: RuntimeHooks<ThiefRuntimeState, ThiefSkill> = {
   /** Initialize only damage-relevant form and scaling state for one assumed occurrence. */
   prepareDamageState(runtime, _skill, inputs) {
     const state = deadeyeState.from(runtime);

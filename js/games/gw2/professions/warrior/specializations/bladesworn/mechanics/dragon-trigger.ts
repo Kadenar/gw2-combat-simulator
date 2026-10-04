@@ -1,3 +1,4 @@
+import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
 import type { MechanicContext } from '#gw2/platform/profession-definition/mechanic-context.js';
 import { CAST_READY, denyCast, retryCast } from '#gw2/platform/execution/availability.js';
@@ -307,7 +308,7 @@ export const dragonTriggerHooks = {
         exitDragonTrigger(runtime, state.dragonTriggerChargeDeadline);
     }
   }
-} satisfies Partial<RuntimeProfession<WarriorRuntimeState, WarriorSkill>>;
+} satisfies RuntimeHooks<WarriorRuntimeState, WarriorSkill>;
 /** Entry and release readiness use observed charge thresholds and the current Flow pool. */
 export const dragonTriggerAvailability: NonNullable<
   RuntimeProfession<WarriorRuntimeState, WarriorSkill>['availability']

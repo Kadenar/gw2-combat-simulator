@@ -1,5 +1,5 @@
+import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
-import type { RuntimeProfession } from '#gw2/platform/profession-definition/runtime-contract.js';
 import { SPELLBREAKER_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/warrior/specializations/spellbreaker/profiles.js';
 import {
   reactToSpellbreakerControl,
@@ -8,7 +8,7 @@ import {
 import type { WarriorRuntimeState, WarriorSkill } from '#gw2/professions/warrior/types.js';
 
 /** Core owns packet execution and one-bar spending; this slice owns accepted control and burst reactions. */
-export const spellbreakerHooks: Partial<RuntimeProfession<WarriorRuntimeState, WarriorSkill>> = {
+export const spellbreakerHooks: RuntimeHooks<WarriorRuntimeState, WarriorSkill> = {
   initialize(runtime) {
     const core = runtime.profession.core;
     core.maximumAdrenaline = balanceProfileNumber(

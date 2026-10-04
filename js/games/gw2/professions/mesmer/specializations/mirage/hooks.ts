@@ -1,7 +1,7 @@
+import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import type { SkillTask } from '#gw2/platform/skills/types.js';
 import { skillTaskAt } from '#gw2/platform/execution/task-timing.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
-import type { RuntimeProfession } from '#gw2/platform/profession-definition/runtime-contract.js';
 import { mesmerCastDelivery } from '#gw2/professions/mesmer/core/execution/cast-lifecycle.js';
 import { mesmerMechanicsFor } from '#gw2/professions/mesmer/core/mechanics/runtime.js';
 import { triggerDeceptiveEvasion } from '#gw2/professions/mesmer/core/traits/behavior.js';
@@ -21,7 +21,7 @@ import type { MesmerRuntimeState } from '#gw2/professions/mesmer/types.js';
 type TriggerData = { cast: RuntimeCast<MesmerSkill>; trigger: SkillTask };
 
 /** Cloak, mirror pickup, and endurance execute at actual command and owned-task boundaries. */
-export const mirageHooks: Partial<RuntimeProfession<MesmerRuntimeState, MesmerSkill>> = {
+export const mirageHooks: RuntimeHooks<MesmerRuntimeState, MesmerSkill> = {
   initialize: initializeMirageRuntime,
   endurance: mirageEndurance,
   availability: mirageAvailability,

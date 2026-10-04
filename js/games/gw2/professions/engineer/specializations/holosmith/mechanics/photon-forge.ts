@@ -1,3 +1,4 @@
+import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import { holosmithCastAvailability } from '#gw2/professions/engineer/specializations/holosmith/mechanics/availability.js';
 import { OBSERVABLE_EVENT_HANDLER } from '#gw2/platform/resolver/handler-registry.js';
 import { grantCapped } from '#gw2/platform/combat/resources/pool.js';
@@ -412,4 +413,4 @@ export const photonForgeHooks = {
   backgroundTasks: [PHOTON_FORGE_PASSIVE_HEAT_TASK],
   tasks: photonForgeTasks,
   eventHandlers: { 'engineer.heat': OBSERVABLE_EVENT_HANDLER }
-} satisfies Partial<RuntimeProfession<EngineerRuntimeState, HolosmithSkill>>;
+} satisfies RuntimeHooks<EngineerRuntimeState, HolosmithSkill>;

@@ -1,9 +1,9 @@
+import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import { prepareGw2BuffCompanionCandidates } from '#gw2/platform/combat/state/allied-players.js';
 import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import { criticalProcHandler } from '#gw2/platform/profession-definition/mechanics.js';
 import { OBSERVABLE_EVENT_HANDLER } from '#gw2/platform/resolver/handler-registry.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
-import type { RuntimeProfession } from '#gw2/platform/profession-definition/runtime-contract.js';
 import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
 import { buildRangerPacket } from '#gw2/professions/ranger/core/events.js';
 import { rangerCoreCastAvailability } from '#gw2/professions/ranger/core/mechanics/availability.js';
@@ -92,7 +92,7 @@ function completeWeapon(runtime: RangerRuntime, cast: RuntimeCast<RangerSkill>):
 
 import { rangerBuffPolicies } from '#gw2/professions/ranger/core/effect-state.js';
 
-export const rangerCoreHooks: Partial<RuntimeProfession<RangerRuntimeState, RangerSkill>> = {
+export const rangerCoreHooks: RuntimeHooks<RangerRuntimeState, RangerSkill> = {
   buffPolicies: rangerBuffPolicies,
   sideEffectHandlers: {
     // Declarations choose the phase and payload; queued grants preserve same-time hit ordering.

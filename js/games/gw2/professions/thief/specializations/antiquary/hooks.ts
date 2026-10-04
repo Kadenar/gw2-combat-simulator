@@ -1,3 +1,4 @@
+import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
 import { grantCharges } from '#gw2/platform/combat/resources/charges.js';
 import { consumeOldestStacks } from '#gw2/platform/combat/resources/timed-stacks.js';
@@ -11,7 +12,6 @@ import {
 import type { SkillId } from '#gw2/platform/skills/types.js';
 import type { AvailabilityResult } from '#gw2/platform/execution/types.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
-import type { RuntimeProfession } from '#gw2/platform/profession-definition/runtime-contract.js';
 import type { ThiefRuntime } from '#gw2/professions/thief/core/events.js';
 import { buildThiefCondition, buildThiefStrikes } from '#gw2/professions/thief/core/events.js';
 import { grantThiefInitiative } from '#gw2/professions/thief/core/mechanics/resources.js';
@@ -269,7 +269,7 @@ function antiquaryAvailability(runtime: MechanicQueriesOf<ThiefRuntime>, skill: 
 }
 
 /** Antiquary hooks: artifact pilfering and use, Double Edge outcomes, Skritt summons, and artifact-driven traits. */
-export const antiquaryHooks: Partial<RuntimeProfession<ThiefRuntimeState, ThiefSkill>> = {
+export const antiquaryHooks: RuntimeHooks<ThiefRuntimeState, ThiefSkill> = {
   sideEffectHandlers: {
     'thief.artifact-spend'(runtime, context) {
       if (context.kind === 'cast') spendArtifact(runtime, context.cast);

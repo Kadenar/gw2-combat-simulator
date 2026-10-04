@@ -1,4 +1,4 @@
-import type { RuntimeProfession } from '#gw2/platform/profession-definition/runtime-contract.js';
+import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import { sideEffectAmount } from '#gw2/platform/effects/action-dispatch.js';
 import {
   commitMesmerShatter,
@@ -194,4 +194,4 @@ export const mesmerIllusionHooks = {
       );
     }
   }
-} satisfies Partial<RuntimeProfession<MesmerRuntimeState, MesmerSkill>>;
+} satisfies RuntimeHooks<MesmerRuntimeState, MesmerSkill>;

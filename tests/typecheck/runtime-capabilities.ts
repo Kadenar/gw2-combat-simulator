@@ -1,6 +1,5 @@
 import type { CastDetailContext, EffectOwnershipContext } from '#gw2/platform/profession-definition/runtime-context.js';
-import { composeRuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
-import type { RuntimeProfession } from '#gw2/platform/profession-definition/runtime-contract.js';
+import { composeRuntimeHooks, type RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import type { Gw2Runtime } from '#gw2/platform/simulation/runtime-state.js';
 import type { WarriorRuntimeState, WarriorSkill } from '#gw2/professions/warrior/types.js';
 import type { MechanicContext, MechanicQueryContext } from '#gw2/platform/profession-definition/mechanic-context.js';
@@ -23,7 +22,7 @@ function ownership(context: EffectOwnershipContext<WarriorSkill>) {
   return charges;
 }
 
-const hooks: Partial<RuntimeProfession<WarriorRuntimeState, WarriorSkill>> = {
+const hooks: RuntimeHooks<WarriorRuntimeState, WarriorSkill> = {
   availability(context, skill) {
     const slash: boolean | undefined = skill.dragonSlash;
     context.endurance.readyAt(50);

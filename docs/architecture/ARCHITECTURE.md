@@ -163,12 +163,27 @@ projects the settled run without advancing it.
 
 Mechanic contributions use the explicit `RuntimeHooks` surface in `profession-definition/runtime-hooks.ts`; unknown
 fields and duplicate named handlers fail. Notification order, transform propagation, retry precedence, and policy
-selection remain explicit. `effectOwner` receives only `EffectOwnershipContext` from `runtime-context.ts`, allocated
-once per run with selected-catalog queries. `castDetail` receives `CastDetailContext`, also allocated once per run; its
-profession-state query exposes nested data as read-only and excludes stateful operations. Accepted casts retain their
-concrete selected-catalog skill. Other callback families retain their canonical signatures until migrated atomically.
+selection remain explicit. Module declarations, rule compilation, and hook composition use `RuntimeHooks<State, TSkill>`;
+the broader `RuntimeProfession` contract belongs to the compiled profession, including its catalog, state factory,
+weapon eligibility, attack-chain overrides, and planning projection.
+
+All callback families use their canonical author capabilities. `profession-definition/runtime-context.ts` declares
+dedicated selection, content, recharge-anchor, capacity, cast-detail, and effect-ownership contexts. `effectOwner`
+receives only selected-catalog queries through `EffectOwnershipContext`; `castDetail` receives a `CastDetailContext`
+whose profession-state query exposes nested data as read-only and excludes stateful operations. These views are bound
+once per run, and accepted casts retain their concrete selected-catalog skill.
+
+`profession-definition/mechanic-context.ts` declares the shared mechanic capabilities. `MechanicQueryContext` gives
+selection and observation callbacks read-only profession state, service queries, and executed facts. `MechanicCombatContext`
+gives combat helpers mutable profession state and combat, emission, proc, and random services. `MechanicContext` extends
+that combat capability for lifecycle handlers with cast/resource/recharge operations, named scheduling, and explicit
+observation writes. None exposes the command cursor, shared heap, or report collections.
+
+`simulation/mechanic-context.ts` binds stable query and lifecycle views to the live run. `resolver/mechanic-services.ts`
+binds combat operations to their resolver-owned stores. `combat/history/executed-facts.ts` supplies the `facts` reader
+and `observations` writer independently of optional reports; pending work becomes history only when it executes.
 Professions inspect in-flight casts, query detached pending charge-release intent, and request lockouts through
-`castController`, without access to its maps. Dragon Trigger no longer reads the command cursor.
+`castController`, without access to its maps.
 
 Dragon Trigger owns charging, release capture, charge-scaled packets, and expiry, with state defaults in its leaf state
 module. Its immutable release records are stored per run. Gunsaber transitions and Flow regeneration have separate

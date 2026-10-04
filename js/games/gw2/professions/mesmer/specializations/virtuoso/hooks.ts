@@ -1,5 +1,5 @@
+import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
-import type { RuntimeProfession } from '#gw2/platform/profession-definition/runtime-contract.js';
 import { mesmerMechanicsFor } from '#gw2/professions/mesmer/core/mechanics/runtime.js';
 import { virtuosoAvailability } from '#gw2/professions/mesmer/specializations/virtuoso/mechanics/bladesongs.js';
 import { initializeVirtuosoRuntime } from '#gw2/professions/mesmer/specializations/virtuoso/mechanics/runtime.js';
@@ -7,7 +7,7 @@ import { resolveBladeCriticalTraits } from '#gw2/professions/mesmer/specializati
 import type { MesmerRuntimeState } from '#gw2/professions/mesmer/types.js';
 
 /** Blade resources follow committed spending, accepted Bleeding, and actual shared critical outcomes. */
-export const virtuosoHooks: Partial<RuntimeProfession<MesmerRuntimeState, MesmerSkill>> = {
+export const virtuosoHooks: RuntimeHooks<MesmerRuntimeState, MesmerSkill> = {
   initialize: initializeVirtuosoRuntime,
   availability: virtuosoAvailability,
   tasks: {

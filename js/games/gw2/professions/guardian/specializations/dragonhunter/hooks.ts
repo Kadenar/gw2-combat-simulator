@@ -1,3 +1,4 @@
+import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import type { MechanicContext } from '#gw2/platform/profession-definition/mechanic-context.js';
 import {
   balanceProfileNumber,
@@ -10,7 +11,6 @@ import type { NativeResolvedDamageDetails } from '#gw2/platform/profession-defin
 import { buildResolverCondition } from '#gw2/platform/resolver/packets.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
-import type { RuntimeProfession } from '#gw2/platform/profession-definition/runtime-contract.js';
 import { projectCastRelativeEffectTimingMs } from '#gw2/platform/execution/cast-timing.js';
 import { guardianVirtueForSlot, refreshGuardianVirtues } from '#gw2/professions/guardian/core/mechanics/virtues.js';
 import {
@@ -124,7 +124,7 @@ function tetherBurn(runtime: Runtime, data: unknown): void {
 }
 
 /** Dragonhunter owns its landed tether, passive cadence, and committed trap/virtue effects without replay records. */
-export const dragonhunterHooks: Partial<RuntimeProfession<GuardianRuntimeState, GuardianSkill>> = {
+export const dragonhunterHooks: RuntimeHooks<GuardianRuntimeState, GuardianSkill> = {
   sideEffectHandlers: {
     // Breaking a tether retires its follow-up without touching parent recharge.
     'guardian.break-tether'(runtime) {

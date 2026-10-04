@@ -1,5 +1,5 @@
+import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
-import type { RuntimeProfession } from '#gw2/platform/profession-definition/runtime-contract.js';
 import { mesmerCastDelivery } from '#gw2/professions/mesmer/core/execution/cast-lifecycle.js';
 import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
 import { troubadourEndurance } from '#gw2/professions/mesmer/specializations/troubadour/mechanics/endurance.js';
@@ -15,7 +15,7 @@ import { initializeSyncopate } from '#gw2/professions/mesmer/specializations/tro
 import type { MesmerRuntimeState } from '#gw2/professions/mesmer/types.js';
 
 /** Instruments commit notes on completion; delayed waves and accepted disables retain their own timing. */
-export const troubadourHooks: Partial<RuntimeProfession<MesmerRuntimeState, MesmerSkill>> = {
+export const troubadourHooks: RuntimeHooks<MesmerRuntimeState, MesmerSkill> = {
   initialize(runtime) {
     initializeTroubadourRuntime(runtime);
     // Keep the completed-heal consequence queued at the same boundary without observing log text.

@@ -1,3 +1,4 @@
+import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import type { MechanicContext } from '#gw2/platform/profession-definition/mechanic-context.js';
 import { denySkillCast } from '#gw2/platform/execution/availability.js';
 import {
@@ -11,7 +12,6 @@ import type { NativeResolvedDamageDetails } from '#gw2/platform/profession-defin
 import { buildResolverCondition, buildResolverStrike } from '#gw2/platform/resolver/packets.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
-import type { RuntimeProfession } from '#gw2/platform/profession-definition/runtime-contract.js';
 import { gw2EffectExpiresAt } from '#gw2/platform/effects/timing.js';
 import { guardianCastCause } from '#gw2/professions/guardian/core/mechanics/event-handlers.js';
 import { refreshGuardianVirtues } from '#gw2/professions/guardian/core/mechanics/virtues.js';
@@ -196,7 +196,7 @@ function hit(runtime: Runtime, event: Gw2ResolverEvent, details: NativeResolvedD
 }
 
 /** Virtue windows, flame lifetimes, and earned recharge reductions live beside the shared cast and damage owners. */
-export const willbenderHooks: Partial<RuntimeProfession<GuardianRuntimeState, GuardianSkill>> = {
+export const willbenderHooks: RuntimeHooks<GuardianRuntimeState, GuardianSkill> = {
   /** Initial Tempo uses its normal grant function, retaining the selected cap and subsequent refresh behavior. */
   initialize(runtime) {
     const parameters = lethalTempoParameters(runtime);

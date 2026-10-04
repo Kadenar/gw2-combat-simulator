@@ -1,3 +1,4 @@
+import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import { consumeCharge, grantCharges } from '#gw2/platform/combat/resources/charges.js';
 import { gw2AlliedPlayerAssumptions, gw2AlliedPlayerProcTimeline } from '#gw2/platform/combat/state/allied-players.js';
 import {
@@ -11,7 +12,6 @@ import type { Gw2HitResolutionContext } from '#gw2/platform/resolver/hit-resolut
 import { buildResolverCondition } from '#gw2/platform/resolver/packets.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
-import type { RuntimeProfession } from '#gw2/platform/profession-definition/runtime-contract.js';
 import type { RevenantRuntime } from '#gw2/professions/revenant/core/events.js';
 
 import { isInternalCooldownReady } from '#gw2/platform/combat/procs.js';
@@ -283,7 +283,7 @@ function soulcleaveAllies(runtime: RevenantRuntime, data: unknown): void {
 }
 
 /** Renegade owns Fervor, warband summons, Kalla's commands, and their actual hit/boon reactions. */
-export const renegadeHooks: Partial<RuntimeProfession<RevenantRuntimeState, RevenantSkill>> = {
+export const renegadeHooks: RuntimeHooks<RevenantRuntimeState, RevenantSkill> = {
   initialize(runtime) {
     renegadeState.from(runtime).kallasFervorMaximumStacks = Math.max(
       1,

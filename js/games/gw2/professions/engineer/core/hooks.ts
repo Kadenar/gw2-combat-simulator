@@ -1,3 +1,4 @@
+import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import { damageInputEvent } from '#gw2/platform/skill-damage/occurrence-driver.js';
 import { ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
 import {
@@ -6,7 +7,6 @@ import {
   emitAimAssistedRocket
 } from '#gw2/professions/engineer/core/traits/explosions.js';
 import { criticalProcHandler } from '#gw2/platform/profession-definition/mechanics.js';
-import type { RuntimeProfession } from '#gw2/platform/profession-definition/runtime-contract.js';
 import { sideEffectAmount } from '#gw2/platform/effects/action-dispatch.js';
 import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
 import { reduceEngineerRecharge } from '#gw2/professions/engineer/core/mechanics/recharge.js';
@@ -62,7 +62,7 @@ function detonatePrecastMines(runtime: EngineerRuntime): void {
 
 import { engineerBuffPolicies } from '#gw2/professions/engineer/core/effect-state.js';
 
-export const engineerCoreHooks: Partial<RuntimeProfession<EngineerRuntimeState, EngineerSkill>> = {
+export const engineerCoreHooks: RuntimeHooks<EngineerRuntimeState, EngineerSkill> = {
   damageEffects: [
     {
       id: 'engineer.grenadier',

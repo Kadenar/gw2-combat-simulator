@@ -1,10 +1,9 @@
 import { prepareGw2BuffCompanionCandidates } from '#gw2/platform/combat/state/allied-players.js';
 import { armSkillFlip } from '#gw2/platform/execution/skill-flips.js';
 import type { NativeResolvedDamageDetails } from '#gw2/platform/profession-definition/module-types.js';
-import { composeRuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
+import { composeRuntimeHooks, type RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import { OBSERVABLE_EVENT_HANDLER } from '#gw2/platform/resolver/handler-registry.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
-import type { RuntimeProfession } from '#gw2/platform/profession-definition/runtime-contract.js';
 import { completeMesmerCast, mesmerCastDelivery } from '#gw2/professions/mesmer/core/execution/cast-lifecycle.js';
 import { mesmerAvailability } from '#gw2/professions/mesmer/core/mechanics/availability.js';
 import { scheduleChaosStormPoison } from '#gw2/professions/mesmer/core/mechanics/chaos-storm.js';
@@ -47,7 +46,7 @@ function complete(runtime: MesmerRuntime, cast: RuntimeCast<MesmerSkill>): void 
 /** Core owns casts, clones, and accepted impact reactions on the shared clock. */
 import { mesmerBuffPolicies, mesmerEffectStates } from '#gw2/professions/mesmer/core/effect-state.js';
 
-export const mesmerCoreHooks: Partial<RuntimeProfession<MesmerRuntimeState, MesmerSkill>> = composeRuntimeHooks<
+export const mesmerCoreHooks: RuntimeHooks<MesmerRuntimeState, MesmerSkill> = composeRuntimeHooks<
   MesmerRuntimeState,
   MesmerSkill
 >([

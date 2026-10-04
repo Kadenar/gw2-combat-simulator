@@ -1,7 +1,7 @@
+import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import { skillFlipReady } from '#gw2/platform/execution/skill-flips.js';
 import type { Gw2HitResolutionContext } from '#gw2/platform/resolver/hit-resolution.js';
-import type { RuntimeProfession } from '#gw2/platform/profession-definition/runtime-contract.js';
 import { applySideEffect, sideEffectAmount } from '#gw2/platform/effects/action-dispatch.js';
 import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
 import {
@@ -37,7 +37,7 @@ import { boundedNumber } from '#kernel/core/numeric.js';
 /** Core resources and burst packets execute in the Core hooks; elite behavior composes at the family boundary. */
 import { warriorBuffPolicies, warriorEffectStates } from '#gw2/professions/warrior/core/effect-state.js';
 
-export const warriorCoreHooks: Partial<RuntimeProfession<WarriorRuntimeState, WarriorSkill>> = {
+export const warriorCoreHooks: RuntimeHooks<WarriorRuntimeState, WarriorSkill> = {
   buffPolicies: warriorBuffPolicies,
   observeEffects: warriorEffectStates,
   // Custom verbs keep specialization-dependent resource conversion and catalog-matched targets in their owner.

@@ -44,7 +44,7 @@ import type {
   NativeProfessionDefinition,
   NativeProfessionRuntimeState
 } from '#gw2/platform/profession-definition/module-types.js';
-import { composeRuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
+import { composeRuntimeHooks, type RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
 import { compileProfessionRules } from '#gw2/platform/profession-definition/trigger-rules.js';
 import { validateAutoattackChainOptions } from '#gw2/platform/execution/autoattack-chains.js';
@@ -410,8 +410,8 @@ export function defineNativeProfession<
     const cached = selection.runtimes.get(traitTriggers);
     if (cached) return cached;
     const { modules: selected, source } = selection;
-    const hooks = (selected.map((module) => module.hooks ?? {}) as Partial<RuntimeProfession<State, TSkill>>[]).map(
-      (hooks) => compileProfessionRules(hooks, { traitTriggers })
+    const hooks = (selected.map((module) => module.hooks ?? {}) as RuntimeHooks<State, TSkill>[]).map((hooks) =>
+      compileProfessionRules(hooks, { traitTriggers })
     );
     const composed = composeRuntimeHooks(hooks);
     const runtime: RuntimeProfession<State, TSkill> = {

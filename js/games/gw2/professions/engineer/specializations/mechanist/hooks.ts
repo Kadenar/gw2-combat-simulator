@@ -1,6 +1,6 @@
+import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import { prepareGw2BuffCompanionCandidates } from '#gw2/platform/combat/state/allied-players.js';
 import { criticalProcHandler } from '#gw2/platform/profession-definition/mechanics.js';
-import type { RuntimeProfession } from '#gw2/platform/profession-definition/runtime-contract.js';
 import { summonQuicknessCastTimeMs } from '#gw2/platform/execution/cast-timing.js';
 import { engineerMechCoreCriticalDefinitions } from '#gw2/professions/engineer/core/traits/critical-procs.js';
 import { engineerMechResolverEvent } from '#gw2/professions/engineer/specializations/mechanist/mechanics/mech-ownership.js';
@@ -26,7 +26,7 @@ import type { EngineerSkill, EngineerRuntimeState } from '#gw2/professions/engin
 const critical = engineerMechCoreCriticalDefinitions(engineerMechResolverEvent).map(criticalProcHandler);
 
 /** Commands reserve the summon lane immediately; its autoattack phase resumes only after command recovery. */
-export const mechanistHooks: Partial<RuntimeProfession<EngineerRuntimeState, EngineerSkill>> = {
+export const mechanistHooks: RuntimeHooks<EngineerRuntimeState, EngineerSkill> = {
   // Completed commands grant player Quickness; mech recovery and Overclock retain their lifecycle owner.
 
   initialize(runtime) {

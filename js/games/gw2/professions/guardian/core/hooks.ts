@@ -1,3 +1,4 @@
+import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import type { MechanicContext } from '#gw2/platform/profession-definition/mechanic-context.js';
 import { grantTimedStacks } from '#gw2/platform/combat/resources/timed-stacks.js';
 import { denySkillCast } from '#gw2/platform/execution/availability.js';
@@ -5,7 +6,6 @@ import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/pla
 import { skillFlipReady } from '#gw2/platform/execution/skill-flips.js';
 import type { NativeResolvedDamageDetails } from '#gw2/platform/profession-definition/module-types.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
-import type { RuntimeProfession } from '#gw2/platform/profession-definition/runtime-contract.js';
 import { applySideEffect } from '#gw2/platform/effects/action-dispatch.js';
 import { damageInputEvent } from '#gw2/platform/skill-damage/occurrence-driver.js';
 import { castWasInterrupted } from '#gw2/platform/execution/cast-timing.js';
@@ -76,7 +76,7 @@ function clearTorchLockout(runtime: Runtime, cast: RuntimeCast<GuardianSkill>): 
 /** Core hooks: accepted virtues, shared recharge, endurance grants, and temporary weapon state. */
 import { guardianBuffPolicies, guardianEffectStates } from '#gw2/professions/guardian/core/effect-state.js';
 
-export const guardianCoreHooks: Partial<RuntimeProfession<GuardianRuntimeState, GuardianSkill>> = {
+export const guardianCoreHooks: RuntimeHooks<GuardianRuntimeState, GuardianSkill> = {
   // Known damage payloads are invoked once without their activation requirements.
   damageEffects: [false, true].map((active) => ({
     id: `justice-${active ? 'active' : 'passive'}`,

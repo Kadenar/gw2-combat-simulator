@@ -1,8 +1,7 @@
 import type { MechanicContext } from '#gw2/platform/profession-definition/mechanic-context.js';
 import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
-import { composeRuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
+import { composeRuntimeHooks, type RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
-import type { RuntimeProfession } from '#gw2/platform/profession-definition/runtime-contract.js';
 import { resetAutoattackChains } from '#gw2/platform/execution/autoattack-chains.js';
 import { grantWarriorAdrenaline } from '#gw2/professions/warrior/core/mechanics/adrenaline.js';
 import { warriorAmmunition } from '#gw2/professions/warrior/core/mechanics/ammunition.js';
@@ -46,7 +45,7 @@ function explosion(runtime: Runtime, event: Gw2ResolverEvent): void {
 }
 
 /** Native declarations own actual resources, bar transitions, completed ammunition rewards, and accepted explosions. */
-export const bladeswornHooks: Partial<RuntimeProfession<WarriorRuntimeState, WarriorSkill>> = composeRuntimeHooks([
+export const bladeswornHooks: RuntimeHooks<WarriorRuntimeState, WarriorSkill> = composeRuntimeHooks([
   dragonTriggerHooks,
   {
     prepareDamageState(runtime, skill) {

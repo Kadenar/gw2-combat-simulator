@@ -1,3 +1,4 @@
+import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import type { MechanicContext } from '#gw2/platform/profession-definition/mechanic-context.js';
 import { CAST_READY, denyCast } from '#gw2/platform/execution/availability.js';
 import {
@@ -11,7 +12,6 @@ import { armSkillFlip, consumeSkillFlip } from '#gw2/platform/execution/skill-fl
 import type { NativeResolvedDamageDetails } from '#gw2/platform/profession-definition/module-types.js';
 import { buildResolverCondition } from '#gw2/platform/resolver/packets.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
-import type { RuntimeProfession } from '#gw2/platform/profession-definition/runtime-contract.js';
 import { resetAutoattackChains } from '#gw2/platform/execution/autoattack-chains.js';
 import { lockTransitionInput } from '#gw2/platform/execution/transition-lockouts.js';
 import { buildGuardianStrike, guardianCastCause } from '#gw2/professions/guardian/core/mechanics/event-handlers.js';
@@ -189,7 +189,7 @@ function hammerImpact(runtime: Runtime, data: unknown): void {
 }
 
 /** Luminary owns its live form, virtue entitlements, finite stance work, and actual combo-derived auras. */
-export const luminaryHooks: Partial<RuntimeProfession<GuardianRuntimeState, GuardianSkill>> = {
+export const luminaryHooks: RuntimeHooks<GuardianRuntimeState, GuardianSkill> = {
   /** Initialize only damage-relevant form and scaling state for one assumed occurrence. */
   prepareDamageState(runtime, skill, inputs) {
     const state = luminaryState.from(runtime);

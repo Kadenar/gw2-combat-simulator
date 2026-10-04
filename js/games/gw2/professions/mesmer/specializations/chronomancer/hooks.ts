@@ -1,5 +1,5 @@
+import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import { OBSERVABLE_EVENT_HANDLER } from '#gw2/platform/resolver/handler-registry.js';
-import type { RuntimeProfession } from '#gw2/platform/profession-definition/runtime-contract.js';
 import { dispatchShatterResolved } from '#gw2/professions/mesmer/core/execution/cast-lifecycle.js';
 import { mesmerMechanicsFor } from '#gw2/professions/mesmer/core/mechanics/runtime.js';
 import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
@@ -12,7 +12,7 @@ import { chronomancerState } from '#gw2/professions/mesmer/specializations/chron
 import type { MesmerRuntimeState } from '#gw2/professions/mesmer/types.js';
 
 /** Continuum restores its deliberate checkpoint once; accepted control owns Danger Time. */
-export const chronomancerHooks: Partial<RuntimeProfession<MesmerRuntimeState, MesmerSkill>> = {
+export const chronomancerHooks: RuntimeHooks<MesmerRuntimeState, MesmerSkill> = {
   // Chronomancer strengthens permanent player Alacrity without changing summon recharge or base work.
   playerAlacrityRechargeRate: 1.5,
   initialize: initializeChronomancerRuntime,

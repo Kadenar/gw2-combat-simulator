@@ -1,3 +1,4 @@
+import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import { materializeSkillEffectApplications } from '#gw2/platform/effects/materializer.js';
 import type { SimulationEventBase } from '#gw2/platform/events/events.js';
 import { denySkillCast } from '#gw2/platform/execution/availability.js';
@@ -10,7 +11,6 @@ import {
 import type { Skill, SkillId } from '#gw2/platform/skills/types.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
-import type { RuntimeProfession } from '#gw2/platform/profession-definition/runtime-contract.js';
 import { gw2CooldownReadyAt } from '#gw2/platform/execution/cast-timing.js';
 import type { RevenantRuntime } from '#gw2/professions/revenant/core/events.js';
 import { activeRevenantUpkeep } from '#gw2/professions/revenant/core/mechanics/upkeep.js';
@@ -278,7 +278,7 @@ function upkeepDaggers(runtime: RevenantRuntime, data: unknown): void {
   runtime.schedule(UPKEEP_DAGGERS, canonicalTime(runtime.time + 1), data, undefined, -190);
 }
 
-export const conduitHooks: Partial<RuntimeProfession<RevenantRuntimeState, RevenantSkill>> = {
+export const conduitHooks: RuntimeHooks<RevenantRuntimeState, RevenantSkill> = {
   // Passive affinity accrual does not extend damage observation; damaging dagger upkeep remains bounded normally.
   backgroundTasks: [UPKEEP_AFFINITY],
   // Control-triggered Burning shares Mistfire's profile, excluding its own Twin Moon chain.

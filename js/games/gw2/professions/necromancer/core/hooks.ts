@@ -1,8 +1,8 @@
+import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import { emitVampirismPassive } from '#gw2/professions/necromancer/core/skills/slot-skills.js';
 import { denySkillCast } from '#gw2/platform/execution/availability.js';
 import { skillFlipReady } from '#gw2/platform/execution/skill-flips.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
-import type { RuntimeProfession } from '#gw2/platform/profession-definition/runtime-contract.js';
 import { sideEffectAmount } from '#gw2/platform/effects/action-dispatch.js';
 import { damageInputEvent } from '#gw2/platform/skill-damage/occurrence-driver.js';
 import { reactToNecromancerAxeHealth } from '#gw2/professions/necromancer/core/mechanics/axe.js';
@@ -91,7 +91,7 @@ function damage(runtime: NecromancerRuntime, event: Gw2ResolverEvent): void {
 /** Core mechanics share one live queue and resource owner with the active specialization. */
 import { necromancerBuffPolicies, necromancerEffectStates } from '#gw2/professions/necromancer/core/effect-state.js';
 
-export const necromancerCoreHooks: Partial<RuntimeProfession<NecromancerRuntimeState, NecromancerSkill>> = {
+export const necromancerCoreHooks: RuntimeHooks<NecromancerRuntimeState, NecromancerSkill> = {
   // Known damage payloads are invoked once without their activation requirements.
   damageEffects: [
     {

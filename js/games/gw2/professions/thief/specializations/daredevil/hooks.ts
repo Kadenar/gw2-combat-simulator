@@ -1,3 +1,4 @@
+import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
 import {
   armWeakeningStrikes,
@@ -17,7 +18,6 @@ import { THIEF_SKILL_IDS as ID } from '#gw2/professions/thief/data/ids.js';
 import { DAREDEVIL_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/thief/specializations/daredevil/profiles.js';
 
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
-import type { RuntimeProfession } from '#gw2/platform/profession-definition/runtime-contract.js';
 
 import type { ThiefRuntime } from '#gw2/professions/thief/core/events.js';
 import type { ThiefRuntimeState, ThiefSkill } from '#gw2/professions/thief/types.js';
@@ -37,7 +37,7 @@ function completeDaredevilCast(runtime: ThiefRuntime, cast: RuntimeCast<ThiefSki
 }
 
 /** Daredevil hooks: the larger endurance pool, selected dodges, trait refunds, and Palm Strike. */
-export const daredevilHooks: Partial<RuntimeProfession<ThiefRuntimeState, ThiefSkill>> = {
+export const daredevilHooks: RuntimeHooks<ThiefRuntimeState, ThiefSkill> = {
   // Daredevil replaces only the capacity while retaining Core's pool and regeneration.
   endurance: {
     ...thiefEndurance,

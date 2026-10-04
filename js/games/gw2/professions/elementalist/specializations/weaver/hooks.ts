@@ -1,6 +1,6 @@
+import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
 import type { RuntimeCast, SkillTaskData } from '#gw2/platform/execution/cast-contracts.js';
-import type { RuntimeProfession } from '#gw2/platform/profession-definition/runtime-contract.js';
 import { registerElementalistAttunementTransition } from '#gw2/professions/elementalist/core/mechanics/attunements.js';
 import { registerElementalistEliteEvents } from '#gw2/professions/elementalist/core/mechanics/elite-events.js';
 import {
@@ -222,7 +222,7 @@ function onCastCommit(context: ElementalistRuntime, cast: RuntimeCast<Elementali
 }
 
 /** Native tasks own Weave Self and stance pulses; actual controls and swaps own their trait reactions. */
-export const weaverHooks: Partial<RuntimeProfession<ElementalistRuntimeState, ElementalistSkill>> = {
+export const weaverHooks: RuntimeHooks<ElementalistRuntimeState, ElementalistSkill> = {
   initialize,
   availability,
   // The Air bullet and Flow State reductions compose without consuming bullet state during lookup.

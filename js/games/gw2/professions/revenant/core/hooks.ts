@@ -1,3 +1,4 @@
+import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
 import type { EndurancePolicy } from '#gw2/platform/combat/resources/endurance-policy.js';
 import type { ResourcePolicy } from '#gw2/platform/combat/resources/resource-policy.js';
@@ -8,7 +9,6 @@ import { armSkillFlip, skillFlipReady, weaponFlipBlock } from '#gw2/platform/exe
 import type { Skill, SkillId } from '#gw2/platform/skills/types.js';
 import type { AvailabilityResult, CastCommand } from '#gw2/platform/execution/types.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
-import type { RuntimeProfession } from '#gw2/platform/profession-definition/runtime-contract.js';
 import { damageInputEvent } from '#gw2/platform/skill-damage/occurrence-driver.js';
 import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
 import type { RevenantRuntime } from '#gw2/professions/revenant/core/events.js';
@@ -214,7 +214,7 @@ function swapLegend(runtime: RevenantRuntime, cast: RuntimeCast<RevenantSkill>):
 /** Core hooks: Energy, upkeeps, legends, weapon follow-ups, and actual hit/application trait reactions. */
 import { revenantBuffPolicies, revenantEffectStates } from '#gw2/professions/revenant/core/effect-state.js';
 
-export const revenantCoreHooks: Partial<RuntimeProfession<RevenantRuntimeState, RevenantSkill>> = {
+export const revenantCoreHooks: RuntimeHooks<RevenantRuntimeState, RevenantSkill> = {
   // Known damage payloads are invoked once without their activation requirements.
   damageEffects: [
     {

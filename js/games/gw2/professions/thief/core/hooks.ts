@@ -1,3 +1,4 @@
+import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
 import { damageInputEvent } from '#gw2/platform/skill-damage/occurrence-driver.js';
 import { emitVenom, VENOMS } from '#gw2/professions/thief/core/mechanics/venoms.js';
@@ -22,7 +23,6 @@ import { spearChainStageForSkill } from '#gw2/professions/thief/data/spear-chain
 
 import type { AvailabilityResult } from '#gw2/platform/execution/types.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
-import type { RuntimeProfession } from '#gw2/platform/profession-definition/runtime-contract.js';
 import type { ThiefRuntime } from '#gw2/professions/thief/core/events.js';
 import { deferThiefCompletion } from '#gw2/professions/thief/core/events.js';
 import {
@@ -170,7 +170,7 @@ function completeThiefCast(runtime: ThiefRuntime, cast: RuntimeCast<ThiefSkill>)
 /** Core hooks: initiative, endurance, stealth, steals, weapon follow-ups, utilities, and resolved trait reactions. */
 import { thiefBuffPolicies, thiefEffectStates } from '#gw2/professions/thief/core/effect-state.js';
 
-export const thiefCoreHooks: Partial<RuntimeProfession<ThiefRuntimeState, ThiefSkill>> = {
+export const thiefCoreHooks: RuntimeHooks<ThiefRuntimeState, ThiefSkill> = {
   // Known damage payloads are invoked once without their activation requirements.
   damageEffects: VENOMS.map((venom) => ({
     id: `venom:${venom.skillId}`,

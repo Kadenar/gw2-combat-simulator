@@ -1,7 +1,7 @@
+import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
 import type { EffectDelivery } from '#gw2/platform/effects/emission.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
-import type { RuntimeProfession } from '#gw2/platform/profession-definition/runtime-contract.js';
 import { registerElementalistEliteEvents } from '#gw2/professions/elementalist/core/mechanics/elite-events.js';
 import { isElementalistAttunement } from '#gw2/professions/elementalist/core/state.js';
 import { tempestOverloadDwell } from '#gw2/professions/elementalist/specializations/tempest/mechanics/overload-dwell.js';
@@ -145,7 +145,7 @@ function onAttunementEvent(
 }
 
 /** Tempest owns overload channels and reacts only to actual attunement and aura events. */
-export const tempestHooks: Partial<RuntimeProfession<ElementalistRuntimeState, ElementalistSkill>> = {
+export const tempestHooks: RuntimeHooks<ElementalistRuntimeState, ElementalistSkill> = {
   sideEffectHandlers: {
     'elementalist.tempest.overload-lockout'(context, trigger) {
       if (trigger.kind !== 'cast') throw new TypeError('Overload lockout requires a cast trigger.');

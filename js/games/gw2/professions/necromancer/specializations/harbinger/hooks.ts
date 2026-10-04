@@ -1,3 +1,4 @@
+import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import { timedEffectState } from '#gw2/platform/combat/effect-state.js';
 import { BLIGHT_MAXIMUM_STACKS } from '#gw2/professions/necromancer/specializations/harbinger/state.js';
 import { isHostileTargetEvent } from '#gw2/platform/combat/state/targets.js';
@@ -7,7 +8,6 @@ import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/pla
 import type { Skill } from '#gw2/platform/skills/types.js';
 import type { SkillEffect } from '#gw2/platform/effects/types.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
-import type { RuntimeProfession } from '#gw2/platform/profession-definition/runtime-contract.js';
 import { sideEffectAmount } from '#gw2/platform/effects/action-dispatch.js';
 import { quantizeGw2ActionTimingMs } from '#gw2/platform/execution/cast-timing.js';
 import { registerNecromancerShroudLifecycle } from '#gw2/professions/necromancer/core/mechanics/shroud-lifecycle.js';
@@ -152,7 +152,7 @@ function launchMovement(runtime: NecromancerRuntime, cast: RuntimeCast<Necromanc
 }
 
 /** Blight lives on the one runtime; shroud callbacks own every entry and exit, including automatic depletion. */
-export const harbingerHooks: Partial<RuntimeProfession<NecromancerRuntimeState, NecromancerSkill>> = {
+export const harbingerHooks: RuntimeHooks<NecromancerRuntimeState, NecromancerSkill> = {
   // Observe the same retained pools and mode flags that Harbinger combat mutates.
   observeEffects(runtime) {
     const state = harbingerState.from(runtime);

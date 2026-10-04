@@ -1,3 +1,4 @@
+import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import type { EffectAudience } from '#gw2/platform/events/events.js';
 import { denySkillCast } from '#gw2/platform/execution/availability.js';
 import {
@@ -11,7 +12,6 @@ import type { SkillId } from '#gw2/platform/skills/types.js';
 import { buildResolverStrike } from '#gw2/platform/resolver/packets.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
-import type { RuntimeProfession } from '#gw2/platform/profession-definition/runtime-contract.js';
 import type { RevenantRuntime } from '#gw2/professions/revenant/core/events.js';
 import { activeRevenantUpkeep, removeRevenantUpkeep } from '#gw2/professions/revenant/core/mechanics/upkeep.js';
 import { completeRevenantCastTraits } from '#gw2/professions/revenant/core/traits/dispatch.js';
@@ -188,7 +188,7 @@ function natureSiphon(runtime: RevenantRuntime, event: Gw2ResolverEvent): void {
 }
 
 /** Herald owns facet availability, lifecycle, passives, and Dragon invocation on the shared live state. */
-export const heraldHooks: Partial<RuntimeProfession<RevenantRuntimeState, RevenantSkill>> = {
+export const heraldHooks: RuntimeHooks<RevenantRuntimeState, RevenantSkill> = {
   // Accepted recipient delivery and self-source exclusion guard the shared profile cooldown.
 
   availability(runtime, skill) {

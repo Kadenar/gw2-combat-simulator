@@ -1,3 +1,4 @@
+import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import { grantCharges, type ChargeGrant } from '#gw2/platform/combat/resources/charges.js';
 import { gw2AlliedEffectRecipients, gw2AlliedPlayerAssumptions } from '#gw2/platform/combat/state/allied-players.js';
 import {
@@ -9,7 +10,6 @@ import {
 import { buildResolverStrike } from '#gw2/platform/resolver/packets.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
-import type { RuntimeProfession } from '#gw2/platform/profession-definition/runtime-contract.js';
 import { gw2EffectExpiresAt } from '#gw2/platform/effects/timing.js';
 import { necromancerActiveMinionCompanionIds } from '#gw2/professions/necromancer/core/mechanics/state-helpers.js';
 import {
@@ -160,7 +160,7 @@ function grantWeaponSpell(
 }
 
 /** Weapon spells and Bond own their live grants and timers alongside the specialization's spirit lifecycle. */
-export const ritualistSpellHooks: Partial<RuntimeProfession<NecromancerRuntimeState, NecromancerSkill>> = {
+export const ritualistSpellHooks: RuntimeHooks<NecromancerRuntimeState, NecromancerSkill> = {
   sideEffectHandlers: {
     'ritualist.nightmare-weapon'(runtime, context) {
       if (context.kind === 'cast') grantWeaponSpell(runtime, context.cast, 'nightmare');

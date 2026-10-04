@@ -1,4 +1,4 @@
-import type { RuntimeProfession } from '#gw2/platform/profession-definition/runtime-contract.js';
+import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import type { SkillTaskData } from '#gw2/platform/execution/cast-contracts.js';
 import { damageInputEvent } from '#gw2/platform/skill-damage/occurrence-driver.js';
 import { registerElementalistAttunementTransition } from '#gw2/professions/elementalist/core/mechanics/attunements.js';
@@ -30,7 +30,7 @@ import { emitElectricEnchantment } from '#gw2/professions/elementalist/specializ
 import { applyAltruisticAspect } from '#gw2/professions/elementalist/specializations/evoker/traits/familiars.js';
 import type { ElementalistRuntimeState, ElementalistSkill } from '#gw2/professions/elementalist/types.js';
 /** Familiar casts own pending packets; accepted impacts spend enchantments in chronological order. */
-export const evokerHooks: Partial<RuntimeProfession<ElementalistRuntimeState, ElementalistSkill>> = {
+export const evokerHooks: RuntimeHooks<ElementalistRuntimeState, ElementalistSkill> = {
   // Invoke the damage payload without activation requirements and reuse its proc icon in the damage preview.
   damageEffects: [
     {

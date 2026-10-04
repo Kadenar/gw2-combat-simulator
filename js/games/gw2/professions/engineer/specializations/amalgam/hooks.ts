@@ -1,5 +1,5 @@
+import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import { effectFirstAt } from '#gw2/platform/effects/materializer.js';
-import type { RuntimeProfession } from '#gw2/platform/profession-definition/runtime-contract.js';
 import type { SkillTaskData } from '#gw2/platform/execution/cast-contracts.js';
 import { amalgamCastAvailability } from '#gw2/professions/engineer/specializations/amalgam/mechanics/availability.js';
 import { amalgamResolverEventReactions } from '#gw2/professions/engineer/specializations/amalgam/mechanics/evolved-form-effects.js';
@@ -12,7 +12,7 @@ import { activateAmalgamMorph } from '#gw2/professions/engineer/specializations/
 import type { EngineerSkill, EngineerRuntimeState } from '#gw2/professions/engineer/types.js';
 
 /** Form grants occur at their commitment timestamp; only accepted control can reduce Evolve recharge. */
-export const amalgamHooks: Partial<RuntimeProfession<EngineerRuntimeState, EngineerSkill>> = {
+export const amalgamHooks: RuntimeHooks<EngineerRuntimeState, EngineerSkill> = {
   availability: amalgamCastAvailability,
   sideEffectHandlers: {
     'engineer.schedule-evolve'(runtime, context) {

@@ -1,7 +1,7 @@
+import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import { denySkillCast as deny } from '#gw2/platform/execution/availability.js';
 import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import { armSkillFlip, consumeSkillFlip } from '#gw2/platform/execution/skill-flips.js';
-import type { RuntimeProfession } from '#gw2/platform/profession-definition/runtime-contract.js';
 import { resetAutoattackChains } from '#gw2/platform/execution/autoattack-chains.js';
 import { buildRangerPacket } from '#gw2/professions/ranger/core/events.js';
 import { applyRangerWeaponSwapTraits } from '#gw2/professions/ranger/core/traits/behavior.js';
@@ -59,7 +59,7 @@ function avatar(runtime: RangerRuntime, active: boolean, exhausted = false): voi
   applyRangerWeaponSwapTraits(runtime, skill);
 }
 
-export const druidHooks: Partial<RuntimeProfession<RangerRuntimeState, RangerSkill>> = {
+export const druidHooks: RuntimeHooks<RangerRuntimeState, RangerSkill> = {
   resources: {
     astralForce: {
       kind: 'continuous',

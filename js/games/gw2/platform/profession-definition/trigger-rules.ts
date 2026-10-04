@@ -1,3 +1,4 @@
+import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import type { MechanicContext, MechanicQueryContext } from '#gw2/platform/profession-definition/mechanic-context.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import type { EffectEventBase } from '#gw2/platform/effects/materializer.js';
@@ -7,10 +8,7 @@ import type { Skill, SkillId } from '#gw2/platform/skills/types.js';
 import type { SkillEffect } from '#gw2/platform/effects/types.js';
 import type { NativeResolvedDamageDetails } from '#gw2/platform/profession-definition/module-types.js';
 import type { Gw2ResolverEvent, Gw2ResolverStage } from '#gw2/platform/resolver/types.js';
-import type {
-  ProfessionRuntimeOptions,
-  RuntimeProfession
-} from '#gw2/platform/profession-definition/runtime-contract.js';
+import type { ProfessionRuntimeOptions } from '#gw2/platform/profession-definition/runtime-contract.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import { sideEffectAmount } from '#gw2/platform/effects/action-dispatch.js';
 import { type ProfileAmount } from '#gw2/platform/effects/actions.js';
@@ -81,11 +79,11 @@ export function compileRechargeRules<T extends object, TSkill extends Skill = Sk
   };
 }
 
-/** Each module's rules run at its hook position; committed interruptions receive the same cast rewards. */
+/** Compile only hook contributions at their module position; committed interruptions receive the same cast rewards. */
 export function compileProfessionRules<T extends object, TSkill extends Skill = Skill>(
-  hooks: Partial<RuntimeProfession<T, TSkill>>,
+  hooks: RuntimeHooks<T, TSkill>,
   { traitTriggers = true }: ProfessionRuntimeOptions = {}
-): Partial<RuntimeProfession<T, TSkill>> {
+): RuntimeHooks<T, TSkill> {
   const compiled = { ...hooks };
   if (hooks.rechargeRules?.length) {
     const recharge = compileRechargeRules(hooks.rechargeRules);

@@ -1,3 +1,4 @@
+import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import type { MechanicContext } from '#gw2/platform/profession-definition/mechanic-context.js';
 /** Canonical Core warrior skill fragments grouped by their GW2 owner. */
 import { canonicalTime } from '#kernel/core/clock.js';
@@ -11,7 +12,6 @@ import {
   type WarriorModifierAttributes
 } from '#gw2/professions/warrior/core/traits/modifier-queries.js';
 import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
-import type { RuntimeProfession } from '#gw2/platform/profession-definition/runtime-contract.js';
 import type { WarriorRuntimeState, WarriorSkill } from '#gw2/professions/warrior/types.js';
 import type { Gw2AttributeEffect } from '#gw2/platform/builds/types.js';
 import { WARRIOR_SKILL_IDS as ID } from '#gw2/professions/warrior/data/ids.js';
@@ -301,7 +301,7 @@ function signetPulse(runtime: WarriorRuntime): void {
 }
 
 /** Selected Signet of Rage starts its passive at accepted combat and preserves suppressed pulse cadence. */
-export const signetOfRageLifecycle: Partial<RuntimeProfession<WarriorRuntimeState, WarriorSkill>> = {
+export const signetOfRageLifecycle: RuntimeHooks<WarriorRuntimeState, WarriorSkill> = {
   // Passive resource pulses are ambient work, not delayed damage from the signet's active cast.
   backgroundTasks: [SIGNET_PULSE],
   onCombatStart(runtime) {

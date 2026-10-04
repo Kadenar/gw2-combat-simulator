@@ -1,3 +1,4 @@
+import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import {
   ELEMENTALIST_TRAIT_IDS as DAMAGE_TRAIT,
   ELEMENTALIST_SKILL_IDS as ID
@@ -12,7 +13,6 @@ import { prepareGw2BuffCompanionCandidates } from '#gw2/platform/combat/state/al
 import { requireBalanceProfileFromContext, requireEffect } from '#gw2/platform/skills/balance-profiles.js';
 import type { NativeResolvedDamageDetails } from '#gw2/platform/profession-definition/module-types.js';
 import { OBSERVABLE_EVENT_HANDLER } from '#gw2/platform/resolver/handler-registry.js';
-import type { RuntimeProfession } from '#gw2/platform/profession-definition/runtime-contract.js';
 import type { SkillTaskData } from '#gw2/platform/execution/cast-contracts.js';
 import {
   elementalistCoreSideEffectHandlers,
@@ -72,7 +72,7 @@ import type {
 /** Core casts, accepted hits, and owned expiry tasks share the runtime. */
 import { elementalistBuffPolicies, elementalistEffectStates } from '#gw2/professions/elementalist/core/effect-state.js';
 
-export const elementalistCoreHooks: Partial<RuntimeProfession<ElementalistRuntimeState, ElementalistSkill>> = {
+export const elementalistCoreHooks: RuntimeHooks<ElementalistRuntimeState, ElementalistSkill> = {
   damageEffects: [
     {
       id: 'elementalist.ElectricDischarge',

@@ -1,7 +1,7 @@
+import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import type { MechanicContext } from '#gw2/platform/profession-definition/mechanic-context.js';
 import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
-import type { RuntimeProfession } from '#gw2/platform/profession-definition/runtime-contract.js';
 import { grantWarriorAdrenaline } from '#gw2/professions/warrior/core/mechanics/adrenaline.js';
 import {
   REFRAIN,
@@ -184,7 +184,7 @@ function activateCommand(runtime: Runtime, cast: RuntimeCast<WarriorSkill>): voi
 }
 
 /** Paragon mutates live state at combat entry, committed casts, swaps, and queued pulses without replay events. */
-export const paragonHooks: Partial<RuntimeProfession<WarriorRuntimeState, WarriorSkill>> = {
+export const paragonHooks: RuntimeHooks<WarriorRuntimeState, WarriorSkill> = {
   // Declarations own eligibility; these actions retain shared motivation, replacement, and echo lifetimes.
   sideEffectHandlers: {
     'warrior.chant-activate'(runtime, context) {

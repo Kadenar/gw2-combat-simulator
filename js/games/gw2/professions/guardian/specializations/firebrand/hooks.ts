@@ -1,3 +1,4 @@
+import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import type { MechanicContext } from '#gw2/platform/profession-definition/mechanic-context.js';
 import { CAST_READY, denyCast } from '#gw2/platform/execution/availability.js';
 import {
@@ -8,7 +9,6 @@ import {
 import type { NativeResolvedDamageDetails } from '#gw2/platform/profession-definition/module-types.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
-import type { RuntimeProfession } from '#gw2/platform/profession-definition/runtime-contract.js';
 import { damageInputEvent } from '#gw2/platform/skill-damage/occurrence-driver.js';
 import { guardianCastCause } from '#gw2/professions/guardian/core/mechanics/event-handlers.js';
 import {
@@ -113,7 +113,7 @@ function courage(runtime: Runtime): void {
 }
 
 /** Pages, tome sessions, and mantra charges mutate one live state; report events never restore a snapshot. */
-export const firebrandHooks: Partial<RuntimeProfession<GuardianRuntimeState, GuardianSkill>> = {
+export const firebrandHooks: RuntimeHooks<GuardianRuntimeState, GuardianSkill> = {
   // Known damage payloads are invoked once without their activation requirements.
   damageEffects: [
     {
