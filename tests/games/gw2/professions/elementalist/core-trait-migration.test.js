@@ -17,7 +17,7 @@ function canonicalRotation(rotation) {
 // Run the smallest Core rotation that reaches a migrated trait through the public dispatcher.
 function simulate(
   rotation,
-  { traits, startAttunement = 'Fire', selectedSkills = {}, stats, initialize, ...buildOptions }
+  { traits, startAttunement = 'Fire', selectedSkillIds = {}, stats, initialize, ...buildOptions }
 ) {
   // Trait reachability scenarios begin in combat so entry-only effects are eligible.
   const commands = [{ type: 'combat-start' }, ...canonicalRotation(rotation)];
@@ -26,7 +26,7 @@ function simulate(
     ...defaults,
     ...buildOptions,
     startAttunement,
-    selectedSkills: { ...defaults.selectedSkills, ...selectedSkills },
+    selectedSkillIds: { ...defaults.selectedSkillIds, ...selectedSkillIds },
     specializations: [
       { name: 'Fire', traits: '1-1-1' },
       { name: 'Air', traits: '1-1-1' },
@@ -219,7 +219,7 @@ const traitCases = [
     name: 'Written in Stone',
     traits: [TRAIT.WRITTEN_IN_STONE],
     rotation: ['Signet of Earth'],
-    selectedSkills: { Utility1: 'Signet of Earth' },
+    selectedSkillIds: { Utility1: 5571 },
     verify: (result) =>
       assert.ok(
         result.events.some((event) => event.type === 'elementalist.aura' && event.source === 'Written in Stone')
@@ -229,7 +229,7 @@ const traitCases = [
     name: 'Strength of Stone',
     traits: [TRAIT.STRENGTH_OF_STONE],
     rotation: ['Signet of Earth'],
-    selectedSkills: { Utility1: 'Signet of Earth' },
+    selectedSkillIds: { Utility1: 5571 },
     startAttunement: 'Earth',
     verify: (result) =>
       assert.ok(hasEvent(result, (event) => event.type === 'condition' && event.source === 'Strength of Stone'))
@@ -308,9 +308,9 @@ const traitCases = [
   }
 ];
 
-for (const { name, traits, rotation, startAttunement, selectedSkills, stats, verify } of traitCases) {
+for (const { name, traits, rotation, startAttunement, selectedSkillIds, stats, verify } of traitCases) {
   test(`${name} remains behaviorally reachable through the Core trait dispatcher`, () => {
-    verify(simulate(rotation, { traits, startAttunement, selectedSkills, stats }));
+    verify(simulate(rotation, { traits, startAttunement, selectedSkillIds, stats }));
   });
 }
 

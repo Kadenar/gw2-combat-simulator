@@ -1,5 +1,5 @@
 import { powerScaledConditionAttributes } from '#gw2/platform/combat/modifiers.js';
-import { hasSelectedSkill } from '#gw2/platform/combat/query/runtime-query.js';
+import { hasSelectedSkillId } from '#gw2/platform/combat/query/runtime-query.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import type { Gw2MutableStats, Gw2Stats } from '#gw2/platform/combat/types.js';
 import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
@@ -604,7 +604,7 @@ export function applyResolverElementalShielding(context: Gw2ResolverRuntime, eve
 /** Preserve the live earth attribute pass at its original position in the Core modifier pipeline. */
 export function reconcileSignetPassive(context: ElementalistModifierContext, modified: Gw2MutableStats): void {
   if (
-    hasSelectedSkill(context, 'Signet of Fire') &&
+    hasSelectedSkillId(context, ID.SIGNET_OF_FIRE) &&
     !hasTrait(context, TRAIT.WRITTEN_IN_STONE) &&
     context.timeline?.skillOnCooldownAt(ID.SIGNET_OF_FIRE, context.time)
   ) {

@@ -51,3 +51,20 @@ test('skill damage preview measures skills on open and explains a row', async ({
   await page.setViewportSize({ width: 390, height: 900 });
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
 });
+
+// Proc totals declare their denominator so a single charge or pulse cannot be mistaken for a full skill activation.
+test('skill damage proc breakdowns display charge and pulse units', async ({ page }) => {
+  await page.goto('/necromancer.html#workspace', { waitUntil: 'domcontentloaded' });
+  await expect(page.locator('#loading-overlay')).toHaveClass(/hidden/);
+  const section = page.locator('#skill-damage-preview');
+  await section.locator('summary').click();
+  for (const [name, unit] of [
+    ['Soul Shards', 'charge'],
+    ['Signet of Vampirism (passive)', 'pulse']
+  ]) {
+    const row = section.locator('.sd-row').filter({ has: page.locator('.sd-name', { hasText: name }) });
+    await expect(row).toBeVisible({ timeout: 30_000 });
+    await row.locator('.sd-skill').click();
+    await expect(row.locator('.sd-breakdown')).toContainText(`Per ${unit}`);
+  }
+});

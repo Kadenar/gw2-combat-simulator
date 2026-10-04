@@ -11,7 +11,7 @@ import { isStandardBoon } from '#gw2/platform/combat/boons.js';
 
 test('Antiquary replacement owners emit their own packets instead of the authored effects', () => {
   // Skritt Scuffle and Forged Surfer author packets that their live owners replace with pilfers and a timed sequence.
-  const config = { specialization: 'Antiquary', selectedSkills: ['Skritt Scuffle'] };
+  const config = { specialization: 'Antiquary', selectedSkillIds: [77255] };
   const result = runGw2Runtime({
     profession: thiefProfession.runtimeFor(config),
     rotation: ['Skritt Scuffle', 'Skritt Swipe', 'Forged Surfer Dash', { type: 'wait', durationMs: 500 }],

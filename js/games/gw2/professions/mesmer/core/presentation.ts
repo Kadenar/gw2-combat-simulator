@@ -184,7 +184,7 @@ export const mesmerCoreUi: MesmerUiSlice = Object.freeze({
     preview.boon('regeneration', 'Chaotic Persistence');
     preview.buff("Fencer's Finesse", 'fencer', 'fencer', 'Ferocity', true);
     preview.targetHealth('Superiority Complex');
-    preview.passives('Signet of Domination', 'Signet of Midnight');
+    preview.passives(ID.SIGNET_OF_DOMINATION, ID.SIGNET_OF_MIDNIGHT);
     return preview.controls;
   },
   /** Keep starting clones, blades or notes detached from the saved build and the Attribute Preview. */

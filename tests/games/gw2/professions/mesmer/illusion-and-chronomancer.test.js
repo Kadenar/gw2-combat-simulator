@@ -187,7 +187,7 @@ test('clone state remains capped at three when input or new summons exceed the c
     ['Mirror Images', { name: '__wait', waitMs: 1 }],
     defaultSimulationConfig({
       specialization: 'Chronomancer',
-      selectedSkills: ['Mirror Images'],
+      selectedSkillIds: [10202],
       initialResource: 3
     })
   );
@@ -550,7 +550,7 @@ test('Chaos Storm uses configured pulse offsets and Lesser Chaos Storm stays per
     defaultSimulationConfig({
       specialization: 'Core',
       selectedTraitIds: [TRAIT.METHOD_OF_MADNESS],
-      selectedSkills: ['Ether Feast']
+      selectedSkillIds: [10176]
     })
   );
 
@@ -612,7 +612,7 @@ test('Phantasmal Swordsman registers its player hit before a later overlapping a
       specialization: 'Core',
       primaryWeapon: 'Sword',
       secondaryWeapon: 'Sword',
-      selectedSkills: ['Signet of Midnight'],
+      selectedSkillIds: [10234],
       initialResource: 0
     })
   );
@@ -936,7 +936,7 @@ test('Vicious Expression and Empowered Illusions respect illusion ownership', ()
       ['Mirror Images', { name: '__wait', waitMs: 1 }, { name: 'Axes of Symmetry', skillId: ID.AXES_OF_SYMMETRY }],
       defaultSimulationConfig({
         specialization: 'Mirage',
-        selectedSkills: ['Mirror Images'],
+        selectedSkillIds: [10202],
         selectedTraitIds,
         primaryWeapon: 'Axe',
         secondaryWeapon: 'Torch',
@@ -1102,7 +1102,7 @@ test('Mimic resets the next utility skill within its ten-second window', () => {
     ['Mimic', 'Tale of the Tortured Mastermind', 'Tale of the Tortured Mastermind'],
     defaultSimulationConfig({
       specialization: 'Troubadour',
-      selectedSkills: ['Mimic', 'Tale of the Tortured Mastermind'],
+      selectedSkillIds: [29578, 77066],
       initialResource: 0
     })
   );
@@ -1150,7 +1150,7 @@ test('phantasms and Chronophantasma repeats use per-entity packet cadences', () 
       skill: 'Phantasmal Disenchanter',
       primaryWeapon: 'Greatsword',
       secondaryWeapon: 'Sword',
-      selectedSkills: ['Phantasmal Disenchanter'],
+      selectedSkillIds: [10267],
       initial: [1240],
       repeat: [3240]
     },
@@ -1183,7 +1183,7 @@ test('phantasms and Chronophantasma repeats use per-entity packet cadences', () 
       defaultSimulationConfig({
         specialization: 'Chronomancer',
         selectedTraitIds: testCase.traits || [TRAIT.CHRONOPHANTASMA],
-        ...(testCase.selectedSkills ? { selectedSkills: testCase.selectedSkills } : {}),
+        ...(testCase.selectedSkillIds ? { selectedSkillIds: testCase.selectedSkillIds } : {}),
         primaryWeapon: testCase.primaryWeapon,
         secondaryWeapon: testCase.secondaryWeapon,
         initialResource: 0
@@ -1267,7 +1267,7 @@ test('direct Mesmer strikes use configured offsets from cast start', () => {
       ['Spatial Surge', 3, [360, 520, 680]]
     ]
   );
-  assertOffsets(['Well of Calamity'], { specialization: 'Chronomancer', selectedSkills: ['Well of Calamity'] }, [
+  assertOffsets(['Well of Calamity'], { specialization: 'Chronomancer', selectedSkillIds: [30525] }, [
     ['Well of Calamity', 0, [560, 1560, 2560, 3560]]
   ]);
   assertOffsets(
@@ -1318,7 +1318,7 @@ test('Well of Precognition schedules protection pulses and an endurance grant at
     ['Well of Precognition', { name: '__wait', waitMs: 4000 }],
     defaultSimulationConfig({
       specialization: 'Chronomancer',
-      selectedSkills: ['Well of Precognition'],
+      selectedSkillIds: [29526],
       boons: { quickness: false, alacrity: false },
       stats: { concentration: 0 }
     })
@@ -1379,7 +1379,7 @@ test('Well of Calamity uses its measured cast, pulse conditions, and ethereal fi
       { name: 'Well of Calamity', interruptMs: 700 },
       { name: '__wait', waitMs: 4000 }
     ],
-    defaultSimulationConfig({ specialization: 'Chronomancer', selectedSkills: ['Well of Calamity'] })
+    defaultSimulationConfig({ specialization: 'Chronomancer', selectedSkillIds: [30525] })
   );
   const conditions = result.resolvedEvents
     .filter((event) => event.type === 'condition' && event.skillName === 'Well of Calamity')

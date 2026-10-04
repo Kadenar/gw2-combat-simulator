@@ -102,21 +102,16 @@ export function paletteView(
   }));
 }
 
-function uniqueByName(skills: readonly Skill[]): Skill[] {
-  const unique = new Map<string, Skill>();
+function uniqueById(skills: readonly Skill[]): Skill[] {
+  const unique = new Map<SkillId, Skill>();
   for (const skill of skills) {
-    if (!unique.has(skill.name)) unique.set(skill.name, skill);
+    if (!unique.has(skill.id)) unique.set(skill.id, skill);
   }
 
   return [...unique.values()];
 }
 
-// An elite specialization can rework a base weapon skill while keeping its name
-// (e.g. Troubadour's Bladecall vs the base dagger Bladecall). Weaponmaster
-// training makes both variants pass availability, so a plain name-dedup can keep
-// the off-spec rework — whose id the active spec's runtime catalog rejects
-// ("Unknown skill id"). Rank same-named weapon skills so the active spec's
-// variant wins, then the unspecialized base, then any other elite variant.
+// Authored tile families choose the active specialization without conflating unrelated display labels.
 function weaponVariantRank(skill: Skill, specialization: string): number {
   const spec = String(skill.specialization || '');
   if (spec === specialization) return 0;
@@ -124,16 +119,17 @@ function weaponVariantRank(skill: Skill, specialization: string): number {
   return 2;
 }
 
-function uniqueBySpecializedName(skills: readonly Skill[], specialization: string): Skill[] {
-  const byName = new Map<string, Skill>();
+function uniqueBySpecializedIdentity(skills: readonly Skill[], specialization: string): Skill[] {
+  const byIdentity = new Map<SkillId, Skill>();
   for (const skill of skills) {
-    const existing = byName.get(skill.name);
+    const identity = skill.paletteTileId ?? skill.id;
+    const existing = byIdentity.get(identity);
     if (!existing || weaponVariantRank(skill, specialization) < weaponVariantRank(existing, specialization)) {
-      byName.set(skill.name, skill);
+      byIdentity.set(identity, skill);
     }
   }
 
-  return [...byName.values()];
+  return [...byIdentity.values()];
 }
 
 export function weaponSkills(app: ProfessionAppState, weaponSet = 1): Skill[] {
@@ -141,7 +137,7 @@ export function weaponSkills(app: ProfessionAppState, weaponSet = 1): Skill[] {
   const activeWeaponSet = Number(palettePlanningState(app)?.activeWeaponSet || app.build.startingWeaponSet || 1);
   if (app.profession?.ui?.weaponSwapChangesSet === false && weaponSet !== activeWeaponSet) return [];
   const [mainHand, offHand] = weaponSet === 2 ? app.build.alternateWeapons : app.build.weapons;
-  return uniqueBySpecializedName(
+  return uniqueBySpecializedIdentity(
     app.skills.filter((skill) => {
       // Temporary bars and supplemental effects are exposed by profession
       // palette groups, never as skills on an equipped weapon set.
@@ -568,7 +564,7 @@ export function paletteActionSkills(
   context?: ProfessionPaletteContext
 ): Skill[] {
   const professionState = paletteProfessionState(app);
-  const actions = uniqueByName(
+  const actions = uniqueById(
     app.skills.filter(
       (skill) =>
         skill.type === 'Action' &&
@@ -605,8 +601,8 @@ export function paletteActionSkills(
 
 export function rotationSelectedSlotSkills(app: ProfessionAppState): Skill[] {
   if (app.adapter.slotLoadout) return [];
-  const skills = Object.values(app.build.selectedSkills).flatMap((name) => {
-    const skill = app.skillByName.get(name);
+  const skills = Object.values(app.build.selectedSkillIds).flatMap((id) => {
+    const skill = id === null ? undefined : app.skillById.get(id);
     return skill ? [skill] : [];
   });
   return app.profession.ui.paletteSelectedSlotSkills(paletteProjectionContext(app), skills);
@@ -835,7 +831,7 @@ export function projectPalette(app: ProfessionAppState, paletteContext: PaletteC
   const selected = rotationSelectedSlotSkills(app);
   // The shared projector discovers and selects descendants from the catalog;
   // selected utilities only need to contribute their root tile and hotkey.
-  const selectedWithFlipChains = uniqueByName(selected).map((skill, index) => ({
+  const selectedWithFlipChains = uniqueById(selected).map((skill, index) => ({
     ...skill,
     hotkeyAction: rotationUtilityHotkeyAction(index)
   }));

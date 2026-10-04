@@ -9,16 +9,7 @@ import { defineRelic } from '#gw2/platform/equipment/relics/rules/shared.js';
 const REQUIRED_BLEEDING = 6;
 
 export const fractal = defineRelic({
-  damagePayload(ctx) {
-    emitDamagePayload(ctx, ctx.relic!.state, {
-      type: 'proc',
-      at: 0,
-      source: 'Relic',
-      sourceId: 'damage-input',
-      actorType: 'effect',
-      skillName: 'Damage preview'
-    });
-  },
+  damagePayload: emitDamagePayload,
   createState: () => ({ readyAt: 0 }),
   condition(ctx, state, application, { activeConditionStackCount }) {
     if (

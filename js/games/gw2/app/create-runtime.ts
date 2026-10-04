@@ -89,13 +89,13 @@ export function createProfessionRuntime({
           specialization: eliteSpecialization(app.build),
           professionState: app.results?.planningState?.profession
         })
-        .map((id) => catalog.skillsById.get(Number(id)))
+        .map((id) => catalog.skillsById.get(id))
         .filter((skill): skill is Skill => skill != null);
     }
 
-    const skillByName = app.skillByName || catalog.skillsByName;
-    return Object.values(app.build.selectedSkills)
-      .map((name) => skillByName.get(name))
+    const skillById = app.skillById || catalog.skillsById;
+    return Object.values(app.build.selectedSkillIds)
+      .map((id) => (id === null ? undefined : skillById.get(id)))
       .filter((skill): skill is Skill => skill != null);
   }
 

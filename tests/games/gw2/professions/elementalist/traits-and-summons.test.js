@@ -25,7 +25,12 @@ test('Gale Song and Bolstered Elements expand their selected boon profile at com
     ['Tempest', TRAIT.GALE_SONG, 'Glyph of Elemental Harmony'],
     ['Weaver', TRAIT.BOLSTERED_ELEMENTS, 'Primordial Stance (Fire)']
   ]) {
-    const config = { specialization, selectedSkills: [name], selectedTraitIds: [trait], target: { armor: 2597 } };
+    const config = {
+      specialization,
+      selectedSkillIds: [elementalistCatalog.skillsByName.get(name).id],
+      selectedTraitIds: [trait],
+      target: { armor: 2597 }
+    };
     const result = runElementalist([name, { type: 'wait', durationMs: 2000 }], config, {
       profession: {
         ...elementalistProfession,
@@ -64,7 +69,7 @@ test('Persisting Flames grants stacks from Fire Sphere without extending profess
         lines: [['Fire'], ['Air'], ['Catalyst']],
         startAttunement: element,
         initialEnergy: 30,
-        selectedSkills: { Elite: 'Conjure Fiery Greatsword' },
+        selectedSkillIds: { Elite: 5516 },
         rotation: [skillName, 6000]
       });
       const result = runElementalist(
@@ -104,7 +109,7 @@ test('Persisting Flames extends Flamewall from eight seconds to ten', () => {
       lines: [['Fire'], ['Air'], ['Catalyst']],
       startAttunement: 'Fire',
       weapons: ['Scepter', 'Focus'],
-      selectedSkills: { Elite: 'Conjure Fiery Greatsword' },
+      selectedSkillIds: { Elite: 5516 },
       rotation: ['Flamewall', 12000]
     });
     const result = runElementalist(
@@ -136,7 +141,7 @@ test('Persisting Flames extends weapon Fire fields using their metadata', () => 
       lines: [['Fire', '1-3-1'], ['Air'], ['Catalyst']],
       startAttunement: element,
       weapons: ['Spear', ''],
-      selectedSkills: { Elite: 'Conjure Fiery Greatsword' },
+      selectedSkillIds: { Elite: 5516 },
       rotation: [skillName, 10000]
     });
     assert.deepEqual(result.warnings, []);
@@ -176,13 +181,7 @@ test("Fox's Fury applies the PvE high-Might burn", () => {
       lines: [['Fire'], ['Air'], ['Evoker']],
       rotation: ["Fox's Fury"],
       assumptions: { might: 25 },
-      selectedSkills: {
-        Heal: 'Glyph of Elemental Harmony',
-        Utility1: "Fox's Fury",
-        Utility2: 'Signet of Fire',
-        Utility3: 'Arcane Wave',
-        Elite: 'Glyph of Elementals'
-      }
+      selectedSkillIds: { Heal: 34743, Utility1: 76711, Utility2: 5542, Utility3: 5638, Elite: 25488 }
     });
     const config = elementalistAppAdapter.simulationConfig(app);
     config.boons.quickness = quickness;
@@ -211,13 +210,7 @@ test("Fox's Fury applies its baseline coefficient and Might multipliers", () => 
       lines: [['Fire'], ['Air'], ['Evoker']],
       rotation: ["Fox's Fury"],
       assumptions: { might },
-      selectedSkills: {
-        Heal: 'Glyph of Elemental Harmony',
-        Utility1: "Fox's Fury",
-        Utility2: 'Signet of Fire',
-        Utility3: 'Arcane Wave',
-        Elite: 'Glyph of Elementals'
-      }
+      selectedSkillIds: { Heal: 34743, Utility1: 76711, Utility2: 5542, Utility3: 5638, Elite: 25488 }
     });
     const hit = result.events.find((event) => event.type === 'damage' && event.skillName === "Fox's Fury");
 
@@ -307,13 +300,7 @@ test('core attunement and aura traits emit named boon and damage payloads', () =
       'Glyph of Elemental Harmony'
     ],
     startAttunement: 'Air',
-    selectedSkills: {
-      Heal: 'Glyph of Elemental Harmony',
-      Utility1: 'Conjure Frost Bow',
-      Utility2: 'Signet of Fire',
-      Utility3: 'Arcane Wave',
-      Elite: 'Glyph of Elementals'
-    }
+    selectedSkillIds: { Heal: 34743, Utility1: 5567, Utility2: 5542, Utility3: 5638, Elite: 25488 }
   });
   const fireAura = fire.events.find((event) => event.type === 'elementalist.aura' && event.source === 'Conjurer');
 
@@ -344,13 +331,7 @@ test('core attunement and aura traits emit named boon and damage payloads', () =
     lines: [['Earth', '1-2-2'], ['Water'], ['Air']],
     rotation: [{ type: 'combat-start' }, 'Glyph of Elemental Harmony', 'Earth Attunement', 'Signet of Earth'],
     startAttunement: 'Water',
-    selectedSkills: {
-      Heal: 'Glyph of Elemental Harmony',
-      Utility1: 'Signet of Earth',
-      Utility2: 'Signet of Fire',
-      Utility3: 'Arcane Wave',
-      Elite: 'Glyph of Elementals'
-    }
+    selectedSkillIds: { Heal: 34743, Utility1: 5571, Utility2: 5542, Utility3: 5638, Elite: 25488 }
   });
 
   for (const source of ["Earth's Embrace", 'Earthen Blast', 'Rock Solid', 'Written in Stone']) {
@@ -370,13 +351,7 @@ test('core attunement and aura traits emit named boon and damage payloads', () =
     lines: [['Earth', '1-1-2'], ['Water'], ['Air']],
     rotation: ['Signet of Earth'],
     startAttunement: 'Earth',
-    selectedSkills: {
-      Heal: 'Glyph of Elemental Harmony',
-      Utility1: 'Signet of Earth',
-      Utility2: 'Signet of Fire',
-      Utility3: 'Arcane Wave',
-      Elite: 'Glyph of Elementals'
-    }
+    selectedSkillIds: { Heal: 34743, Utility1: 5571, Utility2: 5542, Utility3: 5638, Elite: 25488 }
   });
   const strengthBleeds = resolvedAndScheduledEvents(strength).filter(
     (event) => event.type === 'condition' && event.source === 'Strength of Stone'
@@ -475,13 +450,7 @@ test('Tempest traits enforce overload dwell, auras, boons, and damage windows', 
   const healingAndShout = runNative({
     lines: [['Fire'], ['Air'], ['Tempest', '1-1-1']],
     rotation: [{ name: '__combat_start' }, 'Glyph of Elemental Harmony', 'Aftershock!'],
-    selectedSkills: {
-      Heal: 'Glyph of Elemental Harmony',
-      Utility1: 'Aftershock!',
-      Utility2: 'Signet of Fire',
-      Utility3: 'Arcane Wave',
-      Elite: 'Glyph of Elementals'
-    }
+    selectedSkillIds: { Heal: 34743, Utility1: 30432, Utility2: 5542, Utility3: 5638, Elite: 25488 }
   });
 
   assert.equal(
@@ -578,13 +547,7 @@ test('Weaver traits enforce dual-attunement, boon, modifier, and recharge rules'
     rotation: ['Updraft', 'Primordial Stance (Air)'],
     startAttunement: 'Air',
     secondaryAttunement: 'Air',
-    selectedSkills: {
-      Heal: 'Glyph of Elemental Harmony',
-      Utility1: 'Primordial Stance (Air)',
-      Utility2: 'Signet of Fire',
-      Utility3: 'Arcane Wave',
-      Elite: 'Weave Self'
-    }
+    selectedSkillIds: { Heal: 34743, Utility1: -1168, Utility2: 5542, Utility3: 5638, Elite: 43638 }
   });
 
   assert.equal(
@@ -700,13 +663,7 @@ test('Evoker traits enforce familiar boons, enchantments, and charge rules', () 
     rotation: ['Zap', "Fox's Fury"],
     evokerElement: 'Air',
     initialEvokerCharges: 6,
-    selectedSkills: {
-      Heal: 'Glyph of Elemental Harmony',
-      Utility1: "Fox's Fury",
-      Utility2: 'Signet of Fire',
-      Utility3: 'Arcane Wave',
-      Elite: 'Glyph of Elementals'
-    }
+    selectedSkillIds: { Heal: 34743, Utility1: 76711, Utility2: 5542, Utility3: 5638, Elite: 25488 }
   });
 
   assert.equal(
@@ -738,7 +695,7 @@ test('Fire Elemental resumes autonomous attacks after Flame Burst recovery', () 
   // The pet waits through Burst recovery before starting its next action, without requiring a player command.
   const result = runElementalist(['Glyph of Elementals', '__combat_start', { type: 'wait', durationMs: 7000 }], {
     specialization: 'Core',
-    selectedSkills: { Elite: 'Glyph of Elementals' },
+    selectedSkillIds: [25488],
     boons: { quickness: false }
   });
   const elementalActions = result.events.filter((event) => event.type === 'action' && event.actorType === 'summon');
@@ -782,7 +739,7 @@ test('Flame Barrage replaces the active Glyph and obeys rotation timing', () => 
     {
       specialization: 'Core',
       startAttunement: 'Air',
-      selectedSkills: { Elite: 'Glyph of Elementals' },
+      selectedSkillIds: [25488],
       boons: { quickness: false, alacrity: false }
     }
   );
@@ -922,7 +879,10 @@ test('combat start preserves an elemental command already in progress', () => {
       const result = runNative({
         lines: [['Fire'], ['Air'], ['Arcane']],
         rotation: [command, ...(explicit ? [500, { type: 'combat-start' }] : []), 6000],
-        selectedSkills: { ...elementalistProfession.createBuildDefaults().selectedSkills, Elite: elite }
+        selectedSkillIds: {
+          ...elementalistProfession.createBuildDefaults().selectedSkillIds,
+          Elite: elementalistCatalog.skillsByName.get(elite).id
+        }
       });
       assert.deepEqual(result.warnings, []);
       const actions = result.events.filter((event) => event.type === 'action' && event.actorType === 'summon');
@@ -944,9 +904,9 @@ test('selected Earth Elemental auto-summons, attacks, and executes Stomp', () =>
   const result = runNative({
     lines: [['Fire'], ['Air'], ['Catalyst', '2-1-1']],
     rotation: ['Stomp', 'Stomp', 9000],
-    selectedSkills: {
-      ...elementalistProfession.createBuildDefaults().selectedSkills,
-      Elite: 'Glyph of Elementals (Earth)'
+    selectedSkillIds: {
+      ...elementalistProfession.createBuildDefaults().selectedSkillIds,
+      Elite: 25489
     },
     assumptions: {
       ...elementalistProfession.createBuildDefaults().assumptions,
@@ -1076,16 +1036,18 @@ test('Elementalist small-hitbox caps exclude only excess multi-hit packets', () 
 
   for (const hitboxSize of ['small', 'large']) {
     for (const entry of cases) {
-      const selectedSkills = {
-        ...elementalistProfession.createBuildDefaults().selectedSkills,
-        ...(entry.selectedSkill ? { [entry.selectedSlot || 'Utility1']: entry.selectedSkill } : {})
+      const selectedSkillIds = {
+        ...elementalistProfession.createBuildDefaults().selectedSkillIds,
+        ...(entry.selectedSkill
+          ? { [entry.selectedSlot || 'Utility1']: elementalistCatalog.skillsByName.get(entry.selectedSkill).id }
+          : {})
       };
       const result = runNative({
         lines: [['Fire'], ['Air'], ['Arcane']],
         rotation: [...(entry.rotationPrefix || []), entry.skill, 20000],
         startAttunement: entry.startAttunement,
         weapons: entry.weapons || ['Sword', 'Dagger'],
-        selectedSkills,
+        selectedSkillIds,
         assumptions: {
           ...elementalistProfession.createBuildDefaults().assumptions,
           hitboxSize,
@@ -1125,16 +1087,16 @@ test('large Elementalist hitboxes extend Wildfire by two packets', () => {
 });
 
 test('Elementalist actions expose Dodge and contextual conjure controls', () => {
-  const selectedSkills = {
-    Heal: 'Glyph of Elemental Harmony',
-    Utility1: 'Conjure Frost Bow',
-    Utility2: 'Signet of Fire',
-    Utility3: 'Arcane Wave',
-    Elite: 'Glyph of Elementals'
+  const selectedSkillIds = {
+    Heal: 34743,
+    Utility1: 5567,
+    Utility2: 5542,
+    Utility3: 5638,
+    Elite: 25488
   };
   const { app } = createNativeApp({
     lines: [['Fire'], ['Air'], ['Arcane']],
-    selectedSkills
+    selectedSkillIds
   });
 
   Object.assign(app, {
@@ -1175,7 +1137,7 @@ test('Elementalist actions expose Dodge and contextual conjure controls', () => 
     runNative({
       lines: [['Fire'], ['Air'], ['Arcane']],
       rotation: ['Conjure Frost Bow'],
-      selectedSkills
+      selectedSkillIds
     })
   );
 
@@ -1202,7 +1164,7 @@ test('Elementalist actions expose Dodge and contextual conjure controls', () => 
     runNative({
       lines: [['Fire'], ['Air'], ['Arcane']],
       rotation: ['Conjure Frost Bow', '__drop_bundle'],
-      selectedSkills
+      selectedSkillIds
     })
   );
 
@@ -1225,7 +1187,7 @@ test('elemental autonomous cooldowns require shared player Alacrity', () => {
           {
             specialization: 'Core',
             startAttunement: element,
-            selectedSkills: { Elite: element === 'Fire' ? 'Glyph of Elementals' : 'Glyph of Elementals (Earth)' },
+            selectedSkillIds: [element === 'Fire' ? 25488 : 25489],
             boons: { alacrity: true },
             allies: { count: 0 },
             sharePlayerBoonsWithSummons

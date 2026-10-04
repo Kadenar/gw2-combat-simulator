@@ -5,6 +5,7 @@ import test from 'node:test';
 import { defineTestProfession } from '#tests/helpers/profession.js';
 import { createCanonicalCatalog } from '#gw2/platform/engine/skills/canonical-skill-catalog.js';
 import { evaluateSkillDamage } from '#gw2/platform/skill-damage/evaluate.js';
+import { damageOccurrences } from '#gw2/platform/skill-damage/catalog.js';
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
 import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';
 import { RELIC_IDS } from '#gw2/platform/equipment/relics/data.js';
@@ -95,6 +96,67 @@ test('owned delayed applications complete their payout without an arbitrary shor
       .filter((event) => event.condition === 'Bleeding' && event.effectiveDuration != null)
       .reduce((total, event) => total + event.damage, 0)
   );
+});
+
+// Different application durations must not be presented as if every stack inherited the first duration.
+test('condition breakdown groups matching applications and separates different durations', () => {
+  const profession = fixture([
+    {
+      type: 'condition',
+      timingAnchor: 'castStart',
+      timingScale: 'fixed',
+      ticks: [
+        { atMs: 0, condition: 'Burning', stacks: 3, duration: 5 },
+        { atMs: 1000, condition: 'Burning', stacks: 1, duration: 1 },
+        { atMs: 2000, condition: 'Burning', stacks: 1, duration: 1 }
+      ]
+    }
+  ]);
+  const [result] = evaluate(profession, [occurrence(991001)]);
+  const rows = result.measurement.conditions;
+  assert.equal(rows.length, 2);
+  for (const [duration, stacks] of [
+    [5, 3],
+    [1, 2]
+  ]) {
+    const row = rows.find((entry) => entry.baseDurationSeconds === duration);
+    assert.equal(row.stacks, stacks);
+    assert.equal(row.effectiveDurationSeconds, duration);
+    assert.equal(row.damage, row.rate * row.multiplier * duration * stacks);
+  }
+
+  assert.equal(
+    result.measurement.conditionDamage,
+    rows.reduce((sum, row) => sum + row.damage, 0)
+  );
+});
+
+// Equal durations still require separate explanations when later applications sample different attributes.
+test('condition breakdown separates applications with different sampled damage factors', () => {
+  const profession = fixture([
+    {
+      type: 'condition',
+      timingAnchor: 'castStart',
+      timingScale: 'fixed',
+      ticks: [0, 2000].map((atMs) => ({ atMs, condition: 'Burning', stacks: 1, duration: 1 }))
+    },
+    {
+      type: 'boon',
+      boon: 'might',
+      stacks: 1,
+      duration: 10,
+      atMs: 1500,
+      timingAnchor: 'castStart',
+      timingScale: 'fixed',
+      audience: { recipients: 'self' }
+    }
+  ]);
+  const [result] = evaluate(profession, [occurrence(991001)]);
+  const rows = result.measurement.conditions;
+  assert.equal(rows.length, 2);
+  assert.equal(rows[0].effectiveDurationSeconds, rows[1].effectiveDurationSeconds);
+  assert.ok(rows[1].conditionDamage > rows[0].conditionDamage);
+  assert.ok(rows[1].rate > rows[0].rate);
 });
 
 test('unrelated damage reactions are not invoked when measuring a skill', () => {
@@ -199,4 +261,66 @@ test('trait occurrence damage does not inherit trigger probability', async () =>
   const [certain] = evaluate(app.profession, [definition], { ...config, procRateOverrides: { [id]: 1 } });
   assert.equal(zeroChance.status, 'measured');
   assert.equal(zeroChance.measurement.total, certain.measurement.total);
+});
+
+// The first hit's factors must never masquerade as a formula for changing later hits.
+test('strike breakdown marks changing critical and attribute inputs while preserving resolved totals', () => {
+  for (const boon of ['fury', 'might']) {
+    const profession = fixture([
+      {
+        type: 'strike',
+        timingAnchor: 'castStart',
+        timingScale: 'fixed',
+        ticks: [
+          { atMs: 0, coefficient: 1 },
+          { atMs: 1000, coefficient: 1 }
+        ]
+      },
+      {
+        type: 'boon',
+        boon,
+        stacks: 1,
+        duration: 5,
+        atMs: 500,
+        timingAnchor: 'castStart',
+        timingScale: 'fixed',
+        audience: { recipients: 'self' }
+      }
+    ]);
+    const config = { stats: { power: 1000 }, target: { armor: 1000 }, criticalDamageMode: 'averaged' };
+    const [row] = evaluate(profession, [occurrence(991001)], config);
+    assert.equal(row.status, 'measured');
+    assert.equal(row.measurement.strikeBreakdown.variesAcrossHits, true);
+    const combat = simulateGw2({
+      profession,
+      config,
+      rotation: [{ type: 'cast', skillId: 991001 }],
+      observationPolicy: { kind: 'tail', durationMs: 2000 }
+    });
+    assert.equal(row.measurement.strike, combat.strikeDamage);
+  }
+
+  const [uniform] = evaluate(fixture([{ type: 'strike', coefficient: 1 }]), [occurrence(991001)]);
+  assert.equal(uniform.measurement.strikeBreakdown.variesAcrossHits, false);
+});
+
+// Unsupported precast declarations cannot borrow the equipped relic's state or produce misleading damage.
+test('relic occurrences require their own runtime owner and retain the equipped payload bonus', () => {
+  const profession = fixture([]);
+  const definition = occurrence('bloodstone', {
+    effect: { kind: 'relic', id: RELIC_IDS.BLOODSTONE },
+    source: 'Relic',
+    unit: 'occurrence'
+  });
+  const [missing] = evaluate(profession, [definition], { relic: 'Fractal', precastRelics: ['Bloodstone'] });
+  assert.equal(missing.status, 'missing-input');
+  assert.equal(
+    damageOccurrences(profession.runtimeFor(), { relic: 'Fractal', precastRelics: ['Bloodstone'] }).some(
+      (entry) => entry.effect.kind === 'relic' && entry.effect.id === RELIC_IDS.BLOODSTONE
+    ),
+    false
+  );
+  const [equipped] = evaluate(profession, [definition], { relic: 'Bloodstone' });
+  assert.equal(equipped.status, 'measured');
+  assert.equal(equipped.measurement.strikeBreakdown.outgoingMultiplier, 1.07);
 });

@@ -127,7 +127,7 @@ function onAcceptedEvent(context: ElementalistRuntime, event: SimulationEvent): 
   // whole transition there, so it is skipped here.
   if (
     event.type !== 'elementalist.attunement' ||
-    event.skillName === 'Unravel' ||
+    event.skillId === ID.UNRAVEL ||
     !isElementalistAttunement(event.to) ||
     !isElementalistAttunement(event.from)
   ) {

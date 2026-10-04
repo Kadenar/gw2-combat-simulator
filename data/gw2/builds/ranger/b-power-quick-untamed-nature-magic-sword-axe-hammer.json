@@ -1,5 +1,5 @@
 {
-  "schemaVersion": 4,
+  "schemaVersion": 5,
   "profession": "ranger",
   "gear": {
     "Helm": "Berserker's",
@@ -53,12 +53,12 @@
       "traits": "3-3-1"
     }
   ],
-  "selectedSkills": {
-    "Heal": "\"We Heal As One!\"",
-    "Utility1": "Storm Spirit",
-    "Utility2": "\"Sic 'Em!\"",
-    "Utility3": "Signet of the Wild",
-    "Elite": "Forest's Fortification"
+  "selectedSkillIds": {
+    "Heal": 31914,
+    "Utility1": 12493,
+    "Utility2": 12633,
+    "Utility3": 12491,
+    "Elite": 63163
   },
   "selectedPet": "Tiger",
   "selectedPet2": "Electric Wyvern",

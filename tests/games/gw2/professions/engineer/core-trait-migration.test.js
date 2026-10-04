@@ -11,7 +11,7 @@ import { runEngineer } from '#tests/helpers/engineer-simulation.js';
 import { createObservedProfessionSimulator } from '#tests/helpers/observed-runtime.js';
 
 const baseConfig = Object.freeze({
-  selectedSkills: ['Healing Turret', 'Grenade Kit', 'Throw Mine', 'Elixir Gun', 'Supply Crate'],
+  selectedSkillIds: [5857, 5805, 6161, 5933, 5868],
   stats: {
     power: 2000,
     precision: 1500,
@@ -200,7 +200,7 @@ const traitCases = [
     name: 'HGH',
     trait: TRAIT.HGH,
     rotation: ['Elixir Gun', 'Acid Bomb', { type: 'wait', durationMs: 6500 }],
-    config: { selectedSkills: [...baseConfig.selectedSkills, 'Elixir Gun'] },
+    config: { selectedSkillIds: [...baseConfig.selectedSkillIds, 5933] },
     verify: (result) => {
       const field = result.events.find((event) => event.type === 'combo_field' && event.skillName === 'Acid Bomb');
       assert.equal(field.expiresAt - field.at, 6);

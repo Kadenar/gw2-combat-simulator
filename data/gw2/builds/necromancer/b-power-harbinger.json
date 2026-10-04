@@ -1,5 +1,5 @@
 {
-  "schemaVersion": 3,
+  "schemaVersion": 4,
   "profession": "necromancer",
   "gear": {
     "Helm": "Assassin's",
@@ -56,12 +56,12 @@
       "traits": "1-1-1"
     }
   ],
-  "selectedSkills": {
-    "Heal": "Elixir of Promise",
-    "Utility1": "Well of Suffering",
-    "Utility2": "Well of Darkness",
-    "Utility3": "Elixir of Risk",
-    "Elite": "Elixir of Ambition"
+  "selectedSkillIds": {
+    "Heal": 62667,
+    "Utility1": 10546,
+    "Utility2": 10607,
+    "Utility3": 62530,
+    "Elite": 62655
   },
   "assumptions": {
     "might": 25,

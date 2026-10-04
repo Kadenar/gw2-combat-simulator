@@ -1,5 +1,5 @@
 {
-  "schemaVersion": 3,
+  "schemaVersion": 4,
   "profession": "mesmer",
   "gear": {
     "Helm": "Rampager's",
@@ -56,12 +56,12 @@
       "traits": "3-2-3"
     }
   ],
-  "selectedSkills": {
-    "Heal": "Signet of the Ether",
-    "Utility1": "Signet of Illusions",
-    "Utility2": "Signet of Midnight",
-    "Utility3": "Signet of Domination",
-    "Elite": "Thousand Cuts"
+  "selectedSkillIds": {
+    "Heal": 21750,
+    "Utility1": 10247,
+    "Utility2": 10234,
+    "Utility3": 10232,
+    "Elite": 24755
   },
   "assumptions": {
     "might": 25,

@@ -23,7 +23,7 @@ test('Signet of Fire precision follows recharge and resets unless Written in Sto
           {
             stats: { precision: 1180 },
             attributeProvenance: { professionStaticRulesApplied: true },
-            selectedSkills: ['Signet of Fire'],
+            selectedSkillIds: [5542],
             selectedTraitIds: traited ? [TRAIT.WRITTEN_IN_STONE] : []
           },
           {

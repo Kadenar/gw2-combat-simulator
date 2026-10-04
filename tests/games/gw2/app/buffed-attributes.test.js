@@ -42,7 +42,7 @@ function previewApp(name, traitNames = [], specialization = null) {
     build: {
       ...createDefaultBuild(adapter),
       specializations: [...selections].map(([name, choices]) => ({ name, traits: choices.join('-') })),
-      selectedSkills: {}
+      selectedSkillIds: {}
     }
   };
   adapter.recalculate(app);
@@ -219,16 +219,16 @@ test('Shroud preview appears only for relevant traits or Signet of Spite', () =>
     assert.equal(shroud(previewApp('necromancer', [trait])).description, trait);
 
   const app = previewApp('necromancer');
-  app.build.selectedSkills.Utility1 = 'Signet of Spite';
+  app.build.selectedSkillIds.Utility1 = 10622;
   app.adapter.recalculate(app);
   assert.equal(shroud(app).description, 'Signet of Spite');
   assert.equal(stats(app, { shroud: 1 }).Power.final, stats(app).Power.final - 180);
-  delete app.build.selectedSkills.Utility1;
+  delete app.build.selectedSkillIds.Utility1;
   app.adapter.recalculate(app);
   assert.equal(shroud(app), undefined);
 
   const scourge = previewApp('necromancer', ['Death Perception'], 'Scourge');
-  scourge.build.selectedSkills.Utility1 = 'Signet of Spite';
+  scourge.build.selectedSkillIds.Utility1 = 10622;
   scourge.adapter.recalculate(scourge);
   assert.equal(shroud(scourge), undefined);
 });

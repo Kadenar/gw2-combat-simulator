@@ -1,5 +1,5 @@
 {
-  "schemaVersion": 3,
+  "schemaVersion": 4,
   "profession": "mesmer",
   "gear": {
     "Helm": "Viper's",
@@ -52,12 +52,12 @@
       "traits": "1-3-3"
     }
   ],
-  "selectedSkills": {
-    "Heal": "Signet of the Ether",
-    "Utility1": "Signet of Midnight",
-    "Utility2": "Signet of Domination",
-    "Utility3": "Crystal Sands",
-    "Elite": "Jaunt"
+  "selectedSkillIds": {
+    "Heal": 21750,
+    "Utility1": 10234,
+    "Utility2": 10232,
+    "Utility3": 41065,
+    "Elite": 45449
   },
   "assumptions": {
     "might": 25,

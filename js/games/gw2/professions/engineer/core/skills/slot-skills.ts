@@ -62,7 +62,7 @@ export const ENGINEER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Parti
     ],
     // Availability requires the parent skill's exposed window.
 
-    flipParentName: 'Healing Turret',
+    requiresArmedFlip: true,
     paletteTileId: HEALING_TURRET_PALETTE_TILE,
     paletteTileOrder: 2,
     castTimeMs: 0,
@@ -95,7 +95,7 @@ export const ENGINEER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Parti
     ],
     // Availability requires the parent skill's exposed window.
 
-    flipParentName: 'Healing Turret',
+    requiresArmedFlip: true,
     paletteTileId: HEALING_TURRET_PALETTE_TILE,
     paletteTileOrder: 3,
     castTimeMs: 0,
@@ -132,7 +132,7 @@ export const ENGINEER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Parti
     effectVariants: [gadgeteerMineVariant],
     // Availability requires the parent skill's exposed window.
 
-    flipParentName: 'Throw Mine',
+    requiresArmedFlip: true,
     castTimeMs: 0,
     cooldown: 0,
     effects: [

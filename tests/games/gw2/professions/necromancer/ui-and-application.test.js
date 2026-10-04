@@ -402,7 +402,7 @@ test('slot skills are inaccessible in transformed shrouds', () => {
     );
     const result = simulate(specialization, [entry, 'Blood Is Power'], {
       initialResource: 100,
-      selectedSkills: ['Blood Is Power']
+      selectedSkillIds: [10544]
     });
 
     assert.match(result.warnings.join(' '), /Blood Is Power is unavailable/, specialization);
@@ -526,10 +526,10 @@ test('Necromancer builds migrate and validate against canonical metadata', () =>
     initialResource: 500,
     initialBlight: -4,
     initialCascadingCorruptionStacks: 30,
-    selectedSkills: {
-      Heal: 'Summon Blood Fiend',
-      Utility1: 'Blood Is Power',
-      Elite: 'Lich Form'
+    selectedSkillIds: {
+      Heal: 10547,
+      Utility1: 10544,
+      Elite: 10550
     }
   });
 
@@ -537,9 +537,9 @@ test('Necromancer builds migrate and validate against canonical metadata', () =>
   assert.equal(migrated.initialResource, 100);
   assert.equal(migrated.initialBlight, 0);
   assert.equal(migrated.initialCascadingCorruptionStacks, 19);
-  assert.equal(migrated.selectedSkills.Heal, 'Summon Blood Fiend');
-  assert.equal(migrated.selectedSkills.Utility1, 'Blood Is Power');
-  assert.equal(migrated.selectedSkills.Elite, 'Lich Form');
+  assert.equal(migrated.selectedSkillIds.Heal, 10547);
+  assert.equal(migrated.selectedSkillIds.Utility1, 10544);
+  assert.equal(migrated.selectedSkillIds.Elite, 10550);
   assert.deepEqual(validateNecromancerBuild(migrated), {
     valid: true,
     errors: []

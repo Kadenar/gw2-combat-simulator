@@ -41,10 +41,7 @@ export function combatStarted(context: ElementalistRuntime, at: number): boolean
 
 // Resolve procedural sources through the catalog so request attribution retains canonical skill policy.
 export function elementalistEventSkill(context: ElementalistRuntime, source: string, sourceId: Skill['id']): Skill {
-  return (
-    context.helpers.skillsById.get(sourceId) ||
-    context.helpers.skillsByName.get(source) || { id: sourceId, name: source }
-  );
+  return context.helpers.skillsById.get(sourceId) || { id: sourceId, name: source };
 }
 
 /** Select a surviving profile boon; the shared service owns expansion and live duration. */

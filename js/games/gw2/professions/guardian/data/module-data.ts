@@ -26,12 +26,14 @@ const firebrandFinalFlipByNormalId = new Map<SkillId, SkillId>(
   MANTRAS.map(({ normalId, finalId }) => [normalId, finalId])
 );
 
+// API replacement faces are explicitly authored relationships, not display-name equivalence.
+const STATIC_NAME_REPLACEMENT_PAIRS = new Set(['9091:9224']);
 const flipParentById = createFlipParentMap(allSkills, {
   include(parent, child) {
     return (
       parent.flipSkillId !== ID.GLACIAL_BLOW &&
       !willbenderFlameIds.has(parent.flipSkillId!) &&
-      child.name !== parent.name &&
+      !STATIC_NAME_REPLACEMENT_PAIRS.has(`${parent.id}:${child.id}`) &&
       !child.categories?.includes('Virtue')
     );
   }

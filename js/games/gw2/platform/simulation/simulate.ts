@@ -1,6 +1,5 @@
 import { runGw2Runtime } from '#gw2/platform/simulation/runtime.js';
 import { normalizeProcRateOverrides } from '#gw2/platform/builds/proc-rates.js';
-import { prepareSelectedSkillLoadout } from '#gw2/platform/builds/selected-skills.js';
 import type { Gw2SimulationScore } from '#gw2/platform/simulation/types.js';
 import type { Gw2SimulationOptions, Gw2SimulationResult } from '#gw2/platform/simulation/types.js';
 
@@ -18,8 +17,6 @@ export function simulateGw2(
   let config = options.config ?? {};
   if (config.procRateOverrides !== undefined)
     config = { ...config, procRateOverrides: normalizeProcRateOverrides(config.procRateOverrides) };
-  if (config.selectedSkills != null)
-    config = { ...config, selectedSkills: prepareSelectedSkillLoadout(config.selectedSkills) };
   const profession = options.profession.runtimeFor(config);
   options.onPhase?.('preparation', performance.now() - started);
   return runGw2Runtime({ ...options, profession, config, observation: options.observationPolicy });

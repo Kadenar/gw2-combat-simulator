@@ -34,7 +34,7 @@ test('Kinetic Battery expands the surviving fifth-charge package', () => {
   ]) {
     const result = runEngineer(
       ['Regenerating Mist', wait],
-      { selectedTraitIds: [ENGINEER.KINETIC_BATTERY], selectedSkills: ['Healing Turret'] },
+      { selectedTraitIds: [ENGINEER.KINETIC_BATTERY], selectedSkillIds: [5857] },
       {
         initialize(runtime) {
           runtime.profession.core.kineticCharges = 4;

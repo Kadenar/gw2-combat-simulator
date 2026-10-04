@@ -1,5 +1,5 @@
 {
-  "schemaVersion": 3,
+  "schemaVersion": 4,
   "profession": "necromancer",
   "gear": {
     "Helm": "Assassin's",
@@ -52,12 +52,12 @@
       "traits": "2-1-3"
     }
   ],
-  "selectedSkills": {
-    "Heal": "\"Your Soul Is Mine!\"",
-    "Utility1": "Well of Suffering",
-    "Utility2": "Well of Darkness",
-    "Utility3": "\"You Are All Weaklings!\"",
-    "Elite": "Summon Flesh Golem"
+  "selectedSkillIds": {
+    "Heal": 30488,
+    "Utility1": 10546,
+    "Utility2": 10607,
+    "Utility3": 29414,
+    "Elite": 10646
   },
   "assumptions": {
     "might": 25,

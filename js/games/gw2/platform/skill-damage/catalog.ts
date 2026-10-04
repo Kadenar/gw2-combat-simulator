@@ -1,6 +1,7 @@
 import { hasDamage } from '#gw2/platform/skill-damage/execute.js';
 import { RELIC_DATA } from '#gw2/platform/equipment/relics/data.js';
 import { RELIC_RULES } from '#gw2/platform/equipment/relics/rules/index.js';
+import { normalizePrecastRelics } from '#gw2/platform/equipment/relics/catalog.js';
 import { SIGIL_DATA, SIGIL_PROCS } from '#gw2/platform/equipment/sigils/data.js';
 import { FOOD_DATA, NOURISHMENT_ICON } from '#gw2/platform/equipment/consumables/food.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
@@ -52,7 +53,8 @@ export function damageOccurrences(profession: RuntimeProfession<object>, config:
     });
   }
 
-  for (const name of new Set([config.relic, ...(config.precastRelics ?? [])].filter(Boolean))) {
+  // Enumeration and runtime creation must agree on which precast relics the build actually supports.
+  for (const name of new Set([config.relic, ...normalizePrecastRelics(config.precastRelics)].filter(Boolean))) {
     const relic = (RELIC_DATA as Readonly<Record<string, { id: number; icon: string }>>)[name!];
     if (relic && RELIC_RULES[relic.id]?.damagePayload)
       result.push({

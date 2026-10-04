@@ -411,6 +411,7 @@ export function defineNativeProfession<
       ...composed,
       id: definition.id,
       catalog: source.catalog,
+      skillSelectionCatalog: assembly.catalog,
       projectPlanningState: source.projectPlanningState,
       modifyAttributes: source.modifyAttributes,
       modifyConditionAttributes: source.modifyConditionAttributes,

@@ -9,16 +9,7 @@ import { gw2EffectExpiresAt } from '#gw2/platform/skills/timing.js';
 // The fourth qualifying blast consumes the native three-stack pool.
 const VOLATILITY_STACKS = 3;
 export const bloodstone = defineRelic({
-  damagePayload(ctx) {
-    emitDamagePayload(ctx, ctx.relic!.state, {
-      type: 'proc',
-      at: 0,
-      source: 'Relic',
-      sourceId: 'damage-input',
-      actorType: 'effect',
-      skillName: 'Damage preview'
-    });
-  },
+  damagePayload: emitDamagePayload,
   createState: () => ({
     stacks: 0,
     expiresAt: 0,

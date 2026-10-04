@@ -24,7 +24,7 @@ for (const [trait, specialization, resource, skillIds] of [
             specialization,
             initialInitiative: 0,
             initialEndurance: 0,
-            selectedSkills: [thiefCatalog.skillsById.get(id).name],
+            selectedSkillIds: [thiefCatalog.skillsById.get(id).id],
             selectedTraitIds: selected ? [trait] : []
           },
           {

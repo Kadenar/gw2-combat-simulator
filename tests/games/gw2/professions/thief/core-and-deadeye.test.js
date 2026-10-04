@@ -30,7 +30,7 @@ import { runThief } from '#tests/helpers/thief-simulation.js';
 import { withProfile, withSkill } from '#tests/helpers/catalog-overrides.js';
 
 const baseConfig = Object.freeze({
-  selectedSkills: ['Hide in Shadows', "Assassin's Signet", 'Shadow Flare', 'Shadow Gust', 'Thieves Guild'],
+  selectedSkillIds: [13027, 13046, 41158, 46335, 13082],
   initialInitiative: 12,
   initialShadowForce: 0,
   primaryWeapon: 'Dagger',
@@ -727,7 +727,7 @@ test('delayed strikes break stealth on impact without blocking a same-time steal
   const config = {
     primaryWeapon: 'Rifle',
     secondaryWeapon: '',
-    selectedSkills: ['Shadow Meld', 'Shadow Flare']
+    selectedSkillIds: [45508, 41158]
   };
   const rotation = ['Kneel', 'Shadow Meld', 'Shadow Flare', { type: 'wait', durationMs: 1 }];
   const flareDamage = simulate('Deadeye', rotation, config).events.find(
@@ -1190,7 +1190,7 @@ test('Critical Strikes applies runtime Fury, No Quarter, and multiplicative modi
   const criticalConfig = {
     primaryWeapon: 'Sword',
     secondaryWeapon: 'Pistol',
-    selectedSkills: [],
+    selectedSkillIds: [],
     stats: { power: 2000, precision: 5000, ferocity: 0 },
     target: { armor: 2597, defiant: true, health: 1_000_000 },
     boons: { fury: false }
@@ -1298,12 +1298,12 @@ test('Thief modifiers follow stable skill and packet IDs after display labels ch
 
 test('Daredevil follow-ups, delayed impacts, and endurance traits resolve', () => {
   // Equip the parent so these assertions isolate its hit-gated follow-up window.
-  const directPalm = simulate('Daredevil', ['Palm Strike'], { selectedSkills: ['Fist Flurry'] });
+  const directPalm = simulate('Daredevil', ['Palm Strike'], { selectedSkillIds: [30868] });
 
   assert.match(directPalm.warnings[0], /Fist Flurry must connect/i);
 
   const result = simulate('Daredevil', ['Dodge', 'Fist Flurry', 'Palm Strike', { name: '__wait', waitMs: 2100 }], {
-    selectedSkills: ['Fist Flurry'],
+    selectedSkillIds: [30868],
     selectedDodge: 'Bounding Dodger',
     selectedTraitIds: [TRAIT.WEAKENING_STRIKES, TRAIT.BOUNDING_DODGER]
   });
@@ -1406,7 +1406,7 @@ test('Deadeye cantrips, malice, stolen skills, and traits are stateful', () => {
 
   const mercy = simulate('Deadeye', ["Deadeye's Mark", 'Death Blossom', 'Mercy', "Deadeye's Mark"], {
     selectedTraitIds: deadeyeTraits,
-    selectedSkills: ['Mercy'],
+    selectedSkillIds: [41372],
     stats: { precision: 5000 }
   });
 
@@ -1416,7 +1416,7 @@ test('Deadeye cantrips, malice, stolen skills, and traits are stateful', () => {
 
   const chamber = simulate('Deadeye', ['Shadow Flare'], {
     selectedTraitIds: [TRAIT.ONE_IN_THE_CHAMBER],
-    selectedSkills: ['Shadow Flare']
+    selectedSkillIds: [41158]
   });
 
   assert.equal(chamber.planningState.profession.storedStolenSkillId, null);
@@ -1520,7 +1520,7 @@ test('Deadeye malice resolves on the first hit and malicious impact', () => {
     initialInitiative: 4,
     primaryWeapon: 'Rifle',
     secondaryWeapon: '',
-    selectedSkills: ['Mercy']
+    selectedSkillIds: [41372]
   };
   const earlyMercy = runThief(earlyMercyRotation, earlyMercyConfig);
   const mercyAt = earlyMercy.steps.find((step) => step.skill === 'Mercy').end / 1000;
@@ -1542,7 +1542,7 @@ test('Deadeye malice resolves on the first hit and malicious impact', () => {
     ...criticalConfig,
     primaryWeapon: 'Rifle',
     secondaryWeapon: '',
-    selectedSkills: ['Mercy', 'Shadow Meld']
+    selectedSkillIds: [41372, 45508]
   };
   const ordinaryShot = simulate('Deadeye', rifleRotation, rifleConfig);
   const mercyRotation = [...rifleRotation, { name: 'Mercy', offset: 100 }];
@@ -1586,11 +1586,11 @@ test('Deadeye strike modifiers, grandmasters, and stealth attacks use supplied v
 
   const plainFlare = simulate('Deadeye', ['Shadow Flare'], {
     ...fullCrit,
-    selectedSkills: ['Shadow Flare']
+    selectedSkillIds: [41158]
   });
   const markedFlare = simulate('Deadeye', ["Deadeye's Mark", 'Shadow Flare'], {
     ...fullCrit,
-    selectedSkills: ['Shadow Flare']
+    selectedSkillIds: [41158]
   });
 
   assertMultiplier(markedFlare, plainFlare, 'Shadow Flare', 1.5);
@@ -1630,13 +1630,13 @@ test('Deadeye strike modifiers, grandmasters, and stealth attacks use supplied v
     ...fullCrit,
     primaryWeapon: 'Sword',
     secondaryWeapon: 'Pistol',
-    selectedSkills: ['Mercy']
+    selectedSkillIds: [41372]
   });
   const relicCantrip = simulate('Deadeye', ['Mercy', 'Slice'], {
     ...fullCrit,
     primaryWeapon: 'Sword',
     secondaryWeapon: 'Pistol',
-    selectedSkills: ['Mercy'],
+    selectedSkillIds: [41372],
     relic: 'Deadeye'
   });
 
@@ -1751,7 +1751,7 @@ test('initiative-funded casts retain readiness across intermediate observations'
 test('initiative availability waits for a signet grant with zero regeneration', () => {
   const result = runThief(
     ['Double Strike'],
-    { ...baseConfig, initialInitiative: 0, selectedSkills: ["Infiltrator's Signet"] },
+    { ...baseConfig, initialInitiative: 0, selectedSkillIds: [13064] },
     {
       catalog: (live) =>
         withProfile(

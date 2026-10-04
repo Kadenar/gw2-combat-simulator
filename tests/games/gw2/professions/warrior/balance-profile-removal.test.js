@@ -219,7 +219,7 @@ test('removed ordinary cartridge buff cannot substitute the supercharged window'
     { [BLADESWORN.overchargedCartridges]: remove('buff', 'overcharged-cartridges') },
     'Bladesworn',
     [ID.OVERCHARGED_CARTRIDGES],
-    { selectedSkills: { utility1: 'Overcharged Cartridges' } }
+    { selectedSkillIds: [68085] }
   );
   assert.deepEqual(result.planningState.profession.overchargedCartridgeWindows, []);
   assert.equal(

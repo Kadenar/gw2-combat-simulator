@@ -1,5 +1,5 @@
 {
-  "schemaVersion": 3,
+  "schemaVersion": 4,
   "profession": "thief",
   "gear": {
     "Helm": "Berserker's",
@@ -56,12 +56,12 @@
       "traits": "3-3-3"
     }
   ],
-  "selectedSkills": {
-    "Heal": "Signet of Malice",
-    "Utility1": "Stone Summit Cannon",
-    "Utility2": "Assassin's Signet",
-    "Utility3": "Canach-Coin Toss",
-    "Elite": "Skritt Scuffle"
+  "selectedSkillIds": {
+    "Heal": 13050,
+    "Utility1": 76725,
+    "Utility2": 13046,
+    "Utility3": 77230,
+    "Elite": 77255
   },
   "selectedDodge": "Dodge",
   "assumptions": {

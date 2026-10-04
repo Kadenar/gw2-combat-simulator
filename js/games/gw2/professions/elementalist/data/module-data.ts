@@ -129,7 +129,7 @@ const generated: readonly ElementalistSkill[] = Object.freeze(
     const selectionName = skill.name.replace(ATTUNEMENT_VARIANT_PATTERN, '');
 
     const isAttunementSlotVariant =
-      SLOT_SKILL_TYPES.has(String(skill.type)) && Boolean(skill.attunement) && selectionName !== skill.name;
+      SLOT_SKILL_TYPES.has(String(skill.type)) && Boolean(skill.attunement) && loadoutSkillId != null;
 
     return {
       ...skill,
@@ -141,15 +141,17 @@ const generated: readonly ElementalistSkill[] = Object.freeze(
         : {}),
       ...(isAttunementSlotVariant
         ? {
-            displayName: selectionName
+            displayName: selectionName,
+            // Attunement projections share one picker entry; fixed elemental summons remain separate.
+            paletteTileId: loadoutSkillId
           }
         : {}),
-      ...(skill.name === 'Tailored Victory'
+      ...(skill.id === ID.TAILORED_VICTORY
         ? {
             slotSelectable: false
           }
         : {}),
-      ...(skill.name === 'Dodge'
+      ...(skill.id === SHARED_SKILL_IDS.DODGE
         ? {
             paletteAction: true
           }
@@ -160,13 +162,13 @@ const generated: readonly ElementalistSkill[] = Object.freeze(
           }
         : {}),
       // Internal attunement projections retain the source skill's presentation facts.
-      ...(skill.name === 'Glyph of Elementals'
+      ...(skill.id === ID.GLYPH_OF_ELEMENTALS
         ? {
             displayName: 'Glyph of Elementals (Fire)',
             description: 'Glyph. Summon a Fire Elemental regardless of attunement.'
           }
         : {}),
-      ...(skill.name === 'Glyph of Elementals (Earth)'
+      ...(skill.id === ID.GLYPH_OF_ELEMENTALS_EARTH
         ? {
             description: 'Glyph. Summon an Earth Elemental regardless of attunement.'
           }

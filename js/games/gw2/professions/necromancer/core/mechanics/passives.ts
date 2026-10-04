@@ -1,4 +1,4 @@
-import { selectedSkillNameSet } from '#gw2/platform/builds/selected-skills.js';
+import { selectedSkillIdSet } from '#gw2/platform/builds/selected-skills.js';
 import {
   balanceProfileNumber,
   requireBalanceProfileFromContext
@@ -57,11 +57,11 @@ export function nextNecromancerPassiveGain(runtime: NecromancerRuntime, cost: nu
 
 /** Selected passive producers each begin with one bounded wake, including out-of-combat resource pulses. */
 export function initializeNecromancerPassives(runtime: NecromancerRuntime): void {
-  const selected = selectedSkillNameSet(runtime.config.selectedSkills);
+  const selected = selectedSkillIdSet(runtime.config.selectedSkillIds);
   for (const [passive, enabled, profileId] of [
     eternalLifePassive(runtime),
     ...NECROMANCER_SIGNET_PASSIVES.map(
-      (policy) => [policy.passive, selected.has(policy.name), policy.profileId] as const
+      (policy) => [policy.passive, selected.has(policy.skillId), policy.profileId] as const
     )
   ] as const) {
     if (!enabled) continue;

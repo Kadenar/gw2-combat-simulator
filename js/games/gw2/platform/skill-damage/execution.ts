@@ -43,7 +43,6 @@ export function createDamageExecution<T extends object>(
     professionReactions: Object.fromEntries(
       Object.entries(profession.reactions ?? {}).filter(([stage]) => stage !== 'damage.resolved')
     ),
-    planningAvailability: () => ({ ready: true }),
     driver: {
       cursor: new RotationCursor([]),
       rotation: [],

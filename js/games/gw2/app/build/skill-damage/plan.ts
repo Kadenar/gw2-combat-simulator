@@ -9,7 +9,7 @@ import {
   weaponSkills
 } from '#gw2/app/rotation/palette/model.js';
 import type { ProfessionAppState } from '#gw2/app/types.js';
-import { selectedSkillNameSet } from '#gw2/platform/builds/selected-skills.js';
+import { selectedSkillIdSet } from '#gw2/platform/builds/selected-skills.js';
 import { GW2_STANDARD_BOONS } from '#gw2/platform/combat/boons.js';
 import type { Skill, SkillId } from '#gw2/platform/engine/skills/types.js';
 import { THORNS_MAX_STACKS } from '#gw2/platform/equipment/relics/rules/thorns.js';
@@ -58,7 +58,7 @@ const PREVIEW_BUFF_SECONDS = 3600;
 const SLOT_TYPES = Object.freeze(['Heal', 'Utility', 'Elite'] as const);
 
 /** Shared controls the damage panel always offers; professions add their own conditionals beside them. */
-function sharedDamageControls(appliesTorment: boolean): PreviewControl[] {
+function sharedDamageControls(): PreviewControl[] {
   return [
     {
       key: 'might',
@@ -98,24 +98,21 @@ function sharedDamageControls(appliesTorment: boolean): PreviewControl[] {
       max: 25,
       description: 'stacks; +1% strike and condition damage each'
     },
-    ...(appliesTorment
-      ? [
-          {
-            key: 'targetMoving',
-            label: 'Target moving',
-            group: 'Target conditions',
-            kind: 'special' as const,
-            scope: ['damage' as const],
-            description: 'Torment uses the moving-target formula'
-          }
-        ]
-      : [])
+    // Movement also affects procedural and equipment Torment, which need not appear in the skill catalog.
+    {
+      key: 'targetMoving',
+      label: 'Target moving',
+      group: 'Target conditions',
+      kind: 'special',
+      scope: ['damage'],
+      description: 'Torment uses the moving-target formula'
+    }
   ];
 }
 
 /** Shared controls first, then the profession's damage-scoped controls; a profession key never duplicates a shared one. */
 export function skillDamageControls(app: ProfessionAppState): PreviewControl[] {
-  const shared = sharedDamageControls(planSkills(app).some(appliesTorment));
+  const shared = sharedDamageControls();
   // Reuse the selected relic's opening stack state and cap without changing saved simulation assumptions.
   if (app.build.relic === 'Thorns')
     shared.push({
@@ -128,11 +125,10 @@ export function skillDamageControls(app: ProfessionAppState): PreviewControl[] {
       description: 'Starting stacks; subsequent gains follow the relic’s normal rules'
     });
   const keys = new Set(shared.map((control) => control.key));
+  // Retain profession boons such as Resolution; only shared keys are already represented.
   const owned = app.profession.ui
     .previewControls(attributePreviewContext(app))
-    .filter(
-      (control) => previewControlScopes(control).includes('damage') && control.kind !== 'boon' && !keys.has(control.key)
-    );
+    .filter((control) => previewControlScopes(control).includes('damage') && !keys.has(control.key));
   return [...shared, ...owned];
 }
 
@@ -178,15 +174,6 @@ export function clearedValues(controls: readonly PreviewControl[]): AttributePre
   );
 }
 
-function appliesTorment(skill: Skill): boolean {
-  return (skill.effects ?? []).some(
-    (effect) =>
-      (effect.type === 'condition' && effect.condition === 'Torment') ||
-      (Array.isArray(effect.ticks) &&
-        effect.ticks.some((tick: { condition?: unknown }) => tick.condition === 'Torment'))
-  );
-}
-
 /**
  * The build as it starts, without the rotation's latest state: palette projections then show the same skills no
  * matter where the rotation editor's cursor or last result left resources, charges, or forms.
@@ -226,16 +213,16 @@ function slotSkills(app: ProfessionAppState): { skill: Skill; status: SkillDamag
         bar.skillIds.flatMap((id) => [id, ...(app.adapter.slotLoadout!.skillChildren?.(context, id) ?? [])])
       );
     return [...new Set(ids)].flatMap((id) => {
-      const skill = app.skillById.get(Number(id));
+      const skill = app.skillById.get(id);
       return skill ? [{ skill, status: 'equipped' as const }] : [];
     });
   }
 
-  const selected = selectedSkillNameSet(app.build.selectedSkills);
+  const selected = selectedSkillIdSet(app.build.selectedSkillIds);
   const choices = SLOT_TYPES.flatMap((type) =>
     availableSlotSkills(app, type).map((skill) => ({
       skill,
-      status: selected.has(skill.name) ? ('equipped' as const) : ('unslotted' as const)
+      status: selected.has(skill.id) ? ('equipped' as const) : ('unslotted' as const)
     }))
   );
   // Slot pickers hide armed follow-ups; their authored chains still belong in the damage preview.
@@ -277,21 +264,13 @@ function mechanicGroups(
       id: group.id,
       title: group.title,
       skills: group.skillIds.flatMap((id) => {
-        const skill = app.skillById.get(Number(id));
+        const skill = app.skillById.get(id);
         if (!skill || seen.has(skill.id) || (skill.type === 'Action' && !group.includeActionSkills)) return [];
         seen.add(skill.id);
         return [skill];
       })
     }))
     .filter((group) => group.skills.length);
-}
-
-/** All skills the panel lists, for control decisions that depend on what can be cast. */
-function planSkills(app: ProfessionAppState): Skill[] {
-  const weapons = weaponRows(app).flatMap((group) => group.skills);
-  const slots = slotSkills(app).map(({ skill }) => skill);
-  const claimed = new Set([...weapons, ...slots].map((skill) => skill.id));
-  return [...weapons, ...mechanicGroups(app, claimed).flatMap((group) => group.skills), ...slots];
 }
 
 /** A skill's authored position in its chain, when the catalog records one. */
@@ -407,6 +386,13 @@ function previewConfig(
   return {
     ...config,
     ...patch,
+    // Explicit preview toggles take precedence over boons enforced by normal simulation configuration.
+    boons: {
+      ...config.boons,
+      ...Object.fromEntries(
+        controls.filter((control) => control.kind === 'boon').map((control) => [control.key, boons[control.key]])
+      )
+    },
     randomness: { ...config.randomness, mode: 'deterministic' } as Gw2Config['randomness'],
     criticalDamageMode: 'averaged',
     fixedBoonCount: Number(values.boonCount) || 0,

@@ -855,14 +855,14 @@ for (const [name, recharge, boons, duration] of [
     const defaults = createGuardianBuildDefaults();
     const migrated = migrateGuardianBuild({
       ...defaults,
-      selectedSkills: { ...defaults.selectedSkills, Utility1: name }
+      selectedSkillIds: { ...defaults.selectedSkillIds, Utility1: guardianCatalog.skillsByName.get(name).id }
     });
-    assert.equal(migrated.selectedSkills.Utility1, name);
+    assert.equal(migrated.selectedSkillIds.Utility1, guardianCatalog.skillsByName.get(name).id);
 
     for (const alacrity of [false, true]) {
       const result = createObservedProfessionSimulator(guardianProfession, {
         ...config,
-        selectedSkills: [name],
+        selectedSkillIds: [guardianCatalog.skillsByName.get(name).id],
         boons: { alacrity },
         stats: { ...config.stats, concentration: alacrity ? 750 : 0 },
         allies: { count: 4 }
@@ -914,15 +914,14 @@ test('out-of-scope Guardian slot skills are absent and migrate out of saved buil
   assert.equal(valorousStance.simulatorExcluded, false);
   assert.equal(valorousStance.slotSelectable, false);
 
-  const migrated = migrateGuardianBuild({
-    ...createGuardianBuildDefaults(),
-    selectedSkills: {
-      ...createGuardianBuildDefaults().selectedSkills,
-      Utility1: 'Contemplation of Purity'
-    }
-  });
-
-  assert.notEqual(migrated.selectedSkills.Utility1, 'Contemplation of Purity');
+  assert.throws(
+    () =>
+      migrateGuardianBuild({
+        ...createGuardianBuildDefaults(),
+        selectedSkillIds: { ...createGuardianBuildDefaults().selectedSkillIds, Utility1: 'Contemplation of Purity' }
+      }),
+    /Unknown selected skill ID/
+  );
 });
 
 test('Guardian results advance to cooldown expiry before recasting', () => {

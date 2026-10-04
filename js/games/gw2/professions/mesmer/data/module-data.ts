@@ -17,8 +17,10 @@ import type { NativeCatalogOptions } from '#gw2/platform/profession-definition/m
 const allSkills: readonly MesmerSkill[] = [...SKILLS, ...MESMER_SUPPLEMENTAL_SKILLS];
 
 // Same-name API flips are specialization replacements, not runtime flip palettes.
+// API replacement faces are explicitly authored relationships, not display-name equivalence.
+const STATIC_NAME_REPLACEMENT_PAIRS = new Set(['43761:69385']);
 const flipParentById = createFlipParentMap(allSkills, {
-  include: (parent, child) => parent.name !== child.name
+  include: (parent, child) => !STATIC_NAME_REPLACEMENT_PAIRS.has(`${parent.id}:${child.id}`)
 });
 
 /** Shared Axe identities are replaced by Mirage in both equipment and cast selection. */
@@ -27,9 +29,17 @@ export const NON_MIRAGE_AXE_SKILL_IDS: ReadonlySet<SkillId> = new Set([
   ID.LINGERING_THOUGHTS_NON_MIRAGE
 ]);
 
+// Explicit replacement families allow palette selection to survive label changes.
+const WEAPON_TILE_IDS = new Map<SkillId, SkillId>([
+  [ID.BLADECALL, ID.BLADECALL_NON_VIRTUOSO],
+  [ID.AXES_OF_SYMMETRY, ID.AXES_OF_SYMMETRY_NON_MIRAGE],
+  [ID.LINGERING_THOUGHTS, ID.LINGERING_THOUGHTS_NON_MIRAGE]
+]);
+
 // Correct stale API specialization labels before palette ranking and module assembly.
 const generated: readonly MesmerSkill[] = allSkills.map((skill) => ({
   ...normalizeGeneratedSkill(skill, flipParentById.get(skill.id) ?? null),
+  ...(WEAPON_TILE_IDS.has(skill.id) ? { paletteTileId: WEAPON_TILE_IDS.get(skill.id) } : {}),
   specialization:
     NON_MIRAGE_AXE_SKILL_IDS.has(skill.id) || skill.id === ID.BLADECALL_NON_VIRTUOSO
       ? ''

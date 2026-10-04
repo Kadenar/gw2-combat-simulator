@@ -312,7 +312,7 @@ test('Mechanist registered recharge owners read preview values and preserve Over
   const context = {
     catalog: runtime.catalog,
     config: {
-      selectedSkills: ['Overclock Signet'],
+      selectedSkillIds: [63095],
       selectedTraitIds: [ENGINEER.MECH_CORE_JADE_DYNAMO, ENGINEER.MECH_CORE_J_DRIVE]
     },
     cooldowns: new Map([[ENGINEER_SKILLS.OVERCLOCK_SIGNET, 90]]),

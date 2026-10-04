@@ -1,3 +1,4 @@
+import { ENGINEER_SKILL_IDS as ID } from '#gw2/professions/engineer/data/ids.js';
 import { MIGHT_ATTRIBUTE_BONUS_PER_STACK } from '#gw2/platform/combat/boons.js';
 import type { Gw2ModifierContext, Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
 import type { Gw2MutableStats, Gw2Stats } from '#gw2/platform/combat/types.js';
@@ -36,7 +37,7 @@ function modifyMechanistAttributes(context: Gw2ModifierContext, attributes: Gw2S
     inheritedSource,
     requireBalanceProfileFromContext(context, PROFILE.resources)
   );
-  if (selectedSignet(context, 'Shift Signet')) {
+  if (selectedSignet(context, ID.SHIFT_SIGNET)) {
     mech.power += mightStacks * MIGHT_ATTRIBUTE_BONUS_PER_STACK;
     mech.conditionDamage += mightStacks * MIGHT_ATTRIBUTE_BONUS_PER_STACK;
   }

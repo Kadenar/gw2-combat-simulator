@@ -164,7 +164,7 @@ test('GW2 base recharge accepts finite cooldowns and defaults missing or invalid
 
 // Each spent charge recovers independently of the between-cast lockout.
 test('Warrior ammo preserves charge recovery and its independent cast lockout', () => {
-  const config = { selectedSkills: ['Throw Bolas'] };
+  const config = { selectedSkillIds: [14354] };
   const native = warriorProfession.runtimeFor(config);
   const skill = native.catalog.skillsByName.get('Throw Bolas');
   const seen = [];

@@ -170,7 +170,8 @@ export function applyMirageAmbushTraits(
       impactAt,
       statusFromEffect(riddleOfSand),
       'Player',
-      `${ambush.name} — Riddle of Sand`
+      `${ambush.name} — Riddle of Sand`,
+      { skillId: ambush.id }
     ).forEach((packet) => {
       state.effects.emit({
         ...delivery,

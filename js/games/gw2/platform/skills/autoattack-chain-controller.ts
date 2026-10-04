@@ -43,7 +43,7 @@ export interface Gw2AutoattackChainOptions {
   readonly overrides?: readonly AutoattackChainOverride[];
 }
 
-/** Shows the expected chain step, accepting stored names or IDs and defaulting an unstarted chain to its root. */
+/** Shows the canonical expected step and defaults an unstarted chain to its root without resolving labels. */
 export function autoattackChainSkillAvailable(
   skill: Skill,
   chainState: Readonly<Record<string, unknown>> = {}
@@ -51,7 +51,7 @@ export function autoattackChainSkillAvailable(
   if (!skill.chainRoot) return true;
   const chainRoot = String(skill.chainRoot);
   const expected = chainState[chainRoot] ?? skill.chainRoot;
-  return skill.name === expected || skill.id === Number(expected);
+  return skill.id === expected;
 }
 
 function chainState(context: object): Record<string, SkillId> | null {

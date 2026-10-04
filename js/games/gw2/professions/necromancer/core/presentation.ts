@@ -218,7 +218,7 @@ export function bindNecromancerCoreUi(catalog: Readonly<CanonicalCatalog<Necroma
         max: 30,
         description: "Death's Carapace stacks"
       });
-      preview.passives('Signet of Spite');
+      preview.passives(ID.SIGNET_OF_SPITE);
       return preview.controls;
     },
     /** Seed only the detached attribute query; combat state and saved builds remain untouched. */

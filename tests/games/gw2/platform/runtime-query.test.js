@@ -9,9 +9,9 @@ import {
   activeBoonStacks,
   boonActive,
   eventSkill,
-  hasSelectedSkill,
+  hasSelectedSkillId,
   playerHealthFraction,
-  selectedSkillNames,
+  selectedSkillIds,
   targetConditionActive,
   targetConditionCount,
   targetHealthBelow,
@@ -324,13 +324,13 @@ test('runtime skill lookup preserves event, application, and context fallback pr
 });
 
 test('selected skill queries normalize name arrays and slot records', () => {
-  const arrayContext = context({ config: { selectedSkills: ['One', 'Two'] } });
-  const recordContext = context({ config: { selectedSkills: { Heal: 'Three', Utility1: 'Four' } } });
+  const arrayContext = context({ config: { selectedSkillIds: ['One', 'Two'] } });
+  const recordContext = context({ config: { selectedSkillIds: { Heal: 'Three', Utility1: 'Four' } } });
 
-  assert.deepEqual([...selectedSkillNames(arrayContext)], ['One', 'Two']);
-  assert.deepEqual([...selectedSkillNames(recordContext)], ['Three', 'Four']);
-  assert.equal(hasSelectedSkill(recordContext, 'Four'), true);
-  assert.equal(hasSelectedSkill(recordContext, 'Missing'), false);
+  assert.deepEqual([...selectedSkillIds(arrayContext)], ['One', 'Two']);
+  assert.deepEqual([...selectedSkillIds(recordContext)], ['Three', 'Four']);
+  assert.equal(hasSelectedSkillId(recordContext, 'Four'), true);
+  assert.equal(hasSelectedSkillId(recordContext, 'Missing'), false);
 });
 
 test('target health derives from starting health and resolved damage', () => {

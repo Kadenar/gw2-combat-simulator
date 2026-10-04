@@ -197,6 +197,7 @@ export function triggerRendingShatter(context: MesmerRuntime, resolution: Mesmer
       {
         source: 'Trait',
         sourceId: TRAIT.RENDING_SHATTER,
+        skillId: resolution.skill.id,
         actorType: 'player'
       }
     ).forEach((packet) => {

@@ -1,5 +1,5 @@
 {
-  "schemaVersion": 3,
+  "schemaVersion": 5,
   "profession": "ranger",
   "gear": {
     "Helm": "Berserker's",
@@ -29,21 +29,39 @@
   "utility": "Superior Sharpening Stone",
   "jadeBotCore": true,
   "infusions": [
-    { "stat": "Power", "count": 18 },
-    { "stat": "Precision", "count": 0 },
-    { "stat": "Condition Damage", "count": 0 }
+    {
+      "stat": "Power",
+      "count": 18
+    },
+    {
+      "stat": "Precision",
+      "count": 0
+    },
+    {
+      "stat": "Condition Damage",
+      "count": 0
+    }
   ],
   "specializations": [
-    { "name": "Skirmishing", "traits": "1-2-3" },
-    { "name": "Beastmastery", "traits": "3-3-3" },
-    { "name": "Soulbeast", "traits": "2-2-3" }
+    {
+      "name": "Skirmishing",
+      "traits": "1-2-3"
+    },
+    {
+      "name": "Beastmastery",
+      "traits": "3-3-3"
+    },
+    {
+      "name": "Soulbeast",
+      "traits": "2-2-3"
+    }
   ],
-  "selectedSkills": {
-    "Heal": "\"We Heal As One!\"",
-    "Utility1": "\"Sic 'Em!\"",
-    "Utility2": "Frost Trap",
-    "Utility3": "Signet of the Wild",
-    "Elite": "One Wolf Pack"
+  "selectedSkillIds": {
+    "Heal": 31914,
+    "Utility1": 12633,
+    "Utility2": 12492,
+    "Utility3": 12491,
+    "Elite": 45717
   },
   "selectedPet": "Pig",
   "selectedHammerSkillIds": [63335, 69262, 63131, 63208],

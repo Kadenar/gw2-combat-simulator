@@ -40,7 +40,7 @@ test('Berserk entry spends once, changes the cap, and expiry restores the Core c
 });
 
 test('Rage extension survives the original expiry and cannot revive mode after expiration', () => {
-  const config = { selectedSkills: ['Outrage'] };
+  const config = { selectedSkillIds: [30258] };
   const rotation = ['Berserk', wait(19000), 'Outrage', wait(2000)];
   const extended = run(rotation, config);
   assert.deepEqual(extended.warnings, []);
@@ -59,7 +59,7 @@ test('Rage extension survives the original expiry and cannot revive mode after e
 
 test('mode expiration during a Rage cast restores the cap before independent completion traits', () => {
   const result = run(['Berserk', wait(19600), 'Shattering Blow'], {
-    selectedSkills: ['Shattering Blow'],
+    selectedSkillIds: [30074],
     selectedTraitIds: [TRAIT.LAST_BLAZE]
   });
   assert.deepEqual(result.warnings, []);
@@ -93,7 +93,7 @@ test('canceled Berserk retains spending while removed mode keeps independent ent
 });
 
 test('completed Blood Reckoning clears primal recharge and canceled healing leaves it intact', () => {
-  const config = { primaryWeapon: 'Greatsword', selectedSkills: ['Blood Reckoning'] };
+  const config = { primaryWeapon: 'Greatsword', selectedSkillIds: [30189] };
   const rotation = ['Berserk', 'Arc Divider'];
   const reset = run([...rotation, 'Blood Reckoning'], config);
   assert.deepEqual(reset.warnings, []);
@@ -120,7 +120,7 @@ test('primal completion extends mode and applies independent party boons while c
 
 test('King of Fires consumes one actual critical aura on completion and cannot recurse through its own strike', () => {
   const config = {
-    selectedSkills: ['Wild Blow'],
+    selectedSkillIds: [29941],
     selectedTraitIds: [TRAIT.KING_OF_FIRES],
     stats: { power: 2000, precision: 0 }
   };
@@ -142,7 +142,7 @@ test('King of Fires consumes one actual critical aura on completion and cannot r
 
 test('a critical arriving after completed Berserker activation detonates without reading report history', () => {
   const config = {
-    selectedSkills: ['Wild Blow'],
+    selectedSkillIds: [29941],
     selectedTraitIds: [TRAIT.KING_OF_FIRES],
     stats: { power: 2000, precision: 0 }
   };
@@ -162,7 +162,7 @@ test('a critical arriving after completed Berserker activation detonates without
 test('combo Fire Aura can detonate during the critical-aura cooldown and an unused aura expires', () => {
   const config = {
     primaryWeapon: 'Longbow',
-    selectedSkills: ['Sundering Leap'],
+    selectedSkillIds: [29613],
     selectedTraitIds: [TRAIT.KING_OF_FIRES],
     stats: { power: 2000, precision: 4000 }
   };
@@ -183,7 +183,7 @@ test('combo Fire Aura can detonate during the critical-aura cooldown and an unus
 });
 
 test('removing King of Fires strike preserves Burning while removing its aura prevents detonation', () => {
-  const config = { patchId: 'king-live', selectedSkills: ['Wild Blow'], selectedTraitIds: [TRAIT.KING_OF_FIRES] };
+  const config = { patchId: 'king-live', selectedSkillIds: [29941], selectedTraitIds: [TRAIT.KING_OF_FIRES] };
   for (const type of ['strike', 'buff']) {
     const patched = withPatchPreview(warriorProfession, {
       id: 'king-live',
@@ -250,7 +250,7 @@ test('Last Blaze preserves completion, profile edits, and mode-before-condition 
     };
     const result = run(
       [{ name: 'Blood Reckoning', offTarget, ...(cancelled ? { interruptAfterMs: 1 } : {}) }],
-      { selectedSkills: ['Blood Reckoning'], selectedTraitIds: [TRAIT.LAST_BLAZE, TRAIT.KING_OF_FIRES] },
+      { selectedSkillIds: [30189], selectedTraitIds: [TRAIT.LAST_BLAZE, TRAIT.KING_OF_FIRES] },
       source
     );
     assert.deepEqual(result.warnings, []);

@@ -30,7 +30,7 @@ test('Altruistic Aspect grants its meditation boon only when selected and the ca
         specialization: 'Evoker',
         evokerElement: 'Fire',
         selectedTraitIds: traits,
-        selectedSkills: ["Fox's Fury"]
+        selectedSkillIds: [76711]
       }
     ).resolvedEvents.filter((event) => event.type === 'buff' && event.kind === 'might');
   const base = run([]);
@@ -209,13 +209,7 @@ test('Familiar and meditation enchantments cannot enhance a strike after their i
         startAttunement: 'Fire',
         weapons: ['Sword', 'Dagger'],
         evokerElement: 'Fire',
-        selectedSkills: {
-          Heal: 'Rejuvenate',
-          Utility1: "Hare's Agility",
-          Utility2: 'Signet of Fire',
-          Utility3: 'Arcane Wave',
-          Elite: 'Elemental Procession'
-        }
+        selectedSkillIds: { Heal: 76634, Utility1: 77038, Utility2: 5542, Utility3: 5638, Elite: 76841 }
       });
       assert.deepEqual(result.warnings, []);
       const attack = result.events.find((event) => event.type === 'damage' && event.skillName === 'Fire Strike');
@@ -565,13 +559,7 @@ test('Evoker spends a completed Rejuvenate refill only once', () => {
     ],
     evokerElement: 'Earth',
     initialEvokerCharges: 0,
-    selectedSkills: {
-      Heal: 'Rejuvenate',
-      Utility1: "Fox's Fury",
-      Utility2: 'Signet of Fire',
-      Utility3: 'Arcane Wave',
-      Elite: 'Elemental Procession'
-    }
+    selectedSkillIds: { Heal: 76634, Utility1: 76711, Utility2: 5542, Utility3: 5638, Elite: 76841 }
   });
 
   assert.deepEqual(result.warnings, []);
@@ -613,13 +601,7 @@ test('Elemental Procession uses familiar weapon strength and lets Buoyant Deluge
     lines: [['Fire'], ['Air', '1-1-3'], ['Evoker']],
     rotation: ['Elemental Procession', 4000],
     evokerElement: 'Earth',
-    selectedSkills: {
-      Heal: 'Rejuvenate',
-      Utility1: "Fox's Fury",
-      Utility2: 'Signet of Fire',
-      Utility3: 'Arcane Wave',
-      Elite: 'Elemental Procession'
-    }
+    selectedSkillIds: { Heal: 76634, Utility1: 76711, Utility2: 5542, Utility3: 5638, Elite: 76841 }
   });
   const processionStrikes = result.resolvedEvents.filter(
     (event) => event.type === 'damage' && event.triggeredBy === 'Elemental Procession'
@@ -684,13 +666,7 @@ test("Hare's Agility cannot spend new charges on pre-grant strikes", () => {
     startAttunement: 'Fire',
     weapons: ['Sword', 'Dagger'],
     evokerElement: 'Fire',
-    selectedSkills: {
-      Heal: 'Rejuvenate',
-      Utility1: "Hare's Agility",
-      Utility2: 'Signet of Fire',
-      Utility3: 'Arcane Wave',
-      Elite: 'Elemental Procession'
-    }
+    selectedSkillIds: { Heal: 76634, Utility1: 77038, Utility2: 5542, Utility3: 5638, Elite: 76841 }
   });
 
   assert.deepEqual(result.warnings, []);

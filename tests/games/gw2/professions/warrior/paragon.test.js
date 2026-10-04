@@ -160,7 +160,7 @@ test('Rally grants at burst acceptance, while canceled bursts and chants retain 
 test('burst-consumed echoes cancel their old wake and restart the remaining repeat from consumption', () => {
   const config = {
     initialResource: 10,
-    selectedSkills: ['"We Shall Return!"'],
+    selectedSkillIds: [76755],
     selectedTraitIds: [TRAIT.REVERBERATION]
   };
   const prefix = ['"We Shall Return!"', 'Chant of Action'];
@@ -180,7 +180,7 @@ test('burst-consumed echoes cancel their old wake and restart the remaining repe
 });
 
 test('command instances retain independent echoes and actual echo damage has original command attribution', () => {
-  const config = { initialResource: 0, selectedSkills: ['"On Your Knees!"', '"We Shall Return!"'] };
+  const config = { initialResource: 0, selectedSkillIds: [77114, 76755] };
   const result = run(['"On Your Knees!"', '"We Shall Return!"', wait(3000)], config);
   assert.deepEqual(result.warnings, []);
   assert.deepEqual(state(result).commandEchoes, {});
@@ -221,7 +221,7 @@ test('Feverish Pulse reduces other chants even when its Alacrity component is re
 });
 
 test('score and detailed execution retain the same live Motivation, echoes, and damage', () => {
-  const config = { selectedSkills: ['"On Your Knees!"'], selectedTraitIds: [TRAIT.CALL_TO_ACTION, TRAIT.BRISK_PACING] };
+  const config = { selectedSkillIds: [77114], selectedTraitIds: [TRAIT.CALL_TO_ACTION, TRAIT.BRISK_PACING] };
   const rotation = [combat, 'Chant of Action', '"On Your Knees!"', 'Eviscerate', wait(6000)];
   const detailed = run(rotation, config);
   const score = run(rotation, config, warriorProfession, 'score');
@@ -263,7 +263,7 @@ test('removed opening packets and disabled cadences retain chant state without q
     {
       initialResource: 10,
       patchId: 'silent-paragon',
-      selectedSkills: ['"We Shall Return!"']
+      selectedSkillIds: [76755]
     },
     patched
   );

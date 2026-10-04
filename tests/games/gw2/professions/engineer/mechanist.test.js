@@ -13,7 +13,7 @@ const mechanistRechargeWork = engineerProfession.runtimeFor({ specialization: 'M
 
 // Mechanist contracts cover signet passives, mech boon state, inheritance, and command effects.
 const baseConfig = Object.freeze({
-  selectedSkills: ['Healing Turret', 'Grenade Kit', 'Throw Mine', 'Elixir Gun', 'Supply Crate'],
+  selectedSkillIds: [5857, 5805, 6161, 5933, 5868],
   selectedMorphSkillIds: [77103, 77203, 76954],
   stats: {
     power: 2000,
@@ -35,7 +35,7 @@ const simulate = createObservedProfessionSimulator(engineerProfession, baseConfi
 test('Jade Mortar does not inherit Force or lose part of its signet bonus', () => {
   const damage = (sigils) =>
     simulate('Mechanist', ['Jade Mortar'], {
-      selectedSkills: ['Force Signet'],
+      selectedSkillIds: [63253],
       sigilSets: [sigils],
       target: { conditions: {} }
     }).resolvedEvents.find((event) => event.type === 'damage' && event.name === 'Jade Mortar').damage;
@@ -49,7 +49,7 @@ function mechanic(name) {
 test('Superconducting distributes its coefficient and conditions over one Lightning field', () => {
   // A minimal activation checks field scheduling and combo eligibility independently of saved rotations.
   const config = {
-    selectedSkills: [...baseConfig.selectedSkills, 'Superconducting Signet'],
+    selectedSkillIds: [...baseConfig.selectedSkillIds, 63113],
     target: { conditions: {} }
   };
   const result = simulate(
@@ -116,7 +116,7 @@ for (const [signet, skillId, modifier, baseBonus, jDriveBonus] of [
             catalog: engineerCatalog,
             config: {
               specialization: 'Mechanist',
-              selectedSkills: selected ? [signet] : [],
+              selectedSkillIds: selected ? [engineerCatalog.skillsByName.get(signet).id] : [],
               selectedTraitIds: traits
             },
             timeline,
@@ -134,7 +134,7 @@ test('Overclock reduces other signet recharges only while its passive is availab
   // Its own cooldown stays at 90 seconds; J-Drive retains the stronger passive during recharge.
   const context = {
     catalog: engineerCatalog,
-    config: { selectedSkills: ['Overclock Signet'] },
+    config: { selectedSkillIds: [63095] },
     skill: mechanic('Superconducting Signet'),
     cooldowns: new Map(),
     time: 0
@@ -154,17 +154,17 @@ test('mech Quickness uses its own boon audience and retains copied applications'
   const context = {
     catalog: engineerCatalog,
     history: [],
-    config: { boons: { quickness: true }, selectedSkills: ['Force Signet'] },
+    config: { boons: { quickness: true }, selectedSkillIds: [63253] },
     cooldowns: new Map()
   };
   assert.equal(engineerMechHasQuickness(context, 0), false);
-  context.config.selectedSkills = ['Shift Signet'];
+  context.config.selectedSkillIds = [63111];
   assert.equal(engineerMechHasQuickness(context, 0), true);
   context.cooldowns.set(ID.SHIFT_SIGNET, 25);
   assert.equal(engineerMechHasQuickness(context, 1), false);
   context.config.selectedTraitIds = [TRAIT.MECH_CORE_J_DRIVE];
   assert.equal(engineerMechHasQuickness(context, 1), true);
-  context.config = { boons: {}, selectedSkills: [] };
+  context.config = { boons: {}, selectedSkillIds: [] };
   context.history.push({
     source: 'fixture',
     sourceId: 'boon',
@@ -184,7 +184,7 @@ test('mech Quickness uses its own boon audience and retains copied applications'
     'Mechanist',
     ['Jade Mortar', { type: 'wait', durationMs: 1800 }, 'Shift Signet', { type: 'wait', durationMs: 4000 }],
     {
-      selectedSkills: ['Shift Signet'],
+      selectedSkillIds: [63111],
       selectedTraitIds: [TRAIT.MECH_CORE_JADE_DYNAMO],
       target: { conditions: {} }
     }
@@ -339,7 +339,7 @@ test('Mechanical Genius gives the jade mech independent inherited attributes', (
         catalog: engineerCatalog,
         config: {
           specialization: 'Mechanist',
-          selectedSkills: ['Shift Signet'],
+          selectedSkillIds: [63111],
           boons: { might: 25 }
         },
         event: {
@@ -662,7 +662,7 @@ describe('Mechanist grandmaster active effects', () => {
     assert.equal(mortar.resolvedWeaponStrength, 2878);
 
     const overclock = simulate('Mechanist', ['Overclock Signet', { type: 'wait', durationMs: 4000 }], {
-      selectedSkills: ['Rectifier Signet', 'Grenade Kit', 'Shift Signet', 'Force Signet', 'Overclock Signet'],
+      selectedSkillIds: [63049, 5805, 63111, 63253, 63095],
       selectedTraitIds: [
         TRAIT.MECH_ARMS_JADE_CANNONS,
         TRAIT.MECH_FRAME_VARIABLE_MASS_DISTRIBUTOR,
@@ -695,7 +695,7 @@ describe('Mechanist grandmaster active effects', () => {
       busterBurns.every((event) => event.summonOwner === 'engineer.mech' && event.independentConditionOwner === true)
     );
     const stochasticBuster = simulate('Mechanist', ['Overclock Signet', { type: 'wait', durationMs: 4000 }], {
-      selectedSkills: ['Rectifier Signet', 'Grenade Kit', 'Shift Signet', 'Force Signet', 'Overclock Signet'],
+      selectedSkillIds: [63049, 5805, 63111, 63253, 63095],
       selectedTraitIds: [
         TRAIT.MECH_ARMS_JADE_CANNONS,
         TRAIT.MECH_FRAME_VARIABLE_MASS_DISTRIBUTOR,
@@ -713,7 +713,7 @@ describe('Mechanist grandmaster active effects', () => {
 
   test('J-Drive adds mech attacks and improves signets', () => {
     const jDriveConfig = {
-      selectedSkills: ['Rectifier Signet', 'Grenade Kit', 'Force Signet', 'Superconducting Signet', 'Overclock Signet'],
+      selectedSkillIds: [63049, 5805, 63253, 63113, 63095],
       selectedTraitIds: [
         TRAIT.MECH_ARMS_SINGLE_EDGE_CUTTERS,
         TRAIT.MECH_FRAME_CONDUCTIVE_ALLOYS,
@@ -750,7 +750,7 @@ describe('Mechanist grandmaster active effects', () => {
       target: { conditions: {} }
     });
     const standardSignetConfig = {
-      selectedSkills: ['Rectifier Signet', 'Grenade Kit', 'Force Signet', 'Shift Signet', 'Overclock Signet'],
+      selectedSkillIds: [63049, 5805, 63253, 63111, 63095],
       selectedTraitIds: [
         TRAIT.MECH_ARMS_SINGLE_EDGE_CUTTERS,
         TRAIT.MECH_FRAME_CONDUCTIVE_ALLOYS,
@@ -773,7 +773,7 @@ describe('Mechanist grandmaster active effects', () => {
         TRAIT.MECH_FRAME_VARIABLE_MASS_DISTRIBUTOR,
         TRAIT.MECH_CORE_BARRIER_ENGINE
       ],
-      selectedSkills: standardSignetConfig.selectedSkills.filter((skill) => skill !== 'Shift Signet'),
+      selectedSkillIds: standardSignetConfig.selectedSkillIds.filter((skill) => skill !== 63111),
       boons: { might: 25 }
     });
     const mechWithShift = simulate('Mechanist', ['Core Reactor Shot', { type: 'wait', durationMs: 1000 }], {

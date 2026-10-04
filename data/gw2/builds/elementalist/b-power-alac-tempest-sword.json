@@ -1,5 +1,5 @@
 {
-  "schemaVersion": 4,
+  "schemaVersion": 5,
   "profession": "elementalist",
   "gear": {
     "Helm": "Diviner's",
@@ -57,12 +57,12 @@
       "traits": "3-1-2"
     }
   ],
-  "selectedSkills": {
-    "Heal": "Signet of Restoration",
-    "Utility1": "Feel the Burn!",
-    "Utility2": "Glyph of Storms (Air)",
-    "Utility3": "Signet of Fire",
-    "Elite": "Glyph of Elementals"
+  "selectedSkillIds": {
+    "Heal": 5503,
+    "Utility1": 30662,
+    "Utility2": 5737,
+    "Utility3": 5542,
+    "Elite": 25488
   },
   "assumptions": {
     "simulationMode": "deterministic",

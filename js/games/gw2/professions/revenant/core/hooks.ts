@@ -240,7 +240,9 @@ export const revenantCoreHooks: Partial<RuntimeProfession<RevenantRuntimeState, 
       state.activeLoadoutId = skill.legendId;
     }
 
-    const upkeep = runtime.helpers.skills.find((entry) => entry.name === inputs.upkeep && entry.upkeepCost != null);
+    const upkeep = runtime.helpers.skills.find(
+      (entry) => entry.id === inputs.upkeepSkillId && entry.upkeepCost != null
+    );
     if (upkeep)
       state.activeUpkeeps = [{ skillId: upkeep.id, upkeepCost: Number(upkeep.upkeepCost), empoweredNextPulse: false }];
   },

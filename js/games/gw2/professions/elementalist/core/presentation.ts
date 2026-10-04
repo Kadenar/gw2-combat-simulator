@@ -1,3 +1,5 @@
+import { CONJURE_PICKUP_WEAPONS } from '#gw2/professions/elementalist/core/constants.js';
+import { ELEMENTALIST_LOADOUT_SKILL_IDS } from '#gw2/professions/elementalist/data/skill-identities.js';
 import { readProfessionCoreState } from '#gw2/platform/engine/profession/state.js';
 import type {
   ProfessionAttributePreviewContext,
@@ -22,7 +24,7 @@ import { createPreviewControls } from '#gw2/professions/shared/attribute-preview
  * timeline's attunement lane. Read-only over simulation state - the one
  * exception is `updatePaletteControl`, which edits the build's starting stock.
  */
-import { selectedSkillNameSet } from '#gw2/platform/builds/selected-skills.js';
+import { selectedSkillIdSet } from '#gw2/platform/builds/selected-skills.js';
 import { PERMANENT_COMBO_FIELD_ASSUMPTION_CONTROLS } from '#gw2/platform/combos/permanent-field-assumption.js';
 import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
 import type { CanonicalCatalog, Skill } from '#gw2/platform/engine/skills/types.js';
@@ -167,18 +169,18 @@ function paletteWeaponSkills(
   // expose only the stage represented by the live etching state.
   const projectedSkills = skills.filter((skill) => {
     const chain = ETCHING_CHAINS.find((candidate) =>
-      [candidate.etching, candidate.lesser, candidate.full].some((name) => name === skill.name)
+      [candidate.etchingId, candidate.lesserId, candidate.fullId].some((id) => id === skill.id)
     );
     if (!chain) return true;
     const progress = state.etchings?.[chain.etching];
-    const displayedName = !progress ? chain.etching : progress.stage === 'full' ? chain.full : chain.lesser;
-    return skill.name === displayedName;
+    const displayedId = !progress ? chain.etchingId : progress.stage === 'full' ? chain.fullId : chain.lesserId;
+    return skill.id === displayedId;
   });
   if (!elementalistPistolEquipped(context)) return projectedSkills;
   const explosion =
-    projectedSkills.find((skill) => skill.name === 'Elemental Explosion') ||
-    catalog.skillsByName.get('Elemental Explosion');
-  const ordinarySkills = projectedSkills.filter((skill) => skill.name !== 'Elemental Explosion');
+    projectedSkills.find((skill) => skill.id === ID.ELEMENTAL_EXPLOSION) ||
+    catalog.skillsById.get(ID.ELEMENTAL_EXPLOSION);
+  const ordinarySkills = projectedSkills.filter((skill) => skill.id !== ID.ELEMENTAL_EXPLOSION);
   if (!explosion || !ELEMENTALIST_ATTUNEMENTS.every((element) => displayedPistolBullets(context)[element])) {
     return ordinarySkills;
   }
@@ -242,11 +244,11 @@ function elementalistPaletteGroups(
     }
   ];
   const conjureEquipped = state.conjureEquipped || '';
-  const selectedSkills = selectedSkillNameSet(context.build?.selectedSkills || context.config?.selectedSkills);
+  const selectedSkillIds = selectedSkillIdSet(context.build?.selectedSkillIds || context.config?.selectedSkillIds);
   // Selected conjures keep a stable bar below utilities even when their bundle is not currently wielded.
   const conjures = new Set(
     Object.entries(CONJURE_SKILLS)
-      .filter(([id]) => selectedSkills.has(catalog.skillsById.get(Number(id))?.name || ''))
+      .filter(([id]) => selectedSkillIds.has(Number(id)))
       .map(([, weapon]) => weapon)
   );
   if (conjureEquipped) conjures.add(conjureEquipped);
@@ -275,16 +277,16 @@ function paletteActionSkills(
 ): Skill[] {
   const state = elementalistUiState(context);
   const now = context.time || 0;
-  const actionNames = [
-    ...(state.conjureEquipped ? ['__drop_bundle'] : []),
-    ...Object.entries(state.conjurePickups || {})
-      .filter(([, expiresAt]) => Number.isFinite(expiresAt) && expiresAt > now)
-      .map(([weapon]) => `__pickup_${weapon}`)
+  const actionIds = [
+    ...(state.conjureEquipped ? [ID.DROP_BUNDLE] : []),
+    ...Object.entries(CONJURE_PICKUP_WEAPONS)
+      .filter(([, weapon]) => (state.conjurePickups?.[weapon] ?? 0) > now)
+      .map(([id]) => Number(id))
   ];
   return [
     ...skills,
-    ...actionNames.flatMap((name) => {
-      const skill = catalog.skillsByName.get(name);
+    ...actionIds.flatMap((id) => {
+      const skill = catalog.skillsById.get(id);
       return skill ? [skill] : [];
     })
   ];
@@ -468,11 +470,13 @@ export function bindElementalistCoreUi(catalog: Readonly<CanonicalCatalog<Elemen
           field: 'hammer air orb',
           description: '+15% Critical Chance'
         });
-      const conjures = [
-        ['Conjure Fiery Greatsword', 'Fiery Greatsword'],
-        ['Conjure Lightning Hammer', 'Lightning Hammer'],
-        ['Conjure Frost Bow', 'Frost Bow']
-      ]
+      const conjures = (
+        [
+          [ID.CONJURE_FIERY_GREATSWORD, 'Fiery Greatsword'],
+          [ID.CONJURE_LIGHTNING_HAMMER, 'Lightning Hammer'],
+          [ID.CONJURE_FROST_BOW, 'Frost Bow']
+        ] as const
+      )
         .filter(([skill]) => preview.skills.has(skill))
         .map(([, weapon]) => weapon);
       if (conjures.length)
@@ -484,7 +488,7 @@ export function bindElementalistCoreUi(catalog: Readonly<CanonicalCatalog<Elemen
           options: ['None', ...conjures],
           description: 'Attributes while wielded'
         });
-      preview.passives('Signet of Fire');
+      preview.passives(ID.SIGNET_OF_FIRE);
       return preview.controls;
     },
     /** Apply only the damage panel's chosen starting element to the isolated runtime. */
@@ -509,9 +513,17 @@ export function bindElementalistCoreUi(catalog: Readonly<CanonicalCatalog<Elemen
       const activeCatalog = context.catalog || catalog;
       return skills.map((skill) => {
         if (!skill.attunement) return skill;
-        const suffix = ` (${skill.attunement})`;
-        const base = skill.name.endsWith(suffix) ? skill.name.slice(0, -suffix.length) : skill.name;
-        return activeCatalog.skillsByName.get(`${base} (${primary})`) || skill;
+        // Variant identity comes from the authored loadout group, independent of localized names.
+        const loadoutId = ELEMENTALIST_LOADOUT_SKILL_IDS.get(Number(skill.id));
+        return (
+          (loadoutId == null
+            ? undefined
+            : activeCatalog.skills.find(
+                (candidate) =>
+                  candidate.attunement === primary &&
+                  ELEMENTALIST_LOADOUT_SKILL_IDS.get(Number(candidate.id)) === loadoutId
+              )) ?? skill
+        );
       });
     },
 

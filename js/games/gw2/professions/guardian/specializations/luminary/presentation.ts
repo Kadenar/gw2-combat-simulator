@@ -13,7 +13,7 @@ import { timedBuffAt } from '#gw2/platform/results/query.js';
 import {
   formatSecondsRemaining,
   guardianSnapshotAt,
-  guardianUiSkillIdsByName,
+  guardianUiSkillIds,
   guardianUiSkillsByMode
 } from '#gw2/professions/guardian/core/presentation.js';
 import { GUARDIAN_SKILL_IDS } from '#gw2/professions/guardian/data/ids.js';
@@ -52,7 +52,12 @@ function luminaryEventLogRow(
   };
 }
 
-const VIRTUE_NAMES = Object.freeze(['Radiant Justice', 'Radiant Resolve', 'Radiant Courage', 'Enter Radiant Forge']);
+const VIRTUE_IDS = Object.freeze([
+  GUARDIAN_SKILL_IDS.RADIANT_JUSTICE,
+  GUARDIAN_SKILL_IDS.RADIANT_RESOLVE,
+  GUARDIAN_SKILL_IDS.RADIANT_COURAGE,
+  GUARDIAN_SKILL_IDS.ENTER_RADIANT_FORGE
+]);
 const RADIANT_ARMAMENT_NAMES: Readonly<Record<string, string>> = Object.freeze({
   hammer: 'Hammer',
   staff: 'Staff',
@@ -210,7 +215,7 @@ export function bindLuminaryUi(catalog: Readonly<CanonicalCatalog<GuardianSkill>
       {
         id: 'profession',
         label: 'F',
-        skillIds: guardianUiSkillIdsByName(catalog, VIRTUE_NAMES, context),
+        skillIds: guardianUiSkillIds(catalog, VIRTUE_IDS, context),
         color: '#2f7eb8',
         resourceAnchor: true,
         stackId: 'luminary-profession'

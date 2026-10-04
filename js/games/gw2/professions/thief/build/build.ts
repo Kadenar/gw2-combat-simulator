@@ -1,3 +1,4 @@
+import { THIEF_SKILL_IDS as SKILL } from '#gw2/professions/thief/data/ids.js';
 import { GEAR_SLOTS } from '#gw2/platform/equipment/gear/slots.js';
 import { MAXIMUM_SPINNING_AXES } from '#gw2/professions/thief/core/state.js';
 import { DEFAULT_WEAPON_SIGILS, normalizeWeaponSigils } from '#gw2/platform/equipment/sigils/loadout.js';
@@ -20,7 +21,7 @@ import { createCommonBuildDefaults } from '#gw2/professions/shared/build-default
  * and rejects weapon sets that cannot supply a legal dual-wield slot-3 skill.
  */
 
-const THIEF_BUILD_SCHEMA_VERSION = 3;
+const THIEF_BUILD_SCHEMA_VERSION = 4;
 const THIEF_PROFESSION_ID = 'thief';
 
 const THIEF_DODGES = Object.freeze(['Dodge', 'Lotus Training', 'Bounding Dodger', 'Unhindered Combatant'] as const);
@@ -50,12 +51,12 @@ export function createThiefBuildDefaults(): ThiefCanonicalBuild {
       { name: 'Critical Strikes', traits: '3-2-1' },
       { name: 'Deadeye', traits: '1-3-1' }
     ],
-    selectedSkills: {
-      Heal: 'Hide in Shadows',
-      Utility1: "Assassin's Signet",
-      Utility2: 'Shadow Flare',
-      Utility3: 'Shadow Gust',
-      Elite: 'Thieves Guild'
+    selectedSkillIds: {
+      Heal: SKILL.HIDE_IN_SHADOWS,
+      Utility1: SKILL.ASSASSINS_SIGNET,
+      Utility2: SKILL.SHADOW_FLARE,
+      Utility3: SKILL.SHADOW_GUST,
+      Elite: SKILL.THIEVES_GUILD
     },
     selectedDodge: 'Dodge',
     ...createCommonBuildDefaults({

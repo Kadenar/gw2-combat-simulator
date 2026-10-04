@@ -169,3 +169,64 @@ test('isolated damage retains authored hit reactions without starting combat or 
   assert.deepEqual(result.warnings, []);
   assert.deepEqual(calls, ['combat', 'authored', 'profession']);
 });
+
+// Delayed work runs once in the existing scheduler; preview calculation never asks for chart observations.
+test('finite occurrence completes delayed work once without collecting effect histories', () => {
+  let starts = 0;
+  let initialized = 0;
+  const profession = fixture({
+    hooks: {
+      initialize(runtime) {
+        initialized++;
+        assert.equal(runtime.effectRecorder, null);
+      },
+      onCastStart() {
+        starts++;
+      },
+      onCastCommit(runtime) {
+        runtime.schedule('test.delayed', runtime.time + 2, null);
+      },
+      tasks: {
+        'test.delayed'(runtime) {
+          runtime.effects.emit({
+            kind: 'packet',
+            event: {
+              type: 'condition',
+              at: runtime.time,
+              source: 'execution-test',
+              sourceId: skillId,
+              actorType: 'player',
+              skillId,
+              skillName: 'Measured',
+              condition: 'Bleeding',
+              stacks: 1,
+              duration: 4
+            }
+          });
+        }
+      },
+      observeEffects() {
+        throw new Error('Preview must not observe chart effects.');
+      },
+      buffPolicies() {
+        throw new Error('Preview must not collect chart policies.');
+      }
+    }
+  });
+  const result = executeDamageOccurrence(profession, config, occurrence);
+  const application = result.events.find((event) => event.condition === 'Bleeding' && event.effectiveDuration != null);
+  assert.equal(initialized, 1);
+  assert.equal(starts, 1);
+  assert.equal(application.effectiveDuration, 4);
+  assert.ok(application.damage > 0);
+});
+
+test('an occurrence beyond the finite guard fails instead of returning a partial calculation', () => {
+  const profession = fixture({
+    skill: { effects: [{ type: 'condition', condition: 'Bleeding', stacks: 1, duration: 121 }] }
+  });
+  assert.throws(
+    () => executeDamageOccurrence(profession, config, occurrence),
+    (error) => error.status === 'unsupported' && error.message.includes('finite calculation window')
+  );
+});

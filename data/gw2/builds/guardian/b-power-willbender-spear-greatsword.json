@@ -1,5 +1,5 @@
 {
-  "schemaVersion": 3,
+  "schemaVersion": 4,
   "profession": "guardian",
   "gear": {
     "Helm": "Berserker's",
@@ -38,12 +38,12 @@
     { "name": "Zeal", "traits": "2-2-3" },
     { "name": "Willbender", "traits": "2-1-2" }
   ],
-  "selectedSkills": {
-    "Heal": "Litany of Wrath",
-    "Utility1": "Flash Combo",
-    "Utility2": "Sword of Justice",
-    "Utility3": "Bane Signet",
-    "Elite": "Heaven's Palm"
+  "selectedSkillIds": {
+    "Heal": 21664,
+    "Utility1": 62608,
+    "Utility2": 9168,
+    "Utility3": 9093,
+    "Elite": 62561
   },
   "assumptions": {
     "simulationMode": "deterministic",

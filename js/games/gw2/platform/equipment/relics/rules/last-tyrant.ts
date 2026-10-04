@@ -14,16 +14,7 @@ const LAST_TYRANT_INTERNAL_COOLDOWN = 12;
 const LAST_TYRANT_EXPLOSION_COEFFICIENT = 3;
 
 export const lastTyrant = defineRelic({
-  damagePayload(ctx) {
-    emitDamagePayload(ctx, ctx.relic!.state, {
-      type: 'proc',
-      at: 0,
-      source: 'Relic',
-      sourceId: 'damage-input',
-      actorType: 'effect',
-      skillName: 'Damage preview'
-    });
-  },
+  damagePayload: emitDamagePayload,
   createState: () => ({ readyAt: 0, stackReadyAt: 0, stacks: 0 }),
   condition(ctx, state, application, _helpers) {
     // The explosion's own burning cannot feed Tyrant's Fury.

@@ -1,4 +1,4 @@
-import { selectedSkillNameSet } from '#gw2/platform/builds/selected-skills.js';
+import { selectedSkillIdSet } from '#gw2/platform/builds/selected-skills.js';
 import { MODIFIER_TARGET, type Gw2ModifierContext, type Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
 import type { RechargeRule } from '#gw2/platform/profession-definition/trigger-rules.js';
 import { MECHANIST_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/engineer/specializations/mechanist/profiles.js';
@@ -112,14 +112,14 @@ export const MECHANIST_SIGNET_SKILL_MECHANICS: Readonly<Record<string, Partial<S
 });
 
 /** Checks the normalized active loadout for a named Mechanist signet. */
-export function selectedSignet(context: Gw2ModifierContext, name: string): boolean {
-  return selectedSkillNameSet(context.config?.selectedSkills).has(name);
+export function selectedSignet(context: Gw2ModifierContext, id: number): boolean {
+  return selectedSkillIdSet(context.config?.selectedSkillIds).has(id);
 }
 
 /** J-Drive keeps Shift's boon copying available while the signet recharges. */
 export function shiftSignetPassive(context: EngineerRuntime, at: number): boolean {
   return (
-    selectedSkillNameSet(context.config.selectedSkills).has('Shift Signet') &&
+    selectedSkillIdSet(context.config.selectedSkillIds).has(ID.SHIFT_SIGNET) &&
     signetPassiveAvailable(context.config, (context.cooldowns.get(ID.SHIFT_SIGNET) || 0) <= at)
   );
 }
@@ -132,7 +132,7 @@ export const signetModifierRules: readonly Gw2ModifierRule[] = [
     operation: 'damage-additive',
     amount: forceSignetDamage,
     when: (context) =>
-      selectedSignet(context, 'Force Signet') &&
+      selectedSignet(context, ID.FORCE_SIGNET) &&
       signetPassiveAvailable(context, !context.timeline?.skillOnCooldownAt(ID.FORCE_SIGNET, context.time))
   },
   {
@@ -142,7 +142,7 @@ export const signetModifierRules: readonly Gw2ModifierRule[] = [
     // Ordinary signets lose their passive on recharge; J-Drive retains and improves it.
     amount: superconductingSignetDamage,
     when: (context) =>
-      selectedSignet(context, 'Superconducting Signet') &&
+      selectedSignet(context, ID.SUPERCONDUCTING_SIGNET) &&
       signetPassiveAvailable(context, !context.timeline?.skillOnCooldownAt(ID.SUPERCONDUCTING_SIGNET, context.time))
   }
 ];
@@ -151,7 +151,7 @@ export function overclockSignetApplies(context: EngineerRuntime, skill: Engineer
   return (
     skill.id !== ID.OVERCLOCK_SIGNET &&
     Boolean(skill.categories?.some((category) => category.toLowerCase() === 'signet')) &&
-    selectedSkillNameSet(context.config.selectedSkills).has('Overclock Signet')
+    selectedSkillIdSet(context.config.selectedSkillIds).has(ID.OVERCLOCK_SIGNET)
   );
 }
 

@@ -162,9 +162,7 @@ test('a Fulgor recast replaces the pending secondary action pulses', () => {
     rotation: ['Fulgor', 1600, 'Elemental Celerity', 'Fulgor', 6000],
     startAttunement: 'Air',
     weapons: ['Spear', ''],
-    selectedSkills: {
-      Elite: 'Elemental Celerity'
-    },
+    selectedSkillIds: { Elite: 62725 },
     targetHealth: 0
   });
   const secondary = result.events.filter(
@@ -183,13 +181,7 @@ test('Tempest party boons affect the summoned elemental', () => {
       lines: [['Fire'], ['Air'], ['Tempest', '1-1-1']],
       rotation: ['Glyph of Elementals', 'Feel the Burn!', 1000, 'Flame Barrage', 3000],
       startAttunement: 'Fire',
-      selectedSkills: {
-        Heal: 'Glyph of Elemental Harmony',
-        Utility1: 'Feel the Burn!',
-        Utility2: 'Signet of Fire',
-        Utility3: 'Arcane Wave',
-        Elite: 'Glyph of Elementals'
-      },
+      selectedSkillIds: { Heal: 34743, Utility1: 30662, Utility2: 5542, Utility3: 5638, Elite: 25488 },
       assumptions: {
         ...elementalistProfession.createBuildDefaults().assumptions,
         might: 0,
@@ -294,13 +286,7 @@ test("Fox's Fury and catalyst spheres grant their boons to the party", () => {
     lines: [['Fire'], ['Air'], ['Evoker']],
     rotation: ["Fox's Fury"],
     evokerElement: 'Fire',
-    selectedSkills: {
-      Heal: 'Glyph of Elemental Harmony',
-      Utility1: "Fox's Fury",
-      Utility2: 'Signet of Fire',
-      Utility3: 'Arcane Wave',
-      Elite: 'Glyph of Elementals'
-    }
+    selectedSkillIds: { Heal: 34743, Utility1: 76711, Utility2: 5542, Utility3: 5638, Elite: 25488 }
   });
   const foxBoons = evoker.events.filter(
     (event) => event.type === 'buff' && event.skillName === "Fox's Fury" && ['might', 'fury'].includes(event.kind)

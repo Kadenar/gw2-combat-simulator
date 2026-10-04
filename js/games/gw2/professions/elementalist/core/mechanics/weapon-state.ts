@@ -1,3 +1,4 @@
+import { ELEMENTALIST_LOADOUT_SKILL_IDS } from '#gw2/professions/elementalist/data/skill-identities.js';
 import type { RuntimeCast } from '#gw2/platform/simulation/runtime-state.js';
 /**
  * Weapon- and attunement-facing cast state for Core Elementalist.
@@ -7,7 +8,7 @@ import type { RuntimeCast } from '#gw2/platform/simulation/runtime-state.js';
  * window.
  */
 import type { AvailabilityResult } from '#gw2/platform/execution/types.js';
-import type { Skill } from '#gw2/platform/engine/skills/types.js';
+import type { Skill, SkillId } from '#gw2/platform/engine/skills/types.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import {
   resetAutoattackChains,
@@ -27,21 +28,13 @@ function ready(): AvailabilityResult {
   return { ready: true };
 }
 
-// Strips the trailing element suffix shared by the four faces of one
-// attunement-variant slot skill.
-function attunementVariantBaseName(name: string): string {
-  return name.replace(/\s*\((?:Fire|Water|Air|Earth)\)$/, '');
+/** Authored loadout IDs link attunement variants without conflating unrelated same-name skills. */
+function loadoutId(id: SkillId): SkillId {
+  return typeof id === 'number' ? (ELEMENTALIST_LOADOUT_SKILL_IDS.get(id) ?? id) : id;
 }
 
-/** Reports whether the equipped slot choices cover this skill, treating attunement variants as one slot. */
-export function isSelectedSlotSkill(skill: Skill, selected: ReadonlySet<string>): boolean {
-  if (selected.has(skill.name)) return true;
-  if (!skill.attunement) return false;
-  const baseName = attunementVariantBaseName(skill.name);
-  return (
-    baseName !== skill.name &&
-    [...selected].some((selectedName) => attunementVariantBaseName(selectedName) === baseName)
-  );
+export function isSelectedSlotSkill(skill: Skill, selected: ReadonlySet<SkillId>): boolean {
+  return [...selected].some((id) => loadoutId(id) === loadoutId(skill.id));
 }
 
 // Attunement variants are alternate faces of one utility slot, so copy both
@@ -51,13 +44,12 @@ export function shareAttunementVariantRecharge(context: ElementalistRuntime, ski
     return;
   }
 
-  const baseName = attunementVariantBaseName(skill.name);
-  if (baseName === skill.name) return;
+  const identity = loadoutId(skill.id);
   const readyAt = context.cooldowns.get(skill.id);
   const ammo = context.ammo.get(skill.id);
   if (readyAt == null && !ammo) return;
   for (const candidate of context.helpers.skills) {
-    if (candidate.type === skill.type && attunementVariantBaseName(candidate.name) === baseName) {
+    if (candidate.type === skill.type && loadoutId(candidate.id) === identity) {
       if (readyAt != null) context.cooldownController.copy(skill.id, candidate.id);
       if (ammo) context.ammo.set(candidate.id, ammo);
     }

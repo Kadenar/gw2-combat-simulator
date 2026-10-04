@@ -31,7 +31,7 @@ export const ENGINEER_WEAPONS_SHIELD_SKILL_MECHANICS: Readonly<Record<number, Pa
     sideEffects: [{ on: 'castCommit', do: { type: 'flipConsume', skillId: ID.THROW_SHIELD } }],
     // Availability requires the parent skill's exposed window.
 
-    flipParentName: 'Static Shield',
+    requiresArmedFlip: true,
     castTimeMs: 520,
     cooldown: 0,
     effects: [
@@ -54,7 +54,7 @@ export const ENGINEER_WEAPONS_SHIELD_SKILL_MECHANICS: Readonly<Record<number, Pa
     sideEffects: [{ on: 'castCommit', do: { type: 'flipConsume', skillId: ID.MAGNETIC_INVERSION } }],
     // Availability requires the parent skill's exposed window.
 
-    flipParentName: 'Magnetic Shield',
+    requiresArmedFlip: true,
     castTimeMs: 0,
     cooldown: 0,
     effects: [

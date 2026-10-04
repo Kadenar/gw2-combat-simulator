@@ -1,5 +1,5 @@
 {
-  "schemaVersion": 3,
+  "schemaVersion": 4,
   "profession": "engineer",
   "gear": {
     "Helm": "Berserker's",
@@ -56,12 +56,12 @@
       "traits": "3-3-1"
     }
   ],
-  "selectedSkills": {
-    "Heal": "Rectifier Signet",
-    "Utility1": "Grenade Kit",
-    "Utility2": "Shift Signet",
-    "Utility3": "Force Signet",
-    "Elite": "Overclock Signet"
+  "selectedSkillIds": {
+    "Heal": 63049,
+    "Utility1": 5805,
+    "Utility2": 63111,
+    "Utility3": 63253,
+    "Elite": 63095
   },
   "selectedMorphSkillIds": [77103, 77203, 76954],
   "assumptions": {

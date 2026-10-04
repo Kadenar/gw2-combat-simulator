@@ -62,7 +62,7 @@ function isCarriedAutoattackSkill(
   const chains: ProfessionWeaponPaletteRenderContext['autoattackChains'] =
     state.autoattackChains || context.autoattackChains || {};
   const expected = chains[String(root)] ?? root;
-  return Number(skill.id) === Number(expected) || skill.name === expected;
+  return skill.id === expected;
 }
 
 // Project Unravel and attunement casts into compact primary/secondary labels

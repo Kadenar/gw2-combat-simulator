@@ -35,19 +35,17 @@ export function buildMesmerPacket(
   event: MesmerEventExtra & { readonly type: string; readonly at: number; readonly instrument?: string }
 ): SimulationEventBase {
   const source = event.source || 'mesmer';
-  const sourceId = event.sourceId ?? event.skillId ?? event.skillName ?? event.name ?? event.type;
+  // Non-skill events use their semantic event type, independent of translated labels.
+  const sourceId = event.sourceId ?? event.skillId ?? event.type;
   const canonical = { ...event, source, sourceId, ...ownership(event.actorType, event.summonKind) };
   return canonical;
 }
 
+/** Catalog skills and effect sources retain explicit identities; names only label their packets. */
 function skillForCondition(context: MesmerRuntime, skillName: string, extra: MesmerEventExtra): Skill {
-  return (
-    context.helpers.skillsById.get(extra.skillId ?? '') ||
-    context.helpers.skillsByName.get(skillName) || {
-      id: extra.skillId ?? extra.sourceId ?? `mesmer.effect:${skillName}`,
-      name: skillName
-    }
-  );
+  const id = extra.skillId ?? extra.sourceId;
+  if (id == null) throw new TypeError('Mesmer condition packets require a skillId or sourceId.');
+  return context.helpers.skillsById.get(id) ?? { id, name: skillName };
 }
 
 /** Plan the complete condition sequence independently of admission and combat resolution. */

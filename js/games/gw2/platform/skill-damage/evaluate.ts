@@ -165,41 +165,51 @@ function strikeBreakdown(strikes: readonly StrikeHit[]): SkillDamageStrikeBreakd
     averagedCriticalMultiplier: calculation.criticalMultiplier,
     outgoingMultiplier: calculation.outgoingMultiplier,
     contributors: calculation.outgoingContributors ?? [],
-    variesAcrossHits: calculated.some(
-      (hit) => Math.abs(hit.damageCalculation!.outgoingMultiplier - calculation.outgoingMultiplier) > 1e-9
-    )
+    // A single formula explains the total only when every hit uses the same inputs and contributor factors.
+    variesAcrossHits:
+      calculated.length !== strikes.length ||
+      calculated.some((hit) => {
+        const facts = hit.damageCalculation!;
+        return (
+          facts.power !== calculation.power ||
+          hit.resolvedWeaponStrength !== first.resolvedWeaponStrength ||
+          hit.criticalChance !== first.criticalChance ||
+          hit.criticalDamage !== first.criticalDamage ||
+          facts.criticalMultiplier !== calculation.criticalMultiplier ||
+          facts.outgoingMultiplier !== calculation.outgoingMultiplier ||
+          JSON.stringify(facts.outgoingContributors) !== JSON.stringify(calculation.outgoingContributors)
+        );
+      })
   };
 }
 
-/** Groups applications by condition; durations and factors come from the condition's first application. */
+/** Combine only applications with matching duration and sampled damage facts, so each row explains its own stacks. */
 function conditionRows(applications: readonly ConditionApplication[]): SkillDamageConditionRow[] {
-  const rows = new Map<string, { first: ConditionApplication; stacks: number; damage: number }>();
+  const rows = new Map<string, SkillDamageConditionRow>();
   for (const application of applications) {
     // Only conditions with a damage formula belong in a damage table; control conditions deal nothing.
     if (!Object.hasOwn(CONDITION_FORMULAS, application.condition) && !(application.damage > 0)) continue;
-    const row = rows.get(application.condition);
-    if (row) {
-      row.stacks += application.stacks;
-      row.damage += application.damage;
-    } else
-      rows.set(application.condition, { first: application, stacks: application.stacks, damage: application.damage });
-  }
-
-  return [...rows.entries()].map(([condition, { first, stacks, damage }]) => {
-    const calculation = first.conditionCalculation;
-    return {
-      condition,
-      stacks,
-      baseDurationSeconds: calculation?.baseDuration ?? first.duration ?? 0,
-      effectiveDurationSeconds: first.effectiveDuration,
+    const calculation = application.conditionCalculation;
+    const facts = {
+      condition: application.condition,
+      baseDurationSeconds: calculation?.baseDuration ?? application.duration ?? 0,
+      effectiveDurationSeconds: application.effectiveDuration,
       durationMultiplier: calculation?.durationMultiplier ?? 1,
       baseDurationMultiplier: calculation?.baseDurationMultiplier ?? 1,
       durationContributors: calculation?.durationContributors ?? [],
       conditionDamage: calculation?.conditionDamage ?? null,
       rate: calculation?.rate ?? null,
       multiplier: calculation?.multiplier ?? null,
-      damageContributors: calculation?.damageContributors ?? [],
-      damage
+      damageContributors: calculation?.damageContributors ?? []
     };
-  });
+    const key = JSON.stringify(facts);
+    const previous = rows.get(key);
+    rows.set(key, {
+      ...facts,
+      stacks: (previous?.stacks ?? 0) + application.stacks,
+      damage: (previous?.damage ?? 0) + application.damage
+    });
+  }
+
+  return [...rows.values()];
 }

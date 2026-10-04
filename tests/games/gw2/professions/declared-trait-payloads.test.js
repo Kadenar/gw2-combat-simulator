@@ -134,7 +134,7 @@ for (const [name, profession, specialization, trait, skill, effect, configExtra]
     ENGINEER.SPEED_OF_SYNERGY,
     ENGINEER_SKILL.BANDAGE_SELF,
     'Med Kit toolbelt superspeed',
-    { selectedSkills: ['Med Kit'] }
+    { selectedSkillIds: [5802] }
   ]
 ])
   test(`${name} completion status uses its patched profile and respects removal`, () => {

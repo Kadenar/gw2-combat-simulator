@@ -1,3 +1,4 @@
+import type { SkillId } from '#gw2/platform/engine/skills/types.js';
 import type { ProfessionUiCallbackContext, ProfessionUiContract } from '#gw2/platform/profession-presentation/types.js';
 import type { Skill } from '#gw2/platform/engine/skills/types.js';
 import type { Gw2Build, Gw2BuildSpecialization, Gw2CanonicalBuild } from '#gw2/platform/builds/types.js';
@@ -12,7 +13,7 @@ import type { ParagonState } from '#gw2/professions/warrior/specializations/para
 // Module state is declared beside each state factory; re-export it for existing family type importers.
 interface WarriorBuild extends Gw2Build {
   specializations?: Gw2BuildSpecialization[];
-  selectedSkills?: Record<string, string>;
+  selectedSkillIds?: Record<string, SkillId | null>;
 }
 
 export interface WarriorCanonicalBuild extends Gw2CanonicalBuild {

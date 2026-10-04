@@ -1,5 +1,5 @@
 {
-  "schemaVersion": 3,
+  "schemaVersion": 4,
   "profession": "guardian",
   "gear": {
     "Helm": "Berserker's",
@@ -57,12 +57,12 @@
       "traits": "3-1-2"
     }
   ],
-  "selectedSkills": {
-    "Heal": "Litany of Wrath",
-    "Utility1": "Effulgent Stance",
-    "Utility2": "Bane Signet",
-    "Utility3": "Piercing Stance",
-    "Elite": "Daring Advance"
+  "selectedSkillIds": {
+    "Heal": 21664,
+    "Utility1": 76813,
+    "Utility2": 9093,
+    "Utility3": 77078,
+    "Elite": 76687
   },
   "assumptions": {
     "might": 25,

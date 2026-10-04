@@ -58,8 +58,6 @@ export function createCombatExecution<T extends object>(
       if (runtime.relic.id === RELIC_IDS.SHACKLES) invokeRelicHook(runtime, 'emitConditionEffects', event);
     },
     weaponSwap: (runtime, event) => applyRuntimeSigils(runtime, 'swap', event),
-    report: (runtime, combatEndTime) => invokeRelicHook(runtime, 'passiveTimeline', combatEndTime),
-    planningAvailability: (runtime, skill) =>
-      profession.availability?.(runtime, skill, { type: 'cast', skillId: skill.id }) ?? { ready: true }
+    report: (runtime, combatEndTime) => invokeRelicHook(runtime, 'passiveTimeline', combatEndTime)
   };
 }

@@ -5,11 +5,11 @@ import { availableSlotSkills } from '#gw2/app/build/panels/skills.js';
 import { elementalistAppAdapter } from '#gw2/professions/elementalist/app/app-definition.js';
 import { elementalistCatalog, elementalistProfession } from '#gw2/professions/elementalist/profession.js';
 
-function weaverApp(selectedSkills = {}) {
+function weaverApp(selectedSkillIds = {}) {
   const defaults = elementalistProfession.createBuildDefaults();
   const build = elementalistAppAdapter.toApplicationBuild({
     ...defaults,
-    selectedSkills: { ...defaults.selectedSkills, ...selectedSkills }
+    selectedSkillIds: { ...defaults.selectedSkillIds, ...selectedSkillIds }
   });
 
   return {
@@ -58,10 +58,10 @@ test('both supported elemental summons are selectable elite skills', () => {
 
 test('existing builds retain any stored attunement variant', () => {
   const app = weaverApp({
-    Utility1: 'Glyph of Elemental Power (Air)',
-    Utility2: 'Primordial Stance (Earth)'
+    Utility1: 34637,
+    Utility2: -1169
   });
 
-  assert.equal(app.build.selectedSkills.Utility1, 'Glyph of Elemental Power (Air)');
-  assert.equal(app.build.selectedSkills.Utility2, 'Primordial Stance (Earth)');
+  assert.equal(app.build.selectedSkillIds.Utility1, 34637);
+  assert.equal(app.build.selectedSkillIds.Utility2, -1169);
 });

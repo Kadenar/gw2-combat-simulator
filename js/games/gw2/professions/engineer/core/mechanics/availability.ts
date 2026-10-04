@@ -1,7 +1,7 @@
 import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
 import { skillFlipReady } from '#gw2/platform/engine/skills/skill-flips.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
-import { selectedSkillNameSet } from '#gw2/platform/builds/selected-skills.js';
+import { selectedSkillIdSet } from '#gw2/platform/builds/selected-skills.js';
 import { ENGINEER_SKILL_IDS as ID } from '#gw2/professions/engineer/data/ids.js';
 
 import { denySkillCast as denyEngineerCast } from '#gw2/platform/engine/skills/availability.js';
@@ -62,7 +62,10 @@ export function engineerCoreCastAvailability(context: EngineerRuntime, skill: En
   }
 
   if (skill.kitTransition === 'equip') {
-    if (!selectedSkillNameSet(context.config.selectedSkills).has(skill.name)) {
+    if (
+      context.config.selectedSkillIds !== undefined &&
+      !selectedSkillIdSet(context.config.selectedSkillIds).has(skill.id)
+    ) {
       return denyEngineerCast(skill, 'engineer.kit-not-equipped', 'the kit is not selected in a slot.');
     }
 
@@ -72,23 +75,24 @@ export function engineerCoreCastAvailability(context: EngineerRuntime, skill: En
   }
 
   if (
-    skill.flipParentName != null &&
+    skill.requiresArmedFlip &&
     // availableFlips is populated by the parent skill's handler; absent = parent hasn't fired yet
     !skillFlipReady(state.availableFlips[skill.id], context.time)
   ) {
     return denyEngineerCast(
       skill,
       'engineer.flip-inactive',
-      `use ${skill.flipParentName || 'its parent skill'} first.`
+      `use ${(skill.flipParentId == null ? undefined : context.helpers.skillsById.get(skill.flipParentId)?.name) || 'its parent skill'} first.`
     );
   }
 
-  // Parent relationships use IDs; the saved loadout still supplies catalog names.
+  // Parent relationships use IDs; the selected loadout preserves canonical identity.
   const parent = skill.toolbeltParentId == null ? undefined : context.helpers.skillsById.get(skill.toolbeltParentId);
   if (
+    context.config.selectedSkillIds !== undefined &&
     skill.toolbeltParentId &&
     skill.countsAsToolbeltSkill !== false &&
-    (!parent || !selectedSkillNameSet(context.config.selectedSkills).has(parent.name))
+    (!parent || !selectedSkillIdSet(context.config.selectedSkillIds).has(parent.id))
   ) {
     return denyEngineerCast(skill, 'engineer.toolbelt-parent', `${parent?.name ?? 'Parent skill'} is not equipped.`);
   }

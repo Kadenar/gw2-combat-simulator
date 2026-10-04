@@ -1,5 +1,5 @@
 {
-  "schemaVersion": 3,
+  "schemaVersion": 4,
   "profession": "engineer",
   "gear": {
     "Helm": "Celestial",
@@ -56,12 +56,12 @@
       "traits": "3-1-2"
     }
   ],
-  "selectedSkills": {
-    "Heal": "Healing Turret",
-    "Utility1": "Grenade Kit",
-    "Utility2": "Flamethrower",
-    "Utility3": "Plasmatic State",
-    "Elite": "Flux State"
+  "selectedSkillIds": {
+    "Heal": 5857,
+    "Utility1": 5805,
+    "Utility2": 5927,
+    "Utility3": 77209,
+    "Elite": 76993
   },
   "selectedMorphSkillIds": [77103, 77104, 76705],
   "assumptions": {

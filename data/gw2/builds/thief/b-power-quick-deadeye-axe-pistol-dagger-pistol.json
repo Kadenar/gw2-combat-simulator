@@ -1,5 +1,5 @@
 {
-  "schemaVersion": 3,
+  "schemaVersion": 4,
   "profession": "thief",
   "gear": {
     "Helm": "Berserker's",
@@ -53,12 +53,12 @@
       "traits": "3-3-3"
     }
   ],
-  "selectedSkills": {
-    "Heal": "Malicious Restoration",
-    "Utility1": "Assassin's Signet",
-    "Utility2": "Mercy",
-    "Utility3": "Shadow Flare",
-    "Elite": "Shadow Meld"
+  "selectedSkillIds": {
+    "Heal": 45088,
+    "Utility1": 13046,
+    "Utility2": 41372,
+    "Utility3": 41158,
+    "Elite": 45508
   },
   "selectedDodge": "Dodge",
   "assumptions": {

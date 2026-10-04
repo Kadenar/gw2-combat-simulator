@@ -23,7 +23,7 @@ import type { ScrapperState } from '#gw2/professions/engineer/specializations/sc
 // Module state is declared beside each state factory; re-export it for existing family type importers.
 export interface EngineerBuild extends Gw2Build {
   specializations?: ProfessionTraitSelection[];
-  selectedSkills?: readonly string[] | Record<string, string>;
+  selectedSkillIds?: Record<string, SkillId | null>;
 }
 
 export interface EngineerCanonicalBuild extends Gw2CanonicalBuild {
@@ -60,7 +60,8 @@ export interface EngineerSkill extends Skill {
   readonly kitId?: SkillId;
   readonly mechanicSlot?: number;
   readonly paletteFlipSkillId?: SkillId | null;
-  readonly flipParentName?: string;
+  /** Armed command faces require their parent's successful activation before casting. */
+  readonly requiresArmedFlip?: boolean;
   readonly simulatorExcluded?: boolean;
   readonly toolbeltParentId?: SkillId | null;
 }

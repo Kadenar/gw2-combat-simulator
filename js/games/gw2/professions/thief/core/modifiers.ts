@@ -11,7 +11,7 @@ import { applyNoQuarterAttributes } from '#gw2/professions/thief/core/traits/cri
 
 import type { Gw2ModifierContext, Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
 import type { Gw2ResolvedStats } from '#gw2/platform/combat/query/combat-query.js';
-import { hasSelectedSkill } from '#gw2/platform/combat/query/runtime-query.js';
+import { hasSelectedSkillId } from '#gw2/platform/combat/query/runtime-query.js';
 import { THIEF_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/thief/core/profiles.js';
 import type { ThiefCoreState } from '#gw2/professions/thief/core/state.js';
 import { THIEF_SKILL_IDS as ID } from '#gw2/professions/thief/data/ids.js';
@@ -48,7 +48,7 @@ function modifyThiefCoreAttributes(context: Gw2ModifierContext, attributes: Gw2R
   const result = { ...attributes };
   const state = thiefRuntimeState(context);
   const staticRulesApplied = professionStaticRulesApplied(context.config);
-  if (hasSelectedSkill(context, 'Signet of Agility')) {
+  if (hasSelectedSkillId(context, ID.SIGNET_OF_AGILITY)) {
     const signetOfAgilityProfile = requireBalanceProfileFromContext(context, PROFILE.signetOfAgility);
     // Reconcile panel precision with recharge so the passive disappears only while the signet is unavailable.
     const passiveBonus = balanceProfileNumber(signetOfAgilityProfile, 'attributeBonus');
@@ -57,7 +57,7 @@ function modifyThiefCoreAttributes(context: Gw2ModifierContext, attributes: Gw2R
     if (!staticRulesApplied && !passiveDisabled) result.precision += passiveBonus;
   }
 
-  if (hasSelectedSkill(context, "Assassin's Signet")) {
+  if (hasSelectedSkillId(context, ID.ASSASSINS_SIGNET)) {
     const assassinsSignetProfile = requireBalanceProfileFromContext(context, PROFILE.assassinsSignet);
     const passive = balanceProfileNumber(assassinsSignetProfile, 'attributeBonus');
     const passiveDisabled = (state.assassinsSignetPassiveDisabledUntil || 0) > context.time;

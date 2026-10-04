@@ -21,7 +21,7 @@ export function applyNecromancerBuildAttributeRules(
   common: Gw2CommonAttributeResult,
   context: Gw2BuildAttributeRuleContext
 ): Gw2FinalizedAttributeResult {
-  const { activeTraits, hasSelectedSkill, profileContext } = createBuildAttributeContext(
+  const { activeTraits, hasSelectedSkillId, profileContext } = createBuildAttributeContext(
     context,
     necromancerCatalog,
     getActiveTraits
@@ -37,7 +37,7 @@ export function applyNecromancerBuildAttributeRules(
       to: 'Power',
       amount: balanceProfileNumber(signetOfSpitePassiveProfile, 'attributeBonus'),
       feedsConversions: false,
-      enabled: hasSelectedSkill(ID.SIGNET_OF_SPITE)
+      enabled: hasSelectedSkillId(ID.SIGNET_OF_SPITE)
     }
   ];
 

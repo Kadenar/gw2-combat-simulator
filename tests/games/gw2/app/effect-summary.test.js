@@ -561,7 +561,7 @@ test('shared Firebrand generation uses metadata independently of the configured 
         specialization: 'Firebrand',
         allies: { count },
         stats: { vitality: 1000 },
-        selectedSkills: ['"Feel My Wrath!"']
+        selectedSkillIds: [29965]
       }
     });
   const solo = simulate(0);

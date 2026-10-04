@@ -18,7 +18,7 @@ test('Infiltrator signet rearm replaces the pending resource pulse and follows c
       { type: 'cooldown-reset' },
       { type: 'wait', durationMs: 10000 }
     ],
-    { selectedSkills: ["Infiltrator's Signet"], initialInitiative: 0 },
+    { selectedSkillIds: [13064], initialInitiative: 0 },
     { probes: [0.5, 1.0005, 10, 11].map((at) => [at, observe]) }
   );
   assert.deepEqual(result.warnings, []);
@@ -56,7 +56,7 @@ test('Skritt assistants overlap and each retains its inclusive final pilfer', ()
   const pilfers = [];
   const result = runThief(
     ['Skritt Scuffle', 'Skritt Scuffle', { type: 'wait', durationMs: 20000 }],
-    { specialization: 'Antiquary', selectedSkills: ['Skritt Scuffle'] },
+    { specialization: 'Antiquary', selectedSkillIds: [77255] },
     {
       catalog: (live) => withSkill(live, T.SKRITT_SCUFFLE, { cooldown: 0 }),
       extend: (native) => ({

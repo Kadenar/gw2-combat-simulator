@@ -166,7 +166,7 @@ export const thiefCoreUi = Object.freeze({
         kind: 'special',
         description: 'Positional Critical Chance'
       });
-    preview.passives("Assassin's Signet");
+    preview.passives(ID.ASSASSINS_SIGNET);
     return preview.controls;
   },
   /** Axe inputs belong only to the detached damage configuration. */

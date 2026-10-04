@@ -146,7 +146,7 @@ test('trait attacks trigger through their owning specialization and inherit play
     defaultSimulationConfig({
       specialization: 'Core',
       selectedTraitIds: [TRAIT.METHOD_OF_MADNESS],
-      selectedSkills: ['Ether Feast']
+      selectedSkillIds: [10176]
     })
   );
 

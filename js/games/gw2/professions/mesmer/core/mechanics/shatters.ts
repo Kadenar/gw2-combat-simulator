@@ -72,7 +72,7 @@ export function resolveCloneShatter(
           source: 'Player',
           weaponStrengthProfileId: 'nonweapon.profession-mechanic'
         },
-        { metadata: { shatterTraitEligible: true } }
+        { skillId: skill.id, metadata: { shatterTraitEligible: true } }
       ).forEach((packet) => {
         runtime.context.effects.emit({
           ...delivery,
@@ -96,7 +96,7 @@ export function resolveCloneShatter(
         },
         'Player',
         '',
-        { metadata: { shatterTraitEligible: true } }
+        { skillId: skill.id, metadata: { shatterTraitEligible: true } }
       ).forEach((packet) => {
         runtime.context.effects.emit({
           ...delivery,

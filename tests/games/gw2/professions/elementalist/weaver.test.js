@@ -236,7 +236,7 @@ test('Primordial Stance retains dynamic profile patches and activation ownership
       patchId: 'stance-preview',
       startAttunement: 'Fire',
       secondaryAttunement: 'Fire',
-      selectedSkills: ['Primordial Stance (Fire)'],
+      selectedSkillIds: [40183],
       stats: { power: 1000 },
       target: { armor: 2597 }
     },
@@ -297,13 +297,7 @@ test('Primordial Stance variants share charges and count recharge', () => {
     ],
     startAttunement: 'Fire',
     secondaryAttunement: 'Fire',
-    selectedSkills: {
-      Heal: 'Glyph of Elemental Harmony',
-      Utility1: 'Primordial Stance (Fire)',
-      Utility2: 'Glyph of Storms (Fire)',
-      Utility3: 'Arcane Wave',
-      Elite: 'Weave Self'
-    }
+    selectedSkillIds: { Heal: 34743, Utility1: 40183, Utility2: 5736, Utility3: 5638, Elite: 43638 }
   });
   const casts = result.steps.filter((step) => String(step.skill).startsWith('Primordial Stance'));
 
@@ -321,13 +315,7 @@ test('Primordial Stance pulses use the active attunements at each pulse', () => 
     rotation: ['Primordial Stance (Fire)', 1500, 'Earth Attunement', 4500],
     startAttunement: 'Fire',
     secondaryAttunement: 'Fire',
-    selectedSkills: {
-      Heal: 'Glyph of Elemental Harmony',
-      Utility1: 'Primordial Stance (Fire)',
-      Utility2: 'Signet of Fire',
-      Utility3: 'Arcane Wave',
-      Elite: 'Weave Self'
-    }
+    selectedSkillIds: { Heal: 34743, Utility1: 40183, Utility2: 5542, Utility3: 5638, Elite: 43638 }
   });
   const swap = result.events.find((event) => event.type === 'elementalist.attunement' && event.to === 'Earth');
 
@@ -356,13 +344,7 @@ test('Weaver mechanics execute through native hooks', () => {
     rotation: ['Weave Self', 'Water Attunement', 'Air Attunement', 'Earth Attunement', 'Tailored Victory'],
     startAttunement: 'Fire',
     secondaryAttunement: 'Fire',
-    selectedSkills: {
-      Heal: 'Glyph of Elemental Harmony',
-      Utility1: 'Arcane Blast',
-      Utility2: 'Signet of Fire',
-      Utility3: 'Arcane Wave',
-      Elite: 'Weave Self'
-    }
+    selectedSkillIds: { Heal: 34743, Utility1: 5539, Utility2: 5542, Utility3: 5638, Elite: 43638 }
   });
 
   assert.equal(

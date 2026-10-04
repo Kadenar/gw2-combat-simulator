@@ -710,7 +710,7 @@ test('Ranger Nature Magic traits grant support and scale with boons', () => {
       primaryWeapon: 'Axe',
       secondaryWeapon: 'Warhorn',
       selectedPet: 'Krytan Drakehound',
-      selectedSkills: ['Sun Spirit'],
+      selectedSkillIds: [12498],
       allies: { count: allies }
     };
     const baseline = simulate('Core', rotation, config);

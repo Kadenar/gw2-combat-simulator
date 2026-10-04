@@ -125,16 +125,13 @@ export function createGw2SimulationConfig({
     transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays),
     specialization,
     selectedTraitIds: selectedTraitIds as readonly SkillId[],
-    selectedSkills: app.adapter?.slotLoadout
-      ? app.adapter.slotLoadout
-          .selectedSkillIds({
-            build: app.build,
-            specialization,
-            professionState: app.results?.planningState?.profession
-          })
-          .map((id) => app.skillById.get(Number(id))?.name)
-          .filter((name): name is string => name != null)
-      : Object.values(app.build.selectedSkills),
+    selectedSkillIds: app.adapter?.slotLoadout
+      ? app.adapter.slotLoadout.selectedSkillIds({
+          build: app.build,
+          specialization,
+          professionState: app.results?.planningState?.profession
+        })
+      : Object.values(app.build.selectedSkillIds).filter((id): id is SkillId => id !== null),
     primaryWeapon: app.build.weapons[0],
     secondaryWeapon: app.build.weapons[1],
     weaponSet2Primary: app.build.alternateWeapons[0],

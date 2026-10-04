@@ -47,7 +47,7 @@ export const HOLOSMITH_SLOT_SKILL_MECHANICS: Readonly<Record<string, HolosmithSk
 
     castTimeMs: 520,
     cooldown: 0.5,
-    flipParentName: 'Photon Wall',
+    requiresArmedFlip: true,
     effects: [
       {
         type: 'custom',

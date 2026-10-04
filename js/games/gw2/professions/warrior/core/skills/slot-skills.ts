@@ -1,7 +1,7 @@
 /** Canonical Core warrior skill fragments grouped by their GW2 owner. */
 import { canonicalTime } from '#kernel/core/clock.js';
-import { selectedSkillNameSet } from '#gw2/platform/builds/selected-skills.js';
-import { hasSelectedSkill } from '#gw2/platform/combat/query/runtime-query.js';
+import { selectedSkillIdSet } from '#gw2/platform/builds/selected-skills.js';
+import { hasSelectedSkillId } from '#gw2/platform/combat/query/runtime-query.js';
 import {
   balanceProfileNumber,
   requireBalanceProfileFromContext
@@ -307,7 +307,7 @@ export const signetOfRageLifecycle: Partial<RuntimeProfession<WarriorRuntimeStat
   // Passive resource pulses are ambient work, not delayed damage from the signet's active cast.
   backgroundTasks: [SIGNET_PULSE],
   onCombatStart(runtime) {
-    if (!selectedSkillNameSet(runtime.config.selectedSkills).has('Signet of Rage')) return;
+    if (!selectedSkillIdSet(runtime.config.selectedSkillIds).has(ID.SIGNET_OF_RAGE)) return;
     runtime.profession.core.nextSignetPulseAt = canonicalTime(runtime.time + 3);
     runtime.schedule(SIGNET_PULSE, runtime.profession.core.nextSignetPulseAt, null, undefined, -220);
   },
@@ -351,8 +351,8 @@ export function modifySignetAttributes(
     result.ferocity += bonus;
   }
 
-  const activeSignets = signetPassives.filter(({ name, id }) => {
-    if (!hasSelectedSkill(context, name)) return false;
+  const activeSignets = signetPassives.filter(({ id }) => {
+    if (!hasSelectedSkillId(context, id)) return false;
     const onCooldown = Boolean(context.timeline?.skillOnCooldownAt(id, context.time));
     return staticRulesApplied ? onCooldown : !onCooldown;
   });

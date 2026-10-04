@@ -16,7 +16,7 @@ import type { RangerCanonicalBuild } from '#gw2/professions/ranger/types.js';
 import { createCommonBuildDefaults } from '#gw2/professions/shared/build-defaults.js';
 import { rangerPetSkillCommandable } from '#gw2/professions/ranger/data/pet-commands.js';
 
-const RANGER_BUILD_SCHEMA_VERSION = 4;
+const RANGER_BUILD_SCHEMA_VERSION = 5;
 const RANGER_PROFESSION_ID = 'ranger';
 
 function keepRangerRotationCommand(command: RangerCanonicalBuild['rotation'][number], untamed: boolean): boolean {
@@ -61,12 +61,12 @@ export function createRangerBuildDefaults(): RangerCanonicalBuild {
       { name: 'Beastmastery', traits: '3-3-3' },
       { name: 'Soulbeast', traits: '2-2-3' }
     ],
-    selectedSkills: {
-      Heal: '"We Heal As One!"',
-      Utility1: '"Sic \'Em!"',
-      Utility2: 'Frost Trap',
-      Utility3: 'Signet of the Wild',
-      Elite: 'One Wolf Pack'
+    selectedSkillIds: {
+      Heal: ID.WE_HEAL_AS_ONE,
+      Utility1: ID.SIC_EM,
+      Utility2: ID.FROST_TRAP,
+      Utility3: ID.SIGNET_OF_THE_WILD,
+      Elite: ID.ONE_WOLF_PACK
     },
     selectedPet: 'Pig',
     selectedPet2: 'Lynx',

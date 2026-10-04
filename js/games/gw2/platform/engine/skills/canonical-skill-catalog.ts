@@ -92,7 +92,7 @@ const SKILL_FIELDS = new Set([
   'flipDuration',
   'flipParent',
   'flipParentId',
-  'flipParentName',
+  'requiresArmedFlip',
   'flipSkillId',
   'forgeSkill',
   'gunsaberSkill',

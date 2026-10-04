@@ -5,7 +5,7 @@ import type { AmmoState, AvailabilityResult, SimulationStep } from '#gw2/platfor
 import type { ProfessionRuntimeOptions, RuntimeProfession } from '#gw2/platform/simulation/runtime-state.js';
 import type { CanonicalCatalog, Skill } from '#gw2/platform/engine/skills/types.js';
 import type { ObservationPolicy } from '#kernel/execution/observation.js';
-import type { Gw2ResolverEvent, Gw2ResolverResult } from '#gw2/platform/resolver/types.js';
+import type { Gw2ResolverResult } from '#gw2/platform/resolver/types.js';
 import type { Gw2Build } from '#gw2/platform/builds/types.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
 import type { RotationApm } from '#gw2/platform/results/rotation-apm.js';
@@ -54,8 +54,6 @@ export interface Gw2SimulationPlanningState {
 }
 
 export interface Gw2SimulationResult extends Gw2ResolverResult {
-  /** Diagnostic deadlines and causal owners only; pending effects have not dealt damage. */
-  readonly pendingEffects?: readonly { readonly at: number; readonly cause: Gw2ResolverEvent }[];
   readonly rotationApm: RotationApm;
   readonly steps: readonly SimulationStep[];
   readonly planningState: Gw2SimulationPlanningState;

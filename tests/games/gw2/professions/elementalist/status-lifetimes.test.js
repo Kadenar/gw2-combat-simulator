@@ -66,9 +66,9 @@ test('elemental commands and Lightning Jolt retain the final live microsecond wi
             run: (r) => {
               const elemental = r.profession.core.summonedElemental;
               elemental.pendingLightningJolt = null;
-              r.config.selectedSkills = {};
+              r.config.selectedSkillIds = {};
               assert.equal(elementalistCoreAvailability(r, command).ready, at < 120.301);
-              r.config.selectedSkills = { Elite: glyph.name };
+              r.config.selectedSkillIds = [glyph.id];
               assert.equal(elementalistCoreAvailability(r, command).ready, at < 120.301);
               assert.equal(elementalistCoreAvailability(r, glyph).ready, at >= 120.301);
               armElementalistElementalLightningJolt(r, { effectiveEnd: at }, 1, 0.5);
@@ -109,7 +109,7 @@ test('an expired automatic elemental stays absent until an explicit glyph clears
       {
         ...config,
         patchId: 'elemental-lifecycle',
-        selectedSkills: { Elite: glyph.name },
+        selectedSkillIds: [glyph.id],
         selectedTraitIds: []
       },
       {
@@ -249,7 +249,7 @@ test('the live queue resolves a final elemental command hit before same-time tea
       {
         patchId: 'short-elemental',
         specialization: 'Core',
-        selectedSkills: { Elite: 'Glyph of Elementals' },
+        selectedSkillIds: [25488],
         boons: { quickness: false }
       },
       { profession }

@@ -12,9 +12,9 @@ test('Mesmer reuses fixed query inputs while cooldowns and timed attribute stack
     query: {},
     config: {
       boons: { regeneration: true },
-      get selectedSkills() {
+      get selectedSkillIds() {
         loadoutReads++;
-        return ['Signet of Midnight', 'Signet of Domination'];
+        return [10234, 10232];
       }
     },
     time: 0,
@@ -62,13 +62,13 @@ test('detached Mesmer attribute queries observe edited loadouts', () => {
   const context = {
     catalog: mesmerCatalog,
     time: 0,
-    config: { selectedSkills: ['Signet of Domination'] },
+    config: { selectedSkillIds: [10232] },
     timeline: { skillOnCooldownAt: () => false, timedStacks: () => 0, timedActive: () => false }
   };
   assert.equal(
     applyMesmerCoreAttributes({ catalog: mesmerCatalog, ...context }, { conditionDamage: 1000 }).conditionDamage,
     1180
   );
-  context.config.selectedSkills = [];
+  context.config.selectedSkillIds = [];
   assert.equal(applyMesmerCoreAttributes(context, { conditionDamage: 1000 }).conditionDamage, 1000);
 });

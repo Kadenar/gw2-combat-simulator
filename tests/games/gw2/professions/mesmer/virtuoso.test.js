@@ -243,7 +243,7 @@ test('Rain of Swords pulses after its cast with fixed damage and vulnerability t
     ...defaults,
     specialization: 'Virtuoso',
     selectedTraitIds: [],
-    selectedSkills: ['Rain of Swords'],
+    selectedSkillIds: [45425],
     boons: {
       ...defaults.boons,
       alacrity: false

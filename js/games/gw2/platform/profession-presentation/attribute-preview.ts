@@ -16,10 +16,14 @@ export interface PreviewControl {
   description: string;
   kind: 'boon' | 'buff' | 'condition' | 'queryTrait' | 'passive' | 'special';
   field?: string;
+  /** Canonical identity for isolated passive toggles; labels remain display text. */
+  skillId?: SkillId;
   /** Lowest accepted value; numeric controls default to 0. */
   min?: number;
   max?: number;
   options?: readonly string[];
+  /** Optional labels keep serialized choice identities separate from display text. */
+  optionLabels?: Readonly<Record<string, string>>;
   initial?: number | string;
   /**
    * Panels this control appears in. Omitted means both, except `special` controls, which default to the Attribute

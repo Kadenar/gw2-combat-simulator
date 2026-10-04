@@ -30,7 +30,7 @@ export function applyRangerBuildAttributeRules(
   context: Gw2BuildAttributeRuleContext
 ) {
   const rangerBuild = context.build as RangerBuild;
-  const { activeTraits, hasSelectedSkill, profileContext } = createBuildAttributeContext(
+  const { activeTraits, hasSelectedSkillId, profileContext } = createBuildAttributeContext(
     context,
     rangerCatalog,
     getActiveTraits
@@ -40,7 +40,7 @@ export function applyRangerBuildAttributeRules(
     {
       kind: 'flat',
       to: 'Ferocity',
-      amount: signetOfTheWildBonus(profileContext, hasSelectedSkill(ID.SIGNET_OF_THE_WILD)),
+      amount: signetOfTheWildBonus(profileContext, hasSelectedSkillId(ID.SIGNET_OF_THE_WILD)),
       feedsConversions: false
     }
   ];

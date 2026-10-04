@@ -400,7 +400,7 @@ test('Skritt Scuffle allows the final pilfer without a grace period', () => {
   const clear = (runtime) => (runtime.profession.specialization.state.artifactUsesRemaining = 0);
   const result = runThief(
     ['Skritt Scuffle', { type: 'wait', durationMs: 20000 }],
-    { specialization: 'Antiquary', selectedSkills: ['Skritt Scuffle'] },
+    { specialization: 'Antiquary', selectedSkillIds: [77255] },
     {
       probes: [
         [15.5, clear],

@@ -1,5 +1,5 @@
 {
-  "schemaVersion": 3,
+  "schemaVersion": 4,
   "profession": "necromancer",
   "gear": {
     "Helm": "Grieving",
@@ -56,12 +56,12 @@
       "traits": "2-1-2"
     }
   ],
-  "selectedSkills": {
-    "Heal": "\"Your Soul Is Mine!\"",
-    "Utility1": "Blood Is Power",
-    "Utility2": "Well of Darkness",
-    "Utility3": "\"Suffer!\"",
-    "Elite": "Plaguelands"
+  "selectedSkillIds": {
+    "Heal": 30488,
+    "Utility1": 10544,
+    "Utility2": 10607,
+    "Utility3": 30670,
+    "Elite": 10549
   },
   "assumptions": {
     "might": 25,

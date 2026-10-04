@@ -40,7 +40,7 @@ test('Cascading Corruption links its grants without hiding its offensive effects
   const result = simulate('Harbinger', ['Elixir of Promise', { type: 'wait', durationMs: 1000 }], {
     initialBlight: 5,
     initialCascadingCorruptionStacks: 15,
-    selectedSkills: ['Elixir of Promise'],
+    selectedSkillIds: [62667],
     selectedTraitIds: [TRAIT.CASCADING_CORRUPTION]
   });
   assert.deepEqual(result.warnings, []);
@@ -307,7 +307,7 @@ test("Innervate Anguish uses profession-mechanic strength without Spirit's Stren
 test("Spirit's Strength scales Ritualist minion strikes at the specialization boundary", () => {
   const run = (selectedTraitIds) =>
     simulate('Ritualist', ['Summon Bone Fiend', { type: 'wait', durationMs: 5000 }], {
-      selectedSkills: ['Summon Bone Fiend'],
+      selectedSkillIds: [10533],
       selectedTraitIds
     });
   const strike = (result) =>
@@ -337,11 +337,11 @@ test('Ritualist weapon spells consume stacks and Resilient Weapon is usable', ()
     ],
     {
       initialResource: 100,
-      selectedSkills: ['Nightmare Weapon', 'Splinter Weapon']
+      selectedSkillIds: [76739, 76975]
     }
   );
   const resilient = simulate('Ritualist', ['Resilient Weapon'], {
-    selectedSkills: ['Resilient Weapon']
+    selectedSkillIds: [77259]
   });
   const nightmare = weaponSpells.resolvedEvents.filter(
     (event) => event.type === 'damage' && event.name === 'Nightmare Weapon'
@@ -387,7 +387,7 @@ test('Ritualist weapon spells scale with allied players', () => {
     'Ritualist',
     rotation,
     {
-      selectedSkills: ['Nightmare Weapon', 'Splinter Weapon'],
+      selectedSkillIds: [76739, 76975],
       allies: { count: 0, strikesPerSecond: 1 }
     },
     observationTail(5000)
@@ -396,7 +396,7 @@ test('Ritualist weapon spells scale with allied players', () => {
     'Ritualist',
     rotation,
     {
-      selectedSkills: ['Nightmare Weapon', 'Splinter Weapon'],
+      selectedSkillIds: [76739, 76975],
       allies: { count: 4, strikesPerSecond: 1 }
     },
     observationTail(5000)
@@ -425,7 +425,7 @@ test('Ritualist weapon spells scale with allied players', () => {
     'Ritualist',
     [{ type: 'combat-start' }, 'Nightmare Weapon'],
     {
-      selectedSkills: ['Nightmare Weapon'],
+      selectedSkillIds: [76739],
       selectedTraitIds: [TRAIT.WIELDERS_BOON],
       allies: { count: 1, strikesPerSecond: 10 }
     },
@@ -453,7 +453,7 @@ test('Ritualist weapon spells prioritize players, include minions, and exclude s
     ],
     {
       initialResource: 100,
-      selectedSkills: ['Summon Bone Minions', 'Nightmare Weapon', 'Splinter Weapon'],
+      selectedSkillIds: [10541, 76739, 76975],
       selectedTraitIds: [TRAIT.LINGERING_SPIRITS],
       allies: { count: 2, strikesPerSecond: 1 }
     },
@@ -500,7 +500,7 @@ test("Wanderlust's player-scaled attacks cannot spend the player's Splinter Weap
     ],
     {
       initialResource: 100,
-      selectedSkills: ['Splinter Weapon'],
+      selectedSkillIds: [76975],
       selectedTraitIds: [TRAIT.LINGERING_SPIRITS]
     }
   );
@@ -599,7 +599,7 @@ test('migrated Core trait lines retain previously uncovered threshold, blind, he
     selectedTraitIds: [TRAIT.CHILLING_DARKNESS]
   });
   const heal = simulate('Core', ['Summon Blood Fiend'], {
-    selectedSkills: ['Summon Blood Fiend'],
+    selectedSkillIds: [10547],
     selectedTraitIds: [TRAIT.DARK_DEFENSE]
   });
   const fear = (selectedTraitIds = []) =>
@@ -637,7 +637,7 @@ test('migrated Core trait lines retain previously uncovered threshold, blind, he
 
 test('Blood Is Power and Plague Signet preserve transferred conditions', () => {
   const result = simulate('Harbinger', ['Blood Is Power', 'Plague Signet', { type: 'wait', durationMs: 10_100 }], {
-    selectedSkills: ['Blood Is Power', 'Plague Signet'],
+    selectedSkillIds: [10544, 10562],
     selectedTraitIds: [TRAIT.MASTER_OF_CORRUPTION]
   });
   const transferred = result.resolvedEvents.filter(
@@ -667,7 +667,7 @@ test('Blood Is Power and Plague Signet preserve transferred conditions', () => {
 test('Plague Sending treats Scourge F5 as entering shroud', () => {
   const result = simulate('Scourge', ['Desert Shroud', 'Blood Is Power', { type: 'wait', durationMs: 10_100 }], {
     initialResource: 100,
-    selectedSkills: ['Blood Is Power'],
+    selectedSkillIds: [10544],
     selectedTraitIds: [TRAIT.MASTER_OF_CORRUPTION, TRAIT.PLAGUE_SENDING]
   });
   const transferred = result.resolvedEvents.filter(
@@ -790,7 +790,7 @@ test('Barbed Precision samples its secondary chance on guaranteed critical hits'
 
 test('Barbed Precision excludes minion strikes but includes Ritualist spirit strikes', () => {
   const minion = simulate('Core', ['Summon Shadow Fiend', { type: 'wait', durationMs: 9000 }], {
-    selectedSkills: ['Summon Shadow Fiend'],
+    selectedSkillIds: [10589],
     selectedTraitIds: [TRAIT.BARBED_PRECISION]
   });
   const spirit = simulate('Ritualist', ["Ritualist's Shroud", 'Anguish', { type: 'wait', durationMs: 12_000 }], {
@@ -836,7 +836,7 @@ test('current Harbinger grandmaster traits use their live PvE mechanics', () => 
   const cascadingFromStartingStacks = simulate('Harbinger', ['Elixir of Promise', { type: 'wait', durationMs: 1000 }], {
     initialBlight: 5,
     initialCascadingCorruptionStacks: 15,
-    selectedSkills: ['Elixir of Promise'],
+    selectedSkillIds: [62667],
     selectedTraitIds: [TRAIT.CASCADING_CORRUPTION]
   });
   const cascading = simulate(
@@ -844,7 +844,7 @@ test('current Harbinger grandmaster traits use their live PvE mechanics', () => 
     ['Elixir of Promise', 'Elixir of Risk', 'Elixir of Ambition', { type: 'wait', durationMs: 6100 }],
     {
       initialBlight: 25,
-      selectedSkills: ['Elixir of Promise', 'Elixir of Risk', 'Elixir of Ambition'],
+      selectedSkillIds: [62667, 62530, 62655],
       selectedTraitIds: [TRAIT.CASCADING_CORRUPTION]
     }
   );
@@ -859,7 +859,7 @@ test('current Harbinger grandmaster traits use their live PvE mechanics', () => 
     ],
     {
       initialBlight: 25,
-      selectedSkills: ['Elixir of Promise', 'Elixir of Risk', 'Elixir of Ambition'],
+      selectedSkillIds: [62667, 62530, 62655],
       selectedTraitIds: [TRAIT.CASCADING_CORRUPTION]
     }
   );
@@ -869,7 +869,7 @@ test('current Harbinger grandmaster traits use their live PvE mechanics', () => 
     sharePlayerBoonsWithSummons: true
   });
   const twistedMedicine = simulate('Harbinger', ['Elixir of Risk'], {
-    selectedSkills: ['Elixir of Risk'],
+    selectedSkillIds: [62530],
     selectedTraitIds: [TRAIT.TWISTED_MEDICINE],
     allies: { count: 4, strikesPerSecond: 1 },
     sharePlayerBoonsWithSummons: true
@@ -1107,7 +1107,7 @@ test('cross-specialization Necromancer trait triggers remain executable', () => 
     selectedTraitIds: [TRAIT.SHIVERS_OF_DREAD, TRAIT.BITTER_CHILL, TRAIT.TERROR]
   });
   const malicious = simulate('Core', ['Summon Blood Fiend'], {
-    selectedSkills: ['Summon Blood Fiend'],
+    selectedSkillIds: [10547],
     selectedTraitIds: [TRAIT.MALICIOUS_SWARM]
   });
   const ashes = simulate('Scourge', ['Harrowing Wave'], {
@@ -1157,15 +1157,15 @@ test('remaining outgoing Necromancer trait families affect combat state', () => 
     selectedTraitIds: [TRAIT.ARMORED_SHROUD, TRAIT.DEADLY_STRENGTH]
   });
   const augury = simulate('Reaper', ['"Suffer!"'], {
-    selectedSkills: ['"Suffer!"'],
+    selectedSkillIds: [30670],
     selectedTraitIds: [TRAIT.AUGURY_OF_DEATH]
   });
   const signet = simulate('Core', ['Signet of Spite'], {
-    selectedSkills: ['Signet of Spite'],
+    selectedSkillIds: [10622],
     selectedTraitIds: [TRAIT.SIGNETS_OF_SUFFERING]
   });
   const brew = simulate('Harbinger', ['Elixir of Risk'], {
-    selectedSkills: ['Elixir of Risk'],
+    selectedSkillIds: [62530],
     selectedTraitIds: [TRAIT.BOLSTERING_BREW]
   });
   const empowerment = simulate('Scourge', ['Manifest Sand Shade'], {
@@ -1249,7 +1249,7 @@ test('modifier candidates include every active Necromancer trait', () => {
 
 // Undeath's resource clock survives removal of its unmodeled revive event and respects active recharge.
 test('Signet of Undeath grants four life force per passive pulse and suspends during recharge', () => {
-  const config = { initialResource: 0, selectedSkills: ['Signet of Undeath'] };
+  const config = { initialResource: 0, selectedSkillIds: [10611] };
   const wait = (durationMs) => ({ type: 'wait', durationMs });
   const first = simulate('Core', [wait(3000)], config);
   const second = simulate('Core', [wait(3000), wait(3000)], config);
@@ -1266,7 +1266,7 @@ test('Signet of Undeath grants four life force per passive pulse and suspends du
 test('signet passives and Soul Battery are profession-owned resources', () => {
   const signets = simulate('Core', [{ type: 'wait', durationMs: 3100 }], {
     initialResource: 0,
-    selectedSkills: ['Signet of Undeath', 'Signet of Vampirism']
+    selectedSkillIds: [10611, 21762]
   });
   const battery = simulate('Core', [], {
     initialResource: 100,

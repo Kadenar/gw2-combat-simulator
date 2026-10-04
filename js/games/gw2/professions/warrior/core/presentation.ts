@@ -261,7 +261,7 @@ export const warriorCoreUi: WarriorUiSlice = Object.freeze({
         description: 'Defiant-target critical bonuses'
       });
     preview.condition('Bleeding', 'Deep Strikes');
-    preview.passives('Signet of Might', 'Signet of Fury');
+    preview.passives(ID.SIGNET_OF_MIGHT, ID.SIGNET_OF_FURY);
     return preview.controls;
   },
 

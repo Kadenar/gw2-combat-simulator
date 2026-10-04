@@ -1,5 +1,5 @@
 {
-  "schemaVersion": 3,
+  "schemaVersion": 4,
   "profession": "engineer",
   "gear": {
     "Helm": "Berserker's",
@@ -56,12 +56,12 @@
       "traits": "2-2-3"
     }
   ],
-  "selectedSkills": {
-    "Heal": "A.E.D.",
-    "Utility1": "Grenade Kit",
-    "Utility2": "Bomb Kit",
-    "Utility3": "Throw Mine",
-    "Elite": "Flux State"
+  "selectedSkillIds": {
+    "Heal": 21659,
+    "Utility1": 5805,
+    "Utility2": 5812,
+    "Utility3": 6161,
+    "Elite": 76993
   },
   "selectedMorphSkillIds": [76927, 77104, 76705],
   "assumptions": {

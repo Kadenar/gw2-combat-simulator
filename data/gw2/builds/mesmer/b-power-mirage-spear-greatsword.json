@@ -1,5 +1,5 @@
 {
-  "schemaVersion": 3,
+  "schemaVersion": 4,
   "profession": "mesmer",
   "gear": {
     "Helm": "Assassin's",
@@ -57,12 +57,12 @@
       "traits": "1-3-3"
     }
   ],
-  "selectedSkills": {
-    "Heal": "False Oasis",
-    "Utility1": "Crystal Sands",
-    "Utility2": "Mantra of Pain",
-    "Utility3": "Illusionary Ambush",
-    "Elite": "Jaunt"
+  "selectedSkillIds": {
+    "Heal": 40200,
+    "Utility1": 41065,
+    "Utility2": 10211,
+    "Utility3": 45046,
+    "Elite": 45449
   },
   "assumptions": {
     "simulationMode": "deterministic",

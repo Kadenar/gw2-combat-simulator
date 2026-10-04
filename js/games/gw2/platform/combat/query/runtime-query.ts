@@ -1,5 +1,5 @@
 import { buffApplicationStacks, isDurationStackingBoon, GW2_STANDARD_BOONS } from '#gw2/platform/combat/boons.js';
-import { selectedSkillNameSet } from '#gw2/platform/builds/selected-skills.js';
+import { selectedSkillIdSet } from '#gw2/platform/builds/selected-skills.js';
 import {
   CANONICAL_TARGET_CONDITIONS,
   canonicalTargetConditionName,
@@ -32,14 +32,14 @@ export function eventSkill(context: Gw2ModifierContext): Skill | undefined {
   return profession?.catalog?.skillsById?.get(skillId);
 }
 
-/** Provides skill-name membership for array and slot-record loadouts. */
-export function selectedSkillNames(context: Gw2ModifierContext): ReadonlySet<string> {
-  return selectedSkillNameSet(context.config?.selectedSkills);
+/** Provides canonical ID membership for simulation loadouts. */
+export function selectedSkillIds(context: Gw2ModifierContext): ReadonlySet<SkillId> {
+  return selectedSkillIdSet(context.config?.selectedSkillIds);
 }
 
-/** Tests a selected skill name without exposing the persisted loadout's array-or-record shape. */
-export function hasSelectedSkill(context: Gw2ModifierContext, name: string): boolean {
-  return selectedSkillNames(context).has(name);
+/** Tests a selected canonical ID independently of its display name. */
+export function hasSelectedSkillId(context: Gw2ModifierContext, id: SkillId): boolean {
+  return selectedSkillIds(context).has(id);
 }
 
 /** Shares the resolver's dynamic health model so modifiers, death detection, and diagnostics agree on one value. */

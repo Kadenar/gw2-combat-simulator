@@ -12,17 +12,7 @@ import { clamp } from '#kernel/core/numeric.js';
 const PEITHA_DEFAULT_IMPACT_DELAY_MS = 240;
 
 export const peitha = defineRelic({
-  damagePayload(ctx, inputs) {
-    emitDamagePayload(ctx, ctx.relic!.state, {
-      type: 'proc',
-      at: 0,
-      source: 'Relic',
-      sourceId: 'damage-input',
-      actorType: 'effect',
-      skillName: 'Damage preview',
-      peithaImpactDelayMs: Number(inputs.impactDelayMs ?? 240)
-    });
-  },
+  damagePayload: emitDamagePayload,
   createState: () => ({ readyAt: 0, buffFrom: 0, buffUntil: 0 }),
   // Every profession shares one trigger: a committed player activation of a shadowstep or Deception skill.
   // The trigger stays at activation so the internal cooldown gates on use; the skill supplies the impact delay.
@@ -59,11 +49,21 @@ export const peitha = defineRelic({
 });
 
 /** One occurrence shares its payload with simulation after activation checks have succeeded. */
-function emitDamagePayload(ctx: Gw2RelicContext, state: Gw2RelicState, event: SimulationEvent): void {
+function emitDamagePayload(
+  ctx: Gw2RelicContext,
+  state: Gw2RelicState,
+  event: SimulationEvent,
+  inputs: import('#gw2/platform/skill-damage/types.js').DamageInputs = {}
+): void {
   const combatStart = ctx.combatStartTime ?? -Infinity;
   // The trigger carries its skill's launch latency and travel; only impacts that would still land before
   // combat clamp to combat start, so their conditions cannot preload.
-  const impactAt = clamp(event.at + Math.max(0, Number(event.peithaImpactDelayMs)) / 1000, combatStart, Infinity);
+  const impactAt = clamp(
+    event.at +
+      Math.max(0, Number(inputs.impactDelayMs ?? event.peithaImpactDelayMs ?? PEITHA_DEFAULT_IMPACT_DELAY_MS)) / 1000,
+    combatStart,
+    Infinity
+  );
   state.buffFrom = impactAt;
   state.buffUntil = gw2EffectExpiresAt(impactAt, 4);
   ctx.effects.emit({

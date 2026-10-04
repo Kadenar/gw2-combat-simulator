@@ -149,7 +149,7 @@ test('skill choices support word search and keyboard selection', async ({ page }
   await search.press('ArrowDown');
   await expect(menu.getByRole('button', { name: 'Phantasmal Disenchanter', exact: true })).toBeFocused();
   await menu.locator('.dd-item:visible').press('Enter');
-  expect(await page.evaluate(() => window.professionApp.build.selectedSkills.Utility1)).toBe('Phantasmal Disenchanter');
+  expect(await page.evaluate(() => window.professionApp.build.selectedSkillIds.Utility1)).toBe(10267);
 });
 
 test('pet and legend menus use the shared word search', async ({ page }) => {

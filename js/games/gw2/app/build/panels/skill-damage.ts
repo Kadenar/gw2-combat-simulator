@@ -291,7 +291,7 @@ function statsHtml(app: ProfessionAppState, values: AttributePreviewValues): str
 function controlHtml(control: PreviewControl, value: number | string | undefined): string {
   const attrs = `data-skill-damage-control="${esc(control.key)}" aria-label="${esc(control.label)}"`;
   const input = control.options
-    ? `<select ${attrs}>${control.options.map((option) => `<option${option === value ? ' selected' : ''}>${esc(option)}</option>`).join('')}</select>`
+    ? `<select ${attrs}>${control.options.map((option) => `<option value="${esc(option)}"${option === value ? ' selected' : ''}>${esc(control.optionLabels?.[option] ?? option)}</option>`).join('')}</select>`
     : control.max != null
       ? `<input ${attrs} type="number" min="${control.min ?? 0}" max="${control.max}" step="1" value="${esc(String(value ?? 0))}">`
       : `<input ${attrs} type="checkbox"${value ? ' checked' : ''}>`;
@@ -422,10 +422,14 @@ function rowHtml(row: SkillDamageRowView, model: SkillDamageViewModel, columns: 
   const icon = row.icon
     ? `<img class="sd-icon" src="${esc(row.icon)}" alt="" loading="lazy">`
     : `<span class="sd-badge">${esc(row.badge)}</span>`;
-  const applied = m.conditions
+  // The collapsed summary counts all applications; expansion separates their different durations and factors.
+  const stacksByCondition = new Map<string, number>();
+  for (const condition of m.conditions)
+    stacksByCondition.set(condition.condition, (stacksByCondition.get(condition.condition) ?? 0) + condition.stacks);
+  const applied = [...stacksByCondition]
     .map(
-      (condition) =>
-        `<span class="sd-condition-chip" data-condition="${esc(condition.condition)}">${esc(conditionLabel(condition.condition))} <b>×${integer(condition.stacks)}</b></span>`
+      ([condition, stacks]) =>
+        `<span class="sd-condition-chip" data-condition="${esc(condition)}">${esc(conditionLabel(condition))} <b>×${integer(stacks)}</b></span>`
     )
     .join('');
   const cells = [
@@ -485,8 +489,12 @@ function breakdownHtml(row: SkillDamageRowView, model: SkillDamageViewModel): st
       fact('Non-crit', integer(strike.nonCriticalDamage)),
       fact('Crit', integer(strike.criticalDamage))
     ].join('');
+    // Varying hits have a summed result, not a shared multiplication that would misstate the calculation.
+    const formula = strike.variesAcrossHits
+      ? '<span><small>Sum of individually calculated hits</small></span>'
+      : `<span>${integer(strike.baseDamage)} <small>base</small></span><span>&times;</span><span>${strike.outgoingMultiplier.toFixed(3)} <small>modifiers</small></span><span>&times;</span><span>${strike.averagedCriticalMultiplier.toFixed(3)} <small>critical average</small></span><span>=</span>`;
     sections.push(
-      `<section class="sd-component" aria-label="Strike breakdown"><div class="sd-component-heading"><strong>Strike</strong><span class="sd-formula"><span>${integer(strike.baseDamage)} <small>base</small></span><span>&times;</span><span>${strike.outgoingMultiplier.toFixed(3)} <small>modifiers</small></span><span>&times;</span><span>${strike.averagedCriticalMultiplier.toFixed(3)} <small>critical average</small></span><span>=</span><b>${integer(m.strike)}</b></span></div><details class="sd-calculation-details"><summary>Calculation details</summary><div class="sd-facts">${inputs}</div><div class="sd-modifier-list">${contributorList(strike.contributors)}</div>${strike.variesAcrossHits ? '<p class="sd-note">Factors shown are from the first hit; later hits used different modifiers. Totals include every hit.</p>' : ''}</details></section>`
+      `<section class="sd-component" aria-label="Strike breakdown"><div class="sd-component-heading"><strong>Strike</strong><span class="sd-formula">${formula}<b>${integer(m.strike)}</b></span></div><details class="sd-calculation-details"><summary>Calculation details</summary><div class="sd-facts">${inputs}</div><div class="sd-modifier-list">${contributorList(strike.contributors)}</div>${strike.variesAcrossHits ? '<p class="sd-note">Power, weapon strength, critical values, and modifiers shown describe the first hit. These inputs vary across hits; damage totals include every hit.</p>' : ''}</details></section>`
     );
   }
 
@@ -544,9 +552,9 @@ function breakdownHtml(row: SkillDamageRowView, model: SkillDamageViewModel): st
     );
   }
 
-  // Proc expansions show useful assumptions without a redundant occurrence or charge label.
+  // Charge and pulse totals must remain distinguishable from complete skill activations and proc occurrences.
   const notes = [
-    ...(row.status === 'proc' ? [] : [`Per ${row.unit}`]),
+    `Per ${row.unit}`,
     ...row.assumptions,
     ...(m.total === 0 ? ['No damage under the selected conditions.'] : [])
   ];

@@ -1,4 +1,4 @@
-import { selectedSkillNameSet } from '#gw2/platform/builds/selected-skills.js';
+import { selectedSkillIdSet } from '#gw2/platform/builds/selected-skills.js';
 import { buffApplicationStacks, gw2BoonDurationMultiplier } from '#gw2/platform/combat/boons.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { STANDARD_TARGET_ARMOR } from '#gw2/platform/combat/formulas.js';
@@ -62,8 +62,8 @@ export function rangerPetCompanionId(context: RangerRuntime | RangerResolverCont
   return `ranger-pet:${state.activePetSlot}:${state.petAutoGeneration}`;
 }
 
-function petHasSelectedSkill(context: RangerRuntime, skillName: string): boolean {
-  return selectedSkillNameSet(context.config.selectedSkills).has(skillName);
+function petHasSelectedSkill(context: RangerRuntime, skillId: number): boolean {
+  return selectedSkillIdSet(context.config.selectedSkillIds).has(skillId);
 }
 
 /** Snapshot independent-pet attributes after trait inheritance and the live signet passive. */
@@ -80,7 +80,7 @@ function rangerPetAttributes(context: RangerRuntime | RangerResolverContext) {
   if (runtime)
     attributes.ferocity += signetOfTheWildBonus(
       context,
-      petHasSelectedSkill(runtime, 'Signet of the Wild'),
+      petHasSelectedSkill(runtime, ID.SIGNET_OF_THE_WILD),
       (runtime.cooldowns.get(ID.SIGNET_OF_THE_WILD) || 0) <= runtime.time
     );
   return attributes;

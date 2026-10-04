@@ -21,7 +21,7 @@ export function applyThiefBuildAttributeRules(
   common: Gw2CommonAttributeResult,
   context: Gw2BuildAttributeRuleContext
 ): Gw2FinalizedAttributeResult {
-  const { activeTraits, hasSelectedSkill, profileContext } = createBuildAttributeContext(
+  const { activeTraits, hasSelectedSkillId, profileContext } = createBuildAttributeContext(
     context,
     thiefCatalog,
     getActiveTraits
@@ -38,7 +38,7 @@ export function applyThiefBuildAttributeRules(
           to: 'Power',
           amount: balanceProfileNumber(assassinsSignetProfile, 'attributeBonus'),
           feedsConversions: false,
-          enabled: hasSelectedSkill(ID.ASSASSINS_SIGNET)
+          enabled: hasSelectedSkillId(ID.ASSASSINS_SIGNET)
         },
         {
           // The equipped signet contributes panel precision while its passive is available.
@@ -46,7 +46,7 @@ export function applyThiefBuildAttributeRules(
           to: 'Precision',
           amount: balanceProfileNumber(signetOfAgilityProfile, 'attributeBonus'),
           feedsConversions: false,
-          enabled: hasSelectedSkill(ID.SIGNET_OF_AGILITY)
+          enabled: hasSelectedSkillId(ID.SIGNET_OF_AGILITY)
         }
       ]
     },

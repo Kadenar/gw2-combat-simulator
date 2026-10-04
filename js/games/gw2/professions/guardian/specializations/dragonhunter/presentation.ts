@@ -1,14 +1,19 @@
+import { GUARDIAN_SKILL_IDS } from '#gw2/professions/guardian/data/ids.js';
 import type { CanonicalCatalog } from '#gw2/platform/engine/skills/types.js';
 import {
   formatSecondsRemaining,
   guardianSnapshotAt,
-  guardianUiSkillIdsByName,
+  guardianUiSkillIds,
   guardianUiState
 } from '#gw2/professions/guardian/core/presentation.js';
 import type { RotationStateSnapshotItem } from '#gw2/platform/profession-presentation/types.js';
 import type { GuardianUiContext, GuardianUiSlice, GuardianSkill } from '#gw2/professions/guardian/types.js';
 
-const VIRTUE_NAMES = Object.freeze(['Spear of Justice', 'Wings of Resolve', 'Shield of Courage']);
+const VIRTUE_IDS = Object.freeze([
+  GUARDIAN_SKILL_IDS.SPEAR_OF_JUSTICE,
+  GUARDIAN_SKILL_IDS.WINGS_OF_RESOLVE,
+  GUARDIAN_SKILL_IDS.SHIELD_OF_COURAGE
+]);
 
 /** Shows the target tether only while Big Game Hunter can still benefit from it. */
 function dragonhunterStateSnapshot(context: GuardianUiContext): RotationStateSnapshotItem[] {
@@ -33,7 +38,7 @@ export function bindDragonhunterUi(catalog: Readonly<CanonicalCatalog<GuardianSk
       {
         id: 'profession',
         label: 'F',
-        skillIds: guardianUiSkillIdsByName(catalog, VIRTUE_NAMES, context),
+        skillIds: guardianUiSkillIds(catalog, VIRTUE_IDS, context),
         color: '#2f7eb8',
         resourceAnchor: true // anchors the virtue tether/resource bar to this palette group
       }

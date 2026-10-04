@@ -240,7 +240,7 @@ test('Signet of the Wild preserves static provenance and pet launch snapshots', 
         const context = {
           catalog: rangerCatalog,
           config: {
-            selectedSkills: selected ? ['Signet of the Wild'] : [],
+            selectedSkillIds: selected ? [12491] : [],
             selectedTraitIds: [],
             attributeProvenance: { professionStaticRulesApplied: preapplied }
           },
@@ -256,7 +256,7 @@ test('Signet of the Wild preserves static provenance and pet launch snapshots', 
   const snapshots = [];
   const result = runRanger(
     [ID.SIGNET_OF_THE_WILD, wait(1000)],
-    { selectedSkills: ['Signet of the Wild'] },
+    { selectedSkillIds: [12491] },
     {
       initialize(runtime) {
         snapshots.push(rangerPetCombatMetadata(runtime));

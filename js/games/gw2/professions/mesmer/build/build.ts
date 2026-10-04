@@ -1,3 +1,4 @@
+import { MESMER_SKILL_IDS as SKILL } from '#gw2/professions/mesmer/data/ids.js';
 import { GEAR_SLOTS } from '#gw2/platform/equipment/gear/slots.js';
 import { DEFAULT_WEAPON_SIGILS, normalizeWeaponSigils } from '#gw2/platform/equipment/sigils/loadout.js';
 import { normalizeRotation } from '#gw2/platform/execution/rotation.js';
@@ -21,7 +22,7 @@ import { createCommonBuildDefaults } from '#gw2/professions/shared/build-default
  * blade, or note resource.
  */
 
-export const BUILD_SCHEMA_VERSION = 3;
+export const BUILD_SCHEMA_VERSION = 4;
 const PROFESSION_ID = 'mesmer';
 
 // Seed a schema-current Mesmer preset with complete equipment, assumptions,
@@ -49,12 +50,12 @@ export function createMesmerBuildDefaults(): MesmerCanonicalBuild {
       { name: 'Illusions', traits: '1-2-1' },
       { name: 'Virtuoso', traits: '3-3-3' }
     ],
-    selectedSkills: {
-      Heal: 'Twin Blade Restoration',
-      Utility1: 'Signet of Domination',
-      Utility2: 'Mantra of Pain',
-      Utility3: 'Rain of Swords',
-      Elite: 'Thousand Cuts'
+    selectedSkillIds: {
+      Heal: SKILL.TWIN_BLADE_RESTORATION,
+      Utility1: SKILL.SIGNET_OF_DOMINATION,
+      Utility2: SKILL.MANTRA_OF_PAIN,
+      Utility3: SKILL.RAIN_OF_SWORDS,
+      Elite: SKILL.THOUSAND_CUTS
     },
     ...createCommonBuildDefaults({
       assumptions: {

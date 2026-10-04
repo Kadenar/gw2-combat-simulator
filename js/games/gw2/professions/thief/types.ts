@@ -22,7 +22,7 @@ export type ThiefDodge = 'Dodge' | 'Lotus Training' | 'Bounding Dodger' | 'Unhin
 
 export interface ThiefBuild extends Gw2Build {
   specializations?: Gw2BuildSpecialization[];
-  selectedSkills?: Record<string, string>;
+  selectedSkillIds?: Record<string, SkillId | null>;
   selectedDodge?: ThiefDodge;
 }
 

@@ -978,7 +978,7 @@ test('Mesmer default builds resolve without embedded rotations', async () => {
     const build = adapter.toApplicationBuild(saved);
 
     assert.equal(Object.hasOwn(saved, 'rotation'), false);
-    assert.equal(build.schemaVersion, 3);
+    assert.equal(build.schemaVersion, adapter.profession.createBuildDefaults().schemaVersion);
     assert.equal(build.profession, 'mesmer');
     assert.equal(build.specializations.length, 3);
   }
@@ -1258,8 +1258,8 @@ test('Necromancer preset builds keep rotation data separate', async () => {
     ['Force', 'Accuracy'],
     ['Force', 'Accuracy']
   ]);
-  assert.equal(power.selectedSkills.Utility1, 'Well of Suffering');
-  assert.equal(power.selectedSkills.Utility2, 'Well of Darkness');
+  assert.equal(power.selectedSkillIds.Utility1, 10546);
+  assert.equal(power.selectedSkillIds.Utility2, 10607);
 });
 
 test('build import and export leave rotation state separate', async () => {
@@ -1297,7 +1297,7 @@ test('build + rotation export stays readable by both importers', async () => {
 test('build file import detects which parts a file carries', async () => {
   const adapter = await loadProfessionAppAdapter('mesmer');
   const source = createDefaultBuild(adapter);
-  const skill = Object.values(source.selectedSkills).find(Boolean);
+  const skill = Object.values(source.selectedSkillIds).find(Boolean);
   const app = { adapter, build: createDefaultBuild(adapter), changed() {} };
 
   const combined = previewBuildFileImport(
@@ -1335,7 +1335,7 @@ test('build file import detects which parts a file carries', async () => {
 test('build file import clears the template highlight but keeps the tab reset target', async () => {
   const adapter = await loadProfessionAppAdapter('mesmer');
   const source = { ...createDefaultBuild(adapter), rune: 'Krait' };
-  const skill = Object.values(source.selectedSkills).find(Boolean);
+  const skill = Object.values(source.selectedSkillIds).find(Boolean);
   const templateBuild = createDefaultBuild(adapter);
   const tab = { id: 'tab', templateBuild };
   const app = {
@@ -1398,7 +1398,7 @@ test('reference rotation manifest builds load lazily once per template list', as
 test('build file import applies only the selected parts', async () => {
   const adapter = await loadProfessionAppAdapter('mesmer');
   const source = createDefaultBuild(adapter);
-  const skill = Object.values(source.selectedSkills).find(Boolean);
+  const skill = Object.values(source.selectedSkillIds).find(Boolean);
   const exported = getBuildWithRotationExportPayload({ ...source, rune: 'Krait', rotation: [skill] });
   const importInto = (selection) => {
     const calls = [];
@@ -2022,11 +2022,12 @@ test("weaponmaster palettes keep the active spec's weapon-skill variant", () => 
   // Both Bladecall variants share a slot and pass availability under
   // weaponmaster training; the off-spec Troubadour rework (62560) sorts first
   // in catalog order but is absent from a non-Troubadour runtime catalog, so it
-  // must not win the name-dedup and poison the rotation with an unknown id.
+  // must not win its authored family and poison the rotation with an unknown id.
   const skills = [
     {
       id: 62560,
-      name: 'Bladecall',
+      paletteTileId: 69311,
+      name: 'Renamed Bladecall',
       type: 'Weapon',
       slot: 'Weapon_2',
       weapon: 'Dagger',

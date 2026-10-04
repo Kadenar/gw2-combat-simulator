@@ -61,11 +61,11 @@ export interface SkillDamageStrikeBreakdown {
   readonly averagedCriticalMultiplier: number;
   readonly outgoingMultiplier: number;
   readonly contributors: readonly Gw2ModifierContribution[];
-  /** True when hits used different outgoing multipliers; the breakdown then shows the first hit's factors. */
+  /** True when hit inputs or factors differ; first-hit details cannot explain the total with one formula. */
   readonly variesAcrossHits: boolean;
 }
 
-/** One damaging condition the measured cast applied, aggregated across its applications. */
+/** Applications of a damaging condition with matching duration and sampled damage facts, aggregated into one row. */
 export interface SkillDamageConditionRow {
   readonly condition: string;
   readonly stacks: number;

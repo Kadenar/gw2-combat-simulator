@@ -67,7 +67,7 @@ export function vindicatorDodgeAutoRotationEntries(context: RevenantUiContext, o
 function vindicatorPaletteActionSkills(context: RevenantUiContext, skills: readonly Skill[]): Skill[] {
   // Strip any stale synthetic entry first so it cannot appear twice if called repeatedly.
   const ordinarySkills = skills
-    .filter((skill) => skill.name !== VINDICATOR_DODGE_AUTO_ACTION && skill.id !== VINDICATOR_JUMP_SKILL.id)
+    .filter((skill) => skill.id !== VINDICATOR_DODGE_AUTO_ACTION && skill.id !== VINDICATOR_JUMP_SKILL.id)
     // Manual reconstruction uses the full jump; legacy landing-only commands remain loadable by ID.
     .map((skill) => (skill.id === SHARED_SKILL_IDS.DODGE ? VINDICATOR_JUMP_SKILL : skill));
   const dodgeAuto = vindicatorDodgeAutoPaletteSkill(context);

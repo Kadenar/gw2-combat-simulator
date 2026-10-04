@@ -72,6 +72,49 @@ test('the saved simulation assumptions seed the panel without being written back
   assert.equal(values['condition:Vulnerability'], app.build.assumptions.targetConditions.Vulnerability);
 });
 
+// Profession boons remain editable assumptions and cannot be overwritten by the normal simulation defaults.
+test('profession boon controls seed from the build and update only the detached preview', async () => {
+  for (const [build, boon] of [
+    ['b-power-dragonhunter-spear-greatsword.json', 'resolution'],
+    ['b-condi-firebrand.json', 'quickness']
+  ]) {
+    const app = await headlessApp('guardian', `data/gw2/builds/guardian/${build}`);
+    app.build.assumptions[boon] = true;
+    const saved = structuredClone(app.build);
+    const controls = skillDamageControls(app);
+    assert.equal(controls.filter((control) => control.key === boon).length, 1);
+    assert.equal(controls.filter((control) => control.key === 'might').length, 1);
+    const values = simulationConfigValues(app, controls);
+    assert.equal(values[boon], 1);
+    assert.equal(createSkillDamagePlan(app, controls, values).request.config.boons[boon], true);
+    assert.equal(createSkillDamagePlan(app, controls, { ...values, [boon]: 0 }).request.config.boons[boon], false);
+    assert.deepEqual(app.build, saved);
+  }
+});
+
+// A procedural relic can apply Torment even when none of the profession's skill definitions do.
+test('target movement controls equipment Torment independently of skill declarations', async () => {
+  const app = await headlessApp('guardian', 'data/gw2/builds/guardian/b-condi-firebrand.json');
+  app.build.relic = 'Akeem';
+  app.adapter.recalculate(app);
+  const saved = structuredClone(app.build);
+  const controls = skillDamageControls(app);
+  assert.equal(controls.filter((control) => control.key === 'targetMoving').length, 1);
+  const values = clearedValues(controls);
+  const measure = (moving) => {
+    const { request } = createSkillDamagePlan(app, controls, { ...values, targetMoving: moving });
+    assert.equal(request.config.target.moving, Boolean(moving));
+    const occurrence = request.occurrences.find((entry) => entry.name === 'Relic of Akeem');
+    assert.ok(occurrence);
+    const [result] = app.adapter.calculateSkillDamage({ ...request, occurrences: [occurrence] }).occurrences;
+    assert.equal(result.status, 'measured');
+    return result.measurement.conditions.find((row) => row.condition === 'Torment').damage;
+  };
+
+  assert.ok(measure(0) > measure(1));
+  assert.deepEqual(app.build, saved);
+});
+
 // Catalog scope is independent of runtime slot eligibility.
 test('unslotted effects preserve the build loadout instead of manufacturing legal slot selections', async () => {
   const app = await headlessApp('warrior', BLADESWORN);
@@ -79,8 +122,8 @@ test('unslotted effects preserve the build loadout instead of manufacturing lega
   const unslotted = [...plan.rows.values()].find((row) => row.status === 'unslotted');
   const entry = plan.request.occurrences.find((candidate) => candidate.id === unslotted.id);
   assert.ok(entry);
-  assert.equal(entry.config.selectedSkills, undefined);
-  assert.deepEqual(plan.request.config.selectedSkills, app.adapter.simulationConfig(app).selectedSkills);
+  assert.equal(entry.config.selectedSkillIds, undefined);
+  assert.deepEqual(plan.request.config.selectedSkillIds, app.adapter.simulationConfig(app).selectedSkillIds);
 });
 
 test('zero-damage calculations remain visible while calculation failures have a separate explanation', async () => {

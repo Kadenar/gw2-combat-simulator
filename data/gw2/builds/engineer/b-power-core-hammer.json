@@ -1,5 +1,5 @@
 {
-  "schemaVersion": 3,
+  "schemaVersion": 4,
   "profession": "engineer",
   "gear": {
     "Helm": "Berserker's",
@@ -38,12 +38,12 @@
     { "name": "Firearms", "traits": "3-3-1" },
     { "name": "Tools", "traits": "1-3-3" }
   ],
-  "selectedSkills": {
-    "Heal": "A.E.D.",
-    "Utility1": "Grenade Kit",
-    "Utility2": "Throw Mine",
-    "Utility3": "Bomb Kit",
-    "Elite": "Elite Mortar Kit"
+  "selectedSkillIds": {
+    "Heal": 21659,
+    "Utility1": 5805,
+    "Utility2": 6161,
+    "Utility3": 5812,
+    "Elite": 30800
   },
   "selectedMorphSkillIds": [77103, 77203, 76954],
   "assumptions": {

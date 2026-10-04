@@ -7,7 +7,7 @@ import { createObservedProfessionSimulator } from '#tests/helpers/observed-runti
 
 const simulate = createObservedProfessionSimulator(thiefProfession, {
   primaryWeapon: 'Staff',
-  selectedSkills: ['Caltrops', 'Fist Flurry'],
+  selectedSkillIds: [13028, 30868],
   target: { armor: 2597, conditions: {} }
 });
 

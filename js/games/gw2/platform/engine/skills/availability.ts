@@ -1,5 +1,5 @@
 /** Cast availability distinguishes permanent denials from commands that can retry at a known time. */
-import { selectedSkillNameSet } from '#gw2/platform/builds/selected-skills.js';
+import { selectedSkillIdSet } from '#gw2/platform/builds/selected-skills.js';
 import type { AvailabilityResult } from '#gw2/platform/execution/types.js';
 import type { CanonicalCatalog, Skill } from '#gw2/platform/engine/skills/types.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
@@ -40,7 +40,7 @@ export function selectedSlotSkillAvailability(
   skill: Skill
 ): AvailabilityResult | null {
   // An omitted loadout permits sandbox casts; an explicitly empty loadout equips nothing.
-  if (context.config.selectedSkills == null || !['Heal', 'Utility', 'Elite'].includes(skill.type || '')) return null;
+  if (context.config.selectedSkillIds == null || !['Heal', 'Utility', 'Elite'].includes(skill.type || '')) return null;
   let root = skill;
   while (root.flipParentId != null) {
     const parent = context.catalog.skillsById.get(root.flipParentId);
@@ -48,7 +48,7 @@ export function selectedSlotSkillAvailability(
     root = parent;
   }
 
-  return selectedSkillNameSet(context.config.selectedSkills).has(root.name)
+  return selectedSkillIdSet(context.config.selectedSkillIds).has(root.id)
     ? null
     : denySkillCast(skill, 'gw2.slot-not-equipped', 'the skill is not equipped.');
 }

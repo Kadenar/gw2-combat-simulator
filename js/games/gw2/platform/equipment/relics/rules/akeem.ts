@@ -9,16 +9,7 @@ import { defineRelic } from '#gw2/platform/equipment/relics/rules/shared.js';
 const REQUIRED_CONDITIONS = 5;
 
 export const akeem = defineRelic({
-  damagePayload(ctx) {
-    emitDamagePayload(ctx, ctx.relic!.state, {
-      type: 'proc',
-      at: 0,
-      source: 'Relic',
-      sourceId: 'damage-input',
-      actorType: 'effect',
-      skillName: 'Damage preview'
-    });
-  },
+  damagePayload: emitDamagePayload,
   createState: () => ({ readyAt: 0 }),
   control(ctx, state, event, { activeConditionStackCount }) {
     if (!isInternalCooldownReady(event.at, state.readyAt)) return;

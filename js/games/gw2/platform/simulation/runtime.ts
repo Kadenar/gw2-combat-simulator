@@ -1,5 +1,13 @@
+import { prepareSelectedSkillLoadout } from '#gw2/platform/builds/selected-skills.js';
 import { createCombatExecution } from '#gw2/platform/simulation/combat-execution.js';
-import type { RuntimeDriverContext, RuntimeExecution, RuntimeOptions } from '#gw2/platform/simulation/execution.js';
+import type {
+  DamageRuntimeOptions,
+  DamageRuntimeResult,
+  RuntimeDriverContext,
+  RuntimeExecution,
+  RuntimeOptions
+} from '#gw2/platform/simulation/execution.js';
+import type { Gw2SimulationResult, Gw2SimulationScore } from '#gw2/platform/simulation/types.js';
 import { isStandardBoon, normalizeBoonDuration } from '#gw2/platform/combat/boons.js';
 import { createGw2CombatQuery } from '#gw2/platform/combat/query/combat-query.js';
 import { createRuntimeEndurance, createRuntimeResources } from '#gw2/platform/combat/resources/runtime-resources.js';
@@ -121,18 +129,40 @@ export function runGw2Runtime<T extends object>(
   return runRuntime({ ...options, execution: createCombatExecution(options.profession, options.rotation ?? []) });
 }
 
-/** One cursor, queue, profession instance and RNG own execution in both reporting modes. */
-export function runRuntime<T extends object>({
-  profession,
-  config = {},
-  observation,
-  combatStartTime,
-  output = 'detailed',
-  damageDiagnostics = false,
-  execution,
-  onPhase
-}: RuntimeOptions<T> & { readonly execution: RuntimeExecution<T> }) {
+export function runRuntime<T extends object>(
+  options: DamageRuntimeOptions<T> & { readonly execution: RuntimeExecution<T> }
+): DamageRuntimeResult;
+export function runRuntime<T extends object>(
+  options: RuntimeOptions<T> & { readonly execution: RuntimeExecution<T> }
+): Gw2SimulationResult | Gw2SimulationScore;
+/** The shared scheduler can collect a finite occurrence without constructing combat reports. */
+export function runRuntime<T extends object>(
+  options: (RuntimeOptions<T> | DamageRuntimeOptions<T>) & { readonly execution: RuntimeExecution<T> }
+): DamageRuntimeResult | Gw2SimulationResult | Gw2SimulationScore {
+  const {
+    profession,
+    config: inputConfig = {},
+    observation,
+    combatStartTime,
+    output = 'detailed',
+    damageDiagnostics = false,
+    execution,
+    onPhase
+  } = { observation: undefined, ...options };
+  let config = inputConfig;
+  const ownsEffect = options.output === 'damage' ? options.ownsEffect : undefined;
   const started = onPhase ? performance.now() : 0;
+  // Direct and public runtime entry points share catalog validation and detached selection snapshots.
+  if ('selectedSkills' in config)
+    throw new TypeError('selectedSkills is unsupported in simulation; use selectedSkillIds.');
+  if (config.selectedSkillIds !== undefined)
+    config = {
+      ...config,
+      selectedSkillIds: prepareSelectedSkillLoadout(
+        config.selectedSkillIds,
+        profession.skillSelectionCatalog ?? profession.catalog
+      )
+    };
   const policy = normalizeObservationPolicy(observation);
   const cursor = execution.driver.cursor;
   const markers = cursor.commands.filter((command) => command.type === 'combat-start');
@@ -442,8 +472,9 @@ export function runRuntime<T extends object>({
   const base = createGw2ResolverRuntimeState({
     config,
     traits: normalizeSelectedTraitIds(config.selectedTraitIds),
-    reporting: output === 'detailed',
-    damageDiagnostics,
+    reporting: output !== 'score',
+    recordEffectHistory: output === 'detailed',
+    damageDiagnostics: output === 'damage' || damageDiagnostics,
     horizon: policy.kind === 'absolute' ? canonicalTime(policy.endTimeMs / 1000) : null,
     query,
     queue,
@@ -1146,9 +1177,17 @@ export function runRuntime<T extends object>({
       nextCommandAt = Math.max(cursor.endTime(), runtime.inputReadyAt);
       if (nextCommandAt <= runtime.time) {
         runtime.rotationEndTime = runtime.time;
-        runtime.horizon = canonicalTime(observationEndTime(policy, runtime.time));
+        // A fixed safety horizon keeps condition scheduling live while an occurrence finishes early below.
+        runtime.horizon = canonicalTime(ownsEffect ? runtime.time + 120 : observationEndTime(policy, runtime.time));
         nextCommandAt = Infinity;
       }
+    }
+
+    const completionAt = ownsEffect && runtime.rotationEndTime != null ? damageCompletionTime() : Infinity;
+    if (runtime.rotationEndTime != null && runtime.time >= completionAt) {
+      runtime.horizon = runtime.time;
+      finished = true;
+      break;
     }
 
     if (runtime.horizon != null && runtime.time >= runtime.horizon) {
@@ -1158,7 +1197,7 @@ export function runRuntime<T extends object>({
       break;
     }
 
-    const next = Math.min(nextCommandAt, queue.peek()?.at ?? Infinity, runtime.horizon ?? Infinity);
+    const next = Math.min(nextCommandAt, queue.peek()?.at ?? Infinity, runtime.horizon ?? Infinity, completionAt);
     if (!Number.isFinite(next) || next <= runtime.time) throw new Error('Live runtime has no advancing boundary.');
     runtime.time = canonicalTime(next);
     runtime.resourceController.advance();
@@ -1171,6 +1210,15 @@ export function runRuntime<T extends object>({
   onPhase?.('execution', reportingStarted - started);
   // Finalize condition presentation once at the shared boundary for both reporting modes.
   finalizeConditionApplications(runtime, runtime.deathTime ?? runtime.horizon!);
+  if (ownsEffect) {
+    onPhase?.('reporting', performance.now() - reportingStarted);
+    return {
+      events: runtime.resolved.filter(ownsEffect),
+      castSeconds: runtime.steps.length ? (runtime.steps[0].end - runtime.steps[0].start) / 1000 : 0,
+      complete: damageCompletionTime() <= runtime.time + EPSILON
+    };
+  }
+
   const score = buildSimulationScore(runtime, runtime.rotationEndTime, explicitCombat);
   if (output === 'score') {
     onPhase?.('reporting', performance.now() - reportingStarted);
@@ -1205,8 +1253,6 @@ export function runRuntime<T extends object>({
   });
   const result = {
     ...buildCombatResult(runtime, score, executed),
-    // Isolated previews can follow delayed work without simulating an arbitrary long ambient tail.
-    ...(damageDiagnostics ? { pendingEffects: pendingEffects() } : {}),
     output: 'detailed' as const,
     steps,
     rotationApm: rotationApm(
@@ -1223,12 +1269,23 @@ export function runRuntime<T extends object>({
       { ...runtime, catalog: profession.catalog },
       profession.projectPlanningState,
       profession.endurance?.maximum(runtime),
-      (skill) => execution.planningAvailability(runtime, skill),
+      (skill) => profession.availability?.(runtime, skill, { type: 'cast', skillId: skill.id }) ?? { ready: true },
       observeRuntimeEffects(runtime, profession)
     )
   };
   onPhase?.('reporting', performance.now() - reportingStarted);
   return result;
+
+  /** Follow owned work and condition settlement in this run; unrelated background tasks cannot prolong it. */
+  function damageCompletionTime(): number {
+    let deadline = runtime.rotationEndTime ?? runtime.time;
+    for (const pending of pendingEffects()) if (ownsEffect!(pending.cause)) deadline = Math.max(deadline, pending.at);
+    for (const event of runtime.resolved)
+      if (ownsEffect!(event) && event.naturalExpiresAt != null)
+        // Owner condition clocks may pay their final buffered remainder after natural expiry.
+        deadline = Math.max(deadline, Number(event.naturalExpiresAt) + 1.5);
+    return deadline;
+  }
 
   /** Project pending deadlines with their actual cause, excluding already identified physical summon loops. */
   function pendingEffects(): { at: number; cause: Gw2ResolverEvent }[] {

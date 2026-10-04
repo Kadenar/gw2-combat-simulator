@@ -33,6 +33,7 @@ import { createSimulationRandom } from '#kernel/core/simulation-random.js';
  */
 export function createGw2ResolverRuntimeState({
   reporting = true,
+  recordEffectHistory = reporting,
   damageDiagnostics = false,
   config,
   traits = new Set(),
@@ -51,7 +52,8 @@ export function createGw2ResolverRuntimeState({
     // Distribution trials always couple damage to crit outcomes, regardless of the baseline preference.
     criticalDamageMode: config.randomness?.mode === 'stochastic' ? 'rolled' : criticalDamageMode,
     reporting,
-    effectRecorder: reporting ? new EffectRecorder() : null,
+    // Damage previews retain resolved packets without constructing chart histories.
+    effectRecorder: recordEffectHistory ? new EffectRecorder() : null,
     damageDiagnostics: reporting && damageDiagnostics,
     config,
     traits,
@@ -238,6 +240,7 @@ export interface Gw2ResolverRuntime {
 }
 
 interface CreateGw2ResolverRuntimeStateOptions {
+  readonly recordEffectHistory?: boolean;
   readonly damageDiagnostics?: boolean;
   readonly reporting?: boolean;
   readonly config: Gw2Config;

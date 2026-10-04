@@ -48,6 +48,7 @@ export const MESMER_CORE_CLONE_ATTACKS: Readonly<Record<string, MesmerCloneAttac
     ]
   },
   Dagger: {
+    id: ID.FLYING_CUTTER,
     name: 'Clone: Flying Cutter',
     coefficient: 0.5,
     hits: 1,
@@ -56,6 +57,7 @@ export const MESMER_CORE_CLONE_ATTACKS: Readonly<Record<string, MesmerCloneAttac
     weaponStrength: 26.5
   },
   Greatsword: {
+    id: ID.SPATIAL_SURGE,
     firstAttackDelay: 1.14,
     ticks: [
       { atMs: 520, coefficient: 0.8 / 3 },
@@ -66,12 +68,14 @@ export const MESMER_CORE_CLONE_ATTACKS: Readonly<Record<string, MesmerCloneAttac
     weaponStrength: 26.5
   },
   Rifle: {
+    id: ID.FRIENDLY_FIRE,
     coefficient: 0.5,
     hits: 1,
     interval: 1.2,
     weaponStrength: 26.5
   },
   Scepter: {
+    id: ID.ETHER_BOLT,
     name: 'Clone: Ether Bolt',
     coefficient: 0.5,
     hits: 1,
@@ -89,18 +93,21 @@ export const MESMER_CORE_CLONE_ATTACKS: Readonly<Record<string, MesmerCloneAttac
     weaponStrength: 26.3,
     sequence: [
       {
+        id: ID.PSYCUT,
         name: 'Clone: Psycut',
         coefficient: 1,
         hits: 1,
         interval: 0.6
       },
       {
+        id: ID.PSYSTRIKE,
         name: 'Clone: Psystrike',
         coefficient: 1,
         hits: 1,
         interval: 0.78
       },
       {
+        id: ID.MIND_PIERCE,
         name: 'Clone: Mind Pierce',
         coefficient: 1.5,
         hits: 1,
@@ -109,6 +116,7 @@ export const MESMER_CORE_CLONE_ATTACKS: Readonly<Record<string, MesmerCloneAttac
     ]
   },
   Staff: {
+    id: ID.WINDS_OF_CHAOS,
     name: 'Clone: Winds of Chaos',
     coefficient: 0.49,
     hits: 2,
@@ -135,18 +143,21 @@ export const MESMER_CORE_CLONE_ATTACKS: Readonly<Record<string, MesmerCloneAttac
     firstAttackDelay: 2.48,
     sequence: [
       {
+        id: ID.MIND_SLASH,
         name: 'Clone: Mind Slash',
         coefficient: 0.75,
         hits: 1,
         interval: 0.8266666666666667
       },
       {
+        id: ID.MIND_GASH,
         name: 'Clone: Mind Gash',
         coefficient: 0.75,
         hits: 1,
         interval: 0.8266666666666667
       },
       {
+        id: ID.MIND_STAB,
         name: 'Clone: Mind Stab',
         coefficient: 0.12,
         hits: 1,

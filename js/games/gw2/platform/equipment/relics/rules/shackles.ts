@@ -8,16 +8,7 @@ import { GW2_EVENT_ACTOR_TYPES } from '#gw2/platform/engine/events/actors.js';
 import { defineRelic } from '#gw2/platform/equipment/relics/rules/shared.js';
 
 export const shackles = defineRelic({
-  damagePayload(ctx) {
-    emitDamagePayload(ctx, ctx.relic!.state, {
-      type: 'proc',
-      at: 0,
-      source: 'Relic',
-      sourceId: 'damage-input',
-      actorType: 'effect',
-      skillName: 'Damage preview'
-    });
-  },
+  damagePayload: emitDamagePayload,
   createState: () => ({ readyAt: 0 }),
   emitConditionEffects(ctx, state, application) {
     const actorType = gw2EventActorType(application);

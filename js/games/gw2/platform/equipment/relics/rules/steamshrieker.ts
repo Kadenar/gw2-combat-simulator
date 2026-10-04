@@ -6,16 +6,7 @@ import { isGw2PlayerActorEvent } from '#gw2/platform/combat/state/event-ownershi
 import { defineRelic } from '#gw2/platform/equipment/relics/rules/shared.js';
 
 export const steamshrieker = defineRelic({
-  damagePayload(ctx) {
-    emitDamagePayload(ctx, ctx.relic!.state, {
-      type: 'proc',
-      at: 0,
-      source: 'Relic',
-      sourceId: 'damage-input',
-      actorType: 'effect',
-      skillName: 'Damage preview'
-    });
-  },
+  damagePayload: emitDamagePayload,
   combo(ctx, state, event) {
     if (
       !isGw2PlayerActorEvent(event) ||

@@ -1,6 +1,6 @@
 import type { SimulationEventBase } from '#gw2/platform/engine/events/events.js';
 import type { Skill } from '#gw2/platform/engine/skills/types.js';
-import type { AvailabilityResult, CastCommand, CooldownController } from '#gw2/platform/execution/types.js';
+import type { CastCommand, CooldownController } from '#gw2/platform/execution/types.js';
 import type { RotationCursor } from '#gw2/platform/execution/rotation-cursor.js';
 import type { Gw2ResolverEvent, Gw2ResolverReactionContributions } from '#gw2/platform/resolver/types.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
@@ -39,7 +39,6 @@ export interface RuntimeExecution<T extends object> {
   readonly condition?: (runtime: Gw2Runtime<T>, event: Gw2ResolverEvent) => void;
   readonly weaponSwap?: (runtime: Gw2Runtime<T>, event: Gw2ResolverEvent) => void;
   readonly report?: (runtime: Gw2Runtime<T>, combatEndTime: number) => void;
-  readonly planningAvailability: (runtime: Gw2Runtime<T>, skill: Skill) => AvailabilityResult;
 }
 
 export interface RuntimeOptions<T extends object> {
@@ -50,4 +49,16 @@ export interface RuntimeOptions<T extends object> {
   readonly output?: 'detailed' | 'score';
   readonly damageDiagnostics?: boolean;
   readonly onPhase?: Gw2SimulationOptions['onPhase'];
+}
+
+/** One finite occurrence collects resolver facts without combat reports or planning projections. */
+export interface DamageRuntimeOptions<T extends object> extends Omit<RuntimeOptions<T>, 'output' | 'observation'> {
+  readonly output: 'damage';
+  readonly ownsEffect: (event: SimulationEventBase) => boolean;
+}
+
+export interface DamageRuntimeResult {
+  readonly events: readonly Gw2ResolverEvent[];
+  readonly castSeconds: number;
+  readonly complete: boolean;
 }

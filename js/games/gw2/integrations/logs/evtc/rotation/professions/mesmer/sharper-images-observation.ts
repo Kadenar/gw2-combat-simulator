@@ -1,7 +1,8 @@
+import { MESMER_SKILL_IDS as ID } from '#gw2/professions/mesmer/data/ids.js';
 import type { CanonicalCatalog } from '#gw2/platform/engine/skills/types.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
 import type { Gw2Stats } from '#gw2/platform/combat/types.js';
-import { selectedSkillNameSet } from '#gw2/platform/builds/selected-skills.js';
+import { selectedSkillIdSet } from '#gw2/platform/builds/selected-skills.js';
 import {
   balanceProfileNumber,
   requireBalanceProfileFromContext
@@ -44,7 +45,7 @@ function sharperImagesDurations(
   config: Gw2Config
 ): readonly number[] {
   const passiveDurations = expectedConditionDurationsMs(baseDuration, 'Bleeding', config);
-  if (!selectedSkillNameSet(config.selectedSkills).has('Signet of Midnight')) return passiveDurations;
+  if (!selectedSkillIdSet(config.selectedSkillIds).has(ID.SIGNET_OF_MIDNIGHT)) return passiveDurations;
 
   // The selected Signet changes the inferred duration, so its active profile must supply the bonus.
   const bonus = balanceProfileNumber(

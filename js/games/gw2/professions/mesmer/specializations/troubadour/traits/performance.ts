@@ -257,14 +257,9 @@ export function applyCrescendoTraits(
     } else if (state.lastInstrument === 'Flute') {
       const condition = mesmerConditionFromProfile(context, TRAIT.ALTERED_CHORD, 'Confusion');
       if (condition)
-        buildMesmerConditions(
-          runtime.context,
-          skill.name,
-          damageAt,
-          condition,
-          'Player',
-          'Altered Chord — Confusion'
-        ).forEach((packet) => {
+        buildMesmerConditions(runtime.context, skill.name, damageAt, condition, 'Player', 'Altered Chord — Confusion', {
+          skillId: skill.id
+        }).forEach((packet) => {
           runtime.context.effects.emit({
             ...delivery,
             kind: 'packet',

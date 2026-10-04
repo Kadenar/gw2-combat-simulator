@@ -110,7 +110,7 @@ const PLAYER_MODIFIER_PREDICATES = Object.freeze([
           time: 1,
           event: event ?? {},
           actorType: event?.actorType,
-          config: { selectedSkills: ['Signet of Spite'] }
+          config: { selectedSkillIds: [10622] }
         },
         { power: 0 }
       ).power === 180
@@ -190,7 +190,7 @@ test('actual-player skill modifiers do not follow modifier ownership', () => {
   );
   assert.equal(
     modifyNecromancerCoreAttributes(
-      { catalog: necromancerCatalog, time: 1, config: { selectedSkills: ['Signet of Spite'] } },
+      { catalog: necromancerCatalog, time: 1, config: { selectedSkillIds: [10622] } },
       { power: 0 }
     ).power,
     180,

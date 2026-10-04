@@ -1,5 +1,5 @@
 {
-  "schemaVersion": 4,
+  "schemaVersion": 5,
   "profession": "elementalist",
   "gear": {
     "Helm": "Berserker's",
@@ -57,12 +57,12 @@
       "traits": "1-1-3"
     }
   ],
-  "selectedSkills": {
-    "Heal": "Rejuvenate",
-    "Utility1": "Fox's Fury",
-    "Utility2": "Signet of Fire",
-    "Utility3": "Cleansing Fire",
-    "Elite": "Glyph of Elementals"
+  "selectedSkillIds": {
+    "Heal": 76634,
+    "Utility1": 76711,
+    "Utility2": 5542,
+    "Utility3": 5535,
+    "Elite": 25488
   },
   "assumptions": {
     "simulationMode": "deterministic",

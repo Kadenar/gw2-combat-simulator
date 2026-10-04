@@ -1,31 +1,53 @@
-/** Supports both simulation arrays and slot-keyed application build loadouts. */
-export type Gw2SelectedSkillLoadout = readonly string[] | Readonly<Record<string, string>>;
+import type { CanonicalCatalog, SkillId } from '#gw2/platform/engine/skills/types.js';
 
-const preparedSkillNames = new WeakMap<object, ReadonlySet<string>>();
+/** Editor slots retain empties; runtime selections are flat immutable ID snapshots. */
+export type Gw2SelectedSkillSlots = Record<string, SkillId | null>;
+export type Gw2SelectedSkillLoadout = readonly SkillId[];
 
-/** Accepts nonempty skill names from supported containers and drops malformed entries at the build boundary. */
-export function normalizeSelectedSkillNames(value: unknown): readonly string[] {
-  const entries = Array.isArray(value)
-    ? value
-    : value && typeof value === 'object'
-      ? Object.values(value as Readonly<Record<string, unknown>>)
-      : [];
-  return entries.filter((name): name is string => typeof name === 'string' && name.length > 0);
+const preparedSkillIds = new WeakMap<object, ReadonlySet<SkillId>>();
+
+/** Reject malformed identities without coercing string IDs or resolving display names. */
+function checkedId(value: unknown): SkillId {
+  if ((typeof value === 'number' && Number.isFinite(value)) || (typeof value === 'string' && value.length > 0))
+    return value;
+  throw new TypeError('Selected skills must contain canonical skill IDs.');
 }
 
-/** Provides membership queries without making callers repeat loadout-shape handling. */
-export function selectedSkillNameSet(value: unknown): ReadonlySet<string> {
-  if (value && typeof value === 'object') {
-    const prepared = preparedSkillNames.get(value);
-    if (prepared) return prepared;
-  }
-
-  return new Set(normalizeSelectedSkillNames(value));
+/** Flatten editor slots explicitly, omitting only the canonical empty-slot value. */
+export function selectedSkillIdsFromSlots(value: unknown): SkillId[] {
+  if (!value || typeof value !== 'object' || Array.isArray(value))
+    throw new TypeError('selectedSkillIds must be a slot record.');
+  return Object.values(value)
+    .filter((id) => id !== null)
+    .map(checkedId);
 }
 
-/** Snapshot each simulation's loadout once; mutable editor inputs keep their uncached membership behavior. */
-export function prepareSelectedSkillLoadout(value: Gw2SelectedSkillLoadout): readonly string[] {
-  const names = Object.freeze(normalizeSelectedSkillNames(value));
-  preparedSkillNames.set(names, new Set(names));
-  return names;
+/** Reuse prepared membership while leaving mutable editor inputs uncached. */
+export function selectedSkillIdSet(
+  value: readonly SkillId[] | Readonly<Gw2SelectedSkillSlots> | undefined
+): ReadonlySet<SkillId> {
+  if (value === undefined) return new Set();
+  const prepared = preparedSkillIds.get(value);
+  if (prepared) return prepared;
+  return new Set(Array.isArray(value) ? value.map(checkedId) : selectedSkillIdsFromSlots(value));
 }
+
+/** Validate the catalog boundary and isolate simulation membership from subsequent editor mutations. */
+export function prepareSelectedSkillLoadout(
+  value: unknown,
+  catalog: Pick<CanonicalCatalog, 'skillsById'>
+): readonly SkillId[] {
+  if (!Array.isArray(value)) throw new TypeError('Simulation selectedSkillIds must be an array of canonical IDs.');
+  const ids = Object.freeze(
+    value.map((value) => {
+      const id = checkedId(value);
+      if (!catalog.skillsById.has(id)) throw new TypeError(`Unknown selected skill ID: ${id}.`);
+      return id;
+    })
+  );
+  preparedSkillIds.set(ids, new Set(ids));
+  return ids;
+}
+
+/** A failed persisted selection must remain recoverable instead of being replaced with defaults. */
+export class SelectedSkillMigrationError extends TypeError {}

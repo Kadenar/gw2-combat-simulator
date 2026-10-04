@@ -121,7 +121,7 @@ test('minion strike multipliers read Necromantic Corruption and Spirits Strength
     'Ritualist',
     ['Summon Bone Fiend', { type: 'wait', durationMs: 4000 }],
     {
-      selectedSkills: ['Summon Bone Fiend'],
+      selectedSkillIds: [10533],
       selectedTraitIds: [TRAIT.NECROMANTIC_CORRUPTION, TRAIT.SPIRITS_STRENGTH]
     }
   );

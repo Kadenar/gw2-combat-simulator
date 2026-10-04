@@ -6,16 +6,7 @@ import type { Gw2RelicContext, Gw2RelicState } from '#gw2/platform/equipment/rel
 
 /** Resolved interrupts share Severance's control trigger; each proc adds five independent, unmodified damage ticks. */
 export const agony = defineRelic({
-  damagePayload(ctx) {
-    emitDamagePayload(ctx, ctx.relic!.state, {
-      type: 'proc',
-      at: 0,
-      source: 'Relic',
-      sourceId: 'damage-input',
-      actorType: 'effect',
-      skillName: 'Damage preview'
-    });
-  },
+  damagePayload: emitDamagePayload,
   createState: () => ({ readyAt: 0 }),
   control(ctx, state, event) {
     // Like Severance, controls before the explicit combat boundary cannot consume the proc's cooldown.

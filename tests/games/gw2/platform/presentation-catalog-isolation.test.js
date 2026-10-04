@@ -45,7 +45,7 @@ function assertIsolated(bind, catalogs, read, expected) {
 
 test('Engineer Core and elite toolbelts use their own catalogs without Core binding side effects', () => {
   const catalogs = [1, 2].map((id) => catalog(skill(100, 'Heal'), skill(id, 'Toolbelt', { toolbeltParentId: 100 })));
-  const context = { config: { selectedSkills: ['Heal'] } };
+  const context = { config: { selectedSkillIds: [100] } };
   for (const bind of [bindEngineerCoreUi, bindHolosmithUi, bindAmalgamUi, bindScrapperUi]) {
     assertIsolated(bind, catalogs, (ui) => groupIds(ui, context, 'engineer-profession')[0], [1, 2]);
   }
@@ -57,7 +57,7 @@ test('Engineer kit and toolbelt projections follow IDs when catalog labels chang
   const grenade = skill(5807, 'Renamed attack', { kitId: equip.id, slot: 'Weapon_1' });
   const toolbelt = skill(5810, 'Renamed toolbelt', { toolbeltParentId: equip.id });
   const ui = bindEngineerCoreUi(catalog(equip, grenade, toolbelt));
-  const context = { config: { selectedSkills: [equip.name] }, professionState: { activeKit: equip.id } };
+  const context = { config: { selectedSkillIds: [equip.id] }, professionState: { activeKit: equip.id } };
   assert.deepEqual(groupIds(ui, context, 'engineer-kit-5805'), [grenade.id]);
   assert.deepEqual(groupIds(ui, context, 'engineer-profession'), [toolbelt.id]);
   assert.equal(ui.paletteOverride(context, equip).tileActive, false);
@@ -100,15 +100,20 @@ test('Untamed and Soulbeast derived skill collections remain instance-local', ()
 });
 
 test('Guardian virtue and mode helpers use each Core or elite instance catalog', () => {
-  for (const [bind, name] of [
-    [bindGuardianCoreUi, 'Virtue of Justice'],
-    [bindDragonhunterUi, 'Spear of Justice'],
-    [bindFirebrandUi, 'Tome of Justice'],
-    [bindLuminaryUi, 'Radiant Justice'],
-    [bindWillbenderUi, 'Rushing Justice']
+  for (const [bind, id] of [
+    [bindGuardianCoreUi, 9115],
+    [bindDragonhunterUi, 29887],
+    [bindFirebrandUi, 44364],
+    [bindLuminaryUi, 78837],
+    [bindWillbenderUi, 62668]
   ]) {
-    const catalogs = [1, 2].map((id) => catalog(skill(id, name, { tome: 'justice', radiantForgeSkill: true })));
-    assertIsolated(bind, catalogs, (ui) => groupIds(ui, {}, 'profession'), [[1], [2]]);
+    const catalogs = [1, 2].map((variant) =>
+      catalog(
+        skill(id, `Renamed virtue ${variant}`),
+        skill(variant, 'Mode action', { tome: 'justice', radiantForgeSkill: true })
+      )
+    );
+    assertIsolated(bind, catalogs, (ui) => groupIds(ui, {}, 'profession'), [[id], [id]]);
     if (bind === bindFirebrandUi || bind === bindLuminaryUi) {
       const group = bind === bindFirebrandUi ? 'tome-justice' : 'radiant-forge';
       assertIsolated(bind, catalogs, (ui) => groupIds(ui, {}, group), [[1], [2]]);

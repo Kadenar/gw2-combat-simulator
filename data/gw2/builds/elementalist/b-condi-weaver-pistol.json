@@ -1,5 +1,5 @@
 {
-  "schemaVersion": 4,
+  "schemaVersion": 5,
   "profession": "elementalist",
   "gear": {
     "Helm": "Viper's",
@@ -61,12 +61,12 @@
       "traits": "1-1-1"
     }
   ],
-  "selectedSkills": {
-    "Heal": "Signet of Restoration",
-    "Utility1": "Primordial Stance (Fire)",
-    "Utility2": "Signet of Fire",
-    "Utility3": "Signet of Earth",
-    "Elite": "Weave Self"
+  "selectedSkillIds": {
+    "Heal": 5503,
+    "Utility1": 40183,
+    "Utility2": 5542,
+    "Utility3": 5571,
+    "Elite": 43638
   },
   "assumptions": {
     "simulationMode": "deterministic",

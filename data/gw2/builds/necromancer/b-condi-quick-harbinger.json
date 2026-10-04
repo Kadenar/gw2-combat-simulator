@@ -1,5 +1,5 @@
 {
-  "schemaVersion": 3,
+  "schemaVersion": 4,
   "profession": "necromancer",
   "gear": {
     "Helm": "Viper's",
@@ -52,12 +52,12 @@
       "traits": "3-2-2"
     }
   ],
-  "selectedSkills": {
-    "Heal": "Elixir of Promise",
-    "Utility1": "Blood Is Power",
-    "Utility2": "Elixir of Anguish",
-    "Utility3": "Elixir of Risk",
-    "Elite": "Elixir of Ambition"
+  "selectedSkillIds": {
+    "Heal": 62667,
+    "Utility1": 10544,
+    "Utility2": 62662,
+    "Utility3": 62530,
+    "Elite": 62655
   },
   "assumptions": {
     "simulationMode": "deterministic",

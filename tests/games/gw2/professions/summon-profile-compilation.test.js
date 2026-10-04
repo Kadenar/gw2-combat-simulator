@@ -15,7 +15,7 @@ import { NECROMANCER_MINION_PROFILE_BY_SKILL_ID } from '#gw2/professions/necroma
 import { rangerPetAutoProfile, rangerPetBaseAttributes } from '#gw2/professions/ranger/core/mechanics/pet-profiles.js';
 
 test('elemental profile selection is independent from scheduler state', () => {
-  assert.equal(selectedElementalFromSkills(new Set(['Glyph of Elementals (Earth)'])), 'Earth');
+  assert.equal(selectedElementalFromSkills(new Set([ELEMENTALIST_ID.GLYPH_OF_ELEMENTALS_EARTH])), 'Earth');
   assert.equal(elementalForGlyphId(ELEMENTALIST_ID.GLYPH_OF_ELEMENTALS), 'Fire');
   assert.equal(elementalRuntimeProfile('Earth').stomp.skillId, ELEMENTALIST_ID.STOMP_ELEMENTAL_COMMAND);
 });

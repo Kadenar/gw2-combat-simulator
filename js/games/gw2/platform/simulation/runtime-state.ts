@@ -153,6 +153,8 @@ export interface RuntimeProfession<T extends object, TSkill extends Skill = Skil
     runtime: Gw2Runtime<T, TSkill>
   ): readonly import('#gw2/platform/combat/effect-state.js').EffectState[];
   readonly catalog: CanonicalCatalog<TSkill>;
+  /** Full profession identities remain valid selections when the active specialization narrows executable skills. */
+  readonly skillSelectionCatalog?: CanonicalCatalog<TSkill>;
   readonly rechargeRules?: readonly RechargeRule<T, TSkill>[];
   readonly traitTriggers?: readonly TraitTrigger<T, TSkill>[];
   createState(config: Gw2Config): T;

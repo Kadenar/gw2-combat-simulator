@@ -18,7 +18,7 @@ test('condition-bearing clone autoattacks apply their damaging conditions', () =
     ['Mirror Images', { name: '__wait', waitMs: 5000 }],
     defaultSimulationConfig({
       specialization: 'Mirage',
-      selectedSkills: ['Mirror Images'],
+      selectedSkillIds: [10202],
       primaryWeapon: 'Axe',
       secondaryWeapon: 'Pistol',
       initialResource: 0
@@ -72,7 +72,7 @@ test('condition-bearing clone autoattacks apply their damaging conditions', () =
     ['Mirror Images', { name: '__wait', waitMs: 2500 }],
     defaultSimulationConfig({
       specialization: 'Core',
-      selectedSkills: ['Mirror Images'],
+      selectedSkillIds: [10202],
       primaryWeapon: 'Scepter',
       secondaryWeapon: 'Pistol',
       initialResource: 0
@@ -117,7 +117,7 @@ test('Mirror Strikes applies Bleeding and Torment once across its two hits', () 
 test('axe clone attacks and Axes of Symmetry use cast-start snapshots', () => {
   const config = defaultSimulationConfig({
     specialization: 'Mirage',
-    selectedSkills: ['Mirror Images'],
+    selectedSkillIds: [10202],
     selectedTraitIds: [],
     primaryWeapon: 'Axe',
     secondaryWeapon: 'Torch',
@@ -181,7 +181,7 @@ test('Axes of Symmetry registers clone packets before a later overlapping action
     ],
     defaultSimulationConfig({
       specialization: 'Mirage',
-      selectedSkills: ['Mirror Images', 'Signet of Midnight'],
+      selectedSkillIds: [10202, 10234],
       selectedTraitIds: [],
       primaryWeapon: 'Axe',
       secondaryWeapon: 'Torch',
@@ -249,7 +249,7 @@ test('Ineptitude applies confusion for each direct blind on a normal target', ()
     defaultSimulationConfig({
       specialization: 'Core',
       selectedTraitIds: [TRAIT.INEPTITUDE],
-      selectedSkills: ['Signet of Midnight'],
+      selectedSkillIds: [10234],
       primaryWeapon: 'Staff',
       secondaryWeapon: '',
       initialResource: 0
@@ -276,7 +276,7 @@ test('Ineptitude direct blinds ignore the defiant-target interval', () => {
     defaultSimulationConfig({
       specialization: 'Core',
       selectedTraitIds: [TRAIT.INEPTITUDE],
-      selectedSkills: ['Signet of Midnight'],
+      selectedSkillIds: [10234],
       primaryWeapon: 'Staff',
       secondaryWeapon: '',
       initialResource: 0,
@@ -300,7 +300,7 @@ test('Ineptitude intervals only interrupt-generated blinds on defiant targets', 
     defaultSimulationConfig({
       specialization: 'Core',
       selectedTraitIds: [TRAIT.INEPTITUDE],
-      selectedSkills: ['Signet of Humility'],
+      selectedSkillIds: [29519],
       primaryWeapon: 'Scepter',
       secondaryWeapon: 'Pistol',
       initialResource: 0,
@@ -388,7 +388,7 @@ test('Signet of Midnight blind applies two confusion from Ineptitude', () => {
     defaultSimulationConfig({
       specialization: 'Core',
       selectedTraitIds: [TRAIT.INEPTITUDE],
-      selectedSkills: ['Signet of Midnight'],
+      selectedSkillIds: [10234],
       primaryWeapon: 'Staff',
       secondaryWeapon: '',
       initialResource: 0
@@ -410,7 +410,7 @@ test('Signet of Midnight expertise is inactive while recharging', () => {
     ['Confusing Images', 'Signet of Midnight', 'Confusing Images', 'Confusing Images'],
     defaultSimulationConfig({
       specialization: 'Core',
-      selectedSkills: ['Signet of Midnight'],
+      selectedSkillIds: [10234],
       primaryWeapon: 'Scepter',
       secondaryWeapon: '',
       stats: {
@@ -440,7 +440,7 @@ test('Continuum Shift restores Signet of Midnight passive expertise', () => {
     ['Continuum Split', 'Signet of Midnight', 'Continuum Shift', 'Confusing Images'],
     defaultSimulationConfig({
       specialization: 'Chronomancer',
-      selectedSkills: ['Signet of Midnight'],
+      selectedSkillIds: [10234],
       selectedTraitIds: [TRAIT.MALICIOUS_SORCERY],
       primaryWeapon: 'Scepter',
       secondaryWeapon: '',
@@ -508,7 +508,7 @@ test('Blinding Dissipation triggers Ineptitude once per Rewinder strike', () => 
     defaultSimulationConfig({
       specialization: 'Chronomancer',
       selectedTraitIds: [TRAIT.BLINDING_DISSIPATION, TRAIT.INEPTITUDE],
-      selectedSkills: ['Mirror Images'],
+      selectedSkillIds: [10202],
       initialResource: 0
     })
   );
@@ -813,7 +813,7 @@ test('Mesmer Peitha follows actual shadowsteps or successful Deception use', () 
       ],
       defaultSimulationConfig({
         specialization: 'Mirage',
-        selectedSkills: ['Crystal Sands', 'Jaunt'],
+        selectedSkillIds: [41065, 45449],
         primaryWeapon,
         secondaryWeapon: primaryWeapon === 'Axe' ? 'Torch' : '',
         initialResource: 0,
@@ -843,7 +843,7 @@ test('shadowsteps and Deceptions share Peitha cooldown at their execution times'
       ['Axes of Symmetry', { name: '__wait', waitMs }, 'Crystal Sands', { name: '__wait', waitMs: 1200 }],
       defaultSimulationConfig({
         specialization: 'Mirage',
-        selectedSkills: ['Crystal Sands'],
+        selectedSkillIds: [41065],
         primaryWeapon: 'Axe',
         secondaryWeapon: 'Torch',
         initialResource: 0,

@@ -1088,7 +1088,7 @@ test('Signet active buffs ignore boon duration and mastery requires activation',
 
 test('Signet of Rage suspends passive adrenaline until its cooldown ends', () => {
   // Compare ready, cooling-down, and recovered states using the authored recharge duration.
-  const config = { initialResource: 0, selectedSkills: ['Signet of Rage'] };
+  const config = { initialResource: 0, selectedSkillIds: [14355] };
   const wait = { type: 'wait', durationMs: 6000 };
   const ready = simulate('Core', ['__combat_start', wait], config);
   const cooling = simulate('Core', ['__combat_start', ID.SIGNET_OF_RAGE, wait], config);

@@ -1,5 +1,5 @@
 {
-  "schemaVersion": 3,
+  "schemaVersion": 4,
   "profession": "warrior",
   "gear": {
     "Helm": "Berserker's",
@@ -34,12 +34,12 @@
     { "name": "Strength", "traits": "3-3-1" },
     { "name": "Paragon", "traits": "1-1-2" }
   ],
-  "selectedSkills": {
-    "Heal": "Healing Signet",
-    "Utility1": "Bull's Charge",
-    "Utility2": "Signet of Fury",
-    "Utility3": "Signet of Might",
-    "Elite": "Signet of Rage"
+  "selectedSkillIds": {
+    "Heal": 14389,
+    "Utility1": 14516,
+    "Utility2": 14410,
+    "Utility3": 14404,
+    "Elite": 14355
   },
   "assumptions": {
     "simulationMode": "deterministic",

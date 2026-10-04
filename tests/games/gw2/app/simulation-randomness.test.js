@@ -473,7 +473,7 @@ test('Engineer random trait procs repeat by seed and vary across seeds', () => {
   const rotation = ['Grenade Kit', ...Array(12).fill('Grenade')];
   const config = {
     specialization: 'Core',
-    selectedSkills: ['Grenade Kit'],
+    selectedSkillIds: [5805],
     selectedTraitIds: [ENGINEER_TRAIT.SHRAPNEL, ENGINEER_TRAIT.SERRATED_STEEL, ENGINEER_TRAIT.INCENDIARY_POWDER],
     stats: {
       power: 2000,

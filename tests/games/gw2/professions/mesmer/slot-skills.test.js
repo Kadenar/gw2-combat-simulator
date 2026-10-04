@@ -130,7 +130,7 @@ test('Signet of Illusions passively generates one resource every ten combat seco
       [{ name: '__wait', waitMs: 20001 }],
       defaultSimulationConfig({
         specialization,
-        selectedSkills: ['Signet of Illusions'],
+        selectedSkillIds: [10247],
         initialResource: 0
       })
     ).events.filter((event) => event.type === 'resource' && event.reason === 'Signet of Illusions');
@@ -154,7 +154,7 @@ test('Signet of Illusions passively generates one resource every ten combat seco
       [{ name: '__wait', waitMs: 20001 }],
       defaultSimulationConfig({
         specialization: 'Core',
-        selectedSkills: [],
+        selectedSkillIds: [],
         initialResource: 0
       })
     ).events.some((event) => event.reason === 'Signet of Illusions'),
@@ -167,7 +167,7 @@ test('Signet of Illusions starts its passive cycle at combat start', () => {
     [{ name: '__wait', waitMs: 5000 }, '__combat_start', { name: '__wait', waitMs: 10001 }],
     defaultSimulationConfig({
       specialization: 'Core',
-      selectedSkills: ['Signet of Illusions'],
+      selectedSkillIds: [10247],
       initialResource: 0
     })
   );
@@ -186,7 +186,7 @@ test('Signet of Illusions restarts its ten-second cycle after recharge', () => {
     ['Signet of Illusions', { name: '__wait', waitMs: 70001 }],
     defaultSimulationConfig({
       specialization: 'Core',
-      selectedSkills: ['Signet of Illusions'],
+      selectedSkillIds: [10247],
       initialResource: 0,
       boons: {
         quickness: false,
@@ -209,7 +209,7 @@ test('Signet of Illusions does not recharge Continuum Split or Crescendo', () =>
     ['Continuum Split', { name: '__wait', waitMs: 2000 }, 'Split Second', 'Signet of Illusions'],
     defaultSimulationConfig({
       specialization: 'Chronomancer',
-      selectedSkills: ['Signet of Illusions'],
+      selectedSkillIds: [10247],
       initialResource: 0
     })
   );
@@ -221,7 +221,7 @@ test('Signet of Illusions does not recharge Continuum Split or Crescendo', () =>
     ['Lively Lute', 'Crescendo', 'Signet of Illusions'],
     defaultSimulationConfig({
       specialization: 'Troubadour',
-      selectedSkills: ['Signet of Illusions'],
+      selectedSkillIds: [10247],
       initialResource: 1
     })
   );

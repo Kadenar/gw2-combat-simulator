@@ -15,7 +15,7 @@ const config = (overrides = {}) =>
     secondaryWeapon: 'Focus',
     selectedTraitIds: [],
     initialResource: 0,
-    selectedSkills: ['Mirage Advance', 'Crystal Sands', 'Jaunt'],
+    selectedSkillIds: [42851, 41065, 45449],
     ...overrides
   });
 const procs = (result, name) => result.procSteps.filter((proc) => proc.skill === name);
@@ -86,7 +86,7 @@ test('Rain of Swords conditions and Aristocracy follow surviving pulses', () => 
       ['Rain of Swords', wait(5500)],
       config({
         specialization: 'Virtuoso',
-        selectedSkills: ['Rain of Swords'],
+        selectedSkillIds: [45425],
         relic
       })
     );
@@ -106,7 +106,7 @@ test('Rain of Swords conditions and Aristocracy follow surviving pulses', () => 
     [{ name: 'Rain of Swords', offTarget: true }, wait(5500)],
     config({
       specialization: 'Virtuoso',
-      selectedSkills: ['Rain of Swords'],
+      selectedSkillIds: [45425],
       relic: 'Aristocracy'
     })
   );
@@ -139,7 +139,7 @@ test('Gravity Well controls occur once on each authored pulse and cancelled cast
       [{ name: 'Gravity Well', ...(interrupted ? { interruptMs: 100 } : {}) }, wait(3500)],
       config({
         specialization: 'Chronomancer',
-        selectedSkills: ['Gravity Well'],
+        selectedSkillIds: [30359],
         selectedTraitIds: [TRAIT.DAZZLING]
       })
     );

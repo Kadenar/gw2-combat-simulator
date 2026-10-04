@@ -1,3 +1,4 @@
+import { SelectedSkillMigrationError } from '#gw2/platform/builds/selected-skills.js';
 import type { Gw2AppAdapter } from '#gw2/app/types.js';
 import type { Gw2CanonicalBuild } from '#gw2/platform/builds/types.js';
 
@@ -44,8 +45,19 @@ export function loadBuild(adapter: Gw2AppAdapter): Gw2CanonicalBuild {
   const resolved = resolveAdapter(adapter);
   try {
     const saved = JSON.parse(localStorage.getItem(resolved.storageKey) || 'null');
-    return resolved.toApplicationBuild(saved || resolved.profession.createBuildDefaults());
-  } catch {
+    const build = resolved.toApplicationBuild(saved || resolved.profession.createBuildDefaults());
+    // Rewrite only after conversion succeeds; storage failures leave the source recoverable.
+    if (saved && Object.hasOwn(saved, 'selectedSkills')) {
+      try {
+        localStorage.setItem(resolved.storageKey, JSON.stringify(build));
+      } catch {
+        /* Keep the converted in-memory build. */
+      }
+    }
+
+    return build;
+  } catch (error) {
+    if (error instanceof SelectedSkillMigrationError) throw error;
     return createDefaultBuild(resolved);
   }
 }

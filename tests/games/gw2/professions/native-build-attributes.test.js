@@ -77,9 +77,9 @@ const revenantConduitRules = revenantProfession.resolveProfession({
   specialization: 'Conduit'
 });
 
-function traitDelta(calculate, build, trait, attribute, selectedSkills = [], weaponSet = 1) {
-  const withTrait = calculate(build, selectedSkills, weaponSet).attributes;
-  const withoutTrait = calculate(build, selectedSkills, weaponSet, trait).attributes;
+function traitDelta(calculate, build, trait, attribute, selectedSkillIds = [], weaponSet = 1) {
+  const withTrait = calculate(build, selectedSkillIds, weaponSet).attributes;
+  const withoutTrait = calculate(build, selectedSkillIds, weaponSet, trait).attributes;
 
   return withTrait[attribute].final - withoutTrait[attribute].final;
 }

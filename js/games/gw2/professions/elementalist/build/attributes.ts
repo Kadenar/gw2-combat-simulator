@@ -21,7 +21,7 @@ export function applyElementalistBuildAttributeRules(
   common: Gw2CommonAttributeResult,
   context: Gw2BuildAttributeRuleContext
 ): Gw2FinalizedAttributeResult {
-  const { activeTraits, hasSelectedSkill, profileContext } = createBuildAttributeContext(
+  const { activeTraits, hasSelectedSkillId, profileContext } = createBuildAttributeContext(
     context,
     elementalistCatalog,
     getActiveTraits
@@ -40,7 +40,7 @@ export function applyElementalistBuildAttributeRules(
       to: 'Precision',
       amount: balanceProfileNumber(signetOfFirePassiveProfile, 'attributeBonus'),
       feedsConversions: false,
-      enabled: hasSelectedSkill(ID.SIGNET_OF_FIRE)
+      enabled: hasSelectedSkillId(ID.SIGNET_OF_FIRE)
     }
   ];
 

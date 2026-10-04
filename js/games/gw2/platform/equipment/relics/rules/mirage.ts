@@ -7,16 +7,7 @@ import { isGw2PlayerActorEvent } from '#gw2/platform/combat/state/event-ownershi
 import { defineRelic } from '#gw2/platform/equipment/relics/rules/shared.js';
 
 export const mirage = defineRelic({
-  damagePayload(ctx) {
-    emitDamagePayload(ctx, ctx.relic!.state, {
-      type: 'proc',
-      at: 0,
-      source: 'Relic',
-      sourceId: 'damage-input',
-      actorType: 'effect',
-      skillName: 'Damage preview'
-    });
-  },
+  damagePayload: emitDamagePayload,
   createState: () => ({ readyAt: -Infinity }),
   action(ctx, state, dodge) {
     // A successful player evade claims the same ICD once, at its actual activation.

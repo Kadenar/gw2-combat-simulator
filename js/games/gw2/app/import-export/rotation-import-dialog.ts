@@ -187,26 +187,29 @@ export function loadManifestBuilds(
   return loading;
 }
 
-function selectedSkillNames(build: unknown): string[] | null {
+function selectedSkillIds(build: unknown): (string | number)[] | null {
   if (!build || typeof build !== 'object' || Array.isArray(build)) return null;
-  const selectedSkills = (build as { selectedSkills?: unknown }).selectedSkills;
-  if (!selectedSkills || typeof selectedSkills !== 'object' || Array.isArray(selectedSkills)) return null;
-  const names = Object.values(selectedSkills);
-  return names.every((name) => typeof name === 'string') ? names.filter(Boolean).sort() : null;
+  const selectedSkillIds = (build as { selectedSkillIds?: unknown }).selectedSkillIds;
+  if (!selectedSkillIds || typeof selectedSkillIds !== 'object' || Array.isArray(selectedSkillIds)) return null;
+  const ids = Object.values(selectedSkillIds);
+  // Sorting includes the ID type so numeric and string identities stay distinct across slot orderings.
+  return ids.every((id) => id === null || typeof id === 'string' || (typeof id === 'number' && Number.isFinite(id)))
+    ? ids.filter((id) => id !== null).sort((a, b) => `${typeof a}:${a}`.localeCompare(`${typeof b}:${b}`))
+    : null;
 }
 
 /** Keeps manifest references compatible with the active profession and selected skill loadout. */
 export function manifestRotationMatchesBuild(build: unknown, currentBuild: Gw2CanonicalBuild): boolean {
   if (!build || typeof build !== 'object' || Array.isArray(build)) return false;
   const candidate = build as { profession?: unknown };
-  const candidateSkills = selectedSkillNames(build);
-  const currentSkills = selectedSkillNames(currentBuild);
+  const candidateSkills = selectedSkillIds(build);
+  const currentSkills = selectedSkillIds(currentBuild);
   return (
     candidate.profession === currentBuild.profession &&
     candidateSkills !== null &&
     currentSkills !== null &&
     candidateSkills.length === currentSkills.length &&
-    candidateSkills.every((name, index) => name === currentSkills[index])
+    candidateSkills.every((id, index) => id === currentSkills[index])
   );
 }
 

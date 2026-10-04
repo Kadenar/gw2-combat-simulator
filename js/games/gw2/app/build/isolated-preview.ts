@@ -40,8 +40,8 @@ export function createIsolatedPreview(
   // Removing a disabled passive before recalculation also updates conversions that use the passive's attributes.
   for (const control of controls) {
     if (control.kind !== 'passive' || values[control.key]) continue;
-    for (const [slot, name] of Object.entries(preview.build.selectedSkills)) {
-      if (name === control.field) preview.build.selectedSkills[slot] = '';
+    for (const [slot, id] of Object.entries(preview.build.selectedSkillIds)) {
+      if (id === control.skillId) preview.build.selectedSkillIds[slot] = null;
     }
   }
 

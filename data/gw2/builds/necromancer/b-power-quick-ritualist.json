@@ -1,5 +1,5 @@
 {
-  "schemaVersion": 3,
+  "schemaVersion": 4,
   "profession": "necromancer",
   "gear": {
     "Helm": "Assassin's",
@@ -53,12 +53,12 @@
       "traits": "3-2-2"
     }
   ],
-  "selectedSkills": {
-    "Heal": "Summon Blood Fiend",
-    "Utility1": "Summon Bone Minions",
-    "Utility2": "Nightmare Weapon",
-    "Utility3": "Splinter Weapon",
-    "Elite": "Summon Flesh Golem"
+  "selectedSkillIds": {
+    "Heal": 10547,
+    "Utility1": 10541,
+    "Utility2": 76739,
+    "Utility3": 76975,
+    "Elite": 10646
   },
   "assumptions": {
     "simulationMode": "deterministic",

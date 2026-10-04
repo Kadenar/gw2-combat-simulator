@@ -40,7 +40,7 @@ test('committed ground skills and Extirpate preserve effects and cast-lane owner
       ],
       {
         primaryWeapon: 'Spear',
-        selectedSkills: ['Plaguelands', 'Well of Darkness'],
+        selectedSkillIds: [10549, 10607],
         selectedTraitIds: []
       },
       { kind: 'tail', durationMs: 10000 }
@@ -71,7 +71,7 @@ test('elixir state commits chronologically and cancelled throws leave it untouch
       specialization: 'Harbinger',
       initialBlight: 20,
       initialCascadingCorruptionStacks: 15,
-      selectedSkills: { utility1: 'Elixir of Risk' },
+      selectedSkillIds: [62530],
       selectedTraitIds: [TRAIT.CASCADING_CORRUPTION]
     };
     const native = necromancerProfession.runtimeFor(config);
@@ -307,12 +307,12 @@ test('NEC-002 transformed follow-ups require an unexpired, unconsumed parent act
     for (const warning of result.warnings) assert.match(warning, /Terrify.*not currently armed/);
   }
 
-  const lich = simulate('Core', ['Lich Form', 'March of Undeath'], { selectedSkills: { elite: 'Lich Form' } });
+  const lich = simulate('Core', ['Lich Form', 'March of Undeath'], { selectedSkillIds: [10550] });
   assert.match(lich.warnings.join(' '), /not currently armed/);
 });
 
 test('NEC-004 temporary horrors retain authored strike ticks and observation clipping', () => {
-  const config = { selectedSkills: { elite: 'Lich Form' } };
+  const config = { selectedSkillIds: [10550] };
   const run = (durationMs) => simulate('Core', ['Lich Form', 'Summon Madness'], config, { kind: 'tail', durationMs });
   const result = run(15000);
   assert.deepEqual(result.warnings, []);
@@ -417,7 +417,7 @@ test('NEC-007 strike life force is spendable by the next shroud entry', () => {
 
   const minion = simulate('Core', ['Summon Blood Fiend', wait(4000)], {
     initialResource: 0,
-    selectedSkills: { heal: 'Summon Blood Fiend' },
+    selectedSkillIds: [10547],
     selectedTraitIds: [TRAIT.SPITEFUL_FORTITUDE],
     target: { health: 1000000, startingHealthFraction: 0.4 }
   });
@@ -549,7 +549,7 @@ test('NEC-009 interrupted minion summons commit no creature, command, or attacks
         interrupted ? { type: 'cast', skillId: ID.SUMMON_BLOOD_FIEND, interruptAfterMs: 100 } : 'Summon Blood Fiend',
         wait(4000)
       ],
-      { selectedSkills: { heal: 'Summon Blood Fiend' } }
+      { selectedSkillIds: [10547] }
     );
     assert.deepEqual(result.warnings, []);
     assert.equal(Number(result.planningState.profession.activeMinions['blood-fiend'] || 0), interrupted ? 0 : 1);
@@ -562,7 +562,7 @@ test('NEC-009 interrupted minion summons commit no creature, command, or attacks
 });
 
 test('NEC-010 Lich grants its ending life force exactly once', () => {
-  const config = { initialResource: 0, selectedSkills: { elite: 'Lich Form' } };
+  const config = { initialResource: 0, selectedSkillIds: [10550] };
   for (const [actions, lifeForce] of [
     [[], 0],
     [['Exit Lich Form'], 15],
@@ -590,7 +590,7 @@ test('shroud depletion waits for its 40 ms detection tick across fractional obse
 test('NEC-012 passive gains, cap, and depletion are invariant under wait partitioning', () => {
   for (const initialResource of [100, 10]) {
     for (const selectedTraitIds of [[], [TRAIT.ETERNAL_LIFE]]) {
-      const config = { initialResource, selectedTraitIds, selectedSkills: { utility1: 'Signet of Undeath' } };
+      const config = { initialResource, selectedTraitIds, selectedSkillIds: [10611] };
       const whole = simulate('Core', ['Death Shroud', wait(8000)], config);
       const split = simulate('Core', ['Death Shroud', ...[1000, 2000, 1000, 1000, 1000, 2000].map(wait)], config);
       assert.deepEqual(whole.warnings, []);
@@ -602,6 +602,6 @@ test('NEC-012 passive gains, cap, and depletion are invariant under wait partiti
     }
   }
 
-  const config = { initialResource: 0, selectedSkills: { utility1: 'Signet of Undeath' } };
+  const config = { initialResource: 0, selectedSkillIds: [10611] };
   assert.equal(advance(config, [3, 3]).lifeForce.value, advance(config, [3]).lifeForce.value);
 });

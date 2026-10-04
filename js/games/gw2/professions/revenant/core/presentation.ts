@@ -47,7 +47,7 @@ function rotationEntryName(entry: unknown, context: RevenantUiContext): string {
 // when projected runtime state is incomplete.
 function revenantTimelineSkillIcon(context: RevenantUiContext = {}): string {
   const skill = context.skill;
-  if (skill?.name !== 'Swap Legends') return '';
+  if (skill?.id !== SKILL.SWAP_LEGENDS) return '';
   const selected = context.build?.selectedLegends || [];
   if (selected.length !== 2) return '';
   const startingIndex = Math.max(0, selected.indexOf(context.build?.startingLegend || ''));
@@ -103,7 +103,10 @@ export const revenantCoreUi: RevenantUiSlice = Object.freeze({
     const skill = input as import('#gw2/professions/revenant/types.js').RevenantSkill;
     return {
       ...(skill.legendId ? { config: { startingLegend: skill.legendId } } : {}),
-      inputs: { upkeep: String(context.values.upkeep ?? 'None') }
+      inputs:
+        context.values.upkeep && context.values.upkeep !== 'null'
+          ? { upkeepSkillId: JSON.parse(String(context.values.upkeep)) }
+          : {}
     };
   },
 
@@ -121,7 +124,12 @@ export const revenantCoreUi: RevenantUiSlice = Object.freeze({
         group: 'Mechanic',
         kind: 'special',
         scope: ['damage'],
-        options: ['None', ...new Set(upkeeps.map((skill) => skill.name))],
+        options: ['null', ...new Set(upkeeps.map((skill) => JSON.stringify(skill.id)))],
+        initial: 'null',
+        optionLabels: {
+          null: 'None',
+          ...Object.fromEntries(upkeeps.map((skill) => [JSON.stringify(skill.id), skill.name]))
+        },
         description: 'Activate before weapon measurements; the runtime spends and drains Energy'
       });
     // Spear's native pool scales Raze and is consumed normally on an eligible swap.

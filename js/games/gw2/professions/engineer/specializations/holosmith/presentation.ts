@@ -13,8 +13,7 @@ import {
   engineerUiSpecialization,
   engineerUiState,
   hasActiveTrait,
-  namedSkillId,
-  uniqueIdsBySkillName
+  uniqueSkillIds
 } from '#gw2/professions/engineer/core/presentation.js';
 import { ENGINEER_SKILL_IDS as ID } from '#gw2/professions/engineer/data/ids.js';
 import { HOLOSMITH_FORGE_TOGGLE_SKILL_IDS } from '#gw2/professions/engineer/specializations/holosmith/mechanics/constants.js';
@@ -123,12 +122,12 @@ export function bindHolosmithUi(catalog: Readonly<CanonicalCatalog<HolosmithSkil
         {
           id: 'engineer-profession',
           label: 'F',
-          skillIds: uniqueIdsBySkillName(
+          skillIds: uniqueSkillIds(
             catalog,
             [
               ...engineerToolbeltSkillIds(catalog, context).slice(0, 4),
-              namedSkillId(catalog, 'Engage Photon Forge'),
-              namedSkillId(catalog, 'Deactivate Photon Forge')
+              ID.ENGAGE_PHOTON_FORGE,
+              ID.DEACTIVATE_PHOTON_FORGE
             ].filter((skillId): skillId is SkillId => skillId != null)
           ),
           color: '#b88a35',

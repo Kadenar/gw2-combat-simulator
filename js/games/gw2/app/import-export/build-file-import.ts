@@ -11,7 +11,7 @@ export const BUILD_FILE_IMPORT_ACCEPT = '.json,application/json';
 
 // The codec fills every missing field with defaults, so an unrelated JSON object would otherwise import as a
 // default build. Older saves can omit `profession`, so any core build field marks a build.
-const BUILD_FIELDS = ['profession', 'specializations', 'selectedSkills', 'weapons', 'gear'];
+const BUILD_FIELDS = ['profession', 'specializations', 'selectedSkillIds', 'selectedSkills', 'weapons', 'gear'];
 
 export interface BuildFileImportPreview {
   readonly fileName: string;

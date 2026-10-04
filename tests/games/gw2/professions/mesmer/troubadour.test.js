@@ -180,7 +180,7 @@ test('committed Lute interruptions preserve pending performance packets', () => 
 test('Troubadour performance packets register before later overlapping actions', () => {
   const config = defaultSimulationConfig({
     specialization: 'Troubadour',
-    selectedSkills: ['Signet of Midnight'],
+    selectedSkillIds: [10234],
     initialResource: 3
   });
   for (const [skillName, offset] of [
@@ -328,7 +328,7 @@ test('Chaotic Interruption recharges a phantasm cast before Tortured Mastermind 
     defaultSimulationConfig({
       specialization: 'Troubadour',
       primaryWeapon: 'Staff',
-      selectedSkills: ['Flustering Flute', 'Tale of the Tortured Mastermind'],
+      selectedSkillIds: [76746, 77066],
       selectedTraitIds: [TRAIT.CHAOTIC_INTERRUPTION],
       target: { activatingSkills: true }
     })

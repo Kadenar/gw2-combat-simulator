@@ -1,7 +1,8 @@
+import { GUARDIAN_SKILL_IDS as ID } from '#gw2/professions/guardian/data/ids.js';
 import { attributeProvenance } from '#gw2/platform/builds/attribute-provenance.js';
 import type { Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
-import { hasSelectedSkill } from '#gw2/platform/combat/query/runtime-query.js';
+import { hasSelectedSkillId } from '#gw2/platform/combat/query/runtime-query.js';
 import {
   balanceProfileNumber,
   requireBalanceProfileFromContext
@@ -30,7 +31,7 @@ const guardianCoreModifierRules = Object.freeze<readonly Gw2ModifierRule[]>([
         (Number(passiveActive) - Number(attributeProvenance(context.config).professionStaticRulesApplied)) * amount
       );
     },
-    when: (context) => hasSelectedSkill(context, 'Bane Signet')
+    when: (context) => hasSelectedSkillId(context, ID.BANE_SIGNET)
   },
   {
     order: -14,
@@ -54,7 +55,7 @@ const guardianCoreModifierRules = Object.freeze<readonly Gw2ModifierRule[]>([
           ? amount
           : 0;
     },
-    when: (context) => hasSelectedSkill(context, 'Signet of Wrath')
+    when: (context) => hasSelectedSkillId(context, ID.SIGNET_OF_WRATH)
   }
 ]);
 

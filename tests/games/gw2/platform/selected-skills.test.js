@@ -1,45 +1,71 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-
 import {
-  normalizeSelectedSkillNames,
-  selectedSkillNameSet,
+  selectedSkillIdsFromSlots,
+  selectedSkillIdSet,
   prepareSelectedSkillLoadout
 } from '#gw2/platform/builds/selected-skills.js';
+import { selectedSlotSkillAvailability } from '#gw2/platform/engine/skills/availability.js';
+import { hasSelectedSkillId } from '#gw2/platform/combat/query/runtime-query.js';
+import { availableSlotSkills } from '#gw2/app/build/panels/skills.js';
 
-test('selected skill names normalize array and slot-keyed loadouts', () => {
-  assert.deepEqual(normalizeSelectedSkillNames(['One', 'Two']), ['One', 'Two']);
-  assert.deepEqual(normalizeSelectedSkillNames({ Heal: 'Three', Utility1: 'Four' }), ['Three', 'Four']);
+const first = { id: 1, name: 'Shared name', type: 'Utility' };
+const second = { id: '1', name: 'Shared name', type: 'Utility' };
+const catalog = {
+  skillsById: new Map([
+    [first.id, first],
+    [second.id, second]
+  ])
+};
+
+// UI choices group only explicitly authored variants, never unrelated skills sharing a label.
+test('slot choices retain duplicate labels and group authored loadout variants', () => {
+  const app = {
+    skills: [first, second, { ...first, id: 3, paletteTileId: first.id }],
+    build: {},
+    activeCatalog: catalog,
+    profession: { ui: {} },
+    adapter: { eliteSpecialization: () => 'Core', isSkillAvailable: () => true }
+  };
+  assert.deepEqual(
+    availableSlotSkills(app, 'Utility').map((skill) => skill.id),
+    [1, '1']
+  );
 });
 
-test('selected skill names discard embedded objects in arrays and slot records', () => {
-  const selected = [{ id: 1, name: 'One' }, 'Two', { id: 3, name: 'Three' }];
+// String IDs remain distinct from numeric IDs; labels cannot create catalog identity.
+test('selection boundaries retain canonical IDs and reject malformed or unknown values', () => {
+  assert.deepEqual(selectedSkillIdsFromSlots({ Heal: null, Utility1: 1, Utility2: '1' }), [1, '1']);
+  assert.deepEqual(prepareSelectedSkillLoadout([1, '1'], catalog), [1, '1']);
+  assert.deepEqual(prepareSelectedSkillLoadout([], catalog), []);
+  for (const input of [null, {}, [null], [undefined], [''], [NaN], [Infinity], [true], [{}], ['Shared name'], [2]]) {
+    assert.throws(() => prepareSelectedSkillLoadout(input, catalog), TypeError);
+  }
 
-  assert.deepEqual(normalizeSelectedSkillNames(selected), ['Two']);
-  assert.deepEqual([...selectedSkillNameSet(selected)], ['Two']);
-  assert.deepEqual(normalizeSelectedSkillNames({ Heal: { name: 'One' }, Utility1: 'Two' }), ['Two']);
+  assert.throws(() => selectedSkillIdsFromSlots({ Utility1: undefined }), TypeError);
 });
 
-test('selected skill names reject empty input and malformed entries', () => {
-  assert.deepEqual(normalizeSelectedSkillNames(undefined), []);
-  assert.deepEqual(normalizeSelectedSkillNames(null), []);
-  assert.deepEqual(normalizeSelectedSkillNames([]), []);
-  assert.deepEqual(normalizeSelectedSkillNames({}), []);
-  assert.deepEqual(normalizeSelectedSkillNames(['Valid', '', null, undefined, 42, {}, { name: '' }, { name: 42 }]), [
-    'Valid'
-  ]);
+test('prepared membership is reused and isolated without freezing mutable editor inputs', () => {
+  const slots = { Heal: null, Utility1: 1 };
+  const prepared = prepareSelectedSkillLoadout(selectedSkillIdsFromSlots(slots), catalog);
+  const membership = selectedSkillIdSet(prepared);
+  assert.equal(selectedSkillIdSet(prepared), membership);
+  slots.Utility1 = '1';
+  assert.deepEqual([...selectedSkillIdSet(prepared)], [1]);
+  assert.deepEqual([...selectedSkillIdSet(slots)], ['1']);
+  assert.equal(Object.isFrozen(slots), false);
+  assert.equal(Object.isFrozen(prepared), true);
 });
 
-// Simulations reuse a private snapshot; editing the original loadout cannot poison the running or next simulation.
-test('prepared skill membership is reused and isolated from mutable loadouts', () => {
-  const loadout = { Heal: 'One', Utility1: 'Two' };
-  const prepared = prepareSelectedSkillLoadout(loadout);
-  const names = selectedSkillNameSet(prepared);
-  assert.equal(selectedSkillNameSet(prepared), names);
-  assert.deepEqual([...names], ['One', 'Two']);
-  loadout.Heal = 'Three';
-  assert.deepEqual([...selectedSkillNameSet(prepared)], ['One', 'Two']);
-  assert.deepEqual([...selectedSkillNameSet(loadout)], ['Three', 'Two']);
-  assert.deepEqual([...selectedSkillNameSet(prepareSelectedSkillLoadout(loadout))], ['Three', 'Two']);
-  assert.equal(Object.isFrozen(loadout), false);
+test('duplicate names and renames never change availability or passive membership', () => {
+  const config = { selectedSkillIds: prepareSelectedSkillLoadout([first.id], catalog) };
+  assert.equal(selectedSlotSkillAvailability({ config, catalog }, first), null);
+  assert.equal(selectedSlotSkillAvailability({ config, catalog }, second).ready, false);
+  assert.equal(hasSelectedSkillId({ config }, first.id), true);
+  assert.equal(hasSelectedSkillId({ config }, second.id), false);
+  const renamed = { ...first, name: 'Renamed skill' };
+  assert.equal(selectedSlotSkillAvailability({ config, catalog }, renamed), null);
+  assert.equal(hasSelectedSkillId({ config }, renamed.id), true);
+  assert.equal(selectedSlotSkillAvailability({ config: {}, catalog }, second), null);
+  assert.equal(selectedSlotSkillAvailability({ config: { selectedSkillIds: [] }, catalog }, first).ready, false);
 });

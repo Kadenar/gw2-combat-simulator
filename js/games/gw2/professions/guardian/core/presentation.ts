@@ -1,3 +1,4 @@
+import { GUARDIAN_SKILL_IDS as ID } from '#gw2/professions/guardian/data/ids.js';
 import type { ProfessionAttributePreviewContext } from '#gw2/platform/profession-presentation/attribute-preview.js';
 import { createPreviewControls } from '#gw2/professions/shared/attribute-preview.js';
 
@@ -64,19 +65,18 @@ function guardianCoreStateSnapshot(context: GuardianUiContext): RotationStateSna
 
 // Resolve named Guardian mechanic skills to their currently active flip faces for
 // stable skill-bar and palette projection.
-export function guardianUiSkillIdsByName(
+export function guardianUiSkillIds(
   catalog: Readonly<CanonicalCatalog<GuardianSkill>>,
-  names: readonly string[],
+  ids: readonly SkillId[],
   context: GuardianUiContext = {}
 ): SkillId[] {
   const activeFlips =
     (flattenProfessionState(context.state?.profession || context.professionState).availableFlips as
       SkillFlipWindows | undefined) || {};
-  return names.flatMap((name) => {
-    const id = catalog.skillsByName.get(name)?.id;
-    if (id == null) return [];
+  return ids.flatMap((id) => {
     const skill = catalog.skillsById.get(id);
-    const flipId = skill?.flipSkillId;
+    if (!skill) return [];
+    const flipId = skill.flipSkillId;
     const flip = flipId == null ? undefined : catalog.skillsById.get(flipId);
     // Direct UI callers may supply an older snapshot, so apply the same expiry gate as cast availability.
     return flipId != null &&
@@ -116,7 +116,11 @@ function guardianPaletteWeaponSkills(context: GuardianUiContext, skills: readonl
   });
 }
 
-const CORE_VIRTUE_NAMES = Object.freeze(['Virtue of Justice', 'Virtue of Resolve', 'Virtue of Courage']);
+const CORE_VIRTUE_IDS = Object.freeze([
+  GUARDIAN_SKILL_IDS.JUSTICE,
+  GUARDIAN_SKILL_IDS.RESOLVE,
+  GUARDIAN_SKILL_IDS.COURAGE
+]);
 const GUARDIAN_CORE_EFFECT_PRESENTATIONS: readonly ProfessionEffectPresentation[] = Object.freeze([
   {
     id: 'guardian-inspiring-virtue',
@@ -144,7 +148,7 @@ export function bindGuardianCoreUi(catalog: Readonly<CanonicalCatalog<GuardianSk
 
       preview.boon('resolution', 'Righteous Instincts');
       preview.condition('Burning', 'Radiant Power');
-      preview.passives('Bane Signet', 'Signet of Wrath');
+      preview.passives(ID.BANE_SIGNET, ID.SIGNET_OF_WRATH);
       return preview.controls;
     },
 
@@ -159,7 +163,7 @@ export function bindGuardianCoreUi(catalog: Readonly<CanonicalCatalog<GuardianSk
             {
               id: 'profession',
               label: 'F',
-              skillIds: guardianUiSkillIdsByName(catalog, CORE_VIRTUE_NAMES, context),
+              skillIds: guardianUiSkillIds(catalog, CORE_VIRTUE_IDS, context),
               color: '#2f7eb8',
               resourceAnchor: true
             }

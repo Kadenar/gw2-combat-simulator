@@ -241,8 +241,7 @@ export function applyAmalgamStrain(context: EngineerRuntime, morphKind: AmalgamM
     }
 
     // Resolve each strain's catalog identity before direct canonical status emission.
-    const sourceSkill = context.helpers.skillsById.get(effect.sourceId) ||
-      context.helpers.skillsByName.get(effect.name) || { id: effect.sourceId, name: effect.name };
+    const sourceSkill = context.helpers.skillsById.get(effect.sourceId) || { id: effect.sourceId, name: effect.name };
     buildEngineerPackets(
       'buff',
       {

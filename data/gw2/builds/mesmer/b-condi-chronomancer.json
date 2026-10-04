@@ -1,5 +1,5 @@
 {
-  "schemaVersion": 3,
+  "schemaVersion": 4,
   "profession": "mesmer",
   "gear": {
     "Helm": "Viper's",
@@ -65,12 +65,12 @@
       "traits": "2-2-3"
     }
   ],
-  "selectedSkills": {
-    "Heal": "Signet of the Ether",
-    "Utility1": "Mirror Images",
-    "Utility2": "Signet of Midnight",
-    "Utility3": "Signet of Domination",
-    "Elite": "Signet of Humility"
+  "selectedSkillIds": {
+    "Heal": 21750,
+    "Utility1": 10202,
+    "Utility2": 10234,
+    "Utility3": 10232,
+    "Elite": 29519
   },
   "assumptions": {
     "simulationMode": "deterministic",

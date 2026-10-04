@@ -16,7 +16,7 @@ import type {
 import {
   formatSecondsRemaining,
   guardianSnapshotAt,
-  guardianUiSkillIdsByName,
+  guardianUiSkillIds,
   guardianUiSkillsByMode
 } from '#gw2/professions/guardian/core/presentation.js';
 import { GUARDIAN_SKILL_IDS, GUARDIAN_TRAIT_IDS } from '#gw2/professions/guardian/data/ids.js';
@@ -52,8 +52,12 @@ function firebrandEventLogRow(
   };
 }
 
-const TOME_F_KEY_NAMES = Object.freeze(['Tome of Justice', 'Tome of Resolve', 'Tome of Courage']);
-const TOME_PALETTE_NAMES = Object.freeze([...TOME_F_KEY_NAMES, 'Stow Tome']);
+const TOME_F_KEY_IDS = Object.freeze([
+  GUARDIAN_SKILL_IDS.TOME_OF_JUSTICE,
+  GUARDIAN_SKILL_IDS.TOME_OF_RESOLVE,
+  GUARDIAN_SKILL_IDS.TOME_OF_COURAGE
+]);
+const TOME_PALETTE_IDS = Object.freeze([...TOME_F_KEY_IDS, GUARDIAN_SKILL_IDS.STOW_TOME]);
 const TOME_DORMANCY_LABELS = Object.freeze([
   ['justice', 'F1 Justice'],
   ['resolve', 'F2 Resolve'],
@@ -123,7 +127,7 @@ export function bindFirebrandUi(catalog: Readonly<CanonicalCatalog<GuardianSkill
         return context.weaponLine === skill?.name ? undefined : skill?.name;
       }
 
-      if (skill?.name === 'Stow Tome') {
+      if (skill?.id === GUARDIAN_SKILL_IDS.STOW_TOME) {
         // null signals "end of a named weapon line" to the timeline renderer;
         // undefined means there was no active tome line to close.
         return /^Tome of /.test(context.weaponLine || '') ? null : undefined;
@@ -135,7 +139,7 @@ export function bindFirebrandUi(catalog: Readonly<CanonicalCatalog<GuardianSkill
       {
         id: 'profession',
         label: 'F',
-        skillIds: guardianUiSkillIdsByName(catalog, TOME_PALETTE_NAMES, context),
+        skillIds: guardianUiSkillIds(catalog, TOME_PALETTE_IDS, context),
         color: '#2f7eb8',
         className: `guardian-tome-f-keys ${dormantTomeClasses(context)}`.trim(),
         // resourceAnchor attaches the tome-pages resource view to this group's

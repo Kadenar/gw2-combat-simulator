@@ -68,7 +68,9 @@ export interface Gw2RelicRule {
   /** The same per-occurrence payload is called after combat eligibility or directly by the damage calculator. */
   readonly damagePayload?: (
     context: Gw2RelicContext,
-    inputs: import('#gw2/platform/skill-damage/types.js').DamageInputs
+    state: Gw2RelicState,
+    event: SimulationEvent,
+    inputs?: import('#gw2/platform/skill-damage/types.js').DamageInputs
   ) => void;
   readonly createState?: () => Gw2RelicState;
   readonly emitConditionEffects?: (

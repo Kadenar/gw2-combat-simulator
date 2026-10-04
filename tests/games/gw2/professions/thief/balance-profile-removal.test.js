@@ -24,7 +24,7 @@ function run(balanceProfiles, specialization, rotation, config = {}) {
   const simulate = createObservedProfessionSimulator(profession, {
     patchId: 'thief-removal',
     selectedTraitIds: [],
-    selectedSkills: [],
+    selectedSkillIds: [],
     primaryWeapon: 'Dagger',
     secondaryWeapon: 'Dagger',
     stats: { power: 2000, precision: 4000, conditionDamage: 1000, expertise: 0 },
@@ -223,7 +223,7 @@ test('Malicious Sneak Attack removal preserves Bleeding and malice spending', ()
     {
       primaryWeapon: 'Pistol',
       secondaryWeapon: 'Pistol',
-      selectedSkills: ['Hide in Shadows'],
+      selectedSkillIds: [13027],
       initialMalice: 5
     }
   );
@@ -270,7 +270,7 @@ for (const type of ['strike', 'condition']) {
       'Antiquary',
       ['Stone Summit Cannon'],
       {
-        selectedSkills: ['Stone Summit Cannon']
+        selectedSkillIds: [76725]
       }
     );
     const events = result.events.filter((event) => event.skillId === ID.STONE_SUMMIT_CANNON);

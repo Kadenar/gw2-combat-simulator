@@ -98,8 +98,24 @@ export function executeDamageOccurrence(
           activationId: 'damage:occurrence'
         }
       });
-    else if (relic?.damagePayload) relic.damagePayload(runtime, inputs);
-    else if (sigil && effect.kind === 'sigil') {
+    else if (relic?.damagePayload && effect.kind === 'relic') {
+      // A precast occurrence mutates its own state, so its payload's bonuses remain owned by that relic.
+      const owner = [runtime.relic, ...(runtime.precastRelics ?? [])].find((entry) => entry.id === effect.id);
+      if (!owner) throw new DamageCalculationError('missing-input', 'Select the relic in the build or precast relics.');
+      relic.damagePayload(
+        runtime,
+        owner.state,
+        {
+          type: 'proc',
+          at: runtime.time,
+          source: 'Relic',
+          sourceId: effect.id,
+          actorType: 'effect',
+          skillName: occurrence.name
+        },
+        inputs
+      );
+    } else if (sigil && effect.kind === 'sigil') {
       if (['strike', 'strike-condition'].includes(sigil.effect))
         runtime.effects.emit({ kind: 'packet', event: createSigilStrikeEvent(effect.id, sigil, occurrence.name) });
       if (['condition', 'strike-condition', 'next-hit-condition'].includes(sigil.effect))
@@ -116,53 +132,40 @@ export function executeDamageOccurrence(
     else if (declared) declared.emit(runtime, inputs);
   };
 
-  let tailMs = 1000;
-  for (;;) {
-    const result = runRuntime({
-      profession: native,
-      config,
-      damageDiagnostics: true,
-      observation: { kind: 'tail', durationMs: tailMs },
-      execution: createDamageExecution(native, {
-        skillId: skill?.id,
-        cast: occurrence.cast,
-        accepts,
-        emit,
-        initialize(runtime) {
-          if (skill)
-            native.prepareDamageState?.(runtime, skill, {
-              ...inputs,
-              ...(occurrence.cast?.releaseAtCharges == null ? {} : { charges: occurrence.cast.releaseAtCharges })
-            });
-        }
-      })
-    });
-    if (result.output !== 'detailed') throw new Error('Damage evaluation requires diagnostics.');
-    const events = result.resolvedEvents.filter(belongs);
-    const deadline = Math.max(
-      0,
-      ...(result.pendingEffects ?? []).filter((pending) => belongs(pending.cause)).map((pending) => pending.at),
-      ...events.flatMap((event) => (event.naturalExpiresAt == null ? [] : [Number(event.naturalExpiresAt) + 1.5]))
+  const result = runRuntime({
+    profession: native,
+    config,
+    output: 'damage',
+    ownsEffect: belongs,
+    execution: createDamageExecution(native, {
+      skillId: skill?.id,
+      cast: occurrence.cast,
+      accepts,
+      emit,
+      initialize(runtime) {
+        if (skill)
+          native.prepareDamageState?.(runtime, skill, {
+            ...inputs,
+            ...(occurrence.cast?.releaseAtCharges == null ? {} : { charges: occurrence.cast.releaseAtCharges })
+          });
+      }
+    })
+  });
+  if (!result.complete)
+    throw new DamageCalculationError(
+      'unsupported',
+      'The effect exceeds the finite calculation window; choose a pulse or finite duration.'
     );
-    if (deadline <= result.observationEndTime + 1e-6)
-      return {
-        events,
-        castSeconds: skill ? (result.steps[0].end - result.steps[0].start) / 1000 : 0,
-        damaging:
-          effect.kind !== 'skill' ||
-          hasDamage(skill?.effects) ||
-          events.some(
-            (event) =>
-              event.type === 'damage' ||
-              (event.type === 'condition' && Object.hasOwn(CONDITION_FORMULAS, event.condition))
-          )
-      };
-    const required = Math.ceil((deadline - result.rotationEndTime) * 1000);
-    if (required > 120000 || tailMs >= 120000)
-      throw new DamageCalculationError(
-        'unsupported',
-        'The effect exceeds the finite calculation window; choose a pulse or finite duration.'
-      );
-    tailMs = Math.min(120000, Math.max(tailMs * 2, required));
-  }
+  const { events, castSeconds } = result;
+  return {
+    events,
+    castSeconds,
+    damaging:
+      effect.kind !== 'skill' ||
+      hasDamage(skill?.effects) ||
+      events.some(
+        (event) =>
+          event.type === 'damage' || (event.type === 'condition' && Object.hasOwn(CONDITION_FORMULAS, event.condition))
+      )
+  };
 }

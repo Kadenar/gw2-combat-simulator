@@ -29,7 +29,7 @@ test('Antiquary completion preserves rolled initiative and the consumed artifact
   const coins = runThief(['Canach-Coin Toss'], {
     specialization: 'Antiquary',
     initialInitiative: 0,
-    selectedSkills: ['Canach-Coin Toss']
+    selectedSkillIds: [77230]
   });
   assert.deepEqual(coins.warnings, []);
   assert.equal(coins.planningState.profession.initiative.value, 5);
@@ -69,7 +69,7 @@ test('allied Leeching Venoms triggers only for the first packet of an allied ven
 });
 
 const baseConfig = Object.freeze({
-  selectedSkills: ['Hide in Shadows', "Assassin's Signet", 'Shadow Flare', 'Shadow Gust', 'Thieves Guild'],
+  selectedSkillIds: [13027, 13046, 41158, 46335, 13082],
   initialInitiative: 12,
   initialShadowForce: 0,
   primaryWeapon: 'Dagger',
@@ -108,7 +108,7 @@ test('Larcenous Torment uses flat Power scaling and only life-steal damage bonus
       'Specter',
       ['Twilight Combo'],
       {
-        selectedSkills: [],
+        selectedSkillIds: [],
         primaryWeapon: 'Scepter',
         secondaryWeapon: 'Dagger',
         stats: { power, precision: 4000, ferocity: 1000 },
@@ -334,7 +334,7 @@ test('Stealth attacks gain positional damage and consume malice for bonus damage
   assert.equal(marked.planningState.profession.malice, 2);
 
   const rifleConfig = {
-    selectedSkills: ['Shadow Meld'],
+    selectedSkillIds: [45508],
     primaryWeapon: 'Rifle',
     secondaryWeapon: '',
     stats: { precision: 5000 }
@@ -363,7 +363,7 @@ test('Stealth attacks gain positional damage and consume malice for bonus damage
 test('Revealed Training does not empower the stealth attack that reveals the thief', () => {
   const rotation = ['Cloak and Dagger', 'Backstab', 'Double Strike'];
   const config = {
-    selectedSkills: [],
+    selectedSkillIds: [],
     stats: { power: 2000, precision: 5000 }
   };
   const baseline = simulate('Core', rotation, config);
@@ -606,7 +606,7 @@ test('Mind Shock grants stability before its delayed strike and stun', () => {
 
 test('Pitfall placement recharge and trigger rearm expire independently', () => {
   // Triggering early preserves the placement cooldown; triggering late starts the shorter rearm.
-  const config = { selectedSkills: ['Prepare Pitfall'] };
+  const config = { selectedSkillIds: [13057] };
   // Each recharge deadline is read from the live cooldown clock once its cast has completed.
   const placementReadyAt = observedRuntime(simulate('Core', [ID.PREPARE_PITFALL], config)).cooldowns.get(
     ID.PREPARE_PITFALL
@@ -634,7 +634,7 @@ test('Specter wells preserve pulse spacing and effect order', () => {
   ]) {
     const skill = thiefCatalog.skillsById.get(skillId);
     const result = simulate('Specter', [skillId, { type: 'wait', durationMs: 5000 }], {
-      selectedSkills: [skill.name],
+      selectedSkillIds: [skill.id],
       boons: { quickness: true }
     });
     const pulses = result.events.filter((event) => event.type === type && event.skillId === skillId);
@@ -819,7 +819,7 @@ test('Specter attribute, ally, and shadowstep traits resolve explicitly', () => 
   );
 
   const peitha = simulate('Specter', ['Well of Tears'], {
-    selectedSkills: ['Well of Tears'],
+    selectedSkillIds: [63294],
     relic: 'Peitha',
     boons: { quickness: true }
   });
@@ -934,7 +934,7 @@ test('Spider Venom grants six independent charges to the player and allies', () 
     'Core',
     ['Spider Venom', 'Heartseeker'],
     {
-      selectedSkills: ['Hide in Shadows', 'Spider Venom'],
+      selectedSkillIds: [13027, 13037],
       allies: { count: 4, strikesPerSecond: 1 }
     },
     observationTail(6000)
@@ -968,7 +968,7 @@ test('Skale and Devourer Venom grant party charges that proc together on attacks
     'Core',
     ['Skale Venom', 'Devourer Venom', 'Heartseeker'],
     {
-      selectedSkills: ['Skale Venom', 'Devourer Venom'],
+      selectedSkillIds: [13055, 13093],
       allies: { count: 4, strikesPerSecond: 10 },
       target: { conditions: {} }
     },
@@ -1016,7 +1016,7 @@ test('Skale and Devourer Venom grant party charges that proc together on attacks
     'Core',
     ['Skale Venom', 'Devourer Venom', 'Double Strike', 'Wild Strike', 'Lotus Strike', 'Double Strike'],
     {
-      selectedSkills: ['Skale Venom', 'Devourer Venom'],
+      selectedSkillIds: [13055, 13093],
       target: { conditions: {} }
     }
   );
@@ -1095,7 +1095,7 @@ test('Antiquary artifacts, per-cast Double Edge, and summons are deterministic',
       }
     ],
     {
-      selectedSkills: ['Stone Summit Cannon'],
+      selectedSkillIds: [76725],
       primaryWeapon: 'Axe',
       secondaryWeapon: 'Dagger'
     }
@@ -1114,7 +1114,7 @@ test('Antiquary artifacts, per-cast Double Edge, and summons are deterministic',
       }
     ],
     {
-      selectedSkills: ['Stone Summit Cannon'],
+      selectedSkillIds: [76725],
       primaryWeapon: 'Axe',
       secondaryWeapon: 'Dagger'
     }
@@ -1312,7 +1312,7 @@ test('Specter Thieves Guild Well of Sorrow chooses conditions from target state 
 test('Antiquary exposes every artifact from Swipe and Scuffle', () => {
   const expectedArtifactIds = [...THIEF_ARTIFACT_IDS.OFFENSIVE, ...THIEF_ARTIFACT_IDS.DEFENSIVE];
   const config = {
-    selectedSkills: ['Skritt Scuffle'],
+    selectedSkillIds: [77255],
     primaryWeapon: 'Axe',
     secondaryWeapon: 'Dagger'
   };

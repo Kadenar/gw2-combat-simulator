@@ -88,7 +88,7 @@ test('precombat insertion previews preserve Flow and the boundary inside an unfi
   build.initialResource = 0;
   build.specializations = [{ name: 'Bladesworn', traits: '1-2-2' }];
   build.assumptions.fury = false;
-  build.selectedSkills.Utility2 = 'Flow Stabilizer';
+  build.selectedSkillIds.Utility2 = 62967;
   const cast = (name) => ({ type: 'cast', skillId: adapter.profession.catalog.skillsByName.get(name).id });
 
   // Both a serial marker and one inside Chop must preserve prepull regeneration without counting prepull hits.
@@ -127,7 +127,7 @@ test('precombat insertion previews preserve Flow and the boundary inside an unfi
 test('Ranger prefix simulations keep precast traps armed until the inherited boundary', async () => {
   const adapter = await loadProfessionAppAdapter('ranger');
   const build = createDefaultBuild(adapter);
-  build.selectedSkills.Utility1 = 'Frost Trap';
+  build.selectedSkillIds.Utility1 = 12492;
   build.rotation = [
     { type: 'cast', skillId: adapter.profession.catalog.skillsByName.get('Frost Trap').id },
     { type: 'wait', durationMs: 1000 },

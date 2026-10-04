@@ -336,7 +336,7 @@ test('Taste for Blood buff state gives minions independent pools regardless of b
       ['Summon Bone Minions', 'Life Siphon', { type: 'wait', durationMs: 5000 }],
       {
         primaryWeapon: 'Dagger',
-        selectedSkills: ['Summon Bone Minions'],
+        selectedSkillIds: [10541],
         selectedTraitIds: [TRAIT.OVERFLOWING_THIRST],
         allies: { count: allies, strikesPerSecond: 0 },
         sharePlayerBoonsWithSummons: false
@@ -553,7 +553,7 @@ test('Plaguelands, chill fields, and cooldown reset retain live behavior', () =>
     ['Plaguelands', '__cooldown_reset', 'Plaguelands'],
     {
       stats: { expertise: 1500 },
-      selectedSkills: ['Plaguelands'],
+      selectedSkillIds: [10549],
       selectedTraitIds: [TRAIT.MASTER_OF_CORRUPTION],
       target: {
         ...baseConfig.target,
@@ -652,7 +652,7 @@ test('Necromancer dark-field life steals inherit finisher attribution', () => {
       rotation: ['Well of Darkness', 'Extirpate'],
       config: {
         primaryWeapon: 'Spear',
-        selectedSkills: ['Well of Darkness']
+        selectedSkillIds: [10607]
       },
       parentSkill: 'Extirpate',
       hits: 3
@@ -721,13 +721,13 @@ test('Reaper prioritizes assumed Ice and otherwise uses standard field resolutio
     {
       initialResource: 100,
       primaryWeapon: 'Spear',
-      selectedSkills: ['Well of Darkness'],
+      selectedSkillIds: [10607],
       boons: { quickness: true }
     }
   );
   const extirpate = simulate('Reaper', ['Well of Darkness', 'Extirpate'], {
     primaryWeapon: 'Spear',
-    selectedSkills: ['Well of Darkness'],
+    selectedSkillIds: [10607],
     professionAssumptions: { permanentComboField: 'Ice' }
   });
   const gravediggerCombo = (result) =>
@@ -890,7 +890,7 @@ test('minion summons persist, attack, and unlock their command', () => {
 
 test('Bone Fiend uses paired Bone Shards and its fourth crippling volley', () => {
   const result = simulate('Core', ['Summon Bone Fiend', { type: 'wait', durationMs: 14_000 }], {
-    selectedSkills: ['Summon Bone Fiend']
+    selectedSkillIds: [10533]
   });
   const attacks = result.resolvedEvents.filter(
     (event) => event.type === 'damage' && event.source === 'Minion' && [3633, 3644].includes(event.skillId)
@@ -947,7 +947,7 @@ test('Vampiric siphons on every direct player and minion hit with separate power
     stats: { power: 1000 }
   });
   const minion = simulate('Core', ['Summon Bone Fiend', { type: 'wait', durationMs: 4000 }], {
-    selectedSkills: ['Summon Bone Fiend'],
+    selectedSkillIds: [10533],
     selectedTraitIds: [TRAIT.VAMPIRIC],
     stats: { power: 1000 }
   });
@@ -1009,7 +1009,7 @@ test('Blood Magic siphons preserve independent pools and intervals across four o
     ],
     {
       primaryWeapon: 'Dagger',
-      selectedSkills: ['Summon Blood Fiend', 'Summon Bone Minions', 'Summon Flesh Golem'],
+      selectedSkillIds: [10547, 10541, 10646],
       selectedTraitIds: [TRAIT.VAMPIRIC, TRAIT.VAMPIRIC_PRESENCE, TRAIT.OVERFLOWING_THIRST],
       stats: { power: 1000 }
     },
@@ -1142,19 +1142,19 @@ test('Vampiric Presence supports four allied players and respects its five-targe
     allies: { count: 10, strikesPerSecond: 10 }
   });
   const minion = simulate('Core', ['Summon Bone Fiend', { type: 'wait', durationMs: 4000 }], {
-    selectedSkills: ['Summon Bone Fiend'],
+    selectedSkillIds: [10533],
     selectedTraitIds: [TRAIT.VAMPIRIC_PRESENCE],
     stats: { power: 1000 }
   });
   const cappedMinion = simulate('Core', ['Summon Bone Fiend', { type: 'wait', durationMs: 4000 }], {
-    selectedSkills: ['Summon Bone Fiend'],
+    selectedSkillIds: [10533],
     selectedTraitIds: [TRAIT.VAMPIRIC_PRESENCE],
     stats: { power: 1000 },
     allies: { count: 4, strikesPerSecond: 0 }
   });
   const boneMinions = (allies = 0) =>
     simulate('Core', ['Summon Bone Minions', { type: 'wait', durationMs: 4500 }], {
-      selectedSkills: ['Summon Bone Minions'],
+      selectedSkillIds: [10541],
       selectedTraitIds: [TRAIT.VAMPIRIC_PRESENCE],
       stats: { power: 1000 },
       allies: { count: allies, strikesPerSecond: 0 }
@@ -1216,13 +1216,13 @@ test('Vampiric Presence supports four allied players and respects its five-targe
 
 test('Rigor Mortis is instant and fires two immobilizing projectile finishers', () => {
   const result = simulate('Core', ['Summon Bone Fiend', 'Rigor Mortis', { type: 'wait', durationMs: 4000 }], {
-    selectedSkills: ['Summon Bone Fiend'],
+    selectedSkillIds: [10533],
     selectedTraitIds: [TRAIT.INSIDIOUS_DISRUPTION]
   });
   const preservedChain = simulate(
     'Core',
     ['Summon Bone Fiend', { type: 'wait', durationMs: 9500 }, 'Rigor Mortis', { type: 'wait', durationMs: 3000 }],
-    { selectedSkills: ['Summon Bone Fiend'] }
+    { selectedSkillIds: [10533] }
   );
   const rigorStep = result.steps.find((step) => step.skill === 'Rigor Mortis');
   const attacks = result.resolvedEvents.filter((event) => event.type === 'damage' && event.skillId === 3634);
@@ -1282,7 +1282,7 @@ test('Bone Fiend projectile finishers create Chilling Bolts, not Frost Aura', ()
     ],
     {
       initialResource: 100,
-      selectedSkills: ['Summon Bone Fiend'],
+      selectedSkillIds: [10533],
       selectedTraitIds: [TRAIT.DEATHLY_CHILL]
     }
   );
@@ -1291,7 +1291,7 @@ test('Bone Fiend projectile finishers create Chilling Bolts, not Frost Aura', ()
     ['Summon Bone Fiend', 'Nightfall', 'Rigor Mortis', { type: 'wait', durationMs: 14_000 }],
     {
       primaryWeapon: 'Greatsword',
-      selectedSkills: ['Summon Bone Fiend'],
+      selectedSkillIds: [10533],
       selectedTraitIds: [TRAIT.DEATHLY_CHILL],
       professionAssumptions: { permanentComboField: 'Ice' }
     }
@@ -1334,7 +1334,7 @@ test('Bone Fiend projectile finishers create Chilling Bolts, not Frost Aura', ()
 test('player boon sharing can be disabled for Necromancer minions', () => {
   const rotation = ['Summon Bone Fiend', 'Blood Is Power', { type: 'wait', durationMs: 4000 }];
   const config = {
-    selectedSkills: ['Summon Bone Fiend', 'Blood Is Power'],
+    selectedSkillIds: [10533, 10544],
     boons: { might: 0, fury: false }
   };
   const shared = simulate('Core', rotation, {
@@ -1377,7 +1377,7 @@ test('player boon sharing can be disabled for Necromancer minions', () => {
     'Core',
     ['Summon Bone Minions', 'Blood Is Power', { type: 'wait', durationMs: 4000 }],
     {
-      selectedSkills: ['Summon Bone Minions', 'Blood Is Power'],
+      selectedSkillIds: [10541, 10544],
       boons: { might: 0, fury: false },
       allies: { count: 3, strikesPerSecond: 1 },
       sharePlayerBoonsWithSummons: true
@@ -1400,10 +1400,10 @@ test('player boon sharing can be disabled for Necromancer minions', () => {
 
 test('unequipped Necromancer slot skills cannot execute', () => {
   const denied = simulate('Core', ['Summon Bone Minions'], {
-    selectedSkills: ['Signet of Spite']
+    selectedSkillIds: [10622]
   });
   const equipped = simulate('Core', ['Summon Bone Minions'], {
-    selectedSkills: ['Summon Bone Minions']
+    selectedSkillIds: [10541]
   });
 
   assert.match(denied.warnings.join(' '), /skill is not equipped/);
@@ -1418,7 +1418,7 @@ test('unequipped Necromancer slot skills cannot execute', () => {
 test('persistent minion summons cannot recharge until their minions die', () => {
   for (const summon of ['Summon Bone Fiend', 'Summon Shadow Fiend', 'Summon Flesh Golem']) {
     const result = simulate('Core', [summon, { type: 'wait', durationMs: 60_000 }, summon], {
-      selectedSkills: [summon]
+      selectedSkillIds: [necromancerCatalog.skillsByName.get(summon).id]
     });
 
     assert.equal(result.steps.filter((step) => step.skill === summon && !step.invalid).length, 1, summon);
@@ -1437,7 +1437,7 @@ test('bone minion recharge starts after both minions are destroyed', () => {
     'Core',
     ['Summon Bone Minions', 'Putrid Explosion', 'Putrid Explosion', 'Summon Bone Minions'],
     {
-      selectedSkills: ['Summon Bone Minions']
+      selectedSkillIds: [10541]
     }
   );
   const summons = result.steps.filter((step) => step.skill === 'Summon Bone Minions' && !step.invalid);
@@ -1459,15 +1459,15 @@ test('calibrated minion strikes ignore player Power and Signet of Spite', () => 
         .filter((event) => event.type === 'damage' && event.source === 'Minion')
         .map((event) => event.damage);
     const lowPower = simulate('Core', rotation, {
-      selectedSkills: [summon],
+      selectedSkillIds: [necromancerCatalog.skillsByName.get(summon).id],
       stats: { power: 1000 }
     });
     const highPower = simulate('Core', rotation, {
-      selectedSkills: [summon],
+      selectedSkillIds: [necromancerCatalog.skillsByName.get(summon).id],
       stats: { power: 3000 }
     });
     const signet = simulate('Core', rotation, {
-      selectedSkills: [summon, 'Signet of Spite'],
+      selectedSkillIds: [necromancerCatalog.skillsByName.get(summon).id, 10622],
       stats: { power: 1000 }
     });
 
@@ -1481,14 +1481,14 @@ test('calibrated minion strikes ignore player Power and Signet of Spite', () => 
       .filter((event) => event.type === 'damage' && event.source === 'Minion')
       .reduce((sum, event) => sum + event.damage, 0);
   const base = simulate('Core', rotation, {
-    selectedSkills: ['Summon Blood Fiend']
+    selectedSkillIds: [10547]
   });
   const corruption = simulate('Core', rotation, {
-    selectedSkills: ['Summon Blood Fiend'],
+    selectedSkillIds: [10547],
     selectedTraitIds: [TRAIT.NECROMANTIC_CORRUPTION]
   });
   const strength = simulate('Ritualist', rotation, {
-    selectedSkills: ['Summon Blood Fiend'],
+    selectedSkillIds: [10547],
     selectedTraitIds: [TRAIT.SPIRITS_STRENGTH]
   });
 
@@ -1510,7 +1510,7 @@ test('minion attack scheduling respects boon sharing, recipient caps, and expiry
       ],
       {
         initialResource: 100,
-        selectedSkills: ['Summon Bone Minions'],
+        selectedSkillIds: [10541],
         selectedTraitIds: [TRAIT.EMPOWERING_SPIRITS],
         sharePlayerBoonsWithSummons,
         allies: { count: allies, strikesPerSecond: 1 }
@@ -1556,16 +1556,16 @@ test('independent minions inherit dynamically shared Fury', () => {
     );
   const base = simulate('Ritualist', rotation, {
     initialResource: 100,
-    selectedSkills: ['Summon Blood Fiend']
+    selectedSkillIds: [10547]
   });
   const empowered = simulate('Ritualist', rotation, {
     initialResource: 100,
-    selectedSkills: ['Summon Blood Fiend'],
+    selectedSkillIds: [10547],
     selectedTraitIds: [TRAIT.EMPOWERING_SPIRITS]
   });
   const capped = simulate('Ritualist', rotation, {
     initialResource: 100,
-    selectedSkills: ['Summon Blood Fiend'],
+    selectedSkillIds: [10547],
     selectedTraitIds: [TRAIT.EMPOWERING_SPIRITS],
     allies: { count: 4, strikesPerSecond: 1 },
     sharePlayerBoonsWithSummons: true
@@ -1603,11 +1603,11 @@ test('independent minions inherit dynamically shared Fury', () => {
 test("Shadow Fiend reports Slash and Haunt's full command effects", () => {
   const summonOnly = simulate('Core', ['Summon Shadow Fiend'], {
     initialResource: 0,
-    selectedSkills: ['Summon Shadow Fiend']
+    selectedSkillIds: [10589]
   });
   const result = simulate('Core', ['Summon Shadow Fiend', 'Haunt', { type: 'wait', durationMs: 4500 }], {
     initialResource: 0,
-    selectedSkills: ['Summon Shadow Fiend']
+    selectedSkillIds: [10589]
   });
   const haunt = result.resolvedEvents.find((event) => event.type === 'damage' && event.skillId === ID.HAUNT);
   const slash = result.resolvedEvents.find((event) => event.type === 'damage' && event.skillId === 3642);
@@ -1687,7 +1687,7 @@ test('Reaper traits reduce shroud cooldowns and ignore minion critical hits', ()
     ['Summon Flesh Golem', "Reaper's Shroud", 'Soul Spiral', { type: 'wait', durationMs: 20_000 }],
     {
       boons: { quickness: true },
-      selectedSkills: ['Summon Flesh Golem'],
+      selectedSkillIds: [10646],
       selectedTraitIds: [TRAIT.CHILLING_NOVA]
     }
   );

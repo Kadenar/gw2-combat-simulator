@@ -13,7 +13,7 @@ const config = {
   specialization: 'Untamed',
   primaryWeapon: 'Hammer',
   selectedPet: 'Tiger',
-  selectedSkills: { Utility3: 'Signet of the Wild' },
+  selectedSkillIds: [12491],
   selectedTraitIds: getActiveTraits([
     { name: 'Marksmanship', traits: '1-1-1' },
     { name: 'Skirmishing', traits: '1-2-3' },

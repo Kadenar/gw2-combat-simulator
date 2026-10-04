@@ -22,7 +22,7 @@ import { mechanistCastAvailability } from '#gw2/professions/engineer/specializat
 import { createObservedProfessionSimulator } from '#tests/helpers/observed-runtime.js';
 
 const baseConfig = Object.freeze({
-  selectedSkills: ['Healing Turret', 'Grenade Kit', 'Throw Mine', 'Elixir Gun', 'Supply Crate'],
+  selectedSkillIds: [5857, 5805, 6161, 5933, 5868],
   selectedMorphSkillIds: [77103, 77203, 76954],
   stats: {
     power: 2000,
@@ -65,7 +65,7 @@ test('committed Refraction Cutter and Blowtorch retain lockout before the next w
 // Defensive self-burning must never enter the outgoing condition pipeline.
 test('Cauterize deals no outgoing damage on a clean target', () => {
   const result = simulate('Holosmith', ['Cauterize', { type: 'wait', durationMs: 3000 }], {
-    selectedSkills: ['Coolant Blast'],
+    selectedSkillIds: [40507],
     target: { conditions: {} }
   });
   assert.deepEqual(result.warnings, []);
@@ -77,7 +77,7 @@ test('Holographic Shockwave guarantees a critical hit and blasts a fire field', 
   const result = simulate(
     'Holosmith',
     ['Bomb Kit', 'Fire Bomb', 'Engage Photon Forge', { type: 'wait', durationMs: 1000 }, 'Holographic Shockwave'],
-    { selectedSkills: ['Bomb Kit'], stats: { precision: 1000, ferocity: 0 } }
+    { selectedSkillIds: [5812], stats: { precision: 1000, ferocity: 0 } }
   );
   assert.deepEqual(result.warnings, []);
   const strike = result.resolvedEvents.find(
@@ -124,7 +124,7 @@ test('Solar Focusing Lens enhances the earliest two interleaved impacts', () => 
 // Resolver-created strikes share the same charge budget as ordinary scheduled attacks.
 test('Solar Focusing Lens consumes charges on Laser Disk impacts', () => {
   const result = simulate('Holosmith', ['Engage Photon Forge', 'Laser Disk', { type: 'wait', durationMs: 2000 }], {
-    selectedSkills: ['Laser Disk'],
+    selectedSkillIds: [42842],
     selectedTraitIds: [TRAIT.SOLAR_FOCUSING_LENS]
   });
   assert.deepEqual(result.warnings, []);
@@ -879,11 +879,11 @@ test('Thermal Release Valve, ECSU, and PBM materialize their heat effects', () =
 });
 
 test('Prime Light Beam creates its damaging field only above 50 heat', () => {
-  const selectedSkills = ['Healing Turret', 'Grenade Kit', 'Throw Mine', 'Elixir Gun', 'Prime Light Beam'];
+  const selectedSkillIds = [5857, 5805, 6161, 5933, 42009];
   const cast = (initialHeat) =>
     simulate('Holosmith', ['Engage Photon Forge', 'Prime Light Beam', { type: 'wait', durationMs: 9000 }], {
       initialHeat,
-      selectedSkills
+      selectedSkillIds
     });
   const beamDamage = (result) =>
     result.resolvedEvents.filter((event) => event.type === 'damage' && event.skillName === 'Prime Light Beam');
@@ -904,11 +904,11 @@ test('Prime Light Beam creates its damaging field only above 50 heat', () => {
 });
 
 test('Holosmith exceed packets use their heat tiers and conditions', () => {
-  const selectedSkills = ['A.E.D.', 'Grenade Kit', 'Photon Wall', 'Laser Disk', 'Prime Light Beam'];
+  const selectedSkillIds = [21659, 5805, 43739, 42842, 42009];
   const run = (rotation, initialHeat, selectedTraitIds = []) =>
     simulate('Holosmith', rotation, {
       initialHeat,
-      selectedSkills,
+      selectedSkillIds,
       selectedTraitIds,
       boons: { might: 25 },
       stats: { precision: 1000, ferocity: 0 },
@@ -1003,7 +1003,7 @@ test('Holosmith exceed packets use their heat tiers and conditions', () => {
 
   const cappedBeam = simulate('Holosmith', ['Prime Light Beam', { type: 'wait', durationMs: 11000 }], {
     initialHeat: 101,
-    selectedSkills,
+    selectedSkillIds,
     selectedTraitIds: [TRAIT.ENHANCED_CAPACITY_STORAGE_UNIT],
     stats: { expertise: 1500, precision: 1000, ferocity: 0 },
     target: { conditions: {} }
@@ -1015,13 +1015,13 @@ test('Holosmith exceed packets use their heat tiers and conditions', () => {
 });
 
 test('Holosmith direct heat variants apply profile factors to their eligible packets', () => {
-  const packetFor = (skillName, initialHeat, selectedTraitIds, selectedSkills) => {
+  const packetFor = (skillName, initialHeat, selectedTraitIds, selectedSkillIds) => {
     const result = runEngineer([skillName, { type: 'wait', durationMs: 1000 }], {
       ...baseConfig,
       specialization: 'Holosmith',
       initialHeat,
       selectedTraitIds,
-      selectedSkills,
+      selectedSkillIds,
       // Cap Might for both cases so ECSU's opening boon cannot change the multiplier comparison.
       boons: { might: 25 },
       stats: { ...baseConfig.stats, precision: 1000, ferocity: 0 }
@@ -1032,7 +1032,7 @@ test('Holosmith direct heat variants apply profile factors to their eligible pac
     );
   };
 
-  const utilitySkills = ['A.E.D.', 'Grenade Kit', 'Photon Wall', 'Laser Disk', 'Prime Light Beam'];
+  const utilitySkills = [21659, 5805, 43739, 42842, 42009];
 
   const baseBladeBurst = packetFor('Blade Burst', 0, [], utilitySkills);
   const baseParticleAccelerator = packetFor('Particle Accelerator', 0, [], utilitySkills);
@@ -1061,7 +1061,7 @@ test('Holosmith heat-profile patches tune tier effects without changing heat top
     specialization: 'Holosmith',
     initialHeat: 101,
     selectedTraitIds: [TRAIT.ENHANCED_CAPACITY_STORAGE_UNIT],
-    selectedSkills: ['A.E.D.', 'Grenade Kit', 'Photon Wall', 'Laser Disk', 'Prime Light Beam']
+    selectedSkillIds: [21659, 5805, 43739, 42842, 42009]
   };
   const runtime = engineerProfession.runtimeFor(config);
   const catalog = applyBalanceProfilePatch(runtime.catalog, {
@@ -1103,12 +1103,12 @@ test('Holosmith heat-profile patches tune tier effects without changing heat top
 });
 
 test('Relic of Fireworks accepts weapon-strength profession mechanics', () => {
-  const selectedSkills = ['A.E.D.', 'Grenade Kit', 'Photon Wall', 'Laser Disk', 'Prime Light Beam'];
+  const selectedSkillIds = [21659, 5805, 43739, 42842, 42009];
   const result = simulate(
     'Holosmith',
     ['Blade Burst', 'Grenade Barrage', 'Static Shock', { type: 'wait', durationMs: 1000 }],
     {
-      selectedSkills,
+      selectedSkillIds,
       relic: 'Fireworks'
     }
   );
@@ -1121,7 +1121,7 @@ test('Relic of Fireworks accepts weapon-strength profession mechanics', () => {
   );
 
   const utility = simulate('Holosmith', ['Laser Disk', { type: 'wait', durationMs: 1000 }], {
-    selectedSkills,
+    selectedSkillIds,
     relic: 'Fireworks'
   });
 
@@ -1170,7 +1170,7 @@ test('Relic of Fireworks ignores Grenade Kit bundle skills', () => {
     'Holosmith',
     ['Grenade Kit', 'Poison Grenade', 'Freeze Grenade', { type: 'wait', durationMs: 2000 }],
     {
-      selectedSkills: ['Grenade Kit'],
+      selectedSkillIds: [5805],
       relic: 'Fireworks'
     }
   );

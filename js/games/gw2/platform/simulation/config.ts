@@ -32,7 +32,7 @@ export interface Gw2Config {
   readonly weaponSet2Secondary?: string;
   readonly sigilSets?: readonly Gw2SigilSet[];
   readonly selectedTraitIds?: readonly (string | number)[];
-  readonly selectedSkills?: Gw2SelectedSkillLoadout;
+  readonly selectedSkillIds?: Gw2SelectedSkillLoadout;
   readonly relic?: string;
   readonly precastRelics?: readonly string[];
   readonly initialThornsStacks?: number;

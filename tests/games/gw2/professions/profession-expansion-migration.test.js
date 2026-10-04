@@ -524,27 +524,27 @@ describe('native build codecs', () => {
         const slot = lockedSlotSkill.type === 'Heal' ? 'Heal' : lockedSlotSkill.type === 'Elite' ? 'Elite' : 'Utility1';
         const lockedBuild = {
           ...defaults,
-          selectedSkills: { ...defaults.selectedSkills, [slot]: lockedSlotSkill.name }
+          selectedSkillIds: { ...defaults.selectedSkillIds, [slot]: lockedSlotSkill.id }
         };
         const migrated = profession.migrateBuild(lockedBuild);
 
         assert.equal(profession.validateBuild(lockedBuild).valid, false);
-        assert.notEqual(migrated.selectedSkills[slot], lockedSlotSkill.name);
+        assert.notEqual(migrated.selectedSkillIds[slot], lockedSlotSkill.name);
         assert.equal(profession.validateBuild(migrated).valid, true);
       }
 
       const duplicateUtility = {
         ...defaults,
-        selectedSkills: { ...defaults.selectedSkills, Utility2: defaults.selectedSkills.Utility1 }
+        selectedSkillIds: { ...defaults.selectedSkillIds, Utility2: defaults.selectedSkillIds.Utility1 }
       };
       const normalizedUtilities = profession.migrateBuild(duplicateUtility);
 
       assert.equal(profession.validateBuild(duplicateUtility).valid, false);
       assert.equal(
         new Set([
-          normalizedUtilities.selectedSkills.Utility1,
-          normalizedUtilities.selectedSkills.Utility2,
-          normalizedUtilities.selectedSkills.Utility3
+          normalizedUtilities.selectedSkillIds.Utility1,
+          normalizedUtilities.selectedSkillIds.Utility2,
+          normalizedUtilities.selectedSkillIds.Utility3
         ]).size,
         3
       );
@@ -555,10 +555,10 @@ describe('native build codecs', () => {
 
       if (flip) {
         const slot = flip.type === 'Heal' ? 'Heal' : flip.type === 'Elite' ? 'Elite' : 'Utility1';
-        const withFlip = { ...defaults, selectedSkills: { ...defaults.selectedSkills, [slot]: flip.name } };
+        const withFlip = { ...defaults, selectedSkillIds: { ...defaults.selectedSkillIds, [slot]: flip.id } };
 
         assert.equal(profession.validateBuild(withFlip).valid, false);
-        assert.equal(profession.migrateBuild(withFlip).selectedSkills[slot], defaults.selectedSkills[slot]);
+        assert.equal(profession.migrateBuild(withFlip).selectedSkillIds[slot], defaults.selectedSkillIds[slot]);
       }
     });
 

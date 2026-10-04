@@ -200,7 +200,7 @@ export function bindRangerCoreUi(catalog: Readonly<CanonicalCatalog<RangerSkill>
           kind: 'special',
           description: 'Positional Critical Chance'
         });
-      preview.passives('Signet of the Wild');
+      preview.passives(ID.SIGNET_OF_THE_WILD);
       return preview.controls;
     },
     /** Seed only the detached attribute query; combat state and saved builds remain untouched. */

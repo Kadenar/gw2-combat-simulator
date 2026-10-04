@@ -144,7 +144,7 @@ test('Deadeye cantrip relic windows reach the shared active-state display and ex
     const result = runThief(['Shadow Gust', { type: 'wait', durationMs: waitMs }], {
       specialization: 'Deadeye',
       relic: 'Deadeye',
-      selectedSkills: ['Shadow Gust'],
+      selectedSkillIds: [46335],
       primaryWeapon: 'Rifle',
       secondaryWeapon: ''
     });

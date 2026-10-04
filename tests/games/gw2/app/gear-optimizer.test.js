@@ -929,12 +929,12 @@ test('only usable weapon sets contribute search dimensions and equivalence', asy
     {},
     {
       specializations: [...both.build.specializations.slice(0, 2), { name: 'Bladesworn', traits: '1-1-1' }],
-      selectedSkills: {
-        Heal: 'Healing Signet',
-        Utility1: 'Signet of Might',
-        Utility2: 'Signet of Fury',
-        Utility3: 'Throw Bolas',
-        Elite: 'Signet of Rage'
+      selectedSkillIds: {
+        Heal: 14389,
+        Utility1: 14404,
+        Utility2: 14410,
+        Utility3: 14354,
+        Elite: 14355
       },
       startingWeaponSet: 2
     }

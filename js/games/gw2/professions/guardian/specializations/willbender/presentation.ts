@@ -1,3 +1,4 @@
+import { GUARDIAN_SKILL_IDS } from '#gw2/professions/guardian/data/ids.js';
 import {
   balanceProfileNumber,
   requireBalanceProfileFromContext
@@ -10,7 +11,7 @@ import type {
 import {
   formatSecondsRemaining,
   guardianSnapshotAt,
-  guardianUiSkillIdsByName,
+  guardianUiSkillIds,
   guardianUiState
 } from '#gw2/professions/guardian/core/presentation.js';
 import { GUARDIAN_TRAIT_IDS as WILLBENDER_TRAIT } from '#gw2/professions/guardian/data/ids.js';
@@ -18,7 +19,11 @@ import type { GuardianUiContext, GuardianUiSlice, GuardianSkill } from '#gw2/pro
 import { boundedInteger } from '#kernel/core/numeric.js';
 import { createPreviewControls } from '#gw2/professions/shared/attribute-preview.js';
 
-const VIRTUE_NAMES = Object.freeze(['Rushing Justice', 'Flowing Resolve', 'Crashing Courage']);
+const VIRTUE_IDS = Object.freeze([
+  GUARDIAN_SKILL_IDS.RUSHING_JUSTICE,
+  GUARDIAN_SKILL_IDS.FLOWING_RESOLVE,
+  GUARDIAN_SKILL_IDS.CRASHING_COURAGE
+]);
 
 /** Reports active virtue flames and Lethal Tempo so Willbender follow-up timing is inspectable. */
 function willbenderStateSnapshot(context: GuardianUiContext): RotationStateSnapshotItem[] {
@@ -100,7 +105,7 @@ export function bindWillbenderUi(catalog: Readonly<CanonicalCatalog<GuardianSkil
       {
         id: 'profession',
         label: 'F',
-        skillIds: guardianUiSkillIdsByName(catalog, VIRTUE_NAMES, context),
+        skillIds: guardianUiSkillIds(catalog, VIRTUE_IDS, context),
         color: '#2f7eb8',
         resourceAnchor: true
       }
