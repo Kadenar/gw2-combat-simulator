@@ -7,7 +7,6 @@ import type {
 import { createPreviewControls } from '#gw2/professions/shared/attribute-preview.js';
 
 import { PERMANENT_COMBO_FIELD_ASSUMPTION_CONTROLS } from '#gw2/platform/combos/permanent-field-assumption.js';
-import { flattenProfessionState } from '#gw2/platform/engine/profession/state.js';
 import type {
   ProfessionStateSnapshotContext,
   RotationStateSnapshotItem
@@ -20,7 +19,8 @@ import { getActiveTraits } from '#gw2/professions/revenant/data/traits-data.js';
 import type { RevenantState, RevenantUiContext, RevenantUiSlice } from '#gw2/professions/revenant/types.js';
 
 export function revenantUiState(context: RevenantUiContext = {}): Partial<RevenantState> {
-  return flattenProfessionState(context.state?.profession || context.professionState);
+  // Presentation callers supply the flat projection for the inspected rotation point.
+  return context.professionState ?? {};
 }
 
 export function activeRevenantLegend(context: RevenantUiContext = {}): string {

@@ -33,10 +33,6 @@ export function elementalForGlyphId(skillId: number | string): ElementalKind | n
   return skillId === ID.GLYPH_OF_ELEMENTALS ? 'Fire' : null;
 }
 
-export function elementalCommandName(element: ElementalKind): 'Flame Barrage' | 'Stomp' {
-  return element === 'Earth' ? 'Stomp' : 'Flame Barrage';
-}
-
 export function elementalRuntimeProfile(element: ElementalKind) {
   return element === 'Earth' ? EARTH_ELEMENTAL_EVTC_PROFILE : FIRE_ELEMENTAL_EVTC_PROFILE;
 }

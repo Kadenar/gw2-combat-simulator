@@ -1,3 +1,4 @@
+import { flattenProfessionState } from '#gw2/platform/engine/profession/state.js';
 import { captureEffectEmissions } from '#tests/helpers/effect-emission.js';
 import { aristocracy } from '#gw2/platform/equipment/relics/rules/aristocracy.js';
 import { nourys } from '#gw2/platform/equipment/relics/rules/nourys.js';
@@ -295,8 +296,10 @@ test('Mistral requires an armed window and shares inclusive expiry with its disp
       active
     );
     assert.equal(
-      galeshotUi.rotationStateSnapshot({ state: { profession: observedRuntime(result).profession }, atSeconds: at })
-        .length > 0,
+      galeshotUi.rotationStateSnapshot({
+        professionState: flattenProfessionState(observedRuntime(result).profession),
+        atSeconds: at
+      }).length > 0,
       active
     );
   }
@@ -319,8 +322,10 @@ test('Reavers Curse requires an arm, includes the final landing, and cannot be c
     for (const delta of [0, 0.000001]) {
       const at = armed ? deadline + delta : 0.001;
       assert.equal(
-        vindicatorUi.rotationStateSnapshot({ state: { profession: armed ? armedState : unarmedState }, atSeconds: at })
-          .length > 0,
+        vindicatorUi.rotationStateSnapshot({
+          professionState: flattenProfessionState(armed ? armedState : unarmedState),
+          atSeconds: at
+        }).length > 0,
         armed && delta === 0
       );
       // The rotation outlasts the probe landings so their queued work executes.

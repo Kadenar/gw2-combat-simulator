@@ -4,12 +4,11 @@ import { createPreviewControls } from '#gw2/professions/shared/attribute-preview
 
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { PERMANENT_COMBO_FIELD_ASSUMPTION_CONTROLS } from '#gw2/platform/combos/permanent-field-assumption.js';
-import { flattenProfessionState } from '#gw2/platform/engine/profession/state.js';
 import {
   balanceProfileNumber,
   requireBalanceProfileFromContext
 } from '#gw2/platform/engine/skills/balance-profiles.js';
-import { type SkillFlipWindows, skillFlipReady } from '#gw2/platform/engine/skills/skill-flips.js';
+import { skillFlipReady } from '#gw2/platform/engine/skills/skill-flips.js';
 import type { CanonicalCatalog, SkillId } from '#gw2/platform/engine/skills/types.js';
 import type {
   ProfessionEffectPresentation,
@@ -40,7 +39,8 @@ export function formatSecondsRemaining(seconds: number): string {
 }
 
 export function guardianUiState(context: GuardianUiContext = {}): Partial<GuardianState> {
-  return flattenProfessionState(context.state?.profession || context.professionState);
+  // Presentation callers supply the flat projection for the inspected rotation point.
+  return context.professionState ?? {};
 }
 
 /** Keeps Symbolic Avenger visible for every Guardian specialization while its damage bonus is active. */
@@ -70,9 +70,7 @@ export function guardianUiSkillIds(
   ids: readonly SkillId[],
   context: GuardianUiContext = {}
 ): SkillId[] {
-  const activeFlips =
-    (flattenProfessionState(context.state?.profession || context.professionState).availableFlips as
-      SkillFlipWindows | undefined) || {};
+  const activeFlips = guardianUiState(context).availableFlips ?? {};
   return ids.flatMap((id) => {
     const skill = catalog.skillsById.get(id);
     if (!skill) return [];

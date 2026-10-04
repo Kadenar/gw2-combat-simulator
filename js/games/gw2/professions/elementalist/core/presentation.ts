@@ -82,12 +82,9 @@ const PISTOL_BULLETS = Object.freeze([
   }
 ] as const);
 
-// The palette is inspected both mid-rotation (live scheduler state) and after a
-// run (projected end state); accept either shape.
+// Palettes read the flat projection for either the insertion point or the completed run.
 export function elementalistUiState(context: ElementalistUiContext): Partial<ElementalistState> {
-  const professionState = context.professionState;
-  const planningState = context.state;
-  return professionState || planningState?.profession || {};
+  return context.professionState ?? {};
 }
 
 function pistolBulletRecord(value: unknown): ElementalistPistolBullets | null {

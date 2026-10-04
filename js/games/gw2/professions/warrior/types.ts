@@ -62,16 +62,10 @@ export type WarriorResolverContext = Gw2ResolverRuntime & {
   profession: WarriorRuntimeState;
 };
 
-export interface WarriorUiContext extends Omit<
-  ProfessionUiCallbackContext<WarriorRuntimeState | Partial<WarriorState>>,
-  'build'
-> {
+export interface WarriorUiContext extends Omit<ProfessionUiCallbackContext<Partial<WarriorState>>, 'build'> {
   readonly config?: Gw2Config;
   readonly build?: WarriorBuild | null;
-  readonly state?: {
-    readonly profession?: WarriorRuntimeState | Partial<WarriorState>;
-  };
 }
 
 /** UI slice whose callbacks read Warrior end-state projections. */
-export type WarriorUiSlice = Partial<ProfessionUiContract<WarriorRuntimeState | Partial<WarriorState>>>;
+export type WarriorUiSlice = Partial<ProfessionUiContract<Partial<WarriorState>>>;

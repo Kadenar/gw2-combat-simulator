@@ -106,7 +106,7 @@ export const versatileRage = defineTrait({
   balance: { resourceGain: 5 }
 });
 
-/** Owns this trait's tuning and selected contributions. */
+/** Reduce burst recharge, including Dragon Trigger, which owns the recharge for Dragon Slash. */
 export const versatilePower = defineTrait({
   id: TRAIT.VERSATILE_POWER,
   name: 'Versatile Power',
@@ -114,7 +114,7 @@ export const versatilePower = defineTrait({
   rechargeRules: [
     {
       order: -1,
-      when: (_runtime, skill) => Boolean(skill.burst),
+      when: (_runtime, skill) => Boolean(skill.burst) || skill.id === ID.DRAGON_TRIGGER,
       multiplier: { profile: TRAIT.VERSATILE_POWER, field: 'rechargeMultiplier' }
     }
   ]

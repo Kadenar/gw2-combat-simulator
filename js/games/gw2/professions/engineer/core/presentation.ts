@@ -4,7 +4,6 @@ import { createPreviewControls } from '#gw2/professions/shared/attribute-preview
 import { selectedSkillIdSet } from '#gw2/platform/builds/selected-skills.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { PERMANENT_COMBO_FIELD_ASSUMPTION_CONTROLS } from '#gw2/platform/combos/permanent-field-assumption.js';
-import { flattenProfessionState } from '#gw2/platform/engine/profession/state.js';
 import {
   balanceProfileNumber,
   requireBalanceProfileFromContext
@@ -50,7 +49,8 @@ const SKILL_SLOT_ORDER: readonly string[] = Object.freeze(['Heal', 'Utility1', '
 
 /** Flattens Core and active-specialization state for Engineer UI consumers. */
 export function engineerUiState(context: EngineerUiContext = {}): Partial<EngineerState> {
-  return flattenProfessionState(context.state?.profession || context.professionState);
+  // Presentation callers supply the flat projection for the inspected rotation point.
+  return context.professionState ?? {};
 }
 
 /** Resolves the active Engineer specialization name from UI, config, or build context. */

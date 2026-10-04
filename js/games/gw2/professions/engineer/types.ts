@@ -118,9 +118,6 @@ export interface EngineerUiContext extends Omit<
 > {
   readonly config?: EngineerConfig;
   readonly build?: EngineerBuild | null;
-  readonly state?: {
-    readonly profession?: Partial<EngineerState>;
-  };
   readonly initialHeat?: number;
   readonly skill?: EngineerSkill;
 }

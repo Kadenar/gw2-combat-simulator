@@ -1,6 +1,6 @@
 import { PERMANENT_COMBO_FIELD_ASSUMPTION_CONTROLS } from '#gw2/platform/combos/permanent-field-assumption.js';
 import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
-import { flattenProfessionState, readProfessionCoreState } from '#gw2/platform/engine/profession/state.js';
+import { readProfessionCoreState } from '#gw2/platform/engine/profession/state.js';
 import type { CanonicalCatalog, SkillId } from '#gw2/platform/engine/skills/types.js';
 import { gw2PrimaryWeapon } from '#gw2/platform/equipment/weapons/loadout.js';
 import type {
@@ -41,9 +41,9 @@ const NECROMANCER_EFFECT_PRESENTATIONS: readonly ProfessionEffectPresentation[] 
   }
 ]);
 
-/** Flattens Core and active-specialization state for Necromancer UI projections. */
 export function necromancerUiState(context: NecromancerUiContext = {}): Partial<NecromancerState> {
-  return flattenProfessionState(context.state?.profession || context.professionState);
+  // Presentation callers supply the flat projection for the inspected rotation point.
+  return context.professionState ?? {};
 }
 
 /** Resolves the specialization name used to select Necromancer UI groups and rules. */

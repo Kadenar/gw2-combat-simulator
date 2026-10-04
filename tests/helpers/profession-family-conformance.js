@@ -1,3 +1,4 @@
+import { flattenProfessionState } from '#gw2/platform/engine/profession/state.js';
 import assert from 'node:assert/strict';
 import { getNativeCatalogAssembly } from '#gw2/platform/profession-definition/assemble-module-catalog.js';
 import { GW2_RESOLVER_STAGES } from '#gw2/platform/resolver/reaction-registry.js';
@@ -155,8 +156,7 @@ export function assertProfessionFamilyConformance({ family, core, specialization
         : {},
       config,
       build: { ...family.createBuildDefaults(), specialization: name },
-      state: { profession: state },
-      professionState: state,
+      professionState: flattenProfessionState(state),
       time: 0
     };
     const activePresentations = [

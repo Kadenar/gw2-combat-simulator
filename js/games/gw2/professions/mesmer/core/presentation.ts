@@ -2,7 +2,6 @@ import type { ProfessionAttributePreviewContext } from '#gw2/platform/profession
 import { createPreviewControls } from '#gw2/professions/shared/attribute-preview.js';
 
 import { PERMANENT_COMBO_FIELD_ASSUMPTION_CONTROLS } from '#gw2/platform/combos/permanent-field-assumption.js';
-import { flattenProfessionState } from '#gw2/platform/engine/profession/state.js';
 import {
   balanceProfileNumber,
   requireBalanceProfileFromContext
@@ -40,7 +39,8 @@ function mesmerUiSpecialization(context: MesmerUiContext = {}): string {
 }
 
 export function mesmerUiState(context: MesmerUiContext = {}): MesmerUiState {
-  return flattenProfessionState(context.state?.profession || context.professionState);
+  // Presentation callers supply the flat projection for the inspected rotation point.
+  return context.professionState ?? {};
 }
 
 /** Converts the projected millisecond Clarity duration into an active-state timer. */
@@ -83,7 +83,7 @@ export function mesmerResourceViews(
   context: MesmerUiContext,
   definition: MesmerUiResourceDefinition
 ): ProfessionResourceView[] {
-  const state: MesmerUiState = flattenProfessionState(context.state?.profession || context.professionState);
+  const state = mesmerUiState(context);
   // Palette pips use the same selected capacity as runtime resource spending.
   const specialization = definition.id === 'blades' ? 'Virtuoso' : definition.id === 'notes' ? 'Troubadour' : 'Core';
   const maximum = balanceProfileNumber(

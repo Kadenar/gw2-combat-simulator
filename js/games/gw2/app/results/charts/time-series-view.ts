@@ -426,9 +426,7 @@ function effectSummaryHtml(series: ChartSeries): string {
       .map((name) => {
         const summary = summaries[name];
         const boon = generation[name];
-        const intensity = Boolean(
-          boon?.intensityStacking || (summary?.relic && summary.maximumStacks != null) || name === 'Might'
-        );
+        const intensity = Boolean(boon?.intensityStacking || name === 'Might');
         const maximum = summary?.maximumStacks ?? boon?.maximumStacks ?? (name === 'Might' ? 25 : undefined);
         const own = boon?.self;
         const alliedGenerated = boon?.allies.generatedStackSeconds || 0;

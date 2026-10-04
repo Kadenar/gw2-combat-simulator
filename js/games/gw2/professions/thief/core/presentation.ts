@@ -1,5 +1,5 @@
 import { activeStackCount } from '#gw2/platform/combat/resources/timed-stacks.js';
-import { flattenProfessionState, readProfessionCoreState } from '#gw2/platform/engine/profession/state.js';
+import { readProfessionCoreState } from '#gw2/platform/engine/profession/state.js';
 import type {
   ProfessionAttributePreviewContext,
   ProfessionAttributePreviewPreparation
@@ -19,7 +19,8 @@ import { THIEF_SKILL_IDS as ID } from '#gw2/professions/thief/data/ids.js';
 import type { ThiefSkill, ThiefState, ThiefUiContext } from '#gw2/professions/thief/types.js';
 
 export function thiefUiState(context: ThiefUiContext = {}): Partial<ThiefState> {
-  return flattenProfessionState(context.state?.profession || context.professionState);
+  // Presentation callers supply the flat projection for the inspected rotation point.
+  return context.professionState ?? {};
 }
 
 export function thiefStealPaletteGroups(professionSkillId = ID.STEAL) {

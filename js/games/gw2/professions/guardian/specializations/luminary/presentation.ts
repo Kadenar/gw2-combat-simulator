@@ -1,4 +1,3 @@
-import { flattenProfessionState } from '#gw2/platform/engine/profession/state.js';
 import {
   balanceProfileNumber,
   requireBalanceProfileFromContext
@@ -233,7 +232,6 @@ export function bindLuminaryUi(catalog: Readonly<CanonicalCatalog<GuardianSkill>
 }
 
 function professionState(context: GuardianUiContext): Partial<GuardianState> {
-  // flattenProfessionState merges core and specialization sub-objects so
-  // callers can read luminary fields without knowing the nested shape.
-  return flattenProfessionState(context.state?.profession || context.professionState);
+  // Presentation callers supply the flat projection for the inspected rotation point.
+  return context.professionState ?? {};
 }

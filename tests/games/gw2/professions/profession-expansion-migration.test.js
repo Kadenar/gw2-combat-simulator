@@ -1,3 +1,4 @@
+import { flattenProfessionState } from '#gw2/platform/engine/profession/state.js';
 import assert from 'node:assert/strict';
 import { access } from 'node:fs/promises';
 import { describe, test } from 'node:test';
@@ -59,7 +60,7 @@ function assertUiContracts(entry, profession, specialization) {
     catalog: profession.catalog,
     specialization,
     config: { specialization },
-    professionState: runtime.createState({ specialization })
+    professionState: flattenProfessionState(runtime.createState({ specialization }))
   };
   const groups = profession.ui.paletteGroups(context);
   const views = profession.ui.resourceViews(context);

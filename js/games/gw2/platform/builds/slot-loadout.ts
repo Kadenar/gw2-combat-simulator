@@ -10,7 +10,7 @@ import type { ProfessionConfig } from '#gw2/platform/execution/types.js';
  *
  * - normalizes and validates persisted build selections;
  * - exposes selector and bar data for the UI and skill palette;
- * - resolves the active bar from runtime profession state, falling back to the
+ * - resolves the active bar from projected profession state, falling back to the
  *   build's starting entry; and
  * - explains when a skill belongs to a selected but inactive bar.
  *
@@ -49,11 +49,6 @@ export interface SlotLoadoutContext {
   /** Profession projections own their fields; the loadout reads only activeLoadoutId. */
   professionState?: unknown;
   catalog?: CanonicalCatalog | null;
-  state?: {
-    profession?: { activeLoadoutId?: string; [field: string]: unknown };
-    [field: string]: unknown;
-  };
-  activeLoadoutId?: string;
 }
 
 interface SlotLoadoutSelectorOption {
@@ -253,15 +248,16 @@ export function createFixedSlotLoadout<TBuild extends object = Record<string, un
     return errors;
   }
 
+  // The inspected projection selects the active bar; detached previews use the configured starting entry.
   function activeId(context: SlotLoadoutContext, selected: string[]): string {
     const profession = context.professionState;
     const projectedId =
       profession && typeof profession === 'object' && 'activeLoadoutId' in profession
         ? profession.activeLoadoutId
         : undefined;
-    const runtimeId = stableId(projectedId ?? context.state?.profession?.activeLoadoutId ?? context.activeLoadoutId);
-    return selected.includes(runtimeId)
-      ? runtimeId
+    const activeId = stableId(projectedId);
+    return selected.includes(activeId)
+      ? activeId
       : stableId((context.build as BuildRecord | undefined)?.[startingKey] || selected[0]);
   }
 

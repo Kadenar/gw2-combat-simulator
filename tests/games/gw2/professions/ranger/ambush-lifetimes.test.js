@@ -17,7 +17,7 @@ test('ambush cast, palette, and display agree at expiry', () => {
   for (const durationMs of [3999, 4000, 4001]) {
     const result = runRanger([ID.UNLEASH_RANGER, wait(durationMs)], config);
     const runtime = observedRuntime(result);
-    const context = { state: { profession: runtime.profession }, time: runtime.time, atSeconds: runtime.time };
+    const context = { professionState: result.planningState.profession, time: runtime.time, atSeconds: runtime.time };
     const skill = rangerCatalog.skillsById.get(ID.RELENTLESS_WHIRL);
     const available = durationMs < 4000;
     assert.deepEqual(result.warnings, []);

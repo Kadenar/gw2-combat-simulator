@@ -93,9 +93,6 @@ export interface RevenantUiContext extends Omit<
 > {
   readonly config?: RevenantConfig;
   readonly build?: RevenantBuild | null;
-  readonly state?: {
-    readonly profession?: Partial<RevenantState>;
-  };
   readonly initialEnergy?: number;
   readonly cooldowns?: Readonly<Record<string, { readonly remaining?: number }>>;
   readonly entry?: unknown;

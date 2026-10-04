@@ -84,9 +84,6 @@ export type NecromancerResolverContext = Gw2ResolverRuntime & {
 export interface NecromancerUiContext extends Omit<ProfessionUiCallbackContext<Partial<NecromancerState>>, 'build'> {
   readonly config?: NecromancerConfig;
   readonly build?: NecromancerBuild | null;
-  readonly state?: {
-    readonly profession?: Partial<NecromancerState>;
-  };
 }
 
 /** UI slice whose callbacks read Necromancer end-state projections. */

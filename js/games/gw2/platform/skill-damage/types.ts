@@ -51,11 +51,10 @@ export interface SkillDamageRequest {
 export interface SkillDamageStrikeBreakdown {
   readonly weaponStrength: number | null;
   readonly power: number;
-  /** Totals across counted hits, before modifiers, without crits, at crit, and the averaged result. */
+  /** Totals across counted hits, before modifiers, without crits, and at crit. */
   readonly baseDamage: number;
   readonly nonCriticalDamage: number;
   readonly criticalDamage: number;
-  readonly averageDamage: number;
   readonly criticalChance: number;
   readonly criticalDamageMultiplier: number;
   readonly averagedCriticalMultiplier: number;

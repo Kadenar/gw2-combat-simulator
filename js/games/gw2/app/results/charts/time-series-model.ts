@@ -20,7 +20,6 @@ export interface SkillApplication {
 }
 
 export interface ChartEffectSummary {
-  readonly relic?: boolean;
   readonly uptime: number;
   readonly averageStacks: number;
   readonly maximumStacks?: number;
@@ -341,11 +340,7 @@ function buildEffectSeries(
       effects[name] = points.map((t) => ({ t, v: valueAt(track, (dpsStartMs + t) / 1000) }));
       effectTypes[name] = track.category;
       if (track.measure === 'remaining-duration') effectUnits[name] = 's';
-      if (track.category !== 'condition')
-        effectSummaries[name] = {
-          ...effectSummary(track, dpsStartMs / 1000, endMs / 1000),
-          ...(track.kind.startsWith('relic:') ? { relic: true } : {})
-        };
+      if (track.category !== 'condition') effectSummaries[name] = effectSummary(track, dpsStartMs / 1000, endMs / 1000);
     }
   }
 

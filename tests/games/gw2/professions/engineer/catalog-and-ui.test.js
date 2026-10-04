@@ -1,3 +1,4 @@
+import { flattenProfessionState } from '#gw2/platform/engine/profession/state.js';
 import { paletteSkillView } from '#gw2/app/rotation/palette/model.js';
 import { renderPalette } from '#gw2/app/rotation/palette/view.js';
 import { withActivePatchPreview } from '#gw2/integrations/patches/active-profession.js';
@@ -438,7 +439,7 @@ test('Engineer renders Endurance only for Tools and uses a standard bar', () => 
     catalog: engineerCatalog,
     specialization: 'Core',
     build,
-    professionState: state
+    professionState: flattenProfessionState(state)
   });
 
   assert.equal(
@@ -457,7 +458,7 @@ test('Engineer renders Endurance only for Tools and uses a standard bar', () => 
         { name: 'Firearms', traits: '1-2-3' }
       ]
     },
-    professionState: state
+    professionState: flattenProfessionState(state)
   });
   const endurance = tools.find((view) => view.id === 'endurance');
 
@@ -587,7 +588,7 @@ test('Engineer event log exposes Heat only for Holosmith heat transitions', () =
     return engineerProfession.ui.eventLogRow(
       {
         config,
-        state: { profession: runtime.createState(config) }
+        professionState: flattenProfessionState(runtime.createState(config))
       },
       value
     );

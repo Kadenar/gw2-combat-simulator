@@ -2,7 +2,6 @@ import type { ProfessionAttributePreviewContext } from '#gw2/platform/profession
 import { createPreviewControls } from '#gw2/professions/shared/attribute-preview.js';
 
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
-import { flattenProfessionState } from '#gw2/platform/engine/profession/state.js';
 import {
   balanceProfileNumber,
   requireBalanceProfileFromContext
@@ -213,5 +212,6 @@ export function bindFirebrandUi(catalog: Readonly<CanonicalCatalog<GuardianSkill
 }
 
 function professionState(context: GuardianUiContext): Partial<GuardianState> {
-  return flattenProfessionState(context.state?.profession || context.professionState);
+  // Presentation callers supply the flat projection for the inspected rotation point.
+  return context.professionState ?? {};
 }

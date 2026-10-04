@@ -58,8 +58,6 @@ export interface ElementalistUiContext extends Omit<
       })
     | null;
   readonly config?: ElementalistConfig;
-  /** Live scheduler state when a palette is inspected mid-rotation. */
-  readonly state?: { readonly profession?: Partial<ElementalistState> };
 }
 
 /** UI slice whose callbacks read Elementalist end-state projections. */

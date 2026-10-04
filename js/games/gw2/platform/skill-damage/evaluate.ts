@@ -159,7 +159,6 @@ function strikeBreakdown(strikes: readonly StrikeHit[]): SkillDamageStrikeBreakd
     baseDamage,
     nonCriticalDamage,
     criticalDamage,
-    averageDamage: calculated.reduce((total, hit) => total + hit.damage, 0),
     criticalChance: first.criticalChance ?? 0,
     criticalDamageMultiplier: first.criticalDamage ?? 1,
     averagedCriticalMultiplier: calculation.criticalMultiplier,

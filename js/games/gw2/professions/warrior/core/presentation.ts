@@ -5,7 +5,6 @@ import { WARRIOR_CORE_BALANCE_PROFILE_IDS } from '#gw2/professions/warrior/core/
 
 import type { PaletteOverride } from '#gw2/platform/profession-presentation/types.js';
 import { PERMANENT_COMBO_FIELD_ASSUMPTION_CONTROLS } from '#gw2/platform/combos/permanent-field-assumption.js';
-import { flattenProfessionState } from '#gw2/platform/engine/profession/state.js';
 import {
   balanceProfileNumber,
   requireBalanceProfileFromContext
@@ -39,7 +38,8 @@ const WARRIOR_REGULAR_BURSTS_BY_WEAPON: Readonly<Record<string, number>> = Objec
 });
 
 export function warriorUiState(context: WarriorUiContext = {}): Partial<WarriorState> {
-  return flattenProfessionState(context.state?.profession || context.professionState);
+  // Presentation callers supply the flat projection for the inspected rotation point.
+  return context.professionState ?? {};
 }
 
 /** Simulation time (seconds) of the rotation point being inspected. */

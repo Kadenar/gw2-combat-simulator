@@ -23,12 +23,6 @@ interface RevenantLegendLoadoutContext extends SlotLoadoutContext {
     activeLoadoutId?: string;
     availableFlips?: SkillFlipWindows;
   };
-  state?: {
-    profession?: {
-      activeLoadoutId?: string;
-      availableFlips?: SkillFlipWindows;
-    };
-  };
 }
 
 function icon(name: string): string {
@@ -174,7 +168,7 @@ export const revenantLegendLoadout = Object.freeze({
     return Number(skillId) === SKILL.CALL_TO_ANGUISH ? [SKILL.UNYIELDING_IMPACT] : [];
   },
   paletteGroups(context: RevenantLegendLoadoutContext = {}) {
-    const availableFlips = context.professionState?.availableFlips || context.state?.profession?.availableFlips || {};
+    const availableFlips = context.professionState?.availableFlips || {};
     return baseRevenantLegendLoadout.paletteGroups(context).map((group) => ({
       ...group,
       color: group.active ? '#c4565d' : '#84343a',

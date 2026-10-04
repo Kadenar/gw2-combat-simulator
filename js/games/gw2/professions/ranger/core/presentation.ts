@@ -1,16 +1,12 @@
 import { PERMANENT_COMBO_FIELD_ASSUMPTION_CONTROLS } from '#gw2/platform/combos/permanent-field-assumption.js';
 import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
-import { flattenProfessionState, readProfessionCoreState } from '#gw2/platform/engine/profession/state.js';
-import type { CanonicalCatalog, Skill, SkillId } from '#gw2/platform/engine/skills/types.js';
+import { readProfessionCoreState } from '#gw2/platform/engine/profession/state.js';
+import type { CanonicalCatalog, SkillId } from '#gw2/platform/engine/skills/types.js';
 import { gw2ConfiguredWeaponSet } from '#gw2/platform/equipment/weapons/loadout.js';
 import type {
   ProfessionAttributePreviewContext,
   ProfessionAttributePreviewPreparation
 } from '#gw2/platform/profession-presentation/attribute-preview.js';
-import type {
-  SkillDamagePreviewContext,
-  SkillDamageState
-} from '#gw2/platform/profession-presentation/skill-damage.js';
 import type {
   ProfessionPaletteGroup,
   ProfessionResourceView,
@@ -52,9 +48,9 @@ const RANGER_HIDDEN_EVENT_TYPES = new Set([
 // Boon-copy mechanics retain their simulation events without duplicating whole boon lists in the readable log.
 const RANGER_HIDDEN_BOON_SOURCES = new Set<number>([TRAIT.FORTIFYING_BOND, TRAIT.RESOUNDING_TIMBRE, ID.WE_HEAL_AS_ONE]);
 
-/** Flatten runtime or projected state while retaining the declared Ranger fields. */
 export function rangerUiState(context: RangerUiContext): Partial<RangerState> {
-  return flattenProfessionState(context.state?.profession || context.professionState || {});
+  // Presentation callers supply the flat projection for the inspected rotation point.
+  return context.professionState ?? {};
 }
 
 function rangerUiSpecialization(context: RangerUiContext): string {
@@ -175,19 +171,9 @@ function updateRangerCoreSelection(context: RangerUiContext, selection: RangerUi
   return updatePetSelection(context, selection) || updateHammerSelection(context, selection);
 }
 
-/** Prepare shared weapon prerequisites, including when an elite adds its own mode transition. */
-export function rangerSkillDamageOccurrence(
-  _context: SkillDamagePreviewContext,
-  _skill: Skill
-): SkillDamageState | null {
-  // Direct evaluation supplies damage state without prerequisite actions.
-  return null;
-}
-
 /** Captures this UI's catalog so other profession instances cannot change its projections. */
 export function bindRangerCoreUi(catalog: Readonly<CanonicalCatalog<RangerSkill>>): RangerUiSlice {
   return Object.freeze({
-    skillDamageState: rangerSkillDamageOccurrence,
     /** Declare this module's conditional inputs without adding simulation settings. */
     previewControls(context: ProfessionAttributePreviewContext) {
       const preview = createPreviewControls(context);
