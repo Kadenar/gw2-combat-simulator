@@ -3,8 +3,6 @@ import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
 import type { Gw2ResolvedStats } from '#gw2/platform/combat/query/combat-query.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import type { SimulationEventBase } from '#gw2/platform/events/events.js';
-import { createGw2TimelineIndex } from '#gw2/platform/combat/query/timeline-index.js';
-import { buffApplicationStacks } from '#gw2/platform/combat/boons.js';
 import { rangerPetCompanionId } from '#gw2/professions/ranger/core/mechanics/pets.js';
 import { buildRangerPacket } from '#gw2/professions/ranger/core/events.js';
 import {
@@ -492,27 +490,20 @@ export const RANGER_CORE_SLOT_SKILL_MECHANICS: Readonly<Record<number, Partial<S
 
 /** Copy both actors from one executed-time snapshot so the first copy never feeds the second. */
 export function copyHealingBoons(runtime: RangerRuntime, cast: RuntimeCast<RangerSkill>): void {
-  const timeline = createGw2TimelineIndex({ events: runtime.facts.read() });
   const companionId = rangerPetCompanionId(runtime);
   const petActive = runtime.profession.core.petActive;
   const copies = (cast.skill.effects ?? [])
     .filter((effect) => effect.type === 'boon')
     .map((effect) => {
       const kind = String(effect.boon);
-      const maximum = kind === 'might' || kind === 'stability' ? 25 : 1;
-      const configured = runtime.config.boons?.[kind];
-      const player = Math.min(
-        maximum,
-        Number(configured || 0) +
-          buffApplicationStacks(runtime.combat.boonApplications(kind), kind, runtime.time, maximum, {
-            ordered: true
-          })
-      );
+      const player = runtime.combat.boonSnapshot(kind, runtime.time, { actor: 'player' }).stacks;
       return {
         kind,
         duration: Number(effect.duration),
         player,
-        pet: petActive ? timeline.buffStacksAt(kind, runtime.time, 0, maximum, 'summon', companionId) : player
+        pet: petActive
+          ? runtime.combat.boonSnapshot(kind, runtime.time, { actor: 'companion', companionId }).stacks
+          : player
       };
     });
   for (const { kind, duration, player, pet } of copies) {
