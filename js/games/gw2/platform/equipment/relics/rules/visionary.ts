@@ -23,28 +23,8 @@ export const visionary = defineRelic({
     }
 
     const stacks = (state.stacks || 0) + 1;
-    if (stacks < VISIONARY_STACKS_NEEDED) {
-      state.stacks = stacks;
-      ctx.effects.emit({
-        kind: 'announcement',
-        announcement: {
-          type: 'relic',
-          name: 'Relic of the Visionary',
-          at: event.at,
-          sourceSkill: event.skillName,
-          detail: `${stacks}/${VISIONARY_STACKS_NEEDED} stacks`,
-          icon: '',
-          cooldownReduction: null,
-          expiresAt: null,
-          effectState: { stacks, maximumStacks: VISIONARY_STACKS_NEEDED }
-        }
-      });
-      return;
-    }
-
-    state.stacks = 0;
-    const until = gw2EffectExpiresAt(event.at, VISIONARY_BUFF_DURATION);
-    windows.push({ from: event.at, until });
+    state.stacks = stacks < VISIONARY_STACKS_NEEDED ? stacks : 0;
+    // Buildup has its own track; publishing consumption closes it before the separate damage buff begins.
     ctx.effects.emit({
       kind: 'announcement',
       announcement: {
@@ -52,7 +32,25 @@ export const visionary = defineRelic({
         name: 'Relic of the Visionary',
         at: event.at,
         sourceSkill: event.skillName,
-        detail: "Vloxx's Vision",
+        detail: state.stacks ? `${state.stacks}/${VISIONARY_STACKS_NEEDED} stacks` : 'stacks consumed',
+        icon: '',
+        cooldownReduction: null,
+        expiresAt: null,
+        effectState: { stacks: state.stacks, maximumStacks: VISIONARY_STACKS_NEEDED }
+      }
+    });
+    if (state.stacks > 0) return;
+
+    const until = gw2EffectExpiresAt(event.at, VISIONARY_BUFF_DURATION);
+    windows.push({ from: event.at, until });
+    ctx.effects.emit({
+      kind: 'announcement',
+      announcement: {
+        type: 'relic',
+        name: "Vloxx's Vision",
+        at: event.at,
+        sourceSkill: event.skillName,
+        detail: '+10% strike and condition damage',
         icon: '',
         cooldownReduction: null,
         expiresAt: until

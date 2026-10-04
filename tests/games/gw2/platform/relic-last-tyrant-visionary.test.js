@@ -1,5 +1,8 @@
 import { captureEffectEmissions } from '#tests/helpers/effect-emission.js';
 import { recordProcStep } from '#gw2/platform/results/proc-steps.js';
+import { effectStateAt } from '#gw2/platform/results/effect-report.js';
+import { buildChartSeries } from '#gw2/app/results/model.js';
+import { comboDefinition } from '#gw2/platform/combos/definitions.js';
 import { RELIC_IDS } from '#gw2/platform/equipment/relics/data.js';
 import { createCanonicalCatalog } from '#gw2/platform/engine/skills/canonical-skill-catalog.js';
 import assert from 'node:assert/strict';
@@ -301,8 +304,77 @@ test('condition application returns no packets for zero stacks or duration and r
 });
 
 function combo(at, finisherType = 'Blast') {
-  return { type: 'combo', at, actorType: 'player', skillName: 'Fixture Finisher', finisherType, fieldType: 'Fire' };
+  // Supply an accepted semantic combo so both hook probes and the full runtime exercise the same event.
+  return {
+    type: 'combo',
+    at,
+    actorType: 'player',
+    skillName: 'Fixture Finisher',
+    finisherType,
+    fieldType: 'Fire',
+    source: 'Fixture',
+    sourceId: 'fixture.finisher',
+    comboId: `fixture-combo:${at}`,
+    attemptId: `fixture-attempt:${at}`,
+    fieldId: 'fixture-field',
+    bindingKind: 'field-id',
+    applicationCount: 1,
+    outcome: comboDefinition('Fire', finisherType).outcome
+  };
 }
+
+// Accepted stack consumption and buff activation must stay separate through report and chart projection.
+test("Visionary charts buildup and Vloxx's Vision with independent counts, caps, and uptime", () => {
+  const result = resolveTestGw2Events({
+    config: { relic: 'Visionary' },
+    events: Array.from({ length: 8 }, (_, at) => combo(at)),
+    endTime: 20
+  });
+  assert.deepEqual(result.warnings, []);
+  const report = result.effectReport;
+  const buildup = report.tracks.find((track) => track.kind === 'relic:Relic of the Visionary');
+  const vision = report.tracks.find((track) => track.kind === "relic:Vloxx's Vision");
+  assert.ok(buildup);
+  assert.ok(vision);
+  assert.equal(buildup.countLimit, 8);
+  assert.equal(vision.countLimit, 1);
+  assert.equal(effectStateAt(report, buildup, 6).count, 7);
+  assert.equal(effectStateAt(report, buildup, 7).count, 0);
+  assert.equal(effectStateAt(report, vision, 6).count, 0);
+  assert.equal(effectStateAt(report, vision, 7).count, 1);
+  assert.equal(effectStateAt(report, vision, 15).count, 0);
+  const series = buildChartSeries(result, 1000);
+  assert.ok(series.effects['Relic of the Visionary']);
+  assert.ok(series.effects["Vloxx's Vision"]);
+  assert.equal(series.effectSummaries['Relic of the Visionary'].averageStacks, 28 / 20);
+  assert.equal(series.effectSummaries['Relic of the Visionary'].uptime, 7 / 20);
+  assert.equal(series.effectSummaries['Relic of the Visionary'].maximumStacks, 8);
+  assert.equal(series.effectSummaries["Vloxx's Vision"].uptime, 8 / 20);
+  assert.equal(series.effectSummaries["Vloxx's Vision"].maximumStacks, 1);
+});
+
+// Buff expiry reopens buildup without reviving old stacks or extending the previous buff window.
+test("Visionary reports a new buildup and buff cycle after Vloxx's Vision expires", () => {
+  const result = resolveTestGw2Events({
+    config: { relic: 'Visionary' },
+    events: [
+      ...Array.from({ length: 8 }, (_, at) => combo(at)),
+      combo(10),
+      ...Array.from({ length: 8 }, (_, index) => combo(15 + index))
+    ],
+    endTime: 32
+  });
+  assert.deepEqual(result.warnings, []);
+  const report = result.effectReport;
+  const buildup = report.tracks.find((track) => track.kind === 'relic:Relic of the Visionary');
+  const vision = report.tracks.find((track) => track.kind === "relic:Vloxx's Vision");
+  assert.equal(effectStateAt(report, buildup, 10).count, 0);
+  assert.equal(effectStateAt(report, buildup, 15).count, 1);
+  assert.equal(effectStateAt(report, vision, 15).count, 0);
+  assert.equal(effectStateAt(report, buildup, 22).count, 0);
+  assert.equal(effectStateAt(report, vision, 22).count, 1);
+  assert.equal(effectStateAt(report, vision, 30).count, 0);
+});
 
 test("Visionary grants Vloxx's Vision at eight combos for 8s of +10% strike and condition damage", () => {
   const { relic, ctx } = relicHarness('Visionary');
