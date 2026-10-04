@@ -1,14 +1,114 @@
-import { bloodMagicTraits } from '#gw2/professions/necromancer/core/traits/blood-magic.js';
-import { cursesTraits } from '#gw2/professions/necromancer/core/traits/curses.js';
-import { deathMagicTraits } from '#gw2/professions/necromancer/core/traits/death-magic.js';
-import { soulReapingTraits } from '#gw2/professions/necromancer/core/traits/soul-reaping.js';
-import { spiteTraits } from '#gw2/professions/necromancer/core/traits/spite.js';
+import {
+  markOfEvasion,
+  lastRites,
+  vampiric,
+  vampiricPresence,
+  overflowingThirst,
+  bansheesWail,
+  transfusion
+} from '#gw2/professions/necromancer/core/traits/blood-magic.js';
+import {
+  barbedPrecision,
+  chillingDarkness,
+  insidiousDisruption,
+  furiousDemise,
+  targetTheWeak,
+  lingeringCurse,
+  weakeningShroud,
+  masterOfCorruption,
+  plagueSending,
+  terror
+} from '#gw2/professions/necromancer/core/traits/curses.js';
+import {
+  necromanticCorruption,
+  fleshOfTheMaster,
+  deadlyStrength,
+  corruptersFervor,
+  darkDefense,
+  shroudedRemoval,
+  soulComprehension,
+  armoredShroud,
+  putridDefense
+} from '#gw2/professions/necromancer/core/traits/death-magic.js';
+import {
+  dhuumfire,
+  unyieldingBlast,
+  vitalPersistence,
+  sinisterShroud,
+  deathPerception,
+  soulBarbs,
+  eternalLife,
+  fearOfDeath,
+  speedOfShadows,
+  soulMarks,
+  soulBattery,
+  gluttony
+} from '#gw2/professions/necromancer/core/traits/soul-reaping.js';
+import {
+  reapersMight,
+  siphonedPower,
+  chillOfDeath,
+  awakenThePain,
+  spitefulFortitude,
+  signetsOfSuffering,
+  bitterChill,
+  maliciousSwarm,
+  spitefulSpirit,
+  dread,
+  spitefulTalisman,
+  closeToDeath
+} from '#gw2/professions/necromancer/core/traits/spite.js';
 
-/** Registers each native trait owner once; execution boundaries remain in the owning helpers. */
+/** Register each Core trait directly, preserving the execution order of its rules. */
 export const necromancerCoreTraits = [
-  ...deathMagicTraits,
-  ...soulReapingTraits,
-  ...cursesTraits,
-  ...bloodMagicTraits,
-  ...spiteTraits
+  necromanticCorruption,
+  fleshOfTheMaster,
+  deadlyStrength,
+  corruptersFervor,
+  darkDefense,
+  shroudedRemoval,
+  soulComprehension,
+  armoredShroud,
+  putridDefense,
+  dhuumfire,
+  unyieldingBlast,
+  vitalPersistence,
+  sinisterShroud,
+  deathPerception,
+  soulBarbs,
+  eternalLife,
+  fearOfDeath,
+  speedOfShadows,
+  soulMarks,
+  soulBattery,
+  gluttony,
+  barbedPrecision,
+  chillingDarkness,
+  insidiousDisruption,
+  furiousDemise,
+  targetTheWeak,
+  lingeringCurse,
+  weakeningShroud,
+  masterOfCorruption,
+  plagueSending,
+  terror,
+  markOfEvasion,
+  lastRites,
+  vampiric,
+  vampiricPresence,
+  overflowingThirst,
+  bansheesWail,
+  transfusion,
+  reapersMight,
+  siphonedPower,
+  chillOfDeath,
+  awakenThePain,
+  spitefulFortitude,
+  signetsOfSuffering,
+  bitterChill,
+  maliciousSwarm,
+  spitefulSpirit,
+  dread,
+  spitefulTalisman,
+  closeToDeath
 ];

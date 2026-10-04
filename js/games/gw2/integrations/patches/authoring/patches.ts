@@ -1,3 +1,4 @@
+import { validateActionIds } from '#gw2/platform/effects/action-validation.js';
 import {
   PATCHABLE_SKILL_NUMERIC_FIELDS,
   PATCHABLE_BALANCE_PROFILE_NUMERIC_FIELDS,
@@ -5,6 +6,7 @@ import {
 } from '#gw2/integrations/patches/authoring/fields.js';
 import { deepFreeze, cloneCatalogData } from '#gw2/integrations/patches/authoring/immutable.js';
 import { normalizeSkillEffects, requireBalanceNumber, skillEffectKey } from '#gw2/platform/effects/validation.js';
+import { validateCanonicalCatalog } from '#gw2/platform/skills/validation.js';
 import type { NumEdit } from '#gw2/integrations/patches/authoring/patch-types.js';
 import type { BalanceProfile, CanonicalCatalog, Skill, SkillId } from '#gw2/platform/skills/types.js';
 import type {
@@ -15,6 +17,15 @@ import type {
   StrikeTick
 } from '#gw2/platform/effects/types.js';
 import type { Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
+import {
+  castResourceGrants,
+  effectResourceGrants,
+  resourceGrantNumericFields,
+  type ResourceGrantAction
+} from '#gw2/platform/effects/resource-grants.js';
+
+/** Stable action ids address numeric reward tuning without exposing reaction order or executable predicates. */
+export type ResourceGrantEdits = Readonly<Record<string, Readonly<Record<string, NumEdit>>>>;
 
 export const CURRENT_PATCH_ID = 'current';
 
@@ -73,6 +84,7 @@ export interface EffectSelector {
 }
 
 export interface EffectPatch extends EffectSelector {
+  readonly resourceGrants?: ResourceGrantEdits;
   /** Zero-based index in the selected effect's ticks, or every matching tick. */
   readonly tickIndex?: number | 'all';
   readonly allyStacks?: NumEdit;
@@ -96,6 +108,8 @@ export interface EffectPatch extends EffectSelector {
 }
 
 export interface SkillPatchEdit {
+  /** Cast grants are independent of hostile effect edits. */
+  readonly resourceGrants?: ResourceGrantEdits;
   /** Numeric balance fields such as cooldown or initiativeCost. */
   readonly fields?: Readonly<Record<string, NumEdit>>;
   readonly effects?: readonly EffectPatch[];
@@ -141,6 +155,59 @@ const BALANCE_PROFILE_NUMERIC_FIELDS = new Set(PATCHABLE_BALANCE_PROFILE_NUMERIC
 const EFFECT_NUMERIC_FIELDS = PATCHABLE_EFFECT_NUMERIC_FIELDS;
 
 type MutableRecord = Record<string, unknown>;
+
+/** Patch only existing grant numbers, preserving ids, trigger predicates, and the declared condition observation. */
+function patchResourceGrants(
+  actions: readonly ResourceGrantAction[],
+  edits: ResourceGrantEdits | undefined,
+  label: string
+): void {
+  if (edits === undefined) return;
+  if (!edits || typeof edits !== 'object' || Array.isArray(edits))
+    throw new TypeError(`${label} resource edits must be an object.`);
+  validateActionIds(actions, label);
+  for (const [id, fields] of Object.entries(edits)) {
+    const action = actions.find((candidate) => candidate.id === id);
+    if (!action) throw new TypeError(`${label} has no resource grant ${id}.`);
+    if (!fields || typeof fields !== 'object' || Array.isArray(fields) || !Object.keys(fields).length)
+      throw new TypeError(`${label} resource grant ${id} requires numeric edits.`);
+    const values = resourceGrantNumericFields(action);
+    for (const [field, edit] of Object.entries(fields)) {
+      if (!Object.hasOwn(values, field)) throw new TypeError(`${label} resource grant ${id} does not expose ${field}.`);
+      const parts = field.split('.');
+      const key = parts.pop()!;
+      let target = (typeof action.amount === 'object' && 'parameters' in action.amount
+        ? action.amount.parameters
+        : action) as unknown as MutableRecord;
+      for (const part of parts) target = target[part] as MutableRecord;
+      target[key] = applyNumEdit(values[field]!, edit, `${label}.${id}.${field}`);
+    }
+
+    // Editor projections omit callbacks; executable catalogs retain the owner's stricter formula checks.
+    if (typeof action.amount === 'object' && 'parameters' in action.amount)
+      action.amount.validate?.(action.amount.parameters);
+  }
+}
+
+/** Normalize grant edits to guarded values so reopening and restoring editor controls preserves unrelated tuning. */
+function resourceGrantChanges(
+  live: readonly ResourceGrantAction[],
+  patched: readonly ResourceGrantAction[]
+): ResourceGrantEdits | undefined {
+  const changes: Record<string, Record<string, NumEdit>> = {};
+  for (const action of live) {
+    const after = patched.find((candidate) => candidate.id === action.id)!;
+    const values = resourceGrantNumericFields(action);
+    const next = resourceGrantNumericFields(after);
+    for (const field of Object.keys(values)) {
+      if (values[field] !== undefined && next[field] !== values[field]) {
+        (changes[action.id] ??= {})[field] = { from: values[field]!, to: next[field]! };
+      }
+    }
+  }
+
+  return Object.keys(changes).length ? changes : undefined;
+}
 
 /** Retain only removed identities, so callbacks and successive catalog overlays cannot resurrect deleted packets. */
 function patchEffects(owner: Skill | BalanceProfile, edit: SkillPatchEdit, label: string) {
@@ -404,6 +471,11 @@ function patchNumericFields(target: MutableRecord, patch: EffectPatch, label: st
 
 /** Routes an effect edit to its top-level payload or selected tick timeline. */
 function patchEffect(effect: SkillEffect, patch: EffectPatch, label: string): SkillEffect {
+  if (patch.resourceGrants !== undefined) {
+    if (patch.tickIndex != null) throw new TypeError(`${label} resource grants belong to an effect, not a tick.`);
+    patchResourceGrants(effectResourceGrants(effect), patch.resourceGrants, label);
+  }
+
   const mutable = effect as unknown as MutableRecord;
   const sourceTicks = effectTicks(effect);
   const maximumRecipients = patch.audience?.maximumRecipients;
@@ -426,7 +498,7 @@ function patchEffect(effect: SkillEffect, patch: EffectPatch, label: string): Sk
   if (patch.tickIndex == null) {
     if (sourceTicks && EFFECT_NUMERIC_FIELDS.some((field) => patch[field] != null && mutable[field] == null)) {
       if (patch.all === true) {
-        return patchEffect(effect, { ...patch, tickIndex: 'all' }, label);
+        return patchEffect(effect, { ...patch, resourceGrants: undefined, tickIndex: 'all' }, label);
       }
 
       throw new TypeError(`${label} uses a tick timeline; set tickIndex to a number or "all".`);
@@ -494,6 +566,11 @@ function shorthandEffects(edit: SkillPatchEdit): EffectPatch[] {
 /** Resolves saved selectors and stacked shorthands to guarded coordinates that the editor can replace independently. */
 export function normalizeAuthoringSkillEdit(source: Skill | BalanceProfile, edit: SkillPatchEdit): SkillPatchEdit {
   const normalized = { ...edit };
+  const castGrants = cloneCatalogData(castResourceGrants(source));
+  patchResourceGrants(castGrants, edit.resourceGrants, source.name);
+  const castChanges = resourceGrantChanges(castResourceGrants(source), castGrants);
+  if (castChanges) normalized.resourceGrants = castChanges;
+  else delete normalized.resourceGrants;
   if (edit.cooldown != null) normalized.fields = { ...edit.fields, cooldown: edit.cooldown };
   delete normalized.cooldown;
   delete normalized.coefficient;
@@ -518,7 +595,8 @@ export function normalizeAuthoringSkillEdit(source: Skill | BalanceProfile, edit
       }
     }
 
-    if (Object.keys(changes).length || selector.audience) effects.push({ ...selector, ...changes });
+    if (Object.keys(changes).length || selector.audience || selector.resourceGrants)
+      effects.push({ ...selector, ...changes });
   };
 
   for (const [effectIndex, live] of liveEffects.entries()) {
@@ -527,6 +605,9 @@ export function normalizeAuthoringSkillEdit(source: Skill | BalanceProfile, edit
     const to = patched.audience?.maximumRecipients;
     const selector: EffectPatch = {
       effectIndex,
+      ...(resourceGrantChanges(effectResourceGrants(live), effectResourceGrants(patched))
+        ? { resourceGrants: resourceGrantChanges(effectResourceGrants(live), effectResourceGrants(patched)) }
+        : {}),
       ...(from !== to && from != null && to != null ? { audience: { maximumRecipients: { from, to } } } : {})
     };
     recordChanges(live as unknown as MutableRecord, patched as unknown as MutableRecord, selector);
@@ -549,6 +630,7 @@ export function normalizeAuthoringSkillEdit(source: Skill | BalanceProfile, edit
 function patchSkill(skill: Skill, edit: SkillPatchEdit, label: string): Skill {
   const ownerLabel = `${label} skill=${skill.id} (${skill.name})`;
   const clone = cloneCatalogData(skill);
+  patchResourceGrants(castResourceGrants(clone), edit.resourceGrants, ownerLabel);
   const mutable = clone as unknown as MutableRecord;
   const fields: Record<string, NumEdit> = {
     ...(edit.fields || {}),
@@ -570,6 +652,7 @@ function patchSkill(skill: Skill, edit: SkillPatchEdit, label: string): Skill {
 function patchBalanceProfile(profile: BalanceProfile, edit: SkillPatchEdit, label: string): BalanceProfile {
   const ownerLabel = `${label} profile=${profile.id} (${profile.name})`;
   const clone = cloneCatalogData(profile);
+  patchResourceGrants(castResourceGrants(clone), edit.resourceGrants, ownerLabel);
   const mutable = clone as unknown as MutableRecord;
   const fields: Record<string, NumEdit> = {
     ...(edit.fields || {}),
@@ -632,12 +715,15 @@ export function applySkillPatch(
   const skills = Object.freeze(catalog.skills.map(replacementFor));
   const skillsById = new Map([...catalog.skillsById].map(([id, skill]) => [id, replacementFor(skill)]));
   const skillsByName = new Map([...catalog.skillsByName].map(([name, skill]) => [name, replacementFor(skill)]));
-  return Object.freeze({
+  const result = Object.freeze({
     ...catalog,
     skills,
     skillsById,
     skillsByName
   });
+  // Added or patched reactions must satisfy the same grant and trigger contracts as the live catalog.
+  validateCanonicalCatalog(result);
+  return result;
 }
 
 /** Applies balance-profile edits while preserving catalog indexes and object identity. */

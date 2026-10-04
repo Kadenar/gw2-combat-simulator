@@ -34,6 +34,10 @@ import { rangerProfession as baseRangerProfession } from '#gw2/professions/range
 import { revenantProfession as baseRevenantProfession } from '#gw2/professions/revenant/profession.js';
 import { thiefProfession as baseThiefProfession } from '#gw2/professions/thief/profession.js';
 import { warriorProfession as baseWarriorProfession } from '#gw2/professions/warrior/profession.js';
+import { NECROMANCER_SKILL_IDS as NECRO_ID } from '#gw2/professions/necromancer/data/ids.js';
+import { applySkillPatch, normalizeAuthoringSkillEdit } from '#gw2/integrations/patches/authoring/patches.js';
+import { createCanonicalCatalog } from '#gw2/platform/skills/catalog.js';
+import { effectResourceGrants, resourceGrantNumericFields } from '#gw2/platform/effects/resource-grants.js';
 
 const elementalistProfession = withActivePatchPreview(baseElementalistProfession);
 const engineerProfession = withActivePatchPreview(baseEngineerProfession);
@@ -44,6 +48,68 @@ const rangerProfession = withActivePatchPreview(baseRangerProfession);
 const revenantProfession = withActivePatchPreview(baseRevenantProfession);
 const thiefProfession = withActivePatchPreview(baseThiefProfession);
 const warriorProfession = withActivePatchPreview(baseWarriorProfession);
+
+// Saving and reopening preserves independent grant edits; restoring one control cannot erase its siblings.
+test('resource grant controls round-trip effect and cast edits without executable callbacks', () => {
+  const professions = structuredClone([necromancerProfession.patchAuthoring]);
+  const payload = { preview: null, professions, sourceFile: 'active-preview.ts' };
+  loadEditorPayload(payload);
+  const effect = {
+    entity: 'effect',
+    id: String(NECRO_ID.FEAST_OF_CORRUPTION),
+    effectIndex: 0,
+    grantId: 'life-force',
+    field: 'percent',
+    current: 8
+  };
+  const bonus = { ...effect, field: 'perCondition.percent', current: 1 };
+  const cast = {
+    entity: 'cast-resource-grant',
+    id: String(NECRO_ID.INNERVATE_ANGUISH),
+    grantId: 'innervate',
+    field: 'percent',
+    current: 10
+  };
+  setNumericEdit({ ...effect, next: 6 });
+  setNumericEdit({ ...bonus, next: 2 });
+  setNumericEdit({ ...cast, next: 12 });
+  const saved = structuredClone(editorState.draft);
+  loadEditorPayload({ ...payload, preview: saved });
+  assert.deepEqual(editorState.draft, saved);
+  setNumericEdit({ ...effect, next: 8 });
+  const edit = editorState.draft.professions.necromancer.skills[NECRO_ID.FEAST_OF_CORRUPTION];
+  assert.deepEqual(edit.effects, [
+    { effectIndex: 0, resourceGrants: { 'life-force': { 'perCondition.percent': { from: 1, to: 2 } } } }
+  ]);
+  const patched = applySkillPatch(baseNecromancerProfession.catalog, editorState.draft.professions.necromancer);
+  const action = effectResourceGrants(patched.skillsById.get(NECRO_ID.FEAST_OF_CORRUPTION).effects[0])[0];
+  assert.equal(resourceGrantNumericFields(action)['perCondition.percent'], 2);
+  setNumericEdit({ ...bonus, next: 1 });
+  setNumericEdit({ ...cast, next: 10 });
+  assert.equal(editorState.draft.professions, undefined);
+});
+
+// Literal endurance rewards expose the same sparse edit grammar as profession-owned formulas.
+test('ordinary endurance grants support stable numeric edits and stale-value guards', () => {
+  const catalog = createCanonicalCatalog({
+    generated: [
+      {
+        id: 1,
+        name: 'Endurance fixture',
+        castTimeMs: 0,
+        sideEffects: [
+          { on: 'castCommit', do: { type: 'resourceGrant', id: 'endurance', resource: 'endurance', amount: 10 } }
+        ]
+      }
+    ]
+  });
+  const edit = { resourceGrants: { endurance: { amount: { from: 10, to: 15 } } } };
+  const patched = applySkillPatch(catalog, { skills: { 1: edit } });
+  assert.equal(patched.skills[0].sideEffects[0].do.amount, 15);
+  assert.equal(catalog.skills[0].sideEffects[0].do.amount, 10);
+  assert.deepEqual(normalizeAuthoringSkillEdit(skillAuthoringReference(catalog.skills[0]), edit), edit);
+  assert.throws(() => applySkillPatch(patched, { skills: { 1: edit } }), /expected live value/);
+});
 
 // Browser composition must retain profession-specific inputs and extras when it decorates the runtime.
 test('patched Engineer adapter forwards starting heat and morph selections', () => {

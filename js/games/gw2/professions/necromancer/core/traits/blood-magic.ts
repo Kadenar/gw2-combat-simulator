@@ -228,13 +228,3 @@ export const bansheesWail = defineTrait({
     }
   }
 });
-
-export const bloodMagicTraits = [
-  markOfEvasion,
-  lastRites,
-  vampiric,
-  vampiricPresence,
-  overflowingThirst,
-  bansheesWail,
-  transfusion
-];

@@ -98,15 +98,3 @@ export const putridDefense = defineTrait({
     }
   ]
 });
-
-export const deathMagicTraits = [
-  necromanticCorruption,
-  fleshOfTheMaster,
-  deadlyStrength,
-  corruptersFervor,
-  darkDefense,
-  shroudedRemoval,
-  soulComprehension,
-  armoredShroud,
-  putridDefense
-];

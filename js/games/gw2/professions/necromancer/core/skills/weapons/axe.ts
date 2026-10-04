@@ -1,3 +1,4 @@
+import { lifeForceGrant } from '#gw2/professions/necromancer/core/skills/life-force-grants.js';
 import { MODIFIER_TARGET, type Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
 import { vulnerabilityStacks } from '#gw2/platform/combat/query/runtime-query.js';
 /** Canonical Core necromancer skill fragments grouped by their GW2 owner. */
@@ -10,18 +11,18 @@ export const NECROMANCER_WEAPONS_AXE_SKILL_MECHANICS: Readonly<Record<number, Pa
     interruptMode: 'per-packet',
     castTimeMs: 1520,
     cooldown: 6,
-    lifeForcePerHit: 12 / 8,
+
     effects: [
       {
         type: 'strike',
-        // Accepted strikes grant live skill tuning through the percentage resource owner.
+        // Accepted strikes apply their declared percentage through the shared resource owner.
         reactions: [
           {
             on: 'damage.resolved',
             actor: 'player',
             packets: 'each',
             when: (_runtime, { event }) => Number(event.coefficient) > 0,
-            do: { type: 'necromancer.skill-life-force' }
+            do: lifeForceGrant({ id: 'life-force', unit: 'hit', grant: { percent: 12 / 8 } })
           }
         ],
         // The supplied Quickness logs resolve eight individual hits; interruptions preserve only reached packets.

@@ -137,7 +137,7 @@ test('Symbolic Avenger replaces the oldest stack at its cap and expires stacks i
                 skillId: GUARDIAN_SKILL_IDS.SYMBOL_OF_PUNISHMENT,
                 actorType: 'player',
                 coefficient: 1,
-                isSymbol: true,
+                metadata: { guardianSymbol: true },
                 at
               }
             });

@@ -20,18 +20,22 @@ export const GUARDIAN_WEAPONS_LONGBOW_SKILL_MECHANICS: Readonly<Record<number, P
     ])
   },
   [ID.SYMBOL_OF_ENERGY]: {
+    // Author symbol identity independently of the skill's display text.
+    tags: ['symbol'],
     castTimeMs: 400,
     // The symbol creates its four-second Light field with the initial impact.
     comboFields: [{ ownerId: 'guardian', fieldType: 'Light', duration: 4, startAnchor: 'castEnd' }],
     effects: [
       {
         type: 'strike',
+        metadata: { guardianSymbol: true },
         coefficient: 1.38,
         hits: 1,
         name: 'Symbol of Energy — Initial Damage'
       },
       {
         type: 'strike',
+        metadata: { guardianSymbol: true },
         ticks: Array.from({ length: 4 }, (_, index) => ({ atMs: 1000 + index * 1000, coefficient: 2.07 / 4 })),
         name: 'Symbol of Energy — Symbol Damage',
         timingAnchor: 'castEnd',

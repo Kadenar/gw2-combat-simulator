@@ -35,7 +35,12 @@ function validateFinitePriority(value: unknown, label: string): void {
 }
 
 /** Shared validation keeps cast declarations and resolved-effect actions on the same contract. */
-export function validateSideEffectAction(catalog: CanonicalCatalog, skill: Skill, action: SideEffectAction): void {
+export function validateSideEffectAction(
+  catalog: CanonicalCatalog,
+  skill: Skill,
+  action: SideEffectAction,
+  on: string
+): void {
   if (!action || typeof action !== 'object' || Array.isArray(action) || typeof action.type !== 'string')
     throw new TypeError(`Skill ${skill.id} has an invalid side-effect action.`);
   const label = `Skill ${skill.id} side effect ${action.type}`;
@@ -55,7 +60,11 @@ export function validateSideEffectAction(catalog: CanonicalCatalog, skill: Skill
     case 'resourceGrant':
       if (action.resource !== 'endurance' && !RESOURCE_KEYS.includes(action.resource))
         throw new TypeError(`${label} references unknown resource ${action.resource}.`);
-      validateSideEffectAmount(catalog, action.amount, `${label} amount`, skill);
+      if (typeof action.amount === 'object' && action.amount !== null && 'parameters' in action.amount) {
+        if (typeof action.amount.resolve !== 'function' || typeof action.amount.validate !== 'function')
+          throw new TypeError(`${label} requires a resource amount resolver and validator.`);
+        action.amount.validate(action.amount.parameters, on);
+      } else validateSideEffectAmount(catalog, action.amount, `${label} amount`, skill);
       break;
     case 'flipArm':
       if (action.expiryPriority !== undefined) validateFinitePriority(action.expiryPriority, label);
@@ -94,6 +103,10 @@ export function validateSideEffectAction(catalog: CanonicalCatalog, skill: Skill
 export function validateEffectReactions(catalog: CanonicalCatalog, skill: Skill, effect: SkillEffect): void {
   if (effect.reactions === undefined) return;
   if (!Array.isArray(effect.reactions)) throw new TypeError(`Skill ${skill.id} reactions must be an array.`);
+  validateActionIds(
+    effect.reactions.flatMap((rule) => (Array.isArray(rule.do) ? rule.do : [rule.do])),
+    `Skill ${skill.id} effect`
+  );
   const stage = (
     { strike: 'damage.resolved', condition: 'condition.applied', control: 'control.resolved' } as Record<string, string>
   )[effect.type];
@@ -116,9 +129,20 @@ export function validateEffectReactions(catalog: CanonicalCatalog, skill: Skill,
     const actions = Array.isArray(rule.do) ? rule.do : [rule.do];
     if (!actions.length) throw new TypeError(`Skill ${skill.id} reaction requires an action.`);
     for (const action of actions) {
-      validateSideEffectAction(catalog, skill, action);
+      validateSideEffectAction(catalog, skill, action, rule.on);
       if (action.type === 'flipArm' || action.type === 'flipConsume')
         throw new TypeError(`${action.type} requires a cast trigger.`);
     }
+  }
+}
+
+/** Identified actions are unique within their cast or effect owner so edits never select two rewards. */
+export function validateActionIds(actions: readonly SideEffectAction[], label: string): void {
+  const ids = new Set<string>();
+  for (const action of actions) {
+    if (!action || !('id' in action) || action.id === undefined) continue;
+    if (typeof action.id !== 'string' || !action.id.trim() || ids.has(action.id))
+      throw new TypeError(`${label} has an invalid or duplicate action id.`);
+    ids.add(action.id);
   }
 }

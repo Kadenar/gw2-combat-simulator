@@ -1,4 +1,8 @@
-import { validateEffectReactions, validateSideEffectAction } from '#gw2/platform/effects/action-validation.js';
+import {
+  validateActionIds,
+  validateEffectReactions,
+  validateSideEffectAction
+} from '#gw2/platform/effects/action-validation.js';
 import { normalizeSkillEffects } from '#gw2/platform/effects/validation.js';
 import type { CanonicalCatalog, Skill, SkillId, SkillLockout } from '#gw2/platform/skills/types.js';
 import type { UnvalidatedFields } from '#kernel/core/unvalidated.js';
@@ -80,7 +84,6 @@ const SKILL_FIELDS = new Set([
   'independentCastCanOverlap',
   'initialStateOnly',
   'initiativeCost',
-  'innervateLifeForceGain',
   'inputCategory',
   'instrument',
   'interruptCommitMs',
@@ -90,11 +93,6 @@ const SKILL_FIELDS = new Set([
   'kneelSkill',
   'legendId',
   'lifeForceCost',
-  'lifeForceGain',
-  'lifeForceOnHit',
-  'lifeForcePerCondition',
-  'lifeForcePerHit',
-  'lifeForcePerPulse',
   'loadoutSkillId',
   'lockouts',
   'malicious',
@@ -249,7 +247,15 @@ function normalizeLockouts(lockouts: unknown, skillId: SkillId): readonly SkillL
 
 /** References can cross module contributions, so validate after the complete catalog exists. */
 function validateSkillDeclarations(catalog: CanonicalCatalog, skill: Skill): void {
-  for (const { do: action } of skill.sideEffects ?? []) validateSideEffectAction(catalog, skill, action);
+  // Stable cast action identities and owner validators use the actual authored execution stage.
+  validateActionIds(
+    (skill.sideEffects ?? []).map((rule) => rule.do),
+    `Skill ${skill.id} casts`
+  );
+  for (const { do: action, on } of skill.sideEffects ?? []) {
+    validateSideEffectAction(catalog, skill, action, on);
+  }
+
   for (const effect of skill.effects ?? []) validateEffectReactions(catalog, skill, effect);
   for (const variant of skill.effectVariants ?? [])
     if (variant.profileId != null && !catalog.balanceProfilesById.has(variant.profileId))

@@ -40,6 +40,8 @@ export const GUARDIAN_WEAPONS_HAMMER_SKILL_MECHANICS: Readonly<Record<number, Pa
     ]
   },
   [ID.SYMBOL_OF_PROTECTION]: {
+    // Author symbol identity independently of the skill's display text.
+    tags: ['symbol'],
     castTimeMs: 520,
     comboFields: [
       {
@@ -52,12 +54,14 @@ export const GUARDIAN_WEAPONS_HAMMER_SKILL_MECHANICS: Readonly<Record<number, Pa
     effects: [
       {
         type: 'strike',
+        metadata: { guardianSymbol: true },
         coefficient: 1,
         hits: 1,
         name: 'Symbol of Protection — Hammer Damage'
       },
       {
         type: 'strike',
+        metadata: { guardianSymbol: true },
         // The symbol hits on creation and once per second for its two-second lifetime.
         ticks: [0, 1000, 2000].map((atMs) => ({ atMs, coefficient: 0.5 })),
         timingAnchor: 'castEnd',

@@ -11,13 +11,26 @@ export type ProfileAmount = number | { readonly profile: SkillId; readonly field
 // Resource grants may read the accepted skill's live tuning without duplicating it in a balance profile.
 export type ResourceGrantAmount = ProfileAmount | { readonly skillField: string };
 
+/** The owner resolves authored tuning using read-only facts; the platform only grants the returned pool units. */
+export interface ResourceGrantRecipe {
+  readonly parameters: Readonly<Record<string, unknown>>;
+  readonly resolve: (
+    runtime: MechanicQueryContext,
+    context: ActionContext,
+    parameters: Readonly<Record<string, unknown>>
+  ) => number;
+  readonly validate: (parameters: Readonly<Record<string, unknown>>, on?: string) => void;
+}
+
 export type SideEffectAction =
   | { readonly type: 'rechargeReset'; readonly skillIds: readonly SkillId[] }
   | { readonly type: 'ammoRestore'; readonly skillIds: readonly SkillId[]; readonly count: ProfileAmount }
   | {
       readonly type: 'resourceGrant';
       readonly resource: ResourceKey | 'endurance';
-      readonly amount: ResourceGrantAmount;
+      readonly id?: string;
+      readonly label?: string;
+      readonly amount: ResourceGrantAmount | ResourceGrantRecipe;
     }
   | {
       readonly type: 'flipArm';

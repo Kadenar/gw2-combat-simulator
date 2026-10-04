@@ -49,7 +49,6 @@ export interface GuardianRuntimeState {
 
 export interface GuardianStrikeFields {
   readonly skillWeapon?: string;
-  readonly isSymbol?: boolean;
   readonly triggeredBy?: string;
   readonly activationId?: string;
   readonly comboFields?: readonly { readonly ownerId: string; readonly fieldType: string; readonly duration: number }[];
@@ -83,7 +82,6 @@ export type GuardianVirtue = 'justice' | 'resolve' | 'courage';
 export type GuardianResolverEvent = Gw2ResolverEvent & {
   readonly applicationIndex?: number;
   readonly automatic?: boolean;
-  readonly isSymbol?: boolean;
 };
 
 export interface GuardianSkill extends Skill {

@@ -1,3 +1,4 @@
+import { lifeForceGrant } from '#gw2/professions/necromancer/core/skills/life-force-grants.js';
 /** Canonical Core necromancer skill fragments grouped by their GW2 owner. */
 import { conditionTimeline, impactEffects, strikeTimeline } from '#gw2/platform/effects/authoring.js';
 import { NECROMANCER_SKILL_IDS as ID } from '#gw2/professions/necromancer/data/ids.js';
@@ -70,14 +71,14 @@ export const NECROMANCER_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<numb
     effects: impactEffects({ timingAnchor: 'castStart', timingScale: 'fixed' }, [
       {
         type: 'strike',
-        // Accepted strikes grant live skill tuning through the percentage resource owner.
+        // Accepted strikes apply their declared percentage through the shared resource owner.
         reactions: [
           {
             on: 'damage.resolved',
             actor: 'player',
             packets: 'first',
             when: (_runtime, { event }) => Number(event.coefficient) > 0,
-            do: { type: 'necromancer.skill-life-force' }
+            do: lifeForceGrant({ id: 'life-force', unit: 'hit', grant: { percent: 9 } })
           }
         ],
         ticks: [240, 440, 680, 880, 1120, 1320, 1560, 1760, 2000].map((atMs) => ({ atMs, coefficient: 3.825 / 9 }))
@@ -95,8 +96,7 @@ export const NECROMANCER_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<numb
     slot: 'Weapon_4',
     shroud: 'death',
     shroudSlot: 4,
-    specialization: '',
-    lifeForceGain: 9
+    specialization: ''
   },
   [ID.DARK_PATH]: {
     // A completed cast arms the authored follow-up duration through the common flip owner.

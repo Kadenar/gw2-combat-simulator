@@ -238,18 +238,3 @@ export const closeToDeath = defineTrait({
     }
   ]
 });
-
-export const spiteTraits = [
-  reapersMight,
-  siphonedPower,
-  chillOfDeath,
-  awakenThePain,
-  spitefulFortitude,
-  signetsOfSuffering,
-  bitterChill,
-  maliciousSwarm,
-  spitefulSpirit,
-  dread,
-  spitefulTalisman,
-  closeToDeath
-];

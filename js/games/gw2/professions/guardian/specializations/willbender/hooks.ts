@@ -1,3 +1,7 @@
+import {
+  willbenderBuffPolicies,
+  willbenderEffectStates
+} from '#gw2/professions/guardian/specializations/willbender/effect-state.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import type { MechanicContext } from '#gw2/platform/profession-definition/mechanic-context.js';
 import { denySkillCast } from '#gw2/platform/execution/availability.js';
@@ -197,6 +201,8 @@ function hit(runtime: Runtime, event: Gw2ResolverEvent, details: NativeResolvedD
 
 /** Virtue windows, flame lifetimes, and earned recharge reductions live beside the shared cast and damage owners. */
 export const willbenderHooks: RuntimeHooks<GuardianRuntimeState, GuardianSkill> = {
+  buffPolicies: willbenderBuffPolicies,
+  observeEffects: willbenderEffectStates,
   /** Initial Tempo uses its normal grant function, retaining the selected cap and subsequent refresh behavior. */
   initialize(runtime) {
     const parameters = lethalTempoParameters(runtime);

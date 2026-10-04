@@ -180,16 +180,3 @@ export const unscathedContender = defineTrait({
 export const glacialHeart = defineTrait({ id: GUARDIAN_TRAIT_IDS.GLACIAL_HEART, name: 'Glacial Heart' });
 
 export const battlePresence = defineTrait({ id: GUARDIAN_TRAIT_IDS.BATTLE_PRESENCE, name: 'Battle Presence' });
-
-export const guardianVirtuesTraits = [
-  battlePresence,
-  permeatingWrath,
-  inspiredVirtue,
-  virtueOfResolution,
-  inspiringVirtue,
-  indomitableCourage,
-  masterOfConsecrations,
-  powerOfTheVirtuous,
-  unscathedContender,
-  glacialHeart
-];

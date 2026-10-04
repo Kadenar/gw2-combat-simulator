@@ -10,7 +10,7 @@ import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import { guardianCastCause } from '#gw2/professions/guardian/core/mechanics/event-handlers.js';
 import { guardianBoonActive } from '#gw2/professions/guardian/core/mechanics/modifier-queries.js';
-import { guardianTraitIcon } from '#gw2/professions/guardian/core/traits/behavior.js';
+import { guardianTraitIcon } from '#gw2/professions/guardian/core/traits/metadata.js';
 
 import { GUARDIAN_TRAIT_IDS as TRAIT } from '#gw2/professions/guardian/data/ids.js';
 import { MANTRAS } from '#gw2/professions/guardian/data/mantra-definitions.js';

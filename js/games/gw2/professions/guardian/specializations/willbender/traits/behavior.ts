@@ -12,7 +12,8 @@ import { gw2ConfiguredWeaponSet } from '#gw2/platform/equipment/weapons/loadout.
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 
 import { gw2EffectExpiresAt } from '#gw2/platform/effects/timing.js';
-import { battlePresenceSharesBoons, guardianTraitIcon } from '#gw2/professions/guardian/core/traits/behavior.js';
+import { battlePresenceSharesBoons } from '#gw2/professions/guardian/core/traits/behavior.js';
+import { guardianTraitIcon } from '#gw2/professions/guardian/core/traits/metadata.js';
 import { GUARDIAN_TRAIT_IDS as TRAIT } from '#gw2/professions/guardian/data/ids.js';
 
 import { WILLBENDER_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/guardian/specializations/willbender/profiles.js';

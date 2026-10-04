@@ -1152,10 +1152,10 @@ test('symbol traits claim only accepted player impacts and retain delayed impact
     { selectedTraitIds: [TRAIT.SYMBOLIC_AVENGER, TRAIT.SYMBOLIC_EXPOSURE] },
     {
       initialize: (runtime) => {
-        strike(runtime, 0.1, { isSymbol: true, offTarget: true });
-        strike(runtime, 0.2, { isSymbol: true, actorType: 'summon' });
-        strike(runtime, 0.3, { isSymbol: true, actorType: 'effect' });
-        strike(runtime, 0.4, { isSymbol: true });
+        strike(runtime, 0.1, { metadata: { guardianSymbol: true }, offTarget: true });
+        strike(runtime, 0.2, { metadata: { guardianSymbol: true }, actorType: 'summon' });
+        strike(runtime, 0.3, { metadata: { guardianSymbol: true }, actorType: 'effect' });
+        strike(runtime, 0.4, { metadata: { guardianSymbol: true } });
       }
     }
   );
@@ -1169,8 +1169,8 @@ test('symbol traits claim only accepted player impacts and retain delayed impact
 
 test('Symbolic Avenger projects independently expired stacks during idle waits', () => {
   const initialize = (runtime) => {
-    strike(runtime, 0.1, { isSymbol: true });
-    strike(runtime, 0.5, { isSymbol: true });
+    strike(runtime, 0.1, { metadata: { guardianSymbol: true } });
+    strike(runtime, 0.5, { metadata: { guardianSymbol: true } });
   };
 
   const config = { selectedTraitIds: [TRAIT.SYMBOLIC_AVENGER] };

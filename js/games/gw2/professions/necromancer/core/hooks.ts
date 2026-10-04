@@ -22,10 +22,7 @@ import {
   exitNecromancerShroud,
   necromancerFormTasks
 } from '#gw2/professions/necromancer/core/mechanics/forms.js';
-import {
-  grantNecromancerLifeForce,
-  grantNecromancerSkillLifeForce
-} from '#gw2/professions/necromancer/core/mechanics/life-force.js';
+import { grantNecromancerLifeForce } from '#gw2/professions/necromancer/core/mechanics/life-force.js';
 import {
   commandNecromancerMinion,
   necromancerMinionAvailability,
@@ -187,15 +184,6 @@ export const necromancerCoreHooks: RuntimeHooks<NecromancerRuntimeState, Necroma
     },
     'necromancer.transfer'(runtime, context) {
       if (context.kind === 'effect') resolveNecromancerTransfer(runtime, context.trigger.event);
-    },
-    'necromancer.skill-life-force'(runtime, context) {
-      if (context.kind === 'effect') grantNecromancerSkillLifeForce(runtime, context.skill, context.trigger.event);
-    },
-    // Declarations own amounts and eligibility; this handler applies the shared percentage conversion.
-    'necromancer.life-force'(runtime, _context, action) {
-      if (action.type !== 'necromancer.life-force' || action.amount == null)
-        throw new TypeError('Life-force grants require an amount.');
-      grantNecromancerLifeForce(runtime, sideEffectAmount(runtime, action.amount));
     },
     'necromancer.perforate'(runtime, context) {
       if (context.kind === 'effect') perforate(runtime, context.trigger.event);

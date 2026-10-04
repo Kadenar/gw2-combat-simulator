@@ -1,3 +1,4 @@
+import { lifeForceGrant } from '#gw2/professions/necromancer/core/skills/life-force-grants.js';
 /**
  * Owns Reaper Shroud entry, exit, and weapon skill fragments.
  * Shroud attribute modifiers live in `modifiers.ts`; shroud state and reactions live in `hooks.ts` and `mechanics/shroud-effects.ts`.
@@ -65,14 +66,14 @@ export const REAPER_SHROUD_SKILL_MECHANICS: Readonly<Record<number, Partial<Skil
     effects: [
       {
         type: 'strike',
-        // Accepted strikes grant live skill tuning through the percentage resource owner.
+        // Accepted strikes apply their declared percentage through the shared resource owner.
         reactions: [
           {
             on: 'damage.resolved',
             actor: 'player',
             packets: 'first',
             when: (_runtime, { event }) => Number(event.coefficient) > 0,
-            do: { type: 'necromancer.skill-life-force' }
+            do: lifeForceGrant({ id: 'life-force', unit: 'hit', grant: { percent: 1.5 } })
           }
         ],
         ticks: [{ atMs: 280, coefficient: 1.8 }],
@@ -80,7 +81,7 @@ export const REAPER_SHROUD_SKILL_MECHANICS: Readonly<Record<number, Partial<Skil
         timingScale: 'cast'
       }
     ],
-    lifeForceGain: 1.5,
+
     type: 'Profession',
     slot: 'Weapon_1',
     shroud: 'reaper',

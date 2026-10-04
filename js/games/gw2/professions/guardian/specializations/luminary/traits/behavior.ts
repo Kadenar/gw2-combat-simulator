@@ -12,7 +12,7 @@ import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import { gw2EffectExpiresAt } from '#gw2/platform/effects/timing.js';
 import { buildGuardianStrike, guardianCastCause } from '#gw2/professions/guardian/core/mechanics/event-handlers.js';
 import { refreshGuardianVirtues } from '#gw2/professions/guardian/core/mechanics/virtues.js';
-import { guardianTraitIcon } from '#gw2/professions/guardian/core/traits/behavior.js';
+import { guardianTraitIcon } from '#gw2/professions/guardian/core/traits/metadata.js';
 
 import { GUARDIAN_SKILL_IDS as ID, GUARDIAN_TRAIT_IDS as TRAIT } from '#gw2/professions/guardian/data/ids.js';
 import { luminaryImpactAt } from '#gw2/professions/guardian/specializations/luminary/mechanics/effects.js';

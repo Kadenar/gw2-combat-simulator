@@ -1,3 +1,5 @@
+import { reactToRighteousInstinctsBuff } from '#gw2/professions/guardian/core/traits/radiance.js';
+import { writOfPersistenceEffects, writOfPersistenceFields } from '#gw2/professions/guardian/core/traits/honor.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import type { MechanicContext } from '#gw2/platform/profession-definition/mechanic-context.js';
 import { grantTimedStacks } from '#gw2/platform/combat/resources/timed-stacks.js';
@@ -35,11 +37,8 @@ import {
   guardianResolutionMultiplier,
   masterOfConsecrationsFields,
   radiantFireMaximumAmmo,
-  reactToRighteousInstinctsBuff,
   reactToZealDamage,
-  triggerGuardianFuriousFocus,
-  writOfPersistenceEffects,
-  writOfPersistenceFields
+  triggerGuardianFuriousFocus
 } from '#gw2/professions/guardian/core/traits/behavior.js';
 import { GUARDIAN_TRAIT_IDS, GUARDIAN_SKILL_IDS as ID } from '#gw2/professions/guardian/data/ids.js';
 import type { GuardianRuntimeState, GuardianSkill, GuardianVirtue } from '#gw2/professions/guardian/types.js';
@@ -126,16 +125,6 @@ export const guardianCoreHooks: RuntimeHooks<GuardianRuntimeState, GuardianSkill
       applySideEffect(runtime, context, { type: 'rechargeReset', skillIds: virtues.map((skill) => skill.id) });
       for (const skill of virtues) runtime.cooldownController.restoreAmmo(skill, Infinity, runtime.time);
       runtime.profession.core.virtueReadyAt = { justice: runtime.time, resolve: runtime.time, courage: runtime.time };
-      // The same declared refresh also resets Firebrand's separate page and dormancy pools.
-      const specialization = runtime.profession.specialization;
-      if (specialization.kind === 'Firebrand') {
-        runtime.resourceController.grant('tomePages', specialization.state.tomePages.maximum);
-        specialization.state.tomeDormantReadyAt = {
-          justice: runtime.time,
-          resolve: runtime.time,
-          courage: runtime.time
-        };
-      }
     }
   },
   endurance: { state: (runtime) => runtime.profession.core, maximum: () => 100, regenerationRate: () => 0 },

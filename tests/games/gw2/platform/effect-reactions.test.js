@@ -6,6 +6,7 @@ import { createEffectReactions } from '#gw2/platform/resolver/effect-reactions.j
 import { materializeSkillEffectApplications } from '#gw2/platform/effects/materializer.js';
 import { observeGw2Runtime, observedRuntime } from '#tests/helpers/observed-runtime.js';
 import { testProfession } from '#tests/fixtures/profession.js';
+import { applySideEffect } from '#gw2/platform/effects/action-dispatch.js';
 
 const grant = (amount) => ({ type: 'resourceGrant', resource: 'energy', amount });
 const reaction = (doAction = grant(1), extra = {}) => ({
@@ -62,6 +63,70 @@ function run(
 }
 
 const energy = (result) => observedRuntime(result).profession.energy.value;
+
+// Formula-backed grants use the same dispatch for endurance and other pools and reject invalid results before mutation.
+test('resource formulas resolve read-only facts and live parameters through ordinary pool dispatch', () => {
+  const calls = [];
+  const queries = { time: 2 };
+  const context = { kind: 'effect', skill: { id: 1 }, trigger: { event: {} } };
+  const services = {
+    queries,
+    resourceController: { grant: (resource, amount) => calls.push([resource, amount]) },
+    endurance: { grant: (amount) => calls.push(['endurance', amount]) }
+  };
+  const amount = {
+    parameters: { value: 3 },
+    validate: () => {},
+    resolve: (facts, trigger, parameters) => {
+      assert.equal(facts, queries);
+      assert.equal(trigger, context);
+      return parameters.value * facts.time;
+    }
+  };
+  for (const resource of ['energy', 'endurance'])
+    applySideEffect(services, context, { type: 'resourceGrant', resource, amount });
+  assert.deepEqual(calls, [
+    ['energy', 6],
+    ['endurance', 6]
+  ]);
+  for (const value of [-1, NaN, Infinity])
+    assert.throws(
+      () =>
+        applySideEffect(services, context, {
+          type: 'resourceGrant',
+          resource: 'endurance',
+          amount: { ...amount, parameters: { value } }
+        }),
+      /finite and non-negative/
+    );
+  assert.equal(calls.length, 2);
+});
+
+// Recipes are validated at their declaration stage and evaluated only after their owning reaction accepts a packet.
+test('resource formula validation retains trigger identity and miss gating', () => {
+  let resolved = 0;
+  const stages = [];
+  const amount = {
+    parameters: { value: 7 },
+    validate: (parameters, on) => {
+      assert.equal(parameters.value, 7);
+      stages.push(on);
+    },
+    resolve: (_queries, _context, parameters) => {
+      resolved++;
+      return parameters.value;
+    }
+  };
+  assert.equal(energy(run([strike([reaction(grant(amount))])])), 7);
+  assert.equal(resolved, 1);
+  assert.equal(
+    energy(run([strike([reaction(grant(amount))])], { rotation: [cast({ offTarget: true }), wait(1000)] })),
+    0
+  );
+  assert.equal(resolved, 1);
+  assert.ok(stages.every((stage) => stage === 'damage.resolved'));
+  assert.throws(() => catalogFor([strike([reaction(grant({ ...amount, resolve: undefined }))])]), /resolver/);
+});
 
 // Runtime stack expansion keeps first-packet rewards singular while each-application rewards observe every stack.
 test('Burning splitting preserves first/each reactions across timed pulses and repeated casts', () => {

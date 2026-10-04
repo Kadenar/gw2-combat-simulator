@@ -1,4 +1,41 @@
 import { expect, test } from '@playwright/test';
+import { withActivePatchPreview } from '#gw2/integrations/patches/active-profession.js';
+import { necromancerProfession } from '#gw2/professions/necromancer/profession.js';
+import { NECROMANCER_SKILL_IDS as NECRO_ID } from '#gw2/professions/necromancer/data/ids.js';
+
+// Actual authored metadata must render independent resource controls and preserve them across an API save/reload.
+test('resource grant controls save, reopen, and restore one field without removing siblings', async ({ page }) => {
+  let preview = { id: 'resource-preview', label: 'Resource preview' };
+  const professions = [withActivePatchPreview(necromancerProfession).patchAuthoring];
+  await page.route('**/api/patch-preview', async (route) => {
+    if (route.request().method() === 'PUT') preview = route.request().postDataJSON().preview;
+    await route.fulfill({ json: { preview, professions, sourceFile: 'active-preview.ts' } });
+  });
+  await page.goto('/patch-preview.html');
+  await page.locator('[data-select-section="skills"]').click();
+  await page.locator(`[data-select-skill="${NECRO_ID.FEAST_OF_CORRUPTION}"]`).click();
+  const base = page.locator('[data-grant-id="life-force"][data-numeric-field="percent"]');
+  const bonus = page.locator('[data-grant-id="life-force"][data-numeric-field="perCondition.percent"]');
+  await expect(base).toHaveValue('8');
+  await expect(bonus).toHaveValue('1');
+  await base.fill('6');
+  await base.dispatchEvent('change');
+  await bonus.fill('2');
+  await bonus.dispatchEvent('change');
+  await page.locator('[data-save-preview]').click();
+  await expect(page.locator('[data-save-preview]')).toBeEnabled();
+  await page.reload();
+  await page.locator('[data-select-section="skills"]').click();
+  await page.locator(`[data-select-skill="${NECRO_ID.FEAST_OF_CORRUPTION}"]`).click();
+  await expect(base).toHaveValue('6');
+  await expect(bonus).toHaveValue('2');
+  await base.fill('8');
+  await base.dispatchEvent('change');
+  await page.locator('[data-save-preview]').click();
+  await expect
+    .poll(() => preview.professions.necromancer.skills[NECRO_ID.FEAST_OF_CORRUPTION].effects)
+    .toEqual([{ effectIndex: 0, resourceGrants: { 'life-force': { 'perCondition.percent': { from: 1, to: 2 } } } }]);
+});
 
 // Replace only the browser's active-preview module so composition tests never edit repository patch data.
 for (const mode of ['preview', 'absent', 'invalid']) {

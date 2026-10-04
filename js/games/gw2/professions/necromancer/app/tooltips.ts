@@ -1,4 +1,8 @@
 import {
+  castLifeForceGrants,
+  effectLifeForceGrants
+} from '#gw2/professions/necromancer/core/skills/life-force-grants.js';
+import {
   fromModifier,
   fromProfile,
   modifierFact,
@@ -431,17 +435,17 @@ const weaponSwapTooltip: DescribeSimulationTooltip = skillTooltip(
 
 export const necromancerTooltips: ProfessionTooltips = {
   skillFacts: (_c, entity) =>
-    Object.entries({
-      lifeForceGain: 'Life force gained',
-      lifeForcePerCondition: 'Life force per condition',
-      lifeForcePerHit: 'Life force per hit',
-      lifeForcePerPulse: 'Life force per pulse',
-      lifeForceOnHit: 'Life force on hit',
-      innervateLifeForceGain: 'Life force on innervate'
-    })
-      .flatMap(([field, name]) =>
-        entity[field] == null ? [] : [{ name, detail: lifeForce(tooltipNumber(entity, field)) }]
-      )
+    // Facts read the same accepted-effect and cast declarations that execute the resource rewards.
+    [...castLifeForceGrants(entity), ...(entity.effects ?? []).flatMap(effectLifeForceGrants)]
+      .flatMap((action) => [
+        {
+          name: action.label,
+          detail: lifeForce(action.amount.parameters.percent)
+        },
+        ...(action.amount.parameters.perCondition
+          ? [{ name: 'Life force per condition', detail: lifeForce(action.amount.parameters.perCondition.percent) }]
+          : [])
+      ])
       .concat(
         entity.lifeForceCost == null
           ? []

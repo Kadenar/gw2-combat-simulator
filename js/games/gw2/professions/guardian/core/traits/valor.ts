@@ -33,5 +33,3 @@ export const stalwartDefender = defineTrait({
     };
   }
 });
-
-export const guardianValorTraits = [focusMastery, stalwartDefender];

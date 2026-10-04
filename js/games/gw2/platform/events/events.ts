@@ -199,6 +199,8 @@ export interface EffectMetadata {
   readonly dhuumfireDuration?: number;
   readonly dhuumfireInterval?: number;
   readonly engineerMech?: boolean;
+  /** Guardian symbol damage is authored independently of skill names and descriptive text. */
+  readonly guardianSymbol?: boolean;
   readonly hitboxIndex?: number;
   readonly largeHitboxOnly?: boolean;
   readonly legendId?: string;

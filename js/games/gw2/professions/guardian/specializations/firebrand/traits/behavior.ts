@@ -15,7 +15,7 @@ import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import { gw2EffectExpiresAt } from '#gw2/platform/effects/timing.js';
 import { guardianCastCause } from '#gw2/professions/guardian/core/mechanics/event-handlers.js';
 import { reactToJusticeHitWithOptions } from '#gw2/professions/guardian/core/mechanics/virtues.js';
-import { guardianTraitIcon } from '#gw2/professions/guardian/core/traits/behavior.js';
+import { guardianTraitIcon } from '#gw2/professions/guardian/core/traits/metadata.js';
 
 import { isInternalCooldownReady } from '#gw2/platform/combat/procs.js';
 import { GUARDIAN_SKILL_IDS as ID, GUARDIAN_TRAIT_IDS as TRAIT } from '#gw2/professions/guardian/data/ids.js';
@@ -27,7 +27,6 @@ import {
 import { FIREBRAND_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/guardian/specializations/firebrand/profiles.js';
 import { firebrandState } from '#gw2/professions/guardian/specializations/firebrand/state.js';
 import type {
-  GuardianConfig,
   GuardianResolverContext,
   GuardianResolverEvent,
   GuardianRuntimeState,
@@ -276,23 +275,3 @@ export const weightyTermsRewards: NonNullable<Skill['sideEffects']> = [
     }
   }
 ];
-
-/** Traits choose capacity, initial default, and cadence; the resource controller owns page accounting. */
-export function firebrandPageTuning(context: { readonly config: GuardianConfig }) {
-  const archivistOfWhispers = hasTrait(context, TRAIT.ARCHIVIST_OF_WHISPERS);
-
-  const resourcesProfile = requireBalanceProfileFromContext(context, PROFILE.resources);
-  const defaultMaximum = balanceProfileNumber(resourcesProfile, 'maximumStacks');
-  const traitMaximum = archivistOfWhispers
-    ? balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.ARCHIVIST_OF_WHISPERS), 'maximumStacks')
-    : defaultMaximum;
-  const interval = hasTrait(context, TRAIT.LOREMASTER)
-    ? balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.LOREMASTER), 'pulseInterval')
-    : balanceProfileNumber(resourcesProfile, 'pulseInterval');
-  const initial = context.config.initialTomePages ?? traitMaximum;
-  return {
-    maximum: traitMaximum,
-    initial: archivistOfWhispers && initial === defaultMaximum ? traitMaximum : initial,
-    interval
-  };
-}

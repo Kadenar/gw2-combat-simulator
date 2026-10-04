@@ -101,6 +101,8 @@ export const GUARDIAN_WEAPONS_GREATSWORD_SKILL_MECHANICS: Readonly<Record<number
     ]
   },
   [ID.SYMBOL_OF_RESOLUTION]: {
+    // Author symbol identity independently of the skill's display text.
+    tags: ['symbol'],
     castTimeMs: 320,
     defaultInterruptMs: 280,
 
@@ -133,6 +135,7 @@ export const GUARDIAN_WEAPONS_GREATSWORD_SKILL_MECHANICS: Readonly<Record<number
       })),
       {
         type: 'strike',
+        metadata: { guardianSymbol: true },
         ticks: [{ atMs: 200, coefficient: 0.8 }],
         timingAnchor: 'castStart',
         timingScale: 'fixed',
@@ -140,6 +143,7 @@ export const GUARDIAN_WEAPONS_GREATSWORD_SKILL_MECHANICS: Readonly<Record<number
       },
       {
         type: 'strike',
+        metadata: { guardianSymbol: true },
         ticks: Array.from({ length: 4 }, (_, index) => ({ atMs: 1200 + index * 1000, coefficient: 2.6 / 4 })),
         timingAnchor: 'castStart',
         timingScale: 'fixed',

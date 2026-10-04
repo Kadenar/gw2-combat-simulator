@@ -6,7 +6,6 @@ import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/pla
 import { defineTrait, traitAttributeEffects } from '#gw2/platform/profession-definition/traits.js';
 import { activeWeapon, guardianRuntimeState } from '#gw2/professions/guardian/core/mechanics/modifier-queries.js';
 import { activeSymbolicAvengerExpirations } from '#gw2/professions/guardian/core/state.js';
-import { isGuardianSymbolSkill } from '#gw2/professions/guardian/core/traits/behavior.js';
 import { GUARDIAN_TRAIT_IDS as TRAIT } from '#gw2/professions/guardian/data/ids.js';
 
 /** Owns Furious Focus's live tuning and trait behavior. */
@@ -69,17 +68,11 @@ export const symbolicExposure = defineTrait({
       order: -1,
       emit: TRAIT.SYMBOLIC_EXPOSURE,
       on: 'damage.resolved',
-      when: (runtime, event, details) =>
+      when: (_runtime, event, details) =>
         event.actorType === 'player' &&
         Number(event.coefficient) > 0 &&
         (details.hitContext?.damage ?? 0) > 0 &&
-        Boolean(
-          event.isSymbol ||
-          isGuardianSymbolSkill(
-            event.skillId == null ? undefined : runtime.helpers.skillsById.get(event.skillId),
-            event.skillName
-          )
-        ),
+        event.metadata?.guardianSymbol === true,
       effects: (effect) => effect.type === 'condition' && effect.name === 'Vulnerability',
       attribution: {
         source: 'guardian',
@@ -237,14 +230,3 @@ export const fieryWrath = defineTrait({
     }
   ]
 });
-
-export const guardianZealTraits = [
-  fieryWrath,
-  furiousFocus,
-  symbolicExposure,
-  symbolicAvenger,
-  zealotsResolution,
-  zealousBlade,
-  kindledZeal,
-  eternalArmory
-];

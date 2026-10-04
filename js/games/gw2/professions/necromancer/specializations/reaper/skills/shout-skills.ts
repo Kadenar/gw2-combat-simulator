@@ -1,3 +1,4 @@
+import { lifeForceGrant } from '#gw2/professions/necromancer/core/skills/life-force-grants.js';
 import { MODIFIER_TARGET, type Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
 import { eventSkill } from '#gw2/platform/combat/query/runtime-query.js';
 import { isGw2PlayerActorEvent } from '#gw2/platform/combat/state/event-ownership.js';
@@ -37,21 +38,20 @@ export const REAPER_SHOUT_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill
     effects: [
       {
         type: 'strike',
-        // Accepted strikes grant live skill tuning through the percentage resource owner.
+        // Accepted strikes apply their declared percentage through the shared resource owner.
         reactions: [
           {
             on: 'damage.resolved',
             actor: 'player',
             packets: 'first',
             when: (_runtime, { event }) => Number(event.coefficient) > 0,
-            do: { type: 'necromancer.skill-life-force' }
+            do: lifeForceGrant({ id: 'life-force', unit: 'hit', grant: { percent: 15 } })
           }
         ],
         coefficient: 0.5,
         hits: 1
       }
-    ],
-    lifeForceGain: 15
+    ]
   },
   [ID.SUFFER]: {
     castTimeMs: 0,

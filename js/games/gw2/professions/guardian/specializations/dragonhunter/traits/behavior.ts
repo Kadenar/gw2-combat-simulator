@@ -10,7 +10,7 @@ import type { Skill } from '#gw2/platform/skills/types.js';
 import { gw2ActivePrimaryWeapon } from '#gw2/platform/equipment/weapons/loadout.js';
 import { buildResolverBuff, buildResolverCondition } from '#gw2/platform/resolver/packets.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
-import { guardianTraitIcon } from '#gw2/professions/guardian/core/traits/behavior.js';
+import { guardianTraitIcon } from '#gw2/professions/guardian/core/traits/metadata.js';
 import { GUARDIAN_TRAIT_IDS as TRAIT } from '#gw2/professions/guardian/data/ids.js';
 import type {
   GuardianResolverContext,

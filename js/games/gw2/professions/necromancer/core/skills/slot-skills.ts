@@ -1,3 +1,4 @@
+import { lifeForceGrant } from '#gw2/professions/necromancer/core/skills/life-force-grants.js';
 import { professionStaticRulesApplied } from '#gw2/platform/builds/attribute-provenance.js';
 import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
 import { hasSelectedSkillId } from '#gw2/platform/combat/query/runtime-query.js';
@@ -106,22 +107,21 @@ export const NECROMANCER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Pa
     effects: [
       {
         type: 'strike',
-        // Accepted strikes grant live skill tuning through the percentage resource owner.
+        // Accepted strikes apply their declared percentage through the shared resource owner.
         reactions: [
           {
             on: 'damage.resolved',
             actor: 'player',
             packets: 'first',
             when: (_runtime, { event }) => Number(event.coefficient) > 0,
-            do: { type: 'necromancer.skill-life-force' }
+            do: lifeForceGrant({ id: 'life-force', unit: 'hit', grant: { percent: 1 } })
           }
         ],
         ticks: [320, 1280, 2280, 3280, 4280, 5280].map((atMs) => ({ atMs, coefficient: 0.5 })),
         timingAnchor: 'castStart',
         timingScale: 'fixed'
       }
-    ],
-    lifeForceGain: 1
+    ]
   },
   [ID.WELL_OF_SUFFERING]: {
     // The well commits after 320 ms, allowing its remaining pulses to continue after a later interruption.
@@ -365,7 +365,7 @@ export const NECROMANCER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Pa
     castTimeMs: 0,
     minionKey: 'shadow-fiend',
     impactDelay: 2,
-    lifeForceOnHit: 10,
+
     effects: [
       {
         type: 'strike',
@@ -379,7 +379,7 @@ export const NECROMANCER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Pa
             actor: 'summon',
             packets: 'first',
             when: (_runtime, { event }) => Number(event.coefficient) > 0,
-            do: { type: 'necromancer.skill-life-force' }
+            do: lifeForceGrant({ id: 'life-force', unit: 'hit', grant: { percent: 10 } })
           }
         ]
       },
@@ -440,8 +440,7 @@ export const NECROMANCER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Pa
   [ID.SIGNET_OF_UNDEATH]: {
     castTimeMs: 360,
     // Reviving allies is outside the simulation; casting still consumes time and starts recharge.
-    effects: [],
-    lifeForceGain: 0
+    effects: []
   },
   [ID.SPECTRAL_GRASP]: {
     castTimeMs: 600,
@@ -455,15 +454,14 @@ export const NECROMANCER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Pa
             actor: 'player',
             packets: 'first',
             when: (_runtime, { event }) => event.sourceId === event.skillId,
-            do: { type: 'necromancer.skill-life-force' }
+            do: lifeForceGrant({ id: 'life-force', unit: 'application', grant: { percent: 15 } })
           }
         ],
         condition: 'Chilled',
         stacks: 1,
         duration: 4
       }
-    ],
-    lifeForceGain: 15
+    ]
   },
   [ID.SIGNET_OF_SPITE]: {
     castTimeMs: 880,

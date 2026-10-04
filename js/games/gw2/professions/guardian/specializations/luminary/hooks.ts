@@ -1,3 +1,7 @@
+import {
+  luminaryBuffPolicies,
+  luminaryEffectStates
+} from '#gw2/professions/guardian/specializations/luminary/effect-state.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import type { MechanicContext } from '#gw2/platform/profession-definition/mechanic-context.js';
 import { CAST_READY, denyCast } from '#gw2/platform/execution/availability.js';
@@ -190,6 +194,8 @@ function hammerImpact(runtime: Runtime, data: unknown): void {
 
 /** Luminary owns its live form, virtue entitlements, finite stance work, and actual combo-derived auras. */
 export const luminaryHooks: RuntimeHooks<GuardianRuntimeState, GuardianSkill> = {
+  buffPolicies: luminaryBuffPolicies,
+  observeEffects: luminaryEffectStates,
   /** Initialize only damage-relevant form and scaling state for one assumed occurrence. */
   prepareDamageState(runtime, skill, inputs) {
     const state = luminaryState.from(runtime);

@@ -12,7 +12,15 @@ import type { Skill } from '#gw2/platform/skills/types.js';
 /** Ordinary actions receive only the services they can mutate; profession verbs keep their typed context. */
 export type SideEffectServices = Pick<
   MechanicContext,
-  'helpers' | 'time' | 'cooldownController' | 'resourceController' | 'endurance' | 'armFlip' | 'consumeFlip' | 'effects'
+  | 'queries'
+  | 'helpers'
+  | 'time'
+  | 'cooldownController'
+  | 'resourceController'
+  | 'endurance'
+  | 'armFlip'
+  | 'consumeFlip'
+  | 'effects'
 >;
 
 /** Resolve live patch data at the point of application, rejecting invalid amounts before mutating a pool. */
@@ -55,7 +63,14 @@ export function applySideEffect<TContext extends SideEffectServices>(
     }
 
     case 'resourceGrant': {
-      const amount = sideEffectAmount(runtime, action.amount, context.skill);
+      // Resolve profession-owned formulas at the accepted trigger, then validate before the shared pool mutation.
+      const amount = sideEffectAmount(
+        runtime,
+        typeof action.amount === 'object' && 'parameters' in action.amount
+          ? action.amount.resolve(runtime.queries, context, action.amount.parameters)
+          : action.amount,
+        context.skill
+      );
       if (action.resource === 'endurance') runtime.endurance.grant(amount);
       else runtime.resourceController.grant(action.resource, amount);
       return;

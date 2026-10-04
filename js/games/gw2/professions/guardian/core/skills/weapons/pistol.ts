@@ -113,6 +113,8 @@ export const GUARDIAN_WEAPONS_PISTOL_SKILL_MECHANICS: Readonly<Record<number, Pa
     ])
   },
   [ID.SYMBOL_OF_IGNITION]: {
+    // Author symbol identity independently of the skill's display text.
+    tags: ['symbol'],
     // Placement opens the shared ignition observer only after commitment.
     sideEffects: [{ on: 'castCommit', do: { type: 'guardian.place-ignition' } }],
     castTimeMs: 360,
@@ -129,6 +131,7 @@ export const GUARDIAN_WEAPONS_PISTOL_SKILL_MECHANICS: Readonly<Record<number, Pa
     effects: impactEffects({ timingAnchor: 'castStart', timingScale: 'fixed', persistsAfterInterrupt: true }, [
       {
         type: 'strike',
+        metadata: { guardianSymbol: true },
         ticks: [280, 960, 1640, 2320, 3000].map((atMs) => ({
           atMs,
           coefficient: 0.4

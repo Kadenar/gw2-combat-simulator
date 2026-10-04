@@ -1,3 +1,4 @@
+import { lifeForceGrant } from '#gw2/professions/necromancer/core/skills/life-force-grants.js';
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
 import { NECROMANCER_SKILL_IDS as ID } from '#gw2/professions/necromancer/data/ids.js';
@@ -37,14 +38,14 @@ export const HARBINGER_SHROUD_SKILL_MECHANICS: Readonly<Record<number, Partial<S
     effects: impactEffects({ timingAnchor: 'castStart', timingScale: 'fixed' }, [
       {
         type: 'strike',
-        // Accepted strikes grant live skill tuning through the percentage resource owner.
+        // Accepted strikes apply their declared percentage through the shared resource owner.
         reactions: [
           {
             on: 'damage.resolved',
             actor: 'player',
             packets: 'each',
             when: (_runtime, { event }) => Number(event.coefficient) > 0,
-            do: { type: 'necromancer.skill-life-force' }
+            do: lifeForceGrant({ id: 'life-force', unit: 'hit', grant: { percent: 3 } })
           }
         ],
         ticks: [760, 1760, 2760].map((atMs) => ({ atMs, coefficient: 0.4 }))
@@ -58,7 +59,7 @@ export const HARBINGER_SHROUD_SKILL_MECHANICS: Readonly<Record<number, Partial<S
       }
     ]),
     // Each accepted siphon funds the live pool only when its own strike arrives.
-    lifeForcePerHit: 3,
+
     type: 'Profession',
     slot: 'Weapon_5',
     shroud: 'harbinger',

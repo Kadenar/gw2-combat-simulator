@@ -28,7 +28,6 @@ import { gw2ActivePrimaryWeapon } from '#gw2/platform/equipment/weapons/loadout.
 import { weaponStrengthProfileForName } from '#gw2/platform/equipment/weapons/strength.js';
 import { buildResolverStrike } from '#gw2/platform/resolver/packets.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
-import { grantNecromancerLifeForce } from '#gw2/professions/necromancer/core/mechanics/life-force.js';
 import { necromancerLifeForce } from '#gw2/professions/necromancer/core/mechanics/resources.js';
 import { necromancerActiveBoonCompanionIds } from '#gw2/professions/necromancer/core/mechanics/state-helpers.js';
 import { NECROMANCER_SKILL_IDS as ID } from '#gw2/professions/necromancer/data/ids.js';
@@ -300,7 +299,6 @@ export const ritualistHooks: RuntimeHooks<NecromancerRuntimeState, NecromancerSk
       if (context.kind !== 'cast') return;
       const cast = context.cast;
       const innervate = INNERVATE.get(cast.skill.id)!;
-      grantNecromancerLifeForce(runtime, Number(cast.skill.innervateLifeForceGain ?? 0));
       for (const effect of cast.skill.effects ?? []) {
         if (effect.type === 'boon') {
           // Shared emission owns transport; the mechanic selects attribution and delivery.

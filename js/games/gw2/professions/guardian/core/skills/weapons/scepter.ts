@@ -5,6 +5,8 @@ import type { Skill } from '#gw2/platform/skills/types.js';
 
 export const GUARDIAN_WEAPONS_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
   [ID.SYMBOL_OF_PUNISHMENT]: {
+    // Author symbol identity independently of the skill's display text.
+    tags: ['symbol'],
     castTimeMs: 320,
     cooldown: 10,
     comboFields: [
@@ -20,6 +22,7 @@ export const GUARDIAN_WEAPONS_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, P
     effects: impactEffects({ timingAnchor: 'castStart', timingScale: 'fixed' }, [
       {
         type: 'strike',
+        metadata: { guardianSymbol: true },
         // Model seven landed Smite hits, omitting the fifth spatial opportunity as in the reference build.
         ticks: [240, 760, 1240, 1760, 2760, 3240, 3760].map((atMs) => ({
           atMs,
@@ -28,6 +31,7 @@ export const GUARDIAN_WEAPONS_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, P
       },
       {
         type: 'strike',
+        metadata: { guardianSymbol: true },
         // Main symbol damage begins one second after the initial boon pulse and lands once per second.
         ticks: [1240, 2240, 3240, 4240].map((atMs) => ({
           atMs,

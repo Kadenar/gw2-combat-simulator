@@ -1,7 +1,17 @@
+import type { MechanicContext } from '#gw2/platform/profession-definition/mechanic-context.js';
+import { durationStackingBoonCapSeconds, remainingDurationStackSeconds } from '#gw2/platform/combat/boons.js';
+import { hasTrait } from '#gw2/platform/combat/state/traits.js';
+import type { GuardianRuntimeState, GuardianSkill } from '#gw2/professions/guardian/types.js';
+import { guardianTraitIcon } from '#gw2/professions/guardian/core/traits/metadata.js';
 import { attributeProvenance } from '#gw2/platform/builds/attribute-provenance.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { targetConditionActive } from '#gw2/platform/combat/query/runtime-query.js';
-import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import {
+  balanceProfileNumber,
+  effectNumber,
+  requireBalanceProfileFromContext,
+  requireEffect
+} from '#gw2/platform/skills/balance-profiles.js';
 import { defineTrait, traitAttributeEffects } from '#gw2/platform/profession-definition/traits.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import {
@@ -9,37 +19,14 @@ import {
   guardianBoonActive,
   isOneHandedWeapon
 } from '#gw2/professions/guardian/core/mechanics/modifier-queries.js';
-import type { Runtime } from '#gw2/professions/guardian/core/traits/behavior.js';
-import {
-  MIGHT,
-  RESOLUTION_EXPIRY,
-  resolutionDeadline,
-  righteousMight
-} from '#gw2/professions/guardian/core/traits/behavior.js';
 import { GUARDIAN_TRAIT_IDS as TRAIT } from '#gw2/professions/guardian/data/ids.js';
 import { canonicalTime } from '#kernel/core/clock.js';
 
-const righteousInstinctsTasks = {
-  [RESOLUTION_EXPIRY](runtime: Runtime, deadline: unknown) {
-    const state = runtime.profession.core;
-    if (state.resolutionUntil !== deadline) return;
-    state.resolutionUntil = resolutionDeadline(runtime);
-    if (state.resolutionUntil > runtime.time)
-      runtime.schedule(RESOLUTION_EXPIRY, state.resolutionUntil, state.resolutionUntil, undefined, -220);
-  },
-  [MIGHT](runtime: Runtime, data: unknown) {
-    const { generation, event } = data as { generation: number; event: Gw2ResolverEvent };
-    const state = runtime.profession.core;
-    if (generation !== state.righteousInstinctsGeneration) return;
-    state.resolutionUntil = resolutionDeadline(runtime);
-    if (!(state.resolutionUntil > runtime.time) || !righteousMight(runtime, event)) return;
-    const interval = balanceProfileNumber(
-      requireBalanceProfileFromContext(runtime, TRAIT.RIGHTEOUS_INSTINCTS),
-      'pulseInterval'
-    );
-    if (interval > 0) runtime.schedule(MIGHT, canonicalTime(runtime.time + interval), data, undefined, -10);
-  }
-};
+type Runtime = MechanicContext<GuardianRuntimeState, GuardianSkill>;
+
+const MIGHT = 'guardian.righteous-might';
+
+const RESOLUTION_EXPIRY = 'guardian.resolution-expiry';
 
 /** Owns Healer's Resolution's live tuning and trait behavior. */
 export const healersResolution = defineTrait({
@@ -71,7 +58,8 @@ export const righteousInstincts = defineTrait({
       when: (context) => guardianBoonActive(context, 'resolution')
     }
   ],
-  hooks: { tasks: righteousInstinctsTasks }
+  // Hoisted handlers keep trait declarations first without changing task priorities or initialization order.
+  hooks: { tasks: { [RESOLUTION_EXPIRY]: expireRighteousResolution, [MIGHT]: pulseRighteousMight } }
 });
 
 /** Owns Right-Hand Strength's live tuning and trait behavior. */
@@ -280,15 +268,104 @@ export const innerFire = defineTrait({
   ]
 });
 
-export const guardianRadianceTraits = [
-  innerFire,
-  healersResolution,
-  righteousInstincts,
-  rightHandStrength,
-  radiantPower,
-  radiantFire,
-  amplifiedWrath,
-  perfectInscriptions,
-  justiceIsBlind,
-  retribution
-];
+/** Resolution readiness follows the accepted self-boon pool, including its cap and extension records. */
+function resolutionDeadline(runtime: Runtime): number {
+  const remaining = remainingDurationStackSeconds(runtime.combat.boonApplications('resolution'), runtime.time, {
+    includes: (application) => application.resolvedAudience.includesSelf,
+    maximum: durationStackingBoonCapSeconds('resolution'),
+    ordered: true
+  });
+  return remaining > 0 ? canonicalTime(runtime.time + remaining) : 0;
+}
+
+/** Grant the selected Might component without moving its emission outside the Resolution cadence. */
+function righteousMight(runtime: Runtime, event: Gw2ResolverEvent): boolean {
+  const profile = requireBalanceProfileFromContext(runtime, TRAIT.RIGHTEOUS_INSTINCTS);
+  const effect = requireEffect(profile, 'boon', 'might');
+  if (!effect) return false;
+  runtime.effects.emit({
+    kind: 'packet',
+    event: {
+      type: 'buff',
+      at: runtime.time,
+      source: 'Trait',
+      sourceId: TRAIT.RIGHTEOUS_INSTINCTS,
+      actorType: 'player',
+      skillId: TRAIT.RIGHTEOUS_INSTINCTS,
+      skillName: profile.name,
+      activationId: event.activationId,
+      causalOrder: event.causalOrder ?? event.eventOrder,
+      kind: 'might',
+      duration: effectNumber(profile, effect, 'duration'),
+      stacks: effectNumber(profile, effect, 'stacks')
+    }
+  });
+  {
+    runtime.effects.emit({
+      kind: 'announcement',
+      announcement: {
+        type: 'trait',
+        name: profile.name,
+        at: runtime.time,
+        sourceSkill: 'Resolution',
+        detail: 'Resolution active',
+        icon: guardianTraitIcon(TRAIT.RIGHTEOUS_INSTINCTS)
+      }
+    });
+  }
+
+  return true;
+}
+
+/** A new self Resolution window starts one cadence; additional applications extend its pool without duplicating ticks. */
+export function reactToRighteousInstinctsBuff(runtime: Runtime, event: Gw2ResolverEvent): void {
+  if (
+    event.kind !== 'resolution' ||
+    event.resolvedAudience?.includesSelf !== true ||
+    !hasTrait(runtime, TRAIT.RIGHTEOUS_INSTINCTS)
+  )
+    return;
+  const state = runtime.profession.core;
+  const active = state.resolutionUntil > runtime.time;
+  state.resolutionUntil = resolutionDeadline(runtime);
+  if (!(state.resolutionUntil > runtime.time)) return;
+  runtime.schedule(RESOLUTION_EXPIRY, state.resolutionUntil, state.resolutionUntil, undefined, -220);
+  if (active) return;
+  state.righteousInstinctsGeneration++;
+  if (!righteousMight(runtime, event)) return;
+  const interval = balanceProfileNumber(
+    requireBalanceProfileFromContext(runtime, TRAIT.RIGHTEOUS_INSTINCTS),
+    'pulseInterval'
+  );
+  if (interval > 0)
+    runtime.schedule(
+      MIGHT,
+      canonicalTime(runtime.time + interval),
+      { generation: state.righteousInstinctsGeneration, event },
+      undefined,
+      -10
+    );
+}
+
+/** Refresh the live Resolution deadline before same-time Might pulses. */
+function expireRighteousResolution(runtime: Runtime, deadline: unknown): void {
+  const state = runtime.profession.core;
+  if (state.resolutionUntil !== deadline) return;
+  state.resolutionUntil = resolutionDeadline(runtime);
+  if (state.resolutionUntil > runtime.time)
+    runtime.schedule(RESOLUTION_EXPIRY, state.resolutionUntil, state.resolutionUntil, undefined, -220);
+}
+
+/** Continue one Might cadence while its generation and Resolution window remain live. */
+function pulseRighteousMight(runtime: Runtime, data: unknown): void {
+  const { generation, event } = data as { generation: number; event: Gw2ResolverEvent };
+  const state = runtime.profession.core;
+  if (generation !== state.righteousInstinctsGeneration) return;
+  state.resolutionUntil = resolutionDeadline(runtime);
+  if (!(state.resolutionUntil > runtime.time) || !righteousMight(runtime, event)) return;
+  const interval = balanceProfileNumber(
+    requireBalanceProfileFromContext(runtime, TRAIT.RIGHTEOUS_INSTINCTS),
+    'pulseInterval'
+  );
+  if (interval > 0) runtime.schedule(MIGHT, canonicalTime(runtime.time + interval), data, undefined, -10);
+}

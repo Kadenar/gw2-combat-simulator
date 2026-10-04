@@ -1,3 +1,4 @@
+import { lifeForceGrant } from '#gw2/professions/necromancer/core/skills/life-force-grants.js';
 import { MODIFIER_TARGET, type Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
 import { eventSkill, targetConditionCount } from '#gw2/platform/combat/query/runtime-query.js';
 import { gw2ActivePrimaryWeapon } from '#gw2/platform/equipment/weapons/loadout.js';
@@ -18,11 +19,14 @@ import { RITUALIST_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/necro
 export const RITUALIST_BASE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
   [ID.INNERVATE_PRESERVATION]: {
     // This definition selects its producer; shared owners retain recipients, charge pools, and creature lifetimes.
-    sideEffects: [{ on: 'castCommit', do: { type: 'ritualist.innervate' } }],
+    sideEffects: [
+      { on: 'castCommit', do: lifeForceGrant({ id: 'innervate', unit: 'cast', grant: { percent: 10 } }) },
+      { on: 'castCommit', do: { type: 'ritualist.innervate' } }
+    ],
     effectVariants: [{ when: () => true, transform: () => [] }],
     castTimeMs: 0,
-    // The Innervate handler owns when these party grants and the resource gain commit.
-    innervateLifeForceGain: 10,
+    // Commit grants life force, then the Innervate handler applies the party payload.
+
     effects: [
       { type: 'boon', boon: 'aegis', duration: 3, stacks: 1, audience: { recipients: 'party', maximumRecipients: 5 } },
       {
@@ -78,10 +82,13 @@ export const RITUALIST_BASE_SKILL_MECHANICS: Readonly<Record<number, Partial<Ski
   },
   [ID.INNERVATE_WANDERLUST]: {
     // This definition selects its producer; shared owners retain recipients, charge pools, and creature lifetimes.
-    sideEffects: [{ on: 'castCommit', do: { type: 'ritualist.innervate' } }],
+    sideEffects: [
+      { on: 'castCommit', do: lifeForceGrant({ id: 'innervate', unit: 'cast', grant: { percent: 10 } }) },
+      { on: 'castCommit', do: { type: 'ritualist.innervate' } }
+    ],
     effectVariants: [{ when: () => true, transform: () => [] }],
     castTimeMs: 0,
-    innervateLifeForceGain: 10,
+
     effects: [{ type: 'control', controlKind: 'fear' }],
     usableInShroud: true
   },
@@ -159,10 +166,13 @@ export const RITUALIST_BASE_SKILL_MECHANICS: Readonly<Record<number, Partial<Ski
   },
   [ID.INNERVATE_ANGUISH]: {
     // This definition selects its producer; shared owners retain recipients, charge pools, and creature lifetimes.
-    sideEffects: [{ on: 'castCommit', do: { type: 'ritualist.innervate' } }],
+    sideEffects: [
+      { on: 'castCommit', do: lifeForceGrant({ id: 'innervate', unit: 'cast', grant: { percent: 10 } }) },
+      { on: 'castCommit', do: { type: 'ritualist.innervate' } }
+    ],
     effectVariants: [{ when: () => true, transform: () => [] }],
     castTimeMs: 0,
-    innervateLifeForceGain: 10,
+
     effects: [
       { type: 'strike', coefficient: 1.3, hits: 1 },
       { type: 'boon', boon: 'might', duration: 10, stacks: 8, audience: { recipients: 'party', maximumRecipients: 5 } },

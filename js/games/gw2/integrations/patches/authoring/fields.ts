@@ -94,9 +94,6 @@ export const PATCHABLE_SKILL_NUMERIC_FIELDS = Object.freeze([
   'blightGain',
   'bladeswornResourceGain',
   'lifeForceDrain',
-  'lifeForceGain',
-  'lifeForcePerCondition',
-  'lifeForceOnHit',
   'heatLoss',
   'windForceApplyMs',
   'windForceGain'
@@ -122,6 +119,8 @@ const AUTHORING_RUNTIME_ONLY_NUMERIC_FIELDS = new Set([
 /** Profiles also expose named summon inheritance values without widening castable skill fields. */
 export const PATCHABLE_BALANCE_PROFILE_NUMERIC_FIELDS = Object.freeze([
   ...PATCHABLE_SKILL_NUMERIC_FIELDS,
+  // Trait/passive and Specter profiles retain their own numeric resource tuning.
+  'lifeForceGain',
   // Profession resource profiles still own recharge values independent of skill cooldowns.
   'recharge',
   // Shade strikes gate Dhuumfire independently of other shade-triggered traits.
@@ -268,12 +267,27 @@ export function skillPatchableNumericFields(skill: Readonly<Skill | BalanceProfi
 /** Runtime predicates and activation declarations stay in the executable catalog, never in editor JSON. */
 function withoutRuntimeOnlyAuthoringFields(value: unknown): unknown {
   if (Array.isArray(value)) return value.map(withoutRuntimeOnlyAuthoringFields);
+  if (typeof value === 'function') return undefined;
   if (!value || typeof value !== 'object') return structuredClone(value);
   return Object.fromEntries(
     Object.entries(value as Readonly<Record<string, unknown>>).flatMap(([field, nested]) =>
-      AUTHORING_RUNTIME_ONLY_NUMERIC_FIELDS.has(field) || ['sideEffects', 'effectVariants', 'when'].includes(field)
-        ? []
-        : [[field, withoutRuntimeOnlyAuthoringFields(nested)]]
+      // Cast grant amounts remain editable, while executable cast handlers and predicates stay private.
+      field === 'sideEffects' && Array.isArray(nested)
+        ? nested.some((rule) => rule.do?.type === 'resourceGrant' && rule.do?.id)
+          ? [
+              [
+                field,
+                nested
+                  .filter((rule) => rule.do?.type === 'resourceGrant' && rule.do?.id)
+                  .map(withoutRuntimeOnlyAuthoringFields)
+              ]
+            ]
+          : []
+        : typeof nested === 'function' ||
+            AUTHORING_RUNTIME_ONLY_NUMERIC_FIELDS.has(field) ||
+            ['effectVariants', 'when'].includes(field)
+          ? []
+          : [[field, withoutRuntimeOnlyAuthoringFields(nested)]]
     )
   );
 }
@@ -315,7 +329,7 @@ function balanceProfileEffectAuthoringReference(record: Readonly<Record<string, 
       }
 
       if (typeof value === 'number' && !balanceProfileEffectNumericFieldTier(field, value)) return [];
-      return [[field, structuredClone(value)]];
+      return [[field, withoutRuntimeOnlyAuthoringFields(value)]];
     })
   );
 }

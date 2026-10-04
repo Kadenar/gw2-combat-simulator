@@ -180,18 +180,3 @@ const SHADE_SKILLS = new Set<number>([
   ID.MANIFEST_SAND_SHADE,
   ID.SANDSTORM_SHROUD
 ]);
-
-export const soulReapingTraits = [
-  dhuumfire,
-  unyieldingBlast,
-  vitalPersistence,
-  sinisterShroud,
-  deathPerception,
-  soulBarbs,
-  eternalLife,
-  fearOfDeath,
-  speedOfShadows,
-  soulMarks,
-  soulBattery,
-  gluttony
-];

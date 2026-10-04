@@ -52,7 +52,6 @@ export interface NecromancerSkill extends Skill {
   readonly dhuumfireDuration?: number;
   readonly flipParent?: string;
   readonly lifeForceCost?: number;
-  readonly lifeForceGain?: number;
   readonly shroud?: string;
   readonly shroudEntry?: string;
   readonly shroudExit?: string;

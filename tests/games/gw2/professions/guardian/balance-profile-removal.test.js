@@ -1,4 +1,4 @@
-import { guardianBuffPolicies } from '#gw2/professions/guardian/core/effect-state.js';
+import { willbenderBuffPolicies } from '#gw2/professions/guardian/specializations/willbender/effect-state.js';
 import { applyBalanceProfilePatch } from '#gw2/integrations/patches/authoring/patches.js';
 import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
 import { guardianCatalog } from '#gw2/professions/guardian/catalog.js';
@@ -280,7 +280,7 @@ test('patched resource caps and zero recurrence survive initialization and prese
     balanceProfiles: { [TRAIT.LETHAL_TEMPO]: { fields: { maximumStacks: { from: 5, to: 2 } } } }
   });
   assert.equal(
-    guardianBuffPolicies({ catalog: tempoCatalog }).find((effect) => effect.kind === 'lethal-tempo').maximumStacks,
+    willbenderBuffPolicies({ catalog: tempoCatalog }).find((effect) => effect.kind === 'lethal-tempo').maximumStacks,
     2
   );
   assert.equal(guardianCatalog.balanceProfilesById.get(TRAIT.LETHAL_TEMPO).maximumStacks, 5);

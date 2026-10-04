@@ -210,7 +210,8 @@ function weaponRows(app: ProfessionAppState): { set: number; weapon: string; ski
 function slotSkills(app: ProfessionAppState): { skill: Skill; status: SkillDamageRowStatus }[] {
   const specialization = app.adapter.eliteSpecialization(app.build);
   if (app.adapter.slotLoadout) {
-    const context = { build: app.build, specialization, professionState: undefined };
+    // Follow-up rows must use the same selected relationships as the palette and runtime.
+    const context = { build: app.build, specialization, professionState: undefined, catalog: app.activeCatalog };
     const ids = app.adapter.slotLoadout
       .view(context)
       .bars.flatMap((bar) =>

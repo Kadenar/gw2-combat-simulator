@@ -706,9 +706,8 @@ test('Necromancer condition handlers and tooltips share selected skill effects',
       necromancer: {
         skills: {
           51647: {
-            fields: { lifeForcePerCondition: 2 },
             effects: [
-              { type: 'strike', coefficient: 2 },
+              { type: 'strike', coefficient: 2, resourceGrants: { 'life-force': { 'perCondition.percent': 2 } } },
               { type: 'condition', condition: 'Torment', stacks: 2, duration: 7 }
             ]
           },

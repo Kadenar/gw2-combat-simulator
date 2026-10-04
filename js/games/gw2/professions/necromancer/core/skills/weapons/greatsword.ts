@@ -1,3 +1,4 @@
+import { lifeForceGrant } from '#gw2/professions/necromancer/core/skills/life-force-grants.js';
 /** Canonical Core necromancer skill fragments grouped by their GW2 owner. */
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
 import { NECROMANCER_SKILL_IDS as ID } from '#gw2/professions/necromancer/data/ids.js';
@@ -10,41 +11,40 @@ export const NECROMANCER_WEAPONS_GREATSWORD_SKILL_MECHANICS: Readonly<Record<num
     effects: [
       {
         type: 'strike',
-        // Accepted strikes grant live skill tuning through the percentage resource owner.
+        // Accepted strikes apply their declared percentage through the shared resource owner.
         reactions: [
           {
             on: 'damage.resolved',
             actor: 'player',
             packets: 'first',
             when: (_runtime, { event }) => Number(event.coefficient) > 0,
-            do: { type: 'necromancer.skill-life-force' }
+            do: lifeForceGrant({ id: 'life-force', unit: 'hit', grant: { percent: 2 } })
           }
         ],
         coefficient: 1.2,
         hits: 1
       }
-    ],
-    lifeForceGain: 2
+    ]
   },
   [ID.GRASPING_DARKNESS]: {
     // The projectile commits after 120 ms, so its delayed hit and attached effects survive later interruption.
     interruptCommitMs: 120,
     castTimeMs: 520,
-    lifeForceOnHit: 10,
+
     // Share this impact's timing while preserving independent payloads and declaration order.
     effects: impactEffects(
       { atMs: 1440, timingAnchor: 'castStart', timingScale: 'fixed', persistsAfterInterrupt: true },
       [
         {
           type: 'strike',
-          // Accepted strikes grant live skill tuning through the percentage resource owner.
+          // Accepted strikes apply their declared percentage through the shared resource owner.
           reactions: [
             {
               on: 'damage.resolved',
               actor: 'player',
               packets: 'each',
               when: (_runtime, { event }) => Number(event.coefficient) > 0,
-              do: { type: 'necromancer.skill-life-force' }
+              do: lifeForceGrant({ id: 'life-force', unit: 'hit', grant: { percent: 10 } })
             }
           ],
           coefficient: 1.3
@@ -58,19 +58,19 @@ export const NECROMANCER_WEAPONS_GREATSWORD_SKILL_MECHANICS: Readonly<Record<num
     // The field commits at 440 ms; every delayed pulse then survives the interrupted cast.
     interruptCommitMs: 440,
     castTimeMs: 480,
-    lifeForcePerPulse: 7,
+
     // Share timing defaults while preserving each packet, effect order, and local schedule.
     effects: [
       {
         type: 'strike',
-        // Accepted strikes grant live skill tuning through the percentage resource owner.
+        // Accepted strikes apply their declared percentage through the shared resource owner.
         reactions: [
           {
             on: 'damage.resolved',
             actor: 'player',
             packets: 'each',
             when: (_runtime, { event }) => Number(event.coefficient) > 0,
-            do: { type: 'necromancer.skill-life-force' }
+            do: lifeForceGrant({ id: 'life-force', unit: 'pulse', grant: { percent: 7 } })
           }
         ],
         // EVTC records four Quickness pulses at 560 ms and fixed one-second intervals.
@@ -116,7 +116,7 @@ export const NECROMANCER_WEAPONS_GREATSWORD_SKILL_MECHANICS: Readonly<Record<num
             actor: 'player',
             packets: 'first',
             when: (_runtime, { event }) => Number(event.coefficient) > 0,
-            do: { type: 'necromancer.skill-life-force' }
+            do: lifeForceGrant({ id: 'life-force', unit: 'hit', grant: { percent: 5 } })
           },
           {
             on: 'damage.resolved',
@@ -129,8 +129,7 @@ export const NECROMANCER_WEAPONS_GREATSWORD_SKILL_MECHANICS: Readonly<Record<num
         coefficient: 1.8
       },
       { type: 'condition', condition: 'Chilled', stacks: 1, duration: 2 }
-    ]),
-    lifeForceGain: 5
+    ])
   },
   [ID.GRAVEDIGGER]: {
     castTimeMs: 1080,
@@ -167,22 +166,21 @@ export const NECROMANCER_WEAPONS_GREATSWORD_SKILL_MECHANICS: Readonly<Record<num
     effects: [
       {
         type: 'strike',
-        // Accepted strikes grant live skill tuning through the percentage resource owner.
+        // Accepted strikes apply their declared percentage through the shared resource owner.
         reactions: [
           {
             on: 'damage.resolved',
             actor: 'player',
             packets: 'first',
             when: (_runtime, { event }) => Number(event.coefficient) > 0,
-            do: { type: 'necromancer.skill-life-force' }
+            do: lifeForceGrant({ id: 'life-force', unit: 'hit', grant: { percent: 2 } })
           }
         ],
         ticks: [{ atMs: 520, coefficient: 1.4 }],
         timingAnchor: 'castStart',
         timingScale: 'cast'
       }
-    ],
-    lifeForceGain: 2
+    ]
   },
   [ID.DEATH_SPIRAL]: {
     castTimeMs: 720,

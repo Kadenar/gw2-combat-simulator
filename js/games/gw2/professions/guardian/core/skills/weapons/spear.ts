@@ -284,6 +284,8 @@ export const GUARDIAN_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Par
     ]
   },
   [ID.SYMBOL_OF_LUMINANCE]: {
+    // Author symbol identity independently of the skill's display text.
+    tags: ['symbol'],
     // The symbol grants an independent window from semantic completion.
     sideEffects: [{ on: 'castCommit', do: { type: 'guardian.spear-luminance' } }],
     castTimeMs: 440,
@@ -295,11 +297,13 @@ export const GUARDIAN_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Par
     effects: impactEffects({ timingAnchor: 'castStart', timingScale: 'fixed' }, [
       {
         type: 'strike',
+        metadata: { guardianSymbol: true },
         ticks: [{ atMs: 360, coefficient: 1.5 }],
         name: 'Symbol of Luminance — Initial'
       },
       {
         type: 'strike',
+        metadata: { guardianSymbol: true },
         ticks: Array.from({ length: 5 }, (_, index) => ({ atMs: 360 + index * 1000, coefficient: 2.5 / 5 })),
         name: 'Symbol of Luminance'
       },

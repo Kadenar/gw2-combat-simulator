@@ -45,29 +45,33 @@ test('Renewed Focus restores core activation traits and Flowing Resolve charges 
 });
 
 test('Renewed Focus restores Firebrand pages and dormancy only on completion', () => {
-  for (const interrupted of [false, true]) {
-    const result = createObservedProfessionSimulator(guardianProfession, { ...config, specialization: 'Firebrand' })(
-      undefined,
-      [
+  // Both ordinary and trait-expanded pools retain their cap and recovery phase across the shared reset.
+  for (const selectedTraitIds of [[], [GUARDIAN_TRAIT_IDS.ARCHIVIST_OF_WHISPERS]]) {
+    for (const interrupted of [false, true]) {
+      const result = createObservedProfessionSimulator(guardianProfession, {
+        ...config,
+        specialization: 'Firebrand',
+        selectedTraitIds
+      })(undefined, [
         'Tome of Justice',
         'Chapter 1: Searing Spell',
         'Stow Tome',
         interrupted
           ? { type: 'cast', skillId: GUARDIAN_SKILL_IDS.RENEWED_FOCUS, interruptAfterMs: 100 }
           : 'Renewed Focus'
-      ]
-    );
-    assert.deepEqual(result.warnings, []);
-    const state = result.planningState.profession;
-    const focus = result.events.find((event) => event.type === 'action' && event.skillName === 'Renewed Focus');
-    assert.equal(state.tomePages.value, state.tomePages.maximum - Number(interrupted));
-    // Refilling pages must preserve the regeneration phase established by the earlier spend.
-    const spent = result.events.find(
-      (event) => event.type === 'action' && event.skillId === GUARDIAN_SKILL_IDS.SEARING_SPELL
-    );
-    assert.equal(state.tomePages.nextAt, spent.endsAt + state.tomePages.interval);
-    assert.equal(state.tomeDormantReadyAt.justice > focus.endsAt, interrupted);
-    if (!interrupted) assert.deepEqual(state.tomeDormantReadyAt, state.virtueReadyAt);
+      ]);
+      assert.deepEqual(result.warnings, []);
+      const state = result.planningState.profession;
+      const focus = result.events.find((event) => event.type === 'action' && event.skillName === 'Renewed Focus');
+      assert.equal(state.tomePages.value, state.tomePages.maximum - Number(interrupted));
+      // Refilling pages must preserve the regeneration phase established by the earlier spend.
+      const spent = result.events.find(
+        (event) => event.type === 'action' && event.skillId === GUARDIAN_SKILL_IDS.SEARING_SPELL
+      );
+      assert.equal(state.tomePages.nextAt, spent.endsAt + state.tomePages.interval);
+      assert.equal(state.tomeDormantReadyAt.justice > focus.endsAt, interrupted);
+      if (!interrupted) assert.deepEqual(state.tomeDormantReadyAt, state.virtueReadyAt);
+    }
   }
 });
 

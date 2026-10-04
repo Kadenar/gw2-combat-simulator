@@ -27,7 +27,7 @@ for (const [name, profession, specialization, trait, profile, effect, fields] of
     GUARDIAN.SYMBOLIC_EXPOSURE,
     GUARDIAN.SYMBOLIC_EXPOSURE,
     { type: 'condition', name: 'Vulnerability' },
-    { isSymbol: true }
+    { metadata: { guardianSymbol: true } }
   ],
   [
     'Searing Pact',

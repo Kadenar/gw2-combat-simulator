@@ -93,6 +93,8 @@ export const LUMINARY_RADIANT_FORGE_SKILL_MECHANICS: Readonly<Record<number, Par
     effects: []
   },
   [ID.LUMINOUS_STAFF]: {
+    // Author symbol identity independently of the skill's display text.
+    tags: ['symbol'],
     // An accepted equip belongs to its captured forge entry, including delayed commitment.
     sideEffects: [
       { on: 'castStart', when: (_runtime, cast) => !cast.cancelled, do: { type: 'guardian.snapshot-forge' } },
@@ -122,6 +124,7 @@ export const LUMINARY_RADIANT_FORGE_SKILL_MECHANICS: Readonly<Record<number, Par
       },
       {
         type: 'strike',
+        metadata: { guardianSymbol: true },
         // EVTC records four Quickness packets at 440 ms and fixed one-second intervals.
         ticks: [440, 1440, 2440, 3440].map((atMs) => ({ atMs, coefficient: 1.2 / 4 })),
         name: 'Luminous Staff — Symbol Damage'

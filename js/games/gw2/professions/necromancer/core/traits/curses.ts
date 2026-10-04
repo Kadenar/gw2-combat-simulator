@@ -191,16 +191,3 @@ export const plagueSending = defineTrait({
 
 /** Owns Terror's ordered mechanic integration. */
 export const terror = defineTrait({ id: TRAIT.TERROR, name: 'Terror' });
-
-export const cursesTraits = [
-  barbedPrecision,
-  chillingDarkness,
-  insidiousDisruption,
-  furiousDemise,
-  targetTheWeak,
-  lingeringCurse,
-  weakeningShroud,
-  masterOfCorruption,
-  plagueSending,
-  terror
-];
