@@ -149,6 +149,8 @@ export function defineNativeModule<
   const traitRules = traits.flatMap((trait) =>
     (trait.modifierRules ?? []).map(({ requiresSelection = true, ...rule }) => ({
       ...rule,
+      // Selection is fixed for the previewed build; preserve whether the authored rule needs extra combat state.
+      staticForBuild: !rule.when,
       when: (context: Parameters<NonNullable<typeof rule.when>>[0]) =>
         (!requiresSelection || hasTrait(context, trait.id)) && (rule.when?.(context) ?? true)
     }))

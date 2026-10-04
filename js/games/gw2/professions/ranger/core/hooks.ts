@@ -177,6 +177,8 @@ export const rangerCoreHooks: Partial<RuntimeProfession<RangerRuntimeState, Rang
     if (skill.id === SHARED_SKILL_IDS.DODGE) applyRangerDodgeTraits(runtime);
     completeRangerTraits(runtime, skill);
   },
+  // Autonomous pet attacks keep running during combat but cannot prolong the player's isolated damage preview.
+  backgroundTasks: Object.keys(rangerPetTasks),
   tasks: {
     ...rangerPetTasks,
     'ranger.stealth'(runtime, duration) {

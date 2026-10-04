@@ -4,6 +4,8 @@ import { defineRelic } from '#gw2/platform/equipment/relics/rules/shared.js';
 
 /** Resolved interrupts share Severance's control trigger; each proc adds five independent, unmodified damage ticks. */
 export const agony = defineRelic({
+  // Describe eligibility at the rule owner; discovery still executes real player actions.
+  damagePreview: { requirement: 'Requires an accepted control event in combat.' },
   createState: () => ({ readyAt: 0 }),
   control(ctx, state, event) {
     // Like Severance, controls before the explicit combat boundary cannot consume the proc's cooldown.

@@ -2,7 +2,7 @@ import type {
   ProfessionAttributePreviewContext,
   ProfessionAttributePreviewPreparation
 } from '#gw2/platform/profession-presentation/attribute-preview.js';
-import { createAttributePreviewControls } from '#gw2/professions/shared/attribute-preview.js';
+import { createPreviewControls } from '#gw2/professions/shared/attribute-preview.js';
 import { readProfessionSpecializationState } from '#gw2/platform/engine/profession/state.js';
 import type { AmalgamState } from '#gw2/professions/engineer/specializations/amalgam/state.js';
 import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
@@ -207,8 +207,8 @@ function amalgamStateSnapshot(context: EngineerUiContext): RotationStateSnapshot
 export function bindAmalgamUi(catalog: Readonly<CanonicalCatalog<EngineerSkill>>): EngineerUiSlice {
   return Object.freeze({
     /** Declare this module's conditional inputs without adding simulation settings. */
-    attributePreviewControls(context: ProfessionAttributePreviewContext) {
-      const preview = createAttributePreviewControls(context);
+    previewControls(context: ProfessionAttributePreviewContext) {
+      const preview = createPreviewControls(context);
 
       preview.add({
         key: 'evolved',

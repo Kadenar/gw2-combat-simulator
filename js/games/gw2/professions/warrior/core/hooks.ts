@@ -114,6 +114,8 @@ export const warriorCoreHooks: Partial<RuntimeProfession<WarriorRuntimeState, Wa
     }
   },
   onCombatStart: signetOfRageLifecycle.onCombatStart,
+  // Preserve the signet owner's distinction between its active cast and recurring passive work.
+  backgroundTasks: signetOfRageLifecycle.backgroundTasks,
 
   rechargeWork: (_runtime, skill, work) => (skill.id === SHARED_SKILL_IDS.SWAP_WEAPONS ? Math.min(5, work) : work),
 

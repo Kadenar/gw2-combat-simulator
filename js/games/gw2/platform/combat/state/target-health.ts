@@ -30,6 +30,9 @@ export function targetHealthLoss(
   state: Gw2TargetDamageState | null | undefined
 ): number {
   const maximum = config?.target?.health || 0;
+  // Isolated measurements hold a declared target state; ordinary simulations still subtract all resolved damage.
+  if (config?.target?.fixedHealthFraction != null)
+    return maximum * (1 - clamp(config.target.fixedHealthFraction, 0, 1));
   const configured = Number(config?.target?.startingHealthFraction);
   const startingFraction = Number.isFinite(configured) ? clamp(configured, 0, 1) : 1;
   return maximum * (1 - startingFraction) + combinedTargetDamage(state);
@@ -40,6 +43,7 @@ export function remainingTargetHealthFraction(
   config: Pick<Gw2Config, 'target'> | null | undefined,
   state: Gw2TargetDamageState | null | undefined
 ): number | null {
+  if (config?.target?.fixedHealthFraction != null) return clamp(config.target.fixedHealthFraction, 0, 1);
   const maximum = config?.target?.health || 0;
   if (!(maximum > 0)) return null;
   return clamp(1 - targetHealthLoss(config, state) / maximum, 0, 1);

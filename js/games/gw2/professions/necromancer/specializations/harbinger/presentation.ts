@@ -2,10 +2,22 @@ import type {
   ProfessionAttributePreviewContext,
   ProfessionAttributePreviewPreparation
 } from '#gw2/platform/profession-presentation/attribute-preview.js';
-import { createAttributePreviewControls } from '#gw2/professions/shared/attribute-preview.js';
+import { createPreviewControls } from '#gw2/professions/shared/attribute-preview.js';
 import { readProfessionCoreState } from '#gw2/platform/engine/profession/state.js';
 import type { NecromancerCoreState } from '#gw2/professions/necromancer/core/state.js';
-import type { CanonicalCatalog } from '#gw2/platform/engine/skills/types.js';
+import type { CanonicalCatalog, Skill } from '#gw2/platform/engine/skills/types.js';
+import type {
+  SkillDamagePreviewContext,
+  SkillDamagePreviewPreparation
+} from '#gw2/platform/profession-presentation/skill-damage.js';
+import {
+  BLIGHT_MAXIMUM_STACKS,
+  MAXIMUM_INITIAL_CASCADING_CORRUPTION_STACKS
+} from '#gw2/professions/necromancer/specializations/harbinger/state.js';
+import {
+  balanceProfileNumber,
+  requireBalanceProfileFromContext
+} from '#gw2/platform/engine/skills/balance-profiles.js';
 import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
 import { getActiveTraits } from '#gw2/professions/necromancer/data/traits-data.js';
 import {
@@ -25,7 +37,12 @@ import { boundedInteger } from '#kernel/core/numeric.js';
 function harbingerStateSnapshot(context: NecromancerUiContext): RotationStateSnapshotItem[] {
   const state = necromancerUiState(context);
   const blight = boundedInteger(state.blight || 0, 0, 0, 25);
-  const stacks = boundedInteger(state.cascadingCorruptionStacks || 0, 0, 0, 19);
+  const stacks = boundedInteger(
+    state.cascadingCorruptionStacks || 0,
+    0,
+    0,
+    MAXIMUM_INITIAL_CASCADING_CORRUPTION_STACKS
+  );
   const hasTrait = getActiveTraits(context.build?.specializations || []).some(
     (trait) => trait.id === TRAIT.CASCADING_CORRUPTION
   );
@@ -80,15 +97,83 @@ const HARBINGER_EFFECT_PRESENTATIONS: readonly ProfessionEffectPresentation[] = 
   }
 ]);
 
+const SHROUD_SKILLS = Object.freeze([
+  ID.TAINTED_BOLTS,
+  ID.DARK_BARRAGE,
+  ID.DEVOURING_CUT,
+  ID.VORACIOUS_ARC,
+  ID.VITAL_DRAW
+]);
+
 /** Captures this UI's catalog so other profession instances cannot change its projections. */
 export function bindHarbingerUi(catalog: Readonly<CanonicalCatalog<NecromancerSkill>>): NecromancerUiSlice {
   return Object.freeze({
     /** Declare this module's conditional inputs without adding simulation settings. */
-    attributePreviewControls(context: ProfessionAttributePreviewContext) {
-      const preview = createAttributePreviewControls(context);
+    previewControls(context: ProfessionAttributePreviewContext) {
+      const preview = createPreviewControls(context);
+      if (preview.has('Cascading Corruption')) {
+        preview.add({
+          key: 'meltdown',
+          label: 'Meltdown',
+          group: 'Trait conditionals',
+          kind: 'buff',
+          field: 'meltdown',
+          scope: ['damage'],
+          description: 'Cascading Corruption damage bonus active'
+        });
+        // Starting progress uses the existing field; the next real Blight consumption produces Meltdown normally.
+        preview.add({
+          key: 'cascadingCorruption',
+          label: 'Cascading Corruption progress',
+          group: 'Mechanic',
+          kind: 'special',
+          scope: ['damage'],
+          max: Math.min(
+            MAXIMUM_INITIAL_CASCADING_CORRUPTION_STACKS,
+            Math.max(
+              0,
+              balanceProfileNumber(
+                requireBalanceProfileFromContext(context, TRAIT.CASCADING_CORRUPTION),
+                'minimumStacks'
+              ) - 1
+            )
+          ),
+          initial:
+            Number(
+              (context.build as { readonly initialCascadingCorruptionStacks?: unknown })
+                .initialCascadingCorruptionStacks
+            ) || 0,
+          description: 'Consumed Blight toward the next Meltdown before setup'
+        });
+      }
+
       preview.condition('Torment', 'Wicked Corruption');
+      // Blight scales Harbinger damage traits but no attribute, so it is a skill damage input only.
+      preview.add({
+        key: 'blight',
+        label: 'Blight',
+        group: 'Mechanic',
+        kind: 'special',
+        max: BLIGHT_MAXIMUM_STACKS,
+        initial: Number((context.build as { readonly initialBlight?: unknown }).initialBlight) || 0,
+        scope: ['damage'],
+        description: 'stacks at the start of each cast; Blight-scaling traits'
+      });
       return preview.controls;
     },
+    /** Every probe starts with the chosen Blight; the runtime then gains and loses Blight normally. */
+    prepareSkillDamagePreview: ({ values }: SkillDamagePreviewPreparation) => ({
+      ...(values.blight == null ? {} : { initialBlight: Number(values.blight) }),
+      ...(values.cascadingCorruption == null
+        ? {}
+        : { initialCascadingCorruptionStacks: Number(values.cascadingCorruption) })
+    }),
+    skillDamageGroups: () => [{ id: 'harbinger-shroud', title: 'Harbinger Shroud', skillIds: SHROUD_SKILLS }],
+    /** Shroud skills are measured from inside Harbinger Shroud; entering it deals no damage. */
+    skillDamageProbe: (_context: SkillDamagePreviewContext, skill: Skill) =>
+      (SHROUD_SKILLS as readonly number[]).includes(Number(skill.id))
+        ? { setup: [{ type: 'cast' as const, skillId: ID.HARBINGER_SHROUD }] }
+        : null,
     /** Seed only the detached attribute query; combat state and saved builds remain untouched. */
     prepareAttributePreview(context: ProfessionAttributePreviewPreparation) {
       if (context.values.shroud)

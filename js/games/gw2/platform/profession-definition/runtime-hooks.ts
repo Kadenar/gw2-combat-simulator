@@ -113,6 +113,7 @@ export function composeRuntimeHooks<State extends object, TSkill extends Skill =
       for (const hook of hooks) hook.onCombatStart?.(context);
     },
     tasks: merged('tasks'),
+    backgroundTasks: hooks.flatMap((hook) => hook.backgroundTasks ?? []),
     sideEffectHandlers: merged('sideEffectHandlers'),
     eventHandlers: merged('eventHandlers'),
     reactions: Object.fromEntries(

@@ -44,6 +44,9 @@ export function reactToAshesHit(
       actorType: 'player',
       skillId: GUARDIAN_SKILL_IDS.ASHES_OF_THE_JUST,
       skillName: 'Epilogue: Ashes of the Just',
+      // The charge owns its burning; the triggering attack retains the causal activation only.
+      procType: 'profession',
+      icon: context.helpers.skillsById?.get(GUARDIAN_SKILL_IDS.ASHES_OF_THE_JUST)?.icon,
       name: 'Ashes of the Just — Burning',
       activationId: event.activationId,
       causalOrder: event.causalOrder ?? event.eventOrder,

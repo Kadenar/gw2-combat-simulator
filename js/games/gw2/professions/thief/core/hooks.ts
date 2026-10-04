@@ -247,6 +247,8 @@ export const thiefCoreHooks: Partial<RuntimeProfession<ThiefRuntimeState, ThiefS
     },
     'condition.applied': reactThiefCoreCondition
   },
+  // Initiative regeneration is ongoing state, not a delayed consequence to measure for the active signet.
+  backgroundTasks: [THIEF_INFILTRATORS_SIGNET_PULSE],
   tasks: {
     [THIEF_AXE_LAND]: landThiefAxe,
     'thief.distracting-throw-window': grantDistractingThrowWindow,

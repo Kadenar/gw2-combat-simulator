@@ -1,6 +1,6 @@
 import { buffApplicationStacks, GW2_STANDARD_BOONS, isStandardBoon } from '#gw2/platform/combat/boons.js';
 import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
-import { boonActive, targetConditionActive } from '#gw2/platform/combat/query/runtime-query.js';
+import { boonActive, countActiveBoons, targetConditionActive } from '#gw2/platform/combat/query/runtime-query.js';
 import { gw2EventActorType } from '#gw2/platform/combat/state/event-ownership.js';
 import { GW2_EVENT_ACTOR_TYPES } from '#gw2/platform/engine/events/actors.js';
 import { readProfessionCoreState, readProfessionSpecializationState } from '#gw2/platform/engine/profession/state.js';
@@ -58,9 +58,10 @@ function rangerPetBoonActive(context: Gw2ModifierContext, boon: string): boolean
 }
 
 export function rangerActiveBoonCount(context: Gw2ModifierContext, audience: 'player' | 'pet'): number {
-  return GW2_STANDARD_BOONS.filter((boon) =>
-    audience === 'pet' ? rangerPetBoonActive(context, boon) : rangerBoonActive(context, boon)
-  ).length;
+  // The player-only preview total must not replace an independently simulated pet's boon count.
+  return audience === 'pet'
+    ? GW2_STANDARD_BOONS.filter((boon) => rangerPetBoonActive(context, boon)).length
+    : countActiveBoons(context);
 }
 
 export function rangerTargetImpaired(context: Gw2ModifierContext): boolean {

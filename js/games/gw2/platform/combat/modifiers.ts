@@ -268,6 +268,7 @@ function normalizeRule(rule: Gw2ModifierRule, declarationIndex: number): Readonl
     operation,
     parameters: normalizeParameters({ ...rule, id }),
     when: rule.when || null,
+    staticForBuild: rule.staticForBuild ?? !rule.when,
     order,
     declarationIndex,
     conditionSampleInvariant: rule.conditionSampleInvariant === true
@@ -369,6 +370,19 @@ function resolveNumeric(
   return value;
 }
 
+/** Names a traced damage or duration rule by its label, or by its id's final segment without a target suffix. */
+function modifierRuleLabel(rule: Readonly<Gw2NormalizedModifierRule>): string {
+  if (rule.label) return rule.label;
+  return rule.id
+    .split('.')
+    .at(-1)!
+    .replace(/-(strike-damage|condition-damage|condition-duration|damage|duration)$/, '')
+    .split('-')
+    .filter(Boolean)
+    .map((part) => part[0].toUpperCase() + part.slice(1))
+    .join(' ');
+}
+
 /**
  * Builds an ordered hook for chance, critical multiplier, or duration values.
  * Operations run sequentially, so order matters: add-then-multiply can differ
@@ -392,6 +406,16 @@ function createScalarHook(
       }
 
       const contribution = result - previous;
+      // Duration previews explain the final multiplier; tracing never changes the sequential result.
+      if (target === MODIFIER_TARGET.CONDITION_DURATION && context.durationContributors && contribution) {
+        context.durationContributors.push({
+          id: rule.id,
+          label: modifierRuleLabel(rule),
+          bucket: rule.operation === 'add' ? 'additive' : 'multiplier',
+          value: rule.operation === 'add' ? contribution : previous ? result / previous : 1
+        });
+      }
+
       if (
         target === MODIFIER_TARGET.CRITICAL_CHANCE &&
         context.criticalChanceContributors &&
@@ -480,6 +504,17 @@ function createDamageHook(
       } else {
         multiplicativeFactor *= value;
       }
+
+      // Previews list each rule that changed damage beside its GW2 bucket; ordinary runs supply no sink.
+      const neutral = rule.operation === 'damage-additive' ? value === 0 : value === 1;
+      if (!neutral)
+        context.damageContributors?.push({
+          id: rule.id,
+          label: modifierRuleLabel(rule),
+          bucket: rule.operation === 'damage-additive' ? 'additive' : 'multiplier',
+          ...(rule.staticForBuild ? { unconditional: true } : {}),
+          value
+        });
     }
 
     const includeSigil = typeof policy.includeSigil === 'function' ? policy.includeSigil(context) : policy.includeSigil;
@@ -491,9 +526,28 @@ function createDamageHook(
     const inputs = context.damageInputs;
     const sigilBonus =
       target === MODIFIER_TARGET.CONDITION_DAMAGE ? inputs?.conditionSigilBonus : inputs?.strikeSigilBonus;
+    const eligibleSigilBonus = includeSigil ? Number(sigilBonus || 0) : 0;
+    const equipmentBonus = Number(inputs?.equipmentBonus || 0);
+    if (context.damageContributors) {
+      // Equipment shares the additive bucket, so it is traced beside the rules it is summed with.
+      if (eligibleSigilBonus)
+        context.damageContributors.push({
+          id: 'equipment.sigils',
+          label: 'Sigils',
+          bucket: 'additive',
+          value: eligibleSigilBonus
+        });
+      if (equipmentBonus)
+        context.damageContributors.push({
+          id: 'equipment.relic',
+          label: 'Relic',
+          bucket: 'additive',
+          value: equipmentBonus
+        });
+    }
+
     // Combine eligible additions once; never undo a multiplier assembled by the query.
-    const outgoing =
-      1 + (includeSigil ? Number(sigilBonus || 0) : 0) + Number(inputs?.equipmentBonus || 0) + additiveBonus;
+    const outgoing = 1 + eligibleSigilBonus + equipmentBonus + additiveBonus;
     return initialValue * outgoing * multiplicativeFactor;
   };
 
@@ -612,7 +666,23 @@ export interface Gw2ModifierContext {
   readonly runtime?: Gw2QueryRuntime | null;
   readonly damageInputs?: Gw2DamageInputs;
   readonly criticalChanceContributors?: Gw2CriticalChanceContributor[];
+  /** Optional preview/diagnostic sink for strike or condition damage factors; never read by rules. */
+  readonly damageContributors?: Gw2ModifierContribution[];
+  /** Optional preview/diagnostic sink for condition-duration factors; never read by rules. */
+  readonly durationContributors?: Gw2ModifierContribution[];
   readonly conditionSample?: Gw2ConditionSample;
+}
+
+/** One traced modifier factor, recorded only when a caller supplies a contributor sink. */
+export interface Gw2ModifierContribution {
+  readonly id: string;
+  readonly label: string;
+  /** Additive entries share GW2's outgoing-damage bucket; multipliers apply separately after it. */
+  readonly bucket: 'additive' | 'multiplier';
+  /** A fraction such as 0.05 for additive entries, or a factor such as 1.25 for multipliers. */
+  readonly value: number;
+  /** The declaration has no runtime predicate; previews may list this as an always-enabled contributor. */
+  readonly unconditional?: boolean;
 }
 
 type Gw2ModifierNumericResolver = (
@@ -631,6 +701,8 @@ export interface Gw2ModifierRule {
   /** Named patchable inputs for resolver-backed amounts or factors. */
   readonly parameters?: Readonly<Record<string, number>>;
   readonly when?: (context: Gw2ModifierContext) => boolean;
+  /** Set by trait composition before adding its selection gate; retains the authored absence of a combat predicate. */
+  readonly staticForBuild?: boolean;
   /** Condition-damage predicate/value depend only on shared runtime state, never the application or condition type. */
   readonly conditionSampleInvariant?: boolean;
   readonly order?: number;
@@ -645,6 +717,7 @@ interface Gw2NormalizedModifierRule {
   readonly factor?: number | Gw2ModifierNumericResolver;
   readonly parameters: Readonly<Record<string, number>>;
   readonly when: ((context: Gw2ModifierContext) => boolean) | null;
+  readonly staticForBuild: boolean;
   readonly order: number;
   readonly declarationIndex: number;
   readonly conditionSampleInvariant: boolean;

@@ -1,8 +1,18 @@
 import type {
+  SkillDamagePreviewContext,
+  SkillDamageProbeSetup
+} from '#gw2/platform/profession-presentation/skill-damage.js';
+import type { Skill as PreviewSkill } from '#gw2/platform/engine/skills/types.js';
+import type {
   ProfessionAttributePreviewContext,
   ProfessionAttributePreviewPreparation
 } from '#gw2/platform/profession-presentation/attribute-preview.js';
-import { createAttributePreviewControls } from '#gw2/professions/shared/attribute-preview.js';
+import { createPreviewControls } from '#gw2/professions/shared/attribute-preview.js';
+import {
+  balanceProfileNumber,
+  requireBalanceProfileFromContext
+} from '#gw2/platform/engine/skills/balance-profiles.js';
+import { NECROMANCER_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/necromancer/core/profiles.js';
 import { readProfessionCoreState } from '#gw2/platform/engine/profession/state.js';
 import type { NecromancerCoreState } from '#gw2/professions/necromancer/core/state.js';
 import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
@@ -202,9 +212,38 @@ function necromancerCoreResourceViews(context: NecromancerUiContext): Profession
 /** Captures this UI's catalog so other profession instances cannot change its projections. */
 export function bindNecromancerCoreUi(catalog: Readonly<CanonicalCatalog<NecromancerSkill>>): NecromancerUiSlice {
   return Object.freeze({
+    /** Prepare legal preview casts with the same catalog metadata and transitions used by the runtime. */
+    skillDamageProbe(context: SkillDamagePreviewContext, skill: PreviewSkill): SkillDamageProbeSetup | null {
+      // Observe one native passive siphon before the active signet suppresses it; no long ambient tail is needed.
+      if (skill.id === ID.SIGNET_OF_VAMPIRISM)
+        return {
+          procSetup: [
+            {
+              type: 'wait',
+              durationMs:
+                balanceProfileNumber(
+                  requireBalanceProfileFromContext(context, PROFILE.signetOfVampirismPassive),
+                  'pulseInterval'
+                ) * 1000
+            }
+          ]
+        };
+      const form = (skill as NecromancerSkill).shroud || (skill as NecromancerSkill).shroudExit;
+      if (!form) return null;
+      const entry = context.catalog.skills.find((candidate) => (candidate as NecromancerSkill).shroudEntry === form);
+      return entry ? { initialResource: 100, setup: [{ type: 'cast', skillId: entry.id }] } : null;
+    },
+
     /** Declare this module's conditional inputs without adding simulation settings. */
-    attributePreviewControls(context: ProfessionAttributePreviewContext) {
-      const preview = createAttributePreviewControls(context);
+    previewControls(context: ProfessionAttributePreviewContext) {
+      const preview = createPreviewControls(context);
+      preview.trait('Soul Barbs', {
+        key: 'soulBarbs',
+        kind: 'buff',
+        field: 'necromancer-soul-barbs',
+        scope: ['damage'],
+        description: 'Damage bonus after a shroud transition active'
+      });
 
       preview.trait('Deadly Strength', {
         key: 'carapace',

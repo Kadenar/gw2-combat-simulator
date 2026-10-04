@@ -278,6 +278,8 @@ function upkeepDaggers(runtime: RevenantRuntime, data: unknown): void {
 }
 
 export const conduitHooks: Partial<RuntimeProfession<RevenantRuntimeState, RevenantSkill>> = {
+  // Passive affinity accrual does not extend damage observation; damaging dagger upkeep remains bounded normally.
+  backgroundTasks: [UPKEEP_AFFINITY],
   // Control-triggered Burning shares Mistfire's profile, excluding its own Twin Moon chain.
 
   availability(runtime, skill) {

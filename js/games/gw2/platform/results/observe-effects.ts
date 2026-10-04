@@ -7,10 +7,97 @@ import {
   GW2_STANDARD_BOONS,
   standardBoonPresentation,
   isStandardBoon,
-  buffMatchesAudience
+  buffMatchesAudience,
+  type Gw2TimedBuffApplication
 } from '#gw2/platform/combat/boons.js';
 import { observeBuffState, type BuffStatePolicy, type EffectState } from '#gw2/platform/combat/effect-state.js';
 import type { Gw2Runtime, RuntimeProfession } from '#gw2/platform/simulation/runtime-state.js';
+
+interface BuffObservation {
+  readonly applications: readonly Gw2TimedBuffApplication[];
+  readonly maximumStacks: number | undefined;
+  readonly maximumDuration: number | undefined;
+  readonly at: number;
+  readonly until: number;
+  readonly states: readonly EffectState[];
+}
+
+// Cache only generic immutable grant histories, scoped to their runtime; native charge pools are always observed.
+const buffObservations = new WeakMap<object, Map<string, BuffObservation>>();
+
+/** Reuse accepted windows until a grant, replacement, policy change, or time boundary changes their meaning. */
+function observeGenericBuff(
+  cache: Map<string, BuffObservation>,
+  kind: string,
+  applications: readonly Gw2TimedBuffApplication[],
+  at: number,
+  policy: BuffStatePolicy
+): readonly EffectState[] {
+  const previous = cache.get(kind);
+  if (
+    previous &&
+    at >= previous.at &&
+    at < previous.until &&
+    previous.maximumStacks === policy.maximumStacks &&
+    previous.maximumDuration === policy.maximumDuration &&
+    previous.applications.length === applications.length &&
+    applications.every((application, index) => application === previous.applications[index])
+  )
+    return previous.states;
+
+  const states = [observeBuffState(kind, applications, at, policy)];
+  let allies = 0;
+  let wildcard = false;
+  let until = Infinity;
+  const companions = new Set<string>();
+  for (const application of applications) {
+    const audience = application.resolvedAudience;
+    allies = Math.max(allies, audience.alliedPlayerCount, audience.alliedPlayerIndex ?? 0);
+    for (const id of audience.companionIds) companions.add(id);
+    if (audience.includesSummons && !audience.companionIds.length) wildcard = true;
+    if (application.at > at) until = Math.min(until, application.at);
+  }
+
+  for (let index = 1; index <= allies; index++)
+    states.push(
+      observeBuffState(kind, applications, at, policy, `ally:${index}`, (application) =>
+        application.resolvedAudience.alliedPlayerIndex != null
+          ? application.resolvedAudience.alliedPlayerIndex === index
+          : application.resolvedAudience.alliedPlayerCount >= index
+      )
+    );
+  for (const id of companions)
+    states.push(
+      observeBuffState(kind, applications, at, policy, `companion:${id}`, (application) =>
+        buffMatchesAudience(application, 'summon', id)
+      )
+    );
+  if (wildcard)
+    states.push(
+      observeBuffState(
+        kind,
+        applications,
+        at,
+        policy,
+        'companions:*',
+        (application) =>
+          application.resolvedAudience.includesSummons && !application.resolvedAudience.companionIds.length
+      )
+    );
+  // Duration pools can outlive individual grants; invalidate at the resolved deadline, not the grant's expiry.
+  for (const state of states)
+    for (const window of state.windows)
+      if (window.expiresAt != null && window.expiresAt > at) until = Math.min(until, window.expiresAt);
+  cache.set(kind, {
+    applications: [...applications],
+    maximumStacks: policy.maximumStacks,
+    maximumDuration: policy.maximumDuration,
+    at,
+    until,
+    states
+  });
+  return states;
+}
 
 /** Read existing combat stores at accepted boundaries; profession observations replace only their own generic tracks. */
 export function observeRuntimeEffects<T extends object>(
@@ -40,54 +127,32 @@ export function observeRuntimeEffects<T extends object>(
         ?.filter((application) => application.at <= runtime.time)
         .at(-1)?.event
   }));
-  const ownedKeys = new Set(owned.map((state) => state.kind + ':' + state.recipient));
+  // Recipient membership uses existing strings rather than allocating a composite key for every observed track.
+  const ownedRecipients = new Map<string, Set<string>>();
+  for (const state of owned) {
+    let recipients = ownedRecipients.get(state.kind);
+    if (!recipients) {
+      recipients = new Set();
+      ownedRecipients.set(state.kind, recipients);
+    }
+
+    recipients.add(state.recipient);
+  }
+
   const result: EffectState[] = [...owned];
+  let cache = buffObservations.get(runtime);
+  if (!cache) {
+    cache = new Map();
+    buffObservations.set(runtime, cache);
+  }
+
   for (const [kind, applications] of runtime.boons) {
     // Registration makes new reportable effects declare their owner instead of silently bypassing caps.
     const policy = policies.get(kind);
     if (!policy) throw new TypeError(`Missing buff policy: ${kind}`);
     if (policy.owner === 'profession') continue;
-    if (!ownedKeys.has(kind + ':self')) result.push(observeBuffState(kind, applications, runtime.time, policy));
-    const allies = Math.max(
-      0,
-      ...applications.map((application) =>
-        Math.max(application.resolvedAudience.alliedPlayerCount, application.resolvedAudience.alliedPlayerIndex ?? 0)
-      )
-    );
-    for (let index = 1; index <= allies; index++)
-      if (!ownedKeys.has(kind + ':ally:' + index))
-        result.push(
-          observeBuffState(kind, applications, runtime.time, policy, `ally:${index}`, (application) =>
-            application.resolvedAudience.alliedPlayerIndex != null
-              ? application.resolvedAudience.alliedPlayerIndex === index
-              : application.resolvedAudience.alliedPlayerCount >= index
-          )
-        );
-    for (const id of new Set(applications.flatMap((application) => application.resolvedAudience.companionIds)))
-      if (!ownedKeys.has(kind + ':companion:' + id))
-        result.push(
-          observeBuffState(kind, applications, runtime.time, policy, `companion:${id}`, (application) =>
-            buffMatchesAudience(application, 'summon', id)
-          )
-        );
-    // Wildcard summon grants retain their scope without inventing named companion identities.
-    if (
-      applications.some(
-        (application) =>
-          application.resolvedAudience.includesSummons && !application.resolvedAudience.companionIds.length
-      )
-    )
-      result.push(
-        observeBuffState(
-          kind,
-          applications,
-          runtime.time,
-          policy,
-          'companions:*',
-          (application) =>
-            application.resolvedAudience.includesSummons && !application.resolvedAudience.companionIds.length
-        )
-      );
+    for (const state of observeGenericBuff(cache, kind, applications, runtime.time, policy))
+      if (!ownedRecipients.get(kind)?.has(state.recipient)) result.push(state);
   }
 
   for (const [kind, state] of runtime.conditionState)

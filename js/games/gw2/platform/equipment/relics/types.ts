@@ -65,6 +65,18 @@ export interface Gw2ConditionHelpers {
 }
 
 export interface Gw2RelicRule {
+  /** Discovery uses real casts with these ambient conditions; the owning rule still decides whether to trigger. */
+  readonly damagePreview?: {
+    readonly targetConditions?: Gw2TargetConfig['conditions'];
+    /** Repeated real opportunities build the relic's native counter without seeding private relic state. */
+    readonly repetitions?: number;
+    readonly repeatCondition?: string;
+    readonly repeatFinisher?: string;
+    readonly repeatIntervalMs?: number;
+    /** Existing environment-field assumptions still require the player to execute a matching finisher. */
+    readonly comboField?: 'Water' | 'Fire';
+    readonly requirement: string;
+  };
   readonly createState?: () => Gw2RelicState;
   readonly emitConditionEffects?: (
     context: Gw2RelicEmissionContext,

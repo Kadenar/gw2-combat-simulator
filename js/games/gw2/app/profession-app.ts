@@ -1,3 +1,5 @@
+import { SkillDamageRunner } from '#gw2/app/simulation/skill-damage/runner.js';
+import { receiveSkillDamage } from '#gw2/app/build/panels/skill-damage.js';
 import { readStoredTimelineOverlayVisibility } from '#gw2/app/rotation/timeline/preferences.js';
 import { bindSessionControls } from '#gw2/app/session-controls.js';
 import { bindWikiTooltips } from '#gw2/app/shared/tooltip-overlay.js';
@@ -82,6 +84,7 @@ export class ProfessionApp implements ProfessionAppState {
   templateUndoBuild: Gw2CanonicalBuild | null;
   readonly modifierContributionRunner: ModifierContributionRunner;
   readonly randomDistributionRunner: RandomDistributionRunner;
+  readonly skillDamageRunner: SkillDamageRunner;
   readonly gearOptimizerRunner: GearOptimizerRunner;
   readonly relicComparisonRunner: RelicComparisonRunner;
   readonly baselineSimulationRunner: BaselineSimulationRunner;
@@ -142,6 +145,10 @@ export class ProfessionApp implements ProfessionAppState {
     this.relicComparisonRunner = new RelicComparisonRunner(this, () => renderRelicComparison(this));
     this.baselineSimulationRunner = new BaselineSimulationRunner(this);
     this.gearOptimizerRunner = new GearOptimizerRunner(this, () => renderGearOptimizer(this));
+    // Browser-owned workers follow the existing runner lifecycle and stay out of headless adapter imports.
+    this.skillDamageRunner = new SkillDamageRunner((signature, result, error) =>
+      receiveSkillDamage(this, signature, result, error)
+    );
     this.initialRenderGeneration = 0;
     this.deferredRotationRenderRevision = null;
   }

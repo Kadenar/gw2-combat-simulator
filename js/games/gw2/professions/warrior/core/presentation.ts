@@ -1,5 +1,7 @@
 import type { ProfessionAttributePreviewContext } from '#gw2/platform/profession-presentation/attribute-preview.js';
-import { createAttributePreviewControls } from '#gw2/professions/shared/attribute-preview.js';
+import { createPreviewControls } from '#gw2/professions/shared/attribute-preview.js';
+import type { SkillDamagePreviewPreparation } from '#gw2/platform/profession-presentation/skill-damage.js';
+import { WARRIOR_CORE_BALANCE_PROFILE_IDS } from '#gw2/professions/warrior/core/profiles.js';
 
 import type { PaletteOverride } from '#gw2/platform/profession-presentation/types.js';
 import { PERMANENT_COMBO_FIELD_ASSUMPTION_CONTROLS } from '#gw2/platform/combos/permanent-field-assumption.js';
@@ -211,12 +213,44 @@ function warriorCoreEffectPresentations(_context: WarriorUiContext): ProfessionE
 
 export const warriorCoreUi: WarriorUiSlice = Object.freeze({
   /** Declare this module's conditional inputs without adding simulation settings. */
-  attributePreviewControls(context: ProfessionAttributePreviewContext) {
-    const preview = createAttributePreviewControls(context);
+  previewControls(context: ProfessionAttributePreviewContext) {
+    const preview = createPreviewControls(context);
+    // Starting adrenaline selects the real burst tier; Bladesworn's charge ladder owns its separate Flow setup.
+    if (!['Bladesworn', 'Spellbreaker'].includes(context.specialization))
+      preview.add({
+        key: 'adrenaline',
+        label: 'Starting adrenaline',
+        group: 'Mechanic',
+        kind: 'special',
+        scope: ['damage'],
+        max: balanceProfileNumber(
+          requireBalanceProfileFromContext(context, WARRIOR_CORE_BALANCE_PROFILE_IDS.resources),
+          'maximumStacks'
+        ),
+        initial: Number(context.build.initialResource) || 0,
+        description: 'Adrenaline before setup; bursts spend it normally'
+      });
+    preview.trait('Peak Performance', {
+      key: 'peakPerformance',
+      kind: 'buff',
+      field: 'peak-performance',
+      scope: ['damage'],
+      description: 'Physical skill bonus active'
+    });
 
     preview.buff('Signet Mastery', 'signetMastery', 'signet-mastery', 'Ferocity', true);
     preview.buff('Furious', 'furious', 'furious-surge', 'Condition Damage', true);
     preview.buff('Burst Precision', 'burstPrecision', 'burst-precision', 'Critical Chance / Ferocity');
+    // The existing timed-buff path exposes the selected damage stack without duplicating its multiplier or cap.
+    if (preview.has("Berserker's Power"))
+      preview.trait("Berserker's Power", {
+        key: 'berserkersPower',
+        kind: 'buff',
+        field: 'berserkers-power',
+        scope: ['damage'],
+        description: 'Burst-earned strike damage',
+        max: preview.maximumStacks("Berserker's Power")
+      });
     if (preview.has('Unsuspecting Foe'))
       preview.add({
         key: 'defiant',
@@ -230,6 +264,10 @@ export const warriorCoreUi: WarriorUiSlice = Object.freeze({
     preview.passives('Signet of Might', 'Signet of Fury');
     return preview.controls;
   },
+
+  /** Seed the native adrenaline owner without editing the build. */
+  prepareSkillDamagePreview: ({ values }: SkillDamagePreviewPreparation) =>
+    values.adrenaline == null ? {} : { initialResource: Number(values.adrenaline) },
 
   // Burst tiles are authored for a specific weapon set; inactive-set insertion needs an explicit swap.
   paletteOverride: (context, skill) => {

@@ -1,11 +1,11 @@
 import { CANONICAL_TARGET_CONDITIONS } from '#gw2/platform/combat/state/targets.js';
 import type { ProfessionUiContract } from '#gw2/platform/profession-presentation/types.js';
-import { createAttributePreviewControls } from '#gw2/professions/shared/attribute-preview.js';
+import { createPreviewControls } from '#gw2/professions/shared/attribute-preview.js';
 
 /** Coordinate shared shroud inputs and condition counts across Core and the selected elite. */
 export const necromancerFamilyUi: Partial<ProfessionUiContract> = {
-  attributePreviewControls(context) {
-    const preview = createAttributePreviewControls(context);
+  previewControls(context) {
+    const preview = createPreviewControls(context);
     if (context.specialization !== 'Scourge') {
       const sources = ['Death Perception', "Reaper's Onslaught"].filter((name) => preview.has(name));
       if (preview.skills.has('Signet of Spite')) sources.push('Signet of Spite');

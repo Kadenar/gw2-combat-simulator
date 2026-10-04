@@ -715,8 +715,9 @@ export function triggerMaimTheDisillusioned(
       hit.at,
       { ...maim, stacks: maim.stacks * hit.count },
       'Player',
-      `${resolution.skill.name} — Maim the Disillusioned`,
-      { metadata: { shatterTraitEligible: true } }
+      'Maim the Disillusioned — Torment',
+      // Preserve shatter ownership for reactions while naming the separate trait and its grouped hit opportunities.
+      { procType: 'trait', metadata: { shatterTraitEligible: true, procCount: hit.count } }
     ).forEach((packet) => {
       context.context.effects.emit({
         ...resolution.delivery,

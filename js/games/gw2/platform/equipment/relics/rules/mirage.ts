@@ -5,6 +5,8 @@ import { isGw2PlayerActorEvent } from '#gw2/platform/combat/state/event-ownershi
 import { defineRelic } from '#gw2/platform/equipment/relics/rules/shared.js';
 
 export const mirage = defineRelic({
+  // Describe eligibility at the rule owner; discovery still executes real player actions.
+  damagePreview: { requirement: 'Requires an accepted player evade in combat.' },
   createState: () => ({ readyAt: -Infinity }),
   action(ctx, state, dodge) {
     // A successful player evade claims the same ICD once, at its actual activation.

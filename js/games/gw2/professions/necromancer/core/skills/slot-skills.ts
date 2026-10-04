@@ -620,6 +620,9 @@ export function applyNecromancerSignetPassive(
           actorType: 'effect',
           skillId: id,
           skillName: strike.name,
+          // Periodic signet siphons are passive procs, not consequences of the currently measured cast.
+          procType: 'profession',
+          icon: runtime.helpers.skillsById.get(id)?.icon,
           coefficient: 0,
           skillWeapon: 'Unequipped',
           flatStrikeBase: effectNumber(profile, strike, 'flatStrikeBase'),

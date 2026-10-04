@@ -29,6 +29,8 @@ export function consumeBattleScar(runtime: RevenantRuntime, event: Gw2ResolverEv
       actorType: 'effect',
       skillId: 'revenant.battle-scars',
       skillName: 'Battle Scars',
+      // Several grants feed the same scar pool, whose siphon is independent of the consuming attack.
+      procType: 'profession',
       name: 'Battle Scars — Life Siphon',
       coefficient: 0,
       damageKind: strike.damageKind,

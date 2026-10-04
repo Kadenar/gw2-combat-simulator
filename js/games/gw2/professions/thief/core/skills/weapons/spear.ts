@@ -1,4 +1,4 @@
-import { targetHealthLoss } from '#gw2/platform/combat/state/target-health.js';
+import { remainingTargetHealthFraction } from '#gw2/platform/combat/state/target-health.js';
 /** Canonical Core thief skill fragments grouped by their GW2 owner. */
 import { impactEffects } from '#gw2/platform/engine/effects/authoring.js';
 import { THIEF_SKILL_IDS as ID } from '#gw2/professions/thief/data/ids.js';
@@ -141,9 +141,8 @@ export const THIEF_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Partia
             on: 'condition.applied',
             actor: 'player',
             packets: 'each',
-            when: (runtime) =>
-              !(Number(runtime.config.target?.health) > 0) ||
-              targetHealthLoss(runtime.config, runtime) / Number(runtime.config.target?.health) < 0.1,
+            // Both fixed preview health and simulated health use the same strict upper-health gate.
+            when: (runtime) => (remainingTargetHealthFraction(runtime.config, runtime) ?? 1) > 0.9,
             do: { type: 'thief.unsuspecting-bleeding' }
           }
         ],

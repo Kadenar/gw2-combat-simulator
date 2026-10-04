@@ -86,6 +86,8 @@ export const galvanicEnchantment = defineTrait({
   id: TRAIT.GALVANIC_ENCHANTMENT,
   name: 'Galvanic Enchantment',
   balance: {
+    // Trait and familiar grants consume the same Electric Enchantment pool.
+    damagePreviewAttribution: 'shared',
     playerStacks: 2,
     durationMultiplier: 6,
     effects: [

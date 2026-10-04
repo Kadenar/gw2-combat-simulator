@@ -1,4 +1,10 @@
 import { WARRIOR_SKILL_IDS as ID } from '#gw2/professions/warrior/data/ids.js';
+import { createPreviewControls } from '#gw2/professions/shared/attribute-preview.js';
+import {
+  balanceProfileNumber,
+  requireBalanceProfileFromContext
+} from '#gw2/platform/engine/skills/balance-profiles.js';
+import { SPELLBREAKER_BALANCE_PROFILE_IDS } from '#gw2/professions/warrior/specializations/spellbreaker/profiles.js';
 import { activeStackCount } from '#gw2/platform/combat/resources/timed-stacks.js';
 import {
   formatSecondsRemaining,
@@ -13,6 +19,24 @@ import type { WarriorUiContext, WarriorUiSlice } from '#gw2/professions/warrior/
 
 const SKILLS = Object.freeze([ID.FULL_COUNTER]);
 export const spellbreakerUi: WarriorUiSlice = Object.freeze({
+  /** Spellbreaker's starting cap belongs to its own resource profile; Core applies the shared configuration field. */
+  previewControls(context) {
+    const preview = createPreviewControls(context);
+    preview.add({
+      key: 'adrenaline',
+      label: 'Starting adrenaline',
+      group: 'Mechanic',
+      kind: 'special',
+      scope: ['damage'],
+      max: balanceProfileNumber(
+        requireBalanceProfileFromContext(context, SPELLBREAKER_BALANCE_PROFILE_IDS.resources),
+        'maximumStacks'
+      ),
+      initial: Number(context.build.initialResource) || 0,
+      description: 'Adrenaline before setup; bursts use the Spellbreaker tier'
+    });
+    return preview.controls;
+  },
   // Burst tiles are authored for a specific weapon set; inactive-set insertion needs an explicit swap.
   paletteOverride: (context, skill) => {
     return warriorBurstPaletteOverride(context, skill);

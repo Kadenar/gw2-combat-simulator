@@ -304,6 +304,8 @@ function signetPulse(runtime: WarriorRuntime): void {
 
 /** Selected Signet of Rage starts its passive at accepted combat and preserves suppressed pulse cadence. */
 export const signetOfRageLifecycle: Partial<RuntimeProfession<WarriorRuntimeState, WarriorSkill>> = {
+  // Passive resource pulses are ambient work, not delayed damage from the signet's active cast.
+  backgroundTasks: [SIGNET_PULSE],
   onCombatStart(runtime) {
     if (!selectedSkillNameSet(runtime.config.selectedSkills).has('Signet of Rage')) return;
     runtime.profession.core.nextSignetPulseAt = canonicalTime(runtime.time + 3);

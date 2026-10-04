@@ -1,5 +1,10 @@
 import type { ProfessionAttributePreviewContext } from '#gw2/platform/profession-presentation/attribute-preview.js';
-import { createAttributePreviewControls } from '#gw2/professions/shared/attribute-preview.js';
+import { createPreviewControls } from '#gw2/professions/shared/attribute-preview.js';
+import type { Skill } from '#gw2/platform/engine/skills/types.js';
+import type {
+  SkillDamagePreviewContext,
+  SkillDamageProbeSetup
+} from '#gw2/platform/profession-presentation/skill-damage.js';
 
 import { MESMER_SKILL_IDS as ID } from '#gw2/professions/mesmer/data/ids.js';
 import {
@@ -83,9 +88,13 @@ function chronomancerStateSnapshot(context: MesmerUiContext): RotationStateSnaps
 }
 
 export const chronomancerUi: MesmerUiSlice = Object.freeze({
+  /** The return action can only be measured inside the ordinary Continuum Split window. */
+  skillDamageProbe(_context: SkillDamagePreviewContext, skill: Skill): SkillDamageProbeSetup | null {
+    return skill.id === ID.CONTINUUM_SHIFT ? { setup: [{ type: 'cast', skillId: ID.CONTINUUM_SPLIT }] } : null;
+  },
   /** Declare this module's conditional inputs without adding simulation settings. */
-  attributePreviewControls(context: ProfessionAttributePreviewContext) {
-    const preview = createAttributePreviewControls(context);
+  previewControls(context: ProfessionAttributePreviewContext) {
+    const preview = createPreviewControls(context);
 
     preview.boon('alacrity', 'Flow of Time');
     preview.buff('Danger Time', 'dangerTime', 'danger-time', 'Critical Damage');

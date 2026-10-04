@@ -290,6 +290,10 @@ export interface Skill extends CatalogEntity {
  * catalog while retaining the same declarative effect vocabulary.
  */
 export interface BalanceProfile extends CatalogEntity {
+  /** Augmentations retain their skill/summon/shared owner instead of promising a separate trait proc row. */
+  readonly damagePreviewAttribution?: 'skill' | 'summon' | 'shared';
+  /** Additional eligibility that cannot be inferred from the trait's declarative damage effects. */
+  readonly damagePreviewRequirement?: string;
   /** Keep the selected source identifiable when a runtime passes only a profile lookup callback. */
   readonly balanceDataContext?: CanonicalCatalog['balanceDataContext'];
   /** Identity-only tombstones scoped to this profile; callbacks retain removal provenance. */

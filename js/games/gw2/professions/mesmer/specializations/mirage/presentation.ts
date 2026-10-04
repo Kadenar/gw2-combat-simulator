@@ -1,3 +1,8 @@
+import type {
+  SkillDamagePreviewContext,
+  SkillDamageProbeSetup
+} from '#gw2/platform/profession-presentation/skill-damage.js';
+import type { Skill as PreviewSkill } from '#gw2/platform/engine/skills/types.js';
 import type { ProfessionEffectPresentation } from '#gw2/platform/profession-presentation/types.js';
 import {
   mesmerMechanicPaletteGroups,
@@ -28,6 +33,26 @@ function mirageEffectPresentations(_context: MesmerUiContext): ProfessionEffectP
 }
 
 export const mirageUi: MesmerUiSlice = Object.freeze({
+  /** Prepare legal preview casts with the same catalog metadata and transitions used by the runtime. */
+  skillDamageProbe(context: SkillDamagePreviewContext, skill: PreviewSkill): SkillDamageProbeSetup | null {
+    // Crystal Sands creates the mirror at its impact; collection must wait for that real scheduled grant.
+    if (skill.id === ID.PICK_UP_MIRAGE_MIRROR)
+      return {
+        setup: [
+          { type: 'cast', skillId: ID.CRYSTAL_SANDS },
+          {
+            type: 'wait',
+            durationMs:
+              context.catalog.skillsById
+                .get(ID.CRYSTAL_SANDS)
+                ?.tasks?.find((task) => task.type === 'mesmer.mirage.create-mirror')?.atMs ?? 0
+          }
+        ]
+      };
+    if (!skill.ambush) return null;
+    return { setup: [{ type: 'cast', skillId: ID.DODGE_MIRAGE_CLOAK }] };
+  },
+
   effectPresentations: mirageEffectPresentations,
   // Mirage's dodge and mirror precede shared actions, preserving the shell's order for everything else.
   paletteActionSkills: (_context, skills) => {

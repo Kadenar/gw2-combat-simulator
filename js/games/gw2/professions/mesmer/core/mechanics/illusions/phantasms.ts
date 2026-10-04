@@ -157,11 +157,18 @@ export function createPhantasmEffectController({
         source: 'Player',
         weaponStrength: bonus.damage.weaponStrength
       }
-    ).forEach((packet) => {
+    ).forEach((packet, index) => {
       state.effects.emit({
         ...execution.delivery,
         kind: 'packet',
-        event: packet,
+        // Name the trait owner without changing the blade's combat source, skill identity, or player scaling.
+        event: {
+          ...packet,
+          name: bonus.traitName,
+          procType: 'trait',
+          // Each entity conversion is one proc, even when its strike expands into multiple damage packets.
+          ...(index === 0 ? { metadata: { ...packet.metadata, procCount: 1 } } : {})
+        },
         owner: mesmerPacketOwner(packet),
         priority: Number(packet.priority ?? 0)
       });

@@ -4,6 +4,8 @@ import { isGw2PlayerActorEvent } from '#gw2/platform/combat/state/event-ownershi
 import { defineRelic } from '#gw2/platform/equipment/relics/rules/shared.js';
 
 export const mistStranger = defineRelic({
+  // Describe eligibility at the rule owner; discovery still executes real player actions.
+  damagePreview: { requirement: 'Requires a resolved player strike.' },
   damageResolved(ctx, _state, event) {
     if (!isGw2PlayerActorEvent(event)) return;
     const siphon = 105 * Number(event.hits || 1);

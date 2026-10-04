@@ -10,6 +10,11 @@ import type { ProfessionEventLogDescriptor } from '#gw2/platform/profession-pres
 import type { CanonicalCatalog, SkillId } from '#gw2/platform/engine/skills/types.js';
 import type { NecromancerSkill, NecromancerUiContext, NecromancerUiSlice } from '#gw2/professions/necromancer/types.js';
 import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
+import type { Skill } from '#gw2/platform/engine/skills/types.js';
+import type {
+  SkillDamagePreviewContext,
+  SkillDamageProbeSetup
+} from '#gw2/platform/profession-presentation/skill-damage.js';
 
 // Suppress resolver-only Ritualist packets while leaving ordinary events to the shared renderer.
 function ritualistEventLogRow(
@@ -29,6 +34,22 @@ const INNERVATE_BY_SPIRIT: Readonly<Record<string, SkillId>> = Object.freeze({
 /** Captures this UI's catalog so other profession instances cannot change its projections. */
 export function bindRitualistUi(catalog: Readonly<CanonicalCatalog<NecromancerSkill>>): NecromancerUiSlice {
   return Object.freeze({
+    /** Summon the existing spirit set before measuring an Innervate activation. */
+    skillDamageProbe(context: SkillDamagePreviewContext, skill: Skill): SkillDamageProbeSetup | null {
+      // Discover the player's weapon-spell charges even when no allied strike schedule is configured.
+      if (skill.id === ID.NIGHTMARE_WEAPON || skill.id === ID.SPLINTER_WEAPON) return { procFollowUpSetup: [] };
+      const spirit = Object.entries(INNERVATE_BY_SPIRIT).find(([, id]) => id === skill.id)?.[0];
+      const summon = spirit && context.catalog.skills.find((entry) => entry.name.toLowerCase() === spirit);
+      return summon
+        ? {
+            initialResource: 100,
+            setup: [
+              ...(summon.shroud ? [{ type: 'cast' as const, skillId: ID.RITUALISTS_SHROUD }] : []),
+              { type: 'cast', skillId: summon.id }
+            ]
+          }
+        : null;
+    },
     /** Seed only the detached attribute query; combat state and saved builds remain untouched. */
     prepareAttributePreview(context: ProfessionAttributePreviewPreparation) {
       if (context.values.shroud)

@@ -4,6 +4,8 @@ import { isGw2PlayerActorEvent } from '#gw2/platform/combat/state/event-ownershi
 import { defineRelic } from '#gw2/platform/equipment/relics/rules/shared.js';
 
 export const steamshrieker = defineRelic({
+  // Describe eligibility at the rule owner; discovery still executes real player actions.
+  damagePreview: { comboField: 'Water', requirement: 'Requires a player blast or leap finisher in a water field.' },
   combo(ctx, _state, event) {
     if (
       !isGw2PlayerActorEvent(event) ||

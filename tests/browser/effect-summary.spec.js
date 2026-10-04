@@ -1,5 +1,12 @@
 import { expect, test } from '@playwright/test';
 
+// Chart mounts need a stable same-origin document; application startup can reload the landing page during setup.
+test.beforeEach(async ({ page }) => {
+  await page.route('http://127.0.0.1:4173/', (route) =>
+    route.fulfill({ contentType: 'text/html', body: '<!doctype html><html><head></head><body></body></html>' })
+  );
+});
+
 // Exercise audience selection and phase cropping through the real canvas hover values.
 test('boon charts switch between self, allies, and comparison without losing effect selection', async ({ page }) => {
   await page.goto('/', { waitUntil: 'domcontentloaded' });

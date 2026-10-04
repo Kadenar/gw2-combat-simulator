@@ -202,6 +202,8 @@ export interface RuntimeProfession<T extends object, TSkill extends Skill = Skil
     result: AutoattackChainTransitionResult
   ): void;
   onCooldownReset?(runtime: Gw2Runtime<T, TSkill>): void;
+  /** Persistent ambient loops run normally but do not define an isolated cast's observation lifetime. */
+  readonly backgroundTasks?: readonly string[];
   readonly tasks?: Readonly<Record<string, (runtime: Gw2Runtime<T, TSkill>, data: unknown) => void>>;
   readonly eventHandlers?: Readonly<Record<string, (runtime: Gw2Runtime<T, TSkill>, event: Gw2ResolverEvent) => void>>;
   readonly reactions?: Partial<

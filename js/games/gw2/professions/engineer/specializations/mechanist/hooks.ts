@@ -61,6 +61,8 @@ export const mechanistHooks: Partial<RuntimeProfession<EngineerRuntimeState, Eng
   onCastCommit(runtime, cast) {
     completeEngineerMechCast(runtime, cast.skill);
   },
+  // The mech's autonomous loop does not define the lifetime of a player skill or its reactions.
+  backgroundTasks: ['engineer.mech-attack'],
   tasks: {
     'engineer.mech-attack'(runtime, data) {
       const mech = mechanistState.from(runtime).mech;

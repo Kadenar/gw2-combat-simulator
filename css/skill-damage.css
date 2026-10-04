@@ -1,0 +1,940 @@
+/* Owns the workspace skill damage preview: a full-width disclosure below gear and attributes. */
+
+.skill-damage-preview {
+  /* Condition identity colors are validated for dark surfaces and always appear beside the condition name. */
+  --sd-bleeding: #d9564f;
+  --sd-poison: #2ea58a;
+  --sd-burning: #bf7d14;
+  --sd-torment: #9b72e0;
+  --sd-confusion: #8a8aa0;
+  margin-top: 10px;
+  padding: 10px 12px;
+  /* The workspace owns the outer frame; the preview adds no nested perimeter. */
+  background: var(--bg-panel);
+  color: var(--text);
+}
+
+.skill-damage-title {
+  cursor: pointer;
+  color: var(--accent);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.6px;
+  text-transform: uppercase;
+}
+.skill-damage-title small {
+  color: var(--text-dim);
+  font-weight: 400;
+  font-style: italic;
+  letter-spacing: normal;
+  text-transform: none;
+}
+
+.skill-damage-body {
+  margin-top: 10px;
+}
+
+/* Stats read as one strip; each tile names its no-preview baseline when a preview input changed it. */
+.skill-damage-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 1px;
+  border-bottom: 1px solid var(--border);
+  background: var(--border);
+}
+.sd-stat {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 8px 12px;
+  background: var(--bg-deep);
+}
+.sd-stat-label,
+.sd-card-title,
+.sd-subhead,
+.sd-header,
+.skill-damage-assumptions legend {
+  color: var(--text-dim);
+  font-size: 10px;
+  letter-spacing: 0.6px;
+  text-transform: uppercase;
+}
+.sd-stat-value {
+  color: var(--text-bright);
+  font-family: var(--mono);
+  font-size: 15px;
+}
+.sd-stat-note {
+  color: var(--text-dim);
+  font-family: var(--mono);
+  font-size: 11px;
+}
+.sd-stat-note.is-changed {
+  color: var(--accent);
+}
+
+/* The sidebar stacks above the table at narrow widths. */
+.skill-damage-layout {
+  display: flex;
+  flex-wrap: wrap;
+}
+.skill-damage-assumptions {
+  box-sizing: border-box;
+  flex: 1 1 260px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 12px;
+  border-right: 1px solid var(--border);
+  background: var(--bg-panel-alt);
+}
+.skill-damage-assumptions h4 {
+  margin: 0;
+  color: var(--text-bright);
+  font-size: 12px;
+  letter-spacing: 0.6px;
+  text-transform: uppercase;
+}
+.skill-damage-assumptions fieldset {
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+.skill-damage-assumptions legend {
+  width: 100%;
+  padding: 0 0 4px;
+  border-bottom: 1px solid var(--border);
+  color: var(--accent);
+}
+.sd-note {
+  margin: 0;
+  color: var(--text-dim);
+  font-size: 11px;
+}
+.sd-control {
+  display: grid;
+  grid-template-columns: minmax(90px, 1fr) 56px minmax(0, 1.3fr);
+  align-items: center;
+  gap: 8px;
+  margin-top: 6px;
+  font-size: 12px;
+}
+.sd-control small {
+  color: var(--text-dim);
+  font-size: 11px;
+}
+.sd-control input[type='number'],
+.sd-control select {
+  box-sizing: border-box;
+  width: 100%;
+  min-width: 0;
+  padding: 2px 4px;
+  border: 1px solid var(--border-light);
+  border-radius: 3px;
+  background: var(--bg-deep);
+  color: var(--text);
+  font-family: var(--mono);
+}
+.sd-control input[type='checkbox'] {
+  justify-self: start;
+  margin: 0;
+  accent-color: var(--accent);
+}
+.sd-fixed {
+  margin: 6px 0 0;
+  padding-left: 16px;
+  font-size: 12px;
+}
+.sd-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.sd-actions .sd-action-primary {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.skill-damage-main {
+  flex: 999 1 600px;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+.sd-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 12px;
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--border);
+}
+.sd-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.sd-chip {
+  min-height: 28px;
+  padding: 0 10px;
+  border: 1px solid var(--border-light);
+  border-radius: 14px;
+  background: transparent;
+  color: var(--text);
+  font-size: 12px;
+  cursor: pointer;
+}
+.sd-chip span {
+  color: var(--text-dim);
+  font-family: var(--mono);
+  font-size: 11px;
+}
+.sd-chip[aria-pressed='true'] {
+  border-color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 16%, transparent);
+  color: var(--accent);
+}
+.sd-status {
+  margin: 0;
+  color: var(--text-dim);
+  font-size: 12px;
+}
+.sd-status.is-error {
+  color: var(--condi);
+}
+
+/* Preview exclusions stay distinct from damage rows, with readable reasons at any panel width. */
+.sd-unavailable {
+  border-top: 1px solid var(--border);
+  background: var(--bg-panel-alt);
+  font-size: 12px;
+  line-height: 1.5;
+}
+.sd-unavailable > summary {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  color: var(--text-dim);
+  list-style: none;
+  cursor: pointer;
+}
+.sd-unavailable > summary::-webkit-details-marker {
+  display: none;
+}
+.sd-unavailable > summary::before {
+  content: '';
+  flex: none;
+  width: 5px;
+  height: 5px;
+  border-right: 1px solid currentColor;
+  border-bottom: 1px solid currentColor;
+  transform: rotate(-45deg);
+}
+.sd-unavailable[open] > summary::before {
+  transform: rotate(45deg);
+}
+.sd-unavailable > summary:hover {
+  color: var(--text-bright);
+}
+.sd-unavailable > summary:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: -2px;
+}
+.sd-unavailable-count {
+  padding: 0 6px;
+  border: 1px solid var(--border-light);
+  border-radius: 10px;
+  color: var(--text-dim);
+  font-family: var(--mono);
+  font-size: 10px;
+}
+.sd-unavailable-list {
+  margin: 0;
+  padding: 0 12px 12px 25px;
+  list-style: none;
+  overflow-wrap: anywhere;
+}
+.sd-unavailable-list > li {
+  padding: 8px 10px;
+  border-left: 2px solid var(--border-light);
+  background: var(--bg-deep);
+}
+.sd-unavailable-list > li + li {
+  margin-top: 6px;
+}
+.sd-unavailable-list strong {
+  color: var(--text);
+  font-weight: 600;
+}
+.sd-unavailable-list p {
+  margin: 3px 0 0;
+  color: var(--text-dim);
+}
+
+/* Keep the skill list independently scrollable while assumptions and filters stay in place. */
+.sd-table-scroll {
+  max-height: 70dvh;
+  overflow: auto;
+  overscroll-behavior: contain;
+  scrollbar-gutter: stable;
+}
+.sd-table {
+  min-width: 860px;
+  transition: opacity 0.15s;
+}
+.sd-table.is-stale {
+  opacity: 0.6;
+}
+.sd-header,
+.sd-cells {
+  display: grid;
+  grid-template-columns: var(--sd-columns);
+  column-gap: 12px;
+  align-items: center;
+  padding: 6px 12px;
+}
+.sd-header {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  background: var(--bg-panel-alt);
+}
+.sd-num {
+  text-align: right;
+  font-family: var(--mono);
+  font-size: 12px;
+}
+.sd-dim {
+  color: var(--text-dim);
+}
+.sd-total {
+  color: var(--text-bright);
+  font-size: 13px;
+}
+.sd-group-title {
+  width: 100%;
+  min-height: 34px;
+  padding: 6px 12px;
+  border: 0;
+  border-top: 1px solid var(--border);
+  background: var(--bg-panel-alt);
+  color: var(--accent);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.6px;
+  text-align: left;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+.sd-group-title::before {
+  content: '▸ ';
+}
+.sd-group-title[aria-expanded='true']::before {
+  content: '▾ ';
+}
+.sd-row {
+  border-top: 1px solid var(--border);
+}
+.sd-row:hover > .sd-cells,
+.sd-row.is-expanded > .sd-cells {
+  background: color-mix(in srgb, var(--bg-panel-alt) 70%, transparent);
+}
+.sd-skill {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+  min-height: 34px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.sd-icon,
+.sd-badge {
+  flex: none;
+  box-sizing: border-box;
+  width: 30px;
+  height: 30px;
+  border: 1px solid var(--accent-dim);
+  border-radius: 3px;
+}
+.sd-badge {
+  display: grid;
+  place-items: center;
+  background: var(--bg-deep);
+  color: var(--accent);
+  font-family: var(--mono);
+  font-size: 11px;
+}
+.sd-name {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  color: var(--text-bright);
+  font-size: 13px;
+}
+.sd-name small {
+  overflow: hidden;
+  color: var(--text-dim);
+  font-size: 11px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.sd-unslotted .sd-name {
+  color: var(--text-dim);
+}
+.sd-unslotted :is(.sd-icon, .sd-badge) {
+  border-color: var(--border-light);
+  opacity: 0.7;
+}
+.sd-applied {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+.sd-condition-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 1px 7px 1px 6px;
+  border: 1px solid var(--border-light);
+  border-radius: 10px;
+  font-size: 11px;
+  white-space: nowrap;
+}
+.sd-condition-chip b {
+  color: var(--text-dim);
+  font-family: var(--mono);
+  font-weight: 400;
+}
+.sd-condition-chip::before,
+.sd-condition-name::before {
+  content: '';
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--sd-condition, var(--sd-confusion));
+}
+[data-condition='Bleeding'] {
+  --sd-condition: var(--sd-bleeding);
+}
+[data-condition='Poisoned'] {
+  --sd-condition: var(--sd-poison);
+}
+[data-condition='Burning'] {
+  --sd-condition: var(--sd-burning);
+}
+[data-condition='Torment'] {
+  --sd-condition: var(--sd-torment);
+}
+
+/* A row breakdown reads left to right as the resolver's calculation. */
+.sd-breakdown {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin: 0 12px 12px 52px;
+  padding: 12px;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  background: var(--bg-deep);
+}
+/* Component details use natural height instead of equal-height cards. */
+.sd-component-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 8px 24px;
+}
+.sd-component {
+  min-width: 0;
+  padding: 3px 0;
+}
+.sd-component + .sd-component {
+  border-top: 1px solid var(--border);
+  padding-top: 10px;
+}
+.sd-component-heading {
+  font-size: 12px;
+  margin-bottom: 6px;
+}
+.sd-component-heading > strong {
+  color: var(--text-bright);
+}
+.sd-formula {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 8px;
+  font-family: var(--mono);
+  font-size: 12px;
+}
+.sd-formula small {
+  color: var(--text-dim);
+  font-family: inherit;
+  font-size: 11px;
+}
+.sd-facts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 22px;
+  font-size: 11px;
+}
+.sd-fact {
+  white-space: nowrap;
+}
+.sd-fact > span {
+  color: var(--text-dim);
+}
+.sd-fact b {
+  font-weight: 400;
+}
+.sd-calculation-details {
+  font-size: 11px;
+  margin-top: 6px;
+}
+.sd-calculation-details > summary {
+  color: var(--text-dim);
+  cursor: pointer;
+  width: fit-content;
+}
+.sd-calculation-details[open] > summary {
+  margin-bottom: 8px;
+}
+.sd-modifier-list {
+  max-width: 500px;
+  margin-top: 8px;
+}
+/* Each condition explains damage and duration in parallel rows, with sources beside their calculation. */
+.sd-condition-factor-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin: 10px 0;
+}
+.sd-condition-factors > strong {
+  display: block;
+  margin-bottom: 6px;
+}
+.sd-condition-calculation {
+  display: grid;
+  grid-template-columns: 110px 230px minmax(0, 1fr);
+  gap: 6px 12px;
+  align-items: baseline;
+  padding: 4px 0;
+}
+.sd-condition-calculation > span:first-child,
+.sd-condition-calculation small {
+  color: var(--text-dim);
+  font-size: 11px;
+}
+@media (max-width: 1100px) {
+  .sd-condition-calculation {
+    grid-template-columns: 110px minmax(0, 1fr);
+  }
+  .sd-condition-calculation small {
+    grid-column: 2;
+  }
+}
+.sd-line {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: 12px;
+}
+.sd-line > span:first-child {
+  color: var(--text-dim);
+}
+.sd-mono {
+  font-family: var(--mono);
+}
+.sd-subhead {
+  margin-top: 4px;
+}
+.sd-condition-head,
+.sd-condition-row {
+  display: grid;
+  grid-template-columns: minmax(90px, 1.3fr) 52px 76px minmax(120px, 1.5fr) 72px;
+  column-gap: 10px;
+  align-items: baseline;
+  font-size: 12px;
+}
+.sd-condition-head {
+  padding-bottom: 4px;
+  border-bottom: 1px solid var(--border);
+  color: var(--text-dim);
+  font-size: 10px;
+  text-transform: uppercase;
+}
+.sd-condition-row {
+  padding: 4px 0;
+  border-bottom: 1px solid var(--border);
+}
+.sd-condition-row > span:not(:first-child),
+.sd-condition-head > span:not(:first-child) {
+  text-align: right;
+}
+.sd-condition-row small {
+  color: var(--text-dim);
+}
+.sd-condition-name {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* One bar per scaling level; exact values sit under the bars so nothing depends on hover. */
+.sd-ladder {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  background: var(--bg-panel);
+}
+.sd-ladder-head {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 4px 16px;
+}
+.sd-ladder-readout {
+  font-family: var(--mono);
+  font-size: 12px;
+}
+.sd-ladder-bars,
+.sd-ladder-labels {
+  display: grid;
+  column-gap: 6px;
+}
+.sd-ladder-bars {
+  align-items: end;
+  height: 90px;
+  border-bottom: 1px solid var(--border-light);
+}
+.sd-ladder-bar {
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  height: 100%;
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: pointer;
+}
+.sd-ladder-bar span {
+  width: 70%;
+  max-width: 40px;
+  border-radius: 4px 4px 0 0;
+  background: var(--accent);
+  opacity: 0.55;
+}
+.sd-ladder-bar:is(:hover, :focus-visible, .is-primary) span {
+  opacity: 1;
+}
+.sd-ladder-labels span {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  color: var(--text-dim);
+  font-size: 11px;
+}
+.sd-ladder-labels b {
+  color: var(--text);
+  font-family: var(--mono);
+  font-weight: 400;
+}
+
+/* Match the reference's quiet five-second scan while the worker prepares the first results. */
+.sd-loading {
+  --sd-scan-cycle: 5s;
+  --sd-scan-cyan: #54d9ed;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 62px 24px 26px;
+  border-top: 1px solid var(--border);
+  color: #b8cedd;
+  text-align: center;
+}
+.sd-loading p {
+  margin: 28px 0 34px;
+  font-size: 16px;
+  line-height: 24px;
+  letter-spacing: 0.3px;
+}
+.sd-loading-scene {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 24px;
+}
+.sd-golem-stage {
+  --sd-dance-cycle: 1.8s;
+  position: relative;
+  width: 156px;
+  height: 140px;
+}
+.sd-training-golem {
+  position: relative;
+  z-index: 1;
+  display: block;
+  width: 156px;
+  height: 130px;
+  animation: sd-golem-jig calc(var(--sd-dance-cycle) / 2) ease-in-out infinite;
+}
+/* Clip the original artwork into joint-pivoted limbs for an outward arm swing and alternating steps. */
+.sd-golem-part,
+.sd-golem-still {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+.sd-golem-still {
+  display: none;
+}
+.sd-golem-torso {
+  clip-path: polygon(
+    36% 0,
+    64% 0,
+    64% 18%,
+    68% 29%,
+    70% 52%,
+    68% 59%,
+    58% 68%,
+    50% 73%,
+    42% 68%,
+    32% 59%,
+    30% 52%,
+    32% 29%,
+    36% 18%
+  );
+}
+.sd-golem-arm-left {
+  --sd-arm-direction: 1;
+  clip-path: polygon(0 0, 36% 0, 36% 18%, 32% 29%, 30% 52%, 28% 59%, 25% 65%, 25% 84%, 0 84%);
+  transform-origin: 33% 25%;
+  animation: sd-golem-arm-dance var(--sd-dance-cycle) ease-in-out infinite;
+}
+.sd-golem-arm-right {
+  --sd-arm-direction: -1;
+  clip-path: polygon(100% 0, 64% 0, 64% 18%, 68% 29%, 70% 52%, 72% 59%, 75% 65%, 75% 84%, 100% 84%);
+  transform-origin: 67% 25%;
+  animation: sd-golem-arm-dance var(--sd-dance-cycle) ease-in-out infinite;
+}
+.sd-golem-leg-left {
+  clip-path: polygon(32% 59%, 42% 68%, 50% 73%, 50% 100%, 19% 100%, 19% 85%, 26% 72%);
+  transform-origin: 40% 65%;
+  animation: sd-golem-step var(--sd-dance-cycle) ease-in-out infinite;
+}
+.sd-golem-leg-right {
+  clip-path: polygon(68% 59%, 58% 68%, 50% 73%, 50% 100%, 81% 100%, 81% 85%, 74% 72%);
+  transform-origin: 60% 65%;
+  animation: sd-golem-step var(--sd-dance-cycle) ease-in-out calc(var(--sd-dance-cycle) / -2) infinite;
+}
+.sd-golem-shadow {
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  width: 92px;
+  height: 12px;
+  border-radius: 50%;
+  background: #0d1418;
+  transform: translateX(-50%);
+  animation: sd-golem-shadow calc(var(--sd-dance-cycle) / 2) ease-in-out infinite;
+}
+.sd-loading-bar {
+  display: flex;
+  gap: 14px;
+}
+.sd-loading-slot {
+  position: relative;
+  display: grid;
+  place-items: center;
+  box-sizing: border-box;
+  width: 33px;
+  height: 33px;
+  border: 1px solid #37515f;
+  border-radius: 3px;
+  background: #11171b;
+  color: #47616f;
+  animation: sd-skill-scan var(--sd-scan-cycle) linear calc(var(--sd-slot) * 1s) infinite;
+}
+.sd-loading-slot svg {
+  width: 23px;
+  height: 23px;
+}
+.sd-loading-slot::before,
+.sd-loading-slot::after {
+  content: '';
+  position: absolute;
+  right: 0;
+  bottom: -7px;
+  left: 0;
+  height: 1px;
+  background: #2a3c46;
+}
+.sd-loading-slot::after {
+  background: var(--sd-scan-cyan);
+  transform: scaleX(0);
+  transform-origin: left;
+  animation: sd-skill-progress var(--sd-scan-cycle) linear calc(var(--sd-slot) * 1s) infinite;
+}
+.sd-skeleton {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  max-width: 630px;
+}
+.sd-skeleton span {
+  width: 100%;
+  height: 8px;
+  background: linear-gradient(90deg, #101619 0%, #18272e 15%, #101619 30%);
+  background-size: 200% 100%;
+  opacity: 0.65;
+  animation: sd-shimmer var(--sd-scan-cycle) linear infinite;
+}
+.sd-skeleton span:nth-child(1) {
+  width: 89%;
+}
+.sd-skeleton span:nth-child(3) {
+  width: 91%;
+}
+.sd-skeleton span:nth-child(4) {
+  width: 97%;
+}
+@keyframes sd-skill-scan {
+  0%,
+  20%,
+  100% {
+    border-color: #37515f;
+    background: #11171b;
+    color: #47616f;
+    box-shadow: none;
+  }
+  3%,
+  17% {
+    border-color: var(--sd-scan-cyan);
+    background: #15323c;
+    color: var(--sd-scan-cyan);
+    box-shadow: inset 0 0 10px #54d9ed14;
+  }
+}
+@keyframes sd-skill-progress {
+  0%,
+  20%,
+  100% {
+    transform: scaleX(0);
+    opacity: 0;
+  }
+  1% {
+    transform: scaleX(0);
+    opacity: 1;
+  }
+  19% {
+    transform: scaleX(1);
+    opacity: 1;
+  }
+}
+@keyframes sd-shimmer {
+  from {
+    background-position: 150% 0;
+  }
+  to {
+    background-position: -100% 0;
+  }
+}
+/* A small bounce accompanies the limb motion without turning the forward-facing torso. */
+@keyframes sd-golem-jig {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-2px);
+  }
+}
+@keyframes sd-golem-arm-dance {
+  0%,
+  100% {
+    transform: rotate(calc(-8deg * var(--sd-arm-direction)));
+  }
+  50% {
+    transform: rotate(calc(12deg * var(--sd-arm-direction)));
+  }
+}
+@keyframes sd-golem-step {
+  0%,
+  50%,
+  100% {
+    transform: none;
+  }
+  25% {
+    transform: rotate(-6deg) scaleY(0.86);
+  }
+}
+@keyframes sd-golem-shadow {
+  0%,
+  100% {
+    transform: translateX(-50%) scaleX(1);
+    opacity: 0.8;
+  }
+  50% {
+    transform: translateX(-50%) scaleX(0.92);
+    opacity: 0.6;
+  }
+}
+
+/* Re-measuring keeps the previous table, dimmed, beside a small spinner. */
+.sd-spinner {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  margin-right: 6px;
+  border: 2px solid var(--border-light);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  vertical-align: -1px;
+  animation: sd-spin 0.8s linear infinite;
+}
+@keyframes sd-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Keep a readable, still loading state when motion is reduced. */
+@media (prefers-reduced-motion: reduce) {
+  .sd-training-golem,
+  .sd-golem-part,
+  .sd-golem-shadow,
+  .sd-loading-slot,
+  .sd-loading-slot::after,
+  .sd-skeleton span,
+  .sd-spinner {
+    animation: none;
+  }
+  .sd-golem-part {
+    display: none;
+  }
+  .sd-golem-still {
+    display: block;
+  }
+}
+.skill-damage-empty {
+  margin: 0;
+  padding: 24px 12px;
+  color: var(--text-dim);
+  text-align: center;
+}

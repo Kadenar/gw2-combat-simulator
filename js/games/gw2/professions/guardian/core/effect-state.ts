@@ -29,7 +29,10 @@ export function guardianBuffPolicies(context: unknown): BuffStatePolicy[] {
     { kind: 'toughness' },
     { kind: 'ashes-of-the-just' }
   ];
-  for (const [kind, id] of [['lethal-tempo', TRAIT.LETHAL_TEMPO]] as const) {
+  for (const [kind, id] of [
+    ['lethal-tempo', TRAIT.LETHAL_TEMPO],
+    ['symbolic-avenger', TRAIT.SYMBOLIC_AVENGER]
+  ] as const) {
     const profile = balanceProfileFromContext(context, id);
     if (profile) policies.push({ kind, maximumStacks: balanceProfileNumber(profile, 'maximumStacks') });
   }

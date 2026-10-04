@@ -10,6 +10,8 @@ import { defineRelic, timedStrikeBuff } from '#gw2/platform/equipment/relics/rul
 const PEITHA_DEFAULT_IMPACT_DELAY_MS = 240;
 
 export const peitha = defineRelic({
+  // Describe eligibility at the rule owner; discovery still executes real player actions.
+  damagePreview: { requirement: 'Requires a committed shadowstep or Deception skill.' },
   createState: () => ({ readyAt: 0, buffFrom: 0, buffUntil: 0 }),
   // Every profession shares one trigger: a committed player activation of a shadowstep or Deception skill.
   // The trigger stays at activation so the internal cooldown gates on use; the skill supplies the impact delay.

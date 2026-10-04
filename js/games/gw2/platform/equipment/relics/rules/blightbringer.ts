@@ -4,7 +4,14 @@ import { isInternalCooldownReady } from '#gw2/platform/combat/procs.js';
 import { isGw2PlayerActorEvent } from '#gw2/platform/combat/state/event-ownership.js';
 import { defineRelic } from '#gw2/platform/equipment/relics/rules/shared.js';
 
+// Discovery and runtime share the required number of distinct poison activations.
+const REQUIRED_ACTIVATIONS = 6;
 export const blightbringer = defineRelic({
+  damagePreview: {
+    repetitions: REQUIRED_ACTIVATIONS,
+    repeatCondition: 'Poisoned',
+    requirement: 'Requires distinct player activations that apply Poison.'
+  },
   createState: () => ({
     readyAt: 0,
     count: 0,
@@ -22,8 +29,8 @@ export const blightbringer = defineRelic({
     const key = application.activationId || `${application.skillId || application.skillName}:${application.at}`;
     if (tracked?.has(key)) return;
     tracked?.add(key);
-    state.count = Math.min(6, (state.count || 0) + 1);
-    if (state.count < 6 || !isInternalCooldownReady(application.at, state.readyAt)) {
+    state.count = Math.min(REQUIRED_ACTIVATIONS, (state.count || 0) + 1);
+    if (state.count < REQUIRED_ACTIVATIONS || !isInternalCooldownReady(application.at, state.readyAt)) {
       return;
     }
 

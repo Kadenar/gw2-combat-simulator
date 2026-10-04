@@ -3,13 +3,20 @@ import { RELIC_IDS } from '#gw2/platform/equipment/relics/data.js';
 import { isInternalCooldownReady } from '#gw2/platform/combat/procs.js';
 import { defineRelic } from '#gw2/platform/equipment/relics/rules/shared.js';
 
+// Runtime eligibility and isolated proc discovery share the same pre-existing stack threshold.
+const REQUIRED_BLEEDING = 6;
+
 export const fractal = defineRelic({
+  damagePreview: {
+    targetConditions: { Bleeding: REQUIRED_BLEEDING },
+    requirement: 'Apply Bleeding to a target with the required pre-existing Bleeding stacks.'
+  },
   createState: () => ({ readyAt: 0 }),
   condition(ctx, state, application, { activeConditionStackCount }) {
     if (
       application.condition !== 'Bleeding' ||
       !isInternalCooldownReady(application.at, state.readyAt) ||
-      activeConditionStackCount(ctx, 'Bleeding', application.at) - (application.stacks || 0) < 6
+      activeConditionStackCount(ctx, 'Bleeding', application.at) - (application.stacks || 0) < REQUIRED_BLEEDING
     ) {
       return;
     }

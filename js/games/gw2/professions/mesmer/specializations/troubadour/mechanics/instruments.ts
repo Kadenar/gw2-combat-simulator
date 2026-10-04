@@ -67,7 +67,8 @@ function instrumentAttack(
       runtime.context.effects.emit({
         ...delivery,
         kind: 'packet',
-        event: packet,
+        // The extra note is trait-owned; afterimage copies retain their summon actor and stay excluded from preview.
+        event: attack === shredding ? { ...packet, name: 'Shredding', procType: 'trait' } : packet,
         owner: mesmerPacketOwner(packet),
         priority: Number(packet.priority ?? 0)
       });

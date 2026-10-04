@@ -2,7 +2,7 @@ import type {
   ProfessionAttributePreviewContext,
   ProfessionAttributePreviewPreparation
 } from '#gw2/platform/profession-presentation/attribute-preview.js';
-import { createAttributePreviewControls } from '#gw2/professions/shared/attribute-preview.js';
+import { createPreviewControls } from '#gw2/professions/shared/attribute-preview.js';
 import { readProfessionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { elementalistWeaponGroups } from '#gw2/professions/elementalist/core/weapon-groups.js';
 import { timedBuffAt } from '#gw2/platform/results/query.js';
@@ -26,9 +26,25 @@ import { ELEMENTALIST_ASSUMPTION_CONTROLS } from '#gw2/professions/elementalist/
 import { SIMULATION_RANDOMNESS_ASSUMPTION_CONTROLS } from '#gw2/platform/simulation/randomness.js';
 import { PERMANENT_COMBO_FIELD_ASSUMPTION_CONTROLS } from '#gw2/platform/combos/permanent-field-assumption.js';
 import { selectedSkillNameSet } from '#gw2/platform/builds/selected-skills.js';
-import { ELEMENTALIST_ATTUNEMENT_SKILL_IDS } from '#gw2/professions/elementalist/data/ids.js';
+import {
+  ELEMENTALIST_ATTUNEMENT_SKILL_IDS,
+  ELEMENTALIST_SKILL_IDS as ID
+} from '#gw2/professions/elementalist/data/ids.js';
 import { AURA_TRANSMUTE_SKILLS, CONJURE_SKILLS, ETCHING_CHAINS } from '#gw2/professions/elementalist/core/constants.js';
-import { ELEMENTALIST_ATTUNEMENTS, type ElementalistAttunement } from '#gw2/professions/elementalist/core/state.js';
+import {
+  balanceProfileNumber,
+  requireBalanceProfileFromContext
+} from '#gw2/platform/engine/skills/balance-profiles.js';
+import { ELEMENTALIST_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/elementalist/core/profiles.js';
+import {
+  ELEMENTALIST_ATTUNEMENTS,
+  isElementalistAttunement,
+  type ElementalistAttunement
+} from '#gw2/professions/elementalist/core/state.js';
+import type {
+  SkillDamagePreviewPreparation,
+  SkillDamageProbeSetup
+} from '#gw2/platform/profession-presentation/skill-damage.js';
 import type { CanonicalCatalog, Skill } from '#gw2/platform/engine/skills/types.js';
 import type {
   ProfessionEventLogDescriptor,
@@ -369,12 +385,109 @@ function rotationStateSnapshot(context: ElementalistUiContext): RotationStateSna
   ];
 }
 
+/**
+ * Attunement-bound skills are measured from their own attunement: a single-element skill starts in that element in
+ * both hands, and a Weaver dual skill ("Fire+Water") starts with its main-hand and off-hand elements.
+ */
+export function elementalistAttunementConfig(skill: Skill): Readonly<Record<string, string>> | null {
+  const attunement = String((skill as { readonly attunement?: unknown }).attunement ?? '');
+  const [primary, secondary = primary] = attunement.split('+');
+  if (!isElementalistAttunement(primary) || !isElementalistAttunement(secondary)) return null;
+  return { startAttunement: primary, secondaryAttunement: secondary };
+}
+
+/** Open bundles and staged skills through their authored casts; only the final cast is measured. */
+function elementalistSkillDamageProbe(
+  context: SkillDamagePreviewPreparation,
+  skill: Skill
+): SkillDamageProbeSetup | null {
+  const config = elementalistAttunementConfig(skill);
+  // Attunement procs require a real transition, not a no-op cast into the element already active at start.
+  const enteredElement = Object.entries(ELEMENTALIST_ATTUNEMENT_SKILL_IDS).find(([, id]) => id === skill.id)?.[0];
+  if (enteredElement)
+    return {
+      config: { startAttunement: enteredElement === 'Fire' ? 'Water' : 'Fire', secondaryAttunement: 'Water' }
+    };
+  // Pistol and hammer payoffs consume their native prepared state; the engine authors all resulting packets.
+  if (skill.id === ID.ELEMENTAL_EXPLOSION)
+    return {
+      config: {
+        ...config,
+        pistolBullets: Object.fromEntries(ELEMENTALIST_ATTUNEMENTS.map((element) => [element, true]))
+      },
+      skipPredecessors: true
+    };
+  if (skill.id === ID.GRAND_FINALE)
+    return {
+      config: { startAttunement: 'Fire', secondaryAttunement: 'Fire' },
+      setup: [{ type: 'cast', skillId: ID.FLAME_WHEEL }],
+      skipPredecessors: true
+    };
+  const conjure = Object.entries(CONJURE_SKILLS).find(([, weapon]) => weapon === (skill.weapon ?? skill.skillWeapon));
+  if (conjure) return { setup: [{ type: 'cast', skillId: Number(conjure[0]) }] };
+  if (skill.id === ID.HURL) return { config: config ?? {}, setup: [{ type: 'cast', skillId: ID.ROCK_BARRIER }] };
+  const aura = AURA_TRANSMUTE_SKILLS[Number(skill.id)];
+  const auraSkill =
+    aura &&
+    context.catalog.skills.find((candidate) => candidate.name === (aura === 'Fire Aura' ? 'Fire Shield' : aura));
+  if (auraSkill) return { config: config ?? {}, setup: [{ type: 'cast', skillId: auraSkill.id }] };
+  const etching = ETCHING_CHAINS.find((chain) => chain.lesserId === skill.id || chain.fullId === skill.id);
+  if (etching) {
+    const autoattack = context.catalog.skills.find(
+      (candidate) =>
+        candidate.weapon === 'Spear' &&
+        candidate.slot === 'Weapon_1' &&
+        (candidate as ElementalistSkill).attunement === (skill as ElementalistSkill).attunement
+    );
+    return {
+      config: config ?? {},
+      setup: [
+        { type: 'cast', skillId: etching.etchingId },
+        ...(etching.fullId === skill.id && autoattack
+          ? Array.from(
+              {
+                length: balanceProfileNumber(
+                  requireBalanceProfileFromContext(context, PROFILE.spearEmpowerments),
+                  'maximumStacks'
+                )
+              },
+              () => ({ type: 'cast' as const, skillId: autoattack.id })
+            )
+          : [])
+      ]
+    };
+  }
+
+  return config ? { config } : null;
+}
+
 /** Captures this UI's catalog so other profession instances cannot change its projections. */
 export function bindElementalistCoreUi(catalog: Readonly<CanonicalCatalog<ElementalistSkill>>): ElementalistUiSlice {
   return Object.freeze({
+    skillDamageProbe: elementalistSkillDamageProbe,
     /** Declare this module's conditional inputs without adding simulation settings. */
-    attributePreviewControls(context: ProfessionAttributePreviewContext) {
-      const preview = createAttributePreviewControls(context);
+    previewControls(context: ProfessionAttributePreviewContext) {
+      const preview = createPreviewControls(context);
+      // Slot skills use this start element; weapon rows retain the attunement required by their own skill.
+      preview.add({
+        key: 'damageAttunement',
+        label: 'Starting attunement',
+        group: 'Attunement',
+        kind: 'special',
+        scope: ['damage'],
+        options: ELEMENTALIST_ATTUNEMENTS,
+        initial: (context.build as { startAttunement?: string }).startAttunement ?? 'Fire',
+        description: 'Attunement for skills without a fixed elemental requirement'
+      });
+      if (preview.has('Persisting Flames'))
+        preview.trait('Persisting Flames', {
+          key: 'persistingFlames',
+          kind: 'buff',
+          field: 'persisting flames',
+          scope: ['damage'],
+          max: preview.maximumStacks('Persisting Flames'),
+          description: 'Fire-field damage stacks active'
+        });
 
       preview.buff('Fresh Air', 'freshAir', 'fresh air', 'Ferocity while active');
       preview.buff('Arcane Lightning', 'arcaneLightning', 'arcane lightning', 'Ferocity while active');
@@ -414,6 +527,11 @@ export function bindElementalistCoreUi(catalog: Readonly<CanonicalCatalog<Elemen
       preview.passives('Signet of Fire');
       return preview.controls;
     },
+    /** Apply only the damage panel's chosen starting element to the isolated runtime. */
+    prepareSkillDamagePreview: ({ values }: SkillDamagePreviewPreparation) => ({
+      startAttunement: values.damageAttunement,
+      secondaryAttunement: values.damageAttunement
+    }),
     /** Seed only the detached attribute query; combat state and saved builds remain untouched. */
     prepareAttributePreview(context: ProfessionAttributePreviewPreparation) {
       // The isolated preview permits no attunement; live combat always has an elemental attunement.

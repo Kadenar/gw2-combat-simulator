@@ -1,3 +1,8 @@
+import type {
+  SkillDamagePreviewPreparation,
+  SkillDamageProbeSetup
+} from '#gw2/platform/profession-presentation/skill-damage.js';
+import type { Skill as PreviewSkill } from '#gw2/platform/engine/skills/types.js';
 import { GUARDIAN_SKILL_IDS } from '#gw2/professions/guardian/data/ids.js';
 import type { CanonicalCatalog } from '#gw2/platform/engine/skills/types.js';
 import { flattenProfessionState } from '#gw2/platform/engine/profession/state.js';
@@ -154,6 +159,33 @@ function luminaryEffectPresentations(): ProfessionEffectPresentation[] {
 /** Captures this UI's catalog so other profession instances cannot change its projections. */
 export function bindLuminaryUi(catalog: Readonly<CanonicalCatalog<GuardianSkill>>): GuardianUiSlice {
   return Object.freeze({
+    /** Prepare legal preview casts with the same catalog metadata and transitions used by the runtime. */
+    skillDamageProbe(context: SkillDamagePreviewPreparation, skill: PreviewSkill): SkillDamageProbeSetup | null {
+      if (!(skill as GuardianSkill).radiantForgeSkill && skill.id !== GUARDIAN_SKILL_IDS.EXIT_RADIANT_FORGE)
+        // An earned hammer entitlement can linger into ordinary attacks after the real Forge exit.
+        return context.values.radiantHammer && skill.type === 'Weapon'
+          ? {
+              setup: [
+                { type: 'cast', skillId: GUARDIAN_SKILL_IDS.ENTER_RADIANT_FORGE },
+                { type: 'cast', skillId: GUARDIAN_SKILL_IDS.DAZZLING_HAMMER },
+                { type: 'cast', skillId: GUARDIAN_SKILL_IDS.EXIT_RADIANT_FORGE }
+              ]
+            }
+          : null;
+      return { setup: [{ type: 'cast', skillId: GUARDIAN_SKILL_IDS.ENTER_RADIANT_FORGE }] };
+    },
+    /** Compare the native lingering armament window without inventing an independent entitlement field. */
+    previewControls: () => [
+      {
+        key: 'radiantHammer',
+        label: 'Prepare radiant hammer',
+        group: 'Mechanic',
+        kind: 'special' as const,
+        scope: ['damage' as const],
+        description: 'Equip Dazzling Hammer and leave Forge before ordinary weapon attacks'
+      }
+    ],
+
     // Only this specialization offers its trait-proc overlay; storage remains a browser concern.
     timelineOverlays: () => [
       {

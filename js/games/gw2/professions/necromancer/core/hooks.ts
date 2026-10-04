@@ -247,6 +247,8 @@ export const necromancerCoreHooks: Partial<RuntimeProfession<NecromancerRuntimeS
     runtime.resourceController.grant('lifeForce', runtime.profession.core.lifeForce.maximum);
     runtime.profession.core.selfConditions = [];
   },
+  // Minion autos and passive resource/allied loops remain ambient while an isolated cast settles.
+  backgroundTasks: ['necromancer.minion-attack', ...Object.keys(necromancerPassiveTasks)],
   tasks: {
     ...necromancerSwordTasks,
     ...necromancerWeaponTasks,

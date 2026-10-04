@@ -16,6 +16,7 @@ import {
 import { GUARDIAN_TRAIT_IDS as WILLBENDER_TRAIT } from '#gw2/professions/guardian/data/ids.js';
 import type { GuardianUiContext, GuardianUiSlice, GuardianSkill } from '#gw2/professions/guardian/types.js';
 import { boundedInteger } from '#kernel/core/numeric.js';
+import { createPreviewControls } from '#gw2/professions/shared/attribute-preview.js';
 
 const VIRTUE_NAMES = Object.freeze(['Rushing Justice', 'Flowing Resolve', 'Crashing Courage']);
 
@@ -75,6 +76,24 @@ function willbenderEffectPresentations(_context: GuardianUiContext): ProfessionE
 /** Captures this UI's catalog so other profession instances cannot change its projections. */
 export function bindWillbenderUi(catalog: Readonly<CanonicalCatalog<GuardianSkill>>): GuardianUiSlice {
   return Object.freeze({
+    /** Tempo is a starting damage window; normal virtue grants still refresh its native pool. */
+    previewControls(context) {
+      const preview = createPreviewControls(context);
+      preview.add({
+        key: 'lethalTempo',
+        label: 'Lethal Tempo',
+        group: 'Mechanic',
+        kind: 'buff',
+        field: 'lethal-tempo',
+        scope: ['damage'],
+        max: balanceProfileNumber(
+          requireBalanceProfileFromContext(context, WILLBENDER_TRAIT.LETHAL_TEMPO),
+          'maximumStacks'
+        ),
+        description: 'Starting virtue-earned damage stacks'
+      });
+      return preview.controls;
+    },
     effectPresentations: willbenderEffectPresentations,
     rotationStateSnapshot: willbenderStateSnapshot,
     paletteGroups: (context: GuardianUiContext) => [

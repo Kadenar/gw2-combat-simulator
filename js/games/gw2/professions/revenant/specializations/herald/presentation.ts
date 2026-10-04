@@ -1,3 +1,8 @@
+import type {
+  SkillDamagePreviewContext,
+  SkillDamageProbeSetup
+} from '#gw2/platform/profession-presentation/skill-damage.js';
+import type { Skill as PreviewSkill } from '#gw2/platform/engine/skills/types.js';
 import { skillFlipReady } from '#gw2/platform/engine/skills/skill-flips.js';
 import { REVENANT_SKILL_IDS as SKILL } from '#gw2/professions/revenant/data/ids.js';
 import { activeRevenantLegend, revenantUiState } from '#gw2/professions/revenant/core/presentation.js';
@@ -8,6 +13,19 @@ import type { RevenantUiSlice } from '#gw2/professions/revenant/types.js';
 const TRUE_NATURE_IDS: readonly SkillId[] = Object.freeze(Object.values(HERALD_MECHANICS.trueNatureConsumeByLegendId));
 
 export const heraldUi: RevenantUiSlice = Object.freeze({
+  /** Reach the measured mechanic through ordinary starting settings and authored transitions. */
+  skillDamageProbe(context: SkillDamagePreviewContext, input: PreviewSkill): SkillDamageProbeSetup | null {
+    const legend = Object.entries(HERALD_MECHANICS.trueNatureConsumeByLegendId).find(([, id]) => id === input.id)?.[0];
+    const parent = (HERALD_MECHANICS.facetSkillByConsumeId as Readonly<Record<number, number>>)[Number(input.id)];
+    const owner = context.catalog.skillsById.get(parent);
+    return parent
+      ? {
+          config: { startingLegend: legend ?? owner?.legendId, initialEnergy: 100 },
+          setup: [{ type: 'cast', skillId: parent }]
+        }
+      : null;
+  },
+
   // Tile identity follows the active bar even when the visible skill cannot currently be cast.
   paletteOverride: (context, skill) => {
     if (!TRUE_NATURE_IDS.includes(skill.id)) return;

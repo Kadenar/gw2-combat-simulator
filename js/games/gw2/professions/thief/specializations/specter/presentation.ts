@@ -1,3 +1,8 @@
+import type {
+  SkillDamagePreviewContext,
+  SkillDamageProbeSetup
+} from '#gw2/platform/profession-presentation/skill-damage.js';
+import type { Skill as PreviewSkill } from '#gw2/platform/engine/skills/types.js';
 import { THIEF_SKILL_IDS as ID } from '#gw2/professions/thief/data/ids.js';
 import { thiefUiState } from '#gw2/professions/thief/core/presentation.js';
 import type { ThiefUiContext, ThiefSkill } from '#gw2/professions/thief/types.js';
@@ -11,6 +16,13 @@ const SHADOW_SHROUD_SKILL_IDS = Object.freeze([
 ]);
 
 export const specterUi = Object.freeze({
+  /** Reach the measured mechanic through ordinary starting settings and authored transitions. */
+  skillDamageProbe(_context: SkillDamagePreviewContext, input: PreviewSkill): SkillDamageProbeSetup | null {
+    const skill = input as ThiefSkill;
+    if (!skill.shadowShroudSkill && skill.shadowShroudTransition !== 'exit') return null;
+    return { config: { initialShadowForce: 100 }, setup: [{ type: 'cast', skillId: ID.ENTER_SHADOW_SHROUD }] };
+  },
+
   // Refresh the weapon row at this profession's transformation boundary.
   timelineWeaponLineTransition: (context: ThiefUiContext) =>
     context.skill && [ID.ENTER_SHADOW_SHROUD, ID.EXIT_SHADOW_SHROUD].some((id) => id === context.skill!.id)

@@ -42,6 +42,8 @@ export function perforate(runtime: NecromancerRuntime, event: Gw2ResolverEvent):
       actorType: 'effect',
       skillId: ID.SOUL_SHARDS,
       skillName: 'Soul Shards',
+      // The consumed shard owns its siphon even when a weapon hit supplies the causal parent.
+      procType: 'profession',
       parentSkillName: event.skillName,
       icon: 'https://wiki.guildwars2.com/wiki/Special:FilePath/Soul_Shards.png',
       coefficient: 0,

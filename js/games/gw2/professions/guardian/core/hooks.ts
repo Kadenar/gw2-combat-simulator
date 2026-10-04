@@ -1,4 +1,10 @@
 import { denySkillCast } from '#gw2/platform/engine/skills/availability.js';
+import { grantTimedStacks } from '#gw2/platform/combat/resources/timed-stacks.js';
+import {
+  balanceProfileNumber,
+  requireBalanceProfileFromContext
+} from '#gw2/platform/engine/skills/balance-profiles.js';
+import { GUARDIAN_TRAIT_IDS } from '#gw2/professions/guardian/data/ids.js';
 import { skillFlipReady } from '#gw2/platform/engine/skills/skill-flips.js';
 import type { NativeResolvedDamageDetails } from '#gw2/platform/profession-definition/module-types.js';
 import type { Gw2Runtime, RuntimeCast, RuntimeProfession } from '#gw2/platform/simulation/runtime-state.js';
@@ -71,6 +77,22 @@ function clearTorchLockout(runtime: Runtime, cast: RuntimeCast<GuardianSkill>): 
 import { guardianBuffPolicies, guardianEffectStates } from '#gw2/professions/guardian/core/effect-state.js';
 
 export const guardianCoreHooks: Partial<RuntimeProfession<GuardianRuntimeState, GuardianSkill>> = {
+  /** Initial effect assumptions seed the existing stack owner, which keeps normal expiry and grant behavior. */
+  initialize(runtime) {
+    for (const buff of runtime.config.initialBuffs ?? []) {
+      if (buff.kind !== 'symbolic-avenger') continue;
+      runtime.profession.core.symbolicAvengerExpirations = grantTimedStacks([], {
+        at: runtime.time,
+        expiresAt: runtime.time + buff.duration,
+        count: buff.stacks,
+        maximumStacks: balanceProfileNumber(
+          requireBalanceProfileFromContext(runtime, GUARDIAN_TRAIT_IDS.SYMBOLIC_AVENGER),
+          'maximumStacks'
+        ),
+        retain: 'latest-expiry'
+      });
+    }
+  },
   buffPolicies: guardianBuffPolicies,
   observeEffects: guardianEffectStates,
   sideEffectHandlers: {

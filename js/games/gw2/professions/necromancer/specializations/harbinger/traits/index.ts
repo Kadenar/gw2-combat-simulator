@@ -17,6 +17,8 @@ export const cascadingCorruption = defineTrait({
   id: TRAIT.CASCADING_CORRUPTION,
   name: 'Cascading Corruption',
   balance: {
+    damagePreviewRequirement:
+      'Requires enough Blight consumption to finish a cycle; set starting Blight and Cascading Corruption progress in the preview.',
     minimumStacks: 20,
     effects: [
       {
@@ -54,7 +56,8 @@ export const cascadingCorruption = defineTrait({
       target: [MODIFIER_TARGET.STRIKE_DAMAGE, MODIFIER_TARGET.CONDITION_DAMAGE],
       operation: 'damage-additive',
       amount: 0.1,
-      when: (context) => (necromancerRuntimeSpecializationState(context, 'Harbinger').meltdownUntil || 0) > context.time
+      // Read the emitted buff through the shared timeline, including explicitly supplied initial buffs.
+      when: (context) => Boolean(context.timeline?.timedActive('meltdown', context.time))
     }
   ]
 });

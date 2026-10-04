@@ -1,6 +1,7 @@
 import { bindBuildTemplateImportDialog } from '#gw2/app/import-export/build-template-import-dialog.js';
 import { renderAssumptions } from '#gw2/app/build/panels/assumptions.js';
 import { renderAttributes } from '#gw2/app/build/panels/attributes.js';
+import { renderSkillDamage } from '#gw2/app/build/panels/skill-damage.js';
 import { renderGear } from '#gw2/app/build/panels/gear.js';
 import { initBuildTemplates, updateTemplateSelection } from '#gw2/app/build/panels/presets.js';
 import { renderSkills } from '#gw2/app/build/panels/skills.js';
@@ -24,7 +25,9 @@ export const gw2BuildEditor: BuildEditor<ProfessionAppState> = Object.freeze({
         mountSimulationSettings(app);
         mountRotationDisplayControls(app);
       }
-    }
+    },
+    // Measures skills from the recalculated attributes, selections, and assumptions, so it renders last.
+    { id: 'skill-damage', render: renderSkillDamage }
   ]),
   initialize: initBuildTemplates,
   updateSelection: updateTemplateSelection,

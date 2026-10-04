@@ -12,6 +12,13 @@ const LAST_TYRANT_INTERNAL_COOLDOWN = 12;
 const LAST_TYRANT_EXPLOSION_COEFFICIENT = 3;
 
 export const lastTyrant = defineRelic({
+  // Discovery repeats actual applications and shares the rule's stack requirement and short gating interval.
+  damagePreview: {
+    repetitions: LAST_TYRANT_STACKS_NEEDED + 1,
+    repeatCondition: 'Burning',
+    repeatIntervalMs: LAST_TYRANT_STACK_INTERNAL_COOLDOWN * 1000,
+    requirement: 'Requires successive Burning applications to fill Tyrant’s Fury and trigger its explosion.'
+  },
   createState: () => ({ readyAt: 0, stackReadyAt: 0, stacks: 0 }),
   condition(ctx, state, application, _helpers) {
     // The explosion's own burning cannot feed Tyrant's Fury.

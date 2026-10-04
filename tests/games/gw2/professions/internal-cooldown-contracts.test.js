@@ -227,6 +227,8 @@ function professionContext({ id, catalog, core, specialization = {}, kind = 'Cor
     procs: createProcRegistry(() => context),
     profession: { id },
     catalog,
+    // Resolver emitters use the canonical helper catalog for packet artwork as well as combat metadata.
+    helpers: { skillsById: catalog.skillsById },
     config,
     traits: new Set(traits.length ? traits : config.selectedTraitIds || []),
     state: {

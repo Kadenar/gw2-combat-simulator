@@ -1,9 +1,16 @@
+import type {
+  SkillDamagePreviewContext,
+  SkillDamageProbeSetup
+} from '#gw2/platform/profession-presentation/skill-damage.js';
+import type { Skill as PreviewSkill } from '#gw2/platform/engine/skills/types.js';
 import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
 import { rangerPetPaletteGroup, rangerUiState } from '#gw2/professions/ranger/core/presentation.js';
 import type { CanonicalCatalog, SkillId } from '#gw2/platform/engine/skills/types.js';
 import type { RotationStateSnapshotItem } from '#gw2/platform/profession-presentation/types.js';
 import type { RangerSkill, RangerUiContext, RangerUiSlice } from '#gw2/professions/ranger/types.js';
 import { boundedInteger } from '#kernel/core/numeric.js';
+import { createPreviewControls } from '#gw2/professions/shared/attribute-preview.js';
+import type { SkillDamagePreviewPreparation } from '#gw2/platform/profession-presentation/skill-damage.js';
 
 function initialUntamedState(context: RangerUiContext): 'Pet' | 'Ranger' {
   return context.build?.initialUntamedState === 'Ranger' || context.config?.initialUntamedState === 'Ranger'
@@ -63,6 +70,36 @@ function untamedStateSnapshot(context: RangerUiContext): RotationStateSnapshotIt
 export function bindUntamedUi(catalog: Readonly<CanonicalCatalog<RangerSkill>>): RangerUiSlice {
   const petSkillIds = catalog.skills.filter((skill) => skill.unleashedPetSkill).map((skill) => skill.id);
   return Object.freeze({
+    /** Ordinary weapon rows use the selected start state; ambush rows still perform their required transition. */
+    previewControls(context) {
+      const preview = createPreviewControls(context);
+      preview.add({
+        key: 'unleashed',
+        label: 'Start unleashed',
+        group: 'Mechanic',
+        kind: 'special',
+        scope: ['damage'],
+        options: ['Pet', 'Ranger'],
+        initial: initialUntamedState({ build: context.build }),
+        description: 'Owner of the unleashed damage bonuses before setup'
+      });
+      return preview.controls;
+    },
+    prepareSkillDamagePreview: ({ values }: SkillDamagePreviewPreparation) => ({
+      initialUntamedState: values.unleashed
+    }),
+    /** Reach the measured mechanic through ordinary starting settings and authored transitions. */
+    skillDamageProbe(_context: SkillDamagePreviewContext, input: PreviewSkill): SkillDamageProbeSetup | null {
+      const skill = input as RangerSkill;
+      if (skill.unleashedAmbushSkill)
+        return { config: { initialUntamedState: 'Pet' }, setup: [{ type: 'cast', skillId: ID.UNLEASH_RANGER }] };
+      if (skill.unleashedPetSkill || skill.id === ID.UNLEASH_RANGER) return { config: { initialUntamedState: 'Pet' } };
+      if (skill.id === ID.UNLEASH_PET) return { config: { initialUntamedState: 'Ranger' } };
+      // Ordinary pet command skills belong to the ranger-unleashed bar, unlike the unleashed pet replacements.
+      if (skill.petSkill) return { config: { initialUntamedState: 'Ranger' } };
+      return null;
+    },
+
     // Tile identity follows the active bar even when the visible skill cannot currently be cast.
     paletteOverride: (context, skill) => {
       const state = rangerUiState(context);

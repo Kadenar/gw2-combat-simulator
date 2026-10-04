@@ -2,7 +2,12 @@ import type {
   ProfessionAttributePreviewContext,
   ProfessionAttributePreviewPreparation
 } from '#gw2/platform/profession-presentation/attribute-preview.js';
-import { createAttributePreviewControls } from '#gw2/professions/shared/attribute-preview.js';
+import { createPreviewControls } from '#gw2/professions/shared/attribute-preview.js';
+import type {
+  SkillDamagePreviewContext,
+  SkillDamageProbeSetup
+} from '#gw2/platform/profession-presentation/skill-damage.js';
+import type { Skill } from '#gw2/platform/engine/skills/types.js';
 import { readProfessionCoreState } from '#gw2/platform/engine/profession/state.js';
 import type { RangerCoreState } from '#gw2/professions/ranger/core/state.js';
 import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
@@ -172,12 +177,26 @@ function updateRangerCoreSelection(context: RangerUiContext, selection: RangerUi
   return updatePetSelection(context, selection) || updateHammerSelection(context, selection);
 }
 
+/** Prepare shared weapon prerequisites, including when an elite adds its own mode transition. */
+export function rangerSkillDamageProbe(
+  _context: SkillDamagePreviewContext,
+  skill: Skill
+): SkillDamageProbeSetup | null {
+  // Spear stealth alternatives share a window, not a prerequisite damage chain.
+  if ([ID.WOLFS_ONSLAUGHT, ID.OWLS_FLIGHT, ID.PREDATORS_AMBUSH].some((id) => id === skill.id))
+    return { skipPredecessors: true, setup: [{ type: 'cast', skillId: ID.PANTHERS_PROWL }] };
+  return RANGER_HAMMER_VARIANT_PAIRS.some((pair) => pair.includes(Number(skill.id)))
+    ? { skipPredecessors: true }
+    : null;
+}
+
 /** Captures this UI's catalog so other profession instances cannot change its projections. */
 export function bindRangerCoreUi(catalog: Readonly<CanonicalCatalog<RangerSkill>>): RangerUiSlice {
   return Object.freeze({
+    skillDamageProbe: rangerSkillDamageProbe,
     /** Declare this module's conditional inputs without adding simulation settings. */
-    attributePreviewControls(context: ProfessionAttributePreviewContext) {
-      const preview = createAttributePreviewControls(context);
+    previewControls(context: ProfessionAttributePreviewContext) {
+      const preview = createPreviewControls(context);
 
       if (preview.has("Hunter's Tactics"))
         preview.add({

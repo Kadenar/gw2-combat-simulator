@@ -706,10 +706,10 @@
 }
 
 /* Reserve the full table plus a matching right inset before placing conditions beside it. */
-@container result-breakdown (min-width: 1360px) {
+@container result-breakdown (min-width: 1460px) {
   .res-breakdown:has(> .res-damage-breakdown):has(> .res-condition-breakdown) {
     display: grid;
-    grid-template-columns: minmax(908px, 2fr) minmax(420px, 1fr);
+    grid-template-columns: minmax(908px, 2fr) minmax(520px, 1fr);
     overflow-x: visible;
   }
 
@@ -833,7 +833,7 @@
 
 .cond-breakdown .cond-hdr,
 .cond-breakdown .res-row {
-  grid-template-columns: minmax(120px, 1fr) 72px 60px 60px 72px;
+  grid-template-columns: minmax(120px, 1fr) 72px 60px 60px 72px 96px;
 }
 
 /* Utility conditions only need their identity and observed stack count. */

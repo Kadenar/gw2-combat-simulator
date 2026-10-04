@@ -3,7 +3,7 @@ import type {
   ProfessionAttributePreviewContext,
   ProfessionAttributePreviewPreparation
 } from '#gw2/platform/profession-presentation/attribute-preview.js';
-import { createAttributePreviewControls } from '#gw2/professions/shared/attribute-preview.js';
+import { createPreviewControls } from '#gw2/professions/shared/attribute-preview.js';
 import { readProfessionSpecializationState } from '#gw2/platform/engine/profession/state.js';
 import {
   balanceProfileNumber,
@@ -90,8 +90,27 @@ function catalystEffectPresentations(_context: ElementalistUiContext): Professio
  */
 export const catalystUi: ElementalistUiSlice = Object.freeze({
   /** Declare this module's conditional inputs without adding simulation settings. */
-  attributePreviewControls(context: ProfessionAttributePreviewContext) {
-    const preview = createAttributePreviewControls(context);
+  previewControls(context: ProfessionAttributePreviewContext) {
+    const preview = createPreviewControls(context);
+    // These are the same resolved buff kinds that the native aura and empowerment owners consume.
+    if (preview.has('Elemental Empowerment'))
+      preview.trait('Elemental Empowerment', {
+        key: 'startingEmpowerment',
+        kind: 'buff',
+        field: 'elemental empowerment',
+        scope: ['damage'],
+        max: preview.maximumStacks('Elemental Empowerment'),
+        description: 'Starting empowerment stacks; later grants follow the runtime'
+      });
+    if (preview.has('Empowering Auras'))
+      preview.trait('Empowering Auras', {
+        key: 'empoweringAuras',
+        kind: 'buff',
+        field: 'empowering auras',
+        scope: ['damage'],
+        max: preview.maximumStacks('Empowering Auras'),
+        description: 'Aura-earned outgoing damage stacks'
+      });
 
     if (preview.has('Elemental Empowerment'))
       preview.trait('Elemental Empowerment', {

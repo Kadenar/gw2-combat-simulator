@@ -680,11 +680,13 @@ export function mountRotationResults(
             (group) => `<div class="res-condition-group${group.damaging ? '' : ' res-condition-group-utility'}">
           <div class="res-condition-group-title">${group.label}</div>
           <div class="res-hdr cond-hdr">
-            <span>Condition</span>${group.damaging ? '<span>Damage</span><span>Share</span><span>DPS</span>' : ''}<span>Avg Stacks</span>
+            <span>Condition</span>${group.damaging ? '<span>Damage</span><span>Share</span><span>DPS</span>' : ''}<span>Avg Stacks</span>${group.damaging ? '<span title="DPS divided by average stacks: average damage per second from one stack">Avg dmg / stack</span>' : ''}
           </div>
           ${group.conditions
             .map((condition) => {
               const selectable = Boolean(chartSeries?.conditionDamage?.[condition.name]?.length);
+              // Normalize DPS by stack uptime to show one stack's average damage per second without dividing by zero.
+              const averageDamagePerStack = condition.averageStacks > 0 ? condition.dps / condition.averageStacks : 0;
               // Keep condition labels tooltip-free while retaining the row's keyboard-accessible tick inspector.
               const icon = MODIFIER_EFFECT_ICONS[condition.name];
               return `<div class="res-row${selectable ? ' res-row-selectable' : ''}"${selectable ? ` role="button" tabindex="0" aria-haspopup="dialog" aria-expanded="false" aria-label="Inspect ${escapeHtml(condition.name)} ticks" data-condition-name="${escapeHtml(condition.name)}"` : ''}>
@@ -697,6 +699,7 @@ export function mountRotationResults(
               : ''
           }
           <span>${Number(condition.averageStacks || 0).toFixed(2)}</span>
+          ${group.damaging ? `<span>${averageDamagePerStack.toFixed(2)}</span>` : ''}
         </div>`;
             })
             .join('')}
@@ -710,6 +713,7 @@ export function mountRotationResults(
           <span class="condi"><b>${number(model.conditionTotal.damage)}</b></span>
           <span><b>${damagePercent(model.conditionTotal.damage).toFixed(2)}%</b></span>
           <span class="dps"><b>${number(model.conditionTotal.dps)}</b></span>
+          <span></span>
           <span></span>
         </div>`
             : ''

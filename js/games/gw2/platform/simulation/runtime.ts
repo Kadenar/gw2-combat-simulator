@@ -779,6 +779,26 @@ export function runGw2Runtime<T extends object>({
   // A configured permanent field is an initial executed fact, available to the first eligible finisher.
   const assumedField = permanentComboFieldAssumption(config, profession.id, runtime.time);
   if (assumedField) runtime.effects.emit({ kind: 'packet', event: assumedField });
+  // Preview-held buffs are executed facts from the start, so traits read them exactly like earned buffs.
+  for (const buff of config.initialBuffs ?? []) {
+    if (!(buff.stacks > 0) || !(buff.duration > 0)) continue;
+    runtime.effects.emit({
+      kind: 'packet',
+      event: assertSimulationEvent({
+        type: 'buff',
+        at: runtime.time,
+        kind: buff.kind,
+        stacks: buff.stacks,
+        duration: buff.duration,
+        fixedDuration: true,
+        source: buff.name ?? buff.kind,
+        sourceId: `assumption.initial-buff.${buff.kind}`,
+        skillName: buff.name ?? buff.kind,
+        actorType: 'player'
+      })
+    });
+  }
+
   profession.initialize?.(runtime);
   captureEffects();
 
@@ -1368,6 +1388,8 @@ export function runGw2Runtime<T extends object>({
   });
   const result = {
     ...buildCombatResult(runtime, score, executed),
+    // Isolated previews can follow delayed work without simulating an arbitrary long ambient tail.
+    ...(damageDiagnostics ? { pendingEffects: pendingEffects() } : {}),
     output: 'detailed' as const,
     steps,
     rotationApm: rotationApm(
@@ -1390,4 +1412,22 @@ export function runGw2Runtime<T extends object>({
   };
   onPhase?.('reporting', performance.now() - reportingStarted);
   return result;
+
+  /** Project pending deadlines with their actual cause, excluding already identified physical summon loops. */
+  function pendingEffects(): { at: number; cause: Gw2ResolverEvent }[] {
+    const summonOwners = new Set(executed.flatMap((event) => (event.summonOwner == null ? [] : [event.summonOwner])));
+    return queue.pending().flatMap((event) => {
+      if (event.actorType === 'summon' || event.summonOwner != null || SHARED_PULSE_TYPES.has(event.type)) return [];
+      if (event.kind !== 'internal') return [{ at: event.at, cause: event }];
+      const work = event as unknown as RuntimeWork;
+      if (
+        work.type === 'runtime.flip-expiry' ||
+        (work.owner && summonOwners.has(work.owner.id)) ||
+        (work.type === 'runtime.task' && profession.backgroundTasks?.includes(work.payload.name))
+      )
+        return [];
+      const cause = work.type === 'runtime.cast-task' ? castActions.get(work.payload.cast.id) : workCauses.get(event);
+      return cause ? [{ at: event.at, cause }] : [];
+    });
+  }
 }

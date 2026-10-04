@@ -399,6 +399,8 @@ function emitPlayerOwnedCondition(
         activationId: payload.activationId,
         at: context.time,
         source: `${elemental.element} Elemental`,
+        // Physical summon ownership remains explicit even though this condition uses the player's damage stats.
+        summonOwner: elementalistElementalCompanionId(payload.summonGeneration || 0),
         skillId,
         skillName,
         name: `${skillName} — ${condition}`,

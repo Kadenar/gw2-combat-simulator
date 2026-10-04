@@ -1,8 +1,7 @@
 import type { ThiefSkill } from '#gw2/professions/thief/types.js';
-import { GW2_STANDARD_BOONS } from '#gw2/platform/combat/boons.js';
 import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
 import type { Gw2ResolvedStats } from '#gw2/platform/combat/query/combat-query.js';
-import { boonActive } from '#gw2/platform/combat/query/runtime-query.js';
+import { boonActive, countActiveBoons } from '#gw2/platform/combat/query/runtime-query.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import {
   balanceProfileNumber,
@@ -145,7 +144,7 @@ export function grantOneInTheChamber(runtime: ThiefRuntime): void {
 }
 
 export function activeBoonCount(context: Gw2ModifierContext): number {
-  return GW2_STANDARD_BOONS.filter((boon) => boonActive(context, boon)).length;
+  return countActiveBoons(context);
 }
 
 /** Reconcile this trait's live bonus at its original attribute phase. */

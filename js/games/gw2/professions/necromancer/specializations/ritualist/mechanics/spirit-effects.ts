@@ -51,6 +51,9 @@ function queueNightmareWeapon(
         at: event.at,
 
         skillName: 'Nightmare Weapon',
+        // Weapon spells own the damage of their consumed charges, including allied opportunities.
+        procType: 'profession',
+        icon: spellIcon(context, ID.NIGHTMARE_WEAPON),
         coefficient: 0,
         flatStrikeBase: effectNumber(definition, strike, 'flatStrikeBase'),
         flatStrikePowerCoeff: effectNumber(definition, strike, 'flatStrikePowerCoeff'),
@@ -76,6 +79,8 @@ function queueNightmareWeapon(
         at: event.at,
         name: 'Nightmare Weapon',
         skillName: 'Nightmare Weapon',
+        procType: 'profession',
+        icon: spellIcon(context, ID.NIGHTMARE_WEAPON),
         condition: String(vulnerability.condition),
         stacks: effectNumber(definition, vulnerability, 'stacks'),
         duration: effectNumber(definition, vulnerability, 'duration'),
@@ -118,6 +123,9 @@ function queueSplinterWeapon(
       at: event.at,
 
       skillName: 'Splinter Weapon',
+      // The consuming attack is a trigger, while the weapon spell remains the damage owner.
+      procType: 'profession',
+      icon: spellIcon(context, ID.SPLINTER_WEAPON),
       coefficient: effectNumber(definition, strike, 'coefficient'),
 
       source: 'Weapon Spell',

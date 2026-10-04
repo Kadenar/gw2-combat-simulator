@@ -38,6 +38,7 @@ export type TraitHooks<TSkill extends Skill = Skill> = Pick<
   | 'reserveRecharge'
   | 'reactions'
   | 'tasks'
+  | 'backgroundTasks'
   | 'eventHandlers'
   | 'sideEffectHandlers'
 >;
@@ -162,12 +163,17 @@ export function defineTrait<TSkill extends Skill>(
           'reserveRecharge',
           'reactions',
           'tasks',
+          'backgroundTasks',
           'eventHandlers',
           'sideEffectHandlers'
         ].includes(key)
       )
         throw new TypeError(`Unsupported trait hook: ${key}.`);
-      if (['reactions', 'tasks', 'eventHandlers', 'sideEffectHandlers'].includes(key)) {
+      // Task lifetime declarations accompany handlers; they never replace or disable execution.
+      if (key === 'backgroundTasks') {
+        if (!Array.isArray(value) || value.some((name) => typeof name !== 'string' || !name))
+          throw new TypeError(`Trait ${definition.id}.backgroundTasks must contain task names.`);
+      } else if (['reactions', 'tasks', 'eventHandlers', 'sideEffectHandlers'].includes(key)) {
         if (
           !value ||
           typeof value !== 'object' ||

@@ -38,6 +38,7 @@ export const deadlyAmbition = defineTrait({
   id: TRAIT.DEADLY_AMBITION,
   name: 'Deadly Ambition',
   balance: {
+    damagePreviewRequirement: 'Requires a qualifying dual-wield attack; equip a weapon pair that supplies one.',
     attributeBonus: 180,
     playerStacks: 2,
     effects: [{ type: 'condition', name: 'Poisoned', condition: 'Poisoned', stacks: 1, duration: 3 }]

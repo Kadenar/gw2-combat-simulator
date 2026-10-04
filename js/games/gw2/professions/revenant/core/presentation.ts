@@ -1,11 +1,21 @@
+import type {
+  SkillDamagePreviewPreparation,
+  SkillDamageProbeSetup
+} from '#gw2/platform/profession-presentation/skill-damage.js';
+import type { Skill as PreviewSkill } from '#gw2/platform/engine/skills/types.js';
 import type { ProfessionAttributePreviewContext } from '#gw2/platform/profession-presentation/attribute-preview.js';
-import { createAttributePreviewControls } from '#gw2/professions/shared/attribute-preview.js';
+import { createPreviewControls } from '#gw2/professions/shared/attribute-preview.js';
 
 import { flattenProfessionState } from '#gw2/platform/engine/profession/state.js';
 import { SIMULATION_RANDOMNESS_ASSUMPTION_CONTROLS } from '#gw2/platform/simulation/randomness.js';
 import { PERMANENT_COMBO_FIELD_ASSUMPTION_CONTROLS } from '#gw2/platform/combos/permanent-field-assumption.js';
 import { REVENANT_ASSUMPTION_CONTROLS } from '#gw2/professions/revenant/build/assumptions.js';
 import { REVENANT_SKILL_IDS as SKILL } from '#gw2/professions/revenant/data/ids.js';
+import { REVENANT_TRAIT_IDS as TRAIT } from '#gw2/professions/revenant/data/ids.js';
+import {
+  balanceProfileNumber,
+  requireBalanceProfileFromContext
+} from '#gw2/platform/engine/skills/balance-profiles.js';
 import { getActiveTraits } from '#gw2/professions/revenant/data/traits-data.js';
 import { revenantLegend, revenantLegendLoadout } from '#gw2/professions/revenant/build/legend-loadout.js';
 import type {
@@ -92,9 +102,71 @@ function revenantCoreStateSnapshot(
 
 /** Core presentation reads the current legend and resource projection without a catalog binding. */
 export const revenantCoreUi: RevenantUiSlice = Object.freeze({
+  /** Reach the measured mechanic through ordinary starting settings and authored transitions. */
+  skillDamageProbe(context: SkillDamagePreviewPreparation, input: PreviewSkill): SkillDamageProbeSetup | null {
+    const skill = input as import('#gw2/professions/revenant/types.js').RevenantSkill;
+    // A real combat-time wait lets the next hit catch up the selected trait's engine-owned scar cadence.
+    const thrill = context.activeTraits.some((trait) => trait.id === TRAIT.THRILL_OF_COMBAT);
+    const procSetup = thrill
+      ? [
+          {
+            type: 'wait' as const,
+            durationMs:
+              balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.THRILL_OF_COMBAT), 'cooldown') * 1000
+          }
+        ]
+      : undefined;
+    // Maintained effects are activated normally before compatible weapon skills; energy starvation remains real.
+    const upkeep = context.catalog.skills.find(
+      (candidate) => candidate.name === context.values.upkeep && candidate.upkeepCost != null
+    );
+    if (!skill.legendId)
+      return upkeep && skill.type === 'Weapon'
+        ? {
+            procSetup,
+            config: { startingLegend: upkeep.legendId, initialEnergy: 100 },
+            setup: [{ type: 'cast', skillId: upkeep.id }]
+          }
+        : procSetup
+          ? { procSetup }
+          : null;
+    return {
+      procSetup,
+      config: { startingLegend: skill.legendId, initialEnergy: 100 },
+      // Enchanted Daggers arms siphons instead of dealing damage on the healing cast.
+      ...(skill.id === SKILL.ENCHANTED_DAGGERS ? { procFollowUpSetup: [] } : {})
+    };
+  },
+
   /** Declare this module's conditional inputs without adding simulation settings. */
-  attributePreviewControls(context: ProfessionAttributePreviewContext) {
-    const preview = createAttributePreviewControls(context);
+  previewControls(context: ProfessionAttributePreviewContext) {
+    const preview = createPreviewControls(context);
+    const legends = (context.build as { selectedLegends?: readonly string[] }).selectedLegends ?? [];
+    const upkeeps = context.catalog.skills.filter(
+      (skill) => skill.upkeepCost != null && legends.includes(String(skill.legendId))
+    );
+    if (upkeeps.length)
+      preview.add({
+        key: 'upkeep',
+        label: 'Maintained upkeep',
+        group: 'Mechanic',
+        kind: 'special',
+        scope: ['damage'],
+        options: ['None', ...new Set(upkeeps.map((skill) => skill.name))],
+        description: 'Activate before weapon measurements; the runtime spends and drains Energy'
+      });
+    // Spear's native pool scales Raze and is consumed normally on an eligible swap.
+    if ([...context.weapons, ...context.build.alternateWeapons].includes('Spear'))
+      preview.add({
+        key: 'crushingAbyss',
+        label: 'Crushing Abyss',
+        group: 'Mechanic',
+        kind: 'buff',
+        field: 'crushing-abyss',
+        scope: ['damage'],
+        max: Number(context.catalog.skillsById.get(SKILL.ABYSSAL_RAZE)!.maximumStacks),
+        description: 'Starting stacks; Raze and weapon swaps use the runtime pool'
+      });
     preview.trait("Assassin's Presence", {
       key: 'assassinsPresence',
       kind: 'queryTrait',

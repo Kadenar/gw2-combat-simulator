@@ -105,6 +105,8 @@ export const elementalistCoreHooks: Partial<RuntimeProfession<ElementalistRuntim
   },
   onAutoattackChainTransition: observeElementalistAutoattackTransition,
   onCooldownReset: resetElementalistAttunementCooldowns,
+  // Physical elementals own independent attacks and expiry; their lifetime does not extend player skill previews.
+  backgroundTasks: Object.keys(elementalistElementalTasks),
   tasks: {
     ...elementalistElementalTasks,
     ...elementalistWeaponStateTasks,

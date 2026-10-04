@@ -218,6 +218,8 @@ export const ritualistSpellHooks: Partial<RuntimeProfession<NecromancerRuntimeSt
             icon: (data as Gw2ResolverEvent).icon,
             actorType: 'effect',
             skillName: 'Painful Bond',
+            // Bond's shared cadence belongs to the profession mechanic rather than its latest spirit summon.
+            procType: 'profession',
             coefficient: 0,
             flatStrikeBase: effectNumber(profile, strike, 'flatStrikeBase'),
             flatStrikePowerCoeff: effectNumber(profile, strike, 'flatStrikePowerCoeff'),

@@ -128,6 +128,9 @@ test('condition rows inspect full and partial payouts across sources', async ({ 
       rotationEndTime: 6.36,
       observationEndTime: 6.36,
       combatEndTime: 6.36,
+      // Damage-only fixtures still provide the canonical reports consumed by analysis charts.
+      effectReport: { start: 0, end: 6.36, tracks: [] },
+      boonGeneration: { alliedPlayerCount: 4, boons: {} },
       resolvedEvents: [
         {
           type: 'condition',
@@ -429,6 +432,9 @@ test('condition details sum simultaneous ticks by type', async ({ page }) => {
         rotationEndTime: 5,
         observationEndTime: 5,
         combatEndTime: 5,
+        // Tick grouping needs no effect tracks, but chart inputs require both canonical reports.
+        effectReport: { start: 0, end: 5, tracks: [] },
+        boonGeneration: { alliedPlayerCount: 4, boons: {} },
         resolvedEvents: [
           { type: 'condition', condition: 'Bleeding', at: 0, damageTicks: [{ at: 1, damage: 10 }] },
           { type: 'condition', condition: 'Poisoned', at: 0, damageTicks: [{ at: 1, damage: 20 }] },

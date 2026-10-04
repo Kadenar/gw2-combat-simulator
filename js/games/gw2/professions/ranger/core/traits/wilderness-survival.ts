@@ -56,6 +56,8 @@ export const arachnophobia = defineTrait({
   id: TRAIT.ARACHNOPHOBIA,
   name: 'Arachnophobia',
   balance: {
+    // Torment belongs to the triggering spider/devourer pet; pet damage is excluded from this preview.
+    damagePreviewAttribution: 'summon',
     attributeBonus: 150,
     weaponAttributeBonus: 225,
     effects: [{ name: 'Torment', type: 'condition', condition: 'Torment', duration: 3, stacks: 1 }]

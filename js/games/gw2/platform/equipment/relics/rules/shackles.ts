@@ -6,6 +6,8 @@ import { GW2_EVENT_ACTOR_TYPES } from '#gw2/platform/engine/events/actors.js';
 import { defineRelic } from '#gw2/platform/equipment/relics/rules/shared.js';
 
 export const shackles = defineRelic({
+  // Describe eligibility at the rule owner; discovery still executes real player actions.
+  damagePreview: { requirement: 'Requires an Immobilized application and its delayed tether impact.' },
   createState: () => ({ readyAt: 0 }),
   emitConditionEffects(ctx, state, application) {
     const actorType = gw2EventActorType(application);

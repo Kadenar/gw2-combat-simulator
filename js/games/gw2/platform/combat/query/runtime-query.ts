@@ -1,4 +1,4 @@
-import { buffApplicationStacks, isDurationStackingBoon } from '#gw2/platform/combat/boons.js';
+import { buffApplicationStacks, isDurationStackingBoon, GW2_STANDARD_BOONS } from '#gw2/platform/combat/boons.js';
 import { selectedSkillNameSet } from '#gw2/platform/builds/selected-skills.js';
 import {
   CANONICAL_TARGET_CONDITIONS,
@@ -63,6 +63,16 @@ export function boonActive(context: Gw2ModifierContext, boon: string): boolean {
   if (!context.runtime) return Boolean(context.timeline?.timedActive(boon, context.time));
   const applications = context.runtime.boons?.get(boon) || [];
   return buffApplicationStacks(applications, boon, context.time, 1) > 0;
+}
+
+/** Preview totals affect only per-boon bonuses; normal simulations count native boon presence, including owner-specific state. */
+export function countActiveBoons(
+  context: Gw2ModifierContext,
+  active = (boon: string) => boonActive(context, boon)
+): number {
+  if (context.config?.fixedBoonCount != null)
+    return Math.trunc(boundedNumber(context.config.fixedBoonCount, 0, 0, GW2_STANDARD_BOONS.length));
+  return GW2_STANDARD_BOONS.filter(active).length;
 }
 
 /** Counts only player applications so summon copies cannot extend duration or add intensity/custom stacks. */

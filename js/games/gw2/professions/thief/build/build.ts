@@ -1,4 +1,5 @@
 import { GEAR_SLOTS } from '#gw2/platform/equipment/gear/slots.js';
+import { MAXIMUM_SPINNING_AXES } from '#gw2/professions/thief/core/state.js';
 import { DEFAULT_WEAPON_SIGILS, normalizeWeaponSigils } from '#gw2/platform/equipment/sigils/loadout.js';
 import {
   createProfessionBuildCodec,
@@ -78,7 +79,7 @@ const thiefBuildCodec = createProfessionBuildCodec<ThiefCanonicalBuild>({
     initialSpinningAxes: {
       type: 'integer',
       minimum: 0,
-      maximum: 6
+      maximum: MAXIMUM_SPINNING_AXES
     },
     initialInitiative: {
       type: 'number',

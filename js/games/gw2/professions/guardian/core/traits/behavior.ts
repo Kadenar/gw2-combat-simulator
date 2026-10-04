@@ -547,9 +547,15 @@ export function reactToZealDamage(runtime: Runtime, event: Gw2ResolverEvent, dam
   if (!hasTrait(runtime, TRAIT.ZEALOTS_RESOLUTION) || event.skillId === ID.LESSER_SYMBOL_OF_RESOLUTION) return;
   const profile = requireBalanceProfileFromContext(runtime, TRAIT.ZEALOTS_RESOLUTION);
   const health = runtime.config.target?.health ?? 0;
+  // Detached previews pin target health; ordinary simulations still evaluate the health before this hit.
+  const lostFraction =
+    runtime.config.target?.fixedHealthFraction != null
+      ? 1 - runtime.config.target.fixedHealthFraction
+      : health > 0
+        ? (targetHealthLoss(runtime.config, runtime) - damage) / health
+        : 0;
   if (
-    !(health > 0) ||
-    !(targetHealthLoss(runtime.config, runtime) - damage > health * balanceProfileNumber(profile, 'threshold')) ||
+    !(lostFraction > balanceProfileNumber(profile, 'threshold')) ||
     !isInternalCooldownReady(runtime.time, runtime.procs.deadline('guardian.core.zealotsResolution'))
   )
     return;

@@ -2,11 +2,21 @@ import type {
   ProfessionAttributePreviewContext,
   ProfessionAttributePreviewPreparation
 } from '#gw2/platform/profession-presentation/attribute-preview.js';
-import { createAttributePreviewControls } from '#gw2/professions/shared/attribute-preview.js';
+import { createPreviewControls } from '#gw2/professions/shared/attribute-preview.js';
+import type { Skill } from '#gw2/platform/engine/skills/types.js';
+import type {
+  SkillDamagePreviewPreparation,
+  SkillDamageProbeSetup
+} from '#gw2/platform/profession-presentation/skill-damage.js';
 import { readProfessionSpecializationState } from '#gw2/platform/engine/profession/state.js';
 import type { SoulbeastState } from '#gw2/professions/ranger/specializations/soulbeast/state.js';
 import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
-import { rangerPetPaletteGroup, rangerUiState, activeRangerUiPet } from '#gw2/professions/ranger/core/presentation.js';
+import {
+  rangerPetPaletteGroup,
+  rangerUiState,
+  activeRangerUiPet,
+  rangerSkillDamageProbe
+} from '#gw2/professions/ranger/core/presentation.js';
 import type { CanonicalCatalog, SkillId } from '#gw2/platform/engine/skills/types.js';
 import type { ProfessionPaletteGroup, RotationStateSnapshotItem } from '#gw2/platform/profession-presentation/types.js';
 import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
@@ -58,9 +68,32 @@ function soulbeastStateSnapshot(context: RangerUiContext): RotationStateSnapshot
 /** Captures this UI's catalog so other profession instances cannot change its projections. */
 export function bindSoulbeastUi(catalog: Readonly<CanonicalCatalog<RangerSkill>>): RangerUiSlice {
   return Object.freeze({
+    /** Simulations start merged, so measuring the entry action first leaves Beastmode normally. */
+    skillDamageProbe(context: SkillDamagePreviewPreparation, skill: Skill): SkillDamageProbeSetup | null {
+      // Merged-only skills retain their required form; other skills can be compared after a real exit.
+      if (skill.id === ID.BEASTMODE) return { setup: [{ type: 'cast', skillId: ID.LEAVE_BEASTMODE }] };
+      if (!context.values.merged && skill.id !== ID.LEAVE_BEASTMODE && !(skill as RangerSkill).beastmodeSkill)
+        return {
+          ...rangerSkillDamageProbe(context, skill),
+          setup: [
+            { type: 'cast', skillId: ID.LEAVE_BEASTMODE },
+            ...(rangerSkillDamageProbe(context, skill)?.setup ?? [])
+          ]
+        };
+      return null;
+    },
     /** Declare this module's conditional inputs without adding simulation settings. */
-    attributePreviewControls(context: ProfessionAttributePreviewContext) {
-      const preview = createAttributePreviewControls(context);
+    previewControls(context: ProfessionAttributePreviewContext) {
+      const preview = createPreviewControls(context);
+      preview.add({
+        key: 'merged',
+        label: 'Beastmode',
+        group: 'Mechanic',
+        kind: 'special',
+        scope: ['damage'],
+        initial: 1,
+        description: 'Merged for ordinary attacks; Beastmode skills always require their form'
+      });
       preview.add({
         key: 'beastmode',
         label: 'Beastmode',

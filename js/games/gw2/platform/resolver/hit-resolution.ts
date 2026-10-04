@@ -1,6 +1,7 @@
 import { STANDARD_TARGET_ARMOR } from '#gw2/platform/combat/formulas.js';
 import type { Gw2DamageCalculation } from '#gw2/platform/engine/events/events.js';
 import { expectedCritMultiplier, strikeDamage } from '#gw2/platform/combat/formulas.js';
+import type { Gw2ModifierContribution } from '#gw2/platform/combat/modifiers.js';
 import type { Gw2CriticalResult, Gw2ResolvedStats } from '#gw2/platform/combat/query/combat-query.js';
 import { remainingTargetHealthFraction } from '#gw2/platform/combat/state/target-health.js';
 import type { SimulationActorType } from '#gw2/platform/engine/events/actors.js';
@@ -15,6 +16,7 @@ interface ResolvedStrikeParts {
   readonly baseDamage: number;
   readonly criticalMultiplier: number;
   readonly outgoingMultiplier: number;
+  readonly outgoingContributors?: readonly Gw2ModifierContribution[];
   readonly weaponStrength: Gw2ResolvedWeaponStrength | null;
 }
 
@@ -114,9 +116,19 @@ export function createGw2HitResolution({
         : critical.didCrit
           ? critical.damage
           : 1;
-    const outgoingMultiplier =
-      ctx.query.strikeMultiplier(event, event.at, ctx) *
-      (event.summonUsesEquipmentModifiers === false ? 1 : equipmentStrikeMultiplier(ctx, event));
+    // Diagnostics trace the same multiplier call; ordinary runs pass no sink and record nothing.
+    const outgoingContributors: Gw2ModifierContribution[] | undefined = ctx.damageDiagnostics ? [] : undefined;
+    const queryMultiplier = ctx.query.strikeMultiplier(event, event.at, ctx, outgoingContributors);
+    const equipmentMultiplier =
+      event.summonUsesEquipmentModifiers === false ? 1 : equipmentStrikeMultiplier(ctx, event);
+    if (outgoingContributors && equipmentMultiplier !== 1)
+      outgoingContributors.push({
+        id: 'equipment.strike',
+        label: 'Equipment',
+        bucket: 'multiplier',
+        value: equipmentMultiplier
+      });
+    const outgoingMultiplier = queryMultiplier * equipmentMultiplier;
     const targetArmor = targetArmorFor(ctx);
 
     const summonDamagePerCoefficient = Number(event.summonDamagePerCoefficient);
@@ -141,6 +153,7 @@ export function createGw2HitResolution({
         coefficientMultiplier: 1,
         criticalMultiplier,
         outgoingMultiplier,
+        outgoingContributors,
         weaponStrength: null
       };
     }
@@ -158,6 +171,7 @@ export function createGw2HitResolution({
       coefficientMultiplier: effectiveCoefficientMultiplier,
       criticalMultiplier,
       outgoingMultiplier,
+      outgoingContributors,
       weaponStrength
     };
   }
@@ -183,6 +197,7 @@ export function createGw2HitResolution({
       critEligible,
       criticalMultiplier: strike.criticalMultiplier,
       outgoingMultiplier: strike.outgoingMultiplier,
+      ...(strike.outgoingContributors ? { outgoingContributors: strike.outgoingContributors } : {}),
       weaponStrength: strike.weaponStrength,
       baseDamage: strike.baseDamage,
       // Round the final packet before reactions and totals: strikes floor, condition packets use half-even.
@@ -212,6 +227,7 @@ export function createGw2HitResolution({
         baseDamage: hitContext.baseDamage,
         criticalMultiplier: hitContext.criticalMultiplier,
         outgoingMultiplier: hitContext.outgoingMultiplier,
+        ...(hitContext.outgoingContributors ? { outgoingContributors: hitContext.outgoingContributors } : {}),
         unroundedDamage: hitContext.unroundedDamage,
         rounding: event.damageKind === 'condition' ? 'half-even' : 'floor'
       };
@@ -292,6 +308,8 @@ export interface Gw2HitResolutionContext {
   readonly critEligible: boolean;
   readonly criticalMultiplier: number;
   readonly outgoingMultiplier: number;
+  /** Present only in diagnostic runs: the traced factors behind outgoingMultiplier. */
+  readonly outgoingContributors?: readonly Gw2ModifierContribution[];
   readonly weaponStrength: Gw2ResolvedWeaponStrength | null;
   readonly baseDamage: number;
   readonly damage: number;

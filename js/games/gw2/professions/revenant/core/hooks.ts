@@ -1,4 +1,5 @@
 import type { EndurancePolicy } from '#gw2/platform/combat/resources/endurance-policy.js';
+import { grantTimedStacks } from '#gw2/platform/combat/resources/timed-stacks.js';
 import type { ResourcePolicy } from '#gw2/platform/combat/resources/resource-policy.js';
 import { denySkillCast } from '#gw2/platform/engine/skills/availability.js';
 import {
@@ -252,6 +253,19 @@ export const revenantCoreHooks: Partial<RuntimeProfession<RevenantRuntimeState, 
   resources: { energy: revenantEnergy },
   endurance: revenantEndurance,
   initialize(runtime) {
+    // Initial Crushing Abyss feeds the same expiring pool consumed by Raze and weapon swap.
+    for (const buff of runtime.config.initialBuffs ?? []) {
+      if (buff.kind !== 'crushing-abyss') continue;
+      const skill = runtime.helpers.skillsById.get(ID.ABYSSAL_RAZE)!;
+      runtime.profession.core.crushingAbyss = grantTimedStacks([], {
+        at: runtime.time,
+        expiresAt: runtime.time + buff.duration,
+        count: buff.stacks,
+        maximumStacks: Number(skill.maximumStacks),
+        retain: 'latest-expiry'
+      });
+    }
+
     startRevenantAssassinsPresence(runtime, runtime.time);
   },
   onCombatStart(runtime) {

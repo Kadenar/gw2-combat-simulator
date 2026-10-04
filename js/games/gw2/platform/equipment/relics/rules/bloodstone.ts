@@ -4,7 +4,15 @@ import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-
 import { gw2EffectExpiresAt } from '#gw2/platform/skills/timing.js';
 import { defineRelic, timedStrikeBuff } from '#gw2/platform/equipment/relics/rules/shared.js';
 
+// The fourth qualifying blast consumes the native three-stack pool; discovery uses the same threshold.
+const VOLATILITY_STACKS = 3;
 export const bloodstone = defineRelic({
+  damagePreview: {
+    repetitions: VOLATILITY_STACKS + 1,
+    repeatFinisher: 'Blast',
+    comboField: 'Fire',
+    requirement: 'Requires four blast finishers before Volatility expires.'
+  },
   createState: () => ({
     stacks: 0,
     expiresAt: 0,
@@ -18,7 +26,7 @@ export const bloodstone = defineRelic({
     if ((state.expiresAt || 0) <= event.at) state.stacks = 0;
 
     const currentStacks = state.stacks || 0;
-    if (currentStacks < 3) {
+    if (currentStacks < VOLATILITY_STACKS) {
       state.stacks = currentStacks + 1;
       state.expiresAt = gw2EffectExpiresAt(event.at, 10);
       ctx.effects.emit({

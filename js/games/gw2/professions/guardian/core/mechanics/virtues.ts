@@ -68,7 +68,9 @@ function applyJusticeBurn(
       actorType: 'player',
       skillId,
       skillName,
-      // The burn belongs to the actual triggering hit, even when that hit came from a delayed activation.
+      // Justice owns this proc; the activation still records which hit caused it for chronological reactions.
+      procType: 'profession',
+      icon: context.helpers.skillsById?.get(skillId)?.icon,
       activationId: event.activationId,
       causalOrder: event.causalOrder ?? event.eventOrder,
       name: `${skillName} — ${active ? 'Active' : 'Passive'} Burning`,

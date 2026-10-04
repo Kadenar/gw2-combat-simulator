@@ -1,5 +1,10 @@
+import type {
+  SkillDamagePreviewContext,
+  SkillDamageProbeSetup
+} from '#gw2/platform/profession-presentation/skill-damage.js';
+import type { Skill as PreviewSkill } from '#gw2/platform/engine/skills/types.js';
 import type { ProfessionAttributePreviewContext } from '#gw2/platform/profession-presentation/attribute-preview.js';
-import { createAttributePreviewControls } from '#gw2/professions/shared/attribute-preview.js';
+import { createPreviewControls } from '#gw2/professions/shared/attribute-preview.js';
 
 import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
 import {
@@ -195,9 +200,33 @@ function engineerEventLogRow(
 /** Captures this UI's catalog so other profession instances cannot change its projections. */
 export function bindEngineerCoreUi(catalog: Readonly<CanonicalCatalog<EngineerSkill>>): EngineerUiSlice {
   return Object.freeze({
+    /** Prepare legal preview casts with the same catalog metadata and transitions used by the runtime. */
+    skillDamageProbe(context: SkillDamagePreviewContext, skill: PreviewSkill): SkillDamageProbeSetup | null {
+      if (skill.id === SHARED_SKILL_IDS.SWAP_WEAPONS) return { setup: [{ type: 'cast', skillId: ID.GRENADE_KIT }] };
+      // A full native counter cycle includes the delayed Orbital Command Strike in proc-only discovery.
+      if (
+        skill.type === 'Weapon' &&
+        skill.kitId == null &&
+        (skill.effects?.some((effect) => effect.projectile === true) || skill.categories?.includes('Projectile')) &&
+        context.activeTraits.some((trait) => trait.id === TRAIT.AIM_ASSISTED_ROCKET)
+      ) {
+        const profile = requireBalanceProfileFromContext(context, TRAIT.AIM_ASSISTED_ROCKET);
+        return {
+          procSetup: Array.from({ length: balanceProfileNumber(profile, 'maximumStacks') - 1 }, () => [
+            { type: 'cast' as const, skillId: skill.id, offTarget: false },
+            { type: 'wait' as const, durationMs: balanceProfileNumber(profile, 'internalCooldown') * 1000 }
+          ]).flat()
+        };
+      }
+
+      const kitId = (skill as EngineerSkill).kitId;
+      if (kitId == null || kitId === skill.id) return null;
+      return { setup: [{ type: 'cast', skillId: kitId }] };
+    },
+
     /** Declare this module's conditional inputs without adding simulation settings. */
-    attributePreviewControls(context: ProfessionAttributePreviewContext) {
-      const preview = createAttributePreviewControls(context);
+    previewControls(context: ProfessionAttributePreviewContext) {
+      const preview = createPreviewControls(context);
 
       preview.boon('regeneration', 'Energy Amplifier');
       preview.buff('Explosive Temper', 'explosiveTemper', 'explosive-temper', 'Ferocity', true);

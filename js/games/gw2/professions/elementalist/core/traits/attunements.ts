@@ -510,6 +510,8 @@ export function triggerFlameExpulsion(
         {
           at: impactAt,
           source: 'Flame Expulsion',
+          // Preserve combat identity while exposing the selected trait that owns this delayed packet.
+          name: "Pyromancer's Puissance — Flame Expulsion",
           sourceId,
           actorType: 'effect',
           ownerActorType: 'player',
@@ -532,6 +534,7 @@ export function triggerFlameExpulsion(
           skill: elementalistEventSkill(context, 'Flame Expulsion', sourceId),
           at: impactAt,
           source: 'Flame Expulsion',
+          name: "Pyromancer's Puissance — Burning",
           sourceId,
           condition: String(flameExpulsionCondition.condition),
           stacks: Number(flameExpulsionCondition.stacks),

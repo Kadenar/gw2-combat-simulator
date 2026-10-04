@@ -6,6 +6,7 @@ import {
   durationStackingBoonCapSeconds
 } from '#gw2/platform/combat/boons.js';
 import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
+import { canonicalTime } from '#kernel/core/clock.js';
 
 /** Detached observations of existing gameplay owners; these are never a second mutable combat pool. */
 export interface EffectState {
@@ -102,9 +103,10 @@ export function observeBuffState(
     countLimit: duration ? 1 : (policy.maximumStacks ?? null),
     durationLimit: duration ? durationStackingBoonCapSeconds(kind) : (policy.maximumDuration ?? null),
     measure: duration || policy.maximumDuration != null ? 'remaining-duration' : 'count',
+    // Keep a stable execution-clock deadline so floating-point drift cannot create extra chart transitions.
     windows: duration
       ? remaining > 0
-        ? [{ stacks: 1, expiresAt: at + remaining }]
+        ? [{ stacks: 1, expiresAt: canonicalTime(at + remaining) }]
         : []
       : applications
           .filter((application) => includes(application) && application.at <= at && application.expiresAt > at)

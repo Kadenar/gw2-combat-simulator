@@ -40,6 +40,9 @@ export function enchantedDaggers(runtime: RevenantRuntime, event: Gw2ResolverEve
       ownerActorType: 'player',
       skillId: ID.ENCHANTED_DAGGERS,
       skillName: 'Enchanted Daggers',
+      // The armed heal owns this siphon; its causal hit must not absorb the damage in isolated previews.
+      procType: 'profession',
+      icon: skill.icon,
       name: 'Enchanted Daggers — Siphon Damage',
       coefficient: 0,
       damageKind: strike.damageKind,

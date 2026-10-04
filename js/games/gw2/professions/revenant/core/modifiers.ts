@@ -1,6 +1,5 @@
-import { GW2_STANDARD_BOONS } from '#gw2/platform/combat/boons.js';
 import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
-import { boonActive } from '#gw2/platform/combat/query/runtime-query.js';
+import { countActiveBoons } from '#gw2/platform/combat/query/runtime-query.js';
 import { readProfessionCoreState, readProfessionSpecializationState } from '#gw2/platform/engine/profession/state.js';
 import type { RevenantCoreState } from '#gw2/professions/revenant/core/state.js';
 import {
@@ -40,7 +39,7 @@ export function revenantTimedBuff(context: RevenantModifierContext, kind: string
 // Count distinct self-affecting boons active at the query time for Revenant
 // modifiers that scale with boon variety.
 export function revenantActiveBoonCount(context: RevenantModifierContext): number {
-  return GW2_STANDARD_BOONS.filter((boon) => boonActive(context, boon)).length;
+  return countActiveBoons(context);
 }
 
 // Apply Revenant's condition- and skill-specific base duration modifiers before

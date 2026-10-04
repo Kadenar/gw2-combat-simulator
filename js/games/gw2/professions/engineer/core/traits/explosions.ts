@@ -313,25 +313,29 @@ export function applyAimAssistedRocket(context: EngineerResolverContext, event: 
   if (rocket) {
     context.effects.emit({
       kind: 'packet',
-      event: buildEngineerStrike(event, {
-        name: orbital ? 'Orbital Command Strike' : 'Aim-Assisted Rocket',
-        coefficient: effectNumber(aimAssistedRocketProfile, rocket, 'coefficient'),
-        sourceId: orbital ? ID.ORBITAL_COMMAND_STRIKE : ID.AIM_ASSISTED_ROCKET_TRAIT_SKILL,
-        actorType: 'effect',
-        ownerActorType: 'player',
-        at: event.at + effectNumber(aimAssistedRocketProfile, rocket, 'atMs') / 1000,
-        explosion: !orbital,
-        ...(orbital
-          ? {
-              comboFinisher: {
-                ownerId: 'engineer',
-                finisherType: 'Blast',
-                ambiguousFieldSelection: 'oldest'
+      event: {
+        ...buildEngineerStrike(event, {
+          // The trait owns both variants; retain their distinct skill identities and display names.
+          name: orbital ? 'Orbital Command Strike' : 'Aim-Assisted Rocket',
+          coefficient: effectNumber(aimAssistedRocketProfile, rocket, 'coefficient'),
+          sourceId: orbital ? ID.ORBITAL_COMMAND_STRIKE : ID.AIM_ASSISTED_ROCKET_TRAIT_SKILL,
+          actorType: 'effect',
+          ownerActorType: 'player',
+          at: event.at + effectNumber(aimAssistedRocketProfile, rocket, 'atMs') / 1000,
+          explosion: !orbital,
+          ...(orbital
+            ? {
+                comboFinisher: {
+                  ownerId: 'engineer',
+                  finisherType: 'Blast',
+                  ambiguousFieldSelection: 'oldest'
+                }
               }
-            }
-          : {}),
-        weaponStrengthProfileId: 'nonweapon.unequipped'
-      })
+            : {}),
+          weaponStrengthProfileId: 'nonweapon.unequipped'
+        }),
+        metadata: { procOwnerId: TRAIT.AIM_ASSISTED_ROCKET }
+      }
     });
 
     context.effects.emit({
