@@ -130,8 +130,8 @@ test('Weighty Terms follows canonical mantra IDs and ignores names or final-char
             effectiveEnd: 0
           };
           // Match runtime dispatch so named mantra actions run before the remaining trait effects.
-          applySkillSideEffects(runtime, cast, 'castCommit', native.sideEffectHandlers);
-          native.onCastCommit(runtime, cast);
+          applySkillSideEffects(runtime.mechanics, cast, 'castCommit', native.sideEffectHandlers);
+          native.onCastCommit(runtime.mechanics, cast);
         }
       });
       assert.equal(

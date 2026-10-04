@@ -35,7 +35,7 @@ export function resolveTroubadourTale({ context, skill, at, eligible }: Troubado
         sourceSkill: skill.name,
         ...partyRecipients
       });
-      runtime.context.effects.emit({
+      context.effects.emit({
         kind: 'packet',
         event: packet,
         owner: mesmerPacketOwner(packet),

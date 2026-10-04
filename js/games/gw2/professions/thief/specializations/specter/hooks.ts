@@ -1,3 +1,4 @@
+import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
 import { improvisationShadowForceMultiplier } from '#gw2/professions/thief/core/traits/steal.js';
 import { amplifiedSiphoningGain, DARK_SENTRY } from '#gw2/professions/thief/specializations/specter/traits/behavior.js';
 
@@ -139,7 +140,7 @@ function completeSiphon(runtime: ThiefRuntime, cast: RuntimeCast<ThiefSkill>): v
 }
 
 /** Shroud entry needs force; inside the shroud only its own bar is castable, and exit waits out its lockout. */
-function specterAvailability(runtime: ThiefRuntime, skill: ThiefSkill): AvailabilityResult {
+function specterAvailability(runtime: MechanicQueriesOf<ThiefRuntime>, skill: ThiefSkill): AvailabilityResult {
   const state = specterState.from(runtime);
   if (skill.id === ID.ENTER_SHADOW_SHROUD) {
     if (state.shadowShroudActive) return denySkillCast(skill, 'thief.in-shroud', 'Shadow Shroud is already active.');

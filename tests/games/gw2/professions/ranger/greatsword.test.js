@@ -1,3 +1,4 @@
+import { createMechanicCombatServices } from '#gw2/platform/resolver/mechanic-services.js';
 import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
 import { assertFlooredDamageMultiplier } from '#tests/helpers/rounded-damage.js';
 import assert from 'node:assert/strict';
@@ -223,6 +224,8 @@ test('Attack of Opportunity ignores effect damage and consumes only its recipien
     ])
   );
   const context = { boons, profession: { core: { petActive: false } } };
+  // Bind real owner operations for this focused mechanic fixture.
+  context.combat = createMechanicCombatServices(context);
   const event = {
     type: 'damage',
     at: 1,

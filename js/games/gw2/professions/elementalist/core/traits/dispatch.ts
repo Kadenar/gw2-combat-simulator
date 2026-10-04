@@ -1,3 +1,4 @@
+import type { MechanicCombatContext } from '#gw2/platform/profession-definition/mechanic-context.js';
 import type { NativeResolvedDamageDetails } from '#gw2/platform/profession-definition/module-types.js';
 import type { EffectDelivery } from '#gw2/platform/simulation/effect-emission.js';
 import type { RuntimeCast } from '#gw2/platform/simulation/runtime-state.js';
@@ -17,7 +18,7 @@ import type { ElementalistResolverContext, ElementalistSkill } from '#gw2/profes
 /** Ordered public dispatcher for Core Elementalist trait behavior. */
 import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
 import type { Skill } from '#gw2/platform/engine/skills/types.js';
-import type { Gw2ResolverRuntime } from '#gw2/platform/resolver/runtime-state.js';
+
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import { type ElementalistAuraApplication } from '#gw2/professions/elementalist/core/mechanics/effects.js';
 import type { ElementalistAttunement } from '#gw2/professions/elementalist/core/state.js';
@@ -100,7 +101,7 @@ export function observeElementalistTraitEvent(context: ElementalistRuntime, even
 }
 
 /** Grants each actual aura its Air traits before its Earth traits. */
-export function applyElementalistResolverAuraTraits(context: Gw2ResolverRuntime, event: Gw2ResolverEvent): void {
+export function applyElementalistResolverAuraTraits(context: MechanicCombatContext, event: Gw2ResolverEvent): void {
   applyResolverZephyrsBoon(context, event);
   applyResolverElementalShielding(context, event);
 }

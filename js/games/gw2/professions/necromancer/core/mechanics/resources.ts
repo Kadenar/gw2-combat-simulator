@@ -43,7 +43,7 @@ export const necromancerLifeForce: ResourcePolicy<NecromancerRuntime> = {
   nextChange(runtime, cost) {
     if (cost > runtime.profession.core.lifeForce.maximum) return Infinity;
     // An overlapping request can await the already accepted cast lane; intervening hits decide the actual gain.
-    const completion = runtime.cursor.endTime();
+    const completion = runtime.castController.currentLaneEnd();
     return Math.min(nextNecromancerPassiveGain(runtime, cost), completion > runtime.time ? completion : Infinity);
   }
 };

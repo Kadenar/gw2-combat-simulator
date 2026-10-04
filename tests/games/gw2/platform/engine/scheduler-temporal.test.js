@@ -16,12 +16,12 @@ test('ammo restoration resets full-pool recharge without erasing cast lockouts',
   controller.setAmmoLockout(skill, 5, 0);
   assert.equal(controller.restoreAmmo(skill, -1, 1), 0);
   assert.equal(controller.restoreAmmo(skill, 1, 1), 1);
-  assert.equal(state.cooldowns.get(skill.id), 5);
-  assert.equal(state.ammo.get(skill.id).nextRechargeAt, 10);
+  assert.equal(controller.readyAt(skill.id), 5);
+  assert.equal(controller.readAmmo(skill.id).nextRechargeAt, 10);
   assert.equal(controller.restoreAmmo(skill, 20, 2), 1);
-  assert.equal(state.cooldowns.get(skill.id), 5);
-  assert.deepEqual(state.ammo.get(skill.id).recharges, []);
-  assert.equal(state.ammo.get(skill.id).nextRechargeAt, null);
+  assert.equal(controller.readyAt(skill.id), 5);
+  assert.deepEqual(controller.readAmmo(skill.id).recharges, []);
+  assert.equal(controller.readAmmo(skill.id).nextRechargeAt, null);
   assert.equal(controller.restoreAmmo(skill, 1, 3), 0);
   controller.spendAmmo(skill, 6);
   assert.equal(controller.refreshAmmo(skill, 10).charges, 1);
@@ -41,7 +41,7 @@ test('ammo charges recover sequentially and partial restoration preserves active
     });
     controller.spendAmmo(skill, 0.6);
     controller.spendAmmo(skill, 1.6);
-    const ammo = state.ammo.get(skill.id);
+    const ammo = controller.readAmmo(skill.id);
     assert.equal(ammo.nextRechargeAt, 16.6);
     if (reload) {
       assert.equal(controller.restoreAmmo(skill, 1, 5), 1);
@@ -72,7 +72,7 @@ test('a partially restored charge waits for the active recharge when spent again
   controller.spendAmmo(skill, 1.6);
   controller.restoreAmmo(skill, 1, 8);
   controller.spendAmmo(skill, 9);
-  assert.equal(state.ammo.get(skill.id).nextRechargeAt, 16.6);
+  assert.equal(controller.readAmmo(skill.id).nextRechargeAt, 16.6);
   assert.equal(controller.refreshAmmo(skill, 17.6).charges, 1);
   assert.equal(controller.refreshAmmo(skill, 25).charges, 1);
   assert.equal(controller.refreshAmmo(skill, 32.6).charges, 2);
@@ -98,7 +98,7 @@ test('queued charges preserve active progress across recharge rate changes', () 
   controller.spendAmmo(skill, 2);
   assert.equal(controller.refreshAmmo(skill, 8).charges, 0);
   assert.equal(controller.refreshAmmo(skill, 9).charges, 1);
-  assert.equal(state.ammo.get(skill.id).nextRechargeAt, 19);
+  assert.equal(controller.readAmmo(skill.id).nextRechargeAt, 19);
   assert.equal(controller.refreshAmmo(skill, 11).charges, 1);
   assert.equal(controller.refreshAmmo(skill, 19).charges, 2);
 });
@@ -112,7 +112,7 @@ test('restoration removes queued charges even when later charges have shorter re
   controller.spendAmmo(skill, 1, 10);
   controller.spendAmmo(skill, 2, 5);
   assert.equal(controller.restoreAmmo(skill, 2, 3), 2);
-  assert.deepEqual(state.ammo.get(skill.id).recharges, [{ startedAt: 0, work: 20 }]);
+  assert.deepEqual(controller.readAmmo(skill.id).recharges, [{ startedAt: 0, work: 20 }]);
   assert.equal(controller.refreshAmmo(skill, 7).charges, 2);
   assert.equal(controller.refreshAmmo(skill, 20).charges, 3);
 });
@@ -140,15 +140,15 @@ test('ammo recharge reductions advance the queue without multiplying progress', 
   controller.spendAmmo(skill, 8);
 
   assert.equal(controller.reduceSkillRecharge(skill, 2, 11), 2);
-  assert.equal(state.ammo.get(skill.id).charges, 1);
-  assert.equal(state.ammo.get(skill.id).nextRechargeAt, 22);
-  assert.equal(state.cooldowns.has(skill.id), false);
+  assert.equal(controller.readAmmo(skill.id).charges, 1);
+  assert.equal(controller.readAmmo(skill.id).nextRechargeAt, 22);
+  assert.equal(controller.hasCooldown(skill.id), false);
 
   assert.equal(controller.reduceSkillRecharge(skill, 2, 13), 2);
-  assert.equal(state.ammo.get(skill.id).charges, 1);
-  assert.equal(state.ammo.get(skill.id).nextRechargeAt, 20);
+  assert.equal(controller.readAmmo(skill.id).charges, 1);
+  assert.equal(controller.readAmmo(skill.id).nextRechargeAt, 20);
   assert.equal(controller.reduceSkillRecharge(skill, 20, 15), 17);
-  assert.deepEqual(state.ammo.get(skill.id), {
+  assert.deepEqual(controller.readAmmo(skill.id), {
     charges: 3,
     maximum: 3,
     recharges: [],
@@ -167,14 +167,14 @@ test('ammo recharge reduction preserves independent cast lockouts', () => {
     if (lockout) controller.setAmmoLockout(skill, lockout, 0);
 
     controller.reduceSkillRecharge(skill, 2, 1);
-    assert.equal(state.ammo.get(skill.id).charges, 0);
-    assert.equal(state.cooldowns.get(skill.id), Math.max(lockout, 8));
+    assert.equal(controller.readAmmo(skill.id).charges, 0);
+    assert.equal(controller.readyAt(skill.id), Math.max(lockout, 8));
 
     controller.reduceSkillRecharge(skill, 18, 1);
-    assert.equal(state.ammo.get(skill.id).charges, 2);
-    assert.equal(state.cooldowns.get(skill.id) ?? 0, lockout);
+    assert.equal(controller.readAmmo(skill.id).charges, 2);
+    assert.equal(controller.readyAt(skill.id) ?? 0, lockout);
     controller.refreshAmmo(skill, Math.max(1, lockout));
-    assert.equal(state.cooldowns.has(skill.id), false);
+    assert.equal(controller.hasCooldown(skill.id), false);
   }
 });
 
@@ -201,7 +201,7 @@ test('a recovered ammo charge cannot cast before its lockout expires', () => {
         'recover-ammo': (context) => {
           const skill = catalog.skillsById.get(980000);
           context.cooldownController.reduceSkillRecharge(skill, 10, context.time);
-          recoveredCharges = context.ammo.get(skill.id).charges;
+          recoveredCharges = context.cooldownController.readAmmo(skill.id).charges;
         }
       }
     }
@@ -233,11 +233,11 @@ test('skill recharge reduction routes ordinary and ammo skills through one cappe
   controller.spendAmmo(ammo, 0);
 
   assert.equal(controller.reduceSkillRecharge(ordinary, 3, 4), 3);
-  assert.equal(state.cooldowns.get(ordinary.id), 7);
+  assert.equal(controller.readyAt(ordinary.id), 7);
   assert.equal(controller.reduceSkillRecharge(ordinary, 10, 4), 3);
-  assert.equal(state.cooldowns.get(ordinary.id), 4);
+  assert.equal(controller.readyAt(ordinary.id), 4);
   assert.equal(controller.reduceSkillRecharge(ammo, 5, 4), 5);
-  assert.equal(state.ammo.get(ammo.id).nextRechargeAt, 7);
+  assert.equal(controller.readAmmo(ammo.id).nextRechargeAt, 7);
 });
 
 test('skill recharge reduction accepts game-specific base-to-wall-time conversion', () => {
@@ -253,9 +253,9 @@ test('skill recharge reduction accepts game-specific base-to-wall-time conversio
   controller.spendAmmo(ammo, 0);
 
   assert.equal(controller.reduceSkillRecharge(ordinary, 1, 0), 0.8);
-  assert.equal(state.cooldowns.get(ordinary.id), 7.2);
+  assert.equal(controller.readyAt(ordinary.id), 7.2);
   assert.equal(controller.reduceSkillRecharge(ammo, 1, 0), 0.8);
-  assert.equal(state.ammo.get(ammo.id).nextRechargeAt, 7.2);
+  assert.equal(controller.readAmmo(ammo.id).nextRechargeAt, 7.2);
 });
 
 function temporalCatalog() {
@@ -392,7 +392,7 @@ test('a concurrent instant waits until its finite cooldown expires', () => {
     catalog: temporalCatalog(),
     hooks: {
       initialize(context) {
-        context.cooldowns.set(980002, context.config.readyAt);
+        context.cooldownController.setReadyAt(980002, context.config.readyAt);
       }
     }
   });

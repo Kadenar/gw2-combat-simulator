@@ -1,5 +1,7 @@
+import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
+import type { MechanicContext } from '#gw2/platform/profession-definition/mechanic-context.js';
 import { timedEffectState, type BuffStatePolicy, type EffectState } from '#gw2/platform/combat/effect-state.js';
-import type { Gw2Runtime } from '#gw2/platform/simulation/runtime-state.js';
+
 import type { GuardianRuntimeState, GuardianSkill } from '#gw2/professions/guardian/types.js';
 import { balanceProfileFromContext, balanceProfileNumber } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { GUARDIAN_TRAIT_IDS as TRAIT } from '#gw2/professions/guardian/data/ids.js';
@@ -41,7 +43,9 @@ export function guardianBuffPolicies(context: unknown): BuffStatePolicy[] {
 }
 
 /** Charge and virtue observations share the pools used by hit reactions and modifier gates. */
-export function guardianEffectStates(runtime: Gw2Runtime<GuardianRuntimeState, GuardianSkill>): EffectState[] {
+export function guardianEffectStates(
+  runtime: MechanicQueriesOf<MechanicContext<GuardianRuntimeState, GuardianSkill>>
+): EffectState[] {
   const core = runtime.profession.core;
   const effects = [
     timedEffectState(
@@ -79,7 +83,7 @@ export function guardianEffectStates(runtime: Gw2Runtime<GuardianRuntimeState, G
   if (elite.kind === 'Luminary') {
     const state = elite.state;
     // Radiant Armaments replaces its predecessor even when the new weapon grants a shorter window.
-    const armament = runtime.boons.get('guardian-radiant-armaments')?.at(-1);
+    const armament = runtime.combat.boonApplications('guardian-radiant-armaments').at(-1);
     effects.push(
       timedEffectState(
         'guardian-radiant-armaments',

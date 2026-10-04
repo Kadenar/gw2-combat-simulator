@@ -1,8 +1,7 @@
-import type { SimulationEventBase } from '#gw2/platform/engine/events/events.js';
-import { activeBoonStacks as queryActiveBoonStacks } from '#gw2/platform/combat/query/runtime-query.js';
-import type { SimulationActorType } from '#gw2/platform/engine/events/actors.js';
-import type { SkillId } from '#gw2/platform/engine/skills/types.js';
 import type { ComboFieldType, ComboFinisherType } from '#gw2/platform/combos/types.js';
+import type { SimulationActorType } from '#gw2/platform/engine/events/actors.js';
+import type { SimulationEventBase } from '#gw2/platform/engine/events/events.js';
+import type { SkillId } from '#gw2/platform/engine/skills/types.js';
 import { buildResolverBuff, buildResolverCondition, buildResolverStrike } from '#gw2/platform/resolver/packets.js';
 import type { EngineerResolverContext, EngineerResolverEvent, EngineerSkill } from '#gw2/professions/engineer/types.js';
 
@@ -60,7 +59,7 @@ export function resolverSkill(
   skillId: SkillId | null | undefined
 ): EngineerSkill | undefined {
   if (skillId == null) return;
-  return context.helpers.skillsById?.get(skillId);
+  return context.helpers.skillsById.get(skillId);
 }
 
 /** Builds an owned strike whose finisher is attempted by the shared runtime at impact. */
@@ -178,11 +177,7 @@ export function buildEngineerCondition(
 
 /** Adapts resolver time and lowercase boon names to the shared permanent-plus-timed stack query. */
 export function activeBoonStacks(context: EngineerResolverContext, kind: string, maximum = 25, at = 0): number {
-  return queryActiveBoonStacks(
-    { config: context.config, runtime: context, time: at },
-    (kind || '').toLowerCase(),
-    maximum
-  );
+  return context.combat.activeBoonStacks((kind || '').toLowerCase(), at, maximum);
 }
 
 // Keep shared explosion classification here so every later Explosives reaction consumes the same result.

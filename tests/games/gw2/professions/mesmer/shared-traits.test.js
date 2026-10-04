@@ -43,7 +43,7 @@ test('Method of Madness commits Syncopate independently of its proc marker', () 
             }
           },
           initialize(runtime) {
-            if (scenario === 'cooldown') runtime.procs.readyAt[TRAIT.METHOD_OF_MADNESS] = 100;
+            if (scenario === 'cooldown') runtime.procs.setDeadline(TRAIT.METHOD_OF_MADNESS, 100);
             // Hide only the announcement's event-log row; gameplay packets still use the real service.
             if (suppress) {
               const effects = runtime.effects;

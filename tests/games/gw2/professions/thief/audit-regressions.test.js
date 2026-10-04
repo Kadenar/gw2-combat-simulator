@@ -38,7 +38,7 @@ test('Basilisk Venom contributes control and retains its 40-second recharge', ()
   const control = result.events.find((event) => event.type === 'control' && event.skillId === ID.BASILISK_VENOM);
   assert.equal(control.controlKind, 'stun');
 
-  near(observedRuntime(result).cooldowns.get(ID.BASILISK_VENOM) - control.at, 32);
+  near(observedRuntime(result).cooldownController.readyAt(ID.BASILISK_VENOM) - control.at, 32);
 });
 
 test("Sniper's Cover spends four initiative and opens a five-second smoke field and follow-up", () => {
@@ -90,7 +90,7 @@ test("Infiltrator's Signet pulses discrete initiative only while ready and resta
 
   const active = live('Core', ["Infiltrator's Signet", wait(10000)], { selectedSkillIds, initialInitiative: 0 });
   assert.equal(initiative(active), 10);
-  assert.equal(observedRuntime(active).cooldowns.get(ID.INFILTRATORS_SIGNET), 16);
+  assert.equal(observedRuntime(active).cooldownController.readyAt(ID.INFILTRATORS_SIGNET), 16);
   assert.equal(nextPulse(active), 26);
   const reset = live('Core', ["Infiltrator's Signet", wait(1000), { type: 'cooldown-reset' }], {
     selectedSkillIds,
@@ -126,7 +126,7 @@ test('Signet of Agility grants precision while ready and restores 100 endurance 
   // The live cooldown clock drives passive suppression, recovery, and cooldown resets for raw and panel stats.
   const precision = (runtime, config, attributes) =>
     thiefCoreModifiers.modifyAttributes(
-      { catalog: thiefCatalog, config, timeline: runtime.query.timeline, time: runtime.time },
+      { catalog: thiefCatalog, config, timeline: runtime.combat.timeline, time: runtime.time },
       attributes
     ).precision;
   for (const specialization of ['Core', 'Daredevil']) {
@@ -150,7 +150,7 @@ test('Signet of Agility grants precision while ready and restores 100 endurance 
       );
       assert.deepEqual(result.warnings, []);
       const runtime = observedRuntime(result);
-      assert.equal(runtime.cooldowns.get(ID.SIGNET_OF_AGILITY), 24);
+      assert.equal(runtime.cooldownController.readyAt(ID.SIGNET_OF_AGILITY), 24);
       const capacity = thiefProfession.runtimeFor({ specialization }).endurance.maximum(runtime);
       // The restoration applies at the instant cast's completion, before any regeneration.
       assert.equal(

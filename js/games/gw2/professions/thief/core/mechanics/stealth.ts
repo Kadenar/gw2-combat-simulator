@@ -1,3 +1,4 @@
+import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
 import {
   enterCloakedInShadow,
   enterShadowsRejuvenation,
@@ -21,14 +22,14 @@ function thiefStealthAttackCharges(runtime: ThiefRuntime): Partial<ThiefStealthA
 }
 
 /** Stealth is active from its entry instant until its expiry, unless Revealed blocks it. */
-export function thiefStealthed(runtime: ThiefRuntime, at = runtime.time): boolean {
+export function thiefStealthed(runtime: MechanicQueriesOf<ThiefRuntime>, at = runtime.time): boolean {
   const core = runtime.profession.core;
   return core.stealthStartedAt <= at && core.stealthUntil > at && core.revealedUntil <= at;
 }
 
 /** A specialization-granted stealth-attack charge is usable outside stealth until it expires. */
-export function thiefBonusStealthAttack(runtime: ThiefRuntime, at = runtime.time): boolean {
-  const charges = thiefStealthAttackCharges(runtime);
+export function thiefBonusStealthAttack(runtime: MechanicQueriesOf<ThiefRuntime>, at = runtime.time): boolean {
+  const charges = runtime.profession.specialization.state as Readonly<Partial<ThiefStealthAttackChargeState>>;
   return (charges.stealthAttackCharges || 0) > 0 && (charges.stealthAttackExpiresAt || 0) > at;
 }
 
@@ -82,7 +83,7 @@ export function reactThiefStealthBreakingStrike(runtime: ThiefRuntime, event: Gw
 }
 
 /** The same-instant strike allowance: one stealth attack may still claim stealth broken at this exact instant. */
-export function thiefSameInstantStealthBreak(runtime: ThiefRuntime): boolean {
+export function thiefSameInstantStealthBreak(runtime: MechanicQueriesOf<ThiefRuntime>): boolean {
   return runtime.profession.core.strikeBrokeStealthAt === runtime.time;
 }
 

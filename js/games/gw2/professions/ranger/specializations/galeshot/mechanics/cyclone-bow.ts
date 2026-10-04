@@ -1,3 +1,4 @@
+import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
 import { denySkillCast as deny } from '#gw2/platform/engine/skills/availability.js';
 import {
   balanceProfileNumber,
@@ -94,7 +95,10 @@ function applyMistral(context: RangerRuntime, event: Gw2ResolverEvent): void {
 // Gate Galeshot casts by Cyclone Bow ownership, arrows, Wind Force, and the
 // Perilous Skies replacement before the shared Ranger checks run.
 
-export function galeshotCastAvailability(context: RangerRuntime, skill: RangerSkill): AvailabilityResult {
+export function galeshotCastAvailability(
+  context: MechanicQueriesOf<RangerRuntime>,
+  skill: RangerSkill
+): AvailabilityResult {
   const state = galeshotState.from(context);
   if (skill.cycloneBowSkill && !state.cycloneBowActive) {
     return deny(skill, 'ranger.cyclone-bow-inactive', 'summon the Cyclone Bow first.');

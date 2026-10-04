@@ -169,7 +169,7 @@ export function gluttonyLifeForceMultiplier(runtime: NecromancerRuntime): number
 /** Siphon packets apply the same active Soul Barbs window outside ordinary strike modifiers. */
 export function soulBarbsSiphonMultiplier(runtime: NecromancerRuntime): number {
   return hasTrait(runtime, TRAIT.SOUL_BARBS) &&
-    runtime.query.timeline.timedActive('necromancer-soul-barbs', runtime.time)
+    runtime.combat.timeline.timedActive('necromancer-soul-barbs', runtime.time)
     ? 1.1
     : 1;
 }

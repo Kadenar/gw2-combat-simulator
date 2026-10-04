@@ -1,3 +1,4 @@
+import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
 import type { Skill } from '#gw2/platform/engine/skills/types.js';
 import {
   aeromancersTrainingRecharge,
@@ -39,7 +40,7 @@ const weaponRecharge = compileRechargeRules<ElementalistRuntimeState, Elementali
  * next-cast empowerments, including when queried for bulk cooldown reductions.
  */
 export function elementalistRechargeWork(
-  context: ElementalistRuntime,
+  context: MechanicQueriesOf<ElementalistRuntime>,
   skill: Skill,
   duration: number,
   releasing = false

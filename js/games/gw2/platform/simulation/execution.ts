@@ -1,6 +1,6 @@
 import type { SimulationEventBase } from '#gw2/platform/engine/events/events.js';
 import type { Skill } from '#gw2/platform/engine/skills/types.js';
-import type { CastCommand, CooldownController } from '#gw2/platform/execution/types.js';
+import type { CastCommand, AvailabilityResult } from '#gw2/platform/execution/types.js';
 import type { RotationCursor } from '#gw2/platform/execution/rotation-cursor.js';
 import type { Gw2ResolverEvent, Gw2ResolverReactionContributions } from '#gw2/platform/resolver/types.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
@@ -11,8 +11,8 @@ import type { ObservationPolicy } from '#kernel/execution/observation.js';
 /** Drivers select work; the shared runtime retains the clock, reservations, and event ordering. */
 export interface RuntimeDriverContext<T extends object> {
   readonly runtime: Gw2Runtime<T>;
-  readonly cooldowns: CooldownController;
-  readonly inFlightEnd: (id: string) => number;
+  readonly evaluateReadiness: (skill: Skill, command: CastCommand) => AvailabilityResult;
+  readonly resetCooldowns: () => void;
   readonly advanceFrontier: (reason: string) => void;
   readonly acceptCast: (skill: Skill, command: CastCommand) => void;
   readonly reject: (reason: string) => void;

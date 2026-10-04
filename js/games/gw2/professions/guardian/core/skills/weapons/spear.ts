@@ -1,3 +1,4 @@
+import type { MechanicContext } from '#gw2/platform/profession-definition/mechanic-context.js';
 import { strikeEffectCoefficient, strikeEffectTicks } from '#gw2/platform/engine/effects/authoring.js';
 import { effectFirstAt, scaleCastBoundTiming } from '#gw2/platform/engine/effects/materializer.js';
 import {
@@ -7,7 +8,7 @@ import {
   requireEffect
 } from '#gw2/platform/engine/skills/balance-profiles.js';
 import type { SkillEffect } from '#gw2/platform/engine/skills/types.js';
-import type { Gw2Runtime, RuntimeCast } from '#gw2/platform/simulation/runtime-state.js';
+import type { RuntimeCast } from '#gw2/platform/simulation/runtime-state.js';
 import { gw2EffectExpiresAt } from '#gw2/platform/skills/timing.js';
 import { GUARDIAN_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/guardian/core/profiles.js';
 import type { GuardianRuntimeState, GuardianSkill } from '#gw2/professions/guardian/types.js';
@@ -19,7 +20,7 @@ import { impactEffects } from '#gw2/platform/engine/effects/authoring.js';
 import type { Skill } from '#gw2/platform/engine/skills/types.js';
 import { GUARDIAN_SKILL_IDS as ID } from '#gw2/professions/guardian/data/ids.js';
 
-type Runtime = Gw2Runtime<GuardianRuntimeState, GuardianSkill>;
+type Runtime = MechanicContext<GuardianRuntimeState, GuardianSkill>;
 const consumedCharges = new WeakMap<RuntimeCast<GuardianSkill>, number>();
 
 /** Select illumination at acceptance so delayed packets cannot borrow a later charge or edit executed history. */

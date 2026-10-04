@@ -29,16 +29,16 @@ export function armMesmerSkillFlip(context: MesmerRuntime, cast: RuntimeCast<Mes
 export function prepareMesmerMantra(context: MesmerRuntime, flipId: number): void {
   const flip = context.helpers.skillsById.get(flipId)!;
   armSkillFlip(context.profession.core.availableFlips, flipId, context.time);
-  context.ammo.delete(flipId);
+  context.cooldownController.retireAmmo(flipId);
   context.cooldownController.clear(flipId);
   context.cooldownController.ensureAmmo(flip);
 }
 
 /** Exhausting the final mantra charge closes its flip and discards the spent pool atomically. */
 export function exhaustMesmerMantra(context: MesmerRuntime, skill: MesmerSkill): void {
-  if ((context.ammo.get(skill.id)?.charges ?? 0) > 0) return;
+  if ((context.cooldownController.readAmmo(skill.id)?.charges ?? 0) > 0) return;
   consumeSkillFlip(context.profession.core.availableFlips, skill.id);
-  context.ammo.delete(skill.id);
+  context.cooldownController.retireAmmo(skill.id);
   context.cooldownController.clear(skill.id);
 }
 
@@ -46,9 +46,9 @@ export function exhaustMesmerMantra(context: MesmerRuntime, skill: MesmerSkill):
 export function extendMesmerParentRecharge(context: MesmerRuntime, skill: MesmerSkill): void {
   const at = context.time;
   const parent = context.helpers.skillsById.get(skill.flipParentId!);
-  const readyAt = parent ? context.cooldowns.get(parent.id) : null;
+  const readyAt = parent ? context.cooldownController.readyAt(parent.id) : null;
   if (!parent || readyAt == null) return;
-  const progress = context.rechargeProgress.get(parent.id);
+  const progress = context.cooldownController.rechargeFor(parent.id);
   const work = progress
     ? context.cooldownController.remaining(parent, progress, at)
     : Math.max(0, readyAt - at) * context.cooldownController.rate(parent);

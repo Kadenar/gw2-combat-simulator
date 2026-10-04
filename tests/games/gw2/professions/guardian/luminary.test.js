@@ -118,17 +118,17 @@ test('Illuminating Inspiration delegates capped reductions for the three radiant
             [ids.RADIANT_COURAGE, 0],
             [ids.PIERCING_STANCE, 99]
           ]) {
-            runtime.cooldowns.set(id, work);
+            runtime.cooldownController.setReadyAt(id, work);
             runtime.rechargeProgress.set(id, { startedAt: 0, work });
           }
         }
       }
     );
     const runtime = observedRuntime(result);
-    assert.ok(Math.abs(runtime.cooldowns.get(ids.RADIANT_JUSTICE) - (enabled ? 12.8 : 16)) < 1e-9);
-    assert.equal(runtime.cooldowns.get(ids.RADIANT_RESOLVE), enabled ? runtime.time : 1.6);
-    assert.equal(runtime.cooldowns.get(ids.RADIANT_COURAGE), 0);
-    assert.equal(runtime.cooldowns.get(ids.PIERCING_STANCE), 79.2);
+    assert.ok(Math.abs(runtime.cooldownController.readyAt(ids.RADIANT_JUSTICE) - (enabled ? 12.8 : 16)) < 1e-9);
+    assert.equal(runtime.cooldownController.readyAt(ids.RADIANT_RESOLVE), enabled ? runtime.time : 1.6);
+    assert.equal(runtime.cooldownController.readyAt(ids.RADIANT_COURAGE), 0);
+    assert.equal(runtime.cooldownController.readyAt(ids.PIERCING_STANCE), 79.2);
   }
 });
 

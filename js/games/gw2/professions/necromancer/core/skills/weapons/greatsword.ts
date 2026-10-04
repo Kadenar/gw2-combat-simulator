@@ -1,4 +1,3 @@
-import { remainingTargetHealthBelow } from '#gw2/platform/combat/state/target-health.js';
 /** Canonical Core necromancer skill fragments grouped by their GW2 owner. */
 import { impactEffects } from '#gw2/platform/engine/effects/authoring.js';
 import { NECROMANCER_SKILL_IDS as ID } from '#gw2/professions/necromancer/data/ids.js';
@@ -142,7 +141,7 @@ export const NECROMANCER_WEAPONS_GREATSWORD_SKILL_MECHANICS: Readonly<Record<num
     sideEffects: [
       {
         on: 'castCommit',
-        when: (runtime) => remainingTargetHealthBelow(runtime.config, runtime, 0.5),
+        when: (runtime) => runtime.combat.targetHealthBelow(0.5),
         do: { type: 'rechargeReset', skillIds: [ID.GRAVEDIGGER] }
       }
     ],

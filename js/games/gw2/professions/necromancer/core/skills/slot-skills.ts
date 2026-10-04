@@ -605,7 +605,8 @@ export function applyNecromancerSignetPassive(
   const state = runtime.profession.core;
   const id = policy.skillId;
   const inShroud = Boolean(state.activeShroud && state.activeShroud !== 'lich');
-  if ((runtime.cooldowns.get(id) ?? 0) > runtime.time && !signetsOfSufferingPassive(runtime, inShroud)) return;
+  if ((runtime.cooldownController.readyAt(id) ?? 0) > runtime.time && !signetsOfSufferingPassive(runtime, inShroud))
+    return;
   const profile = requireBalanceProfileFromContext(runtime, policy.profileId);
   if (policy.passive === 'undeath') grantNecromancerLifeForce(runtime, balanceProfileNumber(profile, 'lifeForceGain'));
   else {

@@ -1,3 +1,4 @@
+import type { MechanicContext } from '#gw2/platform/profession-definition/mechanic-context.js';
 import { selectedSkillIdSet } from '#gw2/platform/builds/selected-skills.js';
 import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
 import type { Gw2TraitLookupContext } from '#gw2/platform/combat/state/traits.js';
@@ -13,7 +14,7 @@ import type { Skill, SkillId } from '#gw2/platform/engine/skills/types.js';
 import { gw2ConfiguredWeaponSet } from '#gw2/platform/equipment/weapons/loadout.js';
 import { buildResolverCondition, buildResolverStrike } from '#gw2/platform/resolver/packets.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
-import type { Gw2Runtime, RuntimeCast } from '#gw2/platform/simulation/runtime-state.js';
+import type { RuntimeCast } from '#gw2/platform/simulation/runtime-state.js';
 import { gw2EffectExpiresAt } from '#gw2/platform/skills/timing.js';
 import { warriorAmmunition } from '#gw2/professions/warrior/core/mechanics/ammunition.js';
 
@@ -114,8 +115,9 @@ export function gunsaberEntryTraits(runtime: Runtime, cast: RuntimeCast<WarriorS
       });
   }
 
-  runtime.procs.readyAt['warrior.bladesworn.gunsaberSwapTrait'] = canonicalTime(
-    runtime.time + balanceProfileNumber(profile, 'internalCooldown')
+  runtime.procs.setDeadline(
+    'warrior.bladesworn.gunsaberSwapTrait',
+    canonicalTime(runtime.time + balanceProfileNumber(profile, 'internalCooldown'))
   );
   const flow = requireEffect(profile, 'buff', 'positive-flow');
   if (!flow) return;
@@ -185,7 +187,10 @@ export function ammoTraits(runtime: Runtime, cast: RuntimeCast<WarriorSkill>): v
     'rechargeReduction'
   );
   let reduced = 0;
-  for (const id of new Set([...runtime.cooldowns.keys(), ...runtime.ammo.keys()])) {
+  for (const id of new Set([
+    ...runtime.cooldownController.cooldownSkillIds(),
+    ...runtime.cooldownController.ammoSkillIds()
+  ])) {
     const skill = runtime.helpers.skillsById.get(id);
     if (skill && onBar(skill))
       reduced += runtime.cooldownController.reduceSkillRecharge(skill, reduction, runtime.time);
@@ -206,7 +211,7 @@ export function ammoTraits(runtime: Runtime, cast: RuntimeCast<WarriorSkill>): v
   });
 }
 
-type Runtime = Gw2Runtime<WarriorRuntimeState, WarriorSkill>;
+type Runtime = MechanicContext<WarriorRuntimeState, WarriorSkill>;
 
 /** Explosions extend the granted Glory window before cartridge reactions run. */
 export function gunsAndGloryExplosion(runtime: Runtime, event: Gw2ResolverEvent): void {
@@ -277,9 +282,12 @@ const SHARP_AS_THE_WIND_PARENTS = new Map(
   [...SHARP_AS_THE_WIND_VARIANTS].map(([parentId, variantId]) => [variantId, parentId])
 );
 
-export function resolveSharpAsTheWindSkillId(context: Gw2TraitLookupContext, skillId: SkillId): SkillId {
+export function resolveSharpAsTheWindSkillId(
+  context: import('#gw2/platform/profession-definition/runtime-context.js').TraitSelectionContext,
+  skillId: SkillId
+): SkillId {
   const parentId = SHARP_AS_THE_WIND_PARENTS.get(Number(skillId)) ?? Number(skillId);
   const variantId = SHARP_AS_THE_WIND_VARIANTS.get(parentId);
   if (!variantId) return skillId;
-  return hasTrait(context, TRAIT.SHARP_AS_THE_WIND) ? variantId : parentId;
+  return context.hasTrait(TRAIT.SHARP_AS_THE_WIND) ? variantId : parentId;
 }

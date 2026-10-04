@@ -1,4 +1,5 @@
-import { ENGINEER_SKILL_IDS as SKILL } from '#gw2/professions/engineer/data/ids.js';
+import { ENGINEER_SKILL_IDS as SKILL, ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
+import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import type { Skill } from '#gw2/platform/engine/skills/types.js';
 import { GEAR_SLOTS } from '#gw2/platform/equipment/gear/slots.js';
 import { DEFAULT_WEAPON_SIGILS, normalizeWeaponSigils } from '#gw2/platform/equipment/sigils/loadout.js';
@@ -165,7 +166,9 @@ const engineerBuildCodec = createProfessionBuildCodec<EngineerCanonicalBuild>({
       selectedMorphSkillIds,
       // Rebind legacy names and saved variant IDs to the build's selected Evolve before UI rendering.
       rotation: normalizeMorphRotation(saved.rotation, selectedMorphSkillIds).map((command) =>
-        command.type === 'cast' ? { ...command, skillId: resolveAmalgamSkillId(traits, command.skillId) } : command
+        command.type === 'cast'
+          ? { ...command, skillId: resolveAmalgamSkillId(hasTrait(traits, TRAIT.DOUBLE_HELIX), command.skillId) }
+          : command
       )
     };
   },

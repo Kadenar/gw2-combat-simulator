@@ -1,3 +1,4 @@
+import type { MechanicCombatContext } from '#gw2/platform/profession-definition/mechanic-context.js';
 import type { ProfessionUiCallbackContext, ProfessionUiContract } from '#gw2/platform/profession-presentation/types.js';
 import type { Skill, SkillId } from '#gw2/platform/engine/skills/types.js';
 import type { EffectMetadata } from '#gw2/platform/engine/events/events.js';
@@ -5,7 +6,7 @@ import type { SimulationActorType } from '#gw2/platform/engine/events/actors.js'
 import type { Gw2CanonicalBuild, Gw2Build } from '#gw2/platform/builds/types.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
-import type { Gw2ResolverRuntime } from '#gw2/platform/resolver/runtime-state.js';
+
 import type { ProfessionTraitSelection } from '#gw2/professions/shared/trait-data.js';
 import type { GuardianCoreState } from '#gw2/professions/guardian/core/state.js';
 import type { GuardianDragonhunterState } from '#gw2/professions/guardian/specializations/dragonhunter/state.js';
@@ -71,7 +72,7 @@ export interface GuardianStrikeFields {
   readonly totalHits?: number;
 }
 
-export type GuardianResolverContext = Gw2ResolverRuntime & {
+export type GuardianResolverContext = MechanicCombatContext & {
   config: GuardianConfig;
   profession: GuardianRuntimeState;
 };

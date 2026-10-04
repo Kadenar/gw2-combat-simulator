@@ -1,3 +1,4 @@
+import { createMechanicCombatServices } from '#gw2/platform/resolver/mechanic-services.js';
 import { effectPlanningState } from '#tests/helpers/effect-report.js';
 import { captureEffectEmissions } from '#tests/helpers/effect-emission.js';
 import { applyBalanceProfilePatch } from '#gw2/integrations/patches/authoring/patches.js';
@@ -153,6 +154,8 @@ test('Tempest preserves aura damage windows and grants boons for every actual au
       boons: new Map([['tempestuous aria', [{ at: 0, expiresAt: 3, stacks: 1 }]]]),
       effects: captureEffectEmissions({ submit: (event) => queued.push(event) }).effects
     };
+    // Bind real owner operations for this focused mechanic fixture.
+    context.combat = createMechanicCombatServices(context);
     applyTempestResolverAura(context, { type: 'elementalist.aura', at: 1, skillName: 'Fixture Aura', ...origin });
     assert.equal(context.boons.get('tempestuous aria')[0].expiresAt, 8);
     assert.deepEqual(
@@ -180,6 +183,8 @@ test('Catalyst caps and refreshes Empowering Auras while granting Elemental Epit
       announce: (request) => procs.push(request.announcement.name)
     }).effects
   };
+  // Bind real owner operations for this focused mechanic fixture.
+  context.combat = createMechanicCombatServices(context);
   const event = { type: 'elementalist.aura', at: 1, skillName: 'Fixture Aura', sourceId: 1 };
   catalystModule.hooks.reactions['aura.applied'](context, event);
   assert.equal(context.boons.get('empowering auras')[0].expiresAt, 9);

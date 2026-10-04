@@ -1,3 +1,4 @@
+import type { ReadonlyMechanicState } from '#gw2/platform/profession-definition/runtime-context.js';
 import type { RuntimeCast } from '#gw2/platform/simulation/runtime-state.js';
 import { refreshElementalistBuffs } from '#gw2/professions/elementalist/core/mechanics/resolution-helpers.js';
 /**
@@ -22,7 +23,10 @@ import {
 } from '#gw2/professions/elementalist/core/state.js';
 import type { ElementalistRuntime, ElementalistSkill } from '#gw2/professions/elementalist/types.js';
 /** Orb elements still live at `at`; shared by availability gating and the Weaver orb handler. */
-export function activeHammerOrbElements(state: ElementalistCoreState, at: number): ElementalistAttunement[] {
+export function activeHammerOrbElements(
+  state: ReadonlyMechanicState<ElementalistCoreState>,
+  at: number
+): ElementalistAttunement[] {
   return ELEMENTALIST_ATTUNEMENTS.filter((element) => {
     const expiresAt = state.hammerOrbs[element];
     return expiresAt != null && expiresAt >= at;
@@ -30,7 +34,10 @@ export function activeHammerOrbElements(state: ElementalistCoreState, at: number
 }
 
 /** Core compatibility rule for spending an orb: only one matching the current primary attunement counts. */
-export function hammerOrbMatchesAttunement(state: ElementalistCoreState, element: ElementalistAttunement): boolean {
+export function hammerOrbMatchesAttunement(
+  state: ReadonlyMechanicState<ElementalistCoreState>,
+  element: ElementalistAttunement
+): boolean {
   return element === state.primaryAttunement;
 }
 

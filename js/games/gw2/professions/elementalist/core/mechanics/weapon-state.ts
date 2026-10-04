@@ -1,3 +1,5 @@
+import type { ReadonlyMechanicState } from '#gw2/platform/profession-definition/runtime-context.js';
+import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
 import { ELEMENTALIST_LOADOUT_SKILL_IDS } from '#gw2/professions/elementalist/data/skill-identities.js';
 import type { RuntimeCast } from '#gw2/platform/simulation/runtime-state.js';
 /**
@@ -45,13 +47,13 @@ export function shareAttunementVariantRecharge(context: ElementalistRuntime, ski
   }
 
   const identity = loadoutId(skill.id);
-  const readyAt = context.cooldowns.get(skill.id);
-  const ammo = context.ammo.get(skill.id);
+  const readyAt = context.cooldownController.readyAt(skill.id);
+  const ammo = context.cooldownController.readAmmo(skill.id);
   if (readyAt == null && !ammo) return;
   for (const candidate of context.helpers.skills) {
     if (candidate.type === skill.type && loadoutId(candidate.id) === identity) {
       if (readyAt != null) context.cooldownController.copy(skill.id, candidate.id);
-      if (ammo) context.ammo.set(candidate.id, ammo);
+      if (ammo) context.cooldownController.linkAmmo(skill.id, candidate.id);
     }
   }
 }
@@ -61,9 +63,9 @@ export function shareAttunementVariantRecharge(context: ElementalistRuntime, ski
  * command — only a different attunement, never elapsed time, makes them usable.
  */
 export function weaponAttunementAvailable(
-  context: ElementalistRuntime,
+  context: MechanicQueriesOf<ElementalistRuntime>,
   skill: Skill,
-  state: ElementalistCoreState
+  state: ReadonlyMechanicState<ElementalistCoreState>
 ): AvailabilityResult {
   // A carried root exposes its shared-controller-approved next step even after
   // the Elementalist has moved to a different attunement.
@@ -88,7 +90,9 @@ export function weaponAttunementAvailable(
 }
 
 /** Reads the specialization-owned secondary attunement, or null when the active specialization has none. */
-export function activeSecondaryAttunement(context: ElementalistRuntime): ElementalistAttunement | null {
+export function activeSecondaryAttunement(
+  context: MechanicQueriesOf<ElementalistRuntime>
+): ElementalistAttunement | null {
   const specialization = context.profession.specialization.state as Record<string, unknown>;
   const value = specialization.secondaryAttunement;
   return typeof value === 'string' ? (value as ElementalistAttunement) : null;
@@ -120,7 +124,7 @@ export function inFlightAutoattackCarryover(
   context: ElementalistRuntime,
   attunement: ElementalistAttunement
 ): ElementalistCoreState['pendingAutoattackCarryover'] {
-  for (const skillId of context.inFlight.keys()) {
+  for (const skillId of context.castController.inFlightSkillIds()) {
     const position = context.helpers.autoattackChainPositions.get(Number(skillId));
     const skill = context.helpers.skillsById.get(Number(skillId));
     if (position && position.root !== ID.AERIAL_AGILITY && skill?.attunement === attunement) {

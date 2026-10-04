@@ -1,4 +1,6 @@
+import { createExecutedFacts } from '#gw2/platform/results/executed-facts.js';
 import { captureEffectEmissions } from '#tests/helpers/effect-emission.js';
+import { createCooldownController } from '#gw2/platform/execution/cooldowns.js';
 import { applySkillSideEffects } from '#gw2/platform/simulation/side-effects.js';
 import { mesmerCoreHooks } from '#gw2/professions/mesmer/core/hooks.js';
 import { projectObservedState } from '#tests/helpers/observed-runtime.js';
@@ -34,9 +36,9 @@ function lifetimeContext(traits = []) {
       activeWeaponSet: 1,
       profession: profession.createState(config),
       cooldowns: new Map(),
+      rechargeProgress: new Map(),
       ammo: new Map()
     },
-    cooldownController: { reduceSkillRecharge() {}, clear: (id) => context.cooldowns.delete(id), rate: () => 1 },
     hasBuff: () => false,
     tasks: { nextAt: () => Infinity },
     eventsOfType: (type) => events.filter((event) => event.type === type),
@@ -50,6 +52,12 @@ function lifetimeContext(traits = []) {
     }
   };
   Object.assign(context, context.state);
+  // Lifetime fixtures use the same recharge owner as execution for resets and lockout retirement.
+  context.cooldownController = createCooldownController({
+    state: context,
+    rechargeDuration: () => 10,
+    skillFor: (id) => context.catalog.skillsById.get(id)
+  });
   context.helpers = context.catalog;
   context.effects = captureEffectEmissions({
     now: () => context.time,
@@ -63,7 +71,7 @@ function lifetimeContext(traits = []) {
       return event;
     }
   }).effects;
-  context.mesmerRuntime.context = context;
+  context.facts = createExecutedFacts(events);
   context.history = events;
   context.schedule = () => {};
 
@@ -99,7 +107,7 @@ test('Mimic accepts utility starts through its exact deadline and consumes the r
     assert.equal(core.mimicUntil, 10.301);
     context.start = start;
     context.fullEnd = start + 1;
-    context.cooldowns.set(utility.id, 99);
+    context.cooldownController.setReadyAt(utility.id, 99);
     context.ammo.set(utility.id, { lockoutReadyAt: 99 });
     complete(context, {
       start: context.start,
@@ -112,10 +120,10 @@ test('Mimic accepts utility starts through its exact deadline and consumes the r
       skill: utility
     });
     const consumed = start <= 10.301;
-    assert.equal(context.cooldowns.has(utility.id), !consumed);
-    assert.equal(context.ammo.get(utility.id).lockoutReadyAt, consumed ? 0 : 99);
+    assert.equal(context.cooldownController.hasCooldown(utility.id), !consumed);
+    assert.equal(context.cooldownController.readAmmo(utility.id).lockoutReadyAt, consumed ? 0 : 99);
     assert.equal(context.events.filter((event) => event.source === 'Mimic').length, consumed ? 1 : 0);
-    context.cooldowns.set(utility.id, 100);
+    context.cooldownController.setReadyAt(utility.id, 100);
     complete(context, {
       start: context.start,
       fullEnd: context.fullEnd,
@@ -126,7 +134,7 @@ test('Mimic accepts utility starts through its exact deadline and consumes the r
       rechargeWork: 0,
       skill: utility
     });
-    assert.equal(context.cooldowns.get(utility.id), 100);
+    assert.equal(context.cooldownController.readyAt(utility.id), 100);
   }
 });
 

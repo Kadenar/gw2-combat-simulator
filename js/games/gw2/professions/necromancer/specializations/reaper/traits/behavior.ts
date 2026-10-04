@@ -45,7 +45,7 @@ const chillingNovaCriticalHit = criticalProcHandler<
       balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.CHILLING_NOVA), 'cooldown'),
     readyAt: (context) => context.procs.deadline('necromancer.reaper.chillingNova') || 0,
     setReadyAt: (context, readyAt) => {
-      context.procs.readyAt['necromancer.reaper.chillingNova'] = readyAt;
+      context.procs.setDeadline('necromancer.reaper.chillingNova', readyAt);
     }
   },
   handler: (context, event, _details, application) => {

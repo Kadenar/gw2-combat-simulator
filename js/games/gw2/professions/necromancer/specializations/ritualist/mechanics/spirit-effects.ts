@@ -30,7 +30,7 @@ function recipientKeys(event: NecromancerResolverEvent): string[] {
 }
 
 function spellIcon(context: NecromancerResolverContext, skillId: SkillId): string {
-  return context.helpers.skillsById?.get(skillId)?.icon || '';
+  return context.helpers.skillsById.get(skillId)?.icon || '';
 }
 
 // Resolve a Nightmare Weapon stack as a non-critical life steal plus vulnerability,

@@ -1,10 +1,7 @@
-import { hasTrait } from '#gw2/platform/combat/state/traits.js';
-import {
-  balanceProfileNumber,
-  requireBalanceProfileFromContext
-} from '#gw2/platform/engine/skills/balance-profiles.js';
+import type { MaximumAmmoContext } from '#gw2/platform/profession-definition/runtime-context.js';
+import { balanceProfileNumber } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { ENGINEER_SKILL_IDS as ID, ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
-import type { EngineerRuntime, EngineerSkill, EngineerResolverEvent } from '#gw2/professions/engineer/types.js';
+import type { EngineerSkill, EngineerResolverEvent } from '#gw2/professions/engineer/types.js';
 import { defineTrait, traitAttributeEffects } from '#gw2/platform/profession-definition/traits.js';
 import type { Skill } from '#gw2/platform/engine/skills/types.js';
 import type { TraitDefinition } from '#gw2/platform/profession-definition/traits.js';
@@ -22,12 +19,13 @@ import { activeBoonStacks as modifierBoonStacks } from '#gw2/professions/enginee
 
 // Ex Machina (adept trait): Function Gyro gets a minimum of 2 ammo charges.
 
-export function scrapperMaximumAmmo(context: EngineerRuntime, skill: EngineerSkill, maximum: number): number {
-  return skill.id === ID.FUNCTION_GYRO && hasTrait(context.config, TRAIT.EX_MACHINA)
-    ? Math.max(
-        balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.EX_MACHINA), 'maximumAmmo'),
-        maximum || 0
-      )
+export function scrapperMaximumAmmo(
+  context: MaximumAmmoContext<object>,
+  skill: EngineerSkill,
+  maximum: number
+): number {
+  return skill.id === ID.FUNCTION_GYRO && context.hasTrait(TRAIT.EX_MACHINA)
+    ? Math.max(balanceProfileNumber(context.requireBalanceProfile(TRAIT.EX_MACHINA), 'maximumAmmo'), maximum || 0)
     : maximum;
 }
 

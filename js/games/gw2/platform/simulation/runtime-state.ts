@@ -1,3 +1,13 @@
+import type { MechanicContext, MechanicQueryContext } from '#gw2/platform/profession-definition/mechanic-context.js';
+import type {
+  CastDetailContext,
+  EffectOwnershipContext,
+  MaximumAmmoContext,
+  SelectedContentContext,
+  RechargeStartContext,
+  SkillSelectionContext
+} from '#gw2/platform/profession-definition/runtime-context.js';
+import type { CastControl } from '#gw2/platform/execution/cast-execution.js';
 import type { Gw2QueryProfession } from '#gw2/platform/combat/query/combat-query.js';
 import type { EndurancePolicy } from '#gw2/platform/combat/resources/endurance-policy.js';
 import type { ResourceKey, ResourcePolicy } from '#gw2/platform/combat/resources/resource-policy.js';
@@ -98,11 +108,13 @@ export interface Gw2Runtime<T extends object = object, TSkill extends Skill = Sk
   readonly cooldowns: Map<SkillId, number>;
   readonly rechargeProgress: Map<SkillId, RechargeProgress>;
   readonly ammo: Map<SkillId, AmmoState>;
-  readonly lockouts: Map<string, number>;
-  readonly inFlight: Map<SkillId, Set<string>>;
+  readonly castController: CastControl;
   readonly effectReactions: ReturnType<typeof createEffectReactions>;
   readonly cooldownController: CooldownController;
+  readonly mechanics: MechanicContext<T, TSkill>;
+  readonly mechanicQueries: MechanicQueryContext<T, TSkill>;
   readonly history: Gw2ResolverEvent[];
+  readonly facts: ReturnType<typeof import('#gw2/platform/results/executed-facts.js').createExecutedFacts>;
   readonly steps: SimulationStep[];
   resourceController: ReturnType<typeof createRuntimeResources<T>>;
   endurance: ReturnType<typeof createRuntimeEndurance<T>>;
@@ -141,16 +153,16 @@ export interface RuntimeProfession<T extends object, TSkill extends Skill = Skil
   readonly damageEffects?: readonly import('#gw2/platform/skill-damage/execution.js').DamageEffectDefinition[];
   /** Content owners prepare shared damage inputs; an optional skill adds its occurrence-specific state. */
   prepareDamageState?(
-    runtime: Gw2Runtime<T, TSkill>,
+    runtime: MechanicContext<T, TSkill>,
     skill: TSkill | undefined,
     inputs: import('#gw2/platform/skill-damage/types.js').DamageInputs
   ): void;
   /** Native owners expose accepted state using their existing stores and balance values. */
   buffPolicies?(
-    runtime: Gw2Runtime<T, TSkill>
+    runtime: MechanicQueryContext<T, TSkill>
   ): readonly import('#gw2/platform/combat/effect-state.js').BuffStatePolicy[];
   observeEffects?(
-    runtime: Gw2Runtime<T, TSkill>
+    runtime: MechanicQueryContext<T, TSkill>
   ): readonly import('#gw2/platform/combat/effect-state.js').EffectState[];
   readonly catalog: CanonicalCatalog<TSkill>;
   /** Full profession identities remain valid selections when the active specialization narrows executable skills. */
@@ -159,73 +171,79 @@ export interface RuntimeProfession<T extends object, TSkill extends Skill = Skil
   readonly traitTriggers?: readonly TraitTrigger<T, TSkill>[];
   createState(config: Gw2Config): T;
   projectPlanningState?(input: Gw2PlanningStateInput<T>): unknown;
-  initialize?(runtime: Gw2Runtime<T, TSkill>): void;
+  initialize?(runtime: MechanicContext<T, TSkill>): void;
   /** Select cancellation ownership without publishing or transforming the packet. */
-  effectOwner?(runtime: Gw2Runtime<T, TSkill>, event: SimulationEventBase): WorkOwner | undefined;
+  effectOwner?(context: EffectOwnershipContext<TSkill>, event: SimulationEventBase): WorkOwner | undefined;
   /** Prepare at admission or an owned future impact; null suppresses the application. */
-  prepareEvent?(runtime: Gw2Runtime<T, TSkill>, event: SimulationEventBase): SimulationEventBase | null;
+  prepareEvent?(runtime: MechanicContext<T, TSkill>, event: SimulationEventBase): SimulationEventBase | null;
   /** Profession duration rules run once at application, independently of payload authoring and source identity. */
   boonDuration?(
-    runtime: Gw2Runtime<T, TSkill>,
+    context: SelectedContentContext,
     event: SimulationEventBase,
     baseDuration: number,
     scaledDuration: number
   ): number;
-  onCombatStart?(runtime: Gw2Runtime<T, TSkill>): void;
-  readonly resources?: Partial<Record<ResourceKey, ResourcePolicy<Gw2Runtime<T, TSkill>>>>;
-  readonly endurance?: EndurancePolicy<Gw2Runtime<T, TSkill>>;
-  reserveRecharge?(runtime: Gw2Runtime<T, TSkill>, skill: TSkill, work: number): number;
+  onCombatStart?(runtime: MechanicContext<T, TSkill>): void;
+  readonly resources?: Partial<Record<ResourceKey, ResourcePolicy<MechanicContext<T, TSkill>>>>;
+  readonly endurance?: EndurancePolicy<MechanicContext<T, TSkill>>;
+  reserveRecharge?(runtime: MechanicContext<T, TSkill>, skill: TSkill, work: number): number;
   /** Resolve the currently selected action before catalog, equipment, chain, and recharge checks. */
-  modifySkillId?(runtime: Gw2Runtime<T, TSkill>, skillId: SkillId): SkillId;
-  rechargeWork?(runtime: Gw2Runtime<T, TSkill>, skill: TSkill, work: number): number;
+  modifySkillId?(context: SkillSelectionContext<T>, skillId: SkillId): SkillId;
+  rechargeWork?(runtime: MechanicQueryContext<T, TSkill>, skill: TSkill, work: number): number;
   /** Select the activation duration from current state before reserving its completion and packet timing. */
-  castDurationMs?(runtime: Gw2Runtime<T, TSkill>, skill: TSkill, durationMs: number): number;
+  castDurationMs?(runtime: MechanicQueryContext<T, TSkill>, skill: TSkill, durationMs: number): number;
   /** Capture the selected cast variant once so reports do not query later profession state. */
-  castDetail?(runtime: Gw2Runtime<T, TSkill>, cast: RuntimeCast<TSkill>): string | undefined;
+  castDetail?(context: CastDetailContext<T>, cast: RuntimeCast<TSkill>): string | undefined;
   /** Selected mechanics may move the recharge anchor while retaining one immutable cast reservation. */
   rechargeStart?(
-    runtime: Gw2Runtime<T, TSkill>,
+    context: RechargeStartContext,
     cast: Pick<RuntimeCast<TSkill>, 'skill' | 'start' | 'fullEnd' | 'effectiveEnd' | 'cancelled'>,
     at: number
   ): number;
-  maximumAmmo?(runtime: Gw2Runtime<T, TSkill>, skill: TSkill, maximum: number): number;
-  availability?(runtime: Gw2Runtime<T, TSkill>, skill: TSkill, command: CastCommand): AvailabilityResult;
+  /** Capacity selection cannot mutate the pools whose initialization it controls. */
+  maximumAmmo?(context: MaximumAmmoContext<T>, skill: TSkill, maximum: number): number;
+  availability?(runtime: MechanicQueryContext<T, TSkill>, skill: TSkill, command: CastCommand): AvailabilityResult;
   readonly weaponSkillMatchesSet?: Gw2WeaponSkillMatcher;
   /** Capture dynamic field descriptors at acceptance, before cast-start resource mutations. */
   modifyComboFields?(
-    runtime: Gw2Runtime<T, TSkill>,
+    runtime: MechanicQueryContext<T, TSkill>,
     cast: RuntimeCast<TSkill>,
     fields: Skill['comboFields']
   ): Skill['comboFields'];
   modifyEffects?(
-    runtime: Gw2Runtime<T, TSkill>,
+    runtime: MechanicContext<T, TSkill>,
     cast: RuntimeCast<TSkill>,
     effects: readonly SkillEffect[]
   ): readonly SkillEffect[];
-  onCastStart?(runtime: Gw2Runtime<T, TSkill>, cast: RuntimeCast<TSkill>): void;
+  onCastStart?(runtime: MechanicContext<T, TSkill>, cast: RuntimeCast<TSkill>): void;
   /** Successful casts settle once after declared commit effects, including committed interruptions. */
-  onCastCommit?(runtime: Gw2Runtime<T, TSkill>, cast: RuntimeCast<TSkill>): void;
+  onCastCommit?(runtime: MechanicContext<T, TSkill>, cast: RuntimeCast<TSkill>): void;
   /** Cancelled attempts release reservations and cast-local state without granting commit rewards. */
-  onCastCancel?(runtime: Gw2Runtime<T, TSkill>, cast: RuntimeCast<TSkill>): void;
+  onCastCancel?(runtime: MechanicContext<T, TSkill>, cast: RuntimeCast<TSkill>): void;
   readonly sideEffectHandlers?: Readonly<
-    Record<string, (runtime: Gw2Runtime<T, TSkill>, context: ActionContext<TSkill>, action: SideEffectAction) => void>
+    Record<
+      string,
+      (runtime: MechanicContext<T, TSkill>, context: ActionContext<TSkill>, action: SideEffectAction) => void
+    >
   >;
   readonly autoattackChainOverrides?: readonly AutoattackChainOverride[];
   onAutoattackChainTransition?(
-    runtime: Gw2Runtime<T, TSkill>,
+    runtime: MechanicContext<T, TSkill>,
     cast: RuntimeCast<TSkill>,
     result: AutoattackChainTransitionResult
   ): void;
-  onCooldownReset?(runtime: Gw2Runtime<T, TSkill>): void;
+  onCooldownReset?(runtime: MechanicContext<T, TSkill>): void;
   /** Persistent ambient loops run normally but do not define an isolated cast's observation lifetime. */
   readonly backgroundTasks?: readonly string[];
-  readonly tasks?: Readonly<Record<string, (runtime: Gw2Runtime<T, TSkill>, data: unknown) => void>>;
-  readonly eventHandlers?: Readonly<Record<string, (runtime: Gw2Runtime<T, TSkill>, event: Gw2ResolverEvent) => void>>;
+  readonly tasks?: Readonly<Record<string, (runtime: MechanicContext<T, TSkill>, data: unknown) => void>>;
+  readonly eventHandlers?: Readonly<
+    Record<string, (runtime: MechanicContext<T, TSkill>, event: Gw2ResolverEvent) => void>
+  >;
   readonly reactions?: Partial<
     Record<
       Gw2ResolverStage,
       (
-        runtime: Gw2Runtime<T, TSkill>,
+        runtime: MechanicContext<T, TSkill>,
         event: Gw2ResolverEvent,
         details: Record<string, unknown>
       ) => Record<string, unknown> | void

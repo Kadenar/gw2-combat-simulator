@@ -1,11 +1,3 @@
-import type { EffectDelivery } from '#gw2/platform/simulation/effect-emission.js';
-import type { MesmerEventExtra } from '#gw2/professions/mesmer/data/types.js';
-import {
-  buildMesmerStrikes,
-  mesmerPacketOwner,
-  buildMesmerPacket,
-  buildMesmerConditions
-} from '#gw2/professions/mesmer/core/mechanics/packets.js';
 import { professionStaticRulesApplied } from '#gw2/platform/builds/attribute-provenance.js';
 import { advanceCriticalProc, criticalOpportunity } from '#gw2/platform/combat/critical-procs.js';
 import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
@@ -21,17 +13,24 @@ import {
 } from '#gw2/platform/engine/skills/balance-profiles.js';
 import type { BalanceProfile, Skill, StrikeTick } from '#gw2/platform/engine/skills/types.js';
 import { gw2ConfiguredWeaponSet } from '#gw2/platform/equipment/weapons/loadout.js';
+import type { MaximumAmmoContext } from '#gw2/platform/profession-definition/runtime-context.js';
 import { compileRechargeRules } from '#gw2/platform/profession-definition/trigger-rules.js';
 import { buildResolverCondition } from '#gw2/platform/resolver/packets.js';
+import type { EffectDelivery } from '#gw2/platform/simulation/effect-emission.js';
 import type { MesmerTraitDamage } from '#gw2/professions/mesmer/core/mechanics/illusions/types.js';
 import { timedStacks } from '#gw2/professions/mesmer/core/mechanics/modifier-queries.js';
+import {
+  buildMesmerConditions,
+  buildMesmerPacket,
+  buildMesmerStrikes,
+  mesmerPacketOwner
+} from '#gw2/professions/mesmer/core/mechanics/packets.js';
 import { mesmerMechanicsFor } from '#gw2/professions/mesmer/core/mechanics/runtime.js';
 import type { MesmerShatter, MesmerShatterResolution } from '#gw2/professions/mesmer/core/mechanics/shatter-types.js';
 import { mesmerProfiledTraitDamage } from '#gw2/professions/mesmer/core/profiles.js';
 import { MESMER_SKILL_IDS as ID, MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
-import type { MesmerConditionApplication, MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
+import type { MesmerConditionApplication, MesmerEventExtra, MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
 import type {
-  MesmerMechanics,
   MesmerResolverContext,
   MesmerResolverEvent,
   MesmerRuntime,
@@ -48,7 +47,6 @@ interface MethodOfMadnessContext {
  * qualifying interrupt lands, evaluating cooldown state at the impact time.
  */
 export function triggerChaoticInterruption(context: MesmerRuntime, event: SimulationEvent, skillName: string): void {
-  const runtime = mesmerMechanicsFor(context);
   if (!hasTrait(context, TRAIT.CHAOTIC_INTERRUPTION) || !context.config.target?.activatingSkills) {
     return;
   }
@@ -68,7 +66,7 @@ export function triggerChaoticInterruption(context: MesmerRuntime, event: Simula
   if (targetId == null) return;
 
   // Only affects weapon skills that are recharging.
-  const readyAt = context.cooldowns.get(targetId) || 0;
+  const readyAt = context.cooldownController.readyAt(targetId) || 0;
   if (!(readyAt > event.at + EPSILON)) return;
   const chaoticInterruptionProfile = requireBalanceProfileFromContext(context, TRAIT.CHAOTIC_INTERRUPTION);
   const reduction = balanceProfileNumber(chaoticInterruptionProfile, 'recharge');
@@ -78,7 +76,7 @@ export function triggerChaoticInterruption(context: MesmerRuntime, event: Simula
   if (defiant && !context.procs.claim(TRAIT.CHAOTIC_INTERRUPTION, TRAIT.CHAOTIC_INTERRUPTION, event.at)) return;
   context.cooldownController.reduceSkillRecharge(target, reduction, event.at);
 
-  runtime.context.effects.emit({
+  context.effects.emit({
     kind: 'announcement',
     log: true,
     attribution: { source: 'Trait', sourceId: TRAIT.CHAOTIC_INTERRUPTION, actorType: 'effect' },
@@ -94,14 +92,14 @@ export function triggerChaoticInterruption(context: MesmerRuntime, event: Simula
 
 /** Applies Illusionary Membrane after earlier post-resolution shatter traits. */
 export function triggerIllusionaryMembrane(
-  context: Readonly<Pick<MesmerMechanics, 'context'>>,
+  context: MesmerRuntime,
   shatter: MesmerShatter | undefined,
   skillName: string,
   at: number,
   delivery: EffectDelivery = {}
 ): void {
-  if (shatter?.slot !== 2 || !hasTrait(context.context, TRAIT.ILLUSIONARY_MEMBRANE)) return;
-  const illusionaryMembraneProfile = requireBalanceProfileFromContext(context.context, TRAIT.ILLUSIONARY_MEMBRANE);
+  if (shatter?.slot !== 2 || !hasTrait(context, TRAIT.ILLUSIONARY_MEMBRANE)) return;
+  const illusionaryMembraneProfile = requireBalanceProfileFromContext(context, TRAIT.ILLUSIONARY_MEMBRANE);
   const effect = requireEffect(illusionaryMembraneProfile, 'buff', 'illusionary-membrane');
   if (!effect) return;
   {
@@ -114,7 +112,7 @@ export function triggerIllusionaryMembrane(
         duration: effect.duration
       }
     ];
-    const traitProfile = requireBalanceProfileFromContext(context.context, TRAIT.ILLUSIONARY_MEMBRANE);
+    const traitProfile = requireBalanceProfileFromContext(context, TRAIT.ILLUSIONARY_MEMBRANE);
     const traitSource = {
       source: 'Trait',
       sourceId: TRAIT.ILLUSIONARY_MEMBRANE,
@@ -126,7 +124,7 @@ export function triggerIllusionaryMembrane(
     if (grants.length) {
       const proc =
         options.announce !== false
-          ? context.context.effects.emit({
+          ? context.effects.emit({
               ...delivery,
               kind: 'announcement',
               log: true,
@@ -141,7 +139,7 @@ export function triggerIllusionaryMembrane(
             })
           : undefined;
       for (const grant of grants)
-        context.context.effects.emit({
+        context.effects.emit({
           ...delivery,
           kind: 'packet',
           cause: proc,
@@ -160,7 +158,7 @@ export function triggerMethodOfMadness(
   delivery: EffectDelivery = {}
 ): void {
   if (skill.type !== 'Heal' || !hasTrait(context.state, TRAIT.METHOD_OF_MADNESS)) return;
-  const readyAt = context.state.procs.readyAt[TRAIT.METHOD_OF_MADNESS] || 0;
+  const readyAt = context.state.procs.deadline(TRAIT.METHOD_OF_MADNESS) || 0;
   if (!isInternalCooldownReady(at, readyAt)) return;
   // A removed storm has no attack, proc, or attack-owned cooldown.
   if (storm.type !== 'strike') return;
@@ -199,7 +197,7 @@ export function triggerMethodOfMadness(
   });
   // Elite consequences follow the accepted mechanic, independently of its diagnostic marker.
   mesmerMechanicsFor(context.state).methodOfMadnessCommitted?.(at);
-  context.state.procs.readyAt[TRAIT.METHOD_OF_MADNESS] = at + (storm.cooldown || 0);
+  context.state.procs.setDeadline(TRAIT.METHOD_OF_MADNESS, at + (storm.cooldown || 0));
 }
 
 /** Compile the selected storm before the shared runtime begins processing casts. */
@@ -268,12 +266,6 @@ export interface MesmerDuelingCriticalContext {
   readonly state: MesmerRuntime;
 }
 
-interface FencersFinesseContext {
-  readonly context: MesmerRuntime;
-}
-
-type BlindingDissipationContext = Pick<MesmerMechanics, 'context'>;
-
 // Attach Ineptitude's Confusion to a qualifying blindness application through
 // the resolver condition hook, preserving causal attribution.
 function applyIneptitudeConfusion(context: MesmerResolverContext, event: MesmerResolverEvent, detail: string): void {
@@ -331,16 +323,16 @@ export function triggerIneptitudeFromBlind(context: MesmerResolverContext, event
 
 /** Emits Blinding Dissipation after the owning shatter has materialized its Confusion. */
 export function triggerBlindingDissipation(
-  context: BlindingDissipationContext,
+  context: MesmerRuntime,
   skillName: string,
   at: number,
   count: number,
   delivery: EffectDelivery = {}
 ): void {
-  if (!hasTrait(context.context, TRAIT.BLINDING_DISSIPATION)) return;
+  if (!hasTrait(context, TRAIT.BLINDING_DISSIPATION)) return;
   {
     const packet = buildMesmerPacket({ type: 'blind', at, skillName, count });
-    context.context.effects.emit({
+    context.effects.emit({
       ...delivery,
       kind: 'packet',
       event: packet,
@@ -349,7 +341,7 @@ export function triggerBlindingDissipation(
     });
   }
 
-  context.context.effects.emit({
+  context.effects.emit({
     ...delivery,
     kind: 'announcement',
     log: true,
@@ -359,17 +351,12 @@ export function triggerBlindingDissipation(
 }
 
 /** Emits one Fencer's Finesse stack after each eligible resolved sword hit. */
-function emitFencersFinesseStacks(
-  context: FencersFinesseContext,
-  skill: MesmerSkill,
-  at: number,
-  announce: boolean
-): void {
-  if (!hasTrait(context.context, TRAIT.FENCERS_FINESSE) || skill.weapon !== 'Sword') {
+function emitFencersFinesseStacks(context: MesmerRuntime, skill: MesmerSkill, at: number, announce: boolean): void {
+  if (!hasTrait(context, TRAIT.FENCERS_FINESSE) || skill.weapon !== 'Sword') {
     return;
   }
 
-  const fencersFinesseProfile = requireBalanceProfileFromContext(context.context, TRAIT.FENCERS_FINESSE);
+  const fencersFinesseProfile = requireBalanceProfileFromContext(context, TRAIT.FENCERS_FINESSE);
   // The profile supplies stack lifetime; the attribute modifier owns the cap.
   const duration = balanceProfileNumber(fencersFinesseProfile, 'durationMultiplier');
   {
@@ -382,7 +369,7 @@ function emitFencersFinesseStacks(
         duration
       }
     ];
-    const traitProfile = requireBalanceProfileFromContext(context.context, TRAIT.FENCERS_FINESSE);
+    const traitProfile = requireBalanceProfileFromContext(context, TRAIT.FENCERS_FINESSE);
     const traitSource = {
       source: 'Trait',
       sourceId: TRAIT.FENCERS_FINESSE,
@@ -394,7 +381,7 @@ function emitFencersFinesseStacks(
     if (grants.length) {
       const proc =
         options.announce !== false
-          ? context.context.effects.emit({
+          ? context.effects.emit({
               kind: 'announcement',
               log: true,
               attribution: { ...traitSource, actorType: 'effect' },
@@ -408,7 +395,7 @@ function emitFencersFinesseStacks(
             })
           : undefined;
       for (const grant of grants)
-        context.context.effects.emit({
+        context.effects.emit({
           kind: 'packet',
           cause: proc,
           event: { ...grant, ...traitSource, type: 'buff', at: at, name: traitProfile.name, sourceSkill: skill.name }
@@ -560,11 +547,10 @@ export function fencersFinesseFerocity(
 
 /** Resolve the sword reward after the shared critical observation and before later elite reactions. */
 export function applyFencersFinesse(runtime: MesmerRuntime, event: SimulationEvent): void {
-  const mechanics = mesmerMechanicsFor(runtime);
   const skill = runtime.helpers.skillsById.get(event.skillId ?? '');
   if (!skill) return;
   if (event.summonKind !== 'clone')
-    emitFencersFinesseStacks(mechanics, skill, event.at, Number(event.hitIndex ?? 1) === 1);
+    emitFencersFinesseStacks(runtime, skill, event.at, Number(event.hitIndex ?? 1) === 1);
 }
 
 export function triggerDeceptiveEvasion(runtime: MesmerRuntime): void {
@@ -639,15 +625,15 @@ export function applyCryOfPain(
 
 /** Emits Compounding Power stacks and its proc record at the owning lifecycle position. */
 export function triggerCompoundingPower(
-  context: Readonly<Pick<MesmerMechanics, 'context'>>,
+  context: MesmerRuntime,
   at: number,
   count: number,
   sourceSkill: string,
   detail: string,
   delivery: EffectDelivery = {}
 ): void {
-  if (!hasTrait(context.context, TRAIT.COMPOUNDING_POWER) || count <= 0) return;
-  const compoundingPowerProfile = requireBalanceProfileFromContext(context.context, TRAIT.COMPOUNDING_POWER);
+  if (!hasTrait(context, TRAIT.COMPOUNDING_POWER) || count <= 0) return;
+  const compoundingPowerProfile = requireBalanceProfileFromContext(context, TRAIT.COMPOUNDING_POWER);
   const duration = balanceProfileNumber(compoundingPowerProfile, 'durationMultiplier');
   // Simultaneous gains retain independent applications under one trait activation.
   {
@@ -656,7 +642,7 @@ export function triggerCompoundingPower(
       stacks: 1,
       duration
     }));
-    const traitProfile = requireBalanceProfileFromContext(context.context, TRAIT.COMPOUNDING_POWER);
+    const traitProfile = requireBalanceProfileFromContext(context, TRAIT.COMPOUNDING_POWER);
     const traitSource = {
       source: 'Trait',
       sourceId: TRAIT.COMPOUNDING_POWER,
@@ -668,7 +654,7 @@ export function triggerCompoundingPower(
     if (grants.length) {
       const proc =
         options.announce !== false
-          ? context.context.effects.emit({
+          ? context.effects.emit({
               ...delivery,
               kind: 'announcement',
               log: true,
@@ -683,7 +669,7 @@ export function triggerCompoundingPower(
             })
           : undefined;
       for (const grant of grants)
-        context.context.effects.emit({
+        context.effects.emit({
           ...delivery,
           kind: 'packet',
           cause: proc,
@@ -694,12 +680,9 @@ export function triggerCompoundingPower(
 }
 
 /** Applies Maim the Disillusioned to the first-strike groups reported by the shatter resolver. */
-export function triggerMaimTheDisillusioned(
-  context: Readonly<Pick<MesmerMechanics, 'context'>>,
-  resolution: MesmerShatterResolution
-): void {
-  if (!resolution.traitHits.length || !hasTrait(context.context, TRAIT.MAIM_THE_DISILLUSIONED)) return;
-  const maimTheDisillusionedProfile = requireBalanceProfileFromContext(context.context, TRAIT.MAIM_THE_DISILLUSIONED);
+export function triggerMaimTheDisillusioned(context: MesmerRuntime, resolution: MesmerShatterResolution): void {
+  if (!resolution.traitHits.length || !hasTrait(context, TRAIT.MAIM_THE_DISILLUSIONED)) return;
+  const maimTheDisillusionedProfile = requireBalanceProfileFromContext(context, TRAIT.MAIM_THE_DISILLUSIONED);
   const effect = requireEffect(maimTheDisillusionedProfile, 'condition', 'Torment');
   if (!effect) return;
   const maim = {
@@ -710,7 +693,7 @@ export function triggerMaimTheDisillusioned(
   for (const hit of resolution.traitHits) {
     if (hit.count <= 0) continue;
     buildMesmerConditions(
-      context.context,
+      context,
       resolution.skill.name,
       hit.at,
       { ...maim, stacks: maim.stacks * hit.count },
@@ -723,7 +706,7 @@ export function triggerMaimTheDisillusioned(
         metadata: { shatterTraitEligible: true, procCount: hit.count }
       }
     ).forEach((packet) => {
-      context.context.effects.emit({
+      context.effects.emit({
         ...resolution.delivery,
         kind: 'packet',
         event: packet,
@@ -733,7 +716,7 @@ export function triggerMaimTheDisillusioned(
     });
   }
 
-  context.context.effects.emit({
+  context.effects.emit({
     ...resolution.delivery,
     kind: 'announcement',
     log: true,
@@ -759,19 +742,21 @@ export function phantasmalHasteSpeed(context: MesmerRuntime): number {
 export const masterOfMisdirectionRecharge = compileRechargeRules<MesmerRuntimeState, MesmerSkill>([
   {
     trait: TRAIT.MASTER_OF_MISDIRECTION,
-    when: (runtime, skill) =>
-      Boolean(mesmerMechanicsFor(runtime).shatters[skill.id] || mesmerMechanicsFor(runtime).instruments[skill.id]),
+    when: (_runtime, skill) => Boolean(skill.shatter || skill.instrument),
     multiplier: { profile: TRAIT.MASTER_OF_MISDIRECTION, field: 'rechargeMultiplier' }
   }
 ]);
 
 /** Only native slot-one shatters and instruments receive Shatter Storm's extra charge. */
-export function shatterStormMaximumAmmo(context: MesmerRuntime, skill: MesmerSkill, maximum: number): number {
-  const id = skill.id;
-  const runtime = mesmerMechanicsFor(context);
-  const isSlot1 = runtime.shatters[id]?.slot === 1 || runtime.instruments[id]?.slot === 1;
-  return isSlot1 && hasTrait(context, TRAIT.SHATTER_STORM)
-    ? balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.SHATTER_STORM), 'maximumStacks')
+export function shatterStormMaximumAmmo(
+  context: MaximumAmmoContext<object>,
+  skill: MesmerSkill,
+  maximum: number
+): number {
+  // Slot identity is authored on the selected skill; capacity selection never needs a live controller registry.
+  const isSlot1 = skill.shatter?.slot === 1 || skill.instrument?.slot === 1;
+  return isSlot1 && context.hasTrait(TRAIT.SHATTER_STORM)
+    ? balanceProfileNumber(context.requireBalanceProfile(TRAIT.SHATTER_STORM), 'maximumStacks')
     : maximum;
 }
 

@@ -1,3 +1,4 @@
+import { createMechanicCombatServices } from '#gw2/platform/resolver/mechanic-services.js';
 import { createProcRegistry } from '#gw2/platform/combat/procs.js';
 import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
 import { createElementalistCoreState } from '#gw2/professions/elementalist/core/state.js';
@@ -84,7 +85,7 @@ test('Revenant Brutality claims at swap completion and honors the exclusive ICD 
             )
         }
       );
-    assert.deepEqual({ ...observedRuntime(run([])).procs.readyAt }, {});
+    assert.deepEqual({ ...observedRuntime(run([])).procs.snapshot() }, {});
     const result = run([REVENANT_TRAIT_IDS.BRUTALITY]);
     assert.deepEqual(result.warnings, []);
     // The swap at the exact deadline is blocked; one millisecond later claims again from its own completion.
@@ -94,7 +95,7 @@ test('Revenant Brutality claims at swap completion and honors the exclusive ICD 
         .map((event) => event.at),
       [1, 1 + duration + 0.001]
     );
-    closeTo(observedRuntime(result).procs.readyAt.brutality, 1 + duration + 0.001 + duration);
+    closeTo(observedRuntime(result).procs.snapshot()['brutality'], 1 + duration + 0.001 + duration);
   }
 });
 
@@ -120,7 +121,7 @@ test('Revenant Vicious Reprisal claims only eligible strikes and honors the excl
       );
     const might = (result) =>
       result.events.filter((event) => event.type === 'buff' && event.sourceId === REVENANT_TRAIT_IDS.VICIOUS_REPRISAL);
-    assert.deepEqual({ ...observedRuntime(run([])).procs.readyAt }, {});
+    assert.deepEqual({ ...observedRuntime(run([])).procs.snapshot() }, {});
     assert.deepEqual(might(run([REVENANT_TRAIT_IDS.VICIOUS_REPRISAL], {})), []);
     const result = run([REVENANT_TRAIT_IDS.VICIOUS_REPRISAL]);
     assert.deepEqual(result.warnings, []);
@@ -128,7 +129,7 @@ test('Revenant Vicious Reprisal claims only eligible strikes and honors the excl
       might(result).map((event) => event.at),
       [1, 1 + duration + 0.001]
     );
-    closeTo(observedRuntime(result).procs.readyAt.viciousReprisal, 1 + duration + 0.001 + duration);
+    closeTo(observedRuntime(result).procs.snapshot()['viciousReprisal'], 1 + duration + 0.001 + duration);
   }
 });
 
@@ -149,11 +150,11 @@ for (const [key, trait] of [
             ...native,
             initialize(runtime) {
               native.initialize(runtime);
-              runtime.procs.readyAt[key] = 1;
+              runtime.procs.setDeadline(key, 1);
             }
           }
         });
-        assert.equal(observedRuntime(result).procs.readyAt[key] > 1, selected && completion > 1);
+        assert.equal(observedRuntime(result).procs.snapshot()[key] > 1, selected && completion > 1);
         assert.deepEqual(result.warnings, []);
       }
   });
@@ -182,7 +183,7 @@ for (const [key, trait, invoke, literalDuration] of [
       let effects = 0;
       const bypass = key === 'dhuumfire' && duration === 0;
       const emitted = (event) => {
-        assert.equal(context.procs.readyAt[key], bypass ? undefined : event.at + duration);
+        assert.equal(context.procs.snapshot()[key], bypass ? undefined : event.at + duration);
         effects += 1;
       };
 
@@ -204,7 +205,7 @@ for (const [key, trait, invoke, literalDuration] of [
       };
 
       opportunity(1);
-      assert.deepEqual({ ...context.procs.readyAt }, {});
+      assert.deepEqual({ ...context.procs.snapshot() }, {});
       context.traits.add(trait);
       opportunity(1);
       assert.ok(effects > 0);
@@ -258,6 +259,8 @@ function professionContext({ id, catalog, core, specialization = {}, kind = 'Cor
       }
     }).effects
   };
+  // Bind real owner operations for this focused mechanic fixture.
+  context.combat = createMechanicCombatServices(context);
   return { context, events, procs, conditions };
 }
 
@@ -271,7 +274,7 @@ test('Elementalist control traits stay blocked at the exact ICD boundary', () =>
     kind: 'Catalyst',
     traits: [ELEMENTALIST_TRAIT_IDS.VICIOUS_EMPOWERMENT]
   });
-  context.procs.readyAt['elementalist.catalyst.viciousEmpowerment'] = READY_AT;
+  context.procs.setDeadline('elementalist.catalyst.viciousEmpowerment', READY_AT);
   const event = { type: 'control', actorType: 'player', at: READY_AT, skillName: 'Boundary Control' };
 
   applyViciousEmpowerment(context, event);
@@ -287,15 +290,15 @@ test('Engineer condition traits stay blocked at the exact ICD boundary', () => {
   const core = createEngineerCoreState();
   const config = { selectedTraitIds: [ENGINEER_TRAIT_IDS.HEMATIC_FOCUS] };
   const { context } = professionContext({ id: 'engineer', catalog: engineerCatalog, core, config });
-  context.procs.readyAt.hematicFocus = READY_AT;
+  context.procs.setDeadline('hematicFocus', READY_AT);
   const event = { type: 'condition', condition: 'Bleeding', actorType: 'player', at: READY_AT };
 
   reactToEngineerCondition(context, event);
-  assert.equal(context.procs.readyAt.hematicFocus, READY_AT);
+  assert.equal(context.procs.snapshot()['hematicFocus'], READY_AT);
   assert.equal(context.queue.length, 0);
 
   reactToEngineerCondition(context, { ...event, at: AFTER_READY_AT });
-  assert.ok(context.procs.readyAt.hematicFocus > AFTER_READY_AT);
+  assert.ok(context.procs.snapshot()['hematicFocus'] > AFTER_READY_AT);
   assert.equal(context.queue.length, 1);
 });
 
@@ -312,8 +315,8 @@ test('Soulbeast stance ICDs preserve the personal One Wolf Pack exception and in
         specialization: state,
         kind: 'Soulbeast'
       });
-      context.procs.readyAt[field] = READY_AT;
-      context.procs.readyAt[`ranger.soulbeast.alliedStance:${kind}:1`] = READY_AT;
+      context.procs.setDeadline(field, READY_AT);
+      context.procs.setDeadline(`ranger.soulbeast.alliedStance:${kind}:1`, READY_AT);
       context.boons.set(kind, [{ at: 0, expiresAt: 10, stacks: 1, resolvedAudience: { includesSelf: true } }]);
       const react = ally ? soulbeastEventHandlers['ranger.shared-stance-hit'] : reactToSoulbeastDamage;
       const event = {
@@ -333,14 +336,14 @@ test('Soulbeast stance ICDs preserve the personal One Wolf Pack exception and in
       react(context, { ...event, at: triggerAt });
       assert.ok(context.queue.length > 0);
       const deadline = ally
-        ? context.procs.readyAt[`ranger.soulbeast.alliedStance:${kind}:1`]
-        : context.procs.readyAt[field];
+        ? context.procs.snapshot()[`ranger.soulbeast.alliedStance:${kind}:1`]
+        : context.procs.snapshot()[field];
       assert.equal(deadline, triggerAt + (kind === 'one-wolf-pack' ? 1 : 0.25));
       if (ally) {
         const queued = context.queue.length;
         react(context, { ...event, at: 1.04, metadata: { triggeredByAlly: 2 } });
         assert.ok(context.queue.length > queued);
-        assert.equal(context.procs.readyAt[field], READY_AT);
+        assert.equal(context.procs.snapshot()[field], READY_AT);
       }
     }
   }
@@ -357,7 +360,7 @@ test('Ranger boon traits stay blocked at the exact ICD boundary', () => {
     kind: 'Soulbeast',
     config
   });
-  context.procs.readyAt['ranger.soulbeast.essenceOfSpeed'] = READY_AT;
+  context.procs.setDeadline('ranger.soulbeast.essenceOfSpeed', READY_AT);
   const event = { type: 'buff', kind: 'quickness', at: READY_AT, resolvedAudience: { includesSelf: true } };
 
   reactToSoulbeastBuff(context, event);
@@ -380,7 +383,7 @@ test('Revenant boon traits stay blocked at the exact ICD boundary', () => {
     },
     {
       initialize(runtime) {
-        runtime.procs.readyAt['revenant.renegade.bloodFury'] = READY_AT;
+        runtime.procs.setDeadline('revenant.renegade.bloodFury', READY_AT);
         for (const at of [READY_AT, AFTER_READY_AT])
           runtime.effects.emit({
             kind: 'packet',
@@ -414,7 +417,7 @@ test('Thief boon traits stay blocked at the exact ICD boundary', () => {
     { selectedTraitIds: [THIEF_TRAIT_IDS.ASSASSINS_FURY] },
     {
       initialize(runtime) {
-        runtime.procs.readyAt[THIEF_TRAIT_IDS.ASSASSINS_FURY] = READY_AT;
+        runtime.procs.setDeadline(THIEF_TRAIT_IDS.ASSASSINS_FURY, READY_AT);
         for (const at of [READY_AT, AFTER_READY_AT])
           runtime.effects.emit({
             kind: 'packet',
@@ -437,7 +440,7 @@ test('Thief boon traits stay blocked at the exact ICD boundary', () => {
     result.events.filter((event) => event.sourceId === THIEF_TRAIT_IDS.ASSASSINS_FURY).map((event) => event.at),
     [AFTER_READY_AT]
   );
-  assert.ok(observedRuntime(result).procs.readyAt[THIEF_TRAIT_IDS.ASSASSINS_FURY] > AFTER_READY_AT);
+  assert.ok(observedRuntime(result).procs.snapshot()[THIEF_TRAIT_IDS.ASSASSINS_FURY] > AFTER_READY_AT);
 });
 
 // Actual burst impacts share the exclusive trait gate, independently of their skill recharge.
@@ -517,7 +520,7 @@ test('Necromancer condition traits stay blocked at the exact ICD boundary', () =
         ...native,
         initialize(runtime) {
           native.initialize(runtime);
-          runtime.procs.readyAt['necromancer.scourge.nourishingAshes'] = READY_AT;
+          runtime.procs.setDeadline('necromancer.scourge.nourishingAshes', READY_AT);
           runtime.effects.emit({
             kind: 'packet',
             event: {
@@ -563,13 +566,13 @@ test('Ineptitude claims only surviving effects on defiant targets at the event t
         removedEffectKeys: [JSON.stringify(['condition', 'Confusion'])]
       });
       triggerIneptitudeFromInterrupt(context, event);
-      assert.deepEqual({ ...context.procs.readyAt }, {});
+      assert.deepEqual({ ...context.procs.snapshot() }, {});
       assert.equal(conditions.length, 0);
       context.catalog = catalog;
       context.effects = captureEffectEmissions({
         submit(condition) {
           conditions.push(condition);
-          assert.equal(context.procs.readyAt[key], defiant ? condition.at + duration : undefined);
+          assert.equal(context.procs.snapshot()[key], defiant ? condition.at + duration : undefined);
           if (defiant && conditions.length === 1) triggerIneptitudeFromInterrupt(context, event);
           return condition;
         }
@@ -602,7 +605,7 @@ test('Demonic Lore claims its cooldown field only for a surviving Burning packet
     removedEffectKeys: [JSON.stringify(['condition', 'Burning'])]
   });
   scourgeResolverEventReactions.condition(context, event);
-  assert.deepEqual({ ...context.procs.readyAt }, {});
+  assert.deepEqual({ ...context.procs.snapshot() }, {});
   context.catalog = catalog;
   context.effects = captureEffectEmissions({
     submit(condition) {
@@ -645,17 +648,17 @@ test('Vampiric Presence preserves recipient scopes and the pre-applied interval 
 
   assert.equal(context.queue.length, 3);
   assert.deepEqual(
-    { ...context.procs.readyAt },
+    { ...context.procs.snapshot() },
     {
       'necromancer.core.vampiricPresence': 3,
       'vampiricPresence:minion:fixture:0': 3,
       'vampiricPresence:minion:fixture:1': 3
     }
   );
-  context.procs.readyAt['vampiricPresence:ally:1'] = 10;
+  context.procs.setDeadline('vampiricPresence:ally:1', 10);
   reactToVampiricPresenceAlliedHit(context, { ...event, allyIndex: 1 });
   assert.equal(context.queue.length, 4);
-  assert.equal(context.procs.readyAt['vampiricPresence:ally:1'], 10);
+  assert.equal(context.procs.snapshot()['vampiricPresence:ally:1'], 10);
 });
 
 // Repeated and invalid recipient IDs cannot consume another ally's independent interval.
@@ -665,12 +668,12 @@ test('Dark Sentry claims each eligible ally once and retains strict recipient de
   );
   const invoke = specterModule.hooks.tasks['thief.specter-dark-sentry'];
   runtime.time = 1;
-  runtime.procs.readyAt['thief.specter.darkSentry:1'] = 1;
+  runtime.procs.setDeadline('thief.specter.darkSentry:1', 1);
   invoke(runtime, { allyIndices: [0, 1, 2, 2, 3, 1.5] });
   assert.equal(runtime.procs.deadline('thief.specter.darkSentry:1'), 1);
   const secondDeadline = runtime.procs.deadline('thief.specter.darkSentry:2');
   assert.ok(secondDeadline > 1);
-  assert.deepEqual(Object.keys(runtime.procs.readyAt).sort(), [
+  assert.deepEqual(Object.keys(runtime.procs.snapshot()).sort(), [
     'thief.specter.darkSentry:1',
     'thief.specter.darkSentry:2'
   ]);

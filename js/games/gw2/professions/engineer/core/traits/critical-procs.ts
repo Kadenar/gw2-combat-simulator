@@ -65,9 +65,9 @@ export const engineerCoreCriticalHitDefinitions = Object.freeze([
     internalCooldown: {
       duration: (context) =>
         balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.NO_SCOPE), 'internalCooldown'),
-      readyAt: (context) => context.procs.readyAt.noScope || 0,
+      readyAt: (context) => context.procs.deadline('noScope') || 0,
       setReadyAt: (context, readyAt) => {
-        context.procs.readyAt.noScope = readyAt;
+        context.procs.setDeadline('noScope', readyAt);
       }
     },
     handler(context, event) {
@@ -103,9 +103,9 @@ export const engineerCoreCriticalHitDefinitions = Object.freeze([
     internalCooldown: {
       duration: (context) =>
         balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.INCENDIARY_POWDER), 'internalCooldown'),
-      readyAt: (context) => context.procs.readyAt['incendiaryPowder.player'] || 0,
+      readyAt: (context) => context.procs.deadline('incendiaryPowder.player') || 0,
       setReadyAt: (context, readyAt) => {
-        context.procs.readyAt['incendiaryPowder.player'] = readyAt;
+        context.procs.setDeadline('incendiaryPowder.player', readyAt);
       }
     },
     handler(context, event) {
@@ -197,9 +197,9 @@ export function engineerMechCoreCriticalDefinitions(
       internalCooldown: {
         duration: (context) =>
           balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.INCENDIARY_POWDER), 'internalCooldown'),
-        readyAt: (context) => context.procs.readyAt['incendiaryPowder.mech'] || 0,
+        readyAt: (context) => context.procs.deadline('incendiaryPowder.mech') || 0,
         setReadyAt: (context, readyAt) => {
-          context.procs.readyAt['incendiaryPowder.mech'] = readyAt;
+          context.procs.setDeadline('incendiaryPowder.mech', readyAt);
         }
       },
       handler(context, event) {

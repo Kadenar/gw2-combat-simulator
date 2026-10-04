@@ -1,3 +1,4 @@
+import type { MechanicContext } from '#gw2/platform/profession-definition/mechanic-context.js';
 import { grantCharges } from '#gw2/platform/combat/resources/charges.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import {
@@ -10,7 +11,7 @@ import type { Skill } from '#gw2/platform/engine/skills/types.js';
 import type { NativeResolvedDamageDetails } from '#gw2/platform/profession-definition/module-types.js';
 import { buildResolverCondition } from '#gw2/platform/resolver/packets.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
-import type { Gw2Runtime, RuntimeCast } from '#gw2/platform/simulation/runtime-state.js';
+import type { RuntimeCast } from '#gw2/platform/simulation/runtime-state.js';
 import { gw2EffectExpiresAt } from '#gw2/platform/skills/timing.js';
 import { guardianCastCause } from '#gw2/professions/guardian/core/mechanics/event-handlers.js';
 import { reactToJusticeHitWithOptions } from '#gw2/professions/guardian/core/mechanics/virtues.js';
@@ -34,7 +35,7 @@ import type {
 } from '#gw2/professions/guardian/types.js';
 import { canonicalTime } from '#kernel/core/clock.js';
 
-type Runtime = Gw2Runtime<GuardianRuntimeState, GuardianSkill>;
+type Runtime = MechanicContext<GuardianRuntimeState, GuardianSkill>;
 
 /** Tome session changes reset only the counter, never refunds earned by accepted casts. */
 export function resetSwiftScholar(runtime: Runtime, virtue?: string): void {
@@ -191,9 +192,12 @@ export function reactToFirebrandBuff(runtime: Runtime, event: Gw2ResolverEvent):
             icon: guardianTraitIcon(TRAIT.STALWART_SPEED)
           }
         });
-        runtime.procs.readyAt['guardian.firebrand.stalwartSpeed'] = canonicalTime(
-          runtime.time +
-            balanceProfileNumber(requireBalanceProfileFromContext(runtime, TRAIT.STALWART_SPEED), 'internalCooldown')
+        runtime.procs.setDeadline(
+          'guardian.firebrand.stalwartSpeed',
+          canonicalTime(
+            runtime.time +
+              balanceProfileNumber(requireBalanceProfileFromContext(runtime, TRAIT.STALWART_SPEED), 'internalCooldown')
+          )
         );
       }
     }

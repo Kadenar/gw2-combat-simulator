@@ -29,7 +29,7 @@ interface ProfessionActionControllerOptions {
   readonly resourceDefinition: MesmerResourceDefinition;
   readonly destroyClone: MesmerDestroyClone;
   readonly shatters: Readonly<Record<number, MesmerShatter>>;
-  readonly warnings: string[];
+  readonly warn: (message: string) => void;
   readonly shatterResolvers: Readonly<Record<string, MesmerShatterResolver>>;
 }
 
@@ -38,7 +38,7 @@ export function createProfessionActionController({
   resourceDefinition,
   destroyClone,
   shatters,
-  warnings,
+  warn,
   shatterResolvers
 }: ProfessionActionControllerOptions): MesmerProfessionActionController {
   const numericResourceState = () => mesmerNumericResourceState(state);
@@ -130,7 +130,7 @@ export function createProfessionActionController({
 
   // Shared traits consume resolver-produced hit groups so Core does not need to know how a specialization attacks.
   const triggerShatterTraits = (resolution: MesmerShatterResolution): void => {
-    triggerMesmerPostShatterTraits({ context: state }, shatters[resolution.skill.id], resolution);
+    triggerMesmerPostShatterTraits(state, shatters[resolution.skill.id], resolution);
   };
 
   // Orchestrates resource spending and shared traits while the registered resolver owns packet behavior.
@@ -152,7 +152,7 @@ export function createProfessionActionController({
     const minimumResource = shatter.minimumResource || 0;
     if (resourcesSpent == null && currentResource() < minimumResource) {
       // Preserve milliseconds so skipped actions can be located in the event log.
-      warnings.push(`${skill.name} skipped at ${at.toFixed(3)}s: no ${resourceDefinition.plural}.`);
+      warn(`${skill.name} skipped at ${at.toFixed(3)}s: no ${resourceDefinition.plural}.`);
       return null;
     }
 

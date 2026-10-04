@@ -1,5 +1,7 @@
+import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
+import type { MechanicContext } from '#gw2/platform/profession-definition/mechanic-context.js';
 import { timedEffectState, type EffectState } from '#gw2/platform/combat/effect-state.js';
-import type { Gw2Runtime } from '#gw2/platform/simulation/runtime-state.js';
+
 import type { MesmerRuntimeState } from '#gw2/professions/mesmer/types.js';
 import type { BuffStatePolicy } from '#gw2/platform/combat/effect-state.js';
 import { balanceProfileFromContext, balanceProfileNumber } from '#gw2/platform/engine/skills/balance-profiles.js';
@@ -30,6 +32,6 @@ export function mesmerBuffPolicies(context: unknown): BuffStatePolicy[] {
 }
 
 /** Clarity disappears when a qualifying activation consumes the existing core window. */
-export function mesmerEffectStates(runtime: Gw2Runtime<MesmerRuntimeState>): EffectState[] {
+export function mesmerEffectStates(runtime: MechanicQueriesOf<MechanicContext<MesmerRuntimeState>>): EffectState[] {
   return [timedEffectState('clarity', [{ stacks: 1, expiresAt: runtime.profession.core.clarityUntil }], 1)];
 }

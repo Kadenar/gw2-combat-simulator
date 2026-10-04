@@ -1,3 +1,4 @@
+import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
 import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { eventSkill } from '#gw2/platform/combat/query/runtime-query.js';
@@ -122,9 +123,10 @@ export const leadTheWind = defineTrait({
       order: 3,
       emit: TRAIT.LEAD_THE_WIND,
       on: 'castCommit' as const,
-      when: (_runtime: RangerRuntime, cast: RuntimeCast<RangerSkill>) => cast.skill.id === ID.POINT_BLANK_SHOT,
+      when: (_runtime: MechanicQueriesOf<RangerRuntime>, cast: RuntimeCast<RangerSkill>) =>
+        cast.skill.id === ID.POINT_BLANK_SHOT,
       effects: (effect) => effect.type === 'boon' && effect.name === 'swiftness',
-      attribution: (_runtime: RangerRuntime, cast: RuntimeCast<RangerSkill>) => ({
+      attribution: (_runtime: MechanicQueriesOf<RangerRuntime>, cast: RuntimeCast<RangerSkill>) => ({
         skillId: TRAIT.LEAD_THE_WIND,
         skillName: 'Lead the Wind',
         name: `Lead the Wind - swiftness`,
@@ -135,9 +137,10 @@ export const leadTheWind = defineTrait({
       order: 4,
       emit: TRAIT.LEAD_THE_WIND,
       on: 'castCommit' as const,
-      when: (_runtime: RangerRuntime, cast: RuntimeCast<RangerSkill>) => cast.skill.id === ID.POINT_BLANK_SHOT,
+      when: (_runtime: MechanicQueriesOf<RangerRuntime>, cast: RuntimeCast<RangerSkill>) =>
+        cast.skill.id === ID.POINT_BLANK_SHOT,
       effects: (effect) => effect.type === 'boon' && effect.name === 'quickness',
-      attribution: (_runtime: RangerRuntime, cast: RuntimeCast<RangerSkill>) => ({
+      attribution: (_runtime: MechanicQueriesOf<RangerRuntime>, cast: RuntimeCast<RangerSkill>) => ({
         skillId: TRAIT.LEAD_THE_WIND,
         skillName: 'Lead the Wind',
         name: `Lead the Wind - quickness`,

@@ -1,3 +1,4 @@
+import type { MechanicContext } from '#gw2/platform/profession-definition/mechanic-context.js';
 import { grantTimedStacks } from '#gw2/platform/combat/resources/timed-stacks.js';
 import { denySkillCast } from '#gw2/platform/engine/skills/availability.js';
 import {
@@ -6,7 +7,7 @@ import {
 } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { skillFlipReady } from '#gw2/platform/engine/skills/skill-flips.js';
 import type { NativeResolvedDamageDetails } from '#gw2/platform/profession-definition/module-types.js';
-import type { Gw2Runtime, RuntimeCast, RuntimeProfession } from '#gw2/platform/simulation/runtime-state.js';
+import type { RuntimeCast, RuntimeProfession } from '#gw2/platform/simulation/runtime-state.js';
 import { applySideEffect } from '#gw2/platform/simulation/side-effects.js';
 import { damageInputEvent } from '#gw2/platform/skill-damage/execution.js';
 import { castWasInterrupted } from '#gw2/platform/skills/timing.js';
@@ -45,7 +46,7 @@ import {
 import { GUARDIAN_TRAIT_IDS, GUARDIAN_SKILL_IDS as ID } from '#gw2/professions/guardian/data/ids.js';
 import type { GuardianRuntimeState, GuardianSkill, GuardianVirtue } from '#gw2/professions/guardian/types.js';
 
-type Runtime = Gw2Runtime<GuardianRuntimeState, GuardianSkill>;
+type Runtime = MechanicContext<GuardianRuntimeState, GuardianSkill>;
 const readyVirtueActivations = new WeakSet<RuntimeCast<GuardianSkill>>();
 /** Virtue state changes once on commitment; report packets do not restore a second copy of that state. */
 function completeCoreVirtue(runtime: Runtime, cast: RuntimeCast<GuardianSkill>, virtue: GuardianVirtue): void {
@@ -71,7 +72,7 @@ function clearTorchLockout(runtime: Runtime, cast: RuntimeCast<GuardianSkill>): 
     return;
   if (skill.interruptMode === 'per-packet' && castWasInterrupted(cast)) return;
   if (skill.id !== ID.ZEALOTS_FIRE && skill.type !== 'Action')
-    runtime.lockouts.delete('guardian-zealots-flame-after-fire');
+    runtime.castController.clearLockout('guardian-zealots-flame-after-fire');
 }
 
 /** Core hooks: accepted virtues, shared recharge, endurance grants, and temporary weapon state. */

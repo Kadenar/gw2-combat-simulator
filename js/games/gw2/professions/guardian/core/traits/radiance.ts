@@ -1,7 +1,6 @@
 import { attributeProvenance } from '#gw2/platform/builds/attribute-provenance.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { targetConditionActive } from '#gw2/platform/combat/query/runtime-query.js';
-import { targetConditionStacks } from '#gw2/platform/combat/state/targets.js';
 import {
   balanceProfileNumber,
   requireBalanceProfileFromContext
@@ -278,7 +277,7 @@ export const innerFire = defineTrait({
       when: (runtime, event, details) =>
         event.actorType === 'player' &&
         (details.hitContext?.damage ?? 0) > 0 &&
-        targetConditionStacks(runtime.config, 'Burning', event.at, runtime) >=
+        runtime.combat.targetConditionStacks('Burning', event.at) >=
           balanceProfileNumber(requireBalanceProfileFromContext(runtime, TRAIT.INNER_FIRE), 'threshold')
     }
   ]

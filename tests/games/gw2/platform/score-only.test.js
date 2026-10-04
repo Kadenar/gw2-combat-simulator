@@ -1,3 +1,4 @@
+import { createMechanicCombatServices } from '#gw2/platform/resolver/mechanic-services.js';
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { loadProfession } from '#gw2/profession-registry.js';
@@ -17,8 +18,10 @@ test('combo and aura handlers skip score report rows while preserving state and 
       profession: { core: { activeAuras: [] } },
       dispatchReaction: (name, event) => dispatched.push([name, event])
     };
+    // Bind real owner operations for this focused mechanic fixture.
+    context.combat = createMechanicCombatServices(context);
     const handlers = createGw2ComboResolution({
-      reactions: { dispatch: (name, ctx, event) => ctx.dispatchReaction(name, event) }
+      reactions: { dispatch: (name, ctx, event) => ctx.combat.react(name, event) }
     });
     const combo = { type: 'combo', at: 1 };
     const aura = { type: 'aura', at: 1 };

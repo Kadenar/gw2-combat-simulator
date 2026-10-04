@@ -84,9 +84,9 @@ test('Alacrity gained during a cast leaves reserved recharge and the independent
             onCastCommit(runtime, cast) {
               if (cast.start !== 0) return;
               if (ammo) {
-                assert.equal(runtime.ammo.get(990011).nextRechargeAt, 18);
-                assert.equal(runtime.ammo.get(990011).lockoutReadyAt, 6);
-              } else assert.equal(runtime.cooldowns.get(990011), 18);
+                assert.equal(runtime.cooldownController.readAmmo(990011).nextRechargeAt, 18);
+                assert.equal(runtime.cooldownController.readAmmo(990011).lockoutReadyAt, 6);
+              } else assert.equal(runtime.cooldownController.readyAt(990011), 18);
             }
           };
         }
@@ -175,7 +175,11 @@ test('Warrior ammo preserves charge recovery and its independent cast lockout', 
         onCastCommit(runtime, cast) {
           native.onCastCommit?.(runtime, cast);
           if (cast.skill.id === skill.id)
-            seen.push({ start: cast.start, end: cast.effectiveEnd, ammo: { ...runtime.ammo.get(skill.id) } });
+            seen.push({
+              start: cast.start,
+              end: cast.effectiveEnd,
+              ammo: { ...runtime.cooldownController.readAmmo(skill.id) }
+            });
         }
       })
     },

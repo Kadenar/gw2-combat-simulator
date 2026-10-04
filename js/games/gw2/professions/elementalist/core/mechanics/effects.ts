@@ -1,3 +1,5 @@
+import type { ReadonlyMechanicState } from '#gw2/platform/profession-definition/runtime-context.js';
+import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
 import type {
   AnnouncementEmission,
   EffectDelivery,
@@ -27,7 +29,11 @@ export function etchingChain(skillId: Skill['id']) {
 }
 
 /** Returns the tracked application of one aura still active at `at`, or null. */
-export function activeAura(state: ElementalistCoreState, aura: string, at: number): ElementalistAuraState | null {
+export function activeAura(
+  state: ReadonlyMechanicState<ElementalistCoreState>,
+  aura: string,
+  at: number
+): ElementalistAuraState | null {
   return state.activeAuras.find((candidate) => candidate.type === aura && candidate.expiresAt > at) || null;
 }
 
@@ -40,7 +46,11 @@ export function combatStarted(context: ElementalistRuntime, at: number): boolean
 }
 
 // Resolve procedural sources through the catalog so request attribution retains canonical skill policy.
-export function elementalistEventSkill(context: ElementalistRuntime, source: string, sourceId: Skill['id']): Skill {
+export function elementalistEventSkill(
+  context: MechanicQueriesOf<ElementalistRuntime>,
+  source: string,
+  sourceId: Skill['id']
+): Skill {
   return context.helpers.skillsById.get(sourceId) || { id: sourceId, name: source };
 }
 

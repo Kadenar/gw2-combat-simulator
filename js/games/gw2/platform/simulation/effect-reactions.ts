@@ -4,6 +4,7 @@ import type { NativeResolvedDamageDetails } from '#gw2/platform/profession-defin
 import type { Gw2Runtime, RuntimeProfession } from '#gw2/platform/simulation/runtime-state.js';
 import { applySideEffect, type SideEffectAction } from '#gw2/platform/simulation/side-effects.js';
 import { validateEffectReactions } from '#gw2/platform/engine/skills/side-effect-validation.js';
+import type { MechanicQueryContext } from '#gw2/platform/profession-definition/mechanic-context.js';
 
 export type EffectReactionStage = 'damage.resolved' | 'condition.applied' | 'control.resolved' | 'combo.resolved';
 export type ResolvedEffectTrigger<Stage extends EffectReactionStage = EffectReactionStage> = {
@@ -20,7 +21,7 @@ export type EffectReaction = {
     readonly actor: 'player' | 'summon' | 'effect';
     readonly packets: 'each' | 'first';
     // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Reaction declarations and handler registries erase profession state at the shared dispatch boundary.
-    readonly when?: (runtime: Gw2Runtime<any>, trigger: ResolvedEffectTrigger<On>) => boolean;
+    readonly when?: (runtime: MechanicQueryContext<any>, trigger: ResolvedEffectTrigger<On>) => boolean;
     readonly do: SideEffectAction | readonly SideEffectAction[];
   };
 }[EffectReactionStage];
@@ -78,17 +79,17 @@ export function createEffectReactions(
           continue;
         const eligible =
           rule.on === 'damage.resolved'
-            ? !rule.when || rule.when(runtime, { on: rule.on, skill, event, details })
+            ? !rule.when || rule.when(runtime.mechanicQueries, { on: rule.on, skill, event, details })
             : rule.on === 'condition.applied'
-              ? !rule.when || rule.when(runtime, { on: rule.on, skill, event })
+              ? !rule.when || rule.when(runtime.mechanicQueries, { on: rule.on, skill, event })
               : rule.on === 'control.resolved'
-                ? !rule.when || rule.when(runtime, { on: rule.on, skill, event })
-                : !rule.when || rule.when(runtime, { on: rule.on, skill, event });
+                ? !rule.when || rule.when(runtime.mechanicQueries, { on: rule.on, skill, event })
+                : !rule.when || rule.when(runtime.mechanicQueries, { on: rule.on, skill, event });
         if (!eligible) continue;
         const trigger: ResolvedEffectTrigger =
           on === 'damage.resolved' ? { on, skill, event, details } : { on, skill, event };
         for (const action of Array.isArray(rule.do) ? rule.do : [rule.do])
-          applySideEffect(runtime, { kind: 'effect', skill, trigger }, action, handlers);
+          applySideEffect(runtime.mechanics, { kind: 'effect', skill, trigger }, action, handlers);
       }
     }
   };

@@ -90,6 +90,6 @@ export const guardianTorchActions: RuntimeProfession<GuardianRuntimeState, Guard
   },
   'guardian.zealots-fire-lockout'(runtime) {
     for (const lockout of runtime.helpers.skillsById.get(ID.ZEALOTS_FLAME)?.lockouts ?? [])
-      runtime.lockouts.set(lockout.group, canonicalTime(runtime.time + lockout.durationMs / 1000));
+      runtime.castController.setLockout(lockout.group, canonicalTime(runtime.time + lockout.durationMs / 1000));
   }
 };

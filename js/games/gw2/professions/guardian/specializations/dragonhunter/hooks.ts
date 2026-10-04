@@ -1,3 +1,4 @@
+import type { MechanicContext } from '#gw2/platform/profession-definition/mechanic-context.js';
 import {
   balanceProfileNumber,
   effectNumber,
@@ -8,7 +9,7 @@ import { armSkillFlip, consumeSkillFlip, expireSkillFlip } from '#gw2/platform/e
 import type { NativeResolvedDamageDetails } from '#gw2/platform/profession-definition/module-types.js';
 import { buildResolverCondition } from '#gw2/platform/resolver/packets.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
-import type { Gw2Runtime, RuntimeCast, RuntimeProfession } from '#gw2/platform/simulation/runtime-state.js';
+import type { RuntimeCast, RuntimeProfession } from '#gw2/platform/simulation/runtime-state.js';
 import { projectCastRelativeEffectTimingMs } from '#gw2/platform/skills/timing.js';
 import { guardianVirtueForSlot, refreshGuardianVirtues } from '#gw2/professions/guardian/core/mechanics/virtues.js';
 import {
@@ -28,7 +29,7 @@ import {
 import type { GuardianRuntimeState, GuardianSkill } from '#gw2/professions/guardian/types.js';
 import { canonicalTime } from '#kernel/core/clock.js';
 
-type Runtime = Gw2Runtime<GuardianRuntimeState, GuardianSkill>;
+type Runtime = MechanicContext<GuardianRuntimeState, GuardianSkill>;
 const readyVirtues = new WeakSet<RuntimeCast<GuardianSkill>>();
 const COURAGE = 'guardian.dragonhunter.courage';
 const FURIOUS = 'guardian.dragonhunter.furious-focus';
@@ -132,9 +133,9 @@ export const dragonhunterHooks: Partial<RuntimeProfession<GuardianRuntimeState, 
     'guardian.attach-tether'(runtime, context) {
       if (context.kind !== 'effect') return;
       const event = context.trigger.event;
-      const action = runtime.history.find(
-        (candidate) => candidate.type === 'action' && candidate.activationId === event.activationId
-      );
+      const action = runtime.facts
+        .read()
+        .find((candidate) => candidate.type === 'action' && candidate.activationId === event.activationId);
       if (!action) return;
       runtime.schedule(TETHER, Math.max(runtime.time, Number(action.endsAt)), event, undefined, -50);
     }

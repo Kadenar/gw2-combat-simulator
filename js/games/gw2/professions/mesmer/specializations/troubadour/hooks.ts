@@ -1,6 +1,5 @@
 import type { RuntimeCast, RuntimeProfession } from '#gw2/platform/simulation/runtime-state.js';
 import { mesmerCastDelivery } from '#gw2/professions/mesmer/core/execution/cast-lifecycle.js';
-import { mesmerMechanicsFor } from '#gw2/professions/mesmer/core/mechanics/runtime.js';
 import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
 import { troubadourEndurance } from '#gw2/professions/mesmer/specializations/troubadour/mechanics/endurance.js';
 import {
@@ -41,11 +40,13 @@ export const troubadourHooks: Partial<RuntimeProfession<MesmerRuntimeState, Mesm
     'mesmer.troubadour.prepare-tale'(runtime, context) {
       if (context.kind !== 'cast') return;
       const required = context.skill.tale?.instrument;
-      const action = runtime.history.find((event) => event.type === 'action' && event.activationId === context.cast.id);
-      mesmerMechanicsFor(runtime).castDetails.get(context.cast.id)!.taleEligible = Boolean(
+      const action = runtime.facts
+        .read()
+        .find((event) => event.type === 'action' && event.activationId === context.cast.id);
+      runtime.profession.core.castDetails.get(context.cast.id)!.taleEligible = Boolean(
         required &&
         activeTroubadourInstrumentsAt(
-          runtime.history.filter((event) => event.type === 'mesmer.instrument'),
+          runtime.facts.read().filter((event) => event.type === 'mesmer.instrument'),
           context.cast.start,
           action
         ).has(required)
@@ -57,7 +58,7 @@ export const troubadourHooks: Partial<RuntimeProfession<MesmerRuntimeState, Mesm
         context: runtime,
         skill: context.skill,
         at: runtime.time,
-        eligible: Boolean(mesmerMechanicsFor(runtime).castDetails.get(context.cast.id)?.taleEligible)
+        eligible: Boolean(runtime.profession.core.castDetails.get(context.cast.id)?.taleEligible)
       });
     }
   },
@@ -70,7 +71,7 @@ export const troubadourHooks: Partial<RuntimeProfession<MesmerRuntimeState, Mesm
   eventHandlers: {
     // Executed commitments supply historical cast-start and isolated attribute queries in both output modes.
     'mesmer.instrument': (runtime, event) => {
-      runtime.history.push(event);
+      runtime.facts.record(event);
     }
   }
 };

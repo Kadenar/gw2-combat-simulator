@@ -46,9 +46,20 @@ consume that same policy; it is not a presentation hook. Equipment picker icons 
 - Import the owning module directly. Domain indexes are deliberate public APIs, not compatibility paths.
 - Keep the platform root limited to the public simulation entry point.
 
-`simulation/runtime.ts` owns one cursor, heap, profession state, target state, resource controller, and RNG. Commands,
-internal tasks, hits, procs, and condition wakes settle on that clock. Internal work has registered handlers and
-detached data payloads; lifetime generations cancel obsolete work without erasing committed projectiles.
+`simulation/runtime.ts` assembles one run. `simulation/coordinator.ts` owns its heap, logical clock, causal identity,
+and execution loop. `execution/cast-execution.ts` owns readiness, reservations, in-flight tracking, lockouts,
+acceptance, and completion. `resolver/effect-delivery.ts` owns packet admission/preparation, target gates, immediate
+conditions, and reaction settlement. Commands, internal tasks, hits, procs, and condition wakes settle on that single
+clock. Internal work has registered handlers and detached data payloads; lifetime generations cancel obsolete work
+without erasing committed projectiles.
+
+`profession-definition/runtime-hooks.ts` declares the accepted mechanic contribution surface and preserves each
+callback's composition semantics. `profession-definition/runtime-context.ts` declares narrow author capabilities; effect
+lifetime selection receives only selected skill queries. Cast details receive a reusable read-only profession-state
+query and the accepted selected-catalog cast. Cast maps are private; profession transitions use `castController` queries
+and lockout operations. Its pending charge-release query returns detached intent instead of exposing command storage to
+charging mechanics. Additional callback families migrate as complete contracts, with no old/new overloads or runtime
+escape hatches.
 
 `profession-definition/profession.ts` remains the public native compiler. Its internal runtime stages stay in
 `engine/profession/`. Compiled live runtimes expose cast hooks, tasks, and combat reactions on the same state. Build
@@ -56,6 +67,7 @@ callbacks live on the family application contract, normalized by `builds/profess
 initializes lazily through the family's `ui` adapter. Headless runtime compilation and simulation do not initialize
 presentation factories.
 
+`results/project-runtime.ts` selects damage, score, or detailed projection after execution settles.
 `results/build-result.ts` projects executed combat facts. `results/end-state.ts` projects live planning state at the
 requested observation boundary, including command continuation after target death. Combat state is detached at the
 earlier combat boundary. Result queries index committed effects; neither projection is a checkpoint.

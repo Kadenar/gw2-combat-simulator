@@ -1,4 +1,5 @@
 import { MODIFIER_TARGET, type Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
+import { targetHasCondition } from '#gw2/platform/combat/state/targets.js';
 import { eventSkill } from '#gw2/platform/combat/query/runtime-query.js';
 import {
   requireBalanceProfileFromContext,
@@ -56,7 +57,7 @@ export const RANGER_CORE_DAGGER_SKILL_MECHANICS: Readonly<Record<number, Partial
             when: (runtime, { event }) =>
               Number(event.coefficient) > 0 &&
               event.source !== 'ranger-pet' &&
-              stalkersStrikeTargetImpaired(runtime.config, event.at, runtime),
+              stalkersStrikeTargetImpaired((condition) => runtime.combat.targetHasCondition(condition, event.at)),
             do: { type: 'ranger.stalkers-poison' }
           }
         ],
@@ -220,5 +221,7 @@ export const rangerStalkersStrikeModifier: Gw2ModifierRule = {
   // Double only this skill's strike when Cripple, Slow, or Immobilize is active.
   when: (context) =>
     eventSkill(context)?.id === ID.STALKERS_STRIKE &&
-    stalkersStrikeTargetImpaired(context.config, context.time, context.runtime)
+    stalkersStrikeTargetImpaired((condition) =>
+      targetHasCondition(context.config ?? {}, condition, context.time, context.runtime)
+    )
 };

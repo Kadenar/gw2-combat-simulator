@@ -1,3 +1,4 @@
+import type { MechanicCombatContext } from '#gw2/platform/profession-definition/mechanic-context.js';
 import { activeStackCount } from '#gw2/platform/combat/resources/timed-stacks.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import type { Gw2Stats } from '#gw2/platform/combat/types.js';
@@ -9,7 +10,7 @@ import {
 } from '#gw2/platform/engine/skills/balance-profiles.js';
 import type { BalanceProfile } from '#gw2/platform/engine/skills/types.js';
 import { resolverSourceSkill } from '#gw2/platform/resolver/packets.js';
-import type { Gw2ResolverRuntime } from '#gw2/platform/resolver/runtime-state.js';
+
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import { gw2EffectExpiresAt } from '#gw2/platform/skills/timing.js';
 import type { CatalystEmpowermentPool } from '#gw2/professions/elementalist/build/types.js';
@@ -47,7 +48,7 @@ export function grantCatalystElementalEmpowerment(
 }
 
 /** Track accepted empowerment grants independently of current selection so applied effects retain their lifetime. */
-export function applyCatalystEmpowerment(context: Gw2ResolverRuntime, event: Gw2ResolverEvent): void {
+export function applyCatalystEmpowerment(context: MechanicCombatContext, event: Gw2ResolverEvent): void {
   const kind = (event.kind || '').toLowerCase();
   if (kind !== 'elemental empowerment' || !event.resolvedAudience?.includesSelf) {
     return;
@@ -66,7 +67,7 @@ export function applyCatalystEmpowerment(context: Gw2ResolverRuntime, event: Gw2
 
 // Vicious Empowerment's payouts all share one source name.
 function queueCatalystBuff(
-  context: Gw2ResolverRuntime,
+  context: MechanicCombatContext,
   event: Gw2ResolverEvent,
   kind: string,
   stacks: number,
@@ -98,7 +99,7 @@ function queueCatalystBuff(
  * Pays Elemental Empowerment stacks plus might, and ignores anything landing
  * before combat start.
  */
-export function applyViciousEmpowerment(context: Gw2ResolverRuntime, event: Gw2ResolverEvent): void {
+export function applyViciousEmpowerment(context: MechanicCombatContext, event: Gw2ResolverEvent): void {
   const immobilize = event.condition === 'Immobilized';
   if (
     !hasTrait(context, TRAIT.VICIOUS_EMPOWERMENT) ||

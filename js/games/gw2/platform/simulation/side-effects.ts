@@ -2,7 +2,8 @@ import type { ResolvedEffectTrigger } from '#gw2/platform/simulation/effect-reac
 import type { EffectEventBase } from '#gw2/platform/engine/effects/materializer.js';
 import type { Skill, SkillEffect, SkillId } from '#gw2/platform/engine/skills/types.js';
 import type { ResourceKey } from '#gw2/platform/combat/resources/resource-policy.js';
-import type { Gw2Runtime, RuntimeCast } from '#gw2/platform/simulation/runtime-state.js';
+import type { MechanicContext, MechanicQueryContext } from '#gw2/platform/profession-definition/mechanic-context.js';
+import type { RuntimeCast } from '#gw2/platform/simulation/runtime-state.js';
 import {
   balanceProfileNumber,
   requireBalanceProfileFromContext
@@ -46,12 +47,16 @@ export type ActionContext<TSkill extends Skill = Skill> =
 export interface SkillSideEffect {
   readonly on: 'castStart' | 'castCommit';
   readonly order?: number;
-  readonly when?: (runtime: Gw2Runtime, cast: RuntimeCast) => boolean;
+  readonly when?: (runtime: MechanicQueryContext, cast: RuntimeCast) => boolean;
   readonly do: SideEffectAction;
 }
 
 /** Resolve live patch data at the point of application, rejecting invalid amounts before mutating a pool. */
-export function sideEffectAmount(runtime: Gw2Runtime, amount: ResourceGrantAmount, skill?: Skill): number {
+export function sideEffectAmount(
+  runtime: Pick<MechanicContext, 'helpers'>,
+  amount: ResourceGrantAmount,
+  skill?: Skill
+): number {
   const value =
     typeof amount === 'number'
       ? amount
@@ -65,12 +70,12 @@ export function sideEffectAmount(runtime: Gw2Runtime, amount: ResourceGrantAmoun
 
 /** The platform owns ordinary pool and packet mutations; named profession verbs retain state-machine ownership. */
 export function applySideEffect(
-  runtime: Gw2Runtime,
+  runtime: MechanicContext,
   context: ActionContext,
   action: SideEffectAction,
   handlers: Readonly<
     // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Handlers belong to the selected profession, while shared dispatch erases its private state type.
-    Record<string, (runtime: Gw2Runtime<any>, context: ActionContext, action: SideEffectAction) => void>
+    Record<string, (runtime: MechanicContext<any>, context: ActionContext, action: SideEffectAction) => void>
   > = {}
 ): void {
   switch (action.type) {
@@ -142,13 +147,13 @@ export function applySideEffect(
 
 /** The runtime dispatches start rewards for every accepted cast and commit rewards only for successful casts. */
 export function applySkillSideEffects(
-  runtime: Gw2Runtime,
+  runtime: MechanicContext,
   cast: RuntimeCast,
   on: SkillSideEffect['on'],
   handlers?: Parameters<typeof applySideEffect>[3]
 ): void {
   for (const effect of cast.skill.sideEffects ?? []) {
-    if (effect.on === on && (!effect.when || effect.when(runtime, cast)))
+    if (effect.on === on && (!effect.when || effect.when(runtime.queries, cast)))
       applySideEffect(runtime, { kind: 'cast', skill: cast.skill, cast }, effect.do, handlers);
   }
 }

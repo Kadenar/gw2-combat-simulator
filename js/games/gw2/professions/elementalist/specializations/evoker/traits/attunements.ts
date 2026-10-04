@@ -1,3 +1,4 @@
+import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
@@ -317,7 +318,10 @@ export function initializeSpecializedElements(context: ElementalistRuntime): voi
 }
 
 /** A selected fixed element rejects manual attunement swaps before familiar availability checks. */
-export function specializedElementsAvailability(context: ElementalistRuntime, skill: Skill): AvailabilityResult {
+export function specializedElementsAvailability(
+  context: MechanicQueriesOf<ElementalistRuntime>,
+  skill: Skill
+): AvailabilityResult {
   return targetAttunement(skill) && hasTrait(context, TRAIT.SPECIALIZED_ELEMENTS)
     ? denyCast(
         'elementalist.specialized-elements',

@@ -91,7 +91,7 @@ export function guildAttackConditions(runtime: ThiefRuntime, attack: ThiefSummon
   if (WELL_OF_SORROW_PRIORITY.every((condition) => permanentTargetConditionStacks(runtime.config, condition) > 0))
     return [WELL_OF_SORROW_CONDITIONS[3]];
   const missing = WELL_OF_SORROW_PRIORITY.findIndex(
-    (condition) => !runtime.query.targetHasCondition(condition, runtime.time, runtime)
+    (condition) => !runtime.combat.targetHasCondition(condition, runtime.time)
   );
   return [WELL_OF_SORROW_CONDITIONS[missing < 0 ? 3 : missing]];
 }

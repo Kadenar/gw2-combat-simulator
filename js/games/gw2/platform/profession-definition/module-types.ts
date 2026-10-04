@@ -1,3 +1,4 @@
+import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import type { Gw2Build, ProfessionBuildDefinition } from '#gw2/platform/builds/types.js';
 import type { ProfessionFamilyContract, ProfessionModifierDefinition } from '#gw2/platform/engine/profession/types.js';
 import type { AutoattackChainOptions } from '#gw2/platform/engine/skills/canonical-skill-catalog.js';
@@ -55,9 +56,7 @@ export interface NativeResolvedDamageDetails {
 }
 
 /** Runtime callbacks a module contributes; the platform composes Core and the selected specialization in order. */
-export type NativeModuleHooks<TSkill extends Skill = Skill> = Partial<
-  Omit<RuntimeProfession<never, TSkill>, 'id' | 'catalog' | 'createState' | 'projectPlanningState'>
->;
+export type NativeModuleHooks<TSkill extends Skill = Skill> = RuntimeHooks<never, TSkill>;
 
 export interface NativeModuleDefinition<
   TId extends string,

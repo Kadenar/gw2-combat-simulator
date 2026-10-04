@@ -1,9 +1,9 @@
 import {
+  buildMesmerConditions,
   buildMesmerStrikes,
-  mesmerPacketOwner,
-  buildMesmerConditions
+  mesmerPacketOwner
 } from '#gw2/professions/mesmer/core/mechanics/packets.js';
-import { mesmerConditionFromProfile, mesmerMechanicsFor } from '#gw2/professions/mesmer/core/mechanics/runtime.js';
+import { mesmerConditionFromProfile } from '#gw2/professions/mesmer/core/mechanics/runtime.js';
 import type {
   MesmerShatterResolverRequest,
   MesmerShatterTraitHit
@@ -16,7 +16,6 @@ export function resolveCloneShatter(
   context: MesmerRuntime,
   { skill, shatter, at, spent, castStart, delivery }: MesmerShatterResolverRequest
 ): readonly MesmerShatterTraitHit[] {
-  const runtime = mesmerMechanicsFor(context);
   const sources = spent + 1;
   const strike = shatter.strikes[spent];
 
@@ -28,7 +27,7 @@ export function resolveCloneShatter(
     // attached only to the first packet as required by repeat-strike shatters.
     for (const [strikeIndex, tick] of ticks.entries()) {
       buildMesmerStrikes(
-        runtime.context,
+        context,
         skill,
         at + tick.atMs / 1000,
         {
@@ -44,7 +43,7 @@ export function resolveCloneShatter(
         },
         { metadata: { shatterTraitEligible: strikeIndex === 0 } }
       ).forEach((packet) => {
-        runtime.context.effects.emit({
+        context.effects.emit({
           ...delivery,
           kind: 'packet',
           event: packet,
@@ -60,7 +59,7 @@ export function resolveCloneShatter(
   } else if (shatter.kind === 'confusion') {
     if (strike)
       buildMesmerStrikes(
-        runtime.context,
+        context,
         skill,
         at,
         {
@@ -74,7 +73,7 @@ export function resolveCloneShatter(
         },
         { skillId: skill.id, metadata: { shatterTraitEligible: true } }
       ).forEach((packet) => {
-        runtime.context.effects.emit({
+        context.effects.emit({
           ...delivery,
           kind: 'packet',
           event: packet,
@@ -87,7 +86,7 @@ export function resolveCloneShatter(
     const confusion = applyCryOfPain(context, baseConfusion);
     if (confusion)
       buildMesmerConditions(
-        runtime.context,
+        context,
         skill.name,
         at,
         {
@@ -98,7 +97,7 @@ export function resolveCloneShatter(
         '',
         { skillId: skill.id, metadata: { shatterTraitEligible: true } }
       ).forEach((packet) => {
-        runtime.context.effects.emit({
+        context.effects.emit({
           ...delivery,
           kind: 'packet',
           event: packet,
@@ -107,12 +106,12 @@ export function resolveCloneShatter(
         });
       });
 
-    triggerBlindingDissipation(runtime, skill.name, at, sources, delivery);
+    triggerBlindingDissipation(context, skill.name, at, sources, delivery);
   } else if (shatter.kind === 'defense') {
     // An authored zero still hits; a removed packet cannot trigger hit traits.
     if (strike)
       buildMesmerStrikes(
-        runtime.context,
+        context,
         skill,
         at,
         {
@@ -126,7 +125,7 @@ export function resolveCloneShatter(
         },
         { metadata: { shatterTraitEligible: true } }
       ).forEach((packet) => {
-        runtime.context.effects.emit({
+        context.effects.emit({
           ...delivery,
           kind: 'packet',
           event: packet,

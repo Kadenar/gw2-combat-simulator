@@ -1,3 +1,4 @@
+import { createMechanicCombatServices } from '#gw2/platform/resolver/mechanic-services.js';
 import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
@@ -21,6 +22,8 @@ const config = {
   stats: { power: 2000, precision: 1000, ferocity: 0 },
   target: { armor: 2597, conditions: {} }
 };
+// Bind real owner operations for this focused mechanic fixture.
+config.combat = createMechanicCombatServices(config);
 const simulate = createObservedProfessionSimulator(rangerProfession, config);
 const wait = (durationMs) => ({ type: 'wait', durationMs });
 const close = (actual, expected) => assert.ok(Math.abs(actual - expected) < 1e-8, `${actual} != ${expected}`);
@@ -161,9 +164,11 @@ test('personal stances ignore pet-only combat and trigger on the next player str
   assert.equal(
     activeSoulbeastBuff(
       {
-        boons: new Map([
-          ['vulture-stance', [{ at: 0, expiresAt: 10, stacks: 1, resolvedAudience: { includesSelf: false } }]]
-        ])
+        combat: createMechanicCombatServices({
+          boons: new Map([
+            ['vulture-stance', [{ at: 0, expiresAt: 10, stacks: 1, resolvedAudience: { includesSelf: false } }]]
+          ])
+        })
       },
       'vulture-stance',
       1

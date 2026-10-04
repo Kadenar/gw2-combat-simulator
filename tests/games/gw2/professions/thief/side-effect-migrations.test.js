@@ -111,7 +111,7 @@ test('Deadeye mark rewards commit before profession completion and retain attrib
         tasks: {
           ...native.tasks,
           'test.before-completion': (runtime) =>
-            before.push(runtime.history.some((event) => event.sourceId === 'thief.deadeye.be-quick-or-be-killed'))
+            before.push(runtime.facts.read().some((event) => event.sourceId === 'thief.deadeye.be-quick-or-be-killed'))
         }
       })
     }

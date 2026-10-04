@@ -187,12 +187,15 @@ export const liberatorsVow = defineTrait({
               transform: (event) => ({ ...boonCause, ...event, audience: { recipients: 'party' } })
             });
             {
-              runtime.procs.readyAt['guardian.firebrand.liberatorsVow'] = canonicalTime(
-                runtime.time +
-                  balanceProfileNumber(
-                    requireBalanceProfileFromContext(runtime, TRAIT.LIBERATORS_VOW),
-                    'internalCooldown'
-                  )
+              runtime.procs.setDeadline(
+                'guardian.firebrand.liberatorsVow',
+                canonicalTime(
+                  runtime.time +
+                    balanceProfileNumber(
+                      requireBalanceProfileFromContext(runtime, TRAIT.LIBERATORS_VOW),
+                      'internalCooldown'
+                    )
+                )
               );
               {
                 runtime.effects.emit({

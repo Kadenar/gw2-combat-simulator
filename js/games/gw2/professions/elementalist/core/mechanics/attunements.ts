@@ -75,7 +75,7 @@ export function onAttunementComplete(
   const attunementReadyAtBefore = Object.fromEntries(
     ELEMENTALIST_ATTUNEMENTS.map((element) => [
       element,
-      context.cooldowns.get(ELEMENTALIST_ATTUNEMENT_SKILL_IDS[element]) ?? 0
+      context.cooldownController.readyAt(ELEMENTALIST_ATTUNEMENT_SKILL_IDS[element]) ?? 0
     ])
   );
   // Preserve chain progress for the attunement being left; a cast still in flight

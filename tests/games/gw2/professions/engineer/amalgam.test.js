@@ -13,6 +13,7 @@ import { StableEventQueue } from '#kernel/events/queue.js';
 import { createObservedProfessionSimulator, observedRuntime } from '#tests/helpers/observed-runtime.js';
 import { assertFlooredDamageMultiplier } from '#tests/helpers/rounded-damage.js';
 import assert from 'node:assert/strict';
+import { createMaximumAmmoContext } from '#gw2/platform/profession-definition/runtime-context.js';
 import { test } from 'node:test';
 
 const baseConfig = Object.freeze({
@@ -504,7 +505,8 @@ test('Evolve aliases use only the trait-selected identity and share its charges 
       amalgamCastAvailability({ config: { specialization: 'Amalgam', selectedTraitIds } }, inactive).ready,
       false
     );
-    assert.equal(amalgamMaximumAmmo({ config: { selectedTraitIds } }, inactive, Number(inactive.ammo || 0)), 0);
+    const capacity = createMaximumAmmoContext(() => ({}), new Set(selectedTraitIds), engineerCatalog);
+    assert.equal(amalgamMaximumAmmo(capacity, inactive, Number(inactive.ammo || 0)), 0);
     const result = simulate('Amalgam', [ID.EVOLVE_DOUBLE_HELIX, ID.EVOLVE_BASE, ID.EVOLVE_DOUBLE_HELIX], {
       selectedTraitIds
     });

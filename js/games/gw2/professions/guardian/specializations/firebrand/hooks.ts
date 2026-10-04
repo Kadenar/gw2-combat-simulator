@@ -1,3 +1,4 @@
+import type { MechanicContext } from '#gw2/platform/profession-definition/mechanic-context.js';
 import { CAST_READY, denyCast } from '#gw2/platform/engine/skills/availability.js';
 import {
   balanceProfileNumber,
@@ -6,7 +7,7 @@ import {
 } from '#gw2/platform/engine/skills/balance-profiles.js';
 import type { NativeResolvedDamageDetails } from '#gw2/platform/profession-definition/module-types.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
-import type { Gw2Runtime, RuntimeCast, RuntimeProfession } from '#gw2/platform/simulation/runtime-state.js';
+import type { RuntimeCast, RuntimeProfession } from '#gw2/platform/simulation/runtime-state.js';
 import { damageInputEvent } from '#gw2/platform/skill-damage/execution.js';
 import { guardianCastCause } from '#gw2/professions/guardian/core/mechanics/event-handlers.js';
 import {
@@ -43,7 +44,7 @@ import {
 import type { GuardianRuntimeState, GuardianSkill, GuardianVirtue } from '#gw2/professions/guardian/types.js';
 import { canonicalTime } from '#kernel/core/clock.js';
 
-type Runtime = Gw2Runtime<GuardianRuntimeState, GuardianSkill>;
+type Runtime = MechanicContext<GuardianRuntimeState, GuardianSkill>;
 const COURAGE = 'guardian.firebrand.courage';
 const DORMANCY = { justice: PROFILE.tomeJustice, resolve: PROFILE.tomeResolve, courage: PROFILE.tomeCourage };
 

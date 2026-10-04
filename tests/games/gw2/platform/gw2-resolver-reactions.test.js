@@ -244,7 +244,9 @@ test('resolver duration queries use live relic state while historical queries re
         if (application.condition !== 'Bleeding') return;
         durations.push(application.effectiveDuration);
         // Live state must exclude the queued trigger until its handler has run.
-        liveBonuses.push(context.query.conditionDurationMultiplier('Bleeding', 1.001, undefined, application, context));
+        liveBonuses.push(
+          context.combat.conditionDurationMultiplier('Bleeding', 1.001, undefined, application, context)
+        );
       }
     }
   });

@@ -1,3 +1,4 @@
+import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
 import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
 import { eventSkill } from '#gw2/platform/combat/query/runtime-query.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
@@ -248,7 +249,7 @@ export function reactToNecromancerConditions(runtime: NecromancerRuntime, event:
 }
 
 /** Resolves the scepter trait replacement before other Core availability gates. */
-export function lingeringCurseAvailability(runtime: NecromancerRuntime, skill: NecromancerSkill) {
+export function lingeringCurseAvailability(runtime: MechanicQueriesOf<NecromancerRuntime>, skill: NecromancerSkill) {
   if (skill.id === ID.DEVOURING_DARKNESS && !hasTrait(runtime, TRAIT.LINGERING_CURSE))
     return denySkillCast(skill, 'necromancer.trait-locked', 'requires Lingering Curse.');
   if (skill.id === ID.FEAST_OF_CORRUPTION && hasTrait(runtime, TRAIT.LINGERING_CURSE))

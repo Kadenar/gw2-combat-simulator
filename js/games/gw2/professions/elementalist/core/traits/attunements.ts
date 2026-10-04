@@ -536,7 +536,7 @@ export function emitFlameExpulsion(
     balanceProfileNumber(pyromancersPuissanceProfile, 'maximumStacks'),
     context.config.boons?.might
       ? Number(context.config.boons.might)
-      : buffApplicationStacks(context.boons.get('might') ?? [], 'might', at, 25, {
+      : buffApplicationStacks(context.combat.boonApplications('might'), 'might', at, 25, {
           includes: (application) => application.resolvedAudience.includesSelf
         })
   );

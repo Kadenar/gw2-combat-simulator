@@ -13,7 +13,7 @@ import { CONDUIT_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/revenan
 import { effectiveConduitAffinity } from '#gw2/professions/revenant/specializations/conduit/traits/behavior.js';
 
 /** Capture equipped-legend eligibility at acceptance; full affinity unlocks every Dervish component. */
-const releaseLegend = (legend: string) => (runtime: RevenantRuntime) =>
+const releaseLegend = (legend: string) => (runtime: MechanicQueriesOf<RevenantRuntime>) =>
   runtime.profession.core.selectedLegendIds.includes(legend) ||
   effectiveConduitAffinity(runtime) >=
     balanceProfileNumber(requireBalanceProfileFromContext(runtime, PROFILE.affinity), 'minimumStacks');
@@ -202,3 +202,4 @@ export const CONDUIT_RELEASE_POTENTIAL_SKILL_MECHANICS: Readonly<Record<number, 
     ]
   }
 });
+import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';

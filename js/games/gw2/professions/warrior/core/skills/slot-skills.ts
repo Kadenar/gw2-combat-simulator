@@ -1,3 +1,4 @@
+import type { MechanicContext } from '#gw2/platform/profession-definition/mechanic-context.js';
 /** Canonical Core warrior skill fragments grouped by their GW2 owner. */
 import { canonicalTime } from '#kernel/core/clock.js';
 import { selectedSkillIdSet } from '#gw2/platform/builds/selected-skills.js';
@@ -13,14 +14,14 @@ import {
   type WarriorModifierAttributes
 } from '#gw2/professions/warrior/core/traits/modifier-queries.js';
 import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
-import type { Gw2Runtime, RuntimeProfession } from '#gw2/platform/simulation/runtime-state.js';
+import type { RuntimeProfession } from '#gw2/platform/simulation/runtime-state.js';
 import type { WarriorRuntimeState, WarriorSkill } from '#gw2/professions/warrior/types.js';
 import type { Gw2AttributeEffect } from '#gw2/platform/builds/types.js';
 import { WARRIOR_SKILL_IDS as ID } from '#gw2/professions/warrior/data/ids.js';
 import { impactEffects } from '#gw2/platform/engine/effects/authoring.js';
 import type { Skill } from '#gw2/platform/engine/skills/types.js';
 
-type WarriorRuntime = Gw2Runtime<WarriorRuntimeState, WarriorSkill>;
+type WarriorRuntime = MechanicContext<WarriorRuntimeState, WarriorSkill>;
 const SIGNET_PULSE = 'warrior.signet-of-rage-pulse';
 
 export const WARRIOR_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
@@ -297,7 +298,7 @@ export const WARRIOR_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Partia
 
 /** Each pulse checks current recharge and then schedules only its next occurrence, preserving cadence while suppressed. */
 function signetPulse(runtime: WarriorRuntime): void {
-  if ((runtime.cooldowns.get(ID.SIGNET_OF_RAGE) ?? 0) <= runtime.time) grantWarriorAdrenaline(runtime, 2);
+  if ((runtime.cooldownController.readyAt(ID.SIGNET_OF_RAGE) ?? 0) <= runtime.time) grantWarriorAdrenaline(runtime, 2);
   runtime.profession.core.nextSignetPulseAt = canonicalTime(runtime.time + 3);
   runtime.schedule(SIGNET_PULSE, runtime.profession.core.nextSignetPulseAt, null, undefined, -220);
 }

@@ -3,7 +3,7 @@ import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession
 import type { NativeProfessionRuntimeState } from '#gw2/platform/profession-definition/module-types.js';
 import { defineNativeModule, defineNativeProfession } from '#gw2/platform/profession-definition/profession.js';
 import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
-import type { Gw2Runtime } from '#gw2/platform/simulation/runtime-state.js';
+import type { MechanicContext } from '#gw2/platform/profession-definition/mechanic-context.js';
 import type { Gw2PlanningStateInput, Gw2ProfessionSource } from '#gw2/platform/simulation/types.js';
 
 type Assert<T extends true> = T;
@@ -26,7 +26,7 @@ const core = defineNativeModule({
         }
       ],
       hooks: {
-        onCastCommit(runtime: Gw2Runtime<{ core: { coreValue: number } }>, cast) {
+        onCastCommit(runtime: MechanicContext<{ core: { coreValue: number } }>, cast) {
           runtime.profession.core.coreValue += cast.skill.id === 1 ? 1 : 0;
         },
         modifyEffects: (_runtime, _cast, effects) => effects
@@ -47,7 +47,7 @@ const core = defineNativeModule({
     create: () => ({ coreValue: 1, resolvedCoreValue: 2 })
   },
   hooks: {
-    initialize(runtime: Gw2Runtime<{ core: { coreValue: number; resolvedCoreValue: number } }>) {
+    initialize(runtime: MechanicContext<{ core: { coreValue: number; resolvedCoreValue: number } }>) {
       // Hook callbacks consume the canonical state shape used by the family factory.
       runtime.profession.core.coreValue += runtime.profession.core.resolvedCoreValue;
     },

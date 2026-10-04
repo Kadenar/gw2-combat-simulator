@@ -1,3 +1,4 @@
+import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import type { Gw2Stats } from '#gw2/platform/combat/types.js';
 import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
@@ -56,7 +57,10 @@ export function initializeElementsOfRage(context: ElementalistRuntime, emissionC
 }
 
 /** Unravel is unavailable without its owning trait, including when that trait is unselected. */
-export function elementsOfRageAvailability(context: ElementalistRuntime, skill: Skill): AvailabilityResult {
+export function elementsOfRageAvailability(
+  context: MechanicQueriesOf<ElementalistRuntime>,
+  skill: Skill
+): AvailabilityResult {
   if (skill.id === ID.UNRAVEL && !hasTrait(context, TRAIT.ELEMENTS_OF_RAGE)) {
     return denySkillCast(skill, 'elementalist.weaver-elements-of-rage', `requires Elements of Rage.`);
   }

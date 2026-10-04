@@ -19,7 +19,8 @@ import {
   engineerUiState,
   uniqueSkillIds
 } from '#gw2/professions/engineer/core/presentation.js';
-import { ENGINEER_SKILL_IDS as ID } from '#gw2/professions/engineer/data/ids.js';
+import { ENGINEER_SKILL_IDS as ID, ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
+import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { getActiveTraits } from '#gw2/professions/engineer/data/traits-data.js';
 import { resolveAmalgamSkillId } from '#gw2/professions/engineer/specializations/amalgam/traits/behavior.js';
 import type {
@@ -72,7 +73,7 @@ function amalgamProfessionSkills(
   return [
     engineerToolbeltSkillIds(catalog, context)[0],
     ...selectedMorphIds(context).slice(0, 3),
-    resolveAmalgamSkillId(traits, ID.EVOLVE_BASE)
+    resolveAmalgamSkillId(hasTrait(traits, TRAIT.DOUBLE_HELIX), ID.EVOLVE_BASE)
   ];
 }
 

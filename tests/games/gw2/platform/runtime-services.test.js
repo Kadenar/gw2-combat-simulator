@@ -4,7 +4,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { defineNativeModule, defineNativeProfession } from '#gw2/platform/profession-definition/profession.js';
 import { createResourceClock, createDiscreteResourceClock } from '#gw2/platform/combat/resources/resource-policy.js';
-import { runGw2Runtime } from '#gw2/platform/simulation/runtime.js';
+import { observeGw2Runtime, observedRuntime } from '#tests/helpers/observed-runtime.js';
 
 // Native fixtures exercise the same state and hook composition that profession waves will migrate to.
 const skills = [
@@ -97,7 +97,7 @@ function native(
 }
 
 function run(rotation, options = {}, profession = native()) {
-  return runGw2Runtime({
+  return observeGw2Runtime({
     profession: profession.runtimeFor({ specialization: 'Core' }),
     config,
     rotation,
@@ -168,7 +168,7 @@ test('live modifier hooks read executed history independently of report collecti
         runtime.effects.emit({ kind: 'packet', event: hit(1.5) });
       }
     }).runtimeFor({ specialization: 'Core' });
-    runGw2Runtime({
+    observeGw2Runtime({
       profession: {
         ...source,
         modifyStrikeDamage(context, multiplier) {
@@ -230,8 +230,8 @@ test('native skill selection reevaluates actual state before reserving the selec
       runtime.cooldownController.setReadyAt(991002, 2);
       runtime.schedule('transform', 1);
     },
-    modifySkillId(runtime, id) {
-      return id === 991001 ? (runtime.profession.core.grants ? 991003 : 991002) : id;
+    modifySkillId(context, id) {
+      return id === 991001 ? (context.readProfessionState().core.grants ? 991003 : 991002) : id;
     },
     tasks: {
       transform: (runtime) => {
@@ -242,7 +242,7 @@ test('native skill selection reevaluates actual state before reserving the selec
   const result = run(['Hit'], {}, profession);
   assert.deepEqual(result.warnings, []);
   assert.deepEqual(owner.profession.core.starts, [[991003, 1]]);
-  assert.equal(owner.cooldowns.get(991002), 2);
+  assert.equal(owner.cooldownController.readyAt(991002), 2);
   assert.equal(result.totalDamage, 0);
   assert.ok(result.events.some((event) => event.type === 'buff' && event.kind === 'might' && event.at === 1));
 });
@@ -266,7 +266,7 @@ test('native duration selection composes before start mutations and rejects inva
     hooks: { castDurationMs: (_runtime, _skill, duration) => duration + 500 }
   });
   const profession = defineNativeProfession({ id: 'native', name: 'Native', modules: [core, elite] });
-  const result = runGw2Runtime({
+  const result = observeGw2Runtime({
     profession: profession.runtimeFor({ specialization: 'Elite' }),
     config: { ...config, specialization: 'Elite' },
     rotation: ['Channel']
@@ -333,7 +333,7 @@ test('native field selection composes before cast-start mutations and registers 
     }
   });
   const profession = defineNativeProfession({ id: 'native', name: 'Native', modules: [core, elite] });
-  const result = runGw2Runtime({
+  const result = observeGw2Runtime({
     profession: profession.runtimeFor({ specialization: 'Elite' }),
     config: { ...config, specialization: 'Elite' },
     rotation: ['Field']
@@ -376,7 +376,7 @@ test('native hook composition creates each selected state once and supports data
     }
   });
   const profession = defineNativeProfession({ id: 'native', name: 'Native', modules: [core, elite] });
-  const result = runGw2Runtime({
+  const result = observeGw2Runtime({
     profession: profession.runtimeFor({ specialization: 'Elite' }),
     config,
     rotation: []
@@ -408,7 +408,7 @@ test('live recharge anchors compose once per cast and reject nonfinite results',
           return at - 0.25;
         },
         onCastCommit(runtime, cast) {
-          completions.push([id, cast.rechargeStart, runtime.rechargeProgress.get(cast.skill.id).startedAt]);
+          completions.push([id, cast.rechargeStart, runtime.cooldownController.rechargeFor(cast.skill.id).startedAt]);
         }
       }
     });
@@ -418,7 +418,7 @@ test('live recharge anchors compose once per cast and reject nonfinite results',
     modules: [module('Core'), module('Elite')]
   });
   const runtime = profession.runtimeFor({ specialization: 'Elite' });
-  const result = runGw2Runtime({ profession: runtime, config, rotation: [cast(991002), cast(991002)] });
+  const result = observeGw2Runtime({ profession: runtime, config, rotation: [cast(991002), cast(991002)] });
   assert.deepEqual(result.warnings, []);
   assert.equal(result.steps[1].start, 2120);
   assert.deepEqual(calls, [
@@ -435,7 +435,7 @@ test('live recharge anchors compose once per cast and reject nonfinite results',
   ]);
   assert.throws(
     () =>
-      runGw2Runtime({
+      observeGw2Runtime({
         profession: { ...runtime, rechargeStart: () => Infinity },
         config,
         rotation: [cast(991002)]
@@ -513,10 +513,8 @@ test('critical sigils and Mistburn claim only actual eligible effects, identical
 });
 
 test('Doom survives an off-target hit and is consumed once by the next actual hit', () => {
-  let live;
   const profession = native({
     initialize(runtime) {
-      live = runtime;
       runtime.effects.emit({
         kind: 'packet',
         event: { type: 'weapon_set', at: 0, weaponSet: 2, source: 'live', sourceId: 'swap', actorType: 'player' }
@@ -536,7 +534,7 @@ test('Doom survives an off-target hit and is consumed once by the next actual hi
   );
   assert.equal(poison.length, 1);
   assert.equal(poison[0].at, 0.2);
-  assert.equal(live.sigil.doomPending, false);
+  assert.equal(observedRuntime(result).sigil.doomPending, false);
 });
 
 test('resource grants, capacity limits and recovery use the one live pool at readiness boundaries', () => {
@@ -722,7 +720,7 @@ test('missed and precombat impacts retain self combos while their hostile outcom
         });
         const result = run([wait(2000), ...(precombat ? [{ type: 'combat-start' }] : [])], { output }, profession);
         assert.equal(result.totalDamage, 0);
-        assert.equal(owner.boons.has('might'), finisherType === 'Blast');
+        assert.equal(owner.combat.boonApplications('might').length > 0, finisherType === 'Blast');
         if (output === 'detailed')
           assert.equal(
             result.resolvedEvents.some((event) => event.type === 'condition' || event.type === 'damage'),
@@ -736,17 +734,8 @@ test('missed and precombat impacts retain self combos while their hostile outcom
 test('Fireworks eligibility uses inferred profession weapon strength in detailed and score execution', () => {
   // The materialized strike has no explicit profile override; the hit resolver supplies the selected profile.
   for (const output of ['detailed', 'score']) {
-    let owner;
-    const result = run(
-      [cast(991013)],
-      { output, config: { ...config, relic: 'Fireworks' } },
-      native({
-        initialize(runtime) {
-          owner = runtime;
-        }
-      })
-    );
-    assert.equal(owner.relic.state.buffUntil, 6);
+    const result = run([cast(991013)], { output, config: { ...config, relic: 'Fireworks' } }, native({}));
+    assert.equal(observedRuntime(result).relic.state.buffUntil, 6);
     assert.ok(result.totalDamage > 0);
   }
 });
@@ -756,8 +745,8 @@ test('cast variant descriptions capture acceptance state before later actions mu
     [cast(991001), cast(991001)],
     {},
     native({
-      castDetail(runtime) {
-        return `Variant: ${runtime.profession.core.grants}`;
+      castDetail(context) {
+        return `Variant: ${context.readProfessionState().core.grants}`;
       },
       onCastStart(runtime) {
         runtime.profession.core.grants++;
@@ -814,7 +803,7 @@ test('recharge entitlements are reserved once at acceptance and completion obser
     },
     onCastCommit(runtime, activation) {
       if (activation.skill.id === 991002)
-        calls.push(['complete', runtime.time, runtime.cooldowns.get(activation.skill.id)]);
+        calls.push(['complete', runtime.time, runtime.cooldownController.readyAt(activation.skill.id)]);
     }
   });
   const result = run([cast(991002), cast(991002)], {}, profession);
@@ -844,13 +833,7 @@ test('rejected and cancelled commands preserve recharge entitlements', () => {
 });
 
 test('score mode retains execution facts for queries while omitting presentation collections', () => {
-  let context;
-  const profession = native({
-    initialize(runtime) {
-      context = runtime;
-    }
-  });
-  run([cast(991003), cast(991001), wait(1000)], { output: 'score' }, profession);
+  const context = observedRuntime(run([cast(991003), cast(991001), wait(1000)], { output: 'score' }));
   assert.ok(context.history.some((event) => event.type === 'buff'));
   assert.equal(context.breakdown.size, 0);
   assert.equal(context.resolved.length, 0);
@@ -877,7 +860,7 @@ test('boon duration snapshots the weapon set at application, and history exclude
     },
     tasks: {
       inspect(runtime) {
-        observed.push(runtime.query.timeline.buffStacksAt('might', runtime.time, 0, 25));
+        observed.push(runtime.combat.timeline.buffStacksAt('might', runtime.time, 0, 25));
       }
     }
   });
@@ -894,12 +877,12 @@ test('live cooldown queries observe completion and reset, and reject a future cl
   const seen = [];
   const profession = native({
     onCastCommit(runtime, activation) {
-      if (activation.skill.id === 991002) seen.push(runtime.query.timeline.skillOnCooldownAt(991002, runtime.time));
+      if (activation.skill.id === 991002) seen.push(runtime.combat.timeline.skillOnCooldownAt(991002, runtime.time));
     },
     onCastStart(runtime, activation) {
       if (activation.skill.id === 991001) {
-        seen.push(runtime.query.timeline.skillOnCooldownAt(991002, runtime.time));
-        assert.throws(() => runtime.query.timeline.skillOnCooldownAt(991002, runtime.time + 1), /current clock/);
+        seen.push(runtime.combat.timeline.skillOnCooldownAt(991002, runtime.time));
+        assert.throws(() => runtime.combat.timeline.skillOnCooldownAt(991002, runtime.time + 1), /current clock/);
       }
     }
   });

@@ -1,6 +1,8 @@
+import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
+import type { MechanicContext } from '#gw2/platform/profession-definition/mechanic-context.js';
 import { THIEF_SKILL_IDS as ID } from '#gw2/professions/thief/data/ids.js';
 import { timedEffectState, type BuffStatePolicy, type EffectState } from '#gw2/platform/combat/effect-state.js';
-import type { Gw2Runtime } from '#gw2/platform/simulation/runtime-state.js';
+
 import type { ThiefRuntimeState, ThiefSkill } from '#gw2/professions/thief/types.js';
 import { balanceProfileFromContext, balanceProfileNumber } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
@@ -25,7 +27,9 @@ export function thiefBuffPolicies(context: unknown): BuffStatePolicy[] {
 }
 
 /** Lead Attacks reads the same retained expiries that grantTimedStacks mutates. */
-export function thiefEffectStates(runtime: Gw2Runtime<ThiefRuntimeState, ThiefSkill>): EffectState[] {
+export function thiefEffectStates(
+  runtime: MechanicQueriesOf<MechanicContext<ThiefRuntimeState, ThiefSkill>>
+): EffectState[] {
   return [
     ...(
       [

@@ -397,6 +397,8 @@ test('Elementalist behavior follows skill IDs after display labels change', () =
     effects: captureEffectEmissions({ submit: (event) => pistolEvents.push(event) }).effects,
     emitProcedural: (event) => pistolEvents.push(event)
   };
+  // Predicate fixtures expose only the state read by the bullet selector.
+  pistolContext.queries = { profession: pistolContext.profession };
   const shatteringStone = {
     ...elementalistCatalog.skillsById.get(ID.SHATTERING_STONE),
     name: 'Renamed core pistol skill'

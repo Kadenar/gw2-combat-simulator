@@ -1,3 +1,5 @@
+import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
+import type { MechanicContext } from '#gw2/platform/profession-definition/mechanic-context.js';
 import { isGw2PlayerActorEvent } from '#gw2/platform/combat/state/event-ownership.js';
 import { impactEffects } from '#gw2/platform/engine/effects/authoring.js';
 import {
@@ -7,7 +9,7 @@ import {
 } from '#gw2/platform/engine/skills/balance-profiles.js';
 import type { Skill } from '#gw2/platform/engine/skills/types.js';
 import { buildResolverCondition } from '#gw2/platform/resolver/packets.js';
-import type { Gw2Runtime, RuntimeProfession } from '#gw2/platform/simulation/runtime-state.js';
+import type { RuntimeProfession } from '#gw2/platform/simulation/runtime-state.js';
 import { GUARDIAN_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/guardian/core/profiles.js';
 import { guardianResolverState } from '#gw2/professions/guardian/core/traits/behavior.js';
 import { GUARDIAN_SKILL_IDS as ID } from '#gw2/professions/guardian/data/ids.js';
@@ -168,7 +170,9 @@ export const GUARDIAN_WEAPONS_PISTOL_SKILL_MECHANICS: Readonly<Record<number, Pa
 });
 
 /** Selected field duration is shared by placement and the public combo field. */
-export function guardianIgnitionFields(runtime: Gw2Runtime<GuardianRuntimeState, GuardianSkill>): Skill['comboFields'] {
+export function guardianIgnitionFields(
+  runtime: MechanicQueriesOf<MechanicContext<GuardianRuntimeState, GuardianSkill>>
+): Skill['comboFields'] {
   const profile = requireBalanceProfileFromContext(runtime, PROFILE.symbolOfIgnition);
   const field = requireEffect(profile, 'buff', 'guardian-symbol-of-ignition-field');
   return field

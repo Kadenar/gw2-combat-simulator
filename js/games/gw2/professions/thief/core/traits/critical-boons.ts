@@ -69,9 +69,9 @@ export const unrelentingStrikesCriticalReaction = Object.freeze({
   internalCooldown: {
     duration: (context: ThiefResolverContext) =>
       balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.UNRELENTING_STRIKES), 'internalCooldown'),
-    readyAt: (context: ThiefResolverContext) => context.procs.readyAt[TRAIT.UNRELENTING_STRIKES] || 0,
+    readyAt: (context: ThiefResolverContext) => context.procs.deadline(TRAIT.UNRELENTING_STRIKES) || 0,
     setReadyAt: (context: ThiefResolverContext, readyAt: number) => {
-      context.procs.readyAt[TRAIT.UNRELENTING_STRIKES] = readyAt;
+      context.procs.setDeadline(TRAIT.UNRELENTING_STRIKES, readyAt);
     }
   },
   handler: (context, event, _details, application) => {
@@ -124,7 +124,7 @@ export function applyNoQuarterAttributes(
 export function extendActiveFury(context: ThiefResolverContext, event: ThiefResolverEvent, duration: number): void {
   // Extend Fury only while its canonical half-open window is active at the hit time.
   if (
-    remainingDurationStackSeconds(context.boons.get('fury') || [], event.at, {
+    remainingDurationStackSeconds(context.combat.boonApplications('fury'), event.at, {
       includes: (application) => buffMatchesAudience(application, 'all'),
       maximum: durationStackingBoonCapSeconds('fury')
     }) <= 0
@@ -174,9 +174,9 @@ export const noQuarterCriticalReaction = Object.freeze({
   internalCooldown: {
     duration: (context: ThiefResolverContext) =>
       balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.NO_QUARTER), 'internalCooldown'),
-    readyAt: (context: ThiefResolverContext) => context.procs.readyAt[TRAIT.NO_QUARTER] || 0,
+    readyAt: (context: ThiefResolverContext) => context.procs.deadline(TRAIT.NO_QUARTER) || 0,
     setReadyAt: (context: ThiefResolverContext, readyAt: number) => {
-      context.procs.readyAt[TRAIT.NO_QUARTER] = readyAt;
+      context.procs.setDeadline(TRAIT.NO_QUARTER, readyAt);
     }
   },
   handler: (context, event, _details, application) => {

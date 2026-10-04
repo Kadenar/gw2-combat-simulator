@@ -155,6 +155,27 @@ tome skills, including Scorched Aftermath, use `castCommit`; their field and dam
 
 `simulateGw2()` validates input and invokes `simulation/runtime.ts` exactly once.
 
+That entry assembles per-run services. `simulation/coordinator.ts` owns the heap, logical clock, causal scope, and
+advancement loop. `execution/cast-execution.ts` owns readiness, reservations, acceptance, commitment, and completion;
+the rotation driver consumes commands through its operations. `resolver/effect-delivery.ts` owns admission, deferred
+preparation, immediate condition settlement, target gates, and reaction settlement. `results/project-runtime.ts`
+projects the settled run without advancing it.
+
+Mechanic contributions use the explicit `RuntimeHooks` surface in `profession-definition/runtime-hooks.ts`; unknown
+fields and duplicate named handlers fail. Notification order, transform propagation, retry precedence, and policy
+selection remain explicit. `effectOwner` receives only `EffectOwnershipContext` from `runtime-context.ts`, allocated
+once per run with selected-catalog queries. `castDetail` receives `CastDetailContext`, also allocated once per run; its
+profession-state query exposes nested data as read-only and excludes stateful operations. Accepted casts retain their
+concrete selected-catalog skill. Other callback families retain their canonical signatures until migrated atomically.
+Professions inspect in-flight casts, query detached pending charge-release intent, and request lockouts through
+`castController`, without access to its maps. Dragon Trigger no longer reads the command cursor.
+
+Dragon Trigger owns charging, release capture, charge-scaled packets, and expiry, with state defaults in its leaf state
+module. Its immutable release records are stored per run. Gunsaber transitions and Flow regeneration have separate
+owners. Photon Forge owns its task/action registration alongside the heat lifecycle. Mesmer's illusion lifecycle
+assembles resources, clones, phantasms, and their recurring work; Core hooks keep explicit ordering with Mimic and other
+mechanics.
+
 - One cursor, heap, profession/target state, resource controller, and RNG own the run.
 - Pending work is invisible to historical queries until it executes.
 - Score and detailed modes share mechanics. Detailed mode retains steps, reports, APM, and optional diagnostics.

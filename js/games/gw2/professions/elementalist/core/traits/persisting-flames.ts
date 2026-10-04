@@ -1,3 +1,5 @@
+import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
+import type { MechanicCombatContext } from '#gw2/platform/profession-definition/mechanic-context.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import {
   balanceProfileNumber,
@@ -5,7 +7,7 @@ import {
 } from '#gw2/platform/engine/skills/balance-profiles.js';
 import type { Skill, SkillEffect } from '#gw2/platform/engine/skills/types.js';
 import { resolverSourceSkill } from '#gw2/platform/resolver/packets.js';
-import type { Gw2ResolverRuntime } from '#gw2/platform/resolver/runtime-state.js';
+
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import type { RuntimeCast } from '#gw2/platform/simulation/runtime-state.js';
 
@@ -87,7 +89,7 @@ export function extendPersistingFlamesEffects(
 
 /** Field registration uses the same extension as the extra authored pulses. */
 export function extendPersistingFlamesFields(
-  context: ElementalistRuntime,
+  context: MechanicQueriesOf<ElementalistRuntime>,
   cast: RuntimeCast<ElementalistSkill>,
   fields: Skill['comboFields']
 ): Skill['comboFields'] {
@@ -102,7 +104,7 @@ export function extendPersistingFlamesFields(
 }
 
 /** Grants one resolver-side Persisting Flames stack from a classified field tick or Burning application. */
-function grantPersistingFlames(context: Gw2ResolverRuntime, event: Gw2ResolverEvent): void {
+function grantPersistingFlames(context: MechanicCombatContext, event: Gw2ResolverEvent): void {
   if (!hasTrait(context, TRAIT.PERSISTING_FLAMES)) return;
   const persistingFlamesProfile = requireBalanceProfileFromContext(context, TRAIT.PERSISTING_FLAMES);
   context.effects.emit({
@@ -125,17 +127,17 @@ function grantPersistingFlames(context: Gw2ResolverRuntime, event: Gw2ResolverEv
 }
 
 /** Fire-field rewards precede Shattering Stone; profession fields grant stacks without gaining extra packets. */
-export function applyPersistingFlamesDamage(context: Gw2ResolverRuntime, event: Gw2ResolverEvent): void {
+export function applyPersistingFlamesDamage(context: MechanicCombatContext, event: Gw2ResolverEvent): void {
   if (
     event.damageKind === 'field-tick' &&
     context.helpers.skillsById
-      ?.get(event.skillId ?? event.sourceId)
+      .get(event.skillId ?? event.sourceId)
       ?.comboFields?.some((field) => field.fieldType === 'Fire')
   )
     grantPersistingFlames(context, event);
 }
 
 /** Burning rewards stay after Strength of Stone in the accepted-condition reaction. */
-export function applyPersistingFlamesCondition(context: Gw2ResolverRuntime, event: Gw2ResolverEvent): void {
+export function applyPersistingFlamesCondition(context: MechanicCombatContext, event: Gw2ResolverEvent): void {
   if (event.condition === 'Burning') grantPersistingFlames(context, event);
 }

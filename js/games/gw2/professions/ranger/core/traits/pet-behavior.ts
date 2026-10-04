@@ -60,7 +60,7 @@ export function applyRangerCommandTraits(
   for (const kind of GW2_STANDARD_BOONS) {
     const configured = context.config.boons?.[kind];
     const permanent = kind === 'might' ? boundedNumber(configured, 0, 0, 25) : configured ? 1 : 0;
-    const applications = context.boons.get(kind) ?? [];
+    const applications = context.combat.boonApplications(kind);
     const maximum = kind === 'might' || kind === 'stability' ? 25 : 1;
     const stacks = Math.min(
       maximum,
@@ -154,9 +154,7 @@ export function triggerGoForTheThroat(context: RangerResolverContext, event: Gw2
       sourceSkill: event.skillName,
       detail: `${duration}s, +40% pet strike damage`,
       icon:
-        context.helpers.skillsById?.get(ID.LESSER_SIC_EM)?.icon ||
-        context.helpers.skillsById?.get(ID.SIC_EM)?.icon ||
-        ''
+        context.helpers.skillsById.get(ID.LESSER_SIC_EM)?.icon || context.helpers.skillsById.get(ID.SIC_EM)?.icon || ''
     }
   });
   context.effects.emit({
@@ -304,8 +302,8 @@ export function triggerMergedGoForTheThroat(context: RangerResolverContext, even
           sourceSkill: event.skillName,
           detail: `${duration}s, +15% strike damage`,
           icon:
-            context.helpers.skillsById?.get(ID.LESSER_SIC_EM)?.icon ||
-            context.helpers.skillsById?.get(ID.SIC_EM)?.icon ||
+            context.helpers.skillsById.get(ID.LESSER_SIC_EM)?.icon ||
+            context.helpers.skillsById.get(ID.SIC_EM)?.icon ||
             ''
         }
       });

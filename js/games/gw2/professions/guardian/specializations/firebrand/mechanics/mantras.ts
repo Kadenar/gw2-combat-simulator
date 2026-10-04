@@ -1,14 +1,16 @@
+import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
+import type { MechanicContext } from '#gw2/platform/profession-definition/mechanic-context.js';
 import { selectedSkillIdSet } from '#gw2/platform/builds/selected-skills.js';
 import { CAST_READY, denyCast, retryCast } from '#gw2/platform/engine/skills/availability.js';
 import { armSkillFlip, consumeSkillFlip, skillFlipReady } from '#gw2/platform/engine/skills/skill-flips.js';
 import type { Skill } from '#gw2/platform/engine/skills/types.js';
-import type { Gw2Runtime, RuntimeProfession } from '#gw2/platform/simulation/runtime-state.js';
+import type { RuntimeProfession } from '#gw2/platform/simulation/runtime-state.js';
 import { gw2CooldownReadyAt } from '#gw2/platform/skills/timing.js';
 import { MANTRAS, type MantraDefinition } from '#gw2/professions/guardian/data/mantra-definitions.js';
 import { firebrandState } from '#gw2/professions/guardian/specializations/firebrand/state.js';
 import type { GuardianRuntimeState, GuardianSkill } from '#gw2/professions/guardian/types.js';
 
-type Runtime = Gw2Runtime<GuardianRuntimeState, GuardianSkill>;
+type Runtime = MechanicContext<GuardianRuntimeState, GuardianSkill>;
 export const FIREBRAND_MANTRA_WAKE = 'guardian.firebrand.mantra';
 const owner = (definition: MantraDefinition, generation: number) => ({ id: `mantra:${definition.rootId}`, generation });
 
@@ -18,7 +20,7 @@ function arm(runtime: Runtime, definition: MantraDefinition): void {
   const flips = runtime.profession.core.availableFlips;
   consumeSkillFlip(flips, definition.finalId);
   armSkillFlip(flips, definition.normalId, runtime.time);
-  runtime.ammo.delete(normal.id);
+  runtime.cooldownController.retireAmmo(normal.id);
   runtime.cooldownController.clear(normal.id);
   runtime.cooldownController.ensureAmmo(normal);
   runtime.cooldownController.clear(definition.rootId);
@@ -35,21 +37,21 @@ function sync(runtime: Runtime, definition: MantraDefinition): void {
   const normal = runtime.helpers.skillsById.get(definition.normalId)!;
   let next = Infinity;
   if (
-    runtime.cooldowns.has(definition.rootId) ||
+    runtime.cooldownController.hasCooldown(definition.rootId) ||
     state.mantraRechargeReadyAt[definition.rootId] > runtime.time ||
-    !runtime.ammo.has(normal.id)
+    !runtime.cooldownController.hasAmmo(normal.id)
   ) {
-    const readyAt = gw2CooldownReadyAt(runtime.cooldowns.get(definition.rootId) ?? 0);
+    const readyAt = gw2CooldownReadyAt(runtime.cooldownController.readyAt(definition.rootId) ?? 0);
     if (readyAt <= runtime.time) arm(runtime, definition);
     else {
       // Shared readiness can provision an ammo pool while probing; root recharge still owns its eligibility.
-      runtime.ammo.delete(normal.id);
+      runtime.cooldownController.retireAmmo(normal.id);
       state.mantraRechargeReadyAt[definition.rootId] = readyAt;
       next = readyAt;
     }
   }
 
-  if (runtime.ammo.has(normal.id)) {
+  if (runtime.cooldownController.hasAmmo(normal.id)) {
     const ammo = runtime.cooldownController.refreshAmmo(normal, runtime.time)!;
     const flips = runtime.profession.core.availableFlips;
     const current = ammo.charges > 1 ? definition.normalId : definition.finalId;
@@ -93,7 +95,7 @@ export function firebrandMantraWake(runtime: Runtime, rootId: unknown): void {
 }
 
 /** Preparation and final variants consult the one normal-charge pool, including its shared cast lockout. */
-export function firebrandMantraAvailability(runtime: Runtime, skill: Skill) {
+export function firebrandMantraAvailability(runtime: MechanicQueriesOf<Runtime>, skill: Skill) {
   const definition = MANTRAS.find(({ rootId, normalId, finalId }) =>
     [rootId, normalId, finalId].includes(Number(skill.id))
   );
@@ -104,10 +106,10 @@ export function firebrandMantraAvailability(runtime: Runtime, skill: Skill) {
       skillFlipReady(flips[definition.finalId], runtime.time)
       ? denyCast('guardian.mantra-prepared', `${skill.name} is already prepared.`)
       : CAST_READY;
-  const preparedAt = gw2CooldownReadyAt(runtime.cooldowns.get(definition.rootId) ?? 0);
+  const preparedAt = gw2CooldownReadyAt(runtime.cooldownController.readyAt(definition.rootId) ?? 0);
   if (preparedAt > runtime.time)
     return retryCast(preparedAt, 'guardian.mantra-charge', `${skill.name} is waiting for preparation.`);
-  const chargeAt = gw2CooldownReadyAt(runtime.cooldowns.get(definition.normalId) ?? 0);
+  const chargeAt = gw2CooldownReadyAt(runtime.cooldownController.readyAt(definition.normalId) ?? 0);
   if (skill.id === definition.finalId && chargeAt > runtime.time)
     return retryCast(chargeAt, 'guardian.mantra-charge', `${skill.name} is waiting for its charge cooldown.`);
   return skillFlipReady(flips[skill.id], runtime.time)
@@ -133,7 +135,7 @@ export const firebrandMantraActions: RuntimeProfession<GuardianRuntimeState, Gua
           const flips = runtime.profession.core.availableFlips;
           consumeSkillFlip(flips, definition.normalId);
           consumeSkillFlip(flips, definition.finalId);
-          runtime.ammo.delete(definition.normalId);
+          runtime.cooldownController.retireAmmo(definition.normalId);
           runtime.cooldownController.clear(definition.normalId);
           const root = runtime.helpers.skillsById.get(definition.rootId)!;
           firebrandState.from(runtime).mantraRechargeReadyAt[definition.rootId] =

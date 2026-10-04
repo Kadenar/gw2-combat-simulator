@@ -1,3 +1,4 @@
+import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
 import { denySkillCast } from '#gw2/platform/engine/skills/availability.js';
 import { gw2BaseRecharge } from '#gw2/platform/engine/skills/recharge.js';
 import { armSkillFlip, consumeSkillFlip } from '#gw2/platform/engine/skills/skill-flips.js';
@@ -85,7 +86,7 @@ function spawnHorror(runtime: NecromancerRuntime, data: unknown): void {
 }
 
 /** Active creatures own their commands and prevent death-gated summons from bypassing recharge. */
-export function necromancerMinionAvailability(runtime: NecromancerRuntime, skill: NecromancerSkill) {
+export function necromancerMinionAvailability(runtime: MechanicQueriesOf<NecromancerRuntime>, skill: NecromancerSkill) {
   const definition = Boolean(NECROMANCER_MINION_PROFILE_BY_SKILL_ID[Number(skill.id)])
     ? minionDefinitionForSkill(runtime, skill.id)
     : undefined;
@@ -209,7 +210,8 @@ function attack(runtime: NecromancerRuntime, data: unknown): void {
   cursor.cycleIndex += Number(cursor.attackIndex === 0);
   const quickness =
     runtime.config.sharePlayerBoonsWithSummons !== false &&
-    runtime.query.timeline.buffStacksAt('quickness', runtime.time, 0, 1, 'summon', companion(work.key, work.index)) > 0;
+    runtime.combat.timeline.buffStacksAt('quickness', runtime.time, 0, 1, 'summon', companion(work.key, work.index)) >
+      0;
   const castTimeMs = packet.castTimeMs ?? 0;
   const saved = quickness ? castTimeMs - summonQuicknessCastTimeMs(null, castTimeMs) : 0;
   const next = actionTime(runtime.time + Math.max(0, interval - saved / 1000));

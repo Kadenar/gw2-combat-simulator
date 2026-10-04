@@ -180,28 +180,17 @@ test('Cosmic Wisdom grants Core traits once before form activation', () => {
       startingLegend: LEGEND.DEMON
     },
     {
-      extend: (native) => ({
-        sideEffectHandlers: {
-          ...native.sideEffectHandlers,
-          'revenant.cosmic-wisdom'(runtime, context, action) {
-            // Observe synchronous trait publication at the point it can still see pre-form attributes.
-            const effects = runtime.effects;
-            runtime.effects = {
-              emit(request) {
-                const event = request.kind === 'packet' ? request.event : request.attribution;
-                if (event?.sourceId === TRAIT.NOTORIETY) order.push(conduitState.from(runtime).conduitForm);
-                return effects.emit(request);
-              }
-            };
-
-            try {
-              native.sideEffectHandlers[action.type](runtime, context, action);
-            } finally {
-              runtime.effects = effects;
-            }
+      initialize(runtime) {
+        // Observe the real emission service without replacing capabilities inside an author callback.
+        const effects = runtime.effects;
+        runtime.effects = {
+          emit(request) {
+            const event = request.kind === 'packet' ? request.event : request.attribution;
+            if (event?.sourceId === TRAIT.NOTORIETY) order.push(conduitState.from(runtime).conduitForm);
+            return effects.emit(request);
           }
-        }
-      })
+        };
+      }
     }
   );
   assert.deepEqual(result.warnings, []);

@@ -1,3 +1,4 @@
+import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
 import { STANDARD_TARGET_ARMOR } from '#gw2/platform/combat/formulas.js';
 import { scaleCastBoundTiming } from '#gw2/platform/engine/effects/materializer.js';
 import { buildEngineerPackets } from '#gw2/professions/engineer/core/events.js';
@@ -85,10 +86,16 @@ interface MechAttackPayload {
 }
 
 /** Commands and basic attacks share the mech's direct or copied Quickness, evaluated at execution time. */
-export function engineerMechHasQuickness(context: EngineerRuntime, at: number): boolean {
+export function engineerMechHasQuickness(context: MechanicQueriesOf<EngineerRuntime>, at: number): boolean {
   return (
-    createGw2TimelineIndex({ events: context.history }).buffStacksAt('quickness', at, 0, 1, 'summon', 'engineer.mech') >
-      0 ||
+    createGw2TimelineIndex({ events: context.facts.read() }).buffStacksAt(
+      'quickness',
+      at,
+      0,
+      1,
+      'summon',
+      'engineer.mech'
+    ) > 0 ||
     (Boolean(context.config.boons?.quickness) && shiftSignetPassive(context, at))
   );
 }

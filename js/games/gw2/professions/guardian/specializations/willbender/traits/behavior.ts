@@ -1,3 +1,4 @@
+import type { MechanicContext } from '#gw2/platform/profession-definition/mechanic-context.js';
 import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import {
@@ -9,7 +10,7 @@ import {
 import type { Skill } from '#gw2/platform/engine/skills/types.js';
 import { gw2ConfiguredWeaponSet } from '#gw2/platform/equipment/weapons/loadout.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
-import type { Gw2Runtime } from '#gw2/platform/simulation/runtime-state.js';
+
 import { gw2EffectExpiresAt } from '#gw2/platform/skills/timing.js';
 import { battlePresenceSharesBoons, guardianTraitIcon } from '#gw2/professions/guardian/core/traits/behavior.js';
 import { GUARDIAN_TRAIT_IDS as TRAIT } from '#gw2/professions/guardian/data/ids.js';
@@ -20,7 +21,7 @@ import { willbenderState } from '#gw2/professions/guardian/specializations/willb
 import type { GuardianRuntimeState, GuardianSkill, GuardianVirtue } from '#gw2/professions/guardian/types.js';
 import { canonicalTime } from '#kernel/core/clock.js';
 
-type Runtime = Gw2Runtime<GuardianRuntimeState, GuardianSkill>;
+type Runtime = MechanicContext<GuardianRuntimeState, GuardianSkill>;
 
 /** Decodes the live stack cap and selected lifetime before granting a window. */
 export function lethalTempoParameters(context: unknown) {
@@ -107,7 +108,10 @@ function reduceWeapons(runtime: Runtime, cause: Gw2ResolverEvent): void {
     'rechargeReduction'
   );
   let reduction = 0;
-  for (const id of new Set([...runtime.cooldowns.keys(), ...runtime.ammo.keys()])) {
+  for (const id of new Set([
+    ...runtime.cooldownController.cooldownSkillIds(),
+    ...runtime.cooldownController.ammoSkillIds()
+  ])) {
     const skill = runtime.helpers.skillsById.get(id)!;
     if (matches(skill)) reduction += runtime.cooldownController.reduceSkillRecharge(skill, amount, runtime.time);
   }

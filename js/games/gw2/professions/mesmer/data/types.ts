@@ -123,6 +123,8 @@ export interface MesmerSkill extends Skill {
   readonly phantasmDisplayNames?: Readonly<Record<string, string>>;
   readonly blade?: boolean;
   readonly shatter?: import('#gw2/professions/mesmer/core/mechanics/shatter-types.js').MesmerShatterDefinition;
+  /** Authored instrument identity supports capacity queries without reaching into live illusion controllers. */
+  readonly instrument?: import('#gw2/professions/mesmer/types.js').MesmerInstrument;
   readonly armedAtStart?: boolean;
   readonly flipArm?: {
     readonly skillId: number;

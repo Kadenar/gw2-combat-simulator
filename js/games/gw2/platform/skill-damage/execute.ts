@@ -130,7 +130,7 @@ export function executeDamageOccurrence(
         actorType: 'effect',
         skillName: occurrence.name
       });
-    else if (declared) declared.emit(runtime, inputs);
+    else if (declared) declared.emit(runtime.mechanics, inputs);
   };
 
   const result = runRuntime({

@@ -34,12 +34,12 @@ export function startWeaveSelfCast(
 
 /** Starts Weave Self's recharge at the same partial-cast point as its activation. */
 export function modifyWeaveSelfRechargeStart(
-  context: ElementalistRuntime,
+  context: import('#gw2/platform/profession-definition/runtime-context.js').RechargeStartContext,
   cast: Pick<RuntimeCast<ElementalistSkill>, 'skill' | 'start' | 'fullEnd' | 'effectiveEnd'>,
   rechargeStart: number
 ): number {
   if (cast.skill.id !== ID.WEAVE_SELF) return rechargeStart;
-  const resourcesProfile = requireBalanceProfileFromContext(context, PROFILE.resources);
+  const resourcesProfile = context.requireBalanceProfile(PROFILE.resources);
   return context.time + (rechargeStart - context.time) * balanceProfileNumber(resourcesProfile, 'firstPacketRatio');
 }
 

@@ -1,5 +1,7 @@
+import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
+import type { MechanicContext } from '#gw2/platform/profession-definition/mechanic-context.js';
 import { timedEffectState, type BuffStatePolicy, type EffectState } from '#gw2/platform/combat/effect-state.js';
-import type { Gw2Runtime } from '#gw2/platform/simulation/runtime-state.js';
+
 import type { NecromancerRuntimeState, NecromancerSkill } from '#gw2/professions/necromancer/types.js';
 
 /** Effect owners expose the same selected balance values as combat; presentation supplies no stacking rules. */
@@ -19,7 +21,9 @@ export function necromancerBuffPolicies(_context: unknown): BuffStatePolicy[] {
 }
 
 /** Record consumed recipient grants and actual shroud state rather than reconstructing them from announcements. */
-export function necromancerEffectStates(runtime: Gw2Runtime<NecromancerRuntimeState, NecromancerSkill>): EffectState[] {
+export function necromancerEffectStates(
+  runtime: MechanicQueriesOf<MechanicContext<NecromancerRuntimeState, NecromancerSkill>>
+): EffectState[] {
   const core = runtime.profession.core;
   const effects: EffectState[] = Object.entries(core.tasteForBloodBuffs).map(([recipient, windows]) =>
     timedEffectState('taste-for-blood', windows, null, { recipient })

@@ -25,10 +25,10 @@ import { type RuntimeCast } from '#gw2/platform/simulation/runtime-state.js';
 export function triggerMassMomentum(context: EngineerRuntime, event: EngineerResolverEvent): void | false {
   if (!hasTrait(context, TRAIT.MASS_MOMENTUM) || activeBoonStacks(context, 'stability', 1, event.at) === 0)
     return false;
-  const state = context.procs.readyAt;
+  const state = context.procs;
   const massMomentumProfile = requireBalanceProfileFromContext(context, TRAIT.MASS_MOMENTUM);
-  if ((state.massMomentum || 0) <= event.at) {
-    state.massMomentum = event.at + balanceProfileNumber(massMomentumProfile, 'pulseInterval');
+  if ((state.deadline('massMomentum') || 0) <= event.at) {
+    state.setDeadline('massMomentum', event.at + balanceProfileNumber(massMomentumProfile, 'pulseInterval'));
     const massMomentumMight = requireEffect(massMomentumProfile, 'boon', 'might');
     if (massMomentumMight) {
       context.effects.emit({
@@ -54,7 +54,7 @@ export function triggerMassMomentum(context: EngineerRuntime, event: EngineerRes
   }
 
   const interval = balanceProfileNumber(massMomentumProfile, 'pulseInterval');
-  const next = Math.max(event.at + interval, state.massMomentum || 0);
+  const next = Math.max(event.at + interval, state.deadline('massMomentum') || 0);
   const live = scrapperState.from(context);
   if (interval > 0 && live.massMomentumAt > next) {
     live.massMomentumAt = next;
@@ -80,10 +80,10 @@ export function reactToAppliedForceBuff(context: EngineerRuntime, event: Enginee
       event.at
     ) >= balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.APPLIED_FORCE), 'threshold')
   ) {
-    const state = context.procs.readyAt;
-    if (isInternalCooldownReady(event.at, state.appliedForce || 0)) {
+    const state = context.procs;
+    if (isInternalCooldownReady(event.at, state.deadline('appliedForce') || 0)) {
       const appliedForceProfile = requireBalanceProfileFromContext(context, TRAIT.APPLIED_FORCE);
-      state.appliedForce = event.at + balanceProfileNumber(appliedForceProfile, 'internalCooldown');
+      state.setDeadline('appliedForce', event.at + balanceProfileNumber(appliedForceProfile, 'internalCooldown'));
       const appliedForceStability = requireEffect(appliedForceProfile, 'boon', 'stability');
       if (appliedForceStability) {
         context.effects.emit({

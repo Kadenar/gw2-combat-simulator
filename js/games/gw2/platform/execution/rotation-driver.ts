@@ -1,8 +1,9 @@
-import { isGw2WeaponSkillEquipped } from '#gw2/platform/equipment/weapons/skill-matcher.js';
 import { RotationCursor } from '#gw2/platform/execution/rotation-cursor.js';
+import {
+  createSkillSelectionContext,
+  type SkillSelectionContext
+} from '#gw2/platform/profession-definition/runtime-context.js';
 import { normalizeRotation } from '#gw2/platform/execution/rotation.js';
-import { autoattackChainAvailability } from '#gw2/platform/skills/autoattack-chain-controller.js';
-import { gw2CooldownReadyAt } from '#gw2/platform/skills/timing.js';
 import type { RuntimeDriver } from '#gw2/platform/simulation/execution.js';
 import type { RuntimeProfession } from '#gw2/platform/simulation/runtime-state.js';
 import { canonicalTime } from '#kernel/core/clock.js';
@@ -13,18 +14,22 @@ export function createRotationDriver<T extends object>(
   rotation: readonly unknown[]
 ): RuntimeDriver<T> {
   const cursor = new RotationCursor(normalizeRotation(rotation, profession.catalog, { strict: true }));
+  // One driver belongs to one execution; bind selected trait queries on its first live boundary.
+  let selectionContext: SkillSelectionContext<T> | undefined;
   return {
     cursor,
     rotation,
-    advance({ runtime, cooldowns, inFlightEnd, advanceFrontier, acceptCast, reject }) {
-      const config = runtime.config;
+    advance({ runtime, evaluateReadiness, resetCooldowns, advanceFrontier, acceptCast, reject }) {
+      selectionContext ??= createSkillSelectionContext(() => runtime.profession, runtime.traits);
       const command = cursor.command;
       let nextCommandAt = Infinity;
       if (command) {
         // Reevaluate transformed actions after every actual boundary, before accepting their reservation.
         const skill =
           command.type === 'cast'
-            ? profession.catalog.skillsById.get(profession.modifySkillId?.(runtime, command.skillId) ?? command.skillId)
+            ? profession.catalog.skillsById.get(
+                profession.modifySkillId?.(selectionContext, command.skillId) ?? command.skillId
+              )
             : undefined;
         // A forbidden overlap is permanently invalid, so it cannot reserve a lane or wait for cooldown readiness.
         if (command.type === 'cast' && command.concurrentOffsetMs != null && skill?.canCastConcurrently === false) {
@@ -93,11 +98,8 @@ export function createRotationDriver<T extends object>(
                 start: Math.round(runtime.time * 1000),
                 end: Math.round(runtime.time * 1000)
               });
-            runtime.cooldowns.clear();
-            runtime.rechargeProgress.clear();
-            runtime.ammo.clear();
-            runtime.lockouts.clear();
-            profession.onCooldownReset?.(runtime);
+            resetCooldowns();
+            profession.onCooldownReset?.(runtime.mechanics);
             // Publish the accepted reset after its resource and recharge transitions.
             runtime.effects.emit({
               kind: 'packet',
@@ -116,55 +118,22 @@ export function createRotationDriver<T extends object>(
           }
 
           if (!skill) throw new Error('Cast has no skill.');
-          if (
-            !isGw2WeaponSkillEquipped(
-              { config, weaponSet: runtime.activeWeaponSet, state: runtime, catalog: profession.catalog },
-              skill,
-              profession.weaponSkillMatchesSet
-            )
-          ) {
-            reject(`${skill.name} is unavailable — its required weapon is not equipped.`);
-            return 'handled';
-          }
-
-          // A wrong chain command is invalid now; waiting for recharge must not let its flip expire into validity.
-          const chainAvailability = autoattackChainAvailability(runtime, profession.catalog, skill);
-          if (!chainAvailability.ready) {
-            reject(chainAvailability.reason);
-            return 'handled';
-          }
-
-          cooldowns.refresh(runtime.time);
-          const ammo = cooldowns.refreshAmmo(skill, runtime.time);
-          nextCommandAt = Math.max(
-            runtime.time,
-            skill.usableWhileRecharging && !(ammo && ammo.charges <= 0)
-              ? 0
-              : gw2CooldownReadyAt(runtime.cooldowns.get(skill.id) ?? 0),
-            ...[...(skill.independentCastCanOverlap ? [] : (runtime.inFlight.get(skill.id) ?? []))].map((id) =>
-              inFlightEnd(id)
-            ),
-            ...(skill.lockouts ?? []).map((lockout) => runtime.lockouts.get(lockout.group) ?? 0)
-          );
-          // Cooldown, lane, and lockout waits settle first: intervening actual hits may change resource or form legality.
-          if (nextCommandAt <= runtime.time) {
-            const availability = profession.availability?.(runtime, skill, command) ?? { ready: true };
-            if (!availability.ready && availability.retryAt == null) {
+          const availability = evaluateReadiness(skill, command);
+          if (!availability.ready) {
+            if (availability.retryAt == null) {
               reject(availability.reason);
               return 'handled';
             }
 
-            if (!availability.ready) {
-              if (!Number.isFinite(availability.retryAt) || canonicalTime(availability.retryAt) <= runtime.time) {
-                reject(`${availability.reason} (no future retry boundary).`);
-                return 'handled';
-              }
-
-              nextCommandAt = canonicalTime(availability.retryAt);
-            } else {
-              acceptCast(skill, command);
+            if (!Number.isFinite(availability.retryAt) || canonicalTime(availability.retryAt) <= runtime.time) {
+              reject(`${availability.reason} (no future retry boundary).`);
               return 'handled';
             }
+
+            nextCommandAt = canonicalTime(availability.retryAt);
+          } else {
+            acceptCast(skill, command);
+            return 'handled';
           }
         }
       }

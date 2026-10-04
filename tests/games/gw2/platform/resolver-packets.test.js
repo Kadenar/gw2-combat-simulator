@@ -104,10 +104,10 @@ test('derived conditions preserve immediate visibility and same-time queued orde
             })
           });
         } else {
-          assert.ok(context.query.targetHasCondition('Burning', event.at, context));
-          assert.ok(context.query.targetHasCondition('Bleeding', event.at, context));
-          assert.ok(context.query.targetHasCondition('Poisoned', event.at, context));
-          assert.equal(context.query.targetHasCondition('Vulnerability', event.at, context), false);
+          assert.ok(context.combat.targetHasCondition('Burning', event.at, context));
+          assert.ok(context.combat.targetHasCondition('Bleeding', event.at, context));
+          assert.ok(context.combat.targetHasCondition('Poisoned', event.at, context));
+          assert.equal(context.combat.targetHasCondition('Vulnerability', event.at, context), false);
           trace.push('observer');
         }
       },

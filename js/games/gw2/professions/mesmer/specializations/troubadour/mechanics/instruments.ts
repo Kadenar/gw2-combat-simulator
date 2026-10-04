@@ -44,13 +44,12 @@ function instrumentAttack(
   actorType: 'player' | 'summon' = 'player',
   delivery: EffectDelivery = {}
 ): void {
-  const runtime = mesmerMechanicsFor(context);
   const shredding = shreddingStrike(context, data);
   // The extra note belongs to Shredding, so removing the native Lute strike does not remove it.
   for (const attack of actorType === 'summon' ? [data, shredding] : [shredding]) {
     if (attack?.type !== 'strike') continue;
     buildMesmerStrikes(
-      runtime.context,
+      context,
       skill,
       damageAt,
       {
@@ -64,7 +63,7 @@ function instrumentAttack(
       },
       { source, sourceId: skill.id, skillId: skill.id, actorType }
     ).forEach((packet) => {
-      runtime.context.effects.emit({
+      context.effects.emit({
         ...delivery,
         kind: 'packet',
         // The extra note is trait-owned; afterimage copies retain their summon actor and stay excluded from preview.
@@ -76,13 +75,13 @@ function instrumentAttack(
   }
 
   for (const condition of actorType === 'summon' ? data.conditions || [] : []) {
-    buildMesmerConditions(runtime.context, skill.name, damageAt, condition, source, '', {
+    buildMesmerConditions(context, skill.name, damageAt, condition, source, '', {
       source,
       sourceId: skill.id,
       skillId: skill.id,
       actorType
     }).forEach((packet) => {
-      runtime.context.effects.emit({
+      context.effects.emit({
         ...delivery,
         kind: 'packet',
         event: packet,
@@ -143,7 +142,7 @@ function commitInstrument(
       instrument: data.instrument,
       expiresAt
     });
-    runtime.context.effects.emit({
+    context.effects.emit({
       ...delivery,
       kind: 'packet',
       event: packet,
@@ -161,7 +160,7 @@ function commitInstrument(
       name: skill.name,
       detail: `${data.instrument} playing for ${(baseDuration + spent * durationPerNote).toFixed(0)}s`
     });
-    runtime.context.effects.emit({
+    context.effects.emit({
       ...delivery,
       kind: 'packet',
       event: packet,
@@ -181,10 +180,9 @@ export function resolveCrescendo(
   at: number,
   delivery: EffectDelivery = {}
 ): void {
-  const runtime = mesmerMechanicsFor(context);
   const damageAt = canonicalTime(cast.start + Number(skill.damageAtMs || 0) / 1000);
   const activeInstruments = activeTroubadourInstrumentsAt(
-    context.history.filter((event) => event.type === 'mesmer.instrument'),
+    context.facts.read().filter((event) => event.type === 'mesmer.instrument'),
     damageAt
   );
   const crescendoProfile = requireBalanceProfileFromContext(context, skill.crescendoProfileId!);
@@ -192,7 +190,7 @@ export function resolveCrescendo(
   // Fragmentation replaces Crescendo's per-instrument effectiveness with the trait's improved value.
   const effectiveness = masterOfFragmentationCrescendo(context, crescendoProfile);
   if (strike)
-    buildMesmerStrikes(runtime.context, skill, damageAt, {
+    buildMesmerStrikes(context, skill, damageAt, {
       ...strike,
       name: undefined,
       summonKind: undefined,
@@ -202,7 +200,7 @@ export function resolveCrescendo(
       source: 'Player',
       weaponStrengthProfileId: 'nonweapon.profession-mechanic'
     }).forEach((packet) => {
-      runtime.context.effects.emit({
+      context.effects.emit({
         ...delivery,
         kind: 'packet',
         event: packet,

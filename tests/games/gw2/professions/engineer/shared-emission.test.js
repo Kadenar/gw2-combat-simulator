@@ -26,7 +26,7 @@ test('shared emission preserves Lightning Rod condition settlement and rejects o
                 actorType: 'player',
                 offTarget
               });
-              observations.push(runtime.query.targetHasCondition('Vulnerability', runtime.time, runtime));
+              observations.push(runtime.combat.targetHasCondition('Vulnerability', runtime.time, runtime));
             }
           }
         ],
@@ -36,7 +36,7 @@ test('shared emission preserves Lightning Rod condition settlement and rejects o
             'damage.resolved'(runtime, event, details) {
               native.reactions?.['damage.resolved']?.(runtime, event, details);
               if (event.skillName === 'Lightning Rod')
-                observations.push(runtime.query.targetHasCondition('Vulnerability', runtime.time, runtime));
+                observations.push(runtime.combat.targetHasCondition('Vulnerability', runtime.time, runtime));
             }
           }
         })

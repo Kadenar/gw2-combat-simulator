@@ -83,10 +83,12 @@ export function triggerSharpeningStone(context: RangerResolverContext, event: Gw
 // while enforcing its event and cooldown guards.
 export function triggerStrengthOfThePack(context: RangerResolverContext, event: Gw2ResolverEvent): void {
   if (!isPlayerStrike(event)) return;
-  const active = (context.boons.get('strength-of-the-pack') || []).some(
-    (application) =>
-      application.resolvedAudience.includesSelf && application.at <= event.at && application.expiresAt > event.at
-  );
+  const active = context.combat
+    .boonApplications('strength-of-the-pack')
+    .some(
+      (application) =>
+        application.resolvedAudience.includesSelf && application.at <= event.at && application.expiresAt > event.at
+    );
   if (!active) return;
   const profile = requireBalanceProfileFromContext(context, PROFILE.strengthOfThePack);
   const might = requireEffect(profile, 'boon', 'might');
@@ -118,7 +120,7 @@ export function triggerStrengthOfThePack(context: RangerResolverContext, event: 
 
 /** Add Stalker's Strike's bonus poison only against movement-impaired targets. */
 export function triggerStalkersStrike(context: RangerResolverContext, event: Gw2ResolverEvent): void {
-  const skill = context.helpers.skillsById!.get(event.skillId!)!;
+  const skill = context.helpers.skillsById.get(event.skillId!)!;
   // The base packet owns its own Poison; the impaired-target profile owns only the additional application.
   const profile = requireBalanceProfileFromContext(context, PROFILE.stalkersStrikeImpaired);
   const poison = requireEffect(profile, 'condition', 'Poisoned');

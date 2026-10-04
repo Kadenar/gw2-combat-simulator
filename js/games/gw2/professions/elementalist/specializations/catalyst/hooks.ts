@@ -1,3 +1,4 @@
+import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
 import { requireBalanceNumber } from '#gw2/platform/engine/skills/canonical-skill-catalog.js';
 import type { EffectDelivery } from '#gw2/platform/simulation/effect-emission.js';
 import type { RuntimeCast, RuntimeProfession } from '#gw2/platform/simulation/runtime-state.js';
@@ -47,7 +48,7 @@ function initialize(context: ElementalistRuntime, emissionCast?: EffectDelivery[
 
 // Jade Sphere deployment requires the matching attunement and the profile energy
 // cost; every other skill passes through untouched.
-function availability(context: ElementalistRuntime, skill: Skill): AvailabilityResult {
+function availability(context: MechanicQueriesOf<ElementalistRuntime>, skill: Skill): AvailabilityResult {
   if (skill.skillFamily !== 'Jade Sphere') return { ready: true };
   const state = catalystState.from(context);
   const core = professionCoreState(context);

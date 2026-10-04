@@ -7,11 +7,11 @@ export default defineConfig({
   outputDir: 'dist/playwright-results',
   // Cold Vite transforms take about 40s on the first parallel pages; retain a finite deadline for stalled tests.
   timeout: 60_000,
-  // Parallel files stay within the host's cores alongside each page's own simulation workers: four lanes locally,
-  // three on the four-vCPU CI runners where those in-page pools would otherwise oversubscribe every core.
-  workers: process.env.CI ? 3 : 4,
-  // Cold dev-server startup on loaded CI runners can exceed the 5s default before the loading overlay hides.
-  expect: { timeout: process.env.CI ? 15_000 : 5_000 },
+  // Each page also starts simulation workers; two local lanes keep cold imports within the host's budget.
+  // CI retains its existing three lanes on the dedicated runner.
+  workers: process.env.CI ? 3 : 2,
+  // Cold profession imports can take about 40s; allow readiness to settle within the existing 60s test deadline.
+  expect: { timeout: 45_000 },
   use: {
     baseURL: 'http://127.0.0.1:4173',
     channel: 'chrome',

@@ -1,3 +1,4 @@
+import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
 import { professionStaticRulesApplied } from '#gw2/platform/builds/attribute-provenance.js';
 import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
@@ -140,7 +141,11 @@ export const enhancedEmbodimentRecharge = compileRechargeRules<RevenantRuntimeSt
 ]);
 
 /** Applies the selected legend-swap cooldown after Core's precombat adjustment. */
-export function enhancedLegendRecharge(runtime: RevenantRuntime, skill: Skill, work: number): number {
+export function enhancedLegendRecharge(
+  runtime: MechanicQueriesOf<RevenantRuntime>,
+  skill: Skill,
+  work: number
+): number {
   if (work === 0 || !runtime.combatStartedAt() || !hasTrait(runtime, TRAIT.ENHANCED_EMBODIMENT)) return work;
   return enhancedEmbodimentRecharge(runtime, skill, Math.max(0, skill.cooldown ?? work));
 }
@@ -172,7 +177,7 @@ export function affinity(context: Gw2ModifierContext): number {
 }
 
 /** Kinetic Insight adds its patched virtual affinity bonus for scaling without changing the stored value. */
-export function effectiveConduitAffinity(runtime: RevenantRuntime): number {
+export function effectiveConduitAffinity(runtime: MechanicQueriesOf<RevenantRuntime>): number {
   const maximum = Math.max(
     1,
     balanceProfileNumber(requireBalanceProfileFromContext(runtime, PROFILE.affinity), 'maximumStacks')

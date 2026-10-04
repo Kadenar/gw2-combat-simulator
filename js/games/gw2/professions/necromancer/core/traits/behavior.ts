@@ -1,5 +1,4 @@
 import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
-import { remainingTargetHealthBelow } from '#gw2/platform/combat/state/target-health.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import {
@@ -31,7 +30,7 @@ export function spitefulFortitudeLifeForce(runtime: NecromancerRuntime): number 
 
 /** Reports whether the target is strictly below half health, using the shared threshold contract. */
 function targetBelowHalfHealth(context: NecromancerResolverContext): boolean {
-  return remainingTargetHealthBelow(context.config, context, 0.5);
+  return context.combat.targetHealthBelow(0.5);
 }
 
 export function applyReapersMight(

@@ -98,7 +98,7 @@ test('Distress declares its shard grant after recharge reset and expires it thro
       sideEffectHandlers: {
         ...native.sideEffectHandlers,
         'necromancer.soul-shards'(runtime, cast, action) {
-          resetBeforeGrant = !runtime.cooldowns.has(ID.PERFORATE);
+          resetBeforeGrant = !runtime.cooldownController.hasCooldown(ID.PERFORATE);
           native.sideEffectHandlers['necromancer.soul-shards'](runtime, cast, action);
           assert.equal(runtime.profession.core.soulShardGrant.charges, 6);
           assert.equal(runtime.profession.core.soulShardGrant.expiresAt, runtime.time + 10);

@@ -31,7 +31,7 @@ export function reactToNecromancerCoreDamage(
   applyChillOfDeathCondition(context, event);
   if (event.actorType === 'effect' || !(Number(event.coefficient) > 0)) return;
 
-  const skill = event.skillId == null ? undefined : context.helpers.skillsById?.get(event.skillId);
+  const skill = event.skillId == null ? undefined : context.helpers.skillsById.get(event.skillId);
   const firstHit = Number(event.hitIndex || 1) === 1;
   const shroudSkillOne = skill?.shroudSlot === 1 || event.metadata?.necromancerShroudSkillOne === true;
   applyVampiric(context, event);

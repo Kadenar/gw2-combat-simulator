@@ -33,7 +33,7 @@ function flipContext() {
     effectiveEnd: 0.35,
     action: {},
     reservationId: 'parent',
-    inFlight: new Map(),
+    castController: { hasInFlight: () => false },
     cooldownController: { ensureAmmo: () => null },
     schedule() {},
     state: {

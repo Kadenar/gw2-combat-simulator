@@ -1,3 +1,4 @@
+import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
 import type { RenegadeState } from '#gw2/professions/revenant/specializations/renegade/state.js';
 import { RENEGADE_ENHANCED_SKILL_BY_ID } from '#gw2/professions/revenant/data/renegade-enhanced-skills.js';
 import { renegadeState } from '#gw2/professions/revenant/specializations/renegade/state.js';
@@ -25,7 +26,7 @@ export function activeKallasFervorStacks(
   );
 }
 
-export function bandTogetherReady(runtime: RevenantRuntime, skillId: SkillId): boolean {
+export function bandTogetherReady(runtime: MechanicQueriesOf<RevenantRuntime>, skillId: SkillId): boolean {
   return (
     RENEGADE_ENHANCED_SKILL_BY_ID[Number(skillId)] != null &&
     isBandTogetherReady(renegadeState.from(runtime), runtime.time)

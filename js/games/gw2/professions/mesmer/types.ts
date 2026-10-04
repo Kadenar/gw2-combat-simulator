@@ -1,13 +1,14 @@
+import type { MechanicContext, MechanicCombatContext } from '#gw2/platform/profession-definition/mechanic-context.js';
 import type { EffectDelivery } from '#gw2/platform/simulation/effect-emission.js';
-import type { Gw2Runtime } from '#gw2/platform/simulation/runtime-state.js';
+
 import type { SkillFlipWindows } from '#gw2/platform/engine/skills/skill-flips.js';
 import type { ProfessionUiCallbackContext, ProfessionUiContract } from '#gw2/platform/profession-presentation/types.js';
 import type { SkillId, StrikeTick, StrikeEffect } from '#gw2/platform/engine/skills/types.js';
 import type { Gw2CanonicalBuild, Gw2Build } from '#gw2/platform/builds/types.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
-import type { Gw2ResolverRuntime } from '#gw2/platform/resolver/runtime-state.js';
-import type { AmmoState } from '#gw2/platform/execution/types.js';
+
+import type { AmmoObservation } from '#gw2/platform/execution/types.js';
 import type { MesmerCoreState } from '#gw2/professions/mesmer/core/state.js';
 import type { MesmerChronomancerState } from '#gw2/professions/mesmer/specializations/chronomancer/state.js';
 import type { MesmerMirageState } from '#gw2/professions/mesmer/specializations/mirage/state.js';
@@ -33,10 +34,7 @@ import type {
   MesmerShatterResolverRequest,
   MesmerShatterTraitHit
 } from '#gw2/professions/mesmer/core/mechanics/shatter-types.js';
-import type {
-  MesmerCastDetails,
-  MesmerSkillEffectController
-} from '#gw2/professions/mesmer/core/execution/effect-types.js';
+import type { MesmerSkillEffectController } from '#gw2/professions/mesmer/core/execution/effect-types.js';
 import type { MesmerContinuumController } from '#gw2/professions/mesmer/specializations/chronomancer/types.js';
 import type { MesmerMirageController } from '#gw2/professions/mesmer/specializations/mirage/types.js';
 
@@ -94,7 +92,7 @@ export interface MesmerConfig extends Gw2Config {
   readonly primaryWeapon: string;
 }
 
-export type MesmerResolverContext = Gw2ResolverRuntime & {
+export type MesmerResolverContext = MechanicCombatContext & {
   config: Gw2Config;
   profession: MesmerRuntimeState;
 };
@@ -104,14 +102,12 @@ export type MesmerResolverEvent = Gw2ResolverEvent & {
   readonly conversionTimes?: readonly number[];
 };
 
-/** All mechanic owners mutate the shared live runtime. */
-export type MesmerRuntime = Gw2Runtime<MesmerRuntimeState, MesmerSkill>;
+/** Mesmer owners mutate their profession state and request shared changes through engine services. */
+export type MesmerRuntime = MechanicContext<MesmerRuntimeState, MesmerSkill>;
 
-/** Mesmer helpers share the live context as the sole owner of traits, skills, and balance profiles. */
+/** Per-run Mesmer controllers and selected mechanic data remain private to their registry. */
 export interface MesmerMechanics {
-  context: MesmerRuntime;
   resourceDefinition: MesmerResourceDefinition;
-  castDetails: Map<string, MesmerCastDetails>;
   weaponStrength: Readonly<Record<string, number>>;
   cloneAttacks: Readonly<Record<string, MesmerCloneAttack>>;
   ambushAttacks: Record<string, MesmerAmbushAttack>;
@@ -209,4 +205,4 @@ export interface MesmerProfessionActionController {
   triggerShatterTraits(resolution: MesmerShatterResolution): void;
 }
 
-export type MesmerRefreshAmmo = (skill: MesmerSkill, at: number) => AmmoState | null;
+export type MesmerRefreshAmmo = (skill: MesmerSkill, at: number) => AmmoObservation | null;

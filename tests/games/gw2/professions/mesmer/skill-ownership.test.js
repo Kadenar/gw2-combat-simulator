@@ -50,10 +50,9 @@ test('Lancer consumes Clarity before preparation and never reuses another activa
   const skill = mesmerCatalog.skillsById.get(ID.PHANTASMAL_LANCER);
   const prepared = [];
   const mechanics = {
-    castDetails: new Map(),
     skillEffects: { schedule: (_skill, _end, _start, options) => prepared.push(options.clarityConsumed) }
   };
-  const runtime = { profession: { core: { clarityUntil: 2 } } };
+  const runtime = { profession: { core: { clarityUntil: 2, castDetails: new Map() } } };
   registerMesmerMechanics(runtime, mechanics);
   for (const [id, start, until, cancelled] of [
     ['first', 1, 2, true],
@@ -61,7 +60,7 @@ test('Lancer consumes Clarity before preparation and never reuses another activa
     ['expiry', 2, 2, false]
   ]) {
     runtime.profession.core.clarityUntil = until;
-    mechanics.castDetails.set(id, {});
+    runtime.profession.core.castDetails.set(id, {});
     const cast = { id, skill, start, fullEnd: start + 1, effectiveEnd: start + 1, cancelled, command: {} };
     applySkillSideEffects(runtime, cast, 'castStart', mesmerCoreHooks.sideEffectHandlers);
     assert.equal(runtime.profession.core.clarityUntil, 0);

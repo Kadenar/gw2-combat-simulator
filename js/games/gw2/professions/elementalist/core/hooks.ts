@@ -201,7 +201,7 @@ export const elementalistCoreHooks: Partial<RuntimeProfession<ElementalistRuntim
     'elementalist.conjure': OBSERVABLE_EVENT_HANDLER,
     'elementalist.attunement': observeElementalistTransition,
     'elementalist.aura'(runtime, event) {
-      runtime.history.push(event);
+      runtime.facts.record(event);
       applyElementalistResolverAura(runtime, event);
       runtime.schedule('elementalist.expire-state', event.at + Number(event.duration), null);
     },

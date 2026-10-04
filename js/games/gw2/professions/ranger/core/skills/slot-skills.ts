@@ -491,7 +491,7 @@ export const RANGER_CORE_SLOT_SKILL_MECHANICS: Readonly<Record<number, Partial<S
 
 /** Copy both actors from one executed-time snapshot so the first copy never feeds the second. */
 export function copyHealingBoons(runtime: RangerRuntime, cast: RuntimeCast<RangerSkill>): void {
-  const timeline = createGw2TimelineIndex({ events: runtime.history });
+  const timeline = createGw2TimelineIndex({ events: runtime.facts.read() });
   const companionId = rangerPetCompanionId(runtime);
   const petActive = runtime.profession.core.petActive;
   const copies = (cast.skill.effects ?? [])
@@ -503,7 +503,9 @@ export function copyHealingBoons(runtime: RangerRuntime, cast: RuntimeCast<Range
       const player = Math.min(
         maximum,
         Number(configured || 0) +
-          buffApplicationStacks(runtime.boons.get(kind) ?? [], kind, runtime.time, maximum, { ordered: true })
+          buffApplicationStacks(runtime.combat.boonApplications(kind), kind, runtime.time, maximum, {
+            ordered: true
+          })
       );
       return {
         kind,

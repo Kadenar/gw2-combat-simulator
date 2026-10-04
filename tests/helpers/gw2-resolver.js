@@ -1,4 +1,5 @@
-import { runGw2Runtime } from '#gw2/platform/simulation/runtime.js';
+import { runRuntime } from '#gw2/platform/simulation/runtime.js';
+import { createCombatExecution } from '#gw2/platform/simulation/combat-execution.js';
 import { defineTestProfession } from '#tests/helpers/profession.js';
 
 /** Queue focused packets in the production runtime; formula tests can replace query facts at initialization. */
@@ -9,6 +10,8 @@ export function resolveTestGw2Events({
   warnings = [],
   profession,
   professionReactions = {},
+  engineReactions = {},
+  engineInitialize,
   buffPolicies = [],
   query = {},
   helpers = {},
@@ -18,21 +21,37 @@ export function resolveTestGw2Events({
   const native =
     profession?.runtimeFor(options.config ?? {}) ??
     defineTestProfession({ id: 'event-fixture', name: 'Event fixture' }).runtimeFor({});
-  return runGw2Runtime({
+  let owner;
+  // Engine formula fixtures override query collaborators through execution setup, outside author callbacks.
+  const selected = {
+    ...native,
+    buffPolicies: (context) => [...(native.buffPolicies?.(context) ?? []), ...buffPolicies],
+    // Engine observations close over the execution owner; gameplay callbacks retain their normal capability.
+    reactions: {
+      ...native.reactions,
+      ...professionReactions,
+      ...Object.fromEntries(
+        Object.entries(engineReactions).map(([stage, handler]) => [
+          stage,
+          (_context, event, details) => handler(owner, event, details)
+        ])
+      )
+    }
+  };
+  const execution = createCombatExecution(selected, [{ type: 'wait', durationMs: endTime * 1000 }]);
+  return runRuntime({
     ...options,
     combatStartTime,
-    rotation: [{ type: 'wait', durationMs: endTime * 1000 }],
-    profession: {
-      // Fixture-only effects declare their reporting policy alongside their injected packets.
-      ...native,
-      buffPolicies: (runtime) => [...(native.buffPolicies?.(runtime) ?? []), ...buffPolicies],
-      reactions: { ...native.reactions, ...professionReactions },
+    profession: selected,
+    execution: {
+      ...execution,
       initialize(runtime) {
-        native.initialize?.(runtime);
+        owner = runtime;
         runtime.query = { ...runtime.query, ...query };
         runtime.helpers = { ...runtime.helpers, ...helpers };
         if (traits) runtime.traits = traits;
         runtime.warnings.push(...warnings);
+        engineInitialize?.(runtime);
         for (const event of events) runtime.effects.emit({ kind: 'packet', event: event });
       }
     }

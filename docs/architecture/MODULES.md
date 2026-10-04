@@ -260,25 +260,31 @@ are relative to `js/games/gw2/platform/`.
 
 ### Engine
 
-| Module                                             | Responsibility                                                       |
-| -------------------------------------------------- | -------------------------------------------------------------------- |
-| `simulation/simulate.ts`                           | Canonical `simulateGw2()` entry point                                |
-| `simulation/runtime.ts`                            | Command coordination, cast lanes, and time advancement               |
-| `execution/cast-lifecycle.ts`                      | Accepted cast reservations and completion/recharge commitment        |
-| `execution/effect-adapter.ts`                      | Effect scheduling and interruption filtering                         |
-| `execution/cooldowns.ts`                           | Cooldown and ammo state transitions                                  |
-| `engine/events/actors.ts`                          | Shared actor types and validation vocabulary                         |
-| `engine/effects/authoring.ts`                      | Effect constructors and authored packet readers                      |
-| `engine/effects/materializer.ts`                   | Pure effect expansion                                                |
-| `engine/skills/canonical-skill-catalog.ts`         | Canonical skill validation and normalization                         |
-| `profession-definition/assemble-module-catalog.ts` | Native Core/elite catalog ownership and assembly                     |
-| `profession-definition/profession.ts`              | Native Core/elite selection, state/modifier composition, and lazy UI |
-| `engine/profession/contract.ts`                    | Runtime hook normalization and query-contract resolution             |
-| `profession-presentation/`                         | UI composition, normalization, and presentation types                |
-| `builds/profession-contract.ts`                    | Build callback validation and defaults                               |
-| `resolver/handler-registry.ts`                     | Exclusive resolver event-handler ownership                           |
-| `results/build-result.ts`                          | Resolver score and detailed report construction                      |
-| `results/end-state.ts`                             | Detached public planning state at the observation boundary           |
+| Module                                             | Responsibility                                                                                                    |
+| -------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------- |
+| `simulation/simulate.ts`                           | Canonical `simulateGw2()` entry point                                                                             |
+| `simulation/runtime.ts`                            | Per-run service construction and binding                                                                          |
+| `simulation/coordinator.ts`                        | Single queue, clock progression, causal scope, and stop decisions                                                 |
+| `execution/cast-execution.ts`                      | Readiness, acceptance, reservation ownership, lockouts, and completion                                            |
+| `resolver/effect-delivery.ts`                      | Admission, deferred preparation, target gates, and reaction settlement                                            |
+| `profession-definition/runtime-hooks.ts`           | Explicit mechanic contribution surface and ordered composition                                                    |
+| `profession-definition/runtime-context.ts`         | Narrow author capabilities; selected content for effect ownership and read-only profession state for cast details |
+| `results/project-runtime.ts`                       | Projection of settled damage, score, and detailed results                                                         |
+| `execution/cast-lifecycle.ts`                      | Reservation identity/storage primitive used by cast execution                                                     |
+| `execution/effect-adapter.ts`                      | Effect scheduling and interruption filtering                                                                      |
+| `execution/cooldowns.ts`                           | Cooldown and ammo state transitions                                                                               |
+| `engine/events/actors.ts`                          | Shared actor types and validation vocabulary                                                                      |
+| `engine/effects/authoring.ts`                      | Effect constructors and authored packet readers                                                                   |
+| `engine/effects/materializer.ts`                   | Pure effect expansion                                                                                             |
+| `engine/skills/canonical-skill-catalog.ts`         | Canonical skill validation and normalization                                                                      |
+| `profession-definition/assemble-module-catalog.ts` | Native Core/elite catalog ownership and assembly                                                                  |
+| `profession-definition/profession.ts`              | Native Core/elite selection, state/modifier composition, and lazy UI                                              |
+| `engine/profession/contract.ts`                    | Runtime hook normalization and query-contract resolution                                                          |
+| `profession-presentation/`                         | UI composition, normalization, and presentation types                                                             |
+| `builds/profession-contract.ts`                    | Build callback validation and defaults                                                                            |
+| `resolver/handler-registry.ts`                     | Exclusive resolver event-handler ownership                                                                        |
+| `results/build-result.ts`                          | Resolver score and detailed report construction                                                                   |
+| `results/end-state.ts`                             | Detached public planning state at the observation boundary                                                        |
 
 Native modules are the only profession composition input. `defineNativeProfession` shares each selected Core/elite
 catalog, state factory, and compiled modifiers between `resolveProfession` queries and `runtimeFor` execution.
@@ -613,3 +619,16 @@ load and simulate. Architecture and typecheck tests enforce cross-module ownersh
 8. **Do not create empty files to satisfy a folder convention.**
 9. **Do not duplicate an existing source of truth.**
 10. **Keep headless engine imports independent of browser application code.**
+
+## Mechanic lifecycle ownership
+
+Bladesworn's `mechanics/dragon-trigger.ts` owns charge scheduling, availability, release capture, packet scaling, and
+expiry. `dragon-trigger-state.ts` supplies its one state factory; the module state composes that fragment while keeping
+the public projection stable. Release records belong to each run and are queried through the owner. `gunsaber.ts` owns
+bar transitions and their consequences; `flow.ts` owns regeneration. Hooks only coordinate their required order.
+
+Holosmith's `mechanics/photon-forge.ts` contributes its own initialization, actions, tasks, and heat event registration.
+The neighboring availability, state, and trait modules remain its named collaborators. Mesmer's
+`core/mechanics/illusions/lifecycle.ts` owns illusion/resource assembly and recurring task registration, replacing the
+former runtime controller. Ordinary skill payloads, balance profiles, and trait rewards remain with their existing
+owners.

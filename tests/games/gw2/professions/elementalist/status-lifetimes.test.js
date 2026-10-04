@@ -41,12 +41,12 @@ test('Rock Barrier availability, palette, and natural recharge share an exact de
           assert.equal(elementalistCoreAvailability(r, root).ready, !active);
         }
       })),
-      { at: 40, run: (r) => assert.equal(r.cooldowns.get(root.id), 36.701) },
+      { at: 40, run: (r) => assert.equal(r.cooldownController.readyAt(root.id), 36.701) },
       { at: 41, run: elementalistRockBarrierTasks['elementalist.core.open-rock-barrier'] },
       { at: 42, run: elementalistRockBarrierTasks['elementalist.core.release-rock-barrier'] }
     ]
   });
-  assert.equal(observedRuntime(result).cooldowns.get(root.id), 48.4);
+  assert.equal(observedRuntime(result).cooldownController.readyAt(root.id), 48.4);
   assert.equal(result.planningState.profession.availableFlips[ID.HURL], undefined);
 });
 
@@ -120,7 +120,7 @@ test('an expired automatic elemental stays absent until an explicit glyph clears
             run(runtime) {
               assert.equal(runtime.profession.core.summonedElemental.summonGeneration, 1);
               assert.equal(elementalistCoreAvailability(runtime, command).ready, true);
-              assert.equal(runtime.cooldowns.has(glyph.id), false);
+              assert.equal(runtime.cooldownController.hasCooldown(glyph.id), false);
             }
           },
           {
@@ -129,7 +129,7 @@ test('an expired automatic elemental stays absent until an explicit glyph clears
               const elemental = runtime.profession.core.summonedElemental;
               assert.equal(elemental.element, null);
               assert.equal(elemental.summonGeneration, 1);
-              assert.equal(runtime.cooldowns.get(glyph.id), 6);
+              assert.equal(runtime.cooldownController.readyAt(glyph.id), 6);
               assert.equal(elementalistCoreAvailability(runtime, command).ready, false);
             }
           },
@@ -138,7 +138,7 @@ test('an expired automatic elemental stays absent until an explicit glyph clears
             run(runtime) {
               assert.equal(runtime.profession.core.summonedElemental.summonGeneration, 2);
               assert.equal(elementalistCoreAvailability(runtime, command).ready, true);
-              assert.ok((runtime.cooldowns.get(glyph.id) ?? 0) <= runtime.time);
+              assert.ok((runtime.cooldownController.readyAt(glyph.id) ?? 0) <= runtime.time);
             }
           }
         ]
@@ -162,7 +162,7 @@ test('elemental teardown clears the command and starts the glyph recharge once',
     const r = observedRuntime(result);
     assert.equal(r.profession.core.summonedElemental.element, null);
     assert.deepEqual(r.profession.core.availableFlips, {});
-    assert.equal(r.cooldowns.get(glyph.id), 152.301);
+    assert.equal(r.cooldownController.readyAt(glyph.id), 152.301);
     assert.ok(!result.events.some((e) => e.type === 'action' && e.actorType === 'summon' && e.at >= 120.301));
   }
 });

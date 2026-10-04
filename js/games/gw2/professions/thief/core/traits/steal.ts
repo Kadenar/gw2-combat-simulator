@@ -1,3 +1,4 @@
+import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
 import { selectedSkillIdSet } from '#gw2/platform/builds/selected-skills.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import {
@@ -213,7 +214,7 @@ export function applySleightOfHand(runtime: ThiefRuntime, cast: RuntimeCast<Thie
 }
 
 /** Additive Steal recharge retains each trait's independent reduction. */
-export function sleightOfHandRechargeReduction(runtime: ThiefRuntime): number {
+export function sleightOfHandRechargeReduction(runtime: MechanicQueriesOf<ThiefRuntime>): number {
   return (
     Number(hasTrait(runtime, TRAIT.SLEIGHT_OF_HAND)) *
     (1 - balanceProfileNumber(requireBalanceProfileFromContext(runtime, TRAIT.SLEIGHT_OF_HAND), 'rechargeMultiplier'))

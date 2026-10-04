@@ -1,3 +1,5 @@
+import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
+import type { MechanicCombatContext } from '#gw2/platform/profession-definition/mechanic-context.js';
 import { powerScaledConditionAttributes } from '#gw2/platform/combat/modifiers.js';
 import { hasSelectedSkillId } from '#gw2/platform/combat/query/runtime-query.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
@@ -12,7 +14,7 @@ import {
 } from '#gw2/platform/engine/skills/balance-profiles.js';
 import type { Skill } from '#gw2/platform/engine/skills/types.js';
 import { resolverSourceSkill } from '#gw2/platform/resolver/packets.js';
-import type { Gw2ResolverRuntime } from '#gw2/platform/resolver/runtime-state.js';
+
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import type { EffectDelivery } from '#gw2/platform/simulation/effect-emission.js';
 import type { RuntimeCast } from '#gw2/platform/simulation/runtime-state.js';
@@ -135,7 +137,7 @@ function zephyrsBoonEffects(context: unknown) {
 }
 
 /** Grants resolver-side Zephyr's Boon effects for one classified aura event. */
-export function applyResolverZephyrsBoon(context: Gw2ResolverRuntime, event: Gw2ResolverEvent): void {
+export function applyResolverZephyrsBoon(context: MechanicCombatContext, event: Gw2ResolverEvent): void {
   if (!hasTrait(context, TRAIT.ZEPHYRS_BOON)) return;
   for (const boon of zephyrsBoonEffects(context)) {
     context.effects.emit({
@@ -181,7 +183,11 @@ export function applyAirTraitAttributes(context: ElementalistModifierContext, mo
 }
 
 /** Scale this element's weapon recharge after the mechanic has handled held and non-weapon cooldowns. */
-export function aeromancersTrainingRecharge(context: ElementalistRuntime, skill: Skill, duration: number): number {
+export function aeromancersTrainingRecharge(
+  context: MechanicQueriesOf<ElementalistRuntime>,
+  skill: Skill,
+  duration: number
+): number {
   return skill.attunement === 'Air' && hasTrait(context, TRAIT.AEROMANCERS_TRAINING)
     ? duration *
         balanceProfileNumber(
@@ -578,7 +584,7 @@ function elementalShieldingEffect(context: unknown) {
 }
 
 /** Grants resolver-side Elemental Shielding protection for one classified aura event. */
-export function applyResolverElementalShielding(context: Gw2ResolverRuntime, event: Gw2ResolverEvent): void {
+export function applyResolverElementalShielding(context: MechanicCombatContext, event: Gw2ResolverEvent): void {
   if (!hasTrait(context, TRAIT.ELEMENTAL_SHIELDING)) return;
   const protection = elementalShieldingEffect(context);
   if (!protection) return;
@@ -614,7 +620,11 @@ export function reconcileSignetPassive(context: ElementalistModifierContext, mod
 }
 
 /** Scale this element's weapon recharge after the mechanic has handled held and non-weapon cooldowns. */
-export function geomancersTrainingRecharge(context: ElementalistRuntime, skill: Skill, duration: number): number {
+export function geomancersTrainingRecharge(
+  context: MechanicQueriesOf<ElementalistRuntime>,
+  skill: Skill,
+  duration: number
+): number {
   return skill.attunement === 'Earth' && hasTrait(context, TRAIT.GEOMANCERS_TRAINING)
     ? duration *
         balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.GEOMANCERS_TRAINING), 'rechargeMultiplier')
@@ -708,7 +718,11 @@ export function applyInfernoAttributes(context: ElementalistModifierContext, att
 }
 
 /** Scale this element's weapon recharge after the mechanic has handled held and non-weapon cooldowns. */
-export function pyromancersTrainingRecharge(context: ElementalistRuntime, skill: Skill, duration: number): number {
+export function pyromancersTrainingRecharge(
+  context: MechanicQueriesOf<ElementalistRuntime>,
+  skill: Skill,
+  duration: number
+): number {
   return skill.attunement === 'Fire' && hasTrait(context, TRAIT.PYROMANCERS_TRAINING)
     ? duration *
         balanceProfileNumber(
@@ -761,7 +775,11 @@ export function applySoothingIce(
 }
 
 /** Scale this element's weapon recharge after the mechanic has handled held and non-weapon cooldowns. */
-export function aquamancersTrainingRecharge(context: ElementalistRuntime, skill: Skill, duration: number): number {
+export function aquamancersTrainingRecharge(
+  context: MechanicQueriesOf<ElementalistRuntime>,
+  skill: Skill,
+  duration: number
+): number {
   return skill.attunement === 'Water' && hasTrait(context, TRAIT.AQUAMANCERS_TRAINING)
     ? duration *
         balanceProfileNumber(

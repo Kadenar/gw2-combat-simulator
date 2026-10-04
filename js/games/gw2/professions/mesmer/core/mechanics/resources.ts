@@ -103,7 +103,7 @@ export function createResourceController({
     }
 
     if (cause.kind !== 'initial') {
-      triggerCompoundingPower({ context: state }, at, gained, reason, `${gained} stack${gained === 1 ? '' : 's'}`);
+      triggerCompoundingPower(state, at, gained, reason, `${gained} stack${gained === 1 ? '' : 's'}`);
     }
 
     const resourceTraitId = Number(cause.traitId);

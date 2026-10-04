@@ -1,3 +1,4 @@
+import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
 import { grantCharges } from '#gw2/platform/combat/resources/charges.js';
 import { consumeOldestStacks } from '#gw2/platform/combat/resources/timed-stacks.js';
 import { denySkillCast } from '#gw2/platform/engine/skills/availability.js';
@@ -194,7 +195,7 @@ function completeSkrittScuffle(runtime: ThiefRuntime): void {
 
 /** Double Edge is risky only while its recharge is running; Scoundrel's Luck turns one risky use into a success. */
 function acceptDoubleEdge(runtime: ThiefRuntime, cast: RuntimeCast<ThiefSkill>): ThiefDoubleEdgeOutcome {
-  if ((runtime.cooldowns.get(cast.skill.id) || 0) <= runtime.time + EPSILON) return 'success';
+  if ((runtime.cooldownController.readyAt(cast.skill.id) || 0) <= runtime.time + EPSILON) return 'success';
   if (consumeScoundrelsLuck(runtime)) return 'success';
 
   return cast.command.doubleEdgeOutcome === 'backfire' ? 'backfire' : 'success';
@@ -246,7 +247,7 @@ function completeSkrittSwipe(runtime: ThiefRuntime, cast: RuntimeCast<ThiefSkill
 }
 
 /** Artifacts require a held slot; backfire variants are internal; Reshuffle rerolls only an existing pool. */
-function antiquaryAvailability(runtime: ThiefRuntime, skill: ThiefSkill): AvailabilityResult {
+function antiquaryAvailability(runtime: MechanicQueriesOf<ThiefRuntime>, skill: ThiefSkill): AvailabilityResult {
   const state = antiquaryState.from(runtime);
   if (
     skill.artifactKind &&

@@ -3,24 +3,13 @@ import { snapshotProfessionState } from '#gw2/platform/engine/profession/state.j
 import { canonicalTime } from '#kernel/core/clock.js';
 import { defineProfessionSpecializationState } from '#gw2/platform/engine/profession/state.js';
 import type { SkillId } from '#gw2/platform/engine/skills/types.js';
-
-interface MesmerContinuumAmmo {
-  charges: number;
-  maximum: number;
-  nextRechargeRemaining: number | null;
-  lockoutRemaining: number;
-  /** Rewind each missing charge with the progress it had at the checkpoint. */
-  pendingRechargeWork: number[];
-  pendingLockoutWork?: number;
-}
+import type { RechargeCheckpoint } from '#gw2/platform/execution/types.js';
 
 interface MesmerContinuumSnapshot {
   splitId: SkillId;
   splitReady: number | undefined;
   openAt: number;
-  remainingCooldowns: Map<SkillId, number>;
-  remainingRechargeWork: Map<SkillId, number>;
-  ammo: Map<SkillId, MesmerContinuumAmmo>;
+  recharge: RechargeCheckpoint;
   autoattackChains: Record<string, SkillId>;
   expiresAt: number;
 }

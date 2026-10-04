@@ -1,4 +1,3 @@
-import { targetConditionCount } from '#gw2/platform/combat/query/runtime-query.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { effectFirstAtMs } from '#gw2/platform/engine/effects/authoring.js';
 import { scaleCastBoundTiming } from '#gw2/platform/engine/effects/materializer.js';
@@ -46,9 +45,9 @@ function applySelfCondition(
     condition,
     stacks
   };
-  const stats = { ...runtime.query.statsAt(runtime.time, event, runtime), expertise: 0 };
+  const stats = { ...runtime.combat.statsAt(runtime.time, event), expertise: 0 };
   const effectiveDuration =
-    duration * runtime.query.conditionDurationMultiplier(condition, runtime.time, stats, event, runtime);
+    duration * runtime.combat.conditionDurationMultiplier(condition, runtime.time, stats, event);
   if (!(effectiveDuration > 0) || !(stacks > 0)) return;
   purge(runtime);
   const expiresAt = canonicalTime(runtime.time + effectiveDuration);
@@ -239,10 +238,7 @@ export function scheduleDevouringDarkness(runtime: NecromancerRuntime, cast: Run
 function devouring(runtime: NecromancerRuntime, data: unknown): void {
   const work = data as ConditionWork;
   const skill = runtime.helpers.skillsById.get(work.skillId)!;
-  const count = Math.min(
-    Number(skill.maximumConditions),
-    targetConditionCount({ config: runtime.config, query: runtime.query, runtime, time: runtime.time })
-  );
+  const count = Math.min(Number(skill.maximumConditions), runtime.combat.targetConditionCount(runtime.time));
   const event = {
     at: runtime.time,
     source: 'necromancer',

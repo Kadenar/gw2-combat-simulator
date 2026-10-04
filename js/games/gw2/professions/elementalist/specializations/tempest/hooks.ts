@@ -1,3 +1,4 @@
+import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
 import type { EffectDelivery } from '#gw2/platform/simulation/effect-emission.js';
 import type { RuntimeCast, RuntimeProfession } from '#gw2/platform/simulation/runtime-state.js';
 import { registerElementalistEliteEvents } from '#gw2/professions/elementalist/core/mechanics/elite-events.js';
@@ -80,7 +81,7 @@ function onCastStart(context: ElementalistRuntime, cast: RuntimeCast<Elementalis
 
 // Gate overloads on the current attunement and on the singularity: the attunement must already be
 // the primary one and must have been held for the dwell time. Non-overload skills pass through.
-function availability(context: ElementalistRuntime, skill: Skill): AvailabilityResult {
+function availability(context: MechanicQueriesOf<ElementalistRuntime>, skill: Skill): AvailabilityResult {
   if (!skill.overload) return { ready: true };
   const state = professionCoreState(context);
   if (skill.attunement !== state.primaryAttunement) {
@@ -151,8 +152,8 @@ export const tempestHooks: Partial<RuntimeProfession<ElementalistRuntimeState, E
       const attunement = String(skill.attunement);
       // Copy the overload's base progress to align both recharges while retaining longer lockouts.
       if (isElementalistAttunement(attunement)) {
-        const readyAt = context.cooldowns.get(skill.id) ?? cast.effectiveEnd;
-        if (readyAt > (context.cooldowns.get(ELEMENTALIST_ATTUNEMENT_SKILL_IDS[attunement]) ?? 0)) {
+        const readyAt = context.cooldownController.readyAt(skill.id) ?? cast.effectiveEnd;
+        if (readyAt > (context.cooldownController.readyAt(ELEMENTALIST_ATTUNEMENT_SKILL_IDS[attunement]) ?? 0)) {
           context.cooldownController.copy(skill.id, ELEMENTALIST_ATTUNEMENT_SKILL_IDS[attunement]);
         }
       }

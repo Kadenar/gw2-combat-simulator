@@ -1,3 +1,4 @@
+import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
 import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
 import { skillFlipReady } from '#gw2/platform/engine/skills/skill-flips.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
@@ -9,7 +10,10 @@ import type { AvailabilityResult } from '#gw2/platform/execution/types.js';
 import type { EngineerRuntime, EngineerSkill } from '#gw2/professions/engineer/types.js';
 
 /** Enforces Core Engineer resource, kit, flip, and toolbelt prerequisites after shared build eligibility. */
-export function engineerCoreCastAvailability(context: EngineerRuntime, skill: EngineerSkill): AvailabilityResult {
+export function engineerCoreCastAvailability(
+  context: MechanicQueriesOf<EngineerRuntime>,
+  skill: EngineerSkill
+): AvailabilityResult {
   const state = professionCoreState(context);
   if (skill.id === ID.HEALING_TURRET && state.healingTurretActivationId) {
     return denyEngineerCast(skill, 'engineer.healing-turret-active', 'the deployed turret must be detonated first.');

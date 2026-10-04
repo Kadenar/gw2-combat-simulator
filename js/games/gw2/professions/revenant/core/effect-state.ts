@@ -1,6 +1,8 @@
+import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
+import type { MechanicContext } from '#gw2/platform/profession-definition/mechanic-context.js';
 import { REVENANT_SKILL_IDS as ID } from '#gw2/professions/revenant/data/ids.js';
 import { timedEffectState, type BuffStatePolicy, type EffectState } from '#gw2/platform/combat/effect-state.js';
-import type { Gw2Runtime } from '#gw2/platform/simulation/runtime-state.js';
+
 import type { RevenantRuntimeState, RevenantSkill } from '#gw2/professions/revenant/types.js';
 import { balanceProfileFromContext, balanceProfileNumber } from '#gw2/platform/engine/skills/balance-profiles.js';
 
@@ -26,7 +28,9 @@ export function revenantBuffPolicies(_context: unknown): BuffStatePolicy[] {
 }
 
 /** Existing expiring charge pools, including consumption, are the report source. */
-export function revenantEffectStates(runtime: Gw2Runtime<RevenantRuntimeState, RevenantSkill>): EffectState[] {
+export function revenantEffectStates(
+  runtime: MechanicQueriesOf<MechanicContext<RevenantRuntimeState, RevenantSkill>>
+): EffectState[] {
   const core = runtime.profession.core;
   const effects = [
     timedEffectState(

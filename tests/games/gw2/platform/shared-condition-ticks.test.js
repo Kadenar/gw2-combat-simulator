@@ -24,10 +24,10 @@ test('samples and strikes see cooldown resets, snapshots, and swaps only after e
           },
           eventHandlers: {
             'fixture.reset'(ctx) {
-              ctx.cooldowns.clear();
+              ctx.cooldownController.resetAll();
             },
             'fixture.rewind'(ctx) {
-              ctx.cooldowns.clear();
+              ctx.cooldownController.resetAll();
             }
           }
         },
@@ -96,7 +96,7 @@ function resolve(
     ...{ events, ...(combatStartTime == null ? {} : { combatStartTime }), endTime: end },
     config: { target, sigilSets: [{ names: [] }] },
     traits: new Set(),
-    professionReactions: reactions,
+    engineReactions: reactions,
     query: {
       statsAt: () => ({ power: 1000, conditionDamage: 125 }),
       conditionDurationMultiplier: () => 1,

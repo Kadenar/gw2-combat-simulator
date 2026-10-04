@@ -1,10 +1,11 @@
+import type { MechanicContext, MechanicQueryContext } from '#gw2/platform/profession-definition/mechanic-context.js';
 import type { EffectReaction } from '#gw2/platform/simulation/effect-reactions.js';
 /** Defines catalog skills and declarative effects so authored data stays independent of runtime implementations. */
 import type { EffectMetadata, EffectAudience, DamageEvent } from '#gw2/platform/engine/events/events.js';
 import type { SimulationActorType } from '#gw2/platform/engine/events/actors.js';
 import type { ResourceKey } from '#gw2/platform/combat/resources/resource-policy.js';
 import type { SkillSideEffect } from '#gw2/platform/simulation/side-effects.js';
-import type { Gw2Runtime, RuntimeCast } from '#gw2/platform/simulation/runtime-state.js';
+import type { RuntimeCast } from '#gw2/platform/simulation/runtime-state.js';
 
 export type SkillId = string | number;
 
@@ -45,7 +46,7 @@ export interface SkillEffectBase {
   readonly type: string;
   /** Capture acceptance-time eligibility once; impact-time state remains a resolver responsibility. */
   // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Catalogs combine callbacks authored against different profession runtimes; dispatch preserves the owning runtime.
-  readonly when?: (runtime: Gw2Runtime<any>, cast: RuntimeCast) => boolean;
+  readonly when?: (runtime: MechanicQueryContext<any>, cast: RuntimeCast) => boolean;
   readonly atMs?: number;
   readonly intervalMs?: number;
   readonly timingAnchor?: 'castStart' | 'castEnd';
@@ -274,12 +275,12 @@ export interface Skill extends CatalogEntity {
   /** First matching variant transforms the skill's own effects or selects a separate profile before profession modifiers. */
   readonly effectVariants?: readonly {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Catalogs combine callbacks authored against different profession runtimes; dispatch preserves the owning runtime.
-    readonly when: (runtime: Gw2Runtime<any>, cast: RuntimeCast) => boolean;
+    readonly when: (runtime: MechanicQueryContext<any>, cast: RuntimeCast) => boolean;
     /** Omission transforms this skill's selected, patchable effects in place. */
     readonly profileId?: SkillId;
     readonly transform?: (
       // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Catalogs combine callbacks authored against different profession runtimes; dispatch preserves the owning runtime.
-      runtime: Gw2Runtime<any>,
+      runtime: MechanicContext<any>,
       cast: RuntimeCast,
       effects: readonly SkillEffect[]
     ) => readonly SkillEffect[];

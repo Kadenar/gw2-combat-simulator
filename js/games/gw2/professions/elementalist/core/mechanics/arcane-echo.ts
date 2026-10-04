@@ -37,7 +37,7 @@ export function completeArcaneEcho(
   state.arcaneEchoUntil = 0;
   const arcaneEchoProfile = requireBalanceProfileFromContext(context, PROFILE.arcaneEcho);
   // Capture the weapon skill's committed base-recharge work before replacing its cooldown with the reset delay.
-  const addedWork = context.rechargeProgress.get(skill.id)?.work ?? cast.rechargeWork;
+  const addedWork = context.cooldownController.rechargeFor(skill.id)?.work ?? cast.rechargeWork;
   context.cooldownController.setReadyAt(
     skill.id,
     cast.effectiveEnd + balanceProfileNumber(arcaneEchoProfile, 'recharge')
@@ -46,8 +46,8 @@ export function completeArcaneEcho(
   if (arcaneEcho) {
     // At weapon-cast completion, add that work to Arcane Echo's remaining base-recharge work.
     // Project combined work at the permanent recharge rate while preserving progress already earned.
-    const currentReadyAt = context.cooldowns.get(arcaneEcho.id) || cast.effectiveEnd;
-    const progress = context.rechargeProgress.get(arcaneEcho.id);
+    const currentReadyAt = context.cooldownController.readyAt(arcaneEcho.id) || cast.effectiveEnd;
+    const progress = context.cooldownController.rechargeFor(arcaneEcho.id);
     const work = progress
       ? context.cooldownController.remaining(arcaneEcho, progress, cast.effectiveEnd)
       : Math.max(0, currentReadyAt - cast.effectiveEnd) * context.cooldownController.rate(arcaneEcho);

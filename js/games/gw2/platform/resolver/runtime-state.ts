@@ -25,6 +25,7 @@ import type { EffectEmissionService } from '#gw2/platform/simulation/effect-emis
 import { normalizeCriticalDamageMode } from '#gw2/platform/simulation/randomness.js';
 import type { SimulationRandom } from '#kernel/core/simulation-random.js';
 import { createSimulationRandom } from '#kernel/core/simulation-random.js';
+import { createMechanicCombatServices } from '#gw2/platform/resolver/mechanic-services.js';
 
 /**
  * Creates the mutable state for the full GW2 timeline resolver.
@@ -49,6 +50,9 @@ export function createGw2ResolverRuntimeState({
 }: CreateGw2ResolverRuntimeStateOptions): Gw2ResolverRuntime {
   const criticalDamageMode = normalizeCriticalDamageMode(config.criticalDamageMode);
   const runtime: Gw2ResolverRuntime = {
+    get combat() {
+      return combat;
+    },
     // Distribution trials always couple damage to crit outcomes, regardless of the baseline preference.
     criticalDamageMode: config.randomness?.mode === 'stochastic' ? 'rolled' : criticalDamageMode,
     reporting,
@@ -176,6 +180,7 @@ export function createGw2ResolverRuntimeState({
       this.lastHitTime = at;
     }
   };
+  const combat = createMechanicCombatServices(runtime);
   return runtime;
 }
 
@@ -183,6 +188,7 @@ export function createGw2ResolverRuntimeState({
 // Resolution consumes kernel randomness and generic records without execution dependencies.
 
 export interface Gw2ResolverRuntime {
+  readonly combat: ReturnType<typeof createMechanicCombatServices>;
   readonly effectRecorder: EffectRecorder | null;
   readonly criticalDamageMode: Gw2CriticalDamageMode;
   readonly procs: ReturnType<typeof createProcRegistry>;

@@ -1,3 +1,4 @@
+import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
 import { timedEffectState, type EffectState } from '#gw2/platform/combat/effect-state.js';
 import type { ElementalistRuntime } from '#gw2/professions/elementalist/types.js';
 import type { BuffStatePolicy } from '#gw2/platform/combat/effect-state.js';
@@ -61,7 +62,7 @@ export function elementalistBuffPolicies(context: unknown): BuffStatePolicy[] {
 }
 
 /** Observe existing charge and timed-stack owners so replacement, consumption, and refresh need no report replay. */
-export function elementalistEffectStates(runtime: ElementalistRuntime): EffectState[] {
+export function elementalistEffectStates(runtime: MechanicQueriesOf<ElementalistRuntime>): EffectState[] {
   const stone = runtime.profession.core.shatteringStone;
   const effects = [
     timedEffectState(

@@ -1,3 +1,4 @@
+import { createMechanicCombatServices } from '#gw2/platform/resolver/mechanic-services.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { createGw2TimelineIndex } from '#gw2/platform/combat/query/timeline-index.js';
@@ -53,6 +54,8 @@ test('pet boon counts follow packet identity across swaps and exclude future sam
     boons: new Map(),
     conditionState: new Map()
   };
+  // Bind real owner operations for this focused mechanic fixture.
+  runtime.combat = createMechanicCombatServices(runtime);
   const oldPet = rangerPetCompanionId(runtime);
   const fury = buff('fury', { recipients: 'summons', affectsSelf: false, eligibleCompanionIds: [oldPet] });
   const context = {
@@ -95,8 +98,12 @@ test('pet boon queries honor resolved party caps and explicit summon grants in b
     [0, true, 'self', 0]
   ]) {
     const config = { allies: { count: allies }, sharePlayerBoonsWithSummons: share, boons: { fury: true } };
+    // Bind real owner operations for this focused mechanic fixture.
+    config.combat = createMechanicCombatServices(config);
     const event = buff('might', { recipients, eligibleCompanionIds: ['pet'] }, config);
     const runtime = { boons: new Map() };
+    // Bind real owner operations for this focused mechanic fixture.
+    runtime.combat = createMechanicCombatServices(runtime);
     recordBuffApplication(runtime.boons, event);
     const context = {
       config,

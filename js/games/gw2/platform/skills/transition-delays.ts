@@ -58,13 +58,13 @@ export function lockTransitionInput(
   runtime: {
     readonly config?: Gw2Config;
     readonly time: number;
-    inputReadyAt: number;
+    readonly castController: { lockInputUntil(at: number): void };
     readonly effects: EffectEmissionService;
   },
   kind: TransitionDelayKind,
   skill?: { readonly id: SkillId; readonly name: string }
 ): void {
   const delay = normalizeTransitionDelays(runtime.config?.transitionDelays)[kind] / 1000;
-  runtime.inputReadyAt = Math.max(runtime.inputReadyAt, canonicalTime(runtime.time + delay));
+  runtime.castController.lockInputUntil(canonicalTime(runtime.time + delay));
   emitTransitionLockout(runtime, kind, runtime.time, skill);
 }

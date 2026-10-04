@@ -1,3 +1,4 @@
+import { createMechanicCombatServices } from '#gw2/platform/resolver/mechanic-services.js';
 import { createEffectEmissionService } from '#gw2/platform/simulation/effect-emission.js';
 import { applyBoonExtension } from '#gw2/platform/combat/boons.js';
 import { chartValueAt } from '#gw2/app/results/charts/time-series-model.js';
@@ -71,11 +72,11 @@ function internalCooldownClaims(traitId, action, duration, catalog) {
     {
       catalog: (live) => withProfile(catalog(live), traitId ?? TRAIT.UPPER_HAND, { internalCooldown: duration }),
       initialize(runtime) {
-        runtime.procs.readyAt.unrelated = 99;
+        runtime.procs.setDeadline('unrelated', 99);
       },
       probes: [1.0005, 1 + duration + 0.0005, 1 + duration + 0.0015].map((at) => [
         at,
-        (runtime) => readyAt.push({ ...runtime.procs.readyAt })
+        (runtime) => readyAt.push({ ...runtime.procs.snapshot() })
       ])
     }
   );
@@ -172,6 +173,8 @@ function traitContext(selectedTraitIds = [], config = {}) {
       }
     })
   };
+  // Bind real owner operations for this focused mechanic fixture.
+  context.combat = createMechanicCombatServices(context);
 
   return { context, core, events, conditions };
 }
@@ -203,9 +206,9 @@ for (const [name, traitId, invoke, output] of [
       const profiles = new Map(thiefCatalog.balanceProfilesById);
       profiles.set(traitId, { ...profiles.get(traitId), internalCooldown: duration });
       context.catalog = { ...thiefCatalog, balanceProfilesById: profiles };
-      context.procs.readyAt.unrelated = 99;
+      context.procs.setDeadline('unrelated', 99);
       invoke(context);
-      assert.deepEqual({ ...context.procs.readyAt }, { unrelated: 99 });
+      assert.deepEqual({ ...context.procs.snapshot() }, { unrelated: 99 });
       context.config.selectedTraitIds = [traitId];
       const owner = output === 'queue' ? context.queue : context;
       const method = output === 'queue' ? 'enqueue' : output;
@@ -213,7 +216,7 @@ for (const [name, traitId, invoke, output] of [
       let emissions = 0;
       let reenter = true;
       owner[method] = (event) => {
-        assert.equal(context.procs.readyAt[traitId], context.effectiveEnd + duration);
+        assert.equal(context.procs.snapshot()[traitId], context.effectiveEnd + duration);
         emissions += 1;
         if (reenter) {
           reenter = false;
@@ -237,8 +240,8 @@ for (const [name, traitId, invoke, output] of [
       context.effectiveEnd = 1 + duration + 0.000001;
       invoke(context);
       assert.ok(emissions > firstEmissions);
-      assert.equal(context.procs.readyAt.unrelated, 99);
-      assert.deepEqual({ ...traitContext([traitId]).context.procs.readyAt }, {});
+      assert.equal(context.procs.snapshot()['unrelated'], 99);
+      assert.deepEqual({ ...traitContext([traitId]).context.procs.snapshot() }, {});
     }
   });
 }
@@ -251,7 +254,7 @@ test('Lotus Poison grants self Might and target Weakness only for the player poi
     reactThiefCoreCondition(context, { ...poison, ...overrides });
   }
 
-  assert.deepEqual({ ...context.procs.readyAt }, {});
+  assert.deepEqual({ ...context.procs.snapshot() }, {});
   assert.equal(context.queue.length, 0);
   reactThiefCoreCondition(context, poison);
   const might = context.queue.dequeue();
@@ -263,7 +266,7 @@ test('Lotus Poison grants self Might and target Weakness only for the player poi
   assert.equal(weakness.condition, 'Weakness');
   assert.equal(weakness.duration, 4);
   assert.equal(weakness.sourceId, TRAIT.LOTUS_POISON);
-  assert.equal(context.procs.readyAt[TRAIT.LOTUS_POISON], 11);
+  assert.equal(context.procs.snapshot()[TRAIT.LOTUS_POISON], 11);
   for (const at of [1, 10.999, 11]) reactThiefCoreCondition(context, { ...poison, at });
   assert.equal(context.queue.length, 0);
   reactThiefCoreCondition(context, { ...poison, at: 11.001 });
@@ -768,7 +771,7 @@ test("Assassin's Fury preserves recipient gating, removed effects, and patched I
           {
             catalog: () => live,
             initialize(runtime) {
-              runtime.procs.readyAt.unrelated = 99;
+              runtime.procs.setDeadline('unrelated', 99);
               for (const at of [1, 1 + duration, 1 + duration + 0.001])
                 runtime.effects.emit({
                   kind: 'packet',
@@ -807,9 +810,9 @@ test("Assassin's Fury preserves recipient gating, removed effects, and patched I
           selected && !removed ? [1, 1 + duration + 0.001] : []
         );
         const runtime = observedRuntime(result);
-        assert.equal(runtime.procs.readyAt.unrelated, 99);
+        assert.equal(runtime.procs.snapshot()['unrelated'], 99);
         assert.equal(
-          runtime.procs.readyAt[TRAIT.ASSASSINS_FURY],
+          runtime.procs.snapshot()[TRAIT.ASSASSINS_FURY],
           selected && !removed ? 1 + duration + 0.001 + duration : undefined
         );
         assert.deepEqual(result.warnings, []);

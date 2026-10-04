@@ -69,7 +69,7 @@ function createResolvedCriticalSigilEffects(
   for (const { id, readyAt } of decision.procs) {
     const proc = SIGIL_PROC_LOOKUP[id];
     // Decisions are synchronous; commit their deadlines before queueing any derived effects.
-    ctx.procs.readyAt[`sigil.${id}`] = readyAt;
+    ctx.procs.setDeadline(`sigil.${id}`, readyAt);
     ctx.effects.emit({
       kind: 'packet',
       event: {
@@ -168,7 +168,7 @@ export function createGw2EquipmentReactionContributions(): Gw2ResolverReactionCo
       // The critical-proc handler owns the sampled claim; equipment shares the registry's storage.
       readyAt: (ctx) => ctx.procs.deadline('food.critical-strike'),
       setReadyAt: (ctx, readyAt) => {
-        ctx.procs.readyAt['food.critical-strike'] = readyAt;
+        ctx.procs.setDeadline('food.critical-strike', readyAt);
       }
     },
     randomStream: 'food.critical-strike',

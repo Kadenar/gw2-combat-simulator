@@ -77,16 +77,11 @@ export function reactToRangerGreatswordDamage(context: RangerResolverContext, ev
   const recipient = attackRecipient(event);
   if (!recipient) return;
   const kind = `attack-of-opportunity-${recipient}`;
-  const applications = context.boons.get(kind);
-  if (applications) {
-    context.boons.set(
-      kind,
-      applications.map((application) =>
-        application.at <= event.at &&
-        (recipient === 'player' || application.resolvedAudience.companionIds.includes(String(event.summonOwner)))
-          ? { ...application, expiresAt: Math.min(application.expiresAt, event.at) }
-          : application
-      )
-    );
-  }
+  context.combat.reviseBoonExpiry(
+    kind,
+    (application) =>
+      application.at <= event.at &&
+      (recipient === 'player' || application.resolvedAudience.companionIds.includes(String(event.summonOwner))),
+    (expiresAt) => Math.min(expiresAt, event.at)
+  );
 }

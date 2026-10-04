@@ -146,13 +146,17 @@ export function applyShortFuse(
   event: EngineerResolverEvent,
   explosion: boolean
 ): void {
-  const state = context.procs.readyAt;
-  if (!explosion || !hasTrait(context, TRAIT.SHORT_FUSE) || !isInternalCooldownReady(event.at, state.shortFuse || 0)) {
+  const state = context.procs;
+  if (
+    !explosion ||
+    !hasTrait(context, TRAIT.SHORT_FUSE) ||
+    !isInternalCooldownReady(event.at, state.deadline('shortFuse') || 0)
+  ) {
     return;
   }
 
   const shortFuseProfile = requireBalanceProfileFromContext(context, TRAIT.SHORT_FUSE);
-  state.shortFuse = event.at + balanceProfileNumber(shortFuseProfile, 'internalCooldown');
+  state.setDeadline('shortFuse', event.at + balanceProfileNumber(shortFuseProfile, 'internalCooldown'));
   const shortFuseFury = requireEffect(shortFuseProfile, 'boon', 'fury');
   if (shortFuseFury) {
     context.effects.emit({
@@ -310,17 +314,17 @@ function isAimAssistedProjectile(context: EngineerResolverContext, event: Engine
 
 /** Queues Aim-Assisted Rocket, upgrading every fifth eligible proc to Orbital Command Strike. */
 export function applyAimAssistedRocket(context: EngineerResolverContext, event: EngineerResolverEvent): void {
-  const state = context.procs.readyAt;
+  const state = context.procs;
   if (
     !hasTrait(context, TRAIT.AIM_ASSISTED_ROCKET) ||
     !isAimAssistedProjectile(context, event) ||
-    !isInternalCooldownReady(event.at, state.aimAssistedRocket || 0)
+    !isInternalCooldownReady(event.at, state.deadline('aimAssistedRocket') || 0)
   ) {
     return;
   }
 
   const aimAssistedRocketProfile = requireBalanceProfileFromContext(context, TRAIT.AIM_ASSISTED_ROCKET);
-  state.aimAssistedRocket = event.at + balanceProfileNumber(aimAssistedRocketProfile, 'internalCooldown');
+  state.setDeadline('aimAssistedRocket', event.at + balanceProfileNumber(aimAssistedRocketProfile, 'internalCooldown'));
   professionCoreState(context).aimAssistedRocketCount = (professionCoreState(context).aimAssistedRocketCount || 0) + 1;
   // Every fifth projectile upgrades to Orbital Command Strike with its two-second call-down delay.
   const alternateEvery = balanceProfileNumber(aimAssistedRocketProfile, 'maximumStacks');

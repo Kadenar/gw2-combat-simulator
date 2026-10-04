@@ -1,12 +1,15 @@
+import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
+import { gw2ActivePrimaryWeapon } from '#gw2/platform/equipment/weapons/loadout.js';
+import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
 import type { EffectDelivery } from '#gw2/platform/simulation/effect-emission.js';
 import {
+  buildMesmerConditions,
   buildMesmerPacket,
-  mesmerPacketOwner,
   buildMesmerStrikes,
-  buildMesmerConditions
+  mesmerPacketOwner
 } from '#gw2/professions/mesmer/core/mechanics/packets.js';
-import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { buildMirageBoon, statusFromEffect } from '#gw2/professions/mesmer/specializations/mirage/mechanics/boons.js';
+import { MESMER_MIRAGE_AMBUSH_SKILLS } from '#gw2/professions/mesmer/specializations/mirage/skills/index.js';
 import { mirageState } from '#gw2/professions/mesmer/specializations/mirage/state.js';
 import {
   applyMirageAmbushTraits,
@@ -33,11 +36,10 @@ import type { MesmerActivePrimaryWeapon, MesmerAmbushAttack } from '#gw2/profess
 
 import type { EndurancePolicy } from '#gw2/platform/combat/resources/endurance-policy.js';
 import { materializeSkillEffectApplications } from '#gw2/platform/engine/effects/materializer.js';
-import type { AvailabilityResult } from '#gw2/platform/execution/types.js';
-import { mesmerMechanicsFor } from '#gw2/professions/mesmer/core/mechanics/runtime.js';
-import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
 import { denySkillCast } from '#gw2/platform/engine/skills/availability.js';
+import type { AvailabilityResult } from '#gw2/platform/execution/types.js';
 import { NON_MIRAGE_AXE_SKILL_IDS } from '#gw2/professions/mesmer/data/module-data.js';
+import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
 
 interface MirageActionControllerOptions {
   readonly state: MesmerRuntime;
@@ -327,7 +329,7 @@ export function createMirageActionController({
 }
 
 /** Gates mirror pickups on an available mirror and ambushes on an active or queued ambush window. */
-export function mirageAvailability(context: MesmerRuntime, skill: MesmerSkill): AvailabilityResult {
+export function mirageAvailability(context: MechanicQueriesOf<MesmerRuntime>, skill: MesmerSkill): AvailabilityResult {
   // Explicit IDs must obey the same weapon replacement as the palette.
   if (NON_MIRAGE_AXE_SKILL_IDS.has(skill.id)) {
     return denySkillCast(skill, 'mesmer.mirage-axe-replaced', 'Mirage replaces this axe skill.');
@@ -354,12 +356,14 @@ export function mirageAvailability(context: MesmerRuntime, skill: MesmerSkill): 
   }
 
   if (!skill.ambush) return { ready: true };
-  const runtime = mesmerMechanicsFor(context);
-  const activeAmbush = runtime.ambushAttacks[runtime.activePrimaryWeapon()];
+  // Eligibility needs selected weapon identity and committed windows, not illusion controllers.
+  const weapon = gw2ActivePrimaryWeapon(context.config, context.activeWeaponSet === 1 ? 1 : 2) || '';
+  const activeAmbush = MESMER_MIRAGE_AMBUSH_SKILLS[weapon];
   const state = mirageState.from(context);
   // An ambush selected during the preceding cast remains queued through its lockout. A later wait or cooldown
   // cannot extend that queue: the preceding cast must still occupy the lane at this action's start.
-  const queuedAmbush = context.history
+  const queuedAmbush = context.facts
+    .read()
     .filter((event) => event.type === 'action')
     .some(
       (action) =>

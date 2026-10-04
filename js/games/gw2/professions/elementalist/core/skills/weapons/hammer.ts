@@ -1,3 +1,4 @@
+import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
 /**
  * Hammer weapon-skill mechanics owned by the Core Elementalist module.
  *
@@ -705,7 +706,7 @@ export const ELEMENTALIST_CORE_HAMMER_SKILL_MECHANICS: Readonly<Record<number, P
       ]).map<SkillEffect>((effect) => ({
         ...effect,
         name: element,
-        when: (runtime: ElementalistRuntime, cast) => {
+        when: (runtime: MechanicQueriesOf<ElementalistRuntime>, cast) => {
           const expiresAt = runtime.profession.core.hammerOrbs[element];
           return expiresAt != null && expiresAt >= cast.start;
         }

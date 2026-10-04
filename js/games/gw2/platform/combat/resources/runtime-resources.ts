@@ -30,7 +30,7 @@ export function createRuntimeResources<T extends object>(runtime: Gw2Runtime<T>,
   const get = (key: ResourceKey) => {
     const policy = policies[key];
     if (!policy) throw new TypeError(`Unsupported resource: ${key}.`);
-    const state = policy.state(runtime);
+    const state = policy.state(runtime.mechanics);
     if (![state.value, state.maximum, state.updatedAt, state.rate].every(Number.isFinite))
       throw new TypeError('Invalid resource clock.');
     return { policy, state };
@@ -39,23 +39,23 @@ export function createRuntimeResources<T extends object>(runtime: Gw2Runtime<T>,
   const changed = (key: ResourceKey) => {
     const { policy, state } = get(key);
     if (policy.depletion) {
-      if (state.maximum > 0) policy.depletion.refresh(runtime);
-      else policy.depletion.stop(runtime);
+      if (state.maximum > 0) policy.depletion.refresh(runtime.mechanics);
+      else policy.depletion.stop(runtime.mechanics);
     }
 
-    policy.changed?.(runtime, runtime.time);
+    policy.changed?.(runtime.mechanics, runtime.time);
   };
 
   const refresh = (key: ResourceKey) => {
     const { policy, state } = get(key);
     advanceResource(state, runtime.time);
     const before = [state.maximum, state.value, state.rate, state.recoveryMaximum];
-    state.maximum = amount(policy.maximum(runtime));
+    state.maximum = amount(policy.maximum(runtime.mechanics));
     state.value = Math.min(state.value, state.maximum);
     // Pools without a recovery ceiling keep the factory's shape instead of gaining an undefined field.
-    if (policy.recoveryMaximum) state.recoveryMaximum = amount(policy.recoveryMaximum(runtime));
+    if (policy.recoveryMaximum) state.recoveryMaximum = amount(policy.recoveryMaximum(runtime.mechanics));
     else delete state.recoveryMaximum;
-    const recovery = policy.recovery(runtime);
+    const recovery = policy.recovery(runtime.mechanics);
     if ((policy.kind === 'continuous') !== (typeof recovery === 'number'))
       throw new TypeError('Resource recovery must match its kind.');
     if (typeof recovery === 'number') {
@@ -85,8 +85,8 @@ export function createRuntimeResources<T extends object>(runtime: Gw2Runtime<T>,
       const { policy, state } = get(key);
       if (pools.has(state)) throw new TypeError('Resource pool has multiple owners.');
       pools.add(state);
-      state.maximum = amount(policy.maximum(runtime));
-      state.value = Math.min(state.maximum, amount(policy.initial(runtime, state.maximum)));
+      state.maximum = amount(policy.maximum(runtime.mechanics));
+      state.value = Math.min(state.maximum, amount(policy.initial(runtime.mechanics, state.maximum)));
       state.updatedAt = runtime.time;
       state.rate = 0;
       if (policy.kind === 'discrete') Object.assign(state, { interval: 0, amount: 0, nextAt: Infinity });
@@ -135,7 +135,7 @@ export function createRuntimeResources<T extends object>(runtime: Gw2Runtime<T>,
       const { policy, state } = get(key);
       const next = Math.min(
         resourceRecoveryReadyAt(state, cost, runtime.time) ?? Infinity,
-        policy.nextChange?.(runtime, cost) ?? Infinity
+        policy.nextChange?.(runtime.mechanics, cost) ?? Infinity
       );
       return Number.isFinite(next) ? Math.max(runtime.time, next) : null;
     }
@@ -147,8 +147,8 @@ export function createRuntimeEndurance<T extends object>(runtime: Gw2Runtime<T>,
   const policy = profession.endurance;
   const pool = () => {
     if (!policy) throw new TypeError('Profession does not model endurance.');
-    const state = policy.state(runtime);
-    const maximum = amount(policy.maximum(runtime));
+    const state = policy.state(runtime.mechanics);
+    const maximum = amount(policy.maximum(runtime.mechanics));
     if (![state.endurance, state.enduranceUpdatedAt].every(Number.isFinite) || maximum === 0)
       throw new TypeError('Invalid endurance pool.');
     return { state, maximum };
@@ -159,8 +159,8 @@ export function createRuntimeEndurance<T extends object>(runtime: Gw2Runtime<T>,
       { events: runtime.history, config: runtime.config },
       start,
       end,
-      (vigor, at) => policy!.regenerationRate(runtime, vigor, at),
-      policy?.regenerationBoundaries?.(runtime)
+      (vigor, at) => policy!.regenerationRate(runtime.mechanics, vigor, at),
+      policy?.regenerationBoundaries?.(runtime.mechanics)
     );
   const advance = () => {
     if (!policy) return;

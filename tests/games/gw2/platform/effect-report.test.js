@@ -9,10 +9,9 @@ import { warriorProfession } from '#gw2/professions/warrior/profession.js';
 import { WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/professions/warrior/data/ids.js';
 import { gunsAndGloryExplosion } from '#gw2/professions/warrior/specializations/bladesworn/traits/behavior.js';
 import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
-import { targetConditionStacks } from '#gw2/platform/combat/state/targets.js';
+
 import { timedBuffAt, timedBuffStacksAt } from '#gw2/platform/results/query.js';
 import { observeRuntimeEffects } from '#gw2/platform/results/observe-effects.js';
-import { buffApplicationStacks } from '#gw2/platform/combat/boons.js';
 
 const track = (result, kind) =>
   result.effectReport.tracks.find(
@@ -49,8 +48,8 @@ test('combat and reporting cap Aegis and non-damaging presence while retaining V
         ...native.tasks,
         'test.conditions'(runtime) {
           for (const condition of ['Weakness', 'Crippled', 'Vulnerability', 'Burning'])
-            counts.push(targetConditionStacks(runtime.config, condition, runtime.time, runtime));
-          counts.push(buffApplicationStacks(runtime.boons.get('aegis'), 'aegis', runtime.time, Infinity));
+            counts.push(runtime.combat.targetConditionStacks(condition, runtime.time));
+          counts.push(runtime.combat.activeBoonStacks('aegis', runtime.time, Infinity));
         }
       }
     },

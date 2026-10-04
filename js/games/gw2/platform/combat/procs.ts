@@ -10,8 +10,12 @@ import type { SkillId } from '#gw2/platform/engine/skills/types.js';
 export function createProcRegistry(context: () => Gw2ResolverRuntime & { readonly time?: number }) {
   const readyAt: Record<string, number> = Object.create(null);
   return {
-    /** Live deadlines also support sampled proc commits, mechanic-owned resets, and reconstruction. */
-    readyAt,
+    /** Sampled proc commits use the same owner; observations receive a detached deadline record. */
+    setDeadline(key: SkillId, at: number): void {
+      if (typeof at !== 'number' || Number.isNaN(at)) throw new TypeError('Proc cooldown readyAt must be a number.');
+      readyAt[key] = at;
+    },
+    snapshot: (): Readonly<Record<string, number>> => ({ ...readyAt }),
     /** Unarmed owners are ready at zero; callers with mechanic-specific boundary rules can inspect the deadline. */
     deadline(key: SkillId): number {
       return readyAt[key] ?? 0;

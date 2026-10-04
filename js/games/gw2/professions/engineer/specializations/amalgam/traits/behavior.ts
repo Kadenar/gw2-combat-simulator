@@ -1,3 +1,4 @@
+import type { MaximumAmmoContext } from '#gw2/platform/profession-definition/runtime-context.js';
 import { type SkillId } from '#gw2/platform/engine/skills/types.js';
 import { ENGINEER_SKILL_IDS as ID, ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
@@ -30,23 +31,20 @@ import { resolverSkill, buildEngineerCondition } from '#gw2/professions/engineer
 const EVOLVE_SKILL_IDS = new Set<SkillId>([ID.EVOLVE_BASE, ID.EVOLVE_DOUBLE_HELIX]);
 
 /** Both existing Evolve IDs and rotation names resolve to the currently selected Double Helix variant. */
-export function resolveAmalgamSkillId(traits: unknown, skillId: SkillId): SkillId {
+export function resolveAmalgamSkillId(doubleHelix: boolean, skillId: SkillId): SkillId {
   if (
     !EVOLVE_SKILL_IDS.has(Number(skillId)) &&
     !['Evolve', 'Evolve (Base)', 'Evolve (Double Helix)'].includes(String(skillId))
   )
     return skillId;
-  return hasTrait(traits, TRAIT.DOUBLE_HELIX) ? ID.EVOLVE_DOUBLE_HELIX : ID.EVOLVE_BASE;
+  return doubleHelix ? ID.EVOLVE_DOUBLE_HELIX : ID.EVOLVE_BASE;
 }
 
 /** Only the selected Double Helix variant receives the active profile's Evolve ammo capacity. */
-export function amalgamMaximumAmmo(context: EngineerRuntime, skill: EngineerSkill, maximum: number): number {
+export function amalgamMaximumAmmo(context: MaximumAmmoContext<object>, skill: EngineerSkill, maximum: number): number {
   if (!EVOLVE_SKILL_IDS.has(Number(skill.id))) return maximum;
-  return skill.id === ID.EVOLVE_DOUBLE_HELIX && hasTrait(context.config, TRAIT.DOUBLE_HELIX)
-    ? Math.max(
-        balanceProfileNumber(requireBalanceProfileFromContext(context, PROFILE.evolve), 'maximumStacks'),
-        maximum || 0
-      )
+  return skill.id === ID.EVOLVE_DOUBLE_HELIX && context.hasTrait(TRAIT.DOUBLE_HELIX)
+    ? Math.max(balanceProfileNumber(context.requireBalanceProfile(PROFILE.evolve), 'maximumStacks'), maximum || 0)
     : 0;
 }
 
@@ -54,7 +52,7 @@ export function amalgamMaximumAmmo(context: EngineerRuntime, skill: EngineerSkil
 export function reactToMercurialTendencies(context: EngineerRuntime, event: EngineerResolverEvent): void {
   if (!hasTrait(context.config, TRAIT.MERCURIAL_TENDENCIES) || event.actorType === 'summon') return;
   const at = event.at;
-  if (!isInternalCooldownReady(at, context.procs.readyAt.mercurialTendencies || 0)) return;
+  if (!isInternalCooldownReady(at, context.procs.deadline('mercurialTendencies') || 0)) return;
   const profile = requireBalanceProfileFromContext(context, TRAIT.MERCURIAL_TENDENCIES);
   let reducedBy = 0;
   for (const id of EVOLVE_SKILL_IDS) {
@@ -68,7 +66,7 @@ export function reactToMercurialTendencies(context: EngineerRuntime, event: Engi
   }
 
   if (!(reducedBy > 0)) return;
-  context.procs.readyAt.mercurialTendencies = at + balanceProfileNumber(profile, 'internalCooldown');
+  context.procs.setDeadline('mercurialTendencies', at + balanceProfileNumber(profile, 'internalCooldown'));
   context.effects.emit({
     kind: 'announcement',
     log: true,

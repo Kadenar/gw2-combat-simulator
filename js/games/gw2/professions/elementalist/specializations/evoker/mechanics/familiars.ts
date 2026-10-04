@@ -270,7 +270,7 @@ export const evokerSkillCommitTasks: NonNullable<
         );
         context.cooldownController.setReadyAt(
           empowered.id,
-          Math.max(context.cooldowns.get(empowered.id) || 0, at + delay)
+          Math.max(context.cooldownController.readyAt(empowered.id) || 0, at + delay)
         );
       }
 

@@ -1,4 +1,3 @@
-import { targetConditionCount } from '#gw2/platform/combat/query/runtime-query.js';
 import type { Skill } from '#gw2/platform/engine/skills/types.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import { gluttonyLifeForceMultiplier } from '#gw2/professions/necromancer/core/traits/shroud.js';
@@ -26,9 +25,7 @@ export function grantNecromancerSkillLifeForce(
     skill.lifeForceGain ?? skill.lifeForcePerHit ?? skill.lifeForcePerPulse ?? skill.lifeForceOnHit ?? 0
   );
   if (Number(skill.lifeForcePerCondition) > 0) {
-    const count =
-      event.metadata?.necromancerConditionCount ??
-      targetConditionCount({ config: runtime.config, query: runtime.query, runtime, time: runtime.time });
+    const count = event.metadata?.necromancerConditionCount ?? runtime.combat.targetConditionCount(runtime.time);
     amount += Math.min(Number(skill.maximumConditions), count) * Number(skill.lifeForcePerCondition);
   }
 

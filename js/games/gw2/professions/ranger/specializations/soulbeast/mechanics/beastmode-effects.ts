@@ -1,3 +1,4 @@
+import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
 import type { Gw2TimedBuffApplication } from '#gw2/platform/combat/boons.js';
 import { consumeCharge, expireCharges } from '#gw2/platform/combat/resources/charges.js';
 import { gw2AlliedPlayerProcTimeline } from '#gw2/platform/combat/state/allied-players.js';
@@ -43,13 +44,15 @@ export const soulbeastEventHandlers = Object.freeze({ 'ranger.shared-stance-hit'
 
 export function activeSoulbeastBuff(context: RangerResolverContext, kind: string, at: number): boolean {
   // These personal stance queries cannot borrow a companion's or ally's application.
-  return (context.boons.get(kind) || []).some(
-    (application: Gw2TimedBuffApplication) =>
-      application.resolvedAudience.includesSelf &&
-      application.at <= at &&
-      application.expiresAt > at &&
-      application.stacks > 0
-  );
+  return context.combat
+    .boonApplications(kind)
+    .some(
+      (application: Gw2TimedBuffApplication) =>
+        application.resolvedAudience.includesSelf &&
+        application.at <= at &&
+        application.expiresAt > at &&
+        application.stacks > 0
+    );
 }
 
 // Beast Ability is always the last skill in beastmodeSkillIds; traits like Live Fast and Go for the Eyes
@@ -170,9 +173,9 @@ function handleSharedStanceHit(context: RangerResolverContext, event: Gw2Resolve
   const allyIndex = event.metadata?.triggeredByAlly;
   if (!allyIndex) return;
   const key = `${event.kind}:${allyIndex}`;
-  if (!isInternalCooldownReady(event.at, context.procs.readyAt[`ranger.soulbeast.alliedStance:${key}`] ?? 0)) return;
+  if (!isInternalCooldownReady(event.at, context.procs.deadline(`ranger.soulbeast.alliedStance:${key}`))) return;
   queueStanceProc(context, event, event.kind === 'one-wolf-pack', (internalCooldown) => {
-    context.procs.readyAt[`ranger.soulbeast.alliedStance:${key}`] = event.at + internalCooldown;
+    context.procs.setDeadline(`ranger.soulbeast.alliedStance:${key}`, event.at + internalCooldown);
   });
 }
 
@@ -191,7 +194,7 @@ export function reactToSoulbeastDamage(context: RangerResolverContext, event: Gw
   ) {
     // 1-second ICD between echoes even within a single multi-hit skill.
     queueStanceProc(context, event, true, (internalCooldown) => {
-      context.procs.readyAt['ranger.soulbeast.oneWolfPack'] = event.at + internalCooldown;
+      context.procs.setDeadline('ranger.soulbeast.oneWolfPack', event.at + internalCooldown);
     });
   }
 
@@ -202,7 +205,7 @@ export function reactToSoulbeastDamage(context: RangerResolverContext, event: Gw
     isPlayerStrike(event)
   ) {
     queueStanceProc(context, event, false, (internalCooldown) => {
-      context.procs.readyAt['ranger.soulbeast.vultureStance'] = event.at + internalCooldown;
+      context.procs.setDeadline('ranger.soulbeast.vultureStance', event.at + internalCooldown);
     });
   }
 
@@ -276,7 +279,10 @@ export function reactToRangerWinterBite(context: RangerResolverContext, event: G
     context.effects.emit(rangerConditionRequest(event, profile, weakness, ID.WINTERS_BITE, "Winter's Bite"));
 }
 
-export function soulbeastCastAvailability(context: RangerRuntime, skill: RangerSkill): AvailabilityResult {
+export function soulbeastCastAvailability(
+  context: MechanicQueriesOf<RangerRuntime>,
+  skill: RangerSkill
+): AvailabilityResult {
   const state = soulbeastState.from(context);
   const toggle = skill.id === ID.BEASTMODE || skill.id === ID.LEAVE_BEASTMODE;
   // Swapping while unmerged changes which pet grants merged skills on reentry.

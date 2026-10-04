@@ -1,3 +1,4 @@
+import type { MechanicContext } from '#gw2/platform/profession-definition/mechanic-context.js';
 import { denySkillCast } from '#gw2/platform/engine/skills/availability.js';
 import {
   effectNumber,
@@ -9,7 +10,7 @@ import { SIGIL_IDS } from '#gw2/platform/equipment/sigils/data.js';
 import type { NativeResolvedDamageDetails } from '#gw2/platform/profession-definition/module-types.js';
 import { buildResolverCondition, buildResolverStrike } from '#gw2/platform/resolver/packets.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
-import type { Gw2Runtime, RuntimeCast, RuntimeProfession } from '#gw2/platform/simulation/runtime-state.js';
+import type { RuntimeCast, RuntimeProfession } from '#gw2/platform/simulation/runtime-state.js';
 import { gw2EffectExpiresAt } from '#gw2/platform/skills/timing.js';
 import { guardianCastCause } from '#gw2/professions/guardian/core/mechanics/event-handlers.js';
 import { refreshGuardianVirtues } from '#gw2/professions/guardian/core/mechanics/virtues.js';
@@ -39,7 +40,7 @@ import {
 import type { GuardianRuntimeState, GuardianSkill, GuardianVirtue } from '#gw2/professions/guardian/types.js';
 import { canonicalTime } from '#kernel/core/clock.js';
 
-type Runtime = Gw2Runtime<GuardianRuntimeState, GuardianSkill>;
+type Runtime = MechanicContext<GuardianRuntimeState, GuardianSkill>;
 const PULSE = 'guardian.willbender.pulse';
 const readyVirtues = new WeakSet<RuntimeCast<GuardianSkill>>();
 const VIRTUES = [

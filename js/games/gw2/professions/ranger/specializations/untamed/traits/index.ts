@@ -52,7 +52,7 @@ export const letLoose = defineTrait({
         runtime.procs.claim(TRAIT.LET_LOOSE, 'ranger.untamed.letLoose', runtime.time)
       ) {
         // Let Loose claims its own interval, then rearms Unleashed Power independently.
-        runtime.procs.readyAt['ranger.untamed.unleashedPower'] = 0;
+        runtime.procs.setDeadline('ranger.untamed.unleashedPower', 0);
         if (state.rangerUnleashed) grantAmbush(runtime);
       }
     }

@@ -1,5 +1,5 @@
 import { canonicalTime } from '#kernel/core/clock.js';
-import type { CastCommand, RotationCommand } from '#gw2/platform/execution/types.js';
+import type { CastCommand, ChargeReleaseIntent, RotationCommand } from '#gw2/platform/execution/types.js';
 import type { Skill } from '#gw2/platform/engine/skills/types.js';
 
 /** Owns authored progression and lanes only; combat outcomes never live in a predicted cursor state. */
@@ -20,6 +20,13 @@ export class RotationCursor {
 
   get command(): RotationCommand | undefined {
     return this.commands[this.index];
+  }
+
+  /** Interpret only the current command's extra hold; mechanics never receive the cursor or the authored command. */
+  pendingChargeRelease(): ChargeReleaseIntent | undefined {
+    const command = this.command;
+    if (command?.type !== 'cast' || !(Number(command.releaseDelayMs) > 0)) return undefined;
+    return Object.freeze({ skillId: command.skillId, charges: command.releaseAtCharges });
   }
 
   /** Lane completion remains a wake after the final command; recurring combat work cannot extend it. */

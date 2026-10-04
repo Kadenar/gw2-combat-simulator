@@ -41,7 +41,7 @@ export const thiefInitiative: ResourcePolicy<ThiefRuntime> = {
   nextChange(runtime, cost) {
     if (cost > runtime.profession.core.initiative.maximum) return Infinity;
     const pulse = runtime.profession.core.infiltratorsSignetPulseAt;
-    const completion = runtime.cursor.endTime();
+    const completion = runtime.castController.currentLaneEnd();
     return Math.min(
       pulse != null && pulse > runtime.time ? pulse : Infinity,
       completion > runtime.time ? completion : Infinity
@@ -88,7 +88,9 @@ export function setThiefKneeling(runtime: ThiefRuntime, kneeling: boolean): void
 export function restartThiefInfiltratorsSignet(runtime: ThiefRuntime): void {
   const core = runtime.profession.core;
   if (!selectedSkillIdSet(runtime.config.selectedSkillIds).has(ID.INFILTRATORS_SIGNET)) return;
-  const at = canonicalTime(Math.max(runtime.time, runtime.cooldowns.get(ID.INFILTRATORS_SIGNET) || 0) + 10);
+  const at = canonicalTime(
+    Math.max(runtime.time, runtime.cooldownController.readyAt(ID.INFILTRATORS_SIGNET) || 0) + 10
+  );
   core.infiltratorsSignetPulseAt = at;
   runtime.schedule(THIEF_INFILTRATORS_SIGNET_PULSE, at, { at });
 }
@@ -97,7 +99,8 @@ export function restartThiefInfiltratorsSignet(runtime: ThiefRuntime): void {
 export function thiefInfiltratorsSignetPulse(runtime: ThiefRuntime, data: unknown): void {
   const core = runtime.profession.core;
   if ((data as { at: number }).at !== core.infiltratorsSignetPulseAt) return;
-  if ((runtime.cooldowns.get(ID.INFILTRATORS_SIGNET) || 0) <= runtime.time + EPSILON) grantThiefInitiative(runtime, 1);
+  if ((runtime.cooldownController.readyAt(ID.INFILTRATORS_SIGNET) || 0) <= runtime.time + EPSILON)
+    grantThiefInitiative(runtime, 1);
   restartThiefInfiltratorsSignet(runtime);
 }
 

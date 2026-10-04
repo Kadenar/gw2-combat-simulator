@@ -1,3 +1,7 @@
+import {
+  createDragonTriggerState,
+  type DragonTriggerState
+} from '#gw2/professions/warrior/specializations/bladesworn/mechanics/dragon-trigger-state.js';
 import type { Gw2PlanningStateInput } from '#gw2/platform/simulation/types.js';
 import {
   snapshotProfessionState,
@@ -8,7 +12,7 @@ import {
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
 import { boundedNumber } from '#kernel/core/numeric.js';
 
-export interface BladeswornState {
+export interface BladeswornState extends DragonTriggerState {
   flow: number;
   maximumFlow: number;
   flowStabilizerWindows: Array<{
@@ -21,17 +25,6 @@ export interface BladeswornState {
   traitPositiveFlowStacks: number;
 
   gunsaberActive: boolean;
-  dragonTriggerActive: boolean;
-  dragonTriggerStartedAt: number;
-  dragonTriggerChargeDeadline: number;
-  nextDragonChargeAt: number;
-  dragonChargeTickCount: number;
-  /** Actual threshold timestamps include Flow stalls and doubled Tactical Reload charge gains. */
-  dragonChargeReachedAt: number[];
-  dragonCharges: number;
-  dragonChargesPerInterval: number;
-  dragonTriggerFlowSpent: number;
-  dragonTriggerEventActivationId: string;
   tacticalReloadUntil: number;
   overchargedCartridgeWindows: Array<{
     startedAt: number;
@@ -67,16 +60,7 @@ function createBladeswornState(config: Gw2Config = {}): BladeswornState {
     traitPositiveFlowStacks: 0,
 
     gunsaberActive: false,
-    dragonTriggerActive: false,
-    dragonTriggerStartedAt: 0,
-    dragonTriggerChargeDeadline: 0,
-    nextDragonChargeAt: 0,
-    dragonChargeTickCount: 0,
-    dragonChargeReachedAt: [],
-    dragonCharges: 0,
-    dragonChargesPerInterval: 1,
-    dragonTriggerFlowSpent: 0,
-    dragonTriggerEventActivationId: '',
+    ...createDragonTriggerState(),
     tacticalReloadUntil: 0,
     overchargedCartridgeWindows: [],
     gunsAndGloryUntil: 0

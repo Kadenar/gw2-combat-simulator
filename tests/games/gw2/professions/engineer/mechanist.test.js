@@ -1,3 +1,4 @@
+import { createExecutedFacts } from '#gw2/platform/results/executed-facts.js';
 import { skillBreakdownRows } from '#gw2/app/results/skill-breakdown.js';
 import { createGw2TimelineIndex } from '#gw2/platform/combat/query/timeline-index.js';
 import { ENGINEER_SKILL_IDS as ID, ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
@@ -137,11 +138,15 @@ test('Overclock reduces other signet recharges only while its passive is availab
     config: { selectedSkillIds: [63095] },
     skill: mechanic('Superconducting Signet'),
     cooldowns: new Map(),
+    cooldownController: {
+      readyAt: (id) => context.cooldowns.get(id),
+      setReadyAt: (id, at) => context.cooldowns.set(id, at)
+    },
     time: 0
   };
   assert.equal(mechanic('Overclock Signet').cooldown, 90);
   assert.equal(mechanistRechargeWork(context, context.skill, 30), 24);
-  context.cooldowns.set(ID.OVERCLOCK_SIGNET, 90);
+  context.cooldownController.setReadyAt(ID.OVERCLOCK_SIGNET, 90);
   assert.equal(mechanistRechargeWork(context, context.skill, 30), 30);
   context.config = { ...context.config, selectedTraitIds: [TRAIT.MECH_CORE_J_DRIVE] };
   assert.equal(mechanistRechargeWork(context, context.skill, 30), 22.8);
@@ -155,12 +160,17 @@ test('mech Quickness uses its own boon audience and retains copied applications'
     catalog: engineerCatalog,
     history: [],
     config: { boons: { quickness: true }, selectedSkillIds: [63253] },
-    cooldowns: new Map()
+    cooldowns: new Map(),
+    cooldownController: {
+      readyAt: (id) => context.cooldowns.get(id),
+      setReadyAt: (id, at) => context.cooldowns.set(id, at)
+    }
   };
+  context.facts = createExecutedFacts(context.history);
   assert.equal(engineerMechHasQuickness(context, 0), false);
   context.config.selectedSkillIds = [63111];
   assert.equal(engineerMechHasQuickness(context, 0), true);
-  context.cooldowns.set(ID.SHIFT_SIGNET, 25);
+  context.cooldownController.setReadyAt(ID.SHIFT_SIGNET, 25);
   assert.equal(engineerMechHasQuickness(context, 1), false);
   context.config.selectedTraitIds = [TRAIT.MECH_CORE_J_DRIVE];
   assert.equal(engineerMechHasQuickness(context, 1), true);

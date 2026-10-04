@@ -11,13 +11,14 @@ export const troubadourEndurance: EndurancePolicy<MesmerRuntime> = {
   state: (context) => troubadourState.from(context),
   maximum: () => 100,
   regenerationBoundaries: (context) =>
-    context.history
+    context.facts
+      .read()
       .filter((event) => event.type === 'mesmer.instrument')
       .filter((event) => event.instrument === 'Flute')
       .flatMap((event) => [event.at, Number(event.expiresAt)]),
   regenerationRate: (context, vigor, at) => {
     const flutePlaying = activeTroubadourInstrumentsAt(
-      context.history.filter((event) => event.type === 'mesmer.instrument'),
+      context.facts.read().filter((event) => event.type === 'mesmer.instrument'),
       at
     ).has('Flute');
     const fluteBonus = symphonicResonanceEndurance(context, flutePlaying);

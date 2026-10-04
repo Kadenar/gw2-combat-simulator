@@ -1,4 +1,6 @@
-import type { Gw2Runtime, RuntimeCast, RuntimeProfession } from '#gw2/platform/simulation/runtime-state.js';
+import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
+import type { MechanicContext } from '#gw2/platform/profession-definition/mechanic-context.js';
+import type { RuntimeCast, RuntimeProfession } from '#gw2/platform/simulation/runtime-state.js';
 import type { ElementalistAttunement, ElementalistCoreState } from '#gw2/professions/elementalist/core/state.js';
 /**
  * Owns Core pistol-bullet loading, consumption, and enhanced payloads.
@@ -24,7 +26,10 @@ import { ELEMENTALIST_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professio
 import { applyElementalistAura } from '#gw2/professions/elementalist/core/traits/dispatch.js';
 import type { ElementalistRuntimeState, ElementalistSkill } from '#gw2/professions/elementalist/types.js';
 /** Reads the completion-time bullet before the declaration's final load/spend action changes it. */
-export function hasPistolBullet(context: Gw2Runtime, cast: RuntimeCast<ElementalistSkill>): boolean {
+export function hasPistolBullet(
+  context: MechanicQueriesOf<MechanicContext>,
+  cast: RuntimeCast<ElementalistSkill>
+): boolean {
   return readProfessionCoreState<ElementalistCoreState>(context.profession).pistolBullets![
     cast.skill.attunement as ElementalistAttunement
   ];

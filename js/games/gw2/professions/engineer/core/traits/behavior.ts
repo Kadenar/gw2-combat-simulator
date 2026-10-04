@@ -127,12 +127,12 @@ export function applyHematicFocus(context: EngineerResolverContext, event: Engin
     return;
   }
 
-  const state = context.procs.readyAt;
-  if (!isInternalCooldownReady(event.at, state.hematicFocus || 0)) return;
+  const state = context.procs;
+  if (!isInternalCooldownReady(event.at, state.deadline('hematicFocus') || 0)) return;
   const hematicFocusProfile = requireBalanceProfileFromContext(context, TRAIT.HEMATIC_FOCUS);
   const hematicFocusFury = requireEffect(hematicFocusProfile, 'boon', 'fury');
   if (hematicFocusFury) {
-    state.hematicFocus = event.at + balanceProfileNumber(hematicFocusProfile, 'internalCooldown');
+    state.setDeadline('hematicFocus', event.at + balanceProfileNumber(hematicFocusProfile, 'internalCooldown'));
     context.effects.emit({
       kind: 'packet',
       event: buildEngineerBuff(event, {

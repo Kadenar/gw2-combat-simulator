@@ -283,7 +283,7 @@ export const conduitHooks: Partial<RuntimeProfession<RevenantRuntimeState, Reven
   // Control-triggered Burning shares Mistfire's profile, excluding its own Twin Moon chain.
 
   availability(runtime, skill) {
-    const state = conduit(runtime);
+    const state = conduitState.from(runtime);
     if (BEGUILING_HAZE_SKILL_IDS.has(skill.id)) {
       // Project the shared recharge without mutating state during an availability query.
       const readyAt = state.beguilingHazeRecharge
@@ -307,10 +307,12 @@ export const conduitHooks: Partial<RuntimeProfession<RevenantRuntimeState, Reven
   },
   castDurationMs(runtime, skill, durationMs) {
     if (!BEGUILING_HAZE_SKILL_IDS.has(skill.id)) return durationMs;
+    const specialization = runtime.profession.specialization;
+    if (specialization.kind !== 'Conduit') throw new TypeError('Beguiling Haze requires Conduit state.');
     return (
       beguilingHazeCastDuration(
         durationMs / 1000,
-        (conduit(runtime).beguilingHazeCharges || 0) > 0,
+        (specialization.state.beguilingHazeCharges || 0) > 0,
         requireBalanceProfileFromContext(runtime, PROFILE.beguilingHazeFollowUp),
         requireBalanceProfileFromContext(runtime, PROFILE.beguilingHazeMainCastExtension)
       ) * 1000
@@ -326,7 +328,7 @@ export const conduitHooks: Partial<RuntimeProfession<RevenantRuntimeState, Reven
           ? PROFILE.mesmerBanishEnchantment
           : null;
     // Mesmer form gives these Demon utilities a recharge; Alacrity still applies to the new base.
-    if (mesmerProfile && revenantConduitFormIsActive(conduit(runtime), 'Mesmer', runtime.time))
+    if (mesmerProfile && revenantConduitFormIsActive(conduitState.from(runtime), 'Mesmer', runtime.time))
       return Math.max(0, balanceProfileNumber(requireBalanceProfileFromContext(runtime, mesmerProfile), 'cooldown'));
     return kineticInsightRecharge(runtime, skill, work);
   },

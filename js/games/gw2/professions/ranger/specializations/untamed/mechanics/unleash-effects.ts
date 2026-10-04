@@ -1,3 +1,4 @@
+import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
 import { denySkillCast as deny } from '#gw2/platform/engine/skills/availability.js';
 import {
   balanceProfileNumber,
@@ -10,7 +11,10 @@ import { untamedState } from '#gw2/professions/ranger/specializations/untamed/st
 import type { RangerRuntime, RangerSkill } from '#gw2/professions/ranger/types.js';
 import { canonicalTime } from '#kernel/core/clock.js';
 
-export function untamedCastAvailability(context: RangerRuntime, skill: RangerSkill): AvailabilityResult {
+export function untamedCastAvailability(
+  context: MechanicQueriesOf<RangerRuntime>,
+  skill: RangerSkill
+): AvailabilityResult {
   const state = untamedState.from(context);
   if (skill.id === ID.UNLEASH_RANGER && state.rangerUnleashed) {
     return deny(skill, 'ranger.ranger-unleashed', 'the ranger is already unleashed.');

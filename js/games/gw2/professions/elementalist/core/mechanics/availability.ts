@@ -1,3 +1,4 @@
+import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
 import { skillFlipReady } from '#gw2/platform/engine/skills/skill-flips.js';
 import { gw2CooldownReadyAt } from '#gw2/platform/skills/timing.js';
 import { EPSILON } from '#kernel/core/clock.js';
@@ -54,7 +55,10 @@ function ready(): AvailabilityResult {
  * First-match availability gate for every Core Elementalist skill: returns ready,
  * a permanent denial, or a denial carrying the time the command is worth retrying.
  */
-export function elementalistCoreAvailability(context: ElementalistRuntime, skill: Skill): AvailabilityResult {
+export function elementalistCoreAvailability(
+  context: MechanicQueriesOf<ElementalistRuntime>,
+  skill: Skill
+): AvailabilityResult {
   // Glyph summons and elemental command skills answer through their own gate first.
   const elementalAvailability = elementalistElementalAvailability(context, skill);
   if (elementalAvailability) return elementalAvailability;
@@ -76,7 +80,9 @@ export function elementalistCoreAvailability(context: ElementalistRuntime, skill
       return unavailable(skill, 'elementalist.same-attunement', `already attuned to ${target}.`);
     }
 
-    const naturalReadyAt = gw2CooldownReadyAt(context.cooldowns.get(ELEMENTALIST_ATTUNEMENT_SKILL_IDS[target]) || 0);
+    const naturalReadyAt = gw2CooldownReadyAt(
+      context.cooldownController.readyAt(ELEMENTALIST_ATTUNEMENT_SKILL_IDS[target]) || 0
+    );
     const freshAirReadyAt = target === 'Air' ? projectedFreshAirReadyAt(context, naturalReadyAt) : null;
     const readyAt = freshAirReadyAt == null ? naturalReadyAt : Math.min(naturalReadyAt, freshAirReadyAt);
     return readyAt > context.time

@@ -65,17 +65,16 @@ export function applyMayhemInstrument(
   actorType: 'player' | 'summon',
   delivery: EffectDelivery = {}
 ): void {
-  const runtime = mesmerMechanicsFor(context);
   if (data.instrument === 'Flute' && hasTrait(context, TRAIT.MAYHEM)) {
     const condition = mesmerConditionFromProfile(context, TRAIT.MAYHEM, 'Torment');
     if (condition)
-      buildMesmerConditions(runtime.context, skill.name, damageAt, condition, source, 'Mayhem — Torment', {
+      buildMesmerConditions(context, skill.name, damageAt, condition, source, 'Mayhem — Torment', {
         source,
         sourceId: TRAIT.MAYHEM,
         skillId: skill.id,
         actorType
       }).forEach((packet) => {
-        runtime.context.effects.emit({
+        context.effects.emit({
           ...delivery,
           kind: 'packet',
           event: packet,
@@ -94,7 +93,6 @@ export function applyLuteLifeOfTheParty(
   damageAt: number,
   delivery: EffectDelivery = {}
 ): void {
-  const runtime = mesmerMechanicsFor(context);
   if (hasTrait(context, TRAIT.LIFE_OF_THE_PARTY) && data.instrument === 'Lute') {
     // Each named boon survives independently when its sibling is removed.
     for (const name of ['Lute Quickness', 'Lute Might']) {
@@ -115,7 +113,7 @@ export function applyLuteLifeOfTheParty(
           sourceSkill: skill.name,
           audience: { recipients: 'party', maximumRecipients: 5 }
         });
-        runtime.context.effects.emit({
+        context.effects.emit({
           ...delivery,
           kind: 'packet',
           event: packet,
@@ -145,7 +143,6 @@ export function applyCallAndResponse(
   ) => void,
   delivery: EffectDelivery = {}
 ): void {
-  const runtime = mesmerMechanicsFor(context);
   if (
     hasTrait(context, TRAIT.CALL_AND_RESPONSE) &&
     spent === balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.CALL_AND_RESPONSE), 'threshold')
@@ -153,7 +150,7 @@ export function applyCallAndResponse(
     const callAndResponseProfile = requireBalanceProfileFromContext(context, TRAIT.CALL_AND_RESPONSE);
     const afterimageAt = at + balanceProfileNumber(callAndResponseProfile, 'initialDelay');
     instrumentAttack(context, skill, data, afterimageAt, 'Afterimage', 'summon', delivery);
-    runtime.context.effects.emit({
+    context.effects.emit({
       ...delivery,
       kind: 'announcement',
       log: true,
@@ -167,7 +164,7 @@ export function applyCallAndResponse(
 export function reduceAlteredChordRecharge(context: MesmerRuntime, spent: number, at: number): void {
   if (hasTrait(context, TRAIT.ALTERED_CHORD) && spent > 0) {
     const crescendo = context.helpers.skillsById.get(ID.CRESCENDO);
-    const ready = crescendo ? context.cooldowns.get(crescendo.id) : undefined;
+    const ready = crescendo ? context.cooldownController.readyAt(crescendo.id) : undefined;
     if (crescendo && ready) {
       const alteredChordProfile = requireBalanceProfileFromContext(context, TRAIT.ALTERED_CHORD);
       context.cooldownController.reduceSkillRecharge(
@@ -208,7 +205,7 @@ export function applyCrescendoTraits(
           sourceSkill: skill.name,
           audience: { recipients: 'party' as const, maximumRecipients: 5 }
         });
-        runtime.context.effects.emit({
+        context.effects.emit({
           ...delivery,
           kind: 'packet',
           event: packet,
@@ -223,7 +220,7 @@ export function applyCrescendoTraits(
     if (state.lastInstrument === 'Lute') {
       const alteredChordProfile = requireBalanceProfileFromContext(context, TRAIT.ALTERED_CHORD);
       // The activation owns its status row without changing the status's post-strike priority.
-      const proc = runtime.context.effects.emit({
+      const proc = context.effects.emit({
         ...delivery,
         kind: 'announcement',
         log: true,
@@ -245,7 +242,7 @@ export function applyCrescendoTraits(
           stacks: 1,
           duration: balanceProfileNumber(alteredChordProfile, 'durationMultiplier')
         });
-        runtime.context.effects.emit({
+        context.effects.emit({
           ...delivery,
           kind: 'packet',
           cause: proc,
@@ -257,10 +254,10 @@ export function applyCrescendoTraits(
     } else if (state.lastInstrument === 'Flute') {
       const condition = mesmerConditionFromProfile(context, TRAIT.ALTERED_CHORD, 'Confusion');
       if (condition)
-        buildMesmerConditions(runtime.context, skill.name, damageAt, condition, 'Player', 'Altered Chord — Confusion', {
+        buildMesmerConditions(context, skill.name, damageAt, condition, 'Player', 'Altered Chord — Confusion', {
           skillId: skill.id
         }).forEach((packet) => {
-          runtime.context.effects.emit({
+          context.effects.emit({
             ...delivery,
             kind: 'packet',
             event: packet,
@@ -269,7 +266,7 @@ export function applyCrescendoTraits(
           });
         });
       if (condition)
-        runtime.context.effects.emit({
+        context.effects.emit({
           ...delivery,
           kind: 'announcement',
           log: true,
@@ -287,7 +284,7 @@ export function applyCrescendoTraits(
           sourceId: TRAIT.ALTERED_CHORD,
           actorType: 'player'
         });
-        runtime.context.effects.emit({
+        context.effects.emit({
           ...delivery,
           kind: 'packet',
           event: packet,
@@ -296,7 +293,7 @@ export function applyCrescendoTraits(
         });
       }
 
-      runtime.context.effects.emit({
+      context.effects.emit({
         ...delivery,
         kind: 'announcement',
         log: true,
@@ -328,7 +325,6 @@ export function applyCrescendoTraits(
 
 /** Raconteur follows the Tale's own boons and eligible note grant. */
 export function triggerRaconteur(context: MesmerRuntime, skill: MesmerSkill, at: number): void {
-  const runtime = mesmerMechanicsFor(context);
   const partyRecipients = { audience: { recipients: 'party' as const, maximumRecipients: 5 } };
   if (hasTrait(context, TRAIT.RACONTEUR)) {
     const raconteurProfile = requireBalanceProfileFromContext(context, TRAIT.RACONTEUR);
@@ -345,7 +341,7 @@ export function triggerRaconteur(context: MesmerRuntime, skill: MesmerSkill, at:
           ...partyRecipients
         }
       ];
-      const traitProfile = requireBalanceProfileFromContext(runtime.context, TRAIT.RACONTEUR);
+      const traitProfile = requireBalanceProfileFromContext(context, TRAIT.RACONTEUR);
       const traitSource = {
         source: 'Trait',
         sourceId: TRAIT.RACONTEUR,
@@ -354,14 +350,14 @@ export function triggerRaconteur(context: MesmerRuntime, skill: MesmerSkill, at:
         skillName: traitProfile.name
       };
       {
-        const proc = runtime.context.effects.emit({
+        const proc = context.effects.emit({
           kind: 'announcement',
           log: true,
           attribution: { ...traitSource, actorType: 'effect' },
           announcement: { type: 'trait', name: traitProfile.name, at: at, sourceSkill: skill.name, detail: '' }
         });
         for (const grant of grants)
-          runtime.context.effects.emit({
+          context.effects.emit({
             kind: 'packet',
             cause: proc,
             event: { ...grant, ...traitSource, type: 'buff', at: at, name: traitProfile.name, sourceSkill: skill.name }

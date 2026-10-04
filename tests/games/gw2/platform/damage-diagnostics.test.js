@@ -3,7 +3,7 @@ import test from 'node:test';
 import { canonicalTargetConditionName } from '#gw2/platform/combat/state/targets.js';
 import { createCanonicalCatalog } from '#gw2/platform/engine/skills/canonical-skill-catalog.js';
 import { defineTestProfession } from '#tests/helpers/profession.js';
-import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
+import { observeGw2Runtime } from '#tests/helpers/observed-runtime.js';
 import { resolveTestGw2Events } from '#tests/helpers/gw2-resolver.js';
 import { roundHalfToEven } from '#kernel/core/numeric.js';
 
@@ -68,7 +68,7 @@ function resolveHits(damageDiagnostics, output = 'detailed', target = { health: 
       }
     },
     helpers: { conditionName: canonicalTargetConditionName, skillsByName: new Map() },
-    professionReactions: {
+    engineReactions: {
       'damage.resolved': (ctx) => {
         rolls.push(
           ctx.random.next('critical:player'),
@@ -175,6 +175,7 @@ test('diagnostics capture settlement and environment health before the following
 // Capture observes the same actual execution and never adds a gameplay pass.
 test('public diagnostics capture one execution and are suppressed in score output', () => {
   const capture = [];
+  let owner;
   const catalog = createCanonicalCatalog({
     generated: [
       {
@@ -196,14 +197,17 @@ test('public diagnostics capture one execution and are suppressed in score outpu
     catalog,
     hooks: {
       reactions: {
-        'damage.resolved': (ctx) => {
-          capture.push(ctx.damageDiagnostics);
+        'damage.resolved': () => {
+          capture.push(owner.damageDiagnostics);
         }
       }
     }
   });
   const options = {
-    profession,
+    profession: profession.runtimeFor({}),
+    engineInitialize(runtime) {
+      owner = runtime;
+    },
     rotation: ['Hit'],
     config: {
       primaryWeapon: 'Axe',
@@ -211,16 +215,16 @@ test('public diagnostics capture one execution and are suppressed in score outpu
       randomness: { mode: 'stochastic', seed: 72 }
     }
   };
-  const plain = simulateGw2(options);
+  const plain = observeGw2Runtime(options);
   assert.deepEqual(capture.splice(0), [false]);
-  const diagnostic = simulateGw2({ ...options, damageDiagnostics: true });
+  const diagnostic = observeGw2Runtime({ ...options, damageDiagnostics: true });
   assert.deepEqual(capture.splice(0), [true]);
-  const score = simulateGw2({ ...options, damageDiagnostics: true, output: 'score' });
+  const score = observeGw2Runtime({ ...options, damageDiagnostics: true, output: 'score' });
   assert.deepEqual(capture.splice(0), [false]);
   assert.equal(diagnostic.totalDamage, plain.totalDamage);
   assert.equal(score.totalDamage, plain.totalDamage);
   assert.equal(diagnostic.resolvedEvents.find((event) => event.type === 'damage').damageCalculation.power, 1000);
   assert.deepEqual(diagnostic.randomness, plain.randomness);
-  simulateGw2({ ...options, profession, damageDiagnostics: true });
+  observeGw2Runtime({ ...options, profession: profession.runtimeFor({}), damageDiagnostics: true });
   assert.deepEqual(capture, [true]);
 });

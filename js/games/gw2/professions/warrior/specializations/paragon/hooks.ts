@@ -1,8 +1,9 @@
+import type { MechanicContext } from '#gw2/platform/profession-definition/mechanic-context.js';
 import {
   balanceProfileNumber,
   requireBalanceProfileFromContext
 } from '#gw2/platform/engine/skills/balance-profiles.js';
-import type { Gw2Runtime, RuntimeCast, RuntimeProfession } from '#gw2/platform/simulation/runtime-state.js';
+import type { RuntimeCast, RuntimeProfession } from '#gw2/platform/simulation/runtime-state.js';
 import { grantWarriorAdrenaline } from '#gw2/professions/warrior/core/mechanics/adrenaline.js';
 import {
   REFRAIN,
@@ -26,7 +27,7 @@ import {
 import type { WarriorRuntimeState, WarriorSkill } from '#gw2/professions/warrior/types.js';
 import { canonicalTime } from '#kernel/core/clock.js';
 
-type Runtime = Gw2Runtime<WarriorRuntimeState, WarriorSkill>;
+type Runtime = MechanicContext<WarriorRuntimeState, WarriorSkill>;
 
 const ECHO = 'warrior.paragon-command-echo';
 

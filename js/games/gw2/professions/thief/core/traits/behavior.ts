@@ -1,3 +1,4 @@
+import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
 import { professionStaticRulesApplied } from '#gw2/platform/builds/attribute-provenance.js';
 import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
 import type { Gw2ResolvedStats } from '#gw2/platform/combat/query/combat-query.js';
@@ -73,7 +74,7 @@ export function modifyThiefLifeSiphon(context: ThiefResolverContext, event: Thie
   // Vampiric Slash samples live Vulnerability for its siphon only, independently of the packet's label.
   if (
     event.metadata?.packetKind === 'thief.vampiric-slash-life-siphon' &&
-    context.query.targetHasCondition('Vulnerability', event.at, context)
+    context.combat.targetHasCondition('Vulnerability', event.at)
   )
     multiplier *= 1.5;
 
@@ -123,7 +124,7 @@ export function applyLeadAttacks(runtime: ThiefRuntime, cast: RuntimeCast<ThiefS
 }
 
 /** Additive Steal recharge retains each trait's independent reduction. */
-export function leadAttacksRechargeReduction(runtime: ThiefRuntime): number {
+export function leadAttacksRechargeReduction(runtime: MechanicQueriesOf<ThiefRuntime>): number {
   return (
     Number(hasTrait(runtime, TRAIT.LEAD_ATTACKS)) *
     (1 - balanceProfileNumber(requireBalanceProfileFromContext(runtime, TRAIT.LEAD_ATTACKS), 'rechargeMultiplier'))

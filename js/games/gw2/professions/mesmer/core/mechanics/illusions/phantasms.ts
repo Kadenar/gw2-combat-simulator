@@ -189,7 +189,7 @@ export function createPhantasmEffectController({
     const initialBladeAt = Math.max(...executions.map((item) => item.initialBladeAt));
 
     triggerCompoundingPower(
-      { context: state },
+      state,
       execution.summonAt,
       count,
       skill.name,
@@ -262,7 +262,7 @@ export function createPhantasmEffectController({
 
     // The active specialization repeat policy re-summons the phantasm for a second attack cycle.
     triggerCompoundingPower(
-      { context: state },
+      state,
       execution.spawnAt,
       count,
       `${skill.name} - ${policy.repeat.label}`,

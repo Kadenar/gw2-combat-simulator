@@ -924,7 +924,7 @@ test('Tiger uses its documented attributes and nominal Bite recharge', () => {
       selectedSkillIds: [12491]
     },
     time: 0,
-    cooldowns: new Map(),
+    cooldownController: { readyAt: () => undefined },
     profession: {
       core: { activePet: 'Tiger', activePetSlot: 1, petAutoGeneration: 0 }
     }

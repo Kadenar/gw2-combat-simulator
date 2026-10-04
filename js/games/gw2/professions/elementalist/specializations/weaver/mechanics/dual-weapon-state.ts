@@ -1,3 +1,4 @@
+import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
 import type { RuntimeProfession } from '#gw2/platform/simulation/runtime-state.js';
 import { EPSILON } from '#kernel/core/clock.js';
 /**
@@ -59,7 +60,7 @@ export function weaverWeaponAttunementAvailable(
 
 /** Checks the shared orb lockout and duplicate-orb restriction for Weaver dual skills. */
 export function weaverHammerAvailability(
-  context: ElementalistRuntime,
+  context: MechanicQueriesOf<ElementalistRuntime>,
   skill: Skill
 ): {
   ready: boolean;

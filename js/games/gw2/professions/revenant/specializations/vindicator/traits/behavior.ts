@@ -133,7 +133,7 @@ export function reaversCurseMultiplier(runtime: RevenantRuntime, armed: boolean)
 }
 
 /** Overrides the dodge landing only while this grandmaster is selected. */
-export function saintsShieldDodge(runtime: RevenantRuntime) {
+export function saintsShieldDodge(runtime: Pick<RevenantRuntime, 'config' | 'traits'>) {
   return hasTrait(runtime, TRAIT.SAINT_OF_ZU_HELTZER) ? ID.SAINTS_SHIELD : undefined;
 }
 
@@ -156,6 +156,6 @@ export const energyMeldRewards: readonly SkillSideEffect[] = [
 ];
 
 /** Overrides the dodge landing only while this grandmaster is selected. */
-export function imperialImpactDodge(runtime: RevenantRuntime) {
+export function imperialImpactDodge(runtime: Pick<RevenantRuntime, 'config' | 'traits'>) {
   return hasTrait(runtime, TRAIT.VASSALS_OF_THE_EMPIRE) ? ID.IMPERIAL_IMPACT : undefined;
 }

@@ -1,3 +1,4 @@
+import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
 import type { RevenantSkill } from '#gw2/professions/revenant/types.js';
 import {
   gladiatorSharedWisdom,
@@ -38,28 +39,26 @@ export function completeBeguilingHaze(runtime: RevenantRuntime, cast: RuntimeCas
       balanceProfileNumber(requireBalanceProfileFromContext(runtime, PROFILE.beguilingHazeFollowUp), 'maximumStacks')
     );
     state.beguilingHazeRecharge = structuredClone(
-      runtime.rechargeProgress.get(skill.id) ?? runtime.ammo.get(skill.id)?.recharges[0] ?? null
+      runtime.cooldownController.rechargeFor(skill.id) ??
+        runtime.cooldownController.readAmmo(skill.id)?.recharges[0] ??
+        null
     );
     state.beguilingHazeReadyAt =
-      runtime.cooldowns.get(skill.id) ?? runtime.ammo.get(skill.id)?.nextRechargeAt ?? runtime.time;
+      runtime.cooldownController.readyAt(skill.id) ??
+      runtime.cooldownController.readAmmo(skill.id)?.nextRechargeAt ??
+      runtime.time;
   }
 
-  const ammo = runtime.ammo.get(skill.id);
+  const ammo = runtime.cooldownController.readAmmo(skill.id);
   if (!ammo) return;
   if (state.beguilingHazeCharges > 0) {
-    ammo.maximum = state.beguilingHazeCharges;
-    ammo.charges = state.beguilingHazeCharges;
-    ammo.nextRechargeAt = null;
-    ammo.recharges = [];
+    runtime.cooldownController.replaceAmmoCharges(skill, state.beguilingHazeCharges, state.beguilingHazeCharges, []);
     runtime.cooldownController.clear(skill.id);
   } else {
-    ammo.maximum = 1;
-    ammo.charges = 0;
     if (!state.beguilingHazeRecharge) throw new Error('Beguiling Haze follow-ups require a main-cast recharge.');
     // Follow-up charges are temporary; exhausting them resumes only the saved main-cast timer.
-    ammo.recharges = [{ ...state.beguilingHazeRecharge }];
-    ammo.nextRechargeAt = runtime.cooldownController.project(skill, state.beguilingHazeRecharge);
-    state.beguilingHazeReadyAt = ammo.nextRechargeAt;
+    runtime.cooldownController.replaceAmmoCharges(skill, 1, 0, [state.beguilingHazeRecharge]);
+    state.beguilingHazeReadyAt = runtime.cooldownController.readAmmo(skill.id)!.nextRechargeAt!;
     runtime.cooldownController.refreshAmmo(skill, runtime.time);
   }
 }
@@ -145,7 +144,7 @@ const BEGUILING_HAZE_SKILL: Partial<Skill> = {
   // Select the follow-up profile before its transform spends the final charge.
   effectVariants: [
     {
-      when: (runtime: RevenantRuntime) => conduitState.from(runtime).beguilingHazeCharges > 0,
+      when: (runtime: MechanicQueriesOf<RevenantRuntime>) => conduitState.from(runtime).beguilingHazeCharges > 0,
       profileId: PROFILE.beguilingHazeFollowUp,
       transform: selectBeguilingHaze
     },
@@ -234,7 +233,8 @@ const TWIN_MOON_SWEEP_SKILL: Partial<Skill> = {
       ticks: [{ atMs: 880, condition: 'Immobilized', stacks: 1, duration: 2 }],
       actorType: 'player',
       metadata: { legendId: LEGEND.ASSASSIN },
-      when: (runtime: RevenantRuntime) => runtime.profession.core.selectedLegendIds.includes(LEGEND.ASSASSIN)
+      when: (runtime: MechanicQueriesOf<RevenantRuntime>) =>
+        runtime.profession.core.selectedLegendIds.includes(LEGEND.ASSASSIN)
     },
     {
       type: 'strike',
@@ -244,7 +244,8 @@ const TWIN_MOON_SWEEP_SKILL: Partial<Skill> = {
       name: 'Twin Moon Sweep — Shatter',
       actorType: 'player',
       metadata: { legendId: LEGEND.DEMON },
-      when: (runtime: RevenantRuntime) => runtime.profession.core.selectedLegendIds.includes(LEGEND.DEMON)
+      when: (runtime: MechanicQueriesOf<RevenantRuntime>) =>
+        runtime.profession.core.selectedLegendIds.includes(LEGEND.DEMON)
     },
     {
       type: 'condition',
@@ -256,7 +257,8 @@ const TWIN_MOON_SWEEP_SKILL: Partial<Skill> = {
       })),
       actorType: 'player',
       metadata: { legendId: LEGEND.DEMON },
-      when: (runtime: RevenantRuntime) => runtime.profession.core.selectedLegendIds.includes(LEGEND.DEMON)
+      when: (runtime: MechanicQueriesOf<RevenantRuntime>) =>
+        runtime.profession.core.selectedLegendIds.includes(LEGEND.DEMON)
     }
   ]),
   legendId: 'LegendaryEntity'

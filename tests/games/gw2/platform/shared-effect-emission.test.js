@@ -103,8 +103,8 @@ test('reaction settlement preserves nested condition visibility', () => {
           settlement: 'reaction',
           event: { ...attribution, type: 'condition', at: 0, condition: 'Poisoned', duration: 2, stacks: 1 }
         });
-        assert.equal(runtime.query.targetHasCondition('Poisoned', 0, runtime), true);
-        assert.equal(runtime.query.targetHasCondition('Weakness', 0, runtime), false);
+        assert.equal(runtime.combat.targetHasCondition('Poisoned', 0, runtime), true);
+        assert.equal(runtime.combat.targetHasCondition('Weakness', 0, runtime), false);
         trace.push('caller');
         assert.throws(
           () => runtime.effects.emit({ kind: 'packet', settlement: 'reaction', event: { ...strike, at: 0 } }),

@@ -1,3 +1,4 @@
+import { createMechanicCombatServices } from '#gw2/platform/resolver/mechanic-services.js';
 import { effectFields } from '#tests/helpers/effect-report.js';
 import { captureEffectEmissions } from '#tests/helpers/effect-emission.js';
 import { runElementalist } from '#tests/helpers/elementalist-simulation.js';
@@ -323,6 +324,7 @@ function extend(profession, events, at) {
     config: {},
     effects: captureEffectEmissions({ submit: (event) => applyBoonExtension(boons, event) }).effects
   };
+  context.combat = createMechanicCombatServices(context);
   if (profession === 'Thief') {
     // Direct handler calls need the same selected balance source as resolver dispatch.
     noQuarterCriticalReaction.handler(

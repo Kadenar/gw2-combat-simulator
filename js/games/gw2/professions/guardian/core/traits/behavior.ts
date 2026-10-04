@@ -1,8 +1,13 @@
+import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
+import type { MechanicContext } from '#gw2/platform/profession-definition/mechanic-context.js';
+import type {
+  MaximumAmmoContext,
+  SelectedContentContext
+} from '#gw2/platform/profession-definition/runtime-context.js';
 import { durationStackingBoonCapSeconds, remainingDurationStackSeconds } from '#gw2/platform/combat/boons.js';
 import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
 import { isInternalCooldownReady } from '#gw2/platform/combat/procs.js';
 import { grantTimedStacks } from '#gw2/platform/combat/resources/timed-stacks.js';
-import { targetHealthLoss } from '#gw2/platform/combat/state/target-health.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { strikeEffectTicks } from '#gw2/platform/engine/effects/authoring.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
@@ -16,7 +21,7 @@ import {
 import type { BalanceProfile, Skill, SkillEffect, SkillId } from '#gw2/platform/engine/skills/types.js';
 import { compileRechargeRules } from '#gw2/platform/profession-definition/trigger-rules.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
-import type { Gw2Runtime, RuntimeCast } from '#gw2/platform/simulation/runtime-state.js';
+import type { RuntimeCast } from '#gw2/platform/simulation/runtime-state.js';
 import { guardianCastCause } from '#gw2/professions/guardian/core/mechanics/event-handlers.js';
 import type { GuardianCoreState } from '#gw2/professions/guardian/core/state.js';
 import { SPECIALIZATIONS } from '#gw2/professions/guardian/data/guardian-api-metadata.js';
@@ -33,11 +38,11 @@ import type {
 } from '#gw2/professions/guardian/types.js';
 import { canonicalTime } from '#kernel/core/clock.js';
 
-export type Runtime = Gw2Runtime<GuardianRuntimeState, GuardianSkill>;
+export type Runtime = MechanicContext<GuardianRuntimeState, GuardianSkill>;
 
 /** Fields are selected before registration, so extensions never rewrite an already executed action. */
 export function writOfPersistenceFields(
-  runtime: Runtime,
+  runtime: MechanicQueriesOf<Runtime>,
   cast: RuntimeCast<GuardianSkill>,
   fields: Skill['comboFields']
 ): Skill['comboFields'] {
@@ -135,12 +140,15 @@ export function completeProtectorsRestoration(runtime: Runtime, cast: RuntimeCas
         fieldDuration: (effect) => (effect.type === 'strike' ? (effect.ticks?.at(-1)?.atMs ?? 0) / 1000 : 0)
       })
     )
-      runtime.procs.readyAt['guardian.core.protectorsRestoration'] = canonicalTime(
-        runtime.time +
-          balanceProfileNumber(
-            requireBalanceProfileFromContext(runtime, TRAIT.PROTECTORS_RESTORATION),
-            'internalCooldown'
-          )
+      runtime.procs.setDeadline(
+        'guardian.core.protectorsRestoration',
+        canonicalTime(
+          runtime.time +
+            balanceProfileNumber(
+              requireBalanceProfileFromContext(runtime, TRAIT.PROTECTORS_RESTORATION),
+              'internalCooldown'
+            )
+        )
       );
   }
 }
@@ -201,7 +209,7 @@ export const RESOLUTION_EXPIRY = 'guardian.resolution-expiry';
 
 /** Resolution readiness follows the accepted self-boon pool, including its cap and extension records. */
 export function resolutionDeadline(runtime: Runtime): number {
-  const remaining = remainingDurationStackSeconds(runtime.boons.get('resolution') ?? [], runtime.time, {
+  const remaining = remainingDurationStackSeconds(runtime.combat.boonApplications('resolution'), runtime.time, {
     includes: (application) => application.resolvedAudience.includesSelf,
     maximum: durationStackingBoonCapSeconds('resolution'),
     ordered: true
@@ -306,12 +314,9 @@ export function radiantFireDurationMultiplier(context: unknown): number {
 }
 
 /** Selected Radiant Fire raises Zealot's Flame capacity without reducing a larger authored capacity. */
-export function radiantFireMaximumAmmo(runtime: Runtime, skill: Skill, maximum: number): number {
-  return skill.id === ID.ZEALOTS_FLAME && hasTrait(runtime, TRAIT.RADIANT_FIRE)
-    ? Math.max(
-        maximum,
-        balanceProfileNumber(requireBalanceProfileFromContext(runtime, TRAIT.RADIANT_FIRE), 'maximumStacks')
-      )
+export function radiantFireMaximumAmmo(context: MaximumAmmoContext<object>, skill: Skill, maximum: number): number {
+  return skill.id === ID.ZEALOTS_FLAME && context.hasTrait(TRAIT.RADIANT_FIRE)
+    ? Math.max(maximum, balanceProfileNumber(context.requireBalanceProfile(TRAIT.RADIANT_FIRE), 'maximumStacks'))
     : maximum;
 }
 
@@ -384,12 +389,9 @@ function virtueBuff(
 }
 
 /** Both emission paths read one trait multiplier without applying ordinary boon-duration scaling twice. */
-export function guardianResolutionMultiplier(runtime: Runtime): number {
-  return hasTrait(runtime, GUARDIAN_TRAIT_IDS.VIRTUE_OF_RESOLUTION)
-    ? balanceProfileNumber(
-        requireBalanceProfileFromContext(runtime, GUARDIAN_TRAIT_IDS.VIRTUE_OF_RESOLUTION),
-        'durationMultiplier'
-      )
+export function guardianResolutionMultiplier(context: SelectedContentContext): number {
+  return context.hasTrait(GUARDIAN_TRAIT_IDS.VIRTUE_OF_RESOLUTION)
+    ? balanceProfileNumber(context.requireBalanceProfile(GUARDIAN_TRAIT_IDS.VIRTUE_OF_RESOLUTION), 'durationMultiplier')
     : 1;
 }
 
@@ -414,7 +416,7 @@ export const masterOfConsecrationsEffects: NonNullable<Skill['effectVariants']>[
 
 /** Extend Purging Flames before Writ's separate symbol-field adjustment. */
 export function masterOfConsecrationsFields(
-  runtime: Runtime,
+  runtime: MechanicQueriesOf<Runtime>,
   cast: RuntimeCast<GuardianSkill>,
   fields: Skill['comboFields']
 ): Skill['comboFields'] {
@@ -475,7 +477,7 @@ export const powerOfTheVirtuousRecharge = compileRechargeRules<GuardianRuntimeSt
 ]);
 
 /** Resolve hammer replacement before the Core weapon-flip availability checks. */
-export function glacialHeartAvailability(runtime: Runtime, skill: Skill) {
+export function glacialHeartAvailability(runtime: MechanicQueriesOf<Runtime>, skill: Skill) {
   const glacial = hasTrait(runtime, GUARDIAN_TRAIT_IDS.GLACIAL_HEART);
   if (skill.id === ID.MIGHTY_BLOW && glacial)
     return denySkillCast(
@@ -552,7 +554,7 @@ export function reactToZealDamage(runtime: Runtime, event: Gw2ResolverEvent, dam
     runtime.config.target?.fixedHealthFraction != null
       ? 1 - runtime.config.target.fixedHealthFraction
       : health > 0
-        ? (targetHealthLoss(runtime.config, runtime) - damage) / health
+        ? (runtime.combat.targetHealthLoss() - damage) / health
         : 0;
   if (
     !(lostFraction > balanceProfileNumber(profile, 'threshold')) ||
@@ -561,8 +563,9 @@ export function reactToZealDamage(runtime: Runtime, event: Gw2ResolverEvent, dam
     return;
   // Claim before the first queued symbol impact so same-time children cannot recursively claim it.
   if (emitTraitSymbol(runtime, TRAIT.ZEALOTS_RESOLUTION, ID.LESSER_SYMBOL_OF_RESOLUTION, event))
-    runtime.procs.readyAt['guardian.core.zealotsResolution'] = canonicalTime(
-      runtime.time + balanceProfileNumber(profile, 'cooldown')
+    runtime.procs.setDeadline(
+      'guardian.core.zealotsResolution',
+      canonicalTime(runtime.time + balanceProfileNumber(profile, 'cooldown'))
     );
 }
 
@@ -576,9 +579,9 @@ export const zealousBladeRecharge = compileRechargeRules<GuardianRuntimeState>([
 ]);
 
 /** Spirit weapons gain their extra capacity before the runtime constructs ammunition pools. */
-export function eternalArmoryMaximumAmmo(runtime: Runtime, skill: Skill, maximum: number): number {
-  return skill.categories?.includes('SpiritWeapon') && hasTrait(runtime, TRAIT.ETERNAL_ARMORY)
-    ? maximum + balanceProfileNumber(requireBalanceProfileFromContext(runtime, TRAIT.ETERNAL_ARMORY), 'resourceGain')
+export function eternalArmoryMaximumAmmo(context: MaximumAmmoContext<object>, skill: Skill, maximum: number): number {
+  return skill.categories?.includes('SpiritWeapon') && context.hasTrait(TRAIT.ETERNAL_ARMORY)
+    ? maximum + balanceProfileNumber(context.requireBalanceProfile(TRAIT.ETERNAL_ARMORY), 'resourceGain')
     : maximum;
 }
 
@@ -630,7 +633,7 @@ export const symbols: Readonly<Record<SkillId, Skill>> = {
 
 /** A triggered symbol owns a distinct activation and schedules only its surviving selected components. */
 export function emitTraitSymbol(
-  runtime: Gw2Runtime<GuardianRuntimeState, GuardianSkill>,
+  runtime: MechanicContext<GuardianRuntimeState, GuardianSkill>,
   trait: number,
   symbolId: SkillId,
   cause: Gw2ResolverEvent,

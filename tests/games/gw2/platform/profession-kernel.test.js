@@ -386,8 +386,8 @@ test('declared reset, ammo, flip, and profile effects settle before completion h
       onCastCommit(runtime, activation) {
         if (activation.skill.id === 991006)
           observed.push([
-            runtime.ammo.get(991007).charges,
-            runtime.cooldowns.get(991007),
+            runtime.cooldownController.readAmmo(991007).charges,
+            runtime.cooldownController.readyAt(991007),
             runtime.profession.core.availableFlips.flip.expiresAt
           ]);
       }
@@ -451,7 +451,7 @@ test('recharge rules compose with hooks and trait triggers claim before emitting
         }
       ],
       onCastCommit(runtime, activation) {
-        observations.push([activation.rechargeWork, runtime.procs.readyAt['test.proc']]);
+        observations.push([activation.rechargeWork, runtime.procs.snapshot()['test.proc']]);
       }
     },
     [cast(991009), wait(1000)]

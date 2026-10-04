@@ -1,3 +1,4 @@
+import { createMechanicCombatServices } from '#gw2/platform/resolver/mechanic-services.js';
 import { observedRuntime } from '#tests/helpers/observed-runtime.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
@@ -42,6 +43,8 @@ test('Core damage reactions preserve trait and skill ordering without spending c
     boons: new Map(),
     effects: { emit: ({ event }) => queued.push(event) }
   };
+  // Bind real owner operations for this focused mechanic fixture.
+  context.combat = createMechanicCombatServices(context);
   const event = {
     type: 'damage',
     at: 1,

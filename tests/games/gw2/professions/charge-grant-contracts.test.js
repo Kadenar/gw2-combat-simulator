@@ -1,3 +1,4 @@
+import { createMechanicCombatServices } from '#gw2/platform/resolver/mechanic-services.js';
 import { snapshotProfessionState } from '#gw2/platform/engine/profession/state.js';
 import { applySkillSideEffects } from '#gw2/platform/simulation/side-effects.js';
 import {
@@ -37,7 +38,7 @@ function contextFor(profession, specialization, selectedTraitIds = []) {
   // Capture the real shared materialization boundary while keeping grant state transitions isolated.
   const { effects, events } = captureEffectEmissions();
 
-  return {
+  const context = {
     config,
     profession: state,
     catalog: runtime.catalog,
@@ -46,10 +47,12 @@ function contextFor(profession, specialization, selectedTraitIds = []) {
     events,
     effects,
     boons: new Map(),
-    cooldownController: { reduceSkillRecharge() {} },
+    cooldownController: { readyAt: () => undefined, reduceSkillRecharge() {} },
     start: 0,
     effectiveEnd: 1
   };
+  context.combat = createMechanicCombatServices(context);
+  return context;
 }
 
 test('Shattering Stone replaces self grants and spends player or effect hits before exclusive expiry', () => {

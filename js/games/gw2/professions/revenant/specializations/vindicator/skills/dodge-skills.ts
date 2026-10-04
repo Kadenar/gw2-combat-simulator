@@ -1,3 +1,4 @@
+import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
 import { effectFirstAtMs } from '#gw2/platform/engine/effects/authoring.js';
 import type { Skill } from '#gw2/platform/engine/skills/types.js';
 import type { RuntimeCast } from '#gw2/platform/simulation/runtime-state.js';
@@ -14,7 +15,7 @@ import { canonicalTime } from '#kernel/core/clock.js';
 export const VINDICATOR_LANDING_TASK = 'revenant.vindicator-landing';
 
 /** The grandmaster trait selects the dodge landing, so no separate dodge choice can drift from the build. */
-export function selectedDodge(runtime: RevenantRuntime): RevenantSkill | undefined {
+export function selectedDodge(runtime: MechanicQueriesOf<RevenantRuntime>): RevenantSkill | undefined {
   const skillId = saintsShieldDodge(runtime) ?? imperialImpactDodge(runtime) ?? ID.DEATH_DROP;
   return runtime.helpers.skillsById.get(skillId);
 }

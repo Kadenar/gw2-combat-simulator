@@ -1214,8 +1214,8 @@ test('Critical Strikes applies runtime Fury, No Quarter, and multiplicative modi
   );
 
   assert.equal(extendedFurySlice.criticalDamage, 1.5 + 250 / 1500);
-  assert.equal(observedRuntime(withNoQuarter).procs.readyAt[TRAIT.UNRELENTING_STRIKES], firstFlawless[0].at + 8);
-  assert.equal(observedRuntime(withNoQuarter).procs.readyAt[TRAIT.NO_QUARTER], extendedFurySlice.at + 2);
+  assert.equal(observedRuntime(withNoQuarter).procs.snapshot()[TRAIT.UNRELENTING_STRIKES], firstFlawless[0].at + 8);
+  assert.equal(observedRuntime(withNoQuarter).procs.snapshot()[TRAIT.NO_QUARTER], extendedFurySlice.at + 2);
 
   const withAssassinsFury = simulate('Daredevil', ['Flawless Execution'], {
     ...criticalConfig,
@@ -1228,7 +1228,7 @@ test('Critical Strikes applies runtime Fury, No Quarter, and multiplicative modi
     2090 / 2000
   );
   assert.equal(
-    observedRuntime(withAssassinsFury).procs.readyAt[TRAIT.ASSASSINS_FURY],
+    observedRuntime(withAssassinsFury).procs.snapshot()[TRAIT.ASSASSINS_FURY],
     flawlessHits(withAssassinsFury)[0].at + 2
   );
 

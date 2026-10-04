@@ -184,8 +184,7 @@ export function applyPanicStrikePoison(context: ThiefResolverContext, applicatio
 }
 
 function targetConditionCount(context: ThiefResolverContext, at: number): number {
-  return CANONICAL_TARGET_CONDITIONS.filter((condition) => context.query.targetHasCondition(condition, at, context))
-    .length;
+  return CANONICAL_TARGET_CONDITIONS.filter((condition) => context.combat.targetHasCondition(condition, at)).length;
 }
 
 /** Poison-producing traits share the selected stack override while retaining their own profile tuning. */

@@ -1,12 +1,14 @@
+import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
+import type { MechanicContext } from '#gw2/platform/profession-definition/mechanic-context.js';
 import {
   balanceProfileNumber,
   requireBalanceProfileFromContext
 } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { WARRIOR_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/warrior/core/profiles.js';
-import type { Gw2Runtime, RuntimeCast } from '#gw2/platform/simulation/runtime-state.js';
+import type { RuntimeCast } from '#gw2/platform/simulation/runtime-state.js';
 import type { WarriorRuntimeState, WarriorSkill } from '#gw2/professions/warrior/types.js';
 
-type WarriorRuntime = Gw2Runtime<WarriorRuntimeState, WarriorSkill>;
+type WarriorRuntime = MechanicContext<WarriorRuntimeState, WarriorSkill>;
 
 /** Accepted gains mutate the current pool immediately, capped by its owning specialization. */
 export function grantWarriorAdrenaline(runtime: WarriorRuntime, amount: number): void {
@@ -28,7 +30,7 @@ export function grantWarriorAdrenaline(runtime: WarriorRuntime, amount: number):
 export const warriorBurstSpends = new WeakMap<RuntimeCast<WarriorSkill>, number>();
 
 /** Tier-dependent packets and fields use the same activation-time resource thresholds. */
-export function warriorBurstTier(runtime: Gw2Runtime, spent: number): number {
+export function warriorBurstTier(runtime: MechanicQueriesOf<MechanicContext>, spent: number): number {
   const profile = requireBalanceProfileFromContext(runtime, PROFILE.burstTiers);
   return spent >= balanceProfileNumber(profile, 'maximumStacks')
     ? 3
@@ -38,7 +40,7 @@ export function warriorBurstTier(runtime: Gw2Runtime, spent: number): number {
 }
 
 /** One-bar elites reserve only the authored cost; Core reserves the whole pool for the activation's tier. */
-export function burstAdrenalineSpend(runtime: WarriorRuntime, skill: WarriorSkill): number {
+export function burstAdrenalineSpend(runtime: MechanicQueriesOf<WarriorRuntime>, skill: WarriorSkill): number {
   const available = runtime.profession.core.adrenaline;
   return skill.primalBurst || ['Spellbreaker', 'Paragon'].includes(runtime.profession.specialization.kind)
     ? Math.min(available, skill.adrenalineCost ?? 0)

@@ -1,3 +1,4 @@
+import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
 import type { RuntimeCast, RuntimeProfession, SkillTaskData } from '#gw2/platform/simulation/runtime-state.js';
 import { registerElementalistAttunementTransition } from '#gw2/professions/elementalist/core/mechanics/attunements.js';
 import { registerElementalistEliteEvents } from '#gw2/professions/elementalist/core/mechanics/elite-events.js';
@@ -83,7 +84,7 @@ function initialize(context: ElementalistRuntime): void {
 
 // Enforce Weaver's dual-hand attunement model, Unravel replacement state, and
 // specialization-only skill gates before Core evaluates ordinary weapon rules.
-function availability(context: ElementalistRuntime, skill: Skill): AvailabilityResult {
+function availability(context: MechanicQueriesOf<ElementalistRuntime>, skill: Skill): AvailabilityResult {
   const hammerAvailability = weaverHammerAvailability(context, skill);
   // Eligible orbs still pass through the shared hand and Unravel replacement gates below.
   if (hammerAvailability && !hammerAvailability.ready) return hammerAvailability as AvailabilityResult;
@@ -232,8 +233,8 @@ export const weaverHooks: Partial<RuntimeProfession<ElementalistRuntimeState, El
   ],
   rechargeStart: modifyWeaveSelfRechargeStart,
   // Dual orbs share their cast lifetime so Grand Finale retires both hands' pending contacts.
-  effectOwner(runtime, event) {
-    const skill = runtime.helpers.skillsById.get(event.skillId ?? event.sourceId);
+  effectOwner(context, event) {
+    const skill = context.skillFor(event.skillId ?? event.sourceId);
     if (
       skill &&
       skillWeapon(skill) === 'Hammer' &&

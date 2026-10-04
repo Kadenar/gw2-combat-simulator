@@ -1,21 +1,18 @@
-import { buildMesmerPacket, mesmerPacketOwner } from '#gw2/professions/mesmer/core/mechanics/packets.js';
 import { expireSkillFlip } from '#gw2/platform/engine/skills/skill-flips.js';
+import { buildMesmerPacket, mesmerPacketOwner } from '#gw2/professions/mesmer/core/mechanics/packets.js';
 import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
 /** Resolves Inspiring Imagery's mutually exclusive boon expiry and offensive detonation. */
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import type { RuntimeCast } from '#gw2/platform/simulation/runtime-state.js';
-import { mesmerMechanicsFor } from '#gw2/professions/mesmer/core/mechanics/runtime.js';
 import { MESMER_SKILL_IDS as ID } from '#gw2/professions/mesmer/data/ids.js';
 import type { MesmerRuntime } from '#gw2/professions/mesmer/types.js';
 
 /** Bind the blast to this image and end its field immediately after the detonation interaction. */
 export function detonateInspiringImagery(context: MesmerRuntime, cast: RuntimeCast<MesmerSkill>): void {
   const flip = professionCoreState(context).availableFlips[ID.ABSTRACTION];
-  const field = [...context.combo.fields.values()].find(
-    (event) => event.skillId === ID.INSPIRING_IMAGERY && event.at === flip?.availableAt
-  );
+  const field = context.combat.fieldFor(ID.INSPIRING_IMAGERY, flip?.availableAt);
   if (!field) return;
-  context.combo.fields.set(field.fieldId, { ...field, expiresAt: cast.start });
+  context.combat.expireField(field.fieldId, cast.start);
   context.effects.emit({
     kind: 'packet',
     event: {
@@ -57,7 +54,7 @@ export function expireInspiringImagery(context: MesmerRuntime, cast: RuntimeCast
         stacks: effect.stacks ?? 1,
         duration: effect.duration
       });
-      mesmerMechanicsFor(context).context.effects.emit({
+      context.effects.emit({
         kind: 'packet',
         event: packet,
         owner: mesmerPacketOwner(packet),

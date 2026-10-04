@@ -1,3 +1,4 @@
+import type { MechanicCombatContext } from '#gw2/platform/profession-definition/mechanic-context.js';
 import { consumeCharge, grantCharges } from '#gw2/platform/combat/resources/charges.js';
 import { resolverSourceSkill } from '#gw2/platform/resolver/packets.js';
 import {
@@ -8,7 +9,7 @@ import {
 import { requireBalanceProfileFromContext, requireEffect } from '#gw2/platform/engine/skills/balance-profiles.js';
 // Resolver mutations target the owned Core slice of the nested Elementalist runtime.
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
-import type { Gw2ResolverRuntime } from '#gw2/platform/resolver/runtime-state.js';
+
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 
 import { ELEMENTALIST_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/elementalist/core/profiles.js';
@@ -25,7 +26,7 @@ export {
 
 /** Queues a resolver-generated aura after applying Smothering Auras exactly once. */
 export function queueElementalistAura(
-  context: Gw2ResolverRuntime,
+  context: MechanicCombatContext,
   event: Gw2ResolverEvent,
   aura: string,
   duration: number,
@@ -59,7 +60,7 @@ export function applyElementalistResolverAura(context: ElementalistResolverConte
     skillName
   };
   professionCoreState(context).activeAuras.push(auraState);
-  if (context.reporting && event.elementalistResolverGeneratedAura === true) context.resolved.push(event);
+  if (event.elementalistResolverGeneratedAura === true) context.combat.recordObservation(event);
   if (context.combatStartTime != null && event.at < context.combatStartTime) return;
 
   {
@@ -68,7 +69,7 @@ export function applyElementalistResolverAura(context: ElementalistResolverConte
 
   if (event.type === 'elementalist.aura') {
     Object.assign(event, { elementalistAuraReactionDispatched: true });
-    context.dispatchReaction('aura.applied', event);
+    context.combat.react('aura.applied', event);
   }
 }
 

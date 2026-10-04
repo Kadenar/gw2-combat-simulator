@@ -23,7 +23,7 @@ test('resolver setup shares reactions and creates fresh profession state for eac
     hooks: {
       eventHandlers: {
         'fixture.trigger': (context, event) => {
-          context.dispatchReaction('control.resolved', event);
+          context.combat.react('control.resolved', event);
           context.effects.emit({
             kind: 'packet',
             settlement: 'reaction',

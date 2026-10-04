@@ -1,11 +1,13 @@
+import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
+import type { MechanicCombatContext } from '#gw2/platform/profession-definition/mechanic-context.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import type { NativeResolvedDamageDetails } from '#gw2/platform/profession-definition/module-types.js';
 import { resolverSourceSkill } from '#gw2/platform/resolver/packets.js';
-import type { Gw2ResolverRuntime } from '#gw2/platform/resolver/runtime-state.js';
+
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 /** Core critical traits share player-hit eligibility while keeping separate accumulation and ICD state. */
 export function criticalTraitEligible(
-  context: Gw2ResolverRuntime,
+  context: MechanicCombatContext,
   event: Gw2ResolverEvent,
   details: NativeResolvedDamageDetails,
   traitId: number
@@ -38,7 +40,7 @@ import type { ElementalistResolverContext, ElementalistRuntime } from '#gw2/prof
 import { canonicalTime } from '#kernel/core/clock.js';
 
 /** Materializes Raging Storm after its registered critical-hit reaction succeeds. */
-function applyRagingStorm(context: Gw2ResolverRuntime, event: Gw2ResolverEvent): void {
+function applyRagingStorm(context: MechanicCombatContext, event: Gw2ResolverEvent): void {
   const ragingStormProfile = requireBalanceProfileFromContext(context, TRAIT.RAGING_STORM);
   const fury = requireEffect(ragingStormProfile, 'boon', 'Fury');
   if (fury) {
@@ -76,7 +78,7 @@ export function applyFreshAirCritical(
     !critical.didCrit
   )
     return;
-  if ((context.cooldowns.get(ELEMENTALIST_ATTUNEMENT_SKILL_IDS.Air) ?? 0) > event.at)
+  if ((context.cooldownController.readyAt(ELEMENTALIST_ATTUNEMENT_SKILL_IDS.Air) ?? 0) > event.at)
     setElementalistAttunementReadyAt(context, 'Air', event.at);
   context.effects.emit({
     kind: 'packet',
@@ -94,7 +96,7 @@ export function applyFreshAirCritical(
 }
 
 /** Pending damage supplies a wake, never a predicted resource or critical result. */
-export function projectedFreshAirReadyAt(context: ElementalistRuntime, upTo: number): number | null {
+export function projectedFreshAirReadyAt(context: MechanicQueriesOf<ElementalistRuntime>, upTo: number): number | null {
   if (!hasTrait(context, TRAIT.FRESH_AIR)) return null;
   const core = context.profession.core;
   if (core.primaryAttunement === 'Air') return null;
@@ -130,9 +132,9 @@ export const ragingStormCritical = criticalProcHandler<
   internalCooldown: {
     duration: (context) =>
       balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.RAGING_STORM), 'internalCooldown'),
-    readyAt: (context) => context.procs.readyAt.ragingStorm || 0,
+    readyAt: (context) => context.procs.deadline('ragingStorm') || 0,
     setReadyAt: (context, readyAt) => {
-      context.procs.readyAt.ragingStorm = readyAt;
+      context.procs.setDeadline('ragingStorm', readyAt);
     }
   },
   handler: applyRagingStorm
@@ -170,7 +172,7 @@ function applyArcanePrecision(context: ElementalistResolverContext, event: Gw2Re
 }
 
 /** Materializes Renewing Stamina after its registered critical-hit reaction succeeds. */
-function applyRenewingStamina(context: Gw2ResolverRuntime, event: Gw2ResolverEvent): void {
+function applyRenewingStamina(context: MechanicCombatContext, event: Gw2ResolverEvent): void {
   const renewingStaminaProfile = requireBalanceProfileFromContext(context, TRAIT.RENEWING_STAMINA);
   const vigor = requireEffect(renewingStaminaProfile, 'boon', 'Vigor');
   if (vigor) {
@@ -207,9 +209,9 @@ export const arcanePrecisionCritical = criticalProcHandler<
   internalCooldown: {
     duration: (context) =>
       balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.ARCANE_PRECISION), 'internalCooldown'),
-    readyAt: (context) => context.procs.readyAt.arcanePrecision || 0,
+    readyAt: (context) => context.procs.deadline('arcanePrecision') || 0,
     setReadyAt: (context, readyAt) => {
-      context.procs.readyAt.arcanePrecision = readyAt;
+      context.procs.setDeadline('arcanePrecision', readyAt);
     }
   },
   randomStream: 'elementalist.arcane-precision',
@@ -227,16 +229,16 @@ export const renewingStaminaCritical = criticalProcHandler<
   internalCooldown: {
     duration: (context) =>
       balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.RENEWING_STAMINA), 'internalCooldown'),
-    readyAt: (context) => context.procs.readyAt.renewingStamina || 0,
+    readyAt: (context) => context.procs.deadline('renewingStamina') || 0,
     setReadyAt: (context, readyAt) => {
-      context.procs.readyAt.renewingStamina = readyAt;
+      context.procs.setDeadline('renewingStamina', readyAt);
     }
   },
   handler: applyRenewingStamina
 });
 
 /** Materializes Burning Precision after its registered critical-hit reaction succeeds. */
-function applyBurningPrecision(context: Gw2ResolverRuntime, event: Gw2ResolverEvent): void {
+function applyBurningPrecision(context: MechanicCombatContext, event: Gw2ResolverEvent): void {
   const burningPrecisionProfile = requireBalanceProfileFromContext(context, TRAIT.BURNING_PRECISION);
   const burning = requireEffect(burningPrecisionProfile, 'condition', 'Burning Precision');
   if (burning) {
@@ -277,9 +279,9 @@ export const burningPrecisionCritical = criticalProcHandler<
   internalCooldown: {
     duration: (context) =>
       balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.BURNING_PRECISION), 'internalCooldown'),
-    readyAt: (context) => context.procs.readyAt.burningPrecision || 0,
+    readyAt: (context) => context.procs.deadline('burningPrecision') || 0,
     setReadyAt: (context, readyAt) => {
-      context.procs.readyAt.burningPrecision = readyAt;
+      context.procs.setDeadline('burningPrecision', readyAt);
     }
   },
   randomStream: 'elementalist.burning-precision',

@@ -97,7 +97,7 @@ export function emitVenom(context: ThiefResolverContext, event: ThiefResolverEve
         skillName: venom.skillName,
         // A venom charge owns its condition damage independently of the attack that consumes it.
         procType: 'profession',
-        icon: context.helpers.skillsById?.get(venom.skillId)?.icon,
+        icon: context.helpers.skillsById.get(venom.skillId)?.icon,
         name: `${venom.skillName} — ${effect.condition}`,
         condition: String(effect.condition),
         stacks: effectNumber(profile, effect, 'stacks'),

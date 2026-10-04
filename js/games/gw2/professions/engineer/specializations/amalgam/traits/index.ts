@@ -55,7 +55,7 @@ export const doubleHelix = defineTrait({
   name: 'Double Helix',
   hooks: {
     maximumAmmo: amalgamMaximumAmmo,
-    modifySkillId: (runtime, skillId) => resolveAmalgamSkillId(runtime.config, skillId)
+    modifySkillId: (context, skillId) => resolveAmalgamSkillId(context.hasTrait(TRAIT.DOUBLE_HELIX), skillId)
   }
 });
 

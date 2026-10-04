@@ -60,16 +60,16 @@ test('Tempest attunement lockouts keep overload recharge unchanged by temporary 
           {
             at: 10,
             run: (r) => {
-              first = r.cooldowns.get(overloadId);
-              assert.equal(r.cooldowns.get(attunementId), first, element);
+              first = r.cooldownController.readyAt(overloadId);
+              assert.equal(r.cooldownController.readyAt(attunementId), first, element);
             }
           },
           grant(14, 4),
           {
             at: 14.001,
             run: (r) => {
-              second = r.cooldowns.get(overloadId);
-              assert.equal(r.cooldowns.get(attunementId), second, element);
+              second = r.cooldownController.readyAt(overloadId);
+              assert.equal(r.cooldownController.readyAt(attunementId), second, element);
             }
           }
         ]
@@ -90,7 +90,7 @@ test('Tempest overload completion preserves a longer attunement lockout', () => 
     { initialize: (r) => r.cooldownController.startRecharge(r.helpers.skillsById.get(id), 0, 60) }
   );
   assert.deepEqual(result.warnings, []);
-  assert.equal(observedRuntime(result).cooldowns.get(id), 48);
+  assert.equal(observedRuntime(result).cooldownController.readyAt(id), 48);
   assert.deepEqual(observedRuntime(result).rechargeProgress.get(id), { startedAt: 0, work: 60 });
 });
 

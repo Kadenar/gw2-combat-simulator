@@ -1,3 +1,4 @@
+import { createMechanicCombatServices } from '#gw2/platform/resolver/mechanic-services.js';
 import { engineerCatalog } from '#gw2/professions/engineer/catalog.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
@@ -11,7 +12,7 @@ test('Engineer No Scope survives overlapping Fury packet expiries', () => {
     ['fury', [0, 1].map((at) => ({ at, expiresAt: at + 5, stacks: 1, resolvedAudience: { includesSelf: true } }))]
   ]);
   const context = { config: {}, traits: new Set([TRAIT.NO_SCOPE]), runtime: { boons }, time: 7 };
-  assert.equal(activeBoonStacks({ config: {}, boons }, 'Fury', 1, 7), 1);
+  assert.equal(activeBoonStacks({ combat: createMechanicCombatServices({ config: {}, boons }) }, 'Fury', 1, 7), 1);
   assert.equal(
     engineerCoreModifiers.modifyAttributes({ catalog: engineerCatalog, ...context }, { ferocity: 0 }).ferocity,
     150
@@ -28,6 +29,7 @@ test('Engineer boon stacks preserve normalization, permanent stacks, caps, and l
     { at: 6, expiresAt: 10, stacks: 10, resolvedAudience: { includesSelf: true } }
   ];
   const context = { config: { boons: { might: 4, stability: true } }, boons: new Map([['might', applications]]) };
+  context.combat = createMechanicCombatServices(context);
   assert.equal(activeBoonStacks(context, 'Might', 25, 5), 7);
   assert.equal(activeBoonStacks(context, 'might', 6, 5), 6);
   assert.equal(activeBoonStacks(context, 'might', 25, 10), 4);
@@ -36,5 +38,8 @@ test('Engineer boon stacks preserve normalization, permanent stacks, caps, and l
   // An application becomes visible only after insertion, even when it shares the queried timestamp.
   applications.push({ at: 5, expiresAt: 10, stacks: 1, resolvedAudience: { includesSelf: true } });
   assert.equal(activeBoonStacks(context, 'might', 25, 5), 8);
-  assert.equal(activeBoonStacks({}, 'might', 25, 5), 0);
+  assert.equal(
+    activeBoonStacks({ combat: createMechanicCombatServices({ config: {}, boons: new Map() }) }, 'might', 25, 5),
+    0
+  );
 });

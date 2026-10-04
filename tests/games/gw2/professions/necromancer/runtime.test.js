@@ -36,6 +36,7 @@ test('live weapon swaps commit the destination set and its sigils before subsequ
   };
   const native = necromancerProfession.runtimeFor(config);
   const seen = [];
+  let owner;
   const profession = {
     ...native,
     initialize(runtime) {
@@ -45,13 +46,19 @@ test('live weapon swaps commit the destination set and its sigils before subsequ
     onCastStart(runtime, cast) {
       native.onCastStart(runtime, cast);
       if (cast.skill.id === ID.GHASTLY_CLAWS)
-        seen.push([runtime.activeWeaponSet, runtime.sigil.doomPending, runtime.time]);
+        seen.push([runtime.activeWeaponSet, owner.sigil.doomPending, runtime.time]);
     }
   };
   const result = simulate(
     [cast(ID.GHASTLY_CLAWS), cast(SHARED_SKILL_IDS.SWAP_WEAPONS), cast(ID.GHASTLY_CLAWS), cast(ID.GRAVEDIGGER)],
     config,
-    { profession, combatStartTime: 0 }
+    {
+      profession,
+      combatStartTime: 0,
+      engineInitialize(runtime) {
+        owner = runtime;
+      }
+    }
   );
   assert.equal(result.steps[0].invalid, true);
   assert.equal(result.steps.at(-1).invalid, true);
@@ -82,7 +89,7 @@ test('live swap recharge is free before combat and reserves the relic-adjusted w
     combat.steps.map((step) => step.start),
     [0, 7520]
   );
-  assert.equal(observedRuntime(combat).cooldowns.get(SHARED_SKILL_IDS.SWAP_WEAPONS), 15.02);
+  assert.equal(observedRuntime(combat).cooldownController.readyAt(SHARED_SKILL_IDS.SWAP_WEAPONS), 15.02);
   assert.deepEqual(combat.warnings, []);
   const oneSwap = simulate([cast(SHARED_SKILL_IDS.SWAP_WEAPONS)], { ...base, transitionDelays: { weaponSwapMs: 120 } });
   assert.equal(oneSwap.planningState.atSeconds, 0.12);
@@ -380,7 +387,7 @@ test('Perforate consumes current shards per accepted packet, including gains dur
 test('Distress consumes its flip, refreshes Perforate, and grants the single-target shard allowance', () => {
   const result = simulate([cast(ID.PERFORATE), cast(ID.ISOLATE), cast(ID.DISTRESS)]);
   assert.equal(result.planningState.profession.soulShardGrant.charges, 6);
-  assert.equal(observedRuntime(result).cooldowns.has(ID.PERFORATE), false);
+  assert.equal(observedRuntime(result).cooldownController.hasCooldown(ID.PERFORATE), false);
   assert.equal(result.planningState.profession.availableFlips[ID.DISTRESS], undefined);
   assert.deepEqual(result.warnings, []);
 });
@@ -906,7 +913,7 @@ test('Gravedigger samples reset health at commitment rather than the retained an
       tasks: {
         ...native.tasks,
         'inspect-recharge'(runtime) {
-          duringLockout.push(runtime.cooldowns.has(ID.GRAVEDIGGER));
+          duringLockout.push(runtime.cooldownController.hasCooldown(ID.GRAVEDIGGER));
         }
       }
     };
@@ -922,7 +929,7 @@ test('Gravedigger samples reset health at commitment rather than the retained an
       { profession }
     );
     assert.deepEqual(duringLockout, [true]);
-    assert.equal(observedRuntime(result).cooldowns.has(ID.GRAVEDIGGER), !resets);
+    assert.equal(observedRuntime(result).cooldownController.hasCooldown(ID.GRAVEDIGGER), !resets);
     assert.deepEqual(result.warnings, []);
   }
 });
@@ -1014,8 +1021,8 @@ test('consumption cancels only the removed creature and starts summon recharge a
   const native = necromancerProfession.runtimeFor(base);
   const recharge = native.catalog.skillsById.get(ID.SUMMON_BONE_MINIONS).cooldown;
   const deathAt = result.steps.findLast((step) => step.skillId != null).end / 1000;
-  assert.equal(observedRuntime(result).cooldowns.get(ID.SUMMON_BONE_MINIONS), deathAt + recharge / 1.25);
-  assert.equal(observedRuntime(one).cooldowns.has(ID.SUMMON_BONE_MINIONS), false);
+  assert.equal(observedRuntime(result).cooldownController.readyAt(ID.SUMMON_BONE_MINIONS), deathAt + recharge / 1.25);
+  assert.equal(observedRuntime(one).cooldownController.hasCooldown(ID.SUMMON_BONE_MINIONS), false);
 });
 
 test('an active death-gated minion cannot be replaced by recasting after a cooldown reset', () => {
@@ -1169,7 +1176,7 @@ test('automatic shroud depletion refreshes Soul Barbs and starts entry recharge 
   );
   assert.equal(grants.length, 2);
   assert.equal(grants[1].at, exit.at);
-  assert.equal(observedRuntime(result).cooldowns.get(ID.REAPERS_SHROUD), exit.at + 8);
+  assert.equal(observedRuntime(result).cooldownController.readyAt(ID.REAPERS_SHROUD), exit.at + 8);
 });
 
 test('Lich expiry owns an exact deadline and never invokes life-force shroud entry traits', () => {
@@ -1536,8 +1543,8 @@ test('Core recharge traits commit modified work for corruption and shroud skills
     const result = simulate([...(entry ? [cast(ID.DEATH_SHROUD)] : []), cast(skillId)], config);
     const expected = result.steps.at(-1).end / 1000 + (skill.cooldown * multiplier) / 1.25;
     assert.ok(
-      Math.abs(observedRuntime(result).cooldowns.get(skillId) - expected) < 0.000001,
-      `${skill.name}: ${observedRuntime(result).cooldowns.get(skillId)} expected ${expected}`
+      Math.abs(observedRuntime(result).cooldownController.readyAt(skillId) - expected) < 0.000001,
+      `${skill.name}: ${observedRuntime(result).cooldownController.readyAt(skillId)} expected ${expected}`
     );
     assert.deepEqual(result.warnings, []);
   }
@@ -1635,6 +1642,6 @@ test('interrupted Distress neither refreshes Perforate nor grants shards', () =>
     { profession }
   );
   assert.deepEqual(result.warnings, []);
-  assert.equal(observedRuntime(result).cooldowns.has(ID.PERFORATE), true);
+  assert.equal(observedRuntime(result).cooldownController.hasCooldown(ID.PERFORATE), true);
   assert.equal(result.planningState.profession.soulShardGrant.charges, 0);
 });

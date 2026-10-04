@@ -1,3 +1,4 @@
+import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
 import { skillFlipVisible } from '#gw2/platform/engine/skills/skill-flips.js';
 import { canonicalTime } from '#kernel/core/clock.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
@@ -7,14 +8,14 @@ import type { MesmerRuntime } from '#gw2/professions/mesmer/types.js';
 import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
 
 // Flip windows open exactly at availability and close at expiry, independently of cooldown readiness tolerance.
-export function mesmerAvailability(context: MesmerRuntime, skill: MesmerSkill): AvailabilityResult {
+export function mesmerAvailability(context: MechanicQueriesOf<MesmerRuntime>, skill: MesmerSkill): AvailabilityResult {
   const state = context;
   const at = canonicalTime(context.time);
   if (skill.flipParentId) {
     const flip = professionCoreState(state).availableFlips[skill.id];
     if (!skillFlipVisible(flip, at)) {
       const parent = context.helpers.skillsById.get(skill.flipParentId);
-      if (parent && context.inFlight.get(parent.id)?.size) {
+      if (parent && context.castController.hasInFlight(parent.id)) {
         return {
           ready: false,
           retryAt: null,

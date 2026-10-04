@@ -1,4 +1,5 @@
-import type { Gw2Runtime } from '#gw2/platform/simulation/runtime-state.js';
+import type { MechanicContext, MechanicCombatContext } from '#gw2/platform/profession-definition/mechanic-context.js';
+
 /**
  * Shared Elementalist type boundary.
  *
@@ -10,7 +11,7 @@ import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
 import type { Skill, SkillId } from '#gw2/platform/engine/skills/types.js';
 
 import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
-import type { Gw2ResolverRuntime } from '#gw2/platform/resolver/runtime-state.js';
+
 import type { ElementalistCanonicalBuild, ElementalistConfig } from '#gw2/professions/elementalist/build/types.js';
 import type { ProfessionUiCallbackContext, ProfessionUiContract } from '#gw2/platform/profession-presentation/types.js';
 import type { ElementalistAttunement, ElementalistCoreState } from '#gw2/professions/elementalist/core/state.js';
@@ -73,7 +74,7 @@ export interface ElementalistSkill extends Skill {
 }
 
 /** One actual gameplay context, shared by Core and the active elite. */
-export type ElementalistRuntime = Gw2Runtime<ElementalistRuntimeState, ElementalistSkill> & {
+export type ElementalistRuntime = MechanicContext<ElementalistRuntimeState, ElementalistSkill> & {
   config: ElementalistConfig;
 };
 
@@ -87,7 +88,7 @@ export type ElementalistSimulationEvent = SimulationEvent & {
 };
 
 /** Resolver-phase runtime narrowed to Elementalist config and profession state. */
-export type ElementalistResolverContext = Gw2ResolverRuntime & {
+export type ElementalistResolverContext = MechanicCombatContext & {
   config: ElementalistConfig;
   profession: ElementalistRuntimeState;
 };

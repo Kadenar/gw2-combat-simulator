@@ -114,8 +114,9 @@ export function grantCompassion(runtime: RevenantRuntime): void {
       audience: effect.audience ?? { recipients: 'party', maximumRecipients: 5 }
     }
   });
-  runtime.procs.readyAt['revenant.herald.elevatedCompassion'] = canonicalTime(
-    runtime.time + Math.max(EPSILON, balanceProfileNumber(profile, 'cooldown'))
+  runtime.procs.setDeadline(
+    'revenant.herald.elevatedCompassion',
+    canonicalTime(runtime.time + Math.max(EPSILON, balanceProfileNumber(profile, 'cooldown')))
   );
 }
 

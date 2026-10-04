@@ -207,9 +207,9 @@ export const heraldOfSorrowAvailability: NonNullable<
 /** Owns the trait decision at the existing maximumAmmo integration boundary. */
 export const sandSavantMaximumAmmo: NonNullable<
   RuntimeProfession<NecromancerRuntimeState, NecromancerSkill>['maximumAmmo']
-> = (runtime, skill, maximum) => {
-  return skill.id === ID.MANIFEST_SAND_SHADE && hasTrait(runtime, TRAIT.SAND_SAVANT)
-    ? balanceProfileNumber(requireBalanceProfileFromContext(runtime, TRAIT.SAND_SAVANT), 'maximumStacks')
+> = (context, skill, maximum) => {
+  return skill.id === ID.MANIFEST_SAND_SHADE && context.hasTrait(TRAIT.SAND_SAVANT)
+    ? balanceProfileNumber(context.requireBalanceProfile(TRAIT.SAND_SAVANT), 'maximumStacks')
     : maximum;
 };
 

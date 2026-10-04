@@ -1,3 +1,4 @@
+import { createExecutedFacts } from '#gw2/platform/results/executed-facts.js';
 import { captureEffectEmissions } from '#tests/helpers/effect-emission.js';
 import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
 import { createRuntimeEndurance } from '#gw2/platform/combat/resources/runtime-resources.js';
@@ -52,7 +53,6 @@ function instrumentContext() {
     eventsOfType: (type) => events.filter((event) => event.type === type),
     mesmerRuntime: {
       instruments: {},
-      castDetails: new Map(),
       activePrimaryWeapon: () => 'Spear',
       resourceDefinition: { singular: 'note', plural: 'notes', maximum: 3 },
       actions: {
@@ -68,12 +68,23 @@ function instrumentContext() {
   Object.assign(context, state);
   context.helpers = context.catalog;
   context.effects = captureEffectEmissions({ now: () => context.time, submit: emit }).effects;
+  context.facts = createExecutedFacts(events);
   context.history = events;
   context.schedule = () => {};
 
-  context.endurance = createRuntimeEndurance(context, { endurance: troubadourEndurance });
+  // Endurance receives its engine clock and the explicit policy capability.
+  context.endurance = createRuntimeEndurance(
+    {
+      get time() {
+        return context.time;
+      },
+      config,
+      history: events,
+      mechanics: context
+    },
+    { endurance: troubadourEndurance }
+  );
   registerMesmerMechanics(context, context.mesmerRuntime);
-  context.mesmerRuntime.context = context;
   initializeTroubadourRuntime(context);
   return context;
 }
@@ -172,7 +183,7 @@ function beginTale(context, at) {
     kind: 'packet',
     event: { type: 'action', at, activationId: cast.id, actorType: 'player', source: 'Player', sourceId: cast.skill.id }
   });
-  context.mesmerRuntime.castDetails.set(cast.id, {});
+  context.profession.core.castDetails.set(cast.id, {});
   applySkillSideEffects(context, cast, 'castStart', troubadourHooks.sideEffectHandlers);
   return cast;
 }
@@ -213,7 +224,7 @@ test('Tale rewards commit before recovery and are available to the next instrume
     command: {}
   };
   context.time = cast.start;
-  context.mesmerRuntime.castDetails.set(cast.id, {});
+  context.profession.core.castDetails.set(cast.id, {});
   applySkillSideEffects(context, cast, 'castStart', troubadourHooks.sideEffectHandlers);
   context.time = cast.effectiveEnd;
   applySkillSideEffects(context, cast, 'castCommit', troubadourHooks.sideEffectHandlers);

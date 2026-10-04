@@ -1,3 +1,4 @@
+import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
 import { buildResolverCondition } from '#gw2/platform/resolver/packets.js';
 import { MAXIMUM_SPINNING_AXES } from '#gw2/professions/thief/core/state.js';
 import { canonicalTime } from '#kernel/core/clock.js';
@@ -52,7 +53,10 @@ export const THIEF_PREPARATIONS: readonly TrapDefinition[] = Object.freeze([
 ]);
 
 /** Each preparation stays flipped until triggered; its trigger waits out the recharge-scaled arming delay. */
-export function thiefTrapAvailability(runtime: ThiefRuntime, skill: ThiefSkill): AvailabilityResult | null {
+export function thiefTrapAvailability(
+  runtime: MechanicQueriesOf<ThiefRuntime>,
+  skill: ThiefSkill
+): AvailabilityResult | null {
   const trap = THIEF_PREPARATIONS.find(
     (candidate) => candidate.prepareId === skill.id || candidate.triggerId === skill.id
   );
@@ -81,8 +85,8 @@ export function activateTrap(runtime: ThiefRuntime, cast: RuntimeCast<ThiefSkill
   const trap = THIEF_PREPARATIONS.find((candidate) => candidate.triggerId === cast.skill.id);
   if (!trap) return;
   consumeSkillFlip(runtime.profession.core.availableFlips, trap.triggerId);
-  const triggerReadyAt = runtime.cooldowns.get(trap.triggerId);
-  if (triggerReadyAt == null || triggerReadyAt <= (runtime.cooldowns.get(trap.prepareId) || 0)) return;
+  const triggerReadyAt = runtime.cooldownController.readyAt(trap.triggerId);
+  if (triggerReadyAt == null || triggerReadyAt <= (runtime.cooldownController.readyAt(trap.prepareId) || 0)) return;
   const placement = runtime.helpers.skillsById.get(trap.prepareId);
   if (placement) runtime.cooldownController.startRecharge(placement, cast.rechargeStart, cast.rechargeWork);
 }
@@ -309,7 +313,7 @@ export function activateAssassinsSignet(runtime: ThiefRuntime): void {
   const core = runtime.profession.core;
   const profile = requireBalanceProfileFromContext(runtime, PROFILE.assassinsSignet);
   core.assassinsSignetActiveUntil = runtime.time + balanceProfileNumber(profile, 'durationMultiplier');
-  core.assassinsSignetPassiveDisabledUntil = runtime.cooldowns.get(ID.ASSASSINS_SIGNET) ?? runtime.time;
+  core.assassinsSignetPassiveDisabledUntil = runtime.cooldownController.readyAt(ID.ASSASSINS_SIGNET) ?? runtime.time;
 }
 
 interface GuildAttackWork {

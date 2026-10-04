@@ -10,10 +10,10 @@ import {
 } from '#gw2/platform/engine/skills/balance-profiles.js';
 import type { Skill } from '#gw2/platform/engine/skills/types.js';
 import type { AvailabilityResult } from '#gw2/platform/execution/types.js';
-import type { Gw2Runtime } from '#gw2/platform/simulation/runtime-state.js';
+import type { MechanicContext, MechanicQueryContext } from '#gw2/platform/profession-definition/mechanic-context.js';
 
 /** Resolves the declared amount from the selected balance data at the moment it is read. */
-function skillCostAmount<T extends object>(runtime: Gw2Runtime<T>, skill: Skill): number {
+function skillCostAmount(runtime: Pick<MechanicQueryContext, 'helpers'>, skill: Skill): number {
   const source = skill.cost!.profileAmount;
   return source
     ? balanceProfileNumber(requireBalanceProfileFromContext(runtime, source.profileId), source.field)
@@ -22,7 +22,7 @@ function skillCostAmount<T extends object>(runtime: Gw2Runtime<T>, skill: Skill)
 
 /** Affordable now, a retry when regeneration will cover the cost, or a rejection when it never can. */
 export function skillCostAvailability<T extends object>(
-  runtime: Gw2Runtime<T>,
+  runtime: MechanicQueryContext<T>,
   skill: Skill
 ): AvailabilityResult | null {
   if (!skill.cost) return null;
@@ -40,7 +40,7 @@ export function skillCostAvailability<T extends object>(
 }
 
 /** Pays the declared cost from the live pool. */
-export function spendSkillCost<T extends object>(runtime: Gw2Runtime<T>, skill: Skill): void {
+export function spendSkillCost<T extends object>(runtime: MechanicContext<T>, skill: Skill): void {
   const amount = skillCostAmount(runtime, skill);
   if (skill.cost!.resource === 'endurance') runtime.endurance.spend(amount);
   else runtime.resourceController.spend(skill.cost!.resource, amount);

@@ -133,8 +133,8 @@ test('Mental Collapse resets recharge at commitment and never repeats the reset 
       tasks: {
         ...native.tasks,
         'test.reset-probe'(runtime) {
-          const recharging = runtime.cooldowns.has(MESMER.MIND_THE_GAP);
-          assert.equal(runtime.rechargeProgress.has(MESMER.MIND_THE_GAP), recharging);
+          const recharging = runtime.cooldownController.hasCooldown(MESMER.MIND_THE_GAP);
+          assert.equal(Boolean(runtime.cooldownController.rechargeFor(MESMER.MIND_THE_GAP)), recharging);
           pending.push(recharging);
         },
         'test.restart-recharge': (runtime) =>
@@ -183,7 +183,7 @@ test('Mental Collapse uses its normal effect list for the Clarity-gated stun', (
     false
   );
   assert.equal(result.planningState.profession.clarityRemaining, 0);
-  assert.equal(observedRuntime(result).cooldowns.has(MESMER.MIND_THE_GAP), false);
+  assert.equal(observedRuntime(result).cooldownController.hasCooldown(MESMER.MIND_THE_GAP), false);
 });
 
 // Clarity's live skill effect is the sole source of its window and proc; removal or cancellation grants neither.
@@ -257,7 +257,7 @@ test('signet declarations reset only committed activations', () => {
       );
       assert.deepEqual(result.warnings, []);
       const runtime = observedRuntime(result);
-      assert.equal(runtime.cooldowns.has(target), cancelled || removed);
+      assert.equal(runtime.cooldownController.hasCooldown(target), cancelled || removed);
       assert.equal(runtime.rechargeProgress.has(target), cancelled || removed);
     }
   }
@@ -288,7 +288,7 @@ test('Mercy declares its Mark reset independently of the Malice refund', () => {
     );
     assert.deepEqual(result.warnings, []);
     const runtime = observedRuntime(result);
-    assert.equal(runtime.cooldowns.has(THIEF.DEADEYES_MARK), removed);
+    assert.equal(runtime.cooldownController.hasCooldown(THIEF.DEADEYES_MARK), removed);
     assert.equal(runtime.profession.specialization.state.malice, 0);
     refunds.push(runtime.profession.core.initiative.value);
   }
@@ -419,7 +419,7 @@ test('Elemental Celerity selects weapon targets and independently owns its spher
             runtime.cooldownController.startRecharge(skill, 0, 50);
             if (skill.ammo > 0) {
               runtime.cooldownController.ensureAmmo(skill);
-              runtime.ammo.get(skill.id).charges = 0;
+              runtime.cooldownController.readAmmo(skill.id).charges = 0;
             }
           }
 
@@ -431,8 +431,11 @@ test('Elemental Celerity selects weapon targets and independently owns its spher
     const runtime = observedRuntime(result);
     for (const skill of targets) {
       if (skill.ammo > 0) {
-        assert.equal(runtime.ammo.get(skill.id).charges, skill.attunement === 'Fire' ? skill.ammo : 0);
-      } else assert.equal(runtime.cooldowns.has(skill.id), skill.attunement !== 'Fire');
+        assert.equal(
+          runtime.cooldownController.readAmmo(skill.id).charges,
+          skill.attunement === 'Fire' ? skill.ammo : 0
+        );
+      } else assert.equal(runtime.cooldownController.hasCooldown(skill.id), skill.attunement !== 'Fire');
     }
 
     const boons = result.events.filter(

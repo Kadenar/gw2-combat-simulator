@@ -1,3 +1,4 @@
+import type { MechanicContext, MechanicCombatContext } from '#gw2/platform/profession-definition/mechanic-context.js';
 import type { ProfessionUiCallbackContext, ProfessionUiContract } from '#gw2/platform/profession-presentation/types.js';
 import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
 import type { Skill, SkillId } from '#gw2/platform/engine/skills/types.js';
@@ -10,9 +11,9 @@ import type {
   ProfessionBuildAssumptions
 } from '#gw2/platform/builds/types.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
-import type { Gw2Runtime } from '#gw2/platform/simulation/runtime-state.js';
+
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
-import type { Gw2ResolverRuntime } from '#gw2/platform/resolver/runtime-state.js';
+
 import type { ProfessionTraitSelection } from '#gw2/professions/shared/trait-data.js';
 import type { EngineerCoreState } from '#gw2/professions/engineer/core/state.js';
 import type { AmalgamState } from '#gw2/professions/engineer/specializations/amalgam/state.js';
@@ -67,7 +68,10 @@ export interface EngineerSkill extends Skill {
 }
 
 /** Engineer owners retain typed skill lookups; elite helpers can supply their own local skill subtype. */
-export type EngineerRuntime<TSkill extends EngineerSkill = EngineerSkill> = Gw2Runtime<EngineerRuntimeState, TSkill> & {
+export type EngineerRuntime<TSkill extends EngineerSkill = EngineerSkill> = MechanicContext<
+  EngineerRuntimeState,
+  TSkill
+> & {
   readonly config: EngineerConfig;
 };
 
@@ -97,7 +101,7 @@ export type EngineerResolverEvent = Gw2ResolverEvent & {
   readonly offTarget?: boolean;
 };
 
-export type EngineerResolverContext = Gw2ResolverRuntime & {
+export type EngineerResolverContext = MechanicCombatContext & {
   config: EngineerConfig;
   profession: EngineerRuntimeState;
 };

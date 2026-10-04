@@ -1,3 +1,4 @@
+import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
 import { buffApplicationStacks } from '#gw2/platform/combat/boons.js';
 import { armSkillFlip, consumeSkillFlip } from '#gw2/platform/engine/skills/skill-flips.js';
 import type { EffectDelivery } from '#gw2/platform/simulation/effect-emission.js';
@@ -77,7 +78,7 @@ function unavailable(reason: string, retryAt?: number): AvailabilityResult {
 
 // Which elemental the loadout has slotted (drives auto-summon). Bare "Glyph of
 // Elementals" is treated as the Fire variant.
-function selectedElemental(context: ElementalistRuntime): ElementalKind | null {
+function selectedElemental(context: MechanicQueriesOf<ElementalistRuntime>): ElementalKind | null {
   return selectedElementalFromSkills(selectedSkillIdSet(context.config.selectedSkillIds));
 }
 
@@ -126,7 +127,7 @@ function actionRate(context: ElementalistRuntime, at: number): number {
 /** Summons read only applications addressed to their current companion identity. */
 function elementalBoonActive(context: ElementalistRuntime, kind: string, at: number): boolean {
   return (
-    buffApplicationStacks(context.boons.get(kind) ?? [], kind, at, 1, {
+    buffApplicationStacks(context.combat.boonApplications(kind), kind, at, 1, {
       audience: 'summon',
       companionId: elementalistElementalCompanionId(context.profession.core.summonedElemental.summonGeneration)
     }) > 0
@@ -136,11 +137,7 @@ function elementalBoonActive(context: ElementalistRuntime, kind: string, at: num
 /** Report interruption at its actual boundary; pending hits are invalidated by the action generation. */
 function interruptCurrentAction(context: ElementalistRuntime, at: number): void {
   const elemental = context.profession.core.summonedElemental;
-  const action = context.history.find(
-    (event) => event.type === 'action' && event.activationId === elemental.currentActivationId
-  );
-  if (action && Number(action.fullEndsAt || action.endsAt || 0) > at)
-    Object.assign(action, { endsAt: at, interrupted: true });
+  context.facts.interruptAction(elemental.currentActivationId, at);
 }
 
 // Starts one attack: interrupts any prior action, bumps actionGeneration, emits the
@@ -878,7 +875,7 @@ export function ensureElementalistElemental(context: ElementalistRuntime, skill?
  * blocked (with a retry time) while their elemental lives. Returns null for unrelated skills.
  */
 export function elementalistElementalAvailability(
-  context: ElementalistRuntime,
+  context: MechanicQueriesOf<ElementalistRuntime>,
   skill: Skill
 ): AvailabilityResult | null {
   const elemental = professionCoreState(context).summonedElemental;

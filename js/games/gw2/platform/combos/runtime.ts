@@ -3,6 +3,7 @@ import { fieldDescriptors, finisherDescriptors, fieldAt } from '#gw2/platform/co
 import { comboCombatMetadata } from '#gw2/platform/combos/definitions.js';
 import { isComboFieldActiveAt, selectComboFieldForFinisher } from '#gw2/platform/combos/events.js';
 import type { Gw2Runtime } from '#gw2/platform/simulation/runtime-state.js';
+import type { MechanicContext } from '#gw2/platform/profession-definition/mechanic-context.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import type { CanonicalCatalog } from '#gw2/platform/engine/skills/types.js';
 import type { ComboFieldType } from '#gw2/platform/combos/types.js';
@@ -28,7 +29,11 @@ export function bindRuntimeCombo(runtime: Gw2Runtime, event: Gw2ResolverEvent): 
 }
 
 /** Emit field registrations and attempts from actual actions/impacts; the shared resolver alone rolls and applies combos. */
-export function produceRuntimeCombos(runtime: Gw2Runtime, catalog: CanonicalCatalog, event: Gw2ResolverEvent): void {
+export function produceRuntimeCombos(
+  runtime: Pick<MechanicContext, 'effects' | 'facts'>,
+  catalog: CanonicalCatalog,
+  event: Gw2ResolverEvent
+): void {
   // Non-damaging activations can declare a finisher explicitly without inventing a strike or boon.
   const explicitMarkerFinisher = event.type === 'marker' && Array.isArray(event.comboFinishers);
   if (
@@ -69,9 +74,7 @@ export function produceRuntimeCombos(runtime: Gw2Runtime, catalog: CanonicalCata
       descriptor.fieldSelectionAnchor === 'castStart'
         ? event.type === 'action'
           ? event
-          : runtime.history.find(
-              (candidate) => candidate.type === 'action' && candidate.activationId === event.activationId
-            )
+          : runtime.facts.actionFor(event.activationId)
         : undefined;
     if (descriptor.fieldSelectionAnchor === 'castStart' && !action)
       throw new TypeError('Cast-start combo requires an owning action.');

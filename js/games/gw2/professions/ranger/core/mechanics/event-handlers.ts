@@ -1,4 +1,3 @@
-import { reviseEffectState } from '#gw2/platform/combat/effect-revisions.js';
 import { grantCharges } from '#gw2/platform/combat/resources/charges.js';
 import { purgeExpiredStacks } from '#gw2/platform/combat/resources/timed-stacks.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
@@ -37,23 +36,7 @@ export function handleRangerPetSwapped(context: RangerResolverContext, event: Gw
   const state = professionCoreState(context);
   const outgoingCompanionId = rangerPetCompanionId(context);
   const removedAt = event.at + 1;
-  for (const condition of context.conditionState.values()) {
-    for (const stack of condition.stacks) {
-      const application = stack.application;
-      if (
-        application.source === 'ranger-pet' &&
-        (!application.summonOwner || String(application.summonOwner) === outgoingCompanionId)
-      ) {
-        // Cancel queued ticks without suppressing natural expiry ticks; shorten live stack visibility separately.
-        if (application.naturalExpiresAt > removedAt) application.removedAt = removedAt;
-        if (stack.expiresAt > removedAt) {
-          stack.expiresAt = removedAt;
-          // Report the shortened pet window even though the history array has not changed.
-          reviseEffectState(condition);
-        }
-      }
-    }
-  }
+  context.combat.retireCompanionConditions('ranger-pet', outgoingCompanionId, removedAt);
 
   const pet = rangerPetByName(String(event.activePet || ''));
   state.activePet = pet.name;

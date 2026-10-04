@@ -40,7 +40,7 @@ test('removed Dark Defense protection keeps its carapace and cooldown', () => {
   const runtime = observedRuntime(result);
   const core = runtime.profession.core;
   assert.ok(core.carapaceExpiries.length > 0);
-  assert.ok(runtime.procs.readyAt.darkDefense > runtime.time);
+  assert.ok(runtime.procs.snapshot()['darkDefense'] > runtime.time);
   assert.equal(
     result.events.some((event) => event.kind === 'protection'),
     false

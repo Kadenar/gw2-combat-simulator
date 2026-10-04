@@ -59,7 +59,11 @@ test('Continuum Split restores ammo recharge and cast lockout deadlines independ
     cooldowns: new Map(),
     profession: { core: { autoattackChains: {} }, specialization: { kind: 'Chronomancer', state: { continuum: null } } }
   };
-  const cooldown = createCooldownController({ state, rechargeDuration: () => 10 });
+  const cooldown = createCooldownController({
+    state,
+    rechargeDuration: () => 10,
+    skillFor: (id) => state.helpers.skillsById.get(id)
+  });
   state.effects = captureEffectEmissions().effects;
   const continuum = createContinuumController({
     state,

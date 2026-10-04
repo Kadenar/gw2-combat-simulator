@@ -1,3 +1,4 @@
+import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
 import { weaponFlipBlock } from '#gw2/platform/engine/skills/skill-flips.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { denySkillCast } from '#gw2/platform/engine/skills/availability.js';
@@ -18,7 +19,10 @@ import {
 
 // Enforce endurance, pet ownership, selected hammer variants, and timed weapon
 // flips before allowing a core Ranger cast; shared code owns chain ordering.
-export function rangerCoreCastAvailability(context: RangerRuntime, skill: RangerSkill): AvailabilityResult {
+export function rangerCoreCastAvailability(
+  context: MechanicQueriesOf<RangerRuntime>,
+  skill: RangerSkill
+): AvailabilityResult {
   const state = professionCoreState(context);
   if (skill.id === ID.PET_SWAP && !state.petActive) {
     return denySkillCast(skill, 'ranger.pet-inactive', 'the active specialization has replaced the pet.');

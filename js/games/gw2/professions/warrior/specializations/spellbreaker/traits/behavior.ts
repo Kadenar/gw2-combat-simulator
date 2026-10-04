@@ -1,3 +1,4 @@
+import type { MechanicContext } from '#gw2/platform/profession-definition/mechanic-context.js';
 import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
 import { isInternalCooldownReady } from '#gw2/platform/combat/procs.js';
 import { activeStackCount, grantTimedStacks } from '#gw2/platform/combat/resources/timed-stacks.js';
@@ -12,7 +13,7 @@ import {
 } from '#gw2/platform/engine/skills/balance-profiles.js';
 import type { RechargeProgress } from '#gw2/platform/engine/skills/recharge.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
-import type { Gw2Runtime } from '#gw2/platform/simulation/runtime-state.js';
+
 import { gw2CooldownReadyAt } from '#gw2/platform/skills/timing.js';
 import { WARRIOR_SKILL_IDS as ID, WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/professions/warrior/data/ids.js';
 import type { SpellbreakerState } from '#gw2/professions/warrior/specializations/spellbreaker/state.js';
@@ -20,7 +21,7 @@ import { spellbreakerState } from '#gw2/professions/warrior/specializations/spel
 import type { WarriorRuntimeState, WarriorSkill } from '#gw2/professions/warrior/types.js';
 import { canonicalTime } from '#kernel/core/clock.js';
 
-type Runtime = Gw2Runtime<WarriorRuntimeState, WarriorSkill>;
+type Runtime = MechanicContext<WarriorRuntimeState, WarriorSkill>;
 
 function gainAttackersInsight(
   context: Runtime,

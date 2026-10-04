@@ -1,3 +1,4 @@
+import type { MechanicContext } from '#gw2/platform/profession-definition/mechanic-context.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import {
   balanceProfileNumber,
@@ -8,7 +9,7 @@ import {
 import type { Skill } from '#gw2/platform/engine/skills/types.js';
 import { gw2ActivePrimaryWeapon } from '#gw2/platform/equipment/weapons/loadout.js';
 import { buildResolverBuff, buildResolverCondition } from '#gw2/platform/resolver/packets.js';
-import type { Gw2Runtime, RuntimeCast } from '#gw2/platform/simulation/runtime-state.js';
+import type { RuntimeCast } from '#gw2/platform/simulation/runtime-state.js';
 import { guardianTraitIcon } from '#gw2/professions/guardian/core/traits/behavior.js';
 import { GUARDIAN_TRAIT_IDS as TRAIT } from '#gw2/professions/guardian/data/ids.js';
 import type {
@@ -18,7 +19,7 @@ import type {
   GuardianSkill
 } from '#gw2/professions/guardian/types.js';
 
-type Runtime = Gw2Runtime<GuardianRuntimeState, GuardianSkill>;
+type Runtime = MechanicContext<GuardianRuntimeState, GuardianSkill>;
 
 export function reactToDragonhunterControl(context: GuardianResolverContext, event: GuardianResolverEvent): void {
   if (hasTrait(context, TRAIT.DULLED_SENSES)) {

@@ -1,3 +1,4 @@
+import type { MechanicContext } from '#gw2/platform/profession-definition/mechanic-context.js';
 import type { SkillId } from '#gw2/platform/engine/skills/types.js';
 import type { SimulationEventBase } from '#gw2/platform/engine/events/events.js';
 import type { SkillDamageCastOptions } from '#gw2/platform/profession-presentation/skill-damage.js';
@@ -8,7 +9,7 @@ import type { DamageCalculationStatus, DamageInputs, DamageUnit } from '#gw2/pla
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 
 /** Payload provenance carries timing and selected inputs, without creating or resolving a qualifying attack. */
-export function damageInputEvent(runtime: Gw2Runtime): Gw2ResolverEvent {
+export function damageInputEvent(runtime: { readonly time: number }): Gw2ResolverEvent {
   return {
     type: 'proc',
     at: runtime.time,
@@ -40,7 +41,7 @@ export function createDamageExecution<T extends object>(
     // Stat queries and measured payloads enter the same prepared state before environmental effects settle.
     initialize(runtime) {
       profession.prepareDamageState?.(
-        runtime,
+        runtime.mechanics,
         options.skillId == null ? undefined : profession.catalog.skillsById.get(options.skillId),
         {
           ...options.inputs,
@@ -82,7 +83,7 @@ export interface DamageEffectDefinition {
   readonly assumptions?: readonly string[];
   readonly sourceIds: readonly SkillId[];
   // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Heterogeneous content retains the selected profession's runtime at dispatch.
-  readonly emit: (runtime: Gw2Runtime<any>, inputs: DamageInputs) => void;
+  readonly emit: (runtime: MechanicContext<any>, inputs: DamageInputs) => void;
 }
 
 /** A failed calculation carries a product status instead of an activation denial. */

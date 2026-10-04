@@ -125,7 +125,7 @@ export function triggerHuntersGaze(context: RangerResolverContext, event: Gw2Res
       at: event.at,
       sourceSkill: event.skillName,
       detail: `${stacks} might`,
-      icon: context.helpers.skillsById?.get(TRAIT.HUNTERS_GAZE)?.icon || ''
+      icon: context.helpers.skillsById.get(TRAIT.HUNTERS_GAZE)?.icon || ''
     }
   });
   context.effects.emit({
@@ -384,7 +384,8 @@ export function applyRangerDodgeTraits(context: RangerRuntime, at = context.time
   const baseDuration = effectNumber(profile, effect, 'duration');
   // Reapplications stack duration in game, so preserve the live remainder
   // instead of replacing it with another six-second overlapping window.
-  const activeUntil = context.history
+  const activeUntil = context.facts
+    .read()
     .filter((event) => event.type === 'buff' && event.kind === kind && event.at <= at)
     .reduce((maximum, event) => Math.max(maximum, gw2EffectExpiresAt(event.at, event.duration || 0)), at);
   context.effects.emit({

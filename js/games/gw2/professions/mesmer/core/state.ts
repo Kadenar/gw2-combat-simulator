@@ -1,3 +1,4 @@
+import type { MesmerCastDetails } from '#gw2/professions/mesmer/core/execution/effect-types.js';
 import type { Gw2PlanningStateInput } from '#gw2/platform/simulation/types.js';
 import { snapshotProfessionState } from '#gw2/platform/engine/profession/state.js';
 import { canonicalTime } from '#kernel/core/clock.js';
@@ -9,6 +10,8 @@ import type { MesmerClone } from '#gw2/professions/mesmer/core/mechanics/illusio
 
 /** Core owns state present for every specialization runtime. */
 export interface MesmerCoreState {
+  /** Acceptance facts stay with the run so predicates can read them without acquiring live controllers. */
+  castDetails: Map<string, MesmerCastDetails>;
   clones: MesmerClone[];
   trackedSkillHits: Record<string, number[]>;
 
@@ -23,6 +26,7 @@ export interface MesmerCoreState {
 /** Creates state owned by every Mesmer build, excluding active-specialization fields. */
 export function createMesmerCoreState(): MesmerCoreState {
   return {
+    castDetails: new Map(),
     clones: [],
     trackedSkillHits: {},
 

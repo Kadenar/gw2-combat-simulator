@@ -1,3 +1,4 @@
+import type { ReadonlyMechanicState } from '#gw2/platform/profession-definition/runtime-context.js';
 import { applyKleptomaniac, improvisationStolenUses } from '#gw2/professions/thief/core/traits/steal.js';
 
 import { THIEF_SKILL_IDS as ID } from '#gw2/professions/thief/data/ids.js';
@@ -16,7 +17,9 @@ export const THIEF_STOLEN_SKILL_IDS: readonly SkillId[] = Object.freeze([
 
 /** The stolen skills currently selectable: the whole pool, or the one skill locked by a forced grant or reuse. */
 export function storedStolenSkillChoices(
-  state: Pick<ThiefCoreState, 'storedStolenSkillId' | 'storedStolenSkillIds' | 'storedStolenSkillCount'>
+  state: ReadonlyMechanicState<
+    Pick<ThiefCoreState, 'storedStolenSkillId' | 'storedStolenSkillIds' | 'storedStolenSkillCount'>
+  >
 ): readonly SkillId[] {
   if ((state.storedStolenSkillCount || 0) <= 0) return [];
   return state.storedStolenSkillId == null ? state.storedStolenSkillIds : [state.storedStolenSkillId];

@@ -322,7 +322,7 @@ test("Healer's Resolution grants eight seconds on committed heals with a shared 
       const deadline = completion - offset;
       const result = runGuardian([skillId], settings, {
         initialize: (runtime) => {
-          runtime.procs.readyAt['guardian.core.healersResolution'] = deadline;
+          runtime.procs.setDeadline('guardian.core.healersResolution', deadline);
         }
       });
       const boons = result.events.filter((event) => event.type === 'buff' && event.kind === 'resolution');
@@ -359,7 +359,7 @@ test("Protector's Restoration shares a fixed twenty-second ICD across committed 
       const deadline = completion - offset;
       const result = runGuardian([skillId], settings, {
         initialize: (runtime) => {
-          runtime.procs.readyAt['guardian.core.protectorsRestoration'] = deadline;
+          runtime.procs.setDeadline('guardian.core.protectorsRestoration', deadline);
         }
       });
       const boons = result.events.filter((event) => event.type === 'buff' && event.kind === 'protection');

@@ -26,7 +26,6 @@ import type { MesmerRuntime, MesmerRuntimeState } from '#gw2/professions/mesmer/
 
 /** Activates Deadly Blades only after a successfully resolved Virtuoso Bladesong. */
 export function resolveDeadlyBlades(context: MesmerRuntime, resolution: MesmerShatterResolution): void {
-  const runtime = mesmerMechanicsFor(context);
   if (!hasTrait(context, TRAIT.DEADLY_BLADES)) return;
 
   const at = resolution.at;
@@ -41,7 +40,7 @@ export function resolveDeadlyBlades(context: MesmerRuntime, resolution: MesmerSh
         duration: balanceProfileNumber(deadlyBladesProfile, 'durationMultiplier')
       }
     ];
-    const traitProfile = requireBalanceProfileFromContext(runtime.context, TRAIT.DEADLY_BLADES);
+    const traitProfile = requireBalanceProfileFromContext(context, TRAIT.DEADLY_BLADES);
     const traitSource = {
       source: 'Trait',
       sourceId: TRAIT.DEADLY_BLADES,
@@ -50,7 +49,7 @@ export function resolveDeadlyBlades(context: MesmerRuntime, resolution: MesmerSh
       skillName: traitProfile.name
     };
     {
-      const proc = runtime.context.effects.emit({
+      const proc = context.effects.emit({
         ...resolution.delivery,
         kind: 'announcement',
         log: true,
@@ -58,7 +57,7 @@ export function resolveDeadlyBlades(context: MesmerRuntime, resolution: MesmerSh
         announcement: { type: 'trait', name: traitProfile.name, at: at, sourceSkill: resolution.skill.name, detail: '' }
       });
       for (const grant of grants)
-        runtime.context.effects.emit({
+        context.effects.emit({
           ...resolution.delivery,
           kind: 'packet',
           cause: proc,
@@ -101,7 +100,6 @@ export function phantasmalBladesPolicy(
 export const resolveBladeCriticalTraits: NonNullable<
   RuntimeProfession<MesmerRuntimeState, MesmerSkill>['reactions']
 >['damage.resolved'] = (runtime, event, details) => {
-  const mechanics = mesmerMechanicsFor(runtime);
   const skill = runtime.helpers.skillsById.get(event.skillId ?? '');
   if ((!event.metadata?.blade && !skill?.blade) || event.canCrit === false) return;
   for (const [id, name, condition, proc] of [
@@ -135,7 +133,7 @@ export const resolveBladeCriticalTraits: NonNullable<
       })
     });
     if (id === TRAIT.JAGGED_MIND)
-      mechanics.context.effects.emit({
+      runtime.effects.emit({
         kind: 'announcement',
         log: true,
         attribution: { source: 'Trait', sourceId: id, actorType: 'effect' },

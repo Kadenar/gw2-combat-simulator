@@ -5,6 +5,7 @@ import {
   requireBalanceProfileFromContext
 } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
+import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
 import { positional, rangerBoonActive } from '#gw2/professions/ranger/core/traits/modifier-queries.js';
 import { RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
 import type { RangerRuntime } from '#gw2/professions/ranger/types.js';
@@ -83,7 +84,7 @@ export const quickDraw = defineTrait({
   rechargeRules: [
     {
       order: 0,
-      when: (runtime: RangerRuntime, skill) =>
+      when: (runtime: MechanicQueriesOf<RangerRuntime>, skill) =>
         skill.type === 'Weapon' && skill.slot !== 'Weapon_1' && runtime.profession.core.quickDrawUntil > runtime.time,
       multiplier: { profile: TRAIT.QUICK_DRAW, field: 'rechargeMultiplier' }
     }

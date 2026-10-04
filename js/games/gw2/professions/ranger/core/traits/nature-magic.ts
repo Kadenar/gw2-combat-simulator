@@ -1,3 +1,4 @@
+import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { isStandardBoon } from '#gw2/platform/combat/boons.js';
 import { gw2EventOwnerActorType, isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
@@ -187,9 +188,9 @@ export const wellspring = defineTrait({
       order: 1,
       emit: TRAIT.WELLSPRING,
       on: 'castCommit' as const,
-      when: (_runtime: RangerRuntime, cast: RuntimeCast<RangerSkill>) => cast.skill.type === 'Heal',
+      when: (_runtime: MechanicQueriesOf<RangerRuntime>, cast: RuntimeCast<RangerSkill>) => cast.skill.type === 'Heal',
       effects: (effect) => effect.type === 'boon' && effect.name === 'regeneration',
-      attribution: (_runtime: RangerRuntime, cast: RuntimeCast<RangerSkill>) => ({
+      attribution: (_runtime: MechanicQueriesOf<RangerRuntime>, cast: RuntimeCast<RangerSkill>) => ({
         skillId: TRAIT.WELLSPRING,
         skillName: 'Wellspring',
         name: `Wellspring - regeneration`,
@@ -230,9 +231,10 @@ export const windborneNotes = defineTrait({
       order: 2,
       emit: TRAIT.WINDBORNE_NOTES,
       on: 'castCommit' as const,
-      when: (_runtime: RangerRuntime, cast: RuntimeCast<RangerSkill>) => cast.skill.weapon === 'Warhorn',
+      when: (_runtime: MechanicQueriesOf<RangerRuntime>, cast: RuntimeCast<RangerSkill>) =>
+        cast.skill.weapon === 'Warhorn',
       effects: (effect) => effect.type === 'boon' && effect.name === 'regeneration',
-      attribution: (_runtime: RangerRuntime, cast: RuntimeCast<RangerSkill>) => ({
+      attribution: (_runtime: MechanicQueriesOf<RangerRuntime>, cast: RuntimeCast<RangerSkill>) => ({
         skillId: TRAIT.WINDBORNE_NOTES,
         skillName: 'Windborne Notes',
         name: `Windborne Notes - regeneration`,

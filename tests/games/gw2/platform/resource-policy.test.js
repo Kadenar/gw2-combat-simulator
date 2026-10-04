@@ -15,6 +15,16 @@ function fixture(kind, config = {}, policy = {}) {
     config,
     profession: { pool: kind === 'continuous' ? createResourceClock() : createDiscreteResourceClock() }
   };
+  // Bind the policy's owned data independently of the engine controller under test.
+  context.mechanics = {
+    profession: context.profession,
+    get config() {
+      return context.config;
+    },
+    get time() {
+      return context.time;
+    }
+  };
   context.resourceController = createRuntimeResources(context, {
     resources: {
       initiative: {

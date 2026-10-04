@@ -2,11 +2,22 @@ import { isGw2PlayerActorEvent } from '#gw2/platform/combat/state/event-ownershi
 import { gw2SigilIds } from '#gw2/platform/equipment/sigils/loadout.js';
 import { SIGIL_IDS, SIGIL_PROCS, SIGIL_BY_ID } from '#gw2/platform/equipment/sigils/data.js';
 import { createSigilConditionEvent, createSigilStrikeEvent } from '#gw2/platform/equipment/sigils/proc-events.js';
-import type { Gw2Runtime } from '#gw2/platform/simulation/runtime-state.js';
+import type { MechanicContext } from '#gw2/platform/profession-definition/mechanic-context.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import type { Gw2SigilProc, Gw2SigilRuntimeState } from '#gw2/platform/equipment/sigils/types.js';
 
 const procs = SIGIL_PROCS as Readonly<Record<number, Gw2SigilProc>>;
+
+/** Sigils own their armed state and use only combat facts, proc claims, emission and endurance grants. */
+export interface SigilRuntimeContext extends Pick<
+  MechanicContext,
+  'config' | 'effects' | 'combatStartTime' | 'combatStartPending' | 'combatActive' | 'activeWeaponSet'
+> {
+  readonly sigil: Gw2SigilRuntimeState;
+  readonly firstHitTime: number | null;
+  readonly procs: Pick<MechanicContext['procs'], 'claimCooldown'>;
+  readonly endurance: Pick<MechanicContext['endurance'], 'grant'>;
+}
 
 /** Each simulation owns its armed sigil effects; cooldowns live in the shared proc registry. */
 export function createSigilRuntimeState(): Gw2SigilRuntimeState {
@@ -14,7 +25,7 @@ export function createSigilRuntimeState(): Gw2SigilRuntimeState {
 }
 
 /** Actual eligible hits consume Doom once; misses and post-death packets never enter this function. */
-function consumeRuntimeDoom(runtime: Gw2Runtime, event: Gw2ResolverEvent): void {
+function consumeRuntimeDoom(runtime: SigilRuntimeContext, event: Gw2ResolverEvent): void {
   if (!runtime.sigil.doomPending || !isGw2PlayerActorEvent(event) || !(Number(event.coefficient) > 0)) return;
   runtime.sigil.doomPending = false;
   runtime.effects.emit({
@@ -40,14 +51,14 @@ function consumeRuntimeDoom(runtime: Gw2Runtime, event: Gw2ResolverEvent): void 
 }
 
 /** Accepted strikes consume armed sigils before triggering ordinary strike procs. */
-export function applyRuntimeSigilStrike(runtime: Gw2Runtime, event: Gw2ResolverEvent): void {
+export function applyRuntimeSigilStrike(runtime: SigilRuntimeContext, event: Gw2ResolverEvent): void {
   consumeRuntimeDoom(runtime, event);
   applyRuntimeSigils(runtime, 'strike', event);
 }
 
 /** Swap, control and ordinary strike sigils claim namespaced cooldowns in the shared proc registry. */
 export function applyRuntimeSigils(
-  runtime: Gw2Runtime,
+  runtime: SigilRuntimeContext,
   trigger: 'swap' | 'control' | 'strike',
   event: Gw2ResolverEvent
 ): void {

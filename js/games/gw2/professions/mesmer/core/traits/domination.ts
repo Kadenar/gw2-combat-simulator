@@ -184,7 +184,7 @@ export function triggerRendingShatter(context: MesmerRuntime, resolution: Mesmer
   for (const hit of hits) {
     if (hit.count <= 0) continue;
     buildMesmerConditions(
-      mechanics.context,
+      context,
       resolution.skill.name,
       hit.at,
       {
@@ -201,7 +201,7 @@ export function triggerRendingShatter(context: MesmerRuntime, resolution: Mesmer
         actorType: 'player'
       }
     ).forEach((packet) => {
-      mechanics.context.effects.emit({
+      context.effects.emit({
         ...resolution.delivery,
         kind: 'packet',
         event: packet,

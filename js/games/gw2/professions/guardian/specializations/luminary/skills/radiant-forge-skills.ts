@@ -1,8 +1,11 @@
+import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
+import type { MechanicContext } from '#gw2/platform/profession-definition/mechanic-context.js';
+import type { CastDetailContext } from '#gw2/platform/profession-definition/runtime-context.js';
 import { MODIFIER_TARGET, type Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
 import { impactEffects } from '#gw2/platform/engine/effects/authoring.js';
 import { requireBalanceProfileFromContext, requireEffect } from '#gw2/platform/engine/skills/balance-profiles.js';
 import type { Skill, SkillEffect } from '#gw2/platform/engine/skills/types.js';
-import type { Gw2Runtime, RuntimeCast, RuntimeProfession } from '#gw2/platform/simulation/runtime-state.js';
+import type { RuntimeCast, RuntimeProfession } from '#gw2/platform/simulation/runtime-state.js';
 import { projectCastRelativeEffectTimingMs } from '#gw2/platform/skills/timing.js';
 import { guardianTimedBuffActive } from '#gw2/professions/guardian/core/mechanics/modifier-queries.js';
 import { GUARDIAN_SKILL_IDS as ID } from '#gw2/professions/guardian/data/ids.js';
@@ -334,21 +337,24 @@ export const LUMINARY_RADIANT_FORGE_SKILL_MECHANICS: Readonly<Record<number, Par
   }
 });
 
-type Runtime = Gw2Runtime<GuardianRuntimeState, GuardianSkill>;
+type Runtime = MechanicContext<GuardianRuntimeState, GuardianSkill>;
 export const HAMMER = 'guardian.luminary.hammer';
 export const BOON = 'guardian.luminary.weapon-boon';
 export const BLADE_IMMOBILIZE = 'guardian.luminary.blade-immobilize';
 
 /** Duration and label inspect the same cadence that selection advances only after acceptance. */
-export function glaringBurstDuration(runtime: Runtime, skill: Skill, duration: number): number {
+export function glaringBurstDuration(runtime: MechanicQueriesOf<Runtime>, skill: Skill, duration: number): number {
   const state = luminaryState.from(runtime);
   return state.radiantWeapon === 'blade'
     ? duration * ((state.glaringBurstSwordSlow ? 680 : 440) / (skill.castTimeMs ?? 600))
     : duration;
 }
 
-export function glaringBurstDetail(runtime: Runtime): string | undefined {
-  const state = luminaryState.from(runtime);
+/** Labels inspect the current Luminary variant before accepted effects advance its cadence. */
+export function glaringBurstDetail(context: CastDetailContext<GuardianRuntimeState>): string | undefined {
+  const specialization = context.readProfessionState().specialization;
+  if (specialization.kind !== 'Luminary') throw new TypeError('Glaring Burst requires Luminary state.');
+  const state = specialization.state;
   const label =
     state.radiantWeapon === 'blade'
       ? `Sword (${state.glaringBurstSwordSlow ? 'slow' : 'fast'})`

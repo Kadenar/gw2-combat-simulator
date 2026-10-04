@@ -316,6 +316,7 @@ test('Mechanist registered recharge owners read preview values and preserve Over
       selectedTraitIds: [ENGINEER.MECH_CORE_JADE_DYNAMO, ENGINEER.MECH_CORE_J_DRIVE]
     },
     cooldowns: new Map([[ENGINEER_SKILLS.OVERCLOCK_SIGNET, 90]]),
+    cooldownController: { readyAt: (id) => context.cooldowns.get(id) },
     time: 1
   };
   const skill = (id) => runtime.catalog.skillsById.get(id);

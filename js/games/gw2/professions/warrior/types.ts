@@ -1,9 +1,10 @@
+import type { MechanicCombatContext } from '#gw2/platform/profession-definition/mechanic-context.js';
 import type { SkillId } from '#gw2/platform/engine/skills/types.js';
 import type { ProfessionUiCallbackContext, ProfessionUiContract } from '#gw2/platform/profession-presentation/types.js';
 import type { Skill } from '#gw2/platform/engine/skills/types.js';
 import type { Gw2Build, Gw2BuildSpecialization, Gw2CanonicalBuild } from '#gw2/platform/builds/types.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
-import type { Gw2ResolverRuntime } from '#gw2/platform/resolver/runtime-state.js';
+
 import type { WarriorCoreState } from '#gw2/professions/warrior/core/state.js';
 import type { BerserkerState } from '#gw2/professions/warrior/specializations/berserker/state.js';
 import type { SpellbreakerState } from '#gw2/professions/warrior/specializations/spellbreaker/state.js';
@@ -58,7 +59,7 @@ export interface WarriorSkill extends Skill {
   readonly dragonSlashMaximumBurningDuration?: number;
 }
 
-export type WarriorResolverContext = Gw2ResolverRuntime & {
+export type WarriorResolverContext = MechanicCombatContext & {
   profession: WarriorRuntimeState;
 };
 

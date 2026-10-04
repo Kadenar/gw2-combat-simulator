@@ -1,6 +1,6 @@
+import type { MechanicContext } from '#gw2/platform/profession-definition/mechanic-context.js';
 import { advanceCriticalProc, criticalOpportunity } from '#gw2/platform/combat/critical-procs.js';
 import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
-import { remainingTargetHealthBelow } from '#gw2/platform/combat/state/target-health.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import {
   balanceProfileNumber,
@@ -12,7 +12,7 @@ import {
 import { gw2ConfiguredWeaponSet } from '#gw2/platform/equipment/weapons/loadout.js';
 import { buildResolverBuff } from '#gw2/platform/resolver/packets.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
-import type { Gw2Runtime, RuntimeCast } from '#gw2/platform/simulation/runtime-state.js';
+import type { RuntimeCast } from '#gw2/platform/simulation/runtime-state.js';
 import { grantWarriorAdrenaline } from '#gw2/professions/warrior/core/mechanics/adrenaline.js';
 
 import type { Gw2MutableStats } from '#gw2/platform/combat/types.js';
@@ -30,13 +30,13 @@ import { canonicalTime } from '#kernel/core/clock.js';
 
 // Trigger Lesser Signet of Might after the first eligible below-half-health strike at that strike's exact timestamp.
 export function reactToWarriorDamage(
-  context: Gw2Runtime<WarriorRuntimeState, WarriorSkill>,
+  context: MechanicContext<WarriorRuntimeState, WarriorSkill>,
   event: Gw2ResolverEvent
 ): void {
   if (
     event.actorType !== 'player' ||
     !((event.coefficient || 0) > 0) ||
-    !remainingTargetHealthBelow(context.config, context, 0.5) ||
+    !context.combat.targetHealthBelow(0.5) ||
     !hasTrait(context, TRAIT.SIGNET_MASTERY)
   ) {
     return;
@@ -147,7 +147,7 @@ export function triggerOpportunist(runtime: WarriorRuntime, event: Gw2ResolverEv
   }
 }
 
-type WarriorRuntime = Gw2Runtime<WarriorRuntimeState, WarriorSkill>;
+type WarriorRuntime = MechanicContext<WarriorRuntimeState, WarriorSkill>;
 
 /** Apply line-owned rewards at the shared reaction boundary. */
 export function burstPrecisionHit(runtime: WarriorRuntime, event: Gw2ResolverEvent): void {
@@ -324,7 +324,7 @@ export function triggerHeightenedFocus(runtime: WarriorRuntime, event: Gw2Resolv
     event.actorType !== 'player' ||
     !((event.coefficient || 0) > 0) ||
     !hasTrait(runtime, TRAIT.HEIGHTENED_FOCUS) ||
-    !remainingTargetHealthBelow(runtime.config, runtime, 0.5) ||
+    !runtime.combat.targetHealthBelow(0.5) ||
     !runtime.procs.claim(TRAIT.HEIGHTENED_FOCUS)
   )
     return;
@@ -823,7 +823,7 @@ export function soldierFocusBurst(runtime: WarriorRuntime, event: Gw2ResolverEve
 
 /** Apply line-owned rewards at the shared reaction boundary. */
 export function resetSoldierFocus(runtime: WarriorRuntime): void {
-  if (hasTrait(runtime, TRAIT.MARTIAL_CADENCE)) runtime.procs.readyAt['warrior.core.soldierFocus'] = runtime.time;
+  if (hasTrait(runtime, TRAIT.MARTIAL_CADENCE)) runtime.procs.setDeadline('warrior.core.soldierFocus', runtime.time);
 }
 
 /** Arm the first selected pulse after the Core pool is initialized. */

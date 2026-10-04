@@ -1,3 +1,4 @@
+import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
 import type { EndurancePolicy } from '#gw2/platform/combat/resources/endurance-policy.js';
 import type { ResourcePolicy } from '#gw2/platform/combat/resources/resource-policy.js';
 import { grantTimedStacks } from '#gw2/platform/combat/resources/timed-stacks.js';
@@ -85,7 +86,7 @@ const DODGE_IDS = new Set<SkillId>([SHARED_SKILL_IDS.DODGE, VINDICATOR_JUMP_SKIL
 const upkeepCosts = new WeakMap<RuntimeCast<RevenantSkill>, number>();
 
 /** Releases are identified through the live catalog's upkeep parents. */
-function upkeepRelease(runtime: RevenantRuntime, skill: Skill): boolean {
+function upkeepRelease(runtime: MechanicQueriesOf<RevenantRuntime>, skill: Skill): boolean {
   return isRevenantUpkeepRelease(skill, (id) => runtime.helpers.skillsById.get(id));
 }
 
@@ -123,7 +124,11 @@ const revenantEndurance: EndurancePolicy<RevenantRuntime> = {
 };
 
 /** Legend, flip, upkeep, endurance, and Energy gates read the one live state at the current instant. */
-function revenantAvailability(runtime: RevenantRuntime, skill: Skill, _command: CastCommand): AvailabilityResult {
+function revenantAvailability(
+  runtime: MechanicQueriesOf<RevenantRuntime>,
+  skill: Skill,
+  _command: CastCommand
+): AvailabilityResult {
   const core = runtime.profession.core;
   const flips = core.availableFlips;
   const now = runtime.time;
@@ -161,7 +166,7 @@ function revenantAvailability(runtime: RevenantRuntime, skill: Skill, _command: 
     energy + EPSILON < cost && core.combatBeganAt == null ? null : runtime.resourceController.readyAt('energy', cost);
   // A fractional balance can cross a cost between action ticks; wait until the shared grid permits spending it.
   if (energy + EPSILON < cost || (energyReadyAt != null && energyReadyAt > now + EPSILON)) {
-    const cooldownReadyAt = runtime.cooldowns.get(skill.id) || 0;
+    const cooldownReadyAt = runtime.cooldownController.readyAt(skill.id) || 0;
     return denySkillCast(
       skill,
       'revenant.insufficient-energy',

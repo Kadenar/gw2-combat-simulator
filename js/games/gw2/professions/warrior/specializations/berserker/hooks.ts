@@ -1,8 +1,9 @@
+import type { MechanicContext } from '#gw2/platform/profession-definition/mechanic-context.js';
 import {
   balanceProfileNumber,
   requireBalanceProfileFromContext
 } from '#gw2/platform/engine/skills/balance-profiles.js';
-import type { Gw2Runtime, RuntimeCast, RuntimeProfession } from '#gw2/platform/simulation/runtime-state.js';
+import type { RuntimeCast, RuntimeProfession } from '#gw2/platform/simulation/runtime-state.js';
 import { gw2EffectExpiresAt } from '#gw2/platform/skills/timing.js';
 import { WARRIOR_CORE_BALANCE_PROFILE_IDS as CORE_PROFILE } from '#gw2/professions/warrior/core/profiles.js';
 import { WARRIOR_SKILL_IDS as ID } from '#gw2/professions/warrior/data/ids.js';
@@ -20,7 +21,7 @@ import {
 } from '#gw2/professions/warrior/specializations/berserker/traits/behavior.js';
 import type { WarriorRuntimeState, WarriorSkill } from '#gw2/professions/warrior/types.js';
 
-type Runtime = Gw2Runtime<WarriorRuntimeState, WarriorSkill>;
+type Runtime = MechanicContext<WarriorRuntimeState, WarriorSkill>;
 
 /** Completed activation opens or extends the current mode; expiring during a cast cannot revive it. */
 function completeBerserk(runtime: Runtime, cast: RuntimeCast<WarriorSkill>): void {

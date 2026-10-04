@@ -1,10 +1,11 @@
 import { requireBalanceProfileFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
-import type { Gw2Runtime, RuntimeCast } from '#gw2/platform/simulation/runtime-state.js';
+import type { MechanicContext } from '#gw2/platform/profession-definition/mechanic-context.js';
+import type { RuntimeCast } from '#gw2/platform/simulation/runtime-state.js';
 import type { SkillEffect } from '#gw2/platform/engine/skills/types.js';
 
 /** Select one authored variant at acceptance; its packets retain normal timing, cancellation, and attribution. */
-export function selectSkillEffects(runtime: Gw2Runtime, cast: RuntimeCast): readonly SkillEffect[] {
-  const variant = cast.skill.effectVariants?.find((candidate) => candidate.when(runtime, cast));
+export function selectSkillEffects(runtime: MechanicContext, cast: RuntimeCast): readonly SkillEffect[] {
+  const variant = cast.skill.effectVariants?.find((candidate) => candidate.when(runtime.queries, cast));
   if (!variant) return cast.skill.effects ?? [];
   // An intrinsic acceptance transform uses the selected skill payload without copying it into a second profile.
   const effects =

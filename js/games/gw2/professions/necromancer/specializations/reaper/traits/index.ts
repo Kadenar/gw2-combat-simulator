@@ -134,10 +134,7 @@ export const chillingVictory = defineTrait({
     reactions: {
       'damage.resolved'(runtime, event) {
         if (event.actorType !== 'player' || !(Number(event.coefficient) > 0)) return;
-        if (
-          hasTrait(runtime, TRAIT.CHILLING_VICTORY) &&
-          runtime.query.targetHasCondition('Chilled', runtime.time, runtime)
-        ) {
+        if (hasTrait(runtime, TRAIT.CHILLING_VICTORY) && runtime.combat.targetHasCondition('Chilled', runtime.time)) {
           const profile = requireBalanceProfileFromContext(runtime, TRAIT.CHILLING_VICTORY);
           // Chilled player hits claim the profile's cooldown before granting life force.
           if (

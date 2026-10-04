@@ -1,3 +1,4 @@
+import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
 import { damageInputEvent } from '#gw2/platform/skill-damage/execution.js';
 import { emitVenom, VENOMS } from '#gw2/professions/thief/core/mechanics/venoms.js';
 import {
@@ -82,7 +83,7 @@ import type { ThiefRuntimeState, ThiefSkill } from '#gw2/professions/thief/types
  * Core gates for endurance, follow-up windows, spear stages, preparations, stealth replacements, rifle stance, stored
  * stolen skills, and initiative, all read from the one live state at the current instant.
  */
-function thiefAvailability(runtime: ThiefRuntime, skill: ThiefSkill): AvailabilityResult {
+function thiefAvailability(runtime: MechanicQueriesOf<ThiefRuntime>, skill: ThiefSkill): AvailabilityResult {
   const core = runtime.profession.core;
   const now = runtime.time;
   if (skill.type === 'Weapon' && skill.flipParentId != null && !skillFlipReady(core.availableFlips[skill.id], now)) {
@@ -148,7 +149,7 @@ function thiefAvailability(runtime: ThiefRuntime, skill: ThiefSkill): Availabili
 }
 
 /** Additive steal reductions retain their combined formula; ordinary multipliers use declared rules. */
-function thiefRechargeWork(runtime: ThiefRuntime, skill: ThiefSkill, work: number): number {
+function thiefRechargeWork(runtime: MechanicQueriesOf<ThiefRuntime>, skill: ThiefSkill, work: number): number {
   if (!skill.stealTraitSkill || skill.stealRechargeMode !== 'additive') return work;
   return work * (1 - leadAttacksRechargeReduction(runtime) - sleightOfHandRechargeReduction(runtime));
 }
@@ -229,7 +230,9 @@ export const thiefCoreHooks: Partial<RuntimeProfession<ThiefRuntimeState, ThiefS
   rechargeWork: thiefRechargeWork,
   // A Double Edge recast while recharging keeps the running recharge instead of reserving a new one.
   reserveRecharge: (runtime, skill, work) =>
-    skill.usableWhileRecharging === true && (runtime.cooldowns.get(skill.id) || 0) > runtime.time + EPSILON ? 0 : work,
+    skill.usableWhileRecharging === true && (runtime.cooldownController.readyAt(skill.id) || 0) > runtime.time + EPSILON
+      ? 0
+      : work,
   onCastStart(runtime, cast) {
     const skill = cast.skill;
     pruneSkillFlips(runtime.profession.core.availableFlips, runtime.time);

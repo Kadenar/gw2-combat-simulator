@@ -29,7 +29,7 @@ function reduceDuneCloakShatters(
   if (!hasTrait(state, TRAIT.DUNE_CLOAK)) return;
   for (const id of [ID.MIND_WRACK, ID.CRY_OF_FRUSTRATION]) {
     const shatter = state.helpers.skillsById.get(id);
-    const readyAt = shatter ? state.cooldowns.get(shatter.id) : null;
+    const readyAt = shatter ? state.cooldownController.readyAt(shatter.id) : null;
     if (shatter && readyAt != null) {
       const duneCloakProfile = requireBalanceProfileFromContext(state, TRAIT.DUNE_CLOAK);
       state.cooldownController.reduceSkillRecharge(
@@ -89,8 +89,6 @@ export function applyMirageCloakTraits(
   executeCloneAmbushes: MesmerMirageController['executeCloneAmbushes'],
   delivery: EffectDelivery = {}
 ): void {
-  const runtime = mesmerMechanicsFor(state);
-
   const renewingOasis = hasTrait(state, TRAIT.RENEWING_OASIS)
     ? requireEffect(requireBalanceProfileFromContext(state, TRAIT.RENEWING_OASIS), 'boon', 'regeneration')
     : undefined;
@@ -99,7 +97,7 @@ export function applyMirageCloakTraits(
       const grants: readonly MesmerEventExtra[] = [
         { kind: String(renewingOasis.boon), stacks: renewingOasis.stacks, duration: renewingOasis.duration }
       ];
-      const traitProfile = requireBalanceProfileFromContext(runtime.context, TRAIT.RENEWING_OASIS);
+      const traitProfile = requireBalanceProfileFromContext(state, TRAIT.RENEWING_OASIS);
       const traitSource = {
         source: 'Trait',
         sourceId: TRAIT.RENEWING_OASIS,
@@ -108,7 +106,7 @@ export function applyMirageCloakTraits(
         skillName: traitProfile.name
       };
       {
-        const proc = runtime.context.effects.emit({
+        const proc = state.effects.emit({
           ...delivery,
           kind: 'announcement',
           log: true,
@@ -116,7 +114,7 @@ export function applyMirageCloakTraits(
           announcement: { type: 'trait', name: traitProfile.name, at: at, sourceSkill: source, detail: '' }
         });
         for (const grant of grants)
-          runtime.context.effects.emit({
+          state.effects.emit({
             ...delivery,
             kind: 'packet',
             cause: proc,
@@ -157,8 +155,6 @@ export function applyMirageAmbushTraits(
   impactAt: number,
   delivery: EffectDelivery = {}
 ): void {
-  const runtime = mesmerMechanicsFor(state);
-
   const riddleOfSand =
     mirageState.from(state).riddleOfSandReady && hasTrait(state, TRAIT.RIDDLE_OF_SAND)
       ? requireEffect(requireBalanceProfileFromContext(state, TRAIT.RIDDLE_OF_SAND), 'condition', 'Confusion')
@@ -210,7 +206,7 @@ export function applyMirageAmbushTraits(
           audience: { recipients: 'party', maximumRecipients: 5 }
         }
       ];
-      const traitProfile = requireBalanceProfileFromContext(runtime.context, TRAIT.MIRAGE_MANTLE);
+      const traitProfile = requireBalanceProfileFromContext(state, TRAIT.MIRAGE_MANTLE);
       const traitSource = {
         source: 'Trait',
         sourceId: TRAIT.MIRAGE_MANTLE,
@@ -219,7 +215,7 @@ export function applyMirageAmbushTraits(
         skillName: traitProfile.name
       };
       {
-        const proc = runtime.context.effects.emit({
+        const proc = state.effects.emit({
           ...delivery,
           kind: 'announcement',
           log: true,
@@ -227,7 +223,7 @@ export function applyMirageAmbushTraits(
           announcement: { type: 'trait', name: traitProfile.name, at: impactAt, sourceSkill: ambush.name, detail: '' }
         });
         for (const grant of grants)
-          runtime.context.effects.emit({
+          state.effects.emit({
             ...delivery,
             kind: 'packet',
             cause: proc,
@@ -256,8 +252,6 @@ export function applyMirageShatterTraits(
   grantMirageCloak: MesmerMirageController['grantMirageCloak'],
   delivery: EffectDelivery = {}
 ): void {
-  const runtime = mesmerMechanicsFor(state);
-
   if (state.config.specialization !== 'Mirage') return;
   if (
     hasTrait(state, TRAIT.RIDDLE_OF_SAND) &&
@@ -281,7 +275,7 @@ export function applyMirageShatterTraits(
       const grants: readonly MesmerEventExtra[] = [
         { kind: String(nominalEndurance.boon), stacks: nominalEndurance.stacks, duration: nominalEndurance.duration }
       ];
-      const traitProfile = requireBalanceProfileFromContext(runtime.context, TRAIT.NOMADS_ENDURANCE);
+      const traitProfile = requireBalanceProfileFromContext(state, TRAIT.NOMADS_ENDURANCE);
       const traitSource = {
         source: 'Trait',
         sourceId: TRAIT.NOMADS_ENDURANCE,
@@ -290,7 +284,7 @@ export function applyMirageShatterTraits(
         skillName: traitProfile.name
       };
       {
-        const proc = runtime.context.effects.emit({
+        const proc = state.effects.emit({
           ...delivery,
           kind: 'announcement',
           log: true,
@@ -298,7 +292,7 @@ export function applyMirageShatterTraits(
           announcement: { type: 'trait', name: traitProfile.name, at: at, sourceSkill: skill.name, detail: '' }
         });
         for (const grant of grants)
-          runtime.context.effects.emit({
+          state.effects.emit({
             ...delivery,
             kind: 'packet',
             cause: proc,
@@ -320,7 +314,7 @@ export function applyMirageShatterTraits(
           duration: balanceProfileNumber(phantomPainProfile, 'durationMultiplier')
         }
       ];
-      const traitProfile = requireBalanceProfileFromContext(runtime.context, TRAIT.PHANTOM_PAIN);
+      const traitProfile = requireBalanceProfileFromContext(state, TRAIT.PHANTOM_PAIN);
       const traitSource = {
         source: 'Trait',
         sourceId: TRAIT.PHANTOM_PAIN,
@@ -329,7 +323,7 @@ export function applyMirageShatterTraits(
         skillName: traitProfile.name
       };
       {
-        const proc = runtime.context.effects.emit({
+        const proc = state.effects.emit({
           ...delivery,
           kind: 'announcement',
           log: true,
@@ -337,7 +331,7 @@ export function applyMirageShatterTraits(
           announcement: { type: 'trait', name: traitProfile.name, at: at, sourceSkill: skill.name, detail: '' }
         });
         for (const grant of grants)
-          runtime.context.effects.emit({
+          state.effects.emit({
             ...delivery,
             kind: 'packet',
             cause: proc,

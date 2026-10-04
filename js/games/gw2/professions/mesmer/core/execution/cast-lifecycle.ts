@@ -52,7 +52,7 @@ export function scheduleMesmerPhantasmEffects(
   skill: MesmerSkill
 ): void {
   const runtime = mesmerMechanicsFor(context);
-  const details = runtime.castDetails.get(cast.id) || {};
+  const details = context.profession.core.castDetails.get(cast.id) || {};
   const completedInterruptedPhantasm = isCommittedInterruptedPhantasm(cast, skill);
   runtime.skillEffects.schedule(skill, cast.fullEnd, cast.start, {
     clarityConsumed: Boolean(details.clarityConsumed),
@@ -65,7 +65,7 @@ export function scheduleMesmerPhantasmEffects(
 export function commitMesmerShatter(context: MesmerRuntime, cast: RuntimeCast<MesmerSkill>): void {
   const runtime = mesmerMechanicsFor(context);
   const skill = cast.skill;
-  const details = runtime.castDetails.get(cast.id)!;
+  const details = context.profession.core.castDetails.get(cast.id)!;
   if (details.reservedShatterResources && !details.shatterSpendCommitted) {
     details.shatterSpent = runtime.actions.commitReservedResources(context.time, details.shatterSpent ?? 0, {
       activationId: cast.id
@@ -89,7 +89,7 @@ export function commitMesmerShatter(context: MesmerRuntime, cast: RuntimeCast<Me
 /** Commits skill effects and resources, restoring interrupted reservations and clearing cast-local state. */
 export function completeMesmerCast(context: MesmerRuntime, cast: RuntimeCast<MesmerSkill>, skill: MesmerSkill): void {
   const runtime = mesmerMechanicsFor(context);
-  const details = runtime.castDetails.get(cast.id) || {};
+  const details = context.profession.core.castDetails.get(cast.id) || {};
   const at = context.time;
   const interrupted = castWasInterrupted(cast);
   if (interrupted && details.earlyResourceAt != null && cast.effectiveEnd < details.earlyResourceAt - EPSILON) {
@@ -131,7 +131,7 @@ export function completeMesmerCast(context: MesmerRuntime, cast: RuntimeCast<Mes
 
     triggerMethodOfMadness({ state: context }, skill, at, runtime.traitDamage['Lesser Chaos Storm'], delivery);
   } finally {
-    runtime.castDetails.delete(cast.id);
+    context.profession.core.castDetails.delete(cast.id);
   }
 }
 
@@ -177,7 +177,7 @@ export function startMesmerCast(context: MesmerRuntime, cast: RuntimeCast<Mesmer
     });
   }
 
-  runtime.castDetails.set(cast.id, {
+  context.profession.core.castDetails.set(cast.id, {
     earlyResourceAt,
     earlyResourceOwnerId,
     resourceScheduledDuringCast,

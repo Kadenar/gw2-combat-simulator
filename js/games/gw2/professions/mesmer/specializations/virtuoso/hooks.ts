@@ -13,7 +13,7 @@ export const virtuosoHooks: Partial<RuntimeProfession<MesmerRuntimeState, Mesmer
   tasks: {
     'mesmer.blade-spend'(runtime, data) {
       const mechanics = mesmerMechanicsFor(runtime);
-      const details = mechanics.castDetails.get(String(data));
+      const details = runtime.profession.core.castDetails.get(String(data));
       if (!details || details.shatterSpendCommitted) return;
       details.shatterSpent = mechanics.actions.commitReservedResources(runtime.time, details.shatterSpent ?? 0, {
         activationId: String(data)

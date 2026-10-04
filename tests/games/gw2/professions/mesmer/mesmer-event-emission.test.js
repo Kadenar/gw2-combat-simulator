@@ -25,8 +25,8 @@ test('phantasm packet and Harmonize commitment preserve their interruption toler
         fullEnd: 4,
         effectiveEnd,
         reservationId: 'phantasm',
+        profession: { core: { castDetails: new Map() } },
         mesmerRuntime: {
-          castDetails: new Map(),
           activePrimaryWeapon: () => 'Sword',
           resources: { queueResources: (...args) => resources.push(args) },
           skillEffects: {

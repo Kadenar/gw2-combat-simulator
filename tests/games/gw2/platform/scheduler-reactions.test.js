@@ -86,13 +86,13 @@ test('Fresh Air candidates wait for the actual critical fact', () => {
           at: 1,
           run: (r) => {
             assert.equal(projectedFreshAirReadyAt(r, 2), 2);
-            assert.equal(r.cooldowns.get(air), 10);
+            assert.equal(r.cooldownController.readyAt(air), 10);
           }
         }
       ]
     }
   );
-  assert.equal(observedRuntime(result).cooldowns.has(air), false);
+  assert.equal(observedRuntime(result).cooldownController.hasCooldown(air), false);
   const resets = result.events.filter((e) => e.type === 'elementalist.fresh-air');
   assert.equal(resets.length, 1);
   assert.equal(resets[0].at, 2);

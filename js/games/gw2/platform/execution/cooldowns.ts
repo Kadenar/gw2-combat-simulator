@@ -9,7 +9,7 @@ import { projectRecharge, type RechargeProgress } from '#gw2/platform/engine/ski
  * depletion, recharge reduction) so professions only override maximum ammo and
  * recharge duration instead of reimplementing the mechanics.
  */
-import type { AmmoState, CooldownController } from '#gw2/platform/execution/types.js';
+import type { AmmoState, CooldownController, RechargeCheckpoint } from '#gw2/platform/execution/types.js';
 import type { Skill, SkillId } from '#gw2/platform/engine/skills/types.js';
 
 interface CooldownControllerOptions {
@@ -240,6 +240,124 @@ export function createCooldownController({
   };
 
   return Object.freeze({
+    readyAt: (id: SkillId) => state.cooldowns.get(id),
+    hasCooldown: (id: SkillId) => state.cooldowns.has(id),
+    readAmmo: (id: SkillId) => state.ammo.get(id),
+    hasAmmo: (id: SkillId) => state.ammo.has(id),
+    rechargeFor: (id: SkillId) => state.rechargeProgress.get(id),
+    cooldownSkillIds: () => state.cooldowns.keys(),
+    ammoSkillIds: () => state.ammo.keys(),
+    retireAmmo(id: SkillId) {
+      state.ammo.delete(id);
+    },
+    linkAmmo(sourceId: SkillId, targetId: SkillId) {
+      // Alternate skill identities intentionally share one magazine and queue, rather than copying charge counts.
+      const ammo = state.ammo.get(sourceId);
+      if (ammo) state.ammo.set(targetId, ammo);
+    },
+    clearAmmoLockout(id: SkillId) {
+      const ammo = state.ammo.get(id);
+      if (ammo) {
+        ammo.lockoutReadyAt = 0;
+        delete ammo.lockoutProgress;
+      }
+    },
+    reserveAmmo(skill: Skill, count: number, recharge: RechargeProgress) {
+      const ammo = state.ammo.get(skill.id);
+      if (!ammo) return 0;
+      const reserved = clamp(Math.floor(count), 0, ammo.charges);
+      ammo.charges -= reserved;
+      for (let index = 0; index < reserved; index++) ammo.recharges.push({ ...recharge });
+      // Acceptance may precede the recharge anchor; only the live clock can settle existing timers.
+      if (reserved) refreshAmmo(skill, state.time);
+      return reserved;
+    },
+    replaceAmmoCharges(skill: Skill, maximum: number, charges: number, recharges: readonly RechargeProgress[]) {
+      const ammo = state.ammo.get(skill.id);
+      if (!ammo) return;
+      ammo.maximum = maximum;
+      ammo.charges = charges;
+      ammo.recharges = recharges.map((progress) => ({ ...progress }));
+      ammo.nextRechargeAt = ammo.recharges.length ? project(skill, ammo.recharges[0]!) : null;
+    },
+    checkpoint(
+      at: number,
+      preservedCooldownIds: ReadonlySet<SkillId>,
+      independentCooldownId: SkillId
+    ): RechargeCheckpoint {
+      // Capture work without advancing clocks; only the front queued charge has earned elapsed recharge.
+      return {
+        remainingCooldowns: new Map(
+          [...state.cooldowns]
+            .filter(([id]) => id !== independentCooldownId && !preservedCooldownIds.has(id))
+            .map(([id, ready]) => [id, ready - at])
+        ),
+        remainingRechargeWork: new Map(
+          [...state.rechargeProgress].flatMap(([id, progress]) => {
+            const skill = skillFor(id);
+            return skill && !preservedCooldownIds.has(id) && gw2CooldownReadyAt(project(skill, progress)) > at
+              ? [[id, remaining(skill, progress, at)] as const]
+              : [];
+          })
+        ),
+        ammo: new Map(
+          [...state.ammo].map(([id, ammo]) => {
+            const skill = skillFor(id);
+            return [
+              id,
+              {
+                charges: ammo.charges,
+                maximum: ammo.maximum,
+                pendingRechargeWork: ammo.recharges.map((progress, index) =>
+                  index > 0 ? progress.work : remaining(skill!, progress, at)
+                ),
+                ...(ammo.lockoutProgress && gw2CooldownReadyAt(ammo.lockoutReadyAt ?? 0) > at && skill
+                  ? { pendingLockoutWork: remaining(skill, ammo.lockoutProgress, at) }
+                  : {}),
+                nextRechargeRemaining: ammo.nextRechargeAt == null ? null : Math.max(0, ammo.nextRechargeAt - at),
+                lockoutRemaining: Math.max(0, (ammo.lockoutReadyAt ?? 0) - at)
+              }
+            ];
+          })
+        )
+      };
+    },
+    restoreCheckpoint(
+      checkpoint: RechargeCheckpoint,
+      at: number,
+      preservedCooldownIds: ReadonlySet<SkillId>,
+      deadlines: readonly { readonly skillId: SkillId; readonly readyAt: number }[]
+    ) {
+      // Restore relative work/deadlines atomically before reprojecting against the current recharge rate.
+      const cooldowns = [...state.cooldowns].filter(([id]) => preservedCooldownIds.has(id));
+      const progress = [...state.rechargeProgress].filter(([id]) => preservedCooldownIds.has(id));
+      state.cooldowns.clear();
+      for (const [id, ready] of cooldowns) state.cooldowns.set(id, ready);
+      for (const [id, duration] of checkpoint.remainingCooldowns)
+        if (duration > 0) state.cooldowns.set(id, at + duration);
+      for (const deadline of deadlines) state.cooldowns.set(deadline.skillId, deadline.readyAt);
+      state.rechargeProgress.clear();
+      for (const [id, value] of progress) state.rechargeProgress.set(id, value);
+      for (const [id, work] of checkpoint.remainingRechargeWork)
+        state.rechargeProgress.set(id, { startedAt: at, work });
+      state.ammo.clear();
+      for (const [id, ammo] of checkpoint.ammo)
+        state.ammo.set(id, {
+          charges: ammo.charges,
+          maximum: ammo.maximum,
+          recharges: ammo.pendingRechargeWork.map((work) => ({ startedAt: at, work })),
+          ...(ammo.pendingLockoutWork == null
+            ? {}
+            : { lockoutProgress: { startedAt: at, work: ammo.pendingLockoutWork } }),
+          nextRechargeAt: ammo.nextRechargeRemaining == null ? null : at + ammo.nextRechargeRemaining,
+          lockoutReadyAt: ammo.lockoutRemaining > 0 ? at + ammo.lockoutRemaining : 0
+        });
+    },
+    resetAll() {
+      state.cooldowns.clear();
+      state.rechargeProgress.clear();
+      state.ammo.clear();
+    },
     startRecharge,
     setReadyAt,
     clear,

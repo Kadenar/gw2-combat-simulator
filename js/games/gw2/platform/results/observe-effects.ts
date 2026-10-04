@@ -114,7 +114,7 @@ function visitRuntimeEffects<T extends object>(
   for (const kind of ['sigil-severance', 'target-crippled', 'time-bomb', 'stealth', 'superspeed'])
     policies.set(kind, { kind, maximumStacks: 1 });
   const nativeKinds = new Set<string>();
-  for (const policy of profession.buffPolicies?.(runtime) ?? []) {
+  for (const policy of profession.buffPolicies?.(runtime.mechanicQueries) ?? []) {
     if (nativeKinds.has(policy.kind)) throw new TypeError(`Duplicate profession buff policy: ${policy.kind}`);
     nativeKinds.add(policy.kind);
     if (isStandardBoon(policy.kind))
@@ -122,7 +122,7 @@ function visitRuntimeEffects<T extends object>(
     policies.set(policy.kind, policy);
   }
 
-  const owned = (profession.observeEffects?.(runtime) ?? []).map((state) => ({
+  const owned = (profession.observeEffects?.(runtime.mechanicQueries) ?? []).map((state) => ({
     ...state,
     source:
       state.source ??

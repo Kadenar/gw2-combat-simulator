@@ -1,3 +1,4 @@
+import type { MechanicContext } from '#gw2/platform/profession-definition/mechanic-context.js';
 import { CAST_READY, denyCast } from '#gw2/platform/engine/skills/availability.js';
 import {
   balanceProfileNumber,
@@ -9,7 +10,7 @@ import { gw2BaseRecharge } from '#gw2/platform/engine/skills/recharge.js';
 import { armSkillFlip, consumeSkillFlip } from '#gw2/platform/engine/skills/skill-flips.js';
 import type { NativeResolvedDamageDetails } from '#gw2/platform/profession-definition/module-types.js';
 import { buildResolverCondition } from '#gw2/platform/resolver/packets.js';
-import type { Gw2Runtime, RuntimeCast, RuntimeProfession } from '#gw2/platform/simulation/runtime-state.js';
+import type { RuntimeCast, RuntimeProfession } from '#gw2/platform/simulation/runtime-state.js';
 import { resetAutoattackChains } from '#gw2/platform/skills/autoattack-chain-controller.js';
 import { lockTransitionInput } from '#gw2/platform/skills/transition-delays.js';
 import { buildGuardianStrike, guardianCastCause } from '#gw2/professions/guardian/core/mechanics/event-handlers.js';
@@ -50,7 +51,7 @@ import {
 import type { GuardianRuntimeState, GuardianSkill } from '#gw2/professions/guardian/types.js';
 import { canonicalTime } from '#kernel/core/clock.js';
 
-type Runtime = Gw2Runtime<GuardianRuntimeState, GuardianSkill>;
+type Runtime = MechanicContext<GuardianRuntimeState, GuardianSkill>;
 const EXIT = 'guardian.luminary.forge-expiry';
 const EQUIP = 'guardian.luminary.equip-traits';
 const VIRTUES: readonly number[] = [ID.RADIANT_JUSTICE, ID.RADIANT_RESOLVE, ID.RADIANT_COURAGE];
@@ -66,7 +67,7 @@ function exitForge(runtime: Runtime, cast?: RuntimeCast<GuardianSkill>): void {
   if (
     runtime.hasExplicitCombatStart &&
     (runtime.combatStartPending ||
-      runtime.cursor.command?.type === 'combat-start' ||
+      runtime.castController.pendingCombatStart() ||
       runtime.combatStartTime == null ||
       runtime.time < runtime.combatStartTime)
   )
@@ -272,8 +273,8 @@ export const luminaryHooks: Partial<RuntimeProfession<GuardianRuntimeState, Guar
   castDurationMs(runtime, skill, duration) {
     return skill.id === ID.GLARING_BURST ? glaringBurstDuration(runtime, skill, duration) : duration;
   },
-  castDetail(runtime, cast) {
-    return cast.skill.id === ID.GLARING_BURST ? glaringBurstDetail(runtime) : undefined;
+  castDetail(context, cast) {
+    return cast.skill.id === ID.GLARING_BURST ? glaringBurstDetail(context) : undefined;
   },
   onCastStart(runtime, cast) {
     if (cast.cancelled) return;

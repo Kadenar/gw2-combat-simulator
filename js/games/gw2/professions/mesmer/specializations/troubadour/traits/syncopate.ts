@@ -19,7 +19,7 @@ import type { MesmerInstrument, MesmerRuntime } from '#gw2/professions/mesmer/ty
 /** Resolves Syncopate from accepted Troubadour control events. */
 export function observeSyncopateEvent(context: MesmerRuntime, event: SimulationEvent): void {
   if (event.type !== 'control') return;
-  const runtime = mesmerMechanicsFor(context);
+
   if (!hasTrait(context, TRAIT.SYNCOPATE)) return;
   const syncopateProfile = requireBalanceProfileFromContext(context, TRAIT.SYNCOPATE);
   const damage = requireEffect(syncopateProfile, 'strike', 'Immediate wave');
@@ -27,7 +27,7 @@ export function observeSyncopateEvent(context: MesmerRuntime, event: SimulationE
 
   const skillName = event.skillName || event.name || 'Control effect';
   buildMesmerStrikes(
-    runtime.context,
+    context,
     { id: 'Syncopate', name: 'Syncopate', weapon: 'Utility', blade: false },
     event.at,
     {
@@ -43,14 +43,14 @@ export function observeSyncopateEvent(context: MesmerRuntime, event: SimulationE
     },
     { source: 'Trait', sourceId: TRAIT.SYNCOPATE, actorType: 'player' }
   ).forEach((packet) => {
-    runtime.context.effects.emit({
+    context.effects.emit({
       kind: 'packet',
       event: packet,
       owner: mesmerPacketOwner(packet),
       priority: Number(packet.priority ?? 0)
     });
   });
-  runtime.context.effects.emit({
+  context.effects.emit({
     kind: 'announcement',
     log: true,
     attribution: { source: 'Trait', sourceId: TRAIT.SYNCOPATE, actorType: 'effect' },
@@ -60,30 +60,24 @@ export function observeSyncopateEvent(context: MesmerRuntime, event: SimulationE
 
 /** The committed heal triggers its immediate wave even when diagnostic proc output is suppressed. */
 export function triggerMethodOfMadnessSyncopate(context: MesmerRuntime): void {
-  const runtime = mesmerMechanicsFor(context);
   if (!hasTrait(context, TRAIT.SYNCOPATE)) return;
   const damage = requireEffect(requireBalanceProfileFromContext(context, TRAIT.SYNCOPATE), 'strike', 'Immediate wave');
   if (!damage) return;
-  buildMesmerStrikes(
-    runtime.context,
-    { id: 'Syncopate', name: 'Syncopate', weapon: 'Utility', blade: false },
-    context.time,
-    {
-      ...damage,
-      name: undefined,
-      summonKind: undefined,
-      source: 'Player',
-      weapon: 'utility'
-    }
-  ).forEach((packet) => {
-    runtime.context.effects.emit({
+  buildMesmerStrikes(context, { id: 'Syncopate', name: 'Syncopate', weapon: 'Utility', blade: false }, context.time, {
+    ...damage,
+    name: undefined,
+    summonKind: undefined,
+    source: 'Player',
+    weapon: 'utility'
+  }).forEach((packet) => {
+    context.effects.emit({
       kind: 'packet',
       event: packet,
       owner: mesmerPacketOwner(packet),
       priority: Number(packet.priority ?? 0)
     });
   });
-  runtime.context.effects.emit({
+  context.effects.emit({
     kind: 'announcement',
     log: true,
     attribution: { source: 'Trait', sourceId: TRAIT.SYNCOPATE, actorType: 'effect' },
@@ -102,7 +96,7 @@ export function scheduleSyncopateDrumWave(
   delivery: EffectDelivery = {}
 ): void {
   if (instrument.instrument !== 'Drum') return;
-  const runtime = mesmerMechanicsFor(context);
+
   if (!hasTrait(context, TRAIT.SYNCOPATE)) return;
   const syncopateProfile = requireBalanceProfileFromContext(context, TRAIT.SYNCOPATE);
   const delayedAt = damageAt + balanceProfileNumber(syncopateProfile, 'initialDelay');
@@ -112,7 +106,7 @@ export function scheduleSyncopateDrumWave(
   if (!delayedWave && !daze) return;
   if (delayedWave)
     buildMesmerStrikes(
-      runtime.context,
+      context,
       {
         id: 'Syncopate delayed wave',
         name: 'Syncopate',
@@ -139,7 +133,7 @@ export function scheduleSyncopateDrumWave(
         name: 'Syncopate — delayed wave'
       }
     ).forEach((packet) => {
-      runtime.context.effects.emit({
+      context.effects.emit({
         ...delivery,
         kind: 'packet',
         event: packet,
@@ -159,7 +153,7 @@ export function scheduleSyncopateDrumWave(
       sourceId: TRAIT.SYNCOPATE,
       actorType
     });
-    runtime.context.effects.emit({
+    context.effects.emit({
       ...delivery,
       kind: 'packet',
       event: packet,
@@ -168,7 +162,7 @@ export function scheduleSyncopateDrumWave(
     });
   }
 
-  runtime.context.effects.emit({
+  context.effects.emit({
     ...delivery,
     kind: 'announcement',
     log: true,

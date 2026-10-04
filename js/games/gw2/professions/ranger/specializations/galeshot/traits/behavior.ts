@@ -1,3 +1,4 @@
+import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
 import type { Gw2TraitLookupContext } from '#gw2/platform/combat/state/traits.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { denySkillCast as deny } from '#gw2/platform/engine/skills/availability.js';
@@ -259,7 +260,10 @@ function emitCloudburstBoons(context: RangerRuntime, skill: RangerSkill): void {
 }
 
 /** Restricts the replacement pair consistently for live cast validation. */
-export function perilousSkiesAvailability(context: RangerRuntime, skill: RangerSkill): AvailabilityResult | null {
+export function perilousSkiesAvailability(
+  context: MechanicQueriesOf<RangerRuntime>,
+  skill: RangerSkill
+): AvailabilityResult | null {
   if (skill.id === ID.QUARRYS_PERIL && perilousSkiesSelected(context)) {
     return deny(skill, 'ranger.perilous-skies', 'Pelt replaces this skill.');
   }

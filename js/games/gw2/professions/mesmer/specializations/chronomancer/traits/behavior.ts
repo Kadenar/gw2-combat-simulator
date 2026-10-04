@@ -15,7 +15,7 @@ import type { MesmerRuntime } from '#gw2/professions/mesmer/types.js';
 /** Arms Danger Time from Chronomancer control packets and Delayed Reactions. */
 export function observeChronomancerEvent(context: MesmerRuntime, event: SimulationEvent): void {
   if (event.type !== 'control') return;
-  const runtime = mesmerMechanicsFor(context);
+
   const skillId = Number(event.skillId);
   if (
     !hasTrait(context, TRAIT.DANGER_TIME) ||
@@ -35,7 +35,7 @@ export function observeChronomancerEvent(context: MesmerRuntime, event: Simulati
         sourceSkill: skillName
       }
     ];
-    const traitProfile = requireBalanceProfileFromContext(runtime.context, TRAIT.DANGER_TIME);
+    const traitProfile = requireBalanceProfileFromContext(context, TRAIT.DANGER_TIME);
     const traitSource = {
       source: 'Trait',
       sourceId: TRAIT.DANGER_TIME,
@@ -44,14 +44,14 @@ export function observeChronomancerEvent(context: MesmerRuntime, event: Simulati
       skillName: traitProfile.name
     };
     {
-      const proc = runtime.context.effects.emit({
+      const proc = context.effects.emit({
         kind: 'announcement',
         log: true,
         attribution: { ...traitSource, actorType: 'effect' },
         announcement: { type: 'trait', name: traitProfile.name, at: event.at, sourceSkill: skillName, detail: '' }
       });
       for (const grant of grants)
-        runtime.context.effects.emit({
+        context.effects.emit({
           kind: 'packet',
           cause: proc,
           event: {
@@ -92,7 +92,6 @@ const triggerShatterBoon = (
   traitId: number,
   effectName: 'alacrity' | 'quickness'
 ): void => {
-  const runtime = mesmerMechanicsFor(context);
   if (!hasTrait(context, traitId)) return;
 
   const traitProfile = requireBalanceProfileFromContext(context, traitId);
@@ -112,7 +111,7 @@ const triggerShatterBoon = (
         audience: effect.audience
       }
     ];
-    const traitProfile = requireBalanceProfileFromContext(runtime.context, traitId);
+    const traitProfile = requireBalanceProfileFromContext(context, traitId);
     const traitSource = {
       source: 'Trait',
       sourceId: traitId,
@@ -121,7 +120,7 @@ const triggerShatterBoon = (
       skillName: traitProfile.name
     };
     {
-      const proc = runtime.context.effects.emit({
+      const proc = context.effects.emit({
         ...resolution.delivery,
         kind: 'announcement',
         log: true,
@@ -135,7 +134,7 @@ const triggerShatterBoon = (
         }
       });
       for (const grant of grants)
-        runtime.context.effects.emit({
+        context.effects.emit({
           ...resolution.delivery,
           kind: 'packet',
           cause: proc,

@@ -1,3 +1,4 @@
+import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
 import { EPSILON } from '#kernel/core/clock.js';
 /**
  * Evoker cast gating.
@@ -24,7 +25,7 @@ import type { ElementalistRuntime } from '#gw2/professions/elementalist/types.js
  * Waits for in-flight familiar casts and charge grants; missing resources without
  * a pending grant remain a final denial for this command.
  */
-export function availability(context: ElementalistRuntime, skill: Skill): AvailabilityResult {
+export function availability(context: MechanicQueriesOf<ElementalistRuntime>, skill: Skill): AvailabilityResult {
   const state = evokerState.from(context);
   // Nothing may start until the familiar cast in flight ends.
   if (state.activeFamiliarCast && context.time < state.activeFamiliarCast.endsAt - EPSILON) {
