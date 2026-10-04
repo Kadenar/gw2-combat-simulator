@@ -16,7 +16,6 @@ export interface AmmoState {
 /** Mechanics can inspect pool facts; mutation and serial recharge bookkeeping remain inside the recharge service. */
 export interface AmmoObservation extends Omit<Readonly<AmmoState>, 'recharges' | 'lockoutProgress'> {
   readonly recharges: readonly Readonly<RechargeProgress>[];
-  readonly lockoutProgress?: Readonly<RechargeProgress>;
 }
 
 /** Checkpoints store remaining work and relative deadlines so restoring them does not rewrite earned progress. */

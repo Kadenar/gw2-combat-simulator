@@ -1,7 +1,7 @@
 import { RotationCursor } from '#gw2/platform/execution/rotation-cursor.js';
 import {
   createSkillSelectionContext,
-  type SkillSelectionContext
+  type TraitSelectionContext
 } from '#gw2/platform/profession-definition/runtime-context.js';
 import { normalizeRotation } from '#gw2/platform/execution/rotation.js';
 import type { RuntimeDriver } from '#gw2/platform/execution/driver-contract.js';
@@ -15,12 +15,12 @@ export function createRotationDriver<T extends object>(
 ): RuntimeDriver<T> {
   const cursor = new RotationCursor(normalizeRotation(rotation, profession.catalog, { strict: true }));
   // One driver belongs to one execution; bind selected trait queries on its first live boundary.
-  let selectionContext: SkillSelectionContext<T> | undefined;
+  let selectionContext: TraitSelectionContext | undefined;
   return {
     cursor,
     rotation,
     advance({ runtime, evaluateReadiness, resetCooldowns, advanceFrontier, acceptCast, reject }) {
-      selectionContext ??= createSkillSelectionContext(() => runtime.profession, runtime.traits);
+      selectionContext ??= createSkillSelectionContext(runtime.traits);
       const command = cursor.command;
       let nextCommandAt = Infinity;
       if (command) {

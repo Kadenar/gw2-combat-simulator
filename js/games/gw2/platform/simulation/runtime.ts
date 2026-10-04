@@ -128,7 +128,8 @@ export function runRuntime<T extends object>(
   const internal = new HandlerRegistry<Gw2Runtime<T>, RuntimeWork>();
   const makeWork = createInternalWorkFactory<RuntimeWork>(internal);
   // Bind hooks to the same context used by commands. No hook receives a predicted or restored state.
-  const contributions = execution.contributions(() => runtime);
+  const producers = execution.bindProducers(() => runtime);
+  const { contributions } = producers;
   const effectReactions = createEffectReactions<T>(profession.catalog, {
     hasHandler: (type) => typeof profession.sideEffectHandlers?.[type] === 'function',
     apply: (context, trigger, action) => applySideEffect(context, trigger, action, profession.sideEffectHandlers)
@@ -345,7 +346,8 @@ export function runRuntime<T extends object>(
     withCause,
     eventOrder: coordinator.eventOrder,
     nextEventOrder: coordinator.nextEventOrder,
-    observePacket: casts.observePacket
+    observePacket: casts.observePacket,
+    weaponSwap: producers.weaponSwap
   });
   const { executed } = deliveryOwner;
 

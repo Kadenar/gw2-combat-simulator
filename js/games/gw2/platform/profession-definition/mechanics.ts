@@ -5,7 +5,6 @@ import {
   type CriticalProcApplication
 } from '#gw2/platform/combat/critical-procs.js';
 import type { NativeResolvedDamageDetails } from '#gw2/platform/profession-definition/module-types.js';
-
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 
 export interface ResolvedCriticalHitOptions<

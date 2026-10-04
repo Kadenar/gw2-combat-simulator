@@ -20,7 +20,7 @@ import { EPSILON } from '#kernel/core/clock.js';
 
 /** Shrike counts resolved projectile impacts, including returns, independently of Mistral. */
 export function applyShrike(context: RangerRuntime, event: Gw2ResolverEvent): void {
-  if (!hasTrait({ config: context.config }, TRAIT.SHRIKE)) return;
+  if (!hasTrait(context.traits, TRAIT.SHRIKE)) return;
   const at = event.at;
   const state = galeshotState.from(context);
   const profile = requireBalanceProfileFromContext(context, TRAIT.SHRIKE);
@@ -69,7 +69,7 @@ export function reactToGaleshotPet(context: RangerRuntime, event: Gw2ResolverEve
   const state = galeshotState.from(context);
   const activationId = event.activationId || '';
   if (
-    !hasTrait({ config: context.config }, TRAIT.WUTHERING_WIND) ||
+    !hasTrait(context.traits, TRAIT.WUTHERING_WIND) ||
     !state.wutheringWindReady ||
     at + EPSILON < state.wutheringWindReadyAt ||
     (activationId && state.wutheringWindActivationIds[activationId])
@@ -129,7 +129,7 @@ export function reactToGaleshotControl(context: RangerRuntime, event: Gw2Resolve
   if (event.actorType !== 'player' && event.actorType !== 'summon') return;
 
   if (
-    !hasTrait({ config: context.config }, TRAIT.THRILL_OF_THE_CATCH) ||
+    !hasTrait(context.traits, TRAIT.THRILL_OF_THE_CATCH) ||
     !context.procs.claim(TRAIT.THRILL_OF_THE_CATCH, 'ranger.galeshot.thrillOfTheCatch', context.time)
   ) {
     return;

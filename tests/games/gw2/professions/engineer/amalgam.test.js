@@ -502,7 +502,10 @@ test('Evolve aliases use only the trait-selected identity and share its charges 
     const skillId = traited ? ID.EVOLVE_DOUBLE_HELIX : ID.EVOLVE_BASE;
     const inactive = engineerCatalog.skillsById.get(traited ? ID.EVOLVE_BASE : ID.EVOLVE_DOUBLE_HELIX);
     assert.equal(
-      amalgamCastAvailability({ config: { specialization: 'Amalgam', selectedTraitIds } }, inactive).ready,
+      amalgamCastAvailability(
+        { config: { specialization: 'Amalgam', selectedTraitIds }, traits: new Set(selectedTraitIds) },
+        inactive
+      ).ready,
       false
     );
     const capacity = createMaximumAmmoContext(() => ({}), new Set(selectedTraitIds), engineerCatalog);

@@ -155,18 +155,18 @@ const SHROUD_PROFILE_IDS: Readonly<Record<string, string>> = Object.freeze({
 
 interface WeaponStrengthProfileContext {
   readonly skill?: Skill | null;
-  readonly state?: Record<string, unknown> | null;
+  readonly activeWeaponSet?: number;
   readonly config?: Gw2Config;
 }
 
 /**
- * Selects a profile from canonical event and skill metadata. This function is
+ * Selects a profile from canonical metadata and the active weapon set without receiving runtime state. This function is
  * intended to run while an activation is being scheduled, before a delayed
  * packet can observe a later weapon or transform state.
  */
 export function weaponStrengthProfileIdForEvent(
   event: SimulationEventBase,
-  { skill = null, state = null, config = {} }: WeaponStrengthProfileContext = {}
+  { skill = null, activeWeaponSet = 1, config = {} }: WeaponStrengthProfileContext = {}
 ): string | null {
   if (event.weaponStrengthProfileId != null) {
     return weaponStrengthProfile(event.weaponStrengthProfileId).id;
@@ -200,7 +200,7 @@ export function weaponStrengthProfileIdForEvent(
   }
 
   if (event.weaponStrengthSource === 'equipped') {
-    const activeSet = Number(state?.activeWeaponSet) === 2 ? 2 : 1;
+    const activeSet = activeWeaponSet === 2 ? 2 : 1;
     const configured = gw2ActivePrimaryWeapon(config, activeSet);
     const profile = weaponStrengthProfileForName(configured);
     if (profile) return profile.id;
@@ -226,7 +226,7 @@ export function weaponStrengthProfileIdForEvent(
 
   // This final configured-weapon branch only runs in the scheduler, where the
   // active set still represents activation time.
-  const activeSet = Number(state?.activeWeaponSet) === 2 ? 2 : 1;
+  const activeSet = activeWeaponSet === 2 ? 2 : 1;
   const configured = gw2ActivePrimaryWeapon(config, activeSet);
   return weaponStrengthProfileForName(configured)?.id || null;
 }

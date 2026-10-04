@@ -14,7 +14,7 @@ export function amalgamCastAvailability(
 ): AvailabilityResult {
   if (context.config.specialization !== 'Amalgam') return { ready: true };
   // Direct availability queries must reject the inactive variant just as cast resolution selects the active one.
-  if (resolveAmalgamSkillId(hasTrait(context.config, TRAIT.DOUBLE_HELIX), skill.id) !== skill.id) {
+  if (resolveAmalgamSkillId(hasTrait(context.traits, TRAIT.DOUBLE_HELIX), skill.id) !== skill.id) {
     return denyEngineerCast(skill, 'engineer.evolve-selection', 'another Evolve variant is selected by Double Helix.');
   }
 

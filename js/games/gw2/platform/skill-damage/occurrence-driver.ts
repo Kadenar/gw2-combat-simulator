@@ -48,7 +48,7 @@ export function createDamageExecution<T extends object>(
         }
       );
     },
-    contributions: () => ({}),
+    bindProducers: () => ({ contributions: {} }),
     // Authored effect reactions stay in the shared runtime; unrelated hit-triggered procs never register.
     professionReactions: Object.fromEntries(
       Object.entries(profession.reactions ?? {}).filter(([stage]) => stage !== 'damage.resolved')

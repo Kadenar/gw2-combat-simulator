@@ -78,7 +78,7 @@ export function modifyThiefLifeSiphon(context: ThiefResolverContext, event: Thie
   )
     multiplier *= 1.5;
 
-  if (hasTrait(context.config, TRAIT.LEAD_ATTACKS)) {
+  if (hasTrait(context.traits, TRAIT.LEAD_ATTACKS)) {
     const state = readProfessionCoreState<ThiefCoreState>(context.profession);
     const leadAttacksProfile = requireBalanceProfileFromContext(context, TRAIT.LEAD_ATTACKS);
     // Stacks expire individually, so the siphon counts those active at its own impact.

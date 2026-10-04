@@ -52,6 +52,7 @@ function contextFor(profession, specialization, selectedTraitIds = []) {
   };
 
   const context = {
+    traits: new Set(selectedTraitIds),
     config,
     hasBuff: () => false,
     profession: runtime,

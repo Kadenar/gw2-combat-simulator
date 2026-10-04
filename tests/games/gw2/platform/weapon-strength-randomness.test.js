@@ -171,7 +171,7 @@ test('skill metadata classifies transforms, kits, shrouds, and effects', () => {
       { ...event, weaponStrengthSource: 'equipped' },
       {
         skill: { id: 1, name: 'Stolen Skill', type: 'Profession' },
-        state: { activeWeaponSet: 2 },
+        activeWeaponSet: 2,
         config: {
           primaryWeapon: 'Dagger',
           weaponSet2Primary: 'Rifle'

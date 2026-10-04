@@ -50,7 +50,7 @@ export function amalgamMaximumAmmo(context: MaximumAmmoContext<object>, skill: E
 
 /** Accepted non-summon control consumes its internal cooldown only when Evolve recharge actually decreases. */
 export function reactToMercurialTendencies(context: EngineerRuntime, event: EngineerResolverEvent): void {
-  if (!hasTrait(context.config, TRAIT.MERCURIAL_TENDENCIES) || event.actorType === 'summon') return;
+  if (!hasTrait(context.traits, TRAIT.MERCURIAL_TENDENCIES) || event.actorType === 'summon') return;
   const at = event.at;
   if (!isInternalCooldownReady(at, context.procs.deadline('mercurialTendencies') || 0)) return;
   const profile = requireBalanceProfileFromContext(context, TRAIT.MERCURIAL_TENDENCIES);
@@ -101,7 +101,7 @@ export function activateAmalgamMorph(context: EngineerRuntime, skill: EngineerSk
   const state = amalgamState.from(context);
   const morphKind = AMALGAM_MORPH_KIND_BY_SKILL_ID.get(skill.id);
   // Resolve traits whose duration or strain depends on the chosen protocol.
-  if (hasTrait(context.config, TRAIT.WILLING_HOST)) {
+  if (hasTrait(context.traits, TRAIT.WILLING_HOST)) {
     const willingHostProfile = requireBalanceProfileFromContext(context, TRAIT.WILLING_HOST);
     state.willingHostUntil = Math.max(
       state.willingHostUntil,
@@ -111,12 +111,12 @@ export function activateAmalgamMorph(context: EngineerRuntime, skill: EngineerSk
 
   grantHardenedChrome(context, 'minimumStacks');
 
-  if (morphKind && hasTrait(context.config, TRAIT.SILVER_LINING)) {
+  if (morphKind && hasTrait(context.traits, TRAIT.SILVER_LINING)) {
     applyAmalgamStrain(context, morphKind, at);
   }
 
   // New Genes combines universal boons with one protocol-specific boon.
-  if (hasTrait(context.config, TRAIT.NEW_GENES)) {
+  if (hasTrait(context.traits, TRAIT.NEW_GENES)) {
     // Each selected boon survives independently, including the protocol-specific packet.
     for (const name of ['alacrity', 'might', ...(morphKind ? [morphKind] : [])]) {
       const newGenesProfile = requireBalanceProfileFromContext(context, TRAIT.NEW_GENES);
@@ -139,7 +139,7 @@ export function activateAmalgamMorph(context: EngineerRuntime, skill: EngineerSk
 
 /** Morph and Evolve share protection attribution while choosing their own duration field. */
 function grantHardenedChrome(context: EngineerRuntime, durationField: 'minimumStacks' | 'maximumStacks'): void {
-  if (hasTrait(context.config, TRAIT.HARDENED_CHROME)) {
+  if (hasTrait(context.traits, TRAIT.HARDENED_CHROME)) {
     const sourceSkill = context.helpers.skillsById.get(TRAIT.HARDENED_CHROME) || {
       id: TRAIT.HARDENED_CHROME,
       name: 'Hardened Chrome'
@@ -167,13 +167,13 @@ function grantHardenedChrome(context: EngineerRuntime, durationField: 'minimumSt
 export function applyAmalgamEvolveTraits(context: EngineerRuntime, selected: Set<AmalgamMorphKind>): void {
   const state = amalgamState.from(context);
   const at = context.time;
-  if (!hasTrait(context.config, TRAIT.SILVER_LINING)) {
+  if (!hasTrait(context.traits, TRAIT.SILVER_LINING)) {
     for (const morphKind of selected) {
       applyAmalgamStrain(context, morphKind, at);
     }
   }
 
-  if (hasTrait(context.config, TRAIT.SYMBIOTIC_SYNERGY)) {
+  if (hasTrait(context.traits, TRAIT.SYMBIOTIC_SYNERGY)) {
     // Evolve recharges its morph skills as part of its traited kit. This is not
     // a discrete trait proc, so the reset is applied silently. Emitting a proc
     // here misreported it as a single ~43s cooldown reduction (the summed

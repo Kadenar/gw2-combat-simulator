@@ -30,9 +30,7 @@ export interface MechanicQueryContext<T extends object = object, TSkill extends 
   readonly traits: ReadonlySet<SkillId>;
   readonly time: number;
   readonly activeWeaponSet: number;
-  readonly combatStartTime?: number | null;
   readonly combatStartPending?: boolean;
-  readonly hasExplicitCombatStart: boolean;
   readonly combatActive: boolean;
   readonly combat: Pick<
     ReturnType<typeof createMechanicCombatServices>,
@@ -54,7 +52,6 @@ export interface MechanicQueryContext<T extends object = object, TSkill extends 
   >;
   readonly resourceController: Pick<ReturnType<typeof createRuntimeResources<T>>, 'value' | 'readyAt'>;
   readonly endurance: Pick<ReturnType<typeof createRuntimeEndurance<T>>, 'readyAt'>;
-  readonly procs: Pick<ReturnType<typeof createProcRegistry>, 'deadline'>;
   readonly facts: ExecutedFactsReader;
   readonly cooldownController: Pick<
     CooldownController,
@@ -88,7 +85,8 @@ export interface MechanicContext<T extends object = object, TSkill extends Skill
   readonly time: number;
   readonly combatActive: boolean;
   readonly hasExplicitCombatStart: boolean;
-  readonly cooldownController: CooldownController;
+  /** Cast acceptance and authored resets remain exclusive to the execution owner. */
+  readonly cooldownController: Omit<CooldownController, 'resetAll' | 'spendAmmo' | 'setAmmoLockout'>;
   readonly castController: CastControl;
   readonly resourceController: ReturnType<typeof createRuntimeResources<T>>;
   readonly endurance: ReturnType<typeof createRuntimeEndurance<T>>;

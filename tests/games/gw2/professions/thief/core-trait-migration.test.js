@@ -130,6 +130,7 @@ function traitContext(selectedTraitIds = [], config = {}) {
     profession: { core, specialization: { kind: 'Core', state: {} } },
     catalog: thiefCatalog,
     config: fullConfig,
+    traits: new Set(selectedTraitIds),
     activeWeaponSet: 1,
     queue: new StableEventQueue(),
     boons: new Map(),
@@ -209,7 +210,7 @@ for (const [name, traitId, invoke, output] of [
       context.procs.setDeadline('unrelated', 99);
       invoke(context);
       assert.deepEqual({ ...context.procs.snapshot() }, { unrelated: 99 });
-      context.config.selectedTraitIds = [traitId];
+      context.traits = new Set([traitId]);
       const owner = output === 'queue' ? context.queue : context;
       const method = output === 'queue' ? 'enqueue' : output;
       const original = owner[method].bind(owner);

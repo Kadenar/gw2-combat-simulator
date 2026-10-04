@@ -29,7 +29,7 @@ import { activeBoonStacks } from '#gw2/professions/engineer/core/traits/query-he
 
 /** Schedules Grenadier's lesser barrage from an eligible healing cast after its internal cooldown. */
 export function applyGrenadier(context: EngineerRuntime, skill: EngineerSkill, at: number): void {
-  if ((skill.type !== 'Heal' && skill.slot !== 'Heal') || !hasTrait(context.config, TRAIT.GRENADIER)) return;
+  if ((skill.type !== 'Heal' && skill.slot !== 'Heal') || !hasTrait(context.traits, TRAIT.GRENADIER)) return;
   const profile = requireBalanceProfileFromContext(context, TRAIT.GRENADIER);
   const effect = requireEffect(profile, 'strike', 'Grenadier');
   // A removed barrage leaves the trait ready; claim before emitting any surviving strikes.

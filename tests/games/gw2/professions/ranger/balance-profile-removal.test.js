@@ -100,6 +100,7 @@ function resolverContext(balanceProfiles, selectedTraitIds, specialization) {
   const context = {
     procs: createProcRegistry(() => context),
     config,
+    traits: new Set(config.selectedTraitIds),
     catalog: patched(balanceProfiles),
     boons: new Map(),
     // Neutral stats keep derived boon durations at their authored values.
@@ -154,6 +155,7 @@ test('removed Quick Draw quickness keeps the trait-owned recharge window and coo
   const context = {
     procs: createProcRegistry(() => context),
     config,
+    traits: new Set(config.selectedTraitIds),
     catalog: patched({ [TRAIT.QUICK_DRAW]: remove('boon', 'quickness') }),
     combatStartTime: 0,
     effectiveEnd: 1,
@@ -221,6 +223,7 @@ test('a missing required Ranger scalar fails instead of using a local default', 
   const context = {
     procs: createProcRegistry(() => context),
     config,
+    traits: new Set(config.selectedTraitIds),
     catalog: { balanceProfilesById: new Map([[TRAIT.QUICK_DRAW, profile]]) },
     combatStartTime: 0,
     effectiveEnd: 1,

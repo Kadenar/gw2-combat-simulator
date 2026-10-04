@@ -101,7 +101,7 @@ export function applyMeticulousSunCrystal(context: ThiefResolverContext, event: 
     event.actorType !== 'player' ||
     event.skillId !== ID.ZEPHYRITE_SUN_CRYSTAL ||
     event.coefficient == null || // condition-only packets have no coefficient; burning fires on the strike hit
-    !hasTrait(context.config, TRAIT.METICULOUS_CUSTODIAN)
+    !hasTrait(context.traits, TRAIT.METICULOUS_CUSTODIAN)
   )
     return;
   const sunCrystalMeticulousProfile = requireBalanceProfileFromContext(context, PROFILE.sunCrystalMeticulous);

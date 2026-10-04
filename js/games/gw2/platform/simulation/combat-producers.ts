@@ -16,16 +16,15 @@ export function createCombatExecution<T extends object>(
   profession: RuntimeProfession<T>,
   rotation: readonly unknown[]
 ): RuntimeExecution<T> {
-  let sigils: SigilRuntimeContext;
   return {
     driver: createRotationDriver(profession, rotation),
     acceptsEffect: () => true,
     professionReactions: profession.reactions,
     spendCost: (runtime, skill) => spendSkillCost(runtime.mechanics, skill),
     combatStart: (runtime) => profession.onCombatStart?.(runtime.mechanics),
-    contributions(getRuntime) {
-      // Bind once per execution; equipment cannot traverse commands or reach profession/report stores.
-      sigils = Object.freeze({
+    bindProducers(getRuntime) {
+      // Construct the shared capability before publishing any handler, preserving live service replacement.
+      const sigils: SigilRuntimeContext = Object.freeze({
         get config() {
           return getRuntime().config;
         },
@@ -58,23 +57,26 @@ export function createCombatExecution<T extends object>(
       });
       const equipment = createGw2EquipmentReactionContributions();
       return {
-        ...equipment,
-        'damage.resolved': [
-          ...(equipment['damage.resolved'] ?? []),
-          {
-            id: 'sigil.actual-strike',
-            order: -300,
-            handler: (_context, event) => applyRuntimeSigilStrike(sigils, event)
-          }
-        ],
-        'control.resolved': [
-          ...(equipment['control.resolved'] ?? []),
-          {
-            id: 'sigil.actual-control',
-            order: -300,
-            handler: (_context, event) => applyRuntimeSigils(sigils, 'control', event)
-          }
-        ]
+        weaponSwap: (event) => applyRuntimeSigils(sigils, 'swap', event),
+        contributions: {
+          ...equipment,
+          'damage.resolved': [
+            ...(equipment['damage.resolved'] ?? []),
+            {
+              id: 'sigil.actual-strike',
+              order: -300,
+              handler: (_context, event) => applyRuntimeSigilStrike(sigils, event)
+            }
+          ],
+          'control.resolved': [
+            ...(equipment['control.resolved'] ?? []),
+            {
+              id: 'sigil.actual-control',
+              order: -300,
+              handler: (_context, event) => applyRuntimeSigils(sigils, 'control', event)
+            }
+          ]
+        }
       };
     },
     castCompleted(runtime, event) {
@@ -94,7 +96,6 @@ export function createCombatExecution<T extends object>(
     condition(runtime, event) {
       if (runtime.relic.id === RELIC_IDS.SHACKLES) invokeRelicHook(runtime, 'emitConditionEffects', event);
     },
-    weaponSwap: (_runtime, event) => applyRuntimeSigils(sigils, 'swap', event),
     report: (runtime, combatEndTime) => invokeRelicHook(runtime, 'passiveTimeline', combatEndTime)
   };
 }

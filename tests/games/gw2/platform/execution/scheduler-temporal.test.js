@@ -1,3 +1,4 @@
+import { observeGw2Runtime } from '#tests/helpers/observed-runtime.js';
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
@@ -191,10 +192,6 @@ test('a recovered ammo charge cannot cast before its lockout expires', () => {
     catalog,
     hooks: {
       initialize(context) {
-        const skill = catalog.skillsById.get(980000);
-        context.cooldownController.spendAmmo(skill, 0);
-        context.cooldownController.spendAmmo(skill, 0);
-        context.cooldownController.setAmmoLockout(skill, 5, 0);
         context.schedule('recover-ammo', 1, {});
       },
       tasks: {
@@ -206,7 +203,17 @@ test('a recovered ammo charge cannot cast before its lockout expires', () => {
       }
     }
   });
-  const result = simulateGw2({ profession, rotation: ['Ammo Cast', { type: 'cooldown-reset' }, 'Ammo Cast'] });
+  const result = observeGw2Runtime({
+    profession: profession.runtimeFor({}),
+    rotation: ['Ammo Cast', { type: 'cooldown-reset' }, 'Ammo Cast'],
+    // The engine fixture seeds cast-owned lockout state; mechanic hooks only request the later recharge reduction.
+    engineInitialize(context) {
+      const skill = catalog.skillsById.get(980000);
+      context.cooldownController.spendAmmo(skill, 0);
+      context.cooldownController.spendAmmo(skill, 0);
+      context.cooldownController.setAmmoLockout(skill, 5, 0);
+    }
+  });
 
   assert.equal(recoveredCharges, 1);
   assert.deepEqual(

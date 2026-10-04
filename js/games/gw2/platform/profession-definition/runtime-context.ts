@@ -12,23 +12,13 @@ export interface SelectedContentContext extends TraitSelectionContext {
   readonly requireBalanceProfile: (id: SkillId) => BalanceProfile;
 }
 
-export function createTraitSelectionContext(traits: ReadonlySet<SkillId>): TraitSelectionContext {
+function createTraitSelectionContext(traits: ReadonlySet<SkillId>): TraitSelectionContext {
   return Object.freeze({ hasTrait: (id: SkillId) => hasTrait(traits, id) });
 }
 
-/** Dynamic variants can follow mechanic state changes while waiting, without acquiring the command cursor. */
-export interface SkillSelectionContext<TState extends object> extends TraitSelectionContext {
-  readonly readProfessionState: () => ReadonlyMechanicState<TState>;
-}
-
-export function createSkillSelectionContext<TState extends object>(
-  readState: () => TState,
-  traits: ReadonlySet<SkillId>
-): SkillSelectionContext<TState> {
-  return Object.freeze({
-    ...createTraitSelectionContext(traits),
-    readProfessionState: () => readState() as ReadonlyMechanicState<TState>
-  });
+/** Skill variants depend on the normalized trait selection, without access to mutable profession state. */
+export function createSkillSelectionContext(traits: ReadonlySet<SkillId>): TraitSelectionContext {
+  return createTraitSelectionContext(traits);
 }
 
 /** Shared read-only content queries keep duration and capacity decisions isolated from combat services. */

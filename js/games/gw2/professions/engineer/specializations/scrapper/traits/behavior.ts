@@ -169,7 +169,7 @@ export function applyKineticAcceleratorsCast(context: EngineerRuntime, cast: Run
   // Kinetic Accelerators (GM trait): Function Gyro becomes a blast finisher.
   // The marker gives the shared combo materializer a trait-gated descriptor
   // while preserving Function Gyro as the source of the resulting combo.
-  if (hasTrait(context.config, TRAIT.KINETIC_ACCELERATORS)) {
+  if (hasTrait(context.traits, TRAIT.KINETIC_ACCELERATORS)) {
     produceRuntimeCombos(context, context.helpers, {
       type: 'action',
       endsAt: context.time,

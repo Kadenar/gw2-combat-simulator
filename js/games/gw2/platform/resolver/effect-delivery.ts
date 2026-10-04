@@ -55,6 +55,7 @@ interface DeliveryHost {
   nextEventOrder(): number;
   withCause<R>(cause: Gw2ResolverEvent | null, run: () => R): R;
   observePacket(event: Gw2ResolverEvent): void;
+  weaponSwap?(event: Gw2ResolverEvent): void;
 }
 /** Admission and resolution share packet metadata, preparation timing, and lethal-target settlement. */
 export function createEffectDelivery<T extends object>(
@@ -169,7 +170,7 @@ export function createEffectDelivery<T extends object>(
       event.weaponStrength == null
         ? weaponStrengthProfileIdForEvent(event, {
             skill: profession.catalog.skillsById.get(event.skillId ?? event.sourceId) ?? null,
-            state: runtime as unknown as Record<string, unknown>,
+            activeWeaponSet: runtime.activeWeaponSet,
             config
           })
         : null;
@@ -277,7 +278,7 @@ export function createEffectDelivery<T extends object>(
         prepared.weaponStrength == null
           ? weaponStrengthProfileIdForEvent(prepared, {
               skill: profession.catalog.skillsById.get(prepared.skillId ?? prepared.sourceId) ?? null,
-              state: runtime as unknown as Record<string, unknown>,
+              activeWeaponSet: runtime.activeWeaponSet,
               config
             })
           : null;
@@ -374,7 +375,7 @@ export function createEffectDelivery<T extends object>(
         cooldownReduction: event.cooldownReduction,
         expiresAt: Number(event.duration) > 0 ? event.at + Number(event.duration) : null
       });
-    if (event.type === 'weapon_set' || event.type === 'sigil_swap') execution.weaponSwap?.(runtime, event);
+    if (event.type === 'weapon_set' || event.type === 'sigil_swap') host.weaponSwap?.(event);
     if (['action', 'cooldown_snapshot', 'weapon_set', 'buff', 'boon_extension', 'marker'].includes(event.type))
       runtime.observations.record(event);
     if (!preparedCombos.has(event)) produceRuntimeCombos(runtime, profession.catalog, event);

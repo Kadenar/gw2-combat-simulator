@@ -263,7 +263,13 @@ test('a missing required Revenant profile fails in the selected catalog', () => 
 test('Ferocious Aggression uses its patched value for life steal and ordinary damage', () => {
   const config = { selectedTraitIds: [TRAIT.FEROCIOUS_AGGRESSION], boons: { fury: true } };
   const catalog = patched({ [TRAIT.FEROCIOUS_AGGRESSION]: { fields: { damageIncrease: 0.3 } } })(revenantCatalog);
-  const context = { config, catalog, time: 0, event: { at: 0, actorType: 'player' } };
+  const context = {
+    config,
+    traits: new Set(config.selectedTraitIds),
+    catalog,
+    time: 0,
+    event: { at: 0, actorType: 'player' }
+  };
   assert.equal(revenantLifeSiphonBonus(context, { at: 0, flatStrikeBase: 100, damageKind: 'life-steal' }), 0.3);
   assert.equal(revenantProfession.resolveProfession(config).modifyStrikeDamage(context, 100), 130);
   assert.equal(revenantProfession.resolveProfession(config).modifyConditionDamage(context, 100), 130);

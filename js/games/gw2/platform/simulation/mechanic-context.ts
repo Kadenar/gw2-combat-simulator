@@ -7,12 +7,10 @@ import type { ReadonlyMechanicState } from '#gw2/platform/profession-definition/
 /** Shared accessors keep per-run capability shapes stable while following live owner state. */
 class MechanicQueries<T extends object, TSkill extends Skill> implements MechanicQueryContext<T, TSkill> {
   readonly #runtime: Gw2Runtime<T, TSkill>;
-  readonly hasExplicitCombatStart: MechanicQueryContext<T, TSkill>['hasExplicitCombatStart'];
   readonly combat: MechanicQueryContext<T, TSkill>['combat'];
   readonly castController: MechanicQueryContext<T, TSkill>['castController'];
   readonly resourceController: MechanicQueryContext<T, TSkill>['resourceController'];
   readonly endurance: MechanicQueryContext<T, TSkill>['endurance'];
-  readonly procs: MechanicQueryContext<T, TSkill>['procs'];
   readonly facts: MechanicQueryContext<T, TSkill>['facts'];
   readonly cooldownController: MechanicQueryContext<T, TSkill>['cooldownController'];
   readonly combatStartedAt: MechanicQueryContext<T, TSkill>['combatStartedAt'];
@@ -20,7 +18,6 @@ class MechanicQueries<T extends object, TSkill extends Skill> implements Mechani
     this.#runtime = runtime;
     const combat = runtime.combat;
     const recharge = runtime.cooldownController;
-    this.hasExplicitCombatStart = runtime.hasExplicitCombatStart;
     this.combat = Object.freeze({
       activeBoonStacks: combat.activeBoonStacks,
       boonApplications: combat.boonApplications,
@@ -48,7 +45,6 @@ class MechanicQueries<T extends object, TSkill extends Skill> implements Mechani
       readyAt: (key: ResourceKey, cost: number) => runtime.resourceController.readyAt(key, cost)
     });
     this.endurance = Object.freeze({ readyAt: (cost: number) => runtime.endurance.readyAt(cost) });
-    this.procs = Object.freeze({ deadline: runtime.procs.deadline });
     this.facts = Object.freeze({
       read: runtime.facts.read,
       ofType: runtime.facts.ofType,
@@ -81,10 +77,6 @@ class MechanicQueries<T extends object, TSkill extends Skill> implements Mechani
 
   get activeWeaponSet() {
     return this.#runtime.activeWeaponSet;
-  }
-
-  get combatStartTime() {
-    return this.#runtime.combatStartTime;
   }
 
   get combatStartPending() {
@@ -132,7 +124,14 @@ class MechanicCommands<T extends object, TSkill extends Skill> implements Mechan
     this.hasExplicitCombatStart = runtime.hasExplicitCombatStart;
     this.combat = runtime.combat;
     this.procs = runtime.procs;
-    this.cooldownController = runtime.cooldownController;
+    // Bind only mechanic operations so cast-only commands are absent even for JavaScript callers.
+    const {
+      resetAll: _resetAll,
+      spendAmmo: _spendAmmo,
+      setAmmoLockout: _setAmmoLockout,
+      ...recharge
+    } = runtime.cooldownController;
+    this.cooldownController = Object.freeze(recharge);
     this.facts = runtime.facts;
     this.observations = runtime.observations;
     this.effectReactions = Object.freeze({ register: runtime.effectReactions.register });

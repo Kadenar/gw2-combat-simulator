@@ -8,19 +8,24 @@ import type { Gw2Runtime } from '#gw2/platform/simulation/runtime-state.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
 import type { ObservationPolicy } from '#kernel/execution/observation.js';
 
+/** Bound producers share one initialized capability; callbacks never depend on registration order. */
+export interface RuntimeProducers {
+  readonly contributions: Gw2ResolverReactionContributions;
+  readonly weaponSwap?: (event: Gw2ResolverEvent) => void;
+}
+
 /** Setup selects participating producers once, without exposing an execution mode to live mechanics. */
 export interface RuntimeExecution<T extends object> {
   readonly driver: RuntimeDriver<T>;
   readonly acceptsEffect: (event: SimulationEventBase) => boolean;
   readonly professionReactions: RuntimeProfession<T>['reactions'];
-  readonly contributions: (runtime: () => Gw2Runtime<T>) => Gw2ResolverReactionContributions;
+  readonly bindProducers: (runtime: () => Gw2Runtime<T>) => RuntimeProducers;
   readonly initialize?: (runtime: Gw2Runtime<T>) => void;
   readonly spendCost?: (runtime: Gw2Runtime<T>, skill: Skill) => void;
   readonly combatStart?: (runtime: Gw2Runtime<T>) => void;
   readonly castCompleted?: (runtime: Gw2Runtime<T>, event: Gw2ResolverEvent) => void;
   readonly action?: (runtime: Gw2Runtime<T>, event: Gw2ResolverEvent) => void;
   readonly condition?: (runtime: Gw2Runtime<T>, event: Gw2ResolverEvent) => void;
-  readonly weaponSwap?: (runtime: Gw2Runtime<T>, event: Gw2ResolverEvent) => void;
   readonly report?: (runtime: Gw2Runtime<T>, combatEndTime: number) => void;
 }
 

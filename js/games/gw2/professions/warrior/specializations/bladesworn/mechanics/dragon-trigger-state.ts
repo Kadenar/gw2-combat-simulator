@@ -1,5 +1,5 @@
 /** Immutable release facts remain available after charging state exits. */
-export interface DragonSlashRelease {
+interface DragonSlashRelease {
   readonly charges: number;
   readonly maximum: number;
   readonly flowSpent: number;

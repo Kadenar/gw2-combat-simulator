@@ -27,12 +27,7 @@ type Runtime = MechanicContext<WarriorRuntimeState, WarriorSkill>;
 export const DRAGON_TRIGGER_ENTRY_RESOURCE_REASON = 'dragon trigger entry';
 export const DRAGON_TRIGGER_TICK_RESOURCE_REASON = 'dragon trigger charge';
 
-export function dragonSlashCoefficient(
-  minimum: number,
-  maximum: number,
-  charges: number,
-  maximumCharges: number
-): number {
+function dragonSlashCoefficient(minimum: number, maximum: number, charges: number, maximumCharges: number): number {
   if (maximumCharges <= 1) return maximum;
   const resolvedCharges = clamp(charges, 1, maximumCharges);
   return minimum + (maximum - minimum) * ((resolvedCharges - 1) / (maximumCharges - 1));

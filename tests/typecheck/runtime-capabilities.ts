@@ -44,6 +44,8 @@ const hooks: RuntimeHooks<WarriorRuntimeState, WarriorSkill> = {
   },
   modifySkillId(context, skillId) {
     context.hasTrait(1);
+    // @ts-expect-error Skill identity selection has no profession-state reader.
+    context.readProfessionState();
     // @ts-expect-error Identity selection cannot observe or mutate mechanic state.
     context.profession;
     // @ts-expect-error Identity selection has no command cursor.
@@ -174,6 +176,14 @@ void readOnlyCollections;
 function mechanicBoundaries(context: MechanicContext<WarriorRuntimeState, WarriorSkill>) {
   context.profession.core.adrenaline = 1;
   context.cooldownController.setReadyAt(1, 2);
+  // @ts-expect-error Only cast execution can reset every cooldown.
+  context.cooldownController.resetAll();
+  // @ts-expect-error Only cast execution can spend cast ammunition.
+  context.cooldownController.spendAmmo;
+  // @ts-expect-error Only cast execution can commit an ammunition lockout.
+  context.cooldownController.setAmmoLockout;
+  // @ts-expect-error Internal lockout work is not an ammunition observation.
+  context.cooldownController.readAmmo(1)!.lockoutProgress;
   context.castController.lockInputUntil(2);
   context.procs.setDeadline('trait', 2);
   // @ts-expect-error Only the coordinator controls the clock.
@@ -199,7 +209,8 @@ function mechanicBoundaries(context: MechanicContext<WarriorRuntimeState, Warrio
 function queryBoundaries(context: MechanicQueryContext<WarriorRuntimeState, WarriorSkill>) {
   const skill: WarriorSkill | undefined = context.helpers.skillsById.get(1);
   context.combat.targetHealthBelow(0.5);
-  context.procs.deadline('trait');
+  // @ts-expect-error Query callbacks do not receive the unused proc capability.
+  context.procs;
   // @ts-expect-error Query callbacks cannot schedule or emit effects.
   context.effects.emit({});
   // @ts-expect-error Query callbacks cannot revise boon state.

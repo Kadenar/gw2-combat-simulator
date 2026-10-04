@@ -56,6 +56,7 @@ test('allied Leeching Venoms triggers only for the first packet of an allied ven
         // Required life-steal tuning comes from the canonical catalog.
         catalog: thiefCatalog,
         config: { selectedTraitIds: [TRAIT.LEECHING_VENOMS] },
+        traits: new Set([TRAIT.LEECHING_VENOMS]),
         effects: { emit: ({ event }) => queued.push(event) }
       },
       {

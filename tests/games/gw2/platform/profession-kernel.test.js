@@ -579,8 +579,13 @@ test('declared recharge progress scales the accepted anchor and validates its ra
 // Dynamic metadata is evaluated only for an accepted proc, once for all packets, after the ICD claim.
 test('dynamic cast attribution preserves targeting and overrides authored packet identity once per proc', () => {
   const calls = [];
+  let procs;
   const result = run(
     {
+      // Observe claim ordering through the lifecycle owner, outside the attribution query capability.
+      initialize(runtime) {
+        procs = runtime.procs;
+      },
       traitTriggers: [
         {
           trait: 'test.trait',
@@ -588,8 +593,8 @@ test('dynamic cast attribution preserves targeting and overrides authored packet
           emit: 'test.attribution',
           icd: 'profile',
           when: (_runtime, activation) => activation.skill.id === 991001,
-          attribution(runtime, activation) {
-            calls.push([activation.id, runtime.procs.deadline('test.attribution')]);
+          attribution(_runtime, activation) {
+            calls.push([activation.id, procs.deadline('test.attribution')]);
             return {
               actorType: 'player',
               ownerActorType: 'player',

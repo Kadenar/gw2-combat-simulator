@@ -40,7 +40,7 @@ export function triggerInstantEnhancedCapacityMight(
 ): void {
   const state = holosmithState.from(context);
   if (
-    !hasTrait(context.config, TRAIT.ENHANCED_CAPACITY_STORAGE_UNIT) ||
+    !hasTrait(context.traits, TRAIT.ENHANCED_CAPACITY_STORAGE_UNIT) ||
     previousHeat > HOLOSMITH_HEAT.enhancedCapacityThreshold ||
     state.heat <= HOLOSMITH_HEAT.enhancedCapacityThreshold
   )
@@ -101,7 +101,7 @@ export function emitPhotonicBlastingModuleEffects(context: EngineerRuntime<Holos
 export function initializeEnhancedCapacityMight(context: EngineerRuntime<HolosmithSkill>): void {
   const state = holosmithState.from(context);
   if (
-    hasTrait(context.config, TRAIT.ENHANCED_CAPACITY_STORAGE_UNIT) &&
+    hasTrait(context.traits, TRAIT.ENHANCED_CAPACITY_STORAGE_UNIT) &&
     state.heat > HOLOSMITH_HEAT.enhancedCapacityThreshold
   ) {
     state.enhancedCapacityMightAt = context.time;
@@ -128,14 +128,14 @@ export function enhancedCapacityHeatTier(heat: number, selected: boolean): boole
 
 /** Light Density Amplifier uses the existing shared heat-profile patch key. */
 export function lightDensityHeatPerSecond(context: EngineerRuntime<HolosmithSkill>): number {
-  return hasTrait(context.config, TRAIT.LIGHT_DENSITY_AMPLIFIER)
+  return hasTrait(context.traits, TRAIT.LIGHT_DENSITY_AMPLIFIER)
     ? balanceProfileNumber(requireBalanceProfileFromContext(context, PROFILE.heat), 'resourceGain')
     : 0;
 }
 
 /** PBM retains heat outside Forge until overheat, including when a dodge attempts to vent it. */
 export function preservesPhotonicHeat(context: EngineerRuntime<HolosmithSkill>): boolean {
-  return hasTrait(context.config, TRAIT.PHOTONIC_BLASTING_MODULE) && !holosmithState.from(context).overheated;
+  return hasTrait(context.traits, TRAIT.PHOTONIC_BLASTING_MODULE) && !holosmithState.from(context).overheated;
 }
 
 /** PBM supplies its delayed blast timestamp and toolbelt penalty before overheat state changes. */
@@ -143,7 +143,7 @@ export function photonicOverheatTiming(
   context: EngineerRuntime<HolosmithSkill>,
   at: number
 ): { at: number; cooldown: number } | undefined {
-  if (!hasTrait(context.config, TRAIT.PHOTONIC_BLASTING_MODULE)) return;
+  if (!hasTrait(context.traits, TRAIT.PHOTONIC_BLASTING_MODULE)) return;
   const profile = requireBalanceProfileFromContext(context, TRAIT.PHOTONIC_BLASTING_MODULE);
   return {
     at: at + balanceProfileNumber(profile, 'initialDelay'),

@@ -56,7 +56,7 @@ export function criticalBoonEligible(
     !Number.isFinite(event.flatDamage) &&
     !Number.isFinite(event.flatStrikeBase) &&
     !Number.isFinite(event.flatStrikePowerCoeff) &&
-    hasTrait(context.config, traitId) &&
+    hasTrait(context.traits, traitId) &&
     criticalBoonDefinition(context, traitId) !== null
   );
 }

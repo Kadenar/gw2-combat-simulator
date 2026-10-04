@@ -80,8 +80,8 @@ selection, content, recharge-anchor, capacity, cast-detail, and effect-ownership
 
 `simulation/mechanic-context.ts` binds stable query and lifecycle views to the live run, and
 `resolver/mechanic-services.ts` binds combat operations to resolver-owned stores. `combat/history/executed-facts.ts`
-provides separate `facts` readers and `observations` writers in every output mode. Author capabilities do not expose
-the command cursor, shared heap, cast maps, or report collections.
+provides separate `facts` readers and `observations` writers in every output mode. Author capabilities do not expose the
+command cursor, shared heap, cast maps, or report collections.
 
 Weapon eligibility is the profession's shared `weaponSkillMatchesSet` policy, consumed by simulation and application
 adapters. Headless compilation/simulation never initializes presentation factories.

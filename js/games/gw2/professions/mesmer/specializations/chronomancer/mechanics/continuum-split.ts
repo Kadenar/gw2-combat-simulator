@@ -19,7 +19,11 @@ import { MESMER_SKILL_IDS as ID } from '#gw2/professions/mesmer/data/ids.js';
 
 interface ContinuumControllerOptions {
   readonly state: MesmerRuntime;
-  readonly cooldownController: CooldownController;
+  /** Continuum snapshots and restores recharge without acquiring cast acceptance operations. */
+  readonly cooldownController: Pick<
+    CooldownController,
+    'restoreCheckpoint' | 'refresh' | 'ammoSkillIds' | 'checkpoint' | 'readyAt'
+  >;
   readonly unaffectedCooldownIds: ReadonlySet<SkillId>;
   readonly refreshAmmo: MesmerRefreshAmmo;
   readonly consumeResources: (at: number, details?: MesmerResourceSpendDetails) => number;

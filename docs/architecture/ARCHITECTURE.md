@@ -163,9 +163,9 @@ projects the settled run without advancing it.
 
 Mechanic contributions use the explicit `RuntimeHooks` surface in `profession-definition/runtime-hooks.ts`; unknown
 fields and duplicate named handlers fail. Notification order, transform propagation, retry precedence, and policy
-selection remain explicit. Module declarations, rule compilation, and hook composition use `RuntimeHooks<State, TSkill>`;
-the broader `RuntimeProfession` contract belongs to the compiled profession, including its catalog, state factory,
-weapon eligibility, attack-chain overrides, and planning projection.
+selection remain explicit. Module declarations, rule compilation, and hook composition use
+`RuntimeHooks<State, TSkill>`; the broader `RuntimeProfession` contract belongs to the compiled profession, including
+its catalog, state factory, weapon eligibility, attack-chain overrides, and planning projection.
 
 All callback families use their canonical author capabilities. `profession-definition/runtime-context.ts` declares
 dedicated selection, content, recharge-anchor, capacity, cast-detail, and effect-ownership contexts. `effectOwner`
@@ -174,10 +174,10 @@ whose profession-state query exposes nested data as read-only and excludes state
 once per run, and accepted casts retain their concrete selected-catalog skill.
 
 `profession-definition/mechanic-context.ts` declares the shared mechanic capabilities. `MechanicQueryContext` gives
-selection and observation callbacks read-only profession state, service queries, and executed facts. `MechanicCombatContext`
-gives combat helpers mutable profession state and combat, emission, proc, and random services. `MechanicContext` extends
-that combat capability for lifecycle handlers with cast/resource/recharge operations, named scheduling, and explicit
-observation writes. None exposes the command cursor, shared heap, or report collections.
+selection and observation callbacks read-only profession state, service queries, and executed facts.
+`MechanicCombatContext` gives combat helpers mutable profession state and combat, emission, proc, and random services.
+`MechanicContext` extends that combat capability for lifecycle handlers with cast/resource/recharge operations, named
+scheduling, and explicit observation writes. None exposes the command cursor, shared heap, or report collections.
 
 `simulation/mechanic-context.ts` binds stable query and lifecycle views to the live run. `resolver/mechanic-services.ts`
 binds combat operations to their resolver-owned stores. `combat/history/executed-facts.ts` supplies the `facts` reader

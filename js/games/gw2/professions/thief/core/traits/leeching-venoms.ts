@@ -43,7 +43,7 @@ export function enqueueSiphon(
 }
 
 export function applyLeechingVenoms(context: ThiefResolverContext, event: ThiefResolverEvent): void {
-  if (!hasTrait(context.config, TRAIT.LEECHING_VENOMS)) return;
+  if (!hasTrait(context.traits, TRAIT.LEECHING_VENOMS)) return;
   const leechingVenomsProfile = requireBalanceProfileFromContext(context, TRAIT.LEECHING_VENOMS);
   const strike = requireEffect(leechingVenomsProfile, 'strike', 'Leeching Venoms');
   // Explicit removal suppresses this packet without restoring baseline tuning.

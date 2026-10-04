@@ -222,16 +222,20 @@ test('interruption keeps a packet on the canonical boundary despite floating-poi
   );
 });
 
-test('native skill selection reevaluates actual state before reserving the selected action and its recharge', () => {
+// Selection reuses normalized traits at each boundary while readiness follows the selected skill's cooldown.
+test('native skill selection preserves trait identity while waiting for the selected action recharge', () => {
   let owner;
+  let selections = 0;
   const profession = native({
     initialize(runtime) {
       owner = runtime;
-      runtime.cooldownController.setReadyAt(991002, 2);
+      runtime.cooldownController.setReadyAt(991002, 10);
+      runtime.cooldownController.setReadyAt(991003, 2);
       runtime.schedule('transform', 1);
     },
     modifySkillId(context, id) {
-      return id === 991001 ? (context.readProfessionState().core.grants ? 991003 : 991002) : id;
+      selections++;
+      return id === 991001 ? (context.hasTrait('test.variant') ? 991003 : 991002) : id;
     },
     tasks: {
       transform: (runtime) => {
@@ -239,12 +243,13 @@ test('native skill selection reevaluates actual state before reserving the selec
       }
     }
   });
-  const result = run(['Hit'], {}, profession);
+  const result = run(['Hit'], { config: { ...config, selectedTraitIds: ['test.variant'] } }, profession);
   assert.deepEqual(result.warnings, []);
-  assert.deepEqual(owner.profession.core.starts, [[991003, 1]]);
-  assert.equal(owner.cooldownController.readyAt(991002), 2);
+  assert.ok(selections > 1);
+  assert.deepEqual(owner.profession.core.starts, [[991003, 2]]);
+  assert.equal(owner.cooldownController.readyAt(991002), 10);
   assert.equal(result.totalDamage, 0);
-  assert.ok(result.events.some((event) => event.type === 'buff' && event.kind === 'might' && event.at === 1));
+  assert.ok(result.events.some((event) => event.type === 'buff' && event.kind === 'might' && event.at === 2));
 });
 
 test('native duration selection composes before start mutations and rejects invalid reservations', () => {
@@ -1030,4 +1035,26 @@ test('Aristocracy records one actual stack claim and Brawler respects a pending 
     run(rotation, { config: { ...config, relic: 'Brawler', precastRelics: ['Brawler'] } }, brawler).procSteps.length,
     1
   );
+});
+
+// JavaScript mechanics receive the same restricted operations promised by the author types.
+test('mechanic capabilities exclude cast-only recharge commands and unused query metadata', () => {
+  let observed = false;
+  run(
+    [],
+    {},
+    native({
+      initialize(context) {
+        observed = true;
+        for (const name of ['resetAll', 'spendAmmo', 'setAmmoLockout'])
+          assert.equal(name in context.cooldownController, false);
+        for (const name of ['combatStartTime', 'hasExplicitCombatStart', 'procs'])
+          assert.equal(name in context.queries, false);
+        context.cooldownController.setReadyAt(991001, 2);
+        assert.equal(context.queries.cooldownController.readyAt(991001), 2);
+        assert.equal(Object.isFrozen(context.cooldownController), true);
+      }
+    })
+  );
+  assert.equal(observed, true);
 });

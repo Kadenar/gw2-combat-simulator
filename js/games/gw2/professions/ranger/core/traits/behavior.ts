@@ -412,7 +412,7 @@ export function applyRangerDodgeTraits(context: RangerRuntime, at = context.time
 export function applyRangerWeaponSwapTraits(context: RangerRuntime, skill: RangerSkill, at = context.time): void {
   const state = professionCoreState(context);
   const inCombat = context.combatStartTime != null && at >= context.combatStartTime;
-  if (inCombat && hasTrait({ config: context.config }, TRAIT.TAIL_WIND)) {
+  if (inCombat && hasTrait(context.traits, TRAIT.TAIL_WIND)) {
     const profile = requireBalanceProfileFromContext(context, TRAIT.TAIL_WIND);
     const effect = requireEffect(profile, 'boon', 'swiftness');
     // The cooldown gates only swiftness, so a removed boon leaves it ready.
@@ -439,7 +439,7 @@ export function applyRangerWeaponSwapTraits(context: RangerRuntime, skill: Range
 
   if (
     inCombat &&
-    hasTrait({ config: context.config }, TRAIT.QUICK_DRAW) &&
+    hasTrait(context.traits, TRAIT.QUICK_DRAW) &&
     context.procs.claim(TRAIT.QUICK_DRAW, 'ranger.core.quickDraw', at)
   ) {
     const profile = requireBalanceProfileFromContext(context, TRAIT.QUICK_DRAW);
@@ -466,7 +466,7 @@ export function applyRangerWeaponSwapTraits(context: RangerRuntime, skill: Range
       });
   }
 
-  if (inCombat && hasTrait({ config: context.config }, TRAIT.FURIOUS_GRIP)) {
+  if (inCombat && hasTrait(context.traits, TRAIT.FURIOUS_GRIP)) {
     const profile = requireBalanceProfileFromContext(context, TRAIT.FURIOUS_GRIP);
     const effect = requireEffect(profile, 'boon', 'fury');
     // The cooldown gates only fury, so a removed boon leaves it ready.
@@ -914,7 +914,7 @@ export function applyArachnophobiaPet(
 
 /** Adds Natural Vigor to both baseline and Vigor-enhanced endurance recovery. */
 export function naturalVigorBonus(context: RangerRuntime): number {
-  return hasTrait({ config: context.config }, TRAIT.NATURAL_VIGOR)
+  return hasTrait(context.traits, TRAIT.NATURAL_VIGOR)
     ? balanceProfileNumber(
         requireBalanceProfileFromContext(context, TRAIT.NATURAL_VIGOR),
         'vigorRegenerationMultiplier'

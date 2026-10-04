@@ -236,7 +236,7 @@ export function exposeDefenses(runtime: RevenantRuntime, event: Gw2ResolverEvent
 /** Explicit life-steal packets bypass ordinary strike modifiers; labels never decide their Core bonus. */
 export function revenantLifeSiphonBonus(context: RevenantResolverContext, event: Gw2ResolverEvent): number | null {
   if (!isFlatLifeStealPacket(event)) return null;
-  return hasTrait(context.config, TRAIT.FEROCIOUS_AGGRESSION) &&
+  return hasTrait(context.traits, TRAIT.FEROCIOUS_AGGRESSION) &&
     boonActive({ config: context.config, runtime: context, time: event.at, event }, 'fury')
     ? balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.FEROCIOUS_AGGRESSION), 'damageIncrease')
     : 0;

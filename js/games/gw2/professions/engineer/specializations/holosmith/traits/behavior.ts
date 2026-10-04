@@ -34,7 +34,7 @@ export function triggerThermalReleaseValve(
   skill: EngineerSkill,
   at: number
 ): void {
-  if (!hasTrait(context.config, TRAIT.THERMAL_RELEASE_VALVE)) return;
+  if (!hasTrait(context.traits, TRAIT.THERMAL_RELEASE_VALVE)) return;
   const state = holosmithState.from(context);
   const thermalReleaseValveProfile = requireBalanceProfileFromContext(context, TRAIT.THERMAL_RELEASE_VALVE);
   const boon = requireEffect(thermalReleaseValveProfile, 'boon', 'vigor');
@@ -63,7 +63,7 @@ export function crystalStormAvailability(
   skill: HolosmithSkill
 ): AvailabilityResult {
   if (skill.forgeSkill && skill.slot === 'Weapon_1') {
-    const stormSelected = hasTrait(context.config, TRAIT.CRYSTAL_CONFIGURATION_STORM);
+    const stormSelected = hasTrait(context.traits, TRAIT.CRYSTAL_CONFIGURATION_STORM);
     const stormSkill = HOLOSMITH_STORM_AUTOATTACK_SKILL_IDS.has(Number(skill.id));
     if (stormSelected !== stormSkill) {
       return denyEngineerCast(
@@ -95,7 +95,7 @@ export function consumeSolarFocusingLens(
   if (
     event.actorType !== 'player' ||
     !(Number(event.coefficient) > 0) ||
-    !hasTrait(context.config, TRAIT.SOLAR_FOCUSING_LENS)
+    !hasTrait(context.traits, TRAIT.SOLAR_FOCUSING_LENS)
   )
     return;
   const state = holosmithState.from(context);
@@ -131,7 +131,7 @@ export function grantSolarFocusingLens(
   at: number,
   grant: 'minimumStacks' | 'maximumStacks'
 ): void {
-  if (!hasTrait(context.config, TRAIT.SOLAR_FOCUSING_LENS)) return;
+  if (!hasTrait(context.traits, TRAIT.SOLAR_FOCUSING_LENS)) return;
   const solarFocusingLensProfile = requireBalanceProfileFromContext(context, TRAIT.SOLAR_FOCUSING_LENS);
   // Grants cross into the resolver at their activation time; only impacts spend charges.
   context.effects.emit({

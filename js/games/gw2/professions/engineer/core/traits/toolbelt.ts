@@ -29,7 +29,7 @@ export function isEngineerToolbeltSkill(skill: EngineerSkill | undefined): boole
 export function applyStreamlinedKits(context: EngineerRuntime, skill: EngineerSkill, at: number): void {
   if (
     skill.kitTransition !== 'equip' ||
-    !hasTrait(context.config, TRAIT.STREAMLINED_KITS) ||
+    !hasTrait(context.traits, TRAIT.STREAMLINED_KITS) ||
     !context.procs.claim(TRAIT.STREAMLINED_KITS, 'streamlinedKits', at)
   )
     return;
@@ -65,7 +65,7 @@ export function applyStreamlinedKits(context: EngineerRuntime, skill: EngineerSk
 
 /** Materializes Vigor at the toolbelt dispatch boundary, including independent mech-command acceptance. */
 function applyOptimizedActivation(context: EngineerRuntime, skill: EngineerSkill, at: number): void {
-  if (!hasTrait(context.config, TRAIT.OPTIMIZED_ACTIVATION)) return;
+  if (!hasTrait(context.traits, TRAIT.OPTIMIZED_ACTIVATION)) return;
   const optimizedActivationProfile = requireBalanceProfileFromContext(context, TRAIT.OPTIMIZED_ACTIVATION);
   const optimizedActivationVigor = requireEffect(optimizedActivationProfile, 'boon', 'vigor');
   if (optimizedActivationVigor) {
@@ -88,7 +88,7 @@ function applyOptimizedActivation(context: EngineerRuntime, skill: EngineerSkill
 
 /** Queues Static Discharge from a completed toolbelt cast. */
 function applyStaticDischarge(context: EngineerRuntime, skill: EngineerSkill, at: number): void {
-  if (!hasTrait(context.config, TRAIT.STATIC_DISCHARGE)) return;
+  if (!hasTrait(context.traits, TRAIT.STATIC_DISCHARGE)) return;
   const profile = requireBalanceProfileFromContext(context, TRAIT.STATIC_DISCHARGE);
   context.effects.emit({
     kind: 'profile',
@@ -116,7 +116,7 @@ function applyStaticDischarge(context: EngineerRuntime, skill: EngineerSkill, at
 
 /** Advances Kinetic Battery and reports charge progress after its fifth-cast buff package. */
 function applyKineticBattery(context: EngineerRuntime, skill: EngineerSkill, at: number): void {
-  if (!hasTrait(context.config, TRAIT.KINETIC_BATTERY)) return;
+  if (!hasTrait(context.traits, TRAIT.KINETIC_BATTERY)) return;
   const state = professionCoreState(context);
   const profile = requireBalanceProfileFromContext(context, TRAIT.KINETIC_BATTERY);
   const maximumCharges = balanceProfileNumber(profile, 'maximumStacks');
@@ -178,7 +178,7 @@ export function applyEngineerDodgeTraits(runtime: EngineerRuntime, cast: Runtime
     [TRAIT.POWER_WRENCH, 'Power Wrench', (skill: EngineerSkill) => skill.type === 'Elite' || skill.slot === 'Elite'],
     [TRAIT.ADRENAL_IMPLANT, 'Adrenal Implant', isEngineerToolbeltSkill]
   ] as const)
-    if (hasTrait(runtime.config, trait))
+    if (hasTrait(runtime.traits, trait))
       reduceEngineerRecharge(
         runtime,
         cast,
@@ -191,7 +191,7 @@ export function applyEngineerDodgeTraits(runtime: EngineerRuntime, cast: Runtime
 
 /** Adrenal Implant adds to Vigor using the existing resource profile's patch target. */
 export function adrenalImplantEnduranceBonus(context: EngineerRuntime): number {
-  return hasTrait(context.config, TRAIT.ADRENAL_IMPLANT)
+  return hasTrait(context.traits, TRAIT.ADRENAL_IMPLANT)
     ? balanceProfileNumber(requireBalanceProfileFromContext(context, PROFILE.resources), 'coefficientMultiplier') - 1
     : 0;
 }

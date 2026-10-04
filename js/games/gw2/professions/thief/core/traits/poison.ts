@@ -22,7 +22,7 @@ export function applyDeadlyAmbition(context: ThiefResolverContext, event: ThiefR
   const isDualWieldAttack =
     skill.categories?.includes('DualWield') ||
     Boolean(skill.requiredMainHand && typeof skill.requiredOffHand === 'string');
-  if (!isDualWieldAttack || !hasTrait(context.config, TRAIT.DEADLY_AMBITION)) return;
+  if (!isDualWieldAttack || !hasTrait(context.traits, TRAIT.DEADLY_AMBITION)) return;
   const state = professionCoreState(context);
   const activation = `deadly-ambition:${event.activationId || `${skill.id}:${event.at}`}`;
   if (state.traitProcProgress[activation]) return;
@@ -58,7 +58,7 @@ export function applyLotusPoison(context: ThiefResolverContext, event: ThiefReso
     event.condition !== 'Poisoned' ||
     event.actorType !== 'player' ||
     (event.metadata?.triggeredByAlly || 0) > 0 ||
-    !hasTrait(context.config, TRAIT.LOTUS_POISON)
+    !hasTrait(context.traits, TRAIT.LOTUS_POISON)
   )
     return;
 
@@ -116,7 +116,7 @@ export function applyLotusPoison(context: ThiefResolverContext, event: ThiefReso
 }
 
 export function applyPanicStrike(context: ThiefResolverContext, event: ThiefResolverEvent): void {
-  if (event.actorType !== 'player' || !(Number(event.coefficient) > 0) || !hasTrait(context.config, TRAIT.PANIC_STRIKE))
+  if (event.actorType !== 'player' || !(Number(event.coefficient) > 0) || !hasTrait(context.traits, TRAIT.PANIC_STRIKE))
     return;
 
   const panicStrikeProfile = requireBalanceProfileFromContext(context, TRAIT.PANIC_STRIKE);
@@ -157,7 +157,7 @@ export function applyPanicStrikePoison(context: ThiefResolverContext, applicatio
   if (
     application.condition !== 'Immobilized' ||
     application.actorType !== 'player' ||
-    !hasTrait(context.config, TRAIT.PANIC_STRIKE)
+    !hasTrait(context.traits, TRAIT.PANIC_STRIKE)
   )
     return;
 

@@ -39,6 +39,7 @@ function contextFor(profession, specialization, selectedTraitIds = []) {
   const { effects, events } = captureEffectEmissions();
 
   const context = {
+    traits: new Set(selectedTraitIds),
     config,
     profession: state,
     catalog: runtime.catalog,

@@ -37,7 +37,7 @@ export function isElixirSkill(skill: EngineerSkill | undefined): boolean {
 /** Schedules Acid Bomb's extended final pulse while HGH is selected. */
 export function applyHghAcidBomb(context: EngineerRuntime, cast: RuntimeCast<EngineerSkill>): void {
   const skill = cast.skill;
-  if (!hasTrait(context.config, TRAIT.HGH) || skill.id !== ID.ACID_BOMB) return;
+  if (!hasTrait(context.traits, TRAIT.HGH) || skill.id !== ID.ACID_BOMB) return;
 
   const hghProfile = requireBalanceProfileFromContext(context, TRAIT.HGH);
   const strike = requireEffect(hghProfile, 'strike', 'HGH');
@@ -59,7 +59,7 @@ export function applyHghAcidBomb(context: EngineerRuntime, cast: RuntimeCast<Eng
 
 /** Extends scheduled elixir fields, boons, and conditions while HGH is selected. */
 export function prepareEngineerHghEvent(context: EngineerRuntime, event: SimulationEventBase): SimulationEventBase {
-  if (!hasTrait(context.config, TRAIT.HGH) || event.sourceId === TRAIT.HGH) return event;
+  if (!hasTrait(context.traits, TRAIT.HGH) || event.sourceId === TRAIT.HGH) return event;
   const skill = context.helpers.skillsById.get(event.skillId ?? event.sourceId);
   if (!isElixirSkill(skill)) return event;
   const hghProfile = requireBalanceProfileFromContext(context, TRAIT.HGH);

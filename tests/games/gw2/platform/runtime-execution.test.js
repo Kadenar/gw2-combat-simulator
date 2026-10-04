@@ -3,6 +3,7 @@ import test from 'node:test';
 import { defineNativeModule, defineNativeProfession } from '#gw2/platform/profession-definition/profession.js';
 import { executeDamageOccurrence } from '#gw2/platform/skill-damage/run-occurrence.js';
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
+import { createCombatExecution } from '#gw2/platform/simulation/combat-producers.js';
 import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
 
 // The real acceptance boundary reuses one context, reads replaced state, and keeps cached patch selections per run.
@@ -93,7 +94,7 @@ test('identity, recharge-anchor and boon-duration policies receive only their de
     hooks: {
       modifySkillId(context, id) {
         selections.add(context);
-        assert.deepEqual(Object.keys(context), ['hasTrait', 'readProfessionState']);
+        assert.deepEqual(Object.keys(context), ['hasTrait']);
         assert.equal(context.hasTrait('test.trait'), true);
         return id;
       },
@@ -438,4 +439,32 @@ test('an occurrence beyond the finite guard fails instead of returning a partial
     () => executeDamageOccurrence(profession, config, occurrence),
     (error) => error.status === 'unsupported' && error.message.includes('finite calculation window')
   );
+});
+
+// A bound swap callback is immediately usable and keeps its own live owner across subsequent bindings.
+test('equipment producers bind swap and reaction capabilities independently for each run', () => {
+  const execution = createCombatExecution(fixture().runtimeFor(config), []);
+  const createOwner = () => ({
+    config: { sigilSets: [{ names: [] }, { names: ['Doom'] }] },
+    combatStartTime: 0,
+    combatStartPending: false,
+    combatActive: true,
+    activeWeaponSet: 1,
+    firstHitTime: null,
+    sigil: { doomPending: false },
+    procs: { claimCooldown: () => true }
+  });
+  let first = createOwner();
+  const second = createOwner();
+  const boundFirst = execution.bindProducers(() => first);
+  const boundSecond = execution.bindProducers(() => second);
+  const event = { type: 'sigil_swap', at: 0, weaponSet: 2 };
+  boundFirst.weaponSwap(event);
+  assert.equal(first.sigil.doomPending, true);
+  assert.equal(second.sigil.doomPending, false);
+  boundSecond.weaponSwap(event);
+  assert.equal(second.sigil.doomPending, true);
+  first = createOwner();
+  boundFirst.weaponSwap(event);
+  assert.equal(first.sigil.doomPending, true);
 });

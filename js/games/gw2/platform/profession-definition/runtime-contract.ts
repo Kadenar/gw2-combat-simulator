@@ -18,7 +18,7 @@ import type {
   MaximumAmmoContext,
   RechargeStartContext,
   SelectedContentContext,
-  SkillSelectionContext
+  TraitSelectionContext
 } from '#gw2/platform/profession-definition/runtime-context.js';
 import type { RechargeRule, TraitTrigger } from '#gw2/platform/profession-definition/trigger-rules.js';
 import type { Gw2ResolverEvent, Gw2ResolverStage } from '#gw2/platform/resolver/types.js';
@@ -73,7 +73,7 @@ export interface RuntimeProfession<T extends object, TSkill extends Skill = Skil
   readonly endurance?: EndurancePolicy<MechanicContext<T, TSkill>>;
   reserveRecharge?(runtime: MechanicContext<T, TSkill>, skill: TSkill, work: number): number;
   /** Resolve the currently selected action before catalog, equipment, chain, and recharge checks. */
-  modifySkillId?(context: SkillSelectionContext<T>, skillId: SkillId): SkillId;
+  modifySkillId?(context: TraitSelectionContext, skillId: SkillId): SkillId;
   rechargeWork?(runtime: MechanicQueryContext<T, TSkill>, skill: TSkill, work: number): number;
   /** Select the activation duration from current state before reserving its completion and packet timing. */
   castDurationMs?(runtime: MechanicQueryContext<T, TSkill>, skill: TSkill, durationMs: number): number;

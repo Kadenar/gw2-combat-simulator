@@ -24,10 +24,10 @@ test('samples and strikes see cooldown resets, snapshots, and swaps only after e
           },
           eventHandlers: {
             'fixture.reset'(ctx) {
-              ctx.cooldownController.resetAll();
+              ctx.cooldownController.clear(1);
             },
             'fixture.rewind'(ctx) {
-              ctx.cooldownController.resetAll();
+              ctx.cooldownController.clear(1);
             }
           }
         },
