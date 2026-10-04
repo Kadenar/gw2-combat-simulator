@@ -1,10 +1,6 @@
 import { illusionSource } from '#gw2/professions/mesmer/core/mechanics/modifier-queries.js';
-import {
-  chaoticPersistenceAttributes,
-  fencersFinesseFerocity,
-  prepareChaoticPersistence,
-  prepareFencersFinesse
-} from '#gw2/professions/mesmer/core/traits/behavior.js';
+import { chaoticPersistenceAttributes, prepareChaoticPersistence } from '#gw2/professions/mesmer/core/traits/chaos.js';
+import { fencersFinesseFerocity, prepareFencersFinesse } from '#gw2/professions/mesmer/core/traits/dueling.js';
 /** Applies Core Mesmer trait and equipment modifiers at the shared modifier boundary. */
 import { professionStaticRulesApplied } from '#gw2/platform/builds/attribute-provenance.js';
 import { selectedSkillIdSet } from '#gw2/platform/builds/selected-skills.js';

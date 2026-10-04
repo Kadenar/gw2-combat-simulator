@@ -7,7 +7,7 @@ import {
   buildMesmerConditions
 } from '#gw2/professions/mesmer/core/mechanics/packets.js';
 import { materializeSkillEffectApplications } from '#gw2/platform/effects/materializer.js';
-import { phantasmalHasteSpeed, triggerCompoundingPower } from '#gw2/professions/mesmer/core/traits/behavior.js';
+import { phantasmalHasteSpeed, triggerCompoundingPower } from '#gw2/professions/mesmer/core/traits/illusions.js';
 import type { MesmerRuntime } from '#gw2/professions/mesmer/types.js';
 import { canonicalTime } from '#kernel/core/clock.js';
 

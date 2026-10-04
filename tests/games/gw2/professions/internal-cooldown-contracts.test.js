@@ -14,7 +14,7 @@ import { createGuardianCoreState } from '#gw2/professions/guardian/core/state.js
 import { guardianCatalog } from '#gw2/professions/guardian/profession.js';
 import { reactToAshesHit } from '#gw2/professions/guardian/specializations/firebrand/mechanics/tomes.js';
 import { createFirebrandState } from '#gw2/professions/guardian/specializations/firebrand/initial-state.js';
-import { triggerIneptitudeFromInterrupt } from '#gw2/professions/mesmer/core/traits/behavior.js';
+import { triggerIneptitudeFromInterrupt } from '#gw2/professions/mesmer/core/traits/dueling.js';
 import { MESMER_TRAIT_IDS } from '#gw2/professions/mesmer/data/ids.js';
 import { mesmerCatalog } from '#gw2/professions/mesmer/profession.js';
 import { createNecromancerCoreState } from '#gw2/professions/necromancer/core/initial-state.js';

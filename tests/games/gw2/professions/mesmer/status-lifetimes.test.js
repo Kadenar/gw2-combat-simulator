@@ -19,6 +19,7 @@ import {
 } from '#gw2/professions/mesmer/specializations/mirage/traits/behavior.js';
 import { mirageAvailability } from '#gw2/professions/mesmer/specializations/mirage/mechanics/cloak-and-ambushes.js';
 import { mirageHooks } from '#gw2/professions/mesmer/specializations/mirage/hooks.js';
+import { createMesmerResources } from '#gw2/professions/mesmer/family-mechanics.js';
 
 // Real profiles and specialization initialization isolate the lifetime contracts from rotation and cast timing.
 function lifetimeContext(traits = []) {
@@ -312,11 +313,15 @@ test('Infinite Horizon clone gains include exact cloak expiry but reject later g
   const state = context.profession.specialization.state;
   const ambushes = () => context.events.filter((event) => event.type === 'damage' && event.metadata?.cloneId === 1);
   const gain = (at) =>
-    reactToMirageResourceGain(context, {
-      at,
-      cause: { traitId: TRAIT.DECEPTIVE_EVASION },
-      createdClones: [{ id: 1, weapon: 'Sword', createdAt: 0 }]
-    });
+    reactToMirageResourceGain(
+      context,
+      {
+        at,
+        cause: { traitId: TRAIT.DECEPTIVE_EVASION },
+        createdClones: [{ id: 1, weapon: 'Sword', createdAt: 0 }]
+      },
+      controller.executeCloneAmbushes
+    );
   gain(0);
   assert.equal(ambushes().length, 0);
   controller.grantMirageCloak(0.1 + 0.201, 'test');
@@ -332,4 +337,37 @@ test('Infinite Horizon clone gains include exact cloak expiry but reject later g
   assert.equal(state.cloneAmbushUntil, 1.801);
   gain(1.051001);
   assert.equal(ambushes().length, 3 * first);
+});
+
+// Committed gains invoke the injected reaction once and ambush only the clones created by that transaction.
+test('Infinite Horizon reacts once per qualifying resource transaction across controller rebinding', () => {
+  for (const cause of [
+    { traitId: TRAIT.DECEPTIVE_EVASION },
+    { traitId: TRAIT.SELF_DECEPTION, sourceSkillId: ID.ILLUSIONARY_AMBUSH }
+  ]) {
+    const context = lifetimeContext([TRAIT.INFINITE_HORIZON]);
+    createMirageMechanics(context).grantMirageCloak(1, 'test');
+    const procs = () =>
+      context.events.filter((event) => event.type === 'proc' && event.sourceId === TRAIT.INFINITE_HORIZON);
+    const ambushCloneIds = () =>
+      new Set(context.events.filter((event) => event.type === 'damage').map((event) => event.metadata?.cloneId));
+    const firstClonePackets = () =>
+      context.events.filter((event) => event.type === 'damage' && event.metadata?.cloneId === 1);
+
+    createMesmerResources(context).gainResources(1.1, 1, 'Sword', 'test', cause);
+    assert.equal(procs().length, 1);
+    assert.deepEqual(ambushCloneIds(), new Set([1]));
+    const firstAmbush = firstClonePackets();
+    createMesmerResources({ ...context }).gainResources(1.2, 1, 'Sword', 'test', cause);
+    assert.equal(procs().length, 2);
+    assert.deepEqual(ambushCloneIds(), new Set([1, 2]));
+    assert.deepEqual(firstClonePackets(), firstAmbush);
+
+    createMesmerResources(context).gainResources(1.3, 1, 'Sword', 'unrelated gain', {
+      sourceSkillId: ID.ILLUSIONARY_AMBUSH
+    });
+    assert.equal(context.profession.core.clones.length, 3);
+    assert.equal(procs().length, 2);
+    assert.deepEqual(ambushCloneIds(), new Set([1, 2]));
+  }
 });

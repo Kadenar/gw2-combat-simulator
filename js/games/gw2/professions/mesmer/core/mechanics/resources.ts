@@ -14,7 +14,7 @@ import type {
   MesmerResourceCause,
   MesmerResourceDefinition
 } from '#gw2/professions/mesmer/core/mechanics/resource-types.js';
-import { triggerCompoundingPower } from '#gw2/professions/mesmer/core/traits/behavior.js';
+import { triggerCompoundingPower } from '#gw2/professions/mesmer/core/traits/illusions.js';
 import { mesmerNumericResourceState } from '#gw2/professions/mesmer/family-state.js';
 import type { MesmerActivePrimaryWeapon, MesmerRuntime } from '#gw2/professions/mesmer/types.js';
 

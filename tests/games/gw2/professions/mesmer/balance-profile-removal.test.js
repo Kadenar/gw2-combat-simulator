@@ -5,7 +5,7 @@ import { mesmerTooltips } from '#gw2/professions/mesmer/app/tooltips.js';
 import { mesmerCoreUi } from '#gw2/professions/mesmer/core/presentation.js';
 import { mesmerProfiledShatters } from '#gw2/professions/mesmer/core/profiles.js';
 import { MESMER_CORE_SHATTERS } from '#gw2/professions/mesmer/core/skills/profession-skills.js';
-import { methodOfMadnessDamage } from '#gw2/professions/mesmer/core/traits/behavior.js';
+import { methodOfMadnessDamage } from '#gw2/professions/mesmer/core/traits/chaos.js';
 import { MESMER_SKILL_IDS as ID, MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
 import { mesmerCatalog, mesmerProfession } from '#gw2/professions/mesmer/profession.js';
 import { createDefaultConfig, runMesmer } from '#tests/helpers/mesmer-simulation.js';

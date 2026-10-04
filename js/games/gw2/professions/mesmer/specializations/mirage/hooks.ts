@@ -1,10 +1,14 @@
-import { createMesmerResources, mesmerActivePrimaryWeapon } from '#gw2/professions/mesmer/family-mechanics.js';
+import {
+  createMesmerResources,
+  createMesmerActions,
+  mesmerActivePrimaryWeapon
+} from '#gw2/professions/mesmer/family-mechanics.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import type { SkillTask } from '#gw2/platform/skills/types.js';
 import { skillTaskAt } from '#gw2/platform/execution/task-timing.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import { mesmerCastDelivery } from '#gw2/professions/mesmer/core/execution/cast-lifecycle.js';
-import { triggerDeceptiveEvasion } from '#gw2/professions/mesmer/core/traits/behavior.js';
+import { triggerDeceptiveEvasion } from '#gw2/professions/mesmer/core/traits/dueling.js';
 import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
 import {
   mirageAvailability,
@@ -31,7 +35,11 @@ export const mirageHooks: RuntimeHooks<MesmerRuntimeState, MesmerSkill> = {
     createMirageMechanics(runtime).acceptPlayerAmbush(skill, cast.fullEnd, cast.start, mesmerCastDelivery(cast, skill));
   },
   onCastCommit(runtime, cast) {
-    completeMirageSkill(runtime, cast);
+    completeMirageSkill(runtime, cast, {
+      currentResource: () => createMesmerActions(runtime).currentResource(),
+      queueResources: (...args) => createMesmerResources(runtime).queueResources(...args),
+      activePrimaryWeapon: () => mesmerActivePrimaryWeapon(runtime)
+    });
     for (const trigger of cast.skill.tasks ?? [])
       if (trigger.type === 'mesmer.mirage.create-mirror') {
         // Readiness uses an actual queued creation deadline, without creating or spending a future mirror.
@@ -64,7 +72,7 @@ export const mirageHooks: RuntimeHooks<MesmerRuntimeState, MesmerSkill> = {
     'mesmer.mirage.dodge'(runtime, data) {
       const { cast } = data as TriggerData;
       createMirageMechanics(runtime).grantMirageCloak(runtime.time, cast.skill.name);
-      triggerDeceptiveEvasion(runtime);
+      triggerDeceptiveEvasion(runtime, (...args) => createMesmerResources(runtime).queueResources(...args));
     }
   }
 };

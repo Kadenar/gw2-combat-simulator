@@ -1,9 +1,7 @@
-import type { MesmerResourceGain } from '#gw2/professions/mesmer/core/mechanics/illusions/types.js';
-import {
-  createMesmerResources,
-  createMesmerActions,
-  mesmerActivePrimaryWeapon
-} from '#gw2/professions/mesmer/family-mechanics.js';
+import type {
+  MesmerResourceGain,
+  MesmerQueueResources
+} from '#gw2/professions/mesmer/core/mechanics/illusions/types.js';
 import type { EffectDelivery } from '#gw2/platform/effects/emission.js';
 import type { MesmerEventExtra } from '#gw2/professions/mesmer/data/types.js';
 import { buildMesmerConditions, mesmerPacketOwner } from '#gw2/professions/mesmer/core/mechanics/packets.js';
@@ -18,7 +16,6 @@ import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import { MESMER_SKILL_IDS as ID, MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
 import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
 import { statusFromEffect } from '#gw2/professions/mesmer/specializations/mirage/mechanics/boons.js';
-import { createMirageMechanics } from '#gw2/professions/mesmer/specializations/mirage/mechanics/runtime.js';
 import { mirageState } from '#gw2/professions/mesmer/specializations/mirage/state.js';
 import type { MesmerMirageController } from '#gw2/professions/mesmer/specializations/mirage/types.js';
 import type { MesmerAmbushAttack, MesmerRuntime } from '#gw2/professions/mesmer/types.js';
@@ -381,10 +378,11 @@ export function applyMirageShatterTraits(
   }
 }
 
-/** Infinite Horizon reacts to the committed gain directly, without per-run callback registration. */
+/** React once to the committed gain using the caller's ambush operation, without constructing controllers in traits. */
 export function reactToMirageResourceGain(
   context: MesmerRuntime,
-  { at, cause, createdClones }: MesmerResourceGain
+  { at, cause, createdClones }: MesmerResourceGain,
+  executeCloneAmbushes: MesmerMirageController['executeCloneAmbushes']
 ): void {
   const traitId = Number(cause.traitId);
   const triggersCloneAmbush =
@@ -398,7 +396,7 @@ export function reactToMirageResourceGain(
     cloneAmbushUntil > 0 &&
     at <= cloneAmbushUntil
   ) {
-    createMirageMechanics(context).executeCloneAmbushes(at, createdClones);
+    executeCloneAmbushes(at, createdClones);
   }
 }
 
@@ -410,19 +408,27 @@ export function initializeMirageTraits(context: MesmerRuntime): void {
     Boolean(requireEffect(requireBalanceProfileFromContext(context, TRAIT.RIDDLE_OF_SAND), 'condition', 'Confusion'));
 }
 
-/** Applies Self-Deception to categorized Deception skills after their casts complete. */
-export function completeMirageSkill(context: MesmerRuntime, cast: RuntimeCast<MesmerSkill>): void {
+/** Apply Self-Deception through caller-supplied resource operations after a Deception cast commits. */
+export function completeMirageSkill(
+  context: MesmerRuntime,
+  cast: RuntimeCast<MesmerSkill>,
+  operations: {
+    readonly currentResource: () => number;
+    readonly queueResources: MesmerQueueResources;
+    readonly activePrimaryWeapon: () => string;
+  }
+): void {
   const skill = cast.skill;
   if (
     hasTrait(context, TRAIT.SELF_DECEPTION) &&
     skill.categories?.includes('Deception') &&
-    createMesmerActions(context).currentResource() > 0
+    operations.currentResource() > 0
   ) {
     const selfDeceptionProfile = requireBalanceProfileFromContext(context, TRAIT.SELF_DECEPTION);
-    createMesmerResources(context).queueResources(
+    operations.queueResources(
       context.time,
       balanceProfileNumber(selfDeceptionProfile, 'resourceGain'),
-      mesmerActivePrimaryWeapon(context),
+      operations.activePrimaryWeapon(),
       `Self-Deception: ${skill.name}`,
       {
         traitId: TRAIT.SELF_DECEPTION,

@@ -11,7 +11,7 @@ import type {
   MesmerShatterResolverRequest,
   MesmerShatterTraitHit
 } from '#gw2/professions/mesmer/core/mechanics/shatter-types.js';
-import { applyCryOfPain, masterOfFragmentationRequiem } from '#gw2/professions/mesmer/core/traits/behavior.js';
+import { applyCryOfPain, masterOfFragmentationRequiem } from '#gw2/professions/mesmer/core/traits/illusions.js';
 import { MESMER_SKILL_IDS as ID } from '#gw2/professions/mesmer/data/ids.js';
 import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
 import { virtuosoState } from '#gw2/professions/mesmer/specializations/virtuoso/state.js';

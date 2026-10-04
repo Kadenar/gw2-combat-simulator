@@ -13,7 +13,7 @@ import { resolveCloneShatter } from '#gw2/professions/mesmer/core/mechanics/shat
 import type { MesmerShatterResolution } from '#gw2/professions/mesmer/core/mechanics/shatter-types.js';
 import { mesmerProfiledShatters } from '#gw2/professions/mesmer/core/profiles.js';
 import { MESMER_CORE_SHATTERS } from '#gw2/professions/mesmer/core/skills/profession-skills.js';
-import { bountifulBladesSpawnModifiers } from '#gw2/professions/mesmer/core/traits/behavior.js';
+import { bountifulBladesSpawnModifiers } from '#gw2/professions/mesmer/core/traits/domination.js';
 import { mesmerResourceDefinition } from '#gw2/professions/mesmer/family-state.js';
 import { MESMER_CHRONOMANCER_PHANTASM_ATTACK_TIMINGS } from '#gw2/professions/mesmer/specializations/chronomancer/mechanics/definitions.js';
 import { MESMER_CHRONOMANCER_SHATTERS } from '#gw2/professions/mesmer/specializations/chronomancer/skills/index.js';
@@ -78,7 +78,10 @@ export function createMesmerResources(context: MesmerRuntime) {
     cloneAttackScheduler: createMesmerCloneScheduler(context),
     destroyClone: (clone) => destroyClone(context, clone),
     onGain: (gain) => {
-      if (context.profession.specialization.kind === 'Mirage') reactToMirageResourceGain(context, gain);
+      if (context.profession.specialization.kind === 'Mirage')
+        reactToMirageResourceGain(context, gain, (at, clones) =>
+          createMirageMechanics(context).executeCloneAmbushes(at, clones)
+        );
     },
     scheduleResourceTask(candidate, delivery = {}) {
       if (delivery.cast?.effectiveEnd != null && candidate.at > delivery.cast.effectiveEnd + EPSILON) return;

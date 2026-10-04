@@ -1,5 +1,5 @@
 import { MESMER_CORE_CLONE_ATTACKS } from '#gw2/professions/mesmer/core/mechanics/definitions.js';
-import { mesmerActivePrimaryWeapon } from '#gw2/professions/mesmer/family-mechanics.js';
+import { gw2ActivePrimaryWeapon } from '#gw2/platform/equipment/weapons/loadout.js';
 import { createMirageActionController } from '#gw2/professions/mesmer/specializations/mirage/mechanics/cloak-and-ambushes.js';
 import {
   MIRAGE_AMBUSH_PROFILE_IDS,
@@ -19,13 +19,13 @@ export function mesmerAmbushAttacks(context: MesmerRuntime) {
   );
 }
 
-/** Bind Mirage operations to explicit state; cloak and mirror lifetimes remain in the specialization slice. */
+/** Bind Mirage operations without importing family construction; lifetimes remain in the specialization slice. */
 export function createMirageMechanics(context: MesmerRuntime): MesmerMirageController {
   return createMirageActionController({
     state: context,
     config: context.config,
     ambushAttacks: mesmerAmbushAttacks(context),
     cloneAttacks: MESMER_CORE_CLONE_ATTACKS,
-    activePrimaryWeapon: () => mesmerActivePrimaryWeapon(context)
+    activePrimaryWeapon: () => gw2ActivePrimaryWeapon(context.config, context.activeWeaponSet === 1 ? 1 : 2) || ''
   });
 }

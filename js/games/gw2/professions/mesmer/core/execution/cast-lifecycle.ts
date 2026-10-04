@@ -7,7 +7,7 @@ import {
 } from '#gw2/professions/mesmer/family-mechanics.js';
 import type { EffectDelivery } from '#gw2/platform/effects/emission.js';
 import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
-import { triggerMethodOfMadness, methodOfMadnessDamage } from '#gw2/professions/mesmer/core/traits/behavior.js';
+import { triggerMethodOfMadness, methodOfMadnessDamage } from '#gw2/professions/mesmer/core/traits/chaos.js';
 import { EPSILON } from '#kernel/core/clock.js';
 /** Commits Core Mesmer shatters, flips, phantasms, skill effects, and cast-local resource state. */
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';

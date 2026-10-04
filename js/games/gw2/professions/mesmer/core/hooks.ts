@@ -26,14 +26,10 @@ import {
 } from '#gw2/professions/mesmer/core/mechanics/signets.js';
 import { scheduleMesmerTrackedHits } from '#gw2/professions/mesmer/core/mechanics/tracked-hits.js';
 import { completeAxesConfusion, scheduleAxesClones } from '#gw2/professions/mesmer/core/skills/weapons/axe.js';
-import {
-  applyFencersFinesse,
-  triggerChaoticInterruption,
-  triggerIneptitudeFromBlind,
-  triggerIneptitudeFromInterrupt,
-  triggerThePledge
-} from '#gw2/professions/mesmer/core/traits/behavior.js';
+import { applyFencersFinesse, triggerIneptitudeFromBlind } from '#gw2/professions/mesmer/core/traits/dueling.js';
+import { triggerThePledge } from '#gw2/professions/mesmer/core/traits/illusions.js';
 import { MESMER_SKILL_IDS as ID } from '#gw2/professions/mesmer/data/ids.js';
+import { triggerMesmerControlTraits } from '#gw2/professions/mesmer/core/traits/dispatch.js';
 import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
 import type { MesmerRuntime, MesmerRuntimeState } from '#gw2/professions/mesmer/types.js';
 
@@ -193,11 +189,7 @@ export const mesmerCoreHooks: RuntimeHooks<MesmerRuntimeState, MesmerSkill> = co
         applyFencersFinesse(runtime, event);
       },
       'condition.applied': triggerThePledge,
-      'control.resolved'(runtime, event) {
-        const name = event.skillName ?? event.name ?? 'Control effect';
-        triggerChaoticInterruption(runtime, event, name);
-        triggerIneptitudeFromInterrupt(runtime, event);
-      },
+      'control.resolved': triggerMesmerControlTraits,
       'blind.resolved': triggerIneptitudeFromBlind
     }
   }

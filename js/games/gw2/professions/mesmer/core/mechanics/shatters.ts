@@ -8,7 +8,8 @@ import type {
   MesmerShatterResolverRequest,
   MesmerShatterTraitHit
 } from '#gw2/professions/mesmer/core/mechanics/shatter-types.js';
-import { applyCryOfPain, triggerBlindingDissipation } from '#gw2/professions/mesmer/core/traits/behavior.js';
+import { applyCryOfPain } from '#gw2/professions/mesmer/core/traits/illusions.js';
+import { triggerBlindingDissipation } from '#gw2/professions/mesmer/core/traits/dueling.js';
 import type { MesmerRuntime } from '#gw2/professions/mesmer/types.js';
 
 /** Resolves clone-based shatter packets while keeping repeat strikes ineligible for first-strike traits. */

@@ -1,13 +1,28 @@
-import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
 import { professionStaticRulesApplied } from '#gw2/platform/builds/attribute-provenance.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { isGw2PlayerActorEvent } from '#gw2/platform/combat/state/event-ownership.js';
 import { missesTarget } from '#gw2/platform/combat/state/targets.js';
-import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import { hasTrait } from '#gw2/platform/combat/state/traits.js';
+import type { EffectDelivery } from '#gw2/platform/effects/emission.js';
+import type { StrikeTick } from '#gw2/platform/effects/types.js';
+import type { SimulationEvent } from '#gw2/platform/events/events.js';
+import type { MaximumAmmoContext } from '#gw2/platform/profession-definition/runtime-context.js';
 import type { TraitDefinition } from '#gw2/platform/profession-definition/traits.js';
 import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
+import { compileRechargeRules } from '#gw2/platform/profession-definition/trigger-rules.js';
+import { buildResolverCondition } from '#gw2/platform/resolver/packets.js';
+import {
+  balanceProfileNumber,
+  requireBalanceProfileFromContext,
+  requireEffect
+} from '#gw2/platform/skills/balance-profiles.js';
+import type { BalanceProfile } from '#gw2/platform/skills/types.js';
 import { illusionSource, timedStacks } from '#gw2/professions/mesmer/core/mechanics/modifier-queries.js';
+import { buildMesmerConditions, mesmerPacketOwner } from '#gw2/professions/mesmer/core/mechanics/packets.js';
+import type { MesmerShatterResolution } from '#gw2/professions/mesmer/core/mechanics/shatter-types.js';
 import { MESMER_SKILL_IDS as ID, MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
+import type { MesmerConditionApplication, MesmerEventExtra, MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
+import type { MesmerRuntime, MesmerRuntimeState } from '#gw2/professions/mesmer/types.js';
 
 /** Own Compounding Power tuning alongside its runtime behavior. */
 export const compoundingPower = defineTrait<MesmerSkill>({
@@ -205,15 +220,212 @@ export const phantasmalForce = defineTrait<MesmerSkill>({
   ]
 });
 
-export const mesmerIllusionsTraits = [
-  compoundingPower,
-  cryOfPain,
-  maimTheDisillusioned,
-  maliciousSorcery,
-  masterOfMisdirection,
-  masterOfFragmentation,
-  phantasmalHaste,
-  shatterStorm,
-  thePledge,
-  phantasmalForce
-];
+/** Adds The Pledge only to the skill's player Burning, inheriting its timing and excluding summon or trait procs. */
+export function triggerThePledge(context: MesmerRuntime, event: SimulationEvent): void {
+  if (
+    !hasTrait(context, TRAIT.THE_PLEDGE) ||
+    event.type !== 'condition' ||
+    event.condition !== 'Burning' ||
+    !isGw2PlayerActorEvent(event) ||
+    event.sourceId !== event.skillId ||
+    (event.skillId !== ID.PHANTASMAL_MAGE && event.skillId !== ID.THE_PRESTIGE)
+  )
+    return;
+  const thePledgeProfile = requireBalanceProfileFromContext(context, TRAIT.THE_PLEDGE);
+  const effect = requireEffect(thePledgeProfile, 'condition', 'Burning');
+  if (!effect) return;
+  context.effects.emit({
+    kind: 'packet',
+    cause: event,
+    event: buildResolverCondition({
+      actorType: 'player',
+      at: event.at,
+      source: 'Trait',
+      sourceId: TRAIT.THE_PLEDGE,
+      skillId: event.skillId,
+      skillName: event.skillName,
+      condition: 'Burning',
+      duration: Number(effect.duration),
+      stacks: Number(effect.stacks)
+    })
+  });
+}
+
+/** Returns Cry of Pain's Confusion override before the owning shatter emits packets. */
+export function applyCryOfPain(
+  context: MesmerRuntime,
+  condition: MesmerConditionApplication | undefined
+): MesmerConditionApplication | undefined {
+  if (!hasTrait(context, TRAIT.CRY_OF_PAIN)) return condition;
+  const cryOfPainProfile = requireBalanceProfileFromContext(context, TRAIT.CRY_OF_PAIN);
+  const effect = requireEffect(cryOfPainProfile, 'condition', 'Confusion');
+  return effect ? { ...effect, summonKind: undefined, name: effect.condition! } : condition;
+}
+
+/** Emits Compounding Power stacks and its proc record at the owning lifecycle position. */
+export function triggerCompoundingPower(
+  context: MesmerRuntime,
+  at: number,
+  count: number,
+  sourceSkill: string,
+  detail: string,
+  delivery: EffectDelivery = {}
+): void {
+  if (!hasTrait(context, TRAIT.COMPOUNDING_POWER) || count <= 0) return;
+  const compoundingPowerProfile = requireBalanceProfileFromContext(context, TRAIT.COMPOUNDING_POWER);
+  const duration = balanceProfileNumber(compoundingPowerProfile, 'durationMultiplier');
+  // Simultaneous gains retain independent applications under one trait activation.
+  {
+    const grants: readonly MesmerEventExtra[] = Array.from({ length: count }, () => ({
+      kind: 'compounding',
+      stacks: 1,
+      duration
+    }));
+    const traitProfile = requireBalanceProfileFromContext(context, TRAIT.COMPOUNDING_POWER);
+    const traitSource = {
+      source: 'Trait',
+      sourceId: TRAIT.COMPOUNDING_POWER,
+      actorType: 'player' as const,
+      skillId: TRAIT.COMPOUNDING_POWER,
+      skillName: traitProfile.name
+    };
+    const options: { detail?: string; announce?: boolean } = { detail };
+    if (grants.length) {
+      const proc =
+        options.announce !== false
+          ? context.effects.emit({
+              ...delivery,
+              kind: 'announcement',
+              log: true,
+              attribution: { ...traitSource, actorType: 'effect' },
+              announcement: {
+                type: 'trait',
+                name: traitProfile.name,
+                at: at,
+                sourceSkill: sourceSkill,
+                detail: options.detail ?? ''
+              }
+            })
+          : undefined;
+      for (const grant of grants)
+        context.effects.emit({
+          ...delivery,
+          kind: 'packet',
+          cause: proc,
+          event: { ...grant, ...traitSource, type: 'buff', at: at, name: traitProfile.name, sourceSkill: sourceSkill }
+        });
+    }
+  }
+}
+
+/** Applies Maim the Disillusioned to the first-strike groups reported by the shatter resolver. */
+export function triggerMaimTheDisillusioned(context: MesmerRuntime, resolution: MesmerShatterResolution): void {
+  if (!resolution.traitHits.length || !hasTrait(context, TRAIT.MAIM_THE_DISILLUSIONED)) return;
+  const maimTheDisillusionedProfile = requireBalanceProfileFromContext(context, TRAIT.MAIM_THE_DISILLUSIONED);
+  const effect = requireEffect(maimTheDisillusionedProfile, 'condition', 'Torment');
+  if (!effect) return;
+  const maim = {
+    name: String(effect.condition),
+    duration: Number(effect.duration),
+    stacks: Number(effect.stacks)
+  };
+  for (const hit of resolution.traitHits) {
+    if (hit.count <= 0) continue;
+    buildMesmerConditions(
+      context,
+      resolution.skill.name,
+      hit.at,
+      { ...maim, stacks: maim.stacks * hit.count },
+      'Player',
+      'Maim the Disillusioned — Torment',
+      // Preserve shatter ownership for reactions while naming the separate trait and its grouped hit opportunities.
+      {
+        skillId: resolution.skill.id,
+        procType: 'trait',
+        metadata: { shatterTraitEligible: true, procCount: hit.count }
+      }
+    ).forEach((packet) => {
+      context.effects.emit({
+        ...resolution.delivery,
+        kind: 'packet',
+        event: packet,
+        owner: mesmerPacketOwner(packet),
+        priority: Number(packet.priority ?? 0)
+      });
+    });
+  }
+
+  context.effects.emit({
+    ...resolution.delivery,
+    kind: 'announcement',
+    log: true,
+    attribution: { source: 'Trait', sourceId: TRAIT.MAIM_THE_DISILLUSIONED, actorType: 'effect' },
+    announcement: {
+      type: 'trait',
+      name: 'Maim the Disillusioned',
+      at: resolution.at,
+      sourceSkill: resolution.skill.name,
+      detail: ''
+    }
+  });
+}
+
+/** Returns the profile-owned Phantasmal Haste speed before phantasm packet times are derived. */
+export function phantasmalHasteSpeed(context: MesmerRuntime): number {
+  return hasTrait(context, TRAIT.PHANTASMAL_HASTE)
+    ? balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.PHANTASMAL_HASTE), 'quicknessCastMultiplier')
+    : 1;
+}
+
+/** Shatter and instrument recharge is multiplied before shared flat resource reductions. */
+export const masterOfMisdirectionRecharge = compileRechargeRules<MesmerRuntimeState, MesmerSkill>([
+  {
+    trait: TRAIT.MASTER_OF_MISDIRECTION,
+    when: (_runtime, skill) => Boolean(skill.shatter || skill.instrument),
+    multiplier: { profile: TRAIT.MASTER_OF_MISDIRECTION, field: 'rechargeMultiplier' }
+  }
+]);
+
+/** Only native slot-one shatters and instruments receive Shatter Storm's extra charge. */
+export function shatterStormMaximumAmmo(
+  context: MaximumAmmoContext<object>,
+  skill: MesmerSkill,
+  maximum: number
+): number {
+  // Slot identity is authored on the selected skill; capacity selection never needs a live controller registry.
+  const isSlot1 = skill.shatter?.slot === 1 || skill.instrument?.slot === 1;
+  return isSlot1 && context.hasTrait(TRAIT.SHATTER_STORM)
+    ? balanceProfileNumber(context.requireBalanceProfile(TRAIT.SHATTER_STORM), 'maximumStacks')
+    : maximum;
+}
+
+/** Continuum duration is extended only by the currently selected Core trait. */
+export function masterOfFragmentationDuration(context: MesmerRuntime): number {
+  return hasTrait(context, TRAIT.MASTER_OF_FRAGMENTATION)
+    ? balanceProfileNumber(
+        requireBalanceProfileFromContext(context, TRAIT.MASTER_OF_FRAGMENTATION),
+        'durationMultiplier'
+      )
+    : 0;
+}
+
+/** Requiem appends one matching pulse before emission, preserving an empty or removed strike. */
+export function masterOfFragmentationRequiem(context: MesmerRuntime, packets: readonly StrikeTick[]): StrikeTick[] {
+  const ticks = [...packets];
+  if (ticks.length && hasTrait(context, TRAIT.MASTER_OF_FRAGMENTATION)) {
+    const last = ticks[ticks.length - 1];
+    ticks.push({ ...last, atMs: last.atMs + masterOfFragmentationDuration(context) * 1000 });
+  }
+
+  return ticks;
+}
+
+/** Crescendo uses the trait's per-instrument coefficient only when selected. */
+export function masterOfFragmentationCrescendo(context: MesmerRuntime, profile: BalanceProfile): number {
+  return hasTrait(context, TRAIT.MASTER_OF_FRAGMENTATION)
+    ? balanceProfileNumber(
+        requireBalanceProfileFromContext(context, TRAIT.MASTER_OF_FRAGMENTATION),
+        'damageIncreasePerStack'
+      )
+    : balanceProfileNumber(profile, 'damageIncreasePerStack');
+}

@@ -39,5 +39,3 @@ export const egoRestoration = defineTrait<MesmerSkill>({
     }
   }
 });
-
-export const mesmerInspirationTraits = [wardensFeedback, egoRestoration];

@@ -1,7 +1,7 @@
 import type { SimulationEvent } from '#gw2/platform/events/events.js';
 import type { MesmerCriticalTraitDispatcher } from '#gw2/professions/mesmer/core/mechanics/illusions/types.js';
-import type { MesmerDuelingCriticalContext } from '#gw2/professions/mesmer/core/traits/behavior.js';
-import { triggerMesmerCriticalTraits } from '#gw2/professions/mesmer/core/traits/behavior.js';
+import type { MesmerDuelingCriticalContext } from '#gw2/professions/mesmer/core/traits/dueling.js';
+import { triggerMesmerCriticalTraits } from '#gw2/professions/mesmer/core/traits/dueling.js';
 
 /**
  * Keeps critical-candidate timing in the illusion subsystem while the trait
