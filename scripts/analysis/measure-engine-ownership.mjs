@@ -1,7 +1,7 @@
 import { performance } from 'node:perf_hooks';
 import { loadProfession } from '#gw2/profession-registry.js';
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
-import { evaluateSkillDamage } from '#gw2/platform/skill-damage/evaluate.js';
+import { evaluateSkillDamage } from '#gw2/platform/skill-damage/measure-occurrences.js';
 
 // Native workloads exercise accepted mechanics; validate them before collecting any timings.
 const base = {

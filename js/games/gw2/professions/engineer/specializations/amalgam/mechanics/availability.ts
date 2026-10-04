@@ -1,5 +1,5 @@
 import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
-import { denySkillCast as denyEngineerCast } from '#gw2/platform/engine/skills/availability.js';
+import { denySkillCast as denyEngineerCast } from '#gw2/platform/execution/availability.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
 import type { AvailabilityResult } from '#gw2/platform/execution/types.js';

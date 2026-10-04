@@ -7,15 +7,15 @@ import {
   STANCE,
   luminaryImpactAt
 } from '#gw2/professions/guardian/specializations/luminary/mechanics/effects.js';
-import type { RuntimeProfession } from '#gw2/platform/simulation/runtime-state.js';
+import type { RuntimeProfession } from '#gw2/platform/profession-definition/runtime-contract.js';
 import type { GuardianRuntimeState, GuardianSkill } from '#gw2/professions/guardian/types.js';
 /**
  * Owns Luminary stance and stance-chain skill fragments.
  * Persistent stance windows and scheduled effects remain in `hooks.ts`.
  */
 import { GUARDIAN_SKILL_IDS as ID } from '#gw2/professions/guardian/data/ids.js';
-import { impactEffects } from '#gw2/platform/engine/effects/authoring.js';
-import type { Skill } from '#gw2/platform/engine/skills/types.js';
+import { impactEffects } from '#gw2/platform/effects/authoring.js';
+import type { Skill } from '#gw2/platform/skills/types.js';
 
 // Cast-scaled impacts use the measured Quickness timeline as their source data.
 const PIERCING_STANCE_IMPACT_MS = 160;

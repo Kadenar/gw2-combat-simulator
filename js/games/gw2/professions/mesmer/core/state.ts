@@ -1,11 +1,11 @@
 import type { MesmerCastDetails } from '#gw2/professions/mesmer/core/execution/effect-types.js';
-import type { Gw2PlanningStateInput } from '#gw2/platform/simulation/types.js';
-import { snapshotProfessionState } from '#gw2/platform/engine/profession/state.js';
+import type { Gw2PlanningStateInput } from '#gw2/platform/results/types.js';
+import { snapshotProfessionState } from '#gw2/platform/profession-definition/state.js';
 import { canonicalTime } from '#kernel/core/clock.js';
-import { skillFlipVisible } from '#gw2/platform/engine/skills/skill-flips.js';
+import { skillFlipVisible } from '#gw2/platform/execution/skill-flips.js';
 import { mesmerResourceDefinition } from '#gw2/professions/mesmer/family-state.js';
-import { type SkillFlipWindows } from '#gw2/platform/engine/skills/skill-flips.js';
-import type { SkillId } from '#gw2/platform/engine/skills/types.js';
+import { type SkillFlipWindows } from '#gw2/platform/execution/skill-flips.js';
+import type { SkillId } from '#gw2/platform/skills/types.js';
 import type { MesmerClone } from '#gw2/professions/mesmer/core/mechanics/illusions/types.js';
 
 /** Core owns state present for every specialization runtime. */

@@ -1,8 +1,8 @@
-import { flattenProfessionState } from '#gw2/platform/engine/profession/state.js';
+import { flattenProfessionState } from '#gw2/platform/profession-definition/state.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { createCanonicalCatalog } from '#gw2/platform/engine/skills/canonical-skill-catalog.js';
+import { createCanonicalCatalog } from '#gw2/platform/skills/catalog.js';
 import { defineTestProfession } from '#tests/helpers/profession.js';
 import { defineNativeProfession, defineNativeModule } from '#gw2/platform/profession-definition/profession.js';
 import { getNativeCatalogAssembly } from '#gw2/platform/profession-definition/assemble-module-catalog.js';

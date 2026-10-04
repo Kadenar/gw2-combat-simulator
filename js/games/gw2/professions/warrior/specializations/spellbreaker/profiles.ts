@@ -1,4 +1,4 @@
-import type { BalanceProfile } from '#gw2/platform/engine/skills/types.js';
+import type { BalanceProfile } from '#gw2/platform/skills/types.js';
 
 export const SPELLBREAKER_BALANCE_PROFILE_IDS = Object.freeze({
   resources: 'warrior.spellbreaker.resources'

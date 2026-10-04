@@ -1,28 +1,18 @@
-import { gw2ResolverPhase } from '#gw2/platform/resolver/event-loop.js';
+import type { PacketIdentity } from '#gw2/platform/events/identity.js';
+import type { RuntimeDriverContext } from '#gw2/platform/execution/driver-contract.js';
+import { gw2ResolverPhase } from '#gw2/platform/resolver/event-phase.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
-import type { RuntimeDriverContext, RuntimeExecution } from '#gw2/platform/simulation/execution.js';
-import type { Gw2Runtime, RuntimeWork } from '#gw2/platform/simulation/runtime-state.js';
+import type { RuntimeExecution } from '#gw2/platform/simulation/run-contract.js';
+import type { Gw2Runtime } from '#gw2/platform/simulation/runtime-state.js';
+import type { RuntimeWork } from '#gw2/platform/simulation/work-contract.js';
 import { canonicalTime } from '#kernel/core/clock.js';
 import { StableEventQueue } from '#kernel/events/queue.js';
 import { DEFAULT_EXECUTION_ITERATION_LIMIT } from '#kernel/execution/limits.js';
+import type { ObservationPolicy } from '#kernel/execution/observation.js';
 import { observationEndTime } from '#kernel/execution/observation.js';
 
-import type { ObservationPolicy } from '#kernel/execution/observation.js';
 /** Condition pulses are scheduled for every active stack at once, so they deliberately carry no causal identity. */
 const SHARED_PULSE_TYPES = new Set(['condition_tick', 'condition_buffer']);
-
-/** The packet fields that decide identity and causal parentage, shared by events and condition drafts. */
-export interface PacketIdentity {
-  readonly type: string;
-  readonly kind?: unknown;
-  readonly eventOrder?: unknown;
-  readonly causalOrder?: unknown;
-  readonly parentEventOrder?: unknown;
-  readonly activationId?: unknown;
-  readonly actorType?: unknown;
-  readonly skillId?: unknown;
-  readonly sourceId?: unknown;
-}
 
 /** The coordinator is the sole clock authority and retains causal scope on the same stable event heap. */
 export function createExecutionCoordinator<T extends object>(getRuntime: () => Gw2Runtime<T>) {

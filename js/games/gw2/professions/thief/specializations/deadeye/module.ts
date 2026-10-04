@@ -1,7 +1,7 @@
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
-import { createPublicStateProjector } from '#gw2/platform/engine/profession/state.js';
-import { balanceProfileNumber } from '#gw2/platform/engine/skills/balance-profiles.js';
-import type { BalanceProfile } from '#gw2/platform/engine/skills/types.js';
+import { createPublicStateProjector } from '#gw2/platform/profession-definition/state.js';
+import { balanceProfileNumber } from '#gw2/platform/skills/balance-profiles.js';
+import type { BalanceProfile } from '#gw2/platform/skills/types.js';
 import { defineNativeModule } from '#gw2/platform/profession-definition/profession.js';
 import { selectedThiefTraits } from '#gw2/professions/thief/core/state.js';
 import { THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';

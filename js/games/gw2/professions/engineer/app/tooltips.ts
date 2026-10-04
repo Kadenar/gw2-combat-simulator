@@ -1,5 +1,5 @@
 import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
-import { requireBalanceProfileFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
+import { requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import {
   fromProfile,
   fromModifier,
@@ -25,7 +25,8 @@ import { MECHANIST_BALANCE_PROFILE_IDS as MECHANIST } from '#gw2/professions/eng
 import { AMALGAM_BALANCE_PROFILE_IDS as AMALGAM } from '#gw2/professions/engineer/specializations/amalgam/profiles.js';
 import { HOLOSMITH_HEAT } from '#gw2/professions/engineer/specializations/holosmith/mechanics/constants.js';
 import { ENGINEER_SKILL_IDS as ID, ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
-import type { SkillEffect, SkillId, TooltipFact } from '#gw2/platform/engine/skills/types.js';
+import type { SkillEffect } from '#gw2/platform/effects/types.js';
+import type { SkillId, TooltipFact } from '#gw2/platform/skills/types.js';
 import type { ProfessionBalanceContext } from '#gw2/platform/profession-presentation/balance-context.js';
 
 /** Both improved-inheritance traits read the same live mech caps and ratio. */

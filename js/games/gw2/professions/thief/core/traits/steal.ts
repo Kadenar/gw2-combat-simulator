@@ -6,9 +6,9 @@ import {
   effectNumber,
   requireBalanceProfileFromContext,
   requireEffect
-} from '#gw2/platform/engine/skills/balance-profiles.js';
-import { gw2BaseRecharge } from '#gw2/platform/engine/skills/recharge.js';
-import type { RuntimeCast } from '#gw2/platform/simulation/runtime-state.js';
+} from '#gw2/platform/skills/balance-profiles.js';
+import { gw2BaseRecharge } from '#gw2/platform/execution/recharge.js';
+import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import type { ThiefRuntime } from '#gw2/professions/thief/core/events.js';
 import {
   buildThiefBuff,

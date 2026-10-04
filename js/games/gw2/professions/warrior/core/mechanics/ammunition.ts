@@ -1,5 +1,5 @@
 import type { MechanicContext } from '#gw2/platform/profession-definition/mechanic-context.js';
-import type { RuntimeCast } from '#gw2/platform/simulation/runtime-state.js';
+import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import type { WarriorSkill } from '#gw2/professions/warrior/types.js';
 
 // Trait observers and skill variants share immutable acceptance facts before live ammo changes.

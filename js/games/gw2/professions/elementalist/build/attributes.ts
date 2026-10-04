@@ -4,10 +4,7 @@ import type {
   Gw2CommonAttributeResult,
   Gw2FinalizedAttributeResult
 } from '#gw2/platform/builds/types.js';
-import {
-  balanceProfileNumber,
-  requireBalanceProfileFromContext
-} from '#gw2/platform/engine/skills/balance-profiles.js';
+import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import { elementalistCatalog } from '#gw2/professions/elementalist/catalog.js';
 import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';
 import { getActiveTraits } from '#gw2/professions/elementalist/data/traits-data.js';

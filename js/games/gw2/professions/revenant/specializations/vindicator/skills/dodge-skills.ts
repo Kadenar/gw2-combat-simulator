@@ -1,7 +1,7 @@
 import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
-import { effectFirstAtMs } from '#gw2/platform/engine/effects/authoring.js';
-import type { Skill } from '#gw2/platform/engine/skills/types.js';
-import type { RuntimeCast } from '#gw2/platform/simulation/runtime-state.js';
+import { effectFirstAtMs } from '#gw2/platform/effects/authoring.js';
+import type { Skill } from '#gw2/platform/skills/types.js';
+import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import type { RevenantRuntime } from '#gw2/professions/revenant/core/events.js';
 import { REVENANT_SKILL_IDS as ID } from '#gw2/professions/revenant/data/ids.js';
 import { VINDICATOR_LANDING_MS } from '#gw2/professions/revenant/data/vindicator-jump.js';

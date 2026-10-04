@@ -1,4 +1,4 @@
-import type { Skill } from '#gw2/platform/engine/skills/types.js';
+import type { Skill } from '#gw2/platform/skills/types.js';
 import { necromancerCatalog } from '#gw2/professions/necromancer/catalog.js';
 import type { NecromancerRuntime } from '#gw2/professions/necromancer/types.js';
 import { necromancerCoreHooks } from '#gw2/professions/necromancer/core/hooks.js';

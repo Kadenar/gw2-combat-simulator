@@ -1,7 +1,7 @@
 import { projectObservedState } from '#tests/helpers/observed-runtime.js';
 import { mesmerProfession } from '#gw2/professions/mesmer/profession.js';
 import { registerMesmerMechanics } from '#gw2/professions/mesmer/core/mechanics/runtime.js';
-import { armSkillFlip } from '#gw2/platform/engine/skills/skill-flips.js';
+import { armSkillFlip } from '#gw2/platform/execution/skill-flips.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { mesmerAvailability } from '#gw2/professions/mesmer/core/mechanics/availability.js';

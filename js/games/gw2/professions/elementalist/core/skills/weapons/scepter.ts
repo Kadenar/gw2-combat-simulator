@@ -8,8 +8,8 @@
  */
 
 import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';
-import { impactEffects, conditionTimeline, strikeTimeline } from '#gw2/platform/engine/effects/authoring.js';
-import type { Skill } from '#gw2/platform/engine/skills/types.js';
+import { impactEffects, conditionTimeline, strikeTimeline } from '#gw2/platform/effects/authoring.js';
+import type { Skill } from '#gw2/platform/skills/types.js';
 
 // One Hurl input releases five rocks at fixed 200ms intervals.
 const HURL_PACKET_TIMES = [320, 520, 720, 920, 1120] as const;

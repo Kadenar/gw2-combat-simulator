@@ -3,12 +3,9 @@
  * other priced skill waits for regeneration and pays its cost the same way everywhere.
  */
 import { EPSILON } from '#kernel/core/clock.js';
-import { denySkillCast } from '#gw2/platform/engine/skills/availability.js';
-import {
-  balanceProfileNumber,
-  requireBalanceProfileFromContext
-} from '#gw2/platform/engine/skills/balance-profiles.js';
-import type { Skill } from '#gw2/platform/engine/skills/types.js';
+import { denySkillCast } from '#gw2/platform/execution/availability.js';
+import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import type { Skill } from '#gw2/platform/skills/types.js';
 import type { AvailabilityResult } from '#gw2/platform/execution/types.js';
 import type { MechanicContext, MechanicQueryContext } from '#gw2/platform/profession-definition/mechanic-context.js';
 

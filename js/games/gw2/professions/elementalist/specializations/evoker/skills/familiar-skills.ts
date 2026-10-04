@@ -4,9 +4,9 @@ import { EVOKER_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/elementa
  * Owns Evoker familiar basic and empowered skill fragments.
  * Familiar charge, flip, and attunement state lives in `mechanics/familiars.ts`.
  */
-import { impactEffects } from '#gw2/platform/engine/effects/authoring.js';
+import { impactEffects } from '#gw2/platform/effects/authoring.js';
 import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';
-import type { Skill } from '#gw2/platform/engine/skills/types.js';
+import type { Skill } from '#gw2/platform/skills/types.js';
 
 /**
  * Simulator-owned skill definitions merged over the API catalog for Evoker.

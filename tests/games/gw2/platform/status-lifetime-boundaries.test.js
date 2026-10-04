@@ -1,4 +1,4 @@
-import { flattenProfessionState } from '#gw2/platform/engine/profession/state.js';
+import { flattenProfessionState } from '#gw2/platform/profession-definition/state.js';
 import { captureEffectEmissions } from '#tests/helpers/effect-emission.js';
 import { aristocracy } from '#gw2/platform/equipment/relics/rules/aristocracy.js';
 import { nourys } from '#gw2/platform/equipment/relics/rules/nourys.js';

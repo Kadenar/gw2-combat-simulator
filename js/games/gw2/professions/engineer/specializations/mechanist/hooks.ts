@@ -1,7 +1,7 @@
 import { prepareGw2BuffCompanionCandidates } from '#gw2/platform/combat/state/allied-players.js';
 import { criticalProcHandler } from '#gw2/platform/profession-definition/mechanics.js';
-import type { RuntimeProfession } from '#gw2/platform/simulation/runtime-state.js';
-import { summonQuicknessCastTimeMs } from '#gw2/platform/skills/timing.js';
+import type { RuntimeProfession } from '#gw2/platform/profession-definition/runtime-contract.js';
+import { summonQuicknessCastTimeMs } from '#gw2/platform/execution/cast-timing.js';
 import { engineerMechCoreCriticalDefinitions } from '#gw2/professions/engineer/core/traits/critical-procs.js';
 import { engineerMechResolverEvent } from '#gw2/professions/engineer/specializations/mechanist/mechanics/mech-ownership.js';
 import { overclockRechargeRules } from '#gw2/professions/engineer/specializations/mechanist/skills/signet-skills.js';

@@ -14,7 +14,7 @@ import type {
  * Weaver opts out of the attunement gates here
  * because its dual-attunement model is owned by the Weaver presentation.
  */
-import type { CanonicalCatalog } from '#gw2/platform/engine/skills/types.js';
+import type { CanonicalCatalog } from '#gw2/platform/skills/types.js';
 import type { ProfessionStartControl } from '#gw2/platform/profession-presentation/types.js';
 import { ELEMENTALIST_ATTUNEMENT_SKILL_IDS } from '#gw2/professions/elementalist/data/ids.js';
 import { ELEMENTALIST_ATTUNEMENTS, type ElementalistAttunement } from '#gw2/professions/elementalist/core/state.js';

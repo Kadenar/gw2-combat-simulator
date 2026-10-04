@@ -1,9 +1,9 @@
-import { type SkillFlipWindows } from '#gw2/platform/engine/skills/skill-flips.js';
+import { type SkillFlipWindows } from '#gw2/platform/execution/skill-flips.js';
 import { grantCharges, type ChargeGrant } from '#gw2/platform/combat/resources/charges.js';
 import { RANGER_PETS } from '#gw2/professions/ranger/data/ranger-pet-data.js';
-import type { SkillId } from '#gw2/platform/engine/skills/types.js';
-import type { RechargeProgress } from '#gw2/platform/engine/skills/recharge.js';
-import type { SimulationEventBase } from '#gw2/platform/engine/events/events.js';
+import type { SkillId } from '#gw2/platform/skills/types.js';
+import type { RechargeProgress } from '#gw2/platform/execution/recharge.js';
+import type { SimulationEventBase } from '#gw2/platform/events/events.js';
 import type { RangerConfig, RangerState } from '#gw2/professions/ranger/types.js';
 
 export interface RangerCoreState {

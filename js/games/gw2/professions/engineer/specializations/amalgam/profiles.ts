@@ -1,4 +1,4 @@
-import type { BalanceProfile } from '#gw2/platform/engine/skills/types.js';
+import type { BalanceProfile } from '#gw2/platform/skills/types.js';
 
 // Stable profile IDs let runtime mechanics request patchable values without
 // duplicating balance constants in the cast, resolver, and modifier layers.

@@ -1,5 +1,5 @@
 import type { ReadonlyMechanicState } from '#gw2/platform/profession-definition/runtime-context.js';
-import { skillFlipReady } from '#gw2/platform/engine/skills/skill-flips.js';
+import { skillFlipReady } from '#gw2/platform/execution/skill-flips.js';
 import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
 import type { RangerCoreState } from '#gw2/professions/ranger/core/state.js';
 

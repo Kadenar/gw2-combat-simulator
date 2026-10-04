@@ -4,20 +4,20 @@ import { powerScaledConditionAttributes } from '#gw2/platform/combat/modifiers.j
 import { hasSelectedSkillId } from '#gw2/platform/combat/query/runtime-query.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import type { Gw2MutableStats, Gw2Stats } from '#gw2/platform/combat/types.js';
-import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
-import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
+import type { SimulationEvent } from '#gw2/platform/events/events.js';
+import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
 import {
   balanceProfileNumber,
   effectNumber,
   requireBalanceProfileFromContext,
   requireEffect
-} from '#gw2/platform/engine/skills/balance-profiles.js';
-import type { Skill } from '#gw2/platform/engine/skills/types.js';
+} from '#gw2/platform/skills/balance-profiles.js';
+import type { Skill } from '#gw2/platform/skills/types.js';
 import { resolverSourceSkill } from '#gw2/platform/resolver/packets.js';
 
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
-import type { EffectDelivery } from '#gw2/platform/simulation/effect-emission.js';
-import type { RuntimeCast } from '#gw2/platform/simulation/runtime-state.js';
+import type { EffectDelivery } from '#gw2/platform/effects/emission.js';
+import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import { elementalistBuffRequest, elementalistStrikeRequest } from '#gw2/professions/elementalist/core/events.js';
 import type { ElementalistAuraApplier } from '#gw2/professions/elementalist/core/mechanics/effects.js';
 import {

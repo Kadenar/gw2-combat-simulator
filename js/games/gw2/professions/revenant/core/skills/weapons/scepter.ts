@@ -1,6 +1,6 @@
 /** Canonical Core revenant skill fragments grouped by their GW2 owner. */
 import { REVENANT_SKILL_IDS as ID } from '#gw2/professions/revenant/data/ids.js';
-import type { Skill } from '#gw2/platform/engine/skills/types.js';
+import type { Skill } from '#gw2/platform/skills/types.js';
 
 // Log-measured impact/aftercast timings are separate from Aura's fixed one-second fuse pulses.
 export const REVENANT_WEAPONS_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({

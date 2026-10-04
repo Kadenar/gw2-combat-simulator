@@ -1,9 +1,6 @@
 import type { MechanicContext } from '#gw2/platform/profession-definition/mechanic-context.js';
 import { grantCapped } from '#gw2/platform/combat/resources/pool.js';
-import {
-  balanceProfileNumber,
-  requireBalanceProfileFromContext
-} from '#gw2/platform/engine/skills/balance-profiles.js';
+import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
 
 import { PARAGON_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/warrior/specializations/paragon/profiles.js';
 import { paragonState } from '#gw2/professions/warrior/specializations/paragon/state.js';

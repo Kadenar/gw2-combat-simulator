@@ -3,7 +3,7 @@ import { selectedDodge } from '#gw2/professions/thief/specializations/daredevil/
 import {
   definePublicStateDefaults,
   defineProfessionSpecializationState
-} from '#gw2/platform/engine/profession/state.js';
+} from '#gw2/platform/profession-definition/state.js';
 
 import { selectedThiefTraits } from '#gw2/professions/thief/core/state.js';
 import type { ThiefConfig, ThiefDodge } from '#gw2/professions/thief/types.js';

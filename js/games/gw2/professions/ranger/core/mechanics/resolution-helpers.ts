@@ -1,6 +1,8 @@
-import type { SimulationEventBase } from '#gw2/platform/engine/events/events.js';
-import type { ProfileEmission } from '#gw2/platform/simulation/effect-emission.js';
-import type { BalanceProfile, ConditionEffect, StatusEffect } from '#gw2/platform/engine/skills/types.js';
+import type { SimulationEventBase } from '#gw2/platform/events/events.js';
+import type { ProfileEmission } from '#gw2/platform/effects/emission.js';
+import type { BalanceProfile } from '#gw2/platform/skills/types.js';
+import type { StatusEffect } from '#gw2/platform/effects/types.js';
+import type { ConditionEffect } from '#gw2/platform/effects/types.js';
 import { buildResolverCondition } from '#gw2/platform/resolver/packets.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import { rangerPetCombatMetadata, rangerPetCompanionId } from '#gw2/professions/ranger/core/mechanics/pets.js';

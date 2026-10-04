@@ -1,6 +1,6 @@
-import { type SkillFlipWindows } from '#gw2/platform/engine/skills/skill-flips.js';
+import { type SkillFlipWindows } from '#gw2/platform/execution/skill-flips.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
-import type { SkillId } from '#gw2/platform/engine/skills/types.js';
+import type { SkillId } from '#gw2/platform/skills/types.js';
 import { boundedNumber } from '#kernel/core/numeric.js';
 
 export interface WarriorCoreState {

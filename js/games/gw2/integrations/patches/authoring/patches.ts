@@ -4,23 +4,16 @@ import {
   PATCHABLE_EFFECT_NUMERIC_FIELDS
 } from '#gw2/integrations/patches/authoring/fields.js';
 import { deepFreeze, cloneCatalogData } from '#gw2/integrations/patches/authoring/immutable.js';
-import {
-  normalizeSkillEffects,
-  requireBalanceNumber,
-  skillEffectKey
-} from '#gw2/platform/engine/skills/canonical-skill-catalog.js';
+import { normalizeSkillEffects, requireBalanceNumber, skillEffectKey } from '#gw2/platform/effects/validation.js';
 import type { NumEdit } from '#gw2/integrations/patches/authoring/patch-types.js';
+import type { BalanceProfile, CanonicalCatalog, Skill, SkillId } from '#gw2/platform/skills/types.js';
 import type {
-  BalanceProfile,
-  CanonicalCatalog,
   ConditionEffect,
   ConditionTick,
-  Skill,
   SkillEffect,
-  SkillId,
   StrikeEffect,
   StrikeTick
-} from '#gw2/platform/engine/skills/types.js';
+} from '#gw2/platform/effects/types.js';
 import type { Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
 
 export const CURRENT_PATCH_ID = 'current';

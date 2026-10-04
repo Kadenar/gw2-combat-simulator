@@ -1,8 +1,8 @@
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { createCanonicalCatalog } from '#gw2/platform/engine/skills/canonical-skill-catalog.js';
-import { isAutoattackSkill } from '#gw2/platform/engine/skills/autoattack-chains.js';
+import { createCanonicalCatalog } from '#gw2/platform/skills/catalog.js';
+import { isAutoattackSkill } from '#gw2/platform/skills/autoattack-chain-index.js';
 import { defineTestProfession } from '#tests/helpers/profession.js';
 import { rotationApm } from '#gw2/platform/results/rotation-apm.js';
 import { testProfession } from '#tests/fixtures/profession.js';

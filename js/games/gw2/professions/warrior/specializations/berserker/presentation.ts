@@ -1,4 +1,4 @@
-import { readProfessionSpecializationState } from '#gw2/platform/engine/profession/state.js';
+import { readProfessionSpecializationState } from '#gw2/platform/profession-definition/state.js';
 import type {
   ProfessionAttributePreviewContext,
   ProfessionAttributePreviewPreparation

@@ -7,11 +7,8 @@ import {
 } from '#gw2/professions/thief/specializations/daredevil/traits/behavior.js';
 import { openDodgeWindow, queueDodgePackets } from '#gw2/professions/thief/specializations/daredevil/traits/dodges.js';
 
-import {
-  balanceProfileNumber,
-  requireBalanceProfileFromContext
-} from '#gw2/platform/engine/skills/balance-profiles.js';
-import { skillFlipReady } from '#gw2/platform/engine/skills/skill-flips.js';
+import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import { skillFlipReady } from '#gw2/platform/execution/skill-flips.js';
 
 import { deferThiefCompletion } from '#gw2/professions/thief/core/events.js';
 import { thiefEndurance } from '#gw2/professions/thief/core/mechanics/resources.js';
@@ -19,7 +16,8 @@ import { THIEF_SKILL_IDS as ID } from '#gw2/professions/thief/data/ids.js';
 
 import { DAREDEVIL_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/thief/specializations/daredevil/profiles.js';
 
-import type { RuntimeCast, RuntimeProfession } from '#gw2/platform/simulation/runtime-state.js';
+import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
+import type { RuntimeProfession } from '#gw2/platform/profession-definition/runtime-contract.js';
 
 import type { ThiefRuntime } from '#gw2/professions/thief/core/events.js';
 import type { ThiefRuntimeState, ThiefSkill } from '#gw2/professions/thief/types.js';

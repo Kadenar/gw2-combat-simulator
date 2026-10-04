@@ -2,7 +2,7 @@ import { relicIdForName } from '#gw2/platform/equipment/relics/catalog.js';
 /** Creates and invokes the selected relic's runtime. Per-relic behavior lives in `rules/`. */
 import { RELIC_RULES } from '#gw2/platform/equipment/relics/rules/index.js';
 
-import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
+import type { SimulationEvent } from '#gw2/platform/events/events.js';
 import type {
   Gw2RelicRule,
   Gw2RelicRuntime,

@@ -1,7 +1,8 @@
-import { armSkillFlip, consumeSkillFlip } from '#gw2/platform/engine/skills/skill-flips.js';
+import { armSkillFlip, consumeSkillFlip } from '#gw2/platform/execution/skill-flips.js';
 import { activeStackCount } from '#gw2/platform/combat/resources/timed-stacks.js';
 import { produceRuntimeCombos } from '#gw2/platform/combos/runtime.js';
-import type { RuntimeCast, RuntimeProfession, SkillTaskData } from '#gw2/platform/simulation/runtime-state.js';
+import type { RuntimeCast, SkillTaskData } from '#gw2/platform/execution/cast-contracts.js';
+import type { RuntimeProfession } from '#gw2/platform/profession-definition/runtime-contract.js';
 
 import type { EngineerSkill, EngineerRuntimeState } from '#gw2/professions/engineer/types.js';
 import { ENGINEER_SKILL_IDS as ID } from '#gw2/professions/engineer/data/ids.js';

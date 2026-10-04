@@ -1,7 +1,7 @@
 import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
-import { skillFlipVisible } from '#gw2/platform/engine/skills/skill-flips.js';
+import { skillFlipVisible } from '#gw2/platform/execution/skill-flips.js';
 import { canonicalTime } from '#kernel/core/clock.js';
-import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
+import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
 import type { AvailabilityResult } from '#gw2/platform/execution/types.js';
 import type { MesmerRuntime } from '#gw2/professions/mesmer/types.js';
 

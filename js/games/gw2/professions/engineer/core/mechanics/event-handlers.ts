@@ -1,5 +1,5 @@
 import { buildResolverCondition } from '#gw2/platform/resolver/packets.js';
-import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
+import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
 import { addTimedStacks } from '#gw2/platform/combat/resources/timed-stacks.js';
 import {
   buildEngineerCondition,
@@ -16,7 +16,7 @@ import {
   requireBalanceProfileFromContext,
   requireEffect,
   balanceProfileNumber
-} from '#gw2/platform/engine/skills/balance-profiles.js';
+} from '#gw2/platform/skills/balance-profiles.js';
 import { ENGINEER_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/engineer/core/profiles.js';
 
 /** Builds kit transitions as sigil swaps so shared equipment reactions observe the bar change. */

@@ -1,10 +1,8 @@
 import type { MechanicContext } from '#gw2/platform/profession-definition/mechanic-context.js';
-import {
-  balanceProfileNumber,
-  requireBalanceProfileFromContext
-} from '#gw2/platform/engine/skills/balance-profiles.js';
-import type { RuntimeCast, RuntimeProfession } from '#gw2/platform/simulation/runtime-state.js';
-import { gw2EffectExpiresAt } from '#gw2/platform/skills/timing.js';
+import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
+import type { RuntimeProfession } from '#gw2/platform/profession-definition/runtime-contract.js';
+import { gw2EffectExpiresAt } from '#gw2/platform/effects/timing.js';
 import { WARRIOR_CORE_BALANCE_PROFILE_IDS as CORE_PROFILE } from '#gw2/professions/warrior/core/profiles.js';
 import { WARRIOR_SKILL_IDS as ID } from '#gw2/professions/warrior/data/ids.js';
 import { berserkSkillActions } from '#gw2/professions/warrior/specializations/berserker/skills/index.js';

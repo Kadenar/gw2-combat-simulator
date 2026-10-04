@@ -1,4 +1,4 @@
-import type { Skill, SkillId } from '#gw2/platform/engine/skills/types.js';
+import type { Skill, SkillId } from '#gw2/platform/skills/types.js';
 
 /** Upkeeps are the skills that declare a sustained Energy drain. */
 export function isRevenantUpkeep(skill: Skill | null | undefined): boolean {

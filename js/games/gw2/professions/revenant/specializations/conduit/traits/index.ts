@@ -8,7 +8,7 @@ import {
   balanceProfileNumber,
   requireBalanceProfileFromContext,
   requireEffect
-} from '#gw2/platform/engine/skills/balance-profiles.js';
+} from '#gw2/platform/skills/balance-profiles.js';
 import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
 import { REVENANT_LEGEND_IDS as LEGEND, REVENANT_TRAIT_IDS as TRAIT } from '#gw2/professions/revenant/data/ids.js';
 import { getActiveTraits } from '#gw2/professions/revenant/data/traits-data.js';

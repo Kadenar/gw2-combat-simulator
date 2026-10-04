@@ -1,7 +1,7 @@
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { defineTrait, traitAttributeEffects } from '#gw2/platform/profession-definition/traits.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
-import { gw2EffectExpiresAt } from '#gw2/platform/skills/timing.js';
+import { gw2EffectExpiresAt } from '#gw2/platform/effects/timing.js';
 import {
   guardianTimedBuffActive,
   latestGuardianTimedBuff

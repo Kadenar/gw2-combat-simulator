@@ -1,10 +1,10 @@
 import type { ElementalistRuntime } from '#gw2/professions/elementalist/types.js';
-import { requireBalanceNumber } from '#gw2/platform/engine/skills/canonical-skill-catalog.js';
+import { requireBalanceNumber } from '#gw2/platform/effects/validation.js';
 import {
   ELEMENTALIST_CORE_BALANCE_PROFILES,
   ELEMENTALIST_CORE_BALANCE_PROFILE_IDS
 } from '#gw2/professions/elementalist/core/profiles.js';
-import { type SkillFlipWindows } from '#gw2/platform/engine/skills/skill-flips.js';
+import { type SkillFlipWindows } from '#gw2/platform/execution/skill-flips.js';
 import { grantCharges, type ChargeGrant } from '#gw2/platform/combat/resources/charges.js';
 import { ELEMENTALIST_ATTUNEMENT_SKILL_IDS } from '#gw2/professions/elementalist/data/ids.js';
 import type { ElementalistConfig } from '#gw2/professions/elementalist/build/types.js';

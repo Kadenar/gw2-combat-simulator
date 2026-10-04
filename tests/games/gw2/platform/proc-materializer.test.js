@@ -5,7 +5,7 @@ import test from 'node:test';
 
 import { defaultSimulationConfig } from '#tests/helpers/fixture-harness-core.js';
 import { simulateMesmer } from '#tests/helpers/mesmer-simulation.js';
-import { createCanonicalCatalog } from '#gw2/platform/engine/skills/canonical-skill-catalog.js';
+import { createCanonicalCatalog } from '#gw2/platform/skills/catalog.js';
 import { defineTestProfession } from '#tests/helpers/profession.js';
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
 import { isInternalCooldownReady } from '#gw2/platform/combat/procs.js';

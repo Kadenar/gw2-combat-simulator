@@ -4,9 +4,9 @@ import {
   effectNumber,
   requireBalanceProfileFromContext,
   requireEffect
-} from '#gw2/platform/engine/skills/balance-profiles.js';
-import type { SkillEffect } from '#gw2/platform/engine/skills/types.js';
-import type { RuntimeCast } from '#gw2/platform/simulation/runtime-state.js';
+} from '#gw2/platform/skills/balance-profiles.js';
+import type { SkillEffect } from '#gw2/platform/effects/types.js';
+import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import { buildRangerPacket } from '#gw2/professions/ranger/core/events.js';
 import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
 import { DRUID_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/ranger/specializations/druid/profiles.js';

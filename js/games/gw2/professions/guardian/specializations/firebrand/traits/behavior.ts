@@ -6,13 +6,13 @@ import {
   effectNumber,
   requireBalanceProfileFromContext,
   requireEffect
-} from '#gw2/platform/engine/skills/balance-profiles.js';
-import type { Skill } from '#gw2/platform/engine/skills/types.js';
+} from '#gw2/platform/skills/balance-profiles.js';
+import type { Skill } from '#gw2/platform/skills/types.js';
 import type { NativeResolvedDamageDetails } from '#gw2/platform/profession-definition/module-types.js';
 import { buildResolverCondition } from '#gw2/platform/resolver/packets.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
-import type { RuntimeCast } from '#gw2/platform/simulation/runtime-state.js';
-import { gw2EffectExpiresAt } from '#gw2/platform/skills/timing.js';
+import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
+import { gw2EffectExpiresAt } from '#gw2/platform/effects/timing.js';
 import { guardianCastCause } from '#gw2/professions/guardian/core/mechanics/event-handlers.js';
 import { reactToJusticeHitWithOptions } from '#gw2/professions/guardian/core/mechanics/virtues.js';
 import { guardianTraitIcon } from '#gw2/professions/guardian/core/traits/behavior.js';

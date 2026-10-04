@@ -1,4 +1,4 @@
-import type { EffectDelivery } from '#gw2/platform/simulation/effect-emission.js';
+import type { EffectDelivery } from '#gw2/platform/effects/emission.js';
 import type { MesmerActivePrimaryWeapon } from '#gw2/professions/mesmer/types.js';
 import type {
   MesmerPhantasmEffectController,

@@ -1,7 +1,7 @@
-import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
+import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
 import { gw2ActivePrimaryWeapon } from '#gw2/platform/equipment/weapons/loadout.js';
 import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
-import type { EffectDelivery } from '#gw2/platform/simulation/effect-emission.js';
+import type { EffectDelivery } from '#gw2/platform/effects/emission.js';
 import {
   buildMesmerConditions,
   buildMesmerPacket,
@@ -24,7 +24,7 @@ import {
   balanceProfileNumber,
   requireBalanceProfileFromContext,
   requireEffect
-} from '#gw2/platform/engine/skills/balance-profiles.js';
+} from '#gw2/platform/skills/balance-profiles.js';
 import type { MesmerClone, MesmerCloneAttack } from '#gw2/professions/mesmer/core/mechanics/illusions/types.js';
 import { MESMER_SKILL_IDS as ID } from '#gw2/professions/mesmer/data/ids.js';
 import { MIRAGE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/mesmer/specializations/mirage/profiles.js';
@@ -35,8 +35,8 @@ import type {
 import type { MesmerActivePrimaryWeapon, MesmerAmbushAttack } from '#gw2/professions/mesmer/types.js';
 
 import type { EndurancePolicy } from '#gw2/platform/combat/resources/endurance-policy.js';
-import { materializeSkillEffectApplications } from '#gw2/platform/engine/effects/materializer.js';
-import { denySkillCast } from '#gw2/platform/engine/skills/availability.js';
+import { materializeSkillEffectApplications } from '#gw2/platform/effects/materializer.js';
+import { denySkillCast } from '#gw2/platform/execution/availability.js';
 import type { AvailabilityResult } from '#gw2/platform/execution/types.js';
 import { NON_MIRAGE_AXE_SKILL_IDS } from '#gw2/professions/mesmer/data/module-data.js';
 import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';

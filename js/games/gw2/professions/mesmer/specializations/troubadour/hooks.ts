@@ -1,4 +1,5 @@
-import type { RuntimeCast, RuntimeProfession } from '#gw2/platform/simulation/runtime-state.js';
+import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
+import type { RuntimeProfession } from '#gw2/platform/profession-definition/runtime-contract.js';
 import { mesmerCastDelivery } from '#gw2/professions/mesmer/core/execution/cast-lifecycle.js';
 import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
 import { troubadourEndurance } from '#gw2/professions/mesmer/specializations/troubadour/mechanics/endurance.js';
@@ -71,7 +72,7 @@ export const troubadourHooks: Partial<RuntimeProfession<MesmerRuntimeState, Mesm
   eventHandlers: {
     // Executed commitments supply historical cast-start and isolated attribute queries in both output modes.
     'mesmer.instrument': (runtime, event) => {
-      runtime.facts.record(event);
+      runtime.observations.record(event);
     }
   }
 };

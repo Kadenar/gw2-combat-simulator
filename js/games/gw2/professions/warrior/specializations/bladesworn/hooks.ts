@@ -1,12 +1,9 @@
 import type { MechanicContext } from '#gw2/platform/profession-definition/mechanic-context.js';
-import {
-  balanceProfileNumber,
-  requireBalanceProfileFromContext
-} from '#gw2/platform/engine/skills/balance-profiles.js';
+import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import { composeRuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
-import type { RuntimeProfession } from '#gw2/platform/simulation/runtime-state.js';
-import { resetAutoattackChains } from '#gw2/platform/skills/autoattack-chain-controller.js';
+import type { RuntimeProfession } from '#gw2/platform/profession-definition/runtime-contract.js';
+import { resetAutoattackChains } from '#gw2/platform/execution/autoattack-chains.js';
 import { grantWarriorAdrenaline } from '#gw2/professions/warrior/core/mechanics/adrenaline.js';
 import { warriorAmmunition } from '#gw2/professions/warrior/core/mechanics/ammunition.js';
 import { berserkersPowerDragonSlash, burstMasteryDragonSlash } from '#gw2/professions/warrior/core/traits/behavior.js';

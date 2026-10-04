@@ -1,4 +1,4 @@
-import { skillFlipVisible } from '#gw2/platform/engine/skills/skill-flips.js';
+import { skillFlipVisible } from '#gw2/platform/execution/skill-flips.js';
 import { bindDropdownSearch } from '#ui/shared/dropdown-search.js';
 import { skillTooltipAttributes, wikiTooltipAttributes } from '#gw2/app/shared/tooltip-overlay.js';
 import { escapeHtml as esc } from '#ui/shared/html.js';
@@ -6,7 +6,7 @@ import { isSlotSkillSelectable } from '#gw2/app/build/state/skill-selection.js';
 
 import type { ProfessionSkillBarGroup } from '#gw2/platform/profession-presentation/types.js';
 import type { RotationProfessionState } from '#gw2/app/rotation/context.js';
-import type { Skill } from '#gw2/platform/engine/skills/types.js';
+import type { Skill } from '#gw2/platform/skills/types.js';
 import type { ProfessionAppState } from '#gw2/app/types.js';
 import type { SlotLoadoutBar, SlotLoadoutSelector } from '#gw2/platform/builds/slot-loadout.js';
 import { requiredElement } from '#ui/shared/dom.js';

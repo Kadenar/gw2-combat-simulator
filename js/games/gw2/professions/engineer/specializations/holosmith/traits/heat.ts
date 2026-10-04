@@ -4,7 +4,7 @@ import {
   requireEffect,
   balanceProfileNumber,
   effectNumber
-} from '#gw2/platform/engine/skills/balance-profiles.js';
+} from '#gw2/platform/skills/balance-profiles.js';
 import { buildEngineerPackets } from '#gw2/professions/engineer/core/events.js';
 import { ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
 import type { EngineerRuntime, EngineerConfig } from '#gw2/professions/engineer/types.js';

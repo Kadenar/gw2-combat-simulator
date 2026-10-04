@@ -1,11 +1,8 @@
-import { denySkillCast as deny } from '#gw2/platform/engine/skills/availability.js';
-import {
-  balanceProfileNumber,
-  requireBalanceProfileFromContext
-} from '#gw2/platform/engine/skills/balance-profiles.js';
-import { armSkillFlip, consumeSkillFlip } from '#gw2/platform/engine/skills/skill-flips.js';
-import type { RuntimeProfession } from '#gw2/platform/simulation/runtime-state.js';
-import { resetAutoattackChains } from '#gw2/platform/skills/autoattack-chain-controller.js';
+import { denySkillCast as deny } from '#gw2/platform/execution/availability.js';
+import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import { armSkillFlip, consumeSkillFlip } from '#gw2/platform/execution/skill-flips.js';
+import type { RuntimeProfession } from '#gw2/platform/profession-definition/runtime-contract.js';
+import { resetAutoattackChains } from '#gw2/platform/execution/autoattack-chains.js';
 import { buildRangerPacket } from '#gw2/professions/ranger/core/events.js';
 import { applyRangerWeaponSwapTraits } from '#gw2/professions/ranger/core/traits/behavior.js';
 import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';

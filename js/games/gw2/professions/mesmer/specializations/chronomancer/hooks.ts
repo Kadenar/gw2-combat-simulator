@@ -1,5 +1,5 @@
 import { OBSERVABLE_EVENT_HANDLER } from '#gw2/platform/resolver/handler-registry.js';
-import type { RuntimeProfession } from '#gw2/platform/simulation/runtime-state.js';
+import type { RuntimeProfession } from '#gw2/platform/profession-definition/runtime-contract.js';
 import { dispatchShatterResolved } from '#gw2/professions/mesmer/core/execution/cast-lifecycle.js';
 import { mesmerMechanicsFor } from '#gw2/professions/mesmer/core/mechanics/runtime.js';
 import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';

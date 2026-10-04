@@ -1,4 +1,4 @@
-import { defineProfessionSpecializationState } from '#gw2/platform/engine/profession/state.js';
+import { defineProfessionSpecializationState } from '#gw2/platform/profession-definition/state.js';
 
 /** Tempest has no private mechanic state; its proc deadlines belong to the shared registry. */
 export type TempestState = Record<string, never>;

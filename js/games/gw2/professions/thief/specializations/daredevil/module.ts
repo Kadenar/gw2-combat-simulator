@@ -1,5 +1,5 @@
 import { daredevilTraits } from '#gw2/professions/thief/specializations/daredevil/traits/index.js';
-import { createPublicStateProjector } from '#gw2/platform/engine/profession/state.js';
+import { createPublicStateProjector } from '#gw2/platform/profession-definition/state.js';
 import { DAREDEVIL_PUBLIC_STATE_PROJECTION } from '#gw2/professions/thief/specializations/daredevil/state.js';
 import { defineNativeModule } from '#gw2/platform/profession-definition/profession.js';
 import { createThiefModuleData } from '#gw2/professions/thief/data/module-data.js';

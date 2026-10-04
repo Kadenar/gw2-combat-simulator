@@ -5,7 +5,7 @@ import test from 'node:test';
 
 import { warriorCatalog, warriorProfession } from '#gw2/professions/warrior/profession.js';
 import { WARRIOR_SKILL_IDS as ID, WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/professions/warrior/data/ids.js';
-import { canonicalGw2SkillId } from '#gw2/platform/skills/aliases.js';
+import { canonicalGw2SkillId } from '#gw2/platform/skills/external-skill-ids.js';
 import {
   createObservedProfessionSimulator,
   observeGw2Runtime,

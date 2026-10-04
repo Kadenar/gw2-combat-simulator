@@ -1,17 +1,18 @@
 import type { MechanicContext } from '#gw2/platform/profession-definition/mechanic-context.js';
-import { denySkillCast } from '#gw2/platform/engine/skills/availability.js';
+import { denySkillCast } from '#gw2/platform/execution/availability.js';
 import {
   effectNumber,
   requireBalanceProfileFromContext,
   requireEffect
-} from '#gw2/platform/engine/skills/balance-profiles.js';
-import { skillFlipReady } from '#gw2/platform/engine/skills/skill-flips.js';
+} from '#gw2/platform/skills/balance-profiles.js';
+import { skillFlipReady } from '#gw2/platform/execution/skill-flips.js';
 import { SIGIL_IDS } from '#gw2/platform/equipment/sigils/data.js';
 import type { NativeResolvedDamageDetails } from '#gw2/platform/profession-definition/module-types.js';
 import { buildResolverCondition, buildResolverStrike } from '#gw2/platform/resolver/packets.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
-import type { RuntimeCast, RuntimeProfession } from '#gw2/platform/simulation/runtime-state.js';
-import { gw2EffectExpiresAt } from '#gw2/platform/skills/timing.js';
+import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
+import type { RuntimeProfession } from '#gw2/platform/profession-definition/runtime-contract.js';
+import { gw2EffectExpiresAt } from '#gw2/platform/effects/timing.js';
 import { guardianCastCause } from '#gw2/professions/guardian/core/mechanics/event-handlers.js';
 import { refreshGuardianVirtues } from '#gw2/professions/guardian/core/mechanics/virtues.js';
 import { GUARDIAN_CORE_BALANCE_PROFILE_IDS as CORE_PROFILE } from '#gw2/professions/guardian/core/profiles.js';

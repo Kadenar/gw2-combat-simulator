@@ -18,7 +18,7 @@ import {
 } from '#gw2/platform/combat/boons.js';
 import { createGw2TimelineIndex } from '#gw2/platform/combat/query/timeline-index.js';
 import { buildTimeSeries, chartValueAt } from '#gw2/app/results/charts/time-series-model.js';
-import { assertSimulationEvent } from '#gw2/platform/engine/events/events.js';
+import { assertSimulationEvent } from '#gw2/platform/events/events.js';
 import { RANGER_TRAIT_IDS } from '#gw2/professions/ranger/data/ids.js';
 import { noQuarterCriticalReaction } from '#gw2/professions/thief/core/traits/critical-boons.js';
 import { REVENANT_LEGEND_IDS, REVENANT_SKILL_IDS } from '#gw2/professions/revenant/data/ids.js';

@@ -1,4 +1,4 @@
-import { armSkillFlip } from '#gw2/platform/engine/skills/skill-flips.js';
+import { armSkillFlip } from '#gw2/platform/execution/skill-flips.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 

@@ -2,9 +2,9 @@
  * Owns Core Ranger pet skill fragments for the Jacaranda family.
  * Pet identity and family membership remain in `data/ranger-pet-data.ts`.
  */
-import { impactEffects } from '#gw2/platform/engine/effects/authoring.js';
+import { impactEffects } from '#gw2/platform/effects/authoring.js';
 import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
-import type { Skill } from '#gw2/platform/engine/skills/types.js';
+import type { Skill } from '#gw2/platform/skills/types.js';
 
 // Snap each 1.5-second pulse independently so both conditions stay aligned without accumulating rounding drift.
 const EMBRACE_PULSE_TIMES_MS = [0, 1520, 3000, 4520, 6000];

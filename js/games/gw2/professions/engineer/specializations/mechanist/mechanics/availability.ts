@@ -1,6 +1,6 @@
 import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
 import { mechanistState } from '#gw2/professions/engineer/specializations/mechanist/state.js';
-import { denySkillCast as denyEngineerCast } from '#gw2/platform/engine/skills/availability.js';
+import { denySkillCast as denyEngineerCast } from '#gw2/platform/execution/availability.js';
 import type { AvailabilityResult } from '#gw2/platform/execution/types.js';
 import type { EngineerRuntime, EngineerSkill } from '#gw2/professions/engineer/types.js';
 

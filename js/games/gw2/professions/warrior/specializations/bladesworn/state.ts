@@ -2,13 +2,13 @@ import {
   createDragonTriggerState,
   type DragonTriggerState
 } from '#gw2/professions/warrior/specializations/bladesworn/mechanics/dragon-trigger-state.js';
-import type { Gw2PlanningStateInput } from '#gw2/platform/simulation/types.js';
+import type { Gw2PlanningStateInput } from '#gw2/platform/results/types.js';
 import {
   snapshotProfessionState,
   projectPublicProfessionState,
   definePublicStateDefaults,
   defineProfessionSpecializationState
-} from '#gw2/platform/engine/profession/state.js';
+} from '#gw2/platform/profession-definition/state.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
 import { boundedNumber } from '#kernel/core/numeric.js';
 

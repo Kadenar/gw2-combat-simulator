@@ -1,7 +1,7 @@
-import { createExecutedFacts } from '#gw2/platform/results/executed-facts.js';
+import { createExecutedFacts } from '#gw2/platform/combat/history/executed-facts.js';
 import { captureEffectEmissions } from '#tests/helpers/effect-emission.js';
 import { createCooldownController } from '#gw2/platform/execution/cooldowns.js';
-import { applySkillSideEffects } from '#gw2/platform/simulation/side-effects.js';
+import { applySkillSideEffects } from '#gw2/platform/effects/action-dispatch.js';
 import { mesmerCoreHooks } from '#gw2/professions/mesmer/core/hooks.js';
 import { projectObservedState } from '#tests/helpers/observed-runtime.js';
 import { registerMesmerMechanics } from '#gw2/professions/mesmer/core/mechanics/runtime.js';
@@ -71,7 +71,9 @@ function lifetimeContext(traits = []) {
       return event;
     }
   }).effects;
-  context.facts = createExecutedFacts(events);
+  const facts = createExecutedFacts(events);
+  context.facts = facts.reader;
+  context.observations = facts.writer;
   context.history = events;
   context.schedule = () => {};
 

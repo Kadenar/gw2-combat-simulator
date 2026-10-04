@@ -1,4 +1,4 @@
-import { createPublicStateProjector } from '#gw2/platform/engine/profession/state.js';
+import { createPublicStateProjector } from '#gw2/platform/profession-definition/state.js';
 import { defineNativeModule } from '#gw2/platform/profession-definition/profession.js';
 import { elementalistCoreHooks } from '#gw2/professions/elementalist/core/hooks.js';
 import { elementalistCoreModifiers } from '#gw2/professions/elementalist/core/modifiers.js';

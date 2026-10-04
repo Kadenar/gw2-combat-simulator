@@ -9,12 +9,12 @@ import {
   requireBalanceProfileFromContext,
   requireEffect,
   balanceProfileNumber
-} from '#gw2/platform/engine/skills/balance-profiles.js';
-import type { RuntimeCast } from '#gw2/platform/simulation/runtime-state.js';
+} from '#gw2/platform/skills/balance-profiles.js';
+import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import { buildEngineerPackets } from '#gw2/professions/engineer/core/events.js';
 import { ENGINEER_SKILL_IDS as ID, ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
-import type { SimulationEventBase } from '#gw2/platform/engine/events/events.js';
-import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
+import type { SimulationEventBase } from '#gw2/platform/events/events.js';
+import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
 import { buildEngineerBuff } from '#gw2/professions/engineer/core/mechanics/resolution-helpers.js';
 import { isInternalCooldownReady } from '#gw2/platform/combat/procs.js';
 import { professionStaticRulesApplied } from '#gw2/platform/builds/attribute-provenance.js';

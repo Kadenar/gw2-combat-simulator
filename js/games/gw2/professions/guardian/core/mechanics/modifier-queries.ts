@@ -1,7 +1,7 @@
 import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
 import { boonActive } from '#gw2/platform/combat/query/runtime-query.js';
-import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
-import { readProfessionCoreState } from '#gw2/platform/engine/profession/state.js';
+import type { SimulationEvent } from '#gw2/platform/events/events.js';
+import { readProfessionCoreState } from '#gw2/platform/profession-definition/state.js';
 import { gw2PrimaryWeapon } from '#gw2/platform/equipment/weapons/loadout.js';
 import type { GuardianState } from '#gw2/professions/guardian/types.js';
 

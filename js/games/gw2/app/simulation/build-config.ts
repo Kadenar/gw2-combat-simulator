@@ -1,4 +1,4 @@
-import type { SkillId } from '#gw2/platform/engine/skills/types.js';
+import type { SkillId } from '#gw2/platform/skills/types.js';
 import type { Gw2AttributeBreakdown, ProfessionBuildAssumptions } from '#gw2/platform/builds/types.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
 import type { Gw2Stats } from '#gw2/platform/combat/types.js';
@@ -7,13 +7,13 @@ import { assumptionControlsForSpecialization } from '#gw2/platform/builds/assump
 import { aggregateSigilSet, weaponSigilsForSet } from '#gw2/platform/equipment/sigils/loadout.js';
 import {
   isSimulationRandomnessControl,
-  normalizeCriticalDamageMode,
   simulationRandomnessFromAssumptions
-} from '#gw2/platform/simulation/randomness.js';
+} from '#gw2/platform/builds/randomness-assumptions.js';
+import { normalizeCriticalDamageMode } from '#gw2/platform/combat/critical-damage-mode.js';
 import type { Gw2SimulationConfigOptions } from '#gw2/app/types.js';
 import type { ProfessionAttributeData } from '#gw2/app/build/types.js';
 import { SIMULATION_RANDOMNESS_MODES } from '#kernel/core/simulation-random.js';
-import { normalizeTransitionDelays } from '#gw2/platform/skills/transition-delays.js';
+import { normalizeTransitionDelays } from '#gw2/platform/execution/transition-lockouts.js';
 import { normalizeProcRateOverrides } from '#gw2/platform/builds/proc-rates.js';
 import { boundedInteger, boundedNumber } from '#kernel/core/numeric.js';
 

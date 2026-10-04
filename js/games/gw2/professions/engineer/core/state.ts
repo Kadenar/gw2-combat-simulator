@@ -1,10 +1,10 @@
-import { requireBalanceNumber } from '#gw2/platform/engine/skills/canonical-skill-catalog.js';
+import { requireBalanceNumber } from '#gw2/platform/effects/validation.js';
 import {
   ENGINEER_CORE_BALANCE_PROFILES,
   ENGINEER_CORE_BALANCE_PROFILE_IDS
 } from '#gw2/professions/engineer/core/profiles.js';
-import { type SkillFlipWindows } from '#gw2/platform/engine/skills/skill-flips.js';
-import type { SkillId } from '#gw2/platform/engine/skills/types.js';
+import { type SkillFlipWindows } from '#gw2/platform/execution/skill-flips.js';
+import type { SkillId } from '#gw2/platform/skills/types.js';
 import { normalizeSelectedTraitIds } from '#gw2/platform/combat/state/traits.js';
 import type { EngineerConfig } from '#gw2/professions/engineer/types.js';
 

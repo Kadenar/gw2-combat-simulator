@@ -4,7 +4,7 @@ import {
   requireBalanceProfileFromContext,
   requireEffect,
   balanceProfileNumber
-} from '#gw2/platform/engine/skills/balance-profiles.js';
+} from '#gw2/platform/skills/balance-profiles.js';
 import { buildEngineerPackets } from '#gw2/professions/engineer/core/events.js';
 import { triggerVentExhaust } from '#gw2/professions/engineer/specializations/holosmith/mechanics/photon-forge.js';
 import { holosmithState } from '#gw2/professions/engineer/specializations/holosmith/state.js';
@@ -14,11 +14,11 @@ import {
   type EngineerSkill,
   type EngineerResolverContext
 } from '#gw2/professions/engineer/types.js';
-import { denySkillCast as denyEngineerCast } from '#gw2/platform/engine/skills/availability.js';
+import { denySkillCast as denyEngineerCast } from '#gw2/platform/execution/availability.js';
 import { type AvailabilityResult } from '#gw2/platform/execution/types.js';
 import { type HolosmithSkill } from '#gw2/professions/engineer/specializations/holosmith/types.js';
 import { grantCharges, consumeCharge } from '#gw2/platform/combat/resources/charges.js';
-import { gw2EffectExpiresAt } from '#gw2/platform/skills/timing.js';
+import { gw2EffectExpiresAt } from '#gw2/platform/effects/timing.js';
 import { type HolosmithResolverEvent } from '#gw2/professions/engineer/specializations/holosmith/mechanics/heat-tiers.js';
 import { buildResolverCondition } from '#gw2/platform/resolver/packets.js';
 

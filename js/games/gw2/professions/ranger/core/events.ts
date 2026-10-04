@@ -1,5 +1,5 @@
-import { splitStrikeHits } from '#gw2/platform/simulation/procedural-emission.js';
-import type { SimulationEventBase } from '#gw2/platform/engine/events/events.js';
+import { splitStrikeHits } from '#gw2/platform/effects/procedural-packets.js';
+import type { SimulationEventBase } from '#gw2/platform/events/events.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 
 /** Cast and trait effects supply their own attribution; pet ownership is captured by the pet producer. */

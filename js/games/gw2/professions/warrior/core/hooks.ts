@@ -1,11 +1,8 @@
-import {
-  balanceProfileNumber,
-  requireBalanceProfileFromContext
-} from '#gw2/platform/engine/skills/balance-profiles.js';
-import { skillFlipReady } from '#gw2/platform/engine/skills/skill-flips.js';
+import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import { skillFlipReady } from '#gw2/platform/execution/skill-flips.js';
 import type { Gw2HitResolutionContext } from '#gw2/platform/resolver/hit-resolution.js';
-import type { RuntimeProfession } from '#gw2/platform/simulation/runtime-state.js';
-import { applySideEffect, sideEffectAmount } from '#gw2/platform/simulation/side-effects.js';
+import type { RuntimeProfession } from '#gw2/platform/profession-definition/runtime-contract.js';
+import { applySideEffect, sideEffectAmount } from '#gw2/platform/effects/action-dispatch.js';
 import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
 import {
   burstAdrenalineSpend,

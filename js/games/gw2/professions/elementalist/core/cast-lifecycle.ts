@@ -1,12 +1,13 @@
-import type { RuntimeCast, RuntimeProfession } from '#gw2/platform/simulation/runtime-state.js';
+import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
+import type { RuntimeProfession } from '#gw2/platform/profession-definition/runtime-contract.js';
 import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
 import type { ElementalistAttunement } from '#gw2/professions/elementalist/core/state.js';
 /**
  * Routes Core Elementalist casts to the skill families and persistent mechanics that own their behavior.
  * Catalog fragments remain in `skills/`; cross-cast state lives in `mechanics/`.
  */
-import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
-import type { Skill } from '#gw2/platform/engine/skills/types.js';
+import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
+import type { Skill } from '#gw2/platform/skills/types.js';
 import { AURA_TRANSMUTE_SKILLS } from '#gw2/professions/elementalist/core/constants.js';
 import { armArcaneEcho, completeArcaneEcho } from '#gw2/professions/elementalist/core/mechanics/arcane-echo.js';
 import {

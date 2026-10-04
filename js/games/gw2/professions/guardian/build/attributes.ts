@@ -4,10 +4,7 @@ import type {
   Gw2CommonAttributeResult,
   Gw2FinalizedAttributeResult
 } from '#gw2/platform/builds/types.js';
-import {
-  balanceProfileNumber,
-  requireBalanceProfileFromContext
-} from '#gw2/platform/engine/skills/balance-profiles.js';
+import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import { guardianCatalog } from '#gw2/professions/guardian/catalog.js';
 import { perfectInscriptionsMultiplier } from '#gw2/professions/guardian/core/traits/behavior.js';
 import { GUARDIAN_SKILL_IDS as ID } from '#gw2/professions/guardian/data/ids.js';

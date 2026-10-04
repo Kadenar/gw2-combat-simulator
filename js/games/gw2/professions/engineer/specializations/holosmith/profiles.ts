@@ -1,4 +1,4 @@
-import type { BalanceProfile } from '#gw2/platform/engine/skills/types.js';
+import type { BalanceProfile } from '#gw2/platform/skills/types.js';
 import { defineSkillVariantProfile as skillVariant } from '#gw2/platform/profession-definition/balance-profiles.js';
 
 // These IDs are the shared lookup contract between heat-state code, delayed

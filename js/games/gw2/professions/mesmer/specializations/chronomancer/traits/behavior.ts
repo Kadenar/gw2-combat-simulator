@@ -1,11 +1,11 @@
 import type { MesmerEventExtra } from '#gw2/professions/mesmer/data/types.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
-import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
+import type { SimulationEvent } from '#gw2/platform/events/events.js';
 import {
   balanceProfileNumber,
   requireBalanceProfileFromContext,
   requireEffect
-} from '#gw2/platform/engine/skills/balance-profiles.js';
+} from '#gw2/platform/skills/balance-profiles.js';
 import type { MesmerPhantasmPolicy } from '#gw2/professions/mesmer/core/mechanics/illusions/types.js';
 import { mesmerMechanicsFor } from '#gw2/professions/mesmer/core/mechanics/runtime.js';
 import type { MesmerShatterResolution } from '#gw2/professions/mesmer/core/mechanics/shatter-types.js';

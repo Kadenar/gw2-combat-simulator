@@ -1,4 +1,4 @@
-import { defineProfessionSpecializationState } from '#gw2/platform/engine/profession/state.js';
+import { defineProfessionSpecializationState } from '#gw2/platform/profession-definition/state.js';
 
 export type ReaperState = Record<string, never>;
 

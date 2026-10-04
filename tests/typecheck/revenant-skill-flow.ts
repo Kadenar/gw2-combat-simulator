@@ -1,4 +1,4 @@
-import type { Skill } from '#gw2/platform/engine/skills/types.js';
+import type { Skill } from '#gw2/platform/skills/types.js';
 import { revenantCatalog } from '#gw2/professions/revenant/catalog.js';
 import type { RevenantRuntime } from '#gw2/professions/revenant/core/events.js';
 import { revenantCoreHooks } from '#gw2/professions/revenant/core/hooks.js';

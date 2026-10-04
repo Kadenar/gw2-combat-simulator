@@ -1,14 +1,15 @@
 import { skillForEvent } from '#gw2/platform/combat/query/event-skill.js';
 import { CANONICAL_TARGET_CONDITIONS } from '#gw2/platform/combat/state/targets.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
-import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
+import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
 import {
   balanceProfileNumber,
   effectNumber,
   requireBalanceProfileFromContext,
   requireEffect
-} from '#gw2/platform/engine/skills/balance-profiles.js';
-import type { BalanceProfile, SkillEffect } from '#gw2/platform/engine/skills/types.js';
+} from '#gw2/platform/skills/balance-profiles.js';
+import type { BalanceProfile } from '#gw2/platform/skills/types.js';
+import type { SkillEffect } from '#gw2/platform/effects/types.js';
 import { buildResolverBuff, buildResolverCondition } from '#gw2/platform/resolver/packets.js';
 import { THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
 import type { ThiefResolverContext, ThiefResolverEvent } from '#gw2/professions/thief/types.js';

@@ -1,4 +1,4 @@
-import { createPublicStateProjector } from '#gw2/platform/engine/profession/state.js';
+import { createPublicStateProjector } from '#gw2/platform/profession-definition/state.js';
 import { defineNativeModule } from '#gw2/platform/profession-definition/profession.js';
 import { createGuardianModuleData } from '#gw2/professions/guardian/data/module-data.js';
 import { luminaryHooks } from '#gw2/professions/guardian/specializations/luminary/hooks.js';

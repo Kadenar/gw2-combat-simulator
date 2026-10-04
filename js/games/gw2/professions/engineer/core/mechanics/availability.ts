@@ -1,11 +1,11 @@
 import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
 import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
-import { skillFlipReady } from '#gw2/platform/engine/skills/skill-flips.js';
-import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
+import { skillFlipReady } from '#gw2/platform/execution/skill-flips.js';
+import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
 import { selectedSkillIdSet } from '#gw2/platform/builds/selected-skills.js';
 import { ENGINEER_SKILL_IDS as ID } from '#gw2/professions/engineer/data/ids.js';
 
-import { denySkillCast as denyEngineerCast } from '#gw2/platform/engine/skills/availability.js';
+import { denySkillCast as denyEngineerCast } from '#gw2/platform/execution/availability.js';
 import type { AvailabilityResult } from '#gw2/platform/execution/types.js';
 import type { EngineerRuntime, EngineerSkill } from '#gw2/professions/engineer/types.js';
 

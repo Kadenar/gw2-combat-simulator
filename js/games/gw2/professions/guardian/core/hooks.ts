@@ -1,16 +1,14 @@
 import type { MechanicContext } from '#gw2/platform/profession-definition/mechanic-context.js';
 import { grantTimedStacks } from '#gw2/platform/combat/resources/timed-stacks.js';
-import { denySkillCast } from '#gw2/platform/engine/skills/availability.js';
-import {
-  balanceProfileNumber,
-  requireBalanceProfileFromContext
-} from '#gw2/platform/engine/skills/balance-profiles.js';
-import { skillFlipReady } from '#gw2/platform/engine/skills/skill-flips.js';
+import { denySkillCast } from '#gw2/platform/execution/availability.js';
+import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import { skillFlipReady } from '#gw2/platform/execution/skill-flips.js';
 import type { NativeResolvedDamageDetails } from '#gw2/platform/profession-definition/module-types.js';
-import type { RuntimeCast, RuntimeProfession } from '#gw2/platform/simulation/runtime-state.js';
-import { applySideEffect } from '#gw2/platform/simulation/side-effects.js';
-import { damageInputEvent } from '#gw2/platform/skill-damage/execution.js';
-import { castWasInterrupted } from '#gw2/platform/skills/timing.js';
+import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
+import type { RuntimeProfession } from '#gw2/platform/profession-definition/runtime-contract.js';
+import { applySideEffect } from '#gw2/platform/effects/action-dispatch.js';
+import { damageInputEvent } from '#gw2/platform/skill-damage/occurrence-driver.js';
+import { castWasInterrupted } from '#gw2/platform/execution/cast-timing.js';
 import { guardianRechargeWork } from '#gw2/professions/guardian/core/mechanics/recharge.js';
 import { expireSpearIllumination, GUARDIAN_SPEAR_EXPIRY } from '#gw2/professions/guardian/core/mechanics/spear.js';
 import {

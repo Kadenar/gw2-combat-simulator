@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { defineNativeModule, defineNativeProfession } from '#gw2/platform/profession-definition/profession.js';
-import { executeDamageOccurrence } from '#gw2/platform/skill-damage/execute.js';
+import { executeDamageOccurrence } from '#gw2/platform/skill-damage/run-occurrence.js';
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
 import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
 

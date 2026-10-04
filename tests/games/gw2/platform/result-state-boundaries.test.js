@@ -1,8 +1,9 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { createCanonicalCatalog } from '#gw2/platform/engine/skills/canonical-skill-catalog.js';
+import { createCanonicalCatalog } from '#gw2/platform/skills/catalog.js';
 import { defineTestProfession } from '#tests/helpers/profession.js';
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
+import { observeGw2Runtime, observedRuntime } from '#tests/helpers/observed-runtime.js';
 
 // Separate phase counters expose accidental state mixing without relying on a saved rotation.
 const profession = defineTestProfession({
@@ -109,4 +110,21 @@ test('explicit combat starts preserve absolute state clocks and exclude precomba
   assert.equal(result.planningState.atSeconds, 5);
   assert.equal(result.planningState.profession.resolvedHits, 2);
   assert.equal(result.totalDamage, 200);
+});
+
+// Public output must be independently editable after the run without rewriting the owner's accepted facts.
+test('result events, damage rows, and command steps are detached from live stores', () => {
+  const result = observeGw2Runtime({ profession: profession.runtimeFor({}), rotation: ['Opening'], config: {} });
+  const runtime = observedRuntime(result);
+  const liveStepEnd = runtime.steps[0].end;
+  const liveDamage = [...runtime.breakdown.values()][0].damage;
+  const liveAction = runtime.facts.ofType('action')[0];
+  const liveActionAt = liveAction.at;
+  result.steps[0].end = -1;
+  result.breakdown[0].damage = -1;
+  result.events.find((event) => event.type === 'action').at = -1;
+  assert.equal(runtime.steps[0].end, liveStepEnd);
+  assert.equal([...runtime.breakdown.values()][0].damage, liveDamage);
+  assert.equal(liveAction.at, liveActionAt);
+  assert.equal(Object.hasOwn([...runtime.breakdown.values()][0], 'casts'), false);
 });

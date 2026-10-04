@@ -1,6 +1,6 @@
-import type { RechargeProgress } from '#gw2/platform/engine/skills/recharge.js';
+import type { RechargeProgress } from '#gw2/platform/execution/recharge.js';
 /** Defines scheduling state, cast commands, and observation contracts used to execute rotations. */
-import type { Skill, SkillId } from '#gw2/platform/engine/skills/types.js';
+import type { Skill, SkillId } from '#gw2/platform/skills/types.js';
 
 export interface AmmoState {
   charges: number;

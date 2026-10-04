@@ -2,7 +2,7 @@ import { RELIC_IDS } from '#gw2/platform/equipment/relics/data.js';
 import { planningFixture } from '#tests/helpers/observed-runtime.js';
 import { ENGINEER_SKILL_IDS } from '#gw2/professions/engineer/data/ids.js';
 import { STANDARD_TARGET_ARMOR } from '#gw2/platform/combat/formulas.js';
-import { armSkillFlip } from '#gw2/platform/engine/skills/skill-flips.js';
+import { armSkillFlip } from '#gw2/platform/execution/skill-flips.js';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import test from 'node:test';
@@ -32,7 +32,7 @@ import {
   weaponSkills,
   weaponPaletteRows
 } from '#gw2/app/rotation/palette/model.js';
-import { autoattackChainSkillAvailable } from '#gw2/platform/skills/autoattack-chain-controller.js';
+import { autoattackChainSkillAvailable } from '#gw2/platform/execution/autoattack-chains.js';
 import { weaponPaletteSectionHtml, weaponPaletteStackHtml } from '#gw2/app/rotation/palette/view.js';
 import { activeResourceGroup } from '#gw2/app/rotation/palette/resource-view.js';
 import { dragonChargeReleaseProjection } from '#gw2/professions/warrior/specializations/bladesworn/mechanics/charge-release.js';

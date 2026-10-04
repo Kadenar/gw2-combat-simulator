@@ -8,7 +8,7 @@ import { simulationEventLogRows } from '#gw2/app/results/event-log.js';
 import { MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
 import { createCooldownController } from '#gw2/platform/execution/cooldowns.js';
 import { createContinuumController } from '#gw2/professions/mesmer/specializations/chronomancer/mechanics/continuum-split.js';
-import { gw2RechargeRate } from '#gw2/platform/engine/skills/recharge.js';
+import { gw2RechargeRate } from '#gw2/platform/execution/recharge.js';
 import { chronomancerHooks } from '#gw2/professions/mesmer/specializations/chronomancer/hooks.js';
 
 // Rewound cooldowns keep their saved work at the permanent Chronomancer recharge rate.

@@ -7,12 +7,12 @@ import {
 } from '#gw2/professions/thief/core/traits/behavior.js';
 import { grantLeechingVenomCharges } from '#gw2/professions/thief/core/traits/leeching-venoms.js';
 
-import type { SkillEffect } from '#gw2/platform/engine/skills/types.js';
+import type { SkillEffect } from '#gw2/platform/effects/types.js';
 
 import { thiefSkill } from '#gw2/professions/thief/core/events.js';
 
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
-import type { RuntimeCast } from '#gw2/platform/simulation/runtime-state.js';
+import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import type { ThiefRuntime } from '#gw2/professions/thief/core/events.js';
 import type { ThiefSkill, ThiefStealthAttackChargeState } from '#gw2/professions/thief/types.js';
 

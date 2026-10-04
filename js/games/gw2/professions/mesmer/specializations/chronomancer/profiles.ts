@@ -1,4 +1,4 @@
-import type { BalanceProfile } from '#gw2/platform/engine/skills/types.js';
+import type { BalanceProfile } from '#gw2/platform/skills/types.js';
 import { mesmerShatterProfile } from '#gw2/professions/mesmer/core/profiles.js';
 import { MESMER_SKILL_IDS as ID } from '#gw2/professions/mesmer/data/ids.js';
 import { MESMER_CHRONOMANCER_SHATTERS } from '#gw2/professions/mesmer/specializations/chronomancer/skills/index.js';

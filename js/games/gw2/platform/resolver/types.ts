@@ -1,10 +1,8 @@
 import type { Gw2CriticalChanceContributor } from '#gw2/platform/combat/query/combat-query.js';
-import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
-import type { Skill } from '#gw2/platform/engine/skills/types.js';
+import type { SimulationEvent } from '#gw2/platform/events/events.js';
 import type { Gw2ConditionWork } from '#gw2/platform/resolver/condition-resolution.js';
-import type { Gw2DamageBreakdownEntry } from '#gw2/platform/resolver/hit-resolution.js';
 import type { Gw2ResolverRuntime } from '#gw2/platform/resolver/runtime-state.js';
-import type { SimulationRandom } from '#kernel/core/simulation-random.js';
+import type { Skill } from '#gw2/platform/skills/types.js';
 import type { StableEventQueue } from '#kernel/events/queue.js';
 
 /** Owns the resolver/types.ts contracts so type dependencies follow their runtime feature boundaries. */
@@ -101,11 +99,11 @@ export interface Gw2ProcStep {
 export interface Gw2ResolverHelpers {
   readonly balanceDataContext?: { readonly professionId: string; readonly patchId: string };
   conditionName(value: unknown): string;
-  readonly skillsById?: ReadonlyMap<import('#gw2/platform/engine/skills/types.js').SkillId, Skill>;
+  readonly skillsById?: ReadonlyMap<import('#gw2/platform/skills/types.js').SkillId, Skill>;
   readonly skillsByName?: ReadonlyMap<string, Skill>;
   readonly balanceProfilesById?: ReadonlyMap<
-    import('#gw2/platform/engine/skills/types.js').SkillId,
-    import('#gw2/platform/engine/skills/types.js').BalanceProfile
+    import('#gw2/platform/skills/types.js').SkillId,
+    import('#gw2/platform/skills/types.js').BalanceProfile
   >;
 }
 
@@ -152,56 +150,4 @@ export interface Gw2ResolverReactionRegistry {
     event: Gw2ResolverEvent,
     details?: Record<string, unknown>
   ): Record<string, unknown> | void;
-}
-
-export interface Gw2ResolverResult {
-  /** Null means chart collection was not requested, rather than an empty effect history. */
-  readonly effectReport: import('#gw2/platform/results/effect-report.js').EffectReport | null;
-  readonly boonGeneration: {
-    readonly alliedPlayerCount: number;
-    readonly boons: Readonly<
-      Record<string, import('#gw2/platform/results/boon-generation.js').BoonGenerationByAudience>
-    >;
-  } | null;
-  /** Absolute timeline boundaries in seconds, independent of the DPS start. */
-  readonly rotationEndTime: number;
-  readonly observationEndTime: number;
-  readonly combatEndTime: number;
-  readonly combatStartTime: number | null;
-  readonly hasExplicitCombatStart: boolean;
-  readonly dpsStartTime: number;
-  readonly dpsWindow: number;
-  readonly firstHitTime: number | null;
-  readonly lastHitTime: number | null;
-  readonly deathTime: number | null;
-  readonly totalDamage: number;
-  readonly dps: number;
-  readonly strikeDamage: number;
-  readonly conditionDamage: number;
-  readonly environmentDamage: number;
-  readonly environmentDps: number;
-  readonly breakdown: Gw2DamageBreakdownEntry[];
-  readonly conditionBreakdown: Array<{
-    name: string;
-    damage: number;
-    dps: number;
-    averageStacks: number;
-  }>;
-  readonly environmentConditionBreakdown: Array<{
-    name: string;
-    damage: number;
-    dps: number;
-    averageStacks: number;
-    stacks: number;
-    damageTicks: Gw2EnvironmentConditionTick[];
-  }>;
-  readonly events: readonly SimulationEvent[];
-  readonly resolvedEvents: Gw2ResolverEvent[];
-  readonly procSteps: Gw2ProcStep[];
-  readonly warnings: string[];
-  readonly casts: Array<{ name: string; count: number }>;
-  readonly randomness: {
-    mode: SimulationRandom['mode'];
-    seed: number;
-  };
 }

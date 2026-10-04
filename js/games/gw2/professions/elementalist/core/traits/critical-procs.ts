@@ -20,14 +20,14 @@ export function criticalTraitEligible(
   );
 }
 
-import type { SimulationEventBase } from '#gw2/platform/engine/events/events.js';
-import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
+import type { SimulationEventBase } from '#gw2/platform/events/events.js';
+import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
 import {
   balanceProfileNumber,
   procChanceFromContext,
   requireBalanceProfileFromContext,
   requireEffect
-} from '#gw2/platform/engine/skills/balance-profiles.js';
+} from '#gw2/platform/skills/balance-profiles.js';
 import { criticalProcHandler } from '#gw2/platform/profession-definition/mechanics.js';
 
 import { setElementalistAttunementReadyAt } from '#gw2/professions/elementalist/core/state.js';

@@ -1,11 +1,11 @@
-import { balanceProfileNumber } from '#gw2/platform/engine/skills/balance-profiles.js';
-import type { RuntimeCast } from '#gw2/platform/simulation/runtime-state.js';
+import { balanceProfileNumber } from '#gw2/platform/skills/balance-profiles.js';
+import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import { DEADEYE_RESOURCE_PROFILE } from '#gw2/professions/thief/specializations/deadeye/profiles.js';
 
 import {
   defineProfessionSpecializationState,
   definePublicStateDefaults
-} from '#gw2/platform/engine/profession/state.js';
+} from '#gw2/platform/profession-definition/state.js';
 
 import type { ThiefStealthAttackChargeState, ThiefSkill } from '#gw2/professions/thief/types.js';
 

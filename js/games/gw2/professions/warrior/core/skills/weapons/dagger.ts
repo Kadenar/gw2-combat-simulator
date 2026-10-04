@@ -2,8 +2,8 @@
 import { eventSkill } from '#gw2/platform/combat/query/runtime-query.js';
 import { MODIFIER_TARGET, type Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
 import { WARRIOR_SKILL_IDS as ID } from '#gw2/professions/warrior/data/ids.js';
-import { impactEffects } from '#gw2/platform/engine/effects/authoring.js';
-import type { Skill } from '#gw2/platform/engine/skills/types.js';
+import { impactEffects } from '#gw2/platform/effects/authoring.js';
+import type { Skill } from '#gw2/platform/skills/types.js';
 
 export const WARRIOR_WEAPONS_DAGGER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
   [ID.KEEN_STRIKE]: {

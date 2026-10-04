@@ -1,14 +1,14 @@
-import type { EffectDelivery } from '#gw2/platform/simulation/effect-emission.js';
+import type { EffectDelivery } from '#gw2/platform/effects/emission.js';
 import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
 import { triggerMethodOfMadness } from '#gw2/professions/mesmer/core/traits/behavior.js';
 import { EPSILON } from '#kernel/core/clock.js';
 /** Commits Core Mesmer shatters, flips, phantasms, skill effects, and cast-local resource state. */
-import type { RuntimeCast } from '#gw2/platform/simulation/runtime-state.js';
+import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import { mesmerMechanicsFor } from '#gw2/professions/mesmer/core/mechanics/runtime.js';
 import type { MesmerShatterResolution } from '#gw2/professions/mesmer/core/mechanics/shatter-types.js';
 import type { MesmerRuntime } from '#gw2/professions/mesmer/types.js';
 
-import { castWasInterrupted } from '#gw2/platform/skills/timing.js';
+import { castWasInterrupted } from '#gw2/platform/execution/cast-timing.js';
 import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
 
 /** Notifies the active specialization after Core has committed a shatter's exact resource spend. */

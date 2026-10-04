@@ -1,10 +1,10 @@
-import { normalizeEffectMetadata } from '#gw2/platform/engine/effects/contracts.js';
-import type { SimulationEventBase } from '#gw2/platform/engine/events/events.js';
-import type { Skill } from '#gw2/platform/engine/skills/types.js';
+import { normalizeEffectMetadata } from '#gw2/platform/effects/audience-metadata-validation.js';
+import type { SimulationEventBase } from '#gw2/platform/events/events.js';
+import type { Skill } from '#gw2/platform/skills/types.js';
 import { buildResolverBuff, buildResolverCondition } from '#gw2/platform/resolver/packets.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
-import type { EffectDelivery, PacketEmission, ProfileEmission } from '#gw2/platform/simulation/effect-emission.js';
-import { proceduralSkillWeapon, splitStrikeHits } from '#gw2/platform/simulation/procedural-emission.js';
+import type { EffectDelivery, PacketEmission, ProfileEmission } from '#gw2/platform/effects/emission.js';
+import { proceduralSkillWeapon, splitStrikeHits } from '#gw2/platform/effects/procedural-packets.js';
 import type { ElementalistRuntime } from '#gw2/professions/elementalist/types.js';
 /** Procedural packets retain explicit source identities and the owning cast's targeting policy. */
 type Packet = Partial<SimulationEventBase> & {

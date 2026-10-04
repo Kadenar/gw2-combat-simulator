@@ -1,8 +1,8 @@
 import {
   defineProfessionSpecializationState,
   definePublicStateDefaults
-} from '#gw2/platform/engine/profession/state.js';
-import type { SkillId } from '#gw2/platform/engine/skills/types.js';
+} from '#gw2/platform/profession-definition/state.js';
+import type { SkillId } from '#gw2/platform/skills/types.js';
 import { selectedEngineerTraits } from '#gw2/professions/engineer/core/state.js';
 import { mechArmsCommand } from '#gw2/professions/engineer/specializations/mechanist/traits/behavior.js';
 import { mechCoreCommand } from '#gw2/professions/engineer/specializations/mechanist/traits/behavior.js';

@@ -1,6 +1,6 @@
 import { createMechanicCombatServices } from '#gw2/platform/resolver/mechanic-services.js';
-import { snapshotProfessionState } from '#gw2/platform/engine/profession/state.js';
-import { applySkillSideEffects } from '#gw2/platform/simulation/side-effects.js';
+import { snapshotProfessionState } from '#gw2/platform/profession-definition/state.js';
+import { applySkillSideEffects } from '#gw2/platform/effects/action-dispatch.js';
 import {
   applyElementalistResolvedDamage,
   applyElementalistResolverBuff

@@ -7,7 +7,7 @@ import { observeGw2Runtime, observedRuntime } from '#tests/helpers/observed-runt
 import { relicStrikeMultiplier } from '#gw2/platform/equipment/relics/query.js';
 import { simulateMesmer } from '#tests/helpers/mesmer-simulation.js';
 import { migrateGuardianBuild, validateGuardianBuild } from '#gw2/professions/guardian/build/build.js';
-import { createCanonicalCatalog } from '#gw2/platform/engine/skills/canonical-skill-catalog.js';
+import { createCanonicalCatalog } from '#gw2/platform/skills/catalog.js';
 import { defineTestProfession } from '#tests/helpers/profession.js';
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
 

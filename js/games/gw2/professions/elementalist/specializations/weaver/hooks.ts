@@ -1,5 +1,6 @@
 import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
-import type { RuntimeCast, RuntimeProfession, SkillTaskData } from '#gw2/platform/simulation/runtime-state.js';
+import type { RuntimeCast, SkillTaskData } from '#gw2/platform/execution/cast-contracts.js';
+import type { RuntimeProfession } from '#gw2/platform/profession-definition/runtime-contract.js';
 import { registerElementalistAttunementTransition } from '#gw2/professions/elementalist/core/mechanics/attunements.js';
 import { registerElementalistEliteEvents } from '#gw2/professions/elementalist/core/mechanics/elite-events.js';
 import {
@@ -20,15 +21,15 @@ import type { ElementalistRuntimeState, ElementalistSkill } from '#gw2/professio
  * imposes, the Unravel / Weave Self / Perfect Weave windows, Primordial Stance
  * pulses, and the traits that react to swaps and dual-skill completions.
  */
-import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
-import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
-import { denyCast, denySkillCast } from '#gw2/platform/engine/skills/availability.js';
+import type { SimulationEvent } from '#gw2/platform/events/events.js';
+import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
+import { denyCast, denySkillCast } from '#gw2/platform/execution/availability.js';
 import {
   balanceProfileNumber,
   requireBalanceProfileFromContext,
   requireEffect
-} from '#gw2/platform/engine/skills/balance-profiles.js';
-import type { Skill } from '#gw2/platform/engine/skills/types.js';
+} from '#gw2/platform/skills/balance-profiles.js';
+import type { Skill } from '#gw2/platform/skills/types.js';
 import type { AvailabilityResult } from '#gw2/platform/execution/types.js';
 import { elementalistBuffRequest } from '#gw2/professions/elementalist/core/events.js';
 import {

@@ -1,14 +1,8 @@
 /** Declarative Mesmer skill records shared by generated data and runtime consumers. */
-import type {
-  ConditionEffect,
-  ConditionTick,
-  Skill,
-  SkillEffect,
-  SkillId,
-  StrikeEffect
-} from '#gw2/platform/engine/skills/types.js';
-import type { EffectMetadata } from '#gw2/platform/engine/events/events.js';
-import type { SimulationActorType } from '#gw2/platform/engine/events/actors.js';
+import type { ConditionEffect, ConditionTick, SkillEffect, StrikeEffect } from '#gw2/platform/effects/types.js';
+import type { Skill, SkillId } from '#gw2/platform/skills/types.js';
+import type { EffectMetadata } from '#gw2/platform/events/events.js';
+import type { SimulationActorType } from '#gw2/platform/events/actors.js';
 
 export type MesmerSummonKind = 'clone' | 'phantasm';
 
@@ -80,7 +74,7 @@ export interface MesmerEventExtra {
   readonly duration?: number;
   readonly stacks?: number;
   readonly priority?: number;
-  readonly audience?: import('#gw2/platform/engine/events/events.js').EffectAudience;
+  readonly audience?: import('#gw2/platform/events/events.js').EffectAudience;
   readonly weaponStrength?: number;
   readonly damageBreakdownName?: string;
   readonly controlKind?: string;

@@ -4,7 +4,8 @@ import type { NativeProfessionRuntimeState } from '#gw2/platform/profession-defi
 import { defineNativeModule, defineNativeProfession } from '#gw2/platform/profession-definition/profession.js';
 import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
 import type { MechanicContext } from '#gw2/platform/profession-definition/mechanic-context.js';
-import type { Gw2PlanningStateInput, Gw2ProfessionSource } from '#gw2/platform/simulation/types.js';
+import type { Gw2PlanningStateInput } from '#gw2/platform/results/types.js';
+import type { Gw2ProfessionSource } from '#gw2/platform/profession-definition/family-contract.js';
 
 type Assert<T extends true> = T;
 type Equal<TLeft, TRight> = (<T>() => T extends TLeft ? 1 : 2) extends <T>() => T extends TRight ? 1 : 2 ? true : false;

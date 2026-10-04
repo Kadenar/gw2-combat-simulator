@@ -17,7 +17,7 @@ import type {
   ProfessionResourceView,
   ProfessionResourceViewContext
 } from '#gw2/platform/profession-presentation/types.js';
-import type { SkillId } from '#gw2/platform/engine/skills/types.js';
+import type { SkillId } from '#gw2/platform/skills/types.js';
 import type { ProfessionAppContract, ProfessionAppState } from '#gw2/app/types.js';
 import { escapeHtml as esc } from '#ui/shared/html.js';
 import {

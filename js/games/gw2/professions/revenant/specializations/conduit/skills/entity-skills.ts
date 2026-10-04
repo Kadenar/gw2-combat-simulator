@@ -16,13 +16,11 @@ import {
 import { CONDUIT_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/revenant/specializations/conduit/profiles.js';
 import { conduitState } from '#gw2/professions/revenant/specializations/conduit/state.js';
 import { REVENANT_LEGEND_IDS as LEGEND, REVENANT_SKILL_IDS as ID } from '#gw2/professions/revenant/data/ids.js';
-import type { RuntimeCast } from '#gw2/platform/simulation/runtime-state.js';
-import { impactEffects, conditionEffectTicks, strikeEffectTicks } from '#gw2/platform/engine/effects/authoring.js';
-import {
-  balanceProfileNumber,
-  requireBalanceProfileFromContext
-} from '#gw2/platform/engine/skills/balance-profiles.js';
-import type { Skill, SkillEffect } from '#gw2/platform/engine/skills/types.js';
+import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
+import { impactEffects, conditionEffectTicks, strikeEffectTicks } from '#gw2/platform/effects/authoring.js';
+import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import type { Skill } from '#gw2/platform/skills/types.js';
+import type { SkillEffect } from '#gw2/platform/effects/types.js';
 import type { RevenantRuntime } from '#gw2/professions/revenant/core/events.js';
 
 // The accepted main/follow-up identity survives charge consumption and variant selection.

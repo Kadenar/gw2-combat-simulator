@@ -1,4 +1,4 @@
-import type { RuntimeCast } from '#gw2/platform/simulation/runtime-state.js';
+import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import type { NecromancerSkill } from '#gw2/professions/necromancer/types.js';
 
 export function attribution(cast: RuntimeCast<NecromancerSkill>) {

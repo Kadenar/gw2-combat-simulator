@@ -7,7 +7,7 @@ import { defineTestProfession } from '#tests/helpers/profession.js';
 import { targetHealthBreakpointSnapshots } from '#gw2/app/results/summary-metrics.js';
 import { resolveTestGw2Events } from '#tests/helpers/gw2-resolver.js';
 import { remainingTargetHealthFraction } from '#gw2/platform/combat/state/target-health.js';
-import { GW2_RESOLVER_PHASE } from '#gw2/platform/resolver/event-loop.js';
+import { GW2_RESOLVER_PHASE } from '#gw2/platform/resolver/event-phase.js';
 import { buildTimeSeries } from '#gw2/app/results/charts/time-series-model.js';
 
 // Resolver queries must follow executed state changes, including cache invalidation within one timestamp.

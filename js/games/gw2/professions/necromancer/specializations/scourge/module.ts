@@ -1,4 +1,4 @@
-import { createPublicStateProjector } from '#gw2/platform/engine/profession/state.js';
+import { createPublicStateProjector } from '#gw2/platform/profession-definition/state.js';
 import { defineNativeModule } from '#gw2/platform/profession-definition/profession.js';
 import { createNecromancerModuleData } from '#gw2/professions/necromancer/data/module-data.js';
 import { scourgeHooks } from '#gw2/professions/necromancer/specializations/scourge/hooks.js';

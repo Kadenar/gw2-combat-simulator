@@ -1,10 +1,7 @@
 import { canonicalTime, timeKey } from '#kernel/core/clock.js';
-import {
-  balanceProfileNumber,
-  requireBalanceProfileFromContext
-} from '#gw2/platform/engine/skills/balance-profiles.js';
+import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import type { Gw2ResolverRuntime } from '#gw2/platform/resolver/runtime-state.js';
-import type { SkillId } from '#gw2/platform/engine/skills/types.js';
+import type { SkillId } from '#gw2/platform/skills/types.js';
 
 /** One registry per simulation owns proc deadlines; profile IDs and equipment namespaces isolate unrelated claims. */
 export function createProcRegistry(context: () => Gw2ResolverRuntime & { readonly time?: number }) {

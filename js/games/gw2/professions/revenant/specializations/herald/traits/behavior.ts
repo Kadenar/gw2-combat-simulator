@@ -5,8 +5,8 @@ import {
   effectNumber,
   requireBalanceProfileFromContext,
   requireEffect
-} from '#gw2/platform/engine/skills/balance-profiles.js';
-import type { SkillId } from '#gw2/platform/engine/skills/types.js';
+} from '#gw2/platform/skills/balance-profiles.js';
+import type { SkillId } from '#gw2/platform/skills/types.js';
 import type { RevenantRuntime } from '#gw2/professions/revenant/core/events.js';
 import {
   revenantRuntimeCoreState,

@@ -4,7 +4,7 @@ import test from 'node:test';
 
 import { createGw2TimelineIndex } from '#gw2/platform/combat/query/timeline-index.js';
 import { createGw2CombatQuery } from '#gw2/platform/combat/query/combat-query.js';
-import { createCanonicalCatalog } from '#gw2/platform/engine/skills/canonical-skill-catalog.js';
+import { createCanonicalCatalog } from '#gw2/platform/skills/catalog.js';
 import { defineTestProfession } from '#tests/helpers/profession.js';
 
 // Constant recharge rates bypass boon history, including explicit false console inputs.

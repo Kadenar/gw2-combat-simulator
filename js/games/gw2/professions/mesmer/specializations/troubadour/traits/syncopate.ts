@@ -1,16 +1,16 @@
-import type { EffectDelivery } from '#gw2/platform/simulation/effect-emission.js';
+import type { EffectDelivery } from '#gw2/platform/effects/emission.js';
 import {
   buildMesmerStrikes,
   mesmerPacketOwner,
   buildMesmerPacket
 } from '#gw2/professions/mesmer/core/mechanics/packets.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
-import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
+import type { SimulationEvent } from '#gw2/platform/events/events.js';
 import {
   balanceProfileNumber,
   requireBalanceProfileFromContext,
   requireEffect
-} from '#gw2/platform/engine/skills/balance-profiles.js';
+} from '#gw2/platform/skills/balance-profiles.js';
 import { mesmerMechanicsFor } from '#gw2/professions/mesmer/core/mechanics/runtime.js';
 import { MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
 import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';

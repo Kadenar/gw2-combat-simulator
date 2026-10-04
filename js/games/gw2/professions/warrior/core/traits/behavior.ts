@@ -8,15 +8,15 @@ import {
   procChanceFromContext,
   requireBalanceProfileFromContext,
   requireEffect
-} from '#gw2/platform/engine/skills/balance-profiles.js';
+} from '#gw2/platform/skills/balance-profiles.js';
 import { gw2ConfiguredWeaponSet } from '#gw2/platform/equipment/weapons/loadout.js';
 import { buildResolverBuff } from '#gw2/platform/resolver/packets.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
-import type { RuntimeCast } from '#gw2/platform/simulation/runtime-state.js';
+import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import { grantWarriorAdrenaline } from '#gw2/professions/warrior/core/mechanics/adrenaline.js';
 
 import type { Gw2MutableStats } from '#gw2/platform/combat/types.js';
-import { scaleCastBoundTiming } from '#gw2/platform/engine/effects/materializer.js';
+import { scaleCastBoundTiming } from '#gw2/platform/effects/materializer.js';
 import type { Gw2HitResolutionContext } from '#gw2/platform/resolver/hit-resolution.js';
 import type { WarriorModifierAttributes } from '#gw2/professions/warrior/core/traits/modifier-queries.js';
 import {

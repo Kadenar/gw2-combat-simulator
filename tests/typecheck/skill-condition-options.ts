@@ -1,5 +1,5 @@
 // Condition authors use one options object; misspelled fields cannot bypass the declared contract.
-import type { ConditionEventFields, EffectMetadata } from '#gw2/platform/engine/events/events.js';
+import type { ConditionEventFields, EffectMetadata } from '#gw2/platform/events/events.js';
 function condition(fields: ConditionEventFields & { metadata?: EffectMetadata }) {
   return fields;
 }

@@ -1,13 +1,10 @@
 import { MODIFIER_TARGET, type Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
-import { impactEffects } from '#gw2/platform/engine/effects/authoring.js';
-import {
-  balanceProfileNumber,
-  requireBalanceProfileFromContext
-} from '#gw2/platform/engine/skills/balance-profiles.js';
-import type { Skill } from '#gw2/platform/engine/skills/types.js';
-import type { RuntimeCast } from '#gw2/platform/simulation/runtime-state.js';
-import { resetAutoattackChains } from '#gw2/platform/skills/autoattack-chain-controller.js';
-import { castWasInterrupted } from '#gw2/platform/skills/timing.js';
+import { impactEffects } from '#gw2/platform/effects/authoring.js';
+import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import type { Skill } from '#gw2/platform/skills/types.js';
+import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
+import { resetAutoattackChains } from '#gw2/platform/execution/autoattack-chains.js';
+import { castWasInterrupted } from '#gw2/platform/execution/cast-timing.js';
 import { buildRangerPacket } from '#gw2/professions/ranger/core/events.js';
 import { applyRangerWeaponSwapTraits } from '#gw2/professions/ranger/core/traits/behavior.js';
 import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';

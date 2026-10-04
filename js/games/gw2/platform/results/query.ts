@@ -1,6 +1,6 @@
-import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
+import type { SimulationEvent } from '#gw2/platform/events/events.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
-import type { Gw2SimulationResult, Gw2SimulationPlanningState } from '#gw2/platform/simulation/types.js';
+import type { Gw2SimulationResult, Gw2SimulationPlanningState } from '#gw2/platform/results/types.js';
 import { effectStateAt } from '#gw2/platform/results/effect-report.js';
 import { effectStateValue } from '#gw2/platform/combat/effect-state.js';
 import { canonicalTime } from '#kernel/core/clock.js';

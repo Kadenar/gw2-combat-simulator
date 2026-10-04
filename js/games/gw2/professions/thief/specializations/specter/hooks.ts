@@ -11,11 +11,11 @@ import {
   effectNumber,
   requireBalanceProfileFromContext,
   requireEffect
-} from '#gw2/platform/engine/skills/balance-profiles.js';
+} from '#gw2/platform/skills/balance-profiles.js';
 
-import { denySkillCast } from '#gw2/platform/engine/skills/availability.js';
-import { gw2CooldownReadyAt } from '#gw2/platform/skills/timing.js';
-import { lockTransitionInput } from '#gw2/platform/skills/transition-delays.js';
+import { denySkillCast } from '#gw2/platform/execution/availability.js';
+import { gw2CooldownReadyAt } from '#gw2/platform/execution/cast-timing.js';
+import { lockTransitionInput } from '#gw2/platform/execution/transition-lockouts.js';
 import { THIEF_SKILL_IDS as ID } from '#gw2/professions/thief/data/ids.js';
 
 import type { ResourcePolicy } from '#gw2/platform/combat/resources/resource-policy.js';
@@ -26,7 +26,8 @@ import { emitThiefStealTraits } from '#gw2/professions/thief/core/traits/steal.j
 import { SPECTER_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/thief/specializations/specter/profiles.js';
 import { specterState } from '#gw2/professions/thief/specializations/specter/state.js';
 
-import type { RuntimeCast, RuntimeProfession } from '#gw2/platform/simulation/runtime-state.js';
+import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
+import type { RuntimeProfession } from '#gw2/platform/profession-definition/runtime-contract.js';
 
 import type { ThiefRuntime } from '#gw2/professions/thief/core/events.js';
 import type { ThiefConfig, ThiefRuntimeState, ThiefSkill } from '#gw2/professions/thief/types.js';

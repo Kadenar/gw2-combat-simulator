@@ -1,10 +1,7 @@
 import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
 import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
 import { ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
-import {
-  balanceProfileNumber,
-  requireBalanceProfileFromContext
-} from '#gw2/platform/engine/skills/balance-profiles.js';
+import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import { HOLOSMITH_HEAT } from '#gw2/professions/engineer/specializations/holosmith/mechanics/constants.js';
 import { holosmithState } from '#gw2/professions/engineer/specializations/holosmith/state.js';
 import { emitEnhancedCapacityMight } from '#gw2/professions/engineer/specializations/holosmith/traits/heat.js';

@@ -1,7 +1,7 @@
 import type { ReadonlyMechanicState } from '#gw2/platform/profession-definition/runtime-context.js';
 import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
 import { ELEMENTALIST_LOADOUT_SKILL_IDS } from '#gw2/professions/elementalist/data/skill-identities.js';
-import type { RuntimeCast } from '#gw2/platform/simulation/runtime-state.js';
+import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 /**
  * Weapon- and attunement-facing cast state for Core Elementalist.
  *
@@ -10,14 +10,14 @@ import type { RuntimeCast } from '#gw2/platform/simulation/runtime-state.js';
  * window.
  */
 import type { AvailabilityResult } from '#gw2/platform/execution/types.js';
-import type { Skill, SkillId } from '#gw2/platform/engine/skills/types.js';
-import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
+import type { Skill, SkillId } from '#gw2/platform/skills/types.js';
+import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
 import {
   resetAutoattackChains,
   type AutoattackChainTransition,
   type AutoattackChainTransitionResult
-} from '#gw2/platform/skills/autoattack-chain-controller.js';
-import { denySkillCast as unavailable } from '#gw2/platform/engine/skills/availability.js';
+} from '#gw2/platform/execution/autoattack-chains.js';
+import { denySkillCast as unavailable } from '#gw2/platform/execution/availability.js';
 import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';
 import type { ElementalistSkill, ElementalistRuntime } from '#gw2/professions/elementalist/types.js';
 

@@ -2,9 +2,9 @@
  * Owns user-issued mech command skill fragments.
  * Persistent mech state and autonomous behavior remain under `mechanics/mech.ts`.
  */
-import { impactEffects } from '#gw2/platform/engine/effects/authoring.js';
+import { impactEffects } from '#gw2/platform/effects/authoring.js';
 import { ENGINEER_SKILL_IDS as ID } from '#gw2/professions/engineer/data/ids.js';
-import type { Skill } from '#gw2/platform/engine/skills/types.js';
+import type { Skill } from '#gw2/platform/skills/types.js';
 import { MECHANIST_COMMAND_DURATIONS } from '#gw2/professions/engineer/specializations/mechanist/mechanics/constants.js';
 
 // F1-F3 commands execute on the mech's own serial cast lane so their animations

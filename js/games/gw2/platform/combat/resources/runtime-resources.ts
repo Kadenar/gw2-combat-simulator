@@ -15,7 +15,8 @@ import {
   spendEndurance,
   vigorEnduranceIntervals
 } from '#gw2/platform/combat/resources/endurance.js';
-import type { Gw2Runtime, RuntimeProfession } from '#gw2/platform/simulation/runtime-state.js';
+import type { Gw2Runtime } from '#gw2/platform/simulation/runtime-state.js';
+import type { RuntimeProfession } from '#gw2/platform/profession-definition/runtime-contract.js';
 
 function amount(value: number): number {
   if (!Number.isFinite(value) || value < 0) throw new RangeError('Resource amounts must be finite and non-negative.');

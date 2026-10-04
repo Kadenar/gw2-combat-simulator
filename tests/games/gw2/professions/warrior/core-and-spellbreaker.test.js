@@ -5,7 +5,7 @@ import { withActivePatchPreview } from '#gw2/integrations/patches/active-profess
 import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { autoattackChainSkillAvailable } from '#gw2/platform/skills/autoattack-chain-controller.js';
+import { autoattackChainSkillAvailable } from '#gw2/platform/execution/autoattack-chains.js';
 import { activeResourceGroup } from '#gw2/app/rotation/palette/resource-view.js';
 import { mechanicResourceSpends, timelineStepsWithChargeFills } from '#gw2/app/rotation/timeline/model.js';
 import { timelineDeadTimeMarkers } from '#gw2/app/rotation/timeline/model.js';

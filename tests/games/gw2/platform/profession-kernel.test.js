@@ -1,9 +1,9 @@
 import { withSkill, withProfile } from '#tests/helpers/catalog-overrides.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { MODIFIER_HOOK_NAMES } from '#gw2/platform/engine/profession/contract.js';
-import { createCanonicalCatalog } from '#gw2/platform/engine/skills/canonical-skill-catalog.js';
-import { weaponFlipBlock, weaponFollowUpOpen } from '#gw2/platform/engine/skills/skill-flips.js';
+import { MODIFIER_HOOK_NAMES } from '#gw2/platform/profession-definition/compiler/compile-contract.js';
+import { createCanonicalCatalog } from '#gw2/platform/skills/catalog.js';
+import { weaponFlipBlock, weaponFollowUpOpen } from '#gw2/platform/execution/skill-flips.js';
 import { skillCostAvailability } from '#gw2/platform/execution/skill-cost.js';
 import { runGw2Runtime } from '#gw2/platform/simulation/runtime.js';
 import { testProfession } from '#tests/fixtures/profession.js';

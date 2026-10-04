@@ -1,5 +1,5 @@
-import type { RuntimeProfession } from '#gw2/platform/simulation/runtime-state.js';
-import { sideEffectAmount } from '#gw2/platform/simulation/side-effects.js';
+import type { RuntimeProfession } from '#gw2/platform/profession-definition/runtime-contract.js';
+import { sideEffectAmount } from '#gw2/platform/effects/action-dispatch.js';
 import {
   commitMesmerShatter,
   scheduleMesmerPhantasmEffects,
@@ -12,7 +12,7 @@ import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
 import type { MesmerRuntime, MesmerRuntimeState } from '#gw2/professions/mesmer/types.js';
 import { boundedNumber } from '#kernel/core/numeric.js';
 
-import type { EffectDelivery } from '#gw2/platform/simulation/effect-emission.js';
+import type { EffectDelivery } from '#gw2/platform/effects/emission.js';
 import { MESMER_CORE_PHANTASM_ATTACK_TIMINGS } from '#gw2/professions/mesmer/core/skills/index.js';
 import { bountifulBladesSpawnModifiers, methodOfMadnessDamage } from '#gw2/professions/mesmer/core/traits/behavior.js';
 import { EPSILON } from '#kernel/core/clock.js';

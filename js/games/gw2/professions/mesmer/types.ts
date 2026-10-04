@@ -1,9 +1,10 @@
 import type { MechanicContext, MechanicCombatContext } from '#gw2/platform/profession-definition/mechanic-context.js';
-import type { EffectDelivery } from '#gw2/platform/simulation/effect-emission.js';
+import type { EffectDelivery } from '#gw2/platform/effects/emission.js';
 
-import type { SkillFlipWindows } from '#gw2/platform/engine/skills/skill-flips.js';
+import type { SkillFlipWindows } from '#gw2/platform/execution/skill-flips.js';
 import type { ProfessionUiCallbackContext, ProfessionUiContract } from '#gw2/platform/profession-presentation/types.js';
-import type { SkillId, StrikeTick, StrikeEffect } from '#gw2/platform/engine/skills/types.js';
+import type { SkillId } from '#gw2/platform/skills/types.js';
+import type { StrikeTick, StrikeEffect } from '#gw2/platform/effects/types.js';
 import type { Gw2CanonicalBuild, Gw2Build } from '#gw2/platform/builds/types.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';

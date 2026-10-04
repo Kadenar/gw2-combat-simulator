@@ -1,11 +1,12 @@
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
-import { effectFirstAtMs } from '#gw2/platform/engine/effects/authoring.js';
-import { scaleCastBoundTiming } from '#gw2/platform/engine/effects/materializer.js';
-import { effectNumber, requireBalanceProfileFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
-import type { SkillEffect, SkillId } from '#gw2/platform/engine/skills/types.js';
+import { effectFirstAtMs } from '#gw2/platform/effects/authoring.js';
+import { scaleCastBoundTiming } from '#gw2/platform/effects/materializer.js';
+import { effectNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import type { SkillEffect } from '#gw2/platform/effects/types.js';
+import type { SkillId } from '#gw2/platform/skills/types.js';
 import { buildResolverCondition, buildResolverStrike } from '#gw2/platform/resolver/packets.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
-import type { RuntimeCast } from '#gw2/platform/simulation/runtime-state.js';
+import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import { necromancerActiveBoonCompanionIds } from '#gw2/professions/necromancer/core/mechanics/state-helpers.js';
 import type { NecromancerCoreState, NecromancerSelfCondition } from '#gw2/professions/necromancer/core/state.js';
 import type { NecromancerRuntime, NecromancerSkill } from '#gw2/professions/necromancer/types.js';

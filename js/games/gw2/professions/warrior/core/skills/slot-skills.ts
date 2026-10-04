@@ -3,10 +3,7 @@ import type { MechanicContext } from '#gw2/platform/profession-definition/mechan
 import { canonicalTime } from '#kernel/core/clock.js';
 import { selectedSkillIdSet } from '#gw2/platform/builds/selected-skills.js';
 import { hasSelectedSkillId } from '#gw2/platform/combat/query/runtime-query.js';
-import {
-  balanceProfileNumber,
-  requireBalanceProfileFromContext
-} from '#gw2/platform/engine/skills/balance-profiles.js';
+import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import { WARRIOR_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/warrior/core/profiles.js';
 import { grantWarriorAdrenaline } from '#gw2/professions/warrior/core/mechanics/adrenaline.js';
 import {
@@ -14,12 +11,12 @@ import {
   type WarriorModifierAttributes
 } from '#gw2/professions/warrior/core/traits/modifier-queries.js';
 import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
-import type { RuntimeProfession } from '#gw2/platform/simulation/runtime-state.js';
+import type { RuntimeProfession } from '#gw2/platform/profession-definition/runtime-contract.js';
 import type { WarriorRuntimeState, WarriorSkill } from '#gw2/professions/warrior/types.js';
 import type { Gw2AttributeEffect } from '#gw2/platform/builds/types.js';
 import { WARRIOR_SKILL_IDS as ID } from '#gw2/professions/warrior/data/ids.js';
-import { impactEffects } from '#gw2/platform/engine/effects/authoring.js';
-import type { Skill } from '#gw2/platform/engine/skills/types.js';
+import { impactEffects } from '#gw2/platform/effects/authoring.js';
+import type { Skill } from '#gw2/platform/skills/types.js';
 
 type WarriorRuntime = MechanicContext<WarriorRuntimeState, WarriorSkill>;
 const SIGNET_PULSE = 'warrior.signet-of-rage-pulse';

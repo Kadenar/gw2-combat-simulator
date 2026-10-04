@@ -1,11 +1,11 @@
 import { professionStaticRulesApplied } from '#gw2/platform/builds/attribute-provenance.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
-import { readProfessionCoreState, readProfessionSpecializationState } from '#gw2/platform/engine/profession/state.js';
 import {
-  balanceProfileNumber,
-  requireBalanceProfileFromContext
-} from '#gw2/platform/engine/skills/balance-profiles.js';
+  readProfessionCoreState,
+  readProfessionSpecializationState
+} from '#gw2/platform/profession-definition/state.js';
+import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import { applyRevealedTrainingAttributes } from '#gw2/professions/thief/core/traits/behavior.js';
 import { applyNoQuarterAttributes } from '#gw2/professions/thief/core/traits/critical-boons.js';
 

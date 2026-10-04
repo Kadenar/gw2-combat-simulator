@@ -1,4 +1,4 @@
-import type { Gw2SimulationResult } from '#gw2/platform/simulation/types.js';
+import type { Gw2SimulationResult } from '#gw2/platform/results/types.js';
 
 export function resultCombatReferenceMs(result: Gw2SimulationResult | null | undefined): number {
   const marker = result?.events?.find((event) => event.type === 'combat_start');

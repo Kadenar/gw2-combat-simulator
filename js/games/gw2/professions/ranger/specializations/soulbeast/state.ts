@@ -1,7 +1,7 @@
 import {
   definePublicStateDefaults,
   defineProfessionSpecializationState
-} from '#gw2/platform/engine/profession/state.js';
+} from '#gw2/platform/profession-definition/state.js';
 import { selectedRangerPet } from '#gw2/professions/ranger/core/state.js';
 import type { RangerConfig, RangerState } from '#gw2/professions/ranger/types.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';

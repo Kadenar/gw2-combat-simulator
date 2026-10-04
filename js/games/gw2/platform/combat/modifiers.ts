@@ -1,4 +1,4 @@
-import type { SkillId, CanonicalCatalog } from '#gw2/platform/engine/skills/types.js';
+import type { SkillId, CanonicalCatalog } from '#gw2/platform/skills/types.js';
 import type { Gw2Runtime } from '#gw2/platform/simulation/runtime-state.js';
 import type { Gw2TimedBuffApplication } from '#gw2/platform/combat/boons.js';
 import type {
@@ -9,15 +9,12 @@ import type {
   Gw2ResolvedStats
 } from '#gw2/platform/combat/query/combat-query.js';
 import type { Gw2TimelineIndex } from '#gw2/platform/combat/query/timeline-index.js';
-import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
+import type { SimulationEvent } from '#gw2/platform/events/events.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
 import type { Gw2Stats } from '#gw2/platform/combat/types.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
-import {
-  balanceProfileNumber,
-  requireBalanceProfileFromContext
-} from '#gw2/platform/engine/skills/balance-profiles.js';
+import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
 
 /** Replace the selected condition's scaling attribute with final Power, preserving its canonical base damage. */
 export function powerScaledConditionAttributes(

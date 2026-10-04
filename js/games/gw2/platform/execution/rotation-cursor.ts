@@ -1,6 +1,6 @@
 import { canonicalTime } from '#kernel/core/clock.js';
 import type { CastCommand, ChargeReleaseIntent, RotationCommand } from '#gw2/platform/execution/types.js';
-import type { Skill } from '#gw2/platform/engine/skills/types.js';
+import type { Skill } from '#gw2/platform/skills/types.js';
 
 /** Owns authored progression and lanes only; combat outcomes never live in a predicted cursor state. */
 export class RotationCursor {

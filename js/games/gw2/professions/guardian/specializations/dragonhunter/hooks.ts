@@ -4,13 +4,14 @@ import {
   effectNumber,
   requireBalanceProfileFromContext,
   requireEffect
-} from '#gw2/platform/engine/skills/balance-profiles.js';
-import { armSkillFlip, consumeSkillFlip, expireSkillFlip } from '#gw2/platform/engine/skills/skill-flips.js';
+} from '#gw2/platform/skills/balance-profiles.js';
+import { armSkillFlip, consumeSkillFlip, expireSkillFlip } from '#gw2/platform/execution/skill-flips.js';
 import type { NativeResolvedDamageDetails } from '#gw2/platform/profession-definition/module-types.js';
 import { buildResolverCondition } from '#gw2/platform/resolver/packets.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
-import type { RuntimeCast, RuntimeProfession } from '#gw2/platform/simulation/runtime-state.js';
-import { projectCastRelativeEffectTimingMs } from '#gw2/platform/skills/timing.js';
+import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
+import type { RuntimeProfession } from '#gw2/platform/profession-definition/runtime-contract.js';
+import { projectCastRelativeEffectTimingMs } from '#gw2/platform/execution/cast-timing.js';
 import { guardianVirtueForSlot, refreshGuardianVirtues } from '#gw2/professions/guardian/core/mechanics/virtues.js';
 import {
   applyGuardianVirtueActivationTraits,

@@ -19,7 +19,7 @@ import { createCalculateAttributes } from '#gw2/platform/builds/attributes.js';
 import { createDefaultTargetConditions as createSharedDefaultTargetConditions } from '#gw2/platform/builds/default-target-conditions.js';
 import { isBuildSkillAvailable } from '#gw2/platform/builds/skill-eligibility.js';
 import type { Gw2Build, ProfessionAssumptionControl } from '#gw2/platform/builds/types.js';
-import type { CatalogEntity, Skill, SkillId } from '#gw2/platform/engine/skills/types.js';
+import type { CatalogEntity, Skill, SkillId } from '#gw2/platform/skills/types.js';
 import { RELIC_NAMES } from '#gw2/platform/equipment/relics/catalog.js';
 import { WEAPON_DATA, createProfessionWeaponData } from '#gw2/platform/equipment/weapons/data.js';
 import { defaultWeaponSkillMatchesSet } from '#gw2/platform/equipment/weapons/skill-matcher.js';

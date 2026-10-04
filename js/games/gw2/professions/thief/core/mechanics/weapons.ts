@@ -2,17 +2,17 @@ import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mech
 import { buildResolverCondition } from '#gw2/platform/resolver/packets.js';
 import { MAXIMUM_SPINNING_AXES } from '#gw2/professions/thief/core/state.js';
 import { canonicalTime } from '#kernel/core/clock.js';
-import type { ActionContext } from '#gw2/platform/simulation/side-effects.js';
+import type { ActionContext } from '#gw2/platform/effects/actions.js';
 import { gw2AlliedPlayerProcTimeline } from '#gw2/platform/combat/state/allied-players.js';
 
-import { armSkillFlip, consumeSkillFlip, skillFlipVisible } from '#gw2/platform/engine/skills/skill-flips.js';
+import { armSkillFlip, consumeSkillFlip, skillFlipVisible } from '#gw2/platform/execution/skill-flips.js';
 import {
   balanceProfileNumber,
   effectNumber,
   requireBalanceProfileFromContext
-} from '#gw2/platform/engine/skills/balance-profiles.js';
-import { resetAutoattackChains } from '#gw2/platform/skills/autoattack-chain-controller.js';
-import { denySkillCast } from '#gw2/platform/engine/skills/availability.js';
+} from '#gw2/platform/skills/balance-profiles.js';
+import { resetAutoattackChains } from '#gw2/platform/execution/autoattack-chains.js';
+import { denySkillCast } from '#gw2/platform/execution/availability.js';
 import { THIEF_SKILL_IDS as ID } from '#gw2/professions/thief/data/ids.js';
 import { spearChainStageForSkill } from '#gw2/professions/thief/data/spear-chain-stages.js';
 import { THIEF_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/thief/core/profiles.js';
@@ -21,10 +21,10 @@ import { guildAttackConditions, thiefSpecializationGuildSummon } from '#gw2/prof
 import { buildThiefCondition, buildThiefStrikes } from '#gw2/professions/thief/core/events.js';
 
 import type { AvailabilityResult } from '#gw2/platform/execution/types.js';
-import type { SkillId } from '#gw2/platform/engine/skills/types.js';
+import type { SkillId } from '#gw2/platform/skills/types.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
-import type { RuntimeCast } from '#gw2/platform/simulation/runtime-state.js';
-import type { AutoattackChainTransitionResult } from '#gw2/platform/skills/autoattack-chain-controller.js';
+import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
+import type { AutoattackChainTransitionResult } from '#gw2/platform/execution/autoattack-chains.js';
 import type { ThiefSkill, ThiefSummonDefinition } from '#gw2/professions/thief/types.js';
 import type { ThiefRuntime } from '#gw2/professions/thief/core/events.js';
 

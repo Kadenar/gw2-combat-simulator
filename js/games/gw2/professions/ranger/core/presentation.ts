@@ -1,7 +1,7 @@
 import { PERMANENT_COMBO_FIELD_ASSUMPTION_CONTROLS } from '#gw2/platform/combos/permanent-field-assumption.js';
-import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
-import { readProfessionCoreState } from '#gw2/platform/engine/profession/state.js';
-import type { CanonicalCatalog, SkillId } from '#gw2/platform/engine/skills/types.js';
+import type { SimulationEvent } from '#gw2/platform/events/events.js';
+import { readProfessionCoreState } from '#gw2/platform/profession-definition/state.js';
+import type { CanonicalCatalog, SkillId } from '#gw2/platform/skills/types.js';
 import { gw2ConfiguredWeaponSet } from '#gw2/platform/equipment/weapons/loadout.js';
 import type {
   ProfessionAttributePreviewContext,
@@ -12,7 +12,7 @@ import type {
   ProfessionResourceView,
   ProfessionSkillBarGroup
 } from '#gw2/platform/profession-presentation/types.js';
-import { SIMULATION_RANDOMNESS_ASSUMPTION_CONTROLS } from '#gw2/platform/simulation/randomness.js';
+import { SIMULATION_RANDOMNESS_ASSUMPTION_CONTROLS } from '#gw2/platform/builds/randomness-assumptions.js';
 import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
 import { RANGER_ASSUMPTION_CONTROLS } from '#gw2/professions/ranger/build/assumptions.js';
 import {

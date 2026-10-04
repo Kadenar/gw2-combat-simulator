@@ -8,7 +8,7 @@ import {
 } from '#gw2/platform/combat/boons.js';
 import { applyBoonExtension } from '#gw2/platform/combat/boons.js';
 import type { Gw2TimedBuffApplication } from '#gw2/platform/combat/boons.js';
-import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
+import type { SimulationEvent } from '#gw2/platform/events/events.js';
 import { canonicalEvent, eventCausalOrder } from '#kernel/events/queue.js';
 import { gw2BoonApplicationRecipients } from '#gw2/platform/combat/state/allied-players.js';
 import { observeBuffState } from '#gw2/platform/combat/effect-state.js';

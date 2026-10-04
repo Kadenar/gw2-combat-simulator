@@ -1,5 +1,5 @@
 import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
-import { procChanceFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
+import { procChanceFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import { runGw2Runtime } from '#gw2/platform/simulation/runtime.js';
 import { ELEMENTALIST_TRAIT_IDS as ELE } from '#gw2/professions/elementalist/data/ids.js';
 import { elementalistProfession } from '#gw2/professions/elementalist/profession.js';

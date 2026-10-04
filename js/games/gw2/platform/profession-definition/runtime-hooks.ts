@@ -1,8 +1,9 @@
 import type { MechanicContext } from '#gw2/platform/profession-definition/mechanic-context.js';
-import type { Skill } from '#gw2/platform/engine/skills/types.js';
+import type { Skill } from '#gw2/platform/skills/types.js';
 import type { Gw2ResolverEvent, Gw2ResolverStage } from '#gw2/platform/resolver/types.js';
-import type { WorkOwner } from '#gw2/platform/simulation/internal-work.js';
-import type { RuntimeCast, RuntimeProfession } from '#gw2/platform/simulation/runtime-state.js';
+import type { WorkOwner } from '#gw2/platform/simulation/work-contract.js';
+import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
+import type { RuntimeProfession } from '#gw2/platform/profession-definition/runtime-contract.js';
 
 /** Only this explicit contribution surface is accepted; catalog/formula ownership stays in native compilation. */
 export type RuntimeHooks<State extends object, TSkill extends Skill = Skill> = Partial<

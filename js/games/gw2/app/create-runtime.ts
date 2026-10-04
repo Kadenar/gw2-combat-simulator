@@ -23,12 +23,12 @@ import type {
 } from '#gw2/app/simulation/random-distribution/types.js';
 import type { ProfessionAppState, ProfessionRuntimeApi, ProfessionRuntimeOptions } from '#gw2/app/types.js';
 import type { Gw2CanonicalBuild } from '#gw2/platform/builds/types.js';
-import type { Skill } from '#gw2/platform/engine/skills/types.js';
+import type { Skill } from '#gw2/platform/skills/types.js';
 import type { RotationCommand } from '#gw2/platform/execution/types.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
-import type { Gw2SimulationResult } from '#gw2/platform/simulation/types.js';
-import { evaluateSkillDamage } from '#gw2/platform/skill-damage/evaluate.js';
+import type { Gw2SimulationResult } from '#gw2/platform/results/types.js';
+import { evaluateSkillDamage } from '#gw2/platform/skill-damage/measure-occurrences.js';
 import type { SkillDamageEvaluation, SkillDamageRequest } from '#gw2/platform/skill-damage/types.js';
 import { clamp } from '#kernel/core/numeric.js';
 import { analysisViewIsActive } from '#browser/shell/result-view.js';

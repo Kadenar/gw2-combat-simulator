@@ -7,13 +7,19 @@ const packageAliasPattern = {
   regex: '^\\.',
   message: 'Use the package alias so TypeScript, Vite, and Node resolve the same module.'
 };
-const platformBoundaryPattern = {
-  regex: '(^|/)(app|integrations)(/|$)',
-  message: 'Platform modules must not depend on application or integration code.'
-};
-const engineBoundaryPattern = {
+const sharedPlatformBoundaryPattern = {
   regex: '(^|/)professions(/|$)|(^|/)(app|integrations)(/|$)',
-  message: 'Engine modules may depend only on shared platform contracts.'
+  message: 'Shared platform modules must receive profession contributions rather than import concrete implementations.'
+};
+const simulationImplementationPattern = {
+  regex:
+    '^#gw2/platform/simulation/(?:runtime|coordinator|internal-work|combat-producers|simulate|mechanic-context)\\.js$',
+  message:
+    'Domain owners receive runtime services through contracts; only composition may import simulation implementations.'
+};
+const aggregateRuntimePattern = {
+  regex: '^#gw2/platform/simulation/runtime-state\\.js$',
+  message: 'Declarations use domain capabilities rather than the aggregate simulation runtime.'
 };
 const professionBoundaryPattern = {
   regex: '(^|/)(app|integrations)(/|$)',
@@ -156,10 +162,11 @@ export default [
       'js/games/gw2/platform/builds/{codec,assumptions,attributes}.ts',
       'js/games/gw2/platform/combat/modifiers.ts',
       'js/games/gw2/platform/combos/{definitions,descriptors}.ts',
-      'js/games/gw2/platform/engine/profession/contract.ts',
-      'js/games/gw2/platform/engine/skills/{canonical-skill-catalog,side-effect-validation}.ts',
+      'js/games/gw2/platform/profession-definition/compiler/compile-contract.ts',
+      'js/games/gw2/platform/skills/{catalog,validation}.ts',
+      'js/games/gw2/platform/effects/{validation,action-validation}.ts',
       'js/games/gw2/platform/profession-definition/profession.ts',
-      'js/games/gw2/platform/skills/autoattack-chain-controller.ts',
+      'js/games/gw2/platform/execution/autoattack-chains.ts',
       'js/games/gw2/professions/*/build/build.ts'
     ],
     rules: { '@typescript-eslint/no-unnecessary-condition': 'off' }
@@ -173,7 +180,9 @@ export default [
       'js/games/gw2/platform/builds/codec.ts',
       'js/games/gw2/platform/builds/assumptions.ts',
       'js/games/gw2/platform/builds/attribute-provenance.ts',
-      'js/games/gw2/platform/engine/skills/canonical-skill-catalog.ts',
+      'js/games/gw2/platform/skills/catalog.ts',
+      'js/games/gw2/platform/skills/validation.ts',
+      'js/games/gw2/platform/effects/validation.ts',
       'js/games/gw2/platform/combat/modifiers.ts'
     ],
     rules: {
@@ -275,19 +284,55 @@ export default [
     }
   },
 
-  // Platform primitives must not depend on application or integration code.
+  // Every shared domain retains the former engine restriction on concrete profession implementations.
   {
     files: ['js/games/gw2/platform/**/*.{ts,tsx}'],
     rules: {
-      'no-restricted-imports': restrictedImports(platformBoundaryPattern, ...professionPublicEntryPatterns)
+      'no-restricted-imports': restrictedImports(sharedPlatformBoundaryPattern)
     }
   },
 
-  // Neutral engine primitives must not depend on profession implementations or browser application code.
+  // Domain implementations receive services; simulation and isolated measurement are the two run composition owners.
   {
-    files: ['js/games/gw2/platform/engine/**/*.{ts,tsx}'],
+    files: ['js/games/gw2/platform/**/*.{ts,tsx}'],
+    ignores: [
+      'js/games/gw2/platform/index.ts',
+      'js/games/gw2/platform/simulation/**',
+      'js/games/gw2/platform/skill-damage/**'
+    ],
     rules: {
-      'no-restricted-imports': restrictedImports(engineBoundaryPattern)
+      'no-restricted-imports': restrictedImports(sharedPlatformBoundaryPattern, simulationImplementationPattern)
+    }
+  },
+
+  // Authoring schemas and profession declarations never acquire the mutable whole-run object, including through types.
+  {
+    files: ['js/games/gw2/platform/{skills,effects,events,profession-definition}/**/*.{ts,tsx}'],
+    rules: {
+      'no-restricted-imports': restrictedImports(
+        sharedPlatformBoundaryPattern,
+        simulationImplementationPattern,
+        aggregateRuntimePattern
+      )
+    }
+  },
+  {
+    files: ['js/games/gw2/platform/skill-damage/**/*.{ts,tsx}'],
+    rules: {
+      'no-restricted-imports': restrictedImports(sharedPlatformBoundaryPattern, {
+        regex: '^#gw2/platform/profession-presentation/',
+        message: 'Damage measurement owns its inputs; presentation consumes calculation contracts.'
+      })
+    }
+  },
+  // History is authoritative gameplay state and cannot require an optional report or output projection.
+  {
+    files: ['js/games/gw2/platform/combat/history/**/*.{ts,tsx}'],
+    rules: {
+      'no-restricted-imports': restrictedImports(sharedPlatformBoundaryPattern, simulationImplementationPattern, {
+        regex: '^#gw2/platform/results/',
+        message: 'Executed gameplay facts must be independent of result collection.'
+      })
     }
   },
 
@@ -296,7 +341,7 @@ export default [
   {
     files: ['js/games/gw2/platform/execution/**/*.{ts,tsx}'],
     rules: {
-      'no-restricted-imports': restrictedImports(engineBoundaryPattern, {
+      'no-restricted-imports': restrictedImports(sharedPlatformBoundaryPattern, simulationImplementationPattern, {
         regex: '(^|/)(resolution|resolver)(/|$)',
         message: 'Execution modules must communicate with resolution through shared contracts and events.'
       })
@@ -305,7 +350,7 @@ export default [
   {
     files: ['js/games/gw2/platform/resolver/**/*.{ts,tsx}'],
     rules: {
-      'no-restricted-imports': restrictedImports(platformBoundaryPattern, ...professionPublicEntryPatterns, {
+      'no-restricted-imports': restrictedImports(sharedPlatformBoundaryPattern, simulationImplementationPattern, {
         regex: '(^|/)(execution|scheduler)(/|$)',
         message: 'Resolution modules must consume scheduled events without importing execution internals.'
       })

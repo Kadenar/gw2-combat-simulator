@@ -1,14 +1,14 @@
 import { buffApplicationStacks } from '#gw2/platform/combat/boons.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
-import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
+import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
 import {
   balanceProfileNumber,
   effectNumber,
   requireBalanceProfileFromContext,
   requireEffect
-} from '#gw2/platform/engine/skills/balance-profiles.js';
-import type { Skill } from '#gw2/platform/engine/skills/types.js';
-import type { EffectDelivery } from '#gw2/platform/simulation/effect-emission.js';
+} from '#gw2/platform/skills/balance-profiles.js';
+import type { Skill } from '#gw2/platform/skills/types.js';
+import type { EffectDelivery } from '#gw2/platform/effects/emission.js';
 import {
   elementalistBuffRequest,
   elementalistConditionRequest,

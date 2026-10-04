@@ -1,4 +1,4 @@
-import type { Skill, SkillId } from '#gw2/platform/engine/skills/types.js';
+import type { Skill, SkillId } from '#gw2/platform/skills/types.js';
 import type { ProfessionAppState } from '#gw2/app/types.js';
 
 export function isSlotSkillSelectable(

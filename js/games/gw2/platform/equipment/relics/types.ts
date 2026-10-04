@@ -1,8 +1,8 @@
-import type { EffectEmissionService } from '#gw2/platform/simulation/effect-emission.js';
+import type { EffectEmissionService } from '#gw2/platform/effects/emission.js';
 /** Owns the equipment/relics/types.ts contracts so type dependencies follow their runtime feature boundaries. */
 import type { Gw2TargetConfig } from '#gw2/platform/combat/state/targets.js';
-import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
-import type { Skill } from '#gw2/platform/engine/skills/types.js';
+import type { SimulationEvent } from '#gw2/platform/events/events.js';
+import type { Skill } from '#gw2/platform/skills/types.js';
 import type { Gw2ResolverHelpers } from '#gw2/platform/resolver/types.js';
 
 /** Minimal configuration surface consumed by relic rules. */

@@ -1,7 +1,10 @@
 import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
 import { targetConditionActive } from '#gw2/platform/combat/query/runtime-query.js';
 import type { Gw2MutableStats, Gw2Stats } from '#gw2/platform/combat/types.js';
-import { readProfessionCoreState, readProfessionSpecializationState } from '#gw2/platform/engine/profession/state.js';
+import {
+  readProfessionCoreState,
+  readProfessionSpecializationState
+} from '#gw2/platform/profession-definition/state.js';
 import type { NecromancerCoreState } from '#gw2/professions/necromancer/core/state.js';
 import type { NecromancerState } from '#gw2/professions/necromancer/types.js';
 

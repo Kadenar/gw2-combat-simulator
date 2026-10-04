@@ -1,7 +1,7 @@
 /** Core Engineer Bomb Kit skill mechanics. */
-import { impactEffects } from '#gw2/platform/engine/effects/authoring.js';
+import { impactEffects } from '#gw2/platform/effects/authoring.js';
 import { ENGINEER_SKILL_IDS as ID } from '#gw2/professions/engineer/data/ids.js';
-import type { Skill } from '#gw2/platform/engine/skills/types.js';
+import type { Skill } from '#gw2/platform/skills/types.js';
 
 /** Defines the equip action, palette skills, stow action, and linked toolbelt skill for Bomb Kit. */
 export const ENGINEER_BOMB_KIT_SKILL_MECHANICS: Readonly<Record<string, Partial<Skill>>> = Object.freeze({

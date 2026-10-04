@@ -1,6 +1,6 @@
 import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
-import { skillFlipReady } from '#gw2/platform/engine/skills/skill-flips.js';
-import { gw2CooldownReadyAt } from '#gw2/platform/skills/timing.js';
+import { skillFlipReady } from '#gw2/platform/execution/skill-flips.js';
+import { gw2CooldownReadyAt } from '#gw2/platform/execution/cast-timing.js';
 import { EPSILON } from '#kernel/core/clock.js';
 /**
  * Core Elementalist cast availability.
@@ -11,13 +11,10 @@ import { EPSILON } from '#kernel/core/clock.js';
  * denial carrying one asks the scheduler to retry the same command at that time.
  */
 import { selectedSkillIdSet } from '#gw2/platform/builds/selected-skills.js';
-import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
-import { denySkillCast as unavailable } from '#gw2/platform/engine/skills/availability.js';
-import {
-  balanceProfileNumber,
-  requireBalanceProfileFromContext
-} from '#gw2/platform/engine/skills/balance-profiles.js';
-import type { Skill } from '#gw2/platform/engine/skills/types.js';
+import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
+import { denySkillCast as unavailable } from '#gw2/platform/execution/availability.js';
+import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import type { Skill } from '#gw2/platform/skills/types.js';
 import type { AvailabilityResult } from '#gw2/platform/execution/types.js';
 import {
   AURA_TRANSMUTE_SKILLS,

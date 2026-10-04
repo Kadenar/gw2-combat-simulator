@@ -4,7 +4,7 @@ import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession
 import { projectObservedState } from '#tests/helpers/observed-runtime.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { snapshotProfessionState } from '#gw2/platform/engine/profession/state.js';
+import { snapshotProfessionState } from '#gw2/platform/profession-definition/state.js';
 
 import { elementalistProfession } from '#gw2/professions/elementalist/profession.js';
 import { engineerProfession } from '#gw2/professions/engineer/profession.js';

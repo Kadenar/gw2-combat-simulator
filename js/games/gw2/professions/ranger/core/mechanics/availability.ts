@@ -1,7 +1,7 @@
 import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
-import { weaponFlipBlock } from '#gw2/platform/engine/skills/skill-flips.js';
-import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
-import { denySkillCast } from '#gw2/platform/engine/skills/availability.js';
+import { weaponFlipBlock } from '#gw2/platform/execution/skill-flips.js';
+import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
+import { denySkillCast } from '#gw2/platform/execution/availability.js';
 import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
 import type { AvailabilityResult } from '#gw2/platform/execution/types.js';
 import type { RangerRuntime, RangerSkill } from '#gw2/professions/ranger/types.js';

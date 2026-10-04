@@ -1,4 +1,4 @@
-import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
+import type { SimulationEvent } from '#gw2/platform/events/events.js';
 import type { MesmerCriticalTraitDispatcher } from '#gw2/professions/mesmer/core/mechanics/illusions/types.js';
 import type { MesmerDuelingCriticalContext } from '#gw2/professions/mesmer/core/traits/behavior.js';
 import { triggerMesmerCriticalTraits } from '#gw2/professions/mesmer/core/traits/behavior.js';

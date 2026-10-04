@@ -1,4 +1,4 @@
-import type { CanonicalCatalog, Skill as PreviewSkill, SkillId } from '#gw2/platform/engine/skills/types.js';
+import type { CanonicalCatalog, Skill as PreviewSkill, SkillId } from '#gw2/platform/skills/types.js';
 import type { ProfessionAttributePreviewContext } from '#gw2/platform/profession-presentation/attribute-preview.js';
 import type {
   SkillDamagePreviewPreparation,

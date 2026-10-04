@@ -1,10 +1,10 @@
 import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
 import type { MechanicContext } from '#gw2/platform/profession-definition/mechanic-context.js';
-import { CAST_READY, denyCast } from '#gw2/platform/engine/skills/availability.js';
+import { CAST_READY, denyCast } from '#gw2/platform/execution/availability.js';
 import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
-import type { RuntimeCast } from '#gw2/platform/simulation/runtime-state.js';
-import { resetAutoattackChains } from '#gw2/platform/skills/autoattack-chain-controller.js';
-import { lockTransitionInput } from '#gw2/platform/skills/transition-delays.js';
+import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
+import { resetAutoattackChains } from '#gw2/platform/execution/autoattack-chains.js';
+import { lockTransitionInput } from '#gw2/platform/execution/transition-lockouts.js';
 import { resetSoldierFocus } from '#gw2/professions/warrior/core/traits/behavior.js';
 import { WARRIOR_SKILL_IDS as ID } from '#gw2/professions/warrior/data/ids.js';
 import { bladeswornState } from '#gw2/professions/warrior/specializations/bladesworn/state.js';

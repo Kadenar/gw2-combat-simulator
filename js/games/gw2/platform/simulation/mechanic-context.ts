@@ -1,4 +1,4 @@
-import type { Skill, SkillId } from '#gw2/platform/engine/skills/types.js';
+import type { Skill, SkillId } from '#gw2/platform/skills/types.js';
 import type { ResourceKey } from '#gw2/platform/combat/resources/resource-policy.js';
 import type { Gw2Runtime } from '#gw2/platform/simulation/runtime-state.js';
 import type { MechanicContext, MechanicQueryContext } from '#gw2/platform/profession-definition/mechanic-context.js';
@@ -119,6 +119,7 @@ class MechanicCommands<T extends object, TSkill extends Skill> implements Mechan
   readonly procs: MechanicContext<T, TSkill>['procs'];
   readonly cooldownController: MechanicContext<T, TSkill>['cooldownController'];
   readonly facts: MechanicContext<T, TSkill>['facts'];
+  readonly observations: MechanicContext<T, TSkill>['observations'];
   readonly effectReactions: MechanicContext<T, TSkill>['effectReactions'];
   readonly armFlip: MechanicContext<T, TSkill>['armFlip'];
   readonly consumeFlip: MechanicContext<T, TSkill>['consumeFlip'];
@@ -133,6 +134,7 @@ class MechanicCommands<T extends object, TSkill extends Skill> implements Mechan
     this.procs = runtime.procs;
     this.cooldownController = runtime.cooldownController;
     this.facts = runtime.facts;
+    this.observations = runtime.observations;
     this.effectReactions = Object.freeze({ register: runtime.effectReactions.register });
     this.armFlip = runtime.armFlip;
     this.consumeFlip = runtime.consumeFlip;

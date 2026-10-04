@@ -1,6 +1,6 @@
 import { CONJURE_PICKUP_WEAPONS } from '#gw2/professions/elementalist/core/constants.js';
 import { ELEMENTALIST_LOADOUT_SKILL_IDS } from '#gw2/professions/elementalist/data/skill-identities.js';
-import { readProfessionCoreState } from '#gw2/platform/engine/profession/state.js';
+import { readProfessionCoreState } from '#gw2/platform/profession-definition/state.js';
 import type {
   ProfessionAttributePreviewContext,
   ProfessionAttributePreviewPreparation
@@ -26,8 +26,8 @@ import { createPreviewControls } from '#gw2/professions/shared/attribute-preview
  */
 import { selectedSkillIdSet } from '#gw2/platform/builds/selected-skills.js';
 import { PERMANENT_COMBO_FIELD_ASSUMPTION_CONTROLS } from '#gw2/platform/combos/permanent-field-assumption.js';
-import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
-import type { CanonicalCatalog, Skill } from '#gw2/platform/engine/skills/types.js';
+import type { SimulationEvent } from '#gw2/platform/events/events.js';
+import type { CanonicalCatalog, Skill } from '#gw2/platform/skills/types.js';
 import type {
   SkillDamagePreviewPreparation,
   SkillDamageState
@@ -37,7 +37,7 @@ import type {
   ProfessionPaletteGroup,
   RotationStateSnapshotItem
 } from '#gw2/platform/profession-presentation/types.js';
-import { SIMULATION_RANDOMNESS_ASSUMPTION_CONTROLS } from '#gw2/platform/simulation/randomness.js';
+import { SIMULATION_RANDOMNESS_ASSUMPTION_CONTROLS } from '#gw2/platform/builds/randomness-assumptions.js';
 import { ELEMENTALIST_ASSUMPTION_CONTROLS } from '#gw2/professions/elementalist/build/assumptions.js';
 import { AURA_TRANSMUTE_SKILLS, CONJURE_SKILLS, ETCHING_CHAINS } from '#gw2/professions/elementalist/core/constants.js';
 import {

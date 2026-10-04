@@ -2,9 +2,9 @@
  * Owns Mechanist autonomous, triggered, and supplemental mech attack identities.
  * User-issued mech commands and their cast-lane rules live in `mech-command-skills.ts`.
  */
-import { impactEffects } from '#gw2/platform/engine/effects/authoring.js';
+import { impactEffects } from '#gw2/platform/effects/authoring.js';
 import { ENGINEER_SKILL_IDS as ID } from '#gw2/professions/engineer/data/ids.js';
-import type { Skill } from '#gw2/platform/engine/skills/types.js';
+import type { Skill } from '#gw2/platform/skills/types.js';
 
 /** Supplies mech attack fragments with both timing references so log replay retains the summon action-rate model. */
 export const MECHANIST_MECH_ATTACK_SKILL_MECHANICS: Readonly<Record<string, Partial<Skill>>> = Object.freeze({

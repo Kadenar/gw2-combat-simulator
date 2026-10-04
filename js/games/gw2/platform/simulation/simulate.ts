@@ -1,7 +1,8 @@
 import { runGw2Runtime } from '#gw2/platform/simulation/runtime.js';
 import { normalizeProcRateOverrides } from '#gw2/platform/builds/proc-rates.js';
-import type { Gw2SimulationScore } from '#gw2/platform/simulation/types.js';
-import type { Gw2SimulationOptions, Gw2SimulationResult } from '#gw2/platform/simulation/types.js';
+import type { Gw2SimulationScore } from '#gw2/platform/results/types.js';
+import type { Gw2SimulationOptions } from '#gw2/platform/simulation/options.js';
+import type { Gw2SimulationResult } from '#gw2/platform/results/types.js';
 
 /**
  * Canonical GW2 simulation entry point.

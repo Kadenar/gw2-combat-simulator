@@ -1,5 +1,5 @@
 import { runGw2Runtime, runRuntime } from '#gw2/platform/simulation/runtime.js';
-import { createCombatExecution } from '#gw2/platform/simulation/combat-execution.js';
+import { createCombatExecution } from '#gw2/platform/simulation/combat-producers.js';
 import { prepareSimulationConfig } from '#tests/helpers/simulation-config.js';
 
 const observed = new WeakMap();

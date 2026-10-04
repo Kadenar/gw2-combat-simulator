@@ -1,10 +1,10 @@
-import { type SkillFlipWindows } from '#gw2/platform/engine/skills/skill-flips.js';
+import { type SkillFlipWindows } from '#gw2/platform/execution/skill-flips.js';
 import { createFixedSlotLoadout } from '#gw2/platform/builds/slot-loadout.js';
 import { REVENANT_DECLARED_SKILLS } from '#gw2/professions/revenant/data/module-data.js';
 import { REVENANT_LEGEND_IDS as LEGEND, REVENANT_SKILL_IDS as SKILL } from '#gw2/professions/revenant/data/ids.js';
 import { REVENANT_LEGEND_SPECIALIZATIONS } from '#gw2/professions/revenant/data/legends.js';
 import { HERALD_MECHANICS } from '#gw2/professions/revenant/specializations/herald/mechanics/facets.js';
-import type { SkillId } from '#gw2/platform/engine/skills/types.js';
+import type { SkillId } from '#gw2/platform/skills/types.js';
 import type { SlotLoadoutContext } from '#gw2/platform/builds/slot-loadout.js';
 import type { Gw2SlotLoadout } from '#gw2/platform/builds/types.js';
 import type { RevenantCanonicalBuild } from '#gw2/professions/revenant/types.js';

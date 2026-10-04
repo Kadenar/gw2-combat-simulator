@@ -1,5 +1,5 @@
 import { defaultWeaponSkillMatchesSet } from '#gw2/platform/equipment/weapons/skill-matcher.js';
-import type { Skill } from '#gw2/platform/engine/skills/types.js';
+import type { Skill } from '#gw2/platform/skills/types.js';
 import type { Gw2WeaponMatcherContext } from '#gw2/platform/equipment/weapons/types.js';
 
 /** Selects specialization-specific weapon identities at the Elementalist family boundary. */

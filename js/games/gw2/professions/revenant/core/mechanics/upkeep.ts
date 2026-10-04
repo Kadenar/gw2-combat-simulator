@@ -1,18 +1,14 @@
 import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
 import { resourceDepletionAt } from '#gw2/platform/combat/resources/clock.js';
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
-import {
-  conditionEffectTicks,
-  effectFirstAtMs,
-  strikeEffectCoefficient
-} from '#gw2/platform/engine/effects/authoring.js';
-import { requireEffect } from '#gw2/platform/engine/skills/balance-profiles.js';
-import { armSkillFlip, consumeSkillFlip } from '#gw2/platform/engine/skills/skill-flips.js';
-import type { SkillId } from '#gw2/platform/engine/skills/types.js';
+import { conditionEffectTicks, effectFirstAtMs, strikeEffectCoefficient } from '#gw2/platform/effects/authoring.js';
+import { requireEffect } from '#gw2/platform/skills/balance-profiles.js';
+import { armSkillFlip, consumeSkillFlip } from '#gw2/platform/execution/skill-flips.js';
+import type { SkillId } from '#gw2/platform/skills/types.js';
 import { buildResolverCondition, buildResolverStrike } from '#gw2/platform/resolver/packets.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
-import type { RuntimeCast } from '#gw2/platform/simulation/runtime-state.js';
-import { gw2CooldownReadyAt } from '#gw2/platform/skills/timing.js';
+import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
+import { gw2CooldownReadyAt } from '#gw2/platform/execution/cast-timing.js';
 import type { RevenantRuntime } from '#gw2/professions/revenant/core/events.js';
 import type { RevenantUpkeepState } from '#gw2/professions/revenant/core/state.js';
 import { REVENANT_SKILL_IDS as ID } from '#gw2/professions/revenant/data/ids.js';

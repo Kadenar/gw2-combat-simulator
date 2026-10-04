@@ -4,9 +4,9 @@ import {
   balanceProfileNumber,
   requireBalanceProfileFromContext,
   requireEffect
-} from '#gw2/platform/engine/skills/balance-profiles.js';
-import type { Skill, SkillId } from '#gw2/platform/engine/skills/types.js';
-import type { RuntimeCast } from '#gw2/platform/simulation/runtime-state.js';
+} from '#gw2/platform/skills/balance-profiles.js';
+import type { Skill, SkillId } from '#gw2/platform/skills/types.js';
+import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import { elementalistBuffRequest } from '#gw2/professions/elementalist/core/events.js';
 import { elementalistProfiledBuffRequest } from '#gw2/professions/elementalist/core/mechanics/effects.js';
 import { elementalistMightStacks } from '#gw2/professions/elementalist/core/mechanics/modifier-queries.js';

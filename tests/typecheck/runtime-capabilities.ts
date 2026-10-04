@@ -1,6 +1,7 @@
 import type { CastDetailContext, EffectOwnershipContext } from '#gw2/platform/profession-definition/runtime-context.js';
 import { composeRuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
-import type { RuntimeProfession, Gw2Runtime } from '#gw2/platform/simulation/runtime-state.js';
+import type { RuntimeProfession } from '#gw2/platform/profession-definition/runtime-contract.js';
+import type { Gw2Runtime } from '#gw2/platform/simulation/runtime-state.js';
 import type { WarriorRuntimeState, WarriorSkill } from '#gw2/professions/warrior/types.js';
 import type { MechanicContext, MechanicQueryContext } from '#gw2/platform/profession-definition/mechanic-context.js';
 
@@ -27,6 +28,12 @@ const hooks: Partial<RuntimeProfession<WarriorRuntimeState, WarriorSkill>> = {
     const slash: boolean | undefined = skill.dragonSlash;
     context.endurance.readyAt(50);
     context.cooldownController.readAmmo(skill.id);
+    // Gameplay observations are readable here, but recording is reserved for lifecycle/event handlers.
+    context.facts.read();
+    // @ts-expect-error Readiness cannot acquire the history writer.
+    context.observations;
+    // @ts-expect-error Readers cannot interrupt recorded actions.
+    context.facts.interruptAction('cast:1', context.time);
     // @ts-expect-error Readiness cannot change an owned resource.
     context.profession.core.adrenaline = 0;
     // @ts-expect-error Readiness cannot spend while projecting affordability.
@@ -203,7 +210,7 @@ function queryBoundaries(context: MechanicQueryContext<WarriorRuntimeState, Warr
     () => 0
   );
   // @ts-expect-error Query callbacks cannot rewrite executed actions.
-  context.facts.interruptAction('cast', 0);
+  context.observations.interruptAction('cast', 0);
   // @ts-expect-error Query callbacks cannot claim a proc while checking eligibility.
   context.procs.claim('trait');
   // @ts-expect-error Query callbacks cannot change the accepted input lane.

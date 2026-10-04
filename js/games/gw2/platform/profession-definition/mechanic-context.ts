@@ -1,20 +1,21 @@
-import type { CanonicalCatalog, Skill, SkillId } from '#gw2/platform/engine/skills/types.js';
+import type { CanonicalCatalog, Skill, SkillId } from '#gw2/platform/skills/types.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
-import type { EffectEmissionService } from '#gw2/platform/simulation/effect-emission.js';
+import type { EffectEmissionService } from '#gw2/platform/effects/emission.js';
 import type { createProcRegistry } from '#gw2/platform/combat/procs.js';
 import type { createMechanicCombatServices } from '#gw2/platform/resolver/mechanic-services.js';
-import type { createExecutedFacts } from '#gw2/platform/results/executed-facts.js';
+import type { ExecutedFactsReader, ExecutedFactsWriter } from '#gw2/platform/combat/history/executed-facts.js';
 import type { SimulationRandom } from '#kernel/core/simulation-random.js';
 import type { CooldownController } from '#gw2/platform/execution/types.js';
-import type { CastControl } from '#gw2/platform/execution/cast-execution.js';
+import type { CastControl } from '#gw2/platform/execution/cast-contracts.js';
 import type {
   createRuntimeResources,
   createRuntimeEndurance
 } from '#gw2/platform/combat/resources/runtime-resources.js';
-import type { createEffectReactions } from '#gw2/platform/simulation/effect-reactions.js';
-import type { WorkOwner } from '#gw2/platform/simulation/internal-work.js';
-import type { FlipWindowOptions, RuntimeCast } from '#gw2/platform/simulation/runtime-state.js';
-import type { SkillFlipWindow } from '#gw2/platform/engine/skills/skill-flips.js';
+import type { createEffectReactions } from '#gw2/platform/resolver/effect-reactions.js';
+import type { WorkOwner } from '#gw2/platform/simulation/work-contract.js';
+import type { FlipWindowOptions } from '#gw2/platform/execution/skill-flips.js';
+import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
+import type { SkillFlipWindow } from '#gw2/platform/execution/skill-flips.js';
 import type { ReadonlyMechanicState } from '#gw2/platform/profession-definition/runtime-context.js';
 
 /** Preserve a family's concrete state and skill identities when a shared helper only reads mechanic facts. */
@@ -54,7 +55,7 @@ export interface MechanicQueryContext<T extends object = object, TSkill extends 
   readonly resourceController: Pick<ReturnType<typeof createRuntimeResources<T>>, 'value' | 'readyAt'>;
   readonly endurance: Pick<ReturnType<typeof createRuntimeEndurance<T>>, 'readyAt'>;
   readonly procs: Pick<ReturnType<typeof createProcRegistry>, 'deadline'>;
-  readonly facts: Pick<ReturnType<typeof createExecutedFacts>, 'read' | 'ofType' | 'actionFor'>;
+  readonly facts: ExecutedFactsReader;
   readonly cooldownController: Pick<
     CooldownController,
     'readyAt' | 'hasCooldown' | 'hasAmmo' | 'readAmmo' | 'rechargeFor' | 'rate' | 'project' | 'remaining'
@@ -91,7 +92,8 @@ export interface MechanicContext<T extends object = object, TSkill extends Skill
   readonly castController: CastControl;
   readonly resourceController: ReturnType<typeof createRuntimeResources<T>>;
   readonly endurance: ReturnType<typeof createRuntimeEndurance<T>>;
-  readonly facts: ReturnType<typeof createExecutedFacts>;
+  readonly facts: ExecutedFactsReader;
+  readonly observations: ExecutedFactsWriter;
   readonly effectReactions: Pick<ReturnType<typeof createEffectReactions>, 'register'>;
   armFlip(skillId: SkillId, window?: FlipWindowOptions): SkillFlipWindow;
   consumeFlip(skillId: SkillId): SkillFlipWindow | undefined;

@@ -3,7 +3,7 @@ import type {
   ProfessionAttributePreviewPreparation
 } from '#gw2/platform/profession-presentation/attribute-preview.js';
 import { createPreviewControls } from '#gw2/professions/shared/attribute-preview.js';
-import { readProfessionSpecializationState } from '#gw2/platform/engine/profession/state.js';
+import { readProfessionSpecializationState } from '#gw2/platform/profession-definition/state.js';
 import type { ConduitState } from '#gw2/professions/revenant/specializations/conduit/state.js';
 import { REVENANT_SKILL_IDS as SKILL } from '#gw2/professions/revenant/data/ids.js';
 import { REVENANT_RELEASE_POTENTIAL_SKILL_ID_BY_LEGEND } from '#gw2/professions/revenant/data/legends.js';

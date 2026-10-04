@@ -1,7 +1,7 @@
 import type { MechanicCombatContext } from '#gw2/platform/profession-definition/mechanic-context.js';
 import type { NativeResolvedDamageDetails } from '#gw2/platform/profession-definition/module-types.js';
-import type { EffectDelivery } from '#gw2/platform/simulation/effect-emission.js';
-import type { RuntimeCast } from '#gw2/platform/simulation/runtime-state.js';
+import type { EffectDelivery } from '#gw2/platform/effects/emission.js';
+import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import {
   applyAirAttunementTraits,
   applyArcaneAttunementTraits,
@@ -16,8 +16,8 @@ import {
 } from '#gw2/professions/elementalist/core/traits/critical-procs.js';
 import type { ElementalistResolverContext, ElementalistSkill } from '#gw2/professions/elementalist/types.js';
 /** Ordered public dispatcher for Core Elementalist trait behavior. */
-import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
-import type { Skill } from '#gw2/platform/engine/skills/types.js';
+import type { SimulationEvent } from '#gw2/platform/events/events.js';
+import type { Skill } from '#gw2/platform/skills/types.js';
 
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import { type ElementalistAuraApplication } from '#gw2/professions/elementalist/core/mechanics/effects.js';

@@ -1,5 +1,5 @@
 /** Dragon Trigger charge timing shared by Bladesworn simulation and combat-log replay. */
-import { quantizeGw2ActionTimingMs } from '#gw2/platform/skills/timing.js';
+import { quantizeGw2ActionTimingMs } from '#gw2/platform/execution/cast-timing.js';
 
 export const DRAGON_TRIGGER_CHARGE_INTERVAL_MS = 240;
 

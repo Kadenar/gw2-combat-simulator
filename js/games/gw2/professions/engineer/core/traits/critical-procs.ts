@@ -7,7 +7,7 @@ import {
   procChanceFromContext,
   requireBalanceProfileFromContext,
   requireEffect
-} from '#gw2/platform/engine/skills/balance-profiles.js';
+} from '#gw2/platform/skills/balance-profiles.js';
 import {
   buildEngineerCondition,
   buildEngineerBuff

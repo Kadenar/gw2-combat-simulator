@@ -1,6 +1,9 @@
 import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
 import { countActiveBoons } from '#gw2/platform/combat/query/runtime-query.js';
-import { readProfessionCoreState, readProfessionSpecializationState } from '#gw2/platform/engine/profession/state.js';
+import {
+  readProfessionCoreState,
+  readProfessionSpecializationState
+} from '#gw2/platform/profession-definition/state.js';
 import type { RevenantCoreState } from '#gw2/professions/revenant/core/state.js';
 import {
   modifyCoreAttributes,

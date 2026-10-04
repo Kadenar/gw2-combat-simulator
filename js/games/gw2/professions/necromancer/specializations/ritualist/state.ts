@@ -2,9 +2,9 @@ import type { ChargeGrant } from '#gw2/platform/combat/resources/charges.js';
 import {
   definePublicStateDefaults,
   defineProfessionSpecializationState
-} from '#gw2/platform/engine/profession/state.js';
+} from '#gw2/platform/profession-definition/state.js';
 
-import type { SkillId } from '#gw2/platform/engine/skills/types.js';
+import type { SkillId } from '#gw2/platform/skills/types.js';
 
 interface NecromancerWeaponSpellState {
   readonly generation: number;

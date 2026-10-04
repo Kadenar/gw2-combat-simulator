@@ -1,8 +1,8 @@
 import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
 import { buffApplicationStacks } from '#gw2/platform/combat/boons.js';
-import { armSkillFlip, consumeSkillFlip } from '#gw2/platform/engine/skills/skill-flips.js';
-import type { EffectDelivery } from '#gw2/platform/simulation/effect-emission.js';
-import type { RuntimeCast } from '#gw2/platform/simulation/runtime-state.js';
+import { armSkillFlip, consumeSkillFlip } from '#gw2/platform/execution/skill-flips.js';
+import type { EffectDelivery } from '#gw2/platform/effects/emission.js';
+import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import { canonicalTime, EPSILON } from '#kernel/core/clock.js';
 /**
  * Owns the summoned-elemental lifecycle for Glyph of Elementals (Fire / Earth).
@@ -23,14 +23,11 @@ import { canonicalTime, EPSILON } from '#kernel/core/clock.js';
  * Auto-summon supplies a slotted glyph's first companion; subsequent summons require an explicit glyph cast.
  */
 import { selectedSkillIdSet } from '#gw2/platform/builds/selected-skills.js';
-import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
-import { denyCast, retryCast } from '#gw2/platform/engine/skills/availability.js';
-import {
-  balanceProfileNumber,
-  requireBalanceProfileFromContext
-} from '#gw2/platform/engine/skills/balance-profiles.js';
-import { GW2_ALACRITY_RECHARGE_RATE } from '#gw2/platform/engine/skills/recharge.js';
-import type { Skill } from '#gw2/platform/engine/skills/types.js';
+import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
+import { denyCast, retryCast } from '#gw2/platform/execution/availability.js';
+import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import { GW2_ALACRITY_RECHARGE_RATE } from '#gw2/platform/execution/recharge.js';
+import type { Skill } from '#gw2/platform/skills/types.js';
 import type { AvailabilityResult } from '#gw2/platform/execution/types.js';
 import {
   elementalistBuffRequest,
@@ -137,7 +134,7 @@ function elementalBoonActive(context: ElementalistRuntime, kind: string, at: num
 /** Report interruption at its actual boundary; pending hits are invalidated by the action generation. */
 function interruptCurrentAction(context: ElementalistRuntime, at: number): void {
   const elemental = context.profession.core.summonedElemental;
-  context.facts.interruptAction(elemental.currentActivationId, at);
+  context.observations.interruptAction(elemental.currentActivationId, at);
 }
 
 // Starts one attack: interrupts any prior action, bumps actionGeneration, emits the

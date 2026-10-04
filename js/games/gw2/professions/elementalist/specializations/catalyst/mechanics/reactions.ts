@@ -1,9 +1,9 @@
 import type { MechanicCombatContext } from '#gw2/platform/profession-definition/mechanic-context.js';
-import { requireBalanceProfileFromContext, requireEffect } from '#gw2/platform/engine/skills/balance-profiles.js';
+import { requireBalanceProfileFromContext, requireEffect } from '#gw2/platform/skills/balance-profiles.js';
 import { buildResolverCondition, buildResolverStrike } from '#gw2/platform/resolver/packets.js';
 
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
-import { gw2EffectExpiresAt } from '#gw2/platform/skills/timing.js';
+import { gw2EffectExpiresAt } from '#gw2/platform/effects/timing.js';
 import { CATALYST_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/elementalist/specializations/catalyst/profiles.js';
 import { catalystState } from '#gw2/professions/elementalist/specializations/catalyst/state.js';
 const SHATTERING_ICE_PACKET = 'elementalist.catalyst.shattering-ice';

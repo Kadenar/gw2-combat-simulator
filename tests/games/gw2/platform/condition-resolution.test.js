@@ -6,10 +6,10 @@ import { simulateMesmer } from '#tests/helpers/mesmer-simulation.js';
 import { resolveTestGw2Events } from '#tests/helpers/gw2-resolver.js';
 import { StableEventQueue } from '#kernel/events/queue.js';
 import { createGw2ConditionResolution } from '#gw2/platform/resolver/condition-resolution.js';
-import { createCanonicalCatalog } from '#gw2/platform/engine/skills/canonical-skill-catalog.js';
+import { createCanonicalCatalog } from '#gw2/platform/skills/catalog.js';
 import { defineTestProfession } from '#tests/helpers/profession.js';
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
-import { gw2ResolverPhase } from '#gw2/platform/resolver/event-loop.js';
+import { gw2ResolverPhase } from '#gw2/platform/resolver/event-phase.js';
 import { roundHalfToEven } from '#kernel/core/numeric.js';
 
 // Condition resolution preserves fractional ticks, observation boundaries, and environment attribution.

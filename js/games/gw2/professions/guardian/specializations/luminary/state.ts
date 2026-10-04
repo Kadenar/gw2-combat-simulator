@@ -1,7 +1,7 @@
 import {
   definePublicStateDefaults,
   defineProfessionSpecializationState
-} from '#gw2/platform/engine/profession/state.js';
+} from '#gw2/platform/profession-definition/state.js';
 
 export interface GuardianLuminaryState {
   radiantForge: boolean;

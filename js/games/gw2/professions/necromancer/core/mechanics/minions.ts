@@ -1,11 +1,12 @@
 import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
-import { denySkillCast } from '#gw2/platform/engine/skills/availability.js';
-import { gw2BaseRecharge } from '#gw2/platform/engine/skills/recharge.js';
-import { armSkillFlip, consumeSkillFlip } from '#gw2/platform/engine/skills/skill-flips.js';
-import type { SkillId } from '#gw2/platform/engine/skills/types.js';
+import { denySkillCast } from '#gw2/platform/execution/availability.js';
+import { gw2BaseRecharge } from '#gw2/platform/execution/recharge.js';
+import { armSkillFlip, consumeSkillFlip } from '#gw2/platform/execution/skill-flips.js';
+import type { SkillId } from '#gw2/platform/skills/types.js';
 import { buildResolverCondition, buildResolverStrike } from '#gw2/platform/resolver/packets.js';
-import type { RuntimeCast } from '#gw2/platform/simulation/runtime-state.js';
-import { quantizeGw2ActionDurationUp, summonQuicknessCastTimeMs } from '#gw2/platform/skills/timing.js';
+import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
+import { quantizeGw2ActionDurationUp } from '#gw2/platform/combat/action-tick.js';
+import { summonQuicknessCastTimeMs } from '#gw2/platform/execution/cast-timing.js';
 import {
   commandDefinitionFor,
   minionDefinitionFor,

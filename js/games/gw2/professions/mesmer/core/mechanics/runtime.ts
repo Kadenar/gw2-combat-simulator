@@ -1,4 +1,4 @@
-import { requireBalanceProfileFromContext, requireEffect } from '#gw2/platform/engine/skills/balance-profiles.js';
+import { requireBalanceProfileFromContext, requireEffect } from '#gw2/platform/skills/balance-profiles.js';
 import type {
   MesmerMechanics,
   MesmerRuntime,

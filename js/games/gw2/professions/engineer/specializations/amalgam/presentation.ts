@@ -4,15 +4,15 @@ import type {
   ProfessionAttributePreviewPreparation
 } from '#gw2/platform/profession-presentation/attribute-preview.js';
 import { createPreviewControls } from '#gw2/professions/shared/attribute-preview.js';
-import { readProfessionSpecializationState } from '#gw2/platform/engine/profession/state.js';
+import { readProfessionSpecializationState } from '#gw2/platform/profession-definition/state.js';
 import type { AmalgamState } from '#gw2/professions/engineer/specializations/amalgam/state.js';
-import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
-import type { CanonicalCatalog, SkillId } from '#gw2/platform/engine/skills/types.js';
+import type { SimulationEvent } from '#gw2/platform/events/events.js';
+import type { CanonicalCatalog, SkillId } from '#gw2/platform/skills/types.js';
 import type {
   ProfessionSkillBarGroup,
   RotationStateSnapshotItem
 } from '#gw2/platform/profession-presentation/types.js';
-import { gw2EffectExpiresAt } from '#gw2/platform/skills/timing.js';
+import { gw2EffectExpiresAt } from '#gw2/platform/effects/timing.js';
 import { ENGINEER_ASSUMPTION_CONTROLS } from '#gw2/professions/engineer/build/assumptions.js';
 import {
   engineerToolbeltSkillIds,

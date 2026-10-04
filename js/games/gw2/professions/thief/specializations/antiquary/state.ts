@@ -5,9 +5,9 @@ import {
   definePublicStateDefaults,
   projectPublicProfessionState,
   snapshotProfessionState
-} from '#gw2/platform/engine/profession/state.js';
-import type { SkillId } from '#gw2/platform/engine/skills/types.js';
-import type { Gw2PlanningStateInput } from '#gw2/platform/simulation/types.js';
+} from '#gw2/platform/profession-definition/state.js';
+import type { SkillId } from '#gw2/platform/skills/types.js';
+import type { Gw2PlanningStateInput } from '#gw2/platform/results/types.js';
 import type { ThiefArtifactKind, ThiefConfig, ThiefStealthAttackChargeState } from '#gw2/professions/thief/types.js';
 import { boundedNumber } from '#kernel/core/numeric.js';
 

@@ -1,6 +1,6 @@
 import { REVENANT_LEGEND_IDS as LEGEND, REVENANT_SKILL_IDS as ID } from '#gw2/professions/revenant/data/ids.js';
 import { heraldState } from '#gw2/professions/revenant/specializations/herald/state.js';
-import type { SkillId } from '#gw2/platform/engine/skills/types.js';
+import type { SkillId } from '#gw2/platform/skills/types.js';
 import type { RevenantRuntime } from '#gw2/professions/revenant/core/events.js';
 
 const freeze = <T>(value: T): Readonly<T> => Object.freeze(value);

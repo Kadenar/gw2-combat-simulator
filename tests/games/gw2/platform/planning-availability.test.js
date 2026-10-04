@@ -2,9 +2,9 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { loadProfession, professionOptions } from '#gw2/profession-registry.js';
 import { runGw2Runtime } from '#gw2/platform/simulation/runtime.js';
-import { planningState } from '#gw2/platform/results/end-state.js';
+import { planningState } from '#gw2/platform/results/planning-state.js';
 import { observeGw2Runtime, observedRuntime } from '#tests/helpers/observed-runtime.js';
-import { armSkillFlip } from '#gw2/platform/engine/skills/skill-flips.js';
+import { armSkillFlip } from '#gw2/platform/execution/skill-flips.js';
 import { ELEMENTALIST_TRAIT_IDS as TRAIT } from '#gw2/professions/elementalist/data/ids.js';
 
 // Deep snapshots retain Core/elite ownership, nested resource clocks and pending work; a shallow projection cannot prove purity.

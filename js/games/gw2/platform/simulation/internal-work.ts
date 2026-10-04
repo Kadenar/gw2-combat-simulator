@@ -1,43 +1,6 @@
-import { canonicalTime } from '#kernel/core/clock.js';
-import type { QueuedEvent } from '#kernel/events/queue.js';
 import type { HandlerRegistry } from '#gw2/platform/resolver/handler-registry.js';
-import type { SkillTask } from '#gw2/platform/engine/skills/types.js';
-import type { RuntimeCast } from '#gw2/platform/simulation/runtime-state.js';
-
-/** Scheduling and readiness use the same cast-relative deadline, clamped to the live clock. */
-export function skillTaskAt(cast: RuntimeCast, trigger: SkillTask, now: number): number {
-  const castTimeMs = Number(cast.skill.castTimeMs);
-  const scale =
-    trigger.timingScale === 'cast' && castTimeMs > 0 ? ((cast.fullEnd - cast.start) * 1000) / castTimeMs : 1;
-  const origin =
-    trigger.timingAnchor === 'castStart'
-      ? cast.start
-      : trigger.timingAnchor === 'castCommit'
-        ? cast.effectiveEnd
-        : cast.fullEnd;
-  return canonicalTime(Math.max(now, origin + ((trigger.atMs ?? 0) * scale) / 1000));
-}
-
-/** A lifetime is separate from cast attribution: committed projectiles can outlive their originating cast. */
-export interface WorkOwner {
-  readonly id: string;
-  readonly generation: number;
-}
-
-/** Concrete handlers specialize type and payload into a discriminated union; internal work is never a log packet. */
-export interface InternalWork<TType extends string = string, TPayload = unknown> extends QueuedEvent {
-  readonly kind: 'internal';
-  readonly type: TType;
-  readonly at: number;
-  readonly priority: number;
-  readonly payload: TPayload;
-  readonly activationId?: string;
-  readonly owner?: WorkOwner;
-}
-
-type WorkInput<TWork extends InternalWork> = TWork extends InternalWork
-  ? Pick<TWork, 'type' | 'at' | 'priority' | 'payload' | 'activationId' | 'owner' | 'causalOrder'>
-  : never;
+import type { InternalWork, WorkInput } from '#gw2/platform/simulation/work-contract.js';
+import { canonicalTime } from '#kernel/core/clock.js';
 
 /** Validate and detach work before it enters the shared heap; callbacks stay in the existing handler registry. */
 export function createInternalWorkFactory<TWork extends InternalWork>(

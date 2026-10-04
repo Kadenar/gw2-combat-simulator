@@ -14,8 +14,8 @@ import type { EngineerRuntime, EngineerRuntimeState, EngineerSkill } from '#gw2/
  * Owns Mechanist signet skill fragments.
  * Mech commands and autonomous attack identities live in their named catalogs.
  */
-import { impactEffects } from '#gw2/platform/engine/effects/authoring.js';
-import type { Skill } from '#gw2/platform/engine/skills/types.js';
+import { impactEffects } from '#gw2/platform/effects/authoring.js';
+import type { Skill } from '#gw2/platform/skills/types.js';
 import { ENGINEER_SKILL_IDS as ID } from '#gw2/professions/engineer/data/ids.js';
 
 /** Supplies Mechanist signet fragments to specialization composition. */

@@ -1,9 +1,6 @@
 import { selectedSkillIdSet } from '#gw2/platform/builds/selected-skills.js';
-import {
-  balanceProfileNumber,
-  requireBalanceProfileFromContext
-} from '#gw2/platform/engine/skills/balance-profiles.js';
-import { gw2CooldownReadyAt } from '#gw2/platform/skills/timing.js';
+import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import { gw2CooldownReadyAt } from '#gw2/platform/execution/cast-timing.js';
 import {
   NECROMANCER_SIGNET_PASSIVES,
   applyNecromancerSignetPassive

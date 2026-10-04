@@ -1,7 +1,7 @@
-import { MODIFIER_HOOK_NAMES } from '#gw2/platform/engine/profession/contract.js';
+import { MODIFIER_HOOK_NAMES } from '#gw2/platform/profession-definition/compiler/compile-contract.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { createCanonicalCatalog } from '#gw2/platform/engine/skills/canonical-skill-catalog.js';
+import { createCanonicalCatalog } from '#gw2/platform/skills/catalog.js';
 import { composeRuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import { runGw2Runtime } from '#gw2/platform/simulation/runtime.js';
 import { testProfession } from '#tests/fixtures/profession.js';

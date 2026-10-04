@@ -1,4 +1,4 @@
-import { readProfessionCoreState } from '#gw2/platform/engine/profession/state.js';
+import { readProfessionCoreState } from '#gw2/platform/profession-definition/state.js';
 import type { ElementalistCoreState } from '#gw2/professions/elementalist/core/state.js';
 /**
  * Pistol weapon-skill mechanics owned by the Weaver module.
@@ -11,9 +11,9 @@ import type { ElementalistCoreState } from '#gw2/professions/elementalist/core/s
  * Definitions select the enhanced payloads and declare the final shared bullet settlement.
  */
 
-import { impactEffects } from '#gw2/platform/engine/effects/authoring.js';
+import { impactEffects } from '#gw2/platform/effects/authoring.js';
 import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';
-import type { Skill } from '#gw2/platform/engine/skills/types.js';
+import type { Skill } from '#gw2/platform/skills/types.js';
 
 /**
  * The six pistol dual attacks, keyed by skill id and merged into

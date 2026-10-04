@@ -1,6 +1,6 @@
 import { planningFixture } from '#tests/helpers/observed-runtime.js';
 import { daredevilModule } from '#gw2/professions/thief/specializations/daredevil/module.js';
-import { armSkillFlip } from '#gw2/platform/engine/skills/skill-flips.js';
+import { armSkillFlip } from '#gw2/platform/execution/skill-flips.js';
 import { assertFlooredDamageMultiplier } from '#tests/helpers/rounded-damage.js';
 import { withActivePatchPreview } from '#gw2/integrations/patches/active-profession.js';
 import assert from 'node:assert/strict';

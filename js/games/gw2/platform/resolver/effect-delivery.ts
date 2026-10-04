@@ -1,7 +1,3 @@
-import {
-  createEffectOwnershipContext,
-  createSelectedContentContext
-} from '#gw2/platform/profession-definition/runtime-context.js';
 import { isStandardBoon, normalizeBoonDuration } from '#gw2/platform/combat/boons.js';
 import { targetHealthLoss } from '#gw2/platform/combat/state/target-health.js';
 import {
@@ -13,24 +9,28 @@ import {
 import { fieldDescriptors, finisherDescriptors } from '#gw2/platform/combos/descriptors.js';
 import { prepareGw2ComboEvent } from '#gw2/platform/combos/events.js';
 import { bindRuntimeCombo, produceRuntimeCombos } from '#gw2/platform/combos/runtime.js';
-import { assertSimulationEvent, type SimulationEventBase } from '#gw2/platform/engine/events/events.js';
+import { type AnnouncementEmission, type EffectDelivery } from '#gw2/platform/effects/emission.js';
 import { relicStrikeMultiplier } from '#gw2/platform/equipment/relics/query.js';
 import { weaponStrengthProfileIdForEvent } from '#gw2/platform/equipment/weapons/strength.js';
-import { gw2ResolverBoonDuration } from '#gw2/platform/resolver/boons.js';
+import { assertSimulationEvent, type SimulationEventBase } from '#gw2/platform/events/events.js';
+import type { PacketIdentity } from '#gw2/platform/events/identity.js';
+import {
+  createEffectOwnershipContext,
+  createSelectedContentContext
+} from '#gw2/platform/profession-definition/runtime-context.js';
+import type { RuntimeProfession } from '#gw2/platform/profession-definition/runtime-contract.js';
+import { gw2ResolverBoonDuration } from '#gw2/platform/resolver/boon-duration.js';
 import { createGw2ConditionResolution } from '#gw2/platform/resolver/condition-resolution.js';
 import { createGw2ResolverEventHandlers } from '#gw2/platform/resolver/event-handlers.js';
 import { HandlerRegistry, OBSERVABLE_EVENT_HANDLER } from '#gw2/platform/resolver/handler-registry.js';
 import { createGw2HitResolution } from '#gw2/platform/resolver/hit-resolution.js';
 import type { Gw2ResolverEvent, Gw2ResolverReactionRegistry } from '#gw2/platform/resolver/types.js';
 import { recordProcStep } from '#gw2/platform/results/proc-steps.js';
-import { type AnnouncementEmission, type EffectDelivery } from '#gw2/platform/simulation/effect-emission.js';
-import type { RuntimeExecution } from '#gw2/platform/simulation/execution.js';
-import { createInternalWorkFactory } from '#gw2/platform/simulation/internal-work.js';
-import type { Gw2Runtime, RuntimeWork } from '#gw2/platform/simulation/runtime-state.js';
-import { canonicalTime, EPSILON } from '#kernel/core/clock.js';
+import type { RuntimeExecution } from '#gw2/platform/simulation/run-contract.js';
+import type { Gw2Runtime } from '#gw2/platform/simulation/runtime-state.js';
+import type { RuntimeWork, WorkInput } from '#gw2/platform/simulation/work-contract.js';
+import { EPSILON, canonicalTime } from '#kernel/core/clock.js';
 
-import type { PacketIdentity } from '#gw2/platform/simulation/coordinator.js';
-import type { RuntimeProfession } from '#gw2/platform/simulation/runtime-state.js';
 /** Derived copies cannot reuse the parent's declaration, including after serialization or deferral. */
 function withoutInheritedReaction(event: SimulationEventBase, cause?: Gw2ResolverEvent | null): SimulationEventBase {
   if (
@@ -47,7 +47,7 @@ function withoutInheritedReaction(event: SimulationEventBase, cause?: Gw2Resolve
 }
 
 interface DeliveryHost {
-  readonly makeWork: ReturnType<typeof createInternalWorkFactory<RuntimeWork>>;
+  readonly makeWork: (input: WorkInput<RuntimeWork>) => RuntimeWork;
   enqueueWork(work: RuntimeWork): void;
   identify<E extends PacketIdentity>(event: E): E;
   reactionParent(event: PacketIdentity): number | undefined;
@@ -65,7 +65,7 @@ export function createEffectDelivery<T extends object>(
   reactions: Gw2ResolverReactionRegistry,
   host: DeliveryHost
 ) {
-  const { config, queue, history } = runtime;
+  const { config, queue } = runtime;
   const ownershipContext = createEffectOwnershipContext(profession.catalog);
   // Duration policy is sampled at application through selected-content queries, never a mutable resolver context.
   const boonDurationContext = createSelectedContentContext(runtime.traits, profession.catalog);
@@ -376,7 +376,7 @@ export function createEffectDelivery<T extends object>(
       });
     if (event.type === 'weapon_set' || event.type === 'sigil_swap') execution.weaponSwap?.(runtime, event);
     if (['action', 'cooldown_snapshot', 'weapon_set', 'buff', 'boon_extension', 'marker'].includes(event.type))
-      history.push(event);
+      runtime.observations.record(event);
     if (!preparedCombos.has(event)) produceRuntimeCombos(runtime, profession.catalog, event);
     if (runtime.reporting && !['condition_buffer', 'condition_tick', 'action_update'].includes(event.type))
       executed.push(event);

@@ -1,10 +1,10 @@
 import { canonicalTime } from '#kernel/core/clock.js';
-import { armSkillFlip, consumeSkillFlip } from '#gw2/platform/engine/skills/skill-flips.js';
-import { gw2BaseRecharge } from '#gw2/platform/engine/skills/recharge.js';
+import { armSkillFlip, consumeSkillFlip } from '#gw2/platform/execution/skill-flips.js';
+import { gw2BaseRecharge } from '#gw2/platform/execution/recharge.js';
 import { mesmerRechargeWork } from '#gw2/professions/mesmer/core/mechanics/recharge.js';
 import type { MesmerRuntime } from '#gw2/professions/mesmer/types.js';
 import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
-import type { RuntimeCast } from '#gw2/platform/simulation/runtime-state.js';
+import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 
 /** Arm the parent's exact authored window without extending a cast-start deadline. */
 export function armMesmerSkillFlip(context: MesmerRuntime, cast: RuntimeCast<MesmerSkill>): void {

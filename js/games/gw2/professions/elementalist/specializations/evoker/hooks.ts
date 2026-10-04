@@ -1,5 +1,6 @@
-import type { RuntimeProfession, SkillTaskData } from '#gw2/platform/simulation/runtime-state.js';
-import { damageInputEvent } from '#gw2/platform/skill-damage/execution.js';
+import type { RuntimeProfession } from '#gw2/platform/profession-definition/runtime-contract.js';
+import type { SkillTaskData } from '#gw2/platform/execution/cast-contracts.js';
+import { damageInputEvent } from '#gw2/platform/skill-damage/occurrence-driver.js';
 import { registerElementalistAttunementTransition } from '#gw2/professions/elementalist/core/mechanics/attunements.js';
 import { registerElementalistEliteEvents } from '#gw2/professions/elementalist/core/mechanics/elite-events.js';
 import { completeEvokerAttunement } from '#gw2/professions/elementalist/specializations/evoker/mechanics/attunements.js';

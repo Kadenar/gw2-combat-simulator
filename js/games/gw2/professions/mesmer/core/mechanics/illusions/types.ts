@@ -1,6 +1,7 @@
-import type { EffectDelivery } from '#gw2/platform/simulation/effect-emission.js';
-import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
-import type { SkillId, StrikeTick, StrikeEffect } from '#gw2/platform/engine/skills/types.js';
+import type { EffectDelivery } from '#gw2/platform/effects/emission.js';
+import type { SimulationEvent } from '#gw2/platform/events/events.js';
+import type { SkillId } from '#gw2/platform/skills/types.js';
+import type { StrikeTick, StrikeEffect } from '#gw2/platform/effects/types.js';
 
 import type { MesmerResourceCause } from '#gw2/professions/mesmer/core/mechanics/resource-types.js';
 import type { MesmerConditionApplication } from '#gw2/professions/mesmer/data/types.js';

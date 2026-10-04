@@ -1,6 +1,6 @@
 /** Canonical Core ranger skill fragments grouped by their GW2 owner. */
 import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
-import type { Skill } from '#gw2/platform/engine/skills/types.js';
+import type { Skill } from '#gw2/platform/skills/types.js';
 
 // Both Maul variants share their strike, timing, recharge, and vulnerability; their bonus recipients differ.
 const maul: Partial<Skill> = {

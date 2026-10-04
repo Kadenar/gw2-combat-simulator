@@ -4,7 +4,7 @@ import {
   defineProfessionSpecializationState,
   professionCoreState,
   projectPublicProfessionState
-} from '#gw2/platform/engine/profession/state.js';
+} from '#gw2/platform/profession-definition/state.js';
 import { holosmithState } from '#gw2/professions/engineer/specializations/holosmith/state.js';
 import { mechanistState } from '#gw2/professions/engineer/specializations/mechanist/state.js';
 import type { EngineerRuntime } from '#gw2/professions/engineer/types.js';

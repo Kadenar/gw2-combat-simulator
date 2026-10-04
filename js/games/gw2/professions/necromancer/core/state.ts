@@ -2,10 +2,10 @@ import { professionStaticRulesApplied } from '#gw2/platform/builds/attribute-pro
 import type { ChargeGrant } from '#gw2/platform/combat/resources/charges.js';
 import type { ResourceClock } from '#gw2/platform/combat/resources/clock.js';
 import { cappedResource } from '#gw2/platform/combat/resources/pool.js';
-import { projectPublicProfessionState, snapshotProfessionState } from '#gw2/platform/engine/profession/state.js';
-import { type SkillFlipWindows } from '#gw2/platform/engine/skills/skill-flips.js';
-import type { SkillId } from '#gw2/platform/engine/skills/types.js';
-import type { Gw2PlanningStateInput } from '#gw2/platform/simulation/types.js';
+import { projectPublicProfessionState, snapshotProfessionState } from '#gw2/platform/profession-definition/state.js';
+import { type SkillFlipWindows } from '#gw2/platform/execution/skill-flips.js';
+import type { SkillId } from '#gw2/platform/skills/types.js';
+import type { Gw2PlanningStateInput } from '#gw2/platform/results/types.js';
 import { soulBatteryCapacity, vitalPersistenceVitality } from '#gw2/professions/necromancer/core/traits/shroud.js';
 import { spitefulFortitudeVitality } from '#gw2/professions/necromancer/core/traits/behavior.js';
 import type { NecromancerConfig } from '#gw2/professions/necromancer/types.js';

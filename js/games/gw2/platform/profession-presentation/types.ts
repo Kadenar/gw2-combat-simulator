@@ -16,11 +16,11 @@ import type {
 } from '#gw2/platform/profession-presentation/skill-damage.js';
 /** Defines application presentation callbacks independently of the executable profession runtime. */
 import type { Gw2BuildResources, Gw2CanonicalBuild, ProfessionAssumptionControl } from '#gw2/platform/builds/types.js';
-import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
-import type { CanonicalCatalog, Skill, SkillId } from '#gw2/platform/engine/skills/types.js';
+import type { SimulationEvent } from '#gw2/platform/events/events.js';
+import type { CanonicalCatalog, Skill, SkillId } from '#gw2/platform/skills/types.js';
 import type { CastCommand, ProfessionConfig, RotationCommand } from '#gw2/platform/execution/types.js';
 import type { Gw2ProcStep } from '#gw2/platform/resolver/types.js';
-import type { Gw2SimulationPlanningState, Gw2SimulationResult } from '#gw2/platform/simulation/types.js';
+import type { Gw2SimulationPlanningState, Gw2SimulationResult } from '#gw2/platform/results/types.js';
 
 /** Profession-owned application identity; shared charts align and clip its simulation timestamp. */
 export interface ProfessionChartApplication {

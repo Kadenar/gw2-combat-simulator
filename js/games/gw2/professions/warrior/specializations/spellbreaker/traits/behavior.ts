@@ -4,17 +4,17 @@ import { isInternalCooldownReady } from '#gw2/platform/combat/procs.js';
 import { activeStackCount, grantTimedStacks } from '#gw2/platform/combat/resources/timed-stacks.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import type { Gw2MutableStats, Gw2Stats } from '#gw2/platform/combat/types.js';
-import { readProfessionSpecializationState } from '#gw2/platform/engine/profession/state.js';
+import { readProfessionSpecializationState } from '#gw2/platform/profession-definition/state.js';
 import {
   balanceProfileNumber,
   effectNumber,
   requireBalanceProfileFromContext,
   requireEffect
-} from '#gw2/platform/engine/skills/balance-profiles.js';
-import type { RechargeProgress } from '#gw2/platform/engine/skills/recharge.js';
+} from '#gw2/platform/skills/balance-profiles.js';
+import type { RechargeProgress } from '#gw2/platform/execution/recharge.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 
-import { gw2CooldownReadyAt } from '#gw2/platform/skills/timing.js';
+import { gw2CooldownReadyAt } from '#gw2/platform/execution/cast-timing.js';
 import { WARRIOR_SKILL_IDS as ID, WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/professions/warrior/data/ids.js';
 import type { SpellbreakerState } from '#gw2/professions/warrior/specializations/spellbreaker/state.js';
 import { spellbreakerState } from '#gw2/professions/warrior/specializations/spellbreaker/state.js';

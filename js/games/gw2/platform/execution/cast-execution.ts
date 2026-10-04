@@ -1,57 +1,46 @@
-import type { SkillId } from '#gw2/platform/engine/skills/types.js';
 import { isHostileTargetEvent } from '#gw2/platform/combat/state/targets.js';
-import { scaleCastBoundTiming } from '#gw2/platform/engine/effects/materializer.js';
-import { assertSimulationEvent, type SimulationEventBase } from '#gw2/platform/engine/events/events.js';
-import { gw2BaseRecharge } from '#gw2/platform/engine/skills/recharge.js';
-import type { Skill } from '#gw2/platform/engine/skills/types.js';
+import { applySkillSideEffects } from '#gw2/platform/effects/action-dispatch.js';
+import { scaleCastBoundTiming } from '#gw2/platform/effects/materializer.js';
 import { relicWeaponSwapRechargeReduction } from '#gw2/platform/equipment/relics/catalog.js';
+import { isGw2WeaponSkillEquipped } from '#gw2/platform/equipment/weapons/skill-matcher.js';
+import type { SimulationEvent } from '#gw2/platform/events/events.js';
+import { assertSimulationEvent, type SimulationEventBase } from '#gw2/platform/events/events.js';
+import {
+  advanceAutoattackChains,
+  autoattackChainAvailability,
+  resetAutoattackChains
+} from '#gw2/platform/execution/autoattack-chains.js';
+import type { CastControl, RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
+import { selectSkillEffects } from '#gw2/platform/execution/cast-effects.js';
 import { createCastReservations } from '#gw2/platform/execution/cast-lifecycle.js';
+import {
+  castWasInterrupted,
+  gw2CooldownReadyAt,
+  retainsInterruptedCastLockout,
+  summonQuicknessCastTimeMs
+} from '#gw2/platform/execution/cast-timing.js';
 import {
   cancelledBeforeEffectCommit,
   cancelledBeforeInterruptCommit,
   interruptCommitCutoffs
-} from '#gw2/platform/execution/effect-adapter.js';
-import type { CastCommand, ChargeReleaseIntent } from '#gw2/platform/execution/types.js';
+} from '#gw2/platform/execution/effect-commit.js';
+import { gw2BaseRecharge } from '#gw2/platform/execution/recharge.js';
+import { skillTaskAt } from '#gw2/platform/execution/task-timing.js';
+import { lockTransitionInput } from '#gw2/platform/execution/transition-lockouts.js';
+import type { AvailabilityResult, CastCommand } from '#gw2/platform/execution/types.js';
 import {
   createCastDetailContext,
   createRechargeStartContext
 } from '#gw2/platform/profession-definition/runtime-context.js';
-import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
-import { selectSkillEffects } from '#gw2/platform/simulation/effect-selection.js';
-import type { RuntimeExecution } from '#gw2/platform/simulation/execution.js';
-import { createInternalWorkFactory, skillTaskAt } from '#gw2/platform/simulation/internal-work.js';
-import type { Gw2Runtime, RuntimeCast, RuntimeWork } from '#gw2/platform/simulation/runtime-state.js';
-import { applySkillSideEffects } from '#gw2/platform/simulation/side-effects.js';
-import { advanceAutoattackChains, resetAutoattackChains } from '#gw2/platform/skills/autoattack-chain-controller.js';
-import {
-  castWasInterrupted,
-  retainsInterruptedCastLockout,
-  summonQuicknessCastTimeMs
-} from '#gw2/platform/skills/timing.js';
-import { lockTransitionInput } from '#gw2/platform/skills/transition-delays.js';
+import type { RuntimeProfession } from '#gw2/platform/profession-definition/runtime-contract.js';
+import type { RuntimeExecution } from '#gw2/platform/simulation/run-contract.js';
+import type { Gw2Runtime } from '#gw2/platform/simulation/runtime-state.js';
+import type { RuntimeWork, WorkInput } from '#gw2/platform/simulation/work-contract.js';
+import type { Skill, SkillId } from '#gw2/platform/skills/types.js';
 import { canonicalTime } from '#kernel/core/clock.js';
 
-import { isGw2WeaponSkillEquipped } from '#gw2/platform/equipment/weapons/skill-matcher.js';
-import type { AvailabilityResult } from '#gw2/platform/execution/types.js';
-import type { RuntimeProfession } from '#gw2/platform/simulation/runtime-state.js';
-import { autoattackChainAvailability } from '#gw2/platform/skills/autoattack-chain-controller.js';
-import { gw2CooldownReadyAt } from '#gw2/platform/skills/timing.js';
-
-/** Profession transitions query accepted casts and request lockouts without obtaining reservation stores. */
-export interface CastControl {
-  /** Resource recovery and form entry inspect lane facts without acquiring command traversal. */
-  currentLaneEnd(): number;
-  pendingCombatStart(): boolean;
-  lockInputUntil(at: number): void;
-  pendingChargeRelease(): ChargeReleaseIntent | undefined;
-  hasInFlight(skillId: SkillId): boolean;
-  inFlightSkillIds(): IterableIterator<SkillId>;
-  setLockout(group: string, at: number): void;
-  clearLockout(group: string): void;
-}
-
 interface CastExecutionHost {
-  readonly makeWork: ReturnType<typeof createInternalWorkFactory<RuntimeWork>>;
+  readonly makeWork: (input: WorkInput<RuntimeWork>) => RuntimeWork;
   enqueueWork(work: RuntimeWork): void;
   recordAction(id: string, event: SimulationEvent): void;
   withCause<R>(cause: SimulationEvent | null, run: () => R): R;

@@ -1,5 +1,5 @@
 /** Explicit PvE skill mechanics owned by the Core Warrior module. */
-import type { Skill } from '#gw2/platform/engine/skills/types.js';
+import type { Skill } from '#gw2/platform/skills/types.js';
 export { WARRIOR_DODGE, WARRIOR_SWAP_WEAPONS } from '#gw2/professions/warrior/core/skills/actions.js';
 import { WARRIOR_PROFESSION_SKILLS_SKILL_MECHANICS } from '#gw2/professions/warrior/core/skills/profession-skills.js';
 import { WARRIOR_SLOT_SKILLS_SKILL_MECHANICS } from '#gw2/professions/warrior/core/skills/slot-skills.js';

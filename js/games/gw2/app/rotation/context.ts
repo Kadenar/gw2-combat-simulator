@@ -1,5 +1,5 @@
-import { type SkillFlipWindows } from '#gw2/platform/engine/skills/skill-flips.js';
-import type { SkillId } from '#gw2/platform/engine/skills/types.js';
+import { type SkillFlipWindows } from '#gw2/platform/execution/skill-flips.js';
+import type { SkillId } from '#gw2/platform/skills/types.js';
 
 /** Shared projection fields consumed by rotation views; professions own the remaining state. */
 export interface RotationProfessionState {

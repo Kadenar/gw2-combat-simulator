@@ -1,5 +1,5 @@
 import { runRuntime } from '#gw2/platform/simulation/runtime.js';
-import { createCombatExecution } from '#gw2/platform/simulation/combat-execution.js';
+import { createCombatExecution } from '#gw2/platform/simulation/combat-producers.js';
 import { defineTestProfession } from '#tests/helpers/profession.js';
 
 /** Queue focused packets in the production runtime; formula tests can replace query facts at initialization. */

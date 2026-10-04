@@ -6,12 +6,9 @@ import { EPSILON } from '#kernel/core/clock.js';
  * Checks current attunement and familiar state; pending work supplies retry
  * boundaries without predicting the resources it will grant.
  */
-import { denyCast, retryCast } from '#gw2/platform/engine/skills/availability.js';
-import {
-  balanceProfileNumber,
-  requireBalanceProfileFromContext
-} from '#gw2/platform/engine/skills/balance-profiles.js';
-import type { Skill } from '#gw2/platform/engine/skills/types.js';
+import { denyCast, retryCast } from '#gw2/platform/execution/availability.js';
+import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import type { Skill } from '#gw2/platform/skills/types.js';
 import type { AvailabilityResult } from '#gw2/platform/execution/types.js';
 import {
   BASIC_FAMILIARS,

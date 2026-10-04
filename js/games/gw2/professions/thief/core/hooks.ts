@@ -1,5 +1,5 @@
 import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
-import { damageInputEvent } from '#gw2/platform/skill-damage/execution.js';
+import { damageInputEvent } from '#gw2/platform/skill-damage/occurrence-driver.js';
 import { emitVenom, VENOMS } from '#gw2/professions/thief/core/mechanics/venoms.js';
 import {
   completeThiefStealthAttack,
@@ -14,14 +14,15 @@ import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
 import { modifyThiefLifeSiphon } from '#gw2/professions/thief/core/traits/behavior.js';
 import { EPSILON } from '#kernel/core/clock.js';
 
-import { pruneSkillFlips, skillFlipReady, weaponFollowUpOpen } from '#gw2/platform/engine/skills/skill-flips.js';
+import { pruneSkillFlips, skillFlipReady, weaponFollowUpOpen } from '#gw2/platform/execution/skill-flips.js';
 
-import { denySkillCast } from '#gw2/platform/engine/skills/availability.js';
+import { denySkillCast } from '#gw2/platform/execution/availability.js';
 import { THIEF_SKILL_IDS as ID } from '#gw2/professions/thief/data/ids.js';
 import { spearChainStageForSkill } from '#gw2/professions/thief/data/spear-chain-stages.js';
 
 import type { AvailabilityResult } from '#gw2/platform/execution/types.js';
-import type { RuntimeCast, RuntimeProfession } from '#gw2/platform/simulation/runtime-state.js';
+import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
+import type { RuntimeProfession } from '#gw2/platform/profession-definition/runtime-contract.js';
 import type { ThiefRuntime } from '#gw2/professions/thief/core/events.js';
 import { deferThiefCompletion } from '#gw2/professions/thief/core/events.js';
 import {

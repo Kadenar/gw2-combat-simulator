@@ -2,13 +2,13 @@ import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import { buildResolverCondition, buildResolverBuff } from '#gw2/platform/resolver/packets.js';
 import { consumeCharge, expireCharges } from '#gw2/platform/combat/resources/charges.js';
 /** Owns Core Ranger skill-armed hit reactions that are not trait-line definitions. */
-import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
+import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
 import { consumeOldestStacks } from '#gw2/platform/combat/resources/timed-stacks.js';
 import {
   requireBalanceProfileFromContext,
   requireEffect,
   effectNumber
-} from '#gw2/platform/engine/skills/balance-profiles.js';
+} from '#gw2/platform/skills/balance-profiles.js';
 import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
 import { rangerPetCompanionId } from '#gw2/professions/ranger/core/mechanics/pets.js';
 import {

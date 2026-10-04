@@ -1,6 +1,6 @@
 import type { MesmerRuntime } from '#gw2/professions/mesmer/types.js';
 /** Owns the Clarity window that one spear cast arms and a later spear cast consumes. */
-import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
+import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 /** Consume once at acceptance; canceled casts retain this start cost. */
 export function consumeMesmerClarity(state: MesmerRuntime, castStart: number): boolean {

@@ -1,16 +1,16 @@
 import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
 import type { Gw2TraitLookupContext } from '#gw2/platform/combat/state/traits.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
-import { denySkillCast as deny } from '#gw2/platform/engine/skills/availability.js';
+import { denySkillCast as deny } from '#gw2/platform/execution/availability.js';
 import {
   balanceProfileNumber,
   effectNumber,
   requireBalanceProfileFromContext,
   requireEffect
-} from '#gw2/platform/engine/skills/balance-profiles.js';
+} from '#gw2/platform/skills/balance-profiles.js';
 import type { AvailabilityResult } from '#gw2/platform/execution/types.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
-import type { SkillSideEffect } from '#gw2/platform/simulation/side-effects.js';
+import type { SkillSideEffect } from '#gw2/platform/effects/actions.js';
 import { buildRangerStrikes, buildRangerPacket } from '#gw2/professions/ranger/core/events.js';
 import { RANGER_PET_STRIKE_SCALING } from '#gw2/professions/ranger/core/mechanics/pets.js';
 import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';

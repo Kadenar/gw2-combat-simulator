@@ -4,8 +4,8 @@ import {
   effectNumber,
   requireBalanceProfileFromContext,
   requireEffect
-} from '#gw2/platform/engine/skills/balance-profiles.js';
-import type { SkillId } from '#gw2/platform/engine/skills/types.js';
+} from '#gw2/platform/skills/balance-profiles.js';
+import type { SkillId } from '#gw2/platform/skills/types.js';
 import { buildResolverStrike } from '#gw2/platform/resolver/packets.js';
 import type { ThiefRuntime } from '#gw2/professions/thief/core/events.js';
 import { addVenomCharges } from '#gw2/professions/thief/core/mechanics/venoms.js';

@@ -19,10 +19,11 @@ import type {
   Gw2ResolverReactionRegistry,
   Gw2ResolverStage
 } from '#gw2/platform/resolver/types.js';
-import { EffectRecorder } from '#gw2/platform/results/effect-report.js';
-import type { Gw2Config, Gw2CriticalDamageMode } from '#gw2/platform/simulation/config.js';
-import type { EffectEmissionService } from '#gw2/platform/simulation/effect-emission.js';
-import { normalizeCriticalDamageMode } from '#gw2/platform/simulation/randomness.js';
+import type { EffectReportObserver } from '#gw2/platform/results/effect-report.js';
+import type { Gw2Config } from '#gw2/platform/simulation/config.js';
+import type { Gw2CriticalDamageMode } from '#gw2/platform/combat/critical-damage-mode.js';
+import type { EffectEmissionService } from '#gw2/platform/effects/emission.js';
+import { normalizeCriticalDamageMode } from '#gw2/platform/combat/critical-damage-mode.js';
 import type { SimulationRandom } from '#kernel/core/simulation-random.js';
 import { createSimulationRandom } from '#kernel/core/simulation-random.js';
 import { createMechanicCombatServices } from '#gw2/platform/resolver/mechanic-services.js';
@@ -34,7 +35,7 @@ import { createMechanicCombatServices } from '#gw2/platform/resolver/mechanic-se
  */
 export function createGw2ResolverRuntimeState({
   reporting = true,
-  recordEffectHistory = reporting,
+  effectRecorder = null,
   damageDiagnostics = false,
   config,
   traits = new Set(),
@@ -57,7 +58,7 @@ export function createGw2ResolverRuntimeState({
     criticalDamageMode: config.randomness?.mode === 'stochastic' ? 'rolled' : criticalDamageMode,
     reporting,
     // Damage previews retain resolved packets without constructing chart histories.
-    effectRecorder: recordEffectHistory ? new EffectRecorder() : null,
+    effectRecorder,
     damageDiagnostics: reporting && damageDiagnostics,
     config,
     traits,
@@ -189,7 +190,7 @@ export function createGw2ResolverRuntimeState({
 
 export interface Gw2ResolverRuntime {
   readonly combat: ReturnType<typeof createMechanicCombatServices>;
-  readonly effectRecorder: EffectRecorder | null;
+  readonly effectRecorder: EffectReportObserver | null;
   readonly criticalDamageMode: Gw2CriticalDamageMode;
   readonly procs: ReturnType<typeof createProcRegistry>;
   readonly reporting: boolean;
@@ -246,7 +247,7 @@ export interface Gw2ResolverRuntime {
 }
 
 interface CreateGw2ResolverRuntimeStateOptions {
-  readonly recordEffectHistory?: boolean;
+  readonly effectRecorder?: EffectReportObserver | null;
   readonly damageDiagnostics?: boolean;
   readonly reporting?: boolean;
   readonly config: Gw2Config;

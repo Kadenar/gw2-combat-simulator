@@ -1,9 +1,9 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { MODIFIER_HOOK_NAMES } from '#gw2/platform/engine/profession/contract.js';
-import { createCanonicalCatalog } from '#gw2/platform/engine/skills/canonical-skill-catalog.js';
-import { createEffectReactions } from '#gw2/platform/simulation/effect-reactions.js';
-import { materializeSkillEffectApplications } from '#gw2/platform/engine/effects/materializer.js';
+import { MODIFIER_HOOK_NAMES } from '#gw2/platform/profession-definition/compiler/compile-contract.js';
+import { createCanonicalCatalog } from '#gw2/platform/skills/catalog.js';
+import { createEffectReactions } from '#gw2/platform/resolver/effect-reactions.js';
+import { materializeSkillEffectApplications } from '#gw2/platform/effects/materializer.js';
 import { observeGw2Runtime, observedRuntime } from '#tests/helpers/observed-runtime.js';
 import { testProfession } from '#tests/fixtures/profession.js';
 
@@ -331,7 +331,10 @@ test('reaction validation rejects incompatible stages, malformed actions and mis
 test('reaction registry interns shared declarations across repeated materialization', () => {
   const catalog = catalogFor([strike([reaction()])]);
   const skill = catalog.skills[0];
-  const registry = createEffectReactions(catalog, {});
+  const registry = createEffectReactions(catalog, {
+    hasHandler: () => false,
+    apply: () => assert.fail('Registration cannot dispatch actions.')
+  });
   const ids = new Set();
   for (let index = 0; index < 1000; index++) ids.add(registry.register(skill, { ...skill.effects[0] }));
   assert.equal(ids.size, 1);

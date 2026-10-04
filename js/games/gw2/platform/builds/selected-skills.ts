@@ -1,4 +1,4 @@
-import type { CanonicalCatalog, SkillId } from '#gw2/platform/engine/skills/types.js';
+import type { CanonicalCatalog, SkillId } from '#gw2/platform/skills/types.js';
 
 /** Editor slots retain empties; runtime selections are flat immutable ID snapshots. */
 export type Gw2SelectedSkillSlots = Record<string, SkillId | null>;

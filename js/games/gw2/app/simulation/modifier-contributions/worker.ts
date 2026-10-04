@@ -1,7 +1,7 @@
 import { createGameWorkerEndpoint } from '#browser/game/worker-harness.js';
 import { calculateContributionComparisons } from '#gw2/app/simulation/modifier-contributions/modifier-contributions.js';
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
-import type { Gw2ProfessionSource } from '#gw2/platform/simulation/types.js';
+import type { Gw2ProfessionSource } from '#gw2/platform/profession-definition/family-contract.js';
 import type { ModifierContributionRequest } from '#gw2/app/simulation/modifier-contributions/types.js';
 
 /**

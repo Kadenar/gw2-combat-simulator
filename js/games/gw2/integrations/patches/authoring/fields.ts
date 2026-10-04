@@ -1,5 +1,6 @@
 /** Owns editable-field metadata and sanitized authoring references without applying patches. */
-import type { BalanceProfile, Skill, SkillEffect } from '#gw2/platform/engine/skills/types.js';
+import type { BalanceProfile, Skill } from '#gw2/platform/skills/types.js';
+import type { SkillEffect } from '#gw2/platform/effects/types.js';
 import { deepFreeze } from '#gw2/integrations/patches/authoring/immutable.js';
 type MutableRecord = Record<string, unknown>;
 

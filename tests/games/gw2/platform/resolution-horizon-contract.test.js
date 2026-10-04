@@ -3,7 +3,7 @@ import test from 'node:test';
 
 import { EPSILON } from '#kernel/core/clock.js';
 
-import { createCanonicalCatalog } from '#gw2/platform/engine/skills/canonical-skill-catalog.js';
+import { createCanonicalCatalog } from '#gw2/platform/skills/catalog.js';
 import { defineTestProfession } from '#tests/helpers/profession.js';
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
 import { timelineDeadTimeMarkers } from '#gw2/app/rotation/timeline/model.js';

@@ -1,4 +1,4 @@
-import { damageInputEvent } from '#gw2/platform/skill-damage/execution.js';
+import { damageInputEvent } from '#gw2/platform/skill-damage/occurrence-driver.js';
 import { ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
 import {
   emitGrenadier,
@@ -6,8 +6,8 @@ import {
   emitAimAssistedRocket
 } from '#gw2/professions/engineer/core/traits/explosions.js';
 import { criticalProcHandler } from '#gw2/platform/profession-definition/mechanics.js';
-import type { RuntimeProfession } from '#gw2/platform/simulation/runtime-state.js';
-import { sideEffectAmount } from '#gw2/platform/simulation/side-effects.js';
+import type { RuntimeProfession } from '#gw2/platform/profession-definition/runtime-contract.js';
+import { sideEffectAmount } from '#gw2/platform/effects/action-dispatch.js';
 import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
 import { reduceEngineerRecharge } from '#gw2/professions/engineer/core/mechanics/recharge.js';
 import { handleAirBlast } from '#gw2/professions/engineer/core/skills/kits/flamethrower.js';

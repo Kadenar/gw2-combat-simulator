@@ -1,6 +1,6 @@
 import { planningFixture } from '#tests/helpers/observed-runtime.js';
 import { observedRuntime } from '#tests/helpers/observed-runtime.js';
-import { skillFlipVisible, skillFlipReady } from '#gw2/platform/engine/skills/skill-flips.js';
+import { skillFlipVisible, skillFlipReady } from '#gw2/platform/execution/skill-flips.js';
 import { assertFlooredDamageMultiplier } from '#tests/helpers/rounded-damage.js';
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
@@ -9,7 +9,7 @@ import {
   effectFirstAtMs,
   strikeEffectCoefficient,
   strikeEffectTicks
-} from '#gw2/platform/engine/effects/authoring.js';
+} from '#gw2/platform/effects/authoring.js';
 import { engineerCatalog, engineerProfession } from '#gw2/professions/engineer/profession.js';
 import { ENGINEER_SKILL_IDS as ID, ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
 import { handleElectricArtillery } from '#gw2/professions/engineer/core/mechanics/event-handlers.js';

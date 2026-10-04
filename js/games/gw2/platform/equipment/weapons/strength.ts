@@ -5,8 +5,8 @@
  * derived so compatibility consumers cannot drift from the sampled ranges.
  */
 
-import type { SimulationEventBase } from '#gw2/platform/engine/events/events.js';
-import type { Skill } from '#gw2/platform/engine/skills/types.js';
+import type { SimulationEventBase } from '#gw2/platform/events/events.js';
+import type { Skill } from '#gw2/platform/skills/types.js';
 import { isGw2NonWeaponEffectEvent } from '#gw2/platform/combat/state/event-ownership.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
 import type { Gw2WeaponStrengthProfile } from '#gw2/platform/equipment/weapons/types.js';

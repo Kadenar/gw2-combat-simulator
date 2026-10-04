@@ -8,9 +8,9 @@ import type { MechanicContext, MechanicCombatContext } from '#gw2/platform/profe
  * Elementalist-flavored context/event types every module's handlers are written against.
  */
 import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
-import type { Skill, SkillId } from '#gw2/platform/engine/skills/types.js';
+import type { Skill, SkillId } from '#gw2/platform/skills/types.js';
 
-import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
+import type { SimulationEvent } from '#gw2/platform/events/events.js';
 
 import type { ElementalistCanonicalBuild, ElementalistConfig } from '#gw2/professions/elementalist/build/types.js';
 import type { ProfessionUiCallbackContext, ProfessionUiContract } from '#gw2/platform/profession-presentation/types.js';

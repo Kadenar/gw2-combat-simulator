@@ -3,7 +3,7 @@ import type {
   ProfessionAttributePreviewPreparation
 } from '#gw2/platform/profession-presentation/attribute-preview.js';
 import { createPreviewControls } from '#gw2/professions/shared/attribute-preview.js';
-import { readProfessionSpecializationState } from '#gw2/platform/engine/profession/state.js';
+import { readProfessionSpecializationState } from '#gw2/platform/profession-definition/state.js';
 import { elementalistWeaponGroups } from '#gw2/professions/elementalist/core/weapon-groups.js';
 import type {
   ElementalistState,
@@ -16,8 +16,8 @@ import type {
  * that renders the main-hand / off-hand split. Everything here is a read-only
  * projection of scheduler or end state; none of it may mutate the simulation.
  */
-import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
-import type { Skill } from '#gw2/platform/engine/skills/types.js';
+import type { SimulationEvent } from '#gw2/platform/events/events.js';
+import type { Skill } from '#gw2/platform/skills/types.js';
 import type {
   ProfessionEventLogDescriptor,
   ProfessionPaletteSkillRenderer,
@@ -25,7 +25,7 @@ import type {
   ProfessionWeaponPaletteView,
   RotationStateSnapshotItem
 } from '#gw2/platform/profession-presentation/types.js';
-import { autoattackChainSkillAvailable } from '#gw2/platform/skills/autoattack-chain-controller.js';
+import { autoattackChainSkillAvailable } from '#gw2/platform/execution/autoattack-chains.js';
 import {
   ELEMENTALIST_SKILL_IDS as ID,
   ELEMENTALIST_WEAVER_SKILL_IDS,

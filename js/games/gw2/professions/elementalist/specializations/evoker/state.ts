@@ -1,11 +1,11 @@
-import { requireBalanceNumber } from '#gw2/platform/engine/skills/canonical-skill-catalog.js';
+import { requireBalanceNumber } from '#gw2/platform/effects/validation.js';
 import {
   EVOKER_BALANCE_PROFILES,
   EVOKER_BALANCE_PROFILE_IDS as PROFILE
 } from '#gw2/professions/elementalist/specializations/evoker/profiles.js';
 import { activeChargeGrants, grantCharges, type ChargeGrant } from '#gw2/platform/combat/resources/charges.js';
 import { canonicalTime } from '#kernel/core/clock.js';
-import { gw2EffectExpiresAt } from '#gw2/platform/skills/timing.js';
+import { gw2EffectExpiresAt } from '#gw2/platform/effects/timing.js';
 /**
  * Mutable Evoker specialization state.
  *
@@ -18,7 +18,7 @@ import { gw2EffectExpiresAt } from '#gw2/platform/skills/timing.js';
 import {
   definePublicStateDefaults,
   defineProfessionSpecializationState
-} from '#gw2/platform/engine/profession/state.js';
+} from '#gw2/platform/profession-definition/state.js';
 import type { ElementalistConfig } from '#gw2/professions/elementalist/build/types.js';
 import { ELEMENTALIST_ATTUNEMENTS, type ElementalistAttunement } from '#gw2/professions/elementalist/core/state.js';
 import { boundedNumber } from '#kernel/core/numeric.js';

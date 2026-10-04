@@ -1,5 +1,5 @@
-import { impactEffects } from '#gw2/platform/engine/effects/authoring.js';
-import type { BalanceProfile } from '#gw2/platform/engine/skills/types.js';
+import { impactEffects } from '#gw2/platform/effects/authoring.js';
+import type { BalanceProfile } from '#gw2/platform/skills/types.js';
 
 export const SCOURGE_BALANCE_PROFILE_IDS = Object.freeze({
   shade: 'necromancer.scourge.shade',

@@ -1,9 +1,9 @@
-import { expireSkillFlip } from '#gw2/platform/engine/skills/skill-flips.js';
+import { expireSkillFlip } from '#gw2/platform/execution/skill-flips.js';
 import { buildMesmerPacket, mesmerPacketOwner } from '#gw2/professions/mesmer/core/mechanics/packets.js';
 import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
 /** Resolves Inspiring Imagery's mutually exclusive boon expiry and offensive detonation. */
-import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
-import type { RuntimeCast } from '#gw2/platform/simulation/runtime-state.js';
+import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
+import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import { MESMER_SKILL_IDS as ID } from '#gw2/professions/mesmer/data/ids.js';
 import type { MesmerRuntime } from '#gw2/professions/mesmer/types.js';
 

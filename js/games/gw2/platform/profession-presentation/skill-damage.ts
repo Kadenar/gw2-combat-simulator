@@ -1,9 +1,9 @@
-import type { SkillId } from '#gw2/platform/engine/skills/types.js';
-import type { CastCommand } from '#gw2/platform/execution/types.js';
 import type {
   AttributePreviewValues,
   ProfessionAttributePreviewContext
 } from '#gw2/platform/profession-presentation/attribute-preview.js';
+import type { SkillDamageCastOptions } from '#gw2/platform/skill-damage/types.js';
+import type { SkillId } from '#gw2/platform/skills/types.js';
 
 /** Profession hooks read the same detached build view as the Attribute Preview; no app state is exposed. */
 export type SkillDamagePreviewContext = ProfessionAttributePreviewContext;
@@ -16,9 +16,6 @@ export interface SkillDamageGroup {
   /** Mechanic groups sort by order, then ownership; weapon groups come first and slot skills follow mechanics. */
   readonly order?: number;
 }
-
-/** Cast-command fields an occurrence may set on its measured cast, such as a Dragon Charge release threshold. */
-export type SkillDamageCastOptions = Pick<CastCommand, 'releaseAtCharges' | 'releaseDelayMs' | 'doubleEdgeOutcome'>;
 
 /** One scaling level of an occurrence, shown as a bar in the row's variant ladder. */
 export interface SkillDamageVariant {

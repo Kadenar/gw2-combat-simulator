@@ -1,5 +1,5 @@
 import { holosmithTraits } from '#gw2/professions/engineer/specializations/holosmith/traits/index.js';
-import { createPublicStateProjector } from '#gw2/platform/engine/profession/state.js';
+import { createPublicStateProjector } from '#gw2/platform/profession-definition/state.js';
 import { defineNativeModule } from '#gw2/platform/profession-definition/profession.js';
 import { ENGINEER_SKILL_IDS as ID } from '#gw2/professions/engineer/data/ids.js';
 import { createEngineerModuleData } from '#gw2/professions/engineer/data/module-data.js';

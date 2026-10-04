@@ -1,7 +1,7 @@
 import type { GameContentAddress } from '#browser/game/contracts.js';
 import { createGameWorkerEndpoint } from '#browser/game/worker-harness.js';
-import type { Gw2ProfessionSource } from '#gw2/platform/simulation/types.js';
-import { evaluateSkillDamage, type SkillDamageCache } from '#gw2/platform/skill-damage/evaluate.js';
+import type { Gw2ProfessionSource } from '#gw2/platform/profession-definition/family-contract.js';
+import { evaluateSkillDamage, type SkillDamageCache } from '#gw2/platform/skill-damage/measure-occurrences.js';
 import type { SkillDamageRequest } from '#gw2/platform/skill-damage/types.js';
 
 /** The single request message this worker accepts; the runner owns coalescing, cancellation, and stale responses. */

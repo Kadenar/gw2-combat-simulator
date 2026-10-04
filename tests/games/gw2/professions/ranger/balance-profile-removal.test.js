@@ -1,4 +1,4 @@
-import { createEffectEmissionService } from '#gw2/platform/simulation/effect-emission.js';
+import { createEffectEmissionService } from '#gw2/platform/effects/emission.js';
 import { applyBalanceProfilePatch } from '#gw2/integrations/patches/authoring/patches.js';
 import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
 import { createProcRegistry } from '#gw2/platform/combat/procs.js';

@@ -4,8 +4,8 @@ import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
  * Canonical weapon and slot-skill fragments live in their named catalog files.
  */
 import { MESMER_SKILL_IDS as ID } from '#gw2/professions/mesmer/data/ids.js';
-import { impactEffects } from '#gw2/platform/engine/effects/authoring.js';
-import type { SkillId } from '#gw2/platform/engine/skills/types.js';
+import { impactEffects } from '#gw2/platform/effects/authoring.js';
+import type { SkillId } from '#gw2/platform/skills/types.js';
 
 export const MESMER_CORE_SUPPLEMENTAL_SKILL_MECHANICS: Readonly<Record<SkillId, Partial<MesmerSkill>>> = Object.freeze({
   [ID.POWER_SPIKE]: {

@@ -20,7 +20,7 @@ import { REVENANT_WEAPONS_SHORTBOW_SKILL_MECHANICS } from '#gw2/professions/reve
 import { REVENANT_WEAPONS_SPEAR_SKILL_MECHANICS } from '#gw2/professions/revenant/core/skills/weapons/spear.js';
 import { REVENANT_WEAPONS_STAFF_SKILL_MECHANICS } from '#gw2/professions/revenant/core/skills/weapons/staff.js';
 import { REVENANT_WEAPONS_SWORD_SKILL_MECHANICS } from '#gw2/professions/revenant/core/skills/weapons/sword.js';
-import type { Skill } from '#gw2/platform/engine/skills/types.js';
+import type { Skill } from '#gw2/platform/skills/types.js';
 
 /** Preserves the original catalog precedence while each skill family owns its fragments. */
 export const REVENANT_CORE_BASE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({

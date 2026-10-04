@@ -1,6 +1,6 @@
 /** Owns Core legend-swap call skill fragments used by Song of the Mists. */
 import { REVENANT_SKILL_IDS as ID, REVENANT_LEGEND_IDS as LEGEND } from '#gw2/professions/revenant/data/ids.js';
-import type { Skill, SkillId } from '#gw2/platform/engine/skills/types.js';
+import type { Skill, SkillId } from '#gw2/platform/skills/types.js';
 
 /** Invocation and direct catalog consumers resolve the same patchable call skill. */
 export const REVENANT_CORE_CALL_BY_LEGEND: Readonly<Record<string, SkillId>> = Object.freeze({

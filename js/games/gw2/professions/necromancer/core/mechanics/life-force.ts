@@ -1,4 +1,4 @@
-import type { Skill } from '#gw2/platform/engine/skills/types.js';
+import type { Skill } from '#gw2/platform/skills/types.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import { gluttonyLifeForceMultiplier } from '#gw2/professions/necromancer/core/traits/shroud.js';
 import type { NecromancerRuntime } from '#gw2/professions/necromancer/types.js';

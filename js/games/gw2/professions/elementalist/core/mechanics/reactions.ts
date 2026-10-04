@@ -6,9 +6,9 @@ import {
   applyPersistingFlamesDamage
 } from '#gw2/professions/elementalist/core/traits/persisting-flames.js';
 /** Resolver event classification and reaction registration for Core Elementalist behavior. */
-import { requireBalanceProfileFromContext, requireEffect } from '#gw2/platform/engine/skills/balance-profiles.js';
+import { requireBalanceProfileFromContext, requireEffect } from '#gw2/platform/skills/balance-profiles.js';
 // Resolver mutations target the owned Core slice of the nested Elementalist runtime.
-import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
+import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
 
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 

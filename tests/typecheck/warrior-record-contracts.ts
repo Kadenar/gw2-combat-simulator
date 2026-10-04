@@ -1,4 +1,4 @@
-import { type SkillFlipWindow } from '#gw2/platform/engine/skills/skill-flips.js';
+import { type SkillFlipWindow } from '#gw2/platform/execution/skill-flips.js';
 /** Warrior stat copies, flip expiry values, and release rows retain their actual contracts. */
 import type { WarriorCoreState } from '#gw2/professions/warrior/core/state.js';
 import type { WarriorModifierAttributes } from '#gw2/professions/warrior/core/traits/modifier-queries.js';

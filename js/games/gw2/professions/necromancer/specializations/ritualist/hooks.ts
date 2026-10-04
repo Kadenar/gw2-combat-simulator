@@ -1,25 +1,27 @@
-import { damageInputEvent } from '#gw2/platform/skill-damage/execution.js';
+import { damageInputEvent } from '#gw2/platform/skill-damage/occurrence-driver.js';
 import {
   queueNightmareWeapon,
   queueSplinterWeapon
 } from '#gw2/professions/necromancer/specializations/ritualist/mechanics/spirit-effects.js';
-import { requireBalanceProfileFromContext as damageProfile } from '#gw2/platform/engine/skills/balance-profiles.js';
+import { requireBalanceProfileFromContext as damageProfile } from '#gw2/platform/skills/balance-profiles.js';
 import { RITUALIST_BALANCE_PROFILE_IDS as DAMAGE_PROFILE } from '#gw2/professions/necromancer/specializations/ritualist/profiles.js';
 import { NECROMANCER_SKILL_IDS as DAMAGE_SKILL } from '#gw2/professions/necromancer/data/ids.js';
 import { timedEffectState } from '#gw2/platform/combat/effect-state.js';
-import type { SimulationEventBase } from '#gw2/platform/engine/events/events.js';
-import { denySkillCast } from '#gw2/platform/engine/skills/availability.js';
+import type { SimulationEventBase } from '#gw2/platform/events/events.js';
+import { denySkillCast } from '#gw2/platform/execution/availability.js';
 import {
   balanceProfileNumber,
   effectNumber,
   requireBalanceProfileFromContext,
   requireEffect
-} from '#gw2/platform/engine/skills/balance-profiles.js';
-import type { Skill, SkillEffect, SkillId } from '#gw2/platform/engine/skills/types.js';
+} from '#gw2/platform/skills/balance-profiles.js';
+import type { Skill, SkillId } from '#gw2/platform/skills/types.js';
+import type { SkillEffect } from '#gw2/platform/effects/types.js';
 import { gw2ActivePrimaryWeapon } from '#gw2/platform/equipment/weapons/loadout.js';
 import { weaponStrengthProfileForName } from '#gw2/platform/equipment/weapons/strength.js';
 import { buildResolverStrike } from '#gw2/platform/resolver/packets.js';
-import type { RuntimeCast, RuntimeProfession } from '#gw2/platform/simulation/runtime-state.js';
+import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
+import type { RuntimeProfession } from '#gw2/platform/profession-definition/runtime-contract.js';
 import { grantNecromancerLifeForce } from '#gw2/professions/necromancer/core/mechanics/life-force.js';
 import { necromancerLifeForce } from '#gw2/professions/necromancer/core/mechanics/resources.js';
 import { registerNecromancerShroudLifecycle } from '#gw2/professions/necromancer/core/mechanics/shroud-lifecycle.js';

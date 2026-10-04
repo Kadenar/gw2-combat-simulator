@@ -2,7 +2,7 @@ import { grantCharges, type ChargeGrant } from '#gw2/platform/combat/resources/c
 import {
   defineProfessionSpecializationState,
   definePublicStateDefaults
-} from '#gw2/platform/engine/profession/state.js';
+} from '#gw2/platform/profession-definition/state.js';
 import { enhancedCapacityMaximumHeat } from '#gw2/professions/engineer/specializations/holosmith/traits/heat.js';
 import type { EngineerConfig } from '#gw2/professions/engineer/types.js';
 import { boundedNumber } from '#kernel/core/numeric.js';

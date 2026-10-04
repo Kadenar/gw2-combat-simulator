@@ -2,9 +2,9 @@ import { MODIFIER_TARGET, type Gw2ModifierRule } from '#gw2/platform/combat/modi
 import { targetConditionCount } from '#gw2/platform/combat/query/runtime-query.js';
 /** Canonical Core ranger skill fragments grouped by their GW2 owner. */
 import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
-import { impactEffects } from '#gw2/platform/engine/effects/authoring.js';
-import type { Skill } from '#gw2/platform/engine/skills/types.js';
-import type { RuntimeCast } from '#gw2/platform/simulation/runtime-state.js';
+import { impactEffects } from '#gw2/platform/effects/authoring.js';
+import type { Skill } from '#gw2/platform/skills/types.js';
+import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import type { RangerSkill, RangerRuntime } from '#gw2/professions/ranger/types.js';
 import { RANGER_HAMMER_VARIANT_PAIRS } from '#gw2/professions/ranger/data/hammer-variants.js';
 

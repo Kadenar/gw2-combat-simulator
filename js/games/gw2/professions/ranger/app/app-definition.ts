@@ -1,6 +1,6 @@
 import { defineProfessionApp, preferOffhand } from '#gw2/app/define-profession-app.js';
 import { rangerTooltips } from '#gw2/professions/ranger/app/tooltips.js';
-import { flattenProfessionState } from '#gw2/platform/engine/profession/state.js';
+import { flattenProfessionState } from '#gw2/platform/profession-definition/state.js';
 import { applyRangerBuildAttributeRules } from '#gw2/professions/ranger/build/attributes.js';
 import { toApplicationBuild } from '#gw2/professions/ranger/build/build.js';
 import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';

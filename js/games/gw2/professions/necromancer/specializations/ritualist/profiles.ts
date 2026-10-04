@@ -1,4 +1,4 @@
-import type { BalanceProfile } from '#gw2/platform/engine/skills/types.js';
+import type { BalanceProfile } from '#gw2/platform/skills/types.js';
 import { NECROMANCER_SKILL_IDS as ID } from '#gw2/professions/necromancer/data/ids.js';
 
 export const RITUALIST_BALANCE_PROFILE_IDS = Object.freeze({

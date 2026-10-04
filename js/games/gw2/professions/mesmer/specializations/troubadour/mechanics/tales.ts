@@ -1,8 +1,5 @@
 import { buildMesmerPacket, mesmerPacketOwner } from '#gw2/professions/mesmer/core/mechanics/packets.js';
-import {
-  balanceProfileNumber,
-  requireBalanceProfileFromContext
-} from '#gw2/platform/engine/skills/balance-profiles.js';
+import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import { mesmerMechanicsFor } from '#gw2/professions/mesmer/core/mechanics/runtime.js';
 import { triggerRaconteur } from '#gw2/professions/mesmer/specializations/troubadour/traits/performance.js';
 import type { MesmerRuntime } from '#gw2/professions/mesmer/types.js';

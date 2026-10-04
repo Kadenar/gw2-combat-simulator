@@ -1,11 +1,8 @@
-import type { RuntimeCast } from '#gw2/platform/simulation/runtime-state.js';
+import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 /** Owns Arcane Echo's window and the later weapon cast that consumes it. */
-import {
-  requireBalanceProfileFromContext,
-  balanceProfileNumber
-} from '#gw2/platform/engine/skills/balance-profiles.js';
-import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
-import type { Skill } from '#gw2/platform/engine/skills/types.js';
+import { requireBalanceProfileFromContext, balanceProfileNumber } from '#gw2/platform/skills/balance-profiles.js';
+import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
+import type { Skill } from '#gw2/platform/skills/types.js';
 import { ELEMENTALIST_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/elementalist/core/profiles.js';
 import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';
 import type { ElementalistSkill, ElementalistRuntime } from '#gw2/professions/elementalist/types.js';

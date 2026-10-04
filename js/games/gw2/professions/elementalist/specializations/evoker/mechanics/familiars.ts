@@ -1,6 +1,7 @@
-import type { SkillEffect } from '#gw2/platform/engine/skills/types.js';
-import type { RuntimeCast, RuntimeProfession, SkillTaskData } from '#gw2/platform/simulation/runtime-state.js';
-import type { ActionContext, SideEffectAction } from '#gw2/platform/simulation/side-effects.js';
+import type { SkillEffect } from '#gw2/platform/effects/types.js';
+import type { RuntimeCast, SkillTaskData } from '#gw2/platform/execution/cast-contracts.js';
+import type { RuntimeProfession } from '#gw2/platform/profession-definition/runtime-contract.js';
+import type { ActionContext, SideEffectAction } from '#gw2/platform/effects/actions.js';
 import { applySpecializedElementsTrait } from '#gw2/professions/elementalist/specializations/evoker/traits/attunements.js';
 import { applyFamiliarTraitProcs } from '#gw2/professions/elementalist/specializations/evoker/traits/familiars.js';
 /**
@@ -17,9 +18,9 @@ import {
   balanceProfileNumber,
   requireBalanceProfileFromContext,
   requireEffect
-} from '#gw2/platform/engine/skills/balance-profiles.js';
-import type { Skill } from '#gw2/platform/engine/skills/types.js';
-import { GW2_QUICKNESS_ACTION_RATE, castRelativeEffectTimingScale } from '#gw2/platform/skills/timing.js';
+} from '#gw2/platform/skills/balance-profiles.js';
+import type { Skill } from '#gw2/platform/skills/types.js';
+import { GW2_QUICKNESS_ACTION_RATE, castRelativeEffectTimingScale } from '#gw2/platform/execution/cast-timing.js';
 import { elementalistBuffRequest } from '#gw2/professions/elementalist/core/events.js';
 import { elementalistAnnouncement } from '#gw2/professions/elementalist/core/mechanics/effects.js';
 import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';

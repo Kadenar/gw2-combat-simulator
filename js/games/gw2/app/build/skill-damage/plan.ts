@@ -11,7 +11,7 @@ import {
 import type { ProfessionAppState } from '#gw2/app/types.js';
 import { selectedSkillIdSet } from '#gw2/platform/builds/selected-skills.js';
 import { GW2_STANDARD_BOONS } from '#gw2/platform/combat/boons.js';
-import type { Skill, SkillId } from '#gw2/platform/engine/skills/types.js';
+import type { Skill, SkillId } from '#gw2/platform/skills/types.js';
 import { THORNS_MAX_STACKS } from '#gw2/platform/equipment/relics/rules/thorns.js';
 import { isGw2WeaponSkillEquipped } from '#gw2/platform/equipment/weapons/skill-matcher.js';
 import {

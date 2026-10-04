@@ -1,8 +1,8 @@
 // Name packets independently for patch deletion while preserving their shared attribution.
 /** Core Engineer Elixir Gun skill mechanics. */
-import { impactEffects } from '#gw2/platform/engine/effects/authoring.js';
+import { impactEffects } from '#gw2/platform/effects/authoring.js';
 import { ENGINEER_SKILL_IDS as ID } from '#gw2/professions/engineer/data/ids.js';
-import type { Skill } from '#gw2/platform/engine/skills/types.js';
+import type { Skill } from '#gw2/platform/skills/types.js';
 
 /** Defines the Elixir Gun equip action and packet-level palette mechanics, including fields and finishers. */
 export const ENGINEER_ELIXIR_GUN_SKILL_MECHANICS: Readonly<Record<string, Partial<Skill>>> = Object.freeze({

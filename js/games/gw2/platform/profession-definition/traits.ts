@@ -5,11 +5,8 @@ import type {
   Gw2CommonAttributeResult
 } from '#gw2/platform/builds/types.js';
 import type { Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
-import type { BalanceProfile, Skill, SkillId } from '#gw2/platform/engine/skills/types.js';
-import {
-  balanceProfileNumber,
-  requireBalanceProfileFromContext
-} from '#gw2/platform/engine/skills/balance-profiles.js';
+import type { BalanceProfile, Skill, SkillId } from '#gw2/platform/skills/types.js';
+import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import type { NativeModuleHooks } from '#gw2/platform/profession-definition/module-types.js';
 import type { RechargeRule, TraitTrigger } from '#gw2/platform/profession-definition/trigger-rules.js';
 import type { ProfessionBalanceContext } from '#gw2/platform/profession-presentation/balance-context.js';

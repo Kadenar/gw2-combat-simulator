@@ -1,4 +1,4 @@
-import { skillFlipVisible } from '#gw2/platform/engine/skills/skill-flips.js';
+import { skillFlipVisible } from '#gw2/platform/execution/skill-flips.js';
 import { isBuildSkillAvailable } from '#gw2/platform/builds/skill-eligibility.js';
 import type { SimulationTooltip } from '#gw2/app/shared/simulation-tooltip.js';
 import {
@@ -10,7 +10,7 @@ import {
 import { activeSpecialization, palettePlanningState, paletteProfessionState } from '#gw2/app/rotation/context.js';
 import { ACTION_ICONS, PLACEHOLDER_ICON } from '#gw2/app/shared/icons.js';
 import { resultCombatReferenceMs } from '#gw2/app/shared/result-clock.js';
-import { summonQuicknessCastTimeMs } from '#gw2/platform/skills/timing.js';
+import { summonQuicknessCastTimeMs } from '#gw2/platform/execution/cast-timing.js';
 import { ammoDisplayView, type AmmoDisplayView } from '#ui/rotation/ammo-display.js';
 
 import { paletteSkillResourceView, type PaletteResourceView } from '#gw2/app/rotation/palette/resource-view.js';
@@ -26,11 +26,11 @@ import type {
 import type { AmmoState } from '#gw2/platform/execution/types.js';
 import type { RotationProfessionState } from '#gw2/app/rotation/context.js';
 
-import type { Skill, SkillId } from '#gw2/platform/engine/skills/types.js';
+import type { Skill, SkillId } from '#gw2/platform/skills/types.js';
 
 import type { ProfessionAppContract } from '#gw2/app/types.js';
 import { defaultWeaponSkillMatchesSet } from '#gw2/platform/equipment/weapons/skill-matcher.js';
-import { autoattackChainSkillAvailable } from '#gw2/platform/skills/autoattack-chain-controller.js';
+import { autoattackChainSkillAvailable } from '#gw2/platform/execution/autoattack-chains.js';
 
 /** Owns the normalized palette declaration consumed by this feature's views. */
 interface NormalizedPaletteGroup extends Omit<ProfessionPaletteGroup, 'skillEntries'> {

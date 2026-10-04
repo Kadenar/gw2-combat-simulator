@@ -1,4 +1,4 @@
-import type { SkillId } from '#gw2/platform/engine/skills/types.js';
+import type { SkillId } from '#gw2/platform/skills/types.js';
 /**
  * Owns elemental attack identities and their immutable runtime profile selection.
  * Scheduler lifecycle and packet execution live in `runtime.ts`.

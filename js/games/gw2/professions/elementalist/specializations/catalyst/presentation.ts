@@ -4,11 +4,8 @@ import type {
   ProfessionAttributePreviewPreparation
 } from '#gw2/platform/profession-presentation/attribute-preview.js';
 import { createPreviewControls } from '#gw2/professions/shared/attribute-preview.js';
-import { readProfessionSpecializationState } from '#gw2/platform/engine/profession/state.js';
-import {
-  balanceProfileNumber,
-  requireBalanceProfileFromContext
-} from '#gw2/platform/engine/skills/balance-profiles.js';
+import { readProfessionSpecializationState } from '#gw2/platform/profession-definition/state.js';
+import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import type {
   ProfessionEffectPresentation,
   ProfessionResourceView,

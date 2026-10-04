@@ -2,10 +2,10 @@
  * Owns Reaper Shroud entry, exit, and weapon skill fragments.
  * Shroud attribute modifiers live in `modifiers.ts`; shroud state and reactions live in `hooks.ts` and `mechanics/shroud-effects.ts`.
  */
-import { impactEffects } from '#gw2/platform/engine/effects/authoring.js';
+import { impactEffects } from '#gw2/platform/effects/authoring.js';
 import { NECROMANCER_SKILL_IDS as ID } from '#gw2/professions/necromancer/data/ids.js';
 import { REAPER_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/necromancer/specializations/reaper/profiles.js';
-import type { Skill } from '#gw2/platform/engine/skills/types.js';
+import type { Skill } from '#gw2/platform/skills/types.js';
 
 /** Supplies Reaper Shroud fragments to specialization composition. */
 export const REAPER_SHROUD_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({

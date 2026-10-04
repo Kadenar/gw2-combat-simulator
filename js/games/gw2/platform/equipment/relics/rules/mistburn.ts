@@ -3,7 +3,7 @@ import { RELIC_IDS } from '#gw2/platform/equipment/relics/data.js';
 import { isInternalCooldownReady } from '#gw2/platform/combat/procs.js';
 import { isGw2PlayerActorEvent } from '#gw2/platform/combat/state/event-ownership.js';
 import { defineRelic } from '#gw2/platform/equipment/relics/rules/shared.js';
-import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
+import type { SimulationEvent } from '#gw2/platform/events/events.js';
 import type { Gw2RelicState } from '#gw2/platform/equipment/relics/types.js';
 
 /** Both phases claim their own ICD; only actual boon applications produce authoritative grants. */

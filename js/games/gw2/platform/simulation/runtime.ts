@@ -1,3 +1,5 @@
+import { applySideEffect } from '#gw2/platform/effects/action-dispatch.js';
+import { EffectRecorder } from '#gw2/platform/results/effect-report.js';
 import { prepareSelectedSkillLoadout } from '#gw2/platform/builds/selected-skills.js';
 import { createGw2CombatQuery } from '#gw2/platform/combat/query/combat-query.js';
 import { createRuntimeEndurance, createRuntimeResources } from '#gw2/platform/combat/resources/runtime-resources.js';
@@ -5,15 +7,15 @@ import { targetHealthLoss } from '#gw2/platform/combat/state/target-health.js';
 import { canonicalTargetConditionName } from '#gw2/platform/combat/state/targets.js';
 import { normalizeSelectedTraitIds } from '#gw2/platform/combat/state/traits.js';
 import { permanentComboFieldAssumption } from '#gw2/platform/combos/permanent-field-assumption.js';
-import { assertSimulationEvent } from '#gw2/platform/engine/events/events.js';
-import { readProfessionCoreState } from '#gw2/platform/engine/profession/state.js';
+import { assertSimulationEvent } from '#gw2/platform/events/events.js';
+import { readProfessionCoreState } from '#gw2/platform/profession-definition/state.js';
 import {
   armSkillFlip,
   consumeSkillFlip,
   expireSkillFlip,
   type SkillFlipWindows
-} from '#gw2/platform/engine/skills/skill-flips.js';
-import type { SkillId } from '#gw2/platform/engine/skills/types.js';
+} from '#gw2/platform/execution/skill-flips.js';
+import type { SkillId } from '#gw2/platform/skills/types.js';
 import { normalizePrecastRelics } from '#gw2/platform/equipment/relics/catalog.js';
 import { createRelicRuntime } from '#gw2/platform/equipment/relics/runtime.js';
 import { createCastExecution } from '#gw2/platform/execution/cast-execution.js';
@@ -21,34 +23,33 @@ import { createCooldownController } from '#gw2/platform/execution/cooldowns.js';
 import { createMaximumAmmoContext } from '#gw2/platform/profession-definition/runtime-context.js';
 import { createGw2ConditionResolution } from '#gw2/platform/resolver/condition-resolution.js';
 import { createEffectDelivery } from '#gw2/platform/resolver/effect-delivery.js';
-import { GW2_RESOLVER_PHASE } from '#gw2/platform/resolver/event-loop.js';
+import { GW2_RESOLVER_PHASE } from '#gw2/platform/resolver/event-phase.js';
 import { HandlerRegistry } from '#gw2/platform/resolver/handler-registry.js';
 import { createGw2ResolverReactionRegistry } from '#gw2/platform/resolver/reaction-registry.js';
 import { createGw2ResolverRuntimeState } from '#gw2/platform/resolver/runtime-state.js';
 import type { Gw2ResolverEvent, Gw2ResolverReactionRegistry } from '#gw2/platform/resolver/types.js';
 import { captureRuntimeEffects } from '#gw2/platform/results/observe-effects.js';
 import { projectRuntimeResult } from '#gw2/platform/results/project-runtime.js';
-import { createExecutedFacts } from '#gw2/platform/results/executed-facts.js';
+import { createExecutedFacts } from '#gw2/platform/combat/history/executed-facts.js';
 import { createMechanicContext, createMechanicQueryContext } from '#gw2/platform/simulation/mechanic-context.js';
-import { createCombatExecution } from '#gw2/platform/simulation/combat-execution.js';
+import { createCombatExecution } from '#gw2/platform/simulation/combat-producers.js';
 import { createExecutionCoordinator } from '#gw2/platform/simulation/coordinator.js';
-import { createEffectEmissionService } from '#gw2/platform/simulation/effect-emission.js';
-import { createEffectReactions, type EffectReactionStage } from '#gw2/platform/simulation/effect-reactions.js';
+import { createEffectEmissionService } from '#gw2/platform/effects/emission.js';
+import { createEffectReactions } from '#gw2/platform/resolver/effect-reactions.js';
+import { type EffectReactionStage } from '#gw2/platform/effects/reactions.js';
 import type {
   DamageRuntimeOptions,
   DamageRuntimeResult,
-  RuntimeDriverContext,
   RuntimeExecution,
   RuntimeOptions
-} from '#gw2/platform/simulation/execution.js';
+} from '#gw2/platform/simulation/run-contract.js';
+import type { RuntimeDriverContext } from '#gw2/platform/execution/driver-contract.js';
 import { createInternalWorkFactory } from '#gw2/platform/simulation/internal-work.js';
-import type {
-  FlipWindowOptions,
-  Gw2Runtime,
-  RuntimeCast,
-  RuntimeWork
-} from '#gw2/platform/simulation/runtime-state.js';
-import type { Gw2SimulationResult, Gw2SimulationScore } from '#gw2/platform/simulation/types.js';
+import type { FlipWindowOptions } from '#gw2/platform/execution/skill-flips.js';
+import type { Gw2Runtime } from '#gw2/platform/simulation/runtime-state.js';
+import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
+import type { RuntimeWork } from '#gw2/platform/simulation/work-contract.js';
+import type { Gw2SimulationResult, Gw2SimulationScore } from '#gw2/platform/results/types.js';
 import { canonicalTime, EPSILON } from '#kernel/core/clock.js';
 import { normalizeObservationPolicy } from '#kernel/execution/observation.js';
 
@@ -106,6 +107,7 @@ export function runRuntime<T extends object>(
   const coordinator = createExecutionCoordinator(() => runtime);
   const { queue, identify, reactionParent, withCause, enqueueWork } = coordinator;
   const history: Gw2ResolverEvent[] = [];
+  const facts = createExecutedFacts(history);
   const query = createGw2CombatQuery({
     profession,
     config,
@@ -127,7 +129,10 @@ export function runRuntime<T extends object>(
   const makeWork = createInternalWorkFactory<RuntimeWork>(internal);
   // Bind hooks to the same context used by commands. No hook receives a predicted or restored state.
   const contributions = execution.contributions(() => runtime);
-  const effectReactions = createEffectReactions(profession.catalog, profession.sideEffectHandlers);
+  const effectReactions = createEffectReactions<T>(profession.catalog, {
+    hasHandler: (type) => typeof profession.sideEffectHandlers?.[type] === 'function',
+    apply: (context, trigger, action) => applySideEffect(context, trigger, action, profession.sideEffectHandlers)
+  });
   // Skill-owned actions run immediately before the composed profession reactions, through the same acceptance gates.
   function effectReactionContribution(stage: EffectReactionStage) {
     return {
@@ -177,7 +182,8 @@ export function runRuntime<T extends object>(
     config,
     traits: normalizeSelectedTraitIds(config.selectedTraitIds),
     reporting: output !== 'score',
-    recordEffectHistory: output === 'detailed' && collectChartData,
+    // Reporting is an optional observer composed here; resolution never constructs result services.
+    effectRecorder: output === 'detailed' && collectChartData ? new EffectRecorder() : null,
     damageDiagnostics: output === 'damage' || damageDiagnostics,
     horizon: policy.kind === 'absolute' ? canonicalTime(policy.endTimeMs / 1000) : null,
     query,
@@ -209,7 +215,8 @@ export function runRuntime<T extends object>(
     cursor,
     cooldownController,
     history,
-    facts: createExecutedFacts(history),
+    facts: facts.reader,
+    observations: facts.writer,
     steps: [],
     hasExplicitCombatStart: explicitCombat,
     combatStartTime: combatStartTime == null ? null : canonicalTime(combatStartTime),

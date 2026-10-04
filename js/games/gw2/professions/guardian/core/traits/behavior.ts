@@ -9,19 +9,20 @@ import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
 import { isInternalCooldownReady } from '#gw2/platform/combat/procs.js';
 import { grantTimedStacks } from '#gw2/platform/combat/resources/timed-stacks.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
-import { strikeEffectTicks } from '#gw2/platform/engine/effects/authoring.js';
-import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
-import { denySkillCast } from '#gw2/platform/engine/skills/availability.js';
+import { strikeEffectTicks } from '#gw2/platform/effects/authoring.js';
+import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
+import { denySkillCast } from '#gw2/platform/execution/availability.js';
 import {
   balanceProfileNumber,
   effectNumber,
   requireBalanceProfileFromContext,
   requireEffect
-} from '#gw2/platform/engine/skills/balance-profiles.js';
-import type { BalanceProfile, Skill, SkillEffect, SkillId } from '#gw2/platform/engine/skills/types.js';
+} from '#gw2/platform/skills/balance-profiles.js';
+import type { BalanceProfile, Skill, SkillId } from '#gw2/platform/skills/types.js';
+import type { SkillEffect } from '#gw2/platform/effects/types.js';
 import { compileRechargeRules } from '#gw2/platform/profession-definition/trigger-rules.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
-import type { RuntimeCast } from '#gw2/platform/simulation/runtime-state.js';
+import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import { guardianCastCause } from '#gw2/professions/guardian/core/mechanics/event-handlers.js';
 import type { GuardianCoreState } from '#gw2/professions/guardian/core/state.js';
 import { SPECIALIZATIONS } from '#gw2/professions/guardian/data/guardian-api-metadata.js';

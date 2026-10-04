@@ -1,4 +1,4 @@
-import type { Skill } from '#gw2/platform/engine/skills/types.js';
+import type { Skill } from '#gw2/platform/skills/types.js';
 
 /** Synthetic identities stay shared across catalogs and saved rotations. */
 export const SHARED_SKILL_IDS = Object.freeze({ SWAP_WEAPONS: -3, DODGE: -5 });

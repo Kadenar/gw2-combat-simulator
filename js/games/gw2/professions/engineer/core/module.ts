@@ -1,4 +1,4 @@
-import { createPublicStateProjector } from '#gw2/platform/engine/profession/state.js';
+import { createPublicStateProjector } from '#gw2/platform/profession-definition/state.js';
 import { ENGINEER_CORE_PUBLIC_STATE_PROJECTION } from '#gw2/professions/engineer/core/state.js';
 import { engineerCoreTraits } from '#gw2/professions/engineer/core/traits/index.js';
 

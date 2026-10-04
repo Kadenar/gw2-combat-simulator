@@ -1,9 +1,9 @@
-import type { Gw2PlanningStateInput } from '#gw2/platform/simulation/types.js';
-import { snapshotProfessionState } from '#gw2/platform/engine/profession/state.js';
+import type { Gw2PlanningStateInput } from '#gw2/platform/results/types.js';
+import { snapshotProfessionState } from '#gw2/platform/profession-definition/state.js';
 import { canonicalTime } from '#kernel/core/clock.js';
 import { gw2ActivePrimaryWeapon } from '#gw2/platform/equipment/weapons/loadout.js';
 import { MESMER_MIRAGE_AMBUSH_SKILLS } from '#gw2/professions/mesmer/specializations/mirage/skills/index.js';
-import { defineProfessionSpecializationState } from '#gw2/platform/engine/profession/state.js';
+import { defineProfessionSpecializationState } from '#gw2/platform/profession-definition/state.js';
 
 interface MesmerMirageMirror {
   availableAt: number;

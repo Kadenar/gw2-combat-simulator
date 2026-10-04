@@ -4,7 +4,7 @@ import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { remainingTargetHealthBelow } from '#gw2/platform/combat/state/target-health.js';
 import { missesTarget } from '#gw2/platform/combat/state/targets.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
-import { requireBalanceProfileFromContext, requireEffect } from '#gw2/platform/engine/skills/balance-profiles.js';
+import { requireBalanceProfileFromContext, requireEffect } from '#gw2/platform/skills/balance-profiles.js';
 import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
 import { illusionSource } from '#gw2/professions/mesmer/core/mechanics/modifier-queries.js';
 import { mesmerMechanicsFor } from '#gw2/professions/mesmer/core/mechanics/runtime.js';

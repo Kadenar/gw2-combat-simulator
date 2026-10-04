@@ -3,7 +3,7 @@ import { relicIdForName } from '#gw2/platform/equipment/relics/catalog.js';
 /** Brawler relic rules. */
 import { isInternalCooldownReady } from '#gw2/platform/combat/procs.js';
 import { isGw2PlayerActorEvent } from '#gw2/platform/combat/state/event-ownership.js';
-import { gw2EffectExpiresAt } from '#gw2/platform/skills/timing.js';
+import { gw2EffectExpiresAt } from '#gw2/platform/effects/timing.js';
 import { defineRelic, timedStrikeBuff, compareTimelineEvents } from '#gw2/platform/equipment/relics/rules/shared.js';
 
 export const brawler = defineRelic({

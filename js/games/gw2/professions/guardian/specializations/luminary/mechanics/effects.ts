@@ -1,16 +1,16 @@
 import type { MechanicContext } from '#gw2/platform/profession-definition/mechanic-context.js';
 import { isGw2PlayerActorEvent } from '#gw2/platform/combat/state/event-ownership.js';
-import { strikeEffectCoefficient } from '#gw2/platform/engine/effects/authoring.js';
-import { effectFirstAt, scaleCastBoundTiming } from '#gw2/platform/engine/effects/materializer.js';
+import { strikeEffectCoefficient } from '#gw2/platform/effects/authoring.js';
+import { effectFirstAt, scaleCastBoundTiming } from '#gw2/platform/effects/materializer.js';
 import {
   balanceProfileNumber,
   effectNumber,
   requireBalanceProfileFromContext,
   requireEffect
-} from '#gw2/platform/engine/skills/balance-profiles.js';
+} from '#gw2/platform/skills/balance-profiles.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
-import type { RuntimeCast } from '#gw2/platform/simulation/runtime-state.js';
-import { gw2EffectExpiresAt } from '#gw2/platform/skills/timing.js';
+import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
+import { gw2EffectExpiresAt } from '#gw2/platform/effects/timing.js';
 import { buildGuardianStrike, guardianCastCause } from '#gw2/professions/guardian/core/mechanics/event-handlers.js';
 import { emitJusticeIsBlind, justiceIsBlindEligible } from '#gw2/professions/guardian/core/traits/behavior.js';
 import { GUARDIAN_SKILL_IDS as ID } from '#gw2/professions/guardian/data/ids.js';

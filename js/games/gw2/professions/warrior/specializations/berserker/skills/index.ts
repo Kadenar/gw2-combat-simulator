@@ -4,22 +4,22 @@ import {
   effectNumber,
   requireBalanceProfileFromContext,
   requireEffect
-} from '#gw2/platform/engine/skills/balance-profiles.js';
-import { sideEffectAmount } from '#gw2/platform/simulation/side-effects.js';
-import { gw2EffectExpiresAt } from '#gw2/platform/skills/timing.js';
+} from '#gw2/platform/skills/balance-profiles.js';
+import { sideEffectAmount } from '#gw2/platform/effects/action-dispatch.js';
+import { gw2EffectExpiresAt } from '#gw2/platform/effects/timing.js';
 import {
   berserkerState,
   publishBerserk,
   berserkExtensions
 } from '#gw2/professions/warrior/specializations/berserker/state.js';
 import { BERSERKER_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/warrior/specializations/berserker/profiles.js';
-import type { RuntimeProfession } from '#gw2/platform/simulation/runtime-state.js';
+import type { RuntimeProfession } from '#gw2/platform/profession-definition/runtime-contract.js';
 import type { WarriorRuntimeState, WarriorSkill } from '#gw2/professions/warrior/types.js';
 import { eventSkill } from '#gw2/platform/combat/query/runtime-query.js';
 import { MODIFIER_TARGET, type Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
 import { WARRIOR_SKILL_IDS as ID } from '#gw2/professions/warrior/data/ids.js';
-import { impactEffects } from '#gw2/platform/engine/effects/authoring.js';
-import type { Skill } from '#gw2/platform/engine/skills/types.js';
+import { impactEffects } from '#gw2/platform/effects/authoring.js';
+import type { Skill } from '#gw2/platform/skills/types.js';
 export const BERSERKER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
   [ID.SUNDERING_LEAP]: {
     movementSkill: true,

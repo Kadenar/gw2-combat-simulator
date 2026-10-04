@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 
 import { warriorCatalog } from '#gw2/professions/warrior/profession.js';
-import { GW2_ACTION_TICK_MS } from '#gw2/platform/skills/timing.js';
+import { GW2_ACTION_TICK_MS } from '#gw2/platform/combat/action-tick.js';
 
 // Validate authored effect offsets, including generated packets and profiles, before runtime cast scaling.
 test('Warrior authored effect offsets stay on the 40 ms action grid', () => {

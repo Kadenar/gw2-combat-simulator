@@ -1,4 +1,4 @@
-import type { Skill } from '#gw2/platform/engine/skills/types.js';
+import type { Skill } from '#gw2/platform/skills/types.js';
 import type { Gw2WeaponMatcherContext, Gw2WeaponSkillMatcher } from '#gw2/platform/equipment/weapons/types.js';
 import { gw2ConfiguredWeaponSet } from '#gw2/platform/equipment/weapons/loadout.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';

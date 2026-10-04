@@ -4,7 +4,7 @@ import { timedEffectState, type EffectState } from '#gw2/platform/combat/effect-
 
 import type { MesmerRuntimeState } from '#gw2/professions/mesmer/types.js';
 import type { BuffStatePolicy } from '#gw2/platform/combat/effect-state.js';
-import { balanceProfileFromContext, balanceProfileNumber } from '#gw2/platform/engine/skills/balance-profiles.js';
+import { balanceProfileFromContext, balanceProfileNumber } from '#gw2/platform/skills/balance-profiles.js';
 import { MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
 
 /** Effect owners expose the same selected balance values as combat; presentation supplies no stacking rules. */

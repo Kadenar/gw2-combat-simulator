@@ -4,7 +4,7 @@ import { weaponSkills } from '#gw2/app/rotation/palette/model.js';
 import { withActivePatchPreview } from '#gw2/integrations/patches/active-profession.js';
 import { applyBalanceProfilePatch, applySkillPatch } from '#gw2/integrations/patches/authoring/patches.js';
 import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
-import { effectFirstAtMs } from '#gw2/platform/engine/effects/authoring.js';
+import { effectFirstAtMs } from '#gw2/platform/effects/authoring.js';
 import { loadProfessionAppAdapter } from '#gw2/profession-registry.js';
 import {
   addSoulShards,

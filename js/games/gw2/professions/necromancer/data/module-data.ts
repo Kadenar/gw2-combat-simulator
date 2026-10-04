@@ -10,8 +10,8 @@ import { SKILLS, SPECIALIZATIONS } from '#gw2/professions/necromancer/data/necro
 import { NECROMANCER_SKILL_IDS as ID } from '#gw2/professions/necromancer/data/ids.js';
 import { NECROMANCER_SUPPLEMENTAL_SKILLS } from '#gw2/professions/necromancer/data/necromancer-supplemental-skills.js';
 import { TRAITS } from '#gw2/professions/necromancer/data/traits-data.js';
-import type { SkillId } from '#gw2/platform/engine/skills/types.js';
-import type { AutoattackChainOptions } from '#gw2/platform/engine/skills/canonical-skill-catalog.js';
+import type { SkillId } from '#gw2/platform/skills/types.js';
+import type { AutoattackChainOptions } from '#gw2/platform/skills/catalog.js';
 
 const STATIC_REPLACEMENT_PAIRS = new Set<string>([
   `${ID.LIFE_BLAST}:${ID.DHUUMFIRE_BLAST}`,

@@ -1,16 +1,16 @@
-import { finalizeConditionApplications } from '#gw2/platform/resolver/condition-resolution.js';
+import { projectResolvedEvents } from '#gw2/platform/results/resolved-events.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
-import { buildCombatResult, buildSimulationScore } from '#gw2/platform/results/build-result.js';
-import { planningState } from '#gw2/platform/results/end-state.js';
+import { buildCombatResult, buildSimulationScore } from '#gw2/platform/results/combat-result.js';
+import { planningState } from '#gw2/platform/results/planning-state.js';
 import { observeRuntimeEffects } from '#gw2/platform/results/observe-effects.js';
 import { rotationApm } from '#gw2/platform/results/rotation-apm.js';
-import type { DamageRuntimeResult, RuntimeExecution } from '#gw2/platform/simulation/execution.js';
+import type { DamageRuntimeResult, RuntimeExecution } from '#gw2/platform/simulation/run-contract.js';
 import type { Gw2Runtime } from '#gw2/platform/simulation/runtime-state.js';
-import type { Gw2SimulationResult, Gw2SimulationScore } from '#gw2/platform/simulation/types.js';
+import type { Gw2SimulationResult, Gw2SimulationScore } from '#gw2/platform/results/types.js';
 import { EPSILON } from '#kernel/core/clock.js';
 
-import type { SimulationEventBase } from '#gw2/platform/engine/events/events.js';
-import type { RuntimeProfession } from '#gw2/platform/simulation/runtime-state.js';
+import type { SimulationEventBase } from '#gw2/platform/events/events.js';
+import type { RuntimeProfession } from '#gw2/platform/profession-definition/runtime-contract.js';
 
 /** Project settled combat and planning facts without dispatching work or advancing time. */
 export function projectRuntimeResult<T extends object>(
@@ -32,11 +32,10 @@ export function projectRuntimeResult<T extends object>(
   }
 ): DamageRuntimeResult | Gw2SimulationResult | Gw2SimulationScore {
   if (runtime.rotationEndTime == null) throw new Error('Results require settled command execution.');
-  // Finalize condition presentation once at the shared boundary for both reporting modes.
-  finalizeConditionApplications(runtime, runtime.deathTime ?? runtime.horizon!);
+
   if (ownsEffect) {
     return {
-      events: runtime.resolved.filter(ownsEffect),
+      events: projectResolvedEvents(runtime.resolved.filter(ownsEffect), runtime.deathTime ?? runtime.horizon!),
       castSeconds: runtime.steps.length ? (runtime.steps[0].end - runtime.steps[0].start) / 1000 : 0,
       complete: damageCompletionTime!() <= runtime.time + EPSILON
     };
@@ -76,7 +75,8 @@ export function projectRuntimeResult<T extends object>(
   const result = {
     ...buildCombatResult(runtime, score, executed),
     output: 'detailed' as const,
-    steps,
+    // Output consumers may edit their observations without changing accepted command history.
+    steps: structuredClone(steps),
     rotationApm: rotationApm(
       {
         steps,

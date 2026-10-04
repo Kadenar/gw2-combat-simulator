@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { createCanonicalCatalog } from '#gw2/platform/engine/skills/canonical-skill-catalog.js';
+import { createCanonicalCatalog } from '#gw2/platform/skills/catalog.js';
 import { defineTestProfession } from '#tests/helpers/profession.js';
 import { resolvedWeaponStrength } from '#gw2/platform/resolver/weapon-strength-resolution.js';
 import { createSimulationRandom } from '#kernel/core/simulation-random.js';

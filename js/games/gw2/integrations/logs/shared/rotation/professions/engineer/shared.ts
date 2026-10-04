@@ -1,6 +1,6 @@
-import type { SkillId } from '#gw2/platform/engine/skills/types.js';
+import type { SkillId } from '#gw2/platform/skills/types.js';
 import type { EngineerSkill } from '#gw2/professions/engineer/types.js';
-import { quantizeGw2ActionTimingMs, referenceCastTimeMs } from '#gw2/platform/skills/timing.js';
+import { quantizeGw2ActionTimingMs, referenceCastTimeMs } from '#gw2/platform/execution/cast-timing.js';
 import { ENGINEER_SKILL_IDS as ID } from '#gw2/professions/engineer/data/ids.js';
 import { normalizedName as normalized, recordedActionSkill } from '#gw2/integrations/logs/shared/rotation/catalog.js';
 

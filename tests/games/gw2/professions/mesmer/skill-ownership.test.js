@@ -4,7 +4,7 @@ import test from 'node:test';
 import { mesmerCatalog, mesmerProfession } from '#gw2/professions/mesmer/profession.js';
 import { MESMER_SKILL_IDS as ID, MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
 import { simulateMesmer, runMesmer } from '#tests/helpers/mesmer-simulation.js';
-import { applySkillSideEffects } from '#gw2/platform/simulation/side-effects.js';
+import { applySkillSideEffects } from '#gw2/platform/effects/action-dispatch.js';
 import { registerMesmerMechanics } from '#gw2/professions/mesmer/core/mechanics/runtime.js';
 import { mesmerCoreHooks } from '#gw2/professions/mesmer/core/hooks.js';
 import { troubadourHooks } from '#gw2/professions/mesmer/specializations/troubadour/hooks.js';

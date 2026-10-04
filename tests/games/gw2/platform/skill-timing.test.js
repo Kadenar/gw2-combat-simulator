@@ -1,10 +1,10 @@
 ﻿import assert from 'node:assert/strict';
 import test from 'node:test';
-import { createCanonicalCatalog } from '#gw2/platform/engine/skills/canonical-skill-catalog.js';
+import { createCanonicalCatalog } from '#gw2/platform/skills/catalog.js';
 import { defineTestProfession } from '#tests/helpers/profession.js';
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
-import { strikeTimeline, conditionTimeline, impactEffects } from '#gw2/platform/engine/effects/authoring.js';
-import { castReachedFullDuration, castWasInterrupted } from '#gw2/platform/skills/timing.js';
+import { strikeTimeline, conditionTimeline, impactEffects } from '#gw2/platform/effects/authoring.js';
+import { castReachedFullDuration, castWasInterrupted } from '#gw2/platform/execution/cast-timing.js';
 import { EPSILON } from '#kernel/core/clock.js';
 
 // Grouped authoring must retain the ordinary scheduler's ordering, ownership, and recipient contracts.

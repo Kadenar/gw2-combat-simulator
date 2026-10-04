@@ -1,4 +1,4 @@
-import { flattenProfessionState } from '#gw2/platform/engine/profession/state.js';
+import { flattenProfessionState } from '#gw2/platform/profession-definition/state.js';
 import assert from 'node:assert/strict';
 import { getNativeCatalogAssembly } from '#gw2/platform/profession-definition/assemble-module-catalog.js';
 import { GW2_RESOLVER_STAGES } from '#gw2/platform/resolver/reaction-registry.js';

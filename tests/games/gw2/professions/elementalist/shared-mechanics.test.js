@@ -2,7 +2,7 @@ import { captureEffectEmissions } from '#tests/helpers/effect-emission.js';
 import { skillBreakdownRows } from '#gw2/app/results/skill-breakdown.js';
 import { rotationSelectedSlotSkills } from '#gw2/app/rotation/palette/model.js';
 import { compileProfessionRules } from '#gw2/platform/profession-definition/trigger-rules.js';
-import { applySkillSideEffects } from '#gw2/platform/simulation/side-effects.js';
+import { applySkillSideEffects } from '#gw2/platform/effects/action-dispatch.js';
 import { elementalistAppAdapter } from '#gw2/professions/elementalist/app/app-definition.js';
 import { targetAttunement } from '#gw2/professions/elementalist/core/mechanics/attunements.js';
 import { elementalistPistolSideEffects } from '#gw2/professions/elementalist/core/mechanics/pistol-bullets.js';

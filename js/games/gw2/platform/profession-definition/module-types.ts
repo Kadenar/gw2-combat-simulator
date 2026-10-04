@@ -1,14 +1,9 @@
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import type { Gw2Build, ProfessionBuildDefinition } from '#gw2/platform/builds/types.js';
-import type { ProfessionFamilyContract, ProfessionModifierDefinition } from '#gw2/platform/engine/profession/types.js';
-import type { AutoattackChainOptions } from '#gw2/platform/engine/skills/canonical-skill-catalog.js';
-import type {
-  BalanceProfile,
-  CanonicalCatalog,
-  CatalogEntity,
-  Skill,
-  SkillId
-} from '#gw2/platform/engine/skills/types.js';
+import type { ProfessionFamilyContract } from '#gw2/platform/profession-definition/family-contract.js';
+import type { ProfessionModifierDefinition } from '#gw2/platform/profession-definition/types.js';
+import type { AutoattackChainOptions } from '#gw2/platform/skills/catalog.js';
+import type { BalanceProfile, CanonicalCatalog, CatalogEntity, Skill, SkillId } from '#gw2/platform/skills/types.js';
 import type { Gw2WeaponSkillMatcher } from '#gw2/platform/equipment/weapons/types.js';
 
 import type { Gw2TraitBuildAttributeCalculator } from '#gw2/platform/builds/types.js';
@@ -17,9 +12,12 @@ import type { ProfessionConfig } from '#gw2/platform/execution/types.js';
 import type { TraitDefinition } from '#gw2/platform/profession-definition/traits.js';
 import type { Gw2HitResolutionContext } from '#gw2/platform/resolver/hit-resolution.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
-import type { ProfessionRuntimeOptions, RuntimeProfession } from '#gw2/platform/simulation/runtime-state.js';
-import type { Gw2ProfessionContract } from '#gw2/platform/simulation/types.js';
-import type { Gw2AutoattackChainOptions } from '#gw2/platform/skills/autoattack-chain-controller.js';
+import type {
+  ProfessionRuntimeOptions,
+  RuntimeProfession
+} from '#gw2/platform/profession-definition/runtime-contract.js';
+import type { Gw2ProfessionContract } from '#gw2/platform/profession-definition/family-contract.js';
+import type { Gw2AutoattackChainOptions } from '#gw2/platform/execution/autoattack-chains.js';
 
 export interface NativeModuleCatalogData<TSkill extends Skill = Skill> {
   readonly generatedSkills?: readonly TSkill[];

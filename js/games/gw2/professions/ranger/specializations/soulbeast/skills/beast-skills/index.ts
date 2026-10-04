@@ -2,7 +2,7 @@
  * Composes the disjoint Soulbeast family and archetype Beast-skill catalogs.
  * Individual family fragments remain in the sibling files.
  */
-import type { Skill } from '#gw2/platform/engine/skills/types.js';
+import type { Skill } from '#gw2/platform/skills/types.js';
 import { SOULBEAST_FANGED_IBOGA_BEAST_SKILL_MECHANICS } from '#gw2/professions/ranger/specializations/soulbeast/skills/beast-skills/fanged-iboga.js';
 import { SOULBEAST_SMOKESCALE_BEAST_SKILL_MECHANICS } from '#gw2/professions/ranger/specializations/soulbeast/skills/beast-skills/smokescale.js';
 import { SOULBEAST_FELINE_BEAST_SKILL_MECHANICS } from '#gw2/professions/ranger/specializations/soulbeast/skills/beast-skills/feline.js';

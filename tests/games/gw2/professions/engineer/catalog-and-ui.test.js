@@ -1,4 +1,4 @@
-import { flattenProfessionState } from '#gw2/platform/engine/profession/state.js';
+import { flattenProfessionState } from '#gw2/platform/profession-definition/state.js';
 import { paletteSkillView } from '#gw2/app/rotation/palette/model.js';
 import { renderPalette } from '#gw2/app/rotation/palette/view.js';
 import { withActivePatchPreview } from '#gw2/integrations/patches/active-profession.js';
@@ -7,8 +7,8 @@ import {
   applySkillPatch,
   validatePatchPreview
 } from '#gw2/integrations/patches/authoring/patches.js';
-import { conditionEffectTicks, strikeEffectCoefficient } from '#gw2/platform/engine/effects/authoring.js';
-import { applySkillSideEffects } from '#gw2/platform/simulation/side-effects.js';
+import { conditionEffectTicks, strikeEffectCoefficient } from '#gw2/platform/effects/authoring.js';
+import { applySkillSideEffects } from '#gw2/platform/effects/action-dispatch.js';
 import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
 import { loadProfession, loadProfessionAppAdapter } from '#gw2/profession-registry.js';
 import {

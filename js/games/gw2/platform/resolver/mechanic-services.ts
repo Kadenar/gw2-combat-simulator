@@ -1,6 +1,6 @@
 import { reviseEffectState } from '#gw2/platform/combat/effect-revisions.js';
 import type { Gw2TimedBuffApplication } from '#gw2/platform/combat/boons.js';
-import type { SkillId } from '#gw2/platform/engine/skills/types.js';
+import type { SkillId } from '#gw2/platform/skills/types.js';
 import type { Gw2ResolverRuntime } from '#gw2/platform/resolver/runtime-state.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import type { Gw2ResolvedStats } from '#gw2/platform/combat/query/combat-query.js';

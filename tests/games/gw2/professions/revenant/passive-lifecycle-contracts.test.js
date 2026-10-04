@@ -18,7 +18,7 @@ import { revenantCoreModifiers } from '#gw2/professions/revenant/core/modifiers.
 import { createObservedProfessionSimulator } from '#tests/helpers/observed-runtime.js';
 import { revenantHit, runRevenant } from '#tests/helpers/revenant-simulation.js';
 import { gw2BoonDurationMultiplier } from '#gw2/platform/combat/boons.js';
-import { gw2ResolverBoonDuration } from '#gw2/platform/resolver/boons.js';
+import { gw2ResolverBoonDuration } from '#gw2/platform/resolver/boon-duration.js';
 
 const base = {
   selectedLegends: [LEGEND.ASSASSIN, LEGEND.DRAGON],

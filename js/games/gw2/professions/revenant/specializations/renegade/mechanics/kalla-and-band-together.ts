@@ -2,7 +2,7 @@ import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mech
 import type { RenegadeState } from '#gw2/professions/revenant/specializations/renegade/state.js';
 import { RENEGADE_ENHANCED_SKILL_BY_ID } from '#gw2/professions/revenant/data/renegade-enhanced-skills.js';
 import { renegadeState } from '#gw2/professions/revenant/specializations/renegade/state.js';
-import type { SkillId } from '#gw2/platform/engine/skills/types.js';
+import type { SkillId } from '#gw2/platform/skills/types.js';
 import type { RevenantRuntime } from '#gw2/professions/revenant/core/events.js';
 
 /** Returns whether the one-use Band Together enhancement is active at `at`. */

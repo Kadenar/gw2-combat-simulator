@@ -1,8 +1,8 @@
 import {
   defineProfessionSpecializationState,
   definePublicStateDefaults
-} from '#gw2/platform/engine/profession/state.js';
-import { requireBalanceNumber } from '#gw2/platform/engine/skills/canonical-skill-catalog.js';
+} from '#gw2/platform/profession-definition/state.js';
+import { requireBalanceNumber } from '#gw2/platform/effects/validation.js';
 import type { ElementalistConfig } from '#gw2/professions/elementalist/build/types.js';
 import {
   CATALYST_BALANCE_PROFILES,

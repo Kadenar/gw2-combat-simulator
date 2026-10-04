@@ -1,14 +1,12 @@
 import { buildMesmerPacket, mesmerPacketOwner } from '#gw2/professions/mesmer/core/mechanics/packets.js';
 import { EPSILON } from '#kernel/core/clock.js';
 /** Owns Signet of Illusions passive scheduling and Core Mesmer signet mechanic callbacks. */
-import {
-  requireBalanceProfileFromContext,
-  balanceProfileNumber
-} from '#gw2/platform/engine/skills/balance-profiles.js';
+import { requireBalanceProfileFromContext, balanceProfileNumber } from '#gw2/platform/skills/balance-profiles.js';
 import { selectedSkillIdSet } from '#gw2/platform/builds/selected-skills.js';
 import { MESMER_SKILL_IDS as ID } from '#gw2/professions/mesmer/data/ids.js';
 import type { MesmerRuntime } from '#gw2/professions/mesmer/types.js';
-import { applySideEffect, type ActionContext } from '#gw2/platform/simulation/side-effects.js';
+import { applySideEffect } from '#gw2/platform/effects/action-dispatch.js';
+import { type ActionContext } from '#gw2/platform/effects/actions.js';
 import { mesmerMechanicsFor } from '#gw2/professions/mesmer/core/mechanics/runtime.js';
 import { MESMER_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/mesmer/core/profiles.js';
 

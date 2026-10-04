@@ -1,6 +1,6 @@
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
-import { requireBalanceProfileFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
-import type { BalanceProfile, CanonicalCatalog, Skill, SkillId } from '#gw2/platform/engine/skills/types.js';
+import { requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import type { BalanceProfile, CanonicalCatalog, Skill, SkillId } from '#gw2/platform/skills/types.js';
 
 /** Skill identity selection depends only on selected traits, before any cast or recharge state is consulted. */
 export interface TraitSelectionContext {

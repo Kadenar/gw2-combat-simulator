@@ -2,13 +2,13 @@ import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mech
 import { buildMesmerPacket, mesmerPacketOwner } from '#gw2/professions/mesmer/core/mechanics/packets.js';
 import type { MesmerRuntime } from '#gw2/professions/mesmer/types.js';
 import { chronomancerState } from '#gw2/professions/mesmer/specializations/chronomancer/state.js';
-import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
-import { replaceAutoattackChains } from '#gw2/platform/skills/autoattack-chain-controller.js';
+import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
+import { replaceAutoattackChains } from '#gw2/platform/execution/autoattack-chains.js';
 /**
  * Chronomancer-owned Continuum Split checkpoints and restoration.
  */
 import type { AvailabilityResult, CooldownController } from '#gw2/platform/execution/types.js';
-import type { SkillId } from '#gw2/platform/engine/skills/types.js';
+import type { SkillId } from '#gw2/platform/skills/types.js';
 import type { MesmerRefreshAmmo } from '#gw2/professions/mesmer/types.js';
 import type { MesmerResourceSpendDetails } from '#gw2/professions/mesmer/core/mechanics/resource-types.js';
 import type { MesmerShatterResolution } from '#gw2/professions/mesmer/core/mechanics/shatter-types.js';

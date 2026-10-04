@@ -1,4 +1,4 @@
-import { createExecutedFacts } from '#gw2/platform/results/executed-facts.js';
+import { createExecutedFacts } from '#gw2/platform/combat/history/executed-facts.js';
 import { skillBreakdownRows } from '#gw2/app/results/skill-breakdown.js';
 import { createGw2TimelineIndex } from '#gw2/platform/combat/query/timeline-index.js';
 import { ENGINEER_SKILL_IDS as ID, ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
@@ -166,7 +166,9 @@ test('mech Quickness uses its own boon audience and retains copied applications'
       setReadyAt: (id, at) => context.cooldowns.set(id, at)
     }
   };
-  context.facts = createExecutedFacts(context.history);
+  const facts = createExecutedFacts(context.history);
+  context.facts = facts.reader;
+  context.observations = facts.writer;
   assert.equal(engineerMechHasQuickness(context, 0), false);
   context.config.selectedSkillIds = [63111];
   assert.equal(engineerMechHasQuickness(context, 0), true);

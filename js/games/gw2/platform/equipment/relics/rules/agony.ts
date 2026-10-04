@@ -1,5 +1,5 @@
 import { isInternalCooldownReady } from '#gw2/platform/combat/procs.js';
-import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
+import type { SimulationEvent } from '#gw2/platform/events/events.js';
 import { RELIC_BY_ID, RELIC_IDS } from '#gw2/platform/equipment/relics/data.js';
 import { defineRelic } from '#gw2/platform/equipment/relics/rules/shared.js';
 import type { Gw2RelicContext, Gw2RelicState } from '#gw2/platform/equipment/relics/types.js';

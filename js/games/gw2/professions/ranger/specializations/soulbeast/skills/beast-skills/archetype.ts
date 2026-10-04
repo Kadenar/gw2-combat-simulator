@@ -3,8 +3,8 @@
  * Pet identity and family membership remain in `data/ranger-pet-data.ts`.
  */
 import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
-import { impactEffects } from '#gw2/platform/engine/effects/authoring.js';
-import type { Skill } from '#gw2/platform/engine/skills/types.js';
+import { impactEffects } from '#gw2/platform/effects/authoring.js';
+import type { Skill } from '#gw2/platform/skills/types.js';
 
 // ponytail: approximate channel pulses on the nominal cast timeline until merged-skill measurements are available.
 const PRIMAL_CRY_PULSES_MS = [160, 520, 840];

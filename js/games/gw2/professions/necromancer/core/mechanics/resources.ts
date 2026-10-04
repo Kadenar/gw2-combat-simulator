@@ -1,10 +1,7 @@
 import { resourceDepletionAt } from '#gw2/platform/combat/resources/clock.js';
-import {
-  balanceProfileNumber,
-  requireBalanceProfileFromContext
-} from '#gw2/platform/engine/skills/balance-profiles.js';
+import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import type { ResourcePolicy } from '#gw2/platform/combat/resources/resource-policy.js';
-import { gw2CooldownReadyAt } from '#gw2/platform/skills/timing.js';
+import { gw2CooldownReadyAt } from '#gw2/platform/execution/cast-timing.js';
 import { NECROMANCER_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/necromancer/core/profiles.js';
 import { nextNecromancerPassiveGain } from '#gw2/professions/necromancer/core/mechanics/passives.js';
 import type { NecromancerRuntime } from '#gw2/professions/necromancer/types.js';

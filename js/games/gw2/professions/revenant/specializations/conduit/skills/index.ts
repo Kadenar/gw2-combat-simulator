@@ -2,7 +2,7 @@
 import { CONDUIT_COSMIC_WISDOM_SKILL_MECHANICS } from '#gw2/professions/revenant/specializations/conduit/skills/cosmic-wisdom-skills.js';
 import { CONDUIT_ENTITY_SKILL_MECHANICS } from '#gw2/professions/revenant/specializations/conduit/skills/entity-skills.js';
 import { CONDUIT_RELEASE_POTENTIAL_SKILL_MECHANICS } from '#gw2/professions/revenant/specializations/conduit/skills/release-potential-skills.js';
-import type { Skill } from '#gw2/platform/engine/skills/types.js';
+import type { Skill } from '#gw2/platform/skills/types.js';
 
 /** Preserves one public aggregate while named Conduit families own each fragment. */
 export const CONDUIT_BASE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({

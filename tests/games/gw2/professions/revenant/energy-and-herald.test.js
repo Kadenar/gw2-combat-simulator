@@ -1,6 +1,6 @@
 import { planningFixture } from '#tests/helpers/observed-runtime.js';
 import { revenantCatalog } from '#gw2/professions/revenant/catalog.js';
-import { armSkillFlip } from '#gw2/platform/engine/skills/skill-flips.js';
+import { armSkillFlip } from '#gw2/platform/execution/skill-flips.js';
 import assert from 'node:assert/strict';
 import { revenantAppAdapter } from '#gw2/professions/revenant/app/app-definition.js';
 import { readFile } from 'node:fs/promises';

@@ -3,11 +3,8 @@ import { professionStaticRulesApplied } from '#gw2/platform/builds/attribute-pro
 import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import type { Gw2Stats } from '#gw2/platform/combat/types.js';
-import {
-  balanceProfileNumber,
-  requireBalanceProfileFromContext
-} from '#gw2/platform/engine/skills/balance-profiles.js';
-import type { RuntimeCast } from '#gw2/platform/simulation/runtime-state.js';
+import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import { grantWarriorAdrenaline } from '#gw2/professions/warrior/core/mechanics/adrenaline.js';
 import { WARRIOR_SKILL_IDS as ID, WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/professions/warrior/data/ids.js';
 import { gainMotivation } from '#gw2/professions/warrior/specializations/paragon/mechanics/refrains.js';

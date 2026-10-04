@@ -2,9 +2,9 @@
  * Owns Amalgam offensive and defensive protocol skill fragments across mechanic slots.
  * Evolved-state actions and persistent morph behavior live in their named owners.
  */
-import { impactEffects } from '#gw2/platform/engine/effects/authoring.js';
+import { impactEffects } from '#gw2/platform/effects/authoring.js';
 import { ENGINEER_SKILL_IDS as ID } from '#gw2/professions/engineer/data/ids.js';
-import type { Skill, SkillId } from '#gw2/platform/engine/skills/types.js';
+import type { Skill, SkillId } from '#gw2/platform/skills/types.js';
 
 const DEMOLISH_CAST_TIME_MS = 1000 + 560;
 const DEMOLISH_RECHARGE_OFFSET_MS = 1000;

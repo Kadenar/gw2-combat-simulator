@@ -15,7 +15,7 @@ import {
 import { CONDUIT_BALANCE_PROFILE_IDS } from '#gw2/professions/revenant/specializations/conduit/profiles.js';
 import { createObservedProfessionSimulator, observedRuntime } from '#tests/helpers/observed-runtime.js';
 import { runRevenant } from '#tests/helpers/revenant-simulation.js';
-import { gw2CooldownReadyAt } from '#gw2/platform/skills/timing.js';
+import { gw2CooldownReadyAt } from '#gw2/platform/execution/cast-timing.js';
 
 const revenantModifiers = Object.freeze({
   modifyAttributes(context, value) {

@@ -1,4 +1,4 @@
-import type { BalanceProfile, CanonicalCatalog, SkillId } from '#gw2/platform/engine/skills/types.js';
+import type { BalanceProfile, CanonicalCatalog, SkillId } from '#gw2/platform/skills/types.js';
 
 /** Validate saved/API rates as fractions; absent entries inherit current balance data, including patch previews. */
 export function normalizeProcRateOverrides(value: unknown): Record<string, number> {

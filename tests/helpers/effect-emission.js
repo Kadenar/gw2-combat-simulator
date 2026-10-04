@@ -1,4 +1,4 @@
-import { createEffectEmissionService } from '#gw2/platform/simulation/effect-emission.js';
+import { createEffectEmissionService } from '#gw2/platform/effects/emission.js';
 
 /** Isolate mechanic payload decisions while using the real shared profile expansion and submission contract. */
 export function captureEffectEmissions({ now = () => 0, submit, announce } = {}) {

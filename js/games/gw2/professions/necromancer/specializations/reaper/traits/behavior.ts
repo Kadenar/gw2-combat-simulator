@@ -5,8 +5,9 @@ import {
   effectNumber,
   requireBalanceProfileFromContext,
   requireEffect
-} from '#gw2/platform/engine/skills/balance-profiles.js';
-import type { BalanceProfile, ConditionEffect } from '#gw2/platform/engine/skills/types.js';
+} from '#gw2/platform/skills/balance-profiles.js';
+import type { BalanceProfile } from '#gw2/platform/skills/types.js';
+import type { ConditionEffect } from '#gw2/platform/effects/types.js';
 import { criticalProcHandler } from '#gw2/platform/profession-definition/mechanics.js';
 import type { NativeResolvedDamageDetails } from '#gw2/platform/profession-definition/module-types.js';
 import { buildResolverCondition } from '#gw2/platform/resolver/packets.js';

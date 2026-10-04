@@ -2,7 +2,7 @@ import { captureEffectEmissions } from '#tests/helpers/effect-emission.js';
 import { withProfile } from '#tests/helpers/catalog-overrides.js';
 import { projectObservedState } from '#tests/helpers/observed-runtime.js';
 import { thiefProfession } from '#gw2/professions/thief/profession.js';
-import { snapshotProfessionState } from '#gw2/platform/engine/profession/state.js';
+import { snapshotProfessionState } from '#gw2/platform/profession-definition/state.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { thiefCatalog } from '#gw2/professions/thief/profession.js';

@@ -1,8 +1,8 @@
 /** Canonical Core necromancer skill fragments grouped by their GW2 owner. */
-import { conditionTimeline, impactEffects, strikeTimeline } from '#gw2/platform/engine/effects/authoring.js';
+import { conditionTimeline, impactEffects, strikeTimeline } from '#gw2/platform/effects/authoring.js';
 import { NECROMANCER_SKILL_IDS as ID } from '#gw2/professions/necromancer/data/ids.js';
 import { NECROMANCER_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/necromancer/core/profiles.js';
-import type { Skill } from '#gw2/platform/engine/skills/types.js';
+import type { Skill } from '#gw2/platform/skills/types.js';
 
 export const NECROMANCER_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
   [ID.LIFE_BLAST]: {

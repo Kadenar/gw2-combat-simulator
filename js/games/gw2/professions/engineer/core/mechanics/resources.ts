@@ -1,8 +1,5 @@
-import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
-import {
-  balanceProfileNumber,
-  requireBalanceProfileFromContext
-} from '#gw2/platform/engine/skills/balance-profiles.js';
+import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
+import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import { adrenalImplantEnduranceBonus } from '#gw2/professions/engineer/core/traits/toolbelt.js';
 
 import type { EndurancePolicy } from '#gw2/platform/combat/resources/endurance-policy.js';

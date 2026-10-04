@@ -1,10 +1,10 @@
 import { EPSILON } from '#kernel/core/clock.js';
-import { castRelativeEffectTimingScale } from '#gw2/platform/skills/timing.js';
+import { castRelativeEffectTimingScale } from '#gw2/platform/execution/cast-timing.js';
 import { THIEF_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/thief/core/profiles.js';
 /** Canonical Core thief skill fragments grouped by their GW2 owner. */
-import { impactEffects } from '#gw2/platform/engine/effects/authoring.js';
+import { impactEffects } from '#gw2/platform/effects/authoring.js';
 import { THIEF_SKILL_IDS as ID } from '#gw2/professions/thief/data/ids.js';
-import type { Skill } from '#gw2/platform/engine/skills/types.js';
+import type { Skill } from '#gw2/platform/skills/types.js';
 
 // Packet offsets are rounded independently to the nearest 40 ms tick to avoid cumulative spacing drift.
 // Share each impact's timing while preserving effect order and effect-local payloads.

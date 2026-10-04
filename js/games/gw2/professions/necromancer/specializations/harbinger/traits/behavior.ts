@@ -2,16 +2,17 @@ import { professionStaticRulesApplied } from '#gw2/platform/builds/attribute-pro
 import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
 import { isHostileTargetEvent } from '#gw2/platform/combat/state/targets.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
-import type { EffectMetadata, SimulationEvent } from '#gw2/platform/engine/events/events.js';
+import type { EffectMetadata, SimulationEvent } from '#gw2/platform/events/events.js';
 import {
   balanceProfileNumber,
   effectNumber,
   requireBalanceProfileFromContext,
   requireEffect
-} from '#gw2/platform/engine/skills/balance-profiles.js';
-import type { Skill, SkillEffect } from '#gw2/platform/engine/skills/types.js';
-import type { RuntimeCast } from '#gw2/platform/simulation/runtime-state.js';
-import { quantizeGw2ActionTimingMs } from '#gw2/platform/skills/timing.js';
+} from '#gw2/platform/skills/balance-profiles.js';
+import type { Skill } from '#gw2/platform/skills/types.js';
+import type { SkillEffect } from '#gw2/platform/effects/types.js';
+import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
+import { quantizeGw2ActionTimingMs } from '#gw2/platform/execution/cast-timing.js';
 import { grantNecromancerLifeForce } from '#gw2/professions/necromancer/core/mechanics/life-force.js';
 import { cloneNecromancerAttributes } from '#gw2/professions/necromancer/core/mechanics/modifier-queries.js';
 import type { NecromancerRuntime, NecromancerSkill } from '#gw2/professions/necromancer/types.js';

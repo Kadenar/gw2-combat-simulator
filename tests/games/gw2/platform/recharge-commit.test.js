@@ -1,6 +1,6 @@
 import { projectObservedState } from '#tests/helpers/observed-runtime.js';
 import { runElementalist } from '#tests/helpers/elementalist-simulation.js';
-import { snapshotProfessionState } from '#gw2/platform/engine/profession/state.js';
+import { snapshotProfessionState } from '#gw2/platform/profession-definition/state.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { elementalistProfession } from '#gw2/professions/elementalist/profession.js';

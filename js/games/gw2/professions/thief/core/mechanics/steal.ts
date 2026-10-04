@@ -3,7 +3,7 @@ import { applyKleptomaniac, improvisationStolenUses } from '#gw2/professions/thi
 
 import { THIEF_SKILL_IDS as ID } from '#gw2/professions/thief/data/ids.js';
 
-import type { SkillId } from '#gw2/platform/engine/skills/types.js';
+import type { SkillId } from '#gw2/platform/skills/types.js';
 import type { ThiefRuntime } from '#gw2/professions/thief/core/events.js';
 import type { ThiefCoreState } from '#gw2/professions/thief/core/state.js';
 import type { ThiefSkill } from '#gw2/professions/thief/types.js';

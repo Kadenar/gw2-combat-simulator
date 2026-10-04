@@ -1,5 +1,5 @@
 import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
-import type { Skill } from '#gw2/platform/engine/skills/types.js';
+import type { Skill } from '#gw2/platform/skills/types.js';
 import {
   aeromancersTrainingRecharge,
   aquamancersTrainingRecharge,
@@ -10,11 +10,8 @@ import {
  * Owns Core Elementalist cross-cast recharge policy and one-shot modifier consumption.
  * Skill fragments declare base cooldowns; persistent systems decide when and how they recharge.
  */
-import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
-import {
-  balanceProfileNumber,
-  requireBalanceProfileFromContext
-} from '#gw2/platform/engine/skills/balance-profiles.js';
+import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
+import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import { compileRechargeRules } from '#gw2/platform/profession-definition/trigger-rules.js';
 
 import { skillWeapon } from '#gw2/professions/elementalist/core/mechanics/effects.js';

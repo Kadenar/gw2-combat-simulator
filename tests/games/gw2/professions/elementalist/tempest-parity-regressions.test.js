@@ -2,7 +2,7 @@ import { runNative } from '#tests/helpers/elementalist-simulation.js';
 import { elementalistProfession } from '#gw2/professions/elementalist/profession.js';
 import { runElementalist } from '#tests/helpers/elementalist-simulation.js';
 import { observedRuntime } from '#tests/helpers/observed-runtime.js';
-import { gw2CooldownReadyAt } from '#gw2/platform/skills/timing.js';
+import { gw2CooldownReadyAt } from '#gw2/platform/execution/cast-timing.js';
 import {
   ELEMENTALIST_ATTUNEMENT_SKILL_IDS,
   ELEMENTALIST_OVERLOAD_SKILL_IDS

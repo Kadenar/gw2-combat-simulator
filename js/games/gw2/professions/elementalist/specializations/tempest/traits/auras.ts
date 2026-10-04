@@ -1,15 +1,15 @@
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
-import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
+import type { SimulationEvent } from '#gw2/platform/events/events.js';
 import {
   balanceProfileNumber,
   requireBalanceProfileFromContext,
   requireEffect
-} from '#gw2/platform/engine/skills/balance-profiles.js';
-import type { Skill } from '#gw2/platform/engine/skills/types.js';
+} from '#gw2/platform/skills/balance-profiles.js';
+import type { Skill } from '#gw2/platform/skills/types.js';
 import { resolverSourceSkill } from '#gw2/platform/resolver/packets.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
-import type { EffectDelivery } from '#gw2/platform/simulation/effect-emission.js';
-import type { RuntimeCast } from '#gw2/platform/simulation/runtime-state.js';
+import type { EffectDelivery } from '#gw2/platform/effects/emission.js';
+import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import { elementalistBuffRequest } from '#gw2/professions/elementalist/core/events.js';
 import {
   elementalistEventSkill,

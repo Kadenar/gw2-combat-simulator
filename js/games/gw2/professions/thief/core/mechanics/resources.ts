@@ -4,11 +4,8 @@ import { canonicalTime, EPSILON } from '#kernel/core/clock.js';
 
 import type { EndurancePolicy } from '#gw2/platform/combat/resources/endurance-policy.js';
 import type { ResourcePolicy } from '#gw2/platform/combat/resources/resource-policy.js';
-import {
-  balanceProfileNumber,
-  requireBalanceProfileFromContext
-} from '#gw2/platform/engine/skills/balance-profiles.js';
-import type { RuntimeCast } from '#gw2/platform/simulation/runtime-state.js';
+import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import type { ThiefRuntime } from '#gw2/professions/thief/core/events.js';
 import { THIEF_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/thief/core/profiles.js';
 import type { ThiefCoreState } from '#gw2/professions/thief/core/state.js';

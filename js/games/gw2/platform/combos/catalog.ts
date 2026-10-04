@@ -4,7 +4,8 @@ import {
   normalizeComboFinisherType,
   normalizeComboFieldSelectionAnchor
 } from '#gw2/platform/combos/events.js';
-import type { SkillEffect, Skill } from '#gw2/platform/engine/skills/types.js';
+import type { SkillEffect } from '#gw2/platform/effects/types.js';
+import type { Skill } from '#gw2/platform/skills/types.js';
 import { clamp } from '#kernel/core/numeric.js';
 
 function positiveInteger(value: unknown, fallback: number, label: string): number {

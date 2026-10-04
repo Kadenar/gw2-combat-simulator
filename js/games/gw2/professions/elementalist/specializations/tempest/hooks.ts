@@ -1,6 +1,7 @@
 import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
-import type { EffectDelivery } from '#gw2/platform/simulation/effect-emission.js';
-import type { RuntimeCast, RuntimeProfession } from '#gw2/platform/simulation/runtime-state.js';
+import type { EffectDelivery } from '#gw2/platform/effects/emission.js';
+import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
+import type { RuntimeProfession } from '#gw2/platform/profession-definition/runtime-contract.js';
 import { registerElementalistEliteEvents } from '#gw2/professions/elementalist/core/mechanics/elite-events.js';
 import { isElementalistAttunement } from '#gw2/professions/elementalist/core/state.js';
 import { tempestOverloadDwell } from '#gw2/professions/elementalist/specializations/tempest/mechanics/overload-dwell.js';
@@ -23,15 +24,15 @@ import type { ElementalistRuntimeState, ElementalistSkill } from '#gw2/professio
  * around a channel, the attunement lockout an overload leaves behind, and the aura/attunement event
  * reactions the specialization's remaining traits need.
  */
-import type { SimulationEvent, SimulationEventBase } from '#gw2/platform/engine/events/events.js';
-import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
-import { denySkillCast, retryCast } from '#gw2/platform/engine/skills/availability.js';
+import type { SimulationEvent, SimulationEventBase } from '#gw2/platform/events/events.js';
+import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
+import { denySkillCast, retryCast } from '#gw2/platform/execution/availability.js';
 import {
   effectNumber,
   requireBalanceProfileFromContext,
   requireEffect
-} from '#gw2/platform/engine/skills/balance-profiles.js';
-import type { Skill } from '#gw2/platform/engine/skills/types.js';
+} from '#gw2/platform/skills/balance-profiles.js';
+import type { Skill } from '#gw2/platform/skills/types.js';
 import type { AvailabilityResult } from '#gw2/platform/execution/types.js';
 import { elementalistStrikeRequest } from '#gw2/professions/elementalist/core/events.js';
 import { elementalistAnnouncement } from '#gw2/professions/elementalist/core/mechanics/effects.js';

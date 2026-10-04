@@ -1,11 +1,11 @@
 import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
 import type { MechanicContext } from '#gw2/platform/profession-definition/mechanic-context.js';
 import { selectedSkillIdSet } from '#gw2/platform/builds/selected-skills.js';
-import { CAST_READY, denyCast, retryCast } from '#gw2/platform/engine/skills/availability.js';
-import { armSkillFlip, consumeSkillFlip, skillFlipReady } from '#gw2/platform/engine/skills/skill-flips.js';
-import type { Skill } from '#gw2/platform/engine/skills/types.js';
-import type { RuntimeProfession } from '#gw2/platform/simulation/runtime-state.js';
-import { gw2CooldownReadyAt } from '#gw2/platform/skills/timing.js';
+import { CAST_READY, denyCast, retryCast } from '#gw2/platform/execution/availability.js';
+import { armSkillFlip, consumeSkillFlip, skillFlipReady } from '#gw2/platform/execution/skill-flips.js';
+import type { Skill } from '#gw2/platform/skills/types.js';
+import type { RuntimeProfession } from '#gw2/platform/profession-definition/runtime-contract.js';
+import { gw2CooldownReadyAt } from '#gw2/platform/execution/cast-timing.js';
 import { MANTRAS, type MantraDefinition } from '#gw2/professions/guardian/data/mantra-definitions.js';
 import { firebrandState } from '#gw2/professions/guardian/specializations/firebrand/state.js';
 import type { GuardianRuntimeState, GuardianSkill } from '#gw2/professions/guardian/types.js';

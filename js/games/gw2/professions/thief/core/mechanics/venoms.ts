@@ -1,7 +1,8 @@
 import { activeChargeGrants, consumeCharge, grantChargePool } from '#gw2/platform/combat/resources/charges.js';
-import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
-import { effectNumber, requireBalanceProfileFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
-import type { BalanceProfile, ConditionEffect, SkillId } from '#gw2/platform/engine/skills/types.js';
+import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
+import { effectNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import type { BalanceProfile, SkillId } from '#gw2/platform/skills/types.js';
+import type { ConditionEffect } from '#gw2/platform/effects/types.js';
 import { buildResolverCondition } from '#gw2/platform/resolver/packets.js';
 import { THIEF_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/thief/core/profiles.js';
 import type { ThiefCoreState } from '#gw2/professions/thief/core/state.js';

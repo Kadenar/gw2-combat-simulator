@@ -9,9 +9,9 @@ import {
   effectNumber,
   requireBalanceProfileFromContext,
   requireEffect
-} from '#gw2/platform/engine/skills/balance-profiles.js';
-import type { SkillSideEffect } from '#gw2/platform/simulation/side-effects.js';
-import { gw2EffectExpiresAt } from '#gw2/platform/skills/timing.js';
+} from '#gw2/platform/skills/balance-profiles.js';
+import type { SkillSideEffect } from '#gw2/platform/effects/actions.js';
+import { gw2EffectExpiresAt } from '#gw2/platform/effects/timing.js';
 import type { RevenantRuntime } from '#gw2/professions/revenant/core/events.js';
 import { revenantRuntimeCoreState } from '#gw2/professions/revenant/core/modifiers.js';
 import { REVENANT_MAXIMUM_ENDURANCE } from '#gw2/professions/revenant/core/state.js';

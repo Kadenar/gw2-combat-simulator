@@ -1,4 +1,4 @@
-import type { BalanceProfile, SkillId } from '#gw2/platform/engine/skills/types.js';
+import type { BalanceProfile, SkillId } from '#gw2/platform/skills/types.js';
 
 export const RENEGADE_PROFILE_IDS = Object.freeze({
   spiritBoon: 'revenant.renegade.spirit-boon-renegade',

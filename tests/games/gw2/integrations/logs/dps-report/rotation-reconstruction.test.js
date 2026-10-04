@@ -9,7 +9,7 @@ import { isDpsReportData, parseDpsReport } from '#gw2/integrations/logs/dps-repo
 import { reconstructDpsReportRotation } from '#gw2/integrations/logs/dps-report/rotation/index.js';
 import { dpsReportId, dpsReportJsonUrl, fetchDpsReport } from '#gw2/integrations/logs/dps-report/url.js';
 import { defineTestProfession } from '#tests/helpers/profession.js';
-import { createCanonicalCatalog } from '#gw2/platform/engine/skills/canonical-skill-catalog.js';
+import { createCanonicalCatalog } from '#gw2/platform/skills/catalog.js';
 import { engineerCatalog, engineerProfession } from '#gw2/professions/engineer/profession.js';
 import {
   LOG_OPENER_WARNING,

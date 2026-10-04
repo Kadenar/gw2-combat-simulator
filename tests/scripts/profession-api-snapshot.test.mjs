@@ -3,7 +3,7 @@ import { mkdtemp, readFile, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { test } from 'node:test';
-import { GW2_SKILL_ID_ALIASES as RUNTIME_SKILL_ID_ALIASES } from '#gw2/platform/skills/aliases.js';
+import { GW2_SKILL_ID_ALIASES as RUNTIME_SKILL_ID_ALIASES } from '#gw2/platform/skills/external-skill-ids.js';
 import {
   createProfessionSnapshot,
   DEFAULT_TERRESTRIAL_WEAPON_EXCLUSIONS,

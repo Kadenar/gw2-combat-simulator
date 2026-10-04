@@ -3,16 +3,13 @@ import {
   type DiscreteResourceClock,
   type ResourcePolicy
 } from '#gw2/platform/combat/resources/resource-policy.js';
-import {
-  requireBalanceProfileFromContext,
-  balanceProfileNumber
-} from '#gw2/platform/engine/skills/balance-profiles.js';
+import { requireBalanceProfileFromContext, balanceProfileNumber } from '#gw2/platform/skills/balance-profiles.js';
 import { GALESHOT_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/ranger/specializations/galeshot/profiles.js';
 import type { RangerRuntime } from '#gw2/professions/ranger/types.js';
 import {
   definePublicStateDefaults,
   defineProfessionSpecializationState
-} from '#gw2/platform/engine/profession/state.js';
+} from '#gw2/platform/profession-definition/state.js';
 import type { RangerConfig, RangerState } from '#gw2/professions/ranger/types.js';
 import { boundedNumber } from '#kernel/core/numeric.js';
 

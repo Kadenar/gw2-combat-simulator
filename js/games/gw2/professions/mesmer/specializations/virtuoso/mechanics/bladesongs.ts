@@ -1,4 +1,4 @@
-import { denySkillCast } from '#gw2/platform/engine/skills/availability.js';
+import { denySkillCast } from '#gw2/platform/execution/availability.js';
 import type { AvailabilityResult } from '#gw2/platform/execution/types.js';
 import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
 import {

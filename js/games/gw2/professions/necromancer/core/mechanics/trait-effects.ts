@@ -1,7 +1,7 @@
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
-import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
-import { requireBalanceProfileFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
-import type { RuntimeCast } from '#gw2/platform/simulation/runtime-state.js';
+import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
+import { requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import type {
   NecromancerResolverContext,
   NecromancerRuntime,

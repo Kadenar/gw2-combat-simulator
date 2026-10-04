@@ -2,7 +2,7 @@ import { resourceAtLeast } from '#gw2/platform/combat/resources/pool.js';
 import type { MechanicContext } from '#gw2/platform/profession-definition/mechanic-context.js';
 import type { ResourceClock } from '#gw2/platform/combat/resources/clock.js';
 import { advanceDiscreteResource, resourceValueAt, resourceAnchor } from '#gw2/platform/combat/resources/clock.js';
-import { gw2CooldownReadyAt } from '#gw2/platform/skills/timing.js';
+import { gw2CooldownReadyAt } from '#gw2/platform/execution/cast-timing.js';
 
 /** Resource keys belong under the existing capability container, never alongside profession state. */
 export const RESOURCE_KEYS = [

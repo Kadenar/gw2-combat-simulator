@@ -4,10 +4,7 @@ import type {
 } from '#gw2/platform/profession-presentation/attribute-preview.js';
 import { createPreviewControls } from '#gw2/professions/shared/attribute-preview.js';
 
-import {
-  balanceProfileNumber,
-  requireBalanceProfileFromContext
-} from '#gw2/platform/engine/skills/balance-profiles.js';
+import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import { ELEMENTALIST_TRAIT_IDS as TRAIT } from '#gw2/professions/elementalist/data/ids.js';
 import { getActiveTraits } from '#gw2/professions/elementalist/data/traits-data.js';
 import { EVOKER_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/elementalist/specializations/evoker/profiles.js';
@@ -24,7 +21,7 @@ import type {
  * the rotation snapshot. Reads a projected UI-side state record rather than live
  * simulation state, falling back to build defaults before a run exists.
  */
-import type { CanonicalCatalog, Skill } from '#gw2/platform/engine/skills/types.js';
+import type { CanonicalCatalog, Skill } from '#gw2/platform/skills/types.js';
 import type {
   SkillDamagePreviewContext,
   SkillDamageState

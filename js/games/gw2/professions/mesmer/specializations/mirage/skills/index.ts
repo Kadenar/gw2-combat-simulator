@@ -3,8 +3,9 @@
  * Mirage Cloak, mirror, and ambush runtime behavior lives under `mechanics/`.
  */
 import { MESMER_SKILL_IDS as ID } from '#gw2/professions/mesmer/data/ids.js';
-import { impactEffects } from '#gw2/platform/engine/effects/authoring.js';
-import type { SkillId, SkillEffect } from '#gw2/platform/engine/skills/types.js';
+import { impactEffects } from '#gw2/platform/effects/authoring.js';
+import type { SkillId } from '#gw2/platform/skills/types.js';
+import type { SkillEffect } from '#gw2/platform/effects/types.js';
 
 import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
 import type { MesmerAmbushAttack } from '#gw2/professions/mesmer/types.js';

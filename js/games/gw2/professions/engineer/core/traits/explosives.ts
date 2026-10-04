@@ -3,10 +3,7 @@ import { ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.
 import { resetExplosiveEntrance } from '#gw2/professions/engineer/core/traits/explosions.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
-import {
-  balanceProfileNumber,
-  requireBalanceProfileFromContext
-} from '#gw2/platform/engine/skills/balance-profiles.js';
+import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import {
   activeBoonStacks,
   playerHealthFraction,

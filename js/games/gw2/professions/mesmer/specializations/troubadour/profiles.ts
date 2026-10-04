@@ -1,6 +1,6 @@
-import { requireBalanceProfileFromContext, requireEffect } from '#gw2/platform/engine/skills/balance-profiles.js';
-import { requireCanonicalSkillEffects } from '#gw2/platform/engine/skills/canonical-skill-catalog.js';
-import type { BalanceProfile, SkillId } from '#gw2/platform/engine/skills/types.js';
+import { requireBalanceProfileFromContext, requireEffect } from '#gw2/platform/skills/balance-profiles.js';
+import { requireCanonicalSkillEffects } from '#gw2/platform/effects/validation.js';
+import type { BalanceProfile, SkillId } from '#gw2/platform/skills/types.js';
 import { defineSkillVariantProfile as variant } from '#gw2/platform/profession-definition/balance-profiles.js';
 import { MESMER_SKILL_IDS as ID } from '#gw2/professions/mesmer/data/ids.js';
 import {

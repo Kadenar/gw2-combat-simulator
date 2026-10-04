@@ -1,4 +1,4 @@
-import type { EffectDelivery } from '#gw2/platform/simulation/effect-emission.js';
+import type { EffectDelivery } from '#gw2/platform/effects/emission.js';
 import type { MesmerClone } from '#gw2/professions/mesmer/core/mechanics/illusions/types.js';
 
 import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';

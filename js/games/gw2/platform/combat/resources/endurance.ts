@@ -1,11 +1,11 @@
 import type { RateInterval } from '#gw2/platform/combat/resources/pool.js';
 import { EPSILON } from '#kernel/core/clock.js';
-import { gw2CooldownReadyAt } from '#gw2/platform/skills/timing.js';
+import { gw2CooldownReadyAt } from '#gw2/platform/execution/cast-timing.js';
 /** The shared endurance fields read by, and returned from, standard GW2 endurance arithmetic. */
 
 import { cappedResource, grantCapped } from '#gw2/platform/combat/resources/pool.js';
 import { boonIntervals } from '#gw2/platform/combat/boons.js';
-import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
+import type { SimulationEvent } from '#gw2/platform/events/events.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
 
 interface Gw2EnduranceState {

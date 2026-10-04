@@ -1,6 +1,6 @@
 /** Owns Legendary Centaur Stance skill fragments and their alternate identities. */
 import { REVENANT_SKILL_IDS as ID } from '#gw2/professions/revenant/data/ids.js';
-import type { Skill } from '#gw2/platform/engine/skills/types.js';
+import type { Skill } from '#gw2/platform/skills/types.js';
 
 export const REVENANT_CENTAUR_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
   [ID.PROTECTIVE_SOLACE]: {

@@ -26,6 +26,12 @@ export interface EffectReport {
   readonly tracks: readonly EffectTrack[];
 }
 
+/** Optional reporting observes accepted state through this protocol without exposing recorder storage. */
+export interface EffectReportObserver {
+  capture(at: number, states: readonly EffectState[], owner?: string): void;
+  finish(end: number): EffectReport;
+}
+
 /** Copy scalar windows directly; only source events need deep detachment, once per distinct source in a snapshot. */
 function snapshotEffectState(state: EffectState): EffectState {
   const sources = new Map<NonNullable<EffectState['source']>, NonNullable<EffectState['source']>>();
@@ -69,7 +75,7 @@ function effectGroup<T>(groups: Map<string, Map<string, T>>, key: string): Map<s
 }
 
 /** Commit observations at execution boundaries; expiry is derived from the same accepted windows as live state. */
-export class EffectRecorder {
+export class EffectRecorder implements EffectReportObserver {
   private readonly tracks = new Map<string, RecordedEffect>();
   private readonly owners = new Map<string, Set<RecordedEffect>>();
   private readonly origins = new Map<string, Map<string, Map<string, Map<string, RecordedEffect>>>>();

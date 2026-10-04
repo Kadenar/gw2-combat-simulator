@@ -3,8 +3,8 @@
  * Pet identity and family membership remain in `data/ranger-pet-data.ts`.
  */
 import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
-import { impactEffects } from '#gw2/platform/engine/effects/authoring.js';
-import type { Skill } from '#gw2/platform/engine/skills/types.js';
+import { impactEffects } from '#gw2/platform/effects/authoring.js';
+import type { Skill } from '#gw2/platform/skills/types.js';
 
 // CAdruid's opener lands 1,162 ms after the pet starts casting; use 1,160 ms as the fixed travel approximation.
 const POISONOUS_CLOUD_PULSE_TIMES_MS = [1160, 2160, 3160, 4160, 5160, 6160];

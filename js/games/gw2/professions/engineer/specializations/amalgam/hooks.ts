@@ -1,5 +1,6 @@
-import { effectFirstAt } from '#gw2/platform/engine/effects/materializer.js';
-import type { RuntimeProfession, SkillTaskData } from '#gw2/platform/simulation/runtime-state.js';
+import { effectFirstAt } from '#gw2/platform/effects/materializer.js';
+import type { RuntimeProfession } from '#gw2/platform/profession-definition/runtime-contract.js';
+import type { SkillTaskData } from '#gw2/platform/execution/cast-contracts.js';
 import { amalgamCastAvailability } from '#gw2/professions/engineer/specializations/amalgam/mechanics/availability.js';
 import { amalgamResolverEventReactions } from '#gw2/professions/engineer/specializations/amalgam/mechanics/evolved-form-effects.js';
 import {

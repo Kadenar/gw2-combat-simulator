@@ -2,7 +2,7 @@
  * Core Elementalist prepareEvent hooks: last-chance rewrites applied to outgoing
  * packets before they join the canonical scheduler timeline.
  */
-import type { SimulationEventBase } from '#gw2/platform/engine/events/events.js';
+import type { SimulationEventBase } from '#gw2/platform/events/events.js';
 import type { ElementalistRuntime } from '#gw2/professions/elementalist/types.js';
 
 // Preserve packets excluded by the configured hitbox as cancelled markers so

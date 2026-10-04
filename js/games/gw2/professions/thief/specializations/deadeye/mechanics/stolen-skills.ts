@@ -1,4 +1,4 @@
-import type { SkillId } from '#gw2/platform/engine/skills/types.js';
+import type { SkillId } from '#gw2/platform/skills/types.js';
 import { THIEF_SKILL_IDS as ID } from '#gw2/professions/thief/data/ids.js';
 
 /** Stolen skills a Deadeye steal can grant, shared by the hooks and the skill palette. */

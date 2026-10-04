@@ -2,8 +2,8 @@ import {
   balanceProfileNumber,
   requireBalanceProfileFromContext,
   requireEffect
-} from '#gw2/platform/engine/skills/balance-profiles.js';
-import type { BalanceProfile, SkillId } from '#gw2/platform/engine/skills/types.js';
+} from '#gw2/platform/skills/balance-profiles.js';
+import type { BalanceProfile, SkillId } from '#gw2/platform/skills/types.js';
 import {
   defineTraitProfile as trait,
   defineSkillVariantProfile as variant

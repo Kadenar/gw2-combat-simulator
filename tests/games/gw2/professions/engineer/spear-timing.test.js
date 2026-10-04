@@ -1,10 +1,10 @@
-import { skillFlipReady, armSkillFlip } from '#gw2/platform/engine/skills/skill-flips.js';
+import { skillFlipReady, armSkillFlip } from '#gw2/platform/execution/skill-flips.js';
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { engineerCatalog, engineerProfession } from '#gw2/professions/engineer/profession.js';
 import { ENGINEER_SKILL_IDS as ID } from '#gw2/professions/engineer/data/ids.js';
 import { engineerSpearSideEffectHandlers } from '#gw2/professions/engineer/core/mechanics/weapons.js';
-import { applySkillSideEffects } from '#gw2/platform/simulation/side-effects.js';
+import { applySkillSideEffects } from '#gw2/platform/effects/action-dispatch.js';
 import { withSkill } from '#tests/helpers/catalog-overrides.js';
 import { runEngineer } from '#tests/helpers/engineer-simulation.js';
 import { observedRuntime } from '#tests/helpers/observed-runtime.js';

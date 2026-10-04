@@ -1,4 +1,4 @@
-import type { Skill } from '#gw2/platform/engine/skills/types.js';
+import type { Skill } from '#gw2/platform/skills/types.js';
 import { FIREBRAND_MANTRA_SKILL_MECHANICS } from '#gw2/professions/guardian/specializations/firebrand/skills/mantra-skills.js';
 import { FIREBRAND_TOME_SKILL_MECHANICS } from '#gw2/professions/guardian/specializations/firebrand/skills/tome-skills.js';
 

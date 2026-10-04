@@ -1,17 +1,19 @@
 import type { MechanicContext, MechanicQueryContext } from '#gw2/platform/profession-definition/mechanic-context.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
-import type { EffectEventBase } from '#gw2/platform/engine/effects/materializer.js';
-import type { SimulationEventBase } from '#gw2/platform/engine/events/events.js';
-import { requireBalanceProfileFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
-import type { Skill, SkillEffect, SkillId } from '#gw2/platform/engine/skills/types.js';
+import type { EffectEventBase } from '#gw2/platform/effects/materializer.js';
+import type { SimulationEventBase } from '#gw2/platform/events/events.js';
+import { requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import type { Skill, SkillId } from '#gw2/platform/skills/types.js';
+import type { SkillEffect } from '#gw2/platform/effects/types.js';
 import type { NativeResolvedDamageDetails } from '#gw2/platform/profession-definition/module-types.js';
 import type { Gw2ResolverEvent, Gw2ResolverStage } from '#gw2/platform/resolver/types.js';
 import type {
   ProfessionRuntimeOptions,
-  RuntimeCast,
   RuntimeProfession
-} from '#gw2/platform/simulation/runtime-state.js';
-import { sideEffectAmount, type ProfileAmount } from '#gw2/platform/simulation/side-effects.js';
+} from '#gw2/platform/profession-definition/runtime-contract.js';
+import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
+import { sideEffectAmount } from '#gw2/platform/effects/action-dispatch.js';
+import { type ProfileAmount } from '#gw2/platform/effects/actions.js';
 
 export interface RechargeRule<T extends object, TSkill extends Skill = Skill> {
   readonly trait?: SkillId;

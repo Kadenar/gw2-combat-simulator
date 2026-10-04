@@ -1,8 +1,8 @@
 import type { MechanicContext } from '#gw2/platform/profession-definition/mechanic-context.js';
-import type { RuntimeCast } from '#gw2/platform/simulation/runtime-state.js';
+import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import type { GuardianRuntimeState, GuardianSkill } from '#gw2/professions/guardian/types.js';
-import type { DamageEvent } from '#gw2/platform/engine/events/events.js';
+import type { DamageEvent } from '#gw2/platform/events/events.js';
 import { buildResolverStrike } from '#gw2/platform/resolver/packets.js';
 import type { GuardianStrikeFields } from '#gw2/professions/guardian/types.js';
 

@@ -4,7 +4,7 @@
  * Weapon skills remain Core-owned because Weaponmaster Training makes the
  * physical weapon families profession-wide.
  */
-import type { Skill } from '#gw2/platform/engine/skills/types.js';
+import type { Skill } from '#gw2/platform/skills/types.js';
 import { ENGINEER_MED_KIT_SKILL_MECHANICS } from '#gw2/professions/engineer/core/skills/kits/med-kit.js';
 import { ENGINEER_GRENADE_KIT_SKILL_MECHANICS } from '#gw2/professions/engineer/core/skills/kits/grenade-kit.js';
 import { ENGINEER_BOMB_KIT_SKILL_MECHANICS } from '#gw2/professions/engineer/core/skills/kits/bomb-kit.js';

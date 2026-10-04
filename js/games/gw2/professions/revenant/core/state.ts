@@ -1,10 +1,10 @@
 import { createResourceClock } from '#gw2/platform/combat/resources/resource-policy.js';
-import { type SkillFlipWindows } from '#gw2/platform/engine/skills/skill-flips.js';
+import { type SkillFlipWindows } from '#gw2/platform/execution/skill-flips.js';
 import type { ResourceClock } from '#gw2/platform/combat/resources/clock.js';
 import { normalizeRevenantLegendIds } from '#gw2/professions/revenant/data/legends.js';
 import type { RevenantConfig } from '#gw2/professions/revenant/types.js';
 import type { ChargeGrant } from '#gw2/platform/combat/resources/charges.js';
-import type { SkillId } from '#gw2/platform/engine/skills/types.js';
+import type { SkillId } from '#gw2/platform/skills/types.js';
 import { boundedNumber } from '#kernel/core/numeric.js';
 
 export interface RevenantUpkeepState {

@@ -1,4 +1,4 @@
-import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
+import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
 import { consumeCharge, expireCharges, grantCharges } from '#gw2/platform/combat/resources/charges.js';
 import { boundedInteger } from '#kernel/core/numeric.js';
 import { canonicalTime } from '#kernel/core/clock.js';

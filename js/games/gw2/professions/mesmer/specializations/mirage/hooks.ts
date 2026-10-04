@@ -1,6 +1,7 @@
-import type { SkillTask } from '#gw2/platform/engine/skills/types.js';
-import { skillTaskAt } from '#gw2/platform/simulation/internal-work.js';
-import type { RuntimeCast, RuntimeProfession } from '#gw2/platform/simulation/runtime-state.js';
+import type { SkillTask } from '#gw2/platform/skills/types.js';
+import { skillTaskAt } from '#gw2/platform/execution/task-timing.js';
+import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
+import type { RuntimeProfession } from '#gw2/platform/profession-definition/runtime-contract.js';
 import { mesmerCastDelivery } from '#gw2/professions/mesmer/core/execution/cast-lifecycle.js';
 import { mesmerMechanicsFor } from '#gw2/professions/mesmer/core/mechanics/runtime.js';
 import { triggerDeceptiveEvasion } from '#gw2/professions/mesmer/core/traits/behavior.js';

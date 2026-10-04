@@ -1,12 +1,9 @@
 import { composeRuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
-import { DamageCalculationError } from '#gw2/platform/skill-damage/execution.js';
+import { DamageCalculationError } from '#gw2/platform/skill-damage/errors.js';
 import { grantCharges } from '#gw2/platform/combat/resources/charges.js';
-import {
-  balanceProfileNumber,
-  requireBalanceProfileFromContext
-} from '#gw2/platform/engine/skills/balance-profiles.js';
+import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import { ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
-import type { RuntimeProfession } from '#gw2/platform/simulation/runtime-state.js';
+import type { RuntimeProfession } from '#gw2/platform/profession-definition/runtime-contract.js';
 import { photonForgeHooks } from '#gw2/professions/engineer/specializations/holosmith/mechanics/photon-forge.js';
 import {
   holosmithSlotEventHandlers,

@@ -1,4 +1,4 @@
-import type { RuntimeProfession } from '#gw2/platform/simulation/runtime-state.js';
+import type { RuntimeProfession } from '#gw2/platform/profession-definition/runtime-contract.js';
 import { setRangerPetActive } from '#gw2/professions/ranger/core/mechanics/pets.js';
 import { rangerPetByName } from '#gw2/professions/ranger/core/state.js';
 import { applyRangerBeastSkillTraits } from '#gw2/professions/ranger/core/traits/dispatch.js';

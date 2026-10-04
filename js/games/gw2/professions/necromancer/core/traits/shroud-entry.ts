@@ -1,4 +1,4 @@
-import type { RuntimeCast } from '#gw2/platform/simulation/runtime-state.js';
+import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import {
   armPlagueSending,
   enterFuriousDemise,

@@ -1,18 +1,19 @@
 import type { MechanicContext } from '#gw2/platform/profession-definition/mechanic-context.js';
-import { CAST_READY, denyCast } from '#gw2/platform/engine/skills/availability.js';
+import { CAST_READY, denyCast } from '#gw2/platform/execution/availability.js';
 import {
   balanceProfileNumber,
   effectNumber,
   requireBalanceProfileFromContext,
   requireEffect
-} from '#gw2/platform/engine/skills/balance-profiles.js';
-import { gw2BaseRecharge } from '#gw2/platform/engine/skills/recharge.js';
-import { armSkillFlip, consumeSkillFlip } from '#gw2/platform/engine/skills/skill-flips.js';
+} from '#gw2/platform/skills/balance-profiles.js';
+import { gw2BaseRecharge } from '#gw2/platform/execution/recharge.js';
+import { armSkillFlip, consumeSkillFlip } from '#gw2/platform/execution/skill-flips.js';
 import type { NativeResolvedDamageDetails } from '#gw2/platform/profession-definition/module-types.js';
 import { buildResolverCondition } from '#gw2/platform/resolver/packets.js';
-import type { RuntimeCast, RuntimeProfession } from '#gw2/platform/simulation/runtime-state.js';
-import { resetAutoattackChains } from '#gw2/platform/skills/autoattack-chain-controller.js';
-import { lockTransitionInput } from '#gw2/platform/skills/transition-delays.js';
+import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
+import type { RuntimeProfession } from '#gw2/platform/profession-definition/runtime-contract.js';
+import { resetAutoattackChains } from '#gw2/platform/execution/autoattack-chains.js';
+import { lockTransitionInput } from '#gw2/platform/execution/transition-lockouts.js';
 import { buildGuardianStrike, guardianCastCause } from '#gw2/professions/guardian/core/mechanics/event-handlers.js';
 import { guardianRechargeWork } from '#gw2/professions/guardian/core/mechanics/recharge.js';
 import {

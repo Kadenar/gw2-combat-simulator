@@ -3,9 +3,9 @@ import {
   requireEffect,
   effectNumber,
   balanceProfileNumber
-} from '#gw2/platform/engine/skills/balance-profiles.js';
+} from '#gw2/platform/skills/balance-profiles.js';
 
-import { strikeEffectTicks } from '#gw2/platform/engine/effects/authoring.js';
+import { strikeEffectTicks } from '#gw2/platform/effects/authoring.js';
 /**
  * Ritualist spirits, spirit actives, and innervations.
  *
@@ -16,7 +16,7 @@ import { strikeEffectTicks } from '#gw2/platform/engine/effects/authoring.js';
  */
 import { NECROMANCER_SKILL_IDS as ID } from '#gw2/professions/necromancer/data/ids.js';
 
-import type { SkillId } from '#gw2/platform/engine/skills/types.js';
+import type { SkillId } from '#gw2/platform/skills/types.js';
 import type { NecromancerRuntime } from '#gw2/professions/necromancer/types.js';
 
 import { RITUALIST_SPIRIT_PROFILE_BY_SKILL_ID } from '#gw2/professions/necromancer/specializations/ritualist/profiles.js';

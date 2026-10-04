@@ -10,7 +10,7 @@ import type {
   Gw2NumericAttributes
 } from '#gw2/platform/builds/types.js';
 
-import type { CanonicalCatalog, SkillId } from '#gw2/platform/engine/skills/types.js';
+import type { CanonicalCatalog, SkillId } from '#gw2/platform/skills/types.js';
 
 /**
  * Minimum trait shape required by the shared build-attribute helpers.

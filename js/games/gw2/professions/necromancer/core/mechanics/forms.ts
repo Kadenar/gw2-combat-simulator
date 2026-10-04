@@ -1,7 +1,7 @@
-import { armSkillFlip, consumeSkillFlip } from '#gw2/platform/engine/skills/skill-flips.js';
-import type { RuntimeCast } from '#gw2/platform/simulation/runtime-state.js';
-import { resetAutoattackChains } from '#gw2/platform/skills/autoattack-chain-controller.js';
-import { lockTransitionInput } from '#gw2/platform/skills/transition-delays.js';
+import { armSkillFlip, consumeSkillFlip } from '#gw2/platform/execution/skill-flips.js';
+import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
+import { resetAutoattackChains } from '#gw2/platform/execution/autoattack-chains.js';
+import { lockTransitionInput } from '#gw2/platform/execution/transition-lockouts.js';
 import { grantNecromancerLifeForce } from '#gw2/professions/necromancer/core/mechanics/life-force.js';
 import { DEPLETION } from '#gw2/professions/necromancer/core/mechanics/resources.js';
 import {

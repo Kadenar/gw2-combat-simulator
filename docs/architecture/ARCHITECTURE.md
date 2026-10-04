@@ -197,7 +197,7 @@ The event clock, ordering, programmatic API, and snapshot documents describe the
 
 ## Events and resolution
 
-Schema (version 1) lives in `platform/engine/events/events.ts`:
+Schema (version 1) lives in `platform/events/events.ts`:
 
 ```js
 {

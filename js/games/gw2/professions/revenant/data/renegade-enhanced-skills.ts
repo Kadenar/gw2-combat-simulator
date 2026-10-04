@@ -1,5 +1,5 @@
 import { REVENANT_SKILL_IDS as ID } from '#gw2/professions/revenant/data/ids.js';
-import type { SkillId } from '#gw2/platform/engine/skills/types.js';
+import type { SkillId } from '#gw2/platform/skills/types.js';
 
 /** Maps each Renegade warband skill to its Band Together enhanced variant. */
 export const RENEGADE_ENHANCED_SKILL_BY_ID: Readonly<Record<number, SkillId>> = Object.freeze({

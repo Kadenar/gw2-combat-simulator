@@ -9,15 +9,16 @@ import {
   requireBalanceProfileFromContext,
   requireEffect,
   balanceProfileNumber
-} from '#gw2/platform/engine/skills/balance-profiles.js';
+} from '#gw2/platform/skills/balance-profiles.js';
 import { ENGINEER_SKILL_IDS as ID, ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
-import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
+import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
 import { buildEngineerPackets } from '#gw2/professions/engineer/core/events.js';
 import { resolverSkill } from '#gw2/professions/engineer/core/mechanics/resolution-helpers.js';
-import type { RuntimeCast } from '#gw2/platform/simulation/runtime-state.js';
+import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import { reduceEngineerRecharge } from '#gw2/professions/engineer/core/mechanics/recharge.js';
 import { ENGINEER_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/engineer/core/profiles.js';
-import type { Skill, SkillEffect } from '#gw2/platform/engine/skills/types.js';
+import type { Skill } from '#gw2/platform/skills/types.js';
+import type { SkillEffect } from '#gw2/platform/effects/types.js';
 
 /** Detects explicit specialization toolbelt skills and ordinary parent-linked toolbelt skills. */
 export function isEngineerToolbeltSkill(skill: EngineerSkill | undefined): boolean {

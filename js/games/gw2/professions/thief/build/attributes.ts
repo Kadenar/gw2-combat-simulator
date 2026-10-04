@@ -3,10 +3,7 @@ import type {
   Gw2CommonAttributeResult,
   Gw2FinalizedAttributeResult
 } from '#gw2/platform/builds/types.js';
-import {
-  balanceProfileNumber,
-  requireBalanceProfileFromContext
-} from '#gw2/platform/engine/skills/balance-profiles.js';
+import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import {
   createBuildAttributeContext,
   finalizeProfessionBuildAttributes

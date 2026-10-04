@@ -1,4 +1,4 @@
-import type { Skill as PreviewSkill } from '#gw2/platform/engine/skills/types.js';
+import type { Skill as PreviewSkill } from '#gw2/platform/skills/types.js';
 import type { ProfessionAttributePreviewContext } from '#gw2/platform/profession-presentation/attribute-preview.js';
 import type {
   SkillDamagePreviewPreparation,
@@ -11,7 +11,7 @@ import type {
   ProfessionStateSnapshotContext,
   RotationStateSnapshotItem
 } from '#gw2/platform/profession-presentation/types.js';
-import { SIMULATION_RANDOMNESS_ASSUMPTION_CONTROLS } from '#gw2/platform/simulation/randomness.js';
+import { SIMULATION_RANDOMNESS_ASSUMPTION_CONTROLS } from '#gw2/platform/builds/randomness-assumptions.js';
 import { REVENANT_ASSUMPTION_CONTROLS } from '#gw2/professions/revenant/build/assumptions.js';
 import { revenantLegend, revenantLegendLoadout } from '#gw2/professions/revenant/build/legend-loadout.js';
 import { REVENANT_SKILL_IDS as SKILL } from '#gw2/professions/revenant/data/ids.js';

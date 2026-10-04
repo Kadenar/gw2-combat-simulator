@@ -18,7 +18,7 @@ import {
 import { COMBO_FIELD_TYPES, COMBO_FINISHER_TYPES } from '#gw2/platform/combos/types.js';
 import { normalizeGw2ComboCatalogSkill } from '#gw2/platform/combos/catalog.js';
 import { bindRuntimeCombo, produceRuntimeCombos } from '#gw2/platform/combos/runtime.js';
-import { createCanonicalCatalog } from '#gw2/platform/engine/skills/canonical-skill-catalog.js';
+import { createCanonicalCatalog } from '#gw2/platform/skills/catalog.js';
 
 test('combo field boundaries use exact canonical instants', () => {
   // Ordinary fields are half-open while explicit inclusivity retains only the exact expiry instant.

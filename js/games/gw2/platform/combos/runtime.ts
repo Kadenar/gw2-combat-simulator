@@ -5,7 +5,7 @@ import { isComboFieldActiveAt, selectComboFieldForFinisher } from '#gw2/platform
 import type { Gw2Runtime } from '#gw2/platform/simulation/runtime-state.js';
 import type { MechanicContext } from '#gw2/platform/profession-definition/mechanic-context.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
-import type { CanonicalCatalog } from '#gw2/platform/engine/skills/types.js';
+import type { CanonicalCatalog } from '#gw2/platform/skills/types.js';
 import type { ComboFieldType } from '#gw2/platform/combos/types.js';
 
 /** Bind fields only when an authored finisher reaches its timestamp, using executed field registrations. */

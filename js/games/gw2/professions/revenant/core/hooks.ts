@@ -2,16 +2,14 @@ import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mech
 import type { EndurancePolicy } from '#gw2/platform/combat/resources/endurance-policy.js';
 import type { ResourcePolicy } from '#gw2/platform/combat/resources/resource-policy.js';
 import { grantTimedStacks } from '#gw2/platform/combat/resources/timed-stacks.js';
-import { denySkillCast } from '#gw2/platform/engine/skills/availability.js';
-import {
-  balanceProfileNumber,
-  requireBalanceProfileFromContext
-} from '#gw2/platform/engine/skills/balance-profiles.js';
-import { armSkillFlip, skillFlipReady, weaponFlipBlock } from '#gw2/platform/engine/skills/skill-flips.js';
-import type { Skill, SkillId } from '#gw2/platform/engine/skills/types.js';
+import { denySkillCast } from '#gw2/platform/execution/availability.js';
+import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import { armSkillFlip, skillFlipReady, weaponFlipBlock } from '#gw2/platform/execution/skill-flips.js';
+import type { Skill, SkillId } from '#gw2/platform/skills/types.js';
 import type { AvailabilityResult, CastCommand } from '#gw2/platform/execution/types.js';
-import type { RuntimeCast, RuntimeProfession } from '#gw2/platform/simulation/runtime-state.js';
-import { damageInputEvent } from '#gw2/platform/skill-damage/execution.js';
+import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
+import type { RuntimeProfession } from '#gw2/platform/profession-definition/runtime-contract.js';
+import { damageInputEvent } from '#gw2/platform/skill-damage/occurrence-driver.js';
 import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
 import type { RevenantRuntime } from '#gw2/professions/revenant/core/events.js';
 import { emitBattleScar } from '#gw2/professions/revenant/core/mechanics/battle-scars.js';

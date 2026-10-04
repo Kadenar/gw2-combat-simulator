@@ -9,10 +9,11 @@ import {
   emitFlameExpulsion
 } from '#gw2/professions/elementalist/core/traits/attunements.js';
 import { prepareGw2BuffCompanionCandidates } from '#gw2/platform/combat/state/allied-players.js';
-import { requireBalanceProfileFromContext, requireEffect } from '#gw2/platform/engine/skills/balance-profiles.js';
+import { requireBalanceProfileFromContext, requireEffect } from '#gw2/platform/skills/balance-profiles.js';
 import type { NativeResolvedDamageDetails } from '#gw2/platform/profession-definition/module-types.js';
 import { OBSERVABLE_EVENT_HANDLER } from '#gw2/platform/resolver/handler-registry.js';
-import type { RuntimeProfession, SkillTaskData } from '#gw2/platform/simulation/runtime-state.js';
+import type { RuntimeProfession } from '#gw2/platform/profession-definition/runtime-contract.js';
+import type { SkillTaskData } from '#gw2/platform/execution/cast-contracts.js';
 import {
   elementalistCoreSideEffectHandlers,
   elementalistOnCastCommit,
@@ -201,7 +202,7 @@ export const elementalistCoreHooks: Partial<RuntimeProfession<ElementalistRuntim
     'elementalist.conjure': OBSERVABLE_EVENT_HANDLER,
     'elementalist.attunement': observeElementalistTransition,
     'elementalist.aura'(runtime, event) {
-      runtime.facts.record(event);
+      runtime.observations.record(event);
       applyElementalistResolverAura(runtime, event);
       runtime.schedule('elementalist.expire-state', event.at + Number(event.duration), null);
     },

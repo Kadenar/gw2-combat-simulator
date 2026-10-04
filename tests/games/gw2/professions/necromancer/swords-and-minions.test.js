@@ -4,7 +4,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { skillBreakdownRows } from '#gw2/app/results/skill-breakdown.js';
 import { simulationEventLogRows } from '#gw2/app/results/event-log.js';
-import { strikeEffectTicks } from '#gw2/platform/engine/effects/authoring.js';
+import { strikeEffectTicks } from '#gw2/platform/effects/authoring.js';
 import { necromancerCatalog, necromancerProfession } from '#gw2/professions/necromancer/profession.js';
 import {
   createObservedProfessionSimulator,

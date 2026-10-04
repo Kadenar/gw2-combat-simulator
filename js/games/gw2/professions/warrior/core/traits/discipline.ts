@@ -1,9 +1,6 @@
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { eventSkill } from '#gw2/platform/combat/query/runtime-query.js';
-import {
-  balanceProfileNumber,
-  requireBalanceProfileFromContext
-} from '#gw2/platform/engine/skills/balance-profiles.js';
+import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
 import { readyHeightenedFocusBurst, triggerHeightenedFocus } from '#gw2/professions/warrior/core/traits/behavior.js';
 import { warriorBoonActive } from '#gw2/professions/warrior/core/traits/modifier-queries.js';

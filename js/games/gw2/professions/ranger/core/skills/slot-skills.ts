@@ -1,8 +1,8 @@
 import type { RangerSkill, RangerRuntime } from '#gw2/professions/ranger/types.js';
 import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
 import type { Gw2ResolvedStats } from '#gw2/platform/combat/query/combat-query.js';
-import type { RuntimeCast } from '#gw2/platform/simulation/runtime-state.js';
-import type { SimulationEventBase } from '#gw2/platform/engine/events/events.js';
+import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
+import type { SimulationEventBase } from '#gw2/platform/events/events.js';
 import { createGw2TimelineIndex } from '#gw2/platform/combat/query/timeline-index.js';
 import { buffApplicationStacks } from '#gw2/platform/combat/boons.js';
 import { rangerPetCompanionId } from '#gw2/professions/ranger/core/mechanics/pets.js';
@@ -12,12 +12,13 @@ import {
   requireEffect,
   effectNumber,
   balanceProfileNumber
-} from '#gw2/platform/engine/skills/balance-profiles.js';
+} from '#gw2/platform/skills/balance-profiles.js';
 import { RANGER_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/ranger/core/profiles.js';
 /** Canonical Core ranger skill fragments grouped by their GW2 owner. */
-import { impactEffects } from '#gw2/platform/engine/effects/authoring.js';
+import { impactEffects } from '#gw2/platform/effects/authoring.js';
 import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
-import type { Skill, SkillEffect } from '#gw2/platform/engine/skills/types.js';
+import type { Skill } from '#gw2/platform/skills/types.js';
+import type { SkillEffect } from '#gw2/platform/effects/types.js';
 
 /** The spirit supplies Power after player bonuses; Precision and Ferocity remain the Ranger's attributes. */
 export function modifyStormSpiritAttributes(

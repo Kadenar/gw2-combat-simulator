@@ -14,7 +14,7 @@ import { SIGIL_DATA } from '#gw2/platform/equipment/sigils/data.js';
 import { EQUIPMENT_ICONS } from '#gw2/app/shared/equipment/icons.js';
 import { escapeHtml } from '#ui/shared/html.js';
 import { weaponStrengthProfileForName } from '#gw2/platform/equipment/weapons/strength.js';
-import type { TooltipFact } from '#gw2/platform/engine/skills/types.js';
+import type { TooltipFact } from '#gw2/platform/skills/types.js';
 
 type NumericValues = Readonly<Record<string, number>>;
 

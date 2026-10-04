@@ -2,11 +2,13 @@ import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mech
 import type { MechanicContext } from '#gw2/platform/profession-definition/mechanic-context.js';
 import type { CastDetailContext } from '#gw2/platform/profession-definition/runtime-context.js';
 import { MODIFIER_TARGET, type Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
-import { impactEffects } from '#gw2/platform/engine/effects/authoring.js';
-import { requireBalanceProfileFromContext, requireEffect } from '#gw2/platform/engine/skills/balance-profiles.js';
-import type { Skill, SkillEffect } from '#gw2/platform/engine/skills/types.js';
-import type { RuntimeCast, RuntimeProfession } from '#gw2/platform/simulation/runtime-state.js';
-import { projectCastRelativeEffectTimingMs } from '#gw2/platform/skills/timing.js';
+import { impactEffects } from '#gw2/platform/effects/authoring.js';
+import { requireBalanceProfileFromContext, requireEffect } from '#gw2/platform/skills/balance-profiles.js';
+import type { Skill } from '#gw2/platform/skills/types.js';
+import type { SkillEffect } from '#gw2/platform/effects/types.js';
+import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
+import type { RuntimeProfession } from '#gw2/platform/profession-definition/runtime-contract.js';
+import { projectCastRelativeEffectTimingMs } from '#gw2/platform/execution/cast-timing.js';
 import { guardianTimedBuffActive } from '#gw2/professions/guardian/core/mechanics/modifier-queries.js';
 import { GUARDIAN_SKILL_IDS as ID } from '#gw2/professions/guardian/data/ids.js';
 import { luminaryImpactAt } from '#gw2/professions/guardian/specializations/luminary/mechanics/effects.js';

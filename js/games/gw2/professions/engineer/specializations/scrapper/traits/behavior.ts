@@ -3,7 +3,7 @@ import {
   balanceProfileNumber,
   requireBalanceProfileFromContext,
   requireEffect
-} from '#gw2/platform/engine/skills/balance-profiles.js';
+} from '#gw2/platform/skills/balance-profiles.js';
 import { activeBoonStacks, buildEngineerBuff } from '#gw2/professions/engineer/core/mechanics/resolution-helpers.js';
 import { ENGINEER_TRAIT_IDS as TRAIT, ENGINEER_SKILL_IDS as ID } from '#gw2/professions/engineer/data/ids.js';
 import { scrapperState } from '#gw2/professions/engineer/specializations/scrapper/state.js';
@@ -17,9 +17,9 @@ import { isInternalCooldownReady } from '#gw2/platform/combat/procs.js';
 import { type Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
 import { type Gw2Stats } from '#gw2/platform/combat/types.js';
 import { activeBoonStacks as modifierBoonStacks } from '#gw2/professions/engineer/core/traits/query-helpers.js';
-import { type SimulationEvent } from '#gw2/platform/engine/events/events.js';
+import { type SimulationEvent } from '#gw2/platform/events/events.js';
 import { produceRuntimeCombos } from '#gw2/platform/combos/runtime.js';
-import { type RuntimeCast } from '#gw2/platform/simulation/runtime-state.js';
+import { type RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 
 /** Keeps one pending Stability pulse and rechecks selection and live Stability before each grant. */
 export function triggerMassMomentum(context: EngineerRuntime, event: EngineerResolverEvent): void | false {

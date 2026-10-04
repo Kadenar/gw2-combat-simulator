@@ -4,8 +4,8 @@ import {
   type SkillSelectionContext
 } from '#gw2/platform/profession-definition/runtime-context.js';
 import { normalizeRotation } from '#gw2/platform/execution/rotation.js';
-import type { RuntimeDriver } from '#gw2/platform/simulation/execution.js';
-import type { RuntimeProfession } from '#gw2/platform/simulation/runtime-state.js';
+import type { RuntimeDriver } from '#gw2/platform/execution/driver-contract.js';
+import type { RuntimeProfession } from '#gw2/platform/profession-definition/runtime-contract.js';
 import { canonicalTime } from '#kernel/core/clock.js';
 
 /** Rotation commands enter through equipment, resource, and timing gates at each live boundary. */

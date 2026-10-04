@@ -9,9 +9,10 @@ import type { GuardianConfig } from '#gw2/professions/guardian/types.js';
 import type { EngineerConfig } from '#gw2/professions/engineer/types.js';
 import type { ElementalistConfig } from '#gw2/professions/elementalist/build/types.js';
 /** Composes application state, adapters, and runtime callbacks from domain-owned contracts. */
-import type { Gw2ProfessionSource, Gw2SimulationResult } from '#gw2/platform/simulation/types.js';
+import type { Gw2ProfessionSource } from '#gw2/platform/profession-definition/family-contract.js';
+import type { Gw2SimulationResult } from '#gw2/platform/results/types.js';
 import type { PatchPreview } from '#gw2/integrations/patches/authoring/patches.js';
-import type { CanonicalCatalog, SkillId, Skill, CatalogEntity } from '#gw2/platform/engine/skills/types.js';
+import type { CanonicalCatalog, SkillId, Skill, CatalogEntity } from '#gw2/platform/skills/types.js';
 import type { RotationCommand } from '#gw2/platform/execution/types.js';
 import type { ObservationPolicy } from '#kernel/execution/observation.js';
 import type {

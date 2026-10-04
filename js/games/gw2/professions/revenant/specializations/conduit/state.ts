@@ -1,8 +1,8 @@
 import {
   definePublicStateDefaults,
   defineProfessionSpecializationState
-} from '#gw2/platform/engine/profession/state.js';
-import type { RechargeProgress } from '#gw2/platform/engine/skills/recharge.js';
+} from '#gw2/platform/profession-definition/state.js';
+import type { RechargeProgress } from '#gw2/platform/execution/recharge.js';
 
 export interface ConduitState {
   affinity: number;

@@ -1,5 +1,5 @@
 import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
-import { gw2BaseRecharge } from '#gw2/platform/engine/skills/recharge.js';
+import { gw2BaseRecharge } from '#gw2/platform/execution/recharge.js';
 import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
 import {
   fencersFinesseRecharge,
@@ -7,10 +7,7 @@ import {
   shatterStormMaximumAmmo
 } from '#gw2/professions/mesmer/core/traits/behavior.js';
 /** Applies Core Mesmer availability, recharge, and shatter-ammunition policy. */
-import {
-  balanceProfileNumber,
-  requireBalanceProfileFromContext
-} from '#gw2/platform/engine/skills/balance-profiles.js';
+import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
 import type { MesmerRuntime } from '#gw2/professions/mesmer/types.js';
 import type { MesmerRuntimeState } from '#gw2/professions/mesmer/types.js';

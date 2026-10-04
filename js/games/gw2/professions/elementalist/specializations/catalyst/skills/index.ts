@@ -5,7 +5,7 @@ import { catalystState } from '#gw2/professions/elementalist/specializations/cat
  */
 import { CATALYST_JADE_SPHERE_EFFECTS } from '#gw2/professions/elementalist/specializations/catalyst/skills/jade-sphere-effects.js';
 import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';
-import type { Skill } from '#gw2/platform/engine/skills/types.js';
+import type { Skill } from '#gw2/platform/skills/types.js';
 
 /**
  * Catalyst skill fragments: the four attunement-gated Deploy Jade Sphere profession

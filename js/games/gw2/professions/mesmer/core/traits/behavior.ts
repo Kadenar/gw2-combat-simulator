@@ -5,18 +5,19 @@ import { isInternalCooldownReady } from '#gw2/platform/combat/procs.js';
 import { boonActive } from '#gw2/platform/combat/query/runtime-query.js';
 import { isGw2PlayerActorEvent } from '#gw2/platform/combat/state/event-ownership.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
-import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
+import type { SimulationEvent } from '#gw2/platform/events/events.js';
 import {
   balanceProfileNumber,
   requireBalanceProfileFromContext,
   requireEffect
-} from '#gw2/platform/engine/skills/balance-profiles.js';
-import type { BalanceProfile, Skill, StrikeTick } from '#gw2/platform/engine/skills/types.js';
+} from '#gw2/platform/skills/balance-profiles.js';
+import type { BalanceProfile, Skill } from '#gw2/platform/skills/types.js';
+import type { StrikeTick } from '#gw2/platform/effects/types.js';
 import { gw2ConfiguredWeaponSet } from '#gw2/platform/equipment/weapons/loadout.js';
 import type { MaximumAmmoContext } from '#gw2/platform/profession-definition/runtime-context.js';
 import { compileRechargeRules } from '#gw2/platform/profession-definition/trigger-rules.js';
 import { buildResolverCondition } from '#gw2/platform/resolver/packets.js';
-import type { EffectDelivery } from '#gw2/platform/simulation/effect-emission.js';
+import type { EffectDelivery } from '#gw2/platform/effects/emission.js';
 import type { MesmerTraitDamage } from '#gw2/professions/mesmer/core/mechanics/illusions/types.js';
 import { timedStacks } from '#gw2/professions/mesmer/core/mechanics/modifier-queries.js';
 import {

@@ -1,5 +1,5 @@
 import { SIGIL_BY_ID } from '#gw2/platform/equipment/sigils/data.js';
-import type { SimulationEventBase } from '#gw2/platform/engine/events/events.js';
+import type { SimulationEventBase } from '#gw2/platform/events/events.js';
 import type { Gw2SigilProc } from '#gw2/platform/equipment/sigils/types.js';
 
 /** Both adapters use the same supported packet kinds; unsupported authored effects cannot silently become conditions. */

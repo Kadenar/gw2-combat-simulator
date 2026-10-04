@@ -1,7 +1,7 @@
-import { strikeEffectCoefficient } from '#gw2/platform/engine/effects/authoring.js';
-import type { SkillId } from '#gw2/platform/engine/skills/types.js';
-import type { RuntimeProfession } from '#gw2/platform/simulation/runtime-state.js';
-import { resetAutoattackChains } from '#gw2/platform/skills/autoattack-chain-controller.js';
+import { strikeEffectCoefficient } from '#gw2/platform/effects/authoring.js';
+import type { SkillId } from '#gw2/platform/skills/types.js';
+import type { RuntimeProfession } from '#gw2/platform/profession-definition/runtime-contract.js';
+import { resetAutoattackChains } from '#gw2/platform/execution/autoattack-chains.js';
 import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
 import type { RevenantRuntime } from '#gw2/professions/revenant/core/events.js';
 import { grantAllianceInvocationEndurance } from '#gw2/professions/revenant/core/traits/behavior.js';

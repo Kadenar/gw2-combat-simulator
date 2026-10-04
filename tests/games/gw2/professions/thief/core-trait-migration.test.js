@@ -1,5 +1,5 @@
 import { createMechanicCombatServices } from '#gw2/platform/resolver/mechanic-services.js';
-import { createEffectEmissionService } from '#gw2/platform/simulation/effect-emission.js';
+import { createEffectEmissionService } from '#gw2/platform/effects/emission.js';
 import { applyBoonExtension } from '#gw2/platform/combat/boons.js';
 import { chartValueAt } from '#gw2/app/results/charts/time-series-model.js';
 import { buildChartSeries } from '#gw2/app/results/model.js';

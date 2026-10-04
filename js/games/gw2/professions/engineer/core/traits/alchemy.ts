@@ -1,8 +1,5 @@
 import { missesTarget } from '#gw2/platform/combat/state/targets.js';
-import {
-  balanceProfileNumber,
-  requireBalanceProfileFromContext
-} from '#gw2/platform/engine/skills/balance-profiles.js';
+import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import { defineTrait, traitAttributeEffects } from '#gw2/platform/profession-definition/traits.js';
 import { isElixirSkill, prepareEngineerHghEvent } from '#gw2/professions/engineer/core/traits/behavior.js';
 import { isEngineerToolbeltSkill } from '#gw2/professions/engineer/core/traits/toolbelt.js';

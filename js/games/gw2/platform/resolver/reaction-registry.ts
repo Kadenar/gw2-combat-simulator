@@ -1,4 +1,4 @@
-import { createEventReactions } from '#gw2/platform/engine/profession/contract.js';
+import { createEventReactions } from '#gw2/platform/profession-definition/compiler/compile-contract.js';
 
 import type {
   Gw2ResolverReactionContributions,

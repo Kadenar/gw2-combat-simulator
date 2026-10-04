@@ -1,4 +1,4 @@
-import { denySkillCast as denyEngineerCast } from '#gw2/platform/engine/skills/availability.js';
+import { denySkillCast as denyEngineerCast } from '#gw2/platform/execution/availability.js';
 import type { AvailabilityResult } from '#gw2/platform/execution/types.js';
 import { ENGINEER_SKILL_IDS as ID } from '#gw2/professions/engineer/data/ids.js';
 import { NON_HOLOSMITH_SWORD_SKILL_IDS } from '#gw2/professions/engineer/data/module-data.js';

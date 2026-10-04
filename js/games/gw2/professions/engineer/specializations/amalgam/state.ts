@@ -1,7 +1,7 @@
 import {
   defineProfessionSpecializationState,
   definePublicStateDefaults
-} from '#gw2/platform/engine/profession/state.js';
+} from '#gw2/platform/profession-definition/state.js';
 import type { EngineerConfig } from '#gw2/professions/engineer/types.js';
 
 export interface AmalgamState {

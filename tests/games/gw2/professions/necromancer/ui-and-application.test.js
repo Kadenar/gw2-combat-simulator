@@ -1,6 +1,6 @@
 import { planningFixture } from '#tests/helpers/observed-runtime.js';
 import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
-import { armSkillFlip } from '#gw2/platform/engine/skills/skill-flips.js';
+import { armSkillFlip } from '#gw2/platform/execution/skill-flips.js';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import test from 'node:test';

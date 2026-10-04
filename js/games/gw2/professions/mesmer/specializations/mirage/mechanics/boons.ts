@@ -1,5 +1,6 @@
 import { buildMesmerPacket } from '#gw2/professions/mesmer/core/mechanics/packets.js';
-import type { ConditionEffect, StatusEffect } from '#gw2/platform/engine/skills/types.js';
+import type { ConditionEffect } from '#gw2/platform/effects/types.js';
+import type { StatusEffect } from '#gw2/platform/effects/types.js';
 import type { MesmerConditionApplication } from '#gw2/professions/mesmer/data/types.js';
 
 /** Preserve the selected status's validated values when shared ambush and trait emitters consume it. */

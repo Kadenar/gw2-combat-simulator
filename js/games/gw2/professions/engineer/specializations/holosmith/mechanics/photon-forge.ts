@@ -1,14 +1,12 @@
 import { holosmithCastAvailability } from '#gw2/professions/engineer/specializations/holosmith/mechanics/availability.js';
 import { OBSERVABLE_EVENT_HANDLER } from '#gw2/platform/resolver/handler-registry.js';
 import { grantCapped } from '#gw2/platform/combat/resources/pool.js';
-import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
-import {
-  balanceProfileNumber,
-  requireBalanceProfileFromContext
-} from '#gw2/platform/engine/skills/balance-profiles.js';
-import type { RuntimeCast, RuntimeProfession } from '#gw2/platform/simulation/runtime-state.js';
-import { castWasInterrupted } from '#gw2/platform/skills/timing.js';
-import { lockTransitionInput } from '#gw2/platform/skills/transition-delays.js';
+import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
+import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
+import type { RuntimeProfession } from '#gw2/platform/profession-definition/runtime-contract.js';
+import { castWasInterrupted } from '#gw2/platform/execution/cast-timing.js';
+import { lockTransitionInput } from '#gw2/platform/execution/transition-lockouts.js';
 import { buildEngineerPackets } from '#gw2/professions/engineer/core/events.js';
 import { emitEngineerBarSwap } from '#gw2/professions/engineer/core/mechanics/event-handlers.js';
 import { ENGINEER_SKILL_IDS as ID } from '#gw2/professions/engineer/data/ids.js';

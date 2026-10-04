@@ -1,11 +1,11 @@
-import type { Gw2PlanningStateInput } from '#gw2/platform/simulation/types.js';
-import { projectPublicProfessionState, snapshotProfessionState } from '#gw2/platform/engine/profession/state.js';
+import type { Gw2PlanningStateInput } from '#gw2/platform/results/types.js';
+import { projectPublicProfessionState, snapshotProfessionState } from '#gw2/platform/profession-definition/state.js';
 import {
   definePublicStateDefaults,
   defineProfessionSpecializationState
-} from '#gw2/platform/engine/profession/state.js';
+} from '#gw2/platform/profession-definition/state.js';
 import type { WarriorState } from '#gw2/professions/warrior/types.js';
-import type { SkillId } from '#gw2/platform/engine/skills/types.js';
+import type { SkillId } from '#gw2/platform/skills/types.js';
 
 export interface ParagonState {
   motivation: number;

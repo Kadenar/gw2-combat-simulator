@@ -2,8 +2,8 @@ import type { MechanicContext } from '#gw2/platform/profession-definition/mechan
 import {
   defineProfessionSpecializationState,
   definePublicStateDefaults
-} from '#gw2/platform/engine/profession/state.js';
-import type { RuntimeCast } from '#gw2/platform/simulation/runtime-state.js';
+} from '#gw2/platform/profession-definition/state.js';
+import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import { WARRIOR_SKILL_IDS as ID } from '#gw2/professions/warrior/data/ids.js';
 import type { WarriorRuntimeState, WarriorSkill } from '#gw2/professions/warrior/types.js';
 

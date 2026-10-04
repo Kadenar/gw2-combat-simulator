@@ -1,5 +1,5 @@
-import { skillFlipReady } from '#gw2/platform/engine/skills/skill-flips.js';
-import type { Skill as PreviewSkill, SkillId } from '#gw2/platform/engine/skills/types.js';
+import { skillFlipReady } from '#gw2/platform/execution/skill-flips.js';
+import type { Skill as PreviewSkill, SkillId } from '#gw2/platform/skills/types.js';
 import type {
   SkillDamagePreviewContext,
   SkillDamageState

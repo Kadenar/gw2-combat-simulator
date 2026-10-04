@@ -1,5 +1,5 @@
 import { planningFixture } from '#tests/helpers/observed-runtime.js';
-import { armSkillFlip } from '#gw2/platform/engine/skills/skill-flips.js';
+import { armSkillFlip } from '#gw2/platform/execution/skill-flips.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
@@ -9,7 +9,7 @@ import { renderPaletteMarkup } from '#tests/helpers/palette.js';
 import { displayedSkillTiles } from '#gw2/app/rotation/palette/model.js';
 import { paletteAvailability, paletteSkillView } from '#gw2/app/rotation/palette/model.js';
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
-import { createCanonicalCatalog } from '#gw2/platform/engine/skills/canonical-skill-catalog.js';
+import { createCanonicalCatalog } from '#gw2/platform/skills/catalog.js';
 import { defineTestProfession } from '#tests/helpers/profession.js';
 
 function projectionApp(

@@ -1,4 +1,4 @@
-import type { Skill } from '#gw2/platform/engine/skills/types.js';
+import type { Skill } from '#gw2/platform/skills/types.js';
 
 /** Shares build eligibility across selectors, palette, and casts; Weaponmaster Training is always active. */
 export function isBuildSkillAvailable(

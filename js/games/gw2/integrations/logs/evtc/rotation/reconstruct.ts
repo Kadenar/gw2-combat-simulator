@@ -54,7 +54,7 @@ import type { ResolvedLogAction } from '#gw2/integrations/logs/shared/rotation/n
 import type { RotationReconstructionBase } from '#gw2/integrations/logs/shared/rotation/model.js';
 import { buildReplayTimeline } from '#gw2/integrations/logs/shared/rotation/timeline.js';
 import { retainsReplayCastLockout } from '#gw2/integrations/logs/shared/rotation/timing.js';
-import { quantizeGw2ActionTimingMs } from '#gw2/platform/skills/timing.js';
+import { quantizeGw2ActionTimingMs } from '#gw2/platform/execution/cast-timing.js';
 
 const TIMING_TOLERANCE_MS = 50;
 

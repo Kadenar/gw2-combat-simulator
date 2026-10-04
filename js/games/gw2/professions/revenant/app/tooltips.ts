@@ -17,7 +17,8 @@ import {
   type ProfessionTooltips,
   type SimulationTooltip
 } from '#gw2/app/shared/simulation-tooltip.js';
-import type { SkillEffect, SkillId } from '#gw2/platform/engine/skills/types.js';
+import type { SkillEffect } from '#gw2/platform/effects/types.js';
+import type { SkillId } from '#gw2/platform/skills/types.js';
 import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
 import { REVENANT_SKILL_IDS as ID, REVENANT_TRAIT_IDS as TRAIT } from '#gw2/professions/revenant/data/ids.js';
 import { RENEGADE_ENHANCED_SKILL_BY_ID } from '#gw2/professions/revenant/data/renegade-enhanced-skills.js';

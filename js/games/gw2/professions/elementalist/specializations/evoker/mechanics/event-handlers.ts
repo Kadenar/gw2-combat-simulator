@@ -3,7 +3,7 @@ import {
   applyEvokerEntryTraits
 } from '#gw2/professions/elementalist/specializations/evoker/traits/attunements.js';
 /** Evoker trait and enchantment reactions consume actual transitions and accepted impacts. */
-import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
+import type { SimulationEvent } from '#gw2/platform/events/events.js';
 import { applyEvokerAttunementRechargePolicy } from '#gw2/professions/elementalist/specializations/evoker/mechanics/attunements.js';
 import { evokerState } from '#gw2/professions/elementalist/specializations/evoker/state.js';
 import { consumeElectricEnchantment } from '#gw2/professions/elementalist/specializations/evoker/traits/enchantments.js';

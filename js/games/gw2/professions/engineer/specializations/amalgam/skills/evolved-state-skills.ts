@@ -1,7 +1,4 @@
-import {
-  requireBalanceProfileFromContext,
-  balanceProfileNumber
-} from '#gw2/platform/engine/skills/balance-profiles.js';
+import { requireBalanceProfileFromContext, balanceProfileNumber } from '#gw2/platform/skills/balance-profiles.js';
 import { buildEngineerPackets } from '#gw2/professions/engineer/core/events.js';
 import { amalgamState } from '#gw2/professions/engineer/specializations/amalgam/state.js';
 import { AMALGAM_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/engineer/specializations/amalgam/profiles.js';
@@ -11,9 +8,9 @@ import type { EngineerRuntime } from '#gw2/professions/engineer/types.js';
  * Owns Amalgam Evolve, locked-slot, and evolved-state skill fragments.
  * Persistent strain and morph state remain under `mechanics/evolved-form.ts`.
  */
-import { impactEffects } from '#gw2/platform/engine/effects/authoring.js';
+import { impactEffects } from '#gw2/platform/effects/authoring.js';
 import { ENGINEER_SKILL_IDS as ID } from '#gw2/professions/engineer/data/ids.js';
-import type { Skill } from '#gw2/platform/engine/skills/types.js';
+import type { Skill } from '#gw2/platform/skills/types.js';
 
 const PLASMATIC_STATE_CAST_TIME_MS = 480 + 480;
 const PLASMATIC_STATE_RECHARGE_OFFSET_MS = 480;

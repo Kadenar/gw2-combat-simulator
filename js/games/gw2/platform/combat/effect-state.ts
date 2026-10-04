@@ -5,7 +5,7 @@ import {
   remainingDurationStackSeconds,
   durationStackingBoonCapSeconds
 } from '#gw2/platform/combat/boons.js';
-import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
+import type { SimulationEvent } from '#gw2/platform/events/events.js';
 import { canonicalTime } from '#kernel/core/clock.js';
 
 /** Detached observations of existing gameplay owners; these are never a second mutable combat pool. */

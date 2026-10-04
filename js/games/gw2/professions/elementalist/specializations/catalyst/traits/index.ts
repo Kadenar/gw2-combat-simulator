@@ -1,6 +1,6 @@
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
-import type { SkillEffect } from '#gw2/platform/engine/skills/types.js';
+import type { SkillEffect } from '#gw2/platform/effects/types.js';
 import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
 import { elementalistTimedBuffStacks } from '#gw2/professions/elementalist/core/mechanics/modifier-queries.js';
 import { ELEMENTALIST_TRAIT_IDS as TRAIT } from '#gw2/professions/elementalist/data/ids.js';

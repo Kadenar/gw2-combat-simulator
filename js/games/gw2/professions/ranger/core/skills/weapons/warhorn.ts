@@ -1,7 +1,7 @@
 /** Canonical Core ranger skill fragments grouped by their GW2 owner. */
-import { impactEffects } from '#gw2/platform/engine/effects/authoring.js';
+import { impactEffects } from '#gw2/platform/effects/authoring.js';
 import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
-import type { Skill } from '#gw2/platform/engine/skills/types.js';
+import type { Skill } from '#gw2/platform/skills/types.js';
 
 // Haskha's log places the flock's first hit near 1,080 ms, followed by fixed 280 ms attacks.
 const huntersCallHitTimes = Array.from({ length: 16 }, (_, index) => 1080 + index * 280);

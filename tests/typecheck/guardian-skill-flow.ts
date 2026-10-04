@@ -1,4 +1,4 @@
-import type { Skill } from '#gw2/platform/engine/skills/types.js';
+import type { Skill } from '#gw2/platform/skills/types.js';
 import { guardianCatalog } from '#gw2/professions/guardian/catalog.js';
 import { guardianCoreModule } from '#gw2/professions/guardian/core/module.js';
 import { createGuardianModuleData } from '#gw2/professions/guardian/data/module-data.js';

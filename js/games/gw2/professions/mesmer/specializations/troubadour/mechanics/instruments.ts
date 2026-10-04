@@ -1,4 +1,4 @@
-import type { EffectDelivery } from '#gw2/platform/simulation/effect-emission.js';
+import type { EffectDelivery } from '#gw2/platform/effects/emission.js';
 import {
   buildMesmerStrikes,
   mesmerPacketOwner,
@@ -9,8 +9,8 @@ import {
   balanceProfileNumber,
   requireBalanceProfileFromContext,
   requireEffect
-} from '#gw2/platform/engine/skills/balance-profiles.js';
-import type { RuntimeCast } from '#gw2/platform/simulation/runtime-state.js';
+} from '#gw2/platform/skills/balance-profiles.js';
+import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import { mesmerCastDelivery } from '#gw2/professions/mesmer/core/execution/cast-lifecycle.js';
 import { mesmerMechanicsFor } from '#gw2/professions/mesmer/core/mechanics/runtime.js';
 import { masterOfFragmentationCrescendo } from '#gw2/professions/mesmer/core/traits/behavior.js';
@@ -31,7 +31,7 @@ import { scheduleSyncopateDrumWave } from '#gw2/professions/mesmer/specializatio
 import type { MesmerInstrument, MesmerRuntime } from '#gw2/professions/mesmer/types.js';
 import { canonicalTime } from '#kernel/core/clock.js';
 
-import { castWasInterrupted } from '#gw2/platform/skills/timing.js';
+import { castWasInterrupted } from '#gw2/platform/execution/cast-timing.js';
 import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
 
 /** Resolves an instrument's player or afterimage packets with their Troubadour trait interactions. */
