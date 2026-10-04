@@ -64,7 +64,11 @@ import {
 } from '#gw2/professions/revenant/core/traits/dispatch.js';
 import { REVENANT_SKILL_IDS as DAMAGE_SKILL, REVENANT_SKILL_IDS as ID } from '#gw2/professions/revenant/data/ids.js';
 import { isLegalRevenantLegendId } from '#gw2/professions/revenant/data/legends.js';
-import { isRevenantUpkeep, isRevenantUpkeepRelease } from '#gw2/professions/revenant/data/upkeep-skills.js';
+import {
+  isRevenantUpkeep,
+  isRevenantUpkeepRelease,
+  revenantUpkeepConsumeId
+} from '#gw2/professions/revenant/data/upkeep-skills.js';
 import { VINDICATOR_JUMP_SKILL } from '#gw2/professions/revenant/data/vindicator-jump.js';
 import { revenantEnergyCost } from '#gw2/professions/revenant/family-state.js';
 import type { RevenantConfig, RevenantRuntimeState, RevenantSkill } from '#gw2/professions/revenant/types.js';
@@ -188,7 +192,9 @@ function swapLegend(runtime: RevenantRuntime, cast: RuntimeCast<RevenantSkill>):
   clearRevenantLegendFlips(runtime);
   for (const active of [...core.activeUpkeeps]) {
     const upkeep: RevenantSkill | undefined = runtime.helpers.skillsById.get(active.skillId);
-    const consumeId = upkeep?.upkeepConsumeByLegendId?.[core.activeLegendId];
+    // Only a declared cross-legend relationship retains an upkeep after a swap.
+    const consumeId =
+      upkeep?.upkeepConsumeByLegendId != null ? revenantUpkeepConsumeId(upkeep, core.activeLegendId) : undefined;
     if (consumeId != null) armSkillFlip(core.availableFlips, consumeId, runtime.time);
     else removeRevenantUpkeep(runtime, active.skillId);
   }

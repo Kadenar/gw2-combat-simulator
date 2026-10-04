@@ -1,3 +1,4 @@
+import { vindicatorBuffPolicies } from '#gw2/professions/revenant/specializations/vindicator/effect-state.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import { strikeEffectCoefficient } from '#gw2/platform/effects/authoring.js';
 import type { SkillId } from '#gw2/platform/skills/types.js';
@@ -85,6 +86,7 @@ function energyMeld(runtime: RevenantRuntime): void {
 
 /** Vindicator owns its dodge landings, Energy Meld, and Alliance invocation on the shared live state. */
 export const vindicatorHooks: RuntimeHooks<RevenantRuntimeState, RevenantSkill> = {
+  buffPolicies: vindicatorBuffPolicies,
   // Both Energy Meld variants grant the same Vigor without coupling it to resource or armed-window changes.
 
   // The landing-only Dodge input uses the selected dodge's fixed animation.

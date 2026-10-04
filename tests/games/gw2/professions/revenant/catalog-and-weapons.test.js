@@ -563,6 +563,7 @@ test('Revenant modules preserve the declarative authoring contract', async () =>
 
 test('legend palette shows only the destination legend with the shared swap cooldown', async () => {
   const context = {
+    catalog: revenantCatalog,
     build: baseConfig,
     specialization: 'Core',
     professionState: {
@@ -672,6 +673,7 @@ test('legend palette shows only the destination legend with the shared swap cool
     build,
     adapter,
     profession: revenantProfession,
+    activeCatalog: revenantCatalog,
     skills: revenantCatalog.skills,
     skillById: revenantCatalog.skillsById,
     skillByName: revenantCatalog.skillsByName,
@@ -716,6 +718,7 @@ test('Revenant utilities and Conduit resources render by their related skills', 
     build,
     adapter,
     profession: revenantProfession,
+    activeCatalog: revenantCatalog,
     skills: revenantCatalog.skills,
     skillById: revenantCatalog.skillsById,
     skillByName: revenantCatalog.skillsByName,
@@ -806,6 +809,7 @@ test('weapon swap changes the active Revenant weapon set', () => {
 
 test('Revenant scepter follow-ups replace and restore weapon slots 2 and 3', () => {
   const app = {
+    activeCatalog: revenantCatalog,
     skills: revenantCatalog.skills,
     skillById: revenantCatalog.skillsById,
     profession: revenantProfession,
@@ -1062,6 +1066,7 @@ test('Abyssal Strike repeats without exposing a separate second-swing palette ti
 
   const paletteApp = {
     profession: revenantProfession,
+    activeCatalog: revenantCatalog,
     skills: revenantCatalog.skills,
     build: {
       weapons: ['Spear', ''],

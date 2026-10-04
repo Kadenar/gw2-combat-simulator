@@ -15,7 +15,7 @@ import type { RevenantRuntime } from '#gw2/professions/revenant/core/events.js';
 import {
   revenantRuntimeCoreState,
   revenantRuntimeSpecializationState
-} from '#gw2/professions/revenant/core/modifiers.js';
+} from '#gw2/professions/revenant/core/state-queries.js';
 import { REVENANT_MAXIMUM_ENDURANCE } from '#gw2/professions/revenant/core/state.js';
 import { REVENANT_TRAIT_IDS as TRAIT } from '#gw2/professions/revenant/data/ids.js';
 import { activeKallasFervorStacks } from '#gw2/professions/revenant/specializations/renegade/mechanics/kalla-and-band-together.js';

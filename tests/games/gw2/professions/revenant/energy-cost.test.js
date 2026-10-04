@@ -5,6 +5,7 @@ import test from 'node:test';
 import { REVENANT_SKILL_IDS as SKILL, REVENANT_TRAIT_IDS as TRAIT } from '#gw2/professions/revenant/data/ids.js';
 import { revenantProfession } from '#gw2/professions/revenant/profession.js';
 import { effectiveRevenantEnergyCost, revenantEnergyCost } from '#gw2/professions/revenant/family-state.js';
+import { runRevenant } from '#tests/helpers/revenant-simulation.js';
 
 // Cost policies consume explicit inputs regardless of where the state originated.
 test('Conduit costs respect follow-up charges, form overrides, and free active upkeep toggles', () => {
@@ -85,6 +86,29 @@ test('Vindicator palette uses resolved traits for Energy Meld affordability', ()
       selectedTraitIds
     });
     assert.equal(state.availability[SKILL.ENERGY_MELD].ready, selectedTraitIds.length > 0);
+  }
+});
+
+// A setup cast isolates spending from the combat-only trait refund; recovery is accounted for independently.
+test('Energy Meld spending agrees with the composed cost for both variants and trait selections', () => {
+  for (const selectedTraitIds of [[], [TRAIT.ANGSIYANS_TRUST]]) {
+    const config = { specialization: 'Vindicator', selectedTraitIds, initialEnergy: 20 };
+    const catalog = revenantProfession.runtimeFor(config).catalog;
+    for (const skillId of [SKILL.ENERGY_MELD, SKILL.ENERGY_MELD_ID_72058]) {
+      const cost = effectiveRevenantEnergyCost(
+        { specialization: 'Vindicator', traits: new Set(selectedTraitIds), state: {}, time: 0 },
+        catalog.skillsById.get(skillId)
+      );
+      const result = runRevenant([{ skillId }, '__combat_start'], config);
+      assert.deepEqual(result.warnings, []);
+      assert.ok(
+        Math.abs(
+          result.planningState.profession.energy.value - (config.initialEnergy - cost + 5 * result.rotationEndTime)
+        ) < 1e-9
+      );
+      const planning = planningFixture(revenantProfession, { ...config, initialEnergy: 0 });
+      assert.equal(planning.availability[skillId].ready, cost === 0);
+    }
   }
 });
 

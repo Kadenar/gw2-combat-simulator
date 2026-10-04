@@ -1,35 +1,15 @@
 import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
 import { countActiveBoons } from '#gw2/platform/combat/query/runtime-query.js';
 import {
-  readProfessionCoreState,
-  readProfessionSpecializationState
-} from '#gw2/platform/profession-definition/state.js';
-import type { RevenantCoreState } from '#gw2/professions/revenant/core/state.js';
-import {
   modifyCoreAttributes,
   modifyCoreCriticalChance,
   pactOfPainDuration,
   yearningEmpowermentDuration
 } from '#gw2/professions/revenant/core/traits/behavior.js';
-import type { RevenantConfig, RevenantState } from '#gw2/professions/revenant/types.js';
+import type { RevenantConfig } from '#gw2/professions/revenant/types.js';
 
 interface RevenantModifierContext extends Gw2ModifierContext {
   readonly config?: RevenantConfig;
-}
-
-function revenantRuntimeState(context: RevenantModifierContext): object | undefined {
-  return context.runtime?.profession ?? context.state?.profession;
-}
-
-export function revenantRuntimeCoreState(context: RevenantModifierContext): Partial<RevenantCoreState> {
-  return readProfessionCoreState<RevenantCoreState>(revenantRuntimeState(context));
-}
-
-export function revenantRuntimeSpecializationState(
-  context: RevenantModifierContext,
-  expectedKind: string
-): Partial<RevenantState> {
-  return readProfessionSpecializationState<RevenantState>(revenantRuntimeState(context), expectedKind) || {};
 }
 
 export function revenantTimedBuff(context: RevenantModifierContext, kind: string): boolean {

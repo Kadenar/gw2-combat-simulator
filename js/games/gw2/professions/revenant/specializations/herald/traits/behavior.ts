@@ -11,7 +11,7 @@ import type { RevenantRuntime } from '#gw2/professions/revenant/core/events.js';
 import {
   revenantRuntimeCoreState,
   revenantRuntimeSpecializationState
-} from '#gw2/professions/revenant/core/modifiers.js';
+} from '#gw2/professions/revenant/core/state-queries.js';
 import { REVENANT_TRAIT_IDS as TRAIT } from '#gw2/professions/revenant/data/ids.js';
 import { heraldFacetPassiveActive } from '#gw2/professions/revenant/specializations/herald/mechanics/facet-passives.js';
 import { scheduleFacetPulse } from '#gw2/professions/revenant/specializations/herald/mechanics/facets.js';

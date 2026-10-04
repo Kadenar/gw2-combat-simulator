@@ -6,7 +6,7 @@ import { snapshotProfessionState } from '#gw2/platform/profession-definition/sta
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { thiefCatalog } from '#gw2/professions/thief/profession.js';
-import { landThiefAxe } from '#gw2/professions/thief/core/mechanics/weapons.js';
+import { landThiefAxe } from '#gw2/professions/thief/core/mechanics/axes.js';
 import { runThief } from '#tests/helpers/thief-simulation.js';
 import { triggerSharpeningStone } from '#gw2/professions/ranger/core/mechanics/skill-reactions.js';
 import { rangerCatalog } from '#gw2/professions/ranger/profession.js';

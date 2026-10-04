@@ -1,3 +1,4 @@
+import { conduitBuffPolicies } from '#gw2/professions/revenant/specializations/conduit/effect-state.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import { materializeSkillEffectApplications } from '#gw2/platform/effects/materializer.js';
 import type { SimulationEventBase } from '#gw2/platform/events/events.js';
@@ -279,6 +280,7 @@ function upkeepDaggers(runtime: RevenantRuntime, data: unknown): void {
 }
 
 export const conduitHooks: RuntimeHooks<RevenantRuntimeState, RevenantSkill> = {
+  buffPolicies: conduitBuffPolicies,
   // Passive affinity accrual does not extend damage observation; damaging dagger upkeep remains bounded normally.
   backgroundTasks: [UPKEEP_AFFINITY],
   // Control-triggered Burning shares Mistfire's profile, excluding its own Twin Moon chain.

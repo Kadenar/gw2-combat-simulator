@@ -16,7 +16,7 @@ import type { RevenantRuntime } from '#gw2/professions/revenant/core/events.js';
 import {
   revenantRuntimeCoreState,
   revenantRuntimeSpecializationState
-} from '#gw2/professions/revenant/core/modifiers.js';
+} from '#gw2/professions/revenant/core/state-queries.js';
 import {
   REVENANT_SKILL_IDS as ID,
   REVENANT_LEGEND_IDS as LEGEND,

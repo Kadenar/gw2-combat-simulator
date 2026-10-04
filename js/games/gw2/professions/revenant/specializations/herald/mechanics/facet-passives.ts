@@ -4,7 +4,7 @@ import type { SkillId } from '#gw2/platform/skills/types.js';
 import {
   revenantRuntimeCoreState,
   revenantRuntimeSpecializationState
-} from '#gw2/professions/revenant/core/modifiers.js';
+} from '#gw2/professions/revenant/core/state-queries.js';
 import type { RevenantCoreState } from '#gw2/professions/revenant/core/state.js';
 import { REVENANT_SKILL_IDS as ID, REVENANT_LEGEND_IDS as LEGEND } from '#gw2/professions/revenant/data/ids.js';
 import type { HeraldState } from '#gw2/professions/revenant/specializations/herald/state.js';

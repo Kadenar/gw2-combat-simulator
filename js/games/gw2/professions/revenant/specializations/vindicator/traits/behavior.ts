@@ -13,19 +13,11 @@ import {
 import type { SkillSideEffect } from '#gw2/platform/effects/actions.js';
 import { gw2EffectExpiresAt } from '#gw2/platform/effects/timing.js';
 import type { RevenantRuntime } from '#gw2/professions/revenant/core/events.js';
-import { revenantRuntimeCoreState } from '#gw2/professions/revenant/core/modifiers.js';
+import { revenantRuntimeCoreState } from '#gw2/professions/revenant/core/state-queries.js';
 import { REVENANT_MAXIMUM_ENDURANCE } from '#gw2/professions/revenant/core/state.js';
 import { REVENANT_SKILL_IDS as ID, REVENANT_TRAIT_IDS as TRAIT } from '#gw2/professions/revenant/data/ids.js';
 import { vindicatorState } from '#gw2/professions/revenant/specializations/vindicator/state.js';
-import type { RevenantEnergyCostInput, RevenantSkill } from '#gw2/professions/revenant/types.js';
-
-/** Identifies Energy Meld's Angsiyah's Trust interaction so unrelated skills keep their normal costs. */
-export function energyMeldIsFree(input: RevenantEnergyCostInput, skill: RevenantSkill): boolean {
-  return (
-    (skill.id === ID.ENERGY_MELD || skill.id === ID.ENERGY_MELD_ID_72058) &&
-    hasTrait(input.traits, TRAIT.ANGSIYANS_TRUST)
-  );
-}
+import type { RevenantSkill } from '#gw2/professions/revenant/types.js';
 
 /** Applies the trait at the mechanic's existing execution boundary. */
 export function grantAngsiyansTrustEnergy(runtime: RevenantRuntime): void {

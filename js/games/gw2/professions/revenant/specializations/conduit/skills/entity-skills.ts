@@ -8,7 +8,7 @@ import {
 } from '#gw2/professions/revenant/specializations/conduit/traits/shared-wisdom.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import type { Gw2ModifierContext, Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
-import { revenantRuntimeCoreState } from '#gw2/professions/revenant/core/modifiers.js';
+import { revenantRuntimeCoreState } from '#gw2/professions/revenant/core/state-queries.js';
 import {
   BEGUILING_HAZE_SKILL_IDS,
   TWIN_MOON_SKILL_IDS

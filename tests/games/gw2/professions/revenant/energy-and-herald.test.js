@@ -240,6 +240,7 @@ test('Soulcleave stays on its parent tile at zero Energy until its release is ar
       };
       const app = {
         profession: revenantProfession,
+        activeCatalog: revenantCatalog,
         skills: revenantCatalog.skills,
         results: { planningState: { availability: {}, profession: professionState, atSeconds: 0 } }
       };
@@ -782,6 +783,7 @@ test('Retribution and Invocation traits use live combat state', () => {
 
 test('Forceful Persistence counts active upkeeps additively with Ferocious Aggression', () => {
   const context = {
+    catalog: revenantCatalog,
     config: {
       specialization: 'Herald',
       selectedTraitIds: [TRAIT.FORCEFUL_PERSISTENCE, TRAIT.FEROCIOUS_AGGRESSION],
@@ -1191,6 +1193,7 @@ test('starvation waits for the absolute action tick and preserves its boundary a
 test('Revenant palette exposes upkeep releases and enforces Energy costs', () => {
   const active = simulate('Core', ['Impossible Odds']);
   const context = {
+    catalog: revenantCatalog,
     specialization: 'Core',
     build: baseConfig,
     professionState: active.planningState.profession
@@ -1221,6 +1224,7 @@ test('Revenant palette exposes upkeep releases and enforces Energy costs', () =>
 
 test('Herald palette replaces active facets with their consume skills', () => {
   const context = {
+    catalog: revenantCatalog,
     specialization: 'Herald',
     build: {
       ...baseConfig,
@@ -1279,6 +1283,7 @@ test('Call to Anguish arms Unyielding Impact in the rotation palette', () => {
 
   assert.equal(castMs(armed.steps[0]), 800);
   const context = {
+    catalog: revenantCatalog,
     specialization: 'Core',
     build: { ...baseConfig, ...config },
     professionState: armed.planningState.profession,

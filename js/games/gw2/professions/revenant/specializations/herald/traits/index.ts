@@ -7,7 +7,8 @@ import {
   requireEffect
 } from '#gw2/platform/skills/balance-profiles.js';
 import { defineTrait, traitAttributeEffects } from '#gw2/platform/profession-definition/traits.js';
-import { revenantActiveBoonCount, revenantRuntimeCoreState } from '#gw2/professions/revenant/core/modifiers.js';
+import { revenantActiveBoonCount } from '#gw2/professions/revenant/core/modifiers.js';
+import { revenantRuntimeCoreState } from '#gw2/professions/revenant/core/state-queries.js';
 import { REVENANT_SKILL_IDS as ID, REVENANT_TRAIT_IDS as TRAIT } from '#gw2/professions/revenant/data/ids.js';
 import {
   HERALD_DRACONIC_ECHO_PROFILE_ID,

@@ -31,6 +31,8 @@ export const HERALD_BASE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>
     upkeepPulse: { kind: 'might', duration: 12, stacks: 1 }
   },
   [ID.FACET_OF_ELEMENTS]: {
+    // The API omits this flip; declare its consume here so selected catalogs own the relationship.
+    flipSkillId: ID.ELEMENTAL_BLAST,
     // The declaration owns this activation; shared mechanics retain its live state.
     sideEffects: [
       { on: 'castStart', do: { type: 'revenant.reserve-upkeep' } },
