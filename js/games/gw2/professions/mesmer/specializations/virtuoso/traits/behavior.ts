@@ -1,3 +1,4 @@
+import { createMesmerResources, mesmerActivePrimaryWeapon } from '#gw2/professions/mesmer/family-mechanics.js';
 import type { MesmerEventExtra } from '#gw2/professions/mesmer/data/types.js';
 import { professionStaticRulesApplied } from '#gw2/platform/builds/attribute-provenance.js';
 import { advanceCriticalProc, criticalOpportunity } from '#gw2/platform/combat/critical-procs.js';
@@ -17,7 +18,6 @@ import type {
   MesmerPhantasmPolicy,
   MesmerTraitDamage
 } from '#gw2/professions/mesmer/core/mechanics/illusions/types.js';
-import { mesmerMechanicsFor } from '#gw2/professions/mesmer/core/mechanics/runtime.js';
 import type { MesmerShatterResolution } from '#gw2/professions/mesmer/core/mechanics/shatter-types.js';
 import { mesmerProfiledTraitDamage } from '#gw2/professions/mesmer/core/profiles.js';
 import { MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
@@ -171,7 +171,6 @@ export function applyVirtuosoTraitAttributes(
 
 /** Refunds blades only after a completed Bladesong commits the configured maximum-spend threshold. */
 export function resolveInfiniteForgeRefund(context: MesmerRuntime, resolution: MesmerShatterResolution): void {
-  const runtime = mesmerMechanicsFor(context);
   if (
     !hasTrait(context, TRAIT.INFINITE_FORGE) ||
     resolution.spent <
@@ -181,10 +180,10 @@ export function resolveInfiniteForgeRefund(context: MesmerRuntime, resolution: M
   }
 
   const infiniteForgeProfile = requireBalanceProfileFromContext(context, TRAIT.INFINITE_FORGE);
-  runtime.resources.queueResources(
+  createMesmerResources(context).queueResources(
     resolution.at,
     balanceProfileNumber(infiniteForgeProfile, 'resourceGain'),
-    runtime.activePrimaryWeapon(),
+    mesmerActivePrimaryWeapon(context),
     'Infinite Forge refund',
     {
       traitId: TRAIT.INFINITE_FORGE,

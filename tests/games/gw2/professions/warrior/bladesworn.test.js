@@ -140,7 +140,7 @@ test('Gunsaber transitions share recharge, reset chains, and retain the configur
   assert.equal(owner.activeWeaponSet, 1);
   assert.equal(state(result).gunsaberActive, true);
   assert.deepEqual(owner.profession.core.autoattackChains, {});
-  assert.equal(owner.cooldowns.get(ID.UNSHEATHE_GUNSABER), owner.cooldowns.get(ID.SHEATHE_GUNSABER));
+  assert.equal(owner.cooldownController.readyAt(ID.UNSHEATHE_GUNSABER), owner.cooldownController.readyAt(ID.SHEATHE_GUNSABER));
 });
 
 test('Gunsaber gates standard weapons, ordinary swaps, weapon bursts, and unavailable bundle actions', () => {
@@ -304,7 +304,7 @@ test('Dragon Trigger spends entry Flow once and owns actual charge ticks without
   assert.equal(state(result).dragonCharges, 2);
   close(state(result).flow, 5);
   close(state(result).dragonTriggerFlowSpent, 5);
-  assert.equal(observedRuntime(result).cooldowns.has(ID.DRAGON_TRIGGER), false);
+  assert.equal(observedRuntime(result).cooldownController.hasCooldown(ID.DRAGON_TRIGGER), false);
   const ticks = result.events.filter((event) => event.reason === 'dragon trigger charge');
   assert.deepEqual(
     ticks.map((event) => [event.at, event.flowSpent]),
@@ -314,8 +314,8 @@ test('Dragon Trigger spends entry Flow once and owns actual charge ticks without
     ]
   );
   assert.equal(
-    observedRuntime(result).cooldowns.get(ID.UNSHEATHE_GUNSABER),
-    observedRuntime(result).cooldowns.get(ID.SHEATHE_GUNSABER)
+    observedRuntime(result).cooldownController.readyAt(ID.UNSHEATHE_GUNSABER),
+    observedRuntime(result).cooldownController.readyAt(ID.SHEATHE_GUNSABER)
   );
   const insufficient = run(['Dragon Trigger'], { initialResource: 14 });
   assert.ok(insufficient.warnings[0].includes('15 flow'));
@@ -337,7 +337,7 @@ test('a stalled charge waits for actual Positive Flow and a slash releases at th
   assert.equal(release.chargesReached, 2);
   assert.ok(result.events.some((event) => event.reason === 'dragon trigger charge' && event.flowSpent === 0));
   assert.equal(state(result).dragonTriggerActive, false);
-  assert.ok(observedRuntime(result).cooldowns.get(ID.DRAGON_TRIGGER) > release.at);
+  assert.ok(observedRuntime(result).cooldownController.readyAt(ID.DRAGON_TRIGGER) > release.at);
 });
 
 test('Dragon Trigger admits its exact deadline then expires autonomously and stale ticks cannot revive it', () => {
@@ -356,7 +356,7 @@ test('Dragon Trigger admits its exact deadline then expires autonomously and sta
   assert.equal(state(expired).dragonTriggerActive, false);
   assert.equal(state(expired).dragonCharges, 0);
   assert.equal(state(expired).nextDragonChargeAt, 0);
-  assert.equal(observedRuntime(expired).rechargeProgress.get(ID.DRAGON_TRIGGER).startedAt, 0.48);
+  assert.equal(observedRuntime(expired).cooldownController.rechargeFor(ID.DRAGON_TRIGGER).startedAt, 0.48);
   const stalled = run(['Dragon Trigger', slash(3), combat], config, patched);
   assert.ok(stalled.warnings.some((warning) => warning.includes('reached 2')));
 });
@@ -380,7 +380,7 @@ test('cast-bar skills exit charging at acceptance, while instant skills retain t
   assert.equal(state(exited).dragonTriggerActive, false);
   close(state(exited).flow, 15);
   assert.equal(exited.events.filter((event) => event.reason === 'dragon trigger charge').length, 1);
-  close(observedRuntime(exited).rechargeProgress.get(ID.DRAGON_TRIGGER).startedAt, 0.24);
+  close(observedRuntime(exited).cooldownController.rechargeFor(ID.DRAGON_TRIGGER).startedAt, 0.24);
 });
 
 test('Dragon Slash captures its tier and refunds only charge Flow after successful completion', () => {
@@ -452,7 +452,7 @@ test('Tactical Reload restores existing ammunition and doubles charges only for 
     selectedSkillIds: [62967, 62901]
   });
   assert.deepEqual(result.warnings, []);
-  const ammo = observedRuntime(result).ammo.get(ID.FLOW_STABILIZER);
+  const ammo = observedRuntime(result).cooldownController.readAmmo(ID.FLOW_STABILIZER);
   assert.equal(ammo.charges, ammo.maximum);
   assert.equal(state(result).tacticalReloadUntil, 0);
   const ticks = result.events.filter((event) => event.reason === 'dragon trigger charge');
@@ -469,17 +469,17 @@ test('Tactical Reload clears full Cartridges recharge and restores the longest t
   const reload = 'Tactical Reload';
   const config = { selectedSkillIds: [ID.OVERCHARGED_CARTRIDGES, ID.TACTICAL_RELOAD] };
   const initial = run([cartridges], config);
-  const firstDeadline = observedRuntime(initial).ammo.get(ID.OVERCHARGED_CARTRIDGES).nextRechargeAt;
+  const firstDeadline = observedRuntime(initial).cooldownController.readAmmo(ID.OVERCHARGED_CARTRIDGES).nextRechargeAt;
 
   const full = run([cartridges, wait(4000), reload], config);
-  const fullAmmo = observedRuntime(full).ammo.get(ID.OVERCHARGED_CARTRIDGES);
+  const fullAmmo = observedRuntime(full).cooldownController.readAmmo(ID.OVERCHARGED_CARTRIDGES);
   assert.deepEqual(full.warnings, []);
   assert.equal(fullAmmo.charges, 2);
   assert.equal(fullAmmo.nextRechargeAt, null);
   assert.deepEqual(fullAmmo.recharges, []);
 
   const spentAgain = run([cartridges, wait(4000), reload, wait(4000), cartridges], config);
-  const newAmmo = observedRuntime(spentAgain).ammo.get(ID.OVERCHARGED_CARTRIDGES);
+  const newAmmo = observedRuntime(spentAgain).cooldownController.readAmmo(ID.OVERCHARGED_CARTRIDGES);
   const lastCast = spentAgain.events.findLast(
     (event) => event.type === 'action' && event.skillId === ID.OVERCHARGED_CARTRIDGES
   );
@@ -489,7 +489,7 @@ test('Tactical Reload clears full Cartridges recharge and restores the longest t
   assert.ok(newAmmo.nextRechargeAt > firstDeadline);
 
   const partial = run([cartridges, cartridges, wait(4000), reload], config);
-  const partialAmmo = observedRuntime(partial).ammo.get(ID.OVERCHARGED_CARTRIDGES);
+  const partialAmmo = observedRuntime(partial).cooldownController.readAmmo(ID.OVERCHARGED_CARTRIDGES);
   assert.deepEqual(partial.warnings, []);
   assert.equal(partialAmmo.charges, 1);
   assert.equal(partialAmmo.recharges.length, 1);
@@ -499,7 +499,7 @@ test('Tactical Reload clears full Cartridges recharge and restores the longest t
 // Spending a magazine reserves recharge work for every consumed round in the sequential queue.
 test('Artillery Slash queues recharge for all rounds spent together', () => {
   const result = run(['Unsheathe Gunsaber', 'Artillery Slash']);
-  const ammo = observedRuntime(result).ammo.get(ID.ARTILLERY_SLASH);
+  const ammo = observedRuntime(result).cooldownController.readAmmo(ID.ARTILLERY_SLASH);
   assert.deepEqual(result.warnings, []);
   assert.equal(ammo.charges, 0);
   assert.equal(ammo.recharges.length, ammo.maximum);
@@ -519,7 +519,7 @@ test('Dragonspike resets exit recharge and an old expiry cannot close a replacem
   assert.equal(state(result).dragonTriggerEventActivationId, entries[1].activationId);
   assert.ok(observedRuntime(result).time > entries[0].deadline);
   assert.ok(observedRuntime(result).time < entries[1].deadline);
-  assert.equal(observedRuntime(result).cooldowns.has(ID.DRAGON_TRIGGER), false);
+  assert.equal(observedRuntime(result).cooldownController.hasCooldown(ID.DRAGON_TRIGGER), false);
 });
 
 test('Tactical Reload can be consumed before expiry and closes exactly at its deadline', () => {
@@ -546,7 +546,7 @@ test('Artillery Slash spends captured rounds once and successful ammunition trai
     });
     assert.deepEqual(result.warnings, []);
     const id = sharp ? ID.SHARP_ARTILLERY_SLASH : ID.ARTILLERY_SLASH;
-    assert.equal(observedRuntime(result).ammo.get(id).charges, 0);
+    assert.equal(observedRuntime(result).cooldownController.readAmmo(id).charges, 0);
     const grant = result.events.find((event) => event.type === 'buff' && event.sourceId === TRAIT.FIERCE_AS_FIRE);
     assert.equal(grant.stacks, 2);
     assert.equal(
@@ -559,7 +559,7 @@ test('Artillery Slash spends captured rounds once and successful ammunition trai
     selectedTraitIds: [TRAIT.FIERCE_AS_FIRE]
   });
   assert.deepEqual(canceled.warnings, []);
-  assert.equal(observedRuntime(canceled).ammo.get(ID.ARTILLERY_SLASH).charges, 0);
+  assert.equal(observedRuntime(canceled).cooldownController.readAmmo(ID.ARTILLERY_SLASH).charges, 0);
   assert.equal(canceled.totalDamage, 0);
   assert.equal(
     canceled.events.some((event) => event.sourceId === TRAIT.FIERCE_AS_FIRE),
@@ -569,7 +569,7 @@ test('Artillery Slash spends captured rounds once and successful ammunition trai
   assert.deepEqual(roar.warnings, []);
   assert.equal(
     roar.events.find((event) => event.type === 'buff' && event.sourceId === TRAIT.FIERCE_AS_FIRE).stacks,
-    observedRuntime(roar).ammo.get(ID.DRAGONS_ROAR).maximum
+    observedRuntime(roar).cooldownController.readAmmo(ID.DRAGONS_ROAR).maximum
   );
 });
 
@@ -581,7 +581,7 @@ test('Lush Forest reduces current-bar recharge only and preserves the normal Art
     const trained = run(rotation, { ...config, selectedTraitIds: [TRAIT.LUSH_FOREST] });
     assert.deepEqual(trained.warnings, []);
     close(
-      observedRuntime(bare).cooldowns.get(ID.CYCLONE_AXE) - observedRuntime(trained).cooldowns.get(ID.CYCLONE_AXE),
+      observedRuntime(bare).cooldownController.readyAt(ID.CYCLONE_AXE) - observedRuntime(trained).cooldownController.readyAt(ID.CYCLONE_AXE),
       gunsaber ? 0 : 0.6
     );
   }
@@ -722,7 +722,7 @@ test('committed reloads restore ammo once at semantic completion before the rese
   assert.equal(reloaded.at, action.endsAt);
   assert.equal(result.events.filter((event) => event.kind === 'tactical-reload').length, 1);
   assert.equal(state(result).dragonCharges, 2);
-  const ammo = observedRuntime(result).ammo.get(ID.FLOW_STABILIZER);
+  const ammo = observedRuntime(result).cooldownController.readAmmo(ID.FLOW_STABILIZER);
   assert.equal(ammo.charges, ammo.maximum);
 });
 

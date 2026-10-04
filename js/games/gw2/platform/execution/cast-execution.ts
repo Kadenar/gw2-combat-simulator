@@ -389,7 +389,7 @@ export function createCastExecution<T extends object>(
       runtime.time,
       skill.usableWhileRecharging && !(ammo && ammo.charges <= 0)
         ? 0
-        : gw2CooldownReadyAt(runtime.cooldowns.get(skill.id) ?? 0),
+        : gw2CooldownReadyAt(cooldownController.readyAt(skill.id) ?? 0),
       ...[...(skill.independentCastCanOverlap ? [] : (inFlight.get(skill.id) ?? []))].map(
         (id) => reservations.get(id)!.effectiveEnd
       ),

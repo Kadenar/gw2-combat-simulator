@@ -1175,7 +1175,7 @@ test('starvation waits for the absolute action tick and preserves its boundary a
       { initialEnergy: 5.1 }
     );
     const elapsedMs = waits.reduce((sum, wait) => sum + wait, 0);
-    const starvationReadyAt = observedRuntime(result).cooldowns.get(SKILL.IMPOSSIBLE_ODDS);
+    const starvationReadyAt = observedRuntime(result).cooldownController.readyAt(SKILL.IMPOSSIBLE_ODDS);
     assert.deepEqual(result.warnings, []);
     assert.equal(result.planningState.profession.activeUpkeeps.length, elapsedMs < 120 ? 1 : 0);
     if (elapsedMs < 120) {
@@ -1654,7 +1654,10 @@ test('Herald consume skills apply their full outgoing profiles', () => {
     startingLegend: LEGEND.DRAGON
   });
 
-  assert.equal(observedRuntime(gaze).cooldowns.get(revenantCatalog.skillsByName.get('Gaze of Darkness').id), 12);
+  assert.equal(
+    observedRuntime(gaze).cooldownController.readyAt(revenantCatalog.skillsByName.get('Gaze of Darkness').id),
+    12
+  );
   assert.ok(
     gaze.events.some(
       (event) => event.type === 'blind' && event.skillName === 'Gaze of Darkness' && event.duration === 5

@@ -13,6 +13,8 @@ export interface MesmerCoreState {
   /** Acceptance facts stay with the run so predicates can read them without acquiring live controllers. */
   castDetails: Map<string, MesmerCastDetails>;
   clones: MesmerClone[];
+  /** Monotonic identity survives replacement and shatters without a private controller counter. */
+  cloneSequence: number;
   trackedSkillHits: Record<string, number[]>;
 
   mimicUntil: number;
@@ -28,6 +30,7 @@ export function createMesmerCoreState(): MesmerCoreState {
   return {
     castDetails: new Map(),
     clones: [],
+    cloneSequence: 0,
     trackedSkillHits: {},
 
     mimicUntil: 0,

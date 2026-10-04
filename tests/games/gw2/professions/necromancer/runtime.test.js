@@ -1505,7 +1505,7 @@ test('live slot selection and trait replacements reject unavailable commands wit
   assert.ok(simulate([cast(ID.DEVOURING_DARKNESS)]).warnings.some((warning) => warning.includes('Lingering Curse')));
   const replacement = simulate([cast(ID.FEAST_OF_CORRUPTION)], { ...base, selectedTraitIds: [TRAIT.LINGERING_CURSE] });
   assert.ok(replacement.warnings.some((warning) => warning.includes('Devouring Darkness replaces')));
-  assert.equal(observedRuntime(replacement).cooldowns.size, 0);
+  assert.equal([...observedRuntime(replacement).cooldownController.cooldownSkillIds()].length, 0);
 });
 
 test('a completed parent arms one exclusive follow-up window and interruption arms nothing', () => {

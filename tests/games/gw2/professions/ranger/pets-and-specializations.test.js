@@ -1649,8 +1649,8 @@ test('Untamed Unleash forms share a fixed one-second recharge', () => {
       { skill: 'Unleash Ranger', start: 1000 }
     ]
   );
-  assert.equal(observedRuntime(result).cooldowns.get(ID.UNLEASH_RANGER), 2);
-  assert.equal(observedRuntime(result).cooldowns.get(ID.UNLEASH_PET), 2);
+  assert.equal(observedRuntime(result).cooldownController.readyAt(ID.UNLEASH_RANGER), 2);
+  assert.equal(observedRuntime(result).cooldownController.readyAt(ID.UNLEASH_PET), 2);
   assert.equal(result.planningState.profession.ambushReadyUntil, 5);
 
   const suppressed = simulate('Untamed', ['Unleash Pet', 'Unleash Ranger', 'Unleash Pet', 'Unleash Ranger'], {

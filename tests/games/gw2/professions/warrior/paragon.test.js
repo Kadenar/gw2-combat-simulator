@@ -206,13 +206,13 @@ test('Feverish Pulse reduces other chants even when its Alacrity component is re
   const bare = run(rotation, config, patched);
   const trained = run(rotation, { ...config, selectedTraitIds: [TRAIT.FEVERISH_PULSE] }, patched);
   close(
-    observedRuntime(bare).cooldowns.get(ID.CHANT_OF_ACTION) -
-      observedRuntime(trained).cooldowns.get(ID.CHANT_OF_ACTION),
+    observedRuntime(bare).cooldownController.readyAt(ID.CHANT_OF_ACTION) -
+      observedRuntime(trained).cooldownController.readyAt(ID.CHANT_OF_ACTION),
     1.6
   );
   assert.equal(
-    observedRuntime(bare).cooldowns.get(ID.CHANT_OF_FREEDOM),
-    observedRuntime(trained).cooldowns.get(ID.CHANT_OF_FREEDOM)
+    observedRuntime(bare).cooldownController.readyAt(ID.CHANT_OF_FREEDOM),
+    observedRuntime(trained).cooldownController.readyAt(ID.CHANT_OF_FREEDOM)
   );
   assert.equal(
     trained.events.some((event) => event.kind === 'alacrity'),

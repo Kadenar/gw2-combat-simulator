@@ -59,7 +59,7 @@ test('committed ground skills and Extirpate preserve effects and cast-lane owner
           (event) => event.skillId === id && event.type === 'damage' && event.at > following.at
         )
       );
-    assert.ok(observedRuntime(result).cooldowns.has(id));
+    assert.ok(observedRuntime(result).cooldownController.hasCooldown(id));
   }
 });
 

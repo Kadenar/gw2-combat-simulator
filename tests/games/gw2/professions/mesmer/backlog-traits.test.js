@@ -175,7 +175,7 @@ test("Warden's Feedback reduces Focus recharge by twenty percent", () => {
       const recharge = (result) => {
         const runtime = observedRuntime(result);
         const id = runtime.helpers.skillsByName.get(skill).id;
-        return runtime.cooldowns.get(id) - result.steps[0].end / 1000;
+        return runtime.cooldownController.readyAt(id) - result.steps[0].end / 1000;
       };
 
       assert.ok(

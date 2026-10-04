@@ -1,3 +1,4 @@
+import { createMesmerResources, mesmerActivePrimaryWeapon } from '#gw2/professions/mesmer/family-mechanics.js';
 import { professionStaticRulesApplied } from '#gw2/platform/builds/attribute-provenance.js';
 import { advanceCriticalProc, criticalOpportunity } from '#gw2/platform/combat/critical-procs.js';
 import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
@@ -26,7 +27,6 @@ import {
   buildMesmerStrikes,
   mesmerPacketOwner
 } from '#gw2/professions/mesmer/core/mechanics/packets.js';
-import { mesmerMechanicsFor } from '#gw2/professions/mesmer/core/mechanics/runtime.js';
 import type { MesmerShatter, MesmerShatterResolution } from '#gw2/professions/mesmer/core/mechanics/shatter-types.js';
 import { mesmerProfiledTraitDamage } from '#gw2/professions/mesmer/core/profiles.js';
 import { MESMER_SKILL_IDS as ID, MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
@@ -197,7 +197,8 @@ export function triggerMethodOfMadness(
     announcement: { type: 'trait', name: 'Method of Madness', at: at, sourceSkill: skill.name, detail: '' }
   });
   // Elite consequences follow the accepted mechanic, independently of its diagnostic marker.
-  mesmerMechanicsFor(context.state).methodOfMadnessCommitted?.(at);
+  // Only Troubadour owns the delayed Syncopate consequence of this accepted heal.
+  if (context.state.profession.specialization.kind === 'Troubadour') context.state.schedule('mesmer.syncopate', at);
   context.state.procs.setDeadline(TRAIT.METHOD_OF_MADNESS, at + (storm.cooldown || 0));
 }
 
@@ -556,11 +557,16 @@ export function applyFencersFinesse(runtime: MesmerRuntime, event: SimulationEve
 
 export function triggerDeceptiveEvasion(runtime: MesmerRuntime): void {
   if (!hasTrait(runtime, TRAIT.DECEPTIVE_EVASION)) return;
-  const mechanics = mesmerMechanicsFor(runtime);
-  mechanics.resources.queueResources(runtime.time, 1, mechanics.activePrimaryWeapon(), 'Deceptive Evasion', {
-    traitId: TRAIT.DECEPTIVE_EVASION,
-    traitName: 'Deceptive Evasion'
-  });
+  createMesmerResources(runtime).queueResources(
+    runtime.time,
+    1,
+    mesmerActivePrimaryWeapon(runtime),
+    'Deceptive Evasion',
+    {
+      traitId: TRAIT.DECEPTIVE_EVASION,
+      traitName: 'Deceptive Evasion'
+    }
+  );
 }
 
 /** Apply the sword multiplier alongside shatter recharge before any flat resource reduction. */

@@ -353,7 +353,7 @@ test('Salvo refunds on impact and recalled malicious axes use base poison withou
     assert.deepEqual(result.warnings, []);
     assert.ok(observedRuntime(result).resourceController.value('initiative') >= 2);
     const runtime = observedRuntime(result);
-    assert.ok(Math.abs(runtime.cooldowns.get(skillId) - runtime.time - 1) < 1e-9);
+    assert.ok(Math.abs(runtime.cooldownController.readyAt(skillId) - runtime.time - 1) < 1e-9);
     const miss = runThief(
       [{ skillId, offTarget: true }],
       { ...axeConfig, specialization, initialInitiative: 0 },

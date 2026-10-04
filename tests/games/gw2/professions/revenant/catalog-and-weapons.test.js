@@ -1206,7 +1206,7 @@ test('Revenant spear packets reduce Abyssal Raze count recharge on hit', () => {
       }
     )
   );
-  const ammo = observedRuntime(result).ammo.get(SKILL.ABYSSAL_RAZE);
+  const ammo = observedRuntime(result).cooldownController.readAmmo(SKILL.ABYSSAL_RAZE);
 
   assert.equal(ammo.charges, 3);
   assert.equal(ammo.nextRechargeAt, null);
@@ -1304,7 +1304,9 @@ test('spear reductions advance base Raze recharge once per activation at its rec
       );
       const expectedReadyAt = result.steps[0].end / 1000 + (15 - seconds) / rate;
       assert.ok(
-        Math.abs(observedRuntime(result).ammo.get(SKILL.ABYSSAL_RAZE).nextRechargeAt - expectedReadyAt) < 1e-9,
+        Math.abs(
+          observedRuntime(result).cooldownController.readAmmo(SKILL.ABYSSAL_RAZE).nextRechargeAt - expectedReadyAt
+        ) < 1e-9,
         skill
       );
     }
@@ -1350,7 +1352,7 @@ test("Abyssal Strike reduces Raze's displayed cooldown with no charges", () => {
 
   assert.equal(result.warnings.length, 0);
 
-  assert.equal(observedRuntime(result).ammo.get(SKILL.ABYSSAL_RAZE).nextRechargeAt, 11.8);
+  assert.equal(observedRuntime(result).cooldownController.readAmmo(SKILL.ABYSSAL_RAZE).nextRechargeAt, 11.8);
   assert.deepEqual(result.planningState.cooldowns['Abyssal Raze'], {
     readyAt: 11800,
     remaining: 780
@@ -1373,7 +1375,7 @@ test('Abyssal Raze recharge reduction carries only excess work into the next que
   assert.equal(rechargeProc.cooldownReduction, 0.8);
   // Completing the front charge carries only the unused reduction into the next, leaving later work intact.
   const runtime = observedRuntime(result);
-  const ammo = runtime.ammo.get(SKILL.ABYSSAL_RAZE);
+  const ammo = runtime.cooldownController.readAmmo(SKILL.ABYSSAL_RAZE);
   const casts = result.events.filter((event) => event.type === 'action' && event.skillId === SKILL.ABYSSAL_RAZE);
   const remainingWork = 15 - (rechargeProc.start / 1000 - casts[0].rechargeProgress.startedAt) * 1.25;
   const overflow = 1 - remainingWork;

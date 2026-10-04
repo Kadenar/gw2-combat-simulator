@@ -1,7 +1,7 @@
+import { createMesmerResources, mesmerActivePrimaryWeapon } from '#gw2/professions/mesmer/family-mechanics.js';
 import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
-import { mesmerMechanicsFor } from '#gw2/professions/mesmer/core/mechanics/runtime.js';
 import { MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
 
 /** Focus recharge reduction applies through the shared cooldown controller, including Alacrity. */
@@ -24,13 +24,18 @@ export const egoRestoration = defineTrait<MesmerSkill>({
   hooks: {
     onCastCommit(runtime, cast) {
       if (!hasTrait(runtime, TRAIT.EGO_RESTORATION) || !runtime.combatStartedAt() || cast.skill.type !== 'Heal') return;
-      const mechanics = mesmerMechanicsFor(runtime);
-      mechanics.resources.gainResources(runtime.time, 1, mechanics.activePrimaryWeapon(), cast.skill.name, {
-        kind: 'trait',
-        sourceSkillId: cast.skill.id,
-        traitId: TRAIT.EGO_RESTORATION,
-        traitName: 'Ego Restoration'
-      });
+      createMesmerResources(runtime).gainResources(
+        runtime.time,
+        1,
+        mesmerActivePrimaryWeapon(runtime),
+        cast.skill.name,
+        {
+          kind: 'trait',
+          sourceSkillId: cast.skill.id,
+          traitId: TRAIT.EGO_RESTORATION,
+          traitName: 'Ego Restoration'
+        }
+      );
     }
   }
 });

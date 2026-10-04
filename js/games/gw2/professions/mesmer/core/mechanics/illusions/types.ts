@@ -58,7 +58,7 @@ export type MesmerQueueResources = (
   delivery?: EffectDelivery
 ) => void;
 
-interface MesmerResourceGain {
+export interface MesmerResourceGain {
   readonly at: number;
   readonly cause: MesmerResourceCause;
   readonly createdClones: readonly MesmerClone[];
@@ -70,7 +70,6 @@ export interface MesmerCloneAttackScheduler {
 }
 
 export interface MesmerResourceController {
-  addGainHandler(handler: (gain: MesmerResourceGain) => void): void;
   gainResources(
     at: number,
     count: number,

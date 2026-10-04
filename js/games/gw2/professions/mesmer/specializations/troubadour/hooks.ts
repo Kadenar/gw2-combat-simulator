@@ -8,18 +8,16 @@ import {
   resolveCrescendo,
   scheduleTroubadourPerformance
 } from '#gw2/professions/mesmer/specializations/troubadour/mechanics/instruments.js';
-import { initializeTroubadourRuntime } from '#gw2/professions/mesmer/specializations/troubadour/mechanics/runtime.js';
 import { resolveTroubadourTale } from '#gw2/professions/mesmer/specializations/troubadour/mechanics/tales.js';
 import { activeTroubadourInstrumentsAt } from '#gw2/professions/mesmer/specializations/troubadour/state.js';
-import { initializeSyncopate } from '#gw2/professions/mesmer/specializations/troubadour/traits/syncopate.js';
 import type { MesmerRuntimeState } from '#gw2/professions/mesmer/types.js';
 
 /** Instruments commit notes on completion; delayed waves and accepted disables retain their own timing. */
 export const troubadourHooks: RuntimeHooks<MesmerRuntimeState, MesmerSkill> = {
   initialize(runtime) {
-    initializeTroubadourRuntime(runtime);
+    // Seed selected instrument ammo before accepting casts.
+    for (const skill of runtime.helpers.skills) runtime.cooldownController.ensureAmmo(skill);
     // Keep the completed-heal consequence queued at the same boundary without observing log text.
-    initializeSyncopate(runtime);
   },
   endurance: troubadourEndurance,
   sideEffectHandlers: {

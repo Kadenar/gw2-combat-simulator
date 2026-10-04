@@ -1506,7 +1506,7 @@ test('Isolate and Distress expose the follow-up and reset Perforate', () => {
     ),
     440
   );
-  assert.equal(observedRuntime(delayedHitWindow).cooldowns.get(ID.ISOLATE), 14.84);
+  assert.equal(observedRuntime(delayedHitWindow).cooldownController.readyAt(ID.ISOLATE), 14.84);
   assert.equal(result.steps[3].start < 8000, true);
   assert.equal(
     result.events.filter(

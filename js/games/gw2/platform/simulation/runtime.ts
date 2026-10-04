@@ -114,16 +114,7 @@ export function runRuntime<T extends object>(
     // Direct modifier-history reads and indexed queries share executed facts, even without report collections.
     events: history,
     resolvedTimelineEvents: history,
-    skillOnCooldown(skillId, at) {
-      if (at !== runtime.time) throw new RangeError('Live cooldown queries must use the current clock.');
-      // Formula queries inspect one skill; refreshing every cooldown for every condition sample repeats unrelated work.
-      const skill = profession.catalog.skillsById.get(skillId);
-      if (skill && runtime.ammo.has(skillId)) cooldownController.refreshAmmo(skill, at);
-      const progress = runtime.rechargeProgress.get(skillId);
-      const readyAt =
-        skill && progress ? cooldownController.project(skill, progress) : (runtime.cooldowns.get(skillId) ?? 0);
-      return readyAt > at;
-    }
+    skillOnCooldown: (skillId, at) => cooldownController.isOnCooldown(skillId, at)
   });
   const internal = new HandlerRegistry<Gw2Runtime<T>, RuntimeWork>();
   const makeWork = createInternalWorkFactory<RuntimeWork>(internal);
@@ -195,12 +186,15 @@ export function runRuntime<T extends object>(
     onFirstDamage: conditions.startDamageClock,
     reactions
   });
-  const clocks = { time: 0, cooldowns: new Map(), rechargeProgress: new Map(), ammo: new Map() };
   // Capacity queries share one selected-content capability and follow the live profession state across replacements.
   const maximumAmmoContext = createMaximumAmmoContext(() => runtime.profession, base.traits, profession.catalog);
-  // Controller closures follow the one runtime clock; the initializer object is not retained as separate state.
+  // The recharge owner keeps its stores private and reads the single live runtime clock.
   const cooldownController = createCooldownController({
-    state: Object.assign(base, clocks),
+    clock: {
+      get time() {
+        return runtime.time;
+      }
+    },
     rechargeDuration: (skill, at) => casts.rechargeWorkFor(skill) / cooldownController.rate(skill, at),
     maximumAmmo: (skill) => profession.maximumAmmo?.(maximumAmmoContext, skill, skill.ammo ?? 0) ?? skill.ammo ?? 0,
     rechargeIntervals: (skill, start, end) => query.timeline.rechargeIntervals(skill, start, end),
@@ -209,7 +203,7 @@ export function runRuntime<T extends object>(
   runtime = Object.assign(base, {
     effectReactions,
     profession: base.profession as T,
-    ...clocks,
+    time: 0,
     inputReadyAt: 0,
     combatActive: false,
     rotationEndTime: null,

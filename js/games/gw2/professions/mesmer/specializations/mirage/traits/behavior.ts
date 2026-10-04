@@ -1,3 +1,9 @@
+import type { MesmerResourceGain } from '#gw2/professions/mesmer/core/mechanics/illusions/types.js';
+import {
+  createMesmerResources,
+  createMesmerActions,
+  mesmerActivePrimaryWeapon
+} from '#gw2/professions/mesmer/family-mechanics.js';
 import type { EffectDelivery } from '#gw2/platform/effects/emission.js';
 import type { MesmerEventExtra } from '#gw2/professions/mesmer/data/types.js';
 import { buildMesmerConditions, mesmerPacketOwner } from '#gw2/professions/mesmer/core/mechanics/packets.js';
@@ -9,11 +15,10 @@ import {
   requireEffect
 } from '#gw2/platform/skills/balance-profiles.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
-import { mesmerMechanicsFor } from '#gw2/professions/mesmer/core/mechanics/runtime.js';
 import { MESMER_SKILL_IDS as ID, MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
 import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
 import { statusFromEffect } from '#gw2/professions/mesmer/specializations/mirage/mechanics/boons.js';
-import { mirageControllerFor } from '#gw2/professions/mesmer/specializations/mirage/mechanics/runtime.js';
+import { createMirageMechanics } from '#gw2/professions/mesmer/specializations/mirage/mechanics/runtime.js';
 import { mirageState } from '#gw2/professions/mesmer/specializations/mirage/state.js';
 import type { MesmerMirageController } from '#gw2/professions/mesmer/specializations/mirage/types.js';
 import type { MesmerAmbushAttack, MesmerRuntime } from '#gw2/professions/mesmer/types.js';
@@ -376,27 +381,29 @@ export function applyMirageShatterTraits(
   }
 }
 
-/** Install clone-gain reactions and initial Riddle readiness after the Mirage controller exists. */
+/** Infinite Horizon reacts to the committed gain directly, without per-run callback registration. */
+export function reactToMirageResourceGain(
+  context: MesmerRuntime,
+  { at, cause, createdClones }: MesmerResourceGain
+): void {
+  const traitId = Number(cause.traitId);
+  const triggersCloneAmbush =
+    traitId === TRAIT.DECEPTIVE_EVASION ||
+    (traitId === TRAIT.SELF_DECEPTION && cause.sourceSkillId === ID.ILLUSIONARY_AMBUSH);
+  // Preserve the inclusive clone-gain deadline, but never treat the zero sentinel as an active cloak.
+  const cloneAmbushUntil = mirageState.from(context).cloneAmbushUntil;
+  if (
+    triggersCloneAmbush &&
+    hasTrait(context, TRAIT.INFINITE_HORIZON) &&
+    cloneAmbushUntil > 0 &&
+    at <= cloneAmbushUntil
+  ) {
+    createMirageMechanics(context).executeCloneAmbushes(at, createdClones);
+  }
+}
+
+/** Initialize only the gameplay readiness state owned by Mirage. */
 export function initializeMirageTraits(context: MesmerRuntime): void {
-  const runtime = mesmerMechanicsFor(context);
-  const mirage = mirageControllerFor(runtime);
-  // Infinite Horizon reacts to Mirage-authored clone gains while the generic resource controller stays spec-agnostic.
-  runtime.resources.addGainHandler(({ at, cause, createdClones }) => {
-    const traitId = Number(cause.traitId);
-    const triggersCloneAmbush =
-      traitId === TRAIT.DECEPTIVE_EVASION ||
-      (traitId === TRAIT.SELF_DECEPTION && cause.sourceSkillId === ID.ILLUSIONARY_AMBUSH);
-    // Preserve the inclusive clone-gain deadline, but never treat the zero sentinel as an active cloak.
-    const cloneAmbushUntil = mirageState.from(context).cloneAmbushUntil;
-    if (
-      triggersCloneAmbush &&
-      hasTrait(context, TRAIT.INFINITE_HORIZON) &&
-      cloneAmbushUntil > 0 &&
-      at <= cloneAmbushUntil
-    ) {
-      mirage.executeCloneAmbushes(at, createdClones);
-    }
-  });
   // Riddle of Sand starts armed only for the active Mirage runtime and is re-armed by Mirage shatters.
   mirageState.from(context).riddleOfSandReady =
     hasTrait(context, TRAIT.RIDDLE_OF_SAND) &&
@@ -406,17 +413,16 @@ export function initializeMirageTraits(context: MesmerRuntime): void {
 /** Applies Self-Deception to categorized Deception skills after their casts complete. */
 export function completeMirageSkill(context: MesmerRuntime, cast: RuntimeCast<MesmerSkill>): void {
   const skill = cast.skill;
-  const runtime = mesmerMechanicsFor(context);
   if (
     hasTrait(context, TRAIT.SELF_DECEPTION) &&
     skill.categories?.includes('Deception') &&
-    runtime.actions.currentResource() > 0
+    createMesmerActions(context).currentResource() > 0
   ) {
     const selfDeceptionProfile = requireBalanceProfileFromContext(context, TRAIT.SELF_DECEPTION);
-    runtime.resources.queueResources(
+    createMesmerResources(context).queueResources(
       context.time,
       balanceProfileNumber(selfDeceptionProfile, 'resourceGain'),
-      runtime.activePrimaryWeapon(),
+      mesmerActivePrimaryWeapon(context),
       `Self-Deception: ${skill.name}`,
       {
         traitId: TRAIT.SELF_DECEPTION,

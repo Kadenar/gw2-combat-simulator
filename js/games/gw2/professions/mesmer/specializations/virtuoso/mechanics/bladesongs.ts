@@ -6,7 +6,7 @@ import {
   buildMesmerStrikes,
   mesmerPacketOwner
 } from '#gw2/professions/mesmer/core/mechanics/packets.js';
-import { mesmerConditionFromProfile } from '#gw2/professions/mesmer/core/mechanics/runtime.js';
+import { mesmerConditionFromProfile } from '#gw2/professions/mesmer/core/mechanics/conditions.js';
 import type {
   MesmerShatterResolverRequest,
   MesmerShatterTraitHit

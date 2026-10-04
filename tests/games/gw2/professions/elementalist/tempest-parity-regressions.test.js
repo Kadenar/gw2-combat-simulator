@@ -91,7 +91,7 @@ test('Tempest overload completion preserves a longer attunement lockout', () => 
   );
   assert.deepEqual(result.warnings, []);
   assert.equal(observedRuntime(result).cooldownController.readyAt(id), 48);
-  assert.deepEqual(observedRuntime(result).rechargeProgress.get(id), { startedAt: 0, work: 60 });
+  assert.deepEqual(observedRuntime(result).cooldownController.rechargeFor(id), { startedAt: 0, work: 60 });
 });
 
 // A two-skill rotation isolates the instant-cast scheduling rule without

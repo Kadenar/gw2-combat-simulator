@@ -17,27 +17,14 @@ import type { MesmerTroubadourState } from '#gw2/professions/mesmer/specializati
 import type { MesmerVirtuosoState } from '#gw2/professions/mesmer/specializations/virtuoso/state.js';
 import type { MesmerProjectedInstrument } from '#gw2/professions/mesmer/specializations/troubadour/types.js';
 import type {
-  MesmerCloneAttack,
-  MesmerCloneAttackScheduler,
-  MesmerCriticalTraitDispatcher,
-  MesmerPhantasmAttackTiming,
-  MesmerPhantasmPolicy,
-  MesmerResourceController,
-  MesmerTraitDamage
-} from '#gw2/professions/mesmer/core/mechanics/illusions/types.js';
-import type {
   MesmerResourceDefinition,
   MesmerResourceSpendDetails
 } from '#gw2/professions/mesmer/core/mechanics/resource-types.js';
 import type {
-  MesmerShatter,
   MesmerShatterResolution,
   MesmerShatterResolverRequest,
   MesmerShatterTraitHit
 } from '#gw2/professions/mesmer/core/mechanics/shatter-types.js';
-import type { MesmerSkillEffectController } from '#gw2/professions/mesmer/core/execution/effect-types.js';
-import type { MesmerContinuumController } from '#gw2/professions/mesmer/specializations/chronomancer/types.js';
-import type { MesmerMirageController } from '#gw2/professions/mesmer/specializations/mirage/types.js';
 
 import type { MesmerConditionApplication, MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
 
@@ -106,30 +93,6 @@ export type MesmerResolverEvent = Gw2ResolverEvent & {
 /** Mesmer owners mutate their profession state and request shared changes through engine services. */
 export type MesmerRuntime = MechanicContext<MesmerRuntimeState, MesmerSkill>;
 
-/** Per-run Mesmer controllers and selected mechanic data remain private to their registry. */
-export interface MesmerMechanics {
-  resourceDefinition: MesmerResourceDefinition;
-  weaponStrength: Readonly<Record<string, number>>;
-  cloneAttacks: Readonly<Record<string, MesmerCloneAttack>>;
-  ambushAttacks: Record<string, MesmerAmbushAttack>;
-  phantasmAttackTimings: Record<number, MesmerPhantasmAttackTiming>;
-  phantasmPolicy: MesmerPhantasmPolicy;
-  traitDamage: Record<string, MesmerTraitDamage>;
-  shatters: Record<number, MesmerShatter>;
-  shatterResolvers: Record<string, MesmerShatterResolver>;
-  shatterResolvedHandlers: MesmerShatterResolvedHandler[];
-  methodOfMadnessCommitted?: (at: number) => void;
-  instruments: Record<number, MesmerInstrument>;
-  activePrimaryWeapon: MesmerActivePrimaryWeapon;
-  cloneAttackScheduler: MesmerCloneAttackScheduler;
-  resources: MesmerResourceController;
-  criticalTraits: MesmerCriticalTraitDispatcher;
-  actions: MesmerProfessionActionController;
-  continuum?: MesmerContinuumController;
-  mirage?: MesmerMirageController;
-  skillEffects: MesmerSkillEffectController;
-}
-
 /** UI callbacks read both live state and the named public projection fields. */
 export type MesmerUiState = Partial<MesmerProfessionState> &
   Partial<Omit<MesmerPlanningState, keyof MesmerProfessionState>>;
@@ -183,8 +146,6 @@ export type MesmerShatterResolver = (
   context: MesmerRuntime,
   request: MesmerShatterResolverRequest
 ) => readonly MesmerShatterTraitHit[];
-
-export type MesmerShatterResolvedHandler = (context: MesmerRuntime, resolution: MesmerShatterResolution) => void;
 
 export type MesmerActivePrimaryWeapon = () => string;
 

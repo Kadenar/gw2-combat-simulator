@@ -94,7 +94,7 @@ test('Zealous Blade reduces every Greatsword skill recharge by 20%', () => {
       const action = result.events.find((event) => event.type === 'action' && event.skillName === skillName);
       const rechargeStart = skill.rechargeAnchor === 'castStart' ? action.at : action.endsAt;
 
-      return Number((observedRuntime(result).cooldowns.get(skill.id) - rechargeStart).toFixed(3));
+      return Number((observedRuntime(result).cooldownController.readyAt(skill.id) - rechargeStart).toFixed(3));
     });
 
   assert.deepEqual(rechargeDurations([]), [6.4, 8, 9.6, 20]);
@@ -391,7 +391,7 @@ test('Willbender virtues, flames, and trait triggers use their full mechanics', 
     rushingJusticePackets.map((event) => Math.round((event.at - rushingJusticeAction.at) * 1000)),
     [440, 440]
   );
-  assert.equal(observedRuntime(full).rechargeProgress.get(rushingJusticeAction.skillId).work, 12);
+  assert.equal(observedRuntime(full).cooldownController.rechargeFor(rushingJusticeAction.skillId).work, 12);
 });
 
 test('Restorative Virtues converts base recharge reduction through Alacrity', () => {
@@ -404,7 +404,7 @@ test('Restorative Virtues converts base recharge reduction through Alacrity', ()
   })(undefined, ['Rushing Justice', 'Whirling Wrath']);
   const action = result.events.find((event) => event.type === 'action' && event.skillName === 'Whirling Wrath');
   const procs = result.procSteps.filter((step) => step.skill === 'Restorative Virtues');
-  const trackedReadyAt = observedRuntime(result).cooldowns.get(action.skillId);
+  const trackedReadyAt = observedRuntime(result).cooldownController.readyAt(action.skillId);
 
   assert.deepEqual(result.warnings, []);
   assert.ok(procs.length > 0);

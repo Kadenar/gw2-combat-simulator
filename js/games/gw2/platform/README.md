@@ -32,9 +32,12 @@ and execution loop. `resolver/event-phase.ts` selects packet phases; it does not
 hits, procs, and condition wakes settle on the same clock.
 
 `execution/cast-execution.ts` owns readiness, acceptance, reservations, in-flight tracking, lockouts, and completion.
-`execution/cast-contracts.ts` declares accepted cast facts and narrow cast-control operations. Cooldown/ammo mutation
-belongs to `execution/cooldowns.ts`; recharge work arithmetic belongs to `execution/recharge.ts`. Static chain indexes
-live in `skills/autoattack-chain-index.ts`, while `execution/autoattack-chains.ts` owns live transitions.
+`execution/cast-contracts.ts` declares accepted cast facts and narrow cast-control operations. `execution/cooldowns.ts`
+privately owns cooldown deadlines, recharge progress, and ammo pools. Cast readiness, live formula queries, and planning
+projections use its operations and observations; `Gw2Runtime` exposes no recharge maps. Live formula queries retain
+unrounded deadlines and settle only the requested magazine; cast admission and public deadlines retain action-tick
+rounding. Recharge work arithmetic belongs to `execution/recharge.ts`. Static chain indexes live in
+`skills/autoattack-chain-index.ts`, while `execution/autoattack-chains.ts` owns live transitions.
 
 `resolver/effect-delivery.ts` owns packet admission/preparation, target gates, immediate conditions, and reaction
 settlement. `effects/emission.ts` validates and detaches requests, materializes declarations, and returns immutable

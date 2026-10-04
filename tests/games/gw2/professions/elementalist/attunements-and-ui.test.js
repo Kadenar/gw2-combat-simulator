@@ -98,12 +98,12 @@ test('Tempest mechanics execute through native hooks', () => {
   const overload = result.events.find((event) => event.type === 'action' && event.skillName === 'Overload Fire');
   const swaps = result.events.filter((event) => event.type === 'elementalist.attunement');
 
-  assert.ok(observedRuntime(result).cooldowns.get(overload.skillId) > overload.endsAt);
+  assert.ok(observedRuntime(result).cooldownController.readyAt(overload.skillId) > overload.endsAt);
   assert.deepEqual(
     swaps.map((event) => event.to),
     ['Air', 'Fire']
   );
-  assert.ok(swaps[1].at >= observedRuntime(result).cooldowns.get(overload.skillId));
+  assert.ok(swaps[1].at >= observedRuntime(result).cooldownController.readyAt(overload.skillId));
   assert.equal(result.planningState.profession.primaryAttunement, 'Fire');
 });
 
@@ -342,7 +342,7 @@ test('Core mechanics execute through native hooks', () => {
 
   assert.ok(proc);
   assert.equal(
-    observedRuntime(result).cooldowns.get(elementalistCatalog.skillsByName.get('Air Attunement').id),
+    observedRuntime(result).cooldownController.readyAt(elementalistCatalog.skillsByName.get('Air Attunement').id),
     undefined
   );
 });
@@ -357,7 +357,7 @@ test('Fresh Air resets both Air Attunement and Overload Air', () => {
 
   assert.ok(proc);
   assert.equal(
-    observedRuntime(result).cooldowns.get(elementalistCatalog.skillsByName.get('Air Attunement').id),
+    observedRuntime(result).cooldownController.readyAt(elementalistCatalog.skillsByName.get('Air Attunement').id),
     undefined
   );
   assert.equal(result.planningState.cooldowns['Air Attunement'], undefined);
@@ -394,7 +394,7 @@ test('Fresh Air consumes sampled criticals after scheduled strikes in RNG mode',
   }
 
   assert.equal(
-    observedRuntime(result).cooldowns.get(elementalistCatalog.skillsByName.get('Air Attunement').id),
+    observedRuntime(result).cooldownController.readyAt(elementalistCatalog.skillsByName.get('Air Attunement').id),
     undefined
   );
   assert.equal(result.planningState.cooldowns['Air Attunement'], undefined);
@@ -1096,7 +1096,7 @@ test('Ride the Lightning receives its on-hit cooldown reduction', () => {
   const action = result.events.find((event) => event.type === 'action' && event.skillName === 'Ride the Lightning');
 
   assert.ok(action);
-  assert.ok(Math.abs(observedRuntime(result).cooldowns.get(action.skillId) - action.endsAt - 8) < 1e-9);
+  assert.ok(Math.abs(observedRuntime(result).cooldownController.readyAt(action.skillId) - action.endsAt - 8) < 1e-9);
 });
 
 test('Fresh Air grants ferocity when entering Air, not when resetting it', () => {

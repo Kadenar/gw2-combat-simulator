@@ -359,7 +359,7 @@ test('upkeep starvation cooldowns scale with Alacrity', () => {
     const result = simulate('Core', ['Impossible Odds', wait(2000)], { initialEnergy: 6, boons: { alacrity } });
     assert.deepEqual(result.warnings, []);
     // Five Energy remains after activation; the six-per-second drain against five regeneration empties it at one second.
-    assert.equal(observedRuntime(result).cooldowns.get(SKILL.IMPOSSIBLE_ODDS), 1 + 4 / 1.25);
+    assert.equal(observedRuntime(result).cooldownController.readyAt(SKILL.IMPOSSIBLE_ODDS), 1 + 4 / 1.25);
     assert.deepEqual(result.planningState.profession.activeUpkeeps, []);
   }
 });
@@ -373,7 +373,7 @@ test('Diminish Solace stops upkeep drain, retires its follow-up, and starts the 
   assert.deepEqual(recovered.planningState.profession.activeUpkeeps, []);
   assert.equal(recovered.planningState.profession.availableFlips[SKILL.DIMINISH_SOLACE], undefined);
   assert.equal(recovered.planningState.profession.energy.value - released.planningState.profession.energy.value, 10);
-  assert.equal(observedRuntime(released).cooldowns.get(SKILL.PROTECTIVE_SOLACE), 5);
+  assert.equal(observedRuntime(released).cooldownController.readyAt(SKILL.PROTECTIVE_SOLACE), 5);
   const unavailable = simulate('Core', ['Diminish Solace'], config);
   assert.match(unavailable.warnings.join('\n'), /activate the matching upkeep/);
 });

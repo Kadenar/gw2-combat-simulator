@@ -538,8 +538,11 @@ test('Weaver traits enforce dual-attunement, boon, modifier, and recharge rules'
   );
 
   assert.ok(
-    Math.abs(observedRuntime(flowDualAttack).cooldowns.get(moltenMeteor.skillId) - moltenMeteor.endsAt - 9.6 / 1.25) <
-      1e-9
+    Math.abs(
+      observedRuntime(flowDualAttack).cooldownController.readyAt(moltenMeteor.skillId) -
+        moltenMeteor.endsAt -
+        9.6 / 1.25
+    ) < 1e-9
   );
 
   const pursuit = runNative({

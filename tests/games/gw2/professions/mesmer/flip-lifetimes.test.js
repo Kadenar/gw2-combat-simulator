@@ -1,6 +1,5 @@
 import { projectObservedState } from '#tests/helpers/observed-runtime.js';
 import { mesmerProfession } from '#gw2/professions/mesmer/profession.js';
-import { registerMesmerMechanics } from '#gw2/professions/mesmer/core/mechanics/runtime.js';
 import { armSkillFlip } from '#gw2/platform/execution/skill-flips.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
@@ -45,18 +44,10 @@ function flipContext() {
       skillsById,
       autoattackChains: [],
       balanceProfilesById: new Map(MESMER_CORE_BALANCE_PROFILES.map((profile) => [profile.id, profile]))
-    },
-    mesmerRuntime: {
-      skillsById,
-      castDetails: new Map(),
-      shatters: {},
-      resourceDefinition: { singular: 'clone', plural: 'clones', maximum: 3 },
-      skillEffects: { scheduleResources() {} }
     }
   };
   Object.assign(context, context.state);
   context.helpers = context.catalog;
-  registerMesmerMechanics(context, context.mesmerRuntime);
   return context;
 }
 

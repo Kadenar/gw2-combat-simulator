@@ -1,22 +1,20 @@
+import {
+  dispatchShatterResolved,
+  createMesmerActions,
+  createMesmerSkillEffects,
+  mesmerShatters,
+  mesmerActivePrimaryWeapon
+} from '#gw2/professions/mesmer/family-mechanics.js';
 import type { EffectDelivery } from '#gw2/platform/effects/emission.js';
 import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
-import { triggerMethodOfMadness } from '#gw2/professions/mesmer/core/traits/behavior.js';
+import { triggerMethodOfMadness, methodOfMadnessDamage } from '#gw2/professions/mesmer/core/traits/behavior.js';
 import { EPSILON } from '#kernel/core/clock.js';
 /** Commits Core Mesmer shatters, flips, phantasms, skill effects, and cast-local resource state. */
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
-import { mesmerMechanicsFor } from '#gw2/professions/mesmer/core/mechanics/runtime.js';
-import type { MesmerShatterResolution } from '#gw2/professions/mesmer/core/mechanics/shatter-types.js';
 import type { MesmerRuntime } from '#gw2/professions/mesmer/types.js';
 
 import { castWasInterrupted } from '#gw2/platform/execution/cast-timing.js';
 import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
-
-/** Notifies the active specialization after Core has committed a shatter's exact resource spend. */
-export function dispatchShatterResolved(context: MesmerRuntime, resolution: MesmerShatterResolution): void {
-  for (const handler of mesmerMechanicsFor(context).shatterResolvedHandlers) {
-    handler(context, resolution);
-  }
-}
 
 /** Cast ownership is explicit data passed with each effect, never mutable ambient runtime state. */
 export function mesmerCastDelivery(
@@ -51,10 +49,9 @@ export function scheduleMesmerPhantasmEffects(
   cast: RuntimeCast<MesmerSkill>,
   skill: MesmerSkill
 ): void {
-  const runtime = mesmerMechanicsFor(context);
   const details = context.profession.core.castDetails.get(cast.id) || {};
   const completedInterruptedPhantasm = isCommittedInterruptedPhantasm(cast, skill);
-  runtime.skillEffects.schedule(skill, cast.fullEnd, cast.start, {
+  createMesmerSkillEffects(context).schedule(skill, cast.fullEnd, cast.start, {
     clarityConsumed: Boolean(details.clarityConsumed),
     delivery: mesmerCastDelivery(cast, skill, completedInterruptedPhantasm ? Infinity : cast.effectiveEnd),
     ...(completedInterruptedPhantasm ? { phantasmSummonAt: cast.effectiveEnd, playerEffectEnd: cast.effectiveEnd } : {})
@@ -63,18 +60,21 @@ export function scheduleMesmerPhantasmEffects(
 
 /** A declared shatter commits exactly one resource transaction while its projectiles retain their own timeline. */
 export function commitMesmerShatter(context: MesmerRuntime, cast: RuntimeCast<MesmerSkill>): void {
-  const runtime = mesmerMechanicsFor(context);
   const skill = cast.skill;
   const details = context.profession.core.castDetails.get(cast.id)!;
   if (details.reservedShatterResources && !details.shatterSpendCommitted) {
-    details.shatterSpent = runtime.actions.commitReservedResources(context.time, details.shatterSpent ?? 0, {
-      activationId: cast.id
-    });
+    details.shatterSpent = createMesmerActions(context).commitReservedResources(
+      context.time,
+      details.shatterSpent ?? 0,
+      {
+        activationId: cast.id
+      }
+    );
     details.shatterSpendCommitted = true;
   }
 
   const delivery = mesmerCastDelivery(cast, skill, Infinity);
-  const resolution = runtime.actions.handleShatter(
+  const resolution = createMesmerActions(context).handleShatter(
     context,
     skill,
     context.time,
@@ -88,7 +88,6 @@ export function commitMesmerShatter(context: MesmerRuntime, cast: RuntimeCast<Me
 
 /** Commits skill effects and resources, restoring interrupted reservations and clearing cast-local state. */
 export function completeMesmerCast(context: MesmerRuntime, cast: RuntimeCast<MesmerSkill>, skill: MesmerSkill): void {
-  const runtime = mesmerMechanicsFor(context);
   const details = context.profession.core.castDetails.get(cast.id) || {};
   const at = context.time;
   const interrupted = castWasInterrupted(cast);
@@ -106,7 +105,7 @@ export function completeMesmerCast(context: MesmerRuntime, cast: RuntimeCast<Mes
   );
   try {
     if (cast.cancelled && details.reservedShatterResources && !details.shatterSpendCommitted) {
-      runtime.actions.restoreReservedResources(details.shatterSpent || 0);
+      createMesmerActions(context).restoreReservedResources(details.shatterSpent || 0);
       return;
     }
 
@@ -115,13 +114,13 @@ export function completeMesmerCast(context: MesmerRuntime, cast: RuntimeCast<Mes
 
     if (skill.id === SHARED_SKILL_IDS.SWAP_WEAPONS) return;
     if (
-      !runtime.shatters[skill.id] &&
+      !mesmerShatters(context)[skill.id] &&
       !skill.phantasm &&
       !skill.ambush &&
       !skill.instrument &&
       !details.resourceScheduledDuringCast
     ) {
-      runtime.skillEffects.scheduleResources(
+      createMesmerSkillEffects(context).scheduleResources(
         skill,
         skill.resource?.timingAnchor === 'castEnd' ? cast.fullEnd : at,
         cast.start,
@@ -129,7 +128,7 @@ export function completeMesmerCast(context: MesmerRuntime, cast: RuntimeCast<Mes
       );
     }
 
-    triggerMethodOfMadness({ state: context }, skill, at, runtime.traitDamage['Lesser Chaos Storm'], delivery);
+    triggerMethodOfMadness({ state: context }, skill, at, methodOfMadnessDamage(context), delivery);
   } finally {
     context.profession.core.castDetails.delete(cast.id);
   }
@@ -140,9 +139,7 @@ export function completeMesmerCast(context: MesmerRuntime, cast: RuntimeCast<Mes
  * stores cast-local details for completion or interruption handling.
  */
 export function startMesmerCast(context: MesmerRuntime, cast: RuntimeCast<MesmerSkill>, skill: MesmerSkill): void {
-  const runtime = mesmerMechanicsFor(context);
-
-  const shatter = runtime.shatters[skill.id];
+  const shatter = mesmerShatters(context)[skill.id];
   let shatterSpent = null;
   const spendProgress = Number(shatter?.resourceSpendProgress);
   const delayedResourceSpend =
@@ -161,7 +158,7 @@ export function startMesmerCast(context: MesmerRuntime, cast: RuntimeCast<Mesmer
       {
         at: earlyResourceAt,
         count: skill.resource?.count || 0,
-        weapon: skill.weapon || runtime.activePrimaryWeapon(),
+        weapon: skill.weapon || mesmerActivePrimaryWeapon(context),
         reason: skill.name,
         cause: { kind: 'skill', sourceSkillId: skill.id }
       },
@@ -170,9 +167,9 @@ export function startMesmerCast(context: MesmerRuntime, cast: RuntimeCast<Mesmer
   }
 
   if (delayedResourceSpend) {
-    shatterSpent = runtime.actions.reserveResources();
+    shatterSpent = createMesmerActions(context).reserveResources();
   } else if (shatter && shatter.consumesResources !== false) {
-    shatterSpent = runtime.actions.consumeResources(cast.start, {
+    shatterSpent = createMesmerActions(context).consumeResources(cast.start, {
       activationId: cast.id
     });
   }

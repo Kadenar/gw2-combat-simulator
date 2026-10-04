@@ -97,9 +97,9 @@ test('completed Blood Reckoning clears primal recharge and canceled healing leav
   const rotation = ['Berserk', 'Arc Divider'];
   const reset = run([...rotation, 'Blood Reckoning'], config);
   assert.deepEqual(reset.warnings, []);
-  assert.equal(observedRuntime(reset).cooldowns.has(ID.ARC_DIVIDER), false);
+  assert.equal(observedRuntime(reset).cooldownController.hasCooldown(ID.ARC_DIVIDER), false);
   const canceled = run([...rotation, { name: 'Blood Reckoning', interruptAfterMs: 1 }], config);
-  assert.ok(observedRuntime(canceled).cooldowns.get(ID.ARC_DIVIDER) > observedRuntime(canceled).time);
+  assert.ok(observedRuntime(canceled).cooldownController.readyAt(ID.ARC_DIVIDER) > observedRuntime(canceled).time);
 });
 
 test('primal completion extends mode and applies independent party boons while cancellation cannot', () => {

@@ -1,3 +1,4 @@
+import { createMesmerResources, mesmerActivePrimaryWeapon } from '#gw2/professions/mesmer/family-mechanics.js';
 import type { EffectDelivery } from '#gw2/platform/effects/emission.js';
 import type { MesmerEventExtra } from '#gw2/professions/mesmer/data/types.js';
 import {
@@ -18,7 +19,7 @@ import type { StrikeEffect } from '#gw2/platform/effects/types.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import { castWasInterrupted } from '#gw2/platform/execution/cast-timing.js';
 import { isCommittedInterruptedPhantasm } from '#gw2/professions/mesmer/core/execution/cast-lifecycle.js';
-import { mesmerConditionFromProfile, mesmerMechanicsFor } from '#gw2/professions/mesmer/core/mechanics/runtime.js';
+import { mesmerConditionFromProfile } from '#gw2/professions/mesmer/core/mechanics/conditions.js';
 import { MESMER_SKILL_IDS as ID, MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
 import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
 import { activeInstrumentCount } from '#gw2/professions/mesmer/specializations/troubadour/mechanics/instrument-queries.js';
@@ -32,13 +33,11 @@ export function completeTroubadourPhantasm(context: MesmerRuntime, cast: Runtime
   const interrupted = castWasInterrupted(cast);
   const completedInterruptedPhantasm = isCommittedInterruptedPhantasm(cast, skill);
   if (interrupted && !completedInterruptedPhantasm) return;
-
-  const runtime = mesmerMechanicsFor(context);
   const harmonizeProfile = requireBalanceProfileFromContext(context, TRAIT.HARMONIZE);
-  runtime.resources.queueResources(
+  createMesmerResources(context).queueResources(
     context.time,
     balanceProfileNumber(harmonizeProfile, 'resourceGain'),
-    runtime.activePrimaryWeapon(),
+    mesmerActivePrimaryWeapon(context),
     'Harmonize',
     { traitId: TRAIT.HARMONIZE, traitName: 'Harmonize' }
   );
@@ -184,7 +183,6 @@ export function applyCrescendoTraits(
   at: number,
   delivery: EffectDelivery = {}
 ): void {
-  const runtime = mesmerMechanicsFor(context);
   const state = troubadourState.from(context);
   if (hasTrait(context, TRAIT.LIFE_OF_THE_PARTY)) {
     for (const name of ['Crescendo Quickness', 'Crescendo Might', 'Crescendo Fury']) {
@@ -309,10 +307,10 @@ export function applyCrescendoTraits(
     const interval = balanceProfileNumber(fortissimoProfile, 'pulseInterval');
     const resourceGain = balanceProfileNumber(fortissimoProfile, 'resourceGain');
     for (let index = 1; index <= applications; index += 1) {
-      runtime.resources.queueResources(
+      createMesmerResources(context).queueResources(
         at + index * interval,
         resourceGain,
-        runtime.activePrimaryWeapon(),
+        mesmerActivePrimaryWeapon(context),
         'Fortissimo',
         {
           traitId: TRAIT.FORTISSIMO,

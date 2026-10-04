@@ -60,10 +60,7 @@ function contextFor(profession, specialization, selectedTraitIds = []) {
     state: {
       time: 0,
       activeWeaponSet: 1,
-      profession: runtime.createState(config),
-      cooldowns: new Map(),
-      ammo: new Map(),
-      rechargeProgress: new Map()
+      profession: runtime.createState(config)
     },
     events,
     effects: captureEffectEmissions({ submit: emit }).effects,
@@ -79,7 +76,7 @@ function contextFor(profession, specialization, selectedTraitIds = []) {
     observationEndTime: 0
   };
   // Handler tests use the same recharge owner as the scheduler, with no active recharge-speed boons.
-  context.cooldownController = createCooldownController({ state: context.state, rechargeDuration: () => 0 });
+  context.cooldownController = createCooldownController({ clock: context.state, rechargeDuration: () => 0 });
   return context;
 }
 

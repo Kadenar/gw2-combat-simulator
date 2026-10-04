@@ -11,7 +11,6 @@ import {
   requireBalanceProfileFromContext,
   requireEffect
 } from '#gw2/platform/skills/balance-profiles.js';
-import { mesmerMechanicsFor } from '#gw2/professions/mesmer/core/mechanics/runtime.js';
 import { MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
 import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
 import type { MesmerInstrument, MesmerRuntime } from '#gw2/professions/mesmer/types.js';
@@ -175,9 +174,4 @@ export function scheduleSyncopateDrumWave(
       detail: 'delayed drum wave'
     }
   });
-}
-
-/** Install the accepted-heal consequence after the Troubadour runtime has installed its instrument manifest. */
-export function initializeSyncopate(runtime: MesmerRuntime): void {
-  mesmerMechanicsFor(runtime).methodOfMadnessCommitted = (at) => runtime.schedule('mesmer.syncopate', at);
 }

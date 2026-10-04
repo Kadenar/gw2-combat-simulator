@@ -6,7 +6,8 @@ import type {
   MesmerClone,
   MesmerCloneAttackScheduler,
   MesmerDestroyClone,
-  MesmerResourceController
+  MesmerResourceController,
+  MesmerResourceGain
 } from '#gw2/professions/mesmer/core/mechanics/illusions/types.js';
 import type {
   MesmerPendingResource,
@@ -19,6 +20,7 @@ import type { MesmerActivePrimaryWeapon, MesmerRuntime } from '#gw2/professions/
 
 interface ResourceControllerOptions {
   readonly state: MesmerRuntime;
+  readonly onGain?: (gain: MesmerResourceGain) => void;
   readonly resourceDefinition: MesmerResourceDefinition;
   readonly clamp: (value: number, minimum: number, maximum: number) => number;
   readonly activePrimaryWeapon: MesmerActivePrimaryWeapon;
@@ -35,10 +37,9 @@ export function createResourceController({
   activePrimaryWeapon,
   cloneAttackScheduler,
   destroyClone,
-  scheduleResourceTask
+  scheduleResourceTask,
+  onGain
 }: ResourceControllerOptions): MesmerResourceController {
-  let cloneSequence = 0;
-  const gainHandlers: Array<Parameters<MesmerResourceController['addGainHandler']>[0]> = [];
   const numericResourceState = () => mesmerNumericResourceState(state);
 
   const gainResources = (
@@ -62,7 +63,7 @@ export function createResourceController({
         }
 
         const clone = {
-          id: ++cloneSequence,
+          id: ++professionCoreState(state).cloneSequence,
           // Clone IDs provide stable identity; simultaneous gains share the resource task's timestamp.
           createdAt: at,
           weapon: weapon || activePrimaryWeapon()
@@ -123,7 +124,7 @@ export function createResourceController({
     }
 
     // Reactions use the committed gain's time, cause, and created clones to apply specialization effects.
-    for (const handler of gainHandlers) handler({ at, cause, createdClones });
+    onGain?.({ at, cause, createdClones });
   };
 
   const queueResources = (
@@ -138,9 +139,6 @@ export function createResourceController({
   };
 
   return {
-    addGainHandler(handler) {
-      gainHandlers.push(handler);
-    },
     gainResources,
     queueResources
   };

@@ -56,30 +56,27 @@ test('Arcane Echo requires an armed, unexpired window and consumes it only once'
     [true, 11, false]
   ]) {
     const core = createElementalistCoreState();
-    const cooldowns = new Map([
-      [weapon.id, 20],
-      [echo.id, 30]
-    ]);
+
     const context = {
       time: 0,
       profession: { core },
-      cooldowns,
-      rechargeProgress: new Map(),
-      ammo: new Map(),
+
       helpers: elementalistCatalog,
       effectiveEnd: 0,
       rechargeWork: 5
     };
-    context.cooldownController = createCooldownController({ state: context, rechargeDuration: () => 5 });
+    context.cooldownController = createCooldownController({ clock: context, rechargeDuration: () => 5 });
+    context.cooldownController.setReadyAt(weapon.id, 20);
+    context.cooldownController.setReadyAt(echo.id, 30);
     if (armed) armArcaneEcho(context, context);
     context.effectiveEnd = at;
     completeArcaneEcho(context, context, weapon);
-    assert.equal(cooldowns.get(weapon.id), active ? at + 1 : 20);
-    assert.equal(cooldowns.get(echo.id), active ? 35 : 30);
+    assert.equal(context.cooldownController.readyAt(weapon.id), active ? at + 1 : 20);
+    assert.equal(context.cooldownController.readyAt(echo.id), active ? 35 : 30);
     if (active) {
       assert.equal(core.arcaneEchoUntil, 0);
       completeArcaneEcho(context, context, weapon);
-      assert.equal(cooldowns.get(echo.id), 35);
+      assert.equal(context.cooldownController.readyAt(echo.id), 35);
     }
   }
 });

@@ -1,3 +1,4 @@
+import { createMesmerResources, mesmerActivePrimaryWeapon } from '#gw2/professions/mesmer/family-mechanics.js';
 import type { MesmerEventExtra } from '#gw2/professions/mesmer/data/types.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import type { SimulationEvent } from '#gw2/platform/events/events.js';
@@ -7,7 +8,6 @@ import {
   requireEffect
 } from '#gw2/platform/skills/balance-profiles.js';
 import type { MesmerPhantasmPolicy } from '#gw2/professions/mesmer/core/mechanics/illusions/types.js';
-import { mesmerMechanicsFor } from '#gw2/professions/mesmer/core/mechanics/runtime.js';
 import type { MesmerShatterResolution } from '#gw2/professions/mesmer/core/mechanics/shatter-types.js';
 import { MESMER_SKILL_IDS as ID, MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
 import type { MesmerRuntime } from '#gw2/professions/mesmer/types.js';
@@ -159,7 +159,6 @@ export function resolveChronomancerShatterBoons(context: MesmerRuntime, resoluti
 
 /** Refunds one clone only when a Chronomancer shatter commits the configured full-clone threshold. */
 export function resolveIllusionaryReversion(context: MesmerRuntime, resolution: MesmerShatterResolution): void {
-  const runtime = mesmerMechanicsFor(context);
   if (
     !hasTrait(context, TRAIT.ILLUSIONARY_REVERSION) ||
     resolution.spent !==
@@ -169,10 +168,10 @@ export function resolveIllusionaryReversion(context: MesmerRuntime, resolution: 
   }
 
   const illusionaryReversionProfile = requireBalanceProfileFromContext(context, TRAIT.ILLUSIONARY_REVERSION);
-  runtime.resources.queueResources(
+  createMesmerResources(context).queueResources(
     resolution.at,
     balanceProfileNumber(illusionaryReversionProfile, 'resourceGain'),
-    runtime.activePrimaryWeapon(),
+    mesmerActivePrimaryWeapon(context),
     'Illusionary Reversion',
     {
       traitId: TRAIT.ILLUSIONARY_REVERSION,

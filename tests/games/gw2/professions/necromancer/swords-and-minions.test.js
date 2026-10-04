@@ -1650,7 +1650,10 @@ test('Sinister Shroud reduces shroud-skill recharge by fifteen percent', () => {
     [sinister, 4760]
   ]) {
     const last = result.steps.filter((step) => step.skill === 'Anguish').at(-1);
-    assert.equal(Math.round(observedRuntime(result).cooldowns.get(ID.ANGUISH) * 1000 - last.end), rechargeMs);
+    assert.equal(
+      Math.round(observedRuntime(result).cooldownController.readyAt(ID.ANGUISH) * 1000 - last.end),
+      rechargeMs
+    );
   }
 
   assert.equal(

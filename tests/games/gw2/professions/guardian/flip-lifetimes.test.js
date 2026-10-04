@@ -46,7 +46,7 @@ test('Guardian weapon flips share exact deadlines across availability, snapshots
 
     const expired = runGuardian([id, wait(duration * 1000)], config);
     assert.equal(observedRuntime(expired).profession.core.availableFlips[flip.id], undefined);
-    assert.equal(observedRuntime(expired).cooldowns.get(id), runtime.cooldowns.get(id));
+    assert.equal(observedRuntime(expired).cooldownController.readyAt(id), runtime.cooldownController.readyAt(id));
   }
 });
 

@@ -258,7 +258,7 @@ test('signet declarations reset only committed activations', () => {
       assert.deepEqual(result.warnings, []);
       const runtime = observedRuntime(result);
       assert.equal(runtime.cooldownController.hasCooldown(target), cancelled || removed);
-      assert.equal(runtime.rechargeProgress.has(target), cancelled || removed);
+      assert.equal(runtime.cooldownController.rechargeFor(target) != null, cancelled || removed);
     }
   }
 });

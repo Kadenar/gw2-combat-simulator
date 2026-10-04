@@ -1,3 +1,4 @@
+import { createCriticalTraitDispatcher } from '#gw2/professions/mesmer/core/mechanics/illusions/critical-traits.js';
 import { prepareGw2BuffCompanionCandidates } from '#gw2/platform/combat/state/allied-players.js';
 import { armSkillFlip } from '#gw2/platform/execution/skill-flips.js';
 import type { NativeResolvedDamageDetails } from '#gw2/platform/profession-definition/module-types.js';
@@ -18,7 +19,6 @@ import { mesmerIllusionHooks } from '#gw2/professions/mesmer/core/mechanics/illu
 import { armMimic, completeMimicCast } from '#gw2/professions/mesmer/core/mechanics/mimic.js';
 import { mesmerMaximumAmmo, mesmerRechargeWork } from '#gw2/professions/mesmer/core/mechanics/recharge.js';
 import { detonateInspiringImagery, expireInspiringImagery } from '#gw2/professions/mesmer/core/mechanics/rifle.js';
-import { mesmerMechanicsFor } from '#gw2/professions/mesmer/core/mechanics/runtime.js';
 import {
   applyMesmerSignetReset,
   restartSignetIllusionsPassive,
@@ -185,9 +185,11 @@ export const mesmerCoreHooks: RuntimeHooks<MesmerRuntimeState, MesmerSkill> = co
     reactions: {
       'buff.applied': applyMesmerClarity,
       'damage.resolved'(runtime, event, details) {
-        const mechanics = mesmerMechanicsFor(runtime);
         const critical = (details as NativeResolvedDamageDetails).hitContext!.critical;
-        mechanics.criticalTraits.process({ ...event, didCrit: critical.didCrit }, critical.chance);
+        createCriticalTraitDispatcher({ state: runtime }).process(
+          { ...event, didCrit: critical.didCrit },
+          critical.chance
+        );
         applyFencersFinesse(runtime, event);
       },
       'condition.applied': triggerThePledge,

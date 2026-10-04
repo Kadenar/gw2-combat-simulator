@@ -9,9 +9,9 @@ import { observeGw2Runtime, observedRuntime } from '#tests/helpers/observed-runt
 const sequential = { id: 990060, name: 'Sequential ammo', ammo: 6, ammoRecharge: 5 };
 const roar = warriorProfession.runtimeFor({ specialization: 'Bladesworn' }).catalog.skillsById.get(ID.DRAGONS_ROAR);
 function magazine(skill = sequential, rate = 1) {
-  const state = { time: 0, ammo: new Map(), rechargeProgress: new Map(), cooldowns: new Map() };
+  const state = { time: 0 };
   const controller = createCooldownController({
-    state,
+    clock: state,
     rechargeDuration: () => skill.ammoRecharge / rate,
     rechargeIntervals: (_skill, start, end) => [{ start, end, rate }]
   });
@@ -80,7 +80,7 @@ test("a live Dragon's Roar magazine recovers one round per interval", () => {
     rotation: [ID.DRAGONS_ROAR, { type: 'wait', durationMs: 8500 }]
   });
   assert.deepEqual(result.warnings, []);
-  assert.equal(observedRuntime(result).ammo.get(ID.DRAGONS_ROAR).charges, 2);
+  assert.equal(observedRuntime(result).cooldownController.readAmmo(ID.DRAGONS_ROAR).charges, 2);
 });
 
 test("Dragon's Roar begins natural recovery when its magazine is reserved", () => {

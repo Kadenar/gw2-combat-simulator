@@ -39,9 +39,9 @@ test('Blood Reckoning resets live primal skills after its adrenaline grant and l
   assert.deepEqual(result.warnings, []);
   const runtime = observedRuntime(result);
   assert.equal(adrenalineAtReset, 10);
-  assert.equal(runtime.cooldowns.has(ID.DECAPITATE), false);
-  assert.equal(runtime.cooldowns.has(ID.EVISCERATE), false);
-  assert.ok(runtime.cooldowns.get(ID.WHIRLWIND_ATTACK) > runtime.time);
+  assert.equal(runtime.cooldownController.hasCooldown(ID.DECAPITATE), false);
+  assert.equal(runtime.cooldownController.hasCooldown(ID.EVISCERATE), false);
+  assert.ok(runtime.cooldownController.readyAt(ID.WHIRLWIND_ATTACK) > runtime.time);
 });
 
 // Committed shortening grants once before echo arming; cancellation owns neither the grant nor an echo.

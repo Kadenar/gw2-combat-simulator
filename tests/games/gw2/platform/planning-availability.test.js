@@ -11,9 +11,12 @@ import { ELEMENTALIST_TRAIT_IDS as TRAIT } from '#gw2/professions/elementalist/d
 function snapshot(runtime) {
   return structuredClone({
     profession: runtime.profession,
-    cooldowns: runtime.cooldowns,
-    rechargeProgress: runtime.rechargeProgress,
-    ammo: runtime.ammo,
+    cooldowns: [...runtime.cooldownController.cooldownSkillIds()].map((id) => [
+      id,
+      runtime.cooldownController.readyAt(id),
+      runtime.cooldownController.rechargeFor(id)
+    ]),
+    ammo: [...runtime.cooldownController.ammoSkillIds()].map((id) => [id, runtime.cooldownController.readAmmo(id)]),
     inFlightSkillIds: [...runtime.castController.inFlightSkillIds()],
     history: runtime.history,
     steps: runtime.steps,

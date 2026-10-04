@@ -183,13 +183,18 @@ scheduling, and explicit observation writes. None exposes the command cursor, sh
 binds combat operations to their resolver-owned stores. `combat/history/executed-facts.ts` supplies the `facts` reader
 and `observations` writer independently of optional reports; pending work becomes history only when it executes.
 Professions inspect in-flight casts, query detached pending charge-release intent, and request lockouts through
-`castController`, without access to its maps.
+`castController`, without access to its maps. `execution/cooldowns.ts` privately owns all cooldown, recharge-progress,
+and ammo stores. Cast admission, live combat queries, and planning projection use controller operations and read-only
+observations. Live cooldown queries compare unrounded deadlines and settle only the requested magazine; cast admission
+and displayed deadlines retain their action-tick rounding.
 
 Dragon Trigger owns charging, release capture, charge-scaled packets, and expiry, with state defaults in its leaf state
 module. Its immutable release records are stored per run. Gunsaber transitions and Flow regeneration have separate
-owners. Photon Forge owns its task/action registration alongside the heat lifecycle. Mesmer's illusion lifecycle
-assembles resources, clones, phantasms, and their recurring work; Core hooks keep explicit ordering with Mimic and other
-mechanics.
+owners. Photon Forge owns its task/action registration alongside the heat lifecycle. Mesmer's `family-mechanics.ts`
+binds separate resource, clone, shatter, and phantasm operations to explicit mechanic contexts. Selected definitions
+come from the build and patch; mutable counters and lifecycle state live in the profession's Core or specialization
+slice. No context-identity registry or shared controller aggregate is required. Specialization reactions dispatch
+explicitly after committed resource gains and shatters; Core completion still runs before Mimic.
 
 - One cursor, heap, profession/target state, resource controller, and RNG own the run.
 - Pending work is invisible to historical queries until it executes.

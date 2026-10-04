@@ -278,7 +278,7 @@ test('Artillery Slash keeps ammo variant identity after first-strike removal and
     const strike = result.events.find((event) => event.type === 'damage');
     assert.equal(strike?.coefficient, charges === 1 ? undefined : 4);
     assert.ok(result.events.some((event) => event.type === 'control'));
-    assert.equal(observedRuntime(result).ammo.get(ID.ARTILLERY_SLASH).charges, 0);
+    assert.equal(observedRuntime(result).cooldownController.readAmmo(ID.ARTILLERY_SLASH).charges, 0);
   }
 });
 

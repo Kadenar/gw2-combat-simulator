@@ -3,10 +3,9 @@ import type {
   createRuntimeResources
 } from '#gw2/platform/combat/resources/runtime-resources.js';
 import type { CastControl, RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
-import type { RechargeProgress } from '#gw2/platform/execution/recharge.js';
 import type { RotationCursor } from '#gw2/platform/execution/rotation-cursor.js';
 import type { FlipWindowOptions, SkillFlipWindow } from '#gw2/platform/execution/skill-flips.js';
-import type { AmmoState, CooldownController, SimulationStep } from '#gw2/platform/execution/types.js';
+import type { CooldownController, SimulationStep } from '#gw2/platform/execution/types.js';
 import type { MechanicContext, MechanicQueryContext } from '#gw2/platform/profession-definition/mechanic-context.js';
 import type { createEffectReactions } from '#gw2/platform/resolver/effect-reactions.js';
 import type { Gw2ResolverRuntime } from '#gw2/platform/resolver/runtime-state.js';
@@ -25,9 +24,6 @@ export interface Gw2Runtime<T extends object = object, TSkill extends Skill = Sk
   combatActive: boolean;
   rotationEndTime: number | null;
   readonly cursor: RotationCursor;
-  readonly cooldowns: Map<SkillId, number>;
-  readonly rechargeProgress: Map<SkillId, RechargeProgress>;
-  readonly ammo: Map<SkillId, AmmoState>;
   readonly castController: CastControl;
   readonly effectReactions: ReturnType<typeof createEffectReactions<T>>;
   readonly cooldownController: CooldownController;

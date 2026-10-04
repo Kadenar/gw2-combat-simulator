@@ -1,15 +1,14 @@
 import type { EffectState } from '#gw2/platform/combat/effect-state.js';
 import { gw2CooldownReadyAt } from '#gw2/platform/execution/cast-timing.js';
-import type { AmmoState, AvailabilityResult } from '#gw2/platform/execution/types.js';
+import type { CooldownController, AvailabilityResult } from '#gw2/platform/execution/types.js';
 import { flattenProfessionState } from '#gw2/platform/profession-definition/state.js';
 import type { Gw2PlanningStateInput, Gw2SimulationPlanningState } from '#gw2/platform/results/types.js';
 import type { Skill, SkillId } from '#gw2/platform/skills/types.js';
 
-/** Projects one observed boundary into detached public fields, without access to execution controllers or history. */
+/** Projects one observed boundary into detached public fields, using only recharge observations and profession data. */
 export function planningState<T extends object>(
   input: Gw2PlanningStateInput<T> & {
-    readonly cooldowns: ReadonlyMap<SkillId, number>;
-    readonly ammo: ReadonlyMap<SkillId, AmmoState>;
+    readonly cooldownController: Pick<CooldownController, 'cooldownSkillIds' | 'readyAt' | 'ammoSkillIds' | 'readAmmo'>;
   },
   project: ((input: Gw2PlanningStateInput<T>) => unknown) | undefined,
   maximumEndurance: number | undefined,
@@ -19,29 +18,32 @@ export function planningState<T extends object>(
   const endTime = input.time;
   const skillName = (id: SkillId): string => input.catalog.skillsById.get(id)?.name || String(id);
   const cooldowns = Object.fromEntries(
-    [...input.cooldowns].map(([id, readyAt]) => [
-      skillName(id),
-      {
-        readyAt: Math.round(gw2CooldownReadyAt(readyAt) * 1000),
-        remaining: Math.max(0, Math.round((gw2CooldownReadyAt(readyAt) - endTime) * 1000))
-      }
-    ])
+    [...input.cooldownController.cooldownSkillIds()].map((id) => {
+      const readyAt = input.cooldownController.readyAt(id)!;
+      return [
+        skillName(id),
+        {
+          readyAt: Math.round(gw2CooldownReadyAt(readyAt) * 1000),
+          remaining: Math.max(0, Math.round((gw2CooldownReadyAt(readyAt) - endTime) * 1000))
+        }
+      ];
+    })
   );
   // UI deadlines report the detection tick while execution retains unrounded recharge progress.
-  const ammoEntries = [...input.ammo].map(
-    ([id, value]) =>
-      [
-        id,
-        {
-          charges: value.charges,
-          maximum: value.maximum,
-          // Detach every charge timer so public observations cannot mutate live recharge progress.
-          recharges: value.recharges.map((progress) => ({ ...progress })),
-          nextRechargeAt: value.nextRechargeAt == null ? null : gw2CooldownReadyAt(value.nextRechargeAt),
-          ...(value.lockoutReadyAt == null ? {} : { lockoutReadyAt: gw2CooldownReadyAt(value.lockoutReadyAt) })
-        }
-      ] as const
-  );
+  const ammoEntries = [...input.cooldownController.ammoSkillIds()].map((id) => {
+    const value = input.cooldownController.readAmmo(id)!;
+    return [
+      id,
+      {
+        charges: value.charges,
+        maximum: value.maximum,
+        // Detach every charge timer so public observations cannot mutate live recharge progress.
+        recharges: value.recharges.map((progress) => ({ ...progress })),
+        nextRechargeAt: value.nextRechargeAt == null ? null : gw2CooldownReadyAt(value.nextRechargeAt),
+        ...(value.lockoutReadyAt == null ? {} : { lockoutReadyAt: gw2CooldownReadyAt(value.lockoutReadyAt) })
+      }
+    ] as const;
+  });
   const ammo = Object.fromEntries(ammoEntries.map(([id, value]) => [skillName(id), value]));
   // Preserve exact skill identities for UI consumers because API variants can share names.
   const ammoBySkillId = Object.fromEntries(ammoEntries.map(([id, value]) => [String(id), structuredClone(value)]));

@@ -1,3 +1,5 @@
+import { mesmerInstruments } from '#gw2/professions/mesmer/specializations/troubadour/mechanics/runtime.js';
+import { createMesmerActions } from '#gw2/professions/mesmer/family-mechanics.js';
 import type { EffectDelivery } from '#gw2/platform/effects/emission.js';
 import {
   buildMesmerStrikes,
@@ -12,7 +14,6 @@ import {
 } from '#gw2/platform/skills/balance-profiles.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import { mesmerCastDelivery } from '#gw2/professions/mesmer/core/execution/cast-lifecycle.js';
-import { mesmerMechanicsFor } from '#gw2/professions/mesmer/core/mechanics/runtime.js';
 import { masterOfFragmentationCrescendo } from '#gw2/professions/mesmer/core/traits/behavior.js';
 import { TROUBADOUR_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/mesmer/specializations/troubadour/profiles.js';
 import {
@@ -123,8 +124,7 @@ function commitInstrument(
   delivery: EffectDelivery = {}
 ): void {
   at = canonicalTime(at);
-  const runtime = mesmerMechanicsFor(context);
-  const spent = runtime.actions.consumeResources(at, {
+  const spent = createMesmerActions(context).consumeResources(at, {
     activationId: cast.id
   });
   const instrumentsProfile = requireBalanceProfileFromContext(context, PROFILE.instruments);
@@ -219,8 +219,7 @@ export function scheduleTroubadourPerformance(
   skill: MesmerSkill
 ): void {
   if (cast.cancelled) return;
-  const runtime = mesmerMechanicsFor(context);
-  const instrument = runtime.instruments[skill.id];
+  const instrument = mesmerInstruments(context)[skill.id];
   if (!instrument) return;
   instrumentAttack(
     context,
@@ -240,9 +239,7 @@ export function completeTroubadourPerformance(
   skill: MesmerSkill
 ): void {
   // Committed Harp interruptions activate the instrument at their shortened completion.
-
-  const runtime = mesmerMechanicsFor(context);
-  const instrument = runtime.instruments[skill.id];
+  const instrument = mesmerInstruments(context)[skill.id];
   if (!instrument) return;
 
   const interrupted = castWasInterrupted(cast);

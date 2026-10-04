@@ -274,7 +274,7 @@ test('spirit creation commits once and Soul Twisting refunds only the first comp
   assert.deepEqual(state(result).activeSpirits, { anguish: true });
   assert.equal(state(result).spiritGenerations.anguish, 2);
   assert.equal(state(result).soulTwistingAvailable, false);
-  assert.ok(observedRuntime(result).cooldowns.get(ID.ANGUISH) > result.planningState.atSeconds);
+  assert.ok(observedRuntime(result).cooldownController.readyAt(ID.ANGUISH) > result.planningState.atSeconds);
   assert.equal(result.planningState.profession.lifeForce.value, 56.64);
   assert.deepEqual(result.warnings, []);
   const interrupted = run([cast(ID.RITUALISTS_SHROUD), { ...cast(ID.ANGUISH), interruptAfterMs: 100 }], { config });

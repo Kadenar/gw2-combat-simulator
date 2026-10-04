@@ -1,3 +1,8 @@
+import {
+  mesmerShatters,
+  createMesmerResources,
+  mesmerActivePrimaryWeapon
+} from '#gw2/professions/mesmer/family-mechanics.js';
 import { buildMesmerPacket, mesmerPacketOwner } from '#gw2/professions/mesmer/core/mechanics/packets.js';
 import { EPSILON } from '#kernel/core/clock.js';
 /** Owns Signet of Illusions passive scheduling and Core Mesmer signet mechanic callbacks. */
@@ -7,7 +12,6 @@ import { MESMER_SKILL_IDS as ID } from '#gw2/professions/mesmer/data/ids.js';
 import type { MesmerRuntime } from '#gw2/professions/mesmer/types.js';
 import { applySideEffect } from '#gw2/platform/effects/action-dispatch.js';
 import { type ActionContext } from '#gw2/platform/effects/actions.js';
-import { mesmerMechanicsFor } from '#gw2/professions/mesmer/core/mechanics/runtime.js';
 import { MESMER_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/mesmer/core/profiles.js';
 
 import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
@@ -16,12 +20,12 @@ const SIGNET_ILLUSIONS_OWNER = 'mesmer.signet-illusions-passive';
 
 /** Applies active signet resets to the cooldown and ammo state shared by later casts. */
 export function applyMesmerSignetReset(state: MesmerRuntime, context: ActionContext<MesmerSkill>): void {
-  const { shatters, instruments } = mesmerMechanicsFor(state);
+  const shatters = mesmerShatters(state);
   const phantasms = context.skill.id === ID.SIGNET_OF_THE_ETHER;
   const targets = state.helpers.skills.filter((candidate) =>
     phantasms
       ? candidate.phantasm
-      : Boolean(instruments[candidate.id]) ||
+      : (state.profession.specialization.kind === 'Troubadour' && Boolean(candidate.instrument)) ||
         (shatters[candidate.id] && shatters[candidate.id].resetBySignetOfIllusions !== false)
   );
   // Catalog selection stays local; the shared actions own recharge and existing ammo restoration.
@@ -86,11 +90,10 @@ export function signetIllusionsPulse(context: MesmerRuntime, data: unknown): voi
     return;
   }
 
-  const mechanics = mesmerMechanicsFor(context);
-  mechanics.resources.gainResources(
+  createMesmerResources(context).gainResources(
     context.time,
     balanceProfileNumber(requireBalanceProfileFromContext(context, PROFILE.signetOfIllusions), 'resourceGain'),
-    mechanics.activePrimaryWeapon(),
+    mesmerActivePrimaryWeapon(context),
     skill.name,
     { sourceSkillId: skill.id }
   );

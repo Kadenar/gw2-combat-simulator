@@ -1,16 +1,15 @@
+import { createMesmerResources } from '#gw2/professions/mesmer/family-mechanics.js';
 import { createExecutedFacts } from '#gw2/platform/combat/history/executed-facts.js';
 import { captureEffectEmissions } from '#tests/helpers/effect-emission.js';
 import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
 import { createRuntimeEndurance } from '#gw2/platform/combat/resources/runtime-resources.js';
 import { gw2BoonApplicationRecipients } from '#gw2/platform/combat/state/allied-players.js';
 import { applySkillSideEffects } from '#gw2/platform/effects/action-dispatch.js';
-import { registerMesmerMechanics } from '#gw2/professions/mesmer/core/mechanics/runtime.js';
 import { MESMER_SKILL_IDS as ID, MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
 import { mesmerProfession } from '#gw2/professions/mesmer/profession.js';
 import { troubadourHooks } from '#gw2/professions/mesmer/specializations/troubadour/hooks.js';
 import { troubadourEndurance } from '#gw2/professions/mesmer/specializations/troubadour/mechanics/endurance.js';
 import { completeTroubadourPerformance } from '#gw2/professions/mesmer/specializations/troubadour/mechanics/instruments.js';
-import { initializeTroubadourRuntime } from '#gw2/professions/mesmer/specializations/troubadour/mechanics/runtime.js';
 import { troubadourModifierRules } from '#gw2/professions/mesmer/specializations/troubadour/modifiers.js';
 import { troubadourUi } from '#gw2/professions/mesmer/specializations/troubadour/presentation.js';
 import { TROUBADOUR_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/mesmer/specializations/troubadour/profiles.js';
@@ -28,8 +27,7 @@ function instrumentContext() {
   const state = {
     time: 0,
     activeWeaponSet: 1,
-    profession: profession.createState(config),
-    cooldowns: new Map()
+    profession: profession.createState(config)
   };
   const emit = (event) => {
     const result = { ...event, eventOrder: events.length };
@@ -39,6 +37,7 @@ function instrumentContext() {
 
   const context = {
     config,
+    combat: { warn() {} },
     traits: new Set(config.selectedTraitIds),
     profession,
     state,
@@ -50,20 +49,7 @@ function instrumentContext() {
     effectiveEnd: 0,
     maximumAmmoFor: () => 0,
     cooldownController: { ensureAmmo: () => null },
-    eventsOfType: (type) => events.filter((event) => event.type === type),
-    mesmerRuntime: {
-      instruments: {},
-      activePrimaryWeapon: () => 'Spear',
-      resourceDefinition: { singular: 'note', plural: 'notes', maximum: 3 },
-      actions: {
-        consumeResources: () => {
-          const spent = state.profession.specialization.state.numericResource;
-          state.profession.specialization.state.numericResource = 0;
-          return spent;
-        }
-      },
-      resources: { queueResources: (at, amount) => emit({ type: 'resource', at, amount }) }
-    }
+    eventsOfType: (type) => events.filter((event) => event.type === type)
   };
   Object.assign(context, state);
   context.helpers = context.catalog;
@@ -72,7 +58,11 @@ function instrumentContext() {
   context.facts = facts.reader;
   context.observations = facts.writer;
   context.history = events;
-  context.schedule = () => {};
+  // Execute immediate resource tasks through their real owner while leaving unrelated scheduled work isolated.
+  context.schedule = (type, at, data) => {
+    if (type === 'mesmer.resource-gain')
+      createMesmerResources(context).gainResources(at, data.count, data.weapon, data.reason, data.cause);
+  };
 
   // Endurance receives its engine clock and the explicit policy capability.
   context.endurance = createRuntimeEndurance(
@@ -86,8 +76,6 @@ function instrumentContext() {
     },
     { endurance: troubadourEndurance }
   );
-  registerMesmerMechanics(context, context.mesmerRuntime);
-  initializeTroubadourRuntime(context);
   return context;
 }
 
@@ -198,7 +186,10 @@ test('Tales retain cast-start note eligibility after instrument expiry and rejec
     play(context, ID.FLUSTERING_FLUTE, 5.8);
     context.time = 6;
     applySkillSideEffects(context, cast, 'castCommit', troubadourHooks.sideEffectHandlers);
-    assert.equal(context.events.filter((event) => event.type === 'resource').length, start < 5.301 ? 1 : 0);
+    assert.equal(
+      context.events.filter((event) => event.type === 'resource' && event.amount > 0).length,
+      start < 5.301 ? 1 : 0
+    );
   }
 });
 
@@ -209,7 +200,7 @@ test('a same-time instrument committed after a Tale starts cannot grant that Tal
   context.time = 1;
   applySkillSideEffects(context, cast, 'castCommit', troubadourHooks.sideEffectHandlers);
   assert.equal(
-    context.events.some((event) => event.type === 'resource'),
+    context.events.some((event) => event.type === 'resource' && event.amount > 0),
     false
   );
 });
@@ -230,7 +221,7 @@ test('Tale rewards commit before recovery and are available to the next instrume
   applySkillSideEffects(context, cast, 'castStart', troubadourHooks.sideEffectHandlers);
   context.time = cast.effectiveEnd;
   applySkillSideEffects(context, cast, 'castCommit', troubadourHooks.sideEffectHandlers);
-  const note = context.events.find((event) => event.type === 'resource');
+  const note = context.events.find((event) => event.type === 'resource' && event.amount > 0);
   const boon = context.events.find((event) => event.kind === 'might');
   assert.equal(note.at, context.time);
   assert.equal(boon.at, context.time);

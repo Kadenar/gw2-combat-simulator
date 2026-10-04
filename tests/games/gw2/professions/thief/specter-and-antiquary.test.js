@@ -609,12 +609,12 @@ test('Pitfall placement recharge and trigger rearm expire independently', () => 
   // Triggering early preserves the placement cooldown; triggering late starts the shorter rearm.
   const config = { selectedSkillIds: [13057] };
   // Each recharge deadline is read from the live cooldown clock once its cast has completed.
-  const placementReadyAt = observedRuntime(simulate('Core', [ID.PREPARE_PITFALL], config)).cooldowns.get(
+  const placementReadyAt = observedRuntime(simulate('Core', [ID.PREPARE_PITFALL], config)).cooldownController.readyAt(
     ID.PREPARE_PITFALL
   );
   for (const waitMs of [0, placementReadyAt * 1000]) {
     const triggered = [ID.PREPARE_PITFALL, { type: 'wait', durationMs: waitMs }, ID.PITFALL];
-    const triggerReadyAt = observedRuntime(simulate('Core', triggered, config)).cooldowns.get(ID.PITFALL);
+    const triggerReadyAt = observedRuntime(simulate('Core', triggered, config)).cooldownController.readyAt(ID.PITFALL);
     const result = simulate('Core', [...triggered, ID.PREPARE_PITFALL], config);
     const nextPlacement = result.events
       .filter((event) => event.type === 'action' && event.skillId === ID.PREPARE_PITFALL)

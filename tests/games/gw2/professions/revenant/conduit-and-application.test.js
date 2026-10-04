@@ -60,7 +60,7 @@ const simulate = createObservedProfessionSimulator(revenantProfession, baseConfi
 // Live steps expose the actual activation window; an instant cast occupies none of it.
 const castMs = (step) => step.end - step.start;
 // Live actions carry no recharge snapshot; the owner's cooldown map holds the latest reservation, if any.
-const rechargeReadyAt = (result, skillId) => observedRuntime(result).cooldowns.get(skillId) ?? null;
+const rechargeReadyAt = (result, skillId) => observedRuntime(result).cooldownController.readyAt(skillId) ?? null;
 
 const observationTail = (durationMs) => ({ kind: 'tail', durationMs });
 
@@ -792,7 +792,9 @@ test('Beguiling Haze main recharge ignores transient Alacrity after its follow-u
   };
   const rotation = Array(4).fill('Beguiling Haze');
   const skill = revenantCatalog.skillsByName.get('Beguiling Haze');
-  const originalReadyAt = observedRuntime(runRevenant(rotation.slice(0, 3), config)).ammo.get(skill.id).nextRechargeAt;
+  const originalReadyAt = observedRuntime(runRevenant(rotation.slice(0, 3), config)).cooldownController.readAmmo(
+    skill.id
+  ).nextRechargeAt;
   const hasted = runRevenant(rotation, config, {
     initialize(runtime) {
       runtime.effects.emit({
@@ -835,7 +837,9 @@ test('Conduit entity skills apply follow-ups and Shared Wisdom effects', () => {
   );
   assert.deepEqual(beguiling.steps.map(castMs), [560, 240, 240]);
   assert.equal(beguiling.planningState.profession.beguilingHazeCharges, 0);
-  const beguilingAmmo = observedRuntime(beguiling).ammo.get(revenantCatalog.skillsByName.get('Beguiling Haze').id);
+  const beguilingAmmo = observedRuntime(beguiling).cooldownController.readAmmo(
+    revenantCatalog.skillsByName.get('Beguiling Haze').id
+  );
 
   assert.equal(beguilingAmmo.maximum, 1);
   assert.equal(beguilingAmmo.charges, 0);
@@ -853,7 +857,9 @@ test('Conduit entity skills apply follow-ups and Shared Wisdom effects', () => {
       initialEnergy: 100
     }
   );
-  const rechargedAmmo = observedRuntime(recharged).ammo.get(revenantCatalog.skillsByName.get('Beguiling Haze').id);
+  const rechargedAmmo = observedRuntime(recharged).cooldownController.readAmmo(
+    revenantCatalog.skillsByName.get('Beguiling Haze').id
+  );
 
   assert.equal(recharged.planningState.profession.beguilingHazeCharges, 0);
   assert.equal(rechargedAmmo.maximum, 1);
@@ -1315,7 +1321,9 @@ test('Conduit grandmasters alter release, invocation, and Cosmic Wisdom', () => 
   });
 
   assert.equal(
-    observedRuntime(kinetic).cooldowns.get(revenantCatalog.skillsByName.get('Release Potential: Warrior').id),
+    observedRuntime(kinetic).cooldownController.readyAt(
+      revenantCatalog.skillsByName.get('Release Potential: Warrior').id
+    ),
     kinetic.steps[0].end / 1000 + 6.4
   );
 

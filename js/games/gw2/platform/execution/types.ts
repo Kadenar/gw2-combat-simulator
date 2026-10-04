@@ -57,6 +57,8 @@ export interface ProfessionConfig {
 }
 
 export interface CooldownController {
+  /** Observe one skill at the live clock without refreshing unrelated recharge pools. */
+  isOnCooldown(skillId: SkillId, at?: number): boolean;
   readyAt(skillId: SkillId): number | undefined;
   hasCooldown(skillId: SkillId): boolean;
   readAmmo(skillId: SkillId): AmmoObservation | undefined;

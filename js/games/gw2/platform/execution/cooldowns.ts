@@ -1,5 +1,4 @@
 import type { RateInterval } from '#gw2/platform/combat/resources/pool.js';
-import type { Gw2Runtime } from '#gw2/platform/simulation/runtime-state.js';
 import { gw2CooldownReadyAt } from '#gw2/platform/execution/cast-timing.js';
 import { clamp } from '#kernel/core/numeric.js';
 import { projectRecharge, type RechargeProgress } from '#gw2/platform/execution/recharge.js';
@@ -13,7 +12,7 @@ import type { AmmoState, CooldownController, RechargeCheckpoint } from '#gw2/pla
 import type { Skill, SkillId } from '#gw2/platform/skills/types.js';
 
 interface CooldownControllerOptions {
-  readonly state: Pick<Gw2Runtime, 'time' | 'ammo' | 'cooldowns' | 'rechargeProgress'>;
+  readonly clock: { readonly time: number };
   readonly rechargeDuration: (skill: Skill, at: number) => number;
   readonly rechargeIntervals?: (skill: Skill, start: number, end: number) => Iterable<RateInterval>;
   readonly skillFor?: (id: SkillId) => Skill | undefined;
@@ -26,22 +25,22 @@ interface CooldownControllerOptions {
  *
  */
 export function createCooldownController({
-  state,
+  clock,
   rechargeDuration,
   rechargeIntervals = (_skill, start, end) => [{ start, end, rate: 1 }],
   skillFor = () => undefined,
   maximumAmmo = (skill) => skill.ammo || 0
 }: CooldownControllerOptions): Readonly<CooldownController> {
-  // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition -- Headless JavaScript callers must supply all cooldown stores.
-  if (!state.ammo || !state.cooldowns || !state.rechargeProgress) {
-    throw new TypeError('Cooldown controller requires live runtime state.');
-  }
+  // Recharge stores belong exclusively to this controller; callers supply only the live clock.
+  const cooldowns = new Map<SkillId, number>();
+  const rechargeProgress = new Map<SkillId, RechargeProgress>();
+  const ammoPools = new Map<SkillId, AmmoState>();
 
   if (typeof rechargeDuration !== 'function') {
     throw new TypeError('Cooldown controller requires rechargeDuration.');
   }
 
-  const rate = (skill: Skill, at = state.time): number => {
+  const rate = (skill: Skill, at = clock.time): number => {
     for (const interval of rechargeIntervals(skill, at, Infinity)) return interval.rate;
     return 1;
   };
@@ -61,33 +60,33 @@ export function createCooldownController({
 
   const startRecharge = (skill: Skill, at: number, work = rechargeDuration(skill, at) * rate(skill, at)): number => {
     const progress = { startedAt: at, work: Math.max(0, work) };
-    state.rechargeProgress.set(skill.id, progress);
+    rechargeProgress.set(skill.id, progress);
     const readyAt = project(skill, progress);
-    state.cooldowns.set(skill.id, readyAt);
+    cooldowns.set(skill.id, readyAt);
     return readyAt;
   };
 
   const setReadyAt = (skillId: SkillId, readyAt: number): void => {
-    state.rechargeProgress.delete(skillId);
-    state.cooldowns.set(skillId, readyAt);
+    rechargeProgress.delete(skillId);
+    cooldowns.set(skillId, readyAt);
   };
 
   const clear = (skillId: SkillId): void => {
-    state.rechargeProgress.delete(skillId);
-    state.cooldowns.delete(skillId);
+    rechargeProgress.delete(skillId);
+    cooldowns.delete(skillId);
   };
 
   const copy = (sourceId: SkillId, targetId: SkillId): void => {
     if (sourceId === targetId) return;
-    const readyAt = state.cooldowns.get(sourceId);
+    const readyAt = cooldowns.get(sourceId);
     if (readyAt == null) {
       clear(targetId);
       return;
     }
 
     setReadyAt(targetId, readyAt);
-    const progress = state.rechargeProgress.get(sourceId);
-    if (progress) state.rechargeProgress.set(targetId, { ...progress });
+    const progress = rechargeProgress.get(sourceId);
+    if (progress) rechargeProgress.set(targetId, { ...progress });
   };
 
   const syncAmmoCooldown = (skill: Skill, ammo: AmmoState, at: number): void => {
@@ -100,9 +99,9 @@ export function createCooldownController({
       ammo.charges === 0 ? ammo.nextRechargeAt || 0 : 0
     );
     if (gw2CooldownReadyAt(readyAt) > at) {
-      state.cooldowns.set(skill.id, readyAt);
+      cooldowns.set(skill.id, readyAt);
     } else {
-      state.cooldowns.delete(skill.id);
+      cooldowns.delete(skill.id);
     }
   };
 
@@ -112,8 +111,8 @@ export function createCooldownController({
   const ensureAmmo = (skill: Skill): AmmoState | null => {
     const maximum = Math.max(0, maximumAmmo(skill) || 0);
     if (!maximum) return null;
-    if (!state.ammo.has(skill.id)) {
-      state.ammo.set(skill.id, {
+    if (!ammoPools.has(skill.id)) {
+      ammoPools.set(skill.id, {
         charges: maximum,
         maximum,
         recharges: [],
@@ -121,7 +120,7 @@ export function createCooldownController({
       });
     }
 
-    return state.ammo.get(skill.id) ?? null;
+    return ammoPools.get(skill.id) ?? null;
   };
 
   /**
@@ -201,17 +200,17 @@ export function createCooldownController({
   };
 
   /** Applies game-adjusted recharge progress to ammo or an ordinary cooldown without passing its ready time. */
-  const reduceSkillRecharge = (skill: Skill, reduction: number, at = state.time): number => {
+  const reduceSkillRecharge = (skill: Skill, reduction: number, at = clock.time): number => {
     const requested = Math.max(0, reduction || 0);
     if (requested <= 0) return 0;
-    if (state.ammo.has(skill.id)) {
+    if (ammoPools.has(skill.id)) {
       return reduceAmmoRecharge(skill, requested, at);
     }
 
-    const progress = state.rechargeProgress.get(skill.id);
+    const progress = rechargeProgress.get(skill.id);
     if (!progress) {
       // Explicit fixed deadlines keep their existing policy when reduced.
-      const readyAt = state.cooldowns.get(skill.id) || 0;
+      const readyAt = cooldowns.get(skill.id) || 0;
       const reducedBy = clamp(requested / rate(skill, at), 0, readyAt - at);
       if (reducedBy) setReadyAt(skill.id, readyAt - reducedBy);
       return reducedBy;
@@ -227,7 +226,7 @@ export function createCooldownController({
   /**
    * Applies base work for the short between-cast recharge independently from count recharge.
    */
-  const setAmmoLockout = (skill: Skill, work: number, at = state.time): void => {
+  const setAmmoLockout = (skill: Skill, work: number, at = clock.time): void => {
     const ammo = ensureAmmo(skill);
     if (!ammo) return;
     const progress = { startedAt: at, work: Math.max(0, work) };
@@ -240,40 +239,49 @@ export function createCooldownController({
   };
 
   return Object.freeze({
-    readyAt: (id: SkillId) => state.cooldowns.get(id),
-    hasCooldown: (id: SkillId) => state.cooldowns.has(id),
-    readAmmo: (id: SkillId) => state.ammo.get(id),
-    hasAmmo: (id: SkillId) => state.ammo.has(id),
-    rechargeFor: (id: SkillId) => state.rechargeProgress.get(id),
-    cooldownSkillIds: () => state.cooldowns.keys(),
-    ammoSkillIds: () => state.ammo.keys(),
+    // Live formula queries settle only this magazine and retain their unrounded deadline comparison.
+    isOnCooldown(id: SkillId, at = clock.time) {
+      if (at !== clock.time) throw new RangeError('Live cooldown queries must use the current clock.');
+      const skill = skillFor(id);
+      if (skill && ammoPools.has(id)) refreshAmmo(skill, at);
+      const progress = rechargeProgress.get(id);
+      const readyAt = skill && progress ? project(skill, progress) : (cooldowns.get(id) ?? 0);
+      return readyAt > at;
+    },
+    readyAt: (id: SkillId) => cooldowns.get(id),
+    hasCooldown: (id: SkillId) => cooldowns.has(id),
+    readAmmo: (id: SkillId) => ammoPools.get(id),
+    hasAmmo: (id: SkillId) => ammoPools.has(id),
+    rechargeFor: (id: SkillId) => rechargeProgress.get(id),
+    cooldownSkillIds: () => cooldowns.keys(),
+    ammoSkillIds: () => ammoPools.keys(),
     retireAmmo(id: SkillId) {
-      state.ammo.delete(id);
+      ammoPools.delete(id);
     },
     linkAmmo(sourceId: SkillId, targetId: SkillId) {
       // Alternate skill identities intentionally share one magazine and queue, rather than copying charge counts.
-      const ammo = state.ammo.get(sourceId);
-      if (ammo) state.ammo.set(targetId, ammo);
+      const ammo = ammoPools.get(sourceId);
+      if (ammo) ammoPools.set(targetId, ammo);
     },
     clearAmmoLockout(id: SkillId) {
-      const ammo = state.ammo.get(id);
+      const ammo = ammoPools.get(id);
       if (ammo) {
         ammo.lockoutReadyAt = 0;
         delete ammo.lockoutProgress;
       }
     },
     reserveAmmo(skill: Skill, count: number, recharge: RechargeProgress) {
-      const ammo = state.ammo.get(skill.id);
+      const ammo = ammoPools.get(skill.id);
       if (!ammo) return 0;
       const reserved = clamp(Math.floor(count), 0, ammo.charges);
       ammo.charges -= reserved;
       for (let index = 0; index < reserved; index++) ammo.recharges.push({ ...recharge });
       // Acceptance may precede the recharge anchor; only the live clock can settle existing timers.
-      if (reserved) refreshAmmo(skill, state.time);
+      if (reserved) refreshAmmo(skill, clock.time);
       return reserved;
     },
     replaceAmmoCharges(skill: Skill, maximum: number, charges: number, recharges: readonly RechargeProgress[]) {
-      const ammo = state.ammo.get(skill.id);
+      const ammo = ammoPools.get(skill.id);
       if (!ammo) return;
       ammo.maximum = maximum;
       ammo.charges = charges;
@@ -288,12 +296,12 @@ export function createCooldownController({
       // Capture work without advancing clocks; only the front queued charge has earned elapsed recharge.
       return {
         remainingCooldowns: new Map(
-          [...state.cooldowns]
+          [...cooldowns]
             .filter(([id]) => id !== independentCooldownId && !preservedCooldownIds.has(id))
             .map(([id, ready]) => [id, ready - at])
         ),
         remainingRechargeWork: new Map(
-          [...state.rechargeProgress].flatMap(([id, progress]) => {
+          [...rechargeProgress].flatMap(([id, progress]) => {
             const skill = skillFor(id);
             return skill && !preservedCooldownIds.has(id) && gw2CooldownReadyAt(project(skill, progress)) > at
               ? [[id, remaining(skill, progress, at)] as const]
@@ -301,7 +309,7 @@ export function createCooldownController({
           })
         ),
         ammo: new Map(
-          [...state.ammo].map(([id, ammo]) => {
+          [...ammoPools].map(([id, ammo]) => {
             const skill = skillFor(id);
             return [
               id,
@@ -329,20 +337,18 @@ export function createCooldownController({
       deadlines: readonly { readonly skillId: SkillId; readonly readyAt: number }[]
     ) {
       // Restore relative work/deadlines atomically before reprojecting against the current recharge rate.
-      const cooldowns = [...state.cooldowns].filter(([id]) => preservedCooldownIds.has(id));
-      const progress = [...state.rechargeProgress].filter(([id]) => preservedCooldownIds.has(id));
-      state.cooldowns.clear();
-      for (const [id, ready] of cooldowns) state.cooldowns.set(id, ready);
-      for (const [id, duration] of checkpoint.remainingCooldowns)
-        if (duration > 0) state.cooldowns.set(id, at + duration);
-      for (const deadline of deadlines) state.cooldowns.set(deadline.skillId, deadline.readyAt);
-      state.rechargeProgress.clear();
-      for (const [id, value] of progress) state.rechargeProgress.set(id, value);
-      for (const [id, work] of checkpoint.remainingRechargeWork)
-        state.rechargeProgress.set(id, { startedAt: at, work });
-      state.ammo.clear();
+      const preservedCooldowns = [...cooldowns].filter(([id]) => preservedCooldownIds.has(id));
+      const progress = [...rechargeProgress].filter(([id]) => preservedCooldownIds.has(id));
+      cooldowns.clear();
+      for (const [id, ready] of preservedCooldowns) cooldowns.set(id, ready);
+      for (const [id, duration] of checkpoint.remainingCooldowns) if (duration > 0) cooldowns.set(id, at + duration);
+      for (const deadline of deadlines) cooldowns.set(deadline.skillId, deadline.readyAt);
+      rechargeProgress.clear();
+      for (const [id, value] of progress) rechargeProgress.set(id, value);
+      for (const [id, work] of checkpoint.remainingRechargeWork) rechargeProgress.set(id, { startedAt: at, work });
+      ammoPools.clear();
       for (const [id, ammo] of checkpoint.ammo)
-        state.ammo.set(id, {
+        ammoPools.set(id, {
           charges: ammo.charges,
           maximum: ammo.maximum,
           recharges: ammo.pendingRechargeWork.map((work) => ({ startedAt: at, work })),
@@ -354,9 +360,9 @@ export function createCooldownController({
         });
     },
     resetAll() {
-      state.cooldowns.clear();
-      state.rechargeProgress.clear();
-      state.ammo.clear();
+      cooldowns.clear();
+      rechargeProgress.clear();
+      ammoPools.clear();
     },
     startRecharge,
     setReadyAt,
@@ -366,12 +372,12 @@ export function createCooldownController({
     project,
     remaining,
     refresh(at: number) {
-      for (const [id, progress] of state.rechargeProgress) {
+      for (const [id, progress] of rechargeProgress) {
         const skill = skillFor(id);
-        if (skill) state.cooldowns.set(id, project(skill, progress));
+        if (skill) cooldowns.set(id, project(skill, progress));
       }
 
-      for (const id of state.ammo.keys()) {
+      for (const id of ammoPools.keys()) {
         const skill = skillFor(id);
         if (skill) refreshAmmo(skill, at);
       }

@@ -1,23 +1,26 @@
+import { createMesmerActions } from '#gw2/professions/mesmer/family-mechanics.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
-import { mesmerMechanicsFor } from '#gw2/professions/mesmer/core/mechanics/runtime.js';
 import { virtuosoAvailability } from '#gw2/professions/mesmer/specializations/virtuoso/mechanics/bladesongs.js';
-import { initializeVirtuosoRuntime } from '#gw2/professions/mesmer/specializations/virtuoso/mechanics/runtime.js';
+import { startInfiniteForge } from '#gw2/professions/mesmer/specializations/virtuoso/traits/behavior.js';
 import { resolveBladeCriticalTraits } from '#gw2/professions/mesmer/specializations/virtuoso/traits/behavior.js';
 import type { MesmerRuntimeState } from '#gw2/professions/mesmer/types.js';
 
 /** Blade resources follow committed spending, accepted Bleeding, and actual shared critical outcomes. */
 export const virtuosoHooks: RuntimeHooks<MesmerRuntimeState, MesmerSkill> = {
-  initialize: initializeVirtuosoRuntime,
+  initialize: startInfiniteForge,
   availability: virtuosoAvailability,
   tasks: {
     'mesmer.blade-spend'(runtime, data) {
-      const mechanics = mesmerMechanicsFor(runtime);
       const details = runtime.profession.core.castDetails.get(String(data));
       if (!details || details.shatterSpendCommitted) return;
-      details.shatterSpent = mechanics.actions.commitReservedResources(runtime.time, details.shatterSpent ?? 0, {
-        activationId: String(data)
-      });
+      details.shatterSpent = createMesmerActions(runtime).commitReservedResources(
+        runtime.time,
+        details.shatterSpent ?? 0,
+        {
+          activationId: String(data)
+        }
+      );
       details.shatterSpendCommitted = true;
     }
   },

@@ -1288,7 +1288,10 @@ test('Assassin buffs trigger on hit and upkeep releases own their cooldowns', ()
   const impossible = revenantCatalog.skillsByName.get('Impossible Odds');
 
   // Starvation at one second starts the authored starvation cooldown from that boundary.
-  assert.equal(observedRuntime(starved).cooldowns.get(impossible.id), 1 + impossible.starvationCooldown / 1.25);
+  assert.equal(
+    observedRuntime(starved).cooldownController.readyAt(impossible.id),
+    1 + impossible.starvationCooldown / 1.25
+  );
   assert.equal(starved.planningState.profession.activeUpkeeps.length, 0);
 });
 

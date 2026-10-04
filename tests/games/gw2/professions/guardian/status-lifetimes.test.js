@@ -152,7 +152,7 @@ test('Radiant Forge exits exactly once at its canonical form deadline', () => {
   assert.equal(exits.length, 1);
   assert.equal(exits[0].at, 20.001);
   assert.equal(state(result).radiantForge, false);
-  assert.equal(observedRuntime(result).cooldowns.get(ID.ENTER_RADIANT_FORGE), 24.001);
+  assert.equal(observedRuntime(result).cooldownController.readyAt(ID.ENTER_RADIANT_FORGE), 24.001);
 });
 
 test('spear illumination expires before accepting a cast at its deadline', () => {

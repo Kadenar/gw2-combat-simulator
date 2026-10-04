@@ -45,8 +45,8 @@ test('Forge exits finalize once at the actual transition and clear weapon state'
     );
     assert.equal(exits.length, 1);
     assert.equal(exits[0].automatic, automatic);
-    assert.equal(runtime.rechargeProgress.get(G.ENTER_RADIANT_FORGE).startedAt, exits[0].at);
-    assert.equal(runtime.rechargeProgress.get(G.ENTER_RADIANT_FORGE).work, 5);
+    assert.equal(runtime.cooldownController.rechargeFor(G.ENTER_RADIANT_FORGE).startedAt, exits[0].at);
+    assert.equal(runtime.cooldownController.rechargeFor(G.ENTER_RADIANT_FORGE).work, 5);
     assert.equal(state.radiantForge, false);
     assert.equal(state.radiantWeapon, '');
     assert.equal(state.glaringBurstSwordSlow, false);

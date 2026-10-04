@@ -101,7 +101,7 @@ test('Manifest owns an exact shade lifetime and cancelled casts create no shade 
 test('Sand Savant selects the live ammo cap and modified recharge work', () => {
   const config = { ...base, selectedTraitIds: [TRAIT.SAND_SAVANT, TRAIT.SINISTER_SHROUD] };
   const one = run([cast(ID.MANIFEST_SAND_SHADE)], config);
-  const ammo = observedRuntime(one).ammo.get(ID.MANIFEST_SAND_SHADE);
+  const ammo = observedRuntime(one).cooldownController.readAmmo(ID.MANIFEST_SAND_SHADE);
   assert.equal(ammo.maximum, 1);
   assert.equal(ammo.charges, 0);
   assert.equal(ammo.recharges[0].work, 15 * 0.85 * 1.25);
@@ -111,7 +111,7 @@ test('Sand Savant selects the live ammo cap and modified recharge work', () => {
   assert.equal(state(recharged).shades.length, 1);
   assert.deepEqual(recharged.warnings, []);
   const ordinary = run([cast(ID.MANIFEST_SAND_SHADE), cast(ID.MANIFEST_SAND_SHADE)]);
-  assert.equal(observedRuntime(ordinary).ammo.get(ID.MANIFEST_SAND_SHADE).charges, 1);
+  assert.equal(observedRuntime(ordinary).cooldownController.readAmmo(ID.MANIFEST_SAND_SHADE).charges, 1);
   assert.equal(state(ordinary).shades.length, 2);
 });
 

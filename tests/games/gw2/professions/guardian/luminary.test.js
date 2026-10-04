@@ -118,8 +118,7 @@ test('Illuminating Inspiration delegates capped reductions for the three radiant
             [ids.RADIANT_COURAGE, 0],
             [ids.PIERCING_STANCE, 99]
           ]) {
-            runtime.cooldownController.setReadyAt(id, work);
-            runtime.rechargeProgress.set(id, { startedAt: 0, work });
+            runtime.cooldownController.startRecharge(runtime.helpers.skillsById.get(id), 0, work);
           }
         }
       }

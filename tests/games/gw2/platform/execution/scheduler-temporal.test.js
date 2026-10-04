@@ -10,8 +10,8 @@ import { testProfession } from '#tests/fixtures/profession.js';
 // A full reload clears pending charges while the independent cast lockout survives.
 test('ammo restoration resets full-pool recharge without erasing cast lockouts', () => {
   const skill = { id: 980012, ammo: 2 };
-  const state = { time: 0, ammo: new Map(), rechargeProgress: new Map(), cooldowns: new Map() };
-  const controller = createCooldownController({ state, rechargeDuration: () => 10 });
+  const state = { time: 0 };
+  const controller = createCooldownController({ clock: state, rechargeDuration: () => 10 });
   controller.spendAmmo(skill, 0);
   controller.spendAmmo(skill, 0);
   controller.setAmmoLockout(skill, 5, 0);
@@ -34,9 +34,9 @@ test('ammo restoration resets full-pool recharge without erasing cast lockouts',
 test('ammo charges recover sequentially and partial restoration preserves active progress', () => {
   for (const reload of [false, true]) {
     const skill = { id: 980014, ammo: 2 };
-    const state = { time: 0, ammo: new Map(), rechargeProgress: new Map(), cooldowns: new Map() };
+    const state = { time: 0 };
     const controller = createCooldownController({
-      state,
+      clock: state,
       rechargeDuration: () => 16,
       rechargeIntervals: (_skill, start, end) => [{ start, end, rate: 1.25 }]
     });
@@ -63,9 +63,9 @@ test('ammo charges recover sequentially and partial restoration preserves active
 // Spending a restored round queues its full interval behind the active recharge.
 test('a partially restored charge waits for the active recharge when spent again', () => {
   const skill = { id: 980016, ammo: 2 };
-  const state = { time: 0, ammo: new Map(), rechargeProgress: new Map(), cooldowns: new Map() };
+  const state = { time: 0 };
   const controller = createCooldownController({
-    state,
+    clock: state,
     rechargeDuration: () => 16,
     rechargeIntervals: (_skill, start, end) => [{ start, end, rate: 1.25 }]
   });
@@ -82,9 +82,9 @@ test('a partially restored charge waits for the active recharge when spent again
 // Recharge-rate windows advance only the active charge; queued charges cannot bank elapsed progress.
 test('queued charges preserve active progress across recharge rate changes', () => {
   const skill = { id: 980017, ammo: 2 };
-  const state = { time: 0, ammo: new Map(), rechargeProgress: new Map(), cooldowns: new Map() };
+  const state = { time: 0 };
   const controller = createCooldownController({
-    state,
+    clock: state,
     rechargeDuration: () => 10,
     rechargeIntervals: (_skill, start, end) =>
       [
@@ -107,8 +107,8 @@ test('queued charges preserve active progress across recharge rate changes', () 
 // Different committed recharge durations do not reorder the queue or replace active progress.
 test('restoration removes queued charges even when later charges have shorter recharge', () => {
   const skill = { id: 980015, ammo: 3 };
-  const state = { time: 0, ammo: new Map(), rechargeProgress: new Map(), cooldowns: new Map() };
-  const controller = createCooldownController({ state, rechargeDuration: () => 20 });
+  const state = { time: 0 };
+  const controller = createCooldownController({ clock: state, rechargeDuration: () => 20 });
   controller.spendAmmo(skill, 0, 20);
   controller.spendAmmo(skill, 1, 10);
   controller.spendAmmo(skill, 2, 5);
@@ -134,8 +134,8 @@ test('combat-start and cooldown-reset markers declare environment ownership', ()
 // Flat reductions consume work once, carrying excess to the next charge and capping at a full pool.
 test('ammo recharge reductions advance the queue without multiplying progress', () => {
   const skill = { id: 980000, ammo: 3, ammoRecharge: 12 };
-  const state = { time: 0, ammo: new Map(), rechargeProgress: new Map(), cooldowns: new Map() };
-  const controller = createCooldownController({ state, rechargeDuration: () => 12 });
+  const state = { time: 0 };
+  const controller = createCooldownController({ clock: state, rechargeDuration: () => 12 });
   controller.spendAmmo(skill, 0);
   controller.spendAmmo(skill, 4);
   controller.spendAmmo(skill, 8);
@@ -161,8 +161,8 @@ test('ammo recharge reductions advance the queue without multiplying progress', 
 test('ammo recharge reduction preserves independent cast lockouts', () => {
   for (const lockout of [0, 5, 10, 15]) {
     const skill = { id: 980000, ammo: 2 };
-    const state = { time: 0, ammo: new Map(), rechargeProgress: new Map(), cooldowns: new Map() };
-    const controller = createCooldownController({ state, rechargeDuration: () => 10 });
+    const state = { time: 0 };
+    const controller = createCooldownController({ clock: state, rechargeDuration: () => 10 });
     controller.spendAmmo(skill, 0);
     controller.spendAmmo(skill, 0);
     if (lockout) controller.setAmmoLockout(skill, lockout, 0);
@@ -227,16 +227,11 @@ test('skill recharge reduction routes ordinary and ammo skills through one cappe
   const ordinary = { id: 980010 };
   const ammo = { id: 980011, ammo: 2, ammoRecharge: 12 };
   const state = {
-    time: 0,
-    ammo: new Map(),
-    rechargeProgress: new Map(),
-    cooldowns: new Map([[ordinary.id, 10]])
+    time: 0
   };
-  const controller = createCooldownController({
-    state,
-    rechargeDuration: () => 12
-  });
+  const controller = createCooldownController({ clock: state, rechargeDuration: () => 12 });
 
+  controller.setReadyAt(ordinary.id, 10);
   controller.spendAmmo(ammo, 0);
 
   assert.equal(controller.reduceSkillRecharge(ordinary, 3, 4), 3);
@@ -250,15 +245,16 @@ test('skill recharge reduction routes ordinary and ammo skills through one cappe
 test('skill recharge reduction accepts game-specific base-to-wall-time conversion', () => {
   const ordinary = { id: 980012, cooldown: 10 };
   const ammo = { id: 980013, ammo: 2, ammoRecharge: 10 };
-  const state = { time: 0, ammo: new Map(), rechargeProgress: new Map(), cooldowns: new Map([[ordinary.id, 8]]) };
+  const state = { time: 0 };
   const controller = createCooldownController({
-    state,
+    clock: state,
     rechargeDuration: () => 8,
     rechargeIntervals: (_skill, start, end) => [{ start, end, rate: 1.25 }]
   });
 
   controller.spendAmmo(ammo, 0);
 
+  controller.setReadyAt(ordinary.id, 8);
   assert.equal(controller.reduceSkillRecharge(ordinary, 1, 0), 0.8);
   assert.equal(controller.readyAt(ordinary.id), 7.2);
   assert.equal(controller.reduceSkillRecharge(ammo, 1, 0), 0.8);

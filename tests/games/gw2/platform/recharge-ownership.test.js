@@ -6,10 +6,10 @@ const magazine = { id: 1, name: 'Magazine', ammo: 3, ammoRecharge: 5 };
 const ordinary = { id: 2, name: 'Ordinary', cooldown: 10 };
 const preserved = { id: 3, name: 'Preserved', cooldown: 20 };
 function fixture() {
-  const state = { time: 0, cooldowns: new Map(), rechargeProgress: new Map(), ammo: new Map() };
+  const state = { time: 0 };
   const catalog = new Map([magazine, ordinary, preserved].map((skill) => [skill.id, skill]));
   const controller = createCooldownController({
-    state,
+    clock: state,
     skillFor: (id) => catalog.get(id),
     rechargeDuration: (skill) => skill.ammoRecharge ?? skill.cooldown
   });
@@ -72,4 +72,31 @@ test('linked and temporary ammo pools preserve their independent lockout until e
   controller.retireAmmo(9);
   assert.equal(controller.hasAmmo(9), false);
   assert.equal(controller.hasAmmo(1), true);
+});
+
+// Formula readiness keeps sub-tick precision and refreshes only the requested magazine on the live clock.
+test('live readiness owns ordinary progress, ammo settlement, and independent lockouts', () => {
+  const { state, controller } = fixture();
+  controller.startRecharge(ordinary, 0, 0.015);
+  state.time = 0.01;
+  assert.equal(controller.isOnCooldown(ordinary.id), true);
+  state.time = 0.02;
+  assert.equal(controller.isOnCooldown(ordinary.id), false);
+  assert.equal(controller.readyAt(ordinary.id), 0.015);
+  assert.throws(() => controller.isOnCooldown(ordinary.id, 1), /current clock/);
+
+  const other = { ...magazine, id: 99 };
+  for (let i = 0; i < 3; i++) {
+    controller.spendAmmo(magazine, 0);
+    controller.spendAmmo(other, 0);
+  }
+
+  state.time = 5;
+  assert.equal(controller.isOnCooldown(magazine.id), false);
+  assert.equal(controller.readAmmo(magazine.id).charges, 1);
+  assert.equal(controller.readAmmo(other.id).charges, 0);
+  controller.setAmmoLockout(magazine, 2, 5);
+  assert.equal(controller.isOnCooldown(magazine.id), true);
+  state.time = 7;
+  assert.equal(controller.isOnCooldown(magazine.id), false);
 });

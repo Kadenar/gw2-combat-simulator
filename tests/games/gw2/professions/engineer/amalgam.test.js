@@ -515,13 +515,13 @@ test('Evolve aliases use only the trait-selected identity and share its charges 
     });
     assert.deepEqual(result.warnings, []);
     assert.ok(result.steps.every((step) => step.skillId === skillId && !step.invalid));
-    assert.deepEqual([...observedRuntime(result).cooldowns.keys()], [skillId]);
-    assert.deepEqual([...observedRuntime(result).ammo.keys()], traited ? [skillId] : []);
+    assert.deepEqual([...observedRuntime(result).cooldownController.cooldownSkillIds()], [skillId]);
+    assert.deepEqual([...observedRuntime(result).cooldownController.ammoSkillIds()], traited ? [skillId] : []);
     const [first, second, third] = result.steps;
     // Both Evolve identities recover from activation rather than cast completion.
     assert.ok(third.start >= first.start + 32000);
     if (traited) {
-      assert.equal(observedRuntime(result).ammo.get(skillId).maximum, 2);
+      assert.equal(observedRuntime(result).cooldownController.readAmmo(skillId).maximum, 2);
       assert.ok(second.start < first.start + 32000);
     } else {
       assert.ok(second.start >= first.start + 32000);

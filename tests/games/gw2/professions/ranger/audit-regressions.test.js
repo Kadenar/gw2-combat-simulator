@@ -604,7 +604,7 @@ test('Lead the Wind reduces longbow recharge and grants Point-Blank Shot boons',
     selectedTraitIds: [TRAIT.LEAD_THE_WIND]
   });
   const recharge = (result) => {
-    return observedRuntime(result).rechargeProgress.get(ID.RAPID_FIRE).work;
+    return observedRuntime(result).cooldownController.rechargeFor(ID.RAPID_FIRE).work;
   };
 
   assert.ok(Math.abs(recharge(traited) - recharge(baseline) * 0.8) < 1e-9);

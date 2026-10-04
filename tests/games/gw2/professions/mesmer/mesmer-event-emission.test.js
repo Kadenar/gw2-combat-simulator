@@ -1,5 +1,6 @@
-import { registerMesmerMechanics } from '#gw2/professions/mesmer/core/mechanics/runtime.js';
-import { mesmerCatalog } from '#gw2/professions/mesmer/profession.js';
+import { captureEffectEmissions } from '#tests/helpers/effect-emission.js';
+import { MESMER_SKILL_IDS as ID } from '#gw2/professions/mesmer/data/ids.js';
+import { mesmerProfession } from '#gw2/professions/mesmer/profession.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
@@ -19,30 +20,35 @@ test('phantasm packet and Harmonize commitment preserve their interruption toler
     for (const effectiveEnd of [3 - 5 * EPSILON, 3 - 3 * EPSILON, 3 - EPSILON / 2, 3, 4]) {
       const packets = [];
       const resources = [];
+      const config = { specialization: 'Troubadour', primaryWeapon: 'Sword' };
+      const profession = mesmerProfession.runtimeFor(config);
       const context = {
-        helpers: mesmerCatalog,
+        config,
+        traits: new Set(),
+        activeWeaponSet: 1,
+        helpers: profession.catalog,
         start: 2,
         fullEnd: 4,
         effectiveEnd,
-        reservationId: 'phantasm',
-        profession: { core: { castDetails: new Map() } },
-        mesmerRuntime: {
-          activePrimaryWeapon: () => 'Sword',
-          resources: { queueResources: (...args) => resources.push(args) },
-          skillEffects: {
-            schedule: (_skill, _end, _start, options) =>
-              packets.push({ ...options, emissionEnd: options.delivery.cast.effectiveEnd })
-          }
+        profession: profession.createState(config),
+        schedule(type, at, data) {
+          if (type === 'mesmer.resource-gain' && data.reason === 'Harmonize') resources.push([at, data]);
         }
       };
-      const skill = { resource: { mode: 'phantasm' }, phantasmSummonProgress: progress };
+      context.effects = captureEffectEmissions({
+        submit(event, delivery) {
+          if (event.type === 'mesmer.phantasm-summoned')
+            packets.push({ at: event.at, emissionEnd: delivery.cast.effectiveEnd });
+          return event;
+        }
+      }).effects;
+      const skill = { ...profession.catalog.skillsById.get(ID.PHANTASMAL_SWORDSMAN), phantasmSummonProgress: progress };
       const cast = { ...context, skill, id: 'phantasm', command: {} };
       context.time = context.fullEnd;
-      registerMesmerMechanics(context, context.mesmerRuntime);
       scheduleMesmerPhantasmEffects(context, cast, skill);
       completeTroubadourPhantasm(context, cast);
       const packetCommitted = progress === 0.5 && effectiveEnd >= 3 - EPSILON && effectiveEnd < 4;
-      assert.equal(packets[0].phantasmSummonAt, packetCommitted ? effectiveEnd : undefined);
+      assert.equal(packets[0].at, packetCommitted ? effectiveEnd : context.fullEnd);
       assert.equal(packets[0].emissionEnd, packetCommitted || effectiveEnd === 4 ? Infinity : effectiveEnd);
       assert.equal(resources.length, (progress === 0.5 && effectiveEnd >= 3 - EPSILON) || effectiveEnd === 4 ? 1 : 0);
       if (resources.length) assert.equal(resources[0][0], context.fullEnd);

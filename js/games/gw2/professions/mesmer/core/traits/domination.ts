@@ -1,3 +1,4 @@
+import { mesmerShatters } from '#gw2/professions/mesmer/family-mechanics.js';
 import { buildMesmerConditions, mesmerPacketOwner } from '#gw2/professions/mesmer/core/mechanics/packets.js';
 import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
@@ -7,7 +8,6 @@ import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { requireBalanceProfileFromContext, requireEffect } from '#gw2/platform/skills/balance-profiles.js';
 import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
 import { illusionSource } from '#gw2/professions/mesmer/core/mechanics/modifier-queries.js';
-import { mesmerMechanicsFor } from '#gw2/professions/mesmer/core/mechanics/runtime.js';
 import type { MesmerShatterResolution } from '#gw2/professions/mesmer/core/mechanics/shatter-types.js';
 import type { MesmerRuntime } from '#gw2/professions/mesmer/types.js';
 import { MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
@@ -173,8 +173,7 @@ export function triggerRendingShatter(context: MesmerRuntime, resolution: Mesmer
     'Vulnerability'
   );
   if (!effect) return;
-  const mechanics = mesmerMechanicsFor(context);
-  const kind = mechanics.shatters[resolution.skill.id]?.kind;
+  const kind = mesmerShatters(context)[resolution.skill.id]?.kind;
   const hits =
     kind === 'blade-control' || kind === 'blade-defense'
       ? [{ at: resolution.traitHits[0].at, count: resolution.spent }]

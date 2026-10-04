@@ -5,7 +5,6 @@ import { mesmerCatalog, mesmerProfession } from '#gw2/professions/mesmer/profess
 import { MESMER_SKILL_IDS as ID, MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
 import { simulateMesmer, runMesmer } from '#tests/helpers/mesmer-simulation.js';
 import { applySkillSideEffects } from '#gw2/platform/effects/action-dispatch.js';
-import { registerMesmerMechanics } from '#gw2/professions/mesmer/core/mechanics/runtime.js';
 import { mesmerCoreHooks } from '#gw2/professions/mesmer/core/hooks.js';
 import { troubadourHooks } from '#gw2/professions/mesmer/specializations/troubadour/hooks.js';
 import { armMesmerSkillFlip } from '#gw2/professions/mesmer/core/mechanics/flips.js';
@@ -49,11 +48,23 @@ test('Clarity, blade refunds, and instrument state are visible at commitment bef
 test('Lancer consumes Clarity before preparation and never reuses another activation snapshot', () => {
   const skill = mesmerCatalog.skillsById.get(ID.PHANTASMAL_LANCER);
   const prepared = [];
-  const mechanics = {
-    skillEffects: { schedule: (_skill, _end, _start, options) => prepared.push(options.clarityConsumed) }
+  const config = { specialization: 'Core', primaryWeapon: 'Spear' };
+  const profession = mesmerProfession.runtimeFor(config);
+  const runtime = {
+    config,
+    traits: new Set(),
+    time: 0,
+    activeWeaponSet: 1,
+    profession: profession.createState(config),
+    helpers: profession.catalog,
+    schedule() {}
   };
-  const runtime = { profession: { core: { clarityUntil: 2, castDetails: new Map() } } };
-  registerMesmerMechanics(runtime, mechanics);
+  runtime.effects = captureEffectEmissions({
+    submit(event) {
+      if (event.type === 'mesmer.phantasm-summoned') prepared.push(event.count);
+      return event;
+    }
+  }).effects;
   for (const [id, start, until, cancelled] of [
     ['first', 1, 2, true],
     ['next', 1.1, 0, false],
@@ -66,7 +77,7 @@ test('Lancer consumes Clarity before preparation and never reuses another activa
     assert.equal(runtime.profession.core.clarityUntil, 0);
   }
 
-  assert.deepEqual(prepared, [true, false, false]);
+  assert.deepEqual(prepared, [2, 1, 1]);
 });
 
 test('a replaced flip survives its old expiry task', () => {
