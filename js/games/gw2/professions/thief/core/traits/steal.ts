@@ -1,4 +1,4 @@
-import { selectedSkillNameSet } from '#gw2/platform/builds/selected-skills.js';
+import { selectedSkillIdSet } from '#gw2/platform/builds/selected-skills.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import {
   balanceProfileNumber,
@@ -122,8 +122,8 @@ export function reduceUtilityRecharges(runtime: ThiefRuntime): void {
   if (!runtime.procs.claim(TRAIT.IMPROVISATION, 'thief.antiquary.improvisation', runtime.time)) return;
   const profile = requireBalanceProfileFromContext(runtime, TRAIT.IMPROVISATION);
   const multiplier = balanceProfileNumber(profile, 'rechargeMultiplier');
-  for (const name of selectedSkillNameSet(runtime.config.selectedSkills)) {
-    const skill = runtime.helpers.skillsByName.get(name);
+  for (const id of selectedSkillIdSet(runtime.config.selectedSkillIds)) {
+    const skill = runtime.helpers.skillsById.get(id);
     if (skill?.type === 'Utility')
       runtime.cooldownController.reduceSkillRecharge(skill, gw2BaseRecharge(skill) * (1 - multiplier), runtime.time);
   }

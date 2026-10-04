@@ -681,7 +681,7 @@ test('pet command readiness includes Alacrity received after recharge started', 
       initialUntamedState: 'Ranger',
       selectedPet: 'Tiger',
       selectedTraitIds: [TRAIT.RESOUNDING_TIMBRE],
-      selectedSkills: ['"Sic \'Em!"'],
+      selectedSkillIds: [12633],
       boons: { alacrity: true }
     }
   );
@@ -725,7 +725,7 @@ test('Ranger pet commands require received Alacrity', () => {
 test('Storm Spirit applies vulnerability on summon and starts four Fury shakes alongside its damaging daze', () => {
   // A single summon checks effect ordering and pulse scheduling without a saved rotation.
   const result = simulate('Core', ['Storm Spirit', { type: 'wait', durationMs: 6000 }], {
-    selectedSkills: ['Storm Spirit'],
+    selectedSkillIds: [12493],
     selectedTraitIds: [],
     stats: { concentration: 0 }
   });
@@ -831,7 +831,7 @@ test("Nature's Vengeance repeats each spirit slam after its final shake without 
 test('Ranger party boons prioritize players before the active pet', () => {
   const simulateSunSpirit = (alliedPlayerCount) =>
     simulate('Core', ['Sun Spirit', { type: 'wait', durationMs: 6000 }], {
-      selectedSkills: ['Sun Spirit'],
+      selectedSkillIds: [12498],
       selectedPet: 'Fanged Iboga',
       allies: { count: alliedPlayerCount, strikesPerSecond: 1 },
       sharePlayerBoonsWithSummons: true
@@ -921,7 +921,7 @@ test('Tiger uses its documented attributes and nominal Bite recharge', () => {
     catalog: rangerCatalog,
     config: {
       selectedTraitIds: [TRAIT.PACK_ALPHA],
-      selectedSkills: ['Signet of the Wild']
+      selectedSkillIds: [12491]
     },
     time: 0,
     cooldowns: new Map(),

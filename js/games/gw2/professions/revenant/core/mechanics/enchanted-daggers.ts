@@ -29,6 +29,20 @@ export function enchantedDaggers(runtime: RevenantRuntime, event: Gw2ResolverEve
   if (!consumeCharge(daggers, runtime.time, delay)) return;
   // Preserve strict same-timestamp gating even when a patched strike has no delay.
   if (delay === 0) daggers.readyAt = runtime.time;
+  emitEnchantedDagger(runtime, event, totalHits - daggers.charges, totalHits);
+}
+
+/** A single delayed siphon is independent of how the healing skill armed its charges. */
+export function emitEnchantedDagger(
+  runtime: RevenantRuntime,
+  event: Gw2ResolverEvent,
+  hitIndex = 1,
+  totalHits = 1
+): void {
+  const skill = runtime.helpers.skillsById.get(ID.ENCHANTED_DAGGERS)!;
+  const strike = requireEffect(skill, 'strike', 'Enchanted Daggers — Siphon Damage');
+  if (!strike) return;
+  const delay = (strike.atMs || 0) / 1000;
   runtime.effects.emit({
     kind: 'packet',
     cause: event,
@@ -40,13 +54,16 @@ export function enchantedDaggers(runtime: RevenantRuntime, event: Gw2ResolverEve
       ownerActorType: 'player',
       skillId: ID.ENCHANTED_DAGGERS,
       skillName: 'Enchanted Daggers',
+      // The armed heal owns this siphon; its causal hit must not absorb the damage in isolated previews.
+      procType: 'profession',
+      icon: skill.icon,
       name: 'Enchanted Daggers — Siphon Damage',
       coefficient: 0,
       damageKind: strike.damageKind,
       flatStrikeBase: effectNumber(skill, strike, 'flatStrikeBase'),
       flatStrikePowerCoeff: effectNumber(skill, strike, 'flatStrikePowerCoeff'),
       canCrit: false,
-      hitIndex: totalHits - daggers.charges,
+      hitIndex,
       totalHits
     })
   });

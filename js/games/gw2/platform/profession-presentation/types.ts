@@ -1,19 +1,26 @@
 import type { FixedSlotLoadout } from '#gw2/platform/builds/slot-loadout.js';
+import type { ResourceKey } from '#gw2/platform/combat/resources/resource-policy.js';
 import type {
-  AttributeEffectControl,
+  PreviewControl,
   ProfessionAttributePreviewContext,
   ProfessionAttributePreviewInput,
   ProfessionAttributePreviewPreparation
 } from '#gw2/platform/profession-presentation/attribute-preview.js';
-import type { ResourceKey } from '#gw2/platform/combat/resources/resource-policy.js';
 import type { ProfessionBalanceContext } from '#gw2/platform/profession-presentation/balance-context.js';
+import type {
+  SkillDamageConfigPatch,
+  SkillDamageGroup,
+  SkillDamagePreviewContext,
+  SkillDamagePreviewPreparation,
+  SkillDamageState
+} from '#gw2/platform/profession-presentation/skill-damage.js';
 /** Defines application presentation callbacks independently of the executable profession runtime. */
-import type { SkillId, Skill, CanonicalCatalog } from '#gw2/platform/engine/skills/types.js';
-import type { CastCommand, RotationCommand, ProfessionConfig } from '#gw2/platform/execution/types.js';
+import type { Gw2BuildResources, Gw2CanonicalBuild, ProfessionAssumptionControl } from '#gw2/platform/builds/types.js';
 import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
-import type { Gw2CanonicalBuild, Gw2BuildResources, ProfessionAssumptionControl } from '#gw2/platform/builds/types.js';
-import type { Gw2SimulationPlanningState, Gw2SimulationResult } from '#gw2/platform/simulation/types.js';
+import type { CanonicalCatalog, Skill, SkillId } from '#gw2/platform/engine/skills/types.js';
+import type { CastCommand, ProfessionConfig, RotationCommand } from '#gw2/platform/execution/types.js';
 import type { Gw2ProcStep } from '#gw2/platform/resolver/types.js';
+import type { Gw2SimulationPlanningState, Gw2SimulationResult } from '#gw2/platform/simulation/types.js';
 
 /** Profession-owned application identity; shared charts align and clip its simulation timestamp. */
 export interface ProfessionChartApplication {
@@ -336,6 +343,8 @@ export interface ProfessionStateSnapshotContext<TProfessionState = unknown> exte
 > {
   /** Simulation time in seconds of the rotation point being inspected. */
   readonly atSeconds?: number;
+  /** Exact engine observation at the cursor; state displays do not depend on chart collection. */
+  readonly planningState?: Gw2SimulationPlanningState | null;
   /** One selected balance source keeps snapshot profiles and modifiers on the same patch. */
   readonly balanceContext: ProfessionBalanceContext;
 }
@@ -393,9 +402,16 @@ export type ProfessionUiCallbackContext<TProfessionState = unknown> = Profession
   Partial<ProfessionTimelineAnnotationContext<TProfessionState>>;
 
 export interface ProfessionUiContract<TProfessionState = unknown> {
-  readonly attributePreviewControls: (context: ProfessionAttributePreviewContext) => AttributeEffectControl[];
+  /** Conditional inputs for both isolated previews; each control's scope selects its panels. */
+  readonly previewControls: (context: ProfessionAttributePreviewContext) => PreviewControl[];
   readonly attributePreviewDisabledTrait: (context: ProfessionAttributePreviewInput) => string | null;
   readonly prepareAttributePreview: (context: ProfessionAttributePreviewPreparation) => void;
+  /** Mechanic groups for the skill damage preview; weapons and slot skills are grouped by the platform. */
+  readonly skillDamageGroups: (context: SkillDamagePreviewContext) => SkillDamageGroup[];
+  /** State a skill needs before it can be measured, or null when the generic setup is enough. */
+  readonly skillDamageState: (context: SkillDamagePreviewPreparation, skill: Skill) => SkillDamageState | null;
+  /** Profession runtime fields that apply the skill damage preview's values to every probe. */
+  readonly prepareSkillDamagePreview: (context: SkillDamagePreviewPreparation) => SkillDamageConfigPatch;
   readonly chartApplications: (context: ProfessionResultUiContext<TProfessionState>) => ProfessionChartApplication[];
   readonly timelineMarkers: (context: ProfessionResultUiContext<TProfessionState>) => ProfessionTimelineMarker[];
   readonly timelineOverlays: (context: ProfessionUiContext<TProfessionState>) => ProfessionTimelineOverlay[];

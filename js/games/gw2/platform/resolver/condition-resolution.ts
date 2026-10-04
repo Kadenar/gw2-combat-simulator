@@ -1,6 +1,11 @@
-import type { SimulationEventBase } from '#gw2/platform/engine/events/events.js';
+import { reviseEffectState } from '#gw2/platform/combat/effect-revisions.js';
+import type { Gw2ConditionCalculation, SimulationEventBase } from '#gw2/platform/engine/events/events.js';
 import { CONDITION_FORMULAS, conditionTickDamage } from '#gw2/platform/combat/formulas.js';
-import { conditionApplicationDuration } from '#gw2/platform/combat/query/combat-query.js';
+import type { Gw2ModifierContribution } from '#gw2/platform/combat/modifiers.js';
+import {
+  conditionApplicationDuration,
+  type Gw2ConditionDurationTrace
+} from '#gw2/platform/combat/query/combat-query.js';
 import { GW2_EVENT_ACTOR_TYPES } from '#gw2/platform/engine/events/actors.js';
 import type { Gw2RuntimeConditionEntry, Gw2RuntimeConditionStack } from '#gw2/platform/combat/state/targets.js';
 import {
@@ -292,12 +297,28 @@ export function createGw2ConditionResolution({
             // Non-damaging conditions still settle and remain queryable; only their zero-damage arithmetic is skipped.
             if (dealsDamage) {
               const stats = ctx.query.statsAt(at, application, ctx);
+              // The first damaging sample of a diagnostic application records its rate and traced multiplier.
+              const calculation = application.conditionCalculation;
+              const damageContributors: Gw2ModifierContribution[] | undefined =
+                calculation && calculation.multiplier == null ? [] : undefined;
+              const rate = conditionRate(ctx, group.condition, stats.conditionDamage);
+              const multiplier = ctx.query.conditionMultiplier(
+                group.condition,
+                at,
+                application,
+                ctx,
+                sample,
+                damageContributors
+              );
+              if (calculation && damageContributors) {
+                calculation.conditionDamage = stats.conditionDamage;
+                calculation.rate = rate;
+                calculation.multiplier = multiplier;
+                calculation.damageContributors = damageContributors;
+              }
+
               // Retain every contribution, including expiry remainders, for one owner/condition rounding at payout.
-              const rawDamage =
-                conditionRate(ctx, group.condition, stats.conditionDamage) *
-                ctx.query.conditionMultiplier(group.condition, at, application, ctx, sample) *
-                (elapsedUs / 1_000_000) *
-                application.stacks;
+              const rawDamage = rate * multiplier * (elapsedUs / 1_000_000) * application.stacks;
               application.bufferedRawDamage += rawDamage;
             }
 
@@ -342,7 +363,11 @@ export function createGw2ConditionResolution({
     const queryEvent = event as unknown as Gw2ResolverEvent;
     // Duration is snapshotted at application time. Damage stats and multipliers
     // are deliberately queried later at each tick.
-    const duration = conditionApplicationDuration(ctx.query, name, queryEvent, ctx);
+    // Diagnostics capture this application's own duration facts; ordinary runs pass no trace.
+    const durationTrace: Gw2ConditionDurationTrace | undefined = ctx.damageDiagnostics
+      ? { durationContributors: [] }
+      : undefined;
+    const duration = conditionApplicationDuration(ctx.query, name, queryEvent, ctx, durationTrace);
     const expiresAt = canonicalTime(event.at + duration);
     const stacks = Math.max(0, event.stacks || 0);
     if (!Number.isFinite(stacks)) throw new RangeError('Condition stacks must be finite.');
@@ -368,7 +393,17 @@ export function createGw2ConditionResolution({
         bufferedDurationUs: 0,
         damage: 0,
         damagingStackSeconds: 0,
-        damageTicks: []
+        damageTicks: [],
+        ...(durationTrace
+          ? {
+              conditionCalculation: {
+                baseDuration: Math.max(0, event.duration || 0),
+                baseDurationMultiplier: durationTrace.baseDurationMultiplier ?? 1,
+                durationMultiplier: durationTrace.durationMultiplier ?? 1,
+                durationContributors: durationTrace.durationContributors
+              }
+            }
+          : {})
       } as Gw2ResolvedConditionApplication;
       if (ctx.reporting) ctx.resolved.push(application);
 
@@ -382,6 +417,8 @@ export function createGw2ConditionResolution({
         weight: packet.stacks,
         application
       });
+      // Accepted applications invalidate report windows without involving later damage settlement.
+      reviseEffectState(state);
       const groups = (state.groups ??= new Map());
       const owner = damageOwner(application);
       let group = groups.get(owner);
@@ -525,6 +562,8 @@ export type Gw2ResolvedConditionApplication = Gw2ResolverEvent & {
   bufferedDurationUs: number;
   damage: number;
   damagingStackSeconds: number;
+  /** Present only in diagnostic runs. */
+  conditionCalculation?: Gw2ConditionCalculation;
   readonly damageTicks: Array<{
     at: number;
     damage: number;

@@ -6,8 +6,8 @@ test('concurrent precast landing updates while editing timing', async ({ page })
   await expect(page.locator('#loading-overlay')).toHaveClass(/hidden/);
   await page.evaluate(() => {
     const app = window.professionApp;
-    app.build.selectedSkills.Utility1 = 'Signet of Midnight';
-    app.build.selectedSkills.Elite = 'Mass Invisibility';
+    app.build.selectedSkillIds.Utility1 = 10234;
+    app.build.selectedSkillIds.Elite = 10245;
     app.build.targetHealth = 0;
     app.build.rotation = [
       { type: 'cast', skillId: app.skillByName.get('Mass Invisibility').id },

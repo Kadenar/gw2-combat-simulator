@@ -42,6 +42,11 @@ function completeBerserk(runtime: Runtime, cast: RuntimeCast<WarriorSkill>): voi
 
 /** Berserker composes with Core's resource and packet owners; only this slice owns mode and aura lifetimes. */
 export const berserkerHooks: Partial<RuntimeProfession<WarriorRuntimeState, WarriorSkill>> = {
+  /** Initialize only damage-relevant form and scaling state for one assumed occurrence. */
+  prepareDamageState(runtime, skill, _inputs) {
+    if (skill?.primalBurst) berserkerState.from(runtime).berserkUntil = Infinity;
+  },
+
   availability(runtime, skill) {
     const state = berserkerState.from(runtime);
     if (skill.primalBurst && !state.berserkActive)

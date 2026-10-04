@@ -1,7 +1,7 @@
 import { professionStaticRulesApplied } from '#gw2/platform/builds/attribute-provenance.js';
 import type { Gw2ModifierContext, Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
 import type { Gw2NumericStatKey, Gw2ResolvedStats } from '#gw2/platform/combat/query/combat-query.js';
-import { hasSelectedSkill } from '#gw2/platform/combat/query/runtime-query.js';
+import { hasSelectedSkillId } from '#gw2/platform/combat/query/runtime-query.js';
 import { rangerAttackOfOpportunityModifier } from '#gw2/professions/ranger/core/mechanics/greatsword.js';
 import { rangerConsumingBiteModifier } from '#gw2/professions/ranger/core/skills/pets/fanged-iboga.js';
 import { modifyStormSpiritAttributes, signetOfTheWildBonus } from '#gw2/professions/ranger/core/skills/slot-skills.js';
@@ -57,7 +57,7 @@ function modifyRangerAttributes(context: Gw2ModifierContext, attributes: Gw2Reso
 
   modifyRangerPetAttributes(context, result, staticRulesApplied);
 
-  const signetSelected = hasSelectedSkill(context, 'Signet of the Wild');
+  const signetSelected = hasSelectedSkillId(context, ID.SIGNET_OF_THE_WILD);
   const signetReady = !context.timeline?.skillOnCooldownAt(ID.SIGNET_OF_THE_WILD, context.time);
   adjust(
     'ferocity',

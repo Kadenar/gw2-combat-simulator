@@ -19,15 +19,7 @@ import { runThief } from '#tests/helpers/thief-simulation.js';
 const baseConfig = {
   primaryWeapon: 'Dagger',
   secondaryWeapon: 'Dagger',
-  selectedSkills: [
-    'Spider Venom',
-    'Skale Venom',
-    'Devourer Venom',
-    'Thieves Guild',
-    'Fist Flurry',
-    'Shadow Flare',
-    'Skritt Scuffle'
-  ],
+  selectedSkillIds: [13037, 13055, 13093, 13082, 30868, 41158, 77255],
   stats: { power: 2000, precision: 1000, ferocity: 0, expertise: 0, conditionDamage: 1000, concentration: 0 },
   target: { armor: 2597, defiant: true }
 };
@@ -41,7 +33,7 @@ function live(specialization, rotation, overrides = {}, options = {}) {
 }
 
 test('Basilisk Venom contributes control and retains its 40-second recharge', () => {
-  const result = live('Core', ['Basilisk Venom'], { selectedSkills: ['Basilisk Venom'] });
+  const result = live('Core', ['Basilisk Venom'], { selectedSkillIds: [13132] });
   assert.deepEqual(result.warnings, []);
   const control = result.events.find((event) => event.type === 'control' && event.skillId === ID.BASILISK_VENOM);
   assert.equal(control.controlKind, 'stun');
@@ -81,33 +73,33 @@ test("Sniper's Cover spends four initiative and opens a five-second smoke field 
 });
 
 test("Infiltrator's Signet pulses discrete initiative only while ready and restarts after activation or reset", () => {
-  const selectedSkills = ["Infiltrator's Signet"];
+  const selectedSkillIds = [13064];
   const initiative = (result) => observedRuntime(result).resourceController.value('initiative');
   const nextPulse = (result) => observedRuntime(result).profession.core.infiltratorsSignetPulseAt;
   // Splitting waits cannot change the pulse, and the normal resource cap still applies.
   for (const rotation of [[wait(10000)], [wait(9999), wait(1)]]) {
-    const result = live('Core', rotation, { selectedSkills, initialInitiative: 0 });
+    const result = live('Core', rotation, { selectedSkillIds, initialInitiative: 0 });
     assert.deepEqual(result.warnings, []);
     assert.equal(initiative(result), 11);
     // The pulse at ten seconds has already run and owns the next one.
     assert.equal(nextPulse(result), 20);
   }
 
-  assert.equal(initiative(live('Core', [wait(10000)], { selectedSkills: [], initialInitiative: 0 })), 10);
-  assert.equal(initiative(live('Core', [wait(20000)], { selectedSkills })), 12);
+  assert.equal(initiative(live('Core', [wait(10000)], { selectedSkillIds: [], initialInitiative: 0 })), 10);
+  assert.equal(initiative(live('Core', [wait(20000)], { selectedSkillIds })), 12);
 
-  const active = live('Core', ["Infiltrator's Signet", wait(10000)], { selectedSkills, initialInitiative: 0 });
+  const active = live('Core', ["Infiltrator's Signet", wait(10000)], { selectedSkillIds, initialInitiative: 0 });
   assert.equal(initiative(active), 10);
   assert.equal(observedRuntime(active).cooldowns.get(ID.INFILTRATORS_SIGNET), 16);
   assert.equal(nextPulse(active), 26);
   const reset = live('Core', ["Infiltrator's Signet", wait(1000), { type: 'cooldown-reset' }], {
-    selectedSkills,
+    selectedSkillIds,
     initialInitiative: 0
   });
   assert.equal(nextPulse(reset), 11);
 
   const step = simulate('Core', ["Infiltrator's Signet", wait(1000)], {
-    selectedSkills,
+    selectedSkillIds,
     relic: 'Peitha',
     selectedTraitIds: [TRAIT.FLUID_STRIKES]
   });
@@ -122,7 +114,7 @@ test("Infiltrator's Signet pulses discrete initiative only while ready and resta
 });
 
 test('Signet of Agility grants precision while ready and restores 100 endurance on its 30-second recharge', () => {
-  const selectedSkills = ['Signet of Agility'];
+  const selectedSkillIds = [13062];
   const calculate = createCalculateAttributes(applyThiefBuildAttributeRules, thiefProfession.traitBuildAttributes);
   const build = createThiefBuildDefaults();
   assert.equal(
@@ -142,18 +134,18 @@ test('Signet of Agility grants precision while ready and restores 100 endurance 
       const observed = [];
       const probe = (runtime) => {
         for (const professionStaticRulesApplied of [false, true]) {
-          const config = { selectedSkills, attributeProvenance: { professionStaticRulesApplied } };
+          const config = { selectedSkillIds, attributeProvenance: { professionStaticRulesApplied } };
           const attributes = { ...baseConfig.stats, precision: professionStaticRulesApplied ? 1180 : 1000 };
           observed.push([runtime.time, professionStaticRulesApplied, precision(runtime, config, attributes)]);
         }
 
-        observed.push([runtime.time, 'unselected', precision(runtime, { selectedSkills: [] }, baseConfig.stats)]);
+        observed.push([runtime.time, 'unselected', precision(runtime, { selectedSkillIds: [] }, baseConfig.stats)]);
       };
 
       const result = live(
         specialization,
         ['Signet of Agility', wait(30000)],
-        { selectedSkills, initialEndurance: initial, boons: { vigor: false } },
+        { selectedSkillIds, initialEndurance: initial, boons: { vigor: false } },
         { probes: [0, 1, 29.9, 30].map((at) => [at, probe]) }
       );
       assert.deepEqual(result.warnings, []);
@@ -179,10 +171,10 @@ test('Signet of Agility grants precision while ready and restores 100 endurance 
     'Core',
     ['Signet of Agility', wait(1000), { type: 'cooldown-reset' }, wait(1000)],
     {
-      selectedSkills
+      selectedSkillIds
     },
     {
-      probes: [[2, (runtime) => resetPrecision.push(precision(runtime, { selectedSkills }, baseConfig.stats))]]
+      probes: [[2, (runtime) => resetPrecision.push(precision(runtime, { selectedSkillIds }, baseConfig.stats))]]
     }
   );
   assert.deepEqual(reset.warnings, []);
@@ -196,7 +188,7 @@ test('Signet of Agility restores endurance up to each elite capacity', () => {
   ]) {
     for (const initial of [0, 75]) {
       const result = live(specialization, ['Signet of Agility'], {
-        selectedSkills: ['Signet of Agility'],
+        selectedSkillIds: [13062],
         initialEndurance: initial
       });
       assert.deepEqual(result.warnings, []);

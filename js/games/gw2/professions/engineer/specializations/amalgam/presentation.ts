@@ -1,8 +1,9 @@
+import { AMALGAM_MORPH_KIND_BY_SKILL_ID } from '#gw2/professions/engineer/specializations/amalgam/skills/protocol-skills.js';
 import type {
   ProfessionAttributePreviewContext,
   ProfessionAttributePreviewPreparation
 } from '#gw2/platform/profession-presentation/attribute-preview.js';
-import { createAttributePreviewControls } from '#gw2/professions/shared/attribute-preview.js';
+import { createPreviewControls } from '#gw2/professions/shared/attribute-preview.js';
 import { readProfessionSpecializationState } from '#gw2/platform/engine/profession/state.js';
 import type { AmalgamState } from '#gw2/professions/engineer/specializations/amalgam/state.js';
 import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
@@ -16,7 +17,7 @@ import { ENGINEER_ASSUMPTION_CONTROLS } from '#gw2/professions/engineer/build/as
 import {
   engineerToolbeltSkillIds,
   engineerUiState,
-  uniqueIdsBySkillName
+  uniqueSkillIds
 } from '#gw2/professions/engineer/core/presentation.js';
 import { ENGINEER_SKILL_IDS as ID } from '#gw2/professions/engineer/data/ids.js';
 import { getActiveTraits } from '#gw2/professions/engineer/data/traits-data.js';
@@ -110,7 +111,7 @@ function amalgamSkillBarGroups(
   return protocolGroups;
 }
 
-/** Validates a protocol selection and swaps duplicate protocol names across mechanic slots. */
+/** Validates a protocol selection and swaps duplicate protocol kinds across mechanic slots. */
 function updateAmalgamSkillBarSelection(
   catalog: Readonly<CanonicalCatalog<EngineerSkill>>,
   context: EngineerUiContext,
@@ -134,15 +135,17 @@ function updateAmalgamSkillBarSelection(
     ? [...context.build.selectedMorphSkillIds].map(Number)
     : [];
   const previousSkill = catalog.skillsById.get(current[index]);
-  // Detect if the chosen protocol name is already selected in a different slot.
+  // Detect if the chosen protocol kind is already selected in a different slot.
   // If so, swap: move the previously-selected protocol into the conflicting slot
-  // (using the slot-appropriate skill ID), preventing duplicate protocol names.
+  // (using the slot-appropriate skill ID), preventing duplicate protocol kinds.
   const conflictIndex = current.findIndex(
-    (skillId, candidateIndex) => candidateIndex !== index && catalog.skillsById.get(skillId)?.name === nextSkill.name
+    (skillId, candidateIndex) =>
+      candidateIndex !== index &&
+      AMALGAM_MORPH_KIND_BY_SKILL_ID.get(skillId) === AMALGAM_MORPH_KIND_BY_SKILL_ID.get(nextSkill.id)
   );
   if (conflictIndex >= 0 && previousSkill) {
     const replacement = amalgamProtocolOptions(catalog, conflictIndex + 2).find(
-      (skill) => skill.name === previousSkill.name
+      (skill) => AMALGAM_MORPH_KIND_BY_SKILL_ID.get(skill.id) === AMALGAM_MORPH_KIND_BY_SKILL_ID.get(previousSkill.id)
     );
     if (!replacement) return false;
     current[conflictIndex] = Number(replacement.id);
@@ -207,8 +210,8 @@ function amalgamStateSnapshot(context: EngineerUiContext): RotationStateSnapshot
 export function bindAmalgamUi(catalog: Readonly<CanonicalCatalog<EngineerSkill>>): EngineerUiSlice {
   return Object.freeze({
     /** Declare this module's conditional inputs without adding simulation settings. */
-    attributePreviewControls(context: ProfessionAttributePreviewContext) {
-      const preview = createAttributePreviewControls(context);
+    previewControls(context: ProfessionAttributePreviewContext) {
+      const preview = createPreviewControls(context);
 
       preview.add({
         key: 'evolved',
@@ -242,7 +245,7 @@ export function bindAmalgamUi(catalog: Readonly<CanonicalCatalog<EngineerSkill>>
       {
         id: 'engineer-profession',
         label: 'F',
-        skillIds: uniqueIdsBySkillName(
+        skillIds: uniqueSkillIds(
           catalog,
           amalgamProfessionSkills(catalog, context).filter((id) => id != null)
         ),

@@ -1,5 +1,5 @@
 {
-  "schemaVersion": 4,
+  "schemaVersion": 5,
   "profession": "elementalist",
   "gear": {
     "Helm": "Viper's",
@@ -61,12 +61,12 @@
       "traits": "3-1-3"
     }
   ],
-  "selectedSkills": {
-    "Heal": "Signet of Restoration",
-    "Utility1": "Glyph of Storms (Fire)",
-    "Utility2": "Signet of Fire",
-    "Utility3": "Feel the Burn!",
-    "Elite": "Glyph of Elementals"
+  "selectedSkillIds": {
+    "Heal": 5503,
+    "Utility1": 5736,
+    "Utility2": 5542,
+    "Utility3": 30662,
+    "Elite": 25488
   },
   "assumptions": {
     "simulationMode": "deterministic",

@@ -16,7 +16,7 @@ import type { ProfessionConfig } from '#gw2/platform/execution/types.js';
 import type { TraitDefinition } from '#gw2/platform/profession-definition/traits.js';
 import type { Gw2HitResolutionContext } from '#gw2/platform/resolver/hit-resolution.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
-import type { RuntimeProfession } from '#gw2/platform/simulation/runtime-state.js';
+import type { ProfessionRuntimeOptions, RuntimeProfession } from '#gw2/platform/simulation/runtime-state.js';
 import type { Gw2ProfessionContract } from '#gw2/platform/simulation/types.js';
 import type { Gw2AutoattackChainOptions } from '#gw2/platform/skills/autoattack-chain-controller.js';
 
@@ -178,6 +178,9 @@ export type NativeProfessionContract<
 > & {
   /** Retains the immutable composition input so optional integrations can decorate the family without content imports. */
   readonly nativeDefinition: Readonly<NativeProfessionDefinition<TModules, TPresentation, TBuild, TSkill>>;
-  runtimeFor(config: Gw2Config): RuntimeProfession<NativeProfessionRuntimeState<TModules>, TSkill>;
+  runtimeFor(
+    config: Gw2Config,
+    options?: ProfessionRuntimeOptions
+  ): RuntimeProfession<NativeProfessionRuntimeState<TModules>, TSkill>;
   readonly traitBuildAttributes: Gw2TraitBuildAttributeCalculator;
 };

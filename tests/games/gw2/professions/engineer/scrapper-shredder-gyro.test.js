@@ -7,7 +7,7 @@ import { engineerProfession } from '#gw2/professions/engineer/profession.js';
 
 const baseConfig = Object.freeze({
   specialization: 'Scrapper',
-  selectedSkills: ['Healing Turret', 'Shredder Gyro', 'Throw Mine', 'Elixir Gun', 'Supply Crate'],
+  selectedSkillIds: [5857, 29921, 6161, 5933, 5868],
   stats: { power: 1000, precision: 1000, ferocity: 0 },
   target: { armor: 2597 }
 });

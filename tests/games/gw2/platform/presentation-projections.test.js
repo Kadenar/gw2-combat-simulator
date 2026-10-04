@@ -50,10 +50,11 @@ test('Weaver single dual group is authoritative and utility variants follow live
     { id: 2, attunement: 'Fire+Water' }
   ];
   assert.equal(ui.paletteWeaponGroups({ specialization: 'Weaver' }, duals), null);
-  const fire = { id: 3, name: 'Utility (Fire)', attunement: 'Fire' };
-  const water = { id: 4, name: 'Utility (Water)', attunement: 'Water' };
+  const fire = { id: 34736, name: 'Renamed fire utility', attunement: 'Fire' };
+  const water = { id: 34772, name: 'Renamed water utility', attunement: 'Water' };
   const build = { startAttunement: 'Fire' };
   const catalog = {
+    skills: [fire, water],
     skillsByName: new Map([
       [fire.name, fire],
       [water.name, water]

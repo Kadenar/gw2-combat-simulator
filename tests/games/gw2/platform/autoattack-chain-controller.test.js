@@ -189,20 +189,23 @@ test('live native composition keeps overrides scoped to their pending root', () 
   assert.deepEqual(result.warnings, []);
 });
 
-// Palette projection accepts both legacy names and IDs without changing the captured chain state.
-test('autoattack availability defaults to the root and accepts named or numeric steps', () => {
+// Palette projection preserves ID types and never lets a display label select a chain step.
+test('autoattack availability defaults to the root and preserves canonical IDs', () => {
   assert.equal(autoattackChainSkillAvailable(skill(3, 'Unchained')), true);
-  for (const chainRoot of [1, '1', 'Root A']) {
-    const root = skill(1, 'Root A', { chainRoot });
-    const next = skill(2, 'Second A', { chainRoot });
+  for (const chainRoot of [1, '1']) {
+    const root = skill(chainRoot, 'Root A', { chainRoot });
+    const nextId = typeof chainRoot === 'string' ? '2' : 2;
+    const next = skill(nextId, 'Second A', { chainRoot });
     assert.equal(autoattackChainSkillAvailable(root), true);
     assert.equal(autoattackChainSkillAvailable(next), false);
     assert.equal(autoattackChainSkillAvailable(root, { [chainRoot]: null }), true);
-    for (const expected of [2, '2', 'Second A']) {
+    for (const expected of [nextId]) {
       const state = Object.freeze({ [chainRoot]: expected });
       assert.equal(autoattackChainSkillAvailable(next, state), true);
       assert.equal(autoattackChainSkillAvailable(root, state), false);
     }
+
+    assert.equal(autoattackChainSkillAvailable(next, { [chainRoot]: 'Second A' }), false);
   }
 });
 

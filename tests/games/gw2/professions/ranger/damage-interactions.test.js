@@ -12,7 +12,7 @@ import {
   skillDamageIdentityKey
 } from '#gw2/app/results/skill-breakdown.js';
 import { createObservedProfessionSimulator } from '#tests/helpers/observed-runtime.js';
-import { buildBoonGeneration } from '#gw2/app/results/charts/boon-generation.js';
+import { buildBoonGeneration } from '#gw2/platform/results/boon-generation.js';
 import { buffApplicationStacks } from '#gw2/platform/combat/boons.js';
 
 const simulate = createObservedProfessionSimulator(rangerProfession, {

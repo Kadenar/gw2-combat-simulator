@@ -224,6 +224,8 @@ export const heraldHooks: Partial<RuntimeProfession<RevenantRuntimeState, Revena
   reactions: {
     'damage.resolved': natureSiphon
   },
+  // Sustained boon pulses are ambient; facet consumption and its damage keep their own queued effects.
+  backgroundTasks: [FACET_PULSE],
   tasks: {
     [FACET_PULSE]: facetPulse,
     [ECHO_EXPIRY]: echoExpiry,

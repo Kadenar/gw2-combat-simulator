@@ -21,9 +21,10 @@ interface ModifierContributionsWorkerMessage {
  */
 createGameWorkerEndpoint<Gw2ProfessionSource, ModifierContributionsWorkerMessage>({
   calculate(profession, { request }) {
+    // Comparisons consume only DPS; chart histories belong to the separate detailed baseline.
     return {
       contributions: calculateContributionComparisons(request, (rotation, config) =>
-        simulateGw2({ profession, rotation, config })
+        simulateGw2({ profession, rotation, config, output: 'score' })
       )
     };
   }

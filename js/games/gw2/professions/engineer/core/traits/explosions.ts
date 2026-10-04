@@ -34,6 +34,14 @@ export function applyGrenadier(context: EngineerRuntime, skill: EngineerSkill, a
   const effect = requireEffect(profile, 'strike', 'Grenadier');
   // A removed barrage leaves the trait ready; claim before emitting any surviving strikes.
   if (!effect || !context.procs.claim(TRAIT.GRENADIER, 'grenadier', at)) return;
+  emitGrenadier(context, skill, at);
+}
+
+/** Build one lesser barrage independently of its triggering heal and cooldown. */
+export function emitGrenadier(context: EngineerRuntime, skill: EngineerSkill, at: number): void {
+  const profile = requireBalanceProfileFromContext(context, TRAIT.GRENADIER);
+  const effect = requireEffect(profile, 'strike', 'Grenadier');
+  if (!effect) return;
   context.effects.emit({
     kind: 'profile',
     profile: profile,
@@ -78,25 +86,33 @@ export function applyExplosiveEntrance(context: EngineerResolverContext, event: 
   if (explosiveEntranceStrike) {
     // Only a surviving packet consumes this once-per-dodge proc.
     professionCoreState(context).explosiveEntranceFired = true;
-    context.effects.emit({
-      kind: 'packet',
-      event: buildEngineerStrike(event, {
-        name: 'Explosive Entrance',
-        coefficient: effectNumber(explosiveEntranceProfile, explosiveEntranceStrike, 'coefficient'),
-        sourceId: TRAIT.EXPLOSIVE_ENTRANCE,
-        actorType: 'effect',
-        ownerActorType: 'player',
-        explosion: true
-      })
-    });
-
-    context.effects.emit({
-      attribution: { source: 'Trait', sourceId: TRAIT.EXPLOSIVE_ENTRANCE, actorType: 'effect' },
-      kind: 'announcement',
-      cause: event,
-      announcement: { type: 'trait', name: 'Explosive Entrance', at: event.at, sourceSkill: event.skillName, icon: '' }
-    });
+    emitExplosiveEntrance(context, event);
   }
+}
+
+/** Emit one entrance strike without consuming dodge or attack history. */
+export function emitExplosiveEntrance(context: EngineerResolverContext, event: EngineerResolverEvent): void {
+  const explosiveEntranceProfile = requireBalanceProfileFromContext(context, TRAIT.EXPLOSIVE_ENTRANCE);
+  const explosiveEntranceStrike = requireEffect(explosiveEntranceProfile, 'strike', 'Explosive Entrance');
+  if (!explosiveEntranceStrike) return;
+  context.effects.emit({
+    kind: 'packet',
+    event: buildEngineerStrike(event, {
+      name: 'Explosive Entrance',
+      coefficient: effectNumber(explosiveEntranceProfile, explosiveEntranceStrike, 'coefficient'),
+      sourceId: TRAIT.EXPLOSIVE_ENTRANCE,
+      actorType: 'effect',
+      ownerActorType: 'player',
+      explosion: true
+    })
+  });
+
+  context.effects.emit({
+    attribution: { source: 'Trait', sourceId: TRAIT.EXPLOSIVE_ENTRANCE, actorType: 'effect' },
+    kind: 'announcement',
+    cause: event,
+    announcement: { type: 'trait', name: 'Explosive Entrance', at: event.at, sourceSkill: event.skillName, icon: '' }
+  });
 }
 
 /** Applies Steel-Packed Powder to a hit already classified as an explosion. */
@@ -309,29 +325,43 @@ export function applyAimAssistedRocket(context: EngineerResolverContext, event: 
   // Every fifth projectile upgrades to Orbital Command Strike with its two-second call-down delay.
   const alternateEvery = balanceProfileNumber(aimAssistedRocketProfile, 'maximumStacks');
   const orbital = professionCoreState(context).aimAssistedRocketCount % alternateEvery === 0;
+  emitAimAssistedRocket(context, event, orbital);
+}
+
+/** Rocket and orbital strike are independently meaningful occurrence variants. */
+export function emitAimAssistedRocket(
+  context: EngineerResolverContext,
+  event: EngineerResolverEvent,
+  orbital: boolean
+): void {
+  const aimAssistedRocketProfile = requireBalanceProfileFromContext(context, TRAIT.AIM_ASSISTED_ROCKET);
   const rocket = requireEffect(aimAssistedRocketProfile, 'strike', orbital ? 'Orbital Strike' : 'Rocket');
   if (rocket) {
     context.effects.emit({
       kind: 'packet',
-      event: buildEngineerStrike(event, {
-        name: orbital ? 'Orbital Command Strike' : 'Aim-Assisted Rocket',
-        coefficient: effectNumber(aimAssistedRocketProfile, rocket, 'coefficient'),
-        sourceId: orbital ? ID.ORBITAL_COMMAND_STRIKE : ID.AIM_ASSISTED_ROCKET_TRAIT_SKILL,
-        actorType: 'effect',
-        ownerActorType: 'player',
-        at: event.at + effectNumber(aimAssistedRocketProfile, rocket, 'atMs') / 1000,
-        explosion: !orbital,
-        ...(orbital
-          ? {
-              comboFinisher: {
-                ownerId: 'engineer',
-                finisherType: 'Blast',
-                ambiguousFieldSelection: 'oldest'
+      event: {
+        ...buildEngineerStrike(event, {
+          // The trait owns both variants; retain their distinct skill identities and display names.
+          name: orbital ? 'Orbital Command Strike' : 'Aim-Assisted Rocket',
+          coefficient: effectNumber(aimAssistedRocketProfile, rocket, 'coefficient'),
+          sourceId: orbital ? ID.ORBITAL_COMMAND_STRIKE : ID.AIM_ASSISTED_ROCKET_TRAIT_SKILL,
+          actorType: 'effect',
+          ownerActorType: 'player',
+          at: event.at + effectNumber(aimAssistedRocketProfile, rocket, 'atMs') / 1000,
+          explosion: !orbital,
+          ...(orbital
+            ? {
+                comboFinisher: {
+                  ownerId: 'engineer',
+                  finisherType: 'Blast',
+                  ambiguousFieldSelection: 'oldest'
+                }
               }
-            }
-          : {}),
-        weaponStrengthProfileId: 'nonweapon.unequipped'
-      })
+            : {}),
+          weaponStrengthProfileId: 'nonweapon.unequipped'
+        }),
+        metadata: { procOwnerId: TRAIT.AIM_ASSISTED_ROCKET }
+      }
     });
 
     context.effects.emit({

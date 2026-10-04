@@ -87,6 +87,7 @@ export function rotationStateSnapshot(app: ProfessionAppState): {
       balanceContext: app.profession.balanceContextFor(app.patchId),
       specialization: activeSpecialization(app),
       professionState: state?.profession,
+      planningState: state,
       atSeconds: timeMs / 1000,
       build: app.build,
       result

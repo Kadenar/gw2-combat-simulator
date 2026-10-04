@@ -8,7 +8,7 @@ import { engineerProfession } from '#gw2/professions/engineer/profession.js';
 
 const scrapperConfig = Object.freeze({
   specialization: 'Scrapper',
-  selectedSkills: ['Medic Gyro', 'Grenade Kit', 'Bomb Kit', 'Flamethrower', 'Elite Mortar Kit'],
+  selectedSkillIds: [30357, 5805, 5812, 5927, 30800],
   relic: 'Steamshrieker',
   boons: { quickness: true },
   stats: { power: 2000, conditionDamage: 1000 }

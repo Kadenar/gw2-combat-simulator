@@ -1,3 +1,4 @@
+import { flattenProfessionState } from '#gw2/platform/engine/profession/state.js';
 import { renderPalette } from '#gw2/app/rotation/palette/view.js';
 import { timelineWeaponRows } from '#gw2/app/rotation/timeline/model.js';
 import { createCalculateAttributes } from '#gw2/platform/builds/attributes.js';
@@ -143,9 +144,9 @@ describe('Ranger skill-bar selections', () => {
         selectedHammerSkillIds: build.selectedHammerSkillIds,
         initialUntamedState: build.initialUntamedState
       },
-      professionState: rangerProfession
-        .resolveProfession({ specialization: 'Untamed' })
-        .createState({ specialization: 'Untamed' })
+      professionState: flattenProfessionState(
+        rangerProfession.resolveProfession({ specialization: 'Untamed' }).createState({ specialization: 'Untamed' })
+      )
     };
 
     assert.equal(
@@ -185,7 +186,7 @@ describe('Ranger skill-bar selections', () => {
           selectedHammerSkillIds: build.selectedHammerSkillIds
         },
         catalog: rangerCatalog,
-        professionState: runtime.createState({ specialization })
+        professionState: flattenProfessionState(runtime.createState({ specialization }))
       };
       const hammer = rangerProfession.ui
         .skillBarGroups(context)
@@ -292,9 +293,9 @@ describe('Galeshot Cyclone Bow', () => {
     ]);
     const inactiveContext = {
       specialization: 'Galeshot',
-      professionState: rangerProfession
-        .resolveProfession({ specialization: 'Galeshot' })
-        .createState({ specialization: 'Galeshot' })
+      professionState: flattenProfessionState(
+        rangerProfession.resolveProfession({ specialization: 'Galeshot' }).createState({ specialization: 'Galeshot' })
+      )
     };
     const galeshotPaletteGroups = rangerProfession.ui.paletteGroups(inactiveContext);
 
@@ -710,7 +711,7 @@ test('Ranger Nature Magic traits grant support and scale with boons', () => {
       primaryWeapon: 'Axe',
       secondaryWeapon: 'Warhorn',
       selectedPet: 'Krytan Drakehound',
-      selectedSkills: ['Sun Spirit'],
+      selectedSkillIds: [12498],
       allies: { count: allies }
     };
     const baseline = simulate('Core', rotation, config);

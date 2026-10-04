@@ -1,3 +1,4 @@
+import { GUARDIAN_SKILL_IDS as SKILL } from '#gw2/professions/guardian/data/ids.js';
 import { normalizeWeaponSigils } from '#gw2/platform/equipment/sigils/loadout.js';
 import { guardianCatalog } from '#gw2/professions/guardian/catalog.js';
 import type { GuardianCanonicalBuild } from '#gw2/professions/guardian/types.js';
@@ -13,7 +14,7 @@ import { createCommonBuildDefaults } from '#gw2/professions/shared/build-default
  * Firebrand tome pages.
  */
 
-const GUARDIAN_BUILD_SCHEMA_VERSION = 3;
+const GUARDIAN_BUILD_SCHEMA_VERSION = 4;
 const GUARDIAN_PROFESSION_ID = 'guardian';
 
 export function createGuardianBuildDefaults(): GuardianCanonicalBuild {
@@ -57,12 +58,12 @@ export function createGuardianBuildDefaults(): GuardianCanonicalBuild {
       { name: 'Zeal', traits: '2-2-3' },
       { name: 'Dragonhunter', traits: '1-2-3' }
     ],
-    selectedSkills: {
-      Heal: 'Purification',
-      Utility1: 'Procession of Blades',
-      Utility2: 'Sword of Justice',
-      Utility3: 'Bane Signet',
-      Elite: "Dragon's Maw"
+    selectedSkillIds: {
+      Heal: SKILL.PURIFICATION,
+      Utility1: SKILL.PROCESSION_OF_BLADES,
+      Utility2: SKILL.SWORD_OF_JUSTICE,
+      Utility3: SKILL.BANE_SIGNET,
+      Elite: SKILL.DRAGONS_MAW
     },
     ...createCommonBuildDefaults({
       assumptions: {

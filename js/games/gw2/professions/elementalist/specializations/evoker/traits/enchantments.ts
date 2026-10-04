@@ -26,7 +26,7 @@ import type { ElementalistRuntime, ElementalistSkill } from '#gw2/professions/el
 import { canonicalTime } from '#kernel/core/clock.js';
 // Materialize Electric Enchantment's strike and condition package for the invoking
 // skill while preserving shared event attribution.
-function emitElectricEnchantment(
+export function emitElectricEnchantment(
   context: ElementalistRuntime,
   event: SimulationEvent,
   emissionCast?: EffectDelivery['cast']
@@ -42,7 +42,11 @@ function emitElectricEnchantment(
           cause: event,
           at: event.at,
           source: 'Electric Enchantment',
-          sourceId: event.skillId ?? event.sourceId,
+          // Skill and trait grants share one consumed enchantment pool; the consuming attack does not own its damage.
+          sourceId: 'elementalist.electric-enchantment',
+          skillId: event.skillId,
+          procType: 'profession',
+          icon: ELECTRIC_ENCHANTMENT_ICON,
           actorType: 'effect',
           ownerActorType: 'player',
           skillName: 'Electric Enchantment',
@@ -61,7 +65,10 @@ function emitElectricEnchantment(
           cause: event,
           at: event.at,
           source: 'Electric Enchantment',
-          sourceId: event.skillId ?? event.sourceId,
+          sourceId: 'elementalist.electric-enchantment',
+          skillId: event.skillId,
+          procType: 'profession',
+          icon: ELECTRIC_ENCHANTMENT_ICON,
           actorType: 'effect',
           ownerActorType: 'player',
           skillName: 'Electric Enchantment',

@@ -1,12 +1,12 @@
-import { buildResolverCondition } from '#gw2/platform/resolver/packets.js';
 import { activeChargeGrants, consumeCharge, grantChargePool } from '#gw2/platform/combat/resources/charges.js';
-import { requireBalanceProfileFromContext, effectNumber } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
-import { THIEF_SKILL_IDS as ID } from '#gw2/professions/thief/data/ids.js';
-import { THIEF_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/thief/core/profiles.js';
+import { effectNumber, requireBalanceProfileFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
 import type { BalanceProfile, ConditionEffect, SkillId } from '#gw2/platform/engine/skills/types.js';
-import type { ThiefResolverContext, ThiefResolverEvent } from '#gw2/professions/thief/types.js';
+import { buildResolverCondition } from '#gw2/platform/resolver/packets.js';
+import { THIEF_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/thief/core/profiles.js';
 import type { ThiefCoreState } from '#gw2/professions/thief/core/state.js';
+import { THIEF_SKILL_IDS as ID } from '#gw2/professions/thief/data/ids.js';
+import type { ThiefResolverContext, ThiefResolverEvent } from '#gw2/professions/thief/types.js';
 
 interface VenomDefinition {
   readonly skillId: SkillId;
@@ -14,7 +14,7 @@ interface VenomDefinition {
   readonly profileId: SkillId;
 }
 
-const VENOMS: readonly VenomDefinition[] = Object.freeze([
+export const VENOMS: readonly VenomDefinition[] = Object.freeze([
   {
     skillId: ID.SPIDER_VENOM,
     skillName: 'Spider Venom',
@@ -73,31 +73,39 @@ export function applyActiveVenoms(context: ThiefResolverContext, event: ThiefRes
     const batch = state.venomChargeBatches[String(venom.skillId)]?.find((entry) => entry.charges > 0);
     if (!consumeCharge(batch, event.at)) continue;
     procCount += 1;
-    const profile = requireBalanceProfileFromContext(context, venom.profileId);
-    const effects = conditionEffects(profile);
-    for (let effectIndex = 0; effectIndex < effects.length; effectIndex += 1) {
-      const effect = effects[effectIndex];
-      context.effects.emit({
-        kind: 'packet',
-        settlement: 'reaction',
-        event: buildResolverCondition({
-          at: event.at,
-          source: 'thief',
-          sourceId: venom.skillId,
-          actorType: 'player',
-          skillId: venom.skillId,
-          skillName: venom.skillName,
-          name: `${venom.skillName} — ${effect.condition}`,
-          condition: String(effect.condition),
-          stacks: effectNumber(profile, effect, 'stacks'),
-          duration: effectNumber(profile, effect, 'duration'),
-          activationId: event.activationId || `${event.skillId}:${event.at}`,
-          triggeredBy: event.skillName,
-          metadata: { venomProcEffectIndex: effectIndex }
-        })
-      });
-    }
+    emitVenom(context, event, venom);
   }
 
   return procCount;
+}
+
+/** One venom charge reuses its condition payload without a qualifying hit or charge grant. */
+export function emitVenom(context: ThiefResolverContext, event: ThiefResolverEvent, venom: VenomDefinition): void {
+  const profile = requireBalanceProfileFromContext(context, venom.profileId);
+  const effects = conditionEffects(profile);
+  for (let effectIndex = 0; effectIndex < effects.length; effectIndex += 1) {
+    const effect = effects[effectIndex];
+    context.effects.emit({
+      kind: 'packet',
+      settlement: 'reaction',
+      event: buildResolverCondition({
+        at: event.at,
+        source: 'thief',
+        sourceId: venom.skillId,
+        actorType: 'player',
+        skillId: venom.skillId,
+        skillName: venom.skillName,
+        // A venom charge owns its condition damage independently of the attack that consumes it.
+        procType: 'profession',
+        icon: context.helpers.skillsById?.get(venom.skillId)?.icon,
+        name: `${venom.skillName} — ${effect.condition}`,
+        condition: String(effect.condition),
+        stacks: effectNumber(profile, effect, 'stacks'),
+        duration: effectNumber(profile, effect, 'duration'),
+        activationId: event.activationId || `${event.skillId}:${event.at}`,
+        triggeredBy: event.skillName,
+        metadata: { venomProcEffectIndex: effectIndex }
+      })
+    });
+  }
 }

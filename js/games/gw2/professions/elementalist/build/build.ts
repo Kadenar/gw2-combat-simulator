@@ -1,3 +1,4 @@
+import { ELEMENTALIST_SKILL_IDS as SKILL } from '#gw2/professions/elementalist/data/ids.js';
 /**
  * Elementalist build persistence.
  *
@@ -16,7 +17,7 @@ import type { UnvalidatedBuildRecord } from '#gw2/platform/builds/types.js';
 import type { ElementalistCanonicalBuild } from '#gw2/professions/elementalist/build/types.js';
 
 /** Bumped whenever the persisted build shape changes, so older saves are migrated on load. */
-export const ELEMENTALIST_BUILD_SCHEMA_VERSION = 4;
+export const ELEMENTALIST_BUILD_SCHEMA_VERSION = 5;
 /** Canonical profession key stamped into saved builds and used for registry lookups. */
 const ELEMENTALIST_PROFESSION_ID = 'elementalist';
 
@@ -48,12 +49,12 @@ export function createElementalistBuildDefaults(): ElementalistCanonicalBuild {
       { name: 'Air', traits: '3-3-1' },
       { name: 'Weaver', traits: '1-2-1' }
     ],
-    selectedSkills: {
-      Heal: 'Glyph of Elemental Harmony',
-      Utility1: 'Arcane Blast',
-      Utility2: 'Signet of Fire',
-      Utility3: 'Arcane Wave',
-      Elite: 'Glyph of Elementals'
+    selectedSkillIds: {
+      Heal: SKILL.GLYPH_OF_ELEMENTAL_HARMONY,
+      Utility1: SKILL.ARCANE_BLAST,
+      Utility2: SKILL.SIGNET_OF_FIRE,
+      Utility3: SKILL.ARCANE_WAVE,
+      Elite: SKILL.GLYPH_OF_ELEMENTALS
     },
     ...createCommonBuildDefaults({
       assumptions: {

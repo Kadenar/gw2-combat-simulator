@@ -1,5 +1,5 @@
 {
-  "schemaVersion": 3,
+  "schemaVersion": 4,
   "profession": "warrior",
   "gear": {
     "Helm": "Berserker's",
@@ -28,18 +28,32 @@
   "food": "Cilantro Lime Sous-Vide Steak",
   "utility": "Superior Sharpening Stone",
   "jadeBotCore": true,
-  "infusions": [{ "stat": "Power", "count": 18 }],
-  "specializations": [
-    { "name": "Strength", "traits": "3-3-1" },
-    { "name": "Defense", "traits": "3-3-3" },
-    { "name": "Spellbreaker", "traits": "1-3-3" }
+  "infusions": [
+    {
+      "stat": "Power",
+      "count": 18
+    }
   ],
-  "selectedSkills": {
-    "Heal": "\"To the Limit!\"",
-    "Utility1": "Bull's Charge",
-    "Utility2": "Signet of Fury",
-    "Utility3": "Signet of Might",
-    "Elite": "Winds of Disenchantment"
+  "specializations": [
+    {
+      "name": "Strength",
+      "traits": "3-3-1"
+    },
+    {
+      "name": "Defense",
+      "traits": "3-3-3"
+    },
+    {
+      "name": "Spellbreaker",
+      "traits": "1-3-3"
+    }
+  ],
+  "selectedSkillIds": {
+    "Heal": 14402,
+    "Utility1": 14516,
+    "Utility2": 14410,
+    "Utility3": 14404,
+    "Elite": 45333
   },
   "assumptions": {
     "simulationMode": "deterministic",

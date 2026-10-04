@@ -23,7 +23,7 @@ export function applyGuardianBuildAttributeRules(
   common: Gw2CommonAttributeResult,
   context: Gw2BuildAttributeRuleContext
 ): Gw2FinalizedAttributeResult {
-  const { activeTraits, hasSelectedSkill, profileContext } = createBuildAttributeContext(
+  const { activeTraits, hasSelectedSkillId, profileContext } = createBuildAttributeContext(
     context,
     guardianCatalog,
     getActiveTraits
@@ -48,14 +48,14 @@ export function applyGuardianBuildAttributeRules(
       to: 'Power',
       amount: balanceProfileNumber(baneSignetPassiveProfile, 'attributeBonus') * signetMultiplier,
       feedsConversions: false,
-      enabled: hasSelectedSkill(ID.BANE_SIGNET)
+      enabled: hasSelectedSkillId(ID.BANE_SIGNET)
     },
     {
       kind: 'flat',
       to: 'Condition Damage',
       amount: balanceProfileNumber(signetOfWrathPassiveProfile, 'attributeBonus') * signetMultiplier,
       feedsConversions: false,
-      enabled: hasSelectedSkill(ID.SIGNET_OF_WRATH)
+      enabled: hasSelectedSkillId(ID.SIGNET_OF_WRATH)
     }
   ];
 

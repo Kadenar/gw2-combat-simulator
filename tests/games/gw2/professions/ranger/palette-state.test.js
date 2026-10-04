@@ -15,7 +15,7 @@ import { runRanger } from '#tests/helpers/ranger-simulation.js';
 import { observedRuntime } from '#tests/helpers/observed-runtime.js';
 import { withProfile } from '#tests/helpers/catalog-overrides.js';
 
-// A swap changes merged ownership in runtime and both UI state shapes, but not the detached build selection.
+// A swap changes merged ownership in runtime and its UI projection, but not the detached build selection.
 test('Soulbeast remerges with the live pet and keeps detached previews on the configured pet', () => {
   const config = { specialization: 'Soulbeast', selectedPet: 'Pig', selectedPet2: 'Smokescale' };
   const result = runRanger([ID.LEAVE_BEASTMODE, ID.PET_SWAP, ID.BEASTMODE, ID.SMOKE_ASSAULT], config);
@@ -34,17 +34,12 @@ test('Soulbeast remerges with the live pet and keeps detached previews on the co
   );
   assert.equal(soulbeastCastAvailability(runtime, smoke).ready, true);
   assert.equal(soulbeastCastAvailability(runtime, pigSkill).ready, false);
-  for (const state of [
-    { state: { profession: runtime.profession } },
-    { professionState: result.planningState.profession }
-  ]) {
-    const context = { config, ...state };
-    const palette = ui.paletteGroups(context)[0].skillIds;
-    assert.ok(palette.includes(smoke.id));
-    assert.ok(!palette.includes(pigSkill.id));
-    assert.equal(result.planningState.availability[smoke.id].ready, true);
-    assert.equal(result.planningState.availability[pigSkill.id].ready, false);
-  }
+  const context = { config, professionState: result.planningState.profession };
+  const palette = ui.paletteGroups(context)[0].skillIds;
+  assert.ok(palette.includes(smoke.id));
+  assert.ok(!palette.includes(pigSkill.id));
+  assert.equal(result.planningState.availability[smoke.id].ready, true);
+  assert.equal(result.planningState.availability[pigSkill.id].ready, false);
 
   assert.ok(ui.paletteGroups({ config })[0].skillIds.includes(pigSkill.id));
 });

@@ -79,7 +79,7 @@ test('Bane Signet Power follows recharge and Perfect Inscriptions for raw and pr
         ...config,
         stats: { ...config.stats, power: 2000 + (staticApplied ? bonus : 0) },
         attributeProvenance: { professionStaticRulesApplied: staticApplied },
-        selectedSkills: ['Bane Signet'],
+        selectedSkillIds: [9093],
         selectedTraitIds: traited ? [GUARDIAN_TRAIT_IDS.PERFECT_INSCRIPTIONS] : []
       })(undefined, [
         'Orb of Wrath',

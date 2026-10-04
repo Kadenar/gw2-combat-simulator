@@ -7,7 +7,7 @@ import { displayedSkillTiles } from '#gw2/app/rotation/palette/model.js';
 const simulate = createObservedProfessionSimulator(thiefProfession, {
   primaryWeapon: 'Dagger',
   secondaryWeapon: 'Dagger',
-  selectedSkills: ['Caltrops', 'Prepare Thousand Needles'],
+  selectedSkillIds: [13028, 13026],
   selectedDodge: 'Lotus Training',
   target: { armor: 2597, conditions: {} },
   boons: { quickness: true }
@@ -26,7 +26,7 @@ test('Channeled Vigor grants endurance only after commitment', () => {
   for (const interruptMs of [commitMs - 1, commitMs]) {
     // Starting empty keeps the restoration below capacity.
     const result = simulate('Daredevil', [{ name: 'Channeled Vigor', interruptMs }, 'Double Strike'], {
-      selectedSkills: ['Channeled Vigor'],
+      selectedSkillIds: [30400],
       initialEndurance: 0
     });
     assert.deepEqual(result.warnings, []);
@@ -79,7 +79,7 @@ test('preparations flip while arming, use Alacrity, and restore placement after 
     for (const alacrity of [false, true]) {
       const prepare = thiefCatalog.skillsByName.get(`Prepare ${name}`);
       const trigger = thiefCatalog.skillsByName.get(name);
-      const config = { selectedSkills: [prepare.name], boons: { alacrity } };
+      const config = { selectedSkillIds: [prepare.id], boons: { alacrity } };
       const before = simulate('Core', [], config);
       const placed = simulate('Core', [prepare.name], config);
       const triggered = simulate('Core', [prepare.name, name], config);

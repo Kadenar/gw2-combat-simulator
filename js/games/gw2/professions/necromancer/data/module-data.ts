@@ -36,8 +36,8 @@ const allSkills: readonly NecromancerSkill[] = Object.freeze(
 const generatedById = new Map<SkillId, NecromancerSkill>(allSkills.map((skill) => [skill.id, skill]));
 
 const flipParentById = createFlipParentMap(allSkills, {
-  include(parent, child) {
-    return child.name !== parent.name && !STATIC_REPLACEMENT_PAIRS.has(`${parent.id}:${parent.flipSkillId}`);
+  include(parent) {
+    return !STATIC_REPLACEMENT_PAIRS.has(`${parent.id}:${parent.flipSkillId}`);
   }
 });
 

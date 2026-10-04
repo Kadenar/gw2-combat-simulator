@@ -6,7 +6,12 @@ import {
   criticalDamageMultiplier,
   gw2ConditionDurationMultiplier
 } from '#gw2/platform/combat/formulas.js';
-import type { Gw2DamageInputs, Gw2ModifierContext, Gw2ModifierHook } from '#gw2/platform/combat/modifiers.js';
+import type {
+  Gw2DamageInputs,
+  Gw2ModifierContext,
+  Gw2ModifierContribution,
+  Gw2ModifierHook
+} from '#gw2/platform/combat/modifiers.js';
 import type { Gw2TimelineIndex } from '#gw2/platform/combat/query/timeline-index.js';
 import { createGw2TimelineIndex } from '#gw2/platform/combat/query/timeline-index.js';
 import { gw2EventActorType } from '#gw2/platform/combat/state/event-ownership.js';
@@ -71,7 +76,36 @@ interface HookContextOptions {
   readonly runtime?: Gw2QueryRuntime | null;
   readonly damageInputs?: Gw2DamageInputs;
   readonly criticalChanceContributors?: Gw2CriticalChanceContributor[];
+  readonly damageContributors?: Gw2ModifierContribution[];
+  readonly durationContributors?: Gw2ModifierContribution[];
   readonly conditionSample?: Gw2ConditionSample;
+}
+
+/** Records a query-owned multiplier; neutral factors are omitted so previews list only active effects. */
+function traceFactor(contributors: Gw2ModifierContribution[], id: string, label: string, value: number): void {
+  if (Number.isFinite(value) && Math.abs(value - 1) > 1e-12)
+    contributors.push({ id, label, bucket: 'multiplier', value });
+}
+
+/** Records a query-owned additive bonus; zero bonuses are omitted. */
+function traceBonus(contributors: Gw2ModifierContribution[], id: string, label: string, value: number): void {
+  if (Number.isFinite(value) && Math.abs(value) > 1e-12) contributors.push({ id, label, bucket: 'additive', value });
+}
+
+/**
+ * Keeps a traced list faithful to the returned multiplier: (1 + Σ additive) × Π multipliers must equal the total, so
+ * any effect a hook applied without tracing (for example an imperative profession hook) appears as one remainder.
+ */
+function closeContributions(contributors: Gw2ModifierContribution[], total: number): void {
+  let additive = 0;
+  let multiplier = 1;
+  for (const contribution of contributors) {
+    if (contribution.bucket === 'additive') additive += contribution.value;
+    else multiplier *= contribution.value;
+  }
+
+  const product = (1 + additive) * multiplier;
+  if (product > 0) traceFactor(contributors, 'other', 'Other effects', total / product);
 }
 
 /** Conditions use their owner's bonuses; summon strike profiles and original actor metadata stay intact. */
@@ -337,7 +371,9 @@ export function createGw2CombatQuery({
       runtime = null,
       damageInputs,
       conditionSample,
-      criticalChanceContributors
+      criticalChanceContributors,
+      damageContributors,
+      durationContributors
     }: HookContextOptions = {}
   ): Gw2ModifierContext => ({
     profession: activeProfession,
@@ -356,7 +392,9 @@ export function createGw2CombatQuery({
     runtime,
     damageInputs,
     conditionSample,
-    criticalChanceContributors
+    criticalChanceContributors,
+    damageContributors,
+    durationContributors
   });
 
   const statsAt = (
@@ -516,7 +554,12 @@ export function createGw2CombatQuery({
         damage: Math.max(1, damage || 1)
       };
     },
-    strikeMultiplier(event: SimulationEvent, time: number, runtime: Gw2QueryRuntime | null = null) {
+    strikeMultiplier(
+      event: SimulationEvent,
+      time: number,
+      runtime: Gw2QueryRuntime | null = null,
+      contributors?: Gw2ModifierContribution[]
+    ) {
       const relicContext = runtime?.relic ? runtime : historicalRelicContext;
       const relicBonus =
         event.summonUsesEquipmentModifiers === false
@@ -527,9 +570,16 @@ export function createGw2CombatQuery({
       if (event.independentSummonStrike === true) {
         // Independent profiles already apply their eligible relic bonus as a separate factor; only sigil leakage changes.
         const base = vulnerability * Number(event.summonStrikeMultiplier ?? 1) * (1 + relicBonus);
-        return event.summonUsesProfessionModifiers === true
-          ? modifier(hookContext(time, { event, runtime }), base)
-          : base;
+        const total =
+          event.summonUsesProfessionModifiers === true
+            ? modifier(hookContext(time, { event, runtime, damageContributors: contributors }), base)
+            : base;
+        if (contributors) {
+          traceFactor(contributors, 'target.vulnerability', 'Vulnerability', vulnerability);
+          closeContributions(contributors, total);
+        }
+
+        return total;
       }
 
       const sigils = activeSigilSetAt(time, runtime);
@@ -551,21 +601,35 @@ export function createGw2CombatQuery({
         (sigils.strikeMultiplier || 1) *
         utilityMultiplier *
         (config.modifiers?.strike || 1);
-      return modifier(
+      const total = modifier(
         hookContext(time, {
           event,
           runtime,
-          damageInputs: { strikeSigilBonus: sigilBonus, equipmentBonus: relicBonus }
+          damageInputs: { strikeSigilBonus: sigilBonus, equipmentBonus: relicBonus },
+          damageContributors: contributors
         }),
         base
       );
+      if (contributors) {
+        // Query-owned factors sit outside the profession hook; any untraced remainder stays visible as one entry.
+        traceFactor(contributors, 'target.vulnerability', 'Vulnerability', vulnerability);
+        traceFactor(contributors, 'equipment.sigils-and-relic', 'Sigils and relic', equipmentFactor);
+        traceFactor(contributors, 'equipment.night', 'Night sigil', timeOfDayMultiplier);
+        traceFactor(contributors, 'equipment.sigil-multiplier', 'Sigils', sigils.strikeMultiplier || 1);
+        traceFactor(contributors, 'equipment.utility', 'Utility', utilityMultiplier);
+        traceFactor(contributors, 'config.strike', 'Configured modifier', config.modifiers?.strike || 1);
+        closeContributions(contributors, total);
+      }
+
+      return total;
     },
     conditionMultiplier(
       name: string,
       time: number,
       event: SimulationEvent | null = null,
       runtime: Gw2QueryRuntime | null = null,
-      sample?: Gw2ConditionSample
+      sample?: Gw2ConditionSample,
+      contributors?: Gw2ModifierContribution[]
     ) {
       event = conditionOwnerEvent(event);
       const relicContext = runtime?.relic ? runtime : historicalRelicContext;
@@ -581,27 +645,36 @@ export function createGw2CombatQuery({
           : sigilFactor - 1
         : 0;
       const modifier = activeProfession.modifyConditionDamage as Gw2ModifierHook;
-      const base =
-        (1 + (sample?.vulnerabilityStacks ?? vulnerabilityStacksAt(time, runtime)) / 100) *
-        (modifier.acceptsDamageInputs ? 1 : sigilFactor + relicBonus) *
-        (config.modifiers?.condition || 1);
-      return modifier(
+      const vulnerability = 1 + (sample?.vulnerabilityStacks ?? vulnerabilityStacksAt(time, runtime)) / 100;
+      const equipmentFactor = modifier.acceptsDamageInputs ? 1 : sigilFactor + relicBonus;
+      const base = vulnerability * equipmentFactor * (config.modifiers?.condition || 1);
+      const total = modifier(
         hookContext(time, {
           event,
           condition: name,
           runtime,
           conditionSample: sample,
-          damageInputs: { conditionSigilBonus: sigilBonus, equipmentBonus: relicBonus }
+          damageInputs: { conditionSigilBonus: sigilBonus, equipmentBonus: relicBonus },
+          damageContributors: contributors
         }),
         base
       );
+      if (contributors) {
+        traceFactor(contributors, 'target.vulnerability', 'Vulnerability', vulnerability);
+        traceFactor(contributors, 'equipment.sigils-and-relic', 'Sigils and relic', equipmentFactor);
+        traceFactor(contributors, 'config.condition', 'Configured modifier', config.modifiers?.condition || 1);
+        closeContributions(contributors, total);
+      }
+
+      return total;
     },
     conditionDurationMultiplier(
       name: string,
       time: number,
       stats: Gw2ResolvedStats = statsAt(time),
       event: SimulationEvent | null = null,
-      runtime: Gw2QueryRuntime | null = null
+      runtime: Gw2QueryRuntime | null = null,
+      contributors?: Gw2ModifierContribution[]
     ) {
       event = conditionOwnerEvent(event);
       const sigils = activeSigilSetAt(time, runtime);
@@ -611,17 +684,31 @@ export function createGw2CombatQuery({
         : 0;
       const relicBonus = usesEquipmentModifiers ? equipmentConditionDurationBonus(runtime, time) : 0;
       const base = gw2ConditionDurationMultiplier(name, stats, sigilBonus + relicBonus);
+      if (contributors) {
+        // Gear, sigils, and relics are summed into the base multiplier before profession rules run.
+        traceBonus(contributors, 'stats.condition-duration', 'Expertise and gear', base - 1 - sigilBonus - relicBonus);
+        traceBonus(contributors, 'equipment.sigils', 'Sigils', sigilBonus);
+        traceBonus(contributors, 'equipment.relic', 'Relic', relicBonus);
+      }
+
       const modified = activeProfession.modifyConditionDuration(
         hookContext(time, {
           event,
           condition: name,
-          runtime
+          runtime,
+          durationContributors: contributors
         }),
         base
       );
       // Clamped to [1, 2]: condition duration never drops below baseline and
       // cannot exceed +100% regardless of how many sources stack.
-      return boundedNumber(modified || 1, 1, 1, 2);
+      const total = boundedNumber(modified || 1, 1, 1, 2);
+      if (contributors) {
+        traceFactor(contributors, 'duration.cap', 'Duration cap (+100%)', total / (modified || 1));
+        closeContributions(contributors, total);
+      }
+
+      return total;
     },
     conditionBaseDurationMultiplier(
       name: string,
@@ -689,20 +776,28 @@ export interface Gw2CombatQuery {
   furyActiveAt(time: number, runtime?: Gw2QueryRuntime | null, event?: SimulationEvent | null): boolean;
   vulnerabilityStacksAt(time: number, runtime?: Gw2QueryRuntime | null): number;
   critical(event: SimulationEvent, time: number, runtime?: Gw2QueryRuntime | null): Gw2CriticalResult;
-  strikeMultiplier(event: SimulationEvent, time: number, runtime?: Gw2QueryRuntime | null): number;
+  /** An optional contributor sink receives every traced factor; it never changes the returned multiplier. */
+  strikeMultiplier(
+    event: SimulationEvent,
+    time: number,
+    runtime?: Gw2QueryRuntime | null,
+    contributors?: Gw2ModifierContribution[]
+  ): number;
   conditionMultiplier(
     name: string,
     time: number,
     event?: SimulationEvent | null,
     runtime?: Gw2QueryRuntime | null,
-    sample?: Gw2ConditionSample
+    sample?: Gw2ConditionSample,
+    contributors?: Gw2ModifierContribution[]
   ): number;
   conditionDurationMultiplier(
     name: string,
     time: number,
     stats?: Gw2ResolvedStats,
     event?: SimulationEvent | null,
-    runtime?: Gw2QueryRuntime | null
+    runtime?: Gw2QueryRuntime | null,
+    contributors?: Gw2ModifierContribution[]
   ): number;
   conditionBaseDurationMultiplier(
     name: string,
@@ -744,17 +839,31 @@ export function conditionApplicationDuration(
   query: Readonly<Gw2CombatQuery>,
   name: string,
   event: SimulationEvent,
-  runtime: Gw2QueryRuntime
+  runtime: Gw2QueryRuntime,
+  trace?: Gw2ConditionDurationTrace
 ): number {
   const stats = query.statsAt(event.at, event, runtime);
   const durationMultiplier = event.fixedDuration
     ? 1
-    : query.conditionDurationMultiplier(name, event.at, stats, event, runtime);
+    : query.conditionDurationMultiplier(name, event.at, stats, event, runtime, trace?.durationContributors);
   const baseDurationMultiplier = event.fixedDuration
     ? 1
     : query.conditionBaseDurationMultiplier(name, event.at, event, runtime);
+  if (trace) {
+    // Diagnostics reuse the multipliers computed for this application rather than querying again.
+    trace.durationMultiplier = durationMultiplier;
+    trace.baseDurationMultiplier = baseDurationMultiplier;
+  }
+
   const duration = Math.max(0, event.duration || 0) * baseDurationMultiplier * durationMultiplier;
   return roundEffectDuration(duration);
+}
+
+/** Receives the duration facts of one application when a diagnostic caller asks for them. */
+export interface Gw2ConditionDurationTrace {
+  readonly durationContributors: Gw2ModifierContribution[];
+  durationMultiplier?: number;
+  baseDurationMultiplier?: number;
 }
 
 /** Overlays one-based weapon-set attributes on the base simulation stats. */

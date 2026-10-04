@@ -54,17 +54,17 @@ test('Gleam Saber declarations reduce only other sword recharges after commitmen
 // Removing a declaration must remove its intrinsic state change, without an ID-based hook restoring it.
 test('Engineer lifecycle state follows the skill declarations', () => {
   for (const [skillId, config, active] of [
-    [ID.GRENADE_KIT, { selectedSkills: ['Grenade Kit'] }, (state) => state.activeKit === ID.GRENADE_KIT],
+    [ID.GRENADE_KIT, { selectedSkillIds: [5805] }, (state) => state.activeKit === ID.GRENADE_KIT],
     [ID.ENGAGE_PHOTON_FORGE, { specialization: 'Holosmith' }, (state) => state.photonForgeActive],
     [ID.EVOLVE_BASE, { specialization: 'Amalgam' }, (state) => state.evolvedUntil > 0],
     [
       ID.PLASMATIC_STATE,
-      { specialization: 'Amalgam', selectedSkills: ['Plasmatic State'] },
+      { specialization: 'Amalgam', selectedSkillIds: [77209] },
       (state) => state.plasmaticStateUntil > 0
     ],
     [
       ID.HEALING_TURRET,
-      { selectedSkills: ['Healing Turret'] },
+      { selectedSkillIds: [5857] },
       (state) => Boolean(state.availableFlips[ID.DETONATE_HEALING_TURRET])
     ]
   ]) {
@@ -83,7 +83,7 @@ test('precast Mine Field requires its declaration to release damage at combat st
   for (const declared of [true, false]) {
     const result = runEngineer(
       [ID.MINE_FIELD, { type: 'wait', durationMs: 1000 }, '__combat_start'],
-      { selectedSkills: ['Throw Mine'] },
+      { selectedSkillIds: [6161] },
       {
         observation: { kind: 'tail', durationMs: 1000 },
         extend: (native) => (declared ? {} : { catalog: withSkill(native.catalog, ID.MINE_FIELD, { sideEffects: [] }) })
@@ -136,7 +136,7 @@ test('Overclock declaration and cannon payload independently own activation and 
   const results = ['baseline', 'remove-strike', 'remove-trigger'].map((mode) =>
     runEngineer(
       [ID.OVERCLOCK_SIGNET, { type: 'wait', durationMs: 6000 }],
-      { specialization: 'Mechanist', selectedSkills: ['Overclock Signet'] },
+      { specialization: 'Mechanist', selectedSkillIds: [63095] },
       {
         extend(native) {
           if (mode === 'baseline') return {};

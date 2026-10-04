@@ -1,3 +1,4 @@
+import { ENGINEER_SKILL_IDS as SKILL } from '#gw2/professions/engineer/data/ids.js';
 import type { Skill } from '#gw2/platform/engine/skills/types.js';
 import { GEAR_SLOTS } from '#gw2/platform/equipment/gear/slots.js';
 import { DEFAULT_WEAPON_SIGILS, normalizeWeaponSigils } from '#gw2/platform/equipment/sigils/loadout.js';
@@ -21,7 +22,7 @@ import type { UnvalidatedFields } from '#kernel/core/unvalidated.js';
  * one legal, uniquely named morph in each of F2, F3, and F4.
  */
 
-const ENGINEER_BUILD_SCHEMA_VERSION = 3;
+const ENGINEER_BUILD_SCHEMA_VERSION = 4;
 const ENGINEER_PROFESSION_ID = 'engineer';
 
 const DEFAULT_MORPHS = Object.freeze([77103, 77203, 76954]);
@@ -60,12 +61,12 @@ export function createEngineerBuildDefaults(): EngineerCanonicalBuild {
       { name: 'Firearms', traits: '1-2-3' },
       { name: 'Holosmith', traits: '3-2-2' }
     ],
-    selectedSkills: {
-      Heal: 'Healing Turret',
-      Utility1: 'Grenade Kit',
-      Utility2: 'Throw Mine',
-      Utility3: 'Elixir Gun',
-      Elite: 'Supply Crate'
+    selectedSkillIds: {
+      Heal: SKILL.HEALING_TURRET,
+      Utility1: SKILL.GRENADE_KIT,
+      Utility2: SKILL.THROW_MINE,
+      Utility3: SKILL.ELIXIR_GUN,
+      Elite: SKILL.SUPPLY_CRATE
     },
     selectedMorphSkillIds: [...DEFAULT_MORPHS],
     ...createCommonBuildDefaults({

@@ -64,6 +64,7 @@ for (const worker of [
   'baseline-worker-',
   'modifier-contributions-worker-',
   'random-distribution-worker-',
+  'skill-damage-worker-',
   'gear-worker-'
 ]) {
   if (!bundledAssets.some((asset) => asset.startsWith(worker) && asset.endsWith('.js'))) {

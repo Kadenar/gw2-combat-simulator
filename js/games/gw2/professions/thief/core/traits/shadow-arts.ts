@@ -92,10 +92,7 @@ export const shadowSiphoning = defineTrait({
       when: (runtime, event) =>
         event.actorType === 'player' &&
         Number(event.coefficient) > 0 &&
-        Boolean(
-          (runtime.helpers.skillsById.get(event.skillId!) || runtime.helpers.skillsByName.get(event.skillName!))
-            ?.stealthAttack
-        ) &&
+        Boolean(runtime.helpers.skillsById.get(event.skillId!)?.stealthAttack) &&
         Boolean(
           requireEffect(requireBalanceProfileFromContext(runtime, TRAIT.SHADOW_SIPHONING), 'strike', 'Shadow Siphoning')
         ),

@@ -14,7 +14,7 @@ import {
 } from '#gw2/professions/thief/data/ids.js';
 import { getActiveTraits } from '#gw2/professions/thief/data/traits-data.js';
 
-import type { ThiefUiContext, ThiefSkill } from '#gw2/professions/thief/types.js';
+import type { ThiefSkill, ThiefUiContext } from '#gw2/professions/thief/types.js';
 
 /** Surfaces Combat High plus artifact effects with duration or consumable charges. */
 function antiquaryStateSnapshot(context: ThiefUiContext): RotationStateSnapshotItem[] {

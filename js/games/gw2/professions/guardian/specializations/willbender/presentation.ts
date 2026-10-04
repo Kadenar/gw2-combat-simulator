@@ -1,3 +1,4 @@
+import { GUARDIAN_SKILL_IDS } from '#gw2/professions/guardian/data/ids.js';
 import {
   balanceProfileNumber,
   requireBalanceProfileFromContext
@@ -10,14 +11,19 @@ import type {
 import {
   formatSecondsRemaining,
   guardianSnapshotAt,
-  guardianUiSkillIdsByName,
+  guardianUiSkillIds,
   guardianUiState
 } from '#gw2/professions/guardian/core/presentation.js';
 import { GUARDIAN_TRAIT_IDS as WILLBENDER_TRAIT } from '#gw2/professions/guardian/data/ids.js';
 import type { GuardianUiContext, GuardianUiSlice, GuardianSkill } from '#gw2/professions/guardian/types.js';
 import { boundedInteger } from '#kernel/core/numeric.js';
+import { createPreviewControls } from '#gw2/professions/shared/attribute-preview.js';
 
-const VIRTUE_NAMES = Object.freeze(['Rushing Justice', 'Flowing Resolve', 'Crashing Courage']);
+const VIRTUE_IDS = Object.freeze([
+  GUARDIAN_SKILL_IDS.RUSHING_JUSTICE,
+  GUARDIAN_SKILL_IDS.FLOWING_RESOLVE,
+  GUARDIAN_SKILL_IDS.CRASHING_COURAGE
+]);
 
 /** Reports active virtue flames and Lethal Tempo so Willbender follow-up timing is inspectable. */
 function willbenderStateSnapshot(context: GuardianUiContext): RotationStateSnapshotItem[] {
@@ -75,13 +81,31 @@ function willbenderEffectPresentations(_context: GuardianUiContext): ProfessionE
 /** Captures this UI's catalog so other profession instances cannot change its projections. */
 export function bindWillbenderUi(catalog: Readonly<CanonicalCatalog<GuardianSkill>>): GuardianUiSlice {
   return Object.freeze({
+    /** Tempo is a starting damage window; normal virtue grants still refresh its native pool. */
+    previewControls(context) {
+      const preview = createPreviewControls(context);
+      preview.add({
+        key: 'lethalTempo',
+        label: 'Lethal Tempo',
+        group: 'Mechanic',
+        kind: 'buff',
+        field: 'lethal-tempo',
+        scope: ['damage'],
+        max: balanceProfileNumber(
+          requireBalanceProfileFromContext(context, WILLBENDER_TRAIT.LETHAL_TEMPO),
+          'maximumStacks'
+        ),
+        description: 'Starting virtue-earned damage stacks'
+      });
+      return preview.controls;
+    },
     effectPresentations: willbenderEffectPresentations,
     rotationStateSnapshot: willbenderStateSnapshot,
     paletteGroups: (context: GuardianUiContext) => [
       {
         id: 'profession',
         label: 'F',
-        skillIds: guardianUiSkillIdsByName(catalog, VIRTUE_NAMES, context),
+        skillIds: guardianUiSkillIds(catalog, VIRTUE_IDS, context),
         color: '#2f7eb8',
         resourceAnchor: true
       }

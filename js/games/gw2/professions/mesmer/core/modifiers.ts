@@ -7,7 +7,7 @@ import {
 } from '#gw2/professions/mesmer/core/traits/behavior.js';
 /** Applies Core Mesmer trait and equipment modifiers at the shared modifier boundary. */
 import { professionStaticRulesApplied } from '#gw2/platform/builds/attribute-provenance.js';
-import { selectedSkillNameSet } from '#gw2/platform/builds/selected-skills.js';
+import { selectedSkillIdSet } from '#gw2/platform/builds/selected-skills.js';
 import type { Gw2ModifierContext, Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
 import { createModifierHooks, MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import type { Gw2ResolvedStats } from '#gw2/platform/combat/query/combat-query.js';
@@ -20,12 +20,12 @@ import { MESMER_SKILL_IDS as ID } from '#gw2/professions/mesmer/data/ids.js';
 
 /** Resolve immutable loadout and patched profile values once for each combat query. */
 function prepareCoreAttributeFacts(context: Gw2ModifierContext) {
-  const selectedSkills = selectedSkillNameSet(context.config?.selectedSkills);
+  const selectedSkillIds = selectedSkillIdSet(context.config?.selectedSkillIds);
   const signetOfMidnightProfile = requireBalanceProfileFromContext(context, PROFILE.signetOfMidnight);
   const signetOfDominationProfile = requireBalanceProfileFromContext(context, PROFILE.signetOfDomination);
   return {
-    midnightSelected: selectedSkills.has('Signet of Midnight'),
-    dominationSelected: selectedSkills.has('Signet of Domination'),
+    midnightSelected: selectedSkillIds.has(ID.SIGNET_OF_MIDNIGHT),
+    dominationSelected: selectedSkillIds.has(ID.SIGNET_OF_DOMINATION),
     midnightBonus: balanceProfileNumber(signetOfMidnightProfile, 'expertiseBonus'),
     dominationBonus: balanceProfileNumber(signetOfDominationProfile, 'conditionDamageBonus'),
     chaotic: prepareChaoticPersistence(context),

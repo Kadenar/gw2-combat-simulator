@@ -1,5 +1,5 @@
 {
-  "schemaVersion": 3,
+  "schemaVersion": 4,
   "profession": "guardian",
   "gear": {
     "Helm": "Assassin's",
@@ -56,12 +56,12 @@
       "traits": "2-2-1"
     }
   ],
-  "selectedSkills": {
-    "Heal": "Litany of Wrath",
-    "Utility1": "Sword of Justice",
-    "Utility2": "Flash Combo",
-    "Utility3": "Bane Signet",
-    "Elite": "Heaven's Palm"
+  "selectedSkillIds": {
+    "Heal": 21664,
+    "Utility1": 9168,
+    "Utility2": 62608,
+    "Utility3": 9093,
+    "Elite": 62561
   },
   "assumptions": {
     "simulationMode": "deterministic",

@@ -1,3 +1,4 @@
+import { flattenProfessionState } from '#gw2/platform/engine/profession/state.js';
 import { paletteSkillView } from '#gw2/app/rotation/palette/model.js';
 import { renderPalette } from '#gw2/app/rotation/palette/view.js';
 import { withActivePatchPreview } from '#gw2/integrations/patches/active-profession.js';
@@ -38,7 +39,7 @@ import { readFile } from 'node:fs/promises';
 import { test } from 'node:test';
 
 const baseConfig = Object.freeze({
-  selectedSkills: ['Healing Turret', 'Grenade Kit', 'Throw Mine', 'Elixir Gun', 'Supply Crate'],
+  selectedSkillIds: [5857, 5805, 6161, 5933, 5868],
   selectedMorphSkillIds: [77103, 77203, 76954],
   stats: {
     power: 2000,
@@ -84,7 +85,7 @@ test('Mechanist keeps its mech present and exposes only trait-selected commands'
     assert.equal(engineerCatalog.skillsByName.has(name), false);
 
   const result = simulate('Mechanist', ['Overclock Signet', { type: 'wait', durationMs: 6000 }], {
-    selectedSkills: [...baseConfig.selectedSkills.slice(0, 4), 'Overclock Signet']
+    selectedSkillIds: [...baseConfig.selectedSkillIds.slice(0, 4), 63095]
   });
   assert.deepEqual(result.warnings, []);
   assert.equal(result.planningState.profession.mech.active, true);
@@ -438,7 +439,7 @@ test('Engineer renders Endurance only for Tools and uses a standard bar', () => 
     catalog: engineerCatalog,
     specialization: 'Core',
     build,
-    professionState: state
+    professionState: flattenProfessionState(state)
   });
 
   assert.equal(
@@ -457,7 +458,7 @@ test('Engineer renders Endurance only for Tools and uses a standard bar', () => 
         { name: 'Firearms', traits: '1-2-3' }
       ]
     },
-    professionState: state
+    professionState: flattenProfessionState(state)
   });
   const endurance = tools.find((view) => view.id === 'endurance');
 
@@ -525,8 +526,8 @@ test('Engineer kits render beneath weapons while Holosmith mechanics stay groupe
   const adapter = await loadProfessionAppAdapter('engineer');
   const canonicalBuild = createEngineerBuildDefaults();
 
-  canonicalBuild.selectedSkills.Utility2 = 'Flamethrower';
-  canonicalBuild.selectedSkills.Utility3 = 'Bomb Kit';
+  canonicalBuild.selectedSkillIds.Utility2 = 5927;
+  canonicalBuild.selectedSkillIds.Utility3 = 5812;
   const build = adapter.toApplicationBuild(canonicalBuild);
   const app = {
     build,
@@ -587,7 +588,7 @@ test('Engineer event log exposes Heat only for Holosmith heat transitions', () =
     return engineerProfession.ui.eventLogRow(
       {
         config,
-        state: { profession: runtime.createState(config) }
+        professionState: flattenProfessionState(runtime.createState(config))
       },
       value
     );
@@ -731,9 +732,9 @@ test('Amalgam protocol IDs survive application build conversion', () => {
 
 // Explicit parents keep selectable toolbelts usable without admitting unsupported racial actions.
 test('toolbelt IDs require the equipped parent and exclude unsupported racial skills', () => {
-  const selectedSkills = ['Blast Gyro'];
-  assert.equal(simulate('Scrapper', [ID.BYPASS_COATING], { selectedSkills }).warnings.length, 0);
-  assert.match(simulate('Scrapper', [ID.BYPASS_COATING], { selectedSkills: [] }).warnings[0], /not equipped/);
+  const selectedSkillIds = [31248];
+  assert.equal(simulate('Scrapper', [ID.BYPASS_COATING], { selectedSkillIds }).warnings.length, 0);
+  assert.match(simulate('Scrapper', [ID.BYPASS_COATING], { selectedSkillIds: [] }).warnings[0], /not equipped/);
   for (const skillId of [ID.CONFUSING_SPEECH, ID.VENT_RADIATION]) {
     assert.equal(engineerCatalog.skillsById.get(skillId).simulatorExcluded, true);
     assert.ok(simulate('Core', [skillId]).warnings.length > 0);
@@ -861,12 +862,12 @@ test('Engineer kit palettes stack and include their linked stow skills', () => {
   const paletteGroups = engineerProfession.ui.paletteGroups({
     specialization: 'Core',
     build: {
-      selectedSkills: {
-        Heal: 'Med Kit',
-        Utility1: 'Grenade Kit',
-        Utility2: 'Flamethrower',
-        Utility3: 'Bomb Kit',
-        Elite: 'Supply Crate'
+      selectedSkillIds: {
+        Heal: 5802,
+        Utility1: 5805,
+        Utility2: 5927,
+        Utility3: 5812,
+        Elite: 5868
       }
     },
     professionState: { activeKit: ID.GRENADE_KIT }
@@ -889,12 +890,12 @@ test('Scrapper F skills follow selected skill-slot order', () => {
   const context = {
     specialization: 'Scrapper',
     build: {
-      selectedSkills: {
-        Heal: 'Healing Turret',
-        Utility1: 'Grenade Kit',
-        Utility2: 'Throw Mine',
-        Utility3: 'Elixir Gun',
-        Elite: 'Supply Crate'
+      selectedSkillIds: {
+        Heal: 5857,
+        Utility1: 5805,
+        Utility2: 6161,
+        Utility3: 5933,
+        Elite: 5868
       }
     },
     professionState: {}
@@ -933,8 +934,8 @@ test('Engineer build validation matches unsupported slot filtering', () => {
   for (const name of ['Elixir B', 'Harpoon Turret']) {
     const build = {
       ...defaults,
-      selectedSkills: {
-        ...defaults.selectedSkills,
+      selectedSkillIds: {
+        ...defaults.selectedSkillIds,
         Utility1: name
       }
     };
@@ -951,7 +952,7 @@ test('Engineer mine and healing turret detonations are armed by their parent ski
     ['Healing Turret', 'Detonate Healing Turret']
   ]) {
     const config = {
-      selectedSkills: [...baseConfig.selectedSkills, parent]
+      selectedSkillIds: [...baseConfig.selectedSkillIds, engineerCatalog.skillsByName.get(parent).id]
     };
     const denied = simulate('Core', [flip], config);
 
@@ -997,7 +998,7 @@ test('Engineer mine and healing turret detonations are armed by their parent ski
   assert.equal(cleansingBurst.start - secondTurret.end, 10240);
 
   const mineConfig = {
-    selectedSkills: [...baseConfig.selectedSkills, 'Throw Mine']
+    selectedSkillIds: [...baseConfig.selectedSkillIds, 6161]
   };
   const throwStarts = (rotation) =>
     simulate('Core', rotation, mineConfig)
@@ -1013,7 +1014,7 @@ test('Engineer mine and healing turret detonations are armed by their parent ski
 
   // Gadgeteer's added mine shares the input but produces its own strike and combo attempt.
   const gadgeteer = simulate('Core', ['Bomb Kit', 'Fire Bomb', 'Stow Bomb Kit', 'Throw Mine', 'Detonate'], {
-    selectedSkills: [...baseConfig.selectedSkills, 'Bomb Kit'],
+    selectedSkillIds: [...baseConfig.selectedSkillIds, 5812],
     selectedTraitIds: [TRAIT.GADGETEER]
   });
   assert.equal(
@@ -1033,7 +1034,7 @@ test('Engineer mine and healing turret detonations are armed by their parent ski
 });
 
 test('Elixir Gun packets, fields, finishers, and HGH use their authored contracts', () => {
-  const selectedSkills = [...baseConfig.selectedSkills, 'Elixir Gun'];
+  const selectedSkillIds = [...baseConfig.selectedSkillIds, 5933];
   const result = simulate(
     'Core',
     [
@@ -1045,7 +1046,7 @@ test('Elixir Gun packets, fields, finishers, and HGH use their authored contract
       'Super Elixir',
       { type: 'wait', durationMs: 6000 }
     ],
-    { selectedSkills }
+    { selectedSkillIds }
   );
   const damage = (events, name) => events.filter((event) => event.type === 'damage' && event.skillName === name);
   const conditions = (name, condition) =>
@@ -1109,7 +1110,7 @@ test('Elixir Gun packets, fields, finishers, and HGH use their authored contract
   assert.equal(engineerCatalog.skillsById.get(ID.SUPER_ELIXIR).comboFields[0].fieldType, 'Light');
 
   const hgh = simulate('Core', ['Elixir Gun', 'Acid Bomb', { type: 'wait', durationMs: 6500 }], {
-    selectedSkills,
+    selectedSkillIds,
     selectedTraitIds: [TRAIT.HGH]
   });
   const hghField = hgh.events.find((event) => event.type === 'combo_field' && event.skillName === 'Acid Bomb');
@@ -1166,7 +1167,7 @@ test('tool-belt skills derive from selected slot skills', () => {
   assert.ok(available.totalDamage > 0);
 
   const denied = simulate('Core', ['Grenade Barrage'], {
-    selectedSkills: ['Healing Turret', 'Throw Mine', 'Elixir Gun', 'Supply Crate']
+    selectedSkillIds: [5857, 6161, 5933, 5868]
   });
 
   assert.match(denied.warnings[0], /Grenade Kit is not equipped/);

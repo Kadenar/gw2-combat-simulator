@@ -2,7 +2,7 @@ import type {
   ProfessionAttributePreviewContext,
   ProfessionAttributePreviewPreparation
 } from '#gw2/platform/profession-presentation/attribute-preview.js';
-import { createAttributePreviewControls } from '#gw2/professions/shared/attribute-preview.js';
+import { createPreviewControls } from '#gw2/professions/shared/attribute-preview.js';
 
 import {
   balanceProfileNumber,
@@ -24,13 +24,18 @@ import type {
  * the rotation snapshot. Reads a projected UI-side state record rather than live
  * simulation state, falling back to build defaults before a run exists.
  */
-import type { CanonicalCatalog } from '#gw2/platform/engine/skills/types.js';
+import type { CanonicalCatalog, Skill } from '#gw2/platform/engine/skills/types.js';
+import type {
+  SkillDamagePreviewContext,
+  SkillDamageState
+} from '#gw2/platform/profession-presentation/skill-damage.js';
 import type {
   ProfessionResourceView,
   ProfessionSkillBarGroup,
   ProfessionSkillBarSelectionChange,
   RotationStateSnapshotItem
 } from '#gw2/platform/profession-presentation/types.js';
+import { elementalistAttunementConfig } from '#gw2/professions/elementalist/core/presentation.js';
 import { ELEMENTALIST_ATTUNEMENTS, type ElementalistAttunement } from '#gw2/professions/elementalist/core/state.js';
 import { ELEMENTALIST_FAMILIAR_SKILL_IDS } from '#gw2/professions/elementalist/data/ids.js';
 import type { EvokerState } from '#gw2/professions/elementalist/specializations/evoker/state.js';
@@ -70,6 +75,34 @@ function familiarSkillId(context: ElementalistUiContext): number {
   return ELEMENTALIST_FAMILIAR_SKILL_IDS[name];
 }
 
+/** The build's familiar in both forms; the preview never depends on charges earned in the rotation. */
+function familiarSkillIds(context: SkillDamagePreviewContext): readonly [number, number] {
+  const configured = (context.build as { readonly evokerElement?: unknown }).evokerElement;
+  const element = ELEMENTALIST_ATTUNEMENTS.includes(configured as ElementalistAttunement)
+    ? (configured as ElementalistAttunement)
+    : 'Fire';
+  const names = FAMILIAR_SKILL_NAMES[element];
+  return [ELEMENTALIST_FAMILIAR_SKILL_IDS[names.basic], ELEMENTALIST_FAMILIAR_SKILL_IDS[names.empowered]];
+}
+
+/** The empowered familiar starts with its full empowered count; both forms keep their attunement requirement. */
+function evokerSkillDamageOccurrence(context: SkillDamagePreviewContext, skill: Skill): SkillDamageState | null {
+  const [basic, empowered] = familiarSkillIds(context);
+  if (skill.id !== basic && skill.id !== empowered) return null;
+  const resources = requireBalanceProfileFromContext(context, PROFILE.resources);
+  // Each row starts from its own legal form using the simulation's existing initial resource fields.
+  return {
+    // Familiar completion may arm enchantments for a subsequent player hit.
+
+    config: {
+      ...elementalistAttunementConfig(skill),
+      initialEvokerCharges: balanceProfileNumber(resources, 'maximumStacks'),
+      initialEvokerEmpowered: skill.id === empowered ? balanceProfileNumber(resources, 'minimumStacks') : 0
+    },
+    context: skill.id === empowered ? 'Familiar ? empowered' : 'Familiar'
+  };
+}
+
 /** Reports the brief Elemental Balance damage window only while it can affect the next action. */
 function evokerStateSnapshot(context: ElementalistUiContext): RotationStateSnapshotItem[] {
   const remaining = (uiState(context).elementalBalanceUntil || 0) - Math.max(0, context.atSeconds || 0);
@@ -87,9 +120,13 @@ function evokerStateSnapshot(context: ElementalistUiContext): RotationStateSnaps
 
 /** Projects the active familiar, its availability, resources, and rotation snapshot. */
 export const evokerUi: ElementalistUiSlice = Object.freeze({
+  skillDamageGroups: (context: SkillDamagePreviewContext) => [
+    { id: 'familiar', title: 'Familiar', skillIds: familiarSkillIds(context), order: 0 }
+  ],
+  skillDamageState: evokerSkillDamageOccurrence,
   /** Declare this module's conditional inputs without adding simulation settings. */
-  attributePreviewControls(context: ProfessionAttributePreviewContext) {
-    const preview = createAttributePreviewControls(context);
+  previewControls(context: ProfessionAttributePreviewContext) {
+    const preview = createPreviewControls(context);
 
     preview.add({
       key: 'evokerElement',

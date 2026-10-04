@@ -1,3 +1,13 @@
+import {
+  ELEMENTALIST_TRAIT_IDS as DAMAGE_TRAIT,
+  ELEMENTALIST_SKILL_IDS as ID
+} from '#gw2/professions/elementalist/data/ids.js';
+import {
+  emitElectricDischarge,
+  emitEarthenBlast,
+  emitSunspot,
+  emitFlameExpulsion
+} from '#gw2/professions/elementalist/core/traits/attunements.js';
 import { prepareGw2BuffCompanionCandidates } from '#gw2/platform/combat/state/allied-players.js';
 import { requireBalanceProfileFromContext, requireEffect } from '#gw2/platform/engine/skills/balance-profiles.js';
 import type { NativeResolvedDamageDetails } from '#gw2/platform/profession-definition/module-types.js';
@@ -62,6 +72,61 @@ import type {
 import { elementalistBuffPolicies, elementalistEffectStates } from '#gw2/professions/elementalist/core/effect-state.js';
 
 export const elementalistCoreHooks: Partial<RuntimeProfession<ElementalistRuntimeState, ElementalistSkill>> = {
+  damageEffects: [
+    {
+      id: 'elementalist.ElectricDischarge',
+      name: 'Electric Discharge',
+      source: 'Trait',
+      ownerId: DAMAGE_TRAIT.ELECTRIC_DISCHARGE,
+      unit: 'occurrence',
+      sourceIds: [DAMAGE_TRAIT.ELECTRIC_DISCHARGE],
+      emit(runtime) {
+        emitElectricDischarge(runtime, runtime.time, DAMAGE_TRAIT.ELECTRIC_DISCHARGE);
+      }
+    },
+    {
+      id: 'elementalist.EarthenBlast',
+      name: 'Earthen Blast',
+      source: 'Trait',
+      ownerId: DAMAGE_TRAIT.EARTHEN_BLAST,
+      unit: 'occurrence',
+      sourceIds: [DAMAGE_TRAIT.EARTHEN_BLAST],
+      emit(runtime) {
+        emitEarthenBlast(runtime, runtime.time, DAMAGE_TRAIT.EARTHEN_BLAST);
+      }
+    },
+    {
+      id: 'elementalist.Sunspot',
+      name: 'Sunspot',
+      source: 'Trait',
+      ownerId: DAMAGE_TRAIT.SUNSPOT,
+      unit: 'occurrence',
+      sourceIds: [DAMAGE_TRAIT.SUNSPOT],
+      emit(runtime) {
+        emitSunspot(runtime, runtime.time, DAMAGE_TRAIT.SUNSPOT, applyElementalistAura);
+      }
+    },
+    {
+      id: 'elementalist.FlameExpulsion',
+      name: 'Flame Expulsion',
+      source: 'Trait',
+      ownerId: DAMAGE_TRAIT.PYROMANCERS_PUISSANCE,
+      unit: 'occurrence',
+      sourceIds: [DAMAGE_TRAIT.PYROMANCERS_PUISSANCE],
+      emit(runtime) {
+        emitFlameExpulsion(runtime, runtime.time, DAMAGE_TRAIT.PYROMANCERS_PUISSANCE);
+      }
+    }
+  ],
+  /** Initialize only damage-relevant form and scaling state for one assumed occurrence. */
+  prepareDamageState(runtime, skill, inputs) {
+    const state = runtime.profession.core;
+    if (skill?.weapon && CONJURED_WEAPONS.has(skill.weapon)) state.conjureEquipped = skill.weapon;
+    if (skill?.id === ID.GRAND_FINALE)
+      for (const element of ELEMENTALIST_ATTUNEMENTS)
+        state.hammerOrbs[element] = inputs[`orb:${element}`] ? 3600 : null;
+  },
+
   buffPolicies: elementalistBuffPolicies,
   observeEffects: elementalistEffectStates,
   sideEffectHandlers: elementalistCoreSideEffectHandlers,
@@ -105,6 +170,8 @@ export const elementalistCoreHooks: Partial<RuntimeProfession<ElementalistRuntim
   },
   onAutoattackChainTransition: observeElementalistAutoattackTransition,
   onCooldownReset: resetElementalistAttunementCooldowns,
+  // Physical elementals own independent attacks and expiry; their lifetime does not extend player skill previews.
+  backgroundTasks: Object.keys(elementalistElementalTasks),
   tasks: {
     ...elementalistElementalTasks,
     ...elementalistWeaponStateTasks,

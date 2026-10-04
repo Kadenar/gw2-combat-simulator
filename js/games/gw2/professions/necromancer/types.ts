@@ -1,3 +1,4 @@
+import type { SkillId } from '#gw2/platform/engine/skills/types.js';
 import type { Gw2Runtime } from '#gw2/platform/simulation/runtime-state.js';
 import type { ProfessionUiCallbackContext, ProfessionUiContract } from '#gw2/platform/profession-presentation/types.js';
 import type { Skill } from '#gw2/platform/engine/skills/types.js';
@@ -15,7 +16,7 @@ import type { ScourgeState } from '#gw2/professions/necromancer/specializations/
 // Module state is declared beside each state factory; re-export it for existing family type importers.
 interface NecromancerBuild extends Gw2Build {
   specializations?: Gw2BuildSpecialization[];
-  selectedSkills?: Record<string, string>;
+  selectedSkillIds?: Record<string, SkillId | null>;
 }
 
 export interface NecromancerCanonicalBuild extends Gw2CanonicalBuild {
@@ -83,9 +84,6 @@ export type NecromancerResolverContext = Gw2ResolverRuntime & {
 export interface NecromancerUiContext extends Omit<ProfessionUiCallbackContext<Partial<NecromancerState>>, 'build'> {
   readonly config?: NecromancerConfig;
   readonly build?: NecromancerBuild | null;
-  readonly state?: {
-    readonly profession?: Partial<NecromancerState>;
-  };
 }
 
 /** UI slice whose callbacks read Necromancer end-state projections. */

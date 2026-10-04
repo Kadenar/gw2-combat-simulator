@@ -21,7 +21,7 @@ import { canonicalTime, EPSILON } from '#kernel/core/clock.js';
  *
  * Auto-summon supplies a slotted glyph's first companion; subsequent summons require an explicit glyph cast.
  */
-import { selectedSkillNameSet } from '#gw2/platform/builds/selected-skills.js';
+import { selectedSkillIdSet } from '#gw2/platform/builds/selected-skills.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { denyCast, retryCast } from '#gw2/platform/engine/skills/availability.js';
 import {
@@ -37,7 +37,6 @@ import {
   elementalistStrikeRequest
 } from '#gw2/professions/elementalist/core/events.js';
 import {
-  elementalCommandName,
   elementalForGlyphId,
   elementalRuntimeProfile,
   FLAME_BARRAGE_ID,
@@ -79,7 +78,7 @@ function unavailable(reason: string, retryAt?: number): AvailabilityResult {
 // Which elemental the loadout has slotted (drives auto-summon). Bare "Glyph of
 // Elementals" is treated as the Fire variant.
 function selectedElemental(context: ElementalistRuntime): ElementalKind | null {
-  return selectedElementalFromSkills(selectedSkillNameSet(context.config.selectedSkills));
+  return selectedElementalFromSkills(selectedSkillIdSet(context.config.selectedSkillIds));
 }
 
 // Maps a stable glyph skill ID to the elemental it summons; null for unrelated skills.
@@ -93,11 +92,6 @@ function glyphSkillForElement(context: ElementalistRuntime, element: ElementalKi
   return (
     context.helpers.skillsById.get(element === 'Earth' ? ID.GLYPH_OF_ELEMENTALS_EARTH : ID.GLYPH_OF_ELEMENTALS) || null
   );
-}
-
-// Resolve the player-commanded flip skill for the selected element.
-function commandName(element: ElementalKind): 'Flame Barrage' | 'Stomp' {
-  return elementalCommandName(element);
 }
 
 /**
@@ -399,6 +393,8 @@ function emitPlayerOwnedCondition(
         activationId: payload.activationId,
         at: context.time,
         source: `${elemental.element} Elemental`,
+        // Physical summon ownership remains explicit even though this condition uses the player's damage stats.
+        summonOwner: elementalistElementalCompanionId(payload.summonGeneration || 0),
         skillId,
         skillName,
         name: `${skillName} — ${condition}`,
@@ -728,7 +724,10 @@ function expireElemental(
   elemental.currentActivationId = null;
   elemental.pendingLightningJolt = null;
   elemental.started = false;
-  consumeSkillFlip(state.availableFlips, context.helpers.skillsByName.get(commandName(element))!.id);
+  consumeSkillFlip(
+    state.availableFlips,
+    element === 'Earth' ? ID.STOMP_ELEMENTAL_COMMAND : ID.FLAME_BARRAGE_ELEMENTAL_COMMAND
+  );
   const glyph = glyphSkillForElement(context, element);
   if (glyph) {
     const summonedElementalProfile = requireBalanceProfileFromContext(context, PROFILE.summonedElemental);
@@ -768,7 +767,10 @@ function summonElemental(
   interruptCurrentAction(context, at);
   const previousElement = state.summonedElemental.element;
   if (previousElement === 'Fire' || previousElement === 'Earth')
-    consumeSkillFlip(state.availableFlips, context.helpers.skillsByName.get(commandName(previousElement))!.id);
+    consumeSkillFlip(
+      state.availableFlips,
+      previousElement === 'Earth' ? ID.STOMP_ELEMENTAL_COMMAND : ID.FLAME_BARRAGE_ELEMENTAL_COMMAND
+    );
   const previousGeneration = state.summonedElemental.summonGeneration;
   context.cancelOwner({ id: 'elementalist.elemental-decision', generation: previousGeneration });
   context.cancelOwner({ id: ELEMENTAL_TASK_OWNER, generation: previousGeneration });
@@ -793,7 +795,12 @@ function summonElemental(
     { id: ELEMENTAL_TASK_OWNER, generation: summonGeneration },
     50
   );
-  armSkillFlip(state.availableFlips, context.helpers.skillsByName.get(commandName(element))!.id, at, expiresAt);
+  armSkillFlip(
+    state.availableFlips,
+    element === 'Earth' ? ID.STOMP_ELEMENTAL_COMMAND : ID.FLAME_BARRAGE_ELEMENTAL_COMMAND,
+    at,
+    expiresAt
+  );
   if (startImmediately) startElemental(context, at);
 }
 
@@ -891,7 +898,7 @@ export function elementalistElementalAvailability(
 
   if (!elementalForGlyph(skill)) return null;
   // Summon glyphs require an equipped slot before readiness or retry; command flips use the live elemental above.
-  if (!isSelectedSlotSkill(skill, selectedSkillNameSet(context.config.selectedSkills))) {
+  if (!isSelectedSlotSkill(skill, selectedSkillIdSet(context.config.selectedSkillIds))) {
     return denyCast('elementalist.not-equipped', 'the skill is not equipped.');
   }
 

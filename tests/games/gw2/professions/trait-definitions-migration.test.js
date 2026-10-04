@@ -312,7 +312,7 @@ test('Mechanist registered recharge owners read preview values and preserve Over
   const context = {
     catalog: runtime.catalog,
     config: {
-      selectedSkills: ['Overclock Signet'],
+      selectedSkillIds: [63095],
       selectedTraitIds: [ENGINEER.MECH_CORE_JADE_DYNAMO, ENGINEER.MECH_CORE_J_DRIVE]
     },
     cooldowns: new Map([[ENGINEER_SKILLS.OVERCLOCK_SIGNET, 90]]),
@@ -475,7 +475,7 @@ test('Virtuoso definitions share patched build conversion and live modifiers wit
   assert.equal(family.catalog.balanceProfilesById.get(MESMER.QUIET_INTENSITY).vitalityConversion, 0.1);
 });
 
-test('Versatile Power adjusts only selected burst recharge and reads the active profile', () => {
+test('Versatile Power adjusts selected burst and Dragon Trigger recharge using the active profile', () => {
   const family = patched(warriorProfession, {
     balanceProfiles: { [WARRIOR.VERSATILE_POWER]: { fields: { rechargeMultiplier: 0.5 } } }
   });
@@ -483,14 +483,20 @@ test('Versatile Power adjusts only selected burst recharge and reads the active 
     ['current', 0.85],
     ['s4-preview', 0.5]
   ]) {
-    const runtime = family.runtimeFor({ patchId });
-    const burst = runtime.catalog.skillsByName.get('Eviscerate');
-    const weapon = runtime.catalog.skillsByName.get('Cyclone Axe');
-    assert.ok(burst && weapon);
-    const context = { helpers: runtime.catalog, config: { selectedTraitIds: [WARRIOR.VERSATILE_POWER] } };
-    assert.equal(runtime.rechargeWork(context, burst, 10), 10 * factor);
-    assert.equal(runtime.rechargeWork(context, weapon, 10), 10);
-    assert.equal(runtime.rechargeWork({ ...context, config: { selectedTraitIds: [] } }, burst, 10), 10);
+    // Dragon Trigger owns the slash recharge without needing the burst flag used by damage traits.
+    for (const [specialization, skillName] of [
+      ['Core', 'Eviscerate'],
+      ['Bladesworn', 'Dragon Trigger']
+    ]) {
+      const runtime = family.runtimeFor({ patchId, specialization });
+      const skill = runtime.catalog.skillsByName.get(skillName);
+      const weapon = runtime.catalog.skillsByName.get('Cyclone Axe');
+      assert.ok(skill && weapon);
+      const context = { helpers: runtime.catalog, config: { selectedTraitIds: [WARRIOR.VERSATILE_POWER] } };
+      assert.equal(runtime.rechargeWork(context, skill, 10), 10 * factor);
+      assert.equal(runtime.rechargeWork({ ...context, config: { selectedTraitIds: [] } }, skill, 10), 10);
+      assert.equal(runtime.rechargeWork(context, weapon, 10), 10);
+    }
   }
 });
 

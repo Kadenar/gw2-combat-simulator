@@ -50,6 +50,7 @@ import type {
 } from '#gw2/app/build/types.js';
 import type { RelicComparisonModel } from '#gw2/app/optimizer/relic-comparison/relic-comparison.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
+import type { SkillDamageEvaluation, SkillDamageRequest } from '#gw2/platform/skill-damage/types.js';
 import type { BuildEditor, SimulationPresentation } from '#browser/shell/types.js';
 
 export type ProfessionAppContract = Gw2ProfessionSource & {
@@ -78,6 +79,7 @@ export interface RotationComparisonState {
 }
 
 export interface ProfessionAppState {
+  skillDamageRunner: import('#gw2/app/simulation/skill-damage/runner.js').SkillDamageRunner;
   gearOptimizerRunner?: import('#gw2/app/optimizer/gear/runner.js').GearOptimizerRunner;
   workspace?: import('#gw2/app/build/state/workspace.js').BuildWorkspace;
   activateBuildTab?(id: string): void;
@@ -138,8 +140,8 @@ export interface ProfessionAppState {
   baselineSimulationRunner: {
     schedule(revision: number): void;
   };
-  publishBaselineSimulation(output: BaselineSimulationOutput, revision: number): void;
-  failBaselineSimulation(error: unknown, revision: number): void;
+  publishBaselineSimulation(output: BaselineSimulationOutput, revision: number, chartsOnly?: boolean): void;
+  failBaselineSimulation(error: unknown, revision: number, chartsOnly?: boolean): void;
   changed(rebuildStatic?: boolean, rebuildGear?: boolean, options?: ProfessionChangeOptions): void;
   startRotationComparison(): void;
   loadRotationReference(rotation: readonly RotationCommand[]): void;
@@ -248,6 +250,8 @@ export interface ProfessionRuntimeApi {
   ): Gw2SimulationResult;
   baselineSimulationRequest(app: ProfessionAppState): BaselineSimulationRequest;
   calculateBaselineSimulation(request: BaselineSimulationRequest): BaselineSimulationOutput;
+  /** Measures skill damage probes in the calling thread, for environments without workers. */
+  calculateSkillDamage(request: SkillDamageRequest): SkillDamageEvaluation;
 }
 
 export interface ProfessionFeatureRunner {

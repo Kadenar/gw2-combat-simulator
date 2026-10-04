@@ -1,3 +1,4 @@
+import type { SkillId } from '#gw2/platform/engine/skills/types.js';
 /** Owns the builds/types.ts contracts so type dependencies follow their runtime feature boundaries. */
 import type { CanonicalCatalog, Skill } from '#gw2/platform/engine/skills/types.js';
 import type { ProfessionBalanceContext } from '#gw2/platform/profession-presentation/balance-context.js';
@@ -211,7 +212,7 @@ export interface Gw2CanonicalBuild extends Gw2Build {
   utility: string;
   jadeBotCore: boolean;
   specializations: Gw2BuildSpecialization[];
-  selectedSkills: Record<string, string>;
+  selectedSkillIds: Record<string, SkillId | null>;
   assumptions: ProfessionBuildAssumptions;
   infusions: Gw2BuildInfusion[];
   startingWeaponSet: number;

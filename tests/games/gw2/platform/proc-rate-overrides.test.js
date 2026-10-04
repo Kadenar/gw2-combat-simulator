@@ -13,16 +13,9 @@ const runRuntime = ({ profession, config, rotation, observationPolicy }) =>
   runGw2Runtime({ profession: profession.runtimeFor(config), config, rotation, observation: observationPolicy });
 
 const cases = [
-  [
-    'necromancer',
-    'Harbinger',
-    'Barbed Precision',
-    ['Blood Is Power'],
-    { selectedSkills: ['Blood Is Power'] },
-    runRuntime
-  ],
+  ['necromancer', 'Harbinger', 'Barbed Precision', ['Blood Is Power'], { selectedSkillIds: [10544] }, runRuntime],
   ['engineer', 'Mechanist', 'Serrated Steel', ['Fragmentation Shot'], { primaryWeapon: 'Pistol' }, runRuntime],
-  ['engineer', 'Scrapper', 'Shrapnel', ['Grenade Kit', 'Grenade'], { selectedSkills: ['Grenade Kit'] }, runRuntime],
+  ['engineer', 'Scrapper', 'Shrapnel', ['Grenade Kit', 'Grenade'], { selectedSkillIds: [5805] }, runRuntime],
   ['warrior', 'Berserker', 'Bloodlust', ['Sever Artery'], { primaryWeapon: 'Sword' }, runRuntime],
   [
     'elementalist',

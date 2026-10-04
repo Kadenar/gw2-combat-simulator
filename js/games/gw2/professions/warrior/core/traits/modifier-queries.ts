@@ -1,6 +1,5 @@
 /** Shares live Warrior modifier queries without coupling trait-line fragments to their composer. */
-import { GW2_STANDARD_BOONS } from '#gw2/platform/combat/boons.js';
-import { boonActive, eventSkill } from '#gw2/platform/combat/query/runtime-query.js';
+import { boonActive, countActiveBoons, eventSkill } from '#gw2/platform/combat/query/runtime-query.js';
 import { gw2ConfiguredWeaponSet } from '#gw2/platform/equipment/weapons/loadout.js';
 import type { Gw2MutableStats } from '#gw2/platform/combat/types.js';
 import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
@@ -34,7 +33,7 @@ export function warriorActiveBuffStacks(context: Gw2ModifierContext, kind: strin
 }
 
 export function warriorActiveBoonCount(context: Gw2ModifierContext): number {
-  return GW2_STANDARD_BOONS.filter((boon) => warriorBoonActive(context, boon)).length;
+  return countActiveBoons(context, (boon) => warriorBoonActive(context, boon));
 }
 
 // Test both weapon hands at query time, including projected modifier-evaluation swaps.

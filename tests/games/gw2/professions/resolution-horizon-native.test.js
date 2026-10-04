@@ -24,7 +24,7 @@ test('native wells and uncommitted interrupted effects obey caller observation',
   const well = simulateNecromancer(
     'Core',
     ['Well of Suffering'],
-    { selectedSkills: ['Well of Suffering'] },
+    { selectedSkillIds: [10546] },
     { kind: 'tail', durationMs: 6000 }
   );
 
@@ -64,7 +64,7 @@ test('native summons and condition builds stop at the observation boundary', () 
   const summon = simulateNecromancer(
     'Core',
     ['Summon Blood Fiend'],
-    { selectedSkills: ['Summon Blood Fiend'] },
+    { selectedSkillIds: [10547] },
     { kind: 'tail', durationMs: 7000 }
   );
   const summonAttacks = summon.resolvedEvents.filter(
@@ -80,7 +80,7 @@ test('native summons and condition builds stop at the observation boundary', () 
   const condition = simulateNecromancer(
     'Core',
     ['Blood Is Power'],
-    { selectedSkills: ['Blood Is Power'] },
+    { selectedSkillIds: [10544] },
     { kind: 'tail', durationMs: 10_000 }
   );
 

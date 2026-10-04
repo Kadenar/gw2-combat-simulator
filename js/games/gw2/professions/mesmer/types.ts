@@ -140,7 +140,6 @@ export type MesmerUiState = Partial<MesmerProfessionState> &
 export interface MesmerUiContext extends Omit<ProfessionUiCallbackContext<MesmerUiState>, 'build'> {
   readonly config?: Partial<MesmerConfig>;
   readonly build?: Partial<MesmerBuild> | null;
-  readonly state?: { readonly profession?: MesmerUiState };
 }
 
 /** UI slice whose callbacks read Mesmer end-state projections. */

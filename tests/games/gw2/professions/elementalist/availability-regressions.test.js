@@ -127,7 +127,7 @@ test('elemental glyphs require equipment while matching command flips and summon
     const core = createElementalistCoreState();
     const context = {
       profession: { core },
-      config: { selectedSkills: { Elite: 'Conjure Fiery Greatsword' } },
+      config: { selectedSkillIds: [5516] },
       helpers: elementalistCatalog,
       time: 0,
       start: 0
@@ -140,7 +140,7 @@ test('elemental glyphs require equipment while matching command flips and summon
       assert.equal(denied.retryAt, null);
     }
 
-    context.config.selectedSkills.Elite = name;
+    context.config.selectedSkillIds = [skill.id];
     core.summonedElemental.activeUntil = 0;
     assert.equal(elementalistCoreAvailability(context, skill).ready, true);
     const flip = elementalistCatalog.skillsByName.get(command);
@@ -155,14 +155,14 @@ test('elemental glyphs require equipment while matching command flips and summon
 
     const rejected = runNative({
       lines: [['Fire'], ['Air'], ['Arcane']],
-      selectedSkills: { Elite: 'Conjure Fiery Greatsword' },
+      selectedSkillIds: { Elite: 5516 },
       rotation: [name]
     });
     assert.match(rejected.warnings[0], /not equipped/);
     assert.equal(rejected.planningState.profession.summonedElemental.element, null);
     const summoned = runNative({
       lines: [['Fire'], ['Air'], ['Arcane']],
-      selectedSkills: { Elite: name },
+      selectedSkillIds: { Elite: elementalistCatalog.skillsByName.get(name).id },
       rotation: [name, command]
     });
     assert.deepEqual(summoned.warnings, []);
@@ -210,7 +210,7 @@ test('conjure pickup availability and consumption require a finite, unexpired gr
 test('native rotations reject nonexistent pickups and consume summoned ground copies once', () => {
   const options = {
     lines: [['Fire'], ['Air'], ['Arcane']],
-    selectedSkills: { Utility1: 'Conjure Frost Bow' }
+    selectedSkillIds: { Utility1: 5567 }
   };
   const missing = runNative({ ...options, rotation: ['__pickup_Frost Bow'] });
   assert.match(missing.warnings[0], /pickup is unavailable or expired/);

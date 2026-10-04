@@ -1,11 +1,13 @@
+import { readProfessionSpecializationState } from '#gw2/platform/engine/profession/state.js';
 import type {
   ProfessionAttributePreviewContext,
   ProfessionAttributePreviewPreparation
 } from '#gw2/platform/profession-presentation/attribute-preview.js';
-import { createAttributePreviewControls } from '#gw2/professions/shared/attribute-preview.js';
-import { readProfessionSpecializationState } from '#gw2/platform/engine/profession/state.js';
-import type { BerserkerState } from '#gw2/professions/warrior/specializations/berserker/state.js';
-import { WARRIOR_SKILL_IDS as ID } from '#gw2/professions/warrior/data/ids.js';
+import type {
+  ProfessionEffectPresentation,
+  RotationStateSnapshotItem
+} from '#gw2/platform/profession-presentation/types.js';
+import { createPreviewControls } from '#gw2/professions/shared/attribute-preview.js';
 import {
   formatSecondsRemaining,
   warriorAdrenalineResourceViews,
@@ -14,10 +16,8 @@ import {
   warriorSnapshotAt,
   warriorUiState
 } from '#gw2/professions/warrior/core/presentation.js';
-import type {
-  ProfessionEffectPresentation,
-  RotationStateSnapshotItem
-} from '#gw2/platform/profession-presentation/types.js';
+import { WARRIOR_SKILL_IDS as ID } from '#gw2/professions/warrior/data/ids.js';
+import type { BerserkerState } from '#gw2/professions/warrior/specializations/berserker/state.js';
 import type { WarriorUiContext, WarriorUiSlice } from '#gw2/professions/warrior/types.js';
 
 const SKILLS = Object.freeze([ID.BERSERK]);
@@ -39,8 +39,8 @@ const PRIMAL_BURSTS_BY_WEAPON: Readonly<Record<string, number>> = Object.freeze(
 
 export const berserkerUi: WarriorUiSlice = Object.freeze({
   /** Declare this module's conditional inputs without adding simulation settings. */
-  attributePreviewControls(context: ProfessionAttributePreviewContext) {
-    const preview = createAttributePreviewControls(context);
+  previewControls(context: ProfessionAttributePreviewContext) {
+    const preview = createPreviewControls(context);
     preview.add({
       key: 'berserk',
       label: 'Berserk',

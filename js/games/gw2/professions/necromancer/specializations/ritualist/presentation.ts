@@ -1,15 +1,15 @@
-import type { ProfessionAttributePreviewPreparation } from '#gw2/platform/profession-presentation/attribute-preview.js';
+import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
 import { readProfessionCoreState } from '#gw2/platform/engine/profession/state.js';
+import type { CanonicalCatalog, SkillId } from '#gw2/platform/engine/skills/types.js';
+import type { ProfessionAttributePreviewPreparation } from '#gw2/platform/profession-presentation/attribute-preview.js';
+import type { ProfessionEventLogDescriptor } from '#gw2/platform/profession-presentation/types.js';
+import {
+  necromancerSoulShardResourceViews,
+  necromancerTransformPaletteGroups
+} from '#gw2/professions/necromancer/core/presentation.js';
 import type { NecromancerCoreState } from '#gw2/professions/necromancer/core/state.js';
 import { NECROMANCER_SKILL_IDS as ID } from '#gw2/professions/necromancer/data/ids.js';
-import {
-  necromancerTransformPaletteGroups,
-  necromancerSoulShardResourceViews
-} from '#gw2/professions/necromancer/core/presentation.js';
-import type { ProfessionEventLogDescriptor } from '#gw2/platform/profession-presentation/types.js';
-import type { CanonicalCatalog, SkillId } from '#gw2/platform/engine/skills/types.js';
 import type { NecromancerSkill, NecromancerUiContext, NecromancerUiSlice } from '#gw2/professions/necromancer/types.js';
-import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
 
 // Suppress resolver-only Ritualist packets while leaving ordinary events to the shared renderer.
 function ritualistEventLogRow(

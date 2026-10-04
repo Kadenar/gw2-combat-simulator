@@ -1,5 +1,5 @@
 {
-  "schemaVersion": 3,
+  "schemaVersion": 4,
   "profession": "thief",
   "gear": {
     "Helm": "Viper's",
@@ -53,12 +53,12 @@
       "traits": "1-1-1"
     }
   ],
-  "selectedSkills": {
-    "Heal": "Well of Gloom",
-    "Utility1": "Spider Venom",
-    "Utility2": "Well of Sorrow",
-    "Utility3": "Prepare Thousand Needles",
-    "Elite": "Thieves Guild"
+  "selectedSkillIds": {
+    "Heal": 63292,
+    "Utility1": 13037,
+    "Utility2": 63276,
+    "Utility3": 13026,
+    "Elite": 13082
   },
   "selectedDodge": "Dodge",
   "assumptions": {

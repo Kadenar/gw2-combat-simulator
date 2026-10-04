@@ -1,4 +1,5 @@
 import { buildResolverCondition } from '#gw2/platform/resolver/packets.js';
+import { MAXIMUM_SPINNING_AXES } from '#gw2/professions/thief/core/state.js';
 import { canonicalTime } from '#kernel/core/clock.js';
 import type { ActionContext } from '#gw2/platform/simulation/side-effects.js';
 import { gw2AlliedPlayerProcTimeline } from '#gw2/platform/combat/state/allied-players.js';
@@ -190,7 +191,7 @@ export function landThiefAxe(runtime: ThiefRuntime, data: unknown): void {
   if (index < 0) return;
   const [landed] = core.outboundAxes.splice(index, 1);
   core.spinningAxes = core.spinningAxes.filter((axe) => axe.expiresAt > runtime.time);
-  if (core.spinningAxes.length >= 6) {
+  if (core.spinningAxes.length >= MAXIMUM_SPINNING_AXES) {
     const lowestPriority = Math.min(...core.spinningAxes.map((axe) => axePriority(axe.skillId)));
     // Fizzling leaves protected axes and their expiry times intact.
     if (lowestPriority > axePriority(landed.skillId)) return;

@@ -207,28 +207,37 @@ export const ritualistSpellHooks: Partial<RuntimeProfession<NecromancerRuntimeSt
       if (runtime.time >= state.painfulBondUntil || runtime.deathTime != null) return;
       const profile = requireBalanceProfileFromContext(runtime, PROFILE.painfulBond);
       const strike = requireEffect(profile, 'strike', 'Strike');
-      if (strike)
-        runtime.effects.emit({
-          kind: 'packet',
-          event: buildResolverStrike({
-            at: runtime.time,
-            source: 'Spirit',
-            sourceId: 'ritualist.painful-bond',
-            // Bond retains the creating summon's artwork without borrowing its damage identity.
-            icon: (data as Gw2ResolverEvent).icon,
-            actorType: 'effect',
-            skillName: 'Painful Bond',
-            coefficient: 0,
-            flatStrikeBase: effectNumber(profile, strike, 'flatStrikeBase'),
-            flatStrikePowerCoeff: effectNumber(profile, strike, 'flatStrikePowerCoeff'),
-            skillWeapon: 'Unequipped',
-            canCrit: false,
-            triggeredBy: (data as Gw2ResolverEvent).triggeredBy
-          })
-        });
+      emitPainfulBond(runtime, data as Gw2ResolverEvent);
       const at = canonicalTime(runtime.time + balanceProfileNumber(profile, 'pulseInterval'));
       if (strike && at > runtime.time && at < state.painfulBondUntil)
         runtime.schedule(BOND, at, data, { id: BOND, generation: state.painfulBondGeneration });
     }
   }
 };
+
+/** One shared Painful Bond pulse, independent of spirit activation or pulse scheduling. */
+export function emitPainfulBond(runtime: NecromancerRuntime, event: Gw2ResolverEvent): void {
+  const profile = requireBalanceProfileFromContext(runtime, PROFILE.painfulBond);
+  const strike = requireEffect(profile, 'strike', 'Strike');
+  if (strike)
+    runtime.effects.emit({
+      kind: 'packet',
+      event: buildResolverStrike({
+        at: runtime.time,
+        source: 'Spirit',
+        sourceId: 'ritualist.painful-bond',
+        // Bond retains the creating summon's artwork without borrowing its damage identity.
+        icon: event.icon,
+        actorType: 'effect',
+        skillName: 'Painful Bond',
+        // Bond's shared cadence belongs to the profession mechanic rather than its latest spirit summon.
+        procType: 'profession',
+        coefficient: 0,
+        flatStrikeBase: effectNumber(profile, strike, 'flatStrikeBase'),
+        flatStrikePowerCoeff: effectNumber(profile, strike, 'flatStrikePowerCoeff'),
+        skillWeapon: 'Unequipped',
+        canCrit: false,
+        triggeredBy: event.triggeredBy
+      })
+    });
+}

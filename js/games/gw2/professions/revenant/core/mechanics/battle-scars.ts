@@ -19,6 +19,14 @@ export function consumeBattleScar(runtime: RevenantRuntime, event: Gw2ResolverEv
   const { expiries, consumed } = consumeNewestStacks(core.battleScars, 1, runtime.time);
   core.battleScars = expiries;
   if (!consumed) return;
+  emitBattleScar(runtime, event);
+}
+
+/** Resolve one scar without requiring a prior grant or consuming another attack. */
+export function emitBattleScar(runtime: RevenantRuntime, event: Gw2ResolverEvent): void {
+  const profile = requireBalanceProfileFromContext(runtime, PROFILE.battleScars);
+  const strike = requireEffect(profile, 'strike', 'Battle Scars — Life Siphon');
+  if (!strike) return;
   runtime.effects.emit({
     kind: 'packet',
     cause: event,
@@ -29,6 +37,8 @@ export function consumeBattleScar(runtime: RevenantRuntime, event: Gw2ResolverEv
       actorType: 'effect',
       skillId: 'revenant.battle-scars',
       skillName: 'Battle Scars',
+      // Several grants feed the same scar pool, whose siphon is independent of the consuming attack.
+      procType: 'profession',
       name: 'Battle Scars — Life Siphon',
       coefficient: 0,
       damageKind: strike.damageKind,

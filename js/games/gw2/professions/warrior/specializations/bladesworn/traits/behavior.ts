@@ -1,4 +1,4 @@
-import { selectedSkillNameSet } from '#gw2/platform/builds/selected-skills.js';
+import { selectedSkillIdSet } from '#gw2/platform/builds/selected-skills.js';
 import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
 import type { Gw2TraitLookupContext } from '#gw2/platform/combat/state/traits.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
@@ -164,7 +164,7 @@ export function ammoTraits(runtime: Runtime, cast: RuntimeCast<WarriorSkill>): v
   const weapons = new Set(
     gw2ConfiguredWeaponSet(runtime.config, runtime.activeWeaponSet === 2 ? 2 : 1).filter(Boolean)
   );
-  const selected = selectedSkillNameSet(runtime.config.selectedSkills);
+  const selected = selectedSkillIdSet(runtime.config.selectedSkillIds);
   const onBar = (skill: Skill) => {
     if (
       [ID.UNSHEATHE_GUNSABER, ID.SHEATHE_GUNSABER, ID.DRAGON_TRIGGER, ID.ARTILLERY_SLASH].some((id) => id === skill.id)
@@ -173,7 +173,11 @@ export function ammoTraits(runtime: Runtime, cast: RuntimeCast<WarriorSkill>): v
     if (skill.gunsaberSkill) return state.gunsaberActive || state.dragonTriggerActive;
     if (skill.type === 'Weapon' || skill.weapon)
       return !state.gunsaberActive && !state.dragonTriggerActive && (!weapons.size || weapons.has(skill.weapon ?? ''));
-    return !['Heal', 'Utility', 'Elite'].includes(String(skill.type)) || !selected.size || selected.has(skill.name);
+    return (
+      !['Heal', 'Utility', 'Elite'].includes(String(skill.type)) ||
+      runtime.config.selectedSkillIds === undefined ||
+      selected.has(skill.id)
+    );
   };
 
   const reduction = balanceProfileNumber(

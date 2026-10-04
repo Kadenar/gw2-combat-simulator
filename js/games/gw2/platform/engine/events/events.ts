@@ -1,4 +1,5 @@
 import type { EffectReactionRef } from '#gw2/platform/simulation/effect-reactions.js';
+import type { Gw2ModifierContribution } from '#gw2/platform/combat/modifiers.js';
 import { ACTOR_TYPES, type SimulationActorType } from '#gw2/platform/engine/events/actors.js';
 import type { SkillId } from '#gw2/platform/engine/skills/types.js';
 import type { RechargeProgress } from '#gw2/platform/engine/skills/recharge.js';
@@ -189,6 +190,8 @@ export interface EffectMetadata {
   readonly recallSkillId?: SkillId;
   /** Proc activations represented by this one primary effect, independent of stacks and damage ticks. */
   readonly procCount?: number;
+  /** Selected damage owner when the packet's source identity belongs to a distinct triggered skill. */
+  readonly procOwnerId?: SkillId;
   readonly activeSpirits?: number;
   readonly affinityOnHit?: boolean;
   readonly anguishConditionalDamage?: boolean;
@@ -376,6 +379,24 @@ export interface Gw2DamageCalculation {
   readonly baseDamage: number;
   readonly criticalMultiplier: number;
   readonly outgoingMultiplier: number;
+  /** Traced factors behind outgoingMultiplier: (1 + Σ additive) × Π multipliers equals it. */
+  readonly outgoingContributors?: readonly Gw2ModifierContribution[];
   readonly unroundedDamage: number;
   readonly rounding: 'floor' | 'half-even';
+}
+
+/**
+ * Detached condition facts captured only for requested damage diagnostics. Duration facts come from the application's
+ * own duration query; damage facts come from its first damaging sample, so later stat changes are not reflected.
+ */
+export interface Gw2ConditionCalculation {
+  readonly baseDuration: number;
+  readonly baseDurationMultiplier: number;
+  readonly durationMultiplier: number;
+  readonly durationContributors: readonly Gw2ModifierContribution[];
+  conditionDamage?: number;
+  /** Damage per stack-second before outgoing condition modifiers. */
+  rate?: number;
+  multiplier?: number;
+  damageContributors?: readonly Gw2ModifierContribution[];
 }

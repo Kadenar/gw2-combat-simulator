@@ -58,7 +58,11 @@ window.addEventListener('DOMContentLoaded', () => {
     content.className = 'loader-content';
     const message = document.createElement('p');
     message.setAttribute('role', 'alert');
-    message.textContent = 'Unable to start the simulator. Reload to try again.';
+    // Surface actionable build-load failures without interpreting or discarding persisted data.
+    message.textContent =
+      error instanceof Error
+        ? `Unable to start the simulator: ${error.message}`
+        : 'Unable to start the simulator. Reload to try again.';
     const reload = document.createElement('button');
     reload.type = 'button';
     reload.className = 'btn loader-reload';

@@ -20,7 +20,7 @@ const PATCH_AUTHORING_EXCLUDED_SKILL_IDS = new Set<SkillId>([
   ID.OTHERWORLDLY_ATTRACTION_ENEMY
 ]);
 
-const generatedSource = SKILLS.filter((skill) => skill.name !== "Duelist's Preparation").map((skill) => ({
+const generatedSource = SKILLS.filter((skill) => skill.id !== ID.DUELISTS_PREPARATION).map((skill) => ({
   ...skill
 }));
 

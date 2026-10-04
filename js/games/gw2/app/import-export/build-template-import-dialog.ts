@@ -218,9 +218,9 @@ function renderPreview(
     Elite: 'Elite'
   };
   elements.skills.replaceChildren(
-    ...Object.entries(preview.selectedSkills).map(([slot, name]) => {
-      const skill = app.activeCatalog.skillsByName.get(name);
-      return previewItem(document, name, slotLabels[slot] || slot, skill?.icon);
+    ...Object.entries(preview.selectedSkillIds).map(([slot, id]) => {
+      const skill = id === null ? undefined : app.activeCatalog.skillsById.get(id);
+      return previewItem(document, skill?.name || 'Empty', slotLabels[slot] || slot, skill?.icon);
     })
   );
   elements.warnings.hidden = preview.warnings.length === 0;

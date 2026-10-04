@@ -1,6 +1,6 @@
 import { professionStaticRulesApplied } from '#gw2/platform/builds/attribute-provenance.js';
 import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
-import { hasSelectedSkill } from '#gw2/platform/combat/query/runtime-query.js';
+import { hasSelectedSkillId } from '#gw2/platform/combat/query/runtime-query.js';
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
 import type { Gw2MutableStats } from '#gw2/platform/combat/types.js';
 import { impactEffects } from '#gw2/platform/engine/effects/authoring.js';
@@ -549,7 +549,7 @@ export const NECROMANCER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Pa
 /** Checks whether Signet of Spite's selected, out-of-shroud, off-cooldown passive is active. */
 function signetOfSpitePassiveActive(context: Gw2ModifierContext): boolean {
   return (
-    hasSelectedSkill(context, 'Signet of Spite') &&
+    hasSelectedSkillId(context, ID.SIGNET_OF_SPITE) &&
     !readProfessionCoreState<NecromancerCoreState>(context.runtime?.profession).activeShroud &&
     !context.timeline?.skillOnCooldownAt(ID.SIGNET_OF_SPITE, context.time)
   );
@@ -569,7 +569,7 @@ export function modifySignetOfSpiteAttributes(
   result: Gw2MutableStats & { power: number }
 ): void {
   const staticRulesApplied = professionStaticRulesApplied(context.config);
-  if (hasSelectedSkill(context, 'Signet of Spite')) {
+  if (hasSelectedSkillId(context, ID.SIGNET_OF_SPITE)) {
     const signetOfSpiteProfile = requireBalanceProfileFromContext(context, PROFILE.signetOfSpite);
     const signetPower = balanceProfileNumber(signetOfSpiteProfile, 'attributeBonus');
     const passiveActive = playerModifierContext(context) && signetOfSpitePassiveActive(context);
@@ -609,24 +609,34 @@ export function applyNecromancerSignetPassive(
   const profile = requireBalanceProfileFromContext(runtime, policy.profileId);
   if (policy.passive === 'undeath') grantNecromancerLifeForce(runtime, balanceProfileNumber(profile, 'lifeForceGain'));
   else {
-    const strike = requireEffect(profile, 'strike', 'Signet of Vampirism - Passive Life Siphon');
-    if (strike)
-      runtime.effects.emit({
-        kind: 'packet',
-        event: buildResolverStrike({
-          at: runtime.time,
-          source: 'necromancer',
-          sourceId: id,
-          actorType: 'effect',
-          skillId: id,
-          skillName: strike.name,
-          coefficient: 0,
-          skillWeapon: 'Unequipped',
-          flatStrikeBase: effectNumber(profile, strike, 'flatStrikeBase'),
-          flatStrikePowerCoeff: effectNumber(profile, strike, 'flatStrikePowerCoeff'),
-          canCrit: strike.canCrit !== false,
-          damageKind: strike.damageKind || ''
-        })
-      });
+    emitVampirismPassive(runtime);
   }
+}
+
+/** One passive siphon shares the pulse payload without its activation cadence or suppression checks. */
+export function emitVampirismPassive(runtime: NecromancerRuntime): void {
+  const id = ID.SIGNET_OF_VAMPIRISM;
+  const profile = requireBalanceProfileFromContext(runtime, PROFILE.signetOfVampirismPassive);
+  const strike = requireEffect(profile, 'strike', 'Signet of Vampirism - Passive Life Siphon');
+  if (strike)
+    runtime.effects.emit({
+      kind: 'packet',
+      event: buildResolverStrike({
+        at: runtime.time,
+        source: 'necromancer',
+        sourceId: id,
+        actorType: 'effect',
+        skillId: id,
+        skillName: strike.name,
+        // Periodic signet siphons are passive procs, not consequences of the currently measured cast.
+        procType: 'profession',
+        icon: runtime.helpers.skillsById.get(id)?.icon,
+        coefficient: 0,
+        skillWeapon: 'Unequipped',
+        flatStrikeBase: effectNumber(profile, strike, 'flatStrikeBase'),
+        flatStrikePowerCoeff: effectNumber(profile, strike, 'flatStrikePowerCoeff'),
+        canCrit: strike.canCrit !== false,
+        damageKind: strike.damageKind || ''
+      })
+    });
 }

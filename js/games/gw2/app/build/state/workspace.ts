@@ -1,3 +1,4 @@
+import { SelectedSkillMigrationError } from '#gw2/platform/builds/selected-skills.js';
 import { createDefaultBuild, loadBuild, replaceBuild } from '#gw2/app/build/state/persistence.js';
 import type { Gw2AppAdapter, ProfessionAppState } from '#gw2/app/types.js';
 import type { Gw2CanonicalBuild } from '#gw2/platform/builds/types.js';
@@ -77,6 +78,7 @@ export function loadMyBuilds(adapter: Gw2AppAdapter): MyBuild[] {
     const saved = JSON.parse(localStorage.getItem(myBuildsStorageKey(adapter)) || 'null');
     if (saved?.version !== 1 || !Array.isArray(saved.builds)) return [];
     const builds: MyBuild[] = [];
+    let migrated = false;
     for (const entry of saved.builds) {
       if (
         !entry ||
@@ -95,13 +97,28 @@ export function loadMyBuilds(adapter: Gw2AppAdapter): MyBuild[] {
           category: typeof entry.category === 'string' ? entry.category.trim().slice(0, 80) || undefined : undefined,
           build: replaceBuild(entry.build, adapter)
         });
-      } catch {
+        if (Object.hasOwn(entry.build, 'selectedSkills')) {
+          entry.build = builds.at(-1)!.build;
+          migrated = true;
+        }
+      } catch (error) {
+        if (error instanceof SelectedSkillMigrationError) throw error;
         /* One invalid snapshot must not hide the rest of the user's library. */
       }
     }
 
+    // A storage quota failure must not hide successfully converted builds from this session.
+    if (migrated) {
+      try {
+        localStorage.setItem(myBuildsStorageKey(adapter), JSON.stringify(saved));
+      } catch {
+        /* Retain the original storage and converted in-memory library. */
+      }
+    }
+
     return builds;
-  } catch {
+  } catch (error) {
+    if (error instanceof SelectedSkillMigrationError) throw error;
     return [];
   }
 }
@@ -157,6 +174,7 @@ export function loadBuildWorkspace(adapter: Gw2AppAdapter): BuildWorkspace {
     const saved = JSON.parse(localStorage.getItem(workspaceStorageKey(adapter)) || 'null');
     if (saved?.version === 1 && Array.isArray(saved.tabs)) {
       const tabs: BuildTab[] = [];
+      let migrated = false;
       for (const entry of saved.tabs) {
         try {
           if (
@@ -178,7 +196,8 @@ export function loadBuildWorkspace(adapter: Gw2AppAdapter): BuildWorkspace {
             if (entry.templateBuild?.profession === adapter.id) {
               tab.templateBuild = replaceBuild(entry.templateBuild, adapter);
             }
-          } catch {
+          } catch (error) {
+            if (error instanceof SelectedSkillMigrationError) throw error;
             /* An invalid reset target falls back to the profession defaults. */
           }
 
@@ -191,9 +210,29 @@ export function loadBuildWorkspace(adapter: Gw2AppAdapter): BuildWorkspace {
             /* The saved preview is no longer available. */
           }
 
+          if (Object.hasOwn(entry.build, 'selectedSkills')) {
+            entry.build = tab.build;
+            migrated = true;
+          }
+
+          if (entry.templateBuild && Object.hasOwn(entry.templateBuild, 'selectedSkills') && tab.templateBuild) {
+            entry.templateBuild = tab.templateBuild;
+            migrated = true;
+          }
+
           tabs.push(tab);
-        } catch {
+        } catch (error) {
+          if (error instanceof SelectedSkillMigrationError) throw error;
           /* One invalid tab must not discard the remaining builds. */
+        }
+      }
+
+      // Commit the entire converted envelope only after every legacy selection was resolved safely.
+      if (migrated) {
+        try {
+          localStorage.setItem(workspaceStorageKey(adapter), JSON.stringify(saved));
+        } catch {
+          /* Retain the original storage and converted in-memory tabs. */
         }
       }
 
@@ -201,7 +240,8 @@ export function loadBuildWorkspace(adapter: Gw2AppAdapter): BuildWorkspace {
         return { tabs, activeTabId: tabs.find((tab) => tab.id === saved.activeTabId)?.id || tabs[0].id };
       }
     }
-  } catch {
+  } catch (error) {
+    if (error instanceof SelectedSkillMigrationError) throw error;
     /* Missing or inaccessible storage still permits an in-memory workspace. */
   }
 

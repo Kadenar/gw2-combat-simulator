@@ -1,24 +1,25 @@
+import type { SkillId } from '#gw2/platform/engine/skills/types.js';
 import {
   balanceProfileNumber,
   requireBalanceProfileFromContext
 } from '#gw2/platform/engine/skills/balance-profiles.js';
-import { selectedSkillNameSet } from '#gw2/platform/builds/selected-skills.js';
+import { selectedSkillIdSet } from '#gw2/platform/builds/selected-skills.js';
 import type {
-  AttributeEffectControl,
+  PreviewControl,
   ProfessionAttributePreviewContext
 } from '#gw2/platform/profession-presentation/attribute-preview.js';
 
 /** Assemble owner-declared controls with shared selection checks and patch-aware stack caps. */
-export function createAttributePreviewControls(context: ProfessionAttributePreviewContext) {
+export function createPreviewControls(context: ProfessionAttributePreviewContext) {
   const traits = new Map(context.activeTraits.map((trait) => [trait.name, trait]));
-  const skills = selectedSkillNameSet(context.build.selectedSkills);
-  const controls: AttributeEffectControl[] = [];
+  const skills = selectedSkillIdSet(context.build.selectedSkillIds);
+  const controls: PreviewControl[] = [];
   const has = (...names: string[]): boolean => names.some((name) => traits.has(name));
-  const add = (control: AttributeEffectControl): void => {
+  const add = (control: PreviewControl): void => {
     controls.push(control);
   };
 
-  const trait = (name: string, control: Omit<AttributeEffectControl, 'label' | 'group'>): void => {
+  const trait = (name: string, control: Omit<PreviewControl, 'label' | 'group'>): void => {
     if (has(name)) add({ label: name, group: 'Trait conditionals', ...control });
   };
 
@@ -57,18 +58,20 @@ export function createAttributePreviewControls(context: ProfessionAttributePrevi
           description: required
         });
     },
-    passives(...names: string[]): void {
-      for (const name of names)
-        if (skills.has(name))
+    passives(...ids: SkillId[]): void {
+      for (const id of ids) {
+        const name = context.catalog.skillsById.get(id)?.name;
+        if (name && skills.has(id))
           add({
-            key: `passive:${name}`,
+            key: `passive:${id}`,
             label: name,
             group: 'Other buffs',
             kind: 'passive',
-            field: name,
+            skillId: id,
             initial: 1,
             description: 'Passive attributes active'
           });
+      }
     },
     targetHealth(...names: string[]): void {
       if (has(...names))
@@ -77,9 +80,10 @@ export function createAttributePreviewControls(context: ProfessionAttributePrevi
           label: 'Target health (%)',
           group: 'Trait conditionals',
           kind: 'special',
+          scope: ['attributes', 'damage'],
           max: 100,
           initial: 100,
-          description: 'Health-dependent critical bonuses'
+          description: 'Target-health-dependent bonuses'
         });
     },
     playerHealth(names: readonly string[], initial = 100): void {

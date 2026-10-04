@@ -79,7 +79,7 @@ test('removing the first HGH boon never substitutes the second boon', () => {
     { [ENG.HGH]: { removeEffects: [{ type: 'boon', name: 'might' }] } },
     'Core',
     ['Elixir Gun', 'Acid Bomb'],
-    { selectedTraitIds: [ENG.HGH], selectedSkills: ['Elixir Gun'] }
+    { selectedTraitIds: [ENG.HGH], selectedSkillIds: [5933] }
   );
   const boons = result.events.filter((event) => event.type === 'buff' && event.sourceId === ENG.HGH);
   assert.equal(
@@ -100,7 +100,7 @@ test('Holosmith heat follow-ups preserve conditions when the strike is removed',
     },
     'Holosmith',
     ['Laser Disk', { type: 'wait', durationMs: 1200 }],
-    { initialHeat: 80, selectedSkills: ['Laser Disk'] }
+    { initialHeat: 80, selectedSkillIds: [42842] }
   );
   assert.equal(
     result.resolvedEvents.some((event) => event.type === 'damage' && event.skillName === 'Laser Disk'),
@@ -180,7 +180,7 @@ test('removed Ignite tier stays empty while the next named tier retains its dura
     },
     'Evoker',
     ['Ignite', 'Rejuvenate', 'Ignite', { type: 'wait', durationMs: 1000 }],
-    { selectedSkills: ['Rejuvenate'] }
+    { selectedSkillIds: [76634] }
   );
   const burns = result.events.filter(
     (event) => event.type === 'condition' && event.skillName === 'Ignite' && !event.cancelled
@@ -257,7 +257,7 @@ test('removing Cleansing Burst boons preserves its water field', () => {
     {},
     'Core',
     ['Healing Turret', { type: 'wait', durationMs: 1000 }],
-    { selectedSkills: ['Healing Turret'] },
+    { selectedSkillIds: [5857] },
     { [id]: { removeEffects: [{ type: 'boon' }] } }
   );
   assert.equal(

@@ -1,6 +1,6 @@
-import type { WorkOwner } from '#gw2/platform/simulation/internal-work.js';
 import type { Skill } from '#gw2/platform/engine/skills/types.js';
 import type { Gw2ResolverEvent, Gw2ResolverStage } from '#gw2/platform/resolver/types.js';
+import type { WorkOwner } from '#gw2/platform/simulation/internal-work.js';
 import type { Gw2Runtime, RuntimeCast, RuntimeProfession } from '#gw2/platform/simulation/runtime-state.js';
 
 /** Compose notifications, transforms, decisions, and task ownership using the same rules within and across modules. */
@@ -18,6 +18,10 @@ export function composeRuntimeHooks<State extends object, TSkill extends Skill =
 
   const stages = new Set(hooks.flatMap((hook) => Object.keys(hook.reactions ?? {}))) as Set<Gw2ResolverStage>;
   return {
+    damageEffects: hooks.flatMap((hook) => hook.damageEffects ?? []),
+    prepareDamageState(context, skill, inputs) {
+      for (const hook of hooks) hook.prepareDamageState?.(context, skill, inputs);
+    },
     buffPolicies(context) {
       return hooks.flatMap((hook) => hook.buffPolicies?.(context) ?? []);
     },
@@ -113,6 +117,7 @@ export function composeRuntimeHooks<State extends object, TSkill extends Skill =
       for (const hook of hooks) hook.onCombatStart?.(context);
     },
     tasks: merged('tasks'),
+    backgroundTasks: hooks.flatMap((hook) => hook.backgroundTasks ?? []),
     sideEffectHandlers: merged('sideEffectHandlers'),
     eventHandlers: merged('eventHandlers'),
     reactions: Object.fromEntries(

@@ -1,5 +1,5 @@
 {
-  "schemaVersion": 3,
+  "schemaVersion": 4,
   "profession": "thief",
   "gear": {
     "Helm": "Viper's",
@@ -56,12 +56,12 @@
       "traits": "3-2-3"
     }
   ],
-  "selectedSkills": {
-    "Heal": "Signet of Malice",
-    "Utility1": "Spider Venom",
-    "Utility2": "Prepare Thousand Needles",
-    "Utility3": "Caltrops",
-    "Elite": "Skritt Scuffle"
+  "selectedSkillIds": {
+    "Heal": 13050,
+    "Utility1": 13037,
+    "Utility2": 13026,
+    "Utility3": 13028,
+    "Elite": 77255
   },
   "selectedDodge": "Dodge",
   "assumptions": {

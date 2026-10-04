@@ -85,7 +85,8 @@ export interface MesmerCriticalTraitDispatcher {
 }
 
 export interface MesmerCloneAttackStep {
-  readonly id?: SkillId;
+  /** Stable source skill for clone packets; names remain presentation only. */
+  readonly id: SkillId;
   readonly name?: string;
   readonly coefficient?: number;
   readonly hits?: number;

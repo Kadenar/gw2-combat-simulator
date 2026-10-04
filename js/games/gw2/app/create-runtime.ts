@@ -1,36 +1,39 @@
-import { createGw2SimulationConfig, deterministicSimulationConfig } from '#gw2/app/simulation/build-config.js';
-import { createModifierContributionRequest } from '#gw2/app/simulation/modifier-contributions/request.js';
-import { calculateContributionComparisons } from '#gw2/app/simulation/modifier-contributions/modifier-contributions.js';
-import {
-  DEFAULT_RANDOM_DISTRIBUTION_TRIALS,
-  calculateRandomDistribution as calculateDistribution
-} from '#gw2/app/simulation/random-distribution/random-distribution.js';
+import type { ProfessionAttributeData } from '#gw2/app/build/types.js';
 import { relicComparisonAvailable } from '#gw2/app/optimizer/relic-comparison/relic-comparison.js';
+import type { RelicComparisonJobRequest } from '#gw2/app/optimizer/relic-comparison/types.js';
 import { cloneRotation } from '#gw2/app/rotation/editing/history.js';
-import { SIMULATION_RANDOMNESS_MODES } from '#kernel/core/simulation-random.js';
-import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
 import { calculateBaselineSimulation as calculateBaseline } from '#gw2/app/simulation/baseline/baseline-simulation.js';
-import type { RotationCommand } from '#gw2/platform/execution/types.js';
-import type { ObservationPolicy } from '#kernel/execution/observation.js';
-import type { Skill } from '#gw2/platform/engine/skills/types.js';
-import type { Gw2Config } from '#gw2/platform/simulation/config.js';
-import type { Gw2SimulationResult } from '#gw2/platform/simulation/types.js';
 import type { BaselineSimulationOutput, BaselineSimulationRequest } from '#gw2/app/simulation/baseline/types.js';
+import { createGw2SimulationConfig, deterministicSimulationConfig } from '#gw2/app/simulation/build-config.js';
+import { calculateContributionComparisons } from '#gw2/app/simulation/modifier-contributions/modifier-contributions.js';
+import { createModifierContributionRequest } from '#gw2/app/simulation/modifier-contributions/request.js';
 import type {
   ModifierContributionRequest,
   ProfessionModifier
 } from '#gw2/app/simulation/modifier-contributions/types.js';
+import {
+  DEFAULT_RANDOM_DISTRIBUTION_TRIALS,
+  calculateRandomDistribution as calculateDistribution
+} from '#gw2/app/simulation/random-distribution/random-distribution.js';
 import type {
   RandomDistributionJobRequest,
   RandomDistributionOptions,
   RandomDistributionRequest,
   RandomDistributionSummary
 } from '#gw2/app/simulation/random-distribution/types.js';
-import type { RelicComparisonJobRequest } from '#gw2/app/optimizer/relic-comparison/types.js';
 import type { ProfessionAppState, ProfessionRuntimeApi, ProfessionRuntimeOptions } from '#gw2/app/types.js';
-import type { ProfessionAttributeData } from '#gw2/app/build/types.js';
 import type { Gw2CanonicalBuild } from '#gw2/platform/builds/types.js';
+import type { Skill } from '#gw2/platform/engine/skills/types.js';
+import type { RotationCommand } from '#gw2/platform/execution/types.js';
+import type { Gw2Config } from '#gw2/platform/simulation/config.js';
+import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
+import type { Gw2SimulationResult } from '#gw2/platform/simulation/types.js';
+import { evaluateSkillDamage } from '#gw2/platform/skill-damage/evaluate.js';
+import type { SkillDamageEvaluation, SkillDamageRequest } from '#gw2/platform/skill-damage/types.js';
 import { clamp } from '#kernel/core/numeric.js';
+import { analysisViewIsActive } from '#browser/shell/result-view.js';
+import { SIMULATION_RANDOMNESS_MODES } from '#kernel/core/simulation-random.js';
+import type { ObservationPolicy } from '#kernel/execution/observation.js';
 
 /**
  * Builds the shared browser runtime orchestration for a GW2 profession.
@@ -87,13 +90,13 @@ export function createProfessionRuntime({
           specialization: eliteSpecialization(app.build),
           professionState: app.results?.planningState?.profession
         })
-        .map((id) => catalog.skillsById.get(Number(id)))
+        .map((id) => catalog.skillsById.get(id))
         .filter((skill): skill is Skill => skill != null);
     }
 
-    const skillByName = app.skillByName || catalog.skillsByName;
-    return Object.values(app.build.selectedSkills)
-      .map((name) => skillByName.get(name))
+    const skillById = app.skillById || catalog.skillsById;
+    return Object.values(app.build.selectedSkillIds)
+      .map((id) => (id === null ? undefined : skillById.get(id)))
       .filter((skill): skill is Skill => skill != null);
   }
 
@@ -175,7 +178,10 @@ export function createProfessionRuntime({
   }
 
   function calculateModifierContributions({ rotation, baseConfig, comparisons }: ModifierContributionRequest) {
-    return calculateContributionComparisons({ rotation, baseConfig, comparisons }, simulateBuild);
+    // Main-thread comparisons need only DPS, matching workers without constructing unused chart histories.
+    return calculateContributionComparisons({ rotation, baseConfig, comparisons }, (rotation, config) =>
+      simulateGw2({ profession, rotation, config, output: 'score' })
+    );
   }
 
   function randomDistributionRequest(app: ProfessionAppState): RandomDistributionJobRequest {
@@ -259,6 +265,7 @@ export function createProfessionRuntime({
       rotation: [...rotation.slice(0, index), ...appended],
       config,
       observationPolicy: { kind: 'rotation' },
+      collectChartData: false,
       combatStartTime: combatStartTime ?? undefined
     });
   }
@@ -270,6 +277,7 @@ export function createProfessionRuntime({
       contentId: profession.id,
       rotation: cloneRotation(app.build.rotation),
       damageDiagnostics: app.damageDiagnostics,
+      collectChartData: analysisViewIsActive(),
       ...(app.rotationComparison?.referenceStatus === 'queued'
         ? { referenceRotation: cloneRotation(app.rotationComparison.referenceRotation) }
         : null),
@@ -282,6 +290,11 @@ export function createProfessionRuntime({
   /** Runs a serialized baseline job without depending on browser application state. */
   function calculateBaselineSimulation(request: BaselineSimulationRequest): BaselineSimulationOutput {
     return calculateBaseline(request, profession);
+  }
+
+  /** Runs the same probe evaluation as the skill damage worker, with damage diagnostics for its breakdowns. */
+  function calculateSkillDamage(request: SkillDamageRequest): SkillDamageEvaluation {
+    return evaluateSkillDamage(request, profession);
   }
 
   const api: ProfessionRuntimeApi = {
@@ -297,7 +310,8 @@ export function createProfessionRuntime({
     rotationPlanningStateAt,
     rotationPreviewAt,
     baselineSimulationRequest,
-    calculateBaselineSimulation
+    calculateBaselineSimulation,
+    calculateSkillDamage
   };
   return api;
 }

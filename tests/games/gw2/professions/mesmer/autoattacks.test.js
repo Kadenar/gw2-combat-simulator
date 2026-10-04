@@ -243,7 +243,7 @@ test('short utility casts preserve spear autoattack-chain progress', () => {
       initialResource: 0,
       primaryWeapon: 'Spear',
       secondaryWeapon: '',
-      selectedSkills: ['Well of Eternity']
+      selectedSkillIds: [30305]
     })
   );
 
@@ -296,7 +296,7 @@ test('a long utility cast resets ordinary spear autoattack-chain progress', () =
       initialResource: 0,
       primaryWeapon: 'Spear',
       secondaryWeapon: '',
-      selectedSkills: ['Well of Calamity']
+      selectedSkillIds: [30525]
     })
   );
 
@@ -361,6 +361,7 @@ test('clone attack selection returns the next cadence and ignores destroyed clon
     state,
     cloneAttacks: {
       Sword: {
+        id: 123,
         coefficient: 1,
         hits: 1,
         interval: 2,

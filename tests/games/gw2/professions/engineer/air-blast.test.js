@@ -5,7 +5,7 @@ import { ENGINEER_SKILL_IDS as ID, ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/prof
 import { createObservedProfessionSimulator } from '#tests/helpers/observed-runtime.js';
 
 const simulate = createObservedProfessionSimulator(engineerProfession, {
-  selectedSkills: ['Healing Turret', 'Flamethrower'],
+  selectedSkillIds: [5857, 5927],
   selectedTraitIds: [TRAIT.AIM_ASSISTED_ROCKET],
   target: { armor: 2597, conditions: {} }
 });

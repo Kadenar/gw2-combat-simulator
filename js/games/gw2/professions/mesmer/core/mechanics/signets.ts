@@ -5,7 +5,7 @@ import {
   requireBalanceProfileFromContext,
   balanceProfileNumber
 } from '#gw2/platform/engine/skills/balance-profiles.js';
-import { selectedSkillNameSet } from '#gw2/platform/builds/selected-skills.js';
+import { selectedSkillIdSet } from '#gw2/platform/builds/selected-skills.js';
 import { MESMER_SKILL_IDS as ID } from '#gw2/professions/mesmer/data/ids.js';
 import type { MesmerRuntime } from '#gw2/professions/mesmer/types.js';
 import { applySideEffect, type ActionContext } from '#gw2/platform/simulation/side-effects.js';
@@ -59,7 +59,7 @@ export function applyMesmerSignetReset(state: MesmerRuntime, context: ActionCont
 function equippedSignetOfIllusions(context: MesmerRuntime): MesmerSkill | null {
   const skill = context.helpers.skillsById.get(ID.SIGNET_OF_ILLUSIONS);
   if (!skill) return null;
-  const equipped = selectedSkillNameSet(context.config.selectedSkills).has(skill.name);
+  const equipped = selectedSkillIdSet(context.config.selectedSkillIds).has(skill.id);
   return equipped ? skill : null;
 }
 

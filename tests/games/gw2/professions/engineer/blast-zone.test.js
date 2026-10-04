@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { engineerProfession } from '#gw2/professions/engineer/profession.js';
+import { engineerCatalog } from '#gw2/professions/engineer/catalog.js';
 import { ENGINEER_SKILL_IDS as ID, ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
 import { createObservedProfessionSimulator } from '#tests/helpers/observed-runtime.js';
 
@@ -27,7 +28,7 @@ test('Blast Zone grants fire-field Might from healing toolbelts and first mech c
     ['Mechanist', 'Rectifier Signet', 'Spark Revolver', TRAIT.MECH_ARMS_JADE_CANNONS]
   ]) {
     const result = simulate(specialization, [...fireField, skill, { type: 'wait', durationMs: 2000 }], {
-      selectedSkills: [heal, 'Bomb Kit'],
+      selectedSkillIds: [engineerCatalog.skillsByName.get(heal).id, 5812],
       selectedTraitIds: [TRAIT.BLAST_ZONE, ...(commandTrait ? [commandTrait] : [])]
     });
     assert.deepEqual(result.warnings, [], skill);
@@ -57,14 +58,14 @@ test('Blast Zone excludes heals, other toolbelts, unselected traits, and cancell
     ['Mechanist', ['Discharge Array', 'Jade Mortar'], {}]
   ]) {
     const result = simulate(specialization, rotation, {
-      selectedSkills: ['Med Kit', 'Grenade Kit'],
+      selectedSkillIds: [5802, 5805],
       ...config
     });
     assert.deepEqual(result.warnings, []);
     assert.deepEqual(blasts(result), []);
   }
 
-  const noField = simulate('Core', ['Bandage Self'], { selectedSkills: ['Med Kit'] });
+  const noField = simulate('Core', ['Bandage Self'], { selectedSkillIds: [5802] });
   assert.deepEqual(noField.warnings, []);
   assert.equal(blasts(noField).length, 1);
   assert.equal(
@@ -76,7 +77,7 @@ test('Blast Zone excludes heals, other toolbelts, unselected traits, and cancell
 // A toolbelt's own field must register before the blast, and accepted combos must reach existing trait consumers once.
 test('Blast Zone uses the triggering water field and activates Kinetic Accelerators once', () => {
   const result = simulate('Scrapper', ['Reconstruction Field'], {
-    selectedSkills: ['Medic Gyro'],
+    selectedSkillIds: [30357],
     selectedTraitIds: [TRAIT.BLAST_ZONE, TRAIT.KINETIC_ACCELERATORS]
   });
   assert.deepEqual(result.warnings, []);

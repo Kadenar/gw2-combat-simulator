@@ -1,5 +1,5 @@
 {
-  "schemaVersion": 3,
+  "schemaVersion": 4,
   "profession": "engineer",
   "gear": {
     "Helm": "Viper's",
@@ -56,12 +56,12 @@
       "traits": "2-1-2"
     }
   ],
-  "selectedSkills": {
-    "Heal": "Healing Turret",
-    "Utility1": "Bomb Kit",
-    "Utility2": "Flamethrower",
-    "Utility3": "Plasmatic State",
-    "Elite": "Flux State"
+  "selectedSkillIds": {
+    "Heal": 5857,
+    "Utility1": 5812,
+    "Utility2": 5927,
+    "Utility3": 77209,
+    "Elite": 76993
   },
   "selectedMorphSkillIds": [77163, 76901, 76568],
   "assumptions": {

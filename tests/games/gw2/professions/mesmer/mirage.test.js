@@ -262,7 +262,7 @@ test('Split Surge resolves its three beam packets with per-hit Might and Vulnera
       specialization: 'Mirage',
       primaryWeapon: 'Greatsword',
       secondaryWeapon: '',
-      selectedSkills: ['Signet of Midnight'],
+      selectedSkillIds: [10234],
       initialResource: 0
     })
   );
@@ -326,7 +326,7 @@ test('Fractured Glass resolves seven measured packets with per-hit Vulnerability
     ['Dodge / Mirage Cloak', 'Fractured Glass', 'Sand through Glass', 'Fractured Glass'],
     defaultSimulationConfig({
       specialization: 'Mirage',
-      selectedSkills: ['Sand through Glass'],
+      selectedSkillIds: [43064],
       primaryWeapon: 'Spear',
       secondaryWeapon: '',
       initialResource: 0,
@@ -410,7 +410,7 @@ test('Riddle of Sand applies to the first ambush and refreshes on shatter', () =
     defaultSimulationConfig({
       specialization: 'Mirage',
       selectedTraitIds: [TRAIT.RIDDLE_OF_SAND],
-      selectedSkills: ['Sand through Glass'],
+      selectedSkillIds: [43064],
       primaryWeapon: 'Axe',
       secondaryWeapon: 'Pistol',
       initialResource: 0
@@ -490,7 +490,7 @@ test('Self-Deception creates a clone only when another clone is active', () => {
   const config = defaultSimulationConfig({
     specialization: 'Mirage',
     selectedTraitIds: [TRAIT.SELF_DECEPTION],
-    selectedSkills: ['Crystal Sands'],
+    selectedSkillIds: [41065],
     primaryWeapon: 'Axe',
     secondaryWeapon: 'Pistol'
   });
@@ -663,7 +663,7 @@ test('Crystal Sands creates a collectible Mirage Mirror with delayed damage', ()
     ['Crystal Sands', 'Pick Up Mirage Mirror'],
     defaultSimulationConfig({
       specialization: 'Mirage',
-      selectedSkills: ['Crystal Sands'],
+      selectedSkillIds: [41065],
       selectedTraitIds: [TRAIT.DUNE_CLOAK],
       primaryWeapon: 'Axe',
       secondaryWeapon: 'Torch',
@@ -697,7 +697,7 @@ test('False Oasis creates its Mirage Mirror three seconds after the first pulse'
     ['False Oasis', 'Pick Up Mirage Mirror'],
     defaultSimulationConfig({
       specialization: 'Mirage',
-      selectedSkills: ['False Oasis'],
+      selectedSkillIds: [40200],
       primaryWeapon: 'Axe',
       secondaryWeapon: 'Torch',
       initialResource: 0

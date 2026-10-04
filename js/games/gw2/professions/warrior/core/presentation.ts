@@ -1,9 +1,10 @@
 import type { ProfessionAttributePreviewContext } from '#gw2/platform/profession-presentation/attribute-preview.js';
-import { createAttributePreviewControls } from '#gw2/professions/shared/attribute-preview.js';
+import { createPreviewControls } from '#gw2/professions/shared/attribute-preview.js';
+import type { SkillDamagePreviewPreparation } from '#gw2/platform/profession-presentation/skill-damage.js';
+import { WARRIOR_CORE_BALANCE_PROFILE_IDS } from '#gw2/professions/warrior/core/profiles.js';
 
 import type { PaletteOverride } from '#gw2/platform/profession-presentation/types.js';
 import { PERMANENT_COMBO_FIELD_ASSUMPTION_CONTROLS } from '#gw2/platform/combos/permanent-field-assumption.js';
-import { flattenProfessionState } from '#gw2/platform/engine/profession/state.js';
 import {
   balanceProfileNumber,
   requireBalanceProfileFromContext
@@ -16,7 +17,7 @@ import type {
   ProfessionResourceView,
   RotationStateSnapshotItem
 } from '#gw2/platform/profession-presentation/types.js';
-import { timedBuffAt, timedBuffStacksAt } from '#gw2/platform/results/query.js';
+import { planningBuffAt, planningBuffStacks } from '#gw2/platform/results/query.js';
 import { SIMULATION_RANDOMNESS_ASSUMPTION_CONTROLS } from '#gw2/platform/simulation/randomness.js';
 import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
 import { WARRIOR_SKILL_IDS as ID, WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/professions/warrior/data/ids.js';
@@ -37,7 +38,8 @@ const WARRIOR_REGULAR_BURSTS_BY_WEAPON: Readonly<Record<string, number>> = Objec
 });
 
 export function warriorUiState(context: WarriorUiContext = {}): Partial<WarriorState> {
-  return flattenProfessionState(context.state?.profession || context.professionState);
+  // Presentation callers supply the flat projection for the inspected rotation point.
+  return context.professionState ?? {};
 }
 
 /** Simulation time (seconds) of the rotation point being inspected. */
@@ -145,11 +147,9 @@ function hasSignetMasteryTrait(context: WarriorUiContext): boolean {
 function warriorCoreStateSnapshot(
   context: WarriorUiContext & { readonly balanceContext: ProfessionBalanceContext }
 ): RotationStateSnapshotItem[] {
-  const result = context.result;
-  const at = warriorSnapshotAt(context);
   const items: RotationStateSnapshotItem[] = [];
   const balance = context.balanceContext;
-  const peakPerformance = timedBuffAt(result, 'peak-performance', at);
+  const peakPerformance = planningBuffAt(context.planningState, 'peak-performance');
   if (peakPerformance) {
     // Show the active window here; the trait tooltip owns damage bonus details.
     items.push({
@@ -164,7 +164,7 @@ function warriorCoreStateSnapshot(
     const profile = requireBalanceProfileFromContext(balance, TRAIT.SIGNET_MASTERY);
     const maximum = balanceProfileNumber(profile, 'maximumStacks');
     const bonus = balanceProfileNumber(profile, 'attributeBonus');
-    const stacks = timedBuffStacksAt(result, 'signet-mastery', at);
+    const stacks = planningBuffStacks(context.planningState, 'signet-mastery');
     if (stacks > 0) {
       items.push({
         id: 'signet-mastery',
@@ -191,7 +191,7 @@ function warriorCoreStateSnapshot(
       balanceProfileNumber(requireBalanceProfileFromContext(balance, TRAIT.BERSERKERS_POWER), 'maximumStacks')
     ]
   ] as const) {
-    const stacks = timedBuffStacksAt(result, kind, at);
+    const stacks = planningBuffStacks(context.planningState, kind);
     if (stacks > 0) items.push({ id, label, value: `${stacks}/${maximum}`, title: `${label} active stacks` });
   }
 
@@ -211,12 +211,44 @@ function warriorCoreEffectPresentations(_context: WarriorUiContext): ProfessionE
 
 export const warriorCoreUi: WarriorUiSlice = Object.freeze({
   /** Declare this module's conditional inputs without adding simulation settings. */
-  attributePreviewControls(context: ProfessionAttributePreviewContext) {
-    const preview = createAttributePreviewControls(context);
+  previewControls(context: ProfessionAttributePreviewContext) {
+    const preview = createPreviewControls(context);
+    // Starting adrenaline selects the real burst tier; Bladesworn's charge ladder owns its separate Flow setup.
+    if (!['Bladesworn', 'Spellbreaker'].includes(context.specialization))
+      preview.add({
+        key: 'adrenaline',
+        label: 'Starting adrenaline',
+        group: 'Mechanic',
+        kind: 'special',
+        scope: ['damage'],
+        max: balanceProfileNumber(
+          requireBalanceProfileFromContext(context, WARRIOR_CORE_BALANCE_PROFILE_IDS.resources),
+          'maximumStacks'
+        ),
+        initial: Number(context.build.initialResource) || 0,
+        description: 'Adrenaline before setup; bursts spend it normally'
+      });
+    preview.trait('Peak Performance', {
+      key: 'peakPerformance',
+      kind: 'buff',
+      field: 'peak-performance',
+      scope: ['damage'],
+      description: 'Physical skill bonus active'
+    });
 
     preview.buff('Signet Mastery', 'signetMastery', 'signet-mastery', 'Ferocity', true);
     preview.buff('Furious', 'furious', 'furious-surge', 'Condition Damage', true);
     preview.buff('Burst Precision', 'burstPrecision', 'burst-precision', 'Critical Chance / Ferocity');
+    // The existing timed-buff path exposes the selected damage stack without duplicating its multiplier or cap.
+    if (preview.has("Berserker's Power"))
+      preview.trait("Berserker's Power", {
+        key: 'berserkersPower',
+        kind: 'buff',
+        field: 'berserkers-power',
+        scope: ['damage'],
+        description: 'Burst-earned strike damage',
+        max: preview.maximumStacks("Berserker's Power")
+      });
     if (preview.has('Unsuspecting Foe'))
       preview.add({
         key: 'defiant',
@@ -227,9 +259,13 @@ export const warriorCoreUi: WarriorUiSlice = Object.freeze({
         description: 'Defiant-target critical bonuses'
       });
     preview.condition('Bleeding', 'Deep Strikes');
-    preview.passives('Signet of Might', 'Signet of Fury');
+    preview.passives(ID.SIGNET_OF_MIGHT, ID.SIGNET_OF_FURY);
     return preview.controls;
   },
+
+  /** Seed the native adrenaline owner without editing the build. */
+  prepareSkillDamagePreview: ({ values }: SkillDamagePreviewPreparation) =>
+    values.adrenaline == null ? {} : { initialResource: Number(values.adrenaline) },
 
   // Burst tiles are authored for a specific weapon set; inactive-set insertion needs an explicit swap.
   paletteOverride: (context, skill) => {

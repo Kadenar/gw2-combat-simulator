@@ -1,22 +1,22 @@
+import { GUARDIAN_SKILL_IDS as ID } from '#gw2/professions/guardian/data/ids.js';
 import type { ProfessionAttributePreviewContext } from '#gw2/platform/profession-presentation/attribute-preview.js';
-import { createAttributePreviewControls } from '#gw2/professions/shared/attribute-preview.js';
+import { createPreviewControls } from '#gw2/professions/shared/attribute-preview.js';
 
-import { type SkillFlipWindows, skillFlipReady } from '#gw2/platform/engine/skills/skill-flips.js';
-import { flattenProfessionState } from '#gw2/platform/engine/profession/state.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
-import { SIMULATION_RANDOMNESS_ASSUMPTION_CONTROLS } from '#gw2/platform/simulation/randomness.js';
 import { PERMANENT_COMBO_FIELD_ASSUMPTION_CONTROLS } from '#gw2/platform/combos/permanent-field-assumption.js';
-import { GUARDIAN_SKILL_IDS, GUARDIAN_TRAIT_IDS } from '#gw2/professions/guardian/data/ids.js';
-import { activeSymbolicAvengerExpirations } from '#gw2/professions/guardian/core/state.js';
 import {
   balanceProfileNumber,
   requireBalanceProfileFromContext
 } from '#gw2/platform/engine/skills/balance-profiles.js';
+import { skillFlipReady } from '#gw2/platform/engine/skills/skill-flips.js';
 import type { CanonicalCatalog, SkillId } from '#gw2/platform/engine/skills/types.js';
 import type {
   ProfessionEffectPresentation,
   RotationStateSnapshotItem
 } from '#gw2/platform/profession-presentation/types.js';
+import { SIMULATION_RANDOMNESS_ASSUMPTION_CONTROLS } from '#gw2/platform/simulation/randomness.js';
+import { activeSymbolicAvengerExpirations } from '#gw2/professions/guardian/core/state.js';
+import { GUARDIAN_SKILL_IDS, GUARDIAN_TRAIT_IDS } from '#gw2/professions/guardian/data/ids.js';
 import type {
   GuardianSkill,
   GuardianState,
@@ -39,7 +39,8 @@ export function formatSecondsRemaining(seconds: number): string {
 }
 
 export function guardianUiState(context: GuardianUiContext = {}): Partial<GuardianState> {
-  return flattenProfessionState(context.state?.profession || context.professionState);
+  // Presentation callers supply the flat projection for the inspected rotation point.
+  return context.professionState ?? {};
 }
 
 /** Keeps Symbolic Avenger visible for every Guardian specialization while its damage bonus is active. */
@@ -64,19 +65,16 @@ function guardianCoreStateSnapshot(context: GuardianUiContext): RotationStateSna
 
 // Resolve named Guardian mechanic skills to their currently active flip faces for
 // stable skill-bar and palette projection.
-export function guardianUiSkillIdsByName(
+export function guardianUiSkillIds(
   catalog: Readonly<CanonicalCatalog<GuardianSkill>>,
-  names: readonly string[],
+  ids: readonly SkillId[],
   context: GuardianUiContext = {}
 ): SkillId[] {
-  const activeFlips =
-    (flattenProfessionState(context.state?.profession || context.professionState).availableFlips as
-      SkillFlipWindows | undefined) || {};
-  return names.flatMap((name) => {
-    const id = catalog.skillsByName.get(name)?.id;
-    if (id == null) return [];
+  const activeFlips = guardianUiState(context).availableFlips ?? {};
+  return ids.flatMap((id) => {
     const skill = catalog.skillsById.get(id);
-    const flipId = skill?.flipSkillId;
+    if (!skill) return [];
+    const flipId = skill.flipSkillId;
     const flip = flipId == null ? undefined : catalog.skillsById.get(flipId);
     // Direct UI callers may supply an older snapshot, so apply the same expiry gate as cast availability.
     return flipId != null &&
@@ -116,7 +114,11 @@ function guardianPaletteWeaponSkills(context: GuardianUiContext, skills: readonl
   });
 }
 
-const CORE_VIRTUE_NAMES = Object.freeze(['Virtue of Justice', 'Virtue of Resolve', 'Virtue of Courage']);
+const CORE_VIRTUE_IDS = Object.freeze([
+  GUARDIAN_SKILL_IDS.JUSTICE,
+  GUARDIAN_SKILL_IDS.RESOLVE,
+  GUARDIAN_SKILL_IDS.COURAGE
+]);
 const GUARDIAN_CORE_EFFECT_PRESENTATIONS: readonly ProfessionEffectPresentation[] = Object.freeze([
   {
     id: 'guardian-inspiring-virtue',
@@ -129,12 +131,22 @@ const GUARDIAN_CORE_EFFECT_PRESENTATIONS: readonly ProfessionEffectPresentation[
 export function bindGuardianCoreUi(catalog: Readonly<CanonicalCatalog<GuardianSkill>>): GuardianUiSlice {
   return Object.freeze({
     /** Declare this module's conditional inputs without adding simulation settings. */
-    attributePreviewControls(context: ProfessionAttributePreviewContext) {
-      const preview = createAttributePreviewControls(context);
+    previewControls(context: ProfessionAttributePreviewContext) {
+      const preview = createPreviewControls(context);
+      // Seed the native symbol stack pool so all weapon rows can show an established damage window.
+      if (preview.has('Symbolic Avenger'))
+        preview.trait('Symbolic Avenger', {
+          key: 'symbolicAvenger',
+          kind: 'buff',
+          field: 'symbolic-avenger',
+          scope: ['damage'],
+          max: preview.maximumStacks('Symbolic Avenger'),
+          description: 'Starting symbol-earned damage stacks'
+        });
 
       preview.boon('resolution', 'Righteous Instincts');
       preview.condition('Burning', 'Radiant Power');
-      preview.passives('Bane Signet', 'Signet of Wrath');
+      preview.passives(ID.BANE_SIGNET, ID.SIGNET_OF_WRATH);
       return preview.controls;
     },
 
@@ -149,7 +161,7 @@ export function bindGuardianCoreUi(catalog: Readonly<CanonicalCatalog<GuardianSk
             {
               id: 'profession',
               label: 'F',
-              skillIds: guardianUiSkillIdsByName(catalog, CORE_VIRTUE_NAMES, context),
+              skillIds: guardianUiSkillIds(catalog, CORE_VIRTUE_IDS, context),
               color: '#2f7eb8',
               resourceAnchor: true
             }

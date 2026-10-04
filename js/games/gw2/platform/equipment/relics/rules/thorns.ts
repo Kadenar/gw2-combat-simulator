@@ -3,7 +3,7 @@ import { EPSILON } from '#kernel/core/clock.js';
 import { defineRelic } from '#gw2/platform/equipment/relics/rules/shared.js';
 
 const THORNS_CONDITION_DAMAGE_PER_STACK = 30;
-const THORNS_MAX_STACKS = 10;
+export const THORNS_MAX_STACKS = 10;
 const THORNS_FIRST_STACK_AT = 3;
 const THORNS_STACK_INTERVAL = 5;
 

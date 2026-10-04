@@ -1,5 +1,5 @@
 {
-  "schemaVersion": 3,
+  "schemaVersion": 4,
   "profession": "warrior",
   "gear": {
     "Helm": "Berserker's",
@@ -38,12 +38,12 @@
     { "name": "Tactics", "traits": "1-1-1" },
     { "name": "Bladesworn", "traits": "1-2-2" }
   ],
-  "selectedSkills": {
-    "Heal": "Mending",
-    "Utility1": "Dragonspike Mine",
-    "Utility2": "Flow Stabilizer",
-    "Utility3": "Overcharged Cartridges",
-    "Elite": "Tactical Reload"
+  "selectedSkillIds": {
+    "Heal": 14401,
+    "Utility1": 62960,
+    "Utility2": 62967,
+    "Utility3": 68085,
+    "Elite": 62901
   },
   "assumptions": {
     "simulationMode": "deterministic",

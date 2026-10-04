@@ -28,11 +28,8 @@ export interface BuildAttributeTrait {
 export interface BuildAttributeContext<TTrait extends BuildAttributeTrait> {
   readonly activeTraits: readonly TTrait[];
   readonly profileContext: Pick<ProfessionBalanceContext, 'catalog'>;
-  hasSelectedSkill(id: SkillId): boolean;
+  hasSelectedSkillId(id: SkillId): boolean;
 }
-
-// Catalog IDs may be authored as numbers or numeric strings; compare their canonical text form.
-const sameId = (left: SkillId, right: SkillId): boolean => String(left) === String(right);
 
 /**
  * Resolves active traits and exposes the selected-skill lookup
@@ -53,14 +50,14 @@ export function createBuildAttributeContext<TTrait extends BuildAttributeTrait>(
   const profileContext = balanceContext ?? { catalog };
 
   // Stable skill IDs keep renamed display names from disabling passives.
-  function hasSelectedSkill(id: SkillId): boolean {
-    return selectedSkills.some((skill) => sameId(skill.id, id));
+  function hasSelectedSkillId(id: SkillId): boolean {
+    return selectedSkills.some((skill) => skill.id === id);
   }
 
   return {
     activeTraits,
     profileContext,
-    hasSelectedSkill
+    hasSelectedSkillId
   };
 }
 

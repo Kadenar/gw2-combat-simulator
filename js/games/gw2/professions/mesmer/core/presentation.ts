@@ -1,8 +1,7 @@
 import type { ProfessionAttributePreviewContext } from '#gw2/platform/profession-presentation/attribute-preview.js';
-import { createAttributePreviewControls } from '#gw2/professions/shared/attribute-preview.js';
+import { createPreviewControls } from '#gw2/professions/shared/attribute-preview.js';
 
 import { PERMANENT_COMBO_FIELD_ASSUMPTION_CONTROLS } from '#gw2/platform/combos/permanent-field-assumption.js';
-import { flattenProfessionState } from '#gw2/platform/engine/profession/state.js';
 import {
   balanceProfileNumber,
   requireBalanceProfileFromContext
@@ -18,6 +17,8 @@ import type {
 import { SIMULATION_RANDOMNESS_ASSUMPTION_CONTROLS } from '#gw2/platform/simulation/randomness.js';
 import { MESMER_SKILL_IDS as ID } from '#gw2/professions/mesmer/data/ids.js';
 import { mesmerResourceProfileId } from '#gw2/professions/mesmer/family-state.js';
+import { mesmerResourceDefinition } from '#gw2/professions/mesmer/family-state.js';
+import type { SkillDamagePreviewPreparation } from '#gw2/platform/profession-presentation/skill-damage.js';
 import type {
   MesmerResolverEvent,
   MesmerUiContext,
@@ -38,7 +39,8 @@ function mesmerUiSpecialization(context: MesmerUiContext = {}): string {
 }
 
 export function mesmerUiState(context: MesmerUiContext = {}): MesmerUiState {
-  return flattenProfessionState(context.state?.profession || context.professionState);
+  // Presentation callers supply the flat projection for the inspected rotation point.
+  return context.professionState ?? {};
 }
 
 /** Converts the projected millisecond Clarity duration into an active-state timer. */
@@ -81,7 +83,7 @@ export function mesmerResourceViews(
   context: MesmerUiContext,
   definition: MesmerUiResourceDefinition
 ): ProfessionResourceView[] {
-  const state: MesmerUiState = flattenProfessionState(context.state?.profession || context.professionState);
+  const state = mesmerUiState(context);
   // Palette pips use the same selected capacity as runtime resource spending.
   const specialization = definition.id === 'blades' ? 'Virtuoso' : definition.id === 'notes' ? 'Troubadour' : 'Core';
   const maximum = balanceProfileNumber(
@@ -159,15 +161,35 @@ function mesmerCoreEffectPresentations(_context: MesmerUiContext): ProfessionEff
 
 export const mesmerCoreUi: MesmerUiSlice = Object.freeze({
   /** Declare this module's conditional inputs without adding simulation settings. */
-  attributePreviewControls(context: ProfessionAttributePreviewContext) {
-    const preview = createAttributePreviewControls(context);
+  previewControls(context: ProfessionAttributePreviewContext) {
+    const preview = createPreviewControls(context);
+
+    // Every specialization seeds its existing resource owner; shatters and instruments spend it normally.
+    const resource = mesmerResourceDefinition(context.specialization, context);
+    preview.add({
+      key: 'initialResource',
+      label: `Starting ${resource.plural}`,
+      group: 'Mechanic',
+      kind: 'special',
+      scope: ['damage'],
+      max: resource.maximum,
+      // Simulation starts clone-owning builds empty; the detached control can still explore populated shatters.
+      initial:
+        resource.plural === 'clones'
+          ? 0
+          : Number((context.build as { readonly initialResource?: unknown }).initialResource) || 0,
+      description: `${resource.plural} before setup; resource gains and spending follow the runtime`
+    });
 
     preview.boon('regeneration', 'Chaotic Persistence');
     preview.buff("Fencer's Finesse", 'fencer', 'fencer', 'Ferocity', true);
     preview.targetHealth('Superiority Complex');
-    preview.passives('Signet of Domination', 'Signet of Midnight');
+    preview.passives(ID.SIGNET_OF_DOMINATION, ID.SIGNET_OF_MIDNIGHT);
     return preview.controls;
   },
+  /** Keep starting clones, blades or notes detached from the saved build and the Attribute Preview. */
+  prepareSkillDamagePreview: ({ values }: SkillDamagePreviewPreparation) =>
+    values.initialResource == null ? {} : { initialResource: Number(values.initialResource) },
 
   assumptionControls: [...SIMULATION_RANDOMNESS_ASSUMPTION_CONTROLS, ...PERMANENT_COMBO_FIELD_ASSUMPTION_CONTROLS],
   effectPresentations: mesmerCoreEffectPresentations,

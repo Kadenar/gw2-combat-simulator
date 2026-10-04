@@ -1,5 +1,5 @@
 {
-  "schemaVersion": 3,
+  "schemaVersion": 4,
   "profession": "warrior",
   "gear": {
     "Helm": "Berserker's",
@@ -34,12 +34,12 @@
     { "name": "Strength", "traits": "3-3-1" },
     { "name": "Spellbreaker", "traits": "1-3-3" }
   ],
-  "selectedSkills": {
-    "Heal": "Healing Signet",
-    "Utility1": "Kick",
-    "Utility2": "Signet of Fury",
-    "Utility3": "Signet of Might",
-    "Elite": "Winds of Disenchantment"
+  "selectedSkillIds": {
+    "Heal": 14389,
+    "Utility1": 14502,
+    "Utility2": 14410,
+    "Utility3": 14404,
+    "Elite": 45333
   },
   "assumptions": {
     "simulationMode": "deterministic",

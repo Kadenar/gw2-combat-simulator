@@ -1,9 +1,9 @@
 import type { EffectEmissionService } from '#gw2/platform/simulation/effect-emission.js';
 /** Owns the equipment/relics/types.ts contracts so type dependencies follow their runtime feature boundaries. */
+import type { Gw2TargetConfig } from '#gw2/platform/combat/state/targets.js';
 import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
 import type { Skill } from '#gw2/platform/engine/skills/types.js';
 import type { Gw2ResolverHelpers } from '#gw2/platform/resolver/types.js';
-import type { Gw2TargetConfig } from '#gw2/platform/combat/state/targets.js';
 
 /** Minimal configuration surface consumed by relic rules. */
 interface Gw2RelicConfig {
@@ -65,6 +65,13 @@ export interface Gw2ConditionHelpers {
 }
 
 export interface Gw2RelicRule {
+  /** The same per-occurrence payload is called after combat eligibility or directly by the damage calculator. */
+  readonly damagePayload?: (
+    context: Gw2RelicContext,
+    state: Gw2RelicState,
+    event: SimulationEvent,
+    inputs?: import('#gw2/platform/skill-damage/types.js').DamageInputs
+  ) => void;
   readonly createState?: () => Gw2RelicState;
   readonly emitConditionEffects?: (
     context: Gw2RelicEmissionContext,

@@ -2,7 +2,7 @@ import type {
   ProfessionAttributePreviewContext,
   ProfessionAttributePreviewInput
 } from '#gw2/platform/profession-presentation/attribute-preview.js';
-import { createAttributePreviewControls } from '#gw2/professions/shared/attribute-preview.js';
+import { createPreviewControls } from '#gw2/professions/shared/attribute-preview.js';
 
 import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
 import { REVENANT_MAXIMUM_ENDURANCE } from '#gw2/professions/revenant/core/state.js';
@@ -67,7 +67,7 @@ export function vindicatorDodgeAutoRotationEntries(context: RevenantUiContext, o
 function vindicatorPaletteActionSkills(context: RevenantUiContext, skills: readonly Skill[]): Skill[] {
   // Strip any stale synthetic entry first so it cannot appear twice if called repeatedly.
   const ordinarySkills = skills
-    .filter((skill) => skill.name !== VINDICATOR_DODGE_AUTO_ACTION && skill.id !== VINDICATOR_JUMP_SKILL.id)
+    .filter((skill) => skill.id !== VINDICATOR_DODGE_AUTO_ACTION && skill.id !== VINDICATOR_JUMP_SKILL.id)
     // Manual reconstruction uses the full jump; legacy landing-only commands remain loadable by ID.
     .map((skill) => (skill.id === SHARED_SKILL_IDS.DODGE ? VINDICATOR_JUMP_SKILL : skill));
   const dodgeAuto = vindicatorDodgeAutoPaletteSkill(context);
@@ -105,8 +105,8 @@ function vindicatorStateSnapshot(context: RevenantUiContext): RotationStateSnaps
 
 export const vindicatorUi: RevenantUiSlice = Object.freeze({
   /** Declare this module's conditional inputs without adding simulation settings. */
-  attributePreviewControls(context: ProfessionAttributePreviewContext) {
-    const preview = createAttributePreviewControls(context);
+  previewControls(context: ProfessionAttributePreviewContext) {
+    const preview = createPreviewControls(context);
     preview.playerHealth(['Empire Divided']);
     return preview.controls;
   },

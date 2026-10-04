@@ -16,7 +16,7 @@ import assert from 'node:assert/strict';
 import { test } from 'node:test';
 
 const baseConfig = Object.freeze({
-  selectedSkills: ['Healing Turret', 'Grenade Kit', 'Throw Mine', 'Elixir Gun', 'Supply Crate'],
+  selectedSkillIds: [5857, 5805, 6161, 5933, 5868],
   selectedMorphSkillIds: [77103, 77203, 76954],
   stats: {
     power: 2000,
@@ -118,7 +118,7 @@ test('Rapacious with zero ICD cannot trigger itself but still triggers Carbolic 
 
 test('Amalgam traits activate on morph and Evolve chronology', () => {
   const result = simulate('Amalgam', [77103, 77104, 76705, 'Evolve', 'Grenade Kit', 'Shrapnel Grenade'], {
-    selectedSkills: ['Healing Turret', 'Grenade Kit', 'Flamethrower', 'Plasmatic State', 'Flux State'],
+    selectedSkillIds: [5857, 5805, 5927, 77209, 76993],
     selectedMorphSkillIds: [77103, 77104, 76705],
     selectedTraitIds: [TRAIT.WILLING_HOST, TRAIT.HARDENED_CHROME, TRAIT.CARBOLIC_COMPOSITION, TRAIT.NEW_GENES]
   });
@@ -211,7 +211,7 @@ test('Evolve cannot raise condition duration above the global cap', () => {
     'Amalgam',
     ['Evolve', 'Grenade Kit', 'Shrapnel Grenade', { type: 'wait', durationMs: 13000 }],
     {
-      selectedSkills: ['Healing Turret', 'Grenade Kit', 'Flamethrower', 'Bomb Kit', 'Flux State'],
+      selectedSkillIds: [5857, 5805, 5927, 5812, 76993],
       selectedMorphSkillIds: [77103, 77104, 76705],
       selectedTraitIds: [TRAIT.SERRATED_STEEL],
       stats: { expertise: 1500 },
@@ -664,7 +664,7 @@ test('Thorns damaging-field assumption creates six one-second retaliations', () 
 test('Plasmatic State models both phases as one cast', () => {
   const result = simulate('Amalgam', ['Plasmatic State', 'Puncturing Jab'], {
     boons: { quickness: true },
-    selectedSkills: ['Healing Turret', 'Grenade Kit', 'Flamethrower', 'Plasmatic State', 'Flux State'],
+    selectedSkillIds: [5857, 5805, 5927, 77209, 76993],
     selectedMorphSkillIds: [77103, 77104, 76705]
   });
   const step = result.steps.find((step) => step.skill === 'Plasmatic State');

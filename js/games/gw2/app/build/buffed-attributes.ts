@@ -1,15 +1,18 @@
-import type { ProfessionAttributePreviewPreparation } from '#gw2/platform/profession-presentation/attribute-preview.js';
+import type {
+  ProfessionAttributePreviewPreparation,
+  PreviewControl
+} from '#gw2/platform/profession-presentation/attribute-preview.js';
+import { createSkillDamagePreview } from '#gw2/app/build/skill-damage/preview.js';
+import { queryDamagePreview } from '#gw2/platform/skill-damage/preview-state.js';
+import type { Gw2ModifierContribution } from '#gw2/platform/combat/modifiers.js';
 import { derivedAttribute, PRIMARY_ATTRIBUTES } from '#gw2/platform/builds/attributes.js';
 import { createGw2CombatQuery } from '#gw2/platform/combat/query/combat-query.js';
 import { GW2_STANDARD_BOONS } from '#gw2/platform/combat/boons.js';
 import { createRelicRuntime } from '#gw2/platform/equipment/relics/runtime.js';
 import { relicConditionDurationBonus } from '#gw2/platform/equipment/relics/query.js';
 import { resolveProfessionContract } from '#gw2/platform/engine/profession/contract.js';
-import {
-  attributeEffectControls,
-  attributePreviewContext,
-  normalizeAttributePreview
-} from '#gw2/app/build/attribute-effects.js';
+import { attributeEffectControls, normalizeAttributePreview } from '#gw2/app/build/attribute-effects.js';
+import { createIsolatedPreview } from '#gw2/app/build/isolated-preview.js';
 import type { ProfessionAppState } from '#gw2/app/types.js';
 import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
 import type { Gw2TimedBuffApplication } from '#gw2/platform/combat/boons.js';
@@ -21,42 +24,74 @@ export function calculateBuffedAttributes(
   app: ProfessionAppState,
   input: Readonly<Record<string, unknown>> = {}
 ): NonNullable<ProfessionAppState['attributeData']> {
-  const controls = attributeEffectControls(app);
+  return calculatePreview(app, input, attributeEffectControls(app));
+}
+
+/** The damage strip queries the same prepared runtime as its rows, at full player health and without a skill override. */
+export function calculateSkillDamageAttributes(
+  app: ProfessionAppState,
+  input: Readonly<Record<string, unknown>>,
+  controls: readonly PreviewControl[]
+) {
+  const { preview, config, inputs } = createSkillDamagePreview(app, controls, input);
+  const attributes = structuredClone(preview.attributeData!.attributes);
+  return queryDamagePreview(app.profession, config, inputs, (runtime) => {
+    const at = runtime.time;
+    const event: SimulationEvent = {
+      type: 'action',
+      at,
+      actorType: 'player',
+      source: 'Player',
+      sourceId: 'stat-preview'
+    };
+    const query = runtime.query;
+    const stats = query.statsAt(at, event, runtime);
+    const critical = query.critical(event, at, runtime);
+    const set = (name: string, final: number): void => {
+      const original = attributes[name] || derivedAttribute(0);
+      attributes[name] = Object.assign({}, original, { final, conditional: final - original.final });
+    };
+
+    for (const name of PRIMARY_ATTRIBUTES)
+      set(name, Number(stats[(name[0].toLowerCase() + name.slice(1).replaceAll(' ', '')) as Gw2NumericStatKey]));
+    set('Critical Chance', (critical.chanceBeforeCap ?? critical.chance) * 100);
+    set('Critical Damage', critical.damage * 100);
+    set(
+      'Boon Duration',
+      attributes['Boon Duration'].final +
+        (stats.concentration - preview.attributeData!.attributes.Concentration.final) / 15
+    );
+    set('Condition Duration', (query.conditionDurationMultiplier('', at, stats, event, runtime) - 1) * 100);
+    for (const name of ['Burning', 'Bleeding', 'Torment', 'Confusion', 'Poison'])
+      set(
+        name + ' Duration',
+        (query.conditionDurationMultiplier(name === 'Poison' ? 'Poisoned' : name, at, stats, event, runtime) - 1) * 100
+      );
+    // The strip reports generic player factors; occurrence diagnostics retain skill-specific modifiers.
+    const contributors: Gw2ModifierContribution[] = [];
+    set('Strike Multiplier', query.strikeMultiplier(event, at, runtime, contributors));
+    set('Condition Multiplier', query.conditionMultiplier('', at, event, runtime, undefined, contributors));
+    set('Target Armor', Number(config.target?.armor) || 2597);
+    return {
+      attributes,
+      alwaysApplied: [...new Set(contributors.filter((entry) => entry.unconditional).map((entry) => entry.label))]
+    };
+  });
+}
+
+function calculatePreview(
+  app: ProfessionAppState,
+  input: Readonly<Record<string, unknown>>,
+  controls: readonly PreviewControl[]
+) {
   const values = normalizeAttributePreview(controls, input);
   const playerHealth = Number(values.playerHealth ?? 100) / 100;
   const boons = Object.fromEntries(
     GW2_STANDARD_BOONS.map((key) => [key, key === 'might' ? Number(values[key] || 0) : Boolean(values[key])])
   );
-  const preview = {
-    ...app,
-    build: {
-      ...structuredClone(app.build),
-      startingWeaponSet: app.attributeWeaponSet,
-      assumptions: {
-        ...app.build.assumptions,
-        ...boons
-      }
-    },
-    results: null
-  } as ProfessionAppState;
-  // Removing a disabled passive before recalculation also updates conversions that use the passive's attributes.
-  for (const control of controls) {
-    if (control.kind !== 'passive' || values[control.key]) continue;
-    for (const [slot, name] of Object.entries(preview.build.selectedSkills)) {
-      if (name === control.field) preview.build.selectedSkills[slot] = '';
-    }
-  }
-
-  // Profession owners may suppress a static trait before rebuilding the isolated conversion pool.
-  const context = { ...attributePreviewContext(app), build: preview.build, values };
-  const disabledTrait = app.profession.ui.attributePreviewDisabledTrait(context);
-  app.adapter.recalculate(preview, disabledTrait);
-  const data = structuredClone(preview.attributeData!);
-  const config = app.adapter.simulationConfig(
-    preview,
-    disabledTrait ? { type: 'Trait', id: `Trait:${disabledTrait}`, name: disabledTrait, label: disabledTrait } : null
-  );
   const weaponSet = app.attributeWeaponSet === 2 ? 2 : 1;
+  const { preview, context, config } = createIsolatedPreview(app, controls, values, boons, weaponSet);
+  const data = structuredClone(preview.attributeData!);
   // Supply defensive primaries omitted by the damage configuration so all-attribute effects preserve them.
   const primaries = Object.fromEntries(
     PRIMARY_ATTRIBUTES.map((name) => [

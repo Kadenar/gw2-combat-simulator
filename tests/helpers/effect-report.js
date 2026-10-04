@@ -1,5 +1,5 @@
 import { conditionStackLimit } from '#gw2/platform/combat/state/targets.js';
-import { EffectRecorder } from '#gw2/platform/results/effect-report.js';
+import { EffectRecorder, effectStateAt } from '#gw2/platform/results/effect-report.js';
 import { observeBuffState, timedEffectState } from '#gw2/platform/combat/effect-state.js';
 import { recordBuffApplication, applyBoonExtension, standardBoonPresentation } from '#gw2/platform/combat/boons.js';
 import { buildBoonGeneration, projectedPartyEffects } from '#gw2/platform/results/boon-generation.js';
@@ -56,4 +56,21 @@ export function effectFields(applications = [], end = 120, { policies = [], fram
     effectReport: { ...report, tracks: [...report.tracks, ...projectedPartyEffects(generation, end).tracks] },
     boonGeneration: { alliedPlayerCount: generation.alliedPlayerCount, boons: Object.fromEntries(generation.boons) }
   };
+}
+
+/** Sample fixture histories into the detached single-boundary observations used by editor displays. */
+export function effectPlanningState(result, atSeconds) {
+  const effects = (result?.effectReport?.tracks ?? []).map((track) => {
+    const value = effectStateAt(result.effectReport, track, atSeconds);
+    const metadata = { ...track };
+    delete metadata.segments;
+    delete metadata.terminal;
+    delete metadata.id;
+    return {
+      ...metadata,
+      source: value?.source,
+      windows: value?.count ? [{ stacks: value.count, expiresAt: value.expiresAt, source: value.source }] : []
+    };
+  });
+  return { atSeconds, effects: structuredClone(effects) };
 }

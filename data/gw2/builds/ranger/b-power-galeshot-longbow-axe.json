@@ -1,5 +1,5 @@
 {
-  "schemaVersion": 4,
+  "schemaVersion": 5,
   "profession": "ranger",
   "gear": {
     "Helm": "Berserker's",
@@ -29,21 +29,39 @@
   "utility": "Superior Sharpening Stone",
   "jadeBotCore": true,
   "infusions": [
-    { "stat": "Power", "count": 18 },
-    { "stat": "Precision", "count": 0 },
-    { "stat": "Condition Damage", "count": 0 }
+    {
+      "stat": "Power",
+      "count": 18
+    },
+    {
+      "stat": "Precision",
+      "count": 0
+    },
+    {
+      "stat": "Condition Damage",
+      "count": 0
+    }
   ],
   "specializations": [
-    { "name": "Marksmanship", "traits": "3-1-1" },
-    { "name": "Skirmishing", "traits": "1-2-3" },
-    { "name": "Galeshot", "traits": "3-3-2" }
+    {
+      "name": "Marksmanship",
+      "traits": "3-1-1"
+    },
+    {
+      "name": "Skirmishing",
+      "traits": "1-2-3"
+    },
+    {
+      "name": "Galeshot",
+      "traits": "3-3-2"
+    }
   ],
-  "selectedSkills": {
-    "Heal": "\"We Heal As One!\"",
-    "Utility1": "Mistral",
-    "Utility2": "Signet of the Wild",
-    "Utility3": "Piercing Gales",
-    "Elite": "Perfect Storm"
+  "selectedSkillIds": {
+    "Heal": 31914,
+    "Utility1": 76757,
+    "Utility2": 12491,
+    "Utility3": 77264,
+    "Elite": 76979
   },
   "selectedPet": "Carrion Devourer",
   "selectedPet2": "Fanged Iboga",

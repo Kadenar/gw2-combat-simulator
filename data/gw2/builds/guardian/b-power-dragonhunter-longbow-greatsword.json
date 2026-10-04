@@ -1,5 +1,5 @@
 {
-  "schemaVersion": 3,
+  "schemaVersion": 4,
   "profession": "guardian",
   "gear": {
     "Helm": "Berserker's",
@@ -57,12 +57,12 @@
       "traits": "1-2-3"
     }
   ],
-  "selectedSkills": {
-    "Heal": "Purification",
-    "Utility1": "Procession of Blades",
-    "Utility2": "Sword of Justice",
-    "Utility3": "Bane Signet",
-    "Elite": "Dragon's Maw"
+  "selectedSkillIds": {
+    "Heal": 30025,
+    "Utility1": 30364,
+    "Utility2": 9168,
+    "Utility3": 9093,
+    "Elite": 30273
   },
   "assumptions": {
     "simulationMode": "deterministic",

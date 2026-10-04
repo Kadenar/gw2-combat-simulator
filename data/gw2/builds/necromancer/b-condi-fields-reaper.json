@@ -1,5 +1,5 @@
 {
-  "schemaVersion": 3,
+  "schemaVersion": 4,
   "profession": "necromancer",
   "gear": {
     "Helm": "Sinister",
@@ -56,12 +56,12 @@
       "traits": "2-1-2"
     }
   ],
-  "selectedSkills": {
-    "Heal": "\"Your Soul Is Mine!\"",
-    "Utility1": "Summon Bone Fiend",
-    "Utility2": "Well of Darkness",
-    "Utility3": "\"Suffer!\"",
-    "Elite": "Plaguelands"
+  "selectedSkillIds": {
+    "Heal": 30488,
+    "Utility1": 10533,
+    "Utility2": 10607,
+    "Utility3": 30670,
+    "Elite": 10549
   },
   "assumptions": {
     "simulationMode": "stochastic",

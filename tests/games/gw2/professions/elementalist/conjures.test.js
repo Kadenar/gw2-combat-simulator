@@ -10,7 +10,7 @@ import { modifyElementalistAttributes } from '#gw2/professions/elementalist/core
 const hammerOptions = {
   lines: [['Fire'], ['Air'], ['Arcane']],
   weapons: ['Sword', 'Dagger'],
-  selectedSkills: { Utility1: 'Conjure Lightning Hammer' },
+  selectedSkillIds: { Utility1: 5624 },
   assumptions: { quickness: false, alacrity: false }
 };
 
@@ -37,7 +37,7 @@ test('Lightning Hammer keeps normal weapon skills visible but unavailable across
         catalog: elementalistCatalog,
         specialization,
         professionState: state.profession,
-        build: { selectedSkills: { Utility1: 'Conjure Lightning Hammer', Utility2: 'Conjure Frost Bow' } }
+        build: { selectedSkillIds: { Utility1: 5624, Utility2: 5567 } }
       });
       assert.equal(groups.filter(({ id }) => id.startsWith('elementalist-conjure-weapon-')).length, 2);
     }
@@ -50,7 +50,9 @@ test('conjures expire their equipped and ground copies and restore the normal we
     const conjure = `Conjure ${weapon}`;
     const result = runNative({
       ...hammerOptions,
-      selectedSkills: { [weapon === 'Fiery Greatsword' ? 'Elite' : 'Utility1']: conjure },
+      selectedSkillIds: {
+        [weapon === 'Fiery Greatsword' ? 'Elite' : 'Utility1']: elementalistCatalog.skillsByName.get(conjure).id
+      },
       rotation: [conjure, 30000, 'Flame Uprising']
     });
     assert.deepEqual(result.warnings, [], weapon);

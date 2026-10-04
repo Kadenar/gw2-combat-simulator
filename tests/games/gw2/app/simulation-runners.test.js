@@ -12,6 +12,97 @@ import { loadProfessionAppAdapter } from '#gw2/profession-registry.js';
 
 const STRIKE_ROTATION = [{ type: 'cast', skillId: 'Strike' }];
 
+// Chart enrichment shares the baseline worker, but must not replace editor facts or completed analysis.
+test('chart collection waits for the current baseline, caches completion, and rejects abandoned jobs', (t) => {
+  runTimersImmediately(t);
+  const originals = ['document', 'Worker'].map((key) => [key, Object.getOwnPropertyDescriptor(globalThis, key)]);
+  t.after(() => {
+    for (const [key, descriptor] of originals) {
+      if (descriptor) Object.defineProperty(globalThis, key, descriptor);
+      else delete globalThis[key];
+    }
+  });
+  const body = { dataset: { simulatorView: 'workspace' } };
+  Object.defineProperty(globalThis, 'document', { configurable: true, value: { body } });
+  const workers = [];
+  class ControlledWorker {
+    listeners = new Map();
+    messages = [];
+    constructor() {
+      workers.push(this);
+    }
+    addEventListener(type, listener) {
+      this.listeners.set(type, listener);
+    }
+    postMessage(message) {
+      this.messages.push(message);
+    }
+    terminate() {
+      this.terminated = true;
+    }
+    respond(job, output) {
+      this.listeners.get('message')({ data: { requestId: job.requestId, output } });
+    }
+  }
+  Object.defineProperty(globalThis, 'Worker', { configurable: true, value: ControlledWorker });
+  const app = Object.assign(Object.create(ProfessionApp.prototype), {
+    build: { rotation: STRIKE_ROTATION },
+    buildRevision: 1,
+    resultRevision: 0,
+    simulationStatus: 'idle',
+    simulationError: '',
+    results: null,
+    adapter: {
+      baselineSimulationRequest: () => ({ rotation: STRIKE_ROTATION, collectChartData: false }),
+      presentation: testPresentation()
+    },
+    modifierContributionRunner: { schedule() {} },
+    commitBaselineSimulation(output, revision) {
+      this.results = output.result;
+      this.resultRevision = revision;
+      this.simulationStatus = 'idle';
+    }
+  });
+  const runner = new BaselineSimulationRunner(app);
+  runner.schedule(1);
+  runner.ensureCharts();
+  assert.equal(workers[0].messages.length, 1);
+  body.dataset.simulatorView = 'analysis';
+  runner.ensureCharts();
+  assert.equal(workers[0].messages.length, 1, 'Analysis waits for an in-flight editor baseline');
+  const result = { dps: 100, effectReport: null, boonGeneration: null, contributions: [{ id: 'kept' }] };
+  workers[0].respond(workers[0].messages[0], { result });
+  const chartJob = workers[0].messages[1];
+  assert.equal(chartJob.request.collectChartData, true);
+  assert.equal(chartJob.chartsOnly, true);
+  workers[0].respond(chartJob, { result: { dps: 999, effectReport: {}, boonGeneration: {} }, patchComparison: null });
+  assert.equal(app.results, result, 'enrichment retains the editor result identity');
+  assert.equal(result.dps, 100);
+  assert.deepEqual(result.contributions, [{ id: 'kept' }]);
+  runner.ensureCharts();
+  assert.equal(workers[0].messages.length, 2, 'completed chart data is reused');
+
+  result.effectReport = null;
+  runner.ensureCharts();
+  const abandoned = workers[0].messages[2];
+  runner.cancelCharts();
+  assert.equal(workers[0].terminated, true);
+  assert.equal(app.simulationStatus, 'idle');
+  workers[0].respond(abandoned, { result: { effectReport: { stale: true } } });
+  assert.equal(result.effectReport, null);
+  runner.ensureCharts();
+  const replaced = workers[1].messages[0];
+  app.buildRevision = 2;
+  runner.schedule(2);
+  assert.equal(workers[1].terminated, true, 'an edit cancels chart work immediately');
+  workers[1].respond(replaced, { result: { effectReport: { stale: true } } });
+  assert.equal(result.effectReport, null);
+  assert.equal(workers[2].messages[0].chartsOnly, false);
+  runner.cancelCharts();
+  assert.equal(workers[2].terminated, undefined, 'leaving Analysis preserves editor work');
+  runner.cancel();
+});
+
 // Supplies the complete presentation contract so runner tests can observe refreshes without mounting the DOM.
 function testPresentation(render = () => {}) {
   return { createViewModel: () => ({}), render };
@@ -115,7 +206,7 @@ test('build edits cancel prior analysis even when browser storage rejects writes
     buildEditor: {}
   };
   // Supply normalized build inputs and a real tab so the edit reaches the failing storage write.
-  const tab = createBuildTab({ rotation: [{ type: 'wait', durationMs: 1000 }], selectedSkills: {}, infusions: [] });
+  const tab = createBuildTab({ rotation: [{ type: 'wait', durationMs: 1000 }], selectedSkillIds: {}, infusions: [] });
   const app = Object.assign(Object.create(ProfessionApp.prototype), {
     initialRenderGeneration: 0,
     deferredRotationRenderRevision: null,

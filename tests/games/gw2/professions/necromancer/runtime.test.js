@@ -1340,7 +1340,7 @@ test('a landed shroud strike triggers Core conditions and siphons once in detail
 test('selected resource passives can fund shroud entry without a predicted gain', () => {
   for (const [options, expectedStart] of [
     [{ selectedTraitIds: [TRAIT.ETERNAL_LIFE] }, 4000],
-    [{ selectedSkills: ['Signet of Undeath'] }, 9000]
+    [{ selectedSkillIds: [10611] }, 9000]
   ]) {
     const config = { ...base, ...options };
     const result = simulate([cast(ID.REAPERS_SHROUD)], config);
@@ -1386,7 +1386,7 @@ test('signet passives sample current recharge and only real shrouds enable Signe
     const config = {
       ...base,
       initialResource,
-      selectedSkills: ['Signet of Undeath', 'Lich Form'],
+      selectedSkillIds: [10611, 10550],
       selectedTraitIds: traits
     };
     const native = necromancerProfession.runtimeFor(config);
@@ -1425,7 +1425,7 @@ test('Eternal Life resumes at its original boundary after a shroud interval', ()
 });
 
 test('Vampirism passive impacts obey the observation window and share score execution', () => {
-  const config = { ...base, selectedSkills: ['Signet of Vampirism'] };
+  const config = { ...base, selectedSkillIds: [21762] };
   assert.equal(simulate([wait(2960)], config).totalDamage, 0);
   const result = simulate([wait(3000)], config);
   assert.ok(result.totalDamage > 0);
@@ -1467,7 +1467,7 @@ test('delivered Taste for Blood charges are independent and obey the party recip
 });
 
 test('zero passive grants cannot advertise an endless affordability retry', () => {
-  const config = { ...base, selectedTraitIds: [TRAIT.ETERNAL_LIFE], selectedSkills: ['Signet of Undeath'] };
+  const config = { ...base, selectedTraitIds: [TRAIT.ETERNAL_LIFE], selectedSkillIds: [10611] };
   const native = necromancerProfession.runtimeFor(config);
   const profession = {
     ...native,
@@ -1486,12 +1486,12 @@ test('zero passive grants cannot advertise an endless affordability retry', () =
 
 // Legality is evaluated before any cast reserves recharge, creates a summon, or grants a trait effect.
 test('live slot selection and trait replacements reject unavailable commands without state changes', () => {
-  const empty = simulate([cast(ID.SUMMON_BONE_MINIONS)], { ...base, selectedSkills: [] });
+  const empty = simulate([cast(ID.SUMMON_BONE_MINIONS)], { ...base, selectedSkillIds: [] });
   assert.deepEqual(empty.planningState.profession.activeMinions, {});
   assert.ok(empty.warnings.some((warning) => warning.includes('not equipped')));
   const equipped = simulate([cast(ID.SUMMON_BONE_MINIONS), cast(ID.PUTRID_EXPLOSION)], {
     ...base,
-    selectedSkills: ['Summon Bone Minions']
+    selectedSkillIds: [10541]
   });
   assert.deepEqual(equipped.warnings, []);
   assert.equal(equipped.planningState.profession.activeMinions['bone-minion'], 1);

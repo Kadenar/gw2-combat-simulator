@@ -1,3 +1,4 @@
+import { WARRIOR_SKILL_IDS as SKILL } from '#gw2/professions/warrior/data/ids.js';
 import { GEAR_SLOTS } from '#gw2/platform/equipment/gear/slots.js';
 import { DEFAULT_WEAPON_SIGILS, normalizeWeaponSigils } from '#gw2/platform/equipment/sigils/loadout.js';
 import { warriorCatalog } from '#gw2/professions/warrior/catalog.js';
@@ -5,7 +6,7 @@ import type { WarriorCanonicalBuild } from '#gw2/professions/warrior/types.js';
 import { createProfessionBuildCodec } from '#gw2/professions/shared/build-codec.js';
 import { createCommonBuildDefaults } from '#gw2/professions/shared/build-defaults.js';
 
-const WARRIOR_BUILD_SCHEMA_VERSION = 3;
+const WARRIOR_BUILD_SCHEMA_VERSION = 4;
 const WARRIOR_PROFESSION_ID = 'warrior';
 
 // Seed a complete, schema-current Warrior preset with resources, equipment,
@@ -33,12 +34,12 @@ export function createWarriorBuildDefaults(): WarriorCanonicalBuild {
       { name: 'Discipline', traits: '2-3-3' },
       { name: 'Berserker', traits: '1-1-1' }
     ],
-    selectedSkills: {
-      Heal: 'Blood Reckoning',
-      Utility1: 'Signet of Might',
-      Utility2: 'Outrage',
-      Utility3: 'Wild Blow',
-      Elite: 'Head Butt'
+    selectedSkillIds: {
+      Heal: SKILL.BLOOD_RECKONING,
+      Utility1: SKILL.SIGNET_OF_MIGHT,
+      Utility2: SKILL.OUTRAGE,
+      Utility3: SKILL.WILD_BLOW,
+      Elite: SKILL.HEAD_BUTT
     },
     ...createCommonBuildDefaults(),
     initialResource: 0

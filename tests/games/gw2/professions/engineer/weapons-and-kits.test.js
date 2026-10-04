@@ -16,7 +16,7 @@ import { handleElectricArtillery } from '#gw2/professions/engineer/core/mechanic
 import { createObservedProfessionSimulator } from '#tests/helpers/observed-runtime.js';
 
 const baseConfig = Object.freeze({
-  selectedSkills: ['Healing Turret', 'Grenade Kit', 'Throw Mine', 'Elixir Gun', 'Supply Crate'],
+  selectedSkillIds: [5857, 5805, 6161, 5933, 5868],
   selectedMorphSkillIds: [77103, 77203, 76954],
   stats: {
     power: 2000,
@@ -221,8 +221,8 @@ test('Amalgam exposes only persisted F2-F4 morph choices', () => {
   const groups = engineerProfession.ui.skillBarGroups({
     specialization: 'Amalgam',
     build: {
-      selectedSkills: {
-        Heal: 'Healing Turret'
+      selectedSkillIds: {
+        Heal: 5857
       },
       selectedMorphSkillIds: [77103, 77203, 76954]
     }
@@ -552,7 +552,7 @@ test('Thunderclap pairs field strikes with Vulnerability after its opening contr
 });
 
 test('Bomb Kit packets honor fuses, explosions, fields, and finishers', () => {
-  const selectedSkills = ['Healing Turret', 'Bomb Kit', 'Grenade Kit', 'Elixir Gun', 'Supply Crate'];
+  const selectedSkillIds = [5857, 5812, 5805, 5933, 5868];
   const waitForBombPackets = () => ({ type: 'wait', durationMs: 5000 });
   const bombSkills = engineerCatalog.skills.filter(
     (candidate) => candidate.kitId === ID.BOMB_KIT && candidate.effects.some((effect) => effect.type === 'strike')
@@ -569,7 +569,7 @@ test('Bomb Kit packets honor fuses, explosions, fields, and finishers', () => {
   );
 
   const bomb = simulate('Core', ['Bomb Kit', 'Bomb', waitForBombPackets()], {
-    selectedSkills
+    selectedSkillIds
   });
   const bombHit = bomb.events.find((event) => event.type === 'damage' && event.name === 'Bomb');
 
@@ -577,7 +577,7 @@ test('Bomb Kit packets honor fuses, explosions, fields, and finishers', () => {
   assert.equal(bombHit.coefficient, 1.2);
   assert.equal(bombHit.damageKind, 'explosion');
 
-  const fire = simulate('Core', ['Bomb Kit', 'Fire Bomb', waitForBombPackets()], { selectedSkills });
+  const fire = simulate('Core', ['Bomb Kit', 'Fire Bomb', waitForBombPackets()], { selectedSkillIds });
   const fireHits = fire.events.filter((event) => event.type === 'damage' && event.name === 'Fire Bomb');
   const fireBurns = fire.events.filter((event) => event.type === 'condition' && event.name === 'Fire Bomb — Burning');
 
@@ -599,7 +599,7 @@ test('Bomb Kit packets honor fuses, explosions, fields, and finishers', () => {
   assert.equal(engineerCatalog.skillsByName.get('Fire Bomb').comboFields[0].fieldType, 'Fire');
   assert.equal(engineerCatalog.skillsByName.get('Fire Bomb').comboFields[0].duration, 3);
 
-  const galvanic = simulate('Core', ['Bomb Kit', 'Galvanic Bomb', waitForBombPackets()], { selectedSkills });
+  const galvanic = simulate('Core', ['Bomb Kit', 'Galvanic Bomb', waitForBombPackets()], { selectedSkillIds });
 
   assert.ok(
     galvanic.events.some(
@@ -622,7 +622,7 @@ test('Bomb Kit packets honor fuses, explosions, fields, and finishers', () => {
   assert.equal(magnetic.effects[1].controlKind, 'pull');
   assert.equal(magnetic.castTimeMs, 600);
   const magneticResult = simulate('Core', ['Bomb Kit', 'Magnetic Bomb', waitForBombPackets()], {
-    selectedSkills,
+    selectedSkillIds,
     boons: { quickness: true }
   });
 
@@ -637,7 +637,7 @@ test('Bomb Kit packets honor fuses, explosions, fields, and finishers', () => {
     )
   );
 
-  const big = simulate('Core', ['Bomb Kit', "Big Ol' Bomb", waitForBombPackets()], { selectedSkills });
+  const big = simulate('Core', ['Bomb Kit', "Big Ol' Bomb", waitForBombPackets()], { selectedSkillIds });
 
   assert.ok(
     big.events.some((event) => event.type === 'damage' && Math.abs(event.at - 3.36) < 1e-12 && event.coefficient === 3)
@@ -656,7 +656,7 @@ test('Bomb Kit packets honor fuses, explosions, fields, and finishers', () => {
     ['Magnetic Bomb', ['damage', 'control']]
   ]) {
     const interrupted = simulate('Core', ['Bomb Kit', { name, interruptMs: 560 }, waitForBombPackets()], {
-      selectedSkills
+      selectedSkillIds
     });
 
     assert.deepEqual(
@@ -677,7 +677,7 @@ test('Bomb Kit packets honor fuses, explosions, fields, and finishers', () => {
       { type: 'wait', durationMs: 5000 }
     ],
     {
-      selectedSkills,
+      selectedSkillIds,
       weapons: ['Pistol', 'Pistol'],
       relic: 'Bloodstone'
     }
@@ -693,7 +693,7 @@ test('Bomb Kit packets honor fuses, explosions, fields, and finishers', () => {
   const unboundBlasts = simulate(
     'Core',
     ['Bomb Kit', "Big Ol' Bomb", 'Galvanic Bomb', { type: 'wait', durationMs: 5000 }],
-    { selectedSkills, relic: 'Bloodstone' }
+    { selectedSkillIds, relic: 'Bloodstone' }
   );
 
   assert.equal(
@@ -799,7 +799,7 @@ test('Shred fires three Burning Bolts through Stoke the Flames', () => {
 
   const config = {
     boons: { quickness: true },
-    selectedSkills: ['Healing Turret', 'Grenade Kit', 'Flamethrower', 'Elixir Gun', 'Supply Crate'],
+    selectedSkillIds: [5857, 5805, 5927, 5933, 5868],
     selectedMorphSkillIds: [77103, 77104, 76705]
   };
   const result = simulate(
@@ -834,7 +834,7 @@ test('Shred fires three Burning Bolts through Stoke the Flames', () => {
 
 test('Flame Jet gains ten percent strike damage against burning targets', () => {
   const config = {
-    selectedSkills: ['Healing Turret', 'Grenade Kit', 'Flamethrower', 'Elixir Gun', 'Supply Crate'],
+    selectedSkillIds: [5857, 5805, 5927, 5933, 5868],
     selectedMorphSkillIds: [77103, 77104, 76705]
   };
   const withoutBurning = simulate('Amalgam', ['Flamethrower', 'Flame Jet'], {
@@ -1174,7 +1174,7 @@ test('power Scrapper toolbelt skills use their per-hit and control facts', () =>
 
   const orbital = simulate('Core', ['Orbital Strike', { type: 'wait', durationMs: 3000 }], {
     boons: { quickness: true },
-    selectedSkills: ['A.E.D.', 'Grenade Kit', 'Throw Mine', 'Bomb Kit', 'Elite Mortar Kit']
+    selectedSkillIds: [21659, 5805, 6161, 5812, 30800]
   });
   const orbitalCast = orbital.steps.find((step) => step.skill === 'Orbital Strike');
   const orbitalHit = orbital.resolvedEvents.find((event) => event.type === 'damage' && event.name === 'Orbital Strike');
@@ -1214,7 +1214,7 @@ test('Poison Gas Shell pulses its five-second poison field', () => {
   );
 
   const result = simulate('Core', ['Elite Mortar Kit', 'Poison Gas Shell', { type: 'wait', durationMs: 5000 }], {
-    selectedSkills: ['Healing Turret', 'Grenade Kit', 'Throw Mine', 'Elixir Gun', 'Elite Mortar Kit']
+    selectedSkillIds: [5857, 5805, 6161, 5933, 30800]
   });
   const poison = result.resolvedEvents.filter(
     (event) => event.type === 'condition' && event.skillName === 'Poison Gas Shell' && event.condition === 'Poisoned'

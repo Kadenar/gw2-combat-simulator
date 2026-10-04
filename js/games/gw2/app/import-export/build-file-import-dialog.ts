@@ -107,7 +107,7 @@ function createDialog(document: Document): BuildFileImportDialogElements {
 }
 
 /** Summarizes the fields a player recognizes a build by, skipping any that are empty. */
-function buildSummary(document: Document, build: Gw2CanonicalBuild): HTMLElement {
+function buildSummary(document: Document, build: Gw2CanonicalBuild, app: ProfessionAppState): HTMLElement {
   const weaponSet = (weapons: readonly string[]): string => weapons.filter(Boolean).join(' + ');
   const rows: [string, string][] = [
     [
@@ -120,7 +120,10 @@ function buildSummary(document: Document, build: Gw2CanonicalBuild): HTMLElement
     ['Weapons', [weaponSet(build.weapons), weaponSet(build.alternateWeapons)].filter(Boolean).join(' / ')],
     [
       'Skills',
-      SKILL_SLOTS.map((slot) => build.selectedSkills[slot])
+      SKILL_SLOTS.map((slot) => {
+        const id = build.selectedSkillIds[slot];
+        return id == null ? null : app.activeCatalog.skillsById.get(id)?.name;
+      })
         .filter(Boolean)
         .join(' · ')
     ],
@@ -199,7 +202,7 @@ export function bindBuildFileImportDialog(
       preview = next;
       const actions = next.rotation?.length ?? 0;
       elements.fileName.textContent = next.fileName;
-      renderPart(elements.buildCheckbox, elements.buildDetail, next.build && buildSummary(document, next.build));
+      renderPart(elements.buildCheckbox, elements.buildDetail, next.build && buildSummary(document, next.build, app));
       renderPart(
         elements.rotationCheckbox,
         elements.rotationDetail,

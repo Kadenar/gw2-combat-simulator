@@ -1,3 +1,5 @@
+import { damageInputEvent } from '#gw2/platform/skill-damage/execution.js';
+import { emitVenom, VENOMS } from '#gw2/professions/thief/core/mechanics/venoms.js';
 import {
   completeThiefStealthAttack,
   completeThiefWeaponSwap,
@@ -54,12 +56,12 @@ import {
   grantDistractingThrowWindow,
   grantThiefGroundAxe,
   landThiefAxe,
-  recallThiefAxes,
   prepareTrap,
+  recallThiefAxes,
   startThievesGuild,
   summonThievesGuild,
-  THIEF_GUILD_ATTACK,
   THIEF_AXE_LAND,
+  THIEF_GUILD_ATTACK,
   THIEF_GUILD_EXPIRY,
   THIEF_SCEPTER_CHAIN_EXPIRY,
   thiefTrapAvailability,
@@ -167,6 +169,16 @@ function completeThiefCast(runtime: ThiefRuntime, cast: RuntimeCast<ThiefSkill>)
 import { thiefBuffPolicies, thiefEffectStates } from '#gw2/professions/thief/core/effect-state.js';
 
 export const thiefCoreHooks: Partial<RuntimeProfession<ThiefRuntimeState, ThiefSkill>> = {
+  // Known damage payloads are invoked once without their activation requirements.
+  damageEffects: VENOMS.map((venom) => ({
+    id: `venom:${venom.skillId}`,
+    name: venom.skillName,
+    source: 'Profession' as const,
+    unit: 'charge' as const,
+    sourceIds: [venom.skillId],
+    emit: (runtime) => emitVenom(runtime, damageInputEvent(runtime), venom)
+  })),
+
   buffPolicies: thiefBuffPolicies,
   observeEffects: thiefEffectStates,
   sideEffectHandlers: {
@@ -247,6 +259,8 @@ export const thiefCoreHooks: Partial<RuntimeProfession<ThiefRuntimeState, ThiefS
     },
     'condition.applied': reactThiefCoreCondition
   },
+  // Initiative regeneration is ongoing state, not a delayed consequence to measure for the active signet.
+  backgroundTasks: [THIEF_INFILTRATORS_SIGNET_PULSE],
   tasks: {
     [THIEF_AXE_LAND]: landThiefAxe,
     'thief.distracting-throw-window': grantDistractingThrowWindow,

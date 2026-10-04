@@ -166,6 +166,8 @@ export interface Skill extends CatalogEntity {
   readonly variantBadge?: string;
   /** Stable selectable skill resolved from a build-template palette ID. */
   readonly loadoutSkillId?: SkillId;
+  /** Base identity replaced by this specialization's weapon skill, independent of its display label. */
+  readonly weaponVariantRootId?: SkillId;
   /**
    * Retain the catalog record but omit it from patch authoring because no
    * simulator path consumes it. This is independent of simulatorExcluded,
@@ -290,6 +292,8 @@ export interface Skill extends CatalogEntity {
  * catalog while retaining the same declarative effect vocabulary.
  */
 export interface BalanceProfile extends CatalogEntity {
+  /** Augmentations retain their skill/summon/shared owner instead of promising a separate trait proc row. */
+  readonly damagePreviewAttribution?: 'skill' | 'summon' | 'shared';
   /** Keep the selected source identifiable when a runtime passes only a profile lookup callback. */
   readonly balanceDataContext?: CanonicalCatalog['balanceDataContext'];
   /** Identity-only tombstones scoped to this profile; callbacks retain removal provenance. */

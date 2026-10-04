@@ -94,14 +94,19 @@ export function buildCombatResult(
   const { output, ...numeric } = score;
   const effectiveEvents = events.filter((event) => event.at <= effectiveEnd);
   const casts = addCastsToBreakdown(ctx, effectiveEvents);
-  // Both actual and hypothetical party tracks are prepared by platform rules before crossing into the application.
-  const generation = buildBoonGeneration(ctx.resolved, score.combatStartTime ?? score.dpsStartTime, effectiveEnd);
-  const effectReport = ctx.effectRecorder!.finish(effectiveEnd);
-  const partyReport = projectedPartyEffects(generation, effectiveEnd);
+  // Editor-only runs retain combat facts but skip both live histories and expensive hypothetical party projection.
+  const generation = ctx.effectRecorder
+    ? buildBoonGeneration(ctx.resolved, score.combatStartTime ?? score.dpsStartTime, effectiveEnd)
+    : null;
+  const effectReport = ctx.effectRecorder?.finish(effectiveEnd);
+  const partyReport = generation ? projectedPartyEffects(generation, effectiveEnd) : null;
   return {
     ...numeric,
-    effectReport: { ...effectReport, tracks: [...effectReport.tracks, ...partyReport.tracks] },
-    boonGeneration: { alliedPlayerCount: generation.alliedPlayerCount, boons: Object.fromEntries(generation.boons) },
+    effectReport:
+      effectReport && partyReport ? { ...effectReport, tracks: [...effectReport.tracks, ...partyReport.tracks] } : null,
+    boonGeneration: generation
+      ? { alliedPlayerCount: generation.alliedPlayerCount, boons: Object.fromEntries(generation.boons) }
+      : null,
     breakdown: [...ctx.breakdown.values()].sort((left, right) => right.damage - left.damage),
     conditionBreakdown: [...ctx.conditions.values()]
       .map((entry) => ({

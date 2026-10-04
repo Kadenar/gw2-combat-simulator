@@ -1,3 +1,5 @@
+import { SkillDamageRunner } from '#gw2/app/simulation/skill-damage/runner.js';
+import { receiveSkillDamage } from '#gw2/app/build/panels/skill-damage.js';
 import { readStoredTimelineOverlayVisibility } from '#gw2/app/rotation/timeline/preferences.js';
 import { bindSessionControls } from '#gw2/app/session-controls.js';
 import { bindWikiTooltips } from '#gw2/app/shared/tooltip-overlay.js';
@@ -82,6 +84,7 @@ export class ProfessionApp implements ProfessionAppState {
   templateUndoBuild: Gw2CanonicalBuild | null;
   readonly modifierContributionRunner: ModifierContributionRunner;
   readonly randomDistributionRunner: RandomDistributionRunner;
+  readonly skillDamageRunner: SkillDamageRunner;
   readonly gearOptimizerRunner: GearOptimizerRunner;
   readonly relicComparisonRunner: RelicComparisonRunner;
   readonly baselineSimulationRunner: BaselineSimulationRunner;
@@ -142,6 +145,10 @@ export class ProfessionApp implements ProfessionAppState {
     this.relicComparisonRunner = new RelicComparisonRunner(this, () => renderRelicComparison(this));
     this.baselineSimulationRunner = new BaselineSimulationRunner(this);
     this.gearOptimizerRunner = new GearOptimizerRunner(this, () => renderGearOptimizer(this));
+    // Browser-owned workers follow the existing runner lifecycle and stay out of headless adapter imports.
+    this.skillDamageRunner = new SkillDamageRunner((signature, result, error) =>
+      receiveSkillDamage(this, signature, result, error)
+    );
     this.initialRenderGeneration = 0;
     this.deferredRotationRenderRevision = null;
   }
@@ -158,9 +165,15 @@ export class ProfessionApp implements ProfessionAppState {
     // Delegated tooltip listeners and the mutation observer cover every subsequent panel render.
     bindWikiTooltips();
     document.addEventListener(SIMULATOR_VIEW_CHANGE_EVENT, () => {
-      // Analysis owns modifier work; navigation away cancels it without discarding completed results.
-      if (document.body?.dataset.simulatorView === 'analysis') this.modifierContributionRunner.schedule();
-      else this.modifierContributionRunner.cancel?.();
+      // Analysis collects chart histories and modifiers on demand, retaining completed data across navigation.
+      if (document.body?.dataset.simulatorView === 'analysis') {
+        this.baselineSimulationRunner.ensureCharts();
+        this.modifierContributionRunner.schedule();
+      } else {
+        this.baselineSimulationRunner.cancelCharts();
+        this.modifierContributionRunner.cancel?.();
+      }
+
       // Leaving the optimizer gives the next view priority; entering it preserves an active search.
       if (document.body?.dataset.simulatorView !== 'gear-optimizer') this.gearOptimizerRunner?.cancel();
       if (document.body?.dataset.simulatorView === 'gear-optimizer') {
@@ -250,7 +263,23 @@ export class ProfessionApp implements ProfessionAppState {
     this.commitBaselineSimulation(output, revision, false);
   }
 
-  publishBaselineSimulation(output: BaselineSimulationOutput, revision: number): void {
+  publishBaselineSimulation(output: BaselineSimulationOutput, revision: number, chartsOnly = false): void {
+    // Chart enrichment never invalidates completed comparisons or replaces editor facts for the same revision.
+    if (chartsOnly) {
+      if (revision !== this.buildRevision || revision !== this.resultRevision || !this.results) return;
+      Object.assign(this.results, {
+        effectReport: output.result.effectReport,
+        boonGeneration: output.result.boonGeneration
+      });
+      this.patchComparison = output.patchComparison;
+      this.simulationStatus = 'idle';
+      this.simulationError = '';
+      if (document.body) document.body.dataset.simulationStatus = this.simulationStatus;
+      this.adapter.presentation.render(this, this.adapter.presentation.createViewModel(this));
+      this.modifierContributionRunner.schedule();
+      return;
+    }
+
     this.commitBaselineSimulation(output, revision, true);
   }
 
@@ -300,8 +329,18 @@ export class ProfessionApp implements ProfessionAppState {
     }
   }
 
-  failBaselineSimulation(error: unknown, revision: number): void {
+  failBaselineSimulation(error: unknown, revision: number, chartsOnly = false): void {
     if (revision !== this.buildRevision) return;
+    if (chartsOnly) {
+      this.simulationStatus = 'error';
+      this.simulationError = error instanceof Error ? error.message : String(error || 'Chart calculation failed.');
+      if (document.body) document.body.dataset.simulationStatus = this.simulationStatus;
+      this.adapter.presentation.render(this, this.adapter.presentation.createViewModel(this));
+      // Modifier scores remain available even when chart collection fails.
+      this.modifierContributionRunner.schedule();
+      return;
+    }
+
     // Failed template simulations must also replace their loading placeholder with the authored rotation.
     const renderDeferredRotation =
       this.deferredRotationRenderRevision === revision || this.templateRotationLoading?.revision === revision;
@@ -370,6 +409,7 @@ export class ProfessionApp implements ProfessionAppState {
       this.baselineSimulationRunner.schedule(this.buildRevision);
     } else {
       if (this.results?.randomDistributionStale) this.randomDistributionRunner.schedule(true);
+      this.baselineSimulationRunner.ensureCharts();
       this.modifierContributionRunner.schedule();
       if (this.results?.relicComparisonStale) this.relicComparisonRunner.run?.();
     }

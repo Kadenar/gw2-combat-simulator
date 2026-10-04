@@ -2,7 +2,7 @@ import type {
   ProfessionAttributePreviewContext,
   ProfessionAttributePreviewPreparation
 } from '#gw2/platform/profession-presentation/attribute-preview.js';
-import { createAttributePreviewControls } from '#gw2/professions/shared/attribute-preview.js';
+import { createPreviewControls } from '#gw2/professions/shared/attribute-preview.js';
 import { readProfessionCoreState } from '#gw2/platform/engine/profession/state.js';
 import type { NecromancerCoreState } from '#gw2/professions/necromancer/core/state.js';
 import type { CanonicalCatalog } from '#gw2/platform/engine/skills/types.js';
@@ -19,8 +19,8 @@ import type { NecromancerSkill, NecromancerUiContext, NecromancerUiSlice } from 
 export function bindReaperUi(catalog: Readonly<CanonicalCatalog<NecromancerSkill>>): NecromancerUiSlice {
   return Object.freeze({
     /** Declare this module's conditional inputs without adding simulation settings. */
-    attributePreviewControls(context: ProfessionAttributePreviewContext) {
-      const preview = createAttributePreviewControls(context);
+    previewControls(context: ProfessionAttributePreviewContext) {
+      const preview = createPreviewControls(context);
       preview.condition('Vulnerability', 'Decimate Defenses');
       return preview.controls;
     },

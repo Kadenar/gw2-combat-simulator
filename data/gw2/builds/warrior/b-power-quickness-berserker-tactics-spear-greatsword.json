@@ -1,5 +1,5 @@
 {
-  "schemaVersion": 3,
+  "schemaVersion": 4,
   "profession": "warrior",
   "gear": {
     "Helm": "Berserker's",
@@ -53,12 +53,12 @@
       "traits": "1-2-1"
     }
   ],
-  "selectedSkills": {
-    "Heal": "Blood Reckoning",
-    "Utility1": "Bull's Charge",
-    "Utility2": "Signet of Might",
-    "Utility3": "Outrage",
-    "Elite": "Head Butt"
+  "selectedSkillIds": {
+    "Heal": 30189,
+    "Utility1": 14516,
+    "Utility2": 14404,
+    "Utility3": 30258,
+    "Elite": 30343
   },
   "assumptions": {
     "simulationMode": "deterministic",

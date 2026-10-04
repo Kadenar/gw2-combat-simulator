@@ -57,14 +57,14 @@ function comparisonApp(rotation = [{ type: 'cast', skillId: 1 }], currentResult 
 test('manifest references require the same profession and selected skill set', () => {
   const current = {
     profession: 'mesmer',
-    selectedSkills: { Heal: 'Ether Feast', Utility1: 'Blink', Elite: 'Time Warp' }
+    selectedSkillIds: { Heal: 10176, Utility1: 'Blink', Elite: 10311 }
   };
 
   assert.equal(
     manifestRotationMatchesBuild(
       {
         profession: 'mesmer',
-        selectedSkills: { Elite: 'Time Warp', Heal: 'Ether Feast', Utility1: 'Blink' }
+        selectedSkillIds: { Elite: 10311, Heal: 10176, Utility1: 'Blink' }
       },
       current
     ),
@@ -74,7 +74,7 @@ test('manifest references require the same profession and selected skill set', (
     manifestRotationMatchesBuild(
       {
         profession: 'mesmer',
-        selectedSkills: { Heal: 'Ether Feast', Utility1: 'Mirror Images', Elite: 'Time Warp' }
+        selectedSkillIds: { Heal: 10176, Utility1: 10202, Elite: 10311 }
       },
       current
     ),
@@ -84,7 +84,7 @@ test('manifest references require the same profession and selected skill set', (
     manifestRotationMatchesBuild(
       {
         profession: 'necromancer',
-        selectedSkills: { Heal: 'Ether Feast', Utility1: 'Blink', Elite: 'Time Warp' }
+        selectedSkillIds: { Heal: 10176, Utility1: 'Blink', Elite: 10311 }
       },
       current
     ),

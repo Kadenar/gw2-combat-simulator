@@ -50,7 +50,7 @@ export interface ResolvedGw2BuildTemplate {
   readonly professionId: string;
   readonly professionName: string;
   readonly specializations: readonly Gw2BuildSpecialization[];
-  readonly selectedSkills: Readonly<Record<string, string>>;
+  readonly selectedSkillIds: Readonly<Record<string, SkillId | null>>;
   readonly weaponOptions: readonly Gw2BuildTemplateWeaponSet[];
   readonly weapons: Gw2BuildTemplateWeaponSet | null;
   readonly skillOverrides: readonly number[];
@@ -264,7 +264,7 @@ export function resolveGw2BuildTemplate(
   });
   const selectedSpecializations = new Set(specializations.map((specialization) => specialization.name));
   const paletteMap = new Map(professionData.paletteEntries);
-  const selectedSkills: Record<string, string> = {};
+  const selectedSkillIds: Record<string, SkillId | null> = {};
   for (const { slot, type, paletteIndex } of SLOT_LAYOUT) {
     const paletteId = decoded.skillPaletteIds[paletteIndex];
     if (!paletteId) continue;
@@ -287,7 +287,7 @@ export function resolveGw2BuildTemplate(
       continue;
     }
 
-    selectedSkills[slot] = skill.name;
+    selectedSkillIds[slot] = skill.id;
   }
 
   const weaponCandidates = decoded.weaponTypeIds.flatMap((weaponId) => {
@@ -309,7 +309,7 @@ export function resolveGw2BuildTemplate(
     professionId: expectedProfession.id,
     professionName: expectedProfession.name,
     specializations: Object.freeze(specializations),
-    selectedSkills: Object.freeze(selectedSkills),
+    selectedSkillIds: Object.freeze(selectedSkillIds),
     weaponOptions,
     weapons,
     skillOverrides: decoded.skillOverrides,

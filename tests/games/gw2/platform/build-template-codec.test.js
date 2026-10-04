@@ -25,12 +25,12 @@ test('GW2 build templates resolve Elementalist palette IDs to stable catalog ski
     { name: 'Air', traits: '3-3-2' },
     { name: 'Tempest', traits: '3-1-1' }
   ]);
-  assert.deepEqual(resolved.selectedSkills, {
-    Heal: 'Wash the Pain Away!',
-    Utility1: 'Feel the Burn!',
-    Utility2: 'Glyph of Storms (Fire)',
-    Utility3: 'Signet of Fire',
-    Elite: 'Glyph of Elementals'
+  assert.deepEqual(resolved.selectedSkillIds, {
+    Heal: 29535,
+    Utility1: 30662,
+    Utility2: 5736,
+    Utility3: 5542,
+    Elite: 25488
   });
   assert.deepEqual(resolved.weaponOptions, [
     ['Scepter', 'Warhorn'],
@@ -59,12 +59,12 @@ test('the generic decoder also resolves the supplied Engineer template', () => {
     { name: 'Firearms', traits: '1-2-3' },
     { name: 'Amalgam', traits: '2-1-3' }
   ]);
-  assert.deepEqual(resolved.selectedSkills, {
-    Heal: 'A.E.D.',
-    Utility1: 'Grenade Kit',
-    Utility2: 'Bomb Kit',
-    Utility3: 'Flamethrower',
-    Elite: 'Flux State'
+  assert.deepEqual(resolved.selectedSkillIds, {
+    Heal: 21659,
+    Utility1: 5805,
+    Utility2: 5812,
+    Utility3: 5927,
+    Elite: 76993
   });
   assert.deepEqual(resolved.weaponOptions, [
     ['Spear', ''],

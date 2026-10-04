@@ -22,6 +22,8 @@ export interface Gw2Config {
   readonly stats?: Gw2Stats;
   readonly weaponSetStats?: readonly Gw2Stats[];
   readonly boons?: Readonly<Record<string, boolean | number>>;
+  /** Detached damage preview's total for per-boon bonuses; grants no boons and is never saved to a build. */
+  readonly fixedBoonCount?: number;
   readonly sharePlayerBoonsWithSummons?: boolean;
   readonly startingWeaponSet?: number;
   readonly primaryWeapon?: string;
@@ -30,7 +32,7 @@ export interface Gw2Config {
   readonly weaponSet2Secondary?: string;
   readonly sigilSets?: readonly Gw2SigilSet[];
   readonly selectedTraitIds?: readonly (string | number)[];
-  readonly selectedSkills?: Gw2SelectedSkillLoadout;
+  readonly selectedSkillIds?: Gw2SelectedSkillLoadout;
   readonly relic?: string;
   readonly precastRelics?: readonly string[];
   readonly initialThornsStacks?: number;
@@ -56,4 +58,18 @@ export interface Gw2Config {
     readonly strike?: number;
     readonly condition?: number;
   };
+  /**
+   * Player buffs already active at time zero, applied as ordinary buff packets with fixed durations. Isolated previews
+   * use this to hold a conditional buff for a measured cast; saved builds and the simulation config never set it.
+   */
+  readonly initialBuffs?: readonly Gw2InitialBuff[];
+}
+
+/** One preview-held player buff; kind and stacks follow the buff's own runtime representation. */
+export interface Gw2InitialBuff {
+  readonly kind: string;
+  readonly stacks: number;
+  /** Seconds the buff stays active from time zero. */
+  readonly duration: number;
+  readonly name?: string;
 }

@@ -1,4 +1,4 @@
-import { selectedSkillNameSet } from '#gw2/platform/builds/selected-skills.js';
+import { selectedSkillIdSet } from '#gw2/platform/builds/selected-skills.js';
 import { preparednessCapacityField } from '#gw2/professions/thief/core/traits/behavior.js';
 import { canonicalTime, EPSILON } from '#kernel/core/clock.js';
 
@@ -87,7 +87,7 @@ export function setThiefKneeling(runtime: ThiefRuntime, kneeling: boolean): void
  */
 export function restartThiefInfiltratorsSignet(runtime: ThiefRuntime): void {
   const core = runtime.profession.core;
-  if (!selectedSkillNameSet(runtime.config.selectedSkills).has("Infiltrator's Signet")) return;
+  if (!selectedSkillIdSet(runtime.config.selectedSkillIds).has(ID.INFILTRATORS_SIGNET)) return;
   const at = canonicalTime(Math.max(runtime.time, runtime.cooldowns.get(ID.INFILTRATORS_SIGNET) || 0) + 10);
   core.infiltratorsSignetPulseAt = at;
   runtime.schedule(THIEF_INFILTRATORS_SIGNET_PULSE, at, { at });

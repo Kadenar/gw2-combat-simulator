@@ -364,7 +364,7 @@ test('pairs player-attributed Sharper Images applications across Signet of Midni
     ]),
     {
       selectedTraitIds: [MESMER_TRAIT.SHARPER_IMAGES],
-      selectedSkills: ['Signet of Midnight'],
+      selectedSkillIds: [10234],
       stats: { expertise: 750 }
     }
   );

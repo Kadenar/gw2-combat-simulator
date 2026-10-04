@@ -52,6 +52,8 @@ export const cryOfPain = defineTrait<MesmerSkill>({
   id: TRAIT.CRY_OF_PAIN,
   name: 'Cry of Pain',
   balance: {
+    // This replaces the shatter's confusion package rather than emitting an independently owned proc.
+    damagePreviewAttribution: 'skill',
     effects: [{ name: 'Confusion', type: 'condition', condition: 'Confusion', duration: 4, stacks: 2 }]
   }
 });

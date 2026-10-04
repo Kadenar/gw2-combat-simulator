@@ -37,7 +37,7 @@ export function guardianVirtueForSlot(slot: GuardianSkill['slot']): GuardianVirt
 /**
  * Applies and records one active or passive Virtue of Justice burn.
  */
-function applyJusticeBurn(
+export function applyJusticeBurn(
   context: GuardianResolverContext,
   event: GuardianResolverEvent,
   {
@@ -68,7 +68,9 @@ function applyJusticeBurn(
       actorType: 'player',
       skillId,
       skillName,
-      // The burn belongs to the actual triggering hit, even when that hit came from a delayed activation.
+      // Justice owns this proc; the activation still records which hit caused it for chronological reactions.
+      procType: 'profession',
+      icon: context.helpers.skillsById?.get(skillId)?.icon,
       activationId: event.activationId,
       causalOrder: event.causalOrder ?? event.eventOrder,
       name: `${skillName} — ${active ? 'Active' : 'Passive'} Burning`,

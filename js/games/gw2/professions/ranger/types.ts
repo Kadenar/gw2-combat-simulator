@@ -117,14 +117,8 @@ export interface RangerModifierContext extends Gw2ModifierContext {
   readonly config?: RangerConfig;
 }
 
-export interface RangerUiContext extends Omit<
-  ProfessionUiCallbackContext<RangerRuntimeState | Partial<RangerState>>,
-  'build'
-> {
+export interface RangerUiContext extends Omit<ProfessionUiCallbackContext<Partial<RangerState>>, 'build'> {
   readonly config?: RangerConfig;
-  readonly state?: {
-    readonly profession?: RangerRuntimeState | Partial<RangerState>;
-  };
   readonly build?: RangerBuild | null;
   readonly initialAstralForce?: number;
   readonly initialArrows?: number;
@@ -132,7 +126,7 @@ export interface RangerUiContext extends Omit<
 }
 
 /** UI slice whose callbacks read Ranger end-state projections. */
-export type RangerUiSlice = Partial<ProfessionUiContract<RangerRuntimeState | Partial<RangerState>>>;
+export type RangerUiSlice = Partial<ProfessionUiContract<Partial<RangerState>>>;
 
 export interface RangerUiSelection {
   readonly key?: string;

@@ -223,11 +223,11 @@ test('Symbol of Luminance retains both strikes on the exact combat boundary', ()
 test('Guardian slot skills require selection before casts can produce effects', () => {
   // A single cast checks loadout rejection, including Effulgent's delayed detonation.
   for (const name of ['Effulgent Stance', 'Shelter', 'Renewed Focus']) {
-    for (const selectedSkills of [[], {}, ['Signet of Wrath'], { Utility1: 'Signet of Wrath' }]) {
+    for (const selectedSkillIds of [[], [9151]]) {
       const result = createObservedProfessionSimulator(guardianProfession, {
         ...config,
         specialization: 'Luminary',
-        selectedSkills
+        selectedSkillIds
       })(undefined, [name, { type: 'wait', durationMs: 5000 }]);
       assert.equal(result.steps[0].invalid, true, name);
       assert.match(result.warnings.join(' '), /is unavailable.*not equipped/);
@@ -238,11 +238,11 @@ test('Guardian slot skills require selection before casts can produce effects', 
     }
   }
 
-  for (const selectedSkills of [undefined, ['Effulgent Stance'], { Utility1: 'Effulgent Stance' }]) {
+  for (const selectedSkillIds of [undefined, [76813]]) {
     const result = createObservedProfessionSimulator(guardianProfession, {
       ...config,
       specialization: 'Luminary',
-      selectedSkills
+      selectedSkillIds
     })(undefined, ['Effulgent Stance', { type: 'wait', durationMs: 5000 }]);
     assert.deepEqual(result.warnings, []);
     assert.ok(result.resolvedEvents.some((event) => event.name === 'Effulgent Stance' && event.damage > 0));
@@ -250,13 +250,13 @@ test('Guardian slot skills require selection before casts can produce effects', 
 });
 
 test('Guardian mantra flips inherit selection from the root slot skill', () => {
-  for (const selectedSkills of [[], ['Mantra of Flame']]) {
+  for (const selectedSkillIds of [[], [46148]]) {
     const result = createObservedProfessionSimulator(guardianProfession, {
       ...config,
       specialization: 'Firebrand',
-      selectedSkills
+      selectedSkillIds
     })(undefined, ['Flame Rush', 'Flame Rush', 'Flame Surge']);
-    if (selectedSkills.length) {
+    if (selectedSkillIds.length) {
       assert.deepEqual(result.warnings, []);
       assert.ok(result.resolvedEvents.some((event) => event.name === 'Flame Surge'));
     } else {

@@ -56,7 +56,7 @@ test('the GW2 game plug-in exposes the existing lazy profession registry', async
   assert.equal(content.gameId, 'gw2');
   assert.deepEqual(
     adapter.buildEditor.sections.map(({ id }) => id),
-    ['gear', 'traits', 'attributes', 'skills', 'assumptions']
+    ['gear', 'traits', 'attributes', 'skills', 'assumptions', 'skill-damage']
   );
   assert.equal(typeof adapter.presentation.createViewModel, 'function');
   // Worker drivers expose the engine directly; browser-only composition belongs to the app loader.

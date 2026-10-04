@@ -66,7 +66,7 @@ test('Mesmer packet builders merge application, tick, and explicit metadata with
   const { context } = createFixture();
   const metadata = { cloneId: 1, blade: true };
   const tickMetadata = { cloneId: 2, blade: false, shatterTraitEligible: true };
-  const extra = { metadata: { cloneId: 0, shatterTraitEligible: false } };
+  const extra = { skillId: 123, metadata: { cloneId: 0, shatterTraitEligible: false } };
   const [condition] = buildMesmerConditions(
     context,
     'Fixture',
@@ -97,15 +97,31 @@ test('Mesmer packet builders merge application, tick, and explicit metadata with
     for (const key of Object.keys(event.metadata)) assert.equal(Object.hasOwn(event, key), false);
   }
 
-  const [untimed] = buildMesmerConditions(context, 'Fixture', 0, { name: 'Bleeding', duration: 2, metadata });
+  const [untimed] = buildMesmerConditions(
+    context,
+    'Fixture',
+    0,
+    { name: 'Bleeding', duration: 2, metadata },
+    'Player',
+    '',
+    { skillId: 123 }
+  );
   assert.deepEqual(untimed.metadata, metadata);
   assert.throws(
     () =>
-      buildMesmerConditions(context, 'Fixture', 0, {
-        name: 'Bleeding',
-        duration: 2,
-        metadata: { cloneId: 'invalid' }
-      }),
+      buildMesmerConditions(
+        context,
+        'Fixture',
+        0,
+        {
+          name: 'Bleeding',
+          duration: 2,
+          metadata: { cloneId: 'invalid' }
+        },
+        'Player',
+        '',
+        { skillId: 123 }
+      ),
     /cloneId must be a finite number/
   );
 });
@@ -116,6 +132,7 @@ test('Mesmer packet builders attach canonical skill and summon identity', () => 
   events.push(buildMesmerPacket({ type: 'marker', at: 1, skillId: 123 }));
   events.push(
     ...buildMesmerConditions(context, 'Condition Skill', 2, { name: 'Bleeding', duration: 3 }, 'Clone', '', {
+      skillId: 123,
       actorType: 'summon',
       summonKind: 'clone'
     })
@@ -134,10 +151,10 @@ test('Mesmer packet builders attach canonical skill and summon identity', () => 
       { source: 'mesmer', sourceId: 123, actorType: 'player', summonKind: undefined, skillId: 123 },
       {
         source: 'Clone',
-        sourceId: 'mesmer.effect:Condition Skill',
+        sourceId: 123,
         actorType: 'summon',
         summonKind: 'clone',
-        skillId: 'mesmer.effect:Condition Skill'
+        skillId: 123
       },
       { source: 'Player', sourceId: 456, actorType: 'player', summonKind: undefined, skillId: 456 }
     ]
@@ -149,6 +166,7 @@ test('Mesmer packet builders preserve explicit derived-effect identity', () => {
 
   events.push(
     ...buildMesmerConditions(context, 'Condition Skill', 2, { name: 'Bleeding', duration: 3 }, 'Player', '', {
+      skillId: 123,
       source: 'Phantasm',
       sourceId: 'explicit-condition',
       actorType: 'summon',
@@ -196,6 +214,7 @@ test('Mesmer packet ownership is independent of source labels', () => {
 
     events.push(
       ...buildMesmerConditions(context, 'Condition Skill', 0, { name: 'Bleeding', duration: 3 }, source, '', {
+        skillId: 123,
         summonKind: 'phantasm'
       })
     );

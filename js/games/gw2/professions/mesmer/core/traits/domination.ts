@@ -1,7 +1,7 @@
 import { buildMesmerConditions, mesmerPacketOwner } from '#gw2/professions/mesmer/core/mechanics/packets.js';
 import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
-import { targetHealthLoss } from '#gw2/platform/combat/state/target-health.js';
+import { remainingTargetHealthBelow } from '#gw2/platform/combat/state/target-health.js';
 import { missesTarget } from '#gw2/platform/combat/state/targets.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { requireBalanceProfileFromContext, requireEffect } from '#gw2/platform/engine/skills/balance-profiles.js';
@@ -114,10 +114,7 @@ export const egotism = defineTrait<MesmerSkill>({
       operation: 'multiply',
       factor: 1.1,
       order: 100,
-      when: (context) =>
-        !illusionSource(context) &&
-        (context.config?.target?.health || 0) > 0 &&
-        targetHealthLoss(context.config, context.runtime) > 0
+      when: (context) => !illusionSource(context) && remainingTargetHealthBelow(context.config, context.runtime, 1)
     }
   ]
 });
@@ -127,6 +124,8 @@ export const bountifulBlades = defineTrait<MesmerSkill>({
   id: TRAIT.BOUNTIFUL_BLADES,
   name: 'Bountiful Blades',
   balance: {
+    // Extra berserker entities retain summon ownership and the preview's summon exclusion.
+    damagePreviewAttribution: 'summon',
     summons: 2,
     damageMultiplier: 0.66,
     effects: [
@@ -198,6 +197,7 @@ export function triggerRendingShatter(context: MesmerRuntime, resolution: Mesmer
       {
         source: 'Trait',
         sourceId: TRAIT.RENDING_SHATTER,
+        skillId: resolution.skill.id,
         actorType: 'player'
       }
     ).forEach((packet) => {

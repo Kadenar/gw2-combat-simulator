@@ -1,18 +1,20 @@
+import { CONJURE_PICKUP_WEAPONS } from '#gw2/professions/elementalist/core/constants.js';
+import { ELEMENTALIST_LOADOUT_SKILL_IDS } from '#gw2/professions/elementalist/data/skill-identities.js';
+import { readProfessionCoreState } from '#gw2/platform/engine/profession/state.js';
 import type {
   ProfessionAttributePreviewContext,
   ProfessionAttributePreviewPreparation
 } from '#gw2/platform/profession-presentation/attribute-preview.js';
-import { createAttributePreviewControls } from '#gw2/professions/shared/attribute-preview.js';
-import { readProfessionCoreState } from '#gw2/platform/engine/profession/state.js';
+import { planningBuffAt } from '#gw2/platform/results/query.js';
 import { elementalistWeaponGroups } from '#gw2/professions/elementalist/core/weapon-groups.js';
-import { timedBuffAt } from '#gw2/platform/results/query.js';
 import type {
+  ElementalistPistolBullets,
   ElementalistSkill,
   ElementalistState,
   ElementalistUiContext,
-  ElementalistPistolBullets,
   ElementalistUiSlice
 } from '#gw2/professions/elementalist/types.js';
+import { createPreviewControls } from '#gw2/professions/shared/attribute-preview.js';
 /**
  * Core Elementalist UI contract.
  *
@@ -22,20 +24,31 @@ import type {
  * timeline's attunement lane. Read-only over simulation state - the one
  * exception is `updatePaletteControl`, which edits the build's starting stock.
  */
-import { ELEMENTALIST_ASSUMPTION_CONTROLS } from '#gw2/professions/elementalist/build/assumptions.js';
-import { SIMULATION_RANDOMNESS_ASSUMPTION_CONTROLS } from '#gw2/platform/simulation/randomness.js';
+import { selectedSkillIdSet } from '#gw2/platform/builds/selected-skills.js';
 import { PERMANENT_COMBO_FIELD_ASSUMPTION_CONTROLS } from '#gw2/platform/combos/permanent-field-assumption.js';
-import { selectedSkillNameSet } from '#gw2/platform/builds/selected-skills.js';
-import { ELEMENTALIST_ATTUNEMENT_SKILL_IDS } from '#gw2/professions/elementalist/data/ids.js';
-import { AURA_TRANSMUTE_SKILLS, CONJURE_SKILLS, ETCHING_CHAINS } from '#gw2/professions/elementalist/core/constants.js';
-import { ELEMENTALIST_ATTUNEMENTS, type ElementalistAttunement } from '#gw2/professions/elementalist/core/state.js';
+import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
 import type { CanonicalCatalog, Skill } from '#gw2/platform/engine/skills/types.js';
+import type {
+  SkillDamagePreviewPreparation,
+  SkillDamageState
+} from '#gw2/platform/profession-presentation/skill-damage.js';
 import type {
   ProfessionEventLogDescriptor,
   ProfessionPaletteGroup,
   RotationStateSnapshotItem
 } from '#gw2/platform/profession-presentation/types.js';
-import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
+import { SIMULATION_RANDOMNESS_ASSUMPTION_CONTROLS } from '#gw2/platform/simulation/randomness.js';
+import { ELEMENTALIST_ASSUMPTION_CONTROLS } from '#gw2/professions/elementalist/build/assumptions.js';
+import { AURA_TRANSMUTE_SKILLS, CONJURE_SKILLS, ETCHING_CHAINS } from '#gw2/professions/elementalist/core/constants.js';
+import {
+  ELEMENTALIST_ATTUNEMENTS,
+  isElementalistAttunement,
+  type ElementalistAttunement
+} from '#gw2/professions/elementalist/core/state.js';
+import {
+  ELEMENTALIST_ATTUNEMENT_SKILL_IDS,
+  ELEMENTALIST_SKILL_IDS as ID
+} from '#gw2/professions/elementalist/data/ids.js';
 import { elementalistAttunementResourceAnchor } from '#gw2/professions/elementalist/family-presentation.js';
 
 const ATTUNEMENT_COLORS: Readonly<Record<ElementalistAttunement, string>> = Object.freeze({
@@ -69,12 +82,9 @@ const PISTOL_BULLETS = Object.freeze([
   }
 ] as const);
 
-// The palette is inspected both mid-rotation (live scheduler state) and after a
-// run (projected end state); accept either shape.
+// Palettes read the flat projection for either the insertion point or the completed run.
 export function elementalistUiState(context: ElementalistUiContext): Partial<ElementalistState> {
-  const professionState = context.professionState;
-  const planningState = context.state;
-  return professionState || planningState?.profession || {};
+  return context.professionState ?? {};
 }
 
 function pistolBulletRecord(value: unknown): ElementalistPistolBullets | null {
@@ -156,18 +166,18 @@ function paletteWeaponSkills(
   // expose only the stage represented by the live etching state.
   const projectedSkills = skills.filter((skill) => {
     const chain = ETCHING_CHAINS.find((candidate) =>
-      [candidate.etching, candidate.lesser, candidate.full].some((name) => name === skill.name)
+      [candidate.etchingId, candidate.lesserId, candidate.fullId].some((id) => id === skill.id)
     );
     if (!chain) return true;
     const progress = state.etchings?.[chain.etching];
-    const displayedName = !progress ? chain.etching : progress.stage === 'full' ? chain.full : chain.lesser;
-    return skill.name === displayedName;
+    const displayedId = !progress ? chain.etchingId : progress.stage === 'full' ? chain.fullId : chain.lesserId;
+    return skill.id === displayedId;
   });
   if (!elementalistPistolEquipped(context)) return projectedSkills;
   const explosion =
-    projectedSkills.find((skill) => skill.name === 'Elemental Explosion') ||
-    catalog.skillsByName.get('Elemental Explosion');
-  const ordinarySkills = projectedSkills.filter((skill) => skill.name !== 'Elemental Explosion');
+    projectedSkills.find((skill) => skill.id === ID.ELEMENTAL_EXPLOSION) ||
+    catalog.skillsById.get(ID.ELEMENTAL_EXPLOSION);
+  const ordinarySkills = projectedSkills.filter((skill) => skill.id !== ID.ELEMENTAL_EXPLOSION);
   if (!explosion || !ELEMENTALIST_ATTUNEMENTS.every((element) => displayedPistolBullets(context)[element])) {
     return ordinarySkills;
   }
@@ -231,11 +241,11 @@ function elementalistPaletteGroups(
     }
   ];
   const conjureEquipped = state.conjureEquipped || '';
-  const selectedSkills = selectedSkillNameSet(context.build?.selectedSkills || context.config?.selectedSkills);
+  const selectedSkillIds = selectedSkillIdSet(context.build?.selectedSkillIds || context.config?.selectedSkillIds);
   // Selected conjures keep a stable bar below utilities even when their bundle is not currently wielded.
   const conjures = new Set(
     Object.entries(CONJURE_SKILLS)
-      .filter(([id]) => selectedSkills.has(catalog.skillsById.get(Number(id))?.name || ''))
+      .filter(([id]) => selectedSkillIds.has(Number(id)))
       .map(([, weapon]) => weapon)
   );
   if (conjureEquipped) conjures.add(conjureEquipped);
@@ -264,16 +274,16 @@ function paletteActionSkills(
 ): Skill[] {
   const state = elementalistUiState(context);
   const now = context.time || 0;
-  const actionNames = [
-    ...(state.conjureEquipped ? ['__drop_bundle'] : []),
-    ...Object.entries(state.conjurePickups || {})
-      .filter(([, expiresAt]) => Number.isFinite(expiresAt) && expiresAt > now)
-      .map(([weapon]) => `__pickup_${weapon}`)
+  const actionIds = [
+    ...(state.conjureEquipped ? [ID.DROP_BUNDLE] : []),
+    ...Object.entries(CONJURE_PICKUP_WEAPONS)
+      .filter(([, weapon]) => (state.conjurePickups?.[weapon] ?? 0) > now)
+      .map(([id]) => Number(id))
   ];
   return [
     ...skills,
-    ...actionNames.flatMap((name) => {
-      const skill = catalog.skillsByName.get(name);
+    ...actionIds.flatMap((id) => {
+      const skill = catalog.skillsById.get(id);
       return skill ? [skill] : [];
     })
   ];
@@ -353,7 +363,7 @@ function timelineWeaponLineTransition(context: ElementalistUiContext): string | 
 // Show Fresh Air's ferocity window across specializations alongside hammer orb state.
 function rotationStateSnapshot(context: ElementalistUiContext): RotationStateSnapshotItem[] {
   const state = elementalistUiState(context);
-  const freshAir = timedBuffAt(context.result, 'fresh air', context.atSeconds || 0);
+  const freshAir = planningBuffAt(context.planningState, 'fresh air');
   const orbs = Object.entries(state.hammerOrbs || {})
     .filter(([, expiresAt]) => (expiresAt || 0) > 0)
     .map(([element]) => element)
@@ -369,12 +379,74 @@ function rotationStateSnapshot(context: ElementalistUiContext): RotationStateSna
   ];
 }
 
+/**
+ * Attunement-bound skills are measured from their own attunement: a single-element skill starts in that element in
+ * both hands, and a Weaver dual skill ("Fire+Water") starts with its main-hand and off-hand elements.
+ */
+export function elementalistAttunementConfig(skill: Skill): Readonly<Record<string, string>> | null {
+  const attunement = String((skill as { readonly attunement?: unknown }).attunement ?? '');
+  const [primary, secondary = primary] = attunement.split('+');
+  if (!isElementalistAttunement(primary) || !isElementalistAttunement(secondary)) return null;
+  return { startAttunement: primary, secondaryAttunement: secondary };
+}
+
+/** Open bundles and staged skills through their authored casts; only the final cast is measured. */
+function elementalistSkillDamageOccurrence(
+  context: SkillDamagePreviewPreparation,
+  skill: Skill
+): SkillDamageState | null {
+  // Direct evaluation supplies damage state without prerequisite actions.
+  const config = elementalistAttunementConfig(skill);
+  if (skill.id === ID.GRAND_FINALE) {
+    const orbs = ELEMENTALIST_ATTUNEMENTS.filter((element) => Boolean(context.values[`finaleOrb:${element}`]));
+    return {
+      config: config ?? {},
+      inputs: Object.fromEntries(ELEMENTALIST_ATTUNEMENTS.map((element) => [`orb:${element}`, orbs.includes(element)])),
+      assumptions: [`Grand Finale orbs: ${orbs.join(', ') || 'none'}`]
+    };
+  }
+
+  return config ? { config } : null;
+}
+
 /** Captures this UI's catalog so other profession instances cannot change its projections. */
 export function bindElementalistCoreUi(catalog: Readonly<CanonicalCatalog<ElementalistSkill>>): ElementalistUiSlice {
   return Object.freeze({
+    skillDamageState: elementalistSkillDamageOccurrence,
     /** Declare this module's conditional inputs without adding simulation settings. */
-    attributePreviewControls(context: ProfessionAttributePreviewContext) {
-      const preview = createAttributePreviewControls(context);
+    previewControls(context: ProfessionAttributePreviewContext) {
+      const preview = createPreviewControls(context);
+      // Orb composition is a damage input, independent of generating the orbs through casts.
+      for (const element of ELEMENTALIST_ATTUNEMENTS)
+        preview.add({
+          key: `finaleOrb:${element}`,
+          label: `${element} orb`,
+          group: 'Grand Finale',
+          kind: 'special',
+          scope: ['damage'],
+          initial: 1,
+          description: 'Include this orb in Grand Finale'
+        });
+      // Slot skills use this start element; weapon rows retain the attunement required by their own skill.
+      preview.add({
+        key: 'damageAttunement',
+        label: 'Starting attunement',
+        group: 'Attunement',
+        kind: 'special',
+        scope: ['damage'],
+        options: ELEMENTALIST_ATTUNEMENTS,
+        initial: (context.build as { startAttunement?: string }).startAttunement ?? 'Fire',
+        description: 'Attunement for skills without a fixed elemental requirement'
+      });
+      if (preview.has('Persisting Flames'))
+        preview.trait('Persisting Flames', {
+          key: 'persistingFlames',
+          kind: 'buff',
+          field: 'persisting flames',
+          scope: ['damage'],
+          max: preview.maximumStacks('Persisting Flames'),
+          description: 'Fire-field damage stacks active'
+        });
 
       preview.buff('Fresh Air', 'freshAir', 'fresh air', 'Ferocity while active');
       preview.buff('Arcane Lightning', 'arcaneLightning', 'arcane lightning', 'Ferocity while active');
@@ -395,11 +467,13 @@ export function bindElementalistCoreUi(catalog: Readonly<CanonicalCatalog<Elemen
           field: 'hammer air orb',
           description: '+15% Critical Chance'
         });
-      const conjures = [
-        ['Conjure Fiery Greatsword', 'Fiery Greatsword'],
-        ['Conjure Lightning Hammer', 'Lightning Hammer'],
-        ['Conjure Frost Bow', 'Frost Bow']
-      ]
+      const conjures = (
+        [
+          [ID.CONJURE_FIERY_GREATSWORD, 'Fiery Greatsword'],
+          [ID.CONJURE_LIGHTNING_HAMMER, 'Lightning Hammer'],
+          [ID.CONJURE_FROST_BOW, 'Frost Bow']
+        ] as const
+      )
         .filter(([skill]) => preview.skills.has(skill))
         .map(([, weapon]) => weapon);
       if (conjures.length)
@@ -411,9 +485,14 @@ export function bindElementalistCoreUi(catalog: Readonly<CanonicalCatalog<Elemen
           options: ['None', ...conjures],
           description: 'Attributes while wielded'
         });
-      preview.passives('Signet of Fire');
+      preview.passives(ID.SIGNET_OF_FIRE);
       return preview.controls;
     },
+    /** Apply only the damage panel's chosen starting element to the isolated runtime. */
+    prepareSkillDamagePreview: ({ values }: SkillDamagePreviewPreparation) => ({
+      startAttunement: values.damageAttunement,
+      secondaryAttunement: values.damageAttunement
+    }),
     /** Seed only the detached attribute query; combat state and saved builds remain untouched. */
     prepareAttributePreview(context: ProfessionAttributePreviewPreparation) {
       // The isolated preview permits no attunement; live combat always has an elemental attunement.
@@ -431,9 +510,17 @@ export function bindElementalistCoreUi(catalog: Readonly<CanonicalCatalog<Elemen
       const activeCatalog = context.catalog || catalog;
       return skills.map((skill) => {
         if (!skill.attunement) return skill;
-        const suffix = ` (${skill.attunement})`;
-        const base = skill.name.endsWith(suffix) ? skill.name.slice(0, -suffix.length) : skill.name;
-        return activeCatalog.skillsByName.get(`${base} (${primary})`) || skill;
+        // Variant identity comes from the authored loadout group, independent of localized names.
+        const loadoutId = ELEMENTALIST_LOADOUT_SKILL_IDS.get(Number(skill.id));
+        return (
+          (loadoutId == null
+            ? undefined
+            : activeCatalog.skills.find(
+                (candidate) =>
+                  candidate.attunement === primary &&
+                  ELEMENTALIST_LOADOUT_SKILL_IDS.get(Number(candidate.id)) === loadoutId
+              )) ?? skill
+        );
       });
     },
 

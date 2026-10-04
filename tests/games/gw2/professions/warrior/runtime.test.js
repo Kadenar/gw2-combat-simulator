@@ -128,7 +128,7 @@ test('seeded critical traits agree in detailed and score runs without reading re
 
 test('accepted control shares Opportunist cooldown while independent control traits keep their own grants', () => {
   const config = {
-    selectedSkills: ['Kick'],
+    selectedSkillIds: [14502],
     selectedTraitIds: [
       TRAIT.OPPORTUNIST,
       TRAIT.MERCILESS_HAMMER,
@@ -237,7 +237,7 @@ test('Soldier Focus starts at the arriving burst hit and its party rewards do no
 });
 
 test('heal acceptance grants Protection while Signet Mastery requires completion', () => {
-  const config = { selectedSkills: ['Healing Signet'], selectedTraitIds: [TRAIT.THICK_SKIN, TRAIT.SIGNET_MASTERY] };
+  const config = { selectedSkillIds: [14389], selectedTraitIds: [TRAIT.THICK_SKIN, TRAIT.SIGNET_MASTERY] };
   const completed = run(['Healing Signet'], config);
   const cancelled = run([{ name: 'Healing Signet', interruptAfterMs: 1 }], config);
   for (const result of [completed, cancelled]) {
@@ -253,7 +253,7 @@ test('heal acceptance grants Protection while Signet Mastery requires completion
 });
 
 test('movement completion grants Brave Stride and Peak Performance precedes the Physical impact', () => {
-  const config = { selectedSkills: ['Kick'], selectedTraitIds: [TRAIT.BRAVE_STRIDE, TRAIT.PEAK_PERFORMANCE] };
+  const config = { selectedSkillIds: [14502], selectedTraitIds: [TRAIT.BRAVE_STRIDE, TRAIT.PEAK_PERFORMANCE] };
   const completed = run(['Kick'], config);
   assert.deepEqual(completed.warnings, []);
   assert.equal(completed.planningState.profession.adrenaline, 6);
@@ -321,7 +321,7 @@ test('Combustive Shot owns one captured tier field and its finite persistent pul
     const result = run(['Combustive Shot', 'Signet of Fury', { type: 'wait', durationMs: 10000 }], {
       primaryWeapon: 'Longbow',
       initialResource: tier * 10,
-      selectedSkills: ['Signet of Fury']
+      selectedSkillIds: [14410]
     });
     assert.deepEqual(result.warnings, []);
     const fields = result.events.filter(
@@ -421,7 +421,7 @@ test('burst tier is captured at spend and cancellation retains the spend without
 });
 
 test('resource skills grant only on completion and their public state is detached', () => {
-  const config = { selectedSkills: ['Signet of Fury'] };
+  const config = { selectedSkillIds: [14410] };
   const cancelled = run([{ name: 'Signet of Fury', interruptAfterMs: 1 }], config);
   assert.equal(cancelled.planningState.profession.adrenaline, 0);
   const completed = run(['Signet of Fury'], config);
@@ -434,13 +434,13 @@ test('resource skills grant only on completion and their public state is detache
 test('signet readiness rechecks successive actual pulses and recharge suppression preserves cadence', () => {
   const result = run([{ type: 'combat-start' }, 'Eviscerate'], {
     initialResource: 6,
-    selectedSkills: ['Signet of Rage']
+    selectedSkillIds: [14355]
   });
   assert.deepEqual(result.warnings, []);
   assert.equal(result.steps.at(-1).start, 6000);
   assert.equal(result.planningState.profession.adrenaline, 1);
   const suppressed = run([{ type: 'combat-start' }, 'Signet of Rage', { type: 'wait', durationMs: 6000 }], {
-    selectedSkills: ['Signet of Rage']
+    selectedSkillIds: [14355]
   });
   assert.deepEqual(suppressed.warnings, []);
   assert.equal(suppressed.planningState.profession.adrenaline, 0);

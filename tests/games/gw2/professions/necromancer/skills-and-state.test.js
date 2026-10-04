@@ -381,7 +381,7 @@ test('Elixir of Risk retains its payload without retaining cast lockout', () => 
   const result = simulate(
     'Harbinger',
     [{ type: 'cast', skillId: skill.id, interruptAfterMs: skill.interruptCommitMs }],
-    { selectedSkills: ['Elixir of Risk'] },
+    { selectedSkillIds: [62530] },
     observationTail(1000)
   );
   const step = result.steps[0];
@@ -481,7 +481,7 @@ test('Necromancer single-hit skills use their configured offsets', () => {
   const elixirs = simulate('Harbinger', ['Elixir of Promise', 'Elixir of Risk', 'Elixir of Ambition'], {
     boons: { quickness: true },
     initialBlight: 25,
-    selectedSkills: ['Elixir of Promise', 'Elixir of Risk', 'Elixir of Ambition']
+    selectedSkillIds: [62667, 62530, 62655]
   });
   const blightSkills = simulate('Harbinger', ['Harbinger Shroud', 'Devouring Cut', 'Voracious Arc'], {
     boons: { quickness: true },
@@ -513,11 +513,11 @@ test('Necromancer single-hit skills use their configured offsets', () => {
 test('Elixir of Anguish applies Cripple and Swiftness for their exact durations', () => {
   const base = simulate('Harbinger', ['Elixir of Anguish'], {
     initialBlight: 0,
-    selectedSkills: ['Elixir of Anguish']
+    selectedSkillIds: [62662]
   });
   const empowered = simulate('Harbinger', ['Elixir of Anguish'], {
     initialBlight: 5,
-    selectedSkills: ['Elixir of Anguish']
+    selectedSkillIds: [62662]
   });
   const durations = (result) => ({
     cripple: result.resolvedEvents.find(
@@ -540,7 +540,7 @@ test('Elixirs apply all authored packets together at impact', () => {
     ['Elixir of Promise', ID.ELIXIR_OF_PROMISE],
     ['Elixir of Ambition', ID.ELIXIR_OF_AMBITION]
   ]) {
-    const result = simulate('Harbinger', [name], { selectedSkills: [name] });
+    const result = simulate('Harbinger', [name], { selectedSkillIds: [necromancerCatalog.skillsByName.get(name).id] });
     const impacts = result.events
       .filter(
         (event) =>
@@ -557,17 +557,17 @@ test('Signet of Spite follows its live passive and active profile', () => {
   const withSignet = simulate('Core', ['Rending Claws', 'Death Shroud', 'Life Blast'], {
     initialResource: 100,
     primaryWeapon: 'Axe',
-    selectedSkills: ['Signet of Spite']
+    selectedSkillIds: [10622]
   });
   const withoutSignet = simulate('Core', ['Rending Claws', 'Death Shroud', 'Life Blast'], {
     initialResource: 100,
     primaryWeapon: 'Axe',
-    selectedSkills: ['Blood Is Power']
+    selectedSkillIds: [10544]
   });
   const active = simulate('Core', ['Signet of Spite', 'Rending Claws'], {
     boons: { quickness: true },
     primaryWeapon: 'Axe',
-    selectedSkills: ['Signet of Spite']
+    selectedSkillIds: [10622]
   });
   const damage = (result, name) =>
     result.resolvedEvents.find((event) => event.type === 'damage' && event.name === name)?.damage;
@@ -1027,7 +1027,7 @@ test('Scourge shade costs and packets use their fixed PvE values', () => {
 test('Scourge barrier, shroud, and greater-shade traits trigger precisely', () => {
   const barrier = simulate('Scourge', ['Manifest Sand Shade', 'Sand Cascade', 'Sand Flare'], {
     initialResource: 100,
-    selectedSkills: ['Sand Flare'],
+    selectedSkillIds: [43148],
     selectedTraitIds: [TRAIT.ABRASIVE_GRIT, TRAIT.DESERT_EMPOWERMENT],
     allies: { count: 4, strikesPerSecond: 1 },
     sharePlayerBoonsWithSummons: true
@@ -1108,7 +1108,7 @@ test('Scourge barrier, shroud, and greater-shade traits trigger precisely', () =
 test('Sand Sage extends boons only while a Scourge shade is active', () => {
   const run = (selectedTraitIds) =>
     simulate('Scourge', ['Manifest Sand Shade', 'Blood Is Power'], {
-      selectedSkills: ['Blood Is Power'],
+      selectedSkillIds: [10544],
       selectedTraitIds
     });
   const mightDuration = (result) =>
@@ -1291,7 +1291,7 @@ test('Blight skills pay their cost before Wicked Corruption and elixirs', () => 
   const run = (skill, selectedTraitIds = []) =>
     simulate('Harbinger', ['Harbinger Shroud', skill, 'Exit Harbinger Shroud', 'Elixir of Risk'], {
       initialBlight: 25,
-      selectedSkills: ['Elixir of Risk'],
+      selectedSkillIds: [62530],
       selectedTraitIds,
       stats: { precision: 4000 },
       target: {

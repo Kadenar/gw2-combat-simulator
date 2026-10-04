@@ -581,11 +581,11 @@ test('Signet of Wrath loses its passive condition damage while recharging', () =
   ]);
   const passive = createObservedProfessionSimulator(guardianProfession, {
     ...baseConfig,
-    selectedSkills: ['Signet of Wrath']
+    selectedSkillIds: [9151]
   })(undefined, ['Through the Heart', { type: 'wait', durationMs: 9000 }]);
   const recharging = createObservedProfessionSimulator(guardianProfession, {
     ...baseConfig,
-    selectedSkills: ['Signet of Wrath']
+    selectedSkillIds: [9151]
   })(undefined, ['Signet of Wrath', 'Through the Heart', 'Signet of Wrath', { type: 'wait', durationMs: 9000 }]);
 
   assert.ok(throughDamage(passive) > throughDamage(withoutSignet));
@@ -608,7 +608,7 @@ test('Firebrand mantras flip to their final charge and rearm after full recharge
   const normal = createObservedProfessionSimulator(guardianProfession, {
     ...config,
     specialization: 'Firebrand',
-    selectedSkills: ['Mantra of Flame']
+    selectedSkillIds: [46148]
   })(undefined, ['Flame Rush']);
 
   assert.ok(normal.planningState.profession.availableFlips[rush.id]);
@@ -618,7 +618,7 @@ test('Firebrand mantras flip to their final charge and rearm after full recharge
   const final = createObservedProfessionSimulator(guardianProfession, {
     ...config,
     specialization: 'Firebrand',
-    selectedSkills: ['Mantra of Flame']
+    selectedSkillIds: [46148]
   })(undefined, ['Flame Rush', 'Flame Rush']);
 
   assert.equal(final.planningState.profession.availableFlips[rush.id], undefined);
@@ -627,7 +627,7 @@ test('Firebrand mantras flip to their final charge and rearm after full recharge
   const depleted = createObservedProfessionSimulator(guardianProfession, {
     ...config,
     specialization: 'Firebrand',
-    selectedSkills: ['Mantra of Flame']
+    selectedSkillIds: [46148]
   })(undefined, ['Flame Rush', 'Flame Rush', 'Flame Surge']);
 
   assert.equal(depleted.planningState.profession.availableFlips[rush.id], undefined);
@@ -639,7 +639,7 @@ test('Firebrand mantras flip to their final charge and rearm after full recharge
   const rearmed = createObservedProfessionSimulator(guardianProfession, {
     ...config,
     specialization: 'Firebrand',
-    selectedSkills: ['Mantra of Flame']
+    selectedSkillIds: [46148]
   })(undefined, ['Flame Rush', 'Flame Rush', 'Flame Surge', 'Flame Rush']);
   assert.deepEqual(rearmed.warnings, []);
   assert.equal(rearmed.steps.at(-1).start, rechargeReadyAt);
@@ -659,7 +659,7 @@ test('mantra charge cooldowns carry across the final flip and scale with Alacrit
       const result = createObservedProfessionSimulator(guardianProfession, {
         ...config,
         specialization: 'Firebrand',
-        selectedSkills: [root],
+        selectedSkillIds: [guardianCatalog.skillsByName.get(root).id],
         boons: { alacrity }
       })(undefined, [normal, normal, final]);
       assert.deepEqual(result.warnings, []);
@@ -764,7 +764,7 @@ test('Feel My Wrath splits party and self quickness and triggers Quickfire', () 
   const result = createObservedProfessionSimulator(guardianProfession, {
     ...config,
     specialization: 'Firebrand',
-    selectedSkills: ['"Feel My Wrath!"'],
+    selectedSkillIds: [29965],
     selectedTraitIds: [GUARDIAN_TRAIT_IDS.QUICKFIRE],
     boons: { quickness: true },
     allies: { count: 1, strikesPerSecond: 1 }
@@ -897,7 +897,7 @@ test('Firebrand specialization traits drive pages, quickness, and tome bonuses',
   const weighted = createObservedProfessionSimulator(guardianProfession, {
     ...config,
     specialization: 'Firebrand',
-    selectedSkills: ['Mantra of Potence'],
+    selectedSkillIds: [40915],
     initialTomePages: 1,
     selectedTraitIds: [GUARDIAN_TRAIT_IDS.WEIGHTY_TERMS]
   })(undefined, ['Potent Haste', 'Potent Haste', 'Overwhelming Celerity']);
@@ -914,7 +914,7 @@ test('Firebrand specialization traits drive pages, quickness, and tome bonuses',
   const liberated = createObservedProfessionSimulator(guardianProfession, {
     ...config,
     specialization: 'Firebrand',
-    selectedSkills: ['Shelter'],
+    selectedSkillIds: [9102],
     selectedTraitIds: [GUARDIAN_TRAIT_IDS.LIBERATORS_VOW]
   })(undefined, ['Shelter']);
 

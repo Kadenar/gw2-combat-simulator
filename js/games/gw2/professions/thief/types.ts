@@ -22,7 +22,7 @@ export type ThiefDodge = 'Dodge' | 'Lotus Training' | 'Bounding Dodger' | 'Unhin
 
 export interface ThiefBuild extends Gw2Build {
   specializations?: Gw2BuildSpecialization[];
-  selectedSkills?: Record<string, string>;
+  selectedSkillIds?: Record<string, SkillId | null>;
   selectedDodge?: ThiefDodge;
 }
 
@@ -139,15 +139,9 @@ export type ThiefResolverContext = Gw2ResolverRuntime & {
   readonly state?: { readonly profession: ThiefRuntimeState };
 };
 
-export interface ThiefUiContext extends Omit<
-  ProfessionUiCallbackContext<ThiefRuntimeState | Partial<ThiefState>>,
-  'build'
-> {
+export interface ThiefUiContext extends Omit<ProfessionUiCallbackContext<Partial<ThiefState>>, 'build'> {
   readonly config?: ThiefConfig;
   readonly build?: ThiefBuild | null;
-  readonly state?: {
-    readonly profession?: ThiefRuntimeState | Partial<ThiefState>;
-  };
   readonly initialInitiative?: number;
   readonly initialShadowForce?: number;
 }

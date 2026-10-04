@@ -74,9 +74,9 @@ export function applyBuildTemplatePreview(
       ...current,
       ...(weapons ? { weapons: [...weapons] } : {}),
       specializations: [...preview.specializations],
-      selectedSkills: {
-        ...current.selectedSkills,
-        ...preview.selectedSkills
+      selectedSkillIds: {
+        ...current.selectedSkillIds,
+        ...preview.selectedSkillIds
       }
     },
     current,

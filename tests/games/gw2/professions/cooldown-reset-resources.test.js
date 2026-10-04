@@ -9,7 +9,7 @@ import { revenantProfession } from '#gw2/professions/revenant/profession.js';
 // These focused rotations verify that the training-area command resets both standard recharge and profession resources.
 test('cooldown reset refills shared life force for every Necromancer specialization', () => {
   for (const specialization of ['Core', 'Reaper', 'Scourge', 'Harbinger', 'Ritualist']) {
-    const config = { specialization, initialResource: 25, selectedSkills: ['Plaguelands'] };
+    const config = { specialization, initialResource: 25, selectedSkillIds: [10549] };
     const result = runGw2Runtime({
       profession: necromancerProfession.runtimeFor(config),
       rotation: ['Plaguelands', { type: 'cooldown-reset' }],

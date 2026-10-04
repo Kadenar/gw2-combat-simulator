@@ -12,7 +12,7 @@ import { createSimulationRandom } from '#kernel/core/simulation-random.js';
 
 // Core trait contracts cover proc triggers, attribute modifiers, and Tools interactions.
 const baseConfig = Object.freeze({
-  selectedSkills: ['Healing Turret', 'Grenade Kit', 'Throw Mine', 'Elixir Gun', 'Supply Crate'],
+  selectedSkillIds: [5857, 5805, 6161, 5933, 5868],
   selectedMorphSkillIds: [77103, 77203, 76954],
   stats: {
     power: 2000,
@@ -358,7 +358,7 @@ test('Aim-Assisted Rocket calls an orbital strike after four rockets', () => {
     ],
     {
       selectedTraitIds: [TRAIT.AIM_ASSISTED_ROCKET],
-      selectedSkills: ['Healing Turret', 'Bomb Kit', 'Grenade Kit', 'Elixir Gun', 'Supply Crate'],
+      selectedSkillIds: [5857, 5812, 5805, 5933, 5868],
       relic: 'Bloodstone',
       target: { conditions: {} }
     }
@@ -502,7 +502,7 @@ test('Chemical Rounds extends every pistol condition beyond the condition-durati
 
 test('Incendiary Powder tracks player and mech cooldowns independently', () => {
   const result = simulate('Mechanist', ['Grenade Kit', 'Grenade', { type: 'wait', durationMs: 2500 }], {
-    selectedSkills: ['Rectifier Signet', 'Grenade Kit', 'Throw Mine', 'Elixir Gun', 'Overclock Signet'],
+    selectedSkillIds: [63049, 5805, 6161, 5933, 63095],
     selectedTraitIds: [
       TRAIT.INCENDIARY_POWDER,
       TRAIT.MECH_ARMS_SINGLE_EDGE_CUTTERS,

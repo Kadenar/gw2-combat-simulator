@@ -46,12 +46,12 @@ test('in-game build import replaces selections without discarding gear or rotati
     { name: 'Air', traits: '3-3-2' },
     { name: 'Tempest', traits: '3-1-1' }
   ]);
-  assert.deepEqual(app.build.selectedSkills, {
-    Heal: 'Wash the Pain Away!',
-    Utility1: 'Feel the Burn!',
-    Utility2: 'Glyph of Storms (Fire)',
-    Utility3: 'Signet of Fire',
-    Elite: 'Glyph of Elementals'
+  assert.deepEqual(app.build.selectedSkillIds, {
+    Heal: 29535,
+    Utility1: 30662,
+    Utility2: 5736,
+    Utility3: 5542,
+    Elite: 25488
   });
   assert.equal(app.build.gear.Head, "Viper's");
   assert.deepEqual(app.build.weapons, ['Scepter', 'Warhorn']);

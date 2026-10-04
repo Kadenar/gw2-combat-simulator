@@ -107,6 +107,11 @@ export class StableEventQueue<T extends QueuedEvent = QueuedEvent> {
     return this.current?.at ?? null;
   }
 
+  /** Observe live deadlines without consuming work or exposing cancelled insertions. */
+  pending(): readonly T[] {
+    return this.heap.filter((entry) => !entry.cancelled).map((entry) => entry.event);
+  }
+
   /** Game-owned phases stay private to heap entries; derived work cannot rewind an already handled instant. */
   private entry(input: T, sequence: number): HeapEntry<T> {
     const event = canonicalEvent(input);

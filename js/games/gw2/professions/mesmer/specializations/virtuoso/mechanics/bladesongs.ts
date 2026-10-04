@@ -65,18 +65,26 @@ export function resolveBladesong(
 
     const hits = addBladeDamage(ticks);
     if (confusion)
-      buildMesmerConditions(runtime.context, skill.name, at, {
-        name: 'Confusion',
-        duration: confusion.duration,
-        ticks: (strike?.ticks?.map((tick) => tick.atMs) ?? shatter.conditionAtMs?.[spent] ?? []).map((atMs) => ({
-          atMs,
-          condition: 'Confusion',
-          duration: Number(confusion.duration),
-          stacks: Number(confusion.stacks)
-        })),
-        timingAnchor: 'castStart',
-        timingScale: 'fixed'
-      }).forEach((packet) => {
+      buildMesmerConditions(
+        runtime.context,
+        skill.name,
+        at,
+        {
+          name: 'Confusion',
+          duration: confusion.duration,
+          ticks: (strike?.ticks?.map((tick) => tick.atMs) ?? shatter.conditionAtMs?.[spent] ?? []).map((atMs) => ({
+            atMs,
+            condition: 'Confusion',
+            duration: Number(confusion.duration),
+            stacks: Number(confusion.stacks)
+          })),
+          timingAnchor: 'castStart',
+          timingScale: 'fixed'
+        },
+        'Player',
+        '',
+        { skillId: skill.id }
+      ).forEach((packet) => {
         runtime.context.effects.emit({
           ...delivery,
           kind: 'packet',

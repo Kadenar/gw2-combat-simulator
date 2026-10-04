@@ -1,4 +1,3 @@
-import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import { CAST_READY, denyCast } from '#gw2/platform/engine/skills/availability.js';
 import {
   balanceProfileNumber,
@@ -6,7 +5,9 @@ import {
   requireEffect
 } from '#gw2/platform/engine/skills/balance-profiles.js';
 import type { NativeResolvedDamageDetails } from '#gw2/platform/profession-definition/module-types.js';
+import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import type { Gw2Runtime, RuntimeCast, RuntimeProfession } from '#gw2/platform/simulation/runtime-state.js';
+import { damageInputEvent } from '#gw2/platform/skill-damage/execution.js';
 import { guardianCastCause } from '#gw2/professions/guardian/core/mechanics/event-handlers.js';
 import {
   applyGuardianVirtueActivationTraits,
@@ -26,7 +27,7 @@ import {
   initializeFirebrandMantras,
   refreshFirebrandMantras
 } from '#gw2/professions/guardian/specializations/firebrand/mechanics/mantras.js';
-import { reactToAshesHit } from '#gw2/professions/guardian/specializations/firebrand/mechanics/tomes.js';
+import { emitAshes, reactToAshesHit } from '#gw2/professions/guardian/specializations/firebrand/mechanics/tomes.js';
 import { FIREBRAND_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/guardian/specializations/firebrand/profiles.js';
 import { firebrandState } from '#gw2/professions/guardian/specializations/firebrand/state.js';
 import {
@@ -111,6 +112,23 @@ function courage(runtime: Runtime): void {
 
 /** Pages, tome sessions, and mantra charges mutate one live state; report events never restore a snapshot. */
 export const firebrandHooks: Partial<RuntimeProfession<GuardianRuntimeState, GuardianSkill>> = {
+  // Known damage payloads are invoked once without their activation requirements.
+  damageEffects: [
+    {
+      id: 'ashes',
+      name: 'Ashes of the Just',
+      source: 'Profession',
+      unit: 'charge',
+      sourceIds: ['guardian.ashes-of-the-just'],
+      emit: (runtime) => emitAshes(runtime, damageInputEvent(runtime))
+    }
+  ],
+
+  /** Initialize only damage-relevant form and scaling state for one assumed occurrence. */
+  prepareDamageState(runtime, skill, _inputs) {
+    if (skill?.tome) firebrandState.from(runtime).activeTome = skill.tome;
+  },
+
   sideEffectHandlers: {
     ...firebrandMantraActions,
     // Declarations select the virtue; the controller retains dormancy and session invariants.

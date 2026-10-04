@@ -258,8 +258,8 @@ test('Mistburn projects its grant without aliases or mutations to runtime state'
     assert.equal(Object.hasOwn(internal, 'mistburnExpiresAt'), false);
   }
 
-  // Both supported UI inputs must show the same live count and remaining duration.
-  for (const professionState of [projected, context.profession]) {
+  // Detached snapshots and planning projections show the same count and remaining duration.
+  for (const professionState of [projected, snapshotProfessionState(context.profession)]) {
     const items = thiefProfession.ui.rotationStateSnapshot({
       specialization: 'Antiquary',
       professionState,

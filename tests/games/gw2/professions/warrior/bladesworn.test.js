@@ -39,7 +39,7 @@ test('Flow waits for accepted combat and preserves the absolute 40 ms cadence', 
 
 test('precombat control leaves base Flow inactive in execution and presentation until the marker', () => {
   // The control notification is observable during preparation, but cannot start base Flow recovery.
-  const result = run(['Kick', wait(1000), combat], { selectedSkills: ['Kick'] });
+  const result = run(['Kick', wait(1000), combat], { selectedSkillIds: [14502] });
   assert.deepEqual(result.warnings, []);
   assert.equal(
     result.events.some((event) => event.type === 'control' && event.at < result.combatStartTime),
@@ -62,7 +62,7 @@ test('precombat control leaves base Flow inactive in execution and presentation 
 });
 
 test('Flow Stabilizer requires preexisting Fury and overlapping windows add independently', () => {
-  const config = { selectedSkills: ['Flow Stabilizer'] };
+  const config = { selectedSkillIds: [62967] };
   close(state(run(['Flow Stabilizer'], config)).flow, 0);
   close(state(run(['Flow Stabilizer'], { ...config, boons: { fury: true } })).flow, 15);
   const result = run(['Flow Stabilizer', wait(1000), 'Flow Stabilizer', wait(1000), combat], config);
@@ -72,7 +72,7 @@ test('Flow Stabilizer requires preexisting Fury and overlapping windows add inde
 });
 
 test('Positive Flow works before combat and grants its final tick before its window expires', () => {
-  const config = { selectedSkills: ['Flow Stabilizer'] };
+  const config = { selectedSkillIds: [62967] };
   for (const duration of [8000, 8040]) {
     const result = run(['Flow Stabilizer', wait(duration), combat], config);
     assert.deepEqual(result.warnings, []);
@@ -92,7 +92,7 @@ test('Bladesworn redirects trait and signet grants while ordinary hits produce n
   const owner = observedRuntime(bare);
   close(state(bare).flow, (Math.floor(owner.time * 25) - Math.floor(owner.firstHitTime * 25)) * 0.08);
   close(state(trained).flow - state(critical).flow, 2);
-  const signet = run([combat, wait(3000)], { selectedSkills: ['Signet of Rage'] });
+  const signet = run([combat, wait(3000)], { selectedSkillIds: [14355] });
   close(state(signet).flow, 8);
   assert.equal(signet.planningState.profession.adrenaline, 0);
   assert.equal(signet.planningState.profession.maximumAdrenaline, 0);
@@ -121,7 +121,7 @@ test('removing Positive Flow suppresses regeneration independently of the condit
   });
   const result = run(
     ['Flow Stabilizer', wait(1000), combat],
-    { patchId: 'flow-removed', selectedSkills: ['Flow Stabilizer'], boons: { fury: true } },
+    { patchId: 'flow-removed', selectedSkillIds: [62967], boons: { fury: true } },
     patched
   );
   assert.deepEqual(result.warnings, []);
@@ -326,7 +326,7 @@ test('Dragon Trigger spends entry Flow once and owns actual charge ticks without
 test('a stalled charge waits for actual Positive Flow and a slash releases at the first affordable tick', () => {
   const result = run(['Dragon Trigger', wait(480), 'Flow Stabilizer', slash(2), combat], {
     initialResource: 15,
-    selectedSkills: ['Flow Stabilizer']
+    selectedSkillIds: [62967]
   });
   assert.deepEqual(result.warnings, []);
   const release = result.events.find(
@@ -364,7 +364,7 @@ test('Dragon Trigger admits its exact deadline then expires autonomously and sta
 test('cast-bar skills exit charging at acceptance, while instant skills retain the active charge window', () => {
   const instant = run(['Dragon Trigger', 'Flow Stabilizer', wait(480), combat], {
     initialResource: 30,
-    selectedSkills: ['Flow Stabilizer']
+    selectedSkillIds: [62967]
   });
   assert.deepEqual(instant.warnings, []);
   assert.equal(state(instant).dragonTriggerActive, true);
@@ -373,7 +373,7 @@ test('cast-bar skills exit charging at acceptance, while instant skills retain t
     ['Dragon Trigger', wait(240), { name: 'Combat Stimulant', interruptAfterMs: 1 }, wait(500), combat],
     {
       initialResource: 30,
-      selectedSkills: ['Combat Stimulant']
+      selectedSkillIds: [62978]
     }
   );
   assert.deepEqual(exited.warnings, []);
@@ -449,7 +449,7 @@ test('Daring Dragon changes actual charge cost/cap and completion boons while Sh
 test('Tactical Reload restores existing ammunition and doubles charges only for the next Dragon Trigger entry', () => {
   const result = run(['Flow Stabilizer', 'Tactical Reload', 'Dragon Trigger', slash(10), combat], {
     initialResource: 100,
-    selectedSkills: ['Flow Stabilizer', 'Tactical Reload']
+    selectedSkillIds: [62967, 62901]
   });
   assert.deepEqual(result.warnings, []);
   const ammo = observedRuntime(result).ammo.get(ID.FLOW_STABILIZER);
@@ -467,7 +467,7 @@ test('Tactical Reload restores existing ammunition and doubles charges only for 
 test('Tactical Reload clears full Cartridges recharge and restores the longest timer when depleted', () => {
   const cartridges = 'Overcharged Cartridges';
   const reload = 'Tactical Reload';
-  const config = { selectedSkills: [cartridges, reload] };
+  const config = { selectedSkillIds: [ID.OVERCHARGED_CARTRIDGES, ID.TACTICAL_RELOAD] };
   const initial = run([cartridges], config);
   const firstDeadline = observedRuntime(initial).ammo.get(ID.OVERCHARGED_CARTRIDGES).nextRechargeAt;
 
@@ -509,7 +509,7 @@ test('Artillery Slash queues recharge for all rounds spent together', () => {
 test('Dragonspike resets exit recharge and an old expiry cannot close a replacement charge window', () => {
   const result = run(['Dragon Trigger', slash(1), 'Dragonspike Mine', 'Dragon Trigger', wait(28500), combat], {
     initialResource: 100,
-    selectedSkills: ['Dragonspike Mine']
+    selectedSkillIds: [62960]
   });
   assert.deepEqual(result.warnings, []);
   assert.equal(state(result).dragonTriggerActive, true);
@@ -530,7 +530,7 @@ test('Tactical Reload can be consumed before expiry and closes exactly at its de
   ]) {
     const result = run(['Tactical Reload', wait(delay), 'Dragon Trigger', wait(240), combat], {
       initialResource: 100,
-      selectedSkills: ['Tactical Reload']
+      selectedSkillIds: [62901]
     });
     assert.deepEqual(result.warnings, []);
     assert.equal(state(result).dragonCharges, expected);
@@ -576,7 +576,7 @@ test('Artillery Slash spends captured rounds once and successful ammunition trai
 test('Lush Forest reduces current-bar recharge only and preserves the normal Artillery exclusion', () => {
   for (const gunsaber of [false, true]) {
     const rotation = ['Cyclone Axe', ...(gunsaber ? ['Unsheathe Gunsaber'] : []), 'Flow Stabilizer'];
-    const config = { selectedSkills: ['Flow Stabilizer'] };
+    const config = { selectedSkillIds: [62967] };
     const bare = run(rotation, config);
     const trained = run(rotation, { ...config, selectedTraitIds: [TRAIT.LUSH_FOREST] });
     assert.deepEqual(trained.warnings, []);
@@ -594,7 +594,7 @@ test('Lush Forest reduces current-bar recharge only and preserves the normal Art
 });
 
 test('cartridges activate on the queue, upgrade once, and expire without another action', () => {
-  const config = { selectedSkills: ['Overcharged Cartridges'] };
+  const config = { selectedSkillIds: [68085] };
   const once = run(['Overcharged Cartridges'], config);
   assert.deepEqual(once.warnings, []);
   const first = state(once).overchargedCartridgeWindows[0];
@@ -616,7 +616,7 @@ test('cartridges activate on the queue, upgrade once, and expire without another
 });
 
 test('only accepted explosions apply cartridge Burning and extend Guns and Glory after the triggering damage', () => {
-  const config = { selectedSkills: ['Overcharged Cartridges'], selectedTraitIds: [TRAIT.GUNS_AND_GLORY] };
+  const config = { selectedSkillIds: [68085], selectedTraitIds: [TRAIT.GUNS_AND_GLORY] };
   const result = run(['Overcharged Cartridges', 'Unsheathe Gunsaber', 'Artillery Slash'], config);
   assert.deepEqual(result.warnings, []);
   assert.ok(state(result).gunsAndGloryUntil > observedRuntime(result).time);
@@ -626,7 +626,7 @@ test('only accepted explosions apply cartridge Burning and extend Guns and Glory
   assert.equal(burning.ownerActorType, 'player');
   assert.equal(burning.actorType, 'effect');
   const bare = run(['Overcharged Cartridges', 'Unsheathe Gunsaber', 'Artillery Slash'], {
-    selectedSkills: ['Overcharged Cartridges']
+    selectedSkillIds: [68085]
   });
   close(
     result.resolvedEvents.find((event) => event.type === 'damage').damage,
@@ -656,7 +656,7 @@ test('cartridge component removal separates its bonus and Burning and a removed 
         }
       }
     });
-    const config = { patchId: `cartridge-${removed}`, selectedSkills: ['Overcharged Cartridges'] };
+    const config = { patchId: `cartridge-${removed}`, selectedSkillIds: [68085] };
     const result = run(['Overcharged Cartridges', 'Unsheathe Gunsaber', 'Artillery Slash'], config, patched);
     assert.deepEqual(result.warnings, []);
     assert.equal(state(result).overchargedCartridgeWindows.length > 0, removed === 'condition');
@@ -683,7 +683,7 @@ test('cartridge component removal separates its bonus and Burning and a removed 
   });
   const result = run(
     ['Overcharged Cartridges', 'Overcharged Cartridges', 'Unsheathe Gunsaber', 'Artillery Slash'],
-    { patchId: 'upgrade-removed', selectedSkills: ['Overcharged Cartridges'] },
+    { patchId: 'upgrade-removed', selectedSkillIds: [68085] },
     patched
   );
   assert.deepEqual(result.warnings, []);
@@ -711,7 +711,7 @@ test('committed reloads restore ammo once at semantic completion before the rese
     ],
     {
       initialResource: 100,
-      selectedSkills: ['Flow Stabilizer', 'Tactical Reload']
+      selectedSkillIds: [62967, 62901]
     }
   );
   assert.deepEqual(result.warnings, []);
@@ -757,7 +757,7 @@ test('release choices honor insertion-time charges, actual regeneration, and the
     preview: (command) =>
       run(['Dragon Trigger', wait(480), 'Flow Stabilizer', ...(command ? [command] : [])], {
         initialResource: 15,
-        selectedSkills: ['Flow Stabilizer'],
+        selectedSkillIds: [62967],
         selectedTraitIds: [TRAIT.SHARP_AS_THE_WIND]
       })
   });
@@ -776,8 +776,7 @@ test('release choices honor insertion-time charges, actual regeneration, and the
   close(held.rows[0].at, 2.4);
   const closed = dragonChargeReleaseProjection({
     skill,
-    preview: () =>
-      run(['Dragon Trigger', 'Combat Stimulant'], { initialResource: 100, selectedSkills: ['Combat Stimulant'] })
+    preview: () => run(['Dragon Trigger', 'Combat Stimulant'], { initialResource: 100, selectedSkillIds: [62978] })
   });
   assert.deepEqual(closed.rows, []);
 });

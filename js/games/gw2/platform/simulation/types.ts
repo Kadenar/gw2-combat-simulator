@@ -2,7 +2,7 @@ import type { EffectState } from '#gw2/platform/combat/effect-state.js';
 /** Owns the simulation/types.ts contracts so type dependencies follow their runtime feature boundaries. */
 import type { NormalizedProfessionContract, ProfessionFamilyContract } from '#gw2/platform/engine/profession/types.js';
 import type { AmmoState, AvailabilityResult, SimulationStep } from '#gw2/platform/execution/types.js';
-import type { RuntimeProfession } from '#gw2/platform/simulation/runtime-state.js';
+import type { ProfessionRuntimeOptions, RuntimeProfession } from '#gw2/platform/simulation/runtime-state.js';
 import type { CanonicalCatalog, Skill } from '#gw2/platform/engine/skills/types.js';
 import type { ObservationPolicy } from '#kernel/execution/observation.js';
 import type { Gw2ResolverResult } from '#gw2/platform/resolver/types.js';
@@ -33,7 +33,7 @@ export type Gw2ProfessionSource<TProfessionState extends object = any> = Profess
   Gw2ProfessionContract<TProfessionState>,
   Gw2Build
 > & {
-  runtimeFor(config: Gw2Config): RuntimeProfession<TProfessionState>;
+  runtimeFor(config: Gw2Config, options?: ProfessionRuntimeOptions): RuntimeProfession<TProfessionState>;
 };
 
 export interface Gw2SimulationPlanningState {
@@ -60,6 +60,8 @@ export interface Gw2SimulationResult extends Gw2ResolverResult {
 }
 
 export interface Gw2SimulationOptions {
+  /** Detailed editor results can omit chart histories while retaining events, APM, and planning snapshots. */
+  readonly collectChartData?: boolean;
   /** Capture formula facts during detailed execution; never persisted as build configuration. */
   readonly damageDiagnostics?: boolean;
   /** Optional profiler receives phase durations; normal simulations avoid clock reads. */

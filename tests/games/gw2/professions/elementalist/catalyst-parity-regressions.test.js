@@ -57,7 +57,7 @@ test('Catalyst includes build-time derived Condition Damage in its empowerment p
       ['Catalyst', '2-1-2']
     ],
     utility: 'Toxic Tuning Crystal',
-    selectedSkills: { Utility1: 'Signet of Fire' }
+    selectedSkillIds: { Utility1: 5542 }
   });
   const conditionDamage = app.attributeData.attributes['Condition Damage'];
   const config = elementalistAppAdapter.simulationConfig(app);

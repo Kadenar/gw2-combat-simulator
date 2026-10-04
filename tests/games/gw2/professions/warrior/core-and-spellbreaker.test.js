@@ -92,7 +92,7 @@ test('Throw Bolas applies immobilize and resolves a projectile combo at impact',
   const result = simulate('Core', [ID.COMBUSTIVE_SHOT, ID.THROW_BOLAS], {
     primaryWeapon: 'Longbow',
     initialResource: 30,
-    selectedSkills: ['Throw Bolas']
+    selectedSkillIds: [14354]
   });
   const impact = result.events.find((event) => event.skillId === ID.THROW_BOLAS && event.type === 'damage');
   const immobilize = result.events.find(
@@ -118,7 +118,7 @@ test('Throw Bolas applies immobilize and resolves a projectile combo at impact',
 test('Signet of Might grants might before the next action without delaying it', () => {
   // Instant activation must commit its boon before the next same-time action is scheduled.
   const result = simulate('Core', [ID.SIGNET_OF_MIGHT, ID.THROW_BOLAS], {
-    selectedSkills: ['Signet of Might', 'Throw Bolas']
+    selectedSkillIds: [14404, 14354]
   });
   const might = result.events.find((event) => event.skillId === ID.SIGNET_OF_MIGHT && event.kind === 'might');
   const nextAction = result.events.find((event) => event.skillId === ID.THROW_BOLAS && event.type === 'action');

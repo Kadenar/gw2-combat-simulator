@@ -1,13 +1,20 @@
+import type { ResourcePolicies } from '#gw2/platform/combat/resources/resource-policy.js';
 import type { ProfessionConfig } from '#gw2/platform/execution/types.js';
 import type {
   ProfessionAttributePreviewInput,
   ProfessionAttributePreviewPreparation
 } from '#gw2/platform/profession-presentation/attribute-preview.js';
-import type { ResourcePolicies } from '#gw2/platform/combat/resources/resource-policy.js';
+import type {
+  SkillDamageConfigPatch,
+  SkillDamagePreviewPreparation
+} from '#gw2/platform/profession-presentation/skill-damage.js';
 /**
  * Profession UI composition. Combines Core, active-specialization, and family
  * UI slices without leaking runtime ownership policy into the application.
  */
+import type { ProfessionAssumptionControl } from '#gw2/platform/builds/types.js';
+import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
+import type { ProfessionResourceDefinition } from '#gw2/platform/engine/profession/types.js';
 import type { CanonicalCatalog, Skill } from '#gw2/platform/engine/skills/types.js';
 import type {
   ProfessionChargeReleaseContext,
@@ -18,14 +25,12 @@ import type {
   ProfessionSkillBarSelectionChange,
   ProfessionUiContract
 } from '#gw2/platform/profession-presentation/types.js';
-import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
-import type { ProfessionAssumptionControl } from '#gw2/platform/builds/types.js';
-import type { ProfessionResourceDefinition } from '#gw2/platform/engine/profession/types.js';
 
 type UiCallbackName = keyof ProfessionUiContract;
 
 const UI_LIST_CALLBACK_NAMES = Object.freeze([
-  'attributePreviewControls',
+  'previewControls',
+  'skillDamageGroups',
   'chartApplications',
   'timelineMarkers',
   'timelineOverlays',
@@ -99,11 +104,11 @@ function deduplicateUiEntries(values: readonly unknown[], callbackName: string):
     if (!value || typeof value !== 'object') continue;
     const candidate = value as { readonly id?: unknown; readonly key?: unknown };
     // Preview inputs are persisted within the panel by key; duplicate owners would silently overwrite a value.
-    const identity = callbackName === 'attributePreviewControls' ? candidate.key : candidate.id;
+    const identity = callbackName === 'previewControls' ? candidate.key : candidate.id;
     const key = identity == null ? '' : String(identity);
     if (!key) continue;
     if (keys.has(key)) {
-      const field = callbackName === 'attributePreviewControls' ? 'key' : 'id';
+      const field = callbackName === 'previewControls' ? 'key' : 'id';
       throw new TypeError(`ui.${callbackName} returned duplicate ${field} ${key} at index ${index}.`);
     }
 
@@ -256,6 +261,29 @@ export function createProfessionFamilyUi(definition: ProfessionFamilyUiDefinitio
     const selected = active(context);
     for (const slice of [...selected.slices, family])
       slice.prepareAttributePreview?.(selected.context as ProfessionAttributePreviewPreparation);
+  };
+
+  // Each active slice may seed its own runtime fields; later slices refine earlier ones, as their controls are ordered.
+  ui.prepareSkillDamagePreview = (context: SkillDamagePreviewPreparation): SkillDamageConfigPatch => {
+    const selected = active(context);
+    return Object.assign(
+      {},
+      ...[...selected.slices, family].map((slice) =>
+        slice.prepareSkillDamagePreview?.(selected.context as SkillDamagePreviewPreparation)
+      )
+    );
+  };
+
+  // The elite owns its mechanics' setup, so it answers before Core; the family slice is the last fallback.
+  ui.skillDamageState = (context: SkillDamagePreviewPreparation, skill: Skill) => {
+    const selected = active(context);
+    return firstUiMatch(
+      [...[...selected.slices].reverse(), family],
+      'skillDamageState',
+      [selected.context, skill],
+      (result) => result != null,
+      null
+    );
   };
 
   ui.attributePreviewDisabledTrait = (context: ProfessionAttributePreviewInput) => {

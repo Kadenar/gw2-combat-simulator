@@ -123,15 +123,17 @@ export function createSkillDamageController({
     for (const effect of conditions) {
       const condition = { ...effect, name: effect.condition };
       const timingAnchorAt = effect.timingAnchor === 'castStart' ? castStart : at;
-      buildMesmerConditions(state, skill.name, timingAnchorAt, condition, 'Player').forEach((packet) => {
-        state.effects.emit({
-          ...delivery,
-          kind: 'packet',
-          event: packet,
-          owner: mesmerPacketOwner(packet),
-          priority: Number(packet.priority ?? 0)
-        });
-      });
+      buildMesmerConditions(state, skill.name, timingAnchorAt, condition, 'Player', '', { skillId: skill.id }).forEach(
+        (packet) => {
+          state.effects.emit({
+            ...delivery,
+            kind: 'packet',
+            event: packet,
+            owner: mesmerPacketOwner(packet),
+            priority: Number(packet.priority ?? 0)
+          });
+        }
+      );
     }
   };
 

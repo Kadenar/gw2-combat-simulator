@@ -48,7 +48,7 @@ test('axe materialization replaces the oldest grant without mutating earlier sta
 test('Holo-Dancer commits spend grant order even when the newest charge expires first', () => {
   const prior = Object.freeze([0, 30, 5]);
   let snapshot;
-  const config = { specialization: 'Antiquary', selectedSkills: ['Prepare Pitfall'] };
+  const config = { specialization: 'Antiquary', selectedSkillIds: [13057] };
   const skill = thiefCatalog.skillsByName.get('Prepare Pitfall');
   const result = runThief(['Prepare Pitfall'], config, {
     initialize(runtime) {

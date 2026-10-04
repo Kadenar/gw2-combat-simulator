@@ -3,9 +3,16 @@ import {
   balanceProfileNumber,
   requireBalanceProfileFromContext
 } from '#gw2/platform/engine/skills/balance-profiles.js';
+import type { Skill } from '#gw2/platform/engine/skills/types.js';
+import type { ProfessionAttributePreviewContext } from '#gw2/platform/profession-presentation/attribute-preview.js';
 import type { ProfessionBalanceContext } from '#gw2/platform/profession-presentation/balance-context.js';
+import type {
+  SkillDamagePreviewContext,
+  SkillDamageState
+} from '#gw2/platform/profession-presentation/skill-damage.js';
 import type { ProfessionResourceView, RotationStateSnapshotItem } from '#gw2/platform/profession-presentation/types.js';
-import { timedBuffAt, timedBuffStacksAt } from '#gw2/platform/results/query.js';
+import { planningBuffAt, planningBuffStacks } from '#gw2/platform/results/query.js';
+import { createPreviewControls } from '#gw2/professions/shared/attribute-preview.js';
 import {
   formatSecondsRemaining,
   warriorPaletteGroups,
@@ -15,6 +22,7 @@ import {
 import { WARRIOR_SKILL_IDS as ID, WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/professions/warrior/data/ids.js';
 import { dragonChargeReleaseProjection } from '#gw2/professions/warrior/specializations/bladesworn/mechanics/charge-release.js';
 import { BLADESWORN_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/warrior/specializations/bladesworn/profiles.js';
+import { maximumDragonCharges } from '#gw2/professions/warrior/specializations/bladesworn/traits/behavior.js';
 import type { WarriorUiContext, WarriorUiSlice } from '#gw2/professions/warrior/types.js';
 
 const PROFESSION_SKILLS = Object.freeze([ID.UNSHEATHE_GUNSABER, ID.SHEATHE_GUNSABER, ID.DRAGON_TRIGGER]);
@@ -29,6 +37,7 @@ const GUNSABER_SKILLS = Object.freeze([
   ID.CYCLONE_TRIGGER,
   ID.BREAK_STEP
 ]);
+const GUNSABER_CHAIN = Object.freeze([ID.SWIFT_CUT, ID.STEEL_DIVIDE, ID.EXPLOSIVE_THRUST]);
 const PALETTE_STACK_ID = 'bladesworn-profession';
 const NO_WEAPON_BURSTS: Readonly<Record<string, number>> = Object.freeze({});
 
@@ -58,7 +67,70 @@ function resources(context: WarriorUiContext): ProfessionResourceView[] {
   ];
 }
 
+/**
+ * Gunsaber skills are cast from the drawn Gunsaber, and chain steps after their predecessors. Dragon Trigger skills
+ * start inside the stance with a full Flow pool; Dragon Slashes are measured at every reachable charge count.
+ */
+function bladeswornSkillDamageOccurrence(context: SkillDamagePreviewContext, skill: Skill): SkillDamageState | null {
+  const id = Number(skill.id);
+  const includes = (ids: readonly number[]): boolean => ids.includes(id);
+  const chainIndex = (GUNSABER_CHAIN as readonly number[]).indexOf(id);
+  if (chainIndex >= 0)
+    return {
+      context: `Gunsaber 1 · chain ${chainIndex + 1} of ${GUNSABER_CHAIN.length}`
+    };
+  if (includes(GUNSABER_SKILLS)) return {};
+
+  const isDragonSlash = includes(DRAGON_SLASH_SKILLS);
+  if (!isDragonSlash && !includes(DRAGON_TRIGGER_SKILLS) && id !== ID.DRAGON_TRIGGER) return null;
+  // Entering the stance spends Flow, so every Dragon Trigger probe starts from the selected Flow maximum.
+  const flow = balanceProfileNumber(requireBalanceProfileFromContext(context, PROFILE.resources), 'maximumStacks');
+  if (id === ID.DRAGON_TRIGGER) return { initialResource: flow };
+  if (!isDragonSlash) return { initialResource: flow };
+  const charges = maximumDragonCharges({
+    catalog: context.catalog,
+    traits: new Set(context.activeTraits.map((trait) => trait.id))
+  } as Parameters<typeof maximumDragonCharges>[0]);
+  return {
+    initialResource: flow,
+    variants: Array.from({ length: charges }, (_, index) => ({
+      id: String(index + 1),
+      label: `${index + 1} ${index ? 'charges' : 'charge'}`,
+      cast: { releaseAtCharges: index + 1 }
+    })),
+    primaryVariantId: String(charges),
+    context: `Dragon Trigger · ${charges} charges`
+  };
+}
+
 export const bladeswornUi: WarriorUiSlice = Object.freeze({
+  // Fierce as Fire changes outgoing damage only; Guns and Glory's Ferocity also shows in the Attribute Preview.
+  previewControls(context: ProfessionAttributePreviewContext) {
+    const preview = createPreviewControls(context);
+    if (preview.has('Fierce as Fire'))
+      preview.add({
+        key: 'fierceAsFire',
+        label: 'Fierce as Fire',
+        group: 'Trait conditionals',
+        kind: 'buff',
+        field: 'fierce-as-fire',
+        max: preview.maximumStacks('Fierce as Fire'),
+        scope: ['damage'],
+        description: 'stacks; strike and condition damage'
+      });
+    preview.buff('Guns and Glory', 'gunsAndGlory', 'guns-and-glory', 'Explosion hit recently; Ferocity');
+    return preview.controls;
+  },
+  skillDamageGroups: () => [
+    { id: 'gunsaber', title: 'Gunsaber', skillIds: GUNSABER_SKILLS, order: 0 },
+    {
+      id: 'dragon-trigger',
+      title: 'Dragon Trigger',
+      skillIds: [...DRAGON_SLASH_SKILLS, ...DRAGON_TRIGGER_SKILLS],
+      order: 1
+    }
+  ],
+  skillDamageState: bladeswornSkillDamageOccurrence,
   // Reports share combat's trait caps; Glory events already contain the complete refreshed window.
   effectPresentations: () => [
     {
@@ -170,7 +242,7 @@ export const bladeswornUi: WarriorUiSlice = Object.freeze({
       requireBalanceProfileFromContext(context.balanceContext, TRAIT.FIERCE_AS_FIRE),
       'maximumStacks'
     );
-    const fierceAsFire = timedBuffStacksAt(result, 'fierce-as-fire', at);
+    const fierceAsFire = planningBuffStacks(context.planningState, 'fierce-as-fire');
     if (fierceAsFire > 0) {
       items.push({
         id: 'bladesworn-fierce-as-fire',
@@ -180,7 +252,7 @@ export const bladeswornUi: WarriorUiSlice = Object.freeze({
       });
     }
 
-    const gunsAndGlory = timedBuffAt(result, 'guns-and-glory', at);
+    const gunsAndGlory = planningBuffAt(context.planningState, 'guns-and-glory');
     if (gunsAndGlory) {
       items.push({
         id: 'bladesworn-guns-and-glory',

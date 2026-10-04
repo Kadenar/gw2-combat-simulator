@@ -115,6 +115,8 @@ export const elementalEmpowerment = defineTrait({
       state.elementalEmpowermentRefreshStarted = true;
       renewBaseEmpowerment(runtime);
     },
+    // Permanent base stacks renew in the background, without extending an isolated damage observation.
+    backgroundTasks: [CATALYST_BASE_EMPOWERMENT_TASK],
     tasks: { [CATALYST_BASE_EMPOWERMENT_TASK]: renewBaseEmpowerment }
   }
 });

@@ -1,3 +1,4 @@
+import { thiefCatalog } from '#gw2/professions/thief/catalog.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
@@ -11,7 +12,7 @@ function brawlersTenacityEnduranceGain(rotation) {
       specialization: 'Daredevil',
       initialEndurance: 0,
       selectedTraitIds,
-      selectedSkills: rotation.slice(0, 1)
+      selectedSkillIds: rotation.slice(0, 1).map((name) => thiefCatalog.skillsByName.get(name).id)
     });
     assert.deepEqual(result.warnings, []);
     return result.planningState.profession.endurance;

@@ -1,16 +1,16 @@
+import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
+import { readProfessionSpecializationState } from '#gw2/platform/engine/profession/state.js';
+import type { CanonicalCatalog, SkillId } from '#gw2/platform/engine/skills/types.js';
 import type {
   ProfessionAttributePreviewContext,
   ProfessionAttributePreviewPreparation
 } from '#gw2/platform/profession-presentation/attribute-preview.js';
-import { createAttributePreviewControls } from '#gw2/professions/shared/attribute-preview.js';
-import { readProfessionSpecializationState } from '#gw2/platform/engine/profession/state.js';
-import type { SoulbeastState } from '#gw2/professions/ranger/specializations/soulbeast/state.js';
-import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
-import { rangerPetPaletteGroup, rangerUiState, activeRangerUiPet } from '#gw2/professions/ranger/core/presentation.js';
-import type { CanonicalCatalog, SkillId } from '#gw2/platform/engine/skills/types.js';
 import type { ProfessionPaletteGroup, RotationStateSnapshotItem } from '#gw2/platform/profession-presentation/types.js';
-import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
+import { activeRangerUiPet, rangerPetPaletteGroup, rangerUiState } from '#gw2/professions/ranger/core/presentation.js';
+import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
+import type { SoulbeastState } from '#gw2/professions/ranger/specializations/soulbeast/state.js';
 import type { RangerSkill, RangerUiContext, RangerUiSlice } from '#gw2/professions/ranger/types.js';
+import { createPreviewControls } from '#gw2/professions/shared/attribute-preview.js';
 
 const BEASTMODE_TOGGLE_IDS = new Set<SkillId>([ID.BEASTMODE, ID.LEAVE_BEASTMODE]);
 const SOULBEAST_HIDDEN_EVENT_TYPES = new Set(['ranger.shared-stance-hit']);
@@ -59,8 +59,17 @@ function soulbeastStateSnapshot(context: RangerUiContext): RotationStateSnapshot
 export function bindSoulbeastUi(catalog: Readonly<CanonicalCatalog<RangerSkill>>): RangerUiSlice {
   return Object.freeze({
     /** Declare this module's conditional inputs without adding simulation settings. */
-    attributePreviewControls(context: ProfessionAttributePreviewContext) {
-      const preview = createAttributePreviewControls(context);
+    previewControls(context: ProfessionAttributePreviewContext) {
+      const preview = createPreviewControls(context);
+      preview.add({
+        key: 'merged',
+        label: 'Beastmode',
+        group: 'Mechanic',
+        kind: 'special',
+        scope: ['damage'],
+        initial: 1,
+        description: 'Merged for ordinary attacks; Beastmode skills always require their form'
+      });
       preview.add({
         key: 'beastmode',
         label: 'Beastmode',

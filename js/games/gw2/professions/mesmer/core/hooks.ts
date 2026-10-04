@@ -196,6 +196,8 @@ export const mesmerCoreHooks: Partial<RuntimeProfession<MesmerRuntimeState, Mesm
   onCastCancel: complete,
   // Successful non-channel completion is commitment; animation tails carry only their authored packets.
   onCastCommit: complete,
+  // Clone attacks and the signet's passive continue indefinitely after their enabling cast.
+  backgroundTasks: ['mesmer.clone-attack', 'mesmer.signet-illusions-passive'],
   tasks: {
     'mesmer.flip-expire'(runtime, data) {
       const { id, identity } = data as { id: number; identity: string };

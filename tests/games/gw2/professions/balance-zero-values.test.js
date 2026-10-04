@@ -109,7 +109,7 @@ test('Harbinger zero Meltdown coefficient emits no strike damage', () => {
     {
       initialBlight: 5,
       initialCascadingCorruptionStacks: 15,
-      selectedSkills: ['Elixir of Promise'],
+      selectedSkillIds: [62667],
       selectedTraitIds: [NECROMANCER_TRAIT.CASCADING_CORRUPTION]
     },
     runRuntime
@@ -178,7 +178,7 @@ test('Zero periodic intervals disable signet pulses without stalling resource ad
     [{ type: 'wait', durationMs: 4000 }],
     {
       initialResource: 0,
-      selectedSkills: ['Signet of Undeath', 'Signet of Vampirism']
+      selectedSkillIds: [10611, 21762]
     },
     runRuntime
   );

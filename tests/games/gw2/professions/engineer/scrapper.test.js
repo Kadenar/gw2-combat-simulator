@@ -14,7 +14,7 @@ import { engineerAppAdapter } from '#gw2/professions/engineer/app/app-definition
 
 // Scrapper contracts cover trait procs, combo boons, and gyro fields.
 const baseConfig = Object.freeze({
-  selectedSkills: ['Healing Turret', 'Grenade Kit', 'Throw Mine', 'Elixir Gun', 'Supply Crate'],
+  selectedSkillIds: [5857, 5805, 6161, 5933, 5868],
   selectedMorphSkillIds: [77103, 77203, 76954],
   stats: {
     power: 2000,
@@ -60,7 +60,7 @@ test('Scrapper traits apply gyro control, superspeed, boons, and charges', () =>
     'Scrapper',
     ['Med Kit', 'Bandage Self', 'Function Gyro', 'Function Gyro', { type: 'wait', durationMs: 2100 }],
     {
-      selectedSkills: ['Med Kit', 'Grenade Kit', 'Throw Mine', 'Elixir Gun', 'Supply Crate'],
+      selectedSkillIds: [5802, 5805, 6161, 5933, 5868],
       selectedTraitIds: [
         TRAIT.SPEED_OF_SYNERGY,
         TRAIT.GYROSCOPIC_ACCELERATION,
@@ -96,7 +96,7 @@ test('Scrapper traits apply gyro control, superspeed, boons, and charges', () =>
   assert.equal(result.planningState.ammo['Function Gyro'].maximum, 2);
 
   const reconstructionField = simulate('Scrapper', ['Reconstruction Field'], {
-    selectedSkills: ['Medic Gyro', 'Grenade Kit', 'Throw Mine', 'Elixir Gun', 'Supply Crate'],
+    selectedSkillIds: [30357, 5805, 6161, 5933, 5868],
     selectedTraitIds: [TRAIT.SPEED_OF_SYNERGY]
   });
 
@@ -167,7 +167,7 @@ test('Sharpshooter derives bleeding damage from Power including Applied Force', 
 
 test('Kinetic Accelerators emits party quickness and might from successful combos', () => {
   const config = {
-    selectedSkills: ['Medic Gyro', 'Grenade Kit', 'Throw Mine', 'Elixir Gun', 'Supply Crate'],
+    selectedSkillIds: [30357, 5805, 6161, 5933, 5868],
     selectedTraitIds: [TRAIT.KINETIC_ACCELERATORS],
     boons: { quickness: false },
     stats: { power: 2000, concentration: 260 }
@@ -235,7 +235,7 @@ test('Kinetic Accelerators grants boons for a resolver-created Orbital Command S
   for (let index = 0; index < 4; index++) rotation.push('Fragmentation Shot', { type: 'wait', durationMs: 3100 });
   rotation.push('Medic Gyro', 'Fragmentation Shot', { type: 'wait', durationMs: 2500 });
   const result = simulate('Scrapper', rotation, {
-    selectedSkills: ['Medic Gyro', 'Grenade Kit', 'Throw Mine', 'Elixir Gun', 'Supply Crate'],
+    selectedSkillIds: [30357, 5805, 6161, 5933, 5868],
     selectedTraitIds: [TRAIT.KINETIC_ACCELERATORS, TRAIT.AIM_ASSISTED_ROCKET],
     boons: { might: 0, quickness: false }
   });
@@ -257,7 +257,7 @@ test('Kinetic Accelerators grants setup boons from precombat combos', () => {
     'Scrapper',
     ['Medic Gyro', 'Function Gyro', { type: 'wait', durationMs: 2000 }, '__combat_start', 'Positive Strike'],
     {
-      selectedSkills: ['Medic Gyro', 'Grenade Kit', 'Throw Mine', 'Elixir Gun', 'Supply Crate'],
+      selectedSkillIds: [30357, 5805, 6161, 5933, 5868],
       selectedTraitIds: [TRAIT.KINETIC_ACCELERATORS]
     }
   );

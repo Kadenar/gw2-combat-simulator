@@ -1,5 +1,5 @@
 {
-  "schemaVersion": 3,
+  "schemaVersion": 4,
   "profession": "engineer",
   "gear": {
     "Helm": "Viper's",
@@ -38,12 +38,12 @@
     { "name": "Firearms", "traits": "1-2-3" },
     { "name": "Scrapper", "traits": "3-3-2" }
   ],
-  "selectedSkills": {
-    "Heal": "Medic Gyro",
-    "Utility1": "Grenade Kit",
-    "Utility2": "Bomb Kit",
-    "Utility3": "Flamethrower",
-    "Elite": "Elite Mortar Kit"
+  "selectedSkillIds": {
+    "Heal": 30357,
+    "Utility1": 5805,
+    "Utility2": 5812,
+    "Utility3": 5927,
+    "Elite": 30800
   },
   "selectedMorphSkillIds": [77103, 77203, 76954],
   "assumptions": {

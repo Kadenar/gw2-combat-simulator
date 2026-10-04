@@ -30,6 +30,8 @@ import {
 import { willbenderState } from '#gw2/professions/guardian/specializations/willbender/state.js';
 import {
   applyWillbenderActivationTraits,
+  gainLethalTempo,
+  lethalTempoParameters,
   applyWillbenderTriggerTraits,
   triggerPhoenixProtocol,
   willbenderVirtueWindowProfile
@@ -145,6 +147,8 @@ function hit(runtime: Runtime, event: Gw2ResolverEvent, details: NativeResolvedD
             actorType: 'player',
             skillId: ID.WILLBENDER_JUSTICE,
             skillName: 'Justice',
+            // Keep virtue damage separate from the attack that satisfies its hit counter.
+            procType: 'profession',
             name: 'Justice — Active Burning',
             icon: runtime.helpers.skillsById.get(ID.RUSHING_JUSTICE)?.icon,
             condition: String(burn.condition),
@@ -191,6 +195,16 @@ function hit(runtime: Runtime, event: Gw2ResolverEvent, details: NativeResolvedD
 
 /** Virtue windows, flame lifetimes, and earned recharge reductions live beside the shared cast and damage owners. */
 export const willbenderHooks: Partial<RuntimeProfession<GuardianRuntimeState, GuardianSkill>> = {
+  /** Initial Tempo uses its normal grant function, retaining the selected cap and subsequent refresh behavior. */
+  initialize(runtime) {
+    const parameters = lethalTempoParameters(runtime);
+    if (!parameters) return;
+    for (const buff of runtime.config.initialBuffs ?? []) {
+      if (buff.kind !== 'lethal-tempo') continue;
+      for (let i = 0; i < Math.min(buff.stacks, parameters.maximumStacks); i++)
+        gainLethalTempo(willbenderState.from(runtime), runtime.time, { ...parameters, duration: buff.duration });
+    }
+  },
   sideEffectHandlers: willbenderVirtueActions,
   availability(runtime, skill) {
     return skill.id === ID.REPOSE && !skillFlipReady(runtime.profession.core.availableFlips[ID.REPOSE], runtime.time)

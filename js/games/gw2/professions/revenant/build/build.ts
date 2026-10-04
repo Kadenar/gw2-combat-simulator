@@ -17,7 +17,7 @@ import { createCommonBuildDefaults } from '#gw2/professions/shared/build-default
  * starting Energy.
  */
 
-const REVENANT_BUILD_SCHEMA_VERSION = 3;
+const REVENANT_BUILD_SCHEMA_VERSION = 4;
 const REVENANT_PROFESSION_ID = 'revenant';
 
 // Seed a schema-current Revenant preset with a legal legend pair, complete
@@ -45,7 +45,7 @@ export function createRevenantBuildDefaults(): RevenantCanonicalBuild {
       { name: 'Invocation', traits: '2-2-3' },
       { name: 'Herald', traits: '1-1-1' }
     ],
-    selectedSkills: {},
+    selectedSkillIds: {},
     selectedLegends: [LEGEND.ASSASSIN, LEGEND.DRAGON],
     startingLegend: LEGEND.ASSASSIN,
     ...createCommonBuildDefaults({

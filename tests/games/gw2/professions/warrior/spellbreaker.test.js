@@ -53,16 +53,19 @@ test('Full Counter spends its bar without an incoming attack or successful burst
 
 test('accepted controls grant Insight once and each group expires at its own deadline', () => {
   const result = run(['Kick', "Bull's Charge", wait(14200)], {
-    selectedSkills: ['Kick', "Bull's Charge"],
+    selectedSkillIds: [14502, 14516],
     selectedTraitIds: [TRAIT.ATTACKERS_INSIGHT],
     target: { armor: 2597, defiant: true }
   });
   assert.deepEqual(result.warnings, []);
   assert.equal(result.planningState.profession.attackerInsightExpiries.length, 1);
-  const expired = run(['Kick', wait(16000)], { selectedSkills: ['Kick'], selectedTraitIds: [TRAIT.ATTACKERS_INSIGHT] });
+  const expired = run(['Kick', wait(16000)], {
+    selectedSkillIds: [14502],
+    selectedTraitIds: [TRAIT.ATTACKERS_INSIGHT]
+  });
   assert.deepEqual(expired.planningState.profession.attackerInsightExpiries, []);
   const missed = run([{ name: 'Kick', offTarget: true }], {
-    selectedSkills: ['Kick'],
+    selectedSkillIds: [14502],
     selectedTraitIds: [TRAIT.ATTACKERS_INSIGHT]
   });
   assert.deepEqual(missed.planningState.profession.attackerInsightExpiries, []);
@@ -71,7 +74,7 @@ test('accepted controls grant Insight once and each group expires at its own dea
 test('No Escape retains effect ownership and boon-removal-only attacks cannot manufacture Insight', () => {
   const config = {
     selectedTraitIds: [TRAIT.NO_ESCAPE, TRAIT.ATTACKERS_INSIGHT],
-    selectedSkills: ['Break Enchantments']
+    selectedSkillIds: [43123]
   };
   const control = run(['Disrupting Stab'], config);
   assert.deepEqual(control.warnings, []);

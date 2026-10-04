@@ -1,5 +1,5 @@
 {
-  "schemaVersion": 3,
+  "schemaVersion": 4,
   "profession": "warrior",
   "gear": {
     "Helm": "Viper's",
@@ -53,12 +53,12 @@
       "traits": "2-2-2"
     }
   ],
-  "selectedSkills": {
-    "Heal": "\"To the Limit!\"",
-    "Utility1": "Dragonspike Mine",
-    "Utility2": "Flow Stabilizer",
-    "Utility3": "Overcharged Cartridges",
-    "Elite": "Tactical Reload"
+  "selectedSkillIds": {
+    "Heal": 14402,
+    "Utility1": 62960,
+    "Utility2": 62967,
+    "Utility3": 68085,
+    "Elite": 62901
   },
   "assumptions": {
     "simulationMode": "deterministic",

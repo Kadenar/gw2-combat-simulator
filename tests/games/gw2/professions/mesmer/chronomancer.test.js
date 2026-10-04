@@ -237,7 +237,7 @@ test('Chronophantasma conversions preserve clone spends across a Continuum Split
     defaultSimulationConfig({
       specialization: 'Chronomancer',
       selectedTraitIds: [TRAIT.BOUNTIFUL_BLADES, TRAIT.CHRONOPHANTASMA],
-      selectedSkills: ['Phantasmal Disenchanter', 'Mirror Images'],
+      selectedSkillIds: [10267, 10202],
       primaryWeapon: 'Greatsword',
       secondaryWeapon: '',
       initialResource: 2

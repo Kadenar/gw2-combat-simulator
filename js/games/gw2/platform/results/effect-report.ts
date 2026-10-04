@@ -26,39 +26,107 @@ export interface EffectReport {
   readonly tracks: readonly EffectTrack[];
 }
 
+/** Copy scalar windows directly; only source events need deep detachment, once per distinct source in a snapshot. */
+function snapshotEffectState(state: EffectState): EffectState {
+  const sources = new Map<NonNullable<EffectState['source']>, NonNullable<EffectState['source']>>();
+  const copySource = (source: NonNullable<EffectState['source']>) => {
+    let copy = sources.get(source);
+    if (!copy) {
+      copy = structuredClone(source);
+      sources.set(source, copy);
+    }
+
+    return copy;
+  };
+
+  return {
+    ...state,
+    ...(state.source ? { source: copySource(state.source) } : {}),
+    windows: state.windows.map((window) => ({
+      ...window,
+      ...(window.source ? { source: copySource(window.source) } : {})
+    }))
+  };
+}
+
+interface RecordedEffect {
+  state: EffectState;
+  at: number;
+  segments: EffectSegment[];
+  owner: string;
+  capture: number;
+}
+
+/** Index identity components separately so repeated observations never rebuild and hash long composite IDs. */
+function effectGroup<T>(groups: Map<string, Map<string, T>>, key: string): Map<string, T> {
+  let group = groups.get(key);
+  if (!group) {
+    group = new Map();
+    groups.set(key, group);
+  }
+
+  return group;
+}
+
 /** Commit observations at execution boundaries; expiry is derived from the same accepted windows as live state. */
 export class EffectRecorder {
-  private readonly tracks = new Map<
-    string,
-    { state: EffectState; at: number; segments: EffectSegment[]; owner: string }
-  >();
+  private readonly tracks = new Map<string, RecordedEffect>();
+  private readonly owners = new Map<string, Set<RecordedEffect>>();
+  private readonly origins = new Map<string, Map<string, Map<string, Map<string, RecordedEffect>>>>();
+  private captureNumber = 0;
 
   capture(at: number, states: readonly EffectState[], owner = 'runtime'): void {
-    const ids = new Set<string>();
+    const capture = ++this.captureNumber;
+    let owned = this.owners.get(owner);
+    if (!owned) {
+      owned = new Set();
+      this.owners.set(owner, owned);
+    }
+
     for (const state of states) {
-      const id = `${state.origin}:${state.recipient}:${state.category}:${state.kind}`;
-      if (ids.has(id)) throw new TypeError(`Duplicate effect state owner: ${id}`);
-      ids.add(id);
-      const previous = this.tracks.get(id);
+      const kinds = effectGroup(effectGroup(effectGroup(this.origins, state.origin), state.recipient), state.category);
+      const previous = kinds.get(state.kind);
+      if (previous && previous.owner !== owner)
+        throw new TypeError(`Effect track already belongs to ${previous.owner}: ${state.kind}`);
+      if (previous?.capture === capture)
+        throw new TypeError(
+          `Duplicate effect state owner: ${state.origin}:${state.recipient}:${state.category}:${state.kind}`
+        );
+      if (previous) previous.capture = capture;
       if (
         previous &&
         previous.state.countLimit === state.countLimit &&
         previous.state.durationLimit === state.durationLimit &&
+        previous.state.measure === state.measure &&
+        previous.state.name === state.name &&
         previous.state.source?.eventOrder === state.source?.eventOrder &&
         previous.state.source?.at === state.source?.at &&
         previous.state.windows.length === state.windows.length &&
         previous.state.windows.every(
           (window, index) =>
-            window.expiresAt === state.windows[index]!.expiresAt && window.stacks === state.windows[index]!.stacks
+            window.expiresAt === state.windows[index]!.expiresAt &&
+            window.stacks === state.windows[index]!.stacks &&
+            window.source?.eventOrder === state.windows[index]!.source?.eventOrder &&
+            window.source?.at === state.windows[index]!.source?.at
         )
       )
         continue;
-      if (previous) this.advance(previous, at);
-      this.tracks.set(id, { state: structuredClone(state), at, segments: previous?.segments ?? [], owner });
+      if (previous) {
+        this.advance(previous, at);
+        previous.state = snapshotEffectState(state);
+        previous.at = at;
+        previous.owner = owner;
+      } else {
+        const track = { state: snapshotEffectState(state), at, segments: [], owner, capture };
+        kinds.set(state.kind, track);
+        owned.add(track);
+        this.tracks.set(`${state.origin}:${state.recipient}:${state.category}:${state.kind}`, track);
+      }
     }
 
-    for (const [id, track] of this.tracks) {
-      if (ids.has(id) || track.owner !== owner) continue;
+    // Complete snapshots clear only their own tracks; incremental callers never scan unrelated owners.
+    for (const track of owned) {
+      if (track.capture === capture || !track.state.windows.length) continue;
       this.advance(track, at);
       track.state = { ...track.state, windows: [] };
     }

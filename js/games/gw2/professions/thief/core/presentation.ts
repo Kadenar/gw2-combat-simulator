@@ -1,24 +1,26 @@
+import { activeStackCount } from '#gw2/platform/combat/resources/timed-stacks.js';
+import { readProfessionCoreState } from '#gw2/platform/engine/profession/state.js';
 import type {
   ProfessionAttributePreviewContext,
   ProfessionAttributePreviewPreparation
 } from '#gw2/platform/profession-presentation/attribute-preview.js';
-import { createAttributePreviewControls } from '#gw2/professions/shared/attribute-preview.js';
-import { readProfessionCoreState } from '#gw2/platform/engine/profession/state.js';
-import type { ThiefCoreState } from '#gw2/professions/thief/core/state.js';
+import type { SkillDamagePreviewPreparation } from '#gw2/platform/profession-presentation/skill-damage.js';
 import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
-import { flattenProfessionState } from '#gw2/platform/engine/profession/state.js';
-import { activeStackCount } from '#gw2/platform/combat/resources/timed-stacks.js';
+import { createPreviewControls } from '#gw2/professions/shared/attribute-preview.js';
+import type { ThiefCoreState } from '#gw2/professions/thief/core/state.js';
+import { MAXIMUM_SPINNING_AXES } from '#gw2/professions/thief/core/state.js';
 
-import { SIMULATION_RANDOMNESS_ASSUMPTION_CONTROLS } from '#gw2/platform/simulation/randomness.js';
 import { PERMANENT_COMBO_FIELD_ASSUMPTION_CONTROLS } from '#gw2/platform/combos/permanent-field-assumption.js';
-import { THIEF_CORE_ASSUMPTION_CONTROLS } from '#gw2/professions/thief/build/core-assumptions.js';
-import { THIEF_SKILL_IDS as ID } from '#gw2/professions/thief/data/ids.js';
-import { THIEF_STOLEN_SKILL_IDS } from '#gw2/professions/thief/core/mechanics/steal.js';
 import type { RotationStateSnapshotItem } from '#gw2/platform/profession-presentation/types.js';
-import type { ThiefState, ThiefUiContext, ThiefSkill } from '#gw2/professions/thief/types.js';
+import { SIMULATION_RANDOMNESS_ASSUMPTION_CONTROLS } from '#gw2/platform/simulation/randomness.js';
+import { THIEF_CORE_ASSUMPTION_CONTROLS } from '#gw2/professions/thief/build/core-assumptions.js';
+import { THIEF_STOLEN_SKILL_IDS } from '#gw2/professions/thief/core/mechanics/steal.js';
+import { THIEF_SKILL_IDS as ID } from '#gw2/professions/thief/data/ids.js';
+import type { ThiefSkill, ThiefState, ThiefUiContext } from '#gw2/professions/thief/types.js';
 
 export function thiefUiState(context: ThiefUiContext = {}): Partial<ThiefState> {
-  return flattenProfessionState(context.state?.profession || context.professionState);
+  // Presentation callers supply the flat projection for the inspected rotation point.
+  return context.professionState ?? {};
 }
 
 export function thiefStealPaletteGroups(professionSkillId = ID.STEAL) {
@@ -130,8 +132,21 @@ function thiefCoreStateSnapshot(context: ThiefUiContext): RotationStateSnapshotI
 
 export const thiefCoreUi = Object.freeze({
   /** Declare this module's conditional inputs without adding simulation settings. */
-  attributePreviewControls(context: ProfessionAttributePreviewContext) {
-    const preview = createAttributePreviewControls(context);
+  previewControls(context: ProfessionAttributePreviewContext) {
+    const preview = createPreviewControls(context);
+
+    // The existing starting-axe field lets recall skills consume a declared stock without manufacturing hits.
+    if ([...context.weapons, ...context.build.alternateWeapons].includes('Axe'))
+      preview.add({
+        key: 'spinningAxes',
+        label: 'Starting axes',
+        group: 'Mechanic',
+        kind: 'special',
+        scope: ['damage'],
+        max: MAXIMUM_SPINNING_AXES,
+        initial: Number((context.build as { readonly initialSpinningAxes?: unknown }).initialSpinningAxes) || 0,
+        description: 'Autoattack axes available before setup; expiry and recall follow the runtime'
+      });
 
     if (preview.has('Revealed Training', 'Hidden Killer'))
       preview.add({
@@ -152,9 +167,12 @@ export const thiefCoreUi = Object.freeze({
         kind: 'special',
         description: 'Positional Critical Chance'
       });
-    preview.passives("Assassin's Signet");
+    preview.passives(ID.ASSASSINS_SIGNET);
     return preview.controls;
   },
+  /** Axe inputs belong only to the detached damage configuration. */
+  prepareSkillDamagePreview: ({ values }: SkillDamagePreviewPreparation) =>
+    values.spinningAxes == null ? {} : { initialSpinningAxes: Number(values.spinningAxes) },
   /** Seed only the detached attribute query; combat state and saved builds remain untouched. */
   prepareAttributePreview(context: ProfessionAttributePreviewPreparation) {
     const core = readProfessionCoreState<ThiefCoreState>(context.professionState);
@@ -224,7 +242,7 @@ export const thiefCoreUi = Object.freeze({
               id: 'spinning-axes',
               singular: 'precast autoattack axe',
               plural: 'precast autoattack axes',
-              maximum: 6,
+              maximum: MAXIMUM_SPINNING_AXES,
               value: (state.spinningAxes || []).filter((axe) => axe.expiresAt > (context.simulationTime ?? 0)).length,
               canStart: true,
               buildKey: 'initialSpinningAxes' as const,

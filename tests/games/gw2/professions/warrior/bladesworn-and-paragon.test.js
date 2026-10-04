@@ -286,7 +286,7 @@ test('Dragon Trigger defers recharge while charging and still blocks re-entry', 
 test('Every Dragon Slash starts Dragon Trigger recharge at cast initiation', () => {
   // Check both skill variants and recharge modifiers without depending on a saved rotation.
   for (const skillId of [ID.DRAGON_SLASH_FORCE, ID.DRAGON_SLASH_BOOST, ID.DRAGON_SLASH_REACH]) {
-    for (const selectedTraitIds of [[], [TRAIT.SHARP_AS_THE_WIND]]) {
+    for (const selectedTraitIds of [[], [TRAIT.SHARP_AS_THE_WIND], [TRAIT.VERSATILE_POWER]]) {
       for (const alacrity of [false, true]) {
         const result = simulate('Bladesworn', [ID.DRAGON_TRIGGER, { skillId, releaseAtCharges: 1 }], {
           initialResource: 100,
@@ -296,7 +296,8 @@ test('Every Dragon Slash starts Dragon Trigger recharge at cast initiation', () 
         const slash = result.steps.at(-1);
         assert.deepEqual(result.warnings, []);
         assert.equal(result.planningState.profession.dragonTriggerActive, false);
-        assert.equal(result.planningState.cooldowns['Dragon Trigger'].readyAt, slash.start + 6400);
+        const rechargeMs = selectedTraitIds.includes(TRAIT.VERSATILE_POWER) ? 5440 : 6400;
+        assert.equal(result.planningState.cooldowns['Dragon Trigger'].readyAt, slash.start + rechargeMs);
       }
     }
   }
@@ -308,17 +309,22 @@ test('Leaving Dragon Trigger starts recharge at the exit timestamp', () => {
     [{ type: 'wait', durationMs: 31000 }, 30000],
     [ID.SHEATHE_GUNSABER, 4000]
   ]) {
-    const result = simulate(
-      'Bladesworn',
-      ['__combat_start', ID.DRAGON_TRIGGER, { type: 'wait', durationMs: 1000 }, exit],
-      {
-        initialResource: 100
-      }
-    );
-    assert.deepEqual(result.warnings, []);
-    assert.equal(result.planningState.profession.dragonTriggerActive, false);
-    assert.equal(result.planningState.profession.dragonCharges, 0);
-    assert.equal(result.planningState.cooldowns['Dragon Trigger'].readyAt, exitAt + 6400);
+    // Versatile Power also reduces recharge when charging ends without a slash.
+    for (const selectedTraitIds of [[], [TRAIT.VERSATILE_POWER]]) {
+      const result = simulate(
+        'Bladesworn',
+        ['__combat_start', ID.DRAGON_TRIGGER, { type: 'wait', durationMs: 1000 }, exit],
+        {
+          initialResource: 100,
+          selectedTraitIds
+        }
+      );
+      assert.deepEqual(result.warnings, []);
+      assert.equal(result.planningState.profession.dragonTriggerActive, false);
+      assert.equal(result.planningState.profession.dragonCharges, 0);
+      const rechargeMs = selectedTraitIds.includes(TRAIT.VERSATILE_POWER) ? 5440 : 6400;
+      assert.equal(result.planningState.cooldowns['Dragon Trigger'].readyAt, exitAt + rechargeMs);
+    }
   }
 });
 
@@ -1088,7 +1094,7 @@ test('Signet active buffs ignore boon duration and mastery requires activation',
 
 test('Signet of Rage suspends passive adrenaline until its cooldown ends', () => {
   // Compare ready, cooling-down, and recovered states using the authored recharge duration.
-  const config = { initialResource: 0, selectedSkills: ['Signet of Rage'] };
+  const config = { initialResource: 0, selectedSkillIds: [14355] };
   const wait = { type: 'wait', durationMs: 6000 };
   const ready = simulate('Core', ['__combat_start', wait], config);
   const cooling = simulate('Core', ['__combat_start', ID.SIGNET_OF_RAGE, wait], config);

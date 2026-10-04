@@ -1,6 +1,6 @@
-import { THIEF_SKILL_IDS as ID } from '#gw2/professions/thief/data/ids.js';
 import { thiefUiState } from '#gw2/professions/thief/core/presentation.js';
-import type { ThiefUiContext, ThiefSkill } from '#gw2/professions/thief/types.js';
+import { THIEF_SKILL_IDS as ID } from '#gw2/professions/thief/data/ids.js';
+import type { ThiefSkill, ThiefUiContext } from '#gw2/professions/thief/types.js';
 
 const SHADOW_SHROUD_SKILL_IDS = Object.freeze([
   ID.HAUNT_SHOT,

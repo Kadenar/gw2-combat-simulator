@@ -1,5 +1,5 @@
 {
-  "schemaVersion": 4,
+  "schemaVersion": 5,
   "profession": "ranger",
   "gear": {
     "Helm": "Diviner's",
@@ -53,12 +53,12 @@
       "traits": "3-3-1"
     }
   ],
-  "selectedSkills": {
-    "Heal": "\"We Heal As One!\"",
-    "Utility1": "Storm Spirit",
-    "Utility2": "\"Sic 'Em!\"",
-    "Utility3": "Signet of the Wild",
-    "Elite": "\"Strength of the Pack!\""
+  "selectedSkillIds": {
+    "Heal": 31914,
+    "Utility1": 12493,
+    "Utility2": 12633,
+    "Utility3": 12491,
+    "Elite": 12516
   },
   "selectedPet": "Wallow",
   "selectedPet2": "Boar",

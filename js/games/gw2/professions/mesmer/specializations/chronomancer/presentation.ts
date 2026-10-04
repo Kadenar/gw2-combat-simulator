@@ -1,17 +1,17 @@
 import type { ProfessionAttributePreviewContext } from '#gw2/platform/profession-presentation/attribute-preview.js';
-import { createAttributePreviewControls } from '#gw2/professions/shared/attribute-preview.js';
+import { createPreviewControls } from '#gw2/professions/shared/attribute-preview.js';
 
-import { MESMER_SKILL_IDS as ID } from '#gw2/professions/mesmer/data/ids.js';
+import type {
+  ProfessionEventLogDescriptor,
+  RotationStateSnapshotItem
+} from '#gw2/platform/profession-presentation/types.js';
+import { planningBuffAt } from '#gw2/platform/results/query.js';
 import {
   mesmerMechanicPaletteGroups,
   mesmerResourceViews,
   mesmerUiState
 } from '#gw2/professions/mesmer/core/presentation.js';
-import { timedBuffAt } from '#gw2/platform/results/query.js';
-import type {
-  ProfessionEventLogDescriptor,
-  RotationStateSnapshotItem
-} from '#gw2/platform/profession-presentation/types.js';
+import { MESMER_SKILL_IDS as ID } from '#gw2/professions/mesmer/data/ids.js';
 
 import type { MesmerResolverEvent, MesmerUiContext, MesmerUiSlice } from '#gw2/professions/mesmer/types.js';
 
@@ -53,7 +53,7 @@ function chronomancerStateSnapshot(context: MesmerUiContext): RotationStateSnaps
     });
   }
 
-  const dangerTime = timedBuffAt(result, 'danger-time', at);
+  const dangerTime = planningBuffAt(context.planningState, 'danger-time');
   if (dangerTime) {
     items.push({
       id: 'chronomancer-danger-time',
@@ -84,8 +84,8 @@ function chronomancerStateSnapshot(context: MesmerUiContext): RotationStateSnaps
 
 export const chronomancerUi: MesmerUiSlice = Object.freeze({
   /** Declare this module's conditional inputs without adding simulation settings. */
-  attributePreviewControls(context: ProfessionAttributePreviewContext) {
-    const preview = createAttributePreviewControls(context);
+  previewControls(context: ProfessionAttributePreviewContext) {
+    const preview = createPreviewControls(context);
 
     preview.boon('alacrity', 'Flow of Time');
     preview.buff('Danger Time', 'dangerTime', 'danger-time', 'Critical Damage');

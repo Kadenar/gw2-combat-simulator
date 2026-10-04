@@ -1,4 +1,4 @@
-import { buildChartSeries } from '#gw2/app/results/model.js';
+import { buildTimeSeries } from '#gw2/app/results/charts/time-series-model.js';
 import { buildRelicComparisonModel, relicDamageSummary } from '#gw2/app/optimizer/relic-comparison/relic-comparison.js';
 import type { ProfessionAppState } from '#gw2/app/types.js';
 
@@ -114,8 +114,8 @@ export class RelicComparisonRunner {
           relic: request.comparisonRelic,
           ...(request.comparisonRelic === 'Thorns' ? { initialThornsStacks: this.initialStacks } : null)
         });
-        const opponentSeries = buildChartSeries(opponentResult);
-        const targetSeries = buildChartSeries(targetResult);
+        const opponentSeries = buildTimeSeries(opponentResult, 250, { includeEffects: false });
+        const targetSeries = buildTimeSeries(targetResult, 250, { includeEffects: false });
         // One shared no-relic run attributes both direct damage and modifier effects.
         const withoutRelic = app.adapter.simulateBuild(request.rotation, { ...request.baseConfig, relic: '' });
         const model = buildRelicComparisonModel({

@@ -195,9 +195,12 @@ export function createGw2SimulationViewModel(app: ProfessionAppState): Simulatio
         ...modifierContributionModel(app),
         ...randomDistributionModel(result),
         // Navigation rebuilds stale Analysis views on entry, so hidden charts need no preparation or cache.
-        chartSeries: analysisViewIsActive()
-          ? buildChartSeries(result, 250, effectPresentations, chartApplications)
-          : null
+        chartsPending: analysisViewIsActive() && (!result.effectReport || app.resultRevision !== app.buildRevision),
+        chartsError: analysisViewIsActive() && !result.effectReport ? app.simulationError : undefined,
+        chartSeries:
+          analysisViewIsActive() && result.effectReport && app.resultRevision === app.buildRevision
+            ? buildChartSeries(result, 250, effectPresentations, chartApplications)
+            : null
       },
       {
         resolveSkillIcon: (row) => resultSkillIcon(app, row as ResultIconRow),

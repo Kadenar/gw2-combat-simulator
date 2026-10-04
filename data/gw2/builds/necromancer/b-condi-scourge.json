@@ -1,5 +1,5 @@
 {
-  "schemaVersion": 3,
+  "schemaVersion": 4,
   "profession": "necromancer",
   "gear": {
     "Helm": "Viper's",
@@ -56,12 +56,12 @@
       "traits": "2-2-2"
     }
   ],
-  "selectedSkills": {
-    "Heal": "Sand Flare",
-    "Utility1": "Blood Is Power",
-    "Utility2": "Signet of Spite",
-    "Utility3": "Summon Shadow Fiend",
-    "Elite": "Plaguelands"
+  "selectedSkillIds": {
+    "Heal": 43148,
+    "Utility1": 10544,
+    "Utility2": 10622,
+    "Utility3": 10589,
+    "Elite": 10549
   },
   "assumptions": {
     "might": 25,

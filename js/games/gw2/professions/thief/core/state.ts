@@ -12,6 +12,9 @@ import type { ThiefConfig } from '#gw2/professions/thief/types.js';
 import { boundedInteger, boundedNumber } from '#kernel/core/numeric.js';
 import { THIEF_SKILL_IDS as ID } from '#gw2/professions/thief/data/ids.js';
 
+/** One engine-owned axe capacity is shared by starting state, live acquisition and preview inputs. */
+export const MAXIMUM_SPINNING_AXES = 6;
+
 interface ThievesGuildState {
   /** Combat activation starts the parallel streams once per summon. */
   started: boolean;
@@ -101,10 +104,13 @@ export function createThiefCoreState(config: ThiefConfig = {}): ThiefCoreState {
     spearLastWasFinisher: false,
     distractingThrowBuffUntil: 0,
     // Starting axes are fresh autoattack axes: no outgoing damage or initiative cost, ten seconds to recall them.
-    spinningAxes: Array.from({ length: boundedInteger(config.initialSpinningAxes, 0, 0, 6) }, () => ({
-      skillId: ID.SPINNING_AXE,
-      expiresAt: 10
-    })),
+    spinningAxes: Array.from(
+      { length: boundedInteger(config.initialSpinningAxes, 0, 0, MAXIMUM_SPINNING_AXES) },
+      () => ({
+        skillId: ID.SPINNING_AXE,
+        expiresAt: 10
+      })
+    ),
     outboundAxes: [],
     venomChargeBatches: {},
     venomAllyLastProcAt: {},

@@ -60,7 +60,7 @@ test('slaying selections survive build loading and potion removal comparisons re
     rotation: ['Flying Cutter'],
     relic: '',
     food: '',
-    selectedSkills: {}
+    selectedSkillIds: {}
   });
   const loaded = mesmerAppAdapter.toApplicationBuild(JSON.parse(JSON.stringify(build)));
   assert.equal(loaded.utility, 'Potion of Slaying');

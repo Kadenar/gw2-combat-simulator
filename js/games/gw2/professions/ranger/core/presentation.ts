@@ -1,42 +1,41 @@
+import { PERMANENT_COMBO_FIELD_ASSUMPTION_CONTROLS } from '#gw2/platform/combos/permanent-field-assumption.js';
+import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
+import { readProfessionCoreState } from '#gw2/platform/engine/profession/state.js';
+import type { CanonicalCatalog, SkillId } from '#gw2/platform/engine/skills/types.js';
+import { gw2ConfiguredWeaponSet } from '#gw2/platform/equipment/weapons/loadout.js';
 import type {
   ProfessionAttributePreviewContext,
   ProfessionAttributePreviewPreparation
 } from '#gw2/platform/profession-presentation/attribute-preview.js';
-import { createAttributePreviewControls } from '#gw2/professions/shared/attribute-preview.js';
-import { readProfessionCoreState } from '#gw2/platform/engine/profession/state.js';
-import type { RangerCoreState } from '#gw2/professions/ranger/core/state.js';
-import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
-import { flattenProfessionState } from '#gw2/platform/engine/profession/state.js';
-import { gw2ConfiguredWeaponSet } from '#gw2/platform/equipment/weapons/loadout.js';
-import { SIMULATION_RANDOMNESS_ASSUMPTION_CONTROLS } from '#gw2/platform/simulation/randomness.js';
-import { PERMANENT_COMBO_FIELD_ASSUMPTION_CONTROLS } from '#gw2/platform/combos/permanent-field-assumption.js';
-import { RANGER_ASSUMPTION_CONTROLS } from '#gw2/professions/ranger/build/assumptions.js';
-import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
-import { RANGER_PETS } from '#gw2/professions/ranger/data/ranger-pet-data.js';
-import { rangerPetSkillCommandable } from '#gw2/professions/ranger/data/pet-commands.js';
-import type { CanonicalCatalog, SkillId } from '#gw2/platform/engine/skills/types.js';
 import type {
   ProfessionPaletteGroup,
   ProfessionResourceView,
   ProfessionSkillBarGroup
 } from '#gw2/platform/profession-presentation/types.js';
-import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
-import type {
-  RangerState,
-  RangerSkill,
-  RangerUiContext,
-  RangerUiSelection,
-  RangerUiSlice
-} from '#gw2/professions/ranger/types.js';
-import {
-  normalizeRangerHammerSkillIds,
-  rangerHammerUsesBuildSelection,
-  RANGER_HAMMER_VARIANT_PAIRS
-} from '#gw2/professions/ranger/data/hammer-variants.js';
+import { SIMULATION_RANDOMNESS_ASSUMPTION_CONTROLS } from '#gw2/platform/simulation/randomness.js';
+import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
+import { RANGER_ASSUMPTION_CONTROLS } from '#gw2/professions/ranger/build/assumptions.js';
 import {
   RANGER_SPEAR_STEALTH_FLIP_BY_PARENT,
   rangerSpearStealthAvailable
 } from '#gw2/professions/ranger/core/mechanics/weapon-state.js';
+import type { RangerCoreState } from '#gw2/professions/ranger/core/state.js';
+import {
+  normalizeRangerHammerSkillIds,
+  RANGER_HAMMER_VARIANT_PAIRS,
+  rangerHammerUsesBuildSelection
+} from '#gw2/professions/ranger/data/hammer-variants.js';
+import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
+import { rangerPetSkillCommandable } from '#gw2/professions/ranger/data/pet-commands.js';
+import { RANGER_PETS } from '#gw2/professions/ranger/data/ranger-pet-data.js';
+import type {
+  RangerSkill,
+  RangerState,
+  RangerUiContext,
+  RangerUiSelection,
+  RangerUiSlice
+} from '#gw2/professions/ranger/types.js';
+import { createPreviewControls } from '#gw2/professions/shared/attribute-preview.js';
 
 const RANGER_HIDDEN_EVENT_TYPES = new Set([
   'ranger.beast-skill-used',
@@ -49,9 +48,9 @@ const RANGER_HIDDEN_EVENT_TYPES = new Set([
 // Boon-copy mechanics retain their simulation events without duplicating whole boon lists in the readable log.
 const RANGER_HIDDEN_BOON_SOURCES = new Set<number>([TRAIT.FORTIFYING_BOND, TRAIT.RESOUNDING_TIMBRE, ID.WE_HEAL_AS_ONE]);
 
-/** Flatten runtime or projected state while retaining the declared Ranger fields. */
 export function rangerUiState(context: RangerUiContext): Partial<RangerState> {
-  return flattenProfessionState(context.state?.profession || context.professionState || {});
+  // Presentation callers supply the flat projection for the inspected rotation point.
+  return context.professionState ?? {};
 }
 
 function rangerUiSpecialization(context: RangerUiContext): string {
@@ -176,8 +175,8 @@ function updateRangerCoreSelection(context: RangerUiContext, selection: RangerUi
 export function bindRangerCoreUi(catalog: Readonly<CanonicalCatalog<RangerSkill>>): RangerUiSlice {
   return Object.freeze({
     /** Declare this module's conditional inputs without adding simulation settings. */
-    attributePreviewControls(context: ProfessionAttributePreviewContext) {
-      const preview = createAttributePreviewControls(context);
+    previewControls(context: ProfessionAttributePreviewContext) {
+      const preview = createPreviewControls(context);
 
       if (preview.has("Hunter's Tactics"))
         preview.add({
@@ -187,7 +186,7 @@ export function bindRangerCoreUi(catalog: Readonly<CanonicalCatalog<RangerSkill>
           kind: 'special',
           description: 'Positional Critical Chance'
         });
-      preview.passives('Signet of the Wild');
+      preview.passives(ID.SIGNET_OF_THE_WILD);
       return preview.controls;
     },
     /** Seed only the detached attribute query; combat state and saved builds remain untouched. */

@@ -73,7 +73,7 @@ test('Cannon variants retain accepted outcomes, live profile timing, and cancell
         },
         { type: 'wait', durationMs: 3500 }
       ],
-      { specialization: 'Antiquary', selectedSkills: ['Stone Summit Cannon'] },
+      { specialization: 'Antiquary', selectedSkillIds: [76725] },
       {
         initialize(runtime) {
           if (recharging) runtime.cooldownController.setReadyAt(THIEF.STONE_SUMMIT_CANNON, 15);
@@ -269,7 +269,7 @@ test('Mercy declares its Mark reset independently of the Malice refund', () => {
   for (const removed of [false, true]) {
     const result = runThief(
       ['Mercy'],
-      { specialization: 'Deadeye', selectedSkills: ['Mercy'], initialInitiative: 0 },
+      { specialization: 'Deadeye', selectedSkillIds: [41372], initialInitiative: 0 },
       {
         // Remove only the reset declaration so the independently declared refund still executes.
         catalog: (catalog) =>
@@ -306,7 +306,7 @@ test('Shadow Flare uses the shared follow-up window', () => {
         { type: 'cast', skillId: THIEF.SHADOW_FLARE, ...(cancelled ? { interruptAfterMs: 100 } : {}) },
         { type: 'wait', durationMs: 1500 }
       ],
-      { specialization: 'Deadeye', selectedSkills: ['Shadow Flare'] },
+      { specialization: 'Deadeye', selectedSkillIds: [41158] },
       {
         catalog: (catalog) =>
           withProfile(
@@ -329,7 +329,7 @@ test('Shadow Flare uses the shared follow-up window', () => {
 
   const used = runThief(['Shadow Flare', 'Shadow Swap'], {
     specialization: 'Deadeye',
-    selectedSkills: ['Shadow Flare']
+    selectedSkillIds: [41158]
   });
   assert.deepEqual(used.warnings, []);
   assert.equal(observedRuntime(used).profession.core.availableFlips[THIEF.SHADOW_SWAP], undefined);
@@ -354,7 +354,7 @@ test('Catalyst augments select their authored buff windows at cast commitment', 
         elementalistProfession,
         {
           specialization: 'Catalyst',
-          selectedSkills: ['Relentless Fire', 'Shattering Ice', 'Elemental Celerity'],
+          selectedSkillIds: [62965, 62698, 62725],
           startAttunement: element,
           selectedTraitIds: [],
           boons: {},
@@ -404,7 +404,7 @@ test('Elemental Celerity selects weapon targets and independently owns its spher
       {
         specialization: 'Catalyst',
         startAttunement: 'Fire',
-        selectedSkills: ['Elemental Celerity'],
+        selectedSkillIds: [62725],
         selectedTraitIds: [],
         boons: {},
         target: { armor: 2597 }

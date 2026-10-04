@@ -1,5 +1,5 @@
 {
-  "schemaVersion": 3,
+  "schemaVersion": 4,
   "profession": "thief",
   "gear": {
     "Helm": "Viper's",
@@ -56,12 +56,12 @@
       "traits": "1-2-1"
     }
   ],
-  "selectedSkills": {
-    "Heal": "Channeled Vigor",
-    "Utility1": "Caltrops",
-    "Utility2": "Spider Venom",
-    "Utility3": "Prepare Thousand Needles",
-    "Elite": "Thieves Guild"
+  "selectedSkillIds": {
+    "Heal": 30400,
+    "Utility1": 13028,
+    "Utility2": 13037,
+    "Utility3": 13026,
+    "Elite": 13082
   },
   "selectedDodge": "Lotus Training",
   "assumptions": {

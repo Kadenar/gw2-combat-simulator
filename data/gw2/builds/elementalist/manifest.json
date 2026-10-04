@@ -74,7 +74,7 @@
         "label": "Power (Spear) - FA",
         "build": "data/gw2/builds/elementalist/b-power-tempest-spear.json",
         "rotation": "data/gw2/rotations/elementalist/r-power-tempest-spear.json",
-        "benchmarkDps": 41983,
+        "benchmarkDps": 42058,
         "upToDate": true,
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/elementalist/power-tempest-spear"
       },

@@ -1,5 +1,5 @@
 import { attributeProvenance } from '#gw2/platform/builds/attribute-provenance.js';
-import { GW2_STANDARD_BOONS } from '#gw2/platform/combat/boons.js';
+import { countActiveBoons } from '#gw2/platform/combat/query/runtime-query.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { impactEffects } from '#gw2/platform/engine/effects/authoring.js';
 import {
@@ -40,7 +40,7 @@ export const inspiredVirtue = defineTrait({
       operation: 'multiply',
       parameters: { damagePerBoon: 0.005 },
       factor: (context, _target, parameters) =>
-        1 + GW2_STANDARD_BOONS.filter((boon) => guardianBoonActive(context, boon)).length * parameters.damagePerBoon
+        1 + countActiveBoons(context, (boon) => guardianBoonActive(context, boon)) * parameters.damagePerBoon
     }
   ]
 });
@@ -97,6 +97,8 @@ export const masterOfConsecrations = defineTrait({
   id: GUARDIAN_TRAIT_IDS.MASTER_OF_CONSECRATIONS,
   name: 'Master of Consecrations',
   balance: {
+    // Extra Purging Flames pulses extend the authored skill rather than creating a standalone proc.
+    damagePreviewAttribution: 'skill',
     durationMultiplier: 1.4,
     // Extend Purging Flames after its six base pulses, with independent cast-start timelines for each effect.
     effects: impactEffects({ timingAnchor: 'castStart', timingScale: 'fixed' }, [

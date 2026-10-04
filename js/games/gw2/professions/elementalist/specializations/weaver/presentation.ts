@@ -2,7 +2,7 @@ import type {
   ProfessionAttributePreviewContext,
   ProfessionAttributePreviewPreparation
 } from '#gw2/platform/profession-presentation/attribute-preview.js';
-import { createAttributePreviewControls } from '#gw2/professions/shared/attribute-preview.js';
+import { createPreviewControls } from '#gw2/professions/shared/attribute-preview.js';
 import { readProfessionSpecializationState } from '#gw2/platform/engine/profession/state.js';
 import { elementalistWeaponGroups } from '#gw2/professions/elementalist/core/weapon-groups.js';
 import type {
@@ -62,7 +62,7 @@ function isCarriedAutoattackSkill(
   const chains: ProfessionWeaponPaletteRenderContext['autoattackChains'] =
     state.autoattackChains || context.autoattackChains || {};
   const expected = chains[String(root)] ?? root;
-  return Number(skill.id) === Number(expected) || skill.name === expected;
+  return skill.id === expected;
 }
 
 // Project Unravel and attunement casts into compact primary/secondary labels
@@ -379,8 +379,25 @@ function renderWeaverWeaponPalette(
 /** The Weaver half of the Elementalist UI contract, registered by the module. */
 export const weaverUi: ElementalistUiSlice = Object.freeze({
   /** Declare this module's conditional inputs without adding simulation settings. */
-  attributePreviewControls(context: ProfessionAttributePreviewContext) {
-    const preview = createAttributePreviewControls(context);
+  previewControls(context: ProfessionAttributePreviewContext) {
+    const preview = createPreviewControls(context);
+    // The normal timed-buff query applies earned Weaver damage windows independently from attunement attributes.
+    preview.trait('Elements of Rage', {
+      key: 'elementsOfRage',
+      kind: 'buff',
+      field: 'elements of rage',
+      scope: ['damage'],
+      description: 'Dual-attunement damage bonus active'
+    });
+    preview.add({
+      key: 'perfectWeave',
+      label: 'Perfect Weave',
+      group: 'Mechanic',
+      kind: 'buff',
+      field: 'perfect weave',
+      scope: ['damage'],
+      description: 'Completed Weave Self damage window active'
+    });
 
     preview.add({
       key: 'secondaryAttunement',

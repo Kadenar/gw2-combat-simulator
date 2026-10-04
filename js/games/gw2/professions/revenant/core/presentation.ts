@@ -1,21 +1,26 @@
+import type { Skill as PreviewSkill } from '#gw2/platform/engine/skills/types.js';
 import type { ProfessionAttributePreviewContext } from '#gw2/platform/profession-presentation/attribute-preview.js';
-import { createAttributePreviewControls } from '#gw2/professions/shared/attribute-preview.js';
+import type {
+  SkillDamagePreviewPreparation,
+  SkillDamageState
+} from '#gw2/platform/profession-presentation/skill-damage.js';
+import { createPreviewControls } from '#gw2/professions/shared/attribute-preview.js';
 
-import { flattenProfessionState } from '#gw2/platform/engine/profession/state.js';
-import { SIMULATION_RANDOMNESS_ASSUMPTION_CONTROLS } from '#gw2/platform/simulation/randomness.js';
 import { PERMANENT_COMBO_FIELD_ASSUMPTION_CONTROLS } from '#gw2/platform/combos/permanent-field-assumption.js';
-import { REVENANT_ASSUMPTION_CONTROLS } from '#gw2/professions/revenant/build/assumptions.js';
-import { REVENANT_SKILL_IDS as SKILL } from '#gw2/professions/revenant/data/ids.js';
-import { getActiveTraits } from '#gw2/professions/revenant/data/traits-data.js';
-import { revenantLegend, revenantLegendLoadout } from '#gw2/professions/revenant/build/legend-loadout.js';
 import type {
   ProfessionStateSnapshotContext,
   RotationStateSnapshotItem
 } from '#gw2/platform/profession-presentation/types.js';
+import { SIMULATION_RANDOMNESS_ASSUMPTION_CONTROLS } from '#gw2/platform/simulation/randomness.js';
+import { REVENANT_ASSUMPTION_CONTROLS } from '#gw2/professions/revenant/build/assumptions.js';
+import { revenantLegend, revenantLegendLoadout } from '#gw2/professions/revenant/build/legend-loadout.js';
+import { REVENANT_SKILL_IDS as SKILL } from '#gw2/professions/revenant/data/ids.js';
+import { getActiveTraits } from '#gw2/professions/revenant/data/traits-data.js';
 import type { RevenantState, RevenantUiContext, RevenantUiSlice } from '#gw2/professions/revenant/types.js';
 
 export function revenantUiState(context: RevenantUiContext = {}): Partial<RevenantState> {
-  return flattenProfessionState(context.state?.profession || context.professionState);
+  // Presentation callers supply the flat projection for the inspected rotation point.
+  return context.professionState ?? {};
 }
 
 export function activeRevenantLegend(context: RevenantUiContext = {}): string {
@@ -42,7 +47,7 @@ function rotationEntryName(entry: unknown, context: RevenantUiContext): string {
 // when projected runtime state is incomplete.
 function revenantTimelineSkillIcon(context: RevenantUiContext = {}): string {
   const skill = context.skill;
-  if (skill?.name !== 'Swap Legends') return '';
+  if (skill?.id !== SKILL.SWAP_LEGENDS) return '';
   const selected = context.build?.selectedLegends || [];
   if (selected.length !== 2) return '';
   const startingIndex = Math.max(0, selected.indexOf(context.build?.startingLegend || ''));
@@ -92,9 +97,53 @@ function revenantCoreStateSnapshot(
 
 /** Core presentation reads the current legend and resource projection without a catalog binding. */
 export const revenantCoreUi: RevenantUiSlice = Object.freeze({
+  /** Declare the damage context for one assumed occurrence. */
+  skillDamageState(context: SkillDamagePreviewPreparation, input: PreviewSkill): SkillDamageState | null {
+    // Direct evaluation supplies damage state without prerequisite actions.
+    const skill = input as import('#gw2/professions/revenant/types.js').RevenantSkill;
+    return {
+      ...(skill.legendId ? { config: { startingLegend: skill.legendId } } : {}),
+      inputs:
+        context.values.upkeep && context.values.upkeep !== 'null'
+          ? { upkeepSkillId: JSON.parse(String(context.values.upkeep)) }
+          : {}
+    };
+  },
+
   /** Declare this module's conditional inputs without adding simulation settings. */
-  attributePreviewControls(context: ProfessionAttributePreviewContext) {
-    const preview = createAttributePreviewControls(context);
+  previewControls(context: ProfessionAttributePreviewContext) {
+    const preview = createPreviewControls(context);
+    const legends = (context.build as { selectedLegends?: readonly string[] }).selectedLegends ?? [];
+    const upkeeps = context.catalog.skills.filter(
+      (skill) => skill.upkeepCost != null && legends.includes(String(skill.legendId))
+    );
+    if (upkeeps.length)
+      preview.add({
+        key: 'upkeep',
+        label: 'Maintained upkeep',
+        group: 'Mechanic',
+        kind: 'special',
+        scope: ['damage'],
+        options: ['null', ...new Set(upkeeps.map((skill) => JSON.stringify(skill.id)))],
+        initial: 'null',
+        optionLabels: {
+          null: 'None',
+          ...Object.fromEntries(upkeeps.map((skill) => [JSON.stringify(skill.id), skill.name]))
+        },
+        description: 'Activate before weapon measurements; the runtime spends and drains Energy'
+      });
+    // Spear's native pool scales Raze and is consumed normally on an eligible swap.
+    if ([...context.weapons, ...context.build.alternateWeapons].includes('Spear'))
+      preview.add({
+        key: 'crushingAbyss',
+        label: 'Crushing Abyss',
+        group: 'Mechanic',
+        kind: 'buff',
+        field: 'crushing-abyss',
+        scope: ['damage'],
+        max: Number(context.catalog.skillsById.get(SKILL.ABYSSAL_RAZE)!.maximumStacks),
+        description: 'Starting stacks; Raze and weapon swaps use the runtime pool'
+      });
     preview.trait("Assassin's Presence", {
       key: 'assassinsPresence',
       kind: 'queryTrait',

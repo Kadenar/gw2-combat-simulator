@@ -1,32 +1,27 @@
 import type { ProfessionAttributePreviewContext } from '#gw2/platform/profession-presentation/attribute-preview.js';
-import { createAttributePreviewControls } from '#gw2/professions/shared/attribute-preview.js';
+import { createPreviewControls } from '#gw2/professions/shared/attribute-preview.js';
 
-import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
-import {
-  requireBalanceProfileFromContext,
-  balanceProfileNumber
-} from '#gw2/platform/engine/skills/balance-profiles.js';
-import { ENGINEER_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/engineer/core/profiles.js';
-import { SIMULATION_RANDOMNESS_ASSUMPTION_CONTROLS } from '#gw2/platform/simulation/randomness.js';
-import { PERMANENT_COMBO_FIELD_ASSUMPTION_CONTROLS } from '#gw2/platform/combos/permanent-field-assumption.js';
-import { flattenProfessionState } from '#gw2/platform/engine/profession/state.js';
-import {
-  normalizeSelectedSkillNames,
-  selectedSkillNameSet,
-  type Gw2SelectedSkillLoadout
-} from '#gw2/platform/builds/selected-skills.js';
+import { selectedSkillIdSet } from '#gw2/platform/builds/selected-skills.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
-import { timedBuffAt } from '#gw2/platform/results/query.js';
+import { PERMANENT_COMBO_FIELD_ASSUMPTION_CONTROLS } from '#gw2/platform/combos/permanent-field-assumption.js';
+import {
+  balanceProfileNumber,
+  requireBalanceProfileFromContext
+} from '#gw2/platform/engine/skills/balance-profiles.js';
+import { planningBuffAt } from '#gw2/platform/results/query.js';
+import { SIMULATION_RANDOMNESS_ASSUMPTION_CONTROLS } from '#gw2/platform/simulation/randomness.js';
+import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
+import { ENGINEER_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/engineer/core/profiles.js';
 
-import { ENGINEER_SKILL_IDS as ID, ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
-import { getActiveTraits } from '#gw2/professions/engineer/data/traits-data.js';
+import type { CanonicalCatalog, SkillId } from '#gw2/platform/engine/skills/types.js';
 import type {
   ProfessionEventLogDescriptor,
   ProfessionPaletteGroup,
   ProfessionResourceView,
   RotationStateSnapshotItem
 } from '#gw2/platform/profession-presentation/types.js';
-import type { CanonicalCatalog, SkillId } from '#gw2/platform/engine/skills/types.js';
+import { ENGINEER_SKILL_IDS as ID, ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
+import { getActiveTraits } from '#gw2/professions/engineer/data/traits-data.js';
 import type {
   EngineerResolverEvent,
   EngineerSkill,
@@ -54,7 +49,8 @@ const SKILL_SLOT_ORDER: readonly string[] = Object.freeze(['Heal', 'Utility1', '
 
 /** Flattens Core and active-specialization state for Engineer UI consumers. */
 export function engineerUiState(context: EngineerUiContext = {}): Partial<EngineerState> {
-  return flattenProfessionState(context.state?.profession || context.professionState);
+  // Presentation callers supply the flat projection for the inspected rotation point.
+  return context.professionState ?? {};
 }
 
 /** Resolves the active Engineer specialization name from UI, config, or build context. */
@@ -63,23 +59,21 @@ export function engineerUiSpecialization(context: EngineerUiContext = {}): strin
 }
 
 /** Normalizes the selected slot-skill loadout into a membership set. */
-function selectedNames(context: EngineerUiContext = {}): Set<string> {
-  return new Set(selectedSkillNameSet(context.config?.selectedSkills || context.build?.selectedSkills));
+function selectedIds(context: EngineerUiContext = {}): Set<SkillId> {
+  return new Set(selectedSkillIdSet(context.config?.selectedSkillIds || context.build?.selectedSkillIds));
 }
 
 /** Returns selected heal, utility, and elite skill names in their fixed slot order. */
-function selectedNamesInSlotOrder(context: EngineerUiContext = {}): (string | undefined)[] {
-  const source: Gw2SelectedSkillLoadout = context.config?.selectedSkills || context.build?.selectedSkills || [];
-  if (Array.isArray(source)) return [...normalizeSelectedSkillNames(source)];
-  const slots = source as Readonly<Record<string, unknown>>;
-  return SKILL_SLOT_ORDER.map((slot) => normalizeSelectedSkillNames([slots[slot]])[0]);
+function selectedIdsInSlotOrder(context: EngineerUiContext = {}): (SkillId | undefined)[] {
+  if (context.build) return SKILL_SLOT_ORDER.map((slot) => context.build!.selectedSkillIds?.[slot] ?? undefined);
+  return [...(context.config?.selectedSkillIds ?? [])];
 }
 
 /** Lists equipped kits in the stable display order used by palette groups. */
 function selectedKits(catalog: Readonly<CanonicalCatalog<EngineerSkill>>, context: EngineerUiContext): EngineerSkill[] {
-  const names = selectedNames(context);
+  const names = selectedIds(context);
   return catalog.skills
-    .filter((skill) => skill.kitTransition === 'equip' && names.has(skill.name))
+    .filter((skill) => skill.kitTransition === 'equip' && names.has(skill.id))
     .sort(
       (left, right) =>
         (KIT_ORDER.get(left.id) ?? Number.MAX_SAFE_INTEGER) - (KIT_ORDER.get(right.id) ?? Number.MAX_SAFE_INTEGER) ||
@@ -87,25 +81,17 @@ function selectedKits(catalog: Readonly<CanonicalCatalog<EngineerSkill>>, contex
     );
 }
 
-// deduplicates by skill name — some skills have multiple IDs (different specs); keep the first
-/** Deduplicates skill IDs by canonical skill name while preserving first occurrence order. */
-export function uniqueIdsBySkillName(
+/** Retain distinct catalog variants while removing repeated references to the same skill. */
+export function uniqueSkillIds(
   catalog: Readonly<CanonicalCatalog<EngineerSkill>>,
   skillIds: readonly SkillId[]
 ): SkillId[] {
-  return [
-    ...new Map(
-      skillIds.map((id) => {
-        const skill = catalog.skillsById.get(id);
-        return [skill?.name || id, id];
-      })
-    ).values()
-  ];
+  return [...new Set(skillIds)].filter((id) => catalog.skillsById.has(id));
 }
 
-/** Deduplicates skill records by name for palette and profession-bar presentation. */
-function uniqueSkillsByName(skills: readonly EngineerSkill[]): EngineerSkill[] {
-  return [...new Map(skills.map((skill) => [skill.name, skill])).values()];
+/** Palette entries deduplicate by identity while retaining distinct catalog variants. */
+function uniqueSkillsById(skills: readonly EngineerSkill[]): EngineerSkill[] {
+  return [...new Map(skills.map((skill) => [skill.id, skill])).values()];
 }
 
 /** Reports whether the build's selected trait lines activate the named trait. */
@@ -128,18 +114,7 @@ function toolbeltSkillId(
   parentId: SkillId | undefined
 ): SkillId | null {
   if (parentId == null) return null;
-  return (
-    uniqueSkillsByName(
-      catalog.skills.filter(
-        (skill) => skill.toolbeltParentId === parentId && !(skill.name || '').startsWith('Detonate')
-      )
-    )[0]?.id ?? null
-  );
-}
-
-/** Finds the first named Engineer skill for its profession bar. */
-export function namedSkillId(catalog: Readonly<CanonicalCatalog<EngineerSkill>>, name: string): SkillId | null {
-  return catalog.skills.find((skill) => skill.name === name)?.id ?? null;
+  return catalog.skills.find((skill) => skill.toolbeltParentId === parentId && skill.flipParentId == null)?.id ?? null;
 }
 
 /** Maps the selected slot-skill loadout to its ordered Engineer toolbelt bar. */
@@ -147,9 +122,7 @@ export function engineerToolbeltSkillIds(
   catalog: Readonly<CanonicalCatalog<EngineerSkill>>,
   context: EngineerUiContext
 ): (SkillId | null)[] {
-  return selectedNamesInSlotOrder(context).map((name) =>
-    toolbeltSkillId(catalog, name == null ? undefined : catalog.skillsByName.get(name)?.id)
-  );
+  return selectedIdsInSlotOrder(context).map((id) => toolbeltSkillId(catalog, id));
 }
 
 /** Returns populated Core profession-skill IDs for palette and bar consumers. */
@@ -196,8 +169,8 @@ function engineerEventLogRow(
 export function bindEngineerCoreUi(catalog: Readonly<CanonicalCatalog<EngineerSkill>>): EngineerUiSlice {
   return Object.freeze({
     /** Declare this module's conditional inputs without adding simulation settings. */
-    attributePreviewControls(context: ProfessionAttributePreviewContext) {
-      const preview = createAttributePreviewControls(context);
+    previewControls(context: ProfessionAttributePreviewContext) {
+      const preview = createPreviewControls(context);
 
       preview.boon('regeneration', 'Energy Amplifier');
       preview.buff('Explosive Temper', 'explosiveTemper', 'explosive-temper', 'Ferocity', true);
@@ -224,7 +197,7 @@ export function bindEngineerCoreUi(catalog: Readonly<CanonicalCatalog<EngineerSk
       const groups: ProfessionPaletteGroup[] = [];
       // Each selected kit gets a stable slot-ordered group in the shared kit stack.
       for (const kit of selectedKits(catalog, context)) {
-        const kitSkills = uniqueSkillsByName(catalog.skills.filter((skill) => skill.kitId === kit.id));
+        const kitSkills = uniqueSkillsById(catalog.skills.filter((skill) => skill.kitId === kit.id));
         groups.push({
           id: `engineer-kit-${kit.id}`,
           label: kit.name.replace(' Kit', '').slice(0, 4),
@@ -247,7 +220,7 @@ export function bindEngineerCoreUi(catalog: Readonly<CanonicalCatalog<EngineerSk
         groups.push({
           id: 'engineer-profession',
           label: 'F',
-          skillIds: uniqueIdsBySkillName(catalog, professionSkills(catalog, context)),
+          skillIds: uniqueSkillIds(catalog, professionSkills(catalog, context)),
           color: '#b88a35',
           className: 'engineer-profession-skills',
           resourceAnchor: true,
@@ -304,7 +277,7 @@ export function bindEngineerCoreUi(catalog: Readonly<CanonicalCatalog<EngineerSk
         });
       }
 
-      const buff = timedBuffAt(context.result, 'kinetic-battery', context.atSeconds || 0);
+      const buff = planningBuffAt(context.planningState, 'kinetic-battery');
       if (buff) {
         items.push({
           id: 'engineer-kinetic-battery',

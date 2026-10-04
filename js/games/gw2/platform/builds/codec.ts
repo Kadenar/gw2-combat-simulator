@@ -1,3 +1,4 @@
+import { SelectedSkillMigrationError } from '#gw2/platform/builds/selected-skills.js';
 import { normalizeRotation } from '#gw2/platform/execution/rotation.js';
 import { FOOD_NAMES } from '#gw2/platform/equipment/consumables/food.js';
 import { GEAR_SLOTS } from '#gw2/platform/equipment/gear/slots.js';
@@ -98,6 +99,8 @@ export function createGw2BuildCodec<TBuild extends Gw2CanonicalBuild>({
       schemaVersion
     });
     const defaults = createDefaults();
+    migrateLegacySelectedSkills(saved, catalog);
+    validateSelectedSkillIds(saved.selectedSkillIds, catalog);
     const assumptions = normalizeCommonAssumptions(plainObject(saved.assumptions), plainObject(defaults.assumptions));
     // Only inherit saved targetConditions when the key is explicitly present;
     // a partial assumptions object must not silently drop target condition defaults.
@@ -135,10 +138,10 @@ export function createGw2BuildCodec<TBuild extends Gw2CanonicalBuild>({
       specializations,
       // Slot-loadout professions manage their own skill-slot logic; bypass
       // catalog validation and just merge saved values over defaults.
-      selectedSkills: slotLoadout
+      selectedSkillIds: slotLoadout
         ? {
-            ...plainObject(defaults.selectedSkills),
-            ...plainObject(saved.selectedSkills)
+            ...plainObject(defaults.selectedSkillIds),
+            ...plainObject(saved.selectedSkillIds)
           }
         : normalizeSelectedSkills(saved, defaults, catalog, specializations),
       assumptions: {
@@ -482,32 +485,83 @@ function selectableSlotSkill(
   );
 }
 
+/** Resolve the explicitly supported old persistence field once, then discard names from the canonical build. */
+function migrateLegacySelectedSkills(saved: UnvalidatedBuildRecord, catalog: CanonicalCatalog): void {
+  if (!Object.hasOwn(saved, 'selectedSkills')) return;
+  if (Object.hasOwn(saved, 'selectedSkillIds'))
+    throw new SelectedSkillMigrationError('Build contains both selectedSkills and selectedSkillIds.');
+  if (!isPlainObject(saved.selectedSkills))
+    throw new SelectedSkillMigrationError('Legacy selectedSkills must be a slot record.');
+  const ids: Record<string, SkillId | null> = {};
+  for (const [slot, name] of Object.entries(saved.selectedSkills)) {
+    if (name === '') {
+      ids[slot] = null;
+      continue;
+    }
+
+    const type = SLOT_TYPES[slot as keyof typeof SLOT_TYPES];
+    const matches = catalog.skills.filter(
+      (skill) =>
+        typeof name === 'string' &&
+        skill.name === name &&
+        skill.type === type &&
+        skill.flipParentId == null &&
+        skill.slotSelectable !== false
+    );
+    if (matches.length !== 1)
+      throw new SelectedSkillMigrationError(
+        `Cannot migrate ${slot} skill "${name}": ${matches.length ? 'ambiguous' : 'unknown'} skill name.`
+      );
+    ids[slot] = matches[0].id;
+  }
+
+  saved.selectedSkillIds = ids;
+  delete saved.selectedSkills;
+}
+
+/** Reject corrupt saved selections before normalization can replace the user's chosen loadout. */
+function validateSelectedSkillIds(value: unknown, catalog: CanonicalCatalog): void {
+  if (value === undefined) return;
+  if (!isPlainObject(value)) throw new SelectedSkillMigrationError('selectedSkillIds must be a slot record.');
+  for (const [slot, id] of Object.entries(value)) {
+    if (!Object.hasOwn(SLOT_TYPES, slot)) throw new SelectedSkillMigrationError(`Unknown skill slot: ${slot}.`);
+    if (id !== null && (!isSkillId(id) || !catalog.skillsById.has(id)))
+      throw new SelectedSkillMigrationError(`Unknown selected skill ID in ${slot}: ${id}.`);
+  }
+}
+
+/** Preserve explicit slots and empties, validating identity before ordinary specialization repair. */
 function normalizeSelectedSkills(
   saved: UnvalidatedBuildRecord,
   defaults: Gw2CanonicalBuild,
   catalog: CanonicalCatalog,
   specializations: readonly Gw2BuildSpecialization[]
-): Record<string, string> {
-  // Read slot-keyed names so saved selections retain their explicit slot assignments.
-  const source = plainObject(saved.selectedSkills);
+): Record<string, SkillId | null> {
+  if (saved.selectedSkillIds !== undefined && !isPlainObject(saved.selectedSkillIds))
+    throw new TypeError('selectedSkillIds must be a slot record.');
+  const source = plainObject(saved.selectedSkillIds);
   const selectedSpecializations = new Set(specializations.map((specialization) => specialization.name));
   const selectedUtilityIds = new Set<SkillId>();
-  const normalized: Record<string, string> = {};
+  const normalized: Record<string, SkillId | null> = {};
   for (const [slot, type] of Object.entries(SLOT_TYPES)) {
-    const requestedName = source[slot];
-    const requested = typeof requestedName === 'string' ? catalog.skillsByName.get(requestedName) : undefined;
-    const defaultSkill = catalog.skillsByName.get(defaults.selectedSkills[slot]);
-    // Priority: user's saved pick → profession default → first valid in catalog.
-    // This ensures a slot is never left empty as long as any valid skill exists.
-    const candidates = [requested, defaultSkill, ...catalog.skills];
-    const skill = candidates.find(
+    const id = Object.hasOwn(source, slot) ? source[slot] : defaults.selectedSkillIds[slot];
+    if (id === null) {
+      normalized[slot] = null;
+      continue;
+    }
+
+    if (!isSkillId(id) || !catalog.skillsById.has(id))
+      throw new TypeError(`Unknown selected skill ID in ${slot}: ${id}.`);
+    const requested = catalog.skillsById.get(id);
+    const defaultId = defaults.selectedSkillIds[slot];
+    const defaultSkill = defaultId === null ? undefined : catalog.skillsById.get(defaultId);
+    const skill = [requested, defaultSkill, ...catalog.skills].find(
       (candidate) =>
         candidate != null &&
         selectableSlotSkill(candidate, type, selectedSpecializations) &&
-        // Prevent the same utility from filling two slots.
         (type !== 'Utility' || !selectedUtilityIds.has(candidate.id))
     );
-    normalized[slot] = skill?.name || '';
+    normalized[slot] = skill?.id ?? null;
     if (type === 'Utility' && skill) selectedUtilityIds.add(skill.id);
   }
 
@@ -775,6 +829,9 @@ function validateCommonBuild(
   }
 
   const candidate = build as Gw2CanonicalBuild;
+  // Validation targets canonical builds; legacy names must cross the explicit migration boundary first.
+  if (Object.hasOwn(build, 'selectedSkills'))
+    errors.push('Migrate selectedSkills to selectedSkillIds before validation.');
   // Keep malformed imported specialization data recoverable while preserving the shape error below.
   const specializations = Array.isArray(candidate.specializations) ? candidate.specializations : [];
   errors.push(...validateCommonAssumptions(candidate.assumptions));
@@ -821,14 +878,16 @@ function validateCommonBuild(
         })
         .map(String)
     );
-  } else if (!isPlainObject(candidate.selectedSkills)) {
-    errors.push('selectedSkills must be an object.');
+  } else if (!isPlainObject(candidate.selectedSkillIds)) {
+    errors.push('selectedSkillIds must be an object.');
   } else {
     const selectedSpecializations = new Set(specializations.map((specialization) => specialization?.name));
     // Track already-used utility IDs so duplicates across Utility1-3 are flagged.
     const selectedUtilityIds = new Set();
     for (const [slot, type] of Object.entries(SLOT_TYPES)) {
-      const skill = catalog.skillsByName.get(candidate.selectedSkills[slot]);
+      const id = candidate.selectedSkillIds[slot];
+      if (id === null) continue;
+      const skill = catalog.skillsById.get(id);
       if (
         !selectableSlotSkill(skill, type, selectedSpecializations) ||
         (type === 'Utility' && selectedUtilityIds.has(skill?.id))

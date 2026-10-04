@@ -370,7 +370,7 @@ export function mirageAvailability(context: MesmerRuntime, skill: MesmerSkill): 
     );
   if (
     activeAmbush &&
-    activeAmbush.name === skill.name &&
+    activeAmbush.id === skill.id &&
     state.ambushSource &&
     (state.ambushUntil > context.time || queuedAmbush)
   ) {

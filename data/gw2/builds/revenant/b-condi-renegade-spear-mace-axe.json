@@ -1,5 +1,5 @@
 {
-  "schemaVersion": 3,
+  "schemaVersion": 4,
   "profession": "revenant",
   "gear": {
     "Helm": "Viper's",
@@ -56,7 +56,7 @@
       "traits": "2-2-2"
     }
   ],
-  "selectedSkills": {},
+  "selectedSkillIds": {},
   "selectedLegends": ["LegendaryRenegade", "LegendaryDemon"],
   "startingLegend": "LegendaryRenegade",
   "assumptions": {

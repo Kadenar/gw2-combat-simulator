@@ -47,7 +47,7 @@ test('config preparation calculates each affected weapon set once and reuses the
     }
   });
   const build = createDefaultBuild();
-  build.selectedSkills = {};
+  build.selectedSkillIds = {};
   const app = { build, attributeWeaponSet: 2, skillByName: new Map() };
   runtime.recalculate(app);
   for (const type of ['Trait', 'Boon', 'Sigil', 'Food']) {
@@ -498,7 +498,7 @@ test('modifier contributions compare the active build against each modifier remo
 
   build.rotation = ['Bladecall'];
   build.relic = '';
-  build.selectedSkills = {};
+  build.selectedSkillIds = {};
   const app = {
     build,
     attributeData: calcAttributes(build, []),
@@ -522,7 +522,7 @@ test('Accuracy comparisons remove its attribute and one-strike critical chance b
   build.rotation = ['Bladecall'];
   build.relic = '';
   build.food = '';
-  build.selectedSkills = {};
+  build.selectedSkillIds = {};
   build.weaponSigils = [
     ['Force', 'Accuracy'],
     ['Force', 'Accuracy']
@@ -550,7 +550,7 @@ test('food comparisons remove both nourishment procs and attribute bonuses', () 
   build.rotation = ['Bladecall'];
   build.relic = '';
   build.food = 'Plate of Coq Au Vin with Salsa';
-  build.selectedSkills = {};
+  build.selectedSkillIds = {};
   const app = {
     build,
     attributeData: calcAttributes(build, []),
@@ -574,7 +574,7 @@ test('interactive simulation leaves contribution passes to the background worker
 
   build.rotation = ['Bladecall'];
   build.relic = '';
-  build.selectedSkills = {};
+  build.selectedSkillIds = {};
   const app = {
     build,
     attributeData: calcAttributes(build, []),
@@ -589,6 +589,8 @@ test('interactive simulation leaves contribution passes to the background worker
   const request = structuredClone(mesmerAppAdapter.modifierContributionRequest(app));
   const contributions = mesmerAppAdapter.calculateModifierContributions(request);
 
+  // DPS-only comparisons must retain the same modifier deltas as the chart-producing simulation.
+  assert.deepEqual(contributions, calculateContributionComparisons(request, mesmerAppAdapter.simulateBuild));
   assert.deepEqual(
     contributions,
     mesmerAppAdapter.calculateModifierContributions(mesmerAppAdapter.modifierContributionRequest(app))

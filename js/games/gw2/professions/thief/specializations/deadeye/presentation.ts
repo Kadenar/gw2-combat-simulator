@@ -1,12 +1,21 @@
+import {
+  balanceProfileNumber,
+  requireBalanceProfileFromContext
+} from '#gw2/platform/engine/skills/balance-profiles.js';
 import type { ProfessionAttributePreviewContext } from '#gw2/platform/profession-presentation/attribute-preview.js';
-import { createAttributePreviewControls } from '#gw2/professions/shared/attribute-preview.js';
+import { createPreviewControls } from '#gw2/professions/shared/attribute-preview.js';
+import { DEADEYE_BALANCE_PROFILE_IDS } from '#gw2/professions/thief/specializations/deadeye/profiles.js';
 
-import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
-import { DEADEYE_STOLEN_SKILL_IDS } from '#gw2/professions/thief/specializations/deadeye/mechanics/stolen-skills.js';
+import type { Skill, SkillId } from '#gw2/platform/engine/skills/types.js';
+import type {
+  SkillDamagePreviewPreparation,
+  SkillDamageState
+} from '#gw2/platform/profession-presentation/skill-damage.js';
 import { thiefUiState } from '#gw2/professions/thief/core/presentation.js';
+import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
+import { DEADEYE_STOLEN_SKILL_IDS } from '#gw2/professions/thief/specializations/deadeye/mechanics/stolen-skills.js';
 import type { ThiefUiContext } from '#gw2/professions/thief/types.js';
-import type { SkillId } from '#gw2/platform/engine/skills/types.js';
 
 function deadeyeStolenSkillIds(context: ThiefUiContext = {}): SkillId[] {
   const paletteTraits = context.traits;
@@ -20,9 +29,31 @@ function deadeyeStolenSkillIds(context: ThiefUiContext = {}): SkillId[] {
 }
 
 export const deadeyeUi = Object.freeze({
+  /** Expose selected Malice as damage scaling independent of how it was generated. */
+  skillDamageState(context: SkillDamagePreviewPreparation, _skill: Skill): SkillDamageState | null {
+    // Direct evaluation supplies damage state without prerequisite actions.
+    return {
+      assumptions: [`Malice: ${Number(context.values.malice ?? 0)}`]
+    };
+  },
   /** Declare this module's conditional inputs without adding simulation settings. */
-  attributePreviewControls(context: ProfessionAttributePreviewContext) {
-    const preview = createAttributePreviewControls(context);
+  previewControls(context: ProfessionAttributePreviewContext) {
+    const preview = createPreviewControls(context);
+    preview.add({
+      key: 'malice',
+      label: 'Malice',
+      group: 'Mechanic',
+      kind: 'special',
+      scope: ['damage'],
+      max: balanceProfileNumber(
+        requireBalanceProfileFromContext(
+          context,
+          preview.has('Maleficent Seven') ? TRAIT.MALEFICENT_SEVEN : DEADEYE_BALANCE_PROFILE_IDS.resources
+        ),
+        'maximumStacks'
+      ),
+      description: 'Malice consumed by a malicious attack'
+    });
     preview.boon('quickness', 'Be Quick or Be Killed');
     return preview.controls;
   },

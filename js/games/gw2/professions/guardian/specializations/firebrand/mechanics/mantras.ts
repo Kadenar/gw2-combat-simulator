@@ -1,4 +1,4 @@
-import { selectedSkillNameSet } from '#gw2/platform/builds/selected-skills.js';
+import { selectedSkillIdSet } from '#gw2/platform/builds/selected-skills.js';
 import { CAST_READY, denyCast, retryCast } from '#gw2/platform/engine/skills/availability.js';
 import { armSkillFlip, consumeSkillFlip, skillFlipReady } from '#gw2/platform/engine/skills/skill-flips.js';
 import type { Skill } from '#gw2/platform/engine/skills/types.js';
@@ -64,9 +64,9 @@ function sync(runtime: Runtime, definition: MantraDefinition): void {
 
 /** Only equipped PvE mantras start prepared; an omitted selection retains the catalog's all-skills sandbox. */
 export function initializeFirebrandMantras(runtime: Runtime): void {
-  const selected = selectedSkillNameSet(runtime.config.selectedSkills);
+  const selected = selectedSkillIdSet(runtime.config.selectedSkillIds);
   for (const definition of MANTRAS) {
-    if (selected.size && !selected.has(definition.rootName)) continue;
+    if (runtime.config.selectedSkillIds !== undefined && !selected.has(definition.rootId)) continue;
     arm(runtime, definition);
     sync(runtime, definition);
   }

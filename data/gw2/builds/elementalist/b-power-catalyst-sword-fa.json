@@ -1,5 +1,5 @@
 {
-  "schemaVersion": 4,
+  "schemaVersion": 5,
   "profession": "elementalist",
   "gear": {
     "Helm": "Berserker's",
@@ -57,12 +57,12 @@
       "traits": "2-1-2"
     }
   ],
-  "selectedSkills": {
-    "Heal": "Signet of Restoration",
-    "Utility1": "Relentless Fire",
-    "Utility2": "Glyph of Storms (Fire)",
-    "Utility3": "Arcane Blast",
-    "Elite": "Glyph of Elementals"
+  "selectedSkillIds": {
+    "Heal": 5503,
+    "Utility1": 62965,
+    "Utility2": 5736,
+    "Utility3": 5539,
+    "Elite": 25488
   },
   "assumptions": {
     "simulationMode": "deterministic",

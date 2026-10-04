@@ -32,6 +32,14 @@ export function reactToAshesHit(
   const state = firebrandState.from(context);
   if (!consumeCharge(state.ashes, event.at, balanceProfileNumber(ashesProfile, 'internalCooldown'), true)) return;
 
+  emitAshes(context, event, state.ashesBurnDuration);
+}
+
+/** One charge uses the same burn payload as an accepted combat hit. */
+export function emitAshes(context: GuardianResolverContext, event: GuardianResolverEvent, duration?: number): void {
+  const ashesProfile = requireBalanceProfileFromContext(context, PROFILE.ashes);
+  const burn = requireEffect(ashesProfile, 'condition', 'Burning');
+  if (!burn) return;
   // Ashes burns resolve at charge consumption so same-timestamp condition
   // reactions cannot be reordered behind later damage packets.
   context.effects.emit({
@@ -44,12 +52,15 @@ export function reactToAshesHit(
       actorType: 'player',
       skillId: GUARDIAN_SKILL_IDS.ASHES_OF_THE_JUST,
       skillName: 'Epilogue: Ashes of the Just',
+      // The charge owns its burning; the triggering attack retains the causal activation only.
+      procType: 'profession',
+      icon: context.helpers.skillsById?.get(GUARDIAN_SKILL_IDS.ASHES_OF_THE_JUST)?.icon,
       name: 'Ashes of the Just — Burning',
       activationId: event.activationId,
       causalOrder: event.causalOrder ?? event.eventOrder,
       condition: String(burn.condition),
       stacks: effectNumber(ashesProfile, burn, 'stacks'),
-      duration: state.ashesBurnDuration
+      duration: duration ?? effectNumber(ashesProfile, burn, 'duration')
     })
   });
   context.effects.emit({

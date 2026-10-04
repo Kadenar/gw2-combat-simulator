@@ -1,55 +1,44 @@
-import { recordProcStep } from '#gw2/platform/results/proc-steps.js';
-import { observeRuntimeEffects } from '#gw2/platform/results/observe-effects.js';
-import {
-  createEffectEmissionService,
-  type EffectDelivery,
-  type AnnouncementEmission
-} from '#gw2/platform/simulation/effect-emission.js';
-import { RELIC_IDS } from '#gw2/platform/equipment/relics/data.js';
-import { createEffectReactions, type EffectReactionStage } from '#gw2/platform/simulation/effect-reactions.js';
-import { canonicalTime, EPSILON } from '#kernel/core/clock.js';
-import { DEFAULT_EXECUTION_ITERATION_LIMIT } from '#kernel/execution/limits.js';
-import { StableEventQueue } from '#kernel/events/queue.js';
-import {
-  normalizeObservationPolicy,
-  observationEndTime,
-  type ObservationPolicy
-} from '#kernel/execution/observation.js';
+import { prepareSelectedSkillLoadout } from '#gw2/platform/builds/selected-skills.js';
+import { createCombatExecution } from '#gw2/platform/simulation/combat-execution.js';
+import type {
+  DamageRuntimeOptions,
+  DamageRuntimeResult,
+  RuntimeDriverContext,
+  RuntimeExecution,
+  RuntimeOptions
+} from '#gw2/platform/simulation/execution.js';
+import type { Gw2SimulationResult, Gw2SimulationScore } from '#gw2/platform/simulation/types.js';
 import { isStandardBoon, normalizeBoonDuration } from '#gw2/platform/combat/boons.js';
-import { prepareGw2ComboEvent } from '#gw2/platform/combos/events.js';
-import { finisherDescriptors, fieldDescriptors } from '#gw2/platform/combos/descriptors.js';
 import { createGw2CombatQuery } from '#gw2/platform/combat/query/combat-query.js';
-import { createRuntimeResources, createRuntimeEndurance } from '#gw2/platform/combat/resources/runtime-resources.js';
-import { applyRuntimeSigils, applyRuntimeSigilStrike } from '#gw2/platform/equipment/sigils/runtime.js';
-import { createGw2EquipmentReactionContributions } from '#gw2/platform/resolver/equipment-reactions.js';
-import { normalizePrecastRelics, relicWeaponSwapRechargeReduction } from '#gw2/platform/equipment/relics/catalog.js';
-import { isGw2WeaponSkillEquipped } from '#gw2/platform/equipment/weapons/skill-matcher.js';
-import { weaponStrengthProfileIdForEvent } from '#gw2/platform/equipment/weapons/strength.js';
-import { createRelicRuntime, invokeRelicHook } from '#gw2/platform/equipment/relics/runtime.js';
-import { relicStrikeMultiplier } from '#gw2/platform/equipment/relics/query.js';
-import { normalizeSelectedTraitIds } from '#gw2/platform/combat/state/traits.js';
-import { gw2ResolverBoonDuration } from '#gw2/platform/resolver/boons.js';
-import { bindRuntimeCombo, produceRuntimeCombos } from '#gw2/platform/combos/runtime.js';
-import { permanentComboFieldAssumption } from '#gw2/platform/combos/permanent-field-assumption.js';
+import { createRuntimeEndurance, createRuntimeResources } from '#gw2/platform/combat/resources/runtime-resources.js';
+import { targetHealthLoss } from '#gw2/platform/combat/state/target-health.js';
 import {
   canonicalTargetConditionName,
-  isHostileTargetEvent,
   isCombatEntryEvent,
+  isHostileTargetEvent,
   isPrecombatTargetEffect,
   missesTarget
 } from '#gw2/platform/combat/state/targets.js';
-import { targetHealthLoss } from '#gw2/platform/combat/state/target-health.js';
-import { assertSimulationEvent, type SimulationEventBase } from '#gw2/platform/engine/events/events.js';
+import { normalizeSelectedTraitIds } from '#gw2/platform/combat/state/traits.js';
+import { fieldDescriptors, finisherDescriptors } from '#gw2/platform/combos/descriptors.js';
+import { prepareGw2ComboEvent } from '#gw2/platform/combos/events.js';
+import { permanentComboFieldAssumption } from '#gw2/platform/combos/permanent-field-assumption.js';
+import { bindRuntimeCombo, produceRuntimeCombos } from '#gw2/platform/combos/runtime.js';
 import { scaleCastBoundTiming } from '#gw2/platform/engine/effects/materializer.js';
-import { applySkillSideEffects } from '#gw2/platform/simulation/side-effects.js';
-import { selectSkillEffects } from '#gw2/platform/simulation/effect-selection.js';
+import { assertSimulationEvent, type SimulationEventBase } from '#gw2/platform/engine/events/events.js';
+import { readProfessionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { gw2BaseRecharge } from '#gw2/platform/engine/skills/recharge.js';
 import {
-  autoattackChainAvailability,
-  advanceAutoattackChains,
-  resetAutoattackChains
-} from '#gw2/platform/skills/autoattack-chain-controller.js';
-import { lockTransitionInput } from '#gw2/platform/skills/transition-delays.js';
+  armSkillFlip,
+  consumeSkillFlip,
+  expireSkillFlip,
+  type SkillFlipWindows
+} from '#gw2/platform/engine/skills/skill-flips.js';
+import type { Skill, SkillId } from '#gw2/platform/engine/skills/types.js';
+import { normalizePrecastRelics, relicWeaponSwapRechargeReduction } from '#gw2/platform/equipment/relics/catalog.js';
+import { relicStrikeMultiplier } from '#gw2/platform/equipment/relics/query.js';
+import { createRelicRuntime } from '#gw2/platform/equipment/relics/runtime.js';
+import { weaponStrengthProfileIdForEvent } from '#gw2/platform/equipment/weapons/strength.js';
 import { createCastReservations } from '#gw2/platform/execution/cast-lifecycle.js';
 import { createCooldownController } from '#gw2/platform/execution/cooldowns.js';
 import {
@@ -57,48 +46,50 @@ import {
   cancelledBeforeInterruptCommit,
   interruptCommitCutoffs
 } from '#gw2/platform/execution/effect-adapter.js';
-import { normalizeRotation } from '#gw2/platform/execution/rotation.js';
-import { RotationCursor } from '#gw2/platform/execution/rotation-cursor.js';
+import type { CastCommand } from '#gw2/platform/execution/types.js';
+import { gw2ResolverBoonDuration } from '#gw2/platform/resolver/boons.js';
 import {
   createGw2ConditionResolution,
   finalizeConditionApplications
 } from '#gw2/platform/resolver/condition-resolution.js';
-import { GW2_RESOLVER_PHASE, gw2ResolverPhase } from '#gw2/platform/resolver/event-loop.js';
 import { createGw2ResolverEventHandlers } from '#gw2/platform/resolver/event-handlers.js';
+import { GW2_RESOLVER_PHASE, gw2ResolverPhase } from '#gw2/platform/resolver/event-loop.js';
 import { HandlerRegistry } from '#gw2/platform/resolver/handler-registry.js';
 import { createGw2HitResolution } from '#gw2/platform/resolver/hit-resolution.js';
 import { createGw2ResolverReactionRegistry } from '#gw2/platform/resolver/reaction-registry.js';
 import { createGw2ResolverRuntimeState } from '#gw2/platform/resolver/runtime-state.js';
-import { buildSimulationScore, buildCombatResult } from '#gw2/platform/results/build-result.js';
-import { planningState } from '#gw2/platform/results/end-state.js';
-import { rotationApm } from '#gw2/platform/results/rotation-apm.js';
-import { readProfessionCoreState } from '#gw2/platform/engine/profession/state.js';
-import {
-  armSkillFlip,
-  consumeSkillFlip,
-  expireSkillFlip,
-  type SkillFlipWindows
-} from '#gw2/platform/engine/skills/skill-flips.js';
-import type { Gw2SimulationOptions } from '#gw2/platform/simulation/types.js';
-import {
-  castWasInterrupted,
-  gw2CooldownReadyAt,
-  retainsInterruptedCastLockout,
-  summonQuicknessCastTimeMs
-} from '#gw2/platform/skills/timing.js';
-import { createInternalWorkFactory, skillTaskAt } from '#gw2/platform/simulation/internal-work.js';
-import { spendSkillCost } from '#gw2/platform/execution/skill-cost.js';
 import type { Gw2ResolverEvent, Gw2ResolverReactionRegistry } from '#gw2/platform/resolver/types.js';
-import type { Gw2Config } from '#gw2/platform/simulation/config.js';
+import { buildCombatResult, buildSimulationScore } from '#gw2/platform/results/build-result.js';
+import { planningState } from '#gw2/platform/results/end-state.js';
+import { captureRuntimeEffects, observeRuntimeEffects } from '#gw2/platform/results/observe-effects.js';
+import { recordProcStep } from '#gw2/platform/results/proc-steps.js';
+import { rotationApm } from '#gw2/platform/results/rotation-apm.js';
+import {
+  createEffectEmissionService,
+  type AnnouncementEmission,
+  type EffectDelivery
+} from '#gw2/platform/simulation/effect-emission.js';
+import { createEffectReactions, type EffectReactionStage } from '#gw2/platform/simulation/effect-reactions.js';
+import { selectSkillEffects } from '#gw2/platform/simulation/effect-selection.js';
+import { createInternalWorkFactory, skillTaskAt } from '#gw2/platform/simulation/internal-work.js';
 import type {
   FlipWindowOptions,
   Gw2Runtime,
   RuntimeCast,
-  RuntimeProfession,
   RuntimeWork
 } from '#gw2/platform/simulation/runtime-state.js';
-import type { CastCommand } from '#gw2/platform/execution/types.js';
-import type { Skill, SkillId } from '#gw2/platform/engine/skills/types.js';
+import { applySkillSideEffects } from '#gw2/platform/simulation/side-effects.js';
+import { advanceAutoattackChains, resetAutoattackChains } from '#gw2/platform/skills/autoattack-chain-controller.js';
+import {
+  castWasInterrupted,
+  retainsInterruptedCastLockout,
+  summonQuicknessCastTimeMs
+} from '#gw2/platform/skills/timing.js';
+import { lockTransitionInput } from '#gw2/platform/skills/transition-delays.js';
+import { canonicalTime, EPSILON } from '#kernel/core/clock.js';
+import { StableEventQueue } from '#kernel/events/queue.js';
+import { DEFAULT_EXECUTION_ITERATION_LIMIT } from '#kernel/execution/limits.js';
+import { normalizeObservationPolicy, observationEndTime } from '#kernel/execution/observation.js';
 
 /** Condition pulses are scheduled for every active stack at once, so they deliberately carry no causal identity. */
 const SHARED_PULSE_TYPES = new Set(['condition_tick', 'condition_buffer']);
@@ -131,29 +122,50 @@ function withoutInheritedReaction(event: SimulationEventBase, cause?: Gw2Resolve
   return event;
 }
 
-/** One cursor, queue, profession instance and RNG own gameplay in both reporting modes. */
-export function runGw2Runtime<T extends object>({
-  profession,
-  config = {},
-  rotation = [],
-  observation,
-  combatStartTime,
-  output = 'detailed',
-  damageDiagnostics = false,
-  onPhase
-}: {
-  profession: RuntimeProfession<T>;
-  config?: Gw2Config;
-  rotation?: readonly unknown[];
-  observation?: ObservationPolicy;
-  combatStartTime?: number;
-  output?: 'detailed' | 'score';
-  damageDiagnostics?: boolean;
-  onPhase?: Gw2SimulationOptions['onPhase'];
-}) {
+/** The combat entry point assembles gameplay producers before entering the shared runtime. */
+export function runGw2Runtime<T extends object>(
+  options: RuntimeOptions<T> & { readonly rotation?: readonly unknown[] }
+) {
+  return runRuntime({ ...options, execution: createCombatExecution(options.profession, options.rotation ?? []) });
+}
+
+export function runRuntime<T extends object>(
+  options: DamageRuntimeOptions<T> & { readonly execution: RuntimeExecution<T> }
+): DamageRuntimeResult;
+export function runRuntime<T extends object>(
+  options: RuntimeOptions<T> & { readonly execution: RuntimeExecution<T> }
+): Gw2SimulationResult | Gw2SimulationScore;
+/** The shared scheduler can collect a finite occurrence without constructing combat reports. */
+export function runRuntime<T extends object>(
+  options: (RuntimeOptions<T> | DamageRuntimeOptions<T>) & { readonly execution: RuntimeExecution<T> }
+): DamageRuntimeResult | Gw2SimulationResult | Gw2SimulationScore {
+  const {
+    profession,
+    config: inputConfig = {},
+    observation,
+    combatStartTime,
+    output = 'detailed',
+    collectChartData = true,
+    damageDiagnostics = false,
+    execution,
+    onPhase
+  } = { observation: undefined, ...options };
+  let config = inputConfig;
+  const ownsEffect = options.output === 'damage' ? options.ownsEffect : undefined;
   const started = onPhase ? performance.now() : 0;
+  // Direct and public runtime entry points share catalog validation and detached selection snapshots.
+  if ('selectedSkills' in config)
+    throw new TypeError('selectedSkills is unsupported in simulation; use selectedSkillIds.');
+  if (config.selectedSkillIds !== undefined)
+    config = {
+      ...config,
+      selectedSkillIds: prepareSelectedSkillLoadout(
+        config.selectedSkillIds,
+        profession.skillSelectionCatalog ?? profession.catalog
+      )
+    };
   const policy = normalizeObservationPolicy(observation);
-  const cursor = new RotationCursor(normalizeRotation(rotation, profession.catalog, { strict: true }));
+  const cursor = execution.driver.cursor;
   const markers = cursor.commands.filter((command) => command.type === 'combat-start');
   if (markers.length > 1 || (markers.length && combatStartTime != null))
     throw new TypeError('Combat Start must have one owner.');
@@ -255,7 +267,7 @@ export function runGw2Runtime<T extends object>({
   const preparedCombos = new WeakSet<Gw2ResolverEvent>();
 
   // Bind hooks to the same context used by commands. No hook receives a predicted or restored state.
-  const contributions = createGw2EquipmentReactionContributions();
+  const contributions = execution.contributions(() => runtime);
   const effectReactions = createEffectReactions(profession.catalog, profession.sideEffectHandlers);
   // Skill-owned actions run immediately before the composed profession reactions, through the same acceptance gates.
   function effectReactionContribution(stage: EffectReactionStage) {
@@ -276,31 +288,11 @@ export function runGw2Runtime<T extends object>({
         ...(contributions['condition.applied'] ?? []),
         effectReactionContribution('condition.applied')
       ],
-      'damage.resolved': [
-        ...(contributions['damage.resolved'] ?? []),
-        effectReactionContribution('damage.resolved'),
-        {
-          id: 'sigil.actual-strike',
-          order: -300,
-          handler(_context, event) {
-            applyRuntimeSigilStrike(runtime, event);
-          }
-        }
-      ],
-      'control.resolved': [
-        ...(contributions['control.resolved'] ?? []),
-        effectReactionContribution('control.resolved'),
-        {
-          id: 'sigil.actual-control',
-          order: -300,
-          handler(_context, event) {
-            applyRuntimeSigils(runtime, 'control', event);
-          }
-        }
-      ]
+      'damage.resolved': [...(contributions['damage.resolved'] ?? []), effectReactionContribution('damage.resolved')],
+      'control.resolved': [...(contributions['control.resolved'] ?? []), effectReactionContribution('control.resolved')]
     },
     professionReactions: Object.fromEntries(
-      Object.entries(profession.reactions ?? {}).map(([stage, handler]) => [
+      Object.entries(execution.professionReactions ?? {}).map(([stage, handler]) => [
         stage,
         (_context, event, details) => {
           return handler(runtime, event, details ?? {});
@@ -335,6 +327,8 @@ export function runGw2Runtime<T extends object>({
   ): Gw2ResolverEvent {
     const cause = delivery.cause;
     let event = withoutInheritedReaction(input, cause);
+    // Direct evaluation admits only the selected owner's payload and explicit environmental assumptions.
+    if (!execution.acceptsEffect(event)) return identify(assertSimulationEvent(event));
     if (delivery.cast)
       event = {
         activationId:
@@ -479,8 +473,9 @@ export function runGw2Runtime<T extends object>({
   const base = createGw2ResolverRuntimeState({
     config,
     traits: normalizeSelectedTraitIds(config.selectedTraitIds),
-    reporting: output === 'detailed',
-    damageDiagnostics,
+    reporting: output !== 'score',
+    recordEffectHistory: output === 'detailed' && collectChartData,
+    damageDiagnostics: output === 'damage' || damageDiagnostics,
     horizon: policy.kind === 'absolute' ? canonicalTime(policy.endTimeMs / 1000) : null,
     query,
     queue,
@@ -714,7 +709,7 @@ export function runGw2Runtime<T extends object>({
       profession.autoattackChainOverrides
     );
     profession.onAutoattackChainTransition?.(runtime, cast, transition);
-    if (cast.skill.cost?.spendOn === 'castCommit' && !cast.cancelled) spendSkillCost(runtime, cast.skill);
+    if (cast.skill.cost?.spendOn === 'castCommit' && !cast.cancelled) execution.spendCost?.(runtime, cast.skill);
     // One successful-cast phase owns rewards and tasks; cancelled attempts only release profession state.
     if (cast.cancelled) profession.onCastCancel?.(runtime, cast);
     else {
@@ -741,8 +736,7 @@ export function runGw2Runtime<T extends object>({
         cursor.command?.type === 'combat-start' ||
         (runtime.combatStartTime != null && runtime.time < runtime.combatStartTime)
     });
-    for (const relic of [runtime.relic, ...(runtime.precastRelics ?? [])])
-      relic.rules.completed?.(runtime, relic.state, completion);
+    execution.castCompleted?.(runtime, completion);
     if (
       Number(cast.skill.selfStunMs) > 0 &&
       !config.boons?.stability &&
@@ -779,7 +773,28 @@ export function runGw2Runtime<T extends object>({
   // A configured permanent field is an initial executed fact, available to the first eligible finisher.
   const assumedField = permanentComboFieldAssumption(config, profession.id, runtime.time);
   if (assumedField) runtime.effects.emit({ kind: 'packet', event: assumedField });
+  // Preview-held buffs are executed facts from the start, so traits read them exactly like earned buffs.
+  for (const buff of config.initialBuffs ?? []) {
+    if (!(buff.stacks > 0) || !(buff.duration > 0)) continue;
+    runtime.effects.emit({
+      kind: 'packet',
+      event: assertSimulationEvent({
+        type: 'buff',
+        at: runtime.time,
+        kind: buff.kind,
+        stacks: buff.stacks,
+        duration: buff.duration,
+        fixedDuration: true,
+        source: buff.name ?? buff.kind,
+        sourceId: `assumption.initial-buff.${buff.kind}`,
+        skillName: buff.name ?? buff.kind,
+        actorType: 'player'
+      })
+    });
+  }
+
   profession.initialize?.(runtime);
+  execution.initialize?.(runtime);
   captureEffects();
 
   function reject(reason: string): void {
@@ -947,7 +962,7 @@ export function runGw2Runtime<T extends object>({
       })
     );
     // A declared cost is paid on acceptance unless it requires successful completion.
-    if (skill.cost && skill.cost.spendOn !== 'castCommit') spendSkillCost(runtime, skill);
+    if (skill.cost && skill.cost.spendOn !== 'castCommit') execution.spendCost?.(runtime, skill);
     profession.onCastStart?.(runtime, cast);
     applySkillSideEffects(runtime, cast, 'castStart', profession.sideEffectHandlers);
     // Custom skill owners select their packets once; scheduled effects still apply through the common live queue.
@@ -1004,7 +1019,7 @@ export function runGw2Runtime<T extends object>({
   // Observe the existing owners after each accepted transaction, including custom tasks with no buff packet.
   function captureEffects(): void {
     if (!runtime.effectRecorder || (runtime.deathTime != null && runtime.time > runtime.deathTime)) return;
-    runtime.effectRecorder.capture(runtime.time, observeRuntimeEffects(runtime, profession));
+    captureRuntimeEffects(runtime, profession);
   }
 
   function dispatchEvent(event: Gw2ResolverEvent): void {
@@ -1094,24 +1109,16 @@ export function runGw2Runtime<T extends object>({
     if (!runtime.combatActive && !precombat && isCombatEntryEvent(event)) {
       runtime.combatActive = true;
       // Timed profession producers anchor once to the accepted combat-start boundary.
-      profession.onCombatStart?.(runtime);
+      execution.combatStart?.(runtime);
     }
 
     event = bindRuntimeCombo(runtime, event);
     handlers.dispatch(event, runtime);
     // Shared relic descriptors react to actual events and queue their effects on this clock.
-    if (event.type === 'action' && !event.cancelled)
-      invokeRelicHook(
-        runtime,
-        'emitActionEffects',
-        event,
-        profession.catalog.skillsById.get(event.skillId ?? event.sourceId)
-      );
-    if (event.type === 'action') invokeRelicHook(runtime, 'action', event);
+    if (event.type === 'action') execution.action?.(runtime, event);
     if (event.type === 'combat_start')
       for (const relic of [runtime.relic, ...(runtime.precastRelics ?? [])]) relic.state.combatMarker = event;
-    if (event.type === 'condition' && runtime.relic.id === RELIC_IDS.SHACKLES)
-      invokeRelicHook(runtime, 'emitConditionEffects', event);
+    if (event.type === 'condition') execution.condition?.(runtime, event);
     // Proc rows keep recharge reductions for timeline badges and timed procs keep their deadline.
     if (event.type === 'proc')
       recordProcStep(runtime, {
@@ -1124,7 +1131,7 @@ export function runGw2Runtime<T extends object>({
         cooldownReduction: event.cooldownReduction,
         expiresAt: Number(event.duration) > 0 ? event.at + Number(event.duration) : null
       });
-    if (event.type === 'weapon_set' || event.type === 'sigil_swap') applyRuntimeSigils(runtime, 'swap', event);
+    if (event.type === 'weapon_set' || event.type === 'sigil_swap') execution.weaponSwap?.(runtime, event);
     if (['action', 'cooldown_snapshot', 'weapon_set', 'buff', 'boon_extension', 'marker'].includes(event.type))
       history.push(event);
     if (!preparedCombos.has(event)) produceRuntimeCombos(runtime, profession.catalog, event);
@@ -1138,6 +1145,14 @@ export function runGw2Runtime<T extends object>({
 
   // Each iteration either dispatches work, consumes one command, or advances to an actual boundary.
   let finished = false;
+  const driverContext: RuntimeDriverContext<T> = {
+    runtime,
+    cooldowns: cooldownController,
+    inFlightEnd: (id) => reservations.get(id)!.effectiveEnd,
+    advanceFrontier: (reason) => queue.advanceFrontier(runtime.time, GW2_RESOLVER_PHASE.Ordinary, reason),
+    acceptCast,
+    reject
+  };
   for (let iteration = 0; iteration < DEFAULT_EXECUTION_ITERATION_LIMIT; iteration++) {
     // The next authored marker fixes a boundary, not a gameplay transition: opening packets at that instant remain eligible.
     if (runtime.combatStartPending && cursor.command?.type === 'combat-start') {
@@ -1156,162 +1171,24 @@ export function runGw2Runtime<T extends object>({
       continue;
     }
 
-    const command = cursor.command;
-    let nextCommandAt = Infinity;
-    if (command) {
-      // Reevaluate transformed actions after every actual boundary, before accepting their reservation.
-      const skill =
-        command.type === 'cast'
-          ? profession.catalog.skillsById.get(profession.modifySkillId?.(runtime, command.skillId) ?? command.skillId)
-          : undefined;
-      // A forbidden overlap is permanently invalid, so it cannot reserve a lane or wait for cooldown readiness.
-      if (command.type === 'cast' && command.concurrentOffsetMs != null && skill?.canCastConcurrently === false) {
-        queue.advanceFrontier(runtime.time, GW2_RESOLVER_PHASE.Ordinary, 'command rejection');
-        reject(`${skill.name} cannot be cast concurrently.`);
-        continue;
-      }
-
-      const requested = cursor.requestAt(runtime.time, skill);
-      if (requested < runtime.time || (command.type === 'cast' && !skill)) {
-        queue.advanceFrontier(runtime.time, GW2_RESOLVER_PHASE.Ordinary, 'command rejection');
-        reject(skill ? 'Concurrent command cannot backdate the clock.' : 'Unknown skill.');
-        continue;
-      }
-
-      nextCommandAt = Math.max(
-        requested,
-        command.type === 'cast' ? runtime.inputReadyAt : 0,
-        skill && !skill.independentCast && Number(skill.castTimeMs) > 0 && !skill.stunbreak ? cursor.selfStunUntil : 0
-      );
-      if (nextCommandAt <= runtime.time) {
-        queue.advanceFrontier(runtime.time, GW2_RESOLVER_PHASE.Ordinary, 'command');
-        if (command.type === 'wait') {
-          const end = canonicalTime(runtime.time + command.durationMs / 1000);
-          // Every authored command retains its timeline row, including waits and environment controls.
-          if (runtime.reporting)
-            runtime.steps.push({
-              ri: cursor.index,
-              skill: 'Wait',
-              start: Math.round(runtime.time * 1000),
-              end: Math.round(end * 1000)
-            });
-          cursor.acceptWait(end);
-          continue;
-        }
-
-        if (command.type === 'combat-start') {
-          if (runtime.reporting)
-            runtime.steps.push({
-              ri: cursor.index,
-              skill: 'Combat Start',
-              start: Math.round(runtime.time * 1000),
-              end: Math.round(runtime.time * 1000)
-            });
-          runtime.combatStartPending = false;
-          runtime.combatStartTime = runtime.time;
-          runtime.effects.emit({
-            kind: 'packet',
-            event: {
-              type: 'combat_start',
-              at: runtime.time,
-              source: 'Runtime',
-              sourceId: 'combat-start',
-              actorType: 'environment'
-            }
-          });
-          cursor.consume();
-          continue;
-        }
-
-        if (command.type === 'cooldown-reset') {
-          if (runtime.reporting)
-            runtime.steps.push({
-              ri: cursor.index,
-              skill: 'Cooldown Reset',
-              start: Math.round(runtime.time * 1000),
-              end: Math.round(runtime.time * 1000)
-            });
-          runtime.cooldowns.clear();
-          runtime.rechargeProgress.clear();
-          runtime.ammo.clear();
-          runtime.lockouts.clear();
-          profession.onCooldownReset?.(runtime);
-          // Publish the accepted reset after its resource and recharge transitions.
-          runtime.effects.emit({
-            kind: 'packet',
-            event: {
-              type: 'marker',
-              at: runtime.time,
-              source: 'platform',
-              sourceId: 'cooldown-reset',
-              actorType: 'environment',
-              action: 'cooldown-reset',
-              name: 'Cooldown Reset'
-            }
-          });
-          cursor.consume();
-          continue;
-        }
-
-        if (!skill) throw new Error('Cast has no skill.');
-        if (
-          !isGw2WeaponSkillEquipped(
-            { config, weaponSet: runtime.activeWeaponSet, state: runtime, catalog: profession.catalog },
-            skill,
-            profession.weaponSkillMatchesSet
-          )
-        ) {
-          reject(`${skill.name} is unavailable — its required weapon is not equipped.`);
-          continue;
-        }
-
-        // A wrong chain command is invalid now; waiting for recharge must not let its flip expire into validity.
-        const chainAvailability = autoattackChainAvailability(runtime, profession.catalog, skill);
-        if (!chainAvailability.ready) {
-          reject(chainAvailability.reason);
-          continue;
-        }
-
-        cooldownController.refresh(runtime.time);
-        const ammo = cooldownController.refreshAmmo(skill, runtime.time);
-        nextCommandAt = Math.max(
-          runtime.time,
-          skill.usableWhileRecharging && !(ammo && ammo.charges <= 0)
-            ? 0
-            : gw2CooldownReadyAt(runtime.cooldowns.get(skill.id) ?? 0),
-          ...[...(skill.independentCastCanOverlap ? [] : (runtime.inFlight.get(skill.id) ?? []))].map(
-            (id) => reservations.get(id)!.effectiveEnd
-          ),
-          ...(skill.lockouts ?? []).map((lockout) => runtime.lockouts.get(lockout.group) ?? 0)
-        );
-        // Cooldown, lane, and lockout waits settle first: intervening actual hits may change resource or form legality.
-        if (nextCommandAt <= runtime.time) {
-          const availability = profession.availability?.(runtime, skill, command) ?? { ready: true };
-          if (!availability.ready && availability.retryAt == null) {
-            reject(availability.reason);
-            continue;
-          }
-
-          if (!availability.ready) {
-            if (!Number.isFinite(availability.retryAt) || canonicalTime(availability.retryAt) <= runtime.time) {
-              reject(`${availability.reason} (no future retry boundary).`);
-              continue;
-            }
-
-            nextCommandAt = canonicalTime(availability.retryAt);
-          } else {
-            acceptCast(skill, command);
-            continue;
-          }
-        }
-      }
-    } else if (runtime.rotationEndTime == null) {
+    const commandBoundary = execution.driver.advance(driverContext);
+    if (commandBoundary === 'handled') continue;
+    let nextCommandAt = commandBoundary;
+    if (!cursor.command && runtime.rotationEndTime == null) {
       nextCommandAt = Math.max(cursor.endTime(), runtime.inputReadyAt);
       if (nextCommandAt <= runtime.time) {
         runtime.rotationEndTime = runtime.time;
-        runtime.horizon = canonicalTime(observationEndTime(policy, runtime.time));
+        // A fixed safety horizon keeps condition scheduling live while an occurrence finishes early below.
+        runtime.horizon = canonicalTime(ownsEffect ? runtime.time + 120 : observationEndTime(policy, runtime.time));
         nextCommandAt = Infinity;
       }
+    }
+
+    const completionAt = ownsEffect && runtime.rotationEndTime != null ? damageCompletionTime() : Infinity;
+    if (runtime.rotationEndTime != null && runtime.time >= completionAt) {
+      runtime.horizon = runtime.time;
+      finished = true;
+      break;
     }
 
     if (runtime.horizon != null && runtime.time >= runtime.horizon) {
@@ -1321,7 +1198,7 @@ export function runGw2Runtime<T extends object>({
       break;
     }
 
-    const next = Math.min(nextCommandAt, queue.peek()?.at ?? Infinity, runtime.horizon ?? Infinity);
+    const next = Math.min(nextCommandAt, queue.peek()?.at ?? Infinity, runtime.horizon ?? Infinity, completionAt);
     if (!Number.isFinite(next) || next <= runtime.time) throw new Error('Live runtime has no advancing boundary.');
     runtime.time = canonicalTime(next);
     runtime.resourceController.advance();
@@ -1334,13 +1211,22 @@ export function runGw2Runtime<T extends object>({
   onPhase?.('execution', reportingStarted - started);
   // Finalize condition presentation once at the shared boundary for both reporting modes.
   finalizeConditionApplications(runtime, runtime.deathTime ?? runtime.horizon!);
+  if (ownsEffect) {
+    onPhase?.('reporting', performance.now() - reportingStarted);
+    return {
+      events: runtime.resolved.filter(ownsEffect),
+      castSeconds: runtime.steps.length ? (runtime.steps[0].end - runtime.steps[0].start) / 1000 : 0,
+      complete: damageCompletionTime() <= runtime.time + EPSILON
+    };
+  }
+
   const score = buildSimulationScore(runtime, runtime.rotationEndTime, explicitCombat);
   if (output === 'score') {
     onPhase?.('reporting', performance.now() - reportingStarted);
     return score;
   }
 
-  invokeRelicHook(runtime, 'passiveTimeline', score.combatEndTime);
+  execution.report?.(runtime, score.combatEndTime);
   // Queued companion commands can start later with a different speed; report the executed animation, not its reservation.
   const companionActions = new Map(
     executed
@@ -1377,7 +1263,7 @@ export function runGw2Runtime<T extends object>({
         rotationEndTime: runtime.rotationEndTime,
         combatStartTime: explicitCombat ? (runtime.combatStartTime ?? null) : null
       },
-      rotation,
+      execution.driver.rotation,
       profession.catalog
     ),
     planningState: planningState(
@@ -1390,4 +1276,33 @@ export function runGw2Runtime<T extends object>({
   };
   onPhase?.('reporting', performance.now() - reportingStarted);
   return result;
+
+  /** Follow owned work and condition settlement in this run; unrelated background tasks cannot prolong it. */
+  function damageCompletionTime(): number {
+    let deadline = runtime.rotationEndTime ?? runtime.time;
+    for (const pending of pendingEffects()) if (ownsEffect!(pending.cause)) deadline = Math.max(deadline, pending.at);
+    for (const event of runtime.resolved)
+      if (ownsEffect!(event) && event.naturalExpiresAt != null)
+        // Owner condition clocks may pay their final buffered remainder after natural expiry.
+        deadline = Math.max(deadline, Number(event.naturalExpiresAt) + 1.5);
+    return deadline;
+  }
+
+  /** Project pending deadlines with their actual cause, excluding already identified physical summon loops. */
+  function pendingEffects(): { at: number; cause: Gw2ResolverEvent }[] {
+    const summonOwners = new Set(executed.flatMap((event) => (event.summonOwner == null ? [] : [event.summonOwner])));
+    return queue.pending().flatMap((event) => {
+      if (event.actorType === 'summon' || event.summonOwner != null || SHARED_PULSE_TYPES.has(event.type)) return [];
+      if (event.kind !== 'internal') return [{ at: event.at, cause: event }];
+      const work = event as unknown as RuntimeWork;
+      if (
+        work.type === 'runtime.flip-expiry' ||
+        (work.owner && summonOwners.has(work.owner.id)) ||
+        (work.type === 'runtime.task' && profession.backgroundTasks?.includes(work.payload.name))
+      )
+        return [];
+      const cause = work.type === 'runtime.cast-task' ? castActions.get(work.payload.cast.id) : workCauses.get(event);
+      return cause ? [{ at: event.at, cause }] : [];
+    });
+  }
 }

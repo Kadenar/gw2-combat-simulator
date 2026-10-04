@@ -30,7 +30,7 @@ test('every Elementalist specialization can prepare attunements without precomba
             specialization,
             startAttunement: 'Fire',
             secondaryAttunement: 'Fire',
-            ...(preparation.length ? { selectedSkills: { Elite: 'Weave Self' } } : {})
+            ...(preparation.length ? { selectedSkillIds: [43638] } : {})
           },
           { profession: elementalistProfession }
         );
@@ -220,13 +220,7 @@ test('Relentless Fire preserves the sword autoattack chain', () => {
     rotation: ['Charged Strike', 'Relentless Fire', 'Polaric Slash'],
     startAttunement: 'Air',
     weapons: ['Sword', 'Dagger'],
-    selectedSkills: {
-      Heal: 'Glyph of Elemental Harmony',
-      Utility1: 'Relentless Fire',
-      Utility2: 'Signet of Fire',
-      Utility3: 'Arcane Wave',
-      Elite: 'Glyph of Elementals'
-    }
+    selectedSkillIds: { Heal: 34743, Utility1: 62965, Utility2: 5542, Utility3: 5638, Elite: 25488 }
   });
 
   assert.deepEqual(result.warnings, []);
@@ -288,9 +282,9 @@ test('using the first Aerial Agility follow-up restarts its full cooldown', () =
 test('rotation palette resolves equipped glyphs to the active attunement', () => {
   const build = elementalistAppAdapter.toApplicationBuild({
     ...elementalistProfession.createBuildDefaults(),
-    selectedSkills: {
-      ...elementalistProfession.createBuildDefaults().selectedSkills,
-      Utility2: 'Glyph of Storms (Fire)'
+    selectedSkillIds: {
+      ...elementalistProfession.createBuildDefaults().selectedSkillIds,
+      Utility2: 5736
     }
   });
   const app = {
@@ -316,13 +310,7 @@ test('equipped glyphs remain available across attunement variants', () => {
     lines: [['Fire'], ['Air'], ['Arcane']],
     rotation: ['Air Attunement', 'Glyph of Storms (Air)'],
     startAttunement: 'Fire',
-    selectedSkills: {
-      Heal: 'Glyph of Elemental Harmony',
-      Utility1: 'Arcane Blast',
-      Utility2: 'Glyph of Storms (Fire)',
-      Utility3: 'Arcane Wave',
-      Elite: 'Glyph of Elementals'
-    }
+    selectedSkillIds: { Heal: 34743, Utility1: 5539, Utility2: 5736, Utility3: 5638, Elite: 25488 }
   });
 
   assert.deepEqual(result.warnings, []);
@@ -337,13 +325,7 @@ test('attunement variants of an equipped glyph share their cooldown', () => {
     lines: [['Fire'], ['Air'], ['Arcane']],
     rotation: ['Air Attunement', 'Glyph of Storms (Air)', 10000, 'Fire Attunement', 'Glyph of Storms (Fire)'],
     startAttunement: 'Fire',
-    selectedSkills: {
-      Heal: 'Glyph of Elemental Harmony',
-      Utility1: 'Arcane Blast',
-      Utility2: 'Glyph of Storms (Fire)',
-      Utility3: 'Arcane Wave',
-      Elite: 'Glyph of Elementals'
-    }
+    selectedSkillIds: { Heal: 34743, Utility1: 5539, Utility2: 5736, Utility3: 5638, Elite: 25488 }
   });
   const casts = result.steps.filter((step) => String(step.skill).startsWith('Glyph of Storms'));
 
@@ -359,13 +341,7 @@ test("Evasive Arcana uses the active attunement's native trait skill", () => {
     lines: [['Fire'], ['Air'], ['Arcane', '1-1-1']],
     rotation: ['Dodge', 1000],
     startAttunement: 'Fire',
-    selectedSkills: {
-      Heal: 'Glyph of Elemental Harmony',
-      Utility1: 'Arcane Blast',
-      Utility2: 'Signet of Fire',
-      Utility3: 'Arcane Wave',
-      Elite: 'Conjure Fiery Greatsword'
-    }
+    selectedSkillIds: { Heal: 34743, Utility1: 5539, Utility2: 5542, Utility3: 5638, Elite: 5516 }
   });
 
   assert.equal(
@@ -565,13 +541,7 @@ test('conjured weapons enforce bundle access and preserve their pickup', () => {
       '__pickup_Frost Bow',
       'Frost Volley'
     ],
-    selectedSkills: {
-      Heal: 'Glyph of Elemental Harmony',
-      Utility1: 'Conjure Frost Bow',
-      Utility2: 'Signet of Fire',
-      Utility3: 'Arcane Wave',
-      Elite: 'Conjure Fiery Greatsword'
-    }
+    selectedSkillIds: { Heal: 34743, Utility1: 5567, Utility2: 5542, Utility3: 5638, Elite: 5516 }
   });
 
   assert.deepEqual(

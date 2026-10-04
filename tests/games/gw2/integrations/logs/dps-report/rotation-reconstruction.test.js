@@ -111,7 +111,7 @@ function appFixture() {
       simulationConfig: () => ({ selectedMorphSkillIds: [76927, 77104] })
     },
     build: {
-      selectedSkills: { Utility1: 'Bomb Kit' },
+      selectedSkillIds: { Utility1: 5812 },
       selectedMorphSkillIds: [76927, 77104]
     },
     activeCatalog: catalogFixture()

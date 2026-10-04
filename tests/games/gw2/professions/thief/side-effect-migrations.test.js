@@ -153,28 +153,28 @@ test('Thief activation declarations are the sole owners of their state transitio
   const scenarios = [
     {
       id: ID.SIGNET_OF_AGILITY,
-      config: { selectedSkills: ['Signet of Agility'], initialEndurance: 0 },
+      config: { selectedSkillIds: [13062], initialEndurance: 0 },
       active: (runtime) => runtime.profession.core.endurance > 50
     },
     {
       id: ID.CHANNELED_VIGOR,
-      config: { specialization: 'Daredevil', selectedSkills: ['Channeled Vigor'], initialEndurance: 0 },
+      config: { specialization: 'Daredevil', selectedSkillIds: [30400], initialEndurance: 0 },
       active: (runtime) => runtime.profession.core.endurance > 100
     },
     {
       id: ID.PREPARE_PITFALL,
-      config: { selectedSkills: ['Prepare Pitfall'] },
+      config: { selectedSkillIds: [13057] },
       active: (runtime) => Boolean(runtime.profession.core.availableFlips[ID.PITFALL])
     },
     {
       id: ID.SPIDER_VENOM,
-      config: { selectedSkills: ['Spider Venom'] },
+      config: { selectedSkillIds: [13037] },
       active: (runtime) =>
         Object.values(runtime.profession.core.venomChargeBatches).some((batches) => batches.length > 0)
     },
     {
       id: ID.ASSASSINS_SIGNET,
-      config: { selectedSkills: ["Assassin's Signet"] },
+      config: { selectedSkillIds: [13046] },
       active: (runtime) => runtime.profession.core.assassinsSignetActiveUntil > 0
     },
     { id: ID.STEAL, active: (runtime) => runtime.profession.core.storedStolenSkillCount > 0 },
@@ -217,12 +217,12 @@ test('Thief activation declarations are the sole owners of their state transitio
     },
     {
       id: ID.SKRITT_SCUFFLE,
-      config: { specialization: 'Antiquary', selectedSkills: ['Skritt Scuffle'] },
+      config: { specialization: 'Antiquary', selectedSkillIds: [77255] },
       active: (runtime) => runtime.profession.specialization.state.artifactUsesRemaining > 0
     },
     {
       id: ID.THIEVES_GUILD,
-      config: { selectedSkills: ['Thieves Guild'] },
+      config: { selectedSkillIds: [13082] },
       active: (runtime) => Boolean(runtime.profession.core.activeThievesGuild)
     }
   ];
@@ -243,7 +243,7 @@ test('selected stealth respects acceptance predicates, Revealed, extension and c
     for (const revealed of [false, true]) {
       const result = runThief(
         [ID.HIDE_IN_SHADOWS],
-        { selectedSkills: ['Hide in Shadows'] },
+        { selectedSkillIds: [13027] },
         {
           initialize(runtime) {
             runtime.profession.core.spearChainStage = Number(accepted);
@@ -286,7 +286,7 @@ test('selected stealth respects acceptance predicates, Revealed, extension and c
 
   const result = runThief(
     [ID.HIDE_IN_SHADOWS],
-    { selectedSkills: ['Hide in Shadows'], selectedTraitIds: [TRAIT.SHADOWS_REJUVENATION], initialInitiative: 0 },
+    { selectedSkillIds: [13027], selectedTraitIds: [TRAIT.SHADOWS_REJUVENATION], initialInitiative: 0 },
     {
       initialize(runtime) {
         runtime.profession.core.stealthUntil = 14;
@@ -303,7 +303,7 @@ test('selected stealth respects acceptance predicates, Revealed, extension and c
   assert.equal(buff.duration, 15);
   assert.equal(runtime.resourceController.value('initiative'), 0, 'extension does not repeat entry traits');
   const cancelled = runThief([{ skillId: ID.HIDE_IN_SHADOWS, interruptMs: 0 }], {
-    selectedSkills: ['Hide in Shadows']
+    selectedSkillIds: [13027]
   });
   assert.deepEqual(cancelled.warnings, []);
   assert.equal(observedRuntime(cancelled).profession.core.stealthUntil, 0);

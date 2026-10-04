@@ -1,3 +1,4 @@
+import { flattenProfessionState } from '#gw2/platform/engine/profession/state.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
@@ -190,11 +191,14 @@ test('elite event presentation is owned by the active specialization', () => {
     const coreState = family.resolveProfession(coreConfig).createState(coreConfig);
     const activeRuntime = family.resolveProfession(activeConfig);
     const activeState = activeRuntime.createState(activeConfig);
-    const coreRow = family.ui.eventLogRow?.({ config: coreConfig, state: { profession: coreState } }, event);
+    const coreRow = family.ui.eventLogRow?.(
+      { config: coreConfig, professionState: flattenProfessionState(coreState) },
+      event
+    );
 
     assert.equal(coreRow?.description, undefined, `${family.id}/Core must not present ${event.type}`);
     assert.notEqual(
-      family.ui.eventLogRow?.({ config: activeConfig, state: { profession: activeState } }, event),
+      family.ui.eventLogRow?.({ config: activeConfig, professionState: flattenProfessionState(activeState) }, event),
       undefined,
       `${family.id}/${specialization} must present ${event.type}`
     );
@@ -705,7 +709,7 @@ test('Necromancer presentation exposes only active specialization resources', ()
     const resourceIds = necromancerProfession.ui
       .resourceViews({
         config,
-        state: { profession: state }
+        professionState: flattenProfessionState(state)
       })
       .map((resource) => resource.id);
 
@@ -846,7 +850,7 @@ test('Guardian presentation and public projection preserve their contracts', () 
     const resourceIds = guardianProfession.ui
       .resourceViews({
         config,
-        state: { profession: state }
+        professionState: flattenProfessionState(state)
       })
       .map((resource) => resource.id);
 
@@ -854,7 +858,7 @@ test('Guardian presentation and public projection preserve their contracts', () 
     const paletteIds = guardianProfession.ui
       .paletteGroups({
         config,
-        state: { profession: state }
+        professionState: flattenProfessionState(state)
       })
       .map((group) => group.id);
 
@@ -964,7 +968,7 @@ test('Mesmer presentation and ammo output expose only the active specialization 
     const resources = mesmerProfession.ui.resourceViews({
       catalog: runtime.catalog,
       config,
-      state: { profession: state }
+      professionState: flattenProfessionState(state)
     });
 
     // Only Mirage and Troubadour expose dodge endurance alongside their primary resource.
@@ -1094,7 +1098,7 @@ test('Revenant presentation and public projection preserve their contracts', () 
     const resourceIds = revenantProfession.ui
       .resourceViews({
         config,
-        state: { profession: state }
+        professionState: flattenProfessionState(state)
       })
       .map((resource) => resource.id);
 
@@ -1271,14 +1275,13 @@ test('Engineer presentation and public projection preserve their contracts', () 
     const resourceIds = engineerProfession.ui
       .resourceViews({
         config,
-        state: { profession: state }
+        professionState: flattenProfessionState(state)
       })
       .map((resource) => resource.id);
     const uiContext = {
       config,
       specialization: active,
-      professionState: state,
-      state: { profession: state }
+      professionState: flattenProfessionState(state)
     };
 
     assert.equal(resourceIds.includes('heat'), active === 'Holosmith', active);

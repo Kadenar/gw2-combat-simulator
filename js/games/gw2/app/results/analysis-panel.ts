@@ -106,6 +106,8 @@ export interface RotationResultsModel {
   readonly randomDistributionProgress?: Partial<RandomDistributionProgress> | null;
   readonly randomDistributionError?: string;
   readonly chartSeries?: ChartSeries | null;
+  readonly chartsPending?: boolean;
+  readonly chartsError?: string;
   /** Recorded activations with timestamps relative to the same DPS window as the charts. */
   readonly procSteps?: readonly Pick<Gw2ProcStep, 'start' | 'skill' | 'sourceSkill'>[];
 }
@@ -532,6 +534,28 @@ export function modifierContributionsHtml(model: RotationResultsModel): string {
   }`;
 }
 
+/** Reserve the chart panels while data loads, with decorative motion and a single accessible status. */
+function chartLoadingHtml(): string {
+  return `<div class="chart-wrap chart-loading" data-role="chart-status" role="status" aria-label="Preparing charts" aria-busy="true">
+    <div class="chart-loading-header">
+      <div class="chart-title">DPS &amp; Effects Over Time</div>
+      <span class="chart-loading-status"><span class="chart-loading-spinner" aria-hidden="true"></span>Preparing charts</span>
+    </div>
+    <p class="chart-loading-description">Loading damage, effects, and boon timelines…</p>
+    <div class="chart-panels" aria-hidden="true">
+      <div class="chart-panel">
+        <div class="chart-panel-title">Average DPS Over Time</div>
+        <div class="chart-loading-plot"></div>
+      </div>
+      <div class="chart-panel">
+        <div class="chart-panel-title">Effects Over Time</div>
+        <div class="chart-loading-legend"><span></span><span></span><span></span></div>
+        <div class="chart-loading-plot chart-loading-effects"></div>
+      </div>
+    </div>
+  </div>`;
+}
+
 /** Mounts result rows and keeps sorting wired to the current view state. */
 export function mountRotationResults(
   container: HTMLElement | null | undefined,
@@ -680,11 +704,13 @@ export function mountRotationResults(
             (group) => `<div class="res-condition-group${group.damaging ? '' : ' res-condition-group-utility'}">
           <div class="res-condition-group-title">${group.label}</div>
           <div class="res-hdr cond-hdr">
-            <span>Condition</span>${group.damaging ? '<span>Damage</span><span>Share</span><span>DPS</span>' : ''}<span>Avg Stacks</span>
+            <span>Condition</span>${group.damaging ? '<span>Damage</span><span>Share</span><span>DPS</span>' : ''}<span>Avg Stacks</span>${group.damaging ? '<span title="DPS divided by average stacks: average damage per second from one stack">Avg dmg / stack</span>' : ''}
           </div>
           ${group.conditions
             .map((condition) => {
               const selectable = Boolean(chartSeries?.conditionDamage?.[condition.name]?.length);
+              // Normalize DPS by stack uptime to show one stack's average damage per second without dividing by zero.
+              const averageDamagePerStack = condition.averageStacks > 0 ? condition.dps / condition.averageStacks : 0;
               // Keep condition labels tooltip-free while retaining the row's keyboard-accessible tick inspector.
               const icon = MODIFIER_EFFECT_ICONS[condition.name];
               return `<div class="res-row${selectable ? ' res-row-selectable' : ''}"${selectable ? ` role="button" tabindex="0" aria-haspopup="dialog" aria-expanded="false" aria-label="Inspect ${escapeHtml(condition.name)} ticks" data-condition-name="${escapeHtml(condition.name)}"` : ''}>
@@ -697,6 +723,7 @@ export function mountRotationResults(
               : ''
           }
           <span>${Number(condition.averageStacks || 0).toFixed(2)}</span>
+          ${group.damaging ? `<span>${averageDamagePerStack.toFixed(2)}</span>` : ''}
         </div>`;
             })
             .join('')}
@@ -711,6 +738,7 @@ export function mountRotationResults(
           <span><b>${damagePercent(model.conditionTotal.damage).toFixed(2)}%</b></span>
           <span class="dps"><b>${number(model.conditionTotal.dps)}</b></span>
           <span></span>
+          <span></span>
         </div>`
             : ''
         }
@@ -722,7 +750,15 @@ export function mountRotationResults(
   </section>`
       : ''
   }
-  ${chartSeries ? '<div data-role="result-charts"></div>' : ''}
+  ${
+    chartSeries
+      ? '<div data-role="result-charts"></div>'
+      : model.chartsError
+        ? `<div data-role="chart-status" role="alert">Unable to load charts: ${escapeHtml(model.chartsError)}</div>`
+        : model.chartsPending
+          ? chartLoadingHtml()
+          : ''
+  }
   ${
     model.contributions !== undefined || model.contributionsStale || model.contributionsError
       ? `<div data-role="modifier-contributions">${modifierContributionsHtml(model)}</div>`

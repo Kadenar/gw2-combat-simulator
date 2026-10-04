@@ -182,6 +182,8 @@ export const meticulousCustodian = defineTrait({
     }
   ],
   balance: {
+    // Enhanced artifact packets remain part of the artifact's measured cast.
+    damagePreviewAttribution: 'skill',
     effects: [{ type: 'strike', name: 'Meticulous Custodian', coefficient: 0.3, hits: 1 }]
   }
 });

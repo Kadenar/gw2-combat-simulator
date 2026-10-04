@@ -23,7 +23,7 @@ export function applyMesmerBuildAttributeRules(
   common: Gw2CommonAttributeResult,
   context: Gw2BuildAttributeRuleContext
 ): Gw2FinalizedAttributeResult {
-  const { activeTraits, hasSelectedSkill, profileContext } = createBuildAttributeContext(
+  const { activeTraits, hasSelectedSkillId, profileContext } = createBuildAttributeContext(
     context,
     mesmerCatalog,
     getActiveTraits
@@ -42,14 +42,14 @@ export function applyMesmerBuildAttributeRules(
       to: 'Condition Damage',
       amount: balanceProfileNumber(signetOfDominationPassiveProfile, 'conditionDamageBonus'),
       feedsConversions: false,
-      enabled: hasSelectedSkill(ID.SIGNET_OF_DOMINATION)
+      enabled: hasSelectedSkillId(ID.SIGNET_OF_DOMINATION)
     },
     {
       kind: 'flat',
       to: 'Expertise',
       amount: balanceProfileNumber(signetOfMidnightPassiveProfile, 'expertiseBonus'),
       feedsConversions: false,
-      enabled: hasSelectedSkill(ID.SIGNET_OF_MIDNIGHT)
+      enabled: hasSelectedSkillId(ID.SIGNET_OF_MIDNIGHT)
     }
   ];
 

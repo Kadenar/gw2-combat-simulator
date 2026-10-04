@@ -102,10 +102,10 @@ for (const placement of ['right', 'left', 'vertical']) {
     await panel.getByRole('link').hover();
     await expect(panel).toBeVisible();
     await expect(menu).toBeVisible();
-    const selected = await choices.nth(0).getAttribute('data-name');
+    const selected = JSON.parse(await choices.nth(0).getAttribute('data-skill-id'));
     await choices.nth(0).click();
     await expect(menu).toHaveCount(0);
-    expect(await page.evaluate(() => window.professionApp.build.selectedSkills.Utility2)).toBe(selected);
+    expect(await page.evaluate(() => window.professionApp.build.selectedSkillIds.Utility2)).toBe(selected);
   });
 }
 

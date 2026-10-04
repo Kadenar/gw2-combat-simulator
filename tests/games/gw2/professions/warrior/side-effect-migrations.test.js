@@ -12,7 +12,7 @@ test('Blood Reckoning resets live primal skills after its adrenaline grant and l
     primaryWeapon: 'Greatsword',
     initialResource: 0,
     selectedTraitIds: [],
-    selectedSkills: ['Blood Reckoning']
+    selectedSkillIds: [30189]
   };
   const native = warriorProfession.runtimeFor(config);
   let adrenalineAtReset;
@@ -52,7 +52,7 @@ test('Find Their Weakness grants initial adrenaline at commitment before its com
       primaryWeapon: 'Axe',
       initialResource: 0,
       selectedTraitIds: [],
-      selectedSkills: ['"Find Their Weakness!"']
+      selectedSkillIds: [77040]
     };
     const native = warriorProfession.runtimeFor(config);
     let before;

@@ -1,4 +1,4 @@
-import type { Skill } from '#gw2/platform/engine/skills/types.js';
+import type { Skill, SkillId } from '#gw2/platform/engine/skills/types.js';
 import type { ProfessionAppState } from '#gw2/app/types.js';
 
 export function isSlotSkillSelectable(
@@ -44,12 +44,13 @@ export function normalizeSelectedSkills(app: ProfessionAppState): void {
     Elite: 'Elite'
   };
   // Repair duplicate picks and keep fallback choices from displacing skills equipped in later slots.
-  const selected = new Set<string>();
+  const selected = new Set<SkillId | null>();
   for (const [slot, type] of Object.entries(slotTypes)) {
-    const current = app.skillByName.get(app.build.selectedSkills[slot]);
+    if (app.build.selectedSkillIds[slot] === null) continue;
+    const current = app.skillById.get(app.build.selectedSkillIds[slot]!);
     const allowed =
       current &&
-      !selected.has(current.name) &&
+      !selected.has(current.id) &&
       current.type === type &&
       isSlotSkillSelectable(app, current, spec) &&
       (!current.specialization || current.specialization === spec) &&
@@ -58,20 +59,20 @@ export function normalizeSelectedSkills(app: ProfessionAppState): void {
         specialization: spec
       });
     if (!allowed) {
-      app.build.selectedSkills[slot] =
+      app.build.selectedSkillIds[slot] =
         app.skills.find(
           (skill) =>
             skill.type === type &&
-            !Object.values(app.build.selectedSkills).includes(skill.name) &&
+            !Object.values(app.build.selectedSkillIds).includes(skill.id) &&
             isSlotSkillSelectable(app, skill, spec) &&
             (!skill.specialization || skill.specialization === spec) &&
             app.adapter.isSkillAvailable(skill, {
               build: app.build,
               specialization: spec
             })
-        )?.name || '';
+        )?.id ?? null;
     }
 
-    selected.add(app.build.selectedSkills[slot]);
+    selected.add(app.build.selectedSkillIds[slot]);
   }
 }

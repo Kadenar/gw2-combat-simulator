@@ -188,7 +188,7 @@ test('Weighty Terms keeps its page refund when Slow is removed', () => {
     'Firebrand',
     ['Flame Rush', 'Flame Rush', 'Flame Surge'],
     [TRAIT.WEIGHTY_TERMS],
-    { initialTomePages: 1, selectedSkills: ['Mantra of Flame'] }
+    { initialTomePages: 1, selectedSkillIds: [46148] }
   );
   assert.equal(has(result, 'condition', 'condition', 'Slow'), false);
   assert.equal(result.planningState.profession.tomePages.value, 3);

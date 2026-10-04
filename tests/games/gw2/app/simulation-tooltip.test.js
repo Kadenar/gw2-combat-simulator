@@ -767,7 +767,7 @@ test('Necromancer condition handlers and tooltips share selected skill effects',
   assert.equal(darkness.planningState.profession.lifeForce.value, 10);
   const corruption = simulate('Core', ['Blood Is Power'], {
     patchId: 'condition-tooltips',
-    selectedSkills: ['Blood Is Power']
+    selectedSkillIds: [10544]
   });
   assert.deepEqual(corruption.warnings, []);
   const selfBleed = corruption.events.find((event) => event.type === 'self_condition' && event.skillId === 10544);
@@ -806,7 +806,7 @@ test('condition-transfer tooltips expose the same limits used by combat', () => 
   });
   const result = simulate('Core', ['Blood Is Power', 'Plague Signet'], {
     patchId: 'transfer-tooltip',
-    selectedSkills: ['Blood Is Power', 'Plague Signet'],
+    selectedSkillIds: [10544, 10562],
     selectedTraitIds: [TRAIT.MASTER_OF_CORRUPTION]
   });
   assert.deepEqual(result.warnings, []);
@@ -849,7 +849,7 @@ test('Soulbeast condition triggers preserve the same patched stack count shown i
   const result = simulate('Soulbeast', ['Vulture Stance', 'Maul'], {
     patchId: 'stance-tooltip',
     primaryWeapon: 'Greatsword',
-    selectedSkills: ['Vulture Stance']
+    selectedSkillIds: [40498]
   });
   assert.deepEqual(result.warnings, []);
   const poison = result.resolvedEvents.find((event) => event.type === 'condition' && event.skillId === 40498);

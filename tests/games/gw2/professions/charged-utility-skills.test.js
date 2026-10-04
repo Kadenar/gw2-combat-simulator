@@ -35,7 +35,7 @@ test("Viper's Nest triggers after placement and preserves the pending dagger cha
   for (const quickness of [false, true]) {
     const result = ranger('Druid', ['Groundwork Gouge', "Viper's Nest", 'Leading Swipe', wait(4000)], {
       boons: { quickness },
-      selectedSkills: ["Viper's Nest"]
+      selectedSkillIds: [12496]
     });
     assert.deepEqual(result.warnings, []);
     const cast = result.steps.find((step) => step.skill === "Viper's Nest");
@@ -65,7 +65,7 @@ test('Sharpening Stone adds ten to six remaining charges, with one eight-second 
       '__cooldown_reset',
       'Sharpening Stone'
     ],
-    { selectedSkills: ['Sharpening Stone'] }
+    { selectedSkillIds: [12537] }
   );
   assert.deepEqual(result.warnings, []);
   assert.equal(observedRuntime(result).profession.core.sharpeningStoneExpirations.length, 16);
@@ -78,13 +78,13 @@ test('Sharpening Stone applications expire independently at thirty seconds', () 
   const result = ranger(
     'Druid',
     ['Sharpening Stone', wait(10000), '__cooldown_reset', 'Sharpening Stone', wait(20000), 'Groundwork Gouge'],
-    { selectedSkills: ['Sharpening Stone'] }
+    { selectedSkillIds: [12537] }
   );
   assert.deepEqual(result.warnings, []);
   assert.equal(observedRuntime(result).profession.core.sharpeningStoneExpirations.length, 9);
   assert.equal(conditions(result, RANGER.SHARPENING_STONE).length, 1);
   const expired = ranger('Druid', ['Sharpening Stone', wait(30000), 'Groundwork Gouge'], {
-    selectedSkills: ['Sharpening Stone']
+    selectedSkillIds: [12537]
   });
   assert.equal(conditions(expired, RANGER.SHARPENING_STONE).length, 0);
 });
@@ -96,12 +96,12 @@ for (const [name, id, charges] of [
 ]) {
   test(`${name} preserves spent charges across recasts and expires each grant separately`, () => {
     const result = thief('Core', [name, 'Heartseeker', '__cooldown_reset', name, 'Heartseeker'], {
-      selectedSkills: [name]
+      selectedSkillIds: [thiefProfession.catalog.skillsByName.get(name).id]
     });
     assert.deepEqual(result.warnings, []);
     assert.equal(liveVenomCharges(result, id), charges * 2 - 2);
     const expired = thief('Core', [name, wait(10000), '__cooldown_reset', name, wait(14000), 'Heartseeker'], {
-      selectedSkills: [name]
+      selectedSkillIds: [thiefProfession.catalog.skillsByName.get(name).id]
     });
     assert.deepEqual(expired.warnings, []);
     assert.equal(liveVenomCharges(expired, id), charges - 1);
@@ -111,7 +111,7 @@ for (const [name, id, charges] of [
 
 test('recast ally venoms spend one charge per strike instead of overlapping proc sequences', () => {
   const result = thief('Core', ['Spider Venom', '__cooldown_reset', 'Spider Venom', wait(13000)], {
-    selectedSkills: ['Spider Venom'],
+    selectedSkillIds: [13037],
     allies: { count: 1, strikesPerSecond: 1 }
   });
   const procs = conditions(result, THIEF.SPIDER_VENOM).filter((event) => event.metadata?.triggeredByAlly);

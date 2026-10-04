@@ -93,9 +93,6 @@ export interface GuardianSkill extends Skill {
 
 export interface GuardianUiContext extends ProfessionUiCallbackContext<Partial<GuardianState>> {
   readonly config?: GuardianConfig;
-  readonly state?: {
-    readonly profession?: Partial<GuardianState>;
-  };
 }
 
 /** UI slice whose callbacks read Guardian end-state projections. */

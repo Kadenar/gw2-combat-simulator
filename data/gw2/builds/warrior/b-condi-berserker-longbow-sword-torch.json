@@ -1,5 +1,5 @@
 {
-  "schemaVersion": 3,
+  "schemaVersion": 4,
   "profession": "warrior",
   "gear": {
     "Helm": "Grieving",
@@ -34,12 +34,12 @@
     { "name": "Strength", "traits": "3-3-1" },
     { "name": "Berserker", "traits": "2-1-2" }
   ],
-  "selectedSkills": {
-    "Heal": "Blood Reckoning",
-    "Utility1": "Shattering Blow",
-    "Utility2": "Outrage",
-    "Utility3": "Sundering Leap",
-    "Elite": "Head Butt"
+  "selectedSkillIds": {
+    "Heal": 30189,
+    "Utility1": 30074,
+    "Utility2": 30258,
+    "Utility3": 29613,
+    "Elite": 30343
   },
   "assumptions": {
     "simulationMode": "deterministic",

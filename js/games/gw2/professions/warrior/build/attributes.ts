@@ -16,14 +16,14 @@ export function applyWarriorBuildAttributeRules(
   common: Gw2CommonAttributeResult,
   context: Gw2BuildAttributeRuleContext
 ): Gw2FinalizedAttributeResult {
-  const { activeTraits, hasSelectedSkill, profileContext } = createBuildAttributeContext(
+  const { activeTraits, hasSelectedSkillId, profileContext } = createBuildAttributeContext(
     context,
     warriorCatalog,
     getActiveTraits
   );
   return finalizeProfessionBuildAttributes(
     common,
-    { activeTraits, attributeEffects: signetBuildAttributes(profileContext, hasSelectedSkill) },
+    { activeTraits, attributeEffects: signetBuildAttributes(profileContext, hasSelectedSkillId) },
     context
   );
 }

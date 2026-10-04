@@ -7,7 +7,7 @@ import { createObservedProfessionSimulator } from '#tests/helpers/observed-runti
 const simulate = createObservedProfessionSimulator(thiefProfession, {
   primaryWeapon: 'Axe',
   secondaryWeapon: 'Dagger',
-  selectedSkills: ['Skritt Scuffle', 'Hide in Shadows'],
+  selectedSkillIds: [77255, 13027],
   target: { armor: 2597, conditions: {} }
 });
 
@@ -147,7 +147,7 @@ test('Distracting Throw stays visible alongside Revealed and disappears at expir
 
 // The display follows projected buff expiry, while Signet recharge continues after its active bonus ends.
 test("Lotus Training and Assassin's Signet show only their remaining active durations", () => {
-  const config = { selectedDodge: 'Lotus Training', selectedSkills: ["Assassin's Signet"] };
+  const config = { selectedDodge: 'Lotus Training', selectedSkillIds: [13046] };
   const rotation = ['Dodge', "Assassin's Signet"];
   const started = activeState(simulate('Daredevil', rotation, config), 'Daredevil');
   assert.equal(started['daredevil-lotus-training'], '6.0s');

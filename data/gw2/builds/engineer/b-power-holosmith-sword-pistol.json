@@ -1,5 +1,5 @@
 {
-  "schemaVersion": 3,
+  "schemaVersion": 4,
   "profession": "engineer",
   "gear": {
     "Helm": "Berserker's",
@@ -56,12 +56,12 @@
       "traits": "3-2-2"
     }
   ],
-  "selectedSkills": {
-    "Heal": "A.E.D.",
-    "Utility1": "Grenade Kit",
-    "Utility2": "Photon Wall",
-    "Utility3": "Laser Disk",
-    "Elite": "Prime Light Beam"
+  "selectedSkillIds": {
+    "Heal": 21659,
+    "Utility1": 5805,
+    "Utility2": 43739,
+    "Utility3": 42842,
+    "Elite": 42009
   },
   "selectedMorphSkillIds": [77103, 77203, 76954],
   "assumptions": {

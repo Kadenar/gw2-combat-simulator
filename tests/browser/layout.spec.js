@@ -1027,7 +1027,8 @@ test('damage and condition breakdowns split only when their container is wide', 
     const section = document.createElement('section');
     section.className = 'res-breakdown-section';
     section.dataset.layoutFixture = 'result-breakdown';
-    section.style.width = '1360px';
+    // The expanded condition table requires the current 1460px container before the two sections fit side by side.
+    section.style.width = '1460px';
     section.innerHTML = `<div class="res-breakdown">
       <div class="res-breakdown-part res-damage-breakdown">
         <div class="res-section-title">Damage Breakdown</div>

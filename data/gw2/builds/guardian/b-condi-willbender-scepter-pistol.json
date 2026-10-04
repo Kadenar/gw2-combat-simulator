@@ -1,5 +1,5 @@
 {
-  "schemaVersion": 3,
+  "schemaVersion": 4,
   "profession": "guardian",
   "gear": {
     "Helm": "Viper's",
@@ -56,12 +56,12 @@
       "traits": "1-1-2"
     }
   ],
-  "selectedSkills": {
-    "Heal": "Litany of Wrath",
-    "Utility1": "Purging Flames",
-    "Utility2": "Whirling Light",
-    "Utility3": "Signet of Wrath",
-    "Elite": "Heaven's Palm"
+  "selectedSkillIds": {
+    "Heal": 21664,
+    "Utility1": 9187,
+    "Utility2": 62565,
+    "Utility3": 9151,
+    "Elite": 62561
   },
   "assumptions": {
     "simulationMode": "deterministic",

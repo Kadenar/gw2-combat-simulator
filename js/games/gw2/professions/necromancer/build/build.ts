@@ -1,3 +1,4 @@
+import { NECROMANCER_SKILL_IDS as SKILL } from '#gw2/professions/necromancer/data/ids.js';
 import { GEAR_SLOTS } from '#gw2/platform/equipment/gear/slots.js';
 import { DEFAULT_WEAPON_SIGILS, normalizeWeaponSigils } from '#gw2/platform/equipment/sigils/loadout.js';
 import { necromancerCatalog } from '#gw2/professions/necromancer/catalog.js';
@@ -14,7 +15,7 @@ import { createCommonBuildDefaults } from '#gw2/professions/shared/build-default
  * Harbinger blight.
  */
 
-const NECROMANCER_BUILD_SCHEMA_VERSION = 3;
+const NECROMANCER_BUILD_SCHEMA_VERSION = 4;
 const NECROMANCER_PROFESSION_ID = 'necromancer';
 
 /** Creates the schema-current Necromancer preset used for new builds and migration fallbacks. */
@@ -41,12 +42,12 @@ export function createNecromancerBuildDefaults(): NecromancerCanonicalBuild {
       { name: 'Soul Reaping', traits: '1-1-3' },
       { name: 'Harbinger', traits: '1-3-3' }
     ],
-    selectedSkills: {
-      Heal: 'Elixir of Promise',
-      Utility1: 'Blood Is Power',
-      Utility2: 'Elixir of Anguish',
-      Utility3: 'Elixir of Risk',
-      Elite: 'Elixir of Ambition'
+    selectedSkillIds: {
+      Heal: SKILL.ELIXIR_OF_PROMISE,
+      Utility1: SKILL.BLOOD_IS_POWER,
+      Utility2: SKILL.ELIXIR_OF_ANGUISH,
+      Utility3: SKILL.ELIXIR_OF_RISK,
+      Elite: SKILL.ELIXIR_OF_AMBITION
     },
     ...createCommonBuildDefaults({
       assumptions: {

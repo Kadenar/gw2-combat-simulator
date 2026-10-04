@@ -53,7 +53,7 @@ function stabilizedFlow(at, applications) {
     specialization: 'Bladesworn',
     initialResource: 0,
     selectedTraitIds: [],
-    selectedSkills: ['Flow Stabilizer']
+    selectedSkillIds: [62967]
   };
   const profession = warriorProfession.runtimeFor(config);
   const result = observeGw2Runtime({

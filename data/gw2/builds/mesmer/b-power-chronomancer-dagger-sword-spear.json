@@ -1,5 +1,5 @@
 {
-  "schemaVersion": 3,
+  "schemaVersion": 4,
   "profession": "mesmer",
   "gear": {
     "Helm": "Berserker's",
@@ -56,12 +56,12 @@
       "traits": "1-1-3"
     }
   ],
-  "selectedSkills": {
-    "Heal": "Signet of the Ether",
-    "Utility1": "Phantasmal Disenchanter",
-    "Utility2": "Mantra of Pain",
-    "Utility3": "Well of Calamity",
-    "Elite": "Gravity Well"
+  "selectedSkillIds": {
+    "Heal": 21750,
+    "Utility1": 10267,
+    "Utility2": 10211,
+    "Utility3": 30525,
+    "Elite": 30359
   },
   "assumptions": {
     "might": 25,

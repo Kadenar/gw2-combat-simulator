@@ -16,10 +16,15 @@ import { SOULBEAST_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/range
 import { setBeastmode } from '#gw2/professions/ranger/specializations/soulbeast/skills/beastmode-skills.js';
 import { activateSoulbeastStance } from '#gw2/professions/ranger/specializations/soulbeast/skills/stance-skills.js';
 import { soulbeastState } from '#gw2/professions/ranger/specializations/soulbeast/state.js';
-import type { RangerSkill, RangerRuntimeState } from '#gw2/professions/ranger/types.js';
+import type { RangerRuntimeState, RangerSkill } from '#gw2/professions/ranger/types.js';
 
 /** Merge, stance grants, and hit reactions mutate their sole state slice at the owning cast boundary. */
 export const soulbeastHooks: Partial<RuntimeProfession<RangerRuntimeState, RangerSkill>> = {
+  /** Initialize only damage-relevant form and scaling state for one assumed occurrence. */
+  prepareDamageState(runtime, skill, inputs) {
+    soulbeastState.from(runtime).beastmodeActive = Boolean(skill?.beastmodeSkill || inputs.merged);
+  },
+
   initialize(runtime) {
     setRangerPetActive(runtime, !soulbeastState.from(runtime).beastmodeActive);
   },

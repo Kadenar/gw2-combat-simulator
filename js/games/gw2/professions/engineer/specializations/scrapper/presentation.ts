@@ -1,14 +1,11 @@
+import { ENGINEER_SKILL_IDS as ID } from '#gw2/professions/engineer/data/ids.js';
 import type { CanonicalCatalog } from '#gw2/platform/engine/skills/types.js';
-import {
-  engineerToolbeltSkillIds,
-  namedSkillId,
-  uniqueIdsBySkillName
-} from '#gw2/professions/engineer/core/presentation.js';
+import { engineerToolbeltSkillIds, uniqueSkillIds } from '#gw2/professions/engineer/core/presentation.js';
 import type { EngineerSkill, EngineerUiContext, EngineerUiSlice } from '#gw2/professions/engineer/types.js';
 
 // First 4 toolbelt slots + Function Gyro as the F5 mechanic skill.
 function scrapperProfessionSkills(catalog: Readonly<CanonicalCatalog<EngineerSkill>>, context: EngineerUiContext) {
-  return [...engineerToolbeltSkillIds(catalog, context).slice(0, 4), namedSkillId(catalog, 'Function Gyro')];
+  return [...engineerToolbeltSkillIds(catalog, context).slice(0, 4), ID.FUNCTION_GYRO];
 }
 
 /** Captures this UI's catalog so other profession instances cannot change its projections. */
@@ -18,7 +15,7 @@ export function bindScrapperUi(catalog: Readonly<CanonicalCatalog<EngineerSkill>
       {
         id: 'engineer-profession',
         label: 'F',
-        skillIds: uniqueIdsBySkillName(
+        skillIds: uniqueSkillIds(
           catalog,
           scrapperProfessionSkills(catalog, context).filter((id) => id != null)
         ),

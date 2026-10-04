@@ -1,5 +1,5 @@
 {
-  "schemaVersion": 3,
+  "schemaVersion": 5,
   "profession": "ranger",
   "gear": {
     "Helm": "Berserker's",
@@ -56,12 +56,12 @@
       "traits": "2-2-3"
     }
   ],
-  "selectedSkills": {
-    "Heal": "\"We Heal As One!\"",
-    "Utility1": "\"Sic 'Em!\"",
-    "Utility2": "Frost Trap",
-    "Utility3": "Signet of the Wild",
-    "Elite": "One Wolf Pack"
+  "selectedSkillIds": {
+    "Heal": 31914,
+    "Utility1": 12633,
+    "Utility2": 12492,
+    "Utility3": 12491,
+    "Elite": 45717
   },
   "selectedPet": "Pig",
   "initialUntamedState": "Pet",

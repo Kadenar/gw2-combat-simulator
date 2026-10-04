@@ -169,6 +169,11 @@ function specterAvailability(runtime: ThiefRuntime, skill: ThiefSkill): Availabi
 
 /** Specter hooks: Shadow Force and its shroud, Siphon, shroud skill traits, Dark Sentry, and Larcenous Torment. */
 export const specterHooks: Partial<RuntimeProfession<ThiefRuntimeState, ThiefSkill>> = {
+  /** Initialize only damage-relevant form and scaling state for one assumed occurrence. */
+  prepareDamageState(runtime, skill, _inputs) {
+    specterState.from(runtime).shadowShroudActive = Boolean(skill?.shadowShroudSkill);
+  },
+
   sideEffectHandlers: {
     'thief.siphon'(runtime, context) {
       if (context.kind === 'cast') completeSiphon(runtime, context.cast);

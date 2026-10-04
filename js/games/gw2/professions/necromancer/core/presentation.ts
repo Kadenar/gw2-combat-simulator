@@ -1,32 +1,31 @@
+import { PERMANENT_COMBO_FIELD_ASSUMPTION_CONTROLS } from '#gw2/platform/combos/permanent-field-assumption.js';
+import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
+import { readProfessionCoreState } from '#gw2/platform/engine/profession/state.js';
+import type { CanonicalCatalog, SkillId } from '#gw2/platform/engine/skills/types.js';
+import { gw2PrimaryWeapon } from '#gw2/platform/equipment/weapons/loadout.js';
 import type {
   ProfessionAttributePreviewContext,
   ProfessionAttributePreviewPreparation
 } from '#gw2/platform/profession-presentation/attribute-preview.js';
-import { createAttributePreviewControls } from '#gw2/professions/shared/attribute-preview.js';
-import { readProfessionCoreState } from '#gw2/platform/engine/profession/state.js';
-import type { NecromancerCoreState } from '#gw2/professions/necromancer/core/state.js';
-import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
-import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
-import { flattenProfessionState } from '#gw2/platform/engine/profession/state.js';
-import { SIMULATION_RANDOMNESS_ASSUMPTION_CONTROLS } from '#gw2/platform/simulation/randomness.js';
-import { PERMANENT_COMBO_FIELD_ASSUMPTION_CONTROLS } from '#gw2/platform/combos/permanent-field-assumption.js';
-import { NECROMANCER_SKILL_IDS as ID } from '#gw2/professions/necromancer/data/ids.js';
-import { getActiveTraits } from '#gw2/professions/necromancer/data/traits-data.js';
-import type { CanonicalCatalog, SkillId } from '#gw2/platform/engine/skills/types.js';
 import type {
   ProfessionEffectPresentation,
   ProfessionPaletteGroup,
   ProfessionResourceView
 } from '#gw2/platform/profession-presentation/types.js';
+import { SIMULATION_RANDOMNESS_ASSUMPTION_CONTROLS } from '#gw2/platform/simulation/randomness.js';
+import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
+import { NECROMANCER_LICH_SKILL_IDS } from '#gw2/professions/necromancer/core/skills/index.js';
+import type { NecromancerCoreState } from '#gw2/professions/necromancer/core/state.js';
+import { actualNecromancerLifeForceCost } from '#gw2/professions/necromancer/core/state.js';
+import { NECROMANCER_SKILL_IDS as ID } from '#gw2/professions/necromancer/data/ids.js';
+import { getActiveTraits } from '#gw2/professions/necromancer/data/traits-data.js';
 import type {
   NecromancerSkill,
   NecromancerState,
   NecromancerUiContext,
   NecromancerUiSlice
 } from '#gw2/professions/necromancer/types.js';
-import { gw2PrimaryWeapon } from '#gw2/platform/equipment/weapons/loadout.js';
-import { actualNecromancerLifeForceCost } from '#gw2/professions/necromancer/core/state.js';
-import { NECROMANCER_LICH_SKILL_IDS } from '#gw2/professions/necromancer/core/skills/index.js';
+import { createPreviewControls } from '#gw2/professions/shared/attribute-preview.js';
 
 const HALF_HEALTH_TRAITS = new Set(['Siphoned Power', 'Spiteful Fortitude', 'Chill of Death', 'Close to Death']);
 const NECROMANCER_EFFECT_PRESENTATIONS: readonly ProfessionEffectPresentation[] = Object.freeze([
@@ -42,9 +41,9 @@ const NECROMANCER_EFFECT_PRESENTATIONS: readonly ProfessionEffectPresentation[] 
   }
 ]);
 
-/** Flattens Core and active-specialization state for Necromancer UI projections. */
 export function necromancerUiState(context: NecromancerUiContext = {}): Partial<NecromancerState> {
-  return flattenProfessionState(context.state?.profession || context.professionState);
+  // Presentation callers supply the flat projection for the inspected rotation point.
+  return context.professionState ?? {};
 }
 
 /** Resolves the specialization name used to select Necromancer UI groups and rules. */
@@ -203,8 +202,15 @@ function necromancerCoreResourceViews(context: NecromancerUiContext): Profession
 export function bindNecromancerCoreUi(catalog: Readonly<CanonicalCatalog<NecromancerSkill>>): NecromancerUiSlice {
   return Object.freeze({
     /** Declare this module's conditional inputs without adding simulation settings. */
-    attributePreviewControls(context: ProfessionAttributePreviewContext) {
-      const preview = createAttributePreviewControls(context);
+    previewControls(context: ProfessionAttributePreviewContext) {
+      const preview = createPreviewControls(context);
+      preview.trait('Soul Barbs', {
+        key: 'soulBarbs',
+        kind: 'buff',
+        field: 'necromancer-soul-barbs',
+        scope: ['damage'],
+        description: 'Damage bonus after a shroud transition active'
+      });
 
       preview.trait('Deadly Strength', {
         key: 'carapace',
@@ -212,7 +218,7 @@ export function bindNecromancerCoreUi(catalog: Readonly<CanonicalCatalog<Necroma
         max: 30,
         description: "Death's Carapace stacks"
       });
-      preview.passives('Signet of Spite');
+      preview.passives(ID.SIGNET_OF_SPITE);
       return preview.controls;
     },
     /** Seed only the detached attribute query; combat state and saved builds remain untouched. */

@@ -9,7 +9,7 @@ import { EPSILON } from '#kernel/core/clock.js';
  * A denial without a retry timestamp rejects the rotation command outright; a
  * denial carrying one asks the scheduler to retry the same command at that time.
  */
-import { selectedSkillNameSet } from '#gw2/platform/builds/selected-skills.js';
+import { selectedSkillIdSet } from '#gw2/platform/builds/selected-skills.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { denySkillCast as unavailable } from '#gw2/platform/engine/skills/availability.js';
 import {
@@ -103,11 +103,11 @@ export function elementalistCoreAvailability(context: ElementalistRuntime, skill
   }
 
   // Slot skills must be equipped; a chain follow-up qualifies through its root.
-  if (['Heal', 'Utility', 'Elite'].includes(String(skill.type))) {
-    const selected = selectedSkillNameSet(context.config.selectedSkills);
+  if (context.config.selectedSkillIds !== undefined && ['Heal', 'Utility', 'Elite'].includes(String(skill.type))) {
+    const selected = selectedSkillIdSet(context.config.selectedSkillIds);
     // Flipped skills remain selectable through the equipped root without naming specialization-owned chains here.
     const selectedChainSkill = [...selected].some(
-      (selectedName) => context.helpers.skillsByName.get(selectedName)?.nextChainId === skill.id
+      (selectedId) => context.helpers.skillsById.get(selectedId)?.nextChainId === skill.id
     );
     if (!isSelectedSlotSkill(skill, selected) && !selectedChainSkill) {
       return unavailable(skill, 'elementalist.not-equipped', 'the skill is not equipped.');

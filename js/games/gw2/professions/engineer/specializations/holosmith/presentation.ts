@@ -1,20 +1,26 @@
-import { ENGINEER_SKILL_IDS as ID } from '#gw2/professions/engineer/data/ids.js';
-import { HOLOSMITH_FORGE_TOGGLE_SKILL_IDS } from '#gw2/professions/engineer/specializations/holosmith/mechanics/constants.js';
+import type { CanonicalCatalog, Skill as PreviewSkill, SkillId } from '#gw2/platform/engine/skills/types.js';
+import type { ProfessionAttributePreviewContext } from '#gw2/platform/profession-presentation/attribute-preview.js';
+import type {
+  SkillDamagePreviewPreparation,
+  SkillDamageState
+} from '#gw2/platform/profession-presentation/skill-damage.js';
+import type {
+  ProfessionEventLogDescriptor,
+  ProfessionResourceView
+} from '#gw2/platform/profession-presentation/types.js';
 import {
   engineerToolbeltSkillIds,
   engineerUiSpecialization,
   engineerUiState,
   hasActiveTrait,
-  namedSkillId,
-  uniqueIdsBySkillName
+  uniqueSkillIds
 } from '#gw2/professions/engineer/core/presentation.js';
-import type { CanonicalCatalog, SkillId } from '#gw2/platform/engine/skills/types.js';
-import type {
-  ProfessionEventLogDescriptor,
-  ProfessionResourceView
-} from '#gw2/platform/profession-presentation/types.js';
-import type { EngineerResolverEvent, EngineerUiContext, EngineerUiSlice } from '#gw2/professions/engineer/types.js';
+import { ENGINEER_SKILL_IDS as ID } from '#gw2/professions/engineer/data/ids.js';
+import { HOLOSMITH_FORGE_TOGGLE_SKILL_IDS } from '#gw2/professions/engineer/specializations/holosmith/mechanics/constants.js';
+import { enhancedCapacityMaximumHeat } from '#gw2/professions/engineer/specializations/holosmith/traits/heat.js';
 import type { HolosmithSkill } from '#gw2/professions/engineer/specializations/holosmith/types.js';
+import type { EngineerResolverEvent, EngineerUiContext, EngineerUiSlice } from '#gw2/professions/engineer/types.js';
+import { createPreviewControls } from '#gw2/professions/shared/attribute-preview.js';
 
 const HEAT_STATE_REASONS = new Set<string>([
   'enter-forge',
@@ -60,6 +66,40 @@ function holosmithEventLogRow(
 /** Captures this UI's catalog so other profession instances cannot change its projections. */
 export function bindHolosmithUi(catalog: Readonly<CanonicalCatalog<HolosmithSkill>>): EngineerUiSlice {
   return Object.freeze({
+    /** Heat tiers use the runtime's starting state and trait-dependent cap; cooling and overheat remain simulated. */
+    previewControls(context: ProfessionAttributePreviewContext) {
+      const preview = createPreviewControls(context);
+      preview.add({
+        key: 'lensCharges',
+        label: 'Solar Focusing Lens charges',
+        group: 'Mechanic',
+        kind: 'special',
+        scope: ['damage'],
+        max: 6,
+        description: 'Starting charges; consumed by strikes in impact order'
+      });
+      preview.add({
+        key: 'heat',
+        label: 'Starting heat',
+        group: 'Mechanic',
+        kind: 'special',
+        scope: ['damage'],
+        max: enhancedCapacityMaximumHeat({ selectedTraitIds: context.activeTraits.map((trait) => trait.id) }),
+        initial: Number((context.build as { readonly initialHeat?: unknown }).initialHeat) || 0,
+        description: 'Heat before the occurrence; skill tiers, cooling and overheat follow the runtime'
+      });
+      return preview.controls;
+    },
+    prepareSkillDamagePreview: ({ values }: SkillDamagePreviewPreparation) =>
+      values.heat == null ? {} : { initialHeat: Number(values.heat) },
+    /** Declare damage inputs without constructing prerequisite actions. */
+    skillDamageState(context: SkillDamagePreviewPreparation, _skill: PreviewSkill): SkillDamageState | null {
+      // Direct evaluation supplies damage state without prerequisite actions.
+      return {
+        assumptions: [`Solar Focusing Lens: ${Number(context.values.lensCharges ?? 0)} starting charges`]
+      };
+    },
+
     // Tile identity follows the active bar even when the visible skill cannot currently be cast.
     paletteOverride: (context, skill) => {
       if (skill.id === ID.ENGAGE_PHOTON_FORGE || skill.id === ID.DEACTIVATE_PHOTON_FORGE)
@@ -81,12 +121,12 @@ export function bindHolosmithUi(catalog: Readonly<CanonicalCatalog<HolosmithSkil
         {
           id: 'engineer-profession',
           label: 'F',
-          skillIds: uniqueIdsBySkillName(
+          skillIds: uniqueSkillIds(
             catalog,
             [
               ...engineerToolbeltSkillIds(catalog, context).slice(0, 4),
-              namedSkillId(catalog, 'Engage Photon Forge'),
-              namedSkillId(catalog, 'Deactivate Photon Forge')
+              ID.ENGAGE_PHOTON_FORGE,
+              ID.DEACTIVATE_PHOTON_FORGE
             ].filter((skillId): skillId is SkillId => skillId != null)
           ),
           color: '#b88a35',

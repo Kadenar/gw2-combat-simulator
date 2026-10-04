@@ -1,3 +1,4 @@
+import { effectPlanningState } from '#tests/helpers/effect-report.js';
 import { captureEffectEmissions } from '#tests/helpers/effect-emission.js';
 import { applyBalanceProfilePatch } from '#gw2/integrations/patches/authoring/patches.js';
 import { withProfile } from '#tests/helpers/catalog-overrides.js';
@@ -221,6 +222,7 @@ test('Catalyst snapshots retain capped aura refreshes without adding or reviving
       .rotationStateSnapshot({
         balanceContext: { catalog: elementalistCatalog, modifierRulesById: new Map() },
         result,
+        planningState: effectPlanningState(result, atSeconds),
         atSeconds
       })
       .find((item) => item.id === 'catalyst-empowering-auras')?.value;

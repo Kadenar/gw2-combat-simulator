@@ -1,5 +1,5 @@
 {
-  "schemaVersion": 3,
+  "schemaVersion": 4,
   "profession": "mesmer",
   "gear": {
     "Helm": "Berserker's",
@@ -56,12 +56,12 @@
       "traits": "3-1-1"
     }
   ],
-  "selectedSkills": {
-    "Heal": "Signet of the Ether",
-    "Utility1": "Tale of the Tortured Mastermind",
-    "Utility2": "Mimic",
-    "Utility3": "Mantra of Pain",
-    "Elite": "Signet of Humility"
+  "selectedSkillIds": {
+    "Heal": 21750,
+    "Utility1": 77066,
+    "Utility2": 29578,
+    "Utility3": 10211,
+    "Elite": 29519
   },
   "assumptions": {
     "simulationMode": "deterministic",

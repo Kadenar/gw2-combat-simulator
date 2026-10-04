@@ -73,7 +73,7 @@ export function renderAttributeStats(
               const value = values[control.key];
               const attrs = `data-attribute-effect="${esc(control.key)}" aria-label="${esc(control.label)}"`;
               const input = control.options
-                ? `<select ${attrs}>${control.options.map((option) => `<option${option === value ? ' selected' : ''}>${esc(option)}</option>`).join('')}</select>`
+                ? `<select ${attrs}>${control.options.map((option) => `<option value="${esc(option)}"${option === value ? ' selected' : ''}>${esc(control.optionLabels?.[option] ?? option)}</option>`).join('')}</select>`
                 : control.max != null
                   ? `<input ${attrs} type="number" min="0" max="${control.max}" step="1" value="${value}">`
                   : `<input ${attrs} type="checkbox"${value ? ' checked' : ''}>`;

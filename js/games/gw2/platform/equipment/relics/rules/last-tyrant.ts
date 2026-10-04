@@ -1,4 +1,6 @@
+import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
 import { RELIC_IDS } from '#gw2/platform/equipment/relics/data.js';
+import type { Gw2RelicContext, Gw2RelicState } from '#gw2/platform/equipment/relics/types.js';
 /** Last Tyrant relic rules. */
 import { isInternalCooldownReady } from '#gw2/platform/combat/procs.js';
 import { isGw2PlayerActorEvent } from '#gw2/platform/combat/state/event-ownership.js';
@@ -12,6 +14,7 @@ const LAST_TYRANT_INTERNAL_COOLDOWN = 12;
 const LAST_TYRANT_EXPLOSION_COEFFICIENT = 3;
 
 export const lastTyrant = defineRelic({
+  damagePayload: emitDamagePayload,
   createState: () => ({ readyAt: 0, stackReadyAt: 0, stacks: 0 }),
   condition(ctx, state, application, _helpers) {
     // The explosion's own burning cannot feed Tyrant's Fury.
@@ -57,54 +60,61 @@ export const lastTyrant = defineRelic({
     // At max Fury stacks, the next burning application explodes even while the short marker is active.
     state.stacks = 0;
     state.readyAt = application.at + LAST_TYRANT_INTERNAL_COOLDOWN;
-    ctx.effects.emit({
-      kind: 'announcement',
-      announcement: {
-        type: 'relic',
-        name: 'Relic of the Last Tyrant',
-        at: application.at,
-        sourceSkill: application.skillName,
-        detail: 'explosion'
-      }
-    });
-    ctx.effects.emit({
-      kind: 'packet',
-      event: {
-        type: 'damage',
-        at: application.at,
-        name: 'Relic of the Last Tyrant',
-        skillName: 'Relic of the Last Tyrant',
-        coefficient: LAST_TYRANT_EXPLOSION_COEFFICIENT,
-        hits: 1,
-        hitIndex: 1,
-        totalHits: 1,
-        source: 'Relic',
-        sourceId: `relic.${RELIC_IDS.LAST_TYRANT}`,
-        actorType: 'effect',
-        ownerActorType: 'player',
-        skillWeapon: 'Unequipped',
-        canCrit: true,
-        triggeredBy: application.skillName
-      }
-    });
-
-    ctx.effects.emit({
-      kind: 'packet',
-      settlement: 'reaction',
-      event: {
-        type: 'condition',
-        at: application.at,
-        name: 'Relic of the Last Tyrant — Burning',
-        skillName: 'Relic of the Last Tyrant',
-        condition: 'Burning',
-        duration: 8,
-        stacks: 2,
-        source: 'Relic',
-        sourceId: `relic.${RELIC_IDS.LAST_TYRANT}`,
-        actorType: 'effect',
-        ownerActorType: 'player',
-        triggeredBy: application.skillName
-      }
-    });
+    emitDamagePayload(ctx, state, application);
   }
 });
+
+/** One occurrence shares its payload with simulation after activation checks have succeeded. */
+function emitDamagePayload(ctx: Gw2RelicContext, _state: Gw2RelicState, application: SimulationEvent): void {
+  ctx.effects.emit({
+    kind: 'announcement',
+    announcement: {
+      type: 'relic',
+      name: 'Relic of the Last Tyrant',
+      at: application.at,
+      sourceSkill: application.skillName,
+      detail: 'explosion',
+      // Consumption ends the recorded Fury stack window at the accepted explosion time.
+      effectState: { stacks: 0, maximumStacks: LAST_TYRANT_STACKS_NEEDED }
+    }
+  });
+  ctx.effects.emit({
+    kind: 'packet',
+    event: {
+      type: 'damage',
+      at: application.at,
+      name: 'Relic of the Last Tyrant',
+      skillName: 'Relic of the Last Tyrant',
+      coefficient: LAST_TYRANT_EXPLOSION_COEFFICIENT,
+      hits: 1,
+      hitIndex: 1,
+      totalHits: 1,
+      source: 'Relic',
+      sourceId: `relic.${RELIC_IDS.LAST_TYRANT}`,
+      actorType: 'effect',
+      ownerActorType: 'player',
+      skillWeapon: 'Unequipped',
+      canCrit: true,
+      triggeredBy: application.skillName
+    }
+  });
+
+  ctx.effects.emit({
+    kind: 'packet',
+    settlement: 'reaction',
+    event: {
+      type: 'condition',
+      at: application.at,
+      name: 'Relic of the Last Tyrant — Burning',
+      skillName: 'Relic of the Last Tyrant',
+      condition: 'Burning',
+      duration: 8,
+      stacks: 2,
+      source: 'Relic',
+      sourceId: `relic.${RELIC_IDS.LAST_TYRANT}`,
+      actorType: 'effect',
+      ownerActorType: 'player',
+      triggeredBy: application.skillName
+    }
+  });
+}

@@ -40,7 +40,7 @@ test('Forceful Greatsword and Blademaster read the selected recharge profile', (
 // Minimal rotations exercise activation contracts without depending on saved benchmark packets.
 test('cancelled Head Butt and Blood Reckoning cannot grant resources or reset a burst', () => {
   const headButt = simulate('Berserker', [{ name: 'Head Butt', interruptMs: 100 }], {
-    selectedSkills: { elite: 'Head Butt' }
+    selectedSkillIds: [30343]
   });
   assert.deepEqual(headButt.warnings, []);
   assert.equal(
@@ -48,7 +48,7 @@ test('cancelled Head Butt and Blood Reckoning cannot grant resources or reset a 
     true
   );
   assert.equal(headButt.planningState.profession.adrenaline, 0);
-  const config = { initialResource: 30, primaryWeapon: 'Greatsword', selectedSkills: { heal: 'Blood Reckoning' } };
+  const config = { initialResource: 30, primaryWeapon: 'Greatsword', selectedSkillIds: [30189] };
   const primed = simulate('Berserker', ['Berserk', 'Arc Divider'], config);
   const cancelled = simulate(
     'Berserker',

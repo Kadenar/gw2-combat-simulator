@@ -175,7 +175,7 @@ test('startup retries once before showing an error and manual reload recovers', 
   await page.goto('/engineer.html?embed=1', { waitUntil: 'domcontentloaded' });
 
   const overlay = page.locator('#loading-overlay');
-  await expect(overlay.getByRole('alert')).toHaveText('Unable to start the simulator. Reload to try again.');
+  await expect(overlay.getByRole('alert')).toContainText('Unable to start the simulator:');
   await expect(overlay.locator('.spinner')).toHaveCount(0);
   const reload = overlay.getByRole('button', { name: 'Reload', exact: true });
   await expect(reload).toBeFocused();

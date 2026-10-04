@@ -19,7 +19,7 @@ test('Restorative Strength grants five Might and Resistance for six seconds on h
   ]) {
     for (const selected of [false, true]) {
       const result = simulate(specialization, [skill], {
-        selectedSkills: [skill],
+        selectedSkillIds: [warriorProfession.catalog.skillsByName.get(skill).id],
         selectedTraitIds: selected ? [TRAIT.RESTORATIVE_STRENGTH] : []
       });
       assert.deepEqual(result.warnings, []);

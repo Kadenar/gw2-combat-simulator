@@ -1,5 +1,5 @@
 {
-  "schemaVersion": 3,
+  "schemaVersion": 4,
   "profession": "guardian",
   "gear": {
     "Helm": "Viper's",
@@ -29,21 +29,39 @@
   "utility": "Toxic Tuning Crystal",
   "jadeBotCore": true,
   "infusions": [
-    { "stat": "Power", "count": 0 },
-    { "stat": "Precision", "count": 0 },
-    { "stat": "Condition Damage", "count": 18 }
+    {
+      "stat": "Power",
+      "count": 0
+    },
+    {
+      "stat": "Precision",
+      "count": 0
+    },
+    {
+      "stat": "Condition Damage",
+      "count": 18
+    }
   ],
   "specializations": [
-    { "name": "Radiance", "traits": "2-2-1" },
-    { "name": "Zeal", "traits": "2-3-3" },
-    { "name": "Firebrand", "traits": "1-1-2" }
+    {
+      "name": "Radiance",
+      "traits": "2-2-1"
+    },
+    {
+      "name": "Zeal",
+      "traits": "2-3-3"
+    },
+    {
+      "name": "Firebrand",
+      "traits": "1-1-2"
+    }
   ],
-  "selectedSkills": {
-    "Heal": "Mantra of Solace",
-    "Utility1": "Purging Flames",
-    "Utility2": "Mantra of Flame",
-    "Utility3": "Signet of Wrath",
-    "Elite": "\"Feel My Wrath!\""
+  "selectedSkillIds": {
+    "Heal": 41714,
+    "Utility1": 9187,
+    "Utility2": 46148,
+    "Utility3": 9151,
+    "Elite": 29965
   },
   "assumptions": {
     "simulationMode": "deterministic",

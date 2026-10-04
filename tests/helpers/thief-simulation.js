@@ -6,7 +6,7 @@ export const THIEF_TEST_CONFIG = Object.freeze({
   primaryWeapon: 'Dagger',
   secondaryWeapon: 'Dagger',
   selectedTraitIds: [],
-  selectedSkills: [],
+  selectedSkillIds: [],
   boons: {},
   target: { armor: 2597, conditions: {} }
 });

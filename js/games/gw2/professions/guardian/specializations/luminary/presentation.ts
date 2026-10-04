@@ -1,19 +1,18 @@
-import { GUARDIAN_SKILL_IDS } from '#gw2/professions/guardian/data/ids.js';
-import type { CanonicalCatalog } from '#gw2/platform/engine/skills/types.js';
-import { flattenProfessionState } from '#gw2/platform/engine/profession/state.js';
-import { timedBuffAt } from '#gw2/platform/results/query.js';
 import {
   balanceProfileNumber,
   requireBalanceProfileFromContext
 } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { requireBalanceNumber } from '#gw2/platform/engine/skills/canonical-skill-catalog.js';
-import { LUMINARY_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/guardian/specializations/luminary/profiles.js';
+import type { CanonicalCatalog } from '#gw2/platform/engine/skills/types.js';
+import { planningBuffAt } from '#gw2/platform/results/query.js';
 import {
   formatSecondsRemaining,
   guardianSnapshotAt,
-  guardianUiSkillIdsByName,
+  guardianUiSkillIds,
   guardianUiSkillsByMode
 } from '#gw2/professions/guardian/core/presentation.js';
+import { GUARDIAN_SKILL_IDS } from '#gw2/professions/guardian/data/ids.js';
+import { LUMINARY_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/guardian/specializations/luminary/profiles.js';
 
 import type {
   ProfessionEffectPresentation,
@@ -48,7 +47,12 @@ function luminaryEventLogRow(
   };
 }
 
-const VIRTUE_NAMES = Object.freeze(['Radiant Justice', 'Radiant Resolve', 'Radiant Courage', 'Enter Radiant Forge']);
+const VIRTUE_IDS = Object.freeze([
+  GUARDIAN_SKILL_IDS.RADIANT_JUSTICE,
+  GUARDIAN_SKILL_IDS.RADIANT_RESOLVE,
+  GUARDIAN_SKILL_IDS.RADIANT_COURAGE,
+  GUARDIAN_SKILL_IDS.ENTER_RADIANT_FORGE
+]);
 const RADIANT_ARMAMENT_NAMES: Readonly<Record<string, string>> = Object.freeze({
   hammer: 'Hammer',
   staff: 'Staff',
@@ -67,7 +71,6 @@ function strikeBonus(context: GuardianUiContext, id: string, field: 'amount' | '
 }
 
 function luminaryStateSnapshot(context: GuardianUiContext): RotationStateSnapshotItem[] {
-  const result = context.result;
   const at = guardianSnapshotAt(context);
   const items: RotationStateSnapshotItem[] = [];
   const state = professionState(context);
@@ -99,7 +102,7 @@ function luminaryStateSnapshot(context: GuardianUiContext): RotationStateSnapsho
   }
 
   // Mirror the hammer-only modifier gate and read each bonus from the selected patch's rules.
-  const radiant = timedBuffAt(result, 'guardian-radiant-armaments', at);
+  const radiant = planningBuffAt(context.planningState, 'guardian-radiant-armaments');
   if (radiant && radiant.event?.metadata?.radiantWeapon === 'hammer') {
     items.push({
       id: 'luminary-radiant-armaments',
@@ -109,7 +112,7 @@ function luminaryStateSnapshot(context: GuardianUiContext): RotationStateSnapsho
     });
   }
 
-  const piercing = timedBuffAt(result, 'guardian-piercing-stance', at);
+  const piercing = planningBuffAt(context.planningState, 'guardian-piercing-stance');
   if (piercing) {
     items.push({
       id: 'luminary-piercing-stance',
@@ -119,7 +122,7 @@ function luminaryStateSnapshot(context: GuardianUiContext): RotationStateSnapsho
     });
   }
 
-  const daring = timedBuffAt(result, 'guardian-daring-advance', at);
+  const daring = planningBuffAt(context.planningState, 'guardian-daring-advance');
   if (daring) {
     items.push({
       id: 'luminary-daring-advance',
@@ -154,6 +157,18 @@ function luminaryEffectPresentations(): ProfessionEffectPresentation[] {
 /** Captures this UI's catalog so other profession instances cannot change its projections. */
 export function bindLuminaryUi(catalog: Readonly<CanonicalCatalog<GuardianSkill>>): GuardianUiSlice {
   return Object.freeze({
+    /** Compare the native lingering armament window without inventing an independent entitlement field. */
+    previewControls: () => [
+      {
+        key: 'radiantHammer',
+        label: 'Radiant hammer bonus',
+        group: 'Mechanic',
+        kind: 'special' as const,
+        scope: ['damage' as const],
+        description: 'Assume the lingering Radiant Armaments hammer bonus is active'
+      }
+    ],
+
     // Only this specialization offers its trait-proc overlay; storage remains a browser concern.
     timelineOverlays: () => [
       {
@@ -189,7 +204,7 @@ export function bindLuminaryUi(catalog: Readonly<CanonicalCatalog<GuardianSkill>
       {
         id: 'profession',
         label: 'F',
-        skillIds: guardianUiSkillIdsByName(catalog, VIRTUE_NAMES, context),
+        skillIds: guardianUiSkillIds(catalog, VIRTUE_IDS, context),
         color: '#2f7eb8',
         resourceAnchor: true,
         stackId: 'luminary-profession'
@@ -208,7 +223,6 @@ export function bindLuminaryUi(catalog: Readonly<CanonicalCatalog<GuardianSkill>
 }
 
 function professionState(context: GuardianUiContext): Partial<GuardianState> {
-  // flattenProfessionState merges core and specialization sub-objects so
-  // callers can read luminary fields without knowing the nested shape.
-  return flattenProfessionState(context.state?.profession || context.professionState);
+  // Presentation callers supply the flat projection for the inspected rotation point.
+  return context.professionState ?? {};
 }

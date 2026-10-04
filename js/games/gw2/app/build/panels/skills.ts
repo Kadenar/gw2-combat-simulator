@@ -14,7 +14,7 @@ import { requiredElement } from '#ui/shared/dom.js';
 /** Lists the legal, deduplicated choices for a heal, utility, or elite slot. */
 export function availableSlotSkills(app: ProfessionAppState, type: string): Skill[] {
   const spec = app.adapter.eliteSpecialization(app.build);
-  const byDisplayName = new Map<string, Skill>();
+  const byLoadoutId = new Map<Skill['id'], Skill>();
   for (const skill of app.skills) {
     if (
       skill.type !== type ||
@@ -28,11 +28,12 @@ export function availableSlotSkills(app: ProfessionAppState, type: string): Skil
       continue;
     }
 
-    const displayName = String(skill.displayName || skill.name);
-    if (!byDisplayName.has(displayName)) byDisplayName.set(displayName, skill);
+    // Collapse authored attunement variants while retaining distinct skills with identical labels.
+    const loadoutId = skill.paletteTileId ?? skill.id;
+    if (!byLoadoutId.has(loadoutId)) byLoadoutId.set(loadoutId, skill);
   }
 
-  return [...byDisplayName.values()];
+  return [...byLoadoutId.values()];
 }
 
 /** Resolves the armed member of a selected skill's flip chain for display. */
@@ -70,7 +71,7 @@ function multiSelectionInspectionGroupHtml(app: ProfessionAppState, group: Profe
   const selectionSlots = (group.selections || [])
     .map((selection) => {
       const optionSkills = (selection.optionSkillIds || [])
-        .map((id) => app.skillById.get(Number(id)))
+        .map((id) => app.skillById.get(id))
         .filter((skill) => skill != null);
       const options = selection.optionEntries?.length
         ? selection.optionEntries
@@ -155,7 +156,7 @@ export function renderSkills(app: ProfessionAppState): void {
   // Compact icon buttons edit equipped slots above traits without adding rotation casts.
   const selectedSkillBarHtml = slots
     .map(([key, type]) => {
-      const current = app.skillByName.get(app.build.selectedSkills[key]);
+      const current = app.skillById.get(app.build.selectedSkillIds[key]!);
       const display = skillBarDisplaySkill(app, current);
       return `<div class="skill-bar-slot ${type === 'Elite' ? 'elite-border' : ''}" data-key="${key}">
                 <button type="button" class="sbar-icon" aria-label="Change ${key.replace(/(\d)$/, ' $1').toLowerCase()} skill" ${display ? skillTooltipAttributes(display, app.adapter.skillTooltip(display, app.patchId)) : ''}><img src="${esc(display?.icon || '')}" alt=""><span class="sbar-icon-arrow" aria-hidden="true">▼</span></button>
@@ -163,7 +164,7 @@ export function renderSkills(app: ProfessionAppState): void {
                 <div class="sbar-dropdown">${availableSlotSkills(app, type)
                   .map(
                     (skill) =>
-                      `<button type="button" class="dd-item" data-name="${esc(skill.name)}" aria-pressed="${skill.name === current?.name}" ${skillTooltipAttributes(skill, app.adapter.skillTooltip(skill, app.patchId))}><img src="${esc(skill.icon)}" alt=""><span>${esc(skill.displayName || skill.name)}</span></button>`
+                      `<button type="button" class="dd-item" data-skill-id="${esc(JSON.stringify(skill.id))}" aria-pressed="${skill.id === current?.id}" ${skillTooltipAttributes(skill, app.adapter.skillTooltip(skill, app.patchId))}><img src="${esc(skill.icon)}" alt=""><span>${esc(skill.displayName || skill.name)}</span></button>`
                   )
                   .join('')}</div>
             </div>`;
@@ -171,13 +172,13 @@ export function renderSkills(app: ProfessionAppState): void {
     .join('');
   const inspectionLayout = inspectionGroups.find((group) => group.layout)?.layout || '';
 
-  const selectedSkillsHtml = `<div class="skill-bar-selected">${selectedSkillBarHtml}</div>`;
+  const selectedSkillIdsHtml = `<div class="skill-bar-selected">${selectedSkillBarHtml}</div>`;
   const professionSelectionsHtml = `<div class="skill-bar-inspection${
     inspectionLayout ? ` ${esc(inspectionLayout)}` : ''
   }">${inspectionGroups.map((group) => multiSelectionInspectionGroupHtml(app, group)).join('')}</div>`;
 
   // Keep build-changing profession selectors while omitting static mechanic previews.
-  skillBar.innerHTML = `${selectedSkillsHtml}${
+  skillBar.innerHTML = `${selectedSkillIdsHtml}${
     inspectionGroups.length ? `<section class="profession-build-selections">${professionSelectionsHtml}</section>` : ''
   }`;
 
@@ -189,14 +190,17 @@ export function renderSkills(app: ProfessionAppState): void {
       if (!(item instanceof HTMLElement)) return;
       item.addEventListener('click', () => {
         const key = slot.dataset.key;
-        const name = item.dataset.name;
-        if (!key || !name) return;
+        const value = item.dataset.skillId;
+        if (!key || !value) return;
+        // JSON preserves string and numeric catalog IDs across DOM serialization.
+        const id = JSON.parse(value);
+        if (!app.skillById.has(id)) return;
         // Swap an already-equipped skill into this slot without duplicating it or losing the previous pick.
-        const conflict = Object.keys(app.build.selectedSkills).find(
-          (other) => other !== key && app.build.selectedSkills[other] === name
+        const conflict = Object.keys(app.build.selectedSkillIds).find(
+          (other) => other !== key && app.build.selectedSkillIds[other] === id
         );
-        if (conflict) app.build.selectedSkills[conflict] = app.build.selectedSkills[key];
-        app.build.selectedSkills[key] = name;
+        if (conflict) app.build.selectedSkillIds[conflict] = app.build.selectedSkillIds[key];
+        app.build.selectedSkillIds[key] = id;
         app.changed();
         skillBar.querySelector<HTMLElement>(`[data-key="${key}"] .sbar-icon`)?.focus();
       });
@@ -280,9 +284,7 @@ function renderFixedSlotLoadout(app: ProfessionAppState, spec: string): void {
   // Render a fixed root skill together with its profession-defined children.
   const barSkillHtml = (skill: Skill, index: number): string => {
     const childIds = typeof loadout.skillChildren === 'function' ? loadout.skillChildren(context, skill.id) : [];
-    const children = childIds
-      .map((id) => app.skillById.get(Number(id)))
-      .filter((child): child is Skill => child != null);
+    const children = childIds.map((id) => app.skillById.get(id)).filter((child): child is Skill => child != null);
     return `<div class="fixed-loadout-skill-stack">
         ${slotHtml(skill, index)}
         ${children
@@ -303,7 +305,7 @@ function renderFixedSlotLoadout(app: ProfessionAppState, spec: string): void {
       view.formatActiveBar ? (bar.active ? ' active' : ' inactive') : ' static'
     }">
         ${bar.skillIds
-          .map((id) => app.skillById.get(Number(id)))
+          .map((id) => app.skillById.get(id))
           .filter((skill): skill is Skill => skill != null)
           .map(barSkillHtml)
           .join('')}

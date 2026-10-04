@@ -11,6 +11,8 @@ import { canonicalTime } from '#kernel/core/clock.js';
 
 const BLIGHT_DURATION_SECONDS = 25;
 export const BLIGHT_MAXIMUM_STACKS = 25;
+/** Starting progress cannot itself complete a cycle; a live Blight consumption must trigger the trait. */
+export const MAXIMUM_INITIAL_CASCADING_CORRUPTION_STACKS = 19;
 
 export interface HarbingerState {
   blightGeneration: number;
@@ -32,8 +34,13 @@ export const HARBINGER_PUBLIC_STATE_PROJECTION = definePublicStateDefaults({
 /** Creates isolated Harbinger Blight, Cascading Corruption, and Meltdown state from build inputs. */
 export function createHarbingerState(config: NecromancerConfig = {}): HarbingerState {
   const initialBlight = boundedInteger(config.initialBlight || 0, 0, 0, BLIGHT_MAXIMUM_STACKS);
-  // Cap at 19 rather than 20: pre-combat stacks must never immediately trigger Meltdown on the first consumed Blight.
-  const initialCascadingCorruptionStacks = boundedInteger(config.initialCascadingCorruptionStacks || 0, 0, 0, 19);
+  // Starting progress stays below a full cycle; only a subsequent consumption can trigger Meltdown.
+  const initialCascadingCorruptionStacks = boundedInteger(
+    config.initialCascadingCorruptionStacks || 0,
+    0,
+    0,
+    MAXIMUM_INITIAL_CASCADING_CORRUPTION_STACKS
+  );
   return {
     blightGeneration: 0,
     // POSITIVE_INFINITY means "not yet in shroud"; the cursor is set to a real value when Harbinger Shroud is entered.

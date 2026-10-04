@@ -48,7 +48,7 @@ test('aura consumption and Arcane Echo arming belong to successful skill commitm
           primaryWeapon: skill.weapon === 'Focus' ? 'Scepter' : skill.weapon || 'Dagger',
           secondaryWeapon: skill.weapon === 'Focus' ? 'Focus' : 'Dagger',
           startAttunement: skill.attunement || 'Fire',
-          selectedSkills: [skill.name],
+          selectedSkillIds: [skill.id],
           selectedTraitIds: []
         },
         {
@@ -290,7 +290,7 @@ test('glyph and elemental command declarations invoke their lifetime owners exac
     for (const removed of [false, true]) {
       const summon = runElementalist(
         [{ type: 'cast', skillId: glyphId }],
-        { specialization: 'Core', selectedSkills: [glyph.name], selectedTraitIds: [] },
+        { specialization: 'Core', selectedSkillIds: [glyph.id], selectedTraitIds: [] },
         { profession: patchedProfession([[glyphId, removed ? { sideEffects: [] } : {}]]) }
       );
       assert.deepEqual(summon.warnings, []);
@@ -304,7 +304,7 @@ test('glyph and elemental command declarations invoke their lifetime owners exac
           { type: 'cast', skillId: commandId },
           { type: 'wait', durationMs: 4000 }
         ],
-        { specialization: 'Core', selectedSkills: [glyph.name], selectedTraitIds: [] },
+        { specialization: 'Core', selectedSkillIds: [glyph.id], selectedTraitIds: [] },
         { profession: patchedProfession([[commandId, removed ? { sideEffects: [] } : {}]]) }
       );
       assert.deepEqual(command.warnings, []);
@@ -373,7 +373,7 @@ test('Weave Self activation is skill-owned, cancellable, and reads the element l
       ],
       {
         specialization: 'Weaver',
-        selectedSkills: ['Weave Self'],
+        selectedSkillIds: [43638],
         startAttunement: 'Fire',
         selectedTraitIds: []
       },
@@ -414,7 +414,7 @@ test('all Primordial Stance declarations own their dynamic pulse stream without 
         ],
         {
           specialization: 'Weaver',
-          selectedSkills: [skill.name],
+          selectedSkillIds: [skill.id],
           startAttunement: skill.attunement,
           secondaryAttunement: skill.attunement,
           selectedTraitIds: []
@@ -462,7 +462,7 @@ test('Elemental Procession replays only surviving familiar payloads without fami
       ],
       {
         specialization: 'Evoker',
-        selectedSkills: ['Elemental Procession'],
+        selectedSkillIds: [76841],
         initialEvokerCharges: 4,
         initialEvokerEmpowered: 2,
         selectedTraitIds: [TRAIT.FAMILIARS_PROWESS, TRAIT.FAMILIARS_BLESSING, TRAIT.GALVANIC_ENCHANTMENT]
@@ -645,7 +645,7 @@ test('etching declarations open their window and release only their own state af
           specialization: 'Core',
           primaryWeapon: 'Spear',
           startAttunement: skill.attunement,
-          selectedSkills: ['Arcane Echo'],
+          selectedSkillIds: [5635],
           selectedTraitIds: []
         },
         {
@@ -673,7 +673,7 @@ test('conjure declarations own equip and drop without duplicating swap events', 
           { type: 'cast', skillId: id },
           ...(mode.startsWith('drop') ? [{ type: 'cast', skillId: ID.DROP_BUNDLE }] : [])
         ],
-        { specialization: 'Core', selectedSkills: [skill.name], selectedTraitIds: [TRAIT.CONJURER] },
+        { specialization: 'Core', selectedSkillIds: [skill.id], selectedTraitIds: [TRAIT.CONJURER] },
         {
           profession: patchedProfession([
             [id, mode === 'removed' ? { sideEffects: [] } : {}],
@@ -892,7 +892,7 @@ test('meditation declarations own their live-element bonuses and refill before A
             specialization: 'Evoker',
             evokerElement: element === 'Fire' ? 'Earth' : 'Fire',
             initialEvokerCharges: 2,
-            selectedSkills: [skill.name],
+            selectedSkillIds: [skill.id],
             selectedTraitIds: [TRAIT.ALTRUISTIC_ASPECT]
           },
           {

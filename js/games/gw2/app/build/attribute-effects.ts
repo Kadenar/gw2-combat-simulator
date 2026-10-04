@@ -1,25 +1,26 @@
 import type { ProfessionAppState } from '#gw2/app/types.js';
 import { clamp } from '#kernel/core/numeric.js';
-import type {
-  AttributeEffectControl,
-  AttributePreviewValues,
-  ProfessionAttributePreviewContext
+import {
+  previewControlScopes,
+  type PreviewControl,
+  type AttributePreviewValues,
+  type ProfessionAttributePreviewContext
 } from '#gw2/platform/profession-presentation/attribute-preview.js';
 
 /** Supply the active preview catalog and weapon set without exposing application state to profession hooks. */
-export function attributePreviewContext(app: ProfessionAppState): ProfessionAttributePreviewContext {
+export function attributePreviewContext(app: ProfessionAppState, weaponSet: number): ProfessionAttributePreviewContext {
   return {
     build: app.build,
     specialization: app.adapter.eliteSpecialization(app.build),
     activeTraits: app.attributeData!.activeTraits,
-    weapons: app.attributeWeaponSet === 2 ? app.build.alternateWeapons : app.build.weapons,
+    weapons: weaponSet === 2 ? app.build.alternateWeapons : app.build.weapons,
     catalog: app.activeCatalog || app.profession.catalog
   };
 }
 
 /** Combine common boon and equipment inputs with the active profession's conditional controls. */
-export function attributeEffectControls(app: ProfessionAppState): AttributeEffectControl[] {
-  const controls: AttributeEffectControl[] = [
+export function attributeEffectControls(app: ProfessionAppState): PreviewControl[] {
+  const controls: PreviewControl[] = [
     {
       key: 'might',
       label: 'Might',
@@ -45,13 +46,18 @@ export function attributeEffectControls(app: ProfessionAppState): AttributeEffec
       max: 5,
       description: 'stacks; +3% Condition Duration per stack'
     });
-  controls.push(...app.profession.ui.attributePreviewControls(attributePreviewContext(app)));
+  // Profession controls are shared with the skill damage panel; only attribute-scoped ones belong here.
+  controls.push(
+    ...app.profession.ui
+      .previewControls(attributePreviewContext(app, app.attributeWeaponSet))
+      .filter((control) => previewControlScopes(control).includes('attributes'))
+  );
   return controls;
 }
 
 /** Clamp preview inputs and discard effects that are unavailable on this build or weapon set. */
 export function normalizeAttributePreview(
-  controls: readonly AttributeEffectControl[],
+  controls: readonly PreviewControl[],
   input: Readonly<Record<string, unknown>>
 ): AttributePreviewValues {
   return Object.fromEntries(
@@ -61,7 +67,11 @@ export function normalizeAttributePreview(
         ? control.options.includes(String(raw))
           ? String(raw)
           : control.options[0]
-        : clamp(Number.isFinite(Number(raw)) ? Math.trunc(Number(raw)) : 0, 0, control.max ?? 1);
+        : clamp(
+            Number.isFinite(Number(raw)) ? Math.trunc(Number(raw)) : (control.min ?? 0),
+            control.min ?? 0,
+            control.max ?? 1
+          );
       return [control.key, value];
     })
   );

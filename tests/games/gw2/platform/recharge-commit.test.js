@@ -101,7 +101,7 @@ test('expired pistol and Elemental Balance windows cannot discount a new cast', 
 });
 
 test('Antiquary preserves charges across queries and consumes FIFO once per utility, including preparation arming', () => {
-  const config = { specialization: 'Antiquary', selectedSkills: ['Prepare Thousand Needles', 'Prepare Pitfall'] };
+  const config = { specialization: 'Antiquary', selectedSkillIds: [13026, 13057] };
   const native = thiefProfession.runtimeFor(config);
   const placement = thiefProfession.catalog.skillsByName.get('Prepare Thousand Needles');
   const rotation = [{ type: 'wait', durationMs: 1000 }, 'Prepare Thousand Needles', 'Prepare Pitfall'];
@@ -175,7 +175,7 @@ test('rejected and cancelled Elementalist casts preserve empowerments for the ne
 test('Holo-Dancer charges survive healing, unavailable utilities, and cancellation, then expire independently', () => {
   const config = {
     specialization: 'Antiquary',
-    selectedSkills: ['Hide in Shadows', 'Prepare Thousand Needles', 'Prepare Pitfall']
+    selectedSkillIds: [13027, 13026, 13057]
   };
   const needles = thiefProfession.catalog.skillsByName.get('Prepare Thousand Needles');
   const holo = (runtime) => [...runtime.profession.specialization.state.holoUtilityCooldownReductionExpirations];

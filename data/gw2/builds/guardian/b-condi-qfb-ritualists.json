@@ -1,5 +1,5 @@
 {
-  "schemaVersion": 3,
+  "schemaVersion": 4,
   "profession": "guardian",
   "gear": {
     "Helm": "Ritualist's",
@@ -29,21 +29,39 @@
   "utility": "Magnanimous Tuning Crystal",
   "jadeBotCore": true,
   "infusions": [
-    { "stat": "Power", "count": 0 },
-    { "stat": "Precision", "count": 0 },
-    { "stat": "Condition Damage", "count": 18 }
+    {
+      "stat": "Power",
+      "count": 0
+    },
+    {
+      "stat": "Precision",
+      "count": 0
+    },
+    {
+      "stat": "Condition Damage",
+      "count": 18
+    }
   ],
   "specializations": [
-    { "name": "Radiance", "traits": "2-2-1" },
-    { "name": "Virtues", "traits": "1-2-1" },
-    { "name": "Firebrand", "traits": "2-1-2" }
+    {
+      "name": "Radiance",
+      "traits": "2-2-1"
+    },
+    {
+      "name": "Virtues",
+      "traits": "1-2-1"
+    },
+    {
+      "name": "Firebrand",
+      "traits": "2-1-2"
+    }
   ],
-  "selectedSkills": {
-    "Heal": "Mantra of Solace",
-    "Utility1": "Mantra of Potence",
-    "Utility2": "Mantra of Flame",
-    "Utility3": "Signet of Wrath",
-    "Elite": "\"Feel My Wrath!\""
+  "selectedSkillIds": {
+    "Heal": 41714,
+    "Utility1": 40915,
+    "Utility2": 46148,
+    "Utility3": 9151,
+    "Elite": 29965
   },
   "assumptions": {
     "simulationMode": "deterministic",

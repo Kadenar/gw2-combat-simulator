@@ -52,7 +52,7 @@ export function createCloneAttackScheduler({
     const step = sequenceStep(clone, attack);
     const skillName = step.name || `${clone.weapon} Clone`;
     const cloneSkill = {
-      id: step.id ?? skillName,
+      id: step.id,
       name: skillName,
       weapon: clone.weapon,
       blade: false

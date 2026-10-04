@@ -1,3 +1,4 @@
+import { flattenProfessionState } from '#gw2/platform/engine/profession/state.js';
 import { projectPublicProfessionState, snapshotProfessionState } from '#gw2/platform/engine/profession/state.js';
 import { getNativeCatalogAssembly } from '#gw2/platform/profession-definition/assemble-module-catalog.js';
 import { thiefCoreModule } from '#gw2/professions/thief/core/module.js';
@@ -301,7 +302,7 @@ test('Thief runtimes exclude inactive elite state, catalogs, and registries', ()
     const resources = thiefProfession.ui
       .resourceViews({
         config,
-        state: { profession: state }
+        professionState: flattenProfessionState(state)
       })
       .map((resource) => resource.id);
 

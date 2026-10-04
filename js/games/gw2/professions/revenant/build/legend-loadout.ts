@@ -23,23 +23,6 @@ interface RevenantLegendLoadoutContext extends SlotLoadoutContext {
     activeLoadoutId?: string;
     availableFlips?: SkillFlipWindows;
   };
-  state?: {
-    profession?: {
-      activeLoadoutId?: string;
-      availableFlips?: SkillFlipWindows;
-    };
-  };
-}
-
-function id(name: string, legendId: string, preferredId: SkillId | null = null): SkillId | undefined {
-  const matches = REVENANT_DECLARED_SKILLS.filter(
-    (skill) => skill.name === name && (!legendId || skill.legendId === legendId)
-  );
-  return (
-    matches.find((skill) => skill.id === preferredId) ||
-    matches[0] ||
-    REVENANT_DECLARED_SKILLS.find((skill) => skill.name === name)
-  )?.id;
 }
 
 function icon(name: string): string {
@@ -57,11 +40,11 @@ export const REVENANT_LEGENDS: readonly RevenantLegend[] = Object.freeze(
       name: 'Legendary Assassin Stance',
       icon: icon('Legendary Assassin Stance'),
       skillIds: [
-        id('Enchanted Daggers', LEGEND.ASSASSIN),
-        id('Impossible Odds', LEGEND.ASSASSIN),
-        id('Phase Traversal', LEGEND.ASSASSIN),
-        id('Riposting Shadows', LEGEND.ASSASSIN),
-        id('Jade Winds', LEGEND.ASSASSIN, 28406)
+        SKILL.ENCHANTED_DAGGERS,
+        SKILL.IMPOSSIBLE_ODDS,
+        SKILL.PHASE_TRAVERSAL,
+        SKILL.RIPOSTING_SHADOWS,
+        SKILL.JADE_WINDS
       ]
     },
     {
@@ -69,11 +52,11 @@ export const REVENANT_LEGENDS: readonly RevenantLegend[] = Object.freeze(
       name: 'Legendary Demon Stance',
       icon: icon('Legendary Demon Stance'),
       skillIds: [
-        id('Empowering Misery', LEGEND.DEMON, 28219),
-        id('Pain Absorption', LEGEND.DEMON, 27322),
-        id('Banish Enchantment', LEGEND.DEMON, 27505),
-        id('Call to Anguish', LEGEND.DEMON),
-        id('Embrace the Darkness', LEGEND.DEMON)
+        SKILL.EMPOWERING_MISERY,
+        SKILL.PAIN_ABSORPTION,
+        SKILL.BANISH_ENCHANTMENT,
+        SKILL.CALL_TO_ANGUISH,
+        SKILL.EMBRACE_THE_DARKNESS
       ]
     },
     {
@@ -81,11 +64,11 @@ export const REVENANT_LEGENDS: readonly RevenantLegend[] = Object.freeze(
       name: 'Legendary Dwarf Stance',
       icon: icon('Legendary Dwarf Stance'),
       skillIds: [
-        id('Soothing Stone', LEGEND.DWARF, 27372),
-        id('Inspiring Reinforcement', LEGEND.DWARF),
-        id('Forced Engagement', LEGEND.DWARF),
-        id('Vengeful Hammers', LEGEND.DWARF, 26557),
-        id('Rite of the Great Dwarf', LEGEND.DWARF)
+        SKILL.SOOTHING_STONE,
+        SKILL.INSPIRING_REINFORCEMENT,
+        SKILL.FORCED_ENGAGEMENT,
+        SKILL.VENGEFUL_HAMMERS,
+        SKILL.RITE_OF_THE_GREAT_DWARF
       ]
     },
     {
@@ -93,11 +76,11 @@ export const REVENANT_LEGENDS: readonly RevenantLegend[] = Object.freeze(
       name: 'Legendary Centaur Stance',
       icon: icon('Legendary Centaur Stance'),
       skillIds: [
-        id('Project Tranquility', LEGEND.CENTAUR, 29148),
-        id('Natural Harmony', LEGEND.CENTAUR, 27025),
-        id('Purifying Essence', LEGEND.CENTAUR, 27715),
-        id('Protective Solace', LEGEND.CENTAUR, 26821),
-        id('Energy Expulsion', LEGEND.CENTAUR, 27356)
+        SKILL.PROJECT_TRANQUILITY,
+        SKILL.NATURAL_HARMONY,
+        SKILL.PURIFYING_ESSENCE,
+        SKILL.PROTECTIVE_SOLACE,
+        SKILL.ENERGY_EXPULSION
       ]
     },
     {
@@ -106,11 +89,11 @@ export const REVENANT_LEGENDS: readonly RevenantLegend[] = Object.freeze(
       icon: icon('Legendary Dragon Stance'),
       specialization: REVENANT_LEGEND_SPECIALIZATIONS[LEGEND.DRAGON],
       skillIds: [
-        id('Facet of Light', LEGEND.DRAGON),
-        id('Facet of Strength', LEGEND.DRAGON),
-        id('Facet of Elements', LEGEND.DRAGON),
-        id('Facet of Darkness', LEGEND.DRAGON),
-        id('Facet of Chaos', LEGEND.DRAGON)
+        SKILL.FACET_OF_LIGHT,
+        SKILL.FACET_OF_STRENGTH,
+        SKILL.FACET_OF_ELEMENTS,
+        SKILL.FACET_OF_DARKNESS,
+        SKILL.FACET_OF_CHAOS
       ]
     },
     {
@@ -119,11 +102,11 @@ export const REVENANT_LEGENDS: readonly RevenantLegend[] = Object.freeze(
       icon: icon('Legendary Renegade Stance'),
       specialization: REVENANT_LEGEND_SPECIALIZATIONS[LEGEND.RENEGADE],
       skillIds: [
-        id("Breakrazor's Bastion", LEGEND.RENEGADE, 45686),
-        id("Razorclaw's Rage", LEGEND.RENEGADE, 42949),
-        id("Icerazor's Ire", LEGEND.RENEGADE, 40485),
-        id("Darkrazor's Daring", LEGEND.RENEGADE, 41220),
-        id("Soulcleave's Summit", LEGEND.RENEGADE)
+        SKILL.BREAKRAZORS_BASTION,
+        SKILL.RAZORCLAWS_RAGE,
+        SKILL.ICERAZORS_IRE,
+        SKILL.DARKRAZORS_DARING,
+        SKILL.SOULCLEAVES_SUMMIT
       ]
     },
     {
@@ -132,11 +115,11 @@ export const REVENANT_LEGENDS: readonly RevenantLegend[] = Object.freeze(
       icon: icon('Legendary Alliance Stance'),
       specialization: REVENANT_LEGEND_SPECIALIZATIONS[LEGEND.ALLIANCE],
       skillIds: [
-        id('Selfish Spirit', LEGEND.ALLIANCE),
-        id("Nomad's Advance", LEGEND.ALLIANCE),
-        id('Scavenger Burst', LEGEND.ALLIANCE),
-        id("Reaver's Rage", LEGEND.ALLIANCE),
-        id('Spear of Archemorus', LEGEND.ALLIANCE)
+        SKILL.SELFISH_SPIRIT,
+        SKILL.NOMADS_ADVANCE,
+        SKILL.SCAVENGER_BURST,
+        SKILL.REAVERS_RAGE,
+        SKILL.SPEAR_OF_ARCHEMORUS
       ]
     },
     {
@@ -145,20 +128,18 @@ export const REVENANT_LEGENDS: readonly RevenantLegend[] = Object.freeze(
       icon: icon('Legendary Entity Stance'),
       specialization: REVENANT_LEGEND_SPECIALIZATIONS[LEGEND.ENTITY],
       skillIds: [
-        id('Shielding Hands', LEGEND.ENTITY),
-        id('Beguiling Haze', LEGEND.ENTITY, 77141),
-        id('Hex-Eater Vortex', LEGEND.ENTITY),
-        id("Gladiator's Defense", LEGEND.ENTITY),
-        id('Twin Moon Sweep', LEGEND.ENTITY, 76968)
+        SKILL.SHIELDING_HANDS,
+        SKILL.BEGUILING_HAZE,
+        SKILL.HEX_EATER_VORTEX,
+        SKILL.GLADIATORS_DEFENSE,
+        SKILL.TWIN_MOON_SWEEP
       ]
     }
   ].map((entry) =>
     Object.freeze({
       ...entry,
       compactName: compactLegendName(entry.name),
-      skillIds: Object.freeze(
-        entry.skillIds.filter((skillId): skillId is number => typeof skillId === 'number' && Number.isFinite(skillId))
-      )
+      skillIds: Object.freeze(entry.skillIds)
     })
   )
 );
@@ -187,7 +168,7 @@ export const revenantLegendLoadout = Object.freeze({
     return Number(skillId) === SKILL.CALL_TO_ANGUISH ? [SKILL.UNYIELDING_IMPACT] : [];
   },
   paletteGroups(context: RevenantLegendLoadoutContext = {}) {
-    const availableFlips = context.professionState?.availableFlips || context.state?.profession?.availableFlips || {};
+    const availableFlips = context.professionState?.availableFlips || {};
     return baseRevenantLegendLoadout.paletteGroups(context).map((group) => ({
       ...group,
       color: group.active ? '#c4565d' : '#84343a',

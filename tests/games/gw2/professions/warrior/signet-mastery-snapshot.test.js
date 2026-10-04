@@ -1,5 +1,5 @@
 import { warriorBuffPolicies } from '#gw2/professions/warrior/core/effect-state.js';
-import { effectFields } from '#tests/helpers/effect-report.js';
+import { effectFields, effectPlanningState } from '#tests/helpers/effect-report.js';
 import { warriorProfession } from '#gw2/professions/warrior/profession.js';
 import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
 import assert from 'node:assert/strict';
@@ -70,6 +70,7 @@ function snapshot(build, atSeconds) {
     balanceContext: withPatchPreview(warriorProfession).balanceContextFor(),
     build,
     result: RESULT,
+    planningState: effectPlanningState(RESULT, atSeconds),
     atSeconds
   });
 }
@@ -114,6 +115,7 @@ test('Signet Mastery bar caps at 5 stacks', () => {
     balanceContext: withPatchPreview(warriorProfession).balanceContextFor(),
     build: WITH_TRAIT,
     result: overstacked,
+    planningState: effectPlanningState(overstacked, 1),
     atSeconds: 1
   });
 
