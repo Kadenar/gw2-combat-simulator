@@ -57,6 +57,8 @@ export interface ChartSeries {
 }
 
 export interface BuildChartSeriesOptions {
+  /** Damage-only comparisons do not require effect histories or party projections. */
+  readonly includeEffects?: boolean;
   readonly effectName?: (value: unknown, event: Gw2ResolverEvent) => string;
   // Attributes a resolved damage/condition event to a skill breakdown row key
   // (`group|name`), or null to omit it from the per-skill damage series.
@@ -82,7 +84,7 @@ export function chartValueAt(points: readonly ChartPoint[], time: number): numbe
 export function buildTimeSeries(
   result: Gw2ResolverResult,
   sampleStepMs = 250,
-  { effectName = (value) => String(value || ''), skillKey }: BuildChartSeriesOptions = {}
+  { effectName = (value) => String(value || ''), skillKey, includeEffects = true }: BuildChartSeriesOptions = {}
 ): ChartSeries {
   // Chart time is relative to the DPS window, while simulation events use
   // absolute seconds. Keep the conversion at this boundary.
@@ -119,101 +121,9 @@ export function buildTimeSeries(
 
     return { t: time, v: damage / elapsed };
   });
-  // Engine timelines contain accepted state and exact lifetimes; charts only select and sample tracks.
-  const report = result.effectReport;
-  const effects: Record<string, ChartPoint[]> = {};
-  const alliedEffects: Record<string, ChartPoint[]> = {};
-  const alliedAverageStacks: Record<string, number> = {};
-  const effectTypes: Record<string, ChartEffectType> = {};
-  const effectUnits: Record<string, string> = {};
-  const effectSummaries: Record<string, ChartEffectSummary> = {};
-  const label = (kind: string, _category: ChartEffectType, name?: string): string =>
-    name ?? effectName(kind, { type: 'buff', kind, at: 0, source: 'effect', sourceId: kind, actorType: 'effect' });
-  const valueAt = (track: (typeof report.tracks)[number], at: number): number => {
-    const state = effectStateAt(report, track, at);
-    return track.measure === 'remaining-duration'
-      ? state?.count
-        ? Math.max(0, (state.expiresAt ?? at) - at)
-        : 0
-      : (state?.count ?? 0);
-  };
-
-  for (const original of report.tracks) {
-    const displayName = (source?: Gw2ResolverEvent) =>
-      original.name ??
-      effectName(
-        original.kind,
-        source ?? {
-          type: 'buff',
-          kind: original.kind,
-          at: 0,
-          source: 'effect',
-          sourceId: original.kind,
-          actorType: 'effect'
-        }
-      );
-    // A metadata-dependent label can split an already-resolved track into visual variants without replaying mechanics.
-    const names = new Set(original.segments.map((segment) => displayName(segment.source)));
-    if (original.terminal.count) names.add(displayName(original.terminal.source));
-    for (const display of names) {
-      const track = {
-        ...original,
-        segments: original.segments.filter((segment) => displayName(segment.source) === display),
-        terminal: displayName(original.terminal.source) === display ? original.terminal : { count: 0, expiresAt: null }
-      };
-      if (
-        track.origin !== 'simulated' ||
-        !['self', 'target'].includes(track.recipient) ||
-        (!track.segments.length && !track.terminal.count)
-      )
-        continue;
-      const name = Object.hasOwn(effects, display) ? `${display} (${track.id})` : display;
-      const points = [
-        ...new Set([
-          ...times,
-          ...track.segments
-            .flatMap((segment) => [segment.start * 1000 - dpsStartMs, segment.end * 1000 - dpsStartMs])
-            .filter((at) => at >= 0 && at <= durationMs)
-        ])
-      ].sort((a, b) => a - b);
-      effects[name] = points.map((t) => ({ t, v: valueAt(track, (dpsStartMs + t) / 1000) }));
-      effectTypes[name] = track.category;
-      if (track.measure === 'remaining-duration') effectUnits[name] = 's';
-      if (track.category !== 'condition')
-        effectSummaries[name] = {
-          ...effectSummary(track, dpsStartMs / 1000, endMs / 1000),
-          ...(track.kind.startsWith('relic:') ? { relic: true } : {})
-        };
-    }
-  }
-
-  const boonGeneration = result.boonGeneration;
-  const generation = new Map(Object.entries(boonGeneration.boons).map(([kind, value]) => [label(kind, 'boon'), value]));
-  for (const kind of Object.keys(boonGeneration.boons)) {
-    const tracks = report.tracks.filter((track) => track.kind === kind && track.origin === 'party-projection');
-    const name = label(kind, 'boon');
-    effectTypes[name] = 'boon';
-    if (tracks.some((track) => track.measure === 'remaining-duration')) effectUnits[name] = 's';
-    const alliedTimes = [
-      ...new Set([
-        ...times,
-        ...tracks
-          .flatMap((track) =>
-            track.segments.flatMap((segment) => [segment.start * 1000 - dpsStartMs, segment.end * 1000 - dpsStartMs])
-          )
-          .filter((at) => at >= 0 && at <= durationMs)
-      ])
-    ].sort((a, b) => a - b);
-    alliedEffects[name] = alliedTimes.map((t) => ({
-      t,
-      v:
-        tracks.reduce((sum, track) => sum + valueAt(track, (dpsStartMs + t) / 1000), 0) /
-        boonGeneration.alliedPlayerCount
-    }));
-    alliedAverageStacks[name] =
-      tracks.reduce((sum, track) => sum + effectSummary(track, dpsStartMs / 1000, endMs / 1000).averageStacks, 0) /
-      boonGeneration.alliedPlayerCount;
-  }
+  const effectSeries = includeEffects
+    ? buildEffectSeries(result, times, dpsStartMs, endMs, durationMs, effectName)
+    : { effects: {} };
 
   const cumulativeDamage = dps.map((point) => ({
     t: point.t,
@@ -309,24 +219,7 @@ export function buildTimeSeries(
   return {
     durationMs,
     dps,
-    effects,
-    alliedEffects,
-    alliedAverageStacks,
-    effectTypes,
-    effectSummaries,
-    boonGeneration: Object.fromEntries(
-      [...generation].map(([name, value]) => [
-        name,
-        {
-          ...value,
-          maximumStacks:
-            report.tracks.find((track) => label(track.kind, track.category, track.name) === name)?.countLimit ??
-            undefined
-        }
-      ])
-    ),
-    alliedPlayerCount: boonGeneration.alliedPlayerCount,
-    effectUnits,
+    ...effectSeries,
     cumulativeDamage,
     skillDamage,
     conditionDamage: Object.fromEntries(
@@ -375,4 +268,132 @@ export function buildPhaseEffectSeries(points: readonly ChartPoint[], startMs: n
       .map((point) => ({ t: point.t - startMs, v: point.v })),
     { t: durationMs, v: chartValueAt(points, endMs) }
   ];
+}
+
+/** Effect charts are an explicit consumer of optional engine-owned histories. */
+function buildEffectSeries(
+  result: Gw2ResolverResult,
+  times: readonly number[],
+  dpsStartMs: number,
+  endMs: number,
+  durationMs: number,
+  effectName: NonNullable<BuildChartSeriesOptions['effectName']>
+) {
+  // Engine timelines contain accepted state and exact lifetimes; charts only select and sample tracks.
+  const report = result.effectReport;
+  const boonGeneration = result.boonGeneration;
+  if (!report || !boonGeneration) throw new TypeError('Effect charts require collected chart data.');
+  const effects: Record<string, ChartPoint[]> = {};
+  const alliedEffects: Record<string, ChartPoint[]> = {};
+  const alliedAverageStacks: Record<string, number> = {};
+  const effectTypes: Record<string, ChartEffectType> = {};
+  const effectUnits: Record<string, string> = {};
+  const effectSummaries: Record<string, ChartEffectSummary> = {};
+  const label = (kind: string, _category: ChartEffectType, name?: string): string =>
+    name ?? effectName(kind, { type: 'buff', kind, at: 0, source: 'effect', sourceId: kind, actorType: 'effect' });
+  const valueAt = (track: (typeof report.tracks)[number], at: number): number => {
+    const state = effectStateAt(report, track, at);
+    return track.measure === 'remaining-duration'
+      ? state?.count
+        ? Math.max(0, (state.expiresAt ?? at) - at)
+        : 0
+      : (state?.count ?? 0);
+  };
+
+  for (const original of report.tracks) {
+    const displayName = (source?: Gw2ResolverEvent) =>
+      original.name ??
+      effectName(
+        original.kind,
+        source ?? {
+          type: 'buff',
+          kind: original.kind,
+          at: 0,
+          source: 'effect',
+          sourceId: original.kind,
+          actorType: 'effect'
+        }
+      );
+    // A metadata-dependent label can split an already-resolved track into visual variants without replaying mechanics.
+    const names = new Set(original.segments.map((segment) => displayName(segment.source)));
+    if (original.terminal.count) names.add(displayName(original.terminal.source));
+    for (const display of names) {
+      const track = {
+        ...original,
+        segments: original.segments.filter((segment) => displayName(segment.source) === display),
+        terminal: displayName(original.terminal.source) === display ? original.terminal : { count: 0, expiresAt: null }
+      };
+      if (
+        track.origin !== 'simulated' ||
+        !['self', 'target'].includes(track.recipient) ||
+        (!track.segments.length && !track.terminal.count)
+      )
+        continue;
+      const name = Object.hasOwn(effects, display) ? `${display} (${track.id})` : display;
+      const points = [
+        ...new Set([
+          ...times,
+          ...track.segments
+            .flatMap((segment) => [segment.start * 1000 - dpsStartMs, segment.end * 1000 - dpsStartMs])
+            .filter((at) => at >= 0 && at <= durationMs)
+        ])
+      ].sort((a, b) => a - b);
+      effects[name] = points.map((t) => ({ t, v: valueAt(track, (dpsStartMs + t) / 1000) }));
+      effectTypes[name] = track.category;
+      if (track.measure === 'remaining-duration') effectUnits[name] = 's';
+      if (track.category !== 'condition')
+        effectSummaries[name] = {
+          ...effectSummary(track, dpsStartMs / 1000, endMs / 1000),
+          ...(track.kind.startsWith('relic:') ? { relic: true } : {})
+        };
+    }
+  }
+
+  const generation = new Map(Object.entries(boonGeneration.boons).map(([kind, value]) => [label(kind, 'boon'), value]));
+  for (const kind of Object.keys(boonGeneration.boons)) {
+    const tracks = report.tracks.filter((track) => track.kind === kind && track.origin === 'party-projection');
+    const name = label(kind, 'boon');
+    effectTypes[name] = 'boon';
+    if (tracks.some((track) => track.measure === 'remaining-duration')) effectUnits[name] = 's';
+    const alliedTimes = [
+      ...new Set([
+        ...times,
+        ...tracks
+          .flatMap((track) =>
+            track.segments.flatMap((segment) => [segment.start * 1000 - dpsStartMs, segment.end * 1000 - dpsStartMs])
+          )
+          .filter((at) => at >= 0 && at <= durationMs)
+      ])
+    ].sort((a, b) => a - b);
+    alliedEffects[name] = alliedTimes.map((t) => ({
+      t,
+      v:
+        tracks.reduce((sum, track) => sum + valueAt(track, (dpsStartMs + t) / 1000), 0) /
+        boonGeneration.alliedPlayerCount
+    }));
+    alliedAverageStacks[name] =
+      tracks.reduce((sum, track) => sum + effectSummary(track, dpsStartMs / 1000, endMs / 1000).averageStacks, 0) /
+      boonGeneration.alliedPlayerCount;
+  }
+
+  return {
+    effects,
+    alliedEffects,
+    alliedAverageStacks,
+    effectTypes,
+    effectSummaries,
+    boonGeneration: Object.fromEntries(
+      [...generation].map(([name, value]) => [
+        name,
+        {
+          ...value,
+          maximumStacks:
+            report.tracks.find((track) => label(track.kind, track.category, track.name) === name)?.countLimit ??
+            undefined
+        }
+      ])
+    ),
+    alliedPlayerCount: boonGeneration.alliedPlayerCount,
+    effectUnits
+  };
 }

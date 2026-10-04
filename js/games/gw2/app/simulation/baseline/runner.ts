@@ -1,10 +1,12 @@
 import type { BaselineSimulationOutput, BaselineSimulationRequest } from '#gw2/app/simulation/baseline/types.js';
 import type { ProfessionAppState } from '#gw2/app/types.js';
+import { analysisViewIsActive } from '#browser/shell/result-view.js';
 
 interface BaselineJob {
   readonly requestId: number;
   readonly revision: number;
   readonly request: BaselineSimulationRequest;
+  readonly chartsOnly: boolean;
 }
 
 interface BaselineWorkerMessage {
@@ -52,7 +54,9 @@ export class BaselineSimulationRunner {
   }
 
   /** Coalesces rapid edits and keeps at most one expensive worker job in flight. */
-  schedule(revision: number): void {
+  schedule(revision: number, chartsOnly = false): void {
+    // An editor change takes priority over chart enrichment for the previous result.
+    if (!chartsOnly && (this.inFlight?.chartsOnly || this.pending?.chartsOnly)) this.cancel();
     const request = this.app.adapter.baselineSimulationRequest(this.app);
     // Clearing abandons the old rotation; subsequent skills must not queue behind its simulation or cold load.
     if (this.inFlight && request.rotation.length === 0) this.cancel();
@@ -60,7 +64,8 @@ export class BaselineSimulationRunner {
     this.pending = {
       requestId,
       revision,
-      request
+      request: chartsOnly ? { ...request, collectChartData: true } : request,
+      chartsOnly
     };
     this.app.simulationStatus = 'queued';
     this.app.simulationError = '';
@@ -69,6 +74,30 @@ export class BaselineSimulationRunner {
       this.timer = null;
       this.startPending();
     }, BASELINE_DEBOUNCE_MS);
+  }
+
+  /** Enrich a current editor result once on Analysis entry; reuse the cached histories on subsequent visits. */
+  ensureCharts(): void {
+    if (
+      !analysisViewIsActive() ||
+      this.pending ||
+      this.inFlight ||
+      !this.app.results ||
+      !this.app.build.rotation.length ||
+      this.app.resultRevision !== this.app.buildRevision ||
+      this.app.results.effectReport
+    )
+      return;
+    this.schedule(this.app.buildRevision, true);
+  }
+
+  /** Leaving Analysis abandons only chart work; an ordinary editor baseline must still finish. */
+  cancelCharts(): void {
+    if (!this.inFlight?.chartsOnly && !this.pending?.chartsOnly) return;
+    this.cancel();
+    this.app.simulationStatus = this.app.resultRevision === this.app.buildRevision ? 'idle' : 'queued';
+    if (typeof document !== 'undefined' && document.body)
+      document.body.dataset.simulationStatus = this.app.simulationStatus;
   }
 
   /** Cancel active work, retaining an idle worker so changing templates does not reload the same engine. */
@@ -145,11 +174,13 @@ export class BaselineSimulationRunner {
     if (this.inFlight?.requestId !== job.requestId) return;
     this.inFlight = null;
     if (job.requestId === this.requestId && job.revision === this.app.buildRevision) {
-      if (message.output) this.app.publishBaselineSimulation(message.output, job.revision);
-      else this.app.failBaselineSimulation(message.error, job.revision);
+      if (message.output) this.app.publishBaselineSimulation(message.output, job.revision, job.chartsOnly);
+      else this.app.failBaselineSimulation(message.error, job.revision, job.chartsOnly);
     }
 
     // A newer edit replaces every intermediate request and starts as soon as the worker is free.
     if (this.pending) this.startPending();
+    // Analysis may have opened while an editor-only baseline was already in flight.
+    else if (message.output && !job.chartsOnly && job.requestId === this.requestId) this.ensureCharts();
   }
 }

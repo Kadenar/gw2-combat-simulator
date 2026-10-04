@@ -1,4 +1,4 @@
-import { effectFields } from '#tests/helpers/effect-report.js';
+import { effectFields, effectPlanningState } from '#tests/helpers/effect-report.js';
 import { assertFlooredDamageMultiplier } from '#tests/helpers/rounded-damage.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
@@ -107,26 +107,29 @@ test('Kinetic Battery charges and buff timer appear in Active State across Engin
             ...context,
             professionState: { kineticCharges: charges },
             atSeconds,
-            result: {
-              ...effectFields(
-                [
-                  {
-                    type: 'buff',
-                    resolvedAudience: {
-                      includesSelf: true,
-                      includesSummons: false,
-                      companionIds: [],
-                      alliedPlayerCount: 0,
-                      recipientCount: 1
-                    },
-                    kind: 'kinetic-battery',
-                    at: 10,
-                    duration: 5
-                  }
-                ],
-                120
-              )
-            }
+            planningState: effectPlanningState(
+              {
+                ...effectFields(
+                  [
+                    {
+                      type: 'buff',
+                      resolvedAudience: {
+                        includesSelf: true,
+                        includesSummons: false,
+                        companionIds: [],
+                        alliedPlayerCount: 0,
+                        recipientCount: 1
+                      },
+                      kind: 'kinetic-battery',
+                      at: 10,
+                      duration: 5
+                    }
+                  ],
+                  120
+                )
+              },
+              atSeconds
+            )
           })
           .map((item) => [item.id, item.value])
       );

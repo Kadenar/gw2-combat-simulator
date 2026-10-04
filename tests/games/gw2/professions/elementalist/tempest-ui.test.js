@@ -1,3 +1,4 @@
+import { effectPlanningState } from '#tests/helpers/effect-report.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
@@ -25,6 +26,7 @@ test('Tempest active state shows trait timers at the cursor and hides expired wi
           balanceContext: { catalog, modifierRulesById: new Map() },
           specialization: 'Tempest',
           result,
+          planningState: effectPlanningState(result, atSeconds),
           atSeconds
         })
         .map((item) => [item.id, item.value])

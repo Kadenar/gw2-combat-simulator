@@ -1,6 +1,6 @@
 import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
-import type { Gw2SimulationResult } from '#gw2/platform/simulation/types.js';
+import type { Gw2SimulationResult, Gw2SimulationPlanningState } from '#gw2/platform/simulation/types.js';
 import { effectStateAt } from '#gw2/platform/results/effect-report.js';
 import { effectStateValue } from '#gw2/platform/combat/effect-state.js';
 import { canonicalTime } from '#kernel/core/clock.js';
@@ -43,6 +43,7 @@ export function criticalChanceEventAt(
 
 /** A prefix simulation supplies one planning boundary beyond combat; arbitrary future queries remain unavailable. */
 function observedBuffAt(result: Gw2SimulationResult, kind: string, at: number) {
+  if (!result.effectReport) throw new TypeError('Historical effect queries require chart data.');
   const matches = (state: { kind: string; recipient: string; origin: string }) =>
     state.kind === kind.toLowerCase() && state.recipient === 'self' && state.origin === 'simulated';
   if (at > result.effectReport.end && canonicalTime(at) === canonicalTime(result.planningState.atSeconds)) {
@@ -75,4 +76,25 @@ export function timedBuffStacksAt(
 ): number {
   if (!result) return 0;
   return observedBuffAt(result, kind, Math.max(0, atSeconds))?.count ?? 0;
+}
+
+/** Read the inspected engine boundary directly; editor state remains available without chart histories. */
+export function planningBuffAt(state: Gw2SimulationPlanningState | null | undefined, kind: string) {
+  const effect = state?.effects.find(
+    (effect) => effect.kind === kind.toLowerCase() && effect.recipient === 'self' && effect.origin === 'simulated'
+  );
+  if (!state || !effect) return null;
+  const value = effectStateValue(effect, state.atSeconds);
+  return value.count > 0
+    ? {
+        count: value.count,
+        remaining: value.expiresAt == null ? Infinity : Math.max(0, value.expiresAt - state.atSeconds),
+        event: value.source
+      }
+    : null;
+}
+
+/** Stack labels use the same detached boundary observation as duration labels. */
+export function planningBuffStacks(state: Gw2SimulationPlanningState | null | undefined, kind: string): number {
+  return planningBuffAt(state, kind)?.count ?? 0;
 }

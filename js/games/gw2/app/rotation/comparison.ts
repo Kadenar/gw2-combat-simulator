@@ -1,6 +1,6 @@
 import { enterRotationFocus } from '#browser/shell/rotation-workspace.js';
 import { bindRotationImportDialog } from '#gw2/app/import-export/rotation-import-dialog.js';
-import { buildChartSeries } from '#gw2/app/results/model.js';
+import { buildTimeSeries } from '#gw2/app/results/charts/time-series-model.js';
 import { chartValueAt } from '#gw2/app/results/charts/time-series-model.js';
 import { palettePlanningState } from '#gw2/app/rotation/context.js';
 import { applyTimelinePreviewHighlight, renderTimeline } from '#gw2/app/rotation/timeline/view.js';
@@ -23,13 +23,13 @@ export interface RotationComparisonMetrics {
   readonly damagePercentDifference: number | null;
 }
 
-const seriesByResult = new WeakMap<Gw2SimulationResult, ReturnType<typeof buildChartSeries>>();
+const seriesByResult = new WeakMap<Gw2SimulationResult, ReturnType<typeof buildTimeSeries>>();
 let comparisonScrollLifecycle: AbortController | null = null;
 
-function preparedSeries(result: Gw2SimulationResult): ReturnType<typeof buildChartSeries> {
+function preparedSeries(result: Gw2SimulationResult): ReturnType<typeof buildTimeSeries> {
   const cached = seriesByResult.get(result);
   if (cached) return cached;
-  const series = buildChartSeries(result);
+  const series = buildTimeSeries(result, 250, { includeEffects: false });
   seriesByResult.set(result, series);
   return series;
 }

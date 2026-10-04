@@ -25,6 +25,8 @@ export interface PatchComparison {
 
 /** Serializable input sent to the dedicated baseline-simulation worker. */
 export interface BaselineSimulationRequest extends GameContentAddress {
+  /** Charts are collected only for visible Analysis; editor jobs still return APM and planning state. */
+  readonly collectChartData?: boolean;
   /** Session-only capture applies to baseline results, never saved build assumptions or batch analysis. */
   readonly damageDiagnostics?: boolean;
   readonly rotation: readonly RotationCommand[];

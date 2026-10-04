@@ -47,6 +47,8 @@ export class ModifierContributionRunner {
     // Only missing or stale comparisons for the current baseline consume workers while Analysis is visible.
     if (
       this.isRunning ||
+      app.simulationStatus === 'queued' ||
+      app.simulationStatus === 'running' ||
       !analysisViewIsActive() ||
       !app.build.rotation.length ||
       !app.results ||
@@ -96,9 +98,12 @@ export class ModifierContributionRunner {
     const calculateContributions = (): void => {
       this.timer = null;
       if (requestId !== this.requestId) return;
-      // Give RNG sampling uncontested CPU time. Contribution comparisons
-      // start as soon as the distribution worker pool finishes.
-      if (app.randomDistributionRunner.isRunning) {
+      // Let chart enrichment and RNG sampling finish before starting contribution comparisons.
+      if (
+        app.simulationStatus === 'queued' ||
+        app.simulationStatus === 'running' ||
+        app.randomDistributionRunner.isRunning
+      ) {
         this.timer = setTimeout(calculateContributions, 250);
         return;
       }

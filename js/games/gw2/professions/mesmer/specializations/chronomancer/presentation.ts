@@ -5,7 +5,7 @@ import type {
   ProfessionEventLogDescriptor,
   RotationStateSnapshotItem
 } from '#gw2/platform/profession-presentation/types.js';
-import { timedBuffAt } from '#gw2/platform/results/query.js';
+import { planningBuffAt } from '#gw2/platform/results/query.js';
 import {
   mesmerMechanicPaletteGroups,
   mesmerResourceViews,
@@ -53,7 +53,7 @@ function chronomancerStateSnapshot(context: MesmerUiContext): RotationStateSnaps
     });
   }
 
-  const dangerTime = timedBuffAt(result, 'danger-time', at);
+  const dangerTime = planningBuffAt(context.planningState, 'danger-time');
   if (dangerTime) {
     items.push({
       id: 'chronomancer-danger-time',

@@ -343,6 +343,8 @@ export interface ProfessionStateSnapshotContext<TProfessionState = unknown> exte
 > {
   /** Simulation time in seconds of the rotation point being inspected. */
   readonly atSeconds?: number;
+  /** Exact engine observation at the cursor; state displays do not depend on chart collection. */
+  readonly planningState?: Gw2SimulationPlanningState | null;
   /** One selected balance source keeps snapshot profiles and modifiers on the same patch. */
   readonly balanceContext: ProfessionBalanceContext;
 }

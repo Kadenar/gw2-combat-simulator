@@ -5,7 +5,7 @@ import type {
   ProfessionAttributePreviewContext,
   ProfessionAttributePreviewPreparation
 } from '#gw2/platform/profession-presentation/attribute-preview.js';
-import { timedBuffAt } from '#gw2/platform/results/query.js';
+import { planningBuffAt } from '#gw2/platform/results/query.js';
 import { elementalistWeaponGroups } from '#gw2/professions/elementalist/core/weapon-groups.js';
 import type {
   ElementalistPistolBullets,
@@ -366,7 +366,7 @@ function timelineWeaponLineTransition(context: ElementalistUiContext): string | 
 // Show Fresh Air's ferocity window across specializations alongside hammer orb state.
 function rotationStateSnapshot(context: ElementalistUiContext): RotationStateSnapshotItem[] {
   const state = elementalistUiState(context);
-  const freshAir = timedBuffAt(context.result, 'fresh air', context.atSeconds || 0);
+  const freshAir = planningBuffAt(context.planningState, 'fresh air');
   const orbs = Object.entries(state.hammerOrbs || {})
     .filter(([, expiresAt]) => (expiresAt || 0) > 0)
     .map(([element]) => element)

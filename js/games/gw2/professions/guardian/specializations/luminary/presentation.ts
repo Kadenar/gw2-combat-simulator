@@ -9,7 +9,7 @@ import type {
   SkillDamagePreviewPreparation,
   SkillDamageState
 } from '#gw2/platform/profession-presentation/skill-damage.js';
-import { timedBuffAt } from '#gw2/platform/results/query.js';
+import { planningBuffAt } from '#gw2/platform/results/query.js';
 import {
   formatSecondsRemaining,
   guardianSnapshotAt,
@@ -76,7 +76,6 @@ function strikeBonus(context: GuardianUiContext, id: string, field: 'amount' | '
 }
 
 function luminaryStateSnapshot(context: GuardianUiContext): RotationStateSnapshotItem[] {
-  const result = context.result;
   const at = guardianSnapshotAt(context);
   const items: RotationStateSnapshotItem[] = [];
   const state = professionState(context);
@@ -108,7 +107,7 @@ function luminaryStateSnapshot(context: GuardianUiContext): RotationStateSnapsho
   }
 
   // Mirror the hammer-only modifier gate and read each bonus from the selected patch's rules.
-  const radiant = timedBuffAt(result, 'guardian-radiant-armaments', at);
+  const radiant = planningBuffAt(context.planningState, 'guardian-radiant-armaments');
   if (radiant && radiant.event?.metadata?.radiantWeapon === 'hammer') {
     items.push({
       id: 'luminary-radiant-armaments',
@@ -118,7 +117,7 @@ function luminaryStateSnapshot(context: GuardianUiContext): RotationStateSnapsho
     });
   }
 
-  const piercing = timedBuffAt(result, 'guardian-piercing-stance', at);
+  const piercing = planningBuffAt(context.planningState, 'guardian-piercing-stance');
   if (piercing) {
     items.push({
       id: 'luminary-piercing-stance',
@@ -128,7 +127,7 @@ function luminaryStateSnapshot(context: GuardianUiContext): RotationStateSnapsho
     });
   }
 
-  const daring = timedBuffAt(result, 'guardian-daring-advance', at);
+  const daring = planningBuffAt(context.planningState, 'guardian-daring-advance');
   if (daring) {
     items.push({
       id: 'luminary-daring-advance',

@@ -106,6 +106,8 @@ export interface RotationResultsModel {
   readonly randomDistributionProgress?: Partial<RandomDistributionProgress> | null;
   readonly randomDistributionError?: string;
   readonly chartSeries?: ChartSeries | null;
+  readonly chartsPending?: boolean;
+  readonly chartsError?: string;
   /** Recorded activations with timestamps relative to the same DPS window as the charts. */
   readonly procSteps?: readonly Pick<Gw2ProcStep, 'start' | 'skill' | 'sourceSkill'>[];
 }
@@ -532,6 +534,28 @@ export function modifierContributionsHtml(model: RotationResultsModel): string {
   }`;
 }
 
+/** Reserve the chart panels while data loads, with decorative motion and a single accessible status. */
+function chartLoadingHtml(): string {
+  return `<div class="chart-wrap chart-loading" data-role="chart-status" role="status" aria-label="Preparing charts" aria-busy="true">
+    <div class="chart-loading-header">
+      <div class="chart-title">DPS &amp; Effects Over Time</div>
+      <span class="chart-loading-status"><span class="chart-loading-spinner" aria-hidden="true"></span>Preparing charts</span>
+    </div>
+    <p class="chart-loading-description">Loading damage, effects, and boon timelines…</p>
+    <div class="chart-panels" aria-hidden="true">
+      <div class="chart-panel">
+        <div class="chart-panel-title">Average DPS Over Time</div>
+        <div class="chart-loading-plot"></div>
+      </div>
+      <div class="chart-panel">
+        <div class="chart-panel-title">Effects Over Time</div>
+        <div class="chart-loading-legend"><span></span><span></span><span></span></div>
+        <div class="chart-loading-plot chart-loading-effects"></div>
+      </div>
+    </div>
+  </div>`;
+}
+
 /** Mounts result rows and keeps sorting wired to the current view state. */
 export function mountRotationResults(
   container: HTMLElement | null | undefined,
@@ -726,7 +750,15 @@ export function mountRotationResults(
   </section>`
       : ''
   }
-  ${chartSeries ? '<div data-role="result-charts"></div>' : ''}
+  ${
+    chartSeries
+      ? '<div data-role="result-charts"></div>'
+      : model.chartsError
+        ? `<div data-role="chart-status" role="alert">Unable to load charts: ${escapeHtml(model.chartsError)}</div>`
+        : model.chartsPending
+          ? chartLoadingHtml()
+          : ''
+  }
   ${
     model.contributions !== undefined || model.contributionsStale || model.contributionsError
       ? `<div data-role="modifier-contributions">${modifierContributionsHtml(model)}</div>`

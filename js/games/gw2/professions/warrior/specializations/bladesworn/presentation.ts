@@ -11,7 +11,7 @@ import type {
   SkillDamageState
 } from '#gw2/platform/profession-presentation/skill-damage.js';
 import type { ProfessionResourceView, RotationStateSnapshotItem } from '#gw2/platform/profession-presentation/types.js';
-import { timedBuffAt, timedBuffStacksAt } from '#gw2/platform/results/query.js';
+import { planningBuffAt, planningBuffStacks } from '#gw2/platform/results/query.js';
 import { createPreviewControls } from '#gw2/professions/shared/attribute-preview.js';
 import {
   formatSecondsRemaining,
@@ -242,7 +242,7 @@ export const bladeswornUi: WarriorUiSlice = Object.freeze({
       requireBalanceProfileFromContext(context.balanceContext, TRAIT.FIERCE_AS_FIRE),
       'maximumStacks'
     );
-    const fierceAsFire = timedBuffStacksAt(result, 'fierce-as-fire', at);
+    const fierceAsFire = planningBuffStacks(context.planningState, 'fierce-as-fire');
     if (fierceAsFire > 0) {
       items.push({
         id: 'bladesworn-fierce-as-fire',
@@ -252,7 +252,7 @@ export const bladeswornUi: WarriorUiSlice = Object.freeze({
       });
     }
 
-    const gunsAndGlory = timedBuffAt(result, 'guns-and-glory', at);
+    const gunsAndGlory = planningBuffAt(context.planningState, 'guns-and-glory');
     if (gunsAndGlory) {
       items.push({
         id: 'bladesworn-guns-and-glory',

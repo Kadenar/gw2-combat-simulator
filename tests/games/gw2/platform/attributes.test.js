@@ -589,6 +589,8 @@ test('interactive simulation leaves contribution passes to the background worker
   const request = structuredClone(mesmerAppAdapter.modifierContributionRequest(app));
   const contributions = mesmerAppAdapter.calculateModifierContributions(request);
 
+  // DPS-only comparisons must retain the same modifier deltas as the chart-producing simulation.
+  assert.deepEqual(contributions, calculateContributionComparisons(request, mesmerAppAdapter.simulateBuild));
   assert.deepEqual(
     contributions,
     mesmerAppAdapter.calculateModifierContributions(mesmerAppAdapter.modifierContributionRequest(app))

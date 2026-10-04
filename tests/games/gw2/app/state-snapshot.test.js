@@ -1,4 +1,4 @@
-import { effectFields } from '#tests/helpers/effect-report.js';
+import { effectFields, effectPlanningState } from '#tests/helpers/effect-report.js';
 import { criticalChanceTooltip, rotationStateSnapshot } from '#gw2/app/rotation/state-snapshot/model.js';
 import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
 import { ELEMENTALIST_TRAIT_IDS as TRAIT } from '#gw2/professions/elementalist/data/ids.js';
@@ -54,6 +54,7 @@ test('Catalyst snapshots use the active balance catalog before and after simulat
       { policies: [{ kind: 'empowering auras', maximumStacks: 2 }] }
     )
   };
+  app.results.planningState = effectPlanningState(app.results, 1);
   const aura = rotationStateSnapshot(app).items.find((item) => item.id === 'catalyst-empowering-auras');
   assert.equal(aura.value, '2/2 · 4.0s');
 });
@@ -222,7 +223,7 @@ test('Chronomancer active state shows only pending conversions from phantasms al
       rotationInsertionIndex: 1,
       adapter: {
         eliteSpecialization: () => 'Chronomancer',
-        rotationPlanningStateAt: () => ({ atSeconds: at, profession: {} })
+        rotationPlanningStateAt: () => ({ ...effectPlanningState(result, at), profession: {} })
       }
     }).items.filter((item) => item.id.startsWith('chronomancer-phantasm:'));
 

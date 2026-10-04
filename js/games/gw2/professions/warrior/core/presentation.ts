@@ -18,7 +18,7 @@ import type {
   ProfessionResourceView,
   RotationStateSnapshotItem
 } from '#gw2/platform/profession-presentation/types.js';
-import { timedBuffAt, timedBuffStacksAt } from '#gw2/platform/results/query.js';
+import { planningBuffAt, planningBuffStacks } from '#gw2/platform/results/query.js';
 import { SIMULATION_RANDOMNESS_ASSUMPTION_CONTROLS } from '#gw2/platform/simulation/randomness.js';
 import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
 import { WARRIOR_SKILL_IDS as ID, WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/professions/warrior/data/ids.js';
@@ -147,11 +147,9 @@ function hasSignetMasteryTrait(context: WarriorUiContext): boolean {
 function warriorCoreStateSnapshot(
   context: WarriorUiContext & { readonly balanceContext: ProfessionBalanceContext }
 ): RotationStateSnapshotItem[] {
-  const result = context.result;
-  const at = warriorSnapshotAt(context);
   const items: RotationStateSnapshotItem[] = [];
   const balance = context.balanceContext;
-  const peakPerformance = timedBuffAt(result, 'peak-performance', at);
+  const peakPerformance = planningBuffAt(context.planningState, 'peak-performance');
   if (peakPerformance) {
     // Show the active window here; the trait tooltip owns damage bonus details.
     items.push({
@@ -166,7 +164,7 @@ function warriorCoreStateSnapshot(
     const profile = requireBalanceProfileFromContext(balance, TRAIT.SIGNET_MASTERY);
     const maximum = balanceProfileNumber(profile, 'maximumStacks');
     const bonus = balanceProfileNumber(profile, 'attributeBonus');
-    const stacks = timedBuffStacksAt(result, 'signet-mastery', at);
+    const stacks = planningBuffStacks(context.planningState, 'signet-mastery');
     if (stacks > 0) {
       items.push({
         id: 'signet-mastery',
@@ -193,7 +191,7 @@ function warriorCoreStateSnapshot(
       balanceProfileNumber(requireBalanceProfileFromContext(balance, TRAIT.BERSERKERS_POWER), 'maximumStacks')
     ]
   ] as const) {
-    const stacks = timedBuffStacksAt(result, kind, at);
+    const stacks = planningBuffStacks(context.planningState, kind);
     if (stacks > 0) items.push({ id, label, value: `${stacks}/${maximum}`, title: `${label} active stacks` });
   }
 

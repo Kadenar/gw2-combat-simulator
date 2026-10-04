@@ -31,6 +31,7 @@ import type { Gw2SimulationResult } from '#gw2/platform/simulation/types.js';
 import { evaluateSkillDamage } from '#gw2/platform/skill-damage/evaluate.js';
 import type { SkillDamageEvaluation, SkillDamageRequest } from '#gw2/platform/skill-damage/types.js';
 import { clamp } from '#kernel/core/numeric.js';
+import { analysisViewIsActive } from '#browser/shell/result-view.js';
 import { SIMULATION_RANDOMNESS_MODES } from '#kernel/core/simulation-random.js';
 import type { ObservationPolicy } from '#kernel/execution/observation.js';
 
@@ -177,7 +178,10 @@ export function createProfessionRuntime({
   }
 
   function calculateModifierContributions({ rotation, baseConfig, comparisons }: ModifierContributionRequest) {
-    return calculateContributionComparisons({ rotation, baseConfig, comparisons }, simulateBuild);
+    // Main-thread comparisons need only DPS, matching workers without constructing unused chart histories.
+    return calculateContributionComparisons({ rotation, baseConfig, comparisons }, (rotation, config) =>
+      simulateGw2({ profession, rotation, config, output: 'score' })
+    );
   }
 
   function randomDistributionRequest(app: ProfessionAppState): RandomDistributionJobRequest {
@@ -261,6 +265,7 @@ export function createProfessionRuntime({
       rotation: [...rotation.slice(0, index), ...appended],
       config,
       observationPolicy: { kind: 'rotation' },
+      collectChartData: false,
       combatStartTime: combatStartTime ?? undefined
     });
   }
@@ -272,6 +277,7 @@ export function createProfessionRuntime({
       contentId: profession.id,
       rotation: cloneRotation(app.build.rotation),
       damageDiagnostics: app.damageDiagnostics,
+      collectChartData: analysisViewIsActive(),
       ...(app.rotationComparison?.referenceStatus === 'queued'
         ? { referenceRotation: cloneRotation(app.rotationComparison.referenceRotation) }
         : null),

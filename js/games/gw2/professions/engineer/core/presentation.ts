@@ -9,7 +9,7 @@ import {
   balanceProfileNumber,
   requireBalanceProfileFromContext
 } from '#gw2/platform/engine/skills/balance-profiles.js';
-import { timedBuffAt } from '#gw2/platform/results/query.js';
+import { planningBuffAt } from '#gw2/platform/results/query.js';
 import { SIMULATION_RANDOMNESS_ASSUMPTION_CONTROLS } from '#gw2/platform/simulation/randomness.js';
 import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
 import { ENGINEER_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/engineer/core/profiles.js';
@@ -277,7 +277,7 @@ export function bindEngineerCoreUi(catalog: Readonly<CanonicalCatalog<EngineerSk
         });
       }
 
-      const buff = timedBuffAt(context.result, 'kinetic-battery', context.atSeconds || 0);
+      const buff = planningBuffAt(context.planningState, 'kinetic-battery');
       if (buff) {
         items.push({
           id: 'engineer-kinetic-battery',

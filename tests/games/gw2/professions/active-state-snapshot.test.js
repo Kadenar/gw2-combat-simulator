@@ -1,5 +1,5 @@
 import { timedEffectState } from '#gw2/platform/combat/effect-state.js';
-import { effectFields } from '#tests/helpers/effect-report.js';
+import { effectFields, effectPlanningState } from '#tests/helpers/effect-report.js';
 import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
 import { projectObservedState } from '#tests/helpers/observed-runtime.js';
 import assert from 'node:assert/strict';
@@ -92,6 +92,7 @@ function snapshot(profession, specialization, professionState, atSeconds, result
     specialization,
     professionState,
     atSeconds,
+    planningState: effectPlanningState(result, atSeconds),
     result
   });
 }

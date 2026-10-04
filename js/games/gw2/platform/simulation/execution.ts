@@ -47,6 +47,7 @@ export interface RuntimeOptions<T extends object> {
   readonly observation?: ObservationPolicy;
   readonly combatStartTime?: number;
   readonly output?: 'detailed' | 'score';
+  readonly collectChartData?: boolean;
   readonly damageDiagnostics?: boolean;
   readonly onPhase?: Gw2SimulationOptions['onPhase'];
 }

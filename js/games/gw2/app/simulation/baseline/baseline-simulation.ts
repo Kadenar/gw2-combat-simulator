@@ -26,7 +26,13 @@ export function calculateBaselineSimulation(
           damageDiagnostics: true as const
         })
       : undefined;
-    const result = simulateGw2({ profession, rotation, config, damageDiagnostics: request.damageDiagnostics });
+    const result = simulateGw2({
+      profession,
+      rotation,
+      config,
+      damageDiagnostics: request.damageDiagnostics,
+      collectChartData: request.collectChartData
+    });
     return debugInputs ? { ...result, debugInputs } : result;
   };
 

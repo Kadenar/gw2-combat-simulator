@@ -60,6 +60,8 @@ export interface Gw2SimulationResult extends Gw2ResolverResult {
 }
 
 export interface Gw2SimulationOptions {
+  /** Detailed editor results can omit chart histories while retaining events, APM, and planning snapshots. */
+  readonly collectChartData?: boolean;
   /** Capture formula facts during detailed execution; never persisted as build configuration. */
   readonly damageDiagnostics?: boolean;
   /** Optional profiler receives phase durations; normal simulations avoid clock reads. */

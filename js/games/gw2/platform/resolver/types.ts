@@ -155,13 +155,14 @@ export interface Gw2ResolverReactionRegistry {
 }
 
 export interface Gw2ResolverResult {
-  readonly effectReport: import('#gw2/platform/results/effect-report.js').EffectReport;
+  /** Null means chart collection was not requested, rather than an empty effect history. */
+  readonly effectReport: import('#gw2/platform/results/effect-report.js').EffectReport | null;
   readonly boonGeneration: {
     readonly alliedPlayerCount: number;
     readonly boons: Readonly<
       Record<string, import('#gw2/platform/results/boon-generation.js').BoonGenerationByAudience>
     >;
-  };
+  } | null;
   /** Absolute timeline boundaries in seconds, independent of the DPS start. */
   readonly rotationEndTime: number;
   readonly observationEndTime: number;

@@ -140,8 +140,8 @@ export interface ProfessionAppState {
   baselineSimulationRunner: {
     schedule(revision: number): void;
   };
-  publishBaselineSimulation(output: BaselineSimulationOutput, revision: number): void;
-  failBaselineSimulation(error: unknown, revision: number): void;
+  publishBaselineSimulation(output: BaselineSimulationOutput, revision: number, chartsOnly?: boolean): void;
+  failBaselineSimulation(error: unknown, revision: number, chartsOnly?: boolean): void;
   changed(rebuildStatic?: boolean, rebuildGear?: boolean, options?: ProfessionChangeOptions): void;
   startRotationComparison(): void;
   loadRotationReference(rotation: readonly RotationCommand[]): void;

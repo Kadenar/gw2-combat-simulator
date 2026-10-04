@@ -1414,6 +1414,107 @@ body:not([data-rotation-focus]) .rotation-panel:has(.rotation-event-log .res-log
   margin-bottom: 6px;
 }
 
+/* Match the loaded charts' footprint and theme while keeping loading motion purely decorative. */
+.chart-loading-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px 16px;
+}
+
+.chart-loading-header .chart-title {
+  margin-bottom: 0;
+}
+
+.chart-loading-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  color: var(--accent);
+  font-size: 11px;
+}
+
+.chart-loading-spinner {
+  width: 12px;
+  height: 12px;
+  border: 2px solid color-mix(in srgb, var(--accent) 20%, transparent);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: chart-loading-spin 1s linear infinite;
+}
+
+.chart-loading-description {
+  margin: 8px 0 14px;
+  color: var(--text-dim);
+  font-size: 12px;
+}
+
+.chart-loading-plot {
+  position: relative;
+  height: 280px;
+  overflow: hidden;
+  border-radius: 4px;
+  background:
+    repeating-linear-gradient(to bottom, transparent 0 51px, rgba(255, 255, 255, 0.035) 51px 52px),
+    repeating-linear-gradient(to right, transparent 0 119px, rgba(255, 255, 255, 0.025) 119px 120px),
+    linear-gradient(to top, color-mix(in srgb, var(--accent) 5%, transparent), transparent);
+}
+
+.chart-loading-plot::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    100deg,
+    transparent 25%,
+    color-mix(in srgb, var(--accent) 8%, transparent) 50%,
+    transparent 75%
+  );
+  transform: translateX(-100%);
+  animation: chart-loading-sweep 2.4s ease-in-out infinite;
+}
+
+.chart-loading-effects {
+  height: 260px;
+}
+
+.chart-loading-legend {
+  display: flex;
+  gap: 12px;
+  margin: 10px 0 14px;
+}
+
+.chart-loading-legend span {
+  width: 64px;
+  height: 10px;
+  border-radius: 3px;
+  background: color-mix(in srgb, var(--text-dim) 12%, transparent);
+}
+
+.chart-loading-legend span:nth-child(2) {
+  width: 88px;
+}
+
+@keyframes chart-loading-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes chart-loading-sweep {
+  to {
+    transform: translateX(100%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .chart-loading-spinner,
+  .chart-loading-plot::after {
+    animation: none;
+  }
+}
+
 .chart-toggles {
   display: grid;
   gap: 8px;

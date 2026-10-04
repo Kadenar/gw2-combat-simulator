@@ -1,5 +1,5 @@
 import { warriorBuffPolicies } from '#gw2/professions/warrior/core/effect-state.js';
-import { effectFields } from '#tests/helpers/effect-report.js';
+import { effectFields, effectPlanningState } from '#tests/helpers/effect-report.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
@@ -100,6 +100,7 @@ test('Warrior displays use selected stack caps and bonuses', () => {
     specialization: 'Bladesworn',
     balanceContext,
     result,
+    planningState: effectPlanningState(result, 1),
     atSeconds: 1,
     build: { specializations: [{ name: 'Arms', traits: '2-1-1' }] }
   });

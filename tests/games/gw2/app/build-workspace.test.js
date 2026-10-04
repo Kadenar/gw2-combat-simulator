@@ -158,6 +158,7 @@ function appFixture() {
     simulationStatus: 'idle',
     initialRenderGeneration: 0,
     baselineSimulationRunner: {
+      ensureCharts() {},
       cancel: () => cancelled.push('baseline'),
       schedule: (revision) => scheduled.push(revision)
     },

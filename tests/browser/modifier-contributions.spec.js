@@ -14,6 +14,14 @@ test('modifiers run on demand in Analysis and update only their own section', as
   await page.waitForTimeout(850);
   expect(modifierWorkers).toHaveLength(0);
   expect(await page.evaluate(() => window.professionApp.results.modifierContributionsStale)).toBe(true);
+  // Editor baselines retain APM and live planning state without collecting chart histories.
+  const editor = await page.evaluate(() => {
+    const result = window.professionApp.results;
+    return { dps: result.dps, apm: result.rotationApm, effects: result.effectReport, boons: result.boonGeneration };
+  });
+  expect(editor.effects).toBeNull();
+  expect(editor.boons).toBeNull();
+  expect(editor.apm).toBeDefined();
 
   // Hold the existing RNG priority gate so pending-state interaction is deterministic.
   await page.evaluate(() => {
@@ -26,6 +34,14 @@ test('modifiers run on demand in Analysis and update only their own section', as
   const pending = page.locator('[data-role="modifier-contributions"] [role="status"]');
   await expect(pending).toHaveText('Calculating modifier contributions…');
   await expect(page.locator('[data-role="result-charts"]')).toBeVisible();
+  expect(await page.evaluate(() => window.professionApp.results.dps)).toBe(editor.dps);
+  expect(await page.evaluate(() => window.professionApp.results.rotationApm)).toEqual(editor.apm);
+  expect(
+    await page.evaluate(() =>
+      Boolean(window.professionApp.results.effectReport && window.professionApp.results.boonGeneration)
+    )
+  ).toBe(true);
+  const chartRequestId = await page.evaluate(() => window.professionApp.baselineSimulationRunner.requestId);
   await page.locator('[data-role="skill-header"] [data-sort-col="total"]').click();
   expect(await page.evaluate(() => window.professionApp._skillSortCol)).toBe('total');
   const chart = await page.locator('[data-role="result-charts"]').elementHandle();
@@ -44,11 +60,13 @@ test('modifiers run on demand in Analysis and update only their own section', as
   await page.getByRole('link', { name: 'Analysis', exact: true }).click();
   expect(await page.evaluate(() => window.professionApp.modifierContributionRunner.isRunning)).toBe(false);
   expect(modifierWorkers).toHaveLength(completedWorkerCount);
+  expect(await page.evaluate(() => window.professionApp.baselineSimulationRunner.requestId)).toBe(chartRequestId);
 
   await page.getByRole('link', { name: 'Workspace', exact: true }).click();
   await page.evaluate(() => window.professionApp.addRotation('Bladecall'));
   await page.waitForFunction(() => window.professionApp.buildRevision === window.professionApp.resultRevision);
   expect(await page.evaluate(() => window.professionApp.results.modifierContributionsStale)).toBe(true);
+  expect(await page.evaluate(() => window.professionApp.results.effectReport)).toBeNull();
   await page.getByRole('link', { name: 'Analysis', exact: true }).click();
   await expect(pending).toBeVisible();
   await page.getByRole('link', { name: 'Workspace', exact: true }).click();

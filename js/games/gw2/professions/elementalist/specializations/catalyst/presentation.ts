@@ -1,4 +1,4 @@
-import { timedBuffAt, timedBuffStacksAt } from '#gw2/platform/results/query.js';
+import { planningBuffAt, planningBuffStacks } from '#gw2/platform/results/query.js';
 import type {
   ProfessionAttributePreviewContext,
   ProfessionAttributePreviewPreparation
@@ -33,7 +33,7 @@ function catalystStateSnapshot(context: ElementalistUiContext): RotationStateSna
   const state = uiState(context);
   const at = Math.max(0, context.atSeconds || 0);
   const items: RotationStateSnapshotItem[] = [];
-  const empowerment = timedBuffStacksAt(context.result, 'elemental empowerment', at);
+  const empowerment = planningBuffStacks(context.planningState, 'elemental empowerment');
   if (empowerment > 0) {
     const elementalEmpowermentProfile = requireBalanceProfileFromContext(
       context.balanceContext,
@@ -48,13 +48,13 @@ function catalystStateSnapshot(context: ElementalistUiContext): RotationStateSna
     });
   }
 
-  const empoweringAuras = timedBuffAt(context.result, 'empowering auras', at);
+  const empoweringAuras = planningBuffAt(context.planningState, 'empowering auras');
   if (empoweringAuras) {
     const empoweringAurasProfile = requireBalanceProfileFromContext(context.balanceContext, TRAIT.EMPOWERING_AURAS);
     items.push({
       id: 'catalyst-empowering-auras',
       label: 'Empowering Auras',
-      value: `${timedBuffStacksAt(context.result, 'empowering auras', at)}/${balanceProfileNumber(empoweringAurasProfile, 'maximumStacks')} · ${empoweringAuras.remaining.toFixed(1)}s`,
+      value: `${planningBuffStacks(context.planningState, 'empowering auras')}/${balanceProfileNumber(empoweringAurasProfile, 'maximumStacks')} · ${empoweringAuras.remaining.toFixed(1)}s`,
       title: 'Active Empowering Auras stacks and refreshed duration remaining'
     });
   }

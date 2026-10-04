@@ -145,6 +145,7 @@ export function runRuntime<T extends object>(
     observation,
     combatStartTime,
     output = 'detailed',
+    collectChartData = true,
     damageDiagnostics = false,
     execution,
     onPhase
@@ -473,7 +474,7 @@ export function runRuntime<T extends object>(
     config,
     traits: normalizeSelectedTraitIds(config.selectedTraitIds),
     reporting: output !== 'score',
-    recordEffectHistory: output === 'detailed',
+    recordEffectHistory: output === 'detailed' && collectChartData,
     damageDiagnostics: output === 'damage' || damageDiagnostics,
     horizon: policy.kind === 'absolute' ? canonicalTime(policy.endTimeMs / 1000) : null,
     query,

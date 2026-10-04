@@ -1,3 +1,4 @@
+import { effectPlanningState } from '#tests/helpers/effect-report.js';
 import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
@@ -323,6 +324,7 @@ test('Peak Performance and Magebane Tether use their logged recharge timing', ()
       balanceContext: withPatchPreview(warriorProfession).balanceContextFor(),
       specialization: 'Spellbreaker',
       result: peak,
+      planningState: effectPlanningState(peak, peakBuff.at + 2),
       atSeconds: peakBuff.at + 2
     })
     .find(({ id }) => id === 'peak-performance');

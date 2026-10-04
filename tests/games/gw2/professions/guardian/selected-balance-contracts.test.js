@@ -1,4 +1,4 @@
-import { effectFields } from '#tests/helpers/effect-report.js';
+import { effectFields, effectPlanningState } from '#tests/helpers/effect-report.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { luminaryImpactAt } from '#gw2/professions/guardian/specializations/luminary/mechanics/effects.js';
@@ -106,7 +106,7 @@ test('Guardian snapshots display selected caps and modifier bonuses', () => {
       events,
       ...effectFields(events, 120),
       planningState: {
-        atSeconds: 1,
+        ...effectPlanningState(effectFields(events, 120), 1),
         profession: { symbolicAvengerExpirations: [5, 6], effulgentStacks: 12, effulgentActiveUntil: 4 }
       }
     }
