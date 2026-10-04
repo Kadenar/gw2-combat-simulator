@@ -1,4 +1,3 @@
-import { warriorBuffPolicies } from '#gw2/professions/warrior/core/effect-state.js';
 import { effectFields, effectPlanningState } from '#tests/helpers/effect-report.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
@@ -93,7 +92,7 @@ test('Warrior displays use selected stack caps and bonuses', () => {
         }
       })),
       120,
-      { policies: warriorBuffPolicies(balanceContext) }
+      { policies: family.runtimeFor({ specialization: 'Bladesworn', patchId }).buffPolicies(balanceContext) }
     )
   };
   const items = family.ui.rotationStateSnapshot({

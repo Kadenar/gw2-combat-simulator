@@ -1,10 +1,16 @@
-import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
-import type { MechanicContext } from '#gw2/platform/profession-definition/mechanic-context.js';
-import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
-import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import { gw2EffectExpiresAt } from '#gw2/platform/effects/timing.js';
+import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
+import type { MechanicContext } from '#gw2/platform/profession-definition/mechanic-context.js';
+import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
+import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import { WARRIOR_CORE_BALANCE_PROFILE_IDS as CORE_PROFILE } from '#gw2/professions/warrior/core/profiles.js';
 import { WARRIOR_SKILL_IDS as ID } from '#gw2/professions/warrior/data/ids.js';
+import { selectWarriorResourcePolicy } from '#gw2/professions/warrior/core/mechanics/resource-policy.js';
+import {
+  berserkerBuffPolicies,
+  berserkerEffectStates
+} from '#gw2/professions/warrior/specializations/berserker/effect-state.js';
+import { berserkerResourcePolicy } from '#gw2/professions/warrior/specializations/berserker/mechanics/resources.js';
 import { berserkSkillActions } from '#gw2/professions/warrior/specializations/berserker/skills/index.js';
 import {
   BERSERK_EXPIRE,
@@ -41,6 +47,11 @@ function completeBerserk(runtime: Runtime, cast: RuntimeCast<WarriorSkill>): voi
 
 /** Berserker composes with Core's resource and packet owners; only this slice owns mode and aura lifetimes. */
 export const berserkerHooks: RuntimeHooks<WarriorRuntimeState, WarriorSkill> = {
+  initialize(runtime) {
+    selectWarriorResourcePolicy(runtime, berserkerResourcePolicy);
+  },
+  buffPolicies: berserkerBuffPolicies,
+  observeEffects: berserkerEffectStates,
   /** Initialize only damage-relevant form and scaling state for one assumed occurrence. */
   prepareDamageState(runtime, skill, _inputs) {
     if (skill?.primalBurst) berserkerState.from(runtime).berserkUntil = Infinity;

@@ -140,7 +140,10 @@ test('Gunsaber transitions share recharge, reset chains, and retain the configur
   assert.equal(owner.activeWeaponSet, 1);
   assert.equal(state(result).gunsaberActive, true);
   assert.deepEqual(owner.profession.core.autoattackChains, {});
-  assert.equal(owner.cooldownController.readyAt(ID.UNSHEATHE_GUNSABER), owner.cooldownController.readyAt(ID.SHEATHE_GUNSABER));
+  assert.equal(
+    owner.cooldownController.readyAt(ID.UNSHEATHE_GUNSABER),
+    owner.cooldownController.readyAt(ID.SHEATHE_GUNSABER)
+  );
 });
 
 test('Gunsaber gates standard weapons, ordinary swaps, weapon bursts, and unavailable bundle actions', () => {
@@ -581,7 +584,8 @@ test('Lush Forest reduces current-bar recharge only and preserves the normal Art
     const trained = run(rotation, { ...config, selectedTraitIds: [TRAIT.LUSH_FOREST] });
     assert.deepEqual(trained.warnings, []);
     close(
-      observedRuntime(bare).cooldownController.readyAt(ID.CYCLONE_AXE) - observedRuntime(trained).cooldownController.readyAt(ID.CYCLONE_AXE),
+      observedRuntime(bare).cooldownController.readyAt(ID.CYCLONE_AXE) -
+        observedRuntime(trained).cooldownController.readyAt(ID.CYCLONE_AXE),
       gunsaber ? 0 : 0.6
     );
   }

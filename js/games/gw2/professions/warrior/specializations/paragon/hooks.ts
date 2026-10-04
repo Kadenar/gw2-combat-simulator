@@ -1,13 +1,17 @@
-import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
-import type { MechanicContext } from '#gw2/platform/profession-definition/mechanic-context.js';
-import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
-import { grantWarriorAdrenaline } from '#gw2/professions/warrior/core/mechanics/adrenaline.js';
+import type { MechanicContext } from '#gw2/platform/profession-definition/mechanic-context.js';
+import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
+import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import {
+  grantWarriorResource,
+  selectWarriorResourcePolicy
+} from '#gw2/professions/warrior/core/mechanics/resource-policy.js';
 import {
   REFRAIN,
   gainMotivation,
   startRefrain
 } from '#gw2/professions/warrior/specializations/paragon/mechanics/refrains.js';
+import { paragonResourcePolicy } from '#gw2/professions/warrior/specializations/paragon/mechanics/resources.js';
 import { PARAGON_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/warrior/specializations/paragon/profiles.js';
 import {
   PARAGON_COMMAND_ECHO_PROFILES,
@@ -147,7 +151,7 @@ function consumeEcho(runtime: Runtime, activationId: string): void {
         ...(event.type === 'buff' ? { audience: { recipients: 'party' } } : {})
       })
     });
-    grantWarriorAdrenaline(runtime, balanceProfileNumber(payload, 'resourceGain'));
+    grantWarriorResource(runtime, balanceProfileNumber(payload, 'resourceGain'));
   }
 
   echo.remaining--;
@@ -197,6 +201,7 @@ export const paragonHooks: RuntimeHooks<WarriorRuntimeState, WarriorSkill> = {
   // Chant Alacrity is independent of the imperative refrain and recharge-reduction state.
 
   initialize(runtime) {
+    selectWarriorResourcePolicy(runtime, paragonResourcePolicy);
     const state = paragonState.from(runtime);
     state.maximumMotivation = balanceProfileNumber(
       requireBalanceProfileFromContext(runtime, PROFILE.resources),

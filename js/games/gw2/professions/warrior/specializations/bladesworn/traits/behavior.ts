@@ -1,9 +1,14 @@
-import type { MechanicContext } from '#gw2/platform/profession-definition/mechanic-context.js';
 import { selectedSkillIdSet } from '#gw2/platform/builds/selected-skills.js';
 import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
 import type { Gw2TraitLookupContext } from '#gw2/platform/combat/state/traits.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import type { Gw2MutableStats, Gw2Stats } from '#gw2/platform/combat/types.js';
+import { gw2EffectExpiresAt } from '#gw2/platform/effects/timing.js';
+import { gw2ConfiguredWeaponSet } from '#gw2/platform/equipment/weapons/loadout.js';
+import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
+import type { MechanicContext } from '#gw2/platform/profession-definition/mechanic-context.js';
+import { buildResolverCondition, buildResolverStrike } from '#gw2/platform/resolver/packets.js';
+import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import {
   balanceProfileNumber,
   effectNumber,
@@ -11,19 +16,15 @@ import {
   requireEffect
 } from '#gw2/platform/skills/balance-profiles.js';
 import type { Skill, SkillId } from '#gw2/platform/skills/types.js';
-import { gw2ConfiguredWeaponSet } from '#gw2/platform/equipment/weapons/loadout.js';
-import { buildResolverCondition, buildResolverStrike } from '#gw2/platform/resolver/packets.js';
-import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
-import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
-import { gw2EffectExpiresAt } from '#gw2/platform/effects/timing.js';
 import { warriorAmmunition } from '#gw2/professions/warrior/core/mechanics/ammunition.js';
-
-import { isInternalCooldownReady } from '#gw2/platform/combat/procs.js';
 import { WARRIOR_SKILL_IDS as ID, WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/professions/warrior/data/ids.js';
-import { BLADESWORN_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/warrior/specializations/bladesworn/profiles.js';
-import { bladeswornState } from '#gw2/professions/warrior/specializations/bladesworn/state.js';
+import { grantFlow } from '#gw2/professions/warrior/specializations/bladesworn/mechanics/flow.js';
 import type { WarriorRuntimeState, WarriorSkill } from '#gw2/professions/warrior/types.js';
 import { canonicalTime } from '#kernel/core/clock.js';
+
+import { isInternalCooldownReady } from '#gw2/platform/combat/procs.js';
+import { BLADESWORN_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/warrior/specializations/bladesworn/profiles.js';
+import { bladeswornState } from '#gw2/professions/warrior/specializations/bladesworn/state.js';
 
 export function modifyAttributes(context: Gw2ModifierContext, attributes: Gw2Stats): Gw2Stats {
   const result = { ...attributes } as Gw2MutableStats & { ferocity: number };
@@ -290,4 +291,41 @@ export function resolveSharpAsTheWindSkillId(
   const variantId = SHARP_AS_THE_WIND_VARIANTS.get(parentId);
   if (!variantId) return skillId;
   return context.hasTrait(TRAIT.SHARP_AS_THE_WIND) ? variantId : parentId;
+}
+
+/** Dragon Slash refunds its captured Flow pool using the elite tuning. */
+export function burstMasteryDragonSlash(
+  runtime: MechanicContext<WarriorRuntimeState, WarriorSkill>,
+  cast: RuntimeCast<WarriorSkill>,
+  release: { flowSpent: number }
+): void {
+  if (hasTrait(runtime, TRAIT.BURST_MASTERY)) {
+    grantFlow(
+      runtime,
+      release.flowSpent *
+        balanceProfileNumber(
+          requireBalanceProfileFromContext(runtime, 'warrior.bladesworn.burst-mastery'),
+          'resourceGain'
+        )
+    );
+    {
+      if (hasTrait(runtime, TRAIT.BURST_MASTERY)) {
+        const traitProfile = requireBalanceProfileFromContext(runtime, TRAIT.BURST_MASTERY);
+        runtime.effects.emit({
+          kind: 'profile',
+          profile: traitProfile,
+          effects: traitProfile.effects?.filter((effect) => effect.type === 'boon' || effect.type === 'buff'),
+          attribution: {
+            source: 'Trait',
+            sourceId: TRAIT.BURST_MASTERY,
+            actorType: 'effect',
+            skillId: cast.skill.id,
+            skillName: cast.skill.name,
+            activationId: cast.id
+          },
+          transform: (event) => ({ ...event, name: traitProfile.name, stacks: event.stacks, priority: 5 })
+        });
+      }
+    }
+  }
 }

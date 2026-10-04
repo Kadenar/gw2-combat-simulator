@@ -1,8 +1,8 @@
+import { GW2_ACTION_TICK_MS } from '#gw2/platform/combat/action-tick.js';
 import type { MechanicContext } from '#gw2/platform/profession-definition/mechanic-context.js';
 import type { RuntimeProfession } from '#gw2/platform/profession-definition/runtime-contract.js';
 import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
-import { GW2_ACTION_TICK_MS } from '#gw2/platform/combat/action-tick.js';
-import { grantWarriorAdrenaline } from '#gw2/professions/warrior/core/mechanics/adrenaline.js';
+import type { WarriorResourcePolicy } from '#gw2/professions/warrior/core/mechanics/resource-policy.js';
 import { BLADESWORN_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/warrior/specializations/bladesworn/profiles.js';
 import { bladeswornState } from '#gw2/professions/warrior/specializations/bladesworn/state.js';
 import type { WarriorRuntimeState, WarriorSkill } from '#gw2/professions/warrior/types.js';
@@ -27,7 +27,7 @@ function flowTick(runtime: Runtime): void {
     (active(state.traitPositiveFlowStartedAt, state.traitPositiveFlowUntil)
       ? state.traitPositiveFlowStacks * balanceProfileNumber(profile, 'attributePerStack')
       : 0);
-  grantWarriorAdrenaline(runtime, rate * (GW2_ACTION_TICK_MS / 1000));
+  grantFlow(runtime, rate * (GW2_ACTION_TICK_MS / 1000));
   state.flowStabilizerWindows = state.flowStabilizerWindows.filter((window) => window.expiresAt > runtime.time);
   if (state.traitPositiveFlowUntil <= runtime.time) {
     state.traitPositiveFlowStartedAt = 0;
@@ -39,3 +39,20 @@ function flowTick(runtime: Runtime): void {
 }
 
 export const flowTasks: RuntimeProfession<WarriorRuntimeState, WarriorSkill>['tasks'] = { [FLOW_TICK]: flowTick };
+
+/** Flow grants clamp the Bladesworn-owned pool; ordinary strikes deliberately supply no Flow. */
+export function grantFlow(runtime: Runtime, amount: number): void {
+  if (!Number.isFinite(amount) || amount < 0) throw new RangeError('Flow grants must be finite and non-negative.');
+  const state = bladeswornState.from(runtime);
+  state.flow = Math.min(state.maximumFlow, state.flow + amount);
+}
+
+/** Dragon Trigger owns charge spending and readiness; adrenaline burst operations are disabled. */
+export const bladeswornResourcePolicy: WarriorResourcePolicy = {
+  grant: grantFlow,
+  hitGain() {},
+  burstSpend: () => 0,
+  spendBurst() {},
+  availability: () => ({ ready: true }),
+  reset() {}
+};

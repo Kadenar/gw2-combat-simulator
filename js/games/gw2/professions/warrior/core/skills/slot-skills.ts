@@ -1,22 +1,22 @@
-import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import type { MechanicContext } from '#gw2/platform/profession-definition/mechanic-context.js';
+import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 /** Canonical Core warrior skill fragments grouped by their GW2 owner. */
-import { canonicalTime } from '#kernel/core/clock.js';
 import { selectedSkillIdSet } from '#gw2/platform/builds/selected-skills.js';
+import type { Gw2AttributeEffect } from '#gw2/platform/builds/types.js';
+import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
 import { hasSelectedSkillId } from '#gw2/platform/combat/query/runtime-query.js';
+import { impactEffects } from '#gw2/platform/effects/authoring.js';
 import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import type { Skill } from '#gw2/platform/skills/types.js';
 import { WARRIOR_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/warrior/core/profiles.js';
-import { grantWarriorAdrenaline } from '#gw2/professions/warrior/core/mechanics/adrenaline.js';
 import {
   warriorActiveBuffStacks,
   type WarriorModifierAttributes
 } from '#gw2/professions/warrior/core/traits/modifier-queries.js';
-import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
-import type { WarriorRuntimeState, WarriorSkill } from '#gw2/professions/warrior/types.js';
-import type { Gw2AttributeEffect } from '#gw2/platform/builds/types.js';
 import { WARRIOR_SKILL_IDS as ID } from '#gw2/professions/warrior/data/ids.js';
-import { impactEffects } from '#gw2/platform/effects/authoring.js';
-import type { Skill } from '#gw2/platform/skills/types.js';
+import { grantWarriorResource } from '#gw2/professions/warrior/core/mechanics/resource-policy.js';
+import type { WarriorRuntimeState, WarriorSkill } from '#gw2/professions/warrior/types.js';
+import { canonicalTime } from '#kernel/core/clock.js';
 
 type WarriorRuntime = MechanicContext<WarriorRuntimeState, WarriorSkill>;
 const SIGNET_PULSE = 'warrior.signet-of-rage-pulse';
@@ -295,7 +295,7 @@ export const WARRIOR_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Partia
 
 /** Each pulse checks current recharge and then schedules only its next occurrence, preserving cadence while suppressed. */
 function signetPulse(runtime: WarriorRuntime): void {
-  if ((runtime.cooldownController.readyAt(ID.SIGNET_OF_RAGE) ?? 0) <= runtime.time) grantWarriorAdrenaline(runtime, 2);
+  if ((runtime.cooldownController.readyAt(ID.SIGNET_OF_RAGE) ?? 0) <= runtime.time) grantWarriorResource(runtime, 2);
   runtime.profession.core.nextSignetPulseAt = canonicalTime(runtime.time + 3);
   runtime.schedule(SIGNET_PULSE, runtime.profession.core.nextSignetPulseAt, null, undefined, -220);
 }

@@ -1,25 +1,25 @@
-import type { MechanicContext } from '#gw2/platform/profession-definition/mechanic-context.js';
 import { buffApplicationStacks } from '#gw2/platform/combat/boons.js';
 import type { Gw2ModifierContext, Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
+import { gw2EffectExpiresAt } from '#gw2/platform/effects/timing.js';
+import type { SkillEffect } from '#gw2/platform/effects/types.js';
+import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
+import type { MechanicContext } from '#gw2/platform/profession-definition/mechanic-context.js';
+import type { RuntimeProfession } from '#gw2/platform/profession-definition/runtime-contract.js';
+import { buildResolverCondition } from '#gw2/platform/resolver/packets.js';
+import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import {
   effectNumber,
   requireBalanceProfileFromContext,
   requireEffect
 } from '#gw2/platform/skills/balance-profiles.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
-import type { SkillEffect } from '#gw2/platform/effects/types.js';
-import { buildResolverCondition } from '#gw2/platform/resolver/packets.js';
-import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
-import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
-import type { RuntimeProfession } from '#gw2/platform/profession-definition/runtime-contract.js';
-import { gw2EffectExpiresAt } from '#gw2/platform/effects/timing.js';
-import { grantWarriorAdrenaline } from '#gw2/professions/warrior/core/mechanics/adrenaline.js';
 import { warriorAmmunition } from '#gw2/professions/warrior/core/mechanics/ammunition.js';
 import { WARRIOR_SKILL_IDS as ID } from '#gw2/professions/warrior/data/ids.js';
 import { WARRIOR_SUPPLEMENTAL_SKILLS } from '#gw2/professions/warrior/data/warrior-supplemental-skills.js';
 import { slashEffects } from '#gw2/professions/warrior/specializations/bladesworn/mechanics/dragon-trigger.js';
+import { grantFlow } from '#gw2/professions/warrior/specializations/bladesworn/mechanics/flow.js';
 import { BLADESWORN_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/warrior/specializations/bladesworn/profiles.js';
 import { activeCartridgeWindow, bladeswornState } from '#gw2/professions/warrior/specializations/bladesworn/state.js';
 import type { WarriorRuntimeState, WarriorSkill } from '#gw2/professions/warrior/types.js';
@@ -713,7 +713,7 @@ export const bladeswornSkillActions: RuntimeProfession<WarriorRuntimeState, Warr
   'warrior.flow-stabilize'(runtime, context) {
     if (context.kind !== 'cast') return;
     const cast = context.cast;
-    if (furyBeforeCast.has(cast)) grantWarriorAdrenaline(runtime, 15);
+    if (furyBeforeCast.has(cast)) grantFlow(runtime, 15);
     // The conditional instant grant is independent of the removable Positive Flow component.
     const effect = requireEffect(cast.skill, 'buff', 'Positive Flow');
     if (effect) {

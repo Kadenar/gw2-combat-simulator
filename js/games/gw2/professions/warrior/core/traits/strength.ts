@@ -1,9 +1,28 @@
+import { advanceCriticalProc, criticalOpportunity } from '#gw2/platform/combat/critical-procs.js';
+import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
-import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import { hasTrait } from '#gw2/platform/combat/state/traits.js';
+import type { Gw2MutableStats } from '#gw2/platform/combat/types.js';
+import { scaleCastBoundTiming } from '#gw2/platform/effects/materializer.js';
+import { gw2ConfiguredWeaponSet } from '#gw2/platform/equipment/weapons/loadout.js';
+import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
+import type { MechanicContext } from '#gw2/platform/profession-definition/mechanic-context.js';
 import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
+import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
+import {
+  balanceProfileNumber,
+  requireBalanceProfileFromContext,
+  requireEffect
+} from '#gw2/platform/skills/balance-profiles.js';
 import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
-import { warriorActiveBuffStacks } from '#gw2/professions/warrior/core/traits/modifier-queries.js';
-import { WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/professions/warrior/data/ids.js';
+import type { WarriorModifierAttributes } from '#gw2/professions/warrior/core/traits/modifier-queries.js';
+import {
+  warriorActiveBuffStacks,
+  warriorWieldingWeapon
+} from '#gw2/professions/warrior/core/traits/modifier-queries.js';
+import { WARRIOR_SKILL_IDS as ID, WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/professions/warrior/data/ids.js';
+import { grantWarriorResource } from '#gw2/professions/warrior/core/mechanics/resource-policy.js';
+import type { WarriorResolverContext, WarriorRuntimeState, WarriorSkill } from '#gw2/professions/warrior/types.js';
 
 /** Using a healing skill grants self boons even when the player is already at full health. */
 export const restorativeStrength = defineTrait({
@@ -277,3 +296,237 @@ export const greatFortitude = defineTrait({
     };
   }
 });
+
+type WarriorRuntime = MechanicContext<WarriorRuntimeState, WarriorSkill>;
+
+export function peakPerformanceBuff(context: WarriorResolverContext, event: Gw2ResolverEvent): void {
+  if (Number(event.sourceId) !== TRAIT.PEAK_PERFORMANCE || event.kind !== 'peak-performance') return;
+  context.effects.emit({
+    kind: 'announcement',
+    announcement: {
+      type: 'trait',
+      name: 'Peak Performance',
+      at: event.at,
+      sourceSkill: event.skillName,
+      detail: '+10% strike damage for 6 seconds'
+    }
+  });
+}
+
+// Resolve Strength-owned attributes without hiding their formulas in the cross-line composer.
+export function modifyWarriorStrengthAttributes(
+  context: Gw2ModifierContext,
+  result: WarriorModifierAttributes,
+  staticRulesApplied: boolean,
+  gearPower: number
+): void {
+  if (hasTrait(context, TRAIT.PINNACLE_OF_STRENGTH)) {
+    const pinnacleOfStrengthProfile = requireBalanceProfileFromContext(context, TRAIT.PINNACLE_OF_STRENGTH);
+    result.power +=
+      (context.query?.mightStacksAt(context.time, context.runtime, context.event) || 0) *
+      balanceProfileNumber(pinnacleOfStrengthProfile, 'attributeBonus');
+  }
+
+  if (hasTrait(context, TRAIT.FORCEFUL_GREATSWORD) && !staticRulesApplied) {
+    const forcefulGreatswordProfile = requireBalanceProfileFromContext(context, TRAIT.FORCEFUL_GREATSWORD);
+    result.power +=
+      balanceProfileNumber(forcefulGreatswordProfile, 'attributeBonus') +
+      Number(warriorWieldingWeapon(context, 'Greatsword')) *
+        balanceProfileNumber(forcefulGreatswordProfile, 'weaponAttributeBonus');
+  }
+
+  if (hasTrait(context, TRAIT.GREAT_FORTITUDE) && !staticRulesApplied) {
+    const greatFortitudeProfile = requireBalanceProfileFromContext(context, TRAIT.GREAT_FORTITUDE);
+    // Static builds already bake this gear-only conversion; live Might and signets must not feed it.
+    const conversion = balanceProfileNumber(greatFortitudeProfile, 'attributeConversion');
+    result.vitality += gearPower * conversion;
+    result.ferocity += gearPower * conversion;
+  }
+}
+
+export function peakPerformanceStart(runtime: WarriorRuntime, cast: RuntimeCast<WarriorSkill>): void {
+  const skill = cast.skill;
+  if (!skill.categories?.includes('Physical') || !hasTrait(runtime, TRAIT.PEAK_PERFORMANCE)) return;
+  let at = cast.effectiveEnd;
+  if (skill.id === ID.KICK) {
+    const strike = skill.effects?.find((effect) => effect.type === 'strike');
+    const timing = strike && scaleCastBoundTiming(cast, skill, strike);
+    const firstTick = Array.isArray(timing?.ticks) ? timing.ticks[0] : undefined;
+    const offsetMs = Number(firstTick?.atMs ?? timing?.atMs ?? skill.castTimeMs ?? 0);
+    at = Math.min(at, cast.start + offsetMs / 1000);
+  }
+
+  {
+    const traitProfile = requireBalanceProfileFromContext(runtime, TRAIT.PEAK_PERFORMANCE);
+    const selectedEffect = requireEffect(traitProfile, 'buff', 'peak-performance');
+    if (selectedEffect)
+      runtime.effects.emit({
+        kind: 'profile',
+        profile: traitProfile,
+        effects: [selectedEffect],
+        at: at,
+        attribution: {
+          source: 'Trait',
+          sourceId: TRAIT.PEAK_PERFORMANCE,
+          actorType: 'effect',
+          skillId: cast.skill.id,
+          skillName: cast.skill.name,
+          activationId: cast.id
+        },
+        transform: (event) => ({ ...event, name: 'Peak Performance', priority: 0 })
+      });
+  }
+}
+
+export function braveStrideCommit(runtime: WarriorRuntime, cast: RuntimeCast<WarriorSkill>): void {
+  const skill = cast.skill;
+  if (hasTrait(runtime, TRAIT.BRAVE_STRIDE) && skill.movementSkill) {
+    grantWarriorResource(
+      runtime,
+      balanceProfileNumber(requireBalanceProfileFromContext(runtime, TRAIT.BRAVE_STRIDE), 'resourceGain')
+    );
+    {
+      const traitProfile = requireBalanceProfileFromContext(runtime, TRAIT.BRAVE_STRIDE);
+      const selectedEffect = requireEffect(traitProfile, 'boon', 'stability');
+      if (selectedEffect)
+        runtime.effects.emit({
+          kind: 'profile',
+          profile: traitProfile,
+          effects: [selectedEffect],
+          at: runtime.time,
+          attribution: {
+            source: 'Trait',
+            sourceId: TRAIT.BRAVE_STRIDE,
+            actorType: 'effect',
+            skillId: cast.skill.id,
+            skillName: cast.skill.name,
+            activationId: cast.id
+          },
+          transform: (event) => ({ ...event, name: 'Brave Stride', priority: 0 })
+        });
+    }
+  }
+}
+
+/** Apply line-owned rewards at the shared reaction boundary. */
+export function buildingMomentumBurst(runtime: WarriorRuntime): void {
+  if (hasTrait(runtime, TRAIT.BUILDING_MOMENTUM))
+    runtime.endurance.grant(
+      balanceProfileNumber(requireBalanceProfileFromContext(runtime, TRAIT.BUILDING_MOMENTUM), 'resourceGain')
+    );
+}
+
+/** Apply line-owned rewards at the shared reaction boundary. */
+export function berserkersPowerBurst(runtime: WarriorRuntime, event: Gw2ResolverEvent, skill: WarriorSkill): void {
+  if (
+    !skill.dragonSlash &&
+    hasTrait(runtime, TRAIT.BERSERKERS_POWER) &&
+    Number(event.metadata?.warriorAdrenalineSpent) > 0
+  ) {
+    const traitProfile = requireBalanceProfileFromContext(runtime, TRAIT.BERSERKERS_POWER);
+    runtime.effects.emit({
+      kind: 'profile',
+      profile: traitProfile,
+      effects: traitProfile.effects?.filter((effect) => ['boon', 'buff', 'condition'].includes(effect.type)),
+      attribution: {
+        source: 'Trait',
+        sourceId: TRAIT.BERSERKERS_POWER,
+        actorType: 'effect',
+        skillId: event.skillId,
+        skillName: event.skillName
+      },
+      cause: event,
+      transform: (packet) => ({
+        ...packet,
+        priority: 5,
+        name: traitProfile.name,
+        stacks: Number(event.metadata?.warriorBurstTier) + 1
+      })
+    });
+  }
+}
+
+/** Apply line-owned rewards at the shared reaction boundary. */
+export function forcefulGreatswordCritical(
+  runtime: WarriorRuntime,
+  event: Gw2ResolverEvent,
+  opportunity: ReturnType<typeof criticalOpportunity>
+): void {
+  if (hasTrait(runtime, TRAIT.FORCEFUL_GREATSWORD)) {
+    const weapons = gw2ConfiguredWeaponSet(runtime.config, runtime.activeWeaponSet);
+    const chance = balanceProfileNumber(
+      requireBalanceProfileFromContext(runtime, TRAIT.FORCEFUL_GREATSWORD),
+      'procChance'
+    );
+    const proc = advanceCriticalProc(opportunity, {
+      id: 'warrior.core.forceful-greatsword',
+      at: runtime.time,
+      chanceOnCriticalHit: Math.min(1, chance * (weapons.includes('Greatsword') ? 2 : 1)),
+      randomStream: 'warrior.forceful-greatsword',
+      roll: (chance, stream) => runtime.random.roll(chance, stream)
+    });
+    if (proc) {
+      const traitProfile = requireBalanceProfileFromContext(runtime, TRAIT.FORCEFUL_GREATSWORD);
+      runtime.effects.emit({
+        kind: 'profile',
+        profile: traitProfile,
+        effects: traitProfile.effects?.filter((effect) => ['boon', 'buff', 'condition'].includes(effect.type)),
+        attribution: {
+          source: 'Trait',
+          sourceId: TRAIT.FORCEFUL_GREATSWORD,
+          actorType: 'effect',
+          skillId: event.skillId,
+          skillName: event.skillName
+        },
+        cause: event,
+        transform: (packet) => ({
+          ...packet,
+          priority: 5,
+          name: traitProfile.name,
+          stacks: proc.quantity * Number(packet.stacks)
+        })
+      });
+    }
+  }
+}
+
+/** Berserk's live power pool participates in Great Fortitude's conversion. */
+export function convertBerserkPower(
+  context: Gw2ModifierContext,
+  result: Gw2MutableStats & { ferocity: number },
+  powerBonus: number
+): void {
+  if (hasTrait(context, TRAIT.GREAT_FORTITUDE)) {
+    const greatFortitudeProfile = requireBalanceProfileFromContext(context, TRAIT.GREAT_FORTITUDE);
+    const conversion = balanceProfileNumber(greatFortitudeProfile, 'attributeConversion');
+    result.vitality = (result.vitality || 0) + powerBonus * conversion;
+    result.ferocity += powerBonus * conversion;
+  }
+}
+
+/** Dragon Slash grants the charge-converted reward at completion. */
+export function berserkersPowerDragonSlash(
+  runtime: WarriorRuntime,
+  cast: RuntimeCast<WarriorSkill>,
+  adrenalineSpent: number
+): void {
+  {
+    if (hasTrait(runtime, TRAIT.BERSERKERS_POWER)) {
+      const traitProfile = requireBalanceProfileFromContext(runtime, TRAIT.BERSERKERS_POWER);
+      runtime.effects.emit({
+        kind: 'profile',
+        profile: traitProfile,
+        effects: traitProfile.effects?.filter((effect) => effect.type === 'boon' || effect.type === 'buff'),
+        attribution: {
+          source: 'Trait',
+          sourceId: TRAIT.BERSERKERS_POWER,
+          actorType: 'effect',
+          skillId: cast.skill.id,
+          skillName: cast.skill.name,
+          activationId: cast.id
+        },
+        transform: (event) => ({ ...event, name: traitProfile.name, stacks: adrenalineSpent / 10 + 1, priority: 5 })
+      });
+    }
+  }
+}

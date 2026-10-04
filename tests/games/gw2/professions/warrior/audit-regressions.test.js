@@ -12,7 +12,7 @@ import { WARRIOR_SKILL_IDS as ID, WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/profes
 import { createWarriorBuildDefaults } from '#gw2/professions/warrior/build/build.js';
 import { applyWarriorBuildAttributeRules } from '#gw2/professions/warrior/build/attributes.js';
 import { createCalculateAttributes } from '#gw2/platform/builds/attributes.js';
-import { modifyWarriorStrengthAttributes } from '#gw2/professions/warrior/core/traits/behavior.js';
+import { modifyWarriorStrengthAttributes } from '#gw2/professions/warrior/core/traits/strength.js';
 import { warriorTooltips } from '#gw2/professions/warrior/app/tooltips.js';
 import { applyBalanceProfilePatch } from '#gw2/integrations/patches/authoring/patches.js';
 
