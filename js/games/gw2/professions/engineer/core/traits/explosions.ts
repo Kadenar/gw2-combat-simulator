@@ -98,6 +98,7 @@ export function emitExplosiveEntrance(context: EngineerResolverContext, event: E
   context.effects.emit({
     kind: 'packet',
     event: buildEngineerStrike(event, {
+      skillWeapon: 'Unequipped',
       name: 'Explosive Entrance',
       coefficient: effectNumber(explosiveEntranceProfile, explosiveEntranceStrike, 'coefficient'),
       sourceId: TRAIT.EXPLOSIVE_ENTRANCE,
@@ -345,6 +346,7 @@ export function emitAimAssistedRocket(
       kind: 'packet',
       event: {
         ...buildEngineerStrike(event, {
+          skillWeapon: 'Unequipped',
           // The trait owns both variants; retain their distinct skill identities and display names.
           name: orbital ? 'Orbital Command Strike' : 'Aim-Assisted Rocket',
           coefficient: effectNumber(aimAssistedRocketProfile, rocket, 'coefficient'),

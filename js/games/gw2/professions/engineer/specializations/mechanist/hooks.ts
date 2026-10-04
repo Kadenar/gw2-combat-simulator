@@ -2,8 +2,7 @@ import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-h
 import { prepareGw2BuffCompanionCandidates } from '#gw2/platform/combat/state/allied-players.js';
 import { criticalProcHandler } from '#gw2/platform/profession-definition/mechanics.js';
 import { summonQuicknessCastTimeMs } from '#gw2/platform/execution/cast-timing.js';
-import { engineerMechCoreCriticalDefinitions } from '#gw2/professions/engineer/core/traits/critical-procs.js';
-import { engineerMechResolverEvent } from '#gw2/professions/engineer/specializations/mechanist/mechanics/mech-ownership.js';
+import { engineerMechCriticalDefinitions } from '#gw2/professions/engineer/specializations/mechanist/traits/firearms.js';
 import { overclockRechargeRules } from '#gw2/professions/engineer/specializations/mechanist/skills/signet-skills.js';
 import { reactToMechArmDamage } from '#gw2/professions/engineer/specializations/mechanist/traits/behavior.js';
 import { EPSILON } from '#kernel/core/clock.js';
@@ -23,7 +22,7 @@ import {
 import { mechanistState } from '#gw2/professions/engineer/specializations/mechanist/state.js';
 import type { EngineerSkill, EngineerRuntimeState } from '#gw2/professions/engineer/types.js';
 
-const critical = engineerMechCoreCriticalDefinitions(engineerMechResolverEvent).map(criticalProcHandler);
+const critical = engineerMechCriticalDefinitions.map(criticalProcHandler);
 
 /** Commands reserve the summon lane immediately; its autoattack phase resumes only after command recovery. */
 export const mechanistHooks: RuntimeHooks<EngineerRuntimeState, EngineerSkill> = {

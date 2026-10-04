@@ -6,6 +6,8 @@ import { buildResolverBuff, buildResolverCondition, buildResolverStrike } from '
 import type { EngineerResolverContext, EngineerResolverEvent, EngineerSkill } from '#gw2/professions/engineer/types.js';
 
 interface QueueDamageOptions {
+  /** Callers select the weapon identity; general strike construction must not assume Spear. */
+  readonly skillWeapon: NonNullable<SimulationEventBase['skillWeapon']>;
   readonly name: string;
   readonly coefficient: number;
   readonly sourceId?: SkillId | null;
@@ -68,6 +70,7 @@ export function buildEngineerStrike(
   {
     name,
     coefficient,
+    skillWeapon,
     sourceId = event.skillId,
     actorType = 'player',
     ownerActorType,
@@ -92,8 +95,7 @@ export function buildEngineerStrike(
     // skillId only on player events — summon/effect damage should not carry the parent skill ID
     skillId: actorType === 'player' ? event.skillId : undefined,
     ...(actorType === 'player' ? { activationId: event.activationId, offTarget: event.offTarget } : {}),
-    // "Spear" default for player spear skills; non-player damage uses "Unequipped" for weapon lookups
-    skillWeapon: actorType === 'player' ? 'Spear' : 'Unequipped',
+    skillWeapon,
     canCrit,
     explosion,
     ...(comboFinisher

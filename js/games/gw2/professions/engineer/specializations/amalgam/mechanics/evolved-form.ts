@@ -6,8 +6,10 @@ import {
 } from '#gw2/platform/skills/balance-profiles.js';
 import { buildEngineerPackets } from '#gw2/professions/engineer/core/events.js';
 import { AMALGAM_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/engineer/specializations/amalgam/profiles.js';
-import type { AmalgamMorphKind } from '#gw2/professions/engineer/specializations/amalgam/skills/protocol-skills.js';
-import { AMALGAM_MORPH_KIND_BY_SKILL_ID } from '#gw2/professions/engineer/specializations/amalgam/skills/protocol-skills.js';
+import {
+  AMALGAM_MORPH_KIND_BY_SKILL_ID,
+  type AmalgamMorphKind
+} from '#gw2/professions/engineer/specializations/amalgam/selection-policy.js';
 import { amalgamState } from '#gw2/professions/engineer/specializations/amalgam/state.js';
 import { applyAmalgamEvolveTraits } from '#gw2/professions/engineer/specializations/amalgam/traits/behavior.js';
 import type { EngineerRuntime, EngineerSkill } from '#gw2/professions/engineer/types.js';

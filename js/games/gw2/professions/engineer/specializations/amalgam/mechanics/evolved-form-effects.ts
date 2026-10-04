@@ -33,6 +33,7 @@ function reactToAmalgamDamage(context: EngineerResolverContext, event: EngineerR
       context.effects.emit({
         kind: 'packet',
         event: buildEngineerStrike(event, {
+          skillWeapon: 'Unequipped',
           name: 'Rapacious Strain',
           coefficient: Number(strike.coefficient),
           sourceId: 'engineer.rapacious-strain',

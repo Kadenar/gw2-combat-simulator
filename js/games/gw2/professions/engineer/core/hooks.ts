@@ -15,17 +15,17 @@ import { applyEngineerDodgeTraits } from '#gw2/professions/engineer/core/traits/
 
 import { buildEngineerPackets } from '#gw2/professions/engineer/core/events.js';
 import { engineerCoreCastAvailability } from '#gw2/professions/engineer/core/mechanics/availability.js';
-import {
-  handleConduitSurge,
-  handleElectricArtillery,
-  handleLightningRodPulse
-} from '#gw2/professions/engineer/core/mechanics/event-handlers.js';
 import { engineerEndurance } from '#gw2/professions/engineer/core/mechanics/resources.js';
 import {
   engineerSpearSideEffectHandlers,
+  engineerSpearTasks,
+  engineerSpearEffects,
+  engineerSpearEventHandlers
+} from '#gw2/professions/engineer/core/mechanics/spear.js';
+import {
   engineerTurretSideEffectHandlers,
-  engineerWeaponTasks
-} from '#gw2/professions/engineer/core/mechanics/weapons.js';
+  engineerTurretTasks
+} from '#gw2/professions/engineer/core/mechanics/turrets.js';
 import { engineerCoreCriticalHitDefinitions } from '#gw2/professions/engineer/core/traits/critical-procs.js';
 import {
   applyEngineerCastTraits,
@@ -37,7 +37,6 @@ import { ENGINEER_SKILL_IDS as ID } from '#gw2/professions/engineer/data/ids.js'
 import type { EngineerRuntime, EngineerRuntimeState, EngineerSkill } from '#gw2/professions/engineer/types.js';
 
 const critical = engineerCoreCriticalHitDefinitions.map(criticalProcHandler);
-const customSpear = new Set<number>([ID.LIGHTNING_ROD, ID.CONDUIT_SURGE, ID.ELECTRIC_ARTILLERY]);
 
 /** Precast mines retain activation ownership until the actual combat boundary permits detonation. */
 function detonatePrecastMines(runtime: EngineerRuntime): void {
@@ -145,9 +144,7 @@ export const engineerCoreHooks: RuntimeHooks<EngineerRuntimeState, EngineerSkill
   },
   reserveRecharge: (_runtime, skill, work) => (skill.id === ID.HEALING_TURRET ? 0 : work),
   onCombatStart: detonatePrecastMines,
-  modifyEffects(_runtime, cast, effects) {
-    return customSpear.has(Number(cast.skill.id)) ? [] : effects;
-  },
+  modifyEffects: engineerSpearEffects,
   onCastStart(runtime, cast) {
     if (cast.skill.independentCast) applyEngineerToolbeltTraits(runtime, cast.skill, runtime.time);
     if (cast.skill.id !== SHARED_SKILL_IDS.DODGE) return;
@@ -159,12 +156,10 @@ export const engineerCoreHooks: RuntimeHooks<EngineerRuntimeState, EngineerSkill
   onCastCommit(runtime, cast) {
     applyEngineerCastTraits(runtime, cast);
   },
-  tasks: engineerWeaponTasks,
+  tasks: { ...engineerSpearTasks, ...engineerTurretTasks },
   eventHandlers: {
     'engineer.air-blast': handleAirBlast,
-    'engineer.lightning-rod-pulse': handleLightningRodPulse,
-    'engineer.conduit-surge': handleConduitSurge,
-    'engineer.electric-artillery': handleElectricArtillery
+    ...engineerSpearEventHandlers
   },
   reactions: {
     'damage.resolved'(runtime, event, details) {

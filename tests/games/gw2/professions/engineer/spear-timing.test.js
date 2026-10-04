@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { engineerCatalog, engineerProfession } from '#gw2/professions/engineer/profession.js';
 import { ENGINEER_SKILL_IDS as ID } from '#gw2/professions/engineer/data/ids.js';
-import { engineerSpearSideEffectHandlers } from '#gw2/professions/engineer/core/mechanics/weapons.js';
+import { engineerSpearSideEffectHandlers } from '#gw2/professions/engineer/core/mechanics/spear.js';
 import { applySkillSideEffects } from '#gw2/platform/effects/action-dispatch.js';
 import { withSkill } from '#tests/helpers/catalog-overrides.js';
 import { runEngineer } from '#tests/helpers/engineer-simulation.js';

@@ -18,7 +18,7 @@ import {
   type ProfessionTooltips,
   type DescribeSimulationTooltip
 } from '#gw2/app/shared/simulation-tooltip.js';
-import { AMALGAM_MORPH_KIND_BY_SKILL_ID } from '#gw2/professions/engineer/specializations/amalgam/skills/protocol-skills.js';
+import { AMALGAM_MORPH_KIND_BY_SKILL_ID } from '#gw2/professions/engineer/specializations/amalgam/selection-policy.js';
 import { ENGINEER_CORE_BALANCE_PROFILE_IDS as CORE } from '#gw2/professions/engineer/core/profiles.js';
 import { HOLOSMITH_BALANCE_PROFILE_IDS as HOLOSMITH } from '#gw2/professions/engineer/specializations/holosmith/profiles.js';
 import { MECHANIST_BALANCE_PROFILE_IDS as MECHANIST } from '#gw2/professions/engineer/specializations/mechanist/profiles.js';

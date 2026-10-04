@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { handleLightningRodPulse } from '#gw2/professions/engineer/core/mechanics/event-handlers.js';
+import { handleLightningRodPulse } from '#gw2/professions/engineer/core/mechanics/spear.js';
 import { ENGINEER_SKILL_IDS as ID } from '#gw2/professions/engineer/data/ids.js';
 import { runEngineer } from '#tests/helpers/engineer-simulation.js';
 

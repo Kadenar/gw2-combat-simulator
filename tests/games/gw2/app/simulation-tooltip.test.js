@@ -886,7 +886,7 @@ test('completed profession skill declarations cover ordinary and handler-driven 
 test('Engineer spear resolver and tooltip use the same selected packet profile', async () => {
   const { engineerProfession } = await import('#gw2/professions/engineer/profession.js');
   const { engineerTooltips } = await import('#gw2/professions/engineer/app/tooltips.js');
-  const { handleElectricArtillery } = await import('#gw2/professions/engineer/core/mechanics/event-handlers.js');
+  const { handleElectricArtillery } = await import('#gw2/professions/engineer/core/mechanics/spear.js');
   const profession = withPatchPreview(engineerProfession, {
     id: 'spear-tooltip',
     label: 'Spear tooltip',

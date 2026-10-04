@@ -1,3 +1,4 @@
+import { engineerSpearAvailability } from '#gw2/professions/engineer/core/mechanics/spear.js';
 import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
 import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
 import { skillFlipReady } from '#gw2/platform/execution/skill-flips.js';
@@ -19,27 +20,8 @@ export function engineerCoreCastAvailability(
     return denyEngineerCast(skill, 'engineer.healing-turret-active', 'the deployed turret must be detonated first.');
   }
 
-  const artillery = state.availableFlips[ID.ELECTRIC_ARTILLERY];
-  if (skill.id === ID.ELECTRIC_ARTILLERY && !skillFlipReady(artillery, context.time)) {
-    // The stored window carries readiness even while its palette tile is hidden.
-    const retryAt = artillery?.availableAt || 0;
-    return denyEngineerCast(
-      skill,
-      'engineer.electric-artillery-inactive',
-      'Lightning Rod has not finished charging.',
-      retryAt > context.time ? retryAt : null
-    );
-  }
-
-  if (skill.id === ID.LIGHTNING_ROD && artillery && (artillery.expiresAt ?? Infinity) > context.time) {
-    // block re-cast while EA is available OR while the charge window is still open (both share the slot)
-    return denyEngineerCast(
-      skill,
-      'engineer.lightning-rod-active',
-      'Electric Artillery currently replaces this skill.',
-      artillery.expiresAt
-    );
-  }
+  const spear = engineerSpearAvailability(context, skill);
+  if (!spear.ready) return spear;
 
   if (skill.id === SHARED_SKILL_IDS.SWAP_WEAPONS) {
     // engineers have no weapon swap except to exit a kit back to baseline weapons

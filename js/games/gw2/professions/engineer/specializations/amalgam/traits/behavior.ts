@@ -23,22 +23,12 @@ import { applyAmalgamStrain } from '#gw2/professions/engineer/specializations/am
 import {
   AMALGAM_MORPH_KIND_BY_SKILL_ID,
   type AmalgamMorphKind
-} from '#gw2/professions/engineer/specializations/amalgam/skills/protocol-skills.js';
+} from '#gw2/professions/engineer/specializations/amalgam/selection-policy.js';
 import { amalgamState } from '#gw2/professions/engineer/specializations/amalgam/state.js';
 import { resolverSkill, buildEngineerCondition } from '#gw2/professions/engineer/core/mechanics/resolution-helpers.js';
 
 // Keep Morph, Evolve, and their trait reactions together so form transitions share one behavior owner.
 const EVOLVE_SKILL_IDS = new Set<SkillId>([ID.EVOLVE_BASE, ID.EVOLVE_DOUBLE_HELIX]);
-
-/** Both existing Evolve IDs and rotation names resolve to the currently selected Double Helix variant. */
-export function resolveAmalgamSkillId(doubleHelix: boolean, skillId: SkillId): SkillId {
-  if (
-    !EVOLVE_SKILL_IDS.has(Number(skillId)) &&
-    !['Evolve', 'Evolve (Base)', 'Evolve (Double Helix)'].includes(String(skillId))
-  )
-    return skillId;
-  return doubleHelix ? ID.EVOLVE_DOUBLE_HELIX : ID.EVOLVE_BASE;
-}
 
 /** Only the selected Double Helix variant receives the active profile's Evolve ammo capacity. */
 export function amalgamMaximumAmmo(context: MaximumAmmoContext<object>, skill: EngineerSkill, maximum: number): number {

@@ -2,7 +2,7 @@ import { requireBalanceProfileFromContext, balanceProfileNumber } from '#gw2/pla
 import { buildEngineerPackets } from '#gw2/professions/engineer/core/events.js';
 import { amalgamState } from '#gw2/professions/engineer/specializations/amalgam/state.js';
 import { AMALGAM_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/engineer/specializations/amalgam/profiles.js';
-import type { AmalgamMorphKind } from '#gw2/professions/engineer/specializations/amalgam/skills/protocol-skills.js';
+import type { AmalgamMorphKind } from '#gw2/professions/engineer/specializations/amalgam/selection-policy.js';
 import type { EngineerRuntime } from '#gw2/professions/engineer/types.js';
 /**
  * Owns Amalgam Evolve, locked-slot, and evolved-state skill fragments.

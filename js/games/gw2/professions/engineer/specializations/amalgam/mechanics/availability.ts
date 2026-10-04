@@ -4,7 +4,7 @@ import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
 import type { AvailabilityResult } from '#gw2/platform/execution/types.js';
 import { amalgamState } from '#gw2/professions/engineer/specializations/amalgam/state.js';
-import { resolveAmalgamSkillId } from '#gw2/professions/engineer/specializations/amalgam/traits/behavior.js';
+import { resolveAmalgamSkillId } from '#gw2/professions/engineer/specializations/amalgam/selection-policy.js';
 import type { EngineerRuntime, EngineerSkill } from '#gw2/professions/engineer/types.js';
 
 /** Rejects Amalgam actions that do not match the selected protocols or Double Helix trait. */
