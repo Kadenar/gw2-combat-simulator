@@ -191,9 +191,9 @@ export const luminaryHooks: Partial<RuntimeProfession<GuardianRuntimeState, Guar
   /** Initialize only damage-relevant form and scaling state for one assumed occurrence. */
   prepareDamageState(runtime, skill, inputs) {
     const state = luminaryState.from(runtime);
-    state.radiantForge = Boolean(skill.radiantForgeSkill);
+    state.radiantForge = Boolean(skill?.radiantForgeSkill);
     state.radiantForgeEndsAt = Infinity;
-    state.radiantWeapon = skill.radiantWeapon ?? '';
+    state.radiantWeapon = skill?.radiantWeapon ?? '';
     if (inputs.radiantHammer)
       runtime.effects.emit({
         kind: 'packet',

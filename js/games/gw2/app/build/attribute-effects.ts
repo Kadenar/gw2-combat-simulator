@@ -8,12 +8,12 @@ import {
 } from '#gw2/platform/profession-presentation/attribute-preview.js';
 
 /** Supply the active preview catalog and weapon set without exposing application state to profession hooks. */
-export function attributePreviewContext(app: ProfessionAppState): ProfessionAttributePreviewContext {
+export function attributePreviewContext(app: ProfessionAppState, weaponSet: number): ProfessionAttributePreviewContext {
   return {
     build: app.build,
     specialization: app.adapter.eliteSpecialization(app.build),
     activeTraits: app.attributeData!.activeTraits,
-    weapons: app.attributeWeaponSet === 2 ? app.build.alternateWeapons : app.build.weapons,
+    weapons: weaponSet === 2 ? app.build.alternateWeapons : app.build.weapons,
     catalog: app.activeCatalog || app.profession.catalog
   };
 }
@@ -49,7 +49,7 @@ export function attributeEffectControls(app: ProfessionAppState): PreviewControl
   // Profession controls are shared with the skill damage panel; only attribute-scoped ones belong here.
   controls.push(
     ...app.profession.ui
-      .previewControls(attributePreviewContext(app))
+      .previewControls(attributePreviewContext(app, app.attributeWeaponSet))
       .filter((control) => previewControlScopes(control).includes('attributes'))
   );
   return controls;

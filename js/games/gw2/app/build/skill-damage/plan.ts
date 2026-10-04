@@ -1,6 +1,6 @@
 import type { GameContentAddress } from '#browser/game/contracts.js';
 import { attributePreviewContext, normalizeAttributePreview } from '#gw2/app/build/attribute-effects.js';
-import { createIsolatedPreview } from '#gw2/app/build/isolated-preview.js';
+import { createSkillDamagePreview } from '#gw2/app/build/skill-damage/preview.js';
 import { availableSlotSkills } from '#gw2/app/build/panels/skills.js';
 import {
   createPaletteContext,
@@ -20,7 +20,6 @@ import {
   type PreviewControl
 } from '#gw2/platform/profession-presentation/attribute-preview.js';
 import type { SkillDamageState } from '#gw2/platform/profession-presentation/skill-damage.js';
-import type { Gw2Config, Gw2InitialBuff } from '#gw2/platform/simulation/config.js';
 import { damageOccurrences } from '#gw2/platform/skill-damage/catalog.js';
 import type { SkillDamageOccurrence, SkillDamageRequest } from '#gw2/platform/skill-damage/types.js';
 
@@ -54,7 +53,6 @@ export interface SkillDamagePlan {
   readonly signature: string;
 }
 
-const PREVIEW_BUFF_SECONDS = 3600;
 const SLOT_TYPES = Object.freeze(['Heal', 'Utility', 'Elite'] as const);
 
 /** Shared controls the damage panel always offers; professions add their own conditionals beside them. */
@@ -126,9 +124,15 @@ export function skillDamageControls(app: ProfessionAppState): PreviewControl[] {
     });
   const keys = new Set(shared.map((control) => control.key));
   // Retain profession boons such as Resolution; only shared keys are already represented.
-  const owned = app.profession.ui
-    .previewControls(attributePreviewContext(app))
-    .filter((control) => previewControlScopes(control).includes('damage') && !keys.has(control.key));
+  // Damage rows cover every equipped set, independently of the Attribute Preview selector.
+  const sets = app.build.alternateWeapons?.[0] ? [1, 2] : [1];
+  const owned = sets
+    .flatMap((set) => app.profession.ui.previewControls(attributePreviewContext(app, set)))
+    .filter((control) => {
+      if (!previewControlScopes(control).includes('damage') || keys.has(control.key)) return false;
+      keys.add(control.key);
+      return true;
+    });
   return [...shared, ...owned];
 }
 
@@ -241,7 +245,7 @@ function mechanicGroups(
   app: ProfessionAppState,
   claimed: ReadonlySet<SkillId>
 ): { id: string; title: string; skills: Skill[] }[] {
-  const declared = app.profession.ui.skillDamageGroups(attributePreviewContext(app));
+  const declared = app.profession.ui.skillDamageGroups(attributePreviewContext(app, app.build.startingWeaponSet));
   const sorted = [...declared].sort((left, right) => (left.order ?? 0) - (right.order ?? 0));
   const seen = new Set(claimed);
   const groups = [
@@ -340,85 +344,13 @@ function chainContext(app: ProfessionAppState, skill: Skill): string {
   return length > 1 ? `chain ${before.length + 1} of ${length}` : '';
 }
 
-/**
- * Builds the detached preview configuration: the saved build with this panel's boons, target conditions, held
- * buffs, and profession fields applied; deterministic runs average critical damage, and the target cannot die.
- */
-function previewConfig(
-  app: ProfessionAppState,
-  controls: readonly PreviewControl[],
-  values: AttributePreviewValues
-): Gw2Config {
-  const boons = Object.fromEntries(
-    GW2_STANDARD_BOONS.map((kind) => [kind, kind === 'might' ? Number(values[kind] || 0) : Boolean(values[kind])])
-  );
-  const { config, context } = createIsolatedPreview(
-    app,
-    controls,
-    values,
-    boons,
-    Number(app.build.startingWeaponSet) === 2 ? 2 : 1
-  );
-  // Only this panel's explicit values become assumptions; hidden saved conditions cannot leak into Clear buffs.
-  const conditions: Record<string, unknown> = {};
-  for (const control of controls) {
-    if (control.kind !== 'condition') continue;
-    const stacks = Number(values[control.key]) || 0;
-    if (stacks > 0) conditions[control.field ?? control.key] = control.max ? stacks : true;
-    else delete conditions[control.field ?? control.key];
-  }
-
-  const disabledTraitIds = new Set(
-    controls
-      .filter((control) => control.kind === 'queryTrait' && !values[control.key])
-      .map((control) => context.activeTraits.find((trait) => trait.name === control.field)?.id)
-  );
-  const initialBuffs: Gw2InitialBuff[] = controls
-    .filter((control) => control.kind === 'buff' && Number(values[control.key]) > 0)
-    .map((control) => ({
-      kind: control.field || control.key,
-      stacks: Number(values[control.key]),
-      duration: PREVIEW_BUFF_SECONDS,
-      name: control.label
-    }));
-  const targetHealth = values.targetHealth == null ? null : Number(values.targetHealth) / 100;
-  const patch = app.profession.ui.prepareSkillDamagePreview({ ...attributePreviewContext(app), values });
-  return {
-    ...config,
-    ...patch,
-    // Explicit preview toggles take precedence over boons enforced by normal simulation configuration.
-    boons: {
-      ...config.boons,
-      ...Object.fromEntries(
-        controls.filter((control) => control.kind === 'boon').map((control) => [control.key, boons[control.key]])
-      )
-    },
-    randomness: { ...config.randomness, mode: 'deterministic' } as Gw2Config['randomness'],
-    criticalDamageMode: 'averaged',
-    fixedBoonCount: Number(values.boonCount) || 0,
-    ...(values.thornsStacks == null ? {} : { initialThornsStacks: Number(values.thornsStacks) }),
-    selectedTraitIds: config.selectedTraitIds?.filter((id) => !disabledTraitIds.has(id)),
-    ...(initialBuffs.length ? { initialBuffs } : {}),
-    target: {
-      ...config.target,
-      // An unbounded target keeps every occurrence on the supported target-health path without dying mid-measurement.
-      health: 0,
-      fixedHealthFraction: targetHealth ?? config.target?.startingHealthFraction ?? 1,
-      ...(targetHealth == null ? {} : { startingHealthFraction: targetHealth }),
-      ...(values.targetMoving == null ? {} : { moving: Boolean(values.targetMoving) }),
-      conditions: conditions as NonNullable<Gw2Config['target']>['conditions']
-    }
-  };
-}
-
 /** Enumerates rows and occurrences, then attaches the preview configuration every occurrence shares. */
 export function createSkillDamagePlan(
   app: ProfessionAppState,
   controls: readonly PreviewControl[],
   values: AttributePreviewValues
 ): SkillDamagePlan {
-  const config = previewConfig(app, controls, values);
-  const context = attributePreviewContext(app);
+  const { config, context, inputs } = createSkillDamagePreview(app, controls, values);
   const groups: SkillDamageGroupDefinition[] = [];
   const rows = new Map<string, SkillDamageRowDefinition>();
   const occurrences: SkillDamageOccurrence[] = [];
@@ -429,7 +361,14 @@ export function createSkillDamagePlan(
     base: { context: string; weaponSet?: number }
   ): string => {
     const id = `${group.id}:${skill.id}`;
-    const owned: SkillDamageState | null = app.profession.ui.skillDamageState({ ...context, values }, skill);
+    const owned: SkillDamageState | null = app.profession.ui.skillDamageState(
+      {
+        ...context,
+        weapons:
+          base.weaponSet === 2 ? app.build.alternateWeapons : base.weaponSet === 1 ? app.build.weapons : context.weapons
+      },
+      skill
+    );
     occurrences.push({
       id,
       effect: { kind: 'skill', id: skill.id },
@@ -527,6 +466,6 @@ export function createSkillDamagePlan(
   if (actionIds.length) groups.push({ ...actionGroup, rowIds: actionIds });
 
   occurrences.push(...damageOccurrences(app.profession.runtimeFor(config), config));
-  const request = { gameId: app.gameId, contentId: app.contentId, config, occurrences };
+  const request = { gameId: app.gameId, contentId: app.contentId, config, inputs, occurrences };
   return { groups, rows, request, signature: JSON.stringify(request) };
 }

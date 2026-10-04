@@ -1,6 +1,6 @@
 import { captureEffectEmissions } from '#tests/helpers/effect-emission.js';
 import { recordProcStep } from '#gw2/platform/results/proc-steps.js';
-import { effectStateAt } from '#gw2/platform/results/effect-report.js';
+import { effectStateAt, effectSummary } from '#gw2/platform/results/effect-report.js';
 import { buildChartSeries } from '#gw2/app/results/model.js';
 import { comboDefinition } from '#gw2/platform/combos/definitions.js';
 import { RELIC_IDS } from '#gw2/platform/equipment/relics/data.js';
@@ -156,6 +156,26 @@ test('Last Tyrant ignores non-burning and non-player applications', () => {
   assert.equal(Number(relic.state.stacks || 0), 0);
   relic.rules.condition(ctx, relic.state, burning(0, { actorType: 'effect', ownerActorType: 'player' }), helpers);
   assert.equal(relic.state.stacks, 1);
+});
+
+// Consuming Fury ends its report window; the next eligible application starts a fresh stack cycle.
+test('Last Tyrant reports zero stacks after its explosion and through cooldown', () => {
+  const result = resolveTestGw2Events({
+    config: { relic: 'Last Tyrant' },
+    events: [...Array.from({ length: 6 }, (_, at) => burning(at)), burning(10), burning(18)],
+    endTime: 20
+  });
+  assert.deepEqual(result.warnings, []);
+  const report = result.effectReport;
+  const track = report.tracks.find((entry) => entry.kind === 'relic:Relic of the Last Tyrant');
+  assert.equal(effectStateAt(report, track, 4).count, 5);
+  assert.equal(effectStateAt(report, track, 5).count, 0);
+  assert.equal(effectStateAt(report, track, 17).count, 0);
+  assert.equal(effectStateAt(report, track, 18).count, 1);
+  const summary = effectSummary(track, 0, 20);
+  assert.equal(summary.uptime, 7 / 20);
+  assert.equal(summary.averageStacks, 17 / 20);
+  assert.equal(summary.maximumStackUptime, 1 / 20);
 });
 
 // Actual skill packets must finish a four-stack Fury cycle at one impact without multiplying Burning damage.

@@ -121,8 +121,8 @@ export const elementalistCoreHooks: Partial<RuntimeProfession<ElementalistRuntim
   /** Initialize only damage-relevant form and scaling state for one assumed occurrence. */
   prepareDamageState(runtime, skill, inputs) {
     const state = runtime.profession.core;
-    if (skill.weapon && CONJURED_WEAPONS.has(skill.weapon)) state.conjureEquipped = skill.weapon;
-    if (skill.id === ID.GRAND_FINALE)
+    if (skill?.weapon && CONJURED_WEAPONS.has(skill.weapon)) state.conjureEquipped = skill.weapon;
+    if (skill?.id === ID.GRAND_FINALE)
       for (const element of ELEMENTALIST_ATTUNEMENTS)
         state.hammerOrbs[element] = inputs[`orb:${element}`] ? 3600 : null;
   },

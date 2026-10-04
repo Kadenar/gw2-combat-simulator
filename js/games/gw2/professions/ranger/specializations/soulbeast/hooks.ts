@@ -22,7 +22,7 @@ import type { RangerRuntimeState, RangerSkill } from '#gw2/professions/ranger/ty
 export const soulbeastHooks: Partial<RuntimeProfession<RangerRuntimeState, RangerSkill>> = {
   /** Initialize only damage-relevant form and scaling state for one assumed occurrence. */
   prepareDamageState(runtime, skill, inputs) {
-    soulbeastState.from(runtime).beastmodeActive = Boolean(skill.beastmodeSkill || inputs.merged);
+    soulbeastState.from(runtime).beastmodeActive = Boolean(skill?.beastmodeSkill || inputs.merged);
   },
 
   initialize(runtime) {

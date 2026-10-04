@@ -33,7 +33,6 @@ export const deadeyeUi = Object.freeze({
   skillDamageState(context: SkillDamagePreviewPreparation, _skill: Skill): SkillDamageState | null {
     // Direct evaluation supplies damage state without prerequisite actions.
     return {
-      inputs: { malice: Number(context.values.malice ?? 0) },
       assumptions: [`Malice: ${Number(context.values.malice ?? 0)}`]
     };
   },

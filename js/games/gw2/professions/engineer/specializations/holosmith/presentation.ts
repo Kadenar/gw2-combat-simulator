@@ -96,7 +96,6 @@ export function bindHolosmithUi(catalog: Readonly<CanonicalCatalog<HolosmithSkil
     skillDamageState(context: SkillDamagePreviewPreparation, _skill: PreviewSkill): SkillDamageState | null {
       // Direct evaluation supplies damage state without prerequisite actions.
       return {
-        inputs: { lensCharges: Number(context.values.lensCharges ?? 0) },
         assumptions: [`Solar Focusing Lens: ${Number(context.values.lensCharges ?? 0)} starting charges`]
       };
     },

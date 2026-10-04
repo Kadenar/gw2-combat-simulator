@@ -3,11 +3,7 @@ import {
   requireBalanceProfileFromContext
 } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { requireBalanceNumber } from '#gw2/platform/engine/skills/canonical-skill-catalog.js';
-import type { CanonicalCatalog, Skill as PreviewSkill } from '#gw2/platform/engine/skills/types.js';
-import type {
-  SkillDamagePreviewPreparation,
-  SkillDamageState
-} from '#gw2/platform/profession-presentation/skill-damage.js';
+import type { CanonicalCatalog } from '#gw2/platform/engine/skills/types.js';
 import { planningBuffAt } from '#gw2/platform/results/query.js';
 import {
   formatSecondsRemaining,
@@ -161,11 +157,6 @@ function luminaryEffectPresentations(): ProfessionEffectPresentation[] {
 /** Captures this UI's catalog so other profession instances cannot change its projections. */
 export function bindLuminaryUi(catalog: Readonly<CanonicalCatalog<GuardianSkill>>): GuardianUiSlice {
   return Object.freeze({
-    /** Declare damage inputs without constructing prerequisite actions. */
-    skillDamageState(context: SkillDamagePreviewPreparation, _skill: PreviewSkill): SkillDamageState | null {
-      // Direct evaluation supplies damage state without prerequisite actions.
-      return { inputs: { radiantHammer: Boolean(context.values.radiantHammer) } };
-    },
     /** Compare the native lingering armament window without inventing an independent entitlement field. */
     previewControls: () => [
       {

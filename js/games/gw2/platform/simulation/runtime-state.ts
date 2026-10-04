@@ -139,10 +139,10 @@ export interface ProfessionRuntimeOptions {
 export interface RuntimeProfession<T extends object, TSkill extends Skill = Skill> extends Gw2QueryProfession {
   /** Explicit payloads are measurable without running their activation predicates. */
   readonly damageEffects?: readonly import('#gw2/platform/skill-damage/execution.js').DamageEffectDefinition[];
-  /** Only content owners initialize damage-scaling state; preview never replays prerequisite casts. */
+  /** Content owners prepare shared damage inputs; an optional skill adds its occurrence-specific state. */
   prepareDamageState?(
     runtime: Gw2Runtime<T, TSkill>,
-    skill: TSkill,
+    skill: TSkill | undefined,
     inputs: import('#gw2/platform/skill-damage/types.js').DamageInputs
   ): void;
   /** Native owners expose accepted state using their existing stores and balance values. */

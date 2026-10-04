@@ -35,7 +35,7 @@ export const holosmithHooks: Partial<RuntimeProfession<EngineerRuntimeState, Hol
   /** Initialize only damage-relevant form and scaling state for one assumed occurrence. */
   prepareDamageState(runtime, skill, inputs) {
     const state = holosmithState.from(runtime);
-    state.photonForgeActive = Boolean(skill.forgeSkill);
+    state.photonForgeActive = Boolean(skill?.forgeSkill);
     const charges = Number(inputs.lensCharges ?? 0);
     const profile = requireBalanceProfileFromContext(runtime, TRAIT.SOLAR_FOCUSING_LENS);
     if (!Number.isInteger(charges) || charges > balanceProfileNumber(profile, 'maximumStacks'))

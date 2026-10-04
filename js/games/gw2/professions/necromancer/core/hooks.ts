@@ -114,7 +114,7 @@ export const necromancerCoreHooks: Partial<RuntimeProfession<NecromancerRuntimeS
 
   /** Initialize only damage-relevant form and scaling state for one assumed occurrence. */
   prepareDamageState(runtime, skill, _inputs) {
-    if (skill.shroud) runtime.profession.core.activeShroud = skill.shroud;
+    if (skill?.shroud) runtime.profession.core.activeShroud = skill.shroud;
   },
 
   buffPolicies: necromancerBuffPolicies,

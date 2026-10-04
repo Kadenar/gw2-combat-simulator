@@ -46,7 +46,7 @@ export function createIsolatedPreview(
   }
 
   // Profession owners may suppress a static trait before rebuilding the isolated conversion pool.
-  const context = { ...attributePreviewContext(app), build: preview.build, values };
+  const context = { ...attributePreviewContext(preview, weaponSet), values };
   const disabledTrait = app.profession.ui.attributePreviewDisabledTrait(context);
   app.adapter.recalculate(preview, disabledTrait);
   const config = app.adapter.simulationConfig(

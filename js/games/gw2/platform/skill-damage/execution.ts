@@ -24,7 +24,7 @@ export function damageInputEvent(runtime: Gw2Runtime): Gw2ResolverEvent {
 export interface DamageExecutionOptions<T extends object> {
   readonly skillId?: SkillId;
   readonly cast?: Partial<SkillDamageCastOptions>;
-  readonly initialize?: (runtime: Gw2Runtime<T>) => void;
+  readonly inputs?: DamageInputs;
   readonly emit?: (runtime: Gw2Runtime<T>) => void;
   readonly accepts: (event: SimulationEventBase) => boolean;
 }
@@ -37,7 +37,17 @@ export function createDamageExecution<T extends object>(
   let started = false;
   return {
     acceptsEffect: options.accepts,
-    initialize: options.initialize,
+    // Stat queries and measured payloads enter the same prepared state before environmental effects settle.
+    initialize(runtime) {
+      profession.prepareDamageState?.(
+        runtime,
+        options.skillId == null ? undefined : profession.catalog.skillsById.get(options.skillId),
+        {
+          ...options.inputs,
+          ...(options.cast?.releaseAtCharges == null ? {} : { charges: options.cast.releaseAtCharges })
+        }
+      );
+    },
     contributions: () => ({}),
     // Authored effect reactions stay in the shared runtime; unrelated hit-triggered procs never register.
     professionReactions: Object.fromEntries(

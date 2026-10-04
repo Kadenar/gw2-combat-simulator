@@ -42,7 +42,7 @@ export function evaluateSkillDamage(
     contentIds.set(profession, contentId);
   }
 
-  const configKey = `${contentId}|${JSON.stringify(request.config)}`;
+  const configKey = `${contentId}|${JSON.stringify(request.config)}|${JSON.stringify(request.inputs)}`;
   return {
     occurrences: request.occurrences.map((occurrence) => {
       const key = `${configKey}|${JSON.stringify(occurrence)}`;
@@ -67,7 +67,7 @@ function evaluateOccurrence(
 ): SkillDamageOccurrenceResult {
   const run = (entry: SkillDamageOccurrence) => {
     try {
-      const result = executeDamageOccurrence(profession, request.config, entry);
+      const result = executeDamageOccurrence(profession, request.config, entry, request.inputs);
       const strikes = result.events.filter(
         (event): event is StrikeHit =>
           event.type === 'damage' &&

@@ -23,7 +23,7 @@ import type { RangerRuntimeState, RangerSkill } from '#gw2/professions/ranger/ty
 export const galeshotHooks: Partial<RuntimeProfession<RangerRuntimeState, RangerSkill>> = {
   /** Initialize only damage-relevant form and scaling state for one assumed occurrence. */
   prepareDamageState(runtime, skill, _inputs) {
-    galeshotState.from(runtime).cycloneBowActive = Boolean(skill.cycloneBowSkill);
+    galeshotState.from(runtime).cycloneBowActive = Boolean(skill?.cycloneBowSkill);
   },
 
   resources: { arrows: galeshotArrows },

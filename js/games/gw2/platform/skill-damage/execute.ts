@@ -11,7 +11,7 @@ import type { Gw2Runtime } from '#gw2/platform/simulation/runtime-state.js';
 import type { SimulationEventBase } from '#gw2/platform/engine/events/events.js';
 import type { SkillEffect } from '#gw2/platform/engine/skills/types.js';
 import type { Gw2SigilProc } from '#gw2/platform/equipment/sigils/types.js';
-import type { SkillDamageOccurrence } from '#gw2/platform/skill-damage/types.js';
+import type { DamageInputs, SkillDamageOccurrence } from '#gw2/platform/skill-damage/types.js';
 
 /** Content declarations identify damaging effects even when the selected inputs resolve to zero. */
 export function hasDamage(effects: readonly SkillEffect[] | undefined): boolean {
@@ -29,9 +29,10 @@ export function hasDamage(effects: readonly SkillEffect[] | undefined): boolean 
 export function executeDamageOccurrence(
   source: Gw2ProfessionSource,
   baseConfig: Gw2Config,
-  occurrence: SkillDamageOccurrence
+  occurrence: SkillDamageOccurrence,
+  sharedInputs: DamageInputs = {}
 ) {
-  const inputs = occurrence.inputs ?? {};
+  const inputs = { ...sharedInputs, ...occurrence.inputs };
   for (const value of Object.values(occurrence.cast ?? {}))
     if (typeof value === 'number' && (!Number.isFinite(value) || value < 0))
       throw new DamageCalculationError('missing-input', 'Cast damage inputs must be finite and non-negative.');
@@ -142,13 +143,7 @@ export function executeDamageOccurrence(
       cast: occurrence.cast,
       accepts,
       emit,
-      initialize(runtime) {
-        if (skill)
-          native.prepareDamageState?.(runtime, skill, {
-            ...inputs,
-            ...(occurrence.cast?.releaseAtCharges == null ? {} : { charges: occurrence.cast.releaseAtCharges })
-          });
-      }
+      inputs
     })
   });
   if (!result.complete)

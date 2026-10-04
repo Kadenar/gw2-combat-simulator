@@ -100,7 +100,7 @@ export const engineerCoreHooks: Partial<RuntimeProfession<EngineerRuntimeState, 
   ],
   /** Initialize only damage-relevant form and scaling state for one assumed occurrence. */
   prepareDamageState(runtime, skill, _inputs) {
-    if (skill.kitId != null) runtime.profession.core.activeKit = skill.kitId;
+    if (skill?.kitId != null) runtime.profession.core.activeKit = skill.kitId;
   },
 
   buffPolicies: engineerBuffPolicies,

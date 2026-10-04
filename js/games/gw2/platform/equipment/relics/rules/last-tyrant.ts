@@ -73,7 +73,9 @@ function emitDamagePayload(ctx: Gw2RelicContext, _state: Gw2RelicState, applicat
       name: 'Relic of the Last Tyrant',
       at: application.at,
       sourceSkill: application.skillName,
-      detail: 'explosion'
+      detail: 'explosion',
+      // Consumption ends the recorded Fury stack window at the accepted explosion time.
+      effectState: { stacks: 0, maximumStacks: LAST_TYRANT_STACKS_NEEDED }
     }
   });
   ctx.effects.emit({

@@ -44,6 +44,8 @@ export interface SkillDamageOccurrence {
 
 export interface SkillDamageRequest {
   readonly config: Gw2Config;
+  /** Panel-wide damage state, shared by the stat strip and each occurrence before row-specific overrides. */
+  readonly inputs?: DamageInputs;
   readonly occurrences: readonly SkillDamageOccurrence[];
 }
 

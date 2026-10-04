@@ -9,10 +9,80 @@ import {
   skillDamageControls
 } from '#gw2/app/build/skill-damage/plan.js';
 import { createSkillDamageViewModel } from '#gw2/app/build/skill-damage/view-model.js';
+import { calculateSkillDamageAttributes } from '#gw2/app/build/buffed-attributes.js';
+import { createSkillDamagePreview } from '#gw2/app/build/skill-damage/preview.js';
+import { evaluateSkillDamage } from '#gw2/platform/skill-damage/evaluate.js';
 import { firstPresetBuildPath, headlessApp } from '#tests/helpers/skill-damage.js';
 
 const BLADESWORN = 'data/gw2/builds/warrior/b-power-bladesworn-sword-pistol.json';
 const HARBINGER = 'data/gw2/builds/necromancer/b-condi-harbinger.json';
+
+// One ordinary strike shares panel state with the strip; a Beastmode-only strike retains its own form override.
+test('Soulbeast damage attributes and occurrences share merge preparation without changing the saved build', async () => {
+  const app = await headlessApp('ranger', 'data/gw2/builds/ranger/b-power-soulbeast-hammer-axe.json');
+  const saved = structuredClone(app.build);
+  const attributes = app.attributeData;
+  const controls = skillDamageControls(app);
+  const cache = new Map();
+  const powers = [];
+  let beast;
+  for (const merged of [0, 1, 0]) {
+    const values = { ...clearedValues(controls), merged };
+    const { request } = createSkillDamagePlan(app, controls, values);
+    const strike = request.occurrences.find((entry) => entry.name === 'Hammer Strike');
+    beast = request.occurrences.find(
+      (entry) =>
+        app.skillById.get(entry.effect.id)?.beastmodeSkill &&
+        app.skillById.get(entry.effect.id)?.effects?.some((effect) => effect.type === 'strike')
+    );
+    assert.ok(strike);
+    assert.ok(beast);
+    const strip = calculateSkillDamageAttributes(app, values, controls);
+    const [measured] = evaluateSkillDamage({ ...request, occurrences: [strike] }, app.profession, cache).occurrences;
+    assert.equal(measured.status, 'measured');
+    assert.equal(measured.measurement.strikeBreakdown.power, strip.attributes.Power.final);
+    powers.push(strip.attributes.Power.final);
+    if (!merged) {
+      const [beastResult] = evaluateSkillDamage({ ...request, occurrences: [beast] }, app.profession).occurrences;
+      assert.equal(beastResult.status, 'measured');
+      assert.ok(beastResult.measurement.strikeBreakdown.power > strip.attributes.Power.final);
+    }
+  }
+
+  assert.ok(powers[1] > powers[0]);
+  assert.equal(powers[0], powers[2]);
+  assert.deepEqual(app.build, saved);
+  assert.equal(app.attributeData, attributes);
+});
+
+// Every damage row keeps its required controls even when the other panel inspects another weapon set.
+test('damage preview weapon scope is independent of Attribute Preview selection', async () => {
+  const app = await headlessApp('thief', await firstPresetBuildPath('thief'));
+  app.build.specializations = [{ name: 'Deadeye', traits: '1-1-1' }];
+  app.build.weapons = ['Axe', 'Pistol'];
+  app.build.alternateWeapons = ['Dagger', 'Pistol'];
+  app.adapter.recalculate(app);
+  for (const startingWeaponSet of [1, 2]) {
+    app.build.startingWeaponSet = startingWeaponSet;
+    app.adapter.recalculate(app);
+    const plans = [];
+    for (const attributeWeaponSet of [1, 2]) {
+      app.attributeWeaponSet = attributeWeaponSet;
+      const controls = skillDamageControls(app);
+      assert.equal(controls.filter((control) => control.key === 'spinningAxes').length, 1);
+      const values = clearedValues(controls);
+      const isolated = createSkillDamagePreview(app, controls, values);
+      assert.deepEqual(
+        isolated.context.weapons,
+        startingWeaponSet === 1 ? app.build.weapons : app.build.alternateWeapons
+      );
+      plans.push(createSkillDamagePlan(app, controls, values));
+    }
+
+    assert.equal(plans[0].signature, plans[1].signature);
+    assert.ok(plans[0].groups.some((group) => group.kind === 'weapon' && group.title === 'Axe'));
+  }
+});
 
 test('planning and measuring skill damage never changes the build, its assumptions, or its attributes', async () => {
   const app = await headlessApp('warrior', BLADESWORN);
@@ -187,7 +257,12 @@ for (const [professionId, buildPath] of [
   test(`${professionId} measures ${buildPath ?? "its first preset's"} skills`, async () => {
     const app = await headlessApp(professionId, buildPath ?? (await firstPresetBuildPath(professionId)));
     const controls = skillDamageControls(app);
-    const plan = createSkillDamagePlan(app, controls, simulationConfigValues(app, controls));
+    const values = simulationConfigValues(app, controls);
+    const plan = createSkillDamagePlan(app, controls, values);
+    // Every family can query the shared initial state without selecting a skill-specific form.
+    const strip = calculateSkillDamageAttributes(app, values, controls);
+    assert.ok(Number.isFinite(strip.attributes.Power.final));
+    assert.ok(Number.isFinite(strip.attributes['Strike Multiplier'].final));
     const evaluation = app.adapter.calculateSkillDamage(plan.request);
     const measured = new Map(
       evaluation.occurrences
@@ -195,7 +270,9 @@ for (const [professionId, buildPath] of [
         .map((occurrence) => [occurrence.id, occurrence])
     );
     const declared = new Set(
-      app.profession.ui.skillDamageGroups(attributePreviewContext(app)).map((group) => `mechanic-${group.id}`)
+      app.profession.ui
+        .skillDamageGroups(attributePreviewContext(app, app.build.startingWeaponSet))
+        .map((group) => `mechanic-${group.id}`)
     );
     for (const group of plan.groups) {
       if (group.kind !== 'weapon' && !declared.has(group.id)) continue;

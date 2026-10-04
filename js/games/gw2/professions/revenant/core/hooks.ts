@@ -235,7 +235,7 @@ export const revenantCoreHooks: Partial<RuntimeProfession<RevenantRuntimeState, 
   /** Initialize only damage-relevant form and scaling state for one assumed occurrence. */
   prepareDamageState(runtime, skill, inputs) {
     const state = runtime.profession.core;
-    if (skill.legendId) {
+    if (skill?.legendId) {
       state.activeLegendId = skill.legendId;
       state.activeLoadoutId = skill.legendId;
     }

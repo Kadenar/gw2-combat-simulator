@@ -126,7 +126,7 @@ export const firebrandHooks: Partial<RuntimeProfession<GuardianRuntimeState, Gua
 
   /** Initialize only damage-relevant form and scaling state for one assumed occurrence. */
   prepareDamageState(runtime, skill, _inputs) {
-    if (skill.tome) firebrandState.from(runtime).activeTome = skill.tome;
+    if (skill?.tome) firebrandState.from(runtime).activeTome = skill.tome;
   },
 
   sideEffectHandlers: {

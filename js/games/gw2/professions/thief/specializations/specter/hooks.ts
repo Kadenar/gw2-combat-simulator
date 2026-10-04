@@ -171,7 +171,7 @@ function specterAvailability(runtime: ThiefRuntime, skill: ThiefSkill): Availabi
 export const specterHooks: Partial<RuntimeProfession<ThiefRuntimeState, ThiefSkill>> = {
   /** Initialize only damage-relevant form and scaling state for one assumed occurrence. */
   prepareDamageState(runtime, skill, _inputs) {
-    specterState.from(runtime).shadowShroudActive = Boolean(skill.shadowShroudSkill);
+    specterState.from(runtime).shadowShroudActive = Boolean(skill?.shadowShroudSkill);
   },
 
   sideEffectHandlers: {

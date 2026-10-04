@@ -240,8 +240,8 @@ export const bladeswornHooks: Partial<RuntimeProfession<WarriorRuntimeState, War
   /** Initialize only damage-relevant form and scaling state for one assumed occurrence. */
   prepareDamageState(runtime, skill, inputs) {
     const state = bladeswornState.from(runtime);
-    state.gunsaberActive = Boolean(skill.gunsaberSkill);
-    if (skill.dragonSlash) {
+    state.gunsaberActive = Boolean(skill?.gunsaberSkill);
+    if (skill?.dragonSlash) {
       const charges = Number(inputs.charges ?? maximumDragonCharges(runtime));
       if (!Number.isInteger(charges) || charges < 1 || charges > maximumDragonCharges(runtime))
         throw new RangeError('Dragon charges exceed the selected build maximum.');

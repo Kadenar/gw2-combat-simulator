@@ -1,14 +1,10 @@
 import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
 import { readProfessionSpecializationState } from '#gw2/platform/engine/profession/state.js';
-import type { CanonicalCatalog, Skill, SkillId } from '#gw2/platform/engine/skills/types.js';
+import type { CanonicalCatalog, SkillId } from '#gw2/platform/engine/skills/types.js';
 import type {
   ProfessionAttributePreviewContext,
   ProfessionAttributePreviewPreparation
 } from '#gw2/platform/profession-presentation/attribute-preview.js';
-import type {
-  SkillDamagePreviewPreparation,
-  SkillDamageState
-} from '#gw2/platform/profession-presentation/skill-damage.js';
 import type { ProfessionPaletteGroup, RotationStateSnapshotItem } from '#gw2/platform/profession-presentation/types.js';
 import { activeRangerUiPet, rangerPetPaletteGroup, rangerUiState } from '#gw2/professions/ranger/core/presentation.js';
 import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
@@ -62,11 +58,6 @@ function soulbeastStateSnapshot(context: RangerUiContext): RotationStateSnapshot
 /** Captures this UI's catalog so other profession instances cannot change its projections. */
 export function bindSoulbeastUi(catalog: Readonly<CanonicalCatalog<RangerSkill>>): RangerUiSlice {
   return Object.freeze({
-    /** Simulations start merged, so measuring the entry action first leaves Beastmode normally. */
-    skillDamageState(context: SkillDamagePreviewPreparation, _skill: Skill): SkillDamageState | null {
-      // Direct evaluation supplies damage state without prerequisite actions.
-      return { inputs: { merged: Boolean(context.values.merged) } };
-    },
     /** Declare this module's conditional inputs without adding simulation settings. */
     previewControls(context: ProfessionAttributePreviewContext) {
       const preview = createPreviewControls(context);

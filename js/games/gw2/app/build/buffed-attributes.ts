@@ -2,6 +2,8 @@ import type {
   ProfessionAttributePreviewPreparation,
   PreviewControl
 } from '#gw2/platform/profession-presentation/attribute-preview.js';
+import { createSkillDamagePreview } from '#gw2/app/build/skill-damage/preview.js';
+import { queryDamagePreview } from '#gw2/platform/skill-damage/preview-state.js';
 import type { Gw2ModifierContribution } from '#gw2/platform/combat/modifiers.js';
 import { derivedAttribute, PRIMARY_ATTRIBUTES } from '#gw2/platform/builds/attributes.js';
 import { createGw2CombatQuery } from '#gw2/platform/combat/query/combat-query.js';
@@ -22,31 +24,72 @@ export function calculateBuffedAttributes(
   app: ProfessionAppState,
   input: Readonly<Record<string, unknown>> = {}
 ): NonNullable<ProfessionAppState['attributeData']> {
-  return calculatePreview(app, input, attributeEffectControls(app), false).data;
+  return calculatePreview(app, input, attributeEffectControls(app));
 }
 
-/** Both panels share one isolated combat query; damage uses full player health and its own scoped controls. */
+/** The damage strip queries the same prepared runtime as its rows, at full player health and without a skill override. */
 export function calculateSkillDamageAttributes(
   app: ProfessionAppState,
   input: Readonly<Record<string, unknown>>,
   controls: readonly PreviewControl[]
 ) {
-  const { data, alwaysApplied } = calculatePreview(app, input, controls, true);
-  return { attributes: data.attributes, alwaysApplied };
+  const { preview, config, inputs } = createSkillDamagePreview(app, controls, input);
+  const attributes = structuredClone(preview.attributeData!.attributes);
+  return queryDamagePreview(app.profession, config, inputs, (runtime) => {
+    const at = runtime.time;
+    const event: SimulationEvent = {
+      type: 'action',
+      at,
+      actorType: 'player',
+      source: 'Player',
+      sourceId: 'stat-preview'
+    };
+    const query = runtime.query;
+    const stats = query.statsAt(at, event, runtime);
+    const critical = query.critical(event, at, runtime);
+    const set = (name: string, final: number): void => {
+      const original = attributes[name] || derivedAttribute(0);
+      attributes[name] = Object.assign({}, original, { final, conditional: final - original.final });
+    };
+
+    for (const name of PRIMARY_ATTRIBUTES)
+      set(name, Number(stats[(name[0].toLowerCase() + name.slice(1).replaceAll(' ', '')) as Gw2NumericStatKey]));
+    set('Critical Chance', (critical.chanceBeforeCap ?? critical.chance) * 100);
+    set('Critical Damage', critical.damage * 100);
+    set(
+      'Boon Duration',
+      attributes['Boon Duration'].final +
+        (stats.concentration - preview.attributeData!.attributes.Concentration.final) / 15
+    );
+    set('Condition Duration', (query.conditionDurationMultiplier('', at, stats, event, runtime) - 1) * 100);
+    for (const name of ['Burning', 'Bleeding', 'Torment', 'Confusion', 'Poison'])
+      set(
+        name + ' Duration',
+        (query.conditionDurationMultiplier(name === 'Poison' ? 'Poisoned' : name, at, stats, event, runtime) - 1) * 100
+      );
+    // The strip reports generic player factors; occurrence diagnostics retain skill-specific modifiers.
+    const contributors: Gw2ModifierContribution[] = [];
+    set('Strike Multiplier', query.strikeMultiplier(event, at, runtime, contributors));
+    set('Condition Multiplier', query.conditionMultiplier('', at, event, runtime, undefined, contributors));
+    set('Target Armor', Number(config.target?.armor) || 2597);
+    return {
+      attributes,
+      alwaysApplied: [...new Set(contributors.filter((entry) => entry.unconditional).map((entry) => entry.label))]
+    };
+  });
 }
 
 function calculatePreview(
   app: ProfessionAppState,
   input: Readonly<Record<string, unknown>>,
-  controls: readonly PreviewControl[],
-  damage: boolean
+  controls: readonly PreviewControl[]
 ) {
   const values = normalizeAttributePreview(controls, input);
-  const playerHealth = damage ? 1 : Number(values.playerHealth ?? 100) / 100;
+  const playerHealth = Number(values.playerHealth ?? 100) / 100;
   const boons = Object.fromEntries(
     GW2_STANDARD_BOONS.map((key) => [key, key === 'might' ? Number(values[key] || 0) : Boolean(values[key])])
   );
-  const weaponSet = (damage ? app.build.startingWeaponSet : app.attributeWeaponSet) === 2 ? 2 : 1;
+  const weaponSet = app.attributeWeaponSet === 2 ? 2 : 1;
   const { preview, context, config } = createIsolatedPreview(app, controls, values, boons, weaponSet);
   const data = structuredClone(preview.attributeData!);
   // Supply defensive primaries omitted by the damage configuration so all-attribute effects preserve them.
@@ -66,20 +109,16 @@ function calculatePreview(
   const targetConditions: Record<string, number> = {};
   const queryConfig: Gw2Config = {
     ...config,
-    ...(damage ? app.profession.ui.prepareSkillDamagePreview(context) : {}),
     startingWeaponSet: weaponSet,
     stats: { ...config.stats, ...activeStats },
     weaponSetStats: [activeStats, activeStats],
     boons,
-    ...(damage ? { fixedBoonCount: Number(values.boonCount) || 0 } : {}),
-    // The stat strip uses the same opening Thorns stacks as the independent damage runs.
-    ...(damage && values.thornsStacks != null ? { initialThornsStacks: Number(values.thornsStacks) } : {}),
     selectedTraitIds: config.selectedTraitIds?.filter((id) => !disabledTraits.has(id)),
     target: {
       ...config.target,
       health: 100,
       startingHealthFraction: targetHealth,
-      defiant: damage ? config.target?.defiant : Boolean(values.defiant ?? values.flanking),
+      defiant: Boolean(values.defiant ?? values.flanking),
       conditions: targetConditions
     }
   };
@@ -117,15 +156,14 @@ function calculatePreview(
   }
 
   const queryOptions: ProfessionAttributePreviewPreparation['queryOptions'] = { conditionDurations: false };
-  if (!damage)
-    app.profession.ui.prepareAttributePreview({
-      ...context,
-      config: queryConfig,
-      professionState,
-      events,
-      targetConditions,
-      queryOptions
-    });
+  app.profession.ui.prepareAttributePreview({
+    ...context,
+    config: queryConfig,
+    professionState,
+    events,
+    targetConditions,
+    queryOptions
+  });
 
   const event: SimulationEvent = {
     type: 'action',
@@ -171,27 +209,16 @@ function calculatePreview(
       relicConditionDurationBonus(runtime, 1) * 100
   );
   set('Boon Duration', data.attributes['Boon Duration'].final + (stats.concentration - primaries.concentration) / 15);
-  if (queryOptions.conditionDurations || damage) {
+  if (queryOptions.conditionDurations) {
     const duration = (query.conditionDurationMultiplier('', 1, stats, event, runtime) - 1) * 100;
     set('Condition Duration', duration);
     for (const name of ['Burning', 'Bleeding', 'Torment', 'Confusion', 'Poison'])
       set(
         `${name} Duration`,
         (query.conditionDurationMultiplier(name === 'Poison' ? 'Poisoned' : name, 1, stats, event, runtime) - 1) * 100 -
-          (damage ? 0 : duration)
+          duration
       );
   }
 
-  const contributors: Gw2ModifierContribution[] = [];
-  if (damage) {
-    // These are generic player multipliers; skill-specific factors remain in the measured row's diagnostics.
-    set('Strike Multiplier', query.strikeMultiplier(event, 1, runtime, contributors));
-    set('Condition Multiplier', query.conditionMultiplier('', 1, event, runtime, undefined, contributors));
-    set('Target Armor', Number(queryConfig.target?.armor) || 2597);
-  }
-
-  return {
-    data,
-    alwaysApplied: [...new Set(contributors.filter((entry) => entry.unconditional).map((entry) => entry.label))]
-  };
+  return data;
 }
