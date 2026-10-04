@@ -140,13 +140,3 @@ export function elementalistAnnouncement({
     announcement: { type: procType, name, at, sourceSkill, detail, icon }
   };
 }
-
-export interface ElementalistAuraApplication {
-  readonly at: number;
-  readonly aura: string;
-  readonly duration: number;
-  readonly skillName: string;
-  readonly sourceId: Skill['id'];
-  readonly priority?: number;
-}
-export type ElementalistAuraApplier = (context: ElementalistRuntime, application: ElementalistAuraApplication) => void;

@@ -1,5 +1,5 @@
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
-import { elementalEnchantmentRecharge } from '#gw2/professions/elementalist/core/traits/behavior.js';
+import { elementalEnchantmentRecharge } from '#gw2/professions/elementalist/core/traits/arcane.js';
 /**
  * Owns Core Elementalist attunement selection, recharge, and cast-completion transitions.
  * Specializations may intercept the shared hooks but keep their extra state locally.

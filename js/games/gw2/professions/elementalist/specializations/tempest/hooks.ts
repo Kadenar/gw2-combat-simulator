@@ -36,7 +36,10 @@ import type { Skill } from '#gw2/platform/skills/types.js';
 import type { AvailabilityResult } from '#gw2/platform/execution/types.js';
 import { elementalistStrikeRequest } from '#gw2/professions/elementalist/core/events.js';
 import { elementalistAnnouncement } from '#gw2/professions/elementalist/core/mechanics/effects.js';
-import { armElementalistElementalLightningJolt } from '#gw2/professions/elementalist/core/mechanics/elementals/runtime.js';
+import {
+  armElementalLightningJolt,
+  registerTempestLightningJolt
+} from '#gw2/professions/elementalist/specializations/tempest/mechanics/lightning-jolt.js';
 import {
   triggerEarthenBlast,
   triggerElectricDischarge,
@@ -193,7 +196,7 @@ export const tempestHooks: RuntimeHooks<ElementalistRuntimeState, ElementalistSk
               { activationId: cast.id, skillId: cast.skill.id, offTarget: cast.command.offTarget }
             )
           );
-          armElementalistElementalLightningJolt(context, cast, ID.LIGHTNING_JOLT, coefficient);
+          armElementalLightningJolt(context, cast, ID.LIGHTNING_JOLT, coefficient);
           context.effects.emit(
             elementalistAnnouncement({
               at: cast.effectiveEnd,
@@ -225,6 +228,7 @@ export const tempestHooks: RuntimeHooks<ElementalistRuntimeState, ElementalistSk
   // Overload-start boons retain the triggering overload as source, including on interrupted channels.
   initialize(runtime) {
     registerElementalistEliteEvents(runtime, onAttunementEvent);
+    registerTempestLightningJolt(runtime);
   },
   availability,
   prepareEvent,

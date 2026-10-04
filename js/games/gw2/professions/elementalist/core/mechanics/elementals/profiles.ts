@@ -1,4 +1,3 @@
-import { STANDARD_TARGET_ARMOR } from '#gw2/platform/combat/formulas.js';
 /**
  * Log-derived damage and timing constants for the Glyph of Elementals summons.
  *
@@ -6,14 +5,6 @@ import { STANDARD_TARGET_ARMOR } from '#gw2/platform/combat/formulas.js';
  * Lifetimes and post-expiry recharge belong to the patchable balance profiles.
  */
 import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';
-
-/** Ally-triggered Lightning Jolt uses unequipped weapon strength against the elemental's fixed damage scale. */
-export const ELEMENTAL_LIGHTNING_JOLT_PROFILE = Object.freeze({
-  weaponStrengthProfileId: 'nonweapon.unequipped',
-  weaponStrength: 690.5,
-  damagePerCoefficient: 2500,
-  basePower: (2500 * STANDARD_TARGET_ARMOR) / 690.5
-});
 
 /** Fire Elemental profile */
 export const FIRE_ELEMENTAL_EVTC_PROFILE = Object.freeze({

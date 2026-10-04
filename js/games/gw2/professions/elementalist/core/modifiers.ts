@@ -3,13 +3,10 @@ import {
   elementalistTimedBuffStacks,
   wieldedConjure
 } from '#gw2/professions/elementalist/core/mechanics/modifier-queries.js';
-import {
-  applyAirTraitAttributes,
-  applyArcaneTraitAttributes,
-  applyFireTraitAttributes,
-  applyInfernoAttributes,
-  reconcileSignetPassive
-} from '#gw2/professions/elementalist/core/traits/behavior.js';
+import { applyAirTraitAttributes } from '#gw2/professions/elementalist/core/traits/air.js';
+import { applyArcaneTraitAttributes } from '#gw2/professions/elementalist/core/traits/arcane.js';
+import { applyFireTraitAttributes, applyInfernoAttributes } from '#gw2/professions/elementalist/core/traits/fire.js';
+import { reconcileSignetPassive } from '#gw2/professions/elementalist/core/traits/earth.js';
 import type { ElementalistModifierContext } from '#gw2/professions/elementalist/types.js';
 /**
  * Core Elementalist damage and attribute modifiers.

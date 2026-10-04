@@ -20,35 +20,23 @@ import type { SimulationEvent } from '#gw2/platform/events/events.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
 
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
-import { type ElementalistAuraApplication } from '#gw2/professions/elementalist/core/mechanics/effects.js';
+import { applyElementalistAura } from '#gw2/professions/elementalist/core/mechanics/auras.js';
 import type { ElementalistAttunement } from '#gw2/professions/elementalist/core/state.js';
 import { triggerSunspot as triggerFireSunspot } from '#gw2/professions/elementalist/core/traits/attunements.js';
+import { applyArcaneLightning, applyElementalLockdown } from '#gw2/professions/elementalist/core/traits/arcane.js';
 import {
-  applyArcaneLightning,
   applyEarthsEmbrace,
-  applyElementalLockdown,
+  applyResolverElementalShielding,
+  applyWrittenInStone
+} from '#gw2/professions/elementalist/core/traits/earth.js';
+import {
   applyInscriptionPostCast,
   applyLightningRod,
-  applyPyromancersPuissance,
-  applyResolverElementalShielding,
-  applyResolverZephyrsBoon,
-  applySoothingIce,
-  applyWrittenInStone,
-  elementalistAuraDuration
-} from '#gw2/professions/elementalist/core/traits/behavior.js';
+  applyResolverZephyrsBoon
+} from '#gw2/professions/elementalist/core/traits/air.js';
+import { applyPyromancersPuissance } from '#gw2/professions/elementalist/core/traits/fire.js';
+import { applySoothingIce } from '#gw2/professions/elementalist/core/traits/water.js';
 import type { ElementalistRuntime } from '#gw2/professions/elementalist/types.js';
-/** Applies Smothering Auras, records the aura, then grants Air and Earth aura traits in order. */
-export function applyElementalistAura(context: ElementalistRuntime, application: ElementalistAuraApplication): void {
-  const adjusted = {
-    ...application,
-    duration: elementalistAuraDuration(context, application.duration)
-  };
-  context.effects.emit({
-    kind: 'packet',
-    event: { ...adjusted, type: 'elementalist.aura', source: adjusted.skillName, actorType: 'effect' }
-  });
-}
-
 /** Public Sunspot entry point supplies the shared aura dispatcher before emitting its remaining effects. */
 export function triggerSunspot(
   context: ElementalistRuntime,

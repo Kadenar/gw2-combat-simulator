@@ -1,3 +1,5 @@
+import { armElementalLightningJolt } from '#gw2/professions/elementalist/specializations/tempest/mechanics/lightning-jolt.js';
+import { tempestState } from '#gw2/professions/elementalist/specializations/tempest/state.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { elementalistCatalog, elementalistProfession } from '#gw2/professions/elementalist/profession.js';
@@ -6,7 +8,6 @@ import { elementalistCoreAvailability } from '#gw2/professions/elementalist/core
 import { elementalistRockBarrierTasks } from '#gw2/professions/elementalist/core/mechanics/rock-barrier.js';
 import { elementalistCoreHooks } from '#gw2/professions/elementalist/core/hooks.js';
 import {
-  armElementalistElementalLightningJolt,
   completeElementalistGlyphCast,
   completeElementalistElementalCommand,
   ensureElementalistElemental
@@ -56,7 +57,7 @@ test('elemental commands and Lightning Jolt retain the final live microsecond wi
       command = commandFor(element);
     const result = runElementalist(
       [{ type: 'wait', durationMs: 121000 }],
-      { ...config },
+      { ...config, specialization: 'Tempest' },
       {
         timeline: [
           { at: 0.301, run: (r) => complete(r, glyph, completeElementalistGlyphCast) },
@@ -64,15 +65,15 @@ test('elemental commands and Lightning Jolt retain the final live microsecond wi
             at,
             priority: 40,
             run: (r) => {
-              const elemental = r.profession.core.summonedElemental;
-              elemental.pendingLightningJolt = null;
+              const tempest = tempestState.from(r);
+              tempest.pendingLightningJolt = null;
               r.config.selectedSkillIds = {};
               assert.equal(elementalistCoreAvailability(r, command).ready, at < 120.301);
               r.config.selectedSkillIds = [glyph.id];
               assert.equal(elementalistCoreAvailability(r, command).ready, at < 120.301);
               assert.equal(elementalistCoreAvailability(r, glyph).ready, at >= 120.301);
-              armElementalistElementalLightningJolt(r, { effectiveEnd: at }, 1, 0.5);
-              assert.equal(elemental.pendingLightningJolt !== null, at < 120.301);
+              armElementalLightningJolt(r, { effectiveEnd: at }, 1, 0.5);
+              assert.equal(tempest.pendingLightningJolt !== null, at < 120.301);
               ensureElementalistElemental(r);
               assert.equal(r.profession.core.summonedElemental.summonGeneration, 1);
             }

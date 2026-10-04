@@ -1,3 +1,8 @@
+import {
+  applyElementalistAura,
+  resolveElementalistAura,
+  acceptElementalistAuraReaction
+} from '#gw2/professions/elementalist/core/mechanics/auras.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import {
   ELEMENTALIST_TRAIT_IDS as DAMAGE_TRAIT,
@@ -34,7 +39,6 @@ import { prepareElementalistHitboxEvent } from '#gw2/professions/elementalist/co
 import {
   applyElementalistResolvedCondition,
   applyElementalistResolvedDamage,
-  applyElementalistResolverAura,
   applyElementalistResolverBuff
 } from '#gw2/professions/elementalist/core/mechanics/reactions.js';
 import {
@@ -60,7 +64,7 @@ import {
   observeFreshAirCandidate
 } from '#gw2/professions/elementalist/core/traits/critical-procs.js';
 import {
-  applyElementalistAura,
+  applyElementalistResolverAuraTraits,
   observeElementalistTraitEvent,
   reactElementalistCoreCritical
 } from '#gw2/professions/elementalist/core/traits/dispatch.js';
@@ -201,11 +205,7 @@ export const elementalistCoreHooks: RuntimeHooks<ElementalistRuntimeState, Eleme
   eventHandlers: {
     'elementalist.conjure': OBSERVABLE_EVENT_HANDLER,
     'elementalist.attunement': observeElementalistTransition,
-    'elementalist.aura'(runtime, event) {
-      runtime.observations.record(event);
-      applyElementalistResolverAura(runtime, event);
-      runtime.schedule('elementalist.expire-state', event.at + Number(event.duration), null);
-    },
+    'elementalist.aura': resolveElementalistAura,
     'elementalist.attunement-enter': observeElementalistTransition
   },
   reactions: {
@@ -218,6 +218,9 @@ export const elementalistCoreHooks: RuntimeHooks<ElementalistRuntimeState, Eleme
     'condition.applied': applyElementalistResolvedCondition,
     'buff.applied': applyElementalistResolverBuff,
     'control.resolved': observeElementalistTraitEvent,
-    'aura.applied': applyElementalistResolverAura
+    // Core consequences run before the composed elite reactions; combo auras are accepted without republishing.
+    'aura.applied'(runtime, event) {
+      if (acceptElementalistAuraReaction(runtime, event)) applyElementalistResolverAuraTraits(runtime, event);
+    }
   }
 };

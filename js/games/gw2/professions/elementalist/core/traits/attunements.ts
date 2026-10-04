@@ -14,7 +14,7 @@ import {
   elementalistConditionRequest,
   elementalistStrikeRequest
 } from '#gw2/professions/elementalist/core/events.js';
-import type { ElementalistAuraApplier } from '#gw2/professions/elementalist/core/mechanics/effects.js';
+import type { ElementalistAuraApplier } from '#gw2/professions/elementalist/core/mechanics/auras.js';
 import {
   combatStarted,
   elementalistAnnouncement,

@@ -1,10 +1,40 @@
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { targetHealthBelow } from '#gw2/platform/combat/query/runtime-query.js';
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
-import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import { hasTrait } from '#gw2/platform/combat/state/traits.js';
+import type { Gw2MutableStats } from '#gw2/platform/combat/types.js';
+import type { EffectDelivery } from '#gw2/platform/effects/emission.js';
+import type { SimulationEvent } from '#gw2/platform/events/events.js';
+import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
+import type { MechanicCombatContext, MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
+import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
 import { defineTrait, traitAttributeEffects } from '#gw2/platform/profession-definition/traits.js';
+import { resolverSourceSkill } from '#gw2/platform/resolver/packets.js';
+import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
+import {
+  balanceProfileNumber,
+  effectNumber,
+  requireBalanceProfileFromContext,
+  requireEffect
+} from '#gw2/platform/skills/balance-profiles.js';
+import type { Skill } from '#gw2/platform/skills/types.js';
+import { elementalistStrikeRequest } from '#gw2/professions/elementalist/core/events.js';
+import {
+  elementalistAnnouncement,
+  elementalistProfiledBuffRequest,
+  elementalistProfiledConditionRequest
+} from '#gw2/professions/elementalist/core/mechanics/effects.js';
 import { observeElementalistTransition } from '#gw2/professions/elementalist/core/mechanics/elite-events.js';
+import {
+  elementalistTimedBuffStacks,
+  primaryAttunement
+} from '#gw2/professions/elementalist/core/mechanics/modifier-queries.js';
 import { ELEMENTALIST_TRAIT_IDS as TRAIT } from '#gw2/professions/elementalist/data/ids.js';
+import type {
+  ElementalistModifierContext,
+  ElementalistRuntime,
+  ElementalistSkill
+} from '#gw2/professions/elementalist/types.js';
 
 /** Air definitions keep active tuning beside their behavior; explicit calls preserve mechanic ordering. */
 export const zephyrsSpeed = defineTrait({
@@ -180,3 +210,158 @@ export const boltToTheHeart = defineTrait({
     }
   ]
 });
+
+/** Grants Inscription's current-attunement boon after a completed Glyph cast. */
+export function applyInscriptionPostCast(
+  context: ElementalistRuntime,
+  cast: RuntimeCast<ElementalistSkill>,
+  skill: Skill
+): void {
+  if (!hasTrait(context, TRAIT.INSCRIPTION) || skill.skillFamily !== 'Glyph') return;
+  const state = professionCoreState(context);
+  context.effects.emit(
+    elementalistProfiledBuffRequest(
+      context,
+      cast.effectiveEnd,
+      TRAIT.INSCRIPTION,
+      state.primaryAttunement,
+      skill.name,
+      skill.id,
+      undefined,
+      undefined,
+      { activationId: cast.id, skillId: cast.skill.id, offTarget: cast.command.offTarget }
+    )
+  );
+}
+
+/** Materializes Lightning Rod from a classified player control event. */
+export function applyLightningRod(
+  context: ElementalistRuntime,
+  event: SimulationEvent,
+  emissionCast?: EffectDelivery['cast']
+): void {
+  if (!hasTrait(context, TRAIT.LIGHTNING_ROD)) return;
+  const sourceId = event.skillId ?? event.sourceId;
+  const lightningRodProfile = requireBalanceProfileFromContext(context, TRAIT.LIGHTNING_ROD);
+  const lightningRodStrike = requireEffect(lightningRodProfile, 'strike', 'Lightning Rod');
+  if (lightningRodStrike) {
+    context.effects.emit(
+      elementalistStrikeRequest(
+        context,
+        {
+          cause: event,
+          at: event.at,
+          source: 'Lightning Rod',
+          sourceId,
+          actorType: 'effect',
+          ownerActorType: 'player',
+          skillName: 'Lightning Rod',
+          coefficient: effectNumber(lightningRodProfile, lightningRodStrike, 'coefficient'),
+          skillWeapon: 'Unequipped'
+        },
+        emissionCast
+      )
+    );
+  }
+
+  const conditionEmitted =
+    context.effects.emit(
+      elementalistProfiledConditionRequest(
+        context,
+        event.at,
+        TRAIT.LIGHTNING_ROD,
+        'Lightning Rod',
+        'Lightning Rod',
+        sourceId,
+        undefined,
+        emissionCast
+      )
+    ).length > 0;
+  if (lightningRodStrike || conditionEmitted)
+    context.effects.emit(
+      elementalistAnnouncement({
+        at: event.at,
+        name: 'Lightning Rod',
+        procType: 'trait',
+        sourceId,
+        sourceSkill: event.skillName || event.source || ''
+      })
+    );
+}
+
+/** Accepted auras select the current trait profile before shared boon-duration scaling. */
+function zephyrsBoonEffects(context: unknown) {
+  return ['Fury', 'Swiftness'].flatMap((name) => {
+    const zephyrsBoonProfile = requireBalanceProfileFromContext(context, TRAIT.ZEPHYRS_BOON);
+    const effect = requireEffect(zephyrsBoonProfile, 'boon', name);
+    if (!effect) return [];
+    return [
+      {
+        kind: String(effect.boon).toLowerCase(),
+        stacks: Number(effect.stacks),
+        duration: effect.duration
+      }
+    ];
+  });
+}
+
+/** Grants resolver-side Zephyr's Boon effects for one classified aura event. */
+export function applyResolverZephyrsBoon(context: MechanicCombatContext, event: Gw2ResolverEvent): void {
+  if (!hasTrait(context, TRAIT.ZEPHYRS_BOON)) return;
+  for (const boon of zephyrsBoonEffects(context)) {
+    context.effects.emit({
+      kind: 'packet',
+      durationContext: event,
+      event: {
+        type: 'buff',
+        at: event.at,
+        source: 'Trait',
+        sourceId: TRAIT.ZEPHYRS_BOON,
+        actorType: 'player',
+        skillName: requireBalanceProfileFromContext(context, TRAIT.ZEPHYRS_BOON).name,
+        kind: boon.kind.toLowerCase(),
+        stacks: boon.stacks,
+        duration: boon.duration,
+        triggeredBy: resolverSourceSkill(event),
+        priority: Number(event.priority || 0)
+      }
+    });
+  }
+}
+
+/** Preserve the live air attribute pass at its original position in the Core modifier pipeline. */
+export function applyAirTraitAttributes(context: ElementalistModifierContext, modified: Gw2MutableStats): void {
+  const primary = primaryAttunement(context);
+  if (hasTrait(context, TRAIT.FRESH_AIR) && elementalistTimedBuffStacks(context, 'fresh air', 1) > 0) {
+    const freshAirProfile = requireBalanceProfileFromContext(context, TRAIT.FRESH_AIR);
+    modified.ferocity = (modified.ferocity || 0) + balanceProfileNumber(freshAirProfile, 'attributeBonus');
+  }
+
+  if (hasTrait(context, TRAIT.AEROMANCERS_TRAINING) && primary === 'Air') {
+    const aeromancersTrainingProfile = requireBalanceProfileFromContext(context, TRAIT.AEROMANCERS_TRAINING);
+    modified.ferocity = (modified.ferocity || 0) + balanceProfileNumber(aeromancersTrainingProfile, 'attributeBonus');
+  }
+
+  if (
+    hasTrait(context, TRAIT.RAGING_STORM) &&
+    Boolean(context.query?.furyActiveAt(context.time, context.runtime, context.event))
+  ) {
+    const ragingStormProfile = requireBalanceProfileFromContext(context, TRAIT.RAGING_STORM);
+    modified.ferocity = (modified.ferocity || 0) + balanceProfileNumber(ragingStormProfile, 'attributeBonus');
+  }
+}
+
+/** Scale this element's weapon recharge after the mechanic has handled held and non-weapon cooldowns. */
+export function aeromancersTrainingRecharge(
+  context: MechanicQueriesOf<ElementalistRuntime>,
+  skill: Skill,
+  duration: number
+): number {
+  return skill.attunement === 'Air' && hasTrait(context, TRAIT.AEROMANCERS_TRAINING)
+    ? duration *
+        balanceProfileNumber(
+          requireBalanceProfileFromContext(context, TRAIT.AEROMANCERS_TRAINING),
+          'rechargeMultiplier'
+        )
+    : duration;
+}

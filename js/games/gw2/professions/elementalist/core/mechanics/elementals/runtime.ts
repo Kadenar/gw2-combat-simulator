@@ -1,3 +1,7 @@
+import {
+  beforeElementalStrike,
+  retireElemental
+} from '#gw2/professions/elementalist/core/mechanics/elementals/lifecycle.js';
 import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
 import { buffApplicationStacks } from '#gw2/platform/combat/boons.js';
 import { armSkillFlip, consumeSkillFlip } from '#gw2/platform/execution/skill-flips.js';
@@ -45,7 +49,6 @@ import {
 } from '#gw2/professions/elementalist/core/mechanics/elementals/attacks.js';
 import {
   EARTH_ELEMENTAL_EVTC_PROFILE,
-  ELEMENTAL_LIGHTNING_JOLT_PROFILE,
   FIRE_ELEMENTAL_EVTC_PROFILE
 } from '#gw2/professions/elementalist/core/mechanics/elementals/profiles.js';
 import { isSelectedSlotSkill } from '#gw2/professions/elementalist/core/mechanics/weapon-state.js';
@@ -290,9 +293,7 @@ function summonStrikeMetadata(element: ElementalKind, summonGeneration: number, 
   };
 }
 
-// Emits one damage event for a strike. If a Lightning Jolt copy is armed (see
-// armElementalistElementalLightningJolt), it fires first as a one-shot bonus hit and
-// is consumed. The main strike is tagged autonomous vs player-commanded by name.
+// The elite observes each valid strike before Core emits the autonomous or commanded hit.
 function emitStrike(
   context: ElementalistRuntime,
   payload: ElementalImpactTaskPayload,
@@ -309,41 +310,13 @@ function emitStrike(
 ): void {
   const elemental = professionCoreState(context).summonedElemental;
   const element = elemental.element as ElementalKind;
-  const pendingLightningJolt = elemental.pendingLightningJolt;
-  if (pendingLightningJolt) {
-    // Lightning Jolt is an allied one-shot charge, so the elemental consumes its copy on its next strike.
-    elemental.pendingLightningJolt = null;
-    context.effects.emit(
-      elementalistStrikeRequest(
-        context,
-        {
-          activationId: `${payload.activationId}:lightning-jolt`,
-          at: context.time,
-          source: `${element} Elemental`,
-          sourceId: pendingLightningJolt.skillId,
-          actorType: 'summon',
-          skillId: pendingLightningJolt.skillId,
-          skillName: 'Lightning Jolt',
-          name: 'Lightning Jolt',
-          coefficient: pendingLightningJolt.coefficient,
-          hits: 1,
-          canCrit: false,
-          skillWeapon: 'Unequipped',
-          weaponStrengthProfileId: ELEMENTAL_LIGHTNING_JOLT_PROFILE.weaponStrengthProfileId,
-          independentSummonStrike: true,
-          summonInheritsAttributes: false,
-          summonBasePower: ELEMENTAL_LIGHTNING_JOLT_PROFILE.basePower,
-          summonBasePrecision: 1000,
-          summonBaseFerocity: 0,
-          summonUsesMight: false,
-          summonUsesEquipmentModifiers: false,
-          summonUsesProfessionModifiers: false,
-          summonOwner: elementalistElementalCompanionId(payload.summonGeneration || 0)
-        },
-        emissionCast
-      )
-    );
-  }
+  beforeElementalStrike(context, {
+    summonGeneration: payload.summonGeneration,
+    element,
+    companionId: elementalistElementalCompanionId(payload.summonGeneration),
+    activationId: payload.activationId,
+    emissionCast
+  });
 
   context.effects.emit(
     elementalistStrikeRequest(
@@ -716,7 +689,7 @@ function expireElemental(
   elemental.busyUntil = 0;
   elemental.secondaryAttackReadyAt = 0;
   elemental.currentActivationId = null;
-  elemental.pendingLightningJolt = null;
+  retireElemental(context, captured.summonGeneration);
   elemental.started = false;
   consumeSkillFlip(
     state.availableFlips,
@@ -766,6 +739,7 @@ function summonElemental(
       previousElement === 'Earth' ? ID.STOMP_ELEMENTAL_COMMAND : ID.FLAME_BARRAGE_ELEMENTAL_COMMAND
     );
   const previousGeneration = state.summonedElemental.summonGeneration;
+  retireElemental(context, previousGeneration);
   context.cancelOwner({ id: 'elementalist.elemental-decision', generation: previousGeneration });
   context.cancelOwner({ id: ELEMENTAL_TASK_OWNER, generation: previousGeneration });
   const summonGeneration = state.summonedElemental.summonGeneration + 1;
@@ -778,7 +752,6 @@ function summonElemental(
     busyUntil: at,
     secondaryAttackReadyAt: at,
     currentActivationId: null,
-    pendingLightningJolt: null,
     started: false
   };
   const expiresAt = state.summonedElemental.activeUntil;
@@ -832,23 +805,6 @@ export function completeElementalistElementalCommand(
   // A command replaces the pending decision, including target acquisition, with its own recovery deadline.
   const elemental = professionCoreState(context).summonedElemental;
   scheduleElementalDecision(context, elemental.busyUntil);
-}
-
-/**
- * Arms one Lightning Jolt copy on the live elemental. The charge rides the elemental's next
- * strike as a bonus hit and is consumed there (see emitStrike); ignored with no elemental out.
- */
-export function armElementalistElementalLightningJolt(
-  context: ElementalistRuntime,
-  cast: RuntimeCast<ElementalistSkill>,
-  skillId: number,
-  coefficient: number
-): void {
-  const elemental = professionCoreState(context).summonedElemental;
-  if ((elemental.element === 'Fire' || elemental.element === 'Earth') && elemental.activeUntil > cast.effectiveEnd) {
-    // Only represented allied actors are armed; unmodeled party members cannot contribute synthetic damage.
-    elemental.pendingLightningJolt = { coefficient, skillId };
-  }
 }
 
 /** Generation zero permits one automatic opener; expiry never bypasses the glyph's recharge with another summon. */

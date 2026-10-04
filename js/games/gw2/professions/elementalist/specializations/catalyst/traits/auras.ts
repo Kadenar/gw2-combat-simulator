@@ -1,3 +1,4 @@
+import { applyElementalistAura } from '#gw2/professions/elementalist/core/mechanics/auras.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
 import {
@@ -9,7 +10,6 @@ import { resolverSourceSkill } from '#gw2/platform/resolver/packets.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import {
   activeElementalistBuffs,
-  queueElementalistAura,
   refreshElementalistBuffs
 } from '#gw2/professions/elementalist/core/mechanics/reactions.js';
 import type { ElementalistAttunement } from '#gw2/professions/elementalist/core/state.js';
@@ -104,7 +104,13 @@ export function applyEpitomeCombo(context: ElementalistRuntime, event: Gw2Resolv
   ) {
     const aura = elementalEpitomeAura(context, attunement);
     if (aura) {
-      queueElementalistAura(context, event, aura.aura, aura.duration, 'Elemental Epitome');
+      applyElementalistAura(context, {
+        at: event.at,
+        aura: aura.aura,
+        duration: aura.duration,
+        skillName: 'Elemental Epitome',
+        sourceId: event.skillId ?? event.sourceId
+      });
       context.effects.emit({
         kind: 'announcement',
         announcement: {

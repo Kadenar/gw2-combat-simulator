@@ -5,7 +5,7 @@ import {
   observeElementalistTraitEvent
 } from '#gw2/professions/elementalist/core/traits/dispatch.js';
 import { createElementalistCoreState } from '#gw2/professions/elementalist/core/state.js';
-import { triggerEvasiveArcana } from '#gw2/professions/elementalist/core/traits/behavior.js';
+import { triggerEvasiveArcana } from '#gw2/professions/elementalist/core/traits/arcane.js';
 import { ELEMENTALIST_TRAIT_IDS as TRAIT } from '#gw2/professions/elementalist/data/ids.js';
 import { elementalistCatalog } from '#gw2/professions/elementalist/profession.js';
 import { catalystModule } from '#gw2/professions/elementalist/specializations/catalyst/module.js';

@@ -35,8 +35,9 @@ import {
   openElementalistEtching
 } from '#gw2/professions/elementalist/core/mechanics/spear-empowerments.js';
 import { shareAttunementVariantRecharge } from '#gw2/professions/elementalist/core/mechanics/weapon-state.js';
-import { triggerEvasiveArcana } from '#gw2/professions/elementalist/core/traits/behavior.js';
-import { applyElementalistAura, applyGenericPostCast } from '#gw2/professions/elementalist/core/traits/dispatch.js';
+import { triggerEvasiveArcana } from '#gw2/professions/elementalist/core/traits/arcane.js';
+import { applyGenericPostCast } from '#gw2/professions/elementalist/core/traits/dispatch.js';
+import { applyElementalistAura } from '#gw2/professions/elementalist/core/mechanics/auras.js';
 import type {
   ElementalistRuntime,
   ElementalistRuntimeState,

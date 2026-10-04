@@ -1,11 +1,9 @@
 import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
-import {
-  aeromancersTrainingRecharge,
-  aquamancersTrainingRecharge,
-  geomancersTrainingRecharge,
-  pyromancersTrainingRecharge
-} from '#gw2/professions/elementalist/core/traits/behavior.js';
+import { aeromancersTrainingRecharge } from '#gw2/professions/elementalist/core/traits/air.js';
+import { aquamancersTrainingRecharge } from '#gw2/professions/elementalist/core/traits/water.js';
+import { geomancersTrainingRecharge } from '#gw2/professions/elementalist/core/traits/earth.js';
+import { pyromancersTrainingRecharge } from '#gw2/professions/elementalist/core/traits/fire.js';
 /**
  * Owns Core Elementalist cross-cast recharge policy and one-shot modifier consumption.
  * Skill fragments declare base cooldowns; persistent systems decide when and how they recharge.

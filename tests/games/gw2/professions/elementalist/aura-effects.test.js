@@ -3,10 +3,8 @@ import { effectPlanningState } from '#tests/helpers/effect-report.js';
 import { captureEffectEmissions } from '#tests/helpers/effect-emission.js';
 import { applyBalanceProfilePatch } from '#gw2/integrations/patches/authoring/patches.js';
 import { withProfile } from '#tests/helpers/catalog-overrides.js';
-import {
-  applyResolverElementalShielding,
-  applyResolverZephyrsBoon
-} from '#gw2/professions/elementalist/core/traits/behavior.js';
+import { applyResolverElementalShielding } from '#gw2/professions/elementalist/core/traits/earth.js';
+import { applyResolverZephyrsBoon } from '#gw2/professions/elementalist/core/traits/air.js';
 import { applyElementalistAttunementTraits } from '#gw2/professions/elementalist/core/traits/dispatch.js';
 import { ELEMENTALIST_TRAIT_IDS as TRAIT } from '#gw2/professions/elementalist/data/ids.js';
 import { elementalistCatalog } from '#gw2/professions/elementalist/profession.js';
@@ -144,7 +142,7 @@ test('one Tempest aura resolves each trait boon exactly once', () => {
 
 test('Tempest preserves aura damage windows and grants boons for every actual aura', () => {
   // Every accepted aura refreshes Aria and grants each selected trait once.
-  for (const origin of [{}, { elementalistResolverGeneratedAura: true }, { type: 'aura' }]) {
+  for (const origin of [{}, { type: 'aura' }]) {
     const queued = [];
     const context = {
       helpers: elementalistCatalog,
@@ -193,7 +191,7 @@ test('Catalyst caps and refreshes Empowering Auras while granting Elemental Epit
     ['elemental empowerment']
   );
   queued.length = 0;
-  catalystModule.hooks.reactions['aura.applied'](context, { ...event, at: 2, elementalistResolverGeneratedAura: true });
+  catalystModule.hooks.reactions['aura.applied'](context, { ...event, at: 2 });
   assert.equal(context.boons.get('empowering auras')[0].expiresAt, 10);
   assert.deepEqual(
     queued.map(({ kind, stacks, duration }) => ({ kind, stacks, duration })),

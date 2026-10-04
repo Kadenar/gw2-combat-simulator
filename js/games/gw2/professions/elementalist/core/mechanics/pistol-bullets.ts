@@ -24,7 +24,7 @@ import {
   elementalistProfiledConditionRequest
 } from '#gw2/professions/elementalist/core/mechanics/effects.js';
 import { ELEMENTALIST_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/elementalist/core/profiles.js';
-import { applyElementalistAura } from '#gw2/professions/elementalist/core/traits/dispatch.js';
+import { applyElementalistAura } from '#gw2/professions/elementalist/core/mechanics/auras.js';
 import type { ElementalistRuntimeState, ElementalistSkill } from '#gw2/professions/elementalist/types.js';
 /** Reads the completion-time bullet before the declaration's final load/spend action changes it. */
 export function hasPistolBullet(

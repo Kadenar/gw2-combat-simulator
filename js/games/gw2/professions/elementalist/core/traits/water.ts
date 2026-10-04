@@ -1,9 +1,21 @@
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { targetConditionActive } from '#gw2/platform/combat/query/runtime-query.js';
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
+import { hasTrait } from '#gw2/platform/combat/state/traits.js';
+import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
+import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
 import { defineTrait, traitAttributeEffects } from '#gw2/platform/profession-definition/traits.js';
+import {
+  balanceProfileNumber,
+  requireBalanceProfileFromContext,
+  requireEffect
+} from '#gw2/platform/skills/balance-profiles.js';
+import type { Skill } from '#gw2/platform/skills/types.js';
+import type { ElementalistAuraApplier } from '#gw2/professions/elementalist/core/mechanics/auras.js';
+import { elementalistProfiledBuffRequest } from '#gw2/professions/elementalist/core/mechanics/effects.js';
 import { primaryAttunement } from '#gw2/professions/elementalist/core/mechanics/modifier-queries.js';
 import { ELEMENTALIST_TRAIT_IDS as TRAIT } from '#gw2/professions/elementalist/data/ids.js';
+import type { ElementalistRuntime, ElementalistSkill } from '#gw2/professions/elementalist/types.js';
 
 /** Water definitions keep active tuning beside their behavior; explicit calls preserve mechanic ordering. */
 export const soothingIce = defineTrait({
@@ -66,3 +78,60 @@ export const piercingShards = defineTrait({
     }
   ]
 });
+
+/** Applies Soothing Ice's Frost Aura and regeneration from an eligible healing skill. */
+export function applySoothingIce(
+  context: ElementalistRuntime,
+  cast: RuntimeCast<ElementalistSkill>,
+  skill: Skill,
+  applyAura: ElementalistAuraApplier
+): void {
+  const at = cast.effectiveEnd;
+  if (skill.type !== 'Heal' || !hasTrait(context, TRAIT.SOOTHING_ICE)) {
+    return;
+  }
+
+  const soothingIceProfile = requireBalanceProfileFromContext(context, TRAIT.SOOTHING_ICE);
+  // Claim the existing owner-local timer before any derived effect.
+  if (!context.procs.claimCooldown('soothingIce', at, balanceProfileNumber(soothingIceProfile, 'internalCooldown')))
+    return;
+  const soothingIceFrostAura = requireEffect(soothingIceProfile, 'buff', 'Frost Aura');
+  if (soothingIceFrostAura) {
+    applyAura(context, {
+      at,
+      aura: String(soothingIceFrostAura.kind),
+      duration: soothingIceFrostAura.duration,
+      skillName: 'Soothing Ice',
+      sourceId: skill.id
+    });
+  }
+
+  context.effects.emit(
+    elementalistProfiledBuffRequest(
+      context,
+      at,
+      TRAIT.SOOTHING_ICE,
+      'Regeneration',
+      'Soothing Ice',
+      skill.id,
+      undefined,
+      undefined,
+      { activationId: cast.id, skillId: cast.skill.id, offTarget: cast.command.offTarget }
+    )
+  );
+}
+
+/** Scale this element's weapon recharge after the mechanic has handled held and non-weapon cooldowns. */
+export function aquamancersTrainingRecharge(
+  context: MechanicQueriesOf<ElementalistRuntime>,
+  skill: Skill,
+  duration: number
+): number {
+  return skill.attunement === 'Water' && hasTrait(context, TRAIT.AQUAMANCERS_TRAINING)
+    ? duration *
+        balanceProfileNumber(
+          requireBalanceProfileFromContext(context, TRAIT.AQUAMANCERS_TRAINING),
+          'rechargeMultiplier'
+        )
+    : duration;
+}
