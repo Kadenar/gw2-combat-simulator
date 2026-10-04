@@ -151,16 +151,6 @@ export function enhancedLegendRecharge(
 }
 
 /** Applies the trait at the mechanic's existing execution boundary. */
-export function grantExpandedConsciousness(runtime: RevenantRuntime, previous: number, maximum: number): void {
-  const state = conduitState.from(runtime);
-  if (previous < maximum && state.affinity === maximum && hasTrait(runtime, TRAIT.EXPANDED_CONSCIOUSNESS))
-    runtime.resourceController.grant(
-      'energy',
-      balanceProfileNumber(requireBalanceProfileFromContext(runtime, PROFILE.expandedConsciousness), 'resourceGain')
-    );
-}
-
-/** Applies the trait at the mechanic's existing execution boundary. */
 export function grantFoundPurpose(runtime: RevenantRuntime, cast: RuntimeCast<RevenantSkill>, combat: boolean): void {
   if (combat && hasTrait(runtime, TRAIT.FOUND_PURPOSE)) numinousGift(runtime, cast, true);
 }

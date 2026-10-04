@@ -64,16 +64,6 @@ export function retainDraconicEcho(runtime: RevenantRuntime, facet: RevenantSkil
   runtime.schedule(ECHO_EXPIRY, expiresAt, { skillId: facet.id, expiresAt });
 }
 
-/** Supplies the capped Echo boon-duration contribution for active Nature. */
-export function draconicEchoBoonDuration(context: Gw2ModifierContext): number {
-  return hasTrait(context, TRAIT.DRACONIC_ECHO)
-    ? balanceProfileNumber(
-        requireBalanceProfileFromContext(context, HERALD_DRACONIC_ECHO_PROFILE_ID),
-        'boonDurationBonus'
-      )
-    : 0;
-}
-
 export const COMPASSION = 'revenant.herald-elevated-compassion';
 
 export function elevatedCompassionActive(runtime: RevenantRuntime): boolean {

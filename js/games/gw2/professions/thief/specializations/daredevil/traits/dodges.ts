@@ -1,4 +1,3 @@
-import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import type { BalanceProfile, SkillId } from '#gw2/platform/skills/types.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
@@ -6,7 +5,7 @@ import type { ThiefRuntime } from '#gw2/professions/thief/core/events.js';
 import { buildThiefBuff } from '#gw2/professions/thief/core/events.js';
 import { THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
 import { daredevilState } from '#gw2/professions/thief/specializations/daredevil/state.js';
-import type { ThiefConfig, ThiefDodge, ThiefSkill } from '#gw2/professions/thief/types.js';
+import type { ThiefDodge, ThiefSkill } from '#gw2/professions/thief/types.js';
 
 // The dodge choice retains trait attribution while its balance profile owns every emitted packet.
 export const DODGE_PROFILES: Readonly<Partial<Record<ThiefDodge, SkillId>>> = Object.freeze({
@@ -88,16 +87,4 @@ export function openDodgeWindow(runtime: ThiefRuntime, cast: RuntimeCast<ThiefSk
       })
     });
   }
-}
-
-export function selectedDodge(config: ThiefConfig, traits: ReadonlySet<string | number>): ThiefDodge {
-  // Trait-based dodge replaces any explicit config choice; only one Daredevil minor trait can be active
-  if (hasTrait(traits, TRAIT.LOTUS_TRAINING)) return 'Lotus Training';
-  if (hasTrait(traits, TRAIT.BOUNDING_DODGER)) return 'Bounding Dodger';
-  if (hasTrait(traits, TRAIT.UNHINDERED_COMBATANT)) {
-    return 'Unhindered Combatant';
-  }
-
-  // Fall back to explicit config selection or plain dodge for Core Thief / non-minor builds
-  return config.selectedDodge || 'Dodge';
 }

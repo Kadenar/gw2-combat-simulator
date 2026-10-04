@@ -3,7 +3,8 @@ import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/pla
 import type { RevenantRuntime } from '#gw2/professions/revenant/core/events.js';
 import { CONDUIT_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/revenant/specializations/conduit/profiles.js';
 import { conduitState } from '#gw2/professions/revenant/specializations/conduit/state.js';
-import { grantExpandedConsciousness } from '#gw2/professions/revenant/specializations/conduit/traits/behavior.js';
+import { hasTrait } from '#gw2/platform/combat/state/traits.js';
+import { REVENANT_TRAIT_IDS as TRAIT } from '#gw2/professions/revenant/data/ids.js';
 
 /** Affinity is combat-only and capped; reaching the cap grants Expanded Consciousness Energy. */
 export function gainAffinity(runtime: RevenantRuntime, amount: number): void {
@@ -17,4 +18,14 @@ export function gainAffinity(runtime: RevenantRuntime, amount: number): void {
   const previous = state.affinity || 0;
   state.affinity = grantCapped(previous, amount, maximum);
   grantExpandedConsciousness(runtime, previous, maximum);
+}
+
+/** Reward a selected cap crossing once; further grants at full affinity cannot repeat the Energy gain. */
+function grantExpandedConsciousness(runtime: RevenantRuntime, previous: number, maximum: number): void {
+  const state = conduitState.from(runtime);
+  if (previous < maximum && state.affinity === maximum && hasTrait(runtime, TRAIT.EXPANDED_CONSCIOUSNESS))
+    runtime.resourceController.grant(
+      'energy',
+      balanceProfileNumber(requireBalanceProfileFromContext(runtime, PROFILE.expandedConsciousness), 'resourceGain')
+    );
 }

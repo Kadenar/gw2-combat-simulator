@@ -2,7 +2,8 @@ import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mech
 import type { MechanicContext } from '#gw2/platform/profession-definition/mechanic-context.js';
 import type { CastDetailContext } from '#gw2/platform/profession-definition/runtime-context.js';
 import { MODIFIER_TARGET, type Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
-import { impactEffects } from '#gw2/platform/effects/authoring.js';
+import { impactEffects, strikeEffectCoefficient } from '#gw2/platform/effects/authoring.js';
+import { effectFirstAt, scaleCastBoundTiming } from '#gw2/platform/effects/materializer.js';
 import { requireBalanceProfileFromContext, requireEffect } from '#gw2/platform/skills/balance-profiles.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
 import type { SkillEffect } from '#gw2/platform/effects/types.js';
@@ -11,7 +12,7 @@ import type { RuntimeProfession } from '#gw2/platform/profession-definition/runt
 import { projectCastRelativeEffectTimingMs } from '#gw2/platform/execution/cast-timing.js';
 import { guardianTimedBuffActive } from '#gw2/professions/guardian/core/mechanics/modifier-queries.js';
 import { GUARDIAN_SKILL_IDS as ID } from '#gw2/professions/guardian/data/ids.js';
-import { luminaryImpactAt } from '#gw2/professions/guardian/specializations/luminary/mechanics/effects.js';
+import { canonicalTime } from '#kernel/core/clock.js';
 import { LUMINARY_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/guardian/specializations/luminary/profiles.js';
 import { luminaryState } from '#gw2/professions/guardian/specializations/luminary/state.js';
 import type { GuardianRuntimeState, GuardianSkill } from '#gw2/professions/guardian/types.js';
@@ -461,3 +462,10 @@ export const luminaryWeaponModifiers: readonly Gw2ModifierRule[] = [
       context.event?.skillId === ID.GLEAMING_BLADE && guardianTimedBuffActive(context, 'guardian-radiant-courage-sword')
   }
 ];
+
+/** Linked self effects use the packet materializer's scaling and anchor so they resolve with the selected impact. */
+export function luminaryImpactAt(cast: RuntimeCast<GuardianSkill>): number {
+  const effect = cast.skill.effects?.find((effect) => effect.type === 'strike' && strikeEffectCoefficient(effect) > 0);
+  if (effect?.type !== 'strike') return cast.effectiveEnd;
+  return canonicalTime(effectFirstAt(cast.start, cast.fullEnd, scaleCastBoundTiming(cast, cast.skill, effect)));
+}

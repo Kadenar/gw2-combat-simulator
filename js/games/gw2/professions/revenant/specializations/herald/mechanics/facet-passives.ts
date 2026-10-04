@@ -6,9 +6,15 @@ import {
   revenantRuntimeSpecializationState
 } from '#gw2/professions/revenant/core/state-queries.js';
 import type { RevenantCoreState } from '#gw2/professions/revenant/core/state.js';
-import { REVENANT_SKILL_IDS as ID, REVENANT_LEGEND_IDS as LEGEND } from '#gw2/professions/revenant/data/ids.js';
+import {
+  REVENANT_SKILL_IDS as ID,
+  REVENANT_LEGEND_IDS as LEGEND,
+  REVENANT_TRAIT_IDS as TRAIT
+} from '#gw2/professions/revenant/data/ids.js';
 import type { HeraldState } from '#gw2/professions/revenant/specializations/herald/state.js';
-import { draconicEchoBoonDuration } from '#gw2/professions/revenant/specializations/herald/traits/behavior.js';
+import { hasTrait } from '#gw2/platform/combat/state/traits.js';
+import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import { HERALD_DRACONIC_ECHO_PROFILE_ID } from '#gw2/professions/revenant/specializations/herald/profiles.js';
 
 /** Active upkeep and retained passives share eligibility, but only upkeep drains Energy. */
 export function heraldFacetPassiveActive(
@@ -38,4 +44,14 @@ export function modifyHeraldPassiveAttributes(context: Gw2ModifierContext, attri
     uncappedBoonDurationBonus: (attributes.uncappedBoonDurationBonus || 0) + (legend === LEGEND.DRAGON ? 20 : 0),
     boonDurationBonus: (attributes.boonDurationBonus || 0) + draconicEchoBoonDuration(context)
   };
+}
+
+/** Supplies the capped Echo boon-duration contribution for active Nature. */
+function draconicEchoBoonDuration(context: Gw2ModifierContext): number {
+  return hasTrait(context, TRAIT.DRACONIC_ECHO)
+    ? balanceProfileNumber(
+        requireBalanceProfileFromContext(context, HERALD_DRACONIC_ECHO_PROFILE_ID),
+        'boonDurationBonus'
+      )
+    : 0;
 }

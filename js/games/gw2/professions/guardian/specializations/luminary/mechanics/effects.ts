@@ -1,7 +1,5 @@
 import type { MechanicContext } from '#gw2/platform/profession-definition/mechanic-context.js';
 import { isGw2PlayerActorEvent } from '#gw2/platform/combat/state/event-ownership.js';
-import { strikeEffectCoefficient } from '#gw2/platform/effects/authoring.js';
-import { effectFirstAt, scaleCastBoundTiming } from '#gw2/platform/effects/materializer.js';
 import {
   balanceProfileNumber,
   effectNumber,
@@ -26,19 +24,11 @@ import {
   startSovereignOfLight
 } from '#gw2/professions/guardian/specializations/luminary/traits/behavior.js';
 import type { GuardianRuntimeState, GuardianSkill } from '#gw2/professions/guardian/types.js';
-import { canonicalTime } from '#kernel/core/clock.js';
 
 type Runtime = MechanicContext<GuardianRuntimeState, GuardianSkill>;
 export const AURA_GRANT = 'guardian.luminary.aura-grant';
 export const EFFULGENT = 'guardian.luminary.effulgent';
 export const STANCE = 'guardian.luminary.stance';
-
-/** Linked self effects use the packet materializer's scaling and anchor so they resolve with the selected impact. */
-export function luminaryImpactAt(cast: RuntimeCast<GuardianSkill>): number {
-  const effect = cast.skill.effects?.find((effect) => effect.type === 'strike' && strikeEffectCoefficient(effect) > 0);
-  if (effect?.type !== 'strike') return cast.effectiveEnd;
-  return canonicalTime(effectFirstAt(cast.start, cast.fullEnd, scaleCastBoundTiming(cast, cast.skill, effect)));
-}
 
 /** Actual combo outcomes refresh the single aura; only Luminary sources can detonate an existing one on grant. */
 export function grantLuminaryAura(runtime: Runtime, event: Gw2ResolverEvent): void {

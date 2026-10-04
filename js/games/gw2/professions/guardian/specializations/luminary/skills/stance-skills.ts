@@ -1,12 +1,8 @@
 import { canonicalTime } from '#kernel/core/clock.js';
 import { guardianCastCause } from '#gw2/professions/guardian/core/mechanics/event-handlers.js';
 import { luminaryState } from '#gw2/professions/guardian/specializations/luminary/state.js';
-import {
-  AURA_GRANT,
-  EFFULGENT,
-  STANCE,
-  luminaryImpactAt
-} from '#gw2/professions/guardian/specializations/luminary/mechanics/effects.js';
+import { AURA_GRANT, EFFULGENT, STANCE } from '#gw2/professions/guardian/specializations/luminary/mechanics/effects.js';
+import { luminaryImpactAt } from '#gw2/professions/guardian/specializations/luminary/skills/radiant-forge-skills.js';
 import type { RuntimeProfession } from '#gw2/platform/profession-definition/runtime-contract.js';
 import type { GuardianRuntimeState, GuardianSkill } from '#gw2/professions/guardian/types.js';
 /**

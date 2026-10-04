@@ -15,8 +15,10 @@ import { refreshGuardianVirtues } from '#gw2/professions/guardian/core/mechanics
 import { guardianTraitIcon } from '#gw2/professions/guardian/core/traits/metadata.js';
 
 import { GUARDIAN_SKILL_IDS as ID, GUARDIAN_TRAIT_IDS as TRAIT } from '#gw2/professions/guardian/data/ids.js';
-import { luminaryImpactAt } from '#gw2/professions/guardian/specializations/luminary/mechanics/effects.js';
-import { LUMINARY_INITIAL_STATE_SKILL_IDS as INITIAL } from '#gw2/professions/guardian/specializations/luminary/skills/radiant-forge-skills.js';
+import {
+  LUMINARY_INITIAL_STATE_SKILL_IDS as INITIAL,
+  luminaryImpactAt
+} from '#gw2/professions/guardian/specializations/luminary/skills/radiant-forge-skills.js';
 import { luminaryState } from '#gw2/professions/guardian/specializations/luminary/state.js';
 import type { GuardianRuntimeState, GuardianSkill } from '#gw2/professions/guardian/types.js';
 
