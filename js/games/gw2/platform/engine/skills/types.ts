@@ -166,6 +166,8 @@ export interface Skill extends CatalogEntity {
   readonly variantBadge?: string;
   /** Stable selectable skill resolved from a build-template palette ID. */
   readonly loadoutSkillId?: SkillId;
+  /** Base identity replaced by this specialization's weapon skill, independent of its display label. */
+  readonly weaponVariantRootId?: SkillId;
   /**
    * Retain the catalog record but omit it from patch authoring because no
    * simulator path consumes it. This is independent of simulatorExcluded,

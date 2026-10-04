@@ -39,7 +39,7 @@ const WEAPON_TILE_IDS = new Map<SkillId, SkillId>([
 // Correct stale API specialization labels before palette ranking and module assembly.
 const generated: readonly MesmerSkill[] = allSkills.map((skill) => ({
   ...normalizeGeneratedSkill(skill, flipParentById.get(skill.id) ?? null),
-  ...(WEAPON_TILE_IDS.has(skill.id) ? { paletteTileId: WEAPON_TILE_IDS.get(skill.id) } : {}),
+  ...(WEAPON_TILE_IDS.has(skill.id) ? { weaponVariantRootId: WEAPON_TILE_IDS.get(skill.id) } : {}),
   specialization:
     NON_MIRAGE_AXE_SKILL_IDS.has(skill.id) || skill.id === ID.BLADECALL_NON_VIRTUOSO
       ? ''

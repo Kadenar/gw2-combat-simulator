@@ -30,10 +30,10 @@ complete execution trace.
 
 The Event Log's **Capture damage calculations** checkbox reruns the displayed baseline with the same seed and enables
 expandable hit calculations. Capture is session-only and resets on reload; it is not saved with builds or enabled for
-optimizer and distribution runs. The download button exports the ordinary **CSV Log** when capture is off and
-switches to **Download debug JSON** when capture is on, exporting the matching rotation, resolved configuration, patch,
-seed, observation policy, and damage events after capture completes. The outgoing multiplier is an aggregate, not a list
-of individual modifier contributions. CSV logs continue to export their ordinary summary rows.
+optimizer and distribution runs. The download button exports the ordinary **CSV Log** when capture is off and switches
+to **Download debug JSON** when capture is on, exporting the matching rotation, resolved configuration, patch, seed,
+observation policy, and damage events after capture completes. The outgoing multiplier is an aggregate, not a list of
+individual modifier contributions. CSV logs continue to export their ordinary summary rows.
 
 Score output suppresses report collections and diagnostics. Both outputs execute the same runtime once, with the same
 state transitions and random draws. Detailed damage diagnostics capture the actual hit calculations. They do not predict
@@ -63,7 +63,7 @@ import { skillBreakdownRows } from '#gw2/app/results/skill-breakdown.js';
 import { engineerProfession } from '#gw2/professions/engineer/profession.js';
 
 const baseConfig = Object.freeze({
-  selectedSkills: ['Healing Turret', 'Grenade Kit', 'Throw Mine', 'Rifle Turret', 'Supply Crate'],
+  selectedSkillIds: [5857, 5805, 6161, 5812, 5868],
   selectedMorphSkillIds: [77103, 77203, 76954],
   stats: {
     power: 2000,
@@ -256,7 +256,7 @@ The direct API consumes resolved combat values. It does not calculate stats from
 | ------------------------------------------ | ------------------------------------------------------------------------------------------------- |
 | `specialization`                           | `Core` or the exact elite-specialization name                                                     |
 | `selectedTraitIds`                         | Active trait IDs                                                                                  |
-| `selectedSkills`                           | Equipped heal, utility, and elite skill names                                                     |
+| `selectedSkillIds`                         | Canonical IDs of equipped heal, utility, and elite skills                                         |
 | `primaryWeapon`, `secondaryWeapon`         | First weapon set                                                                                  |
 | `weaponSet2Primary`, `weaponSet2Secondary` | Second weapon set                                                                                 |
 | `startingWeaponSet`                        | `1` or `2`                                                                                        |
@@ -293,7 +293,7 @@ const result = simulateGw2({
   rotation: ['Grenade Kit', 'Grenade'],
   config: {
     specialization: 'Core',
-    selectedSkills: ['Healing Turret', 'Grenade Kit', 'Throw Mine', 'Elixir Gun', 'Supply Crate'],
+    selectedSkillIds: [5857, 5805, 6161, 5933, 5868],
     stats: { power: 2000, precision: 1500, ferocity: 500 },
     target: { armor: 2597 }
   }
@@ -382,3 +382,15 @@ Scripts that compare random outcomes should run multiple seeds and summarize the
 This repository is marked `private` and does not publish a package export for the simulator. The module paths above are
 internal repository paths, so scripts using them should be kept with or pinned to a compatible simulator revision. No
 web server is required for headless execution.
+
+## Selected skill identity and saved builds
+
+Build records store `selectedSkillIds` as slot-keyed catalog IDs, with `null` for an empty slot. Simulation
+configurations accept a flat array of IDs; omit empty slots. Numeric and string IDs retain their catalog type. Omitting
+the simulation field permits sandbox casts; an explicit empty array equips no slot skills. Names are display text.
+
+Old JSON imports and browser-stored builds with `selectedSkills` are converted once by the shared build codec. Unique
+selectable names become catalog IDs and empty strings become `null`; the old field is removed. Browser storage is
+rewritten only after successful conversion, including workspace tabs, reset targets, and My Builds. Unknown or ambiguous
+names report an error and leave the original data intact. Exports use the new profession schema version and contain only
+IDs. Programmatic simulation does not accept the old name-valued field.

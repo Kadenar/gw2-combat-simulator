@@ -122,7 +122,7 @@ function weaponVariantRank(skill: Skill, specialization: string): number {
 function uniqueBySpecializedIdentity(skills: readonly Skill[], specialization: string): Skill[] {
   const byIdentity = new Map<SkillId, Skill>();
   for (const skill of skills) {
-    const identity = skill.paletteTileId ?? skill.id;
+    const identity = skill.weaponVariantRootId ?? skill.id;
     const existing = byIdentity.get(identity);
     if (!existing || weaponVariantRank(skill, specialization) < weaponVariantRank(existing, specialization)) {
       byIdentity.set(identity, skill);
@@ -434,9 +434,7 @@ export function displayedSkillTiles(
     const chainRoot = candidates.find((candidate) => candidate.chainRoot != null)?.chainRoot;
     if (chainRoot != null) {
       const expected = autoattackChains[String(chainRoot)] ?? chainRoot;
-      const activeChainSkill = candidates.find(
-        (candidate) => candidate.id === Number(expected) || candidate.name === expected
-      );
+      const activeChainSkill = candidates.find((candidate) => candidate.id === expected);
       if (activeChainSkill) return activeChainSkill;
     }
 

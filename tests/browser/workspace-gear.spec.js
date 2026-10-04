@@ -94,11 +94,12 @@ test('utility selections swap slots and normalization repairs duplicate or unava
     ['Utility2', 'Utility2']
   ]) {
     const slot = page.locator(`#skill-bar [data-key="${destination}"]`);
+    const label = await page.evaluate((id) => window.professionApp.skillById.get(id).name, selected[source]);
     await slot.locator('.sbar-icon').click();
-    await slot.getByRole('button', { name: selected[source], exact: true }).click();
+    await slot.getByRole('button', { name: label, exact: true }).click();
     [selected[destination], selected[source]] = [selected[source], selected[destination]];
     expect(await page.evaluate(() => window.professionApp.build.selectedSkillIds)).toEqual(selected);
-    await expect(slot.locator('.sbar-icon')).toHaveAttribute('data-wiki-name', selected[destination]);
+    await expect(slot.locator('.sbar-icon')).toHaveAttribute('data-wiki-name', label);
     await expect(slot.locator('.sbar-icon')).toBeFocused();
   }
 

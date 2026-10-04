@@ -147,6 +147,7 @@ const SKILL_FIELDS = new Set([
   'paletteFlip',
   'paletteFlipSkillId',
   'paletteTileId',
+  'weaponVariantRootId',
   'paletteTileOrder',
   'parentCooldownIncrease',
   'parentId',

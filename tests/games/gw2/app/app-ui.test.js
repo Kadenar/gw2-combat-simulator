@@ -2026,7 +2026,7 @@ test("weaponmaster palettes keep the active spec's weapon-skill variant", () => 
   const skills = [
     {
       id: 62560,
-      paletteTileId: 69311,
+      weaponVariantRootId: 69311,
       name: 'Renamed Bladecall',
       type: 'Weapon',
       slot: 'Weapon_2',
