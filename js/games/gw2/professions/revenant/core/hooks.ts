@@ -1,6 +1,6 @@
 import type { EndurancePolicy } from '#gw2/platform/combat/resources/endurance-policy.js';
-import { grantTimedStacks } from '#gw2/platform/combat/resources/timed-stacks.js';
 import type { ResourcePolicy } from '#gw2/platform/combat/resources/resource-policy.js';
+import { grantTimedStacks } from '#gw2/platform/combat/resources/timed-stacks.js';
 import { denySkillCast } from '#gw2/platform/engine/skills/availability.js';
 import {
   balanceProfileNumber,
@@ -10,9 +10,14 @@ import { armSkillFlip, skillFlipReady, weaponFlipBlock } from '#gw2/platform/eng
 import type { Skill, SkillId } from '#gw2/platform/engine/skills/types.js';
 import type { AvailabilityResult, CastCommand } from '#gw2/platform/execution/types.js';
 import type { RuntimeCast, RuntimeProfession } from '#gw2/platform/simulation/runtime-state.js';
+import { damageInputEvent } from '#gw2/platform/skill-damage/execution.js';
 import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
 import type { RevenantRuntime } from '#gw2/professions/revenant/core/events.js';
-import { completeRevenantEnchantedDaggers } from '#gw2/professions/revenant/core/mechanics/enchanted-daggers.js';
+import { emitBattleScar } from '#gw2/professions/revenant/core/mechanics/battle-scars.js';
+import {
+  completeRevenantEnchantedDaggers,
+  emitEnchantedDagger
+} from '#gw2/professions/revenant/core/mechanics/enchanted-daggers.js';
 import { modifyRevenantLifeSiphon } from '#gw2/professions/revenant/core/mechanics/life-siphon.js';
 import {
   activateRevenantUpkeep,
@@ -58,7 +63,7 @@ import {
   reactRevenantConditionTraits,
   reactRevenantPlayerStrike
 } from '#gw2/professions/revenant/core/traits/dispatch.js';
-import { REVENANT_SKILL_IDS as ID } from '#gw2/professions/revenant/data/ids.js';
+import { REVENANT_SKILL_IDS as DAMAGE_SKILL, REVENANT_SKILL_IDS as ID } from '#gw2/professions/revenant/data/ids.js';
 import { isLegalRevenantLegendId } from '#gw2/professions/revenant/data/legends.js';
 import { isRevenantUpkeep, isRevenantUpkeepRelease } from '#gw2/professions/revenant/data/upkeep-skills.js';
 import { VINDICATOR_JUMP_SKILL } from '#gw2/professions/revenant/data/vindicator-jump.js';
@@ -207,6 +212,39 @@ function swapLegend(runtime: RevenantRuntime, cast: RuntimeCast<RevenantSkill>):
 import { revenantBuffPolicies, revenantEffectStates } from '#gw2/professions/revenant/core/effect-state.js';
 
 export const revenantCoreHooks: Partial<RuntimeProfession<RevenantRuntimeState, RevenantSkill>> = {
+  // Known damage payloads are invoked once without their activation requirements.
+  damageEffects: [
+    {
+      id: 'battle-scars',
+      name: 'Battle Scars',
+      source: 'Profession',
+      unit: 'charge',
+      sourceIds: ['revenant.battle-scars'],
+      emit: (runtime) => emitBattleScar(runtime, damageInputEvent(runtime))
+    },
+    {
+      id: 'enchanted-daggers',
+      name: 'Enchanted Daggers',
+      source: 'Profession',
+      unit: 'charge',
+      sourceIds: [DAMAGE_SKILL.ENCHANTED_DAGGERS],
+      emit: (runtime) => emitEnchantedDagger(runtime, damageInputEvent(runtime))
+    }
+  ],
+
+  /** Initialize only damage-relevant form and scaling state for one assumed occurrence. */
+  prepareDamageState(runtime, skill, inputs) {
+    const state = runtime.profession.core;
+    if (skill.legendId) {
+      state.activeLegendId = skill.legendId;
+      state.activeLoadoutId = skill.legendId;
+    }
+
+    const upkeep = runtime.helpers.skills.find((entry) => entry.name === inputs.upkeep && entry.upkeepCost != null);
+    if (upkeep)
+      state.activeUpkeeps = [{ skillId: upkeep.id, upkeepCost: Number(upkeep.upkeepCost), empoweredNextPulse: false }];
+  },
+
   buffPolicies: revenantBuffPolicies,
   observeEffects: revenantEffectStates,
   // Base-second reductions remain with the cooldown controller, including partial-ammo progress.

@@ -1,37 +1,32 @@
-import type {
-  SkillDamagePreviewContext,
-  SkillDamageProbeSetup
-} from '#gw2/platform/profession-presentation/skill-damage.js';
-import type { Skill as PreviewSkill } from '#gw2/platform/engine/skills/types.js';
 import type { ProfessionAttributePreviewContext } from '#gw2/platform/profession-presentation/attribute-preview.js';
 import { createPreviewControls } from '#gw2/professions/shared/attribute-preview.js';
 
-import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
-import {
-  requireBalanceProfileFromContext,
-  balanceProfileNumber
-} from '#gw2/platform/engine/skills/balance-profiles.js';
-import { ENGINEER_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/engineer/core/profiles.js';
-import { SIMULATION_RANDOMNESS_ASSUMPTION_CONTROLS } from '#gw2/platform/simulation/randomness.js';
-import { PERMANENT_COMBO_FIELD_ASSUMPTION_CONTROLS } from '#gw2/platform/combos/permanent-field-assumption.js';
-import { flattenProfessionState } from '#gw2/platform/engine/profession/state.js';
 import {
   normalizeSelectedSkillNames,
   selectedSkillNameSet,
   type Gw2SelectedSkillLoadout
 } from '#gw2/platform/builds/selected-skills.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
+import { PERMANENT_COMBO_FIELD_ASSUMPTION_CONTROLS } from '#gw2/platform/combos/permanent-field-assumption.js';
+import { flattenProfessionState } from '#gw2/platform/engine/profession/state.js';
+import {
+  balanceProfileNumber,
+  requireBalanceProfileFromContext
+} from '#gw2/platform/engine/skills/balance-profiles.js';
 import { timedBuffAt } from '#gw2/platform/results/query.js';
+import { SIMULATION_RANDOMNESS_ASSUMPTION_CONTROLS } from '#gw2/platform/simulation/randomness.js';
+import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
+import { ENGINEER_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/engineer/core/profiles.js';
 
-import { ENGINEER_SKILL_IDS as ID, ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
-import { getActiveTraits } from '#gw2/professions/engineer/data/traits-data.js';
+import type { CanonicalCatalog, SkillId } from '#gw2/platform/engine/skills/types.js';
 import type {
   ProfessionEventLogDescriptor,
   ProfessionPaletteGroup,
   ProfessionResourceView,
   RotationStateSnapshotItem
 } from '#gw2/platform/profession-presentation/types.js';
-import type { CanonicalCatalog, SkillId } from '#gw2/platform/engine/skills/types.js';
+import { ENGINEER_SKILL_IDS as ID, ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
+import { getActiveTraits } from '#gw2/professions/engineer/data/traits-data.js';
 import type {
   EngineerResolverEvent,
   EngineerSkill,
@@ -200,30 +195,6 @@ function engineerEventLogRow(
 /** Captures this UI's catalog so other profession instances cannot change its projections. */
 export function bindEngineerCoreUi(catalog: Readonly<CanonicalCatalog<EngineerSkill>>): EngineerUiSlice {
   return Object.freeze({
-    /** Prepare legal preview casts with the same catalog metadata and transitions used by the runtime. */
-    skillDamageProbe(context: SkillDamagePreviewContext, skill: PreviewSkill): SkillDamageProbeSetup | null {
-      if (skill.id === SHARED_SKILL_IDS.SWAP_WEAPONS) return { setup: [{ type: 'cast', skillId: ID.GRENADE_KIT }] };
-      // A full native counter cycle includes the delayed Orbital Command Strike in proc-only discovery.
-      if (
-        skill.type === 'Weapon' &&
-        skill.kitId == null &&
-        (skill.effects?.some((effect) => effect.projectile === true) || skill.categories?.includes('Projectile')) &&
-        context.activeTraits.some((trait) => trait.id === TRAIT.AIM_ASSISTED_ROCKET)
-      ) {
-        const profile = requireBalanceProfileFromContext(context, TRAIT.AIM_ASSISTED_ROCKET);
-        return {
-          procSetup: Array.from({ length: balanceProfileNumber(profile, 'maximumStacks') - 1 }, () => [
-            { type: 'cast' as const, skillId: skill.id, offTarget: false },
-            { type: 'wait' as const, durationMs: balanceProfileNumber(profile, 'internalCooldown') * 1000 }
-          ]).flat()
-        };
-      }
-
-      const kitId = (skill as EngineerSkill).kitId;
-      if (kitId == null || kitId === skill.id) return null;
-      return { setup: [{ type: 'cast', skillId: kitId }] };
-    },
-
     /** Declare this module's conditional inputs without adding simulation settings. */
     previewControls(context: ProfessionAttributePreviewContext) {
       const preview = createPreviewControls(context);

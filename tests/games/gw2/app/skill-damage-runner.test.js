@@ -34,7 +34,7 @@ function setup(t) {
   const published = [];
   const runner = new SkillDamageRunner((...args) => published.push(args));
   t.after(() => runner.cancel());
-  const plan = (signature) => ({ signature, request: { config: {}, probes: [] } });
+  const plan = (signature) => ({ signature, request: { config: {}, occurrences: [] } });
   return { workers, published, runner, plan };
 }
 
@@ -45,10 +45,10 @@ test('damage preview coalesces edits and publishes only the latest worker respon
   const worker = workers[0];
   runner.schedule(plan('intermediate'));
   runner.schedule(plan('latest'));
-  worker.reply({ requestId: worker.messages[0].requestId, evaluation: { probes: [], procs: [] } });
+  worker.reply({ requestId: worker.messages[0].requestId, evaluation: { occurrences: [] } });
   assert.equal(published.length, 0);
   assert.equal(worker.messages.length, 2);
-  worker.reply({ requestId: worker.messages[1].requestId, evaluation: { probes: [], procs: [] } });
+  worker.reply({ requestId: worker.messages[1].requestId, evaluation: { occurrences: [] } });
   assert.equal(published.length, 1);
   assert.equal(published[0][0], 'latest');
   assert.equal(runner.isRunning, false);
@@ -60,7 +60,7 @@ test('closing the preview terminates in-flight work and ignores its late respons
   t.mock.timers.tick(150);
   const worker = workers[0];
   runner.cancel();
-  worker.reply({ requestId: worker.messages[0].requestId, evaluation: { probes: [], procs: [] } });
+  worker.reply({ requestId: worker.messages[0].requestId, evaluation: { occurrences: [] } });
   assert.equal(worker.terminated, true);
   assert.equal(published.length, 0);
   assert.equal(runner.isRunning, false);
@@ -79,7 +79,7 @@ test('worker errors publish once and a later request can recover', (t) => {
   runner.schedule(plan('retry'));
   t.mock.timers.tick(150);
   const worker = workers[1];
-  worker.reply({ requestId: worker.messages[0].requestId, evaluation: { probes: [], procs: [] } });
+  worker.reply({ requestId: worker.messages[0].requestId, evaluation: { occurrences: [] } });
   assert.equal(published[1][0], 'retry');
   assert.equal(published[1][2], '');
 });

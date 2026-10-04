@@ -63,7 +63,6 @@ export const maimTheDisillusioned = defineTrait<MesmerSkill>({
   id: TRAIT.MAIM_THE_DISILLUSIONED,
   name: 'Maim the Disillusioned',
   balance: {
-    damagePreviewRequirement: 'Requires an eligible clone shatter; Bladesongs do not trigger this effect.',
     effects: [{ name: 'Torment', type: 'condition', condition: 'Torment', duration: 6, stacks: 1 }]
   }
 });

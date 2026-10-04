@@ -30,7 +30,7 @@ import type { Gw2HitResolutionContext } from '#gw2/platform/resolver/hit-resolut
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import type { RuntimeCast, RuntimeProfession } from '#gw2/platform/simulation/runtime-state.js';
 import type { ThiefRuntime } from '#gw2/professions/thief/core/events.js';
-import { deferThiefCompletion, buildThiefCondition } from '#gw2/professions/thief/core/events.js';
+import { buildThiefCondition, deferThiefCompletion } from '#gw2/professions/thief/core/events.js';
 import { grantThiefInitiative } from '#gw2/professions/thief/core/mechanics/resources.js';
 import { completeThiefSteal } from '#gw2/professions/thief/core/mechanics/steal.js';
 import { emitThiefStealTraits } from '#gw2/professions/thief/core/traits/steal.js';
@@ -167,6 +167,17 @@ function reactDeadeyeMalice(runtime: ThiefRuntime, event: Gw2ResolverEvent, hit?
 
 /** Deadeye hooks: the mark and malice, malicious attacks, stolen skills, Mercy, Shadow Flare, and cantrip traits. */
 export const deadeyeHooks: Partial<RuntimeProfession<ThiefRuntimeState, ThiefSkill>> = {
+  /** Initialize only damage-relevant form and scaling state for one assumed occurrence. */
+  prepareDamageState(runtime, _skill, inputs) {
+    const state = deadeyeState.from(runtime);
+    const malice = Number(inputs.malice ?? 0);
+    if (!Number.isInteger(malice) || malice > state.maximumMalice)
+      throw new RangeError('Malice exceeds the selected build maximum.');
+    state.malice = malice;
+    state.markedTargetId = 'target';
+    state.markExpiresAt = Infinity;
+  },
+
   sideEffectHandlers: {
     'thief.clear-revealed'(runtime) {
       runtime.profession.core.revealedUntil = Math.min(runtime.profession.core.revealedUntil, runtime.time);

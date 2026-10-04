@@ -1,11 +1,13 @@
+import type { CanonicalCatalog, Skill as PreviewSkill, SkillId } from '#gw2/platform/engine/skills/types.js';
+import type { ProfessionAttributePreviewContext } from '#gw2/platform/profession-presentation/attribute-preview.js';
 import type {
   SkillDamagePreviewPreparation,
-  SkillDamageProbeSetup
+  SkillDamageState
 } from '#gw2/platform/profession-presentation/skill-damage.js';
-import type { Skill as PreviewSkill } from '#gw2/platform/engine/skills/types.js';
-import { ENGINEER_SKILL_IDS as ID } from '#gw2/professions/engineer/data/ids.js';
-import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
-import { HOLOSMITH_FORGE_TOGGLE_SKILL_IDS } from '#gw2/professions/engineer/specializations/holosmith/mechanics/constants.js';
+import type {
+  ProfessionEventLogDescriptor,
+  ProfessionResourceView
+} from '#gw2/platform/profession-presentation/types.js';
 import {
   engineerToolbeltSkillIds,
   engineerUiSpecialization,
@@ -14,16 +16,12 @@ import {
   namedSkillId,
   uniqueIdsBySkillName
 } from '#gw2/professions/engineer/core/presentation.js';
-import type { CanonicalCatalog, SkillId } from '#gw2/platform/engine/skills/types.js';
-import type {
-  ProfessionEventLogDescriptor,
-  ProfessionResourceView
-} from '#gw2/platform/profession-presentation/types.js';
-import type { EngineerResolverEvent, EngineerUiContext, EngineerUiSlice } from '#gw2/professions/engineer/types.js';
-import type { HolosmithSkill } from '#gw2/professions/engineer/specializations/holosmith/types.js';
-import type { ProfessionAttributePreviewContext } from '#gw2/platform/profession-presentation/attribute-preview.js';
-import { createPreviewControls } from '#gw2/professions/shared/attribute-preview.js';
+import { ENGINEER_SKILL_IDS as ID } from '#gw2/professions/engineer/data/ids.js';
+import { HOLOSMITH_FORGE_TOGGLE_SKILL_IDS } from '#gw2/professions/engineer/specializations/holosmith/mechanics/constants.js';
 import { enhancedCapacityMaximumHeat } from '#gw2/professions/engineer/specializations/holosmith/traits/heat.js';
+import type { HolosmithSkill } from '#gw2/professions/engineer/specializations/holosmith/types.js';
+import type { EngineerResolverEvent, EngineerUiContext, EngineerUiSlice } from '#gw2/professions/engineer/types.js';
+import { createPreviewControls } from '#gw2/professions/shared/attribute-preview.js';
 
 const HEAT_STATE_REASONS = new Set<string>([
   'enter-forge',
@@ -73,12 +71,13 @@ export function bindHolosmithUi(catalog: Readonly<CanonicalCatalog<HolosmithSkil
     previewControls(context: ProfessionAttributePreviewContext) {
       const preview = createPreviewControls(context);
       preview.add({
-        key: 'forgeCycle',
-        label: 'Prepare Forge traits',
+        key: 'lensCharges',
+        label: 'Solar Focusing Lens charges',
         group: 'Mechanic',
         kind: 'special',
         scope: ['damage'],
-        description: 'Enter and leave Photon Forge before ordinary attacks; charges and cooling follow the runtime'
+        max: 6,
+        description: 'Starting charges; consumed by strikes in impact order'
       });
       preview.add({
         key: 'heat',
@@ -88,45 +87,18 @@ export function bindHolosmithUi(catalog: Readonly<CanonicalCatalog<HolosmithSkil
         scope: ['damage'],
         max: enhancedCapacityMaximumHeat({ selectedTraitIds: context.activeTraits.map((trait) => trait.id) }),
         initial: Number((context.build as { readonly initialHeat?: unknown }).initialHeat) || 0,
-        description: 'Heat before setup; skill tiers, cooling and overheat follow the runtime'
+        description: 'Heat before the occurrence; skill tiers, cooling and overheat follow the runtime'
       });
       return preview.controls;
     },
     prepareSkillDamagePreview: ({ values }: SkillDamagePreviewPreparation) =>
       values.heat == null ? {} : { initialHeat: Number(values.heat) },
-    /** Prepare legal preview casts with the same catalog metadata and transitions used by the runtime. */
-    skillDamageProbe(context: SkillDamagePreviewPreparation, skill: PreviewSkill): SkillDamageProbeSetup | null {
-      // A real Forge cycle prepares Lens and cooling windows without manufacturing their charges or multipliers.
-      if (!(skill as HolosmithSkill).forgeSkill && !HOLOSMITH_FORGE_TOGGLE_SKILL_IDS.has(Number(skill.id))) {
-        if (skill.id === SHARED_SKILL_IDS.SWAP_WEAPONS) return null;
-        if (!context.values.forgeCycle) return null;
-        const kit = (skill as HolosmithSkill).kitId;
-        return {
-          setup: [
-            { type: 'cast', skillId: ID.ENGAGE_PHOTON_FORGE },
-            { type: 'cast', skillId: ID.DEACTIVATE_PHOTON_FORGE },
-            ...(kit != null && kit !== skill.id ? [{ type: 'cast' as const, skillId: kit }] : [])
-          ]
-        };
-      }
-
-      if (skill.id === ID.ENGAGE_PHOTON_FORGE) return null;
-      const positions = context.catalog.autoattackChainPositions;
-      const position = positions.get(Number(skill.id));
-      const root = (skill as HolosmithSkill).chainRoot;
-      const predecessors =
-        position || root == null
-          ? []
-          : context.catalog.skills
-              .filter(
-                (candidate) => candidate.chainRoot === root && Number(candidate.chainStep) < Number(skill.chainStep)
-              )
-              .sort((a, b) => Number(a.chainStep) - Number(b.chainStep));
+    /** Declare damage inputs without constructing prerequisite actions. */
+    skillDamageState(context: SkillDamagePreviewPreparation, _skill: PreviewSkill): SkillDamageState | null {
+      // Direct evaluation supplies damage state without prerequisite actions.
       return {
-        setup: [
-          { type: 'cast', skillId: ID.ENGAGE_PHOTON_FORGE },
-          ...predecessors.map((candidate) => ({ type: 'cast' as const, skillId: candidate.id }))
-        ]
+        inputs: { lensCharges: Number(context.values.lensCharges ?? 0) },
+        assumptions: [`Solar Focusing Lens: ${Number(context.values.lensCharges ?? 0)} starting charges`]
       };
     },
 

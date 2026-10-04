@@ -1,42 +1,31 @@
-import type {
-  SkillDamagePreviewContext,
-  SkillDamageProbeSetup
-} from '#gw2/platform/profession-presentation/skill-damage.js';
-import type { Skill as PreviewSkill } from '#gw2/platform/engine/skills/types.js';
+import { PERMANENT_COMBO_FIELD_ASSUMPTION_CONTROLS } from '#gw2/platform/combos/permanent-field-assumption.js';
+import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
+import { flattenProfessionState, readProfessionCoreState } from '#gw2/platform/engine/profession/state.js';
+import type { CanonicalCatalog, SkillId } from '#gw2/platform/engine/skills/types.js';
+import { gw2PrimaryWeapon } from '#gw2/platform/equipment/weapons/loadout.js';
 import type {
   ProfessionAttributePreviewContext,
   ProfessionAttributePreviewPreparation
 } from '#gw2/platform/profession-presentation/attribute-preview.js';
-import { createPreviewControls } from '#gw2/professions/shared/attribute-preview.js';
-import {
-  balanceProfileNumber,
-  requireBalanceProfileFromContext
-} from '#gw2/platform/engine/skills/balance-profiles.js';
-import { NECROMANCER_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/necromancer/core/profiles.js';
-import { readProfessionCoreState } from '#gw2/platform/engine/profession/state.js';
-import type { NecromancerCoreState } from '#gw2/professions/necromancer/core/state.js';
-import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
-import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
-import { flattenProfessionState } from '#gw2/platform/engine/profession/state.js';
-import { SIMULATION_RANDOMNESS_ASSUMPTION_CONTROLS } from '#gw2/platform/simulation/randomness.js';
-import { PERMANENT_COMBO_FIELD_ASSUMPTION_CONTROLS } from '#gw2/platform/combos/permanent-field-assumption.js';
-import { NECROMANCER_SKILL_IDS as ID } from '#gw2/professions/necromancer/data/ids.js';
-import { getActiveTraits } from '#gw2/professions/necromancer/data/traits-data.js';
-import type { CanonicalCatalog, SkillId } from '#gw2/platform/engine/skills/types.js';
 import type {
   ProfessionEffectPresentation,
   ProfessionPaletteGroup,
   ProfessionResourceView
 } from '#gw2/platform/profession-presentation/types.js';
+import { SIMULATION_RANDOMNESS_ASSUMPTION_CONTROLS } from '#gw2/platform/simulation/randomness.js';
+import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
+import { NECROMANCER_LICH_SKILL_IDS } from '#gw2/professions/necromancer/core/skills/index.js';
+import type { NecromancerCoreState } from '#gw2/professions/necromancer/core/state.js';
+import { actualNecromancerLifeForceCost } from '#gw2/professions/necromancer/core/state.js';
+import { NECROMANCER_SKILL_IDS as ID } from '#gw2/professions/necromancer/data/ids.js';
+import { getActiveTraits } from '#gw2/professions/necromancer/data/traits-data.js';
 import type {
   NecromancerSkill,
   NecromancerState,
   NecromancerUiContext,
   NecromancerUiSlice
 } from '#gw2/professions/necromancer/types.js';
-import { gw2PrimaryWeapon } from '#gw2/platform/equipment/weapons/loadout.js';
-import { actualNecromancerLifeForceCost } from '#gw2/professions/necromancer/core/state.js';
-import { NECROMANCER_LICH_SKILL_IDS } from '#gw2/professions/necromancer/core/skills/index.js';
+import { createPreviewControls } from '#gw2/professions/shared/attribute-preview.js';
 
 const HALF_HEALTH_TRAITS = new Set(['Siphoned Power', 'Spiteful Fortitude', 'Chill of Death', 'Close to Death']);
 const NECROMANCER_EFFECT_PRESENTATIONS: readonly ProfessionEffectPresentation[] = Object.freeze([
@@ -212,28 +201,6 @@ function necromancerCoreResourceViews(context: NecromancerUiContext): Profession
 /** Captures this UI's catalog so other profession instances cannot change its projections. */
 export function bindNecromancerCoreUi(catalog: Readonly<CanonicalCatalog<NecromancerSkill>>): NecromancerUiSlice {
   return Object.freeze({
-    /** Prepare legal preview casts with the same catalog metadata and transitions used by the runtime. */
-    skillDamageProbe(context: SkillDamagePreviewContext, skill: PreviewSkill): SkillDamageProbeSetup | null {
-      // Observe one native passive siphon before the active signet suppresses it; no long ambient tail is needed.
-      if (skill.id === ID.SIGNET_OF_VAMPIRISM)
-        return {
-          procSetup: [
-            {
-              type: 'wait',
-              durationMs:
-                balanceProfileNumber(
-                  requireBalanceProfileFromContext(context, PROFILE.signetOfVampirismPassive),
-                  'pulseInterval'
-                ) * 1000
-            }
-          ]
-        };
-      const form = (skill as NecromancerSkill).shroud || (skill as NecromancerSkill).shroudExit;
-      if (!form) return null;
-      const entry = context.catalog.skills.find((candidate) => (candidate as NecromancerSkill).shroudEntry === form);
-      return entry ? { initialResource: 100, setup: [{ type: 'cast', skillId: entry.id }] } : null;
-    },
-
     /** Declare this module's conditional inputs without adding simulation settings. */
     previewControls(context: ProfessionAttributePreviewContext) {
       const preview = createPreviewControls(context);

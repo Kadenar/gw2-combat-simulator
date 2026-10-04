@@ -1,9 +1,9 @@
+import type { ResourcePolicies } from '#gw2/platform/combat/resources/resource-policy.js';
 import type { ProfessionConfig } from '#gw2/platform/execution/types.js';
 import type {
   ProfessionAttributePreviewInput,
   ProfessionAttributePreviewPreparation
 } from '#gw2/platform/profession-presentation/attribute-preview.js';
-import type { ResourcePolicies } from '#gw2/platform/combat/resources/resource-policy.js';
 import type {
   SkillDamageConfigPatch,
   SkillDamagePreviewPreparation
@@ -12,6 +12,9 @@ import type {
  * Profession UI composition. Combines Core, active-specialization, and family
  * UI slices without leaking runtime ownership policy into the application.
  */
+import type { ProfessionAssumptionControl } from '#gw2/platform/builds/types.js';
+import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
+import type { ProfessionResourceDefinition } from '#gw2/platform/engine/profession/types.js';
 import type { CanonicalCatalog, Skill } from '#gw2/platform/engine/skills/types.js';
 import type {
   ProfessionChargeReleaseContext,
@@ -22,9 +25,6 @@ import type {
   ProfessionSkillBarSelectionChange,
   ProfessionUiContract
 } from '#gw2/platform/profession-presentation/types.js';
-import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
-import type { ProfessionAssumptionControl } from '#gw2/platform/builds/types.js';
-import type { ProfessionResourceDefinition } from '#gw2/platform/engine/profession/types.js';
 
 type UiCallbackName = keyof ProfessionUiContract;
 
@@ -275,11 +275,11 @@ export function createProfessionFamilyUi(definition: ProfessionFamilyUiDefinitio
   };
 
   // The elite owns its mechanics' setup, so it answers before Core; the family slice is the last fallback.
-  ui.skillDamageProbe = (context: SkillDamagePreviewPreparation, skill: Skill) => {
+  ui.skillDamageState = (context: SkillDamagePreviewPreparation, skill: Skill) => {
     const selected = active(context);
     return firstUiMatch(
       [...[...selected.slices].reverse(), family],
-      'skillDamageProbe',
+      'skillDamageState',
       [selected.context, skill],
       (result) => result != null,
       null

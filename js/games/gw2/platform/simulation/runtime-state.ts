@@ -1,14 +1,16 @@
-import type { createEffectReactions } from '#gw2/platform/simulation/effect-reactions.js';
 import type { Gw2QueryProfession } from '#gw2/platform/combat/query/combat-query.js';
-import type { ResourceKey, ResourcePolicy } from '#gw2/platform/combat/resources/resource-policy.js';
 import type { EndurancePolicy } from '#gw2/platform/combat/resources/endurance-policy.js';
+import type { ResourceKey, ResourcePolicy } from '#gw2/platform/combat/resources/resource-policy.js';
 import type {
-  createRuntimeResources,
-  createRuntimeEndurance
+  createRuntimeEndurance,
+  createRuntimeResources
 } from '#gw2/platform/combat/resources/runtime-resources.js';
-import type { Skill, SkillId, SkillEffect, SkillTask, CanonicalCatalog } from '#gw2/platform/engine/skills/types.js';
-import type { RechargeProgress } from '#gw2/platform/engine/skills/recharge.js';
 import type { SimulationEventBase } from '#gw2/platform/engine/events/events.js';
+import type { RechargeProgress } from '#gw2/platform/engine/skills/recharge.js';
+import type { SkillFlipWindow } from '#gw2/platform/engine/skills/skill-flips.js';
+import type { CanonicalCatalog, Skill, SkillEffect, SkillId, SkillTask } from '#gw2/platform/engine/skills/types.js';
+import type { Gw2WeaponSkillMatcher } from '#gw2/platform/equipment/weapons/types.js';
+import type { RotationCursor } from '#gw2/platform/execution/rotation-cursor.js';
 import type {
   AmmoState,
   AvailabilityResult,
@@ -16,16 +18,14 @@ import type {
   CooldownController,
   SimulationStep
 } from '#gw2/platform/execution/types.js';
-import type { RotationCursor } from '#gw2/platform/execution/rotation-cursor.js';
+import type { RechargeRule, TraitTrigger } from '#gw2/platform/profession-definition/trigger-rules.js';
 import type { Gw2ResolverRuntime } from '#gw2/platform/resolver/runtime-state.js';
 import type { Gw2ResolverEvent, Gw2ResolverStage } from '#gw2/platform/resolver/types.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
-import type { Gw2PlanningStateInput } from '#gw2/platform/simulation/types.js';
-import type { Gw2WeaponSkillMatcher } from '#gw2/platform/equipment/weapons/types.js';
+import type { createEffectReactions } from '#gw2/platform/simulation/effect-reactions.js';
 import type { InternalWork, WorkOwner } from '#gw2/platform/simulation/internal-work.js';
-import type { SkillFlipWindow } from '#gw2/platform/engine/skills/skill-flips.js';
 import type { ActionContext, SideEffectAction } from '#gw2/platform/simulation/side-effects.js';
-import type { RechargeRule, TraitTrigger } from '#gw2/platform/profession-definition/trigger-rules.js';
+import type { Gw2PlanningStateInput } from '#gw2/platform/simulation/types.js';
 import type {
   AutoattackChainOverride,
   AutoattackChainTransitionResult
@@ -130,8 +130,21 @@ export interface Gw2Runtime<T extends object = object, TSkill extends Skill = Sk
   cancelOwner(owner: WorkOwner): void;
 }
 
+/** Hook registration is selected before execution; isolated payloads do not install activation triggers. */
+export interface ProfessionRuntimeOptions {
+  readonly traitTriggers?: boolean;
+}
+
 /** Canonical live contract: mechanics read and mutate the same context at their actual execution phase. */
 export interface RuntimeProfession<T extends object, TSkill extends Skill = Skill> extends Gw2QueryProfession {
+  /** Explicit payloads are measurable without running their activation predicates. */
+  readonly damageEffects?: readonly import('#gw2/platform/skill-damage/execution.js').DamageEffectDefinition[];
+  /** Only content owners initialize damage-scaling state; preview never replays prerequisite casts. */
+  prepareDamageState?(
+    runtime: Gw2Runtime<T, TSkill>,
+    skill: TSkill,
+    inputs: import('#gw2/platform/skill-damage/types.js').DamageInputs
+  ): void;
   /** Native owners expose accepted state using their existing stores and balance values. */
   buffPolicies?(
     runtime: Gw2Runtime<T, TSkill>

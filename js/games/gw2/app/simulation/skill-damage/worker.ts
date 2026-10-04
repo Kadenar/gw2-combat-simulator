@@ -1,9 +1,8 @@
-import { createGameWorkerEndpoint } from '#browser/game/worker-harness.js';
-import { evaluateSkillDamage, type SkillDamageCache } from '#gw2/platform/skill-damage/evaluate.js';
-import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
 import type { GameContentAddress } from '#browser/game/contracts.js';
-import type { SkillDamageRequest } from '#gw2/platform/skill-damage/types.js';
+import { createGameWorkerEndpoint } from '#browser/game/worker-harness.js';
 import type { Gw2ProfessionSource } from '#gw2/platform/simulation/types.js';
+import { evaluateSkillDamage, type SkillDamageCache } from '#gw2/platform/skill-damage/evaluate.js';
+import type { SkillDamageRequest } from '#gw2/platform/skill-damage/types.js';
 
 /** The single request message this worker accepts; the runner owns coalescing, cancellation, and stale responses. */
 interface SkillDamageWorkerMessage {
@@ -20,18 +19,7 @@ createGameWorkerEndpoint<Gw2ProfessionSource, SkillDamageWorkerMessage>({
     const cache = caches.get(profession) ?? new Map();
     caches.set(profession, cache);
     return {
-      evaluation: evaluateSkillDamage(
-        request,
-        (rotation, config, tailMs) =>
-          simulateGw2({
-            profession,
-            rotation,
-            config,
-            damageDiagnostics: true,
-            observationPolicy: { kind: 'tail', durationMs: tailMs }
-          }),
-        cache
-      )
+      evaluation: evaluateSkillDamage(request, profession, cache)
     };
   }
 });

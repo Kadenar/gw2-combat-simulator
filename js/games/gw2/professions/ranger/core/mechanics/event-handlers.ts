@@ -1,3 +1,4 @@
+import { reviseEffectState } from '#gw2/platform/combat/effect-revisions.js';
 import { grantCharges } from '#gw2/platform/combat/resources/charges.js';
 import { purgeExpiredStacks } from '#gw2/platform/combat/resources/timed-stacks.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
@@ -45,7 +46,11 @@ export function handleRangerPetSwapped(context: RangerResolverContext, event: Gw
       ) {
         // Cancel queued ticks without suppressing natural expiry ticks; shorten live stack visibility separately.
         if (application.naturalExpiresAt > removedAt) application.removedAt = removedAt;
-        stack.expiresAt = Math.min(stack.expiresAt, removedAt);
+        if (stack.expiresAt > removedAt) {
+          stack.expiresAt = removedAt;
+          // Report the shortened pet window even though the history array has not changed.
+          reviseEffectState(condition);
+        }
       }
     }
   }

@@ -17,10 +17,15 @@ import {
   reactToGaleshotControl,
   reactToGaleshotPet
 } from '#gw2/professions/ranger/specializations/galeshot/traits/behavior.js';
-import type { RangerSkill, RangerRuntimeState } from '#gw2/professions/ranger/types.js';
+import type { RangerRuntimeState, RangerSkill } from '#gw2/professions/ranger/types.js';
 
 /** Arrow spending is immediate; Wind Force and completion traits become visible only at their own queue boundary. */
 export const galeshotHooks: Partial<RuntimeProfession<RangerRuntimeState, RangerSkill>> = {
+  /** Initialize only damage-relevant form and scaling state for one assumed occurrence. */
+  prepareDamageState(runtime, skill, _inputs) {
+    galeshotState.from(runtime).cycloneBowActive = Boolean(skill.cycloneBowSkill);
+  },
+
   resources: { arrows: galeshotArrows },
   availability: galeshotCastAvailability,
   sideEffectHandlers: {

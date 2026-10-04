@@ -1,9 +1,3 @@
-import type {
-  SkillDamagePreviewContext,
-  SkillDamageProbeSetup
-} from '#gw2/platform/profession-presentation/skill-damage.js';
-import { MANTRAS } from '#gw2/professions/guardian/data/mantra-definitions.js';
-import type { Skill as PreviewSkill } from '#gw2/platform/engine/skills/types.js';
 import type { ProfessionAttributePreviewContext } from '#gw2/platform/profession-presentation/attribute-preview.js';
 import { createPreviewControls } from '#gw2/professions/shared/attribute-preview.js';
 
@@ -112,40 +106,6 @@ function dormantTomeClasses(context: GuardianUiContext): string {
 /** Captures this UI's catalog so other profession instances cannot change its projections. */
 export function bindFirebrandUi(catalog: Readonly<CanonicalCatalog<GuardianSkill>>): GuardianUiSlice {
   return Object.freeze({
-    /** Prepare legal preview casts with the same catalog metadata and transitions used by the runtime. */
-    skillDamageProbe(_context: SkillDamagePreviewContext, skill: PreviewSkill): SkillDamageProbeSetup | null {
-      // Spend a self-owned Ashes charge after leaving the tome through its ordinary transition.
-      if (skill.id === GUARDIAN_SKILL_IDS.ASHES_OF_THE_JUST)
-        return {
-          setup: [{ type: 'cast', skillId: GUARDIAN_SKILL_IDS.TOME_OF_JUSTICE }],
-          procFollowUpSetup: [{ type: 'cast', skillId: GUARDIAN_SKILL_IDS.STOW_TOME }]
-        };
-      if (skill.id === GUARDIAN_SKILL_IDS.STOW_TOME)
-        return { setup: [{ type: 'cast', skillId: GUARDIAN_SKILL_IDS.TOME_OF_JUSTICE }] };
-      const mantra = MANTRAS.find((entry) => entry.normalId === skill.id || entry.finalId === skill.id);
-      if (mantra)
-        return {
-          skipPredecessors: true,
-          setup:
-            mantra.finalId === skill.id
-              ? Array.from({ length: (catalog.skillsById.get(mantra.normalId)?.ammo ?? 1) - 1 }, () => ({
-                  type: 'cast' as const,
-                  skillId: mantra.normalId
-                }))
-              : []
-        };
-      const tome = (skill as GuardianSkill).tome;
-      const entry =
-        tome === 'justice'
-          ? GUARDIAN_SKILL_IDS.TOME_OF_JUSTICE
-          : tome === 'resolve'
-            ? GUARDIAN_SKILL_IDS.TOME_OF_RESOLVE
-            : tome === 'courage'
-              ? GUARDIAN_SKILL_IDS.TOME_OF_COURAGE
-              : null;
-      return entry ? { setup: [{ type: 'cast', skillId: entry }] } : null;
-    },
-
     /** Declare this module's conditional inputs without adding simulation settings. */
     previewControls(context: ProfessionAttributePreviewContext) {
       const preview = createPreviewControls(context);

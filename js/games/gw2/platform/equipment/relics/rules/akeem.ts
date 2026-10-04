@@ -1,15 +1,23 @@
+import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
 import { RELIC_IDS } from '#gw2/platform/equipment/relics/data.js';
+import type { Gw2RelicContext, Gw2RelicState } from '#gw2/platform/equipment/relics/types.js';
 /** Akeem relic rules. */
 import { isInternalCooldownReady } from '#gw2/platform/combat/procs.js';
 import { defineRelic } from '#gw2/platform/equipment/relics/rules/shared.js';
 
-// The rule and its discovery conditions use one threshold; discovery still needs an accepted control event.
+// Combat activation checks this condition threshold.
 const REQUIRED_CONDITIONS = 5;
 
 export const akeem = defineRelic({
-  damagePreview: {
-    targetConditions: { Torment: REQUIRED_CONDITIONS },
-    requirement: 'Control a target with the required Torment or Confusion stacks.'
+  damagePayload(ctx) {
+    emitDamagePayload(ctx, ctx.relic!.state, {
+      type: 'proc',
+      at: 0,
+      source: 'Relic',
+      sourceId: 'damage-input',
+      actorType: 'effect',
+      skillName: 'Damage preview'
+    });
   },
   createState: () => ({ readyAt: 0 }),
   control(ctx, state, event, { activeConditionStackCount }) {
@@ -22,42 +30,47 @@ export const akeem = defineRelic({
     }
 
     state.readyAt = event.at + 10;
-    ctx.effects.emit({
-      kind: 'announcement',
-      announcement: { type: 'relic', name: 'Relic of Akeem', at: event.at, sourceSkill: event.skillName }
-    });
-    // Relic conditions carry their own actor identity instead of relying on source-label inference.
-    ctx.effects.emit({
-      kind: 'packet',
-      settlement: 'reaction',
-      event: {
-        type: 'condition',
-        at: event.at,
-        name: 'Relic of Akeem — Confusion',
-        skillName: 'Relic of Akeem',
-        condition: 'Confusion',
-        duration: 10,
-        stacks: 2,
-        source: 'Relic',
-        sourceId: RELIC_IDS.AKEEM,
-        actorType: 'effect'
-      }
-    });
-    ctx.effects.emit({
-      kind: 'packet',
-      settlement: 'reaction',
-      event: {
-        type: 'condition',
-        at: event.at,
-        name: 'Relic of Akeem — Torment',
-        skillName: 'Relic of Akeem',
-        condition: 'Torment',
-        duration: 10,
-        stacks: 2,
-        source: 'Relic',
-        sourceId: RELIC_IDS.AKEEM,
-        actorType: 'effect'
-      }
-    });
+    emitDamagePayload(ctx, state, event);
   }
 });
+
+/** One occurrence shares its payload with simulation after activation checks have succeeded. */
+function emitDamagePayload(ctx: Gw2RelicContext, _state: Gw2RelicState, event: SimulationEvent): void {
+  ctx.effects.emit({
+    kind: 'announcement',
+    announcement: { type: 'relic', name: 'Relic of Akeem', at: event.at, sourceSkill: event.skillName }
+  });
+  // Relic conditions carry their own actor identity instead of relying on source-label inference.
+  ctx.effects.emit({
+    kind: 'packet',
+    settlement: 'reaction',
+    event: {
+      type: 'condition',
+      at: event.at,
+      name: 'Relic of Akeem — Confusion',
+      skillName: 'Relic of Akeem',
+      condition: 'Confusion',
+      duration: 10,
+      stacks: 2,
+      source: 'Relic',
+      sourceId: RELIC_IDS.AKEEM,
+      actorType: 'effect'
+    }
+  });
+  ctx.effects.emit({
+    kind: 'packet',
+    settlement: 'reaction',
+    event: {
+      type: 'condition',
+      at: event.at,
+      name: 'Relic of Akeem — Torment',
+      skillName: 'Relic of Akeem',
+      condition: 'Torment',
+      duration: 10,
+      stacks: 2,
+      source: 'Relic',
+      sourceId: RELIC_IDS.AKEEM,
+      actorType: 'effect'
+    }
+  });
+}

@@ -35,7 +35,7 @@ function spellIcon(context: NecromancerResolverContext, skillId: SkillId): strin
 
 // Resolve a Nightmare Weapon stack as a non-critical life steal plus vulnerability,
 // preserving whether the triggering strike belonged to an ally.
-function queueNightmareWeapon(
+export function queueNightmareWeapon(
   context: NecromancerResolverContext,
   event: NecromancerResolverEvent,
   definition: BalanceProfile
@@ -109,7 +109,7 @@ function queueNightmareWeapon(
 
 // Resolve a Splinter Weapon stack as a derived strike while preserving ally
 // trigger attribution and proc logging.
-function queueSplinterWeapon(
+export function queueSplinterWeapon(
   context: NecromancerResolverContext,
   event: NecromancerResolverEvent,
   definition: BalanceProfile

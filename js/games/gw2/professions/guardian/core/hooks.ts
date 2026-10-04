@@ -1,18 +1,19 @@
-import { denySkillCast } from '#gw2/platform/engine/skills/availability.js';
 import { grantTimedStacks } from '#gw2/platform/combat/resources/timed-stacks.js';
+import { denySkillCast } from '#gw2/platform/engine/skills/availability.js';
 import {
   balanceProfileNumber,
   requireBalanceProfileFromContext
 } from '#gw2/platform/engine/skills/balance-profiles.js';
-import { GUARDIAN_TRAIT_IDS } from '#gw2/professions/guardian/data/ids.js';
 import { skillFlipReady } from '#gw2/platform/engine/skills/skill-flips.js';
 import type { NativeResolvedDamageDetails } from '#gw2/platform/profession-definition/module-types.js';
 import type { Gw2Runtime, RuntimeCast, RuntimeProfession } from '#gw2/platform/simulation/runtime-state.js';
 import { applySideEffect } from '#gw2/platform/simulation/side-effects.js';
+import { damageInputEvent } from '#gw2/platform/skill-damage/execution.js';
 import { castWasInterrupted } from '#gw2/platform/skills/timing.js';
 import { guardianRechargeWork } from '#gw2/professions/guardian/core/mechanics/recharge.js';
 import { expireSpearIllumination, GUARDIAN_SPEAR_EXPIRY } from '#gw2/professions/guardian/core/mechanics/spear.js';
 import {
+  applyJusticeBurn,
   CORE_VIRTUES,
   guardianVirtueForSlot,
   reactToJusticeHitWithOptions,
@@ -41,7 +42,7 @@ import {
   writOfPersistenceEffects,
   writOfPersistenceFields
 } from '#gw2/professions/guardian/core/traits/behavior.js';
-import { GUARDIAN_SKILL_IDS as ID } from '#gw2/professions/guardian/data/ids.js';
+import { GUARDIAN_TRAIT_IDS, GUARDIAN_SKILL_IDS as ID } from '#gw2/professions/guardian/data/ids.js';
 import type { GuardianRuntimeState, GuardianSkill, GuardianVirtue } from '#gw2/professions/guardian/types.js';
 
 type Runtime = Gw2Runtime<GuardianRuntimeState, GuardianSkill>;
@@ -77,6 +78,16 @@ function clearTorchLockout(runtime: Runtime, cast: RuntimeCast<GuardianSkill>): 
 import { guardianBuffPolicies, guardianEffectStates } from '#gw2/professions/guardian/core/effect-state.js';
 
 export const guardianCoreHooks: Partial<RuntimeProfession<GuardianRuntimeState, GuardianSkill>> = {
+  // Known damage payloads are invoked once without their activation requirements.
+  damageEffects: [false, true].map((active) => ({
+    id: `justice-${active ? 'active' : 'passive'}`,
+    name: `Justice (${active ? 'active' : 'passive'})`,
+    source: 'Profession' as const,
+    unit: 'occurrence' as const,
+    sourceIds: [`guardian.justice-${active ? 'active' : 'passive'}`],
+    emit: (runtime) => applyJusticeBurn(runtime, damageInputEvent(runtime), { active })
+  })),
+
   /** Initial effect assumptions seed the existing stack owner, which keeps normal expiry and grant behavior. */
   initialize(runtime) {
     for (const buff of runtime.config.initialBuffs ?? []) {

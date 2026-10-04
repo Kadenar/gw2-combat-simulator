@@ -1,27 +1,22 @@
 import type { ProfessionAttributePreviewContext } from '#gw2/platform/profession-presentation/attribute-preview.js';
-import type {
-  SkillDamagePreviewContext,
-  SkillDamageProbeSetup
-} from '#gw2/platform/profession-presentation/skill-damage.js';
-import type { Skill as PreviewSkill } from '#gw2/platform/engine/skills/types.js';
 import { createPreviewControls } from '#gw2/professions/shared/attribute-preview.js';
 
-import { type SkillFlipWindows, skillFlipReady } from '#gw2/platform/engine/skills/skill-flips.js';
-import { flattenProfessionState } from '#gw2/platform/engine/profession/state.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
-import { SIMULATION_RANDOMNESS_ASSUMPTION_CONTROLS } from '#gw2/platform/simulation/randomness.js';
 import { PERMANENT_COMBO_FIELD_ASSUMPTION_CONTROLS } from '#gw2/platform/combos/permanent-field-assumption.js';
-import { GUARDIAN_SKILL_IDS, GUARDIAN_TRAIT_IDS } from '#gw2/professions/guardian/data/ids.js';
-import { activeSymbolicAvengerExpirations } from '#gw2/professions/guardian/core/state.js';
+import { flattenProfessionState } from '#gw2/platform/engine/profession/state.js';
 import {
   balanceProfileNumber,
   requireBalanceProfileFromContext
 } from '#gw2/platform/engine/skills/balance-profiles.js';
+import { type SkillFlipWindows, skillFlipReady } from '#gw2/platform/engine/skills/skill-flips.js';
 import type { CanonicalCatalog, SkillId } from '#gw2/platform/engine/skills/types.js';
 import type {
   ProfessionEffectPresentation,
   RotationStateSnapshotItem
 } from '#gw2/platform/profession-presentation/types.js';
+import { SIMULATION_RANDOMNESS_ASSUMPTION_CONTROLS } from '#gw2/platform/simulation/randomness.js';
+import { activeSymbolicAvengerExpirations } from '#gw2/professions/guardian/core/state.js';
+import { GUARDIAN_SKILL_IDS, GUARDIAN_TRAIT_IDS } from '#gw2/professions/guardian/data/ids.js';
 import type {
   GuardianSkill,
   GuardianState,
@@ -133,23 +128,6 @@ const GUARDIAN_CORE_EFFECT_PRESENTATIONS: readonly ProfessionEffectPresentation[
 /** Captures this UI's catalog so other profession instances cannot change its projections. */
 export function bindGuardianCoreUi(catalog: Readonly<CanonicalCatalog<GuardianSkill>>): GuardianUiSlice {
   return Object.freeze({
-    /** A following weapon attack exercises armed Justice without changing the virtue's own skill measurement. */
-    skillDamageProbe(_context: SkillDamagePreviewContext, skill: PreviewSkill): SkillDamageProbeSetup | null {
-      const virtue = [
-        GUARDIAN_SKILL_IDS.JUSTICE,
-        GUARDIAN_SKILL_IDS.RADIANT_JUSTICE,
-        GUARDIAN_SKILL_IDS.SPEAR_OF_JUSTICE,
-        GUARDIAN_SKILL_IDS.RUSHING_JUSTICE
-      ].some((id) => id === skill.id);
-      if (!virtue) return null;
-      // API replacement links between virtues are not a sequence of prerequisite casts.
-      return {
-        skipPredecessors: true,
-        ...(skill.id === GUARDIAN_SKILL_IDS.JUSTICE || skill.id === GUARDIAN_SKILL_IDS.RUSHING_JUSTICE
-          ? { procFollowUpSetup: [] }
-          : {})
-      };
-    },
     /** Declare this module's conditional inputs without adding simulation settings. */
     previewControls(context: ProfessionAttributePreviewContext) {
       const preview = createPreviewControls(context);

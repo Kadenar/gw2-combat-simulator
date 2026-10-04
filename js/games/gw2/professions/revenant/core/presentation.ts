@@ -1,27 +1,22 @@
-import type {
-  SkillDamagePreviewPreparation,
-  SkillDamageProbeSetup
-} from '#gw2/platform/profession-presentation/skill-damage.js';
 import type { Skill as PreviewSkill } from '#gw2/platform/engine/skills/types.js';
 import type { ProfessionAttributePreviewContext } from '#gw2/platform/profession-presentation/attribute-preview.js';
+import type {
+  SkillDamagePreviewPreparation,
+  SkillDamageState
+} from '#gw2/platform/profession-presentation/skill-damage.js';
 import { createPreviewControls } from '#gw2/professions/shared/attribute-preview.js';
 
-import { flattenProfessionState } from '#gw2/platform/engine/profession/state.js';
-import { SIMULATION_RANDOMNESS_ASSUMPTION_CONTROLS } from '#gw2/platform/simulation/randomness.js';
 import { PERMANENT_COMBO_FIELD_ASSUMPTION_CONTROLS } from '#gw2/platform/combos/permanent-field-assumption.js';
-import { REVENANT_ASSUMPTION_CONTROLS } from '#gw2/professions/revenant/build/assumptions.js';
-import { REVENANT_SKILL_IDS as SKILL } from '#gw2/professions/revenant/data/ids.js';
-import { REVENANT_TRAIT_IDS as TRAIT } from '#gw2/professions/revenant/data/ids.js';
-import {
-  balanceProfileNumber,
-  requireBalanceProfileFromContext
-} from '#gw2/platform/engine/skills/balance-profiles.js';
-import { getActiveTraits } from '#gw2/professions/revenant/data/traits-data.js';
-import { revenantLegend, revenantLegendLoadout } from '#gw2/professions/revenant/build/legend-loadout.js';
+import { flattenProfessionState } from '#gw2/platform/engine/profession/state.js';
 import type {
   ProfessionStateSnapshotContext,
   RotationStateSnapshotItem
 } from '#gw2/platform/profession-presentation/types.js';
+import { SIMULATION_RANDOMNESS_ASSUMPTION_CONTROLS } from '#gw2/platform/simulation/randomness.js';
+import { REVENANT_ASSUMPTION_CONTROLS } from '#gw2/professions/revenant/build/assumptions.js';
+import { revenantLegend, revenantLegendLoadout } from '#gw2/professions/revenant/build/legend-loadout.js';
+import { REVENANT_SKILL_IDS as SKILL } from '#gw2/professions/revenant/data/ids.js';
+import { getActiveTraits } from '#gw2/professions/revenant/data/traits-data.js';
 import type { RevenantState, RevenantUiContext, RevenantUiSlice } from '#gw2/professions/revenant/types.js';
 
 export function revenantUiState(context: RevenantUiContext = {}): Partial<RevenantState> {
@@ -102,39 +97,13 @@ function revenantCoreStateSnapshot(
 
 /** Core presentation reads the current legend and resource projection without a catalog binding. */
 export const revenantCoreUi: RevenantUiSlice = Object.freeze({
-  /** Reach the measured mechanic through ordinary starting settings and authored transitions. */
-  skillDamageProbe(context: SkillDamagePreviewPreparation, input: PreviewSkill): SkillDamageProbeSetup | null {
+  /** Declare the damage context for one assumed occurrence. */
+  skillDamageState(context: SkillDamagePreviewPreparation, input: PreviewSkill): SkillDamageState | null {
+    // Direct evaluation supplies damage state without prerequisite actions.
     const skill = input as import('#gw2/professions/revenant/types.js').RevenantSkill;
-    // A real combat-time wait lets the next hit catch up the selected trait's engine-owned scar cadence.
-    const thrill = context.activeTraits.some((trait) => trait.id === TRAIT.THRILL_OF_COMBAT);
-    const procSetup = thrill
-      ? [
-          {
-            type: 'wait' as const,
-            durationMs:
-              balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.THRILL_OF_COMBAT), 'cooldown') * 1000
-          }
-        ]
-      : undefined;
-    // Maintained effects are activated normally before compatible weapon skills; energy starvation remains real.
-    const upkeep = context.catalog.skills.find(
-      (candidate) => candidate.name === context.values.upkeep && candidate.upkeepCost != null
-    );
-    if (!skill.legendId)
-      return upkeep && skill.type === 'Weapon'
-        ? {
-            procSetup,
-            config: { startingLegend: upkeep.legendId, initialEnergy: 100 },
-            setup: [{ type: 'cast', skillId: upkeep.id }]
-          }
-        : procSetup
-          ? { procSetup }
-          : null;
     return {
-      procSetup,
-      config: { startingLegend: skill.legendId, initialEnergy: 100 },
-      // Enchanted Daggers arms siphons instead of dealing damage on the healing cast.
-      ...(skill.id === SKILL.ENCHANTED_DAGGERS ? { procFollowUpSetup: [] } : {})
+      ...(skill.legendId ? { config: { startingLegend: skill.legendId } } : {}),
+      inputs: { upkeep: String(context.values.upkeep ?? 'None') }
     };
   },
 

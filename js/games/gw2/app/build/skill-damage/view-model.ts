@@ -40,6 +40,8 @@ export interface SkillDamageRowView {
   readonly castSeconds: number | null;
   readonly perCastSecond: number | null;
   readonly variants: readonly SkillDamageVariantView[];
+  readonly assumptions: readonly string[];
+  readonly unit: string;
 }
 
 export interface SkillDamageGroupView {
@@ -67,36 +69,43 @@ export function createSkillDamageViewModel(
   evaluation: SkillDamageEvaluation | null,
   state: SkillDamageViewState
 ): SkillDamageViewModel {
-  const results = new Map((evaluation?.probes ?? []).map((probe) => [probe.id, probe]));
+  const results = new Map((evaluation?.occurrences ?? []).map((occurrence) => [occurrence.id, occurrence]));
   const all: { group: SkillDamagePlan['groups'][number] | null; row: SkillDamageRowView }[] = [];
   for (const group of plan.groups) {
     for (const rowId of group.rowIds) {
       const definition = plan.rows.get(rowId)!;
       const result = results.get(rowId);
-      if (!result?.measurement || !(result.measurement.total > 0)) continue;
+      if (!result?.measurement || (!result.damaging && result.measurement.total === 0)) continue;
       all.push({
         group,
-        row: skillRow(definition, result.measurement, result.variants, result.primaryVariantId, state)
+        row: {
+          ...skillRow(definition, result.measurement, result.variants, result.primaryVariantId, state),
+          assumptions: result.assumptions,
+          unit: result.unit
+        }
       });
     }
   }
 
-  for (const proc of evaluation?.procs ?? []) {
-    const id = `proc:${proc.id}`;
+  for (const definition of plan.request.occurrences.filter((entry) => entry.source !== 'Skill')) {
+    const result = results.get(definition.id);
+    if (!result?.measurement) continue;
     all.push({
       group: null,
       row: {
-        id,
-        name: proc.name,
-        icon: proc.icon,
-        badge: proc.source.charAt(0),
-        context: proc.source,
+        id: definition.id,
+        name: definition.name,
+        icon: definition.icon,
+        badge: definition.source.charAt(0),
+        context: definition.source,
         status: 'proc',
-        expanded: state.expanded === id,
-        measurement: proc.perTrigger,
+        expanded: state.expanded === definition.id,
+        measurement: result.measurement,
         castSeconds: null,
         perCastSecond: null,
-        variants: []
+        variants: [],
+        assumptions: result.assumptions,
+        unit: result.unit
       }
     });
   }
@@ -130,31 +139,17 @@ export function createSkillDamageViewModel(
     }
   ].filter((group) => group.rows.length);
   const visible = groups.flatMap((group) => group.rows);
-  // A declared damage owner that never fired is an uncovered trigger, not a measured zero-damage result.
-  const unobserved = evaluation
-    ? (plan.request.procOwners ?? [])
-        .filter(
-          (owner) =>
-            owner.triggerRequirement && !evaluation.procs.some((proc) => proc.id === `${owner.source}|${owner.key}`)
-        )
-        .map((owner) => ({
-          name: owner.name ?? `${owner.source}: ${owner.key}`,
-          reason: `Not observed. ${owner.triggerRequirement}`
-        }))
-    : [];
   return {
-    // Discovery refusals must remain inspectable too; otherwise a missing trigger looks like a zero-damage proc.
-    unavailable: [
-      ...(evaluation?.probes ?? [])
-        .filter((probe) => probe.rejected)
-        .map((probe) => ({
-          name:
-            plan.rows.get(probe.id)?.name ??
-            `Proc discovery: ${plan.request.probes.find((entry) => entry.id === probe.id)?.name ?? probe.id}`,
-          reason: probe.rejected!
-        })),
-      ...unobserved
-    ],
+    // Calculation gaps stay visible independently of the selected effect's activation requirements.
+    unavailable: (evaluation?.occurrences ?? []).flatMap((result) => {
+      const definition = plan.request.occurrences.find((entry) => entry.id === result.id);
+      return [
+        ...(result.reason ? [{ name: definition?.name ?? result.id, reason: result.reason }] : []),
+        ...result.variants
+          .filter((variant) => variant.reason)
+          .map((variant) => ({ name: `${definition?.name ?? result.id}: ${variant.label}`, reason: variant.reason! }))
+      ];
+    }),
     groups,
     counts,
     showStrikeColumns: visible.some((row) => row.measurement.strike > 0),
@@ -185,6 +180,8 @@ function skillRow(
     status: definition.status,
     expanded: state.expanded === definition.id,
     measurement,
+    assumptions: [],
+    unit: 'activation',
     castSeconds: measurement.castSeconds,
     perCastSecond: measurement.castSeconds > 0 ? measurement.total / measurement.castSeconds : null,
     variants: measured.map((variant) => ({

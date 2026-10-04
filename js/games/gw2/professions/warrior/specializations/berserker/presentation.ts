@@ -1,16 +1,13 @@
-import type {
-  SkillDamagePreviewContext,
-  SkillDamageProbeSetup
-} from '#gw2/platform/profession-presentation/skill-damage.js';
-import type { Skill as PreviewSkill } from '#gw2/platform/engine/skills/types.js';
+import { readProfessionSpecializationState } from '#gw2/platform/engine/profession/state.js';
 import type {
   ProfessionAttributePreviewContext,
   ProfessionAttributePreviewPreparation
 } from '#gw2/platform/profession-presentation/attribute-preview.js';
+import type {
+  ProfessionEffectPresentation,
+  RotationStateSnapshotItem
+} from '#gw2/platform/profession-presentation/types.js';
 import { createPreviewControls } from '#gw2/professions/shared/attribute-preview.js';
-import { readProfessionSpecializationState } from '#gw2/platform/engine/profession/state.js';
-import type { BerserkerState } from '#gw2/professions/warrior/specializations/berserker/state.js';
-import { WARRIOR_SKILL_IDS as ID } from '#gw2/professions/warrior/data/ids.js';
 import {
   formatSecondsRemaining,
   warriorAdrenalineResourceViews,
@@ -19,10 +16,8 @@ import {
   warriorSnapshotAt,
   warriorUiState
 } from '#gw2/professions/warrior/core/presentation.js';
-import type {
-  ProfessionEffectPresentation,
-  RotationStateSnapshotItem
-} from '#gw2/platform/profession-presentation/types.js';
+import { WARRIOR_SKILL_IDS as ID } from '#gw2/professions/warrior/data/ids.js';
+import type { BerserkerState } from '#gw2/professions/warrior/specializations/berserker/state.js';
 import type { WarriorUiContext, WarriorUiSlice } from '#gw2/professions/warrior/types.js';
 
 const SKILLS = Object.freeze([ID.BERSERK]);
@@ -43,12 +38,6 @@ const PRIMAL_BURSTS_BY_WEAPON: Readonly<Record<string, number>> = Object.freeze(
 });
 
 export const berserkerUi: WarriorUiSlice = Object.freeze({
-  /** Reach the measured mechanic through ordinary starting settings and authored transitions. */
-  skillDamageProbe(_context: SkillDamagePreviewContext, input: PreviewSkill): SkillDamageProbeSetup | null {
-    if (!input.primalBurst) return null;
-    return { initialResource: 30, setup: [{ type: 'cast', skillId: ID.BERSERK }] };
-  },
-
   /** Declare this module's conditional inputs without adding simulation settings. */
   previewControls(context: ProfessionAttributePreviewContext) {
     const preview = createPreviewControls(context);

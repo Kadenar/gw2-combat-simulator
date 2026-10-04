@@ -34,6 +34,16 @@ export function triggerElectricDischarge(
   emissionCast?: EffectDelivery['cast']
 ): void {
   if (!combatStarted(context, at) || !hasTrait(context, TRAIT.ELECTRIC_DISCHARGE)) return;
+  emitElectricDischarge(context, at, sourceId, emissionCast);
+}
+
+/** Shared per-occurrence payload; the caller owns activation eligibility. */
+export function emitElectricDischarge(
+  context: ElementalistRuntime,
+  at: number,
+  sourceId: Skill['id'],
+  emissionCast?: EffectDelivery['cast']
+): void {
   const electricDischargeProfile = requireBalanceProfileFromContext(context, TRAIT.ELECTRIC_DISCHARGE);
   const electricDischargeStrike = requireEffect(electricDischargeProfile, 'strike', 'Electric Discharge');
   if (electricDischargeStrike) {
@@ -333,6 +343,16 @@ export function triggerEarthenBlast(
   emissionCast?: EffectDelivery['cast']
 ): void {
   if (!combatStarted(context, at) || !hasTrait(context, TRAIT.EARTHEN_BLAST)) return;
+  emitEarthenBlast(context, at, sourceId, emissionCast);
+}
+
+/** Shared per-occurrence payload; the caller owns activation eligibility. */
+export function emitEarthenBlast(
+  context: ElementalistRuntime,
+  at: number,
+  sourceId: Skill['id'],
+  emissionCast?: EffectDelivery['cast']
+): void {
   // Use the same attunement or overload trigger for the damage packet and its proc record.
   const sourceSkill = context.helpers.skillsById.get(sourceId)?.name || '';
   const earthenBlastProfile = requireBalanceProfileFromContext(context, TRAIT.EARTHEN_BLAST);
@@ -417,6 +437,17 @@ export function triggerSunspot(
   emissionCast?: EffectDelivery['cast']
 ): void {
   if (!combatStarted(context, at) || !hasTrait(context, TRAIT.SUNSPOT)) return;
+  emitSunspot(context, at, sourceId, applyAura, emissionCast);
+}
+
+/** Shared per-occurrence payload; the caller owns activation eligibility. */
+export function emitSunspot(
+  context: ElementalistRuntime,
+  at: number,
+  sourceId: Skill['id'],
+  applyAura: ElementalistAuraApplier,
+  emissionCast?: EffectDelivery['cast']
+): void {
   // Keep strike and Burning attribution aligned with the actual attunement or overload that triggered Sunspot.
   const sourceSkill = context.helpers.skillsById.get(sourceId)?.name || '';
   const sunspotProfile = requireBalanceProfileFromContext(context, TRAIT.SUNSPOT);
@@ -489,6 +520,16 @@ export function triggerFlameExpulsion(
   emissionCast?: EffectDelivery['cast']
 ): void {
   if (!combatStarted(context, at) || !hasTrait(context, TRAIT.PYROMANCERS_PUISSANCE)) return;
+  emitFlameExpulsion(context, at, sourceId, emissionCast);
+}
+
+/** Shared per-occurrence payload; the caller owns activation eligibility. */
+export function emitFlameExpulsion(
+  context: ElementalistRuntime,
+  at: number,
+  sourceId: Skill['id'],
+  emissionCast?: EffectDelivery['cast']
+): void {
   const pyromancersPuissanceProfile = requireBalanceProfileFromContext(context, TRAIT.PYROMANCERS_PUISSANCE);
   const impactAt = at + balanceProfileNumber(pyromancersPuissanceProfile, 'initialDelay');
   const cappedMight = Math.min(

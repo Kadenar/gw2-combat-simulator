@@ -37,7 +37,7 @@ export function guardianVirtueForSlot(slot: GuardianSkill['slot']): GuardianVirt
 /**
  * Applies and records one active or passive Virtue of Justice burn.
  */
-function applyJusticeBurn(
+export function applyJusticeBurn(
   context: GuardianResolverContext,
   event: GuardianResolverEvent,
   {

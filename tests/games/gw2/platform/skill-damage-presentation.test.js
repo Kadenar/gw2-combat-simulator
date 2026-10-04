@@ -37,28 +37,28 @@ test('skill damage groups merge across active slices and reject duplicate ids', 
   assert.throws(() => duplicate.skillDamageGroups({ specialization: 'Elite' }), /duplicate id same/);
 });
 
-test('the elite answers skill damage probes before Core, and preparation merges every active slice in order', () => {
+test('the elite answers skill damage occurrences before Core, and preparation merges every active slice in order', () => {
   const ui = familyUi(
     {
-      skillDamageProbe: () => ({ context: 'core' }),
+      skillDamageState: () => ({ context: 'core' }),
       prepareSkillDamagePreview: () => ({ shared: 'core', core: true })
     },
     {
-      skillDamageProbe: (_context, skill) => (skill.id === 2 ? { context: 'elite' } : null),
+      skillDamageState: (_context, skill) => (skill.id === 2 ? { context: 'elite' } : null),
       prepareSkillDamagePreview: () => ({ shared: 'elite', elite: true })
     },
     { prepareSkillDamagePreview: () => ({ family: true }) }
   );
   const context = { specialization: 'Elite' };
-  assert.deepEqual(ui.skillDamageProbe(context, { id: 2 }), { context: 'elite' });
-  assert.deepEqual(ui.skillDamageProbe(context, { id: 1 }), { context: 'core' });
+  assert.deepEqual(ui.skillDamageState(context, { id: 2 }), { context: 'elite' });
+  assert.deepEqual(ui.skillDamageState(context, { id: 1 }), { context: 'core' });
   assert.deepEqual(ui.prepareSkillDamagePreview({ ...context, values: {} }), {
     shared: 'elite',
     core: true,
     elite: true,
     family: true
   });
-  assert.equal(ui.skillDamageProbe({ specialization: 'Core' }, { id: 2 }).context, 'core');
+  assert.equal(ui.skillDamageState({ specialization: 'Core' }, { id: 2 }).context, 'core');
 });
 
 test('preview controls default to both panels, except special controls owned by their profession', () => {

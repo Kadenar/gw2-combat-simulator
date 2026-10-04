@@ -1,8 +1,3 @@
-import type {
-  SkillDamagePreviewContext,
-  SkillDamageProbeSetup
-} from '#gw2/platform/profession-presentation/skill-damage.js';
-import type { Skill as PreviewSkill } from '#gw2/platform/engine/skills/types.js';
 import {
   balanceProfileNumber,
   requireBalanceProfileFromContext
@@ -56,35 +51,6 @@ function visibleBowSkills(context: RangerUiContext) {
 /** Captures this UI's catalog so other profession instances cannot change its projections. */
 export function bindGaleshotUi(catalog: Readonly<CanonicalCatalog<RangerSkill>>): RangerUiSlice {
   return Object.freeze({
-    /** Prepare legal preview casts with the same catalog metadata and transitions used by the runtime. */
-    skillDamageProbe(context: SkillDamagePreviewContext, skill: PreviewSkill): SkillDamageProbeSetup | null {
-      if (!(skill as RangerSkill).cycloneBowSkill && skill.id !== ID.DISMISS_CYCLONE_BOW) return null;
-      const windForce = balanceProfileNumber(
-        requireBalanceProfileFromContext(context, PROFILE.resources),
-        'minimumStacks'
-      );
-      let earned = 0;
-      const generators = visibleBowSkills({ catalog: context.catalog, build: context.build })
-        .map((id) => catalog.skillsById.get(id))
-        .filter((candidate): candidate is RangerSkill => {
-          if (!candidate || !(Number(candidate.windForceGain) > 0) || earned >= windForce) return false;
-          earned += Number(candidate.windForceGain);
-          return true;
-        });
-      return {
-        setup: [
-          { type: 'cast', skillId: ID.SUMMON_CYCLONE_BOW },
-          ...(skill.id === ID.HAWKEYE
-            ? [
-                ...generators.map((candidate) => ({ type: 'cast' as const, skillId: candidate.id })),
-                // Resolve the final resource grant after its cast-end boundary before checking Wind Force.
-                { type: 'wait' as const, durationMs: 1 }
-              ]
-            : [])
-        ]
-      };
-    },
-
     // Tile identity follows the active bar even when the visible skill cannot currently be cast.
     paletteOverride: (context, skill) => {
       const state = rangerUiState(context);

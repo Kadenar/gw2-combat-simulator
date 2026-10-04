@@ -21,7 +21,7 @@ test('planning and measuring skill damage never changes the build, its assumptio
   const controls = skillDamageControls(app);
   const values = { ...clearedValues(controls), might: 7, fury: 1, fierceAsFire: 4 };
   const plan = createSkillDamagePlan(app, controls, values);
-  app.adapter.calculateSkillDamage({ ...plan.request, probes: plan.request.probes.slice(0, 3) });
+  app.adapter.calculateSkillDamage({ ...plan.request, occurrences: plan.request.occurrences.slice(0, 3) });
   assert.deepEqual(app.build, build);
   assert.equal(app.attributeData, attributeData);
 });
@@ -39,7 +39,7 @@ test('control scope keeps damage-only inputs out of the Attribute Preview', asyn
   assert.ok(!keys(attributeEffectControls(harbinger)).includes('blight'));
 });
 
-test('preview values become probe boons, target conditions, held buffs, and profession fields', async () => {
+test('preview values become occurrence boons, target conditions, held buffs, and profession fields', async () => {
   const app = await headlessApp('necromancer', HARBINGER);
   const controls = skillDamageControls(app);
   const values = { ...clearedValues(controls), might: 12, fury: 0, 'condition:Vulnerability': 9, blight: 20 };
@@ -72,59 +72,59 @@ test('the saved simulation assumptions seed the panel without being written back
   assert.equal(values['condition:Vulnerability'], app.build.assumptions.targetConditions.Vulnerability);
 });
 
-test('unslotted skills are measured with their own slot selection; slotted skills keep the build loadout', async () => {
+// Catalog scope is independent of runtime slot eligibility.
+test('unslotted effects preserve the build loadout instead of manufacturing legal slot selections', async () => {
   const app = await headlessApp('warrior', BLADESWORN);
-  const controls = skillDamageControls(app);
-  const plan = createSkillDamagePlan(app, controls, clearedValues(controls));
-  const rows = [...plan.rows.values()];
-  const unslotted = rows.find((row) => row.status === 'unslotted');
-  const slotted = rows.find((row) => row.groupId === 'slot' && row.status === 'equipped');
-  const probe = (row) => plan.request.probes.find((candidate) => candidate.id === row.id);
-  assert.ok(probe(unslotted).config.selectedSkills.includes(unslotted.name));
-  assert.equal(probe(slotted).config.selectedSkills, undefined);
+  const plan = createSkillDamagePlan(app, skillDamageControls(app), {});
+  const unslotted = [...plan.rows.values()].find((row) => row.status === 'unslotted');
+  const entry = plan.request.occurrences.find((candidate) => candidate.id === unslotted.id);
+  assert.ok(entry);
+  assert.equal(entry.config.selectedSkills, undefined);
+  assert.deepEqual(plan.request.config.selectedSkills, app.adapter.simulationConfig(app).selectedSkills);
 });
 
-test('skills without damage and refused probes are left out of the table', async () => {
+test('zero-damage calculations remain visible while calculation failures have a separate explanation', async () => {
   const app = await headlessApp('warrior', BLADESWORN);
-  const controls = skillDamageControls(app);
-  const plan = createSkillDamagePlan(app, controls, clearedValues(controls));
+  const plan = createSkillDamagePlan(app, [], {});
   const [first, second] = plan.groups.find((group) => group.kind === 'weapon').rowIds;
-  const measurement = (total) => ({
+  const measurement = {
     castSeconds: 1,
-    hits: 1,
-    coefficient: 1,
-    strike: total,
+    hits: 0,
+    coefficient: 0,
+    strike: 0,
     conditionDamage: 0,
-    total,
+    total: 0,
     strikeBreakdown: null,
     conditions: []
-  });
+  };
   const model = createSkillDamageViewModel(
     plan,
     {
-      probes: [
-        { id: first, measurement: measurement(0), variants: [] },
-        { id: second, measurement: null, variants: [], rejected: 'Not now.' }
-      ],
-      procs: []
+      occurrences: [
+        { id: first, measurement, status: 'zero', damaging: true, assumptions: [], unit: 'activation', variants: [] },
+        {
+          id: second,
+          measurement: null,
+          status: 'unsupported',
+          reason: 'Damage calculation not implemented.',
+          variants: []
+        }
+      ]
     },
     { filter: 'all', expanded: null, closedGroups: new Set(), targetArmor: 2597 }
   );
-  assert.deepEqual(model.groups, []);
-  assert.equal(model.counts.all, 0);
+  assert.equal(model.counts.all, 1);
+  assert.equal(model.groups[0].rows[0].measurement.total, 0);
+  assert.equal(model.unavailable[0].reason, 'Damage calculation not implemented.');
 });
 
-test('proc owners cover selected traits, the relic, sigils, and food, each with its icon', async () => {
+test('selected proc declarations enumerate damage independently of qualifying actions', async () => {
   const app = await headlessApp('necromancer', HARBINGER);
-  const controls = skillDamageControls(app);
-  const { procOwners } = createSkillDamagePlan(app, controls, clearedValues(controls)).request;
-  const sources = new Set(procOwners.map((owner) => owner.source));
-  for (const source of ['Trait', 'Relic', 'Sigil', 'Food']) assert.ok(sources.has(source), source);
-  assert.ok(
-    procOwners.every((owner) => owner.icon),
-    'every proc owner has an icon'
-  );
-  assert.ok(procOwners.some((owner) => owner.source === 'Trait' && owner.name === 'Dhuumfire'));
+  const { occurrences } = createSkillDamagePlan(app, [], {}).request;
+  assert.ok(occurrences.some((entry) => entry.source === 'Trait' && entry.name === 'Dhuumfire'));
+  assert.ok(occurrences.some((entry) => entry.source === 'Relic'));
+  assert.ok(occurrences.some((entry) => entry.source === 'Sigil'));
+  assert.ok(occurrences.every((entry) => !Object.hasOwn(entry, 'setup')));
 });
 
 // Every profession family lists weapon and slot skills through the generic path; declared mechanic groups measure.
@@ -147,7 +147,9 @@ for (const [professionId, buildPath] of [
     const plan = createSkillDamagePlan(app, controls, simulationConfigValues(app, controls));
     const evaluation = app.adapter.calculateSkillDamage(plan.request);
     const measured = new Map(
-      evaluation.probes.filter((probe) => probe.measurement?.total > 0).map((probe) => [probe.id, probe])
+      evaluation.occurrences
+        .filter((occurrence) => occurrence.measurement?.total > 0)
+        .map((occurrence) => [occurrence.id, occurrence])
     );
     const declared = new Set(
       app.profession.ui.skillDamageGroups(attributePreviewContext(app)).map((group) => `mechanic-${group.id}`)
@@ -177,19 +179,19 @@ test('Evoker measures both familiar forms using existing initial charge settings
     const controls = skillDamageControls(app);
     const plan = createSkillDamagePlan(app, controls, simulationConfigValues(app, controls));
     const ids = plan.groups.find((group) => group.id === 'mechanic-familiar').rowIds;
-    const probes = plan.request.probes.filter((probe) => ids.includes(probe.id));
-    const result = app.adapter.calculateSkillDamage({ ...plan.request, probes });
+    const occurrences = plan.request.occurrences.filter((occurrence) => ids.includes(occurrence.id));
+    const result = app.adapter.calculateSkillDamage({ ...plan.request, occurrences });
     assert.deepEqual(
-      result.probes.map((probe) => probe.rejected),
+      result.occurrences.map((occurrence) => occurrence.reason),
       [undefined, undefined],
       element
     );
     assert.ok(
-      result.probes.every((probe) => probe.measurement != null),
+      result.occurrences.every((occurrence) => occurrence.measurement != null),
       element
     );
     assert.deepEqual(
-      probes.map((probe) => probe.config.profession.initialEvokerEmpowered),
+      occurrences.map((occurrence) => occurrence.config.profession.initialEvokerEmpowered),
       [0, 3]
     );
     assert.deepEqual(app.build, saved);

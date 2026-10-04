@@ -1,4 +1,3 @@
-import { escapeHtml as esc } from '#ui/shared/html.js';
 import { normalizeAttributePreview } from '#gw2/app/build/attribute-effects.js';
 import { calculateSkillDamageAttributes } from '#gw2/app/build/buffed-attributes.js';
 import {
@@ -25,6 +24,7 @@ import type {
   PreviewControl
 } from '#gw2/platform/profession-presentation/attribute-preview.js';
 import type { SkillDamageEvaluation } from '#gw2/platform/skill-damage/types.js';
+import { escapeHtml as esc } from '#ui/shared/html.js';
 
 /** Preview values stay local to this panel; only its disclosure preference survives a page reload. */
 interface SkillDamagePanelState {
@@ -167,7 +167,7 @@ function renderRegions(app: ProfessionAppState): void {
 
 /** The section starts collapsed; its body is only built while open. */
 function disclosureHtml(open: boolean, body: string): string {
-  return `<details class="skill-damage"${open ? ' open' : ''}><summary class="skill-damage-title">Skill damage <small>Preview only</small></summary>${body}</details>`;
+  return `<details class="skill-damage"${open ? ' open' : ''}><summary class="skill-damage-title">Skill damage <small>Preview only</small></summary><p class="sd-note">Damage if this skill or effect occurs under the selected conditions.</p>${body}</details>`;
 }
 
 /** Delegated listeners are installed once per host, so repaints never stack handlers. */
@@ -381,7 +381,7 @@ function tableHtml(model: SkillDamageViewModel, state: SkillDamagePanelState, cu
     .join('');
   // Keep unavailable effects inspectable in a quiet disclosure, with each reason beneath its source.
   const unavailable = model.unavailable.length
-    ? `<details class="sd-unavailable"><summary><span>Unavailable in this preview</span><span class="sd-unavailable-count">${model.unavailable.length}</span></summary><ul class="sd-unavailable-list" role="list">${model.unavailable.map((row) => `<li><strong>${esc(row.name)}</strong><p>${esc(row.reason)}</p></li>`).join('')}</ul></details>`
+    ? `<details class="sd-unavailable"><summary><span>Calculation details</span><span class="sd-unavailable-count">${model.unavailable.length}</span></summary><ul class="sd-unavailable-list" role="list">${model.unavailable.map((row) => `<li><strong>${esc(row.name)}</strong><p>${esc(row.reason)}</p></li>`).join('')}</ul></details>`
     : '';
   return `<div class="sd-toolbar"><div role="group" aria-label="Show" class="sd-filters">${filters}</div>${status}</div><div class="sd-table-scroll" tabindex="0" role="region" aria-label="Skill damage results"><div class="sd-table${current ? '' : ' is-stale'}" style="--sd-columns: ${columns}"><div class="sd-header">${header}</div>${groups || '<p class="skill-damage-empty">No damaging skills match this filter.</p>'}</div></div>${unavailable}`;
 }
@@ -544,5 +544,11 @@ function breakdownHtml(row: SkillDamageRowView, model: SkillDamageViewModel): st
     );
   }
 
-  return `<div class="sd-breakdown">${sections.join('')}</div>`;
+  // Proc expansions show useful assumptions without a redundant occurrence or charge label.
+  const notes = [
+    ...(row.status === 'proc' ? [] : [`Per ${row.unit}`]),
+    ...row.assumptions,
+    ...(m.total === 0 ? ['No damage under the selected conditions.'] : [])
+  ];
+  return `<div class="sd-breakdown">${notes.length ? `<p class="sd-note">${notes.map(esc).join(' &middot; ')}</p>` : ''}${sections.join('')}</div>`;
 }

@@ -107,6 +107,7 @@ export const ELEMENTALIST_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Pa
     attunement: 'Fire',
     categories: ['Weapon skill'],
     castTimeMs: 680,
+    interruptCommitMs: 640,
     cooldown: 20,
     skillFamily: 'Weapon skill',
     effects: [
@@ -119,7 +120,8 @@ export const ELEMENTALIST_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Pa
           }
         ],
         timingAnchor: 'castStart',
-        timingScale: 'cast'
+        timingScale: 'cast',
+        persistsAfterInterrupt: true,
       }
     ]
   },
@@ -689,9 +691,10 @@ export const ELEMENTALIST_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Pa
     attunement: 'Earth',
     categories: ['Weapon skill'],
     castTimeMs: 680,
+    interruptCommitMs: 640,
     cooldown: 20,
     skillFamily: 'Weapon skill',
-    effects: impactEffects({ atMs: 560, timingAnchor: 'castStart', timingScale: 'cast' }, [
+    effects: impactEffects({ atMs: 560, timingAnchor: 'castStart', timingScale: 'cast', persistsAfterInterrupt: true }, [
       { type: 'strike', coefficient: 3.375 },
       { type: 'condition', condition: 'Weakness', stacks: 1, duration: 4, metadata: {} },
       { type: 'condition', condition: 'Crippled', stacks: 1, duration: 4, metadata: {} }

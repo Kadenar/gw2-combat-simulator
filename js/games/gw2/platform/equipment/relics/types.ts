@@ -1,9 +1,9 @@
 import type { EffectEmissionService } from '#gw2/platform/simulation/effect-emission.js';
 /** Owns the equipment/relics/types.ts contracts so type dependencies follow their runtime feature boundaries. */
+import type { Gw2TargetConfig } from '#gw2/platform/combat/state/targets.js';
 import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
 import type { Skill } from '#gw2/platform/engine/skills/types.js';
 import type { Gw2ResolverHelpers } from '#gw2/platform/resolver/types.js';
-import type { Gw2TargetConfig } from '#gw2/platform/combat/state/targets.js';
 
 /** Minimal configuration surface consumed by relic rules. */
 interface Gw2RelicConfig {
@@ -65,18 +65,11 @@ export interface Gw2ConditionHelpers {
 }
 
 export interface Gw2RelicRule {
-  /** Discovery uses real casts with these ambient conditions; the owning rule still decides whether to trigger. */
-  readonly damagePreview?: {
-    readonly targetConditions?: Gw2TargetConfig['conditions'];
-    /** Repeated real opportunities build the relic's native counter without seeding private relic state. */
-    readonly repetitions?: number;
-    readonly repeatCondition?: string;
-    readonly repeatFinisher?: string;
-    readonly repeatIntervalMs?: number;
-    /** Existing environment-field assumptions still require the player to execute a matching finisher. */
-    readonly comboField?: 'Water' | 'Fire';
-    readonly requirement: string;
-  };
+  /** The same per-occurrence payload is called after combat eligibility or directly by the damage calculator. */
+  readonly damagePayload?: (
+    context: Gw2RelicContext,
+    inputs: import('#gw2/platform/skill-damage/types.js').DamageInputs
+  ) => void;
   readonly createState?: () => Gw2RelicState;
   readonly emitConditionEffects?: (
     context: Gw2RelicEmissionContext,

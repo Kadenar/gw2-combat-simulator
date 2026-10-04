@@ -1,24 +1,23 @@
-import type {
-  SkillDamagePreviewPreparation,
-  SkillDamageProbeSetup
-} from '#gw2/platform/profession-presentation/skill-damage.js';
-import type { Skill as PreviewSkill } from '#gw2/platform/engine/skills/types.js';
-import { GUARDIAN_SKILL_IDS } from '#gw2/professions/guardian/data/ids.js';
-import type { CanonicalCatalog } from '#gw2/platform/engine/skills/types.js';
 import { flattenProfessionState } from '#gw2/platform/engine/profession/state.js';
-import { timedBuffAt } from '#gw2/platform/results/query.js';
 import {
   balanceProfileNumber,
   requireBalanceProfileFromContext
 } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { requireBalanceNumber } from '#gw2/platform/engine/skills/canonical-skill-catalog.js';
-import { LUMINARY_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/guardian/specializations/luminary/profiles.js';
+import type { CanonicalCatalog, Skill as PreviewSkill } from '#gw2/platform/engine/skills/types.js';
+import type {
+  SkillDamagePreviewPreparation,
+  SkillDamageState
+} from '#gw2/platform/profession-presentation/skill-damage.js';
+import { timedBuffAt } from '#gw2/platform/results/query.js';
 import {
   formatSecondsRemaining,
   guardianSnapshotAt,
   guardianUiSkillIdsByName,
   guardianUiSkillsByMode
 } from '#gw2/professions/guardian/core/presentation.js';
+import { GUARDIAN_SKILL_IDS } from '#gw2/professions/guardian/data/ids.js';
+import { LUMINARY_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/guardian/specializations/luminary/profiles.js';
 
 import type {
   ProfessionEffectPresentation,
@@ -159,30 +158,20 @@ function luminaryEffectPresentations(): ProfessionEffectPresentation[] {
 /** Captures this UI's catalog so other profession instances cannot change its projections. */
 export function bindLuminaryUi(catalog: Readonly<CanonicalCatalog<GuardianSkill>>): GuardianUiSlice {
   return Object.freeze({
-    /** Prepare legal preview casts with the same catalog metadata and transitions used by the runtime. */
-    skillDamageProbe(context: SkillDamagePreviewPreparation, skill: PreviewSkill): SkillDamageProbeSetup | null {
-      if (!(skill as GuardianSkill).radiantForgeSkill && skill.id !== GUARDIAN_SKILL_IDS.EXIT_RADIANT_FORGE)
-        // An earned hammer entitlement can linger into ordinary attacks after the real Forge exit.
-        return context.values.radiantHammer && skill.type === 'Weapon'
-          ? {
-              setup: [
-                { type: 'cast', skillId: GUARDIAN_SKILL_IDS.ENTER_RADIANT_FORGE },
-                { type: 'cast', skillId: GUARDIAN_SKILL_IDS.DAZZLING_HAMMER },
-                { type: 'cast', skillId: GUARDIAN_SKILL_IDS.EXIT_RADIANT_FORGE }
-              ]
-            }
-          : null;
-      return { setup: [{ type: 'cast', skillId: GUARDIAN_SKILL_IDS.ENTER_RADIANT_FORGE }] };
+    /** Declare damage inputs without constructing prerequisite actions. */
+    skillDamageState(context: SkillDamagePreviewPreparation, _skill: PreviewSkill): SkillDamageState | null {
+      // Direct evaluation supplies damage state without prerequisite actions.
+      return { inputs: { radiantHammer: Boolean(context.values.radiantHammer) } };
     },
     /** Compare the native lingering armament window without inventing an independent entitlement field. */
     previewControls: () => [
       {
         key: 'radiantHammer',
-        label: 'Prepare radiant hammer',
+        label: 'Radiant hammer bonus',
         group: 'Mechanic',
         kind: 'special' as const,
         scope: ['damage' as const],
-        description: 'Equip Dazzling Hammer and leave Forge before ordinary weapon attacks'
+        description: 'Assume the lingering Radiant Armaments hammer bonus is active'
       }
     ],
 

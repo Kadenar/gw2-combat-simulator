@@ -1,12 +1,22 @@
+import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
 import { RELIC_IDS } from '#gw2/platform/equipment/relics/data.js';
+import type { Gw2RelicContext, Gw2RelicState } from '#gw2/platform/equipment/relics/types.js';
 /** Mirage relic rules. */
 import { isInternalCooldownReady } from '#gw2/platform/combat/procs.js';
 import { isGw2PlayerActorEvent } from '#gw2/platform/combat/state/event-ownership.js';
 import { defineRelic } from '#gw2/platform/equipment/relics/rules/shared.js';
 
 export const mirage = defineRelic({
-  // Describe eligibility at the rule owner; discovery still executes real player actions.
-  damagePreview: { requirement: 'Requires an accepted player evade in combat.' },
+  damagePayload(ctx) {
+    emitDamagePayload(ctx, ctx.relic!.state, {
+      type: 'proc',
+      at: 0,
+      source: 'Relic',
+      sourceId: 'damage-input',
+      actorType: 'effect',
+      skillName: 'Damage preview'
+    });
+  },
   createState: () => ({ readyAt: -Infinity }),
   action(ctx, state, dodge) {
     // A successful player evade claims the same ICD once, at its actual activation.
@@ -19,23 +29,7 @@ export const mirage = defineRelic({
     )
       return;
     state.readyAt = dodge.at + 1;
-    ctx.effects.emit({
-      kind: 'packet',
-      event: {
-        type: 'condition',
-        at: dodge.at,
-        source: 'Relic',
-        sourceId: `relic.${RELIC_IDS.MIRAGE}`,
-        actorType: 'effect',
-        ownerActorType: 'player',
-        triggeredBy: dodge.skillName,
-        skillName: 'Relic of the Mirage',
-        name: 'Relic of the Mirage ? Torment',
-        condition: 'Torment',
-        stacks: 2,
-        duration: 6
-      }
-    });
+    emitDamagePayload(ctx, state, dodge);
   },
   condition(ctx, _state, application) {
     if (application.sourceId === `relic.${RELIC_IDS.MIRAGE}`) {
@@ -52,3 +46,24 @@ export const mirage = defineRelic({
     }
   }
 });
+
+/** One occurrence shares its payload with simulation after activation checks have succeeded. */
+function emitDamagePayload(ctx: Gw2RelicContext, _state: Gw2RelicState, dodge: SimulationEvent): void {
+  ctx.effects.emit({
+    kind: 'packet',
+    event: {
+      type: 'condition',
+      at: dodge.at,
+      source: 'Relic',
+      sourceId: `relic.${RELIC_IDS.MIRAGE}`,
+      actorType: 'effect',
+      ownerActorType: 'player',
+      triggeredBy: dodge.skillName,
+      skillName: 'Relic of the Mirage',
+      name: 'Relic of the Mirage ? Torment',
+      condition: 'Torment',
+      stacks: 2,
+      duration: 6
+    }
+  });
+}

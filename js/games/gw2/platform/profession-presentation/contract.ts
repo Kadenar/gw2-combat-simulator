@@ -1,12 +1,12 @@
+import type { PaletteOverride, ProfessionUiContract } from '#gw2/platform/profession-presentation/types.js';
 import type { UnvalidatedFields } from '#kernel/core/unvalidated.js';
-import type { ProfessionUiContract, PaletteOverride } from '#gw2/platform/profession-presentation/types.js';
 
 const UI_CALLBACK_NAMES = Object.freeze([
   'previewControls',
   'attributePreviewDisabledTrait',
   'prepareAttributePreview',
   'skillDamageGroups',
-  'skillDamageProbe',
+  'skillDamageState',
   'prepareSkillDamagePreview',
   'chartApplications',
   'timelineMarkers',
@@ -91,7 +91,7 @@ export function normalizeProfessionUi(
     prepareAttributePreview: ui.prepareAttributePreview || (() => {}),
     // Professions without mechanic groups still list weapons and slot skills through the platform defaults.
     skillDamageGroups: ui.skillDamageGroups || (() => []),
-    skillDamageProbe: ui.skillDamageProbe || (() => null),
+    skillDamageState: ui.skillDamageState || (() => null),
     prepareSkillDamagePreview: ui.prepareSkillDamagePreview || (() => ({})),
     // Empty projections preserve ordinary shared layouts when a profession has no presentation contribution.
     chartApplications: ui.chartApplications || (() => []),

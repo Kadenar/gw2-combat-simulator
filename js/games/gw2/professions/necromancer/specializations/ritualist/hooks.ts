@@ -1,3 +1,11 @@
+import { damageInputEvent } from '#gw2/platform/skill-damage/execution.js';
+import {
+  queueNightmareWeapon,
+  queueSplinterWeapon
+} from '#gw2/professions/necromancer/specializations/ritualist/mechanics/spirit-effects.js';
+import { requireBalanceProfileFromContext as damageProfile } from '#gw2/platform/engine/skills/balance-profiles.js';
+import { RITUALIST_BALANCE_PROFILE_IDS as DAMAGE_PROFILE } from '#gw2/professions/necromancer/specializations/ritualist/profiles.js';
+import { NECROMANCER_SKILL_IDS as DAMAGE_SKILL } from '#gw2/professions/necromancer/data/ids.js';
 import { timedEffectState } from '#gw2/platform/combat/effect-state.js';
 import type { SimulationEventBase } from '#gw2/platform/engine/events/events.js';
 import { denySkillCast } from '#gw2/platform/engine/skills/availability.js';
@@ -21,7 +29,10 @@ import {
 } from '#gw2/professions/necromancer/core/mechanics/state-helpers.js';
 import { NECROMANCER_SKILL_IDS as ID } from '#gw2/professions/necromancer/data/ids.js';
 import { attribution } from '#gw2/professions/necromancer/specializations/ritualist/mechanics/attribution.js';
-import { ritualistSpellHooks } from '#gw2/professions/necromancer/specializations/ritualist/mechanics/spells.js';
+import {
+  emitPainfulBond,
+  ritualistSpellHooks
+} from '#gw2/professions/necromancer/specializations/ritualist/mechanics/spells.js';
 import { spiritDefinition } from '#gw2/professions/necromancer/specializations/ritualist/mechanics/spirits.js';
 import { RITUALIST_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/necromancer/specializations/ritualist/profiles.js';
 import { ritualistState } from '#gw2/professions/necromancer/specializations/ritualist/state.js';
@@ -219,6 +230,46 @@ function summon(runtime: NecromancerRuntime, cast: RuntimeCast<NecromancerSkill>
 
 /** Ritualist uses the shared Core resource owner and actual creature callbacks, with specialization-owned lifetimes. */
 export const ritualistHooks: Partial<RuntimeProfession<NecromancerRuntimeState, NecromancerSkill>> = {
+  // Each weapon-spell charge is a known effect, independent of who could consume it.
+  damageEffects: [
+    {
+      id: 'ritualist.painful-bond',
+      name: 'Painful Bond',
+      source: 'Profession',
+      unit: 'pulse',
+      sourceIds: ['ritualist.painful-bond'],
+      emit(runtime) {
+        emitPainfulBond(runtime, damageInputEvent(runtime));
+      }
+    },
+    {
+      id: 'nightmare-weapon',
+      name: 'Nightmare Weapon',
+      source: 'Profession',
+      unit: 'charge',
+      sourceIds: [DAMAGE_SKILL.NIGHTMARE_WEAPON],
+      emit: (runtime) =>
+        queueNightmareWeapon(
+          runtime,
+          damageInputEvent(runtime),
+          damageProfile(runtime, DAMAGE_PROFILE.nightmareWeaponProc)
+        )
+    },
+    {
+      id: 'splinter-weapon',
+      name: 'Splinter Weapon',
+      source: 'Profession',
+      unit: 'charge',
+      sourceIds: [DAMAGE_SKILL.SPLINTER_WEAPON],
+      emit: (runtime) =>
+        queueSplinterWeapon(
+          runtime,
+          damageInputEvent(runtime),
+          damageProfile(runtime, DAMAGE_PROFILE.splinterWeaponProc)
+        )
+    }
+  ],
+
   // Recipient pools already own replacement and charge consumption; publish their retained grants directly.
   buffPolicies: () =>
     ['nightmare', 'splinter', 'resilient'].map((spell) => ({ kind: spell + '-weapon', owner: 'profession' as const })),

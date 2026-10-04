@@ -1,3 +1,4 @@
+import { reviseEffectState } from '#gw2/platform/combat/effect-revisions.js';
 import type { Gw2ConditionCalculation, SimulationEventBase } from '#gw2/platform/engine/events/events.js';
 import { CONDITION_FORMULAS, conditionTickDamage } from '#gw2/platform/combat/formulas.js';
 import type { Gw2ModifierContribution } from '#gw2/platform/combat/modifiers.js';
@@ -416,6 +417,8 @@ export function createGw2ConditionResolution({
         weight: packet.stacks,
         application
       });
+      // Accepted applications invalidate report windows without involving later damage settlement.
+      reviseEffectState(state);
       const groups = (state.groups ??= new Map());
       const owner = damageOwner(application);
       let group = groups.get(owner);

@@ -237,6 +237,21 @@ function explosion(runtime: Runtime, event: Gw2ResolverEvent): void {
 
 /** Native declarations own actual resources, bar transitions, completed ammunition rewards, and accepted explosions. */
 export const bladeswornHooks: Partial<RuntimeProfession<WarriorRuntimeState, WarriorSkill>> = {
+  /** Initialize only damage-relevant form and scaling state for one assumed occurrence. */
+  prepareDamageState(runtime, skill, inputs) {
+    const state = bladeswornState.from(runtime);
+    state.gunsaberActive = Boolean(skill.gunsaberSkill);
+    if (skill.dragonSlash) {
+      const charges = Number(inputs.charges ?? maximumDragonCharges(runtime));
+      if (!Number.isInteger(charges) || charges < 1 || charges > maximumDragonCharges(runtime))
+        throw new RangeError('Dragon charges exceed the selected build maximum.');
+      state.dragonTriggerActive = true;
+      state.dragonCharges = charges;
+      state.dragonChargeReachedAt = Array.from({ length: charges + 1 }, () => 0);
+      state.dragonTriggerChargeDeadline = Infinity;
+    }
+  },
+
   sideEffectHandlers: {
     ...bladeswornSkillActions,
     // Bar declarations invoke the shared transition, including recharge and entry trait observers.

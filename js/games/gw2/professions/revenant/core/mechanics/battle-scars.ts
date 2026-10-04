@@ -19,6 +19,14 @@ export function consumeBattleScar(runtime: RevenantRuntime, event: Gw2ResolverEv
   const { expiries, consumed } = consumeNewestStacks(core.battleScars, 1, runtime.time);
   core.battleScars = expiries;
   if (!consumed) return;
+  emitBattleScar(runtime, event);
+}
+
+/** Resolve one scar without requiring a prior grant or consuming another attack. */
+export function emitBattleScar(runtime: RevenantRuntime, event: Gw2ResolverEvent): void {
+  const profile = requireBalanceProfileFromContext(runtime, PROFILE.battleScars);
+  const strike = requireEffect(profile, 'strike', 'Battle Scars — Life Siphon');
+  if (!strike) return;
   runtime.effects.emit({
     kind: 'packet',
     cause: event,

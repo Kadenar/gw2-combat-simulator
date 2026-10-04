@@ -27,15 +27,15 @@ import type {
 import type { CanonicalCatalog, Skill } from '#gw2/platform/engine/skills/types.js';
 import type {
   SkillDamagePreviewContext,
-  SkillDamageProbeSetup
+  SkillDamageState
 } from '#gw2/platform/profession-presentation/skill-damage.js';
-import { elementalistAttunementConfig } from '#gw2/professions/elementalist/core/presentation.js';
 import type {
   ProfessionResourceView,
   ProfessionSkillBarGroup,
   ProfessionSkillBarSelectionChange,
   RotationStateSnapshotItem
 } from '#gw2/platform/profession-presentation/types.js';
+import { elementalistAttunementConfig } from '#gw2/professions/elementalist/core/presentation.js';
 import { ELEMENTALIST_ATTUNEMENTS, type ElementalistAttunement } from '#gw2/professions/elementalist/core/state.js';
 import { ELEMENTALIST_FAMILIAR_SKILL_IDS } from '#gw2/professions/elementalist/data/ids.js';
 import type { EvokerState } from '#gw2/professions/elementalist/specializations/evoker/state.js';
@@ -86,14 +86,14 @@ function familiarSkillIds(context: SkillDamagePreviewContext): readonly [number,
 }
 
 /** The empowered familiar starts with its full empowered count; both forms keep their attunement requirement. */
-function evokerSkillDamageProbe(context: SkillDamagePreviewContext, skill: Skill): SkillDamageProbeSetup | null {
+function evokerSkillDamageOccurrence(context: SkillDamagePreviewContext, skill: Skill): SkillDamageState | null {
   const [basic, empowered] = familiarSkillIds(context);
   if (skill.id !== basic && skill.id !== empowered) return null;
   const resources = requireBalanceProfileFromContext(context, PROFILE.resources);
   // Each row starts from its own legal form using the simulation's existing initial resource fields.
   return {
     // Familiar completion may arm enchantments for a subsequent player hit.
-    procFollowUpSetup: [],
+
     config: {
       ...elementalistAttunementConfig(skill),
       initialEvokerCharges: balanceProfileNumber(resources, 'maximumStacks'),
@@ -123,7 +123,7 @@ export const evokerUi: ElementalistUiSlice = Object.freeze({
   skillDamageGroups: (context: SkillDamagePreviewContext) => [
     { id: 'familiar', title: 'Familiar', skillIds: familiarSkillIds(context), order: 0 }
   ],
-  skillDamageProbe: evokerSkillDamageProbe,
+  skillDamageState: evokerSkillDamageOccurrence,
   /** Declare this module's conditional inputs without adding simulation settings. */
   previewControls(context: ProfessionAttributePreviewContext) {
     const preview = createPreviewControls(context);

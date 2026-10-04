@@ -1,12 +1,17 @@
-import type { NativeResolvedDamageDetails } from '#gw2/platform/profession-definition/module-types.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
-import { sideEffectAmount, type ProfileAmount } from '#gw2/platform/simulation/side-effects.js';
-import { requireBalanceProfileFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
-import type { Skill, SkillId, SkillEffect } from '#gw2/platform/engine/skills/types.js';
-import type { Gw2Runtime, RuntimeCast, RuntimeProfession } from '#gw2/platform/simulation/runtime-state.js';
-import type { Gw2ResolverEvent, Gw2ResolverStage } from '#gw2/platform/resolver/types.js';
-import type { SimulationEventBase } from '#gw2/platform/engine/events/events.js';
 import type { EffectEventBase } from '#gw2/platform/engine/effects/materializer.js';
+import type { SimulationEventBase } from '#gw2/platform/engine/events/events.js';
+import { requireBalanceProfileFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
+import type { Skill, SkillEffect, SkillId } from '#gw2/platform/engine/skills/types.js';
+import type { NativeResolvedDamageDetails } from '#gw2/platform/profession-definition/module-types.js';
+import type { Gw2ResolverEvent, Gw2ResolverStage } from '#gw2/platform/resolver/types.js';
+import type {
+  Gw2Runtime,
+  ProfessionRuntimeOptions,
+  RuntimeCast,
+  RuntimeProfession
+} from '#gw2/platform/simulation/runtime-state.js';
+import { sideEffectAmount, type ProfileAmount } from '#gw2/platform/simulation/side-effects.js';
 
 export interface RechargeRule<T extends object, TSkill extends Skill = Skill> {
   readonly trait?: SkillId;
@@ -76,7 +81,8 @@ export function compileRechargeRules<T extends object, TSkill extends Skill = Sk
 
 /** Each module's rules run at its hook position; committed interruptions receive the same cast rewards. */
 export function compileProfessionRules<T extends object, TSkill extends Skill = Skill>(
-  hooks: Partial<RuntimeProfession<T, TSkill>>
+  hooks: Partial<RuntimeProfession<T, TSkill>>,
+  { traitTriggers = true }: ProfessionRuntimeOptions = {}
 ): Partial<RuntimeProfession<T, TSkill>> {
   const compiled = { ...hooks };
   if (hooks.rechargeRules?.length) {
@@ -87,7 +93,10 @@ export function compileProfessionRules<T extends object, TSkill extends Skill = 
     };
   }
 
-  for (const rule of [...(hooks.traitTriggers ?? [])].sort((a, b) => (a.order ?? 0) - (b.order ?? 0)).reverse()) {
+  // Omit activation producers at composition time while keeping recharge and authored payload hooks intact.
+  for (const rule of [...(traitTriggers ? (hooks.traitTriggers ?? []) : [])]
+    .sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
+    .reverse()) {
     // Wrapping in reverse declaration order keeps emissions in declaration order before the imperative owner.
     const emit = (
       runtime: Gw2Runtime<T, TSkill>,

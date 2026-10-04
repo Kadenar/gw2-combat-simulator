@@ -32,8 +32,8 @@ import {
 } from '#gw2/professions/guardian/specializations/luminary/mechanics/effects.js';
 import { LUMINARY_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/guardian/specializations/luminary/profiles.js';
 import {
-  BOON,
   BLADE_IMMOBILIZE,
+  BOON,
   glaringBurstDetail,
   glaringBurstDuration,
   HAMMER,
@@ -188,6 +188,30 @@ function hammerImpact(runtime: Runtime, data: unknown): void {
 
 /** Luminary owns its live form, virtue entitlements, finite stance work, and actual combo-derived auras. */
 export const luminaryHooks: Partial<RuntimeProfession<GuardianRuntimeState, GuardianSkill>> = {
+  /** Initialize only damage-relevant form and scaling state for one assumed occurrence. */
+  prepareDamageState(runtime, skill, inputs) {
+    const state = luminaryState.from(runtime);
+    state.radiantForge = Boolean(skill.radiantForgeSkill);
+    state.radiantForgeEndsAt = Infinity;
+    state.radiantWeapon = skill.radiantWeapon ?? '';
+    if (inputs.radiantHammer)
+      runtime.effects.emit({
+        kind: 'packet',
+        event: {
+          type: 'buff',
+          at: runtime.time,
+          source: 'Assumption',
+          sourceId: 'assumption.radiant-armaments',
+          actorType: 'player',
+          skillName: 'Radiant Armaments',
+          kind: 'guardian-radiant-armaments',
+          duration: 3600,
+          stacks: 1,
+          metadata: { radiantWeapon: 'hammer' }
+        }
+      });
+  },
+
   sideEffectHandlers: {
     ...luminaryWeaponActions,
     ...luminaryVirtueActions,

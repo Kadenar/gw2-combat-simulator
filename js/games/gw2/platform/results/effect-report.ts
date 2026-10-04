@@ -71,14 +71,23 @@ function effectGroup<T>(groups: Map<string, Map<string, T>>, key: string): Map<s
 /** Commit observations at execution boundaries; expiry is derived from the same accepted windows as live state. */
 export class EffectRecorder {
   private readonly tracks = new Map<string, RecordedEffect>();
+  private readonly owners = new Map<string, Set<RecordedEffect>>();
   private readonly origins = new Map<string, Map<string, Map<string, Map<string, RecordedEffect>>>>();
   private captureNumber = 0;
 
   capture(at: number, states: readonly EffectState[], owner = 'runtime'): void {
     const capture = ++this.captureNumber;
+    let owned = this.owners.get(owner);
+    if (!owned) {
+      owned = new Set();
+      this.owners.set(owner, owned);
+    }
+
     for (const state of states) {
       const kinds = effectGroup(effectGroup(effectGroup(this.origins, state.origin), state.recipient), state.category);
       const previous = kinds.get(state.kind);
+      if (previous && previous.owner !== owner)
+        throw new TypeError(`Effect track already belongs to ${previous.owner}: ${state.kind}`);
       if (previous?.capture === capture)
         throw new TypeError(
           `Duplicate effect state owner: ${state.origin}:${state.recipient}:${state.category}:${state.kind}`
@@ -88,12 +97,17 @@ export class EffectRecorder {
         previous &&
         previous.state.countLimit === state.countLimit &&
         previous.state.durationLimit === state.durationLimit &&
+        previous.state.measure === state.measure &&
+        previous.state.name === state.name &&
         previous.state.source?.eventOrder === state.source?.eventOrder &&
         previous.state.source?.at === state.source?.at &&
         previous.state.windows.length === state.windows.length &&
         previous.state.windows.every(
           (window, index) =>
-            window.expiresAt === state.windows[index]!.expiresAt && window.stacks === state.windows[index]!.stacks
+            window.expiresAt === state.windows[index]!.expiresAt &&
+            window.stacks === state.windows[index]!.stacks &&
+            window.source?.eventOrder === state.windows[index]!.source?.eventOrder &&
+            window.source?.at === state.windows[index]!.source?.at
         )
       )
         continue;
@@ -105,13 +119,14 @@ export class EffectRecorder {
       } else {
         const track = { state: snapshotEffectState(state), at, segments: [], owner, capture };
         kinds.set(state.kind, track);
+        owned.add(track);
         this.tracks.set(`${state.origin}:${state.recipient}:${state.category}:${state.kind}`, track);
       }
     }
 
-    // A generation marker detects both duplicates and removals without a second set of composite string keys.
-    for (const track of this.tracks.values()) {
-      if (track.capture === capture || track.owner !== owner) continue;
+    // Complete snapshots clear only their own tracks; incremental callers never scan unrelated owners.
+    for (const track of owned) {
+      if (track.capture === capture || !track.state.windows.length) continue;
       this.advance(track, at);
       track.state = { ...track.state, windows: [] };
     }

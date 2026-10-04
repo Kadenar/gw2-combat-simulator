@@ -1,29 +1,22 @@
-import type {
-  SkillDamagePreviewContext,
-  SkillDamagePreviewPreparation,
-  SkillDamageProbeSetup
-} from '#gw2/platform/profession-presentation/skill-damage.js';
-import type { Skill as PreviewSkill } from '#gw2/platform/engine/skills/types.js';
+import { activeStackCount } from '#gw2/platform/combat/resources/timed-stacks.js';
+import { flattenProfessionState, readProfessionCoreState } from '#gw2/platform/engine/profession/state.js';
 import type {
   ProfessionAttributePreviewContext,
   ProfessionAttributePreviewPreparation
 } from '#gw2/platform/profession-presentation/attribute-preview.js';
+import type { SkillDamagePreviewPreparation } from '#gw2/platform/profession-presentation/skill-damage.js';
+import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
 import { createPreviewControls } from '#gw2/professions/shared/attribute-preview.js';
-import { spearChainStageForSkill } from '#gw2/professions/thief/data/spear-chain-stages.js';
-import { readProfessionCoreState } from '#gw2/platform/engine/profession/state.js';
 import type { ThiefCoreState } from '#gw2/professions/thief/core/state.js';
 import { MAXIMUM_SPINNING_AXES } from '#gw2/professions/thief/core/state.js';
-import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
-import { flattenProfessionState } from '#gw2/platform/engine/profession/state.js';
-import { activeStackCount } from '#gw2/platform/combat/resources/timed-stacks.js';
 
-import { SIMULATION_RANDOMNESS_ASSUMPTION_CONTROLS } from '#gw2/platform/simulation/randomness.js';
 import { PERMANENT_COMBO_FIELD_ASSUMPTION_CONTROLS } from '#gw2/platform/combos/permanent-field-assumption.js';
-import { THIEF_CORE_ASSUMPTION_CONTROLS } from '#gw2/professions/thief/build/core-assumptions.js';
-import { THIEF_SKILL_IDS as ID } from '#gw2/professions/thief/data/ids.js';
-import { THIEF_STOLEN_SKILL_IDS } from '#gw2/professions/thief/core/mechanics/steal.js';
 import type { RotationStateSnapshotItem } from '#gw2/platform/profession-presentation/types.js';
-import type { ThiefState, ThiefUiContext, ThiefSkill } from '#gw2/professions/thief/types.js';
+import { SIMULATION_RANDOMNESS_ASSUMPTION_CONTROLS } from '#gw2/platform/simulation/randomness.js';
+import { THIEF_CORE_ASSUMPTION_CONTROLS } from '#gw2/professions/thief/build/core-assumptions.js';
+import { THIEF_STOLEN_SKILL_IDS } from '#gw2/professions/thief/core/mechanics/steal.js';
+import { THIEF_SKILL_IDS as ID } from '#gw2/professions/thief/data/ids.js';
+import type { ThiefSkill, ThiefState, ThiefUiContext } from '#gw2/professions/thief/types.js';
 
 export function thiefUiState(context: ThiefUiContext = {}): Partial<ThiefState> {
   return flattenProfessionState(context.state?.profession || context.professionState);
@@ -137,28 +130,6 @@ function thiefCoreStateSnapshot(context: ThiefUiContext): RotationStateSnapshotI
 }
 
 export const thiefCoreUi = Object.freeze({
-  /** Reach the measured mechanic through ordinary starting settings and authored transitions. */
-  skillDamageProbe(_context: SkillDamagePreviewContext, input: PreviewSkill): SkillDamageProbeSetup | null {
-    const skill = input as ThiefSkill;
-    // Spear chains share stages across slots rather than ordinary flip links; advance those stages with real hits.
-    const stage = spearChainStageForSkill(skill.id);
-    if (stage != null && stage > 0)
-      return {
-        skipPredecessors: true,
-        setup: [
-          { type: 'cast', skillId: ID.MANTIS_STING, offTarget: false },
-          ...(stage > 1 ? [{ type: 'cast' as const, skillId: ID.ENTANGLING_ASP, offTarget: false }] : [])
-        ]
-      };
-    // Venom casts arm charges; the proc discovery pass supplies their subsequent equipped weapon hit.
-    if ([ID.SPIDER_VENOM, ID.SKALE_VENOM, ID.DEVOURER_VENOM].some((id) => id === skill.id))
-      return { procFollowUpSetup: [] };
-    if (skill.stealthAttack || skill.spearStealthAttack)
-      return { setup: [{ type: 'cast', skillId: ID.BLINDING_POWDER }] };
-    if (THIEF_STOLEN_SKILL_IDS.includes(skill.id)) return { setup: [{ type: 'cast', skillId: ID.STEAL }] };
-    return null;
-  },
-
   /** Declare this module's conditional inputs without adding simulation settings. */
   previewControls(context: ProfessionAttributePreviewContext) {
     const preview = createPreviewControls(context);

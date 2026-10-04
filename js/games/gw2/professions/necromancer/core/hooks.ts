@@ -1,8 +1,10 @@
+import { emitVampirismPassive } from '#gw2/professions/necromancer/core/skills/slot-skills.js';
 import { denySkillCast } from '#gw2/platform/engine/skills/availability.js';
 import { skillFlipReady } from '#gw2/platform/engine/skills/skill-flips.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import type { RuntimeProfession } from '#gw2/platform/simulation/runtime-state.js';
 import { sideEffectAmount } from '#gw2/platform/simulation/side-effects.js';
+import { damageInputEvent } from '#gw2/platform/skill-damage/execution.js';
 import { reactToNecromancerAxeHealth } from '#gw2/professions/necromancer/core/mechanics/axe.js';
 import {
   completeNecromancerCorruption,
@@ -41,6 +43,7 @@ import {
   observeNecromancerAutoattackTransition
 } from '#gw2/professions/necromancer/core/mechanics/sword-chain.js';
 import {
+  emitSoulShard,
   grantNecromancerSoulShards,
   necromancerWeaponTasks,
   perforate,
@@ -52,14 +55,15 @@ import {
   necromancerLifeForceCostMultiplier,
   normalizedNecromancerLifeForceCost
 } from '#gw2/professions/necromancer/core/state.js';
-import {
-  reactToTasteForBloodGrant,
-  startNecromancerAlliedOpportunities
-} from '#gw2/professions/necromancer/core/traits/life-steal.js';
+import { spitefulFortitudeLifeForce } from '#gw2/professions/necromancer/core/traits/behavior.js';
 import {
   lingeringCurseAvailability,
   reactToNecromancerConditions
 } from '#gw2/professions/necromancer/core/traits/conditions.js';
+import {
+  reactToTasteForBloodGrant,
+  startNecromancerAlliedOpportunities
+} from '#gw2/professions/necromancer/core/traits/life-steal.js';
 import {
   reactToNecromancerBlind,
   reactToNecromancerCoreCondition,
@@ -67,7 +71,7 @@ import {
   reactToNecromancerCoreDamage
 } from '#gw2/professions/necromancer/core/traits/reactions.js';
 import { applyFearOfDeath, soulMarksLifeForce } from '#gw2/professions/necromancer/core/traits/shroud.js';
-import { spitefulFortitudeLifeForce } from '#gw2/professions/necromancer/core/traits/behavior.js';
+import { NECROMANCER_SKILL_IDS as DAMAGE_SKILL } from '#gw2/professions/necromancer/data/ids.js';
 import type {
   NecromancerRuntime,
   NecromancerRuntimeState,
@@ -88,6 +92,31 @@ function damage(runtime: NecromancerRuntime, event: Gw2ResolverEvent): void {
 import { necromancerBuffPolicies, necromancerEffectStates } from '#gw2/professions/necromancer/core/effect-state.js';
 
 export const necromancerCoreHooks: Partial<RuntimeProfession<NecromancerRuntimeState, NecromancerSkill>> = {
+  // Known damage payloads are invoked once without their activation requirements.
+  damageEffects: [
+    {
+      id: 'vampirism-passive',
+      name: 'Signet of Vampirism (passive)',
+      source: 'Profession',
+      unit: 'pulse',
+      sourceIds: [DAMAGE_SKILL.SIGNET_OF_VAMPIRISM],
+      emit: (runtime) => emitVampirismPassive(runtime)
+    },
+    {
+      id: 'soul-shards',
+      name: 'Soul Shards',
+      source: 'Profession',
+      unit: 'charge',
+      sourceIds: [DAMAGE_SKILL.SOUL_SHARDS],
+      emit: (runtime) => emitSoulShard(runtime, damageInputEvent(runtime))
+    }
+  ],
+
+  /** Initialize only damage-relevant form and scaling state for one assumed occurrence. */
+  prepareDamageState(runtime, skill, _inputs) {
+    if (skill.shroud) runtime.profession.core.activeShroud = skill.shroud;
+  },
+
   buffPolicies: necromancerBuffPolicies,
   observeEffects: necromancerEffectStates,
   resources: { lifeForce: necromancerLifeForce },

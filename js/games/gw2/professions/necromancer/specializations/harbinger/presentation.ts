@@ -1,36 +1,36 @@
-import type {
-  ProfessionAttributePreviewContext,
-  ProfessionAttributePreviewPreparation
-} from '#gw2/platform/profession-presentation/attribute-preview.js';
-import { createPreviewControls } from '#gw2/professions/shared/attribute-preview.js';
 import { readProfessionCoreState } from '#gw2/platform/engine/profession/state.js';
-import type { NecromancerCoreState } from '#gw2/professions/necromancer/core/state.js';
-import type { CanonicalCatalog, Skill } from '#gw2/platform/engine/skills/types.js';
-import type {
-  SkillDamagePreviewContext,
-  SkillDamagePreviewPreparation
-} from '#gw2/platform/profession-presentation/skill-damage.js';
-import {
-  BLIGHT_MAXIMUM_STACKS,
-  MAXIMUM_INITIAL_CASCADING_CORRUPTION_STACKS
-} from '#gw2/professions/necromancer/specializations/harbinger/state.js';
 import {
   balanceProfileNumber,
   requireBalanceProfileFromContext
 } from '#gw2/platform/engine/skills/balance-profiles.js';
-import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
-import { getActiveTraits } from '#gw2/professions/necromancer/data/traits-data.js';
-import {
-  necromancerTransformPaletteGroups,
-  necromancerSoulShardResourceViews,
-  necromancerUiState
-} from '#gw2/professions/necromancer/core/presentation.js';
+import type { CanonicalCatalog, Skill } from '#gw2/platform/engine/skills/types.js';
+import type {
+  ProfessionAttributePreviewContext,
+  ProfessionAttributePreviewPreparation
+} from '#gw2/platform/profession-presentation/attribute-preview.js';
+import type {
+  SkillDamagePreviewContext,
+  SkillDamagePreviewPreparation
+} from '#gw2/platform/profession-presentation/skill-damage.js';
 import type {
   ProfessionEffectPresentation,
   ProfessionResourceView,
   RotationStateSnapshotItem
 } from '#gw2/platform/profession-presentation/types.js';
+import {
+  necromancerSoulShardResourceViews,
+  necromancerTransformPaletteGroups,
+  necromancerUiState
+} from '#gw2/professions/necromancer/core/presentation.js';
+import type { NecromancerCoreState } from '#gw2/professions/necromancer/core/state.js';
+import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
+import { getActiveTraits } from '#gw2/professions/necromancer/data/traits-data.js';
+import {
+  BLIGHT_MAXIMUM_STACKS,
+  MAXIMUM_INITIAL_CASCADING_CORRUPTION_STACKS
+} from '#gw2/professions/necromancer/specializations/harbinger/state.js';
 import type { NecromancerSkill, NecromancerUiContext, NecromancerUiSlice } from '#gw2/professions/necromancer/types.js';
+import { createPreviewControls } from '#gw2/professions/shared/attribute-preview.js';
 import { boundedInteger } from '#kernel/core/numeric.js';
 
 /** Builds compact Blight, Cascading Corruption, and active Meltdown rotation-state rows. */
@@ -170,10 +170,8 @@ export function bindHarbingerUi(catalog: Readonly<CanonicalCatalog<NecromancerSk
     }),
     skillDamageGroups: () => [{ id: 'harbinger-shroud', title: 'Harbinger Shroud', skillIds: SHROUD_SKILLS }],
     /** Shroud skills are measured from inside Harbinger Shroud; entering it deals no damage. */
-    skillDamageProbe: (_context: SkillDamagePreviewContext, skill: Skill) =>
-      (SHROUD_SKILLS as readonly number[]).includes(Number(skill.id))
-        ? { setup: [{ type: 'cast' as const, skillId: ID.HARBINGER_SHROUD }] }
-        : null,
+    skillDamageState: (_context: SkillDamagePreviewContext, skill: Skill) =>
+      (SHROUD_SKILLS as readonly number[]).includes(Number(skill.id)) ? {} : null,
     /** Seed only the detached attribute query; combat state and saved builds remain untouched. */
     prepareAttributePreview(context: ProfessionAttributePreviewPreparation) {
       if (context.values.shroud)

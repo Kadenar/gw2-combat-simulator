@@ -14,12 +14,7 @@ import {
 } from '#gw2/professions/thief/data/ids.js';
 import { getActiveTraits } from '#gw2/professions/thief/data/traits-data.js';
 
-import type { ThiefUiContext, ThiefSkill } from '#gw2/professions/thief/types.js';
-import type { Skill } from '#gw2/platform/engine/skills/types.js';
-import type {
-  SkillDamagePreviewContext,
-  SkillDamageProbeSetup
-} from '#gw2/platform/profession-presentation/skill-damage.js';
+import type { ThiefSkill, ThiefUiContext } from '#gw2/professions/thief/types.js';
 
 /** Surfaces Combat High plus artifact effects with duration or consumable charges. */
 function antiquaryStateSnapshot(context: ThiefUiContext): RotationStateSnapshotItem[] {
@@ -124,12 +119,6 @@ function antiquaryStateSnapshot(context: ThiefUiContext): RotationStateSnapshotI
 }
 
 export const antiquaryUi = Object.freeze({
-  /** Pilfer through the normal skill so artifact availability and charges keep their engine ownership. */
-  skillDamageProbe(_context: SkillDamagePreviewContext, skill: Skill): SkillDamageProbeSetup | null {
-    return [...THIEF_ARTIFACT_IDS.OFFENSIVE, ...THIEF_ARTIFACT_IDS.DEFENSIVE].includes(Number(skill.id))
-      ? { setup: [{ type: 'cast', skillId: ID.SKRITT_SWIPE }] }
-      : null;
-  },
   // Reshuffle is queue-only; this veto affects direct palette insertion, never runtime legality.
   paletteOverride: (context: ThiefUiContext, skill: ThiefSkill) => {
     if (skill.id !== ID.RESHUFFLE) return;

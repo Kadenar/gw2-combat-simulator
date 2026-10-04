@@ -1,3 +1,10 @@
+import { damageInputEvent } from '#gw2/platform/skill-damage/execution.js';
+import { ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
+import {
+  emitGrenadier,
+  emitExplosiveEntrance,
+  emitAimAssistedRocket
+} from '#gw2/professions/engineer/core/traits/explosions.js';
 import { criticalProcHandler } from '#gw2/platform/profession-definition/mechanics.js';
 import type { RuntimeProfession } from '#gw2/platform/simulation/runtime-state.js';
 import { sideEffectAmount } from '#gw2/platform/simulation/side-effects.js';
@@ -15,16 +22,16 @@ import {
 } from '#gw2/professions/engineer/core/mechanics/event-handlers.js';
 import { engineerEndurance } from '#gw2/professions/engineer/core/mechanics/resources.js';
 import {
-  applyEngineerCastTraits,
-  reactToEngineerCondition,
-  reactToEngineerDamage
-} from '#gw2/professions/engineer/core/traits/dispatch.js';
-import {
   engineerSpearSideEffectHandlers,
   engineerTurretSideEffectHandlers,
   engineerWeaponTasks
 } from '#gw2/professions/engineer/core/mechanics/weapons.js';
 import { engineerCoreCriticalHitDefinitions } from '#gw2/professions/engineer/core/traits/critical-procs.js';
+import {
+  applyEngineerCastTraits,
+  reactToEngineerCondition,
+  reactToEngineerDamage
+} from '#gw2/professions/engineer/core/traits/dispatch.js';
 import { applyEngineerToolbeltTraits } from '#gw2/professions/engineer/core/traits/toolbelt.js';
 import { ENGINEER_SKILL_IDS as ID } from '#gw2/professions/engineer/data/ids.js';
 import type { EngineerRuntime, EngineerRuntimeState, EngineerSkill } from '#gw2/professions/engineer/types.js';
@@ -56,6 +63,46 @@ function detonatePrecastMines(runtime: EngineerRuntime): void {
 import { engineerBuffPolicies } from '#gw2/professions/engineer/core/effect-state.js';
 
 export const engineerCoreHooks: Partial<RuntimeProfession<EngineerRuntimeState, EngineerSkill>> = {
+  damageEffects: [
+    {
+      id: 'engineer.grenadier',
+      name: 'Lesser Grenade Barrage',
+      source: 'Trait',
+      ownerId: TRAIT.GRENADIER,
+      unit: 'occurrence',
+      sourceIds: [TRAIT.GRENADIER],
+      emit(runtime) {
+        emitGrenadier(runtime, { id: TRAIT.GRENADIER, name: 'Grenadier' }, runtime.time);
+      }
+    },
+    {
+      id: 'engineer.explosive-entrance',
+      name: 'Explosive Entrance',
+      source: 'Trait',
+      ownerId: TRAIT.EXPLOSIVE_ENTRANCE,
+      unit: 'occurrence',
+      sourceIds: [TRAIT.EXPLOSIVE_ENTRANCE],
+      emit(runtime) {
+        emitExplosiveEntrance(runtime, damageInputEvent(runtime));
+      }
+    },
+    ...([false, true] as const).map((orbital) => ({
+      id: `engineer.rocket.${orbital ? 'orbital' : 'rocket'}`,
+      name: orbital ? 'Orbital Command Strike' : 'Aim-Assisted Rocket',
+      source: 'Trait' as const,
+      ownerId: TRAIT.AIM_ASSISTED_ROCKET,
+      unit: 'occurrence' as const,
+      sourceIds: [orbital ? ID.ORBITAL_COMMAND_STRIKE : ID.AIM_ASSISTED_ROCKET_TRAIT_SKILL],
+      emit(runtime: EngineerRuntime) {
+        emitAimAssistedRocket(runtime, damageInputEvent(runtime), orbital);
+      }
+    }))
+  ],
+  /** Initialize only damage-relevant form and scaling state for one assumed occurrence. */
+  prepareDamageState(runtime, skill, _inputs) {
+    if (skill.kitId != null) runtime.profession.core.activeKit = skill.kitId;
+  },
+
   buffPolicies: engineerBuffPolicies,
   endurance: engineerEndurance,
   availability: engineerCoreCastAvailability,

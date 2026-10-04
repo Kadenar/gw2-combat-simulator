@@ -8,6 +8,8 @@ import { createGw2ResolverRuntimeState } from '#gw2/platform/resolver/runtime-st
 import { createRangerCoreState } from '#gw2/professions/ranger/core/state.js';
 import { handleRangerPetSwapped } from '#gw2/professions/ranger/core/mechanics/event-handlers.js';
 import { rangerPetCompanionId } from '#gw2/professions/ranger/core/mechanics/pets.js';
+import { observeRuntimeEffects } from '#gw2/platform/results/observe-effects.js';
+import { effectStateValue } from '#gw2/platform/combat/effect-state.js';
 
 for (const reporting of [true, false]) {
   test(`pet swaps cancel outgoing conditions after one second with reporting=${reporting}`, () => {
@@ -51,10 +53,16 @@ for (const reporting of [true, false]) {
       })
     );
     context.queue.enqueue({ type: 'ranger.pet-swapped', at: 1, activePet: 'Smokescale', activePetSlot: 2 });
+    // Prime reporting before the swap so shortened in-place deadlines must invalidate the observation.
+    const observationRuntime = { config: {}, boons: new Map(), conditionState: context.conditionState, time: 1 };
+    const observeBleeding = () =>
+      observeRuntimeEffects(observationRuntime, {}).find((effect) => effect.kind === 'Bleeding');
+    assert.equal(effectStateValue(observeBleeding(), 2).count, 4);
     while (context.queue.length) {
       const event = context.queue.dequeue();
       if (event.type === 'ranger.pet-swapped') {
         handleRangerPetSwapped(context, event);
+        assert.equal(effectStateValue(observeBleeding(), 2).count, 2);
         assert.notEqual(rangerPetCompanionId(context), outgoing);
         assert.equal(conditions.activeConditionStackCount(context, 'Bleeding', 1.25), 6);
         assert.equal(conditions.activeConditionStackCount(context, 'Bleeding', 1.75), 5);

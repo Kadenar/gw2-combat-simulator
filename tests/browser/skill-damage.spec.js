@@ -43,6 +43,9 @@ test('skill damage preview measures skills on open and explains a row', async ({
 
   await rows.first().locator('.sd-skill').click();
   await expect(rows.first().locator('.sd-breakdown')).toBeVisible();
+  await expect(rows.first().locator('.sd-breakdown')).toContainText('Per activation');
+  await expect(section).toContainText('Damage if this skill or effect occurs under the selected conditions.');
+  await expect(section).not.toContainText('Proc discovery');
 
   // Wide tables scroll inside their own box instead of widening the page.
   await page.setViewportSize({ width: 390, height: 900 });

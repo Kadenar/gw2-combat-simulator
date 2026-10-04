@@ -1,17 +1,12 @@
-import type {
-  SkillDamagePreviewContext,
-  SkillDamageProbeSetup
-} from '#gw2/platform/profession-presentation/skill-damage.js';
-import type { Skill as PreviewSkill } from '#gw2/platform/engine/skills/types.js';
-import type { CanonicalCatalog } from '#gw2/platform/engine/skills/types.js';
 import {
   balanceProfileNumber,
   requireBalanceProfileFromContext
 } from '#gw2/platform/engine/skills/balance-profiles.js';
-import { DRUID_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/ranger/specializations/druid/profiles.js';
-import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
-import { rangerPetPaletteGroup, rangerUiState } from '#gw2/professions/ranger/core/presentation.js';
+import type { CanonicalCatalog } from '#gw2/platform/engine/skills/types.js';
 import type { ProfessionResourceView } from '#gw2/platform/profession-presentation/types.js';
+import { rangerPetPaletteGroup, rangerUiState } from '#gw2/professions/ranger/core/presentation.js';
+import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
+import { DRUID_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/ranger/specializations/druid/profiles.js';
 import type { RangerSkill, RangerUiContext, RangerUiSlice } from '#gw2/professions/ranger/types.js';
 
 const AVATAR_SKILLS = Object.freeze([
@@ -36,12 +31,6 @@ function astralForceMaximum(catalog: Readonly<CanonicalCatalog<RangerSkill>>, co
 /** Captures this UI's catalog so other profession instances cannot change its projections. */
 export function bindDruidUi(catalog: Readonly<CanonicalCatalog<RangerSkill>>): RangerUiSlice {
   return Object.freeze({
-    /** Prepare legal preview casts with the same catalog metadata and transitions used by the runtime. */
-    skillDamageProbe(_context: SkillDamagePreviewContext, skill: PreviewSkill): SkillDamageProbeSetup | null {
-      if (!(skill as RangerSkill).celestialAvatarSkill && skill.id !== ID.RELEASE_CELESTIAL_AVATAR) return null;
-      return { config: { initialAstralForce: 100 }, setup: [{ type: 'cast', skillId: ID.CELESTIAL_AVATAR }] };
-    },
-
     // Tile identity follows the active bar even when the visible skill cannot currently be cast.
     paletteOverride: (context, skill) => {
       if (skill.id === ID.CELESTIAL_AVATAR || skill.id === ID.RELEASE_CELESTIAL_AVATAR)

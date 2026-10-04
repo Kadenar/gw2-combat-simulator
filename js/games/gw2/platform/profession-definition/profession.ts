@@ -19,7 +19,7 @@ import { createProfessionFamilyUi } from '#gw2/platform/profession-presentation/
 import { normalizeProfessionUi } from '#gw2/platform/profession-presentation/contract.js';
 import type { ProfessionUiContract } from '#gw2/platform/profession-presentation/types.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
-import type { RuntimeProfession } from '#gw2/platform/simulation/runtime-state.js';
+import type { ProfessionRuntimeOptions, RuntimeProfession } from '#gw2/platform/simulation/runtime-state.js';
 import type { Gw2ProfessionContract } from '#gw2/platform/simulation/types.js';
 
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
@@ -345,7 +345,7 @@ export function defineNativeProfession<
     {
       modules: readonly AnyNativeModule<string, TSkill>[];
       source: Readonly<NormalizedProfessionContract<State, TSkill>>;
-      runtime?: RuntimeProfession<State, TSkill>;
+      runtimes: Map<boolean, RuntimeProfession<State, TSkill>>;
     }
   >();
   /** Query and execution share selected catalogs, state factories, and compiled modifiers. */
@@ -379,7 +379,11 @@ export function defineNativeProfession<
       },
       modifiers: composeModuleModifiers(selected)
     });
-    const selection: NonNullable<ReturnType<typeof selections.get>> = { modules: selected, source };
+    const selection: NonNullable<ReturnType<typeof selections.get>> = {
+      modules: selected,
+      source,
+      runtimes: new Map()
+    };
     selections.set(specialization, selection);
     return selection;
   }
@@ -387,15 +391,20 @@ export function defineNativeProfession<
   const resolveProfession = (config: Readonly<ProfessionConfig> = {}) =>
     selectionFor((config.specialization || 'Core').trim() || 'Core').source as Gw2ProfessionContract<State, TSkill>;
   /** Composes Core and the selected specialization's hooks over the resolved profession's catalog and modifiers. */
-  function runtimeFor(config: Gw2Config): RuntimeProfession<State, TSkill> {
+  function runtimeFor(
+    config: Gw2Config,
+    { traitTriggers = true }: ProfessionRuntimeOptions = {}
+  ): RuntimeProfession<State, TSkill> {
     const specialization = config.specialization ?? 'Core';
     if (specialization !== 'Core' && !specializations.has(specialization))
       throw new TypeError(`Unknown specialization: ${specialization}.`);
     const selection = selectionFor(specialization);
-    if (selection.runtime) return selection.runtime;
+    // Cache each hook composition separately so a preview cannot change subsequent combat registration.
+    const cached = selection.runtimes.get(traitTriggers);
+    if (cached) return cached;
     const { modules: selected, source } = selection;
     const hooks = (selected.map((module) => module.hooks ?? {}) as Partial<RuntimeProfession<State, TSkill>>[]).map(
-      compileProfessionRules
+      (hooks) => compileProfessionRules(hooks, { traitTriggers })
     );
     const composed = composeRuntimeHooks(hooks);
     const runtime: RuntimeProfession<State, TSkill> = {
@@ -447,7 +456,7 @@ export function defineNativeProfession<
           throw new TypeError(`Skill ${owner.id} has no side-effect handler registered for ${action.type}.`);
     }
 
-    selection.runtime = runtime;
+    selection.runtimes.set(traitTriggers, runtime);
     return runtime;
   }
 

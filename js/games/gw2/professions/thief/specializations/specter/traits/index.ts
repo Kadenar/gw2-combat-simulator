@@ -25,8 +25,6 @@ export const darkSentry = defineTrait({
   id: TRAIT.DARK_SENTRY,
   name: 'Dark Sentry',
   balance: {
-    damagePreviewRequirement:
-      'Requires barrier granted to an allied player and that ally striking within the venom window.',
     internalCooldown: 1,
     effects: [
       {

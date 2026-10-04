@@ -1,16 +1,15 @@
+import type { CanonicalCatalog, Skill as PreviewSkill, SkillId } from '#gw2/platform/engine/skills/types.js';
 import type {
   SkillDamagePreviewContext,
-  SkillDamageProbeSetup
+  SkillDamagePreviewPreparation,
+  SkillDamageState
 } from '#gw2/platform/profession-presentation/skill-damage.js';
-import type { Skill as PreviewSkill } from '#gw2/platform/engine/skills/types.js';
-import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
-import { rangerPetPaletteGroup, rangerUiState } from '#gw2/professions/ranger/core/presentation.js';
-import type { CanonicalCatalog, SkillId } from '#gw2/platform/engine/skills/types.js';
 import type { RotationStateSnapshotItem } from '#gw2/platform/profession-presentation/types.js';
+import { rangerPetPaletteGroup, rangerUiState } from '#gw2/professions/ranger/core/presentation.js';
+import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
 import type { RangerSkill, RangerUiContext, RangerUiSlice } from '#gw2/professions/ranger/types.js';
-import { boundedInteger } from '#kernel/core/numeric.js';
 import { createPreviewControls } from '#gw2/professions/shared/attribute-preview.js';
-import type { SkillDamagePreviewPreparation } from '#gw2/platform/profession-presentation/skill-damage.js';
+import { boundedInteger } from '#kernel/core/numeric.js';
 
 function initialUntamedState(context: RangerUiContext): 'Pet' | 'Ranger' {
   return context.build?.initialUntamedState === 'Ranger' || context.config?.initialUntamedState === 'Ranger'
@@ -88,11 +87,10 @@ export function bindUntamedUi(catalog: Readonly<CanonicalCatalog<RangerSkill>>):
     prepareSkillDamagePreview: ({ values }: SkillDamagePreviewPreparation) => ({
       initialUntamedState: values.unleashed
     }),
-    /** Reach the measured mechanic through ordinary starting settings and authored transitions. */
-    skillDamageProbe(_context: SkillDamagePreviewContext, input: PreviewSkill): SkillDamageProbeSetup | null {
+    /** Declare the damage context for one assumed occurrence. */
+    skillDamageState(_context: SkillDamagePreviewContext, input: PreviewSkill): SkillDamageState | null {
       const skill = input as RangerSkill;
-      if (skill.unleashedAmbushSkill)
-        return { config: { initialUntamedState: 'Pet' }, setup: [{ type: 'cast', skillId: ID.UNLEASH_RANGER }] };
+      if (skill.unleashedAmbushSkill) return { config: { initialUntamedState: 'Pet' } };
       if (skill.unleashedPetSkill || skill.id === ID.UNLEASH_RANGER) return { config: { initialUntamedState: 'Pet' } };
       if (skill.id === ID.UNLEASH_PET) return { config: { initialUntamedState: 'Ranger' } };
       // Ordinary pet command skills belong to the ranger-unleashed bar, unlike the unleashed pet replacements.

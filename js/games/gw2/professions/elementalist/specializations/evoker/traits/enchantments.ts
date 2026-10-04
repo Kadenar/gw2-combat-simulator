@@ -26,7 +26,7 @@ import type { ElementalistRuntime, ElementalistSkill } from '#gw2/professions/el
 import { canonicalTime } from '#kernel/core/clock.js';
 // Materialize Electric Enchantment's strike and condition package for the invoking
 // skill while preserving shared event attribution.
-function emitElectricEnchantment(
+export function emitElectricEnchantment(
   context: ElementalistRuntime,
   event: SimulationEvent,
   emissionCast?: EffectDelivery['cast']

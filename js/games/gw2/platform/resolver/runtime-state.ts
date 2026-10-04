@@ -1,14 +1,12 @@
-import type { EffectEmissionService } from '#gw2/platform/simulation/effect-emission.js';
-import { EffectRecorder } from '#gw2/platform/results/effect-report.js';
-import { createSigilRuntimeState } from '#gw2/platform/equipment/sigils/runtime.js';
-import type { Gw2SigilRuntimeState } from '#gw2/platform/equipment/sigils/types.js';
-import { createProcRegistry } from '#gw2/platform/combat/procs.js';
 import type { Gw2TimedBuffApplication } from '#gw2/platform/combat/boons.js';
+import { createProcRegistry } from '#gw2/platform/combat/procs.js';
 import type { Gw2CombatQuery, Gw2CriticalResult } from '#gw2/platform/combat/query/combat-query.js';
 import { createGw2ComboRuntimeState } from '#gw2/platform/combos/events.js';
 import type { Gw2ComboRuntimeState } from '#gw2/platform/combos/types.js';
 import { createRelicRuntime } from '#gw2/platform/equipment/relics/runtime.js';
 import type { Gw2RelicRuntime } from '#gw2/platform/equipment/relics/types.js';
+import { createSigilRuntimeState } from '#gw2/platform/equipment/sigils/runtime.js';
+import type { Gw2SigilRuntimeState } from '#gw2/platform/equipment/sigils/types.js';
 import type { Gw2ConditionResolution, Gw2ResolverConditionState } from '#gw2/platform/resolver/condition-resolution.js';
 import type { Gw2DamageBreakdownEntry } from '#gw2/platform/resolver/hit-resolution.js';
 import type {
@@ -21,7 +19,9 @@ import type {
   Gw2ResolverReactionRegistry,
   Gw2ResolverStage
 } from '#gw2/platform/resolver/types.js';
+import { EffectRecorder } from '#gw2/platform/results/effect-report.js';
 import type { Gw2Config, Gw2CriticalDamageMode } from '#gw2/platform/simulation/config.js';
+import type { EffectEmissionService } from '#gw2/platform/simulation/effect-emission.js';
 import { normalizeCriticalDamageMode } from '#gw2/platform/simulation/randomness.js';
 import type { SimulationRandom } from '#kernel/core/simulation-random.js';
 import { createSimulationRandom } from '#kernel/core/simulation-random.js';

@@ -1,9 +1,13 @@
 import type { RuntimeProfession, SkillTaskData } from '#gw2/platform/simulation/runtime-state.js';
+import { damageInputEvent } from '#gw2/platform/skill-damage/execution.js';
 import { registerElementalistAttunementTransition } from '#gw2/professions/elementalist/core/mechanics/attunements.js';
 import { registerElementalistEliteEvents } from '#gw2/professions/elementalist/core/mechanics/elite-events.js';
 import { completeEvokerAttunement } from '#gw2/professions/elementalist/specializations/evoker/mechanics/attunements.js';
 import { availability } from '#gw2/professions/elementalist/specializations/evoker/mechanics/availability.js';
-import { FAMILIAR_ELEMENTS } from '#gw2/professions/elementalist/specializations/evoker/mechanics/constants.js';
+import {
+  ELECTRIC_ENCHANTMENT_ICON,
+  FAMILIAR_ELEMENTS
+} from '#gw2/professions/elementalist/specializations/evoker/mechanics/constants.js';
 import { onAcceptedEvent } from '#gw2/professions/elementalist/specializations/evoker/mechanics/event-handlers.js';
 import {
   beginFamiliarCast,
@@ -21,10 +25,24 @@ import {
   initialize
 } from '#gw2/professions/elementalist/specializations/evoker/mechanics/resources.js';
 import { evokerState } from '#gw2/professions/elementalist/specializations/evoker/state.js';
+import { emitElectricEnchantment } from '#gw2/professions/elementalist/specializations/evoker/traits/enchantments.js';
 import { applyAltruisticAspect } from '#gw2/professions/elementalist/specializations/evoker/traits/familiars.js';
 import type { ElementalistRuntimeState, ElementalistSkill } from '#gw2/professions/elementalist/types.js';
 /** Familiar casts own pending packets; accepted impacts spend enchantments in chronological order. */
 export const evokerHooks: Partial<RuntimeProfession<ElementalistRuntimeState, ElementalistSkill>> = {
+  // Invoke the damage payload without activation requirements and reuse its proc icon in the damage preview.
+  damageEffects: [
+    {
+      id: 'electric-enchantment',
+      name: 'Electric Enchantment',
+      icon: ELECTRIC_ENCHANTMENT_ICON,
+      source: 'Profession',
+      unit: 'charge',
+      sourceIds: ['elementalist.electric-enchantment'],
+      emit: (runtime) => emitElectricEnchantment(runtime, damageInputEvent(runtime))
+    }
+  ],
+
   initialize(runtime) {
     initialize(runtime);
     registerElementalistEliteEvents(runtime, onAcceptedEvent);

@@ -17,8 +17,6 @@ export const cascadingCorruption = defineTrait({
   id: TRAIT.CASCADING_CORRUPTION,
   name: 'Cascading Corruption',
   balance: {
-    damagePreviewRequirement:
-      'Requires enough Blight consumption to finish a cycle; set starting Blight and Cascading Corruption progress in the preview.',
     minimumStacks: 20,
     effects: [
       {

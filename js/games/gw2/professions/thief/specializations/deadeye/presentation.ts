@@ -1,24 +1,21 @@
-import type { ProfessionAttributePreviewContext } from '#gw2/platform/profession-presentation/attribute-preview.js';
-import { createPreviewControls } from '#gw2/professions/shared/attribute-preview.js';
 import {
   balanceProfileNumber,
   requireBalanceProfileFromContext
 } from '#gw2/platform/engine/skills/balance-profiles.js';
+import type { ProfessionAttributePreviewContext } from '#gw2/platform/profession-presentation/attribute-preview.js';
+import { createPreviewControls } from '#gw2/professions/shared/attribute-preview.js';
 import { DEADEYE_BALANCE_PROFILE_IDS } from '#gw2/professions/thief/specializations/deadeye/profiles.js';
-import type { ThiefSkill } from '#gw2/professions/thief/types.js';
-import type { RotationCommand } from '#gw2/platform/execution/types.js';
 
-import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
-import { DEADEYE_STOLEN_SKILL_IDS } from '#gw2/professions/thief/specializations/deadeye/mechanics/stolen-skills.js';
-import { thiefUiState } from '#gw2/professions/thief/core/presentation.js';
-import type { ThiefUiContext } from '#gw2/professions/thief/types.js';
-import type { SkillId } from '#gw2/platform/engine/skills/types.js';
-import type { Skill } from '#gw2/platform/engine/skills/types.js';
+import type { Skill, SkillId } from '#gw2/platform/engine/skills/types.js';
 import type {
   SkillDamagePreviewPreparation,
-  SkillDamageProbeSetup
+  SkillDamageState
 } from '#gw2/platform/profession-presentation/skill-damage.js';
+import { thiefUiState } from '#gw2/professions/thief/core/presentation.js';
+import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
+import { DEADEYE_STOLEN_SKILL_IDS } from '#gw2/professions/thief/specializations/deadeye/mechanics/stolen-skills.js';
+import type { ThiefUiContext } from '#gw2/professions/thief/types.js';
 
 function deadeyeStolenSkillIds(context: ThiefUiContext = {}): SkillId[] {
   const paletteTraits = context.traits;
@@ -32,36 +29,20 @@ function deadeyeStolenSkillIds(context: ThiefUiContext = {}): SkillId[] {
 }
 
 export const deadeyeUi = Object.freeze({
-  /** A normal Mark makes stolen skills available without a preview-specific resource model. */
-  skillDamageProbe(context: SkillDamagePreviewPreparation, skill: Skill): SkillDamageProbeSetup | null {
-    // Earn malice on a marked target before a malicious attack; the engine owns crit gains, initiative and spending.
-    if ((skill as ThiefSkill).malicious) {
-      const builder = context.catalog.skills.find(
-        (candidate) =>
-          candidate.weapon === skill.weapon &&
-          candidate.type === 'Weapon' &&
-          Number(candidate.initiativeCost) > 0 &&
-          !candidate.stealthAttack &&
-          candidate.slot === 'Weapon_2'
-      );
-      const setup: RotationCommand[] = [{ type: 'cast', skillId: ID.DEADEYES_MARK }];
-      if (builder)
-        for (let i = 0; i < Number(context.values.maliceAttacks); i++)
-          setup.push({ type: 'cast', skillId: builder.id, offTarget: false });
-      setup.push({ type: 'cast', skillId: ID.BLINDING_POWDER });
-      return { setup, skipPredecessors: true };
-    }
-
-    return DEADEYE_STOLEN_SKILL_IDS.includes(skill.id) || skill.id === ID.STEAL_TIME
-      ? { setup: [{ type: 'cast', skillId: ID.DEADEYES_MARK }] }
-      : null;
+  /** Expose selected Malice as damage scaling independent of how it was generated. */
+  skillDamageState(context: SkillDamagePreviewPreparation, _skill: Skill): SkillDamageState | null {
+    // Direct evaluation supplies damage state without prerequisite actions.
+    return {
+      inputs: { malice: Number(context.values.malice ?? 0) },
+      assumptions: [`Malice: ${Number(context.values.malice ?? 0)}`]
+    };
   },
   /** Declare this module's conditional inputs without adding simulation settings. */
   previewControls(context: ProfessionAttributePreviewContext) {
     const preview = createPreviewControls(context);
     preview.add({
-      key: 'maliceAttacks',
-      label: 'Malice preparation attacks',
+      key: 'malice',
+      label: 'Malice',
       group: 'Mechanic',
       kind: 'special',
       scope: ['damage'],
@@ -72,7 +53,7 @@ export const deadeyeUi = Object.freeze({
         ),
         'maximumStacks'
       ),
-      description: 'Marked weapon attacks before stealth; actual malice gains depend on the selected build'
+      description: 'Malice consumed by a malicious attack'
     });
     preview.boon('quickness', 'Be Quick or Be Killed');
     return preview.controls;
