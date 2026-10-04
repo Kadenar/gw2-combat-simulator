@@ -2,10 +2,10 @@ import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { activeStackCount } from '#gw2/platform/combat/resources/timed-stacks.js';
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
-import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
-import { thiefRuntimeState } from '#gw2/professions/thief/core/modifiers.js';
+import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import { THIEF_MISC_SKILL_MECHANICS } from '#gw2/professions/thief/core/skills/misc-skills.js';
+import { thiefRuntimeState } from '#gw2/professions/thief/core/state-queries.js';
 import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
 
 /** Landed player attacks against defiant foes trigger Lesser Haste's self boons on one shared ICD. */

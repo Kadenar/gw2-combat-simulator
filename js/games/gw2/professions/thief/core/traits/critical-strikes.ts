@@ -1,13 +1,13 @@
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { eventSkill, playerHealthFraction, targetHealthFraction } from '#gw2/platform/combat/query/runtime-query.js';
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
+import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
 import {
   balanceProfileNumber,
   requireBalanceProfileFromContext,
   requireEffect
 } from '#gw2/platform/skills/balance-profiles.js';
-import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
-import { thiefRuntimeState } from '#gw2/professions/thief/core/modifiers.js';
+import { thiefRuntimeState } from '#gw2/professions/thief/core/state-queries.js';
 import { THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
 import type { ThiefBuild } from '#gw2/professions/thief/types.js';
 

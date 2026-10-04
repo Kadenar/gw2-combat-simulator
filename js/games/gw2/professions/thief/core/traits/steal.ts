@@ -1,14 +1,13 @@
-import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
 import { selectedSkillIdSet } from '#gw2/platform/builds/selected-skills.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
+import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
+import { gw2BaseRecharge } from '#gw2/platform/execution/recharge.js';
 import {
   balanceProfileNumber,
   effectNumber,
   requireBalanceProfileFromContext,
   requireEffect
 } from '#gw2/platform/skills/balance-profiles.js';
-import { gw2BaseRecharge } from '#gw2/platform/execution/recharge.js';
-import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import type { ThiefRuntime } from '#gw2/professions/thief/core/events.js';
 import {
   buildThiefBuff,
@@ -211,14 +210,6 @@ export function applySleightOfHand(runtime: ThiefRuntime, cast: RuntimeCast<Thie
       controlKind: String(control.kind)
     })
   });
-}
-
-/** Additive Steal recharge retains each trait's independent reduction. */
-export function sleightOfHandRechargeReduction(runtime: MechanicQueriesOf<ThiefRuntime>): number {
-  return (
-    Number(hasTrait(runtime, TRAIT.SLEIGHT_OF_HAND)) *
-    (1 - balanceProfileNumber(requireBalanceProfileFromContext(runtime, TRAIT.SLEIGHT_OF_HAND), 'rechargeMultiplier'))
-  );
 }
 
 /** Builds a steal-owned boon attributed to its trait source, scaled by boon duration when it applies. */

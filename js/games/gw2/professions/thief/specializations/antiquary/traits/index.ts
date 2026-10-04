@@ -4,7 +4,7 @@ import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { denySkillCast } from '#gw2/platform/execution/availability.js';
 import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
-import { thiefRuntimeSpecializationState } from '#gw2/professions/thief/core/modifiers.js';
+import { thiefRuntimeSpecializationState } from '#gw2/professions/thief/core/state-queries.js';
 import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
 import { ANTIQUARY_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/thief/specializations/antiquary/profiles.js';
 import type { AntiquaryState } from '#gw2/professions/thief/specializations/antiquary/state.js';

@@ -1,6 +1,6 @@
 import { permanentTargetConditionStacks } from '#gw2/platform/combat/state/targets.js';
 import type { ThiefRuntime } from '#gw2/professions/thief/core/events.js';
-import type { ThiefSummonCondition, ThiefSummonDefinition, ThiefSummonStrike } from '#gw2/professions/thief/types.js';
+import type { ThiefGuildSummonProfile, ThiefSummonCondition, ThiefSummonStrike } from '#gw2/professions/thief/types.js';
 
 const SKILL = Object.freeze({
   WELL_OF_SORROW: 67795,
@@ -17,6 +17,15 @@ const AUTO_CHAIN_START = 5.235 - THIEVES_GUILD_CAST_TIME;
 const AUTO_CHAIN_DURATION = (20.435 - 5.235) / 3;
 const TORMENT: readonly ThiefSummonCondition[] = Object.freeze([{ condition: 'Torment', stacks: 1, duration: 2 }]);
 
+const WELL_OF_SORROW = 67795;
+const WELL_OF_SORROW_PRIORITY = Object.freeze(['Poisoned', 'Bleeding', 'Torment']);
+const WELL_OF_SORROW_CONDITIONS = Object.freeze([
+  Object.freeze({ condition: 'Poisoned', stacks: 1, duration: 3 }),
+  Object.freeze({ condition: 'Bleeding', stacks: 2, duration: 4 }),
+  Object.freeze({ condition: 'Torment', stacks: 2, duration: 4 }),
+  Object.freeze({ condition: 'Torment', stacks: 1, duration: 4 })
+]);
+
 function packet(
   name: string,
   skillId: number,
@@ -30,11 +39,11 @@ function packet(
 function specterAttackPattern(): readonly ThiefSummonStrike[] {
   const attacks: ThiefSummonStrike[] = [
     packet('Shadow Bolt', SKILL.SHADOW_BOLT, 0.33, 2.517 - THIEVES_GUILD_CAST_TIME),
-    packet('Well of Sorrow', SKILL.WELL_OF_SORROW, 0.33, 4.358 - THIEVES_GUILD_CAST_TIME, []),
-    packet('Well of Sorrow', SKILL.WELL_OF_SORROW, 0.33, 5.357 - THIEVES_GUILD_CAST_TIME, []),
-    packet('Well of Sorrow', SKILL.WELL_OF_SORROW, 0.33, 6.358 - THIEVES_GUILD_CAST_TIME, []),
-    packet('Well of Sorrow', SKILL.WELL_OF_SORROW, 0.33, 7.356 - THIEVES_GUILD_CAST_TIME, []),
-    packet('Well of Sorrow', SKILL.WELL_OF_SORROW, 0.33, 8.355 - THIEVES_GUILD_CAST_TIME, [])
+    packet('Well of Sorrow', SKILL.WELL_OF_SORROW, 0.33, 4.358 - THIEVES_GUILD_CAST_TIME, WELL_OF_SORROW_CONDITIONS),
+    packet('Well of Sorrow', SKILL.WELL_OF_SORROW, 0.33, 5.357 - THIEVES_GUILD_CAST_TIME, WELL_OF_SORROW_CONDITIONS),
+    packet('Well of Sorrow', SKILL.WELL_OF_SORROW, 0.33, 6.358 - THIEVES_GUILD_CAST_TIME, WELL_OF_SORROW_CONDITIONS),
+    packet('Well of Sorrow', SKILL.WELL_OF_SORROW, 0.33, 7.356 - THIEVES_GUILD_CAST_TIME, WELL_OF_SORROW_CONDITIONS),
+    packet('Well of Sorrow', SKILL.WELL_OF_SORROW, 0.33, 8.355 - THIEVES_GUILD_CAST_TIME, WELL_OF_SORROW_CONDITIONS)
   ];
   let nextActionAt = AUTO_CHAIN_START;
   let tripleThreatUsed = false;
@@ -67,7 +76,10 @@ function specterAttackPattern(): readonly ThiefSummonStrike[] {
 }
 
 // Specter owns the scepter-wielding third summon selected by Thieves Guild.
-export const SPECTER_THIEVES_GUILD_SUMMON: ThiefSummonDefinition = Object.freeze({
+export const SPECTER_THIEVES_GUILD_PROFILE: ThiefGuildSummonProfile = Object.freeze({
+  id: 'thief.specter.thieves-guild',
+  profileKind: 'mechanic',
+  effects: [],
   name: 'Scepter Specter',
   displayName: 'Specter',
   variant: 'Specter',
@@ -76,22 +88,15 @@ export const SPECTER_THIEVES_GUILD_SUMMON: ThiefSummonDefinition = Object.freeze
   attacks: specterAttackPattern()
 });
 
-const WELL_OF_SORROW = 67795;
-const WELL_OF_SORROW_PRIORITY = Object.freeze(['Poisoned', 'Bleeding', 'Torment']);
-const WELL_OF_SORROW_CONDITIONS = Object.freeze([
-  Object.freeze({ condition: 'Poisoned', stacks: 1, duration: 3 }),
-  Object.freeze({ condition: 'Bleeding', stacks: 2, duration: 4 }),
-  Object.freeze({ condition: 'Torment', stacks: 2, duration: 4 }),
-  Object.freeze({ condition: 'Torment', stacks: 1, duration: 4 })
-]);
-
 /** Well of Sorrow chooses the first missing condition from the target's state at its own impact. */
 export function guildAttackConditions(runtime: ThiefRuntime, attack: ThiefSummonStrike) {
   if (attack.skillId !== WELL_OF_SORROW) return attack.conditions || [];
   if (WELL_OF_SORROW_PRIORITY.every((condition) => permanentTargetConditionStacks(runtime.config, condition) > 0))
-    return [WELL_OF_SORROW_CONDITIONS[3]];
+    return attack.conditions?.[3] ? [attack.conditions[3]] : [];
   const missing = WELL_OF_SORROW_PRIORITY.findIndex(
     (condition) => !runtime.combat.targetHasCondition(condition, runtime.time)
   );
-  return [WELL_OF_SORROW_CONDITIONS[missing < 0 ? 3 : missing]];
+  // Tuning comes from the selected attack; an omitted candidate stays omitted.
+  const condition = attack.conditions?.[missing < 0 ? 3 : missing];
+  return condition ? [condition] : [];
 }

@@ -3,6 +3,7 @@ import { createThiefBuildDefaults, migrateThiefBuild, validateThiefBuild } from 
 import { thiefWeaponSkillMatchesSet } from '#gw2/professions/thief/build/weapon-matching.js';
 import { thiefNativeModules } from '#gw2/professions/thief/catalog.js';
 import { THIEF_SKILL_IDS as ID } from '#gw2/professions/thief/data/ids.js';
+import { thiefFamilyRuntimeHooks } from '#gw2/professions/thief/family-state.js';
 
 export { thiefCatalog, thiefNativeModules } from '#gw2/professions/thief/catalog.js';
 
@@ -16,6 +17,7 @@ export const thiefProfession = defineNativeProfession({
     validateBuild: validateThiefBuild
   },
   modules: thiefNativeModules,
+  runtimeHooks: thiefFamilyRuntimeHooks,
   autoattackChains: {
     overrides: [
       {

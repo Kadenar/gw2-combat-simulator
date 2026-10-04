@@ -1,14 +1,16 @@
-import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
+import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import { damageInputEvent } from '#gw2/platform/skill-damage/occurrence-driver.js';
 import { emitVenom, VENOMS } from '#gw2/professions/thief/core/mechanics/venoms.js';
 import {
   completeThiefStealthAttack,
   completeThiefWeaponSwap,
-  leadAttacksRechargeReduction,
   startThiefDodge
 } from '#gw2/professions/thief/core/traits/behavior.js';
-import { sleightOfHandRechargeReduction } from '#gw2/professions/thief/core/traits/steal.js';
+import {
+  leadAttacksRechargeReduction,
+  sleightOfHandRechargeReduction
+} from '#gw2/professions/thief/core/traits/resource-queries.js';
 
 import { gw2ConfiguredWeaponSet } from '#gw2/platform/equipment/weapons/loadout.js';
 import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
@@ -18,13 +20,24 @@ import { EPSILON } from '#kernel/core/clock.js';
 import { pruneSkillFlips, skillFlipReady, weaponFollowUpOpen } from '#gw2/platform/execution/skill-flips.js';
 
 import { denySkillCast } from '#gw2/platform/execution/availability.js';
+import { thiefSpearAvailability } from '#gw2/professions/thief/core/mechanics/spear.js';
 import { THIEF_SKILL_IDS as ID } from '#gw2/professions/thief/data/ids.js';
-import { spearChainStageForSkill } from '#gw2/professions/thief/data/spear-chain-stages.js';
 
-import type { AvailabilityResult } from '#gw2/platform/execution/types.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
+import type { AvailabilityResult } from '#gw2/platform/execution/types.js';
 import type { ThiefRuntime } from '#gw2/professions/thief/core/events.js';
 import { deferThiefCompletion } from '#gw2/professions/thief/core/events.js';
+import {
+  grantThiefGroundAxe,
+  landThiefAxe,
+  recallThiefAxes,
+  THIEF_AXE_LAND
+} from '#gw2/professions/thief/core/mechanics/axes.js';
+import {
+  activateTrap,
+  prepareTrap,
+  thiefTrapAvailability
+} from '#gw2/professions/thief/core/mechanics/preparations.js';
 import {
   restartThiefInfiltratorsSignet,
   setThiefKneeling,
@@ -34,6 +47,17 @@ import {
   thiefInfiltratorsSignetPulse,
   thiefInitiative
 } from '#gw2/professions/thief/core/mechanics/resources.js';
+import {
+  expireThiefScepterChain,
+  THIEF_SCEPTER_CHAIN_EXPIRY,
+  transitionThiefScepterChain
+} from '#gw2/professions/thief/core/mechanics/scepter.js';
+import { activateAssassinsSignet } from '#gw2/professions/thief/core/mechanics/signets.js';
+import {
+  grantDistractingThrowWindow,
+  unsuspectingStrikeBonus,
+  updateSpearChain
+} from '#gw2/professions/thief/core/mechanics/spear.js';
 import {
   completeThiefSteal,
   consumeThiefStolenSkill,
@@ -49,29 +73,7 @@ import {
   thiefSameInstantStealthBreak,
   thiefStealthed
 } from '#gw2/professions/thief/core/mechanics/stealth.js';
-import {
-  activateAssassinsSignet,
-  activateTrap,
-  activateVenom,
-  expireThiefScepterChain,
-  expireThievesGuild,
-  grantDistractingThrowWindow,
-  grantThiefGroundAxe,
-  landThiefAxe,
-  prepareTrap,
-  recallThiefAxes,
-  startThievesGuild,
-  summonThievesGuild,
-  THIEF_AXE_LAND,
-  THIEF_GUILD_ATTACK,
-  THIEF_GUILD_EXPIRY,
-  THIEF_SCEPTER_CHAIN_EXPIRY,
-  thiefTrapAvailability,
-  thievesGuildAttack,
-  transitionThiefScepterChain,
-  unsuspectingStrikeBonus,
-  updateSpearChain
-} from '#gw2/professions/thief/core/mechanics/weapons.js';
+import { activateVenom } from '#gw2/professions/thief/core/mechanics/venoms.js';
 import {
   completeThiefCastTraits,
   reactThiefCoreCondition,
@@ -96,9 +98,8 @@ function thiefAvailability(runtime: MechanicQueriesOf<ThiefRuntime>, skill: Thie
     );
   }
 
-  const spearStage = spearChainStageForSkill(skill.id);
-  if (spearStage != null && (core.spearChainStage || 0) !== spearStage)
-    return denySkillCast(skill, 'thief.spear-chain', `requires spear chain stage ${spearStage + 1}.`);
+  const spear = thiefSpearAvailability(runtime, skill);
+  if (spear) return spear;
   const trap = thiefTrapAvailability(runtime, skill);
   if (trap) return trap;
   // A closed follow-up already answered above with its opener-specific reason.
@@ -206,9 +207,6 @@ export const thiefCoreHooks: RuntimeHooks<ThiefRuntimeState, ThiefSkill> = {
     'thief.activate-venom'(runtime, context) {
       if (context.kind === 'cast') activateVenom(runtime, context.cast);
     },
-    'thief.summon-guild'(runtime, context) {
-      if (context.kind === 'cast') summonThievesGuild(runtime, context.cast);
-    },
     'thief.stealth'(runtime, context) {
       if (context.kind === 'cast') commitThiefStealth(runtime, context.cast);
     },
@@ -222,10 +220,6 @@ export const thiefCoreHooks: RuntimeHooks<ThiefRuntimeState, ThiefSkill> = {
   endurance: thiefEndurance,
   initialize(runtime) {
     restartThiefInfiltratorsSignet(runtime);
-  },
-  onCombatStart(runtime) {
-    // A precast Thieves Guild begins attacking at the accepted combat boundary.
-    startThievesGuild(runtime);
   },
   availability: thiefAvailability,
   rechargeWork: thiefRechargeWork,
@@ -273,8 +267,6 @@ export const thiefCoreHooks: RuntimeHooks<ThiefRuntimeState, ThiefSkill> = {
       completeThiefCast(runtime, cast);
     },
     [THIEF_INFILTRATORS_SIGNET_PULSE]: thiefInfiltratorsSignetPulse,
-    [THIEF_SCEPTER_CHAIN_EXPIRY]: expireThiefScepterChain,
-    [THIEF_GUILD_ATTACK]: thievesGuildAttack,
-    [THIEF_GUILD_EXPIRY]: expireThievesGuild
+    [THIEF_SCEPTER_CHAIN_EXPIRY]: expireThiefScepterChain
   }
 };

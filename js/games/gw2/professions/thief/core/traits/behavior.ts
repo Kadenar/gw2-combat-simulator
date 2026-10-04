@@ -1,4 +1,3 @@
-import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
 import { professionStaticRulesApplied } from '#gw2/platform/builds/attribute-provenance.js';
 import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
 import type { Gw2ResolvedStats } from '#gw2/platform/combat/query/combat-query.js';
@@ -6,7 +5,9 @@ import { eventSkill } from '#gw2/platform/combat/query/runtime-query.js';
 import { activeStackCount, grantTimedStacks } from '#gw2/platform/combat/resources/timed-stacks.js';
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
+import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import { readProfessionCoreState } from '#gw2/platform/profession-definition/state.js';
+import { isFlatLifeStealPacket } from '#gw2/platform/resolver/packets.js';
 import {
   balanceProfileNumber,
   effectNumber,
@@ -14,8 +15,6 @@ import {
   requireEffect
 } from '#gw2/platform/skills/balance-profiles.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
-import { isFlatLifeStealPacket } from '#gw2/platform/resolver/packets.js';
-import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import type { ThiefRuntime } from '#gw2/professions/thief/core/events.js';
 import { buildThiefBuff, buildThiefCondition } from '#gw2/professions/thief/core/events.js';
 import {
@@ -23,7 +22,7 @@ import {
   grantThiefInitiative,
   setThiefKneeling
 } from '#gw2/professions/thief/core/mechanics/resources.js';
-import { thiefRuntimeState } from '#gw2/professions/thief/core/modifiers.js';
+import { thiefRuntimeState } from '#gw2/professions/thief/core/state-queries.js';
 import type { ThiefCoreState } from '#gw2/professions/thief/core/state.js';
 import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
 import type { ThiefResolverContext, ThiefResolverEvent, ThiefSkill } from '#gw2/professions/thief/types.js';
@@ -121,19 +120,6 @@ export function applyLeadAttacks(runtime: ThiefRuntime, cast: RuntimeCast<ThiefS
       stacks: Math.min(cost, maximumStacks)
     })
   });
-}
-
-/** Additive Steal recharge retains each trait's independent reduction. */
-export function leadAttacksRechargeReduction(runtime: MechanicQueriesOf<ThiefRuntime>): number {
-  return (
-    Number(hasTrait(runtime, TRAIT.LEAD_ATTACKS)) *
-    (1 - balanceProfileNumber(requireBalanceProfileFromContext(runtime, TRAIT.LEAD_ATTACKS), 'rechargeMultiplier'))
-  );
-}
-
-/** Preview and runtime capacities use the same Preparedness branch. */
-export function preparednessCapacityField(context: unknown): 'minimumStacks' | 'maximumStacks' {
-  return hasTrait(context, TRAIT.PREPAREDNESS) ? 'minimumStacks' : 'maximumStacks';
 }
 
 /** Swapping weapons stands up; Quick Pockets grants in-combat initiative once per its cooldown. */

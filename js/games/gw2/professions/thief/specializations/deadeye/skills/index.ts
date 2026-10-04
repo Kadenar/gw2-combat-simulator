@@ -1,21 +1,20 @@
-import { MODIFIER_TARGET, type Gw2ModifierRule, type Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
-import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
+import { MODIFIER_TARGET, type Gw2ModifierContext, type Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
 import { eventSkill } from '#gw2/platform/combat/query/runtime-query.js';
-import { thiefRuntimeSpecializationState } from '#gw2/professions/thief/core/modifiers.js';
-import type { DeadeyeState } from '#gw2/professions/thief/specializations/deadeye/state.js';
-import type { ThiefSimulationEvent } from '#gw2/professions/thief/types.js';
-import type { ThiefRuntime } from '#gw2/professions/thief/core/events.js';
-import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
-import { grantThiefEndurance } from '#gw2/professions/thief/core/mechanics/resources.js';
-import { castWasInterrupted } from '#gw2/platform/execution/cast-timing.js';
-import { deadeyeCastFacts } from '#gw2/professions/thief/specializations/deadeye/state.js';
-import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
-import { DEADEYE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/thief/specializations/deadeye/profiles.js';
-import { deadeyeState } from '#gw2/professions/thief/specializations/deadeye/state.js';
+import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
-import { THIEF_SKILL_IDS as ID } from '#gw2/professions/thief/data/ids.js';
-import type { Skill } from '#gw2/platform/skills/types.js';
 import type { SkillEffect } from '#gw2/platform/effects/types.js';
+import { castWasInterrupted } from '#gw2/platform/execution/cast-timing.js';
+import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
+import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import type { Skill } from '#gw2/platform/skills/types.js';
+import type { ThiefRuntime } from '#gw2/professions/thief/core/events.js';
+import { grantThiefEndurance } from '#gw2/professions/thief/core/mechanics/resources.js';
+import { thiefRuntimeSpecializationState } from '#gw2/professions/thief/core/state-queries.js';
+import { THIEF_SKILL_IDS as ID } from '#gw2/professions/thief/data/ids.js';
+import { DEADEYE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/thief/specializations/deadeye/profiles.js';
+import type { DeadeyeState } from '#gw2/professions/thief/specializations/deadeye/state.js';
+import { deadeyeCastFacts, deadeyeState } from '#gw2/professions/thief/specializations/deadeye/state.js';
+import type { ThiefSimulationEvent } from '#gw2/professions/thief/types.js';
 
 /** Rewrites only poison durations, keeping each malicious attack's formula and other effects intact. */
 function mapPoisonDurations(effects: readonly SkillEffect[], scaled: (duration: unknown) => number): SkillEffect[] {

@@ -1,4 +1,5 @@
 import type { BalanceProfile } from '#gw2/platform/skills/types.js';
+import { DEADEYE_THIEVES_GUILD_PROFILE } from '#gw2/professions/thief/specializations/deadeye/mechanics/thieves-guild.js';
 
 import { THIEF_SKILL_IDS as ID } from '#gw2/professions/thief/data/ids.js';
 
@@ -23,6 +24,7 @@ export const DEADEYE_RESOURCE_PROFILE: BalanceProfile = {
 };
 
 export const DEADEYE_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freeze([
+  DEADEYE_THIEVES_GUILD_PROFILE,
   DEADEYE_RESOURCE_PROFILE,
   {
     id: DEADEYE_BALANCE_PROFILE_IDS.maliciousSneakAttack,
