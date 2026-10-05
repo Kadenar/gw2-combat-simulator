@@ -144,7 +144,7 @@ export const WARRIOR_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Part
   },
   [ID.ADRENALINE_RUSH]: {
     castTimeMs: 333,
-    sideEffects: [{ on: 'castCommit', do: { type: 'warrior.adrenaline', amount: 3 } }],
+    sideEffects: [{ on: 'castCommit', do: { type: 'warrior.grant-combat-resource', amount: 3 } }],
     effects: [
       {
         type: 'strike',

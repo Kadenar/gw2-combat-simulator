@@ -1,10 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { warriorProfession } from '#gw2/professions/warrior/profession.js';
-import {
-  grantWarriorResource,
-  warriorResourcePolicy
-} from '#gw2/professions/warrior/core/mechanics/resource-policy.js';
+import { grantWarriorResource } from '#gw2/professions/warrior/resource-rules.js';
 import { WARRIOR_SKILL_IDS as ID, WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/professions/warrior/data/ids.js';
 import { observeGw2Runtime, observedRuntime } from '#tests/helpers/observed-runtime.js';
 
@@ -19,19 +16,25 @@ function initialized(specialization) {
 
 test('selected resource policies isolate authored rewards, hit gains, and caps between Warrior runs', () => {
   const runs = ['Core', 'Bladesworn', 'Spellbreaker', 'Berserker', 'Paragon'].map(initialized);
-  for (const { context } of runs) {
+  for (const { context, profession } of runs) {
     const bladesworn = context.profession.specialization.kind === 'Bladesworn';
-    const pool = () => (bladesworn ? context.profession.specialization.state.flow : context.profession.core.adrenaline);
+    const pool = () =>
+      bladesworn ? context.profession.specialization.state.flow.value : context.profession.core.adrenaline.value;
     const maximum = bladesworn
-      ? context.profession.specialization.state.maximumFlow
-      : context.profession.core.maximumAdrenaline;
-    warriorResourcePolicy(context).hitGain(context, 3);
+      ? context.profession.specialization.state.flow.maximum
+      : context.profession.core.adrenaline.maximum;
+    // Exercise the accepted-hit boundary so Bladesworn exclusion stays part of the real runtime contract.
+    profession.reactions['damage.resolved'](
+      context,
+      { actorType: 'player', coefficient: 1, hits: 3, critical: false },
+      { hitContext: { critEligible: false, critical: { chance: 0, didCrit: false } } }
+    );
     assert.equal(pool(), bladesworn ? 0 : 3);
     grantWarriorResource(context, 7);
     assert.equal(pool(), bladesworn ? 7 : 10);
     grantWarriorResource(context, maximum * 2);
     assert.equal(pool(), maximum);
-    if (bladesworn) assert.equal(context.profession.core.adrenaline, 0);
+    if (bladesworn) assert.equal(context.profession.core.adrenaline.value, 0);
     for (const invalid of [-1, Infinity, NaN]) assert.throws(() => grantWarriorResource(context, invalid), RangeError);
   }
 });

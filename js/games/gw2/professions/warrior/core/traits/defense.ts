@@ -7,7 +7,7 @@ import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import { warriorBoonActive } from '#gw2/professions/warrior/core/traits/modifier-queries.js';
 import { WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/professions/warrior/data/ids.js';
-import { grantWarriorResource } from '#gw2/professions/warrior/core/mechanics/resource-policy.js';
+import { grantWarriorResource } from '#gw2/professions/warrior/resource-rules.js';
 import type { WarriorRuntimeState, WarriorSkill } from '#gw2/professions/warrior/types.js';
 
 /** Owns this trait's tuning and selected contributions. */

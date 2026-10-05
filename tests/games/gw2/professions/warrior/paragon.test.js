@@ -96,7 +96,7 @@ test('a final partial pulse stops before a same-time refill and command echo', (
     seen.push([
       label,
       runtime.resourceController.value('motivation'),
-      runtime.profession.core.adrenaline,
+      runtime.profession.core.adrenaline.value,
       runtime.profession.specialization.state.activeRefrainId
     ]);
   const refrain = 'warrior.paragon-refrain';
@@ -107,7 +107,7 @@ test('a final partial pulse stops before a same-time refill and command echo', (
       onCastCommit(runtime, cast) {
         native.onCastCommit?.(runtime, cast);
         if (cast.skill.id === ID.CHANT_OF_RECUPERATION) {
-          runtime.profession.core.adrenaline = 0;
+          runtime.resourceController.replace('adrenaline', 0);
           runtime.schedule('test.refill', runtime.time + 3, null, undefined, -100);
         }
       },
@@ -146,7 +146,7 @@ test('fragmented waits preserve Motivation pulses and their tier selection', () 
   const whole = run(['Chant of Action', wait(6000)], config);
   const split = run(['Chant of Action', wait(1001), wait(1999), wait(500), wait(2500)], config);
   assert.equal(state(split).motivation.value, state(whole).motivation.value);
-  assert.equal(core(split).adrenaline, core(whole).adrenaline);
+  assert.equal(core(split).adrenaline.value, core(whole).adrenaline.value);
   const pulses = (result) =>
     result.events
       .filter((event) => event.kind === 'might' && event.skillId === ID.CHANT_OF_ACTION)
@@ -185,14 +185,14 @@ test('Paragon delayed payloads use independent profiles without changing entry e
   assert.deepEqual(state(command).commandEchoes, {});
   const baseline = run([ID.FIND_THEIR_WEAKNESS, wait(3500)], { initialResource: 0 });
   const tuned = run([ID.FIND_THEIR_WEAKNESS, wait(3500)], { initialResource: 0, patchId: 'delayed-payloads' }, source);
-  assert.equal(core(tuned).adrenaline - core(baseline).adrenaline, 3);
+  assert.equal(core(tuned).adrenaline.value - core(baseline).adrenaline.value, 3);
 });
 
 test('chants and weapon bursts spend one bar and expose only live projected state', () => {
   const chant = run(['Chant of Action']);
   assert.deepEqual(chant.warnings, []);
-  assert.equal(core(chant).adrenaline, 20);
-  assert.equal(core(chant).maximumAdrenaline, 30);
+  assert.equal(core(chant).adrenaline.value, 20);
+  assert.equal(core(chant).adrenaline.maximum, 30);
   assert.equal(state(chant).motivation.value, 4);
   assert.equal(chant.planningState.profession.activeRefrain, 'Chant of Action');
   assert.equal(
@@ -200,7 +200,7 @@ test('chants and weapon bursts spend one bar and expose only live projected stat
     false
   );
   const burst = run(['Eviscerate']);
-  assert.equal(core(burst).adrenaline, 21);
+  assert.equal(core(burst).adrenaline.value, 21);
   assert.equal(burst.events.find((event) => event.type === 'damage').metadata.warriorBurstTier, 1);
   const field = run(['Combustive Shot'], { primaryWeapon: 'Longbow' });
   const fields = field.events.filter((event) => event.type === 'combo_field');
@@ -249,9 +249,9 @@ test('Invigorating Tempo rewards only actual Motivation spent, including the fin
   const partial = run(['Chant of Recuperation', wait(9000)], config);
   assert.equal(state(partial).motivation.value, 0);
   assert.equal(state(partial).activeRefrainId, null);
-  assert.equal(core(partial).adrenaline, 5);
+  assert.equal(core(partial).adrenaline.value, 5);
   const later = run(['Chant of Recuperation', wait(15000)], config);
-  assert.equal(core(later).adrenaline, 5);
+  assert.equal(core(later).adrenaline.value, 5);
   assert.equal(later.planningState.profession.activeRefrain, '');
 });
 
@@ -276,11 +276,11 @@ test('Rally grants at burst acceptance, while canceled bursts and chants retain 
     primaryWeapon: 'Dagger'
   });
   assert.equal(state(canceled).motivation.value, 4);
-  assert.equal(core(canceled).adrenaline, 20);
+  assert.equal(core(canceled).adrenaline.value, 20);
   const chant = run([{ name: 'Chant of Action', interruptAfterMs: 1 }]);
   assert.equal(state(chant).motivation.value, 0);
   assert.equal(state(chant).activeRefrainId, null);
-  assert.equal(core(chant).adrenaline, 20);
+  assert.equal(core(chant).adrenaline.value, 20);
 });
 
 test('burst-consumed echoes cancel their old wake and restart the remaining repeat from consumption', () => {
@@ -292,17 +292,17 @@ test('burst-consumed echoes cancel their old wake and restart the remaining repe
   const prefix = ['"We Shall Return!"', 'Chant of Action'];
   const consumed = run(prefix, config);
   assert.deepEqual(consumed.warnings, []);
-  assert.equal(core(consumed).adrenaline, 10);
+  assert.equal(core(consumed).adrenaline.value, 10);
   assert.equal(Object.values(state(consumed).commandEchoes)[0].remaining, 1);
   // The former deadline lies before the rescheduled repeat; crossing it cannot deliver another grant.
   const oldWake = run([...prefix, wait(2900)], config);
-  assert.equal(core(oldWake).adrenaline, 10);
+  assert.equal(core(oldWake).adrenaline.value, 10);
   const repeated = run([...prefix, wait(3000)], config);
-  assert.equal(core(repeated).adrenaline, 20);
+  assert.equal(core(repeated).adrenaline.value, 20);
   assert.deepEqual(state(repeated).commandEchoes, {});
   const canceled = run(['"We Shall Return!"', { name: 'Chant of Action', interruptAfterMs: 1 }], config);
   assert.equal(Object.values(state(canceled).commandEchoes)[0].remaining, 2);
-  assert.equal(core(canceled).adrenaline, 0);
+  assert.equal(core(canceled).adrenaline.value, 0);
 });
 
 test('command instances retain independent echoes and actual echo damage has original command attribution', () => {
@@ -316,7 +316,7 @@ test('command instances retain independent echoes and actual echo damage has ori
   assert.equal(echo.skillId, ID.ON_YOUR_KNEES);
   assert.equal(echo.actorType, 'player');
   close(echo.at, action.endsAt + 3);
-  assert.equal(core(result).adrenaline, 12);
+  assert.equal(core(result).adrenaline.value, 12);
 });
 
 test('Feverish Pulse reduces other chants even when its Alacrity component is removed', () => {
@@ -363,7 +363,7 @@ test('Inspiring Implements composes with Core swap grants and respects its own e
   };
   const first = run([combat, 'Swap Weapons'], config);
   assert.equal(state(first).motivation.value, 2);
-  assert.equal(core(first).adrenaline, 10);
+  assert.equal(core(first).adrenaline.value, 10);
   assert.equal(first.planningState.activeWeaponSet, 2);
   const prefix = [combat, 'Swap Weapons', { type: 'cooldown-reset' }];
   assert.equal(state(run([...prefix, wait(4000), 'Swap Weapons'], config)).motivation.value, 2);
@@ -395,7 +395,7 @@ test('removed opening packets and disabled cadences retain chant state without q
   );
   assert.equal(state(result).motivation.value, 4);
   assert.equal(state(result).activeRefrainId, ID.CHANT_OF_ACTION);
-  assert.equal(core(result).adrenaline, 0);
+  assert.equal(core(result).adrenaline.value, 0);
   assert.deepEqual(state(result).commandEchoes, {});
   assert.equal(
     result.events.some((event) => event.type === 'buff'),

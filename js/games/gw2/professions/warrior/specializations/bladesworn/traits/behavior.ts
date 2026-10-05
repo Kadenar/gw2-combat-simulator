@@ -18,7 +18,6 @@ import {
 import type { Skill, SkillId } from '#gw2/platform/skills/types.js';
 import { warriorAmmunition } from '#gw2/professions/warrior/core/mechanics/ammunition.js';
 import { WARRIOR_SKILL_IDS as ID, WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/professions/warrior/data/ids.js';
-import { grantFlow } from '#gw2/professions/warrior/specializations/bladesworn/mechanics/flow.js';
 import type { WarriorRuntimeState, WarriorSkill } from '#gw2/professions/warrior/types.js';
 import { canonicalTime } from '#kernel/core/clock.js';
 
@@ -300,8 +299,8 @@ export function burstMasteryDragonSlash(
   release: { flowSpent: number }
 ): void {
   if (hasTrait(runtime, TRAIT.BURST_MASTERY)) {
-    grantFlow(
-      runtime,
+    runtime.resourceController.grant(
+      'flow',
       release.flowSpent *
         balanceProfileNumber(
           requireBalanceProfileFromContext(runtime, 'warrior.bladesworn.burst-mastery'),

@@ -29,7 +29,7 @@ test('Burst Mastery refunds a completed miss but cannot refund a canceled spend'
   const config = { primaryWeapon: 'Greatsword', initialResource: 30, selectedTraitIds: [TRAIT.BURST_MASTERY] };
   const completed = run([{ name: 'Arcing Slice', offTarget: true }], config);
   assert.deepEqual(completed.warnings, []);
-  assert.equal(completed.planningState.profession.adrenaline, 30 * 0.33);
+  assert.equal(completed.planningState.profession.adrenaline.value, 30 * 0.33);
   assert.ok(
     completed.resolvedEvents.some((event) => event.sourceId === TRAIT.BURST_MASTERY && event.kind === 'swiftness')
   );
@@ -39,7 +39,7 @@ test('Burst Mastery refunds a completed miss but cannot refund a canceled spend'
       landed.resolvedEvents.findIndex((event) => event.sourceId === TRAIT.BURST_MASTERY)
   );
   const cancelled = run([{ name: 'Arcing Slice', interruptAfterMs: 1 }], config);
-  assert.equal(cancelled.planningState.profession.adrenaline, 0);
+  assert.equal(cancelled.planningState.profession.adrenaline.value, 0);
   assert.equal(
     cancelled.resolvedEvents.some((event) => event.sourceId === TRAIT.BURST_MASTERY),
     false
@@ -92,7 +92,7 @@ test('critical burst reactions share the resolved outcome for resources and inde
   };
   const result = run(['Eviscerate'], config, profession);
   assert.deepEqual(result.warnings, []);
-  assert.equal(result.planningState.profession.adrenaline, 4);
+  assert.equal(result.planningState.profession.adrenaline.value, 4);
   assert.equal(result.resolvedEvents.find((event) => event.sourceId === TRAIT.SUNDERING_BURST).stacks, 10);
   const bleeding = result.resolvedEvents.find((event) => event.sourceId === TRAIT.BLOODLUST);
   assert.equal(bleeding.skillName, 'Bloodlust');
@@ -100,7 +100,7 @@ test('critical burst reactions share the resolved outcome for resources and inde
   assert.equal(bleeding.metadata.procCount, 1);
   assert.equal(result.resolvedEvents.find((event) => event.kind === 'furious-surge').stacks, 1);
   const noncritical = run(['Eviscerate'], { ...config, stats: { power: 2000, precision: 0 } }, profession);
-  assert.equal(noncritical.planningState.profession.adrenaline, 1);
+  assert.equal(noncritical.planningState.profession.adrenaline.value, 1);
   assert.equal(noncritical.resolvedEvents.find((event) => event.sourceId === TRAIT.SUNDERING_BURST).stacks, 5);
   assert.equal(
     noncritical.resolvedEvents.some((event) => event.sourceId === TRAIT.BLOODLUST || event.kind === 'furious-surge'),
@@ -121,7 +121,10 @@ test('seeded critical traits agree in detailed and score runs without reading re
   assert.deepEqual(detailed.warnings, []);
   assert.equal(score.totalDamage, detailed.totalDamage);
   assert.equal(score.conditionDamage, detailed.conditionDamage);
-  assert.equal(observedRuntime(score).profession.core.adrenaline, observedRuntime(detailed).profession.core.adrenaline);
+  assert.equal(
+    observedRuntime(score).profession.core.adrenaline.value,
+    observedRuntime(detailed).profession.core.adrenaline.value
+  );
   assert.ok(detailed.resolvedEvents.some((event) => event.sourceId === TRAIT.FORCEFUL_GREATSWORD));
   assert.ok(detailed.resolvedEvents.some((event) => event.sourceId === TRAIT.BLOODLUST));
 });
@@ -150,14 +153,14 @@ test('accepted control shares Opportunist cooldown while independent control tra
   });
   const result = run(['Kick', 'Kick'], { ...config, patchId: 'control-live' }, profession);
   assert.deepEqual(result.warnings, []);
-  assert.equal(result.planningState.profession.adrenaline, 21);
+  assert.equal(result.planningState.profession.adrenaline.value, 21);
   const from = (trait) => result.resolvedEvents.filter((event) => event.sourceId === trait);
   assert.equal(from(TRAIT.OPPORTUNIST).length, 1);
   assert.equal(from(TRAIT.STALWART_STRENGTH).length, 2);
   assert.equal(from(TRAIT.AGGRESSIVE_ONSLAUGHT).length, 2);
   assert.equal(from(TRAIT.BODY_BLOW).filter((event) => event.condition === 'Weakness').length, 2);
   const missed = run([{ name: 'Kick', offTarget: true }], config);
-  assert.equal(missed.planningState.profession.adrenaline, 0);
+  assert.equal(missed.planningState.profession.adrenaline.value, 0);
   assert.deepEqual({ ...observedRuntime(missed).procs.snapshot() }, {});
 });
 
@@ -174,7 +177,7 @@ test('Leg Specialist derives accepted immobilization without turning an effect i
   );
   const player = run(['Pin Down'], { ...config, primaryWeapon: 'Longbow' });
   assert.deepEqual(player.warnings, []);
-  assert.equal(player.planningState.profession.adrenaline, 6);
+  assert.equal(player.planningState.profession.adrenaline.value, 6);
   assert.ok(player.resolvedEvents.some((event) => event.sourceId === TRAIT.OPPORTUNIST));
   const missed = run([{ name: 'Throw Axe', offTarget: true }], config);
   assert.equal(
@@ -256,14 +259,14 @@ test('movement completion grants Brave Stride and Peak Performance precedes the 
   const config = { selectedSkillIds: [14502], selectedTraitIds: [TRAIT.BRAVE_STRIDE, TRAIT.PEAK_PERFORMANCE] };
   const completed = run(['Kick'], config);
   assert.deepEqual(completed.warnings, []);
-  assert.equal(completed.planningState.profession.adrenaline, 6);
+  assert.equal(completed.planningState.profession.adrenaline.value, 6);
   const events = completed.resolvedEvents;
   const peak = events.findIndex((event) => event.kind === 'peak-performance');
   const strike = events.findIndex((event) => event.type === 'damage' && event.skillId === ID.KICK);
   assert.ok(peak >= 0 && strike > peak);
   assert.ok(events.some((event) => event.sourceId === TRAIT.BRAVE_STRIDE && event.kind === 'stability'));
   const cancelled = run([{ name: 'Kick', interruptAfterMs: 1 }], config);
-  assert.equal(cancelled.planningState.profession.adrenaline, 0);
+  assert.equal(cancelled.planningState.profession.adrenaline.value, 0);
   assert.equal(
     cancelled.resolvedEvents.some((event) => event.sourceId === TRAIT.BRAVE_STRIDE),
     false
@@ -295,7 +298,7 @@ test('Reckless Dodge components resolve independently and removed strikes cannot
   const config = { selectedTraitIds: [TRAIT.RECKLESS_DODGE] };
   const completed = run(['Dodge'], config);
   assert.deepEqual(completed.warnings, []);
-  assert.equal(completed.planningState.profession.adrenaline, 1);
+  assert.equal(completed.planningState.profession.adrenaline.value, 1);
   assert.ok(
     completed.resolvedEvents.some((event) => event.sourceId === TRAIT.RECKLESS_DODGE && event.type === 'damage')
   );
@@ -312,7 +315,7 @@ test('Reckless Dodge components resolve independently and removed strikes cannot
   });
   const removed = run(['Dodge'], { ...config, patchId: 'reckless-live' }, profession);
   assert.deepEqual(removed.warnings, []);
-  assert.equal(removed.planningState.profession.adrenaline, 0);
+  assert.equal(removed.planningState.profession.adrenaline.value, 0);
   assert.ok(removed.resolvedEvents.some((event) => event.sourceId === TRAIT.RECKLESS_DODGE && event.kind === 'might'));
 });
 
@@ -385,10 +388,10 @@ test('Combustive Shot component removal preserves independent conditions and zer
 test('a landed hit funds the next burst and misses cannot grant adrenaline', () => {
   const hit = run(['Chop', 'Eviscerate'], { initialResource: 9 });
   assert.deepEqual(hit.warnings, []);
-  assert.equal(hit.planningState.profession.adrenaline, 1);
+  assert.equal(hit.planningState.profession.adrenaline.value, 1);
   const missed = run([{ name: 'Chop', offTarget: true }, 'Eviscerate'], { initialResource: 9 });
   assert.equal(missed.steps[1].invalid, true);
-  assert.equal(missed.planningState.profession.adrenaline, 9);
+  assert.equal(missed.planningState.profession.adrenaline.value, 9);
 });
 
 test('pending travel cannot fund an earlier burst but its accepted impact can fund a later one', () => {
@@ -398,7 +401,7 @@ test('pending travel cannot fund an earlier burst but its accepted impact can fu
   );
   assert.equal(result.steps[1].invalid, true);
   assert.equal(Boolean(result.steps.at(-1).invalid), false);
-  assert.equal(result.planningState.profession.adrenaline, 1);
+  assert.equal(result.planningState.profession.adrenaline.value, 1);
 });
 
 test('burst tier is captured at spend and cancellation retains the spend without a hit gain', () => {
@@ -407,13 +410,13 @@ test('burst tier is captured at spend and cancellation retains the spend without
   const strike = completed.resolvedEvents.find((event) => event.type === 'damage' && event.skillId === ID.ARCING_SLICE);
   assert.equal(strike.metadata.warriorAdrenalineSpent, 30);
   assert.equal(strike.metadata.warriorBurstTier, 3);
-  assert.equal(completed.planningState.profession.adrenaline, 1);
+  assert.equal(completed.planningState.profession.adrenaline.value, 1);
   const cancelled = run([{ name: 'Arcing Slice', interruptAfterMs: 1 }], {
     primaryWeapon: 'Greatsword',
     initialResource: 30
   });
   assert.deepEqual(cancelled.warnings, []);
-  assert.equal(cancelled.planningState.profession.adrenaline, 0);
+  assert.equal(cancelled.planningState.profession.adrenaline.value, 0);
   assert.equal(
     cancelled.resolvedEvents.some((event) => event.type === 'damage'),
     false
@@ -423,12 +426,12 @@ test('burst tier is captured at spend and cancellation retains the spend without
 test('resource skills grant only on completion and their public state is detached', () => {
   const config = { selectedSkillIds: [14410] };
   const cancelled = run([{ name: 'Signet of Fury', interruptAfterMs: 1 }], config);
-  assert.equal(cancelled.planningState.profession.adrenaline, 0);
+  assert.equal(cancelled.planningState.profession.adrenaline.value, 0);
   const completed = run(['Signet of Fury'], config);
   assert.deepEqual(completed.warnings, []);
-  assert.equal(completed.planningState.profession.adrenaline, 30);
-  completed.planningState.profession.adrenaline = 0;
-  assert.equal(observedRuntime(completed).profession.core.adrenaline, 30);
+  assert.equal(completed.planningState.profession.adrenaline.value, 30);
+  completed.planningState.profession.adrenaline.value = 0;
+  assert.equal(observedRuntime(completed).profession.core.adrenaline.value, 30);
 });
 
 test('signet readiness rechecks successive actual pulses and recharge suppression preserves cadence', () => {
@@ -438,12 +441,12 @@ test('signet readiness rechecks successive actual pulses and recharge suppressio
   });
   assert.deepEqual(result.warnings, []);
   assert.equal(result.steps.at(-1).start, 6000);
-  assert.equal(result.planningState.profession.adrenaline, 1);
+  assert.equal(result.planningState.profession.adrenaline.value, 1);
   const suppressed = run([{ type: 'combat-start' }, 'Signet of Rage', { type: 'wait', durationMs: 6000 }], {
     selectedSkillIds: [14355]
   });
   assert.deepEqual(suppressed.warnings, []);
-  assert.equal(suppressed.planningState.profession.adrenaline, 0);
+  assert.equal(suppressed.planningState.profession.adrenaline.value, 0);
   assert.equal(observedRuntime(suppressed).profession.core.nextSignetPulseAt, 9);
 });
 
@@ -479,11 +482,11 @@ test('Counterblow arms one follow-up and a canceled manual attack still consumes
   const config = { primaryWeapon: 'Mace' };
   const completed = run(['Counterblow', 'Tactical Blow'], config);
   assert.deepEqual(completed.warnings, []);
-  assert.equal(completed.planningState.profession.adrenaline, 6);
+  assert.equal(completed.planningState.profession.adrenaline.value, 6);
   assert.equal(completed.planningState.profession.availableFlips[ID.TACTICAL_BLOW], undefined);
   const consumed = run(['Counterblow', { name: 'Tactical Blow', interruptAfterMs: 1 }, 'Tactical Blow'], config);
   assert.equal(consumed.steps.at(-1).invalid, true);
-  assert.equal(consumed.planningState.profession.adrenaline, 0);
+  assert.equal(consumed.planningState.profession.adrenaline.value, 0);
 });
 
 test('a canceled block or an expired channel cannot leave an available Tactical Blow', () => {
@@ -507,7 +510,7 @@ test('weapon swaps commit the set before Core traits and repeated swaps share on
   assert.equal(first.planningState.activeWeaponSet, 2);
   assert.equal(observedRuntime(first).procs.deadline('warrior.core.soldierFocus'), 1);
   assert.equal(
-    first.planningState.profession.adrenaline,
+    first.planningState.profession.adrenaline.value,
     warriorProfession.catalog.balanceProfilesById.get(TRAIT.VERSATILE_RAGE).resourceGain
   );
   const repeated = run([{ type: 'combat-start' }, 'Swap Weapons', { type: 'cooldown-reset' }, 'Swap Weapons'], config);
@@ -546,7 +549,7 @@ test('Fierce Blow ignores temporary control windows', () => {
 test('Mighty Throw secondary-target shards create no damage or adrenaline opportunity', () => {
   const result = run(['Mighty Throw'], { primaryWeapon: 'Spear' });
   assert.deepEqual(result.warnings, []);
-  assert.equal(result.planningState.profession.adrenaline, 1);
+  assert.equal(result.planningState.profession.adrenaline.value, 1);
   assert.equal(
     result.resolvedEvents.some((event) => event.metadata?.packetKind === 'warrior.mighty-throw-shard'),
     false

@@ -119,7 +119,7 @@ test('Opportunist ignores summons, effect immobilization, and unrelated player c
   });
   assert.deepEqual(result.warnings, []);
   assert.deepEqual({ ...observedRuntime(result).procs.snapshot() }, {});
-  assert.equal(observedRuntime(result).profession.core.adrenaline, 0);
+  assert.equal(observedRuntime(result).profession.core.adrenaline.value, 0);
 });
 
 // Heightened Focus needs the trait and a below-half-health target; it readies the triggering burst and other bursts.
@@ -283,7 +283,7 @@ const traitCases = [
     trait: TRAIT.MERCILESS_HAMMER,
     rotation: ['Kick'],
     config: { initialResource: 0 },
-    verify: (result) => assert.equal(result.planningState.profession.adrenaline, 8)
+    verify: (result) => assert.equal(result.planningState.profession.adrenaline.value, 8)
   },
   {
     name: 'Stalwart Strength',
@@ -346,7 +346,7 @@ const traitCases = [
     trait: TRAIT.VERSATILE_RAGE,
     rotation: ['Swap Weapons'],
     config: { initialResource: 0 },
-    verify: (result) => assert.equal(result.planningState.profession.adrenaline, 5)
+    verify: (result) => assert.equal(result.planningState.profession.adrenaline.value, 5)
   },
   {
     name: 'Burst Mastery',

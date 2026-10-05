@@ -1,12 +1,11 @@
+import { coreAdrenalinePolicy } from '#gw2/professions/warrior/core/mechanics/adrenaline.js';
 import { resetAutoattackChains } from '#gw2/platform/execution/autoattack-chains.js';
 import type { MechanicContext } from '#gw2/platform/profession-definition/mechanic-context.js';
 import { composeRuntimeHooks, type RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
-import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import { warriorAmmunition } from '#gw2/professions/warrior/core/mechanics/ammunition.js';
 import { berserkersPowerDragonSlash } from '#gw2/professions/warrior/core/traits/strength.js';
 import { WARRIOR_SKILL_IDS as ID } from '#gw2/professions/warrior/data/ids.js';
-import { selectWarriorResourcePolicy } from '#gw2/professions/warrior/core/mechanics/resource-policy.js';
 import {
   bladeswornBuffPolicies,
   bladeswornEffectStates
@@ -19,9 +18,8 @@ import {
   exitDragonTrigger
 } from '#gw2/professions/warrior/specializations/bladesworn/mechanics/dragon-trigger.js';
 import {
-  bladeswornResourcePolicy,
+  bladeswornFlowPolicy,
   flowTasks,
-  grantFlow,
   scheduleFlowTick
 } from '#gw2/professions/warrior/specializations/bladesworn/mechanics/flow.js';
 import {
@@ -29,7 +27,6 @@ import {
   gunsaberBarAvailability,
   swapGunsaber
 } from '#gw2/professions/warrior/specializations/bladesworn/mechanics/gunsaber.js';
-import { BLADESWORN_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/warrior/specializations/bladesworn/profiles.js';
 import {
   bladeswornSkillActions,
   bladeswornSkillTasks,
@@ -58,6 +55,8 @@ function explosion(runtime: Runtime, event: Gw2ResolverEvent): void {
 export const bladeswornHooks: RuntimeHooks<WarriorRuntimeState, WarriorSkill> = composeRuntimeHooks([
   dragonTriggerHooks,
   {
+    // Bladesworn disables adrenaline at initialization; authored rewards select its independent Flow pool.
+    resources: { adrenaline: { ...coreAdrenalinePolicy, maximum: () => 0 }, flow: bladeswornFlowPolicy },
     buffPolicies: bladeswornBuffPolicies,
     observeEffects: bladeswornEffectStates,
     prepareDamageState(runtime, skill) {
@@ -90,15 +89,6 @@ export const bladeswornHooks: RuntimeHooks<WarriorRuntimeState, WarriorSkill> = 
       return gunsaberAttackAvailability(runtime, skill);
     },
     initialize(runtime) {
-      selectWarriorResourcePolicy(runtime, bladeswornResourcePolicy);
-      const state = bladeswornState.from(runtime);
-      state.maximumFlow = balanceProfileNumber(
-        requireBalanceProfileFromContext(runtime, PROFILE.resources),
-        'maximumStacks'
-      );
-      state.flow = Math.min(state.flow, state.maximumFlow);
-      runtime.profession.core.adrenaline = 0;
-      runtime.profession.core.maximumAdrenaline = 0;
       scheduleFlowTick(runtime);
     },
     onCastStart(runtime, cast) {
@@ -112,7 +102,8 @@ export const bladeswornHooks: RuntimeHooks<WarriorRuntimeState, WarriorSkill> = 
     onCastCommit(runtime, cast) {
       // Successful ammunition commitment earns its reward even when the remaining animation is interrupted.
       ammoTraits(runtime, cast);
-      grantFlow(runtime, cast.skill.flowGain ?? 0);
+      // Preserve the commit reward after ammunition traits and before Dragon Slash completion traits.
+      runtime.resourceController.grant('flow', cast.skill.flowGain ?? 0);
       const release = dragonSlashRelease(runtime, cast);
       if (release) {
         burstMasteryDragonSlash(runtime, cast, release);

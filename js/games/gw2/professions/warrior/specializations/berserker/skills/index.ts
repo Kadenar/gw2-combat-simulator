@@ -1,6 +1,5 @@
 /** Berserker PvE packets use nearest-40 ms offsets to remove false timing precision. */
 import {
-  balanceProfileNumber,
   effectNumber,
   requireBalanceProfileFromContext,
   requireEffect
@@ -64,7 +63,16 @@ export const BERSERKER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>>
         on: 'castCommit',
         do: { type: 'warrior.berserk-extension', amount: { profile: PROFILE.rageExtensions, field: 'threshold' } }
       },
-      { on: 'castCommit', do: { type: 'warrior.adrenaline', amount: 10 } }
+      {
+        on: 'castCommit',
+        do: {
+          type: 'resourceGrant',
+          resource: 'adrenaline',
+          id: 'adrenaline-gained',
+          label: 'Adrenaline gained',
+          amount: 10
+        }
+      }
     ]
   },
   [ID.GUN_FLAME]: {
@@ -198,7 +206,16 @@ export const BERSERKER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>>
         on: 'castCommit',
         do: { type: 'warrior.berserk-extension', amount: { profile: PROFILE.rageExtensions, field: 'maximumStacks' } }
       },
-      { on: 'castCommit', do: { type: 'warrior.adrenaline', amount: 5 } }
+      {
+        on: 'castCommit',
+        do: {
+          type: 'resourceGrant',
+          resource: 'adrenaline',
+          id: 'adrenaline-gained',
+          label: 'Adrenaline gained',
+          amount: 5
+        }
+      }
     ]
   },
   [ID.SHATTERING_BLOW]: {
@@ -228,7 +245,16 @@ export const BERSERKER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>>
         on: 'castCommit',
         do: { type: 'warrior.berserk-extension', amount: { profile: PROFILE.rageExtensions, field: 'threshold' } }
       },
-      { on: 'castCommit', do: { type: 'warrior.adrenaline', amount: 5 } }
+      {
+        on: 'castCommit',
+        do: {
+          type: 'resourceGrant',
+          resource: 'adrenaline',
+          id: 'adrenaline-gained',
+          label: 'Adrenaline gained',
+          amount: 5
+        }
+      }
     ]
   },
   [ID.BERSERK]: {
@@ -238,7 +264,16 @@ export const BERSERKER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>>
     // Acceptance spends even when canceled; commitment grants before the new cap clamps the pool.
     sideEffects: [
       { on: 'castStart', do: { type: 'warrior.berserk-spend' } },
-      { on: 'castCommit', do: { type: 'warrior.adrenaline', amount: 10 } },
+      {
+        on: 'castCommit',
+        do: {
+          type: 'resourceGrant',
+          resource: 'adrenaline',
+          id: 'adrenaline-gained',
+          label: 'Adrenaline gained',
+          amount: 10
+        }
+      },
       { on: 'castCommit', do: { type: 'warrior.berserk-enter' } }
     ]
   },
@@ -253,7 +288,16 @@ export const BERSERKER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>>
         on: 'castCommit',
         do: { type: 'warrior.berserk-extension', amount: { profile: PROFILE.rageExtensions, field: 'minimumStacks' } }
       },
-      { on: 'castCommit', do: { type: 'warrior.adrenaline', amount: 10 } },
+      {
+        on: 'castCommit',
+        do: {
+          type: 'resourceGrant',
+          resource: 'adrenaline',
+          id: 'adrenaline-gained',
+          label: 'Adrenaline gained',
+          amount: 10
+        }
+      },
       { on: 'castCommit', do: { type: 'warrior.reset-primal-bursts' } }
     ]
   },
@@ -266,7 +310,16 @@ export const BERSERKER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>>
         on: 'castCommit',
         do: { type: 'warrior.berserk-extension', amount: { profile: PROFILE.rageExtensions, field: 'threshold' } }
       },
-      { on: 'castCommit', do: { type: 'warrior.adrenaline', amount: 10 } }
+      {
+        on: 'castCommit',
+        do: {
+          type: 'resourceGrant',
+          resource: 'adrenaline',
+          id: 'adrenaline-gained',
+          label: 'Adrenaline gained',
+          amount: 10
+        }
+      }
     ],
     stunbreak: true
   },
@@ -291,7 +344,16 @@ export const BERSERKER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>>
         on: 'castCommit',
         do: { type: 'warrior.berserk-extension', amount: { profile: PROFILE.rageExtensions, field: 'minimumStacks' } }
       },
-      { on: 'castCommit', do: { type: 'warrior.adrenaline', amount: 30 } }
+      {
+        on: 'castCommit',
+        do: {
+          type: 'resourceGrant',
+          resource: 'adrenaline',
+          id: 'adrenaline-gained',
+          label: 'Adrenaline gained',
+          amount: 30
+        }
+      }
     ],
     // Head Butt stuns both the foe and the player. The self-stun holds the cast
     // lane for 1s unless broken by a stunbreak (Outrage) or negated by stability.
@@ -470,7 +532,7 @@ export const slicingMaelstromModifiers: readonly Gw2ModifierRule[] = [
 /** Skill-owned entry and base extensions leave expiry and combined trait publication with the mode owner. */
 export const berserkSkillActions: RuntimeProfession<WarriorRuntimeState, WarriorSkill>['sideEffectHandlers'] = {
   'warrior.berserk-spend'(runtime, context) {
-    runtime.profession.core.adrenaline -= context.skill.adrenalineCost ?? 0;
+    runtime.resourceController.spend('adrenaline', context.skill.adrenalineCost ?? 0);
   },
   'warrior.berserk-enter'(runtime, context) {
     if (context.kind !== 'cast') return;
@@ -481,11 +543,8 @@ export const berserkSkillActions: RuntimeProfession<WarriorRuntimeState, Warrior
     if (effect && effectNumber(profile, effect, 'duration') > 0) {
       state.berserkActive = true;
       state.berserkUntil = gw2EffectExpiresAt(runtime.time, effectNumber(profile, effect, 'duration'));
-      runtime.profession.core.maximumAdrenaline = balanceProfileNumber(profile, 'maximumStacks');
-      runtime.profession.core.adrenaline = Math.min(
-        runtime.profession.core.adrenaline,
-        runtime.profession.core.maximumAdrenaline
-      );
+      // Mode entry changes capacity without refilling the pool.
+      runtime.resourceController.refresh('adrenaline');
       publishBerserk(runtime, cast);
     }
   },

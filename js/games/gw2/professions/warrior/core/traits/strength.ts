@@ -21,7 +21,7 @@ import {
   warriorWieldingWeapon
 } from '#gw2/professions/warrior/core/traits/modifier-queries.js';
 import { WARRIOR_SKILL_IDS as ID, WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/professions/warrior/data/ids.js';
-import { grantWarriorResource } from '#gw2/professions/warrior/core/mechanics/resource-policy.js';
+import { grantWarriorResource } from '#gw2/professions/warrior/resource-rules.js';
 import type { WarriorResolverContext, WarriorRuntimeState, WarriorSkill } from '#gw2/professions/warrior/types.js';
 
 /** Using a healing skill grants self boons even when the player is already at full health. */

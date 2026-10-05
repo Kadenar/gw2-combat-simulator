@@ -30,7 +30,7 @@ test('Blood Reckoning resets live primal skills after its adrenaline grant and l
       sideEffectHandlers: {
         ...native.sideEffectHandlers,
         'warrior.reset-primal-bursts'(runtime, cast, action) {
-          adrenalineAtReset = runtime.profession.core.adrenaline;
+          adrenalineAtReset = runtime.profession.core.adrenaline.value;
           native.sideEffectHandlers['warrior.reset-primal-bursts'](runtime, cast, action);
         }
       }
@@ -69,7 +69,7 @@ test('Find Their Weakness grants initial adrenaline at commitment before its com
           // Observe the actual arming boundary after the initial declared resource grant.
           'warrior.command-arm'(runtime, context, action) {
             before = [
-              runtime.profession.core.adrenaline,
+              runtime.profession.core.adrenaline.value,
               Object.keys(runtime.profession.specialization.state.commandEchoes).length
             ];
             native.sideEffectHandlers['warrior.command-arm'](runtime, context, action);
@@ -79,7 +79,7 @@ test('Find Their Weakness grants initial adrenaline at commitment before its com
     });
     assert.deepEqual(result.warnings, []);
     assert.deepEqual(before, cancelled ? undefined : [3, 0]);
-    assert.equal(observedRuntime(result).profession.core.adrenaline, cancelled ? 0 : 3);
+    assert.equal(observedRuntime(result).profession.core.adrenaline.value, cancelled ? 0 : 3);
     assert.equal(
       Object.keys(observedRuntime(result).profession.specialization.state.commandEchoes).length,
       cancelled ? 0 : 1

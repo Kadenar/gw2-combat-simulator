@@ -207,7 +207,7 @@ test('Dragon Slash editor access is separate from its default verdict and requir
     Object.assign(runtime.profession.specialization.state, {
       gunsaberActive: true,
       dragonTriggerActive: true,
-      dragonCharges: 1,
+      dragonCharges: { value: 1, maximum: 10, rate: 0, updatedAt: 0 },
       nextDragonChargeAt: 0
     });
   });

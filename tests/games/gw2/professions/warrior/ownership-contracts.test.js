@@ -43,8 +43,8 @@ test('Warrior initialization and resource displays honor selected caps', () => {
       const result = observeGw2Runtime({ profession: family.runtimeFor(config), config, rotation: [] });
       assert.deepEqual(result.warnings, []);
       const state = result.planningState.profession;
-      assert.equal(state.maximumAdrenaline, adrenalineCap);
-      assert.equal(state.adrenaline, adrenalineCap);
+      assert.equal(state.adrenaline.maximum, adrenalineCap);
+      assert.equal(state.adrenaline.value, adrenalineCap);
       const resources = family.ui.resourceViews({
         specialization,
         catalog: family.catalogFor(patchId),

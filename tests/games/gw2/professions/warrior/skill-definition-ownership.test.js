@@ -65,7 +65,7 @@ test('tier variants use the captured spend after the live adrenaline pool change
             ...native,
             onCastStart(runtime, cast) {
               native.onCastStart(runtime, cast);
-              if (replacePool) runtime.profession.core.adrenaline = initialResource === 30 ? 0 : 30;
+              if (replacePool) runtime.resourceController.replace('adrenaline', initialResource === 30 ? 0 : 30);
             },
             modifyEffects(runtime, cast, effects) {
               payloads.push(effects);

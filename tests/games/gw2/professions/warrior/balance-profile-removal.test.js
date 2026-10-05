@@ -88,7 +88,7 @@ for (const [profile, type, name, skill, weapon] of [
       result.events.some((e) => e.skillId === skill && e.type === (type === 'strike' ? 'damage' : 'condition')),
       false
     );
-    assert.ok(result.planningState.profession.adrenaline < 30);
+    assert.ok(result.planningState.profession.adrenaline.value < 30);
     assert.ok(result.events.some((e) => e.type === 'action' && e.skillId === skill));
     if (type === 'strike')
       assert.equal(
@@ -126,8 +126,8 @@ test('removed Berserk window retains resource spending and entry boons without a
   });
   assert.equal(result.planningState.profession.berserkActive, false);
   assert.equal(result.planningState.profession.berserkUntil, 0);
-  assert.equal(result.planningState.profession.maximumAdrenaline, 30);
-  assert.ok(result.planningState.profession.adrenaline < 30);
+  assert.equal(result.planningState.profession.adrenaline.maximum, 30);
+  assert.ok(result.planningState.profession.adrenaline.value < 30);
   assert.ok(result.events.some((e) => e.kind === 'quickness'));
   assert.equal(
     result.events.some((e) => e.kind === 'berserk'),
@@ -356,7 +356,7 @@ test('Eviscerate variants use captured adrenaline after the live pool changes', 
       ...native,
       onCastStart(runtime, cast) {
         native.onCastStart(runtime, cast);
-        runtime.profession.core.adrenaline = 30;
+        runtime.resourceController.replace('adrenaline', 30);
       }
     },
     config,

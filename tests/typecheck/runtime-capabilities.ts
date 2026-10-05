@@ -14,7 +14,7 @@ function ownership(context: EffectOwnershipContext<WarriorSkill>) {
   // @ts-expect-error Lifetime selection cannot write reporting history.
   context.history.push({});
   // @ts-expect-error Lifetime selection cannot mutate unrelated mechanic state.
-  context.profession.core.adrenaline = 0;
+  context.profession.core.adrenaline.value = 0;
   // @ts-expect-error Lifetime selection has no runtime escape hatch.
   context.runtime;
   // @ts-expect-error Selected-content queries cannot be replaced by a mechanic.
@@ -34,7 +34,7 @@ const hooks: RuntimeHooks<WarriorRuntimeState, WarriorSkill> = {
     // @ts-expect-error Readers cannot interrupt recorded actions.
     context.facts.interruptAction('cast:1', context.time);
     // @ts-expect-error Readiness cannot change an owned resource.
-    context.profession.core.adrenaline = 0;
+    context.profession.core.adrenaline.value = 0;
     // @ts-expect-error Readiness cannot spend while projecting affordability.
     context.endurance.spend(50);
     // @ts-expect-error Readiness cannot advance ammunition or publish work.
@@ -78,7 +78,7 @@ const hooks: RuntimeHooks<WarriorRuntimeState, WarriorSkill> = {
     const trait: boolean = context.hasTrait(1);
     const profile = context.requireBalanceProfile(1);
     // @ts-expect-error A capacity policy cannot mutate nested mechanic state.
-    state.core.adrenaline = 0;
+    state.core.adrenaline.value = 0;
     // @ts-expect-error A capacity policy cannot mutate the pool it is configuring.
     context.ammo.clear();
     // @ts-expect-error Capacity selection cannot reset recharge.
@@ -103,9 +103,9 @@ const hooks: RuntimeHooks<WarriorRuntimeState, WarriorSkill> = {
     const dragonSlash: boolean | undefined = cast.skill.dragonSlash;
     const state = context.readProfessionState();
     // @ts-expect-error A label cannot mutate its profession's nested state.
-    state.core.adrenaline = 0;
+    state.core.adrenaline.value = 0;
     if (state.specialization.kind === 'Bladesworn') {
-      const charges: number = state.specialization.state.dragonCharges;
+      const charges: number = state.specialization.state.dragonCharges.value;
       // @ts-expect-error Maps remain queryable but release retirement belongs to the mechanic.
       state.specialization.state.dragonSlashReleases.clear();
       // @ts-expect-error Charge observations cannot be changed through a label.
@@ -175,7 +175,7 @@ void readOnlyCollections;
 /** Author capabilities expose deliberate operations and concrete data, never another owner's writable storage. */
 function mechanicBoundaries(context: MechanicContext<WarriorRuntimeState, WarriorSkill>) {
   context.resourceController.replace('motivation', 0);
-  context.profession.core.adrenaline = 1;
+  context.resourceController.replace('adrenaline', 1);
   context.cooldownController.setReadyAt(1, 2);
   // @ts-expect-error Only cast execution can reset every cooldown.
   context.cooldownController.resetAll();

@@ -19,7 +19,6 @@ import { warriorAmmunition } from '#gw2/professions/warrior/core/mechanics/ammun
 import { WARRIOR_SKILL_IDS as ID } from '#gw2/professions/warrior/data/ids.js';
 import { WARRIOR_SUPPLEMENTAL_SKILLS } from '#gw2/professions/warrior/data/warrior-supplemental-skills.js';
 import { slashEffects } from '#gw2/professions/warrior/specializations/bladesworn/mechanics/dragon-trigger.js';
-import { grantFlow } from '#gw2/professions/warrior/specializations/bladesworn/mechanics/flow.js';
 import { BLADESWORN_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/warrior/specializations/bladesworn/profiles.js';
 import { activeCartridgeWindow, bladeswornState } from '#gw2/professions/warrior/specializations/bladesworn/state.js';
 import type { WarriorRuntimeState, WarriorSkill } from '#gw2/professions/warrior/types.js';
@@ -713,7 +712,7 @@ export const bladeswornSkillActions: RuntimeProfession<WarriorRuntimeState, Warr
   'warrior.flow-stabilize'(runtime, context) {
     if (context.kind !== 'cast') return;
     const cast = context.cast;
-    if (furyBeforeCast.has(cast)) grantFlow(runtime, 15);
+    if (furyBeforeCast.has(cast)) runtime.resourceController.grant('flow', 15);
     // The conditional instant grant is independent of the removable Positive Flow component.
     const effect = requireEffect(cast.skill, 'buff', 'Positive Flow');
     if (effect) {

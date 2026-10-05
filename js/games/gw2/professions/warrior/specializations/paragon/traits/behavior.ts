@@ -6,7 +6,6 @@ import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import type { MechanicContext } from '#gw2/platform/profession-definition/mechanic-context.js';
 import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import { WARRIOR_SKILL_IDS as ID, WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/professions/warrior/data/ids.js';
-import { grantWarriorResource } from '#gw2/professions/warrior/core/mechanics/resource-policy.js';
 import type { WarriorRuntimeState, WarriorSkill } from '#gw2/professions/warrior/types.js';
 
 type Runtime = MechanicContext<WarriorRuntimeState, WarriorSkill>;
@@ -33,7 +32,7 @@ export function applyInspiringImplements(runtime: Runtime, cast: RuntimeCast<War
     runtime.procs.claim(TRAIT.INSPIRING_IMPLEMENTS, 'warrior.paragon.inspiringImplements', runtime.time)
   ) {
     const profile = requireBalanceProfileFromContext(runtime, TRAIT.INSPIRING_IMPLEMENTS);
-    grantWarriorResource(runtime, balanceProfileNumber(profile, 'resourceGain'));
+    runtime.resourceController.grant('adrenaline', balanceProfileNumber(profile, 'resourceGain'));
     runtime.resourceController.grant('motivation', balanceProfileNumber(profile, 'minimumStacks'));
   }
 }
@@ -72,8 +71,8 @@ export function enduringRefrainMotivation(runtime: Runtime): number {
 /** Only Motivation actually spent earns adrenaline. */
 export function applyInvigoratingTempo(runtime: Runtime, spent: number): void {
   if (hasTrait(runtime, TRAIT.INVIGORATING_TEMPO))
-    grantWarriorResource(
-      runtime,
+    runtime.resourceController.grant(
+      'adrenaline',
       spent * balanceProfileNumber(requireBalanceProfileFromContext(runtime, TRAIT.INVIGORATING_TEMPO), 'resourceGain')
     );
 }

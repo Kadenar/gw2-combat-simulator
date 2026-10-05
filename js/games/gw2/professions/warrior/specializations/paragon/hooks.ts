@@ -2,15 +2,8 @@ import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import type { MechanicContext } from '#gw2/platform/profession-definition/mechanic-context.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
-import {
-  grantWarriorResource,
-  selectWarriorResourcePolicy
-} from '#gw2/professions/warrior/core/mechanics/resource-policy.js';
 import { REFRAIN, startRefrain } from '#gw2/professions/warrior/specializations/paragon/mechanics/refrains.js';
-import {
-  paragonMotivationPolicy,
-  paragonResourcePolicy
-} from '#gw2/professions/warrior/specializations/paragon/mechanics/resources.js';
+import { paragonMotivationPolicy } from '#gw2/professions/warrior/specializations/paragon/mechanics/resources.js';
 import { PARAGON_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/warrior/specializations/paragon/profiles.js';
 import {
   PARAGON_COMMAND_ECHO_PROFILES,
@@ -154,7 +147,7 @@ function consumeEcho(runtime: Runtime, activationId: string): void {
         ...(event.type === 'buff' ? { audience: { recipients: 'party' } } : {})
       })
     });
-    grantWarriorResource(runtime, balanceProfileNumber(payload, 'resourceGain'));
+    runtime.resourceController.grant('adrenaline', balanceProfileNumber(payload, 'resourceGain'));
   }
 
   echo.remaining--;
@@ -204,9 +197,6 @@ export const paragonHooks: RuntimeHooks<WarriorRuntimeState, WarriorSkill> = {
   },
   // Chant Alacrity is independent of the imperative refrain and recharge-reduction state.
 
-  initialize(runtime) {
-    selectWarriorResourcePolicy(runtime, paragonResourcePolicy);
-  },
   onCastCommit(runtime, cast) {
     if (cast.skill.burst)
       for (const activationId of Object.keys(paragonState.from(runtime).commandEchoes))

@@ -81,7 +81,7 @@ function stabilizedFlow(at, applications) {
     rotation: [{ type: 'wait', durationMs: at * 1000 }, ID.FLOW_STABILIZER]
   });
   assert.deepEqual(result.warnings, []);
-  return observedRuntime(result).profession.specialization.state.flow;
+  return observedRuntime(result).profession.specialization.state.flow.value;
 }
 
 test('Flow Stabilizer reads accumulated self Fury and excludes its own activation', () => {

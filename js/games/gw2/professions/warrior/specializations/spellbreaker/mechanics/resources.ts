@@ -1,7 +1,10 @@
 import { coreAdrenalinePolicy } from '#gw2/professions/warrior/core/mechanics/adrenaline.js';
-import type { WarriorResourcePolicy } from '#gw2/professions/warrior/core/mechanics/resource-policy.js';
-/** The selected spellbreaker owns its burst cost policy while sharing Core's adrenaline pool operations. */
-export const spellbreakerResourcePolicy: WarriorResourcePolicy = {
+import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import { SPELLBREAKER_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/warrior/specializations/spellbreaker/profiles.js';
+
+/** Spellbreaker supplies its selected cap before the shared controller seeds initial adrenaline. */
+export const spellbreakerAdrenalinePolicy: typeof coreAdrenalinePolicy = {
   ...coreAdrenalinePolicy,
-  burstSpend: (runtime, skill) => Math.min(runtime.profession.core.adrenaline, skill.adrenalineCost ?? 0)
+  maximum: (runtime) =>
+    balanceProfileNumber(requireBalanceProfileFromContext(runtime, PROFILE.resources), 'maximumStacks')
 };

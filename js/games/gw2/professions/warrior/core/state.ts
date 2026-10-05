@@ -1,11 +1,10 @@
 import { type SkillFlipWindows } from '#gw2/platform/execution/skill-flips.js';
-import type { Gw2Config } from '#gw2/platform/simulation/config.js';
+import { createResourceClock } from '#gw2/platform/combat/resources/resource-policy.js';
+import type { ResourceClock } from '#gw2/platform/combat/resources/clock.js';
 import type { SkillId } from '#gw2/platform/skills/types.js';
-import { boundedNumber } from '#kernel/core/numeric.js';
 
 export interface WarriorCoreState {
-  adrenaline: number;
-  maximumAdrenaline: number;
+  adrenaline: ResourceClock;
   endurance: number;
   enduranceUpdatedAt: number;
 
@@ -20,7 +19,6 @@ export interface WarriorCoreState {
 /** Declares the Core fields exposed by every Warrior end-state projection. */
 const WARRIOR_CORE_PUBLIC_END_STATE_KEYS = Object.freeze([
   'adrenaline',
-  'maximumAdrenaline',
   'endurance',
 
   'autoattackChains',
@@ -35,13 +33,10 @@ export const WARRIOR_CORE_PUBLIC_STATE_PROJECTION = Object.freeze({
   } satisfies Partial<WarriorCoreState>)
 });
 
-/** Creates only the state shared by every Warrior build; elite caps initialize in their slices. */
-export function createWarriorCoreState(config: Gw2Config = {}): WarriorCoreState {
-  const maximumAdrenaline = 30;
-  const adrenaline = boundedNumber(config.initialResource ?? 0, 0, 0, maximumAdrenaline);
+/** Creates only the state shared by every Warrior build; selected resource policies supply pool values and caps. */
+export function createWarriorCoreState(): WarriorCoreState {
   return {
-    adrenaline,
-    maximumAdrenaline,
+    adrenaline: createResourceClock(),
     endurance: 100,
     enduranceUpdatedAt: 0,
 

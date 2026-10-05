@@ -137,7 +137,7 @@ export const WARRIOR_WEAPONS_MACE_SKILL_MECHANICS: Readonly<Record<number, Parti
     // Acceptance consumes the follow-up even if its attack is canceled.
     sideEffects: [
       { on: 'castStart', do: { type: 'flipConsume', skillId: ID.TACTICAL_BLOW } },
-      { on: 'castCommit', do: { type: 'warrior.adrenaline', amount: 5 } }
+      { on: 'castCommit', do: { type: 'warrior.grant-combat-resource', amount: 5 } }
     ],
     // Share impact timing while preserving independent payloads and declaration order.
     effects: impactEffects({ atMs: 440, timingAnchor: 'castStart', timingScale: 'fixed' }, [

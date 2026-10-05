@@ -1,3 +1,5 @@
+import type { WarriorCoreState } from '#gw2/professions/warrior/core/state.js';
+import type { BladeswornState } from '#gw2/professions/warrior/specializations/bladesworn/state.js';
 import { createDiscreteResourceClock } from '#gw2/platform/combat/resources/resource-policy.js';
 import {
   definePublicStateDefaults,
@@ -36,6 +38,11 @@ type Owns<TState, TField extends PropertyKey> = TField extends keyof TState ? tr
 type Rejects<TState, TField extends PropertyKey> = TField extends keyof TState ? false : true;
 
 export type ProfessionModuleStateBoundaryAssertions = [
+  Assert<WarriorCoreState['adrenaline'] extends ResourceClock ? true : false>,
+  Assert<BladeswornState['flow'] extends ResourceClock ? true : false>,
+  Assert<BladeswornState['dragonCharges'] extends ResourceClock ? true : false>,
+  Assert<Rejects<WarriorCoreState, 'maximumAdrenaline'>>,
+  Assert<Rejects<BladeswornState, 'maximumFlow'>>,
   Assert<GaleshotState['windForce'] extends ResourceClock ? true : false>,
   Assert<ParagonState['motivation'] extends ResourceClock ? true : false>,
   Assert<Rejects<ParagonState, 'maximumMotivation'>>,

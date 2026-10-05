@@ -35,7 +35,16 @@ export const PARAGON_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> =
 
     // The initial reward precedes echo arming; later rewards remain with echo consumption.
     sideEffects: [
-      { on: 'castCommit', do: { type: 'warrior.adrenaline', amount: 3 } },
+      {
+        on: 'castCommit',
+        do: {
+          type: 'resourceGrant',
+          resource: 'adrenaline',
+          id: 'adrenaline-gained',
+          label: 'Adrenaline gained',
+          amount: 3
+        }
+      },
       { on: 'castCommit', do: { type: 'warrior.command-arm' } }
     ],
     cooldown: 15,

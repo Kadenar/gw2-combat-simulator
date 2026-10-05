@@ -12,6 +12,8 @@ test('profession resource clocks render through the shared meter UI', async ({ p
     ['necromancer', null, 'life-force', 'lifeForce'],
     ['elementalist', 'Catalyst', 'catalyst-energy', 'catalystEnergy'],
     ['warrior', 'Paragon', 'motivation', 'motivation'],
+    ['warrior', 'Paragon', 'adrenaline', 'adrenaline'],
+    ['warrior', 'Bladesworn', 'flow', 'flow'],
     ['revenant', 'Conduit', 'affinity', 'affinity']
   ]) {
     await page.goto(`/${profession}.html#workspace`, { waitUntil: 'domcontentloaded' });

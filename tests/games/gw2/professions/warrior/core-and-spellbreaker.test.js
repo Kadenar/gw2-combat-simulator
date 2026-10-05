@@ -286,7 +286,8 @@ test('Warrior core and elite profession resources remain isolated', () => {
     }
   });
 
-  assert.equal(createWarriorCoreState({ specialization: 'Bladesworn', initialResource: 100 }).adrenaline, 30);
+  // Factories allocate an empty clock; selected policies own seeding and capacity during initialization.
+  assert.equal(createWarriorCoreState().adrenaline.value, 0);
   for (const [specialization, maximumAdrenaline] of [
     ['Core', 30],
     ['Berserker', 30],
@@ -295,8 +296,8 @@ test('Warrior core and elite profession resources remain isolated', () => {
     ['Bladesworn', 0]
   ]) {
     const state = simulate(specialization, [], { initialResource: 100 }).planningState.profession;
-    assert.equal(state.maximumAdrenaline, maximumAdrenaline, specialization);
-    assert.equal(state.adrenaline, maximumAdrenaline, specialization);
+    assert.equal(state.adrenaline.maximum, maximumAdrenaline, specialization);
+    assert.equal(state.adrenaline.value, maximumAdrenaline, specialization);
   }
 });
 
@@ -536,7 +537,11 @@ test('Warrior adrenaline renders one bar for each ten adrenaline', () => {
     ['Paragon', 30, 3]
   ]) {
     const specializationResource = warriorProfession.ui
-      .resourceViews({ catalog: warriorCatalog, specialization, professionState: { maximumAdrenaline: maximum } })
+      .resourceViews({
+        catalog: warriorCatalog,
+        specialization,
+        professionState: { adrenaline: { value: 0, maximum, rate: 0, updatedAt: 0 } }
+      })
       .find((view) => view.id === 'adrenaline');
 
     assert.equal(specializationResource.barSegments, barSegments);
@@ -603,7 +608,7 @@ test('Core bursts require and consume adrenaline', () => {
 
   assert.deepEqual(result.warnings, []);
   assert.equal(result.totalDamage > 0, true);
-  assert.equal(result.planningState.profession.adrenaline < 30, true);
+  assert.equal(result.planningState.profession.adrenaline.value < 30, true);
 });
 
 test('Core Warrior weapon swap toggles the active set', () => {
@@ -684,7 +689,7 @@ test('Berserker mode applies the supplied cap, duration, buffs, and modifiers', 
   });
 
   assert.deepEqual(result.warnings, []);
-  assert.equal(result.planningState.profession.maximumAdrenaline, 10);
+  assert.equal(result.planningState.profession.adrenaline.maximum, 10);
   assert.equal(result.planningState.profession.berserkUntil, 25);
   assert.equal(
     result.events.some((event) => event.kind === 'quickness' && event.duration === 3),
@@ -1016,8 +1021,8 @@ test('Spellbreaker uses its reduced adrenaline cap for Full Counter', () => {
   });
 
   assert.deepEqual(result.warnings, []);
-  assert.equal(result.planningState.profession.maximumAdrenaline, 20);
-  assert.equal(result.planningState.profession.adrenaline < 20, true);
+  assert.equal(result.planningState.profession.adrenaline.maximum, 20);
+  assert.equal(result.planningState.profession.adrenaline.value < 20, true);
   assert.equal(result.totalDamage, 0);
   assert.equal(
     result.events.some((event) => event.type === 'damage' && event.skillId === ID.FULL_COUNTER),
@@ -1538,7 +1543,7 @@ test('Defense traits apply Merciless Hammer and Stalwart Strength', () => {
   });
 
   assert.equal(
-    traitControl.planningState.profession.adrenaline - baselineControl.planningState.profession.adrenaline,
+    traitControl.planningState.profession.adrenaline.value - baselineControl.planningState.profession.adrenaline.value,
     7
   );
   const stability = traitControl.events.find(

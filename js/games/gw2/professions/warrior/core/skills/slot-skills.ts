@@ -14,7 +14,7 @@ import {
   type WarriorModifierAttributes
 } from '#gw2/professions/warrior/core/traits/modifier-queries.js';
 import { WARRIOR_SKILL_IDS as ID } from '#gw2/professions/warrior/data/ids.js';
-import { grantWarriorResource } from '#gw2/professions/warrior/core/mechanics/resource-policy.js';
+import { grantWarriorResource } from '#gw2/professions/warrior/resource-rules.js';
 import type { WarriorRuntimeState, WarriorSkill } from '#gw2/professions/warrior/types.js';
 import { canonicalTime } from '#kernel/core/clock.js';
 
@@ -116,7 +116,7 @@ export const WARRIOR_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Partia
     castTimeMs: 680,
     // The heal restores two dodge bars when its cast completes.
     sideEffects: [
-      { on: 'castCommit', do: { type: 'warrior.adrenaline', amount: 30 } },
+      { on: 'castCommit', do: { type: 'warrior.grant-combat-resource', amount: 30 } },
       { on: 'castCommit', do: { type: 'resourceGrant', resource: 'endurance', amount: 100 } }
     ],
     effects: []
@@ -186,7 +186,7 @@ export const WARRIOR_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Partia
     cooldown: 16,
     castTimeMs: 400,
     dualWieldCastTimeMs: 280,
-    sideEffects: [{ on: 'castCommit', do: { type: 'warrior.adrenaline', amount: 30 } }],
+    sideEffects: [{ on: 'castCommit', do: { type: 'warrior.grant-combat-resource', amount: 30 } }],
     effects: [
       {
         type: 'buff',

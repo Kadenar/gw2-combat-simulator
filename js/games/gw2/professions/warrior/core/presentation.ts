@@ -109,14 +109,14 @@ export function warriorAdrenalineResourceViews(
   startingMaximum = 30
 ): ProfessionResourceView[] {
   const state = warriorUiState(context);
-  const maximum = state.maximumAdrenaline ?? startingMaximum;
+  const maximum = state.adrenaline?.maximum ?? startingMaximum;
   return [
     {
       id: 'adrenaline',
       singular: 'adrenaline',
       plural: 'adrenaline',
       maximum,
-      value: Number(state.adrenaline ?? context.initialResource ?? 0),
+      value: Number(state.adrenaline?.value ?? context.initialResource ?? 0),
       startMaximum: maximum,
       canStart: true,
       buildKey: 'initialResource',

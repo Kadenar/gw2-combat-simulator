@@ -218,7 +218,7 @@ test('hammer cooldowns, conditional damage, recharge, and Defense traits work', 
     { condition: 'Weakness', duration: 3.5 }
   );
   // Reset fills the 20-point pool; the next burst spends 10, then control grants 7 and its hit grants 1.
-  assert.equal(defense.planningState.profession.adrenaline, 18);
+  assert.equal(defense.planningState.profession.adrenaline.value, 18);
 });
 
 test("Spellbreaker only gains Attacker's Insight from control and lightning leap combos", () => {
@@ -355,7 +355,7 @@ test('"To the Limit!" restores endurance, grants flow, and triggers Thick Skin',
     selectedTraitIds: [TRAIT.THICK_SKIN]
   });
 
-  assert.equal(core.planningState.profession.adrenaline, 30);
+  assert.equal(core.planningState.profession.adrenaline.value, 30);
   assert.equal(core.planningState.profession.endurance, 100);
   const protection = core.events.find((event) => event.sourceId === TRAIT.THICK_SKIN);
 
@@ -365,5 +365,5 @@ test('"To the Limit!" restores endurance, grants flow, and triggers Thick Skin',
     initialResource: 0
   });
 
-  assert.ok(bladesworn.planningState.profession.flow >= 30);
+  assert.ok(bladesworn.planningState.profession.flow.value >= 30);
 });

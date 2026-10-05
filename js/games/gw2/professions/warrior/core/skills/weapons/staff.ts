@@ -30,7 +30,7 @@ export const WARRIOR_WEAPONS_STAFF_SKILL_MECHANICS: Readonly<Record<number, Part
   },
   [ID.DEFIANT_ROAR]: {
     castTimeMs: 333,
-    sideEffects: [{ on: 'castCommit', do: { type: 'warrior.adrenaline', amount: 10 } }],
+    sideEffects: [{ on: 'castCommit', do: { type: 'warrior.grant-combat-resource', amount: 10 } }],
     effects: [
       {
         type: 'boon',
@@ -54,7 +54,7 @@ export const WARRIOR_WEAPONS_STAFF_SKILL_MECHANICS: Readonly<Record<number, Part
     // Movement classification drives completed Brave Stride rewards.
     movementSkill: true,
     castTimeMs: 500,
-    sideEffects: [{ on: 'castCommit', do: { type: 'warrior.adrenaline', amount: 5 } }],
+    sideEffects: [{ on: 'castCommit', do: { type: 'warrior.grant-combat-resource', amount: 5 } }],
     effects: [
       {
         type: 'strike',

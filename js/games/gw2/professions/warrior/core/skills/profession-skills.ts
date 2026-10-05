@@ -1,4 +1,4 @@
-import { warriorResourcePolicy } from '#gw2/professions/warrior/core/mechanics/resource-policy.js';
+import { warriorBurstRules } from '#gw2/professions/warrior/resource-rules.js';
 /** Canonical Core warrior skill fragments grouped by their GW2 owner. */
 import { MODIFIER_TARGET, type Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
 import { eventSkill, targetHealthBelow } from '#gw2/platform/combat/query/runtime-query.js';
@@ -477,7 +477,7 @@ export const combustiveShotFields: NonNullable<
   RuntimeProfession<WarriorRuntimeState, WarriorSkill>['modifyComboFields']
 > = (runtime, cast, fields) => {
   if (cast.skill.id !== ID.COMBUSTIVE_SHOT) return fields;
-  const tier = warriorBurstTier(runtime, warriorResourcePolicy(runtime).burstSpend(runtime, cast.skill));
+  const tier = warriorBurstTier(runtime, warriorBurstRules(runtime).spend(runtime, cast.skill));
   const duration =
     tier * balanceProfileNumber(requireBalanceProfileFromContext(runtime, PROFILE.combustiveShot), 'durationPerTier');
   return fields?.flatMap((field) =>
