@@ -130,7 +130,14 @@ export const THIEF_WEAPONS_AXE_SKILL_MECHANICS: Readonly<Record<number, Partial<
             on: 'damage.resolved',
             actor: 'player',
             packets: 'first',
-            do: { type: 'resourceGrant', resource: 'initiative', amount: 2 }
+            // Keep the impact refund independently editable without changing its hit requirement.
+            do: {
+              type: 'resourceGrant',
+              id: 'initiative-refunded',
+              label: 'Initiative refunded',
+              resource: 'initiative',
+              amount: 2
+            }
           }
         ],
         coefficient: 1.5,

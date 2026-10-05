@@ -117,7 +117,17 @@ export const WARRIOR_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Partia
     // The heal restores two dodge bars when its cast completes.
     sideEffects: [
       { on: 'castCommit', do: { type: 'warrior.grant-combat-resource', amount: 30 } },
-      { on: 'castCommit', do: { type: 'resourceGrant', resource: 'endurance', amount: 100 } }
+      // A stable grant identity exposes this committed reward to patch authoring.
+      {
+        on: 'castCommit',
+        do: {
+          type: 'resourceGrant',
+          id: 'endurance-restored',
+          label: 'Endurance restored',
+          resource: 'endurance',
+          amount: 100
+        }
+      }
     ],
     effects: []
   },

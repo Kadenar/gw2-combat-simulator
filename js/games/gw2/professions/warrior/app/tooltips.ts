@@ -117,7 +117,7 @@ const resourceTooltip: DescribeSimulationTooltip = (balanceContext, entity) =>
       ? entity.primalBurst
         ? 'Spend adrenaline to perform a primal burst and trigger eligible burst traits.'
         : 'Spend adrenaline to perform a burst and trigger eligible burst traits. Ordinary bursts consume available adrenaline; specialization variants follow their own spending limit.'
-      : 'Apply the listed effects and gain adrenaline when the activation succeeds.'
+      : 'Apply the listed effects and gain the listed combat resource when the activation succeeds.'
   )(balanceContext, entity);
 
 const dragonSlashTooltip: DescribeSimulationTooltip = (balanceContext, entity) => {
@@ -154,11 +154,20 @@ const dragonSlashTooltip: DescribeSimulationTooltip = (balanceContext, entity) =
 /** Describes Warrior triggers and alternatives without copying balance numbers out of their simulation owners. */
 export const warriorTooltips: ProfessionTooltips = {
   skillFacts: (balanceContext, entity) => [
-    ...(entity.sideEffects ?? []).flatMap(({ do: action }) =>
-      action.type === 'warrior.adrenaline' && typeof action.amount === 'number'
-        ? [{ name: 'Adrenaline gained', detail: tooltipDecimal(action.amount) }]
-        : []
-    ),
+    // Tooltips are shared across builds, so routed rewards name both destinations while direct grants keep their owner.
+    ...(entity.sideEffects ?? []).flatMap(({ do: action }) => {
+      if (!('amount' in action) || typeof action.amount !== 'number') return [];
+      if (action.type === 'warrior.grant-combat-resource')
+        return [{ name: 'Adrenaline gained (Flow for Bladesworn)', detail: tooltipDecimal(action.amount) }];
+      if (action.type === 'resourceGrant' && ['adrenaline', 'flow'].includes(action.resource))
+        return [
+          {
+            name: action.resource === 'flow' ? 'Flow gained' : 'Adrenaline gained',
+            detail: tooltipDecimal(action.amount)
+          }
+        ];
+      return [];
+    }),
     ...Object.entries({ flowGain: 'Flow gained' }).flatMap(([field, name]) =>
       entity[field] == null ? [] : [{ name, detail: tooltipDecimal(tooltipNumber(entity, field)) }]
     ),
@@ -364,7 +373,7 @@ export const warriorTooltips: ProfessionTooltips = {
       fromProfile(CORE.signetPassives, 'attributeBonus', 'Passive power')
     ]),
     [ID.SIGNET_OF_FURY]: skillTooltip(
-      'Passively grants precision while ready. Activation grants adrenaline and temporarily increases precision and ferocity.',
+      'Passively grants precision while ready. Activation grants adrenaline (Flow for Bladesworn) and temporarily increases precision and ferocity.',
       [
         fromProfile(CORE.signetPassives, 'attributeBonus', 'Passive precision'),
         fromProfile(CORE.signetOfFuryActive, 'attributeBonus', 'Precision and ferocity during the active buff')
@@ -391,7 +400,7 @@ export const warriorTooltips: ProfessionTooltips = {
       [fromProfile(BLADESWORN.resources, 'resourceGain', 'Additional Flow per second per active window')]
     ),
     [ID.TO_THE_LIMIT]: skillTooltip(
-      'Restore endurance and gain adrenaline. Healing is outside combat simulation scope.',
+      'Restore endurance and gain adrenaline (Flow for Bladesworn). Healing is outside combat simulation scope.',
       (_c, entity) =>
         (entity.sideEffects ?? []).flatMap(({ do: action }) =>
           action.type === 'resourceGrant' && action.resource === 'endurance' && typeof action.amount === 'number'
