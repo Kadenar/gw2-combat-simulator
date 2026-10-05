@@ -54,11 +54,13 @@ export function bindGaleshotUi(catalog: Readonly<CanonicalCatalog<RangerSkill>>)
       if (skill.id === ID.SUMMON_CYCLONE_BOW || skill.id === ID.DISMISS_CYCLONE_BOW)
         return { tileActive: (skill.id === ID.DISMISS_CYCLONE_BOW) === Boolean(state.cycloneBowActive) };
       if (skill.id === ID.HAWKEYE || skill.id === ID.KEEN_SHOT) {
-        const maximum = balanceProfileNumber(
-          requireBalanceProfileFromContext({ catalog: context.catalog ?? catalog }, PROFILE.resources),
-          'minimumStacks'
-        );
-        return { tileActive: (skill.id === ID.HAWKEYE) === (state.windForce || 0) >= maximum };
+        const maximum =
+          state.windForce?.maximum ??
+          balanceProfileNumber(
+            requireBalanceProfileFromContext({ catalog: context.catalog ?? catalog }, PROFILE.resources),
+            'minimumStacks'
+          );
+        return { tileActive: (skill.id === ID.HAWKEYE) === (state.windForce?.value ?? 0) >= maximum };
       }
     },
     // null = suppress the row entirely; undefined = fall through to default rendering.
@@ -103,7 +105,8 @@ export function bindGaleshotUi(catalog: Readonly<CanonicalCatalog<RangerSkill>>)
     resourceViews: (context: RangerUiContext): ProfessionResourceView[] => {
       const state = rangerUiState(context);
       const profile = requireBalanceProfileFromContext({ catalog: context.catalog ?? catalog }, PROFILE.resources);
-      const maximumWindForce = balanceProfileNumber(profile, 'minimumStacks');
+      // Observed clocks carry the selected cap; build-only displays use the bound catalog.
+      const maximumWindForce = state.windForce?.maximum ?? balanceProfileNumber(profile, 'minimumStacks');
       const maximum =
         state.arrows?.maximum ?? context.resources?.arrows?.maximum ?? balanceProfileNumber(profile, 'maximumStacks');
       return [
@@ -128,7 +131,7 @@ export function bindGaleshotUi(catalog: Readonly<CanonicalCatalog<RangerSkill>>)
           singular: 'Wind Force',
           plural: 'Wind Force',
           maximum: maximumWindForce,
-          value: state.windForce || 0,
+          value: state.windForce?.value ?? 0,
           startMaximum: maximumWindForce,
           canStart: false,
           displayMode: 'pips',

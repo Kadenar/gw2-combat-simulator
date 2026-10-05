@@ -29,12 +29,14 @@ import type { MesmerCoreState } from '#gw2/professions/mesmer/core/state.js';
 import type { MesmerVirtuosoState } from '#gw2/professions/mesmer/specializations/virtuoso/state.js';
 import type { ParagonState } from '#gw2/professions/warrior/specializations/paragon/state.js';
 import type { ResourceClock } from '#gw2/platform/combat/resources/clock.js';
+import type { GaleshotState } from '#gw2/professions/ranger/specializations/galeshot/state.js';
 
 type Assert<T extends true> = T;
 type Owns<TState, TField extends PropertyKey> = TField extends keyof TState ? true : false;
 type Rejects<TState, TField extends PropertyKey> = TField extends keyof TState ? false : true;
 
 export type ProfessionModuleStateBoundaryAssertions = [
+  Assert<GaleshotState['windForce'] extends ResourceClock ? true : false>,
   Assert<ParagonState['motivation'] extends ResourceClock ? true : false>,
   Assert<Rejects<ParagonState, 'maximumMotivation'>>,
   Assert<Owns<ElementalistCoreState, 'primaryAttunement'>>,

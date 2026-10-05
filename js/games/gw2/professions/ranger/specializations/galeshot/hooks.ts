@@ -6,11 +6,14 @@ import {
 } from '#gw2/professions/ranger/specializations/galeshot/mechanics/cyclone-bow.js';
 import {
   activateMistral,
-  grantWindForce,
   scheduleWindForce,
   setCycloneBow
 } from '#gw2/professions/ranger/specializations/galeshot/skills/index.js';
-import { galeshotArrows, galeshotState } from '#gw2/professions/ranger/specializations/galeshot/state.js';
+import {
+  galeshotArrows,
+  galeshotWindForce,
+  galeshotState
+} from '#gw2/professions/ranger/specializations/galeshot/state.js';
 import {
   applyGaleshotCycloneBowTraits,
   completeGaleshotSkill,
@@ -26,14 +29,14 @@ export const galeshotHooks: RuntimeHooks<RangerRuntimeState, RangerSkill> = {
     galeshotState.from(runtime).cycloneBowActive = Boolean(skill?.cycloneBowSkill);
   },
 
-  resources: { arrows: galeshotArrows },
+  resources: { arrows: galeshotArrows, windForce: galeshotWindForce },
   availability: galeshotCastAvailability,
   sideEffectHandlers: {
     'ranger.arrow-spend'(runtime, context) {
       runtime.resourceController.spend('arrows', Number(context.skill.arrowCost));
     },
     'ranger.hawkeye'(runtime) {
-      galeshotState.from(runtime).windForce = 0;
+      runtime.resourceController.replace('windForce', 0);
     },
     'ranger.wind-force-start'(runtime, context) {
       if (context.kind === 'cast') scheduleWindForce(runtime, context.cast);
@@ -53,7 +56,12 @@ export const galeshotHooks: RuntimeHooks<RangerRuntimeState, RangerSkill> = {
     if (skill.id === ID.PET_SWAP) state.wutheringWindReady = false;
     completeGaleshotSkill(runtime, skill);
   },
-  tasks: { 'ranger.wind-force': grantWindForce },
+  tasks: {
+    // Scheduled rewards survive bar dismissal; only their original cast gate decides whether to enqueue them.
+    'ranger.wind-force'(runtime, gain) {
+      runtime.resourceController.grant('windForce', Number(gain));
+    }
+  },
   reactions: {
     'damage.resolved'(runtime, event) {
       reactToGaleshotMissile(runtime, event);

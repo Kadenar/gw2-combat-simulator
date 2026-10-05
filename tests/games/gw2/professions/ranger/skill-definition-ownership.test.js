@@ -138,7 +138,7 @@ test('Galeshot pays attempted arrows and schedules Wind Force before the cast co
           tasks: {
             ...native.tasks,
             'test.wind-force'(runtime) {
-              probes.push(runtime.profession.specialization.state.windForce);
+              probes.push(runtime.profession.specialization.state.windForce.value);
             }
           }
         };
@@ -157,7 +157,7 @@ test('Galeshot pays attempted arrows and schedules Wind Force before the cast co
   });
   assert.deepEqual(cancelled.warnings, []);
   assert.equal(observedRuntime(cancelled).profession.specialization.state.arrows.value, 7);
-  assert.equal(observedRuntime(cancelled).profession.specialization.state.windForce, 0);
+  assert.equal(observedRuntime(cancelled).profession.specialization.state.windForce.value, 0);
 });
 
 // A queued replacement applies after old-charge consumption, even while the stance queues same-time follow-up work.

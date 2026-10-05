@@ -36,7 +36,13 @@ export const GALESHOT_BASE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skil
       {
         on: 'castStart',
         when: (_runtime, cast) => !cast.cancelled,
-        do: { type: 'resourceGrant', resource: 'arrows', amount: { skillField: 'arrowsRestored' } }
+        do: {
+          type: 'resourceGrant',
+          id: 'arrows-restored',
+          label: 'Arrows restored',
+          resource: 'arrows',
+          amount: { skillField: 'arrowsRestored' }
+        }
       }
     ],
     castTimeMs: 320,
@@ -58,7 +64,13 @@ export const GALESHOT_BASE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skil
       {
         on: 'castStart',
         when: (_runtime, cast) => !cast.cancelled,
-        do: { type: 'resourceGrant', resource: 'arrows', amount: { skillField: 'arrowsRestored' } }
+        do: {
+          type: 'resourceGrant',
+          id: 'arrows-restored',
+          label: 'Arrows restored',
+          resource: 'arrows',
+          amount: { skillField: 'arrowsRestored' }
+        }
       }
     ],
     // Share timing defaults while preserving each packet, effect order, and local schedule.
@@ -116,7 +128,13 @@ export const GALESHOT_BASE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skil
       {
         on: 'castStart',
         when: (_runtime, cast) => !cast.cancelled,
-        do: { type: 'resourceGrant', resource: 'arrows', amount: { skillField: 'arrowsRestored' } }
+        do: {
+          type: 'resourceGrant',
+          id: 'arrows-restored',
+          label: 'Arrows restored',
+          resource: 'arrows',
+          amount: { skillField: 'arrowsRestored' }
+        }
       }
     ],
     effects: [
@@ -324,15 +342,6 @@ export function scheduleWindForce(runtime: RangerRuntime, cast: RuntimeCast<Rang
     runtime.schedule('ranger.wind-force', at, Number(skill.windForceGain));
 }
 
-/** Apply the scheduled gain against the live cap without coupling its lifetime to the current bar. */
-export function grantWindForce(runtime: RangerRuntime, gain: unknown): void {
-  const state = galeshotState.from(runtime);
-  state.windForce = Math.min(
-    balanceProfileNumber(requireBalanceProfileFromContext(runtime, PROFILE.resources), 'minimumStacks'),
-    state.windForce + Number(gain)
-  );
-}
-
 /** Later projectiles consume this live window through the shared Mistral observer. */
 export function activateMistral(runtime: RangerRuntime): void {
   galeshotState.from(runtime).mistralUntil = canonicalTime(
@@ -345,7 +354,7 @@ export function activateMistral(runtime: RangerRuntime): void {
 export function setCycloneBow(runtime: RangerRuntime, skill: Skill, active: boolean): void {
   const state = galeshotState.from(runtime);
   state.cycloneBowActive = active;
-  if (!active) state.windForce = 0;
+  if (!active) runtime.resourceController.replace('windForce', 0);
   resetAutoattackChains(runtime);
   runtime.effects.emit({
     kind: 'packet',

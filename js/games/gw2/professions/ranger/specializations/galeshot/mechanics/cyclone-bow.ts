@@ -1,7 +1,6 @@
 import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
 import { denySkillCast as deny } from '#gw2/platform/execution/availability.js';
 import {
-  balanceProfileNumber,
   effectNumber,
   requireBalanceProfileFromContext,
   requireEffect
@@ -116,15 +115,14 @@ export function galeshotCastAvailability(
     return deny(skill, 'ranger.arrows', `requires ${skill.arrowCost} arrows.`);
   }
 
-  const maximumWindForce = balanceProfileNumber(
-    requireBalanceProfileFromContext(context, PROFILE.resources),
-    'minimumStacks'
-  );
-  if (skill.id === ID.HAWKEYE && state.windForce < maximumWindForce) {
+  // Availability and the palette share the selected pool's cap, including isolated catalog overrides.
+  const maximumWindForce = state.windForce.maximum;
+  const windForce = context.resourceController.value('windForce');
+  if (skill.id === ID.HAWKEYE && windForce < maximumWindForce) {
     return deny(skill, 'ranger.wind-force', `requires ${maximumWindForce} Wind Force.`);
   }
 
-  if (skill.id === ID.KEEN_SHOT && state.windForce >= maximumWindForce) {
+  if (skill.id === ID.KEEN_SHOT && windForce >= maximumWindForce) {
     return deny(skill, 'ranger.hawkeye-ready', `Hawkeye replaces Keen Shot at ${maximumWindForce} Wind Force.`);
   }
 

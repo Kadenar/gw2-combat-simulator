@@ -7,6 +7,7 @@ test('profession resource clocks render through the shared meter UI', async ({ p
     ['thief', null, 'initiative', 'initiative'],
     ['guardian', 'Firebrand', 'pages', 'tomePages'],
     ['ranger', 'Galeshot', 'arrows', 'arrows'],
+    ['ranger', 'Galeshot', 'wind-force', 'windForce'],
     ['revenant', null, 'energy', 'energy'],
     ['necromancer', null, 'life-force', 'lifeForce'],
     ['elementalist', 'Catalyst', 'catalyst-energy', 'catalystEnergy'],
@@ -18,7 +19,10 @@ test('profession resource clocks render through the shared meter UI', async ({ p
     if (specialization) {
       const picker = page.locator('.spec-picker').last();
       await picker.locator('summary').click();
-      await picker.getByRole('button', { name: specialization, exact: true }).click();
+      // A second resource check can revisit the persisted selection, whose picker button is disabled.
+      const option = picker.getByRole('button', { name: specialization, exact: true });
+      if ((await option.getAttribute('aria-pressed')) === 'true') await picker.locator('summary').click();
+      else await option.click();
     }
 
     await page.waitForFunction(() => window.professionApp.buildRevision === window.professionApp.resultRevision);

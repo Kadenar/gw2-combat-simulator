@@ -89,7 +89,7 @@ test('Galeshot palette and Wind Force display use the patched threshold', () => 
           initialize(runtime) {
             const state = galeshotState.from(runtime);
             state.cycloneBowActive = true;
-            state.windForce = value;
+            runtime.resourceController.replace('windForce', value);
           }
         }
       );
