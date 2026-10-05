@@ -51,7 +51,9 @@ test('ordinary completion replaces Band Together with one finite charge and cann
   state.bandTogether = grantCharges(1, 99);
   runtime.time = ordinary.effectiveEnd;
   apply(ordinary, 'castCommit');
-  const duration = runtime.helpers.balanceProfilesById.get(PROFILE.bandTogether).effects.find((effect) => effect.kind === 'band-together').duration;
+  const duration = runtime.helpers.balanceProfilesById
+    .get(PROFILE.bandTogether)
+    .effects.find((effect) => effect.kind === 'band-together').duration;
   assert.deepEqual(state.bandTogether, grantCharges(1, runtime.time + duration));
   const granted = state.bandTogether;
   runtime.time += 1;
@@ -73,7 +75,10 @@ test('only mapped skills are eligible, readiness is read-only, and acceptance ex
     const accepted = cast(ID.ICERAZORS_IRE);
     apply(accepted, 'castStart');
     assert.equal(state.bandTogether.charges, at < 2 ? 0 : 1);
-    assert.deepEqual(renegadeHooks.modifyEffects(runtime, accepted, accepted.skill.effects), at < 2 ? [] : accepted.skill.effects);
+    assert.deepEqual(
+      renegadeHooks.modifyEffects(runtime, accepted, accepted.skill.effects),
+      at < 2 ? [] : accepted.skill.effects
+    );
     const next = cast(ID.DARKRAZORS_DARING);
     apply(next, 'castStart');
     assert.equal(renegadeHooks.modifyEffects(runtime, next, next.skill.effects), next.skill.effects);
@@ -105,7 +110,10 @@ test('acceptance spends and records the enhanced profile before rewards and pres
   apply(accepted, 'castCommit');
   assert.equal(state.bandTogether, replacement);
   assert.equal(state.bandTogether.charges, 1);
-  assert.equal(emitted.events.some((event) => event.kind === 'band-together'), false);
+  assert.equal(
+    emitted.events.some((event) => event.kind === 'band-together'),
+    false
+  );
 });
 
 test('Band Together observations and public grants are detached from their owner', () => {
@@ -121,5 +129,11 @@ test('Band Together observations and public grants are detached from their owner
   assert.equal(state.bandTogether.charges, 1);
   state.bandTogether.charges = 0;
   assert.equal(effectStateValue(effect, 1).count, 1);
-  assert.equal(effectStateValue(renegadeEffectStates(runtime).find(({ kind }) => kind === 'band-together'), 1).count, 0);
+  assert.equal(
+    effectStateValue(
+      renegadeEffectStates(runtime).find(({ kind }) => kind === 'band-together'),
+      1
+    ).count,
+    0
+  );
 });

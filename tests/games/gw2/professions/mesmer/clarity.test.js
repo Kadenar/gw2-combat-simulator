@@ -15,9 +15,15 @@ function fixture() {
   const native = mesmerProfession.runtimeFor(config);
   const emitted = captureEffectEmissions();
   const runtime = { config, time: 1, profession: native.createState(config), effects: emitted.effects };
-  const apply = (at, duration, includesSelf = true) => applyMesmerClarity(runtime, {
-    type: 'buff', kind: 'clarity', at, duration, resolvedAudience: { includesSelf }, skillName: 'Mind the Gap'
-  });
+  const apply = (at, duration, includesSelf = true) =>
+    applyMesmerClarity(runtime, {
+      type: 'buff',
+      kind: 'clarity',
+      at,
+      duration,
+      resolvedAudience: { includesSelf },
+      skillName: 'Mind the Gap'
+    });
   return { runtime, core: runtime.profession.core, apply, emitted };
 }
 
@@ -72,7 +78,11 @@ test('a nonqualifying spear attack preserves Clarity while a canceled qualifying
     const result = runMesmer(
       [{ skillId: canceled ? ID.MENTAL_COLLAPSE : ID.PSYCUT, ...(canceled ? { interruptAfterMs: 100 } : {}) }],
       { specialization: 'Core', primaryWeapon: 'Spear', selectedTraitIds: [], boons: {} },
-      { initialize(runtime) { runtime.profession.core.clarity = { charges: 1, expiresAt: 10 }; } }
+      {
+        initialize(runtime) {
+          runtime.profession.core.clarity = { charges: 1, expiresAt: 10 };
+        }
+      }
     );
     assert.deepEqual(result.warnings, []);
     assert.equal(result.events.find((event) => event.type === 'action').cancelled, canceled);
