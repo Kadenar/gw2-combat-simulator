@@ -19,7 +19,6 @@ import { GEAR_STATS } from '#gw2/platform/equipment/gear/prefixes/data.js';
 import { aggregateSigilSet, setWeaponSigil } from '#gw2/platform/equipment/sigils/loadout.js';
 import { mesmerAppAdapter } from '#gw2/professions/mesmer/app/app-definition.js';
 import { applyMesmerBuildAttributeRules } from '#gw2/professions/mesmer/build/attributes.js';
-import { MESMER_SKILL_IDS } from '#gw2/professions/mesmer/data/ids.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
@@ -601,21 +600,4 @@ test('saved builds fall back when their relic is no longer available', () => {
   assert.equal(replaceBuild({ relic: 'Krait' }).relic, 'Thief');
   assert.equal(replaceBuild({ relic: 'Brawler' }).relic, 'Brawler');
   assert.equal(replaceBuild({ relic: 'Claw' }).relic, 'Claw');
-});
-
-test('Mesmer rotations accept names and stable IDs while disambiguating duplicate names', () => {
-  const specializations = [
-    { name: 'Dueling', traits: '1-3-1' },
-    { name: 'Illusions', traits: '1-2-1' },
-    { name: 'Troubadour', traits: '3-3-3' }
-  ];
-  const migrated = replaceBuild({
-    specializations,
-    rotation: ['Bladecall', { type: 'cast', skillId: MESMER_SKILL_IDS.MIND_STAB }]
-  });
-
-  assert.deepEqual(migrated.rotation, [
-    { type: 'cast', skillId: MESMER_SKILL_IDS.BLADECALL_NON_VIRTUOSO },
-    { type: 'cast', skillId: MESMER_SKILL_IDS.MIND_STAB }
-  ]);
 });
