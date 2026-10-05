@@ -416,17 +416,18 @@ export function bindElementalistCoreUi(catalog: Readonly<CanonicalCatalog<Elemen
     /** Declare this module's conditional inputs without adding simulation settings. */
     previewControls(context: ProfessionAttributePreviewContext) {
       const preview = createPreviewControls(context);
-      // Orb composition is a damage input, independent of generating the orbs through casts.
-      for (const element of ELEMENTALIST_ATTUNEMENTS)
-        preview.add({
-          key: `finaleOrb:${element}`,
-          label: `${element} orb`,
-          group: 'Grand Finale',
-          kind: 'special',
-          scope: ['damage'],
-          initial: 1,
-          description: 'Include this orb in Grand Finale'
-        });
+      // Grand Finale's orb inputs only apply when this weapon set can use Hammer skills.
+      if (context.weapons.includes('Hammer'))
+        for (const element of ELEMENTALIST_ATTUNEMENTS)
+          preview.add({
+            key: `finaleOrb:${element}`,
+            label: `${element} orb`,
+            group: 'Grand Finale',
+            kind: 'special',
+            scope: ['damage'],
+            initial: 1,
+            description: 'Include this orb in Grand Finale'
+          });
       // Slot skills use this start element; weapon rows retain the attunement required by their own skill.
       preview.add({
         key: 'damageAttunement',
