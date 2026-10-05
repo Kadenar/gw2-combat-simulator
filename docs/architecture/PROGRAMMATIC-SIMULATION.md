@@ -308,22 +308,22 @@ defaults.
 
 The commonly useful result fields are:
 
-| Field                                       | Meaning                                                                                     |
-| ------------------------------------------- | ------------------------------------------------------------------------------------------- |
-| `rotationEndTime`                           | End of the entered rotation, in absolute timeline seconds                                   |
-| `observationEndTime`                        | Requested observation end, including any tail, in seconds                                   |
-| `combatEndTime`                             | Target death or observation end, in seconds                                                 |
-| `combatStartTime`, `hasExplicitCombatStart` | Precast/combat boundary and whether a marker supplied it                                    |
-| `dpsStartTime`, `dpsWindow`                 | Reference time and measured DPS window                                                      |
-| `firstHitTime`, `lastHitTime`, `deathTime`  | Damage and target-death timing                                                              |
-| `totalDamage`, `dps`                        | Overall result                                                                              |
-| `strikeDamage`, `conditionDamage`           | Damage split                                                                                |
-| `breakdown`, `conditionBreakdown`           | Raw contribution data                                                                       |
-| `casts`                                     | Aggregate cast counts                                                                       |
-| `events`, `resolvedEvents`                  | Dispatched packets (including attempted misses/precasts) and committed combat reports       |
-| `warnings`                                  | Invalid or constrained rotation behavior                                                    |
-| `planningState`                             | Observed continuation at `atSeconds`: cooldowns, ammo, weapon set, and profession resources |
-| `randomness`                                | Actual resolution mode and seed                                                             |
+| Field                                       | Meaning                                                                                                                    |
+| ------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------- |
+| `rotationEndTime`                           | End of the entered rotation, in absolute timeline seconds                                                                  |
+| `observationEndTime`                        | Requested observation end, including any tail, in seconds                                                                  |
+| `combatEndTime`                             | Target death or observation end, in seconds                                                                                |
+| `combatStartTime`, `hasExplicitCombatStart` | Precast/combat boundary and whether a marker supplied it                                                                   |
+| `dpsStartTime`, `dpsWindow`                 | Reference time and measured DPS window                                                                                     |
+| `firstHitTime`, `lastHitTime`, `deathTime`  | Damage and target-death timing                                                                                             |
+| `totalDamage`, `dps`                        | Overall result                                                                                                             |
+| `strikeDamage`, `conditionDamage`           | Damage split                                                                                                               |
+| `breakdown`, `conditionBreakdown`           | Raw contribution data                                                                                                      |
+| `casts`                                     | Aggregate cast counts                                                                                                      |
+| `events`, `resolvedEvents`                  | Dispatched packets (including attempted misses/precasts) and committed combat reports                                      |
+| `warnings`                                  | Invalid or constrained rotation behavior                                                                                   |
+| `planningState`                             | Observed continuation at `atSeconds`: skill-ID-keyed `cooldowns` and `ammoBySkillId`, weapon set, and profession resources |
+| `randomness`                                | Actual resolution mode and seed                                                                                            |
 
 All boundary times and `planningState.atSeconds` use absolute timeline seconds. Planning continues through the requested
 horizon after target death; combat effects stop at `combatEndTime`. Cooldown `readyAt` and `remaining` values retain
