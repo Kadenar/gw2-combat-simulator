@@ -1,3 +1,4 @@
+import { observedRuntime } from '#tests/helpers/observed-runtime.js';
 import { captureEffectEmissions } from '#tests/helpers/effect-emission.js';
 import { skillBreakdownRows } from '#gw2/app/results/skill-breakdown.js';
 import { rotationSelectedSlotSkills } from '#gw2/app/rotation/palette/model.js';
@@ -364,15 +365,16 @@ test("Evasive Arcana uses the active attunement's native trait skill", () => {
 test('Elementalist behavior follows skill IDs after display labels change', () => {
   const fireAttunement = { ...elementalistCatalog.skillsById.get(ID.FIRE_ATTUNEMENT), name: 'Renamed attunement' };
   const ignite = { ...elementalistCatalog.skillsById.get(ID.IGNITE), name: 'Renamed familiar' };
-  const state = evokerState.create({ evokerElement: 'Fire', initialEvokerCharges: 6 });
-  const context = {
-    helpers: elementalistCatalog,
-    profession: { core: {}, specialization: { kind: 'Evoker', state } },
-    time: 0,
-    start: 0,
-    commandIndex: 0,
-    config: { selectedTraitIds: [] }
-  };
+  // Pool policies seed the fixture through the same initialization boundary as simulation.
+  const context = observedRuntime(
+    runElementalist([], {
+      specialization: 'Evoker',
+      evokerElement: 'Fire',
+      initialEvokerCharges: 6,
+      selectedTraitIds: []
+    })
+  ).mechanics;
+  const state = evokerState.from(context);
 
   assert.equal(targetAttunement(fireAttunement), 'Fire');
   assert.deepEqual(evokerModule.hooks.availability(context, ignite), { ready: true });

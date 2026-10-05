@@ -1,3 +1,4 @@
+import { initializeSpecializedElements } from '#gw2/professions/elementalist/specializations/evoker/traits/attunements.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import type { SkillTaskData } from '#gw2/platform/execution/cast-contracts.js';
 import { damageInputEvent } from '#gw2/platform/skill-damage/occurrence-driver.js';
@@ -23,7 +24,8 @@ import {
 } from '#gw2/professions/elementalist/specializations/evoker/mechanics/familiars.js';
 import {
   flushPendingWeaponChargeGains,
-  initialize
+  familiarChargePolicy,
+  empoweredChargePolicy
 } from '#gw2/professions/elementalist/specializations/evoker/mechanics/resources.js';
 import { evokerState } from '#gw2/professions/elementalist/specializations/evoker/state.js';
 import { emitElectricEnchantment } from '#gw2/professions/elementalist/specializations/evoker/traits/enchantments.js';
@@ -31,6 +33,7 @@ import { applyAltruisticAspect } from '#gw2/professions/elementalist/specializat
 import type { ElementalistRuntimeState, ElementalistSkill } from '#gw2/professions/elementalist/types.js';
 /** Familiar casts own pending packets; accepted impacts spend enchantments in chronological order. */
 export const evokerHooks: RuntimeHooks<ElementalistRuntimeState, ElementalistSkill> = {
+  resources: { familiarCharges: familiarChargePolicy, empoweredCharges: empoweredChargePolicy },
   // Invoke the damage payload without activation requirements and reuse its proc icon in the damage preview.
   damageEffects: [
     {
@@ -45,7 +48,7 @@ export const evokerHooks: RuntimeHooks<ElementalistRuntimeState, ElementalistSki
   ],
 
   initialize(runtime) {
-    initialize(runtime);
+    initializeSpecializedElements(runtime);
     registerElementalistEliteEvents(runtime, onAcceptedEvent);
     registerElementalistAttunementTransition(runtime, (context, cast) => {
       completeEvokerAttunement(context, cast, cast.skill);

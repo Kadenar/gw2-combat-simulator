@@ -1,3 +1,4 @@
+import type { EvokerState } from '#gw2/professions/elementalist/specializations/evoker/state.js';
 import type { WarriorCoreState } from '#gw2/professions/warrior/core/state.js';
 import type { BladeswornState } from '#gw2/professions/warrior/specializations/bladesworn/state.js';
 import { createDiscreteResourceClock } from '#gw2/platform/combat/resources/resource-policy.js';
@@ -38,6 +39,11 @@ type Owns<TState, TField extends PropertyKey> = TField extends keyof TState ? tr
 type Rejects<TState, TField extends PropertyKey> = TField extends keyof TState ? false : true;
 
 export type ProfessionModuleStateBoundaryAssertions = [
+  Assert<EvokerState['familiarCharges'] extends ResourceClock ? true : false>,
+  Assert<EvokerState['empoweredCharges'] extends ResourceClock ? true : false>,
+  Assert<Rejects<EvokerState, 'charges'>>,
+  Assert<Rejects<EvokerState, 'maximumCharges'>>,
+  Assert<Rejects<EvokerState, 'empowered'>>,
   Assert<WarriorCoreState['adrenaline'] extends ResourceClock ? true : false>,
   Assert<BladeswornState['flow'] extends ResourceClock ? true : false>,
   Assert<BladeswornState['dragonCharges'] extends ResourceClock ? true : false>,

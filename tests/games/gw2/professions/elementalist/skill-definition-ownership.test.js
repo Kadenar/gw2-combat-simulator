@@ -477,8 +477,8 @@ test('Elemental Procession replays only surviving familiar payloads without fami
     );
     assert.deepEqual(result.warnings, []);
     const state = observedRuntime(result).profession.specialization.state;
-    assert.equal(state.charges, 4);
-    assert.equal(state.empowered, 2);
+    assert.equal(state.familiarCharges.value, 4);
+    assert.equal(state.empoweredCharges.value, 2);
     assert.deepEqual(state.electricEnchantmentGrants, []);
     assert.equal(
       result.resolvedEvents.some(
@@ -868,8 +868,8 @@ test('familiar declarations reset their pools before deferred grants and the nex
               run(runtime) {
                 observed = true;
                 const state = runtime.profession.specialization.state;
-                assert.equal(state.charges, !removed && basic ? 2 : 6);
-                assert.equal(state.empowered, removed ? (basic ? 1 : 3) : basic ? 2 : 0);
+                assert.equal(state.familiarCharges.value, !removed && basic ? 2 : 6);
+                assert.equal(state.empoweredCharges.value, removed ? (basic ? 1 : 3) : basic ? 2 : 0);
                 assert.equal(state.activeFamiliarCast, null);
                 assert.equal(state.pendingWeaponChargeGains.length, removed ? 1 : 0);
               }
@@ -912,7 +912,8 @@ test('meditation declarations own their live-element bonuses and refill before A
         assert.deepEqual(result.warnings, []);
         const state = observedRuntime(result).profession.specialization.state;
         const buffs = result.resolvedEvents.filter((event) => event.type === 'buff');
-        if (id === ID.REJUVENATE) assert.equal(state.charges, removed ? 2 : state.maximumCharges);
+        if (id === ID.REJUVENATE)
+          assert.equal(state.familiarCharges.value, removed ? 2 : state.familiarCharges.maximum);
         if (id === ID.HARES_AGILITY) assert.equal(state.electricEnchantmentGrants.length > 0, !removed);
         if (id === ID.TOADS_FORTITUDE)
           assert.equal(

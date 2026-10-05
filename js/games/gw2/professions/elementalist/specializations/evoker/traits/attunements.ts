@@ -148,10 +148,7 @@ export function applyEvokerEntryTraits(context: ElementalistRuntime, event: Simu
   // Elemental Dynamo turns each entry into familiar charges and reports the new total
   if (!hasTrait(context, TRAIT.ELEMENTAL_DYNAMO)) return;
   const elementalDynamoProfile = requireBalanceProfileFromContext(context, TRAIT.ELEMENTAL_DYNAMO);
-  state.charges = Math.min(
-    state.maximumCharges,
-    state.charges + balanceProfileNumber(elementalDynamoProfile, 'resourceGain')
-  );
+  context.resourceController.grant('familiarCharges', balanceProfileNumber(elementalDynamoProfile, 'resourceGain'));
   context.effects.emit({
     kind: 'packet',
     cause: event,
@@ -163,9 +160,9 @@ export function applyEvokerEntryTraits(context: ElementalistRuntime, event: Simu
       actorType: 'player',
       skillName: 'Elemental Dynamo',
       kind: 'evoker-charges',
-      value: state.charges,
-      maximum: state.maximumCharges,
-      empowered: state.empowered
+      value: state.familiarCharges.value,
+      maximum: state.familiarCharges.maximum,
+      empowered: state.empoweredCharges.value
     }
   });
 }

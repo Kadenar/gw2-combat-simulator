@@ -15,7 +15,7 @@ const SPECIALIZATION_STATE_KEYS = Object.freeze({
   Tempest: [],
   Weaver: ['secondaryAttunement', 'unravelUntil', 'weaveSelfUntil'],
   Catalyst: ['catalystEnergy', 'sphereActiveUntil'],
-  Evoker: ['charges', 'empowered']
+  Evoker: ['familiarCharges', 'empoweredCharges']
 });
 
 function modifierIds(module) {

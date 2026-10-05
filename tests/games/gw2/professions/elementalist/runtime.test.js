@@ -158,7 +158,7 @@ test('interrupting a familiar releases deferred weapon charges once', () => {
       }
     }
   );
-  assert.equal(observedRuntime(result).profession.specialization.state.charges, 2);
+  assert.equal(observedRuntime(result).profession.specialization.state.familiarCharges.value, 2);
 });
 
 test('deferred weapon charges report the actual flush time once', () => {
@@ -176,14 +176,14 @@ test('deferred weapon charges report the actual flush time once', () => {
           elementalistCatalog.skillsById.get(ID.BLAZING_BARRAGE),
           state
         );
-        assert.equal(state.charges, 0);
+        assert.equal(state.familiarCharges.value, 0);
       },
       timeline: [
         {
           at: 2,
           run(runtime) {
             const state = runtime.profession.specialization.state;
-            state.charges = 0;
+            runtime.resourceController.replace('familiarCharges', 0);
             flushPendingWeaponChargeGains(runtime, state);
             flushPendingWeaponChargeGains(runtime, state);
             assert.deepEqual(state.pendingWeaponChargeGains, []);

@@ -19,6 +19,8 @@ export const RESOURCE_KEYS = [
   'adrenaline',
   'flow',
   'dragonCharges',
+  'familiarCharges',
+  'empoweredCharges',
   'lifeForce'
 ] as const;
 export type ResourceKey = (typeof RESOURCE_KEYS)[number];

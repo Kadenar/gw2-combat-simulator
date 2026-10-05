@@ -170,7 +170,7 @@ test('Evoker familiar flip interruption cancels both familiar attacks', () => {
       ),
       false
     );
-    assert.equal(result.planningState.profession.empowered, 1);
+    assert.equal(result.planningState.profession.empoweredCharges.value, 1);
   }
 });
 
@@ -659,7 +659,7 @@ test('Evoker traits enforce familiar boons, enchantments, and charge rules', () 
       .length,
     2
   );
-  assert.equal(offensive.planningState.profession.maximumCharges, 6);
+  assert.equal(offensive.planningState.profession.familiarCharges.maximum, 6);
 
   const boons = runNative({
     lines: [['Fire'], ['Air'], ['Evoker', '2-2-2']],

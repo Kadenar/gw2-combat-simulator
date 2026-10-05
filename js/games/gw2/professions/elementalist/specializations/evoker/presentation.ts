@@ -66,8 +66,8 @@ function familiarSkillId(context: ElementalistUiContext): number {
   const state = uiState(context);
   const build = context.build;
   const resourcesProfile = requireBalanceProfileFromContext(context, PROFILE.resources);
-  const empoweredMaximum = balanceProfileNumber(resourcesProfile, 'minimumStacks');
-  const empowered = state.empowered ?? build?.initialEvokerEmpowered ?? 0;
+  const empoweredMaximum = state.empoweredCharges?.maximum ?? balanceProfileNumber(resourcesProfile, 'minimumStacks');
+  const empowered = state.empoweredCharges?.value ?? build?.initialEvokerEmpowered ?? 0;
   const name = FAMILIAR_SKILL_NAMES[element][empowered >= empoweredMaximum ? 'empowered' : 'basic'];
   return ELEMENTALIST_FAMILIAR_SKILL_IDS[name];
 }
@@ -209,7 +209,7 @@ export const evokerUi: ElementalistUiSlice = Object.freeze({
     const state = uiState(context);
     const build = context.build;
     const maximum =
-      state.maximumCharges ??
+      state.familiarCharges?.maximum ??
       balanceProfileNumber(
         requireBalanceProfileFromContext(
           context,
@@ -220,15 +220,16 @@ export const evokerUi: ElementalistUiSlice = Object.freeze({
         'maximumStacks'
       );
     const resourcesProfile = requireBalanceProfileFromContext(context, PROFILE.resources);
-    const empoweredMaximum = balanceProfileNumber(resourcesProfile, 'minimumStacks');
+    const empoweredMaximum = state.empoweredCharges?.maximum ?? balanceProfileNumber(resourcesProfile, 'minimumStacks');
+    // Keep fractional patched progress in the reading; only the decorative wedge class uses whole stacks.
     const empowered = boundedNumber(
-      Math.floor(state.empowered ?? build?.initialEvokerEmpowered ?? 0),
+      state.empoweredCharges?.value ?? build?.initialEvokerEmpowered ?? 0,
       0,
       0,
       empoweredMaximum
     );
     const element = selectedElement(context).toLowerCase();
-    const charges = state.charges ?? build?.initialEvokerCharges ?? maximum;
+    const charges = state.familiarCharges?.value ?? build?.initialEvokerCharges ?? maximum;
     const basicReady = charges >= maximum;
     return [
       {
@@ -242,7 +243,7 @@ export const evokerUi: ElementalistUiSlice = Object.freeze({
         buildKey: 'initialEvokerCharges',
         step: 1,
         displayMode: 'pips',
-        pipStyle: `elementalist-evoker-${element}-${empowered}${basicReady ? '-ready' : ''}`,
+        pipStyle: `elementalist-evoker-${element}-${Math.floor(empowered)}${basicReady ? '-ready' : ''}`,
         showValue: false,
         shortLabel: 'Charges',
         statusLabel: `Familiar (${empowered}/${empoweredMaximum} empowered)`

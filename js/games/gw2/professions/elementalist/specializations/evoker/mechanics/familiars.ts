@@ -96,7 +96,7 @@ export function onCastStart(context: ElementalistRuntime, cast: RuntimeCast<Elem
   // Track pending grants so early familiar inputs can wait for their resource provider.
   if (cast.command.concurrentOffsetMs == null) {
     const gain = weaponSkillChargeGain(context, skill, state);
-    const postFamiliarGain = gain > 0 ? gain : skill.id === ID.REJUVENATE ? state.maximumCharges : 0;
+    const postFamiliarGain = gain > 0 ? gain : skill.id === ID.REJUVENATE ? state.familiarCharges.maximum : 0;
     if (postFamiliarGain > 0)
       state.pendingWeaponCompletions.push({ activationId: cast.id, at: cast.effectiveEnd, gain: postFamiliarGain });
   }
@@ -241,9 +241,9 @@ export const evokerSkillCommitTasks: NonNullable<
     const state = evokerState.from(context);
     const at = cast.effectiveEnd;
     {
-      state.charges = 0;
-      const resourcesProfile = requireBalanceProfileFromContext(context, PROFILE.resources);
-      state.empowered = Math.min(balanceProfileNumber(resourcesProfile, 'minimumStacks'), state.empowered + 1);
+      context.resourceController.replace('familiarCharges', 0);
+      // Complete the conversion before publishing its combined reading or flushing deferred rewards.
+      context.resourceController.grant('empoweredCharges', 1);
       const flip = FAMILIAR_EMPOWERED_BY_BASIC.get(skill.id);
       const empowered = flip ? context.helpers.skillsById.get(flip) : undefined;
       if (flip && empowered) {
@@ -265,7 +265,7 @@ export const evokerSkillCommitTasks: NonNullable<
     const skill = cast.skill;
     const state = evokerState.from(context);
     {
-      state.empowered = 0;
+      context.resourceController.replace('empoweredCharges', 0);
       emitResource(context, cast, skill, state);
     }
   },
@@ -274,7 +274,7 @@ export const evokerSkillCommitTasks: NonNullable<
     const skill = cast.skill;
     const state = evokerState.from(context);
     {
-      state.charges = state.maximumCharges;
+      context.resourceController.grant('familiarCharges', state.familiarCharges.maximum);
       emitResource(context, cast, skill, state);
     }
   },

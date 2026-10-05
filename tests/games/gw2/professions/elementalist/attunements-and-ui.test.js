@@ -824,7 +824,7 @@ test('Evoker derives F5 from the selected familiar', () => {
   const context = {
     build,
     specialization: 'Evoker',
-    professionState: { element: 'Air', empowered: 0 },
+    professionState: { element: 'Air', empoweredCharges: { value: 0, maximum: 3, rate: 0, updatedAt: 0 } },
     catalog: elementalistCatalog
   };
   const f5 = (professionState) =>
@@ -832,8 +832,10 @@ test('Evoker derives F5 from the selected familiar', () => {
       .paletteGroups({ ...context, professionState })
       .find((group) => group.id === 'elementalist-evoker-familiars');
 
-  assert.deepEqual(f5({ element: 'Air', empowered: 0 }).skillIds, [elementalistCatalog.skillsByName.get('Zap').id]);
-  assert.deepEqual(f5({ element: 'Air', empowered: 3 }).skillIds, [
+  assert.deepEqual(f5({ element: 'Air', empoweredCharges: { value: 0, maximum: 3, rate: 0, updatedAt: 0 } }).skillIds, [
+    elementalistCatalog.skillsByName.get('Zap').id
+  ]);
+  assert.deepEqual(f5({ element: 'Air', empoweredCharges: { value: 3, maximum: 3, rate: 0, updatedAt: 0 } }).skillIds, [
     elementalistCatalog.skillsByName.get('Lightning Blitz').id
   ]);
 
@@ -852,7 +854,7 @@ test('Evoker skill selections update the configured familiar independently of si
   const context = {
     build,
     specialization: 'Evoker',
-    professionState: { element: 'Earth', empowered: 3 },
+    professionState: { element: 'Earth', empoweredCharges: { value: 3, maximum: 3, rate: 0, updatedAt: 0 } },
     catalog: elementalistCatalog
   };
   const ui = elementalistProfession.ui;
@@ -883,7 +885,8 @@ test('Evoker familiar palette availability follows current charges', () => {
       elementalistProfession,
       { specialization: 'Evoker', evokerElement: 'Fire' },
       (runtime) => {
-        Object.assign(runtime.profession.specialization.state, { charges, maximumCharges: 6, empowered: 0 });
+        runtime.resourceController.replace('familiarCharges', charges);
+        runtime.resourceController.replace('empoweredCharges', 0);
       }
     );
     assert.equal(state.availability[skill.id].ready, charges === 6);
@@ -902,9 +905,8 @@ test('Evoker layers familiar charges beside F5', () => {
   });
   const professionState = {
     element: 'Air',
-    charges: 4,
-    maximumCharges: 6,
-    empowered: 2
+    familiarCharges: { value: 4, maximum: 6, rate: 0, updatedAt: 0 },
+    empoweredCharges: { value: 2, maximum: 3, rate: 0, updatedAt: 0 }
   };
   const context = {
     build,
@@ -944,7 +946,11 @@ test('Evoker layers familiar charges beside F5', () => {
     results: {
       planningState: {
         availability: {},
-        profession: { ...professionState, charges: 6, maximumCharges: 6, empowered: 0 }
+        profession: {
+          ...professionState,
+          familiarCharges: { value: 6, maximum: 6, rate: 0, updatedAt: 0 },
+          empoweredCharges: { value: 0, maximum: 3, rate: 0, updatedAt: 0 }
+        }
       }
     }
   });
@@ -954,7 +960,14 @@ test('Evoker layers familiar charges beside F5', () => {
     profession: elementalistProfession,
     activeCatalog: elementalistProfession.catalog,
     results: {
-      planningState: { availability: {}, profession: { ...professionState, charges: 4, empowered: 3 } }
+      planningState: {
+        availability: {},
+        profession: {
+          ...professionState,
+          familiarCharges: { value: 4, maximum: 6, rate: 0, updatedAt: 0 },
+          empoweredCharges: { value: 3, maximum: 3, rate: 0, updatedAt: 0 }
+        }
+      }
     }
   });
 
@@ -1032,7 +1045,8 @@ test('Evoker familiar stays available when its element differs from the active a
       elementalistProfession,
       { specialization: 'Evoker', evokerElement: 'Air', startAttunement: 'Fire' },
       (runtime) => {
-        Object.assign(runtime.profession.specialization.state, { charges, maximumCharges: 6, empowered: 0 });
+        runtime.resourceController.replace('familiarCharges', charges);
+        runtime.resourceController.replace('empoweredCharges', 0);
       }
     );
     assert.equal(state.availability[skill.id].ready, charges === 6);

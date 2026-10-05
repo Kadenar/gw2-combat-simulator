@@ -11,6 +11,7 @@ test('profession resource clocks render through the shared meter UI', async ({ p
     ['revenant', null, 'energy', 'energy'],
     ['necromancer', null, 'life-force', 'lifeForce'],
     ['elementalist', 'Catalyst', 'catalyst-energy', 'catalystEnergy'],
+    ['elementalist', 'Evoker', 'evoker-charges', 'familiarCharges'],
     ['warrior', 'Paragon', 'motivation', 'motivation'],
     ['warrior', 'Paragon', 'adrenaline', 'adrenaline'],
     ['warrior', 'Bladesworn', 'flow', 'flow'],
@@ -35,5 +36,14 @@ test('profession resource clocks render through the shared meter UI', async ({ p
     expect(Number.isFinite(pool.value)).toBe(true);
     expect(pool.maximum).toBeGreaterThan(0);
     expect(pool.value).toBeLessThanOrEqual(pool.maximum);
+    if (key === 'familiarCharges') {
+      // Evoker's single visible dial also consumes the separately projected empowered clock.
+      const empowered = await page.evaluate(
+        () => window.professionApp.results.planningState.profession.empoweredCharges
+      );
+      expect(Number.isFinite(empowered.value)).toBe(true);
+      expect(empowered.maximum).toBeGreaterThan(0);
+      expect(empowered.value).toBeLessThanOrEqual(empowered.maximum);
+    }
   }
 });

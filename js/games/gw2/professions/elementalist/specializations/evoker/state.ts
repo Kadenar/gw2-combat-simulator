@@ -1,8 +1,3 @@
-import { requireBalanceNumber } from '#gw2/platform/effects/validation.js';
-import {
-  EVOKER_BALANCE_PROFILES,
-  EVOKER_BALANCE_PROFILE_IDS as PROFILE
-} from '#gw2/professions/elementalist/specializations/evoker/profiles.js';
 import { activeChargeGrants, grantCharges, type ChargeGrant } from '#gw2/platform/combat/resources/charges.js';
 import { canonicalTime } from '#kernel/core/clock.js';
 import { gw2EffectExpiresAt } from '#gw2/platform/effects/timing.js';
@@ -21,20 +16,15 @@ import {
 } from '#gw2/platform/profession-definition/state.js';
 import type { ElementalistConfig } from '#gw2/professions/elementalist/build/types.js';
 import { ELEMENTALIST_ATTUNEMENTS, type ElementalistAttunement } from '#gw2/professions/elementalist/core/state.js';
-import { boundedNumber } from '#kernel/core/numeric.js';
-
-// Standalone state uses authored capacities until initialization selects the active balance profile.
-const resources = EVOKER_BALANCE_PROFILES.find((profile) => profile.id === PROFILE.resources)!;
-const maximumCharges = requireBalanceNumber(resources.maximumStacks, 'Evoker resources maximumStacks');
-const maximumEmpowered = requireBalanceNumber(resources.minimumStacks, 'Evoker resources minimumStacks');
+import { createResourceClock } from '#gw2/platform/combat/resources/resource-policy.js';
+import type { ResourceClock } from '#gw2/platform/combat/resources/clock.js';
 
 /** Per-simulation Evoker state carried across every cast, deadline, and accepted impact. */
 export interface EvokerState {
   element: ElementalistAttunement;
-  charges: number;
-  maximumCharges: number;
+  familiarCharges: ResourceClock;
   // empowered familiar stacks (0-3); reaching the maximum is what makes the flip form castable
-  empowered: number;
+  empoweredCharges: ResourceClock;
   // Independent grant windows prevent a later familiar or meditation from refreshing older charges.
   electricEnchantmentGrants: Array<ChargeGrant & { at: number }>;
   // Elemental Balance: entries into the selected element counted toward the threshold, and the armed recharge-window expiry
@@ -70,21 +60,19 @@ export interface EvokerState {
 }
 
 /**
- * Declares the 'Evoker' specialization state slice: `create` seeds it from the
- * build config, `from(context)` resolves it out of any simulation context.
+ * Allocates Evoker state and empty pool clocks; selected resource policies seed their values and capacities.
  */
 export const evokerState = defineProfessionSpecializationState(
   'Evoker',
   (config: ElementalistConfig = {}): EvokerState => {
-    // pre-simulation default; initialize() in resources.ts overwrites this from the balance profile once traits are resolved
+    // Familiar selection is configuration; resource initialization is owned by the selected policies.
     const element = ELEMENTALIST_ATTUNEMENTS.includes(config.evokerElement as ElementalistAttunement)
       ? (config.evokerElement as ElementalistAttunement)
       : 'Fire';
     return {
       element,
-      maximumCharges,
-      charges: boundedNumber(config.initialEvokerCharges ?? maximumCharges, maximumCharges, 0, maximumCharges),
-      empowered: boundedNumber(config.initialEvokerEmpowered ?? 0, 0, 0, maximumEmpowered),
+      familiarCharges: createResourceClock(),
+      empoweredCharges: createResourceClock(),
       electricEnchantmentGrants: [],
       elementalBalanceProgress: 0,
       elementalBalanceUntil: 0,
@@ -118,9 +106,8 @@ export function grantElectricEnchantments(state: EvokerState, at: number, stacks
 /** Contributed to the Elementalist family end-state projection. */
 export const EVOKER_PUBLIC_STATE_PROJECTION = definePublicStateDefaults({
   element: 'Fire',
-  charges: 0,
-  maximumCharges,
-  empowered: 0,
+  familiarCharges: createResourceClock(),
+  empoweredCharges: createResourceClock(),
   elementalBalanceProgress: 0,
   elementalBalanceUntil: 0
 } satisfies Partial<EvokerState>);
