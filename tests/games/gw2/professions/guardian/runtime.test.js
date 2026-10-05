@@ -1159,7 +1159,10 @@ test('symbol traits claim only accepted player impacts and retain delayed impact
   assert.deepEqual(result.warnings, []);
   assert.equal(core(result).symbolicAvengerExpirations.length, 1);
   const exposure = result.resolvedEvents.filter((event) => event.sourceId === TRAIT.SYMBOLIC_EXPOSURE);
-  assert.equal(exposure.length, 1);
+  assert.equal(
+    exposure.reduce((sum, event) => sum + event.stacks, 0),
+    2
+  );
   assert.equal(exposure[0].activationId, 'impact-0.4');
   assert.equal(exposure[0].at, 0.4);
 });

@@ -143,8 +143,8 @@ test('Wind Force has no passive recovery and isolates selected capacities', () =
   assert.equal(state(runRanger([], { specialization: 'Galeshot' })).windForce.maximum, 5);
 });
 
-// Removing the optional strike cannot remove Shrike's refund or discard excess projectile progress.
-test('Shrike retains overshoot and arrow cadence even when its strike is removed', () => {
+// Completing a hit cycle clears buildup; removing the optional strike cannot remove its earned arrow refund.
+test('Shrike resets hit progress and preserves arrow cadence even when its strike is removed', () => {
   for (const removed of [false, true]) {
     const result = runRanger(
       [wait(5000)],
@@ -168,7 +168,7 @@ test('Shrike retains overshoot and arrow cadence even when its strike is removed
                 actorType: 'player',
                 skillName: 'Projectile fixture'
               });
-              assert.equal(current.missileHits, 2);
+              assert.equal(current.missileHits, 0);
               assert.equal(runtime.resourceController.value('arrows'), 8);
               assert.equal(current.arrows.nextAt, 5);
               runtime.resourceController.spend('arrows', 1);

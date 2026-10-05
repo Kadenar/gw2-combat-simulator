@@ -3,6 +3,7 @@ import { RELIC_IDS } from '#gw2/platform/equipment/relics/data.js';
 import type { Gw2RelicContext, Gw2RelicState } from '#gw2/platform/equipment/relics/types.js';
 /** Last Tyrant relic rules. */
 import { isInternalCooldownReady } from '#gw2/platform/combat/procs.js';
+import { advanceCounter } from '#gw2/platform/combat/resources/counters.js';
 import { isGw2PlayerActorEvent } from '#gw2/platform/combat/state/event-ownership.js';
 import { missesTarget } from '#gw2/platform/combat/state/targets.js';
 import { defineRelic } from '#gw2/platform/equipment/relics/rules/shared.js';
@@ -34,11 +35,12 @@ export const lastTyrant = defineRelic({
     // The explosion's 12s cooldown blocks a new Fury cycle.
     if (!isInternalCooldownReady(application.at, state.readyAt)) return;
 
-    const stacks = state.stacks || 0;
-    if (stacks < LAST_TYRANT_STACKS_NEEDED) {
+    // Test the previous buildup before adding: reaching five arms a later application instead of exploding now.
+    const progress = advanceCounter(state.stacks || 0, 0, LAST_TYRANT_STACKS_NEEDED, 'reset');
+    if (!progress.reached) {
       // Fury's 250ms marker expires on the next 40ms tick; an application at expiry can grant a stack.
       if (application.at < (state.stackReadyAt || 0)) return;
-      state.stacks = stacks + 1;
+      state.stacks = advanceCounter(progress.value, 1, LAST_TYRANT_STACKS_NEEDED, 'retain').value;
       state.stackReadyAt = gw2EffectExpiresAt(application.at, LAST_TYRANT_STACK_INTERNAL_COOLDOWN);
       ctx.effects.emit({
         kind: 'announcement',
@@ -58,7 +60,7 @@ export const lastTyrant = defineRelic({
     }
 
     // At max Fury stacks, the next burning application explodes even while the short marker is active.
-    state.stacks = 0;
+    state.stacks = progress.value;
     state.readyAt = application.at + LAST_TYRANT_INTERNAL_COOLDOWN;
     emitDamagePayload(ctx, state, application);
   }

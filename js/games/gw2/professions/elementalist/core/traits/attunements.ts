@@ -1,4 +1,5 @@
 import { buffApplicationStacks } from '#gw2/platform/combat/boons.js';
+import { advanceCounter } from '#gw2/platform/combat/resources/counters.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
 import {
@@ -281,44 +282,44 @@ export function triggerBountifulPower(
   if (!hasTrait(context, TRAIT.BOUNTIFUL_POWER)) return;
   const bountifulPowerProfile = requireBalanceProfileFromContext(context, TRAIT.BOUNTIFUL_POWER);
   const threshold = balanceProfileNumber(bountifulPowerProfile, 'threshold');
-  // Nonpositive custom thresholds disable this proc so each loop iteration must consume progress.
+  // Nonpositive custom thresholds disable this proc.
   if (threshold <= 0) return;
   const state = professionCoreState(context);
-  state.bountifulPowerProgress += stacks;
-  while (state.bountifulPowerProgress >= threshold) {
-    state.bountifulPowerProgress -= threshold;
+  // Reaching the stack cap grants one buff package and resets buildup before rewards can start a new cycle.
+  const progress = advanceCounter(state.bountifulPowerProgress, stacks, threshold, 'reset');
+  state.bountifulPowerProgress = progress.value;
+  if (!progress.reached) return;
+  context.effects.emit(
+    elementalistProfiledBuffRequest(
+      context,
+      at,
+      TRAIT.BOUNTIFUL_POWER,
+      'Quickness',
+      'Bountiful Power',
+      sourceId,
+      undefined,
+      undefined,
+      emissionCast
+    )
+  );
+  const active = requireEffect(bountifulPowerProfile, 'buff', 'Damage Window');
+  if (active) {
     context.effects.emit(
-      elementalistProfiledBuffRequest(
-        context,
-        at,
-        TRAIT.BOUNTIFUL_POWER,
-        'Quickness',
-        'Bountiful Power',
-        sourceId,
-        undefined,
-        undefined,
+      elementalistBuffRequest(
+        {
+          skill: elementalistEventSkill(context, 'Bountiful Power', sourceId),
+          at,
+          source: 'Trait',
+          sourceId: TRAIT.BOUNTIFUL_POWER,
+          actorType: 'player',
+          kind: 'bountiful power active',
+          stacks: Number(active.stacks),
+          duration: active.duration,
+          skillName: 'Bountiful Power'
+        },
         emissionCast
       )
     );
-    const active = requireEffect(bountifulPowerProfile, 'buff', 'Damage Window');
-    if (active) {
-      context.effects.emit(
-        elementalistBuffRequest(
-          {
-            skill: elementalistEventSkill(context, 'Bountiful Power', sourceId),
-            at,
-            source: 'Trait',
-            sourceId: TRAIT.BOUNTIFUL_POWER,
-            actorType: 'player',
-            kind: 'bountiful power active',
-            stacks: Number(active.stacks),
-            duration: active.duration,
-            skillName: 'Bountiful Power'
-          },
-          emissionCast
-        )
-      );
-    }
   }
 }
 

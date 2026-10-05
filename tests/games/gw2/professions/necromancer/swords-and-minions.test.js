@@ -1213,7 +1213,10 @@ test('Bone Fiend projectile finishers create Chilling Bolts, not Frost Aura', ()
     ).length,
     2
   );
-  assert.equal(deathlyChill.length, boneShards.length);
+  assert.equal(
+    deathlyChill.reduce((sum, event) => sum + event.stacks, 0),
+    boneShards.length * 4
+  );
   assert.equal(
     result.resolvedEvents.some(
       (event) =>

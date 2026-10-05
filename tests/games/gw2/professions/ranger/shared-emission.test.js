@@ -52,8 +52,10 @@ test('shared pet delivery preserves beast-skill rewards before their impact', ()
   const poison = result.resolvedEvents.filter(
     (event) => event.type === 'condition' && event.sourceId === TRAIT.POISON_MASTER
   );
-  assert.equal(poison.length, 1);
-  assert.equal(poison[0].stacks, 2);
+  assert.equal(
+    poison.reduce((sum, event) => sum + event.stacks, 0),
+    2
+  );
 });
 
 // Presentation allocations cannot choose a pet's combat activation or change the hit's random identity.

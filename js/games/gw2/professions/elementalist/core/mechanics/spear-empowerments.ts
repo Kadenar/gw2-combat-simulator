@@ -1,4 +1,5 @@
 import type { EffectDelivery } from '#gw2/platform/effects/emission.js';
+import { advanceCounter } from '#gw2/platform/combat/resources/counters.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import type { ElementalistCoreState } from '#gw2/professions/elementalist/core/state.js';
 /** Owns spear etching progress and one-shot empowerments that survive until a later cast consumes them. */
@@ -83,12 +84,18 @@ export function completeElementalistSpearProgression(context: ElementalistRuntim
   for (const candidate of ETCHING_CHAINS) {
     const progress = state.etchings[candidate.etching];
     if (!progress || progress.stage !== 'lesser' || Number(skill.id) === candidate.etchingId) continue;
-    const otherCasts = progress.otherCasts + 1;
     const spearEmpowermentsProfile = requireBalanceProfileFromContext(context, PROFILE.spearEmpowerments);
+    // Full etchings stop earning credit; retain the crossing count rather than consuming or clamping it.
+    const counter = advanceCounter(
+      progress.otherCasts,
+      1,
+      balanceProfileNumber(spearEmpowermentsProfile, 'maximumStacks'),
+      'retain'
+    );
     state.etchings[candidate.etching] = {
       ...progress,
-      stage: otherCasts >= balanceProfileNumber(spearEmpowermentsProfile, 'maximumStacks') ? 'full' : 'lesser',
-      otherCasts
+      stage: counter.reached ? 'full' : 'lesser',
+      otherCasts: counter.value
     };
   }
 }

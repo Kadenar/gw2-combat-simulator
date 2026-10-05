@@ -102,12 +102,15 @@ test('axe clone attacks and Axes of Symmetry use cast-start snapshots', () => {
   assert.ok(cloneHits.every((event) => event.coefficient === 1.75 && event.weaponStrength === 28.5));
   assert.equal(cloneConfusion.length, 2);
   assert.ok(cloneConfusion.every((event) => event.stacks === 1 && event.duration === 6));
-  const playerConfusion = existingClones.resolvedEvents.find(
+  const playerConfusion = existingClones.resolvedEvents.filter(
     (event) => event.type === 'condition' && event.skillName === 'Axes of Symmetry' && event.actorType === 'player'
   );
 
-  assert.equal(playerConfusion.stacks, 5);
-  assert.equal(playerConfusion.duration, 6);
+  assert.equal(
+    playerConfusion.reduce((sum, event) => sum + event.stacks, 0),
+    5
+  );
+  assert.ok(playerConfusion.every((event) => event.duration === 6));
 
   const spawnedDuringCast = simulateMesmer(
     [
@@ -187,12 +190,15 @@ test('Ineptitude applies confusion for each direct blind on a normal target', ()
     (event) => event.type === 'condition' && event.name.endsWith('— Ineptitude')
   );
 
-  assert.equal(ineptitude.length, 2);
+  assert.equal(
+    ineptitude.reduce((sum, event) => sum + event.stacks, 0),
+    4
+  );
   assert.equal(ineptitude[0].skillName, 'Chaos Armor');
   assert.equal(ineptitude[0].condition, 'Confusion');
   assert.equal(ineptitude[0].duration, 5);
-  assert.equal(ineptitude[0].stacks, 2);
-  assert.equal(ineptitude[1].skillName, 'Signet of Midnight');
+  assert.equal(ineptitude[0].stacks, 1);
+  assert.equal(ineptitude[2].skillName, 'Signet of Midnight');
   // Resolver-created conditions must carry ownership before damage and modifier queries consume them.
   assert.ok(ineptitude.every((event) => event.actorType === 'player'));
 });
@@ -218,7 +224,10 @@ test('Ineptitude direct blinds ignore the defiant-target interval', () => {
     (event) => event.type === 'condition' && event.name.includes('Ineptitude')
   );
 
-  assert.equal(ineptitude.length, 2);
+  assert.equal(
+    ineptitude.reduce((sum, event) => sum + event.stacks, 0),
+    4
+  );
 });
 
 test('Ineptitude intervals only interrupt-generated blinds on defiant targets', () => {
@@ -245,7 +254,7 @@ test('Ineptitude intervals only interrupt-generated blinds on defiant targets', 
 
   assert.deepEqual(
     ineptitude.map((event) => event.skillName),
-    ['Magic Bullet']
+    ['Magic Bullet', 'Magic Bullet']
   );
 });
 
@@ -264,7 +273,10 @@ test('Chaos Armor applies three base confusion plus two from Ineptitude', () => 
     (event) => event.type === 'condition' && event.skillName === 'Chaos Armor' && event.condition === 'Confusion'
   );
 
-  assert.deepEqual(confusion.map((event) => event.stacks).sort(), [2, 3]);
+  assert.equal(
+    confusion.reduce((sum, event) => sum + event.stacks, 0),
+    5
+  );
 });
 
 test('Counterspell applies five base confusion plus two from Ineptitude', () => {
@@ -282,7 +294,10 @@ test('Counterspell applies five base confusion plus two from Ineptitude', () => 
     (event) => event.type === 'condition' && event.skillName === 'Counterspell' && event.condition === 'Confusion'
   );
 
-  assert.deepEqual(confusion.map((event) => event.stacks).sort(), [2, 5]);
+  assert.equal(
+    confusion.reduce((sum, event) => sum + event.stacks, 0),
+    7
+  );
 });
 
 test('Signet of Midnight blind applies two confusion from Ineptitude', () => {
@@ -301,9 +316,9 @@ test('Signet of Midnight blind applies two confusion from Ineptitude', () => {
     (event) => event.type === 'condition' && event.skillName === 'Signet of Midnight' && event.condition === 'Confusion'
   );
 
-  assert.deepEqual(
-    confusion.map((event) => event.stacks),
-    [2]
+  assert.equal(
+    confusion.reduce((sum, event) => sum + event.stacks, 0),
+    2
   );
 });
 
@@ -401,8 +416,10 @@ test('Ineptitude treats control as an interrupt only for an activating target', 
     result.resolvedEvents.filter((event) => event.type === 'condition' && event.name.endsWith('— Ineptitude'));
 
   assert.equal(ineptitudeEvents(idle).length, 0);
-  assert.equal(ineptitudeEvents(active).length, 1);
-  assert.equal(ineptitudeEvents(active)[0].stacks, 2);
+  assert.equal(
+    ineptitudeEvents(active).reduce((sum, event) => sum + event.stacks, 0),
+    2
+  );
 });
 
 test('Blinding Dissipation triggers Ineptitude once per Rewinder strike on a defiant target', () => {
@@ -417,12 +434,15 @@ test('Blinding Dissipation triggers Ineptitude once per Rewinder strike on a def
       initialResource: 0
     })
   );
-  const ineptitude = result.resolvedEvents.find(
+  const ineptitude = result.resolvedEvents.filter(
     (event) => event.type === 'condition' && event.skillName === 'Rewinder' && event.name.includes('Ineptitude')
   );
 
   // The mesmer and two clones each strike and blind.
-  assert.equal(ineptitude.stacks, 6);
+  assert.equal(
+    ineptitude.reduce((sum, event) => sum + event.stacks, 0),
+    6
+  );
 });
 
 test('player control skills retain ownership and trigger Relic of the Claw', () => {
@@ -735,7 +755,11 @@ test('Mesmer Peitha follows actual shadowsteps or successful Deception use', () 
     );
     assert.equal(triggers.length, 1, skillName);
     assert.equal(triggers[0].at, cast.at);
-    assert.equal(torment.length, 1, skillName);
+    assert.equal(
+      torment.reduce((sum, event) => sum + event.stacks, 0),
+      2,
+      skillName
+    );
     assert.ok(Math.abs(torment[0].at - cast.at - responseDelay) < 1e-9, skillName);
     if (['Crystal Sands', 'Axes of Symmetry'].includes(skillName)) assert.ok(torment[0].at < cast.endsAt);
     assert.equal(torment[0].activationId, cast.activationId);

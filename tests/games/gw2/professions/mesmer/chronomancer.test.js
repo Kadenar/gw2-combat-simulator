@@ -313,8 +313,11 @@ test('Split Second shatter traits affect only the first strike from each source'
   assert.equal(timeCatchesUpPackets[1].damage, baselinePackets[1].damage);
   assert.ok(Math.abs(mentalAnguishPackets[0].damage / baselinePackets[0].damage - 1.25) < 1e-12);
   assert.equal(mentalAnguishPackets[1].damage, baselinePackets[1].damage);
-  assert.equal(torment.length, 1);
+  assert.equal(
+    torment.reduce((sum, event) => sum + event.stacks, 0),
+    4
+  );
   assert.equal(torment[0].at, baselinePackets[0].at);
-  assert.equal(torment[0].stacks, 4);
+  assert.ok(torment.every((event) => event.stacks === 1));
   assert.equal(torment[0].metadata?.shatterTraitEligible, true);
 });

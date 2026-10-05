@@ -303,7 +303,7 @@ for (const [relic, skillType, cooldown, delay, multiplier] of [
       );
       assert.ok(applications.length > 0);
       assert.ok(
-        applications.every((event) => event.condition === 'Vulnerability' && event.stacks === 8 && event.duration === 8)
+        applications.every((event) => event.condition === 'Vulnerability' && event.stacks === 1 && event.duration === 8)
       );
       assert.equal(
         relicStrikeMultiplier(
@@ -366,9 +366,12 @@ test('Director off-target precasts grant the buff without preloading vulnerabili
   const offTarget = simulateMesmer(rotation(true), config);
   const baseline = simulateMesmer(rotation(true), { ...config, precastRelics: [] });
   const applications = onTarget.resolvedEvents.filter((event) => event.sourceId === `relic.${RELIC_IDS.DIRECTOR}`);
-  assert.equal(applications.length, 1);
-  assert.equal(applications[0].stacks, 8);
-  assert.equal(applications[0].effectiveDuration, 8);
+  // Splitting preserves the one cast's total Vulnerability without granting any off-target stacks.
+  assert.equal(
+    applications.reduce((sum, event) => sum + event.stacks, 0),
+    8
+  );
+  assert.ok(applications.every((event) => event.effectiveDuration === 8));
   assert.equal(
     offTarget.resolvedEvents.some((event) => event.sourceId === `relic.${RELIC_IDS.DIRECTOR}`),
     false

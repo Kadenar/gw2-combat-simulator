@@ -14,7 +14,7 @@
         "label": "Condition Alacrity (Pistol / Torch + Scepter / Torch)",
         "build": "data/gw2/builds/necromancer/b-condi-alac-scourge.json",
         "rotation": "data/gw2/rotations/necromancer/r-condi-alac-scourge-bench.json",
-        "benchmarkDps": 29897,
+        "benchmarkDps": 29966,
         "upToDate": true
       }
     ]
@@ -91,14 +91,14 @@
         "build": "data/gw2/builds/necromancer/b-condi-harbinger.json",
         "rotation": "data/gw2/rotations/necromancer/r-condi-harbinger-bench.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/necromancer/condition-harbinger-pistol-torch-scepter-dagger",
-        "benchmarkDps": 44998,
+        "benchmarkDps": 44667,
         "upToDate": true
       },
       {
         "label": "Condition (Dagger / Dagger + Pistol / Torch)",
         "build": "data/gw2/builds/necromancer/b-condi-harbinger-dagger-dagger-pistol-torch.json",
         "rotation": "data/gw2/rotations/necromancer/r-condi-harbinger-dagger-dagger-pistol-torch-bench.json",
-        "benchmarkDps": 44942,
+        "benchmarkDps": 44558,
         "upToDate": true
       }
     ]

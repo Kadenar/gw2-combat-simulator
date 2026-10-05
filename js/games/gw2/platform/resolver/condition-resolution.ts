@@ -24,14 +24,6 @@ interface CreateGw2ConditionResolutionOptions {
   readonly config?: Gw2ResolverRuntime['config'];
 }
 
-/** Gives Burning reactions one application per stack while preserving fractional totals and packet metadata. */
-function splitConditionStacks<T extends { readonly stacks: number }>(packet: T): T[] {
-  return Array.from({ length: Math.ceil(packet.stacks) }, (_, index) => ({
-    ...packet,
-    stacks: Math.min(1, packet.stacks - index)
-  }));
-}
-
 /**
  * Creates timestamp-aware condition resolution shared by GW2 professions.
  * Successful applications dispatch after state insertion and tick scheduling.
@@ -373,16 +365,16 @@ export function createGw2ConditionResolution({
     if (!Number.isFinite(stacks)) throw new RangeError('Condition stacks must be finite.');
     if (!stacks || !duration) return [];
 
-    // Every producer reaches this boundary, so authored effects and immediate procs share Burning application semantics.
-    const packets = name === 'Burning' ? splitConditionStacks({ ...event, stacks }) : [{ ...event, stacks }];
+    // Every producer shares per-stack reactions; create applications directly without an intermediate packet array.
+    // Preserve fractional weight on the final stack and dispatch before inserting the next one.
     const applications: Gw2ResolvedConditionApplication[] = [];
-    for (const [index, packet] of packets.entries()) {
+    for (let index = 0; index < Math.ceil(stacks); index += 1) {
       const application = {
-        ...packet,
+        ...event,
         sourceId: event.sourceId,
         name: event.name || `${event.skillName || event.sourceId || 'Condition'} — ${name}`,
         condition: name,
-        stacks: packet.stacks,
+        stacks: Math.min(1, stacks - index),
         effectiveDuration: duration,
         // Keep the natural lifetime while executing; result finalization clips only the presentation fields.
         activeDuration: duration,
@@ -414,7 +406,7 @@ export function createGw2ConditionResolution({
         // Stack queries use natural expiry. The resolver horizon only limits
         // scheduled damage, not the semantic duration of the application.
         expiresAt,
-        weight: packet.stacks,
+        weight: application.stacks,
         application
       });
       // Accepted applications invalidate report windows without involving later damage settlement.

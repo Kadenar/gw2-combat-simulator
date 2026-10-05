@@ -51,11 +51,11 @@ test('Mirage follows executed rotation dodges with a one-second ICD', () => {
     );
     assert.deepEqual(
       queued.map((event) => event.at),
-      [4, 5.001]
+      [4, 4, 5.001, 5.001]
     );
     for (const event of queued) {
       assert.equal(event.condition, 'Torment');
-      assert.equal(event.stacks, 2);
+      assert.equal(event.stacks, 1);
       assert.equal(event.duration, 6);
       assert.equal(event.ownerActorType, 'player');
       assert.equal(event.triggeredBy, skillName);
@@ -90,7 +90,7 @@ test('Death Blossom is an evade and shares Mirage cooldown with ordinary dodge',
   );
   assert.deepEqual(
     applications.map((event) => event.at),
-    [0, evades[1].at]
+    [0, 0, evades[1].at, evades[1].at]
   );
   assert.ok(result.breakdown.some((entry) => entry.name.includes('Relic of the Mirage') && entry.conditionDamage > 0));
   const movementOnly = simulateGw2({
@@ -126,7 +126,7 @@ test('Mirage dodge Torment uses normal duration scaling and stops when there are
   );
   assert.deepEqual(
     applications.map((event) => event.at),
-    [0, 1.001]
+    [0, 0, 1.001, 1.001]
   );
   assert.ok(applications.every((event) => event.effectiveDuration === 9));
   assert.ok(result.breakdown.some((entry) => entry.name.includes('Relic of the Mirage') && entry.conditionDamage > 0));

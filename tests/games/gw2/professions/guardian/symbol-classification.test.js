@@ -92,7 +92,10 @@ test('symbol reactions use delivered packet metadata rather than skill tags, nam
   assert.deepEqual(result.warnings, []);
   assert.equal(result.planningState.profession.symbolicAvengerExpirations.length, 1);
   const exposure = result.resolvedEvents.filter((event) => event.sourceId === TRAIT.SYMBOLIC_EXPOSURE);
-  assert.equal(exposure.length, 1);
+  assert.equal(
+    exposure.reduce((sum, event) => sum + event.stacks, 0),
+    2
+  );
   assert.equal(exposure[0].at, 2);
 });
 

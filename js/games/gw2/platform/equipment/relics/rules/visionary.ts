@@ -1,6 +1,7 @@
 /** Visionary relic rules. */
 import { isTimeInWindow } from '#kernel/core/clock.js';
 import { isInternalCooldownReady } from '#gw2/platform/combat/procs.js';
+import { advanceCounter } from '#gw2/platform/combat/resources/counters.js';
 import { isGw2PlayerActorEvent } from '#gw2/platform/combat/state/event-ownership.js';
 import { gw2EffectExpiresAt } from '#gw2/platform/effects/timing.js';
 import { defineRelic } from '#gw2/platform/equipment/relics/rules/shared.js';
@@ -22,8 +23,9 @@ export const visionary = defineRelic({
       state.whirlReadyAt = event.at + VISIONARY_WHIRL_INTERNAL_COOLDOWN;
     }
 
-    const stacks = (state.stacks || 0) + 1;
-    state.stacks = stacks < VISIONARY_STACKS_NEEDED ? stacks : 0;
+    // Complete only accepted combos and publish the reset before opening the historical reward window.
+    const progress = advanceCounter(state.stacks || 0, 1, VISIONARY_STACKS_NEEDED, 'reset');
+    state.stacks = progress.value;
     // Buildup has its own track; publishing consumption closes it before the separate damage buff begins.
     ctx.effects.emit({
       kind: 'announcement',
@@ -39,7 +41,7 @@ export const visionary = defineRelic({
         effectState: { stacks: state.stacks, maximumStacks: VISIONARY_STACKS_NEEDED }
       }
     });
-    if (state.stacks > 0) return;
+    if (!progress.reached) return;
 
     const until = gw2EffectExpiresAt(event.at, VISIONARY_BUFF_DURATION);
     windows.push({ from: event.at, until });

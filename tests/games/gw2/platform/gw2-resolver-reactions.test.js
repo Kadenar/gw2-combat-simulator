@@ -84,7 +84,7 @@ test('GW2 resolver registry rejects unknown stages and duplicate hook ids', () =
   );
 });
 
-test('condition stage runs once after state and ticks, including profession and relic recursion', () => {
+test('condition stage runs once per stack after insertion, including profession and relic recursion', () => {
   const trace = [];
   const professionReactions = {
     'condition.applied': (context, application, details) => {
@@ -178,11 +178,11 @@ test('condition stage runs once after state and ticks, including profession and 
   assert.equal(application.condition, 'Bleeding');
   assert.deepEqual(
     trace.map((entry) => entry.condition),
-    ['Bleeding', 'Weakness']
+    Array.from({ length: 5 }, () => ['Bleeding', 'Weakness']).flat()
   );
   assert.deepEqual(
     trace.map((entry) => entry.active),
-    [6, 1]
+    [2, 1, 3, 1, 4, 1, 5, 1, 6, 1]
   );
 
   conditions.applyCondition(context, {
@@ -198,11 +198,19 @@ test('condition stage runs once after state and ticks, including profession and 
 
   assert.deepEqual(
     trace.map((entry) => entry.condition),
-    ['Bleeding', 'Weakness', 'Bleeding', 'Burning', 'Burning', 'Torment']
+    [
+      ...Array.from({ length: 5 }, () => ['Bleeding', 'Weakness']).flat(),
+      'Bleeding',
+      'Burning',
+      'Burning',
+      'Torment',
+      'Torment',
+      'Torment'
+    ]
   );
   assert.deepEqual(
     trace.map((entry) => entry.active),
-    [6, 1, 7, 1, 2, 3]
+    [2, 1, 3, 1, 4, 1, 5, 1, 6, 1, 7, 1, 2, 1, 2, 3]
   );
   assert.ok(trace.every((entry) => entry.queued > 0));
 });

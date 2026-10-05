@@ -63,7 +63,7 @@ test('Grand Finale cancels pending Weaver dual-orb contacts', () => {
 });
 
 // Eligibility is captured before orb consumption, while later orb changes cannot add projectiles to the cast.
-test('Grand Finale snapshots active orbs and keeps separate Burning applications', () => {
+test('Grand Finale snapshots active orbs and resolves each condition stack separately', () => {
   const result = runElementalist(
     ['Grand Finale', { type: 'wait', durationMs: 2000 }],
     {
@@ -98,11 +98,7 @@ test('Grand Finale snapshots active orbs and keeps separate Burning applications
     result.resolvedEvents
       .filter((event) => event.skillId === ID.GRAND_FINALE && event.type === 'condition')
       .map((event) => [event.condition, event.stacks]),
-    [
-      ['Burning', 1],
-      ['Burning', 1],
-      ['Bleeding', 4]
-    ]
+    [['Burning', 1], ['Burning', 1], ...Array.from({ length: 4 }, () => ['Bleeding', 1])]
   );
   const finishers = packets.filter((event) => event.type === 'combo_finisher');
   assert.equal(new Set(finishers.map((event) => event.attemptId)).size, 2);

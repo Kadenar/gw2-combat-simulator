@@ -331,8 +331,11 @@ test('Riddle of Sand applies to the first ambush and refreshes on shatter', () =
     (event) => event.type === 'condition' && event.name.includes('Riddle of Sand')
   );
 
-  assert.equal(riddles.length, 2);
-  assert.ok(riddles.every((event) => event.condition === 'Confusion' && event.stacks === 2 && event.duration === 4));
+  assert.equal(
+    riddles.reduce((sum, event) => sum + event.stacks, 0),
+    4
+  );
+  assert.ok(riddles.every((event) => event.condition === 'Confusion' && event.stacks === 1 && event.duration === 4));
 });
 
 test('Infinite Horizon commands active clones to ambush when cloak is gained', () => {
@@ -592,7 +595,14 @@ test('Crystal Sands creates a collectible Mirage Mirror with delayed damage', ()
   assert.ok(Math.abs(crystal.at - 0.72) < 0.00001);
   assert.ok(Math.abs(mirror.at - 1.16) < 0.00001);
   assert.equal(confusion.at, crystal.at);
-  assert.equal(confusion.stacks, 6);
+  assert.equal(
+    result.resolvedEvents
+      .filter(
+        (event) => event.type === 'condition' && event.skillName === 'Crystal Sands' && event.condition === 'Confusion'
+      )
+      .reduce((sum, event) => sum + event.stacks, 0),
+    6
+  );
   assert.equal(confusion.duration, 4);
   assert.equal(mirror.coefficient, 0.6);
   assert.equal(observedRuntime(result).profession.specialization.state.mirrors.length, 0);

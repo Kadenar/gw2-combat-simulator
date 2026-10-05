@@ -668,7 +668,7 @@ export const ELEMENTALIST_CORE_HAMMER_SKILL_MECHANICS: Readonly<Record<number, P
     ])
   },
   // Snapshot each active orb at acceptance so consuming it at completion does not erase its delayed projectile.
-  // Each active orb owns its condition total and projectile finisher; resolution splits Burning applications.
+  // Each active orb owns its condition total and projectile finisher; resolution splits condition stacks.
   [ID.GRAND_FINALE]: {
     // Retire old orbit contacts before packet selection; consume the captured orbs only on commitment.
     sideEffects: [

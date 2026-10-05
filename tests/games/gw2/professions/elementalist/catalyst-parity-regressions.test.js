@@ -84,7 +84,12 @@ test('Frozen Fusillade detonates at field expiry', () => {
   assert.equal(field.at, 0.32);
   assert.equal(field.expiresAt, 4.32);
   assert.equal(bleeding.at, field.expiresAt);
-  assert.equal(bleeding.stacks, 5);
+  assert.equal(
+    result.resolvedEvents
+      .filter((event) => event.skillName === 'Frozen Fusillade' && event.condition === 'Bleeding')
+      .reduce((sum, event) => sum + event.stacks, 0),
+    5
+  );
   assert.equal(bleeding.duration, 8);
 });
 
@@ -122,10 +127,12 @@ test('Shattering Stone keeps its base Bleeding and expires unused follow-up char
       (event) => event.skillName === 'Shattering Stone' && event.condition === 'Bleeding'
     );
     assert.deepEqual(result.warnings, []);
-    assert.deepEqual(
-      applications.map(({ stacks, duration }) => ({ stacks, duration })),
-      [{ stacks: 3, duration: 10 }]
+    // Base stacks survive resolution; unused follow-up charges cannot create additional applications.
+    assert.equal(
+      applications.reduce((sum, event) => sum + event.stacks, 0),
+      3
     );
+    assert.ok(applications.every((event) => event.duration === 10));
     const buffs = result.events.filter((event) => event.kind === 'shattering stone');
     assert.deepEqual(
       buffs.map(({ stacks, duration }) => ({ stacks, duration })),

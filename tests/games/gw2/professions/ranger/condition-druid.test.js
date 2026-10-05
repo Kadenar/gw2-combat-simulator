@@ -236,7 +236,13 @@ test('Light on Your Feet applies its six-second buff and shortbow upgrades', () 
 
   assert.equal(poison.duration, 5);
   assert.equal(immobilized.duration, 1.5);
-  assert.deepEqual([vulnerability.stacks, vulnerability.duration], [10, 10]);
+  assert.equal(
+    upgrades.resolvedEvents
+      .filter((event) => event.sourceId === TRAIT.LIGHT_ON_YOUR_FEET && event.condition === 'Vulnerability')
+      .reduce((sum, event) => sum + event.stacks, 0),
+    10
+  );
+  assert.equal(vulnerability.duration, 10);
 
   const defiant = simulate(['Poison Volley', 'Crippling Shot'], {
     primaryWeapon: 'Shortbow',
@@ -406,7 +412,12 @@ test('Poison Master remains player-scaled and Poisonous Strikes inherits its att
     (event) => event.type === 'condition' && event.sourceId === TRAIT.POISON_MASTER
   );
 
-  assert.equal(poisonMasterProc.stacks, 2);
+  assert.equal(
+    poisonMaster.resolvedEvents
+      .filter((event) => event.type === 'condition' && event.sourceId === TRAIT.POISON_MASTER)
+      .reduce((sum, event) => sum + event.stacks, 0),
+    2
+  );
   assert.equal(poisonMasterProc.duration, 8);
   assert.equal(poisonMasterProc.effectiveDuration, 14.4);
   assert.equal(poisonMasterProc.actorType, 'effect');
@@ -506,12 +517,15 @@ test('Druid Avatar traits grant alacrity, Eclipse conditions, and Blood Moon', (
   );
   const seed = simulate(['Celestial Avatar', 'Seed of Life'], {
     selectedTraitIds: [TRAIT.ECLIPSE]
-  }).resolvedEvents.find(
+  }).resolvedEvents.filter(
     (event) => event.type === 'condition' && event.sourceId === TRAIT.ECLIPSE && event.condition === 'Poisoned'
   );
 
-  assert.equal(seed.stacks, 3);
-  assert.equal(seed.duration, 8);
+  assert.equal(
+    seed.reduce((sum, event) => sum + event.stacks, 0),
+    3
+  );
+  assert.ok(seed.every((event) => event.duration === 8));
   assert.equal(
     result.resolvedEvents.filter((event) => event.type === 'condition' && event.sourceId === TRAIT.BLOOD_MOON).length >=
       3,
@@ -527,8 +541,10 @@ test('Druid Avatar traits grant alacrity, Eclipse conditions, and Blood Moon', (
       )
       .map(({ triggeredBy, stacks, duration }) => [triggeredBy, stacks, duration]),
     [
-      ['Lunar Impact', 2, 4],
-      ['Eclipse', 2, 4]
+      ['Lunar Impact', 1, 4],
+      ['Lunar Impact', 1, 4],
+      ['Eclipse', 1, 4],
+      ['Eclipse', 1, 4]
     ]
   );
   assert.equal(result.planningState.profession.celestialAvatarActive, false);
@@ -570,7 +586,7 @@ test('Druid Avatar traits grant alacrity, Eclipse conditions, and Blood Moon', (
   assert.ok(
     embraceBloodMoon.every(
       ({ actorType, ownerActorType, stacks, duration }) =>
-        actorType === 'effect' && ownerActorType === 'player' && stacks === 2 && duration === 4
+        actorType === 'effect' && ownerActorType === 'player' && stacks === 1 && duration === 4
     )
   );
 });

@@ -449,13 +449,11 @@ test('Troubadour adept and support traits emit their modeled effects', () => {
     (event) => event.type === 'condition' && event.condition === 'Torment' && event.name.includes('Mayhem')
   );
 
-  assert.deepEqual(
-    torment.map((event) => [event.stacks, event.duration]),
-    [
-      [4, 5],
-      [4, 5]
-    ]
+  assert.equal(
+    torment.reduce((sum, event) => sum + event.stacks, 0),
+    8
   );
+  assert.ok(torment.every((event) => event.duration === 5));
   assert.equal(mayhem.steps[2].start, 15360);
 
   const rogueEndurance = simulateMesmer(
@@ -592,15 +590,18 @@ test('Harmonize, Call and Response, Fortissimo, and Altered Chord execute', () =
     })
   );
 
-  assert.ok(
-    fluteSpotlight.resolvedEvents.some(
-      (event) =>
-        event.type === 'condition' &&
-        event.name.includes('Altered Chord') &&
-        event.condition === 'Confusion' &&
-        event.stacks === 5 &&
-        event.duration === 8
-    )
+  assert.equal(
+    fluteSpotlight.resolvedEvents
+      .filter(
+        (event) =>
+          event.type === 'condition' &&
+          event.name.includes('Altered Chord') &&
+          event.condition === 'Confusion' &&
+          event.stacks === 1 &&
+          event.duration === 8
+      )
+      .reduce((sum, event) => sum + event.stacks, 0),
+    5
   );
 
   const crescendoReadyAt = (initialResource) =>

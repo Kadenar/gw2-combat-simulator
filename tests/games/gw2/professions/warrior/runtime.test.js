@@ -90,7 +90,12 @@ test('critical burst reactions share the resolved outcome for resources and inde
   const result = run(['Eviscerate'], config, profession);
   assert.deepEqual(result.warnings, []);
   assert.equal(result.planningState.profession.adrenaline.value, 4);
-  assert.equal(result.resolvedEvents.find((event) => event.sourceId === TRAIT.SUNDERING_BURST).stacks, 10);
+  assert.equal(
+    result.resolvedEvents
+      .filter((event) => event.sourceId === TRAIT.SUNDERING_BURST)
+      .reduce((sum, event) => sum + event.stacks, 0),
+    10
+  );
   const bleeding = result.resolvedEvents.find((event) => event.sourceId === TRAIT.BLOODLUST);
   assert.equal(bleeding.skillName, 'Bloodlust');
   assert.equal(bleeding.triggeredBy, 'Eviscerate');
@@ -98,7 +103,12 @@ test('critical burst reactions share the resolved outcome for resources and inde
   assert.equal(result.resolvedEvents.find((event) => event.kind === 'furious-surge').stacks, 1);
   const noncritical = run(['Eviscerate'], { ...config, stats: { power: 2000, precision: 0 } }, profession);
   assert.equal(noncritical.planningState.profession.adrenaline.value, 1);
-  assert.equal(noncritical.resolvedEvents.find((event) => event.sourceId === TRAIT.SUNDERING_BURST).stacks, 5);
+  assert.equal(
+    noncritical.resolvedEvents
+      .filter((event) => event.sourceId === TRAIT.SUNDERING_BURST)
+      .reduce((sum, event) => sum + event.stacks, 0),
+    5
+  );
   assert.equal(
     noncritical.resolvedEvents.some((event) => event.sourceId === TRAIT.BLOODLUST || event.kind === 'furious-surge'),
     false

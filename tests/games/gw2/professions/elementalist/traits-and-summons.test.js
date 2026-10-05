@@ -357,8 +357,10 @@ test('core attunement and aura traits emit named boon and damage payloads', () =
     (event) => event.type === 'condition' && event.source === 'Strength of Stone'
   );
 
-  assert.equal(strengthBleeds.length, 1);
-  assert.equal(strengthBleeds[0].stacks, 3);
+  assert.equal(
+    strengthBleeds.reduce((sum, event) => sum + event.stacks, 0),
+    3
+  );
   assert.equal(strengthBleeds[0].duration, 10);
   assert.equal(
     strength.procSteps.some((step) => step.skill === 'Strength of Stone'),

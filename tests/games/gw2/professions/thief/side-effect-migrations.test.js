@@ -51,8 +51,14 @@ test('Falling Spider empowers only the accepted predecessor and preserves effect
       assert.deepEqual(result.warnings, []);
       const packets = result.resolvedEvents.filter((event) => event.skillId === ID.FALLING_SPIDER);
       assert.equal(packets.find((event) => event.type === 'damage').coefficient, empowered ? 3 : 2);
-      assert.equal(packets.find((event) => event.condition === 'Bleeding').stacks, empowered ? 5 : 3);
-      assert.equal(packets.find((event) => event.condition === 'Vulnerability').stacks, 4);
+      assert.equal(
+        packets.filter((event) => event.condition === 'Bleeding').reduce((sum, event) => sum + event.stacks, 0),
+        empowered ? 5 : 3
+      );
+      assert.equal(
+        packets.filter((event) => event.condition === 'Vulnerability').reduce((sum, event) => sum + event.stacks, 0),
+        4
+      );
       assert.equal(
         packets.some((event) => event.condition === 'Poisoned'),
         false

@@ -1,6 +1,11 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { canonicalTargetConditionName } from '#gw2/platform/combat/state/targets.js';
+import {
+  canonicalTargetConditionName,
+  CANONICAL_TARGET_CONDITIONS,
+  conditionStackLimit,
+  isDamagingCondition
+} from '#gw2/platform/combat/state/targets.js';
 import { createGw2CombatQuery } from '#gw2/platform/combat/query/combat-query.js';
 import { targetConditionActive, targetConditionCount } from '#gw2/platform/combat/query/runtime-query.js';
 import { defineTestProfession } from '#tests/helpers/profession.js';
@@ -113,45 +118,53 @@ function applications(result) {
   return result.resolvedEvents.filter(({ type }) => type === 'condition');
 }
 
-// Bundled Burning has the same damage and lifetime as explicit stacks, including a fractional remainder.
-test('Burning expansion preserves damage, metadata, and ordered live stack observations', () => {
-  for (const output of ['detailed', 'score']) {
-    const packet = Object.freeze(
-      condition(0, {
-        condition: 'Burning',
-        stacks: 2.5,
-        duration: 1.5,
-        activationId: 'fixture.cast',
-        metadata: { fixedDuration: true }
-      })
-    );
-    const observed = [];
-    const bundled = resolve([packet], {
-      output,
-      reactions: {
-        'condition.applied'(ctx, application, details) {
-          observed.push([application.stacks, details.activeConditionStackCount(ctx, 'Burning', 0)]);
-          assert.equal(application.activationId, packet.activationId);
-          assert.deepEqual(application.metadata, packet.metadata);
-          assert.equal(application.at, 0);
-          assert.equal(application.effectiveDuration, 1.5);
+// Every condition expands before reactions; fractional weight, damage ownership, and presence caps survive expansion.
+for (const name of CANONICAL_TARGET_CONDITIONS) {
+  test(`${name} expansion preserves damage, metadata, and ordered live stack observations`, () => {
+    for (const output of ['detailed', 'score']) {
+      const packet = Object.freeze(
+        condition(0, {
+          condition: name,
+          stacks: 2.5,
+          duration: 1.5,
+          activationId: 'fixture.cast',
+          metadata: { fixedDuration: true }
+        })
+      );
+      const observed = [];
+      const bundled = resolve([packet], {
+        output,
+        reactions: {
+          'condition.applied'(ctx, application, details) {
+            observed.push([
+              application.stacks,
+              details.activeConditionStackCount(ctx, name, 0),
+              details.conditionStackIndex
+            ]);
+            assert.equal(application.activationId, packet.activationId);
+            assert.equal(application.sourceId, packet.sourceId);
+            assert.deepEqual(application.metadata, packet.metadata);
+            assert.equal(application.at, 0);
+            assert.equal(application.effectiveDuration, 1.5);
+          }
         }
-      }
-    });
-    const explicit = resolve(
-      [1, 1, 0.5].map((stacks) => ({ ...packet, stacks })),
-      { output }
-    );
-    assert.equal(bundled.conditionDamage, explicit.conditionDamage);
-    assert.ok(bundled.conditionDamage > 0);
-    assert.deepEqual(observed, [
-      [1, 1],
-      [1, 2],
-      [0.5, 2.5]
-    ]);
-    assert.equal(packet.stacks, 2.5);
-  }
-});
+      });
+      const explicit = resolve(
+        [1, 1, 0.5].map((stacks) => ({ ...packet, stacks })),
+        { output }
+      );
+      assert.equal(bundled.conditionDamage, explicit.conditionDamage);
+      if (isDamagingCondition(name)) assert.ok(bundled.conditionDamage > 0);
+      const limit = conditionStackLimit(name) ?? Infinity;
+      assert.deepEqual(observed, [
+        [1, Math.min(1, limit), 1],
+        [1, Math.min(2, limit), 2],
+        [0.5, Math.min(2.5, limit), 3]
+      ]);
+      assert.equal(packet.stacks, 2.5);
+    }
+  });
+}
 
 function packetDamage(result, name = 'Bleeding') {
   const packets = new Map();
@@ -306,7 +319,7 @@ test('non-damaging conditions preserve other skills modifiers, expiry, and repor
       }
     );
     assert.deepEqual(durationQueries, statuses);
-    assert.deepEqual(applied, ['Bleeding', ...statuses]);
+    assert.deepEqual(applied, ['Bleeding', ...Array(5).fill('Vulnerability'), ...statuses.slice(1)]);
     assert.deepEqual(strikes, [2, 1.05 * 6 * 2, 2]);
     // Transient conditions affect intervening strikes, but have expired before Bleeding samples at 1s.
     assert.deepEqual([...bleeding], [[1000, 1]]);

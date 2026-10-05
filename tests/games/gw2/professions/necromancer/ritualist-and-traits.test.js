@@ -622,12 +622,12 @@ test('Blood Is Power and Plague Signet preserve transferred conditions', () => {
 
   assert.deepEqual(result.warnings, []);
   assert.equal(
-    transferred.some((event) => event.condition === 'Bleeding' && event.stacks === 2),
-    true
+    transferred.filter((event) => event.condition === 'Bleeding').reduce((sum, event) => sum + event.stacks, 0),
+    2
   );
   assert.equal(
-    transferred.some((event) => event.condition === 'Torment' && event.stacks === 2),
-    true
+    transferred.filter((event) => event.condition === 'Torment').reduce((sum, event) => sum + event.stacks, 0),
+    2
   );
   assert.deepEqual(result.planningState.profession.selfConditions, []);
   // Transferring after the aftercast preserves the original expiry instead of restarting the self-condition.
@@ -654,8 +654,10 @@ test('Plague Sending treats Scourge F5 as entering shroud', () => {
   assert.deepEqual(
     transferred.map((event) => [event.condition, event.stacks]),
     [
-      ['Bleeding', 2],
-      ['Torment', 2]
+      ['Bleeding', 1],
+      ['Bleeding', 1],
+      ['Torment', 1],
+      ['Torment', 1]
     ]
   );
   assert.deepEqual(result.planningState.profession.selfConditions, []);
@@ -803,7 +805,12 @@ test('Devouring Darkness scales torment with distinct target conditions', () => 
   );
 
   assert.deepEqual(result.warnings, []);
-  assert.equal(application?.stacks, 5);
+  assert.equal(
+    result.resolvedEvents
+      .filter((event) => event.skillId === ID.DEVOURING_DARKNESS && event.condition === 'Torment')
+      .reduce((sum, event) => sum + event.stacks, 0),
+    5
+  );
   assert.equal(application?.effectiveDuration, 4);
 });
 
@@ -906,7 +913,9 @@ test('current Harbinger grandmaster traits use their live PvE mechanics', () => 
       skillName: cascadingTorment?.skillName,
       parentSkillName: cascadingTorment?.parentSkillName,
       condition: cascadingTorment?.condition,
-      stacks: cascadingTorment?.stacks,
+      stacks: cascading.resolvedEvents
+        .filter((event) => event.type === 'condition' && event.sourceId === TRAIT.CASCADING_CORRUPTION)
+        .reduce((sum, event) => sum + event.stacks, 0),
       effectiveDuration: cascadingTorment?.effectiveDuration
     },
     {
@@ -1042,7 +1051,8 @@ test('Lesser Chilblains owns its strike and poison damage attribution', () => {
   assert.equal(lesserChilblains?.parentSkill, 'Soul Spiral');
   assert.equal(lesserChilblains?.casts, 0);
   assert.equal(soulSpiral?.condition, baselineSoulSpiral?.condition);
-  assert.equal(attributedEvents.length, 2);
+  assert.ok(attributedEvents.some((event) => event.type === 'damage'));
+  assert.ok(attributedEvents.some((event) => event.type === 'condition'));
   assert.equal(
     attributedEvents.every(
       (event) => event.skillName === 'Lesser Chilblains' && event.parentSkillName === 'Soul Spiral'

@@ -13,7 +13,7 @@ import test from 'node:test';
 for (const { threshold, progress, grants } of [
   { threshold: 0, progress: [0, 0, 0, 0], grants: [0, 0, 0, 0] },
   { threshold: -1, progress: [0, 0, 0, 0], grants: [0, 0, 0, 0] },
-  { threshold: 1.5, progress: [1, 0, 0.5, 0], grants: [0, 2, 3, 4] },
+  { threshold: 1.5, progress: [1, 0, 0, 1], grants: [0, 1, 2, 2] },
   { threshold: 5, progress: [1, 3, 0, 1], grants: [0, 0, 1, 1] }
 ]) {
   test(`Bountiful Power threshold ${threshold} preserves progress and grant semantics`, () => {

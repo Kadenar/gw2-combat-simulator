@@ -91,7 +91,11 @@ test('Cascading Corruption delays its packets while Meltdown applies to the trig
   );
   assert.equal(proc.at, trigger.at);
   assert.ok(observedRuntime(result).profession.specialization.state.meltdownUntil > proc.at);
-  assert.equal(packets.length, 2);
+  assert.equal(packets.filter((event) => event.type === 'damage').length, 1);
+  assert.equal(
+    packets.filter((event) => event.type === 'condition').reduce((sum, event) => sum + event.stacks, 0),
+    6
+  );
   assert.ok(
     result.events.some(
       (event) =>

@@ -69,9 +69,10 @@ test('live weapon swaps commit the destination set and its sigils before subsequ
   assert.deepEqual(result.planningState.profession.autoattackChains, {});
   assert.equal(result.events.filter((event) => event.type === 'weapon_set').length, 1);
   assert.equal(
-    result.resolvedEvents.filter((event) => event.type === 'condition' && event.sourceId === `sigil.${SIGIL_IDS.DOOM}`)
-      .length,
-    1
+    result.resolvedEvents
+      .filter((event) => event.type === 'condition' && event.sourceId === `sigil.${SIGIL_IDS.DOOM}`)
+      .reduce((sum, event) => sum + event.stacks, 0),
+    3
   );
 });
 
@@ -593,7 +594,7 @@ test('ordinary transfers move all applications of the oldest distinct types with
   );
   assert.deepEqual(
     moved.map((event) => event.condition),
-    ['Bleeding', 'Poisoned', 'Bleeding']
+    ['Bleeding', 'Poisoned', 'Bleeding', 'Bleeding']
   );
   for (const event of moved) {
     assert.equal(event.fixedDuration, true);
@@ -701,7 +702,9 @@ test('condition-based life force belongs to a landed impact and Devouring counts
     assert.equal(result.planningState.profession.lifeForce.value, 10);
     if (skillId === ID.DEVOURING_DARKNESS)
       assert.equal(
-        result.resolvedEvents.find((event) => event.type === 'condition' && event.condition === 'Torment').stacks,
+        result.resolvedEvents
+          .filter((event) => event.type === 'condition' && event.condition === 'Torment')
+          .reduce((sum, event) => sum + event.stacks, 0),
         2
       );
     for (const flags of [{ offTarget: true }, { impactDelayMs: 10000 }])
@@ -1119,7 +1122,8 @@ test('Lich bar skills require the live form and ordinary skills remain unavailab
 test('entry conditions award live Carapace without a restored state event', () => {
   const config = { ...base, initialResource: 10, selectedTraitIds: [TRAIT.WEAKENING_SHROUD, TRAIT.CORRUPTERS_FERVOR] };
   const result = simulate([cast(ID.REAPERS_SHROUD)], config);
-  assert.equal(result.planningState.profession.carapaceExpiries.length, 2);
+  // Corruptor's Fervor observes both Bleeding stacks and the separate Weakness application.
+  assert.equal(result.planningState.profession.carapaceExpiries.length, 3);
   assert.ok(result.resolvedEvents.some((event) => event.type === 'condition' && event.condition === 'Weakness'));
   assert.equal(
     result.events.some((event) => event.type === 'necromancer.state'),
@@ -1201,7 +1205,7 @@ test('shroud entry profiles retain conditions without their strike and deliver b
     const effects = result.resolvedEvents.filter((event) => event.sourceId === TRAIT.WEAKENING_SHROUD);
     assert.deepEqual(
       effects.map((event) => event.condition),
-      offTarget ? [] : ['Bleeding', 'Weakness']
+      offTarget ? [] : ['Bleeding', 'Bleeding', 'Weakness']
     );
     const might = result.resolvedEvents.find(
       (event) => event.sourceId === TRAIT.AWAKEN_THE_PAIN && event.type === 'buff'
@@ -1470,7 +1474,7 @@ test('Transfusion keeps surviving conditions when its strike is removed and acce
   const rotation = [cast(ID.REAPERS_SHROUD), cast(ID.SOUL_SPIRAL)];
   const result = simulate(rotation, config, { profession });
   const effects = result.resolvedEvents.filter((event) => event.sourceId === TRAIT.TRANSFUSION);
-  assert.deepEqual(effects.map((event) => event.condition).sort(), ['Chilled', 'Poisoned']);
+  assert.deepEqual(effects.map((event) => event.condition).sort(), ['Chilled', 'Poisoned', 'Poisoned']);
   const shortened = simulate([cast(ID.REAPERS_SHROUD), { ...cast(ID.SOUL_SPIRAL), interruptAfterMs: 400 }], config, {
     profession
   });

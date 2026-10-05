@@ -39,7 +39,8 @@ test('simulation entry points validate IDs before running selected skills', () =
       const result = simulate({
         profession,
         config: { ...config, selectedSkillIds },
-        rotation: [{ type: 'skill', skillId: skill.id }]
+        // A valid canonical cast isolates loadout validation from command-shape validation.
+        rotation: [{ type: 'cast', skillId: skill.id }]
       });
       assert.equal(Boolean(result.steps[0].invalid), selectedSkillIds?.length === 0);
     }

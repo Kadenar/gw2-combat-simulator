@@ -62,7 +62,7 @@ export const HARBINGER_ELIXIR_SKILL_MECHANICS: Readonly<Record<number, Partial<S
       { atMs: 400, timingAnchor: 'castStart', timingScale: 'cast', persistsAfterInterrupt: true },
       [
         { type: 'strike', coefficient: 1.5, hits: 1 },
-        // Each condition carries its total; the resolver splits Burning for application reactions.
+        // Each condition carries its total; the resolver splits stacks for application reactions.
         ...GW2_DAMAGING_CONDITIONS.map((condition) => ({
           type: 'condition' as const,
           condition,

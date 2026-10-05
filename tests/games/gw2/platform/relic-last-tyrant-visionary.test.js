@@ -240,11 +240,11 @@ test('one-time multi-stack Burning skills expose each stack to Last Tyrant at th
   }
 });
 
-// Producers emit totals; the shared resolver splits Burning and leaves other conditions bundled.
-test('profiled Burning procs preserve fractional totals and source attribution through resolution', () => {
+// Producers emit totals; the shared resolver splits every condition before dispatching application reactions.
+test('profiled condition procs preserve fractional totals and source attribution through resolution', () => {
   for (const [condition, stacks, expected] of [
     ['Burning', 2.5, [1, 1, 0.5]],
-    ['Bleeding', 3, [3]]
+    ['Bleeding', 3, [1, 1, 1]]
   ]) {
     const events = [];
     const context = {

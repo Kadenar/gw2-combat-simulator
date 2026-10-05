@@ -627,10 +627,7 @@ test('Phantasmal Mage separates player, Pledge, and phantasm conditions', () => 
   );
   assert.deepEqual(
     phantasmConditions.map((event) => [event.condition, event.stacks, event.duration]),
-    [
-      ['Burning', 1, 9],
-      ['Confusion', 3, 3]
-    ]
+    [['Burning', 1, 9], ...Array.from({ length: 3 }, () => ['Confusion', 1, 3])]
   );
 });
 

@@ -5,6 +5,7 @@ import {
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import type { MechanicContext } from '#gw2/platform/profession-definition/mechanic-context.js';
 import { denySkillCast } from '#gw2/platform/execution/availability.js';
+import { advanceCounter } from '#gw2/platform/combat/resources/counters.js';
 import {
   effectNumber,
   requireBalanceProfileFromContext,
@@ -132,9 +133,10 @@ function hit(runtime: Runtime, event: Gw2ResolverEvent, details: NativeResolvedD
     const until = state[`${virtue}Until`];
     if (!(until > 0) || runtime.time > until) continue;
     const threshold = permeatingWrathThreshold(runtime, virtue, PROFILE.virtueWindows);
-    state.virtueHitCounts[virtue]++;
-    if (state.virtueHitCounts[virtue] < threshold) continue;
-    state.virtueHitCounts[virtue] = 0;
+    // Each open virtue owns its cycle; reset it before traits and virtue rewards react to completion.
+    const progress = advanceCounter(state.virtueHitCounts[virtue], 1, threshold, 'reset');
+    state.virtueHitCounts[virtue] = progress.value;
+    if (!progress.reached) continue;
     state.triggeredVirtueEffects++;
     applyWillbenderTriggerTraits(runtime, event);
     if (virtue === 'justice') {

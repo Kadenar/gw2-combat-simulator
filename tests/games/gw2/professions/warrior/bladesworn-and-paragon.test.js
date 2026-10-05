@@ -119,7 +119,10 @@ test('Sharp as the Wind selects condition Gunsaber variants and their secondary 
 
   assert.deepEqual(result.warnings, []);
   assert.deepEqual(coefficientsFor(ID.SHARP_SWIFT_CUT), [0.3, 0.1]);
-  assert.deepEqual(conditionsFor(ID.SHARP_SWIFT_CUT), [['Bleeding', 2, 3]]);
+  assert.deepEqual(conditionsFor(ID.SHARP_SWIFT_CUT), [
+    ['Bleeding', 1, 3],
+    ['Bleeding', 1, 3]
+  ]);
   assert.deepEqual(coefficientsFor(ID.SHARP_STEEL_DIVIDE), [0.4, 0.1]);
   assert.deepEqual(conditionsFor(ID.SHARP_STEEL_DIVIDE), [['Bleeding', 1, 3]]);
   assert.deepEqual(coefficientsFor(ID.SHARP_EXPLOSIVE_THRUST), [0.6, 0.1]);
@@ -131,7 +134,10 @@ test('Sharp as the Wind selects condition Gunsaber variants and their secondary 
     ['Burning', 1, 3]
   ]);
   assert.deepEqual(coefficientsFor(ID.SHARP_ARTILLERY_SLASH), [2]);
-  assert.deepEqual(conditionsFor(ID.SHARP_ARTILLERY_SLASH), [['Bleeding', 4, 7]]);
+  assert.deepEqual(
+    conditionsFor(ID.SHARP_ARTILLERY_SLASH),
+    Array.from({ length: 4 }, () => ['Bleeding', 1, 7])
+  );
   assert.deepEqual(coefficientsFor(ID.SHARP_CYCLONE_TRIGGER), [1]);
   assert.deepEqual(conditionsFor(ID.SHARP_CYCLONE_TRIGGER), [
     ['Burning', 1, 5],
@@ -871,7 +877,10 @@ test('Flicker Step triggers Peitha on activation with its measured impact delay'
   assert.deepEqual(result.warnings, []);
   assert.equal(triggers.length, 1);
   assert.equal(triggers[0].at, cast.at);
-  assert.equal(torment.length, 1);
+  assert.equal(
+    torment.reduce((sum, event) => sum + event.stacks, 0),
+    2
+  );
 });
 
 test('Overcharged Cartridges buffs explosion damage and burning', () => {

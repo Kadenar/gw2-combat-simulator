@@ -946,7 +946,7 @@ test('Relic of Bloodstone records three Volatility stacks before the fourth blas
   const explosion = result.resolvedEvents.find(
     (event) => event.type === 'damage' && event.skillName === 'Bloodstone Explosion'
   );
-  const bleeding = result.resolvedEvents.find(
+  const bleeding = result.resolvedEvents.filter(
     (event) => event.type === 'condition' && event.skillName === 'Bloodstone Explosion'
   );
 
@@ -962,8 +962,12 @@ test('Relic of Bloodstone records three Volatility stacks before the fourth blas
   assertFlooredDamageMultiplier(blasts[3].damage, blasts[0].damage, 1.07);
   assertFlooredDamageMultiplier(strikes[1].damage, strikes[0].damage, 1.07);
   assert.equal(explosion.coefficient, 3);
-  assert.equal(bleeding.stacks, 6);
-  assert.equal(bleeding.duration, 6);
+  // The explosion's total survives per-stack condition resolution.
+  assert.equal(
+    bleeding.reduce((sum, event) => sum + event.stacks, 0),
+    6
+  );
+  assert.ok(bleeding.every((event) => event.duration === 6));
 });
 
 test('Bloodstone Fervor follows modifier ownership', () => {

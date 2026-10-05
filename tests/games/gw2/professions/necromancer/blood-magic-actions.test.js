@@ -26,7 +26,10 @@ test('Mark of Evasion triggers at dodge completion with bleeding and party regen
     assert.equal(packets.find((event) => event.type === 'damage').coefficient, 0.33);
     const bleed = packets.find((event) => event.type === 'condition');
     assert.equal(bleed.condition, 'Bleeding');
-    assert.equal(bleed.stacks, 2);
+    assert.equal(
+      packets.filter((event) => event.type === 'condition').reduce((sum, event) => sum + event.stacks, 0),
+      2
+    );
     assert.equal(bleed.duration, 8);
     const regeneration = packets.find((event) => event.kind === 'regeneration');
     assert.equal(regeneration.duration, 5);

@@ -1,6 +1,7 @@
 import { attributeProvenance } from '#gw2/platform/builds/attribute-provenance.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
+import { advanceCounter } from '#gw2/platform/combat/resources/counters.js';
 import {
   balanceProfileNumber,
   requireBalanceProfileFromContext,
@@ -40,10 +41,16 @@ export const swiftScholar = defineTrait({
         state.swiftScholarCount = 0;
       }
 
-      state.swiftScholarCount++;
       const profile = requireBalanceProfileFromContext(runtime, TRAIT.SWIFT_SCHOLAR);
-      if (state.swiftScholarCount >= balanceProfileNumber(profile, 'minimumStacks')) {
-        state.swiftScholarCount = 0;
+      // Complete this tome's page cycle at acceptance while leaving the earned refund attached to its cast.
+      const progress = advanceCounter(
+        state.swiftScholarCount,
+        1,
+        balanceProfileNumber(profile, 'minimumStacks'),
+        'reset'
+      );
+      state.swiftScholarCount = progress.value;
+      if (progress.reached) {
         // A later concurrent stow cannot revoke the refund already earned by this accepted page.
         refundByCast.set(cast, balanceProfileNumber(profile, 'resourceGain'));
       }

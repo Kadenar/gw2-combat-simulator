@@ -821,10 +821,10 @@ test('Ranger pet-swap and Marksmanship traits resolve at their combat timings', 
   assert.equal(rapidHits[0].criticalChance, 1);
   assert.equal(rapidHits[1].criticalChance < 1, true);
   assert.equal(
-    opening.resolvedEvents.some(
-      (event) => event.sourceId === TRAIT.OPENING_STRIKE && event.condition === 'Vulnerability' && event.stacks === 5
-    ),
-    true
+    opening.resolvedEvents
+      .filter((event) => event.sourceId === TRAIT.OPENING_STRIKE && event.condition === 'Vulnerability')
+      .reduce((sum, event) => sum + event.stacks, 0),
+    5
   );
 
   const openingWithoutRemorseless = simulate('Core', ['Rapid Fire'], {
@@ -843,7 +843,12 @@ test('Ranger pet-swap and Marksmanship traits resolve at their combat timings', 
     selectedTraitIds: [TRAIT.OPENING_STRIKE, TRAIT.REMORSELESS]
   });
 
-  assert.equal(rearmed.resolvedEvents.filter((event) => event.sourceId === TRAIT.OPENING_STRIKE).length, 2);
+  assert.equal(
+    rearmed.resolvedEvents
+      .filter((event) => event.sourceId === TRAIT.OPENING_STRIKE)
+      .reduce((sum, event) => sum + event.stacks, 0),
+    10
+  );
   assert.equal(
     opening.resolvedEvents.some((event) => event.sourceId === TRAIT.ALPHA_FOCUS && event.condition === 'Crippled'),
     true
@@ -939,10 +944,10 @@ test('Ranger Wilderness Survival traits cover endurance, poison, and disables', 
   });
 
   assert.equal(
-    armedSpider.resolvedEvents.some(
-      (event) => event.sourceId === TRAIT.POISON_MASTER && event.condition === 'Poisoned' && event.stacks === 2
-    ),
-    true
+    armedSpider.resolvedEvents
+      .filter((event) => event.sourceId === TRAIT.POISON_MASTER && event.condition === 'Poisoned')
+      .reduce((sum, event) => sum + event.stacks, 0),
+    2
   );
 
   const poisonMaster = simulate(
@@ -955,14 +960,12 @@ test('Ranger Wilderness Survival traits cover endurance, poison, and disables', 
   );
 
   assert.equal(
-    poisonMaster.resolvedEvents.some(
-      (event) =>
-        event.sourceId === TRAIT.POISON_MASTER &&
-        event.condition === 'Poisoned' &&
-        event.stacks === 2 &&
-        event.duration === 8
-    ),
-    true
+    poisonMaster.resolvedEvents
+      .filter(
+        (event) => event.sourceId === TRAIT.POISON_MASTER && event.condition === 'Poisoned' && event.duration === 8
+      )
+      .reduce((sum, event) => sum + event.stacks, 0),
+    2
   );
 
   const build = createRangerBuildDefaults();

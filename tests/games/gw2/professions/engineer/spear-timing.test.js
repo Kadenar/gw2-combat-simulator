@@ -186,7 +186,10 @@ test('Artillery damage and conditions wait for impact without delaying the next 
   assert.ok(packets.every((event) => event.at === impact.at));
   // Conduit Surge establishes Focused during flight, so Artillery resolves the Focused branch.
   assert.equal(packets.find((event) => event.type === 'damage').coefficient, 1.5);
-  assert.equal(packets.find((event) => event.condition === 'Vulnerability').stacks, 8);
+  assert.equal(
+    packets.filter((event) => event.condition === 'Vulnerability').reduce((sum, event) => sum + event.stacks, 0),
+    8
+  );
 
   const lostFocus = simulate(
     'Core',

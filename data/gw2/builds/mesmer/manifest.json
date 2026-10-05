@@ -22,7 +22,7 @@
         "label": "Condition (Staff-Scepter/Pistol)",
         "build": "data/gw2/builds/mesmer/b-condi-chronomancer.json",
         "rotation": "data/gw2/rotations/mesmer/r-condi-chronomancer-bench.json",
-        "benchmarkDps": 45753,
+        "benchmarkDps": 45754,
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/mesmer/condition-chronomancer-staff-scepter-pistol",
         "upToDate": true
       }

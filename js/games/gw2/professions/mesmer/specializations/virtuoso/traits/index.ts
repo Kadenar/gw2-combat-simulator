@@ -3,6 +3,7 @@ import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { isGw2PlayerActorEvent } from '#gw2/platform/combat/state/event-ownership.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
+import { advanceCounter } from '#gw2/platform/combat/resources/counters.js';
 import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
 import type { MesmerTraitDamage } from '#gw2/professions/mesmer/core/mechanics/illusions/types.js';
@@ -65,19 +66,19 @@ export const bloodsong = defineTrait<MesmerSkill>({
       'condition.applied'(runtime, event) {
         if (event.condition !== 'Bleeding' || !hasTrait(runtime, TRAIT.BLOODSONG)) return;
         const state = virtuosoState.from(runtime);
-        state.bloodsongProgress += event.stacks ?? 0;
         const profile = requireBalanceProfileFromContext(runtime, TRAIT.BLOODSONG);
         const threshold = balanceProfileNumber(profile, 'threshold');
-        while (threshold > 0 && state.bloodsongProgress >= threshold - 1e-9) {
-          state.bloodsongProgress -= threshold;
-          createMesmerIllusionRewards(runtime).queueResources(
-            runtime.time,
-            balanceProfileNumber(profile, 'resourceGain'),
-            mesmerActivePrimaryWeapon(runtime),
-            'Bloodsong',
-            { traitId: TRAIT.BLOODSONG, traitName: 'Bloodsong' }
-          );
-        }
+        // The resolver dispatches each stack individually; reset before rewarding so the next application starts a new cycle.
+        const progress = advanceCounter(state.bloodsongProgress, 1, threshold, threshold > 0 ? 'reset' : 'retain');
+        state.bloodsongProgress = progress.value;
+        if (threshold <= 0 || !progress.reached) return;
+        createMesmerIllusionRewards(runtime).queueResources(
+          runtime.time,
+          balanceProfileNumber(profile, 'resourceGain'),
+          mesmerActivePrimaryWeapon(runtime),
+          'Bloodsong',
+          { traitId: TRAIT.BLOODSONG, traitName: 'Bloodsong' }
+        );
       }
     }
   }

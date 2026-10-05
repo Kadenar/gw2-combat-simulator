@@ -69,7 +69,11 @@ test('Cry of Pain improves every Bladesong Sorrow confusion packet', () => {
   const confusion = result.resolvedEvents.filter(
     (event) => event.type === 'condition' && event.skillName === 'Bladesong Sorrow' && event.condition === 'Confusion'
   );
-  assert.ok(confusion.every((event) => event.stacks === 2 && event.duration === 4));
+  assert.ok(confusion.every((event) => event.stacks === 1 && event.duration === 4));
+  assert.equal(
+    confusion.reduce((sum, event) => sum + event.stacks, 0),
+    10
+  );
 });
 
 test('Maim the Disillusioned follows each damaging Virtuoso bladesong hit', () => {

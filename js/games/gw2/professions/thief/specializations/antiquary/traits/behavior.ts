@@ -1,6 +1,7 @@
 import type { ThiefSkill } from '#gw2/professions/thief/types.js';
 import { purgeExpiredStacks } from '#gw2/platform/combat/resources/timed-stacks.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
+import { advanceCounter } from '#gw2/platform/combat/resources/counters.js';
 import {
   balanceProfileNumber,
   effectNumber,
@@ -88,13 +89,17 @@ export function applyPossessiveHoarder(
   }
 }
 
-/** Initiative spent before combat does not qualify for Prodigious Pincher's next pilfer. */
+/** Reads accumulated spending without consuming it; only an in-combat threshold check can request a pilfer. */
 export function prodigiousPincherReady(runtime: ThiefRuntime): boolean {
   return (
     runtime.combatStartedAt() &&
     hasTrait(runtime, TRAIT.PRODIGIOUS_PINCHER) &&
-    antiquaryState.from(runtime).initiativeSpentSincePilfer >=
-      balanceProfileNumber(requireBalanceProfileFromContext(runtime, TRAIT.PRODIGIOUS_PINCHER), 'threshold')
+    advanceCounter(
+      antiquaryState.from(runtime).initiativeSpentSincePilfer,
+      0,
+      balanceProfileNumber(requireBalanceProfileFromContext(runtime, TRAIT.PRODIGIOUS_PINCHER), 'threshold'),
+      'retain'
+    ).reached
   );
 }
 

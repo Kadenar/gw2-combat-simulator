@@ -3,6 +3,7 @@ import { isBeastSkill } from '#gw2/professions/ranger/core/traits/dispatch.js';
 import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
 import type { Gw2TraitLookupContext } from '#gw2/platform/combat/state/traits.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
+import { advanceCounter } from '#gw2/platform/combat/resources/counters.js';
 import { denySkillCast as deny } from '#gw2/platform/execution/availability.js';
 import {
   balanceProfileNumber,
@@ -27,10 +28,10 @@ export function applyShrike(context: RangerRuntime, event: Gw2ResolverEvent): vo
   const state = galeshotState.from(context);
   const profile = requireBalanceProfileFromContext(context, TRAIT.SHRIKE);
   const threshold = balanceProfileNumber(profile, 'threshold');
-  state.missileHits += 1;
-  if (state.missileHits < threshold) return;
-  // Subtract rather than reset so any overshoot from burst windows is preserved.
-  state.missileHits -= threshold;
+  // Completing the missile-hit cycle resets buildup before granting the arrow refund and optional strike.
+  const progress = advanceCounter(state.missileHits, 1, threshold, 'reset');
+  state.missileHits = progress.value;
+  if (!progress.reached) return;
   // The arrow refund is independent of the strike, so it survives strike removal.
   context.resourceController.grant('arrows', balanceProfileNumber(profile, 'resourceGain'));
   const strike = requireEffect(profile, 'strike', 'Strike');

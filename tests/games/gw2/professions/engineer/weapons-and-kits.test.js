@@ -672,13 +672,20 @@ test('Engineer spear focus selects its condition branch and consumes Lightning R
       (event) => event.condition === 'Vulnerability' && event.sourceId === ID.LIGHTNING_ROD
     );
     assert.ok(rodVulnerability.length > 0);
-    assert.ok(rodVulnerability.every((event) => event.stacks === rodStacks && event.duration === 8));
-    const artilleryVulnerability = result.resolvedEvents.find(
+    assert.ok(rodVulnerability.every((event) => event.stacks === 1 && event.duration === 8));
+    const rodImpacts = new Set(rodVulnerability.map((event) => event.at)).size;
+    assert.equal(
+      rodVulnerability.reduce((sum, event) => sum + event.stacks, 0),
+      rodImpacts * rodStacks
+    );
+    const artilleryVulnerability = result.resolvedEvents.filter(
       (event) => event.condition === 'Vulnerability' && event.sourceId === ID.ELECTRIC_ARTILLERY
     );
-    assert.equal(artilleryVulnerability.stacks, artilleryStacks);
-    assert.equal(artilleryVulnerability.duration, 8);
-    assert.equal(artilleryVulnerability.effectiveDuration, 8);
+    assert.equal(
+      artilleryVulnerability.reduce((sum, event) => sum + event.stacks, 0),
+      artilleryStacks
+    );
+    assert.ok(artilleryVulnerability.every((event) => event.duration === 8 && event.effectiveDuration === 8));
   }
 });
 

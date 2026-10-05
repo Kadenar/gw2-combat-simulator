@@ -455,8 +455,12 @@ test('Doom survives an off-target hit and is consumed once by the next actual hi
   const poison = result.resolvedEvents.filter(
     (event) => event.type === 'condition' && event.sourceId === `sigil.${SIGIL_IDS.DOOM}`
   );
-  assert.equal(poison.length, 1);
-  assert.equal(poison[0].at, 0.2);
+  // The pending charge funds one three-stack application only after an accepted hit.
+  assert.equal(
+    poison.reduce((sum, event) => sum + event.stacks, 0),
+    3
+  );
+  assert.ok(poison.every((event) => event.at === 0.2));
   assert.equal(observedRuntime(result).sigil.doomPending, false);
 });
 
@@ -828,12 +832,7 @@ test('Shackles claims an actual immobilize once and rejects missed applications'
 
 test('Mirage claims actual evades once per cooldown without a timeline replay', () => {
   const result = run([cast(991010), cast(991010), wait(1500)], { config: { ...config, relic: 'Mirage' } });
-  assert.equal(
-    result.resolvedEvents.filter(
-      (event) => event.type === 'condition' && event.sourceId === `relic.${RELIC_IDS.MIRAGE}`
-    ).length,
-    1
-  );
+  assert.equal(result.procSteps.filter((proc) => proc.skill === 'Relic of the Mirage').length, 1);
   assert.ok(result.conditionDamage > 0);
 });
 

@@ -930,10 +930,14 @@ test('Holosmith exceed packets use their heat tiers and conditions', () => {
   );
   assert.ok(
     skillEvents(hotWall, 'condition', 'Launch Wall').every(
-      (event) => event.condition === 'Vulnerability' && event.stacks === 3 && event.duration === 5
+      (event) => event.condition === 'Vulnerability' && event.stacks === 1 && event.duration === 5
     )
   );
   assert.ok(skillEvents(enhancedWall, 'damage', 'Launch Wall').every((event) => event.holosmithStrikeFactor === 1.35));
+  assert.equal(
+    skillEvents(hotWall, 'condition', 'Launch Wall').reduce((sum, event) => sum + event.stacks, 0),
+    9
+  );
 
   const blades = (initialHeat, selectedTraitIds = []) =>
     run(['Refraction Cutter', { type: 'wait', durationMs: 1000 }], initialHeat, selectedTraitIds);

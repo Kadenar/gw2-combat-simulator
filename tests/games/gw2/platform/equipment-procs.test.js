@@ -270,22 +270,13 @@ test("seeded critical sigils consume the hit's single sampled crit outcome", () 
   const expectedProcs = expectedOutcomes.filter(Boolean).length;
 
   for (const sigil of ['Earth', 'Torment']) {
-    assert.equal(
-      stochastic.resolvedEvents.filter((event) => event.type === 'condition' && event.skillName === `Sigil of ${sigil}`)
-        .length,
-      expectedProcs
-    );
+    assert.equal(stochastic.procSteps.filter((proc) => proc.skill === `Sigil of ${sigil}`).length, expectedProcs);
   }
 
   const deterministic = run('deterministic');
 
   for (const sigil of ['Earth', 'Torment']) {
-    assert.equal(
-      deterministic.resolvedEvents.filter(
-        (event) => event.type === 'condition' && event.skillName === `Sigil of ${sigil}`
-      ).length,
-      expectedProcs
-    );
+    assert.equal(deterministic.procSteps.filter((proc) => proc.skill === `Sigil of ${sigil}`).length, expectedProcs);
   }
 });
 
@@ -432,12 +423,16 @@ test('critical weapon-swap sigil strikes can trigger critical-hit sigils', () =>
     result.procSteps.map((proc) => proc.skill),
     ['Sigil of Geomancy', 'Sigil of Torment']
   );
-  const torment = result.resolvedEvents.find(
+  const torment = result.resolvedEvents.filter(
     (event) => event.skillName === 'Sigil of Torment' && event.condition === 'Torment'
   );
 
-  assert.equal(torment?.stacks, 2);
-  assert.equal(torment?.duration, 5);
+  // One critical-hit proc supplies two independently resolved condition stacks.
+  assert.equal(
+    torment.reduce((sum, event) => sum + event.stacks, 0),
+    2
+  );
+  assert.ok(torment.every((event) => event.duration === 5));
 });
 
 test('Severance affects strikes after its control trigger', () => {

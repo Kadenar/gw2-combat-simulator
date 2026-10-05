@@ -1,4 +1,5 @@
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
+import { advanceCyclicCounter } from '#gw2/platform/combat/resources/counters.js';
 import {
   requireBalanceProfileFromContext,
   requireEffect,
@@ -326,11 +327,12 @@ export function applyAimAssistedRocket(context: EngineerResolverContext, event: 
 
   const aimAssistedRocketProfile = requireBalanceProfileFromContext(context, TRAIT.AIM_ASSISTED_ROCKET);
   state.setDeadline('aimAssistedRocket', event.at + balanceProfileNumber(aimAssistedRocketProfile, 'internalCooldown'));
-  professionCoreState(context).aimAssistedRocketCount = (professionCoreState(context).aimAssistedRocketCount || 0) + 1;
-  // Every fifth projectile upgrades to Orbital Command Strike with its two-second call-down delay.
+  const core = professionCoreState(context);
   const alternateEvery = balanceProfileNumber(aimAssistedRocketProfile, 'maximumStacks');
-  const orbital = professionCoreState(context).aimAssistedRocketCount % alternateEvery === 0;
-  emitAimAssistedRocket(context, event, orbital);
+  // Count only accepted procs and preserve the cumulative total used to select each orbital strike.
+  const progress = advanceCyclicCounter(core.aimAssistedRocketCount, 1, alternateEvery);
+  core.aimAssistedRocketCount = progress.value;
+  emitAimAssistedRocket(context, event, progress.reached);
 }
 
 /** Rocket and orbital strike are independently meaningful occurrence variants. */

@@ -1,4 +1,5 @@
 import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
+import { advanceCounter } from '#gw2/platform/combat/resources/counters.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import type { SimulationEvent } from '#gw2/platform/events/events.js';
 import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
@@ -122,12 +123,12 @@ export function applyEvokerEntryTraits(context: ElementalistRuntime, event: Simu
   // only counts entering YOUR current element (Elemental Dynamo or Specialized Elements entry)
   if (event.to !== state.element) return;
   if (hasTrait(context, TRAIT.ELEMENTAL_BALANCE)) {
-    state.elementalBalanceProgress += 1;
     const elementalBalanceProfile = requireBalanceProfileFromContext(context, TRAIT.ELEMENTAL_BALANCE);
     const threshold = balanceProfileNumber(elementalBalanceProfile, 'threshold');
-    if (state.elementalBalanceProgress >= threshold) {
-      // subtract rather than reset so any overflow from simultaneous gains isn't lost
-      state.elementalBalanceProgress -= threshold;
+    // Completing the selected-attunement entry cycle arms the reward and starts the next cycle at zero.
+    const progress = advanceCounter(state.elementalBalanceProgress, 1, threshold, 'reset');
+    state.elementalBalanceProgress = progress.value;
+    if (progress.reached) {
       // Temporary-effect expiry uses the absolute combat tick, including patched durations.
       const duration = balanceProfileNumber(elementalBalanceProfile, 'durationMultiplier');
       state.elementalBalanceUntil = gw2EffectExpiresAt(event.at, duration);

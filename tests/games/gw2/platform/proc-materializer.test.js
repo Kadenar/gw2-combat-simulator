@@ -58,6 +58,7 @@ test('critical sigil decisions use sampled outcomes and strict deadlines without
 test('Blight procs supply condition-dependent readiness and expire without recursive relic output', () => {
   // Poison creates a later scheduling opportunity, and the resolver sees the same condition at that time.
   const observed = [];
+  const appliedStacks = [];
   const profession = defineTestProfession({
     id: 'blight-facts-fixture',
     name: 'Blight facts fixture',
@@ -99,7 +100,7 @@ test('Blight procs supply condition-dependent readiness and expire without recur
       reactions: {
         'condition.applied': (context, event) => {
           if (event.sourceId === `sigil.${SIGIL_IDS.BLIGHT}`)
-            assert.equal(context.combat.targetConditionStacks('Poisoned', 0.2, context), 2);
+            appliedStacks.push(context.combat.targetConditionStacks('Poisoned', 0.2, context));
         }
       }
     }
@@ -107,12 +108,14 @@ test('Blight procs supply condition-dependent readiness and expire without recur
   const config = { stats: { power: 1000, precision: 4000 }, sigilSets: [{ names: ['Blight'] }], relic: 'Shackles' };
   const result = simulateGw2({ profession, config, rotation: [{ type: 'wait', durationMs: 5000 }] });
   assert.deepEqual(observed, [true, false]);
+  // Immediate sigil applications enter live state one stack at a time before later readiness checks.
+  assert.deepEqual(appliedStacks, [1, 2]);
   assert.equal(result.events.filter((event) => event.sourceId === 'follow-up').length, 1);
   assert.equal(
-    result.resolvedEvents.filter(
-      (event) => event.type === 'condition' && event.sourceId === `sigil.${SIGIL_IDS.BLIGHT}`
-    ).length,
-    1
+    result.resolvedEvents
+      .filter((event) => event.type === 'condition' && event.sourceId === `sigil.${SIGIL_IDS.BLIGHT}`)
+      .reduce((sum, event) => sum + event.stacks, 0),
+    2
   );
   assert.ok(result.events.every((event) => event.sourceId !== `relic.${RELIC_IDS.SHACKLES}`));
 });

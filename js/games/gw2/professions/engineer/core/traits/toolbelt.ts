@@ -5,6 +5,7 @@ import type {
   EngineerResolverEvent
 } from '#gw2/professions/engineer/types.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
+import { advanceCounter } from '#gw2/platform/combat/resources/counters.js';
 import {
   requireBalanceProfileFromContext,
   requireEffect,
@@ -120,9 +121,10 @@ function applyKineticBattery(context: EngineerRuntime, skill: EngineerSkill, at:
   const state = professionCoreState(context);
   const profile = requireBalanceProfileFromContext(context, TRAIT.KINETIC_BATTERY);
   const maximumCharges = balanceProfileNumber(profile, 'maximumStacks');
-  state.kineticCharges = Math.min(maximumCharges, (state.kineticCharges || 0) + 1);
-  if (state.kineticCharges >= maximumCharges) {
-    state.kineticCharges = 0;
+  // Start the next battery cycle before emitting its reward so reactions see the reset charge count.
+  const progress = advanceCounter(state.kineticCharges, 1, maximumCharges, 'reset');
+  state.kineticCharges = progress.value;
+  if (progress.reached) {
     context.effects.emit({
       kind: 'profile',
       profile: profile,

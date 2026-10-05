@@ -2,6 +2,7 @@ import { professionStaticRulesApplied } from '#gw2/platform/builds/attribute-pro
 import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
 import { isHostileTargetEvent } from '#gw2/platform/combat/state/targets.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
+import { advanceCounter } from '#gw2/platform/combat/resources/counters.js';
 import type { EffectMetadata, SimulationEvent } from '#gw2/platform/events/events.js';
 import {
   balanceProfileNumber,
@@ -202,10 +203,11 @@ export function applyCascadingCorruption(
     const strike = requireEffect(corruption, 'strike', 'Strike');
     const torment = requireEffect(corruption, 'condition', 'Torment');
     if (meltdown || strike || torment) {
-      state.cascadingCorruptionStacks += consumed;
       const threshold = balanceProfileNumber(corruption, 'minimumStacks');
-      if (state.cascadingCorruptionStacks >= threshold) {
-        state.cascadingCorruptionStacks -= threshold;
+      // Reaching the stack cap grants one Meltdown and resets buildup before any reward reacts.
+      const progress = advanceCounter(state.cascadingCorruptionStacks, consumed, threshold, 'reset');
+      state.cascadingCorruptionStacks = progress.value;
+      if (progress.reached) {
         if (meltdown)
           state.meltdownUntil = canonicalTime(runtime.time + effectNumber(corruption, meltdown, 'duration'));
         const proc = runtime.effects.emit({

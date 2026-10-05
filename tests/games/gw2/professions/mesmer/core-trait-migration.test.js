@@ -328,7 +328,10 @@ test('Dazzling preserves ownership and live profile edits for eligible control',
           }
         });
         assert.deepEqual(result.warnings, []);
-        assert.equal(observed.length, !removed && !offTarget && actorType !== 'effect' ? 1 : 0);
+        assert.equal(
+          observed.reduce((sum, event) => sum + event.stacks, 0),
+          !removed && !offTarget && actorType !== 'effect' ? 7 : 0
+        );
         if (observed.length) {
           const [event] = observed;
           assert.equal(event.actorType, 'effect');
@@ -336,7 +339,7 @@ test('Dazzling preserves ownership and live profile edits for eligible control',
           assert.equal(event.skillId, ID.MAGIC_BULLET);
           assert.equal(event.skillName, 'Magic Bullet');
           assert.equal(event.activationId, 'test.control');
-          assert.equal(event.stacks, 7);
+          assert.equal(event.stacks, 1);
           assert.equal(event.duration, 3);
         }
       }

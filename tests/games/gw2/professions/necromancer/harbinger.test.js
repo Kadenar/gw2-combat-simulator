@@ -81,7 +81,7 @@ test('Cascading Corruption commits one delayed Meltdown and expires its live win
   };
   const rotation = [cast(ID.ELIXIR_OF_RISK)];
   const pending = run(rotation, config, { combatStartTime: 0 });
-  assert.equal(state(pending).cascadingCorruptionStacks, 4);
+  assert.equal(state(pending).cascadingCorruptionStacks, 0);
   assert.equal(
     pending.resolvedEvents.some((event) => event.type === 'damage' && event.sourceId === TRAIT.CASCADING_CORRUPTION),
     false

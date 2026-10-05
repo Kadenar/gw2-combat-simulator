@@ -1,6 +1,7 @@
 import type { MechanicContext } from '#gw2/platform/profession-definition/mechanic-context.js';
 import { isGw2PlayerActorEvent, isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
 import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
+import { advanceCounter } from '#gw2/platform/combat/resources/counters.js';
 import {
   effectNumber,
   requireBalanceProfileFromContext,
@@ -136,10 +137,11 @@ export function reactToJusticeHitWithOptions(
 
   const justiceProfile = requireBalanceProfileFromContext(context, PROFILE.justice);
   if (!requireEffect(justiceProfile, 'condition', 'Burning (passive)')) return;
-  state.justiceHitCount += 1;
   const triggerHits = permeatingWrathThreshold(context, 'justice', PROFILE.justice);
-  if (state.justiceHitCount < triggerHits) return;
-  state.justiceHitCount = 0;
+  // Reset accepted passive hit progress before burning can cause another reaction.
+  const progress = advanceCounter(state.justiceHitCount, 1, triggerHits, 'reset');
+  state.justiceHitCount = progress.value;
+  if (!progress.reached) return;
   applyJusticeBurn(context, event, {
     active: false,
     skillId,

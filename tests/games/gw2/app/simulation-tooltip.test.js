@@ -758,9 +758,13 @@ test('Necromancer condition handlers and tooltips share selected skill effects',
     darkness.resolvedEvents.find((event) => event.type === 'damage' && event.skillId === 51647).coefficient,
     2
   );
-  const torment = darkness.resolvedEvents.find((event) => event.type === 'condition' && event.skillId === 51647);
-  assert.equal(torment.stacks, 2);
-  assert.equal(torment.duration, 7);
+  const torment = darkness.resolvedEvents.filter((event) => event.type === 'condition' && event.skillId === 51647);
+  // Tooltip totals must match all independently resolved stacks of the patched effect.
+  assert.equal(
+    torment.reduce((sum, event) => sum + event.stacks, 0),
+    2
+  );
+  assert.ok(torment.every((event) => event.duration === 7));
   // The accepted strike counts existing Chilled before applying its own Torment, using the patched gain.
   assert.equal(darkness.planningState.profession.lifeForce.value, 10);
   const corruption = simulate('Core', ['Blood Is Power'], {
@@ -850,9 +854,12 @@ test('Soulbeast condition triggers preserve the same patched stack count shown i
     selectedSkillIds: [40498]
   });
   assert.deepEqual(result.warnings, []);
-  const poison = result.resolvedEvents.find((event) => event.type === 'condition' && event.skillId === 40498);
-  assert.equal(poison?.stacks, 3);
-  assert.equal(poison.duration, 6);
+  const poison = result.resolvedEvents.filter((event) => event.type === 'condition' && event.skillId === 40498);
+  assert.equal(
+    poison.reduce((sum, event) => sum + event.stacks, 0),
+    3
+  );
+  assert.ok(poison.every((event) => event.duration === 6));
 });
 
 // Complete profession coverage includes handler-owned actions, not only skills with direct effect arrays.

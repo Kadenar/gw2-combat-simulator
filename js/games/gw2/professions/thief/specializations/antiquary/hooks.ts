@@ -1,6 +1,7 @@
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
 import { grantCharges } from '#gw2/platform/combat/resources/charges.js';
+import { addCounterProgress } from '#gw2/platform/combat/resources/counters.js';
 import { consumeOldestStacks } from '#gw2/platform/combat/resources/timed-stacks.js';
 import { denySkillCast } from '#gw2/platform/execution/availability.js';
 import {
@@ -73,6 +74,7 @@ function pilferArtifacts(runtime: ThiefRuntime, source: 'swipe' | 'initiative' |
     balanceProfileNumber(requireBalanceProfileFromContext(runtime, PROFILE.resources), 'maximumStacks') +
     prolificPlundererUses(runtime, source) +
     improvisationArtifactUses(runtime, source);
+  // Every pilfer starts fresh, including Swipe and Scuffle; excess spending never carries to a second pilfer.
   state.initiativeSpentSincePilfer = 0;
   if (source !== 'swipe') return;
   grantScoundrelsLuck(runtime);
@@ -233,9 +235,10 @@ function spendAntiquaryInitiative(runtime: ThiefRuntime, cast: RuntimeCast<Thief
   const cost = cast.skill.initiativeCost || 0;
   if (!(cost > 0)) return;
   const state = antiquaryState.from(runtime);
-  state.initiativeSpentSincePilfer += cost;
+  // Keep gross spending before Chak refunds; reward eligibility is checked separately against the live progress.
+  state.initiativeSpentSincePilfer = addCounterProgress(state.initiativeSpentSincePilfer, cost);
   if ((state.chakInitiativeRefundUntil || 0) > runtime.time) runtime.resourceController.grant('initiative', cost);
-  // Initiative spent before combat begins does not count toward the threshold.
+  // Spending accrues before combat too, but it cannot trigger a pilfer until combat has begun.
   if (prodigiousPincherReady(runtime)) pilferArtifacts(runtime, 'initiative');
 }
 

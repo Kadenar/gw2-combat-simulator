@@ -371,9 +371,12 @@ test('Mechanist arm traits alter mech hits and their command skills', () => {
       ['Rolling Smash', 'Mech Arms: Single-Edge Cutters'].includes(event.skillName)
   );
 
-  assert.ok(
-    rollingBleeds.some((event) => event.skillName === 'Rolling Smash' && event.stacks === 4 && event.duration === 8)
+  const rollingSmashBleeds = rollingBleeds.filter((event) => event.skillName === 'Rolling Smash');
+  assert.equal(
+    rollingSmashBleeds.reduce((sum, event) => sum + event.stacks, 0),
+    4
   );
+  assert.ok(rollingSmashBleeds.every((event) => event.duration === 8));
   const cutterBleeds = rollingBleeds.filter((event) => event.skillName === 'Mech Arms: Single-Edge Cutters');
 
   assert.equal(cutterBleeds.length, 2);
@@ -531,8 +534,11 @@ test('Mechanist frame commands use mech stats and requested pulse profiles', () 
       (event) => event.type === 'condition' && event.skillName === 'Discharge Array' && event.condition === condition
     );
 
-    assert.equal(applications.length, 5);
-    assert.ok(applications.every((event) => event.stacks === stacks && event.duration === duration));
+    assert.equal(
+      applications.reduce((sum, event) => sum + event.stacks, 0),
+      5 * stacks
+    );
+    assert.ok(applications.every((event) => event.stacks === 1 && event.duration === duration));
   }
 
   const variable = simulate('Mechanist', ['Core Reactor Shot', { type: 'wait', durationMs: 700 }], {

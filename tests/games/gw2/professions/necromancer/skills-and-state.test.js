@@ -826,13 +826,12 @@ test('Scourge barrier, shroud, and greater-shade traits trigger precisely', () =
     sharePlayerBoonsWithSummons: true
   });
   const buffs = (result, kind) => result.events.filter((event) => event.type === 'buff' && event.kind === kind);
-  const sandstormTorment = sandstorm.resolvedEvents.find(
-    (event) =>
-      event.type === 'condition' &&
-      event.skillId === ID.SANDSTORM_SHROUD &&
-      event.condition === 'Torment' &&
-      event.stacks === 6
-  );
+  // Inspect the final explosion's stacks after the shorter-duration shroud pulses.
+  const sandstormTorment = sandstorm.resolvedEvents
+    .filter(
+      (event) => event.type === 'condition' && event.skillId === ID.SANDSTORM_SHROUD && event.condition === 'Torment'
+    )
+    .at(-1);
 
   assert.equal(buffs(barrier, 'might').length, 3);
   assert.equal(
@@ -921,7 +920,12 @@ test('Harbinger Shroud generates and consumes expiring blight', () => {
 
   assert.equal(generated.planningState.profession.blight, 6);
   assert.equal(consumed.planningState.profession.blight, 0);
-  assert.ok(consumed.resolvedEvents.some((event) => event.condition === 'Torment' && event.stacks === 5));
+  assert.equal(
+    consumed.resolvedEvents
+      .filter((event) => event.condition === 'Torment')
+      .reduce((sum, event) => sum + event.stacks, 0),
+    5
+  );
   assert.equal(expired.planningState.profession.blight, 0);
   assert.deepEqual(lateExit.warnings, []);
   assert.equal(lateExit.planningState.profession.activeShroud, '');
@@ -1031,16 +1035,16 @@ test('Harbinger shroud attacks use their Blight thresholds and coefficients', ()
   // Exiting before the first one-second shroud tick prevents passive Blight gains.
   assert.equal(empoweredArc.planningState.profession.blight, 0);
   assert.equal(
-    empoweredCut.resolvedEvents.some(
-      (event) => event.condition === 'Torment' && event.stacks === 5 && event.duration === 5
-    ),
-    true
+    empoweredCut.resolvedEvents
+      .filter((event) => event.condition === 'Torment' && event.duration === 5)
+      .reduce((sum, event) => sum + event.stacks, 0),
+    5
   );
   assert.equal(
-    empoweredArc.resolvedEvents.some(
-      (event) => event.condition === 'Torment' && event.stacks === 5 && event.duration === 7
-    ),
-    true
+    empoweredArc.resolvedEvents
+      .filter((event) => event.condition === 'Torment' && event.duration === 7)
+      .reduce((sum, event) => sum + event.stacks, 0),
+    5
   );
   assert.equal(
     empoweredArc.events.some((event) => event.type === 'control' && event.controlKind === 'daze'),

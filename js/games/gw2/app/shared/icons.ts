@@ -42,6 +42,8 @@ export const MODIFIER_EFFECT_ICONS: Readonly<Record<string, string>> = {
   'Attribute increase': 'https://render.guildwars2.com/file/E1E7C4D3A6E62F3D5C9F627CE8175BFB0C614CBE/156652.png',
   // Warrior adrenaline facts use the game's Number glyph, shared with attribute increases.
   Adrenaline: 'https://render.guildwars2.com/file/E1E7C4D3A6E62F3D5C9F627CE8175BFB0C614CBE/156652.png',
+  // Burst Mastery's resource refund uses the up-arrow glyph for restored resources.
+  'Resource refunded': 'https://render.guildwars2.com/file/E1E7C4D3A6E62F3D5C9F627CE8175BFB0C614CBE/156652.png',
   // Bladesworn passive Flow regeneration increases use the same up-arrow glyph.
   'Positive Flow': 'https://render.guildwars2.com/file/E1E7C4D3A6E62F3D5C9F627CE8175BFB0C614CBE/156652.png',
   'Flow per second': 'https://render.guildwars2.com/file/E1E7C4D3A6E62F3D5C9F627CE8175BFB0C614CBE/156652.png',
