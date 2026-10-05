@@ -39,7 +39,7 @@ import type { ElementalistRuntime } from '#gw2/professions/elementalist/types.js
 import { weaponAttunementAvailable } from '#gw2/professions/elementalist/core/mechanics/weapon-state.js';
 import { elementalistSlotSelectionPolicy } from '#gw2/professions/elementalist/core/mechanics/selection-policy.js';
 import { elementalistAttunementPolicy } from '#gw2/professions/elementalist/family-state.js';
-import { ELEMENTALIST_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/elementalist/core/profiles.js';
+import { ELEMENTALIST_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/elementalist/core/profile-ids.js';
 
 function ready(): AvailabilityResult {
   return { ready: true };

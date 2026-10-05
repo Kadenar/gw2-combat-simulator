@@ -6,7 +6,7 @@ import { createDodgeSkill } from '#gw2/platform/skills/shared-actions.js';
  */
 import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
-import { ELEMENTALIST_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/elementalist/core/profiles.js';
+import { ELEMENTALIST_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/elementalist/core/profile-ids.js';
 
 /** Dodge is a fixed-duration rotation action; it spends endurance only once the roll commits. */
 export const ELEMENTALIST_CORE_ACTION_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({

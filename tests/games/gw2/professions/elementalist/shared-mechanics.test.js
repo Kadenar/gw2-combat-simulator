@@ -6,7 +6,7 @@ import { compileProfessionRules } from '#gw2/platform/profession-definition/trig
 import { applySkillSideEffects } from '#gw2/platform/effects/action-dispatch.js';
 import { elementalistAppAdapter } from '#gw2/professions/elementalist/app/app-definition.js';
 import { targetAttunement } from '#gw2/professions/elementalist/core/mechanics/attunements.js';
-import { elementalistPistolSideEffects } from '#gw2/professions/elementalist/core/mechanics/pistol-bullets.js';
+import { pistolSideEffectHandlers } from '#gw2/professions/elementalist/core/skills/weapons/pistol.js';
 import { createElementalistCoreState } from '#gw2/professions/elementalist/core/state.js';
 import {
   ELEMENTALIST_SKILL_IDS as ID,
@@ -414,7 +414,7 @@ test('Elementalist behavior follows skill IDs after display labels change', () =
     pistolContext,
     { ...pistolContext, skill: shatteringStone, command: {} },
     'castCommit',
-    elementalistPistolSideEffects
+    pistolSideEffectHandlers
   );
   assert.equal(core.pistolBullets.Earth, false);
   assert.equal(pistolEvents[0].kind, 'shattering stone');

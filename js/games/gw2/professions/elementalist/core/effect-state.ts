@@ -3,7 +3,7 @@ import { timedEffectState, type EffectState } from '#gw2/platform/combat/effect-
 import type { ElementalistRuntime } from '#gw2/professions/elementalist/types.js';
 import type { BuffStatePolicy } from '#gw2/platform/combat/effect-state.js';
 import { balanceProfileFromContext, balanceProfileNumber } from '#gw2/platform/skills/balance-profiles.js';
-import { ELEMENTALIST_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/elementalist/core/profiles.js';
+import { ELEMENTALIST_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/elementalist/core/profile-ids.js';
 import { ELEMENTALIST_TRAIT_IDS as TRAIT } from '#gw2/professions/elementalist/data/ids.js';
 
 /** Core owns shared weapon and trait effects; selected elites register their own policies. */

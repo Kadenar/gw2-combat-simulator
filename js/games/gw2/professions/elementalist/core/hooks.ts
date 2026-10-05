@@ -38,9 +38,9 @@ import { fulgorPulse } from '#gw2/professions/elementalist/core/mechanics/fulgor
 import { prepareElementalistHitboxEvent } from '#gw2/professions/elementalist/core/mechanics/hitbox.js';
 import {
   applyElementalistResolvedCondition,
-  applyElementalistResolvedDamage,
-  applyElementalistResolverBuff
+  applyElementalistResolvedDamage
 } from '#gw2/professions/elementalist/core/mechanics/reactions.js';
+import { applyShatteringStoneBuff } from '#gw2/professions/elementalist/core/skills/weapons/pistol.js';
 import {
   elementalistRechargeWork,
   reserveElementalistRecharge
@@ -54,7 +54,7 @@ import {
   elementalistWeaponStateTasks,
   observeElementalistAutoattackTransition
 } from '#gw2/professions/elementalist/core/mechanics/weapon-state.js';
-import { ELEMENTALIST_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/elementalist/core/profiles.js';
+import { ELEMENTALIST_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/elementalist/core/profile-ids.js';
 import {
   ELEMENTALIST_ATTUNEMENTS,
   resetElementalistAttunementCooldowns
@@ -216,7 +216,7 @@ export const elementalistCoreHooks: RuntimeHooks<ElementalistRuntimeState, Eleme
       applyElementalistResolvedDamage(runtime, event);
     },
     'condition.applied': applyElementalistResolvedCondition,
-    'buff.applied': applyElementalistResolverBuff,
+    'buff.applied': applyShatteringStoneBuff,
     'control.resolved': observeElementalistTraitEvent,
     // Core consequences run before the composed elite reactions; combo auras are accepted without republishing.
     'aura.applied'(runtime, event) {

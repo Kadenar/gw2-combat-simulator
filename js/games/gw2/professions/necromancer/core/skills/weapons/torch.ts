@@ -1,3 +1,11 @@
+import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
+import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
+import type {
+  NecromancerRuntime,
+  NecromancerRuntimeState,
+  NecromancerSkill
+} from '#gw2/professions/necromancer/types.js';
+import { necromancerActiveBoonCompanionIds } from '#gw2/professions/necromancer/core/mechanics/state-helpers.js';
 import { lifeForceGrant } from '#gw2/professions/necromancer/core/skills/life-force-grants.js';
 /** Canonical Core necromancer skill fragments grouped by their GW2 owner. */
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
@@ -50,3 +58,37 @@ export const NECROMANCER_WEAPONS_TORCH_SKILL_MECHANICS: Readonly<Record<number, 
     ])
   }
 });
+
+/** Party Might samples live conditions and companion eligibility at the accepted impact. */
+function resolveOppressiveCollapse(runtime: NecromancerRuntime, event: Gw2ResolverEvent): void {
+  const stacks = 2 * Math.min(7, runtime.combat.targetConditionCount(runtime.time));
+  if (!stacks) return;
+  const boon = {
+    type: 'buff' as const,
+    at: runtime.time,
+    source: 'necromancer',
+    sourceId: ID.OPPRESSIVE_COLLAPSE,
+    actorType: 'player' as const,
+    skillId: ID.OPPRESSIVE_COLLAPSE,
+    skillName: event.skillName,
+    activationId: event.activationId,
+    kind: 'might',
+    stacks,
+    duration: 8,
+    audience: {
+      recipients: 'party' as const,
+      maximumRecipients: 5,
+      eligibleCompanionIds: necromancerActiveBoonCompanionIds(runtime)
+    }
+  };
+  runtime.effects.emit({ kind: 'packet', event: boon, durationContext: event });
+}
+
+/** The torch's accepted-impact declaration selects the one application that grants party Might. */
+export const torchLifecycle = {
+  sideEffectHandlers: {
+    'necromancer.oppressive-collapse'(runtime, context) {
+      if (context.kind === 'effect') resolveOppressiveCollapse(runtime, context.trigger.event);
+    }
+  }
+} satisfies RuntimeHooks<NecromancerRuntimeState, NecromancerSkill>;

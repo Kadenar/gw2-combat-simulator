@@ -2,10 +2,8 @@ import { createResourceClock } from '#gw2/platform/combat/resources/resource-pol
 import type { ResourceClock } from '#gw2/platform/combat/resources/clock.js';
 import type { ElementalistRuntime } from '#gw2/professions/elementalist/types.js';
 import { requireBalanceNumber } from '#gw2/platform/effects/validation.js';
-import {
-  ELEMENTALIST_CORE_BALANCE_PROFILES,
-  ELEMENTALIST_CORE_BALANCE_PROFILE_IDS
-} from '#gw2/professions/elementalist/core/profiles.js';
+import { ELEMENTALIST_CORE_BALANCE_PROFILES } from '#gw2/professions/elementalist/core/profiles.js';
+import { ELEMENTALIST_CORE_BALANCE_PROFILE_IDS } from '#gw2/professions/elementalist/core/profile-ids.js';
 import { type SkillFlipWindows } from '#gw2/platform/execution/skill-flips.js';
 import { grantCharges, type ChargeGrant } from '#gw2/platform/combat/resources/charges.js';
 import { ELEMENTALIST_ATTUNEMENT_SKILL_IDS } from '#gw2/professions/elementalist/data/ids.js';

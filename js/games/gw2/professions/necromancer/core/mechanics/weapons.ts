@@ -7,11 +7,7 @@ import {
 } from '#gw2/platform/skills/balance-profiles.js';
 import { buildResolverStrike } from '#gw2/platform/resolver/packets.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
-import {
-  addSoulShards,
-  consumeSoulShards,
-  necromancerActiveBoonCompanionIds
-} from '#gw2/professions/necromancer/core/mechanics/state-helpers.js';
+import { addSoulShards, consumeSoulShards } from '#gw2/professions/necromancer/core/mechanics/state-helpers.js';
 import { NECROMANCER_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/necromancer/core/profiles.js';
 import { soulBarbsSiphonMultiplier } from '#gw2/professions/necromancer/core/traits/shroud.js';
 import { NECROMANCER_SKILL_IDS as ID } from '#gw2/professions/necromancer/data/ids.js';
@@ -61,31 +57,6 @@ export function emitSoulShard(runtime: NecromancerRuntime, event: Gw2ResolverEve
       damageKind: strike.damageKind || ''
     })
   });
-}
-
-/** Party Might samples live conditions and companion eligibility at the accepted impact. */
-export function resolveNecromancerOppressiveCollapse(runtime: NecromancerRuntime, event: Gw2ResolverEvent): void {
-  const stacks = 2 * Math.min(7, runtime.combat.targetConditionCount(runtime.time));
-  if (!stacks) return;
-  const boon = {
-    type: 'buff' as const,
-    at: runtime.time,
-    source: 'necromancer',
-    sourceId: ID.OPPRESSIVE_COLLAPSE,
-    actorType: 'player' as const,
-    skillId: ID.OPPRESSIVE_COLLAPSE,
-    skillName: event.skillName,
-    activationId: event.activationId,
-    kind: 'might',
-    stacks,
-    duration: 8,
-    audience: {
-      recipients: 'party' as const,
-      maximumRecipients: 5,
-      eligibleCompanionIds: necromancerActiveBoonCompanionIds(runtime)
-    }
-  };
-  runtime.effects.emit({ kind: 'packet', event: boon, durationContext: event });
 }
 
 export const necromancerWeaponTasks = {

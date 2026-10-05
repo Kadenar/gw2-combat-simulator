@@ -35,7 +35,7 @@ import {
   EARTH_ELEMENTAL_EVTC_PROFILE as EARTH_ELEMENTAL,
   FIRE_ELEMENTAL_EVTC_PROFILE as FIRE_ELEMENTAL
 } from '#gw2/professions/elementalist/core/mechanics/elementals/profiles.js';
-import { ELEMENTALIST_CORE_BALANCE_PROFILE_IDS as CORE } from '#gw2/professions/elementalist/core/profiles.js';
+import { ELEMENTALIST_CORE_BALANCE_PROFILE_IDS as CORE } from '#gw2/professions/elementalist/core/profile-ids.js';
 import {
   ELEMENTALIST_ATTUNEMENT_SKILL_IDS,
   ELEMENTALIST_JADE_SPHERE_SKILL_IDS,

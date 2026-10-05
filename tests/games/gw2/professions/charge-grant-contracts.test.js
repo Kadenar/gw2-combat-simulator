@@ -1,10 +1,8 @@
 import { createMechanicCombatServices } from '#gw2/platform/resolver/mechanic-services.js';
 import { snapshotProfessionState } from '#gw2/platform/profession-definition/state.js';
 import { applySkillSideEffects } from '#gw2/platform/effects/action-dispatch.js';
-import {
-  applyElementalistResolvedDamage,
-  applyElementalistResolverBuff
-} from '#gw2/professions/elementalist/core/mechanics/reactions.js';
+import { applyElementalistResolvedDamage } from '#gw2/professions/elementalist/core/mechanics/reactions.js';
+import { applyShatteringStoneBuff } from '#gw2/professions/elementalist/core/skills/weapons/pistol.js';
 import { elementalistProfession } from '#gw2/professions/elementalist/profession.js';
 import { ENGINEER_TRAIT_IDS as ENGINEER } from '#gw2/professions/engineer/data/ids.js';
 import { engineerProfession } from '#gw2/professions/engineer/profession.js';
@@ -184,9 +182,9 @@ test('Shattering Stone replaces self grants and spends player or effect hits bef
   const context = contextFor(elementalistProfession, 'Core');
   const core = context.profession.core;
   const grant = { kind: 'shattering stone', at: 1, stacks: 2, duration: 2, resolvedAudience: { includesSelf: true } };
-  applyElementalistResolverBuff(context, { ...grant, resolvedAudience: { includesSelf: false } });
+  applyShatteringStoneBuff(context, { ...grant, resolvedAudience: { includesSelf: false } });
   assert.equal(core.shatteringStone.charges, 0);
-  applyElementalistResolverBuff(context, grant);
+  applyShatteringStoneBuff(context, grant);
   for (const event of [
     { actorType: 'summon', coefficient: 1 },
     { actorType: 'player', coefficient: 0 }
@@ -199,7 +197,7 @@ test('Shattering Stone replaces self grants and spends player or effect hits bef
   assert.equal(core.shatteringStone.charges, 1);
   assert.equal(context.events[0].condition, 'Bleeding');
   assert.equal(context.events[0].at, 2);
-  applyElementalistResolverBuff(context, { ...grant, at: 2 });
+  applyShatteringStoneBuff(context, { ...grant, at: 2 });
   assert.equal(core.shatteringStone.charges, 2);
   assert.equal(core.shatteringStone.expiresAt, 4);
   applyElementalistResolvedDamage(context, { at: 3, actorType: 'player', coefficient: 1 });

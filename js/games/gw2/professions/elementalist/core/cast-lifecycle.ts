@@ -27,7 +27,7 @@ import {
 } from '#gw2/professions/elementalist/core/mechanics/elementals/runtime.js';
 import { replaceFulgor } from '#gw2/professions/elementalist/core/mechanics/fulgor.js';
 import { consumeHammerOrbs, createHammerOrbs } from '#gw2/professions/elementalist/core/mechanics/hammer-orbs.js';
-import { elementalistPistolSideEffects } from '#gw2/professions/elementalist/core/mechanics/pistol-bullets.js';
+import { pistolSideEffectHandlers } from '#gw2/professions/elementalist/core/skills/weapons/pistol.js';
 import {
   beginElementalistSpearCast,
   completeElementalistSpearProgression,
@@ -108,7 +108,7 @@ export const elementalistCoreSideEffectHandlers: RuntimeProfession<
   ElementalistRuntimeState,
   ElementalistSkill
 >['sideEffectHandlers'] = {
-  ...elementalistPistolSideEffects,
+  ...pistolSideEffectHandlers,
   'elementalist.capture-conjure-pickup'(context, trigger) {
     if (trigger.kind !== 'cast') throw new TypeError('Conjure pickup requires a cast trigger.');
     captureConjurePickup(context, trigger.cast);

@@ -7,7 +7,7 @@ import {
   consumeElementalistEtching,
   openElementalistEtching
 } from '#gw2/professions/elementalist/core/mechanics/spear-empowerments.js';
-import { ELEMENTALIST_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/elementalist/core/profiles.js';
+import { ELEMENTALIST_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/elementalist/core/profile-ids.js';
 import { createElementalistCoreState } from '#gw2/professions/elementalist/core/state.js';
 import { triggerBountifulPower } from '#gw2/professions/elementalist/core/traits/attunements.js';
 import {

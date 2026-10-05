@@ -3,7 +3,7 @@ import test from 'node:test';
 
 import { elementalistProfession } from '#gw2/professions/elementalist/profession.js';
 import { elementalistCoreModule } from '#gw2/professions/elementalist/core/module.js';
-import { applyElementalistResolverBuff } from '#gw2/professions/elementalist/core/mechanics/reactions.js';
+import { applyShatteringStoneBuff } from '#gw2/professions/elementalist/core/skills/weapons/pistol.js';
 import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';
 import { catalystModule } from '#gw2/professions/elementalist/specializations/catalyst/module.js';
 import { evokerModule } from '#gw2/professions/elementalist/specializations/evoker/module.js';
@@ -44,7 +44,7 @@ test('Elementalist resolver buffs update only the owned Core state', () => {
     const config = { specialization };
     const profession = elementalistProfession.runtimeFor(config).createState(config);
     const eliteBefore = structuredClone(profession.specialization.state);
-    applyElementalistResolverBuff(
+    applyShatteringStoneBuff(
       { profession },
       { kind: 'shattering stone', at: 2, stacks: 3, duration: 5, resolvedAudience: { includesSelf: true } }
     );

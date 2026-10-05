@@ -1,3 +1,4 @@
+import { pistolBalanceProfiles } from '#gw2/professions/elementalist/core/skills/weapons/pistol.js';
 import { createPublicStateProjector } from '#gw2/platform/profession-definition/state.js';
 import { defineNativeModule } from '#gw2/platform/profession-definition/profession.js';
 import { elementalistCoreHooks } from '#gw2/professions/elementalist/core/hooks.js';
@@ -24,7 +25,7 @@ export const elementalistCoreModule = defineNativeModule({
   data: createElementalistModuleData('Core', {
     skillMechanics: ELEMENTALIST_CORE_SKILL_MECHANICS,
     extraSkills: ELEMENTALIST_CORE_EXTRA_SKILLS,
-    balanceProfiles: ELEMENTALIST_CORE_BALANCE_PROFILES
+    balanceProfiles: [...ELEMENTALIST_CORE_BALANCE_PROFILES, ...pistolBalanceProfiles]
   }),
   state: {
     create: createElementalistCoreState,

@@ -1,5 +1,6 @@
+import { torchLifecycle } from '#gw2/professions/necromancer/core/skills/weapons/torch.js';
 import { skillForEvent } from '#gw2/platform/combat/query/runtime-query.js';
-import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
+import { composeRuntimeHooks, type RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import { emitVampirismPassive } from '#gw2/professions/necromancer/core/skills/slot-skills.js';
 import { denySkillCast } from '#gw2/platform/execution/availability.js';
 import { skillFlipReady } from '#gw2/platform/execution/skill-flips.js';
@@ -44,8 +45,7 @@ import {
   emitSoulShard,
   grantNecromancerSoulShards,
   necromancerWeaponTasks,
-  perforate,
-  resolveNecromancerOppressiveCollapse
+  perforate
 } from '#gw2/professions/necromancer/core/mechanics/weapons.js';
 import { NECROMANCER_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/necromancer/core/profiles.js';
 import { NECROMANCER_LICH_SKILL_IDS } from '#gw2/professions/necromancer/core/skills/index.js';
@@ -88,7 +88,7 @@ function damage(runtime: NecromancerRuntime, event: Gw2ResolverEvent): void {
 /** Core mechanics share one live queue and resource owner with the active specialization. */
 import { necromancerBuffPolicies, necromancerEffectStates } from '#gw2/professions/necromancer/core/effect-state.js';
 
-export const necromancerCoreHooks: RuntimeHooks<NecromancerRuntimeState, NecromancerSkill> = {
+const coreLifecycle: RuntimeHooks<NecromancerRuntimeState, NecromancerSkill> = {
   // Known damage payloads are invoked once without their activation requirements.
   damageEffects: [
     {
@@ -187,9 +187,6 @@ export const necromancerCoreHooks: RuntimeHooks<NecromancerRuntimeState, Necroma
     },
     'necromancer.perforate'(runtime, context) {
       if (context.kind === 'effect') perforate(runtime, context.trigger.event);
-    },
-    'necromancer.oppressive-collapse'(runtime, context) {
-      if (context.kind === 'effect') resolveNecromancerOppressiveCollapse(runtime, context.trigger.event);
     },
     // Declared shard rewards reuse the hit-time grant owner so caps and refresh expiry stay identical.
     'necromancer.soul-shards'(runtime, _cast, action) {
@@ -292,3 +289,9 @@ export const necromancerCoreHooks: RuntimeHooks<NecromancerRuntimeState, Necroma
     }
   }
 };
+
+/** Compose the torch-owned impact action with the shared profession lifecycle. */
+export const necromancerCoreHooks = composeRuntimeHooks<NecromancerRuntimeState, NecromancerSkill>([
+  coreLifecycle,
+  torchLifecycle
+]);

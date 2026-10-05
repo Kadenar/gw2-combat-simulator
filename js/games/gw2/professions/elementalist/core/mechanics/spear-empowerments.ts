@@ -9,7 +9,7 @@ import type { Skill } from '#gw2/platform/skills/types.js';
 import { ETCHING_CHAINS } from '#gw2/professions/elementalist/core/constants.js';
 import { elementalistControlRequest } from '#gw2/professions/elementalist/core/events.js';
 import { etchingChain, skillWeapon } from '#gw2/professions/elementalist/core/mechanics/effects.js';
-import { ELEMENTALIST_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/elementalist/core/profiles.js';
+import { ELEMENTALIST_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/elementalist/core/profile-ids.js';
 import type {
   ElementalistRuntime,
   ElementalistSimulationEvent,

@@ -1,3 +1,4 @@
+import { reservePistolRecharge } from '#gw2/professions/elementalist/core/skills/weapons/pistol.js';
 import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
 import { aeromancersTrainingRecharge } from '#gw2/professions/elementalist/core/traits/air.js';
@@ -14,7 +15,7 @@ import { compileRechargeRules } from '#gw2/platform/profession-definition/trigge
 
 import { skillWeapon } from '#gw2/professions/elementalist/core/mechanics/effects.js';
 import { elementalForGlyphId } from '#gw2/professions/elementalist/core/mechanics/elementals/attacks.js';
-import { ELEMENTALIST_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/elementalist/core/profiles.js';
+import { ELEMENTALIST_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/elementalist/core/profile-ids.js';
 import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';
 import type {
   ElementalistSkill,
@@ -71,11 +72,5 @@ export function reserveElementalistRecharge(context: ElementalistRuntime, skill:
     return duration * balanceProfileNumber(spearEmpowermentsProfile, 'rechargeMultiplier');
   }
 
-  if (state.dazingDischargeUntil > context.time && skillWeapon(skill) === 'Pistol') {
-    state.dazingDischargeUntil = 0;
-    const dazingDischargeProfile = requireBalanceProfileFromContext(context, PROFILE.dazingDischarge);
-    return duration * balanceProfileNumber(dazingDischargeProfile, 'rechargeMultiplier');
-  }
-
-  return duration;
+  return reservePistolRecharge(context, skill, duration);
 }
