@@ -1,4 +1,5 @@
 import { selectedSkillIdSet } from '#gw2/platform/builds/selected-skills.js';
+import { buffApplicationStacks } from '#gw2/platform/combat/boons.js';
 import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
 import type { Gw2TraitLookupContext } from '#gw2/platform/combat/state/traits.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
@@ -35,14 +36,9 @@ export function modifyAttributes(context: Gw2ModifierContext, attributes: Gw2Sta
   return result;
 }
 
+// Trait windows count only live self applications, never an ally's or companion's copy.
 export function runtimeBuffActive(context: Gw2ModifierContext, kind: string): boolean {
-  const applications = context.runtime?.boons?.get(kind) || [];
-  return applications.some(
-    (application) =>
-      application.resolvedAudience.includesSelf &&
-      application.at <= context.time &&
-      application.expiresAt > context.time
-  );
+  return buffApplicationStacks(context.runtime?.boons?.get(kind) || [], kind, context.time, 1) > 0;
 }
 
 export function gunsaberEntryTraits(runtime: Runtime, cast: RuntimeCast<WarriorSkill>): void {

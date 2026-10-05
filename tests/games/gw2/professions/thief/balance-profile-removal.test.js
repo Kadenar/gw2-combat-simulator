@@ -206,13 +206,12 @@ test('removed Weakening Strikes does not arm its grant or expiry', () => {
   assert.equal(result.planningState.profession.weakeningStrikeExpiresAt, 0);
 });
 
-test('removed critical Fury leaves proc progress and cooldown unclaimed', () => {
+test('removed critical Fury leaves its cooldown unclaimed', () => {
   const result = run({ [TRAIT.UNRELENTING_STRIKES]: remove('boon', 'Fury') }, 'Core', ['Double Strike'], {
     selectedTraitIds: [TRAIT.UNRELENTING_STRIKES]
   });
   assert.equal(packet(result, 'buff', TRAIT.UNRELENTING_STRIKES).length, 0);
   assert.equal(observedRuntime(result).procs.snapshot()[TRAIT.UNRELENTING_STRIKES], undefined);
-  assert.equal(observedRuntime(result).profession.core.traitProcProgress[TRAIT.UNRELENTING_STRIKES], undefined);
 });
 
 test('Malicious Sneak Attack removal preserves Bleeding and malice spending', () => {

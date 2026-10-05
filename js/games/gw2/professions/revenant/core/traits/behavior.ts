@@ -1,7 +1,6 @@
 import { professionStaticRulesApplied } from '#gw2/platform/builds/attribute-provenance.js';
-import { buffMatchesAudience, sumActiveStacks } from '#gw2/platform/combat/boons.js';
 import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
-import { boonActive } from '#gw2/platform/combat/query/runtime-query.js';
+import { activeBoonStacks, boonActive } from '#gw2/platform/combat/query/runtime-query.js';
 import { addTimedStacks } from '#gw2/platform/combat/resources/timed-stacks.js';
 import { isDamagingCondition } from '#gw2/platform/combat/state/targets.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
@@ -19,7 +18,6 @@ import { buildResolverCondition, isFlatLifeStealPacket } from '#gw2/platform/res
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import type { RevenantRuntime } from '#gw2/professions/revenant/core/events.js';
-import { revenantBoonActive } from '#gw2/professions/revenant/core/events.js';
 import { activeRevenantUpkeep } from '#gw2/professions/revenant/core/mechanics/upkeep.js';
 import { REVENANT_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/revenant/core/profiles.js';
 import { REVENANT_CORE_CALL_BY_LEGEND } from '#gw2/professions/revenant/core/skills/legend-call-skills.js';
@@ -31,7 +29,6 @@ import {
 import { REVENANT_ELITE_INVOCATIONS } from '#gw2/professions/revenant/family-state.js';
 import type { RevenantResolverContext, RevenantSkill } from '#gw2/professions/revenant/types.js';
 import { canonicalTime, EPSILON } from '#kernel/core/clock.js';
-import { boundedNumber } from '#kernel/core/numeric.js';
 
 /** Runs the trait at its original ordered mechanic boundary. */
 export function reactAbyssalChill(runtime: RevenantRuntime, event: Gw2ResolverEvent): void {
@@ -294,18 +291,8 @@ export function invokeTorment(runtime: RevenantRuntime): void {
 export function modifyCoreAttributes(context: Gw2ModifierContext, attributes: Gw2Stats): Gw2Stats {
   const modified = { ...attributes } as Record<string, number>;
   if (hasTrait(context, TRAIT.NOTORIETY)) {
-    const baseMight = boundedNumber(context.config?.boons?.might || 0, 0, 0, 25);
-    // Notoriety converts only the player's Might; retain explicit zero stacks and the remaining configured cap.
-    const dynamicMight = sumActiveStacks(
-      context.runtime?.boons?.get('might') || [],
-      (application) =>
-        buffMatchesAudience(application, 'all') &&
-        application.at <= context.time &&
-        application.expiresAt > context.time,
-      (application) => application.stacks,
-      25 - baseMight
-    );
-    const might = baseMight + dynamicMight;
+    // Notoriety converts only the player's configured and live Might, capped at 25 like the shared query.
+    const might = activeBoonStacks(context, 'might');
     const notorietyProfile = requireBalanceProfileFromContext(context, TRAIT.NOTORIETY);
     modified.power = (modified.power || 0) + might * balanceProfileNumber(notorietyProfile, 'attributePerStack');
     modified.conditionDamage =
@@ -574,7 +561,12 @@ export function thrillOfCombat(runtime: RevenantRuntime, event: Gw2ResolverEvent
 
 /** Vicious Reprisal grants Might from landed strikes while Resolution is active, once per its cooldown. */
 export function viciousReprisal(runtime: RevenantRuntime, event: Gw2ResolverEvent): void {
-  if (!hasTrait(runtime, TRAIT.VICIOUS_REPRISAL) || !revenantBoonActive(runtime, 'resolution')) return;
+  // Permanent configured Resolution and executed self applications count; pending packets never do.
+  if (
+    !hasTrait(runtime, TRAIT.VICIOUS_REPRISAL) ||
+    runtime.combat.activeBoonStacks('resolution', runtime.time, 1) === 0
+  )
+    return;
   const profile = requireBalanceProfileFromContext(runtime, TRAIT.VICIOUS_REPRISAL);
   const boon = requireEffect(profile, 'boon', 'might');
   // The cooldown gates only might, so a removed boon leaves it ready.

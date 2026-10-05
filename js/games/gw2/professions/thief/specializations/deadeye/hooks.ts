@@ -1,3 +1,4 @@
+import { claimActivation } from '#gw2/platform/combat/activation-claims.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import { maximumDeadeyeMalice } from '#gw2/professions/thief/specializations/deadeye/traits/behavior.js';
 
@@ -139,8 +140,7 @@ function reactDeadeyeMalice(runtime: ThiefRuntime, event: Gw2ResolverEvent, hit?
   const initiativeAttack = skill.type === 'Weapon' && (skill.initiativeCost || 0) > 0 && !skill.stealthAttack;
   if (!skill.malicious && !initiativeAttack) return;
   const state = deadeyeState.from(runtime);
-  if (state.maliceResolvedActivations[event.activationId]) return;
-  state.maliceResolvedActivations[event.activationId] = true;
+  if (!claimActivation(state.deadeyeActivationClaims, 'thief.deadeye.malice', event.activationId)) return;
   if (skill.malicious) {
     refundMaliciousTacticalStrike(runtime, event);
     runtime.resourceController.replace('malice', 0);

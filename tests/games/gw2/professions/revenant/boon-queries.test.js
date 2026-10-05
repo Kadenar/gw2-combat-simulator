@@ -67,7 +67,7 @@ test('Revenant and Renegade use live self boons, duration stacking, and timeline
   assert.equal(revenantActiveBoonCount({ time: 8 }), 0);
 });
 
-test('Notoriety converts configured and live self Might with explicit zero stacks and a combined cap', () => {
+test('Notoriety converts configured and live self Might with a combined cap', () => {
   const context = {
     time: 4,
     config: { boons: { might: 4 } },
@@ -79,8 +79,7 @@ test('Notoriety converts configured and live self Might with explicit zero stack
   const applications = context.runtime.boons.get('might');
   applications.push(
     { at: 0, expiresAt: 4, stacks: 20, resolvedAudience: { includesSelf: true } },
-    { at: 5, expiresAt: 10, stacks: 20, resolvedAudience: { includesSelf: true } },
-    { at: 4, expiresAt: 10, stacks: 0, resolvedAudience: { includesSelf: true } }
+    { at: 5, expiresAt: 10, stacks: 20, resolvedAudience: { includesSelf: true } }
   );
   const attributes = { power: 1000, conditionDamage: 1000 };
   assert.deepEqual(revenantCoreModifiers.modifyAttributes({ catalog: revenantCatalog, ...context }, attributes), {

@@ -1,3 +1,4 @@
+import { claimActivation } from '#gw2/platform/combat/activation-claims.js';
 import type { RevenantSkill } from '#gw2/professions/revenant/types.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
@@ -19,13 +20,10 @@ import {
   viciousReprisal
 } from '#gw2/professions/revenant/core/traits/behavior.js';
 
-// A skill action may need pre-transition traits; the common observer must not grant them twice.
-const completedCastTraits = new WeakSet<RuntimeCast<RevenantSkill>>();
-
 /** Committed casts grant completion rewards even when shortened; cancelled reservations grant nothing. */
 export function completeRevenantCastTraits(runtime: RevenantRuntime, cast: RuntimeCast<RevenantSkill>): void {
-  if (completedCastTraits.has(cast)) return;
-  completedCastTraits.add(cast);
+  // A skill action may grant pre-transition rewards before the common completion observer.
+  if (!claimActivation(runtime.profession.core.activationClaims, 'revenant.cast-traits', cast.id)) return;
   completeBattleScarred(runtime, cast);
 
   completeNotoriety(runtime, cast);

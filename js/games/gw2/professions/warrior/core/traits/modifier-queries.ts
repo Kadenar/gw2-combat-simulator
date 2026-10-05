@@ -1,4 +1,5 @@
 /** Shares live Warrior modifier queries without coupling trait-line fragments to their composer. */
+import { buffApplicationStacks } from '#gw2/platform/combat/boons.js';
 import { boonActive, countActiveBoons, eventSkill } from '#gw2/platform/combat/query/runtime-query.js';
 import { gw2ConfiguredWeaponSet } from '#gw2/platform/equipment/weapons/loadout.js';
 import type { Gw2MutableStats } from '#gw2/platform/combat/types.js';
@@ -20,16 +21,9 @@ export function warriorBoonActive(context: Gw2ModifierContext, boon: string): bo
   return boonActive({ ...context, timeline: undefined }, boon);
 }
 
+// Custom Warrior stacks read only live self applications; configured boons never stand in for trait windows.
 export function warriorActiveBuffStacks(context: Gw2ModifierContext, kind: string, maximum: number): number {
-  const stacks = (context.runtime?.boons?.get(kind) || [])
-    .filter(
-      (application) =>
-        application.resolvedAudience.includesSelf &&
-        application.at <= context.time &&
-        application.expiresAt > context.time
-    )
-    .reduce((total, application) => total + application.stacks, 0);
-  return Math.min(maximum, stacks);
+  return buffApplicationStacks(context.runtime?.boons?.get(kind) || [], kind, context.time, maximum);
 }
 
 export function warriorActiveBoonCount(context: Gw2ModifierContext): number {

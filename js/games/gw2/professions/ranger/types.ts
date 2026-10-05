@@ -68,7 +68,6 @@ export type RangerState = RangerCoreState &
         | 'mistralUntil'
         | 'wutheringWindReady'
         | 'wutheringWindReadyAt'
-        | 'wutheringWindActivationIds'
         | 'missileHits'
       >
   >;

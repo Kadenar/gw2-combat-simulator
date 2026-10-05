@@ -1,3 +1,4 @@
+import type { ActivationClaims } from '#gw2/platform/combat/activation-claims.js';
 import { createResourceClock } from '#gw2/platform/combat/resources/resource-policy.js';
 import { type SkillFlipWindows } from '#gw2/platform/execution/skill-flips.js';
 import type { ResourceClock } from '#gw2/platform/combat/resources/clock.js';
@@ -24,6 +25,7 @@ interface RevenantSelfCondition {
 }
 
 export interface RevenantCoreState {
+  activationClaims: ActivationClaims;
   energy: ResourceClock;
   activeLegendId: string;
   activeLoadoutId: string;
@@ -65,6 +67,7 @@ export function createRevenantCoreState(config: RevenantConfig = {}): RevenantCo
       rate: 5,
       recoveryMaximum: 50
     },
+    activationClaims: {},
     activeLegendId,
     activeLoadoutId: activeLegendId,
     selectedLegendIds,

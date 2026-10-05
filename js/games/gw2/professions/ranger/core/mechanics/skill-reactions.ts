@@ -1,5 +1,6 @@
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import { buildResolverCondition, buildResolverBuff } from '#gw2/platform/resolver/packets.js';
+import { buffApplicationStacks } from '#gw2/platform/combat/boons.js';
 import {
   activeChargeGrants,
   consumeChargeBatch,
@@ -86,13 +87,9 @@ export function triggerSharpeningStone(context: RangerResolverContext, event: Gw
 // while enforcing its event and cooldown guards.
 export function triggerStrengthOfThePack(context: RangerResolverContext, event: Gw2ResolverEvent): void {
   if (!isPlayerStrike(event)) return;
-  const active = context.combat
-    .boonApplications('strength-of-the-pack')
-    .some(
-      (application) =>
-        application.resolvedAudience.includesSelf && application.at <= event.at && application.expiresAt > event.at
-    );
-  if (!active) return;
+  // Only the Ranger's own live Strength of the Pack window arms the proc.
+  const kind = 'strength-of-the-pack';
+  if (buffApplicationStacks(context.combat.boonApplications(kind), kind, event.at, 1) === 0) return;
   const profile = requireBalanceProfileFromContext(context, PROFILE.strengthOfThePack);
   const might = requireEffect(profile, 'boon', 'might');
   if (!might) return;

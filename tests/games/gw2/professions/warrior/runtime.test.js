@@ -209,7 +209,7 @@ test('a multi-hit burst claims captured-tier rewards and endurance once after th
     missed.resolvedEvents.some((event) => event.kind === 'berserkers-power' || event.kind === 'burst-precision'),
     false
   );
-  assert.deepEqual(observedRuntime(missed).profession.core.burstHitActivations, {});
+  assert.deepEqual(observedRuntime(missed).profession.core.activationClaims, {});
 });
 
 test('Soldier Focus starts at the arriving burst hit and its party rewards do not repeat on pulses', () => {

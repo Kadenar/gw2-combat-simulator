@@ -1,3 +1,4 @@
+import { claimActivation } from '#gw2/platform/combat/activation-claims.js';
 import { grantRefreshedStacks } from '#gw2/platform/combat/resources/refreshed-stacks.js';
 import { professionStaticRulesApplied } from '#gw2/platform/builds/attribute-provenance.js';
 import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
@@ -76,10 +77,9 @@ export function triggerLetLoose(context: RangerResolverContext, event: Gw2Resolv
     return;
   }
 
-  const activations = untamedState.from(context).letLooseActivations;
   // Each ambush activation grants boons exactly once even if the skill hits multiple times.
-  if (activations[event.activationId]) return;
-  activations[event.activationId] = true;
+  if (!claimActivation(untamedState.from(context).untamedActivationClaims, 'ranger.let-loose', event.activationId))
+    return;
   const profile = requireBalanceProfileFromContext(context, TRAIT.LET_LOOSE);
   // Expand each surviving boon once per accepted ambush, preserving the party audience.
   context.effects.emit({

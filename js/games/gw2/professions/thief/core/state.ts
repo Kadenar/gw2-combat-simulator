@@ -1,3 +1,4 @@
+import type { ActivationClaims } from '#gw2/platform/combat/activation-claims.js';
 import type { ChargePool } from '#gw2/platform/combat/resources/charges.js';
 import type { ResourceClock } from '#gw2/platform/combat/resources/clock.js';
 import { createResourceClock } from '#gw2/platform/combat/resources/resource-policy.js';
@@ -50,7 +51,7 @@ export interface ThiefCoreState {
   assassinsSignetPassiveDisabledUntil: number;
   availableFlips: SkillFlipWindows;
   autoattackChains: Record<string, SkillId>;
-  traitProcProgress: Record<string, number>;
+  activationClaims: ActivationClaims;
 
   /** The pending Infiltrator's Signet pulse instant; earlier queued pulses retire themselves. */
   infiltratorsSignetPulseAt: number | null;
@@ -115,7 +116,7 @@ export function createThiefCoreState(config: ThiefConfig = {}): ThiefCoreState {
     assassinsSignetPassiveDisabledUntil: 0,
     availableFlips: {},
     autoattackChains: {},
-    traitProcProgress: {},
+    activationClaims: {},
 
     infiltratorsSignetPulseAt: null,
     strikeBrokeStealthAt: null,

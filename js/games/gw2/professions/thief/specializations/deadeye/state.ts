@@ -1,3 +1,4 @@
+import type { ActivationClaims } from '#gw2/platform/combat/activation-claims.js';
 import { grantCharges, type ChargeGrant } from '#gw2/platform/combat/resources/charges.js';
 import { createResourceClock } from '#gw2/platform/combat/resources/resource-policy.js';
 import type { ResourceClock } from '#gw2/platform/combat/resources/clock.js';
@@ -16,7 +17,7 @@ export interface DeadeyeState {
   markExpiresAt: number;
   markGeneration: number;
   malice: ResourceClock;
-  maliceResolvedActivations: Record<string, boolean>;
+  deadeyeActivationClaims: ActivationClaims;
   maleficentSevenTriggered: boolean;
 }
 
@@ -29,7 +30,7 @@ function createDeadeyeState(): DeadeyeState {
     markGeneration: 0,
     malice: createResourceClock(),
     // Tracks which activationIds have already had their malice effect applied to prevent multi-hit double-counting
-    maliceResolvedActivations: {},
+    deadeyeActivationClaims: {},
     // Prevents Maleficent Seven from firing more than once per mark application at full malice
     maleficentSevenTriggered: false,
     // Silent Scope owns its replacement grant; Core consumes it only for the active specialization.

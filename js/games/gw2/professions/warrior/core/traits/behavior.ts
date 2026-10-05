@@ -1,3 +1,4 @@
+import { claimActivation } from '#gw2/platform/combat/activation-claims.js';
 import { criticalOpportunity } from '#gw2/platform/combat/critical-procs.js';
 import type { MechanicContext } from '#gw2/platform/profession-definition/mechanic-context.js';
 import type { Gw2HitResolutionContext } from '#gw2/platform/resolver/hit-resolution.js';
@@ -32,9 +33,7 @@ export function firstBurstHit(runtime: WarriorRuntime, event: Gw2ResolverEvent):
   const skill = runtime.helpers.skillsById.get(event.skillId ?? '');
   if (!skill?.burst || event.activationId == null) return false;
   const state = runtime.profession.core;
-  const key = event.activationId;
-  if (state.burstHitActivations[key]) return false;
-  state.burstHitActivations[key] = true;
+  if (!claimActivation(state.activationClaims, 'warrior.burst-hit', event.activationId)) return false;
 
   cullTheWeakBurst(runtime, event);
   burstPrecisionHit(runtime, event);

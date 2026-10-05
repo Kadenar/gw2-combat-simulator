@@ -1,3 +1,4 @@
+import type { ActivationClaims } from '#gw2/platform/combat/activation-claims.js';
 import { createResourceClock } from '#gw2/platform/combat/resources/resource-policy.js';
 import type { ResourceClock } from '#gw2/platform/combat/resources/clock.js';
 import { type SkillFlipWindows } from '#gw2/platform/execution/skill-flips.js';
@@ -22,7 +23,7 @@ export interface RangerCoreState {
   winterBiteReady: boolean;
 
   quickDraw: ChargeGrant;
-  trapCrippleActivations: Record<string, boolean>;
+  activationClaims: ActivationClaims;
   pendingFrostTrapEvents: SimulationEventBase[];
   bloodThirst: ChargeGrant;
 
@@ -74,7 +75,7 @@ export function createRangerCoreState(config: RangerConfig = {}): RangerCoreStat
     winterBiteReady: false,
 
     quickDraw: grantCharges(0, 0),
-    trapCrippleActivations: {},
+    activationClaims: {},
     pendingFrostTrapEvents: [],
     bloodThirst: grantCharges(0, 0),
 
@@ -114,7 +115,6 @@ export const RANGER_CORE_PUBLIC_END_STATE_KEYS: readonly (keyof RangerState)[] =
   'winterBiteReady',
 
   'quickDraw',
-  'trapCrippleActivations',
 
   'sharpeningStoneGrants',
 

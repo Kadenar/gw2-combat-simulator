@@ -1,3 +1,4 @@
+import { claimActivation } from '#gw2/platform/combat/activation-claims.js';
 import { isBeastSkill } from '#gw2/professions/ranger/core/traits/dispatch.js';
 import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
 import type { Gw2TraitLookupContext } from '#gw2/platform/combat/state/traits.js';
@@ -72,8 +73,7 @@ export function reactToGaleshotPet(context: RangerRuntime, event: Gw2ResolverEve
   if (
     !hasTrait(context.traits, TRAIT.WUTHERING_WIND) ||
     !state.wutheringWindReady ||
-    at + EPSILON < state.wutheringWindReadyAt ||
-    (activationId && state.wutheringWindActivationIds[activationId])
+    at + EPSILON < state.wutheringWindReadyAt
   ) {
     return;
   }
@@ -82,8 +82,9 @@ export function reactToGaleshotPet(context: RangerRuntime, event: Gw2ResolverEve
   const strike = requireEffect(profile, 'strike', 'Strike');
   // The primed charge and proc exist only for the strike, so a removed strike leaves the charge armed.
   if (!strike) return;
+  // ID-less packets may consume the charge; identified activations may consume it only once.
+  if (activationId && !claimActivation(state.galeshotActivationClaims, 'ranger.wuthering-wind', activationId)) return;
   state.wutheringWindReady = false;
-  if (activationId) state.wutheringWindActivationIds[activationId] = true;
   context.effects.emit({
     kind: 'announcement',
     log: true,

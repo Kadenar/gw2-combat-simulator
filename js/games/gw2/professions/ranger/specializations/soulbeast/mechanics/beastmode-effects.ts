@@ -1,5 +1,6 @@
+import { claimActivation } from '#gw2/platform/combat/activation-claims.js';
 import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
-import type { Gw2TimedBuffApplication } from '#gw2/platform/combat/boons.js';
+import { buffApplicationStacks } from '#gw2/platform/combat/boons.js';
 import { consumeCharge, expireCharges } from '#gw2/platform/combat/resources/charges.js';
 import { gw2AlliedPlayerProcTimeline } from '#gw2/platform/combat/state/allied-players.js';
 import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
@@ -46,15 +47,7 @@ export const soulbeastEventHandlers = Object.freeze({ 'ranger.shared-stance-hit'
 
 export function activeSoulbeastBuff(context: RangerResolverContext, kind: string, at: number): boolean {
   // These personal stance queries cannot borrow a companion's or ally's application.
-  return context.combat
-    .boonApplications(kind)
-    .some(
-      (application: Gw2TimedBuffApplication) =>
-        application.resolvedAudience.includesSelf &&
-        application.at <= at &&
-        application.expiresAt > at &&
-        application.stacks > 0
-    );
+  return buffApplicationStacks(context.combat.boonApplications(kind), kind, at, 1) > 0;
 }
 
 // Beast Ability is always the last skill in beastmodeSkillIds; traits like Live Fast and Go for the Eyes
@@ -63,10 +56,11 @@ function firstBeastAbilityHit(context: RangerResolverContext, event: Gw2Resolver
   const activePet = rangerPetByName(professionCoreState(context).activePet);
   const beastSkillId = activePet.beastmodeSkillIds.at(-1);
   if (event.skillId !== beastSkillId || !event.activationId) return false;
-  const activations = soulbeastState.from(context).beastAbilityActivations;
-  if (activations[event.activationId]) return false;
-  activations[event.activationId] = true;
-  return true;
+  return claimActivation(
+    soulbeastState.from(context).soulbeastActivationClaims,
+    'ranger.beast-ability',
+    event.activationId
+  );
 }
 
 /** Consumes Poisonous Strikes from player hits only while Soulbeast replaces its pet in Beastmode. */

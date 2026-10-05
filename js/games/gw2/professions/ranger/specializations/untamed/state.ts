@@ -1,3 +1,4 @@
+import type { ActivationClaims } from '#gw2/platform/combat/activation-claims.js';
 import type { RefreshedStacks } from '#gw2/platform/combat/resources/refreshed-stacks.js';
 import type { Gw2PlanningStateInput } from '#gw2/platform/results/types.js';
 import {
@@ -18,7 +19,7 @@ export interface UntamedState {
 
   ferociousSymbiosisPet: RefreshedStacks;
 
-  letLooseActivations: Record<string, boolean>;
+  untamedActivationClaims: ActivationClaims;
 }
 
 // Untamed owns its public unleash, ambush, and resolver-driven Ferocious Symbiosis projection.
@@ -46,7 +47,7 @@ export function createUntamedState(config: RangerConfig = {}): UntamedState {
     ferociousSymbiosisPet: { stacks: 0, expiresAt: 0 },
 
     // Keyed by activationId so multi-hit ambush skills only grant Let Loose buffs once per cast.
-    letLooseActivations: {}
+    untamedActivationClaims: {}
   };
 }
 

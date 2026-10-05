@@ -1,3 +1,4 @@
+import type { ActivationClaims } from '#gw2/platform/combat/activation-claims.js';
 import { type SkillFlipWindows } from '#gw2/platform/execution/skill-flips.js';
 import { createResourceClock } from '#gw2/platform/combat/resources/resource-policy.js';
 import type { ResourceClock } from '#gw2/platform/combat/resources/clock.js';
@@ -10,7 +11,7 @@ export interface WarriorCoreState {
   autoattackChains: Record<string, SkillId>;
   availableFlips: SkillFlipWindows;
 
-  burstHitActivations: Record<string, boolean>;
+  activationClaims: ActivationClaims;
   /** Readiness waits for the next actual signet pulse instead of crediting future adrenaline. */
   nextSignetPulseAt: number;
 }
@@ -41,7 +42,7 @@ export function createWarriorCoreState(): WarriorCoreState {
     autoattackChains: {},
     availableFlips: {},
 
-    burstHitActivations: {},
+    activationClaims: {},
     nextSignetPulseAt: Infinity
   };
 }

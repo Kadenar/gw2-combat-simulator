@@ -131,7 +131,10 @@ test('Warrior displays use selected stack caps and bonuses', () => {
         time: 1,
         runtime: {
           boons: new Map([
-            ['berserkers-power', [{ at: 0, expiresAt: 10, stacks, resolvedAudience: { includesSelf: true } }]]
+            [
+              'berserkers-power',
+              stacks ? [{ at: 0, expiresAt: 10, stacks, resolvedAudience: { includesSelf: true } }] : []
+            ]
           ])
         }
       }),
@@ -155,7 +158,10 @@ test('Warrior displays use selected stack caps and bonuses', () => {
         time: 1,
         runtime: {
           boons: new Map([
-            ['fierce-as-fire', [{ at: 0, expiresAt: 10, stacks, resolvedAudience: { includesSelf: true } }]]
+            [
+              'fierce-as-fire',
+              stacks ? [{ at: 0, expiresAt: 10, stacks, resolvedAudience: { includesSelf: true } }] : []
+            ]
           ])
         }
       }),

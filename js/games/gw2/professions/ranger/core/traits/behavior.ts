@@ -1,3 +1,4 @@
+import { claimActivation } from '#gw2/platform/combat/activation-claims.js';
 import { grantCharges } from '#gw2/platform/combat/resources/charges.js';
 import { professionStaticRulesApplied } from '#gw2/platform/builds/attribute-provenance.js';
 import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
@@ -521,16 +522,11 @@ export const rangerCoreCriticalReactions = Object.freeze({
 export function triggerTrappersExpertise(context: RangerResolverContext, event: Gw2ResolverEvent): void {
   const state = professionCoreState(context);
   const skill = eventSkill(context, event);
-  if (
-    skill?.categories?.includes('Trap') &&
-    event.activationId &&
-    !state.trapCrippleActivations[event.activationId] &&
-    hasTrait(context, TRAIT.TRAPPERS_EXPERTISE)
-  ) {
+  if (skill?.categories?.includes('Trap') && event.activationId && hasTrait(context, TRAIT.TRAPPERS_EXPERTISE)) {
     const profile = requireBalanceProfileFromContext(context, TRAIT.TRAPPERS_EXPERTISE);
     const cripple = requireEffect(profile, 'condition', 'Crippled');
     if (!cripple) return;
-    state.trapCrippleActivations[event.activationId] = true;
+    if (!claimActivation(state.activationClaims, 'ranger.trappers-expertise', event.activationId)) return;
     context.effects.emit({
       kind: 'packet',
       event: buildResolverCondition({

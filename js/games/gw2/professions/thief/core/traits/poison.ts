@@ -1,3 +1,4 @@
+import { claimActivation } from '#gw2/platform/combat/activation-claims.js';
 import { skillForEvent } from '#gw2/platform/combat/query/event-skill.js';
 import { CANONICAL_TARGET_CONDITIONS } from '#gw2/platform/combat/state/targets.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
@@ -24,14 +25,14 @@ export function applyDeadlyAmbition(context: ThiefResolverContext, event: ThiefR
     Boolean(skill.requiredMainHand && typeof skill.requiredOffHand === 'string');
   if (!isDualWieldAttack || !hasTrait(context.traits, TRAIT.DEADLY_AMBITION)) return;
   const state = professionCoreState(context);
-  const activation = `deadly-ambition:${event.activationId || `${skill.id}:${event.at}`}`;
-  if (state.traitProcProgress[activation]) return;
 
   const deadlyAmbitionProfile = requireBalanceProfileFromContext(context, TRAIT.DEADLY_AMBITION);
   const poison = requireEffect(deadlyAmbitionProfile, 'condition', 'Poisoned');
   // Explicit removal suppresses this packet without restoring baseline tuning.
   if (!poison) return;
-  state.traitProcProgress[activation] = 1;
+  // Preserve the local identity rule for packets without an activation ID.
+  const activation = event.activationId || `${skill.id}:${event.at}`;
+  if (!claimActivation(state.activationClaims, 'thief.deadly-ambition', activation)) return;
   context.effects.emit({
     kind: 'packet',
     settlement: 'reaction',

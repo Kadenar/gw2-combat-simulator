@@ -1,4 +1,3 @@
-import { buffApplicationStacks } from '#gw2/platform/combat/boons.js';
 import type { Gw2ModifierContext, Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
@@ -701,13 +700,8 @@ export const bladeswornSkillActions: RuntimeProfession<WarriorRuntimeState, Warr
   'warrior.flow-snapshot'(runtime, context) {
     if (context.kind !== 'cast') return;
     const cast = context.cast;
-    if (
-      Number(runtime.config.boons?.fury ?? 0) > 0 ||
-      buffApplicationStacks(runtime.combat.boonApplications('fury'), 'fury', runtime.time, 1, {
-        ordered: true
-      }) > 0
-    )
-      furyBeforeCast.add(cast);
+    // Sample configured or executed self Fury before the cast emits its own application.
+    if (runtime.combat.activeBoonStacks('fury', runtime.time, 1) > 0) furyBeforeCast.add(cast);
   },
   'warrior.flow-stabilize'(runtime, context) {
     if (context.kind !== 'cast') return;

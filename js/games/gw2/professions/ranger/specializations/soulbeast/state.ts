@@ -1,3 +1,4 @@
+import type { ActivationClaims } from '#gw2/platform/combat/activation-claims.js';
 import {
   definePublicStateDefaults,
   defineProfessionSpecializationState
@@ -12,7 +13,7 @@ export interface SoulbeastState {
   archetype: string;
   oneWolfPackUntil: number;
 
-  beastAbilityActivations: Record<string, boolean>;
+  soulbeastActivationClaims: ActivationClaims;
 }
 
 // Soulbeast owns its public Beastmode and stance projection.
@@ -32,7 +33,7 @@ export function createSoulbeastState(config: RangerConfig = {}): SoulbeastState 
     oneWolfPackUntil: 0,
 
     // Tracks per-activation-id whether the beast-ability first-hit proc already fired, preventing multi-hit skills from triggering trait effects more than once per cast.
-    beastAbilityActivations: {}
+    soulbeastActivationClaims: {}
   };
 }
 

@@ -1,3 +1,4 @@
+import type { ActivationClaims } from '#gw2/platform/combat/activation-claims.js';
 import {
   createDiscreteResourceClock,
   createResourceClock,
@@ -24,7 +25,7 @@ export interface GaleshotState {
   mistralPathOfScars: Record<string, boolean>;
   wutheringWindReady: boolean;
   wutheringWindReadyAt: number;
-  wutheringWindActivationIds: Record<string, boolean>;
+  galeshotActivationClaims: ActivationClaims;
 
   missileHits: number;
 }
@@ -54,7 +55,7 @@ function createGaleshotState(config: RangerConfig = {}): GaleshotState {
     wutheringWindReadyAt: 0,
     // tracks per-activation-id to prevent double-firing when a multi-hit skill
     // lands several pet-hit tasks for the same cast window
-    wutheringWindActivationIds: {},
+    galeshotActivationClaims: {},
 
     missileHits: 0
   };
