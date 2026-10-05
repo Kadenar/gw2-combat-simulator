@@ -1,9 +1,10 @@
+import { buffActive } from '#gw2/platform/combat/query/runtime-query.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
-import { illusionSource, timedActive } from '#gw2/professions/mesmer/core/mechanics/modifier-queries.js';
+import { illusionSource } from '#gw2/professions/mesmer/core/mechanics/modifier-queries.js';
 import { MESMER_SKILL_IDS as ID, MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
 import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
 import { hasLute } from '#gw2/professions/mesmer/specializations/troubadour/mechanics/instrument-queries.js';
@@ -172,7 +173,7 @@ export const alteredChord = defineTrait<MesmerSkill>({
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: 'damage-additive',
       amount: 0.25,
-      when: (context) => timedActive(context, 'altered-chord') && !illusionSource(context)
+      when: (context) => buffActive(context, 'altered-chord') && !illusionSource(context)
     }
   ]
 });

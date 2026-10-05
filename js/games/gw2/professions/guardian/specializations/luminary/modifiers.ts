@@ -1,13 +1,14 @@
+import { buffActive } from '#gw2/platform/combat/query/runtime-query.js';
 import type { Gw2ModifierContext, Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { gw2EffectExpiresAt } from '#gw2/platform/effects/timing.js';
-import { guardianTimedBuffActive } from '#gw2/professions/guardian/core/mechanics/modifier-queries.js';
+
 import { GUARDIAN_SKILL_IDS } from '#gw2/professions/guardian/data/ids.js';
 import { luminaryWeaponModifiers } from '#gw2/professions/guardian/specializations/luminary/skills/radiant-forge-skills.js';
 
 /** Applies a stance modifier to its own impact or proc only when an older application was already active. */
 function stanceModifierActive(context: Gw2ModifierContext, kind: string, skillId: number, skillName: string): boolean {
-  if (!guardianTimedBuffActive(context, kind)) return false;
+  if (!buffActive(context, kind)) return false;
   if (context.event?.skillId !== skillId && context.event?.triggeredBy !== skillName) return true;
   return (context.events || []).some(
     (event) =>
@@ -25,7 +26,7 @@ export const luminaryModifiers: readonly Gw2ModifierRule[] = Object.freeze([
     operation: 'damage-additive',
     amount: 0.1,
     // The stance is active before its impact, including the damage it triggers at that timestamp.
-    when: (context) => guardianTimedBuffActive(context, 'guardian-piercing-stance')
+    when: (context) => buffActive(context, 'guardian-piercing-stance')
   },
   {
     id: 'guardian.daring-advance',

@@ -1,3 +1,4 @@
+import { buffActive, countActiveBoons } from '#gw2/platform/combat/query/runtime-query.js';
 import { revenantCoreModule } from '#gw2/professions/revenant/core/module.js';
 const revenantCoreModifierRules = revenantCoreModule.modifiers.modifierRules;
 import { revenantCatalog } from '#gw2/professions/revenant/catalog.js';
@@ -6,11 +7,7 @@ import test from 'node:test';
 import { createGw2TimelineIndex } from '#gw2/platform/combat/query/timeline-index.js';
 import { gw2BoonApplicationRecipients } from '#gw2/platform/combat/state/allied-players.js';
 import { recordBuffApplication } from '#gw2/platform/combat/boons.js';
-import {
-  revenantActiveBoonCount,
-  revenantCoreModifiers,
-  revenantTimedBuff
-} from '#gw2/professions/revenant/core/modifiers.js';
+import { revenantCoreModifiers } from '#gw2/professions/revenant/core/modifiers.js';
 import { renegadeModule } from '#gw2/professions/revenant/specializations/renegade/module.js';
 const renegadeModifierRules = renegadeModule.modifiers.modifierRules;
 import { REVENANT_TRAIT_IDS as TRAIT } from '#gw2/professions/revenant/data/ids.js';
@@ -36,7 +33,7 @@ test('Revenant and Renegade use live self boons, duration stacking, and timeline
   const bloodFury = renegadeModifierRules.find(({ id }) => id === 'revenant.blood-fury-bleeding-duration');
   const criticalBonus = (value) =>
     revenantCoreModifiers.modifyCriticalChance({ catalog: revenantCatalog, ...value }, 0);
-  assert.equal(revenantActiveBoonCount({ ...context, runtime: undefined }), 2);
+  assert.equal(countActiveBoons({ ...context, runtime: undefined }), 2);
   assert.equal(bloodFury.when({ ...context, runtime: undefined }), true);
   for (const kind of ['fury', 'resolution']) {
     recordBuffApplication(context.runtime.boons, buff(kind, { recipients: 'party', affectsSelf: false }));
@@ -46,25 +43,25 @@ test('Revenant and Renegade use live self boons, duration stacking, and timeline
     );
   }
 
-  assert.equal(revenantActiveBoonCount(context), 0);
+  assert.equal(countActiveBoons(context), 0);
   assert.equal(reprisal.when(context), false);
   assert.equal(bloodFury.when(context), false);
   assert.equal(criticalBonus(context), 0);
   recordBuffApplication(context.runtime.boons, fury);
   recordBuffApplication(context.runtime.boons, fury);
   recordBuffApplication(context.runtime.boons, resolution);
-  assert.equal(revenantActiveBoonCount(context), 2);
+  assert.equal(countActiveBoons(context), 2);
   assert.equal(reprisal.when(context), true);
   assert.equal(bloodFury.when(context), true);
   assert.equal(criticalBonus(context), 0.25);
-  assert.equal(revenantActiveBoonCount({ ...context, time: 3 }), 0);
-  assert.equal(revenantActiveBoonCount({ ...context, time: 6 }), 1);
+  assert.equal(countActiveBoons({ ...context, time: 3 }), 0);
+  assert.equal(countActiveBoons({ ...context, time: 6 }), 1);
   assert.equal(bloodFury.when({ ...context, time: 6 }), true);
   assert.equal(reprisal.when({ ...context, time: 6 }), false);
   assert.equal(criticalBonus({ ...context, time: 8 }), 0);
-  assert.equal(revenantActiveBoonCount({ ...context, time: 8 }), 0);
-  assert.equal(revenantActiveBoonCount({ time: 8, config: { boons: { fury: true, might: 25, vigor: 0 } } }), 2);
-  assert.equal(revenantActiveBoonCount({ time: 8 }), 0);
+  assert.equal(countActiveBoons({ ...context, time: 8 }), 0);
+  assert.equal(countActiveBoons({ time: 8, config: { boons: { fury: true, might: 25, vigor: 0 } } }), 2);
+  assert.equal(countActiveBoons({ time: 8 }), 0);
 });
 
 test('Notoriety converts configured and live self Might with a combined cap', () => {
@@ -120,7 +117,7 @@ test('Herald custom buffs retain their local query and never count as standard b
       ])
     }
   };
-  assert.equal(revenantTimedBuff(context, 'burst-of-strength'), true);
-  assert.equal(revenantTimedBuff({ ...context, time: 6 }, 'burst-of-strength'), false);
-  assert.equal(revenantActiveBoonCount(context), 0);
+  assert.equal(buffActive(context, 'burst-of-strength'), true);
+  assert.equal(buffActive({ ...context, time: 6 }, 'burst-of-strength'), false);
+  assert.equal(countActiveBoons(context), 0);
 });

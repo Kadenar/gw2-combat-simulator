@@ -1,9 +1,5 @@
-import {
-  buffApplicationStacks,
-  isDurationStackingBoon,
-  isStandardBoon,
-  GW2_STANDARD_BOONS
-} from '#gw2/platform/combat/boons.js';
+import { appliedEffectStacks, type EffectRecipient } from '#gw2/platform/combat/query/effect-query.js';
+import { isDurationStackingBoon, isStandardBoon, GW2_STANDARD_BOONS } from '#gw2/platform/combat/boons.js';
 import { selectedSkillIdSet } from '#gw2/platform/builds/selected-skills.js';
 import {
   CANONICAL_TARGET_CONDITIONS,
@@ -62,35 +58,39 @@ export function playerHealthFraction(context: Gw2ModifierContext): number {
   return boundedNumber(context.attributePreviewPlayerHealthFraction ?? 1, 1, 0, 1);
 }
 
-/** Keeps permanent player boons while using live state to hide later same-time applications. */
-export function boonActive(context: Gw2ModifierContext, boon: string): boolean {
-  if (!isStandardBoon(boon)) return false;
-  if (context.config?.boons?.[boon]) return true;
-  if (!context.runtime) return Boolean(context.timeline?.timedActive(boon, context.time));
-  const applications = context.runtime.boons?.get(boon) || [];
-  return buffApplicationStacks(applications, boon, context.time, 1) > 0;
+/** Presence and stack queries share recipient, preview, and configured-boon semantics. */
+export function boonActive(
+  context: Gw2ModifierContext,
+  boon: string,
+  recipient: EffectRecipient = { actor: 'player' }
+): boolean {
+  return activeBoonStacks(context, boon, 1, recipient) > 0;
 }
 
-/** Preview totals affect only per-boon bonuses; normal simulations count native boon presence, including owner-specific state. */
+/** Only player counts use preview assumptions; companions count their own accepted boons. */
 export function countActiveBoons(
   context: Gw2ModifierContext,
-  active = (boon: string) => boonActive(context, boon)
+  recipient: EffectRecipient = { actor: 'player' },
+  active = (boon: string) => boonActive(context, boon, recipient)
 ): number {
-  if (context.config?.fixedBoonCount != null)
+  if (recipient.actor === 'player' && context.config?.fixedBoonCount != null)
     return Math.trunc(boundedNumber(context.config.fixedBoonCount, 0, 0, GW2_STANDARD_BOONS.length));
   return GW2_STANDARD_BOONS.filter(active).length;
 }
 
-/** Counts only player applications so summon copies cannot extend duration or add intensity/custom stacks. */
-export function activeBoonStacks(context: Gw2ModifierContext, boon: string, maximum = 25): number {
+/** Configured boons belong to the player; dynamic stacks follow the selected recipient and source. */
+export function activeBoonStacks(
+  context: Gw2ModifierContext,
+  boon: string,
+  maximum = 25,
+  recipient: EffectRecipient = { actor: 'player' }
+): number {
+  boon = boon.toLowerCase();
   if (!isStandardBoon(boon)) return 0;
-  const permanent = context.config?.boons?.[boon];
-  const base = permanent === true ? 1 : permanent || 0;
+  const base = recipient.actor === 'player' ? Number(context.config?.boons?.[boon] || 0) : 0;
   // Configured duration presence needs no history, but must still respect the caller's output cap.
   if (base > 0 && isDurationStackingBoon(boon)) return clamp(1, 0, maximum);
-  const boons = context.runtime?.boons;
-  const applications = boons?.get(boon) || [];
-  const dynamic = buffApplicationStacks(applications, boon, context.time, Infinity);
+  const dynamic = appliedEffectStacks(context, boon, maximum, recipient);
   return clamp((isDurationStackingBoon(boon) ? 0 : base) + dynamic, 0, maximum);
 }
 
@@ -120,14 +120,23 @@ export function vulnerabilityStacks(context: Gw2ModifierContext): number {
   );
 }
 
-/** Ordinary buffs use accepted player grants; only absent runtimes may inspect scheduled preview events. */
-export function activeBuffStacks(context: Gw2ModifierContext, kind: string, maximum = 25): number {
+/** Ordinary buffs share recipient and source selection without inheriting configured boons. */
+export function activeBuffStacks(
+  context: Gw2ModifierContext,
+  kind: string,
+  maximum = 25,
+  recipient: EffectRecipient = { actor: 'player' },
+  fallbackDuration = 0
+): number {
   if (isStandardBoon(kind)) return 0;
-  if (!context.runtime) return context.timeline?.buffStacksAt(kind, context.time, 0, maximum) ?? 0;
-  return buffApplicationStacks(context.runtime.buffs?.get(kind) ?? [], kind, context.time, maximum);
+  return appliedEffectStacks(context, kind, maximum, recipient, fallbackDuration);
 }
 
-/** Buff presence stays separate from configured and generated standard boons. */
-export function buffActive(context: Gw2ModifierContext, kind: string): boolean {
-  return activeBuffStacks(context, kind, 1) > 0;
+/** Buff presence uses the same recipient and lifetime rules as its stack count. */
+export function buffActive(
+  context: Gw2ModifierContext,
+  kind: string,
+  recipient: EffectRecipient = { actor: 'player' }
+): boolean {
+  return activeBuffStacks(context, kind, 1, recipient) > 0;
 }

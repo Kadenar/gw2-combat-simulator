@@ -29,7 +29,7 @@ test('Mesmer reuses fixed query inputs while cooldowns and timed attribute stack
     },
     timeline: {
       skillOnCooldownAt: (_id, time) => time === 1,
-      timedStacks: (_kind, time, duration, maximum) => {
+      buffStacksAt: (_kind, time, duration, maximum) => {
         assert.equal(duration, 7);
         assert.equal(maximum, 8);
         return time;
@@ -63,7 +63,7 @@ test('detached Mesmer attribute queries observe edited loadouts', () => {
     catalog: mesmerCatalog,
     time: 0,
     config: { selectedSkillIds: [10232] },
-    timeline: { skillOnCooldownAt: () => false, timedStacks: () => 0, timedActive: () => false }
+    timeline: { skillOnCooldownAt: () => false, buffStacksAt: () => 0 }
   };
   assert.equal(
     applyMesmerCoreAttributes({ catalog: mesmerCatalog, ...context }, { conditionDamage: 1000 }).conditionDamage,

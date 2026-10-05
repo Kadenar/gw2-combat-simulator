@@ -1,3 +1,4 @@
+import { createGw2TimelineIndex } from '#gw2/platform/combat/query/timeline-index.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
@@ -429,7 +430,17 @@ test('boon queries retain configured stacks and prefer live applications over sc
     ),
     false
   );
-  assert.equal(boonActive(context({ timeline: { timedActive: (kind) => kind === 'vigor' } }), 'vigor'), true);
+  assert.equal(
+    boonActive(
+      context({
+        timeline: createGw2TimelineIndex({
+          events: [{ type: 'buff', kind: 'vigor', at: 0, duration: 10, resolvedAudience: { includesSelf: true } }]
+        })
+      }),
+      'vigor'
+    ),
+    true
+  );
 });
 
 test('target condition and vulnerability queries use canonical combat-query facts', () => {

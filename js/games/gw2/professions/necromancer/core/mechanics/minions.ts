@@ -209,10 +209,13 @@ function attack(runtime: NecromancerRuntime, data: unknown): void {
       ? definition.interval - (packet.offset ?? 0)
       : (attacks[cursor.attackIndex].offset ?? 0) - (packet.offset ?? 0);
   cursor.cycleIndex += Number(cursor.attackIndex === 0);
+  // Query this creature's accepted grants without reconstructing boon state from event history.
   const quickness =
     runtime.config.sharePlayerBoonsWithSummons !== false &&
-    runtime.combat.timeline.buffStacksAt('quickness', runtime.time, 0, 1, 'summon', companion(work.key, work.index)) >
-      0;
+    runtime.combat.activeBoonStacks('quickness', runtime.time, 1, {
+      actor: 'companion',
+      companionId: companion(work.key, work.index)
+    }) > 0;
   const castTimeMs = packet.castTimeMs ?? 0;
   const saved = quickness ? castTimeMs - summonQuicknessCastTimeMs(null, castTimeMs) : 0;
   const next = actionTime(runtime.time + Math.max(0, interval - saved / 1000));

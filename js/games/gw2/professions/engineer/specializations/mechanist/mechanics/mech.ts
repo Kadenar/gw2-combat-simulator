@@ -9,7 +9,6 @@ import {
 } from '#gw2/professions/engineer/specializations/mechanist/traits/behavior.js';
 
 import { isStandardBoon } from '#gw2/platform/combat/boons.js';
-import { createGw2TimelineIndex } from '#gw2/platform/combat/query/timeline-index.js';
 import type { SimulationEventBase } from '#gw2/platform/events/events.js';
 import type { SkillId } from '#gw2/platform/skills/types.js';
 import { weaponStrengthMidpoint, weaponStrengthProfile } from '#gw2/platform/equipment/weapons/strength.js';
@@ -88,14 +87,7 @@ interface MechAttackPayload {
 /** Commands and basic attacks share the mech's direct or copied Quickness, evaluated at execution time. */
 export function engineerMechHasQuickness(context: MechanicQueriesOf<EngineerRuntime>, at: number): boolean {
   return (
-    createGw2TimelineIndex({ events: context.facts.read() }).buffStacksAt(
-      'quickness',
-      at,
-      0,
-      1,
-      'summon',
-      'engineer.mech'
-    ) > 0 ||
+    context.combat.activeBoonStacks('quickness', at, 1, { actor: 'companion', companionId: 'engineer.mech' }) > 0 ||
     (Boolean(context.config.boons?.quickness) && shiftSignetPassive(context, at))
   );
 }

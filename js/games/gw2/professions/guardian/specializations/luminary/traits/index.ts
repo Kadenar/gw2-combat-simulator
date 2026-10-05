@@ -1,11 +1,9 @@
+import { buffActive } from '#gw2/platform/combat/query/runtime-query.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { defineTrait, traitAttributeEffects } from '#gw2/platform/profession-definition/traits.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import { gw2EffectExpiresAt } from '#gw2/platform/effects/timing.js';
-import {
-  guardianTimedBuffActive,
-  latestGuardianTimedBuff
-} from '#gw2/professions/guardian/core/mechanics/modifier-queries.js';
+import { latestGuardianTimedBuff } from '#gw2/professions/guardian/core/mechanics/modifier-queries.js';
 import { GUARDIAN_TRAIT_IDS as TRAIT } from '#gw2/professions/guardian/data/ids.js';
 import { AURA_DETONATE, detonate } from '#gw2/professions/guardian/specializations/luminary/traits/behavior.js';
 
@@ -96,7 +94,7 @@ export const empoweredArmaments = defineTrait({
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: 'damage-additive',
       amount: 0.1,
-      when: (context) => guardianTimedBuffActive(context, 'guardian-empowered-armaments')
+      when: (context) => buffActive(context, 'guardian-empowered-armaments')
     }
   ]
 });

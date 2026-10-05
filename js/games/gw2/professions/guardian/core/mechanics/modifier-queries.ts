@@ -1,4 +1,3 @@
-import { buffActive } from '#gw2/platform/combat/query/runtime-query.js';
 import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
 import { boonActive } from '#gw2/platform/combat/query/runtime-query.js';
 import type { SimulationEvent } from '#gw2/platform/events/events.js';
@@ -28,10 +27,6 @@ export function guardianBoonActive(context: Gw2ModifierContext, boon: string): b
     boonActive(context, boon) ||
     (boon === 'resolution' && (guardianRuntimeState(context).resolutionUntil || 0) > context.time)
   );
-}
-
-export function guardianTimedBuffActive(context: Gw2ModifierContext, kind: string): boolean {
-  return buffActive(context, kind);
 }
 
 export function latestGuardianTimedBuff(context: Gw2ModifierContext, kind: string): SimulationEvent | null {

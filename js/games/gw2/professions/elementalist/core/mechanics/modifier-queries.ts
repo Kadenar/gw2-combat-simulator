@@ -1,4 +1,3 @@
-import { activeBuffStacks } from '#gw2/platform/combat/query/runtime-query.js';
 import { readProfessionCoreState } from '#gw2/platform/profession-definition/state.js';
 import type { ElementalistAttunement, ElementalistCoreState } from '#gw2/professions/elementalist/core/state.js';
 import type { ElementalistModifierContext } from '#gw2/professions/elementalist/types.js';
@@ -32,12 +31,4 @@ export function elementalistMightStacks(context: ElementalistModifierContext): n
   return Number(
     context.query?.mightStacksAt(context.time, context.runtime, context.event) ?? context.config?.boons?.might ?? 0
   );
-}
-
-/**
- * Counts stacks of a timed profession buff (Fresh Air, Persisting Flames, orb
- * buffs, specialization windows) that are live at the event's instant.
- */
-export function elementalistTimedBuffStacks(context: ElementalistModifierContext, kind: string, maximum = 25): number {
-  return activeBuffStacks(context, kind, maximum);
 }

@@ -1,3 +1,4 @@
+import { buffActive } from '#gw2/platform/combat/query/runtime-query.js';
 import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
 import type { MechanicContext } from '#gw2/platform/profession-definition/mechanic-context.js';
 import type { CastDetailContext } from '#gw2/platform/profession-definition/runtime-context.js';
@@ -10,7 +11,7 @@ import type { SkillEffect } from '#gw2/platform/effects/types.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import type { RuntimeProfession } from '#gw2/platform/profession-definition/runtime-contract.js';
 import { projectCastRelativeEffectTimingMs } from '#gw2/platform/execution/cast-timing.js';
-import { guardianTimedBuffActive } from '#gw2/professions/guardian/core/mechanics/modifier-queries.js';
+
 import { GUARDIAN_SKILL_IDS as ID } from '#gw2/professions/guardian/data/ids.js';
 import { canonicalTime } from '#kernel/core/clock.js';
 import { LUMINARY_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/guardian/specializations/luminary/profiles.js';
@@ -469,7 +470,7 @@ export const luminaryWeaponModifiers: readonly Gw2ModifierRule[] = [
     factor: 1.5,
     order: 100,
     when: (context) =>
-      context.event?.skillId === ID.GLEAMING_BLADE && guardianTimedBuffActive(context, 'guardian-radiant-courage-sword')
+      context.event?.skillId === ID.GLEAMING_BLADE && buffActive(context, 'guardian-radiant-courage-sword')
   }
 ];
 

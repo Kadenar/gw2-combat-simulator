@@ -1,3 +1,4 @@
+import { buffActive } from '#gw2/platform/combat/query/runtime-query.js';
 import { createMesmerIllusionRewards, mesmerActivePrimaryWeapon } from '#gw2/professions/mesmer/family-mechanics.js';
 import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
@@ -7,7 +8,7 @@ import { advanceCounter } from '#gw2/platform/combat/resources/counters.js';
 import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
 import type { MesmerTraitDamage } from '#gw2/professions/mesmer/core/mechanics/illusions/types.js';
-import { illusionSource, timedActive } from '#gw2/professions/mesmer/core/mechanics/modifier-queries.js';
+import { illusionSource } from '#gw2/professions/mesmer/core/mechanics/modifier-queries.js';
 import { mesmerTraitDamageProfile } from '#gw2/professions/mesmer/core/profiles.js';
 import { MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
 import { virtuosoState } from '#gw2/professions/mesmer/specializations/virtuoso/state.js';
@@ -29,7 +30,7 @@ export const deadlyBlades = defineTrait<MesmerSkill>({
       parameters: { strikeBonus: 0.05, conditionBonus: 0.1 },
       amount: (_context, target, parameters) =>
         target === MODIFIER_TARGET.CONDITION_DAMAGE ? parameters.conditionBonus : parameters.strikeBonus,
-      when: (context) => !illusionSource(context) && timedActive(context, 'deadly-blades')
+      when: (context) => !illusionSource(context) && buffActive(context, 'deadly-blades')
     }
   ]
 });

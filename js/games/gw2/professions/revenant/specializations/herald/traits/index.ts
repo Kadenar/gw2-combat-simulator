@@ -1,3 +1,4 @@
+import { countActiveBoons } from '#gw2/platform/combat/query/runtime-query.js';
 import { isStandardBoon } from '#gw2/platform/combat/boons.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
@@ -7,7 +8,7 @@ import {
   requireEffect
 } from '#gw2/platform/skills/balance-profiles.js';
 import { defineTrait, traitAttributeEffects } from '#gw2/platform/profession-definition/traits.js';
-import { revenantActiveBoonCount } from '#gw2/professions/revenant/core/modifiers.js';
+
 import { revenantRuntimeCoreState } from '#gw2/professions/revenant/core/state-queries.js';
 import { REVENANT_SKILL_IDS as ID, REVENANT_TRAIT_IDS as TRAIT } from '#gw2/professions/revenant/data/ids.js';
 import {
@@ -143,7 +144,7 @@ export const reinforcedPotency = defineTrait({
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: 'damage-additive',
       // +1% per unique active boon; capped at 12 boon types so the theoretical maximum is +12%.
-      amount: (context) => revenantActiveBoonCount(context) * 0.01,
+      amount: (context) => countActiveBoons(context) * 0.01,
       when: (context) => isGw2PlayerModifierOwnedEvent(context.event)
     }
   ]

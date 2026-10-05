@@ -1,4 +1,5 @@
-import { createExecutedFacts } from '#gw2/platform/combat/history/executed-facts.js';
+import { createMechanicCombatServices } from '#gw2/platform/resolver/mechanic-services.js';
+import { recordBuffApplication } from '#gw2/platform/combat/boons.js';
 import { skillBreakdownRows } from '#gw2/app/results/skill-breakdown.js';
 import { createGw2TimelineIndex } from '#gw2/platform/combat/query/timeline-index.js';
 import { ENGINEER_SKILL_IDS as ID, ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
@@ -113,7 +114,8 @@ test('mech Quickness uses its own boon audience and retains copied applications'
   // The player's permanent boon alone is insufficient; copied timed boons retain their own expiry.
   const context = {
     catalog: engineerCatalog,
-    history: [],
+    boons: new Map(),
+    buffs: new Map(),
     config: { boons: { quickness: true }, selectedSkillIds: [63253] },
     cooldowns: new Map(),
     cooldownController: {
@@ -121,9 +123,8 @@ test('mech Quickness uses its own boon audience and retains copied applications'
       setReadyAt: (id, at) => context.cooldowns.set(id, at)
     }
   };
-  const facts = createExecutedFacts(context.history);
-  context.facts = facts.reader;
-  context.observations = facts.writer;
+  context.combat = createMechanicCombatServices(context);
+  context.facts = { read: () => assert.fail('Live mech queries must use accepted applications') };
   assert.equal(engineerMechHasQuickness(context, 0), false);
   context.config.selectedSkillIds = [63111];
   assert.equal(engineerMechHasQuickness(context, 0), true);
@@ -132,7 +133,7 @@ test('mech Quickness uses its own boon audience and retains copied applications'
   context.config.selectedTraitIds = [TRAIT.MECH_CORE_J_DRIVE];
   assert.equal(engineerMechHasQuickness(context, 1), true);
   context.config = { boons: {}, selectedSkillIds: [] };
-  context.history.push({
+  recordBuffApplication(context.boons, {
     source: 'fixture',
     sourceId: 'boon',
     actorType: 'player',
@@ -161,8 +162,9 @@ test('mech Quickness uses its own boon audience and retains copied applications'
   );
   assert.ok(copied?.resolvedAudience.includesSummons);
   assert.equal(copied.resolvedAudience.includesSelf, false);
-  // Replay the completed simulation through the canonical index instead of swapping its backing event array.
-  context.history = result.events;
+  // Isolate the actual copied grant so the old fixture cannot satisfy the assertions.
+  context.boons.clear();
+  recordBuffApplication(context.boons, copied);
   assert.equal(engineerMechHasQuickness(context, copied.at + 0.2), true);
   assert.equal(engineerMechHasQuickness(context, copied.at + copied.duration + 0.1), false);
 });

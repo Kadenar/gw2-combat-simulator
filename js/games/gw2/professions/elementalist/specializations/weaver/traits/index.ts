@@ -1,10 +1,11 @@
+import { activeBuffStacks, targetConditionActive } from '#gw2/platform/combat/query/runtime-query.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
-import { targetConditionActive } from '#gw2/platform/combat/query/runtime-query.js';
+
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
 import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import { defineTrait, traitAttributeEffects } from '#gw2/platform/profession-definition/traits.js';
 import { elementalistEventSkill } from '#gw2/professions/elementalist/core/mechanics/effects.js';
-import { elementalistTimedBuffStacks } from '#gw2/professions/elementalist/core/mechanics/modifier-queries.js';
+
 import { ELEMENTALIST_TRAIT_IDS as TRAIT } from '#gw2/professions/elementalist/data/ids.js';
 import { weaverDualAttunements } from '#gw2/professions/elementalist/specializations/weaver/mechanics/dual-weapon-state.js';
 import { elementsOfRageAvailability } from '#gw2/professions/elementalist/specializations/weaver/traits/attunements.js';
@@ -119,14 +120,14 @@ export const elementsOfRage = defineTrait({
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: 'damage-additive',
       amount: 0.15,
-      when: (context) => elementalistTimedBuffStacks(context, 'elements of rage', 1) > 0
+      when: (context) => activeBuffStacks(context, 'elements of rage', 1) > 0
     },
     {
       id: 'elementalist.elements-of-rage-condition',
       target: MODIFIER_TARGET.CONDITION_DAMAGE,
       operation: 'damage-additive',
       amount: 0.1,
-      when: (context) => elementalistTimedBuffStacks(context, 'elements of rage', 1) > 0
+      when: (context) => activeBuffStacks(context, 'elements of rage', 1) > 0
     }
   ],
   hooks: { availability: elementsOfRageAvailability }

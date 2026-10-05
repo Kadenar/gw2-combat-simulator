@@ -1,10 +1,11 @@
+import { buffActive, targetConditionActive } from '#gw2/platform/combat/query/runtime-query.js';
 import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
-import { targetConditionActive } from '#gw2/platform/combat/query/runtime-query.js';
+
 import { gw2EventActorType, isGw2PlayerActorEvent } from '#gw2/platform/combat/state/event-ownership.js';
 import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
-import { timedActive } from '#gw2/professions/mesmer/core/mechanics/modifier-queries.js';
+
 import { MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
 import { observeChronomancerEvent } from '#gw2/professions/mesmer/specializations/chronomancer/traits/behavior.js';
 import { completeChronomancerTimeBomb } from '#gw2/professions/mesmer/specializations/chronomancer/traits/time-bomb.js';
@@ -25,7 +26,7 @@ export const dangerTime = defineTrait<MesmerSkill>({
       factor: (context) =>
         1 + balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.DANGER_TIME), 'criticalDamage'),
       when: (context) =>
-        ['player', 'summon'].includes(gw2EventActorType(context.event)) && timedActive(context, 'danger-time')
+        ['player', 'summon'].includes(gw2EventActorType(context.event)) && buffActive(context, 'danger-time')
     }
   ],
   hooks: { reactions: { 'control.resolved': observeChronomancerEvent } }
@@ -154,7 +155,7 @@ export const timeBomb = defineTrait<MesmerSkill>({
       factor: 1.1,
       // Preserve Time Catches Up before the applied Time Bomb multiplier.
       order: 101,
-      when: (context) => isGw2PlayerActorEvent(context.event) && timedActive(context, 'time-bomb')
+      when: (context) => isGw2PlayerActorEvent(context.event) && buffActive(context, 'time-bomb')
     }
   ],
   hooks: { onCastCommit: completeChronomancerTimeBomb }

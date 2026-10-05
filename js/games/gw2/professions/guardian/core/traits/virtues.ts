@@ -1,13 +1,11 @@
+import { buffActive, countActiveBoons } from '#gw2/platform/combat/query/runtime-query.js';
 import { attributeProvenance } from '#gw2/platform/builds/attribute-provenance.js';
-import { countActiveBoons } from '#gw2/platform/combat/query/runtime-query.js';
+
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
 import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import { defineTrait, traitAttributeEffects } from '#gw2/platform/profession-definition/traits.js';
-import {
-  guardianBoonActive,
-  guardianTimedBuffActive
-} from '#gw2/professions/guardian/core/mechanics/modifier-queries.js';
+import { guardianBoonActive } from '#gw2/professions/guardian/core/mechanics/modifier-queries.js';
 import { GUARDIAN_TRAIT_IDS } from '#gw2/professions/guardian/data/ids.js';
 
 /** Owns Permeating Wrath tuning and behavior at its existing mechanic boundaries. */
@@ -37,7 +35,9 @@ export const inspiredVirtue = defineTrait({
       operation: 'multiply',
       parameters: { damagePerBoon: 0.005 },
       factor: (context, _target, parameters) =>
-        1 + countActiveBoons(context, (boon) => guardianBoonActive(context, boon)) * parameters.damagePerBoon
+        1 +
+        countActiveBoons(context, { actor: 'player' }, (boon) => guardianBoonActive(context, boon)) *
+          parameters.damagePerBoon
     }
   ]
 });
@@ -74,7 +74,7 @@ export const inspiringVirtue = defineTrait({
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: 'damage-additive',
       amount: 0.1,
-      when: (context) => guardianTimedBuffActive(context, 'guardian-inspiring-virtue')
+      when: (context) => buffActive(context, 'guardian-inspiring-virtue')
     }
   ]
 });

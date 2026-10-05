@@ -1,3 +1,4 @@
+import { boonActive } from '#gw2/platform/combat/query/runtime-query.js';
 import { createMechanicCombatServices } from '#gw2/platform/resolver/mechanic-services.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
@@ -7,7 +8,7 @@ import { recordBuffApplication } from '#gw2/platform/combat/boons.js';
 import { createRangerCoreState } from '#gw2/professions/ranger/core/state.js';
 import { handleRangerPetSwapped } from '#gw2/professions/ranger/core/mechanics/event-handlers.js';
 import { rangerPetCompanionId } from '#gw2/professions/ranger/core/mechanics/pets.js';
-import { rangerActiveBoonCount, rangerBoonActive } from '#gw2/professions/ranger/core/traits/modifier-queries.js';
+import { rangerActiveBoonCount } from '#gw2/professions/ranger/core/traits/modifier-queries.js';
 import { soulbeastModule } from '#gw2/professions/ranger/specializations/soulbeast/module.js';
 import { RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
 
@@ -26,7 +27,7 @@ test('Ranger and Soulbeast standard boons use live player recipients and duratio
     runtime: { boons: new Map(), buffs: new Map() }
   };
   const furiousStrength = soulbeastModule.modifiers.modifierRules.find(({ id }) => id === 'ranger.furious-strength');
-  assert.equal(rangerBoonActive({ ...context, runtime: undefined }, 'fury'), true);
+  assert.equal(boonActive({ ...context, runtime: undefined }, 'fury'), true);
   for (const audience of [
     { recipients: 'party', affectsSelf: false },
     { recipients: 'summons', affectsSelf: false, eligibleCompanionIds: ['pet'] }
@@ -43,9 +44,9 @@ test('Ranger and Soulbeast standard boons use live player recipients and duratio
   assert.equal(rangerActiveBoonCount({ ...context, time: 6 }, 'player'), 1);
   assert.equal(furiousStrength.when({ ...context, time: 8 }), false);
   assert.equal(rangerActiveBoonCount({ time: 8, config: { boons: { fury: true, might: 25 } } }, 'player'), 2);
-  assert.equal(rangerBoonActive({ time: 4 }, 'fury'), false);
+  assert.equal(boonActive({ time: 4 }, 'fury'), false);
   // Pure boon queries cannot retrieve custom pet-command windows.
-  assert.equal(rangerBoonActive({ time: 4, timeline: { timedActive: () => true } }, 'sic-em-pet'), false);
+  assert.equal(boonActive({ time: 4, timeline: { timedActive: () => true } }, 'sic-em-pet'), false);
 });
 
 test('pet boon counts follow packet identity across swaps and exclude future same-time applications', () => {

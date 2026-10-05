@@ -9,8 +9,7 @@ import {
 } from '#gw2/platform/combat/boons.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
 
-export type BoonSnapshotRecipient =
-  { readonly actor: 'player' } | { readonly actor: 'companion'; readonly companionId: string };
+import type { EffectRecipient } from '#gw2/platform/combat/query/effect-query.js';
 
 /** Snapshot executed applications for one recipient so copying never reconstructs live state from reporting facts. */
 export function liveBoonSnapshot(
@@ -18,7 +17,7 @@ export function liveBoonSnapshot(
   config: Gw2Config,
   kind: string,
   at: number,
-  recipient: BoonSnapshotRecipient
+  recipient: EffectRecipient
 ): { readonly stacks: number; readonly duration: number } {
   // Copying a boon cannot expose ordinary buff windows or malformed assumptions.
   if (!isStandardBoon(kind)) return { stacks: 0, duration: 0 };

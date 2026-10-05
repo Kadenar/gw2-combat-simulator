@@ -3,7 +3,6 @@ import {
   retireElemental
 } from '#gw2/professions/elementalist/core/mechanics/elementals/lifecycle.js';
 import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
-import { buffApplicationStacks } from '#gw2/platform/combat/boons.js';
 import { armSkillFlip, consumeSkillFlip } from '#gw2/platform/execution/skill-flips.js';
 import type { EffectDelivery } from '#gw2/platform/effects/emission.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
@@ -127,8 +126,8 @@ function actionRate(context: ElementalistRuntime, at: number): number {
 /** Summons read only applications addressed to their current companion identity. */
 function elementalBoonActive(context: ElementalistRuntime, kind: string, at: number): boolean {
   return (
-    buffApplicationStacks(context.combat.boonApplications(kind), kind, at, 1, {
-      audience: 'summon',
+    context.combat.activeBoonStacks(kind, at, 1, {
+      actor: 'companion',
       companionId: elementalistElementalCompanionId(context.profession.core.summonedElemental.summonGeneration)
     }) > 0
   );

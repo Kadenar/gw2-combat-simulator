@@ -1,8 +1,6 @@
+import { activeBuffStacks } from '#gw2/platform/combat/query/runtime-query.js';
 import type { Gw2MutableStats, Gw2Stats } from '#gw2/platform/combat/types.js';
-import {
-  elementalistTimedBuffStacks,
-  wieldedConjure
-} from '#gw2/professions/elementalist/core/mechanics/modifier-queries.js';
+import { wieldedConjure } from '#gw2/professions/elementalist/core/mechanics/modifier-queries.js';
 import { applyAirTraitAttributes } from '#gw2/professions/elementalist/core/traits/air.js';
 import { applyArcaneTraitAttributes } from '#gw2/professions/elementalist/core/traits/arcane.js';
 import { applyFireTraitAttributes, applyInfernoAttributes } from '#gw2/professions/elementalist/core/traits/fire.js';
@@ -31,14 +29,14 @@ export const elementalistCoreModifierRules = Object.freeze<readonly Gw2ModifierR
     target: [MODIFIER_TARGET.STRIKE_DAMAGE, MODIFIER_TARGET.CONDITION_DAMAGE],
     operation: 'damage-additive',
     amount: 0.05,
-    when: (context) => elementalistTimedBuffStacks(context, 'hammer fire orb', 1) > 0
+    when: (context) => activeBuffStacks(context, 'hammer fire orb', 1) > 0
   },
   {
     id: 'elementalist.hammer-air-orb',
     target: MODIFIER_TARGET.CRITICAL_CHANCE,
     operation: 'add',
     amount: 0.15,
-    when: (context) => elementalistTimedBuffStacks(context, 'hammer air orb', 1) > 0
+    when: (context) => activeBuffStacks(context, 'hammer air orb', 1) > 0
   },
   {
     id: 'elementalist.frost-bow-condition-duration',

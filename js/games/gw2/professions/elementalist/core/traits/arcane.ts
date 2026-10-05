@@ -1,3 +1,4 @@
+import { activeBuffStacks } from '#gw2/platform/combat/query/runtime-query.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import type { Gw2MutableStats } from '#gw2/platform/combat/types.js';
@@ -20,7 +21,7 @@ import {
   elementalistProfiledBuffRequest,
   elementalistProfiledConditionRequest
 } from '#gw2/professions/elementalist/core/mechanics/effects.js';
-import { elementalistTimedBuffStacks } from '#gw2/professions/elementalist/core/mechanics/modifier-queries.js';
+
 import {
   ELEMENTALIST_SKILL_IDS as ID,
   ELEMENTALIST_TRAIT_IDS as TRAIT
@@ -174,7 +175,7 @@ export const bountifulPower = defineTrait({
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: 'damage-additive',
       amount: 0.2,
-      when: (context) => elementalistTimedBuffStacks(context, 'bountiful-power-active', 1) > 0
+      when: (context) => activeBuffStacks(context, 'bountiful-power-active', 1) > 0
     }
   ]
 });
@@ -446,7 +447,7 @@ export function applyElementalLockdown(
 
 /** Preserve the live arcane attribute pass at its original position in the Core modifier pipeline. */
 export function applyArcaneTraitAttributes(context: ElementalistModifierContext, modified: Gw2MutableStats): void {
-  if (hasTrait(context, TRAIT.ARCANE_LIGHTNING) && elementalistTimedBuffStacks(context, 'arcane-lightning', 1) > 0) {
+  if (hasTrait(context, TRAIT.ARCANE_LIGHTNING) && activeBuffStacks(context, 'arcane-lightning', 1) > 0) {
     const arcaneLightningProfile = requireBalanceProfileFromContext(context, TRAIT.ARCANE_LIGHTNING);
     modified.ferocity = (modified.ferocity || 0) + balanceProfileNumber(arcaneLightningProfile, 'attributeBonus');
   }

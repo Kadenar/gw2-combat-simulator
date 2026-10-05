@@ -1,6 +1,7 @@
+import { activeBuffStacks } from '#gw2/platform/combat/query/runtime-query.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { defineTrait, traitAttributeEffects } from '#gw2/platform/profession-definition/traits.js';
-import { elementalistTimedBuffStacks } from '#gw2/professions/elementalist/core/mechanics/modifier-queries.js';
+
 import { ELEMENTALIST_TRAIT_IDS as TRAIT } from '#gw2/professions/elementalist/data/ids.js';
 
 export const galeSong = defineTrait({
@@ -36,14 +37,14 @@ export const tempestuousAria = defineTrait({
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: 'damage-additive',
       amount: 0.1,
-      when: (context) => elementalistTimedBuffStacks(context, 'tempestuous aria', 1) > 0
+      when: (context) => activeBuffStacks(context, 'tempestuous aria', 1) > 0
     },
     {
       id: 'elementalist.tempestuous-aria-condition',
       target: MODIFIER_TARGET.CONDITION_DAMAGE,
       operation: 'damage-additive',
       amount: 0.05,
-      when: (context) => elementalistTimedBuffStacks(context, 'tempestuous aria', 1) > 0
+      when: (context) => activeBuffStacks(context, 'tempestuous aria', 1) > 0
     }
   ]
 });
@@ -181,14 +182,14 @@ export const transcendentTempest = defineTrait({
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: 'damage-additive',
       amount: 0.25,
-      when: (context) => elementalistTimedBuffStacks(context, 'transcendent-tempest', 1) > 0
+      when: (context) => activeBuffStacks(context, 'transcendent-tempest', 1) > 0
     },
     {
       id: 'elementalist.transcendent-tempest-condition',
       target: MODIFIER_TARGET.CONDITION_DAMAGE,
       operation: 'damage-additive',
       amount: 0.2,
-      when: (context) => elementalistTimedBuffStacks(context, 'transcendent-tempest', 1) > 0
+      when: (context) => activeBuffStacks(context, 'transcendent-tempest', 1) > 0
     }
   ],
   triggers: [

@@ -1,8 +1,9 @@
+import { boonActive, buffActive } from '#gw2/platform/combat/query/runtime-query.js';
 import { professionStaticRulesApplied } from '#gw2/platform/builds/attribute-provenance.js';
 import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { isInternalCooldownReady } from '#gw2/platform/combat/procs.js';
-import { boonActive } from '#gw2/platform/combat/query/runtime-query.js';
+
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import type { EffectDelivery } from '#gw2/platform/effects/emission.js';
 import { gw2ConfiguredWeaponSet } from '#gw2/platform/equipment/weapons/loadout.js';
@@ -14,7 +15,7 @@ import {
   requireEffect
 } from '#gw2/platform/skills/balance-profiles.js';
 import type { MesmerTraitDamage } from '#gw2/professions/mesmer/core/mechanics/illusions/types.js';
-import { timedActive } from '#gw2/professions/mesmer/core/mechanics/modifier-queries.js';
+
 import { buildMesmerStrikes, mesmerPacketOwner } from '#gw2/professions/mesmer/core/mechanics/packets.js';
 import type { MesmerShatter } from '#gw2/professions/mesmer/core/mechanics/shatter-types.js';
 import { mesmerProfiledTraitDamage, mesmerTraitDamageProfile } from '#gw2/professions/mesmer/core/profiles.js';
@@ -70,7 +71,7 @@ export const illusionaryMembrane = defineTrait<MesmerSkill>({
       target: MODIFIER_TARGET.CONDITION_DAMAGE,
       operation: 'damage-additive',
       amount: 0.07,
-      when: (context) => timedActive(context, 'illusionary-membrane')
+      when: (context) => buffActive(context, 'illusionary-membrane')
     }
   ]
 });

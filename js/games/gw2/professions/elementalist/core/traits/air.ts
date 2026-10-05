@@ -1,5 +1,6 @@
+import { activeBuffStacks, targetHealthBelow } from '#gw2/platform/combat/query/runtime-query.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
-import { targetHealthBelow } from '#gw2/platform/combat/query/runtime-query.js';
+
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import type { Gw2MutableStats } from '#gw2/platform/combat/types.js';
@@ -25,10 +26,7 @@ import {
   elementalistProfiledConditionRequest
 } from '#gw2/professions/elementalist/core/mechanics/effects.js';
 import { observeElementalistTransition } from '#gw2/professions/elementalist/core/mechanics/elite-events.js';
-import {
-  elementalistTimedBuffStacks,
-  primaryAttunement
-} from '#gw2/professions/elementalist/core/mechanics/modifier-queries.js';
+import { primaryAttunement } from '#gw2/professions/elementalist/core/mechanics/modifier-queries.js';
 import { ELEMENTALIST_TRAIT_IDS as TRAIT } from '#gw2/professions/elementalist/data/ids.js';
 import type {
   ElementalistModifierContext,
@@ -332,7 +330,7 @@ export function applyResolverZephyrsBoon(context: MechanicCombatContext, event: 
 /** Preserve the live air attribute pass at its original position in the Core modifier pipeline. */
 export function applyAirTraitAttributes(context: ElementalistModifierContext, modified: Gw2MutableStats): void {
   const primary = primaryAttunement(context);
-  if (hasTrait(context, TRAIT.FRESH_AIR) && elementalistTimedBuffStacks(context, 'fresh-air', 1) > 0) {
+  if (hasTrait(context, TRAIT.FRESH_AIR) && activeBuffStacks(context, 'fresh-air', 1) > 0) {
     const freshAirProfile = requireBalanceProfileFromContext(context, TRAIT.FRESH_AIR);
     modified.ferocity = (modified.ferocity || 0) + balanceProfileNumber(freshAirProfile, 'attributeBonus');
   }

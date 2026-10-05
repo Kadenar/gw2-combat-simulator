@@ -1,6 +1,7 @@
+import { activeBuffStacks, targetConditionActive } from '#gw2/platform/combat/query/runtime-query.js';
 import { MODIFIER_TARGET, powerScaledConditionAttributes } from '#gw2/platform/combat/modifiers.js';
 import { CONDITION_FORMULAS } from '#gw2/platform/combat/formulas.js';
-import { targetConditionActive } from '#gw2/platform/combat/query/runtime-query.js';
+
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import type { Gw2MutableStats, Gw2Stats } from '#gw2/platform/combat/types.js';
@@ -21,7 +22,6 @@ import {
 } from '#gw2/professions/elementalist/core/mechanics/effects.js';
 import {
   elementalistMightStacks,
-  elementalistTimedBuffStacks,
   primaryAttunement
 } from '#gw2/professions/elementalist/core/mechanics/modifier-queries.js';
 import {
@@ -173,7 +173,7 @@ export const persistingFlames = defineTrait({
       order: -11,
       parameters: { damagePerStack: 0.02 },
       amount: (context, _target, parameters) =>
-        elementalistTimedBuffStacks(
+        activeBuffStacks(
           context,
           'persisting flames',
           balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.PERSISTING_FLAMES), 'maximumStacks')

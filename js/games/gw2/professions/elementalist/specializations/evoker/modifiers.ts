@@ -1,3 +1,4 @@
+import { activeBuffStacks } from '#gw2/platform/combat/query/runtime-query.js';
 import { applyEnhancedPotencyAttributes } from '#gw2/professions/elementalist/specializations/evoker/traits/familiars.js';
 import type { ElementalistModifierContext } from '#gw2/professions/elementalist/types.js';
 /**
@@ -9,7 +10,6 @@ import type { ElementalistModifierContext } from '#gw2/professions/elementalist/
  */
 import type { Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
-import { elementalistTimedBuffStacks } from '#gw2/professions/elementalist/core/mechanics/modifier-queries.js';
 
 /** Zap reads the profile's canonical buff window; trait rules come from registered definitions. */
 const evokerModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
@@ -19,7 +19,7 @@ const evokerModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
     operation: 'multiply',
     factor: 1.03,
     when: (context: ElementalistModifierContext) =>
-      context.config?.evokerElement === 'Air' && elementalistTimedBuffStacks(context, 'zap buff', 1) > 0
+      context.config?.evokerElement === 'Air' && activeBuffStacks(context, 'zap buff', 1) > 0
   }
 ]);
 

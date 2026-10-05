@@ -1,6 +1,7 @@
+import { appliedEffectStacks } from '#gw2/platform/combat/query/effect-query.js';
 import { normalizeSelectedTraitIds } from '#gw2/platform/combat/state/traits.js';
-import type { Gw2BuffAudience, Gw2TimedBuffApplication } from '#gw2/platform/combat/boons.js';
-import { buffApplicationStacks, isStandardBoon, MIGHT_ATTRIBUTE_BONUS_PER_STACK } from '#gw2/platform/combat/boons.js';
+import type { Gw2TimedBuffApplication } from '#gw2/platform/combat/boons.js';
+import { MIGHT_ATTRIBUTE_BONUS_PER_STACK } from '#gw2/platform/combat/boons.js';
 import {
   criticalChance,
   criticalDamageMultiplier,
@@ -226,33 +227,6 @@ export function createGw2CombatQuery({
 
   let query: Readonly<Gw2CombatQuery> | null = null;
 
-  // Returns null (not 0) when no runtime is present — null signals the caller
-  // to fall back to the scheduled timeline rather than overriding with zero.
-  const runtimeBuffStacks = (
-    runtime: Gw2QueryRuntime | null | undefined,
-    kind: string,
-    time: number,
-    maximum: number,
-    audience: Gw2BuffAudience = 'all',
-    companionId: string | null = null
-  ): number | null => {
-    if (!runtime) return null;
-    const applications = (isStandardBoon(kind) ? runtime.boons : runtime.buffs)?.get(kind) || [];
-    return buffApplicationStacks(applications, kind, time, maximum, { audience, companionId, ordered: true });
-  };
-
-  /** Uses chronological runtime state when present, otherwise scheduled state. */
-  const dynamicBoonStacksAt = (
-    kind: string,
-    time: number,
-    maximum: number,
-    runtime: Gw2QueryRuntime | null | undefined,
-    audience: Gw2BuffAudience = 'all',
-    fallbackDuration = 0,
-    companionId: string | null = null
-  ): number =>
-    runtimeBuffStacks(runtime, kind, time, maximum, audience, companionId) ??
-    timeline.buffStacksAt(kind, time, fallbackDuration, maximum, audience, companionId);
   /**
    * Player-configured permanent boons do not apply to ordinary summons.
    * Explicitly inherited companion profiles retain their existing behavior.
@@ -277,12 +251,15 @@ export function createGw2CombatQuery({
     // they only receive boons explicitly targeted at summons via the runtime.
     const configured = isolatedSummon ? 0 : Number(config.boons?.[kind] || 0);
     if (isolatedSummon) {
-      return dynamicBoonStacksAt(kind, time, maximum, runtime, 'summon', 0, summonCompanionId(event));
+      return appliedEffectStacks({ runtime, timeline, time }, kind, maximum, {
+        actor: 'companion',
+        companionId: summonCompanionId(event)
+      });
     }
 
     // Nonnegative dynamic grants cannot change an already-capped permanent assumption.
     if (configured >= maximum) return maximum;
-    const dynamic = dynamicBoonStacksAt(kind, time, maximum, runtime, 'all', 1);
+    const dynamic = appliedEffectStacks({ runtime, timeline, time }, kind, maximum, { actor: 'player' }, 1);
     return clamp(configured + dynamic, 0, maximum);
   };
 
@@ -310,10 +287,15 @@ export function createGw2CombatQuery({
     }
 
     if (illusionEvent || (isolatedSummon && !inheritsOwnerCriticalState)) {
-      return dynamicBoonStacksAt('fury', time, 1, runtime, 'summon', 0, summonCompanionId(event)) > 0;
+      return (
+        appliedEffectStacks({ runtime, timeline, time }, 'fury', 1, {
+          actor: 'companion',
+          companionId: summonCompanionId(event)
+        }) > 0
+      );
     }
 
-    return dynamicBoonStacksAt('fury', time, 1, runtime) > 0;
+    return appliedEffectStacks({ runtime, timeline, time }, 'fury', 1) > 0;
   };
 
   /**
@@ -325,7 +307,10 @@ export function createGw2CombatQuery({
     event: SimulationEvent | null | undefined
   ): number => {
     if (event?.summonIgnoresBoons === true) return 0;
-    return dynamicBoonStacksAt('might', time, 25, runtime, 'summon', 0, summonCompanionId(event));
+    return appliedEffectStacks({ runtime, timeline, time }, 'might', 25, {
+      actor: 'companion',
+      companionId: summonCompanionId(event)
+    });
   };
 
   // Reuse normalized assumptions while the canonical target owner caps their combined live intensity.

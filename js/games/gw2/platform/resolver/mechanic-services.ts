@@ -5,7 +5,8 @@ import type { Gw2ResolverRuntime } from '#gw2/platform/resolver/runtime-state.js
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import type { Gw2ResolvedStats } from '#gw2/platform/combat/query/combat-query.js';
 import { activeBoonStacks, activeBuffStacks, targetConditionCount } from '#gw2/platform/combat/query/runtime-query.js';
-import { liveBoonSnapshot, type BoonSnapshotRecipient } from '#gw2/platform/combat/query/live-boon-snapshot.js';
+import type { EffectRecipient } from '#gw2/platform/combat/query/effect-query.js';
+import { liveBoonSnapshot } from '#gw2/platform/combat/query/live-boon-snapshot.js';
 import {
   targetHealthLoss,
   remainingTargetHealthFraction,
@@ -15,10 +16,10 @@ import {
 /** Mechanics request shared-state changes at their existing phase; resolver stores never leave their owner. */
 export function createMechanicCombatServices(runtime: Gw2ResolverRuntime) {
   return Object.freeze({
-    activeBoonStacks: (kind: string, at: number, maximum = 25) =>
-      activeBoonStacks({ config: runtime.config, runtime, time: at }, kind, maximum),
-    activeBuffStacks: (kind: string, at: number, maximum = 25) =>
-      activeBuffStacks({ runtime, time: at }, kind, maximum),
+    activeBoonStacks: (kind: string, at: number, maximum = 25, recipient: EffectRecipient = { actor: 'player' }) =>
+      activeBoonStacks({ config: runtime.config, runtime, time: at }, kind, maximum, recipient),
+    activeBuffStacks: (kind: string, at: number, maximum = 25, recipient: EffectRecipient = { actor: 'player' }) =>
+      activeBuffStacks({ runtime, time: at }, kind, maximum, recipient),
     buffApplications: (kind: string): readonly Readonly<Gw2TimedBuffApplication>[] => runtime.buffs.get(kind) ?? [],
     targetHasCondition: (condition: string, at: number) => runtime.query.targetHasCondition(condition, at, runtime),
     targetConditionStacks: (condition: string, at: number) =>
@@ -35,7 +36,7 @@ export function createMechanicCombatServices(runtime: Gw2ResolverRuntime) {
       return runtime.query.timeline;
     },
     boonApplications: (kind: string): readonly Readonly<Gw2TimedBuffApplication>[] => runtime.boons.get(kind) ?? [],
-    boonSnapshot: (kind: string, at: number, recipient: BoonSnapshotRecipient) =>
+    boonSnapshot: (kind: string, at: number, recipient: EffectRecipient) =>
       liveBoonSnapshot(runtime.boons.get(kind) ?? [], runtime.config, kind, at, recipient),
     reviseBuffExpiry(
       kind: string,
