@@ -42,3 +42,9 @@ test('consolidated Core trait owners load independently of family construction a
   for (const line of ['chaos', 'domination', 'dueling', 'illusions'])
     assertIndependentLoading(`core/traits/${line}.ts`);
 });
+
+// Tooltip projections must remain loadable without pulling runtime construction into presentation.
+test('shatter projections load independently of family construction and trait dispatch', () => {
+  assertIndependentLoading('core/mechanics/shatter-projection.ts');
+  assertIndependentLoading('specializations/virtuoso/mechanics/bladesong-projection.ts');
+});

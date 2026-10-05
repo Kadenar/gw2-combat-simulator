@@ -1,10 +1,9 @@
 import { requireBalanceProfileFromContext, requireEffect } from '#gw2/platform/skills/balance-profiles.js';
-import type { MesmerRuntime } from '#gw2/professions/mesmer/types.js';
 import type { MesmerConditionApplication } from '#gw2/professions/mesmer/data/types.js';
 
-/** Resolve a named condition without reconstructing an explicitly removed packet. */
+/** Resolve a selected condition for runtime or preview without reconstructing an explicitly removed packet. */
 export function mesmerConditionFromProfile(
-  context: MesmerRuntime,
+  context: unknown,
   id: number | string,
   name: string
 ): MesmerConditionApplication | undefined {
