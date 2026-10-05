@@ -1,3 +1,4 @@
+import type { OwnedComboDescriptor } from '#gw2/platform/combos/types.js';
 import type { ResourceKey } from '#gw2/platform/combat/resources/resource-policy.js';
 import type { SkillSideEffect } from '#gw2/platform/effects/actions.js';
 import type { SkillEffect } from '#gw2/platform/effects/types.js';
@@ -114,8 +115,8 @@ export interface Skill extends CatalogEntity {
   /** Keep the serial cast lane blocked through the original cast end after the skill commits. */
   readonly retainsCastLockoutAfterInterrupt?: boolean;
   readonly effects?: readonly SkillEffect[];
-  readonly comboFields?: readonly Readonly<Record<string, unknown>>[];
-  readonly comboFinishers?: readonly Readonly<Record<string, unknown>>[];
+  readonly comboFields?: readonly OwnedComboDescriptor[];
+  readonly comboFinishers?: readonly OwnedComboDescriptor[];
   readonly parentId?: SkillId;
   readonly flipParentId?: SkillId | null;
   readonly flipSkillId?: SkillId | null;

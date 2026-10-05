@@ -1,3 +1,4 @@
+import { requireOwnedComboDescriptors } from '#gw2/platform/combos/ownership.js';
 import { skillForEvent } from '#gw2/platform/combat/query/runtime-query.js';
 import type { UnvalidatedFields } from '#kernel/core/unvalidated.js';
 import type { CanonicalCatalog } from '#gw2/platform/skills/types.js';
@@ -34,29 +35,31 @@ interface OwnedFinisherDescriptor extends UnvalidatedFields {
 
 export function fieldDescriptors(catalog: CanonicalCatalog, event: SimulationEvent): readonly OwnedFieldDescriptor[] {
   const skill = skillForEvent(catalog, event);
-  const descriptors = Array.isArray(event.comboFields)
-    ? event.comboFields
-    : event.type === 'action' && Array.isArray(skill?.comboFields)
-      ? skill.comboFields
-      : [];
-  return descriptors
-    .filter((raw): raw is UnvalidatedFields => Boolean(raw && typeof raw === 'object' && !Array.isArray(raw)))
-    .filter((raw) => String(raw.ownerId || '').length > 0)
-    .map((raw) => ({
-      ...raw,
-      ownerId: String(raw.ownerId),
-      fieldType: normalizeComboFieldType(raw.fieldType ?? raw.type),
-      startMs: Math.max(0, Number(raw.startMs || 0)),
-      startAnchor:
-        raw.startAnchor === 'castEnd'
-          ? 'castEnd'
-          : raw.startAnchor === 'castStart'
+  const descriptors =
+    event.comboFields !== undefined
+      ? event.comboFields
+      : event.type === 'action' && Array.isArray(skill?.comboFields)
+        ? skill.comboFields
+        : [];
+  // Runtime-generated declarations must satisfy the same ownership contract as catalog data.
+  return requireOwnedComboDescriptors(
+    descriptors,
+    `${event.type} skill=${event.skillId ?? event.sourceId} comboFields`
+  ).map((raw) => ({
+    ...raw,
+    ownerId: raw.ownerId,
+    fieldType: normalizeComboFieldType(raw.fieldType ?? raw.type),
+    startMs: Math.max(0, Number(raw.startMs || 0)),
+    startAnchor:
+      raw.startAnchor === 'castEnd'
+        ? 'castEnd'
+        : raw.startAnchor === 'castStart'
+          ? 'castStart'
+          : event.type === 'action'
             ? 'castStart'
-            : event.type === 'action'
-              ? 'castStart'
-              : 'event',
-      duration: Number(raw.duration)
-    }));
+            : 'event',
+    duration: Number(raw.duration)
+  }));
 }
 
 function hasEffectFinishers(effects: readonly UnvalidatedFields[] | undefined): boolean {
@@ -75,8 +78,8 @@ export function finisherDescriptors(
   event: SimulationEvent
 ): readonly OwnedFinisherDescriptor[] {
   const skill = skillForEvent(catalog, event);
-  let descriptors: readonly Readonly<UnvalidatedFields>[] = [];
-  if (Array.isArray(event.comboFinishers)) {
+  let descriptors: unknown = [];
+  if (event.comboFinishers !== undefined) {
     descriptors = event.comboFinishers;
   } else if (Array.isArray(skill?.comboFinishers) && !hasEffectFinishers(skill.effects)) {
     const sourceMatches = event.sourceId === skill.id;
@@ -87,19 +90,19 @@ export function finisherDescriptors(
     }
   }
 
-  return descriptors
-    .filter((raw): raw is UnvalidatedFields => raw && typeof raw === 'object' && !Array.isArray(raw))
-    .filter((raw) => String(raw.ownerId || '').length > 0)
-    .map((raw) => ({
-      ...raw,
-      ownerId: String(raw.ownerId),
-      finisherType: normalizeComboFinisherType(raw.finisherType ?? raw.type),
-      fieldSelectionAnchor: normalizeComboFieldSelectionAnchor(raw.fieldSelectionAnchor),
-      chance: boundedNumber(raw.chance ?? 1, 1, 0, 1),
-      attempts: Math.max(1, Math.trunc(Number(raw.attempts ?? 1))),
-      applications: Math.max(1, Math.trunc(Number(raw.applications ?? 1))),
-      successfulCombos: Math.max(1, Math.trunc(Number(raw.successfulCombos ?? 1)))
-    }));
+  return requireOwnedComboDescriptors(
+    descriptors,
+    `${event.type} skill=${event.skillId ?? event.sourceId} comboFinishers`
+  ).map((raw) => ({
+    ...raw,
+    ownerId: raw.ownerId,
+    finisherType: normalizeComboFinisherType(raw.finisherType ?? raw.type),
+    fieldSelectionAnchor: normalizeComboFieldSelectionAnchor(raw.fieldSelectionAnchor),
+    chance: boundedNumber(raw.chance ?? 1, 1, 0, 1),
+    attempts: Math.max(1, Math.trunc(Number(raw.attempts ?? 1))),
+    applications: Math.max(1, Math.trunc(Number(raw.applications ?? 1))),
+    successfulCombos: Math.max(1, Math.trunc(Number(raw.successfulCombos ?? 1)))
+  }));
 }
 
 export function fieldAt(event: SimulationEvent, descriptor: OwnedFieldDescriptor) {

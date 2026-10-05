@@ -21,6 +21,11 @@ export type ComboFinisherType = (typeof COMBO_FINISHER_TYPES)[number];
 
 export type ComboFieldSelectionAnchor = 'event' | 'castStart';
 
+/** Fields and finishers require an explicit owner so runtime field selection can match them. */
+export interface OwnedComboDescriptor extends Readonly<Record<string, unknown>> {
+  readonly ownerId: string;
+}
+
 export type ComboFieldBinding =
   | { readonly kind: 'field-id'; readonly fieldId: string }
   | { readonly kind: 'field-type'; readonly fieldType: ComboFieldType }

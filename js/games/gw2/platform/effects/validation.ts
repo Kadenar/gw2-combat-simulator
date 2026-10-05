@@ -1,3 +1,4 @@
+import { validateComboOwnership } from '#gw2/platform/combos/ownership.js';
 import {
   normalizeEffectAudience,
   normalizeEffectMetadata
@@ -281,6 +282,16 @@ function normalizeEffectFields(effect: unknown, label: string): SkillEffect {
     throw new TypeError(`Invalid skill effect type: ${candidate?.type}`);
   }
 
+  // Profiles and procedural effects also enter here, so their combo ownership cannot bypass catalog checks.
+  validateComboOwnership(candidate, label);
+  if (Array.isArray(candidate.ticks)) {
+    candidate.ticks.forEach((tick, index) => {
+      if (tick && typeof tick === 'object' && !Array.isArray(tick)) {
+        validateComboOwnership(tick, `${label} tick=${index + 1}`);
+      }
+    });
+  }
+
   const normalizedEffect = candidate as unknown as SkillEffect;
   validateEffectNumbers(candidate, label);
   // Validate explicit profiles before authored effects enter the runtime.
@@ -299,6 +310,8 @@ function normalizeEffectFields(effect: unknown, label: string): SkillEffect {
     ) {
       throw new TypeError(`field=event expected=object received=${String(normalizedEffect.event)}`);
     }
+
+    validateComboOwnership(normalizedEffect.event, `${label} event`);
   }
 
   for (const field of ['name', 'condition', 'boon', 'kind']) {

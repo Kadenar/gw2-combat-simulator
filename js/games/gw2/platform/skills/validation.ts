@@ -1,3 +1,4 @@
+import { validateComboOwnership } from '#gw2/platform/combos/ownership.js';
 import {
   validateActionIds,
   validateEffectReactions,
@@ -348,6 +349,8 @@ export function normalizeSkill<TSkill extends Skill>(
   }
 
   const merged = skillNormalizer ? skillNormalizer(mergedSource) : mergedSource;
+  // Direct catalog consumers must enforce ownership even without a profession-specific normalizer.
+  validateComboOwnership(merged, `Skill ${id} (${merged.name})`);
   const quicknessCastTimeMs = merged.quicknessCastTimeMs == null ? null : Number(merged.quicknessCastTimeMs);
   if (quicknessCastTimeMs != null && (!(quicknessCastTimeMs >= 0) || !Number.isFinite(quicknessCastTimeMs))) {
     throw new TypeError(`Skill ${id} has an invalid quicknessCastTimeMs.`);

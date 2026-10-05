@@ -1,3 +1,4 @@
+import type { OwnedComboDescriptor } from '#gw2/platform/combos/types.js';
 import type { Gw2ModifierContribution } from '#gw2/platform/combat/modifiers.js';
 import type { EffectReactionRef } from '#gw2/platform/effects/reactions.js';
 import { ACTOR_TYPES, type SimulationActorType } from '#gw2/platform/events/actors.js';
@@ -253,6 +254,9 @@ export interface SimulationEventBase<TType extends string = string> {
   /** Explicit actor ownership is required before scheduling or resolving an event. */
   readonly actorType: SimulationActorType;
   readonly ownerActorType?: SimulationActorType;
+  /** Runtime combo declarations retain the same explicit owner required by catalog effects. */
+  readonly comboFields?: readonly OwnedComboDescriptor[];
+  readonly comboFinishers?: readonly OwnedComboDescriptor[];
   readonly summonKind?: string;
   /** Pets and mech keep their own condition rounding; other summons share the player packet. */
   readonly independentConditionOwner?: boolean;

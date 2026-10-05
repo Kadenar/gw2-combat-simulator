@@ -1,3 +1,4 @@
+import type { OwnedComboDescriptor } from '#gw2/platform/combos/types.js';
 import type { EffectReaction } from '#gw2/platform/effects/reactions.js';
 import type { SimulationActorType } from '#gw2/platform/events/actors.js';
 import type { DamageEvent, EffectAudience, EffectMetadata } from '#gw2/platform/events/events.js';
@@ -10,7 +11,7 @@ import type { SkillId } from '#gw2/platform/skills/types.js';
 export interface StrikeTick {
   readonly atMs: number;
   /** A packet can override the enclosing effect's combo finisher metadata. */
-  readonly comboFinishers?: readonly Readonly<Record<string, unknown>>[];
+  readonly comboFinishers?: readonly OwnedComboDescriptor[];
   readonly projectile?: boolean;
   readonly coefficient: number;
   readonly name?: string;
@@ -25,7 +26,7 @@ export interface StrikeTick {
 
 export interface ConditionTick {
   readonly atMs: number;
-  readonly comboFinishers?: readonly Readonly<Record<string, unknown>>[];
+  readonly comboFinishers?: readonly OwnedComboDescriptor[];
   readonly condition: string;
   readonly stacks: number;
   readonly duration: number;
@@ -64,8 +65,8 @@ export interface SkillEffectBase {
   readonly icon?: string;
   readonly audience?: EffectAudience;
   readonly metadata?: EffectMetadata;
-  readonly comboFields?: readonly Readonly<Record<string, unknown>>[];
-  readonly comboFinishers?: readonly Readonly<Record<string, unknown>>[];
+  readonly comboFields?: readonly OwnedComboDescriptor[];
+  readonly comboFinishers?: readonly OwnedComboDescriptor[];
   readonly [field: string]: unknown;
 }
 

@@ -1,3 +1,5 @@
+import { requireComboDescriptorOwner } from '#gw2/platform/combos/ownership.js';
+import type { OwnedComboDescriptor } from '#gw2/platform/combos/types.js';
 import type { UnvalidatedFields } from '#kernel/core/unvalidated.js';
 import {
   normalizeComboFieldType,
@@ -17,18 +19,14 @@ function positiveInteger(value: unknown, fallback: number, label: string): numbe
   return normalized;
 }
 
-function normalizeFieldDescriptors(value: unknown): readonly Readonly<UnvalidatedFields>[] {
+function normalizeFieldDescriptors(value: unknown): readonly OwnedComboDescriptor[] {
   if (!Array.isArray(value) || value.length === 0) {
     throw new TypeError('comboFields must be a non-empty array.');
   }
 
   return Object.freeze(
     value.map((raw, index) => {
-      if (!raw || typeof raw !== 'object' || Array.isArray(raw)) {
-        throw new TypeError(`comboFields entry ${index + 1} must be an object.`);
-      }
-
-      const descriptor = raw as UnvalidatedFields;
+      const descriptor = requireComboDescriptorOwner(raw, `comboFields entry ${index + 1}`);
       const duration = Number(descriptor.duration);
       if (!(duration > 0) || !Number.isFinite(duration)) {
         throw new TypeError(`comboFields entry ${index + 1} requires a positive duration.`);
@@ -55,18 +53,14 @@ function normalizeFieldDescriptors(value: unknown): readonly Readonly<Unvalidate
   );
 }
 
-function normalizeFinisherDescriptors(value: unknown, attemptGroup?: string): readonly Readonly<UnvalidatedFields>[] {
+function normalizeFinisherDescriptors(value: unknown, attemptGroup?: string): readonly OwnedComboDescriptor[] {
   if (!Array.isArray(value) || value.length === 0) {
     throw new TypeError('comboFinishers must be a non-empty array.');
   }
 
   return Object.freeze(
     value.map((raw, index) => {
-      if (!raw || typeof raw !== 'object' || Array.isArray(raw)) {
-        throw new TypeError(`comboFinishers entry ${index + 1} must be an object.`);
-      }
-
-      const descriptor = raw as UnvalidatedFields;
+      const descriptor = requireComboDescriptorOwner(raw, `comboFinishers entry ${index + 1}`);
       const chance = Number(descriptor.chance ?? 1);
       if (!Number.isFinite(chance)) {
         throw new TypeError(`comboFinishers entry ${index + 1} requires a finite chance.`);
@@ -130,13 +124,21 @@ function normalizeEffect(effect: SkillEffect, effectIndex: number): SkillEffect 
 
 /** Normalizes explicit GW2 combo descriptors at native catalog assembly time. */
 export function normalizeGw2ComboCatalogSkill<TSkill extends Skill>(skill: Partial<TSkill>): Partial<TSkill> {
-  const comboFields = skill.comboFields != null ? normalizeFieldDescriptors(skill.comboFields) : undefined;
-  const comboFinishers =
-    skill.comboFinishers != null ? normalizeFinisherDescriptors(skill.comboFinishers, 'skill') : undefined;
-  return {
-    ...skill,
-    ...(comboFields ? { comboFields } : {}),
-    ...(comboFinishers ? { comboFinishers } : {}),
-    ...(skill.effects ? { effects: skill.effects.map(normalizeEffect) } : {})
-  };
+  // Catalog failures identify the authoring record before any simulation can start.
+  try {
+    const comboFields = skill.comboFields != null ? normalizeFieldDescriptors(skill.comboFields) : undefined;
+    const comboFinishers =
+      skill.comboFinishers != null ? normalizeFinisherDescriptors(skill.comboFinishers, 'skill') : undefined;
+    return {
+      ...skill,
+      ...(comboFields ? { comboFields } : {}),
+      ...(comboFinishers ? { comboFinishers } : {}),
+      ...(skill.effects ? { effects: skill.effects.map(normalizeEffect) } : {})
+    };
+  } catch (error) {
+    throw new TypeError(
+      `Skill ${String(skill.id)} (${skill.name}): ${error instanceof Error ? error.message : String(error)}`,
+      { cause: error }
+    );
+  }
 }
