@@ -182,9 +182,12 @@ export const mesmerCoreHooks: RuntimeHooks<MesmerRuntimeState, MesmerSkill> = co
         );
         applyFencersFinesse(runtime, event);
       },
-      'condition.applied': triggerThePledge,
-      'control.resolved': triggerMesmerControlTraits,
-      'blind.resolved': triggerIneptitudeFromBlind
+      'condition.applied'(runtime, event) {
+        triggerThePledge(runtime, event);
+        // Ineptitude observes each accepted Blindness stack through the ordinary condition hook.
+        if (event.condition === 'Blindness') triggerIneptitudeFromBlind(runtime, event);
+      },
+      'control.resolved': triggerMesmerControlTraits
     }
   }
 ]);

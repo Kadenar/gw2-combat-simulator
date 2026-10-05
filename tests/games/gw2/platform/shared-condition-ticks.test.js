@@ -346,10 +346,7 @@ test('non-damaging conditions preserve other skills modifiers, expiry, and repor
 // Proc consumers see each accepted application after insertion; missed and precombat packets do not react.
 test('Blindness and Fear dispatch their reactions once per accepted condition stack', () => {
   for (const output of ['detailed', 'score']) {
-    for (const [name, stage] of [
-      ['Blindness', 'blind.resolved'],
-      ['Fear', 'control.resolved']
-    ]) {
+    for (const name of ['Blindness', 'Fear']) {
       const seen = [];
       const observe = (ctx, event) => {
         assert.equal(event.type, 'condition');
@@ -357,8 +354,8 @@ test('Blindness and Fear dispatch their reactions once per accepted condition st
         assert.equal(event.sourceId, 'source-skill');
         assert.equal(event.effectiveDuration, 2);
         assert.equal(ctx.conditionState.get(name).stacks.at(-1).application.eventOrder, event.eventOrder);
-        if (name === 'Fear') assert.equal(event.controlKind, 'fear');
-        seen.push(stage);
+        assert.equal(event.controlKind, undefined);
+        seen.push(name);
       };
 
       const packet = condition(2, { condition: name, sourceId: 'source-skill', duration: 1, stacks: 2 });
@@ -368,11 +365,16 @@ test('Blindness and Fear dispatch their reactions once per accepted condition st
         end: 4,
         query: { conditionDurationMultiplier: () => 2 },
         reactions: {
-          'condition.applied': () => seen.push('condition.applied'),
-          [stage]: observe
+          'condition.applied'(ctx, event) {
+            seen.push('condition.applied');
+            observe(ctx, event);
+          },
+          'control.resolved'() {
+            assert.fail('Conditions must not dispatch a second control reaction.');
+          }
         }
       });
-      assert.deepEqual(seen, ['condition.applied', stage, 'condition.applied', stage]);
+      assert.deepEqual(seen, ['condition.applied', name, 'condition.applied', name]);
       assert.equal(result.conditionDamage, 0);
     }
   }

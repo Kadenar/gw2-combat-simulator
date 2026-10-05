@@ -242,6 +242,15 @@ export function createGw2EquipmentReactionContributions(): Gw2ResolverReactionCo
     ],
     'condition.applied': [
       {
+        id: 'relic.fear',
+        order: GW2_REACTION_ORDER.COMMON,
+        handler(ctx, application, details = {}) {
+          // Disable-triggered relics also accept Fear, once its condition is present on the target.
+          if (application.condition === 'Fear')
+            invokeRelicHook(ctx, 'control', application, conditionHelpers(ctx, details));
+        }
+      },
+      {
         id: 'relic.condition',
         order: GW2_REACTION_ORDER.LATE_COMMON,
         handler(ctx, application, details = {}) {

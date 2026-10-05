@@ -50,18 +50,18 @@ export function reactToNecromancerCoreCondition(
 ): void {
   applyBitterChill(context, event);
   applyCorruptorsFervor(context, event);
+  if (event.condition === 'Blindness') applyChillingDarkness(context, event);
+  // Fear's disable rewards follow its accepted condition, without a second resolver dispatch.
+  if (event.condition === 'Fear') {
+    applyDreadWindow(context, event);
+    applyInsidiousDisruption(context, event);
+  }
 }
 
-/** Converts a qualifying Blind into Chilling Darkness at its established reaction position. */
-export function reactToNecromancerBlind(context: NecromancerResolverContext, event: NecromancerResolverEvent): void {
-  applyChillingDarkness(context, event);
-}
-
-/** Applies fear and disruption trait reactions without modeling target-control windows. */
+/** Hard controls share Insidious Disruption's reward with accepted Fear applications. */
 export function reactToNecromancerCoreControl(
   context: NecromancerResolverContext,
   event: NecromancerResolverEvent
 ): void {
-  applyDreadWindow(context, event);
   applyInsidiousDisruption(context, event);
 }

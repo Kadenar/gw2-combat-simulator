@@ -155,10 +155,9 @@ export function reactToCondition(context: NecromancerResolverContext, event: Nec
   }
 }
 
-/** Converts eligible Fear controls into Shivers of Dread's Chill event. */
-export function reactToControl(context: NecromancerResolverContext, event: NecromancerResolverEvent): void {
-  // controlKind and kind are both checked because fear appears under different fields depending on the event schema version.
-  if ((event.controlKind !== 'fear' && event.kind !== 'fear') || !hasTrait(context, TRAIT.SHIVERS_OF_DREAD)) {
+/** Accepted Fear applies Shivers of Dread's Chill through the ordinary condition hook. */
+export function applyShiversOfDread(context: NecromancerResolverContext, event: NecromancerResolverEvent): void {
+  if (event.condition !== 'Fear' || !hasTrait(context, TRAIT.SHIVERS_OF_DREAD)) {
     return;
   }
 

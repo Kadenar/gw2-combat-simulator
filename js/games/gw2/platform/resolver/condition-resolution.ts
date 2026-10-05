@@ -447,15 +447,6 @@ export function createGw2ConditionResolution({
         conditionStackIndex: index + 1,
         activeConditionStackCount
       });
-      // Blind and fear reactions observe accepted condition state, without separate trigger packets.
-      if (name === 'Blindness') reactions.dispatch('blind.resolved', ctx, application);
-      if (name === 'Fear')
-        reactions.dispatch(
-          'control.resolved',
-          ctx,
-          { ...application, controlKind: 'fear' },
-          { activeConditionStackCount }
-        );
       applications.push(application);
     }
 

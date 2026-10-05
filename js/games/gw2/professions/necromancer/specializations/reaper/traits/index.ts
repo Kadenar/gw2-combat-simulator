@@ -10,7 +10,7 @@ import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '#gw
 import {
   reactToReaperDamage,
   reactToCondition,
-  reactToControl
+  applyShiversOfDread
 } from '#gw2/professions/necromancer/specializations/reaper/traits/behavior.js';
 
 /** Owns Deathly Chill tuning and behavior at its existing execution boundaries. */
@@ -76,7 +76,7 @@ export const shiversOfDread = defineTrait({
       }
     ]
   },
-  hooks: { reactions: { 'control.resolved': reactToControl } }
+  hooks: { reactions: { 'condition.applied': applyShiversOfDread } }
 });
 
 /** Owns Augury of Death tuning and behavior at its existing execution boundaries. */

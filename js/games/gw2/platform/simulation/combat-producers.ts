@@ -60,6 +60,17 @@ export function createCombatExecution<T extends object>(
         weaponSwap: (event) => applyRuntimeSigils(sigils, 'swap', event),
         contributions: {
           ...equipment,
+          'condition.applied': [
+            ...(equipment['condition.applied'] ?? []),
+            {
+              id: 'sigil.actual-fear',
+              order: -300,
+              handler: (_context, event) => {
+                // Fear qualifies for disable procs through its accepted condition application.
+                if (event.condition === 'Fear') applyRuntimeSigils(sigils, 'control', event);
+              }
+            }
+          ],
           'damage.resolved': [
             ...(equipment['damage.resolved'] ?? []),
             {

@@ -51,7 +51,7 @@ test('GW2 resolver registry orders hooks stably and returns the last result', ()
   assert.deepEqual(calls, ['early', 'profession', 'tie-a', 'tie-b']);
   assert.equal(
     registry.dispatch(
-      'blind.resolved',
+      'condition.applied',
       {},
       { type: 'condition', condition: 'Blindness', stacks: 1, duration: 3, at: 0 }
     ),

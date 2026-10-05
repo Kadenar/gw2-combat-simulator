@@ -960,6 +960,52 @@ test('an accepted control opener establishes combat for sigils before the first 
   assert.equal(result.procSteps.filter((proc) => proc.skill === 'Sigil of Severance').length, 1);
 });
 
+// Fear is a condition; disable-triggered equipment still observes accepted stacks without a control dispatch.
+test('accepted Fear triggers disable equipment through condition applications', () => {
+  for (const relic of ['Claw', 'Agony', 'Akeem']) {
+    for (const offTarget of [false, true]) {
+      let controls = 0;
+      const profession = native({
+        initialize(runtime) {
+          for (const [condition, stacks] of [
+            ['Torment', 5],
+            ['Fear', 1]
+          ]) {
+            runtime.effects.emit({
+              kind: 'packet',
+              event: {
+                type: 'condition',
+                at: 0,
+                source: 'live',
+                sourceId: condition,
+                actorType: 'player',
+                condition,
+                stacks,
+                duration: 2,
+                offTarget
+              }
+            });
+          }
+        },
+        reactions: {
+          'control.resolved': () => {
+            controls += 1;
+          }
+        }
+      });
+      const result = run(
+        [cast(991001), wait(1000)],
+        { config: { ...config, relic, sigilSets: [{ names: ['Severance'] }] } },
+        profession
+      );
+      assert.equal(controls, 0);
+      assert.equal(result.procSteps.filter((proc) => proc.skill === 'Sigil of Severance').length, offTarget ? 0 : 1);
+      const label = relic === 'Claw' ? 'Relic of the Claw' : `Relic of ${relic}`;
+      assert.equal(result.procSteps.filter((proc) => proc.skill === label).length, offTarget ? 0 : 1);
+    }
+  }
+});
+
 test('precombat control notifications cannot start live producers before an explicit combat boundary', () => {
   // Both authored markers and inherited preview boundaries must anchor producers at combat entry.
   for (const inherited of [false, true]) {

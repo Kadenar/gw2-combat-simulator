@@ -62,7 +62,6 @@ import {
   startNecromancerAlliedOpportunities
 } from '#gw2/professions/necromancer/core/traits/life-steal.js';
 import {
-  reactToNecromancerBlind,
   reactToNecromancerCoreCondition,
   reactToNecromancerCoreControl,
   reactToNecromancerCoreDamage
@@ -285,11 +284,10 @@ export const necromancerCoreHooks: RuntimeHooks<NecromancerRuntimeState, Necroma
     },
     'condition.applied'(runtime, event) {
       reactToNecromancerCoreCondition(runtime, event);
+      applyFearOfDeath(runtime, event);
     },
     'control.resolved'(runtime, event) {
-      applyFearOfDeath(runtime, event);
       reactToNecromancerCoreControl(runtime, event);
-    },
-    'blind.resolved': reactToNecromancerBlind
+    }
   }
 };

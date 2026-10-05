@@ -245,7 +245,7 @@ export function applyBitterChill(context: NecromancerResolverContext, event: Nec
 
 /** Fear refreshes the existing observation window; Dread's selected modifier decides whether it contributes. */
 export function applyDreadWindow(context: NecromancerResolverContext, event: NecromancerResolverEvent): void {
-  if (event.controlKind === 'fear' || event.kind === 'fear') {
+  if (event.condition === 'Fear') {
     professionCoreState(context).dreadUntil = Math.max(professionCoreState(context).dreadUntil || 0, event.at + 3);
   }
 }

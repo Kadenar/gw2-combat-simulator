@@ -33,7 +33,7 @@ export function soulMarksLifeForce(
 /** Accepted non-summon fear grants life force under one cooldown; missed and travelling packets grant nothing. */
 export function applyFearOfDeath(runtime: NecromancerRuntime, event: NecromancerResolverEvent): void {
   if (
-    event.controlKind !== 'fear' ||
+    event.condition !== 'Fear' ||
     event.actorType === 'summon' ||
     !hasTrait(runtime, TRAIT.FEAR_OF_DEATH) ||
     !runtime.procs.claim(TRAIT.FEAR_OF_DEATH, 'necromancer.core.fearOfDeath', runtime.time)
