@@ -174,7 +174,7 @@ export const bountifulPower = defineTrait({
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: 'damage-additive',
       amount: 0.2,
-      when: (context) => elementalistTimedBuffStacks(context, 'bountiful power active', 1) > 0
+      when: (context) => elementalistTimedBuffStacks(context, 'bountiful-power-active', 1) > 0
     }
   ]
 });
@@ -340,7 +340,7 @@ export function applyArcaneLightning(
           source: 'Trait',
           sourceId: TRAIT.ARCANE_LIGHTNING,
           actorType: 'player',
-          kind: 'arcane lightning',
+          kind: 'arcane-lightning',
           stacks: Number(arcaneWindow.stacks),
           duration: arcaneWindow.duration,
           skillName: skill.name
@@ -446,7 +446,7 @@ export function applyElementalLockdown(
 
 /** Preserve the live arcane attribute pass at its original position in the Core modifier pipeline. */
 export function applyArcaneTraitAttributes(context: ElementalistModifierContext, modified: Gw2MutableStats): void {
-  if (hasTrait(context, TRAIT.ARCANE_LIGHTNING) && elementalistTimedBuffStacks(context, 'arcane lightning', 1) > 0) {
+  if (hasTrait(context, TRAIT.ARCANE_LIGHTNING) && elementalistTimedBuffStacks(context, 'arcane-lightning', 1) > 0) {
     const arcaneLightningProfile = requireBalanceProfileFromContext(context, TRAIT.ARCANE_LIGHTNING);
     modified.ferocity = (modified.ferocity || 0) + balanceProfileNumber(arcaneLightningProfile, 'attributeBonus');
   }

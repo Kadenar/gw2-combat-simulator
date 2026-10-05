@@ -1,3 +1,4 @@
+import { activeBuffStacks } from '#gw2/platform/combat/query/runtime-query.js';
 import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
 import { ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
@@ -76,7 +77,7 @@ export const kineticBattery = defineTrait({
       operation: 'damage-additive',
       amount: 0.15,
       when: (context) =>
-        isGw2PlayerModifierOwnedEvent(context.event) && activeBoonStacks(context, 'kinetic-battery', 1) > 0
+        isGw2PlayerModifierOwnedEvent(context.event) && activeBuffStacks(context, 'kinetic-battery', 1) > 0
     }
   ],
   hooks: { eventHandlers: { 'engineer.kinetic-battery': OBSERVABLE_EVENT_HANDLER } }

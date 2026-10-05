@@ -3,14 +3,14 @@ import type { MechanicCombatContext } from '#gw2/platform/profession-definition/
 
 import { isTimeInWindow } from '#kernel/core/clock.js';
 
-/** Returns active resolver-side applications of one boon kind at a timestamp. */
+/** Returns active resolver-side applications of one buff kind at a timestamp. */
 export function activeElementalistBuffs(context: MechanicCombatContext, kind: string, at: number) {
   return context.combat
-    .boonApplications(kind.toLowerCase())
+    .buffApplications(kind.toLowerCase())
     .filter((application) => isTimeInWindow(at, application.at, application.expiresAt));
 }
 
-/** Rewrites active applications of a boon kind while preserving inactive applications. */
+/** Rewrites active applications of a buff kind while preserving inactive applications. */
 export function refreshElementalistBuffs(
   context: MechanicCombatContext,
   kind: string,
@@ -18,7 +18,7 @@ export function refreshElementalistBuffs(
   expiresAt: (currentExpiresAt: number) => number
 ): void {
   const normalized = kind.toLowerCase();
-  context.combat.reviseBoonExpiry(
+  context.combat.reviseBuffExpiry(
     normalized,
     (application) => isTimeInWindow(at, application.at, application.expiresAt),
     expiresAt

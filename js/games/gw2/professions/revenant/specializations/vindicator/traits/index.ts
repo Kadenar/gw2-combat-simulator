@@ -2,7 +2,7 @@ import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
 import type { SkillId } from '#gw2/platform/skills/types.js';
 import { defineTrait, traitAttributeEffects } from '#gw2/platform/profession-definition/traits.js';
-import { revenantRuntimeSpecializationState } from '#gw2/professions/revenant/core/state-queries.js';
+import { buffActive } from '#gw2/platform/combat/query/runtime-query.js';
 import { REVENANT_SKILL_IDS as ID, REVENANT_TRAIT_IDS as TRAIT } from '#gw2/professions/revenant/data/ids.js';
 import { enduranceNotFull } from '#gw2/professions/revenant/specializations/vindicator/traits/behavior.js';
 
@@ -52,7 +52,7 @@ export const forerunnerOfDeath = defineTrait({
         // Prefer the event-baked flag when present; fall back to runtime state for non-dodge strikes.
         (context.event?.forerunnerOfDeathActive != null
           ? Boolean(context.event.forerunnerOfDeathActive)
-          : (revenantRuntimeSpecializationState(context, 'Vindicator').forerunnerOfDeathUntil || 0) > context.time)
+          : buffActive(context, 'forerunner-of-death'))
     }
   ]
 });

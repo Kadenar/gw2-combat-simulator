@@ -1,3 +1,4 @@
+import { recordBuffApplication } from '#gw2/platform/combat/boons.js';
 import { skillFlipReady, armSkillFlip } from '#gw2/platform/execution/skill-flips.js';
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
@@ -34,7 +35,21 @@ test('Devastator samples Focused at its task deadline and requires a committed c
       { primaryWeapon: 'Spear', boons: { quickness: true } },
       {
         initialize(runtime) {
-          runtime.profession.core.focusedUntil = focused ? 0 : 10;
+          if (!focused)
+            recordBuffApplication(runtime.buffs, {
+              type: 'buff',
+              kind: 'engineer-focused',
+              at: 0,
+              duration: 10,
+              stacks: 1,
+              resolvedAudience: {
+                includesSelf: true,
+                includesSummons: false,
+                alliedPlayerCount: 0,
+                companionIds: [],
+                recipientCount: 1
+              }
+            });
         },
         extend(native) {
           return {
@@ -50,7 +65,27 @@ test('Devastator samples Focused at its task deadline and requires a committed c
             tasks: {
               ...native.tasks,
               'test.focus-change'(runtime) {
-                runtime.profession.core.focusedUntil = focused ? runtime.time + 10 : 0;
+                if (focused)
+                  runtime.effects.emit({
+                    kind: 'packet',
+                    event: {
+                      type: 'buff',
+                      kind: 'engineer-focused',
+                      at: runtime.time,
+                      duration: 10,
+                      stacks: 1,
+                      source: 'Fixture',
+                      sourceId: 'fixture',
+                      actorType: 'player',
+                      audience: { recipients: 'self' }
+                    }
+                  });
+                else
+                  runtime.combat.reviseBuffExpiry(
+                    'engineer-focused',
+                    () => true,
+                    () => runtime.time
+                  );
               }
             }
           };
@@ -76,7 +111,7 @@ test('off-target spear casts grant no Focused window, charges, damage, or condit
     { primaryWeapon: 'Spear' }
   );
   assert.deepEqual(result.warnings, []);
-  assert.equal(observedRuntime(result).profession.core.focusedUntil, 0);
+  assert.equal(observedRuntime(result).buffs.has('engineer-focused'), false);
   assert.deepEqual(observedRuntime(result).profession.core.lightningRodChargeExpiries, []);
   assert.equal(
     result.resolvedEvents.some((event) => event.type === 'damage' || event.type === 'condition'),

@@ -1,10 +1,11 @@
+import { RELIC_IDS } from '#gw2/platform/equipment/relics/data.js';
 /** Fireworks relic rules. */
 import { isGw2PlayerActorEvent } from '#gw2/platform/combat/state/event-ownership.js';
 import { defineRelic, timedStrikeBuff, recordTimedBuffProc } from '#gw2/platform/equipment/relics/rules/shared.js';
 
 export const fireworks = defineRelic({
-  createState: () => ({ buffUntil: 0 }),
-  afterHit(ctx, state, event, skill) {
+  buffPolicies: [{ kind: 'relic-fireworks', maximumStacks: 1 }],
+  afterHit(ctx, _state, event, skill) {
     // Kit/bundle skills strike at bundle strength rather than weapon
     // strength, so they never qualify.
     const isWeaponSkill = skill?.type === 'Weapon' && !skill.kitId;
@@ -22,10 +23,12 @@ export const fireworks = defineRelic({
       return;
     }
 
-    recordTimedBuffProc(ctx, state, event, {
+    recordTimedBuffProc(ctx, event, {
+      relicId: RELIC_IDS.FIREWORKS,
+      kind: 'relic-fireworks',
       duration: 6,
       name: 'Relic of Fireworks'
     });
   },
-  strikeMultiplier: timedStrikeBuff(1.07)
+  strikeMultiplier: timedStrikeBuff('relic-fireworks', 1.07)
 });

@@ -122,7 +122,8 @@ test("Assassin's Presence pulses during idle combat and attacks cannot move the 
         config: { ...config, selectedTraitIds: [...config.selectedTraitIds, TRAIT.ROILING_MISTS] },
         time: 1,
         event: { actorType: 'player' },
-        boons: new Map()
+        boons: new Map(),
+        buffs: new Map()
       },
       0.05
     ),

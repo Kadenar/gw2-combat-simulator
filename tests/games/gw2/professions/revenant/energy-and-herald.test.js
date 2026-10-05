@@ -5,7 +5,7 @@ import assert from 'node:assert/strict';
 import { revenantAppAdapter } from '#gw2/professions/revenant/app/app-definition.js';
 import { readFile } from 'node:fs/promises';
 import { test } from 'node:test';
-import { boonApplicationsAt } from '#gw2/platform/combat/boons.js';
+import { timedBuffApplicationsAt } from '#gw2/platform/combat/boons.js';
 import { remainingDurationStackSeconds } from '#gw2/platform/combat/boons.js';
 import { displayedSkillTiles, paletteSkillView } from '#gw2/app/rotation/palette/model.js';
 import { createCalculateAttributes } from '#gw2/platform/builds/attributes.js';
@@ -721,7 +721,7 @@ test('Notoriety applies its Might conversion at runtime without negative UI attr
         boons: { might: 25 }
       },
       time: 0,
-      runtime: { boons: new Map(), profession: {} }
+      runtime: { boons: new Map(), buffs: new Map(), profession: {} }
     },
     {
       power: 1750,
@@ -940,7 +940,8 @@ test('Devastation boon procs respect combat intervals and skill categories', () 
       time: 1,
       runtime: {
         // These Might stacks belong to the player, so Notoriety converts their attributes.
-        boons: new Map([['might', [{ at: 0, expiresAt: 10, stacks: 2, resolvedAudience: { includesSelf: true } }]]])
+        boons: new Map([['might', [{ at: 0, expiresAt: 10, stacks: 2, resolvedAudience: { includesSelf: true } }]]]),
+        buffs: new Map([])
       }
     },
     { power: 1060, conditionDamage: 1060 }
@@ -1427,12 +1428,12 @@ test('Core Value extends allied boons by three seconds without duration scaling'
   assert.deepEqual(result.warnings, []);
   const extension = result.events.find((event) => event.type === 'boon_extension');
   assert.equal(extension.duration, 3);
-  const original = boonApplicationsAt(
+  const original = timedBuffApplicationsAt(
     result.events.filter((event) => event.type !== 'boon_extension'),
     'fury',
     extension.at
   );
-  const extended = boonApplicationsAt(result.events, 'fury', extension.at);
+  const extended = timedBuffApplicationsAt(result.events, 'fury', extension.at);
   // The extension carries every recipient of the extended party application, including all four allies.
   assert.ok(
     extended.some(
@@ -1459,12 +1460,12 @@ test('Dragon True Nature extends active allied boons by two seconds', () => {
   const extension = result.events.find((event) => event.type === 'proc' && event.skillId === SKILL.TRUE_NATURE_DRAGON);
 
   assert.deepEqual(result.warnings, []);
-  const original = boonApplicationsAt(
+  const original = timedBuffApplicationsAt(
     result.events.filter((event) => event.type !== 'boon_extension'),
     'fury',
     extension.at
   );
-  const extended = boonApplicationsAt(result.events, 'fury', extension.at);
+  const extended = timedBuffApplicationsAt(result.events, 'fury', extension.at);
   assert.equal(
     remainingDurationStackSeconds(extended, extension.at, { maximum: 30 }),
     Math.min(30, remainingDurationStackSeconds(original, extension.at, { maximum: 30 }) + 2)
@@ -1702,7 +1703,10 @@ test('Herald consume skills apply their full outgoing profiles', () => {
     time: 5,
     event: { actorType: 'player', skillName: 'Chilling Isolation' },
     runtime: {
-      boons: new Map([['burst-of-strength', [{ at: 1, expiresAt: 11, stacks: 1 }]]]),
+      boons: new Map([]),
+      buffs: new Map([
+        ['burst-of-strength', [{ resolvedAudience: { includesSelf: true }, at: 1, expiresAt: 11, stacks: 1 }]]
+      ]),
       profession: {}
     }
   };
@@ -1728,7 +1732,7 @@ test('Herald consume skills apply their full outgoing profiles', () => {
     },
     time: 5,
     event: { actorType: 'player' },
-    runtime: { boons: new Map(), profession: {} }
+    runtime: { boons: new Map(), buffs: new Map(), profession: {} }
   };
 
   assert.equal(revenantModifiers.modifyStrikeDamage(reinforcedPotencyContext, 1), 1.1);

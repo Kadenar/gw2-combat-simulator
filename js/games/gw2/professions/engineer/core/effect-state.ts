@@ -5,6 +5,7 @@ import { ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.
 /** Effect owners expose the same selected balance values as combat; presentation supplies no stacking rules. */
 export function engineerBuffPolicies(context: unknown): BuffStatePolicy[] {
   const policies: BuffStatePolicy[] = [
+    { kind: 'engineer-focused', maximumStacks: 1 },
     { kind: 'kinetic-battery', maximumStacks: 1 },
     { kind: 'thermal-vision', maximumStacks: 1 },
     { kind: 'grand-entrance', maximumStacks: 1 }

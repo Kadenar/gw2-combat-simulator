@@ -1,7 +1,7 @@
 import type { RateInterval } from '#gw2/platform/combat/resources/pool.js';
 import type { Gw2BuffAudience } from '#gw2/platform/combat/boons.js';
 import {
-  boonApplicationsAt,
+  timedBuffApplicationsAt,
   buffApplicationStacks,
   buffMatchesAudience,
   isDurationStackingBoon,
@@ -190,7 +190,7 @@ export function createGw2TimelineIndex({
     time = canonicalTime(time);
     // Reuse chronological extension replay only for histories that contain an extension.
     if (hasExtensions && isStandardBoon(kind)) {
-      const applications = boonApplicationsAt(events, kind.toLowerCase(), time, duration);
+      const applications = timedBuffApplicationsAt(events, kind.toLowerCase(), time, duration);
       return buffApplicationStacks(applications, kind, time, maximum, { audience, companionId });
     }
 

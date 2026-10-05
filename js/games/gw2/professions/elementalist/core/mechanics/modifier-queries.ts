@@ -1,3 +1,4 @@
+import { activeBuffStacks } from '#gw2/platform/combat/query/runtime-query.js';
 import { readProfessionCoreState } from '#gw2/platform/profession-definition/state.js';
 import type { ElementalistAttunement, ElementalistCoreState } from '#gw2/professions/elementalist/core/state.js';
 import type { ElementalistModifierContext } from '#gw2/professions/elementalist/types.js';
@@ -38,11 +39,5 @@ export function elementalistMightStacks(context: ElementalistModifierContext): n
  * buffs, specialization windows) that are live at the event's instant.
  */
 export function elementalistTimedBuffStacks(context: ElementalistModifierContext, kind: string, maximum = 25): number {
-  const applications = context.runtime?.boons?.get(kind) || [];
-  return Math.min(
-    maximum,
-    applications
-      .filter((application) => application.at <= context.time && application.expiresAt > context.time)
-      .reduce((sum, application) => sum + (application.stacks || 1), 0)
-  );
+  return activeBuffStacks(context, kind, maximum);
 }

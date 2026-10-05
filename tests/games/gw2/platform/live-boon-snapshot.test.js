@@ -5,7 +5,7 @@ import { recordBuffApplication } from '#gw2/platform/combat/boons.js';
 
 // Record only executed grants so each query observes its exact position in same-time event ordering.
 function fixture(boons = {}) {
-  const runtime = { config: { boons }, boons: new Map() };
+  const runtime = { config: { boons }, boons: new Map(), buffs: new Map() };
   return {
     combat: createMechanicCombatServices(runtime),
     grant(kind, at, duration, stacks, companionId) {

@@ -14,7 +14,6 @@ import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import { buildEngineerPackets } from '#gw2/professions/engineer/core/events.js';
 import { ENGINEER_SKILL_IDS as ID, ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
 import type { SimulationEventBase } from '#gw2/platform/events/events.js';
-import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
 import { buildEngineerBuff } from '#gw2/professions/engineer/core/mechanics/resolution-helpers.js';
 import { isInternalCooldownReady } from '#gw2/platform/combat/procs.js';
 import { professionStaticRulesApplied } from '#gw2/platform/builds/attribute-provenance.js';
@@ -82,12 +81,23 @@ export function applyThermalVision(context: EngineerResolverContext, event: Engi
     return;
   }
 
-  const state = professionCoreState(context);
   const thermalVisionProfile = requireBalanceProfileFromContext(context, TRAIT.THERMAL_VISION);
-  // Math.max extends the window when multiple Burning applications overlap.
+  // Independent accepted grants retain the longest window when Burning applications overlap.
   const thermalVisionBuff = requireEffect(thermalVisionProfile, 'buff', 'thermal-vision');
   if (thermalVisionBuff) {
-    state.thermalVisionUntil = Math.max(state.thermalVisionUntil || 0, event.at + thermalVisionBuff.duration);
+    context.effects.emit({
+      kind: 'packet',
+      cause: event,
+      settlement: 'reaction',
+      event: buildEngineerBuff(event, {
+        name: 'Thermal Vision',
+        kind: 'thermal-vision',
+        duration: thermalVisionBuff.duration,
+        stacks: 1,
+        sourceId: TRAIT.THERMAL_VISION,
+        actorType: 'effect'
+      })
+    });
   }
 }
 

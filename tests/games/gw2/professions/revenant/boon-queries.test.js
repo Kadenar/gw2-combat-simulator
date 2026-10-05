@@ -30,7 +30,7 @@ test('Revenant and Renegade use live self boons, duration stacking, and timeline
     condition: 'Bleeding',
     traits: new Set([TRAIT.ROILING_MISTS, TRAIT.VICIOUS_REPRISAL, TRAIT.BLOOD_FURY]),
     timeline: createGw2TimelineIndex({ events: [fury, resolution] }),
-    runtime: { boons: new Map() }
+    runtime: { boons: new Map(), buffs: new Map() }
   };
   const reprisal = revenantCoreModifierRules.find(({ id }) => id === 'revenant.vicious-reprisal');
   const bloodFury = renegadeModifierRules.find(({ id }) => id === 'revenant.blood-fury-bleeding-duration');
@@ -72,7 +72,7 @@ test('Notoriety converts configured and live self Might with a combined cap', ()
     time: 4,
     config: { boons: { might: 4 } },
     traits: new Set([TRAIT.NOTORIETY]),
-    runtime: { boons: new Map() }
+    runtime: { boons: new Map(), buffs: new Map() }
   };
   recordBuffApplication(context.runtime.boons, buff('might', { recipients: 'party' }, 3));
   recordBuffApplication(context.runtime.boons, buff('might', { recipients: 'party', affectsSelf: false }, 20));
@@ -113,7 +113,12 @@ test('Notoriety converts configured and live self Might with a combined cap', ()
 test('Herald custom buffs retain their local query and never count as standard boons', () => {
   const context = {
     time: 4,
-    runtime: { boons: new Map([['burst-of-strength', [{ at: 4, expiresAt: 6, stacks: 1 }]]]) }
+    runtime: {
+      boons: new Map([]),
+      buffs: new Map([
+        ['burst-of-strength', [{ resolvedAudience: { includesSelf: true }, at: 4, expiresAt: 6, stacks: 1 }]]
+      ])
+    }
   };
   assert.equal(revenantTimedBuff(context, 'burst-of-strength'), true);
   assert.equal(revenantTimedBuff({ ...context, time: 6 }, 'burst-of-strength'), false);

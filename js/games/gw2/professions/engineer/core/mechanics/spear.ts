@@ -80,7 +80,7 @@ export const engineerSpearSideEffectHandlers: RuntimeProfession<
   'engineer.roiling-skies'(runtime, context) {
     if (context.kind !== 'cast') throw new TypeError('Roiling Skies requires a cast trigger.');
     const { cast } = context;
-    const focused = runtime.profession.core.focusedUntil > runtime.time;
+    const focused = runtime.combat.activeBuffStacks('engineer-focused', runtime.time, 1) > 0;
     buildEngineerPackets(
       'control',
       {
@@ -116,7 +116,7 @@ export const engineerSpearTasks: RuntimeProfession<EngineerRuntimeState, Enginee
   },
   'engineer.devastation'(runtime, data) {
     // Focused is sampled at the authored task deadline, after any intervening target-state changes.
-    if (runtime.profession.core.focusedUntil <= runtime.time) return;
+    if (runtime.combat.activeBuffStacks('engineer-focused', runtime.time, 1) === 0) return;
     const { cast } = data as SkillTaskData<EngineerSkill>;
     const followup = runtime.helpers.skillsById.get(ID.FOCUSED_DEVASTATION)!;
     runtime.effects.emit({
@@ -143,7 +143,7 @@ export const engineerSpearTasks: RuntimeProfession<EngineerRuntimeState, Enginee
 };
 // Focused is the shared spear target window established by Conduit Surge.
 function focused(context: EngineerResolverContext, at: number): boolean {
-  return (professionCoreState(context).focusedUntil || 0) > at;
+  return context.combat.activeBuffStacks('engineer-focused', at, 1) > 0;
 }
 
 /** Each Lightning Rod pulse applies Vulnerability, with stronger strikes and stacks against Focused targets. */
@@ -193,16 +193,30 @@ export function handleConduitSurge(context: EngineerResolverContext, event: Engi
   const profile = requireBalanceProfileFromContext(context, PROFILE.conduitSurge);
   const idProfile = requireBalanceProfileFromContext(context, profile.id);
   const burning = requireEffect(idProfile, 'condition', 'Burning');
-  // Math.max preserves a longer existing Focused window; Conduit Surge must not shorten it
+  // Independent accepted target windows preserve a longer Focused grant without a duplicate deadline.
   if (
     !event.offTarget &&
     !context.combatStartPending &&
     (context.combatStartTime == null || event.at >= context.combatStartTime)
   )
-    professionCoreState(context).focusedUntil = Math.max(
-      professionCoreState(context).focusedUntil || 0,
-      event.at + balanceProfileNumber(idProfile, 'durationMultiplier')
-    );
+    context.effects.emit({
+      kind: 'packet',
+      settlement: 'reaction',
+      cause: event,
+      event: {
+        type: 'buff',
+        kind: 'engineer-focused',
+        at: event.at,
+        duration: balanceProfileNumber(idProfile, 'durationMultiplier'),
+        stacks: 1,
+        source: 'engineer',
+        sourceId: ID.CONDUIT_SURGE,
+        actorType: 'player',
+        name: 'Focused',
+        skillName: event.skillName,
+        audience: { recipients: 'self' }
+      }
+    });
   const strike = requireEffect(idProfile, 'strike', profile.name);
   if (strike)
     context.effects.emit({

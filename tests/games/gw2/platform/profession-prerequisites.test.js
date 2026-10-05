@@ -110,7 +110,8 @@ test('target-condition queries combine assumptions and chronological runtime sta
         }
       ]
     ]),
-    boons: new Map()
+    boons: new Map(),
+    buffs: new Map()
   };
 
   assert.equal(canonicalTargetConditionName('poisoned'), 'Poisoned');
@@ -183,7 +184,7 @@ test('same-time target-condition visibility follows runtime insertion order', ()
     profession: queryProfession,
     config: { target: { conditions: {} } }
   });
-  const runtime = { conditionState: new Map(), boons: new Map() };
+  const runtime = { conditionState: new Map(), boons: new Map(), buffs: new Map() };
 
   assert.equal(query.targetHasCondition('Weakness', 1, runtime), false);
   runtime.conditionState.set('Weakness', {
@@ -308,7 +309,7 @@ test('effective boon and Vulnerability queries use their canonical runtime state
     },
     events
   });
-  const runtime = { boons: new Map(), conditionState: new Map() };
+  const runtime = { boons: new Map(), buffs: new Map(), conditionState: new Map() };
   const event = {
     type: 'damage',
     at: 1,
@@ -446,7 +447,8 @@ test('player boon sharing can exclude non-mech summons', () => {
     boons: new Map([
       ['might', [{ at: 0, expiresAt: 10, stacks: 5, resolvedAudience: resolvedAudience() }]],
       ['fury', [{ at: 0, expiresAt: 10, stacks: 1, resolvedAudience: resolvedAudience() }]]
-    ])
+    ]),
+    buffs: new Map([])
   };
   const config = {
     stats: {
@@ -619,7 +621,7 @@ test('summon-targeted trait boons bypass disabled player boon sharing', () => {
     0.3
   );
 
-  const runtime = { boons: new Map() };
+  const runtime = { boons: new Map(), buffs: new Map() };
 
   assert.equal(query.statsAt(1, summonEvent, runtime).power, 1000);
   runtime.boons.set('might', [

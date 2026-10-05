@@ -1,3 +1,4 @@
+import { activeBuffStacks } from '#gw2/platform/combat/query/runtime-query.js';
 import type { MaximumAmmoContext } from '#gw2/platform/profession-definition/runtime-context.js';
 import { balanceProfileNumber } from '#gw2/platform/skills/balance-profiles.js';
 import { ENGINEER_SKILL_IDS as ID, ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
@@ -232,7 +233,8 @@ export const objectInMotion = defineTrait<EngineerSkill>({
       },
       factor: (context, _target, parameters) => {
         const count = ['stability', 'swiftness', 'superspeed'].filter(
-          (kind) => modifierBoonStacks(context, kind, 1) > 0
+          (kind) =>
+            (kind === 'superspeed' ? activeBuffStacks(context, kind, 1) : modifierBoonStacks(context, kind, 1)) > 0
         ).length;
         return parameters.damageFactorPerBoon ** count;
       },

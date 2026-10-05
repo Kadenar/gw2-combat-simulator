@@ -1,3 +1,4 @@
+import { activeBuffStacks } from '#gw2/platform/combat/query/runtime-query.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { advanceCyclicCounter } from '#gw2/platform/combat/resources/counters.js';
 import {
@@ -24,7 +25,6 @@ import {
 import { isInternalCooldownReady } from '#gw2/platform/combat/procs.js';
 import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
 import type { Gw2MutableStats } from '#gw2/platform/combat/types.js';
-import { activeBoonStacks } from '#gw2/professions/engineer/core/traits/query-helpers.js';
 
 /** Owns imperative Core Engineer Explosives trait effects without registering their reactions. */
 
@@ -392,7 +392,7 @@ export function applyExplosiveTemperAttributes(context: Gw2ModifierContext, modi
     const explosiveTemperProfile = requireBalanceProfileFromContext(context, TRAIT.EXPLOSIVE_TEMPER);
     modified.ferocity =
       (modified.ferocity || 0) +
-      activeBoonStacks(context, 'explosive-temper', balanceProfileNumber(explosiveTemperProfile, 'maximumStacks')) *
+      activeBuffStacks(context, 'explosive-temper', balanceProfileNumber(explosiveTemperProfile, 'maximumStacks')) *
         balanceProfileNumber(explosiveTemperProfile, 'attributePerStack');
   }
 }

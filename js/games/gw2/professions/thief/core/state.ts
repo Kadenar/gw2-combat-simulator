@@ -35,11 +35,9 @@ export interface ThiefCoreState {
   kneeling: boolean;
   endurance: ResourceClock;
   leadAttackExpirations: number[];
-  fluidStrikesUntil: number;
   spearChainStage: number;
   spearPreviousSkillId: SkillId | null;
   spearLastWasFinisher: boolean;
-  distractingThrowBuffUntil: number;
   /** Retain each axe's source so recall repeats that projectile's damage and conditions. */
   spinningAxes: { skillId: SkillId; expiresAt: number }[];
   /** Outgoing projectiles are recallable before landing, but do not occupy grounded slots yet. */
@@ -47,7 +45,6 @@ export interface ThiefCoreState {
   venomChargeBatches: ChargePool['grants'];
   venomAllyLastProcAt: Record<string, number>;
   activeThievesGuild: ThievesGuildState | null;
-  assassinsSignetActiveUntil: number;
   assassinsSignetPassiveDisabledUntil: number;
   availableFlips: SkillFlipWindows;
   autoattackChains: Record<string, SkillId>;
@@ -95,11 +92,9 @@ export function createThiefCoreState(config: ThiefConfig = {}): ThiefCoreState {
     kneeling: false,
     endurance: createResourceClock(100),
     leadAttackExpirations: [],
-    fluidStrikesUntil: 0,
     spearChainStage: 0,
     spearPreviousSkillId: null,
     spearLastWasFinisher: false,
-    distractingThrowBuffUntil: 0,
     // Starting axes are fresh autoattack axes: no outgoing damage or initiative cost, ten seconds to recall them.
     spinningAxes: Array.from(
       { length: boundedInteger(config.initialSpinningAxes, 0, 0, MAXIMUM_SPINNING_AXES) },
@@ -112,7 +107,6 @@ export function createThiefCoreState(config: ThiefConfig = {}): ThiefCoreState {
     venomChargeBatches: {},
     venomAllyLastProcAt: {},
     activeThievesGuild: null,
-    assassinsSignetActiveUntil: 0,
     assassinsSignetPassiveDisabledUntil: 0,
     availableFlips: {},
     autoattackChains: {},
@@ -137,16 +131,13 @@ const THIEF_CORE_PUBLIC_END_STATE_KEYS: readonly (keyof ThiefCoreState)[] = Obje
   'endurance',
 
   'leadAttackExpirations',
-  'fluidStrikesUntil',
   'spearChainStage',
   'spearPreviousSkillId',
   'spearLastWasFinisher',
-  'distractingThrowBuffUntil',
   'spinningAxes',
   'outboundAxes',
   'venomChargeBatches',
   'activeThievesGuild',
-  'assassinsSignetActiveUntil',
   'assassinsSignetPassiveDisabledUntil',
   'availableFlips',
   'autoattackChains'

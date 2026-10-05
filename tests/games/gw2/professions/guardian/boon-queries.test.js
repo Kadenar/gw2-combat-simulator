@@ -33,7 +33,7 @@ test('Guardian boons prefer live self applications over later same-time timeline
   for (const kind of ['aegis', 'might', 'quickness']) {
     const self = buff(kind, { recipients: 'party' });
     const timeline = createGw2TimelineIndex({ events: [self] });
-    const context = { time: 4, timeline, runtime: { boons: new Map() } };
+    const context = { time: 4, timeline, runtime: { boons: new Map(), buffs: new Map() } };
     assert.equal(guardianBoonActive({ time: 4, timeline }, kind), true);
     assert.equal(guardianBoonActive(context, kind), false);
     for (const audience of [
@@ -55,7 +55,11 @@ test('Guardian boons prefer live self applications over later same-time timeline
 
 test('Firebrand Imbued Haste follows the live duration pool and its expiry', () => {
   const event = buff('quickness');
-  const context = { time: 4, timeline: createGw2TimelineIndex({ events: [event] }), runtime: { boons: new Map() } };
+  const context = {
+    time: 4,
+    timeline: createGw2TimelineIndex({ events: [event] }),
+    runtime: { boons: new Map(), buffs: new Map() }
+  };
   const rule = firebrandModule.modifiers.modifierRules.find(
     ({ id }) => id === 'guardian.firebrand.imbued-haste-attributes'
   );

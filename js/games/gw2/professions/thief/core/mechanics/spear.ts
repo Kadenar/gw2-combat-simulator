@@ -1,3 +1,4 @@
+import { replaceThiefBuff } from '#gw2/professions/thief/core/mechanics/buffs.js';
 import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
 import { buildResolverCondition } from '#gw2/platform/resolver/packets.js';
 
@@ -45,9 +46,14 @@ export function updateSpearChain(runtime: ThiefRuntime, skill: ThiefSkill): void
 
 /** Open the finisher reward after the granting throw has resolved at the commitment instant. */
 export function grantDistractingThrowWindow(runtime: ThiefRuntime): void {
-  runtime.profession.core.distractingThrowBuffUntil =
-    runtime.time +
-    balanceProfileNumber(requireBalanceProfileFromContext(runtime, PROFILE.distractingThrow), 'durationMultiplier');
+  replaceThiefBuff(
+    runtime,
+    'distracting-throw',
+    balanceProfileNumber(requireBalanceProfileFromContext(runtime, PROFILE.distractingThrow), 'durationMultiplier'),
+    ID.DISTRACTING_THROW,
+    'Distracting Throw',
+    'thief'
+  );
 }
 
 /**

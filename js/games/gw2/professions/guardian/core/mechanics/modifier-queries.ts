@@ -1,3 +1,4 @@
+import { buffActive } from '#gw2/platform/combat/query/runtime-query.js';
 import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
 import { boonActive } from '#gw2/platform/combat/query/runtime-query.js';
 import type { SimulationEvent } from '#gw2/platform/events/events.js';
@@ -30,10 +31,18 @@ export function guardianBoonActive(context: Gw2ModifierContext, boon: string): b
 }
 
 export function guardianTimedBuffActive(context: Gw2ModifierContext, kind: string): boolean {
-  return Boolean(context.timeline?.timedActive(kind, context.time));
+  return buffActive(context, kind);
 }
 
 export function latestGuardianTimedBuff(context: Gw2ModifierContext, kind: string): SimulationEvent | null {
+  // A live latest-application query includes only accepted grants, including shorter replacements.
+  if (context.runtime)
+    return (
+      context.runtime.buffs
+        ?.get(kind)
+        ?.filter((application) => application.at <= context.time)
+        .at(-1)?.event ?? null
+    );
   let latest: SimulationEvent | null = null;
   for (const event of context.events || []) {
     if (event.at > context.time) break;

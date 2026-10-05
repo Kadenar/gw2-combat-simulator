@@ -3,11 +3,16 @@ import { relicIdForName } from '#gw2/platform/equipment/relics/catalog.js';
 /** Brawler relic rules. */
 import { isInternalCooldownReady } from '#gw2/platform/combat/procs.js';
 import { isGw2PlayerActorEvent } from '#gw2/platform/combat/state/event-ownership.js';
-import { gw2EffectExpiresAt } from '#gw2/platform/effects/timing.js';
-import { defineRelic, timedStrikeBuff, compareTimelineEvents } from '#gw2/platform/equipment/relics/rules/shared.js';
+import {
+  defineRelic,
+  recordTimedBuffProc,
+  timedStrikeBuff,
+  compareTimelineEvents
+} from '#gw2/platform/equipment/relics/rules/shared.js';
 
 export const brawler = defineRelic({
-  createState: () => ({ readyAt: 0, buffUntil: 0 }),
+  buffPolicies: [{ kind: 'relic-brawler', maximumStacks: 1 }],
+  createState: () => ({ readyAt: 0 }),
   boon(ctx, state, event) {
     // Preparation can leave a buff running, but only the equipped relic can trigger again after the marker.
     const marker = state.combatMarker;
@@ -36,20 +41,12 @@ export const brawler = defineRelic({
     }
 
     state.readyAt = event.at + 8;
-    state.buffUntil = gw2EffectExpiresAt(event.at, 4);
-    ctx.effects.emit({
-      kind: 'announcement',
-      announcement: {
-        type: 'relic',
-        name: 'Relic of the Brawler',
-        at: event.at,
-        sourceSkill: event.skillName,
-        detail: 'activated',
-        icon: '',
-        cooldownReduction: null,
-        expiresAt: state.buffUntil
-      }
+    recordTimedBuffProc(ctx, event, {
+      relicId: RELIC_IDS.BRAWLER,
+      kind: 'relic-brawler',
+      duration: 4,
+      name: 'Relic of the Brawler'
     });
   },
-  strikeMultiplier: timedStrikeBuff(1.1)
+  strikeMultiplier: timedStrikeBuff('relic-brawler', 1.1)
 });

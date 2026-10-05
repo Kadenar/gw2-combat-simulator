@@ -1,3 +1,4 @@
+import { recordBuffApplication } from '#gw2/platform/combat/boons.js';
 import { mesmerCatalog } from '#gw2/professions/mesmer/catalog.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
@@ -36,6 +37,14 @@ function modifierContext({
     conditionAdd: 0.05
   }
 } = {}) {
+  // Formula fixtures seed accepted windows rather than asking a live query to inspect scheduled events.
+  const buffs = new Map(runtime.buffs ?? []);
+  for (const event of [
+    ...active.map((kind) => ({ type: 'buff', kind, at: 0, duration: 10, stacks: 1 })),
+    ...Object.entries(stacks).map(([kind, stacks]) => ({ type: 'buff', kind, at: 0, duration: 10, stacks })),
+    ...events.filter((event) => event.type === 'buff')
+  ])
+    recordBuffApplication(buffs, { ...event, resolvedAudience: { includesSelf: true } });
   const activeKinds = new Set(active);
   const mightStacksAt = () => Number(config.boons?.might || 0);
   const furyActiveAt = () => Boolean(config.boons?.fury);
@@ -56,7 +65,8 @@ function modifierContext({
       profession: {},
       boons: new Map(),
       conditionState: new Map(),
-      ...runtime
+      ...runtime,
+      buffs
     },
     query: {
       mightStacksAt,
@@ -107,6 +117,7 @@ test('Guardian additive and multiplicative modifiers use separate buckets', () =
         specialization: { kind: 'Luminary', state: {} }
       },
       boons: new Map(),
+      buffs: new Map(),
       conditionState: new Map()
     },
     active: ['guardian-empowered-armaments', 'guardian-piercing-stance'],
@@ -163,13 +174,19 @@ test('Necromancer active runtimes isolate their Discretize modifier buckets', ()
       specialization: { kind, state }
     },
     boons: new Map(),
+    buffs: new Map(),
     conditionState: new Map()
   });
 
   const core = modifierContext({
     ...shared,
     traits: [NECROMANCER.SOUL_BARBS, NECROMANCER.DREAD, NECROMANCER.SPITEFUL_TALISMAN, NECROMANCER.CLOSE_TO_DEATH],
-    runtime: runtime('Core', { dreadUntil: 10 }, {})
+    runtime: {
+      ...runtime('Core', {}, {}),
+      buffs: new Map([
+        ['necromancer-dread', [{ at: 0, expiresAt: 10, stacks: 1, resolvedAudience: { includesSelf: true } }]]
+      ])
+    }
   });
 
   assert.ok(Math.abs(necromancerRules('Core').modifyStrikeDamage(core, 1) - 1.38 * 1.05 * 1.2) < 1e-12);
@@ -382,7 +399,13 @@ test('Mesmer instrument checks skip other specializations and observe new histor
       }
     );
 
-    return { events, reads: () => reads };
+    return {
+      events,
+      reads: () => reads,
+      resetReads: () => {
+        reads = 0;
+      }
+    };
   };
 
   const irrelevant = countedEvents();
@@ -391,6 +414,7 @@ test('Mesmer instrument checks skip other specializations and observe new histor
     events: irrelevant.events
   });
 
+  irrelevant.resetReads();
   mesmerRules('Virtuoso').modifyAttributes({ catalog: mesmerCatalog, ...virtuoso }, { power: 100 });
   mesmerRules('Virtuoso').modifyStrikeDamage(virtuoso, 1);
   assert.equal(irrelevant.reads(), 0);
@@ -401,6 +425,7 @@ test('Mesmer instrument checks skip other specializations and observe new histor
     config: { specialization: 'Troubadour' },
     events: relevant.events
   });
+  relevant.resetReads();
   const attributes = mesmerRules('Troubadour').modifyAttributes(
     { catalog: mesmerCatalog, ...troubadour },
     {

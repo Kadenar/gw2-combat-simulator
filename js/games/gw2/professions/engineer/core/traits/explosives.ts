@@ -1,14 +1,11 @@
+import { activeBuffStacks } from '#gw2/platform/combat/query/runtime-query.js';
 import { defineTrait, traitAttributeEffects } from '#gw2/platform/profession-definition/traits.js';
 import { ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
 import { resetExplosiveEntrance } from '#gw2/professions/engineer/core/traits/explosions.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
 import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
-import {
-  activeBoonStacks,
-  playerHealthFraction,
-  targetHealthFraction
-} from '#gw2/professions/engineer/core/traits/query-helpers.js';
+import { playerHealthFraction, targetHealthFraction } from '#gw2/professions/engineer/core/traits/query-helpers.js';
 import { vulnerabilityStacks } from '#gw2/platform/combat/query/runtime-query.js';
 
 /** Owns Grenadier tuning and behavior at its established runtime and build boundaries. */
@@ -127,7 +124,7 @@ export const grandEntrance = defineTrait({
       amount: (context) =>
         balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.GRAND_ENTRANCE), 'criticalChance'),
       when: (context) =>
-        isGw2PlayerModifierOwnedEvent(context.event) && activeBoonStacks(context, 'grand-entrance', 1) > 0
+        isGw2PlayerModifierOwnedEvent(context.event) && activeBuffStacks(context, 'grand-entrance', 1) > 0
     }
   ]
 });

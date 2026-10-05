@@ -162,7 +162,7 @@ const traitCases = [
     traits: [TRAIT.ARCANE_LIGHTNING],
     rotation: ['Arcane Wave'],
     verify: (result) => {
-      assert.ok(result.events.some((event) => event.type === 'buff' && event.kind === 'arcane lightning'));
+      assert.ok(result.events.some((event) => event.type === 'buff' && event.kind === 'arcane-lightning'));
       assert.ok(result.events.some((event) => event.type === 'condition' && event.condition === 'Immobilized'));
     }
   },

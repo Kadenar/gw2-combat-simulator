@@ -15,21 +15,12 @@ function initialized(specialization) {
 test('Guardian composition installs each effect owner once and excludes inactive elite policies and observations', () => {
   const eliteKinds = {
     Firebrand: ['toughness', 'ashes-of-the-just'],
-    Willbender: [
-      'justice',
-      'resolve',
-      'courage',
-      'willbender-justice',
-      'willbender-resolve',
-      'willbender-courage',
-      'lethal-tempo'
-    ],
+    Willbender: ['willbender-justice', 'willbender-resolve', 'willbender-courage', 'lethal-tempo'],
     Luminary: [
       'guardian-daring-advance',
       'guardian-piercing-stance',
       'radiant-forge',
       'light-aura',
-      'radiant-armaments',
       'guardian-radiant-armaments',
       'guardian-radiant-courage-sword',
       'guardian-empowered-armaments'

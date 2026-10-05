@@ -108,7 +108,7 @@ test("Infiltrator's Signet pulses discrete initiative only while ready and resta
       (event) => event.type === 'buff' && event.kind === 'relic-peitha' && event.triggeredBy === "Infiltrator's Signet"
     )
   );
-  assert.ok(step.planningState.profession.fluidStrikesUntil > 1);
+  assert.ok(observedRuntime(step).buffs.get('fluid-strikes').at(-1).expiresAt > 1);
   assert.ok(
     step.resolvedEvents.some(
       (event) => event.type === 'condition' && event.skillName === 'Relic of Peitha' && event.condition === 'Torment'

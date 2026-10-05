@@ -99,7 +99,8 @@ test('shared buff handling records allied recipient scope before reactions run',
       allies: { count: 4, strikesPerSecond: 1 },
       sharePlayerBoonsWithSummons: true
     },
-    boons: new Map()
+    boons: new Map(),
+    buffs: new Map()
   };
   const application = {
     type: 'buff',

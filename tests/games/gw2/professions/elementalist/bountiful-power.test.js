@@ -41,7 +41,7 @@ for (const { threshold, progress, grants } of [
     for (const [index, stacks] of [1, 2, 2, 1].entries()) {
       triggerBountifulPower(context, index, stacks, ID.AIR_ATTUNEMENT);
       assert.equal(core.bountifulPowerProgress, progress[index]);
-      for (const kind of ['quickness', 'bountiful power active']) {
+      for (const kind of ['quickness', 'bountiful-power-active']) {
         assert.equal(events.filter((event) => event.kind === kind).length, grants[index]);
       }
     }

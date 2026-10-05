@@ -181,7 +181,7 @@ test('Thief activation declarations are the sole owners of their state transitio
     {
       id: ID.ASSASSINS_SIGNET,
       config: { selectedSkillIds: [13046] },
-      active: (runtime) => runtime.profession.core.assassinsSignetActiveUntil > 0
+      active: (runtime) => runtime.combat.activeBuffStacks('assassins-signet', runtime.time, 1) > 0
     },
     { id: ID.STEAL, active: (runtime) => runtime.profession.core.storedStolenSkillCount > 0 },
     {
@@ -390,7 +390,7 @@ test('Distracting Throw does not apply its new damage window to its granting str
           'damage.resolved'(runtime, event, details) {
             native.reactions['damage.resolved']?.(runtime, event, details);
             if ([ID.DISTRACTING_THROW, ID.BARBED_SPEAR].includes(event.skillId))
-              windows.push(runtime.profession.core.distractingThrowBuffUntil > runtime.time);
+              windows.push(runtime.combat.activeBuffStacks('distracting-throw', runtime.time, 1) > 0);
           }
         }
       })

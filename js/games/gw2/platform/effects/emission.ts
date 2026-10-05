@@ -26,7 +26,7 @@ export interface EffectDelivery {
 export interface PacketEmission extends EffectDelivery {
   readonly kind: 'packet';
   readonly event: SimulationEventBase;
-  /** A condition inside the current reaction transaction must settle before the caller's next state query. */
+  /** An application inside the current reaction transaction must settle before the caller's next state query. */
   readonly settlement?: 'reaction';
 }
 

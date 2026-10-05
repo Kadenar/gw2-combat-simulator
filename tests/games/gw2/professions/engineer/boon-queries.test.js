@@ -28,7 +28,11 @@ test('Engineer boon stacks preserve normalization, permanent stacks, caps, and l
     { at: 5, expiresAt: 10, stacks: 2, resolvedAudience: { includesSelf: false, includesSummons: true } },
     { at: 6, expiresAt: 10, stacks: 10, resolvedAudience: { includesSelf: true } }
   ];
-  const context = { config: { boons: { might: 4, stability: true } }, boons: new Map([['might', applications]]) };
+  const context = {
+    config: { boons: { might: 4, stability: true } },
+    boons: new Map([['might', applications]]),
+    buffs: new Map([])
+  };
   context.combat = createMechanicCombatServices(context);
   assert.equal(activeBoonStacks(context, 'Might', 25, 5), 7);
   assert.equal(activeBoonStacks(context, 'might', 6, 5), 6);
@@ -39,7 +43,12 @@ test('Engineer boon stacks preserve normalization, permanent stacks, caps, and l
   applications.push({ at: 5, expiresAt: 10, stacks: 1, resolvedAudience: { includesSelf: true } });
   assert.equal(activeBoonStacks(context, 'might', 25, 5), 8);
   assert.equal(
-    activeBoonStacks({ combat: createMechanicCombatServices({ config: {}, boons: new Map() }) }, 'might', 25, 5),
+    activeBoonStacks(
+      { combat: createMechanicCombatServices({ config: {}, boons: new Map(), buffs: new Map() }) },
+      'might',
+      25,
+      5
+    ),
     0
   );
 });

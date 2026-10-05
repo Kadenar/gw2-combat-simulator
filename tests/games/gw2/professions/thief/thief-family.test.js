@@ -95,7 +95,7 @@ const thiefSkillOwners = new Map(
 );
 
 const specializationStateKeys = Object.freeze({
-  Daredevil: ['selectedDodge', 'boundingDamageUntil', 'lotusConditionDamageUntil', 'weakeningStrikeReady'],
+  Daredevil: ['selectedDodge', 'weakeningStrikeReady'],
   Deadeye: ['markedTargetId', 'malice', 'maleficentSevenTriggered'],
   Specter: ['shadowClock', 'shadowShroudActive'],
   Antiquary: ['artifactSlots', 'artifactUsesRemaining', 'mistburn', 'holoUtilityCooldownReductionExpirations']

@@ -9,7 +9,12 @@ import { THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
 
 /** Core owns shared venom and trait effects; selected elites register their own policies. */
 export function thiefBuffPolicies(context: unknown): BuffStatePolicy[] {
-  const policies: BuffStatePolicy[] = [{ kind: 'spider-venom' }, { kind: 'skale-venom' }, { kind: 'devourer-venom' }];
+  const policies: BuffStatePolicy[] = [
+    ...['fluid-strikes', 'distracting-throw', 'assassins-signet'].map((kind) => ({ kind, maximumStacks: 1 })),
+    { kind: 'spider-venom' },
+    { kind: 'skale-venom' },
+    { kind: 'devourer-venom' }
+  ];
   for (const [kind, id] of [['lead-attacks', TRAIT.LEAD_ATTACKS]] as const) {
     const profile = balanceProfileFromContext(context, id);
     if (profile) policies.push({ kind, maximumStacks: balanceProfileNumber(profile, 'maximumStacks') });

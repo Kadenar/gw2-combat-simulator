@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { boonApplicationsAt } from '#gw2/platform/combat/boons.js';
+import { timedBuffApplicationsAt } from '#gw2/platform/combat/boons.js';
 import { warriorProfession } from '#gw2/professions/warrior/profession.js';
 import { WARRIOR_SKILL_IDS as ID, WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/professions/warrior/data/ids.js';
 import { observeGw2Runtime, observedRuntime } from '#tests/helpers/observed-runtime.js';
@@ -42,7 +42,7 @@ test('Tactical Reload rounds an off-grid application and closes exactly at its d
   ]) {
     const result = run('Bladesworn', [wait(1), ID.TACTICAL_RELOAD, wait(delay), ID.DRAGON_TRIGGER, wait(240), combat]);
     const application = result.events.find((event) => event.kind === 'tactical-reload');
-    const [buff] = boonApplicationsAt(result.events, 'tactical-reload', application.at);
+    const [buff] = timedBuffApplicationsAt(result.events, 'tactical-reload', application.at);
     assert.equal(Math.round((buff.expiresAt - buff.at) * 1000), 10039);
     assert.equal(state(result).dragonCharges.value, charges);
     if (charges === 2) assert.equal(state(result).tacticalReloadUntil, 0);
@@ -54,7 +54,7 @@ test('Positive Flow state and displayed expiry agree on off-grid applications', 
   for (const source of ['trait', 'stabilizer']) {
     const skillId = source === 'trait' ? ID.UNSHEATHE_GUNSABER : ID.FLOW_STABILIZER;
     const result = run('Bladesworn', [combat, wait(1), skillId], [TRAIT.RIVERS_FLOW]);
-    const [buff] = boonApplicationsAt(result.events, 'positive-flow', 0.001);
+    const [buff] = timedBuffApplicationsAt(result.events, 'positive-flow', 0.001);
     const until =
       source === 'trait' ? state(result).traitPositiveFlowUntil : state(result).flowStabilizerWindows[0].expiresAt;
     assert.equal(until, source === 'trait' ? 5.04 : 8.04);
@@ -82,7 +82,8 @@ test('trait and combo fire auras detonate once before their exclusive rounded ex
               : { ...event, type: 'aura', aura: 'Fire Aura', duration: 5 }
         });
       });
-      if (source === 'trait') assert.equal(boonApplicationsAt(result.events, 'fire-aura', 0.001)[0].expiresAt, 5.04);
+      if (source === 'trait')
+        assert.equal(timedBuffApplicationsAt(result.events, 'fire-aura', 0.001)[0].expiresAt, 5.04);
       assert.equal(result.procSteps.filter((proc) => proc.skill === 'King of Fires').length, at < 5040 ? 1 : 0);
       if (at < 5040) assert.equal(state(result).fireAuraUntil, 0);
       else assert.ok(state(result).fireAuraUntil <= observedRuntime(result).time);

@@ -1,8 +1,7 @@
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
-import { targetHealthBelow } from '#gw2/platform/combat/query/runtime-query.js';
+import { targetHealthBelow, buffActive } from '#gw2/platform/combat/query/runtime-query.js';
 import { requireBalanceProfileFromContext, requireEffect } from '#gw2/platform/skills/balance-profiles.js';
 import { defineTrait, traitAttributeEffects } from '#gw2/platform/profession-definition/traits.js';
-import { necromancerRuntimeCoreState } from '#gw2/professions/necromancer/core/mechanics/modifier-queries.js';
 import { NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
 
 /** Owns Reaper's Might tuning and behavior at its existing execution boundaries. */
@@ -203,7 +202,7 @@ export const dread = defineTrait({
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: 'damage-additive',
       amount: 0.2,
-      when: (context) => (necromancerRuntimeCoreState(context).dreadUntil || 0) > context.time
+      when: (context) => buffActive(context, 'necromancer-dread')
     }
   ]
 });

@@ -78,6 +78,7 @@ export function createGw2ResolverRuntimeState({
     procKeys: new Set(),
     procs: createProcRegistry(() => runtime),
     boons: new Map(),
+    buffs: new Map(),
     totals: {
       strike: 0,
       condition: 0
@@ -215,6 +216,7 @@ export interface Gw2ResolverRuntime {
   procSteps: Gw2ProcStep[];
   procKeys: Set<string>;
   boons: Map<string, Gw2TimedBuffApplication[]>;
+  buffs: Map<string, Gw2TimedBuffApplication[]>;
   totals: { strike: number; condition: number };
   firstHitTime: number | null;
   lastHitTime: number | null;

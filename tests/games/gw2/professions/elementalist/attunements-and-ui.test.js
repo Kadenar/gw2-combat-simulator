@@ -1119,7 +1119,7 @@ test('Fresh Air grants ferocity when entering Air, not when resetting it', () =>
     rotation: [{ type: 'combat-start' }, 'Air Attunement', 6000],
     startAttunement: 'Fire'
   });
-  const freshAir = result.events.filter((event) => event.type === 'buff' && event.kind === 'fresh air');
+  const freshAir = result.events.filter((event) => event.type === 'buff' && event.kind === 'fresh-air');
 
   assert.equal(freshAir.length, 1);
   assert.equal(freshAir[0].duration, 5);

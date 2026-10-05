@@ -1,3 +1,4 @@
+import { buffApplicationStacks } from '#gw2/platform/combat/boons.js';
 import { RELIC_IDS } from '#gw2/platform/equipment/relics/data.js';
 import { relicIdForName } from '#gw2/platform/equipment/relics/catalog.js';
 /** Helpers shared by more than one relic rule module. */
@@ -9,6 +10,8 @@ import type { SimulationEvent } from '#gw2/platform/events/events.js';
 import type { Gw2RelicState, Gw2RelicContext, Gw2RelicRule } from '#gw2/platform/equipment/relics/types.js';
 
 interface TimedBuffProcOptions {
+  readonly relicId: number;
+  readonly kind: string;
   readonly duration: number;
   readonly name: string;
   readonly detail?: string | null;
@@ -35,42 +38,69 @@ export function defineRelic(rules: Gw2RelicRule): Readonly<Gw2RelicRule> {
   return Object.freeze(rules);
 }
 
+/** Accepted independent windows preserve the longest expiry without another mutable lifetime owner. */
 export function recordTimedBuffProc(
   ctx: Gw2RelicContext,
-  state: Gw2RelicState,
   event: SimulationEvent,
-  { duration, name, detail = null }: TimedBuffProcOptions
+  { relicId, kind, duration, name, detail = null }: TimedBuffProcOptions
 ): void {
-  const wasActive = (state.buffUntil || 0) > event.at;
-  state.buffUntil = Math.max(state.buffUntil || 0, gw2EffectExpiresAt(event.at, duration));
-  // Preserve the authoritative effect deadline so the timeline can distinguish
-  // a true expiry from a refresh that keeps the same relic window active.
-  ctx.effects.emit({
+  const wasActive = relicBuffActive(ctx, kind, event.at);
+  const expiresAt = Math.max(
+    gw2EffectExpiresAt(event.at, duration),
+    ...(ctx.buffs?.get(kind) ?? [])
+      .filter((application) => application.at <= event.at && application.resolvedAudience.includesSelf)
+      .map((application) => application.expiresAt)
+  );
+  const proc = ctx.effects.emit({
     kind: 'announcement',
+    cause: event,
     announcement: {
       type: 'relic',
-      name: name,
+      name,
       at: event.at,
       sourceSkill: event.skillName,
       detail: detail ?? (wasActive ? 'refreshed' : 'activated'),
       icon: '',
       cooldownReduction: null,
-      expiresAt: state.buffUntil
+      expiresAt
+    }
+  });
+  ctx.effects.emit({
+    kind: 'packet',
+    cause: proc,
+    settlement: 'reaction',
+    event: {
+      type: 'buff',
+      kind,
+      at: event.at,
+      duration,
+      stacks: 1,
+      source: 'Relic',
+      sourceId: `relic.${relicId}`,
+      actorType: 'effect',
+      ownerActorType: 'player',
+      name,
+      skillName: name,
+      triggeredBy: event.skillName,
+      activationId: event.activationId,
+      audience: { recipients: 'self' }
     }
   });
 }
 
-/**
- * Builds a strikeMultiplier hook returning `multiplier` while the relic's timed
- * buff window is open and 1 otherwise. An optional predicate further gates the
- * bonus (e.g. player-only strikes).
- */
+/** Relic modifiers query only accepted self applications, including historical intervals. */
+export function relicBuffActive(ctx: Pick<Gw2RelicContext, 'buffs'>, kind: string, at: number): boolean {
+  return buffApplicationStacks(ctx.buffs?.get(kind) ?? [], kind, at, 1) > 0;
+}
+
+/** Actor eligibility is independent of the accepted non-boon lifetime. */
 export function timedStrikeBuff(
+  kind: string,
   multiplier: number,
   predicate?: (event: SimulationEvent) => boolean
 ): NonNullable<Gw2RelicRule['strikeMultiplier']> {
-  return (_ctx, state, event) =>
-    (state.buffUntil || 0) > event.at && (predicate ? predicate(event) : true) ? multiplier : 1;
+  return (ctx, _state, event) =>
+    relicBuffActive(ctx, kind, event.at) && (predicate ? predicate(event) : true) ? multiplier : 1;
 }
 
 /** Activates buffs from live completed slot skills, retaining precombat elapsed time and each relic's own cooldown. */
@@ -78,22 +108,10 @@ export function skillUseStrikeRelic(skillType: 'Heal' | 'Elite'): Readonly<Gw2Re
   const director = skillType === 'Heal';
   const relicId = director ? RELIC_IDS.DIRECTOR : RELIC_IDS.MOUNT_BALRIOR;
   const name = director ? 'Relic of the Director' : 'Relic of Mount Balrior';
-  function activate(ctx: Gw2RelicContext, state: Gw2RelicState, event: SimulationEvent) {
+  const kind = director ? 'relic-director' : 'relic-mount-balrior';
+  function activate(ctx: Gw2RelicContext, _state: Gw2RelicState, event: SimulationEvent) {
     const at = event.at;
-    (state.activationTimes as number[]).push(at);
-    ctx.effects.emit({
-      kind: 'announcement',
-      announcement: {
-        type: 'relic',
-        name: name,
-        at: at,
-        sourceSkill: event.skillName,
-        detail: 'activated',
-        icon: '',
-        cooldownReduction: null,
-        expiresAt: at + 6
-      }
-    });
+    recordTimedBuffProc(ctx, event, { relicId, kind, duration: 6, name });
     if (director) {
       ctx.effects.emit({
         kind: 'packet',
@@ -117,7 +135,8 @@ export function skillUseStrikeRelic(skillType: 'Heal' | 'Elite'): Readonly<Gw2Re
   }
 
   return defineRelic({
-    createState: () => ({ activationTimes: [], readyAt: -Infinity }),
+    buffPolicies: [{ kind, maximumStacks: 1 }],
+    createState: () => ({ readyAt: -Infinity }),
     activate,
     completed(ctx, state, event) {
       if (event.skillType !== skillType || event.cancelled || !isGw2PlayerActorEvent(event)) return;
@@ -136,8 +155,8 @@ export function skillUseStrikeRelic(skillType: 'Heal' | 'Elite'): Readonly<Gw2Re
         event: { ...event, type: 'relic.activate', sourceId: relicId, at: event.at + (director ? 0 : 1) }
       });
     },
-    strikeMultiplier(ctx, state, event) {
-      const active = (state.activationTimes as number[]).some((at) => at <= event.at && event.at < at + 6);
+    strikeMultiplier(ctx, _state, event) {
+      const active = relicBuffActive(ctx, kind, event.at);
       return active &&
         isGw2PlayerModifierOwnedEvent(event) &&
         (!director || targetHasCondition(ctx.config, 'Vulnerability', event.at, ctx))

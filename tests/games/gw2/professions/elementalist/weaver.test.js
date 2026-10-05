@@ -55,11 +55,11 @@ test('Core and Weaver orb creation refresh existing buffs without duplicating th
         {
           at: 2.1,
           run(runtime) {
-            const fire = runtime.boons.get('hammer fire orb');
+            const fire = runtime.buffs.get('hammer fire orb');
             assert.equal(fire.length, 1);
             assert.equal(fire[0].at, 1);
             assert.equal(fire[0].expiresAt, originalExpiry + 1);
-            assert.equal(runtime.boons.get('hammer air orb').length, 1);
+            assert.equal(runtime.buffs.get('hammer air orb').length, 1);
           }
         }
       ]

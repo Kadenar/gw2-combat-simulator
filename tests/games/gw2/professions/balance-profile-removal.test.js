@@ -138,7 +138,7 @@ test('removing Bountiful Power window preserves its independent Quickness', () =
     { selectedTraitIds: [ELE.BOUNTIFUL_POWER] }
   );
   assert.equal(
-    result.events.some((event) => event.kind === 'bountiful power active'),
+    result.events.some((event) => event.kind === 'bountiful-power-active'),
     false
   );
   assert.ok(result.events.some((event) => event.kind === 'quickness'));

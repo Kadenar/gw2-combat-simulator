@@ -1,4 +1,4 @@
-import { captureEffectEmissions } from '#tests/helpers/effect-emission.js';
+import { captureEffectEmissions, captureAcceptedBuffEmissions } from '#tests/helpers/effect-emission.js';
 import { RELIC_IDS } from '#gw2/platform/equipment/relics/data.js';
 import { SIGIL_IDS } from '#gw2/platform/equipment/sigils/data.js';
 import { gw2SigilIds } from '#gw2/platform/equipment/sigils/loadout.js';
@@ -385,7 +385,7 @@ test('resolver runtimes create isolated state only for the selected relic', () =
 
   assert.equal(thief.relic.id, RELIC_IDS.THIEF);
   assert.deepEqual(thief.relic.state, { refreshedStacks: { stacks: 0, expiresAt: 0 } });
-  assert.deepEqual(brawler.relic.state, { readyAt: 0, buffUntil: 0 });
+  assert.deepEqual(brawler.relic.state, { readyAt: 0 });
   assert.deepEqual(aristocracy.relic.state, {
     readyAt: 0,
     stacks: 0,
@@ -411,8 +411,8 @@ test('Severance critical contributions are data-driven and expire exactly', () =
     damage: 0,
     chanceContributors: []
   });
-  const runtime = { boons: new Map() };
-  recordBuffApplication(runtime.boons, {
+  const runtime = { boons: new Map(), buffs: new Map() };
+  recordBuffApplication(runtime.buffs, {
     type: 'buff',
     kind: 'sigil-severance',
     at: 0,
@@ -441,9 +441,9 @@ test('Severance critical contributions are data-driven and expire exactly', () =
 
 // Recorded applications preserve past windows, refresh without stacking bonuses, and share effect expiry rounding.
 test('Severance queries retain application windows across refreshes and gaps', () => {
-  const runtime = { boons: new Map() };
+  const runtime = { boons: new Map(), buffs: new Map() };
   const grant = (at, duration) =>
-    recordBuffApplication(runtime.boons, {
+    recordBuffApplication(runtime.buffs, {
       type: 'buff',
       kind: 'sigil-severance',
       at,
@@ -600,7 +600,7 @@ test('Brawler requires player-cast Protection or Resolution that reaches the pla
       ['party including self', { recipients: 'party' }, 'player', true],
       ['summon-cast party', { recipients: 'party' }, 'summon', false]
     ]) {
-      const context = { relic: createRelicRuntime('Brawler'), effects: captureEffectEmissions().effects };
+      const context = { relic: createRelicRuntime('Brawler'), ...captureAcceptedBuffEmissions() };
       const event = {
         type: 'buff',
         kind,
@@ -613,11 +613,7 @@ test('Brawler requires player-cast Protection or Resolution that reaches the pla
       event.resolvedAudience = gw2BoonApplicationRecipients({ allies: { count: 1 } }, event);
       invokeRelicHook(context, 'boon', event);
       assert.equal(relicStrikeMultiplier(context, { at: 1.5, actorType: 'player' }), activates ? 1.1 : 1, label);
-      assert.deepEqual(
-        context.relic.state,
-        activates ? { readyAt: 9, buffUntil: 5 } : { readyAt: 0, buffUntil: 0 },
-        label
-      );
+      assert.deepEqual(context.relic.state, activates ? { readyAt: 9 } : { readyAt: 0 }, label);
 
       // A rejected application must leave the next qualifying self application ready to activate.
       if (!activates) {
@@ -972,9 +968,15 @@ test('Relic of Bloodstone records three Volatility stacks before the fourth blas
 
 test('Bloodstone Fervor follows modifier ownership', () => {
   const relic = createRelicRuntime('Bloodstone');
-  const context = { relic };
-
-  relic.state.buffUntil = 8;
+  const context = { relic, ...captureAcceptedBuffEmissions() };
+  recordBuffApplication(context.buffs, {
+    type: 'buff',
+    kind: 'bloodstone-fervor',
+    at: 0,
+    duration: 8,
+    stacks: 1,
+    resolvedAudience: { includesSelf: true }
+  });
 
   const effect = {
     type: 'damage',
@@ -1012,15 +1014,23 @@ test('Claw and Peitha follow player modifier ownership for direct and triggered 
   };
   const claw = createRelicRuntime('Claw');
 
-  claw.state.buffUntil = 8;
-  assert.equal(relicStrikeMultiplier({ relic: claw }, player), 1.07);
-  assert.equal(relicStrikeMultiplier({ relic: claw }, ownedEffect), 1.07);
-  assert.equal(relicStrikeMultiplier({ relic: claw }, { ...ownedEffect, ownerActorType: 'summon' }), 1);
+  const clawContext = { relic: claw, ...captureAcceptedBuffEmissions() };
+  recordBuffApplication(clawContext.buffs, {
+    type: 'buff',
+    kind: 'relic-claw',
+    at: 0,
+    duration: 8,
+    stacks: 1,
+    resolvedAudience: { includesSelf: true }
+  });
+  assert.equal(relicStrikeMultiplier(clawContext, player), 1.07);
+  assert.equal(relicStrikeMultiplier(clawContext, ownedEffect), 1.07);
+  assert.equal(relicStrikeMultiplier(clawContext, { ...ownedEffect, ownerActorType: 'summon' }), 1);
 
   const peitha = createRelicRuntime('Peitha');
 
-  const context = { relic: peitha, boons: new Map() };
-  recordBuffApplication(context.boons, {
+  const context = { relic: peitha, boons: new Map(), buffs: new Map() };
+  recordBuffApplication(context.buffs, {
     type: 'buff',
     kind: 'relic-peitha',
     at: 0,

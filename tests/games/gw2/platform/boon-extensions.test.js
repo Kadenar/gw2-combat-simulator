@@ -11,7 +11,7 @@ import test from 'node:test';
 import { recordBuffApplication, remainingDurationStackSeconds } from '#gw2/platform/combat/boons.js';
 import {
   applyBoonExtension,
-  boonApplicationsAt,
+  timedBuffApplicationsAt,
   boonIntervals,
   prepareBoonWindows,
   boonIntervalsFromWindows
@@ -201,10 +201,10 @@ test('all-recipient extensions cannot resurrect an expired self pool or affect a
     buff(0, 10, self, 'quickness'),
     { ...buff(3, 2), type: 'boon_extension', kind: undefined, extensionAudience: 'all', excludedKind: 'quickness' }
   ];
-  const fury = boonApplicationsAt(events, 'fury', 3);
+  const fury = timedBuffApplicationsAt(events, 'fury', 3);
   assert.equal(remaining(fury, 3), 0);
   assert.equal(remaining(fury, 3, 'includesSummons'), 9);
-  assert.equal(remaining(boonApplicationsAt(events, 'quickness', 3), 3), 7);
+  assert.equal(remaining(timedBuffApplicationsAt(events, 'quickness', 3), 3), 7);
 });
 
 test('extension commands reject invalid durations and recipient scopes', () => {
@@ -292,7 +292,7 @@ test('forced critical hits preserve the Fury fact needed by No Quarter', () => {
     }
   );
   assert.equal(result.resolvedEvents.filter((event) => event.type === 'boon_extension').length, 1);
-  assert.equal(remaining(boonApplicationsAt(result.resolvedEvents, 'fury', 3), 3), 1);
+  assert.equal(remaining(timedBuffApplicationsAt(result.resolvedEvents, 'fury', 3), 3), 1);
 });
 
 // Herald's live consume completes 480 ms after Facet of Nature, so a leading wait lands its extension at `at`.
@@ -314,7 +314,7 @@ function extend(profession, events, at) {
     const result = runRevenant(heraldExtensionAt(at), HERALD_CONFIG, {
       initialize: (runtime) => events.forEach((event) => runtime.effects.emit({ kind: 'packet', event: event }))
     });
-    return boonApplicationsAt(result.events, 'fury', at);
+    return timedBuffApplicationsAt(result.events, 'fury', at);
   }
 
   const boons = new Map();
@@ -507,7 +507,7 @@ test('Essence of Speed extends self Quickness once and ignores ally-only grants'
         }
       }
     );
-    assert.equal(remaining(boonApplicationsAt(result.resolvedEvents, 'fury', 3), 3), 1);
+    assert.equal(remaining(timedBuffApplicationsAt(result.resolvedEvents, 'fury', 3), 3), 1);
     assert.deepEqual(result.warnings, []);
   }
 });

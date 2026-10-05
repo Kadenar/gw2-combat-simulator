@@ -16,14 +16,12 @@ export interface EngineerCoreState {
   activeKit: SkillId | null;
   availableFlips: SkillFlipWindows;
   autoattackChains: Record<string, SkillId>;
-  focusedUntil: number;
   lightningRodChargeExpiries: number[];
   lightningRodGeneration: number;
   healingTurretGeneration: number;
   healingTurretActivationId: string;
   kineticCharges: number;
   pendingMineFieldActivationIds: string[];
-  thermalVisionUntil: number;
   explosiveEntranceFired: boolean;
   aimAssistedRocketCount: number;
 }
@@ -35,7 +33,6 @@ const ENGINEER_CORE_PUBLIC_END_STATE_KEYS = Object.freeze([
   'activeKit',
   'availableFlips',
   'autoattackChains',
-  'focusedUntil',
   'lightningRodChargeExpiries',
   'kineticCharges'
 ] as const satisfies readonly (keyof EngineerCoreState)[]);
@@ -62,10 +59,8 @@ export function createEngineerCoreState(): EngineerCoreState {
     lightningRodGeneration: 0,
     healingTurretGeneration: 0,
     healingTurretActivationId: '',
-    focusedUntil: 0,
     kineticCharges: 0,
     pendingMineFieldActivationIds: [],
-    thermalVisionUntil: 0,
     explosiveEntranceFired: false,
     aimAssistedRocketCount: 0
   };

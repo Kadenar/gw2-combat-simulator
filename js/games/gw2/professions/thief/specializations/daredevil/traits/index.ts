@@ -1,12 +1,12 @@
+import { buffActive } from '#gw2/platform/combat/query/runtime-query.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { targetConditionActive } from '#gw2/platform/combat/query/runtime-query.js';
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
 import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
 import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
-import { thiefRuntimeSpecializationState, thiefRuntimeState } from '#gw2/professions/thief/core/state-queries.js';
+import { thiefRuntimeState } from '#gw2/professions/thief/core/state-queries.js';
 import { THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
 import { DAREDEVIL_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/thief/specializations/daredevil/profiles.js';
-import type { DaredevilState } from '#gw2/professions/thief/specializations/daredevil/state.js';
 
 /** Owns Brawler's Tenacity tuning and behavior at the existing execution boundaries. */
 export const brawlersTenacity = defineTrait({
@@ -28,9 +28,7 @@ export const boundingDodger = defineTrait({
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: 'damage-additive',
       amount: 0.15,
-      when: (context) =>
-        isGw2PlayerModifierOwnedEvent(context.event) &&
-        (thiefRuntimeSpecializationState<DaredevilState>(context, 'Daredevil').boundingDamageUntil || 0) > context.time
+      when: (context) => isGw2PlayerModifierOwnedEvent(context.event) && buffActive(context, 'bounding-dodger')
     }
   ],
   balance: {
@@ -50,10 +48,7 @@ export const lotusTraining = defineTrait({
       target: MODIFIER_TARGET.CONDITION_DAMAGE,
       operation: 'damage-additive',
       amount: 0.15,
-      when: (context) =>
-        isGw2PlayerModifierOwnedEvent(context.event) &&
-        (thiefRuntimeSpecializationState<DaredevilState>(context, 'Daredevil').lotusConditionDamageUntil || 0) >
-          context.time
+      when: (context) => isGw2PlayerModifierOwnedEvent(context.event) && buffActive(context, 'lotus-training')
     }
   ],
   balance: {

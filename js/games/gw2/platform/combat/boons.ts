@@ -136,13 +136,13 @@ export function normalizeBoonDuration<
 
 /** Records prepared buffs without pruning history so both phases can query earlier timestamps. */
 export function recordBuffApplication(
-  boons: Map<string, Gw2TimedBuffApplication[]>,
+  applicationsByKind: Map<string, Gw2TimedBuffApplication[]>,
   event: SimulationEvent
 ): Gw2TimedBuffApplication[] {
   event = normalizeBoonDuration(event);
   if (!event.resolvedAudience) throw new TypeError('Prepared buff events require resolvedAudience.');
   const kind = (event.kind || '').toLowerCase();
-  const applications = boons.get(kind) || [];
+  const applications = applicationsByKind.get(kind) || [];
   const at = canonicalTime(event.at);
   const duration = Math.max(0, event.duration || 0);
   applications.push({
@@ -154,7 +154,7 @@ export function recordBuffApplication(
     event,
     resolvedAudience: event.resolvedAudience
   });
-  boons.set(kind, applications);
+  applicationsByKind.set(kind, applications);
   return applications;
 }
 
@@ -294,7 +294,7 @@ export function prepareBoonWindows(
   kind: string,
   audience: Gw2BuffAudience
 ): readonly BoonWindow[] {
-  const applications = boonApplicationsAt(
+  const applications = timedBuffApplicationsAt(
     events.filter((event) => !event.cancelled),
     kind,
     Infinity
@@ -435,14 +435,14 @@ export function applyBoonExtension(boons: Map<string, Gw2TimedBuffApplication[]>
 }
 
 /** Replay one kind's applications and extensions so scheduler/timeline queries share the resolver's rules. */
-export function boonApplicationsAt(
+export function timedBuffApplicationsAt(
   events: readonly SimulationEvent[],
   kind: string,
   time: number,
   fallbackDuration = 0
 ): Gw2TimedBuffApplication[] {
-  // ponytail: replay one boon history; cache by event generation if extension-heavy runs make this costly.
-  const boons = new Map<string, Gw2TimedBuffApplication[]>();
+  // Replay one accepted kind; extensions still apply only to standard boons.
+  const applicationsByKind = new Map<string, Gw2TimedBuffApplication[]>();
   const relevant = events
     .map(canonicalEvent)
     .filter(
@@ -453,11 +453,12 @@ export function boonApplicationsAt(
     )
     .sort((left, right) => left.at - right.at || (eventCausalOrder(left) ?? 0) - (eventCausalOrder(right) ?? 0));
   for (const event of relevant) {
-    if (event.type === 'buff') recordBuffApplication(boons, { ...event, duration: event.duration ?? fallbackDuration });
-    else applyBoonExtension(boons, event);
+    if (event.type === 'buff')
+      recordBuffApplication(applicationsByKind, { ...event, duration: event.duration ?? fallbackDuration });
+    else applyBoonExtension(applicationsByKind, event);
   }
 
-  return boons.get(kind) || [];
+  return applicationsByKind.get(kind) || [];
 }
 
 export type Gw2BuffAudience = 'all' | 'summon' | 'summon-trait';

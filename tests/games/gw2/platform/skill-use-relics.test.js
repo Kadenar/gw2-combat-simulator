@@ -76,9 +76,9 @@ test('Deadeye relic follows player cantrip completions independently of professi
   assert.equal(procs[0].start, completed.endsAt * 1000);
 
   const ctx = observedRuntime(result);
-  const until = ctx.relic.state.buffUntil;
+  const until = ctx.buffs.get('relic-deadeye').at(-1).expiresAt;
   invokeRelicHook(ctx, 'completed', { type: 'action', at: 100, skillId: 940012, actorType: 'summon' });
-  assert.equal(ctx.relic.state.buffUntil, until);
+  assert.equal(ctx.buffs.get('relic-deadeye').at(-1).expiresAt, until);
   assert.equal(relicStrikeMultiplier(ctx, { at: until - 0.001, actorType: 'summon' }), 1);
   assert.equal(relicStrikeMultiplier(ctx, { at: until - 0.001, actorType: 'effect', ownerActorType: 'player' }), 1.1);
   assert.equal(relicStrikeMultiplier(ctx, { at: until, actorType: 'player' }), 1);
@@ -365,7 +365,9 @@ test('Director off-target precasts grant the buff without preloading vulnerabili
   const onTarget = simulateMesmer(rotation(false), config);
   const offTarget = simulateMesmer(rotation(true), config);
   const baseline = simulateMesmer(rotation(true), { ...config, precastRelics: [] });
-  const applications = onTarget.resolvedEvents.filter((event) => event.sourceId === `relic.${RELIC_IDS.DIRECTOR}`);
+  const applications = onTarget.resolvedEvents.filter(
+    (event) => event.type === 'condition' && event.sourceId === `relic.${RELIC_IDS.DIRECTOR}`
+  );
   // Splitting preserves the one cast's total Vulnerability without granting any off-target stacks.
   assert.equal(
     applications.reduce((sum, event) => sum + event.stacks, 0),
@@ -373,9 +375,12 @@ test('Director off-target precasts grant the buff without preloading vulnerabili
   );
   assert.ok(applications.every((event) => event.effectiveDuration === 8));
   assert.equal(
-    offTarget.resolvedEvents.some((event) => event.sourceId === `relic.${RELIC_IDS.DIRECTOR}`),
+    offTarget.resolvedEvents.some(
+      (event) => event.type === 'condition' && event.sourceId === `relic.${RELIC_IDS.DIRECTOR}`
+    ),
     false
   );
+  assert.ok(observedRuntime(offTarget).buffs.has('relic-director'));
   assert.equal(offTarget.strikeDamage, baseline.strikeDamage);
   assertFlooredDamageMultiplier(onTarget.strikeDamage, baseline.strikeDamage, 1.08 * 1.1);
   assert.equal(offTarget.procSteps.filter((step) => step.type === 'relic_proc').length, 1);

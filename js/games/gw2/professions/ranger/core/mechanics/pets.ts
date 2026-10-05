@@ -1,3 +1,4 @@
+import { isStandardBoon } from '#gw2/platform/combat/boons.js';
 import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
 import { selectedSkillIdSet } from '#gw2/platform/builds/selected-skills.js';
 import { buffApplicationStacks, gw2BoonDurationMultiplier } from '#gw2/platform/combat/boons.js';
@@ -139,7 +140,9 @@ function petBuff(context: MechanicQueriesOf<RangerRuntime>, kind: string): boole
   const id = rangerPetCompanionId(context);
   return (
     buffApplicationStacks(
-      context.combat.boonApplications(kind).filter((buff) => buff.resolvedAudience.companionIds.includes(id)),
+      (isStandardBoon(kind) ? context.combat.boonApplications(kind) : context.combat.buffApplications(kind)).filter(
+        (buff) => buff.resolvedAudience.companionIds.includes(id)
+      ),
       kind,
       context.time,
       1,

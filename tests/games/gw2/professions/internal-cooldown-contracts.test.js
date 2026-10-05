@@ -23,7 +23,7 @@ import {
   reactToVampiricPresenceAlliedHit
 } from '#gw2/professions/necromancer/core/traits/life-steal.js';
 import {
-  reactToNecromancerBlind,
+  reactToNecromancerCoreCondition,
   reactToNecromancerCoreDamage
 } from '#gw2/professions/necromancer/core/traits/reactions.js';
 import { NECROMANCER_TRAIT_IDS } from '#gw2/professions/necromancer/data/ids.js';
@@ -164,7 +164,7 @@ for (const [key, trait] of [
 for (const [key, trait, invoke, literalDuration] of [
   ['siphonedPower', NECROMANCER_TRAIT_IDS.SIPHONED_POWER, reactToNecromancerCoreDamage],
   ['chillOfDeath', NECROMANCER_TRAIT_IDS.CHILL_OF_DEATH, reactToNecromancerCoreDamage],
-  ['chillingDarkness', NECROMANCER_TRAIT_IDS.CHILLING_DARKNESS, reactToNecromancerBlind],
+  ['chillingDarkness', NECROMANCER_TRAIT_IDS.CHILLING_DARKNESS, reactToNecromancerCoreCondition],
   ['dhuumfire', NECROMANCER_TRAIT_IDS.DHUUMFIRE, reactToNecromancerCoreDamage]
 ]) {
   test(`Necromancer ${key} preserves scoped claims and exact boundaries`, () => {
@@ -196,7 +196,8 @@ for (const [key, trait, invoke, literalDuration] of [
       const opportunity = (at) => {
         context.effectiveEnd = at;
         invoke(context, {
-          type: 'damage',
+          type: key === 'chillingDarkness' ? 'condition' : 'damage',
+          ...(key === 'chillingDarkness' ? { condition: 'Blindness' } : {}),
           at,
           actorType: 'summon',
           coefficient: 1,
@@ -243,6 +244,7 @@ function professionContext({ id, catalog, core, specialization = {}, kind = 'Cor
     queue: new StableEventQueue(),
     resolved: [],
     boons: new Map(),
+    buffs: new Map(),
     events,
     query: { statsAt: () => ({}) },
     effects: captureEffectEmissions({
@@ -317,7 +319,7 @@ test('Soulbeast stance ICDs preserve the personal One Wolf Pack exception and in
       });
       context.procs.setDeadline(field, READY_AT);
       context.procs.setDeadline(`ranger.soulbeast.alliedStance:${kind}:1`, READY_AT);
-      context.boons.set(kind, [{ at: 0, expiresAt: 10, stacks: 1, resolvedAudience: { includesSelf: true } }]);
+      context.buffs.set(kind, [{ at: 0, expiresAt: 10, stacks: 1, resolvedAudience: { includesSelf: true } }]);
       const react = ally ? soulbeastEventHandlers['ranger.shared-stance-hit'] : reactToSoulbeastDamage;
       const event = {
         type: ally ? 'ranger.shared-stance-hit' : 'damage',

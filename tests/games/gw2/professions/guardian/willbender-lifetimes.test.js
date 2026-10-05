@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { guardianCatalog } from '#gw2/professions/guardian/catalog.js';
-import { boonApplicationsAt } from '#gw2/platform/combat/boons.js';
+import { timedBuffApplicationsAt } from '#gw2/platform/combat/boons.js';
 import { GUARDIAN_SKILL_IDS as ID, GUARDIAN_TRAIT_IDS as TRAIT } from '#gw2/professions/guardian/data/ids.js';
 import { bindWillbenderUi } from '#gw2/professions/guardian/specializations/willbender/presentation.js';
 import { runGuardian } from '#tests/helpers/guardian-simulation.js';
@@ -38,7 +38,7 @@ test('Willbender virtue deadlines agree across delivered buffs and canonical sna
       const result = runGuardian([wait(1), skill, wait(11000)], { ...config, selectedTraitIds });
       assert.deepEqual(result.warnings, []);
       const activation = result.events.find((event) => event.kind === `willbender-${virtue}`);
-      const [buff] = boonApplicationsAt(result.events, `willbender-${virtue}`, activation.at);
+      const [buff] = timedBuffApplicationsAt(result.events, `willbender-${virtue}`, activation.at);
       assert.ok(buff.expiresAt > activation.at + activation.duration);
       assert.equal(result.planningState.profession[`${virtue}Until`], buff.expiresAt);
       assert.equal(state(result)[`${virtue}Until`], buff.expiresAt);
@@ -95,7 +95,7 @@ test('Lethal Tempo activation and trigger grants share the buff-history and disp
         }
       });
       const application = result.events.find((event) => event.kind === 'lethal-tempo');
-      const [buff] = boonApplicationsAt(result.events, 'lethal-tempo', application.at);
+      const [buff] = timedBuffApplicationsAt(result.events, 'lethal-tempo', application.at);
       assert.equal(state(result).lethalTempo.expiresAt, buff.expiresAt);
       for (const atSeconds of [buff.expiresAt, buff.expiresAt + 0.000001]) {
         const items = ui.rotationStateSnapshot({

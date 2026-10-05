@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { applyBoonExtension, recordBuffApplication } from '#gw2/platform/combat/boons.js';
+import { applyBoonExtension, isStandardBoon, recordBuffApplication } from '#gw2/platform/combat/boons.js';
 import { effectStateValue, timedEffectState } from '#gw2/platform/combat/effect-state.js';
 import { captureRuntimeEffects, observeRuntimeEffects } from '#gw2/platform/results/observe-effects.js';
 import { reviseEffectState } from '#gw2/platform/combat/effect-revisions.js';
@@ -15,9 +15,16 @@ const audience = {
   companionIds: ['clone:1'],
   recipientCount: 3
 };
-const runtime = () => ({ boons: new Map(), config: {}, conditionState: new Map(), time: 0, equipmentBuffPolicies: [] });
+const runtime = () => ({
+  boons: new Map(),
+  buffs: new Map(),
+  config: {},
+  conditionState: new Map(),
+  time: 0,
+  equipmentBuffPolicies: []
+});
 const grant = (state, kind, at, stacks, duration) =>
-  recordBuffApplication(state.boons, {
+  recordBuffApplication(isStandardBoon(kind) ? state.boons : state.buffs, {
     type: 'buff',
     kind,
     at,

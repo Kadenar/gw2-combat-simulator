@@ -132,7 +132,7 @@ function visitRuntimeEffects<T extends object>(
     ...state,
     source:
       state.source ??
-      runtime.boons
+      (isStandardBoon(state.kind) ? runtime.boons : runtime.buffs)
         .get(state.kind)
         ?.filter((application) => application.at <= runtime.time)
         .at(-1)?.event
@@ -162,17 +162,19 @@ function visitRuntimeEffects<T extends object>(
     buffObservations.set(runtime, cache);
   }
 
-  for (const [kind, applications] of runtime.boons) {
-    // Registration makes new reportable effects declare their owner instead of silently bypassing caps.
-    const policy = policies.get(kind);
-    if (!policy) throw new TypeError(`Missing buff policy: ${kind}`);
-    if (policy.owner === 'profession') continue;
-    const generic = observeGenericBuff(cache, kind, applications, runtime.time, policy);
-    const native = nativeScopes.get(kind);
-    if (native) {
-      for (const state of generic) if (!ownedRecipients.get(kind)?.has(state.recipient)) native.push(state);
-    } else visit(`buff:${kind}`, generic);
-  }
+  // Both stores share policy enforcement and recipient-specific native overrides.
+  for (const store of [runtime.boons, runtime.buffs])
+    for (const [kind, applications] of store) {
+      // Registration makes new reportable effects declare their owner instead of silently bypassing caps.
+      const policy = policies.get(kind);
+      if (!policy) throw new TypeError(`Missing buff policy: ${kind}`);
+      if (policy.owner === 'profession') continue;
+      const generic = observeGenericBuff(cache, kind, applications, runtime.time, policy);
+      const native = nativeScopes.get(kind);
+      if (native) {
+        for (const state of generic) if (!ownedRecipients.get(kind)?.has(state.recipient)) native.push(state);
+      } else visit(`buff:${kind}`, generic);
+    }
 
   for (const [kind, states] of nativeScopes) visit(`buff:${kind}`, states);
   for (const [kind, state] of runtime.conditionState)

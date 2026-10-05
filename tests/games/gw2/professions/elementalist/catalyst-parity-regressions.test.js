@@ -277,7 +277,10 @@ test('Relentless Fire exposes separate strike and condition modifiers for its ac
     catalog: elementalistCatalog,
     time: 1,
     runtime: {
-      boons: new Map([['relentless fire', [{ at: 0, expiresAt: 5, stacks: 1 }]]])
+      boons: new Map([]),
+      buffs: new Map([
+        ['relentless fire', [{ resolvedAudience: { includesSelf: true }, at: 0, expiresAt: 5, stacks: 1 }]]
+      ])
     }
   };
 

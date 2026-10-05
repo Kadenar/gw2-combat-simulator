@@ -569,6 +569,16 @@ export function activateSicEm(runtime: RangerRuntime, skill: Skill): void {
           skillId: skill.id,
           skillName: skill.name,
           kind,
+          // Pet commands bind the active companion incarnation; merged commands belong to the player.
+          audience:
+            kind === 'sic-em-pet'
+              ? {
+                  recipients: 'summons',
+                  affectsSelf: false,
+                  maximumRecipients: 1,
+                  eligibleCompanionIds: [rangerPetCompanionId(runtime)]
+                }
+              : { recipients: 'self' },
           priority: -20,
           stacks: 1,
           duration: balanceProfileNumber(requireBalanceProfileFromContext(runtime, PROFILE.sicEm), 'durationMultiplier')

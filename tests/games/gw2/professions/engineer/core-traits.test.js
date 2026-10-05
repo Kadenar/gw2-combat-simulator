@@ -65,7 +65,7 @@ test('Explosives and Firearms traits materialize offensive effects', () => {
   assert.ok(
     result.resolvedEvents.some((event) => event.type === 'condition' && event.name === 'Incendiary Powder — Burning')
   );
-  assert.ok(observedRuntime(result).profession.core.thermalVisionUntil > 0);
+  assert.ok(observedRuntime(result).buffs.get('thermal-vision').length > 0);
 });
 
 test('Explosives traits use the requested packets, gates, and health modifiers', () => {

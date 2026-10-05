@@ -369,7 +369,17 @@ test('Thief snapshots expose stealth gates, Bounding Dodger, Combat High, and ar
   assert.equal(revealed['thief-revealed'], '3.0s');
   assert.equal(revealed['thief-stealth'], undefined);
 
-  const daredevil = valuesById(snapshot(thiefProfession, 'Daredevil', { boundingDamageUntil: 9 }, 4));
+  const daredevil = valuesById(
+    snapshot(
+      thiefProfession,
+      'Daredevil',
+      {},
+      4,
+      effectFields([], 10, {
+        frames: [{ at: 0, states: [timedEffectState('bounding-dodger', [{ stacks: 1, expiresAt: 9 }], 1)] }]
+      })
+    )
+  );
   assert.equal(daredevil['daredevil-bounding-dodger'], '5.0s');
 
   const antiquary = valuesById(

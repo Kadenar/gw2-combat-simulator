@@ -168,7 +168,8 @@ test('personal stances ignore pet-only combat and trigger on the next player str
     activeSoulbeastBuff(
       {
         combat: createMechanicCombatServices({
-          boons: new Map([
+          boons: new Map([]),
+          buffs: new Map([
             ['vulture-stance', [{ at: 0, expiresAt: 10, stacks: 1, resolvedAudience: { includesSelf: false } }]]
           ])
         })

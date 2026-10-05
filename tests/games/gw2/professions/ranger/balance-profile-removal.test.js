@@ -104,6 +104,7 @@ function resolverContext(balanceProfiles, selectedTraitIds, specialization) {
     traits: new Set(config.selectedTraitIds),
     catalog: patched(rangerCatalog, balanceProfiles),
     boons: new Map(),
+    buffs: new Map(),
     // Neutral stats keep derived boon durations at their authored values.
     query: { statsAt: () => ({}) },
     queued,

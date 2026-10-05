@@ -3,6 +3,7 @@ import {
   buffMatchesAudience,
   durationStackingBoonCapSeconds,
   isDurationStackingBoon,
+  isStandardBoon,
   remainingDurationStackSeconds,
   type Gw2TimedBuffApplication
 } from '#gw2/platform/combat/boons.js';
@@ -19,6 +20,8 @@ export function liveBoonSnapshot(
   at: number,
   recipient: BoonSnapshotRecipient
 ): { readonly stacks: number; readonly duration: number } {
+  // Copying a boon cannot expose ordinary buff windows or malformed assumptions.
+  if (!isStandardBoon(kind)) return { stacks: 0, duration: 0 };
   const audience = recipient.actor === 'player' ? 'all' : 'summon';
   const companionId = recipient.actor === 'companion' ? recipient.companionId : undefined;
   const configured = recipient.actor === 'player' ? Number(config.boons?.[kind] || 0) : 0;

@@ -57,6 +57,7 @@ for (const reporting of [true, false]) {
     const observationRuntime = {
       config: {},
       boons: new Map(),
+      buffs: new Map(),
       conditionState: context.conditionState,
       time: 1,
       equipmentBuffPolicies: []

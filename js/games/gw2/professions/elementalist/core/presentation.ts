@@ -363,7 +363,7 @@ function timelineWeaponLineTransition(context: ElementalistUiContext): string | 
 // Show Fresh Air's ferocity window across specializations alongside hammer orb state.
 function rotationStateSnapshot(context: ElementalistUiContext): RotationStateSnapshotItem[] {
   const state = elementalistUiState(context);
-  const freshAir = planningBuffAt(context.planningState, 'fresh air');
+  const freshAir = planningBuffAt(context.planningState, 'fresh-air');
   const orbs = Object.entries(state.hammerOrbs || {})
     .filter(([, expiresAt]) => (expiresAt || 0) > 0)
     .map(([element]) => element)
@@ -449,8 +449,8 @@ export function bindElementalistCoreUi(catalog: Readonly<CanonicalCatalog<Elemen
           description: 'Fire-field damage stacks active'
         });
 
-      preview.buff('Fresh Air', 'freshAir', 'fresh air', 'Ferocity while active');
-      preview.buff('Arcane Lightning', 'arcaneLightning', 'arcane lightning', 'Ferocity while active');
+      preview.buff('Fresh Air', 'freshAir', 'fresh-air', 'Ferocity while active');
+      preview.buff('Arcane Lightning', 'arcaneLightning', 'arcane-lightning', 'Ferocity while active');
       preview.add({
         key: 'attunement',
         label: 'Attunement',

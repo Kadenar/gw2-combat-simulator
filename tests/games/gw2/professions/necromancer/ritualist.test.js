@@ -240,7 +240,9 @@ test('Painful Bond duration stacks without duplicate pulses and preserves cadenc
     bondDamage(result).map((event) => event.at),
     [0.004, 1.004, 3.004]
   );
-  assert.ok(state(result).painfulBondUntil <= observedRuntime(result).time);
+  assert.ok(
+    observedRuntime(result).combat.activeBuffStacks('necromancer-painful-bond', observedRuntime(result).time, 1) === 0
+  );
   assert.equal(state(result).painfulBondPulseAnchorAt, 0.004);
   const boundary = run([wait(2100)], {
     events: [bond(0, 1), bond(1, 1)],

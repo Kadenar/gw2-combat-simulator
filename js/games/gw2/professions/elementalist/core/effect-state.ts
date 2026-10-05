@@ -9,16 +9,13 @@ import { ELEMENTALIST_TRAIT_IDS as TRAIT } from '#gw2/professions/elementalist/d
 /** Core owns shared weapon and trait effects; selected elites register their own policies. */
 export function elementalistBuffPolicies(context: unknown): BuffStatePolicy[] {
   const policies: BuffStatePolicy[] = [
-    { kind: 'arcane lightning', maximumStacks: 1 },
-    { kind: 'bountiful power active', maximumStacks: 1 },
-    { kind: 'fresh air', maximumStacks: 1 },
+    { kind: 'arcane-lightning', maximumStacks: 1 },
+    { kind: 'bountiful-power-active', maximumStacks: 1 },
+    { kind: 'fresh-air', maximumStacks: 1 },
     { kind: 'fire aura', maximumStacks: 1 },
     { kind: 'frost aura', maximumStacks: 1 },
     { kind: 'shocking aura', maximumStacks: 1 },
     { kind: 'magnetic aura', maximumStacks: 1 },
-    { kind: 'fresh-air', maximumStacks: 1 },
-    { kind: 'arcane-lightning', maximumStacks: 1 },
-    { kind: 'bountiful-power-active', maximumStacks: 1 },
 
     { kind: 'hammer fire orb', maximumStacks: 1 },
     { kind: 'hammer water orb', maximumStacks: 1 },

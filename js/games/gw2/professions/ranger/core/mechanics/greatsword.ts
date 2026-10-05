@@ -27,7 +27,7 @@ export const rangerAttackOfOpportunityModifier: Gw2ModifierRule = {
   when: (context) => {
     const recipient = attackRecipient(context.event);
     if (!recipient) return false;
-    return (context.runtime?.boons?.get(`attack-of-opportunity-${recipient}`) || []).some(
+    return (context.runtime?.buffs?.get(`attack-of-opportunity-${recipient}`) || []).some(
       (application) =>
         application.at <= context.time &&
         application.expiresAt > context.time &&
@@ -74,7 +74,7 @@ export function reactToRangerGreatswordDamage(context: RangerResolverContext, ev
   const recipient = attackRecipient(event);
   if (!recipient) return;
   const kind = `attack-of-opportunity-${recipient}`;
-  context.combat.reviseBoonExpiry(
+  context.combat.reviseBuffExpiry(
     kind,
     (application) =>
       application.at <= event.at &&

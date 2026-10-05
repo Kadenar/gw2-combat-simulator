@@ -112,8 +112,7 @@ test('Scrapper traits apply gyro control, superspeed, boons, and charges', () =>
     selectedTraitIds: [TRAIT.OBJECT_IN_MOTION],
     boons: {
       stability: true,
-      swiftness: true,
-      superspeed: true
+      swiftness: true
     },
     target: { conditions: {} }
   });
@@ -121,7 +120,7 @@ test('Scrapper traits apply gyro control, superspeed, boons, and charges', () =>
   assertFlooredDamageMultiplier(
     moving.resolvedEvents.find((event) => event.type === 'damage').damage,
     base.resolvedEvents.find((event) => event.type === 'damage').damage,
-    1.05 ** 3
+    1.05 ** 2
   );
 
   const appliedForce = simulate('Scrapper', ['Puncturing Jab'], {

@@ -1,6 +1,5 @@
 import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
-import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
 import {
   balanceProfileNumber,
   effectNumber,
@@ -245,7 +244,25 @@ export function applyBitterChill(context: NecromancerResolverContext, event: Nec
 
 /** Fear refreshes the existing observation window; Dread's selected modifier decides whether it contributes. */
 export function applyDreadWindow(context: NecromancerResolverContext, event: NecromancerResolverEvent): void {
-  if (event.condition === 'Fear') {
-    professionCoreState(context).dreadUntil = Math.max(professionCoreState(context).dreadUntil || 0, event.at + 3);
+  if (event.condition === 'Fear' && hasTrait(context, TRAIT.DREAD)) {
+    context.effects.emit({
+      kind: 'packet',
+      cause: event,
+      settlement: 'reaction',
+      event: {
+        type: 'buff',
+        kind: 'necromancer-dread',
+        at: event.at,
+        duration: 3,
+        stacks: 1,
+        source: 'Trait',
+        sourceId: TRAIT.DREAD,
+        actorType: 'effect',
+        ownerActorType: 'player',
+        name: 'Dread',
+        skillName: 'Dread',
+        audience: { recipients: 'self' }
+      }
+    });
   }
 }

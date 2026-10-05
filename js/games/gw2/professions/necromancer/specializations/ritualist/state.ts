@@ -25,7 +25,6 @@ export interface RitualistState {
   resummonedSpiritAutoCycle: boolean;
   weaponSpells: Record<string, NecromancerWeaponSpellState>;
   soulTwistingAvailable: boolean;
-  painfulBondUntil: number;
   painfulBondPulseAnchorAt: number;
 }
 
@@ -50,7 +49,6 @@ function createRitualistState(): RitualistState {
     resummonedSpiritAutoCycle: false,
     weaponSpells: {},
     soulTwistingAvailable: false,
-    painfulBondUntil: 0,
     // NaN signals "no pulse scheduled yet"; first apply event sets the anchor
     painfulBondPulseAnchorAt: Number.NaN
   };

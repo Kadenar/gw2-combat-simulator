@@ -3,23 +3,28 @@ import { RELIC_IDS } from '#gw2/platform/equipment/relics/data.js';
 import type { Gw2RelicContext, Gw2RelicState } from '#gw2/platform/equipment/relics/types.js';
 /** Bloodstone relic rules. */
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
-import { defineRelic, timedStrikeBuff } from '#gw2/platform/equipment/relics/rules/shared.js';
+import {
+  defineRelic,
+  recordTimedBuffProc,
+  relicBuffActive,
+  timedStrikeBuff
+} from '#gw2/platform/equipment/relics/rules/shared.js';
 import { gw2EffectExpiresAt } from '#gw2/platform/effects/timing.js';
 import { activeRefreshedStacks, grantRefreshedStacks } from '#gw2/platform/combat/resources/refreshed-stacks.js';
 
 // The fourth qualifying blast consumes the native three-stack pool.
 const VOLATILITY_STACKS = 3;
 export const bloodstone = defineRelic({
+  buffPolicies: [{ kind: 'bloodstone-fervor', maximumStacks: 1 }],
   damagePayload: emitDamagePayload,
   createState: () => ({
-    refreshedStacks: { stacks: 0, expiresAt: 0 },
-    buffUntil: 0
+    refreshedStacks: { stacks: 0, expiresAt: 0 }
   }),
   combo(ctx, state, event) {
     // The shared combo reaction now reaches leap finishers for Steamshrieker; Bloodstone remains blast-only.
     if (event.finisherType !== 'Blast') return;
     // Volatility cannot accumulate while Fervor is active.
-    if ((state.buffUntil || 0) > event.at) return;
+    if (relicBuffActive(ctx, 'bloodstone-fervor', event.at)) return;
     const currentStacks = activeRefreshedStacks(state.refreshedStacks, event.at, 'exclusive');
     if (currentStacks < VOLATILITY_STACKS) {
       // Each blast renews all Volatility stacks; the next blast at cap still belongs to the Fervor transition.
@@ -64,24 +69,17 @@ export const bloodstone = defineRelic({
     emitDamagePayload(ctx, state, event);
   },
   // Fervor follows outgoing modifier ownership and also affects the delayed explosion that activated it.
-  strikeMultiplier: timedStrikeBuff(1.07, isGw2PlayerModifierOwnedEvent)
+  strikeMultiplier: timedStrikeBuff('bloodstone-fervor', 1.07, isGw2PlayerModifierOwnedEvent)
 });
 
 /** One occurrence shares its payload with simulation after activation checks have succeeded. */
-function emitDamagePayload(ctx: Gw2RelicContext, state: Gw2RelicState, event: SimulationEvent): void {
-  state.buffUntil = gw2EffectExpiresAt(event.at, 8);
-  ctx.effects.emit({
-    kind: 'announcement',
-    announcement: {
-      type: 'relic',
-      name: 'Relic of Bloodstone',
-      at: event.at,
-      sourceSkill: event.skillName,
-      detail: 'Bloodstone Fervor',
-      icon: '',
-      cooldownReduction: null,
-      expiresAt: state.buffUntil
-    }
+function emitDamagePayload(ctx: Gw2RelicContext, _state: Gw2RelicState, event: SimulationEvent): void {
+  recordTimedBuffProc(ctx, event, {
+    relicId: RELIC_IDS.BLOODSTONE,
+    kind: 'bloodstone-fervor',
+    duration: 8,
+    name: 'Relic of Bloodstone',
+    detail: 'Bloodstone Fervor'
   });
   const explosionAt = event.at + 0.68;
   ctx.effects.emit({

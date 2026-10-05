@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { boonApplicationsAt } from '#gw2/platform/combat/boons.js';
+import { timedBuffApplicationsAt } from '#gw2/platform/combat/boons.js';
 import { GUARDIAN_SKILL_IDS as ID, GUARDIAN_TRAIT_IDS as TRAIT } from '#gw2/professions/guardian/data/ids.js';
 import { runGuardian } from '#tests/helpers/guardian-simulation.js';
 import { observedRuntime } from '#tests/helpers/observed-runtime.js';
@@ -64,7 +64,7 @@ test('Ashes buff history, expiry cleanup, and planning state share the effect-cl
   });
   assert.deepEqual(result.warnings, []);
   const application = result.events.find((event) => event.kind === 'ashes-of-the-just');
-  const [buff] = boonApplicationsAt(result.events, 'ashes-of-the-just', application.at);
+  const [buff] = timedBuffApplicationsAt(result.events, 'ashes-of-the-just', application.at);
   assert.ok(buff.expiresAt > application.at + application.duration);
   assert.equal(state(result).ashes.expiresAt, buff.expiresAt);
   assert.equal(result.planningState.profession.ashes.expiresAt, buff.expiresAt);

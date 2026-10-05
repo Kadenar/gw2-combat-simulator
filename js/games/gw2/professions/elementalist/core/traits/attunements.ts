@@ -111,7 +111,7 @@ export function applyFreshAirAttunementEntry(
           source: 'Trait',
           sourceId: TRAIT.FRESH_AIR,
           actorType: 'player',
-          kind: 'fresh air',
+          kind: 'fresh-air',
           stacks: Number(freshAir.stacks),
           duration: freshAir.duration,
           skillName: skill.name,
@@ -312,7 +312,7 @@ export function triggerBountifulPower(
           source: 'Trait',
           sourceId: TRAIT.BOUNTIFUL_POWER,
           actorType: 'player',
-          kind: 'bountiful power active',
+          kind: 'bountiful-power-active',
           stacks: Number(active.stacks),
           duration: active.duration,
           skillName: 'Bountiful Power'

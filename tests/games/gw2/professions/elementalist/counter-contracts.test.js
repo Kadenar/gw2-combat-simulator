@@ -51,7 +51,7 @@ test('Bountiful Power resets at the cap and preserves progress earned by nested 
   triggerBountifulPower(context, 1, 3.5, ID.AIR_ATTUNEMENT);
   assert.deepEqual(observations, [
     ['quickness', 0],
-    ['bountiful power active', 0.5]
+    ['bountiful-power-active', 0.5]
   ]);
   assert.equal(core.bountifulPowerProgress, 0.5);
 });

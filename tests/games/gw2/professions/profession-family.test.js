@@ -623,7 +623,6 @@ const inactiveStateKeys = Object.freeze({
     'resummonedSpiritAutoCycle',
     'weaponSpells',
     'soulTwistingAvailable',
-    'painfulBondUntil',
     'painfulBondPulseAnchorAt'
   ]
 });
@@ -1001,7 +1000,7 @@ const revenantSlices = Object.freeze([
 
 const revenantSpecializationStateKeys = Object.freeze({
   Renegade: ['bandTogether', 'kallasFervor', 'razorclawsRage'],
-  Vindicator: ['reaversCurseUntil', 'forerunnerOfDeathUntil'],
+  Vindicator: ['reaversCurseUntil'],
   Conduit: [
     'affinity',
     'cosmicWisdomUntil',

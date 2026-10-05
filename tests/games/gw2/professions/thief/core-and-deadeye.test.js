@@ -1200,19 +1200,22 @@ test('Daredevil capacity and every dodge replacement resolve explicitly', () => 
               ...native.reactions,
               'damage.resolving'(runtime, event, details) {
                 if (event.name === 'Bound')
-                  windowAtBound.push(runtime.profession.specialization.state.boundingDamageUntil);
+                  windowAtBound.push(runtime.combat.activeBuffStacks('bounding-dodger', runtime.time, 1));
                 return native.reactions['damage.resolving'](runtime, event, details);
               }
             }
           }),
           probes: [
-            [bound.at, (runtime) => windowAtBound.push(runtime.profession.specialization.state.boundingDamageUntil)]
+            [
+              bound.at,
+              (runtime) => windowAtBound.push(runtime.combat.activeBuffStacks('bounding-dodger', runtime.time, 1))
+            ]
           ]
         }
       );
       assert.equal(windowAtBound.length, 2);
-      assert.ok(windowAtBound[0] <= bound.at);
-      assert.ok(windowAtBound[1] > bound.at);
+      assert.equal(windowAtBound[0], 0);
+      assert.equal(windowAtBound[1], 1);
     }
   }
 

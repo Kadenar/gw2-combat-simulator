@@ -1,3 +1,4 @@
+import { buffActive } from '#gw2/platform/combat/query/runtime-query.js';
 import { professionStaticRulesApplied } from '#gw2/platform/builds/attribute-provenance.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
@@ -19,9 +20,7 @@ export const thiefCoreModifierRules = Object.freeze<readonly Gw2ModifierRule[]>(
     target: [MODIFIER_TARGET.STRIKE_DAMAGE, MODIFIER_TARGET.CONDITION_DAMAGE],
     operation: 'damage-additive',
     amount: 0.1,
-    when: (context) =>
-      isGw2PlayerModifierOwnedEvent(context.event) &&
-      (thiefRuntimeState(context).distractingThrowBuffUntil || 0) > context.time
+    when: (context) => isGw2PlayerModifierOwnedEvent(context.event) && buffActive(context, 'distracting-throw')
   }
 ]);
 
@@ -46,7 +45,7 @@ function modifyThiefCoreAttributes(context: Gw2ModifierContext, attributes: Gw2R
     const passiveDisabled = (state.assassinsSignetPassiveDisabledUntil || 0) > context.time;
     if (staticRulesApplied && passiveDisabled) result.power -= passive;
     if (!staticRulesApplied && !passiveDisabled) result.power += passive;
-    if ((state.assassinsSignetActiveUntil || 0) > context.time) {
+    if (buffActive(context, 'assassins-signet')) {
       result.power += balanceProfileNumber(assassinsSignetProfile, 'attributePerStack');
     }
   }

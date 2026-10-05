@@ -35,7 +35,7 @@ const player = {
 
 test('summon conditions use player Might, condition equipment, traits, and duration without rewriting their source', () => {
   const combat = query();
-  const runtime = { boons: new Map() };
+  const runtime = { boons: new Map(), buffs: new Map() };
   for (const summonKind of ['clone', 'minion', 'phantasm', 'spirit', 'thieves-guild']) {
     const application = Object.freeze({
       ...player,

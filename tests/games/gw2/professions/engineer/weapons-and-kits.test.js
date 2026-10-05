@@ -1,3 +1,4 @@
+import { createMechanicCombatServices } from '#gw2/platform/resolver/mechanic-services.js';
 import { planningFixture } from '#tests/helpers/observed-runtime.js';
 import { observedRuntime } from '#tests/helpers/observed-runtime.js';
 import { skillFlipVisible, skillFlipReady } from '#gw2/platform/execution/skill-flips.js';
@@ -101,7 +102,7 @@ test('Electric Artillery converts whole charges into Focused-sensitive Vulnerabi
     [12, 12, 6],
     [20, 12, 6]
   ]) {
-    for (const [focusedUntil, expectedStacks] of [
+    for (const [expiresAt, expectedStacks] of [
       [11, focusedStacks],
       [10, unfocusedStacks]
     ]) {
@@ -109,7 +110,11 @@ test('Electric Artillery converts whole charges into Focused-sensitive Vulnerabi
       handleElectricArtillery(
         {
           catalog: engineerCatalog,
-          profession: { core: { focusedUntil } },
+          combat: createMechanicCombatServices({
+            buffs: new Map([
+              ['engineer-focused', [{ at: 0, expiresAt, stacks: 1, resolvedAudience: { includesSelf: true } }]]
+            ])
+          }),
           effects: {
             emit(request) {
               if (request.settlement === 'reaction') conditions.push(request.event);

@@ -28,7 +28,7 @@ export const peitha = defineRelic({
   },
   strikeMultiplier(ctx, _state, event) {
     return isGw2PlayerModifierOwnedEvent(event) &&
-      buffApplicationStacks(ctx.boons?.get(PEITHA_BUFF) ?? [], PEITHA_BUFF, event.at, 1) > 0
+      buffApplicationStacks(ctx.buffs?.get(PEITHA_BUFF) ?? [], PEITHA_BUFF, event.at, 1) > 0
       ? 1.1
       : 1;
   }

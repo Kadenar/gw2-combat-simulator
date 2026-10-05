@@ -332,7 +332,7 @@ export function applyResolverZephyrsBoon(context: MechanicCombatContext, event: 
 /** Preserve the live air attribute pass at its original position in the Core modifier pipeline. */
 export function applyAirTraitAttributes(context: ElementalistModifierContext, modified: Gw2MutableStats): void {
   const primary = primaryAttunement(context);
-  if (hasTrait(context, TRAIT.FRESH_AIR) && elementalistTimedBuffStacks(context, 'fresh air', 1) > 0) {
+  if (hasTrait(context, TRAIT.FRESH_AIR) && elementalistTimedBuffStacks(context, 'fresh-air', 1) > 0) {
     const freshAirProfile = requireBalanceProfileFromContext(context, TRAIT.FRESH_AIR);
     modified.ferocity = (modified.ferocity || 0) + balanceProfileNumber(freshAirProfile, 'attributeBonus');
   }

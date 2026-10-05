@@ -130,7 +130,8 @@ test('Warrior displays use selected stack caps and bonuses', () => {
         catalog: balanceContext.catalog,
         time: 1,
         runtime: {
-          boons: new Map([
+          boons: new Map([]),
+          buffs: new Map([
             [
               'berserkers-power',
               stacks ? [{ at: 0, expiresAt: 10, stacks, resolvedAudience: { includesSelf: true } }] : []
@@ -157,7 +158,8 @@ test('Warrior displays use selected stack caps and bonuses', () => {
         catalog: balanceContext.catalog,
         time: 1,
         runtime: {
-          boons: new Map([
+          boons: new Map([]),
+          buffs: new Map([
             [
               'fierce-as-fire',
               stacks ? [{ at: 0, expiresAt: 10, stacks, resolvedAudience: { includesSelf: true } }] : []

@@ -7,7 +7,7 @@ import { queryDamagePreview } from '#gw2/platform/skill-damage/preview-state.js'
 import type { Gw2ModifierContribution } from '#gw2/platform/combat/modifiers.js';
 import { derivedAttribute, PRIMARY_ATTRIBUTES } from '#gw2/platform/builds/attributes.js';
 import { createGw2CombatQuery } from '#gw2/platform/combat/query/combat-query.js';
-import { GW2_STANDARD_BOONS } from '#gw2/platform/combat/boons.js';
+import { GW2_STANDARD_BOONS, isStandardBoon } from '#gw2/platform/combat/boons.js';
 import { createRelicRuntime } from '#gw2/platform/equipment/relics/runtime.js';
 import { relicConditionDurationBonus } from '#gw2/platform/equipment/relics/query.js';
 import { resolveProfessionContract } from '#gw2/platform/profession-definition/compiler/compile-contract.js';
@@ -126,6 +126,7 @@ function calculatePreview(
   const professionState = profession.createState(queryConfig);
   const events: SimulationEvent[] = [];
   const previewBoons = new Map<string, Gw2TimedBuffApplication[]>();
+  const previewBuffs = new Map<string, Gw2TimedBuffApplication[]>();
   const addBuff = (kind: string, stacks: number, name: string): void => {
     if (!stacks) return;
     const application = {
@@ -141,7 +142,8 @@ function calculatePreview(
         recipientCount: 1
       }
     };
-    previewBoons.set(kind, [application]);
+    // Preview grants use the same exclusive stores as accepted combat applications.
+    (isStandardBoon(kind) ? previewBoons : previewBuffs).set(kind, [application]);
     // Preview events obey the same explicit player-ownership contract as simulated buffs.
     events.push({ ...application, type: 'buff', kind, source: name, sourceId: 'stat-preview', actorType: 'player' });
   };
@@ -186,6 +188,7 @@ function calculatePreview(
     profession: professionState,
     activeWeaponSet: weaponSet,
     boons: previewBoons,
+    buffs: previewBuffs,
     combatStartTime: 0,
     relic
   };

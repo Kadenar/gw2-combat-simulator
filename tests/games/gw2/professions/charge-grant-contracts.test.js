@@ -62,6 +62,7 @@ function contextFor(profession, specialization, selectedTraitIds = []) {
     events,
     effects,
     boons: new Map(),
+    buffs: new Map(),
     cooldownController: { readyAt: () => undefined, reduceSkillRecharge() {} },
     start: 0,
     effectiveEnd: 1

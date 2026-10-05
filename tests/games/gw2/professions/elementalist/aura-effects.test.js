@@ -156,13 +156,16 @@ test('Tempest preserves aura damage windows and grants boons for every actual au
       traits: new Set([TRAIT.TEMPESTUOUS_ARIA, TRAIT.INVIGORATING_TORRENTS, TRAIT.ELEMENTAL_BASTION]),
       config: {},
       query: { statsAt: () => ({ concentration: 0 }) },
-      boons: new Map([['tempestuous aria', [{ at: 0, expiresAt: 3, stacks: 1 }]]]),
+      boons: new Map([]),
+      buffs: new Map([
+        ['tempestuous aria', [{ resolvedAudience: { includesSelf: true }, at: 0, expiresAt: 3, stacks: 1 }]]
+      ]),
       effects: captureEffectEmissions({ submit: (event) => queued.push(event) }).effects
     };
     // Bind real owner operations for this focused mechanic fixture.
     context.combat = createMechanicCombatServices(context);
     applyTempestResolverAura(context, { type: 'elementalist.aura', at: 1, skillName: 'Fixture Aura', ...origin });
-    assert.equal(context.boons.get('tempestuous aria')[0].expiresAt, 8);
+    assert.equal(context.buffs.get('tempestuous aria')[0].expiresAt, 8);
     assert.deepEqual(
       queued.map((event) => event.kind),
       ['vigor', 'regeneration', 'alacrity']
@@ -180,6 +183,7 @@ test('Catalyst caps and refreshes Empowering Auras while granting Elemental Epit
     traits: new Set([TRAIT.EMPOWERING_AURAS, TRAIT.ELEMENTAL_EPITOME]),
     combatStartTime: 0,
     boons: new Map(),
+    buffs: new Map(),
     // Both scalar and effect overrides are assembled before aura reactions read their owners.
     helpers: withProfile(
       withProfile(elementalistCatalog, TRAIT.EMPOWERING_AURAS, { maximumStacks: 1, durationMultiplier: 8 }),

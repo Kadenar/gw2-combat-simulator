@@ -214,9 +214,9 @@ function queryBoundaries(context: MechanicQueryContext<WarriorRuntimeState, Warr
   context.procs;
   // @ts-expect-error Query callbacks cannot schedule or emit effects.
   context.effects.emit({});
-  // @ts-expect-error Query callbacks cannot revise boon state.
-  context.combat.reviseBoonExpiry(
-    'fury',
+  // @ts-expect-error Query callbacks cannot revise buff state.
+  context.combat.reviseBuffExpiry(
+    'fierce-as-fire',
     () => true,
     () => 0
   );

@@ -1,5 +1,5 @@
 import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
-import { countActiveBoons } from '#gw2/platform/combat/query/runtime-query.js';
+import { countActiveBoons, buffActive } from '#gw2/platform/combat/query/runtime-query.js';
 import {
   modifyCoreAttributes,
   modifyCoreCriticalChance,
@@ -13,10 +13,8 @@ interface RevenantModifierContext extends Gw2ModifierContext {
 }
 
 export function revenantTimedBuff(context: RevenantModifierContext, kind: string): boolean {
-  if (context.config?.boons?.[kind]) return true;
-  return (context.runtime?.boons?.get(kind) || []).some(
-    (application) => application.at <= context.time && application.expiresAt > context.time
-  );
+  // Timed modifiers read accepted non-boon windows.
+  return buffActive(context, kind);
 }
 
 // Count distinct self-affecting boons active at the query time for Revenant

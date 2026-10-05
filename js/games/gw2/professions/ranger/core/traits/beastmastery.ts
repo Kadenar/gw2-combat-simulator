@@ -9,12 +9,7 @@ import {
 } from '#gw2/platform/skills/balance-profiles.js';
 import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
 import { compileProfessionRules } from '#gw2/platform/profession-definition/trigger-rules.js';
-import {
-  activeBuff,
-  beastmodeActive,
-  rangerBoonActive,
-  rangerPetEvent
-} from '#gw2/professions/ranger/core/traits/modifier-queries.js';
+import { activeBuff, beastmodeActive, rangerPetEvent } from '#gw2/professions/ranger/core/traits/modifier-queries.js';
 import { RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
 import type { RangerBuild, RangerRuntimeState } from '#gw2/professions/ranger/types.js';
 
@@ -52,7 +47,7 @@ export const goForTheThroat = defineTrait({
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: 'multiply',
       factor: 1.4,
-      when: (context) => rangerPetEvent(context) && rangerBoonActive(context, 'lesser-sic-em-pet')
+      when: (context) => rangerPetEvent(context) && activeBuff(context, 'lesser-sic-em-pet')
     }
   ]
 });

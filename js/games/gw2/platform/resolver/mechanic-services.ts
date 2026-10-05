@@ -4,7 +4,7 @@ import type { SkillId } from '#gw2/platform/skills/types.js';
 import type { Gw2ResolverRuntime } from '#gw2/platform/resolver/runtime-state.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import type { Gw2ResolvedStats } from '#gw2/platform/combat/query/combat-query.js';
-import { activeBoonStacks, targetConditionCount } from '#gw2/platform/combat/query/runtime-query.js';
+import { activeBoonStacks, activeBuffStacks, targetConditionCount } from '#gw2/platform/combat/query/runtime-query.js';
 import { liveBoonSnapshot, type BoonSnapshotRecipient } from '#gw2/platform/combat/query/live-boon-snapshot.js';
 import {
   targetHealthLoss,
@@ -17,6 +17,9 @@ export function createMechanicCombatServices(runtime: Gw2ResolverRuntime) {
   return Object.freeze({
     activeBoonStacks: (kind: string, at: number, maximum = 25) =>
       activeBoonStacks({ config: runtime.config, runtime, time: at }, kind, maximum),
+    activeBuffStacks: (kind: string, at: number, maximum = 25) =>
+      activeBuffStacks({ runtime, time: at }, kind, maximum),
+    buffApplications: (kind: string): readonly Readonly<Gw2TimedBuffApplication>[] => runtime.buffs.get(kind) ?? [],
     targetHasCondition: (condition: string, at: number) => runtime.query.targetHasCondition(condition, at, runtime),
     targetConditionStacks: (condition: string, at: number) =>
       runtime.query.targetConditionStacks(condition, at, runtime),
@@ -34,14 +37,14 @@ export function createMechanicCombatServices(runtime: Gw2ResolverRuntime) {
     boonApplications: (kind: string): readonly Readonly<Gw2TimedBuffApplication>[] => runtime.boons.get(kind) ?? [],
     boonSnapshot: (kind: string, at: number, recipient: BoonSnapshotRecipient) =>
       liveBoonSnapshot(runtime.boons.get(kind) ?? [], runtime.config, kind, at, recipient),
-    reviseBoonExpiry(
+    reviseBuffExpiry(
       kind: string,
       select: (application: Readonly<Gw2TimedBuffApplication>) => boolean,
       expiry: (at: number) => number
     ): void {
-      const applications = runtime.boons.get(kind);
+      const applications = runtime.buffs.get(kind);
       if (applications)
-        runtime.boons.set(
+        runtime.buffs.set(
           kind,
           applications.map((application) =>
             select(application) ? { ...application, expiresAt: expiry(application.expiresAt) } : application

@@ -1,4 +1,9 @@
-import { buffApplicationStacks, isDurationStackingBoon, GW2_STANDARD_BOONS } from '#gw2/platform/combat/boons.js';
+import {
+  buffApplicationStacks,
+  isDurationStackingBoon,
+  isStandardBoon,
+  GW2_STANDARD_BOONS
+} from '#gw2/platform/combat/boons.js';
 import { selectedSkillIdSet } from '#gw2/platform/builds/selected-skills.js';
 import {
   CANONICAL_TARGET_CONDITIONS,
@@ -59,6 +64,7 @@ export function playerHealthFraction(context: Gw2ModifierContext): number {
 
 /** Keeps permanent player boons while using live state to hide later same-time applications. */
 export function boonActive(context: Gw2ModifierContext, boon: string): boolean {
+  if (!isStandardBoon(boon)) return false;
   if (context.config?.boons?.[boon]) return true;
   if (!context.runtime) return Boolean(context.timeline?.timedActive(boon, context.time));
   const applications = context.runtime.boons?.get(boon) || [];
@@ -77,6 +83,7 @@ export function countActiveBoons(
 
 /** Counts only player applications so summon copies cannot extend duration or add intensity/custom stacks. */
 export function activeBoonStacks(context: Gw2ModifierContext, boon: string, maximum = 25): number {
+  if (!isStandardBoon(boon)) return 0;
   const permanent = context.config?.boons?.[boon];
   const base = permanent === true ? 1 : permanent || 0;
   // Configured duration presence needs no history, but must still respect the caller's output cap.
@@ -111,4 +118,16 @@ export function vulnerabilityStacks(context: Gw2ModifierContext): number {
     context.query?.vulnerabilityStacksAt(context.time, context.runtime) ??
     0
   );
+}
+
+/** Ordinary buffs use accepted player grants; only absent runtimes may inspect scheduled preview events. */
+export function activeBuffStacks(context: Gw2ModifierContext, kind: string, maximum = 25): number {
+  if (isStandardBoon(kind)) return 0;
+  if (!context.runtime) return context.timeline?.buffStacksAt(kind, context.time, 0, maximum) ?? 0;
+  return buffApplicationStacks(context.runtime.buffs?.get(kind) ?? [], kind, context.time, maximum);
+}
+
+/** Buff presence stays separate from configured and generated standard boons. */
+export function buffActive(context: Gw2ModifierContext, kind: string): boolean {
+  return activeBuffStacks(context, kind, 1) > 0;
 }

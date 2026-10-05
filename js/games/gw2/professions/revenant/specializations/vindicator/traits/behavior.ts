@@ -50,16 +50,21 @@ export function modifyVindicatorAttributes(context: Gw2ModifierContext, attribut
 
 /** Applies the trait at the mechanic's existing execution boundary. */
 export function renewForerunnerOfDeath(runtime: RevenantRuntime, profile: RevenantSkill, activationId: string): void {
-  const state = vindicatorState.from(runtime);
   if (profile.id === ID.DEATH_DROP && hasTrait(runtime, TRAIT.FORERUNNER_OF_DEATH)) {
     const forerunner = requireBalanceProfileFromContext(runtime, TRAIT.FORERUNNER_OF_DEATH);
     const window = requireEffect(forerunner, 'buff', 'forerunner-of-death');
     // The damage window is the buff, so a removed buff opens no window.
     if (window) {
       const duration = Math.max(0, effectNumber(forerunner, window, 'duration'));
-      state.forerunnerOfDeathUntil = runtime.time + duration;
+      // Renewal replaces the previous bonus even if the selected profile grants a shorter window.
+      runtime.combat.reviseBuffExpiry(
+        'forerunner-of-death',
+        (application) => application.at <= runtime.time && application.expiresAt > runtime.time,
+        () => runtime.time
+      );
       runtime.effects.emit({
         kind: 'packet',
+        settlement: 'reaction',
         event: {
           ...{
             type: 'buff',
@@ -84,7 +89,7 @@ export function renewForerunnerOfDeath(runtime: RevenantRuntime, profile: Revena
 
 /** Snapshots the pre-landing damage window before its renewal. */
 export function forerunnerOfDeathActive(runtime: RevenantRuntime): boolean {
-  return (vindicatorState.from(runtime).forerunnerOfDeathUntil || 0) > runtime.time;
+  return runtime.combat.activeBuffStacks('forerunner-of-death', runtime.time, 1) > 0;
 }
 
 export function enduranceNotFull(context: Gw2ModifierContext): boolean {

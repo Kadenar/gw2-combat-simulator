@@ -23,7 +23,7 @@ export function warriorBoonActive(context: Gw2ModifierContext, boon: string): bo
 
 // Custom Warrior stacks read only live self applications; configured boons never stand in for trait windows.
 export function warriorActiveBuffStacks(context: Gw2ModifierContext, kind: string, maximum: number): number {
-  return buffApplicationStacks(context.runtime?.boons?.get(kind) || [], kind, context.time, maximum);
+  return buffApplicationStacks(context.runtime?.buffs?.get(kind) || [], kind, context.time, maximum);
 }
 
 export function warriorActiveBoonCount(context: Gw2ModifierContext): number {

@@ -8,9 +8,6 @@ import { GUARDIAN_TRAIT_IDS as TRAIT } from '#gw2/professions/guardian/data/ids.
 /** Only the selected elite supplies its effect policies, using the same caps as its mechanics. */
 export function willbenderBuffPolicies(context: unknown): BuffStatePolicy[] {
   const policies: BuffStatePolicy[] = [
-    { kind: 'justice', maximumStacks: 1 },
-    { kind: 'resolve', maximumStacks: 1 },
-    { kind: 'courage', maximumStacks: 1 },
     { kind: 'willbender-justice', maximumStacks: 1 },
     { kind: 'willbender-resolve', maximumStacks: 1 },
     { kind: 'willbender-courage', maximumStacks: 1 }

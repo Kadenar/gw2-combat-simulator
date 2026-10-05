@@ -87,7 +87,7 @@ test('Ferocious Aggression follows self Fury activation and expiry for strike an
     config: { specialization: 'Core', selectedTraitIds: [TRAIT.FEROCIOUS_AGGRESSION], boons: {} },
     event: { actorType: 'player' },
     condition: 'Burning',
-    runtime: { boons: new Map([['fury', [fury]]]) }
+    runtime: { boons: new Map([['fury', [fury]]]), buffs: new Map([]) }
   };
 
   // Only self Fury grants the additive bonus, including both edges of its active window.
@@ -677,7 +677,8 @@ test("Kalla's Fervor stacks, refreshes, and improves with Lasting Legacy", () =>
           }
         }
       },
-      boons: new Map()
+      boons: new Map(),
+      buffs: new Map()
     },
     query: {
       targetHasCondition: () => false,
@@ -742,7 +743,7 @@ test('Renegade critical traits and Blood Fury use their supplied intervals', () 
         },
         condition: 'Bleeding',
         time: 1,
-        runtime: { boons: new Map() }
+        runtime: { boons: new Map(), buffs: new Map() }
       },
       1.2
     ),
@@ -760,7 +761,7 @@ test('Renegade critical traits and Blood Fury use their supplied intervals', () 
         },
         condition: 'Torment',
         time: 1,
-        runtime: { boons: new Map() }
+        runtime: { boons: new Map(), buffs: new Map() }
       },
       1.15
     ),
@@ -846,6 +847,7 @@ test('Heartpiercer and Brutal Momentum apply multiplicative combat bonuses', () 
     runtime: {
       profession: {},
       boons: new Map(),
+      buffs: new Map(),
       ...(extra.runtime || {})
     },
     query: {

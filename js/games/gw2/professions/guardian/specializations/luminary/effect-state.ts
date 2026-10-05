@@ -10,7 +10,6 @@ export function luminaryBuffPolicies(): BuffStatePolicy[] {
     { kind: 'guardian-piercing-stance', maximumStacks: 1 },
     { kind: 'radiant-forge', maximumStacks: 1 },
     { kind: 'light-aura', maximumStacks: 1 },
-    { kind: 'radiant-armaments', maximumStacks: 1 },
     { kind: 'guardian-radiant-armaments', maximumStacks: 1 },
     { kind: 'guardian-radiant-courage-sword', maximumStacks: 1 },
     { kind: 'guardian-empowered-armaments', maximumStacks: 1 }
@@ -24,7 +23,7 @@ export function luminaryEffectStates(
   const state = luminaryState.from(runtime);
   const effects: EffectState[] = [];
   // Radiant Armaments replaces its predecessor even when the new weapon grants a shorter window.
-  const armament = runtime.combat.boonApplications('guardian-radiant-armaments').at(-1);
+  const armament = runtime.combat.buffApplications('guardian-radiant-armaments').at(-1);
   effects.push(
     timedEffectState(
       'guardian-radiant-armaments',

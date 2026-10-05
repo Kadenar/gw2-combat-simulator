@@ -1,3 +1,4 @@
+import { createMechanicCombatServices } from '#gw2/platform/resolver/mechanic-services.js';
 import { captureEffectEmissions } from '#tests/helpers/effect-emission.js';
 import { defineProfessionApp } from '#gw2/app/define-profession-app.js';
 import { tooltipFactIcon } from '#gw2/app/shared/icons.js';
@@ -919,7 +920,11 @@ test('Engineer spear resolver and tooltip use the same selected packet profile',
   handleElectricArtillery(
     {
       catalog: selected.catalog,
-      profession: { core: { focusedUntil: 20 } },
+      combat: createMechanicCombatServices({
+        buffs: new Map([
+          ['engineer-focused', [{ at: 0, expiresAt: 20, stacks: 1, resolvedAudience: { includesSelf: true } }]]
+        ])
+      }),
       effects: captureEffectEmissions({
         submit: (event) => {
           packets.push(event);

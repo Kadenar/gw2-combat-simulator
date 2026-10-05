@@ -203,7 +203,8 @@ test('combat history ends at death while the planning observation includes later
 // Registration rejects missing or competing owners before an uncapped track can escape into results.
 test('effect observation rejects unregistered buffs and duplicate native policies', () => {
   const runtime = {
-    boons: new Map([['unknown', []]]),
+    boons: new Map([]),
+    buffs: new Map([['unknown', []]]),
     config: {},
     conditionState: new Map(),
     time: 0,

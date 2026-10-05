@@ -1,14 +1,11 @@
+import { buffActive } from '#gw2/platform/combat/query/runtime-query.js';
 import { professionStaticRulesApplied } from '#gw2/platform/builds/attribute-provenance.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import { defineTrait, traitAttributeEffects } from '#gw2/platform/profession-definition/traits.js';
 import { ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
 import type { EngineerBuild } from '#gw2/professions/engineer/types.js';
-import {
-  engineerRuntimeState,
-  activeBoonStacks,
-  targetConditionCount
-} from '#gw2/professions/engineer/core/traits/query-helpers.js';
+import { activeBoonStacks, targetConditionCount } from '#gw2/professions/engineer/core/traits/query-helpers.js';
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
 import { heavyMetalBonus } from '#gw2/professions/engineer/core/traits/behavior.js';
 
@@ -122,13 +119,13 @@ export const thermalVision = defineTrait({
   modifierRules: [
     {
       order: -8,
-      // thermalVisionUntil is extended by each Burning application; rule active while window is open
+      // Accepted Burning-triggered buff windows own the modifier lifetime.
       id: 'engineer.thermal-vision-damage',
       conditionSampleInvariant: true,
       target: MODIFIER_TARGET.CONDITION_DAMAGE,
       operation: 'damage-additive',
       amount: 0.05,
-      when: (context) => (engineerRuntimeState(context).thermalVisionUntil || 0) > context.time
+      when: (context) => buffActive(context, 'thermal-vision')
     }
   ],
   buildAttributes: traitAttributeEffects(TRAIT.THERMAL_VISION, [

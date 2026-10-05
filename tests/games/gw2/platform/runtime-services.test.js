@@ -665,7 +665,7 @@ test('Fireworks eligibility uses inferred profession weapon strength in detailed
   // The materialized strike has no explicit profile override; the hit resolver supplies the selected profile.
   for (const output of ['detailed', 'score']) {
     const result = run([cast(991013)], { output, config: { ...config, relic: 'Fireworks' } }, native({}));
-    assert.equal(observedRuntime(result).relic.state.buffUntil, 6);
+    assert.equal(observedRuntime(result).buffs.get('relic-fireworks').at(-1).expiresAt, 6);
     assert.ok(result.totalDamage > 0);
   }
 });
@@ -718,7 +718,7 @@ test('Peitha effects wait for impact and cannot leak beyond the observation wind
   const options = { config: { ...config, relic: 'Peitha' } };
   const short = run([cast(991004)], options);
   assert.equal(short.resolvedEvents.filter((event) => event.type === 'condition').length, 0);
-  assert.equal(observedRuntime(short).boons.has('relic-peitha'), false);
+  assert.equal(observedRuntime(short).buffs.has('relic-peitha'), false);
   const observed = run([cast(991004), wait(1500)], options);
   assert.equal(observed.resolvedEvents.find((event) => event.type === 'condition').at, 0.24);
   assert.ok(observed.conditionDamage > 0);
@@ -751,7 +751,7 @@ test('Peitha shares its activation cooldown and retains ordinary buff lifetimes 
     const runtime = observedRuntime(result);
     assert.deepEqual(runtime.relic.state, { readyAt: 4.001 + 4 });
     assert.deepEqual(
-      runtime.boons.get('relic-peitha').map(({ at, expiresAt }) => [at, expiresAt]),
+      runtime.buffs.get('relic-peitha').map(({ at, expiresAt }) => [at, expiresAt]),
       [
         [0.24, 4.24],
         [5.001, 9.04]
@@ -794,7 +794,7 @@ test('Peitha shares its activation cooldown and retains ordinary buff lifetimes 
 test('Peitha precombat impacts cannot preload Torment or the damage buff', () => {
   const result = run([cast(991004), wait(2000)], { config: { ...config, relic: 'Peitha' }, combatStartTime: 1 });
   const runtime = observedRuntime(result);
-  const buffs = runtime.boons.get('relic-peitha');
+  const buffs = runtime.buffs.get('relic-peitha');
   assert.deepEqual(
     buffs.map(({ at, expiresAt }) => [at, expiresAt]),
     [[1, 5]]

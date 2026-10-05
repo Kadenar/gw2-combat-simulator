@@ -1,3 +1,4 @@
+import { buffActive } from '#gw2/platform/combat/query/runtime-query.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { boonActive } from '#gw2/platform/combat/query/runtime-query.js';
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
@@ -147,7 +148,7 @@ export const birdOfPrey = defineTrait({
       // Either movement buff activates the player bonus, including generated buffs until they expire.
       when: (context) =>
         isGw2PlayerModifierOwnedEvent(context.event) &&
-        (boonActive(context, 'swiftness') || boonActive(context, 'superspeed'))
+        (boonActive(context, 'swiftness') || buffActive(context, 'superspeed'))
     }
   ]
 });

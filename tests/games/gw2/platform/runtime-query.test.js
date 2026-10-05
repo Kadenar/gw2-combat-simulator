@@ -7,6 +7,7 @@ import { recordBuffApplication } from '#gw2/platform/combat/boons.js';
 import { createCanonicalCatalog } from '#gw2/platform/skills/catalog.js';
 import {
   activeBoonStacks,
+  activeBuffStacks,
   boonActive,
   eventSkill,
   hasSelectedSkillId,
@@ -54,7 +55,7 @@ test('configured duration stacks bypass history and retain output caps without c
     }
   }
 
-  for (const kind of ['might', 'stability', 'custom']) {
+  for (const kind of ['might', 'stability']) {
     const current = context({
       config: { boons: { [kind]: 3 } },
       runtime: {
@@ -109,7 +110,7 @@ test('duration boon stacks use capped presence in live state', () => {
 
 test('player boon stacks exclude summon copies in live state', () => {
   // Copied packets must neither extend player Fury nor double player intensity stacks.
-  for (const kind of ['fury', 'might', 'custom']) {
+  for (const kind of ['fury', 'might']) {
     const stacks = kind === 'fury' ? 1 : 3;
     const boons = new Map();
     for (const includesSelf of [true, false]) {
@@ -133,9 +134,10 @@ test('player boon stacks exclude summon copies in live state', () => {
 
 test('duration stack queries retain player audience filtering and live insertion order', () => {
   const state = {
-    boons: new Map([['fury', [{ at: 0, expiresAt: 10, stacks: 1, resolvedAudience: { includesSelf: true } }]]])
+    boons: new Map([['fury', [{ at: 0, expiresAt: 10, stacks: 1, resolvedAudience: { includesSelf: true } }]]]),
+    buffs: new Map([])
   };
-  const runtime = { boons: new Map() };
+  const runtime = { boons: new Map(), buffs: new Map() };
   const current = context({ time: 0, state, runtime });
   assert.equal(activeBoonStacks(current, 'fury'), 0);
   runtime.boons.set('fury', [{ at: 0, expiresAt: 10, stacks: 1, resolvedAudience: { includesSelf: false } }]);
@@ -144,12 +146,12 @@ test('duration stack queries retain player audience filtering and live insertion
   runtime.boons.get('fury').push({ at: 0, expiresAt: 10, stacks: 1, resolvedAudience: { includesSelf: true } });
   assert.equal(activeBoonStacks(current, 'fury'), 1);
   assert.equal(boonActive(current, 'fury'), true);
-  runtime.boons.set('custom', [
+  runtime.buffs.set('custom', [
     { at: 0, expiresAt: 10, stacks: 3, resolvedAudience: { includesSelf: true } },
     { at: 0, expiresAt: 10, stacks: 2, resolvedAudience: { includesSelf: true } }
   ]);
-  assert.equal(activeBoonStacks(current, 'custom'), 5);
-  assert.equal(activeBoonStacks({ ...current, time: 10 }, 'custom'), 0);
+  assert.equal(activeBuffStacks(current, 'custom'), 5);
+  assert.equal(activeBuffStacks({ ...current, time: 10 }, 'custom'), 0);
 });
 
 test('additive damage uses the live weapon set before and after a same-time swap', () => {
@@ -267,7 +269,7 @@ test('boon-dependent damage sees same-time buffs only after their live applicati
     },
     events: [hit, buff]
   });
-  const runtime = { boons: new Map() };
+  const runtime = { boons: new Map(), buffs: new Map() };
 
   // A completed timeline contains the buff even while the live hit precedes it.
   assert.equal(query.strikeMultiplier(hit, hit.at, runtime), 1);
@@ -291,7 +293,8 @@ test('live boon presence respects duration pools, audience, and application wind
       boons: new Map([
         ['fury', applications],
         ['might', applications]
-      ])
+      ]),
+      buffs: new Map([])
     }
   });
 
@@ -390,8 +393,8 @@ test('boon queries retain configured stacks and prefer live applications over sc
   const runtimeApplication = { at: 0, expiresAt: 10, stacks: 2, resolvedAudience: { includesSelf: true } };
   const modifierContext = context({
     config: { boons: { might: 3 } },
-    state: { boons: new Map([['might', [schedulerApplication]]]) },
-    runtime: { boons: new Map([['might', [runtimeApplication]]]) }
+    state: { boons: new Map([['might', [schedulerApplication]]]), buffs: new Map([]) },
+    runtime: { boons: new Map([['might', [runtimeApplication]]]), buffs: new Map([]) }
   });
 
   assert.equal(activeBoonStacks(modifierContext, 'might'), 5);
@@ -418,7 +421,8 @@ test('boon queries retain configured stacks and prefer live applications over sc
                 }
               ]
             ]
-          ])
+          ]),
+          buffs: new Map([])
         }
       }),
       'fury'

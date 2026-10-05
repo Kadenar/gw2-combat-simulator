@@ -53,7 +53,6 @@ export interface NecromancerCoreState {
   lichEndsAt: number;
   /** Re-entering the timed form owns a new cancellable expiry. */
   lichGeneration: number;
-  dreadUntil: number;
 
   tasteForBloodGrants: Record<string, TasteForBloodGrant[]>;
 }
@@ -70,8 +69,7 @@ const NECROMANCER_CORE_PUBLIC_END_STATE_KEYS = Object.freeze([
   'availableFlips',
   'autoattackChains',
   'selfConditions',
-  'lichEndsAt',
-  'dreadUntil'
+  'lichEndsAt'
 ] as const satisfies readonly (keyof NecromancerCoreState)[]);
 
 // Core fields have no inactive fallbacks; their values come from the live state.

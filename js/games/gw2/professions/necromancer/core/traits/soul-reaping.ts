@@ -1,3 +1,4 @@
+import { buffActive } from '#gw2/platform/combat/query/runtime-query.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import { defineTrait, traitAttributeEffects } from '#gw2/platform/profession-definition/traits.js';
@@ -118,7 +119,7 @@ export const soulBarbs = defineTrait({
       target: [MODIFIER_TARGET.STRIKE_DAMAGE, MODIFIER_TARGET.CONDITION_DAMAGE],
       operation: 'damage-additive',
       amount: 0.1,
-      when: (context) => Boolean(context.timeline?.timedActive('necromancer-soul-barbs', context.time))
+      when: (context) => buffActive(context, 'necromancer-soul-barbs')
     }
   ]
 });

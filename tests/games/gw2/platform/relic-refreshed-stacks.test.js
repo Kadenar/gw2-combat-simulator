@@ -1,11 +1,11 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { createRelicRuntime, invokeRelicHook } from '#gw2/platform/equipment/relics/runtime.js';
-import { captureEffectEmissions } from '#tests/helpers/effect-emission.js';
+import { captureAcceptedBuffEmissions } from '#tests/helpers/effect-emission.js';
 
 // Isolate the real relic hooks so refresh and transition contracts need no saved rotation.
 function fixture(name, config = {}) {
-  const captured = captureEffectEmissions();
+  const captured = captureAcceptedBuffEmissions();
   return { ...captured, relic: createRelicRuntime(name), config };
 }
 
@@ -44,7 +44,7 @@ test('Bloodstone refreshes Volatility until the fourth blast consumes it and blo
   assert.equal(context.relic.state.refreshedStacks.stacks, 3);
   combo(20);
   assert.deepEqual(context.relic.state.refreshedStacks, { stacks: 0, expiresAt: 0 });
-  assert.equal(context.relic.state.buffUntil, 28);
+  assert.equal(context.buffs.get('bloodstone-fervor').at(-1).expiresAt, 28);
   const consumption = context.announcements.at(-2).announcement;
   assert.equal(consumption.name, 'Bloodstone Volatility');
   assert.equal(consumption.expiresAt, 20);

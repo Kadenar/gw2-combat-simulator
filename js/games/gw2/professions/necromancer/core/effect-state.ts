@@ -7,6 +7,7 @@ import type { NecromancerRuntimeState, NecromancerSkill } from '#gw2/professions
 /** Core owns shared weapon and trait effects; selected elites register their own policies. */
 export function necromancerBuffPolicies(_context: unknown): BuffStatePolicy[] {
   const policies: BuffStatePolicy[] = [
+    { kind: 'necromancer-dread', maximumStacks: 1 },
     { kind: 'necromancer-soul-barbs', maximumStacks: 1 },
     { kind: 'extirpation' },
     { kind: 'taste-for-blood' }

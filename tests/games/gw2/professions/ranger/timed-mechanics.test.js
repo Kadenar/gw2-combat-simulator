@@ -80,9 +80,13 @@ test('Bird of Prey accepts permanent and timed movement buffs only for player-ow
   };
   assert.equal(rule.when(context), false);
   for (const boon of ['swiftness', 'superspeed']) {
-    assert.equal(rule.when({ ...context, config: { ...context.config, boons: { [boon]: true } } }), true);
+    assert.equal(
+      rule.when({ ...context, config: { ...context.config, boons: { [boon]: true } } }),
+      boon === 'swiftness'
+    );
     const application = { at: 1, expiresAt: 2, resolvedAudience: { includesSelf: true } };
-    const runtime = { boons: new Map([[boon, [application]]]) };
+    const runtime = { boons: new Map(), buffs: new Map() };
+    (boon === 'swiftness' ? runtime.boons : runtime.buffs).set(boon, [application]);
     for (const [time, expected] of [
       [0, false],
       [1, true],

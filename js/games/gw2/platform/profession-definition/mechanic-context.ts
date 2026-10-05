@@ -36,6 +36,8 @@ export interface MechanicQueryContext<T extends object = object, TSkill extends 
     ReturnType<typeof createMechanicCombatServices>,
     | 'activeBoonStacks'
     | 'boonApplications'
+    | 'buffApplications'
+    | 'activeBuffStacks'
     | 'boonSnapshot'
     | 'timeline'
     | 'targetHasCondition'

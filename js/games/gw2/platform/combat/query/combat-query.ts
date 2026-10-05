@@ -1,6 +1,6 @@
 import { normalizeSelectedTraitIds } from '#gw2/platform/combat/state/traits.js';
 import type { Gw2BuffAudience, Gw2TimedBuffApplication } from '#gw2/platform/combat/boons.js';
-import { buffApplicationStacks, MIGHT_ATTRIBUTE_BONUS_PER_STACK } from '#gw2/platform/combat/boons.js';
+import { buffApplicationStacks, isStandardBoon, MIGHT_ATTRIBUTE_BONUS_PER_STACK } from '#gw2/platform/combat/boons.js';
 import {
   criticalChance,
   criticalDamageMultiplier,
@@ -237,7 +237,7 @@ export function createGw2CombatQuery({
     companionId: string | null = null
   ): number | null => {
     if (!runtime) return null;
-    const applications = runtime.boons?.get(kind) || [];
+    const applications = (isStandardBoon(kind) ? runtime.boons : runtime.buffs)?.get(kind) || [];
     return buffApplicationStacks(applications, kind, time, maximum, { audience, companionId, ordered: true });
   };
 
@@ -724,6 +724,7 @@ export function createGw2CombatQuery({
 
 export interface Gw2QueryRuntime extends Gw2RuntimeStateLike {
   readonly boons?: Map<string, Gw2TimedBuffApplication[]>;
+  readonly buffs?: Map<string, Gw2TimedBuffApplication[]>;
   readonly activeWeaponSet?: number;
   readonly relic?: Gw2RelicRuntime;
   readonly profession?: object | null;

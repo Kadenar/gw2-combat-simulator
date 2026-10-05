@@ -41,7 +41,6 @@ export function createNecromancerCoreState(config: NecromancerConfig = {}): Necr
     plagueSendingArmed: false,
     lichEndsAt: 0,
     lichGeneration: 0,
-    dreadUntil: 0,
 
     tasteForBloodGrants: {}
   };

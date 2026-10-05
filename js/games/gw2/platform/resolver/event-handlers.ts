@@ -42,7 +42,8 @@ function handleBuff(ctx: Gw2ResolverRuntime, event: Gw2ResolverEvent, reactions:
   // Retain actual applications, including trait-generated boons, for effects charts.
   if (ctx.reporting) ctx.resolved.push(event);
   // Record before reactions so their boon queries include this application at its timestamp.
-  recordBuffApplication(ctx.boons, event);
+  // Accepted standard boons and ordinary buffs have exclusive stores, shared recipients and causal ordering.
+  recordBuffApplication(isStandardBoon(kind) ? ctx.boons : ctx.buffs, event);
   reactions.dispatch('buff.applied', ctx, event);
 }
 

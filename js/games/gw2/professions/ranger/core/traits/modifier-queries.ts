@@ -1,4 +1,4 @@
-import { buffApplicationStacks, GW2_STANDARD_BOONS, isStandardBoon } from '#gw2/platform/combat/boons.js';
+import { buffApplicationStacks, GW2_STANDARD_BOONS } from '#gw2/platform/combat/boons.js';
 import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
 import { boonActive, countActiveBoons, targetConditionActive } from '#gw2/platform/combat/query/runtime-query.js';
 import { gw2EventActorType } from '#gw2/platform/combat/state/event-ownership.js';
@@ -15,10 +15,16 @@ import type { RangerModifierContext } from '#gw2/professions/ranger/types.js';
 
 /** Custom damage windows share the same configured, timeline, and live-stack lookup across Core and Soulbeast. */
 export function activeBuff(context: RangerModifierContext, kind: string): boolean {
-  if (context.config?.boons?.[kind]) return true;
-  if (context.timeline?.timedActive(kind, context.time)) return true;
-  return (context.runtime?.boons?.get(kind) || []).some(
-    (application) => application.at <= context.time && application.expiresAt > context.time && application.stacks > 0
+  // Live recipient-specific grants take precedence over scheduled preview history.
+  const pet = rangerPetEvent(context);
+  const companionId = context.event?.summonOwner == null ? null : String(context.event.summonOwner);
+  if (!context.runtime)
+    return Boolean(context.timeline?.buffStacksAt(kind, context.time, 0, 1, pet ? 'summon' : 'all', companionId));
+  return (
+    buffApplicationStacks(context.runtime.buffs?.get(kind) ?? [], kind, context.time, 1, {
+      audience: pet ? 'summon' : 'all',
+      companionId
+    }) > 0
   );
 }
 
@@ -36,12 +42,7 @@ export function rangerPetEvent(context: Gw2ModifierContext): boolean {
 }
 
 export function rangerBoonActive(context: Gw2ModifierContext, boon: string): boolean {
-  // Standard boons use chronological player recipients; custom player/pet buff keys retain their existing lookup.
-  if (isStandardBoon(boon)) return boonActive(context, boon);
-  if (context.config?.boons?.[boon] || context.timeline?.timedActive(boon, context.time)) return true;
-  return (context.runtime?.boons?.get(boon) || []).some(
-    (application) => application.at <= context.time && application.expiresAt > context.time
-  );
+  return boonActive(context, boon);
 }
 
 function rangerPetBoonActive(context: Gw2ModifierContext, boon: string): boolean {

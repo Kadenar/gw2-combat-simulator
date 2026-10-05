@@ -390,7 +390,12 @@ test('Familiar Prowess retains its applied window and patched Focus scaling afte
     catalog: runtime.catalog,
     event: { actorType: 'player' },
     config: { evokerElement: 'Air', selectedTraitIds: [] },
-    runtime: { boons: new Map([['familiars-prowess', [{ at: 0, expiresAt: 2, stacks: 1 }]]]) }
+    runtime: {
+      boons: new Map([]),
+      buffs: new Map([
+        ['familiars-prowess', [{ resolvedAudience: { includesSelf: true }, at: 0, expiresAt: 2, stacks: 1 }]]
+      ])
+    }
   };
   assert.equal(runtime.modifyStrikeDamage(context, 100), 120);
   assert.equal(
@@ -573,7 +578,12 @@ test('Persisting Flames patches transform packets before emission and display th
       helpers: runtime.catalog,
       catalog: runtime.catalog,
       config: { selectedTraitIds: [ELEMENTALIST.PERSISTING_FLAMES] },
-      runtime: { boons: new Map([['persisting flames', [{ at: 0, expiresAt: 15, stacks: 5 }]]]) },
+      runtime: {
+        boons: new Map([]),
+        buffs: new Map([
+          ['persisting flames', [{ resolvedAudience: { includesSelf: true }, at: 0, expiresAt: 15, stacks: 5 }]]
+        ])
+      },
       event: { actorType: 'player' }
     };
     assert.equal(runtime.modifyComboFields(context, { skill }, skill.comboFields)[0].duration, 2 + extension);

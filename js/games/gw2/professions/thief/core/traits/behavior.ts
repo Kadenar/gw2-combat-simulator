@@ -1,3 +1,4 @@
+import { replaceThiefBuff } from '#gw2/professions/thief/core/mechanics/buffs.js';
 import { professionStaticRulesApplied } from '#gw2/platform/builds/attribute-provenance.js';
 import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
 import type { Gw2ResolvedStats } from '#gw2/platform/combat/query/combat-query.js';
@@ -43,9 +44,14 @@ export function enterCloakedInShadow(runtime: ThiefRuntime, skill: ThiefSkill, a
 /** Applies Fluid Strikes at its established mechanical boundary. */
 export function applyFluidStrikes(runtime: ThiefRuntime): void {
   if (hasTrait(runtime, TRAIT.FLUID_STRIKES))
-    runtime.profession.core.fluidStrikesUntil =
-      runtime.time +
-      balanceProfileNumber(requireBalanceProfileFromContext(runtime, TRAIT.FLUID_STRIKES), 'durationMultiplier');
+    replaceThiefBuff(
+      runtime,
+      'fluid-strikes',
+      balanceProfileNumber(requireBalanceProfileFromContext(runtime, TRAIT.FLUID_STRIKES), 'durationMultiplier'),
+      TRAIT.FLUID_STRIKES,
+      'Fluid Strikes',
+      'Trait'
+    );
 }
 
 /** Applies Hard to Catch at its established mechanical boundary. */

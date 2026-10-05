@@ -1,4 +1,4 @@
-import { boonApplicationsAt } from '#gw2/platform/combat/boons.js';
+import { timedBuffApplicationsAt } from '#gw2/platform/combat/boons.js';
 import { effectStateAt } from '#gw2/platform/results/effect-report.js';
 import { guardianCatalog } from '#gw2/professions/guardian/catalog.js';
 import { GUARDIAN_SPEAR_EXPIRY } from '#gw2/professions/guardian/core/mechanics/spear.js';
@@ -42,19 +42,19 @@ test('Empowered Armaments extends only its live remainder and shares the display
       );
     const result = run(0);
     const buffs = result.events.filter((event) => event.kind === 'guardian-empowered-armaments');
-    const first = boonApplicationsAt(result.events, buffs[0].kind, buffs[0].at)[0];
+    const first = timedBuffApplicationsAt(result.events, buffs[0].kind, buffs[0].at)[0];
     assert.equal(first.expiresAt, 6.04);
     assert.ok(Math.abs(buffs[1].duration - (6 + Math.max(0, 6.04 - at))) < 1e-9);
     assert.equal(
       state(result).empoweredArmamentsUntil,
-      boonApplicationsAt(result.events, buffs[0].kind, at).at(-1).expiresAt
+      timedBuffApplicationsAt(result.events, buffs[0].kind, at).at(-1).expiresAt
     );
     const capped = run(5);
     const buff = capped.events.filter((event) => event.kind === 'guardian-empowered-armaments').at(-1);
     assert.equal(buff.duration, 20);
     assert.equal(
       state(capped).empoweredArmamentsUntil,
-      boonApplicationsAt(capped.events, buff.kind, at).at(-1).expiresAt
+      timedBuffApplicationsAt(capped.events, buff.kind, at).at(-1).expiresAt
     );
   }
 });
@@ -62,18 +62,18 @@ test('Empowered Armaments extends only its live remainder and shares the display
 test('Piercing Stance extends its live duration and imported armaments preserve the supplied duration', () => {
   const result = runGuardian([wait(1), ID.PIERCING_STANCE, ID.PIERCING_STANCE], config);
   const buffs = result.events.filter((event) => event.kind === 'guardian-piercing-stance');
-  const first = boonApplicationsAt(result.events, buffs[0].kind, buffs[0].at)[0];
+  const first = timedBuffApplicationsAt(result.events, buffs[0].kind, buffs[0].at)[0];
   assert.equal(state(result).piercingStanceUntil, first.expiresAt + 8);
   assert.equal(
     state(result).piercingStanceUntil,
-    boonApplicationsAt(result.events, buffs[0].kind, buffs[1].at).at(-1).expiresAt
+    timedBuffApplicationsAt(result.events, buffs[0].kind, buffs[1].at).at(-1).expiresAt
   );
   const imported = runGuardian([{ skillId: INITIAL.empoweredArmaments, initialStateDurationMs: 14514 }], config);
   const buff = imported.events.find((event) => event.kind === 'guardian-empowered-armaments');
   assert.equal(buff.duration, 14.514);
   assert.equal(
     state(imported).empoweredArmamentsUntil,
-    boonApplicationsAt(imported.events, buff.kind, buff.at)[0].expiresAt
+    timedBuffApplicationsAt(imported.events, buff.kind, buff.at)[0].expiresAt
   );
 });
 
@@ -81,7 +81,7 @@ test('Radiant Armaments damage and display agree through the final live microsec
   const settings = { ...config, selectedTraitIds: [TRAIT.RADIANT_ARMAMENTS] };
   const result = runGuardian([wait(1), ID.ENTER_RADIANT_FORGE, ID.DAZZLING_HAMMER, wait(11000)], settings);
   const buff = result.events.find((event) => event.kind === 'guardian-radiant-armaments');
-  const expiry = boonApplicationsAt(result.events, buff.kind, buff.at)[0].expiresAt;
+  const expiry = timedBuffApplicationsAt(result.events, buff.kind, buff.at)[0].expiresAt;
   const rule = luminaryModule.modifiers.modifierRules.find((entry) => entry.id === 'guardian.radiant-armaments');
   // Chart history must expose the same half-open lifetime as the damage modifier.
   const track = result.effectReport.tracks.find(

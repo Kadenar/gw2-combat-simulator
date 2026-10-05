@@ -206,7 +206,7 @@ test('Only Soulbeast Maul grants 25% to the next player strike and expires after
 });
 
 test('Attack of Opportunity ignores effect damage and consumes only its recipient at the same timestamp', () => {
-  const boons = new Map(
+  const buffs = new Map(
     ['pet', 'player'].map((recipient) => [
       `attack-of-opportunity-${recipient}`,
       [
@@ -223,7 +223,7 @@ test('Attack of Opportunity ignores effect damage and consumes only its recipien
       ]
     ])
   );
-  const context = { boons, profession: { core: { petActive: false } } };
+  const context = { buffs, profession: { core: { petActive: false } } };
   // Bind real owner operations for this focused mechanic fixture.
   context.combat = createMechanicCombatServices(context);
   const event = {
@@ -235,7 +235,7 @@ test('Attack of Opportunity ignores effect damage and consumes only its recipien
     coefficient: 1
   };
   const active = (packet) =>
-    rangerAttackOfOpportunityModifier.when({ runtime: { boons }, event: packet, time: packet.at });
+    rangerAttackOfOpportunityModifier.when({ runtime: { buffs }, event: packet, time: packet.at });
   reactToRangerGreatswordDamage(context, event);
   assert.equal(active(event), false);
   const player = { ...event, actorType: 'player', source: 'ranger' };

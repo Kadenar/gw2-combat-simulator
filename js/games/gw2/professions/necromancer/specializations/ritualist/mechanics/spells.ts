@@ -29,6 +29,17 @@ import { canonicalTime } from '#kernel/core/clock.js';
 const EXPIRE = 'ritualist.weapon-spell-expiry';
 const ALLY = 'ritualist.weapon-spell-opportunity';
 const BOND = 'ritualist.painful-bond-pulse';
+// Bond stacks duration while the native owner retains pulse cadence and cancellation generations.
+function bondExpiresAt(runtime: NecromancerRuntime): number {
+  return Math.max(
+    runtime.time,
+    ...runtime.combat
+      .buffApplications('necromancer-painful-bond')
+      .filter((application) => application.at <= runtime.time)
+      .map((application) => application.expiresAt)
+  );
+}
+
 const owner = (spell: string, generation: number) => ({ id: `ritualist.weapon-spell:${spell}`, generation });
 
 interface AllyOpportunity {
@@ -64,21 +75,22 @@ function applyBond(runtime: NecromancerRuntime, event: Gw2ResolverEvent): void {
   const profile = requireBalanceProfileFromContext(runtime, PROFILE.painfulBond);
   const buff = requireEffect(profile, 'buff', 'necromancer-painful-bond');
   if (!buff) return;
+  const expiresAt = gw2EffectExpiresAt(bondExpiresAt(runtime), Number(event.duration));
   runtime.effects.emit({
     kind: 'packet',
+    settlement: 'reaction',
     event: {
       ...event,
       type: 'buff',
       at: runtime.time,
       kind: String(buff.kind),
-      duration: Number(event.duration),
+      duration: expiresAt - runtime.time,
       stacks: effectNumber(profile, buff, 'stacks')
     }
   });
   const interval = balanceProfileNumber(profile, 'pulseInterval');
   runtime.cancelOwner({ id: BOND, generation: state.painfulBondGeneration });
   state.painfulBondGeneration++;
-  state.painfulBondUntil = gw2EffectExpiresAt(Math.max(runtime.time, state.painfulBondUntil), Number(event.duration));
   const identity = { id: BOND, generation: state.painfulBondGeneration };
   if (!(interval > 0)) return;
   const firstApplication = !Number.isFinite(state.painfulBondPulseAnchorAt);
@@ -89,7 +101,7 @@ function applyBond(runtime: NecromancerRuntime, event: Gw2ResolverEvent): void {
     ? 0
     : Math.max(0, Math.floor(canonicalTime(runtime.time - state.painfulBondPulseAnchorAt) / interval) + 1);
   const at = canonicalTime(state.painfulBondPulseAnchorAt + index * interval);
-  if (requireEffect(profile, 'strike', 'Strike') && at < state.painfulBondUntil)
+  if (requireEffect(profile, 'strike', 'Strike') && at < bondExpiresAt(runtime))
     runtime.schedule(BOND, at, event, identity);
 }
 
@@ -205,12 +217,12 @@ export const ritualistSpellHooks: RuntimeHooks<NecromancerRuntimeState, Necroman
     },
     [BOND](runtime, data) {
       const state = ritualistState.from(runtime);
-      if (runtime.time >= state.painfulBondUntil || runtime.deathTime != null) return;
+      if (runtime.time >= bondExpiresAt(runtime) || runtime.deathTime != null) return;
       const profile = requireBalanceProfileFromContext(runtime, PROFILE.painfulBond);
       const strike = requireEffect(profile, 'strike', 'Strike');
       emitPainfulBond(runtime, data as Gw2ResolverEvent);
       const at = canonicalTime(runtime.time + balanceProfileNumber(profile, 'pulseInterval'));
-      if (strike && at > runtime.time && at < state.painfulBondUntil)
+      if (strike && at > runtime.time && at < bondExpiresAt(runtime))
         runtime.schedule(BOND, at, data, { id: BOND, generation: state.painfulBondGeneration });
     }
   }

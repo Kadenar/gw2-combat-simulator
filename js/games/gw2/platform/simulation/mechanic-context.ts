@@ -21,6 +21,8 @@ class MechanicQueries<T extends object, TSkill extends Skill> implements Mechani
     this.combat = Object.freeze({
       activeBoonStacks: combat.activeBoonStacks,
       boonApplications: combat.boonApplications,
+      buffApplications: combat.buffApplications,
+      activeBuffStacks: combat.activeBuffStacks,
       boonSnapshot: combat.boonSnapshot,
       get timeline() {
         return combat.timeline;

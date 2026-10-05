@@ -114,7 +114,7 @@ test('combo boon resolution samples changing live concentration instead of confi
       ...query,
       // A runtime-only buff changes the sampled stat until expiry; configured concentration stays zero.
       statsAt(at, _event, runtime) {
-        const boosted = (runtime.boons.get('concentration-fixture') || []).some(
+        const boosted = (runtime.buffs.get('concentration-fixture') || []).some(
           (application) => application.at <= at && application.expiresAt > at
         );
         return { ...query.statsAt(), concentration: boosted ? 750 : 0 };

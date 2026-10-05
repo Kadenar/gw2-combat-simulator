@@ -1,3 +1,4 @@
+import { planningBuffAt } from '#gw2/platform/results/query.js';
 import { activeChargeCount } from '#gw2/platform/combat/resources/charges.js';
 import { activeStackCount } from '#gw2/platform/combat/resources/timed-stacks.js';
 import { readProfessionCoreState } from '#gw2/platform/profession-definition/state.js';
@@ -86,21 +87,21 @@ function thiefCoreStateSnapshot(context: ThiefUiContext): RotationStateSnapshotI
     });
   }
 
-  for (const [id, label, expiresAt, title] of [
+  for (const [id, label, kind, title] of [
     [
       'thief-distracting-throw',
       'Distracting Throw',
-      state.distractingThrowBuffUntil,
+      'distracting-throw',
       'Time remaining on the outgoing damage bonus granted after a spear finisher'
     ],
     [
       'thief-assassins-signet',
       "Assassin's Signet",
-      state.assassinsSignetActiveUntil,
+      'assassins-signet',
       "Time remaining on Assassin's Signet's active Power bonus"
     ]
   ] as const) {
-    const remaining = (expiresAt || 0) - at;
+    const remaining = planningBuffAt(context.planningState, kind)?.remaining ?? 0;
     if (remaining > 0) items.push({ id, label, value: `${remaining.toFixed(1)}s`, title });
   }
 

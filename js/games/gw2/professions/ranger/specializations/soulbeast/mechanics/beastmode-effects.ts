@@ -47,7 +47,7 @@ export const soulbeastEventHandlers = Object.freeze({ 'ranger.shared-stance-hit'
 
 export function activeSoulbeastBuff(context: RangerResolverContext, kind: string, at: number): boolean {
   // These personal stance queries cannot borrow a companion's or ally's application.
-  return buffApplicationStacks(context.combat.boonApplications(kind), kind, at, 1) > 0;
+  return buffApplicationStacks(context.combat.buffApplications(kind), kind, at, 1) > 0;
 }
 
 // Beast Ability is always the last skill in beastmodeSkillIds; traits like Live Fast and Go for the Eyes

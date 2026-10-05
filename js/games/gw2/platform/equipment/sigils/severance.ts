@@ -28,7 +28,7 @@ export function severanceCriticalContribution(
   at: number
 ): Readonly<SeveranceCriticalContribution> {
   // Query recorded windows so refreshes and historical observations share the canonical buff state.
-  if (!buffApplicationStacks(runtime?.boons?.get('sigil-severance') || [], 'sigil-severance', at, 1)) {
+  if (!buffApplicationStacks(runtime?.buffs?.get('sigil-severance') || [], 'sigil-severance', at, 1)) {
     return NO_CRITICAL_CONTRIBUTION;
   }
 

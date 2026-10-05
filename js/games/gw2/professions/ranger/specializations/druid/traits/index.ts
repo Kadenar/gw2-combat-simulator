@@ -1,3 +1,4 @@
+import { buffActive } from '#gw2/platform/combat/query/runtime-query.js';
 import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
@@ -12,11 +13,7 @@ function naturalBalanceActive(context: Gw2ModifierContext): boolean {
   // Registration gates selection; only the Druid's own packets receive the active buff bonus.
   if (!isGw2PlayerModifierOwnedEvent(context.event)) return false;
   // Scheduler path uses a timeline; resolver path reads from the runtime boon list
-  if (context.timeline?.timedActive('natural-balance', context.time)) return true;
-  return (context.runtime?.boons?.get('natural-balance') || []).some(
-    (application: { at: number; expiresAt: number; stacks: number }) =>
-      application.at <= context.time && application.expiresAt > context.time && application.stacks > 0
-  );
+  return buffActive(context, 'natural-balance');
 }
 
 /** Owns Natural Mender's live tuning and trait behavior. */

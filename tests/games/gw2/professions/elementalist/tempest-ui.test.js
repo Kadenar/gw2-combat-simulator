@@ -33,7 +33,7 @@ test('Tempest active state shows trait timers at the cursor and hides expired wi
     );
 
   for (const [kind, id] of [
-    ['fresh air', 'fresh-air'],
+    ['fresh-air', 'fresh-air'],
     ['transcendent-tempest', 'transcendent-tempest']
   ]) {
     const buff = result.resolvedEvents.find((event) => event.type === 'buff' && event.kind === kind);

@@ -1,3 +1,4 @@
+import { timedEffectState } from '#gw2/platform/combat/effect-state.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { thiefProfession } from '#gw2/professions/thief/profession.js';
@@ -21,6 +22,7 @@ function activeState(result, specialization = 'Core', config = {}) {
         balanceContext: { catalog: thiefProfession.catalog, modifierRulesById: new Map() },
         specialization,
         professionState: result.planningState.profession,
+        planningState: result.planningState,
         atSeconds: result.planningState.atSeconds,
         build: { weapons: ['Axe', 'Dagger'] },
         config
@@ -126,7 +128,6 @@ test('Surfer exposes the buff window independently of the bomb-hit assumption', 
 
 test('Distracting Throw stays visible alongside Revealed and disappears at expiry', () => {
   const professionState = {
-    distractingThrowBuffUntil: 10,
     revealedUntil: 8,
     spinningAxes: [
       { skillId: 71854, expiresAt: 5 },
@@ -136,7 +137,15 @@ test('Distracting Throw stays visible alongside Revealed and disappears at expir
   const values = (atSeconds) =>
     Object.fromEntries(
       thiefProfession.ui
-        .rotationStateSnapshot({ specialization: 'Antiquary', professionState, atSeconds })
+        .rotationStateSnapshot({
+          specialization: 'Antiquary',
+          professionState,
+          atSeconds,
+          planningState: {
+            atSeconds,
+            effects: [timedEffectState('distracting-throw', [{ stacks: 1, expiresAt: 10 }], 1)]
+          }
+        })
         .map((item) => [item.id, item.value])
     );
   assert.equal(values(5)['thief-distracting-throw'], '5.0s');

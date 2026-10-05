@@ -23,7 +23,7 @@ test('Ranger and Soulbeast standard boons use live player recipients and duratio
     time: 4,
     traits: new Set([TRAIT.FURIOUS_STRENGTH]),
     timeline: createGw2TimelineIndex({ events: [self] }),
-    runtime: { boons: new Map() }
+    runtime: { boons: new Map(), buffs: new Map() }
   };
   const furiousStrength = soulbeastModule.modifiers.modifierRules.find(({ id }) => id === 'ranger.furious-strength');
   assert.equal(rangerBoonActive({ ...context, runtime: undefined }, 'fury'), true);
@@ -44,14 +44,15 @@ test('Ranger and Soulbeast standard boons use live player recipients and duratio
   assert.equal(furiousStrength.when({ ...context, time: 8 }), false);
   assert.equal(rangerActiveBoonCount({ time: 8, config: { boons: { fury: true, might: 25 } } }, 'player'), 2);
   assert.equal(rangerBoonActive({ time: 4 }, 'fury'), false);
-  // Custom pet-command keys keep their prior partial-context behavior.
-  assert.equal(rangerBoonActive({ time: 4, timeline: { timedActive: () => true } }, 'sic-em-pet'), true);
+  // Pure boon queries cannot retrieve custom pet-command windows.
+  assert.equal(rangerBoonActive({ time: 4, timeline: { timedActive: () => true } }, 'sic-em-pet'), false);
 });
 
 test('pet boon counts follow packet identity across swaps and exclude future same-time applications', () => {
   const runtime = {
     profession: { core: createRangerCoreState() },
     boons: new Map(),
+    buffs: new Map(),
     conditionState: new Map()
   };
   // Bind real owner operations for this focused mechanic fixture.
@@ -101,7 +102,7 @@ test('pet boon queries honor resolved party caps and explicit summon grants in b
     // Bind real owner operations for this focused mechanic fixture.
     config.combat = createMechanicCombatServices(config);
     const event = buff('might', { recipients, eligibleCompanionIds: ['pet'] }, config);
-    const runtime = { boons: new Map() };
+    const runtime = { boons: new Map(), buffs: new Map() };
     // Bind real owner operations for this focused mechanic fixture.
     runtime.combat = createMechanicCombatServices(runtime);
     recordBuffApplication(runtime.boons, event);

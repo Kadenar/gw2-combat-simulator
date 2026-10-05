@@ -1,3 +1,4 @@
+import { buffActive } from '#gw2/platform/combat/query/runtime-query.js';
 import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { targetConditionActive } from '#gw2/platform/combat/query/runtime-query.js';
@@ -52,7 +53,7 @@ export const cascadingCorruption = defineTrait({
       operation: 'damage-additive',
       amount: 0.1,
       // Read the emitted buff through the shared timeline, including explicitly supplied initial buffs.
-      when: (context) => Boolean(context.timeline?.timedActive('meltdown', context.time))
+      when: (context) => buffActive(context, 'meltdown')
     }
   ]
 });

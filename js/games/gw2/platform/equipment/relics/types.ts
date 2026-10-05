@@ -22,7 +22,6 @@ export interface Gw2RelicState {
   combatStartTime?: number;
   timelineEvents?: readonly SimulationEvent[];
   timelineLength?: number;
-  activationTimes?: number[];
   trackedActivations?: Set<string>;
   count?: number;
   combatMarker?: SimulationEvent;
@@ -35,7 +34,6 @@ export interface Gw2RelicState {
   }[];
   readyAt?: number;
   stackReadyAt?: number;
-  buffUntil?: number;
   stacks?: number;
   expiresAt?: number;
 }
@@ -52,7 +50,7 @@ interface Gw2RelicEmissionContext {
 }
 
 export interface Gw2RelicContext {
-  readonly boons?: ReadonlyMap<string, readonly Gw2TimedBuffApplication[]>;
+  readonly buffs?: ReadonlyMap<string, readonly Gw2TimedBuffApplication[]>;
   readonly combatStartPending?: boolean;
   readonly helpers?: Gw2ResolverHelpers;
   precastRelics?: readonly Gw2RelicRuntime[];

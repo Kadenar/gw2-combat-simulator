@@ -1,8 +1,8 @@
+import { replaceThiefBuff } from '#gw2/professions/thief/core/mechanics/buffs.js';
 import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import type { BalanceProfile, SkillId } from '#gw2/platform/skills/types.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import type { ThiefRuntime } from '#gw2/professions/thief/core/events.js';
-import { buildThiefBuff } from '#gw2/professions/thief/core/events.js';
 import { THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
 import { daredevilState } from '#gw2/professions/thief/specializations/daredevil/state.js';
 import type { ThiefDodge, ThiefSkill } from '#gw2/professions/thief/types.js';
@@ -66,25 +66,26 @@ export function queueDodgePackets(runtime: ThiefRuntime, cast: RuntimeCast<Thief
  * A committed dodge opens its damage window after the dodge's own same-instant packets, so its landing strike (Bound)
  * resolves before the window it grants.
  */
-export function openDodgeWindow(runtime: ThiefRuntime, cast: RuntimeCast<ThiefSkill>): void {
+export function openDodgeWindow(runtime: ThiefRuntime, _cast: RuntimeCast<ThiefSkill>): void {
   const state = daredevilState.from(runtime);
   const profile = selectedDodgeProfile(runtime);
-  if (profile && state.selectedDodge === 'Bounding Dodger')
-    state.boundingDamageUntil = runtime.time + balanceProfileNumber(profile, 'durationMultiplier');
-  if (profile && state.selectedDodge === 'Lotus Training') {
-    const duration = balanceProfileNumber(profile, 'durationMultiplier');
-    state.lotusConditionDamageUntil = runtime.time + duration;
-    // Expose the same timed window used by damage modifiers as a visible buff.
-    runtime.effects.emit({
-      kind: 'packet',
-      event: buildThiefBuff(cast.skill, {
-        at: runtime.time,
-        source: 'Trait',
-        sourceId: TRAIT.LOTUS_TRAINING,
-        activationId: cast.id,
-        kind: 'lotus-training',
-        duration
-      })
-    });
-  }
+  if (!profile) return;
+  if (state.selectedDodge === 'Bounding Dodger')
+    replaceThiefBuff(
+      runtime,
+      'bounding-dodger',
+      balanceProfileNumber(profile, 'durationMultiplier'),
+      TRAIT.BOUNDING_DODGER,
+      'Bounding Dodger',
+      'Trait'
+    );
+  if (state.selectedDodge === 'Lotus Training')
+    replaceThiefBuff(
+      runtime,
+      'lotus-training',
+      balanceProfileNumber(profile, 'durationMultiplier'),
+      TRAIT.LOTUS_TRAINING,
+      'Lotus Training',
+      'Trait'
+    );
 }

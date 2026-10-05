@@ -191,11 +191,12 @@ export function createEffectDelivery<T extends object>(
       packetDelivery.set(packet, delivery);
       if (deferPreparation) pendingPreparation.add(packet);
       if (delivery.settlement === 'reaction') {
-        // A reaction transaction exposes its condition before the caller's next query, while its queued children remain pending.
-        if (!['condition', 'boon_extension'].includes(packet.type) || packet.at !== runtime.time)
-          throw new RangeError('Reaction settlement requires a condition or boon extension at the live clock.');
+        // A reaction transaction exposes its accepted application before the caller's next query, while its queued children remain pending.
+        if (!['condition', 'buff', 'boon_extension'].includes(packet.type) || packet.at !== runtime.time)
+          throw new RangeError('Reaction settlement requires a condition, buff, or boon extension at the live clock.');
         withCause(packet, () => {
           if (packet.type === 'condition') applyConditionNow(packet);
+          else if (packet.type === 'buff') dispatchEvent(packet);
           else handlers.dispatch(packet, runtime);
         });
       } else queue.enqueue(packet);

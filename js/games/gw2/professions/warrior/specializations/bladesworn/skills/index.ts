@@ -772,7 +772,7 @@ function cartridgeDamageBonus(context: Gw2ModifierContext): number {
   // A newer cartridge application replaces the older bonus, even after the newer one expires.
   let latest = { at: -Infinity, expiresAt: 0, kind: '' };
   for (const kind of ['overcharged-cartridges', 'supercharged-cartridges']) {
-    for (const application of context.runtime?.boons?.get(kind) ?? []) {
+    for (const application of context.runtime?.buffs?.get(kind) ?? []) {
       if (application.resolvedAudience.includesSelf && application.at <= context.time && application.at >= latest.at)
         latest = { at: application.at, expiresAt: application.expiresAt, kind };
     }

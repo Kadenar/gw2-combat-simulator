@@ -38,7 +38,7 @@ export function modifyAttributes(context: Gw2ModifierContext, attributes: Gw2Sta
 
 // Trait windows count only live self applications, never an ally's or companion's copy.
 export function runtimeBuffActive(context: Gw2ModifierContext, kind: string): boolean {
-  return buffApplicationStacks(context.runtime?.boons?.get(kind) || [], kind, context.time, 1) > 0;
+  return buffApplicationStacks(context.runtime?.buffs?.get(kind) || [], kind, context.time, 1) > 0;
 }
 
 export function gunsaberEntryTraits(runtime: Runtime, cast: RuntimeCast<WarriorSkill>): void {

@@ -1,3 +1,4 @@
+import { activeBuff } from '#gw2/professions/ranger/core/traits/modifier-queries.js';
 import { activeChargeCount, consumeCharge } from '#gw2/platform/combat/resources/charges.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
@@ -35,7 +36,7 @@ export const lightOnYourFeet = defineTrait({
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: 'multiply',
       factor: 1.1,
-      when: (context) => isGw2PlayerModifierOwnedEvent(context.event) && rangerBoonActive(context, 'light-on-your-feet')
+      when: (context) => isGw2PlayerModifierOwnedEvent(context.event) && activeBuff(context, 'light-on-your-feet')
     },
     {
       order: 4,
@@ -47,7 +48,7 @@ export const lightOnYourFeet = defineTrait({
           requireBalanceProfileFromContext(context, TRAIT.LIGHT_ON_YOUR_FEET),
           'conditionDurationBonus'
         ),
-      when: (context) => isGw2PlayerModifierOwnedEvent(context.event) && rangerBoonActive(context, 'light-on-your-feet')
+      when: (context) => isGw2PlayerModifierOwnedEvent(context.event) && activeBuff(context, 'light-on-your-feet')
     }
   ],
   rechargeRules: [
