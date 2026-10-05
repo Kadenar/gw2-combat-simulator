@@ -1000,7 +1000,7 @@ const revenantSlices = Object.freeze([
 ]);
 
 const revenantSpecializationStateKeys = Object.freeze({
-  Renegade: ['bandTogetherReady', 'bandTogetherExpiresAt', 'kallasFervor', 'razorclawsRage'],
+  Renegade: ['bandTogether', 'kallasFervor', 'razorclawsRage'],
   Vindicator: ['reaversCurseUntil', 'forerunnerOfDeathUntil'],
   Conduit: [
     'affinity',
@@ -1111,7 +1111,7 @@ test('Revenant presentation and public projection preserve their contracts', () 
   });
 
   // Core publishes no fields owned by inactive specialization modules.
-  for (const key of ['affinity', 'bandTogetherReady', 'kallasFervor'])
+  for (const key of ['affinity', 'bandTogether', 'kallasFervor'])
     assert.equal(Object.hasOwn(result.planningState.profession, key), false, key);
 });
 

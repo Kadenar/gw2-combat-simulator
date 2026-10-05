@@ -119,6 +119,6 @@ test('ambient Taste for Blood wakes retain rounding and cannot extend the observ
   assert.ok(
     necromancerProfession
       .runtimeFor({ specialization: 'Core' })
-      .backgroundTasks.includes('necromancer.taste-for-blood-opportunity')
+      .backgroundTasks.includes('necromancer.allied-opportunity')
   );
 });

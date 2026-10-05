@@ -70,11 +70,12 @@ test('Lancer consumes Clarity before preparation and never reuses another activa
     ['next', 1.1, 0, false],
     ['expiry', 2, 2, false]
   ]) {
-    runtime.profession.core.clarityUntil = until;
+    runtime.profession.core.clarity = { charges: until > 0 ? 1 : 0, expiresAt: until };
     runtime.profession.core.castDetails.set(id, {});
     const cast = { id, skill, start, fullEnd: start + 1, effectiveEnd: start + 1, cancelled, command: {} };
     applySkillSideEffects(runtime, cast, 'castStart', mesmerCoreHooks.sideEffectHandlers);
-    assert.equal(runtime.profession.core.clarityUntil, 0);
+    assert.equal(runtime.profession.core.castDetails.get(id).clarityConsumed, start < until);
+    assert.equal(runtime.profession.core.clarity.charges, id === 'expiry' ? 1 : 0);
   }
 
   assert.deepEqual(prepared, [2, 1, 1]);

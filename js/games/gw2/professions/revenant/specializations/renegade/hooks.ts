@@ -96,8 +96,9 @@ function beginBandTogether(runtime: RevenantRuntime, cast: RuntimeCast<RevenantS
   const state = renegadeState.from(runtime);
   const enhanced = bandTogetherReady(runtime, cast.skill.id);
   const profile = enhanced ? enhancedSkill(runtime, cast.skill.id) : undefined;
-  state.bandTogetherReady = false;
-  state.bandTogetherExpiresAt = 0;
+  // Capture the accepted profile before spending; later grants cannot change this cast's effects or rewards.
+  bandTogether.set(cast, { enhanced, profileSkillId: profile?.id ?? cast.skill.id });
+  if (enhanced) consumeCharge(state.bandTogether, runtime.time);
   grantAllForOneEnergy(runtime, enhanced);
   if (profile)
     runtime.effects.emit({
@@ -117,7 +118,6 @@ function beginBandTogether(runtime: RevenantRuntime, cast: RuntimeCast<RevenantS
       skillWeaponFallback: 'Unequipped',
       cause: null
     });
-  bandTogether.set(cast, { enhanced, profileSkillId: profile?.id ?? cast.skill.id });
 }
 
 /** Razorclaw's Rage arms its finite player charges and precomputes each assumed ally's ICD-limited Bleeding. */
@@ -170,8 +170,7 @@ function completeBandTogether(runtime: RevenantRuntime, cast: RuntimeCast<Revena
   // The enhancement window is the buff, so a removed buff arms no enhancement.
   if (!effect) return;
   const state = renegadeState.from(runtime);
-  state.bandTogetherReady = true;
-  state.bandTogetherExpiresAt = runtime.time + Math.max(0, effectNumber(window, effect, 'duration'));
+  state.bandTogether = grantCharges(1, runtime.time + Math.max(0, effectNumber(window, effect, 'duration')));
   runtime.effects.emit({
     kind: 'profile',
     profile: window,

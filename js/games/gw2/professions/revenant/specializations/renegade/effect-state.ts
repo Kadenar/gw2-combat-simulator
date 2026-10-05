@@ -23,7 +23,7 @@ export function renegadeEffectStates(runtime: MechanicQueriesOf<RevenantRuntime>
     ]),
     timedEffectState(
       'band-together',
-      state.bandTogetherReady ? [{ stacks: 1, expiresAt: state.bandTogetherExpiresAt }] : [],
+      [{ stacks: state.bandTogether.charges, expiresAt: state.bandTogether.expiresAt }],
       1
     )
   ];

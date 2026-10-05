@@ -54,8 +54,8 @@ function renegadeStateSnapshot(context: RevenantUiContext): RotationStateSnapsho
     });
   }
 
-  const bandRemaining = (state.bandTogetherExpiresAt || 0) - at;
-  if (state.bandTogetherReady && bandRemaining > 0) {
+  const bandRemaining = (state.bandTogether?.expiresAt ?? 0) - at;
+  if (isBandTogetherReady(state, at)) {
     items.push({
       id: 'renegade-band-together',
       label: 'Band Together',

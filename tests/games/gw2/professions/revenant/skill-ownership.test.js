@@ -46,7 +46,7 @@ for (const [skillId, specialization, legend, active] of [
     ID.BREAKRAZORS_BASTION,
     'Renegade',
     LEGEND.RENEGADE,
-    (result) => renegadeState.from(observedRuntime(result)).bandTogetherReady
+    (result) => renegadeState.from(observedRuntime(result)).bandTogether.charges > 0
   ],
   [
     VINDICATOR_JUMP_SKILL.id,

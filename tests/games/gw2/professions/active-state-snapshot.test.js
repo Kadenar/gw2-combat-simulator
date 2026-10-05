@@ -345,8 +345,7 @@ test('Revenant snapshots expose shared drains and elite stack/form windows', () 
           { at: 1, expiresAt: 10 },
           { at: 2, expiresAt: 11 }
         ],
-        bandTogetherReady: true,
-        bandTogetherExpiresAt: 8
+        bandTogether: { charges: 1, expiresAt: 8 }
       },
       4
     )

@@ -7,7 +7,8 @@ import type { RevenantRuntime } from '#gw2/professions/revenant/core/events.js';
 
 /** Returns whether the one-use Band Together enhancement is active at `at`. */
 export function isBandTogetherReady(state: Partial<RenegadeState>, at: number): boolean {
-  return Boolean(state.bandTogetherReady) && (state.bandTogetherExpiresAt || 0) > at;
+  const grant = state.bandTogether;
+  return grant != null && grant.charges > 0 && grant.expiresAt > at;
 }
 
 /** Counts started, unexpired Fervor applications consistently for grants, modifiers, and siphons. */

@@ -7,6 +7,7 @@ import { mesmerResourceDefinition, mesmerResourceKind } from '#gw2/professions/m
 import { type SkillFlipWindows } from '#gw2/platform/execution/skill-flips.js';
 import type { SkillId } from '#gw2/platform/skills/types.js';
 import type { MesmerClone } from '#gw2/professions/mesmer/core/mechanics/illusions/types.js';
+import type { ChargeGrant } from '#gw2/platform/combat/resources/charges.js';
 
 /** Core owns state present for every specialization runtime. */
 export interface MesmerCoreState {
@@ -21,7 +22,7 @@ export interface MesmerCoreState {
   availableFlips: SkillFlipWindows;
   autoattackChains: Record<string, SkillId>;
   chaosStormCasts: number;
-  clarityUntil: number;
+  clarity: ChargeGrant;
   signetIllusionsAt: number;
 }
 
@@ -37,7 +38,7 @@ export function createMesmerCoreState(): MesmerCoreState {
     availableFlips: {},
     autoattackChains: {},
     chaosStormCasts: 0,
-    clarityUntil: 0,
+    clarity: { charges: 0, expiresAt: 0 },
     signetIllusionsAt: Infinity
   };
 }
@@ -54,7 +55,8 @@ export function projectMesmerCorePlanningState(input: Gw2PlanningStateInput) {
           resourceDefinition: mesmerResourceDefinition('Core', { catalog: input.catalog })
         }
       : {}),
-    clarityRemaining: Math.max(0, Math.round((state.clarityUntil - at) * 1000)),
+    // The display timer projects the grant without consuming or pruning its owner.
+    clarityRemaining: state.clarity.charges > 0 ? Math.max(0, Math.round((state.clarity.expiresAt - at) * 1000)) : 0,
     availableFlips: Object.fromEntries(
       Object.entries(state.availableFlips).filter(([, window]) => skillFlipVisible(window, at))
     ),

@@ -78,7 +78,7 @@ test('Renegade observations retain live charge consumption and strict Fervor exp
 test('Band Together observation disappears when its enhancement is consumed or expires', () => {
   const options = {
     initialize(runtime) {
-      Object.assign(runtime.profession.specialization.state, { bandTogetherReady: true, bandTogetherExpiresAt: 2 });
+      runtime.profession.specialization.state.bandTogether = { charges: 1, expiresAt: 2 };
     }
   };
   const config = {

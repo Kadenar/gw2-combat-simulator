@@ -228,10 +228,10 @@ for (const [spec, name, legend, config = {}] of [
     assert.equal(state.enchantedDaggers.charges, 0);
     if (spec === 'Renegade') {
       assert.equal(state.razorclawsRage.charges, 0);
-      assert.equal(state.bandTogetherReady, false);
+      assert.equal(state.bandTogether.charges, 0);
     } else {
       assert.equal(Object.hasOwn(state, 'razorclawsRage'), false);
-      assert.equal(Object.hasOwn(state, 'bandTogetherReady'), false);
+      assert.equal(Object.hasOwn(state, 'bandTogether'), false);
     }
 
     if (spec === 'Conduit') assert.equal(state.beguilingHazeCharges, 0);

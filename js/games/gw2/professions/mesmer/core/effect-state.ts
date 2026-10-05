@@ -25,7 +25,8 @@ export function mesmerBuffPolicies(context: unknown): BuffStatePolicy[] {
   return policies;
 }
 
-/** Clarity disappears when a qualifying activation consumes the existing core window. */
+/** Project the canonical grant so acceptance consumption and exclusive expiry also hide Clarity. */
 export function mesmerEffectStates(runtime: MechanicQueriesOf<MechanicContext<MesmerRuntimeState>>): EffectState[] {
-  return [timedEffectState('clarity', [{ stacks: 1, expiresAt: runtime.profession.core.clarityUntil }], 1)];
+  const grant = runtime.profession.core.clarity;
+  return [timedEffectState('clarity', [{ stacks: grant.charges, expiresAt: grant.expiresAt }], 1)];
 }

@@ -40,12 +40,16 @@ export function mesmerUiState(context: MesmerUiContext = {}): MesmerUiState {
   return context.professionState ?? {};
 }
 
-/** Converts the projected millisecond Clarity duration into an active-state timer. */
+/** Display Clarity from the planning timer or the inspected grant without changing its availability. */
 function mesmerCoreStateSnapshot(context: MesmerUiContext): RotationStateSnapshotItem[] {
   const state = mesmerUiState(context);
   const at = Math.max(0, context.atSeconds || 0);
   const remaining =
-    state.clarityRemaining != null ? (state.clarityRemaining || 0) / 1000 : (state.clarityUntil || 0) - at;
+    state.clarityRemaining != null
+      ? state.clarityRemaining / 1000
+      : state.clarity && state.clarity.charges > 0
+        ? state.clarity.expiresAt - at
+        : 0;
   return remaining > 0
     ? [
         {
