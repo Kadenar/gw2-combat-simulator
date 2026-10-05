@@ -208,14 +208,15 @@ test('Rocket Punch keeps Burning and control when its strike is removed', () => 
 });
 
 test('patched resource capacities seed simulation and presentation from the same catalog', () => {
-  for (const [profession, specialization, profile, field] of [
-    [elementalistProfession, 'Catalyst', CATALYST.resources, 'energy'],
-    [elementalistProfession, 'Evoker', EVOKER.resources, 'charges'],
-    [engineerProfession, 'Core', ENGINEER.resources, 'endurance']
+  // Resource clocks and the separate endurance service expose their own canonical projected balances.
+  for (const [profession, specialization, profile, balance] of [
+    [elementalistProfession, 'Catalyst', CATALYST.resources, (state) => state.catalystEnergy.value],
+    [elementalistProfession, 'Evoker', EVOKER.resources, (state) => state.familiarCharges.value],
+    [engineerProfession, 'Core', ENGINEER.resources, (state) => state.endurance]
   ]) {
     const balanceProfiles = { [profile]: { fields: { maximumStacks: 12 } } };
     const result = run(profession, balanceProfiles, specialization, []);
-    assert.equal(result.planningState.profession[field], 12);
+    assert.equal(balance(result.planningState.profession), 12);
     const patched = withPatchPreview(profession, {
       id: 'capacity',
       label: 'Capacity',
@@ -235,7 +236,7 @@ test('patched resource capacities seed simulation and presentation from the same
   const specialized = run(elementalistProfession, balanceProfiles, 'Evoker', [], {
     selectedTraitIds: [ELE.SPECIALIZED_ELEMENTS]
   });
-  assert.equal(specialized.planningState.profession.charges, 8);
+  assert.equal(specialized.planningState.profession.familiarCharges.value, 8);
   const patched = withPatchPreview(elementalistProfession, {
     id: 'specialized-capacity',
     label: 'Specialized capacity',

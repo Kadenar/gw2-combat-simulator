@@ -10,6 +10,11 @@ const PROFESSIONS = readdirSync(PROFESSIONS_ROOT, { withFileTypes: true })
   .map((entry) => entry.name)
   .sort();
 const ROOT_FILES = new Set(['profession.ts', 'catalog.ts', 'family-state.ts', 'family-presentation.ts', 'types.ts']);
+// These family owners coordinate selected elites; allow them only in the families that actually declare them.
+const FAMILY_OWNER_FILES = {
+  mesmer: new Set(['family-mechanics.ts']),
+  warrior: new Set(['resource-rules.ts'])
+};
 const REQUIRED_ROOT_FILES = ['profession.ts', 'catalog.ts', 'types.ts'];
 const ROOT_FOLDERS = new Set(['app', 'build', 'data', 'core', 'specializations']);
 const TOP_LEVEL_DECLARATION = /^(export )?(const|function|let|class) /gm;
@@ -50,7 +55,11 @@ for (const profession of PROFESSIONS) {
 
   test(`${profession} root contains only the family files and module folders`, () => {
     const unexpected = readdirSync(root, { withFileTypes: true })
-      .filter((entry) => (entry.isDirectory() ? !ROOT_FOLDERS.has(entry.name) : !ROOT_FILES.has(entry.name)))
+      .filter((entry) =>
+        entry.isDirectory()
+          ? !ROOT_FOLDERS.has(entry.name)
+          : !ROOT_FILES.has(entry.name) && !FAMILY_OWNER_FILES[profession]?.has(entry.name)
+      )
       .map((entry) => entry.name);
     assert.deepEqual(unexpected, []);
     for (const file of REQUIRED_ROOT_FILES) assert.ok(existsSync(path.join(root, file)), `missing ${file}`);

@@ -6,6 +6,7 @@ import { bindElementalistCoreUi } from '#gw2/professions/elementalist/core/prese
 import { bindElementalistFamilyUi } from '#gw2/professions/elementalist/family-presentation.js';
 import { ELEMENTALIST_ATTUNEMENT_SKILL_IDS } from '#gw2/professions/elementalist/data/ids.js';
 import { bindEngineerCoreUi } from '#gw2/professions/engineer/core/presentation.js';
+import { ENGINEER_SKILL_IDS as ENGINEER_ID } from '#gw2/professions/engineer/data/ids.js';
 import { bindHolosmithUi } from '#gw2/professions/engineer/specializations/holosmith/presentation.js';
 import { bindAmalgamUi } from '#gw2/professions/engineer/specializations/amalgam/presentation.js';
 import { bindScrapperUi } from '#gw2/professions/engineer/specializations/scrapper/presentation.js';
@@ -65,17 +66,26 @@ test('Engineer kit and toolbelt projections follow IDs when catalog labels chang
 });
 
 test('Engineer Forge and protocol controls retain their local skill lists and lookups', () => {
-  const catalogs = [1, 2].map((id) =>
+  // Protocol eligibility uses authored identities, so vary two legal options while retaining isolated catalogs.
+  const ids = [ENGINEER_ID.OFFENSIVE_PROTOCOL_SHRED_ID_77103, ENGINEER_ID.DEFENSIVE_PROTOCOL_THORNS_ID_77163];
+  const catalogs = ids.map((id) =>
     catalog(
       skill(id, 'Protocol', { forgeSkill: true, specialization: 'Amalgam', categories: ['Morph'], mechanicSlot: 2 })
     )
   );
-  assertIsolated(bindHolosmithUi, catalogs, (ui) => groupIds(ui, {}, 'engineer-forge'), [[1], [2]]);
-  const context = { build: { selectedMorphSkillIds: [1] } };
-  assertIsolated(bindAmalgamUi, catalogs, (ui) => ui.skillBarGroups(context)[0].selections[0].optionSkillIds, [
-    [1],
-    [2]
-  ]);
+  assertIsolated(
+    bindHolosmithUi,
+    catalogs,
+    (ui) => groupIds(ui, {}, 'engineer-forge'),
+    ids.map((id) => [id])
+  );
+  const context = { build: { selectedMorphSkillIds: [ids[0]] } };
+  assertIsolated(
+    bindAmalgamUi,
+    catalogs,
+    (ui) => ui.skillBarGroups(context)[0].selections[0].optionSkillIds,
+    ids.map((id) => [id])
+  );
 });
 
 test('all Ranger pet palettes use the catalog supplied to their own factory', () => {

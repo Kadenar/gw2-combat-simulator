@@ -57,7 +57,9 @@ test('Mesmer test scenarios use the registered live runtime', () => {
       'profession'
     ].sort()
   );
-  assert.equal(canonical.planningState.profession.resource, 5);
+  // Virtuoso's initialized blade clock is the canonical balance in both execution paths.
+  assert.equal(canonical.planningState.profession.blades.value, 5);
+  assert.equal(fixture.planningState.profession.blades.value, 5);
 });
 
 test('canonical catalog validation rejects duplicate ids', () => {

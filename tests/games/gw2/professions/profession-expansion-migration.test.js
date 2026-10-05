@@ -1,4 +1,4 @@
-import { flattenProfessionState } from '#gw2/platform/profession-definition/state.js';
+import { planningFixture } from '#tests/helpers/observed-runtime.js';
 import assert from 'node:assert/strict';
 import { access } from 'node:fs/promises';
 import { describe, test } from 'node:test';
@@ -46,21 +46,14 @@ function assertUiContracts(entry, profession, specialization) {
   )
     ? specialization
     : 'Core';
-  let runtime;
-
-  try {
-    runtime = profession.resolveProfession({
-      specialization: runtimeSpecialization
-    });
-  } catch {
-    runtime = profession.resolveProfession({ specialization: 'Core' });
-  }
-
+  // UI state must pass through selected policy initialization; detached factories deliberately contain empty clocks.
+  const planningState = planningFixture(profession, { specialization: runtimeSpecialization });
   const context = {
     catalog: profession.catalog,
     specialization,
-    config: { specialization },
-    professionState: flattenProfessionState(runtime.createState({ specialization }))
+    config: { specialization: runtimeSpecialization },
+    planningState,
+    professionState: planningState.profession
   };
   const groups = profession.ui.paletteGroups(context);
   const views = profession.ui.resourceViews(context);
