@@ -1,19 +1,7 @@
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
-import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
 import { requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
-import type {
-  NecromancerResolverContext,
-  NecromancerRuntime,
-  NecromancerSkill
-} from '#gw2/professions/necromancer/types.js';
-
-/** Reads permanent and timed Chilled target state at the requested timestamp. */
-export function targetIsChilled(context: NecromancerResolverContext, at: number): boolean {
-  if (context.config.target?.conditions?.Chilled === true || (context.config.target?.conditions?.Chilled || 0) > 0)
-    return true;
-  return (professionCoreState(context).targetChilledUntil || 0) > at;
-}
+import type { NecromancerRuntime, NecromancerSkill } from '#gw2/professions/necromancer/types.js';
 
 /** Emits the selected entry profile after the form and specialization state are established. */
 export function emitNecromancerShroudTrait(

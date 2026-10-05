@@ -24,19 +24,10 @@ function selectedMorphKinds(context: EngineerRuntime): Set<AmalgamMorphKind> {
   );
 }
 
-/** Reads the damaging-field assumption across supported configuration shapes. */
-function assumesDamagingField(context: EngineerRuntime): boolean {
-  return Boolean(
-    context.config.professionAssumptions?.inDamagingField ??
-    context.config.assumptions?.inDamagingField ??
-    context.config.inDamagingField ??
-    false
-  );
-}
-
 /** Schedules six one-second Thorns Retaliation pulses when damaging-field uptime is explicitly assumed. */
 export function scheduleThornsRetaliation(context: EngineerRuntime, skill: EngineerSkill, at: number): void {
-  if (!assumesDamagingField(context)) return;
+  // Build assumptions reach combat through the canonical runtime field; absent uptime grants no retaliation.
+  if (!context.config.professionAssumptions?.inDamagingField) return;
   const morphsProfile = requireBalanceProfileFromContext(context, PROFILE.morphs);
   const hits = balanceProfileNumber(morphsProfile, 'maximumStacks');
   const interval = balanceProfileNumber(morphsProfile, 'pulseInterval');

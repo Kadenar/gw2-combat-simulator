@@ -1,4 +1,4 @@
-import { RESOURCE_KEYS } from '#gw2/platform/combat/resources/resource-policy.js';
+import { RESOURCE_KEYS, type ResourceKey } from '#gw2/platform/combat/resources/resource-policy.js';
 import type { SideEffectAction } from '#gw2/platform/effects/actions.js';
 import type { SkillEffect } from '#gw2/platform/effects/types.js';
 import type { CanonicalCatalog, Skill, SkillId } from '#gw2/platform/skills/types.js';
@@ -32,6 +32,16 @@ function validateSideEffectAmount(catalog: CanonicalCatalog, amount: unknown, la
 
 function validateFinitePriority(value: unknown, label: string): void {
   if (typeof value !== 'number' || !Number.isFinite(value)) throw new TypeError(`${label} priority must be finite.`);
+}
+
+/** Reject grants whose pool is absent from the selected runtime before their actions can execute. */
+export function validateResourceGrantSupport(
+  action: SideEffectAction,
+  supported: ReadonlySet<ResourceKey | 'endurance'>,
+  owner: string
+): void {
+  if (action.type === 'resourceGrant' && !supported.has(action.resource))
+    throw new TypeError(`${owner} grants ${action.resource}, but the selected runtime has no policy for it.`);
 }
 
 /** Shared validation keeps cast declarations and resolved-effect actions on the same contract. */

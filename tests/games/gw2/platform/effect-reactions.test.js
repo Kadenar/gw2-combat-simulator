@@ -7,6 +7,7 @@ import { materializeSkillEffectApplications } from '#gw2/platform/effects/materi
 import { observeGw2Runtime, observedRuntime } from '#tests/helpers/observed-runtime.js';
 import { testProfession } from '#tests/fixtures/profession.js';
 import { applySideEffect } from '#gw2/platform/effects/action-dispatch.js';
+import { validateResourceGrantSupport } from '#gw2/platform/effects/action-validation.js';
 
 const grant = (amount) => ({ type: 'resourceGrant', resource: 'energy', amount });
 const reaction = (doAction = grant(1), extra = {}) => ({
@@ -63,6 +64,31 @@ function run(
 }
 
 const energy = (result) => observedRuntime(result).profession.energy.value;
+
+// Selected pools reject unsupported authored grants before initialization and transformed grants before delivery.
+test('resource grants require a policy in the selected runtime', () => {
+  const unsupported = { type: 'resourceGrant', resource: 'malice', amount: 1 };
+  const expected = /Reaction fixture \(990101\) grants malice, but the selected runtime has no policy/;
+  let initialized = false;
+  assert.throws(
+    () =>
+      run([], {
+        rotation: [],
+        skill: { sideEffects: [{ on: 'castStart', do: unsupported }] },
+        hooks: {
+          initialize: () => {
+            initialized = true;
+          }
+        }
+      }),
+    expected
+  );
+  assert.equal(initialized, false);
+  assert.throws(() => run([], { hooks: { modifyEffects: () => [strike([reaction(unsupported)])] } }), expected);
+  // Other specializations remain valid selection content without installing their resource policies.
+  const skillSelectionCatalog = catalogFor([], { sideEffects: [{ on: 'castStart', do: unsupported }] });
+  assert.equal(energy(run([strike([reaction(grant(2))])], { hooks: { skillSelectionCatalog } })), 2);
+});
 
 // Formula-backed grants use the same dispatch for endurance and other pools and reject invalid results before mutation.
 test('resource formulas resolve read-only facts and live parameters through ordinary pool dispatch', () => {
@@ -396,6 +422,7 @@ test('reaction registry interns shared declarations across repeated materializat
   const skill = catalog.skills[0];
   const registry = createEffectReactions(catalog, {
     hasHandler: () => false,
+    validate: (skill, action) => validateResourceGrantSupport(action, new Set(['energy']), skill.name),
     apply: () => assert.fail('Registration cannot dispatch actions.')
   });
   const ids = new Set();

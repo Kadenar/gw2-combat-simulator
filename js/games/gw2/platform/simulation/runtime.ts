@@ -1,8 +1,10 @@
 import { applySideEffect } from '#gw2/platform/effects/action-dispatch.js';
+import { validateResourceGrantSupport } from '#gw2/platform/effects/action-validation.js';
 import { EffectRecorder } from '#gw2/platform/results/effect-report.js';
 import { prepareSelectedSkillLoadout } from '#gw2/platform/builds/selected-skills.js';
 import { createGw2CombatQuery } from '#gw2/platform/combat/query/combat-query.js';
 import { createRuntimeEndurance, createRuntimeResources } from '#gw2/platform/combat/resources/runtime-resources.js';
+import { RESOURCE_KEYS, type ResourceKey } from '#gw2/platform/combat/resources/resource-policy.js';
 import { targetHealthLoss } from '#gw2/platform/combat/state/target-health.js';
 import { canonicalTargetConditionName } from '#gw2/platform/combat/state/targets.js';
 import { normalizeSelectedTraitIds } from '#gw2/platform/combat/state/traits.js';
@@ -15,7 +17,7 @@ import {
   expireSkillFlip,
   type SkillFlipWindows
 } from '#gw2/platform/execution/skill-flips.js';
-import type { SkillId } from '#gw2/platform/skills/types.js';
+import type { Skill, SkillId } from '#gw2/platform/skills/types.js';
 import { normalizePrecastRelics } from '#gw2/platform/equipment/relics/catalog.js';
 import { createRelicRuntime } from '#gw2/platform/equipment/relics/runtime.js';
 import { createCastExecution } from '#gw2/platform/execution/cast-execution.js';
@@ -84,6 +86,22 @@ export function runRuntime<T extends object>(
   let config = inputConfig;
   const ownsEffect = options.output === 'damage' ? options.ownsEffect : undefined;
   const started = onPhase ? performance.now() : 0;
+  // Validate the invocation's selected catalog, including patches, before initializing or mutating live state.
+  const supportedResources = new Set<ResourceKey | 'endurance'>(
+    RESOURCE_KEYS.filter((key) => profession.resources?.[key] != null)
+  );
+  if (profession.endurance) supportedResources.add('endurance');
+  for (const owner of [...profession.catalog.skills, ...profession.catalog.balanceProfiles]) {
+    const actions = [
+      ...((owner as Skill).sideEffects ?? []).map((rule) => rule.do),
+      ...(owner.effects ?? []).flatMap((effect) =>
+        (effect.reactions ?? []).flatMap((rule) => (Array.isArray(rule.do) ? rule.do : [rule.do]))
+      )
+    ];
+    for (const action of actions)
+      validateResourceGrantSupport(action, supportedResources, `${owner.name} (${owner.id})`);
+  }
+
   // Direct and public runtime entry points share catalog validation and detached selection snapshots.
   if ('selectedSkills' in config)
     throw new TypeError('selectedSkills is unsupported in simulation; use selectedSkillIds.');
@@ -123,6 +141,8 @@ export function runRuntime<T extends object>(
   const { contributions } = producers;
   const effectReactions = createEffectReactions<T>(profession.catalog, {
     hasHandler: (type) => typeof profession.sideEffectHandlers?.[type] === 'function',
+    validate: (skill, action) =>
+      validateResourceGrantSupport(action, supportedResources, `${skill.name} (${skill.id})`),
     apply: (context, trigger, action) => applySideEffect(context, trigger, action, profession.sideEffectHandlers)
   });
   // Skill-owned actions run immediately before the composed profession reactions, through the same acceptance gates.

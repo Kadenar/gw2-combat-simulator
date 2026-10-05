@@ -7,8 +7,7 @@ import type {
   Gw2CanonicalBuild,
   Gw2Build,
   Gw2FinalizedAttributeResult,
-  Gw2NumericAttributes,
-  ProfessionBuildAssumptions
+  Gw2NumericAttributes
 } from '#gw2/platform/builds/types.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
 
@@ -34,10 +33,7 @@ export interface EngineerCanonicalBuild extends Gw2CanonicalBuild {
 
 export interface EngineerConfig extends Gw2Config {
   readonly amalgamEvolveAttributePool?: Readonly<Gw2NumericAttributes>;
-  readonly assumptions?: ProfessionBuildAssumptions;
-  readonly inDamagingField?: boolean;
   readonly initialHeat?: number;
-  readonly professionAssumptions?: ProfessionBuildAssumptions;
   readonly selectedMorphSkillIds?: readonly number[];
 }
 

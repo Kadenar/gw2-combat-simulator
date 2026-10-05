@@ -1,4 +1,3 @@
-import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
 import type { NativeResolvedDamageDetails } from '#gw2/platform/profession-definition/module-types.js';
 import {
   applyOverflowingThirstDamage,
@@ -50,13 +49,6 @@ export function reactToNecromancerCoreCondition(
   context: NecromancerResolverContext,
   event: NecromancerResolverEvent
 ): void {
-  if (event.condition === 'Chilled') {
-    professionCoreState(context).targetChilledUntil = Math.max(
-      professionCoreState(context).targetChilledUntil || 0,
-      event.at + (event.effectiveDuration ?? event.duration ?? 0)
-    );
-  }
-
   applyBitterChill(context, event);
   applyCorruptorsFervor(context, event);
 }

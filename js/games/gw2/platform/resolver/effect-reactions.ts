@@ -10,6 +10,7 @@ import type { CanonicalCatalog, Skill } from '#gw2/platform/skills/types.js';
 /** Resolution selects reactions; the composition root supplies action validation and mutation capabilities. */
 export interface EffectReactionActions<T extends object> {
   hasHandler(type: string): boolean;
+  validate(skill: Skill, action: SideEffectAction): void;
   apply(runtime: MechanicContext<T>, context: ActionContext, action: SideEffectAction): void;
 }
 
@@ -26,9 +27,13 @@ export function createEffectReactions<T extends object>(catalog: CanonicalCatalo
       const existing = byRules?.get(effect.reactions);
       if (existing !== undefined) return existing;
       for (const rule of effect.reactions)
-        for (const action of Array.isArray(rule.do) ? rule.do : [rule.do])
+        for (const action of Array.isArray(rule.do) ? rule.do : [rule.do]) {
+          // Transformed effects must support their grants too; validate each registered declaration only once.
+          actions.validate(skill, action);
           if (action.type.includes('.') && !actions.hasHandler(action.type))
             throw new TypeError(`Skill ${skill.id} has no side-effect handler registered for ${action.type}.`);
+        }
+
       if (!byRules) identities.set(skill, (byRules = new WeakMap()));
       const group = groups.push({ skill, rules: effect.reactions }) - 1;
       byRules.set(effect.reactions, group);

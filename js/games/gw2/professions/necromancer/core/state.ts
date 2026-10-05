@@ -53,7 +53,6 @@ export interface NecromancerCoreState {
   lichEndsAt: number;
   /** Re-entering the timed form owns a new cancellable expiry. */
   lichGeneration: number;
-  targetChilledUntil: number;
   dreadUntil: number;
 
   tasteForBloodGrants: Record<string, TasteForBloodGrant[]>;

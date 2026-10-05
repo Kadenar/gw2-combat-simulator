@@ -636,28 +636,43 @@ test('Amalgam food comparisons use the recalculated Evolve attribute pool', () =
 
 test('Thorns retaliation requires the damaging-field assumption', () => {
   const selectedMorphSkillIds = [77103, 77104, 76705];
-  const inactive = simulate('Amalgam', [77104], {
-    selectedMorphSkillIds
-  });
+  // Vary only the assumption so the same successful cast proves the outgoing retaliation gate.
+  for (const professionAssumptions of [undefined, {}, { inDamagingField: false }, { inDamagingField: true }]) {
+    const result = simulate(
+      'Amalgam',
+      [77104],
+      { selectedMorphSkillIds, professionAssumptions },
+      observationTail(6000)
+    );
+    assert.deepEqual(result.warnings, []);
+    assert.equal(
+      result.resolvedEvents.some((event) => event.type === 'damage' && event.name === 'Thorns Retaliation'),
+      professionAssumptions?.inDamagingField === true
+    );
+  }
+});
 
-  assert.equal(
-    inactive.resolvedEvents.some((event) => event.type === 'damage' && event.name === 'Thorns Retaliation'),
-    false
-  );
+test('Amalgam build assumptions map to the canonical runtime configuration', () => {
+  // Exercise the application boundary that supplies the runtime gate from persisted build assumptions.
+  for (const inDamagingField of [true, false]) {
+    const canonical = createEngineerBuildDefaults();
+    canonical.specializations = [
+      { name: 'Explosives', traits: '3-2-3' },
+      { name: 'Firearms', traits: '3-3-2' },
+      { name: 'Amalgam', traits: '2-2-3' }
+    ];
+    canonical.assumptions.inDamagingField = inDamagingField;
+    const app = {
+      adapter: engineerAppAdapter,
+      build: toApplicationBuild(canonical),
+      skillByName: engineerCatalog.skillsByName,
+      attributeWeaponSet: 1
+    };
+    engineerAppAdapter.recalculate(app);
+    const config = engineerAppAdapter.simulationConfig(app);
 
-  const active = simulate(
-    'Amalgam',
-    ['Evolve', 77104],
-    {
-      selectedMorphSkillIds,
-      professionAssumptions: { inDamagingField: true }
-    },
-    observationTail(6000)
-  );
-  const retaliation = active.resolvedEvents.filter(
-    (event) => event.type === 'damage' && event.name === 'Thorns Retaliation'
-  );
-
-  // The assumption gates outgoing retaliation; packet calibration is outside this behavior check.
-  assert.ok(retaliation.length > 0);
+    assert.equal(config.professionAssumptions.inDamagingField, inDamagingField);
+    assert.equal(Object.hasOwn(config, 'assumptions'), false);
+    assert.equal(Object.hasOwn(config, 'inDamagingField'), false);
+  }
 });

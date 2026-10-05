@@ -1,5 +1,4 @@
 import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
-import { targetConditionActive } from '#gw2/platform/combat/query/runtime-query.js';
 import type { Gw2MutableStats, Gw2Stats } from '#gw2/platform/combat/types.js';
 import {
   readProfessionCoreState,
@@ -22,13 +21,6 @@ export function necromancerRuntimeSpecializationState(
 
 export function necromancerActiveShroud(context: Gw2ModifierContext): string {
   return necromancerRuntimeCoreState(context).activeShroud || '';
-}
-
-export function necromancerTargetChilled(context: Gw2ModifierContext): boolean {
-  return (
-    targetConditionActive(context, 'Chilled') ||
-    (necromancerRuntimeCoreState(context).targetChilledUntil || 0) > context.time
-  );
 }
 
 export function cloneNecromancerAttributes(attributes: Gw2Stats): Gw2MutableStats & {

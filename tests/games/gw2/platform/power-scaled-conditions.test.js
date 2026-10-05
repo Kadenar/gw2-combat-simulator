@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { createGw2CombatQuery } from '#gw2/platform/combat/query/combat-query.js';
+import { createCanonicalCatalog } from '#gw2/platform/skills/catalog.js';
 import { elementalistCatalog } from '#gw2/professions/elementalist/catalog.js';
 import { elementalistCoreModifiers } from '#gw2/professions/elementalist/core/modifiers.js';
 import { ELEMENTALIST_TRAIT_IDS } from '#gw2/professions/elementalist/data/ids.js';
@@ -35,12 +36,14 @@ for (const [name, catalog, modifiers, trait, condition, other, damage, coefficie
   ]
 ]) {
   test(`${name} shares the final condition-attribute conversion contract`, () => {
+    // This formula-only runtime needs the trait's tuning, not unrelated profession skills and resource grants.
+    const selectedCatalog = createCanonicalCatalog({ balanceProfiles: [catalog.balanceProfilesById.get(trait)] });
     for (const output of ['detailed', 'score']) {
       const reads = new Map();
       const profession = defineTestProfession({
         id: 'power-condition',
         name,
-        catalog,
+        catalog: selectedCatalog,
         modifiers: {
           modifyConditionAttributes: modifiers.modifyConditionAttributes,
           modifyAttributes(context, attributes) {
@@ -103,7 +106,7 @@ for (const [name, catalog, modifiers, trait, condition, other, damage, coefficie
       const unselected = createGw2CombatQuery({ profession, config: { ...config, selectedTraitIds: [] } });
       assert.equal(unselected.statsAt(1, application).conditionDamage, 1000);
       const patched = createGw2CombatQuery({
-        profession: { ...profession, catalog: withProfile(catalog, trait, { coefficientMultiplier: 0.5 }) },
+        profession: { ...profession, catalog: withProfile(selectedCatalog, trait, { coefficientMultiplier: 0.5 }) },
         config
       });
       assert.equal(patched.statsAt(1, application).conditionDamage, 1000);

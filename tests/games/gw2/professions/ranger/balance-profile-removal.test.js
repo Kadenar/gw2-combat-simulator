@@ -18,7 +18,8 @@ import test from 'node:test';
 
 const remove = (type, name) => ({ removeEffects: [{ type, name }] });
 const wait = (durationMs) => ({ type: 'wait', durationMs });
-const patched = (balanceProfiles) => applyBalanceProfilePatch(rangerCatalog, { balanceProfiles });
+// Runtime patches retain the selected catalog; standalone trait probes explicitly use the family catalog.
+const patched = (catalog, balanceProfiles) => applyBalanceProfilePatch(catalog, { balanceProfiles });
 
 // Only the state-selected packet can claim the shared deadline; its removed sibling cannot substitute for it.
 test('Untamed control declarations gate cooldowns on the selected surviving effect', () => {
@@ -44,7 +45,7 @@ test('Untamed control declarations gate cooldowns on the selected surviving effe
           [wait(1500)],
           { specialization: 'Untamed', selectedTraitIds: [trait] },
           {
-            extend: () => ({ catalog: patched({ [profile]: remove(type, removed) }) }),
+            extend: (native) => ({ catalog: patched(native.catalog, { [profile]: remove(type, removed) }) }),
             initialize(runtime) {
               runtime.profession.specialization.state.rangerUnleashed = unleashed;
               runtime.effects.emit({
@@ -101,7 +102,7 @@ function resolverContext(balanceProfiles, selectedTraitIds, specialization) {
     procs: createProcRegistry(() => context),
     config,
     traits: new Set(config.selectedTraitIds),
-    catalog: patched(balanceProfiles),
+    catalog: patched(rangerCatalog, balanceProfiles),
     boons: new Map(),
     // Neutral stats keep derived boon durations at their authored values.
     query: { statsAt: () => ({}) },
@@ -156,7 +157,7 @@ test('removed Quick Draw quickness keeps the trait-owned recharge window and coo
     procs: createProcRegistry(() => context),
     config,
     traits: new Set(config.selectedTraitIds),
-    catalog: patched({ [TRAIT.QUICK_DRAW]: remove('boon', 'quickness') }),
+    catalog: patched(rangerCatalog, { [TRAIT.QUICK_DRAW]: remove('boon', 'quickness') }),
     combatStartTime: 0,
     effectiveEnd: 1,
     state: { time: 1, profession: { core: createRangerCoreState(config) } },
@@ -183,8 +184,8 @@ test('Bestial Rage keeps its sibling boon and cooldown, and releases the cooldow
       [wait(1500)],
       { specialization: 'Soulbeast', selectedTraitIds: [TRAIT.BESTIAL_RAGE] },
       {
-        extend: () => ({
-          catalog: patched({
+        extend: (native) => ({
+          catalog: patched(native.catalog, {
             [TRAIT.BESTIAL_RAGE]: {
               removeEffects: [{ type: 'boon', name: 'might' }, ...(both ? [{ type: 'boon', name: 'fury' }] : [])]
             }
@@ -267,8 +268,8 @@ test('pet recharge consumes patched Pack Alpha and Crippling Anguish values', ()
         selectedTraitIds: [TRAIT.PACK_ALPHA]
       },
       {
-        extend: () => ({
-          catalog: patched({
+        extend: (native) => ({
+          catalog: patched(native.catalog, {
             [TRAIT.PACK_ALPHA]: { fields: { rechargeMultiplier: 0.5 } },
             [CORE.cripplingAnguishQuickness]: { fields: { cooldown: 7 } }
           })
