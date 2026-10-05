@@ -21,7 +21,7 @@ import {
   rangerBuffRequest,
   rangerConditionRequest
 } from '#gw2/professions/ranger/core/mechanics/resolution-helpers.js';
-import { RANGER_CORE_BALANCE_PROFILE_IDS as CORE_PROFILE } from '#gw2/professions/ranger/core/profiles.js';
+import { RANGER_CORE_BALANCE_PROFILE_IDS as CORE_PROFILE } from '#gw2/professions/ranger/core/profile-ids.js';
 import { rangerPetByName } from '#gw2/professions/ranger/core/state.js';
 import {
   triggerMergedGoForTheEyes,

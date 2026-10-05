@@ -1,9 +1,26 @@
+import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
+import type { RangerRuntimeState, RangerSkill, RangerResolverContext } from '#gw2/professions/ranger/types.js';
+import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
+import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
+import { defineSkillVariantProfile as variant } from '#gw2/platform/profession-definition/balance-profiles.js';
+import { grantSkillCharges } from '#gw2/professions/ranger/core/skills/charge-grants.js';
+import { consumeCharge, expireCharges, grantCharges } from '#gw2/platform/combat/resources/charges.js';
+import { buildResolverCondition } from '#gw2/platform/resolver/packets.js';
 import { MODIFIER_TARGET, type Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
 import { targetHasCondition } from '#gw2/platform/combat/state/targets.js';
 import { skillForEvent } from '#gw2/platform/combat/query/runtime-query.js';
-import { requireBalanceProfileFromContext, balanceProfileNumber } from '#gw2/platform/skills/balance-profiles.js';
-import { RANGER_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/ranger/core/profiles.js';
-import { stalkersStrikeTargetImpaired } from '#gw2/professions/ranger/core/mechanics/resolution-helpers.js';
+import {
+  requireBalanceProfileFromContext,
+  balanceProfileNumber,
+  requireEffect,
+  effectNumber
+} from '#gw2/platform/skills/balance-profiles.js';
+import { RANGER_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/ranger/core/profile-ids.js';
+import {
+  stalkersStrikeTargetImpaired,
+  isPetStrike,
+  petDerivedConditionMetadata
+} from '#gw2/professions/ranger/core/mechanics/resolution-helpers.js';
 /** Canonical Core ranger skill fragments grouped by their GW2 owner. */
 import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
@@ -222,3 +239,57 @@ export const rangerStalkersStrikeModifier: Gw2ModifierRule = {
       targetHasCondition(context.config ?? {}, condition, context.time, context.runtime)
     )
 };
+
+/** The owning skill supplies charge limits, lifetime, and the triggered condition packet. */
+export const poisonousStrikesProfile = variant(PROFILE.poisonousStrikes, ID.DOUBLE_ARC, 'Poisonous Strikes', {
+  playerStacks: 2,
+  durationMultiplier: 7,
+  effects: [{ name: 'Poisoned', type: 'condition', condition: 'Poisoned', stacks: 1, duration: 6 }]
+});
+
+export function handleRangerPoisonousStrikes(context: RangerResolverContext, event: Gw2ResolverEvent): void {
+  const state = professionCoreState(context);
+  // Double Arc replaces the shared pet/merged-player grant instead of accumulating charges.
+  state.poisonousStrikes = grantCharges(Math.max(0, Number(event.charges || 0)), event.at + (event.duration || 0));
+}
+
+export function triggerPoisonousStrikes(context: RangerResolverContext, event: Gw2ResolverEvent): void {
+  const state = professionCoreState(context);
+  // Pet and merged-player routes share one grant, including its inclusive final hit.
+  expireCharges(state.poisonousStrikes, event.at, true);
+
+  if (!isPetStrike(event) || !(Number(event.coefficient) > 0)) return;
+  const profile = requireBalanceProfileFromContext(context, PROFILE.poisonousStrikes);
+  const poison = requireEffect(profile, 'condition', 'Poisoned');
+  // The charges exist only to deliver poison, so a removed packet leaves them unspent.
+  if (!poison || !consumeCharge(state.poisonousStrikes, event.at, 0, true)) return;
+  context.effects.emit({
+    kind: 'packet',
+    event: buildResolverCondition({
+      ...petDerivedConditionMetadata(context, event),
+
+      at: event.at,
+      source: 'ranger-pet',
+      sourceId: ID.DOUBLE_ARC,
+      actorType: 'summon',
+      skillId: ID.DOUBLE_ARC,
+      skillName: 'Poisonous Strikes',
+      name: 'Poisonous Strikes - Poisoned',
+      condition: String(poison.condition),
+      duration: effectNumber(profile, poison, 'duration'),
+      stacks: effectNumber(profile, poison, 'stacks'),
+      triggeredBy: event.skillName
+    })
+  });
+}
+
+/** Queue grants at the declared activation boundary so same-time hits retain their established order. */
+export const poisonousStrikesLifecycle = {
+  sideEffectHandlers: {
+    'ranger.poisonous-strikes'(runtime, context) {
+      if (context.kind === 'cast')
+        grantSkillCharges(runtime, context.cast, 'ranger.poisonous-strikes', PROFILE.poisonousStrikes);
+    }
+  },
+  eventHandlers: { 'ranger.poisonous-strikes': handleRangerPoisonousStrikes }
+} satisfies RuntimeHooks<RangerRuntimeState, RangerSkill>;

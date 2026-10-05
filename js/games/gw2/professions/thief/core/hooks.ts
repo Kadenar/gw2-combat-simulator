@@ -1,5 +1,6 @@
+import { infiltratorsSignetLifecycle } from '#gw2/professions/thief/core/skills/slot-skills.js';
 import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
-import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
+import { composeRuntimeHooks, type RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import { damageInputEvent } from '#gw2/platform/skill-damage/occurrence-driver.js';
 import { emitVenom, VENOMS } from '#gw2/professions/thief/core/mechanics/venoms.js';
 import {
@@ -39,12 +40,9 @@ import {
   thiefTrapAvailability
 } from '#gw2/professions/thief/core/mechanics/preparations.js';
 import {
-  restartThiefInfiltratorsSignet,
   setThiefKneeling,
   spendThiefCoreResources,
-  THIEF_INFILTRATORS_SIGNET_PULSE,
   thiefEndurance,
-  thiefInfiltratorsSignetPulse,
   thiefInitiative
 } from '#gw2/professions/thief/core/mechanics/resources.js';
 import {
@@ -171,7 +169,7 @@ function completeThiefCast(runtime: ThiefRuntime, cast: RuntimeCast<ThiefSkill>)
 /** Core hooks: initiative, endurance, stealth, steals, weapon follow-ups, utilities, and resolved trait reactions. */
 import { thiefBuffPolicies, thiefEffectStates } from '#gw2/professions/thief/core/effect-state.js';
 
-export const thiefCoreHooks: RuntimeHooks<ThiefRuntimeState, ThiefSkill> = {
+const coreLifecycle: RuntimeHooks<ThiefRuntimeState, ThiefSkill> = {
   // Known damage payloads are invoked once without their activation requirements.
   damageEffects: VENOMS.map((venom) => ({
     id: `venom:${venom.skillId}`,
@@ -185,7 +183,6 @@ export const thiefCoreHooks: RuntimeHooks<ThiefRuntimeState, ThiefSkill> = {
   buffPolicies: thiefBuffPolicies,
   observeEffects: thiefEffectStates,
   sideEffectHandlers: {
-    'thief.restart-signet': restartThiefInfiltratorsSignet,
     'thief.assassins-signet': activateAssassinsSignet,
     'thief.kneel': (runtime) => setThiefKneeling(runtime, true),
     'thief.stand': (runtime) => setThiefKneeling(runtime, false),
@@ -218,9 +215,6 @@ export const thiefCoreHooks: RuntimeHooks<ThiefRuntimeState, ThiefSkill> = {
   },
   resources: { initiative: thiefInitiative },
   endurance: thiefEndurance,
-  initialize(runtime) {
-    restartThiefInfiltratorsSignet(runtime);
-  },
   availability: thiefAvailability,
   rechargeWork: thiefRechargeWork,
   // A Double Edge recast while recharging keeps the running recharge instead of reserving a new one.
@@ -239,14 +233,7 @@ export const thiefCoreHooks: RuntimeHooks<ThiefRuntimeState, ThiefSkill> = {
   onCastCommit(runtime, cast) {
     deferThiefCompletion(runtime, THIEF_CORE_COMPLETE, cast);
   },
-  onCastCancel(runtime, cast) {
-    // A cancelled signet still restarts its passive cadence after its recharge has settled.
-    if (cast.skill.id === ID.INFILTRATORS_SIGNET) restartThiefInfiltratorsSignet(runtime);
-  },
   onAutoattackChainTransition: transitionThiefScepterChain,
-  onCooldownReset(runtime) {
-    restartThiefInfiltratorsSignet(runtime);
-  },
   reactions: {
     'damage.resolving'(runtime, event) {
       return modifyThiefLifeSiphon(runtime, event);
@@ -257,8 +244,6 @@ export const thiefCoreHooks: RuntimeHooks<ThiefRuntimeState, ThiefSkill> = {
     },
     'condition.applied': reactThiefCoreCondition
   },
-  // Initiative regeneration is ongoing state, not a delayed consequence to measure for the active signet.
-  backgroundTasks: [THIEF_INFILTRATORS_SIGNET_PULSE],
   tasks: {
     [THIEF_AXE_LAND]: landThiefAxe,
     'thief.distracting-throw-window': grantDistractingThrowWindow,
@@ -266,7 +251,12 @@ export const thiefCoreHooks: RuntimeHooks<ThiefRuntimeState, ThiefSkill> = {
       const { cast } = data as { cast: RuntimeCast<ThiefSkill> };
       completeThiefCast(runtime, cast);
     },
-    [THIEF_INFILTRATORS_SIGNET_PULSE]: thiefInfiltratorsSignetPulse,
     [THIEF_SCEPTER_CHAIN_EXPIRY]: expireThiefScepterChain
   }
 };
+
+/** Compose skill-owned lifecycle behavior with the shared profession rules. */
+export const thiefCoreHooks = composeRuntimeHooks<ThiefRuntimeState, ThiefSkill>([
+  infiltratorsSignetLifecycle,
+  coreLifecycle
+]);

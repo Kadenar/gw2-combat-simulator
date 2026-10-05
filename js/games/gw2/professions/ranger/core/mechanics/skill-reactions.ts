@@ -1,13 +1,8 @@
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import { buildResolverCondition, buildResolverBuff } from '#gw2/platform/resolver/packets.js';
-import {
-  activeChargeGrants,
-  consumeChargeBatch,
-  consumeCharge,
-  expireCharges
-} from '#gw2/platform/combat/resources/charges.js';
+
 /** Owns Core Ranger skill-armed hit reactions that are not trait-line definitions. */
-import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
+
 import {
   requireBalanceProfileFromContext,
   requireEffect,
@@ -15,72 +10,9 @@ import {
 } from '#gw2/platform/skills/balance-profiles.js';
 import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
 import { rangerPetCompanionId } from '#gw2/professions/ranger/core/mechanics/pets.js';
-import {
-  buildRangerBleeding,
-  isPetStrike,
-  isPlayerStrike,
-  petDerivedConditionMetadata
-} from '#gw2/professions/ranger/core/mechanics/resolution-helpers.js';
+import { isPlayerStrike } from '#gw2/professions/ranger/core/mechanics/resolution-helpers.js';
 import type { RangerResolverContext } from '#gw2/professions/ranger/types.js';
-import { RANGER_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/ranger/core/profiles.js';
-
-export function triggerPoisonousStrikes(context: RangerResolverContext, event: Gw2ResolverEvent): void {
-  const state = professionCoreState(context);
-  // Pet and merged-player routes share one grant, including its inclusive final hit.
-  expireCharges(state.poisonousStrikes, event.at, true);
-
-  if (!isPetStrike(event) || !(Number(event.coefficient) > 0)) return;
-  const profile = requireBalanceProfileFromContext(context, PROFILE.poisonousStrikes);
-  const poison = requireEffect(profile, 'condition', 'Poisoned');
-  // The charges exist only to deliver poison, so a removed packet leaves them unspent.
-  if (!poison || !consumeCharge(state.poisonousStrikes, event.at, 0, true)) return;
-  context.effects.emit({
-    kind: 'packet',
-    event: buildResolverCondition({
-      ...petDerivedConditionMetadata(context, event),
-
-      at: event.at,
-      source: 'ranger-pet',
-      sourceId: ID.DOUBLE_ARC,
-      actorType: 'summon',
-      skillId: ID.DOUBLE_ARC,
-      skillName: 'Poisonous Strikes',
-      name: 'Poisonous Strikes - Poisoned',
-      condition: String(poison.condition),
-      duration: effectNumber(profile, poison, 'duration'),
-      stacks: effectNumber(profile, poison, 'stacks'),
-      triggeredBy: event.skillName
-    })
-  });
-}
-
-export function triggerSharpeningStone(context: RangerResolverContext, event: Gw2ResolverEvent): void {
-  const state = professionCoreState(context);
-  const eligible = isPlayerStrike(event) && Number(event.coefficient) > 0;
-  const profile = eligible ? requireBalanceProfileFromContext(context, PROFILE.sharpeningStone) : undefined;
-  const bleeding = profile && requireEffect(profile, 'condition', 'Bleeding');
-  // Grants sort by expiry: spend the earliest deadline, and still prune on ineligible hits. Grants exist only to
-  // deliver bleeding, so a removed packet only prunes them.
-  state.sharpeningStoneGrants = activeChargeGrants(state.sharpeningStoneGrants, event.at);
-  if (!profile || !bleeding || !consumeChargeBatch(state.sharpeningStoneGrants, event.at)) return;
-  context.effects.emit({
-    kind: 'packet',
-    event: buildResolverCondition({
-      at: event.at,
-      source: 'ranger',
-      sourceId: ID.SHARPENING_STONE,
-      actorType: 'effect',
-      ownerActorType: 'player',
-      skillId: ID.SHARPENING_STONE,
-      skillName: 'Sharpening Stone',
-      name: 'Sharpening Stone - Bleeding',
-      condition: String(bleeding.condition),
-      duration: effectNumber(profile, bleeding, 'duration'),
-      stacks: effectNumber(profile, bleeding, 'stacks'),
-      triggeredBy: event.skillName
-    })
-  });
-}
+import { RANGER_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/ranger/core/profile-ids.js';
 
 // Mirror the active Strength of the Pack proc between Ranger and companion hits
 // while enforcing its event and cooldown guards.
@@ -140,27 +72,4 @@ export function triggerStalkersStrike(context: RangerResolverContext, event: Gw2
       activationId: event.activationId
     })
   });
-}
-
-/** Consume one live Blood Thirst charge per qualifying hit, excluding its arming skill and exact expiry. */
-export function triggerBloodThirst(context: RangerResolverContext, event: Gw2ResolverEvent): void {
-  const state = professionCoreState(context);
-  expireCharges(state.bloodThirst, event.at);
-  if (event.sourceId === ID.CRIPPLING_SHOT) return;
-  const profile = requireBalanceProfileFromContext(context, PROFILE.bloodThirst);
-  const bleeding = requireEffect(profile, 'condition', 'Bleeding');
-  // Charges exist only to deliver bleeding, so a removed packet leaves them unspent.
-  if (bleeding && consumeCharge(state.bloodThirst, event.at)) {
-    context.effects.emit({
-      kind: 'packet',
-      event: buildRangerBleeding(
-        context,
-        event,
-        effectNumber(profile, bleeding, 'duration'),
-        ID.CRIPPLING_SHOT,
-        'Blood Thirst',
-        effectNumber(profile, bleeding, 'stacks')
-      )
-    });
-  }
 }

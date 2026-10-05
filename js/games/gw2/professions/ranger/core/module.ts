@@ -1,3 +1,6 @@
+import { bloodThirstProfile } from '#gw2/professions/ranger/core/skills/weapons/shortbow.js';
+import { poisonousStrikesProfile } from '#gw2/professions/ranger/core/skills/weapons/dagger.js';
+import { sharpeningStoneProfile } from '#gw2/professions/ranger/core/skills/slot-skills.js';
 import { createPublicStateProjector } from '#gw2/platform/profession-definition/state.js';
 import { defineNativeModule } from '#gw2/platform/profession-definition/profession.js';
 import { rangerCoreHooks } from '#gw2/professions/ranger/core/hooks.js';
@@ -18,7 +21,12 @@ export const rangerCoreModule = defineNativeModule({
   traitDefinitions: rangerCoreTraits,
   data: createRangerModuleData('Core', {
     skillMechanics: RANGER_CORE_BASE_SKILL_MECHANICS,
-    balanceProfiles: RANGER_CORE_BALANCE_PROFILES,
+    balanceProfiles: [
+      ...RANGER_CORE_BALANCE_PROFILES,
+      sharpeningStoneProfile,
+      poisonousStrikesProfile,
+      bloodThirstProfile
+    ],
     extraSkills: RANGER_CORE_EXTRA_SKILLS
   }),
   state: { create: createRangerCoreState, project: createPublicStateProjector(RANGER_CORE_PUBLIC_STATE_PROJECTION) },

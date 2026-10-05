@@ -1,17 +1,16 @@
-import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
+import { bloodThirstLifecycle } from '#gw2/professions/ranger/core/skills/weapons/shortbow.js';
+import { poisonousStrikesLifecycle } from '#gw2/professions/ranger/core/skills/weapons/dagger.js';
+import { sharpeningStoneLifecycle } from '#gw2/professions/ranger/core/skills/slot-skills.js';
+import { composeRuntimeHooks, type RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import { prepareGw2BuffCompanionCandidates } from '#gw2/platform/combat/state/allied-players.js';
-import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
+
 import { criticalProcHandler } from '#gw2/platform/profession-definition/mechanics.js';
 import { OBSERVABLE_EVENT_HANDLER } from '#gw2/platform/resolver/handler-registry.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
-import { buildRangerPacket } from '#gw2/professions/ranger/core/events.js';
+
 import { rangerCoreCastAvailability } from '#gw2/professions/ranger/core/mechanics/availability.js';
-import {
-  handleRangerBloodThirst,
-  handleRangerPoisonousStrikes,
-  handleRangerSharpeningStone
-} from '#gw2/professions/ranger/core/mechanics/event-handlers.js';
+
 import {
   grantMaulAttackOfOpportunity,
   reactToRangerGreatswordDamage
@@ -29,7 +28,7 @@ import {
 import { reactToRangerCoreDamage } from '#gw2/professions/ranger/core/mechanics/reactions.js';
 import { rangerEndurance } from '#gw2/professions/ranger/core/mechanics/resources.js';
 import { triggerStalkersStrike } from '#gw2/professions/ranger/core/mechanics/skill-reactions.js';
-import { RANGER_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/ranger/core/profiles.js';
+
 import { swapRangerPets } from '#gw2/professions/ranger/core/skills/actions.js';
 import {
   activateSicEm,
@@ -60,30 +59,6 @@ import type { RangerSkill, RangerRuntime, RangerRuntimeState } from '#gw2/profes
 
 const critical = criticalProcHandler(rangerCoreCriticalReactions);
 
-/** Charges are granted only at their actual activation boundary and consumed by resolved-hit owners. */
-function grantSkillCharges(
-  runtime: RangerRuntime,
-  cast: RuntimeCast<RangerSkill>,
-  type: string,
-  profileId: number | string
-): void {
-  const profile = requireBalanceProfileFromContext(runtime, profileId);
-  runtime.effects.emit({
-    kind: 'packet',
-    event: buildRangerPacket(
-      {
-        at: runtime.time,
-        skillId: cast.skill.id,
-        skillName: cast.skill.name,
-        activationId: cast.id,
-        charges: balanceProfileNumber(profile, 'playerStacks'),
-        duration: balanceProfileNumber(profile, 'durationMultiplier')
-      },
-      type
-    )
-  });
-}
-
 /** Commit and cancellation both synchronize the recharge already started by the runtime. */
 function completeWeapon(runtime: RangerRuntime, cast: RuntimeCast<RangerSkill>): void {
   synchronizeHammerRecharge(runtime, cast);
@@ -93,21 +68,9 @@ function completeWeapon(runtime: RangerRuntime, cast: RuntimeCast<RangerSkill>):
 
 import { rangerBuffPolicies } from '#gw2/professions/ranger/core/effect-state.js';
 
-export const rangerCoreHooks: RuntimeHooks<RangerRuntimeState, RangerSkill> = {
+const coreLifecycle: RuntimeHooks<RangerRuntimeState, RangerSkill> = {
   buffPolicies: rangerBuffPolicies,
   sideEffectHandlers: {
-    // Declarations choose the phase and payload; queued grants preserve same-time hit ordering.
-    'ranger.sharpening-stone'(runtime, context) {
-      if (context.kind === 'cast')
-        grantSkillCharges(runtime, context.cast, 'ranger.sharpening-stone', PROFILE.sharpeningStone);
-    },
-    'ranger.poisonous-strikes'(runtime, context) {
-      if (context.kind === 'cast')
-        grantSkillCharges(runtime, context.cast, 'ranger.poisonous-strikes', PROFILE.poisonousStrikes);
-    },
-    'ranger.blood-thirst'(runtime, context) {
-      if (context.kind === 'cast') grantSkillCharges(runtime, context.cast, 'ranger.blood-thirst', PROFILE.bloodThirst);
-    },
     'ranger.winter-bite'(runtime) {
       runtime.profession.core.winterBiteReady = true;
     },
@@ -211,10 +174,7 @@ export const rangerCoreHooks: RuntimeHooks<RangerRuntimeState, RangerSkill> = {
   eventHandlers: {
     // This is an executed transition fact for presentation; the completion owner already changed the pet.
     'ranger.pet-swapped': OBSERVABLE_EVENT_HANDLER,
-    'ranger.blood-thirst': handleRangerBloodThirst,
-    'ranger.beast-skill-used': handleRangerBeastSkillUsed,
-    'ranger.poisonous-strikes': handleRangerPoisonousStrikes,
-    'ranger.sharpening-stone': handleRangerSharpeningStone
+    'ranger.beast-skill-used': handleRangerBeastSkillUsed
   },
   reactions: {
     'damage.resolved'(runtime, event, details) {
@@ -244,3 +204,11 @@ export const rangerCoreHooks: RuntimeHooks<RangerRuntimeState, RangerSkill> = {
     }
   }
 };
+
+/** Skill owners register their grants; the shared damage dispatcher preserves cross-skill and trait ordering. */
+export const rangerCoreHooks = composeRuntimeHooks<RangerRuntimeState, RangerSkill>([
+  coreLifecycle,
+  sharpeningStoneLifecycle,
+  poisonousStrikesLifecycle,
+  bloodThirstLifecycle
+]);

@@ -8,7 +8,7 @@ import test from 'node:test';
 import { thiefCatalog } from '#gw2/professions/thief/profession.js';
 import { landThiefAxe } from '#gw2/professions/thief/core/mechanics/axes.js';
 import { runThief } from '#tests/helpers/thief-simulation.js';
-import { triggerSharpeningStone } from '#gw2/professions/ranger/core/mechanics/skill-reactions.js';
+import { triggerSharpeningStone } from '#gw2/professions/ranger/core/skills/slot-skills.js';
 import { rangerCatalog } from '#gw2/professions/ranger/profession.js';
 import { necromancerProfession } from '#gw2/professions/necromancer/profession.js';
 import { NECROMANCER_SKILL_IDS } from '#gw2/professions/necromancer/data/ids.js';

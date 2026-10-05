@@ -18,7 +18,7 @@ import {
   type ProfessionTooltips
 } from '#gw2/app/shared/simulation-tooltip.js';
 import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
-import { RANGER_CORE_BALANCE_PROFILE_IDS as CORE } from '#gw2/professions/ranger/core/profiles.js';
+import { RANGER_CORE_BALANCE_PROFILE_IDS as CORE } from '#gw2/professions/ranger/core/profile-ids.js';
 import { SOULBEAST_BALANCE_PROFILE_IDS as SOULBEAST } from '#gw2/professions/ranger/specializations/soulbeast/profiles.js';
 import { DRUID_BALANCE_PROFILE_IDS as DRUID } from '#gw2/professions/ranger/specializations/druid/profiles.js';
 import { UNTAMED_BALANCE_PROFILE_IDS as UNTAMED } from '#gw2/professions/ranger/specializations/untamed/profiles.js';

@@ -1,10 +1,8 @@
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
-import {
-  triggerBloodThirst,
-  triggerPoisonousStrikes,
-  triggerSharpeningStone,
-  triggerStrengthOfThePack
-} from '#gw2/professions/ranger/core/mechanics/skill-reactions.js';
+import { triggerBloodThirst } from '#gw2/professions/ranger/core/skills/weapons/shortbow.js';
+import { triggerPoisonousStrikes } from '#gw2/professions/ranger/core/skills/weapons/dagger.js';
+import { triggerSharpeningStone } from '#gw2/professions/ranger/core/skills/slot-skills.js';
+import { triggerStrengthOfThePack } from '#gw2/professions/ranger/core/mechanics/skill-reactions.js';
 import {
   consumeOpeningStrike,
   triggerArachnophobia,

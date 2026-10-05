@@ -1,4 +1,23 @@
-import type { RangerSkill, RangerRuntime } from '#gw2/professions/ranger/types.js';
+import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
+import type {
+  RangerRuntimeState,
+  RangerSkill,
+  RangerResolverContext,
+  RangerRuntime
+} from '#gw2/professions/ranger/types.js';
+import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
+import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
+import { defineSkillVariantProfile as variant } from '#gw2/platform/profession-definition/balance-profiles.js';
+import { grantSkillCharges } from '#gw2/professions/ranger/core/skills/charge-grants.js';
+import {
+  activeChargeGrants,
+  consumeChargeBatch,
+  appendChargeGrant,
+  grantCharges
+} from '#gw2/platform/combat/resources/charges.js';
+import { buildResolverCondition } from '#gw2/platform/resolver/packets.js';
+import { isPlayerStrike } from '#gw2/professions/ranger/core/mechanics/resolution-helpers.js';
+
 import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
 import type { Gw2ResolvedStats } from '#gw2/platform/combat/query/combat-query.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
@@ -11,7 +30,7 @@ import {
   effectNumber,
   balanceProfileNumber
 } from '#gw2/platform/skills/balance-profiles.js';
-import { RANGER_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/ranger/core/profiles.js';
+import { RANGER_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/ranger/core/profile-ids.js';
 /** Canonical Core ranger skill fragments grouped by their GW2 owner. */
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
 import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
@@ -659,3 +678,65 @@ export function signetOfTheWildBonus(context: unknown, selected: boolean, ready 
     ? balanceProfileNumber(requireBalanceProfileFromContext(context, PROFILE.signetOfTheWild), 'attributeBonus')
     : 0;
 }
+
+/** The owning skill supplies charge limits, lifetime, and the triggered condition packet. */
+export const sharpeningStoneProfile = variant(
+  PROFILE.sharpeningStone,
+  ID.SHARPENING_STONE,
+  'Sharpening Stone - Triggered Bleeding',
+  {
+    playerStacks: 10,
+    durationMultiplier: 30,
+    effects: [{ name: 'Bleeding', type: 'condition', condition: 'Bleeding', stacks: 1, duration: 8 }]
+  }
+);
+
+export function handleRangerSharpeningStone(context: RangerResolverContext, event: Gw2ResolverEvent): void {
+  const state = professionCoreState(context);
+  // Recasts add charges without renewing the lifetime of the remaining stones.
+  state.sharpeningStoneGrants = appendChargeGrant(
+    state.sharpeningStoneGrants,
+    grantCharges(Math.trunc(Math.max(0, Number(event.charges || 0))), event.at + (event.duration || 0)),
+    event.at,
+    'earliest-expiry'
+  );
+}
+
+export function triggerSharpeningStone(context: RangerResolverContext, event: Gw2ResolverEvent): void {
+  const state = professionCoreState(context);
+  const eligible = isPlayerStrike(event) && Number(event.coefficient) > 0;
+  const profile = eligible ? requireBalanceProfileFromContext(context, PROFILE.sharpeningStone) : undefined;
+  const bleeding = profile && requireEffect(profile, 'condition', 'Bleeding');
+  // Grants sort by expiry: spend the earliest deadline, and still prune on ineligible hits. Grants exist only to
+  // deliver bleeding, so a removed packet only prunes them.
+  state.sharpeningStoneGrants = activeChargeGrants(state.sharpeningStoneGrants, event.at);
+  if (!profile || !bleeding || !consumeChargeBatch(state.sharpeningStoneGrants, event.at)) return;
+  context.effects.emit({
+    kind: 'packet',
+    event: buildResolverCondition({
+      at: event.at,
+      source: 'ranger',
+      sourceId: ID.SHARPENING_STONE,
+      actorType: 'effect',
+      ownerActorType: 'player',
+      skillId: ID.SHARPENING_STONE,
+      skillName: 'Sharpening Stone',
+      name: 'Sharpening Stone - Bleeding',
+      condition: String(bleeding.condition),
+      duration: effectNumber(profile, bleeding, 'duration'),
+      stacks: effectNumber(profile, bleeding, 'stacks'),
+      triggeredBy: event.skillName
+    })
+  });
+}
+
+/** Queue grants at the declared activation boundary so same-time hits retain their established order. */
+export const sharpeningStoneLifecycle = {
+  sideEffectHandlers: {
+    'ranger.sharpening-stone'(runtime, context) {
+      if (context.kind === 'cast')
+        grantSkillCharges(runtime, context.cast, 'ranger.sharpening-stone', PROFILE.sharpeningStone);
+    }
+  },
+  eventHandlers: { 'ranger.sharpening-stone': handleRangerSharpeningStone }
+} satisfies RuntimeHooks<RangerRuntimeState, RangerSkill>;

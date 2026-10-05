@@ -25,7 +25,7 @@ import {
   type PetAutoProfile,
   type PetAutoSkill
 } from '#gw2/professions/ranger/core/mechanics/pet-profiles.js';
-import { RANGER_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/ranger/core/profiles.js';
+import { RANGER_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/ranger/core/profile-ids.js';
 import { signetOfTheWildBonus } from '#gw2/professions/ranger/core/skills/slot-skills.js';
 import {
   applyArachnophobiaPet,

@@ -19,17 +19,13 @@ import {
   applyOverflowingThirstDamage
 } from '#gw2/professions/necromancer/core/traits/life-steal.js';
 import { necromancerEffectStates } from '#gw2/professions/necromancer/core/effect-state.js';
-import { RANGER_CORE_BALANCE_PROFILE_IDS as RANGER_PROFILE } from '#gw2/professions/ranger/core/profiles.js';
-import {
-  handleRangerBloodThirst,
-  handleRangerSharpeningStone,
-  handleRangerPoisonousStrikes
-} from '#gw2/professions/ranger/core/mechanics/event-handlers.js';
+import { RANGER_CORE_BALANCE_PROFILE_IDS as RANGER_PROFILE } from '#gw2/professions/ranger/core/profile-ids.js';
+import { handleRangerBloodThirst } from '#gw2/professions/ranger/core/skills/weapons/shortbow.js';
+import { handleRangerSharpeningStone } from '#gw2/professions/ranger/core/skills/slot-skills.js';
+import { handleRangerPoisonousStrikes } from '#gw2/professions/ranger/core/skills/weapons/dagger.js';
 import { reactToRangerCoreDamage } from '#gw2/professions/ranger/core/mechanics/reactions.js';
-import {
-  triggerPoisonousStrikes,
-  triggerSharpeningStone
-} from '#gw2/professions/ranger/core/mechanics/skill-reactions.js';
+import { triggerPoisonousStrikes } from '#gw2/professions/ranger/core/skills/weapons/dagger.js';
+import { triggerSharpeningStone } from '#gw2/professions/ranger/core/skills/slot-skills.js';
 import { RANGER_SKILL_IDS as RANGER } from '#gw2/professions/ranger/data/ids.js';
 import { rangerProfession } from '#gw2/professions/ranger/profession.js';
 import { reactToSoulbeastDamage } from '#gw2/professions/ranger/specializations/soulbeast/mechanics/beastmode-effects.js';

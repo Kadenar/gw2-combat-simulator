@@ -4,8 +4,8 @@ import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession
 import { createProcRegistry } from '#gw2/platform/combat/procs.js';
 import { grantCharges } from '#gw2/platform/combat/resources/charges.js';
 import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
-import { triggerPoisonousStrikes } from '#gw2/professions/ranger/core/mechanics/skill-reactions.js';
-import { RANGER_CORE_BALANCE_PROFILE_IDS as CORE } from '#gw2/professions/ranger/core/profiles.js';
+import { triggerPoisonousStrikes } from '#gw2/professions/ranger/core/skills/weapons/dagger.js';
+import { RANGER_CORE_BALANCE_PROFILE_IDS as CORE } from '#gw2/professions/ranger/core/profile-ids.js';
 import { createRangerCoreState } from '#gw2/professions/ranger/core/state.js';
 import { applyRangerWeaponSwapTraits } from '#gw2/professions/ranger/core/traits/behavior.js';
 import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
