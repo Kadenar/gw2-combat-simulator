@@ -31,7 +31,6 @@ import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import type { ThiefRuntime } from '#gw2/professions/thief/core/events.js';
 import { buildThiefCondition, deferThiefCompletion } from '#gw2/professions/thief/core/events.js';
-import { grantThiefInitiative } from '#gw2/professions/thief/core/mechanics/resources.js';
 import { completeThiefSteal } from '#gw2/professions/thief/core/mechanics/steal.js';
 import { emitThiefStealTraits } from '#gw2/professions/thief/core/traits/steal.js';
 import { deadeyeCastAvailability } from '#gw2/professions/thief/specializations/deadeye/mechanics/availability.js';
@@ -199,10 +198,9 @@ export const deadeyeHooks: RuntimeHooks<ThiefRuntimeState, ThiefSkill> = {
       runtime.resourceController.replace('malice', 0);
       state.maleficentSevenTriggered = false;
       const mercy = requireBalanceProfileFromContext(runtime, PROFILE.mercy);
-      grantThiefInitiative(
-        runtime,
-        balanceProfileNumber(mercy, 'resourceGain') + malice * balanceProfileNumber(mercy, 'attributePerStack')
-      );
+      const initiativeGain =
+        balanceProfileNumber(mercy, 'resourceGain') + malice * balanceProfileNumber(mercy, 'attributePerStack');
+      if (initiativeGain > 0) runtime.resourceController.grant('initiative', initiativeGain);
     },
     'thief.sneak-torment'(runtime, context) {
       if (context.kind === 'cast')

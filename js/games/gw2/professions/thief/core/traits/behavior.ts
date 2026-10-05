@@ -17,11 +17,7 @@ import {
 import type { Skill } from '#gw2/platform/skills/types.js';
 import type { ThiefRuntime } from '#gw2/professions/thief/core/events.js';
 import { buildThiefBuff, buildThiefCondition } from '#gw2/professions/thief/core/events.js';
-import {
-  grantThiefEndurance,
-  grantThiefInitiative,
-  setThiefKneeling
-} from '#gw2/professions/thief/core/mechanics/resources.js';
+import { setThiefKneeling } from '#gw2/professions/thief/core/mechanics/resources.js';
 import { thiefRuntimeState } from '#gw2/professions/thief/core/state-queries.js';
 import type { ThiefCoreState } from '#gw2/professions/thief/core/state.js';
 import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
@@ -54,11 +50,13 @@ export function applyFluidStrikes(runtime: ThiefRuntime): void {
 
 /** Applies Hard to Catch at its established mechanical boundary. */
 export function applyHardToCatch(runtime: ThiefRuntime): void {
-  if (hasTrait(runtime, TRAIT.HARD_TO_CATCH))
-    grantThiefEndurance(
-      runtime,
-      balanceProfileNumber(requireBalanceProfileFromContext(runtime, TRAIT.HARD_TO_CATCH), 'resourceGain')
+  if (hasTrait(runtime, TRAIT.HARD_TO_CATCH)) {
+    const enduranceGain = balanceProfileNumber(
+      requireBalanceProfileFromContext(runtime, TRAIT.HARD_TO_CATCH),
+      'resourceGain'
     );
+    if (enduranceGain > 0) runtime.endurance.grant(enduranceGain);
+  }
 }
 
 /** Natural expiry and forced exit share the selected patch's linger duration. */
@@ -132,7 +130,8 @@ export function completeThiefWeaponSwap(runtime: ThiefRuntime): void {
   )
     return;
   const profile = requireBalanceProfileFromContext(runtime, TRAIT.QUICK_POCKETS);
-  grantThiefInitiative(runtime, balanceProfileNumber(profile, 'resourceGain'));
+  const initiativeGain = balanceProfileNumber(profile, 'resourceGain');
+  if (initiativeGain > 0) runtime.resourceController.grant('initiative', initiativeGain);
 }
 
 /** Reconcile this trait's live bonus at its original attribute phase. */
@@ -159,16 +158,18 @@ export function applyRevealedTrainingAttributes(
 
 /** Applies Shadow's Rejuvenation at its established mechanical boundary. */
 export function enterShadowsRejuvenation(runtime: ThiefRuntime): void {
-  if (hasTrait(runtime, TRAIT.SHADOWS_REJUVENATION)) grantThiefInitiative(runtime, 2);
+  if (hasTrait(runtime, TRAIT.SHADOWS_REJUVENATION)) runtime.resourceController.grant('initiative', 2);
 }
 
 /** Applies Shadow's Rejuvenation at its established mechanical boundary. */
 export function exitShadowsRejuvenation(runtime: ThiefRuntime): void {
-  if (hasTrait(runtime, TRAIT.SHADOWS_REJUVENATION))
-    grantThiefInitiative(
-      runtime,
-      balanceProfileNumber(requireBalanceProfileFromContext(runtime, TRAIT.SHADOWS_REJUVENATION), 'resourceGain')
+  if (hasTrait(runtime, TRAIT.SHADOWS_REJUVENATION)) {
+    const initiativeGain = balanceProfileNumber(
+      requireBalanceProfileFromContext(runtime, TRAIT.SHADOWS_REJUVENATION),
+      'resourceGain'
     );
+    if (initiativeGain > 0) runtime.resourceController.grant('initiative', initiativeGain);
+  }
 }
 
 // Signets of Power grants initiative at acceptance, even if the cast is later interrupted.
@@ -235,6 +236,8 @@ export function startThiefDodge(runtime: ThiefRuntime, cast: RuntimeCast<ThiefSk
 export function applyUpperHand(runtime: ThiefRuntime): void {
   if (!hasTrait(runtime, TRAIT.UPPER_HAND)) return;
   const profile = requireBalanceProfileFromContext(runtime, TRAIT.UPPER_HAND);
-  if (runtime.procs.claimCooldown(TRAIT.UPPER_HAND, runtime.time, balanceProfileNumber(profile, 'internalCooldown')))
-    grantThiefInitiative(runtime, balanceProfileNumber(profile, 'resourceGain'));
+  if (runtime.procs.claimCooldown(TRAIT.UPPER_HAND, runtime.time, balanceProfileNumber(profile, 'internalCooldown'))) {
+    const initiativeGain = balanceProfileNumber(profile, 'resourceGain');
+    if (initiativeGain > 0) runtime.resourceController.grant('initiative', initiativeGain);
+  }
 }

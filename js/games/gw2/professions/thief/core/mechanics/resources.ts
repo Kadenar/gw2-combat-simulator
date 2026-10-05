@@ -62,16 +62,6 @@ export const thiefEndurance: EndurancePolicy<ThiefRuntime> = {
   regenerationRate: (runtime, vigor) => thiefEnduranceRate(runtime, vigor)
 };
 
-/** Grants initiative at the live clock; the shared controller settles regeneration first. */
-export function grantThiefInitiative(runtime: ThiefRuntime, amount: number): void {
-  if (amount > 0) runtime.resourceController.grant('initiative', amount);
-}
-
-/** Grants endurance at the live clock, capped by the active specialization's pool. */
-export function grantThiefEndurance(runtime: ThiefRuntime, amount: number): void {
-  if (amount > 0) runtime.endurance.grant(amount);
-}
-
 /** Kneeling changes the regeneration rate from this instant onward. */
 export function setThiefKneeling(runtime: ThiefRuntime, kneeling: boolean): void {
   runtime.profession.core.kneeling = kneeling;
@@ -97,7 +87,7 @@ export function thiefInfiltratorsSignetPulse(runtime: ThiefRuntime, data: unknow
   const core = runtime.profession.core;
   if ((data as { at: number }).at !== core.infiltratorsSignetPulseAt) return;
   if ((runtime.cooldownController.readyAt(ID.INFILTRATORS_SIGNET) || 0) <= runtime.time + EPSILON)
-    grantThiefInitiative(runtime, 1);
+    runtime.resourceController.grant('initiative', 1);
   restartThiefInfiltratorsSignet(runtime);
 }
 

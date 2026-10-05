@@ -8,7 +8,6 @@ import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
 import type { ThiefRuntime } from '#gw2/professions/thief/core/events.js';
-import { grantThiefEndurance } from '#gw2/professions/thief/core/mechanics/resources.js';
 import { thiefRuntimeSpecializationState } from '#gw2/professions/thief/core/state-queries.js';
 import { THIEF_SKILL_IDS as ID } from '#gw2/professions/thief/data/ids.js';
 import { DEADEYE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/thief/specializations/deadeye/profiles.js';
@@ -864,6 +863,8 @@ export const deadeyeSkillModifiers: readonly Gw2ModifierRule[] = [
 
 /** Called after Core observers and the shared first-landed latch, before malice consumption. */
 export function refundMaliciousTacticalStrike(runtime: ThiefRuntime, event: Gw2ResolverEvent): void {
-  if (event.skillId === ID.MALICIOUS_TACTICAL_STRIKE)
-    grantThiefEndurance(runtime, Number(event.deadeyeMaliceSnapshot || 0) * 10);
+  if (event.skillId === ID.MALICIOUS_TACTICAL_STRIKE) {
+    const enduranceGain = Number(event.deadeyeMaliceSnapshot || 0) * 10;
+    if (enduranceGain > 0) runtime.endurance.grant(enduranceGain);
+  }
 }

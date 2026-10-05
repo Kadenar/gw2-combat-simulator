@@ -1,8 +1,7 @@
 import { specterBuffPolicies } from '#gw2/professions/thief/specializations/specter/effect-state.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
-import { improvisationShadowForceMultiplier } from '#gw2/professions/thief/core/traits/steal.js';
-import { amplifiedSiphoningGain, DARK_SENTRY } from '#gw2/professions/thief/specializations/specter/traits/behavior.js';
+import { siphonShadowForceGain, DARK_SENTRY } from '#gw2/professions/thief/specializations/specter/traits/behavior.js';
 
 import { resourceDepletionAt } from '#gw2/platform/combat/resources/clock.js';
 import { gw2AlliedPlayerAssumptions } from '#gw2/platform/combat/state/allied-players.js';
@@ -130,14 +129,10 @@ function grantBarrier(
   });
 }
 
-/** Siphon grants Shadow Force (Amplified Siphoning, then Improvisation) and completes as a choice-less steal. */
+/** Siphon's force grant stays between steal traits and completion so sibling mechanics observe the same balance. */
 function completeSiphon(runtime: ThiefRuntime, cast: RuntimeCast<ThiefSkill>): void {
   emitThiefStealTraits(runtime, cast);
-  let gain =
-    balanceProfileNumber(requireBalanceProfileFromContext(runtime, PROFILE.resources), 'lifeForceGain') +
-    amplifiedSiphoningGain(runtime);
-  gain *= improvisationShadowForceMultiplier(runtime);
-  runtime.resourceController.grant('shadowForce', gain);
+  runtime.resourceController.grant('shadowForce', siphonShadowForceGain(runtime));
   completeThiefSteal(runtime, []);
 }
 

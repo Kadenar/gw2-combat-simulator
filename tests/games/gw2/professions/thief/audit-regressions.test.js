@@ -10,7 +10,6 @@ import { createCalculateAttributes } from '#gw2/platform/builds/attributes.js';
 import { createThiefBuildDefaults } from '#gw2/professions/thief/build/build.js';
 import { applyThiefBuildAttributeRules } from '#gw2/professions/thief/build/attributes.js';
 import { beginThiefStealthAttack, grantThiefStealth } from '#gw2/professions/thief/core/mechanics/stealth.js';
-import { grantThiefEndurance, grantThiefInitiative } from '#gw2/professions/thief/core/mechanics/resources.js';
 import { addVenomCharges } from '#gw2/professions/thief/core/mechanics/venoms.js';
 import { createObservedProfessionSimulator, observedRuntime } from '#tests/helpers/observed-runtime.js';
 import { withSkill } from '#tests/helpers/catalog-overrides.js';
@@ -208,10 +207,10 @@ test('Thief resource grants settle passive recovery at the live clock before app
         [
           2,
           (runtime) => {
-            grantThiefInitiative(runtime, 2);
-            grantThiefInitiative(runtime, 0);
-            grantThiefEndurance(runtime, 7);
-            grantThiefEndurance(runtime, 0);
+            runtime.resourceController.grant('initiative', 2);
+            runtime.resourceController.grant('initiative', 0);
+            runtime.endurance.grant(7);
+            runtime.endurance.grant(0);
             observed.push(runtime.resourceController.value('initiative'), runtime.profession.core.endurance);
             observed.push(runtime.profession.core.enduranceUpdatedAt);
           }

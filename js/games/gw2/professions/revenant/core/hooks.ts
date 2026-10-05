@@ -187,8 +187,8 @@ function swapLegend(runtime: RevenantRuntime, cast: RuntimeCast<RevenantSkill>):
   core.activeLegendId = core.selectedLegendIds.find((id) => id !== core.activeLegendId) || core.activeLegendId;
   core.activeLoadoutId = core.activeLegendId;
   const energy = chargedMistsEnergy(runtime, cast, previous);
-  if (energy > previous) runtime.resourceController.grant('energy', energy - previous);
-  else if (energy < previous) runtime.resourceController.spend('energy', previous - energy);
+  // Legend invocation replaces the balance after Charged Mists reads pre-swap energy, preserving recovery timing.
+  runtime.resourceController.replace('energy', energy);
   clearRevenantLegendFlips(runtime);
   for (const active of [...core.activeUpkeeps]) {
     const upkeep: RevenantSkill | undefined = runtime.helpers.skillsById.get(active.skillId);

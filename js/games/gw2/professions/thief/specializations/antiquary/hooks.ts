@@ -14,7 +14,6 @@ import type { AvailabilityResult } from '#gw2/platform/execution/types.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import type { ThiefRuntime } from '#gw2/professions/thief/core/events.js';
 import { buildThiefCondition, buildThiefStrikes } from '#gw2/professions/thief/core/events.js';
-import { grantThiefInitiative } from '#gw2/professions/thief/core/mechanics/resources.js';
 import {
   applyKleptomaniac,
   emitThiefStealTraits,
@@ -235,7 +234,7 @@ function spendAntiquaryInitiative(runtime: ThiefRuntime, cast: RuntimeCast<Thief
   if (!(cost > 0)) return;
   const state = antiquaryState.from(runtime);
   state.initiativeSpentSincePilfer += cost;
-  if ((state.chakInitiativeRefundUntil || 0) > runtime.time) grantThiefInitiative(runtime, cost);
+  if ((state.chakInitiativeRefundUntil || 0) > runtime.time) runtime.resourceController.grant('initiative', cost);
   // Initiative spent before combat begins does not count toward the threshold.
   if (prodigiousPincherReady(runtime)) pilferArtifacts(runtime, 'initiative');
 }
@@ -295,7 +294,10 @@ export const antiquaryHooks: RuntimeHooks<ThiefRuntimeState, ThiefSkill> = {
         );
     },
     'thief.pay-coins'(runtime, context) {
-      if (context.kind === 'cast') grantThiefInitiative(runtime, coinInitiative.get(context.cast) ?? 0);
+      if (context.kind === 'cast') {
+        const initiativeGain = coinInitiative.get(context.cast) ?? 0;
+        if (initiativeGain > 0) runtime.resourceController.grant('initiative', initiativeGain);
+      }
     },
     'thief.forged-surfer'(runtime, context) {
       startForgedSurfer(runtime, context.skill);

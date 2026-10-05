@@ -12,15 +12,20 @@ import { gw2PrimaryWeapon } from '#gw2/platform/equipment/weapons/loadout.js';
 import { buildResolverStrike } from '#gw2/platform/resolver/packets.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import type { ThiefRuntime } from '#gw2/professions/thief/core/events.js';
+import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
+import { improvisationShadowForceMultiplier } from '#gw2/professions/thief/core/traits/steal.js';
+import { SPECTER_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/thief/specializations/specter/profiles.js';
 import { buildThiefBuff, buildThiefCondition } from '#gw2/professions/thief/core/events.js';
 import { THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
 import { specterState } from '#gw2/professions/thief/specializations/specter/state.js';
 
-/** Siphon's additive force gain is resolved before Improvisation's multiplier. */
-export function amplifiedSiphoningGain(runtime: ThiefRuntime): number {
-  return hasTrait(runtime, TRAIT.AMPLIFIED_SIPHONING)
+/** Resolve Siphon's selected tuning without mutation: add Amplified Siphoning before multiplying by Improvisation. */
+export function siphonShadowForceGain(runtime: MechanicQueriesOf<ThiefRuntime>): number {
+  const base = balanceProfileNumber(requireBalanceProfileFromContext(runtime, PROFILE.resources), 'lifeForceGain');
+  const amplified = hasTrait(runtime, TRAIT.AMPLIFIED_SIPHONING)
     ? balanceProfileNumber(requireBalanceProfileFromContext(runtime, TRAIT.AMPLIFIED_SIPHONING), 'resourceGain')
     : 0;
+  return (base + amplified) * improvisationShadowForceMultiplier(runtime);
 }
 
 export const DARK_SENTRY = 'thief.specter-dark-sentry';

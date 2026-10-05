@@ -8,7 +8,6 @@ import type { SkillId } from '#gw2/platform/skills/types.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
 import type { ThiefRuntime } from '#gw2/professions/thief/core/events.js';
-import { grantThiefInitiative } from '#gw2/professions/thief/core/mechanics/resources.js';
 import { storeThiefStolenSkillChoices } from '#gw2/professions/thief/core/mechanics/steal.js';
 import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
 import { DEADEYE_STOLEN_SKILL_IDS } from '#gw2/professions/thief/specializations/deadeye/mechanics/stolen-skills.js';
@@ -94,10 +93,11 @@ export function applyMaleficentSeven(runtime: ThiefRuntime, cast: RuntimeCast<Th
   )
     return;
   state.maleficentSevenTriggered = true;
-  grantThiefInitiative(
-    runtime,
-    balanceProfileNumber(requireBalanceProfileFromContext(runtime, TRAIT.MALEFICENT_SEVEN), 'resourceGain')
+  const initiativeGain = balanceProfileNumber(
+    requireBalanceProfileFromContext(runtime, TRAIT.MALEFICENT_SEVEN),
+    'resourceGain'
   );
+  if (initiativeGain > 0) runtime.resourceController.grant('initiative', initiativeGain);
   traitBoons(runtime, cast, 'Maleficent Seven', TRAIT.MALEFICENT_SEVEN, false);
 }
 

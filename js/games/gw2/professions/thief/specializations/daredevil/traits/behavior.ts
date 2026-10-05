@@ -12,7 +12,6 @@ import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
 import type { ThiefRuntime } from '#gw2/professions/thief/core/events.js';
 import { buildThiefBuff } from '#gw2/professions/thief/core/events.js';
-import { grantThiefEndurance } from '#gw2/professions/thief/core/mechanics/resources.js';
 import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
 import { daredevilState } from '#gw2/professions/thief/specializations/daredevil/state.js';
 import type { ThiefSkill } from '#gw2/professions/thief/types.js';
@@ -32,22 +31,24 @@ export const PHYSICAL_ENDURANCE: NonNullable<NonNullable<Skill['sideEffects']>> 
 
 /** Applies Endurance Thief at its established mechanical boundary. */
 export function grantEnduranceThief(runtime: ThiefRuntime, cast: RuntimeCast<ThiefSkill>): void {
-  if (cast.skill.id === ID.STEAL && hasTrait(runtime, TRAIT.ENDURANCE_THIEF))
-    grantThiefEndurance(
-      runtime,
-      balanceProfileNumber(requireBalanceProfileFromContext(runtime, TRAIT.ENDURANCE_THIEF), 'resourceGain')
+  if (cast.skill.id === ID.STEAL && hasTrait(runtime, TRAIT.ENDURANCE_THIEF)) {
+    const enduranceGain = balanceProfileNumber(
+      requireBalanceProfileFromContext(runtime, TRAIT.ENDURANCE_THIEF),
+      'resourceGain'
     );
+    if (enduranceGain > 0) runtime.endurance.grant(enduranceGain);
+  }
 }
 
 /** Applies Staff Master at its established mechanical boundary. */
 export function refundStaffMaster(runtime: ThiefRuntime, cast: RuntimeCast<ThiefSkill>): void {
   const skill = cast.skill;
   const cost = skill.initiativeCost || 0;
-  if (cost > 0 && skill.weapon === 'Staff' && hasTrait(runtime, TRAIT.STAFF_MASTER))
-    grantThiefEndurance(
-      runtime,
-      cost * balanceProfileNumber(requireBalanceProfileFromContext(runtime, TRAIT.STAFF_MASTER), 'resourceGain')
-    );
+  if (cost > 0 && skill.weapon === 'Staff' && hasTrait(runtime, TRAIT.STAFF_MASTER)) {
+    const enduranceGain =
+      cost * balanceProfileNumber(requireBalanceProfileFromContext(runtime, TRAIT.STAFF_MASTER), 'resourceGain');
+    if (enduranceGain > 0) runtime.endurance.grant(enduranceGain);
+  }
 }
 
 /** Arm the next landed strike after the dodge window opens. */

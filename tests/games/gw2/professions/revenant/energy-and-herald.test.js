@@ -516,6 +516,28 @@ test('Charged Mists uses the low-energy legend reset', () => {
   assert.equal(aboveThreshold.planningState.profession.energy.value, 50);
 });
 
+// Legend replacement can raise, lower, or retain the balance without changing precombat recovery's ceiling.
+test('legend replacement settles to its target and preserves subsequent recovery', () => {
+  for (const initialEnergy of [5, 50, 100]) {
+    const result = simulate('Core', ['Swap Legends', { type: 'wait', durationMs: 1000 }], { initialEnergy });
+    assert.deepEqual(result.warnings, []);
+    assert.equal(result.planningState.profession.energy.value, 50);
+  }
+
+  const charged = simulate('Core', ['Swap Legends', { type: 'wait', durationMs: 1000 }], {
+    initialEnergy: 5,
+    selectedTraitIds: [TRAIT.CHARGED_MISTS]
+  });
+  assert.deepEqual(charged.warnings, []);
+  assert.equal(charged.planningState.profession.energy.value, 75);
+
+  const combat = simulate('Core', ['__combat_start', 'Swap Legends', { type: 'wait', durationMs: 1000 }], {
+    initialEnergy: 100
+  });
+  assert.deepEqual(combat.warnings, []);
+  assert.equal(combat.planningState.profession.energy.value, 55);
+});
+
 test('legend invocation traits resolve after swap effects', () => {
   const result = simulate(
     'Core',
