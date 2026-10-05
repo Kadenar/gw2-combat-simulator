@@ -193,14 +193,16 @@ test('resource grants validate current-skill amounts without accepting them for 
   );
 });
 
-// Unknown keys must fail where authored skills become executable, before silent dead fields can accumulate.
+// Unknown and retired keys must fail in every authoring layer instead of accepting fields with no runtime behavior.
 test('catalogs reject unsupported skill fields in every authoring layer', () => {
   const skill = { id: 1, name: 'Validation' };
-  for (const options of [
-    { generated: [{ ...skill, retiredField: true }] },
-    { generated: [skill], mechanics: { 1: { retiredField: true } } },
-    { generated: [skill], overrides: { 1: { retiredField: true } } },
-    { extraSkills: [{ ...skill, retiredField: true }] }
-  ])
-    assert.throws(() => createCanonicalCatalog(options), /unsupported field: retiredField/);
+  for (const field of ['retiredField', 'createsClone', 'flipDelay']) {
+    for (const options of [
+      { generated: [{ ...skill, [field]: true }] },
+      { generated: [skill], mechanics: { 1: { [field]: true } } },
+      { generated: [skill], overrides: { 1: { [field]: true } } },
+      { extraSkills: [{ ...skill, [field]: true }] }
+    ])
+      assert.throws(() => createCanonicalCatalog(options), new RegExp(`unsupported field: ${field}`));
+  }
 });

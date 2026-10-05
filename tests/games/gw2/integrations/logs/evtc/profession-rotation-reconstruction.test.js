@@ -317,8 +317,7 @@ test('EI missile finders preserve creation evidence and suppress duplicate proje
 
   const imported = reconstructEvtcRotation(
     log({ ...c.log, agents: [{ ...c.log.agents[0], profession: 3, elite: 57 }] }),
-    engineerCatalog,
-    { includeCombatStart: false }
+    engineerCatalog
   );
   assert.ok(imported.rotation.some((command) => command.skillId === 42163));
   assert.ok(imported.rotation.some((command) => command.skillId === 45732));
@@ -359,8 +358,7 @@ test('both importers retain the Forge exit but exclude the generated Overheat in
         event({ time: 500, stateChange: 72, source: PLAYER, skillId: 43708, buff: 1 })
       ]
     }),
-    engineerCatalog,
-    { includeCombatStart: false }
+    engineerCatalog
   );
   const report = reconstructDpsReportRotation(
     {
@@ -410,7 +408,7 @@ test('EVTC Forge bundle changes replace an equipped kit without replaying swaps 
       event({ time: 1500, stateChange: 11, target: 4n })
     ]
   });
-  const result = reconstructEvtcRotation(fixture, engineerCatalog, { includeCombatStart: false });
+  const result = reconstructEvtcRotation(fixture, engineerCatalog);
   assert.ok(result.rotation.some((command) => command.skillId === 5812));
   assert.ok(result.rotation.some((command) => command.skillId === 42938));
   assert.ok(result.rotation.some((command) => command.skillId === 41123));
@@ -428,7 +426,7 @@ test('tied Revenant stance and upkeep signals preserve source metadata in either
   ];
   for (const orderedEvents of [events, [...events].reverse()]) {
     const fixture = log({ agents: [{ ...log().agents[0], profession: 9, elite: 63 }], events: orderedEvents });
-    const out = reconstructEvtcRotation(fixture, revenantCatalog, { includeCombatStart: false });
+    const out = reconstructEvtcRotation(fixture, revenantCatalog);
     const swap = out.actions.find((action) => action.skillId === -4);
     assert.ok(swap);
     assert.equal(swap.evidence, 'buff-transition');
@@ -445,10 +443,9 @@ test('tied Revenant stance and upkeep signals preserve source metadata in either
     const normalizedSwap = normalized.find((action) => action.canonicalSkillId === -4);
     assert.ok(normalizedSwap);
     assert.equal(normalizedSwap.eventIndex, stance.eventIndex);
-    assert.deepEqual(
-      out.rotation.map((action) => action.skillId),
-      [-4]
-    );
+    // Combat inference remains enabled while the replay retains the selected stance's source identity.
+    assert.ok(out.rotation.some((command) => command.type === 'combat-start'));
+    assert.equal(out.rotation.find((command) => command.type === 'cast')?.skillId, swap.skillId);
   }
 });
 

@@ -140,7 +140,7 @@ export const weaverPistolSideEffects: RuntimeProfession<
           undefined,
           { activationId: cast.id, skillId: cast.skill.id, offTarget: cast.command.offTarget }
         )
-      ).length > 0;
+      );
     }
   },
   'elementalist.weaver.pistol.plasma-fire'(context, trigger) {
@@ -159,7 +159,7 @@ export const weaverPistolSideEffects: RuntimeProfession<
           undefined,
           { activationId: cast.id, skillId: cast.skill.id, offTarget: cast.command.offTarget }
         )
-      ).length > 0;
+      );
     }
   },
   'elementalist.weaver.pistol.meteor-earth'(context, trigger) {
@@ -178,7 +178,7 @@ export const weaverPistolSideEffects: RuntimeProfession<
           undefined,
           { activationId: cast.id, skillId: cast.skill.id, offTarget: cast.command.offTarget }
         )
-      ).length > 0;
+      );
     }
   },
   'elementalist.weaver.pistol.finesse-water'(context, trigger) {
@@ -260,7 +260,7 @@ export const weaverPistolSideEffects: RuntimeProfession<
           undefined,
           { activationId: cast.id, skillId: cast.skill.id, offTarget: cast.command.offTarget }
         )
-      ).length > 0;
+      );
     }
   }
 };

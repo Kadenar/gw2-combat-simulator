@@ -235,7 +235,7 @@ export function triggerEvasiveArcana(
         undefined,
         { activationId: cast.id, skillId: cast.skill.id, offTarget: cast.command.offTarget }
       )
-    ).length > 0;
+    );
   } else if (attunement === 'Air') {
     context.effects.emit({
       kind: 'packet',
@@ -284,7 +284,7 @@ export function triggerEvasiveArcana(
         undefined,
         { activationId: cast.id, skillId: cast.skill.id, offTarget: cast.command.offTarget }
       )
-    ).length > 0;
+    );
     context.effects.emit(
       elementalistProfiledConditionRequest(
         context,
@@ -296,7 +296,7 @@ export function triggerEvasiveArcana(
         undefined,
         { activationId: cast.id, skillId: cast.skill.id, offTarget: cast.command.offTarget }
       )
-    ).length > 0;
+    );
   }
 
   context.effects.emit({
@@ -377,7 +377,7 @@ export function applyArcaneLightning(
         undefined,
         { activationId: cast.id, skillId: cast.skill.id, offTarget: cast.command.offTarget }
       )
-    ).length > 0;
+    );
   } else if (skill.id === ID.ARCANE_BLAST) {
     context.effects.emit({
       kind: 'packet',

@@ -98,8 +98,7 @@ test('composites retain the first source identity and evidence', () => {
         })
       ])
     }),
-    null,
-    { includeCombatStart: false }
+    null
   );
   assert.ok(result.actions.some((action) => action.rawSkillId === first.rawSkillId));
 });
@@ -144,7 +143,7 @@ test('synthesized inputs have explicit evidence without borrowing a source row o
   assert.equal(synthetic.eventIndex, 0.5);
   assert.equal(synthetic.metadataAccurate, false);
   assert.equal(normalized.find((action) => action.sourceActionIndex === 1).eventIndex, 20);
-  const result = reconstructEvtcRotation(fixture, catalog, { includeCombatStart: false });
+  const result = reconstructEvtcRotation(fixture, catalog);
   assert.equal(result.actions.find((action) => action.skillId === sunEdge.id).evidence, 'synthesized');
   assert.equal(
     result.sourceActions.some((action) => action.rawSkillId === sunEdge.id),

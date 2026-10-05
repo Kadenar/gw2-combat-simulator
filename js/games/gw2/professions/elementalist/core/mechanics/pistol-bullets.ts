@@ -133,7 +133,7 @@ export const elementalistPistolSideEffects: RuntimeProfession<
           undefined,
           { activationId: cast.id, skillId: cast.skill.id, offTarget: cast.command.offTarget }
         )
-      ).length > 0;
+      );
     }
   },
   'elementalist.pistol.dazing-discharge'(context, trigger) {

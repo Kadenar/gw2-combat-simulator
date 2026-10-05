@@ -62,7 +62,6 @@ export interface EvtcRotationOptions {
   readonly playerAddress?: bigint | string;
   /** Reuse evidence already decoded for the same log by an app or CLI player picker. */
   readonly playerEvidence?: readonly EvtcPlayerEvidence[];
-  readonly includeCombatStart?: boolean;
   readonly professionConfig?: Readonly<Record<string, unknown>>;
 }
 
@@ -282,11 +281,8 @@ function reconstructWithProfile(
   const combatStartEvent = log.events.find(
     (event) => selectedPlayerEvent(event, agent.address) && event.stateChange === EVTC_STATE_CHANGE.ENTER_COMBAT
   );
-  // Encounter evidence takes precedence over player combat snapshots; retain the generic boundary for other logs.
-  const combatStart =
-    options.includeCombatStart === false
-      ? null
-      : (encounterStartTime(log) ?? combatStartEvent?.time ?? evtcRecordingWindow(log).start);
+  // Always infer the combat boundary so every replay uses encounter evidence before player snapshots or recording start.
+  const combatStart = encounterStartTime(log) ?? combatStartEvent?.time ?? evtcRecordingWindow(log).start;
   const genericActions = [...castActions, ...weaponSwapActions(log, agent.address)];
   const professionContext = {
     log,

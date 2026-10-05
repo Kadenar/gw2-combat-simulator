@@ -37,7 +37,6 @@ test('golem combat start follows damage inside a cast instead of the initial pla
     { type: 'cast', skillId: 1000 },
     { type: 'combat-start', concurrentOffsetMs: 200 }
   ]);
-  assert.equal(reconstructEvtcRotation(fixture, catalog, { includeCombatStart: false }).combatStartTimestampMs, null);
 });
 
 test('golem start accepts strike and condition damage from any source but rejects buff and animation payloads', () => {

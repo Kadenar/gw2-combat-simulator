@@ -213,7 +213,7 @@ export function applyWeaverCastTraits(
         undefined,
         { activationId: cast.id, skillId: cast.skill.id, offTarget: cast.command.offTarget }
       )
-    ).length > 0;
+    );
   }
 }
 

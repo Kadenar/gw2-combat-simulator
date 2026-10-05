@@ -115,7 +115,7 @@ test('Weaver reconstruction replays synthetic Fire/Water as an attunement and re
     event({ time: 1000, stateChange: 67, skillId: 23275, value: 750 }),
     event({ time: 1750, stateChange: 68, skillId: 23275, value: 750, activation: 5 })
   ]);
-  const imported = reconstructEvtcRotation(c.log, elementalistCatalog, { includeCombatStart: false });
+  const imported = reconstructEvtcRotation(c.log, elementalistCatalog);
   const attunement = imported.actions.find((action) => action.rawSkillId === -5);
   assert.equal(attunement.skillId, ID.FIRE_ATTUNEMENT);
   assert.equal(attunement.kind, 'profession-skill');

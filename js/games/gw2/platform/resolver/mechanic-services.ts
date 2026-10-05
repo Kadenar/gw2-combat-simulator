@@ -88,9 +88,6 @@ export function createMechanicCombatServices(runtime: Gw2ResolverRuntime) {
       const field = runtime.combo.fields.get(fieldId);
       if (field) runtime.combo.fields.set(fieldId, { ...field, expiresAt: at });
     },
-    recordObservation(event: Gw2ResolverEvent): void {
-      if (runtime.reporting) runtime.resolved.push(event);
-    },
     allocateEffectActivation(prefix: string): string {
       return prefix + ++runtime.weaponStrengthActivationOrder;
     },

@@ -124,8 +124,7 @@ test('both importers place tied weapon casts on the correct side of an attunemen
               skills: [{ id: skillId, name: skill.name }],
               events: [...starts, evtcEvent({ time: 1760, stateChange: 68, skillId, value: 760, activation: 3 })]
             }),
-            elementalistCatalog,
-            { includeCombatStart: false }
+            elementalistCatalog
           ),
           reconstructDpsReportRotation(
             {
@@ -253,8 +252,7 @@ test('both importers order tied legend swaps before weapon swaps without reversi
           skills: [{ id: 27890, name: 'Legendary Assassin Stance' }],
           events
         }),
-        revenantCatalog,
-        { includeCombatStart: false }
+        revenantCatalog
       );
       const report = reconstructDpsReportRotation(
         {

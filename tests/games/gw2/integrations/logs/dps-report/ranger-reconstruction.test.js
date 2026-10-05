@@ -111,7 +111,7 @@ test('Untamed EVTC F2 uses owned pet animations instead of delayed command marke
           cast(pet.address, 2200, true)
         ]
       });
-      const result = reconstructEvtcRotation(fixture, rangerCatalog, { includeCombatStart: false });
+      const result = reconstructEvtcRotation(fixture, rangerCatalog);
       const actions = result.sourceActions.filter((action) => action.rawSkillId === 31451);
 
       assert.equal(actions.length, 1);
@@ -276,7 +276,7 @@ test('both log adapters merge a spear follow-through without inventing another i
   });
   for (const result of [
     reconstructDpsReportRotation(report, rangerCatalog),
-    reconstructEvtcRotation(fixture, rangerCatalog, { includeCombatStart: false })
+    reconstructEvtcRotation(fixture, rangerCatalog)
   ]) {
     assert.equal(result.actions.length, 1);
     assert.equal(result.actions[0].skillId, 73030);
