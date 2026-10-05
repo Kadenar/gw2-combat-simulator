@@ -105,6 +105,25 @@ export function createRuntimeResources<T extends object>(runtime: Gw2Runtime<T>,
       return resourceAt(get(key).state, runtime.time);
     },
     refresh,
+    /** Resets and conversions replace the settled balance without restarting recovery or emitting reward semantics. */
+    replace(key: ResourceKey, value: number) {
+      amount(value);
+      const { state } = get(key);
+      advanceResource(state, runtime.time);
+      const next = Math.min(state.maximum, value);
+      if (next === state.value) return;
+      if (
+        'nextAt' in state &&
+        next < state.value &&
+        state.nextAt === Infinity &&
+        state.interval > 0 &&
+        state.amount > 0
+      )
+        state.nextAt = canonicalTime(runtime.time + state.interval);
+      state.value = next;
+      anchorResourceClock(state);
+      changed(key);
+    },
     grant(key: ResourceKey, value: number) {
       amount(value);
       const { state } = get(key);

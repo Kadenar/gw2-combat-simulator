@@ -240,7 +240,7 @@ test('Twin Moon Sweep selects patchable Shared Wisdom Might independently of tar
             ]
           : []
       );
-      assert.equal(observedRuntime(result).profession.specialization.state.affinity, 0);
+      assert.equal(observedRuntime(result).profession.specialization.state.affinity.value, 0);
     }
   }
 });
@@ -283,13 +283,13 @@ test('Kinetic Insight patches virtual affinity without changing stored affinity'
     {
       catalog: patched({ [TRAIT.KINETIC_INSIGHT]: { fields: { resourceGain: 3 } } }),
       initialize(runtime) {
-        runtime.profession.specialization.state.affinity = 1;
+        runtime.resourceController.replace('affinity', 1);
         affinity = effectiveConduitAffinity(runtime);
       }
     }
   );
   assert.equal(affinity, 4);
-  assert.equal(observedRuntime(result).profession.specialization.state.affinity, 1);
+  assert.equal(observedRuntime(result).profession.specialization.state.affinity.value, 1);
 });
 
 test('Core Value adds its patched extension to Dragon True Nature', () => {

@@ -14,6 +14,7 @@ export const RESOURCE_KEYS = [
   'energy',
   'catalystEnergy',
   'motivation',
+  'affinity',
   'lifeForce'
 ] as const;
 export type ResourceKey = (typeof RESOURCE_KEYS)[number];

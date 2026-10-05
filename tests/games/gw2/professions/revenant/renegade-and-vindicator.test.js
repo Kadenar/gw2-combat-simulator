@@ -1417,7 +1417,10 @@ test('Vindicator resource display includes live endurance', () => {
   });
   const conduit = revenantProfession.ui.resourceViews({
     specialization: 'Conduit',
-    professionState: { energy: { value: 40, maximum: 100, updatedAt: 0, rate: 5 }, affinity: 3 }
+    professionState: {
+      energy: { value: 40, maximum: 100, updatedAt: 0, rate: 5 },
+      affinity: { value: 3, maximum: 5, rate: 0, updatedAt: 0 }
+    }
   });
   const vindicator = revenantProfession.ui.resourceViews({
     specialization: 'Vindicator',
@@ -1776,6 +1779,7 @@ test('Imperial Guard exposes True Strike after cancellation or completion', () =
 test('Deathstrike weapon palette keeps the primary skill timing on cooldown', () => {
   const app = {
     profession: revenantProfession,
+    activeCatalog: revenantCatalog,
     skills: revenantCatalog.skills,
     results: {
       planningState: {

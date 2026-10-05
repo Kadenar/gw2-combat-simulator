@@ -69,6 +69,8 @@ export type ProfessionModuleStateBoundaryAssertions = [
   Assert<Rejects<RenegadeState, 'soulcleaveReadyAt'>>,
   Assert<Rejects<RevenantCoreState, 'soulcleaveReadyAt'>>,
   Assert<Owns<ConduitState, 'affinity'>>,
+  Assert<ConduitState['affinity'] extends ResourceClock ? true : false>,
+  Assert<Rejects<ConduitState, 'affinityMaximum'>>,
   Assert<Rejects<RevenantCoreState, 'affinity'>>
 ];
 

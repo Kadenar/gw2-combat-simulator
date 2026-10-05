@@ -174,6 +174,7 @@ void readOnlyCollections;
 
 /** Author capabilities expose deliberate operations and concrete data, never another owner's writable storage. */
 function mechanicBoundaries(context: MechanicContext<WarriorRuntimeState, WarriorSkill>) {
+  context.resourceController.replace('motivation', 0);
   context.profession.core.adrenaline = 1;
   context.cooldownController.setReadyAt(1, 2);
   // @ts-expect-error Only cast execution can reset every cooldown.
@@ -227,6 +228,12 @@ function queryBoundaries(context: MechanicQueryContext<WarriorRuntimeState, Warr
   context.castController.lockInputUntil(1);
   // @ts-expect-error Readiness cannot settle resource clocks.
   context.resourceController.advance();
+  context.resourceController.value('affinity');
+  context.resourceController.readyAt('affinity', 1);
+  // @ts-expect-error Read-only queries cannot replace a balance.
+  context.resourceController.replace('affinity', 0);
+  // @ts-expect-error Read-only queries cannot grant resources.
+  context.resourceController.grant('affinity', 1);
   return skill;
 }
 

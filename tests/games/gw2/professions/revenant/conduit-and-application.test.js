@@ -442,7 +442,7 @@ test('Conduit affinity scales Release Potential and Cosmic Wisdom state', () => 
   });
 
   assert.equal(result.warnings.length, 0);
-  assert.equal(result.planningState.profession.affinity, 2);
+  assert.equal(result.planningState.profession.affinity.value, 2);
   assert.equal(result.planningState.profession.conduitForm, 'Assassin');
   assert.ok(result.planningState.profession.cosmicWisdomUntil > 0);
 
@@ -460,7 +460,7 @@ test('Conduit affinity scales Release Potential and Cosmic Wisdom state', () => 
     });
 
     assert.equal(variant.warnings.length, 0, release);
-    assert.equal(variant.planningState.profession.affinity, expectedAffinity, release);
+    assert.equal(variant.planningState.profession.affinity.value, expectedAffinity, release);
   }
 });
 
@@ -937,7 +937,7 @@ test('Twin Moon Sweep resolves both attackers and legend resonance', () => {
     4
   );
   assert.ok(assassin.events.some((event) => event.condition === 'Immobilized' && event.duration === 2));
-  assert.equal(assassin.planningState.profession.affinity, 2);
+  assert.equal(assassin.planningState.profession.affinity.value, 2);
 
   const demon = simulate(
     'Conduit',
@@ -979,7 +979,7 @@ test('Twin Moon Sweep resolves both attackers and legend resonance', () => {
       .map((event) => event.at),
     [0.88, 0.88]
   );
-  assert.equal(swappedBeforeImpact.planningState.profession.affinity, 2);
+  assert.equal(swappedBeforeImpact.planningState.profession.affinity.value, 2);
 });
 
 // Impact delays are measured from activation and preserve the observed delay after each skill's opening strike.
@@ -1180,7 +1180,7 @@ test('Release Potential variants use affinity and equipped-legend effects', () =
     }
   );
 
-  assert.equal(dervishAllEffects.planningState.profession.affinity, 3);
+  assert.equal(dervishAllEffects.planningState.profession.affinity.value, 3);
   assert.ok(
     dervishAllEffects.events.some(
       (event) =>
@@ -1232,7 +1232,7 @@ test('Conduit affinity traits distinguish legend and weapon energy costs', () =>
     initialEnergy: 100
   });
 
-  assert.equal(enigmatic.planningState.profession.affinity, 3);
+  assert.equal(enigmatic.planningState.profession.affinity.value, 3);
 
   const withoutConductive = simulate('Conduit', ['Chilling Isolation'], {
     selectedLegends: [LEGEND.ENTITY, LEGEND.ASSASSIN],
@@ -1246,8 +1246,8 @@ test('Conduit affinity traits distinguish legend and weapon energy costs', () =>
     selectedTraitIds: [TRAIT.CONDUCTIVE_ARMAMENTS]
   });
 
-  assert.equal(withoutConductive.planningState.profession.affinity, 0);
-  assert.equal(withConductive.planningState.profession.affinity, 1);
+  assert.equal(withoutConductive.planningState.profession.affinity.value, 0);
+  assert.equal(withConductive.planningState.profession.affinity.value, 1);
 
   const reset = simulate('Conduit', ['Phase Traversal', 'Swap Legends'], {
     selectedLegends: [LEGEND.ASSASSIN, LEGEND.ENTITY],
@@ -1255,7 +1255,7 @@ test('Conduit affinity traits distinguish legend and weapon energy costs', () =>
     initialEnergy: 100
   });
 
-  assert.equal(reset.planningState.profession.affinity, 0);
+  assert.equal(reset.planningState.profession.affinity.value, 0);
 
   const lingering = simulate('Conduit', ['__combat_start', 'Phase Traversal', 'Swap Legends'], {
     selectedLegends: [LEGEND.ASSASSIN, LEGEND.ENTITY],
@@ -1264,7 +1264,7 @@ test('Conduit affinity traits distinguish legend and weapon energy costs', () =>
     selectedTraitIds: [TRAIT.LINGERING_DETERMINATION]
   });
 
-  assert.equal(lingering.planningState.profession.affinity, 2);
+  assert.equal(lingering.planningState.profession.affinity.value, 2);
 
   const upkeep = simulate('Conduit', ['Impossible Odds', { type: 'wait', durationMs: 3100 }], {
     selectedLegends: [LEGEND.ASSASSIN, LEGEND.ENTITY],
@@ -1272,7 +1272,7 @@ test('Conduit affinity traits distinguish legend and weapon energy costs', () =>
     initialEnergy: 100
   });
 
-  assert.equal(upkeep.planningState.profession.affinity, 2);
+  assert.equal(upkeep.planningState.profession.affinity.value, 2);
 
   const expandedRotation = ['Phase Traversal', 'Jade Winds', 'Impossible Odds'];
   const ordinary = simulate('Conduit', expandedRotation, {
@@ -1287,7 +1287,7 @@ test('Conduit affinity traits distinguish legend and weapon energy costs', () =>
     selectedTraitIds: [TRAIT.EXPANDED_CONSCIOUSNESS]
   });
 
-  assert.equal(expanded.planningState.profession.affinity, 5);
+  assert.equal(expanded.planningState.profession.affinity.value, 5);
   assert.ok(
     Math.abs(expanded.planningState.profession.energy.value - ordinary.planningState.profession.energy.value - 15) <
       1e-9
@@ -1308,9 +1308,9 @@ test('Conduit affinity gains only after combat starts', () => {
   });
   const combatCast = simulate('Conduit', ['__combat_start', 'Phase Traversal'], config);
 
-  assert.equal(skillPrecast.planningState.profession.affinity, 0);
-  assert.equal(swapPrecast.planningState.profession.affinity, 0);
-  assert.equal(combatCast.planningState.profession.affinity, 2);
+  assert.equal(skillPrecast.planningState.profession.affinity.value, 0);
+  assert.equal(swapPrecast.planningState.profession.affinity.value, 0);
+  assert.equal(combatCast.planningState.profession.affinity.value, 2);
 });
 
 test('Conduit grandmasters alter release, invocation, and Cosmic Wisdom', () => {
@@ -1391,7 +1391,10 @@ test('Bolstered Bonds and Kinetic Insight modify runtime attributes and damage',
     runtime: {
       profession: {
         core: { selectedLegendIds: [LEGEND.ASSASSIN, LEGEND.ENTITY] },
-        specialization: { kind: 'Conduit', state: { affinity: 3, cosmicWisdomUntil: 7 } }
+        specialization: {
+          kind: 'Conduit',
+          state: { affinity: { value: 3, maximum: 5, rate: 0, updatedAt: 0 }, cosmicWisdomUntil: 7 }
+        }
       }
     }
   };

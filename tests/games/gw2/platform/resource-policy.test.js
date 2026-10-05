@@ -2,6 +2,7 @@ import { createRuntimeResources } from '#gw2/platform/combat/resources/runtime-r
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { createResourceClock, createDiscreteResourceClock } from '#gw2/platform/combat/resources/resource-policy.js';
+import { resourceAnchor } from '#gw2/platform/combat/resources/clock.js';
 // Settle each observed clock through the production resource controller.
 function advance(runtime, at) {
   runtime.time = at;
@@ -47,6 +48,95 @@ function fixture(kind, config = {}, policy = {}) {
   context.resourceController.initialize();
   return context;
 }
+
+// Replacement validates first, settles elapsed recovery, and starts a new segment only for a real balance change.
+test('replacement rejects invalid values atomically and preserves continuous recovery', () => {
+  const context = fixture('continuous', { initial: 2, rate: 2 });
+  const pool = context.profession.pool;
+  const before = structuredClone(pool);
+  context.time = 1;
+  for (const value of [-1, NaN, Infinity]) {
+    assert.throws(() => context.resourceController.replace('initiative', value), /finite and non-negative/);
+    assert.deepEqual(pool, before);
+  }
+
+  const anchor = resourceAnchor(pool);
+  context.resourceController.replace('initiative', 4);
+  assert.equal(pool.value, 4);
+  assert.equal(pool.updatedAt, 1);
+  assert.equal(resourceAnchor(pool), anchor);
+  context.resourceController.replace('initiative', 1.5);
+  assert.equal(pool.rate, 2);
+  assert.notEqual(resourceAnchor(pool), anchor);
+  advance(context, 2);
+  assert.equal(pool.value, 3.5);
+  context.resourceController.replace('initiative', 100);
+  assert.equal(pool.value, 10);
+});
+
+// Replacing a full idle pool starts first-spend recovery; refills and repeated replacements retain the phase.
+test('replacement preserves discrete cadence and starts it only when an idle pool is lowered', () => {
+  for (const start of ['immediate', 'first-spend']) {
+    const context = fixture('discrete', { initial: 10, start });
+    const pool = context.profession.pool;
+    context.time = 3;
+    context.resourceController.replace('initiative', 100);
+    assert.equal(pool.nextAt, start === 'immediate' ? 4 : Infinity);
+    context.resourceController.replace('initiative', 5);
+    const deadline = start === 'immediate' ? 4 : 5;
+    assert.equal(pool.nextAt, deadline);
+    context.time = deadline;
+    const anchor = resourceAnchor(pool);
+    context.resourceController.replace('initiative', 7);
+    assert.equal(resourceAnchor(pool), anchor);
+    assert.equal(pool.nextAt, deadline + 2);
+    context.resourceController.replace('initiative', 10);
+    context.resourceController.replace('initiative', 10);
+    context.resourceController.replace('initiative', 9);
+    assert.equal(pool.nextAt, deadline + 2);
+  }
+});
+
+// A no-op at a fractional observation must not make a recovery-funded threshold available before its action tick.
+test('no-op replacement retains continuous readiness detection and recovery ceilings', () => {
+  const context = fixture('continuous', { rate: 5 }, { recoveryMaximum: () => 6 });
+  context.time = 0.1;
+  const anchor = resourceAnchor(context.profession.pool);
+  context.resourceController.replace('initiative', 0.5);
+  assert.equal(resourceAnchor(context.profession.pool), anchor);
+  assert.equal(context.resourceController.readyAt('initiative', 0.5), 0.12);
+  context.resourceController.replace('initiative', 9);
+  advance(context, 10);
+  assert.equal(context.profession.pool.value, 9);
+  assert.equal(context.profession.pool.recoveryMaximum, 6);
+});
+
+// Depletion owners receive one change notification for resets, with no false wakes for identical or disabled values.
+test('replacement refreshes depletion once per changed balance and leaves disabled pools inert', () => {
+  const calls = [];
+  const context = fixture(
+    'continuous',
+    { initial: 8, rate: -1 },
+    {
+      depletion: { refresh: () => calls.push('refresh'), stop: () => calls.push('stop') },
+      changed: (runtime) => calls.push(runtime.profession.pool.value)
+    }
+  );
+  calls.length = 0;
+  context.time = 2;
+  context.resourceController.replace('initiative', 6);
+  assert.deepEqual(calls, []);
+  context.resourceController.replace('initiative', 0);
+  assert.deepEqual(calls, ['refresh', 0]);
+  calls.length = 0;
+  context.config = { maximum: 0, rate: 0 };
+  context.resourceController.refresh('initiative');
+  assert.deepEqual(calls, ['stop', 0]);
+  calls.length = 0;
+  context.resourceController.replace('initiative', 100);
+  assert.deepEqual(calls, []);
+  assert.equal(context.profession.pool.value, 0);
+});
 
 test('continuous recovery, pure readiness, and split waits agree', () => {
   for (const waits of [[3], [0.2, 1.3, 3]]) {

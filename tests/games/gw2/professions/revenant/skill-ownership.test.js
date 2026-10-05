@@ -258,7 +258,7 @@ test('Twin Moon affinity belongs to each resolved player packet, independently o
         }
       );
       assert.deepEqual(result.warnings, []);
-      assert.equal(conduitState.from(observedRuntime(result)).affinity, removed || offTarget ? 0 : 4);
+      assert.equal(conduitState.from(observedRuntime(result)).affinity.value, removed || offTarget ? 0 : 4);
     }
   }
 });

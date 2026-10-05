@@ -83,14 +83,14 @@ test('Assassin Release snapshots each authored condition tick duration before la
           )
         }),
       initialize(runtime) {
-        conduitState.from(runtime).affinity = 1;
+        runtime.resourceController.replace('affinity', 1);
         runtime.schedule('test.affinity', 0.1);
       },
       extend: (native) => ({
         tasks: {
           ...native.tasks,
           'test.affinity'(runtime) {
-            conduitState.from(runtime).affinity = 5;
+            runtime.resourceController.replace('affinity', 5);
           }
         }
       })
@@ -118,14 +118,14 @@ test('Mesmer Release keeps impact-time conditions independent of its ordinary st
               .effects.filter((effect) => mode !== 'removed-strike' || effect.type !== 'strike')
           }),
         initialize(runtime) {
-          conduitState.from(runtime).affinity = 5;
+          runtime.resourceController.replace('affinity', 5);
           runtime.schedule('test.affinity', 0.2);
         },
         extend: (native) => ({
           tasks: {
             ...native.tasks,
             'test.affinity'(runtime) {
-              conduitState.from(runtime).affinity = 2;
+              runtime.resourceController.replace('affinity', 2);
             }
           }
         })

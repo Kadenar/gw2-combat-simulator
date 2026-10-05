@@ -3,10 +3,11 @@ import {
   defineProfessionSpecializationState
 } from '#gw2/platform/profession-definition/state.js';
 import type { RechargeProgress } from '#gw2/platform/execution/recharge.js';
+import type { ResourceClock } from '#gw2/platform/combat/resources/clock.js';
+import { createResourceClock } from '#gw2/platform/combat/resources/resource-policy.js';
 
 export interface ConduitState {
-  affinity: number;
-  affinityMaximum: number;
+  affinity: ResourceClock;
   cosmicWisdomUntil: number;
   conduitForm: string;
   beguilingHazeCharges: number;
@@ -16,7 +17,7 @@ export interface ConduitState {
 }
 
 export const CONDUIT_PUBLIC_STATE_PROJECTION = definePublicStateDefaults({
-  affinity: 0,
+  affinity: createResourceClock(),
   cosmicWisdomUntil: 0,
   conduitForm: '',
   beguilingHazeCharges: 0,
@@ -33,10 +34,10 @@ export function revenantConduitFormIsActive(
   return state?.conduitForm === form && (state.cosmicWisdomUntil || 0) > (at || 0);
 }
 
+/** The selected resource policy initializes affinity; form and recharge lifetimes stay with Conduit. */
 function createConduitState(): ConduitState {
   return {
-    affinity: 0,
-    affinityMaximum: 5,
+    affinity: createResourceClock(),
     cosmicWisdomUntil: 0,
     // Empty string means no active form; presence is tested via revenantConduitFormIsActive, not a separate boolean.
     conduitForm: '',

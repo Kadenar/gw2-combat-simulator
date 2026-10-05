@@ -160,21 +160,16 @@ export function affinity(context: Gw2ModifierContext): number {
   const bonus = hasTrait(context, TRAIT.KINETIC_INSIGHT)
     ? balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.KINETIC_INSIGHT), 'resourceGain')
     : 0;
-  return Math.min(
-    Math.max(1, revenantRuntimeSpecializationState(context, 'Conduit').affinityMaximum || 5),
-    (revenantRuntimeSpecializationState(context, 'Conduit').affinity || 0) + bonus
-  );
+  const pool = revenantRuntimeSpecializationState(context, 'Conduit').affinity;
+  return pool ? Math.min(pool.maximum, pool.value + bonus) : 0;
 }
 
 /** Kinetic Insight adds its patched virtual affinity bonus for scaling without changing the stored value. */
 export function effectiveConduitAffinity(runtime: MechanicQueriesOf<RevenantRuntime>): number {
-  const maximum = Math.max(
-    1,
-    balanceProfileNumber(requireBalanceProfileFromContext(runtime, PROFILE.affinity), 'maximumStacks')
-  );
+  const pool = conduitState.from(runtime).affinity;
   return Math.min(
-    maximum,
-    (conduitState.from(runtime).affinity || 0) +
+    pool.maximum,
+    runtime.resourceController.value('affinity') +
       (hasTrait(runtime, TRAIT.KINETIC_INSIGHT)
         ? balanceProfileNumber(requireBalanceProfileFromContext(runtime, TRAIT.KINETIC_INSIGHT), 'resourceGain')
         : 0)

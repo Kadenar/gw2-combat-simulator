@@ -16,7 +16,7 @@ const baseConfig = {
 };
 const simulate = createObservedProfessionSimulator(revenantProfession, baseConfig);
 const wait = (durationMs) => ({ type: 'wait', durationMs });
-const affinity = (result) => observedRuntime(result).profession.specialization.state.affinity;
+const affinity = (result) => observedRuntime(result).profession.specialization.state.affinity.value;
 const daggerTimes = (result) =>
   result.events
     .filter((event) => event.type === 'damage' && event.skillName === 'Lesser Enchanted Daggers' && event.at > 0)
@@ -34,7 +34,7 @@ test('Conduit upkeep resources are independent of wait segmentation', () => {
   );
   for (const result of results) {
     assert.deepEqual(result.warnings, []);
-    assert.equal(result.planningState.profession.affinity, 4);
+    assert.equal(result.planningState.profession.affinity.value, 4);
   }
 
   assert.equal(results[0].planningState.profession.energy.value, results[1].planningState.profession.energy.value);
@@ -118,7 +118,7 @@ test('Conduit upkeep ticks precede same-time cast completion', () => {
       extend: (native) => ({
         onCastCommit(runtime, cast) {
           if (cast.skill.name === 'Preparation Thrust')
-            affinityAtCompletion = runtime.profession.specialization.state.affinity;
+            affinityAtCompletion = runtime.profession.specialization.state.affinity.value;
           native.onCastCommit(runtime, cast);
         }
       })

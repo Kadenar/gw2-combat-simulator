@@ -24,7 +24,10 @@ import {
 } from '#gw2/professions/revenant/data/legends.js';
 import { isRevenantUpkeep } from '#gw2/professions/revenant/data/upkeep-skills.js';
 import { revenantEnergyCost } from '#gw2/professions/revenant/family-state.js';
-import { gainAffinity } from '#gw2/professions/revenant/specializations/conduit/mechanics/affinity.js';
+import {
+  conduitAffinityPolicy,
+  gainAffinity
+} from '#gw2/professions/revenant/specializations/conduit/mechanics/affinity.js';
 import {
   FORM_EXPIRY,
   scheduleFormExpiry
@@ -240,7 +243,7 @@ function swapLegend(runtime: RevenantRuntime, cast: RuntimeCast<RevenantSkill>):
   const combat = runtime.combatStartedAt();
   // The form state before the reset decides Enhanced Embodiment and the form update.
   const formActive = state.cosmicWisdomUntil > runtime.time;
-  state.affinity = 0;
+  runtime.resourceController.replace('affinity', 0);
   grantLingeringDetermination(runtime, combat);
   extendEnhancedEmbodiment(runtime, formActive);
 
@@ -280,6 +283,7 @@ function upkeepDaggers(runtime: RevenantRuntime, data: unknown): void {
 }
 
 export const conduitHooks: RuntimeHooks<RevenantRuntimeState, RevenantSkill> = {
+  resources: { affinity: conduitAffinityPolicy },
   buffPolicies: conduitBuffPolicies,
   // Passive affinity accrual does not extend damage observation; damaging dagger upkeep remains bounded normally.
   backgroundTasks: [UPKEEP_AFFINITY],
