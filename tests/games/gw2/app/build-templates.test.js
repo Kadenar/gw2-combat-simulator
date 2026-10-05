@@ -3,7 +3,6 @@ import { readFileSync } from 'node:fs';
 import test from 'node:test';
 
 import {
-  initBuildTemplates,
   loadTemplateAction,
   templateBoon,
   templateCategory,
@@ -49,20 +48,7 @@ function createButton() {
   };
 }
 
-test('template discovery loads the profession-scoped manifest', async (t) => {
-  let requestedPath;
-
-  t.mock.method(globalThis, 'fetch', async (url) => {
-    requestedPath = String(url).split('?')[0];
-
-    return { ok: false };
-  });
-
-  await initBuildTemplates({ adapter: { id: 'mesmer' } });
-
-  assert.equal(requestedPath, 'data/gw2/builds/mesmer/manifest.json');
-});
-
+// Browser tests cover profession-scoped manifest loading and picker initialization, which require a real document.
 test('template metadata classifies damage type and boon roles', () => {
   const power = {
     label: 'Power',
