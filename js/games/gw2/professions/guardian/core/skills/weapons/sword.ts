@@ -1,9 +1,11 @@
 /** Canonical Core guardian skill fragments grouped by their GW2 owner. */
 import { GUARDIAN_SKILL_IDS as ID } from '#gw2/professions/guardian/data/ids.js';
-import type { Skill } from '#gw2/platform/engine/skills/types.js';
+import type { Skill } from '#gw2/platform/skills/types.js';
 
 export const GUARDIAN_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
   [ID.SYMBOL_OF_BLADES]: {
+    // Author symbol identity independently of the skill's display text.
+    tags: ['symbol'],
     castTimeMs: 560,
     // The symbol is placed before the animation ends and continues pulsing after a committed cancel.
     interruptCommitMs: 320,
@@ -12,6 +14,7 @@ export const GUARDIAN_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Par
     effects: [
       {
         type: 'strike',
+        metadata: { guardianSymbol: true },
         ticks: Array.from({ length: 5 }, (_, index) => ({ atMs: 320 + index * 1000, coefficient: 3.25 / 5 })),
         persistsAfterInterrupt: true,
         timingAnchor: 'castStart',

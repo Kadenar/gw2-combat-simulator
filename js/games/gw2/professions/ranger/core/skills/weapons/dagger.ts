@@ -1,14 +1,12 @@
 import { MODIFIER_TARGET, type Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
+import { targetHasCondition } from '#gw2/platform/combat/state/targets.js';
 import { eventSkill } from '#gw2/platform/combat/query/runtime-query.js';
-import {
-  requireBalanceProfileFromContext,
-  balanceProfileNumber
-} from '#gw2/platform/engine/skills/balance-profiles.js';
+import { requireBalanceProfileFromContext, balanceProfileNumber } from '#gw2/platform/skills/balance-profiles.js';
 import { RANGER_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/ranger/core/profiles.js';
 import { stalkersStrikeTargetImpaired } from '#gw2/professions/ranger/core/mechanics/resolution-helpers.js';
 /** Canonical Core ranger skill fragments grouped by their GW2 owner. */
 import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
-import type { Skill } from '#gw2/platform/engine/skills/types.js';
+import type { Skill } from '#gw2/platform/skills/types.js';
 
 // Projectile flags belong to strikes so Mistral and Shrike count impacts independently of combo success.
 export const RANGER_CORE_DAGGER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
@@ -56,7 +54,7 @@ export const RANGER_CORE_DAGGER_SKILL_MECHANICS: Readonly<Record<number, Partial
             when: (runtime, { event }) =>
               Number(event.coefficient) > 0 &&
               event.source !== 'ranger-pet' &&
-              stalkersStrikeTargetImpaired(runtime.config, event.at, runtime),
+              stalkersStrikeTargetImpaired((condition) => runtime.combat.targetHasCondition(condition, event.at)),
             do: { type: 'ranger.stalkers-poison' }
           }
         ],
@@ -220,5 +218,7 @@ export const rangerStalkersStrikeModifier: Gw2ModifierRule = {
   // Double only this skill's strike when Cripple, Slow, or Immobilize is active.
   when: (context) =>
     eventSkill(context)?.id === ID.STALKERS_STRIKE &&
-    stalkersStrikeTargetImpaired(context.config, context.time, context.runtime)
+    stalkersStrikeTargetImpaired((condition) =>
+      targetHasCondition(context.config ?? {}, condition, context.time, context.runtime)
+    )
 };

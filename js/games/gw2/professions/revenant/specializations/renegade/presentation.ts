@@ -3,16 +3,13 @@ import type {
   ProfessionAttributePreviewPreparation
 } from '#gw2/platform/profession-presentation/attribute-preview.js';
 import { createPreviewControls } from '#gw2/professions/shared/attribute-preview.js';
-import { readProfessionCoreState } from '#gw2/platform/engine/profession/state.js';
+import { readProfessionCoreState } from '#gw2/platform/profession-definition/state.js';
 import { REVENANT_MAXIMUM_ENDURANCE, type RevenantCoreState } from '#gw2/professions/revenant/core/state.js';
 import { REVENANT_SKILL_IDS as SKILL, REVENANT_TRAIT_IDS as TRAIT } from '#gw2/professions/revenant/data/ids.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { getActiveTraits } from '#gw2/professions/revenant/data/traits-data.js';
 import { RENEGADE_ENHANCED_SKILL_BY_ID } from '#gw2/professions/revenant/data/renegade-enhanced-skills.js';
-import {
-  requireBalanceProfileFromContext,
-  balanceProfileNumber
-} from '#gw2/platform/engine/skills/balance-profiles.js';
+import { requireBalanceProfileFromContext, balanceProfileNumber } from '#gw2/platform/skills/balance-profiles.js';
 import { revenantUiState } from '#gw2/professions/revenant/core/presentation.js';
 import { isBandTogetherReady } from '#gw2/professions/revenant/specializations/renegade/mechanics/kalla-and-band-together.js';
 import { RENEGADE_PROFILE_IDS as PROFILE } from '#gw2/professions/revenant/specializations/renegade/profiles.js';
@@ -57,8 +54,8 @@ function renegadeStateSnapshot(context: RevenantUiContext): RotationStateSnapsho
     });
   }
 
-  const bandRemaining = (state.bandTogetherExpiresAt || 0) - at;
-  if (state.bandTogetherReady && bandRemaining > 0) {
+  const bandRemaining = (state.bandTogether?.expiresAt ?? 0) - at;
+  if (isBandTogetherReady(state, at)) {
     items.push({
       id: 'renegade-band-together',
       label: 'Band Together',
@@ -91,7 +88,8 @@ export const renegadeUi: RevenantUiSlice = Object.freeze({
   /** Seed only the detached attribute query; combat state and saved builds remain untouched. */
   prepareAttributePreview(context: ProfessionAttributePreviewPreparation) {
     if ('fullEndurance' in context.values)
-      readProfessionCoreState<RevenantCoreState>(context.professionState).endurance = context.values.fullEndurance
+      readProfessionCoreState<RevenantCoreState>(context.professionState).endurance!.value = context.values
+        .fullEndurance
         ? REVENANT_MAXIMUM_ENDURANCE
         : 0;
   },

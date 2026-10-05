@@ -1,11 +1,8 @@
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { targetConditionActive } from '#gw2/platform/combat/query/runtime-query.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
-import {
-  balanceProfileNumber,
-  requireBalanceProfileFromContext
-} from '#gw2/platform/engine/skills/balance-profiles.js';
-import type { SkillEffect } from '#gw2/platform/engine/skills/types.js';
+import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import type { SkillEffect } from '#gw2/platform/effects/types.js';
 import { defineSkillVariantProfile as variant } from '#gw2/platform/profession-definition/balance-profiles.js';
 import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
 import { elementalistTimedBuffStacks } from '#gw2/professions/elementalist/core/mechanics/modifier-queries.js';
@@ -139,7 +136,7 @@ export const familiarsProwess = defineTrait({
       amount: (context, _target, parameters) =>
         hasTrait(context, TRAIT.FAMILIARS_FOCUS) ? parameters.focusedAmount : parameters.baseAmount,
       when: (context: ElementalistModifierContext) =>
-        context.config?.evokerElement === 'Air' && elementalistTimedBuffStacks(context, "familiar's-prowess", 1) > 0
+        context.config?.evokerElement === 'Air' && elementalistTimedBuffStacks(context, 'familiars-prowess', 1) > 0
     },
     {
       requiresSelection: false,
@@ -150,7 +147,7 @@ export const familiarsProwess = defineTrait({
       amount: (context, _target, parameters) =>
         hasTrait(context, TRAIT.FAMILIARS_FOCUS) ? parameters.focusedAmount : parameters.baseAmount,
       when: (context: ElementalistModifierContext) =>
-        context.config?.evokerElement === 'Fire' && elementalistTimedBuffStacks(context, "familiar's-prowess", 1) > 0
+        context.config?.evokerElement === 'Fire' && elementalistTimedBuffStacks(context, 'familiars-prowess', 1) > 0
     }
   ]
 });

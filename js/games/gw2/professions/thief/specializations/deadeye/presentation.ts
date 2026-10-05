@@ -1,13 +1,10 @@
-import {
-  balanceProfileNumber,
-  requireBalanceProfileFromContext
-} from '#gw2/platform/engine/skills/balance-profiles.js';
+import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import type { ProfessionAttributePreviewContext } from '#gw2/platform/profession-presentation/attribute-preview.js';
 import { createPreviewControls } from '#gw2/professions/shared/attribute-preview.js';
 import { DEADEYE_BALANCE_PROFILE_IDS } from '#gw2/professions/thief/specializations/deadeye/profiles.js';
 
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
-import type { Skill, SkillId } from '#gw2/platform/engine/skills/types.js';
+import type { Skill, SkillId } from '#gw2/platform/skills/types.js';
 import type {
   SkillDamagePreviewPreparation,
   SkillDamageState
@@ -88,9 +85,17 @@ export const deadeyeUi = Object.freeze({
         id: 'malice',
         singular: 'malice',
         plural: 'malice',
-        // Default to 5 when state is not yet initialized; maximumMalice becomes 7 when Maleficent Seven is equipped
-        maximum: state.maximumMalice || 5,
-        value: state.malice || 0,
+        // Render the observed clock; before a result exists use the selected profile's trait capacity.
+        maximum:
+          state.malice?.maximum ??
+          balanceProfileNumber(
+            requireBalanceProfileFromContext(
+              context,
+              hasTrait(context, TRAIT.MALEFICENT_SEVEN) ? TRAIT.MALEFICENT_SEVEN : DEADEYE_BALANCE_PROFILE_IDS.resources
+            ),
+            'maximumStacks'
+          ),
+        value: state.malice?.value ?? 0,
         canStart: false,
         step: 1,
         displayMode: 'pips',

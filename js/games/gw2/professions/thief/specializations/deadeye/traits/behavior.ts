@@ -1,17 +1,14 @@
+import { grantCharges } from '#gw2/platform/combat/resources/charges.js';
 import type { ThiefSkill } from '#gw2/professions/thief/types.js';
 import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
 import type { Gw2ResolvedStats } from '#gw2/platform/combat/query/combat-query.js';
 import { boonActive, countActiveBoons } from '#gw2/platform/combat/query/runtime-query.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
-import {
-  balanceProfileNumber,
-  requireBalanceProfileFromContext
-} from '#gw2/platform/engine/skills/balance-profiles.js';
-import type { SkillId } from '#gw2/platform/engine/skills/types.js';
-import type { RuntimeCast } from '#gw2/platform/simulation/runtime-state.js';
+import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import type { SkillId } from '#gw2/platform/skills/types.js';
+import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
 import type { ThiefRuntime } from '#gw2/professions/thief/core/events.js';
-import { grantThiefInitiative } from '#gw2/professions/thief/core/mechanics/resources.js';
 import { storeThiefStolenSkillChoices } from '#gw2/professions/thief/core/mechanics/steal.js';
 import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
 import { DEADEYE_STOLEN_SKILL_IDS } from '#gw2/professions/thief/specializations/deadeye/mechanics/stolen-skills.js';
@@ -91,16 +88,17 @@ export const STOLEN_SKILLS = new Set<SkillId>(DEADEYE_STOLEN_SKILL_IDS);
 export function applyMaleficentSeven(runtime: ThiefRuntime, cast: RuntimeCast<ThiefSkill> | null): void {
   const state = deadeyeState.from(runtime);
   if (
-    state.malice !== state.maximumMalice ||
+    state.malice.value !== state.malice.maximum ||
     state.maleficentSevenTriggered ||
     !hasTrait(runtime, TRAIT.MALEFICENT_SEVEN)
   )
     return;
   state.maleficentSevenTriggered = true;
-  grantThiefInitiative(
-    runtime,
-    balanceProfileNumber(requireBalanceProfileFromContext(runtime, TRAIT.MALEFICENT_SEVEN), 'resourceGain')
+  const initiativeGain = balanceProfileNumber(
+    requireBalanceProfileFromContext(runtime, TRAIT.MALEFICENT_SEVEN),
+    'resourceGain'
   );
+  if (initiativeGain > 0) runtime.resourceController.grant('initiative', initiativeGain);
   traitBoons(runtime, cast, 'Maleficent Seven', TRAIT.MALEFICENT_SEVEN, false);
 }
 
@@ -124,12 +122,10 @@ export function initialMalice(runtime: ThiefRuntime): number {
 
 /** Applies Malicious Intent at its established mechanical boundary. */
 export function restoreMaliciousIntent(runtime: ThiefRuntime): void {
-  const state = deadeyeState.from(runtime);
   if (hasTrait(runtime, TRAIT.MALICIOUS_INTENT)) {
-    state.malice = Math.min(
-      state.maximumMalice,
-      state.malice +
-        balanceProfileNumber(requireBalanceProfileFromContext(runtime, TRAIT.MALICIOUS_INTENT), 'resourceGain')
+    runtime.resourceController.grant(
+      'malice',
+      balanceProfileNumber(requireBalanceProfileFromContext(runtime, TRAIT.MALICIOUS_INTENT), 'resourceGain')
     );
     applyMaleficentSeven(runtime, null);
   }
@@ -175,9 +171,12 @@ export function grantSilentScope(runtime: ThiefRuntime, cast: RuntimeCast<ThiefS
   const state = deadeyeState.from(runtime);
   if (skill.id === SHARED_SKILL_IDS.DODGE && hasTrait(runtime, TRAIT.SILENT_SCOPE)) {
     const silentScope = requireBalanceProfileFromContext(runtime, TRAIT.SILENT_SCOPE);
-    if (state.malice > balanceProfileNumber(silentScope, 'threshold')) {
-      state.stealthAttackCharges = 1;
-      state.stealthAttackExpiresAt = runtime.time + balanceProfileNumber(silentScope, 'durationMultiplier');
+    if (state.malice.value > balanceProfileNumber(silentScope, 'threshold')) {
+      // Reapplying Silent Scope replaces the prior bonus rather than stacking attacks.
+      state.bonusStealthAttack = grantCharges(
+        1,
+        runtime.time + balanceProfileNumber(silentScope, 'durationMultiplier')
+      );
     }
   }
 }

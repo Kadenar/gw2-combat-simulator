@@ -1,7 +1,14 @@
-import { requireBalanceNumber } from '#gw2/platform/engine/skills/canonical-skill-catalog.js';
-import type { EffectDelivery } from '#gw2/platform/simulation/effect-emission.js';
-import type { RuntimeCast, RuntimeProfession } from '#gw2/platform/simulation/runtime-state.js';
-import { applySideEffect, type ActionContext } from '#gw2/platform/simulation/side-effects.js';
+import {
+  catalystBuffPolicies,
+  catalystEffectStates
+} from '#gw2/professions/elementalist/specializations/catalyst/effect-state.js';
+import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
+import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
+import { requireBalanceNumber } from '#gw2/platform/effects/validation.js';
+import type { EffectDelivery } from '#gw2/platform/effects/emission.js';
+import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
+import { applySideEffect } from '#gw2/platform/effects/action-dispatch.js';
+import { type ActionContext } from '#gw2/platform/effects/actions.js';
 import { registerElementalistEliteEvents } from '#gw2/professions/elementalist/core/mechanics/elite-events.js';
 import {
   applyCatalystResolvedDamage,
@@ -15,41 +22,28 @@ import {
 } from '#gw2/professions/elementalist/specializations/catalyst/traits/spheres.js';
 import type { ElementalistRuntimeState, ElementalistSkill } from '#gw2/professions/elementalist/types.js';
 /** Owns sphere execution and energy accounting; trait owners run at their original mechanic boundaries. */
-import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
-import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
-import { denyCast } from '#gw2/platform/engine/skills/availability.js';
-import {
-  balanceProfileNumber,
-  requireBalanceProfileFromContext
-} from '#gw2/platform/engine/skills/balance-profiles.js';
-import type { Skill } from '#gw2/platform/engine/skills/types.js';
+import type { SimulationEvent } from '#gw2/platform/events/events.js';
+import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
+import { denyCast } from '#gw2/platform/execution/availability.js';
+import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import type { Skill } from '#gw2/platform/skills/types.js';
 import type { AvailabilityResult } from '#gw2/platform/execution/types.js';
 import { CATALYST_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/elementalist/specializations/catalyst/profiles.js';
 import { catalystState } from '#gw2/professions/elementalist/specializations/catalyst/state.js';
 import type { ElementalistRuntime } from '#gw2/professions/elementalist/types.js';
-function maximumEnergy(context: unknown): number {
-  const resourcesProfile = requireBalanceProfileFromContext(context, PROFILE.resources);
-  return balanceProfileNumber(resourcesProfile, 'maximumStacks');
-}
+import { catalystEnergyPolicy } from '#gw2/professions/elementalist/specializations/catalyst/mechanics/resources.js';
 
-// Adopt the balance-profile energy cap before the fight and clamp any seeded energy to it.
+// Resource policies initialize energy first; retain the actual attunement notification for trait rewards.
 function initialize(context: ElementalistRuntime, emissionCast?: EffectDelivery['cast']): void {
   registerElementalistEliteEvents(context, (runtime, event) => {
     applyEnergizedElements(runtime, event, emissionCast);
   });
-  const state = catalystState.from(context);
-  state.maximumEnergy = maximumEnergy(context);
-  state.energy = Math.max(
-    0,
-    Math.min(state.maximumEnergy, context.config.initialCatalystEnergy ?? state.maximumEnergy)
-  );
 }
 
 // Jade Sphere deployment requires the matching attunement and the profile energy
 // cost; every other skill passes through untouched.
-function availability(context: ElementalistRuntime, skill: Skill): AvailabilityResult {
+function availability(context: MechanicQueriesOf<ElementalistRuntime>, skill: Skill): AvailabilityResult {
   if (skill.skillFamily !== 'Jade Sphere') return { ready: true };
-  const state = catalystState.from(context);
   const core = professionCoreState(context);
   if (skill.attunement !== core.primaryAttunement) {
     return denyCast(
@@ -60,7 +54,7 @@ function availability(context: ElementalistRuntime, skill: Skill): AvailabilityR
 
   const resourcesProfile = requireBalanceProfileFromContext(context, PROFILE.resources);
   const sphereCost = balanceProfileNumber(resourcesProfile, 'resourceCost');
-  return state.energy >= sphereCost
+  return context.resourceController.readyAt('catalystEnergy', sphereCost) === context.time
     ? { ready: true }
     : denyCast('elementalist.catalyst-energy', `${skill.name} is unavailable - requires ${sphereCost} energy.`);
 }
@@ -71,7 +65,8 @@ function deployJadeSphere(context: ElementalistRuntime, cast: RuntimeCast<Elemen
   const state = catalystState.from(context);
   const resourcesProfile = requireBalanceProfileFromContext(context, PROFILE.resources);
   const sphereCost = balanceProfileNumber(resourcesProfile, 'resourceCost');
-  state.energy = Math.max(0, state.energy - sphereCost);
+  // Keep spending at deployment, before sphere traits and fields, rather than moving it to cast acceptance.
+  context.resourceController.spend('catalystEnergy', sphereCost);
   // The sphere field owns its active window; removing it leaves the energy cost intact.
   const field = skill.comboFields?.find((entry) => entry.ownerId === 'elementalist');
   if (field) {
@@ -90,8 +85,8 @@ function deployJadeSphere(context: ElementalistRuntime, cast: RuntimeCast<Elemen
       actorType: 'player',
       skillName: skill.name,
       kind: 'catalyst-energy',
-      value: state.energy,
-      maximum: maximumEnergy(context),
+      value: context.resourceController.value('catalystEnergy'),
+      maximum: state.catalystEnergy.maximum,
       change: -sphereCost
     }
   });
@@ -130,12 +125,13 @@ function gainEnergy(runtime: ElementalistRuntime, event: SimulationEvent): void 
     (runtime.time < state.sphereActiveUntil && !sphereSpecialistAllowsEnergy(runtime))
   )
     return;
-  const before = state.energy;
-  state.energy = Math.min(
-    maximumEnergy(runtime),
-    before + balanceProfileNumber(requireBalanceProfileFromContext(runtime, PROFILE.resources), 'resourceGain')
+  const before = runtime.resourceController.value('catalystEnergy');
+  runtime.resourceController.grant(
+    'catalystEnergy',
+    balanceProfileNumber(requireBalanceProfileFromContext(runtime, PROFILE.resources), 'resourceGain')
   );
-  if (state.energy !== before)
+  const after = runtime.resourceController.value('catalystEnergy');
+  if (after !== before)
     runtime.effects.emit({
       kind: 'packet',
       cause: event,
@@ -147,15 +143,18 @@ function gainEnergy(runtime: ElementalistRuntime, event: SimulationEvent): void 
         actorType: 'player',
         skillName: event.skillName,
         kind: 'catalyst-energy',
-        value: state.energy,
-        maximum: maximumEnergy(runtime),
-        change: state.energy - before
+        value: after,
+        maximum: state.catalystEnergy.maximum,
+        change: after - before
       }
     });
 }
 
 /** Sphere spending, weapon refreshes, and accepted-hit traits operate on the same live state. */
-export const catalystHooks: Partial<RuntimeProfession<ElementalistRuntimeState, ElementalistSkill>> = {
+export const catalystHooks: RuntimeHooks<ElementalistRuntimeState, ElementalistSkill> = {
+  buffPolicies: catalystBuffPolicies,
+  observeEffects: catalystEffectStates,
+  resources: { catalystEnergy: catalystEnergyPolicy },
   initialize,
   availability,
   sideEffectHandlers: {

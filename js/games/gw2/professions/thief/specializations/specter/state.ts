@@ -2,7 +2,7 @@ import type { ResourceClock } from '#gw2/platform/combat/resources/clock.js';
 import {
   definePublicStateDefaults,
   defineProfessionSpecializationState
-} from '#gw2/platform/engine/profession/state.js';
+} from '#gw2/platform/profession-definition/state.js';
 import type { ThiefConfig, ThiefState } from '#gw2/professions/thief/types.js';
 import { boundedNumber } from '#kernel/core/numeric.js';
 

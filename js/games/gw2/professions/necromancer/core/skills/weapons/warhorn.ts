@@ -1,8 +1,9 @@
+import { lifeForceGrant } from '#gw2/professions/necromancer/core/skills/life-force-grants.js';
 /** Canonical Core necromancer skill fragments grouped by their GW2 owner. */
-import { strikeTimeline } from '#gw2/platform/engine/effects/authoring.js';
-import { quantizeGw2ActionDurationUp } from '#gw2/platform/skills/timing.js';
+import { strikeTimeline } from '#gw2/platform/effects/authoring.js';
+import { quantizeGw2ActionDurationUp } from '#gw2/platform/combat/action-tick.js';
 import { NECROMANCER_SKILL_IDS as ID } from '#gw2/professions/necromancer/data/ids.js';
-import type { Skill } from '#gw2/platform/engine/skills/types.js';
+import type { Skill } from '#gw2/platform/skills/types.js';
 
 export const NECROMANCER_WEAPONS_WARHORN_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
   [ID.WAIL_OF_DOOM]: {
@@ -29,7 +30,7 @@ export const NECROMANCER_WEAPONS_WARHORN_SKILL_MECHANICS: Readonly<Record<number
               on: 'damage.resolved',
               actor: 'player',
               packets: 'each',
-              do: { type: 'necromancer.skill-life-force' }
+              do: lifeForceGrant({ id: 'life-force', unit: 'pulse', grant: { percent: 1.5 } })
             }
           ],
           canCrit: false,
@@ -45,7 +46,6 @@ export const NECROMANCER_WEAPONS_WARHORN_SKILL_MECHANICS: Readonly<Record<number
         duration: 15,
         audience: { recipients: 'party', maximumRecipients: 5 }
       }
-    ],
-    lifeForceGain: 1.5
+    ]
   }
 });

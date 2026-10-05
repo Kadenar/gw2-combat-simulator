@@ -8,7 +8,7 @@ import { simulationEventLogRows } from '#gw2/app/results/event-log.js';
 import { MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
 import { createCooldownController } from '#gw2/platform/execution/cooldowns.js';
 import { createContinuumController } from '#gw2/professions/mesmer/specializations/chronomancer/mechanics/continuum-split.js';
-import { gw2RechargeRate } from '#gw2/platform/engine/skills/recharge.js';
+import { gw2RechargeRate } from '#gw2/platform/execution/recharge.js';
 import { chronomancerHooks } from '#gw2/professions/mesmer/specializations/chronomancer/hooks.js';
 
 // Rewound cooldowns keep their saved work at the permanent Chronomancer recharge rate.
@@ -18,13 +18,10 @@ test('Continuum snapshots restore recharge work at the permanent Chronomancer ra
   const state = {
     time: 0,
     helpers: { skillsById },
-    ammo: new Map(),
-    rechargeProgress: new Map(),
-    cooldowns: new Map(),
     profession: { core: { autoattackChains: {} }, specialization: { kind: 'Chronomancer', state: { continuum: null } } }
   };
   const cooldown = createCooldownController({
-    state,
+    clock: state,
     rechargeDuration: () => 10,
     skillFor: (id) => skillsById.get(id),
     rechargeIntervals: (skill, start, end) => [
@@ -44,63 +41,8 @@ test('Continuum snapshots restore recharge work at the permanent Chronomancer ra
   cooldown.startRecharge(skill, 0);
   continuum.beginContinuumSplit({ id: 980001 }, 1);
   continuum.restoreContinuum(4, 'test');
-  assert.equal(state.cooldowns.get(skill.id), 13);
-  assert.deepEqual(state.rechargeProgress.get(skill.id), { startedAt: 4, work: 13.5 });
-});
-
-// A rewind preserves the remaining cast lockout even when recharge reduction subsequently returns a charge.
-test('Continuum Split restores ammo recharge and cast lockout deadlines independently', () => {
-  const skill = { id: 980000, ammo: 2 };
-  const state = {
-    time: 0,
-    helpers: { skillsById: new Map([[skill.id, skill]]) },
-    ammo: new Map(),
-    rechargeProgress: new Map(),
-    cooldowns: new Map(),
-    profession: { core: { autoattackChains: {} }, specialization: { kind: 'Chronomancer', state: { continuum: null } } }
-  };
-  const cooldown = createCooldownController({ state, rechargeDuration: () => 10 });
-  state.effects = captureEffectEmissions().effects;
-  const continuum = createContinuumController({
-    state,
-    cooldownController: cooldown,
-    unaffectedCooldownIds: new Set(),
-    refreshAmmo: cooldown.refreshAmmo,
-    consumeResources: () => 0,
-    triggerShatterTraits: () => {},
-    durationPerSource: 3
-  });
-  cooldown.spendAmmo(skill, 0);
-  cooldown.spendAmmo(skill, 0.5);
-  cooldown.setAmmoLockout(skill, 5, 0);
-  continuum.beginContinuumSplit({ id: 980001 }, 1);
-  cooldown.reduceSkillRecharge(skill, 20, 2);
-  continuum.restoreContinuum(4, 'test');
-
-  // Checkpoint-only fields must not leak into the canonical live ammo schema.
-  assert.deepEqual(state.ammo.get(skill.id), {
-    charges: 0,
-    maximum: 2,
-    recharges: [
-      { startedAt: 4, work: 9 },
-      { startedAt: 4, work: 10 }
-    ],
-    lockoutProgress: { startedAt: 4, work: 4 },
-    nextRechargeAt: 13,
-    lockoutReadyAt: 8
-  });
-  cooldown.reduceSkillRecharge(skill, 19, 4);
-  continuum.restoreContinuum(5, 'already restored');
-  assert.equal(state.ammo.get(skill.id).charges, 2);
-  assert.equal(state.cooldowns.get(skill.id), 8);
-  cooldown.refreshAmmo(skill, 8);
-  assert.equal(state.cooldowns.has(skill.id), false);
-
-  // An expired lockout must stay ready when a later rewind occurs between action ticks.
-  continuum.beginContinuumSplit({ id: 980001 }, 9);
-  continuum.restoreContinuum(10.01, 'test');
-  assert.equal(state.cooldowns.has(skill.id), false);
-  assert.equal(state.ammo.get(skill.id).lockoutReadyAt, 0);
+  assert.equal(cooldown.readyAt(skill.id), 13);
+  assert.deepEqual(cooldown.rechargeFor(skill.id), { startedAt: 4, work: 13.5 });
 });
 
 test('Continuum restoration projects ammo without checkpoint-relative fields', () => {
@@ -193,30 +135,6 @@ test('Phantasmal Lancer converts after recovery and Chronophantasma repeats befo
   assert.ok(Math.abs(resummon.at - (chronoCastEnd + 2.04)) < 0.00001);
   assert.ok(Math.abs(repeatDamage.at - (chronoCastEnd + 3.32)) < 0.00001);
   assert.ok(Math.abs(chronoConversion.at - (chronoCastEnd + 4.14)) < 0.00001);
-});
-
-test('Chronophantasma preserves each Bountiful Blades conversion timestamp', () => {
-  const result = simulateMesmer(
-    ['Phantasmal Berserker', { name: '__wait', waitMs: 6000 }],
-    defaultSimulationConfig({
-      specialization: 'Chronomancer',
-      selectedTraitIds: [TRAIT.BOUNTIFUL_BLADES, TRAIT.CHRONOPHANTASMA],
-      primaryWeapon: 'Greatsword',
-      secondaryWeapon: '',
-      initialResource: 0
-    })
-  );
-  const conversions = result.events.filter(
-    (event) => event.type === 'resource' && event.reason === 'Phantasmal Berserker phantasm conversion'
-  );
-
-  assert.deepEqual(
-    conversions.map((event) => [event.amount, Number(event.at.toFixed(4))]),
-    [
-      [1, 5.68],
-      [1, 5.72]
-    ]
-  );
 });
 
 test('Chronophantasma conversions preserve clone spends across a Continuum Split boundary', () => {

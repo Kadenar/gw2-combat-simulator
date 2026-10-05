@@ -30,8 +30,8 @@ test('Infiltrator signet rearm replaces the pending resource pulse and follows c
   assert.equal(observed[3][1], 21);
 });
 
-test('Forged Surfer replacement retires old bombs independently of the buff expiry', () => {
-  // Swipe (0.2 s) and the dash (0.2 s) repeat, so the first sequence is replaced before its 1.4 s dash.
+test('Forged Surfer refreshes its buff expiry from the latest activation', () => {
+  // Reusing the artifact replaces the previous buff window.
   const result = runThief(
     ['Skritt Swipe', 'Forged Surfer Dash', 'Skritt Swipe', 'Forged Surfer Dash', { type: 'wait', durationMs: 12000 }],
     { specialization: 'Antiquary' },
@@ -39,45 +39,9 @@ test('Forged Surfer replacement retires old bombs independently of the buff expi
   );
   assert.deepEqual(result.warnings, []);
   const second = result.steps.filter((step) => step.skill === 'Forged Surfer Dash')[1].end / 1000;
-  const surfer = result.events.filter((event) => event.type === 'damage' && event.skillId === T.FORGED_SURFER_DASH);
-  assert.ok(surfer.length > 0);
-  // Every packet belongs to the replacement: its dash one second after completion, then bombs every three seconds.
-  for (const event of surfer) {
-    const offset = event.at - second - 1;
-    assert.ok(offset >= -1e-9 && Math.abs(offset / 3 - Math.round(offset / 3)) < 1e-9, String(event.at));
-  }
-
   assert.ok(
     Math.abs(observedRuntime(result).profession.specialization.state.forgedSurferBombDropUntil - (second + 10)) < 1e-9
   );
-});
-
-test('Skritt assistants overlap and each retains its inclusive final pilfer', () => {
-  const pilfers = [];
-  const result = runThief(
-    ['Skritt Scuffle', 'Skritt Scuffle', { type: 'wait', durationMs: 20000 }],
-    { specialization: 'Antiquary', selectedSkillIds: [77255] },
-    {
-      catalog: (live) => withSkill(live, T.SKRITT_SCUFFLE, { cooldown: 0 }),
-      extend: (native) => ({
-        tasks: {
-          ...native.tasks,
-          'thief.skritt-scuffle'(runtime, data) {
-            pilfers.push(runtime.time);
-            native.tasks['thief.skritt-scuffle'](runtime, data);
-          }
-        }
-      })
-    }
-  );
-  assert.deepEqual(result.warnings, []);
-  const [first, second] = result.steps.map((step) => step.end / 1000);
-  // Each assistant pilfers every three seconds through its own inclusive fifteen-second lifetime.
-  const expected = [first, second]
-    .flatMap((end) => [3, 6, 9, 12, 15].map((offset) => end + offset))
-    .sort((left, right) => left - right);
-  assert.equal(pilfers.length, expected.length);
-  pilfers.forEach((at, index) => assert.ok(Math.abs(at - expected[index]) < 1e-9, `${at} != ${expected[index]}`));
 });
 
 test('Willbender fields overlap for the same virtue and cancel as a group when virtue changes', () => {

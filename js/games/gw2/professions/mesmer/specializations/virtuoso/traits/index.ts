@@ -1,15 +1,12 @@
+import { createMesmerIllusionRewards, mesmerActivePrimaryWeapon } from '#gw2/professions/mesmer/family-mechanics.js';
 import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { isGw2PlayerActorEvent } from '#gw2/platform/combat/state/event-ownership.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
-import {
-  balanceProfileNumber,
-  requireBalanceProfileFromContext
-} from '#gw2/platform/engine/skills/balance-profiles.js';
+import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
 import type { MesmerTraitDamage } from '#gw2/professions/mesmer/core/mechanics/illusions/types.js';
 import { illusionSource, timedActive } from '#gw2/professions/mesmer/core/mechanics/modifier-queries.js';
-import { mesmerMechanicsFor } from '#gw2/professions/mesmer/core/mechanics/runtime.js';
 import { mesmerTraitDamageProfile } from '#gw2/professions/mesmer/core/profiles.js';
 import { MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
 import { virtuosoState } from '#gw2/professions/mesmer/specializations/virtuoso/state.js';
@@ -66,7 +63,6 @@ export const bloodsong = defineTrait<MesmerSkill>({
   hooks: {
     reactions: {
       'condition.applied'(runtime, event) {
-        const mechanics = mesmerMechanicsFor(runtime);
         if (event.condition !== 'Bleeding' || !hasTrait(runtime, TRAIT.BLOODSONG)) return;
         const state = virtuosoState.from(runtime);
         state.bloodsongProgress += event.stacks ?? 0;
@@ -74,10 +70,10 @@ export const bloodsong = defineTrait<MesmerSkill>({
         const threshold = balanceProfileNumber(profile, 'threshold');
         while (threshold > 0 && state.bloodsongProgress >= threshold - 1e-9) {
           state.bloodsongProgress -= threshold;
-          mechanics.resources.queueResources(
+          createMesmerIllusionRewards(runtime).queueResources(
             runtime.time,
             balanceProfileNumber(profile, 'resourceGain'),
-            mechanics.activePrimaryWeapon(),
+            mesmerActivePrimaryWeapon(runtime),
             'Bloodsong',
             { traitId: TRAIT.BLOODSONG, traitName: 'Bloodsong' }
           );
@@ -196,12 +192,11 @@ export const infiniteForge = defineTrait<MesmerSkill>({
   hooks: {
     tasks: {
       'mesmer.infinite-forge'(runtime) {
-        const mechanics = mesmerMechanicsFor(runtime);
         const profile = requireBalanceProfileFromContext(runtime, TRAIT.INFINITE_FORGE);
-        mechanics.resources.gainResources(
+        createMesmerIllusionRewards(runtime).gainResources(
           runtime.time,
           balanceProfileNumber(profile, 'playerStacks'),
-          mechanics.activePrimaryWeapon(),
+          mesmerActivePrimaryWeapon(runtime),
           'Infinite Forge',
           { traitId: TRAIT.INFINITE_FORGE, traitName: 'Infinite Forge' }
         );

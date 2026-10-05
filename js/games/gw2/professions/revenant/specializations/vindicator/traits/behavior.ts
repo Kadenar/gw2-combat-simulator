@@ -9,23 +9,15 @@ import {
   effectNumber,
   requireBalanceProfileFromContext,
   requireEffect
-} from '#gw2/platform/engine/skills/balance-profiles.js';
-import type { SkillSideEffect } from '#gw2/platform/simulation/side-effects.js';
-import { gw2EffectExpiresAt } from '#gw2/platform/skills/timing.js';
+} from '#gw2/platform/skills/balance-profiles.js';
+import type { SkillSideEffect } from '#gw2/platform/effects/actions.js';
+import { gw2EffectExpiresAt } from '#gw2/platform/effects/timing.js';
 import type { RevenantRuntime } from '#gw2/professions/revenant/core/events.js';
-import { revenantRuntimeCoreState } from '#gw2/professions/revenant/core/modifiers.js';
+import { revenantRuntimeCoreState } from '#gw2/professions/revenant/core/state-queries.js';
 import { REVENANT_MAXIMUM_ENDURANCE } from '#gw2/professions/revenant/core/state.js';
 import { REVENANT_SKILL_IDS as ID, REVENANT_TRAIT_IDS as TRAIT } from '#gw2/professions/revenant/data/ids.js';
 import { vindicatorState } from '#gw2/professions/revenant/specializations/vindicator/state.js';
-import type { RevenantEnergyCostInput, RevenantSkill } from '#gw2/professions/revenant/types.js';
-
-/** Identifies Energy Meld's Angsiyah's Trust interaction so unrelated skills keep their normal costs. */
-export function energyMeldIsFree(input: RevenantEnergyCostInput, skill: RevenantSkill): boolean {
-  return (
-    (skill.id === ID.ENERGY_MELD || skill.id === ID.ENERGY_MELD_ID_72058) &&
-    hasTrait(input.traits, TRAIT.ANGSIYANS_TRUST)
-  );
-}
+import type { RevenantSkill } from '#gw2/professions/revenant/types.js';
 
 /** Applies the trait at the mechanic's existing execution boundary. */
 export function grantAngsiyansTrustEnergy(runtime: RevenantRuntime): void {
@@ -98,7 +90,7 @@ export function forerunnerOfDeathActive(runtime: RevenantRuntime): boolean {
 export function enduranceNotFull(context: Gw2ModifierContext): boolean {
   const state = revenantRuntimeCoreState(context);
   const maximum = REVENANT_MAXIMUM_ENDURANCE;
-  return !resourceAtLeast(state.endurance || 0, maximum);
+  return !resourceAtLeast(state.endurance?.value ?? 0, maximum);
 }
 
 /** Applies the trait at the mechanic's existing execution boundary. */
@@ -133,7 +125,7 @@ export function reaversCurseMultiplier(runtime: RevenantRuntime, armed: boolean)
 }
 
 /** Overrides the dodge landing only while this grandmaster is selected. */
-export function saintsShieldDodge(runtime: RevenantRuntime) {
+export function saintsShieldDodge(runtime: Pick<RevenantRuntime, 'config' | 'traits'>) {
   return hasTrait(runtime, TRAIT.SAINT_OF_ZU_HELTZER) ? ID.SAINTS_SHIELD : undefined;
 }
 
@@ -156,6 +148,6 @@ export const energyMeldRewards: readonly SkillSideEffect[] = [
 ];
 
 /** Overrides the dodge landing only while this grandmaster is selected. */
-export function imperialImpactDodge(runtime: RevenantRuntime) {
+export function imperialImpactDodge(runtime: Pick<RevenantRuntime, 'config' | 'traits'>) {
   return hasTrait(runtime, TRAIT.VASSALS_OF_THE_EMPIRE) ? ID.IMPERIAL_IMPACT : undefined;
 }

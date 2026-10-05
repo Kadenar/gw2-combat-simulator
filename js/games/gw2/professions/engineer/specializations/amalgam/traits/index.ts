@@ -1,13 +1,10 @@
+import { resolveAmalgamSkillId } from '#gw2/professions/engineer/specializations/amalgam/selection-policy.js';
 import { professionStaticRulesApplied } from '#gw2/platform/builds/attribute-provenance.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
-import {
-  balanceProfileNumber,
-  requireBalanceProfileFromContext
-} from '#gw2/platform/engine/skills/balance-profiles.js';
+import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import { defineTrait, traitAttributeEffects } from '#gw2/platform/profession-definition/traits.js';
 import { ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
 import {
-  resolveAmalgamSkillId,
   amalgamMaximumAmmo,
   reactToMercurialTendencies,
   morphStrike
@@ -55,7 +52,7 @@ export const doubleHelix = defineTrait({
   name: 'Double Helix',
   hooks: {
     maximumAmmo: amalgamMaximumAmmo,
-    modifySkillId: (runtime, skillId) => resolveAmalgamSkillId(runtime.config, skillId)
+    modifySkillId: (context, skillId) => resolveAmalgamSkillId(context.hasTrait(TRAIT.DOUBLE_HELIX), skillId)
   }
 });
 

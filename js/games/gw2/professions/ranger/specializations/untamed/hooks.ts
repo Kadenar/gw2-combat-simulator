@@ -1,8 +1,6 @@
-import {
-  balanceProfileNumber,
-  requireBalanceProfileFromContext
-} from '#gw2/platform/engine/skills/balance-profiles.js';
-import type { RuntimeCast, RuntimeProfession } from '#gw2/platform/simulation/runtime-state.js';
+import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
+import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
 import {
   grantAmbush,
@@ -24,7 +22,7 @@ function unleash(runtime: RangerRuntime, cast: RuntimeCast<RangerSkill>, rangerU
     grantAmbush(runtime);
 }
 
-export const untamedHooks: Partial<RuntimeProfession<RangerRuntimeState, RangerSkill>> = {
+export const untamedHooks: RuntimeHooks<RangerRuntimeState, RangerSkill> = {
   availability: untamedCastAvailability,
   sideEffectHandlers: {
     'ranger.ambush-consume'(runtime) {

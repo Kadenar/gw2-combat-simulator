@@ -1,16 +1,19 @@
-import type { Gw2PlanningStateInput } from '#gw2/platform/simulation/types.js';
+import {
+  createDragonTriggerState,
+  type DragonTriggerState
+} from '#gw2/professions/warrior/specializations/bladesworn/mechanics/dragon-trigger-state.js';
+import type { Gw2PlanningStateInput } from '#gw2/platform/results/types.js';
 import {
   snapshotProfessionState,
   projectPublicProfessionState,
   definePublicStateDefaults,
   defineProfessionSpecializationState
-} from '#gw2/platform/engine/profession/state.js';
-import type { Gw2Config } from '#gw2/platform/simulation/config.js';
-import { boundedNumber } from '#kernel/core/numeric.js';
+} from '#gw2/platform/profession-definition/state.js';
+import { createResourceClock } from '#gw2/platform/combat/resources/resource-policy.js';
+import type { ResourceClock } from '#gw2/platform/combat/resources/clock.js';
 
-export interface BladeswornState {
-  flow: number;
-  maximumFlow: number;
+export interface BladeswornState extends DragonTriggerState {
+  flow: ResourceClock;
   flowStabilizerWindows: Array<{
     startedAt: number;
     expiresAt: number;
@@ -21,17 +24,6 @@ export interface BladeswornState {
   traitPositiveFlowStacks: number;
 
   gunsaberActive: boolean;
-  dragonTriggerActive: boolean;
-  dragonTriggerStartedAt: number;
-  dragonTriggerChargeDeadline: number;
-  nextDragonChargeAt: number;
-  dragonChargeTickCount: number;
-  /** Actual threshold timestamps include Flow stalls and doubled Tactical Reload charge gains. */
-  dragonChargeReachedAt: number[];
-  dragonCharges: number;
-  dragonChargesPerInterval: number;
-  dragonTriggerFlowSpent: number;
-  dragonTriggerEventActivationId: string;
   tacticalReloadUntil: number;
   overchargedCartridgeWindows: Array<{
     startedAt: number;
@@ -43,40 +35,29 @@ export interface BladeswornState {
   gunsAndGloryUntil: number;
 }
 
-/** Declares Bladesworn's public fields and inactive values. */
+/** Projection defaults are detached display templates; the projector clones live clocks whenever those fields exist. */
 export const BLADESWORN_PUBLIC_STATE_PROJECTION = definePublicStateDefaults({
-  flow: 0,
-  maximumFlow: 100,
+  flow: createResourceClock(),
   flowStabilizerWindows: [],
   traitPositiveFlowStartedAt: 0,
   traitPositiveFlowUntil: 0,
   traitPositiveFlowStacks: 0,
   gunsaberActive: false,
   dragonTriggerActive: false,
-  dragonCharges: 0,
+  dragonCharges: createResourceClock(),
   overchargedCartridgeWindows: []
 } satisfies Partial<BladeswornState>);
 
-function createBladeswornState(config: Gw2Config = {}): BladeswornState {
+function createBladeswornState(): BladeswornState {
   return {
-    flow: boundedNumber(config.initialResource ?? 0, 0, 0, 100),
-    maximumFlow: 100,
+    flow: createResourceClock(),
     flowStabilizerWindows: [],
     traitPositiveFlowStartedAt: 0,
     traitPositiveFlowUntil: 0,
     traitPositiveFlowStacks: 0,
 
     gunsaberActive: false,
-    dragonTriggerActive: false,
-    dragonTriggerStartedAt: 0,
-    dragonTriggerChargeDeadline: 0,
-    nextDragonChargeAt: 0,
-    dragonChargeTickCount: 0,
-    dragonChargeReachedAt: [],
-    dragonCharges: 0,
-    dragonChargesPerInterval: 1,
-    dragonTriggerFlowSpent: 0,
-    dragonTriggerEventActivationId: '',
+    ...createDragonTriggerState(),
     tacticalReloadUntil: 0,
     overchargedCartridgeWindows: [],
     gunsAndGloryUntil: 0

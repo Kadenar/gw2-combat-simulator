@@ -4,13 +4,13 @@ import {
   effectNumber,
   requireBalanceProfileFromContext,
   requireEffect
-} from '#gw2/platform/engine/skills/balance-profiles.js';
-import type { SkillId } from '#gw2/platform/engine/skills/types.js';
+} from '#gw2/platform/skills/balance-profiles.js';
+import type { SkillId } from '#gw2/platform/skills/types.js';
 import { buildResolverCondition, buildResolverStrike } from '#gw2/platform/resolver/packets.js';
 import { NECROMANCER_SKILL_IDS as ID } from '#gw2/professions/necromancer/data/ids.js';
 import { ritualistState } from '#gw2/professions/necromancer/specializations/ritualist/state.js';
 
-import type { BalanceProfile } from '#gw2/platform/engine/skills/types.js';
+import type { BalanceProfile } from '#gw2/platform/skills/types.js';
 import type { NecromancerResolverContext, NecromancerResolverEvent } from '#gw2/professions/necromancer/types.js';
 
 import { RITUALIST_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/necromancer/specializations/ritualist/profiles.js';
@@ -30,7 +30,7 @@ function recipientKeys(event: NecromancerResolverEvent): string[] {
 }
 
 function spellIcon(context: NecromancerResolverContext, skillId: SkillId): string {
-  return context.helpers.skillsById?.get(skillId)?.icon || '';
+  return context.helpers.skillsById.get(skillId)?.icon || '';
 }
 
 // Resolve a Nightmare Weapon stack as a non-critical life steal plus vulnerability,

@@ -5,7 +5,7 @@ import test from 'node:test';
 
 import { defaultSimulationConfig } from '#tests/helpers/fixture-harness-core.js';
 import { simulateMesmer } from '#tests/helpers/mesmer-simulation.js';
-import { createCanonicalCatalog } from '#gw2/platform/engine/skills/canonical-skill-catalog.js';
+import { createCanonicalCatalog } from '#gw2/platform/skills/catalog.js';
 import { defineTestProfession } from '#tests/helpers/profession.js';
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
 import { isInternalCooldownReady } from '#gw2/platform/combat/procs.js';
@@ -17,12 +17,10 @@ test('critical sigil decisions use sampled outcomes and strict deadlines without
   const hit = { type: 'damage', at: 2, source: 'fixture', sourceId: 1, actorType: 'player', coefficient: 1 };
   // Read shared namespaced deadlines without claiming them during the pure decision step.
   const { procs } = createGw2ResolverRuntimeState({ config: {} });
-  Object.assign(procs.readyAt, {
-    [`sigil.${SIGIL_IDS.EARTH}`]: 2,
-    [`sigil.${SIGIL_IDS.AIR}`]: 3,
-    [`sigil.${SIGIL_IDS.DOOM}`]: 9
-  });
-  Object.freeze(procs.readyAt);
+  // Seed deadlines through the registry and compare its detached observations below.
+  procs.setDeadline(`sigil.${SIGIL_IDS.EARTH}`, 2);
+  procs.setDeadline(`sigil.${SIGIL_IDS.AIR}`, 3);
+  procs.setDeadline(`sigil.${SIGIL_IDS.DOOM}`, 9);
   const decide = (event = hit, chance = 0.5, didCrit = true) =>
     decideCriticalSigils(event, [SIGIL_IDS.EARTH, SIGIL_IDS.AIR, SIGIL_IDS.EARTH], { chance, didCrit }, procs);
   assert.deepEqual(decide(), { procs: [] });
@@ -46,7 +44,7 @@ test('critical sigil decisions use sampled outcomes and strict deadlines without
   assert.deepEqual(decide({ ...hit, at: 4 }, 0), { procs: [] });
   assert.deepEqual(decide({ ...hit, at: 4 }, 0.5, false), { procs: [] });
   assert.equal(decide({ ...hit, at: 4, actorType: 'effect', canTriggerCriticalSigils: true }).procs.length, 2);
-  assert.deepEqual(Object.entries(procs.readyAt), [
+  assert.deepEqual(Object.entries(procs.snapshot()), [
     [`sigil.${SIGIL_IDS.EARTH}`, 2],
     [`sigil.${SIGIL_IDS.AIR}`, 3],
     [`sigil.${SIGIL_IDS.DOOM}`, 9]
@@ -82,8 +80,7 @@ test('Blight procs supply condition-dependent readiness and expire without recur
       },
       tasks: {
         'fixture.consume-poison': (context) => {
-          const poisoned =
-            context.conditionState.get('Poisoned')?.stacks.some((stack) => stack.expiresAt > context.time) ?? false;
+          const poisoned = context.combat.targetHasCondition('Poisoned', context.time);
           observed.push(poisoned);
           if (poisoned)
             context.effects.emit({
@@ -102,7 +99,7 @@ test('Blight procs supply condition-dependent readiness and expire without recur
       reactions: {
         'condition.applied': (context, event) => {
           if (event.sourceId === `sigil.${SIGIL_IDS.BLIGHT}`)
-            assert.equal(context.query.targetConditionStacks('Poisoned', 0.2, context), 2);
+            assert.equal(context.combat.targetConditionStacks('Poisoned', 0.2, context), 2);
         }
       }
     }

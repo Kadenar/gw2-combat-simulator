@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { createCanonicalCatalog } from '#gw2/platform/engine/skills/canonical-skill-catalog.js';
+import { createCanonicalCatalog } from '#gw2/platform/skills/catalog.js';
 import { defineTestProfession } from '#tests/helpers/profession.js';
 import { resolvedWeaponStrength } from '#gw2/platform/resolver/weapon-strength-resolution.js';
 import { createSimulationRandom } from '#kernel/core/simulation-random.js';
@@ -171,7 +171,7 @@ test('skill metadata classifies transforms, kits, shrouds, and effects', () => {
       { ...event, weaponStrengthSource: 'equipped' },
       {
         skill: { id: 1, name: 'Stolen Skill', type: 'Profession' },
-        state: { activeWeaponSet: 2 },
+        activeWeaponSet: 2,
         config: {
           primaryWeapon: 'Dagger',
           weaponSet2Primary: 'Rifle'

@@ -114,13 +114,13 @@ test('precombat insertion previews preserve Flow and the boundary inside an unfi
     assert.deepEqual(result.warnings, []);
     const beforeHit = adapter.rotationPlanningStateAt(app, 2);
     assert.equal(beforeHit.atSeconds, 1);
-    assert.ok(Math.abs(beforeHit.profession.flow - 4) < 1e-9);
+    assert.ok(Math.abs(beforeHit.profession.flow.value - 4) < 1e-9);
     const beforeMarker = adapter.rotationPlanningStateAt(app, 3);
     const afterMarker = adapter.rotationPlanningStateAt(app, 4);
     assert.equal(beforeMarker.atSeconds, afterMarker.atSeconds);
-    assert.equal(beforeMarker.profession.flow, afterMarker.profession.flow);
+    assert.equal(beforeMarker.profession.flow.value, afterMarker.profession.flow.value);
     const expectedFlow = 4 * beforeMarker.atSeconds + 2 * (beforeMarker.atSeconds - result.combatStartTime);
-    assert.ok(Math.abs(beforeMarker.profession.flow - expectedFlow) < 1e-9);
+    assert.ok(Math.abs(beforeMarker.profession.flow.value - expectedFlow) < 1e-9);
   }
 });
 

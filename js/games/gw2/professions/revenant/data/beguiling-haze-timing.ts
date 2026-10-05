@@ -1,5 +1,5 @@
-import type { BalanceProfile } from '#gw2/platform/engine/skills/types.js';
-import { balanceProfileNumber } from '#gw2/platform/engine/skills/balance-profiles.js';
+import type { BalanceProfile } from '#gw2/platform/skills/types.js';
+import { balanceProfileNumber } from '#gw2/platform/skills/balance-profiles.js';
 
 /** Shares main-cast wind-up and follow-up timing between simulation and combat-log replay. */
 export function beguilingHazeCastDuration(

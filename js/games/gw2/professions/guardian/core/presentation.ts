@@ -4,17 +4,14 @@ import { createPreviewControls } from '#gw2/professions/shared/attribute-preview
 
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { PERMANENT_COMBO_FIELD_ASSUMPTION_CONTROLS } from '#gw2/platform/combos/permanent-field-assumption.js';
-import {
-  balanceProfileNumber,
-  requireBalanceProfileFromContext
-} from '#gw2/platform/engine/skills/balance-profiles.js';
-import { skillFlipReady } from '#gw2/platform/engine/skills/skill-flips.js';
-import type { CanonicalCatalog, SkillId } from '#gw2/platform/engine/skills/types.js';
+import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import { skillFlipReady } from '#gw2/platform/execution/skill-flips.js';
+import type { CanonicalCatalog, SkillId } from '#gw2/platform/skills/types.js';
 import type {
   ProfessionEffectPresentation,
   RotationStateSnapshotItem
 } from '#gw2/platform/profession-presentation/types.js';
-import { SIMULATION_RANDOMNESS_ASSUMPTION_CONTROLS } from '#gw2/platform/simulation/randomness.js';
+import { SIMULATION_RANDOMNESS_ASSUMPTION_CONTROLS } from '#gw2/platform/builds/randomness-assumptions.js';
 import { activeSymbolicAvengerExpirations } from '#gw2/professions/guardian/core/state.js';
 import { GUARDIAN_SKILL_IDS, GUARDIAN_TRAIT_IDS } from '#gw2/professions/guardian/data/ids.js';
 import type {

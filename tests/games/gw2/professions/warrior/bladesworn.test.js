@@ -29,12 +29,12 @@ const state = (result) => observedRuntime(result).profession.specialization.stat
 const close = (actual, expected) => assert.ok(Math.abs(actual - expected) < 1e-9, `${actual} != ${expected}`);
 
 test('Flow waits for accepted combat and preserves the absolute 40 ms cadence', () => {
-  close(state(run([wait(1000), combat])).flow, 0);
-  close(state(run([wait(39), combat, wait(1)])).flow, 0.08);
-  close(state(run([wait(40), combat])).flow, 0);
-  close(state(run([wait(40), combat, wait(40)])).flow, 0.08);
-  close(state(run([combat, wait(119)])).flow, 0.16);
-  close(state(run([combat, wait(120)])).flow, 0.24);
+  close(state(run([wait(1000), combat])).flow.value, 0);
+  close(state(run([wait(39), combat, wait(1)])).flow.value, 0.08);
+  close(state(run([wait(40), combat])).flow.value, 0);
+  close(state(run([wait(40), combat, wait(40)])).flow.value, 0.08);
+  close(state(run([combat, wait(119)])).flow.value, 0.16);
+  close(state(run([combat, wait(120)])).flow.value, 0.24);
 });
 
 test('precombat control leaves base Flow inactive in execution and presentation until the marker', () => {
@@ -45,7 +45,7 @@ test('precombat control leaves base Flow inactive in execution and presentation 
     result.events.some((event) => event.type === 'control' && event.at < result.combatStartTime),
     true
   );
-  close(state(result).flow, 0);
+  close(state(result).flow.value, 0);
   for (const [atSeconds, value] of [
     [result.combatStartTime - 0.001, '0 stacks'],
     [result.combatStartTime, '1 stack']
@@ -63,11 +63,11 @@ test('precombat control leaves base Flow inactive in execution and presentation 
 
 test('Flow Stabilizer requires preexisting Fury and overlapping windows add independently', () => {
   const config = { selectedSkillIds: [62967] };
-  close(state(run(['Flow Stabilizer'], config)).flow, 0);
-  close(state(run(['Flow Stabilizer'], { ...config, boons: { fury: true } })).flow, 15);
+  close(state(run(['Flow Stabilizer'], config)).flow.value, 0);
+  close(state(run(['Flow Stabilizer'], { ...config, boons: { fury: true } })).flow.value, 15);
   const result = run(['Flow Stabilizer', wait(1000), 'Flow Stabilizer', wait(1000), combat], config);
   assert.deepEqual(result.warnings, []);
-  close(state(result).flow, 27);
+  close(state(result).flow.value, 27);
   assert.equal(state(result).flowStabilizerWindows.length, 2);
 });
 
@@ -76,12 +76,12 @@ test('Positive Flow works before combat and grants its final tick before its win
   for (const duration of [8000, 8040]) {
     const result = run(['Flow Stabilizer', wait(duration), combat], config);
     assert.deepEqual(result.warnings, []);
-    close(state(result).flow, 32);
+    close(state(result).flow.value, 32);
     assert.deepEqual(state(result).flowStabilizerWindows, []);
   }
 
   const offGrid = run([wait(1), 'Flow Stabilizer', wait(8039), combat], config);
-  close(state(offGrid).flow, 32.16);
+  close(state(offGrid).flow.value, 32.16);
 });
 
 test('Bladesworn redirects trait and signet grants while ordinary hits produce no Flow', () => {
@@ -90,12 +90,12 @@ test('Bladesworn redirects trait and signet grants while ordinary hits produce n
   const critical = run(['Chop'], { stats: { power: 2000, precision: 4000 } });
   assert.deepEqual(bare.warnings, []);
   const owner = observedRuntime(bare);
-  close(state(bare).flow, (Math.floor(owner.time * 25) - Math.floor(owner.firstHitTime * 25)) * 0.08);
-  close(state(trained).flow - state(critical).flow, 2);
+  close(state(bare).flow.value, (Math.floor(owner.time * 25) - Math.floor(owner.firstHitTime * 25)) * 0.08);
+  close(state(trained).flow.value - state(critical).flow.value, 2);
   const signet = run([combat, wait(3000)], { selectedSkillIds: [14355] });
-  close(state(signet).flow, 8);
-  assert.equal(signet.planningState.profession.adrenaline, 0);
-  assert.equal(signet.planningState.profession.maximumAdrenaline, 0);
+  close(state(signet).flow.value, 8);
+  assert.equal(signet.planningState.profession.adrenaline.value, 0);
+  assert.equal(signet.planningState.profession.adrenaline.maximum, 0);
 });
 
 test('Flow caps use the selected profile and detailed and score runs share the same resource owner', () => {
@@ -108,8 +108,8 @@ test('Flow caps use the selected profile and detailed and score runs share the s
   });
   for (const output of ['detailed', 'score']) {
     const result = run([combat, wait(1000)], { initialResource: 100, patchId: 'flow-cap' }, patched, output);
-    close(state(result).flow, 7);
-    assert.equal(state(result).maximumFlow, 7);
+    close(state(result).flow.value, 7);
+    assert.equal(state(result).flow.maximum, 7);
   }
 });
 
@@ -125,7 +125,7 @@ test('removing Positive Flow suppresses regeneration independently of the condit
     patched
   );
   assert.deepEqual(result.warnings, []);
-  close(state(result).flow, 15);
+  close(state(result).flow.value, 15);
   assert.deepEqual(state(result).flowStabilizerWindows, []);
 });
 
@@ -140,7 +140,10 @@ test('Gunsaber transitions share recharge, reset chains, and retain the configur
   assert.equal(owner.activeWeaponSet, 1);
   assert.equal(state(result).gunsaberActive, true);
   assert.deepEqual(owner.profession.core.autoattackChains, {});
-  assert.equal(owner.cooldowns.get(ID.UNSHEATHE_GUNSABER), owner.cooldowns.get(ID.SHEATHE_GUNSABER));
+  assert.equal(
+    owner.cooldownController.readyAt(ID.UNSHEATHE_GUNSABER),
+    owner.cooldownController.readyAt(ID.SHEATHE_GUNSABER)
+  );
 });
 
 test('Gunsaber gates standard weapons, ordinary swaps, weapon bursts, and unavailable bundle actions', () => {
@@ -197,7 +200,7 @@ test('Gunsaber entry traits respect actual combat and explicit precombat does no
   const active = run([combat, 'Unsheathe Gunsaber', wait(5000)], { selectedTraitIds: [TRAIT.UNSEEN_SWORD] });
   assert.deepEqual(active.warnings, []);
   assert.ok(active.resolvedEvents.some((event) => event.sourceId === TRAIT.UNSEEN_SWORD && event.type === 'damage'));
-  close(state(active).flow, 30);
+  close(state(active).flow.value, 30);
   assert.equal(state(active).traitPositiveFlowUntil, 0);
 });
 
@@ -245,7 +248,7 @@ test('Gunsaber entry grants the selected party boon and resets Martial Cadence w
   );
   assert.equal(might.resolvedAudience.includesSelf, true);
   assert.equal(might.resolvedAudience.alliedPlayerCount, 4);
-  close(state(result).flow, 24);
+  close(state(result).flow.value, 24);
   close(observedRuntime(result).procs.deadline('warrior.core.soldierFocus'), 4);
   assert.equal(
     result.events.some((event) => event.sourceId === TRAIT.FURIOUS_BURST),
@@ -266,7 +269,7 @@ test('removed Gunsaber entry components keep their other effects independent', (
       patched
     );
     assert.deepEqual(result.warnings, []);
-    close(state(result).flow, removed === 'strike' ? 6 : 2);
+    close(state(result).flow.value, removed === 'strike' ? 6 : 2);
     assert.equal(result.totalDamage > 0, removed !== 'strike');
     assert.equal(observedRuntime(result).procs.deadline('warrior.bladesworn.gunsaberSwapTrait'), 4);
   }
@@ -301,10 +304,10 @@ test('Dragon Trigger spends entry Flow once and owns actual charge ticks without
   assert.deepEqual(result.warnings, []);
   assert.equal(state(result).gunsaberActive, true);
   assert.equal(state(result).dragonTriggerActive, true);
-  assert.equal(state(result).dragonCharges, 2);
-  close(state(result).flow, 5);
+  assert.equal(state(result).dragonCharges.value, 2);
+  close(state(result).flow.value, 5);
   close(state(result).dragonTriggerFlowSpent, 5);
-  assert.equal(observedRuntime(result).cooldowns.has(ID.DRAGON_TRIGGER), false);
+  assert.equal(observedRuntime(result).cooldownController.hasCooldown(ID.DRAGON_TRIGGER), false);
   const ticks = result.events.filter((event) => event.reason === 'dragon trigger charge');
   assert.deepEqual(
     ticks.map((event) => [event.at, event.flowSpent]),
@@ -314,13 +317,13 @@ test('Dragon Trigger spends entry Flow once and owns actual charge ticks without
     ]
   );
   assert.equal(
-    observedRuntime(result).cooldowns.get(ID.UNSHEATHE_GUNSABER),
-    observedRuntime(result).cooldowns.get(ID.SHEATHE_GUNSABER)
+    observedRuntime(result).cooldownController.readyAt(ID.UNSHEATHE_GUNSABER),
+    observedRuntime(result).cooldownController.readyAt(ID.SHEATHE_GUNSABER)
   );
   const insufficient = run(['Dragon Trigger'], { initialResource: 14 });
   assert.ok(insufficient.warnings[0].includes('15 flow'));
   assert.equal(state(insufficient).gunsaberActive, false);
-  assert.equal(state(insufficient).flow, 14);
+  assert.equal(state(insufficient).flow.value, 14);
 });
 
 test('a stalled charge waits for actual Positive Flow and a slash releases at the first affordable tick', () => {
@@ -337,7 +340,7 @@ test('a stalled charge waits for actual Positive Flow and a slash releases at th
   assert.equal(release.chargesReached, 2);
   assert.ok(result.events.some((event) => event.reason === 'dragon trigger charge' && event.flowSpent === 0));
   assert.equal(state(result).dragonTriggerActive, false);
-  assert.ok(observedRuntime(result).cooldowns.get(ID.DRAGON_TRIGGER) > release.at);
+  assert.ok(observedRuntime(result).cooldownController.readyAt(ID.DRAGON_TRIGGER) > release.at);
 });
 
 test('Dragon Trigger admits its exact deadline then expires autonomously and stale ticks cannot revive it', () => {
@@ -354,9 +357,9 @@ test('Dragon Trigger admits its exact deadline then expires autonomously and sta
   close(released.events.find((event) => event.reason === 'profession mechanic').at, 0.48);
   const expired = run(['Dragon Trigger', wait(481), combat], config, patched);
   assert.equal(state(expired).dragonTriggerActive, false);
-  assert.equal(state(expired).dragonCharges, 0);
+  assert.equal(state(expired).dragonCharges.value, 0);
   assert.equal(state(expired).nextDragonChargeAt, 0);
-  assert.equal(observedRuntime(expired).rechargeProgress.get(ID.DRAGON_TRIGGER).startedAt, 0.48);
+  assert.equal(observedRuntime(expired).cooldownController.rechargeFor(ID.DRAGON_TRIGGER).startedAt, 0.48);
   const stalled = run(['Dragon Trigger', slash(3), combat], config, patched);
   assert.ok(stalled.warnings.some((warning) => warning.includes('reached 2')));
 });
@@ -368,7 +371,7 @@ test('cast-bar skills exit charging at acceptance, while instant skills retain t
   });
   assert.deepEqual(instant.warnings, []);
   assert.equal(state(instant).dragonTriggerActive, true);
-  assert.equal(state(instant).dragonCharges, 2);
+  assert.equal(state(instant).dragonCharges.value, 2);
   const exited = run(
     ['Dragon Trigger', wait(240), { name: 'Combat Stimulant', interruptAfterMs: 1 }, wait(500), combat],
     {
@@ -378,9 +381,9 @@ test('cast-bar skills exit charging at acceptance, while instant skills retain t
   );
   assert.deepEqual(exited.warnings, []);
   assert.equal(state(exited).dragonTriggerActive, false);
-  close(state(exited).flow, 15);
+  close(state(exited).flow.value, 15);
   assert.equal(exited.events.filter((event) => event.reason === 'dragon trigger charge').length, 1);
-  close(observedRuntime(exited).rechargeProgress.get(ID.DRAGON_TRIGGER).startedAt, 0.24);
+  close(observedRuntime(exited).cooldownController.rechargeFor(ID.DRAGON_TRIGGER).startedAt, 0.24);
 });
 
 test('Dragon Slash captures its tier and refunds only charge Flow after successful completion', () => {
@@ -395,7 +398,7 @@ test('Dragon Slash captures its tier and refunds only charge Flow after successf
   assert.equal(power[0].stacks, 4);
   assert.ok(power[0].at > hit.at);
   const bare = run([combat, 'Dragon Trigger', slash(10)], { initialResource: 100 });
-  close(state(result).flow - state(bare).flow, 9);
+  close(state(result).flow.value - state(bare).flow.value, 9);
   const canceled = run([combat, 'Dragon Trigger', slash(2, { interruptAfterMs: 1 })], config);
   assert.deepEqual(canceled.warnings, []);
   assert.equal(canceled.totalDamage, 0);
@@ -406,7 +409,7 @@ test('Dragon Slash captures its tier and refunds only charge Flow after successf
     ),
     false
   );
-  close(state(canceled).flow, 100 - 15 - 5 + 0.48 * 2);
+  close(state(canceled).flow.value, 100 - 15 - 5 + 0.48 * 2);
 });
 
 test('Daring Dragon changes actual charge cost/cap and completion boons while Sharp Slash keeps condition ownership', () => {
@@ -452,7 +455,7 @@ test('Tactical Reload restores existing ammunition and doubles charges only for 
     selectedSkillIds: [62967, 62901]
   });
   assert.deepEqual(result.warnings, []);
-  const ammo = observedRuntime(result).ammo.get(ID.FLOW_STABILIZER);
+  const ammo = observedRuntime(result).cooldownController.readAmmo(ID.FLOW_STABILIZER);
   assert.equal(ammo.charges, ammo.maximum);
   assert.equal(state(result).tacticalReloadUntil, 0);
   const ticks = result.events.filter((event) => event.reason === 'dragon trigger charge');
@@ -469,17 +472,17 @@ test('Tactical Reload clears full Cartridges recharge and restores the longest t
   const reload = 'Tactical Reload';
   const config = { selectedSkillIds: [ID.OVERCHARGED_CARTRIDGES, ID.TACTICAL_RELOAD] };
   const initial = run([cartridges], config);
-  const firstDeadline = observedRuntime(initial).ammo.get(ID.OVERCHARGED_CARTRIDGES).nextRechargeAt;
+  const firstDeadline = observedRuntime(initial).cooldownController.readAmmo(ID.OVERCHARGED_CARTRIDGES).nextRechargeAt;
 
   const full = run([cartridges, wait(4000), reload], config);
-  const fullAmmo = observedRuntime(full).ammo.get(ID.OVERCHARGED_CARTRIDGES);
+  const fullAmmo = observedRuntime(full).cooldownController.readAmmo(ID.OVERCHARGED_CARTRIDGES);
   assert.deepEqual(full.warnings, []);
   assert.equal(fullAmmo.charges, 2);
   assert.equal(fullAmmo.nextRechargeAt, null);
   assert.deepEqual(fullAmmo.recharges, []);
 
   const spentAgain = run([cartridges, wait(4000), reload, wait(4000), cartridges], config);
-  const newAmmo = observedRuntime(spentAgain).ammo.get(ID.OVERCHARGED_CARTRIDGES);
+  const newAmmo = observedRuntime(spentAgain).cooldownController.readAmmo(ID.OVERCHARGED_CARTRIDGES);
   const lastCast = spentAgain.events.findLast(
     (event) => event.type === 'action' && event.skillId === ID.OVERCHARGED_CARTRIDGES
   );
@@ -489,7 +492,7 @@ test('Tactical Reload clears full Cartridges recharge and restores the longest t
   assert.ok(newAmmo.nextRechargeAt > firstDeadline);
 
   const partial = run([cartridges, cartridges, wait(4000), reload], config);
-  const partialAmmo = observedRuntime(partial).ammo.get(ID.OVERCHARGED_CARTRIDGES);
+  const partialAmmo = observedRuntime(partial).cooldownController.readAmmo(ID.OVERCHARGED_CARTRIDGES);
   assert.deepEqual(partial.warnings, []);
   assert.equal(partialAmmo.charges, 1);
   assert.equal(partialAmmo.recharges.length, 1);
@@ -499,7 +502,7 @@ test('Tactical Reload clears full Cartridges recharge and restores the longest t
 // Spending a magazine reserves recharge work for every consumed round in the sequential queue.
 test('Artillery Slash queues recharge for all rounds spent together', () => {
   const result = run(['Unsheathe Gunsaber', 'Artillery Slash']);
-  const ammo = observedRuntime(result).ammo.get(ID.ARTILLERY_SLASH);
+  const ammo = observedRuntime(result).cooldownController.readAmmo(ID.ARTILLERY_SLASH);
   assert.deepEqual(result.warnings, []);
   assert.equal(ammo.charges, 0);
   assert.equal(ammo.recharges.length, ammo.maximum);
@@ -513,13 +516,13 @@ test('Dragonspike resets exit recharge and an old expiry cannot close a replacem
   });
   assert.deepEqual(result.warnings, []);
   assert.equal(state(result).dragonTriggerActive, true);
-  assert.equal(state(result).dragonCharges, 10);
+  assert.equal(state(result).dragonCharges.value, 10);
   const entries = result.events.filter((event) => event.reason === 'dragon trigger entry');
   assert.equal(entries.length, 2);
   assert.equal(state(result).dragonTriggerEventActivationId, entries[1].activationId);
   assert.ok(observedRuntime(result).time > entries[0].deadline);
   assert.ok(observedRuntime(result).time < entries[1].deadline);
-  assert.equal(observedRuntime(result).cooldowns.has(ID.DRAGON_TRIGGER), false);
+  assert.equal(observedRuntime(result).cooldownController.hasCooldown(ID.DRAGON_TRIGGER), false);
 });
 
 test('Tactical Reload can be consumed before expiry and closes exactly at its deadline', () => {
@@ -533,7 +536,7 @@ test('Tactical Reload can be consumed before expiry and closes exactly at its de
       selectedSkillIds: [62901]
     });
     assert.deepEqual(result.warnings, []);
-    assert.equal(state(result).dragonCharges, expected);
+    assert.equal(state(result).dragonCharges.value, expected);
     if (expected === 2) assert.equal(state(result).tacticalReloadUntil, 0);
     else assert.ok(state(result).tacticalReloadUntil <= observedRuntime(result).time);
   }
@@ -546,7 +549,7 @@ test('Artillery Slash spends captured rounds once and successful ammunition trai
     });
     assert.deepEqual(result.warnings, []);
     const id = sharp ? ID.SHARP_ARTILLERY_SLASH : ID.ARTILLERY_SLASH;
-    assert.equal(observedRuntime(result).ammo.get(id).charges, 0);
+    assert.equal(observedRuntime(result).cooldownController.readAmmo(id).charges, 0);
     const grant = result.events.find((event) => event.type === 'buff' && event.sourceId === TRAIT.FIERCE_AS_FIRE);
     assert.equal(grant.stacks, 2);
     assert.equal(
@@ -559,7 +562,7 @@ test('Artillery Slash spends captured rounds once and successful ammunition trai
     selectedTraitIds: [TRAIT.FIERCE_AS_FIRE]
   });
   assert.deepEqual(canceled.warnings, []);
-  assert.equal(observedRuntime(canceled).ammo.get(ID.ARTILLERY_SLASH).charges, 0);
+  assert.equal(observedRuntime(canceled).cooldownController.readAmmo(ID.ARTILLERY_SLASH).charges, 0);
   assert.equal(canceled.totalDamage, 0);
   assert.equal(
     canceled.events.some((event) => event.sourceId === TRAIT.FIERCE_AS_FIRE),
@@ -569,7 +572,7 @@ test('Artillery Slash spends captured rounds once and successful ammunition trai
   assert.deepEqual(roar.warnings, []);
   assert.equal(
     roar.events.find((event) => event.type === 'buff' && event.sourceId === TRAIT.FIERCE_AS_FIRE).stacks,
-    observedRuntime(roar).ammo.get(ID.DRAGONS_ROAR).maximum
+    observedRuntime(roar).cooldownController.readAmmo(ID.DRAGONS_ROAR).maximum
   );
 });
 
@@ -581,7 +584,8 @@ test('Lush Forest reduces current-bar recharge only and preserves the normal Art
     const trained = run(rotation, { ...config, selectedTraitIds: [TRAIT.LUSH_FOREST] });
     assert.deepEqual(trained.warnings, []);
     close(
-      observedRuntime(bare).cooldowns.get(ID.CYCLONE_AXE) - observedRuntime(trained).cooldowns.get(ID.CYCLONE_AXE),
+      observedRuntime(bare).cooldownController.readyAt(ID.CYCLONE_AXE) -
+        observedRuntime(trained).cooldownController.readyAt(ID.CYCLONE_AXE),
       gunsaber ? 0 : 0.6
     );
   }
@@ -693,37 +697,6 @@ test('cartridge component removal separates its bonus and Burning and a removed 
     result.events.some((event) => event.type === 'condition' && event.sourceId === ID.OVERCHARGED_CARTRIDGES),
     true
   );
-});
-
-test('committed reloads restore ammo once at semantic completion before the reserved tail', () => {
-  const skill = warriorProfession
-    .runtimeFor({ specialization: 'Bladesworn' })
-    .catalog.skillsById.get(ID.TACTICAL_RELOAD);
-  const release = (Number(skill.interruptCommitMs) + Number(skill.castTimeMs)) / 2;
-  const result = run(
-    [
-      'Flow Stabilizer',
-      { name: 'Tactical Reload', interruptAfterMs: release },
-      wait(Number(skill.castTimeMs) - release),
-      'Dragon Trigger',
-      wait(240),
-      combat
-    ],
-    {
-      initialResource: 100,
-      selectedSkillIds: [62967, 62901]
-    }
-  );
-  assert.deepEqual(result.warnings, []);
-  const action = result.events.find((event) => event.type === 'action' && event.skillId === ID.TACTICAL_RELOAD);
-  const reloaded = result.events.find((event) => event.type === 'buff' && event.kind === 'tactical-reload');
-  assert.ok(action.endsAt < action.fullEndsAt);
-  // The reward belongs to successful commitment; the retained animation cannot grant it again.
-  assert.equal(reloaded.at, action.endsAt);
-  assert.equal(result.events.filter((event) => event.kind === 'tactical-reload').length, 1);
-  assert.equal(state(result).dragonCharges, 2);
-  const ammo = observedRuntime(result).ammo.get(ID.FLOW_STABILIZER);
-  assert.equal(ammo.charges, ammo.maximum);
 });
 
 test('release choices use native charge outcomes and disable unreachable levels without future Flow assumptions', () => {

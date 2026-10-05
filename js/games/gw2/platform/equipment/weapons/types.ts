@@ -1,5 +1,5 @@
 /** Owns the equipment/weapons/types.ts contracts so type dependencies follow their runtime feature boundaries. */
-import type { CanonicalCatalog, Skill } from '#gw2/platform/engine/skills/types.js';
+import type { CanonicalCatalog, Skill } from '#gw2/platform/skills/types.js';
 import type { Gw2Build } from '#gw2/platform/builds/types.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
 

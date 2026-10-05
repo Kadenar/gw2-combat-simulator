@@ -1,9 +1,6 @@
 import { isCombatEntryEvent } from '#gw2/platform/combat/state/targets.js';
-import {
-  balanceProfileNumber,
-  requireBalanceProfileFromContext
-} from '#gw2/platform/engine/skills/balance-profiles.js';
-import type { Skill } from '#gw2/platform/engine/skills/types.js';
+import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import type { Skill } from '#gw2/platform/skills/types.js';
 import type { ProfessionAttributePreviewContext } from '#gw2/platform/profession-presentation/attribute-preview.js';
 import type { ProfessionBalanceContext } from '#gw2/platform/profession-presentation/balance-context.js';
 import type {
@@ -45,7 +42,7 @@ function resources(context: WarriorUiContext): ProfessionResourceView[] {
   const state = warriorUiState(context);
   // The live pool wins; authoring before simulation uses the selected Flow profile.
   const maximum =
-    state.maximumFlow ??
+    state.flow?.maximum ??
     balanceProfileNumber(requireBalanceProfileFromContext(context, PROFILE.resources), 'maximumStacks');
   return [
     {
@@ -53,7 +50,7 @@ function resources(context: WarriorUiContext): ProfessionResourceView[] {
       singular: 'flow',
       plural: 'flow',
       maximum,
-      value: Number(state.flow ?? context.initialResource ?? 0),
+      value: Number(state.flow?.value ?? context.initialResource ?? 0),
       startMaximum: maximum,
       canStart: true,
       buildKey: 'initialResource',

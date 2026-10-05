@@ -1,7 +1,7 @@
 /** Canonical Core warrior skill fragments grouped by their GW2 owner. */
 import { WARRIOR_SKILL_IDS as ID } from '#gw2/professions/warrior/data/ids.js';
-import { impactEffects } from '#gw2/platform/engine/effects/authoring.js';
-import type { Skill } from '#gw2/platform/engine/skills/types.js';
+import { impactEffects } from '#gw2/platform/effects/authoring.js';
+import type { Skill } from '#gw2/platform/skills/types.js';
 
 export const WARRIOR_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
   [ID.HAMSTRING]: {
@@ -144,7 +144,7 @@ export const WARRIOR_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Part
   },
   [ID.ADRENALINE_RUSH]: {
     castTimeMs: 333,
-    sideEffects: [{ on: 'castCommit', do: { type: 'warrior.adrenaline', amount: 3 } }],
+    sideEffects: [{ on: 'castCommit', do: { type: 'warrior.grant-combat-resource', amount: 3 } }],
     effects: [
       {
         type: 'strike',

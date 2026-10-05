@@ -3,8 +3,8 @@ import {
   projectPublicProfessionState,
   definePublicStateDefaults,
   defineProfessionSpecializationState
-} from '#gw2/platform/engine/profession/state.js';
-import type { Gw2PlanningStateInput } from '#gw2/platform/simulation/types.js';
+} from '#gw2/platform/profession-definition/state.js';
+import type { Gw2PlanningStateInput } from '#gw2/platform/results/types.js';
 
 export interface GuardianDragonhunterState {
   tetherUntil: number;

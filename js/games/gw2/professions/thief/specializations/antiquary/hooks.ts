@@ -1,18 +1,19 @@
+import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
+import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
 import { grantCharges } from '#gw2/platform/combat/resources/charges.js';
 import { consumeOldestStacks } from '#gw2/platform/combat/resources/timed-stacks.js';
-import { denySkillCast } from '#gw2/platform/engine/skills/availability.js';
+import { denySkillCast } from '#gw2/platform/execution/availability.js';
 import {
   balanceProfileNumber,
   effectNumber,
   requireBalanceProfileFromContext,
   requireEffect
-} from '#gw2/platform/engine/skills/balance-profiles.js';
-import type { SkillId } from '#gw2/platform/engine/skills/types.js';
+} from '#gw2/platform/skills/balance-profiles.js';
+import type { SkillId } from '#gw2/platform/skills/types.js';
 import type { AvailabilityResult } from '#gw2/platform/execution/types.js';
-import type { RuntimeCast, RuntimeProfession } from '#gw2/platform/simulation/runtime-state.js';
+import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import type { ThiefRuntime } from '#gw2/professions/thief/core/events.js';
 import { buildThiefCondition, buildThiefStrikes } from '#gw2/professions/thief/core/events.js';
-import { grantThiefInitiative } from '#gw2/professions/thief/core/mechanics/resources.js';
 import {
   applyKleptomaniac,
   emitThiefStealTraits,
@@ -194,7 +195,7 @@ function completeSkrittScuffle(runtime: ThiefRuntime): void {
 
 /** Double Edge is risky only while its recharge is running; Scoundrel's Luck turns one risky use into a success. */
 function acceptDoubleEdge(runtime: ThiefRuntime, cast: RuntimeCast<ThiefSkill>): ThiefDoubleEdgeOutcome {
-  if ((runtime.cooldowns.get(cast.skill.id) || 0) <= runtime.time + EPSILON) return 'success';
+  if ((runtime.cooldownController.readyAt(cast.skill.id) || 0) <= runtime.time + EPSILON) return 'success';
   if (consumeScoundrelsLuck(runtime)) return 'success';
 
   return cast.command.doubleEdgeOutcome === 'backfire' ? 'backfire' : 'success';
@@ -233,7 +234,7 @@ function spendAntiquaryInitiative(runtime: ThiefRuntime, cast: RuntimeCast<Thief
   if (!(cost > 0)) return;
   const state = antiquaryState.from(runtime);
   state.initiativeSpentSincePilfer += cost;
-  if ((state.chakInitiativeRefundUntil || 0) > runtime.time) grantThiefInitiative(runtime, cost);
+  if ((state.chakInitiativeRefundUntil || 0) > runtime.time) runtime.resourceController.grant('initiative', cost);
   // Initiative spent before combat begins does not count toward the threshold.
   if (prodigiousPincherReady(runtime)) pilferArtifacts(runtime, 'initiative');
 }
@@ -246,7 +247,7 @@ function completeSkrittSwipe(runtime: ThiefRuntime, cast: RuntimeCast<ThiefSkill
 }
 
 /** Artifacts require a held slot; backfire variants are internal; Reshuffle rerolls only an existing pool. */
-function antiquaryAvailability(runtime: ThiefRuntime, skill: ThiefSkill): AvailabilityResult {
+function antiquaryAvailability(runtime: MechanicQueriesOf<ThiefRuntime>, skill: ThiefSkill): AvailabilityResult {
   const state = antiquaryState.from(runtime);
   if (
     skill.artifactKind &&
@@ -267,7 +268,7 @@ function antiquaryAvailability(runtime: ThiefRuntime, skill: ThiefSkill): Availa
 }
 
 /** Antiquary hooks: artifact pilfering and use, Double Edge outcomes, Skritt summons, and artifact-driven traits. */
-export const antiquaryHooks: Partial<RuntimeProfession<ThiefRuntimeState, ThiefSkill>> = {
+export const antiquaryHooks: RuntimeHooks<ThiefRuntimeState, ThiefSkill> = {
   sideEffectHandlers: {
     'thief.artifact-spend'(runtime, context) {
       if (context.kind === 'cast') spendArtifact(runtime, context.cast);
@@ -293,7 +294,10 @@ export const antiquaryHooks: Partial<RuntimeProfession<ThiefRuntimeState, ThiefS
         );
     },
     'thief.pay-coins'(runtime, context) {
-      if (context.kind === 'cast') grantThiefInitiative(runtime, coinInitiative.get(context.cast) ?? 0);
+      if (context.kind === 'cast') {
+        const initiativeGain = coinInitiative.get(context.cast) ?? 0;
+        if (initiativeGain > 0) runtime.resourceController.grant('initiative', initiativeGain);
+      }
     },
     'thief.forged-surfer'(runtime, context) {
       startForgedSurfer(runtime, context.skill);
@@ -305,8 +309,8 @@ export const antiquaryHooks: Partial<RuntimeProfession<ThiefRuntimeState, ThiefS
       const state = antiquaryState.from(runtime);
       const at = runtime.time;
       const { windows, duration } = artifactWindow(runtime);
-      state.stealthAttackCharges = balanceProfileNumber(windows, 'resourceGain');
-      state.stealthAttackExpiresAt = at + duration;
+      // Guitar replaces the active bonus-attack grant with the selected artifact count and lifetime.
+      state.bonusStealthAttack = grantCharges(balanceProfileNumber(windows, 'resourceGain'), at + duration);
     },
     'thief.mortar'(runtime) {
       const state = antiquaryState.from(runtime);

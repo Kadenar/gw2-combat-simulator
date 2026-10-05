@@ -11,7 +11,7 @@ import {
 import type { ProfessionAppState } from '#gw2/app/types.js';
 import { selectedSkillIdSet } from '#gw2/platform/builds/selected-skills.js';
 import { GW2_STANDARD_BOONS } from '#gw2/platform/combat/boons.js';
-import type { Skill, SkillId } from '#gw2/platform/engine/skills/types.js';
+import type { Skill, SkillId } from '#gw2/platform/skills/types.js';
 import { THORNS_MAX_STACKS } from '#gw2/platform/equipment/relics/rules/thorns.js';
 import { isGw2WeaponSkillEquipped } from '#gw2/platform/equipment/weapons/skill-matcher.js';
 import {
@@ -34,7 +34,6 @@ export interface SkillDamageRowDefinition {
   readonly icon: string;
   readonly badge: string;
   readonly context: string;
-  readonly groupId: string;
   readonly status: SkillDamageRowStatus;
 }
 
@@ -210,7 +209,8 @@ function weaponRows(app: ProfessionAppState): { set: number; weapon: string; ski
 function slotSkills(app: ProfessionAppState): { skill: Skill; status: SkillDamageRowStatus }[] {
   const specialization = app.adapter.eliteSpecialization(app.build);
   if (app.adapter.slotLoadout) {
-    const context = { build: app.build, specialization, professionState: undefined };
+    // Follow-up rows must use the same selected relationships as the palette and runtime.
+    const context = { build: app.build, specialization, professionState: undefined, catalog: app.activeCatalog };
     const ids = app.adapter.slotLoadout
       .view(context)
       .bars.flatMap((bar) =>
@@ -355,7 +355,7 @@ export function createSkillDamagePlan(
   const rows = new Map<string, SkillDamageRowDefinition>();
   const occurrences: SkillDamageOccurrence[] = [];
   const addRow = (
-    group: { id: string; title: string; kind: SkillDamageGroupKind },
+    group: { id: string },
     skill: Skill,
     status: SkillDamageRowStatus,
     base: { context: string; weaponSet?: number }
@@ -394,7 +394,6 @@ export function createSkillDamagePlan(
       icon: String(skill.icon || ''),
       badge: slotBadge(skill),
       context: owned?.context ?? base.context,
-      groupId: group.id,
       status
     });
     return id;

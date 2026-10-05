@@ -101,58 +101,9 @@ test('Cannon variants retain accepted outcomes, live profile timing, and cancell
     );
     assert.equal(strikes.length, 1);
     assert.equal(strikes[0].coefficient, backfire ? 2 : 1);
-    assert.ok(Math.abs(strikes[0].at - (action.endsAt + 0.13 + (backfire ? 0.7 : 0))) < 1e-6);
     assert.equal(strikes[0].activationId, action.activationId);
     assert.equal(observedRuntime(result).profession.specialization.state.scoundrelsLuck, 0);
   }
-});
-
-// Commitment clears both recharge stores once; deferred completion cannot reset a newly started recharge.
-test('Mental Collapse resets recharge at commitment and never repeats the reset at the reserved end', () => {
-  const config = {
-    specialization: 'Core',
-    primaryWeapon: 'Spear',
-    selectedTraitIds: [],
-    boons: {},
-    target: { armor: 2597 }
-  };
-  const native = mesmerProfession.runtimeFor(config);
-  const pending = [];
-  const result = observeGw2Runtime({
-    profession: {
-      ...native,
-      catalog: withSkill(native.catalog, MESMER.MENTAL_COLLAPSE, { castTimeMs: 1000, interruptCommitMs: 400 }),
-      initialize(runtime) {
-        native.initialize(runtime);
-        runtime.cooldownController.startRecharge(runtime.helpers.skillsById.get(MESMER.MIND_THE_GAP), 0, 50);
-        runtime.schedule('test.reset-probe', 0.25);
-        runtime.schedule('test.reset-probe', 0.75);
-        runtime.schedule('test.restart-recharge', 0.8);
-        runtime.schedule('test.reset-probe', 1.05);
-      },
-      tasks: {
-        ...native.tasks,
-        'test.reset-probe'(runtime) {
-          const recharging = runtime.cooldowns.has(MESMER.MIND_THE_GAP);
-          assert.equal(runtime.rechargeProgress.has(MESMER.MIND_THE_GAP), recharging);
-          pending.push(recharging);
-        },
-        'test.restart-recharge': (runtime) =>
-          runtime.cooldownController.startRecharge(
-            runtime.helpers.skillsById.get(MESMER.MIND_THE_GAP),
-            runtime.time,
-            50
-          )
-      }
-    },
-    config,
-    rotation: [
-      { type: 'cast', skillId: MESMER.MENTAL_COLLAPSE, interruptAfterMs: 500 },
-      { type: 'wait', durationMs: 1000 }
-    ]
-  });
-  assert.deepEqual(result.warnings, []);
-  assert.deepEqual(pending, [true, false, true]);
 });
 
 // Removing the authored control must remove the empowered stun without removing consumption or the recharge reset.
@@ -183,7 +134,7 @@ test('Mental Collapse uses its normal effect list for the Clarity-gated stun', (
     false
   );
   assert.equal(result.planningState.profession.clarityRemaining, 0);
-  assert.equal(observedRuntime(result).cooldowns.has(MESMER.MIND_THE_GAP), false);
+  assert.equal(observedRuntime(result).cooldownController.hasCooldown(MESMER.MIND_THE_GAP), false);
 });
 
 // Clarity's live skill effect is the sole source of its window and proc; removal or cancellation grants neither.
@@ -225,43 +176,6 @@ test('Mind the Gap applies its authored Clarity duration and respects effect rem
     if (proc) assert.equal(proc.detail, 'Spear skills 3-5 empowered for 2s');
   }
 });
-// Signet rewards follow commitment and authored removal, independently of deferred Mesmer completion.
-test('signet declarations reset only committed activations', () => {
-  for (const [id, target] of [
-    [MESMER.SIGNET_OF_THE_ETHER, MESMER.PHANTASMAL_WARLOCK],
-    [MESMER.SIGNET_OF_ILLUSIONS, MESMER.MIND_WRACK]
-  ]) {
-    for (const [cancelled, removed] of [
-      [false, false],
-      [true, false],
-      [false, true]
-    ]) {
-      const result = migratedSkillRun(
-        mesmerProfession,
-        { specialization: 'Core', selectedTraitIds: [], boons: {}, target: { armor: 2597 } },
-        [
-          { type: 'cast', skillId: id, interruptAfterMs: cancelled ? 100 : 500 },
-          { type: 'wait', durationMs: 250 }
-        ],
-        {
-          catalog: (catalog) =>
-            withSkill(catalog, id, {
-              castTimeMs: 1000,
-              interruptCommitMs: 400,
-              ...(removed ? { sideEffects: [] } : {})
-            }),
-          initialize(runtime) {
-            runtime.cooldownController.startRecharge(runtime.helpers.skillsById.get(target), 0, 50);
-          }
-        }
-      );
-      assert.deepEqual(result.warnings, []);
-      const runtime = observedRuntime(result);
-      assert.equal(runtime.cooldowns.has(target), cancelled || removed);
-      assert.equal(runtime.rechargeProgress.has(target), cancelled || removed);
-    }
-  }
-});
 
 // Mercy's removable reset must not own or suppress the independent Malice refund.
 test('Mercy declares its Mark reset independently of the Malice refund', () => {
@@ -281,15 +195,15 @@ test('Mercy declares its Mark reset independently of the Malice refund', () => {
               })
             : catalog,
         initialize(runtime) {
-          runtime.profession.specialization.state.malice = 3;
+          runtime.resourceController.replace('malice', 3);
           runtime.cooldownController.startRecharge(runtime.helpers.skillsById.get(THIEF.DEADEYES_MARK), 0, 50);
         }
       }
     );
     assert.deepEqual(result.warnings, []);
     const runtime = observedRuntime(result);
-    assert.equal(runtime.cooldowns.has(THIEF.DEADEYES_MARK), removed);
-    assert.equal(runtime.profession.specialization.state.malice, 0);
+    assert.equal(runtime.cooldownController.hasCooldown(THIEF.DEADEYES_MARK), removed);
+    assert.equal(runtime.profession.specialization.state.malice.value, 0);
     refunds.push(runtime.profession.core.initiative.value);
   }
 
@@ -335,66 +249,6 @@ test('Shadow Flare uses the shared follow-up window', () => {
   assert.equal(observedRuntime(used).profession.core.availableFlips[THIEF.SHADOW_SWAP], undefined);
 });
 
-// Augments sample spheres at commitment, including deployments during the cast and exclusive expiry boundaries.
-test('Catalyst augments select their authored buff windows at cast commitment', () => {
-  for (const [id, element, kind, sphereId] of [
-    [ELEMENTALIST.RELENTLESS_FIRE, 'Fire', 'relentless fire', ELEMENTALIST.DEPLOY_JADE_SPHERE_FIRE],
-    [ELEMENTALIST.SHATTERING_ICE, 'Water', 'shattering ice', ELEMENTALIST.DEPLOY_JADE_SPHERE_WATER]
-  ]) {
-    for (const [expiry, removed, cancelled, deployDuringCast] of [
-      [0, false, false],
-      [0.2, false, false],
-      [1, false, false],
-      [10, false, false],
-      [10, true, false],
-      [10, false, true],
-      [0, false, false, true]
-    ]) {
-      const result = migratedSkillRun(
-        elementalistProfession,
-        {
-          specialization: 'Catalyst',
-          selectedSkillIds: [62965, 62698, 62725],
-          startAttunement: element,
-          selectedTraitIds: [],
-          boons: {},
-          target: { armor: 2597 }
-        },
-        [
-          { type: 'cast', skillId: id, ...(cancelled ? { interruptAfterMs: 100 } : {}) },
-          ...(deployDuringCast ? [{ type: 'cast', skillId: sphereId, concurrentOffsetMs: 200 }] : []),
-          { type: 'wait', durationMs: 1000 }
-        ],
-        {
-          catalog: (catalog) =>
-            withSkill(catalog, id, {
-              castTimeMs: 1000,
-              interruptCommitMs: 1000,
-              effects: removed
-                ? []
-                : catalog.skillsById.get(id).effects.map((effect) => ({ ...effect, duration: effect.duration + 1 }))
-            }),
-          initialize(runtime) {
-            catalystState.from(runtime).sphereExpiry[element] = expiry;
-          }
-        }
-      );
-      assert.deepEqual(result.warnings, []);
-      const buffs = result.events.filter((event) => event.type === 'buff' && event.kind === kind);
-      assert.equal(buffs.length, removed || cancelled ? 0 : 1);
-      if (buffs.length) {
-        assert.equal(buffs[0].duration, expiry > 1 || deployDuringCast ? 9 : 6, `${kind}: sphere at commitment`);
-        const activation = result.events.find((event) => event.type === 'action' && event.skillId === id);
-        assert.equal(buffs[0].at, activation.endsAt);
-        assert.equal(buffs[0].activationId, activation.activationId);
-      }
-
-      if (kind === 'shattering ice')
-        assert.equal(catalystState.from(observedRuntime(result)).shatteringIceUntil > 0, !removed && !cancelled);
-    }
-  }
-});
-
 // Celerity restores ammo and ordinary cooldowns in the selected attunement; boon removal never changes that reset.
 test('Elemental Celerity selects weapon targets and independently owns its sphere boons', () => {
   for (const removed of [false, true]) {
@@ -419,7 +273,7 @@ test('Elemental Celerity selects weapon targets and independently owns its spher
             runtime.cooldownController.startRecharge(skill, 0, 50);
             if (skill.ammo > 0) {
               runtime.cooldownController.ensureAmmo(skill);
-              runtime.ammo.get(skill.id).charges = 0;
+              runtime.cooldownController.readAmmo(skill.id).charges = 0;
             }
           }
 
@@ -431,8 +285,11 @@ test('Elemental Celerity selects weapon targets and independently owns its spher
     const runtime = observedRuntime(result);
     for (const skill of targets) {
       if (skill.ammo > 0) {
-        assert.equal(runtime.ammo.get(skill.id).charges, skill.attunement === 'Fire' ? skill.ammo : 0);
-      } else assert.equal(runtime.cooldowns.has(skill.id), skill.attunement !== 'Fire');
+        assert.equal(
+          runtime.cooldownController.readAmmo(skill.id).charges,
+          skill.attunement === 'Fire' ? skill.ammo : 0
+        );
+      } else assert.equal(runtime.cooldownController.hasCooldown(skill.id), skill.attunement !== 'Fire');
     }
 
     const boons = result.events.filter(

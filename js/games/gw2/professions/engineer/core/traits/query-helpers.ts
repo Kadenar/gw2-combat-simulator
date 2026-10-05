@@ -5,7 +5,10 @@ import {
   targetConditionCount,
   targetHealthFraction
 } from '#gw2/platform/combat/query/runtime-query.js';
-import { readProfessionCoreState, readProfessionSpecializationState } from '#gw2/platform/engine/profession/state.js';
+import {
+  readProfessionCoreState,
+  readProfessionSpecializationState
+} from '#gw2/platform/profession-definition/state.js';
 import type { EngineerSimulationEvent, EngineerState } from '#gw2/professions/engineer/types.js';
 
 /** Narrows the active modifier event to Engineer's extended simulation event shape. */

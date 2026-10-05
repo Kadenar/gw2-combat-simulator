@@ -9,9 +9,9 @@ import { observeGw2Runtime, observedRuntime } from '#tests/helpers/observed-runt
 const sequential = { id: 990060, name: 'Sequential ammo', ammo: 6, ammoRecharge: 5 };
 const roar = warriorProfession.runtimeFor({ specialization: 'Bladesworn' }).catalog.skillsById.get(ID.DRAGONS_ROAR);
 function magazine(skill = sequential, rate = 1) {
-  const state = { time: 0, ammo: new Map(), rechargeProgress: new Map(), cooldowns: new Map() };
+  const state = { time: 0 };
   const controller = createCooldownController({
-    state,
+    clock: state,
     rechargeDuration: () => skill.ammoRecharge / rate,
     rechargeIntervals: (_skill, start, end) => [{ start, end, rate }]
   });
@@ -47,27 +47,23 @@ test('restoring and spending three rounds preserves the serial recharge already 
   assert.equal(controller.refreshAmmo(sequential, 17).charges, 6);
 });
 
-test('serial recharge reductions consume work once across the queue and preserve cast lockouts', () => {
+test('serial recharge reductions consume work once across the queue', () => {
   const controller = magazine();
-  controller.setAmmoLockout(sequential, 20, 0);
   assert.equal(controller.reduceSkillRecharge(sequential, 7, 2), 7);
   assert.equal(controller.refreshAmmo(sequential, 2).charges, 1);
   assert.equal(controller.refreshAmmo(sequential, 3).charges, 2);
   assert.equal(controller.refreshAmmo(sequential, 8).charges, 3);
-  assert.equal(controller.refreshAmmo(sequential, 8).lockoutReadyAt, 20);
 });
 
-// Reloads preserve active progress, and reductions apply once across the magazine without shortening lockouts.
+// Reloads preserve active progress, and reductions apply once across the magazine.
 test("Dragon's Roar restores and reduces its queued rounds", () => {
   const controller = magazine(roar);
-  controller.setAmmoLockout(roar, 20, 0);
   assert.equal(controller.restoreAmmo(roar, 3, 2), 3);
   for (let round = 0; round < 3; round++) controller.spendAmmo(roar, 3);
   assert.equal(controller.refreshAmmo(roar, 5).charges, 1);
   assert.equal(controller.reduceSkillRecharge(roar, 2, 5), 2);
   assert.equal(controller.refreshAmmo(roar, 7.999).charges, 1);
   assert.equal(controller.refreshAmmo(roar, 8).charges, 2);
-  assert.equal(controller.refreshAmmo(roar, 8).lockoutReadyAt, 20);
   assert.equal(controller.refreshAmmo(roar, 28).charges, 6);
   assert.deepEqual(controller.refreshAmmo(roar, 28).recharges, []);
 });
@@ -80,7 +76,7 @@ test("a live Dragon's Roar magazine recovers one round per interval", () => {
     rotation: [ID.DRAGONS_ROAR, { type: 'wait', durationMs: 8500 }]
   });
   assert.deepEqual(result.warnings, []);
-  assert.equal(observedRuntime(result).ammo.get(ID.DRAGONS_ROAR).charges, 2);
+  assert.equal(observedRuntime(result).cooldownController.readAmmo(ID.DRAGONS_ROAR).charges, 2);
 });
 
 test("Dragon's Roar begins natural recovery when its magazine is reserved", () => {

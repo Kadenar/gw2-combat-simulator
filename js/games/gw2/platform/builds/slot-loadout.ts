@@ -1,4 +1,4 @@
-import type { CanonicalCatalog, SkillId } from '#gw2/platform/engine/skills/types.js';
+import type { CanonicalCatalog, SkillId } from '#gw2/platform/skills/types.js';
 import type { ProfessionConfig } from '#gw2/platform/execution/types.js';
 /**
  * Shared model for profession slot skills chosen as fixed packages rather than

@@ -1,5 +1,12 @@
-import { ENGINEER_SKILL_IDS as SKILL } from '#gw2/professions/engineer/data/ids.js';
-import type { Skill } from '#gw2/platform/engine/skills/types.js';
+import {
+  resolveAmalgamSkillId,
+  DEFAULT_AMALGAM_MORPHS,
+  normalizeAmalgamMorphs,
+  validAmalgamMorphs
+} from '#gw2/professions/engineer/specializations/amalgam/selection-policy.js';
+import { ENGINEER_SKILL_IDS as SKILL, ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
+import { hasTrait } from '#gw2/platform/combat/state/traits.js';
+import type { Skill } from '#gw2/platform/skills/types.js';
 import { GEAR_SLOTS } from '#gw2/platform/equipment/gear/slots.js';
 import { DEFAULT_WEAPON_SIGILS, normalizeWeaponSigils } from '#gw2/platform/equipment/sigils/loadout.js';
 import { normalizeRotation } from '#gw2/platform/execution/rotation.js';
@@ -7,7 +14,6 @@ import type { RotationCommand } from '#gw2/platform/execution/types.js';
 import { ENGINEER_ASSUMPTION_CONTROLS } from '#gw2/professions/engineer/build/assumptions.js';
 import { engineerCatalog } from '#gw2/professions/engineer/catalog.js';
 import { getActiveTraits } from '#gw2/professions/engineer/data/traits-data.js';
-import { resolveAmalgamSkillId } from '#gw2/professions/engineer/specializations/amalgam/traits/behavior.js';
 import type { EngineerCanonicalBuild } from '#gw2/professions/engineer/types.js';
 import { createProfessionBuildCodec } from '#gw2/professions/shared/build-codec.js';
 import { createCommonBuildDefaults } from '#gw2/professions/shared/build-defaults.js';
@@ -19,23 +25,11 @@ import type { UnvalidatedFields } from '#kernel/core/unvalidated.js';
  * This module supplies Engineer defaults and configures the shared GW2 build
  * codec for migration, normalization, validation, and app-facing conversion.
  * Its profession-specific rules constrain starting Heat and ensure Amalgam has
- * one legal, uniquely named morph in each of F2, F3, and F4.
+ * one legal, unique morph kind in each of F2, F3, and F4.
  */
 
 const ENGINEER_BUILD_SCHEMA_VERSION = 4;
 const ENGINEER_PROFESSION_ID = 'engineer';
-
-const DEFAULT_MORPHS = Object.freeze([77103, 77203, 76954]);
-const AMALGAM_MORPHS = new Set(
-  engineerCatalog.skills
-    .filter(
-      (skill) =>
-        skill.specialization === 'Amalgam' &&
-        [2, 3, 4].includes(Number(skill.mechanicSlot)) &&
-        skill.categories?.includes('Morph')
-    )
-    .map((skill) => skill.id)
-);
 
 /** Creates the canonical Engineer build used for new presets and migration fallbacks. */
 export function createEngineerBuildDefaults(): EngineerCanonicalBuild {
@@ -68,7 +62,7 @@ export function createEngineerBuildDefaults(): EngineerCanonicalBuild {
       Utility3: SKILL.ELIXIR_GUN,
       Elite: SKILL.SUPPLY_CRATE
     },
-    selectedMorphSkillIds: [...DEFAULT_MORPHS],
+    selectedMorphSkillIds: [...DEFAULT_AMALGAM_MORPHS],
     ...createCommonBuildDefaults({
       assumptions: {
         inDamagingField: false
@@ -76,43 +70,6 @@ export function createEngineerBuildDefaults(): EngineerCanonicalBuild {
     }),
     initialHeat: 0
   };
-}
-
-/** Keeps one legal, uniquely named Amalgam morph in each configurable profession slot. */
-function normalizeMorphs(value: unknown): number[] {
-  const source = Array.isArray(value) ? value : DEFAULT_MORPHS;
-  const selected = new Map<number, number>();
-  const selectedNames = new Set<string>();
-  // Retain only legal saved choices while enforcing one unique morph name per profession slot.
-  for (const rawId of source) {
-    const id = Number(rawId);
-    const skill = engineerCatalog.skillsById.get(id);
-    const slot = Number(skill?.mechanicSlot);
-    if (!AMALGAM_MORPHS.has(id) || ![2, 3, 4].includes(slot)) {
-      continue;
-    }
-
-    if (selectedNames.has(skill!.name)) continue;
-    if (selected.has(slot)) continue;
-    selected.set(slot, id);
-    selectedNames.add(skill!.name);
-  }
-
-  // Fill any missing slots from canonical defaults, then other legal morphs when a name is already used.
-  for (const slot of [2, 3, 4]) {
-    if (selected.has(slot)) continue;
-    const defaultId = DEFAULT_MORPHS[slot - 2];
-    const candidates = [
-      engineerCatalog.skillsById.get(defaultId),
-      ...engineerCatalog.skills.filter((skill) => AMALGAM_MORPHS.has(skill.id) && Number(skill.mechanicSlot) === slot)
-    ].filter(Boolean) as Skill[];
-    const replacement = candidates.find((skill) => !selectedNames.has(skill.name));
-    if (!replacement) continue;
-    selected.set(slot, replacement.id as number);
-    selectedNames.add(replacement.name);
-  }
-
-  return [2, 3, 4].map((slot) => selected.get(slot)) as number[];
 }
 
 /** Normalizes each raw command before rebinding legacy morph names to the selected IDs. */
@@ -158,29 +115,23 @@ const engineerBuildCodec = createProfessionBuildCodec<EngineerCanonicalBuild>({
   },
   normalizeExtra(build, { saved }) {
     // Normalize the morph loadout first because legacy rotation entries depend on the selected IDs.
-    const selectedMorphSkillIds = normalizeMorphs(saved.selectedMorphSkillIds);
+    const selectedMorphSkillIds = normalizeAmalgamMorphs(engineerCatalog, saved.selectedMorphSkillIds);
     const traits = new Set(getActiveTraits(build.specializations).map((trait) => trait.id));
     return {
       ...build,
       selectedMorphSkillIds,
       // Rebind legacy names and saved variant IDs to the build's selected Evolve before UI rendering.
       rotation: normalizeMorphRotation(saved.rotation, selectedMorphSkillIds).map((command) =>
-        command.type === 'cast' ? { ...command, skillId: resolveAmalgamSkillId(traits, command.skillId) } : command
+        command.type === 'cast'
+          ? { ...command, skillId: resolveAmalgamSkillId(hasTrait(traits, TRAIT.DOUBLE_HELIX), command.skillId) }
+          : command
       )
     };
   },
   validateExtra(build) {
     const errors: string[] = [];
     const morphs = Array.isArray(build.selectedMorphSkillIds) ? build.selectedMorphSkillIds : [];
-    const slots = morphs.map((id) => Number(engineerCatalog.skillsById.get(id)?.mechanicSlot));
-    const names = morphs.map((id) => engineerCatalog.skillsById.get(id)?.name);
-    if (
-      morphs.length !== 3 ||
-      morphs.some((id) => !AMALGAM_MORPHS.has(id)) ||
-      new Set(slots).size !== 3 ||
-      new Set(names).size !== 3 ||
-      slots.some((slot) => ![2, 3, 4].includes(slot))
-    ) {
+    if (!validAmalgamMorphs(engineerCatalog, morphs)) {
       errors.push('selectedMorphSkillIds must contain one unique legal Amalgam morph for F2, F3, and F4.');
     }
 

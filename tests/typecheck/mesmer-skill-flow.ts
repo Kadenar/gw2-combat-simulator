@@ -1,4 +1,4 @@
-import type { Skill } from '#gw2/platform/engine/skills/types.js';
+import type { Skill } from '#gw2/platform/skills/types.js';
 import { mesmerCatalog } from '#gw2/professions/mesmer/catalog.js';
 import type { MesmerRuntime } from '#gw2/professions/mesmer/types.js';
 import { mesmerCoreHooks } from '#gw2/professions/mesmer/core/hooks.js';

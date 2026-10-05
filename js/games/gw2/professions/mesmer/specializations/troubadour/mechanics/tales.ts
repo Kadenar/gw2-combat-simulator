@@ -1,9 +1,6 @@
+import { createMesmerIllusionRewards, mesmerActivePrimaryWeapon } from '#gw2/professions/mesmer/family-mechanics.js';
 import { buildMesmerPacket, mesmerPacketOwner } from '#gw2/professions/mesmer/core/mechanics/packets.js';
-import {
-  balanceProfileNumber,
-  requireBalanceProfileFromContext
-} from '#gw2/platform/engine/skills/balance-profiles.js';
-import { mesmerMechanicsFor } from '#gw2/professions/mesmer/core/mechanics/runtime.js';
+import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import { triggerRaconteur } from '#gw2/professions/mesmer/specializations/troubadour/traits/performance.js';
 import type { MesmerRuntime } from '#gw2/professions/mesmer/types.js';
 
@@ -18,7 +15,6 @@ interface TroubadourTaleInvocation {
 
 /** Resolves a Tale's profile boons, matching-instrument note, and Troubadour trait effects together. */
 export function resolveTroubadourTale({ context, skill, at, eligible }: TroubadourTaleInvocation): void {
-  const runtime = mesmerMechanicsFor(context);
   const profileId = skill.tale?.profileId;
   const profile = profileId ? requireBalanceProfileFromContext(context, profileId) : null;
   const partyRecipients = { audience: { recipients: 'party' as const, maximumRecipients: 5 } };
@@ -35,7 +31,7 @@ export function resolveTroubadourTale({ context, skill, at, eligible }: Troubado
         sourceSkill: skill.name,
         ...partyRecipients
       });
-      runtime.context.effects.emit({
+      context.effects.emit({
         kind: 'packet',
         event: packet,
         owner: mesmerPacketOwner(packet),
@@ -46,10 +42,10 @@ export function resolveTroubadourTale({ context, skill, at, eligible }: Troubado
 
   if (eligible && profileId) {
     const profile = requireBalanceProfileFromContext(context, profileId);
-    runtime.resources.queueResources(
+    createMesmerIllusionRewards(context).queueResources(
       at,
       balanceProfileNumber(profile, 'resourceGain'),
-      runtime.activePrimaryWeapon(),
+      mesmerActivePrimaryWeapon(context),
       skill.name
     );
   }

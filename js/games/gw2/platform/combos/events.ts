@@ -2,8 +2,8 @@ import type { UnvalidatedFields } from '#kernel/core/unvalidated.js';
 import { canonicalTime, timeKey } from '#kernel/core/clock.js';
 import { comboCombatMetadata, comboDefinition } from '#gw2/platform/combos/definitions.js';
 
-import type { SimulationEventBase } from '#gw2/platform/engine/events/events.js';
-import { ACTOR_TYPES, type SimulationActorType } from '#gw2/platform/engine/events/actors.js';
+import type { SimulationEventBase } from '#gw2/platform/events/events.js';
+import { ACTOR_TYPES, type SimulationActorType } from '#gw2/platform/events/actors.js';
 import { COMBO_FIELD_TYPES, COMBO_FINISHER_TYPES } from '#gw2/platform/combos/types.js';
 import type {
   ComboEvent,

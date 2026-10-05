@@ -1,12 +1,13 @@
+import type { MechanicContext } from '#gw2/platform/profession-definition/mechanic-context.js';
 import {
   defineProfessionSpecializationState,
   definePublicStateDefaults
-} from '#gw2/platform/engine/profession/state.js';
-import type { Gw2Runtime, RuntimeCast } from '#gw2/platform/simulation/runtime-state.js';
+} from '#gw2/platform/profession-definition/state.js';
+import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import { WARRIOR_SKILL_IDS as ID } from '#gw2/professions/warrior/data/ids.js';
 import type { WarriorRuntimeState, WarriorSkill } from '#gw2/professions/warrior/types.js';
 
-type Runtime = Gw2Runtime<WarriorRuntimeState, WarriorSkill>;
+type Runtime = MechanicContext<WarriorRuntimeState, WarriorSkill>;
 export const BERSERK_EXPIRE = 'warrior.berserk-expiry';
 // Base extensions are selected by the committed Rage skill and combined with trait extensions once.
 export const berserkExtensions = new WeakMap<RuntimeCast<WarriorSkill>, number>();

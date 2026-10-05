@@ -1,9 +1,9 @@
+import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import {
-  balanceProfileNumber,
-  requireBalanceProfileFromContext
-} from '#gw2/platform/engine/skills/balance-profiles.js';
-import type { RuntimeProfession } from '#gw2/platform/simulation/runtime-state.js';
-import { SPELLBREAKER_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/warrior/specializations/spellbreaker/profiles.js';
+  spellbreakerBuffPolicies,
+  spellbreakerEffectStates
+} from '#gw2/professions/warrior/specializations/spellbreaker/effect-state.js';
+import { spellbreakerAdrenalinePolicy } from '#gw2/professions/warrior/specializations/spellbreaker/mechanics/resources.js';
 import {
   reactToSpellbreakerControl,
   reactToSpellbreakerDamage
@@ -11,15 +11,10 @@ import {
 import type { WarriorRuntimeState, WarriorSkill } from '#gw2/professions/warrior/types.js';
 
 /** Core owns packet execution and one-bar spending; this slice owns accepted control and burst reactions. */
-export const spellbreakerHooks: Partial<RuntimeProfession<WarriorRuntimeState, WarriorSkill>> = {
-  initialize(runtime) {
-    const core = runtime.profession.core;
-    core.maximumAdrenaline = balanceProfileNumber(
-      requireBalanceProfileFromContext(runtime, PROFILE.resources),
-      'maximumStacks'
-    );
-    core.adrenaline = Math.min(core.adrenaline, core.maximumAdrenaline);
-  },
+export const spellbreakerHooks: RuntimeHooks<WarriorRuntimeState, WarriorSkill> = {
+  buffPolicies: spellbreakerBuffPolicies,
+  observeEffects: spellbreakerEffectStates,
+  resources: { adrenaline: spellbreakerAdrenalinePolicy },
   // Queue No Escape from accepted player control; Insight still updates before the condition resolves.
 
   reactions: {

@@ -1,9 +1,6 @@
-import { readProfessionCoreState } from '#gw2/platform/engine/profession/state.js';
-import {
-  balanceProfileNumber,
-  requireBalanceProfileFromContext
-} from '#gw2/platform/engine/skills/balance-profiles.js';
-import type { CanonicalCatalog, Skill } from '#gw2/platform/engine/skills/types.js';
+import { readProfessionCoreState } from '#gw2/platform/profession-definition/state.js';
+import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import type { CanonicalCatalog, Skill } from '#gw2/platform/skills/types.js';
 import type {
   ProfessionAttributePreviewContext,
   ProfessionAttributePreviewPreparation

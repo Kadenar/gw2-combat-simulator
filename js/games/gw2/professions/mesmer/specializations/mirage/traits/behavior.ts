@@ -1,19 +1,20 @@
-import type { EffectDelivery } from '#gw2/platform/simulation/effect-emission.js';
+import type {
+  MesmerResourceGain,
+  MesmerQueueResources
+} from '#gw2/professions/mesmer/core/mechanics/illusions/types.js';
+import type { EffectDelivery } from '#gw2/platform/effects/emission.js';
 import type { MesmerEventExtra } from '#gw2/professions/mesmer/data/types.js';
 import { buildMesmerConditions, mesmerPacketOwner } from '#gw2/professions/mesmer/core/mechanics/packets.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
-import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
+import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
 import {
   balanceProfileNumber,
   requireBalanceProfileFromContext,
   requireEffect
-} from '#gw2/platform/engine/skills/balance-profiles.js';
-import type { RuntimeCast } from '#gw2/platform/simulation/runtime-state.js';
-import { mesmerMechanicsFor } from '#gw2/professions/mesmer/core/mechanics/runtime.js';
+} from '#gw2/platform/skills/balance-profiles.js';
+import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import { MESMER_SKILL_IDS as ID, MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
 import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
-import { statusFromEffect } from '#gw2/professions/mesmer/specializations/mirage/mechanics/boons.js';
-import { mirageControllerFor } from '#gw2/professions/mesmer/specializations/mirage/mechanics/runtime.js';
 import { mirageState } from '#gw2/professions/mesmer/specializations/mirage/state.js';
 import type { MesmerMirageController } from '#gw2/professions/mesmer/specializations/mirage/types.js';
 import type { MesmerAmbushAttack, MesmerRuntime } from '#gw2/professions/mesmer/types.js';
@@ -29,7 +30,7 @@ function reduceDuneCloakShatters(
   if (!hasTrait(state, TRAIT.DUNE_CLOAK)) return;
   for (const id of [ID.MIND_WRACK, ID.CRY_OF_FRUSTRATION]) {
     const shatter = state.helpers.skillsById.get(id);
-    const readyAt = shatter ? state.cooldowns.get(shatter.id) : null;
+    const readyAt = shatter ? state.cooldownController.readyAt(shatter.id) : null;
     if (shatter && readyAt != null) {
       const duneCloakProfile = requireBalanceProfileFromContext(state, TRAIT.DUNE_CLOAK);
       state.cooldownController.reduceSkillRecharge(
@@ -89,8 +90,6 @@ export function applyMirageCloakTraits(
   executeCloneAmbushes: MesmerMirageController['executeCloneAmbushes'],
   delivery: EffectDelivery = {}
 ): void {
-  const runtime = mesmerMechanicsFor(state);
-
   const renewingOasis = hasTrait(state, TRAIT.RENEWING_OASIS)
     ? requireEffect(requireBalanceProfileFromContext(state, TRAIT.RENEWING_OASIS), 'boon', 'regeneration')
     : undefined;
@@ -99,7 +98,7 @@ export function applyMirageCloakTraits(
       const grants: readonly MesmerEventExtra[] = [
         { kind: String(renewingOasis.boon), stacks: renewingOasis.stacks, duration: renewingOasis.duration }
       ];
-      const traitProfile = requireBalanceProfileFromContext(runtime.context, TRAIT.RENEWING_OASIS);
+      const traitProfile = requireBalanceProfileFromContext(state, TRAIT.RENEWING_OASIS);
       const traitSource = {
         source: 'Trait',
         sourceId: TRAIT.RENEWING_OASIS,
@@ -108,7 +107,7 @@ export function applyMirageCloakTraits(
         skillName: traitProfile.name
       };
       {
-        const proc = runtime.context.effects.emit({
+        const proc = state.effects.emit({
           ...delivery,
           kind: 'announcement',
           log: true,
@@ -116,7 +115,7 @@ export function applyMirageCloakTraits(
           announcement: { type: 'trait', name: traitProfile.name, at: at, sourceSkill: source, detail: '' }
         });
         for (const grant of grants)
-          runtime.context.effects.emit({
+          state.effects.emit({
             ...delivery,
             kind: 'packet',
             cause: proc,
@@ -157,22 +156,14 @@ export function applyMirageAmbushTraits(
   impactAt: number,
   delivery: EffectDelivery = {}
 ): void {
-  const runtime = mesmerMechanicsFor(state);
-
   const riddleOfSand =
     mirageState.from(state).riddleOfSandReady && hasTrait(state, TRAIT.RIDDLE_OF_SAND)
       ? requireEffect(requireBalanceProfileFromContext(state, TRAIT.RIDDLE_OF_SAND), 'condition', 'Confusion')
       : undefined;
   if (riddleOfSand) {
-    buildMesmerConditions(
-      state,
-      ambush.name,
-      impactAt,
-      statusFromEffect(riddleOfSand),
-      'Player',
-      `${ambush.name} — Riddle of Sand`,
-      { skillId: ambush.id }
-    ).forEach((packet) => {
+    buildMesmerConditions(state, ambush.name, impactAt, riddleOfSand, 'Player', `${ambush.name} — Riddle of Sand`, {
+      skillId: ambush.id
+    }).forEach((packet) => {
       state.effects.emit({
         ...delivery,
         kind: 'packet',
@@ -210,7 +201,7 @@ export function applyMirageAmbushTraits(
           audience: { recipients: 'party', maximumRecipients: 5 }
         }
       ];
-      const traitProfile = requireBalanceProfileFromContext(runtime.context, TRAIT.MIRAGE_MANTLE);
+      const traitProfile = requireBalanceProfileFromContext(state, TRAIT.MIRAGE_MANTLE);
       const traitSource = {
         source: 'Trait',
         sourceId: TRAIT.MIRAGE_MANTLE,
@@ -219,7 +210,7 @@ export function applyMirageAmbushTraits(
         skillName: traitProfile.name
       };
       {
-        const proc = runtime.context.effects.emit({
+        const proc = state.effects.emit({
           ...delivery,
           kind: 'announcement',
           log: true,
@@ -227,7 +218,7 @@ export function applyMirageAmbushTraits(
           announcement: { type: 'trait', name: traitProfile.name, at: impactAt, sourceSkill: ambush.name, detail: '' }
         });
         for (const grant of grants)
-          runtime.context.effects.emit({
+          state.effects.emit({
             ...delivery,
             kind: 'packet',
             cause: proc,
@@ -256,8 +247,6 @@ export function applyMirageShatterTraits(
   grantMirageCloak: MesmerMirageController['grantMirageCloak'],
   delivery: EffectDelivery = {}
 ): void {
-  const runtime = mesmerMechanicsFor(state);
-
   if (state.config.specialization !== 'Mirage') return;
   if (
     hasTrait(state, TRAIT.RIDDLE_OF_SAND) &&
@@ -281,7 +270,7 @@ export function applyMirageShatterTraits(
       const grants: readonly MesmerEventExtra[] = [
         { kind: String(nominalEndurance.boon), stacks: nominalEndurance.stacks, duration: nominalEndurance.duration }
       ];
-      const traitProfile = requireBalanceProfileFromContext(runtime.context, TRAIT.NOMADS_ENDURANCE);
+      const traitProfile = requireBalanceProfileFromContext(state, TRAIT.NOMADS_ENDURANCE);
       const traitSource = {
         source: 'Trait',
         sourceId: TRAIT.NOMADS_ENDURANCE,
@@ -290,7 +279,7 @@ export function applyMirageShatterTraits(
         skillName: traitProfile.name
       };
       {
-        const proc = runtime.context.effects.emit({
+        const proc = state.effects.emit({
           ...delivery,
           kind: 'announcement',
           log: true,
@@ -298,7 +287,7 @@ export function applyMirageShatterTraits(
           announcement: { type: 'trait', name: traitProfile.name, at: at, sourceSkill: skill.name, detail: '' }
         });
         for (const grant of grants)
-          runtime.context.effects.emit({
+          state.effects.emit({
             ...delivery,
             kind: 'packet',
             cause: proc,
@@ -320,7 +309,7 @@ export function applyMirageShatterTraits(
           duration: balanceProfileNumber(phantomPainProfile, 'durationMultiplier')
         }
       ];
-      const traitProfile = requireBalanceProfileFromContext(runtime.context, TRAIT.PHANTOM_PAIN);
+      const traitProfile = requireBalanceProfileFromContext(state, TRAIT.PHANTOM_PAIN);
       const traitSource = {
         source: 'Trait',
         sourceId: TRAIT.PHANTOM_PAIN,
@@ -329,7 +318,7 @@ export function applyMirageShatterTraits(
         skillName: traitProfile.name
       };
       {
-        const proc = runtime.context.effects.emit({
+        const proc = state.effects.emit({
           ...delivery,
           kind: 'announcement',
           log: true,
@@ -337,7 +326,7 @@ export function applyMirageShatterTraits(
           announcement: { type: 'trait', name: traitProfile.name, at: at, sourceSkill: skill.name, detail: '' }
         });
         for (const grant of grants)
-          runtime.context.effects.emit({
+          state.effects.emit({
             ...delivery,
             kind: 'packet',
             cause: proc,
@@ -382,47 +371,57 @@ export function applyMirageShatterTraits(
   }
 }
 
-/** Install clone-gain reactions and initial Riddle readiness after the Mirage controller exists. */
+/** React once to the committed gain using the caller's ambush operation, without constructing controllers in traits. */
+export function reactToMirageResourceGain(
+  context: MesmerRuntime,
+  { at, cause, createdClones }: MesmerResourceGain,
+  executeCloneAmbushes: MesmerMirageController['executeCloneAmbushes']
+): void {
+  const traitId = Number(cause.traitId);
+  const triggersCloneAmbush =
+    traitId === TRAIT.DECEPTIVE_EVASION ||
+    (traitId === TRAIT.SELF_DECEPTION && cause.sourceSkillId === ID.ILLUSIONARY_AMBUSH);
+  // Preserve the inclusive clone-gain deadline, but never treat the zero sentinel as an active cloak.
+  const cloneAmbushUntil = mirageState.from(context).cloneAmbushUntil;
+  if (
+    triggersCloneAmbush &&
+    hasTrait(context, TRAIT.INFINITE_HORIZON) &&
+    cloneAmbushUntil > 0 &&
+    at <= cloneAmbushUntil
+  ) {
+    executeCloneAmbushes(at, createdClones);
+  }
+}
+
+/** Initialize only the gameplay readiness state owned by Mirage. */
 export function initializeMirageTraits(context: MesmerRuntime): void {
-  const runtime = mesmerMechanicsFor(context);
-  const mirage = mirageControllerFor(runtime);
-  // Infinite Horizon reacts to Mirage-authored clone gains while the generic resource controller stays spec-agnostic.
-  runtime.resources.addGainHandler(({ at, cause, createdClones }) => {
-    const traitId = Number(cause.traitId);
-    const triggersCloneAmbush =
-      traitId === TRAIT.DECEPTIVE_EVASION ||
-      (traitId === TRAIT.SELF_DECEPTION && cause.sourceSkillId === ID.ILLUSIONARY_AMBUSH);
-    // Preserve the inclusive clone-gain deadline, but never treat the zero sentinel as an active cloak.
-    const cloneAmbushUntil = mirageState.from(context).cloneAmbushUntil;
-    if (
-      triggersCloneAmbush &&
-      hasTrait(context, TRAIT.INFINITE_HORIZON) &&
-      cloneAmbushUntil > 0 &&
-      at <= cloneAmbushUntil
-    ) {
-      mirage.executeCloneAmbushes(at, createdClones);
-    }
-  });
   // Riddle of Sand starts armed only for the active Mirage runtime and is re-armed by Mirage shatters.
   mirageState.from(context).riddleOfSandReady =
     hasTrait(context, TRAIT.RIDDLE_OF_SAND) &&
     Boolean(requireEffect(requireBalanceProfileFromContext(context, TRAIT.RIDDLE_OF_SAND), 'condition', 'Confusion'));
 }
 
-/** Applies Self-Deception to categorized Deception skills after their casts complete. */
-export function completeMirageSkill(context: MesmerRuntime, cast: RuntimeCast<MesmerSkill>): void {
+/** Apply Self-Deception through caller-supplied resource operations after a Deception cast commits. */
+export function completeMirageSkill(
+  context: MesmerRuntime,
+  cast: RuntimeCast<MesmerSkill>,
+  operations: {
+    readonly currentResource: () => number;
+    readonly queueResources: MesmerQueueResources;
+    readonly activePrimaryWeapon: () => string;
+  }
+): void {
   const skill = cast.skill;
-  const runtime = mesmerMechanicsFor(context);
   if (
     hasTrait(context, TRAIT.SELF_DECEPTION) &&
     skill.categories?.includes('Deception') &&
-    runtime.actions.currentResource() > 0
+    operations.currentResource() > 0
   ) {
     const selfDeceptionProfile = requireBalanceProfileFromContext(context, TRAIT.SELF_DECEPTION);
-    runtime.resources.queueResources(
+    operations.queueResources(
       context.time,
       balanceProfileNumber(selfDeceptionProfile, 'resourceGain'),
-      runtime.activePrimaryWeapon(),
+      operations.activePrimaryWeapon(),
       `Self-Deception: ${skill.name}`,
       {
         traitId: TRAIT.SELF_DECEPTION,

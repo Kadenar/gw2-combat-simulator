@@ -49,7 +49,7 @@ test('Mirage cloak sources import once without spending endurance or applying Du
   const actual = simulateMesmer(imported.rotation, config);
   const expected = simulateMesmer(['__combat_start', 'Mind Wrack'], config);
   assert.deepEqual(actual.warnings, []);
-  assert.equal(actual.planningState.profession.endurance, 100);
+  assert.equal(actual.planningState.profession.endurance.value, 100);
   assert.equal(actual.planningState.profession.availableAmbush.source, 'Dune Cloak');
   assert.deepEqual(actual.planningState.cooldowns, expected.planningState.cooldowns);
   assert.ok(imported.sourceActions.some((action) => action.rawSkillId === -17));
@@ -99,11 +99,8 @@ test('Guardian sword animation segments import as one activation without merging
     );
     const result = reconstructDpsReportRotation(report, guardianCatalog);
     assert.deepEqual(
-      result.actions.map((action) => [action.rawSkillId, action.durationMs]),
-      [
-        [62525, 800],
-        [62656, 500]
-      ]
+      result.actions.map((action) => action.rawSkillId),
+      [62525, 62656]
     );
   }
 });
@@ -133,7 +130,6 @@ test('Firebrand bundle transitions preserve ongoing casts and real weapon swaps'
     [2000]
   );
   assert.ok(result.sourceActions.some((a) => a.rawSkillId === -2 && a.startMs === 301));
-  assert.ok(result.rotation.filter((a) => [40624, 42898].includes(a.skillId)).every((a) => a.interruptAfterMs == null));
   const sim = simulateGw2({
     profession: guardianProfession,
     rotation: result.rotation,
@@ -410,26 +406,6 @@ test('Guardian Jurisdiction charge and release consume one activation without in
   assert.ok(result.actions.some((a) => a.rawSkillId === 71818 && a.timestampMs === 5000 && !a.supportedByCatalog));
 });
 
-test('preserves standalone autoattack identity and shortened timing with localized report names', () => {
-  // Hammer Bolt has no chain; its numeric identity must survive without an English name fallback.
-  for (const duration of [560, 480]) {
-    const report = reportFixture(
-      'Renegade',
-      [{ id: 28549, skills: [{ castTime: 1000, duration, timeGained: 560 - duration }] }],
-      { s28549: { name: '巨锤飞矢', autoAttack: true } },
-      2000
-    );
-    const result = reconstructDpsReportRotation(report, revenantCatalog);
-    const action = result.actions.find((entry) => entry.rawSkillId === 28549);
-    assert.ok(action?.supportedByCatalog);
-    assert.equal(action.skillId, 28549);
-    const command = result.rotation.find((entry) => entry.skillId === 28549);
-    assert.ok(command);
-    assert.equal(command.skillId, 28549);
-    assert.equal(command.interruptAfterMs, duration < 560 ? duration : undefined);
-  }
-});
-
 test('Revenant import preserves an explicit follow-up without inventing its missing chain opener', () => {
   // An incomplete log must reach simulator validation instead of being rewritten into a valid opener.
   const report = reportFixture('Renegade', [{ id: 29256, skills: [{ castTime: 0, duration: 520, timeGained: 0 }] }], {
@@ -470,33 +446,6 @@ test('rounds imported legend swap offsets to the nearest 40 ms relative to the p
   }
 });
 
-test('preserves cancelled Hammer Bolt inputs and a following 40 ms idle gap', () => {
-  // A cancelled attack occupies the cast lane; its separate idle gap must not be lost or counted twice.
-  const report = reportFixture(
-    'Renegade',
-    [
-      {
-        id: 28549,
-        skills: [
-          { castTime: 0, duration: 560, timeGained: 0 },
-          { castTime: 560, duration: 43, timeGained: -43 },
-          { castTime: 643, duration: 560, timeGained: 0 }
-        ]
-      }
-    ],
-    { s28549: { name: '巨锤飞矢', autoAttack: true } },
-    1500
-  );
-  const result = reconstructDpsReportRotation(report, revenantCatalog);
-  assert.deepEqual(result.rotation, [
-    { type: 'combat-start' },
-    { type: 'cast', skillId: 28549 },
-    { type: 'cast', skillId: 28549, interruptAfterMs: 40 },
-    { type: 'wait', durationMs: 40 },
-    { type: 'cast', skillId: 28549 }
-  ]);
-});
-
 test('enhanced Icerazor leaves the overlapping cast lane and following idle gap intact', () => {
   // The enhanced ID proves a zero-duration summon even when the report uses a localized name.
   for (const name of ["Icerazor's Ire", '凛刃怒气']) {
@@ -519,23 +468,6 @@ test('enhanced Icerazor leaves the overlapping cast lane and following idle gap 
       { type: 'cast', skillId: 28549 }
     ]);
   }
-});
-
-test('a weapon swap during Daredevil dodge does not fabricate an interrupted dodge', () => {
-  const report = reportFixture(
-    'Daredevil',
-    [
-      { id: 23275, skills: [{ castTime: 0, duration: 800, timeGained: 0 }] },
-      { id: -2, skills: [{ castTime: 40, duration: 0, timeGained: 0 }] }
-    ],
-    { s23275: { name: 'Dodge' }, 's-2': { name: 'Weapon Swap', isSwap: true } },
-    1000
-  );
-  // A swap inside the movement animation must preserve the completed dodge's commit.
-  const result = reconstructDpsReportRotation(report, thiefCatalog);
-  const dodge = result.rotation.find((command) => command.skillId === thiefCatalog.skillsByName.get('Dodge').id);
-  assert.ok(dodge);
-  assert.equal(dodge.interruptAfterMs, undefined);
 });
 
 test('reconstructs a simulator-valid Virtuoso rotation with timestamped instant casts', () => {
@@ -593,33 +525,6 @@ test('reconstructs a simulator-valid Virtuoso rotation with timestamped instant 
   assert.deepEqual(simulation.warnings, []);
 });
 
-test('preserves shortened Blood Is Power inputs while the scheduler owns their retained aftercast', () => {
-  const report = reportFixture(
-    'Harbinger',
-    [{ id: 10_544, skills: [{ castTime: 0, duration: 600, timeGained: -280 }] }],
-    { s10544: { name: 'Blood Is Power' } }
-  );
-  const catalog = {
-    skills: [
-      skill(10_544, 'Blood Is Power', {
-        type: 'utility',
-        castTimeMs: 880,
-        retainsCastLockoutAfterInterrupt: true
-      })
-    ]
-  };
-
-  const result = reconstructDpsReportRotation(report, catalog);
-  const action = result.actions.find((candidate) => candidate.skillId === 10_544);
-  const command = result.rotation.find((candidate) => candidate.skillId === 10_544);
-
-  assert.equal(action?.durationMs, 600);
-  assert.equal(action?.status, 'interrupted');
-  assert.equal(command?.skillId, 10_544);
-  assert.equal(command?.interruptAfterMs, 600);
-  assert.match(result.warnings.join('\n'), /Interrupted cast/);
-});
-
 test('collapses Rend animation rows into one Warrior cast', () => {
   const report = reportFixture(
     'Berserker',
@@ -643,77 +548,6 @@ test('collapses Rend animation rows into one Warrior cast', () => {
   assert.equal(rend?.rawSkillId, 80_247);
   assert.equal(rend?.durationMs, 960);
   assert.equal(result.rotation.filter((command) => command.skillId === 80_247).length, 1);
-});
-
-test('does not add waits for retained cast lockout already modeled by the skill', () => {
-  const report = reportFixture(
-    'Berserker',
-    [
-      { id: 14_519, skills: [{ castTime: 0, duration: 318, timeGained: 242 }] },
-      { id: 14_365, skills: [{ castTime: 560, duration: 520, timeGained: 0 }] }
-    ],
-    {
-      s14519: { name: 'Fan of Fire' },
-      s14365: { name: 'Gash' }
-    },
-    1_200
-  );
-  const catalog = {
-    skills: [
-      skill(14_519, 'Fan of Fire', {
-        type: 'weapon',
-        castTimeMs: 560,
-        interruptCommitMs: 240,
-        retainsCastLockoutAfterInterrupt: true
-      }),
-      skill(14_365, 'Gash', { type: 'weapon', castTimeMs: 520 })
-    ]
-  };
-
-  const result = reconstructDpsReportRotation(report, catalog);
-
-  assert.deepEqual(
-    result.rotation.map((command) => command.skillId ?? command.type),
-    ['combat-start', 14519, 14365]
-  );
-  assert.deepEqual(result.rotation[1], { type: 'cast', skillId: 14_519, interruptAfterMs: 320 });
-});
-
-test('rounds EI cast durations without extending cancellations to nearby commit points', () => {
-  const report = reportFixture(
-    'Berserker',
-    [
-      { id: 14_519, skills: [{ castTime: 0, duration: 318, timeGained: 212 }] },
-      { id: 14_365, skills: [{ castTime: 400, duration: 403, timeGained: 134 }] },
-      { id: 14_519, skills: [{ castTime: 900, duration: 199, timeGained: 321 }] },
-      { id: 14_519, skills: [{ castTime: 1_400, duration: 238, timeGained: 282 }] }
-    ],
-    {
-      s14519: { name: 'Fan of Fire' },
-      s14365: { name: 'Gash' }
-    },
-    2_000
-  );
-  const catalog = {
-    skills: [
-      skill(14_519, 'Fan of Fire', {
-        type: 'weapon',
-        castTimeMs: 560,
-        interruptCommitMs: 240,
-        retainsCastLockoutAfterInterrupt: true
-      }),
-      skill(14_365, 'Gash', { type: 'weapon', castTimeMs: 520 })
-    ]
-  };
-
-  const result = reconstructDpsReportRotation(report, catalog);
-  const fanCommands = result.rotation.filter((command) => command.skillId === 14_519);
-  const gash = result.rotation.find((command) => command.skillId === 14_365);
-
-  assert.equal(fanCommands[0].interruptAfterMs, 320);
-  assert.equal(fanCommands[1].interruptAfterMs, 200);
-  assert.equal(fanCommands[2].interruptAfterMs, 240);
-  assert.equal(gash.interruptAfterMs, 400);
 });
 
 for (const timeGained of [200, -200]) {
@@ -796,188 +630,6 @@ test('aligns dps.report combat start with an opening Symbol of Luminance packet'
 
   assert.ok(
     simulation.resolvedEvents.some((event) => event.type === 'damage' && event.name === 'Symbol of Luminance — Initial')
-  );
-});
-
-test('preserves the rounded opening cast duration across an offset combat marker', () => {
-  const report = reportFixture(
-    'Luminary',
-    [
-      { id: 73_132, skills: [{ castTime: -355, duration: 436, timeGained: 0 }] },
-      { id: 72_940, skills: [{ castTime: 81, duration: 440, timeGained: 0 }] }
-    ],
-    { s73132: { name: 'Symbol of Luminance' }, s72940: { name: 'Helio Rush' } },
-    1_000
-  );
-  const result = reconstructDpsReportRotation(report, guardianCatalog);
-  const simulation = simulateGw2({
-    profession: guardianProfession,
-    rotation: result.rotation,
-    config: defaultSimulationConfig({ specialization: 'Luminary', primaryWeapon: 'Spear' })
-  });
-  const symbol = simulation.steps.find((step) => step.skillId === 73_132);
-  const nextCast = simulation.steps.find((step) => step.skillId === 72_940);
-  const combatStart = simulation.steps.find((step) => step.skill === 'Combat Start');
-
-  // Combat begins inside the precast; its offset must neither truncate the cast nor release the next input early.
-  assert.equal(result.actions.find((action) => action.skillId === 73_132).durationMs, 436);
-  assert.equal(symbol.end - symbol.start, 440);
-  assert.equal(symbol.interrupted, false);
-  assert.equal(combatStart.start - symbol.start, 360);
-  assert.equal(nextCast.start, symbol.end);
-  assert.ok(
-    simulation.resolvedEvents.some((event) => event.type === 'damage' && event.name === 'Symbol of Luminance — Initial')
-  );
-  assert.deepEqual(simulation.warnings, []);
-});
-
-test('keeps near-nominal Glaring Burst report casts at their 600 ms runtime', () => {
-  const report = reportFixture(
-    'Luminary',
-    [{ id: 76_950, skills: [{ castTime: 0, duration: 600, timeGained: 0 }] }],
-    { s76950: { name: 'Glaring Burst', autoAttack: true } },
-    1_000
-  );
-
-  const result = reconstructDpsReportRotation(report, guardianCatalog);
-  const glaringBurst = result.rotation.find(
-    (command) => command.skillId === guardianCatalog.skillsByName.get('Glaring Burst').id
-  );
-
-  assert.equal('interruptAfterMs' in glaringBurst, false);
-});
-
-test('accepts committed Symbol of Resolution report casts through its normal runtime', () => {
-  const report = reportFixture(
-    'Luminary',
-    [
-      { id: 9_146, skills: [{ castTime: 0, duration: 240, timeGained: 0 }] },
-      { id: 9_146, skills: [{ castTime: 240, duration: 280, timeGained: 0 }] },
-      { id: 9_146, skills: [{ castTime: 520, duration: 320, timeGained: 0 }] }
-    ],
-    { s9146: { name: 'Symbol of Resolution' } },
-    1_000
-  );
-
-  const result = reconstructDpsReportRotation(report, guardianCatalog);
-  const symbols = result.rotation.filter((command) => command.skillId === 9146);
-
-  // Committed early casts retain their observed action ticks; the full cast uses catalog timing.
-  assert.deepEqual(
-    symbols.map((command) => command.interruptAfterMs ?? null),
-    [240, 280, null]
-  );
-});
-
-test('reconstructs every observed Helio Rush action-lane duration', () => {
-  const report = reportFixture(
-    'Luminary',
-    [
-      { id: 72_940, skills: [{ castTime: 0, duration: 278, timeGained: 162 }] },
-      { id: 72_940, skills: [{ castTime: 280, duration: 321, timeGained: 119 }] },
-      { id: 72_940, skills: [{ castTime: 600, duration: 398, timeGained: 42 }] },
-      { id: 72_940, skills: [{ castTime: 1_000, duration: 438, timeGained: 2 }] }
-    ],
-    { s72940: { name: 'Helio Rush' } },
-    2_000
-  );
-
-  const result = reconstructDpsReportRotation(report, guardianCatalog);
-  const helioCommands = result.rotation.filter((command) => command.skillId === 72940);
-
-  // EI measurements snap to GW2's 40 ms action ticks; 440 ms is ordinary completion.
-  assert.deepEqual(
-    helioCommands.map((command) => command.interruptAfterMs ?? null),
-    [280, 320, 400, null]
-  );
-});
-
-test('uses an overlapping weapon swap as the Helio Rush cancel boundary', () => {
-  const report = reportFixture(
-    'Luminary',
-    [
-      { id: 72_940, skills: [{ castTime: 0, duration: 399, timeGained: 1_001 }] },
-      { id: -2, skills: [{ castTime: 321, duration: 0, timeGained: 0 }] },
-      { id: 9_146, skills: [{ castTime: 322, duration: 280, timeGained: 0 }] }
-    ],
-    {
-      s72940: { name: 'Helio Rush' },
-      's-2': { name: 'Weapon Swap', isSwap: true },
-      s9146: { name: 'Symbol of Resolution' }
-    },
-    1_000
-  );
-
-  const result = reconstructDpsReportRotation(report, guardianCatalog);
-
-  assert.deepEqual(
-    result.rotation.find((command) => command.skillId === 72940),
-    { type: 'cast', skillId: 72_940, interruptAfterMs: 320 }
-  );
-});
-
-test('uses Forge entry as a cancel boundary only for weapon skills', () => {
-  const report = reportFixture(
-    'Luminary',
-    [
-      { id: 72_940, skills: [{ castTime: 0, duration: 435, timeGained: 985 }] },
-      {
-        id: 77_073,
-        skills: [
-          { castTime: 316, duration: 0, timeGained: 0 },
-          { castTime: 1_500, duration: 0, timeGained: 0 }
-        ]
-      },
-      {
-        id: 77_339,
-        skills: [
-          { castTime: 435, duration: 480, timeGained: 0 },
-          { castTime: 1_600, duration: 480, timeGained: 0 }
-        ]
-      },
-      { id: 9_168, skills: [{ castTime: 1_000, duration: 600, timeGained: 0 }] }
-    ],
-    {
-      s72940: { name: 'Helio Rush' },
-      s77073: { name: 'Enter Radiant Forge', isInstantCast: true },
-      s77339: { name: 'Dazzling Hammer' },
-      s9168: { name: 'Sword of Justice' }
-    },
-    3_000
-  );
-
-  const result = reconstructDpsReportRotation(report, guardianCatalog);
-  const helioIndex = result.rotation.findIndex((command) => command.skillId === 72940);
-  const sword = result.rotation.find((command) => command.skillId === 9168);
-
-  assert.deepEqual(result.rotation.slice(helioIndex, helioIndex + 4), [
-    { type: 'cast', skillId: 72_940, interruptAfterMs: 320 },
-    { type: 'cast', skillId: 77_073 },
-    { type: 'wait', durationMs: 120 },
-    { type: 'cast', skillId: 77_339 }
-  ]);
-  assert.equal('interruptAfterMs' in sword, false);
-});
-
-test('preserves observed Daybreaking Slash ticks between commit and full cast', () => {
-  const report = reportFixture(
-    'Luminary',
-    [
-      { id: 73_055, skills: [{ castTime: 0, duration: 402, timeGained: 158 }] },
-      { id: 73_055, skills: [{ castTime: 400, duration: 478, timeGained: 82 }] },
-      { id: 73_055, skills: [{ castTime: 880, duration: 518, timeGained: 42 }] },
-      { id: 73_055, skills: [{ castTime: 1_400, duration: 558, timeGained: 0 }] }
-    ],
-    { s73055: { name: 'Daybreaking Slash' } },
-    2_000
-  );
-
-  const result = reconstructDpsReportRotation(report, guardianCatalog);
-  const commands = result.rotation.filter((command) => command.skillId === 73055);
-
-  assert.deepEqual(
-    commands.map((command) => command.interruptAfterMs ?? null),
-    [400, 480, 520, null]
   );
 });
 
@@ -1077,9 +729,11 @@ test('normalizes Power Herald split weapon animations and automatic upkeep relea
   };
 
   const result = reconstructDpsReportRotation(report, catalog);
+  // Composite animation segments must collapse to one player input for each weapon skill.
+  for (const name of ['Deathstrike', "Phantom's Onslaught"]) {
+    assert.equal(result.actions.filter((action) => action.name === name).length, 1);
+  }
 
-  assert.equal(result.actions.find((action) => action.name === 'Deathstrike')?.durationMs, 720);
-  assert.equal(result.actions.find((action) => action.name === "Phantom's Onslaught")?.durationMs, 440);
   assert.equal(
     result.actions.some((action) => action.name === 'Relinquish Power'),
     false

@@ -43,7 +43,7 @@ test('Method of Madness commits Syncopate independently of its proc marker', () 
             }
           },
           initialize(runtime) {
-            if (scenario === 'cooldown') runtime.procs.readyAt[TRAIT.METHOD_OF_MADNESS] = 100;
+            if (scenario === 'cooldown') runtime.procs.setDeadline(TRAIT.METHOD_OF_MADNESS, 100);
             // Hide only the announcement's event-log row; gameplay packets still use the real service.
             if (suppress) {
               const effects = runtime.effects;
@@ -127,9 +127,12 @@ test('Maim the Disillusioned applies torment for defensive shatters', () => {
     const torment = result.resolvedEvents.filter(
       (event) => event.type === 'condition' && event.skillName === testCase.skill && event.condition === 'Torment'
     );
-
-    assert.equal(result.steps[0].start, result.steps[0].end);
-    assert.equal(result.planningState.profession.resource, 0);
+    assert.equal(
+      testCase.specialization === 'Virtuoso'
+        ? result.planningState.profession.blades.value
+        : result.planningState.profession.resource,
+      0
+    );
     assert.equal(torment.length, 1);
     assert.equal(torment[0].stacks, testCase.expectedStacks);
     assert.equal(torment[0].duration, 6);

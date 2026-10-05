@@ -4,9 +4,9 @@ import { MODIFIER_TARGET, type Gw2ModifierRule } from '#gw2/platform/combat/modi
 import { targetConditionActive } from '#gw2/platform/combat/query/runtime-query.js';
 import type { EngineerResolverContext, EngineerResolverEvent } from '#gw2/professions/engineer/types.js';
 /** Core Engineer Flamethrower skill mechanics. */
-import { impactEffects } from '#gw2/platform/engine/effects/authoring.js';
+import { impactEffects } from '#gw2/platform/effects/authoring.js';
 import { ENGINEER_SKILL_IDS as ID } from '#gw2/professions/engineer/data/ids.js';
-import type { Skill } from '#gw2/platform/engine/skills/types.js';
+import type { Skill } from '#gw2/platform/skills/types.js';
 
 const NAPALM_TICK_OFFSETS_MS = [280, 440, 560, 680, 840, 960, 1080, 1240, 1360, 1480];
 
@@ -196,7 +196,7 @@ export const ENGINEER_FLAMETHROWER_SKILL_MECHANICS: Readonly<Record<string, Part
 
 /** Air Blast's Burning missile exists only against a target still burning at impact; knockback resolves separately. */
 export function handleAirBlast(context: EngineerResolverContext, event: EngineerResolverEvent): void {
-  if (!context.query.targetHasCondition('Burning', event.at, context)) return;
+  if (!context.combat.targetHasCondition('Burning', event.at)) return;
   // Materialize the deferred missile without importing unrelated proc or strike state from its trigger.
   context.effects.emit({
     kind: 'packet',

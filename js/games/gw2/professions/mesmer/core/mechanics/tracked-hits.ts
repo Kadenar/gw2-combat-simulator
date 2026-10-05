@@ -2,7 +2,7 @@ import { buildMesmerStrikes, mesmerPacketOwner } from '#gw2/professions/mesmer/c
 import type { MesmerRuntime } from '#gw2/professions/mesmer/types.js';
 import { canonicalTime } from '#kernel/core/clock.js';
 /** Owns hit history that survives one Mesmer cast and triggers threshold packets across activations. */
-import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
+import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
 
 import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
 

@@ -1,4 +1,4 @@
-import type { Skill } from '#gw2/platform/engine/skills/types.js';
+import type { Skill } from '#gw2/platform/skills/types.js';
 
 import { normalizeProfessionBuild } from '#gw2/platform/builds/profession-contract.js';
 import { isBuildSkillAvailable } from '#gw2/platform/builds/skill-eligibility.js';
@@ -6,21 +6,28 @@ import type { Gw2Build, Gw2TraitBuildAttributeCalculator } from '#gw2/platform/b
 import { compileGw2ModifierRules } from '#gw2/platform/combat/modifiers.js';
 import type { EndurancePolicy } from '#gw2/platform/combat/resources/endurance-policy.js';
 import type { ResourcePolicies } from '#gw2/platform/combat/resources/resource-policy.js';
-import { MODIFIER_HOOK_NAMES, assertDefinition, defineProfession } from '#gw2/platform/engine/profession/contract.js';
+import {
+  MODIFIER_HOOK_NAMES,
+  assertDefinition,
+  defineProfession
+} from '#gw2/platform/profession-definition/compiler/compile-contract.js';
 import type {
   NormalizedProfessionContract,
   ProfessionHook,
   ProfessionModifierDefinition
-} from '#gw2/platform/engine/profession/types.js';
-import { denyCast, selectedSlotSkillAvailability } from '#gw2/platform/engine/skills/availability.js';
-import type { CanonicalCatalog } from '#gw2/platform/engine/skills/types.js';
+} from '#gw2/platform/profession-definition/types.js';
+import { denyCast, selectedSlotSkillAvailability } from '#gw2/platform/execution/availability.js';
+import type { CanonicalCatalog } from '#gw2/platform/skills/types.js';
 import type { ProfessionConfig } from '#gw2/platform/execution/types.js';
 import { createProfessionFamilyUi } from '#gw2/platform/profession-presentation/compose.js';
 import { normalizeProfessionUi } from '#gw2/platform/profession-presentation/contract.js';
 import type { ProfessionUiContract } from '#gw2/platform/profession-presentation/types.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
-import type { ProfessionRuntimeOptions, RuntimeProfession } from '#gw2/platform/simulation/runtime-state.js';
-import type { Gw2ProfessionContract } from '#gw2/platform/simulation/types.js';
+import type {
+  ProfessionRuntimeOptions,
+  RuntimeProfession
+} from '#gw2/platform/profession-definition/runtime-contract.js';
+import type { Gw2ProfessionContract } from '#gw2/platform/profession-definition/family-contract.js';
 
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { skillCostAvailability } from '#gw2/platform/execution/skill-cost.js';
@@ -37,10 +44,10 @@ import type {
   NativeProfessionDefinition,
   NativeProfessionRuntimeState
 } from '#gw2/platform/profession-definition/module-types.js';
-import { composeRuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
+import { composeRuntimeHooks, type RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
 import { compileProfessionRules } from '#gw2/platform/profession-definition/trigger-rules.js';
-import { validateAutoattackChainOptions } from '#gw2/platform/skills/autoattack-chain-controller.js';
+import { validateAutoattackChainOptions } from '#gw2/platform/execution/autoattack-chains.js';
 
 /** Policies a family exposes for capacity previews; their maximum reads only configuration and catalog. */
 type ProfessionResourcePreview = ResourcePolicies & { readonly endurance?: EndurancePolicy };
@@ -295,6 +302,8 @@ export function defineNativeProfession<
   }
 
   assertDefinition(definition);
+  if (definition.runtimeHooks != null && typeof definition.runtimeHooks !== 'function')
+    throw new TypeError('profession.runtimeHooks must be a function.');
   validateAutoattackChainOptions(definition.autoattackChains ?? {});
   // Module data fixes the skill type for both catalog selection and execution callbacks.
   const modules: readonly AnyNativeModule<string, TSkill>[] = definition.modules;
@@ -403,9 +412,11 @@ export function defineNativeProfession<
     const cached = selection.runtimes.get(traitTriggers);
     if (cached) return cached;
     const { modules: selected, source } = selection;
-    const hooks = (selected.map((module) => module.hooks ?? {}) as Partial<RuntimeProfession<State, TSkill>>[]).map(
-      (hooks) => compileProfessionRules(hooks, { traitTriggers })
-    );
+    // Family bindings capture only the active contribution; runtime callbacks still query the selected live catalog.
+    const hooks = [
+      definition.runtimeHooks?.(specialization) ?? {},
+      ...(selected.map((module) => module.hooks ?? {}) as RuntimeHooks<State, TSkill>[])
+    ].map((hooks) => compileProfessionRules(hooks, { traitTriggers }));
     const composed = composeRuntimeHooks(hooks);
     const runtime: RuntimeProfession<State, TSkill> = {
       ...composed,

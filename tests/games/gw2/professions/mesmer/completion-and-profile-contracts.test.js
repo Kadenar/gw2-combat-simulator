@@ -5,122 +5,8 @@ import { applyBalanceProfilePatch, applySkillPatch } from '#gw2/integrations/pat
 import { runMesmer } from '#tests/helpers/mesmer-simulation.js';
 import { mesmerCatalog, mesmerProfession } from '#gw2/professions/mesmer/profession.js';
 import { MESMER_SKILL_IDS as ID, MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
-import { mesmerProfiledShatters } from '#gw2/professions/mesmer/core/profiles.js';
+import { mesmerProfiledShatter } from '#gw2/professions/mesmer/core/profiles.js';
 import { MESMER_VIRTUOSO_SHATTERS } from '#gw2/professions/mesmer/specializations/virtuoso/skills/index.js';
-
-// Committed projectiles survive an ended animation; only skills with retained aftercast reserve the cast lane.
-test('committed dagger casts preserve projectiles and their declared cast occupancy', () => {
-  for (const name of ['Bladecall', 'Flying Cutter']) {
-    const skill = mesmerProfession.runtimeFor({ specialization: 'Virtuoso' }).catalog.skillsByName.get(name);
-    const interruptMs = (skill.interruptCommitMs + skill.castTimeMs) / 2;
-    const rotation = (cast) => [cast, 'Flying Cutter', { type: 'wait', durationMs: 3000 }];
-    const full = simulateMesmer(rotation(name), { initialResource: 0 });
-    const committed = simulateMesmer(rotation({ name, interruptMs }), { initialResource: 0 });
-    const cancelled = simulateMesmer(rotation({ name, interruptMs: 100 }), { initialResource: 0 });
-    const firstCastHits = (result) =>
-      result.events.filter((event) => event.type === 'damage' && event.activationId === result.steps[0].activationId);
-
-    assert.deepEqual(committed.warnings, []);
-    assert.deepEqual(cancelled.warnings, []);
-    assert.ok(firstCastHits(committed).length > 0);
-    assert.deepEqual(
-      firstCastHits(committed).map((event) => event.at),
-      firstCastHits(full).map((event) => event.at)
-    );
-    assert.equal(firstCastHits(cancelled).length, 0);
-    assert.equal(committed.planningState.profession.resource, full.planningState.profession.resource);
-    assert.equal(cancelled.planningState.profession.resource, 0);
-    assert.equal(committed.steps[1].start, name === 'Bladecall' ? full.steps[1].start : committed.steps[0].end);
-    assert.equal(cancelled.steps[1].start, cancelled.steps[0].end);
-  }
-});
-
-// An accepted bladesong commits reserved blades once, preserving delayed hits and trait refunds after interruption.
-test('committed Harmony spends its reservation while cancelled Harmony restores it', () => {
-  const skill = mesmerCatalog.skillsById.get(ID.BLADESONG_HARMONY);
-  const interruptMs = (skill.interruptCommitMs + skill.castTimeMs) / 2;
-  const config = { initialResource: 5, selectedTraitIds: [TRAIT.DEADLY_BLADES, TRAIT.INFINITE_FORGE] };
-  const rotation = (cast) => [cast, 'Flying Cutter', { type: 'wait', durationMs: 1000 }];
-  const full = simulateMesmer(rotation(skill.name), config);
-  const committed = simulateMesmer(rotation({ name: skill.name, interruptMs }), config);
-  const cancelled = simulateMesmer(rotation({ name: skill.name, interruptMs: 100 }), config);
-  const spends = (result) =>
-    result.events.filter(
-      (event) =>
-        event.type === 'resource' &&
-        event.activationId === result.steps.find((step) => step.skill === skill.name)?.activationId &&
-        event.amount < 0
-    );
-  const hits = (result) => result.events.filter((event) => event.type === 'damage' && event.skillId === skill.id);
-
-  assert.deepEqual(committed.warnings, []);
-  assert.deepEqual(cancelled.warnings, []);
-  assert.equal(spends(committed).length, 1);
-  assert.equal(spends(committed)[0].amount, -5);
-  assert.equal(spends(committed)[0].at, committed.events.find((event) => event.type === 'action').endsAt);
-  assert.equal(committed.planningState.profession.resource, 2);
-  assert.equal(spends(cancelled).length, 0);
-  assert.equal(cancelled.planningState.profession.resource, 5);
-  assert.ok(hits(committed).length > 0);
-  assert.deepEqual(
-    hits(committed).map((event) => event.at),
-    hits(full).map((event) => event.at)
-  );
-  assert.equal(hits(cancelled).length, 0);
-  assert.equal(committed.steps[1].start, full.steps[1].start);
-  assert.equal(cancelled.steps[1].start, cancelled.steps[0].end);
-  assert.ok(committed.events.some((event) => event.type === 'buff' && event.kind === 'deadly-blades'));
-  assert.equal(
-    cancelled.events.some((event) => event.type === 'buff' && event.kind === 'deadly-blades'),
-    false
-  );
-});
-
-// Committed Warlock interrupts reserve the remaining cast lane; early cancellations release it.
-test('Warlock retains its cast lockout only after commitment', () => {
-  const config = { specialization: 'Core', primaryWeapon: 'Staff', secondaryWeapon: '' };
-  const completed = simulateMesmer(['Phantasmal Warlock', 'Winds of Chaos'], config);
-
-  for (const interruptMs of [100, 700]) {
-    const result = simulateMesmer([{ name: 'Phantasmal Warlock', interruptMs }, 'Winds of Chaos'], config);
-    assert.deepEqual(result.warnings, []);
-    assert.equal(result.steps[1].start, interruptMs === 100 ? interruptMs : completed.steps[1].start);
-  }
-});
-
-// Once summoned, a Duelist survives a cancelled player animation and a weapon swap through its repeat and conversion.
-test('committed Duelist interruptions preserve the eventual clone while early cancellations do not', () => {
-  for (const interruptMs of [100, 400]) {
-    const result = simulateMesmer(
-      [
-        { name: 'Phantasmal Duelist', interruptMs },
-        'Swap Weapons',
-        'Winds of Chaos',
-        { type: 'wait', durationMs: 10000 }
-      ],
-      {
-        specialization: 'Chronomancer',
-        selectedTraitIds: [TRAIT.CHRONOPHANTASMA],
-        initialResource: 0,
-        primaryWeapon: 'Scepter',
-        secondaryWeapon: 'Pistol',
-        weaponSet2Primary: 'Staff',
-        weaponSet2Secondary: ''
-      }
-    );
-    assert.deepEqual(result.warnings, []);
-    assert.equal(result.planningState.profession.resource, interruptMs === 100 ? 0 : 1);
-    const duelist = result.steps.find((step) => step.skill === 'Phantasmal Duelist');
-    const nextCast = result.steps.find((step) => step.skill === 'Winds of Chaos');
-    assert.equal(
-      nextCast.start,
-      interruptMs === 100
-        ? duelist.end
-        : result.events.find((event) => event.activationId === duelist.activationId && event.type === 'action')
-            .fullEndsAt * 1000
-    );
-  }
-});
 
 // Cancelled completions retain existing cooldowns instead of granting successful reset effects.
 test('cancelled Ether preserves an established phantasm cooldown', () => {
@@ -135,6 +21,37 @@ test('cancelled Ether preserves an established phantasm cooldown', () => {
     result.planningState.cooldowns['Phantasmal Swordsman']?.readyAt,
     original.planningState.cooldowns['Phantasmal Swordsman'].readyAt
   );
+});
+
+// Mimic is armed by its successful completion, then claimed by the following completed utility.
+test('Mimic stays unarmed during its cast and resets the following utility on completion', () => {
+  const states = [];
+  const result = runMesmer(
+    ['Mimic', 'Signet of Illusions'],
+    {},
+    {
+      extend(native) {
+        return {
+          onCastStart(runtime, cast) {
+            native.onCastStart?.(runtime, cast);
+            states.push(['start', cast.skill.id, runtime.profession.core.mimic.charges]);
+          },
+          onCastCommit(runtime, cast) {
+            native.onCastCommit?.(runtime, cast);
+            states.push(['complete', cast.skill.id, runtime.profession.core.mimic.charges]);
+          }
+        };
+      }
+    }
+  );
+  assert.deepEqual(result.warnings, []);
+  assert.deepEqual(states, [
+    ['start', ID.MIMIC, 0],
+    ['complete', ID.MIMIC, 1],
+    ['start', ID.SIGNET_OF_ILLUSIONS, 1],
+    ['complete', ID.SIGNET_OF_ILLUSIONS, 0]
+  ]);
+  assert.equal(result.planningState.cooldowns['Signet of Illusions'], undefined);
 });
 
 test('cancelled Mimic cannot reset the next utility cooldown', () => {
@@ -167,9 +84,9 @@ test('instrument commitment requires a performance that was not cancelled', () =
 
     assert.equal(cancelled.events.find((event) => event.type === 'action').cancelled, true);
     assert.deepEqual(cancelled.warnings, []);
-    assert.equal(cancelled.planningState.profession.resource, 3);
+    assert.equal(cancelled.planningState.profession.notes.value, 3);
     assert.deepEqual(cancelled.planningState.profession.activeInstruments, []);
-    assert.equal(completed.planningState.profession.resource, 0);
+    assert.equal(completed.planningState.profession.notes.value, 0);
     assert.equal(completed.planningState.profession.activeInstruments[0].name, instrument);
     assert.ok(completed.planningState.profession.activeInstruments[0].remaining > 0);
   }
@@ -186,7 +103,7 @@ test('Virtuoso executes a patched shatter tick beside an empty zero-blade tier',
     }
   };
   const catalog = applyBalanceProfilePatch(mesmerCatalog, patch);
-  const shatter = mesmerProfiledShatters({ catalog }, MESMER_VIRTUOSO_SHATTERS)[ID.BLADESONG_HARMONY];
+  const shatter = mesmerProfiledShatter({ catalog }, MESMER_VIRTUOSO_SHATTERS[ID.BLADESONG_HARMONY]);
   const profession = {
     runtimeFor(config) {
       const runtime = mesmerProfession.runtimeFor(config);

@@ -1,15 +1,12 @@
 import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
-import { readProfessionSpecializationState } from '#gw2/platform/engine/profession/state.js';
-import {
-  balanceProfileNumber,
-  requireBalanceProfileFromContext
-} from '#gw2/platform/engine/skills/balance-profiles.js';
+import { readProfessionSpecializationState } from '#gw2/platform/profession-definition/state.js';
+import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
 import { WARRIOR_SKILL_IDS as ID, WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/professions/warrior/data/ids.js';
-import { gainMotivation, startRefrain } from '#gw2/professions/warrior/specializations/paragon/mechanics/refrains.js';
-import { paragonState } from '#gw2/professions/warrior/specializations/paragon/state.js';
+import { startRefrain } from '#gw2/professions/warrior/specializations/paragon/mechanics/refrains.js';
+import { paragonState, type ParagonState } from '#gw2/professions/warrior/specializations/paragon/state.js';
 
 /** Owns this trait's tuning and selected contributions. */
 export const inspiringImplements = defineTrait({
@@ -94,8 +91,8 @@ export const callToAction = defineTrait({
       const state = paragonState.from(runtime);
       if (state.callToActionActivated || !hasTrait(runtime, TRAIT.CALL_TO_ACTION)) return;
       state.callToActionActivated = true;
-      gainMotivation(
-        runtime,
+      runtime.resourceController.grant(
+        'motivation',
         balanceProfileNumber(requireBalanceProfileFromContext(runtime, TRAIT.CALL_TO_ACTION), 'resourceGain')
       );
       if (state.activeRefrainId == null) {
@@ -122,8 +119,8 @@ export const rallyTheValiant = defineTrait({
         hasTrait(runtime, TRAIT.RALLY_THE_VALIANT) &&
         paragonState.from(runtime).activeRefrainId != null
       )
-        gainMotivation(
-          runtime,
+        runtime.resourceController.grant(
+          'motivation',
           balanceProfileNumber(requireBalanceProfileFromContext(runtime, TRAIT.RALLY_THE_VALIANT), 'resourceGain')
         );
     }
@@ -189,20 +186,13 @@ export const briskPacing = defineTrait({
   ]
 });
 
-function paragonRuntimeState(context: Gw2ModifierContext): {
-  motivation?: number;
-  activeRefrainId?: number | string | null;
-} {
-  return (
-    readProfessionSpecializationState<{ motivation?: number; activeRefrainId?: number | string | null }>(
-      context.runtime?.profession,
-      'Paragon'
-    ) || {}
-  );
+function paragonRuntimeState(context: Gw2ModifierContext): Partial<ParagonState> {
+  return readProfessionSpecializationState<ParagonState>(context.runtime?.profession, 'Paragon') || {};
 }
 
+/** Damage queries read the canonical zero-rate clock without reconstructing rewards from reports. */
 function motivation(context: Gw2ModifierContext): number {
-  return paragonRuntimeState(context).motivation || 0;
+  return paragonRuntimeState(context).motivation?.value ?? 0;
 }
 
 // Resolve Brisk Pacing's modifier amount from live Motivation and refrain state

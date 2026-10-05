@@ -84,8 +84,6 @@ export function conditionTickDamage(
 interface ConditionFormula {
   readonly base: number;
   readonly scaling: number;
-  readonly activationBase?: number;
-  readonly activationScaling?: number;
   readonly stationaryBase?: number;
   readonly stationaryScaling?: number;
 }

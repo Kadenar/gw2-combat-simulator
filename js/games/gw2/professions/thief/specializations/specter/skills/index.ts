@@ -1,7 +1,7 @@
-import { castWasInterrupted } from '#gw2/platform/skills/timing.js';
-import { impactEffects } from '#gw2/platform/engine/effects/authoring.js';
+import { castWasInterrupted } from '#gw2/platform/execution/cast-timing.js';
+import { impactEffects } from '#gw2/platform/effects/authoring.js';
 import { THIEF_SKILL_IDS as ID } from '#gw2/professions/thief/data/ids.js';
-import type { Skill } from '#gw2/platform/engine/skills/types.js';
+import type { Skill } from '#gw2/platform/skills/types.js';
 
 // Shadow Shroud entry and exit are state-selected variants of one UI tile.
 const SHADOW_SHROUD_PALETTE_TILE = 'specter-shadow-shroud';

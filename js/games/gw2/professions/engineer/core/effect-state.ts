@@ -1,5 +1,5 @@
 import type { BuffStatePolicy } from '#gw2/platform/combat/effect-state.js';
-import { balanceProfileFromContext, balanceProfileNumber } from '#gw2/platform/engine/skills/balance-profiles.js';
+import { balanceProfileFromContext, balanceProfileNumber } from '#gw2/platform/skills/balance-profiles.js';
 import { ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
 
 /** Effect owners expose the same selected balance values as combat; presentation supplies no stacking rules. */

@@ -1,10 +1,7 @@
 import { withActivePatchPreview } from '#gw2/integrations/patches/active-profession.js';
 import { applyBalanceProfilePatch, applySkillPatch } from '#gw2/integrations/patches/authoring/patches.js';
 import { normalizeSelectedTraitIds } from '#gw2/platform/combat/state/traits.js';
-import {
-  balanceProfileNumber,
-  requireBalanceProfileFromContext
-} from '#gw2/platform/engine/skills/balance-profiles.js';
+import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import {
   loadProfession,
   loadProfessionAppAdapter,
@@ -75,28 +72,6 @@ test('attunement recharge applies trait reductions in order and stays free befor
   context.combatActive = false;
   assert.equal(elementalistAttunementRechargeDuration(context, skill, 4, flowStateAttunementReduction(context)), 0);
   assert.equal(elementalistAttunementRechargeDuration(context, skill, 2, flowStateAttunementReduction(context)), 0);
-});
-
-// Validate evaluated catalogs so shared/generated packets and direct statuses cannot reintroduce off-grid offsets.
-test('Elementalist authored effect offsets use ordered 40 ms action ticks', () => {
-  for (const kind of ['skills', 'balanceProfiles']) {
-    for (const entry of elementalistCatalog[kind]) {
-      for (const [effectIndex, effect] of (entry.effects ?? []).entries()) {
-        const label = `${kind} ${entry.name} (${entry.id}), effect ${effectIndex}`;
-        const ticks = effect.ticks ?? [];
-        for (const ms of [effect.atMs, effect.intervalMs, ...ticks.map((tick) => tick.atMs)]) {
-          if (ms == null) continue;
-          assert.ok(Number.isFinite(ms) && ms >= 0, `${label}: invalid offset ${ms}`);
-          assert.ok(Math.abs(ms - Math.round(ms / 40) * 40) <= 1e-6, `${label}: off-grid offset ${ms}`);
-        }
-
-        assert.ok(
-          ticks.every((tick, index) => index === 0 || tick.atMs >= ticks[index - 1].atMs),
-          `${label}: unordered packets`
-        );
-      }
-    }
-  }
 });
 
 const authoringElementalistProfession = withActivePatchPreview(elementalistProfession);

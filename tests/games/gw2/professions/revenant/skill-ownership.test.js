@@ -46,7 +46,7 @@ for (const [skillId, specialization, legend, active] of [
     ID.BREAKRAZORS_BASTION,
     'Renegade',
     LEGEND.RENEGADE,
-    (result) => renegadeState.from(observedRuntime(result)).bandTogetherReady
+    (result) => renegadeState.from(observedRuntime(result)).bandTogether.charges > 0
   ],
   [
     VINDICATOR_JUMP_SKILL.id,
@@ -180,28 +180,17 @@ test('Cosmic Wisdom grants Core traits once before form activation', () => {
       startingLegend: LEGEND.DEMON
     },
     {
-      extend: (native) => ({
-        sideEffectHandlers: {
-          ...native.sideEffectHandlers,
-          'revenant.cosmic-wisdom'(runtime, context, action) {
-            // Observe synchronous trait publication at the point it can still see pre-form attributes.
-            const effects = runtime.effects;
-            runtime.effects = {
-              emit(request) {
-                const event = request.kind === 'packet' ? request.event : request.attribution;
-                if (event?.sourceId === TRAIT.NOTORIETY) order.push(conduitState.from(runtime).conduitForm);
-                return effects.emit(request);
-              }
-            };
-
-            try {
-              native.sideEffectHandlers[action.type](runtime, context, action);
-            } finally {
-              runtime.effects = effects;
-            }
+      initialize(runtime) {
+        // Observe the real emission service without replacing capabilities inside an author callback.
+        const effects = runtime.effects;
+        runtime.effects = {
+          emit(request) {
+            const event = request.kind === 'packet' ? request.event : request.attribution;
+            if (event?.sourceId === TRAIT.NOTORIETY) order.push(conduitState.from(runtime).conduitForm);
+            return effects.emit(request);
           }
-        }
-      })
+        };
+      }
     }
   );
   assert.deepEqual(result.warnings, []);
@@ -269,7 +258,7 @@ test('Twin Moon affinity belongs to each resolved player packet, independently o
         }
       );
       assert.deepEqual(result.warnings, []);
-      assert.equal(conduitState.from(observedRuntime(result)).affinity, removed || offTarget ? 0 : 4);
+      assert.equal(conduitState.from(observedRuntime(result)).affinity.value, removed || offTarget ? 0 : 4);
     }
   }
 });

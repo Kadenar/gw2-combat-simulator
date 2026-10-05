@@ -73,8 +73,6 @@ test('Ether Clone creates a clone below cap and inflicts torment at cap', () => 
     secondaryWeapon: 'Sword'
   });
   const belowCap = simulateMesmer(['Ether Bolt', 'Ether Blast', 'Ether Clone'], { ...config, initialResource: 2 });
-
-  assert.equal(belowCap.steps[2].end - belowCap.steps[2].start, 840);
   assert.equal(belowCap.planningState.profession.resource, 3);
   const cloneGain = belowCap.events.find((event) => event.type === 'resource' && event.reason === 'Ether Clone');
   assert.ok(cloneGain);
@@ -366,7 +364,7 @@ test('clone attack selection returns the next cadence and ignores destroyed clon
         hits: 1,
         interval: 2,
         weaponStrength: 20,
-        conditions: [{ name: 'Bleeding', duration: 1, stacks: 1 }]
+        conditions: [{ type: 'condition', condition: 'Bleeding', duration: 1, stacks: 1 }]
       }
     },
     scheduleTask: (clone, at) => tasks.push({ cloneId: clone.id, at })

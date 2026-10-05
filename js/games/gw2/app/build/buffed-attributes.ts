@@ -10,11 +10,11 @@ import { createGw2CombatQuery } from '#gw2/platform/combat/query/combat-query.js
 import { GW2_STANDARD_BOONS } from '#gw2/platform/combat/boons.js';
 import { createRelicRuntime } from '#gw2/platform/equipment/relics/runtime.js';
 import { relicConditionDurationBonus } from '#gw2/platform/equipment/relics/query.js';
-import { resolveProfessionContract } from '#gw2/platform/engine/profession/contract.js';
+import { resolveProfessionContract } from '#gw2/platform/profession-definition/compiler/compile-contract.js';
 import { attributeEffectControls, normalizeAttributePreview } from '#gw2/app/build/attribute-effects.js';
 import { createIsolatedPreview } from '#gw2/app/build/isolated-preview.js';
 import type { ProfessionAppState } from '#gw2/app/types.js';
-import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
+import type { SimulationEvent } from '#gw2/platform/events/events.js';
 import type { Gw2TimedBuffApplication } from '#gw2/platform/combat/boons.js';
 import type { Gw2NumericStatKey } from '#gw2/platform/combat/query/combat-query.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';

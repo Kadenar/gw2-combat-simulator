@@ -1,5 +1,5 @@
 import { ENGINEER_SKILL_IDS as ID } from '#gw2/professions/engineer/data/ids.js';
-import type { CanonicalCatalog } from '#gw2/platform/engine/skills/types.js';
+import type { CanonicalCatalog } from '#gw2/platform/skills/types.js';
 import { engineerToolbeltSkillIds, uniqueSkillIds } from '#gw2/professions/engineer/core/presentation.js';
 import type { EngineerSkill, EngineerUiContext, EngineerUiSlice } from '#gw2/professions/engineer/types.js';
 

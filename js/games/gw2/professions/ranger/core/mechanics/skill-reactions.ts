@@ -1,14 +1,18 @@
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import { buildResolverCondition, buildResolverBuff } from '#gw2/platform/resolver/packets.js';
-import { consumeCharge, expireCharges } from '#gw2/platform/combat/resources/charges.js';
+import {
+  activeChargeGrants,
+  consumeChargeBatch,
+  consumeCharge,
+  expireCharges
+} from '#gw2/platform/combat/resources/charges.js';
 /** Owns Core Ranger skill-armed hit reactions that are not trait-line definitions. */
-import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
-import { consumeOldestStacks } from '#gw2/platform/combat/resources/timed-stacks.js';
+import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
 import {
   requireBalanceProfileFromContext,
   requireEffect,
   effectNumber
-} from '#gw2/platform/engine/skills/balance-profiles.js';
+} from '#gw2/platform/skills/balance-profiles.js';
 import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
 import { rangerPetCompanionId } from '#gw2/professions/ranger/core/mechanics/pets.js';
 import {
@@ -57,9 +61,8 @@ export function triggerSharpeningStone(context: RangerResolverContext, event: Gw
   const bleeding = profile && requireEffect(profile, 'condition', 'Bleeding');
   // Grants sort by expiry: spend the earliest deadline, and still prune on ineligible hits. Grants exist only to
   // deliver bleeding, so a removed packet only prunes them.
-  const { expiries, consumed } = consumeOldestStacks(state.sharpeningStoneExpirations, bleeding ? 1 : 0, event.at);
-  state.sharpeningStoneExpirations = expiries;
-  if (!consumed || !profile || !bleeding) return;
+  state.sharpeningStoneGrants = activeChargeGrants(state.sharpeningStoneGrants, event.at);
+  if (!profile || !bleeding || !consumeChargeBatch(state.sharpeningStoneGrants, event.at)) return;
   context.effects.emit({
     kind: 'packet',
     event: buildResolverCondition({
@@ -83,10 +86,12 @@ export function triggerSharpeningStone(context: RangerResolverContext, event: Gw
 // while enforcing its event and cooldown guards.
 export function triggerStrengthOfThePack(context: RangerResolverContext, event: Gw2ResolverEvent): void {
   if (!isPlayerStrike(event)) return;
-  const active = (context.boons.get('strength-of-the-pack') || []).some(
-    (application) =>
-      application.resolvedAudience.includesSelf && application.at <= event.at && application.expiresAt > event.at
-  );
+  const active = context.combat
+    .boonApplications('strength-of-the-pack')
+    .some(
+      (application) =>
+        application.resolvedAudience.includesSelf && application.at <= event.at && application.expiresAt > event.at
+    );
   if (!active) return;
   const profile = requireBalanceProfileFromContext(context, PROFILE.strengthOfThePack);
   const might = requireEffect(profile, 'boon', 'might');
@@ -118,7 +123,7 @@ export function triggerStrengthOfThePack(context: RangerResolverContext, event: 
 
 /** Add Stalker's Strike's bonus poison only against movement-impaired targets. */
 export function triggerStalkersStrike(context: RangerResolverContext, event: Gw2ResolverEvent): void {
-  const skill = context.helpers.skillsById!.get(event.skillId!)!;
+  const skill = context.helpers.skillsById.get(event.skillId!)!;
   // The base packet owns its own Poison; the impaired-target profile owns only the additional application.
   const profile = requireBalanceProfileFromContext(context, PROFILE.stalkersStrikeImpaired);
   const poison = requireEffect(profile, 'condition', 'Poisoned');

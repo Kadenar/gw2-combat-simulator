@@ -1,7 +1,8 @@
+import { lifeForceGrant } from '#gw2/professions/necromancer/core/skills/life-force-grants.js';
 /** Canonical Core necromancer skill fragments grouped by their GW2 owner. */
-import { impactEffects } from '#gw2/platform/engine/effects/authoring.js';
+import { impactEffects } from '#gw2/platform/effects/authoring.js';
 import { NECROMANCER_SKILL_IDS as ID } from '#gw2/professions/necromancer/data/ids.js';
-import type { Skill } from '#gw2/platform/engine/skills/types.js';
+import type { Skill } from '#gw2/platform/skills/types.js';
 
 export const NECROMANCER_WEAPONS_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
   [ID.GRASPING_DEAD]: {
@@ -52,14 +53,18 @@ export const NECROMANCER_WEAPONS_SCEPTER_SKILL_MECHANICS: Readonly<Record<number
     effects: [
       {
         type: 'strike',
-        // Accepted strikes grant live skill tuning through the percentage resource owner.
+        // Accepted strikes apply their declared percentage through the shared resource owner.
         reactions: [
           {
             on: 'damage.resolved',
             actor: 'player',
             packets: 'first',
             when: (_runtime, { event }) => Number(event.coefficient) > 0,
-            do: { type: 'necromancer.skill-life-force' }
+            do: lifeForceGrant({
+              id: 'life-force',
+              unit: 'hit',
+              grant: { percent: 8, perCondition: { percent: 1, count: { kind: 'live-target', maximum: 5 } } }
+            })
           }
         ],
         coefficient: 0.8,
@@ -72,10 +77,7 @@ export const NECROMANCER_WEAPONS_SCEPTER_SKILL_MECHANICS: Readonly<Record<number
         duration: 4
       }
     ],
-    lifeForceGain: 8,
-    // Share condition-based resource inputs with the tooltip and cast-completion calculation.
-    lifeForcePerCondition: 1,
-    maximumConditions: 5,
+
     flipSkillId: null
   },
   [ID.DEVOURING_DARKNESS]: {
@@ -88,22 +90,25 @@ export const NECROMANCER_WEAPONS_SCEPTER_SKILL_MECHANICS: Readonly<Record<number
     effects: [
       {
         type: 'strike',
-        // Accepted strikes grant live skill tuning through the percentage resource owner.
+        // Accepted strikes apply their declared percentage through the shared resource owner.
         reactions: [
           {
             on: 'damage.resolved',
             actor: 'player',
             packets: 'first',
             when: (_runtime, { event }) => Number(event.coefficient) > 0,
-            do: { type: 'necromancer.skill-life-force' }
+            do: lifeForceGrant({
+              id: 'life-force',
+              unit: 'hit',
+              grant: { percent: 8, perCondition: { percent: 1, count: { kind: 'packet-snapshot' } } }
+            })
           }
         ],
         coefficient: 1.16
       },
       { type: 'condition', condition: 'Torment', stacks: 1, duration: 4 }
     ],
-    lifeForceGain: 8,
-    lifeForcePerCondition: 1,
+
     flipParentId: null
   }
 });

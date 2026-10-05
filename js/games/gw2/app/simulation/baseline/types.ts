@@ -2,7 +2,7 @@
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
 import type { GameContentAddress } from '#browser/game/contracts.js';
 import type { RotationCommand } from '#gw2/platform/execution/types.js';
-import type { Gw2SimulationResult } from '#gw2/platform/simulation/types.js';
+import type { Gw2SimulationResult } from '#gw2/platform/results/types.js';
 
 /** Captured inputs travel with their result, so exports never read a newer editor configuration. */
 export interface BaselineDebugInputs extends GameContentAddress {

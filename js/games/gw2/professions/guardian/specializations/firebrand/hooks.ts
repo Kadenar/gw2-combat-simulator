@@ -1,14 +1,19 @@
-import { CAST_READY, denyCast } from '#gw2/platform/engine/skills/availability.js';
 import {
-  balanceProfileNumber,
-  requireBalanceProfileFromContext,
-  requireEffect
-} from '#gw2/platform/engine/skills/balance-profiles.js';
+  firebrandBuffPolicies,
+  firebrandEffectStates
+} from '#gw2/professions/guardian/specializations/firebrand/effect-state.js';
+import { firebrandPageTuning } from '#gw2/professions/guardian/specializations/firebrand/traits/page-tuning.js';
+import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
+import type { MechanicContext } from '#gw2/platform/profession-definition/mechanic-context.js';
+import { CAST_READY, denyCast } from '#gw2/platform/execution/availability.js';
+import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import type { NativeResolvedDamageDetails } from '#gw2/platform/profession-definition/module-types.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
-import type { Gw2Runtime, RuntimeCast, RuntimeProfession } from '#gw2/platform/simulation/runtime-state.js';
-import { damageInputEvent } from '#gw2/platform/skill-damage/execution.js';
+import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
+import { castWasInterrupted } from '#gw2/platform/execution/cast-timing.js';
+import { damageInputEvent } from '#gw2/platform/skill-damage/occurrence-driver.js';
 import { guardianCastCause } from '#gw2/professions/guardian/core/mechanics/event-handlers.js';
+import { createPassiveCourageTask } from '#gw2/professions/guardian/core/mechanics/passive-courage.js';
 import {
   applyGuardianVirtueActivationTraits,
   powerOfTheVirtuousRechargeMultiplier,
@@ -32,7 +37,6 @@ import { FIREBRAND_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/guard
 import { firebrandState } from '#gw2/professions/guardian/specializations/firebrand/state.js';
 import {
   activateSwiftScholar,
-  firebrandPageTuning,
   reactToFirebrandBuff,
   reactToFirebrandControl,
   reactToFirebrandJusticeHit,
@@ -43,7 +47,7 @@ import {
 import type { GuardianRuntimeState, GuardianSkill, GuardianVirtue } from '#gw2/professions/guardian/types.js';
 import { canonicalTime } from '#kernel/core/clock.js';
 
-type Runtime = Gw2Runtime<GuardianRuntimeState, GuardianSkill>;
+type Runtime = MechanicContext<GuardianRuntimeState, GuardianSkill>;
 const COURAGE = 'guardian.firebrand.courage';
 const DORMANCY = { justice: PROFILE.tomeJustice, resolve: PROFILE.tomeResolve, courage: PROFILE.tomeCourage };
 
@@ -77,14 +81,14 @@ function openTome(runtime: Runtime, cast: RuntimeCast<GuardianSkill>, virtue: Gu
   });
 }
 
-/** Passive Courage keeps a single fixed cadence; dormancy suppresses individual pulses without shifting the grid. */
-function courage(runtime: Runtime): void {
-  const profile = requireBalanceProfileFromContext(runtime, PROFILE.passiveCourage);
-  const interval = balanceProfileNumber(profile, 'pulseInterval');
-  if (!(interval > 0) || !requireEffect(profile, 'boon', 'aegis')) return;
-  if (runtime.profession.core.virtueReadyAt.courage <= runtime.time || stoicDemeanorRetainsCourage(runtime)) {
-    const boonProfile = requireBalanceProfileFromContext(runtime, PROFILE.passiveCourage);
-    const selectedBoon = requireEffect(boonProfile, 'boon', 'aegis');
+/** Firebrand retains its passive during Stoic Demeanor and delivers the authored profile only to self. */
+const courage = createPassiveCourageTask({
+  taskId: COURAGE,
+  profileId: PROFILE.passiveCourage,
+  interval: (_runtime, profile) => balanceProfileNumber(profile, 'pulseInterval'),
+  ready: (runtime) =>
+    runtime.profession.core.virtueReadyAt.courage <= runtime.time || stoicDemeanorRetainsCourage(runtime),
+  deliver(runtime, profile, effect) {
     const boonCause: Gw2ResolverEvent = {
       type: 'buff',
       at: runtime.time,
@@ -95,23 +99,21 @@ function courage(runtime: Runtime): void {
       skillName: 'Tome of Courage',
       name: 'Tome of Courage — Passive Aegis'
     };
-    if (selectedBoon) {
-      runtime.effects.emit({
-        kind: 'profile',
-        profile: boonProfile,
-        effects: [selectedBoon],
-        attribution: boonCause,
-        cause: boonCause,
-        transform: (event) => ({ ...boonCause, ...event, audience: { recipients: 'self' } })
-      });
-    }
+    runtime.effects.emit({
+      kind: 'profile',
+      profile,
+      effects: [effect],
+      attribution: boonCause,
+      cause: boonCause,
+      transform: (event) => ({ ...boonCause, ...event, audience: { recipients: 'self' } })
+    });
   }
-
-  runtime.schedule(COURAGE, canonicalTime(runtime.time + interval), undefined, undefined, -200);
-}
+});
 
 /** Pages, tome sessions, and mantra charges mutate one live state; report events never restore a snapshot. */
-export const firebrandHooks: Partial<RuntimeProfession<GuardianRuntimeState, GuardianSkill>> = {
+export const firebrandHooks: RuntimeHooks<GuardianRuntimeState, GuardianSkill> = {
+  buffPolicies: firebrandBuffPolicies,
+  observeEffects: firebrandEffectStates,
   // Known damage payloads are invoked once without their activation requirements.
   damageEffects: [
     {
@@ -187,6 +189,13 @@ export const firebrandHooks: Partial<RuntimeProfession<GuardianRuntimeState, Gua
     }
 
     return firebrandMantraAvailability(runtime, skill);
+  },
+  /** Full Renewed Focus completion follows Core's recharge reset and preserves the page recovery phase. */
+  onCastCommit(runtime, cast) {
+    if (cast.skill.id !== ID.RENEWED_FOCUS || castWasInterrupted(cast)) return;
+    const state = firebrandState.from(runtime);
+    runtime.resourceController.grant('tomePages', state.tomePages.maximum);
+    state.tomeDormantReadyAt = { justice: runtime.time, resolve: runtime.time, courage: runtime.time };
   },
   onCooldownReset: refreshFirebrandMantras,
   reactions: {

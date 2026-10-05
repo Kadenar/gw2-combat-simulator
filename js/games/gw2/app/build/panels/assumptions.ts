@@ -2,7 +2,7 @@ import { optionHtml } from '#ui/shared/select-options.js';
 import { escapeHtml as esc } from '#ui/shared/html.js';
 import { MODIFIER_EFFECT_ICONS } from '#gw2/app/shared/icons.js';
 import { assumptionControlsForSpecialization } from '#gw2/platform/builds/assumptions.js';
-import { isSimulationRandomnessControl } from '#gw2/platform/simulation/randomness.js';
+import { isSimulationRandomnessControl } from '#gw2/platform/builds/randomness-assumptions.js';
 import {
   normalizeTargetArmor,
   STACKING_TARGET_CONDITIONS,

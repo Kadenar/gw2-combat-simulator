@@ -1,5 +1,5 @@
-import { impactEffects } from '#gw2/platform/engine/effects/authoring.js';
-import type { BalanceProfile } from '#gw2/platform/engine/skills/types.js';
+import { impactEffects } from '#gw2/platform/effects/authoring.js';
+import type { BalanceProfile } from '#gw2/platform/skills/types.js';
 import { GUARDIAN_SKILL_IDS as ID } from '#gw2/professions/guardian/data/ids.js';
 
 export const LUMINARY_BALANCE_PROFILE_IDS = Object.freeze({

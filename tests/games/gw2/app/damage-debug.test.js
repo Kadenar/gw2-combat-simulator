@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { calculateBaselineSimulation } from '#gw2/app/simulation/baseline/baseline-simulation.js';
 import { damageDebugPayload } from '#gw2/app/results/damage-debug.js';
-import { createCanonicalCatalog } from '#gw2/platform/engine/skills/canonical-skill-catalog.js';
+import { createCanonicalCatalog } from '#gw2/platform/skills/catalog.js';
 import { defineTestProfession } from '#tests/helpers/profession.js';
 
 // One hit isolates capture and export contracts from saved rotations and profession-specific timing.

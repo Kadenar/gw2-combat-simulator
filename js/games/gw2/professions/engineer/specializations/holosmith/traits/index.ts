@@ -3,21 +3,28 @@ import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
 import { ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
 import {
   balanceProfileNumber,
-  requireBalanceProfileFromContext
-} from '#gw2/platform/engine/skills/balance-profiles.js';
+  requireBalanceProfileFromContext,
+  requireEffect
+} from '#gw2/platform/skills/balance-profiles.js';
 import { HOLOSMITH_HEAT } from '#gw2/professions/engineer/specializations/holosmith/mechanics/constants.js';
 import { holosmithState } from '#gw2/professions/engineer/specializations/holosmith/state.js';
-import { emitEnhancedCapacityMight } from '#gw2/professions/engineer/specializations/holosmith/traits/heat.js';
+import {
+  emitEnhancedCapacityMight,
+  preservesPhotonicHeat
+} from '#gw2/professions/engineer/specializations/holosmith/traits/heat.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { engineerSpecializationState } from '#gw2/professions/engineer/core/traits/query-helpers.js';
 import { holosmithEventMetadata } from '#gw2/professions/engineer/specializations/holosmith/mechanics/heat-tiers.js';
 import {
-  triggerThermalReleaseValve,
   handleSolarFocusingLens,
   consumeSolarFocusingLens
 } from '#gw2/professions/engineer/specializations/holosmith/traits/behavior.js';
+import { buildEngineerPackets } from '#gw2/professions/engineer/core/events.js';
+import { triggerVentExhaust } from '#gw2/professions/engineer/specializations/holosmith/mechanics/photon-forge.js';
+import type { EngineerRuntime, EngineerSkill } from '#gw2/professions/engineer/types.js';
+import type { HolosmithSkill } from '#gw2/professions/engineer/specializations/holosmith/types.js';
 
 /** Owns Thermal Release Valve at its established heat and impact boundaries. */
 export const thermalReleaseValve = defineTrait({
@@ -54,7 +61,7 @@ export const enhancedCapacityStorageUnit = defineTrait({
         const state = holosmithState.from(context);
         if (state.enhancedCapacityMightAt !== context.time) return;
         state.enhancedCapacityMightAt = Infinity;
-        if (state.heat <= HOLOSMITH_HEAT.enhancedCapacityThreshold) return;
+        if (state.heat.value <= HOLOSMITH_HEAT.enhancedCapacityThreshold) return;
         emitEnhancedCapacityMight(context, context.time);
         const interval = balanceProfileNumber(
           requireBalanceProfileFromContext(context, TRAIT.ENHANCED_CAPACITY_STORAGE_UNIT),
@@ -114,14 +121,16 @@ export const lasersEdge = defineTrait({
         const maximum = hasTrait(context, TRAIT.ENHANCED_CAPACITY_STORAGE_UNIT)
           ? parameters.enhancedMaximum
           : parameters.standardMaximum;
-        return 1 + Math.min(maximum, (state.heat || 0) * parameters.bonusPerHeat);
+        return 1 + Math.min(maximum, (state.heat?.value ?? 0) * parameters.bonusPerHeat);
       },
       when: (context) => {
         const state = engineerSpecializationState(context, 'Holosmith');
         return (
           isGw2PlayerModifierOwnedEvent(context.event) &&
           ((Boolean(state.photonForgeActive) && !state.overheated) ||
-            (hasTrait(context, TRAIT.PHOTONIC_BLASTING_MODULE) && Boolean(state.overheated) && (state.heat || 0) > 0))
+            (hasTrait(context, TRAIT.PHOTONIC_BLASTING_MODULE) &&
+              Boolean(state.overheated) &&
+              (state.heat?.value ?? 0) > 0))
         );
       }
     }
@@ -164,3 +173,28 @@ export const holosmithTraits = [
   thermalReleaseValve,
   crystalConfigurationStorm
 ];
+
+/** Dodge grants Vigor before invoking the skill-owned vent, unless PBM preserves the current heat. */
+function triggerThermalReleaseValve(context: EngineerRuntime<HolosmithSkill>, skill: EngineerSkill, at: number): void {
+  if (!hasTrait(context.traits, TRAIT.THERMAL_RELEASE_VALVE)) return;
+  const state = holosmithState.from(context);
+  const thermalReleaseValveProfile = requireBalanceProfileFromContext(context, TRAIT.THERMAL_RELEASE_VALVE);
+  const boon = requireEffect(thermalReleaseValveProfile, 'boon', 'vigor');
+  if (boon) {
+    buildEngineerPackets('buff', {
+      at,
+      source: 'Trait',
+      sourceId: TRAIT.THERMAL_RELEASE_VALVE,
+      actorType: 'player',
+      skillId: skill.id,
+      skillName: skill.name,
+      name: 'Thermal Release Valve — vigor',
+      kind: String(boon.boon).toLowerCase(),
+      duration: boon.duration,
+      stacks: Number(boon.stacks)
+    }).forEach((packet) => context.effects.emit({ kind: 'packet', event: packet }));
+  }
+
+  if (state.heat.value <= 0 || preservesPhotonicHeat(context)) return;
+  triggerVentExhaust(context, skill, at);
+}

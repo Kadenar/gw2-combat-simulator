@@ -1,10 +1,10 @@
+import type { MechanicContext, MechanicCombatContext } from '#gw2/platform/profession-definition/mechanic-context.js';
 import type { ProfessionUiCallbackContext, ProfessionUiContract } from '#gw2/platform/profession-presentation/types.js';
 import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
-import type { Skill, SkillId } from '#gw2/platform/engine/skills/types.js';
+import type { Skill, SkillId } from '#gw2/platform/skills/types.js';
 import type { Gw2CanonicalBuild, Gw2Build, ProfessionBuildAssumptions } from '#gw2/platform/builds/types.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
-import type { Gw2ResolverRuntime } from '#gw2/platform/resolver/runtime-state.js';
-import type { Gw2Runtime } from '#gw2/platform/simulation/runtime-state.js';
+
 import type { ProfessionTraitSelection } from '#gw2/professions/shared/trait-data.js';
 import type { RangerCoreState } from '#gw2/professions/ranger/core/state.js';
 import type { DruidState } from '#gw2/professions/ranger/specializations/druid/state.js';
@@ -57,12 +57,7 @@ export type RangerState = RangerCoreState &
       Pick<SoulbeastState, 'beastmodeActive' | 'archetype' | 'oneWolfPackUntil'> &
       Pick<
         UntamedState,
-        | 'rangerUnleashed'
-        | 'ambushReadyUntil'
-        | 'ferociousSymbiosisPlayerStacks'
-        | 'ferociousSymbiosisPlayerUntil'
-        | 'ferociousSymbiosisPetStacks'
-        | 'ferociousSymbiosisPetUntil'
+        'rangerUnleashed' | 'ambushReadyUntil' | 'ferociousSymbiosisPlayer' | 'ferociousSymbiosisPet'
       > &
       Pick<
         GaleshotState,
@@ -88,13 +83,13 @@ export interface RangerRuntimeState {
     | { kind: 'Galeshot'; state: GaleshotState };
 }
 
-export type RangerResolverContext = Gw2ResolverRuntime & {
+export type RangerResolverContext = MechanicCombatContext & {
   config: RangerConfig;
   profession: RangerRuntimeState;
 };
 
 /** Live Ranger owners share one combat state and retain Ranger skill fields in casts and catalog lookups. */
-export type RangerRuntime = Gw2Runtime<RangerRuntimeState, RangerSkill> & { readonly config: RangerConfig };
+export type RangerRuntime = MechanicContext<RangerRuntimeState, RangerSkill> & { readonly config: RangerConfig };
 
 export interface RangerSkill extends Skill {
   readonly petSkill?: boolean;

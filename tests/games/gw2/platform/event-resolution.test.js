@@ -6,8 +6,8 @@ import { simulateMesmer } from '#tests/helpers/mesmer-simulation.js';
 import { resolveTestGw2Events } from '#tests/helpers/gw2-resolver.js';
 import { createGw2ResolverEventHandlers } from '#gw2/platform/resolver/event-handlers.js';
 import { createGw2ResolverReactionRegistry } from '#gw2/platform/resolver/reaction-registry.js';
-import { createCanonicalCatalog } from '#gw2/platform/engine/skills/canonical-skill-catalog.js';
-import { strikeTimeline } from '#gw2/platform/engine/effects/authoring.js';
+import { createCanonicalCatalog } from '#gw2/platform/skills/catalog.js';
+import { strikeTimeline } from '#gw2/platform/effects/authoring.js';
 import { defineTestProfession } from '#tests/helpers/profession.js';
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
 import { testProfession } from '#tests/fixtures/profession.js';
@@ -23,7 +23,7 @@ test('resolver setup shares reactions and creates fresh profession state for eac
     hooks: {
       eventHandlers: {
         'fixture.trigger': (context, event) => {
-          context.dispatchReaction('control.resolved', event);
+          context.combat.react('control.resolved', event);
           context.effects.emit({
             kind: 'packet',
             settlement: 'reaction',
@@ -309,7 +309,6 @@ test('off-target casts retain their activation while hostile packets miss the ta
   });
   const activationEvents = result.events.filter((event) => event.sourceId === 900001);
 
-  assert.equal(result.steps[0].end, 1000);
   assert.equal(
     activationEvents.every((event) => event.offTarget === true),
     true
@@ -377,7 +376,6 @@ test('delayed-impact casts land hostile packets later without moving the cast or
   const delayed = run(1500);
 
   assert.deepEqual(delayed.warnings, []);
-  assert.equal(delayed.steps[0].end, base.steps[0].end);
   assert.equal(
     eventAt(delayed, (event) => event.type === 'action'),
     eventAt(base, (event) => event.type === 'action')

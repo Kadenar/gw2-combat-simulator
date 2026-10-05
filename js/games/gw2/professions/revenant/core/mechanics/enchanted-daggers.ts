@@ -1,9 +1,9 @@
 import { isInternalCooldownReady } from '#gw2/platform/combat/procs.js';
 import { consumeCharge, grantCharges } from '#gw2/platform/combat/resources/charges.js';
-import { effectNumber, requireEffect } from '#gw2/platform/engine/skills/balance-profiles.js';
+import { effectNumber, requireEffect } from '#gw2/platform/skills/balance-profiles.js';
 import { buildResolverStrike } from '#gw2/platform/resolver/packets.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
-import type { RuntimeCast } from '#gw2/platform/simulation/runtime-state.js';
+import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import type { RevenantRuntime } from '#gw2/professions/revenant/core/events.js';
 import { REVENANT_SKILL_IDS as ID } from '#gw2/professions/revenant/data/ids.js';
 import type { RevenantSkill } from '#gw2/professions/revenant/types.js';

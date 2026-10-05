@@ -5,8 +5,9 @@ import {
   effectNumber,
   requireBalanceProfileFromContext,
   requireEffect
-} from '#gw2/platform/engine/skills/balance-profiles.js';
-import type { BalanceProfile, ConditionEffect } from '#gw2/platform/engine/skills/types.js';
+} from '#gw2/platform/skills/balance-profiles.js';
+import type { BalanceProfile } from '#gw2/platform/skills/types.js';
+import type { ConditionEffect } from '#gw2/platform/effects/types.js';
 import { criticalProcHandler } from '#gw2/platform/profession-definition/mechanics.js';
 import type { NativeResolvedDamageDetails } from '#gw2/platform/profession-definition/module-types.js';
 import { buildResolverCondition } from '#gw2/platform/resolver/packets.js';
@@ -14,7 +15,6 @@ import {
   cloneNecromancerAttributes,
   necromancerActiveShroud
 } from '#gw2/professions/necromancer/core/mechanics/modifier-queries.js';
-import { targetIsChilled } from '#gw2/professions/necromancer/core/mechanics/trait-effects.js';
 import { NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
 import type { NecromancerResolverContext, NecromancerResolverEvent } from '#gw2/professions/necromancer/types.js';
 
@@ -29,7 +29,7 @@ export function modifyReapersOnslaughtAttributes(
   }
 }
 
-// Chilling Nova is gated on the target already being Chilled at the moment of the crit, not just on trait presence.
+// Read accepted target conditions at the crit so Nova shares expiry and removal semantics with damage modifiers.
 const chillingNovaCriticalHit = criticalProcHandler<
   NecromancerResolverContext,
   NecromancerResolverEvent,
@@ -39,13 +39,15 @@ const chillingNovaCriticalHit = criticalProcHandler<
   chanceOnCriticalHit: (context) =>
     balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.CHILLING_NOVA), 'criticalChance'),
   when: (context, event) =>
-    Number(event.coefficient) > 0 && hasTrait(context, TRAIT.CHILLING_NOVA) && targetIsChilled(context, event.at),
+    Number(event.coefficient) > 0 &&
+    hasTrait(context, TRAIT.CHILLING_NOVA) &&
+    context.combat.targetHasCondition('Chilled', event.at),
   internalCooldown: {
     duration: (context) =>
       balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.CHILLING_NOVA), 'cooldown'),
     readyAt: (context) => context.procs.deadline('necromancer.reaper.chillingNova') || 0,
     setReadyAt: (context, readyAt) => {
-      context.procs.readyAt['necromancer.reaper.chillingNova'] = readyAt;
+      context.procs.setDeadline('necromancer.reaper.chillingNova', readyAt);
     }
   },
   handler: (context, event, _details, application) => {

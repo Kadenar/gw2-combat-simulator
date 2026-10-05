@@ -1,13 +1,14 @@
 import { selectedSkillIdSet } from '#gw2/platform/builds/selected-skills.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
+import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
+import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
+import { gw2BaseRecharge } from '#gw2/platform/execution/recharge.js';
 import {
   balanceProfileNumber,
   effectNumber,
   requireBalanceProfileFromContext,
   requireEffect
-} from '#gw2/platform/engine/skills/balance-profiles.js';
-import { gw2BaseRecharge } from '#gw2/platform/engine/skills/recharge.js';
-import type { RuntimeCast } from '#gw2/platform/simulation/runtime-state.js';
+} from '#gw2/platform/skills/balance-profiles.js';
 import type { ThiefRuntime } from '#gw2/professions/thief/core/events.js';
 import {
   buildThiefBuff,
@@ -15,7 +16,6 @@ import {
   buildThiefControl,
   buildThiefStrikes
 } from '#gw2/professions/thief/core/events.js';
-import { grantThiefInitiative } from '#gw2/professions/thief/core/mechanics/resources.js';
 import { potentPoisonStacks } from '#gw2/professions/thief/core/traits/poison.js';
 import { THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
 import type { ThiefSkill } from '#gw2/professions/thief/types.js';
@@ -130,7 +130,7 @@ export function reduceUtilityRecharges(runtime: ThiefRuntime): void {
 }
 
 /** Apply the selected shadow-force gain at the existing Siphon resource boundary. */
-export function improvisationShadowForceMultiplier(runtime: ThiefRuntime): number {
+export function improvisationShadowForceMultiplier(runtime: MechanicQueriesOf<ThiefRuntime>): number {
   return hasTrait(runtime, TRAIT.IMPROVISATION)
     ? 1 + balanceProfileNumber(requireBalanceProfileFromContext(runtime, TRAIT.IMPROVISATION), 'lifeForceGain')
     : 1;
@@ -145,11 +145,13 @@ export function improvisationArtifactUses(runtime: ThiefRuntime, source: string)
 
 /** Applies Kleptomaniac at its established mechanical boundary. */
 export function applyKleptomaniac(runtime: ThiefRuntime): void {
-  if (hasTrait(runtime, TRAIT.KLEPTOMANIAC))
-    grantThiefInitiative(
-      runtime,
-      balanceProfileNumber(requireBalanceProfileFromContext(runtime, TRAIT.KLEPTOMANIAC), 'resourceGain')
+  if (hasTrait(runtime, TRAIT.KLEPTOMANIAC)) {
+    const initiativeGain = balanceProfileNumber(
+      requireBalanceProfileFromContext(runtime, TRAIT.KLEPTOMANIAC),
+      'resourceGain'
     );
+    if (initiativeGain > 0) runtime.resourceController.grant('initiative', initiativeGain);
+  }
 }
 
 /** Mug is an uncritical strike owned by the steal skill. */
@@ -210,14 +212,6 @@ export function applySleightOfHand(runtime: ThiefRuntime, cast: RuntimeCast<Thie
       controlKind: String(control.kind)
     })
   });
-}
-
-/** Additive Steal recharge retains each trait's independent reduction. */
-export function sleightOfHandRechargeReduction(runtime: ThiefRuntime): number {
-  return (
-    Number(hasTrait(runtime, TRAIT.SLEIGHT_OF_HAND)) *
-    (1 - balanceProfileNumber(requireBalanceProfileFromContext(runtime, TRAIT.SLEIGHT_OF_HAND), 'rechargeMultiplier'))
-  );
 }
 
 /** Builds a steal-owned boon attributed to its trait source, scaled by boon duration when it applies. */

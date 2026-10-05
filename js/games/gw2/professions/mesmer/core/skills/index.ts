@@ -3,7 +3,7 @@
  * Runtime execution lives in sibling controller files and persistent illusion state lives under `mechanics/`.
  */
 import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
-import type { SkillId } from '#gw2/platform/engine/skills/types.js';
+import type { SkillId } from '#gw2/platform/skills/types.js';
 
 import { MESMER_PROFESSION_SKILLS_SKILL_MECHANICS } from '#gw2/professions/mesmer/core/skills/profession-skills.js';
 import { MESMER_SLOT_SKILLS_SKILL_MECHANICS } from '#gw2/professions/mesmer/core/skills/slot-skills.js';

@@ -1,10 +1,9 @@
+import { activeChargeCount, consumeCharge } from '#gw2/platform/combat/resources/charges.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
-import {
-  balanceProfileNumber,
-  requireBalanceProfileFromContext
-} from '#gw2/platform/engine/skills/balance-profiles.js';
+import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
+import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
 import { positional, rangerBoonActive } from '#gw2/professions/ranger/core/traits/modifier-queries.js';
 import { RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
 import type { RangerRuntime } from '#gw2/professions/ranger/types.js';
@@ -83,16 +82,18 @@ export const quickDraw = defineTrait({
   rechargeRules: [
     {
       order: 0,
-      when: (runtime: RangerRuntime, skill) =>
-        skill.type === 'Weapon' && skill.slot !== 'Weapon_1' && runtime.profession.core.quickDrawUntil > runtime.time,
+      when: (runtime: MechanicQueriesOf<RangerRuntime>, skill) =>
+        skill.type === 'Weapon' &&
+        skill.slot !== 'Weapon_1' &&
+        activeChargeCount(runtime.profession.core.quickDraw, runtime.time) > 0,
       multiplier: { profile: TRAIT.QUICK_DRAW, field: 'rechargeMultiplier' }
     }
   ],
   hooks: {
     reserveRecharge(runtime: RangerRuntime, skill, work) {
       // Quick Draw is reserved at acceptance so concurrent casts cannot consume the same grant twice.
-      if (skill.type === 'Weapon' && skill.slot !== 'Weapon_1' && runtime.profession.core.quickDrawUntil > runtime.time)
-        runtime.profession.core.quickDrawUntil = 0;
+      if (skill.type === 'Weapon' && skill.slot !== 'Weapon_1')
+        consumeCharge(runtime.profession.core.quickDraw, runtime.time);
       return work;
     }
   }

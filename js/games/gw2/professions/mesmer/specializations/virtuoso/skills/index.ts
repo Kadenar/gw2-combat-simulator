@@ -15,9 +15,9 @@ function bladePacketTiers(coefficients: readonly number[], atMs: readonly number
  * Owns Virtuoso dagger, slot-skill, and bladesong catalog fragments.
  * Blade storage and bladesong runtime behavior lives under `mechanics/`.
  */
-import { impactEffects } from '#gw2/platform/engine/effects/authoring.js';
+import { impactEffects } from '#gw2/platform/effects/authoring.js';
 import { MESMER_SKILL_IDS as ID } from '#gw2/professions/mesmer/data/ids.js';
-import type { SkillId } from '#gw2/platform/engine/skills/types.js';
+import type { SkillId } from '#gw2/platform/skills/types.js';
 
 export const MESMER_VIRTUOSO_SKILL_MECHANICS: Readonly<Record<SkillId, Partial<MesmerSkill>>> = Object.freeze({
   [ID.BLADECALL]: {

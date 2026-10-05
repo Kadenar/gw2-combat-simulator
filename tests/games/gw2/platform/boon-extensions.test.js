@@ -1,3 +1,4 @@
+import { createMechanicCombatServices } from '#gw2/platform/resolver/mechanic-services.js';
 import { effectFields } from '#tests/helpers/effect-report.js';
 import { captureEffectEmissions } from '#tests/helpers/effect-emission.js';
 import { runElementalist } from '#tests/helpers/elementalist-simulation.js';
@@ -17,7 +18,7 @@ import {
 } from '#gw2/platform/combat/boons.js';
 import { createGw2TimelineIndex } from '#gw2/platform/combat/query/timeline-index.js';
 import { buildTimeSeries, chartValueAt } from '#gw2/app/results/charts/time-series-model.js';
-import { assertSimulationEvent } from '#gw2/platform/engine/events/events.js';
+import { assertSimulationEvent } from '#gw2/platform/events/events.js';
 import { RANGER_TRAIT_IDS } from '#gw2/professions/ranger/data/ids.js';
 import { noQuarterCriticalReaction } from '#gw2/professions/thief/core/traits/critical-boons.js';
 import { REVENANT_LEGEND_IDS, REVENANT_SKILL_IDS } from '#gw2/professions/revenant/data/ids.js';
@@ -237,7 +238,7 @@ test('extended Vigor preserves Elementalist and Mirage endurance through the new
           (specialization === 'Mirage'
             ? observedRuntime(result).profession.specialization.state
             : observedRuntime(result).profession.core
-          ).endurance,
+          ).endurance.value,
           expected
         );
       }
@@ -323,6 +324,7 @@ function extend(profession, events, at) {
     config: {},
     effects: captureEffectEmissions({ submit: (event) => applyBoonExtension(boons, event) }).effects
   };
+  context.combat = createMechanicCombatServices(context);
   if (profession === 'Thief') {
     // Direct handler calls need the same selected balance source as resolver dispatch.
     noQuarterCriticalReaction.handler(

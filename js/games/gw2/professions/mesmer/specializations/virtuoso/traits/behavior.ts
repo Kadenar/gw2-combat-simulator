@@ -1,3 +1,4 @@
+import { createMesmerIllusionRewards, mesmerActivePrimaryWeapon } from '#gw2/professions/mesmer/family-mechanics.js';
 import type { MesmerEventExtra } from '#gw2/professions/mesmer/data/types.js';
 import { professionStaticRulesApplied } from '#gw2/platform/builds/attribute-provenance.js';
 import { advanceCriticalProc, criticalOpportunity } from '#gw2/platform/combat/critical-procs.js';
@@ -9,15 +10,14 @@ import {
   balanceProfileNumber,
   requireBalanceProfileFromContext,
   requireEffect
-} from '#gw2/platform/engine/skills/balance-profiles.js';
+} from '#gw2/platform/skills/balance-profiles.js';
 import type { NativeResolvedDamageDetails } from '#gw2/platform/profession-definition/module-types.js';
 import { buildResolverCondition } from '#gw2/platform/resolver/packets.js';
-import type { RuntimeProfession } from '#gw2/platform/simulation/runtime-state.js';
+import type { RuntimeProfession } from '#gw2/platform/profession-definition/runtime-contract.js';
 import type {
   MesmerPhantasmPolicy,
   MesmerTraitDamage
 } from '#gw2/professions/mesmer/core/mechanics/illusions/types.js';
-import { mesmerMechanicsFor } from '#gw2/professions/mesmer/core/mechanics/runtime.js';
 import type { MesmerShatterResolution } from '#gw2/professions/mesmer/core/mechanics/shatter-types.js';
 import { mesmerProfiledTraitDamage } from '#gw2/professions/mesmer/core/profiles.js';
 import { MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
@@ -26,7 +26,6 @@ import type { MesmerRuntime, MesmerRuntimeState } from '#gw2/professions/mesmer/
 
 /** Activates Deadly Blades only after a successfully resolved Virtuoso Bladesong. */
 export function resolveDeadlyBlades(context: MesmerRuntime, resolution: MesmerShatterResolution): void {
-  const runtime = mesmerMechanicsFor(context);
   if (!hasTrait(context, TRAIT.DEADLY_BLADES)) return;
 
   const at = resolution.at;
@@ -41,7 +40,7 @@ export function resolveDeadlyBlades(context: MesmerRuntime, resolution: MesmerSh
         duration: balanceProfileNumber(deadlyBladesProfile, 'durationMultiplier')
       }
     ];
-    const traitProfile = requireBalanceProfileFromContext(runtime.context, TRAIT.DEADLY_BLADES);
+    const traitProfile = requireBalanceProfileFromContext(context, TRAIT.DEADLY_BLADES);
     const traitSource = {
       source: 'Trait',
       sourceId: TRAIT.DEADLY_BLADES,
@@ -50,7 +49,7 @@ export function resolveDeadlyBlades(context: MesmerRuntime, resolution: MesmerSh
       skillName: traitProfile.name
     };
     {
-      const proc = runtime.context.effects.emit({
+      const proc = context.effects.emit({
         ...resolution.delivery,
         kind: 'announcement',
         log: true,
@@ -58,7 +57,7 @@ export function resolveDeadlyBlades(context: MesmerRuntime, resolution: MesmerSh
         announcement: { type: 'trait', name: traitProfile.name, at: at, sourceSkill: resolution.skill.name, detail: '' }
       });
       for (const grant of grants)
-        runtime.context.effects.emit({
+        context.effects.emit({
           ...resolution.delivery,
           kind: 'packet',
           cause: proc,
@@ -101,7 +100,6 @@ export function phantasmalBladesPolicy(
 export const resolveBladeCriticalTraits: NonNullable<
   RuntimeProfession<MesmerRuntimeState, MesmerSkill>['reactions']
 >['damage.resolved'] = (runtime, event, details) => {
-  const mechanics = mesmerMechanicsFor(runtime);
   const skill = runtime.helpers.skillsById.get(event.skillId ?? '');
   if ((!event.metadata?.blade && !skill?.blade) || event.canCrit === false) return;
   for (const [id, name, condition, proc] of [
@@ -135,7 +133,7 @@ export const resolveBladeCriticalTraits: NonNullable<
       })
     });
     if (id === TRAIT.JAGGED_MIND)
-      mechanics.context.effects.emit({
+      runtime.effects.emit({
         kind: 'announcement',
         log: true,
         attribution: { source: 'Trait', sourceId: id, actorType: 'effect' },
@@ -173,7 +171,6 @@ export function applyVirtuosoTraitAttributes(
 
 /** Refunds blades only after a completed Bladesong commits the configured maximum-spend threshold. */
 export function resolveInfiniteForgeRefund(context: MesmerRuntime, resolution: MesmerShatterResolution): void {
-  const runtime = mesmerMechanicsFor(context);
   if (
     !hasTrait(context, TRAIT.INFINITE_FORGE) ||
     resolution.spent <
@@ -183,10 +180,10 @@ export function resolveInfiniteForgeRefund(context: MesmerRuntime, resolution: M
   }
 
   const infiniteForgeProfile = requireBalanceProfileFromContext(context, TRAIT.INFINITE_FORGE);
-  runtime.resources.queueResources(
+  createMesmerIllusionRewards(context).queueResources(
     resolution.at,
     balanceProfileNumber(infiniteForgeProfile, 'resourceGain'),
-    runtime.activePrimaryWeapon(),
+    mesmerActivePrimaryWeapon(context),
     'Infinite Forge refund',
     {
       traitId: TRAIT.INFINITE_FORGE,

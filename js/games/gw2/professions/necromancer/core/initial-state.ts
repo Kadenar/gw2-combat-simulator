@@ -1,3 +1,4 @@
+import { createResourceClock } from '#gw2/platform/combat/resources/resource-policy.js';
 import { grantCharges } from '#gw2/platform/combat/resources/charges.js';
 import { clamp } from '#kernel/core/numeric.js';
 import type { NecromancerConfig } from '#gw2/professions/necromancer/types.js';
@@ -12,8 +13,7 @@ export function createNecromancerCoreState(config: NecromancerConfig = {}): Necr
   // Seed every mutable subsystem independently and bound the initial life-force value.
   const state: NecromancerCoreState = {
     // Begin with two dodges; the shared controller advances regeneration and Vigor.
-    endurance: 100,
-    enduranceUpdatedAt: 0,
+    endurance: createResourceClock(100),
     lifeForce: { value: clamp(config.initialResource ?? 100, 0, 100), maximum: 100, rate: 0, updatedAt: 0 },
     lifeForceCostMultiplier: necromancerLifeForceCostMultiplier(config, {
       // Standalone state creation reads canonical base tuning; runtime initialization supplies active patches.
@@ -41,10 +41,9 @@ export function createNecromancerCoreState(config: NecromancerConfig = {}): Necr
     plagueSendingArmed: false,
     lichEndsAt: 0,
     lichGeneration: 0,
-    targetChilledUntil: 0,
     dreadUntil: 0,
 
-    tasteForBloodBuffs: {}
+    tasteForBloodGrants: {}
   };
   return state;
 }

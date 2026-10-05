@@ -2,11 +2,14 @@ import { professionStaticRulesApplied } from '#gw2/platform/builds/attribute-pro
 import type { ChargeGrant } from '#gw2/platform/combat/resources/charges.js';
 import type { ResourceClock } from '#gw2/platform/combat/resources/clock.js';
 import { cappedResource } from '#gw2/platform/combat/resources/pool.js';
-import { projectPublicProfessionState, snapshotProfessionState } from '#gw2/platform/engine/profession/state.js';
-import { type SkillFlipWindows } from '#gw2/platform/engine/skills/skill-flips.js';
-import type { SkillId } from '#gw2/platform/engine/skills/types.js';
-import type { Gw2PlanningStateInput } from '#gw2/platform/simulation/types.js';
-import { soulBatteryCapacity, vitalPersistenceVitality } from '#gw2/professions/necromancer/core/traits/shroud.js';
+import { projectPublicProfessionState, snapshotProfessionState } from '#gw2/platform/profession-definition/state.js';
+import { type SkillFlipWindows } from '#gw2/platform/execution/skill-flips.js';
+import type { SkillId } from '#gw2/platform/skills/types.js';
+import type { Gw2PlanningStateInput } from '#gw2/platform/results/types.js';
+import {
+  soulBatteryCapacity,
+  vitalPersistenceVitality
+} from '#gw2/professions/necromancer/core/traits/resource-queries.js';
 import { spitefulFortitudeVitality } from '#gw2/professions/necromancer/core/traits/behavior.js';
 import type { NecromancerConfig } from '#gw2/professions/necromancer/types.js';
 
@@ -18,15 +21,12 @@ export interface NecromancerSelfCondition {
   readonly expiresAt: number;
 }
 
-interface NecromancerTasteForBloodApplication {
+interface TasteForBloodGrant extends ChargeGrant {
   readonly at: number;
-  readonly expiresAt: number;
-  stacks: number;
 }
 
 export interface NecromancerCoreState {
-  endurance: number;
-  enduranceUpdatedAt: number;
+  endurance: ResourceClock;
   lifeForce: ResourceClock;
   lifeForceWakeGeneration: number;
   /** Readiness reads the next actual passive wake without crediting a future grant. */
@@ -53,10 +53,9 @@ export interface NecromancerCoreState {
   lichEndsAt: number;
   /** Re-entering the timed form owns a new cancellable expiry. */
   lichGeneration: number;
-  targetChilledUntil: number;
   dreadUntil: number;
 
-  tasteForBloodBuffs: Record<string, NecromancerTasteForBloodApplication[]>;
+  tasteForBloodGrants: Record<string, TasteForBloodGrant[]>;
 }
 
 /** Declares the Core fields exposed by every Necromancer end-state projection. */

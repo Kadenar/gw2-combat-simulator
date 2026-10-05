@@ -1,17 +1,14 @@
-import type { EffectDelivery } from '#gw2/platform/simulation/effect-emission.js';
-import type { RuntimeCast } from '#gw2/platform/simulation/runtime-state.js';
-import { gw2EffectExpiresAt } from '#gw2/platform/skills/timing.js';
+import type { EffectDelivery } from '#gw2/platform/effects/emission.js';
+import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
+import { gw2EffectExpiresAt } from '#gw2/platform/effects/timing.js';
 import { EPSILON } from '#kernel/core/clock.js';
 /**
  * Owns Weave Self activation, Perfect Weave state, and attunement recharge changes.
  * Skill fragments remain in `skills/slot-skills.ts`.
  */
-import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
-import {
-  balanceProfileNumber,
-  requireBalanceProfileFromContext
-} from '#gw2/platform/engine/skills/balance-profiles.js';
-import type { Skill } from '#gw2/platform/engine/skills/types.js';
+import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
+import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import type { Skill } from '#gw2/platform/skills/types.js';
 import { elementalistBuffRequest } from '#gw2/professions/elementalist/core/events.js';
 import { elementalistEventSkill } from '#gw2/professions/elementalist/core/mechanics/effects.js';
 import { ELEMENTALIST_ATTUNEMENTS, type ElementalistAttunement } from '#gw2/professions/elementalist/core/state.js';
@@ -34,12 +31,12 @@ export function startWeaveSelfCast(
 
 /** Starts Weave Self's recharge at the same partial-cast point as its activation. */
 export function modifyWeaveSelfRechargeStart(
-  context: ElementalistRuntime,
+  context: import('#gw2/platform/profession-definition/runtime-context.js').RechargeStartContext,
   cast: Pick<RuntimeCast<ElementalistSkill>, 'skill' | 'start' | 'fullEnd' | 'effectiveEnd'>,
   rechargeStart: number
 ): number {
   if (cast.skill.id !== ID.WEAVE_SELF) return rechargeStart;
-  const resourcesProfile = requireBalanceProfileFromContext(context, PROFILE.resources);
+  const resourcesProfile = context.requireBalanceProfile(PROFILE.resources);
   return context.time + (rechargeStart - context.time) * balanceProfileNumber(resourcesProfile, 'firstPacketRatio');
 }
 

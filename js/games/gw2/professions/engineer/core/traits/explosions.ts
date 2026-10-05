@@ -5,7 +5,7 @@ import {
   effectNumber,
   balanceProfileNumber,
   procChanceFromContext
-} from '#gw2/platform/engine/skills/balance-profiles.js';
+} from '#gw2/platform/skills/balance-profiles.js';
 import { ENGINEER_TRAIT_IDS as TRAIT, ENGINEER_SKILL_IDS as ID } from '#gw2/professions/engineer/data/ids.js';
 import type {
   EngineerRuntime,
@@ -13,7 +13,7 @@ import type {
   EngineerResolverContext,
   EngineerResolverEvent
 } from '#gw2/professions/engineer/types.js';
-import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
+import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
 import {
   buildEngineerStrike,
   buildEngineerCondition,
@@ -29,7 +29,7 @@ import { activeBoonStacks } from '#gw2/professions/engineer/core/traits/query-he
 
 /** Schedules Grenadier's lesser barrage from an eligible healing cast after its internal cooldown. */
 export function applyGrenadier(context: EngineerRuntime, skill: EngineerSkill, at: number): void {
-  if ((skill.type !== 'Heal' && skill.slot !== 'Heal') || !hasTrait(context.config, TRAIT.GRENADIER)) return;
+  if ((skill.type !== 'Heal' && skill.slot !== 'Heal') || !hasTrait(context.traits, TRAIT.GRENADIER)) return;
   const profile = requireBalanceProfileFromContext(context, TRAIT.GRENADIER);
   const effect = requireEffect(profile, 'strike', 'Grenadier');
   // A removed barrage leaves the trait ready; claim before emitting any surviving strikes.
@@ -98,6 +98,7 @@ export function emitExplosiveEntrance(context: EngineerResolverContext, event: E
   context.effects.emit({
     kind: 'packet',
     event: buildEngineerStrike(event, {
+      skillWeapon: 'Unequipped',
       name: 'Explosive Entrance',
       coefficient: effectNumber(explosiveEntranceProfile, explosiveEntranceStrike, 'coefficient'),
       sourceId: TRAIT.EXPLOSIVE_ENTRANCE,
@@ -146,13 +147,17 @@ export function applyShortFuse(
   event: EngineerResolverEvent,
   explosion: boolean
 ): void {
-  const state = context.procs.readyAt;
-  if (!explosion || !hasTrait(context, TRAIT.SHORT_FUSE) || !isInternalCooldownReady(event.at, state.shortFuse || 0)) {
+  const state = context.procs;
+  if (
+    !explosion ||
+    !hasTrait(context, TRAIT.SHORT_FUSE) ||
+    !isInternalCooldownReady(event.at, state.deadline('shortFuse') || 0)
+  ) {
     return;
   }
 
   const shortFuseProfile = requireBalanceProfileFromContext(context, TRAIT.SHORT_FUSE);
-  state.shortFuse = event.at + balanceProfileNumber(shortFuseProfile, 'internalCooldown');
+  state.setDeadline('shortFuse', event.at + balanceProfileNumber(shortFuseProfile, 'internalCooldown'));
   const shortFuseFury = requireEffect(shortFuseProfile, 'boon', 'fury');
   if (shortFuseFury) {
     context.effects.emit({
@@ -310,17 +315,17 @@ function isAimAssistedProjectile(context: EngineerResolverContext, event: Engine
 
 /** Queues Aim-Assisted Rocket, upgrading every fifth eligible proc to Orbital Command Strike. */
 export function applyAimAssistedRocket(context: EngineerResolverContext, event: EngineerResolverEvent): void {
-  const state = context.procs.readyAt;
+  const state = context.procs;
   if (
     !hasTrait(context, TRAIT.AIM_ASSISTED_ROCKET) ||
     !isAimAssistedProjectile(context, event) ||
-    !isInternalCooldownReady(event.at, state.aimAssistedRocket || 0)
+    !isInternalCooldownReady(event.at, state.deadline('aimAssistedRocket') || 0)
   ) {
     return;
   }
 
   const aimAssistedRocketProfile = requireBalanceProfileFromContext(context, TRAIT.AIM_ASSISTED_ROCKET);
-  state.aimAssistedRocket = event.at + balanceProfileNumber(aimAssistedRocketProfile, 'internalCooldown');
+  state.setDeadline('aimAssistedRocket', event.at + balanceProfileNumber(aimAssistedRocketProfile, 'internalCooldown'));
   professionCoreState(context).aimAssistedRocketCount = (professionCoreState(context).aimAssistedRocketCount || 0) + 1;
   // Every fifth projectile upgrades to Orbital Command Strike with its two-second call-down delay.
   const alternateEvery = balanceProfileNumber(aimAssistedRocketProfile, 'maximumStacks');
@@ -339,29 +344,27 @@ export function emitAimAssistedRocket(
   if (rocket) {
     context.effects.emit({
       kind: 'packet',
-      event: {
-        ...buildEngineerStrike(event, {
-          // The trait owns both variants; retain their distinct skill identities and display names.
-          name: orbital ? 'Orbital Command Strike' : 'Aim-Assisted Rocket',
-          coefficient: effectNumber(aimAssistedRocketProfile, rocket, 'coefficient'),
-          sourceId: orbital ? ID.ORBITAL_COMMAND_STRIKE : ID.AIM_ASSISTED_ROCKET_TRAIT_SKILL,
-          actorType: 'effect',
-          ownerActorType: 'player',
-          at: event.at + effectNumber(aimAssistedRocketProfile, rocket, 'atMs') / 1000,
-          explosion: !orbital,
-          ...(orbital
-            ? {
-                comboFinisher: {
-                  ownerId: 'engineer',
-                  finisherType: 'Blast',
-                  ambiguousFieldSelection: 'oldest'
-                }
+      event: buildEngineerStrike(event, {
+        skillWeapon: 'Unequipped',
+        // The trait owns both variants; retain their distinct skill identities and display names.
+        name: orbital ? 'Orbital Command Strike' : 'Aim-Assisted Rocket',
+        coefficient: effectNumber(aimAssistedRocketProfile, rocket, 'coefficient'),
+        sourceId: orbital ? ID.ORBITAL_COMMAND_STRIKE : ID.AIM_ASSISTED_ROCKET_TRAIT_SKILL,
+        actorType: 'effect',
+        ownerActorType: 'player',
+        at: event.at + effectNumber(aimAssistedRocketProfile, rocket, 'atMs') / 1000,
+        explosion: !orbital,
+        ...(orbital
+          ? {
+              comboFinisher: {
+                ownerId: 'engineer',
+                finisherType: 'Blast',
+                ambiguousFieldSelection: 'oldest'
               }
-            : {}),
-          weaponStrengthProfileId: 'nonweapon.unequipped'
-        }),
-        metadata: { procOwnerId: TRAIT.AIM_ASSISTED_ROCKET }
-      }
+            }
+          : {}),
+        weaponStrengthProfileId: 'nonweapon.unequipped'
+      })
     });
 
     context.effects.emit({

@@ -3,8 +3,9 @@
  * Mirage Cloak, mirror, and ambush runtime behavior lives under `mechanics/`.
  */
 import { MESMER_SKILL_IDS as ID } from '#gw2/professions/mesmer/data/ids.js';
-import { impactEffects } from '#gw2/platform/engine/effects/authoring.js';
-import type { SkillId, SkillEffect } from '#gw2/platform/engine/skills/types.js';
+import { impactEffects } from '#gw2/platform/effects/authoring.js';
+import type { SkillId } from '#gw2/platform/skills/types.js';
+import type { SkillEffect } from '#gw2/platform/effects/types.js';
 
 import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
 import type { MesmerAmbushAttack } from '#gw2/professions/mesmer/types.js';
@@ -292,7 +293,8 @@ export const MESMER_MIRAGE_AMBUSH_SKILLS: Readonly<Record<string, MesmerAmbushAt
       damageAtMs: 360,
       conditions: [
         {
-          name: 'Torment',
+          type: 'condition',
+          condition: 'Torment',
           duration: 3.5,
           stacks: 3,
           applications: 2
@@ -306,7 +308,8 @@ export const MESMER_MIRAGE_AMBUSH_SKILLS: Readonly<Record<string, MesmerAmbushAt
       castTimeMs: 1110,
       conditions: [
         {
-          name: 'Torment',
+          type: 'condition',
+          condition: 'Torment',
           duration: 4,
           stacks: 1
         }
@@ -333,12 +336,14 @@ export const MESMER_MIRAGE_AMBUSH_SKILLS: Readonly<Record<string, MesmerAmbushAt
       atMs: 0,
       conditions: [
         {
-          name: 'Bleeding',
+          type: 'condition',
+          condition: 'Bleeding',
           duration: 5,
           stacks: 2
         },
         {
-          name: 'Torment',
+          type: 'condition',
+          condition: 'Torment',
           duration: 5,
           stacks: 2
         }
@@ -351,12 +356,14 @@ export const MESMER_MIRAGE_AMBUSH_SKILLS: Readonly<Record<string, MesmerAmbushAt
       castTimeMs: 0,
       conditions: [
         {
-          name: 'Bleeding',
+          type: 'condition',
+          condition: 'Bleeding',
           duration: 7,
           stacks: 1
         },
         {
-          name: 'Torment',
+          type: 'condition',
+          condition: 'Torment',
           duration: 7,
           stacks: 1
         }
@@ -387,7 +394,8 @@ export const MESMER_MIRAGE_AMBUSH_SKILLS: Readonly<Record<string, MesmerAmbushAt
       ],
       boons: [
         {
-          name: 'Might',
+          type: 'boon',
+          boon: 'Might',
           duration: 5,
           stacks: 2
         }
@@ -423,7 +431,8 @@ export const MESMER_MIRAGE_AMBUSH_SKILLS: Readonly<Record<string, MesmerAmbushAt
       atMs: 0,
       boons: [
         {
-          name: 'Vigor',
+          type: 'boon',
+          boon: 'Vigor',
           duration: 4,
           stacks: 1
         }
@@ -455,12 +464,14 @@ export const MESMER_MIRAGE_AMBUSH_SKILLS: Readonly<Record<string, MesmerAmbushAt
       atMs: 0,
       conditions: [
         {
-          name: 'Confusion',
+          type: 'condition',
+          condition: 'Confusion',
           duration: 4,
           stacks: 2
         },
         {
-          name: 'Torment',
+          type: 'condition',
+          condition: 'Torment',
           duration: 4,
           stacks: 3
         }
@@ -472,12 +483,14 @@ export const MESMER_MIRAGE_AMBUSH_SKILLS: Readonly<Record<string, MesmerAmbushAt
       atMs: 0,
       conditions: [
         {
-          name: 'Confusion',
+          type: 'condition',
+          condition: 'Confusion',
           duration: 2,
           stacks: 2
         },
         {
-          name: 'Torment',
+          type: 'condition',
+          condition: 'Torment',
           duration: 2,
           stacks: 3
         }
@@ -534,29 +547,34 @@ export const MESMER_MIRAGE_AMBUSH_SKILLS: Readonly<Record<string, MesmerAmbushAt
       atMs: 0,
       conditions: [
         {
-          name: 'Bleeding',
+          type: 'condition',
+          condition: 'Bleeding',
           duration: 10,
           stacks: 1
         },
         {
-          name: 'Torment',
+          type: 'condition',
+          condition: 'Torment',
           duration: 10,
           stacks: 1
         },
         {
-          name: 'Confusion',
+          type: 'condition',
+          condition: 'Confusion',
           duration: 10,
           stacks: 1
         }
       ],
       boons: [
         {
-          name: 'Might',
+          type: 'boon',
+          boon: 'Might',
           duration: 15,
           stacks: 2
         },
         {
-          name: 'Fury',
+          type: 'boon',
+          boon: 'Fury',
           duration: 2,
           stacks: 1
         }
@@ -568,29 +586,34 @@ export const MESMER_MIRAGE_AMBUSH_SKILLS: Readonly<Record<string, MesmerAmbushAt
       atMs: 0,
       conditions: [
         {
-          name: 'Bleeding',
+          type: 'condition',
+          condition: 'Bleeding',
           duration: 4,
           stacks: 1
         },
         {
-          name: 'Torment',
+          type: 'condition',
+          condition: 'Torment',
           duration: 4,
           stacks: 1
         },
         {
-          name: 'Confusion',
+          type: 'condition',
+          condition: 'Confusion',
           duration: 3,
           stacks: 1
         }
       ],
       boons: [
         {
-          name: 'Might',
+          type: 'boon',
+          boon: 'Might',
           duration: 15,
           stacks: 2
         },
         {
-          name: 'Fury',
+          type: 'boon',
+          boon: 'Fury',
           duration: 2,
           stacks: 1
         }

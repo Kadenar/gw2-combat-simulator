@@ -1,4 +1,4 @@
-import { resetAutoattackChains } from '#gw2/platform/skills/autoattack-chain-controller.js';
+import { resetAutoattackChains } from '#gw2/platform/execution/autoattack-chains.js';
 import { ELEMENTALIST_ATTUNEMENTS } from '#gw2/professions/elementalist/core/state.js';
 import type { ElementalistRuntime } from '#gw2/professions/elementalist/types.js';
 

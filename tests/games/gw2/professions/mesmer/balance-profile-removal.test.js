@@ -3,9 +3,9 @@ import { applyBalanceProfilePatch } from '#gw2/integrations/patches/authoring/pa
 import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
 import { mesmerTooltips } from '#gw2/professions/mesmer/app/tooltips.js';
 import { mesmerCoreUi } from '#gw2/professions/mesmer/core/presentation.js';
-import { mesmerProfiledShatters } from '#gw2/professions/mesmer/core/profiles.js';
+import { mesmerProfiledShatter } from '#gw2/professions/mesmer/core/profiles.js';
 import { MESMER_CORE_SHATTERS } from '#gw2/professions/mesmer/core/skills/profession-skills.js';
-import { methodOfMadnessDamage } from '#gw2/professions/mesmer/core/traits/behavior.js';
+import { methodOfMadnessDamage } from '#gw2/professions/mesmer/core/traits/chaos.js';
 import { MESMER_SKILL_IDS as ID, MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
 import { mesmerCatalog, mesmerProfession } from '#gw2/professions/mesmer/profession.js';
 import { createDefaultConfig, runMesmer } from '#tests/helpers/mesmer-simulation.js';
@@ -38,7 +38,7 @@ test('shatter removal keeps surviving tier edits and the current catalog isolate
       }
     }
   });
-  const compiled = mesmerProfiledShatters({ catalog }, MESMER_CORE_SHATTERS)[ID.MIND_WRACK];
+  const compiled = mesmerProfiledShatter({ catalog }, MESMER_CORE_SHATTERS[ID.MIND_WRACK]);
   assert.equal(compiled.strikes[1], undefined);
   assert.equal(compiled.strikes[2].coefficient, 7);
   assert.equal(mesmerCatalog.balanceProfilesById.get(id).effects[2].coefficient, 2.42);
@@ -73,7 +73,7 @@ test('removed Virtuoso tier preserves Confusion and blade spending without hit-t
     result.events.some((event) => event.type === 'condition' && event.condition === 'Torment'),
     false
   );
-  assert.equal(result.planningState.profession.resource, 0);
+  assert.equal(result.planningState.profession.blades.value, 0);
 });
 
 test('removed condition wrapper output leaves its shatter strike intact', () => {
@@ -226,7 +226,7 @@ test('removed Flute strike keeps conditions, note spending, and playing state', 
     false
   );
   assert.ok(result.events.some((event) => event.type === 'condition'));
-  assert.equal(result.planningState.profession.resource, 0);
+  assert.equal(result.planningState.profession.notes.value, 0);
   assert.ok(result.planningState.profession.activeInstruments.some(({ name }) => name === 'Flute'));
 });
 
@@ -346,7 +346,7 @@ test('removed mirror window never creates pickup state and zero forge interval d
     [{ type: 'wait', durationMs: 4000 }],
     { selectedTraitIds: [TRAIT.INFINITE_FORGE] }
   );
-  assert.equal(virtuoso.planningState.profession.resource, 0);
+  assert.equal(virtuoso.planningState.profession.blades.value, 0);
 });
 
 test('tick edits survive deletion of a lower Virtuoso resource tier', () => {

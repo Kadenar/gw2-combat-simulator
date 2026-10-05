@@ -1,3 +1,8 @@
+import {
+  renegadeBuffPolicies,
+  renegadeEffectStates
+} from '#gw2/professions/revenant/specializations/renegade/effect-state.js';
+import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import { consumeCharge, grantCharges } from '#gw2/platform/combat/resources/charges.js';
 import { gw2AlliedPlayerAssumptions, gw2AlliedPlayerProcTimeline } from '#gw2/platform/combat/state/allied-players.js';
 import {
@@ -5,12 +10,12 @@ import {
   effectNumber,
   requireBalanceProfileFromContext,
   requireEffect
-} from '#gw2/platform/engine/skills/balance-profiles.js';
-import type { SkillId } from '#gw2/platform/engine/skills/types.js';
+} from '#gw2/platform/skills/balance-profiles.js';
+import type { SkillId } from '#gw2/platform/skills/types.js';
 import type { Gw2HitResolutionContext } from '#gw2/platform/resolver/hit-resolution.js';
 import { buildResolverCondition } from '#gw2/platform/resolver/packets.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
-import type { RuntimeCast, RuntimeProfession } from '#gw2/platform/simulation/runtime-state.js';
+import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import type { RevenantRuntime } from '#gw2/professions/revenant/core/events.js';
 
 import { isInternalCooldownReady } from '#gw2/platform/combat/procs.js';
@@ -91,8 +96,9 @@ function beginBandTogether(runtime: RevenantRuntime, cast: RuntimeCast<RevenantS
   const state = renegadeState.from(runtime);
   const enhanced = bandTogetherReady(runtime, cast.skill.id);
   const profile = enhanced ? enhancedSkill(runtime, cast.skill.id) : undefined;
-  state.bandTogetherReady = false;
-  state.bandTogetherExpiresAt = 0;
+  // Capture the accepted profile before spending; later grants cannot change this cast's effects or rewards.
+  bandTogether.set(cast, { enhanced, profileSkillId: profile?.id ?? cast.skill.id });
+  if (enhanced) consumeCharge(state.bandTogether, runtime.time);
   grantAllForOneEnergy(runtime, enhanced);
   if (profile)
     runtime.effects.emit({
@@ -112,7 +118,6 @@ function beginBandTogether(runtime: RevenantRuntime, cast: RuntimeCast<RevenantS
       skillWeaponFallback: 'Unequipped',
       cause: null
     });
-  bandTogether.set(cast, { enhanced, profileSkillId: profile?.id ?? cast.skill.id });
 }
 
 /** Razorclaw's Rage arms its finite player charges and precomputes each assumed ally's ICD-limited Bleeding. */
@@ -165,8 +170,7 @@ function completeBandTogether(runtime: RevenantRuntime, cast: RuntimeCast<Revena
   // The enhancement window is the buff, so a removed buff arms no enhancement.
   if (!effect) return;
   const state = renegadeState.from(runtime);
-  state.bandTogetherReady = true;
-  state.bandTogetherExpiresAt = runtime.time + Math.max(0, effectNumber(window, effect, 'duration'));
+  state.bandTogether = grantCharges(1, runtime.time + Math.max(0, effectNumber(window, effect, 'duration')));
   runtime.effects.emit({
     kind: 'profile',
     profile: window,
@@ -282,7 +286,9 @@ function soulcleaveAllies(runtime: RevenantRuntime, data: unknown): void {
 }
 
 /** Renegade owns Fervor, warband summons, Kalla's commands, and their actual hit/boon reactions. */
-export const renegadeHooks: Partial<RuntimeProfession<RevenantRuntimeState, RevenantSkill>> = {
+export const renegadeHooks: RuntimeHooks<RevenantRuntimeState, RevenantSkill> = {
+  buffPolicies: renegadeBuffPolicies,
+  observeEffects: renegadeEffectStates,
   initialize(runtime) {
     renegadeState.from(runtime).kallasFervorMaximumStacks = Math.max(
       1,

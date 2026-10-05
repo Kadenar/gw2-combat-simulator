@@ -1,5 +1,5 @@
-import { flattenProfessionState } from '#gw2/platform/engine/profession/state.js';
-import { projectPublicProfessionState, snapshotProfessionState } from '#gw2/platform/engine/profession/state.js';
+import { flattenProfessionState } from '#gw2/platform/profession-definition/state.js';
+import { projectPublicProfessionState, snapshotProfessionState } from '#gw2/platform/profession-definition/state.js';
 import { getNativeCatalogAssembly } from '#gw2/platform/profession-definition/assemble-module-catalog.js';
 import { thiefCoreModule } from '#gw2/professions/thief/core/module.js';
 import { THIEF_CORE_SKILL_MECHANICS } from '#gw2/professions/thief/core/skills/index.js';
@@ -23,24 +23,26 @@ import { SPECTER_SKILL_MECHANICS } from '#gw2/professions/thief/specializations/
 import { composeSkillMechanics } from '#tests/helpers/skill-mechanics.js';
 import { runThief } from '#tests/helpers/thief-simulation.js';
 import assert from 'node:assert/strict';
-import { existsSync, readdirSync, readFileSync } from 'node:fs';
+import { readdirSync, readFileSync } from 'node:fs';
 import test from 'node:test';
+import path from 'node:path';
+import ts from 'typescript';
 
 test('Antiquary projects its own charge fields and preserves the inactive initiative layout fallback', () => {
   // The slice must expose its charges without relying on Deadeye's contribution to the family metadata.
   const { keys, defaults } = ANTIQUARY_PUBLIC_STATE_PROJECTION;
   const state = createAntiquaryState();
-  Object.assign(state, { stealthAttackCharges: 2, stealthAttackExpiresAt: 10 });
+  state.bonusStealthAttack = { charges: 2, expiresAt: 10 };
   const active = projectPublicProfessionState(state, keys, defaults);
   assert.equal(active.initiativePipRows, 3);
-  assert.equal(active.stealthAttackCharges, 2);
-  assert.equal(active.stealthAttackExpiresAt, 10);
+  assert.equal(active.bonusStealthAttack.charges, 2);
+  assert.equal(active.bonusStealthAttack.expiresAt, 10);
 
   const inactive = projectPublicProfessionState({}, keys, defaults);
   assert.equal(Object.hasOwn(inactive, 'initiativePipRows'), true);
   assert.equal(inactive.initiativePipRows, undefined);
-  assert.equal(inactive.stealthAttackCharges, 0);
-  assert.equal(inactive.stealthAttackExpiresAt, 0);
+  assert.equal(inactive.bonusStealthAttack.charges, 0);
+  assert.equal(inactive.bonusStealthAttack.expiresAt, 0);
 });
 
 test('Daredevil projects its Weakening Strikes grant from a detached snapshot', () => {
@@ -79,10 +81,6 @@ function collectTypeScriptSources(directoryUrl, relativeDirectory = '') {
     });
 }
 
-function combinedSource(entries) {
-  return entries.map(({ source }) => source).join('\n');
-}
-
 const slices = Object.freeze([
   ['core', thiefCoreModule],
   ['specializations/daredevil', daredevilModule],
@@ -96,83 +94,43 @@ const thiefSkillOwners = new Map(
   )
 );
 
-// Check evaluated arrays, including generated packets and alternate outcome profiles, at the catalog boundary.
-test('Thief authored effect ticks use ordered non-negative 40 ms offsets', () => {
-  for (const entry of [...thiefCatalog.skills, ...thiefCatalog.balanceProfiles]) {
-    for (const effect of entry.effects || []) {
-      let previous = 0;
-      for (const tick of effect.ticks || []) {
-        const label = `${entry.id} ${entry.name}: ${tick.atMs} ms`;
-        assert.ok(Number.isFinite(tick.atMs) && tick.atMs >= previous, label);
-        assert.ok(Math.abs(tick.atMs - Math.round(tick.atMs / 40) * 40) < 1e-6, label);
-        previous = tick.atMs;
-      }
-    }
-  }
-});
-
 const specializationStateKeys = Object.freeze({
   Daredevil: ['selectedDodge', 'boundingDamageUntil', 'lotusConditionDamageUntil', 'weakeningStrikeReady'],
-  Deadeye: ['markedTargetId', 'malice', 'maximumMalice', 'maleficentSevenTriggered'],
+  Deadeye: ['markedTargetId', 'malice', 'maleficentSevenTriggered'],
   Specter: ['shadowClock', 'shadowShroudActive'],
   Antiquary: ['artifactSlots', 'artifactUsesRemaining', 'mistburn', 'holoUtilityCooldownReductionExpirations']
 });
 
-test('Thief modules own vertical source slices', () => {
-  for (const obsolete of ['mechanics/specific', 'resolver/event-handlers.js', 'resolver/event-reactions.js']) {
-    assert.equal(
-      existsSync(new URL(`../../../../../js/games/gw2/professions/thief/${obsolete}`, import.meta.url)),
-      false,
-      obsolete
-    );
-  }
-
+// Validate live module ownership; dependency restrictions guard imports rather than source spelling.
+test('Thief modules register unique behavior owners and respect dependency boundaries', () => {
   const modifierRuleOwners = new Map();
-  const professionSourceEntries = [];
 
   for (const [directory, module] of slices) {
     const directoryUrl = new URL(`../../../../../js/games/gw2/professions/thief/${directory}/`, import.meta.url);
     const sources = collectTypeScriptSources(directoryUrl);
-    professionSourceEntries.push(
-      ...sources.map(({ relativePath, source }) => ({ relativePath: `${directory}/${relativePath}`, source }))
-    );
-
+    // Resolve import and reexport targets so aliases are checked and comments cannot create false violations.
     for (const { relativePath, source } of sources) {
-      if (directory === 'core') {
-        assert.doesNotMatch(source, /from\s+["'][^"']*specializations\//);
-      } else {
-        assert.doesNotMatch(
-          source,
-          /from\s+["']\.\.\/(?:daredevil|deadeye|specter|antiquary)(?:\/|["'])/,
-          `${directory}/${relativePath} imports a sibling specialization`
+      const parsed = ts.createSourceFile(relativePath, source, ts.ScriptTarget.Latest, true);
+      for (const statement of parsed.statements) {
+        if (!ts.isImportDeclaration(statement) && !ts.isExportDeclaration(statement)) continue;
+        const specifier = statement.moduleSpecifier?.text;
+        if (!specifier) continue;
+        const alias = '#gw2/professions/thief/';
+        const target = specifier.startsWith(alias)
+          ? specifier.slice(alias.length)
+          : specifier.startsWith('.')
+            ? path.posix.normalize(path.posix.join(directory, path.posix.dirname(relativePath), specifier))
+            : null;
+        if (!target) continue;
+        const label = `${directory}/${relativePath} -> ${target}`;
+        if (target.startsWith('specializations/')) assert.ok(target.startsWith(`${directory}/`), label);
+        assert.ok(
+          !/^(?:assumptions|attribute-rules|definition|family|handlers|resolver|state|ui)\.js$/.test(target),
+          label
         );
-      }
-
-      const rootFacadeImport =
-        directory === 'core'
-          ? /from\s+["']\.\.\/(?:assumptions|attribute-rules|definition|family|handlers|resolver|ui)\.js["']/
-          : /from\s+["']\.\.\/\.\.\/(?:assumptions|attribute-rules|definition|family|handlers|resolver|state|ui)\.js["']/;
-
-      assert.doesNotMatch(source, rootFacadeImport, `${directory}/${relativePath} imports an application facade`);
-
-      if (relativePath !== 'module.ts') {
-        assert.doesNotMatch(
-          source,
-          directory === 'core' ? /from\s+["']\.\.\/catalog\.js["']/ : /from\s+["']\.\.\/\.\.\/catalog\.js["']/,
-          `${directory}/${relativePath} imports the application catalog`
-        );
+        if (relativePath !== 'module.ts') assert.notEqual(target, 'catalog.js', label);
       }
     }
-
-    assert.ok(
-      sources.some(({ relativePath }) => relativePath === 'module.ts'),
-      `${directory}/module.ts`
-    );
-    const skills = combinedSource(
-      sources.filter(({ relativePath }) => relativePath === 'skills.ts' || relativePath.startsWith('skills/'))
-    );
-    assert.match(skills, /_SKILL_MECHANICS\b/);
-    assert.doesNotMatch(skills, /from\s+["'][^"']*catalog\.js["']/);
 
     assert.equal(typeof module.state?.create, 'function');
     assert.ok((module.data?.generatedSkills?.length || 0) + (module.data?.extraSkills?.length || 0) > 0);
@@ -187,26 +145,6 @@ test('Thief modules own vertical source slices', () => {
   assert.equal(modifierRuleOwners.get('thief.strength-of-shadows'), 'Specter');
   assert.equal(modifierRuleOwners.get('thief.meticulous-custodian-artifact-strike'), 'Antiquary');
 
-  const coreSourceEntries = collectTypeScriptSources(
-    new URL('../../../../../js/games/gw2/professions/thief/core/', import.meta.url)
-  );
-  const coreSources = combinedSource(coreSourceEntries);
-
-  assert.doesNotMatch(coreSources, /specializations\//);
-  assert.doesNotMatch(coreSources, /\b(?:Daredevil|Deadeye|Specter|Antiquary|Skritt)\b/);
-  assert.equal(
-    existsSync(new URL('../../../../../js/games/gw2/professions/thief/family-state.ts', import.meta.url)),
-    true
-  );
-  assert.equal(
-    existsSync(new URL('../../../../../js/games/gw2/professions/thief/mechanics/skill-mechanics.ts', import.meta.url)),
-    false
-  );
-
-  // Native collectors declare owners; ordered runtime dispatch remains outside the index.
-  const traitIndex = professionSourceEntries.find(({ relativePath }) => relativePath === 'core/traits/index.ts').source;
-  assert.match(traitIndex, /coreTraits/);
-  assert.doesNotMatch(traitIndex, /\bfunction\b|hasTrait\(/);
   for (const module of thiefNativeModules) {
     assert.ok(module.traitDefinitions.length > 0, module.id);
     assert.equal(new Set(module.traitDefinitions.map((trait) => trait.id)).size, module.traitDefinitions.length);

@@ -5,7 +5,7 @@ import path from 'node:path';
 import ts from 'typescript';
 import test from 'node:test';
 import { fileURLToPath } from 'node:url';
-import { COMMON_EVENT_TYPES } from '#gw2/platform/engine/events/events.js';
+import { COMMON_EVENT_TYPES } from '#gw2/platform/events/events.js';
 import { professionRegistry } from '#gw2/profession-registry.js';
 import { createProfessionWeaponData, WEAPON_DATA } from '#gw2/platform/equipment/weapons/data.js';
 import { BUILD_SCHEMA_VERSION, migrateMesmerBuild, validateMesmerBuild } from '#gw2/professions/mesmer/build/build.js';
@@ -163,9 +163,10 @@ test('Mesmer state creation and planning projections are profession owned', () =
 
   assert.equal(Object.hasOwn(state.specialization.state, 'nextForgeAt'), false);
   assert.equal(Object.hasOwn(projected, 'nextForgeAt'), false);
-  assert.equal(state.specialization.state.numericResource, 3);
-  assert.equal(projected.resource, 3);
-  assert.equal(projected.resourceDefinition.singular, 'blade');
+  assert.equal(state.specialization.state.blades.value, 3);
+  assert.equal(projected.blades.value, 3);
+  assert.equal(projected.blades.maximum, 5);
+  assert.equal(Object.hasOwn(projected, 'resource'), false);
   assert.equal(mesmerProfession.id, 'mesmer');
   assert.equal(Object.hasOwn(virtuosoRuntime.reactions, 'damage.resolved'), true);
   assert.equal(typeof virtuosoRuntime.reactions['control.resolved'], 'function');

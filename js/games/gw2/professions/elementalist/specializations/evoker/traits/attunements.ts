@@ -1,18 +1,19 @@
+import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
-import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
-import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
-import { denyCast } from '#gw2/platform/engine/skills/availability.js';
+import type { SimulationEvent } from '#gw2/platform/events/events.js';
+import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
+import { denyCast } from '#gw2/platform/execution/availability.js';
 import {
   balanceProfileNumber,
   requireBalanceProfileFromContext,
   requireEffect
-} from '#gw2/platform/engine/skills/balance-profiles.js';
-import { gw2BaseRecharge } from '#gw2/platform/engine/skills/recharge.js';
-import type { Skill } from '#gw2/platform/engine/skills/types.js';
+} from '#gw2/platform/skills/balance-profiles.js';
+import { gw2BaseRecharge } from '#gw2/platform/execution/recharge.js';
+import type { Skill } from '#gw2/platform/skills/types.js';
 import type { AvailabilityResult } from '#gw2/platform/execution/types.js';
-import type { EffectDelivery } from '#gw2/platform/simulation/effect-emission.js';
-import type { RuntimeCast } from '#gw2/platform/simulation/runtime-state.js';
-import { gw2EffectExpiresAt } from '#gw2/platform/skills/timing.js';
+import type { EffectDelivery } from '#gw2/platform/effects/emission.js';
+import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
+import { gw2EffectExpiresAt } from '#gw2/platform/effects/timing.js';
 import { elementalistBuffRequest } from '#gw2/professions/elementalist/core/events.js';
 import {
   targetAttunement,
@@ -147,10 +148,7 @@ export function applyEvokerEntryTraits(context: ElementalistRuntime, event: Simu
   // Elemental Dynamo turns each entry into familiar charges and reports the new total
   if (!hasTrait(context, TRAIT.ELEMENTAL_DYNAMO)) return;
   const elementalDynamoProfile = requireBalanceProfileFromContext(context, TRAIT.ELEMENTAL_DYNAMO);
-  state.charges = Math.min(
-    state.maximumCharges,
-    state.charges + balanceProfileNumber(elementalDynamoProfile, 'resourceGain')
-  );
+  context.resourceController.grant('familiarCharges', balanceProfileNumber(elementalDynamoProfile, 'resourceGain'));
   context.effects.emit({
     kind: 'packet',
     cause: event,
@@ -162,9 +160,9 @@ export function applyEvokerEntryTraits(context: ElementalistRuntime, event: Simu
       actorType: 'player',
       skillName: 'Elemental Dynamo',
       kind: 'evoker-charges',
-      value: state.charges,
-      maximum: state.maximumCharges,
-      empowered: state.empowered
+      value: state.familiarCharges.value,
+      maximum: state.familiarCharges.maximum,
+      empowered: state.empoweredCharges.value
     }
   });
 }
@@ -317,7 +315,10 @@ export function initializeSpecializedElements(context: ElementalistRuntime): voi
 }
 
 /** A selected fixed element rejects manual attunement swaps before familiar availability checks. */
-export function specializedElementsAvailability(context: ElementalistRuntime, skill: Skill): AvailabilityResult {
+export function specializedElementsAvailability(
+  context: MechanicQueriesOf<ElementalistRuntime>,
+  skill: Skill
+): AvailabilityResult {
   return targetAttunement(skill) && hasTrait(context, TRAIT.SPECIALIZED_ELEMENTS)
     ? denyCast(
         'elementalist.specialized-elements',

@@ -1,10 +1,10 @@
-import { skillFlipReady, armSkillFlip } from '#gw2/platform/engine/skills/skill-flips.js';
+import { skillFlipReady, armSkillFlip } from '#gw2/platform/execution/skill-flips.js';
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { engineerCatalog, engineerProfession } from '#gw2/professions/engineer/profession.js';
 import { ENGINEER_SKILL_IDS as ID } from '#gw2/professions/engineer/data/ids.js';
-import { engineerSpearSideEffectHandlers } from '#gw2/professions/engineer/core/mechanics/weapons.js';
-import { applySkillSideEffects } from '#gw2/platform/simulation/side-effects.js';
+import { engineerSpearSideEffectHandlers } from '#gw2/professions/engineer/core/mechanics/spear.js';
+import { applySkillSideEffects } from '#gw2/platform/effects/action-dispatch.js';
 import { withSkill } from '#tests/helpers/catalog-overrides.js';
 import { runEngineer } from '#tests/helpers/engineer-simulation.js';
 import { observedRuntime } from '#tests/helpers/observed-runtime.js';
@@ -60,7 +60,6 @@ test('Devastator samples Focused at its task deadline and requires a committed c
     assert.deepEqual(result.warnings, []);
     const followup = result.resolvedEvents.filter((event) => event.sourceId === ID.FOCUSED_DEVASTATION);
     assert.equal(followup.length > 0, focused && !cancelled && !removeTask);
-    assert.ok(followup.every((event) => event.at >= (result.steps[0].start + result.steps[0].fullCastMs) / 1000));
   }
 });
 

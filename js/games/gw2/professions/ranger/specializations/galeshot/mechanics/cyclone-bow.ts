@@ -1,10 +1,10 @@
-import { denySkillCast as deny } from '#gw2/platform/engine/skills/availability.js';
+import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
+import { denySkillCast as deny } from '#gw2/platform/execution/availability.js';
 import {
-  balanceProfileNumber,
   effectNumber,
   requireBalanceProfileFromContext,
   requireEffect
-} from '#gw2/platform/engine/skills/balance-profiles.js';
+} from '#gw2/platform/skills/balance-profiles.js';
 import type { AvailabilityResult } from '#gw2/platform/execution/types.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import { buildRangerStrikes, buildRangerPacket } from '#gw2/professions/ranger/core/events.js';
@@ -94,7 +94,10 @@ function applyMistral(context: RangerRuntime, event: Gw2ResolverEvent): void {
 // Gate Galeshot casts by Cyclone Bow ownership, arrows, Wind Force, and the
 // Perilous Skies replacement before the shared Ranger checks run.
 
-export function galeshotCastAvailability(context: RangerRuntime, skill: RangerSkill): AvailabilityResult {
+export function galeshotCastAvailability(
+  context: MechanicQueriesOf<RangerRuntime>,
+  skill: RangerSkill
+): AvailabilityResult {
   const state = galeshotState.from(context);
   if (skill.cycloneBowSkill && !state.cycloneBowActive) {
     return deny(skill, 'ranger.cyclone-bow-inactive', 'summon the Cyclone Bow first.');
@@ -112,15 +115,14 @@ export function galeshotCastAvailability(context: RangerRuntime, skill: RangerSk
     return deny(skill, 'ranger.arrows', `requires ${skill.arrowCost} arrows.`);
   }
 
-  const maximumWindForce = balanceProfileNumber(
-    requireBalanceProfileFromContext(context, PROFILE.resources),
-    'minimumStacks'
-  );
-  if (skill.id === ID.HAWKEYE && state.windForce < maximumWindForce) {
+  // Availability and the palette share the selected pool's cap, including isolated catalog overrides.
+  const maximumWindForce = state.windForce.maximum;
+  const windForce = context.resourceController.value('windForce');
+  if (skill.id === ID.HAWKEYE && windForce < maximumWindForce) {
     return deny(skill, 'ranger.wind-force', `requires ${maximumWindForce} Wind Force.`);
   }
 
-  if (skill.id === ID.KEEN_SHOT && state.windForce >= maximumWindForce) {
+  if (skill.id === ID.KEEN_SHOT && windForce >= maximumWindForce) {
     return deny(skill, 'ranger.hawkeye-ready', `Hawkeye replaces Keen Shot at ${maximumWindForce} Wind Force.`);
   }
 

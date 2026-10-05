@@ -4,8 +4,8 @@ import { relicIdForName } from '#gw2/platform/equipment/relics/catalog.js';
 import { isInternalCooldownReady } from '#gw2/platform/combat/procs.js';
 import { isGw2PlayerActorEvent, isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
 import { targetHasCondition } from '#gw2/platform/combat/state/targets.js';
-import { gw2EffectExpiresAt } from '#gw2/platform/skills/timing.js';
-import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
+import { gw2EffectExpiresAt } from '#gw2/platform/effects/timing.js';
+import type { SimulationEvent } from '#gw2/platform/events/events.js';
 import type { Gw2RelicState, Gw2RelicContext, Gw2RelicRule } from '#gw2/platform/equipment/relics/types.js';
 
 interface TimedBuffProcOptions {

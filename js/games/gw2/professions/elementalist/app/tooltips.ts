@@ -16,6 +16,14 @@ import {
   type ProfessionTooltips
 } from '#gw2/app/shared/simulation-tooltip.js';
 import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
+import { CONDITION_FORMULAS } from '#gw2/platform/combat/formulas.js';
+import {
+  elementalProcessionEffects,
+  IGNITE_TIERS,
+  igniteTierEffect,
+  projectIgniteEffects
+} from '#gw2/professions/elementalist/specializations/evoker/mechanics/familiar-projection.js';
+import { familiarBlessingEffects } from '#gw2/professions/elementalist/specializations/evoker/traits/familiar-blessing.js';
 import {
   AURA_TRANSMUTE_SKILLS,
   CONJURE_PICKUP_WEAPONS,
@@ -512,30 +520,29 @@ export const elementalistTooltips: ProfessionTooltips = {
     [ID.ELEMENTAL_PROCESSION]: skillTooltip(
       'Release the direct effects of all four empowered familiars as independent sequences. Trigger Altruistic Aspect when selected.',
       (balanceContext) =>
-        [ID.CONFLAGRATION, ID.BUOYANT_DELUGE, ID.LIGHTNING_BLITZ, ID.SEISMIC_IMPACT].flatMap((id) => {
-          const familiar = balanceContext.catalog.skillsById.get(id);
-          if (!familiar) throw new Error(`Missing familiar tooltip skill: ${id}`);
-          return simulationEffectFacts(
-            familiar.effects?.filter((effect) => ['strike', 'condition', 'blind', 'control'].includes(effect.type)),
-            familiar.name
-          ).facts;
-        })
+        elementalProcessionEffects(balanceContext.catalog.skillsById).flatMap(
+          ({ familiar, effects }) => simulationEffectFacts(effects, familiar.name).facts
+        )
     ),
     [ID.IGNITE]: (balanceContext, entity) => {
       const familiar = balanceContext.catalog.skillsById.get(entity.id);
       if (!familiar) throw new Error(`Missing familiar tooltip skill: ${entity.id}`);
+      // Each alternative projects the surviving native packets, exactly as an accepted consecutive-use tier does.
+      const tiers = IGNITE_TIERS.map((label, tier) => ({
+        label,
+        model: simulationEffectFacts(
+          projectIgniteEffects(familiar.effects ?? [], igniteTierEffect(balanceContext, tier))
+        )
+      }));
       return {
         description:
           "Spend the full familiar charge bar and add an empowered stack. Ignite's Burning duration advances through consecutive-use tiers and resets after inactivity. The last tier repeats until reset. Each listed duration replaces the native Burning duration.",
         facts: [
-          ...simulationEffectFacts(familiar.effects?.filter((effect) => effect.type !== 'condition')).facts,
-          ...simulationEffectFacts(
-            tooltipProfile(balanceContext, EVOKER.ignite).effects,
-            'alternative Burning duration per application; consecutive-use tier'
-          ).facts,
           profileFact(balanceContext, EVOKER.ignite, 'threshold', 'Inactivity before tier reset', tooltipSeconds),
           profileFact(balanceContext, EVOKER.resources, 'maximumStacks', 'Familiar charges required')
-        ]
+        ],
+        factTabs: tiers.map(({ label, model }) => ({ label, facts: model.facts })),
+        incomplete: tiers.some(({ model }) => model.incomplete)
       };
     },
     [ID.ZAP]: skillTooltip(
@@ -750,8 +757,12 @@ export const elementalistTooltips: ProfessionTooltips = {
     [TRAIT.INFERNO]: traitTooltip(
       'Burning scales with power instead of condition damage, retaining the shared burning base damage.',
       [
-        // Display the burning rate from the same Power conversion used by the condition query.
-        ['coefficientMultiplier', 'Burning damage per second per power', (value) => tooltipDecimal(value * 0.155)]
+        // Display the Power conversion using combat's canonical Burning scaling.
+        [
+          'coefficientMultiplier',
+          'Burning damage per second per power',
+          (value) => tooltipDecimal(value * CONDITION_FORMULAS.Burning.scaling)
+        ]
       ]
     ),
     [TRAIT.ARCANE_PROWESS]: traitTooltip('Changing attunement grants might.'),
@@ -1013,12 +1024,11 @@ export const elementalistTooltips: ProfessionTooltips = {
         fromModifier('elementalist.familiars-prowess-condition', 'focusedAmount', 'Fire condition damage')
       ]
     ),
-    [TRAIT.FAMILIARS_BLESSING]: (balanceContext, entity) => ({
+    [TRAIT.FAMILIARS_BLESSING]: (balanceContext) => ({
       description:
         'Completing a Fire or Air familiar grants quickness. Water or Earth familiars grant alacrity instead.',
-      facts: (tooltipProfile(balanceContext, entity.id).effects || []).flatMap(
-        (effect, index) =>
-          simulationEffectFacts([effect], index === 0 ? 'Fire / Air familiar' : 'Water / Earth familiar').facts
+      facts: familiarBlessingEffects(balanceContext).flatMap(
+        ({ elements, effect }) => simulationEffectFacts([effect], `${elements.join(' / ')} familiar`).facts
       )
     }),
     [TRAIT.ELEMENTAL_DYNAMO]: traitTooltip('Entering your selected familiar element grants familiar charges.', [

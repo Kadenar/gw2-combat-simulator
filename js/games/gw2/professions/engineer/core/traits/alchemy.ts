@@ -1,13 +1,9 @@
-import { defineTrait, traitAttributeEffects } from '#gw2/platform/profession-definition/traits.js';
-import { ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
-import { isElixirSkill, prepareEngineerHghEvent } from '#gw2/professions/engineer/core/traits/behavior.js';
-import {
-  balanceProfileNumber,
-  requireBalanceProfileFromContext
-} from '#gw2/platform/engine/skills/balance-profiles.js';
-import { activeBoonStacks } from '#gw2/platform/combat/query/runtime-query.js';
 import { missesTarget } from '#gw2/platform/combat/state/targets.js';
+import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import { defineTrait, traitAttributeEffects } from '#gw2/platform/profession-definition/traits.js';
+import { isElixirSkill, prepareEngineerHghEvent } from '#gw2/professions/engineer/core/traits/behavior.js';
 import { isEngineerToolbeltSkill } from '#gw2/professions/engineer/core/traits/toolbelt.js';
+import { ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
 
 // In-game "disable" reminder: stun, daze, knockback, pull, knockdown, sink, float, launch, taunt, and fear.
 const DISABLE_CONTROL_KINDS = new Set([
@@ -73,7 +69,7 @@ export const boilingPoint = defineTrait({
       when: (runtime, event) =>
         (event.kind || '').toLowerCase() === 'might' &&
         Boolean(event.resolvedAudience?.includesSelf) &&
-        activeBoonStacks({ config: runtime.config, runtime, time: event.at }, 'might') >=
+        runtime.combat.activeBoonStacks('might', event.at) >=
           balanceProfileNumber(requireBalanceProfileFromContext(runtime, TRAIT.BOILING_POINT), 'threshold'),
       attribution: { name: 'Boiling Point — fury' }
     }

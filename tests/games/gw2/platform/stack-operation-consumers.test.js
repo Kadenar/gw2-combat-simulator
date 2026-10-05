@@ -2,11 +2,11 @@ import { captureEffectEmissions } from '#tests/helpers/effect-emission.js';
 import { withProfile } from '#tests/helpers/catalog-overrides.js';
 import { projectObservedState } from '#tests/helpers/observed-runtime.js';
 import { thiefProfession } from '#gw2/professions/thief/profession.js';
-import { snapshotProfessionState } from '#gw2/platform/engine/profession/state.js';
+import { snapshotProfessionState } from '#gw2/platform/profession-definition/state.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { thiefCatalog } from '#gw2/professions/thief/profession.js';
-import { landThiefAxe } from '#gw2/professions/thief/core/mechanics/weapons.js';
+import { landThiefAxe } from '#gw2/professions/thief/core/mechanics/axes.js';
 import { runThief } from '#tests/helpers/thief-simulation.js';
 import { triggerSharpeningStone } from '#gw2/professions/ranger/core/mechanics/skill-reactions.js';
 import { rangerCatalog } from '#gw2/professions/ranger/profession.js';
@@ -60,9 +60,10 @@ test('Holo-Dancer commits spend grant order even when the newest charge expires 
   const runtime = observedRuntime(result);
   // The accepted utility spends the oldest live entry, skipping the one already expired at its start.
   assert.deepEqual(runtime.profession.specialization.state.holoUtilityCooldownReductionExpirations, [5]);
-  const reduced = runtime.cooldowns.get(skill.id) - result.steps[0].start / 1000;
+  const reduced = runtime.cooldownController.readyAt(skill.id) - result.steps[0].start / 1000;
   const unreduced =
-    observedRuntime(runThief(['Prepare Pitfall'], config)).cooldowns.get(skill.id) - result.steps[0].start / 1000;
+    observedRuntime(runThief(['Prepare Pitfall'], config)).cooldownController.readyAt(skill.id) -
+    result.steps[0].start / 1000;
   assert.ok(Math.abs(reduced - unreduced * 0.2) < 1e-9);
   assert.deepEqual(
     projectObservedState(thiefProfession, { profession: runtime.profession, time: 5 })
@@ -73,8 +74,8 @@ test('Holo-Dancer commits spend grant order even when the newest charge expires 
 });
 
 test('Sharpening Stone prunes excluded hits and spends the earliest surviving expiry on player strikes', () => {
-  const prior = Object.freeze([1, 5, 30]);
-  const core = { sharpeningStoneExpirations: prior };
+  const prior = Object.freeze([1, 5, 30].map((expiresAt) => ({ charges: 1, expiresAt })));
+  const core = { sharpeningStoneGrants: prior };
   const queued = [];
   const context = {
     catalog: rangerCatalog,
@@ -83,13 +84,19 @@ test('Sharpening Stone prunes excluded hits and spends the earliest surviving ex
   };
   const event = { type: 'damage', at: 1, actorType: 'effect', coefficient: 1 };
   triggerSharpeningStone(context, event);
-  assert.deepEqual(core.sharpeningStoneExpirations, [5, 30]);
+  assert.deepEqual(
+    core.sharpeningStoneGrants,
+    [5, 30].map((expiresAt) => ({ charges: 1, expiresAt }))
+  );
   assert.deepEqual(queued, []);
   triggerSharpeningStone(context, { ...event, actorType: 'player' });
-  assert.deepEqual(core.sharpeningStoneExpirations, [30]);
+  assert.deepEqual(core.sharpeningStoneGrants, [{ charges: 1, expiresAt: 30 }]);
   assert.equal(queued.length, 1);
   assert.equal(queued[0].condition, 'Bleeding');
-  assert.deepEqual(prior, [1, 5, 30]);
+  assert.deepEqual(
+    prior,
+    [1, 5, 30].map((expiresAt) => ({ charges: 1, expiresAt }))
+  );
 });
 
 // Live control replaces oldest grants without mutating an earlier pool or public snapshot.

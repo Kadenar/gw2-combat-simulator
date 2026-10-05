@@ -1,13 +1,12 @@
-/** Owns the simulation/config.ts contracts so type dependencies follow their runtime feature boundaries. */
-import type { SimulationRandomnessConfig } from '#kernel/core/simulation-random.js';
-import type { TransitionDelays } from '#gw2/platform/skills/transition-delays.js';
-import type { Gw2AttributeProvenance, ProfessionBuildAssumptions } from '#gw2/platform/builds/types.js';
 import type { Gw2SelectedSkillLoadout } from '#gw2/platform/builds/selected-skills.js';
+import type { Gw2AttributeProvenance, ProfessionBuildAssumptions } from '#gw2/platform/builds/types.js';
+import type { Gw2CriticalDamageMode } from '#gw2/platform/combat/critical-damage-mode.js';
 import type { Gw2TargetConfig } from '#gw2/platform/combat/state/targets.js';
-import type { Gw2SigilSet } from '#gw2/platform/equipment/sigils/types.js';
 import type { Gw2Stats } from '#gw2/platform/combat/types.js';
-
-export type Gw2CriticalDamageMode = 'averaged' | 'rolled';
+import type { Gw2SigilSet } from '#gw2/platform/equipment/sigils/types.js';
+import type { TransitionDelays } from '#gw2/platform/execution/transition-lockouts.js';
+import type { SimulationRandomnessConfig } from '#kernel/core/simulation-random.js';
+/** Owns the simulation/config.ts contracts so type dependencies follow their runtime feature boundaries. */
 
 export interface Gw2Config {
   /** Active elite specialization, or "Core"; profession runtimes resolve their module set from it. */

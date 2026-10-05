@@ -1,25 +1,24 @@
 import {
   createDiscreteResourceClock,
+  createResourceClock,
   type DiscreteResourceClock,
   type ResourcePolicy
 } from '#gw2/platform/combat/resources/resource-policy.js';
-import {
-  requireBalanceProfileFromContext,
-  balanceProfileNumber
-} from '#gw2/platform/engine/skills/balance-profiles.js';
+import { requireBalanceProfileFromContext, balanceProfileNumber } from '#gw2/platform/skills/balance-profiles.js';
 import { GALESHOT_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/ranger/specializations/galeshot/profiles.js';
 import type { RangerRuntime } from '#gw2/professions/ranger/types.js';
 import {
   definePublicStateDefaults,
   defineProfessionSpecializationState
-} from '#gw2/platform/engine/profession/state.js';
+} from '#gw2/platform/profession-definition/state.js';
 import type { RangerConfig, RangerState } from '#gw2/professions/ranger/types.js';
 import { boundedNumber } from '#kernel/core/numeric.js';
+import type { ResourceClock } from '#gw2/platform/combat/resources/clock.js';
 
 export interface GaleshotState {
   cycloneBowActive: boolean;
   arrows: DiscreteResourceClock;
-  windForce: number;
+  windForce: ResourceClock;
   galeForceUntil: number;
   mistralUntil: number;
   mistralPathOfScars: Record<string, boolean>;
@@ -34,7 +33,7 @@ export interface GaleshotState {
 export const GALESHOT_PUBLIC_STATE_PROJECTION = definePublicStateDefaults({
   cycloneBowActive: false,
   arrows: createDiscreteResourceClock(8),
-  windForce: 0,
+  windForce: createResourceClock(),
   galeForceUntil: 0,
   mistralUntil: 0,
   wutheringWindReady: false,
@@ -46,7 +45,7 @@ function createGaleshotState(config: RangerConfig = {}): GaleshotState {
   return {
     cycloneBowActive: false,
     arrows: createDiscreteResourceClock(boundedNumber(config.initialArrows ?? 8, 8, 0, 8)),
-    windForce: 0,
+    windForce: createResourceClock(),
     galeForceUntil: 0,
     mistralUntil: 0,
     // An enhanced axe retains Mistral until its returning contact resolves.
@@ -62,6 +61,16 @@ function createGaleshotState(config: RangerConfig = {}): GaleshotState {
 }
 
 export const galeshotState = defineProfessionSpecializationState('Galeshot', createGaleshotState);
+
+/** Wind Force starts empty; owned cast-relative tasks grant it without passive recovery. */
+export const galeshotWindForce: ResourcePolicy<RangerRuntime> = {
+  kind: 'continuous',
+  state: (context) => galeshotState.from(context).windForce,
+  maximum: (context) =>
+    balanceProfileNumber(requireBalanceProfileFromContext(context, PROFILE.resources), 'minimumStacks'),
+  initial: () => 0,
+  recovery: () => 0
+};
 
 /** Fixed-cadence arrows use the selected profile without profession-owned clock advancement. */
 export const galeshotArrows: ResourcePolicy<RangerRuntime> = {

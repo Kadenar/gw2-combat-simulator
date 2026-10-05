@@ -8,16 +8,17 @@ import type { MesmerRuntime } from '#gw2/professions/mesmer/types.js';
 
 /** Flute adds 25% to base recovery only during its committed playing window, alongside Vigor's 50%. */
 export const troubadourEndurance: EndurancePolicy<MesmerRuntime> = {
-  state: (context) => troubadourState.from(context),
+  state: (context) => troubadourState.from(context).endurance,
   maximum: () => 100,
   regenerationBoundaries: (context) =>
-    context.history
+    context.facts
+      .read()
       .filter((event) => event.type === 'mesmer.instrument')
       .filter((event) => event.instrument === 'Flute')
       .flatMap((event) => [event.at, Number(event.expiresAt)]),
   regenerationRate: (context, vigor, at) => {
     const flutePlaying = activeTroubadourInstrumentsAt(
-      context.history.filter((event) => event.type === 'mesmer.instrument'),
+      context.facts.read().filter((event) => event.type === 'mesmer.instrument'),
       at
     ).has('Flute');
     const fluteBonus = symphonicResonanceEndurance(context, flutePlaying);

@@ -13,8 +13,9 @@ import {
 import { observeBuffState, type BuffStatePolicy, type EffectState } from '#gw2/platform/combat/effect-state.js';
 import { effectStateRevision } from '#gw2/platform/combat/effect-revisions.js';
 import type { Gw2ResolverConditionState } from '#gw2/platform/resolver/condition-resolution.js';
-import type { EffectRecorder } from '#gw2/platform/results/effect-report.js';
-import type { Gw2Runtime, RuntimeProfession } from '#gw2/platform/simulation/runtime-state.js';
+import type { EffectReportObserver } from '#gw2/platform/results/effect-report.js';
+import type { Gw2Runtime } from '#gw2/platform/simulation/runtime-state.js';
+import type { RuntimeProfession } from '#gw2/platform/profession-definition/runtime-contract.js';
 
 interface BuffObservation {
   readonly applications: readonly Gw2TimedBuffApplication[];
@@ -114,7 +115,7 @@ function visitRuntimeEffects<T extends object>(
   for (const kind of ['sigil-severance', 'target-crippled', 'time-bomb', 'stealth', 'superspeed'])
     policies.set(kind, { kind, maximumStacks: 1 });
   const nativeKinds = new Set<string>();
-  for (const policy of profession.buffPolicies?.(runtime) ?? []) {
+  for (const policy of profession.buffPolicies?.(runtime.mechanicQueries) ?? []) {
     if (nativeKinds.has(policy.kind)) throw new TypeError(`Duplicate profession buff policy: ${policy.kind}`);
     nativeKinds.add(policy.kind);
     if (isStandardBoon(policy.kind))
@@ -122,7 +123,7 @@ function visitRuntimeEffects<T extends object>(
     policies.set(policy.kind, policy);
   }
 
-  const owned = (profession.observeEffects?.(runtime) ?? []).map((state) => ({
+  const owned = (profession.observeEffects?.(runtime.mechanicQueries) ?? []).map((state) => ({
     ...state,
     source:
       state.source ??
@@ -259,7 +260,7 @@ export function observeRuntimeEffects<T extends object>(
 }
 
 interface RuntimeCapture {
-  readonly recorder: EffectRecorder;
+  readonly recorder: EffectReportObserver;
   readonly scopes: Map<string, readonly EffectState[]>;
 }
 const runtimeCaptures = new WeakMap<object, RuntimeCapture>();

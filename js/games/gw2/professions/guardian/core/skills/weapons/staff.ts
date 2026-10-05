@@ -1,6 +1,6 @@
 /** Canonical Core guardian skill fragments grouped by their GW2 owner. */
 import { GUARDIAN_SKILL_IDS as ID } from '#gw2/professions/guardian/data/ids.js';
-import type { Skill } from '#gw2/platform/engine/skills/types.js';
+import type { Skill } from '#gw2/platform/skills/types.js';
 
 export const GUARDIAN_WEAPONS_STAFF_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
   [ID.BOLT_OF_WRATH]: {
@@ -27,12 +27,15 @@ export const GUARDIAN_WEAPONS_STAFF_SKILL_MECHANICS: Readonly<Record<number, Par
     ]
   },
   [ID.SYMBOL_OF_SWIFTNESS]: {
+    // Author symbol identity independently of the skill's display text.
+    tags: ['symbol'],
     castTimeMs: 520,
     // The symbol creates its four-second Light field when the cast completes.
     comboFields: [{ ownerId: 'guardian', fieldType: 'Light', duration: 4, startAnchor: 'castEnd' }],
     effects: [
       {
         type: 'strike',
+        metadata: { guardianSymbol: true },
         coefficient: 2.5,
         hits: 5,
         atMs: 0

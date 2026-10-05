@@ -1,23 +1,19 @@
-import { MODIFIER_TARGET, type Gw2ModifierRule, type Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
-import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
+import { MODIFIER_TARGET, type Gw2ModifierContext, type Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
 import { eventSkill } from '#gw2/platform/combat/query/runtime-query.js';
-import { thiefRuntimeSpecializationState } from '#gw2/professions/thief/core/modifiers.js';
-import type { DeadeyeState } from '#gw2/professions/thief/specializations/deadeye/state.js';
-import type { ThiefSimulationEvent } from '#gw2/professions/thief/types.js';
-import type { ThiefRuntime } from '#gw2/professions/thief/core/events.js';
+import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
+import { impactEffects } from '#gw2/platform/effects/authoring.js';
+import type { SkillEffect } from '#gw2/platform/effects/types.js';
+import { castWasInterrupted } from '#gw2/platform/execution/cast-timing.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
-import { grantThiefEndurance } from '#gw2/professions/thief/core/mechanics/resources.js';
-import { castWasInterrupted } from '#gw2/platform/skills/timing.js';
-import { deadeyeCastFacts } from '#gw2/professions/thief/specializations/deadeye/state.js';
-import {
-  balanceProfileNumber,
-  requireBalanceProfileFromContext
-} from '#gw2/platform/engine/skills/balance-profiles.js';
-import { DEADEYE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/thief/specializations/deadeye/profiles.js';
-import { deadeyeState } from '#gw2/professions/thief/specializations/deadeye/state.js';
-import { impactEffects } from '#gw2/platform/engine/effects/authoring.js';
+import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import type { Skill } from '#gw2/platform/skills/types.js';
+import type { ThiefRuntime } from '#gw2/professions/thief/core/events.js';
+import { thiefRuntimeSpecializationState } from '#gw2/professions/thief/core/state-queries.js';
 import { THIEF_SKILL_IDS as ID } from '#gw2/professions/thief/data/ids.js';
-import type { Skill, SkillEffect } from '#gw2/platform/engine/skills/types.js';
+import { DEADEYE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/thief/specializations/deadeye/profiles.js';
+import type { DeadeyeState } from '#gw2/professions/thief/specializations/deadeye/state.js';
+import { deadeyeCastFacts, deadeyeState } from '#gw2/professions/thief/specializations/deadeye/state.js';
+import type { ThiefSimulationEvent } from '#gw2/professions/thief/types.js';
 
 /** Rewrites only poison durations, keeping each malicious attack's formula and other effects intact. */
 function mapPoisonDurations(effects: readonly SkillEffect[], scaled: (duration: unknown) => number): SkillEffect[] {
@@ -57,7 +53,7 @@ export const DEADEYE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> =
         kind: 'stealth',
         duration: 3,
         stacks: 1,
-        when: (runtime) => deadeyeState.from(runtime).malice >= 3
+        when: (runtime) => deadeyeState.from(runtime).malice.value >= 3
       },
       { type: 'boon', boon: 'vigor', duration: 10, stacks: 1, audience: { recipients: 'party', maximumRecipients: 5 } },
       { type: 'condition', condition: 'Chilled', stacks: 1, duration: 3, actorType: 'player' }
@@ -81,7 +77,7 @@ export const DEADEYE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> =
         kind: 'stealth',
         duration: 3,
         stacks: 1,
-        when: (runtime) => deadeyeState.from(runtime).malice >= 3
+        when: (runtime) => deadeyeState.from(runtime).malice.value >= 3
       },
       {
         type: 'boon',
@@ -111,7 +107,7 @@ export const DEADEYE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> =
         kind: 'stealth',
         duration: 3,
         stacks: 1,
-        when: (runtime) => deadeyeState.from(runtime).malice >= 3
+        when: (runtime) => deadeyeState.from(runtime).malice.value >= 3
       },
       { type: 'boon', boon: 'fury', duration: 8, stacks: 1, audience: { recipients: 'party', maximumRecipients: 5 } },
       { type: 'blind', actorType: 'player', duration: 6 }
@@ -135,7 +131,7 @@ export const DEADEYE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> =
         kind: 'stealth',
         duration: 3,
         stacks: 1,
-        when: (runtime) => deadeyeState.from(runtime).malice >= 3
+        when: (runtime) => deadeyeState.from(runtime).malice.value >= 3
       },
       { type: 'condition', condition: 'Bleeding', stacks: 5, duration: 8, actorType: 'player' }
     ])
@@ -158,7 +154,7 @@ export const DEADEYE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> =
         kind: 'stealth',
         duration: 3,
         stacks: 1,
-        when: (runtime) => deadeyeState.from(runtime).malice >= 3
+        when: (runtime) => deadeyeState.from(runtime).malice.value >= 3
       },
       { type: 'boon', boon: 'might', duration: 12, stacks: 5, audience: { recipients: 'party', maximumRecipients: 5 } },
       { type: 'condition', condition: 'Weakness', stacks: 1, duration: 8, actorType: 'player' }
@@ -265,7 +261,7 @@ export const DEADEYE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> =
         kind: 'stealth',
         duration: 3,
         stacks: 1,
-        when: (runtime) => deadeyeState.from(runtime).malice >= 3
+        when: (runtime) => deadeyeState.from(runtime).malice.value >= 3
       },
       {
         type: 'boon',
@@ -295,7 +291,7 @@ export const DEADEYE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> =
         kind: 'stealth',
         duration: 3,
         stacks: 1,
-        when: (runtime) => deadeyeState.from(runtime).malice >= 3
+        when: (runtime) => deadeyeState.from(runtime).malice.value >= 3
       },
       {
         type: 'boon',
@@ -336,7 +332,7 @@ export const DEADEYE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> =
         kind: 'stealth',
         duration: 3,
         stacks: 1,
-        when: (runtime) => deadeyeState.from(runtime).malice >= 3
+        when: (runtime) => deadeyeState.from(runtime).malice.value >= 3
       },
       { type: 'boon', boon: 'aegis', duration: 5, stacks: 1, audience: { recipients: 'party', maximumRecipients: 5 } },
       { type: 'condition', condition: 'Poisoned', stacks: 2, duration: 8, actorType: 'player' }
@@ -378,7 +374,7 @@ export const DEADEYE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> =
         kind: 'stealth',
         duration: 3,
         stacks: 1,
-        when: (runtime) => deadeyeState.from(runtime).malice >= 3
+        when: (runtime) => deadeyeState.from(runtime).malice.value >= 3
       },
       { type: 'condition', condition: 'Immobilized', stacks: 1, duration: 1.5, actorType: 'player' }
     ])
@@ -680,7 +676,14 @@ export const DEADEYE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> =
             on: 'damage.resolved',
             actor: 'player',
             packets: 'first',
-            do: { type: 'resourceGrant', resource: 'initiative', amount: 2 }
+            // Keep the impact refund independently editable without changing its hit requirement.
+            do: {
+              type: 'resourceGrant',
+              id: 'initiative-refunded',
+              label: 'Initiative refunded',
+              resource: 'initiative',
+              amount: 2
+            }
           }
         ],
         coefficient: 1.5,
@@ -867,6 +870,8 @@ export const deadeyeSkillModifiers: readonly Gw2ModifierRule[] = [
 
 /** Called after Core observers and the shared first-landed latch, before malice consumption. */
 export function refundMaliciousTacticalStrike(runtime: ThiefRuntime, event: Gw2ResolverEvent): void {
-  if (event.skillId === ID.MALICIOUS_TACTICAL_STRIKE)
-    grantThiefEndurance(runtime, Number(event.deadeyeMaliceSnapshot || 0) * 10);
+  if (event.skillId === ID.MALICIOUS_TACTICAL_STRIKE) {
+    const enduranceGain = Number(event.deadeyeMaliceSnapshot || 0) * 10;
+    if (enduranceGain > 0) runtime.endurance.grant(enduranceGain);
+  }
 }

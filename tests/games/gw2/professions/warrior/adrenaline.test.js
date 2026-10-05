@@ -14,6 +14,6 @@ test('an unaffordable burst cannot partially spend the live adrenaline pool', ()
   assert.equal(result.steps[0].invalid, true);
   assert.match(result.warnings[0], /requires 10 adrenaline/);
   const core = observedRuntime(result).profession.core;
-  assert.equal(core.adrenaline, 6);
+  assert.equal(core.adrenaline.value, 6);
   assert.equal(Object.hasOwn(core, 'resource'), false);
 });

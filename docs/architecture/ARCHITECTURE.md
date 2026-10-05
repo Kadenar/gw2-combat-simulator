@@ -155,6 +155,47 @@ tome skills, including Scorched Aftermath, use `castCommit`; their field and dam
 
 `simulateGw2()` validates input and invokes `simulation/runtime.ts` exactly once.
 
+That entry assembles per-run services. `simulation/coordinator.ts` owns the heap, logical clock, causal scope, and
+advancement loop. `execution/cast-execution.ts` owns readiness, reservations, acceptance, commitment, and completion;
+the rotation driver consumes commands through its operations. `resolver/effect-delivery.ts` owns admission, deferred
+preparation, immediate condition settlement, target gates, and reaction settlement. `results/project-runtime.ts`
+projects the settled run without advancing it.
+
+Mechanic contributions use the explicit `RuntimeHooks` surface in `profession-definition/runtime-hooks.ts`; unknown
+fields and duplicate named handlers fail. Notification order, transform propagation, retry precedence, and policy
+selection remain explicit. Module declarations, rule compilation, and hook composition use
+`RuntimeHooks<State, TSkill>`; the broader `RuntimeProfession` contract belongs to the compiled profession, including
+its catalog, state factory, weapon eligibility, attack-chain overrides, and planning projection.
+
+All callback families use their canonical author capabilities. `profession-definition/runtime-context.ts` declares
+dedicated selection, content, recharge-anchor, capacity, cast-detail, and effect-ownership contexts. `effectOwner`
+receives only selected-catalog queries through `EffectOwnershipContext`; `castDetail` receives a `CastDetailContext`
+whose profession-state query exposes nested data as read-only and excludes stateful operations. These views are bound
+once per run, and accepted casts retain their concrete selected-catalog skill.
+
+`profession-definition/mechanic-context.ts` declares the shared mechanic capabilities. `MechanicQueryContext` gives
+selection and observation callbacks read-only profession state, service queries, and executed facts.
+`MechanicCombatContext` gives combat helpers mutable profession state and combat, emission, proc, and random services.
+`MechanicContext` extends that combat capability for lifecycle handlers with cast/resource/recharge operations, named
+scheduling, and explicit observation writes. None exposes the command cursor, shared heap, or report collections.
+
+`simulation/mechanic-context.ts` binds stable query and lifecycle views to the live run. `resolver/mechanic-services.ts`
+binds combat operations to their resolver-owned stores. `combat/history/executed-facts.ts` supplies the `facts` reader
+and `observations` writer independently of optional reports; pending work becomes history only when it executes.
+Professions inspect in-flight casts, query detached pending charge-release intent, and request lockouts through
+`castController`, without access to its maps. `execution/cooldowns.ts` privately owns all cooldown, recharge-progress,
+and ammo stores. Cast admission, live combat queries, and planning projection use controller operations and read-only
+observations. Live cooldown queries compare unrounded deadlines and settle only the requested magazine; cast admission
+and displayed deadlines retain their action-tick rounding.
+
+Dragon Trigger owns charging, release capture, charge-scaled packets, and expiry, with state defaults in its leaf state
+module. Its immutable release records are stored per run. Gunsaber transitions and Flow regeneration have separate
+owners. Photon Forge owns its task/action registration alongside the heat lifecycle. Mesmer's `family-mechanics.ts`
+binds separate resource, clone, shatter, and phantasm operations to explicit mechanic contexts. Selected definitions
+come from the build and patch; mutable counters and lifecycle state live in the profession's Core or specialization
+slice. No context-identity registry or shared controller aggregate is required. Specialization reactions dispatch
+explicitly after committed resource gains and shatters; Core completion still runs before Mimic.
+
 - One cursor, heap, profession/target state, resource controller, and RNG own the run.
 - Pending work is invisible to historical queries until it executes.
 - Score and detailed modes share mechanics. Detailed mode retains steps, reports, APM, and optional diagnostics.
@@ -176,7 +217,7 @@ The event clock, ordering, programmatic API, and snapshot documents describe the
 
 ## Events and resolution
 
-Schema (version 1) lives in `platform/engine/events/events.ts`:
+Schema (version 1) lives in `platform/events/events.ts`:
 
 ```js
 {

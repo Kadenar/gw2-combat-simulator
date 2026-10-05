@@ -347,7 +347,8 @@ test('all six Weaver spear dual declarations refresh the live primary only when 
                 // Change hands after acceptance so a snapshot-based implementation cannot pass.
                 runtime.profession.core.primaryAttunement = secondary;
                 runtime.profession.specialization.state.secondaryAttunement = mode === 'same' ? secondary : primary;
-                for (const id of Object.values(ELEMENTALIST_ATTUNEMENT_SKILL_IDS)) runtime.cooldowns.set(id, 20);
+                for (const id of Object.values(ELEMENTALIST_ATTUNEMENT_SKILL_IDS))
+                  runtime.cooldownController.setReadyAt(id, 20);
               }
             }
           ]
@@ -356,7 +357,7 @@ test('all six Weaver spear dual declarations refresh the live primary only when 
       assert.deepEqual(result.warnings, []);
       const runtime = observedRuntime(result);
       for (const [element, id] of Object.entries(ELEMENTALIST_ATTUNEMENT_SKILL_IDS))
-        assert.equal(runtime.cooldowns.has(id), !(mode === 'different' && element === secondary));
+        assert.equal(runtime.cooldownController.hasCooldown(id), !(mode === 'different' && element === secondary));
     }
 
     for (const specialization of ['Core', 'Tempest', 'Catalyst', 'Evoker'])
@@ -476,8 +477,8 @@ test('Elemental Procession replays only surviving familiar payloads without fami
     );
     assert.deepEqual(result.warnings, []);
     const state = observedRuntime(result).profession.specialization.state;
-    assert.equal(state.charges, 4);
-    assert.equal(state.empowered, 2);
+    assert.equal(state.familiarCharges.value, 4);
+    assert.equal(state.empoweredCharges.value, 2);
     assert.deepEqual(state.electricEnchantmentGrants, []);
     assert.equal(
       result.resolvedEvents.some(
@@ -717,7 +718,7 @@ test('overload declarations preserve full-channel eligibility and ordinary-befor
                 otherCasts: initial,
                 expiresAt: 30
               };
-              runtime.cooldowns.set(ELEMENTALIST_ATTUNEMENT_SKILL_IDS[skill.attunement], 60);
+              runtime.cooldownController.setReadyAt(ELEMENTALIST_ATTUNEMENT_SKILL_IDS[skill.attunement], 60);
             }
           }
         );
@@ -726,7 +727,7 @@ test('overload declarations preserve full-channel eligibility and ordinary-befor
         const ordinary = mode === 'cancelled' ? initial : initial + 1;
         const expected = mode === 'full' && id !== ID.OVERLOAD_WATER && ordinary < 3 ? ordinary + 2 : ordinary;
         assert.equal(runtime.profession.core.etchings[ETCHING_CHAINS[0].etching].otherCasts, expected);
-        assert.equal(runtime.cooldowns.get(ELEMENTALIST_ATTUNEMENT_SKILL_IDS[skill.attunement]), 60);
+        assert.equal(runtime.cooldownController.readyAt(ELEMENTALIST_ATTUNEMENT_SKILL_IDS[skill.attunement]), 60);
         assert.equal(
           result.events.some((event) => event.type === 'damage' && event.skillId === ID.LIGHTNING_JOLT),
           id === ID.OVERLOAD_AIR && mode === 'full'
@@ -752,7 +753,8 @@ test('Unravel settles after its traits and before another same-time completion o
             if (cast.skill.id === ID.UNRAVEL) runtime.schedule('test.timeline', runtime.time, 0, undefined, -100);
           }),
           initialize(runtime) {
-            for (const id of Object.values(ELEMENTALIST_ATTUNEMENT_SKILL_IDS)) runtime.cooldowns.set(id, 20);
+            for (const id of Object.values(ELEMENTALIST_ATTUNEMENT_SKILL_IDS))
+              runtime.cooldownController.setReadyAt(id, 20);
           },
           timeline: [
             {
@@ -761,7 +763,7 @@ test('Unravel settles after its traits and before another same-time completion o
                 observed = true;
                 assert.equal(runtime.profession.specialization.state.secondaryAttunement, removed ? secondary : 'Fire');
                 for (const id of Object.values(ELEMENTALIST_ATTUNEMENT_SKILL_IDS))
-                  assert.equal(runtime.cooldowns.has(id), removed);
+                  assert.equal(runtime.cooldownController.hasCooldown(id), removed);
               }
             }
           ]
@@ -810,14 +812,14 @@ test('sphere declarations spend once and derive live windows from their fields b
       assert.equal(state.sphereActiveUntil > 0, mode === 'full');
       if (mode !== 'removed') assert.equal(spent[0].value, 30 + spent[0].change);
       assert.equal(
-        state.energy,
+        state.catalystEnergy.value,
         30 +
           result.events
             .filter((event) => event.type === 'resource' && event.kind === 'catalyst-energy')
             .reduce((total, event) => total + event.change, 0)
       );
       // Without a field, accepted strikes can immediately earn energy again.
-      if (mode === 'field-removed') assert.ok(state.energy > spent[0].value);
+      if (mode === 'field-removed') assert.ok(state.catalystEnergy.value > spent[0].value);
       assert.ok(
         result.resolvedEvents.some(
           (event) => event.type === 'buff' && event.kind === 'quickness' && event.audience?.recipients === 'party'
@@ -866,8 +868,8 @@ test('familiar declarations reset their pools before deferred grants and the nex
               run(runtime) {
                 observed = true;
                 const state = runtime.profession.specialization.state;
-                assert.equal(state.charges, !removed && basic ? 2 : 6);
-                assert.equal(state.empowered, removed ? (basic ? 1 : 3) : basic ? 2 : 0);
+                assert.equal(state.familiarCharges.value, !removed && basic ? 2 : 6);
+                assert.equal(state.empoweredCharges.value, removed ? (basic ? 1 : 3) : basic ? 2 : 0);
                 assert.equal(state.activeFamiliarCast, null);
                 assert.equal(state.pendingWeaponChargeGains.length, removed ? 1 : 0);
               }
@@ -910,7 +912,8 @@ test('meditation declarations own their live-element bonuses and refill before A
         assert.deepEqual(result.warnings, []);
         const state = observedRuntime(result).profession.specialization.state;
         const buffs = result.resolvedEvents.filter((event) => event.type === 'buff');
-        if (id === ID.REJUVENATE) assert.equal(state.charges, removed ? 2 : state.maximumCharges);
+        if (id === ID.REJUVENATE)
+          assert.equal(state.familiarCharges.value, removed ? 2 : state.familiarCharges.maximum);
         if (id === ID.HARES_AGILITY) assert.equal(state.electricEnchantmentGrants.length > 0, !removed);
         if (id === ID.TOADS_FORTITUDE)
           assert.equal(

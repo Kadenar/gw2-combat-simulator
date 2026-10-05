@@ -1,16 +1,20 @@
-import { buildMesmerConditions, mesmerPacketOwner } from '#gw2/professions/mesmer/core/mechanics/packets.js';
-import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { remainingTargetHealthBelow } from '#gw2/platform/combat/state/target-health.js';
 import { missesTarget } from '#gw2/platform/combat/state/targets.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
-import { requireBalanceProfileFromContext, requireEffect } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
+import {
+  balanceProfileNumber,
+  requireBalanceProfileFromContext,
+  requireEffect
+} from '#gw2/platform/skills/balance-profiles.js';
+import type { Skill } from '#gw2/platform/skills/types.js';
 import { illusionSource } from '#gw2/professions/mesmer/core/mechanics/modifier-queries.js';
-import { mesmerMechanicsFor } from '#gw2/professions/mesmer/core/mechanics/runtime.js';
-import type { MesmerShatterResolution } from '#gw2/professions/mesmer/core/mechanics/shatter-types.js';
+import { buildMesmerConditions, mesmerPacketOwner } from '#gw2/professions/mesmer/core/mechanics/packets.js';
+import type { MesmerShatter, MesmerShatterResolution } from '#gw2/professions/mesmer/core/mechanics/shatter-types.js';
+import { MESMER_SKILL_IDS as ID, MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
+import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
 import type { MesmerRuntime } from '#gw2/professions/mesmer/types.js';
-import { MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
 
 /** Accepted player or summon control grants Vulnerability before imperative control reactions. */
 export const dazzling = defineTrait<MesmerSkill>({
@@ -165,7 +169,11 @@ export const rendingShatter = defineTrait<MesmerSkill>({
 });
 
 /** Preserve shatter impact timing while counting each clone or spent blade only once, including defensive shatters. */
-export function triggerRendingShatter(context: MesmerRuntime, resolution: MesmerShatterResolution): void {
+export function triggerRendingShatter(
+  context: MesmerRuntime,
+  shatter: MesmerShatter | undefined,
+  resolution: MesmerShatterResolution
+): void {
   if (!hasTrait(context, TRAIT.RENDING_SHATTER) || !resolution.traitHits.length) return;
   const effect = requireEffect(
     requireBalanceProfileFromContext(context, TRAIT.RENDING_SHATTER),
@@ -173,8 +181,8 @@ export function triggerRendingShatter(context: MesmerRuntime, resolution: Mesmer
     'Vulnerability'
   );
   if (!effect) return;
-  const mechanics = mesmerMechanicsFor(context);
-  const kind = mechanics.shatters[resolution.skill.id]?.kind;
+  // The dispatcher already resolved the active shatter; trait execution never reconstructs family controllers.
+  const kind = shatter?.kind;
   const hits =
     kind === 'blade-control' || kind === 'blade-defense'
       ? [{ at: resolution.traitHits[0].at, count: resolution.spent }]
@@ -184,11 +192,12 @@ export function triggerRendingShatter(context: MesmerRuntime, resolution: Mesmer
   for (const hit of hits) {
     if (hit.count <= 0) continue;
     buildMesmerConditions(
-      mechanics.context,
+      context,
       resolution.skill.name,
       hit.at,
       {
-        name: 'Vulnerability',
+        type: 'condition',
+        condition: 'Vulnerability',
         duration: effect.duration,
         stacks: Number(effect.stacks) * hit.count
       },
@@ -201,7 +210,7 @@ export function triggerRendingShatter(context: MesmerRuntime, resolution: Mesmer
         actorType: 'player'
       }
     ).forEach((packet) => {
-      mechanics.context.effects.emit({
+      context.effects.emit({
         ...resolution.delivery,
         kind: 'packet',
         event: packet,
@@ -212,13 +221,35 @@ export function triggerRendingShatter(context: MesmerRuntime, resolution: Mesmer
   }
 }
 
-export const mesmerDominationTraits = [
-  rendingShatter,
-  dazzling,
-  fragility,
-  viciousExpression,
-  empoweredIllusions,
-  mentalAnguish,
-  egotism,
-  bountifulBlades
-];
+/** The shared lifecycle owns entities; this trait supplies only its selected spawn policy. */
+export function bountifulBladesSpawnModifiers(
+  context: MesmerRuntime
+): Record<number, { countMultiplier: number; damageMultiplier: number }> {
+  if (!hasTrait(context, TRAIT.BOUNTIFUL_BLADES)) return {};
+  const bountifulBladesProfile = requireBalanceProfileFromContext(context, TRAIT.BOUNTIFUL_BLADES);
+  return {
+    [ID.PHANTASMAL_BERSERKER]: {
+      countMultiplier: balanceProfileNumber(bountifulBladesProfile, 'summons'),
+      damageMultiplier: balanceProfileNumber(bountifulBladesProfile, 'damageMultiplier')
+    }
+  };
+}
+
+/** Add trait-owned bounces before emission so base projectile commitment and targeting still apply. */
+export const bountifulBladesMirrorBlade: NonNullable<Skill['effectVariants']>[number] = {
+  when: (runtime) => hasTrait(runtime, TRAIT.BOUNTIFUL_BLADES),
+  profileId: TRAIT.BOUNTIFUL_BLADES,
+  transform: (_runtime, cast, effects) => [
+    ...(cast.skill.effects ?? []),
+    ...effects
+      .filter((effect) => effect.type === 'strike' && effect.name === 'Strike')
+      .map((effect) => ({
+        ...effect,
+        source: 'Player',
+        sourceId: TRAIT.BOUNTIFUL_BLADES,
+        actorType: 'player' as const,
+        name: 'Additional target hits from Bountiful Blades',
+        persistsAfterInterrupt: true
+      }))
+  ]
+};

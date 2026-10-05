@@ -1,4 +1,4 @@
-import { normalizeTransitionDelays, type TransitionDelays } from '#gw2/platform/skills/transition-delays.js';
+import { normalizeTransitionDelays, type TransitionDelays } from '#gw2/platform/execution/transition-lockouts.js';
 
 export interface SimulationSettings {
   transitionDelays: TransitionDelays;

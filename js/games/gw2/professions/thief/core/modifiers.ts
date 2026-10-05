@@ -1,11 +1,8 @@
 import { professionStaticRulesApplied } from '#gw2/platform/builds/attribute-provenance.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
-import { readProfessionCoreState, readProfessionSpecializationState } from '#gw2/platform/engine/profession/state.js';
-import {
-  balanceProfileNumber,
-  requireBalanceProfileFromContext
-} from '#gw2/platform/engine/skills/balance-profiles.js';
+import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import { thiefRuntimeState } from '#gw2/professions/thief/core/state-queries.js';
 import { applyRevealedTrainingAttributes } from '#gw2/professions/thief/core/traits/behavior.js';
 import { applyNoQuarterAttributes } from '#gw2/professions/thief/core/traits/critical-boons.js';
 
@@ -13,21 +10,7 @@ import type { Gw2ModifierContext, Gw2ModifierRule } from '#gw2/platform/combat/m
 import type { Gw2ResolvedStats } from '#gw2/platform/combat/query/combat-query.js';
 import { hasSelectedSkillId } from '#gw2/platform/combat/query/runtime-query.js';
 import { THIEF_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/thief/core/profiles.js';
-import type { ThiefCoreState } from '#gw2/professions/thief/core/state.js';
 import { THIEF_SKILL_IDS as ID } from '#gw2/professions/thief/data/ids.js';
-
-export function thiefRuntimeState(context: Gw2ModifierContext): Partial<ThiefCoreState> {
-  return readProfessionCoreState<ThiefCoreState>(context.runtime?.profession);
-}
-
-// Return specialization state only when its runtime kind matches, preventing
-// modifier rules from interpreting another Thief module's state shape.
-export function thiefRuntimeSpecializationState<TState extends object = object>(
-  context: Gw2ModifierContext,
-  expectedKind: string
-): Partial<TState> {
-  return readProfessionSpecializationState<TState>(context.runtime?.profession, expectedKind) || {};
-}
 
 export const thiefCoreModifierRules = Object.freeze<readonly Gw2ModifierRule[]>([
   {

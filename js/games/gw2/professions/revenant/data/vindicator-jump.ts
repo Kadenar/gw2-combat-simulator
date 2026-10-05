@@ -1,4 +1,4 @@
-import type { Skill } from '#gw2/platform/engine/skills/types.js';
+import type { Skill } from '#gw2/platform/skills/types.js';
 
 export const VINDICATOR_AIRBORNE_MS = 600;
 export const VINDICATOR_LANDING_MS = 200;

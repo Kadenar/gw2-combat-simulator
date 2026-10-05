@@ -3,8 +3,8 @@
  * Facet runtime state remains under sibling `mechanics/` modules.
  */
 import { REVENANT_SKILL_IDS as ID } from '#gw2/professions/revenant/data/ids.js';
-import type { Skill } from '#gw2/platform/engine/skills/types.js';
-import { impactEffects } from '#gw2/platform/engine/effects/authoring.js';
+import type { Skill } from '#gw2/platform/skills/types.js';
+import { impactEffects } from '#gw2/platform/effects/authoring.js';
 
 // Facet of Nature has one legend-dependent consume, but every variant occupies
 // the same profession-mechanic tile as the activating facet.
@@ -31,6 +31,8 @@ export const HERALD_BASE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>
     upkeepPulse: { kind: 'might', duration: 12, stacks: 1 }
   },
   [ID.FACET_OF_ELEMENTS]: {
+    // The API omits this flip; declare its consume here so selected catalogs own the relationship.
+    flipSkillId: ID.ELEMENTAL_BLAST,
     // The declaration owns this activation; shared mechanics retain its live state.
     sideEffects: [
       { on: 'castStart', do: { type: 'revenant.reserve-upkeep' } },

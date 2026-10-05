@@ -42,6 +42,17 @@ export function grantCharges(charges: number, expiresAt: number, previous?: Char
   };
 }
 
+/** Reads live entitlement without pruning it, including windows claimed against a historical cast start. */
+export function activeChargeCount(
+  grant: Readonly<ChargeGrant> | undefined,
+  at: number,
+  inclusiveExpiry = false
+): number {
+  return grant && grant.charges > 0 && (inclusiveExpiry ? at <= grant.expiresAt : at < grant.expiresAt)
+    ? grant.charges
+    : 0;
+}
+
 /** Consumes only the selected recipient's grant, preserving each mechanic's explicit expiry boundary and ICD. */
 export function consumeCharge(
   grant: ChargeGrant | undefined,
@@ -51,8 +62,7 @@ export function consumeCharge(
 ): boolean {
   if (
     !grant ||
-    grant.charges <= 0 ||
-    (inclusiveExpiry ? at > grant.expiresAt : at >= grant.expiresAt) ||
+    activeChargeCount(grant, at, inclusiveExpiry) === 0 ||
     (cooldown > 0 && !isInternalCooldownReady(at, grant.readyAt ?? 0))
   )
     return false;
@@ -66,7 +76,37 @@ export function expireCharges(grant: ChargeGrant, at: number, inclusiveExpiry = 
   if (inclusiveExpiry ? at > grant.expiresAt : at >= grant.expiresAt) grant.charges = 0;
 }
 
-/** Independently expiring grants consume the earliest expiry first, with stable order for equal deadlines. */
-export function activeChargeGrants<T extends ChargeGrant>(grants: readonly T[], at: number): T[] {
-  return grants.filter((grant) => grant.charges > 0 && grant.expiresAt > at).sort((a, b) => a.expiresAt - b.expiresAt);
+/** Filters live batches, defaulting to earliest expiry while allowing owners to retain insertion order. */
+export function activeChargeGrants<T extends ChargeGrant>(
+  grants: readonly T[],
+  at: number,
+  order: 'earliest-expiry' | 'insertion' = 'earliest-expiry'
+): T[] {
+  const active = grants.filter((grant) => grant.charges > 0 && grant.expiresAt > at);
+  return order === 'insertion' ? active : active.sort((a, b) => a.expiresAt - b.expiresAt);
+}
+
+/** Appends a separate batch without refreshing survivors, retaining the owner's explicit consumption order. */
+export function appendChargeGrant<T extends ChargeGrant>(
+  grants: readonly T[],
+  grant: T,
+  at: number,
+  order: 'earliest-expiry' | 'insertion'
+): T[] {
+  return activeChargeGrants([...grants, grant], at, order);
+}
+
+/** Spends the first eligible live batch in its retained order and removes it when exhausted. */
+export function consumeChargeBatch<T extends ChargeGrant>(
+  grants: T[],
+  at: number,
+  eligible: (grant: T) => boolean = () => true
+): boolean {
+  const index = grants.findIndex((grant) => eligible(grant) && grant.charges > 0 && grant.expiresAt > at);
+  if (index < 0) return false;
+  const grant = { ...grants[index] };
+  if (!consumeCharge(grant, at)) return false;
+  if (grant.charges === 0) grants.splice(index, 1);
+  else grants[index] = grant;
+  return true;
 }

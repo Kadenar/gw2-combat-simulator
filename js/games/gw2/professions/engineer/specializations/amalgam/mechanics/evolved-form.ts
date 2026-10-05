@@ -3,11 +3,13 @@ import {
   effectNumber,
   requireBalanceProfileFromContext,
   requireEffect
-} from '#gw2/platform/engine/skills/balance-profiles.js';
+} from '#gw2/platform/skills/balance-profiles.js';
 import { buildEngineerPackets } from '#gw2/professions/engineer/core/events.js';
 import { AMALGAM_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/engineer/specializations/amalgam/profiles.js';
-import type { AmalgamMorphKind } from '#gw2/professions/engineer/specializations/amalgam/skills/protocol-skills.js';
-import { AMALGAM_MORPH_KIND_BY_SKILL_ID } from '#gw2/professions/engineer/specializations/amalgam/skills/protocol-skills.js';
+import {
+  AMALGAM_MORPH_KIND_BY_SKILL_ID,
+  type AmalgamMorphKind
+} from '#gw2/professions/engineer/specializations/amalgam/selection-policy.js';
 import { amalgamState } from '#gw2/professions/engineer/specializations/amalgam/state.js';
 import { applyAmalgamEvolveTraits } from '#gw2/professions/engineer/specializations/amalgam/traits/behavior.js';
 import type { EngineerRuntime, EngineerSkill } from '#gw2/professions/engineer/types.js';
@@ -22,19 +24,10 @@ function selectedMorphKinds(context: EngineerRuntime): Set<AmalgamMorphKind> {
   );
 }
 
-/** Reads the damaging-field assumption across supported configuration shapes. */
-function assumesDamagingField(context: EngineerRuntime): boolean {
-  return Boolean(
-    context.config.professionAssumptions?.inDamagingField ??
-    context.config.assumptions?.inDamagingField ??
-    context.config.inDamagingField ??
-    false
-  );
-}
-
 /** Schedules six one-second Thorns Retaliation pulses when damaging-field uptime is explicitly assumed. */
 export function scheduleThornsRetaliation(context: EngineerRuntime, skill: EngineerSkill, at: number): void {
-  if (!assumesDamagingField(context)) return;
+  // Build assumptions reach combat through the canonical runtime field; absent uptime grants no retaliation.
+  if (!context.config.professionAssumptions?.inDamagingField) return;
   const morphsProfile = requireBalanceProfileFromContext(context, PROFILE.morphs);
   const hits = balanceProfileNumber(morphsProfile, 'maximumStacks');
   const interval = balanceProfileNumber(morphsProfile, 'pulseInterval');

@@ -1,6 +1,6 @@
 import type { Gw2CanonicalBuild } from '#gw2/platform/builds/types.js';
-import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
-import type { CanonicalCatalog, SkillId } from '#gw2/platform/engine/skills/types.js';
+import type { SimulationEvent } from '#gw2/platform/events/events.js';
+import type { CanonicalCatalog, SkillId } from '#gw2/platform/skills/types.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
 
 export type AttributePreviewValues = Record<string, number | string>;

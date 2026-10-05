@@ -1,4 +1,5 @@
 import { expect, test } from '@playwright/test';
+import { mockGw2Icons } from '../helpers/browser-icons.js';
 
 // Artwork tracks specialization changes and returns to the core profession when no elite is equipped.
 test('gear artwork follows the active specialization', async ({ page }) => {
@@ -300,6 +301,8 @@ test('Jade Bot icon toggles its core bonus and restores the saved state', async 
 
 // Both fixed rows remain editable and share the saved 18-infusion budget.
 test('two infusion rows retain selections and enforce the shared infusion limit', async ({ page }) => {
+  // Icon selection is an application contract independent of the external render server's availability.
+  await mockGw2Icons(page);
   await page.goto('/mesmer.html#workspace', { waitUntil: 'domcontentloaded' });
   await expect(page.locator('#loading-overlay')).toHaveClass(/hidden/);
   await expect(page.locator('.infusion-row')).toHaveCount(2);

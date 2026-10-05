@@ -1,5 +1,5 @@
 /** Targets never carry boons; configured conditions and runtime condition stacks remain queryable. */
-import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
+import type { SimulationEvent } from '#gw2/platform/events/events.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
 import { isTimeInWindow } from '#kernel/core/clock.js';
 
@@ -227,5 +227,4 @@ export interface Gw2RuntimeStateLike {
     readonly strike?: number;
     readonly condition?: number;
   };
-  readonly environmentDamage?: number;
 }

@@ -7,8 +7,8 @@ import type {
   ProfessionChartApplication,
   ProfessionEffectPresentation
 } from '#gw2/platform/profession-presentation/types.js';
-import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
-import type { Gw2SimulationResult } from '#gw2/platform/simulation/types.js';
+import type { SimulationEvent } from '#gw2/platform/events/events.js';
+import type { Gw2SimulationResult } from '#gw2/platform/results/types.js';
 
 export function resultSummaryMetrics(result: Gw2SimulationResult) {
   // Metric duration follows the resolver's DPS clock. This is intentionally

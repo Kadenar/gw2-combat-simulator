@@ -3,7 +3,7 @@ import { formatTimelineTime, resultCombatReferenceMs } from '#gw2/app/shared/res
 import { ACTION_ICONS, PLACEHOLDER_ICON } from '#gw2/app/shared/icons.js';
 import { skillTimingAnalyses } from '#gw2/app/rotation/timeline/timing/model.js';
 import type { ProfessionAppResult, ProfessionAppState } from '#gw2/app/types.js';
-import type { Skill, SkillId } from '#gw2/platform/engine/skills/types.js';
+import type { Skill, SkillId } from '#gw2/platform/skills/types.js';
 
 const TIMING_DETAIL_INITIAL_USES = 12;
 

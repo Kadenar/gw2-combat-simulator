@@ -7,7 +7,7 @@ import {
   pruneSkillFlips,
   skillFlipReady,
   skillFlipVisible
-} from '#gw2/platform/engine/skills/skill-flips.js';
+} from '#gw2/platform/execution/skill-flips.js';
 
 // One serialized window must retain visibility, readiness, and exact expiry without a second flag or deadline.
 test('flip visibility and readiness use separate half-open windows', () => {

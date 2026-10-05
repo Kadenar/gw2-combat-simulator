@@ -45,7 +45,6 @@ export function renderSimulationViewModel(viewModel: SimulationViewModel, state:
 
   if (element.dataset) delete element.dataset.analysisStale;
   if (!viewModel.analysis) {
-    viewModel.onAnalysisEmpty?.(element);
     element.innerHTML = viewModel.analysisEmptyHtml || '';
     const mirror = document.getElementById('analysis-dps-summary');
     if (mirror) mirror.innerHTML = '';

@@ -1,14 +1,14 @@
+import type { MechanicCombatContext } from '#gw2/platform/profession-definition/mechanic-context.js';
 import {
   advanceCriticalProc,
   criticalOpportunity,
   type CriticalProcApplication
 } from '#gw2/platform/combat/critical-procs.js';
 import type { NativeResolvedDamageDetails } from '#gw2/platform/profession-definition/module-types.js';
-import type { Gw2ResolverRuntime } from '#gw2/platform/resolver/runtime-state.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 
 export interface ResolvedCriticalHitOptions<
-  TContext extends Gw2ResolverRuntime,
+  TContext extends Pick<MechanicCombatContext, 'random'>,
   TEvent extends Gw2ResolverEvent,
   TDetails extends NativeResolvedDamageDetails
 > {
@@ -38,7 +38,7 @@ export interface ResolvedCriticalHitOptions<
  * Callers own execution order; handlers supply attribution on the effects they emit.
  */
 export function criticalProcHandler<
-  TContext extends Gw2ResolverRuntime,
+  TContext extends Pick<MechanicCombatContext, 'random'>,
   TEvent extends Gw2ResolverEvent,
   TDetails extends NativeResolvedDamageDetails
 >(

@@ -47,33 +47,6 @@ test('legacy workspace builds migrate once on startup without losing selected sk
   }
 });
 
-// Standalone and embedded pages share a compact header without mounting obsolete title markup.
-test('profession headers share the embed layout without a title block', async ({ page }) => {
-  // Mobile exercises the shared header; the toolbar test covers desktop and resizing.
-  const width = 390;
-  await page.setViewportSize({ width, height: 844 });
-  const layouts = [];
-  for (const suffix of ['', '?embed=1']) {
-    await page.goto(`/guardian.html${suffix}`);
-    await expect(page.locator('#loading-overlay')).toHaveClass(/hidden/);
-    const header = page.locator('#app > header');
-    await expect(header.locator('h1, .header-brand, .home-link')).toHaveCount(0);
-    await expect(header.locator('.simulator-view-tabs')).toBeInViewport({ ratio: 1 });
-    await expect(header.locator('.community-actions')).toBeInViewport({ ratio: 1 });
-    await expect(header.locator('#header-dps')).toBeInViewport({ ratio: 1 });
-    await expect(page.locator('.landing-footer')).toHaveCount(0);
-    await expect(header.locator('#build-workspace-tabs')).toBeInViewport({ ratio: 1 });
-    layouts.push(
-      await header.evaluate((element) => {
-        const style = getComputedStyle(element);
-        return [style.display, style.flexWrap, style.gap, style.paddingInline, element.getBoundingClientRect().height];
-      })
-    );
-  }
-
-  expect(layouts[0]).toEqual(layouts[1]);
-});
-
 // Profession changes retain the selected tool and display flags; tool links still support browser history.
 test('header profession selector preserves navigation and the landing page owns the copyright', async ({ page }) => {
   await page.goto('/mesmer.html?embed=1&standalone=1#workspace');

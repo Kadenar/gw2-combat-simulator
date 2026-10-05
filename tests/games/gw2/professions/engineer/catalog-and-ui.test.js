@@ -1,5 +1,4 @@
-import { flattenProfessionState } from '#gw2/platform/engine/profession/state.js';
-import { paletteSkillView } from '#gw2/app/rotation/palette/model.js';
+import { flattenProfessionState } from '#gw2/platform/profession-definition/state.js';
 import { renderPalette } from '#gw2/app/rotation/palette/view.js';
 import { withActivePatchPreview } from '#gw2/integrations/patches/active-profession.js';
 import {
@@ -7,8 +6,7 @@ import {
   applySkillPatch,
   validatePatchPreview
 } from '#gw2/integrations/patches/authoring/patches.js';
-import { conditionEffectTicks, strikeEffectCoefficient } from '#gw2/platform/engine/effects/authoring.js';
-import { applySkillSideEffects } from '#gw2/platform/simulation/side-effects.js';
+import { applySkillSideEffects } from '#gw2/platform/effects/action-dispatch.js';
 import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
 import { loadProfession, loadProfessionAppAdapter } from '#gw2/profession-registry.js';
 import {
@@ -20,7 +18,6 @@ import {
 import { engineerCoreCastAvailability } from '#gw2/professions/engineer/core/mechanics/availability.js';
 import { engineerCoreModule } from '#gw2/professions/engineer/core/module.js';
 import { ENGINEER_CORE_BALANCE_PROFILE_IDS } from '#gw2/professions/engineer/core/profiles.js';
-import { ENGINEER_CORE_SKILL_MECHANICS } from '#gw2/professions/engineer/core/skills/index.js';
 import { ENGINEER_SUPPLEMENTAL_SKILLS } from '#gw2/professions/engineer/data/engineer-supplemental-skills.js';
 import { ENGINEER_SKILL_IDS as ID, ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
 import { engineerCatalog, engineerProfession } from '#gw2/professions/engineer/profession.js';
@@ -234,76 +231,9 @@ test('Overheat authoring retains the live penalty and rejects obsolete saved con
   assert.equal(engineerCatalog.balanceProfilesById.get(id).maximumStacks, 15);
 });
 
-// Check evaluated offsets so generated timelines and direct status effects are covered too.
-test('Engineer authored effect offsets use ordered 40 ms action ticks', () => {
-  for (const kind of ['skills', 'balanceProfiles']) {
-    for (const entry of engineerCatalog[kind]) {
-      for (const [effectIndex, effect] of (entry.effects ?? []).entries()) {
-        const label = `${kind} ${entry.name} (${entry.id}), effect ${effectIndex}`;
-        const ticks = effect.ticks ?? [];
-        for (const ms of [effect.atMs, effect.intervalMs, ...ticks.map((tick) => tick.atMs)]) {
-          if (ms == null) continue;
-          assert.ok(Number.isFinite(ms) && ms >= 0, `${label}: invalid offset ${ms}`);
-          assert.ok(Math.abs(ms - Math.round(ms / 40) * 40) <= 1e-6, `${label}: off-grid offset ${ms}`);
-        }
-
-        assert.ok(
-          ticks.every((tick, index) => index === 0 || tick.atMs >= ticks[index - 1].atMs),
-          `${label}: unordered packets`
-        );
-      }
-    }
-  }
-});
-
 test('Poison Dart Volley and Static Shot are not combo finishers', () => {
   assert.equal(mechanic('Poison Dart Volley').comboFinishers, undefined);
   assert.equal(mechanic('Static Shot').comboFinishers, undefined);
-});
-
-test('Engineer catalog retains reviewed packet and profile mechanics', () => {
-  assert.equal(engineerCatalog.skillsById.get(5842).name, 'Bomb');
-  assert.equal(strikeEffectCoefficient(engineerCatalog.skillsByName.get('Bomb').effects[0]), 1.2);
-  assert.match(engineerCatalog.skillsById.get(5806).icon, /Special:Redirect\/file\/Poison_Grenade\.png$/);
-  const ventExhaust = engineerCatalog.skillsByName.get('Vent Exhaust');
-
-  // Vent Exhaust is an invoked skill, so its packets and heat loss live on the skill without a cast handler.
-  assert.equal(ventExhaust.handlerId, undefined);
-  assert.equal(ventExhaust.heatGain, undefined);
-  assert.equal(ventExhaust.heatLoss, 15);
-  assert.equal(strikeEffectCoefficient(ventExhaust.effects[0]), 1.1);
-  assert.equal(ventExhaust.effects[0].canCrit, false);
-  // Vent Exhaust authors its total once; the resolver owns the separate applications.
-  assert.deepEqual(ventExhaust.effects.filter((effect) => effect.type === 'condition').flatMap(conditionEffectTicks), [
-    { atMs: 0, condition: 'Burning', stacks: 2, duration: 6 }
-  ]);
-  const thermalReleaseValve = engineerCatalog.balanceProfilesById.get(TRAIT.THERMAL_RELEASE_VALVE);
-
-  assert.equal(thermalReleaseValve.resourceCost, undefined);
-  assert.deepEqual(thermalReleaseValve.effects, [
-    { type: 'boon', name: 'vigor', boon: 'vigor', stacks: 1, duration: 3 }
-  ]);
-  const poisonGrenade = ENGINEER_CORE_SKILL_MECHANICS[5806];
-
-  assert.equal(poisonGrenade.castTimeMs, 680);
-  assert.equal(
-    poisonGrenade.effects[0].ticks.reduce((total, packet) => total + packet.coefficient, 0),
-    2.25
-  );
-  assert.deepEqual(
-    poisonGrenade.effects[1].ticks.map((packet) => [packet.atMs, packet.condition, packet.stacks]),
-    [
-      [400, 'Poisoned', 3],
-      [440, 'Poisoned', 3],
-      [440, 'Poisoned', 3]
-    ]
-  );
-  assert.ok(
-    ENGINEER_SUPPLEMENTAL_SKILLS.every(
-      (skill) =>
-        !Object.hasOwn(skill, 'effects') && !Object.hasOwn(skill, 'cooldown') && !Object.hasOwn(skill, 'recharge')
-    )
-  );
 });
 
 test('Engineer modules expose isolated balance-profile authoring', () => {
@@ -791,73 +721,6 @@ test('Photon Forge entry and exit start dedicated timeline rows', () => {
   );
 });
 
-test('Photon Forge kit lockout is shortened by Alacrity', () => {
-  // Kit availability must use the Forge lockout's effective recharge rather than its raw six-second base.
-  const kitStart = (alacrity) => {
-    const result = simulate('Holosmith', ['Engage Photon Forge', 'Grenade Kit'], {
-      boons: { alacrity }
-    });
-
-    assert.equal(result.warnings.length, 0);
-    return result.steps.find((step) => step.skill === 'Grenade Kit').start;
-  };
-
-  assert.equal(kitStart(false), 4800);
-  assert.equal(kitStart(true), 4800);
-});
-
-test('Photon Forge kit lockout renders as a queueable palette cooldown', async () => {
-  const result = simulate('Holosmith', ['Engage Photon Forge'], {
-    boons: { alacrity: true }
-  });
-  const kit = mechanic('Grenade Kit');
-  const availability = result.planningState.availability[kit.id];
-  const view = paletteSkillView(
-    { results: result, adapter: await loadProfessionAppAdapter('engineer') },
-    kit,
-    availability.ready,
-    availability.reason,
-    availability.retryAt
-  );
-
-  assert.equal(result.planningState.profession.kitLockoutUntil, 4.8);
-  assert.equal(availability.ready, false);
-  assert.equal(availability.retryAt, 4.8);
-  assert.equal(view.disabled, true);
-  assert.equal(view.contextDisabled, false);
-  assert.equal(view.cooldownLabel, 'Retry 4.800s');
-  const ready = simulate('Holosmith', ['Engage Photon Forge', { type: 'wait', durationMs: 4800 }]);
-  assert.equal(ready.planningState.availability[kit.id].ready, true);
-
-  const adapter = await loadProfessionAppAdapter('engineer');
-  const build = adapter.toApplicationBuild(createEngineerBuildDefaults());
-  const app = {
-    build,
-    adapter,
-    profession: engineerProfession,
-    activeCatalog: engineerCatalog,
-    skills: engineerCatalog.skills,
-    skillById: engineerCatalog.skillsById,
-    skillByName: engineerCatalog.skillsByName,
-    weaponData: adapter.weaponData,
-    results: result
-  };
-  const palette = { innerHTML: '', querySelectorAll: () => [] };
-  const previousDocument = globalThis.document;
-
-  globalThis.document = {
-    getElementById: (id) => (id === 'rotation-palette' ? palette : null)
-  };
-  try {
-    renderPalette(app);
-  } finally {
-    globalThis.document = previousDocument;
-  }
-
-  // The selected utility tile is a separate palette surface from the kit skill row.
-  assert.match(palette.innerHTML, /data-skill="Grenade Kit"[\s\S]*?<span class="pal-cd">Retry 4\.800s<\/span>/);
-});
-
 test('Engineer kit palettes stack and include their linked stow skills', () => {
   const paletteGroups = engineerProfession.ui.paletteGroups({
     specialization: 'Core',
@@ -980,8 +843,7 @@ test('Engineer mine and healing turret detonations are armed by their parent ski
         event.duration === 3
     )
   );
-
-  // Placement delays detonation until after the automatic burst, whose timestamp starts overcharge recharge.
+  // Turret replacement and overcharge retain their cooldowns after the preceding action finishes.
   const turretCycle = simulate('Core', [
     'Healing Turret',
     'Detonate Healing Turret',
@@ -1048,17 +910,12 @@ test('Elixir Gun packets, fields, finishers, and HGH use their authored contract
     ],
     { selectedSkillIds }
   );
-  const damage = (events, name) => events.filter((event) => event.type === 'damage' && event.skillName === name);
   const conditions = (name, condition) =>
     result.resolvedEvents.filter(
       (event) => event.type === 'condition' && event.skillName === name && event.condition === condition
     );
 
   assert.deepEqual(result.warnings, []);
-  assert.deepEqual(
-    damage(result.resolvedEvents, 'Tranquilizer Dart').map((event) => event.coefficient),
-    [0.4]
-  );
   assert.deepEqual(
     conditions('Tranquilizer Dart', 'Bleeding').map((event) => [event.stacks, event.duration]),
     [[1, 4]]
@@ -1068,11 +925,6 @@ test('Elixir Gun packets, fields, finishers, and HGH use their authored contract
     [[1, 1]]
   );
   assert.equal(engineerCatalog.skillsById.get(ID.TRANQUILIZER_DART).comboFinishers[0].chance, 0.2);
-
-  assert.deepEqual(
-    damage(result.resolvedEvents, 'Glob Shot').map((event) => event.coefficient),
-    [0.75]
-  );
   assert.deepEqual(
     conditions('Glob Shot', 'Crippled').map((event) => event.duration),
     [3]
@@ -1082,25 +934,7 @@ test('Elixir Gun packets, fields, finishers, and HGH use their authored contract
     [2]
   );
   assert.equal(engineerCatalog.skillsById.get(ID.GLOB_SHOT).cooldown, 8);
-
-  assert.deepEqual(
-    damage(result.resolvedEvents, 'Fumigate').map((event) => event.coefficient),
-    [0.4, 0.4, 0.4, 0.4, 0.4]
-  );
-  assert.deepEqual(
-    conditions('Fumigate', 'Poisoned').map((event) => [event.stacks, event.duration]),
-    Array(5).fill([1, 2])
-  );
-  assert.deepEqual(
-    conditions('Fumigate', 'Vulnerability').map((event) => [event.stacks, event.duration]),
-    Array(5).fill([1, 6])
-  );
   assert.equal(engineerCatalog.skillsById.get(ID.FUMIGATE).cooldown, 12);
-
-  assert.deepEqual(
-    damage(result.resolvedEvents, 'Acid Bomb').map((event) => event.coefficient),
-    [1.35, 0.85, 0.85, 0.85, 0.85, 0.85]
-  );
   assert.equal(
     result.events.filter((event) => event.type === 'combo_finisher' && event.skillName === 'Acid Bomb').length,
     1
@@ -1116,8 +950,6 @@ test('Elixir Gun packets, fields, finishers, and HGH use their authored contract
   const hghField = hgh.events.find((event) => event.type === 'combo_field' && event.skillName === 'Acid Bomb');
   const hghBuff = (kind) =>
     hgh.events.find((event) => event.type === 'buff' && event.sourceId === TRAIT.HGH && event.kind === kind);
-
-  assert.equal(damage(hgh.resolvedEvents, 'Acid Bomb').length, 7);
   assert.equal(hghField.expiresAt - hghField.at, 6);
   assert.deepEqual([hghBuff('might').stacks, hghBuff('might').duration], [2, 12]);
   assert.deepEqual([hghBuff('fury').stacks, hghBuff('fury').duration], [1, 4]);

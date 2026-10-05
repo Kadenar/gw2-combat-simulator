@@ -1,6 +1,6 @@
 /** Defines build presets and selection contracts shared by the build editor and professions. */
 import type { Gw2FinalizedAttributeResult, Gw2CanonicalBuild } from '#gw2/platform/builds/types.js';
-import type { CatalogEntity, Skill } from '#gw2/platform/engine/skills/types.js';
+import type { CatalogEntity, Skill } from '#gw2/platform/skills/types.js';
 
 export interface ProfessionAttributeData extends Gw2FinalizedAttributeResult {
   activeTraits: CatalogEntity[];

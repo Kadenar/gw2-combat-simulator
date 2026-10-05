@@ -12,7 +12,7 @@
  *    when several share that instant (inferred).
  * Rows that should have an owner but match nothing are marked as orphans; autonomous summon packets are not.
  */
-import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
+import type { SimulationEvent } from '#gw2/platform/events/events.js';
 import type { EventLogParentLink, EventLogSource } from '#ui/results/event-log.js';
 
 export interface EventLogOwnership {

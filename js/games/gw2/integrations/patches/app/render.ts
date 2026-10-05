@@ -1,4 +1,10 @@
-import type { SkillEffect } from '#gw2/platform/engine/skills/types.js';
+import type { SkillEffect } from '#gw2/platform/effects/types.js';
+import {
+  castResourceGrants,
+  effectResourceGrants,
+  resourceGrantNumericFields,
+  type ResourceGrantAction
+} from '#gw2/platform/effects/resource-grants.js';
 import { escapeHtml } from '#ui/shared/html.js';
 import type {
   NativePatchAuthoringMetadata,
@@ -89,6 +95,7 @@ function numberInput(options: {
   label?: string;
   tick?: number;
   effect?: number;
+  grantId?: string;
 }): string {
   const preview = numericEditValue(options.current, options.edit);
   const changed = options.edit != null;
@@ -101,6 +108,7 @@ function numberInput(options: {
       data-numeric-id="${escapeHtml(options.id)}"
       data-numeric-field="${escapeHtml(options.field)}"
       data-live-value="${escapeHtml(options.current)}"
+      ${options.grantId == null ? '' : `data-grant-id="${escapeHtml(options.grantId)}"`}
       ${options.effect == null ? '' : `data-effect-index="${options.effect}"`}
       ${options.tick == null ? '' : `data-tick-index="${options.tick}"`} />
   </label>`;
@@ -234,6 +242,33 @@ function effectRemoved(edit: SkillPatchEdit | null, effectIndex: number): boolea
   return Boolean(edit?.removeEffects?.some((selector) => selector.effectIndex === effectIndex));
 }
 
+/** Resource controls address stable grant ids and expose only the numbers consumed by the runtime. */
+function resourceGrantRows(
+  skillId: string,
+  grants: readonly ResourceGrantAction[],
+  edits: EffectPatch['resourceGrants'],
+  effectIndex?: number
+): string {
+  return grants
+    .map((action) =>
+      Object.entries(resourceGrantNumericFields(action))
+        .map(([field, current]) =>
+          numberInput({
+            entity: effectIndex == null ? 'cast-resource-grant' : 'effect',
+            id: skillId,
+            field,
+            current,
+            grantId: action.id,
+            effect: effectIndex,
+            label: `${action.label ?? action.resource}: ${authoringNumericFieldLabel(field)}`,
+            edit: edits?.[action.id]?.[field]
+          })
+        )
+        .join('')
+    )
+    .join('');
+}
+
 /** Renders every patchable numeric field on a skill effect and its tick timeline. */
 function effectNumericRows(
   skillId: string,
@@ -256,6 +291,7 @@ function effectNumericRows(
         ]
       : [];
   });
+  rows.push(resourceGrantRows(skillId, effectResourceGrants(effect), topPatch?.resourceGrants, effectIndex));
   if (typeof effect.audience?.maximumRecipients === 'number') {
     rows.push(
       numberInput({
@@ -372,7 +408,7 @@ function skillDetail(
               )
               .join('')
           : '<p class="patch-empty-inline">No patchable numeric skill fields.</p>'
-      }</div>
+      }${resourceGrantRows(skill.id.toString(), castResourceGrants(skill.skill), edit?.resourceGrants)}</div>
     </section>
     <section class="patch-detail-section">
       <div class="patch-section-heading compact"><h3>Effects</h3><span>${(skill.skill.effects as readonly unknown[] | undefined)?.length || 0} live</span></div>
@@ -929,7 +965,8 @@ export function bindPatchAuthoringView(root: HTMLElement, actions: PatchAuthorin
           current: Number(target.dataset.liveValue),
           next: Number(target.value),
           effectIndex: effectIndex == null ? undefined : Number(effectIndex),
-          tickIndex: target.dataset.tickIndex == null ? undefined : Number(target.dataset.tickIndex)
+          tickIndex: target.dataset.tickIndex == null ? undefined : Number(target.dataset.tickIndex),
+          grantId: target.dataset.grantId
         });
         markDirty();
       } else if (target instanceof HTMLInputElement && target.hasAttribute('data-changed-only')) {

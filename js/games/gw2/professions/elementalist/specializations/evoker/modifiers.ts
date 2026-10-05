@@ -11,7 +11,7 @@ import type { Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { elementalistTimedBuffStacks } from '#gw2/professions/elementalist/core/mechanics/modifier-queries.js';
 
-/** Zap retains its skill-owned damage window; trait rules come from registered definitions. */
+/** Zap reads the profile's canonical buff window; trait rules come from registered definitions. */
 const evokerModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
   {
     id: 'elementalist.zap',

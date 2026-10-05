@@ -74,7 +74,7 @@ test('chart collection waits for the current baseline, caches completion, and re
   workers[0].respond(workers[0].messages[0], { result });
   const chartJob = workers[0].messages[1];
   assert.equal(chartJob.request.collectChartData, true);
-  assert.equal(chartJob.chartsOnly, true);
+  assert.equal(runner.inFlight.chartsOnly, true);
   workers[0].respond(chartJob, { result: { dps: 999, effectReport: {}, boonGeneration: {} }, patchComparison: null });
   assert.equal(app.results, result, 'enrichment retains the editor result identity');
   assert.equal(result.dps, 100);
@@ -97,7 +97,7 @@ test('chart collection waits for the current baseline, caches completion, and re
   assert.equal(workers[1].terminated, true, 'an edit cancels chart work immediately');
   workers[1].respond(replaced, { result: { effectReport: { stale: true } } });
   assert.equal(result.effectReport, null);
-  assert.equal(workers[2].messages[0].chartsOnly, false);
+  assert.equal(runner.inFlight.chartsOnly, false);
   runner.cancelCharts();
   assert.equal(workers[2].terminated, undefined, 'leaving Analysis preserves editor work');
   runner.cancel();
@@ -342,7 +342,7 @@ test('baseline runner coalesces edits, cancels cleared work, and reuses idle wor
   const warmup = workers[0].messages.pop();
   assert.equal(warmup.warmup, true);
   assert.deepEqual(warmup.request, { gameId: 'gw2', contentId: 'necromancer' });
-  workers[0].respond({ requestId: warmup.requestId, revision: warmup.revision });
+  workers[0].respond({ requestId: warmup.requestId });
   assert.equal(runner.inFlight, null);
   assert.equal(app.simulationStatus, 'idle');
   assert.deepEqual(published, [], 'warmup does not publish a simulation result');
@@ -355,7 +355,6 @@ test('baseline runner coalesces edits, cancels cleared work, and reuses idle wor
 
   workers[0].respond({
     requestId: 1,
-    revision: 1,
     output: { result: { id: 'old' }, referenceResult: { id: 'old-reference' }, patchComparison: null }
   });
   assert.deepEqual(published, [], 'the superseded result is not published');
@@ -363,7 +362,6 @@ test('baseline runner coalesces edits, cancels cleared work, and reuses idle wor
 
   workers[0].respond({
     requestId: 2,
-    revision: 2,
     output: { result: { id: 'new' }, referenceResult: { id: 'new-reference' }, patchComparison: null }
   });
   assert.deepEqual(published, [['new', 'new-reference', 2]]);
@@ -380,7 +378,7 @@ test('baseline runner coalesces edits, cancels cleared work, and reuses idle wor
   const clearJob = workers[1].messages[0];
   workers[0].listeners.get('error')({ message: 'abandoned worker error' });
   workers[0].respond({ ...workers[0].messages[2], output: { result: { id: 'abandoned' } } });
-  assert.equal(runner.inFlight, clearJob);
+  assert.equal(runner.inFlight.requestId, clearJob.requestId);
 
   rotation = [{ type: 'wait', durationMs: 2 }];
   app.buildRevision = 5;
@@ -393,6 +391,13 @@ test('baseline runner coalesces edits, cancels cleared work, and reuses idle wor
     ['edited', undefined, 5]
   ]);
   assert.equal(workers.length, 2, 'skills added after Clear reuse the replacement worker');
+  // A build change invalidates a result even when no replacement request has been scheduled yet.
+  app.buildRevision = 6;
+  runner.schedule(6);
+  const staleJob = workers[1].messages.at(-1);
+  app.buildRevision = 7;
+  workers[1].respond({ requestId: staleJob.requestId, output: { result: { id: 'stale-revision' } } });
+  assert.equal(published.length, 2, 'the runner retains the revision guard without a worker echo');
   runner.cancel();
   assert.equal(runner.worker, workers[1], 'switching an idle tab retains the loaded engine');
   assert.notEqual(workers[1].terminated, true);
@@ -600,7 +605,7 @@ test('baseline runner recovers after Worker construction fails', (t) => {
   assert.deepEqual(failures, [['SecurityError', 1]]);
   assert.equal(attempts, 2);
   assert.equal(workers[0].messages.length, 1);
-  workers[0].respond({ requestId: 2, revision: 2, output: { result: { id: 'new' }, patchComparison: null } });
+  workers[0].respond({ requestId: 2, output: { result: { id: 'new' }, patchComparison: null } });
   assert.deepEqual(published, [['new', 2]]);
 });
 

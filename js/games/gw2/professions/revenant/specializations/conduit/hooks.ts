@@ -1,16 +1,18 @@
-import { materializeSkillEffectApplications } from '#gw2/platform/engine/effects/materializer.js';
-import type { SimulationEventBase } from '#gw2/platform/engine/events/events.js';
-import { denySkillCast } from '#gw2/platform/engine/skills/availability.js';
+import { conduitBuffPolicies } from '#gw2/professions/revenant/specializations/conduit/effect-state.js';
+import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
+import { materializeSkillEffectApplications } from '#gw2/platform/effects/materializer.js';
+import type { SimulationEventBase } from '#gw2/platform/events/events.js';
+import { denySkillCast } from '#gw2/platform/execution/availability.js';
 import {
   balanceProfileNumber,
   effectNumber,
   requireBalanceProfileFromContext,
   requireEffect
-} from '#gw2/platform/engine/skills/balance-profiles.js';
-import type { Skill, SkillId } from '#gw2/platform/engine/skills/types.js';
+} from '#gw2/platform/skills/balance-profiles.js';
+import type { Skill, SkillId } from '#gw2/platform/skills/types.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
-import type { RuntimeCast, RuntimeProfession } from '#gw2/platform/simulation/runtime-state.js';
-import { gw2CooldownReadyAt } from '#gw2/platform/skills/timing.js';
+import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
+import { gw2CooldownReadyAt } from '#gw2/platform/execution/cast-timing.js';
 import type { RevenantRuntime } from '#gw2/professions/revenant/core/events.js';
 import { activeRevenantUpkeep } from '#gw2/professions/revenant/core/mechanics/upkeep.js';
 import { completeRevenantCastTraits } from '#gw2/professions/revenant/core/traits/dispatch.js';
@@ -22,7 +24,10 @@ import {
 } from '#gw2/professions/revenant/data/legends.js';
 import { isRevenantUpkeep } from '#gw2/professions/revenant/data/upkeep-skills.js';
 import { revenantEnergyCost } from '#gw2/professions/revenant/family-state.js';
-import { gainAffinity } from '#gw2/professions/revenant/specializations/conduit/mechanics/affinity.js';
+import {
+  conduitAffinityPolicy,
+  gainAffinity
+} from '#gw2/professions/revenant/specializations/conduit/mechanics/affinity.js';
 import {
   FORM_EXPIRY,
   scheduleFormExpiry
@@ -238,7 +243,7 @@ function swapLegend(runtime: RevenantRuntime, cast: RuntimeCast<RevenantSkill>):
   const combat = runtime.combatStartedAt();
   // The form state before the reset decides Enhanced Embodiment and the form update.
   const formActive = state.cosmicWisdomUntil > runtime.time;
-  state.affinity = 0;
+  runtime.resourceController.replace('affinity', 0);
   grantLingeringDetermination(runtime, combat);
   extendEnhancedEmbodiment(runtime, formActive);
 
@@ -277,13 +282,15 @@ function upkeepDaggers(runtime: RevenantRuntime, data: unknown): void {
   runtime.schedule(UPKEEP_DAGGERS, canonicalTime(runtime.time + 1), data, undefined, -190);
 }
 
-export const conduitHooks: Partial<RuntimeProfession<RevenantRuntimeState, RevenantSkill>> = {
+export const conduitHooks: RuntimeHooks<RevenantRuntimeState, RevenantSkill> = {
+  resources: { affinity: conduitAffinityPolicy },
+  buffPolicies: conduitBuffPolicies,
   // Passive affinity accrual does not extend damage observation; damaging dagger upkeep remains bounded normally.
   backgroundTasks: [UPKEEP_AFFINITY],
   // Control-triggered Burning shares Mistfire's profile, excluding its own Twin Moon chain.
 
   availability(runtime, skill) {
-    const state = conduit(runtime);
+    const state = conduitState.from(runtime);
     if (BEGUILING_HAZE_SKILL_IDS.has(skill.id)) {
       // Project the shared recharge without mutating state during an availability query.
       const readyAt = state.beguilingHazeRecharge
@@ -307,10 +314,12 @@ export const conduitHooks: Partial<RuntimeProfession<RevenantRuntimeState, Reven
   },
   castDurationMs(runtime, skill, durationMs) {
     if (!BEGUILING_HAZE_SKILL_IDS.has(skill.id)) return durationMs;
+    const specialization = runtime.profession.specialization;
+    if (specialization.kind !== 'Conduit') throw new TypeError('Beguiling Haze requires Conduit state.');
     return (
       beguilingHazeCastDuration(
         durationMs / 1000,
-        (conduit(runtime).beguilingHazeCharges || 0) > 0,
+        (specialization.state.beguilingHazeCharges || 0) > 0,
         requireBalanceProfileFromContext(runtime, PROFILE.beguilingHazeFollowUp),
         requireBalanceProfileFromContext(runtime, PROFILE.beguilingHazeMainCastExtension)
       ) * 1000
@@ -326,7 +335,7 @@ export const conduitHooks: Partial<RuntimeProfession<RevenantRuntimeState, Reven
           ? PROFILE.mesmerBanishEnchantment
           : null;
     // Mesmer form gives these Demon utilities a recharge; Alacrity still applies to the new base.
-    if (mesmerProfile && revenantConduitFormIsActive(conduit(runtime), 'Mesmer', runtime.time))
+    if (mesmerProfile && revenantConduitFormIsActive(conduitState.from(runtime), 'Mesmer', runtime.time))
       return Math.max(0, balanceProfileNumber(requireBalanceProfileFromContext(runtime, mesmerProfile), 'cooldown'));
     return kineticInsightRecharge(runtime, skill, work);
   },

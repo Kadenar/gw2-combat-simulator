@@ -10,7 +10,7 @@ import { createDodgeSkill, createWeaponSwapSkill } from '#gw2/platform/skills/sh
  * Runtime behavior remains in the named execution and mechanic owners.
  */
 import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
-import type { Skill } from '#gw2/platform/engine/skills/types.js';
+import type { Skill } from '#gw2/platform/skills/types.js';
 import { RANGER_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/ranger/core/profiles.js';
 
 export const RANGER_CORE_ACTION_SKILLS: readonly Skill[] = Object.freeze([

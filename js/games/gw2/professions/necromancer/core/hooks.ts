@@ -1,10 +1,10 @@
+import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import { emitVampirismPassive } from '#gw2/professions/necromancer/core/skills/slot-skills.js';
-import { denySkillCast } from '#gw2/platform/engine/skills/availability.js';
-import { skillFlipReady } from '#gw2/platform/engine/skills/skill-flips.js';
+import { denySkillCast } from '#gw2/platform/execution/availability.js';
+import { skillFlipReady } from '#gw2/platform/execution/skill-flips.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
-import type { RuntimeProfession } from '#gw2/platform/simulation/runtime-state.js';
-import { sideEffectAmount } from '#gw2/platform/simulation/side-effects.js';
-import { damageInputEvent } from '#gw2/platform/skill-damage/execution.js';
+import { sideEffectAmount } from '#gw2/platform/effects/action-dispatch.js';
+import { damageInputEvent } from '#gw2/platform/skill-damage/occurrence-driver.js';
 import { reactToNecromancerAxeHealth } from '#gw2/professions/necromancer/core/mechanics/axe.js';
 import {
   completeNecromancerCorruption,
@@ -22,10 +22,7 @@ import {
   exitNecromancerShroud,
   necromancerFormTasks
 } from '#gw2/professions/necromancer/core/mechanics/forms.js';
-import {
-  grantNecromancerLifeForce,
-  grantNecromancerSkillLifeForce
-} from '#gw2/professions/necromancer/core/mechanics/life-force.js';
+import { grantNecromancerLifeForce } from '#gw2/professions/necromancer/core/mechanics/life-force.js';
 import {
   commandNecromancerMinion,
   necromancerMinionAvailability,
@@ -91,7 +88,7 @@ function damage(runtime: NecromancerRuntime, event: Gw2ResolverEvent): void {
 /** Core mechanics share one live queue and resource owner with the active specialization. */
 import { necromancerBuffPolicies, necromancerEffectStates } from '#gw2/professions/necromancer/core/effect-state.js';
 
-export const necromancerCoreHooks: Partial<RuntimeProfession<NecromancerRuntimeState, NecromancerSkill>> = {
+export const necromancerCoreHooks: RuntimeHooks<NecromancerRuntimeState, NecromancerSkill> = {
   // Known damage payloads are invoked once without their activation requirements.
   damageEffects: [
     {
@@ -122,7 +119,7 @@ export const necromancerCoreHooks: Partial<RuntimeProfession<NecromancerRuntimeS
   resources: { lifeForce: necromancerLifeForce },
   // Standard endurance recovery applies equally inside and outside shroud.
   endurance: {
-    state: (runtime) => runtime.profession.core,
+    state: (runtime) => runtime.profession.core.endurance,
     maximum: () => 100,
     regenerationRate: (_runtime, vigor) => 5 * (vigor ? 1.5 : 1)
   },
@@ -187,15 +184,6 @@ export const necromancerCoreHooks: Partial<RuntimeProfession<NecromancerRuntimeS
     },
     'necromancer.transfer'(runtime, context) {
       if (context.kind === 'effect') resolveNecromancerTransfer(runtime, context.trigger.event);
-    },
-    'necromancer.skill-life-force'(runtime, context) {
-      if (context.kind === 'effect') grantNecromancerSkillLifeForce(runtime, context.skill, context.trigger.event);
-    },
-    // Declarations own amounts and eligibility; this handler applies the shared percentage conversion.
-    'necromancer.life-force'(runtime, _context, action) {
-      if (action.type !== 'necromancer.life-force' || action.amount == null)
-        throw new TypeError('Life-force grants require an amount.');
-      grantNecromancerLifeForce(runtime, sideEffectAmount(runtime, action.amount));
     },
     'necromancer.perforate'(runtime, context) {
       if (context.kind === 'effect') perforate(runtime, context.trigger.event);

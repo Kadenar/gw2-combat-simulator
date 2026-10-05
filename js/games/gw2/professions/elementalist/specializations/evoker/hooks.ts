@@ -1,5 +1,8 @@
-import type { RuntimeProfession, SkillTaskData } from '#gw2/platform/simulation/runtime-state.js';
-import { damageInputEvent } from '#gw2/platform/skill-damage/execution.js';
+import { evokerBuffPolicies } from '#gw2/professions/elementalist/specializations/evoker/effect-state.js';
+import { initializeSpecializedElements } from '#gw2/professions/elementalist/specializations/evoker/traits/attunements.js';
+import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
+import type { SkillTaskData } from '#gw2/platform/execution/cast-contracts.js';
+import { damageInputEvent } from '#gw2/platform/skill-damage/occurrence-driver.js';
 import { registerElementalistAttunementTransition } from '#gw2/professions/elementalist/core/mechanics/attunements.js';
 import { registerElementalistEliteEvents } from '#gw2/professions/elementalist/core/mechanics/elite-events.js';
 import { completeEvokerAttunement } from '#gw2/professions/elementalist/specializations/evoker/mechanics/attunements.js';
@@ -22,14 +25,17 @@ import {
 } from '#gw2/professions/elementalist/specializations/evoker/mechanics/familiars.js';
 import {
   flushPendingWeaponChargeGains,
-  initialize
+  familiarChargePolicy,
+  empoweredChargePolicy
 } from '#gw2/professions/elementalist/specializations/evoker/mechanics/resources.js';
 import { evokerState } from '#gw2/professions/elementalist/specializations/evoker/state.js';
 import { emitElectricEnchantment } from '#gw2/professions/elementalist/specializations/evoker/traits/enchantments.js';
 import { applyAltruisticAspect } from '#gw2/professions/elementalist/specializations/evoker/traits/familiars.js';
 import type { ElementalistRuntimeState, ElementalistSkill } from '#gw2/professions/elementalist/types.js';
 /** Familiar casts own pending packets; accepted impacts spend enchantments in chronological order. */
-export const evokerHooks: Partial<RuntimeProfession<ElementalistRuntimeState, ElementalistSkill>> = {
+export const evokerHooks: RuntimeHooks<ElementalistRuntimeState, ElementalistSkill> = {
+  buffPolicies: evokerBuffPolicies,
+  resources: { familiarCharges: familiarChargePolicy, empoweredCharges: empoweredChargePolicy },
   // Invoke the damage payload without activation requirements and reuse its proc icon in the damage preview.
   damageEffects: [
     {
@@ -44,7 +50,7 @@ export const evokerHooks: Partial<RuntimeProfession<ElementalistRuntimeState, El
   ],
 
   initialize(runtime) {
-    initialize(runtime);
+    initializeSpecializedElements(runtime);
     registerElementalistEliteEvents(runtime, onAcceptedEvent);
     registerElementalistAttunementTransition(runtime, (context, cast) => {
       completeEvokerAttunement(context, cast, cast.skill);

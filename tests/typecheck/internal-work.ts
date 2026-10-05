@@ -1,4 +1,5 @@
-import { createInternalWorkFactory, type InternalWork } from '#gw2/platform/simulation/internal-work.js';
+import { createInternalWorkFactory } from '#gw2/platform/simulation/internal-work.js';
+import { type InternalWork } from '#gw2/platform/simulation/work-contract.js';
 import { HandlerRegistry } from '#gw2/platform/resolver/handler-registry.js';
 
 // Concrete work types retain their payload correlation across the validated creation boundary.

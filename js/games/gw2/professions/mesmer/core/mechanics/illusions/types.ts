@@ -1,9 +1,10 @@
-import type { EffectDelivery } from '#gw2/platform/simulation/effect-emission.js';
-import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
-import type { SkillId, StrikeTick, StrikeEffect } from '#gw2/platform/engine/skills/types.js';
+import type { EffectDelivery } from '#gw2/platform/effects/emission.js';
+import type { SimulationEvent } from '#gw2/platform/events/events.js';
+import type { SkillId } from '#gw2/platform/skills/types.js';
+import type { StrikeTick, StrikeEffect } from '#gw2/platform/effects/types.js';
 
 import type { MesmerResourceCause } from '#gw2/professions/mesmer/core/mechanics/resource-types.js';
-import type { MesmerConditionApplication } from '#gw2/professions/mesmer/data/types.js';
+import type { ConditionEffect } from '#gw2/platform/effects/types.js';
 
 export interface MesmerClone {
   id: number;
@@ -57,7 +58,7 @@ export type MesmerQueueResources = (
   delivery?: EffectDelivery
 ) => void;
 
-interface MesmerResourceGain {
+export interface MesmerResourceGain {
   readonly at: number;
   readonly cause: MesmerResourceCause;
   readonly createdClones: readonly MesmerClone[];
@@ -68,8 +69,7 @@ export interface MesmerCloneAttackScheduler {
   initializeClone(clone: MesmerClone): MesmerClone;
 }
 
-export interface MesmerResourceController {
-  addGainHandler(handler: (gain: MesmerResourceGain) => void): void;
+export interface MesmerIllusionRewards {
   gainResources(
     at: number,
     count: number,
@@ -94,7 +94,7 @@ export interface MesmerCloneAttackStep {
   readonly damageAtMs?: number;
   readonly ticks?: readonly StrikeTick[];
   readonly interval: number;
-  readonly conditions?: readonly MesmerConditionApplication[];
+  readonly conditions?: readonly ConditionEffect[];
 }
 
 interface MesmerCloneAttackBase {

@@ -15,7 +15,6 @@ export const thiefAppAdapter = defineProfessionApp({
   profession: thiefProfession,
   applyBuildAttributeRules: applyThiefBuildAttributeRules,
   toApplicationBuild,
-  specializationFallback: 'Trickery',
   resetPrompt: 'Reset the Thief build, assumptions, and rotation?',
   runtime: {
     buildConfigInputs: (app) => ({

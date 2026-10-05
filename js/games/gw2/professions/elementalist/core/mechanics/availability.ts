@@ -1,5 +1,6 @@
-import { skillFlipReady } from '#gw2/platform/engine/skills/skill-flips.js';
-import { gw2CooldownReadyAt } from '#gw2/platform/skills/timing.js';
+import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
+import { skillFlipReady } from '#gw2/platform/execution/skill-flips.js';
+import { gw2CooldownReadyAt } from '#gw2/platform/execution/cast-timing.js';
 import { EPSILON } from '#kernel/core/clock.js';
 /**
  * Core Elementalist cast availability.
@@ -9,14 +10,10 @@ import { EPSILON } from '#kernel/core/clock.js';
  * A denial without a retry timestamp rejects the rotation command outright; a
  * denial carrying one asks the scheduler to retry the same command at that time.
  */
-import { selectedSkillIdSet } from '#gw2/platform/builds/selected-skills.js';
-import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
-import { denySkillCast as unavailable } from '#gw2/platform/engine/skills/availability.js';
-import {
-  balanceProfileNumber,
-  requireBalanceProfileFromContext
-} from '#gw2/platform/engine/skills/balance-profiles.js';
-import type { Skill } from '#gw2/platform/engine/skills/types.js';
+import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
+import { denySkillCast as unavailable, selectedSlotSkillAvailability } from '#gw2/platform/execution/availability.js';
+import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import type { Skill } from '#gw2/platform/skills/types.js';
 import type { AvailabilityResult } from '#gw2/platform/execution/types.js';
 import {
   AURA_TRANSMUTE_SKILLS,
@@ -39,11 +36,9 @@ import {
 } from '#gw2/professions/elementalist/data/ids.js';
 import type { ElementalistRuntime } from '#gw2/professions/elementalist/types.js';
 
-import {
-  activeSecondaryAttunement,
-  isSelectedSlotSkill,
-  weaponAttunementAvailable
-} from '#gw2/professions/elementalist/core/mechanics/weapon-state.js';
+import { weaponAttunementAvailable } from '#gw2/professions/elementalist/core/mechanics/weapon-state.js';
+import { elementalistSlotSelectionPolicy } from '#gw2/professions/elementalist/core/mechanics/selection-policy.js';
+import { elementalistAttunementPolicy } from '#gw2/professions/elementalist/family-state.js';
 import { ELEMENTALIST_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/elementalist/core/profiles.js';
 
 function ready(): AvailabilityResult {
@@ -54,7 +49,10 @@ function ready(): AvailabilityResult {
  * First-match availability gate for every Core Elementalist skill: returns ready,
  * a permanent denial, or a denial carrying the time the command is worth retrying.
  */
-export function elementalistCoreAvailability(context: ElementalistRuntime, skill: Skill): AvailabilityResult {
+export function elementalistCoreAvailability(
+  context: MechanicQueriesOf<ElementalistRuntime>,
+  skill: Skill
+): AvailabilityResult {
   // Glyph summons and elemental command skills answer through their own gate first.
   const elementalAvailability = elementalistElementalAvailability(context, skill);
   if (elementalAvailability) return elementalAvailability;
@@ -71,12 +69,14 @@ export function elementalistCoreAvailability(context: ElementalistRuntime, skill
   // when the target attunement recharges (Fresh Air may pull Air in earlier).
   const target = targetAttunement(skill);
   if (target) {
-    const secondaryAttunement = activeSecondaryAttunement(context);
+    const { secondaryAttunement } = elementalistAttunementPolicy(context);
     if (target === state.primaryAttunement && (!secondaryAttunement || target === secondaryAttunement)) {
       return unavailable(skill, 'elementalist.same-attunement', `already attuned to ${target}.`);
     }
 
-    const naturalReadyAt = gw2CooldownReadyAt(context.cooldowns.get(ELEMENTALIST_ATTUNEMENT_SKILL_IDS[target]) || 0);
+    const naturalReadyAt = gw2CooldownReadyAt(
+      context.cooldownController.readyAt(ELEMENTALIST_ATTUNEMENT_SKILL_IDS[target]) || 0
+    );
     const freshAirReadyAt = target === 'Air' ? projectedFreshAirReadyAt(context, naturalReadyAt) : null;
     const readyAt = freshAirReadyAt == null ? naturalReadyAt : Math.min(naturalReadyAt, freshAirReadyAt);
     return readyAt > context.time
@@ -102,16 +102,15 @@ export function elementalistCoreAvailability(context: ElementalistRuntime, skill
       : unavailable(skill, 'elementalist.conjure-pickup', `the ${weapon} pickup is unavailable or expired.`);
   }
 
-  // Slot skills must be equipped; a chain follow-up qualifies through its root.
-  if (context.config.selectedSkillIds !== undefined && ['Heal', 'Utility', 'Elite'].includes(String(skill.type))) {
-    const selected = selectedSkillIdSet(context.config.selectedSkillIds);
-    // Flipped skills remain selectable through the equipped root without naming specialization-owned chains here.
-    const selectedChainSkill = [...selected].some(
-      (selectedId) => context.helpers.skillsById.get(selectedId)?.nextChainId === skill.id
-    );
-    if (!isSelectedSlotSkill(skill, selected) && !selectedChainSkill) {
-      return unavailable(skill, 'elementalist.not-equipped', 'the skill is not equipped.');
-    }
+  // Keep selection here so elemental, attunement, and bundle denials retain precedence.
+  if (
+    selectedSlotSkillAvailability(
+      { config: context.config, catalog: context.helpers },
+      skill,
+      elementalistSlotSelectionPolicy
+    )
+  ) {
+    return unavailable(skill, 'elementalist.not-equipped', 'the skill is not equipped.');
   }
 
   // Transmute skills consume a matching aura that must currently be active.

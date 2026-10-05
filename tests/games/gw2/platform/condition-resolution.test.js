@@ -6,10 +6,10 @@ import { simulateMesmer } from '#tests/helpers/mesmer-simulation.js';
 import { resolveTestGw2Events } from '#tests/helpers/gw2-resolver.js';
 import { StableEventQueue } from '#kernel/events/queue.js';
 import { createGw2ConditionResolution } from '#gw2/platform/resolver/condition-resolution.js';
-import { createCanonicalCatalog } from '#gw2/platform/engine/skills/canonical-skill-catalog.js';
+import { createCanonicalCatalog } from '#gw2/platform/skills/catalog.js';
 import { defineTestProfession } from '#tests/helpers/profession.js';
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
-import { gw2ResolverPhase } from '#gw2/platform/resolver/event-loop.js';
+import { gw2ResolverPhase } from '#gw2/platform/resolver/event-phase.js';
 import { roundHalfToEven } from '#kernel/core/numeric.js';
 
 // Condition resolution preserves fractional ticks, observation boundaries, and environment attribution.
@@ -108,8 +108,7 @@ test('condition applications shorter than one second deal fractional damage', ()
   assert.deepEqual(result.resolvedEvents[0].metadata, metadata);
   for (const field of Object.keys(metadata)) assert.equal(Object.hasOwn(result.resolvedEvents[0], field), false);
   assert.equal(result.firstHitTime, 1);
-  assert.equal(result.resolvedEvents[0].damageTicks.length, 1);
-  assert.equal(result.resolvedEvents[0].damageTicks[0].fraction, 0.5);
+  assert.equal(result.resolvedEvents[0].damagingStackSeconds, 0.5);
   assert.deepEqual(result.warnings, ['resolver handoff warning']);
 });
 
@@ -254,13 +253,11 @@ test('condition lifetimes round half-even to milliseconds and settle without end
     const result = resolveBleedThrough(6, { duration });
     const application = result.resolvedEvents.find((event) => event.type === 'condition');
     assert.equal(application.effectiveDuration, expected);
-    assert.equal(application.damageTicks.at(-1).at, Math.ceil(expected));
     assert.equal(application.damage, damage);
   }
 
   const clipped = resolveBleedThrough(5.02, { duration: 3 * 1.6719 });
   const application = clipped.resolvedEvents.find((event) => event.type === 'condition');
-  assert.equal(application.damageTicks.at(-1).at, 5);
   assert.equal(application.damage, 82 * 5);
 });
 
@@ -298,17 +295,9 @@ test('observation horizons omit future condition ticks without creating endpoint
   const clippedApplication = clipped.resolvedEvents.find((event) => event.type === 'condition');
   const extendedApplication = extended.resolvedEvents.find((event) => event.type === 'condition');
 
-  assert.deepEqual(
-    clippedApplication.damageTicks.map(({ at, fraction }) => ({ at, fraction })),
-    [{ at: 1, fraction: 1 }]
-  );
-  assert.deepEqual(
-    extendedApplication.damageTicks.map(({ at, fraction }) => ({ at, fraction })),
-    [
-      { at: 1, fraction: 1 },
-      { at: 2, fraction: 1 }
-    ]
-  );
+  // An observation cutoff must not manufacture the unpaid partial interval.
+  assert.equal(clippedApplication.damagingStackSeconds, 1);
+  assert.equal(extendedApplication.damagingStackSeconds, 2);
   assert.equal(clipped.conditionDamage, extendedApplication.damageTicks[0].damage);
 });
 
@@ -327,13 +316,7 @@ test('target death occurs on shared condition pulses rather than expiry or the o
   assert.equal(deadTarget.deathTime, 0);
   assert.equal(deadTarget.totalDamage, 0);
   assert.equal(throughNaturalRemainder.deathTime, 2);
-  assert.deepEqual(
-    remainderApplication.damageTicks.map(({ at, fraction }) => ({ at, fraction })),
-    [
-      { at: 1, fraction: 1 },
-      { at: 2, fraction: 0.5 }
-    ]
-  );
+  assert.equal(remainderApplication.damagingStackSeconds, 1.5);
 });
 
 test('precombat target conditions are rejected rather than carried into combat', () => {
@@ -529,10 +512,6 @@ test('environment condition ticks reduce target health and can kill the target',
 
   assert.equal(result.deathTime, 2);
   assert.equal(result.environmentDamage, 44);
-  assert.deepEqual(
-    result.environmentConditionBreakdown[0].damageTicks.map((tick) => tick.at),
-    [1, 2]
-  );
   assert.equal(result.totalDamage, 0);
   assert.equal(result.firstHitTime, null);
 });

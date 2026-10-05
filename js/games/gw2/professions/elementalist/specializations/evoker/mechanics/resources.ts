@@ -1,8 +1,7 @@
-import type { RuntimeCast } from '#gw2/platform/simulation/runtime-state.js';
-import {
-  evokerChargeProfile,
-  initializeSpecializedElements
-} from '#gw2/professions/elementalist/specializations/evoker/traits/attunements.js';
+import type { ResourcePolicy } from '#gw2/platform/combat/resources/resource-policy.js';
+import { boundedNumber } from '#kernel/core/numeric.js';
+import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
+import { evokerChargeProfile } from '#gw2/professions/elementalist/specializations/evoker/traits/attunements.js';
 import { EPSILON } from '#kernel/core/clock.js';
 /**
  * The Evoker familiar-charge economy.
@@ -12,11 +11,8 @@ import { EPSILON } from '#kernel/core/clock.js';
  * the resource events the charge dial renders. Spending charges belongs to the
  * familiar handlers; this module only accrues and reports them.
  */
-import {
-  balanceProfileNumber,
-  requireBalanceProfileFromContext
-} from '#gw2/platform/engine/skills/balance-profiles.js';
-import type { Skill } from '#gw2/platform/engine/skills/types.js';
+import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import type { Skill } from '#gw2/platform/skills/types.js';
 import type { ElementalistRuntime, ElementalistSkill } from '#gw2/professions/elementalist/types.js';
 // Use Core's bundle names so conjure availability and familiar-charge exclusions agree.
 import { CONJURED_WEAPONS } from '#gw2/professions/elementalist/core/constants.js';
@@ -27,25 +23,24 @@ import {
 import { EVOKER_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/elementalist/specializations/evoker/profiles.js';
 import { evokerState, type EvokerState } from '#gw2/professions/elementalist/specializations/evoker/state.js';
 
-/**
- * Seeds charge capacity from the active balance profile before the first cast,
- * and pins the Core attunement to the selected element when Specialized Elements
- * has disabled attunement swapping.
- */
-export function initialize(context: ElementalistRuntime): void {
-  const state = evokerState.from(context);
-  state.maximumCharges = balanceProfileNumber(evokerChargeProfile(context), 'maximumStacks');
-  state.charges = Math.max(
-    0,
-    Math.min(state.maximumCharges, context.config.initialEvokerCharges ?? state.maximumCharges)
-  );
-  const resourcesProfile = requireBalanceProfileFromContext(context, PROFILE.resources);
-  state.empowered = Math.max(
-    0,
-    Math.min(balanceProfileNumber(resourcesProfile, 'minimumStacks'), context.config.initialEvokerEmpowered ?? 0)
-  );
-  initializeSpecializedElements(context);
-}
+/** Familiar pools have no passive recovery; traits select capacity before any initialization hooks run. */
+export const familiarChargePolicy: ResourcePolicy<ElementalistRuntime> = {
+  kind: 'continuous',
+  state: (context) => evokerState.from(context).familiarCharges,
+  maximum: (context) => balanceProfileNumber(evokerChargeProfile(context), 'maximumStacks'),
+  initial: (context, maximum) => boundedNumber(context.config.initialEvokerCharges ?? maximum, maximum, 0, maximum),
+  recovery: () => 0
+};
+
+/** Empowered progress is earned only by completed basic conversions, independently of familiar charge capacity. */
+export const empoweredChargePolicy: ResourcePolicy<ElementalistRuntime> = {
+  kind: 'continuous',
+  state: (context) => evokerState.from(context).empoweredCharges,
+  maximum: (context) =>
+    balanceProfileNumber(requireBalanceProfileFromContext(context, PROFILE.resources), 'minimumStacks'),
+  initial: (context, maximum) => boundedNumber(context.config.initialEvokerEmpowered ?? 0, 0, 0, maximum),
+  recovery: () => 0
+};
 
 /** Publishes the current charge and empowered totals as an absolute reading at the cast's end. */
 export function emitResource(
@@ -64,9 +59,9 @@ export function emitResource(
       actorType: 'player',
       skillName: skill.name,
       kind: 'evoker-charges',
-      value: state.charges,
-      maximum: state.maximumCharges,
-      empowered: state.empowered
+      value: state.familiarCharges.value,
+      maximum: state.familiarCharges.maximum,
+      empowered: state.empoweredCharges.value
     }
   });
 }
@@ -106,9 +101,9 @@ function applyWeaponSkillChargeGain(
   state: EvokerState,
   chargeGain: EvokerState['pendingWeaponChargeGains'][number]
 ): void {
-  const before = state.charges;
-  state.charges = Math.min(state.maximumCharges, state.charges + chargeGain.gain);
-  if (state.charges === before) return;
+  const before = state.familiarCharges.value;
+  context.resourceController.grant('familiarCharges', chargeGain.gain);
+  if (state.familiarCharges.value === before) return;
   context.effects.emit({
     kind: 'packet',
     event: {
@@ -120,10 +115,10 @@ function applyWeaponSkillChargeGain(
       actorType: 'player',
       skillName: chargeGain.source,
       kind: 'evoker-charges',
-      value: state.charges,
-      maximum: state.maximumCharges,
-      empowered: state.empowered,
-      change: state.charges - before
+      value: state.familiarCharges.value,
+      maximum: state.familiarCharges.maximum,
+      empowered: state.empoweredCharges.value,
+      change: state.familiarCharges.value - before
     }
   });
 }

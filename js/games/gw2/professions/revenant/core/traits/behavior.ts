@@ -11,12 +11,13 @@ import {
   effectNumber,
   requireBalanceProfileFromContext,
   requireEffect
-} from '#gw2/platform/engine/skills/balance-profiles.js';
-import type { SkillEffect, SkillId } from '#gw2/platform/engine/skills/types.js';
+} from '#gw2/platform/skills/balance-profiles.js';
+import type { SkillEffect } from '#gw2/platform/effects/types.js';
+import type { SkillId } from '#gw2/platform/skills/types.js';
 import { gw2ConfiguredWeaponSet } from '#gw2/platform/equipment/weapons/loadout.js';
 import { buildResolverCondition, isFlatLifeStealPacket } from '#gw2/platform/resolver/packets.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
-import type { RuntimeCast } from '#gw2/platform/simulation/runtime-state.js';
+import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import type { RevenantRuntime } from '#gw2/professions/revenant/core/events.js';
 import { revenantBoonActive } from '#gw2/professions/revenant/core/events.js';
 import { activeRevenantUpkeep } from '#gw2/professions/revenant/core/mechanics/upkeep.js';
@@ -235,7 +236,7 @@ export function exposeDefenses(runtime: RevenantRuntime, event: Gw2ResolverEvent
 /** Explicit life-steal packets bypass ordinary strike modifiers; labels never decide their Core bonus. */
 export function revenantLifeSiphonBonus(context: RevenantResolverContext, event: Gw2ResolverEvent): number | null {
   if (!isFlatLifeStealPacket(event)) return null;
-  return hasTrait(context.config, TRAIT.FEROCIOUS_AGGRESSION) &&
+  return hasTrait(context.traits, TRAIT.FEROCIOUS_AGGRESSION) &&
     boonActive({ config: context.config, runtime: context, time: event.at, event }, 'fury')
     ? balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.FEROCIOUS_AGGRESSION), 'damageIncrease')
     : 0;

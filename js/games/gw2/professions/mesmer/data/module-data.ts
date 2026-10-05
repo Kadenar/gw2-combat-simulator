@@ -11,7 +11,7 @@ import { SKILLS, SPECIALIZATIONS } from '#gw2/professions/mesmer/data/mesmer-api
 import { MESMER_SUPPLEMENTAL_SKILLS } from '#gw2/professions/mesmer/data/mesmer-supplemental-skills.js';
 import { MESMER_SKILL_IDS as ID } from '#gw2/professions/mesmer/data/ids.js';
 import { TRAITS } from '#gw2/professions/mesmer/data/traits-data.js';
-import type { SkillId } from '#gw2/platform/engine/skills/types.js';
+import type { SkillId } from '#gw2/platform/skills/types.js';
 import type { NativeCatalogOptions } from '#gw2/platform/profession-definition/module-types.js';
 
 const allSkills: readonly MesmerSkill[] = [...SKILLS, ...MESMER_SUPPLEMENTAL_SKILLS];

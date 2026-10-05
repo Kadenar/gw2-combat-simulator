@@ -2,23 +2,18 @@ import { runNative } from '#tests/helpers/elementalist-simulation.js';
 import { elementalistProfession } from '#gw2/professions/elementalist/profession.js';
 import { runElementalist } from '#tests/helpers/elementalist-simulation.js';
 import { observedRuntime } from '#tests/helpers/observed-runtime.js';
-import { gw2CooldownReadyAt } from '#gw2/platform/skills/timing.js';
+import { gw2CooldownReadyAt } from '#gw2/platform/execution/cast-timing.js';
 import {
   ELEMENTALIST_ATTUNEMENT_SKILL_IDS,
   ELEMENTALIST_OVERLOAD_SKILL_IDS
 } from '#gw2/professions/elementalist/data/ids.js';
 import assert from 'node:assert/strict';
-import { readFile } from 'node:fs/promises';
 import test from 'node:test';
-
-import { loadProfessionAppAdapter } from '#gw2/profession-registry.js';
 
 import { applyBalanceProfilePatch } from '#gw2/integrations/patches/authoring/patches.js';
 import { tempestHooks } from '#gw2/professions/elementalist/specializations/tempest/hooks.js';
 import { TEMPEST_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/elementalist/specializations/tempest/profiles.js';
 import { ELEMENTALIST_TRAIT_IDS as TRAIT } from '#gw2/professions/elementalist/data/ids.js';
-
-const repoUrl = (path) => new URL(`../../../../../${path}`, import.meta.url);
 
 // Overload and attunement hold the same remaining work as actual Alacrity applications change.
 test('Tempest attunement lockouts keep overload recharge unchanged by temporary Alacrity', () => {
@@ -60,16 +55,16 @@ test('Tempest attunement lockouts keep overload recharge unchanged by temporary 
           {
             at: 10,
             run: (r) => {
-              first = r.cooldowns.get(overloadId);
-              assert.equal(r.cooldowns.get(attunementId), first, element);
+              first = r.cooldownController.readyAt(overloadId);
+              assert.equal(r.cooldownController.readyAt(attunementId), first, element);
             }
           },
           grant(14, 4),
           {
             at: 14.001,
             run: (r) => {
-              second = r.cooldowns.get(overloadId);
-              assert.equal(r.cooldowns.get(attunementId), second, element);
+              second = r.cooldownController.readyAt(overloadId);
+              assert.equal(r.cooldownController.readyAt(attunementId), second, element);
             }
           }
         ]
@@ -90,37 +85,22 @@ test('Tempest overload completion preserves a longer attunement lockout', () => 
     { initialize: (r) => r.cooldownController.startRecharge(r.helpers.skillsById.get(id), 0, 60) }
   );
   assert.deepEqual(result.warnings, []);
-  assert.equal(observedRuntime(result).cooldowns.get(id), 48);
-  assert.deepEqual(observedRuntime(result).rechargeProgress.get(id), { startedAt: 0, work: 60 });
+  assert.equal(observedRuntime(result).cooldownController.readyAt(id), 48);
+  assert.deepEqual(observedRuntime(result).cooldownController.rechargeFor(id), { startedAt: 0, work: 60 });
 });
 
 // A two-skill rotation isolates the instant-cast scheduling rule without
 // depending on the composition or indices of a saved full rotation.
-test('delayed Tempest shouts do not advance the serial rotation lane', async () => {
-  const [savedBuild, adapter] = await Promise.all([
-    readFile(repoUrl('data/gw2/builds/elementalist/b-condi-alac-tempest-pistol.json'), 'utf8').then(JSON.parse),
-    loadProfessionAppAdapter('elementalist')
-  ]);
-  const build = adapter.toApplicationBuild({
-    ...savedBuild,
-    rotation: ['Feel the Burn!', 'Scorching Shot']
+test('delayed Tempest shouts do not advance the serial rotation lane', () => {
+  const result = runElementalist(['Feel the Burn!', 'Scorching Shot'], {
+    specialization: 'Tempest',
+    primaryWeapon: 'Pistol',
+    startAttunement: 'Fire'
   });
-  const app = {
-    build,
-    adapter,
-    profession: adapter.profession,
-    skillByName: adapter.profession.catalog.skillsByName,
-    skillById: adapter.profession.catalog.skillsById,
-    attributeWeaponSet: 1
-  };
-
-  adapter.recalculate(app);
-  const result = runElementalist(build.rotation, adapter.simulationConfig(app));
   const [shout, followingSerialCast] = result.steps;
 
   assert.equal(shout.skill, 'Feel the Burn!');
   assert.equal(followingSerialCast.skill, 'Scorching Shot');
-  assert.equal(shout.start, shout.end);
   assert.equal(followingSerialCast.start, shout.start);
   assert.equal(
     result.warnings.some((warning) => warning.includes('Feel the Burn!')),
@@ -128,25 +108,19 @@ test('delayed Tempest shouts do not advance the serial rotation lane', async () 
   );
 });
 
-test('Alacrity shortens overload dwell and Lucid Singularity follows hit timing', () => {
-  const simulate = (alacrity) =>
-    runNative({
-      lines: [['Fire'], ['Air'], ['Tempest', '1-2-2']],
-      rotation: [1000, 'Fire Attunement', 'Overload Fire'],
-      startAttunement: 'Air',
-      assumptions: { ...elementalistProfession.createBuildDefaults().assumptions, alacrity }
-    });
-  const result = simulate(true);
-  const baseline = simulate(false);
+test('overload dwell uses permanent Alacrity and Lucid Singularity follows hit timing', () => {
+  const result = runNative({
+    lines: [['Fire'], ['Air'], ['Tempest', '1-2-2']],
+    rotation: [1000, 'Fire Attunement', 'Overload Fire'],
+    startAttunement: 'Air'
+  });
 
   const attunement = result.events.find((event) => event.type === 'elementalist.attunement' && event.to === 'Fire');
   const overload = result.events.find((event) => event.type === 'action' && event.skillName === 'Overload Fire');
   const alacrity = result.events.filter((event) => event.type === 'buff' && event.sourceId === TRAIT.LUCID_SINGULARITY);
 
-  const baseEntry = baseline.events.find((event) => event.type === 'elementalist.attunement' && event.to === 'Fire');
-  const baseOverload = baseline.events.find((event) => event.type === 'action' && event.skillName === 'Overload Fire');
-  // Dwell scales with Alacrity; the trait follows overload hits and rewards completion.
-  assert.ok(Math.abs(overload.at - attunement.at - (baseOverload.at - baseEntry.at)) < 0.001);
+  // Permanent Alacrity reduces the six-second dwell; the trait rewards hits and completion.
+  assert.ok(Math.abs(overload.at - attunement.at - 4.8) < 0.001);
   const hits = result.events.filter((event) => event.type === 'damage' && event.skillName === 'Overload Fire');
   assert.ok(alacrity.length > 1);
   assert.ok(alacrity.every((buff) => hits.some((hit) => hit.at === buff.at) || buff.at === overload.endsAt));
@@ -228,8 +202,8 @@ test('Overload Air grants separate non-critical Lightning Jolts to the player an
   assert.ok(triggeringElementalStrike);
 });
 
-// Runtime and palette share the normal gate and the patched trait-adjusted singularity delay.
-test('patched overload dwell agrees between availability and palette', () => {
+// Runtime availability uses the selected profile and the trait-adjusted singularity delay.
+test('patched overload dwell controls runtime availability with and without Transcendent Tempest', () => {
   const catalog = applyBalanceProfilePatch(elementalistProfession.catalog, {
     balanceProfiles: { [PROFILE.overloads]: { fields: { durationMultiplier: 5 } } }
   });

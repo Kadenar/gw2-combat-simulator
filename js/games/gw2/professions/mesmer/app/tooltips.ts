@@ -1,6 +1,5 @@
 import { MESMER_CORE_PHANTASM_ATTACK_TIMINGS } from '#gw2/professions/mesmer/core/skills/index.js';
 import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
-import { requireBalanceProfileFromContext, requireEffect } from '#gw2/platform/engine/skills/balance-profiles.js';
 import {
   fromProfile,
   fromModifier,
@@ -18,7 +17,12 @@ import {
   type ProfessionTooltips
 } from '#gw2/app/shared/simulation-tooltip.js';
 import { MESMER_SKILL_IDS as ID, MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
-import { MESMER_CORE_BALANCE_PROFILE_IDS as CORE } from '#gw2/professions/mesmer/core/profiles.js';
+import {
+  MESMER_CORE_BALANCE_PROFILE_IDS as CORE,
+  mesmerProfiledShatter
+} from '#gw2/professions/mesmer/core/profiles.js';
+import { cloneShatterEffects } from '#gw2/professions/mesmer/core/mechanics/shatter-projection.js';
+import { bladesongEffects } from '#gw2/professions/mesmer/specializations/virtuoso/mechanics/bladesong-projection.js';
 import { CHRONOMANCER_BALANCE_PROFILE_IDS as CHRONO } from '#gw2/professions/mesmer/specializations/chronomancer/profiles.js';
 
 import {
@@ -38,47 +42,20 @@ import { MESMER_VIRTUOSO_SHATTERS } from '#gw2/professions/mesmer/specialization
 import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
 import type { DescribeSimulationTooltip } from '#gw2/app/shared/simulation-tooltip.js';
 
-// Resource tiers are alternatives; ordinary clone shatters count the player as an additional source.
+// Mechanic owners project selected resource tiers; this layer only aggregates and labels their effects.
 const shatterTooltip: DescribeSimulationTooltip = (balanceContext, entity) => {
   const id = Number(entity.id);
   const bladesong = MESMER_VIRTUOSO_SHATTERS[id] != null;
   const definition = { ...MESMER_CORE_SHATTERS, ...MESMER_CHRONOMANCER_SHATTERS, ...MESMER_VIRTUOSO_SHATTERS }[id];
+  const shatter = mesmerProfiledShatter(balanceContext, definition);
   const profile = tooltipProfile(balanceContext, definition.balanceProfileId);
-  const native = balanceContext.catalog.skillsById.get(entity.id)!;
+  const native = balanceContext.catalog.skillsById.get(entity.id)! as MesmerSkill;
+  const projectEffects = bladesong ? bladesongEffects : cloneShatterEffects;
   // Resolve by resource tier so removing a strike cannot relabel its surviving neighbors.
-  const facts = definition.coefficients.flatMap((_, tier) => {
-    const idProfile = requireBalanceProfileFromContext(balanceContext, profile.id);
-    const effect = requireEffect(idProfile, 'strike', `${tier} resources`);
-    if (bladesong && tier === 0) return [];
-    const sources = bladesong ? tier : tier + 1;
+  const facts = shatter.strikes.flatMap((_, tier) => {
+    if (tier < (shatter.minimumResource ?? 0)) return [];
     const qualifier = `${tier} ${bladesong ? 'blades' : 'clones'} spent`;
-    const strike = bladesong
-      ? definition.kind !== 'blade-defense'
-      : definition.kind === 'power' || definition.kind === 'confusion';
-    return simulationEffectFacts(
-      [
-        ...(strike && effect
-          ? [
-              {
-                ...effect,
-                name: undefined,
-                coefficient:
-                  effect.ticks?.reduce((sum, tick) => sum + tooltipNumber(tick, 'coefficient'), 0) ??
-                  effect.coefficient,
-                ticks: undefined,
-                hits: bladesong ? (effect.ticks?.length ?? 1) : (effect.ticks?.length ?? 1) * sources
-              }
-            ]
-          : []),
-        ...(profile.effects || [])
-          .filter((effect) => effect.type === 'condition')
-          .map((effect) => ({ ...effect, applications: sources })),
-        ...(native.effects || [])
-          .filter((effect) => effect.type === 'control')
-          .map((effect) => ({ ...effect, applications: bladesong ? 1 : sources }))
-      ],
-      qualifier
-    ).facts;
+    return simulationEffectFacts(projectEffects(balanceContext, shatter, native, tier), qualifier).facts;
   });
   if (profile.rechargeReduction != null)
     facts.push(

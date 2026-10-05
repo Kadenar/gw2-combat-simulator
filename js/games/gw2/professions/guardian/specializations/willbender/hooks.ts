@@ -1,16 +1,22 @@
-import { denySkillCast } from '#gw2/platform/engine/skills/availability.js';
+import {
+  willbenderBuffPolicies,
+  willbenderEffectStates
+} from '#gw2/professions/guardian/specializations/willbender/effect-state.js';
+import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
+import type { MechanicContext } from '#gw2/platform/profession-definition/mechanic-context.js';
+import { denySkillCast } from '#gw2/platform/execution/availability.js';
 import {
   effectNumber,
   requireBalanceProfileFromContext,
   requireEffect
-} from '#gw2/platform/engine/skills/balance-profiles.js';
-import { skillFlipReady } from '#gw2/platform/engine/skills/skill-flips.js';
+} from '#gw2/platform/skills/balance-profiles.js';
+import { skillFlipReady } from '#gw2/platform/execution/skill-flips.js';
 import { SIGIL_IDS } from '#gw2/platform/equipment/sigils/data.js';
 import type { NativeResolvedDamageDetails } from '#gw2/platform/profession-definition/module-types.js';
 import { buildResolverCondition, buildResolverStrike } from '#gw2/platform/resolver/packets.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
-import type { Gw2Runtime, RuntimeCast, RuntimeProfession } from '#gw2/platform/simulation/runtime-state.js';
-import { gw2EffectExpiresAt } from '#gw2/platform/skills/timing.js';
+import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
+import { gw2EffectExpiresAt } from '#gw2/platform/effects/timing.js';
 import { guardianCastCause } from '#gw2/professions/guardian/core/mechanics/event-handlers.js';
 import { refreshGuardianVirtues } from '#gw2/professions/guardian/core/mechanics/virtues.js';
 import { GUARDIAN_CORE_BALANCE_PROFILE_IDS as CORE_PROFILE } from '#gw2/professions/guardian/core/profiles.js';
@@ -39,7 +45,7 @@ import {
 import type { GuardianRuntimeState, GuardianSkill, GuardianVirtue } from '#gw2/professions/guardian/types.js';
 import { canonicalTime } from '#kernel/core/clock.js';
 
-type Runtime = Gw2Runtime<GuardianRuntimeState, GuardianSkill>;
+type Runtime = MechanicContext<GuardianRuntimeState, GuardianSkill>;
 const PULSE = 'guardian.willbender.pulse';
 const readyVirtues = new WeakSet<RuntimeCast<GuardianSkill>>();
 const VIRTUES = [
@@ -194,7 +200,9 @@ function hit(runtime: Runtime, event: Gw2ResolverEvent, details: NativeResolvedD
 }
 
 /** Virtue windows, flame lifetimes, and earned recharge reductions live beside the shared cast and damage owners. */
-export const willbenderHooks: Partial<RuntimeProfession<GuardianRuntimeState, GuardianSkill>> = {
+export const willbenderHooks: RuntimeHooks<GuardianRuntimeState, GuardianSkill> = {
+  buffPolicies: willbenderBuffPolicies,
+  observeEffects: willbenderEffectStates,
   /** Initial Tempo uses its normal grant function, retaining the selected cap and subsequent refresh behavior. */
   initialize(runtime) {
     const parameters = lethalTempoParameters(runtime);

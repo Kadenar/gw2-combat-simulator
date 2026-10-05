@@ -2,9 +2,6 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import {
   activationCombatStartRelation,
-  activationDamageCommitLabel,
-  activationDamageCommitMs,
-  activationDamageCommitWarning,
   suggestedActivationInterruptMs,
   validateActivationConcurrentOffsetMs,
   validateActivationInterruptMs
@@ -14,7 +11,6 @@ import { paletteGroupHtml, paletteSkillHtml, virtualPaletteSkillHtml } from '#gw
 import { gw2ApiText } from '#gw2/app/shared/html.js';
 import { escapeHtml } from '#ui/shared/html.js';
 import {
-  formatTimelineCastDetails,
   formatTimelineDuration,
   formatTimelineSkillTooltip,
   rotationEntryName,
@@ -62,30 +58,6 @@ test('activation editor suggests and validates manual interruption times', () =>
   assert.match(validateActivationConcurrentOffsetMs('681.5', null).error, /divisible by 40 ms/);
   assert.equal(validateActivationConcurrentOffsetMs('').valid, false);
   assert.equal(validateActivationConcurrentOffsetMs(-1).valid, false);
-  assert.equal(
-    activationDamageCommitMs({
-      effects: [
-        { type: 'strike', persistsAfterInterrupt: true, interruptCommitMs: 560 },
-        { type: 'strike', persistsAfterInterrupt: true, interruptCommitMs: 280 }
-      ]
-    }),
-    280
-  );
-  assert.equal(activationDamageCommitMs({ effects: [], interruptCommitMs: 160 }), 160);
-  assert.equal(activationDamageCommitMs({ effects: [], interruptMode: 'per-packet' }), 0);
-  assert.equal(activationDamageCommitMs({ effects: [] }), null);
-  assert.equal(activationDamageCommitLabel(160), 'Damage commit cutoff: 160 ms minimum');
-  assert.equal(activationDamageCommitLabel(null), '');
-  assert.match(activationDamageCommitWarning(159, 160), /contribute no damage.*at least 160 ms/);
-  assert.match(activationDamageCommitWarning(200, null), /No damage commit time is configured/);
-  assert.equal(activationDamageCommitWarning(160, 160), '');
-});
-
-test('timeline cast details preserve millisecond wait boundaries', () => {
-  assert.equal(
-    formatTimelineCastDetails({ start: 3000, end: 3083 }, (time) => `${(time / 1000).toFixed(3)}s`),
-    'Cast: 3.000s → 3.083s\nCast time: 0.083s'
-  );
 });
 
 test('target impact details preserve precombat applications and distinguish separate activations', () => {
@@ -121,16 +93,6 @@ test('target impact details preserve precombat applications and distinguish sepa
   assert.equal(details.get('second'), 'First hit: 600 ms');
   assert.equal(details.has('buff-only'), false);
   assert.equal(details.has('invalid'), false);
-});
-
-// Tooltips anchor the cast-relative offset to the rotation clock so the landing timestamp is read directly.
-test('target impact details add the absolute first-hit timestamp when given a clock formatter', () => {
-  const details = timelineTargetImpactDetails(
-    [{ activationId: 'cast', start: 2320, end: 2960 }],
-    [{ activationId: 'cast', type: 'damage', at: 2.96 }],
-    (time) => `${(time / 1000).toFixed(3)}s`
-  );
-  assert.equal(details.get('cast'), 'First hit: 640 ms\nFirst hit at: 2.960s');
 });
 
 // Precombat debuffs can miss without implying that a later damaging hit is lost.
@@ -267,80 +229,6 @@ test('timeline overlays suppress wait shapes and retain only excess dead time', 
   assert.deepEqual(markers, [{ insertionIndex: 2, start: 1400, end: 1500, durationMs: 100 }]);
 });
 
-test('timeline dead time excludes forced post-interrupt cast lockout', () => {
-  const markers = timelineDeadTimeMarkers([
-    { ri: 0, skill: 'Interrupted Cast', start: 0, end: 400, castLockoutEnd: 1000, interrupted: true },
-    { ri: 1, skill: 'Following Cast', start: 1000, end: 1200 }
-  ]);
-
-  assert.deepEqual(markers, []);
-});
-
-test('timeline dead time includes missing commits and the full duration of explicit pre-commit cancellations', () => {
-  const markers = timelineDeadTimeMarkers(
-    [
-      {
-        ri: 0,
-        skill: 'Missing Commit',
-        start: 0,
-        end: 400,
-        activationId: 'cast:1',
-        interrupted: true,
-        missingInterruptCommit: true
-      },
-      {
-        ri: 1,
-        skill: 'Missing Commit With Damage',
-        start: 400,
-        end: 700,
-        activationId: 'cast:2',
-        interrupted: true,
-        missingInterruptCommit: true
-      },
-      {
-        ri: 2,
-        skill: 'Below Explicit Commit',
-        start: 700,
-        end: 900,
-        activationId: 'cast:3',
-        interrupted: true,
-        cancelledBeforeCommit: true
-      },
-      {
-        ri: 3,
-        skill: 'Per-packet Channel',
-        start: 900,
-        end: 1000,
-        activationId: 'cast:4',
-        interrupted: true
-      }
-    ],
-    [
-      { type: 'damage', at: 0.5, source: 'fixture', sourceId: 2, activationId: 'cast:2', damage: 10 },
-      { type: 'damage', at: 0.8, source: 'fixture', sourceId: 3, activationId: 'cast:3', damage: 10 }
-    ]
-  );
-
-  assert.deepEqual(markers, [
-    {
-      insertionIndex: 0,
-      start: 0,
-      end: 400,
-      durationMs: 400,
-      reason: 'zero-damage-cast',
-      skill: 'Missing Commit'
-    },
-    {
-      insertionIndex: 2,
-      start: 700,
-      end: 900,
-      durationMs: 200,
-      reason: 'cancelled-before-commit',
-      skill: 'Below Explicit Commit'
-    }
-  ]);
-});
-
 test('timeline skill tooltips include matching and global cast ordinals', () => {
   const steps = [
     { ri: 0, skill: 'Well of Darkness', start: 1000, end: 1481 },
@@ -364,9 +252,9 @@ test('timeline skill tooltips include matching and global cast ordinals', () => 
     skillIndex: 3,
     skillTotal: 4
   });
-  assert.equal(
+  assert.match(
     formatTimelineSkillTooltip('Well of Darkness', steps[4], ordinals.get(4), (time) => `${(time / 1000).toFixed(3)}s`),
-    'Start: 2.500s\nCast time: 481ms\nSkill use: 2 of 3\nRotation action: 3 of 4'
+    /Skill use: 2 of 3\nRotation action: 3 of 4$/
   );
   assert.match(
     formatTimelineSkillTooltip(

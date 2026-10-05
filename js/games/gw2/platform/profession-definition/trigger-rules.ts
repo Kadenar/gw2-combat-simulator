@@ -1,21 +1,21 @@
+import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
+import type { MechanicContext, MechanicQueryContext } from '#gw2/platform/profession-definition/mechanic-context.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
-import type { EffectEventBase } from '#gw2/platform/engine/effects/materializer.js';
-import type { SimulationEventBase } from '#gw2/platform/engine/events/events.js';
-import { requireBalanceProfileFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
-import type { Skill, SkillEffect, SkillId } from '#gw2/platform/engine/skills/types.js';
+import type { EffectEventBase } from '#gw2/platform/effects/materializer.js';
+import type { SimulationEventBase } from '#gw2/platform/events/events.js';
+import { requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import type { Skill, SkillId } from '#gw2/platform/skills/types.js';
+import type { SkillEffect } from '#gw2/platform/effects/types.js';
 import type { NativeResolvedDamageDetails } from '#gw2/platform/profession-definition/module-types.js';
 import type { Gw2ResolverEvent, Gw2ResolverStage } from '#gw2/platform/resolver/types.js';
-import type {
-  Gw2Runtime,
-  ProfessionRuntimeOptions,
-  RuntimeCast,
-  RuntimeProfession
-} from '#gw2/platform/simulation/runtime-state.js';
-import { sideEffectAmount, type ProfileAmount } from '#gw2/platform/simulation/side-effects.js';
+import type { ProfessionRuntimeOptions } from '#gw2/platform/profession-definition/runtime-contract.js';
+import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
+import { sideEffectAmount } from '#gw2/platform/effects/action-dispatch.js';
+import { type ProfileAmount } from '#gw2/platform/effects/actions.js';
 
 export interface RechargeRule<T extends object, TSkill extends Skill = Skill> {
   readonly trait?: SkillId;
-  readonly when: (runtime: Gw2Runtime<T, TSkill>, skill: TSkill) => boolean;
+  readonly when: (runtime: MechanicQueryContext<T, TSkill>, skill: TSkill) => boolean;
   readonly multiplier: ProfileAmount;
   readonly order?: number;
 }
@@ -29,7 +29,7 @@ type TriggerAttribution = Partial<
     >
 >;
 type TriggerAttributionSource<T extends object, Trigger, TSkill extends Skill = Skill> =
-  TriggerAttribution | ((runtime: Gw2Runtime<T, TSkill>, trigger: Trigger) => TriggerAttribution);
+  TriggerAttribution | ((runtime: MechanicQueryContext<T, TSkill>, trigger: Trigger) => TriggerAttribution);
 
 type TraitTriggerBase = {
   readonly trait: SkillId;
@@ -42,18 +42,18 @@ export type TraitTrigger<T extends object, TSkill extends Skill = Skill> = Trait
   (
     | {
         readonly on: 'castStart';
-        readonly when: (runtime: Gw2Runtime<T, TSkill>, cast: RuntimeCast<TSkill>) => boolean;
+        readonly when: (runtime: MechanicQueryContext<T, TSkill>, cast: RuntimeCast<TSkill>) => boolean;
         readonly attribution?: TriggerAttributionSource<T, RuntimeCast<TSkill>, TSkill>;
       }
     | {
         readonly on: 'castCommit';
-        readonly when: (runtime: Gw2Runtime<T, TSkill>, cast: RuntimeCast<TSkill>) => boolean;
+        readonly when: (runtime: MechanicQueryContext<T, TSkill>, cast: RuntimeCast<TSkill>) => boolean;
         readonly attribution?: TriggerAttributionSource<T, RuntimeCast<TSkill>, TSkill>;
       }
     | {
         readonly on: 'damage.resolved';
         readonly when: (
-          runtime: Gw2Runtime<T, TSkill>,
+          runtime: MechanicQueryContext<T, TSkill>,
           event: Gw2ResolverEvent,
           details: NativeResolvedDamageDetails
         ) => boolean;
@@ -61,7 +61,7 @@ export type TraitTrigger<T extends object, TSkill extends Skill = Skill> = Trait
       }
     | {
         readonly on: Exclude<Gw2ResolverStage, 'damage.resolved'>;
-        readonly when: (runtime: Gw2Runtime<T, TSkill>, event: Gw2ResolverEvent) => boolean;
+        readonly when: (runtime: MechanicQueryContext<T, TSkill>, event: Gw2ResolverEvent) => boolean;
         readonly attribution?: TriggerAttributionSource<T, Gw2ResolverEvent, TSkill>;
       }
   );
@@ -69,7 +69,7 @@ export type TraitTrigger<T extends object, TSkill extends Skill = Skill> = Trait
 /** Compile once; declaration order breaks equal-order ties and live profile lookups keep patches authoritative. */
 export function compileRechargeRules<T extends object, TSkill extends Skill = Skill>(
   rules: readonly RechargeRule<T, TSkill>[]
-): (runtime: Gw2Runtime<T, TSkill>, skill: TSkill, work: number) => number {
+): (runtime: MechanicQueryContext<T, TSkill>, skill: TSkill, work: number) => number {
   const ordered = [...rules].sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
   return (runtime, skill, work) => {
     for (const rule of ordered)
@@ -79,11 +79,11 @@ export function compileRechargeRules<T extends object, TSkill extends Skill = Sk
   };
 }
 
-/** Each module's rules run at its hook position; committed interruptions receive the same cast rewards. */
+/** Compile only hook contributions at their module position; committed interruptions receive the same cast rewards. */
 export function compileProfessionRules<T extends object, TSkill extends Skill = Skill>(
-  hooks: Partial<RuntimeProfession<T, TSkill>>,
+  hooks: RuntimeHooks<T, TSkill>,
   { traitTriggers = true }: ProfessionRuntimeOptions = {}
-): Partial<RuntimeProfession<T, TSkill>> {
+): RuntimeHooks<T, TSkill> {
   const compiled = { ...hooks };
   if (hooks.rechargeRules?.length) {
     const recharge = compileRechargeRules(hooks.rechargeRules);
@@ -99,7 +99,7 @@ export function compileProfessionRules<T extends object, TSkill extends Skill = 
     .reverse()) {
     // Wrapping in reverse declaration order keeps emissions in declaration order before the imperative owner.
     const emit = (
-      runtime: Gw2Runtime<T, TSkill>,
+      runtime: MechanicContext<T, TSkill>,
       skillId: SkillId | null | undefined,
       skillName: string | undefined,
       resolveAttribution: () => TriggerAttribution | undefined,
@@ -133,12 +133,12 @@ export function compileProfessionRules<T extends object, TSkill extends Skill = 
       const prior = compiled[key];
       compiled[key] = (runtime, cast) => {
         // The runtime dispatches commit hooks only for successful casts, including shortened animations.
-        if (hasTrait(runtime, rule.trait) && rule.when(runtime, cast))
+        if (hasTrait(runtime, rule.trait) && rule.when(runtime.queries, cast))
           emit(
             runtime,
             cast.skill.id,
             cast.skill.name,
-            () => (typeof rule.attribution === 'function' ? rule.attribution(runtime, cast) : rule.attribution),
+            () => (typeof rule.attribution === 'function' ? rule.attribution(runtime.queries, cast) : rule.attribution),
             cast.id
           );
         prior?.(runtime, cast);
@@ -147,17 +147,20 @@ export function compileProfessionRules<T extends object, TSkill extends Skill = 
       const prior = compiled.reactions?.[rule.on];
       compiled.reactions = {
         ...compiled.reactions,
-        [rule.on]: (runtime: Gw2Runtime<T, TSkill>, event: Gw2ResolverEvent, details: Record<string, unknown>) => {
+        [rule.on]: (runtime: MechanicContext<T, TSkill>, event: Gw2ResolverEvent, details: Record<string, unknown>) => {
           // Hit predicates consume the resolved outcome, never a prediction from the packet.
           if (
             hasTrait(runtime, rule.trait) &&
-            (rule.on === 'damage.resolved' ? rule.when(runtime, event, details) : rule.when(runtime, event))
+            (rule.on === 'damage.resolved'
+              ? rule.when(runtime.queries, event, details)
+              : rule.when(runtime.queries, event))
           )
             emit(
               runtime,
               event.skillId,
               event.skillName,
-              () => (typeof rule.attribution === 'function' ? rule.attribution(runtime, event) : rule.attribution),
+              () =>
+                typeof rule.attribution === 'function' ? rule.attribution(runtime.queries, event) : rule.attribution,
               event.activationId,
               event
             );

@@ -44,7 +44,7 @@ test('Tactical Reload rounds an off-grid application and closes exactly at its d
     const application = result.events.find((event) => event.kind === 'tactical-reload');
     const [buff] = boonApplicationsAt(result.events, 'tactical-reload', application.at);
     assert.equal(Math.round((buff.expiresAt - buff.at) * 1000), 10039);
-    assert.equal(state(result).dragonCharges, charges);
+    assert.equal(state(result).dragonCharges.value, charges);
     if (charges === 2) assert.equal(state(result).tacticalReloadUntil, 0);
     else assert.ok(state(result).tacticalReloadUntil <= observedRuntime(result).time);
   }

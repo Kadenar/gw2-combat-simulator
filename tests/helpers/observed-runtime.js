@@ -1,4 +1,5 @@
-import { runGw2Runtime } from '#gw2/platform/simulation/runtime.js';
+import { runGw2Runtime, runRuntime } from '#gw2/platform/simulation/runtime.js';
+import { createCombatExecution } from '#gw2/platform/simulation/combat-producers.js';
 import { prepareSimulationConfig } from '#tests/helpers/simulation-config.js';
 
 const observed = new WeakMap();
@@ -30,18 +31,19 @@ export function createObservedProfessionSimulator(profession, baseConfig) {
 /** Engine contracts inspect the actual owner through initialization, without exposing internal fields in public results. */
 export function observeGw2Runtime(options) {
   let runtime;
-  const result = runGw2Runtime({
+  const execution = createCombatExecution(options.profession, options.rotation ?? []);
+  const result = runRuntime({
     ...options,
-    profession: {
-      ...options.profession,
+    execution: {
+      ...execution,
       initialize(context) {
         runtime = context;
+        // Fixture setup observes the engine owner explicitly; native hooks still receive author capabilities.
+        options.engineInitialize?.(context);
         if (options.config?.initialEndurance != null && options.profession.endurance) {
-          const maximum = options.profession.endurance.maximum(context);
+          const maximum = options.profession.endurance.maximum(context.mechanics);
           context.endurance.spend(maximum - Math.min(maximum, Math.max(0, options.config.initialEndurance)));
         }
-
-        options.profession.initialize?.(context);
       }
     }
   });

@@ -1,4 +1,4 @@
-import type { Skill } from '#gw2/platform/engine/skills/types.js';
+import type { Skill } from '#gw2/platform/skills/types.js';
 import { engineerCatalog } from '#gw2/professions/engineer/catalog.js';
 import type { EngineerRuntime } from '#gw2/professions/engineer/types.js';
 import { engineerCoreHooks } from '#gw2/professions/engineer/core/hooks.js';

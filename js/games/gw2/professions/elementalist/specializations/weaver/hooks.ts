@@ -1,4 +1,7 @@
-import type { RuntimeCast, RuntimeProfession, SkillTaskData } from '#gw2/platform/simulation/runtime-state.js';
+import { weaverBuffPolicies } from '#gw2/professions/elementalist/specializations/weaver/effect-state.js';
+import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
+import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
+import type { RuntimeCast, SkillTaskData } from '#gw2/platform/execution/cast-contracts.js';
 import { registerElementalistAttunementTransition } from '#gw2/professions/elementalist/core/mechanics/attunements.js';
 import { registerElementalistEliteEvents } from '#gw2/professions/elementalist/core/mechanics/elite-events.js';
 import {
@@ -19,15 +22,15 @@ import type { ElementalistRuntimeState, ElementalistSkill } from '#gw2/professio
  * imposes, the Unravel / Weave Self / Perfect Weave windows, Primordial Stance
  * pulses, and the traits that react to swaps and dual-skill completions.
  */
-import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
-import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
-import { denyCast, denySkillCast } from '#gw2/platform/engine/skills/availability.js';
+import type { SimulationEvent } from '#gw2/platform/events/events.js';
+import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
+import { denyCast, denySkillCast } from '#gw2/platform/execution/availability.js';
 import {
   balanceProfileNumber,
   requireBalanceProfileFromContext,
   requireEffect
-} from '#gw2/platform/engine/skills/balance-profiles.js';
-import type { Skill } from '#gw2/platform/engine/skills/types.js';
+} from '#gw2/platform/skills/balance-profiles.js';
+import type { Skill } from '#gw2/platform/skills/types.js';
 import type { AvailabilityResult } from '#gw2/platform/execution/types.js';
 import { elementalistBuffRequest } from '#gw2/professions/elementalist/core/events.js';
 import {
@@ -83,7 +86,7 @@ function initialize(context: ElementalistRuntime): void {
 
 // Enforce Weaver's dual-hand attunement model, Unravel replacement state, and
 // specialization-only skill gates before Core evaluates ordinary weapon rules.
-function availability(context: ElementalistRuntime, skill: Skill): AvailabilityResult {
+function availability(context: MechanicQueriesOf<ElementalistRuntime>, skill: Skill): AvailabilityResult {
   const hammerAvailability = weaverHammerAvailability(context, skill);
   // Eligible orbs still pass through the shared hand and Unravel replacement gates below.
   if (hammerAvailability && !hammerAvailability.ready) return hammerAvailability as AvailabilityResult;
@@ -220,7 +223,8 @@ function onCastCommit(context: ElementalistRuntime, cast: RuntimeCast<Elementali
 }
 
 /** Native tasks own Weave Self and stance pulses; actual controls and swaps own their trait reactions. */
-export const weaverHooks: Partial<RuntimeProfession<ElementalistRuntimeState, ElementalistSkill>> = {
+export const weaverHooks: RuntimeHooks<ElementalistRuntimeState, ElementalistSkill> = {
+  buffPolicies: weaverBuffPolicies,
   initialize,
   availability,
   // The Air bullet and Flow State reductions compose without consuming bullet state during lookup.
@@ -232,8 +236,8 @@ export const weaverHooks: Partial<RuntimeProfession<ElementalistRuntimeState, El
   ],
   rechargeStart: modifyWeaveSelfRechargeStart,
   // Dual orbs share their cast lifetime so Grand Finale retires both hands' pending contacts.
-  effectOwner(runtime, event) {
-    const skill = runtime.helpers.skillsById.get(event.skillId ?? event.sourceId);
+  effectOwner(context, event) {
+    const skill = context.skillFor(event.skillId ?? event.sourceId);
     if (
       skill &&
       skillWeapon(skill) === 'Hammer' &&

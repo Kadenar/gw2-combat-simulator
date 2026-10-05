@@ -1,5 +1,6 @@
 /** Mechanic and skill-variant tuning for Evoker; traits own their primary and additional profiles under traits/. */
-import type { BalanceProfile, SkillEffect } from '#gw2/platform/engine/skills/types.js';
+import type { BalanceProfile } from '#gw2/platform/skills/types.js';
+import type { SkillEffect } from '#gw2/platform/effects/types.js';
 import { defineSkillVariantProfile as variant } from '#gw2/platform/profession-definition/balance-profiles.js';
 import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';
 
@@ -87,7 +88,8 @@ export const EVOKER_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freeze(
       {
         type: 'buff',
         name: 'Zap Window',
-        kind: 'zap-buff',
+        // The emitter, policy, and damage modifier share this single buff identity.
+        kind: 'zap buff',
         stacks: 1,
         duration: 5
       },

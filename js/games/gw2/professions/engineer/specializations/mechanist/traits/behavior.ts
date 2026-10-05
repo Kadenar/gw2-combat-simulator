@@ -1,4 +1,5 @@
-import type { SkillId } from '#gw2/platform/engine/skills/types.js';
+import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
+import type { SkillId } from '#gw2/platform/skills/types.js';
 import { ENGINEER_SKILL_IDS as ID, ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
 import {
   selectedMechCommand,
@@ -17,7 +18,7 @@ import {
   balanceProfileNumber,
   requireBalanceProfileFromContext,
   requireEffect
-} from '#gw2/platform/engine/skills/balance-profiles.js';
+} from '#gw2/platform/skills/balance-profiles.js';
 import {
   buildEngineerCondition,
   buildEngineerBuff
@@ -41,12 +42,12 @@ export function mechArmsCommand(traits: EngineerConfig | ReadonlySet<SkillId>): 
 /** Accepted mech hits resolve arm procs in order using independent, effect-aware cooldown slots. */
 export function reactToMechArmDamage(context: EngineerResolverContext, event: EngineerResolverEvent): void {
   if (!(Number(event.coefficient) > 0)) return;
-  const state = context.procs.readyAt;
+  const state = context.procs;
   if (!engineerMechResolverEvent(context, event)) return;
 
   if (
     hasTrait(context, TRAIT.MECH_ARMS_SINGLE_EDGE_CUTTERS) &&
-    isInternalCooldownReady(event.at, state.singleEdgeCutters || 0)
+    isInternalCooldownReady(event.at, state.deadline('singleEdgeCutters') || 0)
   ) {
     const mechArmsSingleEdgeCuttersProfile = requireBalanceProfileFromContext(
       context,
@@ -55,7 +56,10 @@ export function reactToMechArmDamage(context: EngineerResolverContext, event: En
     const packet = requireEffect(mechArmsSingleEdgeCuttersProfile, 'condition', 'Bleeding');
     if (packet) {
       // A removed arm effect cannot consume its own proc cooldown.
-      state.singleEdgeCutters = event.at + balanceProfileNumber(mechArmsSingleEdgeCuttersProfile, 'internalCooldown');
+      state.setDeadline(
+        'singleEdgeCutters',
+        event.at + balanceProfileNumber(mechArmsSingleEdgeCuttersProfile, 'internalCooldown')
+      );
       context.effects.emit({
         kind: 'packet',
         event: buildEngineerCondition(event, {
@@ -87,7 +91,7 @@ export function reactToMechArmDamage(context: EngineerResolverContext, event: En
 
   if (
     hasTrait(context, TRAIT.MECH_ARMS_HIGH_IMPACT_DRIVERS) &&
-    isInternalCooldownReady(event.at, state.highImpactDrivers || 0)
+    isInternalCooldownReady(event.at, state.deadline('highImpactDrivers') || 0)
   ) {
     const mechArmsHighImpactDriversProfile = requireBalanceProfileFromContext(
       context,
@@ -95,7 +99,10 @@ export function reactToMechArmDamage(context: EngineerResolverContext, event: En
     );
     const packet = requireEffect(mechArmsHighImpactDriversProfile, 'boon', 'might');
     if (packet) {
-      state.highImpactDrivers = event.at + balanceProfileNumber(mechArmsHighImpactDriversProfile, 'internalCooldown');
+      state.setDeadline(
+        'highImpactDrivers',
+        event.at + balanceProfileNumber(mechArmsHighImpactDriversProfile, 'internalCooldown')
+      );
       context.effects.emit({
         kind: 'packet',
         event: buildEngineerBuff(event, {
@@ -206,7 +213,7 @@ export function mechCoreCommand(traits: EngineerConfig | ReadonlySet<SkillId>): 
 }
 
 /** Jade Dynamo owns command recharge before J-Drive may improve an equipped Overclock passive. */
-export function overclockPassive(context: EngineerRuntime, skill: EngineerSkill): boolean {
+export function overclockPassive(context: MechanicQueriesOf<EngineerRuntime>, skill: EngineerSkill): boolean {
   return (
     !(isEngineerMechCommand(skill) && hasTrait(context, TRAIT.MECH_CORE_JADE_DYNAMO)) &&
     overclockSignetApplies(context, skill)
@@ -219,7 +226,7 @@ export function signetPassiveAvailable(context: unknown, ready: boolean): boolea
 }
 
 /** Ordinary Overclock applies only when neither trait owns the recharge adjustment. */
-export function ordinaryOverclockEligible(context: EngineerRuntime, skill: EngineerSkill): boolean {
+export function ordinaryOverclockEligible(context: MechanicQueriesOf<EngineerRuntime>, skill: EngineerSkill): boolean {
   return (
     !(isEngineerMechCommand(skill) && hasTrait(context, TRAIT.MECH_CORE_JADE_DYNAMO)) &&
     !hasTrait(context, TRAIT.MECH_CORE_J_DRIVE)

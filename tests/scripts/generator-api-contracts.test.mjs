@@ -82,12 +82,19 @@ test('generators preserve pet ordering, collision names, and Warrior request hea
   assert.match(writes[0].source, /SHARED_BITE: 902/);
   assert.match(writes[0].source, /SHARED_BITE_ID_901: 901/);
   assert.doesNotMatch(writes[0].source, /999/);
-  assert.ok(writes[1].source.indexOf('name: "Bear"') < writes[1].source.indexOf('name: "Bear Cub"'));
+  // Presence must be established before comparing positions; a missing token otherwise sorts before real output.
+  const bearIndex = writes[1].source.indexOf('name: "Bear"');
+  const cubIndex = writes[1].source.indexOf('name: "Bear Cub"');
+  assert.ok(bearIndex >= 0, 'generated pet data contains Bear');
+  assert.ok(cubIndex >= 0, 'generated pet data contains Bear Cub');
+  assert.ok(bearIndex < cubIndex);
   assert.match(writes[1].source, /id: ID.SHARED_BITE,/);
   assert.doesNotMatch(writes[1].source, /White Moa/);
 
   requests.length = 0;
   await generateWarriorData(snapshot);
+  // Header checks must exercise a real request rather than passing an empty iteration.
+  assert.ok(requests.length > 0, 'Warrior generation requests supplemental data');
   for (const { url, options } of requests) {
     assert.equal(options.headers['User-Agent'], 'gw2-combat-simulator/2.0 Warrior generator');
     if (url.hostname === 'api.guildwars2.com') {

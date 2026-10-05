@@ -46,48 +46,49 @@ for (const [key, trait, trigger, literalDuration] of [
           config,
           profession: {
             ...native,
-            catalog: { ...native.catalog, balanceProfilesById: profiles },
-            initialize(runtime) {
-              native.initialize(runtime);
-              Object.assign(runtime.procs.readyAt, { [trait]: 1, unrelated: 99 });
-              const enqueue = runtime.queue.enqueue.bind(runtime.queue);
-              runtime.queue.enqueue = (event) => {
-                if (event.sourceId === trait) {
-                  assert.equal(runtime.procs.readyAt[trait], canonicalTime(event.at + duration));
-                  emitted += 1;
+            catalog: { ...native.catalog, balanceProfilesById: profiles }
+          },
+          // Observe engine admission after native mechanic initialization.
+          engineInitialize(runtime) {
+            runtime.procs.setDeadline(trait, 1);
+            runtime.procs.setDeadline('unrelated', 99);
+            const enqueue = runtime.queue.enqueue.bind(runtime.queue);
+            runtime.queue.enqueue = (event) => {
+              if (event.sourceId === trait) {
+                assert.equal(runtime.procs.snapshot()[trait], canonicalTime(event.at + duration));
+                emitted += 1;
+              }
+
+              return enqueue(event);
+            };
+
+            if (trigger !== 'swap')
+              runtime.effects.emit({
+                kind: 'packet',
+                event: {
+                  type: trigger,
+                  at,
+                  actorType: 'player',
+                  source: 'warrior',
+                  sourceId: ID.KILL_SHOT,
+                  skillId: ID.KILL_SHOT,
+                  skillName: 'Kill Shot',
+                  activationId: 'burst',
+                  coefficient: 1,
+                  forceCrit: true,
+                  weaponStrengthProfileId: 'weapon.rifle',
+                  controlKind: 'stun',
+                  duration: 1
                 }
-
-                return enqueue(event);
-              };
-
-              if (trigger !== 'swap')
-                runtime.effects.emit({
-                  kind: 'packet',
-                  event: {
-                    type: trigger,
-                    at,
-                    actorType: 'player',
-                    source: 'warrior',
-                    sourceId: ID.KILL_SHOT,
-                    skillId: ID.KILL_SHOT,
-                    skillName: 'Kill Shot',
-                    activationId: 'burst',
-                    coefficient: 1,
-                    forceCrit: true,
-                    weaponStrengthProfileId: 'weapon.rifle',
-                    controlKind: 'stun',
-                    duration: 1
-                  }
-                });
-            }
+              });
           },
           rotation: [{ type: 'wait', durationMs: at * 1000 }, ...(trigger === 'swap' ? ['Swap Weapons'] : [])]
         });
         assert.deepEqual(result.warnings, []);
         const runtime = observedRuntime(result);
         assert.equal(emitted > 0, expected);
-        assert.equal(runtime.procs.readyAt[trait], expected ? canonicalTime(at + duration) : 1);
-        assert.equal(runtime.procs.readyAt.unrelated, 99);
+        assert.equal(runtime.procs.snapshot()[trait], expected ? canonicalTime(at + duration) : 1);
+        assert.equal(runtime.procs.snapshot()['unrelated'], 99);
       }
     }
   });
@@ -117,8 +118,8 @@ test('Opportunist ignores summons, effect immobilization, and unrelated player c
     }
   });
   assert.deepEqual(result.warnings, []);
-  assert.deepEqual({ ...observedRuntime(result).procs.readyAt }, {});
-  assert.equal(observedRuntime(result).profession.core.adrenaline, 0);
+  assert.deepEqual({ ...observedRuntime(result).procs.snapshot() }, {});
+  assert.equal(observedRuntime(result).profession.core.adrenaline.value, 0);
 });
 
 // Heightened Focus needs the trait and a below-half-health target; it readies the triggering burst and other bursts.
@@ -144,7 +145,7 @@ test('Heightened Focus grants Quickness and recharges bursts only below half tar
         initialize(runtime) {
           native.initialize(runtime);
           // A burst recharging from an earlier cast must also become ready when the trait triggers.
-          runtime.cooldowns.set(ID.ARCING_SLICE, 100);
+          runtime.cooldownController.setReadyAt(ID.ARCING_SLICE, 100);
         }
       },
       // Kill Shot hits before its cast completes, so its own recharge commits after the trigger.
@@ -155,7 +156,7 @@ test('Heightened Focus grants Quickness and recharges bursts only below half tar
     const quickness = result.events.filter((event) => event.sourceId === TRAIT.HEIGHTENED_FOCUS);
     assert.equal(quickness.length > 0, expected);
     for (const id of [ID.KILL_SHOT, ID.ARCING_SLICE])
-      assert.equal((runtime.cooldowns.get(id) ?? 0) > runtime.time, !expected);
+      assert.equal((runtime.cooldownController.readyAt(id) ?? 0) > runtime.time, !expected);
   }
 });
 
@@ -188,8 +189,8 @@ const traitCases = [
     config: { initialResource: 30 },
     verify: (result) =>
       assert.equal(
-        result.planningState.profession.endurance -
-          simulate('Core', ['Dodge', 'Eviscerate'], { initialResource: 30 }).planningState.profession.endurance,
+        result.planningState.profession.endurance.value -
+          simulate('Core', ['Dodge', 'Eviscerate'], { initialResource: 30 }).planningState.profession.endurance.value,
         15
       )
   },
@@ -282,7 +283,7 @@ const traitCases = [
     trait: TRAIT.MERCILESS_HAMMER,
     rotation: ['Kick'],
     config: { initialResource: 0 },
-    verify: (result) => assert.equal(result.planningState.profession.adrenaline, 8)
+    verify: (result) => assert.equal(result.planningState.profession.adrenaline.value, 8)
   },
   {
     name: 'Stalwart Strength',
@@ -345,7 +346,7 @@ const traitCases = [
     trait: TRAIT.VERSATILE_RAGE,
     rotation: ['Swap Weapons'],
     config: { initialResource: 0 },
-    verify: (result) => assert.equal(result.planningState.profession.adrenaline, 5)
+    verify: (result) => assert.equal(result.planningState.profession.adrenaline.value, 5)
   },
   {
     name: 'Burst Mastery',

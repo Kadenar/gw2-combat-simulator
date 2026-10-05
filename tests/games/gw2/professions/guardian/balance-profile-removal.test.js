@@ -1,4 +1,4 @@
-import { guardianBuffPolicies } from '#gw2/professions/guardian/core/effect-state.js';
+import { willbenderBuffPolicies } from '#gw2/professions/guardian/specializations/willbender/effect-state.js';
 import { applyBalanceProfilePatch } from '#gw2/integrations/patches/authoring/patches.js';
 import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
 import { guardianCatalog } from '#gw2/professions/guardian/catalog.js';
@@ -69,8 +69,8 @@ test('Lethal Tempo removal suppresses scheduler and resolver stacks without remo
     { type: 'wait', durationMs: 5000 }
   ]);
   for (const state of [result.planningState.profession, result.planningState.profession]) {
-    assert.equal(state.lethalTempoStacks, 0);
-    assert.equal(state.lethalTempoUntil, 0);
+    assert.equal(state.lethalTempo.stacks, 0);
+    assert.equal(state.lethalTempo.expiresAt, 0);
   }
 
   assert.equal(has(result, 'buff', 'kind', 'lethal-tempo'), false);
@@ -280,7 +280,7 @@ test('patched resource caps and zero recurrence survive initialization and prese
     balanceProfiles: { [TRAIT.LETHAL_TEMPO]: { fields: { maximumStacks: { from: 5, to: 2 } } } }
   });
   assert.equal(
-    guardianBuffPolicies({ catalog: tempoCatalog }).find((effect) => effect.kind === 'lethal-tempo').maximumStacks,
+    willbenderBuffPolicies({ catalog: tempoCatalog }).find((effect) => effect.kind === 'lethal-tempo').maximumStacks,
     2
   );
   assert.equal(guardianCatalog.balanceProfilesById.get(TRAIT.LETHAL_TEMPO).maximumStacks, 5);

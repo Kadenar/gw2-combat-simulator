@@ -1,13 +1,13 @@
 import type { MechanicResourceSpend, ProfessionTimelineMarker } from '#gw2/platform/profession-presentation/types.js';
 import type { ProfessionAppState } from '#gw2/app/types.js';
 import type { RotationCommand, SimulationStep } from '#gw2/platform/execution/types.js';
-import type { SkillId } from '#gw2/platform/engine/skills/types.js';
+import type { SkillId } from '#gw2/platform/skills/types.js';
 import type { Gw2ProcStep } from '#gw2/platform/resolver/types.js';
 
 import { targetHealthBreakpointSnapshots } from '#gw2/app/results/summary-metrics.js';
-import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
-import type { Gw2SimulationResult } from '#gw2/platform/simulation/types.js';
-import { TRANSITION_LOCKOUT_EVENT } from '#gw2/platform/skills/transition-delays.js';
+import type { SimulationEvent } from '#gw2/platform/events/events.js';
+import type { Gw2SimulationResult } from '#gw2/platform/results/types.js';
+import { TRANSITION_LOCKOUT_EVENT } from '#gw2/platform/execution/transition-lockouts.js';
 import { isDamagingCondition } from '#gw2/platform/combat/state/targets.js';
 
 export interface TimelineCastOrdinal {

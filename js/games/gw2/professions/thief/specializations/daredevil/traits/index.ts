@@ -1,12 +1,9 @@
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { targetConditionActive } from '#gw2/platform/combat/query/runtime-query.js';
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
-import {
-  balanceProfileNumber,
-  requireBalanceProfileFromContext
-} from '#gw2/platform/engine/skills/balance-profiles.js';
 import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
-import { thiefRuntimeSpecializationState, thiefRuntimeState } from '#gw2/professions/thief/core/modifiers.js';
+import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import { thiefRuntimeSpecializationState, thiefRuntimeState } from '#gw2/professions/thief/core/state-queries.js';
 import { THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
 import { DAREDEVIL_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/thief/specializations/daredevil/profiles.js';
 import type { DaredevilState } from '#gw2/professions/thief/specializations/daredevil/state.js';
@@ -111,7 +108,7 @@ export const havocSpecialist = defineTrait({
       when: (context) =>
         isGw2PlayerModifierOwnedEvent(context.event) &&
         // Trait activates whenever endurance is not at maximum — any spent dodge qualifies
-        (thiefRuntimeState(context).endurance || 0) <
+        (thiefRuntimeState(context).endurance?.value ?? 0) <
           balanceProfileNumber(requireBalanceProfileFromContext(context, PROFILE.resources), 'maximumStacks')
     }
   ]

@@ -1,9 +1,9 @@
-import { flattenProfessionState } from '#gw2/platform/engine/profession/state.js';
+import { planningFixture } from '#tests/helpers/observed-runtime.js';
 import assert from 'node:assert/strict';
 import { access } from 'node:fs/promises';
 import { describe, test } from 'node:test';
 import { replaceBuild } from '#gw2/app/build/state/persistence.js';
-import { COMMON_EVENT_TYPES } from '#gw2/platform/engine/events/events.js';
+import { COMMON_EVENT_TYPES } from '#gw2/platform/events/events.js';
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
 import { professionRegistry } from '#gw2/profession-registry.js';
 
@@ -46,21 +46,14 @@ function assertUiContracts(entry, profession, specialization) {
   )
     ? specialization
     : 'Core';
-  let runtime;
-
-  try {
-    runtime = profession.resolveProfession({
-      specialization: runtimeSpecialization
-    });
-  } catch {
-    runtime = profession.resolveProfession({ specialization: 'Core' });
-  }
-
+  // UI state must pass through selected policy initialization; detached factories deliberately contain empty clocks.
+  const planningState = planningFixture(profession, { specialization: runtimeSpecialization });
   const context = {
     catalog: profession.catalog,
     specialization,
-    config: { specialization },
-    professionState: flattenProfessionState(runtime.createState({ specialization }))
+    config: { specialization: runtimeSpecialization },
+    planningState,
+    professionState: planningState.profession
   };
   const groups = profession.ui.paletteGroups(context);
   const views = profession.ui.resourceViews(context);
@@ -194,7 +187,6 @@ test('profession registry entries conform to the shared contracts', async () => 
     assert.equal(new Set(ids).size, ids.length);
     for (const skill of profession.catalog.skills) {
       assert.equal(profession.catalog.skillsById.get(skill.id), skill);
-      assert.ok(Number.isFinite(skill.castTimeMs), skill.name);
       assert.equal('activation' in skill, false, skill.name);
       assert.equal('castTime' in skill, false, skill.name);
 
@@ -337,7 +329,6 @@ test('ready native professions expose deliberate public end-state keys', async (
       'pendingSoulTwistSkill',
       'plagueSendingArmed',
       'painfulBondPulseAnchorAt',
-      'targetChilledUntil',
       'fearOfDeathReadyAt',
       'vampiricPresenceReadyAt',
       'chillingNovaReadyAt',

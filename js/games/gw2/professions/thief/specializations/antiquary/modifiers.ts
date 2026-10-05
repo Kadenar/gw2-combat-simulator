@@ -3,7 +3,7 @@ import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-
 import type { AntiquaryState } from '#gw2/professions/thief/specializations/antiquary/state.js';
 
 import type { Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
-import { thiefRuntimeSpecializationState } from '#gw2/professions/thief/core/modifiers.js';
+import { thiefRuntimeSpecializationState } from '#gw2/professions/thief/core/state-queries.js';
 
 export const antiquaryModifiers = Object.freeze<readonly Gw2ModifierRule[]>([
   {

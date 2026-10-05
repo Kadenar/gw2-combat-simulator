@@ -1,17 +1,13 @@
 import type { RateInterval } from '#gw2/platform/combat/resources/pool.js';
 import { EPSILON } from '#kernel/core/clock.js';
-import { gw2CooldownReadyAt } from '#gw2/platform/skills/timing.js';
-/** The shared endurance fields read by, and returned from, standard GW2 endurance arithmetic. */
+import { gw2CooldownReadyAt } from '#gw2/platform/execution/cast-timing.js';
 
 import { cappedResource, grantCapped } from '#gw2/platform/combat/resources/pool.js';
 import { boonIntervals } from '#gw2/platform/combat/boons.js';
-import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
+import type { SimulationEvent } from '#gw2/platform/events/events.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
 
-interface Gw2EnduranceState {
-  readonly endurance: number;
-  readonly enduranceUpdatedAt: number;
-}
+import type { ResourceClock } from '#gw2/platform/combat/resources/clock.js';
 
 /** Shares self-Vigor history for recovery and readiness while professions retain their rate policy. */
 export function* vigorEnduranceIntervals(
@@ -39,52 +35,39 @@ export function* vigorEnduranceIntervals(
 
 /** Advances capped endurance without allowing an older scheduler timestamp to regenerate or rewind state. */
 export function advanceEndurance(
-  state: Gw2EnduranceState,
+  state: Readonly<ResourceClock>,
   at: number,
-  regenerationPerSecond: number,
-  maximumEndurance: number
-): Gw2EnduranceState {
-  if (at <= state.enduranceUpdatedAt) {
-    return {
-      endurance: state.endurance,
-      enduranceUpdatedAt: state.enduranceUpdatedAt
-    };
+  regenerationPerSecond: number
+): ResourceClock {
+  if (at <= state.updatedAt) {
+    return { ...state };
   }
 
   // A zero rate must remain idle even when an observation window has no finite endpoint.
   const rate = Math.max(0, regenerationPerSecond);
   return {
-    endurance: cappedResource(
-      state.endurance + (rate === 0 ? 0 : (at - state.enduranceUpdatedAt) * rate),
-      maximumEndurance
-    ),
-    enduranceUpdatedAt: at
+    ...state,
+    value: cappedResource(state.value + (rate === 0 ? 0 : (at - state.updatedAt) * rate), state.maximum),
+    updatedAt: at,
+    rate
   };
 }
 
 /** Pays a non-negative endurance cost and anchors subsequent regeneration at the spend timestamp. */
-export function spendEndurance(
-  state: Gw2EnduranceState,
-  amount: number,
-  at: number,
-  maximumEndurance: number
-): Gw2EnduranceState {
+export function spendEndurance(state: Readonly<ResourceClock>, amount: number, at: number): ResourceClock {
   return {
-    endurance: cappedResource(state.endurance - Math.max(0, amount), maximumEndurance),
-    enduranceUpdatedAt: Math.max(state.enduranceUpdatedAt, at)
+    ...state,
+    value: cappedResource(state.value - Math.max(0, amount), state.maximum),
+    updatedAt: Math.max(state.updatedAt, at)
   };
 }
 
 /** Adds a non-negative endurance grant up to the supplied cap and anchors regeneration at the grant timestamp. */
-export function grantEndurance(
-  state: Gw2EnduranceState,
-  amount: number,
-  at: number,
-  maximumEndurance: number
-): Gw2EnduranceState {
+export function grantEndurance(state: Readonly<ResourceClock>, amount: number, at: number): ResourceClock {
   return {
-    endurance: grantCapped(state.endurance, amount, maximumEndurance),
-    enduranceUpdatedAt: Math.max(state.enduranceUpdatedAt, at)
+    ...state,
+    value: grantCapped(state.value, amount, state.maximum),
+    updatedAt: Math.max(state.updatedAt, at)
   };
 }
 
@@ -100,22 +83,22 @@ function enduranceThresholdAt(
   return regenerationPerSecond > 0 ? at + missing / regenerationPerSecond : null;
 }
 
-/** Integrates chronological windows without mutating the caller, accruing gaps, or replaying settled time. */
+/** Settle only through the observation time, retaining its active policy rate without replaying history or accruing gaps. */
 export function advanceEnduranceIntervals(
-  state: Gw2EnduranceState,
+  state: Readonly<ResourceClock>,
   intervals: Iterable<RateInterval>,
-  maximumEndurance: number
-): Gw2EnduranceState {
-  let current = { endurance: state.endurance, enduranceUpdatedAt: state.enduranceUpdatedAt };
+  at = Infinity
+): ResourceClock {
+  let current = { ...state };
   for (const interval of intervals) {
-    const start = Math.max(current.enduranceUpdatedAt, interval.start);
-    if (interval.end <= start) continue;
-    current = advanceEndurance(
-      { endurance: current.endurance, enduranceUpdatedAt: start },
-      interval.end,
-      interval.rate,
-      maximumEndurance
-    );
+    if (interval.start > at) break;
+    const start = Math.max(current.updatedAt, interval.start);
+    const end = Math.min(interval.end, at);
+    if (end > start) current = advanceEndurance({ ...current, updatedAt: start }, end, interval.rate);
+    if (interval.end > at) {
+      current.rate = Math.max(0, interval.rate);
+      break;
+    }
   }
 
   return current;
@@ -123,29 +106,24 @@ export function advanceEnduranceIntervals(
 
 /** Predicts affordability using advancement's capped, nonnegative recovery and stops at the first funded window. */
 export function enduranceIntervalsReadyAt(
-  state: Gw2EnduranceState,
+  state: Readonly<ResourceClock>,
   cost: number,
-  intervals: Iterable<RateInterval>,
-  maximumEndurance: number
+  intervals: Iterable<RateInterval>
 ): number | null {
-  if (cost - Math.max(0, maximumEndurance) > Math.max(0, EPSILON)) return null;
+  if (cost - Math.max(0, state.maximum) > Math.max(0, EPSILON)) return null;
   let current = {
-    endurance: cappedResource(state.endurance, maximumEndurance),
-    enduranceUpdatedAt: state.enduranceUpdatedAt
+    ...state,
+    value: cappedResource(state.value, state.maximum),
+    updatedAt: state.updatedAt
   };
   for (const interval of intervals) {
-    const start = Math.max(current.enduranceUpdatedAt, interval.start);
+    const start = Math.max(current.updatedAt, interval.start);
     if (interval.end <= start) continue;
-    const readyAt = enduranceThresholdAt(current.endurance, cost, start, interval.rate);
+    const readyAt = enduranceThresholdAt(current.value, cost, start, interval.rate);
     if (readyAt != null && Number.isFinite(readyAt) && readyAt <= interval.end)
-      return readyAt === state.enduranceUpdatedAt ? readyAt : gw2CooldownReadyAt(readyAt);
+      return readyAt === state.updatedAt ? readyAt : gw2CooldownReadyAt(readyAt);
     if (interval.end === Infinity) return null;
-    current = advanceEndurance(
-      { endurance: current.endurance, enduranceUpdatedAt: start },
-      interval.end,
-      interval.rate,
-      maximumEndurance
-    );
+    current = advanceEndurance({ ...current, updatedAt: start }, interval.end, interval.rate);
   }
 
   return null;

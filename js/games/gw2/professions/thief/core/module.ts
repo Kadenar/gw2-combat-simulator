@@ -1,5 +1,5 @@
 import { coreTraits } from '#gw2/professions/thief/core/traits/index.js';
-import { createPublicStateProjector } from '#gw2/platform/engine/profession/state.js';
+import { createPublicStateProjector } from '#gw2/platform/profession-definition/state.js';
 import { defineNativeModule } from '#gw2/platform/profession-definition/profession.js';
 import { thiefCoreHooks } from '#gw2/professions/thief/core/hooks.js';
 import { thiefCoreModifiers } from '#gw2/professions/thief/core/modifiers.js';

@@ -1,26 +1,15 @@
-import type { Gw2PlanningStateInput } from '#gw2/platform/simulation/types.js';
-import { snapshotProfessionState } from '#gw2/platform/engine/profession/state.js';
+import type { Gw2PlanningStateInput } from '#gw2/platform/results/types.js';
+import { snapshotProfessionState } from '#gw2/platform/profession-definition/state.js';
 import { canonicalTime } from '#kernel/core/clock.js';
-import { defineProfessionSpecializationState } from '#gw2/platform/engine/profession/state.js';
-import type { SkillId } from '#gw2/platform/engine/skills/types.js';
-
-interface MesmerContinuumAmmo {
-  charges: number;
-  maximum: number;
-  nextRechargeRemaining: number | null;
-  lockoutRemaining: number;
-  /** Rewind each missing charge with the progress it had at the checkpoint. */
-  pendingRechargeWork: number[];
-  pendingLockoutWork?: number;
-}
+import { defineProfessionSpecializationState } from '#gw2/platform/profession-definition/state.js';
+import type { SkillId } from '#gw2/platform/skills/types.js';
+import type { RechargeCheckpoint } from '#gw2/platform/execution/types.js';
 
 interface MesmerContinuumSnapshot {
   splitId: SkillId;
   splitReady: number | undefined;
   openAt: number;
-  remainingCooldowns: Map<SkillId, number>;
-  remainingRechargeWork: Map<SkillId, number>;
-  ammo: Map<SkillId, MesmerContinuumAmmo>;
+  recharge: RechargeCheckpoint;
   autoattackChains: Record<string, SkillId>;
   expiresAt: number;
 }

@@ -1,12 +1,18 @@
+import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
+import type { MechanicContext } from '#gw2/platform/profession-definition/mechanic-context.js';
+import type { CastDetailContext } from '#gw2/platform/profession-definition/runtime-context.js';
 import { MODIFIER_TARGET, type Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
-import { impactEffects } from '#gw2/platform/engine/effects/authoring.js';
-import { requireBalanceProfileFromContext, requireEffect } from '#gw2/platform/engine/skills/balance-profiles.js';
-import type { Skill, SkillEffect } from '#gw2/platform/engine/skills/types.js';
-import type { Gw2Runtime, RuntimeCast, RuntimeProfession } from '#gw2/platform/simulation/runtime-state.js';
-import { projectCastRelativeEffectTimingMs } from '#gw2/platform/skills/timing.js';
+import { impactEffects, strikeEffectCoefficient } from '#gw2/platform/effects/authoring.js';
+import { effectFirstAt, scaleCastBoundTiming } from '#gw2/platform/effects/materializer.js';
+import { requireBalanceProfileFromContext, requireEffect } from '#gw2/platform/skills/balance-profiles.js';
+import type { Skill } from '#gw2/platform/skills/types.js';
+import type { SkillEffect } from '#gw2/platform/effects/types.js';
+import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
+import type { RuntimeProfession } from '#gw2/platform/profession-definition/runtime-contract.js';
+import { projectCastRelativeEffectTimingMs } from '#gw2/platform/execution/cast-timing.js';
 import { guardianTimedBuffActive } from '#gw2/professions/guardian/core/mechanics/modifier-queries.js';
 import { GUARDIAN_SKILL_IDS as ID } from '#gw2/professions/guardian/data/ids.js';
-import { luminaryImpactAt } from '#gw2/professions/guardian/specializations/luminary/mechanics/effects.js';
+import { canonicalTime } from '#kernel/core/clock.js';
 import { LUMINARY_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/guardian/specializations/luminary/profiles.js';
 import { luminaryState } from '#gw2/professions/guardian/specializations/luminary/state.js';
 import type { GuardianRuntimeState, GuardianSkill } from '#gw2/professions/guardian/types.js';
@@ -88,6 +94,8 @@ export const LUMINARY_RADIANT_FORGE_SKILL_MECHANICS: Readonly<Record<number, Par
     effects: []
   },
   [ID.LUMINOUS_STAFF]: {
+    // Author symbol identity independently of the skill's display text.
+    tags: ['symbol'],
     // An accepted equip belongs to its captured forge entry, including delayed commitment.
     sideEffects: [
       { on: 'castStart', when: (_runtime, cast) => !cast.cancelled, do: { type: 'guardian.snapshot-forge' } },
@@ -117,6 +125,7 @@ export const LUMINARY_RADIANT_FORGE_SKILL_MECHANICS: Readonly<Record<number, Par
       },
       {
         type: 'strike',
+        metadata: { guardianSymbol: true },
         // EVTC records four Quickness packets at 440 ms and fixed one-second intervals.
         ticks: [440, 1440, 2440, 3440].map((atMs) => ({ atMs, coefficient: 1.2 / 4 })),
         name: 'Luminous Staff — Symbol Damage'
@@ -334,21 +343,24 @@ export const LUMINARY_RADIANT_FORGE_SKILL_MECHANICS: Readonly<Record<number, Par
   }
 });
 
-type Runtime = Gw2Runtime<GuardianRuntimeState, GuardianSkill>;
+type Runtime = MechanicContext<GuardianRuntimeState, GuardianSkill>;
 export const HAMMER = 'guardian.luminary.hammer';
 export const BOON = 'guardian.luminary.weapon-boon';
 export const BLADE_IMMOBILIZE = 'guardian.luminary.blade-immobilize';
 
 /** Duration and label inspect the same cadence that selection advances only after acceptance. */
-export function glaringBurstDuration(runtime: Runtime, skill: Skill, duration: number): number {
+export function glaringBurstDuration(runtime: MechanicQueriesOf<Runtime>, skill: Skill, duration: number): number {
   const state = luminaryState.from(runtime);
   return state.radiantWeapon === 'blade'
     ? duration * ((state.glaringBurstSwordSlow ? 680 : 440) / (skill.castTimeMs ?? 600))
     : duration;
 }
 
-export function glaringBurstDetail(runtime: Runtime): string | undefined {
-  const state = luminaryState.from(runtime);
+/** Labels inspect the current Luminary variant before accepted effects advance its cadence. */
+export function glaringBurstDetail(context: CastDetailContext<GuardianRuntimeState>): string | undefined {
+  const specialization = context.readProfessionState().specialization;
+  if (specialization.kind !== 'Luminary') throw new TypeError('Glaring Burst requires Luminary state.');
+  const state = specialization.state;
   const label =
     state.radiantWeapon === 'blade'
       ? `Sword (${state.glaringBurstSwordSlow ? 'slow' : 'fast'})`
@@ -450,3 +462,10 @@ export const luminaryWeaponModifiers: readonly Gw2ModifierRule[] = [
       context.event?.skillId === ID.GLEAMING_BLADE && guardianTimedBuffActive(context, 'guardian-radiant-courage-sword')
   }
 ];
+
+/** Linked self effects use the packet materializer's scaling and anchor so they resolve with the selected impact. */
+export function luminaryImpactAt(cast: RuntimeCast<GuardianSkill>): number {
+  const effect = cast.skill.effects?.find((effect) => effect.type === 'strike' && strikeEffectCoefficient(effect) > 0);
+  if (effect?.type !== 'strike') return cast.effectiveEnd;
+  return canonicalTime(effectFirstAt(cast.start, cast.fullEnd, scaleCastBoundTiming(cast, cast.skill, effect)));
+}

@@ -1,5 +1,5 @@
 import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
-import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
+import type { SimulationEvent } from '#gw2/platform/events/events.js';
 import { activeTroubadourInstrumentsAt } from '#gw2/professions/mesmer/specializations/troubadour/state.js';
 
 /** Share the scheduler's exact instrument replacement and expiry policy with modifier queries. */

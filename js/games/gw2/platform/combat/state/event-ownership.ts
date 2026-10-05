@@ -1,6 +1,6 @@
-import { ACTOR_TYPES, GW2_EVENT_ACTOR_TYPES } from '#gw2/platform/engine/events/actors.js';
-import type { SimulationEventBase } from '#gw2/platform/engine/events/events.js';
-import type { SimulationActorType } from '#gw2/platform/engine/events/actors.js';
+import { ACTOR_TYPES, GW2_EVENT_ACTOR_TYPES } from '#gw2/platform/events/actors.js';
+import type { SimulationEventBase } from '#gw2/platform/events/events.js';
+import type { SimulationActorType } from '#gw2/platform/events/actors.js';
 
 /** Reads explicit ownership; absent query events remain unknown and display labels never determine actors. */
 export function gw2EventActorType(event: Partial<SimulationEventBase> | null | undefined): SimulationActorType {

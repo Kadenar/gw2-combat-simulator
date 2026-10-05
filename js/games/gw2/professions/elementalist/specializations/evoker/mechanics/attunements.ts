@@ -1,4 +1,4 @@
-import type { RuntimeCast } from '#gw2/platform/simulation/runtime-state.js';
+import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import { evocationAllowsAttunementTrait } from '#gw2/professions/elementalist/specializations/evoker/traits/attunements.js';
 /**
  * Evoker attunement behaviour layered over the Core Elementalist system.
@@ -9,12 +9,9 @@ import { evocationAllowsAttunementTrait } from '#gw2/professions/elementalist/sp
  * is disabled - fire the entry effects from empowered familiar casts without any
  * attunement actually changing.
  */
-import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
-import {
-  balanceProfileNumber,
-  requireBalanceProfileFromContext
-} from '#gw2/platform/engine/skills/balance-profiles.js';
-import type { Skill } from '#gw2/platform/engine/skills/types.js';
+import type { SimulationEvent } from '#gw2/platform/events/events.js';
+import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import type { Skill } from '#gw2/platform/skills/types.js';
 import {
   elementalistAttunementRechargeDuration,
   onAttunementComplete,

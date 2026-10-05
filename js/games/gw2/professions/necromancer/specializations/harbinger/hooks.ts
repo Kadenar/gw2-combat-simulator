@@ -1,16 +1,16 @@
+import { harbingerBuffPolicies } from '#gw2/professions/necromancer/specializations/harbinger/effect-state.js';
+import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import { timedEffectState } from '#gw2/platform/combat/effect-state.js';
 import { BLIGHT_MAXIMUM_STACKS } from '#gw2/professions/necromancer/specializations/harbinger/state.js';
 import { isHostileTargetEvent } from '#gw2/platform/combat/state/targets.js';
-import { effectFirstAt, scaleCastBoundTiming } from '#gw2/platform/engine/effects/materializer.js';
-import type { EffectMetadata, SimulationEvent } from '#gw2/platform/engine/events/events.js';
-import {
-  balanceProfileNumber,
-  requireBalanceProfileFromContext
-} from '#gw2/platform/engine/skills/balance-profiles.js';
-import type { Skill, SkillEffect } from '#gw2/platform/engine/skills/types.js';
-import type { RuntimeCast, RuntimeProfession } from '#gw2/platform/simulation/runtime-state.js';
-import { sideEffectAmount } from '#gw2/platform/simulation/side-effects.js';
-import { quantizeGw2ActionTimingMs } from '#gw2/platform/skills/timing.js';
+import { effectFirstAt, scaleCastBoundTiming } from '#gw2/platform/effects/materializer.js';
+import type { EffectMetadata, SimulationEvent } from '#gw2/platform/events/events.js';
+import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import type { Skill } from '#gw2/platform/skills/types.js';
+import type { SkillEffect } from '#gw2/platform/effects/types.js';
+import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
+import { sideEffectAmount } from '#gw2/platform/effects/action-dispatch.js';
+import { quantizeGw2ActionTimingMs } from '#gw2/platform/execution/cast-timing.js';
 import { registerNecromancerShroudLifecycle } from '#gw2/professions/necromancer/core/mechanics/shroud-lifecycle.js';
 import { NECROMANCER_SKILL_IDS as ID } from '#gw2/professions/necromancer/data/ids.js';
 import { HARBINGER_EMPOWERED_PROFILE_BY_SKILL_ID } from '#gw2/professions/necromancer/specializations/harbinger/profiles.js';
@@ -153,7 +153,8 @@ function launchMovement(runtime: NecromancerRuntime, cast: RuntimeCast<Necromanc
 }
 
 /** Blight lives on the one runtime; shroud callbacks own every entry and exit, including automatic depletion. */
-export const harbingerHooks: Partial<RuntimeProfession<NecromancerRuntimeState, NecromancerSkill>> = {
+export const harbingerHooks: RuntimeHooks<NecromancerRuntimeState, NecromancerSkill> = {
+  buffPolicies: harbingerBuffPolicies,
   // Observe the same retained pools and mode flags that Harbinger combat mutates.
   observeEffects(runtime) {
     const state = harbingerState.from(runtime);

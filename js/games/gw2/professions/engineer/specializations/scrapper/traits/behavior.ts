@@ -3,7 +3,7 @@ import {
   balanceProfileNumber,
   requireBalanceProfileFromContext,
   requireEffect
-} from '#gw2/platform/engine/skills/balance-profiles.js';
+} from '#gw2/platform/skills/balance-profiles.js';
 import { activeBoonStacks, buildEngineerBuff } from '#gw2/professions/engineer/core/mechanics/resolution-helpers.js';
 import { ENGINEER_TRAIT_IDS as TRAIT, ENGINEER_SKILL_IDS as ID } from '#gw2/professions/engineer/data/ids.js';
 import { scrapperState } from '#gw2/professions/engineer/specializations/scrapper/state.js';
@@ -17,18 +17,18 @@ import { isInternalCooldownReady } from '#gw2/platform/combat/procs.js';
 import { type Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
 import { type Gw2Stats } from '#gw2/platform/combat/types.js';
 import { activeBoonStacks as modifierBoonStacks } from '#gw2/professions/engineer/core/traits/query-helpers.js';
-import { type SimulationEvent } from '#gw2/platform/engine/events/events.js';
+import { type SimulationEvent } from '#gw2/platform/events/events.js';
 import { produceRuntimeCombos } from '#gw2/platform/combos/runtime.js';
-import { type RuntimeCast } from '#gw2/platform/simulation/runtime-state.js';
+import { type RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 
 /** Keeps one pending Stability pulse and rechecks selection and live Stability before each grant. */
 export function triggerMassMomentum(context: EngineerRuntime, event: EngineerResolverEvent): void | false {
   if (!hasTrait(context, TRAIT.MASS_MOMENTUM) || activeBoonStacks(context, 'stability', 1, event.at) === 0)
     return false;
-  const state = context.procs.readyAt;
+  const state = context.procs;
   const massMomentumProfile = requireBalanceProfileFromContext(context, TRAIT.MASS_MOMENTUM);
-  if ((state.massMomentum || 0) <= event.at) {
-    state.massMomentum = event.at + balanceProfileNumber(massMomentumProfile, 'pulseInterval');
+  if ((state.deadline('massMomentum') || 0) <= event.at) {
+    state.setDeadline('massMomentum', event.at + balanceProfileNumber(massMomentumProfile, 'pulseInterval'));
     const massMomentumMight = requireEffect(massMomentumProfile, 'boon', 'might');
     if (massMomentumMight) {
       context.effects.emit({
@@ -54,7 +54,7 @@ export function triggerMassMomentum(context: EngineerRuntime, event: EngineerRes
   }
 
   const interval = balanceProfileNumber(massMomentumProfile, 'pulseInterval');
-  const next = Math.max(event.at + interval, state.massMomentum || 0);
+  const next = Math.max(event.at + interval, state.deadline('massMomentum') || 0);
   const live = scrapperState.from(context);
   if (interval > 0 && live.massMomentumAt > next) {
     live.massMomentumAt = next;
@@ -80,10 +80,10 @@ export function reactToAppliedForceBuff(context: EngineerRuntime, event: Enginee
       event.at
     ) >= balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.APPLIED_FORCE), 'threshold')
   ) {
-    const state = context.procs.readyAt;
-    if (isInternalCooldownReady(event.at, state.appliedForce || 0)) {
+    const state = context.procs;
+    if (isInternalCooldownReady(event.at, state.deadline('appliedForce') || 0)) {
       const appliedForceProfile = requireBalanceProfileFromContext(context, TRAIT.APPLIED_FORCE);
-      state.appliedForce = event.at + balanceProfileNumber(appliedForceProfile, 'internalCooldown');
+      state.setDeadline('appliedForce', event.at + balanceProfileNumber(appliedForceProfile, 'internalCooldown'));
       const appliedForceStability = requireEffect(appliedForceProfile, 'boon', 'stability');
       if (appliedForceStability) {
         context.effects.emit({
@@ -169,7 +169,7 @@ export function applyKineticAcceleratorsCast(context: EngineerRuntime, cast: Run
   // Kinetic Accelerators (GM trait): Function Gyro becomes a blast finisher.
   // The marker gives the shared combo materializer a trait-gated descriptor
   // while preserving Function Gyro as the source of the resulting combo.
-  if (hasTrait(context.config, TRAIT.KINETIC_ACCELERATORS)) {
+  if (hasTrait(context.traits, TRAIT.KINETIC_ACCELERATORS)) {
     produceRuntimeCombos(context, context.helpers, {
       type: 'action',
       endsAt: context.time,

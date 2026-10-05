@@ -1,6 +1,6 @@
 import type { Gw2ModifierContext, Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
-import { gw2EffectExpiresAt } from '#gw2/platform/skills/timing.js';
+import { gw2EffectExpiresAt } from '#gw2/platform/effects/timing.js';
 import { guardianTimedBuffActive } from '#gw2/professions/guardian/core/mechanics/modifier-queries.js';
 import { GUARDIAN_SKILL_IDS } from '#gw2/professions/guardian/data/ids.js';
 import { luminaryWeaponModifiers } from '#gw2/professions/guardian/specializations/luminary/skills/radiant-forge-skills.js';

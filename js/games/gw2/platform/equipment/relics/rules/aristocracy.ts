@@ -3,13 +3,13 @@ import { EPSILON, isTimeInWindow } from '#kernel/core/clock.js';
 import { isInternalCooldownReady } from '#gw2/platform/combat/procs.js';
 import { isGw2PlayerActorEvent } from '#gw2/platform/combat/state/event-ownership.js';
 import { missesTarget } from '#gw2/platform/combat/state/targets.js';
-import { gw2EffectExpiresAt } from '#gw2/platform/skills/timing.js';
+import { gw2EffectExpiresAt } from '#gw2/platform/effects/timing.js';
 import {
   defineRelic,
   compareTimelineEvents,
   explicitCombatStartTime
 } from '#gw2/platform/equipment/relics/rules/shared.js';
-import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
+import type { SimulationEvent } from '#gw2/platform/events/events.js';
 import type { Gw2RelicState } from '#gw2/platform/equipment/relics/types.js';
 
 const ARISTOCRACY_BONUS_PER_STACK = 0.03;

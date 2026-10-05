@@ -1,5 +1,5 @@
-import type { Skill } from '#gw2/platform/engine/skills/types.js';
-import type { RuntimeProfession } from '#gw2/platform/simulation/runtime-state.js';
+import type { Skill } from '#gw2/platform/skills/types.js';
+import type { RuntimeProfession } from '#gw2/platform/profession-definition/runtime-contract.js';
 import { guardianCastCause } from '#gw2/professions/guardian/core/mechanics/event-handlers.js';
 import { GUARDIAN_SKILL_IDS as ID } from '#gw2/professions/guardian/data/ids.js';
 import { AURA_GRANT } from '#gw2/professions/guardian/specializations/luminary/mechanics/effects.js';

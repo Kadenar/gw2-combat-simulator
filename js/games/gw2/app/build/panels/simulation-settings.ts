@@ -1,4 +1,4 @@
-import { normalizeTransitionDelays, TRANSITION_DELAY_KEYS } from '#gw2/platform/skills/transition-delays.js';
+import { normalizeTransitionDelays, TRANSITION_DELAY_KEYS } from '#gw2/platform/execution/transition-lockouts.js';
 import { loadSimulationSettings, saveSimulationSettings } from '#gw2/app/simulation/settings.js';
 import type { ProfessionAppState } from '#gw2/app/types.js';
 

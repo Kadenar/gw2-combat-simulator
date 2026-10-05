@@ -1,8 +1,8 @@
-import { flattenProfessionState } from '#gw2/platform/engine/profession/state.js';
+import { flattenProfessionState } from '#gw2/platform/profession-definition/state.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { createCanonicalCatalog } from '#gw2/platform/engine/skills/canonical-skill-catalog.js';
+import { createCanonicalCatalog } from '#gw2/platform/skills/catalog.js';
 import { defineTestProfession } from '#tests/helpers/profession.js';
 import { defineNativeProfession, defineNativeModule } from '#gw2/platform/profession-definition/profession.js';
 import { getNativeCatalogAssembly } from '#gw2/platform/profession-definition/assemble-module-catalog.js';
@@ -747,8 +747,7 @@ const guardianInactiveStateKeys = Object.freeze({
     'resolveUntil',
     'courageUntil',
     'virtueHitCounts',
-    'lethalTempoStacks',
-    'lethalTempoUntil',
+    'lethalTempo',
     'triggeredVirtueEffects'
   ],
   Luminary: [
@@ -888,8 +887,8 @@ const mesmerSlices = Object.freeze([
 const mesmerSpecializationStateKeys = Object.freeze({
   Chronomancer: ['continuum', 'timeBombUntil'],
   Mirage: ['ambushUntil', 'ambushSource', 'cloneAmbushUntil', 'riddleOfSandReady'],
-  Virtuoso: ['numericResource', 'bloodsongProgress'],
-  Troubadour: ['numericResource', 'instruments', 'lastInstrument']
+  Virtuoso: ['blades', 'bloodsongProgress'],
+  Troubadour: ['notes', 'instruments', 'lastInstrument']
 });
 
 test('Mesmer modules contribute disjoint runtime slices', () => {
@@ -937,8 +936,7 @@ test('Mesmer runtimes exclude inactive elite catalogs, registries, and state', (
     );
     for (const [owner, keys] of Object.entries(mesmerSpecializationStateKeys)) {
       for (const key of keys) {
-        const expected =
-          key === 'numericResource' ? active === 'Virtuoso' || active === 'Troubadour' : owner === active;
+        const expected = owner === active;
 
         assert.equal(Object.hasOwn(state.specialization.state, key), expected, `${active}:slice:${owner}:${key}`);
       }
@@ -1002,7 +1000,7 @@ const revenantSlices = Object.freeze([
 ]);
 
 const revenantSpecializationStateKeys = Object.freeze({
-  Renegade: ['bandTogetherReady', 'bandTogetherExpiresAt', 'kallasFervor', 'razorclawsRage'],
+  Renegade: ['bandTogether', 'kallasFervor', 'razorclawsRage'],
   Vindicator: ['reaversCurseUntil', 'forerunnerOfDeathUntil'],
   Conduit: [
     'affinity',
@@ -1113,7 +1111,7 @@ test('Revenant presentation and public projection preserve their contracts', () 
   });
 
   // Core publishes no fields owned by inactive specialization modules.
-  for (const key of ['affinity', 'bandTogetherReady', 'kallasFervor'])
+  for (const key of ['affinity', 'bandTogether', 'kallasFervor'])
     assert.equal(Object.hasOwn(result.planningState.profession, key), false, key);
 });
 
@@ -1126,7 +1124,7 @@ const engineerSlices = Object.freeze([
 ]);
 
 const engineerSpecializationStateKeys = Object.freeze({
-  Holosmith: ['heat', 'maximumHeat', 'photonForgeActive', 'overheated', 'solarFocusingLens'],
+  Holosmith: ['heat', 'photonForgeActive', 'overheated', 'solarFocusingLens'],
   Mechanist: ['mech'],
   Amalgam: ['selectedMorphSkillIds', 'evolvedUntil', 'plasmaticStateUntil']
 });

@@ -4,7 +4,7 @@ import {
   buildMesmerConditions
 } from '#gw2/professions/mesmer/core/mechanics/packets.js';
 import type { MesmerRuntime } from '#gw2/professions/mesmer/types.js';
-import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
+import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
 
 import type {
   MesmerClone,

@@ -1,6 +1,7 @@
-import type { SkillEffect } from '#gw2/platform/engine/skills/types.js';
-import type { RuntimeCast, RuntimeProfession, SkillTaskData } from '#gw2/platform/simulation/runtime-state.js';
-import type { ActionContext, SideEffectAction } from '#gw2/platform/simulation/side-effects.js';
+import type { SkillEffect } from '#gw2/platform/effects/types.js';
+import type { RuntimeCast, SkillTaskData } from '#gw2/platform/execution/cast-contracts.js';
+import type { RuntimeProfession } from '#gw2/platform/profession-definition/runtime-contract.js';
+import type { ActionContext, SideEffectAction } from '#gw2/platform/effects/actions.js';
 import { applySpecializedElementsTrait } from '#gw2/professions/elementalist/specializations/evoker/traits/attunements.js';
 import { applyFamiliarTraitProcs } from '#gw2/professions/elementalist/specializations/evoker/traits/familiars.js';
 /**
@@ -17,9 +18,9 @@ import {
   balanceProfileNumber,
   requireBalanceProfileFromContext,
   requireEffect
-} from '#gw2/platform/engine/skills/balance-profiles.js';
-import type { Skill } from '#gw2/platform/engine/skills/types.js';
-import { GW2_QUICKNESS_ACTION_RATE, castRelativeEffectTimingScale } from '#gw2/platform/skills/timing.js';
+} from '#gw2/platform/skills/balance-profiles.js';
+import type { Skill } from '#gw2/platform/skills/types.js';
+import { GW2_QUICKNESS_ACTION_RATE, castRelativeEffectTimingScale } from '#gw2/platform/execution/cast-timing.js';
 import { elementalistBuffRequest } from '#gw2/professions/elementalist/core/events.js';
 import { elementalistAnnouncement } from '#gw2/professions/elementalist/core/mechanics/effects.js';
 import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';
@@ -39,6 +40,12 @@ import {
 } from '#gw2/professions/elementalist/specializations/evoker/mechanics/resources.js';
 import { EVOKER_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/elementalist/specializations/evoker/profiles.js';
 import { evokerState, grantElectricEnchantments } from '#gw2/professions/elementalist/specializations/evoker/state.js';
+import {
+  elementalProcessionEffects,
+  IGNITE_TIERS,
+  igniteTierEffect,
+  projectIgniteEffects
+} from '#gw2/professions/elementalist/specializations/evoker/mechanics/familiar-projection.js';
 import type {
   ElementalistRuntime,
   ElementalistRuntimeState,
@@ -50,11 +57,8 @@ export function releaseElementalProcession(
   cast: RuntimeCast<ElementalistSkill>,
   sourceSkill: Skill
 ): void {
-  for (const skillId of [ID.CONFLAGRATION, ID.BUOYANT_DELUGE, ID.LIGHTNING_BLITZ, ID.SEISMIC_IMPACT]) {
-    const familiar = context.helpers.skillsById.get(skillId);
-    if (!familiar) continue;
-    for (const effect of familiar.effects || []) {
-      if (!['strike', 'condition', 'control', 'blind'].includes(effect.type)) continue;
+  for (const { familiar, effects } of elementalProcessionEffects(context.helpers.skillsById)) {
+    for (const effect of effects) {
       // Procession preserves the familiar's unquickened timing and each surviving packet's representation.
       const runtimeCastMs = Math.max(0, (familiar.castTimeMs || 0) * GW2_QUICKNESS_ACTION_RATE);
       const scale = effect.timingScale === 'cast' ? castRelativeEffectTimingScale(familiar, runtimeCastMs) : 1;
@@ -92,7 +96,7 @@ export function onCastStart(context: ElementalistRuntime, cast: RuntimeCast<Elem
   // Track pending grants so early familiar inputs can wait for their resource provider.
   if (cast.command.concurrentOffsetMs == null) {
     const gain = weaponSkillChargeGain(context, skill, state);
-    const postFamiliarGain = gain > 0 ? gain : skill.id === ID.REJUVENATE ? state.maximumCharges : 0;
+    const postFamiliarGain = gain > 0 ? gain : skill.id === ID.REJUVENATE ? state.familiarCharges.maximum : 0;
     if (postFamiliarGain > 0)
       state.pendingWeaponCompletions.push({ activationId: cast.id, at: cast.effectiveEnd, gain: postFamiliarGain });
   }
@@ -148,11 +152,8 @@ export function captureIgniteTier(context: ElementalistRuntime, cast: RuntimeCas
   if (state.cancelledFamiliarActivations[cast.id]) return;
   const profile = requireBalanceProfileFromContext(context, PROFILE.ignite);
   if (cast.start - state.igniteLastUsedAt >= balanceProfileNumber(profile, 'threshold')) state.igniteTier = 0;
-  igniteBurningByCast.set(
-    cast,
-    requireEffect(profile, 'condition', ['Tier 1', 'Tier 2', 'Tier 3', 'Tier 4'][state.igniteTier])
-  );
-  state.igniteTier = Math.min(state.igniteTier + 1, 3);
+  igniteBurningByCast.set(cast, igniteTierEffect(context, state.igniteTier));
+  state.igniteTier = Math.min(state.igniteTier + 1, IGNITE_TIERS.length - 1);
   state.igniteLastUsedAt = cast.start;
 }
 
@@ -167,25 +168,7 @@ export function modifyFamiliarEffects(
 
 /** Ignite's definition selects Burning from its accepted tier without advancing state during a query. */
 export function selectIgniteEffects(cast: RuntimeCast<ElementalistSkill>): readonly SkillEffect[] {
-  const burning = igniteBurningByCast.get(cast);
-  const effects = cast.skill.effects ?? [];
-  return effects.flatMap<SkillEffect>((effect) => {
-    if (effect.type !== 'condition') return [effect];
-    if (effect.ticks)
-      return [
-        {
-          ...effect,
-          ticks: effect.ticks.flatMap((tick) =>
-            tick.condition !== 'Burning' ? [tick] : burning ? [{ ...tick, duration: Number(burning.duration) }] : []
-          )
-        }
-      ];
-    return effect.condition !== 'Burning'
-      ? [effect]
-      : burning
-        ? [{ ...effect, duration: Number(burning.duration) }]
-        : [];
-  });
+  return projectIgniteEffects(cast.skill.effects ?? [], igniteBurningByCast.get(cast));
 }
 
 /** Skill-selected commit work runs after this cast's shared trait/bookkeeping hooks and before the next completion. */
@@ -242,7 +225,8 @@ export const evokerSkillCommitTasks: NonNullable<
               sourceId: skill.id,
               actorType: 'player',
               skillName: skill.name,
-              kind: 'zap buff',
+              // Use the declared identity so the policy and damage modifier observe this same window.
+              kind: String(zap.kind),
               stacks: Number(zap.stacks),
               duration: zap.duration
             },
@@ -258,9 +242,9 @@ export const evokerSkillCommitTasks: NonNullable<
     const state = evokerState.from(context);
     const at = cast.effectiveEnd;
     {
-      state.charges = 0;
-      const resourcesProfile = requireBalanceProfileFromContext(context, PROFILE.resources);
-      state.empowered = Math.min(balanceProfileNumber(resourcesProfile, 'minimumStacks'), state.empowered + 1);
+      context.resourceController.replace('familiarCharges', 0);
+      // Complete the conversion before publishing its combined reading or flushing deferred rewards.
+      context.resourceController.grant('empoweredCharges', 1);
       const flip = FAMILIAR_EMPOWERED_BY_BASIC.get(skill.id);
       const empowered = flip ? context.helpers.skillsById.get(flip) : undefined;
       if (flip && empowered) {
@@ -270,7 +254,7 @@ export const evokerSkillCommitTasks: NonNullable<
         );
         context.cooldownController.setReadyAt(
           empowered.id,
-          Math.max(context.cooldowns.get(empowered.id) || 0, at + delay)
+          Math.max(context.cooldownController.readyAt(empowered.id) || 0, at + delay)
         );
       }
 
@@ -282,7 +266,7 @@ export const evokerSkillCommitTasks: NonNullable<
     const skill = cast.skill;
     const state = evokerState.from(context);
     {
-      state.empowered = 0;
+      context.resourceController.replace('empoweredCharges', 0);
       emitResource(context, cast, skill, state);
     }
   },
@@ -291,7 +275,7 @@ export const evokerSkillCommitTasks: NonNullable<
     const skill = cast.skill;
     const state = evokerState.from(context);
     {
-      state.charges = state.maximumCharges;
+      context.resourceController.grant('familiarCharges', state.familiarCharges.maximum);
       emitResource(context, cast, skill, state);
     }
   },

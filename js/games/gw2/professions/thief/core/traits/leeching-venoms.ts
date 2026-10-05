@@ -4,8 +4,8 @@ import {
   effectNumber,
   requireBalanceProfileFromContext,
   requireEffect
-} from '#gw2/platform/engine/skills/balance-profiles.js';
-import type { SkillId } from '#gw2/platform/engine/skills/types.js';
+} from '#gw2/platform/skills/balance-profiles.js';
+import type { SkillId } from '#gw2/platform/skills/types.js';
 import { buildResolverStrike } from '#gw2/platform/resolver/packets.js';
 import type { ThiefRuntime } from '#gw2/professions/thief/core/events.js';
 import { addVenomCharges } from '#gw2/professions/thief/core/mechanics/venoms.js';
@@ -43,7 +43,7 @@ export function enqueueSiphon(
 }
 
 export function applyLeechingVenoms(context: ThiefResolverContext, event: ThiefResolverEvent): void {
-  if (!hasTrait(context.config, TRAIT.LEECHING_VENOMS)) return;
+  if (!hasTrait(context.traits, TRAIT.LEECHING_VENOMS)) return;
   const leechingVenomsProfile = requireBalanceProfileFromContext(context, TRAIT.LEECHING_VENOMS);
   const strike = requireEffect(leechingVenomsProfile, 'strike', 'Leeching Venoms');
   // Explicit removal suppresses this packet without restoring baseline tuning.

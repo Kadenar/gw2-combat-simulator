@@ -1,4 +1,4 @@
-import type { Skill } from '#gw2/platform/engine/skills/types.js';
+import type { Skill } from '#gw2/platform/skills/types.js';
 import { rangerCatalog } from '#gw2/professions/ranger/catalog.js';
 import type { RangerRuntime } from '#gw2/professions/ranger/types.js';
 import { rangerCoreHooks } from '#gw2/professions/ranger/core/hooks.js';

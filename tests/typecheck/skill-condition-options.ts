@@ -1,5 +1,5 @@
 // Condition authors use one options object; misspelled fields cannot bypass the declared contract.
-import type { ConditionEventFields, EffectMetadata } from '#gw2/platform/engine/events/events.js';
+import type { ConditionEventFields, EffectMetadata } from '#gw2/platform/events/events.js';
 function condition(fields: ConditionEventFields & { metadata?: EffectMetadata }) {
   return fields;
 }
@@ -38,8 +38,6 @@ export function checkConditionOptions(): void {
   condition({ ...options, metadata: { cloneId: '1' } });
   // @ts-expect-error Ally identity remains numeric, not boolean.
   condition({ ...options, metadata: { triggeredByAlly: true } });
-  // @ts-expect-error Conditions no longer accept a second, positional skill identity.
-  condition(options, options);
   // @ts-expect-error Unknown top-level fields must not silently enter the event stream.
   condition({ ...options, arbitraryFlag: true });
   // @ts-expect-error Known condition controls retain their declared value types.

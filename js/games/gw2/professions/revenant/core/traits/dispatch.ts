@@ -1,6 +1,6 @@
 import type { RevenantSkill } from '#gw2/professions/revenant/types.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
-import type { RuntimeCast } from '#gw2/platform/simulation/runtime-state.js';
+import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import type { RevenantRuntime } from '#gw2/professions/revenant/core/events.js';
 import { consumeBattleScar } from '#gw2/professions/revenant/core/mechanics/battle-scars.js';
 import { enchantedDaggers } from '#gw2/professions/revenant/core/mechanics/enchanted-daggers.js';

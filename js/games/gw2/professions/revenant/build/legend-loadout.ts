@@ -1,10 +1,10 @@
-import { type SkillFlipWindows } from '#gw2/platform/engine/skills/skill-flips.js';
+import { type SkillFlipWindows } from '#gw2/platform/execution/skill-flips.js';
 import { createFixedSlotLoadout } from '#gw2/platform/builds/slot-loadout.js';
 import { REVENANT_DECLARED_SKILLS } from '#gw2/professions/revenant/data/module-data.js';
 import { REVENANT_LEGEND_IDS as LEGEND, REVENANT_SKILL_IDS as SKILL } from '#gw2/professions/revenant/data/ids.js';
 import { REVENANT_LEGEND_SPECIALIZATIONS } from '#gw2/professions/revenant/data/legends.js';
-import { HERALD_MECHANICS } from '#gw2/professions/revenant/specializations/herald/mechanics/facets.js';
-import type { SkillId } from '#gw2/platform/engine/skills/types.js';
+import { revenantUpkeepConsumeId } from '#gw2/professions/revenant/data/upkeep-skills.js';
+import type { SkillId } from '#gw2/platform/skills/types.js';
 import type { SlotLoadoutContext } from '#gw2/platform/builds/slot-loadout.js';
 import type { Gw2SlotLoadout } from '#gw2/platform/builds/types.js';
 import type { RevenantCanonicalBuild } from '#gw2/professions/revenant/types.js';
@@ -161,13 +161,17 @@ const baseRevenantLegendLoadout = createFixedSlotLoadout<RevenantCanonicalBuild>
 export const revenantLegendLoadout = Object.freeze({
   ...baseRevenantLegendLoadout,
   palettePlacement: 'after-actions',
-  skillChildren(_context: RevenantLegendLoadoutContext, skillId: SkillId): readonly SkillId[] {
-    const facetConsumeBySkillId = HERALD_MECHANICS.facetConsumeBySkillId as Readonly<Record<number, number>>;
-    const facetConsumeId = facetConsumeBySkillId[Number(skillId)];
-    if (Number.isFinite(facetConsumeId)) return [facetConsumeId];
+  skillChildren(context: RevenantLegendLoadoutContext, skillId: SkillId): readonly SkillId[] {
+    // Loadout children follow the same selected declarations as activation and the live palette.
+    if (!context.catalog) throw new Error('Revenant loadout children require the selected catalog.');
+    const skill = context.catalog.skillsById.get(skillId);
+    const consumeId = skill?.facet ? revenantUpkeepConsumeId(skill, String(skill.legendId ?? '')) : undefined;
+    if (consumeId != null) return [consumeId];
     return Number(skillId) === SKILL.CALL_TO_ANGUISH ? [SKILL.UNYIELDING_IMPACT] : [];
   },
   paletteGroups(context: RevenantLegendLoadoutContext = {}) {
+    if (!context.catalog) throw new Error('Revenant loadout palette requires the selected catalog.');
+    const catalog = context.catalog;
     const availableFlips = context.professionState?.availableFlips || {};
     return baseRevenantLegendLoadout.paletteGroups(context).map((group) => ({
       ...group,
@@ -175,10 +179,10 @@ export const revenantLegendLoadout = Object.freeze({
       className: group.active ? 'compact-resource-palette revenant-legend-skills' : 'revenant-legend-skills-inactive',
       resourceAnchor: group.active,
       skillIds: group.skillIds.flatMap((skillId) => {
-        const facetConsumeBySkillId = HERALD_MECHANICS.facetConsumeBySkillId as Readonly<Record<number, number>>;
-        const heraldFlipId = facetConsumeBySkillId[skillId];
-        if (Number.isFinite(heraldFlipId) && availableFlips[heraldFlipId]) {
-          return [heraldFlipId];
+        const skill = catalog.skillsById.get(skillId);
+        const heraldFlipId = skill?.facet ? revenantUpkeepConsumeId(skill, String(skill.legendId ?? '')) : undefined;
+        if (heraldFlipId != null && availableFlips[heraldFlipId]) {
+          return [Number(heraldFlipId)];
         }
 
         if (skillId === SKILL.IMPOSSIBLE_ODDS && availableFlips[SKILL.RELINQUISH_POWER]) {

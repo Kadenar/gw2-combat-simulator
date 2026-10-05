@@ -1,5 +1,8 @@
-import type { EffectDelivery } from '#gw2/platform/simulation/effect-emission.js';
-import type { RuntimeCast, RuntimeProfession } from '#gw2/platform/simulation/runtime-state.js';
+import { tempestBuffPolicies } from '#gw2/professions/elementalist/specializations/tempest/effect-state.js';
+import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
+import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
+import type { EffectDelivery } from '#gw2/platform/effects/emission.js';
+import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import { registerElementalistEliteEvents } from '#gw2/professions/elementalist/core/mechanics/elite-events.js';
 import { isElementalistAttunement } from '#gw2/professions/elementalist/core/state.js';
 import { tempestOverloadDwell } from '#gw2/professions/elementalist/specializations/tempest/mechanics/overload-dwell.js';
@@ -22,19 +25,22 @@ import type { ElementalistRuntimeState, ElementalistSkill } from '#gw2/professio
  * around a channel, the attunement lockout an overload leaves behind, and the aura/attunement event
  * reactions the specialization's remaining traits need.
  */
-import type { SimulationEvent, SimulationEventBase } from '#gw2/platform/engine/events/events.js';
-import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
-import { denySkillCast, retryCast } from '#gw2/platform/engine/skills/availability.js';
+import type { SimulationEvent, SimulationEventBase } from '#gw2/platform/events/events.js';
+import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
+import { denySkillCast, retryCast } from '#gw2/platform/execution/availability.js';
 import {
   effectNumber,
   requireBalanceProfileFromContext,
   requireEffect
-} from '#gw2/platform/engine/skills/balance-profiles.js';
-import type { Skill } from '#gw2/platform/engine/skills/types.js';
+} from '#gw2/platform/skills/balance-profiles.js';
+import type { Skill } from '#gw2/platform/skills/types.js';
 import type { AvailabilityResult } from '#gw2/platform/execution/types.js';
 import { elementalistStrikeRequest } from '#gw2/professions/elementalist/core/events.js';
 import { elementalistAnnouncement } from '#gw2/professions/elementalist/core/mechanics/effects.js';
-import { armElementalistElementalLightningJolt } from '#gw2/professions/elementalist/core/mechanics/elementals/runtime.js';
+import {
+  armElementalLightningJolt,
+  registerTempestLightningJolt
+} from '#gw2/professions/elementalist/specializations/tempest/mechanics/lightning-jolt.js';
 import {
   triggerEarthenBlast,
   triggerElectricDischarge,
@@ -80,7 +86,7 @@ function onCastStart(context: ElementalistRuntime, cast: RuntimeCast<Elementalis
 
 // Gate overloads on the current attunement and on the singularity: the attunement must already be
 // the primary one and must have been held for the dwell time. Non-overload skills pass through.
-function availability(context: ElementalistRuntime, skill: Skill): AvailabilityResult {
+function availability(context: MechanicQueriesOf<ElementalistRuntime>, skill: Skill): AvailabilityResult {
   if (!skill.overload) return { ready: true };
   const state = professionCoreState(context);
   if (skill.attunement !== state.primaryAttunement) {
@@ -143,7 +149,8 @@ function onAttunementEvent(
 }
 
 /** Tempest owns overload channels and reacts only to actual attunement and aura events. */
-export const tempestHooks: Partial<RuntimeProfession<ElementalistRuntimeState, ElementalistSkill>> = {
+export const tempestHooks: RuntimeHooks<ElementalistRuntimeState, ElementalistSkill> = {
+  buffPolicies: tempestBuffPolicies,
   sideEffectHandlers: {
     'elementalist.tempest.overload-lockout'(context, trigger) {
       if (trigger.kind !== 'cast') throw new TypeError('Overload lockout requires a cast trigger.');
@@ -151,8 +158,8 @@ export const tempestHooks: Partial<RuntimeProfession<ElementalistRuntimeState, E
       const attunement = String(skill.attunement);
       // Copy the overload's base progress to align both recharges while retaining longer lockouts.
       if (isElementalistAttunement(attunement)) {
-        const readyAt = context.cooldowns.get(skill.id) ?? cast.effectiveEnd;
-        if (readyAt > (context.cooldowns.get(ELEMENTALIST_ATTUNEMENT_SKILL_IDS[attunement]) ?? 0)) {
+        const readyAt = context.cooldownController.readyAt(skill.id) ?? cast.effectiveEnd;
+        if (readyAt > (context.cooldownController.readyAt(ELEMENTALIST_ATTUNEMENT_SKILL_IDS[attunement]) ?? 0)) {
           context.cooldownController.copy(skill.id, ELEMENTALIST_ATTUNEMENT_SKILL_IDS[attunement]);
         }
       }
@@ -191,7 +198,7 @@ export const tempestHooks: Partial<RuntimeProfession<ElementalistRuntimeState, E
               { activationId: cast.id, skillId: cast.skill.id, offTarget: cast.command.offTarget }
             )
           );
-          armElementalistElementalLightningJolt(context, cast, ID.LIGHTNING_JOLT, coefficient);
+          armElementalLightningJolt(context, cast, ID.LIGHTNING_JOLT, coefficient);
           context.effects.emit(
             elementalistAnnouncement({
               at: cast.effectiveEnd,
@@ -223,6 +230,7 @@ export const tempestHooks: Partial<RuntimeProfession<ElementalistRuntimeState, E
   // Overload-start boons retain the triggering overload as source, including on interrupted channels.
   initialize(runtime) {
     registerElementalistEliteEvents(runtime, onAttunementEvent);
+    registerTempestLightningJolt(runtime);
   },
   availability,
   prepareEvent,

@@ -8,7 +8,7 @@ import { normalizeRotationInsertionIndex } from '#ui/rotation/insertion-cursor.j
 
 import type { ChartSeries } from '#gw2/app/results/charts/time-series-model.js';
 import type { ProfessionAppResult, ProfessionAppState } from '#gw2/app/types.js';
-import type { Gw2SimulationResult } from '#gw2/platform/simulation/types.js';
+import type { Gw2SimulationResult } from '#gw2/platform/results/types.js';
 import { clamp } from '#kernel/core/numeric.js';
 
 export interface RotationComparisonMetrics {

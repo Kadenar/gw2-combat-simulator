@@ -1,11 +1,9 @@
-import { denySkillCast as deny } from '#gw2/platform/engine/skills/availability.js';
-import {
-  balanceProfileNumber,
-  requireBalanceProfileFromContext
-} from '#gw2/platform/engine/skills/balance-profiles.js';
-import { armSkillFlip, consumeSkillFlip } from '#gw2/platform/engine/skills/skill-flips.js';
-import type { RuntimeProfession } from '#gw2/platform/simulation/runtime-state.js';
-import { resetAutoattackChains } from '#gw2/platform/skills/autoattack-chain-controller.js';
+import { druidBuffPolicies } from '#gw2/professions/ranger/specializations/druid/effect-state.js';
+import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
+import { denySkillCast as deny } from '#gw2/platform/execution/availability.js';
+import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import { armSkillFlip, consumeSkillFlip } from '#gw2/platform/execution/skill-flips.js';
+import { resetAutoattackChains } from '#gw2/platform/execution/autoattack-chains.js';
 import { buildRangerPacket } from '#gw2/professions/ranger/core/events.js';
 import { applyRangerWeaponSwapTraits } from '#gw2/professions/ranger/core/traits/behavior.js';
 import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
@@ -62,7 +60,8 @@ function avatar(runtime: RangerRuntime, active: boolean, exhausted = false): voi
   applyRangerWeaponSwapTraits(runtime, skill);
 }
 
-export const druidHooks: Partial<RuntimeProfession<RangerRuntimeState, RangerSkill>> = {
+export const druidHooks: RuntimeHooks<RangerRuntimeState, RangerSkill> = {
+  buffPolicies: druidBuffPolicies,
   resources: {
     astralForce: {
       kind: 'continuous',

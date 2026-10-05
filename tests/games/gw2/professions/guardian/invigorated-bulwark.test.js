@@ -59,7 +59,9 @@ test('Invigorated Bulwark reduces mace recharge by twenty percent without extend
       for (const result of [baseline, traited]) assert.deepEqual(result.warnings, []);
       const recharge = (result) => {
         const runtime = observedRuntime(result);
-        return runtime.cooldowns.get(runtime.helpers.skillsByName.get(skill).id) - result.steps[0].end / 1000;
+        return (
+          runtime.cooldownController.readyAt(runtime.helpers.skillsByName.get(skill).id) - result.steps[0].end / 1000
+        );
       };
 
       assert.ok(

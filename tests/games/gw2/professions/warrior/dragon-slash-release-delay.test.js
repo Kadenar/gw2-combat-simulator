@@ -29,6 +29,20 @@ const release = (result) =>
   result.events.find((e) => e.resource === 'dragon charges' && e.reason === 'profession mechanic');
 const close = (actual, expected) => assert.ok(Math.abs(actual - expected) < 1e-9, `${actual} != ${expected}`);
 
+// Cached declarations must never share a release with a later run that reuses the same reservation IDs.
+test('Dragon Trigger release facts belong to one simulation and survive exit immutably', () => {
+  const first = run([combat, 'Dragon Trigger', slash(2, 0)]);
+  const firstState = observedRuntime(first).profession.specialization.state;
+  const second = run([combat, 'Dragon Trigger', slash(1, 0)]);
+  const secondState = observedRuntime(second).profession.specialization.state;
+  assert.notEqual(firstState.dragonSlashReleases, secondState.dragonSlashReleases);
+  assert.equal(firstState.dragonTriggerActive, false);
+  const firstRelease = [...firstState.dragonSlashReleases.values()][0];
+  assert.equal(firstRelease.charges, 2);
+  assert.equal([...secondState.dragonSlashReleases.values()][0].charges, 1);
+  assert.equal(Object.isFrozen(firstRelease), true);
+});
+
 test('release holds add to actual charge completion with and without Tactical Reload', () => {
   for (const reload of [false, true]) {
     const setup = [combat, ...(reload ? ['Tactical Reload'] : []), 'Dragon Trigger'];

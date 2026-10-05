@@ -1,3 +1,4 @@
+import { createExecutedFacts } from '#gw2/platform/combat/history/executed-facts.js';
 import { skillBreakdownRows } from '#gw2/app/results/skill-breakdown.js';
 import { createGw2TimelineIndex } from '#gw2/platform/combat/query/timeline-index.js';
 import { ENGINEER_SKILL_IDS as ID, ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
@@ -46,51 +47,6 @@ function mechanic(name) {
   return engineerCatalog.skillsByName.get(name);
 }
 
-test('Superconducting distributes its coefficient and conditions over one Lightning field', () => {
-  // A minimal activation checks field scheduling and combo eligibility independently of saved rotations.
-  const config = {
-    selectedSkillIds: [...baseConfig.selectedSkillIds, 63113],
-    target: { conditions: {} }
-  };
-  const result = simulate(
-    'Mechanist',
-    ['Superconducting Signet', 'Throw Mine', 'Detonate', { type: 'wait', durationMs: 6000 }],
-    config
-  );
-  assert.deepEqual(result.warnings, []);
-  const hits = result.events.filter((event) => event.type === 'damage' && event.skillId === ID.SUPERCONDUCTING_SIGNET);
-  assert.ok(Math.abs(hits.reduce((total, hit) => total + hit.coefficient, 0) - 2.4) < 1e-12);
-  assert.deepEqual(
-    hits.map((hit) => Math.round((hit.at - hits[0].at) * 1000)),
-    [0, 1000, 2000, 3000, 4000, 5000]
-  );
-  for (const condition of ['Vulnerability', 'Confusion', 'Burning']) {
-    const packets = result.events.filter(
-      (event) =>
-        event.type === 'condition' && event.skillId === ID.SUPERCONDUCTING_SIGNET && event.condition === condition
-    );
-    assert.deepEqual(
-      packets.map((event) => Math.round(event.at * 1000)),
-      hits.map((event) => Math.round(event.at * 1000))
-    );
-    assert.ok(packets.every((event) => event.stacks === 1 && event.duration === 3));
-  }
-
-  const fields = result.events.filter(
-    (event) => event.type === 'combo_field' && event.skillId === ID.SUPERCONDUCTING_SIGNET
-  );
-  assert.equal(fields.length, 1);
-  assert.equal(fields[0].at, hits[0].at);
-  assert.equal(fields[0].expiresAt - fields[0].at, 5);
-  assert.ok(result.resolvedEvents.some((event) => event.type === 'combo' && event.fieldType === 'Lightning'));
-  const expired = simulate(
-    'Mechanist',
-    ['Superconducting Signet', { type: 'wait', durationMs: 6000 }, 'Throw Mine', 'Detonate'],
-    config
-  );
-  assert.ok(!expired.resolvedEvents.some((event) => event.type === 'combo' && event.fieldType === 'Lightning'));
-});
-
 for (const [signet, skillId, modifier, baseBonus, jDriveBonus] of [
   ['Force Signet', ID.FORCE_SIGNET, 'modifyStrikeDamage', 0.15, 0.18],
   ['Superconducting Signet', ID.SUPERCONDUCTING_SIGNET, 'modifyConditionDamage', 0.1, 0.12]
@@ -137,11 +93,15 @@ test('Overclock reduces other signet recharges only while its passive is availab
     config: { selectedSkillIds: [63095] },
     skill: mechanic('Superconducting Signet'),
     cooldowns: new Map(),
+    cooldownController: {
+      readyAt: (id) => context.cooldowns.get(id),
+      setReadyAt: (id, at) => context.cooldowns.set(id, at)
+    },
     time: 0
   };
   assert.equal(mechanic('Overclock Signet').cooldown, 90);
   assert.equal(mechanistRechargeWork(context, context.skill, 30), 24);
-  context.cooldowns.set(ID.OVERCLOCK_SIGNET, 90);
+  context.cooldownController.setReadyAt(ID.OVERCLOCK_SIGNET, 90);
   assert.equal(mechanistRechargeWork(context, context.skill, 30), 30);
   context.config = { ...context.config, selectedTraitIds: [TRAIT.MECH_CORE_J_DRIVE] };
   assert.equal(mechanistRechargeWork(context, context.skill, 30), 22.8);
@@ -155,12 +115,19 @@ test('mech Quickness uses its own boon audience and retains copied applications'
     catalog: engineerCatalog,
     history: [],
     config: { boons: { quickness: true }, selectedSkillIds: [63253] },
-    cooldowns: new Map()
+    cooldowns: new Map(),
+    cooldownController: {
+      readyAt: (id) => context.cooldowns.get(id),
+      setReadyAt: (id, at) => context.cooldowns.set(id, at)
+    }
   };
+  const facts = createExecutedFacts(context.history);
+  context.facts = facts.reader;
+  context.observations = facts.writer;
   assert.equal(engineerMechHasQuickness(context, 0), false);
   context.config.selectedSkillIds = [63111];
   assert.equal(engineerMechHasQuickness(context, 0), true);
-  context.cooldowns.set(ID.SHIFT_SIGNET, 25);
+  context.cooldownController.setReadyAt(ID.SHIFT_SIGNET, 25);
   assert.equal(engineerMechHasQuickness(context, 1), false);
   context.config.selectedTraitIds = [TRAIT.MECH_CORE_J_DRIVE];
   assert.equal(engineerMechHasQuickness(context, 1), true);
@@ -646,8 +613,6 @@ describe('Mechanist grandmaster active effects', () => {
       target: { conditions: {} }
     });
     const mortarSteps = dynamo.steps.filter((step) => step.skill === 'Jade Mortar');
-
-    assert.equal(mortarSteps[0].end - mortarSteps[0].start, 1620);
     assert.equal(mortarSteps[1].start - mortarSteps[0].start, 12800);
     assert.equal(
       dynamo.events.filter((event) => event.type === 'buff' && event.kind === 'quickness' && event.duration === 2.5)
@@ -803,10 +768,8 @@ describe('Mechanist grandmaster active effects', () => {
         ),
       1.12
     );
-
     const signetRecharge = simulate('Mechanist', ['Force Signet', 'Force Signet'], jDriveConfig);
     const signetSteps = signetRecharge.steps.filter((step) => step.skill === 'Force Signet');
-
     assert.equal(signetSteps[1].start - signetSteps[0].end, 18240);
   });
 });

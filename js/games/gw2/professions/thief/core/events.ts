@@ -1,13 +1,14 @@
+import type { MechanicContext } from '#gw2/platform/profession-definition/mechanic-context.js';
 import { canonicalTime } from '#kernel/core/clock.js';
-import { normalizeEffectAudience } from '#gw2/platform/engine/effects/contracts.js';
-import { proceduralSkillWeapon, splitStrikeHits } from '#gw2/platform/simulation/procedural-emission.js';
-import type { EffectAudience, EffectMetadata, SimulationEventBase } from '#gw2/platform/engine/events/events.js';
-import type { SimulationActorType } from '#gw2/platform/engine/events/actors.js';
-import type { SkillId } from '#gw2/platform/engine/skills/types.js';
-import type { Gw2Runtime, RuntimeCast } from '#gw2/platform/simulation/runtime-state.js';
+import { normalizeEffectAudience } from '#gw2/platform/effects/audience-metadata-validation.js';
+import { proceduralSkillWeapon, splitStrikeHits } from '#gw2/platform/effects/procedural-packets.js';
+import type { EffectAudience, EffectMetadata, SimulationEventBase } from '#gw2/platform/events/events.js';
+import type { SimulationActorType } from '#gw2/platform/events/actors.js';
+import type { SkillId } from '#gw2/platform/skills/types.js';
+import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import type { ThiefRuntimeState, ThiefSkill } from '#gw2/professions/thief/types.js';
 
-export type ThiefRuntime = Gw2Runtime<ThiefRuntimeState, ThiefSkill>;
+export type ThiefRuntime = MechanicContext<ThiefRuntimeState, ThiefSkill>;
 
 /** After the cast's own priority-zero packets at the completion instant. */
 const THIEF_COMPLETION_PRIORITY = 20;

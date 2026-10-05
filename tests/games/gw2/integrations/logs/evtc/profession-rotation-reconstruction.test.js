@@ -5,10 +5,7 @@ import { evtcProfessionMetadata, evtcSpecializationMetadata } from '#gw2/integra
 import { reconstructEvtcRotation } from '#gw2/integrations/logs/evtc/rotation/index.js';
 import { reconstructDpsReportRotation } from '#gw2/integrations/logs/dps-report/rotation/index.js';
 import { reconstructProfessionActions } from '#gw2/integrations/logs/evtc/rotation/professions/index.js';
-import {
-  createStrikePacketMatcher,
-  missingInterruptCommitWarnings
-} from '#gw2/integrations/logs/evtc/rotation/effect-packets.js';
+import { createStrikePacketMatcher } from '#gw2/integrations/logs/evtc/rotation/effect-packets.js';
 import { revenantCatalog } from '#gw2/professions/revenant/profession.js';
 import { engineerCatalog } from '#gw2/professions/engineer/profession.js';
 import { guardianCatalog } from '#gw2/professions/guardian/profession.js';
@@ -90,27 +87,6 @@ test('packet evidence distinguishes empty, partial, and explicitly timed matches
     assert.equal(result.allObserved, allObserved);
     assert.equal(result.allObservedTimingExplicit, allExplicit);
   }
-});
-
-test('post-interrupt damage warns only when the replay actually retains a cancellation', () => {
-  // A reduced raw marker can replay to completion; its damage is not discarded in that case.
-  const c = context('mesmer', 'mirage', [event({ time: 200, skillId: 1000, value: 100 })]);
-  c.catalog = {
-    skills: [
-      {
-        id: 1000,
-        name: 'Mind Stab',
-        castTimeMs: 100,
-        effects: [{ type: 'strike', atMs: 100, timingAnchor: 'castStart', timingScale: 'fixed' }]
-      }
-    ]
-  };
-  const action = { start: 100, end: 140, rawSkillId: 1000, rawName: 'Mind Stab', eventIndex: 0, status: 'reduced' };
-  assert.deepEqual(missingInterruptCommitWarnings(c, [action]), []);
-  assert.match(
-    missingInterruptCommitWarnings(c, [{ ...action, replayInterruptMs: 40 }]).join('\n'),
-    /preserves the cancellation/
-  );
 });
 
 test('Mesmer shatter loading rejects matching clone visuals using packed ground coordinates', () => {
@@ -469,7 +445,6 @@ test('tied Revenant stance and upkeep signals preserve source metadata in either
     const normalizedSwap = normalized.find((action) => action.canonicalSkillId === -4);
     assert.ok(normalizedSwap);
     assert.equal(normalizedSwap.eventIndex, stance.eventIndex);
-    assert.equal(normalizedSwap.expectedDurationMs, stance.expectedDurationMs);
     assert.deepEqual(
       out.rotation.map((action) => action.skillId),
       [-4]

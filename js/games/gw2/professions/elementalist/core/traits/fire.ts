@@ -1,18 +1,39 @@
-import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
+import { MODIFIER_TARGET, powerScaledConditionAttributes } from '#gw2/platform/combat/modifiers.js';
+import { CONDITION_FORMULAS } from '#gw2/platform/combat/formulas.js';
 import { targetConditionActive } from '#gw2/platform/combat/query/runtime-query.js';
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
+import { hasTrait } from '#gw2/platform/combat/state/traits.js';
+import type { Gw2MutableStats, Gw2Stats } from '#gw2/platform/combat/types.js';
+import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
+import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
+import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
+import { defineTrait, traitAttributeEffects } from '#gw2/platform/profession-definition/traits.js';
 import {
   balanceProfileNumber,
-  requireBalanceProfileFromContext
-} from '#gw2/platform/engine/skills/balance-profiles.js';
-import { defineTrait, traitAttributeEffects } from '#gw2/platform/profession-definition/traits.js';
-import { elementalistTimedBuffStacks } from '#gw2/professions/elementalist/core/mechanics/modifier-queries.js';
+  requireBalanceProfileFromContext,
+  requireEffect
+} from '#gw2/platform/skills/balance-profiles.js';
+import type { Skill } from '#gw2/platform/skills/types.js';
+import type { ElementalistAuraApplier } from '#gw2/professions/elementalist/core/mechanics/auras.js';
+import {
+  combatStarted,
+  elementalistProfiledBuffRequest
+} from '#gw2/professions/elementalist/core/mechanics/effects.js';
+import {
+  elementalistMightStacks,
+  elementalistTimedBuffStacks,
+  primaryAttunement
+} from '#gw2/professions/elementalist/core/mechanics/modifier-queries.js';
 import {
   extendPersistingFlamesEffects,
   extendPersistingFlamesFields
 } from '#gw2/professions/elementalist/core/traits/persisting-flames.js';
 import { ELEMENTALIST_TRAIT_IDS as TRAIT } from '#gw2/professions/elementalist/data/ids.js';
-import type { ElementalistRuntime } from '#gw2/professions/elementalist/types.js';
+import type {
+  ElementalistModifierContext,
+  ElementalistRuntime,
+  ElementalistSkill
+} from '#gw2/professions/elementalist/types.js';
 
 /** Fire definitions keep active tuning beside their behavior; explicit calls preserve mechanic ordering. */
 export const empoweringFlame = defineTrait({
@@ -24,7 +45,8 @@ export const empoweringFlame = defineTrait({
 export const inferno = defineTrait({
   id: TRAIT.INFERNO,
   name: 'Inferno',
-  balance: { coefficientMultiplier: 0.0825 / 0.155 }
+  // Convert the intended Power rate through the canonical Burning scaling used by combat.
+  balance: { coefficientMultiplier: 0.0825 / CONDITION_FORMULAS.Burning.scaling }
 });
 
 export const burningPrecision = defineTrait({
@@ -164,3 +186,104 @@ export const persistingFlames = defineTrait({
     modifyComboFields: extendPersistingFlamesFields
   }
 });
+
+/** Grants Pyromancer's Puissance might after an in-combat Fire-attuned cast. */
+export function applyPyromancersPuissance(
+  context: ElementalistRuntime,
+  cast: RuntimeCast<ElementalistSkill>,
+  skill: Skill
+): void {
+  const at = cast.effectiveEnd;
+  if (
+    !hasTrait(context, TRAIT.PYROMANCERS_PUISSANCE) ||
+    professionCoreState(context).primaryAttunement !== 'Fire' ||
+    !combatStarted(context, at)
+  )
+    return;
+  context.effects.emit(
+    elementalistProfiledBuffRequest(
+      context,
+      at,
+      TRAIT.PYROMANCERS_PUISSANCE,
+      'Attunement Might',
+      skill.name,
+      skill.id,
+      undefined,
+      undefined,
+      { activationId: cast.id, skillId: cast.skill.id, offTarget: cast.command.offTarget }
+    )
+  );
+}
+
+/** Applies Smothering Auras' profile-driven duration multiplier once. */
+export function elementalistAuraDuration(context: unknown, duration: number): number {
+  return hasTrait(context, TRAIT.SMOTHERING_AURAS)
+    ? duration *
+        balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.SMOTHERING_AURAS), 'durationMultiplier')
+    : duration;
+}
+
+/** Conjurer grants its aura between bundle creation and the resulting swap events. */
+export function applyConjurerAura(
+  context: ElementalistRuntime,
+  cast: RuntimeCast<ElementalistSkill>,
+  skill: Skill,
+  applyAura: ElementalistAuraApplier
+): void {
+  const at = cast.effectiveEnd;
+  if (hasTrait(context, TRAIT.CONJURER)) {
+    const conjurerProfile = requireBalanceProfileFromContext(context, TRAIT.CONJURER);
+    const conjurerBuff = requireEffect(conjurerProfile, 'buff', 'Conjurer');
+    if (conjurerBuff) {
+      applyAura(context, {
+        at,
+        aura: String(conjurerBuff.kind),
+        duration: conjurerBuff.duration,
+        skillName: 'Conjurer',
+        sourceId: skill.id
+      });
+    }
+  }
+}
+
+/** Preserve the live fire attribute pass at its original position in the Core modifier pipeline. */
+export function applyFireTraitAttributes(context: ElementalistModifierContext, modified: Gw2MutableStats): void {
+  const primary = primaryAttunement(context);
+  if (hasTrait(context, TRAIT.EMPOWERING_FLAME) && primary === 'Fire') {
+    const empoweringFlameProfile = requireBalanceProfileFromContext(context, TRAIT.EMPOWERING_FLAME);
+    modified.power = (modified.power || 0) + balanceProfileNumber(empoweringFlameProfile, 'attributeBonus');
+  }
+
+  if (
+    hasTrait(context, TRAIT.POWER_OVERWHELMING) &&
+    elementalistMightStacks(context) >=
+      balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.POWER_OVERWHELMING), 'minimumStacks')
+  ) {
+    const powerOverwhelmingProfile = requireBalanceProfileFromContext(context, TRAIT.POWER_OVERWHELMING);
+    modified.power =
+      (modified.power || 0) +
+      (primary === 'Fire'
+        ? balanceProfileNumber(powerOverwhelmingProfile, 'weaponAttributeBonus')
+        : balanceProfileNumber(powerOverwhelmingProfile, 'attributeBonus'));
+  }
+}
+
+/** Inferno converts final Power only for its Burning packets at condition-attribute evaluation. */
+export function applyInfernoAttributes(context: ElementalistModifierContext, attributes: Gw2Stats): Gw2Stats {
+  return powerScaledConditionAttributes(context, attributes, 'Burning', TRAIT.INFERNO);
+}
+
+/** Scale this element's weapon recharge after the mechanic has handled held and non-weapon cooldowns. */
+export function pyromancersTrainingRecharge(
+  context: MechanicQueriesOf<ElementalistRuntime>,
+  skill: Skill,
+  duration: number
+): number {
+  return skill.attunement === 'Fire' && hasTrait(context, TRAIT.PYROMANCERS_TRAINING)
+    ? duration *
+        balanceProfileNumber(
+          requireBalanceProfileFromContext(context, TRAIT.PYROMANCERS_TRAINING),
+          'rechargeMultiplier'
+        )
+    : duration;
+}

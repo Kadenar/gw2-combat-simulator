@@ -63,9 +63,6 @@ test('bounded helpers substitute the fallback for input that coerces to NaN', ()
     assert.equal(boundedInteger(unusable, 0, 0, 25), 0);
     assert.equal(boundedNumber(unusable, 8, 0, 8), 8);
   }
-
-  // The shape these replaced: Math.min/Math.max propagate NaN rather than clamping it away.
-  assert.ok(Number.isNaN(Math.max(0, Math.min(25, Math.trunc(Number('abc'))))));
 });
 
 test('bounded helpers leave usable input exactly as clamping did', () => {

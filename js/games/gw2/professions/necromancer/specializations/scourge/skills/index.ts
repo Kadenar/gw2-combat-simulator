@@ -1,3 +1,4 @@
+import { lifeForceGrant } from '#gw2/professions/necromancer/core/skills/life-force-grants.js';
 /**
  * Scourge skill mechanics owned by the Scourge Necromancer module.
  *
@@ -6,8 +7,8 @@
  * makes elite weapon families profession-wide.
  */
 import { NECROMANCER_SKILL_IDS as ID } from '#gw2/professions/necromancer/data/ids.js';
-import { impactEffects } from '#gw2/platform/engine/effects/authoring.js';
-import type { Skill } from '#gw2/platform/engine/skills/types.js';
+import { impactEffects } from '#gw2/platform/effects/authoring.js';
+import type { Skill } from '#gw2/platform/skills/types.js';
 
 // Herald of Sorrow swaps Desert Shroud for Sandstorm Shroud; both are state-selected variants of one UI tile.
 const SCOURGE_SHROUD_PALETTE_TILE = 'scourge-desert-shroud';
@@ -85,14 +86,14 @@ export const SCOURGE_BASE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill
     effects: [
       {
         type: 'strike',
-        // Accepted strikes grant live skill tuning through the percentage resource owner.
+        // Accepted strikes apply their declared percentage through the shared resource owner.
         reactions: [
           {
             on: 'damage.resolved',
             actor: 'player',
             packets: 'first',
             when: (_runtime, { event }) => Number(event.coefficient) > 0,
-            do: { type: 'necromancer.skill-life-force' }
+            do: lifeForceGrant({ id: 'life-force', unit: 'hit', grant: { percent: 12 } })
           }
         ],
         coefficient: 1,
@@ -104,8 +105,7 @@ export const SCOURGE_BASE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill
         stacks: 3,
         duration: 8
       }
-    ],
-    lifeForceGain: 12
+    ]
   },
   [ID.SAND_FLARE]: {
     // Each command declares its intrinsic work; barrier and shroud trait observers retain their shared owners.

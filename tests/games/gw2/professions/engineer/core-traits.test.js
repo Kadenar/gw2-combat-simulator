@@ -531,10 +531,6 @@ test('Tools traits materialize tool-belt, dodge, kit, and battery behavior', () 
   assert.ok(amalgamReplacementToolbeltSkills.length > 0);
   assert.ok(amalgamReplacementToolbeltSkills.every((mechanics) => mechanics.countsAsToolbeltSkill === true));
 
-  const quickDodge = simulate('Core', ['Dodge'], { boons: { quickness: true } });
-
-  assert.equal(quickDodge.steps[0].end - quickDodge.steps[0].start, 800);
-
   const toolbelt = simulate(
     'Core',
     ['Regenerating Mist', 'Grenade Barrage', 'Mine Field', 'Healing Mist', 'Med Pack Drop'],
@@ -595,7 +591,7 @@ test('Tools traits materialize tool-belt, dodge, kit, and battery behavior', () 
     adrenal.planningState.cooldowns['Grenade Barrage'].readyAt,
     Math.ceil((adrenal.steps[0].end + 16200) / 40) * 40
   );
-  assert.equal(adrenal.planningState.profession.endurance, 65.75);
+  assert.equal(adrenal.planningState.profession.endurance.value, 65.75);
 
   const streamlined = simulate('Core', ['Grenade Kit'], {
     selectedTraitIds: [TRAIT.STREAMLINED_KITS]

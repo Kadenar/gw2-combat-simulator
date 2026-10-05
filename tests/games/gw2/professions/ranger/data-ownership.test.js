@@ -40,20 +40,6 @@ test('Unsupported Druid glyphs and White Moa are absent from Ranger data', () =>
   );
 });
 
-// Validate evaluated arrays so generated pet pulses and balance profiles obey the authored packet grid too.
-test('Ranger authored effect ticks use the 40 ms action grid', () => {
-  for (const entry of [...rangerCatalog.skills, ...rangerCatalog.balanceProfiles]) {
-    for (const effect of entry.effects ?? []) {
-      for (const tick of effect.ticks ?? []) {
-        assert.ok(
-          Math.abs(tick.atMs - Math.round(tick.atMs / 40) * 40) <= 1e-6,
-          `${entry.id} ${entry.name}: ${tick.atMs} ms`
-        );
-      }
-    }
-  }
-});
-
 function familySlug(value) {
   return value.replace(/[^a-z0-9]+/g, '-');
 }

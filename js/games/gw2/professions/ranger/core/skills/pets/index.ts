@@ -2,7 +2,7 @@
  * Composes the disjoint Core Ranger pet-family catalogs.
  * Individual family fragments remain in the sibling files.
  */
-import type { Skill } from '#gw2/platform/engine/skills/types.js';
+import type { Skill } from '#gw2/platform/skills/types.js';
 import { RANGER_CORE_FELINE_PET_SKILL_MECHANICS } from '#gw2/professions/ranger/core/skills/pets/feline.js';
 import { RANGER_CORE_PORCINE_PET_SKILL_MECHANICS } from '#gw2/professions/ranger/core/skills/pets/porcine.js';
 import { RANGER_CORE_CANINE_PET_SKILL_MECHANICS } from '#gw2/professions/ranger/core/skills/pets/canine.js';

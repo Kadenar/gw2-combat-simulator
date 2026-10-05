@@ -70,7 +70,7 @@ test('Sundering Burst removal cannot substitute its surviving critical variant',
     const hit = result.events.find((event) => event.type === 'damage');
     const proc = result.events.find((event) => event.sourceId === TRAIT.SUNDERING_BURST);
     assert.equal(proc?.stacks, precision === 0 ? undefined : 13);
-    assert.equal(observedRuntime(result).procs.readyAt[TRAIT.SUNDERING_BURST], hit.at + 5);
+    assert.equal(observedRuntime(result).procs.snapshot()[TRAIT.SUNDERING_BURST], hit.at + 5);
   }
 });
 
@@ -88,7 +88,7 @@ for (const [profile, type, name, skill, weapon] of [
       result.events.some((e) => e.skillId === skill && e.type === (type === 'strike' ? 'damage' : 'condition')),
       false
     );
-    assert.ok(result.planningState.profession.adrenaline < 30);
+    assert.ok(result.planningState.profession.adrenaline.value < 30);
     assert.ok(result.events.some((e) => e.type === 'action' && e.skillId === skill));
     if (type === 'strike')
       assert.equal(
@@ -126,8 +126,8 @@ test('removed Berserk window retains resource spending and entry boons without a
   });
   assert.equal(result.planningState.profession.berserkActive, false);
   assert.equal(result.planningState.profession.berserkUntil, 0);
-  assert.equal(result.planningState.profession.maximumAdrenaline, 30);
-  assert.ok(result.planningState.profession.adrenaline < 30);
+  assert.equal(result.planningState.profession.adrenaline.maximum, 30);
+  assert.ok(result.planningState.profession.adrenaline.value < 30);
   assert.ok(result.events.some((e) => e.kind === 'quickness'));
   assert.equal(
     result.events.some((e) => e.kind === 'berserk'),
@@ -257,7 +257,7 @@ test('zero Empower Allies and Paragon intervals disable queued recurrence', () =
     [ID.CHANT_OF_ACTION, { type: 'wait', durationMs: 5000 }],
     { initialResource: 30 }
   );
-  assert.equal(refrain.planningState.profession.motivation, 4);
+  assert.equal(refrain.planningState.profession.motivation.value, 4);
   assert.equal(refrain.planningState.profession.activeRefrain, 'Chant of Action');
 });
 
@@ -278,7 +278,7 @@ test('Artillery Slash keeps ammo variant identity after first-strike removal and
     const strike = result.events.find((event) => event.type === 'damage');
     assert.equal(strike?.coefficient, charges === 1 ? undefined : 4);
     assert.ok(result.events.some((event) => event.type === 'control'));
-    assert.equal(observedRuntime(result).ammo.get(ID.ARTILLERY_SLASH).charges, 0);
+    assert.equal(observedRuntime(result).cooldownController.readAmmo(ID.ARTILLERY_SLASH).charges, 0);
   }
 });
 
@@ -300,7 +300,7 @@ test('removed Spellbreaker buffs cannot retain Insight stacks or a tether window
 test('Paragon opening Might removal preserves Fury, Motivation, and tooltip identity', () => {
   const profiles = { [PARAGON.chants]: remove('boon', 'might') };
   const result = run(profiles, 'Paragon', [ID.CHANT_OF_ACTION], { initialResource: 30 });
-  assert.equal(result.planningState.profession.motivation, 4);
+  assert.equal(result.planningState.profession.motivation.value, 4);
   assert.ok(result.events.some((e) => e.kind === 'fury'));
   const catalog = applyBalanceProfilePatch(warriorCatalog, { balanceProfiles: profiles });
   const tooltip = warriorTooltips.skills[ID.CHANT_OF_ACTION]({ catalog }, catalog.skillsById.get(ID.CHANT_OF_ACTION));
@@ -356,7 +356,7 @@ test('Eviscerate variants use captured adrenaline after the live pool changes', 
       ...native,
       onCastStart(runtime, cast) {
         native.onCastStart(runtime, cast);
-        runtime.profession.core.adrenaline = 30;
+        runtime.resourceController.replace('adrenaline', 30);
       }
     },
     config,

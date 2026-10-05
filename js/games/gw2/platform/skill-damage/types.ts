@@ -1,8 +1,9 @@
-/** Serializable skill damage preview contracts shared by the application, its worker, and the evaluator. */
 import type { Gw2ModifierContribution } from '#gw2/platform/combat/modifiers.js';
-import type { SkillId } from '#gw2/platform/engine/skills/types.js';
-import type { SkillDamageCastOptions } from '#gw2/platform/profession-presentation/skill-damage.js';
+import type { CastCommand } from '#gw2/platform/execution/types.js';
+import type { MechanicContext } from '#gw2/platform/profession-definition/mechanic-context.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
+import type { SkillId } from '#gw2/platform/skills/types.js';
+/** Serializable skill damage preview contracts shared by the application, its worker, and the evaluator. */
 
 /** Damage state for one occurrence; no cast eligibility or trigger-history fields cross this boundary. */
 export interface SkillDamageContext {
@@ -121,3 +122,21 @@ export interface SkillDamageOccurrenceResult {
 export interface SkillDamageEvaluation {
   readonly occurrences: readonly SkillDamageOccurrenceResult[];
 }
+
+/** Content owns damage state independently of the combat history normally needed to reach it. */
+export interface DamageEffectDefinition {
+  readonly id: string;
+  readonly name: string;
+  readonly icon?: string;
+  readonly source: 'Profession' | 'Trait';
+  readonly ownerId?: SkillId;
+  readonly unit: DamageUnit;
+  readonly inputs?: DamageInputs;
+  readonly assumptions?: readonly string[];
+  readonly sourceIds: readonly SkillId[];
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Heterogeneous content retains the selected profession's runtime at dispatch.
+  readonly emit: (runtime: MechanicContext<any>, inputs: DamageInputs) => void;
+}
+
+/** Cast-command fields an occurrence may set on its measured cast, such as a Dragon Charge release threshold. */
+export type SkillDamageCastOptions = Pick<CastCommand, 'releaseAtCharges' | 'releaseDelayMs' | 'doubleEdgeOutcome'>;

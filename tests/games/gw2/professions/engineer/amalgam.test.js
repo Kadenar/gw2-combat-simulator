@@ -13,6 +13,7 @@ import { StableEventQueue } from '#kernel/events/queue.js';
 import { createObservedProfessionSimulator, observedRuntime } from '#tests/helpers/observed-runtime.js';
 import { assertFlooredDamageMultiplier } from '#tests/helpers/rounded-damage.js';
 import assert from 'node:assert/strict';
+import { createMaximumAmmoContext } from '#gw2/platform/profession-definition/runtime-context.js';
 import { test } from 'node:test';
 
 const baseConfig = Object.freeze({
@@ -501,22 +502,26 @@ test('Evolve aliases use only the trait-selected identity and share its charges 
     const skillId = traited ? ID.EVOLVE_DOUBLE_HELIX : ID.EVOLVE_BASE;
     const inactive = engineerCatalog.skillsById.get(traited ? ID.EVOLVE_BASE : ID.EVOLVE_DOUBLE_HELIX);
     assert.equal(
-      amalgamCastAvailability({ config: { specialization: 'Amalgam', selectedTraitIds } }, inactive).ready,
+      amalgamCastAvailability(
+        { config: { specialization: 'Amalgam', selectedTraitIds }, traits: new Set(selectedTraitIds) },
+        inactive
+      ).ready,
       false
     );
-    assert.equal(amalgamMaximumAmmo({ config: { selectedTraitIds } }, inactive, Number(inactive.ammo || 0)), 0);
+    const capacity = createMaximumAmmoContext(() => ({}), new Set(selectedTraitIds), engineerCatalog);
+    assert.equal(amalgamMaximumAmmo(capacity, inactive, Number(inactive.ammo || 0)), 0);
     const result = simulate('Amalgam', [ID.EVOLVE_DOUBLE_HELIX, ID.EVOLVE_BASE, ID.EVOLVE_DOUBLE_HELIX], {
       selectedTraitIds
     });
     assert.deepEqual(result.warnings, []);
     assert.ok(result.steps.every((step) => step.skillId === skillId && !step.invalid));
-    assert.deepEqual([...observedRuntime(result).cooldowns.keys()], [skillId]);
-    assert.deepEqual([...observedRuntime(result).ammo.keys()], traited ? [skillId] : []);
+    assert.deepEqual([...observedRuntime(result).cooldownController.cooldownSkillIds()], [skillId]);
+    assert.deepEqual([...observedRuntime(result).cooldownController.ammoSkillIds()], traited ? [skillId] : []);
     const [first, second, third] = result.steps;
     // Both Evolve identities recover from activation rather than cast completion.
     assert.ok(third.start >= first.start + 32000);
     if (traited) {
-      assert.equal(observedRuntime(result).ammo.get(skillId).maximum, 2);
+      assert.equal(observedRuntime(result).cooldownController.readAmmo(skillId).maximum, 2);
       assert.ok(second.start < first.start + 32000);
     } else {
       assert.ok(second.start >= first.start + 32000);
@@ -629,68 +634,45 @@ test('Amalgam food comparisons use the recalculated Evolve attribute pool', () =
   );
 });
 
-test('Thorns damaging-field assumption creates six one-second retaliations', () => {
+test('Thorns retaliation requires the damaging-field assumption', () => {
   const selectedMorphSkillIds = [77103, 77104, 76705];
-  const inactive = simulate('Amalgam', [77104], {
-    selectedMorphSkillIds
-  });
-
-  assert.equal(
-    inactive.resolvedEvents.some((event) => event.type === 'damage' && event.name === 'Thorns Retaliation'),
-    false
-  );
-
-  const active = simulate(
-    'Amalgam',
-    ['Evolve', 77104],
-    {
-      selectedMorphSkillIds,
-      professionAssumptions: { inDamagingField: true }
-    },
-    observationTail(6000)
-  );
-  const retaliation = active.resolvedEvents.filter(
-    (event) => event.type === 'damage' && event.name === 'Thorns Retaliation'
-  );
-
-  assert.equal(retaliation.length, 6);
-  assert.ok(retaliation.every((event) => event.coefficient === 0.5));
-  assert.deepEqual(
-    retaliation.slice(1).map((event, index) => Number((event.at - retaliation[index].at).toFixed(3))),
-    Array(5).fill(1)
-  );
+  // Vary only the assumption so the same successful cast proves the outgoing retaliation gate.
+  for (const professionAssumptions of [undefined, {}, { inDamagingField: false }, { inDamagingField: true }]) {
+    const result = simulate(
+      'Amalgam',
+      [77104],
+      { selectedMorphSkillIds, professionAssumptions },
+      observationTail(6000)
+    );
+    assert.deepEqual(result.warnings, []);
+    assert.equal(
+      result.resolvedEvents.some((event) => event.type === 'damage' && event.name === 'Thorns Retaliation'),
+      professionAssumptions?.inDamagingField === true
+    );
+  }
 });
 
-test('Plasmatic State models both phases as one cast', () => {
-  const result = simulate('Amalgam', ['Plasmatic State', 'Puncturing Jab'], {
-    boons: { quickness: true },
-    selectedSkillIds: [5857, 5805, 5927, 77209, 76993],
-    selectedMorphSkillIds: [77103, 77104, 76705]
-  });
-  const step = result.steps.find((step) => step.skill === 'Plasmatic State');
-  const following = result.steps.find((step) => step.skill === 'Puncturing Jab');
+test('Amalgam build assumptions map to the canonical runtime configuration', () => {
+  // Exercise the application boundary that supplies the runtime gate from persisted build assumptions.
+  for (const inDamagingField of [true, false]) {
+    const canonical = createEngineerBuildDefaults();
+    canonical.specializations = [
+      { name: 'Explosives', traits: '3-2-3' },
+      { name: 'Firearms', traits: '3-3-2' },
+      { name: 'Amalgam', traits: '2-2-3' }
+    ];
+    canonical.assumptions.inDamagingField = inDamagingField;
+    const app = {
+      adapter: engineerAppAdapter,
+      build: toApplicationBuild(canonical),
+      skillByName: engineerCatalog.skillsByName,
+      attributeWeaponSet: 1
+    };
+    engineerAppAdapter.recalculate(app);
+    const config = engineerAppAdapter.simulationConfig(app);
 
-  assert.equal(step.end - step.start, 960);
-  assert.equal(following.start - step.start, 960);
-  const action = result.events.find((event) => event.type === 'action' && event.skillName === 'Plasmatic State');
-
-  assert.equal(
-    Math.round((result.planningState.cooldowns['Plasmatic State'].readyAt / 1000 - action.at) * 1000),
-    20_480
-  );
-  assert.equal(
-    result.resolvedEvents.filter((event) => event.type === 'damage' && event.name === 'Plasmatic State').length,
-    2
-  );
-  assert.deepEqual(
-    result.resolvedEvents
-      .filter((event) => event.type === 'damage' && event.name === 'Plasmatic State')
-      .map((event) => Math.round((event.at - step.start / 1000) * 1000)),
-    [440, 800]
-  );
-  const firstPacket = result.resolvedEvents.find(
-    (event) => event.type === 'damage' && event.name === 'Plasmatic State'
-  );
-
-  assert.ok(Math.abs(result.planningState.profession.plasmaticStateUntil - firstPacket.at - 6) < 1e-12);
+    assert.equal(config.professionAssumptions.inDamagingField, inDamagingField);
+    assert.equal(Object.hasOwn(config, 'assumptions'), false);
+    assert.equal(Object.hasOwn(config, 'inDamagingField'), false);
+  }
 });

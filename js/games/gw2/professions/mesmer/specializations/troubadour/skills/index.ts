@@ -4,9 +4,10 @@ import { createDodgeSkill } from '#gw2/platform/skills/shared-actions.js';
  * Owns Troubadour instrument, Tale, and simulator-action catalog data.
  * Instrument and Tale runtime behavior lives under `mechanics/`.
  */
-import { impactEffects } from '#gw2/platform/engine/effects/authoring.js';
+import { impactEffects } from '#gw2/platform/effects/authoring.js';
 import { MESMER_SKILL_IDS as ID } from '#gw2/professions/mesmer/data/ids.js';
-import type { SkillId, SkillEffect, BalanceProfile } from '#gw2/platform/engine/skills/types.js';
+import type { SkillId, BalanceProfile } from '#gw2/platform/skills/types.js';
+import type { SkillEffect } from '#gw2/platform/effects/types.js';
 
 import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
 import type { MesmerInstrument } from '#gw2/professions/mesmer/types.js';
@@ -119,7 +120,7 @@ export const MESMER_TROUBADOUR_SKILL_MECHANICS: Readonly<
       coefficient: 1,
       hits: 1,
       damageAtMs: 360,
-      conditions: [{ name: 'Confusion', duration: 4, stacks: 3 }]
+      conditions: [{ type: 'condition', condition: 'Confusion', duration: 4, stacks: 3 }]
     },
     effects: [
       // Performance and afterimage impacts materialize the same authored control.

@@ -1,6 +1,6 @@
-import type { SkillId } from '#gw2/platform/engine/skills/types.js';
+import type { SkillId } from '#gw2/platform/skills/types.js';
 /** Owns the builds/types.ts contracts so type dependencies follow their runtime feature boundaries. */
-import type { CanonicalCatalog, Skill } from '#gw2/platform/engine/skills/types.js';
+import type { CanonicalCatalog, Skill } from '#gw2/platform/skills/types.js';
 import type { ProfessionBalanceContext } from '#gw2/platform/profession-presentation/balance-context.js';
 
 export type Gw2NumericAttributes = Record<string, number>;
@@ -358,7 +358,7 @@ export type Gw2TraitBuildAttributeCalculator = (
   common: Gw2CommonAttributeResult,
   context: Gw2BuildAttributeRuleContext,
   activeTraits: readonly {
-    readonly id: import('#gw2/platform/engine/skills/types.js').SkillId;
+    readonly id: import('#gw2/platform/skills/types.js').SkillId;
     readonly name: string;
   }[]
 ) => readonly Gw2BuildAttributeContributions[];

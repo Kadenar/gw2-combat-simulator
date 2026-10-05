@@ -1,9 +1,10 @@
+import { lifeForceGrant } from '#gw2/professions/necromancer/core/skills/life-force-grants.js';
 import type { NecromancerRuntime } from '#gw2/professions/necromancer/types.js';
 import { NECROMANCER_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/necromancer/core/profiles.js';
 /** Canonical Core necromancer skill fragments grouped by their GW2 owner. */
-import { impactEffects } from '#gw2/platform/engine/effects/authoring.js';
+import { impactEffects } from '#gw2/platform/effects/authoring.js';
 import { NECROMANCER_SKILL_IDS as ID } from '#gw2/professions/necromancer/data/ids.js';
-import type { Skill } from '#gw2/platform/engine/skills/types.js';
+import type { Skill } from '#gw2/platform/skills/types.js';
 
 export const NECROMANCER_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
   [ID.EXTIRPATE]: {
@@ -24,7 +25,7 @@ export const NECROMANCER_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, 
               actor: 'player',
               packets: 'first',
               when: (_runtime, { event }) => Number(event.coefficient) > 0,
-              do: { type: 'necromancer.skill-life-force' }
+              do: lifeForceGrant({ id: 'life-force', unit: 'hit', grant: { percent: 12 } })
             },
             {
               on: 'damage.resolved',
@@ -48,8 +49,7 @@ export const NECROMANCER_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, 
         { type: 'condition', condition: 'Weakness', stacks: 1, duration: 3 },
         { type: 'buff', kind: 'extirpation', duration: 4, stacks: 3 }
       ]
-    ),
-    lifeForceGain: 12
+    )
   },
   [ID.DARK_SLASH]: {
     interruptCommitMs: 560,
@@ -90,7 +90,7 @@ export const NECROMANCER_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, 
             actor: 'player',
             packets: 'first',
             when: (_runtime, { event }) => Number(event.coefficient) > 0,
-            do: { type: 'necromancer.skill-life-force' }
+            do: lifeForceGrant({ id: 'life-force', unit: 'hit', grant: { percent: 10 } })
           },
           {
             on: 'damage.resolved',
@@ -123,7 +123,12 @@ export const NECROMANCER_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, 
               Number(event.coefficient) > 0 &&
               Boolean(runtime.config.target?.defiant || runtime.config.target?.activatingSkills),
             do: [
-              { type: 'necromancer.life-force', amount: 10 },
+              lifeForceGrant({
+                id: 'defiant-life-force',
+                label: 'Additional life force against defiant or activating targets',
+                unit: 'hit',
+                grant: { percent: 10 }
+              }),
               { type: 'necromancer.soul-shards', amount: 4 }
             ]
           },
@@ -141,8 +146,7 @@ export const NECROMANCER_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, 
         timingAnchor: 'castStart',
         timingScale: 'cast'
       }
-    ],
-    lifeForceGain: 10
+    ]
   },
   [ID.DEADLY_SLICE]: {
     interruptCommitMs: 480,
@@ -180,7 +184,7 @@ export const NECROMANCER_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, 
             actor: 'player',
             packets: 'first',
             when: (_runtime, { event }) => Number(event.coefficient) > 0,
-            do: { type: 'necromancer.skill-life-force' }
+            do: lifeForceGrant({ id: 'life-force', unit: 'hit', grant: { percent: 5 } })
           },
           {
             on: 'damage.resolved',
@@ -193,8 +197,7 @@ export const NECROMANCER_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, 
         coefficient: 1.8
       },
       { type: 'condition', condition: 'Chilled', stacks: 1, duration: 2 }
-    ]),
-    lifeForceGain: 5
+    ])
   },
   [ID.PERFORATE]: {
     interruptMode: 'per-packet',

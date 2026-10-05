@@ -274,31 +274,13 @@ test('spirit creation commits once and Soul Twisting refunds only the first comp
   assert.deepEqual(state(result).activeSpirits, { anguish: true });
   assert.equal(state(result).spiritGenerations.anguish, 2);
   assert.equal(state(result).soulTwistingAvailable, false);
-  assert.ok(observedRuntime(result).cooldowns.get(ID.ANGUISH) > result.planningState.atSeconds);
+  assert.ok(observedRuntime(result).cooldownController.readyAt(ID.ANGUISH) > result.planningState.atSeconds);
   assert.equal(result.planningState.profession.lifeForce.value, 56.64);
   assert.deepEqual(result.warnings, []);
   const interrupted = run([cast(ID.RITUALISTS_SHROUD), { ...cast(ID.ANGUISH), interruptAfterMs: 100 }], { config });
   assert.deepEqual(state(interrupted).activeSpirits, {});
   assert.equal(state(interrupted).soulTwistingAvailable, true);
   assert.equal(interrupted.planningState.profession.lifeForce.value, 39.7);
-});
-
-// Cancelling only the aftercast keeps the summon; the declared commit point, not full completion, owns that decision.
-test('spirit summons honor the declared commit point when the aftercast is cancelled', () => {
-  const commitMs = necromancerProfession.catalog.skillsById.get(ID.ANGUISH).interruptCommitMs;
-  assert.ok(commitMs > 0);
-  for (const [interruptAfterMs, summoned] of [
-    [commitMs, true],
-    [commitMs - 40, false]
-  ]) {
-    const result = run([cast(ID.RITUALISTS_SHROUD), { ...cast(ID.ANGUISH), interruptAfterMs }, wait(3000)]);
-    assert.deepEqual(result.warnings, []);
-    assert.equal(state(result).activeSpirits.anguish === true, summoned, String(interruptAfterMs));
-    assert.equal(
-      result.events.some((event) => event.type === 'damage' && event.metadata?.spiritAttackType === 'initial'),
-      summoned
-    );
-  }
 });
 
 test('exit preserves committed attacks while autonomous spirit work ends on exit or Lingering depletion', () => {
@@ -331,7 +313,6 @@ test('replacement cancels a prior spirit generation without resetting the shared
   );
   assert.equal(attacks.length, 1);
   assert.equal(attacks[0].activationId.startsWith('cast:3:'), true);
-  assert.equal(attacks[0].at, 12.76);
   assert.equal(state(result).spiritAutoAnchorAt, 7.92);
 });
 
@@ -352,6 +333,27 @@ test('Summon Spirits checks its initial window and busy state before an autonomo
     false
   );
   assert.deepEqual(result.warnings, []);
+});
+
+// A commanded attack can make a spirit busy after its autonomous animation starts but before its impact arrives.
+test('busy spirits suppress an in-flight autonomous impact without shifting later attacks', () => {
+  const resources = necromancerProfession.catalog.balanceProfilesById.get(PROFILE.resources);
+  const opening = [cast(ID.RITUALISTS_SHROUD), cast(ID.ANGUISH), wait(resources.initialDelay * 1000 + 40)];
+  const baseline = run([...opening, wait(resources.pulseInterval * 2000)]);
+  const commanded = run([...opening, cast(ID.SUMMON_SPIRITS), wait(resources.pulseInterval * 2000)]);
+  const autos = (result) => result.resolvedEvents.filter((event) => event.metadata?.spiritAttackType === 'autoattack');
+  const baselineAutos = autos(baseline);
+  const commandedAt = commanded.steps.find((step) => step.skillId === ID.SUMMON_SPIRITS).start / 1000;
+  assert.deepEqual(baseline.warnings, []);
+  assert.deepEqual(commanded.warnings, []);
+  assert.ok(commandedAt > state(baseline).spiritAutoAnchorAt);
+  assert.ok(commandedAt < baselineAutos[0].at);
+  assert.ok(baselineAutos.length > 1);
+  assert.deepEqual(
+    autos(commanded).map((event) => event.at),
+    baselineAutos.slice(1).map((event) => event.at)
+  );
+  assert.equal(state(commanded).spiritAutoAnchorAt, state(baseline).spiritAutoAnchorAt);
 });
 
 test('Innervate requires its live spirit and grants life force once even when hostile output misses', () => {

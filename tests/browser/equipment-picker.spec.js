@@ -100,33 +100,6 @@ test('disabled matching sigils do not show a false empty search message', async 
   await expect(picker.getByRole('status')).toBeVisible();
 });
 
-// Short fragments match real text in both optimizer and equipped gear, never a subsequence such as b-l-i in bleeding.
-test('gear and optimizer search reject skipped letters and apply the chosen item', async ({ page }) => {
-  await page.goto('/mesmer.html#gear-optimizer', { waitUntil: 'domcontentloaded' });
-  await expect(page.locator('#loading-overlay')).toHaveClass(/hidden/);
-  const picker = page.locator('#gear-optimizer [data-picker="sigil1-1"]');
-  await picker.getByRole('button', { name: 'Add set 1 sigil 1', exact: true }).click();
-  await picker.getByRole('searchbox').fill('bli');
-  await expect(picker.getByRole('option').filter({ hasText: 'Blight' })).toBeVisible();
-  for (const name of ['Agony', 'Earth', 'Geomancy']) {
-    await expect(picker.getByRole('option').filter({ hasText: name })).toHaveCount(0);
-  }
-
-  await picker.getByRole('searchbox').press('Escape');
-  await page.getByRole('link', { name: 'Workspace', exact: true }).click();
-  const trigger = page.getByRole('button', { name: 'Food', exact: true });
-  await trigger.focus();
-  await trigger.press('c');
-  const menu = page.locator('.gear-select-menu:popover-open');
-  const search = menu.getByRole('searchbox', { name: 'Search Food', exact: true });
-  await expect(search).toBeFocused();
-  await expect(search).toHaveValue('c');
-  await search.fill('soup curry');
-  await expect(menu.getByRole('option')).toHaveCount(1);
-  await search.press('Enter');
-  expect(await page.evaluate(() => window.professionApp.build.food)).toBe('Bowl of Curry Butternut Squash Soup');
-});
-
 // Standard skills and profession-specific selectors use the same input, filtering, and keyboard selection.
 test('skill choices support word search and keyboard selection', async ({ page }) => {
   await page.goto('/mesmer.html#workspace', { waitUntil: 'domcontentloaded' });

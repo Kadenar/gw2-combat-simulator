@@ -1,9 +1,9 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { MODIFIER_HOOK_NAMES } from '#gw2/platform/engine/profession/contract.js';
-import { createCanonicalCatalog } from '#gw2/platform/engine/skills/canonical-skill-catalog.js';
+import { MODIFIER_HOOK_NAMES } from '#gw2/platform/profession-definition/compiler/compile-contract.js';
+import { createCanonicalCatalog } from '#gw2/platform/skills/catalog.js';
 import { anchorResourceClock } from '#gw2/platform/combat/resources/clock.js';
-import { runGw2Runtime } from '#gw2/platform/simulation/runtime.js';
+import { observeGw2Runtime } from '#tests/helpers/observed-runtime.js';
 import { createRuntimeEndurance } from '#gw2/platform/combat/resources/runtime-resources.js';
 import { testProfession } from '#tests/fixtures/profession.js';
 
@@ -45,7 +45,7 @@ const cast = (skillId, extra = {}) => ({ type: 'cast', skillId, ...extra });
 const wait = (durationMs) => ({ type: 'wait', durationMs });
 
 test('endurance spending agrees with readiness after fractional regeneration', () => {
-  const pool = { endurance: 0, enduranceUpdatedAt: 0 };
+  const pool = { value: 0, maximum: 100, updatedAt: 0, rate: 0 };
   const runtime = { time: 0, config: {}, history: [] };
   const endurance = createRuntimeEndurance(runtime, {
     endurance: { state: () => pool, maximum: () => 100, regenerationRate: () => 7.5 }
@@ -57,7 +57,7 @@ test('endurance spending agrees with readiness after fractional regeneration', (
   endurance.advance();
   assert.equal(endurance.readyAt(50), runtime.time);
   endurance.spend(50);
-  assert.equal(pool.endurance, 0);
+  assert.equal(pool.value, 0);
   assert.throws(() => endurance.spend(1), /Insufficient endurance/);
 });
 
@@ -71,7 +71,7 @@ test('shared lockout deadlines advance at the canonical concurrent-command bound
     lockouts: [{ group: 'test', durationMs: 50 }]
   };
   const profession = { ...fixture(), catalog: createCanonicalCatalog({ generated: [skill] }) };
-  const result = runGw2Runtime({ profession, config, rotation: [wait(1360), cast(skill.id), cast(skill.id)] });
+  const result = observeGw2Runtime({ profession, config, rotation: [wait(1360), cast(skill.id), cast(skill.id)] });
   assert.deepEqual(result.warnings, []);
   assert.equal(result.steps.findLast((step) => step.skillId === skill.id).start, 1410);
 });
@@ -108,7 +108,7 @@ function fixture(hooks = {}) {
 }
 
 function run(rotation, options = {}) {
-  return runGw2Runtime({ profession: fixture(), config, rotation, ...options });
+  return observeGw2Runtime({ profession: fixture(), config, rotation, ...options });
 }
 
 function packet(at, extra = {}) {
@@ -118,6 +118,7 @@ function packet(at, extra = {}) {
 test('one live state spends an actual hit gain before its estimated retry, with identical score execution', () => {
   let creates = 0;
   const contexts = new Set();
+  const queries = new Set();
   const attempts = [];
   const profession = fixture({
     createState: () => {
@@ -125,7 +126,10 @@ test('one live state spends an actual hit gain before its estimated retry, with 
       return fixture().createState();
     },
     availability(runtime, skill) {
-      contexts.add(runtime);
+      queries.add(runtime);
+      assert.equal(Object.isFrozen(runtime), true);
+      assert.equal('effects' in runtime, false);
+      assert.equal('spend' in runtime.resourceController, false);
       if (skill.id !== 990002 || runtime.profession.energy.value >= 1) return { ready: true };
       attempts.push(runtime.time);
       return { ready: false, retryAt: 10, reason: 'Waiting for a hit', code: 'resource' };
@@ -151,6 +155,12 @@ test('one live state spends an actual hit gain before its estimated retry, with 
   const detailed = run(rotation, { profession });
   assert.equal(creates, 1);
   assert.equal(contexts.size, 1);
+  assert.equal(queries.size, 1);
+  // Distinct per-run capabilities observe one owned state, without sharing mutation authority.
+  assert.equal([...contexts][0].profession, [...queries][0].profession);
+  assert.equal([...contexts][0].queries, [...queries][0]);
+  assert.equal('cursor' in [...contexts][0], false);
+  assert.equal('queue' in [...contexts][0], false);
   assert.deepEqual(attempts, [1, 1.5]);
   assert.deepEqual(detailed.planningState.profession.accepted.at(-1), ['Spend', 1.5]);
   assert.equal(detailed.planningState.profession.energy.value, 0);
@@ -160,6 +170,7 @@ test('one live state spends an actual hit gain before its estimated retry, with 
     assert.deepEqual(detailed[key], score[key], key);
   assert.equal(creates, 2);
   assert.equal(contexts.size, 2);
+  assert.equal(queries.size, 2);
 });
 
 test('continuous recovery advances to its finite threshold without polling', () => {
@@ -228,34 +239,18 @@ test('companion steps report executed animations instead of queued reservations'
   assert.deepEqual(result.warnings, []);
   const companion = result.steps.find((step) => step.skillId === 990005);
   assert.equal(companion.start, 400);
-  assert.equal(companion.end, 1200);
-  assert.equal(companion.fullCastMs, 1200);
   assert.equal(companion.interrupted, true);
   const player = result.steps.find((step) => step.skillId === 990003);
   assert.equal(player.start, 0);
-  assert.equal(player.end, 2000);
-});
-
-test('default interruptions and authored overrides release the actual cast lane', () => {
-  for (const [extra, end] of [
-    [{}, 0.5],
-    [{ interruptAfterMs: 250 }, 0.25],
-    [{ interruptAfterMs: 2000 }, 1]
-  ]) {
-    const result = run([cast(990009, extra), cast(990002)]);
-    assert.deepEqual(result.planningState.profession.completed[0], [end === 1 ? 'Restricted' : 'Spend', end]);
-    assert.deepEqual(result.planningState.profession.accepted[1], ['Spend', end]);
-  }
 });
 
 test('forbidden concurrent commands are rejected without reserving a cast lane', () => {
   const result = run([cast(990003), cast(990009, { concurrentOffsetMs: 500 }), cast(990002)]);
   assert.match(result.warnings[0], /cannot be cast concurrently/);
-  assert.deepEqual(result.planningState.profession.accepted, [
-    ['Long', 0],
-    ['Spend', 2]
-  ]);
-  assert.equal(result.rotationEndTime, 2);
+  assert.deepEqual(
+    result.planningState.profession.accepted.map(([name]) => name),
+    ['Long', 'Spend']
+  );
 });
 
 test('completion commits cooldowns and ammo before the next command at the same instant', () => {
@@ -265,8 +260,8 @@ test('completion commits cooldowns and ammo before the next command at the same 
       completion.push({
         id: activation.skill.id,
         at: runtime.time,
-        readyAt: runtime.cooldowns.get(activation.skill.id),
-        charges: runtime.ammo.get(activation.skill.id)?.charges
+        readyAt: runtime.cooldownController.readyAt(activation.skill.id),
+        charges: runtime.cooldownController.readAmmo(activation.skill.id)?.charges
       });
     }
   });
@@ -284,7 +279,7 @@ test('completion commits cooldowns and ammo before the next command at the same 
   assert.equal(completion.find((entry) => entry.id === 990007).charges, 1);
 });
 
-test('ammo lockouts use persistent recharge modifiers without consuming another cast entitlement', () => {
+test('ammo recharge consumes one entitlement per cast', () => {
   let claims = 0;
   const result = run([cast(990007), cast(990007)], {
     profession: fixture({
@@ -295,9 +290,8 @@ test('ammo lockouts use persistent recharge modifiers without consuming another 
       }
     })
   });
-  // A charge's short lockout gets the persistent reduction; its full recharge also gets the one-shot entitlement.
+  // Each charge receives both the persistent reduction and one reserved entitlement.
   assert.equal(claims, 2);
-  assert.equal(result.steps[1].start, 320);
   assert.equal(result.planningState.ammoBySkillId[990007].nextRechargeAt, 0.64);
 });
 
@@ -306,12 +300,12 @@ test('a final completion can extend input recovery before the tail is fixed once
     observation: { kind: 'tail', durationMs: 500 },
     profession: fixture({
       onCastCommit(runtime) {
-        runtime.inputReadyAt = runtime.time + 0.4;
+        runtime.castController.lockInputUntil(runtime.time + 0.4);
         runtime.schedule('recover', 1.4);
       },
       tasks: {
         recover(runtime) {
-          runtime.inputReadyAt = 1.8;
+          runtime.castController.lockInputUntil(1.8);
         }
       }
     })
@@ -378,7 +372,7 @@ test('authored combat boundaries include simultaneous impacts before the marker 
     },
     onCastCommit(runtime, activation) {
       fixture().onCastCommit(runtime, activation);
-      runtime.inputReadyAt = runtime.time + 0.2;
+      runtime.castController.lockInputUntil(runtime.time + 0.2);
     }
   });
   for (const [marker, start, hits] of [
@@ -413,7 +407,7 @@ test('absolute horizons reject unfinished commands, lanes and recovery instead o
         observation: { kind: 'absolute', endTimeMs: 0 },
         profession: fixture({
           onCastCommit(runtime) {
-            runtime.inputReadyAt = 1;
+            runtime.castController.lockInputUntil(1);
           }
         })
       }),
@@ -423,14 +417,17 @@ test('absolute horizons reject unfinished commands, lanes and recovery instead o
 
 test('empty rotations finalize at zero and environment work remains bounded with an unknown end', () => {
   const sizes = [];
-  const profession = fixture({
-    initialize(runtime) {
-      sizes.push(runtime.queue.length);
-    }
-  });
+  const profession = fixture();
+  // Inspect pending engine work through execution setup, outside the mechanic contract.
+  const engineInitialize = (runtime) => sizes.push(runtime.queue.length);
   const ambient = { ...config, target: { ...config.target, conditions: { Bleeding: 2 } } };
-  const empty = run([], { config: ambient, profession });
-  const tail = run([], { config: ambient, profession, observation: { kind: 'tail', durationMs: 3000 } });
+  const empty = run([], { config: ambient, profession, engineInitialize });
+  const tail = run([], {
+    config: ambient,
+    profession,
+    engineInitialize,
+    observation: { kind: 'tail', durationMs: 3000 }
+  });
   assert.deepEqual(sizes, [2, 2]);
   assert.equal(empty.observationEndTime, 0);
   assert.equal(empty.environmentDamage, 0);
@@ -576,7 +573,6 @@ test('cast tasks detach snapshots, retain catalog callbacks, and preserve priori
     assert.notEqual(data.cast.command, accepted.command);
     assert.equal(data.cast.id, accepted.id);
     assert.equal(data.cast.command.impactDelayMs, 250);
-    assert.equal(data.cast.fullEnd, 1);
     seen.push([data.label ?? data.trigger.type, runtime.time]);
   };
 
@@ -615,7 +611,7 @@ test('authored waits still block explicit instant overlaps, whose effects preced
   const result = run([wait(1000), cast(990004, { concurrentOffsetMs: 0 }), cast(990002)], {
     profession: fixture({
       availability(runtime, skill) {
-        if (skill.id === 990002) assert.equal(runtime.boons.get('might')?.length, 1);
+        if (skill.id === 990002) assert.equal(runtime.combat.boonApplications('might').length, 1);
         return { ready: true };
       }
     })

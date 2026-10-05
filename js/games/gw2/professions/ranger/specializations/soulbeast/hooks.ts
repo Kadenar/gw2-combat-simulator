@@ -1,4 +1,5 @@
-import type { RuntimeProfession } from '#gw2/platform/simulation/runtime-state.js';
+import { soulbeastBuffPolicies } from '#gw2/professions/ranger/specializations/soulbeast/effect-state.js';
+import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import { setRangerPetActive } from '#gw2/professions/ranger/core/mechanics/pets.js';
 import { rangerPetByName } from '#gw2/professions/ranger/core/state.js';
 import { applyRangerBeastSkillTraits } from '#gw2/professions/ranger/core/traits/dispatch.js';
@@ -19,7 +20,8 @@ import { soulbeastState } from '#gw2/professions/ranger/specializations/soulbeas
 import type { RangerRuntimeState, RangerSkill } from '#gw2/professions/ranger/types.js';
 
 /** Merge, stance grants, and hit reactions mutate their sole state slice at the owning cast boundary. */
-export const soulbeastHooks: Partial<RuntimeProfession<RangerRuntimeState, RangerSkill>> = {
+export const soulbeastHooks: RuntimeHooks<RangerRuntimeState, RangerSkill> = {
+  buffPolicies: soulbeastBuffPolicies,
   /** Initialize only damage-relevant form and scaling state for one assumed occurrence. */
   prepareDamageState(runtime, skill, inputs) {
     soulbeastState.from(runtime).beastmodeActive = Boolean(skill?.beastmodeSkill || inputs.merged);

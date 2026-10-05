@@ -9,9 +9,10 @@ import type { GuardianConfig } from '#gw2/professions/guardian/types.js';
 import type { EngineerConfig } from '#gw2/professions/engineer/types.js';
 import type { ElementalistConfig } from '#gw2/professions/elementalist/build/types.js';
 /** Composes application state, adapters, and runtime callbacks from domain-owned contracts. */
-import type { Gw2ProfessionSource, Gw2SimulationResult } from '#gw2/platform/simulation/types.js';
+import type { Gw2ProfessionSource } from '#gw2/platform/profession-definition/family-contract.js';
+import type { Gw2SimulationResult } from '#gw2/platform/results/types.js';
 import type { PatchPreview } from '#gw2/integrations/patches/authoring/patches.js';
-import type { CanonicalCatalog, SkillId, Skill, CatalogEntity } from '#gw2/platform/engine/skills/types.js';
+import type { CanonicalCatalog, SkillId, Skill, CatalogEntity } from '#gw2/platform/skills/types.js';
 import type { RotationCommand } from '#gw2/platform/execution/types.js';
 import type { ObservationPolicy } from '#kernel/execution/observation.js';
 import type {
@@ -258,7 +259,6 @@ export interface ProfessionFeatureRunner {
   readonly isRunning?: boolean;
   cancel?(): void;
   schedule(run?: boolean): void;
-  run?(value?: string, extra?: number): void;
 }
 
 export interface Gw2AppAdapter extends ProfessionRuntimeApi {
@@ -273,7 +273,6 @@ export interface Gw2AppAdapter extends ProfessionRuntimeApi {
   readonly globalName: string;
   readonly filenames: ProfessionAppFilenames;
   readonly resetPrompt: string;
-  readonly specializationFallback: string;
   readonly createDefaultTargetConditions: () => Record<string, number | boolean>;
   readonly toApplicationBuild: (build: unknown) => Gw2CanonicalBuild;
   readonly isSkillAvailable: ProfessionIsSkillAvailable;
@@ -295,7 +294,6 @@ export interface DefineProfessionAppOptions {
   readonly applyBuildAttributeRules: Gw2ApplyBuildAttributeRules;
   readonly createDefaultTargetConditions?: () => Record<string, number | boolean>;
   readonly toApplicationBuild: (build: unknown) => Gw2CanonicalBuild;
-  readonly specializationFallback: string;
   readonly storageVersion?: number;
   readonly storageKey?: string;
   readonly globalName?: string;
@@ -314,5 +312,4 @@ export interface Gw2SimulationConfigOptions {
   readonly disabled?: ProfessionModifier | null;
   readonly selectedTraitIds?: readonly SkillId[];
   readonly initialResource?: number;
-  readonly adjustConditionDurationBonus?: (name: string, bonus: number) => number;
 }

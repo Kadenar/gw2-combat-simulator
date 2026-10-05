@@ -8,9 +8,9 @@ import { hasPistolBullet } from '#gw2/professions/elementalist/core/mechanics/pi
  * unlocks live in `core/mechanics/pistol-bullets.ts`, not in these fragments.
  */
 
-import { impactEffects } from '#gw2/platform/engine/effects/authoring.js';
+import { impactEffects } from '#gw2/platform/effects/authoring.js';
 import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';
-import type { Skill } from '#gw2/platform/engine/skills/types.js';
+import type { Skill } from '#gw2/platform/skills/types.js';
 
 // Frigid Flurry fires five shots at these offsets, each an independent Bleeding stack and Projectile finisher.
 const FRIGID_FLURRY_SHOT_OFFSETS_MS = [280, 440, 640, 800, 960];

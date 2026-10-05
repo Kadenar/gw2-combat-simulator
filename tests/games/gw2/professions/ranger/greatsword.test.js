@@ -1,3 +1,4 @@
+import { createMechanicCombatServices } from '#gw2/platform/resolver/mechanic-services.js';
 import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
 import { assertFlooredDamageMultiplier } from '#tests/helpers/rounded-damage.js';
 import assert from 'node:assert/strict';
@@ -132,11 +133,11 @@ test('Enduring Swing grants 15 capped endurance on completion and none when inte
       { type: 'cast', skillId: ID.ENDURING_SWING, ...(interrupted ? { interruptAfterMs: 50 } : {}) }
     ]);
     const action = result.events.find((event) => event.type === 'action' && event.skillId === ID.ENDURING_SWING);
-    close(result.planningState.profession.endurance, 50 + action.endsAt * 5 + (interrupted ? 0 : 15));
+    close(result.planningState.profession.endurance.value, 50 + action.endsAt * 5 + (interrupted ? 0 : 15));
   }
 
   const capped = simulate('Core', [ID.SLASH_ID_12474, ID.SLICE, ID.ENDURING_SWING]);
-  assert.equal(capped.planningState.profession.endurance, 100);
+  assert.equal(capped.planningState.profession.endurance.value, 100);
 });
 
 test('Maul grants the active pet 50% on its next strike without changing later strikes', () => {
@@ -223,6 +224,8 @@ test('Attack of Opportunity ignores effect damage and consumes only its recipien
     ])
   );
   const context = { boons, profession: { core: { petActive: false } } };
+  // Bind real owner operations for this focused mechanic fixture.
+  context.combat = createMechanicCombatServices(context);
   const event = {
     type: 'damage',
     at: 1,

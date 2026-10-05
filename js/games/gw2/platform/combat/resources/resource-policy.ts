@@ -1,17 +1,30 @@
 import { resourceAtLeast } from '#gw2/platform/combat/resources/pool.js';
-import type { Gw2Runtime } from '#gw2/platform/simulation/runtime-state.js';
+import type { MechanicContext } from '#gw2/platform/profession-definition/mechanic-context.js';
 import type { ResourceClock } from '#gw2/platform/combat/resources/clock.js';
 import { advanceDiscreteResource, resourceValueAt, resourceAnchor } from '#gw2/platform/combat/resources/clock.js';
-import { gw2CooldownReadyAt } from '#gw2/platform/skills/timing.js';
+import { gw2CooldownReadyAt } from '#gw2/platform/execution/cast-timing.js';
 
 /** Resource keys belong under the existing capability container, never alongside profession state. */
 export const RESOURCE_KEYS = [
   'tomePages',
   'arrows',
   'initiative',
+  'malice',
+  'heat',
   'shadowForce',
   'astralForce',
   'energy',
+  'catalystEnergy',
+  'motivation',
+  'affinity',
+  'windForce',
+  'adrenaline',
+  'flow',
+  'dragonCharges',
+  'familiarCharges',
+  'empoweredCharges',
+  'blades',
+  'notes',
   'lifeForce'
 ] as const;
 export type ResourceKey = (typeof RESOURCE_KEYS)[number];
@@ -21,7 +34,7 @@ export interface DiscreteResourceClock extends ResourceClock {
   nextAt: number;
 }
 // eslint-disable-next-line @typescript-eslint/no-explicit-any -- The shared registry erases profession state; each owner declares its concrete TContext.
-export interface ResourcePolicy<TContext = Gw2Runtime<any>> {
+export interface ResourcePolicy<TContext = MechanicContext<any>> {
   readonly kind: 'continuous' | 'discrete';
   readonly depletion?: { refresh(context: TContext): void; stop(context: TContext): void };
   readonly recoveryMaximum?: (context: TContext) => number;

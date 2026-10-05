@@ -1,16 +1,15 @@
+import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
+import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
 import type { EndurancePolicy } from '#gw2/platform/combat/resources/endurance-policy.js';
 import type { ResourcePolicy } from '#gw2/platform/combat/resources/resource-policy.js';
 import { grantTimedStacks } from '#gw2/platform/combat/resources/timed-stacks.js';
-import { denySkillCast } from '#gw2/platform/engine/skills/availability.js';
-import {
-  balanceProfileNumber,
-  requireBalanceProfileFromContext
-} from '#gw2/platform/engine/skills/balance-profiles.js';
-import { armSkillFlip, skillFlipReady, weaponFlipBlock } from '#gw2/platform/engine/skills/skill-flips.js';
-import type { Skill, SkillId } from '#gw2/platform/engine/skills/types.js';
+import { denySkillCast } from '#gw2/platform/execution/availability.js';
+import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import { armSkillFlip, skillFlipReady, weaponFlipBlock } from '#gw2/platform/execution/skill-flips.js';
+import type { Skill, SkillId } from '#gw2/platform/skills/types.js';
 import type { AvailabilityResult, CastCommand } from '#gw2/platform/execution/types.js';
-import type { RuntimeCast, RuntimeProfession } from '#gw2/platform/simulation/runtime-state.js';
-import { damageInputEvent } from '#gw2/platform/skill-damage/execution.js';
+import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
+import { damageInputEvent } from '#gw2/platform/skill-damage/occurrence-driver.js';
 import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
 import type { RevenantRuntime } from '#gw2/professions/revenant/core/events.js';
 import { emitBattleScar } from '#gw2/professions/revenant/core/mechanics/battle-scars.js';
@@ -65,7 +64,11 @@ import {
 } from '#gw2/professions/revenant/core/traits/dispatch.js';
 import { REVENANT_SKILL_IDS as DAMAGE_SKILL, REVENANT_SKILL_IDS as ID } from '#gw2/professions/revenant/data/ids.js';
 import { isLegalRevenantLegendId } from '#gw2/professions/revenant/data/legends.js';
-import { isRevenantUpkeep, isRevenantUpkeepRelease } from '#gw2/professions/revenant/data/upkeep-skills.js';
+import {
+  isRevenantUpkeep,
+  isRevenantUpkeepRelease,
+  revenantUpkeepConsumeId
+} from '#gw2/professions/revenant/data/upkeep-skills.js';
 import { VINDICATOR_JUMP_SKILL } from '#gw2/professions/revenant/data/vindicator-jump.js';
 import { revenantEnergyCost } from '#gw2/professions/revenant/family-state.js';
 import type { RevenantConfig, RevenantRuntimeState, RevenantSkill } from '#gw2/professions/revenant/types.js';
@@ -85,7 +88,7 @@ const DODGE_IDS = new Set<SkillId>([SHARED_SKILL_IDS.DODGE, VINDICATOR_JUMP_SKIL
 const upkeepCosts = new WeakMap<RuntimeCast<RevenantSkill>, number>();
 
 /** Releases are identified through the live catalog's upkeep parents. */
-function upkeepRelease(runtime: RevenantRuntime, skill: Skill): boolean {
+function upkeepRelease(runtime: MechanicQueriesOf<RevenantRuntime>, skill: Skill): boolean {
   return isRevenantUpkeepRelease(skill, (id) => runtime.helpers.skillsById.get(id));
 }
 
@@ -117,13 +120,17 @@ export function revenantEnduranceRate(runtime: RevenantRuntime, vigor: boolean):
 }
 
 const revenantEndurance: EndurancePolicy<RevenantRuntime> = {
-  state: (runtime) => runtime.profession.core,
+  state: (runtime) => runtime.profession.core.endurance,
   maximum: () => REVENANT_MAXIMUM_ENDURANCE,
   regenerationRate: (runtime, vigor) => revenantEnduranceRate(runtime, vigor)
 };
 
 /** Legend, flip, upkeep, endurance, and Energy gates read the one live state at the current instant. */
-function revenantAvailability(runtime: RevenantRuntime, skill: Skill, _command: CastCommand): AvailabilityResult {
+function revenantAvailability(
+  runtime: MechanicQueriesOf<RevenantRuntime>,
+  skill: Skill,
+  _command: CastCommand
+): AvailabilityResult {
   const core = runtime.profession.core;
   const flips = core.availableFlips;
   const now = runtime.time;
@@ -161,7 +168,7 @@ function revenantAvailability(runtime: RevenantRuntime, skill: Skill, _command: 
     energy + EPSILON < cost && core.combatBeganAt == null ? null : runtime.resourceController.readyAt('energy', cost);
   // A fractional balance can cross a cost between action ticks; wait until the shared grid permits spending it.
   if (energy + EPSILON < cost || (energyReadyAt != null && energyReadyAt > now + EPSILON)) {
-    const cooldownReadyAt = runtime.cooldowns.get(skill.id) || 0;
+    const cooldownReadyAt = runtime.cooldownController.readyAt(skill.id) || 0;
     return denySkillCast(
       skill,
       'revenant.insufficient-energy',
@@ -180,12 +187,14 @@ function swapLegend(runtime: RevenantRuntime, cast: RuntimeCast<RevenantSkill>):
   core.activeLegendId = core.selectedLegendIds.find((id) => id !== core.activeLegendId) || core.activeLegendId;
   core.activeLoadoutId = core.activeLegendId;
   const energy = chargedMistsEnergy(runtime, cast, previous);
-  if (energy > previous) runtime.resourceController.grant('energy', energy - previous);
-  else if (energy < previous) runtime.resourceController.spend('energy', previous - energy);
+  // Legend invocation replaces the balance after Charged Mists reads pre-swap energy, preserving recovery timing.
+  runtime.resourceController.replace('energy', energy);
   clearRevenantLegendFlips(runtime);
   for (const active of [...core.activeUpkeeps]) {
     const upkeep: RevenantSkill | undefined = runtime.helpers.skillsById.get(active.skillId);
-    const consumeId = upkeep?.upkeepConsumeByLegendId?.[core.activeLegendId];
+    // Only a declared cross-legend relationship retains an upkeep after a swap.
+    const consumeId =
+      upkeep?.upkeepConsumeByLegendId != null ? revenantUpkeepConsumeId(upkeep, core.activeLegendId) : undefined;
     if (consumeId != null) armSkillFlip(core.availableFlips, consumeId, runtime.time);
     else removeRevenantUpkeep(runtime, active.skillId);
   }
@@ -211,7 +220,7 @@ function swapLegend(runtime: RevenantRuntime, cast: RuntimeCast<RevenantSkill>):
 /** Core hooks: Energy, upkeeps, legends, weapon follow-ups, and actual hit/application trait reactions. */
 import { revenantBuffPolicies, revenantEffectStates } from '#gw2/professions/revenant/core/effect-state.js';
 
-export const revenantCoreHooks: Partial<RuntimeProfession<RevenantRuntimeState, RevenantSkill>> = {
+export const revenantCoreHooks: RuntimeHooks<RevenantRuntimeState, RevenantSkill> = {
   // Known damage payloads are invoked once without their activation requirements.
   damageEffects: [
     {

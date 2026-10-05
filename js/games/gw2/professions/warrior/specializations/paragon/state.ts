@@ -1,15 +1,16 @@
-import type { Gw2PlanningStateInput } from '#gw2/platform/simulation/types.js';
-import { projectPublicProfessionState, snapshotProfessionState } from '#gw2/platform/engine/profession/state.js';
+import type { Gw2PlanningStateInput } from '#gw2/platform/results/types.js';
+import { projectPublicProfessionState, snapshotProfessionState } from '#gw2/platform/profession-definition/state.js';
 import {
   definePublicStateDefaults,
   defineProfessionSpecializationState
-} from '#gw2/platform/engine/profession/state.js';
+} from '#gw2/platform/profession-definition/state.js';
 import type { WarriorState } from '#gw2/professions/warrior/types.js';
-import type { SkillId } from '#gw2/platform/engine/skills/types.js';
+import type { SkillId } from '#gw2/platform/skills/types.js';
+import type { ResourceClock } from '#gw2/platform/combat/resources/clock.js';
+import { createResourceClock } from '#gw2/platform/combat/resources/resource-policy.js';
 
 export interface ParagonState {
-  motivation: number;
-  maximumMotivation: number;
+  motivation: ResourceClock;
   activeRefrainId: SkillId | null;
 
   callToActionActivated: boolean;
@@ -20,15 +21,14 @@ export interface ParagonState {
 
 /** Declares Paragon's public fields and inactive values. */
 export const PARAGON_PUBLIC_STATE_PROJECTION = definePublicStateDefaults({
-  motivation: 0,
-  maximumMotivation: 10,
+  motivation: createResourceClock(),
   activeRefrain: ''
 } satisfies Partial<WarriorState>);
 
+/** The policy initializes the detached pool; refrain and echo lifetimes remain owned by Paragon. */
 function createParagonState(): ParagonState {
   return {
-    motivation: 0,
-    maximumMotivation: 10,
+    motivation: createResourceClock(),
     activeRefrainId: null,
 
     callToActionActivated: false,

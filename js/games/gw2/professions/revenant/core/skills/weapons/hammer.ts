@@ -1,8 +1,8 @@
 // Name packets independently for patch deletion while preserving their shared attribution.
 /** Canonical Core revenant skill fragments grouped by their GW2 owner. */
 import { REVENANT_SKILL_IDS as ID } from '#gw2/professions/revenant/data/ids.js';
-import type { Skill } from '#gw2/platform/engine/skills/types.js';
-import { impactEffects } from '#gw2/platform/engine/effects/authoring.js';
+import type { Skill } from '#gw2/platform/skills/types.js';
+import { impactEffects } from '#gw2/platform/effects/authoring.js';
 
 // Snap measured impact offsets to 40 ms action ticks instead of retaining EVTC timestamp jitter.
 export const REVENANT_WEAPONS_HAMMER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({

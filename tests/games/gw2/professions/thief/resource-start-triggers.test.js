@@ -44,7 +44,7 @@ for (const [trait, specialization, resource, skillIds] of [
         assert.equal(result.events.find((event) => event.type === 'action' && event.skillId === id).cancelled, true);
         return resource === 'initiative'
           ? result.planningState.profession.initiative.value
-          : result.planningState.profession.endurance;
+          : result.planningState.profession.endurance.value;
       });
       assert.ok(Math.abs(values[1] - values[0] - 7) < 1e-9, `${id}: ${values}`);
     }

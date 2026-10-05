@@ -1,8 +1,5 @@
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
-import {
-  balanceProfileNumber,
-  requireBalanceProfileFromContext
-} from '#gw2/platform/engine/skills/balance-profiles.js';
+import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
 import { NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
 import { applyDarkDefense } from '#gw2/professions/necromancer/core/traits/carapace.js';
@@ -101,15 +98,3 @@ export const putridDefense = defineTrait({
     }
   ]
 });
-
-export const deathMagicTraits = [
-  necromanticCorruption,
-  fleshOfTheMaster,
-  deadlyStrength,
-  corruptersFervor,
-  darkDefense,
-  shroudedRemoval,
-  soulComprehension,
-  armoredShroud,
-  putridDefense
-];

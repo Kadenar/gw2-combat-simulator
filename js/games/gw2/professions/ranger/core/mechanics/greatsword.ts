@@ -1,15 +1,12 @@
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import { buildResolverBuff } from '#gw2/platform/resolver/packets.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
-import {
-  requireBalanceProfileFromContext,
-  balanceProfileNumber
-} from '#gw2/platform/engine/skills/balance-profiles.js';
+import { requireBalanceProfileFromContext, balanceProfileNumber } from '#gw2/platform/skills/balance-profiles.js';
 import { RANGER_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/ranger/core/profiles.js';
 import { rangerPetCompanionId } from '#gw2/professions/ranger/core/mechanics/pets.js';
 import { isPetStrike, isPlayerStrike } from '#gw2/professions/ranger/core/mechanics/resolution-helpers.js';
 import type { Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
-import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
+import type { SimulationEvent } from '#gw2/platform/events/events.js';
 import type { RangerResolverContext } from '#gw2/professions/ranger/types.js';
 
 // Only direct attacks spend the charge; trait and stance damage cannot steal it.
@@ -77,16 +74,11 @@ export function reactToRangerGreatswordDamage(context: RangerResolverContext, ev
   const recipient = attackRecipient(event);
   if (!recipient) return;
   const kind = `attack-of-opportunity-${recipient}`;
-  const applications = context.boons.get(kind);
-  if (applications) {
-    context.boons.set(
-      kind,
-      applications.map((application) =>
-        application.at <= event.at &&
-        (recipient === 'player' || application.resolvedAudience.companionIds.includes(String(event.summonOwner)))
-          ? { ...application, expiresAt: Math.min(application.expiresAt, event.at) }
-          : application
-      )
-    );
-  }
+  context.combat.reviseBoonExpiry(
+    kind,
+    (application) =>
+      application.at <= event.at &&
+      (recipient === 'player' || application.resolvedAudience.companionIds.includes(String(event.summonOwner))),
+    (expiresAt) => Math.min(expiresAt, event.at)
+  );
 }

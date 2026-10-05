@@ -1,3 +1,4 @@
+import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
 /**
  * Hammer weapon-skill mechanics owned by the Core Elementalist module.
  *
@@ -7,8 +8,9 @@
  */
 
 import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';
-import { impactEffects, conditionTimeline, strikeTimeline } from '#gw2/platform/engine/effects/authoring.js';
-import type { Skill, SkillEffect } from '#gw2/platform/engine/skills/types.js';
+import { impactEffects, conditionTimeline, strikeTimeline } from '#gw2/platform/effects/authoring.js';
+import type { Skill } from '#gw2/platform/skills/types.js';
+import type { SkillEffect } from '#gw2/platform/effects/types.js';
 import type { ElementalistRuntime } from '#gw2/professions/elementalist/types.js';
 
 // Hurricane of Pain uses canonical parallel timelines so every landed strike applies its matching Vulnerability.
@@ -705,7 +707,7 @@ export const ELEMENTALIST_CORE_HAMMER_SKILL_MECHANICS: Readonly<Record<number, P
       ]).map<SkillEffect>((effect) => ({
         ...effect,
         name: element,
-        when: (runtime: ElementalistRuntime, cast) => {
+        when: (runtime: MechanicQueriesOf<ElementalistRuntime>, cast) => {
           const expiresAt = runtime.profession.core.hammerOrbs[element];
           return expiresAt != null && expiresAt >= cast.start;
         }

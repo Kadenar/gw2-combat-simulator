@@ -1,4 +1,4 @@
-import type { SkillId } from '#gw2/platform/engine/skills/types.js';
+import type { SkillId } from '#gw2/platform/skills/types.js';
 import type { Gw2AttributeBreakdown, ProfessionBuildAssumptions } from '#gw2/platform/builds/types.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
 import type { Gw2Stats } from '#gw2/platform/combat/types.js';
@@ -7,13 +7,13 @@ import { assumptionControlsForSpecialization } from '#gw2/platform/builds/assump
 import { aggregateSigilSet, weaponSigilsForSet } from '#gw2/platform/equipment/sigils/loadout.js';
 import {
   isSimulationRandomnessControl,
-  normalizeCriticalDamageMode,
   simulationRandomnessFromAssumptions
-} from '#gw2/platform/simulation/randomness.js';
+} from '#gw2/platform/builds/randomness-assumptions.js';
+import { normalizeCriticalDamageMode } from '#gw2/platform/combat/critical-damage-mode.js';
 import type { Gw2SimulationConfigOptions } from '#gw2/app/types.js';
 import type { ProfessionAttributeData } from '#gw2/app/build/types.js';
 import { SIMULATION_RANDOMNESS_MODES } from '#kernel/core/simulation-random.js';
-import { normalizeTransitionDelays } from '#gw2/platform/skills/transition-delays.js';
+import { normalizeTransitionDelays } from '#gw2/platform/execution/transition-lockouts.js';
 import { normalizeProcRateOverrides } from '#gw2/platform/builds/proc-rates.js';
 import { boundedInteger, boundedNumber } from '#kernel/core/numeric.js';
 
@@ -38,8 +38,7 @@ export function createGw2SimulationConfig({
   specialization,
   disabled = null,
   selectedTraitIds = [],
-  initialResource = 0,
-  adjustConditionDurationBonus = (_name, bonus) => bonus
+  initialResource = 0
 }: Gw2SimulationConfigOptions): Gw2Config {
   const assumptions = app.build.assumptions as ProfessionBuildAssumptions;
   const targetSkillActivationsPerSecond = Math.max(0, Number(assumptions.targetSkillActivationsPerSecond) || 0);
@@ -61,7 +60,8 @@ export function createGw2SimulationConfig({
       ['Bleeding', 'Burning', 'Confusion', 'Poison', 'Torment']
         .map((name): [string, number] => {
           const duration = breakdown(`${name} Duration`);
-          const bonus = adjustConditionDurationBonus(name, Number(duration.final || 0) - Number(duration.sigils || 0));
+          // Sigil duration is applied by the combat query for the active weapon set.
+          const bonus = Number(duration.final || 0) - Number(duration.sigils || 0);
           return [name === 'Poison' ? 'Poisoned' : name, Math.max(0, bonus)];
         })
         .filter(([, bonus]) => bonus > 0)

@@ -5,9 +5,9 @@
  * flipover pairs that swap between granting an aura and transmuting it.
  */
 
-import { impactEffects } from '#gw2/platform/engine/effects/authoring.js';
+import { impactEffects } from '#gw2/platform/effects/authoring.js';
 import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';
-import type { Skill } from '#gw2/platform/engine/skills/types.js';
+import type { Skill } from '#gw2/platform/skills/types.js';
 
 // Cast-scaled packet data is authored on the Quickness timeline and expands only for slower casts.
 const DRAKES_BREATH_TICK_OFFSETS_MS = [520, 760, 1000, 1240] as const;

@@ -15,7 +15,8 @@ import {
   spendEndurance,
   vigorEnduranceIntervals
 } from '#gw2/platform/combat/resources/endurance.js';
-import type { Gw2Runtime, RuntimeProfession } from '#gw2/platform/simulation/runtime-state.js';
+import type { Gw2Runtime } from '#gw2/platform/simulation/runtime-state.js';
+import type { RuntimeProfession } from '#gw2/platform/profession-definition/runtime-contract.js';
 
 function amount(value: number): number {
   if (!Number.isFinite(value) || value < 0) throw new RangeError('Resource amounts must be finite and non-negative.');
@@ -30,7 +31,7 @@ export function createRuntimeResources<T extends object>(runtime: Gw2Runtime<T>,
   const get = (key: ResourceKey) => {
     const policy = policies[key];
     if (!policy) throw new TypeError(`Unsupported resource: ${key}.`);
-    const state = policy.state(runtime);
+    const state = policy.state(runtime.mechanics);
     if (![state.value, state.maximum, state.updatedAt, state.rate].every(Number.isFinite))
       throw new TypeError('Invalid resource clock.');
     return { policy, state };
@@ -39,23 +40,23 @@ export function createRuntimeResources<T extends object>(runtime: Gw2Runtime<T>,
   const changed = (key: ResourceKey) => {
     const { policy, state } = get(key);
     if (policy.depletion) {
-      if (state.maximum > 0) policy.depletion.refresh(runtime);
-      else policy.depletion.stop(runtime);
+      if (state.maximum > 0) policy.depletion.refresh(runtime.mechanics);
+      else policy.depletion.stop(runtime.mechanics);
     }
 
-    policy.changed?.(runtime, runtime.time);
+    policy.changed?.(runtime.mechanics, runtime.time);
   };
 
   const refresh = (key: ResourceKey) => {
     const { policy, state } = get(key);
     advanceResource(state, runtime.time);
     const before = [state.maximum, state.value, state.rate, state.recoveryMaximum];
-    state.maximum = amount(policy.maximum(runtime));
+    state.maximum = amount(policy.maximum(runtime.mechanics));
     state.value = Math.min(state.value, state.maximum);
     // Pools without a recovery ceiling keep the factory's shape instead of gaining an undefined field.
-    if (policy.recoveryMaximum) state.recoveryMaximum = amount(policy.recoveryMaximum(runtime));
+    if (policy.recoveryMaximum) state.recoveryMaximum = amount(policy.recoveryMaximum(runtime.mechanics));
     else delete state.recoveryMaximum;
-    const recovery = policy.recovery(runtime);
+    const recovery = policy.recovery(runtime.mechanics);
     if ((policy.kind === 'continuous') !== (typeof recovery === 'number'))
       throw new TypeError('Resource recovery must match its kind.');
     if (typeof recovery === 'number') {
@@ -85,8 +86,8 @@ export function createRuntimeResources<T extends object>(runtime: Gw2Runtime<T>,
       const { policy, state } = get(key);
       if (pools.has(state)) throw new TypeError('Resource pool has multiple owners.');
       pools.add(state);
-      state.maximum = amount(policy.maximum(runtime));
-      state.value = Math.min(state.maximum, amount(policy.initial(runtime, state.maximum)));
+      state.maximum = amount(policy.maximum(runtime.mechanics));
+      state.value = Math.min(state.maximum, amount(policy.initial(runtime.mechanics, state.maximum)));
       state.updatedAt = runtime.time;
       state.rate = 0;
       if (policy.kind === 'discrete') Object.assign(state, { interval: 0, amount: 0, nextAt: Infinity });
@@ -104,6 +105,25 @@ export function createRuntimeResources<T extends object>(runtime: Gw2Runtime<T>,
       return resourceAt(get(key).state, runtime.time);
     },
     refresh,
+    /** Resets and conversions replace the settled balance without restarting recovery or emitting reward semantics. */
+    replace(key: ResourceKey, value: number) {
+      amount(value);
+      const { state } = get(key);
+      advanceResource(state, runtime.time);
+      const next = Math.min(state.maximum, value);
+      if (next === state.value) return;
+      if (
+        'nextAt' in state &&
+        next < state.value &&
+        state.nextAt === Infinity &&
+        state.interval > 0 &&
+        state.amount > 0
+      )
+        state.nextAt = canonicalTime(runtime.time + state.interval);
+      state.value = next;
+      anchorResourceClock(state);
+      changed(key);
+    },
     grant(key: ResourceKey, value: number) {
       amount(value);
       const { state } = get(key);
@@ -135,7 +155,7 @@ export function createRuntimeResources<T extends object>(runtime: Gw2Runtime<T>,
       const { policy, state } = get(key);
       const next = Math.min(
         resourceRecoveryReadyAt(state, cost, runtime.time) ?? Infinity,
-        policy.nextChange?.(runtime, cost) ?? Infinity
+        policy.nextChange?.(runtime.mechanics, cost) ?? Infinity
       );
       return Number.isFinite(next) ? Math.max(runtime.time, next) : null;
     }
@@ -147,9 +167,9 @@ export function createRuntimeEndurance<T extends object>(runtime: Gw2Runtime<T>,
   const policy = profession.endurance;
   const pool = () => {
     if (!policy) throw new TypeError('Profession does not model endurance.');
-    const state = policy.state(runtime);
-    const maximum = amount(policy.maximum(runtime));
-    if (![state.endurance, state.enduranceUpdatedAt].every(Number.isFinite) || maximum === 0)
+    const state = policy.state(runtime.mechanics);
+    const maximum = amount(policy.maximum(runtime.mechanics));
+    if (![state.value, state.maximum, state.updatedAt, state.rate].every(Number.isFinite) || maximum === 0)
       throw new TypeError('Invalid endurance pool.');
     return { state, maximum };
   };
@@ -159,20 +179,24 @@ export function createRuntimeEndurance<T extends object>(runtime: Gw2Runtime<T>,
       { events: runtime.history, config: runtime.config },
       start,
       end,
-      (vigor, at) => policy!.regenerationRate(runtime, vigor, at),
-      policy?.regenerationBoundaries?.(runtime)
+      (vigor, at) => policy!.regenerationRate(runtime.mechanics, vigor, at),
+      policy?.regenerationBoundaries?.(runtime.mechanics)
     );
   const advance = () => {
     if (!policy) return;
     const { state, maximum } = pool();
-    Object.assign(state, advanceEnduranceIntervals(state, intervals(state.enduranceUpdatedAt, runtime.time), maximum));
+    // One interval traversal settles the balance and its current rate; ordinary pool advancement never accrues it again.
+    Object.assign(
+      state,
+      advanceEnduranceIntervals({ ...state, maximum }, intervals(state.updatedAt, Infinity), runtime.time)
+    );
   };
 
   if (policy) {
     const { state, maximum } = pool();
     // Every simulation starts with the selected profession's full endurance pool.
-    state.endurance = maximum;
-    state.enduranceUpdatedAt = runtime.time;
+    Object.assign(state, { value: maximum, maximum, updatedAt: runtime.time, rate: 0 });
+    advance();
   }
 
   return Object.freeze({
@@ -181,24 +205,24 @@ export function createRuntimeEndurance<T extends object>(runtime: Gw2Runtime<T>,
       amount(cost);
       const { state, maximum } = pool();
       // Availability is a query: project elapsed recovery without settling the live endurance clock.
-      const current = advanceEnduranceIntervals(state, intervals(state.enduranceUpdatedAt, runtime.time), maximum);
-      return enduranceIntervalsReadyAt(current, cost, intervals(runtime.time, Infinity), maximum);
+      const current = advanceEnduranceIntervals({ ...state, maximum }, intervals(state.updatedAt, runtime.time));
+      return enduranceIntervalsReadyAt(current, cost, intervals(runtime.time, Infinity));
     },
     grant(value: number) {
       amount(value);
       if (!policy) return false;
       advance();
-      const { state, maximum } = pool();
-      Object.assign(state, grantEndurance(state, value, runtime.time, maximum));
+      const { state } = pool();
+      Object.assign(state, grantEndurance(state, value, runtime.time));
       return true;
     },
     spend(value: number) {
       amount(value);
       advance();
-      const { state, maximum } = pool();
+      const { state } = pool();
       // Use the same affordability tolerance as endurance readiness after fractional regeneration.
-      if (state.endurance < value - EPSILON) throw new RangeError('Insufficient endurance.');
-      Object.assign(state, spendEndurance(state, value, runtime.time, maximum));
+      if (state.value < value - EPSILON) throw new RangeError('Insufficient endurance.');
+      Object.assign(state, spendEndurance(state, value, runtime.time));
     }
   });
 }

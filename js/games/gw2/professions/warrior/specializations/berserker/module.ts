@@ -1,5 +1,5 @@
 import { slicingMaelstromModifiers } from '#gw2/professions/warrior/specializations/berserker/skills/index.js';
-import { createPublicStateProjector } from '#gw2/platform/engine/profession/state.js';
+import { createPublicStateProjector } from '#gw2/platform/profession-definition/state.js';
 import { defineNativeModule } from '#gw2/platform/profession-definition/profession.js';
 import { createWarriorModuleData } from '#gw2/professions/warrior/data/module-data.js';
 import { berserkerHooks } from '#gw2/professions/warrior/specializations/berserker/hooks.js';

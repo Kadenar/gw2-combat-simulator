@@ -1,4 +1,4 @@
-import type { SkillEffect } from '#gw2/platform/engine/skills/types.js';
+import type { SkillEffect } from '#gw2/platform/effects/types.js';
 import type {
   NativePatchAuthoringMetadata,
   NativePatchAuthoringSkill
@@ -281,6 +281,14 @@ function effectIdentity(effect: Readonly<SkillEffect>): string {
 /** Collapses every skill-style field and effect edit into one generated sentence. */
 function skillPatchSummary(edit: SkillPatchEdit): string {
   const changes = new Set<string>();
+  // Grant summaries use the same stable ids as their authoring controls, including conditional rewards.
+  const describeGrants = (grants: SkillPatchEdit['resourceGrants'], prefix: string) => {
+    for (const [id, fields] of Object.entries(grants ?? {}))
+      for (const [field, value] of Object.entries(fields))
+        changes.add(`${prefix}resource grant ${id} ${describeNumEdit(field, value)}`);
+  };
+
+  describeGrants(edit.resourceGrants, '');
   for (const [field, numericEdit] of Object.entries(edit.fields || {})) {
     changes.add(describeNumEdit(field, numericEdit));
   }
@@ -309,6 +317,7 @@ function skillPatchSummary(edit: SkillPatchEdit): string {
   }
 
   for (const effect of edit.effects || []) {
+    describeGrants(effect.resourceGrants, `${effectTarget(effect)} `);
     for (const field of PATCHABLE_EFFECT_NUMERIC_FIELDS) {
       const numericEdit = effect[field];
       if (numericEdit != null) {

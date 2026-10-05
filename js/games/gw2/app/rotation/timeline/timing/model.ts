@@ -1,5 +1,5 @@
 import type { SimulationStep } from '#gw2/platform/execution/types.js';
-import type { SkillId } from '#gw2/platform/engine/skills/types.js';
+import type { SkillId } from '#gw2/platform/skills/types.js';
 import { boundedNumber } from '#kernel/core/numeric.js';
 
 export interface SkillTimingOccurrence {

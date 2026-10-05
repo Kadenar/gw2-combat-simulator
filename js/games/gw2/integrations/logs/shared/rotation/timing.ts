@@ -1,10 +1,11 @@
-import type { Skill, StrikeEffect } from '#gw2/platform/engine/skills/types.js';
+import type { Skill } from '#gw2/platform/skills/types.js';
+import type { StrikeEffect } from '#gw2/platform/effects/types.js';
 import {
   castRelativeEffectTimingScale,
   retainsInterruptedCastLockout,
   referenceCastTimeMs,
   quantizeGw2ActionTimingMs
-} from '#gw2/platform/skills/timing.js';
+} from '#gw2/platform/execution/cast-timing.js';
 
 /** A shortened atomic input cancels unless a declared skill or effect cutoff has been reached. */
 function isUncommittedCast(skill: Skill | null, durationMs: number): boolean {
@@ -20,7 +21,7 @@ export function retainsReplayCastLockout(skill: Skill | null, durationMs: number
   return retainsInterruptedCastLockout(skill, isUncommittedCast(skill, durationMs));
 }
 
-export { referenceCastTimeMs } from '#gw2/platform/skills/timing.js';
+export { referenceCastTimeMs } from '#gw2/platform/execution/cast-timing.js';
 
 export function strikePacketOffsets(
   skill: Skill,

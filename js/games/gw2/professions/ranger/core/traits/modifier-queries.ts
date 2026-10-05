@@ -2,8 +2,11 @@ import { buffApplicationStacks, GW2_STANDARD_BOONS, isStandardBoon } from '#gw2/
 import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
 import { boonActive, countActiveBoons, targetConditionActive } from '#gw2/platform/combat/query/runtime-query.js';
 import { gw2EventActorType } from '#gw2/platform/combat/state/event-ownership.js';
-import { GW2_EVENT_ACTOR_TYPES } from '#gw2/platform/engine/events/actors.js';
-import { readProfessionCoreState, readProfessionSpecializationState } from '#gw2/platform/engine/profession/state.js';
+import { GW2_EVENT_ACTOR_TYPES } from '#gw2/platform/events/actors.js';
+import {
+  readProfessionCoreState,
+  readProfessionSpecializationState
+} from '#gw2/platform/profession-definition/state.js';
 import { gw2ConfiguredWeaponSet } from '#gw2/platform/equipment/weapons/loadout.js';
 import { rangerPetByName } from '#gw2/professions/ranger/core/state.js';
 import type { RangerModifierContext } from '#gw2/professions/ranger/types.js';

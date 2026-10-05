@@ -1,7 +1,7 @@
-import type { CanonicalCatalog, Skill, SkillId } from '#gw2/platform/engine/skills/types.js';
+import type { CanonicalCatalog, Skill, SkillId } from '#gw2/platform/skills/types.js';
 import type { RotationActionKind } from '#gw2/integrations/logs/shared/rotation/model.js';
 import type { RotationProfessionProfile } from '#gw2/integrations/logs/shared/rotation/profiles.js';
-import { canonicalGw2SkillId } from '#gw2/platform/skills/aliases.js';
+import { canonicalGw2SkillId } from '#gw2/platform/skills/external-skill-ids.js';
 
 export type RotationCatalog = Pick<CanonicalCatalog, 'skills'> &
   Partial<Pick<CanonicalCatalog, 'skillsById' | 'skillsByName' | 'balanceProfilesById'>>;

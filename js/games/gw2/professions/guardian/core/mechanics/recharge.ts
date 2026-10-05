@@ -1,4 +1,6 @@
-import type { Gw2Runtime } from '#gw2/platform/simulation/runtime-state.js';
+import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
+import type { MechanicContext } from '#gw2/platform/profession-definition/mechanic-context.js';
+
 import {
   focusMasteryRecharge,
   powerOfTheVirtuousRecharge,
@@ -9,7 +11,7 @@ import type { GuardianRuntimeState, GuardianSkill } from '#gw2/professions/guard
 
 /** Casts and Luminary's manual recharge apply Core owners in the established weapon-then-virtue order. */
 export function guardianRechargeWork(
-  runtime: Gw2Runtime<GuardianRuntimeState, GuardianSkill>,
+  runtime: MechanicQueriesOf<MechanicContext<GuardianRuntimeState, GuardianSkill>>,
   skill: GuardianSkill,
   work: number
 ): number {

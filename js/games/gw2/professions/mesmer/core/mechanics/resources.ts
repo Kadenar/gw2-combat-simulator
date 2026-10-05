@@ -1,45 +1,44 @@
-import type { EffectDelivery } from '#gw2/platform/simulation/effect-emission.js';
+import type { EffectDelivery } from '#gw2/platform/effects/emission.js';
 import { buildMesmerPacket, mesmerPacketOwner } from '#gw2/professions/mesmer/core/mechanics/packets.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
-import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
+import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
 import type {
   MesmerClone,
   MesmerCloneAttackScheduler,
   MesmerDestroyClone,
-  MesmerResourceController
+  MesmerIllusionRewards,
+  MesmerResourceGain
 } from '#gw2/professions/mesmer/core/mechanics/illusions/types.js';
 import type {
   MesmerPendingResource,
   MesmerResourceCause,
   MesmerResourceDefinition
 } from '#gw2/professions/mesmer/core/mechanics/resource-types.js';
-import { triggerCompoundingPower } from '#gw2/professions/mesmer/core/traits/behavior.js';
-import { mesmerNumericResourceState } from '#gw2/professions/mesmer/family-state.js';
+import { triggerCompoundingPower } from '#gw2/professions/mesmer/core/traits/illusions.js';
+import { mesmerResourceKind } from '#gw2/professions/mesmer/family-state.js';
 import type { MesmerActivePrimaryWeapon, MesmerRuntime } from '#gw2/professions/mesmer/types.js';
 
-interface ResourceControllerOptions {
+interface IllusionRewardOptions {
   readonly state: MesmerRuntime;
+  readonly onGain?: (gain: MesmerResourceGain) => void;
   readonly resourceDefinition: MesmerResourceDefinition;
-  readonly clamp: (value: number, minimum: number, maximum: number) => number;
   readonly activePrimaryWeapon: MesmerActivePrimaryWeapon;
   readonly cloneAttackScheduler: MesmerCloneAttackScheduler;
   readonly destroyClone: MesmerDestroyClone;
   readonly scheduleResourceTask: (candidate: MesmerPendingResource, delivery?: EffectDelivery) => unknown;
 }
 
-/** Owns shared clone or numeric resource gains and exposes committed gains to active specialization reactions. */
-export function createResourceController({
+/** Orchestrates clone creation and earned numeric rewards and exposes committed gains to active specialization reactions. */
+export function createIllusionRewardController({
   state,
   resourceDefinition,
-  clamp,
   activePrimaryWeapon,
   cloneAttackScheduler,
   destroyClone,
-  scheduleResourceTask
-}: ResourceControllerOptions): MesmerResourceController {
-  let cloneSequence = 0;
-  const gainHandlers: Array<Parameters<MesmerResourceController['addGainHandler']>[0]> = [];
-  const numericResourceState = () => mesmerNumericResourceState(state);
+  scheduleResourceTask,
+  onGain
+}: IllusionRewardOptions): MesmerIllusionRewards {
+  const kind = mesmerResourceKind(state.profession.specialization.kind);
 
   const gainResources = (
     at: number,
@@ -54,7 +53,7 @@ export function createResourceController({
     const created: Array<{ id: number; weapon: string }> = [];
     const createdClones: MesmerClone[] = [];
 
-    if (resourceDefinition.singular === 'clone') {
+    if (kind === 'clones') {
       for (let index = 0; index < amount; index += 1) {
         if (professionCoreState(state).clones.length >= resourceDefinition.maximum) {
           const replaced = professionCoreState(state).clones.shift();
@@ -62,7 +61,7 @@ export function createResourceController({
         }
 
         const clone = {
-          id: ++cloneSequence,
+          id: ++professionCoreState(state).cloneSequence,
           // Clone IDs provide stable identity; simultaneous gains share the resource task's timestamp.
           createdAt: at,
           weapon: weapon || activePrimaryWeapon()
@@ -74,10 +73,10 @@ export function createResourceController({
         gained += 1;
       }
     } else {
-      const resourceState = numericResourceState();
-      const before = resourceState.numericResource;
-      resourceState.numericResource = clamp(before + amount, 0, resourceDefinition.maximum);
-      gained = resourceState.numericResource - before;
+      // Only the actual capped gain earns Compounding Power and specialization rewards.
+      const before = state.resourceController.value(kind);
+      state.resourceController.grant(kind, amount);
+      gained = state.resourceController.value(kind) - before;
     }
 
     if (gained <= 0) return;
@@ -86,11 +85,9 @@ export function createResourceController({
         type: 'resource',
         at,
         amount: gained,
-        value:
-          resourceDefinition.singular === 'clone'
-            ? professionCoreState(state).clones.length
-            : numericResourceState().numericResource,
+        value: kind === 'clones' ? professionCoreState(state).clones.length : state.resourceController.value(kind),
         resource: resourceDefinition.plural,
+        ...(kind !== 'clones' ? { maximum: resourceDefinition.maximum } : {}),
         reason,
         created
       });
@@ -103,7 +100,7 @@ export function createResourceController({
     }
 
     if (cause.kind !== 'initial') {
-      triggerCompoundingPower({ context: state }, at, gained, reason, `${gained} stack${gained === 1 ? '' : 's'}`);
+      triggerCompoundingPower(state, at, gained, reason, `${gained} stack${gained === 1 ? '' : 's'}`);
     }
 
     const resourceTraitId = Number(cause.traitId);
@@ -123,7 +120,7 @@ export function createResourceController({
     }
 
     // Reactions use the committed gain's time, cause, and created clones to apply specialization effects.
-    for (const handler of gainHandlers) handler({ at, cause, createdClones });
+    onGain?.({ at, cause, createdClones });
   };
 
   const queueResources = (
@@ -138,9 +135,6 @@ export function createResourceController({
   };
 
   return {
-    addGainHandler(handler) {
-      gainHandlers.push(handler);
-    },
     gainResources,
     queueResources
   };

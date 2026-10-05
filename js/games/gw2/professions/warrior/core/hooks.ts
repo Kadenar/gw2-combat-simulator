@@ -1,48 +1,46 @@
-import {
-  balanceProfileNumber,
-  requireBalanceProfileFromContext
-} from '#gw2/platform/engine/skills/balance-profiles.js';
-import { skillFlipReady } from '#gw2/platform/engine/skills/skill-flips.js';
+import { resourceAtLeast } from '#gw2/platform/combat/resources/pool.js';
+import { applySideEffect, sideEffectAmount } from '#gw2/platform/effects/action-dispatch.js';
+import { skillFlipReady } from '#gw2/platform/execution/skill-flips.js';
+import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import type { Gw2HitResolutionContext } from '#gw2/platform/resolver/hit-resolution.js';
-import type { RuntimeProfession } from '#gw2/platform/simulation/runtime-state.js';
-import { applySideEffect, sideEffectAmount } from '#gw2/platform/simulation/side-effects.js';
+import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
 import {
-  burstAdrenalineSpend,
-  grantWarriorAdrenaline,
+  coreAdrenalinePolicy,
   warriorBurstSpends,
   warriorBurstTier
 } from '#gw2/professions/warrior/core/mechanics/adrenaline.js';
 import { spendWarriorMagazine } from '#gw2/professions/warrior/core/mechanics/ammunition.js';
+import { grantWarriorResource, warriorBurstRules } from '#gw2/professions/warrior/resource-rules.js';
 
 import { WARRIOR_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/warrior/core/profiles.js';
 import { combustiveShotFields } from '#gw2/professions/warrior/core/skills/profession-skills.js';
 import { signetOfRageLifecycle } from '#gw2/professions/warrior/core/skills/slot-skills.js';
 import { fierceBlowDamage } from '#gw2/professions/warrior/core/skills/weapons/hammer.js';
 import { counterblowActions } from '#gw2/professions/warrior/core/skills/weapons/mace.js';
+import { signetMasteryDamage, triggerOpportunist } from '#gw2/professions/warrior/core/traits/arms.js';
 import {
-  burstMasteryCommit,
-  completeTraits,
   controlTraits,
   criticalTraits,
   firstBurstHit,
-  initializeEmpowerAllies,
-  reactToWarriorBuff,
-  reactToWarriorDamage,
-  startTraits,
-  triggerOpportunist,
   weaponSwapTraits
 } from '#gw2/professions/warrior/core/traits/behavior.js';
+import { burstMasteryCommit } from '#gw2/professions/warrior/core/traits/discipline.js';
+import {
+  braveStrideCommit,
+  peakPerformanceBuff,
+  peakPerformanceStart
+} from '#gw2/professions/warrior/core/traits/strength.js';
+import { initializeEmpowerAllies } from '#gw2/professions/warrior/core/traits/tactics.js';
 import { WARRIOR_SKILL_IDS as ID } from '#gw2/professions/warrior/data/ids.js';
 import type { WarriorRuntimeState, WarriorSkill } from '#gw2/professions/warrior/types.js';
-import { boundedNumber } from '#kernel/core/numeric.js';
 
-/** Core resources and burst packets execute in the Core hooks; elite behavior composes at the family boundary. */
-import { warriorBuffPolicies, warriorEffectStates } from '#gw2/professions/warrior/core/effect-state.js';
+import { warriorBuffPolicies } from '#gw2/professions/warrior/core/effect-state.js';
 
-export const warriorCoreHooks: Partial<RuntimeProfession<WarriorRuntimeState, WarriorSkill>> = {
+/** Core dispatches shared burst packets through the burst rules selected by the Warrior family. */
+export const warriorCoreHooks: RuntimeHooks<WarriorRuntimeState, WarriorSkill> = {
+  resources: { adrenaline: coreAdrenalinePolicy },
   buffPolicies: warriorBuffPolicies,
-  observeEffects: warriorEffectStates,
   // Custom verbs keep specialization-dependent resource conversion and catalog-matched targets in their owner.
   sideEffectHandlers: {
     'warrior.spend-magazine'(runtime, context) {
@@ -74,10 +72,10 @@ export const warriorCoreHooks: Partial<RuntimeProfession<WarriorRuntimeState, Wa
         });
       }
     },
-    'warrior.adrenaline'(runtime, _cast, action) {
-      if (action.type !== 'warrior.adrenaline' || action.amount == null)
-        throw new TypeError('Adrenaline grants require an amount.');
-      grantWarriorAdrenaline(runtime, sideEffectAmount(runtime, action.amount));
+    'warrior.grant-combat-resource'(runtime, _cast, action) {
+      if (action.type !== 'warrior.grant-combat-resource' || action.amount == null)
+        throw new TypeError('Combat resource grants require an amount.');
+      grantWarriorResource(runtime, sideEffectAmount(runtime, action.amount));
     },
     'warrior.rifle-restock'(runtime, context) {
       for (const skill of runtime.helpers.skills) {
@@ -93,17 +91,10 @@ export const warriorCoreHooks: Partial<RuntimeProfession<WarriorRuntimeState, Wa
   },
 
   initialize(runtime) {
-    // Select the Core pool before elite initialization replaces its resource policy.
-    const state = runtime.profession.core;
-    state.maximumAdrenaline = balanceProfileNumber(
-      requireBalanceProfileFromContext(runtime, PROFILE.resources),
-      'maximumStacks'
-    );
-    state.adrenaline = boundedNumber(runtime.config.initialResource ?? 0, 0, 0, state.maximumAdrenaline);
     initializeEmpowerAllies(runtime);
   },
   endurance: {
-    state: (runtime) => runtime.profession.core,
+    state: (runtime) => runtime.profession.core.endurance,
     maximum: () => 100,
     regenerationRate(runtime, vigor) {
       const profile = requireBalanceProfileFromContext(runtime, PROFILE.resources);
@@ -128,37 +119,24 @@ export const warriorCoreHooks: Partial<RuntimeProfession<WarriorRuntimeState, Wa
         code: 'warrior.counterblow',
         reason: 'Tactical Blow requires an active Counterblow.'
       };
-    // Berserker owns re-entry readiness while its active mode temporarily reduces the resource cap.
-    if (
-      skill.id === ID.BERSERK &&
-      runtime.profession.specialization.kind === 'Berserker' &&
-      runtime.profession.specialization.state.berserkActive
-    )
-      return { ready: true };
-    // Bladesworn's own availability rejects weapon bursts and checks its Flow/charge state.
-    if (runtime.profession.specialization.kind === 'Bladesworn') return { ready: true };
-    const cost = skill.adrenalineCost ?? 0;
-    if (state.adrenaline < cost)
+    const rules = warriorBurstRules(runtime);
+    const cost = rules.required(runtime, skill);
+    // Readiness and strict spending share the same tolerance for fractional trait rewards.
+    if (!rules.bypass(runtime, skill) && !resourceAtLeast(runtime.resourceController.value('adrenaline'), cost))
       return {
         ready: false,
-        retryAt:
-          cost <= state.maximumAdrenaline &&
-          state.nextSignetPulseAt > runtime.time &&
-          Number.isFinite(state.nextSignetPulseAt)
-            ? state.nextSignetPulseAt
-            : null,
+        retryAt: runtime.resourceController.readyAt('adrenaline', cost),
         code: 'warrior.adrenaline',
         reason: `${skill.name} requires ${cost} adrenaline.`
       };
     return { ready: true };
   },
   onCastStart(runtime, cast) {
-    startTraits(runtime, cast);
+    peakPerformanceStart(runtime, cast);
     if (cast.skill.burst && !cast.skill.dragonSlash) {
-      const state = runtime.profession.core;
-      const spent = burstAdrenalineSpend(runtime, cast.skill);
+      const spent = warriorBurstRules(runtime).spend(runtime, cast.skill);
+      runtime.resourceController.spend('adrenaline', spent);
       warriorBurstSpends.set(cast, spent);
-      state.adrenaline -= spent;
     }
   },
   modifyComboFields: combustiveShotFields,
@@ -177,11 +155,12 @@ export const warriorCoreHooks: Partial<RuntimeProfession<WarriorRuntimeState, Wa
     const spent = warriorBurstSpends.get(cast) ?? 0;
     burstMasteryCommit(runtime, cast, spent);
 
-    completeTraits(runtime, cast);
+    braveStrideCommit(runtime, cast);
     if (cast.skill.inputCategory === 'weapon-swap') weaponSwapTraits(runtime);
   },
   onCooldownReset(runtime) {
-    runtime.profession.core.adrenaline = runtime.profession.core.maximumAdrenaline;
+    if (warriorBurstRules(runtime).resetEligible)
+      runtime.resourceController.grant('adrenaline', runtime.profession.core.adrenaline.maximum);
   },
   tasks: {
     ...signetOfRageLifecycle.tasks
@@ -194,15 +173,16 @@ export const warriorCoreHooks: Partial<RuntimeProfession<WarriorRuntimeState, Wa
         criticalTraits(runtime, event, details.hitContext as Gw2HitResolutionContext, firstBurst);
       }
 
+      // Only adrenaline builds gain resource from ordinary player or Sigil strikes.
       if (
         runtime.profession.specialization.kind !== 'Bladesworn' &&
         (event.actorType === 'player' || event.source === 'Sigil') &&
         Number(event.coefficient) > 0
       )
-        grantWarriorAdrenaline(runtime, Math.max(1, event.hits ?? 1));
-      reactToWarriorDamage(runtime, event);
+        runtime.resourceController.grant('adrenaline', Math.max(1, event.hits ?? 1));
+      signetMasteryDamage(runtime, event);
     },
-    'buff.applied': reactToWarriorBuff,
+    'buff.applied': peakPerformanceBuff,
     'control.resolved': controlTraits,
     'condition.applied'(runtime, event) {
       if (event.condition === 'Immobilized') triggerOpportunist(runtime, event);

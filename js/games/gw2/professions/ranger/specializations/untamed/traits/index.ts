@@ -1,9 +1,10 @@
+import { activeRefreshedStacks, type RefreshedStacks } from '#gw2/platform/combat/resources/refreshed-stacks.js';
 import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
-import { readProfessionSpecializationState } from '#gw2/platform/engine/profession/state.js';
-import { requireBalanceProfileFromContext, requireEffect } from '#gw2/platform/engine/skills/balance-profiles.js';
+import { readProfessionSpecializationState } from '#gw2/platform/profession-definition/state.js';
+import { requireBalanceProfileFromContext, requireEffect } from '#gw2/platform/skills/balance-profiles.js';
 import { defineTrait, traitAttributeEffects } from '#gw2/platform/profession-definition/traits.js';
 import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
 import { isPetStrike, isPlayerStrike } from '#gw2/professions/ranger/core/mechanics/resolution-helpers.js';
@@ -52,7 +53,7 @@ export const letLoose = defineTrait({
         runtime.procs.claim(TRAIT.LET_LOOSE, 'ranger.untamed.letLoose', runtime.time)
       ) {
         // Let Loose claims its own interval, then rearms Unleashed Power independently.
-        runtime.procs.readyAt['ranger.untamed.unleashedPower'] = 0;
+        runtime.procs.setDeadline('ranger.untamed.unleashedPower', 0);
         if (state.rangerUnleashed) grantAmbush(runtime);
       }
     }
@@ -120,13 +121,11 @@ export const ferociousSymbiosis = defineTrait({
         const state = untamedModifierState(context);
         const pet = context.event?.source === 'ranger-pet';
         // Pet strikes use Pet stacks; player strikes use Player stacks (each built by the other).
-        const stacks = pet
-          ? context.time < (state.ferociousSymbiosisPetUntil || 0)
-            ? state.ferociousSymbiosisPetStacks || 0
-            : 0
-          : context.time < (state.ferociousSymbiosisPlayerUntil || 0)
-            ? state.ferociousSymbiosisPlayerStacks || 0
-            : 0;
+        const stacks = activeRefreshedStacks(
+          pet ? state.ferociousSymbiosisPet : state.ferociousSymbiosisPlayer,
+          context.time,
+          'exclusive'
+        );
         return parameters.baseFactor + Math.min(parameters.maximumStacks, stacks) * parameters.damagePerStack;
       },
       when: (context) => isGw2PlayerModifierOwnedEvent(context.event) || context.event?.source === 'ranger-pet'
@@ -258,10 +257,8 @@ export const vowOfTheUntamed = defineTrait({
 
 interface UntamedModifierState {
   readonly rangerUnleashed?: boolean;
-  readonly ferociousSymbiosisPlayerStacks?: number;
-  readonly ferociousSymbiosisPlayerUntil?: number;
-  readonly ferociousSymbiosisPetStacks?: number;
-  readonly ferociousSymbiosisPetUntil?: number;
+  readonly ferociousSymbiosisPlayer?: RefreshedStacks;
+  readonly ferociousSymbiosisPet?: RefreshedStacks;
 }
 
 const BLINDING_OUTBURST_SKILL_IDS = new Set<number>([ID.VENOMOUS_OUTBURST, ID.RELENTLESS_WHIRL, ID.DEFT_STRIKE]);

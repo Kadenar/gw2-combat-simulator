@@ -1,17 +1,23 @@
-import { CAST_READY, denyCast } from '#gw2/platform/engine/skills/availability.js';
+import {
+  luminaryBuffPolicies,
+  luminaryEffectStates
+} from '#gw2/professions/guardian/specializations/luminary/effect-state.js';
+import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
+import type { MechanicContext } from '#gw2/platform/profession-definition/mechanic-context.js';
+import { CAST_READY, denyCast } from '#gw2/platform/execution/availability.js';
 import {
   balanceProfileNumber,
   effectNumber,
   requireBalanceProfileFromContext,
   requireEffect
-} from '#gw2/platform/engine/skills/balance-profiles.js';
-import { gw2BaseRecharge } from '#gw2/platform/engine/skills/recharge.js';
-import { armSkillFlip, consumeSkillFlip } from '#gw2/platform/engine/skills/skill-flips.js';
+} from '#gw2/platform/skills/balance-profiles.js';
+import { gw2BaseRecharge } from '#gw2/platform/execution/recharge.js';
+import { armSkillFlip, consumeSkillFlip } from '#gw2/platform/execution/skill-flips.js';
 import type { NativeResolvedDamageDetails } from '#gw2/platform/profession-definition/module-types.js';
 import { buildResolverCondition } from '#gw2/platform/resolver/packets.js';
-import type { Gw2Runtime, RuntimeCast, RuntimeProfession } from '#gw2/platform/simulation/runtime-state.js';
-import { resetAutoattackChains } from '#gw2/platform/skills/autoattack-chain-controller.js';
-import { lockTransitionInput } from '#gw2/platform/skills/transition-delays.js';
+import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
+import { resetAutoattackChains } from '#gw2/platform/execution/autoattack-chains.js';
+import { lockTransitionInput } from '#gw2/platform/execution/transition-lockouts.js';
 import { buildGuardianStrike, guardianCastCause } from '#gw2/professions/guardian/core/mechanics/event-handlers.js';
 import { guardianRechargeWork } from '#gw2/professions/guardian/core/mechanics/recharge.js';
 import {
@@ -50,7 +56,7 @@ import {
 import type { GuardianRuntimeState, GuardianSkill } from '#gw2/professions/guardian/types.js';
 import { canonicalTime } from '#kernel/core/clock.js';
 
-type Runtime = Gw2Runtime<GuardianRuntimeState, GuardianSkill>;
+type Runtime = MechanicContext<GuardianRuntimeState, GuardianSkill>;
 const EXIT = 'guardian.luminary.forge-expiry';
 const EQUIP = 'guardian.luminary.equip-traits';
 const VIRTUES: readonly number[] = [ID.RADIANT_JUSTICE, ID.RADIANT_RESOLVE, ID.RADIANT_COURAGE];
@@ -66,7 +72,7 @@ function exitForge(runtime: Runtime, cast?: RuntimeCast<GuardianSkill>): void {
   if (
     runtime.hasExplicitCombatStart &&
     (runtime.combatStartPending ||
-      runtime.cursor.command?.type === 'combat-start' ||
+      runtime.castController.pendingCombatStart() ||
       runtime.combatStartTime == null ||
       runtime.time < runtime.combatStartTime)
   )
@@ -187,7 +193,9 @@ function hammerImpact(runtime: Runtime, data: unknown): void {
 }
 
 /** Luminary owns its live form, virtue entitlements, finite stance work, and actual combo-derived auras. */
-export const luminaryHooks: Partial<RuntimeProfession<GuardianRuntimeState, GuardianSkill>> = {
+export const luminaryHooks: RuntimeHooks<GuardianRuntimeState, GuardianSkill> = {
+  buffPolicies: luminaryBuffPolicies,
+  observeEffects: luminaryEffectStates,
   /** Initialize only damage-relevant form and scaling state for one assumed occurrence. */
   prepareDamageState(runtime, skill, inputs) {
     const state = luminaryState.from(runtime);
@@ -272,8 +280,8 @@ export const luminaryHooks: Partial<RuntimeProfession<GuardianRuntimeState, Guar
   castDurationMs(runtime, skill, duration) {
     return skill.id === ID.GLARING_BURST ? glaringBurstDuration(runtime, skill, duration) : duration;
   },
-  castDetail(runtime, cast) {
-    return cast.skill.id === ID.GLARING_BURST ? glaringBurstDetail(runtime) : undefined;
+  castDetail(context, cast) {
+    return cast.skill.id === ID.GLARING_BURST ? glaringBurstDetail(context) : undefined;
   },
   onCastStart(runtime, cast) {
     if (cast.cancelled) return;

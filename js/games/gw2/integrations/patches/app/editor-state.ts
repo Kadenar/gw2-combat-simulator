@@ -1,4 +1,4 @@
-import type { SkillEffect } from '#gw2/platform/engine/skills/types.js';
+import type { SkillEffect } from '#gw2/platform/effects/types.js';
 import type {
   NativePatchAuthoringMetadata,
   NativePatchAuthoringModule
@@ -336,6 +336,22 @@ export interface NumericEditInput {
   readonly next: number;
   readonly effectIndex?: number;
   readonly tickIndex?: number;
+  readonly grantId?: string;
+}
+
+/** Returning a grant value to its baseline prunes only that id/field, retaining sibling resource edits. */
+function setResourceGrantNumericEdit(
+  owner: DraftRecord,
+  input: NumericEditInput,
+  numericEdit: ReturnType<typeof numericEditForValue>
+): void {
+  const grants = numericEdit ? ensureRecord(owner, 'resourceGrants') : asRecord(owner.resourceGrants);
+  if (!grants) return;
+  const fields = numericEdit ? ensureRecord(grants, input.grantId!) : asRecord(grants[input.grantId!]);
+  if (numericEdit) fields![input.field] = numericEdit;
+  else if (fields) delete fields[input.field];
+  removeEmptyRecord(grants, input.grantId!);
+  removeEmptyRecord(owner, 'resourceGrants');
 }
 
 /** Applies one effect or tick edit and removes selector-only records when the value is restored. */
@@ -355,7 +371,9 @@ function setEffectNumericEdit(
     effects.push(effect);
   }
 
-  if (effect && input.field === 'audience.maximumRecipients') {
+  if (effect && input.grantId) {
+    setResourceGrantNumericEdit(effect, input, numericEdit);
+  } else if (effect && input.field === 'audience.maximumRecipients') {
     const audience = numericEdit ? ensureRecord(effect, 'audience') : asRecord(effect.audience);
     if (numericEdit) audience!.maximumRecipients = numericEdit;
     else if (audience) delete audience.maximumRecipients;
@@ -378,6 +396,14 @@ export function setNumericEdit(input: NumericEditInput): void {
   }
 
   const numericEdit = numericEditForValue(input.current, input.next);
+  if (input.entity === 'cast-resource-grant' && input.grantId) {
+    const edit = skillEdit(input.id, Boolean(numericEdit));
+    if (!edit) return;
+    setResourceGrantNumericEdit(edit, input, numericEdit);
+    if (!Object.keys(edit).length) deleteSkillEdit(input.id);
+    return;
+  }
+
   if (input.entity === 'modifier' || input.entity === 'modifier-parameter') {
     const edit = modifierEdit(input.id, Boolean(numericEdit));
     if (!edit) return;

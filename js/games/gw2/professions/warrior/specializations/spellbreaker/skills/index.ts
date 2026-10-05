@@ -1,7 +1,7 @@
 /** Explicit PvE skill mechanics owned by the Spellbreaker Warrior module. */
 import { WARRIOR_SKILL_IDS as ID } from '#gw2/professions/warrior/data/ids.js';
-import { impactEffects } from '#gw2/platform/engine/effects/authoring.js';
-import type { Skill } from '#gw2/platform/engine/skills/types.js';
+import { impactEffects } from '#gw2/platform/effects/authoring.js';
+import type { Skill } from '#gw2/platform/skills/types.js';
 export const SPELLBREAKER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
   [ID.EARTHSHAKER_ID_40601]: {
     skillWeapon: 'Hammer',

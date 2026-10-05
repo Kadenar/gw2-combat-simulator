@@ -1,16 +1,16 @@
 import type { ChargePool } from '#gw2/platform/combat/resources/charges.js';
 import type { ResourceClock } from '#gw2/platform/combat/resources/clock.js';
 import { createResourceClock } from '#gw2/platform/combat/resources/resource-policy.js';
-import { balanceProfileNumber } from '#gw2/platform/engine/skills/balance-profiles.js';
-import { type SkillFlipWindows } from '#gw2/platform/engine/skills/skill-flips.js';
+import { type SkillFlipWindows } from '#gw2/platform/execution/skill-flips.js';
+import { balanceProfileNumber } from '#gw2/platform/skills/balance-profiles.js';
 import { THIEF_CORE_RESOURCE_PROFILE } from '#gw2/professions/thief/core/profiles.js';
-import { preparednessCapacityField } from '#gw2/professions/thief/core/traits/behavior.js';
+import { preparednessCapacityField } from '#gw2/professions/thief/core/traits/resource-queries.js';
 
 import { normalizeSelectedTraitIds } from '#gw2/platform/combat/state/traits.js';
-import type { SkillId } from '#gw2/platform/engine/skills/types.js';
+import type { SkillId } from '#gw2/platform/skills/types.js';
+import { THIEF_SKILL_IDS as ID } from '#gw2/professions/thief/data/ids.js';
 import type { ThiefConfig } from '#gw2/professions/thief/types.js';
 import { boundedInteger, boundedNumber } from '#kernel/core/numeric.js';
-import { THIEF_SKILL_IDS as ID } from '#gw2/professions/thief/data/ids.js';
 
 /** One engine-owned axe capacity is shared by starting state, live acquisition and preview inputs. */
 export const MAXIMUM_SPINNING_AXES = 6;
@@ -32,9 +32,7 @@ export interface ThiefCoreState {
   storedStolenSkillIds: SkillId[];
   storedStolenSkillCount: number;
   kneeling: boolean;
-  endurance: number;
-
-  enduranceUpdatedAt: number;
+  endurance: ResourceClock;
   leadAttackExpirations: number[];
   fluidStrikesUntil: number;
   spearChainStage: number;
@@ -94,9 +92,7 @@ export function createThiefCoreState(config: ThiefConfig = {}): ThiefCoreState {
     storedStolenSkillIds: [],
     storedStolenSkillCount: 0,
     kneeling: false,
-    endurance: 100,
-
-    enduranceUpdatedAt: 0,
+    endurance: createResourceClock(100),
     leadAttackExpirations: [],
     fluidStrikesUntil: 0,
     spearChainStage: 0,

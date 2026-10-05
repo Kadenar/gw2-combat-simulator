@@ -1,4 +1,4 @@
-import { readProfessionCoreState } from '#gw2/platform/engine/profession/state.js';
+import { readProfessionCoreState } from '#gw2/platform/profession-definition/state.js';
 import type { ElementalistAttunement, ElementalistCoreState } from '#gw2/professions/elementalist/core/state.js';
 import type { ElementalistModifierContext } from '#gw2/professions/elementalist/types.js';
 // Modifier contexts reach core state through the runtime profession snapshot.

@@ -9,7 +9,10 @@ export const GW2_SKILL_FLAGS = Object.freeze({
   UNDERWATER_ONLY: 'Underwater'
 });
 
-const aliasSource = readFileSync(new URL('../../../js/games/gw2/platform/skills/aliases.ts', import.meta.url), 'utf8');
+const aliasSource = readFileSync(
+  new URL('../../../js/games/gw2/platform/skills/external-skill-ids.ts', import.meta.url),
+  'utf8'
+);
 const aliasRows = [...aliasSource.matchAll(/^\s*(\d+):\s*(\d+),?\s*\/\/\s*.+$/gm)];
 const numericRows = [...aliasSource.matchAll(/^\s*\d+:\s*\d+/gm)];
 

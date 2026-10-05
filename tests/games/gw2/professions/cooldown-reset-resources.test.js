@@ -5,6 +5,26 @@ import { runGw2Runtime } from '#gw2/platform/simulation/runtime.js';
 import { necromancerProfession } from '#gw2/professions/necromancer/profession.js';
 import { thiefProfession } from '#gw2/professions/thief/profession.js';
 import { revenantProfession } from '#gw2/professions/revenant/profession.js';
+import { warriorProfession } from '#gw2/professions/warrior/profession.js';
+
+// Reset refills the selected adrenaline cap but is never a Flow reward or a Dragon Trigger charge grant.
+test('Warrior cooldown reset refills adrenaline while preserving Bladesworn pools', () => {
+  for (const specialization of ['Core', 'Berserker', 'Spellbreaker', 'Paragon', 'Bladesworn']) {
+    const config = { specialization, initialResource: 3.5 };
+    const result = runGw2Runtime({
+      profession: warriorProfession.runtimeFor(config),
+      config,
+      rotation: [{ type: 'cooldown-reset' }]
+    });
+    assert.deepEqual(result.warnings, []);
+    const state = result.planningState.profession;
+    assert.equal(state.adrenaline.value, state.adrenaline.maximum);
+    if (specialization === 'Bladesworn') {
+      assert.equal(state.flow.value, 3.5);
+      assert.equal(state.dragonCharges.value, 0);
+    }
+  }
+});
 
 // These focused rotations verify that the training-area command resets both standard recharge and profession resources.
 test('cooldown reset refills shared life force for every Necromancer specialization', () => {

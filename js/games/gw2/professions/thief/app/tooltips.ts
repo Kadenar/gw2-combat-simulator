@@ -27,8 +27,9 @@ import { ANTIQUARY_BALANCE_PROFILE_IDS as ANTIQUARY } from '#gw2/professions/thi
 import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
 import { spearChainStageForSkill } from '#gw2/professions/thief/data/spear-chain-stages.js';
 import type { ThiefSkill } from '#gw2/professions/thief/types.js';
-import type { SkillEffect, SkillId, TooltipFact } from '#gw2/platform/engine/skills/types.js';
-import { requireEffect } from '#gw2/platform/engine/skills/balance-profiles.js';
+import type { SkillEffect } from '#gw2/platform/effects/types.js';
+import type { SkillId, TooltipFact } from '#gw2/platform/skills/types.js';
+import { requireEffect } from '#gw2/platform/skills/balance-profiles.js';
 
 /** Malice changes individual packets; display their base values and name the affected packet explicitly. */
 const stealthAttack: DescribeSimulationTooltip = (balanceContext, entity) => {

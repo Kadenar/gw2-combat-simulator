@@ -1,5 +1,6 @@
-import type { EffectDelivery } from '#gw2/platform/simulation/effect-emission.js';
-import type { SkillId, SkillEffect, StrikeTick, StrikeEffect } from '#gw2/platform/engine/skills/types.js';
+import type { EffectDelivery } from '#gw2/platform/effects/emission.js';
+import type { SkillId } from '#gw2/platform/skills/types.js';
+import type { SkillEffect, StrikeTick, StrikeEffect } from '#gw2/platform/effects/types.js';
 import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
 
 /** Leaf shatter contracts let Core and specialization mechanics share results without importing the family type root. */

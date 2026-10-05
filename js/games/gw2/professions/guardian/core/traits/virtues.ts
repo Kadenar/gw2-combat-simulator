@@ -1,11 +1,8 @@
 import { attributeProvenance } from '#gw2/platform/builds/attribute-provenance.js';
 import { countActiveBoons } from '#gw2/platform/combat/query/runtime-query.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
-import { impactEffects } from '#gw2/platform/engine/effects/authoring.js';
-import {
-  balanceProfileNumber,
-  requireBalanceProfileFromContext
-} from '#gw2/platform/engine/skills/balance-profiles.js';
+import { impactEffects } from '#gw2/platform/effects/authoring.js';
+import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import { defineTrait, traitAttributeEffects } from '#gw2/platform/profession-definition/traits.js';
 import {
   guardianBoonActive,
@@ -183,16 +180,3 @@ export const unscathedContender = defineTrait({
 export const glacialHeart = defineTrait({ id: GUARDIAN_TRAIT_IDS.GLACIAL_HEART, name: 'Glacial Heart' });
 
 export const battlePresence = defineTrait({ id: GUARDIAN_TRAIT_IDS.BATTLE_PRESENCE, name: 'Battle Presence' });
-
-export const guardianVirtuesTraits = [
-  battlePresence,
-  permeatingWrath,
-  inspiredVirtue,
-  virtueOfResolution,
-  inspiringVirtue,
-  indomitableCourage,
-  masterOfConsecrations,
-  powerOfTheVirtuous,
-  unscathedContender,
-  glacialHeart
-];

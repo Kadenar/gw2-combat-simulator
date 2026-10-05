@@ -1,4 +1,4 @@
-import type { Skill } from '#gw2/platform/engine/skills/types.js';
+import type { Skill } from '#gw2/platform/skills/types.js';
 import { elementalistCatalog } from '#gw2/professions/elementalist/catalog.js';
 import type { ElementalistRuntime } from '#gw2/professions/elementalist/types.js';
 import { elementalistCoreHooks } from '#gw2/professions/elementalist/core/hooks.js';

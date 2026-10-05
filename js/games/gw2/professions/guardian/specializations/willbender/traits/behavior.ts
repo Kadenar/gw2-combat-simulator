@@ -1,3 +1,5 @@
+import { activeRefreshedStacks, grantRefreshedStacks } from '#gw2/platform/combat/resources/refreshed-stacks.js';
+import type { MechanicContext } from '#gw2/platform/profession-definition/mechanic-context.js';
 import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import {
@@ -5,13 +7,14 @@ import {
   effectNumber,
   requireBalanceProfileFromContext,
   requireEffect
-} from '#gw2/platform/engine/skills/balance-profiles.js';
-import type { Skill } from '#gw2/platform/engine/skills/types.js';
+} from '#gw2/platform/skills/balance-profiles.js';
+import type { Skill } from '#gw2/platform/skills/types.js';
 import { gw2ConfiguredWeaponSet } from '#gw2/platform/equipment/weapons/loadout.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
-import type { Gw2Runtime } from '#gw2/platform/simulation/runtime-state.js';
-import { gw2EffectExpiresAt } from '#gw2/platform/skills/timing.js';
-import { battlePresenceSharesBoons, guardianTraitIcon } from '#gw2/professions/guardian/core/traits/behavior.js';
+
+import { gw2EffectExpiresAt } from '#gw2/platform/effects/timing.js';
+import { battlePresenceSharesBoons } from '#gw2/professions/guardian/core/traits/behavior.js';
+import { guardianTraitIcon } from '#gw2/professions/guardian/core/traits/metadata.js';
 import { GUARDIAN_TRAIT_IDS as TRAIT } from '#gw2/professions/guardian/data/ids.js';
 
 import { WILLBENDER_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/guardian/specializations/willbender/profiles.js';
@@ -20,7 +23,7 @@ import { willbenderState } from '#gw2/professions/guardian/specializations/willb
 import type { GuardianRuntimeState, GuardianSkill, GuardianVirtue } from '#gw2/professions/guardian/types.js';
 import { canonicalTime } from '#kernel/core/clock.js';
 
-type Runtime = Gw2Runtime<GuardianRuntimeState, GuardianSkill>;
+type Runtime = MechanicContext<GuardianRuntimeState, GuardianSkill>;
 
 /** Decodes the live stack cap and selected lifetime before granting a window. */
 export function lethalTempoParameters(context: unknown) {
@@ -43,15 +46,20 @@ export function gainLethalTempo(
 ): number {
   // Grants through the expiry tick refresh every stack; only a later grant starts a new stack window.
   at = canonicalTime(at);
-  if (state.lethalTempoUntil <= 0 || at > state.lethalTempoUntil) state.lethalTempoStacks = 0;
-  state.lethalTempoStacks = Math.min(maximumStacks, state.lethalTempoStacks + 1);
-  state.lethalTempoUntil = gw2EffectExpiresAt(at, duration);
-  return state.lethalTempoStacks;
+  state.lethalTempo = grantRefreshedStacks(
+    state.lethalTempo,
+    1,
+    at,
+    gw2EffectExpiresAt(at, duration),
+    maximumStacks,
+    'inclusive'
+  );
+  return state.lethalTempo.stacks;
 }
 
 export function activeLethalTempo(state: GuardianWillbenderState, at: number): number {
   // Damage on the final effect tick still receives the bonus, matching the refresh boundary.
-  return state.lethalTempoUntil > 0 && canonicalTime(at) <= state.lethalTempoUntil ? state.lethalTempoStacks : 0;
+  return activeRefreshedStacks(state.lethalTempo, canonicalTime(at), 'inclusive');
 }
 
 export function lethalTempoStacks(context: Gw2ModifierContext): number {
@@ -107,7 +115,10 @@ function reduceWeapons(runtime: Runtime, cause: Gw2ResolverEvent): void {
     'rechargeReduction'
   );
   let reduction = 0;
-  for (const id of new Set([...runtime.cooldowns.keys(), ...runtime.ammo.keys()])) {
+  for (const id of new Set([
+    ...runtime.cooldownController.cooldownSkillIds(),
+    ...runtime.cooldownController.ammoSkillIds()
+  ])) {
     const skill = runtime.helpers.skillsById.get(id)!;
     if (matches(skill)) reduction += runtime.cooldownController.reduceSkillRecharge(skill, amount, runtime.time);
   }

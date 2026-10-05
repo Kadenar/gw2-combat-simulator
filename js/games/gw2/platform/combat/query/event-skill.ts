@@ -1,4 +1,4 @@
-import type { CanonicalCatalog, Skill, SkillId } from '#gw2/platform/engine/skills/types.js';
+import type { CanonicalCatalog, Skill, SkillId } from '#gw2/platform/skills/types.js';
 
 /**
  * Resolves the catalog skill associated with an event. Stable ids take

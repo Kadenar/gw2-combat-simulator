@@ -1,13 +1,13 @@
 import { MODIFIER_TARGET, type Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
 import { eventSkill, targetConditionActive } from '#gw2/platform/combat/query/runtime-query.js';
 import type { RangerSkill, RangerRuntime } from '#gw2/professions/ranger/types.js';
-import type { RuntimeCast } from '#gw2/platform/simulation/runtime-state.js';
-import { armSkillFlip, consumeSkillFlip } from '#gw2/platform/engine/skills/skill-flips.js';
+import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
+import { armSkillFlip, consumeSkillFlip } from '#gw2/platform/execution/skill-flips.js';
 import { RANGER_SPEAR_STEALTH_FLIP_BY_PARENT } from '#gw2/professions/ranger/core/mechanics/weapon-state.js';
 /** Core ranger spear mechanics; observed attacks separate contact offsets from their recovery windows. */
 import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
-import { impactEffects } from '#gw2/platform/engine/effects/authoring.js';
-import type { Skill } from '#gw2/platform/engine/skills/types.js';
+import { impactEffects } from '#gw2/platform/effects/authoring.js';
+import type { Skill } from '#gw2/platform/skills/types.js';
 
 // Share adjacent impact timing while preserving local payloads, attribution, and independent timelines.
 // Projectile flags belong to strikes so Mistral and Shrike count impacts independently of combo success.

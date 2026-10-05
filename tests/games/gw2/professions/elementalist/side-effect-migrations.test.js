@@ -49,7 +49,7 @@ test('Elementalist endurance declarations retain patched amounts and committed-c
       assert.deepEqual(result.warnings, []);
       const runtime = observedRuntime(result);
       assert.equal(
-        runtime.profession.core.endurance,
+        runtime.profession.core.endurance.value,
         Math.min(100, initial + runtime.time * 5 + (mode === 'cancelled' ? 0 : amount))
       );
     }

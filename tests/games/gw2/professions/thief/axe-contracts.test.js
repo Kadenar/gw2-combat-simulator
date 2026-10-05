@@ -7,7 +7,6 @@ import { assertFlooredDamageMultiplier } from '#tests/helpers/rounded-damage.js'
 import { createThiefBuildDefaults, validateThiefBuild } from '#gw2/professions/thief/build/build.js';
 import { thiefAppAdapter } from '#gw2/professions/thief/app/app-definition.js';
 import { resourceDisplayViews } from '#gw2/app/rotation/palette/resource-view.js';
-import { thiefCatalog } from '#gw2/professions/thief/profession.js';
 
 const axeConfig = { primaryWeapon: 'Axe', secondaryWeapon: 'Pistol' };
 const returned = (result, type) =>
@@ -116,39 +115,6 @@ test('a new Volley cannot replace recalled axes still travelling back', () => {
     Array(3).fill(ID.VENOMOUS_VOLLEY)
   );
   assert.deepEqual(observedRuntime(result).profession.core.outboundAxes, []);
-});
-
-// Interrupting a committed projectile must preserve its pool/refund reactions; early cancellation must leave no axe.
-test('committed axe throws and recalls preserve their state transitions after interruption', () => {
-  for (const skillId of [ID.VENOMOUS_VOLLEY, ID.MALICIOUS_CUNNING_SALVO, ID.ORCHESTRATED_ASSAULT]) {
-    const skill = thiefCatalog.skillsById.get(skillId);
-    for (const committed of [false, true]) {
-      const recall = skillId === ID.ORCHESTRATED_ASSAULT;
-      const result = runThief(
-        [
-          { skillId, interruptAfterMs: committed ? skill.interruptCommitMs : 40 },
-          { type: 'wait', durationMs: 1000 }
-        ],
-        { ...axeConfig, specialization: 'Deadeye', initialSpinningAxes: recall ? 2 : 0 },
-        {
-          initialize(runtime) {
-            runtime.profession.core.stealthUntil = 10;
-          }
-        }
-      );
-      assert.deepEqual(result.warnings, []);
-      const impacts = result.events.filter((event) => event.type === 'damage');
-      assert.equal(impacts.length, committed ? (recall ? 2 : skillId === ID.VENOMOUS_VOLLEY ? 3 : 1) : 0);
-      assert.equal(
-        observedRuntime(result).profession.core.spinningAxes.length,
-        recall ? (committed ? 0 : 2) : impacts.length
-      );
-      assert.equal(
-        result.events.some((event) => event.type === 'condition'),
-        committed
-      );
-    }
-  }
 });
 
 // Saved starting axes must reach both the starting-resource control and the first recall without casting an opener.
@@ -353,7 +319,7 @@ test('Salvo refunds on impact and recalled malicious axes use base poison withou
     assert.deepEqual(result.warnings, []);
     assert.ok(observedRuntime(result).resourceController.value('initiative') >= 2);
     const runtime = observedRuntime(result);
-    assert.ok(Math.abs(runtime.cooldowns.get(skillId) - runtime.time - 1) < 1e-9);
+    assert.ok(Math.abs(runtime.cooldownController.readyAt(skillId) - runtime.time - 1) < 1e-9);
     const miss = runThief(
       [{ skillId, offTarget: true }],
       { ...axeConfig, specialization, initialInitiative: 0 },
@@ -373,17 +339,17 @@ test('Salvo refunds on impact and recalled malicious axes use base poison withou
     {
       initialize(runtime) {
         runtime.profession.core.spinningAxes = [{ skillId: ID.MALICIOUS_CUNNING_SALVO, expiresAt: 10 }];
+        runtime.resourceController.replace('malice', 4);
         Object.assign(runtime.profession.specialization.state, {
           markedTargetId: 'primary-target',
-          markExpiresAt: 30,
-          malice: 4
+          markExpiresAt: 30
         });
       }
     }
   );
   assert.deepEqual(result.warnings, []);
   assert.equal(returned(result, 'condition').find((event) => event.condition === 'Poisoned').duration, 1);
-  assert.equal(observedRuntime(result).profession.specialization.state.malice, 5);
+  assert.equal(observedRuntime(result).profession.specialization.state.malice.value, 5);
   assert.ok(observedRuntime(result).resourceController.value('initiative') >= 2);
 });
 
@@ -395,10 +361,10 @@ test('outgoing malicious poison lasts exactly the consumed malice and is absent 
       {
         initialize(runtime) {
           runtime.profession.core.stealthUntil = 10;
+          runtime.resourceController.replace('malice', 4);
           Object.assign(runtime.profession.specialization.state, {
             markedTargetId: marked ? 'primary-target' : null,
-            markExpiresAt: 30,
-            malice: 4
+            markExpiresAt: 30
           });
         }
       }

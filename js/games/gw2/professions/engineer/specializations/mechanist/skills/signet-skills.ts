@@ -1,3 +1,4 @@
+import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
 import { selectedSkillIdSet } from '#gw2/platform/builds/selected-skills.js';
 import { MODIFIER_TARGET, type Gw2ModifierContext, type Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
 import type { RechargeRule } from '#gw2/platform/profession-definition/trigger-rules.js';
@@ -13,8 +14,8 @@ import type { EngineerRuntime, EngineerRuntimeState, EngineerSkill } from '#gw2/
  * Owns Mechanist signet skill fragments.
  * Mech commands and autonomous attack identities live in their named catalogs.
  */
-import { impactEffects } from '#gw2/platform/engine/effects/authoring.js';
-import type { Skill } from '#gw2/platform/engine/skills/types.js';
+import { impactEffects } from '#gw2/platform/effects/authoring.js';
+import type { Skill } from '#gw2/platform/skills/types.js';
 import { ENGINEER_SKILL_IDS as ID } from '#gw2/professions/engineer/data/ids.js';
 
 /** Supplies Mechanist signet fragments to specialization composition. */
@@ -117,10 +118,10 @@ export function selectedSignet(context: Gw2ModifierContext, id: number): boolean
 }
 
 /** J-Drive keeps Shift's boon copying available while the signet recharges. */
-export function shiftSignetPassive(context: EngineerRuntime, at: number): boolean {
+export function shiftSignetPassive(context: MechanicQueriesOf<EngineerRuntime>, at: number): boolean {
   return (
     selectedSkillIdSet(context.config.selectedSkillIds).has(ID.SHIFT_SIGNET) &&
-    signetPassiveAvailable(context.config, (context.cooldowns.get(ID.SHIFT_SIGNET) || 0) <= at)
+    signetPassiveAvailable(context.config, (context.cooldownController.readyAt(ID.SHIFT_SIGNET) || 0) <= at)
   );
 }
 
@@ -147,7 +148,7 @@ export const signetModifierRules: readonly Gw2ModifierRule[] = [
   }
 ];
 /** Overclock's selected passive affects other signets; trait precedence is applied by the recharge owner. */
-export function overclockSignetApplies(context: EngineerRuntime, skill: EngineerSkill): boolean {
+export function overclockSignetApplies(context: MechanicQueriesOf<EngineerRuntime>, skill: EngineerSkill): boolean {
   return (
     skill.id !== ID.OVERCLOCK_SIGNET &&
     Boolean(skill.categories?.some((category) => category.toLowerCase() === 'signet')) &&
@@ -161,7 +162,7 @@ export const overclockRechargeRules: readonly RechargeRule<EngineerRuntimeState>
     when: (context, skill) =>
       ordinaryOverclockEligible(context, skill) &&
       overclockSignetApplies(context, skill) &&
-      (context.cooldowns.get(ID.OVERCLOCK_SIGNET) || 0) <= context.time,
+      (context.cooldownController.readyAt(ID.OVERCLOCK_SIGNET) || 0) <= context.time,
     multiplier: { profile: PROFILE.overclock, field: 'rechargeMultiplier' }
   }
 ];

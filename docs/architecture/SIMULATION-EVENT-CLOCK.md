@@ -315,6 +315,6 @@ combat choices are a separate seeded-randomness concern and do not alter the clo
 - [Observation policy](../../js/kernel/execution/observation.ts)
 - [Unified runtime](../../js/games/gw2/platform/simulation/runtime.ts)
 - [Internal work](../../js/games/gw2/platform/simulation/internal-work.ts)
-- [Effect materialization](../../js/games/gw2/platform/engine/effects/materializer.ts)
+- [Effect materialization](../../js/games/gw2/platform/effects/materializer.ts)
 - [Condition resolution](../../js/games/gw2/platform/resolver/condition-resolution.ts)
-- [GW2 timing helpers](../../js/games/gw2/platform/skills/timing.ts)
+- [GW2 timing helpers](../../js/games/gw2/platform/execution/cast-timing.ts)

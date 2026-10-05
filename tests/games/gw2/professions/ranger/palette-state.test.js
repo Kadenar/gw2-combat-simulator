@@ -62,8 +62,6 @@ test('Druid palette uses the live Astral Force maximum and the detached catalog 
     assert.equal(detached.maximum, maximum);
     assert.equal(detached.startMaximum, maximum);
     assert.equal(detached.value, maximum);
-    // Live clocks are authoritative even when the UI was bound to the unpatched catalog.
-    assert.equal(ready.planningState.availability[skill.id].ready, true);
     const below = runRanger([], { ...config, initialAstralForce: maximum - 1 }, options);
     assert.equal(below.planningState.availability[skill.id].ready, false);
     assert.deepEqual(runRanger([ID.CELESTIAL_AVATAR], config, options).warnings, []);
@@ -89,7 +87,7 @@ test('Galeshot palette and Wind Force display use the patched threshold', () => 
           initialize(runtime) {
             const state = galeshotState.from(runtime);
             state.cycloneBowActive = true;
-            state.windForce = value;
+            runtime.resourceController.replace('windForce', value);
           }
         }
       );

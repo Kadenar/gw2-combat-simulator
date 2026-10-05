@@ -1,11 +1,13 @@
-import {
-  balanceProfileNumber,
-  requireBalanceProfileFromContext
-} from '#gw2/platform/engine/skills/balance-profiles.js';
-import type { Gw2Runtime, RuntimeCast, RuntimeProfession } from '#gw2/platform/simulation/runtime-state.js';
-import { gw2EffectExpiresAt } from '#gw2/platform/skills/timing.js';
-import { WARRIOR_CORE_BALANCE_PROFILE_IDS as CORE_PROFILE } from '#gw2/professions/warrior/core/profiles.js';
+import { gw2EffectExpiresAt } from '#gw2/platform/effects/timing.js';
+import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
+import type { MechanicContext } from '#gw2/platform/profession-definition/mechanic-context.js';
+import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import { WARRIOR_SKILL_IDS as ID } from '#gw2/professions/warrior/data/ids.js';
+import {
+  berserkerBuffPolicies,
+  berserkerEffectStates
+} from '#gw2/professions/warrior/specializations/berserker/effect-state.js';
+import { berserkerAdrenalinePolicy } from '#gw2/professions/warrior/specializations/berserker/mechanics/resources.js';
 import { berserkSkillActions } from '#gw2/professions/warrior/specializations/berserker/skills/index.js';
 import {
   BERSERK_EXPIRE,
@@ -20,7 +22,7 @@ import {
 } from '#gw2/professions/warrior/specializations/berserker/traits/behavior.js';
 import type { WarriorRuntimeState, WarriorSkill } from '#gw2/professions/warrior/types.js';
 
-type Runtime = Gw2Runtime<WarriorRuntimeState, WarriorSkill>;
+type Runtime = MechanicContext<WarriorRuntimeState, WarriorSkill>;
 
 /** Completed activation opens or extends the current mode; expiring during a cast cannot revive it. */
 function completeBerserk(runtime: Runtime, cast: RuntimeCast<WarriorSkill>): void {
@@ -41,7 +43,10 @@ function completeBerserk(runtime: Runtime, cast: RuntimeCast<WarriorSkill>): voi
 }
 
 /** Berserker composes with Core's resource and packet owners; only this slice owns mode and aura lifetimes. */
-export const berserkerHooks: Partial<RuntimeProfession<WarriorRuntimeState, WarriorSkill>> = {
+export const berserkerHooks: RuntimeHooks<WarriorRuntimeState, WarriorSkill> = {
+  resources: { adrenaline: berserkerAdrenalinePolicy },
+  buffPolicies: berserkerBuffPolicies,
+  observeEffects: berserkerEffectStates,
   /** Initialize only damage-relevant form and scaling state for one assumed occurrence. */
   prepareDamageState(runtime, skill, _inputs) {
     if (skill?.primalBurst) berserkerState.from(runtime).berserkUntil = Infinity;
@@ -79,14 +84,7 @@ export const berserkerHooks: Partial<RuntimeProfession<WarriorRuntimeState, Warr
       if (state.berserkUntil !== deadline) return;
       state.berserkActive = false;
       state.berserkUntil = 0;
-      runtime.profession.core.maximumAdrenaline = balanceProfileNumber(
-        requireBalanceProfileFromContext(runtime, CORE_PROFILE.resources),
-        'maximumStacks'
-      );
-      runtime.profession.core.adrenaline = Math.min(
-        runtime.profession.core.adrenaline,
-        runtime.profession.core.maximumAdrenaline
-      );
+      runtime.resourceController.refresh('adrenaline');
     }
   }
 };

@@ -4,11 +4,9 @@ import test from 'node:test';
 import { mesmerCatalog, mesmerProfession } from '#gw2/professions/mesmer/profession.js';
 import { MESMER_SKILL_IDS as ID, MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
 import { simulateMesmer, runMesmer } from '#tests/helpers/mesmer-simulation.js';
-import { applySkillSideEffects } from '#gw2/platform/simulation/side-effects.js';
-import { registerMesmerMechanics } from '#gw2/professions/mesmer/core/mechanics/runtime.js';
+import { applySkillSideEffects } from '#gw2/platform/effects/action-dispatch.js';
 import { mesmerCoreHooks } from '#gw2/professions/mesmer/core/hooks.js';
 import { troubadourHooks } from '#gw2/professions/mesmer/specializations/troubadour/hooks.js';
-import { armMesmerSkillFlip } from '#gw2/professions/mesmer/core/mechanics/flips.js';
 import { scheduleAxesClones, completeAxesConfusion } from '#gw2/professions/mesmer/core/skills/weapons/axe.js';
 import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
 
@@ -49,42 +47,37 @@ test('Clarity, blade refunds, and instrument state are visible at commitment bef
 test('Lancer consumes Clarity before preparation and never reuses another activation snapshot', () => {
   const skill = mesmerCatalog.skillsById.get(ID.PHANTASMAL_LANCER);
   const prepared = [];
-  const mechanics = {
-    castDetails: new Map(),
-    skillEffects: { schedule: (_skill, _end, _start, options) => prepared.push(options.clarityConsumed) }
+  const config = { specialization: 'Core', primaryWeapon: 'Spear' };
+  const profession = mesmerProfession.runtimeFor(config);
+  const runtime = {
+    config,
+    traits: new Set(),
+    time: 0,
+    activeWeaponSet: 1,
+    profession: profession.createState(config),
+    helpers: profession.catalog,
+    schedule() {}
   };
-  const runtime = { profession: { core: { clarityUntil: 2 } } };
-  registerMesmerMechanics(runtime, mechanics);
+  runtime.effects = captureEffectEmissions({
+    submit(event) {
+      if (event.type === 'mesmer.phantasm-summoned') prepared.push(event.count);
+      return event;
+    }
+  }).effects;
   for (const [id, start, until, cancelled] of [
     ['first', 1, 2, true],
     ['next', 1.1, 0, false],
     ['expiry', 2, 2, false]
   ]) {
-    runtime.profession.core.clarityUntil = until;
-    mechanics.castDetails.set(id, {});
+    runtime.profession.core.clarity = { charges: until > 0 ? 1 : 0, expiresAt: until };
+    runtime.profession.core.castDetails.set(id, {});
     const cast = { id, skill, start, fullEnd: start + 1, effectiveEnd: start + 1, cancelled, command: {} };
     applySkillSideEffects(runtime, cast, 'castStart', mesmerCoreHooks.sideEffectHandlers);
-    assert.equal(runtime.profession.core.clarityUntil, 0);
+    assert.equal(runtime.profession.core.castDetails.get(id).clarityConsumed, start < until);
+    assert.equal(runtime.profession.core.clarity.charges, id === 'expiry' ? 1 : 0);
   }
 
-  assert.deepEqual(prepared, [true, false, false]);
-});
-
-test('a replaced flip survives its old expiry task', () => {
-  const tasks = [];
-  const runtime = {
-    time: 1,
-    profession: { core: { availableFlips: {} } },
-    schedule: (_type, _at, data) => tasks.push(data)
-  };
-  const skill = { flipArm: { skillId: ID.ABSTRACTION, duration: 2, anchor: 'castCommit' } };
-  armMesmerSkillFlip(runtime, { id: 'old', start: 0, skill });
-  runtime.time = 2;
-  armMesmerSkillFlip(runtime, { id: 'new', start: 1, skill });
-  mesmerCoreHooks.tasks['mesmer.flip-expire'](runtime, tasks[0]);
-  assert.equal(runtime.profession.core.availableFlips[ID.ABSTRACTION].identity, 'new');
-  mesmerCoreHooks.tasks['mesmer.flip-expire'](runtime, tasks[1]);
-  assert.equal(runtime.profession.core.availableFlips[ID.ABSTRACTION], undefined);
+  assert.deepEqual(prepared, [2, 1, 1]);
 });
 
 test('Axe variants retain acceptance snapshots versus live pre-cast clone selection', () => {

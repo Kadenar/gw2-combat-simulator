@@ -1,10 +1,14 @@
+import type { DeadeyeState } from '#gw2/professions/thief/specializations/deadeye/state.js';
+import type { EvokerState } from '#gw2/professions/elementalist/specializations/evoker/state.js';
+import type { WarriorCoreState } from '#gw2/professions/warrior/core/state.js';
+import type { BladeswornState } from '#gw2/professions/warrior/specializations/bladesworn/state.js';
 import { createDiscreteResourceClock } from '#gw2/platform/combat/resources/resource-policy.js';
 import {
   definePublicStateDefaults,
   defineProfessionSpecializationState,
   professionCoreState,
   projectPublicProfessionState
-} from '#gw2/platform/engine/profession/state.js';
+} from '#gw2/platform/profession-definition/state.js';
 import { holosmithState } from '#gw2/professions/engineer/specializations/holosmith/state.js';
 import { mechanistState } from '#gw2/professions/engineer/specializations/mechanist/state.js';
 import type { EngineerRuntime } from '#gw2/professions/engineer/types.js';
@@ -26,22 +30,54 @@ import type { WeaverState } from '#gw2/professions/elementalist/specializations/
 import type { ElementalistCoreState } from '#gw2/professions/elementalist/core/state.js';
 import type { ElementalistRuntime } from '#gw2/professions/elementalist/types.js';
 import type { MesmerCoreState } from '#gw2/professions/mesmer/core/state.js';
+import type { MesmerTroubadourState } from '#gw2/professions/mesmer/specializations/troubadour/state.js';
 import type { MesmerVirtuosoState } from '#gw2/professions/mesmer/specializations/virtuoso/state.js';
+import type { ParagonState } from '#gw2/professions/warrior/specializations/paragon/state.js';
+import type { ResourceClock } from '#gw2/platform/combat/resources/clock.js';
+import type { GaleshotState } from '#gw2/professions/ranger/specializations/galeshot/state.js';
 
 type Assert<T extends true> = T;
 type Owns<TState, TField extends PropertyKey> = TField extends keyof TState ? true : false;
 type Rejects<TState, TField extends PropertyKey> = TField extends keyof TState ? false : true;
 
 export type ProfessionModuleStateBoundaryAssertions = [
+  // Endurance capacity and observation time belong to the clock, never sibling scalar fields.
+  Assert<WarriorCoreState['endurance'] extends ResourceClock ? true : false>,
+  Assert<ElementalistCoreState['endurance'] extends ResourceClock ? true : false>,
+  Assert<EngineerCoreState['endurance'] extends ResourceClock ? true : false>,
+  Assert<GuardianCoreState['endurance'] extends ResourceClock ? true : false>,
+  Assert<NecromancerCoreState['endurance'] extends ResourceClock ? true : false>,
+  Assert<RevenantCoreState['endurance'] extends ResourceClock ? true : false>,
+  Assert<MesmerTroubadourState['endurance'] extends ResourceClock ? true : false>,
+  Assert<Rejects<WarriorCoreState, 'enduranceUpdatedAt'>>,
+  Assert<Rejects<WarriorCoreState, 'maximumEndurance'>>,
+  Assert<DeadeyeState['malice'] extends ResourceClock ? true : false>,
+  Assert<Rejects<DeadeyeState, 'maximumMalice'>>,
+  Assert<EvokerState['familiarCharges'] extends ResourceClock ? true : false>,
+  Assert<EvokerState['empoweredCharges'] extends ResourceClock ? true : false>,
+  Assert<Rejects<EvokerState, 'charges'>>,
+  Assert<Rejects<EvokerState, 'maximumCharges'>>,
+  Assert<Rejects<EvokerState, 'empowered'>>,
+  Assert<WarriorCoreState['adrenaline'] extends ResourceClock ? true : false>,
+  Assert<BladeswornState['flow'] extends ResourceClock ? true : false>,
+  Assert<BladeswornState['dragonCharges'] extends ResourceClock ? true : false>,
+  Assert<Rejects<WarriorCoreState, 'maximumAdrenaline'>>,
+  Assert<Rejects<BladeswornState, 'maximumFlow'>>,
+  Assert<GaleshotState['windForce'] extends ResourceClock ? true : false>,
+  Assert<ParagonState['motivation'] extends ResourceClock ? true : false>,
+  Assert<Rejects<ParagonState, 'maximumMotivation'>>,
   Assert<Owns<ElementalistCoreState, 'primaryAttunement'>>,
   Assert<Rejects<WeaverState, 'primaryAttunement'>>,
   Assert<Owns<WeaverState, 'unravelUntil'>>,
   Assert<Rejects<ElementalistCoreState, 'unravelUntil'>>,
-  Assert<Owns<CatalystState, 'energy'>>,
-  Assert<Rejects<ElementalistCoreState, 'energy'>>,
+  Assert<Owns<CatalystState, 'catalystEnergy'>>,
+  Assert<Rejects<ElementalistCoreState, 'catalystEnergy'>>,
+  Assert<Rejects<CatalystState, 'energy'>>,
+  Assert<Rejects<CatalystState, 'maximumEnergy'>>,
   Assert<Owns<EngineerCoreState, 'activeKit'>>,
   Assert<Rejects<HolosmithState, 'activeKit'>>,
-  Assert<Owns<HolosmithState, 'heat'>>,
+  Assert<HolosmithState['heat'] extends ResourceClock ? true : false>,
+  Assert<Rejects<HolosmithState, 'maximumHeat'>>,
   Assert<Rejects<EngineerCoreState, 'heat'>>,
   Assert<Owns<GuardianCoreState, 'availableFlips'>>,
   Assert<Rejects<GuardianFirebrandState, 'availableFlips'>>,
@@ -49,7 +85,10 @@ export type ProfessionModuleStateBoundaryAssertions = [
   Assert<Rejects<GuardianCoreState, 'tomePages'>>,
   Assert<Owns<MesmerCoreState, 'clones'>>,
   Assert<Rejects<MesmerVirtuosoState, 'clones'>>,
-  Assert<Owns<MesmerVirtuosoState, 'numericResource'>>,
+  Assert<MesmerVirtuosoState['blades'] extends ResourceClock ? true : false>,
+  Assert<MesmerTroubadourState['notes'] extends ResourceClock ? true : false>,
+  Assert<Rejects<MesmerVirtuosoState, 'numericResource'>>,
+  Assert<Rejects<MesmerTroubadourState, 'numericResource'>>,
   Assert<Rejects<MesmerCoreState, 'numericResource'>>,
   Assert<Owns<NecromancerCoreState, 'lifeForce'>>,
   Assert<Rejects<ScourgeState, 'lifeForce'>>,
@@ -63,6 +102,8 @@ export type ProfessionModuleStateBoundaryAssertions = [
   Assert<Rejects<RenegadeState, 'soulcleaveReadyAt'>>,
   Assert<Rejects<RevenantCoreState, 'soulcleaveReadyAt'>>,
   Assert<Owns<ConduitState, 'affinity'>>,
+  Assert<ConduitState['affinity'] extends ResourceClock ? true : false>,
+  Assert<Rejects<ConduitState, 'affinityMaximum'>>,
   Assert<Rejects<RevenantCoreState, 'affinity'>>
 ];
 
@@ -74,12 +115,12 @@ holosmithState.from(context).heat;
 mechanistState.from(context).mech;
 professionCoreState(elementalistContext).primaryAttunement;
 weaverState.from(elementalistContext).unravelUntil;
-catalystState.from(elementalistContext).energy;
+catalystState.from(elementalistContext).catalystEnergy.value;
 
 // @ts-expect-error Core does not own Weaver state.
 professionCoreState(elementalistContext).unravelUntil;
 // @ts-expect-error Weaver cannot access its Catalyst sibling.
-weaverState.from(elementalistContext).energy;
+weaverState.from(elementalistContext).catalystEnergy;
 
 // @ts-expect-error Core does not own Holosmith state.
 professionCoreState(context).heat;

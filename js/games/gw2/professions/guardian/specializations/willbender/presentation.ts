@@ -1,9 +1,7 @@
+import { activeRefreshedStacks } from '#gw2/platform/combat/resources/refreshed-stacks.js';
 import { GUARDIAN_SKILL_IDS } from '#gw2/professions/guardian/data/ids.js';
-import {
-  balanceProfileNumber,
-  requireBalanceProfileFromContext
-} from '#gw2/platform/engine/skills/balance-profiles.js';
-import type { CanonicalCatalog } from '#gw2/platform/engine/skills/types.js';
+import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import type { CanonicalCatalog } from '#gw2/platform/skills/types.js';
 import type {
   ProfessionEffectPresentation,
   RotationStateSnapshotItem
@@ -41,12 +39,12 @@ function willbenderStateSnapshot(context: GuardianUiContext): RotationStateSnaps
     items.push({ id, label, value: formatSecondsRemaining(remaining), title: `${label} active window` });
   }
 
-  const lethalRemaining = (state.lethalTempoUntil || 0) - at;
+  const lethalRemaining = (state.lethalTempo?.expiresAt || 0) - at;
   const lethalTempoProfile = requireBalanceProfileFromContext(context.balanceContext, WILLBENDER_TRAIT.LETHAL_TEMPO);
   const maximum = balanceProfileNumber(lethalTempoProfile, 'maximumStacks');
-  const lethalStacks = boundedInteger(state.lethalTempoStacks || 0, 0, 0, maximum);
+  const lethalStacks = boundedInteger(activeRefreshedStacks(state.lethalTempo, at, 'inclusive'), 0, 0, maximum);
   // Lethal Tempo remains available for damage and refreshes on its final tick.
-  if ((state.lethalTempoUntil || 0) > 0 && lethalRemaining >= 0 && lethalStacks > 0) {
+  if ((state.lethalTempo?.expiresAt || 0) > 0 && lethalRemaining >= 0 && lethalStacks > 0) {
     items.push({
       id: 'willbender-lethal-tempo',
       label: 'Lethal Tempo',

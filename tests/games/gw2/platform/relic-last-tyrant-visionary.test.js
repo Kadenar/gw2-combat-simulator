@@ -4,12 +4,12 @@ import { effectStateAt, effectSummary } from '#gw2/platform/results/effect-repor
 import { buildChartSeries } from '#gw2/app/results/model.js';
 import { comboDefinition } from '#gw2/platform/combos/definitions.js';
 import { RELIC_IDS } from '#gw2/platform/equipment/relics/data.js';
-import { createCanonicalCatalog } from '#gw2/platform/engine/skills/canonical-skill-catalog.js';
+import { createCanonicalCatalog } from '#gw2/platform/skills/catalog.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
 import { createRelicRuntime } from '#gw2/platform/equipment/relics/runtime.js';
-import { materializeSkillEffectApplications } from '#gw2/platform/engine/effects/materializer.js';
+import { materializeSkillEffectApplications } from '#gw2/platform/effects/materializer.js';
 import { elementalistProfiledConditionRequest } from '#gw2/professions/elementalist/core/mechanics/effects.js';
 import { StableEventQueue } from '#kernel/events/queue.js';
 import { canonicalTime } from '#kernel/core/clock.js';

@@ -1,12 +1,13 @@
-import type { SkillId } from '#gw2/platform/engine/skills/types.js';
-import type { Gw2Runtime } from '#gw2/platform/simulation/runtime-state.js';
+import type { MechanicContext, MechanicCombatContext } from '#gw2/platform/profession-definition/mechanic-context.js';
+import type { SkillId } from '#gw2/platform/skills/types.js';
+
 import type { ProfessionUiCallbackContext, ProfessionUiContract } from '#gw2/platform/profession-presentation/types.js';
-import type { Skill } from '#gw2/platform/engine/skills/types.js';
+import type { Skill } from '#gw2/platform/skills/types.js';
 
 import type { Gw2Build, Gw2BuildSpecialization, Gw2CanonicalBuild } from '#gw2/platform/builds/types.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
-import type { Gw2ResolverRuntime } from '#gw2/platform/resolver/runtime-state.js';
+
 import type { NecromancerCoreState } from '#gw2/professions/necromancer/core/state.js';
 import type { HarbingerState } from '#gw2/professions/necromancer/specializations/harbinger/state.js';
 import type { ReaperState } from '#gw2/professions/necromancer/specializations/reaper/state.js';
@@ -45,13 +46,12 @@ export interface NecromancerRuntimeState {
 }
 
 /** Actual mechanics share one owned family state and one live clock. */
-export type NecromancerRuntime = Gw2Runtime<NecromancerRuntimeState, NecromancerSkill>;
+export type NecromancerRuntime = MechanicContext<NecromancerRuntimeState, NecromancerSkill>;
 
 export interface NecromancerSkill extends Skill {
   readonly dhuumfireDuration?: number;
   readonly flipParent?: string;
   readonly lifeForceCost?: number;
-  readonly lifeForceGain?: number;
   readonly shroud?: string;
   readonly shroudEntry?: string;
   readonly shroudExit?: string;
@@ -76,7 +76,7 @@ export type NecromancerResolverEvent = Gw2ResolverEvent & {
   readonly effectiveDuration?: number;
 };
 
-export type NecromancerResolverContext = Gw2ResolverRuntime & {
+export type NecromancerResolverContext = MechanicCombatContext & {
   config: NecromancerConfig;
   profession: NecromancerRuntimeState;
 };

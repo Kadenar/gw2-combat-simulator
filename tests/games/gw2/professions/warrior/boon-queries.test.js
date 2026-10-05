@@ -8,7 +8,7 @@ import {
   warriorActiveBoonCount,
   warriorBoonActive
 } from '#gw2/professions/warrior/core/traits/modifier-queries.js';
-import { modifyWarriorArmsAttributes } from '#gw2/professions/warrior/core/traits/behavior.js';
+import { modifyWarriorArmsAttributes } from '#gw2/professions/warrior/core/traits/arms.js';
 import { furiousBurst } from '#gw2/professions/warrior/core/traits/arms.js';
 import { WARRIOR_SKILL_IDS as ID, WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/professions/warrior/data/ids.js';
 import { fierceAsFire } from '#gw2/professions/warrior/specializations/bladesworn/traits/index.js';
@@ -81,7 +81,7 @@ function stabilizedFlow(at, applications) {
     rotation: [{ type: 'wait', durationMs: at * 1000 }, ID.FLOW_STABILIZER]
   });
   assert.deepEqual(result.warnings, []);
-  return observedRuntime(result).profession.specialization.state.flow;
+  return observedRuntime(result).profession.specialization.state.flow.value;
 }
 
 test('Flow Stabilizer reads accumulated self Fury and excludes its own activation', () => {

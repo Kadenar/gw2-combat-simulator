@@ -1,5 +1,5 @@
 import { effectStateAt, effectSummary } from '#gw2/platform/results/effect-report.js';
-import type { Gw2ResolverEvent, Gw2ResolverResult } from '#gw2/platform/resolver/types.js';
+import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import type { SkillHit } from '#gw2/app/results/charts/hit-timeline-model.js';
 import { type BoonGenerationByAudience } from '#gw2/platform/results/boon-generation.js';
 import { clamp } from '#kernel/core/numeric.js';
@@ -392,3 +392,5 @@ function buildEffectSeries(
     effectUnits
   };
 }
+
+import type { Gw2ResolverResult } from '#gw2/platform/results/types.js';

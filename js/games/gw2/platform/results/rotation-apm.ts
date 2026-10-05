@@ -1,8 +1,8 @@
 import { normalizeRotation } from '#gw2/platform/execution/rotation.js';
 import type { SimulationStep } from '#gw2/platform/execution/types.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
-import { isAutoattackSkill } from '#gw2/platform/engine/skills/autoattack-chains.js';
-import type { CanonicalCatalog } from '#gw2/platform/engine/skills/types.js';
+import { isAutoattackSkill } from '#gw2/platform/skills/autoattack-chain-index.js';
+import type { CanonicalCatalog } from '#gw2/platform/skills/types.js';
 
 export interface RotationApm {
   readonly actionCount: number;

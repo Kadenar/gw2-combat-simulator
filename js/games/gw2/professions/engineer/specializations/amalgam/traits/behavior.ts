@@ -1,11 +1,12 @@
-import { type SkillId } from '#gw2/platform/engine/skills/types.js';
+import type { MaximumAmmoContext } from '#gw2/platform/profession-definition/runtime-context.js';
+import { type SkillId } from '#gw2/platform/skills/types.js';
 import { ENGINEER_SKILL_IDS as ID, ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import {
   balanceProfileNumber,
   requireBalanceProfileFromContext,
   requireEffect
-} from '#gw2/platform/engine/skills/balance-profiles.js';
+} from '#gw2/platform/skills/balance-profiles.js';
 import { AMALGAM_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/engineer/specializations/amalgam/profiles.js';
 import {
   type EngineerRuntime,
@@ -22,39 +23,26 @@ import { applyAmalgamStrain } from '#gw2/professions/engineer/specializations/am
 import {
   AMALGAM_MORPH_KIND_BY_SKILL_ID,
   type AmalgamMorphKind
-} from '#gw2/professions/engineer/specializations/amalgam/skills/protocol-skills.js';
+} from '#gw2/professions/engineer/specializations/amalgam/selection-policy.js';
 import { amalgamState } from '#gw2/professions/engineer/specializations/amalgam/state.js';
 import { resolverSkill, buildEngineerCondition } from '#gw2/professions/engineer/core/mechanics/resolution-helpers.js';
 
 // Keep Morph, Evolve, and their trait reactions together so form transitions share one behavior owner.
 const EVOLVE_SKILL_IDS = new Set<SkillId>([ID.EVOLVE_BASE, ID.EVOLVE_DOUBLE_HELIX]);
 
-/** Both existing Evolve IDs and rotation names resolve to the currently selected Double Helix variant. */
-export function resolveAmalgamSkillId(traits: unknown, skillId: SkillId): SkillId {
-  if (
-    !EVOLVE_SKILL_IDS.has(Number(skillId)) &&
-    !['Evolve', 'Evolve (Base)', 'Evolve (Double Helix)'].includes(String(skillId))
-  )
-    return skillId;
-  return hasTrait(traits, TRAIT.DOUBLE_HELIX) ? ID.EVOLVE_DOUBLE_HELIX : ID.EVOLVE_BASE;
-}
-
 /** Only the selected Double Helix variant receives the active profile's Evolve ammo capacity. */
-export function amalgamMaximumAmmo(context: EngineerRuntime, skill: EngineerSkill, maximum: number): number {
+export function amalgamMaximumAmmo(context: MaximumAmmoContext<object>, skill: EngineerSkill, maximum: number): number {
   if (!EVOLVE_SKILL_IDS.has(Number(skill.id))) return maximum;
-  return skill.id === ID.EVOLVE_DOUBLE_HELIX && hasTrait(context.config, TRAIT.DOUBLE_HELIX)
-    ? Math.max(
-        balanceProfileNumber(requireBalanceProfileFromContext(context, PROFILE.evolve), 'maximumStacks'),
-        maximum || 0
-      )
+  return skill.id === ID.EVOLVE_DOUBLE_HELIX && context.hasTrait(TRAIT.DOUBLE_HELIX)
+    ? Math.max(balanceProfileNumber(context.requireBalanceProfile(PROFILE.evolve), 'maximumStacks'), maximum || 0)
     : 0;
 }
 
 /** Accepted non-summon control consumes its internal cooldown only when Evolve recharge actually decreases. */
 export function reactToMercurialTendencies(context: EngineerRuntime, event: EngineerResolverEvent): void {
-  if (!hasTrait(context.config, TRAIT.MERCURIAL_TENDENCIES) || event.actorType === 'summon') return;
+  if (!hasTrait(context.traits, TRAIT.MERCURIAL_TENDENCIES) || event.actorType === 'summon') return;
   const at = event.at;
-  if (!isInternalCooldownReady(at, context.procs.readyAt.mercurialTendencies || 0)) return;
+  if (!isInternalCooldownReady(at, context.procs.deadline('mercurialTendencies') || 0)) return;
   const profile = requireBalanceProfileFromContext(context, TRAIT.MERCURIAL_TENDENCIES);
   let reducedBy = 0;
   for (const id of EVOLVE_SKILL_IDS) {
@@ -68,7 +56,7 @@ export function reactToMercurialTendencies(context: EngineerRuntime, event: Engi
   }
 
   if (!(reducedBy > 0)) return;
-  context.procs.readyAt.mercurialTendencies = at + balanceProfileNumber(profile, 'internalCooldown');
+  context.procs.setDeadline('mercurialTendencies', at + balanceProfileNumber(profile, 'internalCooldown'));
   context.effects.emit({
     kind: 'announcement',
     log: true,
@@ -103,7 +91,7 @@ export function activateAmalgamMorph(context: EngineerRuntime, skill: EngineerSk
   const state = amalgamState.from(context);
   const morphKind = AMALGAM_MORPH_KIND_BY_SKILL_ID.get(skill.id);
   // Resolve traits whose duration or strain depends on the chosen protocol.
-  if (hasTrait(context.config, TRAIT.WILLING_HOST)) {
+  if (hasTrait(context.traits, TRAIT.WILLING_HOST)) {
     const willingHostProfile = requireBalanceProfileFromContext(context, TRAIT.WILLING_HOST);
     state.willingHostUntil = Math.max(
       state.willingHostUntil,
@@ -113,12 +101,12 @@ export function activateAmalgamMorph(context: EngineerRuntime, skill: EngineerSk
 
   grantHardenedChrome(context, 'minimumStacks');
 
-  if (morphKind && hasTrait(context.config, TRAIT.SILVER_LINING)) {
+  if (morphKind && hasTrait(context.traits, TRAIT.SILVER_LINING)) {
     applyAmalgamStrain(context, morphKind, at);
   }
 
   // New Genes combines universal boons with one protocol-specific boon.
-  if (hasTrait(context.config, TRAIT.NEW_GENES)) {
+  if (hasTrait(context.traits, TRAIT.NEW_GENES)) {
     // Each selected boon survives independently, including the protocol-specific packet.
     for (const name of ['alacrity', 'might', ...(morphKind ? [morphKind] : [])]) {
       const newGenesProfile = requireBalanceProfileFromContext(context, TRAIT.NEW_GENES);
@@ -141,7 +129,7 @@ export function activateAmalgamMorph(context: EngineerRuntime, skill: EngineerSk
 
 /** Morph and Evolve share protection attribution while choosing their own duration field. */
 function grantHardenedChrome(context: EngineerRuntime, durationField: 'minimumStacks' | 'maximumStacks'): void {
-  if (hasTrait(context.config, TRAIT.HARDENED_CHROME)) {
+  if (hasTrait(context.traits, TRAIT.HARDENED_CHROME)) {
     const sourceSkill = context.helpers.skillsById.get(TRAIT.HARDENED_CHROME) || {
       id: TRAIT.HARDENED_CHROME,
       name: 'Hardened Chrome'
@@ -169,13 +157,13 @@ function grantHardenedChrome(context: EngineerRuntime, durationField: 'minimumSt
 export function applyAmalgamEvolveTraits(context: EngineerRuntime, selected: Set<AmalgamMorphKind>): void {
   const state = amalgamState.from(context);
   const at = context.time;
-  if (!hasTrait(context.config, TRAIT.SILVER_LINING)) {
+  if (!hasTrait(context.traits, TRAIT.SILVER_LINING)) {
     for (const morphKind of selected) {
       applyAmalgamStrain(context, morphKind, at);
     }
   }
 
-  if (hasTrait(context.config, TRAIT.SYMBIOTIC_SYNERGY)) {
+  if (hasTrait(context.traits, TRAIT.SYMBIOTIC_SYNERGY)) {
     // Evolve recharges its morph skills as part of its traited kit. This is not
     // a discrete trait proc, so the reset is applied silently. Emitting a proc
     // here misreported it as a single ~43s cooldown reduction (the summed

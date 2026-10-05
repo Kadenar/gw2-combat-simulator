@@ -129,7 +129,7 @@ test('shatter controls use the resources consumed by that activation', () => {
     assert.equal(controls.length, 1);
 
     assert.ok(controls[0].at >= cast.endsAt);
-    assert.equal(result.planningState.profession.resource, 0);
+    assert.equal(result.planningState.profession.blades.value, 0);
   }
 });
 

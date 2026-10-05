@@ -1,6 +1,6 @@
-import type { EffectDelivery } from '#gw2/platform/simulation/effect-emission.js';
+import type { EffectDelivery } from '#gw2/platform/effects/emission.js';
 import { buildMesmerPacket, mesmerPacketOwner } from '#gw2/professions/mesmer/core/mechanics/packets.js';
-import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
+import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
 /**
  * Handles shared profession actions decorated by active modules.
  * Manages resource consumption, trait procs (Maim/Phantom Pain/Illusionary Membrane/etc.).
@@ -14,7 +14,7 @@ import type {
 } from '#gw2/professions/mesmer/core/mechanics/resource-types.js';
 import type { MesmerShatter, MesmerShatterResolution } from '#gw2/professions/mesmer/core/mechanics/shatter-types.js';
 import { triggerMesmerPostShatterTraits } from '#gw2/professions/mesmer/core/traits/dispatch.js';
-import { mesmerNumericResourceState } from '#gw2/professions/mesmer/family-state.js';
+import { mesmerResourceKind } from '#gw2/professions/mesmer/family-state.js';
 import type {
   MesmerProfessionActionController,
   MesmerRuntime,
@@ -23,13 +23,14 @@ import type {
 import { boundedNumber } from '#kernel/core/numeric.js';
 
 import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
+import type { SkillId } from '#gw2/platform/skills/types.js';
 
 interface ProfessionActionControllerOptions {
   readonly state: MesmerRuntime;
   readonly resourceDefinition: MesmerResourceDefinition;
   readonly destroyClone: MesmerDestroyClone;
-  readonly shatters: Readonly<Record<number, MesmerShatter>>;
-  readonly warnings: string[];
+  readonly shatterFor: (id: SkillId) => MesmerShatter | undefined;
+  readonly warn: (message: string) => void;
   readonly shatterResolvers: Readonly<Record<string, MesmerShatterResolver>>;
 }
 
@@ -37,17 +38,15 @@ export function createProfessionActionController({
   state,
   resourceDefinition,
   destroyClone,
-  shatters,
-  warnings,
+  shatterFor,
+  warn,
   shatterResolvers
 }: ProfessionActionControllerOptions): MesmerProfessionActionController {
-  const numericResourceState = () => mesmerNumericResourceState(state);
+  const kind = mesmerResourceKind(state.profession.specialization.kind);
 
-  // Clone-based specs (core/Chronomancer) count live clones; numeric specs (Virtuoso/Troubadour) use a counter.
+  // Clone-based specs (core/Chronomancer) count live clones; numeric specs (Virtuoso/Troubadour) read their shared clock.
   const currentResource = () =>
-    resourceDefinition.singular === 'clone'
-      ? professionCoreState(state).clones.length
-      : numericResourceState().numericResource;
+    kind === 'clones' ? professionCoreState(state).clones.length : state.resourceController.value(kind);
 
   const addResourceSpendEvent = (
     at: number,
@@ -61,6 +60,7 @@ export function createProfessionActionController({
         amount: -spent,
         value: currentResource(),
         resource: resourceDefinition.plural,
+        ...(kind !== 'clones' ? { maximum: resourceDefinition.maximum } : {}),
         reason: 'profession mechanic',
         activationId
       });
@@ -75,17 +75,17 @@ export function createProfessionActionController({
     return spent;
   };
 
-  // Spending clones cancels their pending attacks; numeric resources only need their counter cleared.
+  // Spending clones cancels their pending attacks; numeric resources spend the current shared balance.
   const consumeResources = (at: number, { activationId }: MesmerResourceSpendDetails = {}): number => {
     const spent = currentResource();
-    if (resourceDefinition.singular === 'clone') {
+    if (kind === 'clones') {
       for (const clone of professionCoreState(state).clones) {
         destroyClone(clone);
       }
 
       professionCoreState(state).clones = [];
     } else {
-      numericResourceState().numericResource = 0;
+      state.resourceController.spend(kind, spent);
     }
 
     return addResourceSpendEvent(at, spent, { activationId });
@@ -95,11 +95,11 @@ export function createProfessionActionController({
   // (e.g. a Virtuoso skill whose coefficient scales with blades but costs all blades on hit, not on cast).
   const reserveResources = (): number => {
     const spent = currentResource();
-    if (resourceDefinition.singular === 'clone') {
+    if (kind === 'clones') {
       throw new Error('Clone resources cannot be reserved.');
     }
 
-    numericResourceState().numericResource = 0;
+    state.resourceController.spend(kind, spent);
     return spent;
   };
 
@@ -110,27 +110,23 @@ export function createProfessionActionController({
     { activationId }: MesmerResourceSpendDetails = {}
   ): number => {
     const reservedCount = boundedNumber(reserved, 0, 0, resourceDefinition.maximum);
-    const additionalSpent = Math.min(
-      numericResourceState().numericResource,
-      resourceDefinition.maximum - reservedCount
-    );
-    numericResourceState().numericResource -= additionalSpent;
+    const additionalSpent = Math.min(currentResource(), resourceDefinition.maximum - reservedCount);
+    if (kind === 'clones') throw new Error('Clone resources cannot be committed from a reservation.');
+    state.resourceController.spend(kind, additionalSpent);
     return addResourceSpendEvent(at, reservedCount + additionalSpent, {
       activationId
     });
   };
 
   const restoreReservedResources = (spent: number): void => {
-    if (resourceDefinition.singular === 'clone') return;
-    numericResourceState().numericResource = Math.min(
-      resourceDefinition.maximum,
-      numericResourceState().numericResource + Math.max(0, spent || 0)
-    );
+    if (kind === 'clones') return;
+    // Refunds restore the capped balance without earning traits or reporting a committed spend.
+    state.resourceController.grant(kind, Math.max(0, spent || 0));
   };
 
   // Shared traits consume resolver-produced hit groups so Core does not need to know how a specialization attacks.
   const triggerShatterTraits = (resolution: MesmerShatterResolution): void => {
-    triggerMesmerPostShatterTraits({ context: state }, shatters[resolution.skill.id], resolution);
+    triggerMesmerPostShatterTraits(state, shatterFor(resolution.skill.id), resolution);
   };
 
   // Orchestrates resource spending and shared traits while the registered resolver owns packet behavior.
@@ -144,7 +140,7 @@ export function createProfessionActionController({
     packetAt = at,
     delivery: EffectDelivery = {}
   ): MesmerShatterResolution | null => {
-    const shatter = shatters[skill.id];
+    const shatter = shatterFor(skill.id);
     if (!shatter) {
       throw new Error(`Missing Mesmer shatter data for ${skill.name}.`);
     }
@@ -152,7 +148,7 @@ export function createProfessionActionController({
     const minimumResource = shatter.minimumResource || 0;
     if (resourcesSpent == null && currentResource() < minimumResource) {
       // Preserve milliseconds so skipped actions can be located in the event log.
-      warnings.push(`${skill.name} skipped at ${at.toFixed(3)}s: no ${resourceDefinition.plural}.`);
+      warn(`${skill.name} skipped at ${at.toFixed(3)}s: no ${resourceDefinition.plural}.`);
       return null;
     }
 
@@ -176,7 +172,8 @@ export function createProfessionActionController({
         spent
       })
     };
-    triggerShatterTraits(resolution);
+    // The resolved profile is already available for this transaction; share it with post-shatter traits.
+    triggerMesmerPostShatterTraits(state, shatter, resolution);
     {
       const packet = buildMesmerPacket({
         type: 'marker',

@@ -4,11 +4,8 @@ import type {
   ProfessionAttributePreviewPreparation
 } from '#gw2/platform/profession-presentation/attribute-preview.js';
 import { createPreviewControls } from '#gw2/professions/shared/attribute-preview.js';
-import { readProfessionSpecializationState } from '#gw2/platform/engine/profession/state.js';
-import {
-  balanceProfileNumber,
-  requireBalanceProfileFromContext
-} from '#gw2/platform/engine/skills/balance-profiles.js';
+import { readProfessionSpecializationState } from '#gw2/platform/profession-definition/state.js';
+import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import type {
   ProfessionEffectPresentation,
   ProfessionResourceView,
@@ -146,14 +143,15 @@ export const catalystUi: ElementalistUiSlice = Object.freeze({
     const state = uiState(context);
     const build = context.build;
     const resourcesProfile = requireBalanceProfileFromContext(context, PROFILE.resources);
-    const maximum = balanceProfileNumber(resourcesProfile, 'maximumStacks');
+    // Observed clocks carry their selected cap; the build-only view uses the active profile before simulation.
+    const maximum = state.catalystEnergy?.maximum ?? balanceProfileNumber(resourcesProfile, 'maximumStacks');
     return [
       {
         id: 'catalyst-energy',
         singular: 'energy',
         plural: 'energy',
         maximum,
-        value: state.energy ?? build?.initialCatalystEnergy ?? maximum,
+        value: state.catalystEnergy?.value ?? Math.min(maximum, build?.initialCatalystEnergy ?? maximum),
         startMaximum: maximum,
         canStart: true,
         buildKey: 'initialCatalystEnergy',

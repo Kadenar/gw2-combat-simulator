@@ -1,4 +1,4 @@
-import type { SkillId } from '#gw2/platform/engine/skills/types.js';
+import type { SkillId } from '#gw2/platform/skills/types.js';
 
 interface Gw2TraitLookupConfig {
   readonly selectedTraitIds?: readonly (string | number)[] | null;

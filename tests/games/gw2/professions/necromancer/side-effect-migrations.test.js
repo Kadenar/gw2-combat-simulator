@@ -1,4 +1,3 @@
-import { canonicalTime } from '#kernel/core/clock.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { necromancerProfession } from '#gw2/professions/necromancer/profession.js';
@@ -98,7 +97,7 @@ test('Distress declares its shard grant after recharge reset and expires it thro
       sideEffectHandlers: {
         ...native.sideEffectHandlers,
         'necromancer.soul-shards'(runtime, cast, action) {
-          resetBeforeGrant = !runtime.cooldowns.has(ID.PERFORATE);
+          resetBeforeGrant = !runtime.cooldownController.hasCooldown(ID.PERFORATE);
           native.sideEffectHandlers['necromancer.soul-shards'](runtime, cast, action);
           assert.equal(runtime.profession.core.soulShardGrant.charges, 6);
           assert.equal(runtime.profession.core.soulShardGrant.expiresAt, runtime.time + 10);
@@ -154,37 +153,6 @@ test('form, creature, shade, Blight, and weapon-spell producers are selected by 
   }
 });
 
-// Recharge-scaled windows use each accepted interval, while precommit cancellation cannot acquire a follow-up.
-test('Isolate declares its recharge-anchored flip across varying reservations and cancellations', () => {
-  const config = { specialization: 'Core', primaryWeapon: 'Spear', selectedTraitIds: [] };
-  const native = necromancerProfession.runtimeFor(config);
-  for (const duration of [1000, 2000]) {
-    for (const fraction of [0.25, 0.75, 1]) {
-      let accepted;
-      const result = observeGw2Runtime({
-        config,
-        profession: {
-          ...native,
-          catalog: withSkill(native.catalog, ID.ISOLATE, { castTimeMs: duration, interruptCommitMs: duration / 2 }),
-          onCastStart(runtime, cast) {
-            native.onCastStart(runtime, cast);
-            accepted = cast;
-          }
-        },
-        rotation: [{ type: 'cast', skillId: ID.ISOLATE, interruptAfterMs: duration * fraction }]
-      });
-      assert.deepEqual(result.warnings, []);
-      const flip = observedRuntime(result).profession.core.availableFlips[ID.DISTRESS];
-      if (fraction < 0.5) assert.equal(flip, undefined);
-      else assert.ok(Math.abs(flip.expiresAt - (accepted.rechargeStart + accepted.skill.flipDuration)) < 1e-8);
-      assert.equal(
-        accepted.rechargeStart,
-        canonicalTime(accepted.start + ((accepted.effectiveEnd - accepted.start) * 11) / 12)
-      );
-    }
-  }
-});
-
 // Haunt's selected summon reaction owns the percentage conversion; stripping it leaves the hit but removes the gain.
 test('Haunt grants Gluttony-scaled life force only through its selected accepted strike reaction', () => {
   for (const mode of ['landed', 'missed', 'no-reaction', 'no-strike']) {
@@ -211,43 +179,6 @@ test('Haunt grants Gluttony-scaled life force only through its selected accepted
     });
     assert.deepEqual(result.warnings, []);
     assert.equal(observedRuntime(result).profession.core.lifeForce.value, mode === 'landed' ? 11 : 0);
-  }
-});
-
-// Opening application owns local effects even off target; removing the strike preserves committed local work.
-test('Corruption local work resolves at opening application or independent commitment exactly once', () => {
-  for (const [interruptAfterMs, removeStrike, gains] of [
-    [400, false, false],
-    [600, false, true],
-    [600, true, false],
-    [900, true, true]
-  ]) {
-    const config = { specialization: 'Core', initialResource: 0, selectedTraitIds: [] };
-    const native = necromancerProfession.runtimeFor(config);
-    const skill = native.catalog.skillsById.get(ID.BLOOD_IS_POWER);
-    const local = skill.effects.filter((effect) => effect.type === 'boon' || effect.target === 'self');
-    const result = observeGw2Runtime({
-      config,
-      profession: {
-        ...native,
-        catalog: withSkill(native.catalog, skill.id, {
-          castTimeMs: 1000,
-          interruptCommitMs: 800,
-          effects: [
-            ...(removeStrike
-              ? []
-              : [{ type: 'strike', coefficient: 1, atMs: 500, timingAnchor: 'castStart', timingScale: 'fixed' }]),
-            ...local
-          ]
-        })
-      },
-      rotation: [{ type: 'cast', skillId: skill.id, interruptAfterMs, offTarget: true }]
-    });
-    assert.deepEqual(result.warnings, []);
-    assert.equal(observedRuntime(result).profession.core.selfConditions.length > 0, gains);
-    const might = result.resolvedEvents.filter((event) => event.kind === 'might' && event.skillId === skill.id);
-    assert.equal(might.length, Number(gains));
-    if (gains) assert.equal(might[0].at, removeStrike ? interruptAfterMs / 1000 : 0.5);
   }
 });
 

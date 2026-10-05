@@ -10,7 +10,7 @@ import { SIGIL_NAMES } from '#gw2/platform/equipment/sigils/catalog.js';
 import { UTILITY_NAMES } from '#gw2/platform/equipment/consumables/utilities.js';
 import { normalizeCommonAssumptions, validateCommonAssumptions } from '#gw2/platform/builds/assumptions.js';
 import { canEquipWeaponSigil, normalizeWeaponSigils } from '#gw2/platform/equipment/sigils/loadout.js';
-import type { CanonicalCatalog, Skill, SkillId } from '#gw2/platform/engine/skills/types.js';
+import type { CanonicalCatalog, Skill, SkillId } from '#gw2/platform/skills/types.js';
 
 import type {
   Gw2CanonicalBuild,

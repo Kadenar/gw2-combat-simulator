@@ -1,11 +1,13 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { MODIFIER_HOOK_NAMES } from '#gw2/platform/engine/profession/contract.js';
-import { createCanonicalCatalog } from '#gw2/platform/engine/skills/canonical-skill-catalog.js';
-import { createEffectReactions } from '#gw2/platform/simulation/effect-reactions.js';
-import { materializeSkillEffectApplications } from '#gw2/platform/engine/effects/materializer.js';
+import { MODIFIER_HOOK_NAMES } from '#gw2/platform/profession-definition/compiler/compile-contract.js';
+import { createCanonicalCatalog } from '#gw2/platform/skills/catalog.js';
+import { createEffectReactions } from '#gw2/platform/resolver/effect-reactions.js';
+import { materializeSkillEffectApplications } from '#gw2/platform/effects/materializer.js';
 import { observeGw2Runtime, observedRuntime } from '#tests/helpers/observed-runtime.js';
 import { testProfession } from '#tests/fixtures/profession.js';
+import { applySideEffect } from '#gw2/platform/effects/action-dispatch.js';
+import { validateResourceGrantSupport } from '#gw2/platform/effects/action-validation.js';
 
 const grant = (amount) => ({ type: 'resourceGrant', resource: 'energy', amount });
 const reaction = (doAction = grant(1), extra = {}) => ({
@@ -62,6 +64,95 @@ function run(
 }
 
 const energy = (result) => observedRuntime(result).profession.energy.value;
+
+// Selected pools reject unsupported authored grants before initialization and transformed grants before delivery.
+test('resource grants require a policy in the selected runtime', () => {
+  const unsupported = { type: 'resourceGrant', resource: 'malice', amount: 1 };
+  const expected = /Reaction fixture \(990101\) grants malice, but the selected runtime has no policy/;
+  let initialized = false;
+  assert.throws(
+    () =>
+      run([], {
+        rotation: [],
+        skill: { sideEffects: [{ on: 'castStart', do: unsupported }] },
+        hooks: {
+          initialize: () => {
+            initialized = true;
+          }
+        }
+      }),
+    expected
+  );
+  assert.equal(initialized, false);
+  assert.throws(() => run([], { hooks: { modifyEffects: () => [strike([reaction(unsupported)])] } }), expected);
+  // Other specializations remain valid selection content without installing their resource policies.
+  const skillSelectionCatalog = catalogFor([], { sideEffects: [{ on: 'castStart', do: unsupported }] });
+  assert.equal(energy(run([strike([reaction(grant(2))])], { hooks: { skillSelectionCatalog } })), 2);
+});
+
+// Formula-backed grants use the same dispatch for endurance and other pools and reject invalid results before mutation.
+test('resource formulas resolve read-only facts and live parameters through ordinary pool dispatch', () => {
+  const calls = [];
+  const queries = { time: 2 };
+  const context = { kind: 'effect', skill: { id: 1 }, trigger: { event: {} } };
+  const services = {
+    queries,
+    resourceController: { grant: (resource, amount) => calls.push([resource, amount]) },
+    endurance: { grant: (amount) => calls.push(['endurance', amount]) }
+  };
+  const amount = {
+    parameters: { value: 3 },
+    validate: () => {},
+    resolve: (facts, trigger, parameters) => {
+      assert.equal(facts, queries);
+      assert.equal(trigger, context);
+      return parameters.value * facts.time;
+    }
+  };
+  for (const resource of ['energy', 'endurance'])
+    applySideEffect(services, context, { type: 'resourceGrant', resource, amount });
+  assert.deepEqual(calls, [
+    ['energy', 6],
+    ['endurance', 6]
+  ]);
+  for (const value of [-1, NaN, Infinity])
+    assert.throws(
+      () =>
+        applySideEffect(services, context, {
+          type: 'resourceGrant',
+          resource: 'endurance',
+          amount: { ...amount, parameters: { value } }
+        }),
+      /finite and non-negative/
+    );
+  assert.equal(calls.length, 2);
+});
+
+// Recipes are validated at their declaration stage and evaluated only after their owning reaction accepts a packet.
+test('resource formula validation retains trigger identity and miss gating', () => {
+  let resolved = 0;
+  const stages = [];
+  const amount = {
+    parameters: { value: 7 },
+    validate: (parameters, on) => {
+      assert.equal(parameters.value, 7);
+      stages.push(on);
+    },
+    resolve: (_queries, _context, parameters) => {
+      resolved++;
+      return parameters.value;
+    }
+  };
+  assert.equal(energy(run([strike([reaction(grant(amount))])])), 7);
+  assert.equal(resolved, 1);
+  assert.equal(
+    energy(run([strike([reaction(grant(amount))])], { rotation: [cast({ offTarget: true }), wait(1000)] })),
+    0
+  );
+  assert.equal(resolved, 1);
+  assert.ok(stages.every((stage) => stage === 'damage.resolved'));
+  assert.throws(() => catalogFor([strike([reaction(grant({ ...amount, resolve: undefined }))])]), /resolver/);
+});
 
 // Runtime stack expansion keeps first-packet rewards singular while each-application rewards observe every stack.
 test('Burning splitting preserves first/each reactions across timed pulses and repeated casts', () => {
@@ -144,12 +235,10 @@ test('owner cancellation gates deferred authored reactions', () => {
   }
 });
 
-// Surviving launched projectiles own rewards even after the cast reservation has retired.
-test('reaction timing follows impact delay, commitment, observation and target death', () => {
-  const effects = [strike([reaction()], { atMs: 800, persistsAfterInterrupt: true })];
-  const skill = { castTimeMs: 600, interruptCommitMs: 200 };
-  assert.equal(energy(run(effects, { skill, rotation: [cast({ interruptAfterMs: 100 }), wait(1000)] })), 0);
-  assert.equal(energy(run(effects, { skill, rotation: [cast({ interruptAfterMs: 400 }), wait(1000)] })), 1);
+// Resource rewards require an observed impact before target death.
+test('reaction rewards respect impact delay, observation and target death', () => {
+  const effects = [strike([reaction()], { atMs: 800 })];
+  const skill = { castTimeMs: 600 };
   assert.equal(energy(run(effects, { skill, rotation: [cast({ impactDelayMs: 500 }), wait(400)] })), 0);
   assert.equal(energy(run(effects, { skill, rotation: [cast({ impactDelayMs: 500 }), wait(1400)] })), 1);
   assert.equal(energy(run([strike(undefined), ...effects], { skill, config: { target: { health: 1, armor: 1 } } })), 0);
@@ -331,7 +420,11 @@ test('reaction validation rejects incompatible stages, malformed actions and mis
 test('reaction registry interns shared declarations across repeated materialization', () => {
   const catalog = catalogFor([strike([reaction()])]);
   const skill = catalog.skills[0];
-  const registry = createEffectReactions(catalog, {});
+  const registry = createEffectReactions(catalog, {
+    hasHandler: () => false,
+    validate: (skill, action) => validateResourceGrantSupport(action, new Set(['energy']), skill.name),
+    apply: () => assert.fail('Registration cannot dispatch actions.')
+  });
   const ids = new Set();
   for (let index = 0; index < 1000; index++) ids.add(registry.register(skill, { ...skill.effects[0] }));
   assert.equal(ids.size, 1);

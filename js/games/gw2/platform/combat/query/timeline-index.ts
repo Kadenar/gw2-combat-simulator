@@ -10,25 +10,22 @@ import {
   prepareBoonWindows,
   type BoonWindow
 } from '#gw2/platform/combat/boons.js';
-import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
-import type { Skill, SkillId } from '#gw2/platform/engine/skills/types.js';
-import type { RechargeProgress } from '#gw2/platform/engine/skills/recharge.js';
-import {
-  GW2_ALACRITY_RECHARGE_RATE,
-  gw2RechargeIntervals,
-  projectRecharge
-} from '#gw2/platform/engine/skills/recharge.js';
+import type { SimulationEvent } from '#gw2/platform/events/events.js';
+import type { Skill, SkillId } from '#gw2/platform/skills/types.js';
+import type { RechargeProgress } from '#gw2/platform/execution/recharge.js';
+import { GW2_ALACRITY_RECHARGE_RATE, gw2RechargeIntervals, projectRecharge } from '#gw2/platform/execution/recharge.js';
 import { gw2SigilSet } from '#gw2/platform/equipment/sigils/loadout.js';
 import type { Gw2SigilSet } from '#gw2/platform/equipment/sigils/types.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
-import { gw2CooldownReadyAt, gw2EffectExpiresAt } from '#gw2/platform/skills/timing.js';
+import { gw2CooldownReadyAt } from '#gw2/platform/execution/cast-timing.js';
+import { gw2EffectExpiresAt } from '#gw2/platform/effects/timing.js';
 import { canonicalTime } from '#kernel/core/clock.js';
 import { insertSorted } from '#kernel/core/collections.js';
 import { eventCausalOrder } from '#kernel/events/queue.js';
 
 interface CreateGw2TimelineIndexOptions {
   readonly playerAlacrityRechargeRate?: number;
-  readonly skillOnCooldown?: (skillId: import('#gw2/platform/engine/skills/types.js').SkillId, time: number) => boolean;
+  readonly skillOnCooldown?: (skillId: import('#gw2/platform/skills/types.js').SkillId, time: number) => boolean;
   readonly config?: Gw2Config;
   readonly events?: readonly SimulationEvent[];
   readonly skillsById?: ReadonlyMap<SkillId, Skill>;
@@ -362,5 +359,5 @@ export interface Gw2TimelineIndex {
   vigorActiveAt(time: number): boolean;
   activeWeaponSetAt(time: number): number;
   activeSigilSetAt(time: number): Gw2SigilSet;
-  skillOnCooldownAt(skillId: import('#gw2/platform/engine/skills/types.js').SkillId, time: number): boolean;
+  skillOnCooldownAt(skillId: import('#gw2/platform/skills/types.js').SkillId, time: number): boolean;
 }

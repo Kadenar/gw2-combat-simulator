@@ -1,6 +1,6 @@
 /** Owns the combos/types.ts contracts so type dependencies follow their runtime feature boundaries. */
-import type { SimulationEventBase } from '#gw2/platform/engine/events/events.js';
-import type { SimulationActorType } from '#gw2/platform/engine/events/actors.js';
+import type { SimulationEventBase } from '#gw2/platform/events/events.js';
+import type { SimulationActorType } from '#gw2/platform/events/actors.js';
 
 /** Keep validation, assumption choices, and type unions on the same combo vocabulary. */
 export const COMBO_FIELD_TYPES = Object.freeze([
@@ -62,7 +62,7 @@ export interface ComboEvent extends SimulationEventBase<'combo'> {
   readonly fieldId: string;
   readonly fieldType: ComboFieldType;
   readonly finisherType: ComboFinisherType;
-  readonly fieldSourceId: import('#gw2/platform/engine/skills/types.js').SkillId;
+  readonly fieldSourceId: import('#gw2/platform/skills/types.js').SkillId;
   readonly bindingKind: ComboFieldBinding['kind'];
   readonly applicationCount: number;
   readonly outcome: Readonly<Record<string, unknown>>;

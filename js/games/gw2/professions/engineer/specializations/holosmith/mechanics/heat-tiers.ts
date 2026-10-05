@@ -1,14 +1,11 @@
-import {
-  balanceProfileNumber,
-  requireBalanceProfileFromContext
-} from '#gw2/platform/engine/skills/balance-profiles.js';
+import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import { holosmithState } from '#gw2/professions/engineer/specializations/holosmith/state.js';
 import {
   enhancedCapacityHeatTier,
   enhancedCapacitySelected
 } from '#gw2/professions/engineer/specializations/holosmith/traits/heat.js';
 
-import type { SkillId } from '#gw2/platform/engine/skills/types.js';
+import type { SkillId } from '#gw2/platform/skills/types.js';
 import { HOLOSMITH_HEAT } from '#gw2/professions/engineer/specializations/holosmith/mechanics/constants.js';
 import type { EngineerConfig, EngineerResolverEvent } from '#gw2/professions/engineer/types.js';
 
@@ -42,7 +39,7 @@ export function holosmithEventMetadata(event: unknown): HolosmithEventMetadata {
 export function snapshotHolosmithHeat(context: unknown): HolosmithHeatSnapshot {
   const source = context as { readonly config?: EngineerConfig };
   return Object.freeze({
-    heat: holosmithState.from(context).heat || 0,
+    heat: holosmithState.from(context).heat.value,
     enhancedCapacitySelected: enhancedCapacitySelected(source.config || {})
   });
 }

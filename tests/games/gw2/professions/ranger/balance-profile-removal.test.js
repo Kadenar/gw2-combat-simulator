@@ -1,4 +1,4 @@
-import { createEffectEmissionService } from '#gw2/platform/simulation/effect-emission.js';
+import { createEffectEmissionService } from '#gw2/platform/effects/emission.js';
 import { applyBalanceProfilePatch } from '#gw2/integrations/patches/authoring/patches.js';
 import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
 import { createProcRegistry } from '#gw2/platform/combat/procs.js';
@@ -18,7 +18,8 @@ import test from 'node:test';
 
 const remove = (type, name) => ({ removeEffects: [{ type, name }] });
 const wait = (durationMs) => ({ type: 'wait', durationMs });
-const patched = (balanceProfiles) => applyBalanceProfilePatch(rangerCatalog, { balanceProfiles });
+// Runtime patches retain the selected catalog; standalone trait probes explicitly use the family catalog.
+const patched = (catalog, balanceProfiles) => applyBalanceProfilePatch(catalog, { balanceProfiles });
 
 // Only the state-selected packet can claim the shared deadline; its removed sibling cannot substitute for it.
 test('Untamed control declarations gate cooldowns on the selected surviving effect', () => {
@@ -44,7 +45,7 @@ test('Untamed control declarations gate cooldowns on the selected surviving effe
           [wait(1500)],
           { specialization: 'Untamed', selectedTraitIds: [trait] },
           {
-            extend: () => ({ catalog: patched({ [profile]: remove(type, removed) }) }),
+            extend: (native) => ({ catalog: patched(native.catalog, { [profile]: remove(type, removed) }) }),
             initialize(runtime) {
               runtime.profession.specialization.state.rangerUnleashed = unleashed;
               runtime.effects.emit({
@@ -100,7 +101,8 @@ function resolverContext(balanceProfiles, selectedTraitIds, specialization) {
   const context = {
     procs: createProcRegistry(() => context),
     config,
-    catalog: patched(balanceProfiles),
+    traits: new Set(config.selectedTraitIds),
+    catalog: patched(rangerCatalog, balanceProfiles),
     boons: new Map(),
     // Neutral stats keep derived boon durations at their authored values.
     query: { statsAt: () => ({}) },
@@ -154,7 +156,8 @@ test('removed Quick Draw quickness keeps the trait-owned recharge window and coo
   const context = {
     procs: createProcRegistry(() => context),
     config,
-    catalog: patched({ [TRAIT.QUICK_DRAW]: remove('boon', 'quickness') }),
+    traits: new Set(config.selectedTraitIds),
+    catalog: patched(rangerCatalog, { [TRAIT.QUICK_DRAW]: remove('boon', 'quickness') }),
     combatStartTime: 0,
     effectiveEnd: 1,
     state: { time: 1, profession: { core: createRangerCoreState(config) } },
@@ -162,9 +165,18 @@ test('removed Quick Draw quickness keeps the trait-owned recharge window and coo
   };
   applyRangerWeaponSwapTraits(context, rangerCatalog.skillsById.get(SHARED_SKILL_IDS.SWAP_WEAPONS), 1);
   const core = context.state.profession.core;
-  assert.equal(core.quickDrawUntil, 6);
+  assert.equal(core.quickDraw.expiresAt, 6);
+  assert.equal(core.quickDraw.charges, 1);
   assert.equal(context.procs.deadline('ranger.core.quickDraw'), 10);
   assert.deepEqual(events, []);
+  // The grant cannot bypass the trait's independent ICD, even when its boon packet is absent.
+  applyRangerWeaponSwapTraits(context, rangerCatalog.skillsById.get(SHARED_SKILL_IDS.SWAP_WEAPONS), 2);
+  assert.equal(core.quickDraw.expiresAt, 6);
+  applyRangerWeaponSwapTraits(context, rangerCatalog.skillsById.get(SHARED_SKILL_IDS.SWAP_WEAPONS), 10);
+  assert.equal(core.quickDraw.expiresAt, 6, 'the ICD remains blocked at its exact boundary');
+  applyRangerWeaponSwapTraits(context, rangerCatalog.skillsById.get(SHARED_SKILL_IDS.SWAP_WEAPONS), 11);
+  assert.equal(core.quickDraw.expiresAt, 16);
+  assert.equal(core.quickDraw.charges, 1);
 });
 
 test('removed Poisonous Strikes poison leaves its charges unspent', () => {
@@ -181,8 +193,8 @@ test('Bestial Rage keeps its sibling boon and cooldown, and releases the cooldow
       [wait(1500)],
       { specialization: 'Soulbeast', selectedTraitIds: [TRAIT.BESTIAL_RAGE] },
       {
-        extend: () => ({
-          catalog: patched({
+        extend: (native) => ({
+          catalog: patched(native.catalog, {
             [TRAIT.BESTIAL_RAGE]: {
               removeEffects: [{ type: 'boon', name: 'might' }, ...(both ? [{ type: 'boon', name: 'fury' }] : [])]
             }
@@ -221,6 +233,7 @@ test('a missing required Ranger scalar fails instead of using a local default', 
   const context = {
     procs: createProcRegistry(() => context),
     config,
+    traits: new Set(config.selectedTraitIds),
     catalog: { balanceProfilesById: new Map([[TRAIT.QUICK_DRAW, profile]]) },
     combatStartTime: 0,
     effectiveEnd: 1,
@@ -264,8 +277,8 @@ test('pet recharge consumes patched Pack Alpha and Crippling Anguish values', ()
         selectedTraitIds: [TRAIT.PACK_ALPHA]
       },
       {
-        extend: () => ({
-          catalog: patched({
+        extend: (native) => ({
+          catalog: patched(native.catalog, {
             [TRAIT.PACK_ALPHA]: { fields: { rechargeMultiplier: 0.5 } },
             [CORE.cripplingAnguishQuickness]: { fields: { cooldown: 7 } }
           })

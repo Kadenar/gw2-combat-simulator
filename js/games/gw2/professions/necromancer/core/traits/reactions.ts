@@ -1,4 +1,3 @@
-import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import type { NativeResolvedDamageDetails } from '#gw2/platform/profession-definition/module-types.js';
 import {
   applyOverflowingThirstDamage,
@@ -31,7 +30,7 @@ export function reactToNecromancerCoreDamage(
   applyChillOfDeathCondition(context, event);
   if (event.actorType === 'effect' || !(Number(event.coefficient) > 0)) return;
 
-  const skill = event.skillId == null ? undefined : context.helpers.skillsById?.get(event.skillId);
+  const skill = event.skillId == null ? undefined : context.helpers.skillsById.get(event.skillId);
   const firstHit = Number(event.hitIndex || 1) === 1;
   const shroudSkillOne = skill?.shroudSlot === 1 || event.metadata?.necromancerShroudSkillOne === true;
   applyVampiric(context, event);
@@ -50,13 +49,6 @@ export function reactToNecromancerCoreCondition(
   context: NecromancerResolverContext,
   event: NecromancerResolverEvent
 ): void {
-  if (event.condition === 'Chilled') {
-    professionCoreState(context).targetChilledUntil = Math.max(
-      professionCoreState(context).targetChilledUntil || 0,
-      event.at + (event.effectiveDuration ?? event.duration ?? 0)
-    );
-  }
-
   applyBitterChill(context, event);
   applyCorruptorsFervor(context, event);
 }

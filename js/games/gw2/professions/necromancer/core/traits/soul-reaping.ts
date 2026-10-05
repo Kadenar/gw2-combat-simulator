@@ -1,8 +1,5 @@
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
-import {
-  balanceProfileNumber,
-  requireBalanceProfileFromContext
-} from '#gw2/platform/engine/skills/balance-profiles.js';
+import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import { defineTrait, traitAttributeEffects } from '#gw2/platform/profession-definition/traits.js';
 import { necromancerActiveShroud } from '#gw2/professions/necromancer/core/mechanics/modifier-queries.js';
 import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
@@ -183,18 +180,3 @@ const SHADE_SKILLS = new Set<number>([
   ID.MANIFEST_SAND_SHADE,
   ID.SANDSTORM_SHROUD
 ]);
-
-export const soulReapingTraits = [
-  dhuumfire,
-  unyieldingBlast,
-  vitalPersistence,
-  sinisterShroud,
-  deathPerception,
-  soulBarbs,
-  eternalLife,
-  fearOfDeath,
-  speedOfShadows,
-  soulMarks,
-  soulBattery,
-  gluttony
-];

@@ -3,11 +3,10 @@ import type { ChargeGrant } from '#gw2/platform/combat/resources/charges.js';
 import {
   definePublicStateDefaults,
   defineProfessionSpecializationState
-} from '#gw2/platform/engine/profession/state.js';
+} from '#gw2/platform/profession-definition/state.js';
 
 export interface RenegadeState {
-  bandTogetherReady: boolean;
-  bandTogetherExpiresAt: number;
+  bandTogether: ChargeGrant;
   kallasFervor: RevenantTimedStack[];
   kallasFervorMaximumStacks: number;
   razorclawsRage: ChargeGrant;
@@ -16,8 +15,7 @@ export interface RenegadeState {
 }
 
 export const RENEGADE_PUBLIC_STATE_PROJECTION = definePublicStateDefaults({
-  bandTogetherReady: false,
-  bandTogetherExpiresAt: 0,
+  bandTogether: { charges: 0, expiresAt: 0 },
   kallasFervor: [],
   razorclawsRage: {
     charges: 0,
@@ -28,9 +26,8 @@ export const RENEGADE_PUBLIC_STATE_PROJECTION = definePublicStateDefaults({
 
 function createRenegadeState(): RenegadeState {
   return {
-    // bandTogetherReady + bandTogetherExpiresAt together form the one-use enhancement window; both must be checked because the flag alone doesn't expire itself
-    bandTogetherReady: false,
-    bandTogetherExpiresAt: 0,
+    // A finite replacement grant empowers exactly one eligible summon accepted before expiry.
+    bandTogether: { charges: 0, expiresAt: 0 },
     // each element records the application timestamp and expiry; the array is pruned lazily
     kallasFervor: [],
     // synchronized from the active patchable Kalla's Fervor profile

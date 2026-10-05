@@ -1,13 +1,20 @@
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { eventSkill } from '#gw2/platform/combat/query/runtime-query.js';
+import { hasTrait } from '#gw2/platform/combat/state/traits.js';
+import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
+import type { MechanicContext } from '#gw2/platform/profession-definition/mechanic-context.js';
+import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
+import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import {
   balanceProfileNumber,
-  requireBalanceProfileFromContext
-} from '#gw2/platform/engine/skills/balance-profiles.js';
-import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
-import { readyHeightenedFocusBurst, triggerHeightenedFocus } from '#gw2/professions/warrior/core/traits/behavior.js';
+  requireBalanceProfileFromContext,
+  requireEffect
+} from '#gw2/platform/skills/balance-profiles.js';
 import { warriorBoonActive } from '#gw2/professions/warrior/core/traits/modifier-queries.js';
 import { WARRIOR_SKILL_IDS as ID, WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/professions/warrior/data/ids.js';
+import { grantWarriorResource } from '#gw2/professions/warrior/resource-rules.js';
+import type { WarriorRuntimeState, WarriorSkill } from '#gw2/professions/warrior/types.js';
+import { canonicalTime } from '#kernel/core/clock.js';
 
 /** Enhance the ranged autoattacks, applying Burning separately for each Dual Shot arrow that hits. */
 export const crackShot = defineTrait({
@@ -149,3 +156,121 @@ export const warriorsSprint = defineTrait({
     }
   ]
 });
+
+type WarriorRuntime = MechanicContext<WarriorRuntimeState, WarriorSkill>;
+
+/**
+ * Heightened Focus: the first player strike after its internal cooldown that lands while the target is below half
+ * health grants Quickness and readies every Burst skill, so execute phases can chain bursts. The adrenaline-scaled
+ * outgoing-healing stacks are support-only and intentionally not modeled.
+ */
+export function triggerHeightenedFocus(runtime: WarriorRuntime, event: Gw2ResolverEvent): void {
+  if (
+    event.actorType !== 'player' ||
+    !((event.coefficient || 0) > 0) ||
+    !hasTrait(runtime, TRAIT.HEIGHTENED_FOCUS) ||
+    !runtime.combat.targetHealthBelow(0.5) ||
+    !runtime.procs.claim(TRAIT.HEIGHTENED_FOCUS)
+  )
+    return;
+  {
+    const traitProfile = requireBalanceProfileFromContext(runtime, TRAIT.HEIGHTENED_FOCUS);
+    runtime.effects.emit({
+      kind: 'profile',
+      profile: traitProfile,
+      effects: traitProfile.effects?.filter((effect) => ['boon', 'buff', 'condition'].includes(effect.type)),
+      attribution: {
+        source: 'Trait',
+        sourceId: TRAIT.HEIGHTENED_FOCUS,
+        actorType: 'effect',
+        skillId: event.skillId,
+        skillName: event.skillName
+      },
+      cause: event,
+      transform: (packet) => ({ ...packet, priority: 5, name: traitProfile.name, stacks: 1 * Number(packet.stacks) })
+    });
+  }
+
+  // The live catalog defines which skills are bursts, including elite primal bursts and chants.
+  for (const skill of runtime.helpers.skills) if (skill.burst) runtime.cooldownController.clear(skill.id);
+  runtime.effects.emit({
+    kind: 'announcement',
+    announcement: {
+      type: 'trait',
+      name: 'Heightened Focus',
+      at: event.at,
+      sourceSkill: event.skillName,
+      detail: 'quickness; Burst skills recharged'
+    }
+  });
+}
+
+/**
+ * In game a burst's recharge begins at activation, so a Heightened Focus trigger during that burst's own cast also
+ * readies it. The simulator commits recharge at completion, before this hook, so the burst is cleared again here when
+ * the latest trigger (recovered from the proc deadline) falls inside its cast window.
+ */
+export function readyHeightenedFocusBurst(runtime: WarriorRuntime, cast: RuntimeCast<WarriorSkill>): void {
+  if (!cast.skill.burst || !hasTrait(runtime, TRAIT.HEIGHTENED_FOCUS)) return;
+  const readyAt = runtime.procs.deadline(TRAIT.HEIGHTENED_FOCUS);
+  if (!(readyAt > 0)) return;
+  // Canonicalize subtraction roundoff without admitting procs outside the cast window.
+  const triggeredAt = canonicalTime(
+    readyAt -
+      balanceProfileNumber(requireBalanceProfileFromContext(runtime, TRAIT.HEIGHTENED_FOCUS), 'internalCooldown')
+  );
+  if (triggeredAt >= canonicalTime(cast.start) && triggeredAt <= canonicalTime(runtime.time))
+    runtime.cooldownController.clear(cast.skill.id);
+}
+
+/** Apply line-owned rewards at the shared reaction boundary. */
+export function axeMasteryCritical(runtime: WarriorRuntime, event: Gw2ResolverEvent, criticals: number): void {
+  if (criticals > 0 && hasTrait(runtime, TRAIT.AXE_MASTERY)) {
+    const skill = runtime.helpers.skillsById.get(event.skillId ?? '');
+    if ((skill?.skillWeapon || skill?.weapon || event.skillWeapon) === 'Axe')
+      grantWarriorResource(
+        runtime,
+        criticals * balanceProfileNumber(requireBalanceProfileFromContext(runtime, TRAIT.AXE_MASTERY), 'resourceGain')
+      );
+  }
+}
+
+/** Apply line-owned rewards at the shared reaction boundary. */
+export function versatileRageSwap(runtime: WarriorRuntime): void {
+  if (hasTrait(runtime, TRAIT.VERSATILE_RAGE))
+    grantWarriorResource(
+      runtime,
+      balanceProfileNumber(requireBalanceProfileFromContext(runtime, TRAIT.VERSATILE_RAGE), 'resourceGain')
+    );
+}
+
+/** Refund the captured burst spend before later completion rewards. */
+export function burstMasteryCommit(runtime: WarriorRuntime, cast: RuntimeCast<WarriorSkill>, spent: number): void {
+  if (cast.skill.burst && cast.skill.id !== ID.FULL_COUNTER && spent > 0 && hasTrait(runtime, TRAIT.BURST_MASTERY)) {
+    grantWarriorResource(
+      runtime,
+      spent * balanceProfileNumber(requireBalanceProfileFromContext(runtime, TRAIT.BURST_MASTERY), 'resourceGain')
+    );
+    // The refund is live now; Swiftness resolves after same-time burst damage, preserving reward ordering.
+    {
+      const traitProfile = requireBalanceProfileFromContext(runtime, TRAIT.BURST_MASTERY);
+      const selectedEffect = requireEffect(traitProfile, 'boon', 'swiftness');
+      if (selectedEffect)
+        runtime.effects.emit({
+          kind: 'profile',
+          profile: traitProfile,
+          effects: [selectedEffect],
+          at: runtime.time,
+          attribution: {
+            source: 'Trait',
+            sourceId: TRAIT.BURST_MASTERY,
+            actorType: 'effect',
+            skillId: cast.skill.id,
+            skillName: cast.skill.name,
+            activationId: cast.id
+          },
+          transform: (event) => ({ ...event, name: 'Burst Mastery — Swiftness', priority: 5 })
+        });
+    }
+  }
+}

@@ -1,5 +1,5 @@
-import type { SimulationEventBase } from '#gw2/platform/engine/events/events.js';
-import type { SkillId } from '#gw2/platform/engine/skills/types.js';
+import type { SimulationEventBase } from '#gw2/platform/events/events.js';
+import type { SkillId } from '#gw2/platform/skills/types.js';
 import type { ComboEvent, ComboFieldType, ComboFinisherType } from '#gw2/platform/combos/types.js';
 import { COMBO_FIELD_TYPES, COMBO_FINISHER_TYPES } from '#gw2/platform/combos/types.js';
 

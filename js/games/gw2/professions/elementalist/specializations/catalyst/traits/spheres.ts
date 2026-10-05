@@ -1,17 +1,17 @@
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
-import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
+import type { SimulationEvent } from '#gw2/platform/events/events.js';
 import {
   balanceProfileNumber,
   requireBalanceProfileFromContext,
   requireEffect
-} from '#gw2/platform/engine/skills/balance-profiles.js';
-import type { Skill, SkillEffect } from '#gw2/platform/engine/skills/types.js';
-import type { EffectDelivery } from '#gw2/platform/simulation/effect-emission.js';
-import type { RuntimeCast } from '#gw2/platform/simulation/runtime-state.js';
+} from '#gw2/platform/skills/balance-profiles.js';
+import type { Skill } from '#gw2/platform/skills/types.js';
+import type { SkillEffect } from '#gw2/platform/effects/types.js';
+import type { EffectDelivery } from '#gw2/platform/effects/emission.js';
+import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import { elementalistBuffRequest } from '#gw2/professions/elementalist/core/events.js';
 import { elementalistEventSkill } from '#gw2/professions/elementalist/core/mechanics/effects.js';
 import { ELEMENTALIST_TRAIT_IDS as TRAIT } from '#gw2/professions/elementalist/data/ids.js';
-import { CATALYST_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/elementalist/specializations/catalyst/profiles.js';
 import { catalystState } from '#gw2/professions/elementalist/specializations/catalyst/state.js';
 import type { ElementalistRuntime, ElementalistSkill } from '#gw2/professions/elementalist/types.js';
 /** Sphere traits observe the deployment after its intrinsic start action and before ordinary packet emission. */
@@ -75,13 +75,12 @@ export function applyEnergizedElements(
   // Energized Elements refunds energy and grants fury on every attunement swap.
   if (event.type === 'elementalist.attunement' && hasTrait(context, TRAIT.ENERGIZED_ELEMENTS)) {
     const state = catalystState.from(context);
-    const before = state.energy;
+    const before = context.resourceController.value('catalystEnergy');
     const energizedElementsProfile = requireBalanceProfileFromContext(context, TRAIT.ENERGIZED_ELEMENTS);
     const energyGain = balanceProfileNumber(energizedElementsProfile, 'resourceGain');
-    state.energy = Math.min(
-      balanceProfileNumber(requireBalanceProfileFromContext(context, PROFILE.resources), 'maximumStacks'),
-      state.energy + energyGain
-    );
+    // Report only the capped gain while preserving energy, Fury, then resource-observation ordering.
+    context.resourceController.grant('catalystEnergy', energyGain);
+    const after = context.resourceController.value('catalystEnergy');
     const fury = requireEffect(energizedElementsProfile, 'boon', 'Fury');
     if (fury) {
       context.effects.emit(
@@ -102,7 +101,7 @@ export function applyEnergizedElements(
       );
     }
 
-    if (state.energy !== before) {
+    if (after !== before) {
       context.effects.emit({
         kind: 'packet',
         cause: event,
@@ -114,9 +113,9 @@ export function applyEnergizedElements(
           actorType: 'player',
           skillName: 'Energized Elements',
           kind: 'catalyst-energy',
-          value: state.energy,
-          maximum: balanceProfileNumber(requireBalanceProfileFromContext(context, PROFILE.resources), 'maximumStacks'),
-          change: state.energy - before
+          value: after,
+          maximum: state.catalystEnergy.maximum,
+          change: after - before
         }
       });
     }

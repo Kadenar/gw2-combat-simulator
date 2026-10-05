@@ -1,9 +1,9 @@
 /** Mace casts and impacts use observed timings rounded to the nearest 40 ms action tick. */
-import type { RuntimeProfession } from '#gw2/platform/simulation/runtime-state.js';
+import type { RuntimeProfession } from '#gw2/platform/profession-definition/runtime-contract.js';
 import type { WarriorRuntimeState, WarriorSkill } from '#gw2/professions/warrior/types.js';
 import { WARRIOR_SKILL_IDS as ID } from '#gw2/professions/warrior/data/ids.js';
-import { impactEffects } from '#gw2/platform/engine/effects/authoring.js';
-import type { Skill } from '#gw2/platform/engine/skills/types.js';
+import { impactEffects } from '#gw2/platform/effects/authoring.js';
+import type { Skill } from '#gw2/platform/skills/types.js';
 
 export const WARRIOR_WEAPONS_MACE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
   [ID.MACE_SMASH]: {
@@ -137,7 +137,7 @@ export const WARRIOR_WEAPONS_MACE_SKILL_MECHANICS: Readonly<Record<number, Parti
     // Acceptance consumes the follow-up even if its attack is canceled.
     sideEffects: [
       { on: 'castStart', do: { type: 'flipConsume', skillId: ID.TACTICAL_BLOW } },
-      { on: 'castCommit', do: { type: 'warrior.adrenaline', amount: 5 } }
+      { on: 'castCommit', do: { type: 'warrior.grant-combat-resource', amount: 5 } }
     ],
     // Share impact timing while preserving independent payloads and declaration order.
     effects: impactEffects({ atMs: 440, timingAnchor: 'castStart', timingScale: 'fixed' }, [

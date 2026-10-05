@@ -1,6 +1,6 @@
-import type { RechargeProgress } from '#gw2/platform/engine/skills/recharge.js';
+import type { RechargeProgress } from '#gw2/platform/execution/recharge.js';
 /** Defines scheduling state, cast commands, and observation contracts used to execute rotations. */
-import type { Skill, SkillId } from '#gw2/platform/engine/skills/types.js';
+import type { Skill, SkillId } from '#gw2/platform/skills/types.js';
 
 export interface AmmoState {
   charges: number;
@@ -11,6 +11,28 @@ export interface AmmoState {
   lockoutProgress?: RechargeProgress;
   /** Independent cast lockout; charge recovery must not shorten this deadline. */
   lockoutReadyAt?: number;
+}
+
+/** Mechanics can inspect pool facts; mutation and serial recharge bookkeeping remain inside the recharge service. */
+export interface AmmoObservation extends Omit<Readonly<AmmoState>, 'recharges' | 'lockoutProgress'> {
+  readonly recharges: readonly Readonly<RechargeProgress>[];
+}
+
+/** Checkpoints store remaining work and relative deadlines so restoring them does not rewrite earned progress. */
+export interface RechargeCheckpoint {
+  readonly remainingCooldowns: ReadonlyMap<SkillId, number>;
+  readonly remainingRechargeWork: ReadonlyMap<SkillId, number>;
+  readonly ammo: ReadonlyMap<
+    SkillId,
+    {
+      readonly charges: number;
+      readonly maximum: number;
+      readonly nextRechargeRemaining: number | null;
+      readonly lockoutRemaining: number;
+      readonly pendingRechargeWork: readonly number[];
+      readonly pendingLockoutWork?: number;
+    }
+  >;
 }
 
 export type AvailabilityResult =
@@ -35,6 +57,35 @@ export interface ProfessionConfig {
 }
 
 export interface CooldownController {
+  /** Observe one skill at the live clock without refreshing unrelated recharge pools. */
+  isOnCooldown(skillId: SkillId, at?: number): boolean;
+  readyAt(skillId: SkillId): number | undefined;
+  hasCooldown(skillId: SkillId): boolean;
+  readAmmo(skillId: SkillId): AmmoObservation | undefined;
+  hasAmmo(skillId: SkillId): boolean;
+  rechargeFor(skillId: SkillId): Readonly<RechargeProgress> | undefined;
+  cooldownSkillIds(): IterableIterator<SkillId>;
+  ammoSkillIds(): IterableIterator<SkillId>;
+  retireAmmo(skillId: SkillId): void;
+  linkAmmo(sourceId: SkillId, targetId: SkillId): void;
+  clearAmmoLockout(skillId: SkillId): void;
+  /** Reserve additional rounds at acceptance without settling their future recharge anchor. */
+  reserveAmmo(skill: Skill, count: number, recharge: RechargeProgress): number;
+  /** Replace temporary charges while retaining the existing independent cast lockout. */
+  replaceAmmoCharges(skill: Skill, maximum: number, charges: number, recharges: readonly RechargeProgress[]): void;
+  checkpoint(
+    at: number,
+    preservedCooldownIds: ReadonlySet<SkillId>,
+    independentCooldownId: SkillId
+  ): RechargeCheckpoint;
+  restoreCheckpoint(
+    checkpoint: RechargeCheckpoint,
+    at: number,
+    preservedCooldownIds: ReadonlySet<SkillId>,
+    deadlines: readonly { readonly skillId: SkillId; readonly readyAt: number }[]
+  ): void;
+  /** Reset all recharge and ammunition pools at an authored reset boundary. */
+  resetAll(): void;
   /** Starts a cooldown with base-recharge work; fixed deadlines use setReadyAt instead. */
   startRecharge(skill: Skill, at: number, work?: number): number;
   setReadyAt(skillId: SkillId, readyAt: number): void;
@@ -44,10 +95,10 @@ export interface CooldownController {
   rate(skill: Skill, at?: number): number;
   project(skill: Skill, progress: RechargeProgress): number;
   remaining(skill: Skill, progress: RechargeProgress, at: number): number;
-  ensureAmmo(skill: Skill): AmmoState | null;
+  ensureAmmo(skill: Skill): AmmoObservation | null;
   /** Advances base-recharge progress and returns the wall time recovered at the current rate. */
   reduceSkillRecharge(skill: Skill, reduction: number, at?: number): number;
-  refreshAmmo(skill: Skill, at: number): AmmoState | null;
+  refreshAmmo(skill: Skill, at: number): AmmoObservation | null;
   restoreAmmo(skill: Skill, count: number, at: number): number;
   setAmmoLockout(skill: Skill, work: number, at?: number): void;
   spendAmmo(skill: Skill, at: number, committedRechargeWork?: number): void;
@@ -89,6 +140,12 @@ export interface CastCommand {
   /** Extra hold after the selected Dragon Charge threshold; holding spends no additional Flow. */
   readonly releaseDelayMs?: number;
   readonly doubleEdgeOutcome?: 'success' | 'backfire';
+}
+
+/** Detached release intent contains only the facts a charging mechanic needs to decide whether to hold. */
+export interface ChargeReleaseIntent {
+  readonly skillId: SkillId;
+  readonly charges?: number;
 }
 
 export interface WaitCommand {

@@ -11,9 +11,9 @@
  * `core/mechanics/availability.ts`, and the table is merged in by `core/skills/index.ts`.
  */
 
-import { impactEffects } from '#gw2/platform/engine/effects/authoring.js';
+import { impactEffects } from '#gw2/platform/effects/authoring.js';
 import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';
-import type { Skill } from '#gw2/platform/engine/skills/types.js';
+import type { Skill } from '#gw2/platform/skills/types.js';
 
 /**
  * Skill-id keyed fragments the catalog layers over the raw spear skill records so the

@@ -1,26 +1,25 @@
-import type { EffectAudience } from '#gw2/platform/engine/events/events.js';
-import { denySkillCast } from '#gw2/platform/engine/skills/availability.js';
+import { revenantFacetParents, revenantUpkeepConsumeId } from '#gw2/professions/revenant/data/upkeep-skills.js';
+import { heraldBuffPolicies } from '#gw2/professions/revenant/specializations/herald/effect-state.js';
+import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
+import type { EffectAudience } from '#gw2/platform/events/events.js';
+import { denySkillCast } from '#gw2/platform/execution/availability.js';
 import {
   balanceProfileNumber,
   effectNumber,
   requireBalanceProfileFromContext,
   requireEffect
-} from '#gw2/platform/engine/skills/balance-profiles.js';
-import { armSkillFlip, consumeSkillFlip, skillFlipReady } from '#gw2/platform/engine/skills/skill-flips.js';
-import type { SkillId } from '#gw2/platform/engine/skills/types.js';
+} from '#gw2/platform/skills/balance-profiles.js';
+import { armSkillFlip, consumeSkillFlip, skillFlipReady } from '#gw2/platform/execution/skill-flips.js';
+import type { SkillId } from '#gw2/platform/skills/types.js';
 import { buildResolverStrike } from '#gw2/platform/resolver/packets.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
-import type { RuntimeCast, RuntimeProfession } from '#gw2/platform/simulation/runtime-state.js';
+import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import type { RevenantRuntime } from '#gw2/professions/revenant/core/events.js';
 import { activeRevenantUpkeep, removeRevenantUpkeep } from '#gw2/professions/revenant/core/mechanics/upkeep.js';
 import { completeRevenantCastTraits } from '#gw2/professions/revenant/core/traits/dispatch.js';
 import { REVENANT_SKILL_IDS as ID, REVENANT_LEGEND_IDS as LEGEND } from '#gw2/professions/revenant/data/ids.js';
 import { heraldFacetPassiveActive } from '#gw2/professions/revenant/specializations/herald/mechanics/facet-passives.js';
-import {
-  FACET_PULSE,
-  HERALD_MECHANICS as MECHANICS,
-  scheduleFacetPulse
-} from '#gw2/professions/revenant/specializations/herald/mechanics/facets.js';
+import { FACET_PULSE, scheduleFacetPulse } from '#gw2/professions/revenant/specializations/herald/mechanics/facets.js';
 import { HERALD_NATURE_ASSASSIN_PROFILE_ID } from '#gw2/professions/revenant/specializations/herald/profiles.js';
 import { heraldState } from '#gw2/professions/revenant/specializations/herald/state.js';
 import {
@@ -34,12 +33,6 @@ import {
 } from '#gw2/professions/revenant/specializations/herald/traits/behavior.js';
 import type { RevenantRuntimeState, RevenantSkill } from '#gw2/professions/revenant/types.js';
 import { canonicalTime, EPSILON } from '#kernel/core/clock.js';
-
-function facetConsumeId(skill: RevenantSkill, activeLegendId: string): SkillId | undefined {
-  if (skill.id === ID.FACET_OF_NATURE)
-    return (MECHANICS.trueNatureConsumeByLegendId as Readonly<Record<string, SkillId>>)[activeLegendId];
-  return (MECHANICS.facetConsumeBySkillId as Readonly<Record<SkillId, SkillId>>)[skill.id];
-}
 
 function facetPulse(runtime: RevenantRuntime, data: unknown): void {
   const { skillId } = data as { skillId: SkillId };
@@ -78,7 +71,7 @@ function startFacet(runtime: RevenantRuntime, skill: RevenantSkill): void {
   const core = runtime.profession.core;
   const state = heraldState.from(runtime);
   delete state.lingeringFacets[skill.id];
-  const consumeId = facetConsumeId(skill, core.activeLegendId);
+  const consumeId = revenantUpkeepConsumeId(skill, core.activeLegendId);
   if (consumeId != null) armSkillFlip(core.availableFlips, consumeId, runtime.time);
   if (!skill.upkeepPulse) return;
   scheduleFacetPulse(runtime, skill.id, canonicalTime(runtime.time + Math.max(EPSILON, skill.pulseInterval ?? 3)));
@@ -88,8 +81,7 @@ function startFacet(runtime: RevenantRuntime, skill: RevenantSkill): void {
 const consumedFacets = new WeakMap<RuntimeCast<RevenantSkill>, { facet: RevenantSkill; wasActive: boolean }>();
 
 function consumedFacet(runtime: RevenantRuntime, cast: RuntimeCast<RevenantSkill>): RevenantSkill | undefined {
-  const facetId = (MECHANICS.facetSkillByConsumeId as Readonly<Record<SkillId, SkillId>>)[cast.skill.id];
-  return facetId == null ? undefined : runtime.helpers.skillsById.get(facetId);
+  return revenantFacetParents(runtime.helpers.skillsById).get(cast.skill.id);
 }
 
 /** A committed consume ends the facet's drain and passive immediately; its follow-up is spent. */
@@ -187,7 +179,12 @@ function natureSiphon(runtime: RevenantRuntime, event: Gw2ResolverEvent): void {
 }
 
 /** Herald owns facet availability, lifecycle, passives, and Dragon invocation on the shared live state. */
-export const heraldHooks: Partial<RuntimeProfession<RevenantRuntimeState, RevenantSkill>> = {
+export const heraldHooks: RuntimeHooks<RevenantRuntimeState, RevenantSkill> = {
+  buffPolicies: heraldBuffPolicies,
+  initialize(runtime) {
+    // Reject invalid selected relationships before any facet can spend Energy or arm a flip.
+    revenantFacetParents(runtime.helpers.skillsById);
+  },
   // Accepted recipient delivery and self-source exclusion guard the shared profile cooldown.
 
   availability(runtime, skill) {

@@ -11,6 +11,63 @@ import { pickUpConjure, captureConjurePickup } from '#gw2/professions/elementali
 import { armArcaneEcho, completeArcaneEcho } from '#gw2/professions/elementalist/core/mechanics/arcane-echo.js';
 import { weaverState } from '#gw2/professions/elementalist/specializations/weaver/state.js';
 import { weaverHooks } from '#gw2/professions/elementalist/specializations/weaver/hooks.js';
+import { elementalistAttunementPolicy } from '#gw2/professions/elementalist/family-state.js';
+import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';
+
+test('slot selection admits authored attunement variants and follow-ups before checking their state', () => {
+  // Selection equivalence never bypasses the active-attunement gate or admits an unrelated same-name skill.
+  const core = createElementalistCoreState({ startAttunement: 'Fire' });
+  const context = {
+    profession: { core, specialization: { kind: 'Core', state: {} } },
+    config: {},
+    helpers: elementalistCatalog,
+    time: 0
+  };
+  const fire = elementalistCatalog.skillsById.get(ID.GLYPH_OF_STORMS_FIRE);
+  const air = elementalistCatalog.skillsById.get(ID.GLYPH_OF_STORMS_AIR);
+  for (const selectedSkillIds of [undefined, [], [fire.id], [air.id]]) {
+    context.config.selectedSkillIds = selectedSkillIds;
+    const verdict = elementalistCoreAvailability(context, fire);
+    assert.equal(verdict.ready, selectedSkillIds?.length !== 0);
+    if (!verdict.ready) assert.equal(verdict.code, 'elementalist.not-equipped');
+  }
+
+  context.config.selectedSkillIds = [fire.id];
+  assert.equal(elementalistCoreAvailability(context, air).code, 'elementalist.attuned-utility');
+  assert.equal(elementalistCoreAvailability(context, { ...fire, id: 'unrelated' }).code, 'elementalist.not-equipped');
+  context.config.selectedSkillIds = [];
+  assert.equal(elementalistCoreAvailability(context, air).code, 'elementalist.not-equipped');
+
+  const root = elementalistCatalog.skillsByName.get('Weave Self');
+  const followUp = elementalistCatalog.skillsByName.get('Tailored Victory');
+  context.config.selectedSkillIds = [root.id];
+  assert.equal(elementalistCoreAvailability(context, followUp).ready, true);
+  context.config.selectedSkillIds = [];
+  assert.equal(elementalistCoreAvailability(context, followUp).code, 'elementalist.not-equipped');
+});
+
+test('only the selected Weaver delegates weapon eligibility and supplies a secondary attunement', () => {
+  // An unrelated field addition must not change weapon or same-attunement availability.
+  const core = createElementalistCoreState({ startAttunement: 'Fire' });
+  const weapon = { id: 'fixture', name: 'Air weapon', type: 'Weapon', attunement: 'Air' };
+  for (const kind of ['Core', 'Tempest', 'Catalyst', 'Evoker', 'Weaver']) {
+    const context = {
+      profession: { core, specialization: { kind, state: { secondaryAttunement: 'Air' } } },
+      config: {},
+      helpers: elementalistCatalog,
+      time: 0
+    };
+    assert.equal(elementalistCoreAvailability(context, weapon).ready, kind === 'Weaver');
+    assert.equal(elementalistAttunementPolicy(context).secondaryAttunement, kind === 'Weaver' ? 'Air' : null);
+    if (kind !== 'Weaver') {
+      const attunement = elementalistCatalog.skillsByName.get('Fire Attunement');
+      assert.equal(elementalistCoreAvailability(context, attunement).code, 'elementalist.same-attunement');
+    } else {
+      context.profession.specialization.state.secondaryAttunement = null;
+      assert.equal(elementalistCoreAvailability(context, weapon).ready, true);
+    }
+  }
+});
 
 test('Weaver runtime and palette share hand eligibility through Unravel and full attunement', () => {
   // Exercise each slot against explicit expected bars; surrounding availability gates stay in their callers.
@@ -56,30 +113,27 @@ test('Arcane Echo requires an armed, unexpired window and consumes it only once'
     [true, 11, false]
   ]) {
     const core = createElementalistCoreState();
-    const cooldowns = new Map([
-      [weapon.id, 20],
-      [echo.id, 30]
-    ]);
+
     const context = {
       time: 0,
       profession: { core },
-      cooldowns,
-      rechargeProgress: new Map(),
-      ammo: new Map(),
+
       helpers: elementalistCatalog,
       effectiveEnd: 0,
       rechargeWork: 5
     };
-    context.cooldownController = createCooldownController({ state: context, rechargeDuration: () => 5 });
+    context.cooldownController = createCooldownController({ clock: context, rechargeDuration: () => 5 });
+    context.cooldownController.setReadyAt(weapon.id, 20);
+    context.cooldownController.setReadyAt(echo.id, 30);
     if (armed) armArcaneEcho(context, context);
     context.effectiveEnd = at;
     completeArcaneEcho(context, context, weapon);
-    assert.equal(cooldowns.get(weapon.id), active ? at + 1 : 20);
-    assert.equal(cooldowns.get(echo.id), active ? 35 : 30);
+    assert.equal(context.cooldownController.readyAt(weapon.id), active ? at + 1 : 20);
+    assert.equal(context.cooldownController.readyAt(echo.id), active ? 35 : 30);
     if (active) {
       assert.equal(core.arcaneEchoUntil, 0);
       completeArcaneEcho(context, context, weapon);
-      assert.equal(cooldowns.get(echo.id), 35);
+      assert.equal(context.cooldownController.readyAt(echo.id), 35);
     }
   }
 });
@@ -132,12 +186,16 @@ test('elemental glyphs require equipment while matching command flips and summon
       time: 0,
       start: 0
     };
-    for (const expiry of [0, 10]) {
-      core.summonedElemental.activeUntil = expiry;
-      const denied = elementalistCoreAvailability(context, skill);
-      assert.equal(denied.ready, false);
-      assert.equal(denied.code, 'elementalist.not-equipped');
-      assert.equal(denied.retryAt, null);
+    for (const selectedSkillIds of [undefined, [], [5516]]) {
+      context.config.selectedSkillIds = selectedSkillIds;
+      for (const expiry of [0, 10]) {
+        core.summonedElemental.activeUntil = expiry;
+        const denied = elementalistCoreAvailability(context, skill);
+        assert.equal(denied.ready, false);
+        assert.equal(denied.code, 'elementalist.not-equipped');
+        assert.equal(denied.reason, 'the skill is not equipped.');
+        assert.equal(denied.retryAt, null);
+      }
     }
 
     context.config.selectedSkillIds = [skill.id];
@@ -150,7 +208,12 @@ test('elemental glyphs require equipment while matching command flips and summon
     assert.equal(occupied.ready, false);
     assert.equal(occupied.retryAt, 10);
     assert.equal(elementalistCoreAvailability(context, flip).ready, true);
+    context.config.selectedSkillIds = [];
+    core.summonedElemental.summonGeneration = 1;
+    assert.equal(elementalistCoreAvailability(context, flip).ready, true);
     context.time = 10;
+    assert.equal(elementalistCoreAvailability(context, flip).ready, false);
+    context.config.selectedSkillIds = [skill.id];
     assert.equal(elementalistCoreAvailability(context, skill).ready, true);
 
     const rejected = runNative({

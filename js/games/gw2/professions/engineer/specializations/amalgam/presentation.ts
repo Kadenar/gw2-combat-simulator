@@ -1,59 +1,37 @@
-import { AMALGAM_MORPH_KIND_BY_SKILL_ID } from '#gw2/professions/engineer/specializations/amalgam/skills/protocol-skills.js';
+import {
+  resolveAmalgamSkillId,
+  amalgamProtocolOptions,
+  selectAmalgamMorph
+} from '#gw2/professions/engineer/specializations/amalgam/selection-policy.js';
 import type {
   ProfessionAttributePreviewContext,
   ProfessionAttributePreviewPreparation
 } from '#gw2/platform/profession-presentation/attribute-preview.js';
 import { createPreviewControls } from '#gw2/professions/shared/attribute-preview.js';
-import { readProfessionSpecializationState } from '#gw2/platform/engine/profession/state.js';
+import { readProfessionSpecializationState } from '#gw2/platform/profession-definition/state.js';
 import type { AmalgamState } from '#gw2/professions/engineer/specializations/amalgam/state.js';
-import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
-import type { CanonicalCatalog, SkillId } from '#gw2/platform/engine/skills/types.js';
+import type { SimulationEvent } from '#gw2/platform/events/events.js';
+import type { CanonicalCatalog, SkillId } from '#gw2/platform/skills/types.js';
 import type {
   ProfessionSkillBarGroup,
   RotationStateSnapshotItem
 } from '#gw2/platform/profession-presentation/types.js';
-import { gw2EffectExpiresAt } from '#gw2/platform/skills/timing.js';
+import { gw2EffectExpiresAt } from '#gw2/platform/effects/timing.js';
 import { ENGINEER_ASSUMPTION_CONTROLS } from '#gw2/professions/engineer/build/assumptions.js';
 import {
   engineerToolbeltSkillIds,
   engineerUiState,
   uniqueSkillIds
 } from '#gw2/professions/engineer/core/presentation.js';
-import { ENGINEER_SKILL_IDS as ID } from '#gw2/professions/engineer/data/ids.js';
+import { ENGINEER_SKILL_IDS as ID, ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
+import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { getActiveTraits } from '#gw2/professions/engineer/data/traits-data.js';
-import { resolveAmalgamSkillId } from '#gw2/professions/engineer/specializations/amalgam/traits/behavior.js';
 import type {
   EngineerSkill,
   EngineerUiContext,
   EngineerUiSelection,
   EngineerUiSlice
 } from '#gw2/professions/engineer/types.js';
-// Canonical display order for protocol dropdowns; skills absent from this map
-// sort after all listed entries, then by numeric ID as a tiebreaker.
-const AMALGAM_PROTOCOL_ORDER = new Map<string, number>([
-  ['Offensive Protocol: Shred', 0],
-  ['Offensive Protocol: Demolish', 1],
-  ['Offensive Protocol: Obliterate', 2],
-  ['Offensive Protocol: Pierce', 3],
-  ['Defensive Protocol: Thorns', 4],
-  ['Defensive Protocol: Cleanse', 5],
-  ['Defensive Protocol: Protect', 6]
-]);
-
-/** Returns the catalog-backed Morph choices for a mechanic slot in stable UI order. */
-function amalgamProtocolOptions(catalog: Readonly<CanonicalCatalog<EngineerSkill>>, slot: number): EngineerSkill[] {
-  return catalog.skills
-    .filter(
-      (skill) =>
-        skill.specialization === 'Amalgam' && skill.categories?.includes('Morph') && Number(skill.mechanicSlot) === slot
-    )
-    .sort(
-      (left, right) =>
-        (AMALGAM_PROTOCOL_ORDER.get(left.name) ?? Number.MAX_SAFE_INTEGER) -
-          (AMALGAM_PROTOCOL_ORDER.get(right.name) ?? Number.MAX_SAFE_INTEGER) || Number(left.id) - Number(right.id)
-    );
-}
-
 /** Reads the current three Morph selections, preferring the editable build over simulated state. */
 function selectedMorphIds(context: EngineerUiContext): number[] {
   return [...(context.build?.selectedMorphSkillIds || engineerUiState(context).selectedMorphSkillIds || [])].map(
@@ -72,7 +50,7 @@ function amalgamProfessionSkills(
   return [
     engineerToolbeltSkillIds(catalog, context)[0],
     ...selectedMorphIds(context).slice(0, 3),
-    resolveAmalgamSkillId(traits, ID.EVOLVE_BASE)
+    resolveAmalgamSkillId(hasTrait(traits, TRAIT.DOUBLE_HELIX), ID.EVOLVE_BASE)
   ];
 }
 
@@ -118,41 +96,15 @@ function updateAmalgamSkillBarSelection(
   selection: EngineerUiSelection
 ): boolean {
   if (selection.key !== 'selectedMorphSkillIds') return false;
-  const index = Number(selection.index);
-  const slot = index + 2;
-  const nextSkill = catalog.skillsById.get(Number(selection.skillId));
-  if (
-    !context.build ||
-    ![0, 1, 2].includes(index) ||
-    nextSkill?.specialization !== 'Amalgam' ||
-    !nextSkill.categories?.includes('Morph') ||
-    Number(nextSkill.mechanicSlot) !== slot
-  ) {
-    return false;
-  }
-
-  const current = Array.isArray(context.build.selectedMorphSkillIds)
-    ? [...context.build.selectedMorphSkillIds].map(Number)
-    : [];
-  const previousSkill = catalog.skillsById.get(current[index]);
-  // Detect if the chosen protocol kind is already selected in a different slot.
-  // If so, swap: move the previously-selected protocol into the conflicting slot
-  // (using the slot-appropriate skill ID), preventing duplicate protocol kinds.
-  const conflictIndex = current.findIndex(
-    (skillId, candidateIndex) =>
-      candidateIndex !== index &&
-      AMALGAM_MORPH_KIND_BY_SKILL_ID.get(skillId) === AMALGAM_MORPH_KIND_BY_SKILL_ID.get(nextSkill.id)
+  if (!context.build) return false;
+  const next = selectAmalgamMorph(
+    catalog,
+    context.build.selectedMorphSkillIds ?? [],
+    Number(selection.index),
+    Number(selection.skillId)
   );
-  if (conflictIndex >= 0 && previousSkill) {
-    const replacement = amalgamProtocolOptions(catalog, conflictIndex + 2).find(
-      (skill) => AMALGAM_MORPH_KIND_BY_SKILL_ID.get(skill.id) === AMALGAM_MORPH_KIND_BY_SKILL_ID.get(previousSkill.id)
-    );
-    if (!replacement) return false;
-    current[conflictIndex] = Number(replacement.id);
-  }
-
-  current[index] = Number(nextSkill.id);
-  context.build.selectedMorphSkillIds = current;
+  if (!next) return false;
+  context.build.selectedMorphSkillIds = next;
   return true;
 }
 

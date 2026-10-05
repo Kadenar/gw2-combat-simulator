@@ -1,9 +1,7 @@
+import { activeChargeCount } from '#gw2/platform/combat/resources/charges.js';
 import { purgeExpiredStacks } from '#gw2/platform/combat/resources/timed-stacks.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
-import {
-  balanceProfileNumber,
-  requireBalanceProfileFromContext
-} from '#gw2/platform/engine/skills/balance-profiles.js';
+import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import type { RotationStateSnapshotItem } from '#gw2/platform/profession-presentation/types.js';
 import { THIEF_ANTIQUARY_ASSUMPTION_CONTROLS } from '#gw2/professions/thief/build/antiquary-assumptions.js';
 import { thiefUiState } from '#gw2/professions/thief/core/presentation.js';
@@ -84,13 +82,13 @@ function antiquaryStateSnapshot(context: ThiefUiContext): RotationStateSnapshotI
     });
   }
 
-  // Mistburn uses the same grant shape in runtime state and planning projections.
-  for (const [id, label, chargesValue, expiresAt] of [
-    ['antiquary-metal-legion-guitar', 'Metal Legion Guitar', state.stealthAttackCharges, state.stealthAttackExpiresAt],
-    ['antiquary-mistburn-mortar', 'Mistburn Mortar', state.mistburn?.charges, state.mistburn?.expiresAt]
+  // Artifact charge displays read canonical grants without expiring the live owner.
+  for (const [id, label, grant] of [
+    ['antiquary-metal-legion-guitar', 'Metal Legion Guitar', state.bonusStealthAttack],
+    ['antiquary-mistburn-mortar', 'Mistburn Mortar', state.mistburn]
   ] as const) {
-    const remaining = (expiresAt || 0) - at;
-    const charges = Math.max(0, Math.trunc(chargesValue || 0));
+    const remaining = (grant?.expiresAt || 0) - at;
+    const charges = Math.trunc(activeChargeCount(grant, at));
     if (remaining <= 0 || charges <= 0) continue;
     items.push({
       id,

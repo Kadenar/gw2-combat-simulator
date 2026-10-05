@@ -1,7 +1,7 @@
-import { armSkillFlip, consumeSkillFlip } from '#gw2/platform/engine/skills/skill-flips.js';
-import type { RuntimeCast } from '#gw2/platform/simulation/runtime-state.js';
-import { resetAutoattackChains } from '#gw2/platform/skills/autoattack-chain-controller.js';
-import { lockTransitionInput } from '#gw2/platform/skills/transition-delays.js';
+import { armSkillFlip, consumeSkillFlip } from '#gw2/platform/execution/skill-flips.js';
+import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
+import { resetAutoattackChains } from '#gw2/platform/execution/autoattack-chains.js';
+import { lockTransitionInput } from '#gw2/platform/execution/transition-lockouts.js';
 import { grantNecromancerLifeForce } from '#gw2/professions/necromancer/core/mechanics/life-force.js';
 import { DEPLETION } from '#gw2/professions/necromancer/core/mechanics/resources.js';
 import {
@@ -68,7 +68,7 @@ export function exitNecromancerShroud(runtime: NecromancerRuntime): void {
     // A known marker timestamp admits hostile packets but does not move an earlier authored exit into combat.
     if (
       runtime.combatStartPending ||
-      runtime.cursor.command?.type === 'combat-start' ||
+      runtime.castController.pendingCombatStart() ||
       (runtime.combatStartTime != null && runtime.time < runtime.combatStartTime)
     )
       runtime.cooldownController.clear(entry.id);

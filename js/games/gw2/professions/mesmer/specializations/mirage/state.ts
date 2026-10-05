@@ -1,9 +1,11 @@
-import type { Gw2PlanningStateInput } from '#gw2/platform/simulation/types.js';
-import { snapshotProfessionState } from '#gw2/platform/engine/profession/state.js';
+import { createResourceClock } from '#gw2/platform/combat/resources/resource-policy.js';
+import type { ResourceClock } from '#gw2/platform/combat/resources/clock.js';
+import type { Gw2PlanningStateInput } from '#gw2/platform/results/types.js';
+import { snapshotProfessionState } from '#gw2/platform/profession-definition/state.js';
 import { canonicalTime } from '#kernel/core/clock.js';
 import { gw2ActivePrimaryWeapon } from '#gw2/platform/equipment/weapons/loadout.js';
 import { MESMER_MIRAGE_AMBUSH_SKILLS } from '#gw2/professions/mesmer/specializations/mirage/skills/index.js';
-import { defineProfessionSpecializationState } from '#gw2/platform/engine/profession/state.js';
+import { defineProfessionSpecializationState } from '#gw2/platform/profession-definition/state.js';
 
 interface MesmerMirageMirror {
   availableAt: number;
@@ -12,9 +14,7 @@ interface MesmerMirageMirror {
 
 export interface MesmerMirageState {
   pendingMirrorAts: number[];
-  endurance: number;
-
-  enduranceUpdatedAt: number;
+  endurance: ResourceClock;
   ambushUntil: number;
   ambushSource: string;
   cloneAmbushUntil: number;
@@ -27,9 +27,7 @@ function createMirageState(): MesmerMirageState {
   return {
     pendingMirrorAts: [],
     // Mirage starts with two dodges' worth of continuously regenerating endurance.
-    endurance: 100,
-
-    enduranceUpdatedAt: 0,
+    endurance: createResourceClock(100),
     ambushUntil: 0,
     ambushSource: '',
     cloneAmbushUntil: 0,

@@ -1,15 +1,16 @@
+import { reactToRighteousInstinctsBuff } from '#gw2/professions/guardian/core/traits/radiance.js';
+import { writOfPersistenceEffects, writOfPersistenceFields } from '#gw2/professions/guardian/core/traits/honor.js';
+import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
+import type { MechanicContext } from '#gw2/platform/profession-definition/mechanic-context.js';
 import { grantTimedStacks } from '#gw2/platform/combat/resources/timed-stacks.js';
-import { denySkillCast } from '#gw2/platform/engine/skills/availability.js';
-import {
-  balanceProfileNumber,
-  requireBalanceProfileFromContext
-} from '#gw2/platform/engine/skills/balance-profiles.js';
-import { skillFlipReady } from '#gw2/platform/engine/skills/skill-flips.js';
+import { denySkillCast } from '#gw2/platform/execution/availability.js';
+import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import { skillFlipReady } from '#gw2/platform/execution/skill-flips.js';
 import type { NativeResolvedDamageDetails } from '#gw2/platform/profession-definition/module-types.js';
-import type { Gw2Runtime, RuntimeCast, RuntimeProfession } from '#gw2/platform/simulation/runtime-state.js';
-import { applySideEffect } from '#gw2/platform/simulation/side-effects.js';
-import { damageInputEvent } from '#gw2/platform/skill-damage/execution.js';
-import { castWasInterrupted } from '#gw2/platform/skills/timing.js';
+import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
+import { applySideEffect } from '#gw2/platform/effects/action-dispatch.js';
+import { damageInputEvent } from '#gw2/platform/skill-damage/occurrence-driver.js';
+import { castWasInterrupted } from '#gw2/platform/execution/cast-timing.js';
 import { guardianRechargeWork } from '#gw2/professions/guardian/core/mechanics/recharge.js';
 import { expireSpearIllumination, GUARDIAN_SPEAR_EXPIRY } from '#gw2/professions/guardian/core/mechanics/spear.js';
 import {
@@ -36,16 +37,13 @@ import {
   guardianResolutionMultiplier,
   masterOfConsecrationsFields,
   radiantFireMaximumAmmo,
-  reactToRighteousInstinctsBuff,
   reactToZealDamage,
-  triggerGuardianFuriousFocus,
-  writOfPersistenceEffects,
-  writOfPersistenceFields
+  triggerGuardianFuriousFocus
 } from '#gw2/professions/guardian/core/traits/behavior.js';
 import { GUARDIAN_TRAIT_IDS, GUARDIAN_SKILL_IDS as ID } from '#gw2/professions/guardian/data/ids.js';
 import type { GuardianRuntimeState, GuardianSkill, GuardianVirtue } from '#gw2/professions/guardian/types.js';
 
-type Runtime = Gw2Runtime<GuardianRuntimeState, GuardianSkill>;
+type Runtime = MechanicContext<GuardianRuntimeState, GuardianSkill>;
 const readyVirtueActivations = new WeakSet<RuntimeCast<GuardianSkill>>();
 /** Virtue state changes once on commitment; report packets do not restore a second copy of that state. */
 function completeCoreVirtue(runtime: Runtime, cast: RuntimeCast<GuardianSkill>, virtue: GuardianVirtue): void {
@@ -71,13 +69,13 @@ function clearTorchLockout(runtime: Runtime, cast: RuntimeCast<GuardianSkill>): 
     return;
   if (skill.interruptMode === 'per-packet' && castWasInterrupted(cast)) return;
   if (skill.id !== ID.ZEALOTS_FIRE && skill.type !== 'Action')
-    runtime.lockouts.delete('guardian-zealots-flame-after-fire');
+    runtime.castController.clearLockout('guardian-zealots-flame-after-fire');
 }
 
 /** Core hooks: accepted virtues, shared recharge, endurance grants, and temporary weapon state. */
 import { guardianBuffPolicies, guardianEffectStates } from '#gw2/professions/guardian/core/effect-state.js';
 
-export const guardianCoreHooks: Partial<RuntimeProfession<GuardianRuntimeState, GuardianSkill>> = {
+export const guardianCoreHooks: RuntimeHooks<GuardianRuntimeState, GuardianSkill> = {
   // Known damage payloads are invoked once without their activation requirements.
   damageEffects: [false, true].map((active) => ({
     id: `justice-${active ? 'active' : 'passive'}`,
@@ -127,19 +125,9 @@ export const guardianCoreHooks: Partial<RuntimeProfession<GuardianRuntimeState, 
       applySideEffect(runtime, context, { type: 'rechargeReset', skillIds: virtues.map((skill) => skill.id) });
       for (const skill of virtues) runtime.cooldownController.restoreAmmo(skill, Infinity, runtime.time);
       runtime.profession.core.virtueReadyAt = { justice: runtime.time, resolve: runtime.time, courage: runtime.time };
-      // The same declared refresh also resets Firebrand's separate page and dormancy pools.
-      const specialization = runtime.profession.specialization;
-      if (specialization.kind === 'Firebrand') {
-        runtime.resourceController.grant('tomePages', specialization.state.tomePages.maximum);
-        specialization.state.tomeDormantReadyAt = {
-          justice: runtime.time,
-          resolve: runtime.time,
-          courage: runtime.time
-        };
-      }
     }
   },
-  endurance: { state: (runtime) => runtime.profession.core, maximum: () => 100, regenerationRate: () => 0 },
+  endurance: { state: (runtime) => runtime.profession.core.endurance, maximum: () => 100, regenerationRate: () => 0 },
   rechargeWork: guardianRechargeWork,
   maximumAmmo: (runtime, skill, maximum) =>
     eternalArmoryMaximumAmmo(runtime, skill, radiantFireMaximumAmmo(runtime, skill, maximum)),

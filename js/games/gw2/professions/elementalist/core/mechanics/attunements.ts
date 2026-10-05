@@ -1,15 +1,12 @@
-import type { RuntimeCast } from '#gw2/platform/simulation/runtime-state.js';
-import { elementalEnchantmentRecharge } from '#gw2/professions/elementalist/core/traits/behavior.js';
+import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
+import { elementalEnchantmentRecharge } from '#gw2/professions/elementalist/core/traits/arcane.js';
 /**
  * Owns Core Elementalist attunement selection, recharge, and cast-completion transitions.
  * Specializations may intercept the shared hooks but keep their extra state locally.
  */
-import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
-import {
-  balanceProfileNumber,
-  requireBalanceProfileFromContext
-} from '#gw2/platform/engine/skills/balance-profiles.js';
-import type { Skill } from '#gw2/platform/engine/skills/types.js';
+import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
+import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import type { Skill } from '#gw2/platform/skills/types.js';
 import { combatStarted } from '#gw2/professions/elementalist/core/mechanics/effects.js';
 import {
   inFlightAutoattackCarryover,
@@ -75,7 +72,7 @@ export function onAttunementComplete(
   const attunementReadyAtBefore = Object.fromEntries(
     ELEMENTALIST_ATTUNEMENTS.map((element) => [
       element,
-      context.cooldowns.get(ELEMENTALIST_ATTUNEMENT_SKILL_IDS[element]) ?? 0
+      context.cooldownController.readyAt(ELEMENTALIST_ATTUNEMENT_SKILL_IDS[element]) ?? 0
     ])
   );
   // Preserve chain progress for the attunement being left; a cast still in flight

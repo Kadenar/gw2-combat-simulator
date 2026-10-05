@@ -1,10 +1,10 @@
 import { mountFloatingEditor, type FloatingEditorHandle } from '#ui/rotation/editing/floating-editor.js';
 import type { UnvalidatedFields } from '#kernel/core/unvalidated.js';
-import type { Skill } from '#gw2/platform/engine/skills/types.js';
+import type { Skill } from '#gw2/platform/skills/types.js';
 import type { CastCommand } from '#gw2/platform/execution/types.js';
 import type { ProfessionAppState } from '#gw2/app/types.js';
 import { formatTimelineTime, resultCombatReferenceMs } from '#gw2/app/shared/result-clock.js';
-import { GW2_ACTION_TICK_MS } from '#gw2/platform/skills/timing.js';
+import { GW2_ACTION_TICK_MS } from '#gw2/platform/combat/action-tick.js';
 
 export interface ChargeReleaseEditorRow {
   readonly charges: number;

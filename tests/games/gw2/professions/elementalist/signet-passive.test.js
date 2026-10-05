@@ -30,7 +30,7 @@ test('Signet of Fire precision follows recharge and resets unless Written in Sto
             timeline: [0.05, 0.15, 1, reset ? 3 : 15].map((at) => ({
               at,
               run(runtime) {
-                samples.push(runtime.query.statsAt(runtime.time, null, runtime).precision);
+                samples.push(runtime.combat.statsAt(runtime.time, null, runtime).precision);
               }
             }))
           }

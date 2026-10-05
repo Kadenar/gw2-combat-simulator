@@ -1,5 +1,5 @@
-import type { Gw2ResolverResult } from '#gw2/platform/resolver/types.js';
-import type { Gw2SimulationResult } from '#gw2/platform/simulation/types.js';
+import type { Gw2ResolverResult } from '#gw2/platform/results/types.js';
+import type { Gw2SimulationResult } from '#gw2/platform/results/types.js';
 import { clamp } from '#kernel/core/numeric.js';
 
 export interface ResultSummaryMetric {

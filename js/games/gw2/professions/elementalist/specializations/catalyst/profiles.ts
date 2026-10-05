@@ -1,5 +1,5 @@
 /** Mechanic and skill-variant tuning for Catalyst; traits own their profiles under traits/. */
-import type { BalanceProfile } from '#gw2/platform/engine/skills/types.js';
+import type { BalanceProfile } from '#gw2/platform/skills/types.js';
 import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';
 
 /** Stable mechanic and skill-variant patch identities. */

@@ -2,16 +2,13 @@
  * Owns Elementalist-specific endurance regeneration policy.
  * Shared capped resource arithmetic stays in the platform endurance primitive.
  */
-import {
-  requireBalanceProfileFromContext,
-  balanceProfileNumber
-} from '#gw2/platform/engine/skills/balance-profiles.js';
+import { requireBalanceProfileFromContext, balanceProfileNumber } from '#gw2/platform/skills/balance-profiles.js';
 import type { ElementalistRuntime } from '#gw2/professions/elementalist/types.js';
 
 import { ELEMENTALIST_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/elementalist/core/profiles.js';
 
 import type { EndurancePolicy } from '#gw2/platform/combat/resources/endurance-policy.js';
-import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
+import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
 
 /** Resolves Elementalist's profile-aware endurance rate while leaving shared arithmetic to the GW2 primitive. */
 function elementalistEnduranceRegenerationRate(context: ElementalistRuntime, vigor: boolean): number {
@@ -23,7 +20,7 @@ function elementalistEnduranceRegenerationRate(context: ElementalistRuntime, vig
 
 /** Binds shared endurance operations to this module's live pool and balance rules. */
 export const elementalistEndurance: EndurancePolicy<ElementalistRuntime> = {
-  state: (context) => professionCoreState(context),
+  state: (context) => professionCoreState(context).endurance,
   maximum: (context) =>
     balanceProfileNumber(requireBalanceProfileFromContext(context, PROFILE.resources), 'maximumStacks'),
   regenerationRate: (context, vigor) => elementalistEnduranceRegenerationRate(context, vigor)

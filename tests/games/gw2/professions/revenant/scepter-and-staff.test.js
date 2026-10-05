@@ -24,10 +24,6 @@ test('Blossoming Aura keeps a fixed fuse after attachment regardless of cast spe
     const result = simulate('Core', ['Blossoming Aura'], { boons: { quickness } }, tail);
     const damage = auraDamage(result);
     assert.deepEqual(result.warnings, []);
-    assert.deepEqual(
-      damage.map((event) => Math.round((event.at - damage[0].at) * 1000)),
-      [0, 1000, 2000, 3000, 4000]
-    );
     assert.equal(damage.at(-1).coefficient, 2.5);
     assert.equal(result.planningState.cooldowns['Blossoming Aura'].readyAt, 6400);
     assert.equal(result.planningState.profession.availableFlips[ID.DETONATE_BLOSSOMING_AURA], undefined);

@@ -1,0 +1,73 @@
+import type { EffectEmissionService } from '#gw2/platform/effects/emission.js';
+import type { Gw2Config } from '#gw2/platform/simulation/config.js';
+import type { SkillId } from '#gw2/platform/skills/types.js';
+import { canonicalTime } from '#kernel/core/clock.js';
+
+export const TRANSITION_DELAY_KEYS = [
+  'weaponSwapMs',
+  'forgeEntryMs',
+  'forgeExitMs',
+  'shroudEntryMs',
+  'shroudExitMs'
+] as const;
+
+type TransitionDelayKind = (typeof TRANSITION_DELAY_KEYS)[number];
+
+export type TransitionDelays = Record<TransitionDelayKind, number>;
+
+export const TRANSITION_LOCKOUT_EVENT = 'gw2.transition-lockout';
+
+/** Missing or malformed preferences preserve zero-delay simulation and never introduce an infinite clock. */
+export function normalizeTransitionDelays(value: unknown): TransitionDelays {
+  const source = value && typeof value === 'object' && !Array.isArray(value) ? (value as Record<string, unknown>) : {};
+  return Object.fromEntries(
+    TRANSITION_DELAY_KEYS.map((key) => {
+      const delay = source[key];
+      return [key, typeof delay === 'number' && Number.isFinite(delay) ? Math.max(0, delay) : 0];
+    })
+  ) as TransitionDelays;
+}
+
+/** Record actual bar-transition recovery separately from casts, recharge, and sigil-swap triggers. */
+function emitTransitionLockout(
+  context: {
+    readonly config?: Gw2Config;
+    readonly effects: EffectEmissionService;
+  },
+  kind: TransitionDelayKind,
+  at: number,
+  skill?: { readonly id: SkillId; readonly name: string }
+): void {
+  const duration = normalizeTransitionDelays(context.config?.transitionDelays)[kind] / 1000;
+  if (!duration) return;
+  context.effects.emit({
+    kind: 'packet',
+    event: {
+      type: TRANSITION_LOCKOUT_EVENT,
+      at,
+      duration,
+      kind,
+      source: 'gw2',
+      sourceId: skill?.id ?? kind,
+      actorType: 'player',
+      ...(skill ? { skillId: skill.id, skillName: skill.name } : {}),
+      name: 'Transition delay'
+    }
+  });
+}
+
+/** Live bar transitions block the next authored input for their configured recovery and record that interval. */
+export function lockTransitionInput(
+  runtime: {
+    readonly config?: Gw2Config;
+    readonly time: number;
+    readonly castController: { lockInputUntil(at: number): void };
+    readonly effects: EffectEmissionService;
+  },
+  kind: TransitionDelayKind,
+  skill?: { readonly id: SkillId; readonly name: string }
+): void {
+  const delay = normalizeTransitionDelays(runtime.config?.transitionDelays)[kind] / 1000;
+  runtime.castController.lockInputUntil(canonicalTime(runtime.time + delay));
+  emitTransitionLockout(runtime, kind, runtime.time, skill);
+}

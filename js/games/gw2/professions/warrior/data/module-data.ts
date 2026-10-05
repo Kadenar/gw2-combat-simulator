@@ -9,7 +9,7 @@ import { SKILLS, SPECIALIZATIONS } from '#gw2/professions/warrior/data/warrior-a
 import { WARRIOR_SUPPLEMENTAL_SKILLS } from '#gw2/professions/warrior/data/warrior-supplemental-skills.js';
 import { TRAITS } from '#gw2/professions/warrior/data/traits-data.js';
 import type { WarriorSkill } from '#gw2/professions/warrior/types.js';
-import type { AutoattackChainOptions } from '#gw2/platform/engine/skills/canonical-skill-catalog.js';
+import type { AutoattackChainOptions } from '#gw2/platform/skills/catalog.js';
 
 const allSkills: readonly WarriorSkill[] = Object.freeze([
   ...SKILLS.filter((skill) => !/^\(\(/.test(skill.name || '')),

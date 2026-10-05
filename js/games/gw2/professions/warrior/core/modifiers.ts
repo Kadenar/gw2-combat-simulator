@@ -4,12 +4,10 @@ import type { Gw2Stats } from '#gw2/platform/combat/types.js';
 import { warriorBurstSkillModifiers } from '#gw2/professions/warrior/core/skills/profession-skills.js';
 import { modifySignetAttributes } from '#gw2/professions/warrior/core/skills/slot-skills.js';
 import { warriorDaggerSkillModifiers } from '#gw2/professions/warrior/core/skills/weapons/dagger.js';
-import {
-  modifyWarriorArmsAttributes,
-  modifyWarriorStrengthAttributes,
-  modifyWarriorTacticsAttributes
-} from '#gw2/professions/warrior/core/traits/behavior.js';
+import { modifyWarriorArmsAttributes } from '#gw2/professions/warrior/core/traits/arms.js';
 import type { WarriorModifierAttributes } from '#gw2/professions/warrior/core/traits/modifier-queries.js';
+import { modifyWarriorStrengthAttributes } from '#gw2/professions/warrior/core/traits/strength.js';
+import { modifyWarriorTacticsAttributes } from '#gw2/professions/warrior/core/traits/tactics.js';
 
 function modifyWarriorAttributes(context: Gw2ModifierContext, attributes: Gw2Stats): Gw2Stats {
   const result = { ...attributes } as WarriorModifierAttributes;

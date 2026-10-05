@@ -4,10 +4,10 @@ import {
   requireEffect,
   balanceProfileNumber,
   effectNumber
-} from '#gw2/platform/engine/skills/balance-profiles.js';
+} from '#gw2/platform/skills/balance-profiles.js';
 import { HOLOSMITH_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/engineer/specializations/holosmith/profiles.js';
 import type { EngineerResolverContext, EngineerRuntime } from '#gw2/professions/engineer/types.js';
-import type { SimulationEventBase } from '#gw2/platform/engine/events/events.js';
+import type { SimulationEventBase } from '#gw2/platform/events/events.js';
 import type { HolosmithResolverEvent } from '#gw2/professions/engineer/specializations/holosmith/mechanics/heat-tiers.js';
 import {
   holosmithHeatSnapshotFromEvent,

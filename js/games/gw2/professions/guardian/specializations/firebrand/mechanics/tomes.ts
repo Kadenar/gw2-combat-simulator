@@ -5,7 +5,7 @@ import {
   effectNumber,
   requireBalanceProfileFromContext,
   requireEffect
-} from '#gw2/platform/engine/skills/balance-profiles.js';
+} from '#gw2/platform/skills/balance-profiles.js';
 import type { NativeResolvedDamageDetails } from '#gw2/platform/profession-definition/module-types.js';
 import { buildResolverCondition } from '#gw2/platform/resolver/packets.js';
 import { GUARDIAN_SKILL_IDS } from '#gw2/professions/guardian/data/ids.js';
@@ -54,7 +54,7 @@ export function emitAshes(context: GuardianResolverContext, event: GuardianResol
       skillName: 'Epilogue: Ashes of the Just',
       // The charge owns its burning; the triggering attack retains the causal activation only.
       procType: 'profession',
-      icon: context.helpers.skillsById?.get(GUARDIAN_SKILL_IDS.ASHES_OF_THE_JUST)?.icon,
+      icon: context.helpers.skillsById.get(GUARDIAN_SKILL_IDS.ASHES_OF_THE_JUST)?.icon,
       name: 'Ashes of the Just — Burning',
       activationId: event.activationId,
       causalOrder: event.causalOrder ?? event.eventOrder,

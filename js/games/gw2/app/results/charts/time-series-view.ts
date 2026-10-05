@@ -28,8 +28,6 @@ export interface ChartOptions {
   readonly targetStartingHealthPercent: number;
   readonly targetDied: boolean;
   readonly healthBreakpointColor: string;
-  // Colour of the per-skill hit markers in the expanded table row.
-  readonly skillDamageColor?: string;
 }
 
 interface ChartLine {

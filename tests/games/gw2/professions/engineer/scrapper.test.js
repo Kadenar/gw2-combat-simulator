@@ -44,14 +44,14 @@ test('Function Gyro aliases share Ex Machina charges and canonical trait effects
     });
 
     assert.deepEqual(result.warnings, []);
-    assert.deepEqual([...observedRuntime(result).ammo.keys()], [56920]);
-    assert.equal(observedRuntime(result).ammo.get(56920).maximum, 2);
-    assert.equal(observedRuntime(result).ammo.get(56920).charges, 0);
+    assert.deepEqual([...observedRuntime(result).cooldownController.ammoSkillIds()], [56920]);
+    assert.equal(observedRuntime(result).cooldownController.readAmmo(56920).maximum, 2);
+    assert.equal(observedRuntime(result).cooldownController.readAmmo(56920).charges, 0);
     assert.equal(result.events.filter((event) => event.type === 'control' && event.controlKind === 'daze').length, 2);
 
     const untraited = simulate('Scrapper', [skillId]);
     assert.deepEqual(untraited.warnings, []);
-    assert.equal(observedRuntime(untraited).ammo.size, 0);
+    assert.equal([...observedRuntime(untraited).cooldownController.ammoSkillIds()].length, 0);
   }
 });
 

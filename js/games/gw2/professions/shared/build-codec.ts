@@ -1,5 +1,5 @@
 import { normalizeProfessionAssumptions, validateProfessionAssumptions } from '#gw2/platform/builds/assumptions.js';
-import { SIMULATION_RANDOMNESS_ASSUMPTION_CONTROLS } from '#gw2/platform/simulation/randomness.js';
+import { SIMULATION_RANDOMNESS_ASSUMPTION_CONTROLS } from '#gw2/platform/builds/randomness-assumptions.js';
 import { PERMANENT_COMBO_FIELD_ASSUMPTION_CONTROLS } from '#gw2/platform/combos/permanent-field-assumption.js';
 import { createGw2BuildCodec } from '#gw2/platform/builds/codec.js';
 import type { Gw2BuildCodec, Gw2BuildCodecOptions, Gw2CanonicalBuild } from '#gw2/platform/builds/types.js';

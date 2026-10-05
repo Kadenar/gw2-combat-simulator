@@ -1,6 +1,6 @@
 import { cappedResource } from '#gw2/platform/combat/resources/pool.js';
 import { timeKey } from '#kernel/core/clock.js';
-import { GW2_ACTION_TICK_MS } from '#gw2/platform/skills/timing.js';
+import { GW2_ACTION_TICK_MS } from '#gw2/platform/combat/action-tick.js';
 
 export interface ResourceClock {
   value: number;

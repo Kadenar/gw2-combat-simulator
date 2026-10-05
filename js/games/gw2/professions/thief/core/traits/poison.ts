@@ -1,14 +1,15 @@
 import { skillForEvent } from '#gw2/platform/combat/query/event-skill.js';
 import { CANONICAL_TARGET_CONDITIONS } from '#gw2/platform/combat/state/targets.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
-import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
+import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
 import {
   balanceProfileNumber,
   effectNumber,
   requireBalanceProfileFromContext,
   requireEffect
-} from '#gw2/platform/engine/skills/balance-profiles.js';
-import type { BalanceProfile, SkillEffect } from '#gw2/platform/engine/skills/types.js';
+} from '#gw2/platform/skills/balance-profiles.js';
+import type { BalanceProfile } from '#gw2/platform/skills/types.js';
+import type { SkillEffect } from '#gw2/platform/effects/types.js';
 import { buildResolverBuff, buildResolverCondition } from '#gw2/platform/resolver/packets.js';
 import { THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
 import type { ThiefResolverContext, ThiefResolverEvent } from '#gw2/professions/thief/types.js';
@@ -21,7 +22,7 @@ export function applyDeadlyAmbition(context: ThiefResolverContext, event: ThiefR
   const isDualWieldAttack =
     skill.categories?.includes('DualWield') ||
     Boolean(skill.requiredMainHand && typeof skill.requiredOffHand === 'string');
-  if (!isDualWieldAttack || !hasTrait(context.config, TRAIT.DEADLY_AMBITION)) return;
+  if (!isDualWieldAttack || !hasTrait(context.traits, TRAIT.DEADLY_AMBITION)) return;
   const state = professionCoreState(context);
   const activation = `deadly-ambition:${event.activationId || `${skill.id}:${event.at}`}`;
   if (state.traitProcProgress[activation]) return;
@@ -57,7 +58,7 @@ export function applyLotusPoison(context: ThiefResolverContext, event: ThiefReso
     event.condition !== 'Poisoned' ||
     event.actorType !== 'player' ||
     (event.metadata?.triggeredByAlly || 0) > 0 ||
-    !hasTrait(context.config, TRAIT.LOTUS_POISON)
+    !hasTrait(context.traits, TRAIT.LOTUS_POISON)
   )
     return;
 
@@ -115,7 +116,7 @@ export function applyLotusPoison(context: ThiefResolverContext, event: ThiefReso
 }
 
 export function applyPanicStrike(context: ThiefResolverContext, event: ThiefResolverEvent): void {
-  if (event.actorType !== 'player' || !(Number(event.coefficient) > 0) || !hasTrait(context.config, TRAIT.PANIC_STRIKE))
+  if (event.actorType !== 'player' || !(Number(event.coefficient) > 0) || !hasTrait(context.traits, TRAIT.PANIC_STRIKE))
     return;
 
   const panicStrikeProfile = requireBalanceProfileFromContext(context, TRAIT.PANIC_STRIKE);
@@ -156,7 +157,7 @@ export function applyPanicStrikePoison(context: ThiefResolverContext, applicatio
   if (
     application.condition !== 'Immobilized' ||
     application.actorType !== 'player' ||
-    !hasTrait(context.config, TRAIT.PANIC_STRIKE)
+    !hasTrait(context.traits, TRAIT.PANIC_STRIKE)
   )
     return;
 
@@ -184,8 +185,7 @@ export function applyPanicStrikePoison(context: ThiefResolverContext, applicatio
 }
 
 function targetConditionCount(context: ThiefResolverContext, at: number): number {
-  return CANONICAL_TARGET_CONDITIONS.filter((condition) => context.query.targetHasCondition(condition, at, context))
-    .length;
+  return CANONICAL_TARGET_CONDITIONS.filter((condition) => context.combat.targetHasCondition(condition, at)).length;
 }
 
 /** Poison-producing traits share the selected stack override while retaining their own profile tuning. */

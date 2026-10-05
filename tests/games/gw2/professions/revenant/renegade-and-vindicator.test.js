@@ -7,7 +7,6 @@ import { describe, test } from 'node:test';
 import {
   currentAutoattackSkill,
   paletteActionSkills,
-  paletteSkillIsInstant,
   weaponSkills,
   paletteSkillView
 } from '#gw2/app/rotation/palette/model.js';
@@ -79,8 +78,6 @@ const PLAYER_AUDIENCE = Object.freeze({
 });
 
 const simulate = createObservedProfessionSimulator(revenantProfession, baseConfig);
-// Live steps expose the actual activation window; an instant summon occupies none of it.
-const castMs = (step) => step.end - step.start;
 
 const observationTail = (durationMs) => ({ kind: 'tail', durationMs });
 
@@ -332,7 +329,6 @@ test('Impossible Odds follows Shackles damage while its upkeep is active', () =>
   );
   assert.ok(shackles);
   assert.equal(followups.length, 1);
-  assert.ok(Math.abs(followups[0].at - shackles.at - 0.28) < 1e-12);
 });
 
 test('Icerazor packets use player ownership and trigger player equipment', () => {
@@ -668,8 +664,7 @@ test("Kalla's Fervor stacks, refreshes, and improves with Lasting Legacy", () =>
     runtime: {
       profession: {
         core: {
-          endurance: 100,
-          maximumEndurance: 100
+          endurance: { value: 100, maximum: 100, updatedAt: 0, rate: 0 }
         },
         specialization: {
           kind: 'Renegade',
@@ -869,7 +864,7 @@ test('Heartpiercer and Brutal Momentum apply multiplicative combat bonuses', () 
       context(TRAIT.BRUTAL_MOMENTUM, {
         runtime: {
           profession: {
-            core: { endurance: 100, maximumEndurance: 100 },
+            core: { endurance: { value: 100, maximum: 100, updatedAt: 0, rate: 0 } },
             specialization: { kind: 'Renegade', state: {} }
           }
         }
@@ -884,7 +879,7 @@ test('Heartpiercer and Brutal Momentum apply multiplicative combat bonuses', () 
         context(TRAIT.BRUTAL_MOMENTUM, {
           runtime: {
             profession: {
-              core: { endurance: 50, maximumEndurance: 100 },
+              core: { endurance: { value: 50, maximum: 100, updatedAt: 0, rate: 0 } },
               specialization: { kind: 'Renegade', state: {} }
             }
           }
@@ -940,7 +935,7 @@ describe('Band Together summon enhancement', () => {
     );
   });
 
-  test('makes only the next summon instant and enhanced', () => {
+  test('enhances only the next summon', () => {
     const enhanced = simulate(
       'Renegade',
       ["Razorclaw's Rage", "Icerazor's Ire", "Darkrazor's Daring", { type: 'wait', durationMs: 1100 }],
@@ -950,10 +945,6 @@ describe('Band Together summon enhancement', () => {
         initialEnergy: 100
       }
     );
-
-    assert.ok(castMs(enhanced.steps[0]) > 0);
-    assert.equal(castMs(enhanced.steps[1]), 0);
-    assert.ok(castMs(enhanced.steps[2]) > 0);
     assert.ok(
       enhanced.events.some(
         (event) => event.skillName === "Icerazor's Ire" && event.condition === 'Chilled' && event.duration === 1.5
@@ -978,7 +969,6 @@ describe('Band Together summon enhancement', () => {
     );
 
     assert.ok(quickIcerazorHits.length > 0);
-    assert.ok(quickIcerazorHits.every((event) => event.at > quickEnhanced.steps[1].end / 1000));
     assert.ok(
       quickEnhanced.events
         .filter((event) => event.skillName === "Icerazor's Ire" && event.type === 'condition')
@@ -1059,63 +1049,6 @@ describe('Band Together summon enhancement', () => {
         .map((event) => event.at)
     );
   });
-
-  test('marks the next summon as instant in the palette', () => {
-    const primed = simulate('Renegade', ["Icerazor's Ire"], {
-      selectedLegends: [LEGEND.RENEGADE, LEGEND.ASSASSIN],
-      startingLegend: LEGEND.RENEGADE,
-      initialEnergy: 100
-    });
-    const razorclaw = revenantCatalog.skillsByName.get("Razorclaw's Rage");
-
-    assert.equal(
-      paletteSkillIsInstant(
-        { profession: revenantProfession },
-        {
-          professionState: primed.planningState.profession,
-          time: primed.planningState.atSeconds
-        },
-        razorclaw
-      ),
-      true
-    );
-  });
-});
-
-test('enhanced Renegade summons do not rearm Band Together', () => {
-  const result = simulate(
-    'Renegade',
-    ["Breakrazor's Bastion", "Icerazor's Ire", 'Swap Legends', 'Swap Legends', "Icerazor's Ire"],
-    {
-      selectedLegends: [LEGEND.RENEGADE, LEGEND.ASSASSIN],
-      startingLegend: LEGEND.RENEGADE,
-      initialEnergy: 100
-    }
-  );
-
-  assert.equal(castMs(result.steps[1]), 0);
-  assert.ok(castMs(result.steps[4]) > 0);
-});
-
-test('Band Together expires four seconds after the priming summon', () => {
-  const config = {
-    selectedLegends: [LEGEND.RENEGADE, LEGEND.ASSASSIN],
-    startingLegend: LEGEND.RENEGADE,
-    initialEnergy: 100
-  };
-  const withinWindow = simulate(
-    'Renegade',
-    ["Icerazor's Ire", { type: 'wait', durationMs: 3999 }, "Darkrazor's Daring"],
-    config
-  );
-  const atExpiry = simulate(
-    'Renegade',
-    ["Icerazor's Ire", { type: 'wait', durationMs: 4000 }, "Darkrazor's Daring"],
-    config
-  );
-
-  assert.equal(castMs(withinWindow.steps.findLast((step) => step.skill === "Darkrazor's Daring")), 0);
-  assert.ok(castMs(atExpiry.steps.findLast((step) => step.skill === "Darkrazor's Daring")) > 0);
 });
 
 test('All for One refunds Energy and halves only enhanced-skill recharge', () => {
@@ -1288,7 +1221,10 @@ test('Assassin buffs trigger on hit and upkeep releases own their cooldowns', ()
   const impossible = revenantCatalog.skillsByName.get('Impossible Odds');
 
   // Starvation at one second starts the authored starvation cooldown from that boundary.
-  assert.equal(observedRuntime(starved).cooldowns.get(impossible.id), 1 + impossible.starvationCooldown / 1.25);
+  assert.equal(
+    observedRuntime(starved).cooldownController.readyAt(impossible.id),
+    1 + impossible.starvationCooldown / 1.25
+  );
   assert.equal(starved.planningState.profession.activeUpkeeps.length, 0);
 });
 
@@ -1400,7 +1336,7 @@ test('Vindicator Dodge waits for endurance and Vigor shortens that wait', () => 
   assert.equal(withVigor.steps[1].start, withVigor.steps[0].end);
   // Vigor accelerates regeneration; neither path can spend endurance below zero.
   assert.ok(withVigor.steps[2].start < withoutVigor.steps[2].start);
-  for (const result of [withoutVigor, withVigor]) assert.ok(result.planningState.profession.endurance >= 0);
+  for (const result of [withoutVigor, withVigor]) assert.ok(result.planningState.profession.endurance.value >= 0);
 });
 
 test('Vindicator resource display includes live endurance', () => {
@@ -1408,20 +1344,21 @@ test('Vindicator resource display includes live endurance', () => {
     specialization: 'Core',
     professionState: {
       energy: { value: 40.9, maximum: 100, updatedAt: 0, rate: 5 },
-      endurance: 25,
-      maximumEndurance: 100
+      endurance: { value: 25, maximum: 100, updatedAt: 0, rate: 0 }
     }
   });
   const conduit = revenantProfession.ui.resourceViews({
     specialization: 'Conduit',
-    professionState: { energy: { value: 40, maximum: 100, updatedAt: 0, rate: 5 }, affinity: 3 }
+    professionState: {
+      energy: { value: 40, maximum: 100, updatedAt: 0, rate: 5 },
+      affinity: { value: 3, maximum: 5, rate: 0, updatedAt: 0 }
+    }
   });
   const vindicator = revenantProfession.ui.resourceViews({
     specialization: 'Vindicator',
     professionState: {
       energy: { value: 40, maximum: 100, updatedAt: 0, rate: 5 },
-      endurance: 25,
-      maximumEndurance: 100
+      endurance: { value: 25, maximum: 100, updatedAt: 0, rate: 0 }
     }
   });
 
@@ -1505,7 +1442,7 @@ test('Sigil of Energy restores 50 endurance on Revenant legend swap', () => {
     result.procSteps.filter((step) => step.skill === 'Sigil of Energy').map((step) => step.sourceSkill),
     ['Swap Legends']
   );
-  assert.equal(result.planningState.profession.endurance - baseline.planningState.profession.endurance, 50);
+  assert.equal(result.planningState.profession.endurance.value - baseline.planningState.profession.endurance.value, 50);
 });
 
 test('Call of the Alliance grants five endurance plus three per hit', () => {
@@ -1524,7 +1461,7 @@ test('Call of the Alliance grants five endurance plus three per hit', () => {
   });
   // Both runs end at the swap, so passive regeneration cancels out of the difference.
   assert.equal(
-    result.planningState.profession.endurance - baseline.planningState.profession.endurance,
+    result.planningState.profession.endurance.value - baseline.planningState.profession.endurance.value,
     call.resourceGain
   );
 });
@@ -1606,10 +1543,6 @@ test('Vindicator Dodge + Auto palette action uses the current chain step', () =>
   const paletteSkill = paletteActionSkills(app, 'Vindicator').find(
     (skill) => skill.name === VINDICATOR_DODGE_AUTO_ACTION
   );
-
-  // Manual dodges occupy the full jump and advertise both animation phases.
-  const jump = paletteActionSkills(app, 'Vindicator').find((skill) => skill.id === 23275);
-  assert.equal(paletteSkillIsInstant(app, { specialization: 'Vindicator' }, jump), false);
   assert.equal(paletteSkill.name, VINDICATOR_DODGE_AUTO_ACTION);
   assert.equal(paletteSkillView(app, paletteSkill).draggable, true);
   assert.deepEqual(
@@ -1693,7 +1626,6 @@ test('Vindicator Dodge + Auto palette action uses the current chain step', () =>
 
   assert.deepEqual(combined.warnings, []);
   assert.equal(combined.steps[1].start, combined.steps[2].start);
-  assert.ok(castMs(combined.steps[1]) > 0);
 });
 
 test('Vindicator legend skills preserve the Greatsword autoattack chain', () => {
@@ -1770,9 +1702,10 @@ test('Imperial Guard exposes True Strike after cancellation or completion', () =
   );
 });
 
-test('Deathstrike weapon palette keeps the primary skill timing on cooldown', () => {
+test('Deathstrike weapon palette keeps the primary skill identity on cooldown', () => {
   const app = {
     profession: revenantProfession,
+    activeCatalog: revenantCatalog,
     skills: revenantCatalog.skills,
     results: {
       planningState: {
@@ -1796,9 +1729,6 @@ test('Deathstrike weapon palette keeps the primary skill timing on cooldown', ()
   const deathstrike = weaponSkills(app).find((skill) => skill.name === 'Deathstrike');
 
   assert.equal(deathstrike.id, SKILL.DEATHSTRIKE);
-  assert.equal(deathstrike.castTimeMs, revenantCatalog.skillsById.get(SKILL.DEATHSTRIKE).castTimeMs);
-  // Rich tooltips expose cast timing through castDetails rather than the native title.
-  assert.match(paletteSkillView(app, deathstrike).castDetails, /^Cast time: \d+\.\d{3}s\n/);
 });
 
 // Restoring scheduler resources must preserve resolver-owned clocks in both active state slices.

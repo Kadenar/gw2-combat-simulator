@@ -1,4 +1,5 @@
-import type { CanonicalCatalog, Skill as PreviewSkill, SkillId } from '#gw2/platform/engine/skills/types.js';
+import { activeRefreshedStacks } from '#gw2/platform/combat/resources/refreshed-stacks.js';
+import type { CanonicalCatalog, Skill as PreviewSkill, SkillId } from '#gw2/platform/skills/types.js';
 import type {
   SkillDamagePreviewContext,
   SkillDamagePreviewPreparation,
@@ -42,18 +43,14 @@ function untamedStateSnapshot(context: RangerUiContext): RotationStateSnapshotIt
     });
   }
 
-  for (const [id, beneficiary, stacksValue, expiresAt] of [
-    [
-      'untamed-ferocious-symbiosis-player',
-      'Player',
-      state.ferociousSymbiosisPlayerStacks,
-      state.ferociousSymbiosisPlayerUntil
-    ],
-    ['untamed-ferocious-symbiosis-pet', 'Pet', state.ferociousSymbiosisPetStacks, state.ferociousSymbiosisPetUntil]
+  // Both read paths query the canonical beneficiary pool without settling live state.
+  for (const [id, beneficiary, pool] of [
+    ['untamed-ferocious-symbiosis-player', 'Player', state.ferociousSymbiosisPlayer],
+    ['untamed-ferocious-symbiosis-pet', 'Pet', state.ferociousSymbiosisPet]
   ] as const) {
-    const remaining = (expiresAt || 0) - at;
-    const stacks = boundedInteger(stacksValue || 0, 0, 0, 5);
-    if (remaining <= 0 || stacks <= 0) continue;
+    const remaining = (pool?.expiresAt || 0) - at;
+    const stacks = boundedInteger(activeRefreshedStacks(pool, at, 'exclusive'), 0, 0, 5);
+    if (stacks <= 0) continue;
     items.push({
       id,
       label: `Ferocious Symbiosis (${beneficiary})`,

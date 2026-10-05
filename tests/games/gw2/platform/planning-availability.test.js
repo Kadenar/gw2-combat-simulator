@@ -2,20 +2,22 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { loadProfession, professionOptions } from '#gw2/profession-registry.js';
 import { runGw2Runtime } from '#gw2/platform/simulation/runtime.js';
-import { planningState } from '#gw2/platform/results/end-state.js';
+import { planningState } from '#gw2/platform/results/planning-state.js';
 import { observeGw2Runtime, observedRuntime } from '#tests/helpers/observed-runtime.js';
-import { armSkillFlip } from '#gw2/platform/engine/skills/skill-flips.js';
+import { armSkillFlip } from '#gw2/platform/execution/skill-flips.js';
 import { ELEMENTALIST_TRAIT_IDS as TRAIT } from '#gw2/professions/elementalist/data/ids.js';
 
 // Deep snapshots retain Core/elite ownership, nested resource clocks and pending work; a shallow projection cannot prove purity.
 function snapshot(runtime) {
   return structuredClone({
     profession: runtime.profession,
-    cooldowns: runtime.cooldowns,
-    rechargeProgress: runtime.rechargeProgress,
-    ammo: runtime.ammo,
-    lockouts: runtime.lockouts,
-    inFlight: runtime.inFlight,
+    cooldowns: [...runtime.cooldownController.cooldownSkillIds()].map((id) => [
+      id,
+      runtime.cooldownController.readyAt(id),
+      runtime.cooldownController.rechargeFor(id)
+    ]),
+    ammo: [...runtime.cooldownController.ammoSkillIds()].map((id) => [id, runtime.cooldownController.readAmmo(id)]),
+    inFlightSkillIds: [...runtime.castController.inFlightSkillIds()],
     history: runtime.history,
     steps: runtime.steps,
     queue: Object.fromEntries(Object.entries(runtime.queue).filter(([, value]) => typeof value !== 'function'))
@@ -40,7 +42,7 @@ for (const { id } of professionOptions) {
       const sweep = () => {
         const before = snapshot(runtime);
         for (const skill of candidates) {
-          const verdict = profession.availability(runtime, skill, { type: 'cast', skillId: skill.id });
+          const verdict = profession.availability(runtime.mechanics, skill, { type: 'cast', skillId: skill.id });
           assert.equal(typeof verdict.ready, 'boolean');
           if (!verdict.ready) {
             assert.equal(typeof verdict.code, 'string');
@@ -68,15 +70,19 @@ for (const { id } of professionOptions) {
       );
       for (const skill of entries) {
         let calls = 0;
-        runGw2Runtime({
+        let owner;
+        observeGw2Runtime({
+          engineInitialize(runtime) {
+            owner = runtime;
+          },
           config,
           rotation: [{ type: 'cast', skillId: skill.id }],
           profession: {
             ...profession,
             availability(context, candidate, command) {
-              const before = snapshot(context);
+              const before = snapshot(owner);
               const verdict = profession.availability(context, candidate, command);
-              assert.deepEqual(snapshot(context), before, `${id}/${module.id}: ${candidate.name}`);
+              assert.deepEqual(snapshot(owner), before, `${id}/${module.id}: ${candidate.name}`);
               calls++;
               return verdict;
             }
@@ -99,18 +105,22 @@ test('Fresh Air planning capture leaves elapsed strike candidates and runtime st
   };
   const profession = family.runtimeFor(config);
   let observedElapsedCandidates = false;
-  runGw2Runtime({
+  let owner;
+  observeGw2Runtime({
+    engineInitialize(runtime) {
+      owner = runtime;
+    },
     profession: {
       ...profession,
       availability(runtime, skill, command) {
         if (
-          runtime.rotationEndTime != null &&
+          owner.rotationEndTime != null &&
           runtime.profession.core.freshAirCandidates.some((at) => at <= runtime.time)
         )
           observedElapsedCandidates = true;
-        const before = snapshot(runtime);
+        const before = snapshot(owner);
         const verdict = profession.availability(runtime, skill, command);
-        assert.deepEqual(snapshot(runtime), before, skill.name);
+        assert.deepEqual(snapshot(owner), before, skill.name);
         return verdict;
       }
     },
@@ -129,14 +139,14 @@ test('planning verdicts and state are detached; score runs never capture candida
   const observation = planningState(
     { ...runtime, catalog: profession.catalog },
     profession.projectPlanningState,
-    undefined,
-    () => verdict
+    () => verdict,
+    []
   );
   const before = structuredClone(observation);
   verdict.reason = 'Changed';
   runtime.profession.core.availableFlips = {};
   runtime.profession.specialization.state.gunsaberActive = true;
-  runtime.cooldowns.set(123, 99);
+  runtime.cooldownController.setReadyAt(123, 99);
   assert.deepEqual(observation, before);
   let queries = 0;
   runGw2Runtime({
@@ -172,7 +182,7 @@ test('Conduit recharge queries leave the committed resource state untouched', as
   });
   const before = snapshot(runtime);
   for (const skill of profession.catalog.skills.filter((skill) => skill.name === 'Beguiling Haze')) {
-    const verdict = profession.availability(runtime, skill, { type: 'cast', skillId: skill.id });
+    const verdict = profession.availability(runtime.mechanics, skill, { type: 'cast', skillId: skill.id });
     assert.equal(verdict.ready, false);
     assert.equal(verdict.code, 'revenant.beguiling-haze-cooldown');
     assert.ok(verdict.retryAt > 0);

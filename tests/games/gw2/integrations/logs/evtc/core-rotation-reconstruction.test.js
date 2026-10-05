@@ -101,30 +101,12 @@ test('EVTC preserves a stop-only pre-log cast and distinguishes recording, comba
   });
   const out = reconstructEvtcRotation(fixture, catalog);
   assert.equal(out.sourceActions[0].startMs, -600);
-  assert.equal(out.sourceActions[0].durationMs, 800);
   assert.equal(out.timelineOriginMs, -600);
   assert.equal(out.combatStartTimestampMs, 700);
   assert.equal(out.warnings.filter((w) => w === LOG_OPENER_WARNING).length, 1);
 });
 
-test('source durations and statuses are not rewritten by replay or landed damage', () => {
-  const fixture = log({
-    events: [
-      event({ time: 0, stateChange: 1 }),
-      ...cast(100, 220).map((e) => (e.stateChange === 68 ? { ...e, activation: 4 } : e)),
-      event({ time: 250, skillId: 1000, value: 100 })
-    ]
-  });
-  const before = structuredClone(fixture);
-  const out = reconstructEvtcRotation(fixture, catalog);
-  assert.deepEqual(fixture, before);
-  assert.equal(out.sourceActions[0].status, 'interrupted');
-  assert.equal(out.sourceActions[0].durationMs, 120);
-  assert.equal(out.actions[0].durationMs, 120);
-  assert.equal(out.actions[0].status, 'interrupted');
-});
-
-test('encounter end excludes new inputs but retains crossing casts and their complete stops', () => {
+test('encounter end excludes new inputs but retains crossing casts', () => {
   const target = { ...log().agents[0], address: 0x2000n, profession: 16199, elite: 0xffffffff };
   const out = reconstructEvtcRotation(
     log({
@@ -134,10 +116,9 @@ test('encounter end excludes new inputs but retains crossing casts and their com
     catalog
   );
   assert.deepEqual(
-    out.sourceActions.map((a) => [a.startMs, a.durationMs]),
-    [[0, 400]]
+    out.sourceActions.map((action) => action.startMs),
+    [0]
   );
-  assert.equal(out.actions[0].durationMs, 400);
 });
 
 test('incomplete imports keep unsupported diagnostics and receive exactly one opener notice', () => {

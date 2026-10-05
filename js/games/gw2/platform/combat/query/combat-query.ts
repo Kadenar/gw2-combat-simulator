@@ -21,8 +21,8 @@ import {
   createPermanentTargetConditionStacks,
   runtimeTargetConditionStacks
 } from '#gw2/platform/combat/state/targets.js';
-import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
-import type { NormalizedProfessionContract } from '#gw2/platform/engine/profession/types.js';
+import type { SimulationEvent } from '#gw2/platform/events/events.js';
+import type { NormalizedProfessionContract } from '#gw2/platform/profession-definition/types.js';
 import { UTILITY_STRIKE_DAMAGE_BONUSES } from '#gw2/platform/equipment/consumables/utilities.js';
 import {
   relicConditionDamageBonus,
@@ -37,7 +37,7 @@ import { severanceCriticalContribution } from '#gw2/platform/equipment/sigils/se
 import type { Gw2Stats } from '#gw2/platform/combat/types.js';
 import { gw2PrimaryWeapon } from '#gw2/platform/equipment/weapons/loadout.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
-import { roundEffectDuration } from '#gw2/platform/skills/timing.js';
+import { roundEffectDuration } from '#gw2/platform/effects/timing.js';
 import { boundedNumber, clamp } from '#kernel/core/numeric.js';
 
 /** Queries need immutable catalog and formula hooks, not either execution engine's state factories. */
@@ -60,7 +60,7 @@ export type Gw2QueryProfession = Pick<
 
 interface CreateGw2CombatQueryOptions {
   readonly profession?: Gw2QueryProfession;
-  readonly skillOnCooldown?: (skillId: import('#gw2/platform/engine/skills/types.js').SkillId, time: number) => boolean;
+  readonly skillOnCooldown?: (skillId: import('#gw2/platform/skills/types.js').SkillId, time: number) => boolean;
   readonly config?: Gw2Config;
   readonly events?: readonly SimulationEvent[];
   readonly resolvedTimelineEvents?: readonly SimulationEvent[];
@@ -733,9 +733,6 @@ export function createGw2CombatQuery({
     targetHasCondition(condition: string, time: number, runtime: Gw2QueryRuntime | null = null) {
       return targetConditionStacksAt(condition, time, runtime) > 0;
     },
-    activeWeaponSetAt: timeline.activeWeaponSetAt,
-    activeSigilSetAt: timeline.activeSigilSetAt,
-    timedStacks: timeline.timedStacks,
     timeline
   });
   query = completedQuery;
@@ -807,9 +804,6 @@ export interface Gw2CombatQuery {
   ): number;
   targetConditionStacks(condition: string, time: number, runtime?: Gw2QueryRuntime | null): number;
   targetHasCondition(condition: string, time: number, runtime?: Gw2QueryRuntime | null): boolean;
-  readonly activeWeaponSetAt: Gw2TimelineIndex['activeWeaponSetAt'];
-  readonly activeSigilSetAt: Gw2TimelineIndex['activeSigilSetAt'];
-  readonly timedStacks: Gw2TimelineIndex['timedStacks'];
   readonly timeline: Readonly<Gw2TimelineIndex>;
 }
 

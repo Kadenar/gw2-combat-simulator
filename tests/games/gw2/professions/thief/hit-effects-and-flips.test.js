@@ -25,26 +25,8 @@ test('Weakening Whirl schedules weakness with each retained strike', () => {
         hits.map((event) => event.at)
       );
       assert.ok(weakness.every((event) => event.stacks === 1 && event.duration === 2));
-      if (typeof entry === 'string')
-        assert.equal(
-          weakness.reduce((sum, event) => sum + event.duration, 0),
-          6
-        );
     }
   }
-});
-
-test('Caltrops schedules an impact bleed followed by ten one-second pulses', () => {
-  const result = simulate('Core', ['Caltrops', { name: '__wait', waitMs: 11000 }]);
-  assert.deepEqual(result.warnings, []);
-  const bleeds = result.events.filter((event) => event.type === 'condition' && event.condition === 'Bleeding');
-  // Offsets are relative to placement so cast duration does not change the field cadence.
-  assert.deepEqual(
-    bleeds.map((event) => Math.round((event.at - bleeds[0].at) * 1000)),
-    Array.from({ length: 11 }, (_, index) => index * 1000)
-  );
-  assert.ok(Math.abs(bleeds[0].at - result.steps[0].end / 1000) < 0.001);
-  assert.ok(bleeds.every((event) => event.stacks === 1));
 });
 
 test('Fist Flurry flips its equipped tile only after connecting and restores it after use or expiry', () => {

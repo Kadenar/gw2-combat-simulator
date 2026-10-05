@@ -9,7 +9,7 @@ import { SKILLS, SPECIALIZATIONS } from '#gw2/professions/engineer/data/engineer
 import { ENGINEER_SUPPLEMENTAL_SKILLS } from '#gw2/professions/engineer/data/engineer-supplemental-skills.js';
 import { ENGINEER_SKILL_IDS as ID } from '#gw2/professions/engineer/data/ids.js';
 import { TRAITS } from '#gw2/professions/engineer/data/traits-data.js';
-import type { SkillId } from '#gw2/platform/engine/skills/types.js';
+import type { SkillId } from '#gw2/platform/skills/types.js';
 
 const ENGINEER_SKILL_ICON_OVERRIDES = new Map<string, string>([
   ['Lesser Grenade Barrage', 'https://render.guildwars2.com/file/5B2AB667667749BC1BC7AEFD27362E3E0E0F2FE6/103294.png'],

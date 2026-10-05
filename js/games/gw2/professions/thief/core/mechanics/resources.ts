@@ -1,14 +1,11 @@
 import { selectedSkillIdSet } from '#gw2/platform/builds/selected-skills.js';
-import { preparednessCapacityField } from '#gw2/professions/thief/core/traits/behavior.js';
+import { preparednessCapacityField } from '#gw2/professions/thief/core/traits/resource-queries.js';
 import { canonicalTime, EPSILON } from '#kernel/core/clock.js';
 
 import type { EndurancePolicy } from '#gw2/platform/combat/resources/endurance-policy.js';
 import type { ResourcePolicy } from '#gw2/platform/combat/resources/resource-policy.js';
-import {
-  balanceProfileNumber,
-  requireBalanceProfileFromContext
-} from '#gw2/platform/engine/skills/balance-profiles.js';
-import type { RuntimeCast } from '#gw2/platform/simulation/runtime-state.js';
+import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
+import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import type { ThiefRuntime } from '#gw2/professions/thief/core/events.js';
 import { THIEF_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/thief/core/profiles.js';
 import type { ThiefCoreState } from '#gw2/professions/thief/core/state.js';
@@ -41,7 +38,7 @@ export const thiefInitiative: ResourcePolicy<ThiefRuntime> = {
   nextChange(runtime, cost) {
     if (cost > runtime.profession.core.initiative.maximum) return Infinity;
     const pulse = runtime.profession.core.infiltratorsSignetPulseAt;
-    const completion = runtime.cursor.endTime();
+    const completion = runtime.castController.currentLaneEnd();
     return Math.min(
       pulse != null && pulse > runtime.time ? pulse : Infinity,
       completion > runtime.time ? completion : Infinity
@@ -60,20 +57,10 @@ function thiefEnduranceRate(runtime: ThiefRuntime, vigor: boolean): number {
 }
 
 export const thiefEndurance: EndurancePolicy<ThiefRuntime> = {
-  state: (runtime) => runtime.profession.core,
+  state: (runtime) => runtime.profession.core.endurance,
   maximum: () => 100,
   regenerationRate: (runtime, vigor) => thiefEnduranceRate(runtime, vigor)
 };
-
-/** Grants initiative at the live clock; the shared controller settles regeneration first. */
-export function grantThiefInitiative(runtime: ThiefRuntime, amount: number): void {
-  if (amount > 0) runtime.resourceController.grant('initiative', amount);
-}
-
-/** Grants endurance at the live clock, capped by the active specialization's pool. */
-export function grantThiefEndurance(runtime: ThiefRuntime, amount: number): void {
-  if (amount > 0) runtime.endurance.grant(amount);
-}
 
 /** Kneeling changes the regeneration rate from this instant onward. */
 export function setThiefKneeling(runtime: ThiefRuntime, kneeling: boolean): void {
@@ -88,7 +75,9 @@ export function setThiefKneeling(runtime: ThiefRuntime, kneeling: boolean): void
 export function restartThiefInfiltratorsSignet(runtime: ThiefRuntime): void {
   const core = runtime.profession.core;
   if (!selectedSkillIdSet(runtime.config.selectedSkillIds).has(ID.INFILTRATORS_SIGNET)) return;
-  const at = canonicalTime(Math.max(runtime.time, runtime.cooldowns.get(ID.INFILTRATORS_SIGNET) || 0) + 10);
+  const at = canonicalTime(
+    Math.max(runtime.time, runtime.cooldownController.readyAt(ID.INFILTRATORS_SIGNET) || 0) + 10
+  );
   core.infiltratorsSignetPulseAt = at;
   runtime.schedule(THIEF_INFILTRATORS_SIGNET_PULSE, at, { at });
 }
@@ -97,7 +86,8 @@ export function restartThiefInfiltratorsSignet(runtime: ThiefRuntime): void {
 export function thiefInfiltratorsSignetPulse(runtime: ThiefRuntime, data: unknown): void {
   const core = runtime.profession.core;
   if ((data as { at: number }).at !== core.infiltratorsSignetPulseAt) return;
-  if ((runtime.cooldowns.get(ID.INFILTRATORS_SIGNET) || 0) <= runtime.time + EPSILON) grantThiefInitiative(runtime, 1);
+  if ((runtime.cooldownController.readyAt(ID.INFILTRATORS_SIGNET) || 0) <= runtime.time + EPSILON)
+    runtime.resourceController.grant('initiative', 1);
   restartThiefInfiltratorsSignet(runtime);
 }
 

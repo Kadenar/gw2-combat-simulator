@@ -104,10 +104,10 @@ test('derived conditions preserve immediate visibility and same-time queued orde
             })
           });
         } else {
-          assert.ok(context.query.targetHasCondition('Burning', event.at, context));
-          assert.ok(context.query.targetHasCondition('Bleeding', event.at, context));
-          assert.ok(context.query.targetHasCondition('Poisoned', event.at, context));
-          assert.equal(context.query.targetHasCondition('Vulnerability', event.at, context), false);
+          assert.ok(context.combat.targetHasCondition('Burning', event.at, context));
+          assert.ok(context.combat.targetHasCondition('Bleeding', event.at, context));
+          assert.ok(context.combat.targetHasCondition('Poisoned', event.at, context));
+          assert.equal(context.combat.targetHasCondition('Vulnerability', event.at, context), false);
           trace.push('observer');
         }
       },
@@ -225,6 +225,7 @@ test('Engineer derived strikes retain their owner and one combo descriptor', () 
   effects.emit({
     kind: 'packet',
     event: buildEngineerStrike(trigger, {
+      skillWeapon: 'Unequipped',
       name: 'Derived blast',
       sourceId: 42,
       coefficient: 0.5,
@@ -243,6 +244,18 @@ test('Engineer derived strikes retain their owner and one combo descriptor', () 
   assert.equal(strike.sourceId, 42);
   assert.equal(strike.actorType, 'effect');
   assert.equal(strike.ownerActorType, 'player');
+});
+
+// The general Engineer helper preserves a caller's weapon choice independently of the actor or trigger.
+test('Engineer strikes require explicit weapon attribution for weapon and effect actors', () => {
+  for (const [actorType, skillWeapon] of [
+    ['player', 'Rifle'],
+    ['player', 'Spear'],
+    ['effect', 'Unequipped']
+  ]) {
+    const packet = buildEngineerStrike(trigger, { name: 'Explicit weapon', coefficient: 1, actorType, skillWeapon });
+    assert.equal(packet.skillWeapon, skillWeapon);
+  }
 });
 
 // Delayed paired effects use the captured heat tier rather than current profession state.

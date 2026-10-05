@@ -1,15 +1,15 @@
+import { createMesmerIllusionRewards } from '#gw2/professions/mesmer/family-mechanics.js';
+import { createExecutedFacts } from '#gw2/platform/combat/history/executed-facts.js';
 import { captureEffectEmissions } from '#tests/helpers/effect-emission.js';
 import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
-import { createRuntimeEndurance } from '#gw2/platform/combat/resources/runtime-resources.js';
+import { createRuntimeEndurance, createRuntimeResources } from '#gw2/platform/combat/resources/runtime-resources.js';
 import { gw2BoonApplicationRecipients } from '#gw2/platform/combat/state/allied-players.js';
-import { applySkillSideEffects } from '#gw2/platform/simulation/side-effects.js';
-import { registerMesmerMechanics } from '#gw2/professions/mesmer/core/mechanics/runtime.js';
+import { applySkillSideEffects } from '#gw2/platform/effects/action-dispatch.js';
 import { MESMER_SKILL_IDS as ID, MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
 import { mesmerProfession } from '#gw2/professions/mesmer/profession.js';
 import { troubadourHooks } from '#gw2/professions/mesmer/specializations/troubadour/hooks.js';
 import { troubadourEndurance } from '#gw2/professions/mesmer/specializations/troubadour/mechanics/endurance.js';
 import { completeTroubadourPerformance } from '#gw2/professions/mesmer/specializations/troubadour/mechanics/instruments.js';
-import { initializeTroubadourRuntime } from '#gw2/professions/mesmer/specializations/troubadour/mechanics/runtime.js';
 import { troubadourModifierRules } from '#gw2/professions/mesmer/specializations/troubadour/modifiers.js';
 import { troubadourUi } from '#gw2/professions/mesmer/specializations/troubadour/presentation.js';
 import { TROUBADOUR_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/mesmer/specializations/troubadour/profiles.js';
@@ -27,8 +27,7 @@ function instrumentContext() {
   const state = {
     time: 0,
     activeWeaponSet: 1,
-    profession: profession.createState(config),
-    cooldowns: new Map()
+    profession: profession.createState(config)
   };
   const emit = (event) => {
     const result = { ...event, eventOrder: events.length };
@@ -38,6 +37,7 @@ function instrumentContext() {
 
   const context = {
     config,
+    combat: { warn() {} },
     traits: new Set(config.selectedTraitIds),
     profession,
     state,
@@ -49,40 +49,52 @@ function instrumentContext() {
     effectiveEnd: 0,
     maximumAmmoFor: () => 0,
     cooldownController: { ensureAmmo: () => null },
-    eventsOfType: (type) => events.filter((event) => event.type === type),
-    mesmerRuntime: {
-      instruments: {},
-      castDetails: new Map(),
-      activePrimaryWeapon: () => 'Spear',
-      resourceDefinition: { singular: 'note', plural: 'notes', maximum: 3 },
-      actions: {
-        consumeResources: () => {
-          const spent = state.profession.specialization.state.numericResource;
-          state.profession.specialization.state.numericResource = 0;
-          return spent;
-        }
-      },
-      resources: { queueResources: (at, amount) => emit({ type: 'resource', at, amount }) }
-    }
+    eventsOfType: (type) => events.filter((event) => event.type === type)
   };
   Object.assign(context, state);
   context.helpers = context.catalog;
   context.effects = captureEffectEmissions({ now: () => context.time, submit: emit }).effects;
+  const facts = createExecutedFacts(events);
+  context.facts = facts.reader;
+  context.observations = facts.writer;
   context.history = events;
-  context.schedule = () => {};
+  // Execute immediate resource tasks through their real owner while leaving unrelated scheduled work isolated.
+  context.schedule = (type, at, data) => {
+    if (type === 'mesmer.resource-gain')
+      createMesmerIllusionRewards(context).gainResources(at, data.count, data.weapon, data.reason, data.cause);
+  };
 
-  context.endurance = createRuntimeEndurance(context, { endurance: troubadourEndurance });
-  registerMesmerMechanics(context, context.mesmerRuntime);
-  context.mesmerRuntime.context = context;
-  initializeTroubadourRuntime(context);
+  // Endurance receives its engine clock and the explicit policy capability.
+  context.endurance = createRuntimeEndurance(
+    {
+      get time() {
+        return context.time;
+      },
+      config,
+      history: events,
+      mechanics: context
+    },
+    { endurance: troubadourEndurance }
+  );
+  // Numeric transactions use the same initialized clock policy as the engine.
+  context.resourceController = createRuntimeResources(
+    {
+      get time() {
+        return context.time;
+      },
+      mechanics: context
+    },
+    { resources: troubadourHooks.resources }
+  );
+  context.resourceController.initialize();
   return context;
 }
 
 function play(context, id, at, notes = 0) {
   context.fullEnd = context.effectiveEnd = at;
-  context.profession.specialization.state.numericResource = notes;
   const skill = context.catalog.skillsById.get(id);
   context.time = at;
+  context.resourceController.replace('notes', notes);
   completeTroubadourPerformance(
     context,
     { skill, start: at, fullEnd: at, effectiveEnd: at, id: 'fixture', command: {} },
@@ -172,7 +184,7 @@ function beginTale(context, at) {
     kind: 'packet',
     event: { type: 'action', at, activationId: cast.id, actorType: 'player', source: 'Player', sourceId: cast.skill.id }
   });
-  context.mesmerRuntime.castDetails.set(cast.id, {});
+  context.profession.core.castDetails.set(cast.id, {});
   applySkillSideEffects(context, cast, 'castStart', troubadourHooks.sideEffectHandlers);
   return cast;
 }
@@ -185,7 +197,10 @@ test('Tales retain cast-start note eligibility after instrument expiry and rejec
     play(context, ID.FLUSTERING_FLUTE, 5.8);
     context.time = 6;
     applySkillSideEffects(context, cast, 'castCommit', troubadourHooks.sideEffectHandlers);
-    assert.equal(context.events.filter((event) => event.type === 'resource').length, start < 5.301 ? 1 : 0);
+    assert.equal(
+      context.events.filter((event) => event.type === 'resource' && event.amount > 0).length,
+      start < 5.301 ? 1 : 0
+    );
   }
 });
 
@@ -196,7 +211,7 @@ test('a same-time instrument committed after a Tale starts cannot grant that Tal
   context.time = 1;
   applySkillSideEffects(context, cast, 'castCommit', troubadourHooks.sideEffectHandlers);
   assert.equal(
-    context.events.some((event) => event.type === 'resource'),
+    context.events.some((event) => event.type === 'resource' && event.amount > 0),
     false
   );
 });
@@ -213,18 +228,18 @@ test('Tale rewards commit before recovery and are available to the next instrume
     command: {}
   };
   context.time = cast.start;
-  context.mesmerRuntime.castDetails.set(cast.id, {});
+  context.profession.core.castDetails.set(cast.id, {});
   applySkillSideEffects(context, cast, 'castStart', troubadourHooks.sideEffectHandlers);
   context.time = cast.effectiveEnd;
   applySkillSideEffects(context, cast, 'castCommit', troubadourHooks.sideEffectHandlers);
-  const note = context.events.find((event) => event.type === 'resource');
+  const note = context.events.find((event) => event.type === 'resource' && event.amount > 0);
   const boon = context.events.find((event) => event.kind === 'might');
   assert.equal(note.at, context.time);
   assert.equal(boon.at, context.time);
   assert.equal(boon.audience.recipients, 'party');
   assert.equal(boon.audience.maximumRecipients, 5);
   play(context, ID.FLUSTERING_FLUTE, context.time, note.amount);
-  assert.equal(context.profession.specialization.state.numericResource, 0);
+  assert.equal(context.profession.specialization.state.notes.value, 0);
   assert.ok(context.profession.specialization.state.instruments.Flute > context.time + 5);
 });
 
@@ -260,21 +275,21 @@ test('Flute endurance regeneration uses the final live microsecond and loses the
 test('Troubadour endurance integrates Flute replacement and Vigor boundaries without losing partial recovery', () => {
   const context = instrumentContext();
   const state = context.profession.specialization.state;
-  state.endurance = 0;
+  state.endurance.value = 0;
   play(context, ID.FLUSTERING_FLUTE, 1, 3);
   play(context, ID.FLUSTERING_FLUTE, 2);
   const vigor = { type: 'buff', kind: 'vigor', at: 3, duration: 2, stacks: 1, audience: { recipients: 'self' } };
   context.events.push({ ...vigor, resolvedAudience: gw2BoonApplicationRecipients({}, vigor) });
   // 0-1: 5; 1-3: 12.5; 3-5: 17.5; 5-7: 12.5. The remaining 2.5 takes 0.5s at the base rate.
   assert.equal(((context.time = 0), context.endurance.readyAt(50)), 7.52);
-  assert.equal(state.endurance, 0, 'Readiness must not mutate the pool');
+  assert.equal(state.endurance.value, 0, 'Readiness must not mutate the pool');
   context.time = 7;
   context.endurance.advance();
-  assert.equal(state.endurance, 47.5);
+  assert.equal(state.endurance.value, 47.5);
   context.time = 8;
   context.endurance.advance();
-  assert.equal(state.endurance, 52.5);
-  assert.equal(state.enduranceUpdatedAt, 8);
+  assert.equal(state.endurance.value, 52.5);
+  assert.equal(state.endurance.updatedAt, 8);
 });
 
 test('delayed performance packets survive instrument expiry without retaining its playing bonus', () => {

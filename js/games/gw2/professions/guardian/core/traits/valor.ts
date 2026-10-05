@@ -1,7 +1,4 @@
-import {
-  balanceProfileNumber,
-  requireBalanceProfileFromContext
-} from '#gw2/platform/engine/skills/balance-profiles.js';
+import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
 import { GUARDIAN_TRAIT_IDS as TRAIT } from '#gw2/professions/guardian/data/ids.js';
 
@@ -36,5 +33,3 @@ export const stalwartDefender = defineTrait({
     };
   }
 });
-
-export const guardianValorTraits = [focusMastery, stalwartDefender];

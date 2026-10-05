@@ -1,8 +1,9 @@
+import { observedRuntime } from '#tests/helpers/observed-runtime.js';
 import { captureEffectEmissions } from '#tests/helpers/effect-emission.js';
 import { skillBreakdownRows } from '#gw2/app/results/skill-breakdown.js';
 import { rotationSelectedSlotSkills } from '#gw2/app/rotation/palette/model.js';
 import { compileProfessionRules } from '#gw2/platform/profession-definition/trigger-rules.js';
-import { applySkillSideEffects } from '#gw2/platform/simulation/side-effects.js';
+import { applySkillSideEffects } from '#gw2/platform/effects/action-dispatch.js';
 import { elementalistAppAdapter } from '#gw2/professions/elementalist/app/app-definition.js';
 import { targetAttunement } from '#gw2/professions/elementalist/core/mechanics/attunements.js';
 import { elementalistPistolSideEffects } from '#gw2/professions/elementalist/core/mechanics/pistol-bullets.js';
@@ -364,15 +365,16 @@ test("Evasive Arcana uses the active attunement's native trait skill", () => {
 test('Elementalist behavior follows skill IDs after display labels change', () => {
   const fireAttunement = { ...elementalistCatalog.skillsById.get(ID.FIRE_ATTUNEMENT), name: 'Renamed attunement' };
   const ignite = { ...elementalistCatalog.skillsById.get(ID.IGNITE), name: 'Renamed familiar' };
-  const state = evokerState.create({ evokerElement: 'Fire', initialEvokerCharges: 6 });
-  const context = {
-    helpers: elementalistCatalog,
-    profession: { core: {}, specialization: { kind: 'Evoker', state } },
-    time: 0,
-    start: 0,
-    commandIndex: 0,
-    config: { selectedTraitIds: [] }
-  };
+  // Pool policies seed the fixture through the same initialization boundary as simulation.
+  const context = observedRuntime(
+    runElementalist([], {
+      specialization: 'Evoker',
+      evokerElement: 'Fire',
+      initialEvokerCharges: 6,
+      selectedTraitIds: []
+    })
+  ).mechanics;
+  const state = evokerState.from(context);
 
   assert.equal(targetAttunement(fireAttunement), 'Fire');
   assert.deepEqual(evokerModule.hooks.availability(context, ignite), { ready: true });
@@ -397,6 +399,8 @@ test('Elementalist behavior follows skill IDs after display labels change', () =
     effects: captureEffectEmissions({ submit: (event) => pistolEvents.push(event) }).effects,
     emitProcedural: (event) => pistolEvents.push(event)
   };
+  // Predicate fixtures expose only the state read by the bullet selector.
+  pistolContext.queries = { profession: pistolContext.profession };
   const shatteringStone = {
     ...elementalistCatalog.skillsById.get(ID.SHATTERING_STONE),
     name: 'Renamed core pistol skill'

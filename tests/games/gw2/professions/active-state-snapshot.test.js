@@ -4,7 +4,7 @@ import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession
 import { projectObservedState } from '#tests/helpers/observed-runtime.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { snapshotProfessionState } from '#gw2/platform/engine/profession/state.js';
+import { snapshotProfessionState } from '#gw2/platform/profession-definition/state.js';
 
 import { elementalistProfession } from '#gw2/professions/elementalist/profession.js';
 import { engineerProfession } from '#gw2/professions/engineer/profession.js';
@@ -209,8 +209,7 @@ test('Guardian snapshots combine core and elite active state', () => {
         justiceUntil: 8,
         resolveUntil: 7,
         courageUntil: 3,
-        lethalTempoStacks: 4,
-        lethalTempoUntil: 10
+        lethalTempo: { stacks: 4, expiresAt: 10 }
       },
       4
     )
@@ -308,10 +307,8 @@ test('Ranger snapshots expose elite windows and resolver-owned Ferocious Symbios
       'Untamed',
       {
         ambushReadyUntil: 7,
-        ferociousSymbiosisPlayerStacks: 3,
-        ferociousSymbiosisPlayerUntil: 9,
-        ferociousSymbiosisPetStacks: 5,
-        ferociousSymbiosisPetUntil: 8
+        ferociousSymbiosisPlayer: { stacks: 3, expiresAt: 9 },
+        ferociousSymbiosisPet: { stacks: 5, expiresAt: 8 }
       },
       4
     )
@@ -326,8 +323,8 @@ test('Ranger snapshots expose elite windows and resolver-owned Ferocious Symbios
       specialization: { kind: 'Untamed', state: { rangerUnleashed: true, ambushReadyUntil: 7 } }
     }
   });
-  assert.equal(projected.ferociousSymbiosisPlayerStacks, 0);
-  assert.equal(projected.ferociousSymbiosisPlayerUntil, 0);
+  assert.equal(projected.ferociousSymbiosisPlayer.stacks, 0);
+  assert.equal(projected.ferociousSymbiosisPlayer.expiresAt, 0);
 
   const galeshot = valuesById(snapshot(rangerProfession, 'Galeshot', { mistralUntil: 7.5 }, 4));
   assert.equal(galeshot['galeshot-mistral'], '3.5s');
@@ -348,8 +345,7 @@ test('Revenant snapshots expose shared drains and elite stack/form windows', () 
           { at: 1, expiresAt: 10 },
           { at: 2, expiresAt: 11 }
         ],
-        bandTogetherReady: true,
-        bandTogetherExpiresAt: 8
+        bandTogether: { charges: 1, expiresAt: 8 }
       },
       4
     )
@@ -383,8 +379,7 @@ test('Thief snapshots expose stealth gates, Bounding Dodger, Combat High, and ar
       {
         combatHighExpirations: [6, 8, 10, 12, 14, 16, 18, 20],
         antiquaryDamageUntil: 9,
-        stealthAttackCharges: 2,
-        stealthAttackExpiresAt: 8,
+        bonusStealthAttack: { charges: 2, expiresAt: 8 },
         mistburn: { charges: 4, expiresAt: 10 },
         kryptisDamageUntil: 11,
         chakInitiativeRefundUntil: 12,
@@ -473,7 +468,12 @@ test('Warrior snapshots expose shared stacks, Bladesworn buffs, and Paragon refr
   assert.equal(bladesworn['bladesworn-guns-and-glory'], '9.0s');
 
   const paragon = valuesById(
-    snapshot(warriorProfession, 'Paragon', { activeRefrain: 'Chant of Action', motivation: 5 }, 4)
+    snapshot(
+      warriorProfession,
+      'Paragon',
+      { activeRefrain: 'Chant of Action', motivation: { value: 5, maximum: 10, rate: 0, updatedAt: 4 } },
+      4
+    )
   );
   assert.equal(paragon['paragon-active-refrain'], 'Chant of Action');
 });

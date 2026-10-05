@@ -1,13 +1,10 @@
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
-import {
-  balanceProfileNumber,
-  requireBalanceProfileFromContext
-} from '#gw2/platform/engine/skills/balance-profiles.js';
+import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
 import { warriorActiveBuffStacks } from '#gw2/professions/warrior/core/traits/modifier-queries.js';
 import { WARRIOR_SKILL_IDS as ID, WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/professions/warrior/data/ids.js';
-import { dragonSlashReleases } from '#gw2/professions/warrior/specializations/bladesworn/skills/index.js';
+import { dragonSlashRelease } from '#gw2/professions/warrior/specializations/bladesworn/mechanics/dragon-trigger.js';
 import { resolveSharpAsTheWindSkillId } from '#gw2/professions/warrior/specializations/bladesworn/traits/behavior.js';
 
 /** Owns this trait's tuning and selected contributions. */
@@ -133,7 +130,7 @@ export const daringDragon = defineTrait({
 
       emit: TRAIT.DARING_DRAGON,
       on: 'castCommit',
-      when: (_runtime, cast) => dragonSlashReleases.has(cast),
+      when: (runtime, cast) => dragonSlashRelease(runtime, cast) != null,
       effects: (effect) => effect.type === 'boon' || effect.type === 'buff',
       attribution: { priority: 0, audience: { recipients: 'party' } }
     }

@@ -1,15 +1,21 @@
+import { createMechanicCombatServices } from '#gw2/platform/resolver/mechanic-services.js';
 import { effectPlanningState } from '#tests/helpers/effect-report.js';
 import { captureEffectEmissions } from '#tests/helpers/effect-emission.js';
 import { applyBalanceProfilePatch } from '#gw2/integrations/patches/authoring/patches.js';
 import { withProfile } from '#tests/helpers/catalog-overrides.js';
-import {
-  applyResolverElementalShielding,
-  applyResolverZephyrsBoon
-} from '#gw2/professions/elementalist/core/traits/behavior.js';
+import { applyResolverElementalShielding } from '#gw2/professions/elementalist/core/traits/earth.js';
+import { applyResolverZephyrsBoon } from '#gw2/professions/elementalist/core/traits/air.js';
 import { applyElementalistAttunementTraits } from '#gw2/professions/elementalist/core/traits/dispatch.js';
 import { ELEMENTALIST_TRAIT_IDS as TRAIT } from '#gw2/professions/elementalist/data/ids.js';
 import { elementalistCatalog } from '#gw2/professions/elementalist/profession.js';
 import { catalystModule } from '#gw2/professions/elementalist/specializations/catalyst/module.js';
+import { catalystState } from '#gw2/professions/elementalist/specializations/catalyst/state.js';
+import { catalystEffectStates } from '#gw2/professions/elementalist/specializations/catalyst/effect-state.js';
+import {
+  applyEmpoweringAura,
+  applyEmpoweringAurasBuff,
+  empoweringAuraStacks
+} from '#gw2/professions/elementalist/specializations/catalyst/traits/auras.js';
 import { catalystUi } from '#gw2/professions/elementalist/specializations/catalyst/presentation.js';
 import { triggerSpecializedElementEntry } from '#gw2/professions/elementalist/specializations/evoker/traits/attunements.js';
 import { applyTempestResolverAura } from '#gw2/professions/elementalist/specializations/tempest/traits/auras.js';
@@ -143,7 +149,7 @@ test('one Tempest aura resolves each trait boon exactly once', () => {
 
 test('Tempest preserves aura damage windows and grants boons for every actual aura', () => {
   // Every accepted aura refreshes Aria and grants each selected trait once.
-  for (const origin of [{}, { elementalistResolverGeneratedAura: true }, { type: 'aura' }]) {
+  for (const origin of [{}, { type: 'aura' }]) {
     const queued = [];
     const context = {
       helpers: elementalistCatalog,
@@ -153,6 +159,8 @@ test('Tempest preserves aura damage windows and grants boons for every actual au
       boons: new Map([['tempestuous aria', [{ at: 0, expiresAt: 3, stacks: 1 }]]]),
       effects: captureEffectEmissions({ submit: (event) => queued.push(event) }).effects
     };
+    // Bind real owner operations for this focused mechanic fixture.
+    context.combat = createMechanicCombatServices(context);
     applyTempestResolverAura(context, { type: 'elementalist.aura', at: 1, skillName: 'Fixture Aura', ...origin });
     assert.equal(context.boons.get('tempestuous aria')[0].expiresAt, 8);
     assert.deepEqual(
@@ -165,10 +173,13 @@ test('Tempest preserves aura damage windows and grants boons for every actual au
 test('Catalyst caps and refreshes Empowering Auras while granting Elemental Epitome', () => {
   const queued = [],
     procs = [];
+  const state = catalystState.create();
+  state.empoweringAuras = { stacks: 1, expiresAt: 3 };
   const context = {
+    profession: { core: {}, specialization: { kind: 'Catalyst', state } },
     traits: new Set([TRAIT.EMPOWERING_AURAS, TRAIT.ELEMENTAL_EPITOME]),
     combatStartTime: 0,
-    boons: new Map([['empowering auras', [{ at: 0, expiresAt: 3, stacks: 1 }]]]),
+    boons: new Map(),
     // Both scalar and effect overrides are assembled before aura reactions read their owners.
     helpers: withProfile(
       withProfile(elementalistCatalog, TRAIT.EMPOWERING_AURAS, { maximumStacks: 1, durationMultiplier: 8 }),
@@ -180,21 +191,59 @@ test('Catalyst caps and refreshes Empowering Auras while granting Elemental Epit
       announce: (request) => procs.push(request.announcement.name)
     }).effects
   };
+  // Bind real owner operations for this focused mechanic fixture.
+  context.combat = createMechanicCombatServices(context);
   const event = { type: 'elementalist.aura', at: 1, skillName: 'Fixture Aura', sourceId: 1 };
   catalystModule.hooks.reactions['aura.applied'](context, event);
-  assert.equal(context.boons.get('empowering auras')[0].expiresAt, 9);
+  assert.equal(state.empoweringAuras.expiresAt, 9);
   assert.deepEqual(
     queued.map((event) => event.kind),
     ['elemental empowerment']
   );
   queued.length = 0;
-  catalystModule.hooks.reactions['aura.applied'](context, { ...event, at: 2, elementalistResolverGeneratedAura: true });
-  assert.equal(context.boons.get('empowering auras')[0].expiresAt, 10);
+  catalystModule.hooks.reactions['aura.applied'](context, { ...event, at: 2 });
+  assert.equal(state.empoweringAuras.expiresAt, 10);
   assert.deepEqual(
     queued.map(({ kind, stacks, duration }) => ({ kind, stacks, duration })),
     [{ kind: 'elemental empowerment', stacks: 2, duration: 7 }]
   );
   assert.deepEqual(procs, ['Empowering Auras', 'Empowering Auras']);
+});
+
+test('Empowering Auras keeps queued grants, tick-aligned refreshes, exclusive expiry, and read-only observations', () => {
+  const state = catalystState.create();
+  const { effects, events } = captureEffectEmissions();
+  const context = {
+    profession: { core: {}, specialization: { kind: 'Catalyst', state } },
+    traits: new Set([TRAIT.EMPOWERING_AURAS]),
+    catalog: withProfile(elementalistCatalog, TRAIT.EMPOWERING_AURAS, { maximumStacks: 2 }),
+    effects
+  };
+  const aura = (at) => applyEmpoweringAura(context, { at, skillName: 'Fixture Aura' });
+  const apply = (event, includesSelf = true) =>
+    applyEmpoweringAurasBuff(context, { ...event, resolvedAudience: { includesSelf } });
+  aura(0.001);
+  assert.equal(state.empoweringAuras.stacks, 0, 'aura acceptance only queues a new stack');
+  apply(events.at(-1), false);
+  assert.equal(state.empoweringAuras.stacks, 0);
+  apply(events.at(-1));
+  assert.deepEqual(state.empoweringAuras, { stacks: 1, expiresAt: 10.04 });
+  aura(1.001);
+  apply(events.at(-1));
+  const queued = events.length;
+  aura(2.001);
+  assert.equal(events.length, queued, 'at-cap refreshes do not queue additional stacks');
+  assert.deepEqual(state.empoweringAuras, { stacks: 2, expiresAt: 12.04 });
+  const snapshot = catalystEffectStates(context).find((effect) => effect.kind === 'empowering auras');
+  const prior = structuredClone(state.empoweringAuras);
+  assert.equal(empoweringAuraStacks({ runtime: context, time: 12.039 }), 2);
+  assert.equal(empoweringAuraStacks({ runtime: context, time: 12.04 }), 0);
+  assert.deepEqual(state.empoweringAuras, prior);
+  aura(12.04);
+  assert.equal(state.empoweringAuras.stacks, 0);
+  apply(events.at(-1));
+  assert.equal(state.empoweringAuras.stacks, 1);
+  assert.deepEqual(snapshot.windows, [prior], 'later refreshes cannot rewrite earlier observations');
 });
 
 test('Catalyst snapshots retain capped aura refreshes without adding or reviving stacks', () => {

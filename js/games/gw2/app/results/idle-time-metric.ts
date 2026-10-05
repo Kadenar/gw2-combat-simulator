@@ -6,7 +6,7 @@ import {
   timelineStepsWithChargeFills
 } from '#gw2/app/rotation/timeline/model.js';
 import { resultCombatReferenceMs } from '#gw2/app/shared/result-clock.js';
-import type { Gw2SimulationResult } from '#gw2/platform/simulation/types.js';
+import type { Gw2SimulationResult } from '#gw2/platform/results/types.js';
 
 /** Groups marker durations into the concise contributor rows shown by the dead-time summary disclosure. */
 function deadTimeBreakdownDetails(markers: ReturnType<typeof timelineDeadTimeMarkers>): ResultSummaryMetricDetail[] {

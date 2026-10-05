@@ -1,5 +1,5 @@
 import { defaultWeaponSkillMatchesSet } from '#gw2/platform/equipment/weapons/skill-matcher.js';
-import type { Skill } from '#gw2/platform/engine/skills/types.js';
+import type { Skill } from '#gw2/platform/skills/types.js';
 import type { Gw2WeaponMatcherContext } from '#gw2/platform/equipment/weapons/types.js';
 import type { RangerConfig } from '#gw2/professions/ranger/types.js';
 import { isRangerHammerVariant, rangerHammerSkillIds } from '#gw2/professions/ranger/data/hammer-variants.js';

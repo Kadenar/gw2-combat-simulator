@@ -1,7 +1,7 @@
 import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
 import { eventSkill } from '#gw2/platform/combat/query/runtime-query.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
-import type { SkillId } from '#gw2/platform/engine/skills/types.js';
+import type { SkillId } from '#gw2/platform/skills/types.js';
 import { resolverSkill } from '#gw2/professions/engineer/core/mechanics/resolution-helpers.js';
 import { engineerEvent } from '#gw2/professions/engineer/core/traits/query-helpers.js';
 import type {

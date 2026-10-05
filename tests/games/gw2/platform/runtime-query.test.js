@@ -4,7 +4,7 @@ import test from 'node:test';
 import { createModifierHooks, MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { createGw2CombatQuery } from '#gw2/platform/combat/query/combat-query.js';
 import { recordBuffApplication } from '#gw2/platform/combat/boons.js';
-import { createCanonicalCatalog } from '#gw2/platform/engine/skills/canonical-skill-catalog.js';
+import { createCanonicalCatalog } from '#gw2/platform/skills/catalog.js';
 import {
   activeBoonStacks,
   boonActive,

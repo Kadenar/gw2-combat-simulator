@@ -7,7 +7,8 @@
  * reads required values through the shared balance-profile contract; the
  * authored catalog supplies baseline values when no patch is selected.
  */
-import type { BalanceProfile, SkillEffect } from '#gw2/platform/engine/skills/types.js';
+import type { BalanceProfile } from '#gw2/platform/skills/types.js';
+import type { SkillEffect } from '#gw2/platform/effects/types.js';
 import { defineSkillVariantProfile as variant } from '#gw2/platform/profession-definition/balance-profiles.js';
 import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';
 

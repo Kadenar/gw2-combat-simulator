@@ -1,4 +1,4 @@
-import { flattenProfessionState } from '#gw2/platform/engine/profession/state.js';
+import { flattenProfessionState } from '#gw2/platform/profession-definition/state.js';
 import assert from 'node:assert/strict';
 import { getNativeCatalogAssembly } from '#gw2/platform/profession-definition/assemble-module-catalog.js';
 import { GW2_RESOLVER_STAGES } from '#gw2/platform/resolver/reaction-registry.js';
@@ -23,10 +23,8 @@ function sortedIds(entries) {
   return entries.map((entry) => String(entry.id)).sort();
 }
 
-function registryKeys(core, specialization, key) {
-  const hooks = (module) => module?.hooks;
-
-  return [...Object.keys(hooks(core)?.[key] || {}), ...Object.keys(hooks(specialization)?.[key] || {})].sort();
+function registryKeys(hooks, key) {
+  return hooks.flatMap((contribution) => Object.keys(contribution[key] || {})).sort();
 }
 
 function presentationFor(module, catalog) {
@@ -35,13 +33,13 @@ function presentationFor(module, catalog) {
   return typeof presentation === 'function' ? presentation(catalog) : presentation || {};
 }
 
-function reactionKeys(...modules) {
+function reactionKeys(hooks) {
   // Declarative resolver triggers register the same stages as imperative reactions.
   return [
     ...new Set(
-      modules.flatMap((module) => [
-        ...Object.keys(module?.hooks?.reactions || {}),
-        ...(module?.hooks?.traitTriggers ?? [])
+      hooks.flatMap((contribution) => [
+        ...Object.keys(contribution.reactions || {}),
+        ...(contribution.traitTriggers ?? [])
           .map((rule) => rule.on)
           .filter((stage) => CANONICAL_REACTION_STAGES.has(stage))
       ])
@@ -89,6 +87,12 @@ export function assertProfessionFamilyConformance({ family, core, specialization
   for (const [name, specialization] of [['Core', null], ...Object.entries(specializations)]) {
     const config = { specialization: name };
     const runtime = family.runtimeFor(config);
+    // Family-bound mechanics participate in the same selected registry contract as module-owned callbacks.
+    const selectedHooks = [
+      family.nativeDefinition.runtimeHooks?.(name) ?? {},
+      core.hooks ?? {},
+      specialization?.hooks ?? {}
+    ];
 
     assert.equal(family.runtimeFor(config), runtime, `${family.id}/${name}`);
     assert.equal(runtime.id, family.id);
@@ -128,17 +132,17 @@ export function assertProfessionFamilyConformance({ family, core, specialization
     );
     assert.deepEqual(
       Object.keys(runtime.tasks ?? {}).sort(),
-      registryKeys(core, specialization, 'tasks'),
+      registryKeys(selectedHooks, 'tasks'),
       `${family.id}/${name} task handlers`
     );
     assert.deepEqual(
       Object.keys(runtime.eventHandlers ?? {}).sort(),
-      registryKeys(core, specialization, 'eventHandlers'),
+      registryKeys(selectedHooks, 'eventHandlers'),
       `${family.id}/${name} event handlers`
     );
     assert.deepEqual(
       Object.keys(runtime.reactions ?? {}).sort(),
-      reactionKeys(core, specialization),
+      reactionKeys(selectedHooks),
       `${family.id}/${name} event reactions`
     );
     assert.equal(

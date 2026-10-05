@@ -1,4 +1,4 @@
-import { defineProfessionSpecializationState } from '#gw2/platform/engine/profession/state.js';
+import { defineProfessionSpecializationState } from '#gw2/platform/profession-definition/state.js';
 
 export interface HeraldState {
   /** The one scheduled Elevated Compassion pulse; stale or cancelled cadences no longer match it. */

@@ -14,8 +14,8 @@ import { WEAVER_SKILL_MECHANICS } from '#gw2/professions/elementalist/specializa
 const SPECIALIZATION_STATE_KEYS = Object.freeze({
   Tempest: [],
   Weaver: ['secondaryAttunement', 'unravelUntil', 'weaveSelfUntil'],
-  Catalyst: ['energy', 'sphereActiveUntil'],
-  Evoker: ['charges', 'empowered']
+  Catalyst: ['catalystEnergy', 'sphereActiveUntil'],
+  Evoker: ['familiarCharges', 'empoweredCharges']
 });
 
 function modifierIds(module) {

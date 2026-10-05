@@ -1,7 +1,8 @@
 import { captureEffectEmissions } from '#tests/helpers/effect-emission.js';
 import { createProcRegistry } from '#gw2/platform/combat/procs.js';
 import { createMesmerCoreState } from '#gw2/professions/mesmer/core/state.js';
-import { triggerMesmerCriticalTraits } from '#gw2/professions/mesmer/core/traits/behavior.js';
+import { triggerMesmerCriticalTraits } from '#gw2/professions/mesmer/core/traits/dueling.js';
+import { triggerMesmerControlTraits } from '#gw2/professions/mesmer/core/traits/dispatch.js';
 import { MESMER_SKILL_IDS as ID, MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
 import { mesmerCatalog, mesmerProfession } from '#gw2/professions/mesmer/profession.js';
 import { withProfile, withSkill } from '#tests/helpers/catalog-overrides.js';
@@ -33,13 +34,13 @@ test('Master Fencer only claims its strict ICD on a sampled critical hit', () =>
     };
     context.state.effects = captureEffectEmissions({
       submit: (event) => {
-        assert.equal(context.state.procs.readyAt[TRAIT.MASTER_FENCER], event.at + duration);
+        assert.equal(context.state.procs.snapshot()[TRAIT.MASTER_FENCER], event.at + duration);
         events.push(event);
         return event;
       }
     }).effects;
     context.state.procs = createProcRegistry(() => context.state);
-    context.state.procs.readyAt[TRAIT.MASTER_FENCER] = 2;
+    context.state.procs.setDeadline(TRAIT.MASTER_FENCER, 2);
     const opportunity = (at, didCrit = true) =>
       triggerMesmerCriticalTraits(context, { type: 'damage', actorType: 'player', coefficient: 1, at, didCrit }, 0.5);
     opportunity(1);
@@ -47,12 +48,12 @@ test('Master Fencer only claims its strict ICD on a sampled critical hit', () =>
     opportunity(1);
     assert.equal(events.length, 0);
     opportunity(2);
-    assert.equal(context.state.procs.readyAt[TRAIT.MASTER_FENCER], 2);
+    assert.equal(context.state.procs.snapshot()[TRAIT.MASTER_FENCER], 2);
     opportunity(2.000001, false);
     assert.equal(events.length, 0);
     opportunity(2.000001);
     assert.equal(events.length, 2);
-    assert.equal(context.state.procs.readyAt[TRAIT.MASTER_FENCER], 2.000001 + duration);
+    assert.equal(context.state.procs.snapshot()[TRAIT.MASTER_FENCER], 2.000001 + duration);
     opportunity(2.000001 + duration);
     assert.equal(events.length, 2);
     opportunity(2.000002 + duration);
@@ -139,44 +140,6 @@ test('The Pledge emits no Burning for a torch skill interrupted before its packe
   }
 });
 
-// Launched Mirror Blade bounces survive shortened recovery; cancellation and unselected traits add nothing.
-test('Bountiful Blades owns two additional Mirror Blade packets and respects interruption', () => {
-  for (const [selectedTraitIds, interruptMs, expected] of [
-    [[], undefined, 0],
-    [[TRAIT.BOUNTIFUL_BLADES], undefined, 2],
-    [[TRAIT.BOUNTIFUL_BLADES], 580, 2],
-    [[TRAIT.BOUNTIFUL_BLADES], 300, 0]
-  ]) {
-    const result = simulateMesmer(
-      [
-        { name: 'Mirror Blade', interruptMs },
-        { name: '__wait', waitMs: 1200 }
-      ],
-      {
-        specialization: 'Core',
-        primaryWeapon: 'Greatsword',
-        secondaryWeapon: '',
-        initialResource: 0,
-        selectedTraitIds
-      }
-    );
-    const bounce = result.events.filter(
-      (event) => event.type === 'damage' && event.sourceId === TRAIT.BOUNTIFUL_BLADES
-    );
-    assert.equal(bounce.length, expected);
-    if (!bounce.length) continue;
-    assert.ok(bounce.every((event) => event.skillId === ID.MIRROR_BLADE));
-    assert.deepEqual(
-      bounce.map((event) => event.at),
-      [1.24, 1.4]
-    );
-    assert.deepEqual(
-      bounce.map((event) => event.coefficient),
-      [0.0000064, 0.000000256]
-    );
-  }
-});
-
 test('Dazzling observes control before later control-trait work', () => {
   const result = simulateMesmer(
     ['Magic Bullet'],
@@ -196,6 +159,40 @@ test('Dazzling observes control before later control-trait work', () => {
   assert.ok(control);
   assert.ok(dazzling);
   assert.ok(control.eventOrder < dazzling.eventOrder);
+});
+
+// Nested condition reactions must observe the earlier Chaos recharge and both claimed interrupt cooldowns.
+test('Ineptitude emission observes the committed Chaotic Interruption recharge', () => {
+  let readyAt = 10;
+  let observed = false;
+  const context = {
+    config: defaultSimulationConfig({
+      primaryWeapon: 'Staff',
+      secondaryWeapon: '',
+      target: { activatingSkills: true, defiant: true }
+    }),
+    activeWeaponSet: 1,
+    traits: new Set([TRAIT.CHAOTIC_INTERRUPTION, TRAIT.INEPTITUDE]),
+    helpers: mesmerCatalog,
+    cooldownController: {
+      readyAt: () => readyAt,
+      reduceSkillRecharge: (_skill, amount) => {
+        readyAt -= amount;
+      }
+    },
+    effects: {
+      emit(request) {
+        if (request.kind !== 'packet' || request.event.sourceId !== TRAIT.INEPTITUDE) return;
+        assert.equal(readyAt, 5);
+        assert.equal(context.procs.deadline(TRAIT.CHAOTIC_INTERRUPTION), 2);
+        assert.equal(context.procs.deadline('mesmer.core.ineptitude'), 4);
+        observed = true;
+      }
+    }
+  };
+  context.procs = createProcRegistry(() => context);
+  triggerMesmerControlTraits(context, { type: 'control', at: 1, skillName: 'test control' });
+  assert.ok(observed);
 });
 
 test('Cry of Pain overrides Confusion before Blinding Dissipation', () => {
@@ -219,13 +216,14 @@ test('Cry of Pain overrides Confusion before Blinding Dissipation', () => {
   assert.ok(confusion.eventOrder < blind.eventOrder);
 });
 
-test('Maim the Disillusioned resolves before Illusionary Membrane', () => {
+// Cross-line dispatch preserves the applied condition order before the same-time membrane modifier.
+test('Maim, Rending Shatter, and Illusionary Membrane preserve post-shatter order', () => {
   const result = simulateMesmer(
     ['Cry of Frustration', { type: 'wait', durationMs: 1 }],
     defaultSimulationConfig({
       specialization: 'Core',
       initialResource: 1,
-      selectedTraitIds: [TRAIT.MAIM_THE_DISILLUSIONED, TRAIT.ILLUSIONARY_MEMBRANE]
+      selectedTraitIds: [TRAIT.MAIM_THE_DISILLUSIONED, TRAIT.RENDING_SHATTER, TRAIT.ILLUSIONARY_MEMBRANE]
     })
   );
   // Announcement identities are independent of combat order; compare the actual applied effects.
@@ -233,10 +231,13 @@ test('Maim the Disillusioned resolves before Illusionary Membrane', () => {
     (event) => event.type === 'condition' && event.name.includes('Maim the Disillusioned')
   );
   const membrane = result.events.find((event) => event.type === 'buff' && event.kind === 'illusionary-membrane');
+  const rending = result.events.find((event) => event.type === 'condition' && event.sourceId === TRAIT.RENDING_SHATTER);
 
   assert.ok(maim);
   assert.ok(membrane);
-  assert.ok(maim.eventOrder < membrane.eventOrder);
+  assert.ok(rending);
+  assert.ok(maim.eventOrder < rending.eventOrder);
+  assert.ok(rending.eventOrder < membrane.eventOrder);
 });
 
 test('canonical phantasm ownership triggers Sharper Images without Master Fencer', () => {

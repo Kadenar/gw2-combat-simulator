@@ -2,7 +2,7 @@
  * Composes Evoker familiar and meditation skill catalogs without owning runtime behavior.
  * Persistent familiar state remains under `mechanics/`.
  */
-import type { Skill } from '#gw2/platform/engine/skills/types.js';
+import type { Skill } from '#gw2/platform/skills/types.js';
 import { EVOKER_FAMILIAR_SKILL_MECHANICS } from '#gw2/professions/elementalist/specializations/evoker/skills/familiar-skills.js';
 import { EVOKER_MEDITATION_SKILL_MECHANICS } from '#gw2/professions/elementalist/specializations/evoker/skills/meditation-skills.js';
 

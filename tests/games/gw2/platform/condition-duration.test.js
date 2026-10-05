@@ -3,10 +3,8 @@ import test from 'node:test';
 import { StableEventQueue } from '#kernel/events/queue.js';
 import { createGw2CombatQuery } from '#gw2/platform/combat/query/combat-query.js';
 import { testProfession } from '#tests/fixtures/profession.js';
-import {
-  createGw2ConditionResolution,
-  finalizeConditionApplications
-} from '#gw2/platform/resolver/condition-resolution.js';
+import { createGw2ConditionResolution } from '#gw2/platform/resolver/condition-resolution.js';
+import { projectResolvedEvents } from '#gw2/platform/results/resolved-events.js';
 import { createGw2ResolverRuntimeState } from '#gw2/platform/resolver/runtime-state.js';
 
 // Both phases snapshot the same natural lifetime while the resolver samples damage at tick time.
@@ -89,8 +87,14 @@ test('condition duration preserves phase context, fixed durations, and natural e
     const tick = resolution.handleConditionTick(resolver, eventTick);
     assert.equal(tick.damage, 82); // Bleeding uses the tick's 1000 Condition Damage, not the application's zero.
     assert.equal(application.effectiveDuration, expectedDuration);
-    // Reporting clips the application only after execution has established its boundary.
-    finalizeConditionApplications(resolver, 5.5);
-    assert.equal(application.expiresAt, Math.min(5.5, 4 + expectedDuration));
+    // Reporting clips detached observations, preserving the live lifetime and nested settlement records.
+    const [projected] = projectResolvedEvents([application], 5.5);
+    assert.equal(projected.expiresAt, Math.min(5.5, 4 + expectedDuration));
+    assert.equal(application.expiresAt, 4 + expectedDuration);
+    assert.ok(Math.abs(projected.activeDuration - Math.min(1.5, expectedDuration)) < 1e-9);
+    assert.notEqual(projected.damageTicks, application.damageTicks);
+    const liveTicks = application.damageTicks.length;
+    projected.damageTicks.push({ at: 99, damage: 1, fraction: 1 });
+    assert.equal(application.damageTicks.length, liveTicks);
   }
 });

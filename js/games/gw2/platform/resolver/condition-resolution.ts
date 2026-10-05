@@ -1,12 +1,12 @@
 import { reviseEffectState } from '#gw2/platform/combat/effect-revisions.js';
-import type { Gw2ConditionCalculation, SimulationEventBase } from '#gw2/platform/engine/events/events.js';
+import type { Gw2ConditionCalculation, SimulationEventBase } from '#gw2/platform/events/events.js';
 import { CONDITION_FORMULAS, conditionTickDamage } from '#gw2/platform/combat/formulas.js';
 import type { Gw2ModifierContribution } from '#gw2/platform/combat/modifiers.js';
 import {
   conditionApplicationDuration,
   type Gw2ConditionDurationTrace
 } from '#gw2/platform/combat/query/combat-query.js';
-import { GW2_EVENT_ACTOR_TYPES } from '#gw2/platform/engine/events/actors.js';
+import { GW2_EVENT_ACTOR_TYPES } from '#gw2/platform/events/actors.js';
 import type { Gw2RuntimeConditionEntry, Gw2RuntimeConditionStack } from '#gw2/platform/combat/state/targets.js';
 import {
   conditionStackLimit,
@@ -623,14 +623,4 @@ export interface Gw2ConditionWork {
   readonly application?: Gw2ResolvedConditionApplication;
   readonly conditionGroup?: Gw2ResolverConditionGroup;
   readonly wakeToken?: number;
-}
-
-/** Clip presentation only after combat/observation boundaries are known; live stacks retain their natural lifetime. */
-export function finalizeConditionApplications(ctx: Gw2ResolverRuntime, end: number): void {
-  for (const state of ctx.conditionState.values()) {
-    for (const { application } of state.stacks) {
-      application.expiresAt = Math.min(end, application.naturalExpiresAt, application.removedAt ?? end);
-      application.activeDuration = Math.max(0, application.expiresAt - application.at);
-    }
-  }
 }

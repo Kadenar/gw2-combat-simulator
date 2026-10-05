@@ -1,5 +1,5 @@
 import { GUARDIAN_SKILL_IDS } from '#gw2/professions/guardian/data/ids.js';
-import type { CanonicalCatalog } from '#gw2/platform/engine/skills/types.js';
+import type { CanonicalCatalog } from '#gw2/platform/skills/types.js';
 import {
   formatSecondsRemaining,
   guardianSnapshotAt,

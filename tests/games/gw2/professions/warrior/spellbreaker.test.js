@@ -26,13 +26,13 @@ const state = (result) => observedRuntime(result).profession.specialization.stat
 test('Spellbreaker caps at two bars and each burst spends one bar, including a canceled activation', () => {
   const result = run(['Breaching Strike']);
   assert.deepEqual(result.warnings, []);
-  assert.equal(result.planningState.profession.maximumAdrenaline, 20);
-  assert.equal(result.planningState.profession.adrenaline, 11);
+  assert.equal(result.planningState.profession.adrenaline.maximum, 20);
+  assert.equal(result.planningState.profession.adrenaline.value, 11);
   const hit = result.resolvedEvents.find((event) => event.type === 'damage');
   assert.equal(hit.metadata.warriorAdrenalineSpent, 10);
   assert.equal(hit.metadata.warriorBurstTier, 1);
   const canceled = run([{ name: 'Breaching Strike', interruptAfterMs: 1 }]);
-  assert.equal(canceled.planningState.profession.adrenaline, 10);
+  assert.equal(canceled.planningState.profession.adrenaline.value, 10);
   assert.equal(
     canceled.resolvedEvents.some((event) => event.type === 'damage'),
     false
@@ -42,7 +42,7 @@ test('Spellbreaker caps at two bars and each burst spends one bar, including a c
 test('Full Counter spends its bar without an incoming attack or successful burst rewards', () => {
   const result = run(['Full Counter'], { selectedTraitIds: [TRAIT.BURST_MASTERY, TRAIT.MAGEBANE_TETHER] });
   assert.deepEqual(result.warnings, []);
-  assert.equal(result.planningState.profession.adrenaline, 10);
+  assert.equal(result.planningState.profession.adrenaline.value, 10);
   assert.equal(result.totalDamage, 0);
   assert.equal(
     result.resolvedEvents.some((event) => event.sourceId === TRAIT.BURST_MASTERY),

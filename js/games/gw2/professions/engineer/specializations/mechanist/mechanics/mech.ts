@@ -1,5 +1,6 @@
+import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
 import { STANDARD_TARGET_ARMOR } from '#gw2/platform/combat/formulas.js';
-import { scaleCastBoundTiming } from '#gw2/platform/engine/effects/materializer.js';
+import { scaleCastBoundTiming } from '#gw2/platform/effects/materializer.js';
 import { buildEngineerPackets } from '#gw2/professions/engineer/core/events.js';
 import { isEngineerMechCommand } from '#gw2/professions/engineer/specializations/mechanist/mechanics/mech-ownership.js';
 import {
@@ -9,10 +10,10 @@ import {
 
 import { isStandardBoon } from '#gw2/platform/combat/boons.js';
 import { createGw2TimelineIndex } from '#gw2/platform/combat/query/timeline-index.js';
-import type { SimulationEventBase } from '#gw2/platform/engine/events/events.js';
-import type { SkillId } from '#gw2/platform/engine/skills/types.js';
+import type { SimulationEventBase } from '#gw2/platform/events/events.js';
+import type { SkillId } from '#gw2/platform/skills/types.js';
 import { weaponStrengthMidpoint, weaponStrengthProfile } from '#gw2/platform/equipment/weapons/strength.js';
-import { GW2_QUICKNESS_ACTION_RATE } from '#gw2/platform/skills/timing.js';
+import { GW2_QUICKNESS_ACTION_RATE } from '#gw2/platform/execution/cast-timing.js';
 import { ENGINEER_SKILL_IDS as ID } from '#gw2/professions/engineer/data/ids.js';
 import { MECHANIST_ATTACK_TIMING } from '#gw2/professions/engineer/specializations/mechanist/mechanics/constants.js';
 import { shiftSignetPassive } from '#gw2/professions/engineer/specializations/mechanist/skills/signet-skills.js';
@@ -85,10 +86,16 @@ interface MechAttackPayload {
 }
 
 /** Commands and basic attacks share the mech's direct or copied Quickness, evaluated at execution time. */
-export function engineerMechHasQuickness(context: EngineerRuntime, at: number): boolean {
+export function engineerMechHasQuickness(context: MechanicQueriesOf<EngineerRuntime>, at: number): boolean {
   return (
-    createGw2TimelineIndex({ events: context.history }).buffStacksAt('quickness', at, 0, 1, 'summon', 'engineer.mech') >
-      0 ||
+    createGw2TimelineIndex({ events: context.facts.read() }).buffStacksAt(
+      'quickness',
+      at,
+      0,
+      1,
+      'summon',
+      'engineer.mech'
+    ) > 0 ||
     (Boolean(context.config.boons?.quickness) && shiftSignetPassive(context, at))
   );
 }

@@ -2,14 +2,12 @@ import { grantCharges, type ChargeGrant } from '#gw2/platform/combat/resources/c
 import {
   defineProfessionSpecializationState,
   definePublicStateDefaults
-} from '#gw2/platform/engine/profession/state.js';
-import { enhancedCapacityMaximumHeat } from '#gw2/professions/engineer/specializations/holosmith/traits/heat.js';
-import type { EngineerConfig } from '#gw2/professions/engineer/types.js';
-import { boundedNumber } from '#kernel/core/numeric.js';
+} from '#gw2/platform/profession-definition/state.js';
+import { createResourceClock } from '#gw2/platform/combat/resources/resource-policy.js';
+import type { ResourceClock } from '#gw2/platform/combat/resources/clock.js';
 
 export interface HolosmithState {
-  heat: number;
-  maximumHeat: number;
+  heat: ResourceClock;
   passiveHeatAt: number | null;
   enhancedCapacityMightAt: number;
   photonForgeActive: boolean;
@@ -19,29 +17,24 @@ export interface HolosmithState {
   kitLockoutUntil: number;
 }
 
-// Holosmith owns both its public projection keys and the inactive display values.
+// Detached defaults describe the observations exposed while Holosmith is active.
 export const HOLOSMITH_PUBLIC_STATE_PROJECTION = definePublicStateDefaults({
-  heat: 0,
-  maximumHeat: 100,
+  heat: createResourceClock(),
   photonForgeActive: false,
   forgeExitedAt: null,
   overheated: false,
   kitLockoutUntil: 0
 } satisfies Partial<HolosmithState>);
 
-/** Creates isolated Holosmith heat, Forge, trait-charge, and lockout state from a build configuration. */
-export function createHolosmithState(config: EngineerConfig = {}): HolosmithState {
-  const maximumHeat = enhancedCapacityMaximumHeat(config);
-  const initialHeat = boundedNumber(config.initialHeat, 0, 0, maximumHeat);
+/** Creates the Forge lifecycle; the resource policy initializes heat before cooling starts. */
+export function createHolosmithState(): HolosmithState {
   return {
-    heat: initialHeat,
-    maximumHeat,
+    heat: createResourceClock(),
     passiveHeatAt: null,
     enhancedCapacityMightAt: Infinity,
     photonForgeActive: false,
-    // null = forge has never been exited (no cooling yet); 0 = treat as exited at t=0 so
-    // the passive cooling schedule starts immediately when initialHeat > 0.
-    forgeExitedAt: initialHeat > 0 ? 0 : null,
+    // Initialization supplies an exit anchor only when the selected pool starts preheated.
+    forgeExitedAt: null,
     overheated: false,
     solarFocusingLens: grantCharges(0, 0),
     kitLockoutUntil: 0

@@ -2,9 +2,9 @@
  * Owns Weaver stance, profession, heal, and elite skill fragments.
  * Dual-weapon fragments remain under `skills/weapons/`.
  */
-import { impactEffects } from '#gw2/platform/engine/effects/authoring.js';
+import { impactEffects } from '#gw2/platform/effects/authoring.js';
 import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';
-import type { Skill } from '#gw2/platform/engine/skills/types.js';
+import type { Skill } from '#gw2/platform/skills/types.js';
 import type { ElementalistAttunement } from '#gw2/professions/elementalist/core/state.js';
 import { PRIMORDIAL_STANCE_EFFECTS } from '#gw2/professions/elementalist/specializations/weaver/profiles.js';
 

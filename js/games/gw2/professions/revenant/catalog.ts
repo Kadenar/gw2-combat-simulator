@@ -1,6 +1,6 @@
 import type { RevenantSkill } from '#gw2/professions/revenant/types.js';
 import type { RevenantRuntime } from '#gw2/professions/revenant/core/events.js';
-import type { ActionContext } from '#gw2/platform/simulation/side-effects.js';
+import type { ActionContext } from '#gw2/platform/effects/actions.js';
 import { scheduleLanding } from '#gw2/professions/revenant/specializations/vindicator/skills/dodge-skills.js';
 import { assembleNativeApplicationCatalog } from '#gw2/platform/profession-definition/assemble-module-catalog.js';
 import { revenantCoreModule } from '#gw2/professions/revenant/core/module.js';

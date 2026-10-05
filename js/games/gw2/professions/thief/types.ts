@@ -1,15 +1,16 @@
-import type { ProfessionUiCallbackContext } from '#gw2/platform/profession-presentation/types.js';
-import type { CanonicalCatalog, Skill, SkillId } from '#gw2/platform/engine/skills/types.js';
-import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
 import type {
-  Gw2CanonicalBuild,
   Gw2Build,
   Gw2BuildSpecialization,
+  Gw2CanonicalBuild,
   ProfessionBuildAssumptions
 } from '#gw2/platform/builds/types.js';
-import type { Gw2Config } from '#gw2/platform/simulation/config.js';
+import type { SimulationEvent } from '#gw2/platform/events/events.js';
+import type { MechanicCombatContext } from '#gw2/platform/profession-definition/mechanic-context.js';
+import type { ProfessionUiCallbackContext } from '#gw2/platform/profession-presentation/types.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
-import type { Gw2ResolverRuntime } from '#gw2/platform/resolver/runtime-state.js';
+import type { Gw2Config } from '#gw2/platform/simulation/config.js';
+import type { BalanceProfile, CanonicalCatalog, Skill, SkillId } from '#gw2/platform/skills/types.js';
+
 import type { Gw2WeaponMatcherContext } from '#gw2/platform/equipment/weapons/types.js';
 import type { ThiefCoreState } from '#gw2/professions/thief/core/state.js';
 import type { AntiquaryState } from '#gw2/professions/thief/specializations/antiquary/state.js';
@@ -45,12 +46,6 @@ export interface ThiefConfig extends Gw2Config {
   readonly initialSpinningAxes?: number;
   readonly initialShadowForce?: number;
   readonly deterministicChoices?: ThiefDeterministicChoices;
-}
-
-// Shared by Core stealth attacks, Deadeye, and Antiquary.
-export interface ThiefStealthAttackChargeState {
-  stealthAttackCharges: number;
-  stealthAttackExpiresAt: number;
 }
 
 export type ThiefArtifactKind = 'offensive' | 'defensive';
@@ -93,6 +88,9 @@ export interface ThiefSummonDefinition {
   readonly attacks?: readonly ThiefSummonStrike[];
 }
 
+/** Elite summon tuning is owned by a selected catalog profile, separate from the shared guild skill. */
+export interface ThiefGuildSummonProfile extends BalanceProfile, ThiefSummonDefinition {}
+
 interface ThiefSummonAttack {
   readonly basePower: number;
   readonly criticalChance: number;
@@ -133,7 +131,7 @@ export type ThiefResolverEvent = Gw2ResolverEvent & {
   readonly deadeyeMaliceSnapshot?: number;
 };
 
-export type ThiefResolverContext = Gw2ResolverRuntime & {
+export type ThiefResolverContext = MechanicCombatContext & {
   config: ThiefConfig;
   profession: ThiefRuntimeState;
   readonly state?: { readonly profession: ThiefRuntimeState };

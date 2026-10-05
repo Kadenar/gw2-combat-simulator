@@ -1,9 +1,6 @@
-import {
-  balanceProfileNumber,
-  requireBalanceProfileFromContext
-} from '#gw2/platform/engine/skills/balance-profiles.js';
-import { requireBalanceNumber } from '#gw2/platform/engine/skills/canonical-skill-catalog.js';
-import type { CanonicalCatalog } from '#gw2/platform/engine/skills/types.js';
+import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import { requireBalanceNumber } from '#gw2/platform/effects/validation.js';
+import type { CanonicalCatalog } from '#gw2/platform/skills/types.js';
 import { planningBuffAt } from '#gw2/platform/results/query.js';
 import {
   formatSecondsRemaining,

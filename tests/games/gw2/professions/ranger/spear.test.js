@@ -60,8 +60,11 @@ test('spear slots 2–4 commit identical cooldowns for base and stealth skills',
     for (const rotation of [[base], [ID.PANTHERS_PROWL, stealth], [ID.PANTHERS_PROWL, cast(stealth, 1)]]) {
       const result = simulate('Soulbeast', rotation);
       assert.deepEqual(result.warnings, []);
-      assert.ok(observedRuntime(result).cooldowns.get(base) > 0);
-      assert.equal(observedRuntime(result).cooldowns.get(base), observedRuntime(result).cooldowns.get(stealth));
+      assert.ok(observedRuntime(result).cooldownController.readyAt(base) > 0);
+      assert.equal(
+        observedRuntime(result).cooldownController.readyAt(base),
+        observedRuntime(result).cooldownController.readyAt(stealth)
+      );
     }
   }
 });

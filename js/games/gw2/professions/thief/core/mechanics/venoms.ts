@@ -1,12 +1,23 @@
-import { activeChargeGrants, consumeCharge, grantChargePool } from '#gw2/platform/combat/resources/charges.js';
-import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
-import { effectNumber, requireBalanceProfileFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
-import type { BalanceProfile, ConditionEffect, SkillId } from '#gw2/platform/engine/skills/types.js';
+import { gw2AlliedPlayerProcTimeline } from '#gw2/platform/combat/state/allied-players.js';
 import { buildResolverCondition } from '#gw2/platform/resolver/packets.js';
+
+import {
+  balanceProfileNumber,
+  effectNumber,
+  requireBalanceProfileFromContext
+} from '#gw2/platform/skills/balance-profiles.js';
+import { buildThiefCondition } from '#gw2/professions/thief/core/events.js';
 import { THIEF_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/thief/core/profiles.js';
-import type { ThiefCoreState } from '#gw2/professions/thief/core/state.js';
 import { THIEF_SKILL_IDS as ID } from '#gw2/professions/thief/data/ids.js';
-import type { ThiefResolverContext, ThiefResolverEvent } from '#gw2/professions/thief/types.js';
+
+import { activeChargeGrants, consumeCharge, grantChargePool } from '#gw2/platform/combat/resources/charges.js';
+import type { ConditionEffect } from '#gw2/platform/effects/types.js';
+import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
+import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
+import type { BalanceProfile, SkillId } from '#gw2/platform/skills/types.js';
+import type { ThiefRuntime } from '#gw2/professions/thief/core/events.js';
+import type { ThiefCoreState } from '#gw2/professions/thief/core/state.js';
+import type { ThiefResolverContext, ThiefResolverEvent, ThiefSkill } from '#gw2/professions/thief/types.js';
 
 interface VenomDefinition {
   readonly skillId: SkillId;
@@ -97,7 +108,7 @@ export function emitVenom(context: ThiefResolverContext, event: ThiefResolverEve
         skillName: venom.skillName,
         // A venom charge owns its condition damage independently of the attack that consumes it.
         procType: 'profession',
-        icon: context.helpers.skillsById?.get(venom.skillId)?.icon,
+        icon: context.helpers.skillsById.get(venom.skillId)?.icon,
         name: `${venom.skillName} — ${effect.condition}`,
         condition: String(effect.condition),
         stacks: effectNumber(profile, effect, 'stacks'),
@@ -108,4 +119,46 @@ export function emitVenom(context: ThiefResolverContext, event: ThiefResolverEve
       })
     });
   }
+}
+
+/** Arms the caster's finite venom charges and queues each assumed ally's bounded proc sequence. */
+export function activateVenom(runtime: ThiefRuntime, cast: RuntimeCast<ThiefSkill>): void {
+  const venom = venomForSkill(cast.skill.id);
+  if (!venom) return;
+  const core = runtime.profession.core;
+  const at = runtime.time;
+  const profile = requireBalanceProfileFromContext(runtime, venom.profileId);
+  const maximumStacks = balanceProfileNumber(profile, 'maximumStacks');
+  const duration = balanceProfileNumber(profile, 'durationMultiplier');
+  addVenomCharges(core, cast.skill.id, at, maximumStacks, duration);
+  // Recasts queue behind remaining ally charges, keeping one proc per assumed strike.
+  const alliedStart = Math.max(at, core.venomAllyLastProcAt[String(cast.skill.id)] ?? at);
+  const alliedProcs = gw2AlliedPlayerProcTimeline(runtime.config, {
+    start: alliedStart,
+    duration: Math.max(0, at + duration - alliedStart),
+    maximumPerAlly: maximumStacks
+  });
+  if (alliedProcs.length)
+    core.venomAllyLastProcAt[String(cast.skill.id)] = Math.max(...alliedProcs.map((proc) => proc.at));
+  const packets = conditionEffects(profile).map((effect) => ({
+    effect,
+    stacks: effectNumber(profile, effect, 'stacks'),
+    duration: effectNumber(profile, effect, 'duration')
+  }));
+  for (const proc of alliedProcs)
+    for (const [effectIndex, { effect, stacks, duration: conditionDuration }] of packets.entries())
+      runtime.effects.emit({
+        kind: 'packet',
+        event: buildThiefCondition(null, {
+          at: proc.at,
+          skillId: venom.skillId,
+          skillName: venom.skillName,
+          name: `${venom.skillName} — Ally ${proc.allyIndex} ${effect.condition}`,
+          condition: String(effect.condition),
+          stacks,
+          duration: conditionDuration,
+          activationId: `${cast.id}:ally:${proc.allyIndex}:${proc.procIndex}`,
+          metadata: { triggeredByAlly: proc.allyIndex, venomProcEffectIndex: effectIndex }
+        })
+      });
 }

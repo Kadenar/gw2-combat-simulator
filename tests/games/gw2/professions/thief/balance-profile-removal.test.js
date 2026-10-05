@@ -124,7 +124,7 @@ for (const [type, name] of [
       false
     );
     assert.equal(
-      Object.keys(observedRuntime(result).procs.readyAt).some((key) => key.startsWith('thief.specter.darkSentry:')),
+      Object.keys(observedRuntime(result).procs.snapshot()).some((key) => key.startsWith('thief.specter.darkSentry:')),
       type !== 'buff'
     );
   });
@@ -195,7 +195,7 @@ test('Uncatchable conditions own independent pulses and dodge still spends endur
     false
   );
   assert.ok(conditions.some((event) => event.condition === 'Crippled'));
-  assert.ok(result.planningState.profession.endurance < 100);
+  assert.ok(result.planningState.profession.endurance.value < 100);
 });
 
 test('removed Weakening Strikes does not arm its grant or expiry', () => {
@@ -211,7 +211,7 @@ test('removed critical Fury leaves proc progress and cooldown unclaimed', () => 
     selectedTraitIds: [TRAIT.UNRELENTING_STRIKES]
   });
   assert.equal(packet(result, 'buff', TRAIT.UNRELENTING_STRIKES).length, 0);
-  assert.equal(observedRuntime(result).procs.readyAt[TRAIT.UNRELENTING_STRIKES], undefined);
+  assert.equal(observedRuntime(result).procs.snapshot()[TRAIT.UNRELENTING_STRIKES], undefined);
   assert.equal(observedRuntime(result).profession.core.traitProcProgress[TRAIT.UNRELENTING_STRIKES], undefined);
 });
 
@@ -235,7 +235,7 @@ test('Malicious Sneak Attack removal preserves Bleeding and malice spending', ()
     false
   );
   assert.ok(conditions.some((event) => event.condition === 'Bleeding'));
-  assert.equal(result.planningState.profession.malice, 0);
+  assert.equal(result.planningState.profession.malice.value, 0);
 });
 
 for (const id of [ANTIQUARY.forgedSurfer, ANTIQUARY.forgedSurferMeticulous]) {
@@ -376,6 +376,6 @@ test('patched Preparedness and Maleficent Seven capacities initialize before res
     const runtime = observedRuntime(result);
     assert.equal(runtime.profession.core.initiative.maximum, selectedTraitIds.length ? 21 : 18);
     assert.equal(runtime.profession.core.initiative.value, selectedTraitIds.length ? 21 : 18);
-    assert.equal(runtime.profession.specialization.state.maximumMalice, selectedTraitIds.length ? 11 : 9);
+    assert.equal(runtime.profession.specialization.state.malice.maximum, selectedTraitIds.length ? 11 : 9);
   }
 });

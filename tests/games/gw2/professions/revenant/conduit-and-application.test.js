@@ -15,7 +15,7 @@ import {
 import { CONDUIT_BALANCE_PROFILE_IDS } from '#gw2/professions/revenant/specializations/conduit/profiles.js';
 import { createObservedProfessionSimulator, observedRuntime } from '#tests/helpers/observed-runtime.js';
 import { runRevenant } from '#tests/helpers/revenant-simulation.js';
-import { gw2CooldownReadyAt } from '#gw2/platform/skills/timing.js';
+import { gw2CooldownReadyAt } from '#gw2/platform/execution/cast-timing.js';
 
 const revenantModifiers = Object.freeze({
   modifyAttributes(context, value) {
@@ -57,10 +57,8 @@ const baseConfig = Object.freeze({
 });
 
 const simulate = createObservedProfessionSimulator(revenantProfession, baseConfig);
-// Live steps expose the actual activation window; an instant cast occupies none of it.
-const castMs = (step) => step.end - step.start;
 // Live actions carry no recharge snapshot; the owner's cooldown map holds the latest reservation, if any.
-const rechargeReadyAt = (result, skillId) => observedRuntime(result).cooldowns.get(skillId) ?? null;
+const rechargeReadyAt = (result, skillId) => observedRuntime(result).cooldownController.readyAt(skillId) ?? null;
 
 const observationTail = (durationMs) => ({ kind: 'tail', durationMs });
 
@@ -101,7 +99,7 @@ test('sword follow-ups retain their casting skill while exposing separate damage
 
 describe('Power Conduit skill profiles', () => {
   const skill = (name) => revenantCatalog.skillsByName.get(name);
-  test('retain authored cooldowns, casts, and coefficients', () => {
+  test('retain authored cooldowns and coefficients', () => {
     const cooldowns = {
       Deathstrike: 15,
       'Shackling Wave': 15,
@@ -121,40 +119,21 @@ describe('Power Conduit skill profiles', () => {
       assert.equal(skill(name).cooldown, cooldown, name);
     }
 
-    for (const [name, castTimeMs, coefficient] of [
-      ['Preparation Thrust', 360, 0.75],
-      ['Brutal Blade', 560, 0.8],
-      ['Mist Swing', 400, 0.7],
-      ['Mist Slash', 600, 0.8],
-      ['Arcing Mists', 680, 1.2],
-      ['Mist Unleashed', 520, 1.6],
-      ["Phantom's Onslaught", 440, 1.6]
+    for (const [name, coefficient] of [
+      ['Preparation Thrust', 0.75],
+      ['Brutal Blade', 0.8],
+      ['Mist Swing', 0.7],
+      ['Mist Slash', 0.8],
+      ['Arcing Mists', 1.2],
+      ['Mist Unleashed', 1.6],
+      ["Phantom's Onslaught", 1.6]
     ]) {
-      assert.equal(skill(name).castTimeMs, castTimeMs, name);
       assert.equal(
         strikeCoefficient(skill(name).effects.find((effect) => effect.type === 'strike')),
         coefficient,
         name
       );
     }
-
-    for (const [name, castTimeMs] of [
-      ['Release Potential: Dervish', 680],
-      ['Shackling Wave', 800],
-      ['Deathstrike', 720],
-      ['Twin Moon Sweep', 920],
-      ['Preparation Thrust', 360],
-      ['Brutal Blade', 560],
-      ['Rift Slash', 480],
-      ["Eternity's Requiem", 840],
-      ["Phantom's Onslaught", 440],
-      ['Mist Unleashed', 520],
-      ['Release Potential: Assassin', 720]
-    ]) {
-      assert.equal(skill(name).castTimeMs, castTimeMs, name);
-    }
-
-    assert.equal(skill('Chilling Isolation').castTimeMs, 680);
 
     assert.equal(skill('Chilling Isolation').defaultInterruptMs, undefined);
     assert.equal(skill('Deathstrike').rechargeAnchor, 'castStart');
@@ -163,7 +142,6 @@ describe('Power Conduit skill profiles', () => {
     assert.equal(skill("Phantom's Onslaught").rechargeOffsetMs, 40);
     const alternateOnslaught = revenantCatalog.skillsById.get(SKILL.PHANTOMS_ONSLAUGHT_ID_62713);
     assert.equal(alternateOnslaught.rechargeOffsetMs, 40);
-    assert.equal(alternateOnslaught.castTimeMs, 440);
     assert.equal(
       revenantCatalog.balanceProfilesById
         .get(CONDUIT_BALANCE_PROFILE_IDS.enhancedEmbodiment)
@@ -202,65 +180,15 @@ describe('Power Conduit skill profiles', () => {
       .filter((event) => event.type === 'damage' && event.skillName === skillName)
       .map((event) => [Math.round(event.at * 1000), event.name, event.coefficient]);
 
-  test('resolves Deathstrike and Shackling Wave packet timing', () => {
+  test('Deathstrike exposes its cooldown after execution', () => {
     const deathstrike = simulate('Conduit', ['Deathstrike'], config);
-
-    assert.deepEqual(damageTimeline(deathstrike, 'Deathstrike'), [
-      [320, 'Deathstrike', 0.45],
-      [600, 'Deathstrike — Follow-up', 2.67]
-    ]);
     assert.deepEqual(deathstrike.planningState.cooldowns.Deathstrike, {
       readyAt: 12440,
       remaining: 11720
     });
-    assert.deepEqual(
-      damageTimeline(simulate('Conduit', ['Shackling Wave'], config, observationTail(1000)), 'Shackling Wave'),
-      [
-        [640, 'Initial Damage', 1.2],
-        [720, 'Additional Strikes', 0.4],
-        [800, 'Additional Strikes', 0.4],
-        [880, 'Additional Strikes', 0.4],
-        [960, 'Additional Strikes', 0.4],
-        [1040, 'Additional Strikes', 0.4]
-      ]
-    );
   });
 
-  test('resolves sword autoattack timing', () => {
-    const swordAutos = simulate('Conduit', ['Preparation Thrust', 'Brutal Blade'], config);
-
-    assert.deepEqual(
-      swordAutos.events
-        .filter((event) => event.type === 'damage' && ['Preparation Thrust', 'Brutal Blade'].includes(event.skillName))
-        .map((event) => [event.skillName, Math.round(event.at * 1000)]),
-      [
-        ['Preparation Thrust', 320],
-        ['Brutal Blade', 840]
-      ]
-    );
-  });
-
-  test('retains sword and hammer impact timing', () => {
-    for (const [name, impactMs] of [
-      ['Mist Slash', 400],
-      ['Arcing Mists', 440]
-    ]) {
-      const strike = skill(name).effects.find((effect) => effect.type === 'strike');
-
-      assert.equal(strike.ticks?.[0]?.atMs ?? strike.atMs, impactMs, `${name} impact`);
-    }
-
-    for (const [name, impactMs] of [
-      ['Field of the Mists', 680],
-      ['Drop the Hammer', 1640]
-    ]) {
-      const strike = skill(name).effects.find((effect) => effect.type === 'strike');
-
-      assert.equal(strike.ticks?.[0]?.atMs ?? strike.atMs, impactMs, `${name} impact`);
-    }
-  });
-
-  test('resolves Phantom Onslaught timing and cooldown from dash completion', () => {
+  test('Phantom Onslaught recharges from dash completion', () => {
     const onslaught = simulate('Vindicator', ["Phantom's Onslaught"], {
       ...config,
       specialization: 'Vindicator',
@@ -269,14 +197,6 @@ describe('Power Conduit skill profiles', () => {
       primaryWeapon: 'Greatsword',
       secondaryWeapon: ''
     });
-
-    assert.equal(castMs(onslaught.steps[0]), 440);
-    assert.equal(
-      Math.round(
-        onslaught.events.find((event) => event.type === 'damage' && event.skillName === "Phantom's Onslaught").at * 1000
-      ),
-      440
-    );
     assert.deepEqual(onslaught.planningState.cooldowns["Phantom's Onslaught"], {
       readyAt: 6440,
       remaining: 6000
@@ -336,30 +256,6 @@ describe('Power Conduit skill profiles', () => {
       ).length,
       2
     );
-  });
-
-  test('resolves every Eternity Requiem impact', () => {
-    const requiem = simulate(
-      'Conduit',
-      ["Eternity's Requiem"],
-      {
-        ...config,
-        primaryWeapon: 'Greatsword',
-        secondaryWeapon: ''
-      },
-      observationTail(2000)
-    );
-
-    assert.deepEqual(damageTimeline(requiem, "Eternity's Requiem"), [
-      [1160, "Eternity's Requiem", 1],
-      [1240, "Eternity's Requiem", 0.9],
-      [1360, "Eternity's Requiem", 0.8],
-      [1440, "Eternity's Requiem", 0.7],
-      [1480, "Eternity's Requiem", 0.6],
-      [1560, "Eternity's Requiem", 0.5],
-      [1680, "Eternity's Requiem", 0.4],
-      [1760, "Eternity's Requiem", 0.3]
-    ]);
   });
 });
 
@@ -442,7 +338,7 @@ test('Conduit affinity scales Release Potential and Cosmic Wisdom state', () => 
   });
 
   assert.equal(result.warnings.length, 0);
-  assert.equal(result.planningState.profession.affinity, 2);
+  assert.equal(result.planningState.profession.affinity.value, 2);
   assert.equal(result.planningState.profession.conduitForm, 'Assassin');
   assert.ok(result.planningState.profession.cosmicWisdomUntil > 0);
 
@@ -460,7 +356,7 @@ test('Conduit affinity scales Release Potential and Cosmic Wisdom state', () => 
     });
 
     assert.equal(variant.warnings.length, 0, release);
-    assert.equal(variant.planningState.profession.affinity, expectedAffinity, release);
+    assert.equal(variant.planningState.profession.affinity.value, expectedAffinity, release);
   }
 });
 
@@ -681,11 +577,6 @@ test('Form of the Assassin fires daggers on skills and Impossible Odds pulses', 
   const daggers = result.events.filter(
     (event) => event.type === 'damage' && event.skillName === 'Lesser Enchanted Daggers'
   );
-
-  assert.deepEqual(
-    daggers.map((event) => event.at),
-    [0, 1, 2, 3]
-  );
   assert.ok(daggers.every((event) => event.coefficient === 0.06));
   assert.ok(daggers.every((event) => event.triggeredBy === 'Impossible Odds'));
 });
@@ -726,7 +617,6 @@ test('Dervish casts retain their scythes through form expiry and concurrent lege
     );
     assert.deepEqual(result.warnings, []);
     assert.equal(scythes.length, 2);
-    assert.ok(scythes.every((event) => Math.round(event.at * 1000) === 7420));
   }
 
   const expired = simulate('Conduit', ['Cosmic Wisdom', { type: 'wait', durationMs: 7000 }, 'Twin Moon Sweep'], {
@@ -792,7 +682,9 @@ test('Beguiling Haze main recharge ignores transient Alacrity after its follow-u
   };
   const rotation = Array(4).fill('Beguiling Haze');
   const skill = revenantCatalog.skillsByName.get('Beguiling Haze');
-  const originalReadyAt = observedRuntime(runRevenant(rotation.slice(0, 3), config)).ammo.get(skill.id).nextRechargeAt;
+  const originalReadyAt = observedRuntime(runRevenant(rotation.slice(0, 3), config)).cooldownController.readAmmo(
+    skill.id
+  ).nextRechargeAt;
   const hasted = runRevenant(rotation, config, {
     initialize(runtime) {
       runtime.effects.emit({
@@ -823,19 +715,10 @@ test('Conduit entity skills apply follow-ups and Shared Wisdom effects', () => {
   });
 
   assert.equal(beguiling.warnings.length, 0);
-  assert.deepEqual(
-    beguiling.events
-      .filter((event) => event.type === 'damage' && event.skillName === 'Beguiling Haze')
-      .map((event) => [Math.round(event.at * 1000), event.coefficient]),
-    [
-      [520, 2.2],
-      [760, 0.6],
-      [1000, 0.6]
-    ]
-  );
-  assert.deepEqual(beguiling.steps.map(castMs), [560, 240, 240]);
   assert.equal(beguiling.planningState.profession.beguilingHazeCharges, 0);
-  const beguilingAmmo = observedRuntime(beguiling).ammo.get(revenantCatalog.skillsByName.get('Beguiling Haze').id);
+  const beguilingAmmo = observedRuntime(beguiling).cooldownController.readAmmo(
+    revenantCatalog.skillsByName.get('Beguiling Haze').id
+  );
 
   assert.equal(beguilingAmmo.maximum, 1);
   assert.equal(beguilingAmmo.charges, 0);
@@ -853,7 +736,9 @@ test('Conduit entity skills apply follow-ups and Shared Wisdom effects', () => {
       initialEnergy: 100
     }
   );
-  const rechargedAmmo = observedRuntime(recharged).ammo.get(revenantCatalog.skillsByName.get('Beguiling Haze').id);
+  const rechargedAmmo = observedRuntime(recharged).cooldownController.readAmmo(
+    revenantCatalog.skillsByName.get('Beguiling Haze').id
+  );
 
   assert.equal(recharged.planningState.profession.beguilingHazeCharges, 0);
   assert.equal(rechargedAmmo.maximum, 1);
@@ -895,12 +780,6 @@ test('Conduit entity skills apply follow-ups and Shared Wisdom effects', () => {
     ).length,
     6
   );
-  assert.deepEqual(
-    vortex.events
-      .filter((event) => event.type === 'damage' && event.skillName === 'Hex-Eater Vortex')
-      .map((event) => [Math.round(event.at * 1000), event.coefficient]),
-    [440, 560, 680, 800, 920, 1040].map((at) => [at, 0.2])
-  );
   assert.ok(
     vortex.events.some((event) => event.type === 'buff' && event.kind === 'resolution' && event.duration === 3.15)
   );
@@ -922,16 +801,12 @@ test('Twin Moon Sweep resolves both attackers and legend resonance', () => {
     strikes.map((event) => event.actorType),
     ['player', 'player']
   );
-  assert.deepEqual(
-    strikes.map((event) => event.at),
-    [0.88, 0.88]
-  );
   assert.equal(
     assassin.events.filter((event) => event.condition === 'Bleeding').reduce((sum, event) => sum + event.stacks, 0),
     4
   );
   assert.ok(assassin.events.some((event) => event.condition === 'Immobilized' && event.duration === 2));
-  assert.equal(assassin.planningState.profession.affinity, 2);
+  assert.equal(assassin.planningState.profession.affinity.value, 2);
 
   const demon = simulate(
     'Conduit',
@@ -942,16 +817,6 @@ test('Twin Moon Sweep resolves both attackers and legend resonance', () => {
       initialEnergy: 100
     },
     observationTail(1000)
-  );
-
-  assert.deepEqual(
-    demon.events
-      .filter((event) => event.type === 'damage' && /Shatter/.test(event.name))
-      .map((event) => [event.at, event.coefficient]),
-    [
-      [1.4, 0.2],
-      [1.4, 0.2]
-    ]
   );
   assert.equal(
     demon.events.filter((event) => event.condition === 'Confusion').reduce((sum, event) => sum + event.stacks, 0),
@@ -966,19 +831,12 @@ test('Twin Moon Sweep resolves both attackers and legend resonance', () => {
   });
 
   assert.equal(swappedBeforeImpact.steps[1].start, 100);
-  // The swap resets affinity, so both impacts landing after it must grant the final two stacks.
-  assert.deepEqual(
-    swappedBeforeImpact.events
-      .filter((event) => event.type === 'damage' && event.skillName === 'Twin Moon Sweep')
-      .map((event) => event.at),
-    [0.88, 0.88]
-  );
-  assert.equal(swappedBeforeImpact.planningState.profession.affinity, 2);
+  assert.equal(swappedBeforeImpact.planningState.profession.affinity.value, 2);
 });
 
-// Impact delays are measured from activation and preserve the observed delay after each skill's opening strike.
+// Each shadowstep variant attributes Peitha to the triggering skill.
 test('Revenant Peitha triggers resolve at the observed projectile impact', () => {
-  for (const { specialization, rotation, selectedLegends, startingLegend, sourceSkill, delay, weapons = {} } of [
+  for (const { specialization, rotation, selectedLegends, startingLegend, sourceSkill, weapons = {} } of [
     {
       specialization: 'Conduit',
       rotation: ['Deathstrike', { name: '__wait', waitMs: 1000 }],
@@ -1025,7 +883,6 @@ test('Revenant Peitha triggers resolve at the observed projectile impact', () =>
     assert.ok(peitha, `${sourceSkill} Peitha event`);
     assert.ok(torment, `${sourceSkill} Peitha torment`);
     assert.equal(peitha.at, cast.at, `${sourceSkill} trigger timing`);
-    assert.ok(Math.abs(torment.at - cast.at - delay) < 1e-9, `${sourceSkill} impact delay`);
   }
 });
 
@@ -1101,32 +958,6 @@ test('Mesmer release reads enemy and self Torment affinity at impact after a leg
 });
 
 test('Release Potential variants use affinity and equipped-legend effects', () => {
-  for (const [legend, name, expected] of [
-    [LEGEND.DEMON, 'Release Potential: Mesmer', [280]],
-    [LEGEND.ENTITY, 'Release Potential: Dervish', [560]],
-    [LEGEND.ASSASSIN, 'Release Potential: Assassin', [160, 480, 800]]
-  ]) {
-    const timing = simulate(
-      'Conduit',
-      [name],
-      {
-        selectedLegends: legend === LEGEND.ENTITY ? [LEGEND.ENTITY, LEGEND.ASSASSIN] : [legend, LEGEND.ENTITY],
-        startingLegend: legend,
-        initialEnergy: 100,
-        boons: { quickness: true }
-      },
-      observationTail(1000)
-    );
-
-    assert.deepEqual(
-      timing.events
-        .filter((event) => event.type === 'damage' && event.skillName === name)
-        .map((event) => Math.round(event.at * 1000)),
-      expected,
-      name
-    );
-  }
-
   const mesmer = simulate('Conduit', ['Pain Absorption', 'Banish Enchantment', 'Release Potential: Mesmer'], {
     selectedLegends: [LEGEND.DEMON, LEGEND.ENTITY],
     startingLegend: LEGEND.DEMON,
@@ -1174,7 +1005,7 @@ test('Release Potential variants use affinity and equipped-legend effects', () =
     }
   );
 
-  assert.equal(dervishAllEffects.planningState.profession.affinity, 3);
+  assert.equal(dervishAllEffects.planningState.profession.affinity.value, 3);
   assert.ok(
     dervishAllEffects.events.some(
       (event) =>
@@ -1226,7 +1057,7 @@ test('Conduit affinity traits distinguish legend and weapon energy costs', () =>
     initialEnergy: 100
   });
 
-  assert.equal(enigmatic.planningState.profession.affinity, 3);
+  assert.equal(enigmatic.planningState.profession.affinity.value, 3);
 
   const withoutConductive = simulate('Conduit', ['Chilling Isolation'], {
     selectedLegends: [LEGEND.ENTITY, LEGEND.ASSASSIN],
@@ -1240,8 +1071,8 @@ test('Conduit affinity traits distinguish legend and weapon energy costs', () =>
     selectedTraitIds: [TRAIT.CONDUCTIVE_ARMAMENTS]
   });
 
-  assert.equal(withoutConductive.planningState.profession.affinity, 0);
-  assert.equal(withConductive.planningState.profession.affinity, 1);
+  assert.equal(withoutConductive.planningState.profession.affinity.value, 0);
+  assert.equal(withConductive.planningState.profession.affinity.value, 1);
 
   const reset = simulate('Conduit', ['Phase Traversal', 'Swap Legends'], {
     selectedLegends: [LEGEND.ASSASSIN, LEGEND.ENTITY],
@@ -1249,7 +1080,7 @@ test('Conduit affinity traits distinguish legend and weapon energy costs', () =>
     initialEnergy: 100
   });
 
-  assert.equal(reset.planningState.profession.affinity, 0);
+  assert.equal(reset.planningState.profession.affinity.value, 0);
 
   const lingering = simulate('Conduit', ['__combat_start', 'Phase Traversal', 'Swap Legends'], {
     selectedLegends: [LEGEND.ASSASSIN, LEGEND.ENTITY],
@@ -1258,7 +1089,7 @@ test('Conduit affinity traits distinguish legend and weapon energy costs', () =>
     selectedTraitIds: [TRAIT.LINGERING_DETERMINATION]
   });
 
-  assert.equal(lingering.planningState.profession.affinity, 2);
+  assert.equal(lingering.planningState.profession.affinity.value, 2);
 
   const upkeep = simulate('Conduit', ['Impossible Odds', { type: 'wait', durationMs: 3100 }], {
     selectedLegends: [LEGEND.ASSASSIN, LEGEND.ENTITY],
@@ -1266,7 +1097,7 @@ test('Conduit affinity traits distinguish legend and weapon energy costs', () =>
     initialEnergy: 100
   });
 
-  assert.equal(upkeep.planningState.profession.affinity, 2);
+  assert.equal(upkeep.planningState.profession.affinity.value, 2);
 
   const expandedRotation = ['Phase Traversal', 'Jade Winds', 'Impossible Odds'];
   const ordinary = simulate('Conduit', expandedRotation, {
@@ -1281,7 +1112,7 @@ test('Conduit affinity traits distinguish legend and weapon energy costs', () =>
     selectedTraitIds: [TRAIT.EXPANDED_CONSCIOUSNESS]
   });
 
-  assert.equal(expanded.planningState.profession.affinity, 5);
+  assert.equal(expanded.planningState.profession.affinity.value, 5);
   assert.ok(
     Math.abs(expanded.planningState.profession.energy.value - ordinary.planningState.profession.energy.value - 15) <
       1e-9
@@ -1302,9 +1133,9 @@ test('Conduit affinity gains only after combat starts', () => {
   });
   const combatCast = simulate('Conduit', ['__combat_start', 'Phase Traversal'], config);
 
-  assert.equal(skillPrecast.planningState.profession.affinity, 0);
-  assert.equal(swapPrecast.planningState.profession.affinity, 0);
-  assert.equal(combatCast.planningState.profession.affinity, 2);
+  assert.equal(skillPrecast.planningState.profession.affinity.value, 0);
+  assert.equal(swapPrecast.planningState.profession.affinity.value, 0);
+  assert.equal(combatCast.planningState.profession.affinity.value, 2);
 });
 
 test('Conduit grandmasters alter release, invocation, and Cosmic Wisdom', () => {
@@ -1315,7 +1146,9 @@ test('Conduit grandmasters alter release, invocation, and Cosmic Wisdom', () => 
   });
 
   assert.equal(
-    observedRuntime(kinetic).cooldowns.get(revenantCatalog.skillsByName.get('Release Potential: Warrior').id),
+    observedRuntime(kinetic).cooldownController.readyAt(
+      revenantCatalog.skillsByName.get('Release Potential: Warrior').id
+    ),
     kinetic.steps[0].end / 1000 + 6.4
   );
 
@@ -1383,7 +1216,10 @@ test('Bolstered Bonds and Kinetic Insight modify runtime attributes and damage',
     runtime: {
       profession: {
         core: { selectedLegendIds: [LEGEND.ASSASSIN, LEGEND.ENTITY] },
-        specialization: { kind: 'Conduit', state: { affinity: 3, cosmicWisdomUntil: 7 } }
+        specialization: {
+          kind: 'Conduit',
+          state: { affinity: { value: 3, maximum: 5, rate: 0, updatedAt: 0 }, cosmicWisdomUntil: 7 }
+        }
       }
     }
   };

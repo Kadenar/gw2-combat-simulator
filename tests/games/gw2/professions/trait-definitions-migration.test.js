@@ -316,6 +316,7 @@ test('Mechanist registered recharge owners read preview values and preserve Over
       selectedTraitIds: [ENGINEER.MECH_CORE_JADE_DYNAMO, ENGINEER.MECH_CORE_J_DRIVE]
     },
     cooldowns: new Map([[ENGINEER_SKILLS.OVERCLOCK_SIGNET, 90]]),
+    cooldownController: { readyAt: (id) => context.cooldowns.get(id) },
     time: 1
   };
   const skill = (id) => runtime.catalog.skillsById.get(id);
@@ -389,7 +390,7 @@ test('Familiar Prowess retains its applied window and patched Focus scaling afte
     catalog: runtime.catalog,
     event: { actorType: 'player' },
     config: { evokerElement: 'Air', selectedTraitIds: [] },
-    runtime: { boons: new Map([["familiar's-prowess", [{ at: 0, expiresAt: 2, stacks: 1 }]]]) }
+    runtime: { boons: new Map([['familiars-prowess', [{ at: 0, expiresAt: 2, stacks: 1 }]]]) }
   };
   assert.equal(runtime.modifyStrikeDamage(context, 100), 120);
   assert.equal(

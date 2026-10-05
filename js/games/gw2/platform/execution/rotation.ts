@@ -2,9 +2,9 @@
  * Rotation normalization keeps downloaded legacy rotations and shorthand inputs at
  * the boundary while the runtime and application use canonical commands.
  */
-import type { CatalogLookup } from '#gw2/platform/engine/skills/types.js';
+import type { CatalogLookup } from '#gw2/platform/skills/types.js';
 import type { RotationCommand } from '#gw2/platform/execution/types.js';
-import { canonicalGw2SkillId } from '#gw2/platform/skills/aliases.js';
+import { canonicalGw2SkillId } from '#gw2/platform/skills/external-skill-ids.js';
 
 function finiteMilliseconds(
   value: unknown,

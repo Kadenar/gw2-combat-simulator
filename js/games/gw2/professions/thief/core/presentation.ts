@@ -1,5 +1,6 @@
+import { activeChargeCount } from '#gw2/platform/combat/resources/charges.js';
 import { activeStackCount } from '#gw2/platform/combat/resources/timed-stacks.js';
-import { readProfessionCoreState } from '#gw2/platform/engine/profession/state.js';
+import { readProfessionCoreState } from '#gw2/platform/profession-definition/state.js';
 import type {
   ProfessionAttributePreviewContext,
   ProfessionAttributePreviewPreparation
@@ -12,7 +13,7 @@ import { MAXIMUM_SPINNING_AXES } from '#gw2/professions/thief/core/state.js';
 
 import { PERMANENT_COMBO_FIELD_ASSUMPTION_CONTROLS } from '#gw2/platform/combos/permanent-field-assumption.js';
 import type { RotationStateSnapshotItem } from '#gw2/platform/profession-presentation/types.js';
-import { SIMULATION_RANDOMNESS_ASSUMPTION_CONTROLS } from '#gw2/platform/simulation/randomness.js';
+import { SIMULATION_RANDOMNESS_ASSUMPTION_CONTROLS } from '#gw2/platform/builds/randomness-assumptions.js';
 import { THIEF_CORE_ASSUMPTION_CONTROLS } from '#gw2/professions/thief/build/core-assumptions.js';
 import { THIEF_STOLEN_SKILL_IDS } from '#gw2/professions/thief/core/mechanics/steal.js';
 import { THIEF_SKILL_IDS as ID } from '#gw2/professions/thief/data/ids.js';
@@ -190,7 +191,7 @@ export const thiefCoreUi = Object.freeze({
         ((state.stealthStartedAt || 0) <= now &&
           (state.stealthUntil || 0) > now &&
           (state.revealedUntil || 0) <= now) ||
-        ((state.stealthAttackCharges || 0) > 0 && (state.stealthAttackExpiresAt || 0) > now)
+        activeChargeCount(state.bonusStealthAttack, now) > 0
     };
   },
   // Equal-duration grants replace oldest stacks, so capping their active sum matches the engine's stack count.
@@ -211,8 +212,8 @@ export const thiefCoreUi = Object.freeze({
     (context.specialization || context.config?.specialization || 'Core') === 'Core' ? thiefStealPaletteGroups() : [],
   resourceViews: (context: ThiefUiContext) => {
     const state = thiefUiState(context);
-    const enduranceCapacity = context.resources!.endurance!.maximum;
-    const endurance = state.endurance ?? enduranceCapacity;
+    const enduranceCapacity = state.endurance?.maximum ?? context.resources!.endurance!.maximum;
+    const endurance = state.endurance?.value ?? enduranceCapacity;
     return [
       {
         id: 'initiative',

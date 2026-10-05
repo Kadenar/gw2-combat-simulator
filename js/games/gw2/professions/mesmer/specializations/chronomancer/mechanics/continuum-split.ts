@@ -1,14 +1,14 @@
+import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
 import { buildMesmerPacket, mesmerPacketOwner } from '#gw2/professions/mesmer/core/mechanics/packets.js';
 import type { MesmerRuntime } from '#gw2/professions/mesmer/types.js';
-import { gw2CooldownReadyAt } from '#gw2/platform/skills/timing.js';
 import { chronomancerState } from '#gw2/professions/mesmer/specializations/chronomancer/state.js';
-import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
-import { replaceAutoattackChains } from '#gw2/platform/skills/autoattack-chain-controller.js';
+import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
+import { replaceAutoattackChains } from '#gw2/platform/execution/autoattack-chains.js';
 /**
  * Chronomancer-owned Continuum Split checkpoints and restoration.
  */
 import type { AvailabilityResult, CooldownController } from '#gw2/platform/execution/types.js';
-import type { SkillId } from '#gw2/platform/engine/skills/types.js';
+import type { SkillId } from '#gw2/platform/skills/types.js';
 import type { MesmerRefreshAmmo } from '#gw2/professions/mesmer/types.js';
 import type { MesmerResourceSpendDetails } from '#gw2/professions/mesmer/core/mechanics/resource-types.js';
 import type { MesmerShatterResolution } from '#gw2/professions/mesmer/core/mechanics/shatter-types.js';
@@ -19,7 +19,11 @@ import { MESMER_SKILL_IDS as ID } from '#gw2/professions/mesmer/data/ids.js';
 
 interface ContinuumControllerOptions {
   readonly state: MesmerRuntime;
-  readonly cooldownController: CooldownController;
+  /** Continuum snapshots and restores recharge without acquiring cast acceptance operations. */
+  readonly cooldownController: Pick<
+    CooldownController,
+    'restoreCheckpoint' | 'refresh' | 'ammoSkillIds' | 'checkpoint' | 'readyAt'
+  >;
   readonly unaffectedCooldownIds: ReadonlySet<SkillId>;
   readonly refreshAmmo: MesmerRefreshAmmo;
   readonly consumeResources: (at: number, details?: MesmerResourceSpendDetails) => number;
@@ -48,45 +52,15 @@ export function createContinuumController({
     if (!continuum) return;
     const splitReady = continuum.splitReady;
     const openAt = continuum.openAt;
-    const unaffectedCooldowns = [...state.cooldowns].filter(([id]) => unaffectedCooldownIds.has(id));
-    const restoredCooldowns = new Map([
-      ...unaffectedCooldowns,
-      ...[...continuum.remainingCooldowns]
-        .filter(([, remaining]) => remaining > 0)
-        .map(([id, remaining]): [SkillId, number] => [id, at + remaining])
-    ]);
-    state.cooldowns.clear();
-    for (const [id, ready] of restoredCooldowns) state.cooldowns.set(id, ready);
-    if (splitReady) state.cooldowns.set(continuum.splitId, at + splitReady - openAt);
-    // Restore the saved base work at the rewind timestamp so later reductions retain the checkpoint progress.
-    const restoredProgress = new Map([
-      ...[...state.rechargeProgress].filter(([id]) => unaffectedCooldownIds.has(id)),
-      ...[...continuum.remainingRechargeWork].map(([id, work]) => [id, { startedAt: at, work }] as const)
-    ]);
-    state.rechargeProgress.clear();
-    for (const [id, progress] of restoredProgress) state.rechargeProgress.set(id, progress);
-    const restoredAmmo = new Map(
-      [...continuum.ammo].map(([id, ammo]) => [
-        id,
-        {
-          // Relative deadlines belong to the checkpoint; live ammo only stores absolute deadlines.
-          charges: ammo.charges,
-          maximum: ammo.maximum,
-          recharges: ammo.pendingRechargeWork.map((work) => ({ startedAt: at, work })),
-          ...(ammo.pendingLockoutWork == null
-            ? {}
-            : { lockoutProgress: { startedAt: at, work: ammo.pendingLockoutWork } }),
-          nextRechargeAt: ammo.nextRechargeRemaining == null ? null : at + ammo.nextRechargeRemaining,
-          // Rewind the cast lockout independently of the next charge's recharge.
-          lockoutReadyAt: ammo.lockoutRemaining > 0 ? at + ammo.lockoutRemaining : 0
-        }
-      ])
+    cooldownController.restoreCheckpoint(
+      continuum.recharge,
+      at,
+      unaffectedCooldownIds,
+      splitReady ? [{ skillId: continuum.splitId, readyAt: at + splitReady - openAt }] : []
     );
-    state.ammo.clear();
-    for (const [id, ammo] of restoredAmmo) state.ammo.set(id, ammo);
     replaceAutoattackChains(state, continuum.autoattackChains);
     cooldownController.refresh(at);
-    for (const [id] of state.ammo) {
+    for (const id of cooldownController.ammoSkillIds()) {
       const ammoSkill = state.helpers.skillsById.get(id);
       if (ammoSkill) refreshAmmo(ammoSkill, at);
     }
@@ -116,57 +90,16 @@ export function createContinuumController({
   ): MesmerShatterResolution => {
     // Publish Split's exact clone spend against its rotation entry so the timeline can show the standard shatter badge.
     const spent = consumeResources(at, spendDetails);
-    const remainingCooldowns = new Map(
-      [...state.cooldowns]
-        .filter(([id]) => id !== skill.id && !unaffectedCooldownIds.has(id))
-        .map(([id, ready]) => [id, ready - at])
-    );
-    const remainingRechargeWork = new Map(
-      [...state.rechargeProgress].flatMap(([id, progress]) => {
-        const cooldownSkill = state.helpers.skillsById.get(id);
-        return cooldownSkill &&
-          !unaffectedCooldownIds.has(id) &&
-          gw2CooldownReadyAt(cooldownController.project(cooldownSkill, progress)) > at
-          ? [[id, cooldownController.remaining(cooldownSkill, progress, at)] as const]
-          : [];
-      })
-    );
-    const ammo = new Map(
-      [...state.ammo].map(([id, value]) => [
-        id,
-        {
-          charges: value.charges,
-          maximum: value.maximum,
-          // Only the active charge has earned progress; waiting charges retain their full queued work.
-          pendingRechargeWork: value.recharges.map((progress, index) =>
-            index > 0 ? progress.work : cooldownController.remaining(state.helpers.skillsById.get(id)!, progress, at)
-          ),
-          ...(value.lockoutProgress &&
-          gw2CooldownReadyAt(value.lockoutReadyAt ?? 0) > at &&
-          state.helpers.skillsById.has(id)
-            ? {
-                pendingLockoutWork: cooldownController.remaining(
-                  state.helpers.skillsById.get(id)!,
-                  value.lockoutProgress,
-                  at
-                )
-              }
-            : {}),
-          nextRechargeRemaining: value.nextRechargeAt == null ? null : Math.max(0, value.nextRechargeAt - at),
-          lockoutRemaining: Math.max(0, (value.lockoutReadyAt ?? 0) - at)
-        }
-      ])
-    );
+    // The mechanic selects exclusions; the shared service owns pool representation and earned-work snapshots.
+    const recharge = cooldownController.checkpoint(at, unaffectedCooldownIds, skill.id);
     const chronomancer = chronomancerState.from(state);
     // Fragmentation extends the base window once, independently of the number of clones spent.
     const duration = durationPerSource * (spent + 1) + bonusDuration;
     chronomancer.continuum = {
       splitId: skill.id,
-      splitReady: state.cooldowns.get(skill.id),
+      splitReady: cooldownController.readyAt(skill.id),
       openAt: at,
-      remainingCooldowns,
-      remainingRechargeWork,
-      ammo,
+      recharge,
       autoattackChains: { ...professionCoreState(state).autoattackChains },
       expiresAt: at + duration
     };
@@ -204,7 +137,10 @@ export function createContinuumController({
 }
 
 /** Continuum Shift is castable only while Continuum Split is active. */
-export function chronomancerAvailability(context: MesmerRuntime, skill: MesmerSkill): AvailabilityResult {
+export function chronomancerAvailability(
+  context: MechanicQueriesOf<MesmerRuntime>,
+  skill: MesmerSkill
+): AvailabilityResult {
   if (skill.id !== ID.CONTINUUM_SHIFT || chronomancerState.from(context).continuum) {
     return { ready: true };
   }

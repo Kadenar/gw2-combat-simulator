@@ -1,25 +1,29 @@
-import { durationStackingBoonCapSeconds, remainingDurationStackSeconds } from '#gw2/platform/combat/boons.js';
+import { guardianTraitIcon } from '#gw2/professions/guardian/core/traits/metadata.js';
+import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
+import type { MechanicContext } from '#gw2/platform/profession-definition/mechanic-context.js';
+import type {
+  MaximumAmmoContext,
+  SelectedContentContext
+} from '#gw2/platform/profession-definition/runtime-context.js';
 import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
 import { isInternalCooldownReady } from '#gw2/platform/combat/procs.js';
 import { grantTimedStacks } from '#gw2/platform/combat/resources/timed-stacks.js';
-import { targetHealthLoss } from '#gw2/platform/combat/state/target-health.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
-import { strikeEffectTicks } from '#gw2/platform/engine/effects/authoring.js';
-import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
-import { denySkillCast } from '#gw2/platform/engine/skills/availability.js';
+import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
+import { denySkillCast } from '#gw2/platform/execution/availability.js';
 import {
   balanceProfileNumber,
   effectNumber,
   requireBalanceProfileFromContext,
   requireEffect
-} from '#gw2/platform/engine/skills/balance-profiles.js';
-import type { BalanceProfile, Skill, SkillEffect, SkillId } from '#gw2/platform/engine/skills/types.js';
+} from '#gw2/platform/skills/balance-profiles.js';
+import type { BalanceProfile, Skill, SkillId } from '#gw2/platform/skills/types.js';
+import type { SkillEffect } from '#gw2/platform/effects/types.js';
 import { compileRechargeRules } from '#gw2/platform/profession-definition/trigger-rules.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
-import type { Gw2Runtime, RuntimeCast } from '#gw2/platform/simulation/runtime-state.js';
+import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import { guardianCastCause } from '#gw2/professions/guardian/core/mechanics/event-handlers.js';
 import type { GuardianCoreState } from '#gw2/professions/guardian/core/state.js';
-import { SPECIALIZATIONS } from '#gw2/professions/guardian/data/guardian-api-metadata.js';
 import {
   GUARDIAN_TRAIT_IDS,
   GUARDIAN_SKILL_IDS as ID,
@@ -33,92 +37,7 @@ import type {
 } from '#gw2/professions/guardian/types.js';
 import { canonicalTime } from '#kernel/core/clock.js';
 
-export type Runtime = Gw2Runtime<GuardianRuntimeState, GuardianSkill>;
-
-/** Fields are selected before registration, so extensions never rewrite an already executed action. */
-export function writOfPersistenceFields(
-  runtime: Runtime,
-  cast: RuntimeCast<GuardianSkill>,
-  fields: Skill['comboFields']
-): Skill['comboFields'] {
-  if (isGuardianSymbolSkill(cast.skill) && hasTrait(runtime, TRAIT.WRIT_OF_PERSISTENCE)) {
-    const profile = requireBalanceProfileFromContext(runtime, TRAIT.WRIT_OF_PERSISTENCE);
-    const window = requireEffect(profile, 'buff', 'symbol-duration-extension');
-    if (window)
-      fields = fields?.map((field, index) =>
-        index === 0 ? { ...field, duration: Number(field.duration) + effectNumber(profile, window, 'duration') } : field
-      );
-  }
-
-  return fields;
-}
-
-/** Select authored trait extensions once and leave cancellation, impact delay, and boon sampling to the common runtime. */
-export function writOfPersistenceEffects(
-  runtime: Runtime,
-  cast: RuntimeCast<GuardianSkill>,
-  effects: readonly SkillEffect[]
-): readonly SkillEffect[] {
-  const extra: SkillEffect[] = [];
-  const skill = cast.skill;
-  const field = skill.comboFields?.[0];
-  if (field && isGuardianSymbolSkill(skill) && hasTrait(runtime, TRAIT.WRIT_OF_PERSISTENCE)) {
-    const profile = requireBalanceProfileFromContext(runtime, TRAIT.WRIT_OF_PERSISTENCE);
-    if (skill.id === ID.SYMBOL_OF_PUNISHMENT) {
-      for (const effect of profile.effects ?? []) {
-        if (effect.type === 'strike') extra.push({ ...effect, name: skill.name, weapon: 'Scepter' });
-        else if (effect.type === 'boon') extra.push({ ...effect, audience: { recipients: 'party' } });
-      }
-    } else {
-      const window = requireEffect(profile, 'buff', 'symbol-duration-extension');
-      const extension = window ? effectNumber(profile, window, 'duration') : 0;
-      const pulse = effects.filter((effect) => effect.type === 'strike' && strikeEffectTicks(effect).length > 1).at(-1);
-      if (pulse?.type === 'strike' && extension > 0) {
-        const ticks = strikeEffectTicks(pulse);
-        const last = ticks.at(-1)!;
-        const fieldEnd =
-          (field.startAnchor === 'castEnd' ? cast.fullEnd : cast.start) +
-          Number(field.startMs ?? 0) / 1000 +
-          Number(field.duration);
-        const lastAt =
-          ticks.length >= 5
-            ? fieldEnd
-            : (pulse.timingAnchor === 'castStart' ? cast.start : cast.fullEnd) + last.atMs / 1000;
-        extra.push({
-          type: 'strike',
-          name: pulse.name ?? skill.name,
-          timingAnchor: 'castStart',
-          timingScale: 'fixed',
-          persistsAfterInterrupt: pulse.persistsAfterInterrupt,
-          ticks: Array.from({ length: Math.floor(extension) }, (_, index) => ({
-            atMs: (lastAt - cast.start + index + 1) * 1000,
-            coefficient: last.coefficient
-          }))
-        });
-      }
-    }
-  }
-
-  const selected = [...effects, ...extra];
-  // A symbol's self boon belongs to each pulse even when its hostile packet misses the target.
-  if (skill.id === ID.SYMBOL_OF_RESOLUTION || skill.id === ID.LUMINOUS_STAFF || skill.id === ID.SYMBOL_OF_FAITH)
-    for (const effect of extra) {
-      if (effect.type !== 'strike') continue;
-      for (const tick of strikeEffectTicks(effect))
-        selected.push({
-          type: 'boon',
-          boon: skill.id === ID.SYMBOL_OF_FAITH ? 'regeneration' : 'resolution',
-          duration: 1,
-          stacks: 1,
-          atMs: tick.atMs,
-          timingAnchor: effect.timingAnchor,
-          timingScale: effect.timingScale,
-          persistsAfterInterrupt: effect.persistsAfterInterrupt
-        });
-    }
-
-  return selected;
-}
+type Runtime = MechanicContext<GuardianRuntimeState, GuardianSkill>;
 
 /** A committed heal claims Protection's interval only when its selected symbol can emit. */
 export function completeProtectorsRestoration(runtime: Runtime, cast: RuntimeCast<GuardianSkill>): void {
@@ -135,12 +54,15 @@ export function completeProtectorsRestoration(runtime: Runtime, cast: RuntimeCas
         fieldDuration: (effect) => (effect.type === 'strike' ? (effect.ticks?.at(-1)?.atMs ?? 0) / 1000 : 0)
       })
     )
-      runtime.procs.readyAt['guardian.core.protectorsRestoration'] = canonicalTime(
-        runtime.time +
-          balanceProfileNumber(
-            requireBalanceProfileFromContext(runtime, TRAIT.PROTECTORS_RESTORATION),
-            'internalCooldown'
-          )
+      runtime.procs.setDeadline(
+        'guardian.core.protectorsRestoration',
+        canonicalTime(
+          runtime.time +
+            balanceProfileNumber(
+              requireBalanceProfileFromContext(runtime, TRAIT.PROTECTORS_RESTORATION),
+              'internalCooldown'
+            )
+        )
       );
   }
 }
@@ -195,88 +117,6 @@ export function completeHealersResolution(runtime: Runtime, cast: RuntimeCast<Gu
   }
 }
 
-export const MIGHT = 'guardian.righteous-might';
-
-export const RESOLUTION_EXPIRY = 'guardian.resolution-expiry';
-
-/** Resolution readiness follows the accepted self-boon pool, including its cap and extension records. */
-export function resolutionDeadline(runtime: Runtime): number {
-  const remaining = remainingDurationStackSeconds(runtime.boons.get('resolution') ?? [], runtime.time, {
-    includes: (application) => application.resolvedAudience.includesSelf,
-    maximum: durationStackingBoonCapSeconds('resolution'),
-    ordered: true
-  });
-  return remaining > 0 ? canonicalTime(runtime.time + remaining) : 0;
-}
-
-export function righteousMight(runtime: Runtime, event: Gw2ResolverEvent): boolean {
-  const profile = requireBalanceProfileFromContext(runtime, TRAIT.RIGHTEOUS_INSTINCTS);
-  const effect = requireEffect(profile, 'boon', 'might');
-  if (!effect) return false;
-  runtime.effects.emit({
-    kind: 'packet',
-    event: {
-      type: 'buff',
-      at: runtime.time,
-      source: 'Trait',
-      sourceId: TRAIT.RIGHTEOUS_INSTINCTS,
-      actorType: 'player',
-      skillId: TRAIT.RIGHTEOUS_INSTINCTS,
-      skillName: profile.name,
-      activationId: event.activationId,
-      causalOrder: event.causalOrder ?? event.eventOrder,
-      kind: 'might',
-      duration: effectNumber(profile, effect, 'duration'),
-      stacks: effectNumber(profile, effect, 'stacks')
-    }
-  });
-  {
-    runtime.effects.emit({
-      kind: 'announcement',
-      announcement: {
-        type: 'trait',
-        name: profile.name,
-        at: runtime.time,
-        sourceSkill: 'Resolution',
-        detail: 'Resolution active',
-        icon: guardianTraitIcon(TRAIT.RIGHTEOUS_INSTINCTS)
-      }
-    });
-  }
-
-  return true;
-}
-
-/** A new self Resolution window starts one cadence; additional applications extend its pool without duplicating ticks. */
-export function reactToRighteousInstinctsBuff(runtime: Runtime, event: Gw2ResolverEvent): void {
-  if (
-    event.kind !== 'resolution' ||
-    event.resolvedAudience?.includesSelf !== true ||
-    !hasTrait(runtime, TRAIT.RIGHTEOUS_INSTINCTS)
-  )
-    return;
-  const state = runtime.profession.core;
-  const active = state.resolutionUntil > runtime.time;
-  state.resolutionUntil = resolutionDeadline(runtime);
-  if (!(state.resolutionUntil > runtime.time)) return;
-  runtime.schedule(RESOLUTION_EXPIRY, state.resolutionUntil, state.resolutionUntil, undefined, -220);
-  if (active) return;
-  state.righteousInstinctsGeneration++;
-  if (!righteousMight(runtime, event)) return;
-  const interval = balanceProfileNumber(
-    requireBalanceProfileFromContext(runtime, TRAIT.RIGHTEOUS_INSTINCTS),
-    'pulseInterval'
-  );
-  if (interval > 0)
-    runtime.schedule(
-      MIGHT,
-      canonicalTime(runtime.time + interval),
-      { generation: state.righteousInstinctsGeneration, event },
-      undefined,
-      -10
-    );
-}
-
 /** Signet passives keep their ordinary cooldown rule unless Perfect Inscriptions retains them. */
 export function guardianSignetPassiveActive(context: Gw2ModifierContext, skillId: SkillId): boolean {
   return hasTrait(context, TRAIT.PERFECT_INSCRIPTIONS) || !context.timeline?.skillOnCooldownAt(skillId, context.time);
@@ -306,12 +146,9 @@ export function radiantFireDurationMultiplier(context: unknown): number {
 }
 
 /** Selected Radiant Fire raises Zealot's Flame capacity without reducing a larger authored capacity. */
-export function radiantFireMaximumAmmo(runtime: Runtime, skill: Skill, maximum: number): number {
-  return skill.id === ID.ZEALOTS_FLAME && hasTrait(runtime, TRAIT.RADIANT_FIRE)
-    ? Math.max(
-        maximum,
-        balanceProfileNumber(requireBalanceProfileFromContext(runtime, TRAIT.RADIANT_FIRE), 'maximumStacks')
-      )
+export function radiantFireMaximumAmmo(context: MaximumAmmoContext<object>, skill: Skill, maximum: number): number {
+  return skill.id === ID.ZEALOTS_FLAME && context.hasTrait(TRAIT.RADIANT_FIRE)
+    ? Math.max(maximum, balanceProfileNumber(context.requireBalanceProfile(TRAIT.RADIANT_FIRE), 'maximumStacks'))
     : maximum;
 }
 
@@ -384,12 +221,9 @@ function virtueBuff(
 }
 
 /** Both emission paths read one trait multiplier without applying ordinary boon-duration scaling twice. */
-export function guardianResolutionMultiplier(runtime: Runtime): number {
-  return hasTrait(runtime, GUARDIAN_TRAIT_IDS.VIRTUE_OF_RESOLUTION)
-    ? balanceProfileNumber(
-        requireBalanceProfileFromContext(runtime, GUARDIAN_TRAIT_IDS.VIRTUE_OF_RESOLUTION),
-        'durationMultiplier'
-      )
+export function guardianResolutionMultiplier(context: SelectedContentContext): number {
+  return context.hasTrait(GUARDIAN_TRAIT_IDS.VIRTUE_OF_RESOLUTION)
+    ? balanceProfileNumber(context.requireBalanceProfile(GUARDIAN_TRAIT_IDS.VIRTUE_OF_RESOLUTION), 'durationMultiplier')
     : 1;
 }
 
@@ -414,7 +248,7 @@ export const masterOfConsecrationsEffects: NonNullable<Skill['effectVariants']>[
 
 /** Extend Purging Flames before Writ's separate symbol-field adjustment. */
 export function masterOfConsecrationsFields(
-  runtime: Runtime,
+  runtime: MechanicQueriesOf<Runtime>,
   cast: RuntimeCast<GuardianSkill>,
   fields: Skill['comboFields']
 ): Skill['comboFields'] {
@@ -475,7 +309,7 @@ export const powerOfTheVirtuousRecharge = compileRechargeRules<GuardianRuntimeSt
 ]);
 
 /** Resolve hammer replacement before the Core weapon-flip availability checks. */
-export function glacialHeartAvailability(runtime: Runtime, skill: Skill) {
+export function glacialHeartAvailability(runtime: MechanicQueriesOf<Runtime>, skill: Skill) {
   const glacial = hasTrait(runtime, GUARDIAN_TRAIT_IDS.GLACIAL_HEART);
   if (skill.id === ID.MIGHTY_BLOW && glacial)
     return denySkillCast(
@@ -517,8 +351,7 @@ export function triggerGuardianFuriousFocus(
 export function reactToZealDamage(runtime: Runtime, event: Gw2ResolverEvent, damage: number): void {
   if (event.actorType !== 'player' || !(Number(event.coefficient) > 0) || !(damage > 0)) return;
   const state = runtime.profession.core;
-  const skill = event.skillId == null ? undefined : runtime.helpers.skillsById.get(event.skillId);
-  if (event.isSymbol || isGuardianSymbolSkill(skill, event.skillName)) {
+  if (event.metadata?.guardianSymbol === true) {
     if (hasTrait(runtime, TRAIT.SYMBOLIC_AVENGER)) {
       const profile = requireBalanceProfileFromContext(runtime, TRAIT.SYMBOLIC_AVENGER);
       state.symbolicAvengerExpirations = grantTimedStacks(state.symbolicAvengerExpirations, {
@@ -552,7 +385,7 @@ export function reactToZealDamage(runtime: Runtime, event: Gw2ResolverEvent, dam
     runtime.config.target?.fixedHealthFraction != null
       ? 1 - runtime.config.target.fixedHealthFraction
       : health > 0
-        ? (targetHealthLoss(runtime.config, runtime) - damage) / health
+        ? (runtime.combat.targetHealthLoss() - damage) / health
         : 0;
   if (
     !(lostFraction > balanceProfileNumber(profile, 'threshold')) ||
@@ -561,8 +394,9 @@ export function reactToZealDamage(runtime: Runtime, event: Gw2ResolverEvent, dam
     return;
   // Claim before the first queued symbol impact so same-time children cannot recursively claim it.
   if (emitTraitSymbol(runtime, TRAIT.ZEALOTS_RESOLUTION, ID.LESSER_SYMBOL_OF_RESOLUTION, event))
-    runtime.procs.readyAt['guardian.core.zealotsResolution'] = canonicalTime(
-      runtime.time + balanceProfileNumber(profile, 'cooldown')
+    runtime.procs.setDeadline(
+      'guardian.core.zealotsResolution',
+      canonicalTime(runtime.time + balanceProfileNumber(profile, 'cooldown'))
     );
 }
 
@@ -576,33 +410,10 @@ export const zealousBladeRecharge = compileRechargeRules<GuardianRuntimeState>([
 ]);
 
 /** Spirit weapons gain their extra capacity before the runtime constructs ammunition pools. */
-export function eternalArmoryMaximumAmmo(runtime: Runtime, skill: Skill, maximum: number): number {
-  return skill.categories?.includes('SpiritWeapon') && hasTrait(runtime, TRAIT.ETERNAL_ARMORY)
-    ? maximum + balanceProfileNumber(requireBalanceProfileFromContext(runtime, TRAIT.ETERNAL_ARMORY), 'resourceGain')
+export function eternalArmoryMaximumAmmo(context: MaximumAmmoContext<object>, skill: Skill, maximum: number): number {
+  return skill.categories?.includes('SpiritWeapon') && context.hasTrait(TRAIT.ETERNAL_ARMORY)
+    ? maximum + balanceProfileNumber(context.requireBalanceProfile(TRAIT.ETERNAL_ARMORY), 'resourceGain')
     : maximum;
-}
-
-const TRAIT_BY_ID = new Map(
-  SPECIALIZATIONS.flatMap((specialization) => [
-    ...specialization.minorTraits,
-    ...specialization.majorTraits.flat()
-  ]).map((trait) => [Number(trait.id), trait])
-);
-
-/** Provides shared Guardian trait metadata and resolver emissions without making trait lines import the dispatcher. */
-export function guardianTraitIcon(traitId: SkillId): string {
-  return TRAIT_BY_ID.get(Number(traitId))?.icon || '';
-}
-
-export function isGuardianSymbolSkill(skill: GuardianSkill | undefined, fallbackName = ''): boolean {
-  const name = skill?.name || fallbackName;
-  const description = skill?.description || '';
-  return (
-    /^Symbol of /.test(name) ||
-    /^Lesser Symbol of /.test(name) ||
-    /^Symbol\./.test(description) ||
-    /\bcreat(?:e|ing) a symbol\b/i.test(description)
-  );
 }
 
 export function guardianResolverState(context: GuardianResolverContext): GuardianCoreState {
@@ -630,7 +441,7 @@ export const symbols: Readonly<Record<SkillId, Skill>> = {
 
 /** A triggered symbol owns a distinct activation and schedules only its surviving selected components. */
 export function emitTraitSymbol(
-  runtime: Gw2Runtime<GuardianRuntimeState, GuardianSkill>,
+  runtime: MechanicContext<GuardianRuntimeState, GuardianSkill>,
   trait: number,
   symbolId: SkillId,
   cause: Gw2ResolverEvent,
@@ -646,7 +457,9 @@ export function emitTraitSymbol(
       throw new Error(`${profile.name} requires an explicit strike timeline.`);
     const effect = {
       ...component,
-      ...(component.type === 'strike' ? { name: symbol.name, weapon: 'Unequipped' } : {}),
+      ...(component.type === 'strike'
+        ? { name: symbol.name, weapon: 'Unequipped', metadata: { ...component.metadata, guardianSymbol: true } }
+        : {}),
       ...(options.party && component.type === 'boon' ? { audience: { recipients: 'party' as const } } : {})
     };
     // Selected symbol components retain their field and activation while transport stays shared.
@@ -668,13 +481,8 @@ export function emitTraitSymbol(
       transform: (event) => ({
         ...event,
         triggeredBy: cause.skillName,
-        ...(event.type === 'damage'
-          ? {
-              isSymbol: true,
-              ...(event.hitIndex === 1 && fieldDuration > 0
-                ? { comboFields: [{ ownerId: 'guardian', fieldType: 'Light' as const, duration: fieldDuration }] }
-                : {})
-            }
+        ...(event.type === 'damage' && event.hitIndex === 1 && fieldDuration > 0
+          ? { comboFields: [{ ownerId: 'guardian', fieldType: 'Light' as const, duration: fieldDuration }] }
           : {})
       })
     });

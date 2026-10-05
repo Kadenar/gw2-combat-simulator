@@ -1,24 +1,31 @@
+import { createMechanicCombatServices } from '#gw2/platform/resolver/mechanic-services.js';
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { loadProfession } from '#gw2/profession-registry.js';
 import { defineTestProfession } from '#tests/helpers/profession.js';
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
 import { createGw2ComboResolution } from '#gw2/platform/resolver/combo-resolution.js';
-import { applyElementalistResolverAura } from '#gw2/professions/elementalist/core/mechanics/reactions.js';
+import { resolveElementalistAura } from '#gw2/professions/elementalist/core/mechanics/auras.js';
+import { createExecutedFacts } from '#gw2/platform/combat/history/executed-facts.js';
 
 test('combo and aura handlers skip score report rows while preserving state and reactions', () => {
   // Check the internal buffer: score output alone hides accidentally retained report rows.
   for (const reporting of [false, true]) {
     const dispatched = [];
+    const facts = createExecutedFacts([]);
     const context = {
       reporting,
       resolved: [],
       traits: new Set(),
       profession: { core: { activeAuras: [] } },
+      observations: facts.writer,
+      schedule() {},
       dispatchReaction: (name, event) => dispatched.push([name, event])
     };
+    // Bind real owner operations for this focused mechanic fixture.
+    context.combat = createMechanicCombatServices(context);
     const handlers = createGw2ComboResolution({
-      reactions: { dispatch: (name, ctx, event) => ctx.dispatchReaction(name, event) }
+      reactions: { dispatch: (name, ctx, event) => ctx.combat.react(name, event) }
     });
     const combo = { type: 'combo', at: 1 };
     const aura = { type: 'aura', at: 1 };
@@ -27,15 +34,16 @@ test('combo and aura handlers skip score report rows while preserving state and 
       at: 1,
       aura: 'Fire',
       duration: 4,
-      skillName: 'Fixture Aura',
-      elementalistResolverGeneratedAura: true
+      skillName: 'Fixture Aura'
     };
 
     handlers.combo(context, combo);
     handlers.aura(context, aura);
-    applyElementalistResolverAura(context, generatedAura);
+    resolveElementalistAura(context, generatedAura);
 
-    assert.deepEqual(context.resolved, reporting ? [combo, aura, generatedAura] : []);
+    // Profession auras record one gameplay fact in both modes, without an origin-specific report copy.
+    assert.deepEqual(facts.reader.read(), [generatedAura]);
+    assert.deepEqual(context.resolved, reporting ? [combo, aura] : []);
     assert.deepEqual(dispatched, [
       ['combo.resolved', combo],
       ['aura.applied', aura],

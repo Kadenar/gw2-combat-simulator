@@ -1,21 +1,22 @@
+import { grantCharges } from '#gw2/platform/combat/resources/charges.js';
 import { professionStaticRulesApplied } from '#gw2/platform/builds/attribute-provenance.js';
 import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
 import type { Gw2NumericStatKey, Gw2ResolvedStats } from '#gw2/platform/combat/query/combat-query.js';
 import { eventSkill as modifierEventSkill } from '#gw2/platform/combat/query/runtime-query.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
-import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
+import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
 import {
   balanceProfileNumber,
   effectNumber,
   requireBalanceProfileFromContext,
   requireEffect
-} from '#gw2/platform/engine/skills/balance-profiles.js';
+} from '#gw2/platform/skills/balance-profiles.js';
 import { gw2PrimaryWeapon } from '#gw2/platform/equipment/weapons/loadout.js';
 import type { ResolvedCriticalHitOptions } from '#gw2/platform/profession-definition/mechanics.js';
 import type { NativeResolvedDamageDetails } from '#gw2/platform/profession-definition/module-types.js';
 import { buildResolverBuff, buildResolverCondition } from '#gw2/platform/resolver/packets.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
-import { gw2EffectExpiresAt } from '#gw2/platform/skills/timing.js';
+import { gw2EffectExpiresAt } from '#gw2/platform/effects/timing.js';
 import { buildRangerPacket } from '#gw2/professions/ranger/core/events.js';
 import { rangerPetBaseAttributes } from '#gw2/professions/ranger/core/mechanics/pet-profiles.js';
 import {
@@ -125,7 +126,7 @@ export function triggerHuntersGaze(context: RangerResolverContext, event: Gw2Res
       at: event.at,
       sourceSkill: event.skillName,
       detail: `${stacks} might`,
-      icon: context.helpers.skillsById?.get(TRAIT.HUNTERS_GAZE)?.icon || ''
+      icon: context.helpers.skillsById.get(TRAIT.HUNTERS_GAZE)?.icon || ''
     }
   });
   context.effects.emit({
@@ -384,7 +385,8 @@ export function applyRangerDodgeTraits(context: RangerRuntime, at = context.time
   const baseDuration = effectNumber(profile, effect, 'duration');
   // Reapplications stack duration in game, so preserve the live remainder
   // instead of replacing it with another six-second overlapping window.
-  const activeUntil = context.history
+  const activeUntil = context.facts
+    .read()
     .filter((event) => event.type === 'buff' && event.kind === kind && event.at <= at)
     .reduce((maximum, event) => Math.max(maximum, gw2EffectExpiresAt(event.at, event.duration || 0)), at);
   context.effects.emit({
@@ -411,7 +413,7 @@ export function applyRangerDodgeTraits(context: RangerRuntime, at = context.time
 export function applyRangerWeaponSwapTraits(context: RangerRuntime, skill: RangerSkill, at = context.time): void {
   const state = professionCoreState(context);
   const inCombat = context.combatStartTime != null && at >= context.combatStartTime;
-  if (inCombat && hasTrait({ config: context.config }, TRAIT.TAIL_WIND)) {
+  if (inCombat && hasTrait(context.traits, TRAIT.TAIL_WIND)) {
     const profile = requireBalanceProfileFromContext(context, TRAIT.TAIL_WIND);
     const effect = requireEffect(profile, 'boon', 'swiftness');
     // The cooldown gates only swiftness, so a removed boon leaves it ready.
@@ -438,13 +440,13 @@ export function applyRangerWeaponSwapTraits(context: RangerRuntime, skill: Range
 
   if (
     inCombat &&
-    hasTrait({ config: context.config }, TRAIT.QUICK_DRAW) &&
+    hasTrait(context.traits, TRAIT.QUICK_DRAW) &&
     context.procs.claim(TRAIT.QUICK_DRAW, 'ranger.core.quickDraw', at)
   ) {
     const profile = requireBalanceProfileFromContext(context, TRAIT.QUICK_DRAW);
     const effect = requireEffect(profile, 'boon', 'quickness');
     // The recharge window is trait-owned, so it and its cooldown survive a removed quickness packet.
-    state.quickDrawUntil = at + balanceProfileNumber(profile, 'durationMultiplier');
+    state.quickDraw = grantCharges(1, at + balanceProfileNumber(profile, 'durationMultiplier'));
     if (effect)
       context.effects.emit({
         kind: 'packet',
@@ -465,7 +467,7 @@ export function applyRangerWeaponSwapTraits(context: RangerRuntime, skill: Range
       });
   }
 
-  if (inCombat && hasTrait({ config: context.config }, TRAIT.FURIOUS_GRIP)) {
+  if (inCombat && hasTrait(context.traits, TRAIT.FURIOUS_GRIP)) {
     const profile = requireBalanceProfileFromContext(context, TRAIT.FURIOUS_GRIP);
     const effect = requireEffect(profile, 'boon', 'fury');
     // The cooldown gates only fury, so a removed boon leaves it ready.
@@ -913,7 +915,7 @@ export function applyArachnophobiaPet(
 
 /** Adds Natural Vigor to both baseline and Vigor-enhanced endurance recovery. */
 export function naturalVigorBonus(context: RangerRuntime): number {
-  return hasTrait({ config: context.config }, TRAIT.NATURAL_VIGOR)
+  return hasTrait(context.traits, TRAIT.NATURAL_VIGOR)
     ? balanceProfileNumber(
         requireBalanceProfileFromContext(context, TRAIT.NATURAL_VIGOR),
         'vigorRegenerationMultiplier'

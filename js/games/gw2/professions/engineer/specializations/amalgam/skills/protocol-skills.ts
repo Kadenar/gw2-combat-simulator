@@ -2,9 +2,9 @@
  * Owns Amalgam offensive and defensive protocol skill fragments across mechanic slots.
  * Evolved-state actions and persistent morph behavior live in their named owners.
  */
-import { impactEffects } from '#gw2/platform/engine/effects/authoring.js';
+import { impactEffects } from '#gw2/platform/effects/authoring.js';
 import { ENGINEER_SKILL_IDS as ID } from '#gw2/professions/engineer/data/ids.js';
-import type { Skill, SkillId } from '#gw2/platform/engine/skills/types.js';
+import type { Skill } from '#gw2/platform/skills/types.js';
 
 const DEMOLISH_CAST_TIME_MS = 1000 + 560;
 const DEMOLISH_RECHARGE_OFFSET_MS = 1000;
@@ -16,8 +16,6 @@ const DEMOLISH_SPIN_TICKS = Object.freeze([
   { atMs: 920, coefficient: 0.9 }
 ]);
 const DEMOLISH_SMASH_AT_MS = 1440;
-
-export type AmalgamMorphKind = 'cleanse' | 'protect' | 'thorns' | 'demolish' | 'obliterate' | 'pierce' | 'shred';
 
 // Declare each protocol once; its three catalog entries differ only in mechanic slot.
 const shred: Partial<Skill> = {
@@ -212,28 +210,3 @@ export const AMALGAM_PROTOCOL_SKILL_MECHANICS: Readonly<Record<string, Partial<S
   [ID.DEFENSIVE_PROTOCOL_PROTECT_ID_77203]: { ...protect, mechanicSlot: 3 },
   [ID.DEFENSIVE_PROTOCOL_PROTECT_ID_77358]: { ...protect, mechanicSlot: 4 }
 });
-
-/** Maps each slot identity to its protocol for strain and trait observers. */
-export const AMALGAM_MORPH_KIND_BY_SKILL_ID: ReadonlyMap<SkillId, AmalgamMorphKind> = new Map([
-  [ID.OFFENSIVE_PROTOCOL_SHRED_ID_77103, 'shred'],
-  [ID.OFFENSIVE_PROTOCOL_SHRED_ID_76866, 'shred'],
-  [ID.OFFENSIVE_PROTOCOL_SHRED, 'shred'],
-  [ID.DEFENSIVE_PROTOCOL_THORNS_ID_77163, 'thorns'],
-  [ID.DEFENSIVE_PROTOCOL_THORNS_ID_77104, 'thorns'],
-  [ID.DEFENSIVE_PROTOCOL_THORNS, 'thorns'],
-  [ID.OFFENSIVE_PROTOCOL_DEMOLISH_ID_76927, 'demolish'],
-  [ID.OFFENSIVE_PROTOCOL_DEMOLISH, 'demolish'],
-  [ID.OFFENSIVE_PROTOCOL_DEMOLISH_ID_76954, 'demolish'],
-  [ID.OFFENSIVE_PROTOCOL_OBLITERATE_ID_76806, 'obliterate'],
-  [ID.OFFENSIVE_PROTOCOL_OBLITERATE_ID_76901, 'obliterate'],
-  [ID.OFFENSIVE_PROTOCOL_OBLITERATE, 'obliterate'],
-  [ID.DEFENSIVE_PROTOCOL_CLEANSE_ID_76798, 'cleanse'],
-  [ID.DEFENSIVE_PROTOCOL_CLEANSE_ID_77285, 'cleanse'],
-  [ID.DEFENSIVE_PROTOCOL_CLEANSE, 'cleanse'],
-  [ID.OFFENSIVE_PROTOCOL_PIERCE, 'pierce'],
-  [ID.OFFENSIVE_PROTOCOL_PIERCE_ID_77005, 'pierce'],
-  [ID.OFFENSIVE_PROTOCOL_PIERCE_ID_77015, 'pierce'],
-  [ID.DEFENSIVE_PROTOCOL_PROTECT, 'protect'],
-  [ID.DEFENSIVE_PROTOCOL_PROTECT_ID_77203, 'protect'],
-  [ID.DEFENSIVE_PROTOCOL_PROTECT_ID_77358, 'protect']
-]);

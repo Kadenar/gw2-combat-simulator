@@ -2,12 +2,13 @@ import {
   requireBalanceProfileFromContext,
   effectNumber,
   balanceProfileNumber
-} from '#gw2/platform/engine/skills/balance-profiles.js';
+} from '#gw2/platform/skills/balance-profiles.js';
 import {
   NECROMANCER_CORE_BALANCE_PROFILE_IDS as PROFILE,
   NECROMANCER_MINION_PROFILE_BY_SKILL_ID
 } from '#gw2/professions/necromancer/core/profiles.js';
-import type { BalanceProfile, SkillEffect, SkillId } from '#gw2/platform/engine/skills/types.js';
+import type { BalanceProfile, SkillId } from '#gw2/platform/skills/types.js';
+import type { SkillEffect } from '#gw2/platform/effects/types.js';
 import type { NecromancerSkill } from '#gw2/professions/necromancer/types.js';
 
 export interface MinionAttack {

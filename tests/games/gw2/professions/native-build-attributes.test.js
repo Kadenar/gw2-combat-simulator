@@ -667,7 +667,7 @@ test('Brutal Momentum exposes its unconditional critical chance', () => {
         selectedTraitIds: [TRAIT.BRUTAL_MOMENTUM]
       },
       runtime: {
-        profession: { endurance: 50, maximumEndurance: 100 }
+        profession: { endurance: { value: 50, maximum: 100, updatedAt: 0, rate: 0 } }
       }
     },
     0.2

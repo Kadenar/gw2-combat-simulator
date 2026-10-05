@@ -1,26 +1,23 @@
+import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
 import { selectedSkillIdSet } from '#gw2/platform/builds/selected-skills.js';
 import { buffApplicationStacks, gw2BoonDurationMultiplier } from '#gw2/platform/combat/boons.js';
-import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { STANDARD_TARGET_ARMOR } from '#gw2/platform/combat/formulas.js';
-import { scaleCastBoundTiming } from '#gw2/platform/engine/effects/materializer.js';
-import type { SimulationEventBase } from '#gw2/platform/engine/events/events.js';
-import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
-import {
-  balanceProfileNumber,
-  requireBalanceProfileFromContext
-} from '#gw2/platform/engine/skills/balance-profiles.js';
-import { GW2_ALACRITY_RECHARGE_RATE } from '#gw2/platform/engine/skills/recharge.js';
-import { cancelledBeforeEffectCommit } from '#gw2/platform/execution/effect-adapter.js';
+import { scaleCastBoundTiming } from '#gw2/platform/effects/materializer.js';
+import type { SimulationEventBase } from '#gw2/platform/events/events.js';
+import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
+import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import { GW2_ALACRITY_RECHARGE_RATE } from '#gw2/platform/execution/recharge.js';
+import { cancelledBeforeEffectCommit } from '#gw2/platform/execution/effect-commit.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
-import type { RuntimeCast } from '#gw2/platform/simulation/runtime-state.js';
+import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import {
   castWasInterrupted,
   GW2_QUICKNESS_ACTION_RATE,
   gw2CooldownReadyAt,
-  quantizeGw2ActionDurationUp,
   summonQuicknessCastTimeMs
-} from '#gw2/platform/skills/timing.js';
-import type { Skill } from '#gw2/platform/engine/skills/types.js';
+} from '#gw2/platform/execution/cast-timing.js';
+import { quantizeGw2ActionDurationUp } from '#gw2/platform/combat/action-tick.js';
+import type { Skill } from '#gw2/platform/skills/types.js';
 import {
   rangerPetAutoProfile,
   rangerPetBaseAttributes,
@@ -57,7 +54,7 @@ const PET_COMMAND_START_TASK = 'ranger.pet-command-start';
 const PET_AUTO_OWNER = 'ranger.active-pet';
 const PET_AI_ATTACK_OWNER = 'ranger.pet-ai-attack';
 
-export function rangerPetCompanionId(context: RangerRuntime | RangerResolverContext): string {
+export function rangerPetCompanionId(context: Pick<MechanicQueriesOf<RangerRuntime>, 'profession'>): string {
   const state = professionCoreState(context);
   return `ranger-pet:${state.activePetSlot}:${state.petAutoGeneration}`;
 }
@@ -76,12 +73,12 @@ function rangerPetAttributes(context: RangerRuntime | RangerResolverContext) {
   applyPetsProwessPet(context, attributes);
   applyFangAndClawPet(context, attributes, petName);
   applyArachnophobiaPet(context, attributes, petName);
-  const runtime = 'cooldowns' in context ? context : null;
+  const runtime = 'cooldownController' in context ? context : null;
   if (runtime)
     attributes.ferocity += signetOfTheWildBonus(
       context,
       petHasSelectedSkill(runtime, ID.SIGNET_OF_THE_WILD),
-      (runtime.cooldowns.get(ID.SIGNET_OF_THE_WILD) || 0) <= runtime.time
+      (runtime.cooldownController.readyAt(ID.SIGNET_OF_THE_WILD) || 0) <= runtime.time
     );
   return attributes;
 }
@@ -138,11 +135,11 @@ function owner(context: RangerRuntime, id = PET_AUTO_OWNER) {
   return { id, generation: context.profession.core.petAutoGeneration };
 }
 
-function petBuff(context: RangerRuntime, kind: string): boolean {
+function petBuff(context: MechanicQueriesOf<RangerRuntime>, kind: string): boolean {
   const id = rangerPetCompanionId(context);
   return (
     buffApplicationStacks(
-      (context.boons.get(kind) ?? []).filter((buff) => buff.resolvedAudience.companionIds.includes(id)),
+      context.combat.boonApplications(kind).filter((buff) => buff.resolvedAudience.companionIds.includes(id)),
       kind,
       context.time,
       1,
@@ -152,7 +149,11 @@ function petBuff(context: RangerRuntime, kind: string): boolean {
 }
 
 /** Pet commands use their companion's speed rather than inheriting the player's Quickness. */
-export function rangerPetCastDurationMs(context: RangerRuntime, skill: Skill, durationMs: number): number {
+export function rangerPetCastDurationMs(
+  context: MechanicQueriesOf<RangerRuntime>,
+  skill: Skill,
+  durationMs: number
+): number {
   if (!skill.petSkill) return durationMs;
   return quantizeGw2ActionDurationUp(
     petBuff(context, 'quickness') ? summonQuicknessCastTimeMs(skill) : (skill.castTimeMs ?? 0)
@@ -526,14 +527,14 @@ export const rangerPetTasks = {
 
 /** Pet-created boons use companion concentration; recipient alone never changes the granting actor's stats. */
 export function rangerBoonDuration(
-  context: RangerRuntime,
+  context: import('#gw2/platform/profession-definition/runtime-context.js').SelectedContentContext,
   event: Gw2ResolverEvent,
   baseDuration: number,
   scaledDuration: number
 ): number {
   if (event.source !== 'ranger-pet' || event.actorType !== 'summon') return scaledDuration;
-  const concentration = hasTrait(context, TRAIT.LINGERING_MAGIC)
-    ? balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.LINGERING_MAGIC), 'attributeBonus')
+  const concentration = context.hasTrait(TRAIT.LINGERING_MAGIC)
+    ? balanceProfileNumber(context.requireBalanceProfile(TRAIT.LINGERING_MAGIC), 'attributeBonus')
     : 0;
   return baseDuration * gw2BoonDurationMultiplier(String(event.kind), { concentration });
 }

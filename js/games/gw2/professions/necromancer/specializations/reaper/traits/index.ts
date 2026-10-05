@@ -1,14 +1,11 @@
 import { isStandardBoon } from '#gw2/platform/combat/boons.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
+import { targetConditionActive } from '#gw2/platform/combat/query/runtime-query.js';
 import { targetConditionStacks as configuredTargetConditionStacks } from '#gw2/platform/combat/state/targets.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
-import {
-  balanceProfileNumber,
-  requireBalanceProfileFromContext
-} from '#gw2/platform/engine/skills/balance-profiles.js';
+import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
 import { grantNecromancerLifeForce } from '#gw2/professions/necromancer/core/mechanics/life-force.js';
-import { necromancerTargetChilled } from '#gw2/professions/necromancer/core/mechanics/modifier-queries.js';
 import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
 import {
   reactToReaperDamage,
@@ -134,10 +131,7 @@ export const chillingVictory = defineTrait({
     reactions: {
       'damage.resolved'(runtime, event) {
         if (event.actorType !== 'player' || !(Number(event.coefficient) > 0)) return;
-        if (
-          hasTrait(runtime, TRAIT.CHILLING_VICTORY) &&
-          runtime.query.targetHasCondition('Chilled', runtime.time, runtime)
-        ) {
+        if (hasTrait(runtime, TRAIT.CHILLING_VICTORY) && runtime.combat.targetHasCondition('Chilled', runtime.time)) {
           const profile = requireBalanceProfileFromContext(runtime, TRAIT.CHILLING_VICTORY);
           // Chilled player hits claim the profile's cooldown before granting life force.
           if (
@@ -247,7 +241,8 @@ export const coldShoulder = defineTrait({
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: 'multiply',
       factor: 1.15,
-      when: (context) => necromancerTargetChilled(context)
+      // Share the target's canonical Chilled lifetime with Chilling Nova eligibility.
+      when: (context) => targetConditionActive(context, 'Chilled')
     }
   ]
 });

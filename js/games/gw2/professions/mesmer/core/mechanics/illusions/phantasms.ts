@@ -1,13 +1,13 @@
-import type { EffectDelivery } from '#gw2/platform/simulation/effect-emission.js';
-import type { SimulationEventBase } from '#gw2/platform/engine/events/events.js';
+import type { EffectDelivery } from '#gw2/platform/effects/emission.js';
+import type { SimulationEventBase } from '#gw2/platform/events/events.js';
 import {
   buildMesmerStrikes,
   mesmerPacketOwner,
   buildMesmerPacket,
   buildMesmerConditions
 } from '#gw2/professions/mesmer/core/mechanics/packets.js';
-import { materializeSkillEffectApplications } from '#gw2/platform/engine/effects/materializer.js';
-import { phantasmalHasteSpeed, triggerCompoundingPower } from '#gw2/professions/mesmer/core/traits/behavior.js';
+import { materializeSkillEffectApplications } from '#gw2/platform/effects/materializer.js';
+import { phantasmalHasteSpeed, triggerCompoundingPower } from '#gw2/professions/mesmer/core/traits/illusions.js';
 import type { MesmerRuntime } from '#gw2/professions/mesmer/types.js';
 import { canonicalTime } from '#kernel/core/clock.js';
 
@@ -189,7 +189,7 @@ export function createPhantasmEffectController({
     const initialBladeAt = Math.max(...executions.map((item) => item.initialBladeAt));
 
     triggerCompoundingPower(
-      { context: state },
+      state,
       execution.summonAt,
       count,
       skill.name,
@@ -262,7 +262,7 @@ export function createPhantasmEffectController({
 
     // The active specialization repeat policy re-summons the phantasm for a second attack cycle.
     triggerCompoundingPower(
-      { context: state },
+      state,
       execution.spawnAt,
       count,
       `${skill.name} - ${policy.repeat.label}`,
@@ -610,7 +610,7 @@ export function createPhantasmEffectController({
         (candidate): candidate is MesmerStrikeEffect => candidate.type === 'strike' && candidate.name === label
       )?.ticks;
     for (const effect of entityConditions) {
-      const condition = { ...effect, name: effect.condition };
+      const condition = effect;
       // packetLabel ties the condition's application times to a named damage-tick sequence,
       // so conditions that apply on each hit are synchronized with the actual hit packets.
       const authoredTicks = condition.packetLabel ? authoredDamageTicks(condition.packetLabel) : null;
@@ -634,7 +634,7 @@ export function createPhantasmEffectController({
             stacks: undefined,
             ticks: applicationTimes.map((applicationAt) => ({
               atMs: (applicationAt - conditionOrigin) * 1000,
-              condition: condition.name,
+              condition: condition.condition,
               duration: condition.duration,
               stacks: packetStacks
             })),
@@ -682,7 +682,7 @@ export function createPhantasmEffectController({
     // initial tick timestamps by the delta between the two damage windows.
     const repeatOffset = execution.repeatDamageAt - execution.damageAt;
     for (const effect of entityConditions) {
-      const condition = { ...effect, name: effect.condition };
+      const condition = effect;
       const initialConditionTicks = condition.packetLabel
         ? (execution.timing.damageTicksByEntity?.[execution.entityIndex]?.[condition.packetLabel] ??
           execution.timing.damageTicks?.[condition.packetLabel] ??
@@ -711,7 +711,7 @@ export function createPhantasmEffectController({
             stacks: undefined,
             ticks: applicationTimes.map((applicationAt) => ({
               atMs: (applicationAt - conditionOrigin) * 1000,
-              condition: condition.name,
+              condition: condition.condition,
               duration: condition.duration,
               stacks: packetStacks
             })),

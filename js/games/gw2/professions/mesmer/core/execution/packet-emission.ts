@@ -1,4 +1,4 @@
-import type { EffectDelivery } from '#gw2/platform/simulation/effect-emission.js';
+import type { EffectDelivery } from '#gw2/platform/effects/emission.js';
 import type { MesmerRuntime } from '#gw2/professions/mesmer/types.js';
 import {
   buildMesmerStrikes,
@@ -11,7 +11,7 @@ import { EPSILON } from '#kernel/core/clock.js';
  * Effect ordering lives in `effect-controller.ts`; persistent illusion behavior lives under `mechanics/illusions/`.
  */
 
-import { castRelativeEffectTimingScale } from '#gw2/platform/skills/timing.js';
+import { castRelativeEffectTimingScale } from '#gw2/platform/execution/cast-timing.js';
 import type {
   MesmerPhantasmEffectController,
   MesmerPhantasmExecution
@@ -121,9 +121,8 @@ export function createSkillDamageController({
     delivery: EffectDelivery
   ): void => {
     for (const effect of conditions) {
-      const condition = { ...effect, name: effect.condition };
       const timingAnchorAt = effect.timingAnchor === 'castStart' ? castStart : at;
-      buildMesmerConditions(state, skill.name, timingAnchorAt, condition, 'Player', '', { skillId: skill.id }).forEach(
+      buildMesmerConditions(state, skill.name, timingAnchorAt, effect, 'Player', '', { skillId: skill.id }).forEach(
         (packet) => {
           state.effects.emit({
             ...delivery,

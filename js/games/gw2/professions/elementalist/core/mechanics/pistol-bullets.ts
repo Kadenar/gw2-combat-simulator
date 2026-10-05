@@ -1,4 +1,7 @@
-import type { Gw2Runtime, RuntimeCast, RuntimeProfession } from '#gw2/platform/simulation/runtime-state.js';
+import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
+import type { MechanicContext } from '#gw2/platform/profession-definition/mechanic-context.js';
+import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
+import type { RuntimeProfession } from '#gw2/platform/profession-definition/runtime-contract.js';
 import type { ElementalistAttunement, ElementalistCoreState } from '#gw2/professions/elementalist/core/state.js';
 /**
  * Owns Core pistol-bullet loading, consumption, and enhanced payloads.
@@ -7,24 +10,27 @@ import type { ElementalistAttunement, ElementalistCoreState } from '#gw2/profess
  * already loaded one for an enhanced payload; this module owns that flip at
  * cast completion. Pistol skill fragments live in `skills/weapons/pistol.ts`.
  */
-import { professionCoreState, readProfessionCoreState } from '#gw2/platform/engine/profession/state.js';
+import { professionCoreState, readProfessionCoreState } from '#gw2/platform/profession-definition/state.js';
 import {
   balanceProfileNumber,
   effectNumber,
   requireBalanceProfileFromContext,
   requireEffect
-} from '#gw2/platform/engine/skills/balance-profiles.js';
-import { projectCastRelativeEffectTimingMs } from '#gw2/platform/skills/timing.js';
+} from '#gw2/platform/skills/balance-profiles.js';
+import { projectCastRelativeEffectTimingMs } from '#gw2/platform/execution/cast-timing.js';
 import { elementalistBuffRequest, elementalistStrikeRequest } from '#gw2/professions/elementalist/core/events.js';
 import {
   elementalistProfiledBuffRequest,
   elementalistProfiledConditionRequest
 } from '#gw2/professions/elementalist/core/mechanics/effects.js';
 import { ELEMENTALIST_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/elementalist/core/profiles.js';
-import { applyElementalistAura } from '#gw2/professions/elementalist/core/traits/dispatch.js';
+import { applyElementalistAura } from '#gw2/professions/elementalist/core/mechanics/auras.js';
 import type { ElementalistRuntimeState, ElementalistSkill } from '#gw2/professions/elementalist/types.js';
 /** Reads the completion-time bullet before the declaration's final load/spend action changes it. */
-export function hasPistolBullet(context: Gw2Runtime, cast: RuntimeCast<ElementalistSkill>): boolean {
+export function hasPistolBullet(
+  context: MechanicQueriesOf<MechanicContext>,
+  cast: RuntimeCast<ElementalistSkill>
+): boolean {
   return readProfessionCoreState<ElementalistCoreState>(context.profession).pistolBullets![
     cast.skill.attunement as ElementalistAttunement
   ];

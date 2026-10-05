@@ -1,4 +1,4 @@
-import { createCanonicalCatalog } from '#gw2/platform/engine/skills/canonical-skill-catalog.js';
+import { createCanonicalCatalog } from '#gw2/platform/skills/catalog.js';
 import { defineTestProfession } from '#tests/helpers/profession.js';
 
 // Shared fixture only; its filename keeps Node from reporting this helper as an empty test.

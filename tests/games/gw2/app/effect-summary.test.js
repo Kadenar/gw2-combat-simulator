@@ -9,6 +9,7 @@ import { buildBoonGeneration } from '#gw2/platform/results/boon-generation.js';
 import { chartValueAt } from '#gw2/app/results/charts/time-series-model.js';
 import { createGw2ResolverRuntimeState } from '#gw2/platform/resolver/runtime-state.js';
 import { invokeRelicHook } from '#gw2/platform/equipment/relics/runtime.js';
+import { EffectRecorder } from '#gw2/platform/results/effect-report.js';
 
 const self = {
   includesSelf: true,
@@ -372,7 +373,8 @@ test('effect summaries integrate sub-sample transitions and never resurrect repl
 });
 
 test('relic proc state survives recording and refreshes replace stack counts', () => {
-  const context = createGw2ResolverRuntimeState({ config: { relic: 'Thief' } });
+  // This reporting fixture composes its observer explicitly, just like the simulation entry point.
+  const context = createGw2ResolverRuntimeState({ config: { relic: 'Thief' }, effectRecorder: new EffectRecorder() });
   context.effects = captureEffectEmissions({
     announce: (request) => recordProcStep(context, request.announcement)
   }).effects;
@@ -393,7 +395,10 @@ test('relic proc state survives recording and refreshes replace stack counts', (
   assert.equal(summary.maximumStackUptime, 0);
 
   // A persistent state without an expiry ends at the observation horizon and uses a fresh value on replacement.
-  const thorns = createGw2ResolverRuntimeState({ config: { relic: 'Thorns', initialThornsStacks: 9 } });
+  const thorns = createGw2ResolverRuntimeState({
+    config: { relic: 'Thorns', initialThornsStacks: 9 },
+    effectRecorder: new EffectRecorder()
+  });
   thorns.effects = captureEffectEmissions({
     announce: (request) => recordProcStep(thorns, request.announcement)
   }).effects;

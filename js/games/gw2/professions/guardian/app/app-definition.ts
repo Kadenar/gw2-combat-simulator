@@ -15,7 +15,6 @@ export const guardianAppAdapter = defineProfessionApp({
   profession: guardianProfession,
   applyBuildAttributeRules: applyGuardianBuildAttributeRules,
   toApplicationBuild,
-  specializationFallback: 'Zeal',
   runtime: {
     buildConfigExtras: (app) => {
       const build = app.build as GuardianCanonicalBuild;

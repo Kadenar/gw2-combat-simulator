@@ -88,6 +88,6 @@ test('Cloudburst declared resets preserve cancelled and committed completion bou
       }
     );
     assert.deepEqual(result.warnings, []);
-    assert.equal((observedRuntime(result).cooldowns.get(ID.BLUSTER) ?? 0) <= 1, reset);
+    assert.equal((observedRuntime(result).cooldownController.readyAt(ID.BLUSTER) ?? 0) <= 1, reset);
   }
 });

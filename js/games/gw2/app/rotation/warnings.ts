@@ -1,5 +1,5 @@
 import type { SimulationStep } from '#gw2/platform/execution/types.js';
-import type { Gw2SimulationResult } from '#gw2/platform/simulation/types.js';
+import type { Gw2SimulationResult } from '#gw2/platform/results/types.js';
 import type { ProfessionAppState } from '#gw2/app/types.js';
 import { mountRotationWarnings } from '#ui/rotation/warnings.js';
 import { formatResultTimelineTime } from '#gw2/app/shared/result-clock.js';

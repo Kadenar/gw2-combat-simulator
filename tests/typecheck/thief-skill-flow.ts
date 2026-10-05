@@ -1,4 +1,4 @@
-import type { Skill } from '#gw2/platform/engine/skills/types.js';
+import type { Skill } from '#gw2/platform/skills/types.js';
 import { thiefCatalog } from '#gw2/professions/thief/catalog.js';
 import type { ThiefRuntime } from '#gw2/professions/thief/core/events.js';
 import { thiefCoreHooks } from '#gw2/professions/thief/core/hooks.js';

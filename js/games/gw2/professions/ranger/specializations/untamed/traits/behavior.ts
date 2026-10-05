@@ -1,12 +1,10 @@
+import { grantRefreshedStacks } from '#gw2/platform/combat/resources/refreshed-stacks.js';
 import { professionStaticRulesApplied } from '#gw2/platform/builds/attribute-provenance.js';
 import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
 import type { Gw2ResolvedStats } from '#gw2/platform/combat/query/combat-query.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
-import {
-  balanceProfileNumber,
-  requireBalanceProfileFromContext
-} from '#gw2/platform/engine/skills/balance-profiles.js';
-import type { SkillEffect } from '#gw2/platform/engine/skills/types.js';
+import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import type { SkillEffect } from '#gw2/platform/effects/types.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import { isPetStrike, isPlayerStrike } from '#gw2/professions/ranger/core/mechanics/resolution-helpers.js';
 import { rangerPetCompanionId } from '#gw2/professions/ranger/core/mechanics/pets.js';
@@ -45,17 +43,25 @@ export function triggerFerociousSymbiosis(context: RangerResolverContext, event:
   if (isPlayerStrike(event)) {
     if (!context.procs.claim(TRAIT.FEROCIOUS_SYMBIOSIS, 'ranger.untamed.ferociousSymbiosisPet', event.at)) return;
     // A player hit builds Pet stacks (cross-buff: player hits power the pet).
-    state.ferociousSymbiosisPetStacks =
-      event.at < state.ferociousSymbiosisPetUntil ? Math.min(maximumStacks, state.ferociousSymbiosisPetStacks + 1) : 1;
-    state.ferociousSymbiosisPetUntil = event.at + duration;
+    state.ferociousSymbiosisPet = grantRefreshedStacks(
+      state.ferociousSymbiosisPet,
+      1,
+      event.at,
+      event.at + duration,
+      maximumStacks,
+      'exclusive'
+    );
   } else if (isPetStrike(event)) {
     if (!context.procs.claim(TRAIT.FEROCIOUS_SYMBIOSIS, 'ranger.untamed.ferociousSymbiosisPlayer', event.at)) return;
     // A pet hit builds Player stacks (cross-buff: pet hits power the player).
-    state.ferociousSymbiosisPlayerStacks =
-      event.at < state.ferociousSymbiosisPlayerUntil
-        ? Math.min(maximumStacks, state.ferociousSymbiosisPlayerStacks + 1)
-        : 1;
-    state.ferociousSymbiosisPlayerUntil = event.at + duration;
+    state.ferociousSymbiosisPlayer = grantRefreshedStacks(
+      state.ferociousSymbiosisPlayer,
+      1,
+      event.at,
+      event.at + duration,
+      maximumStacks,
+      'exclusive'
+    );
   }
 }
 

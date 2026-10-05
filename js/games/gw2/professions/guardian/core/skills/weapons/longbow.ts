@@ -1,7 +1,7 @@
 /** Canonical Core guardian skill fragments grouped by their GW2 owner. */
 import { GUARDIAN_SKILL_IDS as ID } from '#gw2/professions/guardian/data/ids.js';
-import { impactEffects } from '#gw2/platform/engine/effects/authoring.js';
-import type { Skill } from '#gw2/platform/engine/skills/types.js';
+import { impactEffects } from '#gw2/platform/effects/authoring.js';
+import type { Skill } from '#gw2/platform/skills/types.js';
 
 // Packet offsets are the canonical Quickness timings measured from EVTC animation starts.
 export const GUARDIAN_WEAPONS_LONGBOW_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
@@ -20,18 +20,22 @@ export const GUARDIAN_WEAPONS_LONGBOW_SKILL_MECHANICS: Readonly<Record<number, P
     ])
   },
   [ID.SYMBOL_OF_ENERGY]: {
+    // Author symbol identity independently of the skill's display text.
+    tags: ['symbol'],
     castTimeMs: 400,
     // The symbol creates its four-second Light field with the initial impact.
     comboFields: [{ ownerId: 'guardian', fieldType: 'Light', duration: 4, startAnchor: 'castEnd' }],
     effects: [
       {
         type: 'strike',
+        metadata: { guardianSymbol: true },
         coefficient: 1.38,
         hits: 1,
         name: 'Symbol of Energy — Initial Damage'
       },
       {
         type: 'strike',
+        metadata: { guardianSymbol: true },
         ticks: Array.from({ length: 4 }, (_, index) => ({ atMs: 1000 + index * 1000, coefficient: 2.07 / 4 })),
         name: 'Symbol of Energy — Symbol Damage',
         timingAnchor: 'castEnd',

@@ -14,7 +14,6 @@ export interface SimulationViewModel {
   readonly analysis: SimulationViewSection | null;
   readonly headerDps?: string | null;
   readonly analysisEmptyHtml?: string;
-  readonly onAnalysisEmpty?: (container: HTMLElement) => void;
   readonly afterAnalysisRender?: (container: HTMLElement) => void;
 }
 

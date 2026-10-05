@@ -32,7 +32,7 @@ import type {
   Gw2FinalizedAttributeResult,
   Gw2NumericAttributes
 } from '#gw2/platform/builds/types.js';
-import type { Skill } from '#gw2/platform/engine/skills/types.js';
+import type { Skill } from '#gw2/platform/skills/types.js';
 
 /** Level-80 character baseline that gear and food attributes build on top of. */
 const BASE_STATS: Readonly<Gw2NumericAttributes> = {

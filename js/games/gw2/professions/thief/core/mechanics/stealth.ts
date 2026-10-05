@@ -1,3 +1,4 @@
+import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
 import {
   enterCloakedInShadow,
   enterShadowsRejuvenation,
@@ -6,30 +7,29 @@ import {
 } from '#gw2/professions/thief/core/traits/behavior.js';
 import { grantLeechingVenomCharges } from '#gw2/professions/thief/core/traits/leeching-venoms.js';
 
-import type { SkillEffect } from '#gw2/platform/engine/skills/types.js';
+import type { SkillEffect } from '#gw2/platform/effects/types.js';
 
 import { thiefSkill } from '#gw2/professions/thief/core/events.js';
 
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
-import type { RuntimeCast } from '#gw2/platform/simulation/runtime-state.js';
+import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import type { ThiefRuntime } from '#gw2/professions/thief/core/events.js';
-import type { ThiefSkill, ThiefStealthAttackChargeState } from '#gw2/professions/thief/types.js';
-
-/** Optional stealth-attack charges live on the active specialization when it grants them. */
-function thiefStealthAttackCharges(runtime: ThiefRuntime): Partial<ThiefStealthAttackChargeState> {
-  return runtime.profession.specialization.state as Partial<ThiefStealthAttackChargeState>;
-}
+import type { ThiefSkill } from '#gw2/professions/thief/types.js';
+import { activeChargeCount, consumeCharge } from '#gw2/platform/combat/resources/charges.js';
 
 /** Stealth is active from its entry instant until its expiry, unless Revealed blocks it. */
-export function thiefStealthed(runtime: ThiefRuntime, at = runtime.time): boolean {
+export function thiefStealthed(runtime: MechanicQueriesOf<ThiefRuntime>, at = runtime.time): boolean {
   const core = runtime.profession.core;
   return core.stealthStartedAt <= at && core.stealthUntil > at && core.revealedUntil <= at;
 }
 
 /** A specialization-granted stealth-attack charge is usable outside stealth until it expires. */
-export function thiefBonusStealthAttack(runtime: ThiefRuntime, at = runtime.time): boolean {
-  const charges = thiefStealthAttackCharges(runtime);
-  return (charges.stealthAttackCharges || 0) > 0 && (charges.stealthAttackExpiresAt || 0) > at;
+export function thiefBonusStealthAttack(runtime: MechanicQueriesOf<ThiefRuntime>, at = runtime.time): boolean {
+  const elite = runtime.profession.specialization;
+  return (
+    (elite.kind === 'Deadeye' || elite.kind === 'Antiquary') &&
+    activeChargeCount(elite.state.bonusStealthAttack, at) > 0
+  );
 }
 
 /**
@@ -82,7 +82,7 @@ export function reactThiefStealthBreakingStrike(runtime: ThiefRuntime, event: Gw
 }
 
 /** The same-instant strike allowance: one stealth attack may still claim stealth broken at this exact instant. */
-export function thiefSameInstantStealthBreak(runtime: ThiefRuntime): boolean {
+export function thiefSameInstantStealthBreak(runtime: MechanicQueriesOf<ThiefRuntime>): boolean {
   return runtime.profession.core.strikeBrokeStealthAt === runtime.time;
 }
 
@@ -93,9 +93,10 @@ export function thiefSameInstantStealthBreak(runtime: ThiefRuntime): boolean {
 export function beginThiefStealthAttack(runtime: ThiefRuntime, cast: RuntimeCast<ThiefSkill>): void {
   const core = runtime.profession.core;
   const skill = cast.skill;
-  const charges = thiefStealthAttackCharges(runtime);
-  if (!thiefStealthed(runtime) && thiefBonusStealthAttack(runtime))
-    charges.stealthAttackCharges = (charges.stealthAttackCharges || 0) - 1;
+  const elite = runtime.profession.specialization;
+  // Actual stealth supplies the attack first; only the active owner can spend a bonus entitlement.
+  if (!thiefStealthed(runtime) && (elite.kind === 'Deadeye' || elite.kind === 'Antiquary'))
+    consumeCharge(elite.state.bonusStealthAttack, runtime.time);
   core.strikeBrokeStealthAt = null;
   if (breakThiefStealth(runtime, skill, runtime.time)) return;
   core.stealthStartedAt = runtime.time;

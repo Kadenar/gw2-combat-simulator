@@ -1,4 +1,4 @@
-import type { BalanceProfile, SkillId } from '#gw2/platform/engine/skills/types.js';
+import type { BalanceProfile, SkillId } from '#gw2/platform/skills/types.js';
 
 type BalanceProfileFields = Readonly<Record<string, unknown>>;
 

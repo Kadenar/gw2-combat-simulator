@@ -1,18 +1,19 @@
-import type { RuntimeProfession } from '#gw2/platform/simulation/runtime-state.js';
+import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
+import type { RuntimeProfession } from '#gw2/platform/profession-definition/runtime-contract.js';
 import { EPSILON } from '#kernel/core/clock.js';
 /**
  * Owns Weaver dual-weapon state behavior for hammer orbs and pistol bullets.
  * The cataloged weapon fragments live in
  * `skills/weapons/hammer.ts`.
  */
-import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
-import { denyCast, retryCast } from '#gw2/platform/engine/skills/availability.js';
+import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
+import { denyCast, retryCast } from '#gw2/platform/execution/availability.js';
 import {
   balanceProfileNumber,
   requireBalanceProfileFromContext,
   requireEffect
-} from '#gw2/platform/engine/skills/balance-profiles.js';
-import type { Skill } from '#gw2/platform/engine/skills/types.js';
+} from '#gw2/platform/skills/balance-profiles.js';
+import type { Skill } from '#gw2/platform/skills/types.js';
 import { elementalistBuffRequest, elementalistControlRequest } from '#gw2/professions/elementalist/core/events.js';
 import {
   elementalistProfiledConditionRequest,
@@ -20,7 +21,7 @@ import {
 } from '#gw2/professions/elementalist/core/mechanics/effects.js';
 import { ELEMENTALIST_CORE_BALANCE_PROFILE_IDS as CORE_PROFILE } from '#gw2/professions/elementalist/core/profiles.js';
 import { isElementalistAttunement, type ElementalistAttunement } from '#gw2/professions/elementalist/core/state.js';
-import { applyElementalistAura } from '#gw2/professions/elementalist/core/traits/dispatch.js';
+import { applyElementalistAura } from '#gw2/professions/elementalist/core/mechanics/auras.js';
 import { WEAVER_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/elementalist/specializations/weaver/profiles.js';
 import type {
   ElementalistRuntime,
@@ -59,7 +60,7 @@ export function weaverWeaponAttunementAvailable(
 
 /** Checks the shared orb lockout and duplicate-orb restriction for Weaver dual skills. */
 export function weaverHammerAvailability(
-  context: ElementalistRuntime,
+  context: MechanicQueriesOf<ElementalistRuntime>,
   skill: Skill
 ): {
   ready: boolean;

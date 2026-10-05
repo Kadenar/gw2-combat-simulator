@@ -1,17 +1,14 @@
+import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
 import { resourceDepletionAt } from '#gw2/platform/combat/resources/clock.js';
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
-import {
-  conditionEffectTicks,
-  effectFirstAtMs,
-  strikeEffectCoefficient
-} from '#gw2/platform/engine/effects/authoring.js';
-import { requireEffect } from '#gw2/platform/engine/skills/balance-profiles.js';
-import { armSkillFlip, consumeSkillFlip } from '#gw2/platform/engine/skills/skill-flips.js';
-import type { SkillId } from '#gw2/platform/engine/skills/types.js';
+import { conditionEffectTicks, effectFirstAtMs, strikeEffectCoefficient } from '#gw2/platform/effects/authoring.js';
+import { requireEffect } from '#gw2/platform/skills/balance-profiles.js';
+import { armSkillFlip, consumeSkillFlip } from '#gw2/platform/execution/skill-flips.js';
+import type { SkillId } from '#gw2/platform/skills/types.js';
 import { buildResolverCondition, buildResolverStrike } from '#gw2/platform/resolver/packets.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
-import type { RuntimeCast } from '#gw2/platform/simulation/runtime-state.js';
-import { gw2CooldownReadyAt } from '#gw2/platform/skills/timing.js';
+import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
+import { gw2CooldownReadyAt } from '#gw2/platform/execution/cast-timing.js';
 import type { RevenantRuntime } from '#gw2/professions/revenant/core/events.js';
 import type { RevenantUpkeepState } from '#gw2/professions/revenant/core/state.js';
 import { REVENANT_SKILL_IDS as ID } from '#gw2/professions/revenant/data/ids.js';
@@ -39,7 +36,7 @@ function revenantUpkeepOwner(skillId: SkillId, startsAt: number) {
 
 /** Returns the currently active upkeep for this skill, optionally matching one activation's start. */
 export function activeRevenantUpkeep(
-  runtime: RevenantRuntime,
+  runtime: MechanicQueriesOf<RevenantRuntime>,
   skillId: SkillId,
   startsAt?: number
 ): RevenantUpkeepState | undefined {
@@ -276,12 +273,12 @@ function triggersImpossibleOdds(event: Gw2ResolverEvent): boolean {
 export function reactRevenantImpossibleOdds(runtime: RevenantRuntime, event: Gw2ResolverEvent): void {
   if (!triggersImpossibleOdds(event) || !activeRevenantUpkeep(runtime, ID.IMPOSSIBLE_ODDS)) return;
   // Integer clock keys allow the expiry instant without admitting hits just before it.
-  if (timeKey(runtime.time) < timeKey(runtime.procs.readyAt.impossibleOdds || 0)) return;
+  if (timeKey(runtime.time) < timeKey(runtime.procs.deadline('impossibleOdds') || 0)) return;
   const impossible = runtime.helpers.skillsById.get(ID.IMPOSSIBLE_ODDS);
   const strike = impossible && requireEffect(impossible, 'strike', 'Impossible Odds');
   // The trigger interval gates only this strike, so a removed strike leaves it ready.
   if (!impossible || !strike) return;
-  runtime.procs.readyAt.impossibleOdds = canonicalTime(runtime.time + (impossible.triggerIntervalMs || 0) / 1000);
+  runtime.procs.setDeadline('impossibleOdds', canonicalTime(runtime.time + (impossible.triggerIntervalMs || 0) / 1000));
   runtime.effects.emit({
     kind: 'packet',
     cause: event,

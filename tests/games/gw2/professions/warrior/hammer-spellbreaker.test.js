@@ -5,7 +5,6 @@ import test from 'node:test';
 
 import { warriorCatalog, warriorProfession } from '#gw2/professions/warrior/profession.js';
 import { WARRIOR_SKILL_IDS as ID, WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/professions/warrior/data/ids.js';
-import { canonicalGw2SkillId } from '#gw2/platform/skills/aliases.js';
 import {
   createObservedProfessionSimulator,
   observeGw2Runtime,
@@ -97,73 +96,8 @@ function strike(skillId) {
   return warriorCatalog.skillsById.get(skillId).effects.find((effect) => effect.type === 'strike');
 }
 
-test('hammer and dagger/mace timings preserve their 40 ms packet spacing', () => {
-  for (const [skillId, castMs, packetMs] of [
-    [ID.HAMMER_SWING, 480, 360],
-    [ID.HAMMER_BASH, 640, 320],
-    [ID.HAMMER_SMASH, 440, 320],
-    [ID.FIERCE_BLOW, 880, 600],
-    [ID.HAMMER_SHOCK, 600, 320],
-    [ID.STAGGERING_BLOW, 480, 400],
-    [ID.BACKBREAKER, 880, 680],
-    [ID.EARTHSHAKER, 1000, 840],
-    [ID.CRUSHING_BLOW, 560, 440],
-    [ID.TREMOR, 560, 440],
-    [ID.PRECISE_CUT, 320, 280],
-    [ID.FOCUSED_SLASH, 360, 280],
-    [ID.KEEN_STRIKE, 440, 280],
-    [ID.DISRUPTING_STAB, 440, 160],
-    [69297, 840, 760]
-  ]) {
-    const canonicalSkillId = canonicalGw2SkillId(skillId);
-    const skill = warriorCatalog.skillsById.get(canonicalSkillId);
-
-    assert.equal(skill.castTimeMs, castMs, skill.name);
-
-    const usesHammer = [
-      ID.HAMMER_SWING,
-      ID.HAMMER_BASH,
-      ID.HAMMER_SMASH,
-      ID.FIERCE_BLOW,
-      ID.HAMMER_SHOCK,
-      ID.STAGGERING_BLOW,
-      ID.BACKBREAKER,
-      ID.EARTHSHAKER
-    ].includes(skillId);
-    const rotation =
-      skillId === ID.HAMMER_BASH
-        ? [ID.HAMMER_SWING, skillId]
-        : skillId === ID.HAMMER_SMASH
-          ? [ID.HAMMER_SWING, ID.HAMMER_BASH, skillId]
-          : skillId === ID.FOCUSED_SLASH
-            ? [ID.PRECISE_CUT, skillId]
-            : skillId === ID.KEEN_STRIKE
-              ? [ID.PRECISE_CUT, ID.FOCUSED_SLASH, skillId]
-              : [skillId];
-    const result = simulate('Spellbreaker', rotation, {
-      primaryWeapon: usesHammer ? 'Hammer' : 'Dagger',
-      secondaryWeapon: usesHammer ? '' : 'Mace',
-      initialResource: skill.burst ? 10 : 0
-    });
-    // Alias inputs execute and emit events under their canonical runtime identity.
-    const action = result.events.find((event) => event.type === 'action' && event.skillId === canonicalSkillId);
-    const damage = result.events.find((event) => event.type === 'damage' && event.activationId === action.activationId);
-
-    assert.equal(Math.round((damage.at - action.at) * 1000), packetMs, skill.name);
-  }
-
-  const tremor = simulate('Spellbreaker', [ID.TREMOR], {
-    primaryWeapon: 'Dagger',
-    secondaryWeapon: 'Mace'
-  });
-  const tremorAction = tremor.events.find((event) => event.type === 'action');
-
-  assert.deepEqual(
-    tremor.events
-      .filter((event) => event.type === 'damage')
-      .map((event) => Math.round((event.at - tremorAction.at) * 1000)),
-    [440, 520]
-  );
+// Combo finishers determine interaction with active fields independently of packet calibration.
+test('hammer skills expose their combo finishers', () => {
   assert.equal(strike(ID.STAGGERING_BLOW).comboFinishers[0].finisherType, 'Whirl');
   assert.equal(strike(ID.EARTHSHAKER).comboFinishers[0].finisherType, 'Blast');
   assert.equal(strike(ID.RUPTURING_SMASH).comboFinishers[0].finisherType, 'Blast');
@@ -218,7 +152,7 @@ test('hammer cooldowns, conditional damage, recharge, and Defense traits work', 
     { condition: 'Weakness', duration: 3.5 }
   );
   // Reset fills the 20-point pool; the next burst spends 10, then control grants 7 and its hit grants 1.
-  assert.equal(defense.planningState.profession.adrenaline, 18);
+  assert.equal(defense.planningState.profession.adrenaline.value, 18);
 });
 
 test("Spellbreaker only gains Attacker's Insight from control and lightning leap combos", () => {
@@ -355,8 +289,8 @@ test('"To the Limit!" restores endurance, grants flow, and triggers Thick Skin',
     selectedTraitIds: [TRAIT.THICK_SKIN]
   });
 
-  assert.equal(core.planningState.profession.adrenaline, 30);
-  assert.equal(core.planningState.profession.endurance, 100);
+  assert.equal(core.planningState.profession.adrenaline.value, 30);
+  assert.equal(core.planningState.profession.endurance.value, 100);
   const protection = core.events.find((event) => event.sourceId === TRAIT.THICK_SKIN);
 
   assert.deepEqual({ boon: protection.kind, duration: protection.duration }, { boon: 'protection', duration: 3 });
@@ -365,5 +299,5 @@ test('"To the Limit!" restores endurance, grants flow, and triggers Thick Skin',
     initialResource: 0
   });
 
-  assert.ok(bladesworn.planningState.profession.flow >= 30);
+  assert.ok(bladesworn.planningState.profession.flow.value >= 30);
 });

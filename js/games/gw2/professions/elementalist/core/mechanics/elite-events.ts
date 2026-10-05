@@ -13,6 +13,6 @@ export function registerElementalistEliteEvents(
 
 /** Core records its custom transition once, then lets the active elite apply its entry traits. */
 export function observeElementalistTransition(runtime: ElementalistRuntime, event: Gw2ResolverEvent): void {
-  runtime.history.push(event);
+  runtime.observations.record(event);
   observers.get(runtime)?.(runtime, event);
 }

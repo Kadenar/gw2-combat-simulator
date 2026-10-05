@@ -1,15 +1,18 @@
+import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
+import type { MechanicContext } from '#gw2/platform/profession-definition/mechanic-context.js';
 import {
   balanceProfileNumber,
   effectNumber,
   requireBalanceProfileFromContext,
   requireEffect
-} from '#gw2/platform/engine/skills/balance-profiles.js';
-import { armSkillFlip, consumeSkillFlip, expireSkillFlip } from '#gw2/platform/engine/skills/skill-flips.js';
+} from '#gw2/platform/skills/balance-profiles.js';
+import { armSkillFlip, consumeSkillFlip, expireSkillFlip } from '#gw2/platform/execution/skill-flips.js';
 import type { NativeResolvedDamageDetails } from '#gw2/platform/profession-definition/module-types.js';
 import { buildResolverCondition } from '#gw2/platform/resolver/packets.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
-import type { Gw2Runtime, RuntimeCast, RuntimeProfession } from '#gw2/platform/simulation/runtime-state.js';
-import { projectCastRelativeEffectTimingMs } from '#gw2/platform/skills/timing.js';
+import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
+import { projectCastRelativeEffectTimingMs } from '#gw2/platform/execution/cast-timing.js';
+import { createPassiveCourageTask } from '#gw2/professions/guardian/core/mechanics/passive-courage.js';
 import { guardianVirtueForSlot, refreshGuardianVirtues } from '#gw2/professions/guardian/core/mechanics/virtues.js';
 import {
   applyGuardianVirtueActivationTraits,
@@ -28,7 +31,7 @@ import {
 import type { GuardianRuntimeState, GuardianSkill } from '#gw2/professions/guardian/types.js';
 import { canonicalTime } from '#kernel/core/clock.js';
 
-type Runtime = Gw2Runtime<GuardianRuntimeState, GuardianSkill>;
+type Runtime = MechanicContext<GuardianRuntimeState, GuardianSkill>;
 const readyVirtues = new WeakSet<RuntimeCast<GuardianSkill>>();
 const COURAGE = 'guardian.dragonhunter.courage';
 const FURIOUS = 'guardian.dragonhunter.furious-focus';
@@ -36,14 +39,16 @@ const TETHER = 'guardian.dragonhunter.tether';
 const BURN = 'guardian.dragonhunter.tether-burn';
 const EXPIRY = 'guardian.dragonhunter.tether-expiry';
 
-/** One recurring wake preserves Courage's cadence while actual recharge suppresses individual pulses. */
-function couragePulse(runtime: Runtime): void {
-  const profile = requireBalanceProfileFromContext(runtime, PROFILE.passiveCourage);
-  const interval = indomitableCourageInterval(runtime, profile);
-  const effect = requireEffect(profile, 'boon', 'aegis');
-  if (!(interval > 0) || !effect) return;
-  refreshGuardianVirtues(runtime);
-  if (runtime.profession.core.virtueReadyAt.courage <= runtime.time) {
+/** Dragonhunter gates its attributed Aegis packet on actual recharge and retains Indomitable Courage tuning. */
+const couragePulse = createPassiveCourageTask({
+  taskId: COURAGE,
+  profileId: PROFILE.passiveCourage,
+  interval: indomitableCourageInterval,
+  ready(runtime) {
+    refreshGuardianVirtues(runtime);
+    return runtime.profession.core.virtueReadyAt.courage <= runtime.time;
+  },
+  deliver(runtime, profile, effect) {
     const skill = runtime.helpers.skillsById.get(ID.SHIELD_OF_COURAGE)!;
     runtime.effects.emit({
       kind: 'packet',
@@ -62,9 +67,7 @@ function couragePulse(runtime: Runtime): void {
       }
     });
   }
-
-  runtime.schedule(COURAGE, canonicalTime(runtime.time + interval), undefined, undefined, -200);
-}
+});
 
 /** A landed spear attaches after commitment; failed hostile outcomes cannot arm the follow-up or create burning. */
 function attachTether(runtime: Runtime, data: unknown): void {
@@ -122,7 +125,7 @@ function tetherBurn(runtime: Runtime, data: unknown): void {
 }
 
 /** Dragonhunter owns its landed tether, passive cadence, and committed trap/virtue effects without replay records. */
-export const dragonhunterHooks: Partial<RuntimeProfession<GuardianRuntimeState, GuardianSkill>> = {
+export const dragonhunterHooks: RuntimeHooks<GuardianRuntimeState, GuardianSkill> = {
   sideEffectHandlers: {
     // Breaking a tether retires its follow-up without touching parent recharge.
     'guardian.break-tether'(runtime) {
@@ -132,9 +135,9 @@ export const dragonhunterHooks: Partial<RuntimeProfession<GuardianRuntimeState, 
     'guardian.attach-tether'(runtime, context) {
       if (context.kind !== 'effect') return;
       const event = context.trigger.event;
-      const action = runtime.history.find(
-        (candidate) => candidate.type === 'action' && candidate.activationId === event.activationId
-      );
+      const action = runtime.facts
+        .read()
+        .find((candidate) => candidate.type === 'action' && candidate.activationId === event.activationId);
       if (!action) return;
       runtime.schedule(TETHER, Math.max(runtime.time, Number(action.endsAt)), event, undefined, -50);
     }

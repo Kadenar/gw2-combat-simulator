@@ -1,20 +1,20 @@
 import { buffApplicationStacks } from '#gw2/platform/combat/boons.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
-import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
+import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
 import {
   balanceProfileNumber,
   effectNumber,
   requireBalanceProfileFromContext,
   requireEffect
-} from '#gw2/platform/engine/skills/balance-profiles.js';
-import type { Skill } from '#gw2/platform/engine/skills/types.js';
-import type { EffectDelivery } from '#gw2/platform/simulation/effect-emission.js';
+} from '#gw2/platform/skills/balance-profiles.js';
+import type { Skill } from '#gw2/platform/skills/types.js';
+import type { EffectDelivery } from '#gw2/platform/effects/emission.js';
 import {
   elementalistBuffRequest,
   elementalistConditionRequest,
   elementalistStrikeRequest
 } from '#gw2/professions/elementalist/core/events.js';
-import type { ElementalistAuraApplier } from '#gw2/professions/elementalist/core/mechanics/effects.js';
+import type { ElementalistAuraApplier } from '#gw2/professions/elementalist/core/mechanics/auras.js';
 import {
   combatStarted,
   elementalistAnnouncement,
@@ -536,7 +536,7 @@ export function emitFlameExpulsion(
     balanceProfileNumber(pyromancersPuissanceProfile, 'maximumStacks'),
     context.config.boons?.might
       ? Number(context.config.boons.might)
-      : buffApplicationStacks(context.boons.get('might') ?? [], 'might', at, 25, {
+      : buffApplicationStacks(context.combat.boonApplications('might'), 'might', at, 25, {
           includes: (application) => application.resolvedAudience.includesSelf
         })
   );

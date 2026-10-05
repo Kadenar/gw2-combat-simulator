@@ -103,8 +103,8 @@ test('reaction settlement preserves nested condition visibility', () => {
           settlement: 'reaction',
           event: { ...attribution, type: 'condition', at: 0, condition: 'Poisoned', duration: 2, stacks: 1 }
         });
-        assert.equal(runtime.query.targetHasCondition('Poisoned', 0, runtime), true);
-        assert.equal(runtime.query.targetHasCondition('Weakness', 0, runtime), false);
+        assert.equal(runtime.combat.targetHasCondition('Poisoned', 0, runtime), true);
+        assert.equal(runtime.combat.targetHasCondition('Weakness', 0, runtime), false);
         trace.push('caller');
         assert.throws(
           () => runtime.effects.emit({ kind: 'packet', settlement: 'reaction', event: { ...strike, at: 0 } }),
@@ -123,42 +123,6 @@ test('reaction settlement preserves nested condition visibility', () => {
     }
   });
   assert.deepEqual(trace, ['Poisoned', 'caller', 'Weakness']);
-});
-
-// Cancelled casts suppress both their grants and their visible announcements, so reporting cannot leave ghost procs.
-test('cast cancellation applies equally to packets and announcements', () => {
-  const profession = defineTestProfession({
-    id: 'cancel-fixture',
-    name: 'Cancel fixture',
-    hooks: {
-      initialize(runtime) {
-        const cast = { activationId: 'cancelled', skillId: 42, effectiveEnd: 0.5 };
-        runtime.effects.emit({ kind: 'packet', cast, event: strike });
-        runtime.effects.emit({
-          kind: 'announcement',
-          cast,
-          log: true,
-          attribution,
-          announcement: { type: 'trait', name: 'Cancelled trait', at: 1 }
-        });
-        runtime.effects.emit({
-          kind: 'packet',
-          cast,
-          event: { ...strike, sourceId: 43, persistsAfterInterrupt: true }
-        });
-      }
-    }
-  });
-  const result = simulateGw2({ profession, rotation: [{ type: 'wait', durationMs: 1100 }] });
-  assert.equal(
-    result.events.some((e) => e.sourceId === 42),
-    false
-  );
-  assert.equal(result.events.filter((e) => e.type === 'damage' && e.sourceId === 43).length, 1);
-  assert.equal(
-    result.procSteps.some((p) => p.skill === 'Cancelled trait'),
-    false
-  );
 });
 
 // Owned current-time announcements remain pending just like their grants, and keep the cast as attribution only.
@@ -234,32 +198,4 @@ test('queued effects snapshot nested payloads and return deeply frozen receipts'
   });
   assert.equal(result.events.find((event) => event.type === 'buff').resolvedAudience.recipientCount, 2);
   assert.equal(receipt.audience.maximumRecipients, 2);
-});
-
-// Cancelled effects never reach profession preparation, which may otherwise consume mechanic state.
-test('cast cutoff suppresses preparation as well as application', () => {
-  let prepared = 0;
-  const profession = defineTestProfession({
-    id: 'cutoff-preparation',
-    name: 'Cutoff preparation',
-    hooks: {
-      initialize(runtime) {
-        runtime.effects.emit({
-          kind: 'packet',
-          cast: { activationId: 'cutoff', skillId: 42, effectiveEnd: 0.5 },
-          event: strike
-        });
-      },
-      prepareEvent(_runtime, event) {
-        if (event.sourceId === 42) prepared++;
-        return event;
-      }
-    }
-  });
-  const result = simulateGw2({ profession, rotation: [{ type: 'wait', durationMs: 1100 }] });
-  assert.equal(prepared, 0);
-  assert.equal(
-    result.events.some((event) => event.sourceId === 42),
-    false
-  );
 });

@@ -1,7 +1,7 @@
 import { engineerUiState } from '#gw2/professions/engineer/core/presentation.js';
 import { getActiveTraits } from '#gw2/professions/engineer/data/traits-data.js';
 import { selectedMechCommands } from '#gw2/professions/engineer/specializations/mechanist/state.js';
-import type { SkillId } from '#gw2/platform/engine/skills/types.js';
+import type { SkillId } from '#gw2/platform/skills/types.js';
 import type { EngineerUiContext, EngineerUiSlice } from '#gw2/professions/engineer/types.js';
 
 // Prefer the editable build's traits, but fall back to simulation state when a

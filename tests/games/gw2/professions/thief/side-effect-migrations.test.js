@@ -111,7 +111,7 @@ test('Deadeye mark rewards commit before profession completion and retain attrib
         tasks: {
           ...native.tasks,
           'test.before-completion': (runtime) =>
-            before.push(runtime.history.some((event) => event.sourceId === 'thief.deadeye.be-quick-or-be-killed'))
+            before.push(runtime.facts.read().some((event) => event.sourceId === 'thief.deadeye.be-quick-or-be-killed'))
         }
       })
     }
@@ -154,12 +154,12 @@ test('Thief activation declarations are the sole owners of their state transitio
     {
       id: ID.SIGNET_OF_AGILITY,
       config: { selectedSkillIds: [13062], initialEndurance: 0 },
-      active: (runtime) => runtime.profession.core.endurance > 50
+      active: (runtime) => runtime.profession.core.endurance.value > 50
     },
     {
       id: ID.CHANNELED_VIGOR,
       config: { specialization: 'Daredevil', selectedSkillIds: [30400], initialEndurance: 0 },
-      active: (runtime) => runtime.profession.core.endurance > 100
+      active: (runtime) => runtime.profession.core.endurance.value > 100
     },
     {
       id: ID.PREPARE_PITFALL,
@@ -321,8 +321,8 @@ test('Malicious Ashen declarations retain accepted malice and own their commitme
     {
       initialize(runtime) {
         runtime.profession.core.stealthUntil = 10;
+        runtime.resourceController.replace('malice', 5);
         Object.assign(runtime.profession.specialization.state, {
-          malice: 5,
           markedTargetId: 'primary-target',
           markExpiresAt: 10
         });
@@ -331,7 +331,7 @@ test('Malicious Ashen declarations retain accepted malice and own their commitme
         [
           0.1,
           (runtime) => {
-            runtime.profession.specialization.state.malice = 1;
+            runtime.resourceController.replace('malice', 1);
           }
         ]
       ],
@@ -365,7 +365,7 @@ test('Malicious Ashen declarations retain accepted malice and own their commitme
     5
   );
   assert.equal(observedRuntime(result).resourceController.value('initiative'), 7);
-  assert.equal(observedRuntime(result).profession.specialization.state.malice, 0);
+  assert.equal(observedRuntime(result).profession.specialization.state.malice.value, 0);
 });
 
 // The finisher window begins at commitment after the throw's own packet; later attacks see its modifier.

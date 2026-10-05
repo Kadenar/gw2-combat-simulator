@@ -1,11 +1,10 @@
-import { targetConditionCount } from '#gw2/platform/combat/query/runtime-query.js';
 import { expireCharges } from '#gw2/platform/combat/resources/charges.js';
 import {
   balanceProfileNumber,
   effectNumber,
   requireBalanceProfileFromContext,
   requireEffect
-} from '#gw2/platform/engine/skills/balance-profiles.js';
+} from '#gw2/platform/skills/balance-profiles.js';
 import { buildResolverStrike } from '#gw2/platform/resolver/packets.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import {
@@ -66,9 +65,7 @@ export function emitSoulShard(runtime: NecromancerRuntime, event: Gw2ResolverEve
 
 /** Party Might samples live conditions and companion eligibility at the accepted impact. */
 export function resolveNecromancerOppressiveCollapse(runtime: NecromancerRuntime, event: Gw2ResolverEvent): void {
-  const stacks =
-    2 *
-    Math.min(7, targetConditionCount({ config: runtime.config, query: runtime.query, runtime, time: runtime.time }));
+  const stacks = 2 * Math.min(7, runtime.combat.targetConditionCount(runtime.time));
   if (!stacks) return;
   const boon = {
     type: 'buff' as const,

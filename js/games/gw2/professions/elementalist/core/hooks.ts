@@ -1,4 +1,10 @@
 import {
+  applyElementalistAura,
+  resolveElementalistAura,
+  acceptElementalistAuraReaction
+} from '#gw2/professions/elementalist/core/mechanics/auras.js';
+import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
+import {
   ELEMENTALIST_TRAIT_IDS as DAMAGE_TRAIT,
   ELEMENTALIST_SKILL_IDS as ID
 } from '#gw2/professions/elementalist/data/ids.js';
@@ -9,10 +15,10 @@ import {
   emitFlameExpulsion
 } from '#gw2/professions/elementalist/core/traits/attunements.js';
 import { prepareGw2BuffCompanionCandidates } from '#gw2/platform/combat/state/allied-players.js';
-import { requireBalanceProfileFromContext, requireEffect } from '#gw2/platform/engine/skills/balance-profiles.js';
+import { requireBalanceProfileFromContext, requireEffect } from '#gw2/platform/skills/balance-profiles.js';
 import type { NativeResolvedDamageDetails } from '#gw2/platform/profession-definition/module-types.js';
 import { OBSERVABLE_EVENT_HANDLER } from '#gw2/platform/resolver/handler-registry.js';
-import type { RuntimeProfession, SkillTaskData } from '#gw2/platform/simulation/runtime-state.js';
+import type { SkillTaskData } from '#gw2/platform/execution/cast-contracts.js';
 import {
   elementalistCoreSideEffectHandlers,
   elementalistOnCastCommit,
@@ -33,7 +39,6 @@ import { prepareElementalistHitboxEvent } from '#gw2/professions/elementalist/co
 import {
   applyElementalistResolvedCondition,
   applyElementalistResolvedDamage,
-  applyElementalistResolverAura,
   applyElementalistResolverBuff
 } from '#gw2/professions/elementalist/core/mechanics/reactions.js';
 import {
@@ -59,7 +64,7 @@ import {
   observeFreshAirCandidate
 } from '#gw2/professions/elementalist/core/traits/critical-procs.js';
 import {
-  applyElementalistAura,
+  applyElementalistResolverAuraTraits,
   observeElementalistTraitEvent,
   reactElementalistCoreCritical
 } from '#gw2/professions/elementalist/core/traits/dispatch.js';
@@ -71,7 +76,7 @@ import type {
 /** Core casts, accepted hits, and owned expiry tasks share the runtime. */
 import { elementalistBuffPolicies, elementalistEffectStates } from '#gw2/professions/elementalist/core/effect-state.js';
 
-export const elementalistCoreHooks: Partial<RuntimeProfession<ElementalistRuntimeState, ElementalistSkill>> = {
+export const elementalistCoreHooks: RuntimeHooks<ElementalistRuntimeState, ElementalistSkill> = {
   damageEffects: [
     {
       id: 'elementalist.ElectricDischarge',
@@ -200,11 +205,7 @@ export const elementalistCoreHooks: Partial<RuntimeProfession<ElementalistRuntim
   eventHandlers: {
     'elementalist.conjure': OBSERVABLE_EVENT_HANDLER,
     'elementalist.attunement': observeElementalistTransition,
-    'elementalist.aura'(runtime, event) {
-      runtime.history.push(event);
-      applyElementalistResolverAura(runtime, event);
-      runtime.schedule('elementalist.expire-state', event.at + Number(event.duration), null);
-    },
+    'elementalist.aura': resolveElementalistAura,
     'elementalist.attunement-enter': observeElementalistTransition
   },
   reactions: {
@@ -217,6 +218,9 @@ export const elementalistCoreHooks: Partial<RuntimeProfession<ElementalistRuntim
     'condition.applied': applyElementalistResolvedCondition,
     'buff.applied': applyElementalistResolverBuff,
     'control.resolved': observeElementalistTraitEvent,
-    'aura.applied': applyElementalistResolverAura
+    // Core consequences run before the composed elite reactions; combo auras are accepted without republishing.
+    'aura.applied'(runtime, event) {
+      if (acceptElementalistAuraReaction(runtime, event)) applyElementalistResolverAuraTraits(runtime, event);
+    }
   }
 };

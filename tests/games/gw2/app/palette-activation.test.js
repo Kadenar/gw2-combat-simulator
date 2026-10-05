@@ -68,7 +68,7 @@ function activationEvent(skillId, { shiftKey = false, ctrlKey = false } = {}) {
 }
 
 test('palette activation dispatches ordinary and exceptional actions', () => {
-  const ordinary = { id: 1, name: 'Ordinary', type: 'Utility', castTimeMs: 500, interruptCommitMs: 240 };
+  const ordinary = { id: 1, name: 'Ordinary', type: 'Utility', castTimeMs: 500 };
   const instant = { id: 2, name: 'Instant', type: 'Utility', castTimeMs: 0 };
   const dragonSlash = { id: 3, name: 'Dragon Slash', type: 'Profession', castTimeMs: 0, dragonSlash: true };
   const doubleEdge = {
@@ -131,7 +131,6 @@ test('palette activation dispatches ordinary and exceptional actions', () => {
   });
 
   dispatchPaletteActivation(app, ordinary.name, activationEvent(ordinary.id, { ctrlKey: true }), editors);
-  assert.equal(opened.activation.suggestedInterruptMs, 240);
   opened.activation.onApply(120);
   assert.deepEqual(added.pop(), {
     name: ordinary.name,
@@ -169,7 +168,6 @@ test('Ctrl-click initializes the editor with the authored interrupt default and 
     id: 1,
     name: 'Default Interrupted Cast',
     castTimeMs: 2000,
-    interruptCommitMs: 240,
     defaultInterruptMs: 480
   };
   const { app, added } = activationApp([skill]);

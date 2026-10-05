@@ -13,9 +13,9 @@ import type {
  * UI slices without leaking runtime ownership policy into the application.
  */
 import type { ProfessionAssumptionControl } from '#gw2/platform/builds/types.js';
-import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
-import type { ProfessionResourceDefinition } from '#gw2/platform/engine/profession/types.js';
-import type { CanonicalCatalog, Skill } from '#gw2/platform/engine/skills/types.js';
+import type { SimulationEvent } from '#gw2/platform/events/events.js';
+import type { ProfessionResourceDefinition } from '#gw2/platform/profession-definition/types.js';
+import type { CanonicalCatalog, Skill } from '#gw2/platform/skills/types.js';
 import type {
   ProfessionChargeReleaseContext,
   ProfessionEventLogContext,

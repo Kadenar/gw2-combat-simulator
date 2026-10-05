@@ -1,4 +1,5 @@
-import type { BalanceProfile } from '#gw2/platform/engine/skills/types.js';
+import type { BalanceProfile } from '#gw2/platform/skills/types.js';
+import { SPECTER_THIEVES_GUILD_PROFILE } from '#gw2/professions/thief/specializations/specter/mechanics/thieves-guild.js';
 
 import { THIEF_SKILL_IDS as ID } from '#gw2/professions/thief/data/ids.js';
 
@@ -9,6 +10,7 @@ export const SPECTER_BALANCE_PROFILE_IDS = Object.freeze({
 });
 
 export const SPECTER_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freeze([
+  SPECTER_THIEVES_GUILD_PROFILE,
   {
     id: SPECTER_BALANCE_PROFILE_IDS.resources,
     name: 'Specter Shadow Force',

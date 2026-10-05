@@ -12,7 +12,7 @@ import {
   validateProfessionAssumptions
 } from '#gw2/platform/builds/assumptions.js';
 import { normalizeProfessionUi } from '#gw2/platform/profession-presentation/contract.js';
-import { defineProfession } from '#gw2/platform/engine/profession/contract.js';
+import { defineProfession } from '#gw2/platform/profession-definition/compiler/compile-contract.js';
 import { createGw2CombatQuery } from '#gw2/platform/combat/query/combat-query.js';
 import { normalizeSelectedTraitIds } from '#gw2/platform/combat/state/traits.js';
 import { createGw2TimelineIndex } from '#gw2/platform/combat/query/timeline-index.js';

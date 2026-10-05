@@ -1,15 +1,17 @@
+import { isBeastSkill } from '#gw2/professions/ranger/core/traits/dispatch.js';
+import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
 import type { Gw2TraitLookupContext } from '#gw2/platform/combat/state/traits.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
-import { denySkillCast as deny } from '#gw2/platform/engine/skills/availability.js';
+import { denySkillCast as deny } from '#gw2/platform/execution/availability.js';
 import {
   balanceProfileNumber,
   effectNumber,
   requireBalanceProfileFromContext,
   requireEffect
-} from '#gw2/platform/engine/skills/balance-profiles.js';
+} from '#gw2/platform/skills/balance-profiles.js';
 import type { AvailabilityResult } from '#gw2/platform/execution/types.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
-import type { SkillSideEffect } from '#gw2/platform/simulation/side-effects.js';
+import type { SkillSideEffect } from '#gw2/platform/effects/actions.js';
 import { buildRangerStrikes, buildRangerPacket } from '#gw2/professions/ranger/core/events.js';
 import { RANGER_PET_STRIKE_SCALING } from '#gw2/professions/ranger/core/mechanics/pets.js';
 import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
@@ -19,7 +21,7 @@ import { EPSILON } from '#kernel/core/clock.js';
 
 /** Shrike counts resolved projectile impacts, including returns, independently of Mistral. */
 export function applyShrike(context: RangerRuntime, event: Gw2ResolverEvent): void {
-  if (!hasTrait({ config: context.config }, TRAIT.SHRIKE)) return;
+  if (!hasTrait(context.traits, TRAIT.SHRIKE)) return;
   const at = event.at;
   const state = galeshotState.from(context);
   const profile = requireBalanceProfileFromContext(context, TRAIT.SHRIKE);
@@ -68,7 +70,7 @@ export function reactToGaleshotPet(context: RangerRuntime, event: Gw2ResolverEve
   const state = galeshotState.from(context);
   const activationId = event.activationId || '';
   if (
-    !hasTrait({ config: context.config }, TRAIT.WUTHERING_WIND) ||
+    !hasTrait(context.traits, TRAIT.WUTHERING_WIND) ||
     !state.wutheringWindReady ||
     at + EPSILON < state.wutheringWindReadyAt ||
     (activationId && state.wutheringWindActivationIds[activationId])
@@ -128,7 +130,7 @@ export function reactToGaleshotControl(context: RangerRuntime, event: Gw2Resolve
   if (event.actorType !== 'player' && event.actorType !== 'summon') return;
 
   if (
-    !hasTrait({ config: context.config }, TRAIT.THRILL_OF_THE_CATCH) ||
+    !hasTrait(context.traits, TRAIT.THRILL_OF_THE_CATCH) ||
     !context.procs.claim(TRAIT.THRILL_OF_THE_CATCH, 'ranger.galeshot.thrillOfTheCatch', context.time)
   ) {
     return;
@@ -137,11 +139,6 @@ export function reactToGaleshotControl(context: RangerRuntime, event: Gw2Resolve
   // 0.25 s ICD prevents one multi-hit ability from restoring more than one arrow.
   const profile = requireBalanceProfileFromContext(context, TRAIT.THRILL_OF_THE_CATCH);
   context.resourceController.grant('arrows', balanceProfileNumber(profile, 'resourceGain'));
-}
-
-export function isBeastSkill(skill: RangerSkill): boolean {
-  // Only commandable pet Beast skills can trigger Galeshot's completed-skill traits.
-  return Boolean(skill.petSkill && !skill.petFamilySkill);
 }
 
 // Commit Galeshot resource spending, Wind Force transitions, Cyclone Bow state,
@@ -259,7 +256,10 @@ function emitCloudburstBoons(context: RangerRuntime, skill: RangerSkill): void {
 }
 
 /** Restricts the replacement pair consistently for live cast validation. */
-export function perilousSkiesAvailability(context: RangerRuntime, skill: RangerSkill): AvailabilityResult | null {
+export function perilousSkiesAvailability(
+  context: MechanicQueriesOf<RangerRuntime>,
+  skill: RangerSkill
+): AvailabilityResult | null {
   if (skill.id === ID.QUARRYS_PERIL && perilousSkiesSelected(context)) {
     return deny(skill, 'ranger.perilous-skies', 'Pelt replaces this skill.');
   }

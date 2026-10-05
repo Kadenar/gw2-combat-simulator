@@ -1,6 +1,6 @@
-import { materializeSkillEffectApplications } from '#gw2/platform/engine/effects/materializer.js';
-import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
-import type { RuntimeCast } from '#gw2/platform/simulation/runtime-state.js';
+import { materializeSkillEffectApplications } from '#gw2/platform/effects/materializer.js';
+import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
+import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
 import type { MesmerRuntime } from '#gw2/professions/mesmer/types.js';
 

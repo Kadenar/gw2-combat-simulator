@@ -1,6 +1,6 @@
 import { createWeaponSwapSkill, createDodgeSkill } from '#gw2/platform/skills/shared-actions.js';
 
-import type { Skill } from '#gw2/platform/engine/skills/types.js';
+import type { Skill } from '#gw2/platform/skills/types.js';
 import type { ThiefSkill } from '#gw2/professions/thief/types.js';
 import { THIEF_MISC_SKILL_MECHANICS } from '#gw2/professions/thief/core/skills/misc-skills.js';
 import { THIEF_PROFESSION_SKILLS_SKILL_MECHANICS } from '#gw2/professions/thief/core/skills/profession-skills.js';

@@ -1,21 +1,23 @@
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { boonActive } from '#gw2/platform/combat/query/runtime-query.js';
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
-import { readProfessionCoreState, readProfessionSpecializationState } from '#gw2/platform/engine/profession/state.js';
+import {
+  readProfessionCoreState,
+  readProfessionSpecializationState
+} from '#gw2/platform/profession-definition/state.js';
 import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
 import { rangerPetByName } from '#gw2/professions/ranger/core/state.js';
 import { RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
 import type { RangerModifierContext } from '#gw2/professions/ranger/types.js';
+import type { GaleshotState } from '#gw2/professions/ranger/specializations/galeshot/state.js';
 
 function galeshotRuntimeState(context: RangerModifierContext) {
-  return readProfessionSpecializationState<{ windForce?: number; galeForceUntil?: number }>(
-    context.runtime?.profession,
-    'Galeshot'
-  );
+  return readProfessionSpecializationState<GaleshotState>(context.runtime?.profession, 'Galeshot');
 }
 
+/** Modifiers read the current zero-rate clock so delayed gains and resets take effect at their owned boundary. */
 function windForce(context: RangerModifierContext): number {
-  return galeshotRuntimeState(context)?.windForce || 0;
+  return galeshotRuntimeState(context)?.windForce?.value ?? 0;
 }
 
 function galeForceAmount(context: RangerModifierContext, parameters: Readonly<Record<string, number>>): number {

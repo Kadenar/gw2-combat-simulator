@@ -1,14 +1,8 @@
 /** Declarative Mesmer skill records shared by generated data and runtime consumers. */
-import type {
-  ConditionEffect,
-  ConditionTick,
-  Skill,
-  SkillEffect,
-  SkillId,
-  StrikeEffect
-} from '#gw2/platform/engine/skills/types.js';
-import type { EffectMetadata } from '#gw2/platform/engine/events/events.js';
-import type { SimulationActorType } from '#gw2/platform/engine/events/actors.js';
+import type { ConditionEffect, SkillEffect, StrikeEffect } from '#gw2/platform/effects/types.js';
+import type { Skill, SkillId } from '#gw2/platform/skills/types.js';
+import type { EffectMetadata } from '#gw2/platform/events/events.js';
+import type { SimulationActorType } from '#gw2/platform/events/actors.js';
 
 export type MesmerSummonKind = 'clone' | 'phantasm';
 
@@ -38,20 +32,6 @@ export interface MesmerConditionEffect extends ConditionEffect {
   readonly phantasmEntityIndex?: number;
 }
 
-export interface MesmerConditionApplication {
-  readonly metadata?: EffectMetadata;
-  readonly name: string;
-  readonly duration?: number;
-  readonly stacks?: number;
-  readonly applications?: number;
-  readonly atMs?: number;
-  readonly intervalMs?: number;
-  readonly timingAnchor?: 'castStart' | 'castEnd';
-  readonly timingScale?: 'cast' | 'fixed';
-  readonly ticks?: readonly ConditionTick[];
-  readonly summonKind?: MesmerSummonKind;
-}
-
 /** Optional fields emitted by Mesmer controllers, beyond the shared event envelope. */
 export interface MesmerEventExtra {
   /** Explicit cause connects scheduled trait grants to their proc announcement. */
@@ -67,6 +47,7 @@ export interface MesmerEventExtra {
   readonly count?: number;
   readonly multiplier?: number;
   readonly amount?: number;
+  readonly maximum?: number;
   readonly value?: number;
   readonly resource?: string;
   readonly reason?: string;
@@ -80,7 +61,7 @@ export interface MesmerEventExtra {
   readonly duration?: number;
   readonly stacks?: number;
   readonly priority?: number;
-  readonly audience?: import('#gw2/platform/engine/events/events.js').EffectAudience;
+  readonly audience?: import('#gw2/platform/events/events.js').EffectAudience;
   readonly weaponStrength?: number;
   readonly damageBreakdownName?: string;
   readonly controlKind?: string;
@@ -123,6 +104,8 @@ export interface MesmerSkill extends Skill {
   readonly phantasmDisplayNames?: Readonly<Record<string, string>>;
   readonly blade?: boolean;
   readonly shatter?: import('#gw2/professions/mesmer/core/mechanics/shatter-types.js').MesmerShatterDefinition;
+  /** Authored instrument identity supports capacity queries without reaching into live illusion controllers. */
+  readonly instrument?: import('#gw2/professions/mesmer/types.js').MesmerInstrument;
   readonly armedAtStart?: boolean;
   readonly flipArm?: {
     readonly skillId: number;

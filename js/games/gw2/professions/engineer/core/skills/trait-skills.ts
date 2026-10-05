@@ -3,7 +3,7 @@
  * Trait reaction logic remains in `core/traits/`; this file owns only their skill data.
  */
 import { ENGINEER_SKILL_IDS as ID } from '#gw2/professions/engineer/data/ids.js';
-import type { Skill } from '#gw2/platform/engine/skills/types.js';
+import type { Skill } from '#gw2/platform/skills/types.js';
 
 /** Defines the catalog fragments used by Core Engineer trait effects. */
 export const ENGINEER_TRAIT_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({

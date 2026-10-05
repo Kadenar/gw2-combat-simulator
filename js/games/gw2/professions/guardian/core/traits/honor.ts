@@ -1,12 +1,22 @@
-import { impactEffects } from '#gw2/platform/engine/effects/authoring.js';
+import type { MechanicContext, MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
+import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
+import type { Skill } from '#gw2/platform/skills/types.js';
+import type { SkillEffect } from '#gw2/platform/effects/types.js';
+import type { GuardianRuntimeState, GuardianSkill } from '#gw2/professions/guardian/types.js';
+import { isGuardianSymbolSkill } from '#gw2/professions/guardian/core/mechanics/symbols.js';
+import { impactEffects, strikeEffectTicks } from '#gw2/platform/effects/authoring.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { isStandardBoon } from '#gw2/platform/combat/boons.js';
 import {
   balanceProfileNumber,
-  requireBalanceProfileFromContext
-} from '#gw2/platform/engine/skills/balance-profiles.js';
+  effectNumber,
+  requireBalanceProfileFromContext,
+  requireEffect
+} from '#gw2/platform/skills/balance-profiles.js';
 import { defineTrait, traitAttributeEffects } from '#gw2/platform/profession-definition/traits.js';
-import { GUARDIAN_TRAIT_IDS as TRAIT } from '#gw2/professions/guardian/data/ids.js';
+import { GUARDIAN_SKILL_IDS as ID, GUARDIAN_TRAIT_IDS as TRAIT } from '#gw2/professions/guardian/data/ids.js';
+
+type Runtime = MechanicContext<GuardianRuntimeState, GuardianSkill>;
 
 /** Owns Empowering Might's live tuning and trait behavior. */
 export const empoweringMight = defineTrait({
@@ -77,6 +87,7 @@ export const writOfPersistence = defineTrait({
         {
           type: 'strike',
           name: 'Smite',
+          metadata: { guardianSymbol: true },
           // Writ adds four more spatial Smite packets during its two-second symbol extension.
           ticks: [4240, 4760, 5240, 5760].map((atMs) => ({ atMs, coefficient: 0.2 })),
           actorType: 'player'
@@ -84,6 +95,7 @@ export const writOfPersistence = defineTrait({
         {
           type: 'strike',
           name: 'Symbol',
+          metadata: { guardianSymbol: true },
           ticks: [5240, 6240].map((atMs) => ({ atMs, coefficient: 0.5 })),
           actorType: 'player'
         },
@@ -161,11 +173,89 @@ export const invigoratedBulwark = defineTrait({
   }
 });
 
-export const guardianHonorTraits = [
-  invigoratedBulwark,
-  empoweringMight,
-  protectorsRestoration,
-  writOfPersistence,
-  forceOfWill,
-  honorableStaff
-];
+/** Fields are selected before registration, so extensions never rewrite an already executed action. */
+export function writOfPersistenceFields(
+  runtime: MechanicQueriesOf<Runtime>,
+  cast: RuntimeCast<GuardianSkill>,
+  fields: Skill['comboFields']
+): Skill['comboFields'] {
+  if (isGuardianSymbolSkill(cast.skill) && hasTrait(runtime, TRAIT.WRIT_OF_PERSISTENCE)) {
+    const profile = requireBalanceProfileFromContext(runtime, TRAIT.WRIT_OF_PERSISTENCE);
+    const window = requireEffect(profile, 'buff', 'symbol-duration-extension');
+    if (window)
+      fields = fields?.map((field, index) =>
+        index === 0 ? { ...field, duration: Number(field.duration) + effectNumber(profile, window, 'duration') } : field
+      );
+  }
+
+  return fields;
+}
+
+/** Select authored trait extensions once and leave cancellation, impact delay, and boon sampling to the common runtime. */
+export function writOfPersistenceEffects(
+  runtime: Runtime,
+  cast: RuntimeCast<GuardianSkill>,
+  effects: readonly SkillEffect[]
+): readonly SkillEffect[] {
+  const extra: SkillEffect[] = [];
+  const skill = cast.skill;
+  const field = skill.comboFields?.[0];
+  if (field && isGuardianSymbolSkill(skill) && hasTrait(runtime, TRAIT.WRIT_OF_PERSISTENCE)) {
+    const profile = requireBalanceProfileFromContext(runtime, TRAIT.WRIT_OF_PERSISTENCE);
+    if (skill.id === ID.SYMBOL_OF_PUNISHMENT) {
+      for (const effect of profile.effects ?? []) {
+        if (effect.type === 'strike') extra.push({ ...effect, name: skill.name, weapon: 'Scepter' });
+        else if (effect.type === 'boon') extra.push({ ...effect, audience: { recipients: 'party' } });
+      }
+    } else {
+      const window = requireEffect(profile, 'buff', 'symbol-duration-extension');
+      const extension = window ? effectNumber(profile, window, 'duration') : 0;
+      const pulse = effects.filter((effect) => effect.type === 'strike' && strikeEffectTicks(effect).length > 1).at(-1);
+      if (pulse?.type === 'strike' && extension > 0) {
+        const ticks = strikeEffectTicks(pulse);
+        const last = ticks.at(-1)!;
+        const fieldEnd =
+          (field.startAnchor === 'castEnd' ? cast.fullEnd : cast.start) +
+          Number(field.startMs ?? 0) / 1000 +
+          Number(field.duration);
+        const lastAt =
+          ticks.length >= 5
+            ? fieldEnd
+            : (pulse.timingAnchor === 'castStart' ? cast.start : cast.fullEnd) + last.atMs / 1000;
+        extra.push({
+          type: 'strike',
+          // Extended pulses retain the selected packet's semantic classification and tick overrides.
+          metadata: { ...pulse.metadata, ...last.metadata },
+          name: pulse.name ?? skill.name,
+          timingAnchor: 'castStart',
+          timingScale: 'fixed',
+          persistsAfterInterrupt: pulse.persistsAfterInterrupt,
+          ticks: Array.from({ length: Math.floor(extension) }, (_, index) => ({
+            atMs: (lastAt - cast.start + index + 1) * 1000,
+            coefficient: last.coefficient
+          }))
+        });
+      }
+    }
+  }
+
+  const selected = [...effects, ...extra];
+  // A symbol's self boon belongs to each pulse even when its hostile packet misses the target.
+  if (skill.id === ID.SYMBOL_OF_RESOLUTION || skill.id === ID.LUMINOUS_STAFF || skill.id === ID.SYMBOL_OF_FAITH)
+    for (const effect of extra) {
+      if (effect.type !== 'strike') continue;
+      for (const tick of strikeEffectTicks(effect))
+        selected.push({
+          type: 'boon',
+          boon: skill.id === ID.SYMBOL_OF_FAITH ? 'regeneration' : 'resolution',
+          duration: 1,
+          stacks: 1,
+          atMs: tick.atMs,
+          timingAnchor: effect.timingAnchor,
+          timingScale: effect.timingScale,
+          persistsAfterInterrupt: effect.persistsAfterInterrupt
+        });
+    }
+
+  return selected;
+}

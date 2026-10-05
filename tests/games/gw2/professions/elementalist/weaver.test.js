@@ -365,7 +365,7 @@ test('Weaver mechanics execute through native hooks', () => {
   assert.ok(weaveSelfFire.at > weaveSelf.at);
   assert.ok(weaveSelfFire.at < weaveSelf.endsAt);
   assert.equal(
-    observedRuntime(result).cooldowns.get(weaveSelf.skillId) - weaveSelfFire.at,
+    observedRuntime(result).cooldownController.readyAt(weaveSelf.skillId) - weaveSelfFire.at,
     elementalistCatalog.skillsByName.get('Weave Self').cooldown / 1.25
   );
 });

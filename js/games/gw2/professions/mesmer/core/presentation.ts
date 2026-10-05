@@ -2,11 +2,8 @@ import type { ProfessionAttributePreviewContext } from '#gw2/platform/profession
 import { createPreviewControls } from '#gw2/professions/shared/attribute-preview.js';
 
 import { PERMANENT_COMBO_FIELD_ASSUMPTION_CONTROLS } from '#gw2/platform/combos/permanent-field-assumption.js';
-import {
-  balanceProfileNumber,
-  requireBalanceProfileFromContext
-} from '#gw2/platform/engine/skills/balance-profiles.js';
-import type { SkillId } from '#gw2/platform/engine/skills/types.js';
+import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import type { SkillId } from '#gw2/platform/skills/types.js';
 import type {
   ProfessionEffectPresentation,
   ProfessionEventLogDescriptor,
@@ -14,7 +11,7 @@ import type {
   ProfessionResourceView,
   RotationStateSnapshotItem
 } from '#gw2/platform/profession-presentation/types.js';
-import { SIMULATION_RANDOMNESS_ASSUMPTION_CONTROLS } from '#gw2/platform/simulation/randomness.js';
+import { SIMULATION_RANDOMNESS_ASSUMPTION_CONTROLS } from '#gw2/platform/builds/randomness-assumptions.js';
 import { MESMER_SKILL_IDS as ID } from '#gw2/professions/mesmer/data/ids.js';
 import { mesmerResourceProfileId } from '#gw2/professions/mesmer/family-state.js';
 import { mesmerResourceDefinition } from '#gw2/professions/mesmer/family-state.js';
@@ -43,12 +40,16 @@ export function mesmerUiState(context: MesmerUiContext = {}): MesmerUiState {
   return context.professionState ?? {};
 }
 
-/** Converts the projected millisecond Clarity duration into an active-state timer. */
+/** Display Clarity from the planning timer or the inspected grant without changing its availability. */
 function mesmerCoreStateSnapshot(context: MesmerUiContext): RotationStateSnapshotItem[] {
   const state = mesmerUiState(context);
   const at = Math.max(0, context.atSeconds || 0);
   const remaining =
-    state.clarityRemaining != null ? (state.clarityRemaining || 0) / 1000 : (state.clarityUntil || 0) - at;
+    state.clarityRemaining != null
+      ? state.clarityRemaining / 1000
+      : state.clarity && state.clarity.charges > 0
+        ? state.clarity.expiresAt - at
+        : 0;
   return remaining > 0
     ? [
         {
@@ -86,14 +87,17 @@ export function mesmerResourceViews(
   const state = mesmerUiState(context);
   // Palette pips use the same selected capacity as runtime resource spending.
   const specialization = definition.id === 'blades' ? 'Virtuoso' : definition.id === 'notes' ? 'Troubadour' : 'Core';
-  const maximum = balanceProfileNumber(
-    requireBalanceProfileFromContext(context, mesmerResourceProfileId(specialization)),
-    'maximumStacks'
-  );
+  const clock = definition.id === 'clones' ? undefined : state[definition.id];
+  const maximum =
+    clock?.maximum ??
+    balanceProfileNumber(
+      requireBalanceProfileFromContext(context, mesmerResourceProfileId(specialization)),
+      'maximumStacks'
+    );
   const value =
     definition.id === 'clones'
       ? Number(state.clones?.length ?? state.resource ?? context.value ?? 0)
-      : Number(state.numericResource || context.value || 0);
+      : Number(clock?.value ?? context.value ?? 0);
   return [
     {
       ...definition,

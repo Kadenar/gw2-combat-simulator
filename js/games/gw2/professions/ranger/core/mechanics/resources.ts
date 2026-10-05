@@ -1,9 +1,6 @@
 import type { EndurancePolicy } from '#gw2/platform/combat/resources/endurance-policy.js';
-import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
-import {
-  balanceProfileNumber,
-  requireBalanceProfileFromContext
-} from '#gw2/platform/engine/skills/balance-profiles.js';
+import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
+import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import { RANGER_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/ranger/core/profiles.js';
 import { naturalVigorBonus } from '#gw2/professions/ranger/core/traits/behavior.js';
 import type { RangerRuntime } from '#gw2/professions/ranger/types.js';
@@ -22,7 +19,7 @@ function rangerEnduranceRegenerationRates(context: RangerRuntime) {
 
 /** Binds shared endurance operations to this module's live pool and balance rules. */
 export const rangerEndurance: EndurancePolicy<RangerRuntime> = {
-  state: (context) => professionCoreState(context),
+  state: (context) => professionCoreState(context).endurance,
   maximum: () => 100,
   regenerationRate: (context, vigor) => rangerEnduranceRegenerationRates(context)[vigor ? 'vigor' : 'base']
 };

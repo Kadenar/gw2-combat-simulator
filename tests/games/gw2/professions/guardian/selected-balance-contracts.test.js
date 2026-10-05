@@ -1,7 +1,7 @@
 import { effectFields, effectPlanningState } from '#tests/helpers/effect-report.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { luminaryImpactAt } from '#gw2/professions/guardian/specializations/luminary/mechanics/effects.js';
+import { luminaryImpactAt } from '#gw2/professions/guardian/specializations/luminary/skills/radiant-forge-skills.js';
 import { guardianProfession } from '#gw2/professions/guardian/profession.js';
 import { guardianTooltips } from '#gw2/professions/guardian/app/tooltips.js';
 import { GUARDIAN_SKILL_IDS as ID, GUARDIAN_TRAIT_IDS as TRAIT } from '#gw2/professions/guardian/data/ids.js';

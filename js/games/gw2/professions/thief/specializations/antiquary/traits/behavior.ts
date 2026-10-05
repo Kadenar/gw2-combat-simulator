@@ -6,11 +6,10 @@ import {
   effectNumber,
   requireBalanceProfileFromContext,
   requireEffect
-} from '#gw2/platform/engine/skills/balance-profiles.js';
-import type { RuntimeCast } from '#gw2/platform/simulation/runtime-state.js';
+} from '#gw2/platform/skills/balance-profiles.js';
+import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import type { ThiefRuntime } from '#gw2/professions/thief/core/events.js';
 import { buildThiefBuff } from '#gw2/professions/thief/core/events.js';
-import { grantThiefInitiative } from '#gw2/professions/thief/core/mechanics/resources.js';
 import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
 import type { ThiefArtifactSlot } from '#gw2/professions/thief/specializations/antiquary/state.js';
 import { antiquaryState } from '#gw2/professions/thief/specializations/antiquary/state.js';
@@ -33,11 +32,13 @@ export function grantCombatHigh(runtime: ThiefRuntime): void {
 
 /** Applies enterprising aristocrat at the original artifact boundary. */
 export function applyEnterprisingAristocrat(runtime: ThiefRuntime): void {
-  if (hasTrait(runtime, TRAIT.ENTERPRISING_ARISTOCRAT))
-    grantThiefInitiative(
-      runtime,
-      balanceProfileNumber(requireBalanceProfileFromContext(runtime, TRAIT.ENTERPRISING_ARISTOCRAT), 'resourceGain')
+  if (hasTrait(runtime, TRAIT.ENTERPRISING_ARISTOCRAT)) {
+    const initiativeGain = balanceProfileNumber(
+      requireBalanceProfileFromContext(runtime, TRAIT.ENTERPRISING_ARISTOCRAT),
+      'resourceGain'
     );
+    if (initiativeGain > 0) runtime.resourceController.grant('initiative', initiativeGain);
+  }
 }
 
 /** Applies exhilarating ephemera at the original artifact boundary. */

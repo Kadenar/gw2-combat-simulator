@@ -2,17 +2,18 @@ import { professionStaticRulesApplied } from '#gw2/platform/builds/attribute-pro
 import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
 import { isHostileTargetEvent } from '#gw2/platform/combat/state/targets.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
-import type { SimulationEventBase } from '#gw2/platform/engine/events/events.js';
-import { denySkillCast } from '#gw2/platform/engine/skills/availability.js';
+import type { SimulationEventBase } from '#gw2/platform/events/events.js';
+import { denySkillCast } from '#gw2/platform/execution/availability.js';
 import {
   balanceProfileNumber,
   effectNumber,
   requireBalanceProfileFromContext,
   requireEffect
-} from '#gw2/platform/engine/skills/balance-profiles.js';
+} from '#gw2/platform/skills/balance-profiles.js';
 import { buildResolverCondition } from '#gw2/platform/resolver/packets.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
-import type { RuntimeCast, RuntimeProfession } from '#gw2/platform/simulation/runtime-state.js';
+import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
+import type { RuntimeProfession } from '#gw2/platform/profession-definition/runtime-contract.js';
 import { grantNecromancerLifeForce } from '#gw2/professions/necromancer/core/mechanics/life-force.js';
 import {
   cloneNecromancerAttributes,
@@ -207,9 +208,9 @@ export const heraldOfSorrowAvailability: NonNullable<
 /** Owns the trait decision at the existing maximumAmmo integration boundary. */
 export const sandSavantMaximumAmmo: NonNullable<
   RuntimeProfession<NecromancerRuntimeState, NecromancerSkill>['maximumAmmo']
-> = (runtime, skill, maximum) => {
-  return skill.id === ID.MANIFEST_SAND_SHADE && hasTrait(runtime, TRAIT.SAND_SAVANT)
-    ? balanceProfileNumber(requireBalanceProfileFromContext(runtime, TRAIT.SAND_SAVANT), 'maximumStacks')
+> = (context, skill, maximum) => {
+  return skill.id === ID.MANIFEST_SAND_SHADE && context.hasTrait(TRAIT.SAND_SAVANT)
+    ? balanceProfileNumber(context.requireBalanceProfile(TRAIT.SAND_SAVANT), 'maximumStacks')
     : maximum;
 };
 

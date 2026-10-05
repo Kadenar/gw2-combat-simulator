@@ -2,8 +2,8 @@ import {
   balanceProfileNumber,
   requireBalanceProfileFromContext,
   requireEffect
-} from '#gw2/platform/engine/skills/balance-profiles.js';
-import type { BalanceProfile, SkillId } from '#gw2/platform/engine/skills/types.js';
+} from '#gw2/platform/skills/balance-profiles.js';
+import type { BalanceProfile, SkillId } from '#gw2/platform/skills/types.js';
 import {
   defineTraitProfile as trait,
   defineSkillVariantProfile as variant
@@ -111,38 +111,23 @@ export const MESMER_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Object.fr
 ]);
 
 // Compile only selected effects; removed tiers retain their identity and unrelated mechanic metadata.
-export function mesmerProfiledShatters(
-  context: unknown,
-  shatters: Readonly<Record<number, MesmerShatterDefinition>>
-): Record<number, MesmerShatter> {
-  return Object.fromEntries(
-    Object.entries(shatters).map(([skillId, shatter]) => {
-      const balanceProfileId = shatter.balanceProfileId;
-      const { coefficients, ticks, ...mechanic } = shatter;
-      const strikes = coefficients.map((_, tier) =>
-        requireEffect(requireBalanceProfileFromContext(context, balanceProfileId), 'strike', `${tier} resources`)
-      );
-      return [
-        Number(skillId),
-        {
-          ...mechanic,
-          balanceProfileId,
-          strikes,
-          // Confusion applications retain their own cadence when a strike tier is removed.
-          conditionAtMs:
-            shatter.kind === 'blade-confusion' ? ticks?.map((tier) => tier.map((tick) => tick.atMs)) : undefined,
-          ...(shatter.rechargeReductionPerSource == null
-            ? {}
-            : {
-                rechargeReductionPerSource: balanceProfileNumber(
-                  requireBalanceProfileFromContext(context, balanceProfileId),
-                  'rechargeReduction'
-                )
-              })
-        }
-      ];
-    })
-  );
+export function mesmerProfiledShatter(context: unknown, shatter: MesmerShatterDefinition): MesmerShatter {
+  const balanceProfileId = shatter.balanceProfileId;
+  const profile = requireBalanceProfileFromContext(context, balanceProfileId);
+  const { coefficients, ticks, ...mechanic } = shatter;
+  const strikes = coefficients.map((_, tier) => requireEffect(profile, 'strike', `${tier} resources`));
+  return {
+    ...mechanic,
+    balanceProfileId,
+    strikes,
+    // Confusion applications retain their own cadence when a strike tier is removed.
+    conditionAtMs: shatter.kind === 'blade-confusion' ? ticks?.map((tier) => tier.map((tick) => tick.atMs)) : undefined,
+    ...(shatter.rechargeReductionPerSource == null
+      ? {}
+      : {
+          rechargeReductionPerSource: balanceProfileNumber(profile, 'rechargeReduction')
+        })
+  };
 }
 
 export function mesmerProfiledTraitDamage(

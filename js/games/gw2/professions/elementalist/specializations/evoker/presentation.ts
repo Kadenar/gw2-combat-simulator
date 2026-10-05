@@ -4,10 +4,7 @@ import type {
 } from '#gw2/platform/profession-presentation/attribute-preview.js';
 import { createPreviewControls } from '#gw2/professions/shared/attribute-preview.js';
 
-import {
-  balanceProfileNumber,
-  requireBalanceProfileFromContext
-} from '#gw2/platform/engine/skills/balance-profiles.js';
+import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import { ELEMENTALIST_TRAIT_IDS as TRAIT } from '#gw2/professions/elementalist/data/ids.js';
 import { getActiveTraits } from '#gw2/professions/elementalist/data/traits-data.js';
 import { EVOKER_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/elementalist/specializations/evoker/profiles.js';
@@ -24,7 +21,7 @@ import type {
  * the rotation snapshot. Reads a projected UI-side state record rather than live
  * simulation state, falling back to build defaults before a run exists.
  */
-import type { CanonicalCatalog, Skill } from '#gw2/platform/engine/skills/types.js';
+import type { CanonicalCatalog, Skill } from '#gw2/platform/skills/types.js';
 import type {
   SkillDamagePreviewContext,
   SkillDamageState
@@ -69,8 +66,8 @@ function familiarSkillId(context: ElementalistUiContext): number {
   const state = uiState(context);
   const build = context.build;
   const resourcesProfile = requireBalanceProfileFromContext(context, PROFILE.resources);
-  const empoweredMaximum = balanceProfileNumber(resourcesProfile, 'minimumStacks');
-  const empowered = state.empowered ?? build?.initialEvokerEmpowered ?? 0;
+  const empoweredMaximum = state.empoweredCharges?.maximum ?? balanceProfileNumber(resourcesProfile, 'minimumStacks');
+  const empowered = state.empoweredCharges?.value ?? build?.initialEvokerEmpowered ?? 0;
   const name = FAMILIAR_SKILL_NAMES[element][empowered >= empoweredMaximum ? 'empowered' : 'basic'];
   return ELEMENTALIST_FAMILIAR_SKILL_IDS[name];
 }
@@ -212,7 +209,7 @@ export const evokerUi: ElementalistUiSlice = Object.freeze({
     const state = uiState(context);
     const build = context.build;
     const maximum =
-      state.maximumCharges ??
+      state.familiarCharges?.maximum ??
       balanceProfileNumber(
         requireBalanceProfileFromContext(
           context,
@@ -223,15 +220,16 @@ export const evokerUi: ElementalistUiSlice = Object.freeze({
         'maximumStacks'
       );
     const resourcesProfile = requireBalanceProfileFromContext(context, PROFILE.resources);
-    const empoweredMaximum = balanceProfileNumber(resourcesProfile, 'minimumStacks');
+    const empoweredMaximum = state.empoweredCharges?.maximum ?? balanceProfileNumber(resourcesProfile, 'minimumStacks');
+    // Keep fractional patched progress in the reading; only the decorative wedge class uses whole stacks.
     const empowered = boundedNumber(
-      Math.floor(state.empowered ?? build?.initialEvokerEmpowered ?? 0),
+      state.empoweredCharges?.value ?? build?.initialEvokerEmpowered ?? 0,
       0,
       0,
       empoweredMaximum
     );
     const element = selectedElement(context).toLowerCase();
-    const charges = state.charges ?? build?.initialEvokerCharges ?? maximum;
+    const charges = state.familiarCharges?.value ?? build?.initialEvokerCharges ?? maximum;
     const basicReady = charges >= maximum;
     return [
       {
@@ -245,7 +243,7 @@ export const evokerUi: ElementalistUiSlice = Object.freeze({
         buildKey: 'initialEvokerCharges',
         step: 1,
         displayMode: 'pips',
-        pipStyle: `elementalist-evoker-${element}-${empowered}${basicReady ? '-ready' : ''}`,
+        pipStyle: `elementalist-evoker-${element}-${Math.floor(empowered)}${basicReady ? '-ready' : ''}`,
         showValue: false,
         shortLabel: 'Charges',
         statusLabel: `Familiar (${empowered}/${empoweredMaximum} empowered)`

@@ -84,7 +84,7 @@ test('removed Brutality quickness leaves the weapon-swap cooldown unclaimed', ()
     { catalog: patched({ [TRAIT.BRUTALITY]: remove('boon', 'quickness') }) }
   );
   assert.deepEqual(result.warnings, []);
-  assert.equal(observedRuntime(result).procs.readyAt.brutality, undefined);
+  assert.equal(observedRuntime(result).procs.snapshot()['brutality'], undefined);
   assert.equal(
     result.events.some((event) => event.type === 'buff' && event.skillId === TRAIT.BRUTALITY),
     false
@@ -114,7 +114,7 @@ test('removed Band Together buff arms no enhancement while the unpatched window 
   ]) {
     const result = runRevenant(["Icerazor's Ire"], RENEGADE_CONFIG, { catalog: patched(balanceProfiles) });
     assert.deepEqual(result.warnings, []);
-    assert.equal(observedRuntime(result).profession.specialization.state.bandTogetherReady, ready);
+    assert.equal(observedRuntime(result).profession.specialization.state.bandTogether.charges, ready ? 1 : 0);
   }
 });
 
@@ -240,7 +240,7 @@ test('Twin Moon Sweep selects patchable Shared Wisdom Might independently of tar
             ]
           : []
       );
-      assert.equal(observedRuntime(result).profession.specialization.state.affinity, 0);
+      assert.equal(observedRuntime(result).profession.specialization.state.affinity.value, 0);
     }
   }
 });
@@ -263,7 +263,13 @@ test('a missing required Revenant profile fails in the selected catalog', () => 
 test('Ferocious Aggression uses its patched value for life steal and ordinary damage', () => {
   const config = { selectedTraitIds: [TRAIT.FEROCIOUS_AGGRESSION], boons: { fury: true } };
   const catalog = patched({ [TRAIT.FEROCIOUS_AGGRESSION]: { fields: { damageIncrease: 0.3 } } })(revenantCatalog);
-  const context = { config, catalog, time: 0, event: { at: 0, actorType: 'player' } };
+  const context = {
+    config,
+    traits: new Set(config.selectedTraitIds),
+    catalog,
+    time: 0,
+    event: { at: 0, actorType: 'player' }
+  };
   assert.equal(revenantLifeSiphonBonus(context, { at: 0, flatStrikeBase: 100, damageKind: 'life-steal' }), 0.3);
   assert.equal(revenantProfession.resolveProfession(config).modifyStrikeDamage(context, 100), 130);
   assert.equal(revenantProfession.resolveProfession(config).modifyConditionDamage(context, 100), 130);
@@ -277,13 +283,13 @@ test('Kinetic Insight patches virtual affinity without changing stored affinity'
     {
       catalog: patched({ [TRAIT.KINETIC_INSIGHT]: { fields: { resourceGain: 3 } } }),
       initialize(runtime) {
-        runtime.profession.specialization.state.affinity = 1;
+        runtime.resourceController.replace('affinity', 1);
         affinity = effectiveConduitAffinity(runtime);
       }
     }
   );
   assert.equal(affinity, 4);
-  assert.equal(observedRuntime(result).profession.specialization.state.affinity, 1);
+  assert.equal(observedRuntime(result).profession.specialization.state.affinity.value, 1);
 });
 
 test('Core Value adds its patched extension to Dragon True Nature', () => {

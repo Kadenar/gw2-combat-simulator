@@ -1,10 +1,12 @@
+import { createResourceClock } from '#gw2/platform/combat/resources/resource-policy.js';
+import type { ResourceClock } from '#gw2/platform/combat/resources/clock.js';
 import type { ElementalistRuntime } from '#gw2/professions/elementalist/types.js';
-import { requireBalanceNumber } from '#gw2/platform/engine/skills/canonical-skill-catalog.js';
+import { requireBalanceNumber } from '#gw2/platform/effects/validation.js';
 import {
   ELEMENTALIST_CORE_BALANCE_PROFILES,
   ELEMENTALIST_CORE_BALANCE_PROFILE_IDS
 } from '#gw2/professions/elementalist/core/profiles.js';
-import { type SkillFlipWindows } from '#gw2/platform/engine/skills/skill-flips.js';
+import { type SkillFlipWindows } from '#gw2/platform/execution/skill-flips.js';
 import { grantCharges, type ChargeGrant } from '#gw2/platform/combat/resources/charges.js';
 import { ELEMENTALIST_ATTUNEMENT_SKILL_IDS } from '#gw2/professions/elementalist/data/ids.js';
 import type { ElementalistConfig } from '#gw2/professions/elementalist/build/types.js';
@@ -39,7 +41,6 @@ interface ElementalistSummonedElementalState {
   busyUntil: number;
   secondaryAttackReadyAt: number;
   currentActivationId: string | null;
-  pendingLightningJolt: { coefficient: number; skillId: number } | null;
   started: boolean;
 }
 
@@ -63,8 +64,7 @@ export interface ElementalistCoreState {
   } | null;
   freshAirCandidates: number[];
   bountifulPowerProgress: number;
-  endurance: number;
-  enduranceUpdatedAt: number;
+  endurance: ResourceClock;
   activeAuras: ElementalistAuraState[];
   pistolBullets: Record<ElementalistAttunement, boolean>;
   dazingDischargeUntil: number;
@@ -108,8 +108,7 @@ export function createElementalistCoreState(config: ElementalistConfig = {}): El
     pendingAutoattackCarryover: null,
     freshAirCandidates: [],
     bountifulPowerProgress: 0,
-    endurance: BASE_MAXIMUM_ENDURANCE,
-    enduranceUpdatedAt: 0,
+    endurance: createResourceClock(BASE_MAXIMUM_ENDURANCE),
     activeAuras: [],
     pistolBullets: {
       Fire: Boolean(configuredBullets.Fire),
@@ -145,7 +144,6 @@ export function createElementalistCoreState(config: ElementalistConfig = {}): El
       busyUntil: 0,
       secondaryAttackReadyAt: 0,
       currentActivationId: null,
-      pendingLightningJolt: null,
       started: false
     },
 
@@ -162,7 +160,7 @@ export function setElementalistAttunementReadyAt(
   const skill = context.helpers.skillsById.get(ELEMENTALIST_ATTUNEMENT_SKILL_IDS[attunement]);
   if (!skill) throw new Error('Missing attunement skill.');
   // Keeping an existing deadline must also keep the work already earned under earlier recharge rates.
-  if (context.cooldowns.get(skill.id) === readyAt) return;
+  if (context.cooldownController.readyAt(skill.id) === readyAt) return;
   if (readyAt > context.time)
     context.cooldownController.startRecharge(
       skill,

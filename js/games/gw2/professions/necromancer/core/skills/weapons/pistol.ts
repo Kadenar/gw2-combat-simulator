@@ -1,7 +1,8 @@
+import { lifeForceGrant } from '#gw2/professions/necromancer/core/skills/life-force-grants.js';
 /** Canonical Core necromancer skill fragments grouped by their GW2 owner. */
-import { impactEffects } from '#gw2/platform/engine/effects/authoring.js';
+import { impactEffects } from '#gw2/platform/effects/authoring.js';
 import { NECROMANCER_SKILL_IDS as ID } from '#gw2/professions/necromancer/data/ids.js';
-import type { Skill } from '#gw2/platform/engine/skills/types.js';
+import type { Skill } from '#gw2/platform/skills/types.js';
 
 export const NECROMANCER_WEAPONS_PISTOL_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
   [ID.VILE_BLAST]: {
@@ -10,22 +11,21 @@ export const NECROMANCER_WEAPONS_PISTOL_SKILL_MECHANICS: Readonly<Record<number,
     effects: impactEffects({ atMs: 560, timingAnchor: 'castStart', timingScale: 'cast' }, [
       {
         type: 'strike',
-        // Accepted strikes grant live skill tuning through the percentage resource owner.
+        // Accepted strikes apply their declared percentage through the shared resource owner.
         reactions: [
           {
             on: 'damage.resolved',
             actor: 'player',
             packets: 'first',
             when: (_runtime, { event }) => Number(event.coefficient) > 0,
-            do: { type: 'necromancer.skill-life-force' }
+            do: lifeForceGrant({ id: 'life-force', unit: 'hit', grant: { percent: 4 } })
           }
         ],
         coefficient: 1
       },
       { type: 'condition', condition: 'Poisoned', stacks: 5, duration: 6 },
       { type: 'control', controlKind: 'control' }
-    ]),
-    lifeForceGain: 4
+    ])
   },
   [ID.WEEPING_SHOTS]: {
     castTimeMs: 840,
@@ -51,7 +51,7 @@ export const NECROMANCER_WEAPONS_PISTOL_SKILL_MECHANICS: Readonly<Record<number,
               actor: 'player',
               packets: 'each',
               when: (_runtime, { event }) => Number(event.coefficient) > 0,
-              do: { type: 'necromancer.skill-life-force' }
+              do: lifeForceGrant({ id: 'life-force', unit: 'hit', grant: { percent: 1.5 } })
             }
           ],
           ticks: [240, 360, 520, 640, 760, 880].map((atMs) => ({ atMs, coefficient: 0.4 }))
@@ -67,8 +67,7 @@ export const NECROMANCER_WEAPONS_PISTOL_SKILL_MECHANICS: Readonly<Record<number,
         duration: 6,
         stacks: 6
       }
-    ],
-    lifeForcePerHit: 1.5
+    ]
   },
   [ID.VICIOUS_SHOT]: {
     autoattack: true, // Ordinary repeatable attack; excluded from player-input metrics.

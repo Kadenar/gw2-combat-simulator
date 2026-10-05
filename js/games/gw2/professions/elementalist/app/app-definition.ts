@@ -4,7 +4,7 @@ import { applyElementalistBuildAttributeRules } from '#gw2/professions/elemental
 import { toApplicationBuild } from '#gw2/professions/elementalist/build/build.js';
 import { elementalistProfession } from '#gw2/professions/elementalist/profession.js';
 
-import type { Skill } from '#gw2/platform/engine/skills/types.js';
+import type { Skill } from '#gw2/platform/skills/types.js';
 import type { ProfessionAttributeData, ProfessionSkillAvailabilityContext } from '#gw2/app/build/types.js';
 import type { CatalystEmpowermentPool, ElementalistCanonicalBuild } from '#gw2/professions/elementalist/build/types.js';
 
@@ -60,7 +60,6 @@ export const elementalistAppAdapter = defineProfessionApp({
   profession: elementalistProfession,
   applyBuildAttributeRules: applyElementalistBuildAttributeRules,
   toApplicationBuild,
-  specializationFallback: 'Fire',
   runtime: {
     buildConfigExtras: (app, { attributeData }) => {
       const catalyst = build(app).specializations.some((specialization) => specialization.name === 'Catalyst');

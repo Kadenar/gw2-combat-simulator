@@ -14,11 +14,152 @@ import { applyBalanceProfilePatch, applySkillPatch } from '#gw2/integrations/pat
 import { createObservedProfessionSimulator, observedRuntime } from '#tests/helpers/observed-runtime.js';
 import { REVENANT_TEST_CONFIG as baseConfig, revenantHit, runRevenant } from '#tests/helpers/revenant-simulation.js';
 import { withProfile, withSkill } from '#tests/helpers/catalog-overrides.js';
+import { CONDUIT_BALANCE_PROFILE_IDS as CONDUIT } from '#gw2/professions/revenant/specializations/conduit/profiles.js';
+import { gainAffinity } from '#gw2/professions/revenant/specializations/conduit/mechanics/affinity.js';
+import {
+  affinity as modifierAffinity,
+  effectiveConduitAffinity
+} from '#gw2/professions/revenant/specializations/conduit/traits/behavior.js';
 
 const simulate = createObservedProfessionSimulator(revenantProfession, baseConfig);
 const wait = (durationMs) => ({ type: 'wait', durationMs });
 const core = (result) => observedRuntime(result).profession.core;
 const specialization = (result) => observedRuntime(result).profession.specialization.state;
+
+// Capacity is selected before the first gain, and the UI observes the same clock even for fractional or minimum caps.
+test('Conduit affinity initializes empty and exposes the selected cap through detached snapshots and meters', () => {
+  for (const maximumStacks of [0, 2.5, 8]) {
+    let catalog;
+    const result = runRevenant(
+      [wait(5000), '__combat_start'],
+      { specialization: 'Conduit' },
+      {
+        catalog: (base) => (catalog = withProfile(base, CONDUIT.affinity, { maximumStacks })),
+        initialize(runtime) {
+          gainAffinity(runtime.mechanics, 100);
+        }
+      }
+    );
+    assert.deepEqual(result.warnings, []);
+    const pool = specialization(result).affinity;
+    assert.equal(pool.value, 0, 'precombat grants and time alone cannot accrue affinity');
+    assert.equal(pool.maximum, Math.max(1, maximumStacks));
+    assert.equal(pool.rate, 0);
+    assert.deepEqual(result.planningState.profession.affinity, pool);
+    assert.notEqual(result.planningState.profession.affinity, pool);
+    assert.equal(Object.hasOwn(specialization(result), 'affinityMaximum'), false);
+    for (const professionState of [undefined, result.planningState.profession]) {
+      const meter = revenantProfession.ui
+        .resourceViews({ specialization: 'Conduit', catalog, professionState })
+        .find(({ id }) => id === 'affinity');
+      assert.equal(meter.value, 0);
+      assert.equal(meter.maximum, pool.maximum);
+    }
+  }
+
+  assert.equal(specialization(runRevenant([], { specialization: 'Conduit' })).affinity.maximum, 5);
+});
+
+// Only actual reward-driven crossings grant Energy: virtual scaling and direct replacements never impersonate rewards.
+test('Expanded Consciousness distinguishes cap crossings from virtual affinity, replacement, and overflow', () => {
+  const readings = [];
+  const result = runRevenant(
+    ['__combat_start', wait(100)],
+    {
+      specialization: 'Conduit',
+      selectedTraitIds: [TRAIT.EXPANDED_CONSCIOUSNESS, TRAIT.KINETIC_INSIGHT]
+    },
+    {
+      catalog: (base) =>
+        withProfile(withProfile(base, CONDUIT.affinity, { maximumStacks: 2.5 }), CONDUIT.expandedConsciousness, {
+          resourceGain: 7
+        }),
+      timeline: [
+        {
+          at: 0.04,
+          run(runtime) {
+            const resources = runtime.resourceController;
+            const record = () => readings.push([resources.value('affinity'), resources.value('energy')]);
+            resources.replace('energy', 0);
+            resources.replace('affinity', 2.5);
+            record();
+            resources.replace('affinity', 0);
+            gainAffinity(runtime.mechanics, 1);
+            record();
+            assert.equal(effectiveConduitAffinity(runtime.mechanics), 2.5);
+            assert.equal(
+              modifierAffinity({
+                config: runtime.config,
+                catalog: runtime.helpers,
+                runtime: { profession: runtime.profession }
+              }),
+              2.5
+            );
+            record();
+            gainAffinity(runtime.mechanics, 1.5);
+            record();
+            gainAffinity(runtime.mechanics, 100);
+            record();
+            resources.refresh('affinity');
+            record();
+          }
+        }
+      ]
+    }
+  );
+  assert.deepEqual(result.warnings, []);
+  assert.deepEqual(readings, [
+    [2.5, 0],
+    [1, 0],
+    [1, 0],
+    [2.5, 7],
+    [2.5, 7],
+    [2.5, 7]
+  ]);
+});
+
+// Legend reset precedes Lingering Determination while retaining the old form-active snapshot for the new form.
+test('legend swap clears affinity before trait gains and permits a fresh cap-crossing reward', () => {
+  let afterSwap;
+  const result = runRevenant(
+    ['__combat_start', 'Swap Legends', wait(100)],
+    {
+      specialization: 'Conduit',
+      selectedTraitIds: [TRAIT.LINGERING_DETERMINATION, TRAIT.EXPANDED_CONSCIOUSNESS]
+    },
+    {
+      catalog: (base) =>
+        withProfile(
+          withProfile(withProfile(base, CONDUIT.affinity, { maximumStacks: 2 }), CONDUIT.lingeringDetermination, {
+            resourceGain: 1
+          }),
+          CONDUIT.expandedConsciousness,
+          { resourceGain: 7 }
+        ),
+      initialize(runtime) {
+        runtime.resourceController.replace('affinity', 2);
+        const state = runtime.profession.specialization.state;
+        state.cosmicWisdomUntil = 10;
+        state.conduitForm = 'Assassin';
+      },
+      timeline: [
+        {
+          at: 0.04,
+          run(runtime) {
+            const state = runtime.profession.specialization.state;
+            afterSwap = [runtime.resourceController.value('affinity'), state.conduitForm];
+            runtime.resourceController.replace('energy', 0);
+            gainAffinity(runtime.mechanics, 1);
+            assert.equal(runtime.resourceController.value('energy'), 7);
+          }
+        }
+      ]
+    }
+  );
+  assert.deepEqual(result.warnings, []);
+  assert.deepEqual(afterSwap, [1, 'Mesmer']);
+  assert.equal(specialization(result).affinity.value, 2);
+});
 const alacrityAt = (at, duration) => (runtime) =>
   runtime.effects.emit({
     kind: 'packet',
@@ -87,10 +228,10 @@ for (const [spec, name, legend, config = {}] of [
     assert.equal(state.enchantedDaggers.charges, 0);
     if (spec === 'Renegade') {
       assert.equal(state.razorclawsRage.charges, 0);
-      assert.equal(state.bandTogetherReady, false);
+      assert.equal(state.bandTogether.charges, 0);
     } else {
       assert.equal(Object.hasOwn(state, 'razorclawsRage'), false);
-      assert.equal(Object.hasOwn(state, 'bandTogetherReady'), false);
+      assert.equal(Object.hasOwn(state, 'bandTogether'), false);
     }
 
     if (spec === 'Conduit') assert.equal(state.beguilingHazeCharges, 0);
@@ -98,8 +239,8 @@ for (const [spec, name, legend, config = {}] of [
     assert.equal(state.crushingAbyss.length, 0);
     assert.equal(state.activeUpkeeps.length, 0);
     if (name === 'Ancient Echo') assert.equal(state.energy.value, 50 + result.rotationEndTime * 5);
-    if (name === 'Twin Moon Sweep') assert.equal(state.affinity, 0);
-    if (name === 'Dodge Jump') assert.equal(state.endurance, 50 + result.rotationEndTime * 5);
+    if (name === 'Twin Moon Sweep') assert.equal(state.affinity.value, 0);
+    if (name === 'Dodge Jump') assert.equal(state.endurance.value, 50 + result.rotationEndTime * 5);
     if (name === 'Beguiling Haze') assert.equal(specialization(result).beguilingHazeRecharge, null);
   });
 }
@@ -359,7 +500,7 @@ test('upkeep starvation cooldowns scale with Alacrity', () => {
     const result = simulate('Core', ['Impossible Odds', wait(2000)], { initialEnergy: 6, boons: { alacrity } });
     assert.deepEqual(result.warnings, []);
     // Five Energy remains after activation; the six-per-second drain against five regeneration empties it at one second.
-    assert.equal(observedRuntime(result).cooldowns.get(SKILL.IMPOSSIBLE_ODDS), 1 + 4 / 1.25);
+    assert.equal(observedRuntime(result).cooldownController.readyAt(SKILL.IMPOSSIBLE_ODDS), 1 + 4 / 1.25);
     assert.deepEqual(result.planningState.profession.activeUpkeeps, []);
   }
 });
@@ -373,7 +514,7 @@ test('Diminish Solace stops upkeep drain, retires its follow-up, and starts the 
   assert.deepEqual(recovered.planningState.profession.activeUpkeeps, []);
   assert.equal(recovered.planningState.profession.availableFlips[SKILL.DIMINISH_SOLACE], undefined);
   assert.equal(recovered.planningState.profession.energy.value - released.planningState.profession.energy.value, 10);
-  assert.equal(observedRuntime(released).cooldowns.get(SKILL.PROTECTIVE_SOLACE), 5);
+  assert.equal(observedRuntime(released).cooldownController.readyAt(SKILL.PROTECTIVE_SOLACE), 5);
   const unavailable = simulate('Core', ['Diminish Solace'], config);
   assert.match(unavailable.warnings.join('\n'), /activate the matching upkeep/);
 });
@@ -522,8 +663,8 @@ test('Brutal Momentum Vigor stops increasing recovery when its self boon expires
   const probe = run(1000);
   const vigor = probe.events.find((event) => event.kind === 'vigor');
   const covered = core(run(vigor.duration * 1000));
-  assert.equal(covered.endurance, vigor.duration * 7.5);
-  assert.equal(core(run((vigor.duration + 2) * 1000)).endurance, vigor.duration * 7.5 + 10);
+  assert.equal(covered.endurance.value, vigor.duration * 7.5);
+  assert.equal(core(run((vigor.duration + 2) * 1000)).endurance.value, vigor.duration * 7.5 + 10);
 });
 
 test('Brutal Momentum only rearms after its Vigor internal cooldown expires', () => {

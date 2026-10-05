@@ -1,37 +1,32 @@
 import { buffApplicationStacks } from '#gw2/platform/combat/boons.js';
 import type { Gw2ModifierContext, Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
-import { impactEffects } from '#gw2/platform/engine/effects/authoring.js';
+import { impactEffects } from '#gw2/platform/effects/authoring.js';
+import { gw2EffectExpiresAt } from '#gw2/platform/effects/timing.js';
+import type { SkillEffect } from '#gw2/platform/effects/types.js';
+import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
+import type { MechanicContext } from '#gw2/platform/profession-definition/mechanic-context.js';
+import type { RuntimeProfession } from '#gw2/platform/profession-definition/runtime-contract.js';
+import { buildResolverCondition } from '#gw2/platform/resolver/packets.js';
+import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import {
   effectNumber,
   requireBalanceProfileFromContext,
   requireEffect
-} from '#gw2/platform/engine/skills/balance-profiles.js';
-import type { Skill, SkillEffect } from '#gw2/platform/engine/skills/types.js';
-import { buildResolverCondition } from '#gw2/platform/resolver/packets.js';
-import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
-import type { Gw2Runtime, RuntimeCast, RuntimeProfession } from '#gw2/platform/simulation/runtime-state.js';
-import { gw2EffectExpiresAt } from '#gw2/platform/skills/timing.js';
-import { grantWarriorAdrenaline } from '#gw2/professions/warrior/core/mechanics/adrenaline.js';
+} from '#gw2/platform/skills/balance-profiles.js';
+import type { Skill } from '#gw2/platform/skills/types.js';
 import { warriorAmmunition } from '#gw2/professions/warrior/core/mechanics/ammunition.js';
-import { dragonChargeTickOffsetSeconds } from '#gw2/professions/warrior/data/dragon-charges.js';
 import { WARRIOR_SKILL_IDS as ID } from '#gw2/professions/warrior/data/ids.js';
 import { WARRIOR_SUPPLEMENTAL_SKILLS } from '#gw2/professions/warrior/data/warrior-supplemental-skills.js';
-import {
-  dragonChargesToAdrenalineSpent,
-  dragonSlashCoefficient,
-  exitDragonTrigger,
-  requestedDragonCharges
-} from '#gw2/professions/warrior/specializations/bladesworn/mechanics/dragon-trigger.js';
+import { slashEffects } from '#gw2/professions/warrior/specializations/bladesworn/mechanics/dragon-trigger.js';
 import { BLADESWORN_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/warrior/specializations/bladesworn/profiles.js';
 import { activeCartridgeWindow, bladeswornState } from '#gw2/professions/warrior/specializations/bladesworn/state.js';
-import { maximumDragonCharges } from '#gw2/professions/warrior/specializations/bladesworn/traits/behavior.js';
 import type { WarriorRuntimeState, WarriorSkill } from '#gw2/professions/warrior/types.js';
 import { canonicalTime } from '#kernel/core/clock.js';
 
 /** Explicit PvE skill mechanics owned by the Bladesworn Warrior module. */
 
-type Runtime = Gw2Runtime<WarriorRuntimeState, WarriorSkill>;
+type Runtime = MechanicContext<WarriorRuntimeState, WarriorSkill>;
 
 const CARTRIDGE_ACTIVATE = 'warrior.cartridges-activate';
 
@@ -551,49 +546,6 @@ export const BLADESWORN_SHARP_AS_THE_WIND_SKILLS: readonly Skill[] = Object.free
   })
 ]);
 
-export const dragonSlashReleases = new WeakMap<
-  RuntimeCast<WarriorSkill>,
-  { charges: number; maximum: number; flowSpent: number; coefficient: number }
->();
-
-/** Release captures charge facts before clearing the mode; every packet still uses common miss, interruption, and impact scheduling. */
-function slashEffects(_runtime: Runtime, cast: RuntimeCast<WarriorSkill>): readonly SkillEffect[] {
-  const released = dragonSlashReleases.get(cast)!;
-  const skill = cast.skill;
-  const spent = dragonChargesToAdrenalineSpent(released.charges);
-  const timing = {
-    timingAnchor: 'castStart' as const,
-    timingScale: 'fixed' as const,
-    atMs: skill.dragonSlashImpactOffsetMs ?? (cast.fullEnd - cast.start) * 1000
-  };
-  const effects: SkillEffect[] = [
-    {
-      ...timing,
-      type: 'strike',
-      coefficient: released.coefficient,
-      weapon: 'Gunsaber',
-      damageKind: 'explosion',
-      hits: 1,
-      metadata: { warriorAdrenalineSpent: spent, warriorBurstTier: spent / 10 }
-    }
-  ];
-  const min = skill.dragonSlashMinimumBurningDuration ?? 0;
-  const max = skill.dragonSlashMaximumBurningDuration ?? 0;
-  if (min > 0 && max > 0) {
-    const stacks = dragonSlashCoefficient(1, 20, released.charges, released.maximum);
-    const duration = dragonSlashCoefficient(min, max, released.charges, released.maximum);
-    effects.push({
-      ...timing,
-      type: 'condition',
-      condition: 'Burning',
-      stacks,
-      duration
-    });
-  }
-
-  return effects;
-}
-
 /** Artillery spends every captured round while the shared completion consumes its final reserved round. */
 function artilleryEffects(runtime: Runtime, cast: RuntimeCast<WarriorSkill>, sharp: boolean): readonly SkillEffect[] {
   const rounds = warriorAmmunition.get(cast)!.rounds;
@@ -706,7 +658,7 @@ export function cartridgeExplosion(runtime: Runtime, event: Gw2ResolverEvent): v
 
 /** Successful commitment restores the longest-recharging round, clearing recharge when the pool becomes full. */
 function tacticalReload(runtime: Runtime, cast: RuntimeCast<WarriorSkill>): void {
-  for (const id of runtime.ammo.keys()) {
+  for (const id of runtime.cooldownController.ammoSkillIds()) {
     const skill = runtime.helpers.skillsById.get(id);
     if (skill?.specialization === 'Bladesworn') runtime.cooldownController.restoreAmmo(skill, 1, runtime.time);
   }
@@ -732,55 +684,8 @@ function tacticalReload(runtime: Runtime, cast: RuntimeCast<WarriorSkill>): void
   });
 }
 
-/** Accepted releases publish captured charge facts before clearing the shared Trigger state, even on cancellation. */
-function captureSlash(runtime: Runtime, cast: RuntimeCast<WarriorSkill>): void {
-  const state = bladeswornState.from(runtime);
-  const maximum = maximumDragonCharges(runtime);
-  const release = {
-    charges: state.dragonCharges,
-    maximum,
-    flowSpent: state.dragonTriggerFlowSpent,
-    coefficient: dragonSlashCoefficient(
-      cast.skill.dragonSlashMinimumCoefficient ?? 0,
-      cast.skill.dragonSlashMaximumCoefficient ?? 0,
-      state.dragonCharges,
-      maximum
-    )
-  };
-  dragonSlashReleases.set(cast, release);
-  runtime.effects.emit({
-    kind: 'packet',
-    event: {
-      type: 'resource',
-      at: runtime.time,
-      source: 'Warrior',
-      sourceId: cast.skill.id,
-      actorType: 'player',
-      skillId: cast.skill.id,
-      skillName: cast.skill.name,
-      activationId: cast.id,
-      resource: 'dragon charges',
-      reason: 'profession mechanic',
-      amount: -release.charges,
-      value: 0,
-      requestedCharges: requestedDragonCharges(cast, release.maximum),
-      maximumCharges: release.maximum,
-      chargesReached: release.charges,
-      flowSpent: release.flowSpent,
-      flowAfter: state.flow,
-      coefficient: release.coefficient,
-      chargingSeconds: runtime.time - state.dragonTriggerStartedAt,
-      maximumChargingSeconds: dragonChargeTickOffsetSeconds(Math.ceil(release.maximum / state.dragonChargesPerInterval))
-    }
-  });
-  exitDragonTrigger(runtime);
-}
-
 /** Intrinsic recipes execute at their declared phase; shared Flow and Trigger lifetimes remain separate. */
 export const bladeswornSkillActions: RuntimeProfession<WarriorRuntimeState, WarriorSkill>['sideEffectHandlers'] = {
-  'warrior.slash-release'(runtime, context) {
-    if (context.kind === 'cast') captureSlash(runtime, context.cast);
-  },
   'warrior.tactical-reload'(runtime, context) {
     if (context.kind === 'cast') tacticalReload(runtime, context.cast);
   },
@@ -798,7 +703,7 @@ export const bladeswornSkillActions: RuntimeProfession<WarriorRuntimeState, Warr
     const cast = context.cast;
     if (
       Number(runtime.config.boons?.fury ?? 0) > 0 ||
-      buffApplicationStacks(runtime.boons.get('fury') ?? [], 'fury', runtime.time, 1, {
+      buffApplicationStacks(runtime.combat.boonApplications('fury'), 'fury', runtime.time, 1, {
         ordered: true
       }) > 0
     )
@@ -807,7 +712,7 @@ export const bladeswornSkillActions: RuntimeProfession<WarriorRuntimeState, Warr
   'warrior.flow-stabilize'(runtime, context) {
     if (context.kind !== 'cast') return;
     const cast = context.cast;
-    if (furyBeforeCast.has(cast)) grantWarriorAdrenaline(runtime, 15);
+    if (furyBeforeCast.has(cast)) runtime.resourceController.grant('flow', 15);
     // The conditional instant grant is independent of the removable Positive Flow component.
     const effect = requireEffect(cast.skill, 'buff', 'Positive Flow');
     if (effect) {

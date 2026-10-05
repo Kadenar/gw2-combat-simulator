@@ -1,6 +1,6 @@
 import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
 import { createCalculateAttributes } from '#gw2/platform/builds/attributes.js';
-import { applySkillSideEffects } from '#gw2/platform/simulation/side-effects.js';
+import { applySkillSideEffects } from '#gw2/platform/effects/action-dispatch.js';
 import { GUARDIAN_SKILL_IDS as G, GUARDIAN_TRAIT_IDS as GT } from '#gw2/professions/guardian/data/ids.js';
 import { MANTRAS } from '#gw2/professions/guardian/data/mantra-definitions.js';
 import { guardianCatalog, guardianProfession } from '#gw2/professions/guardian/profession.js';
@@ -45,8 +45,8 @@ test('Forge exits finalize once at the actual transition and clear weapon state'
     );
     assert.equal(exits.length, 1);
     assert.equal(exits[0].automatic, automatic);
-    assert.equal(runtime.rechargeProgress.get(G.ENTER_RADIANT_FORGE).startedAt, exits[0].at);
-    assert.equal(runtime.rechargeProgress.get(G.ENTER_RADIANT_FORGE).work, 5);
+    assert.equal(runtime.cooldownController.rechargeFor(G.ENTER_RADIANT_FORGE).startedAt, exits[0].at);
+    assert.equal(runtime.cooldownController.rechargeFor(G.ENTER_RADIANT_FORGE).work, 5);
     assert.equal(state.radiantForge, false);
     assert.equal(state.radiantWeapon, '');
     assert.equal(state.glaringBurstSwordSlow, false);
@@ -130,8 +130,8 @@ test('Weighty Terms follows canonical mantra IDs and ignores names or final-char
             effectiveEnd: 0
           };
           // Match runtime dispatch so named mantra actions run before the remaining trait effects.
-          applySkillSideEffects(runtime, cast, 'castCommit', native.sideEffectHandlers);
-          native.onCastCommit(runtime, cast);
+          applySkillSideEffects(runtime.mechanics, cast, 'castCommit', native.sideEffectHandlers);
+          native.onCastCommit(runtime.mechanics, cast);
         }
       });
       assert.equal(

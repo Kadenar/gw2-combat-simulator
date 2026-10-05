@@ -1,7 +1,7 @@
 /** Maps simulation events to display rows and mounts the rotation event-log view. */
 import type { UnvalidatedFields } from '#kernel/core/unvalidated.js';
-import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
-import type { Gw2SimulationResult } from '#gw2/platform/simulation/types.js';
+import type { SimulationEvent } from '#gw2/platform/events/events.js';
+import type { Gw2SimulationResult } from '#gw2/platform/results/types.js';
 import { mountEventLog } from '#ui/results/event-log.js';
 import type { EventLogDescriptor, EventLogRow } from '#ui/results/event-log.js';
 import type { ProfessionAppContract, ProfessionAppState } from '#gw2/app/types.js';
@@ -138,7 +138,6 @@ export function simulationEventLogRows(
     planningState.resourceDefinition && typeof planningState.resourceDefinition === 'object'
       ? planningState.resourceDefinition
       : {};
-  const maximumResource = Number(resourceDefinition.maximum || 0);
   const push = (
     event: SimulationEvent,
     type: string,
@@ -220,6 +219,8 @@ export function simulationEventLogRows(
       case 'resource': {
         // Profession resource snapshots may have no delta; let their presenter explain the actual state.
         pushProfessionRow(event, () => {
+          // Numeric owners report the selected clock capacity with each transaction; clones use their entity limit.
+          const maximumResource = Number(event.maximum ?? resourceDefinition.maximum ?? 0);
           const amount = Number(event.amount || 0);
           const resource = String(event.resource || 'resource');
           const singular = resource.endsWith('s') ? resource.slice(0, -1) : resource;

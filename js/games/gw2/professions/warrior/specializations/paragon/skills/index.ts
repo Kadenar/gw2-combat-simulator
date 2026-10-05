@@ -1,6 +1,6 @@
 /** Explicit PvE skill mechanics owned by the Paragon Warrior module. */
 import { WARRIOR_SKILL_IDS as ID } from '#gw2/professions/warrior/data/ids.js';
-import type { Skill } from '#gw2/platform/engine/skills/types.js';
+import type { Skill } from '#gw2/platform/skills/types.js';
 import { PARAGON_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/warrior/specializations/paragon/profiles.js';
 
 export const PARAGON_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
@@ -35,7 +35,16 @@ export const PARAGON_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> =
 
     // The initial reward precedes echo arming; later rewards remain with echo consumption.
     sideEffects: [
-      { on: 'castCommit', do: { type: 'warrior.adrenaline', amount: 3 } },
+      {
+        on: 'castCommit',
+        do: {
+          type: 'resourceGrant',
+          resource: 'adrenaline',
+          id: 'adrenaline-gained',
+          label: 'Adrenaline gained',
+          amount: 3
+        }
+      },
       { on: 'castCommit', do: { type: 'warrior.command-arm' } }
     ],
     cooldown: 15,

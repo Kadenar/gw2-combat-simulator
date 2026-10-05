@@ -5,13 +5,13 @@ import {
   effectNumber,
   requireBalanceProfileFromContext,
   requireEffect
-} from '#gw2/platform/engine/skills/balance-profiles.js';
-import type { SkillId } from '#gw2/platform/engine/skills/types.js';
+} from '#gw2/platform/skills/balance-profiles.js';
+import type { SkillId } from '#gw2/platform/skills/types.js';
 import type { RevenantRuntime } from '#gw2/professions/revenant/core/events.js';
 import {
   revenantRuntimeCoreState,
   revenantRuntimeSpecializationState
-} from '#gw2/professions/revenant/core/modifiers.js';
+} from '#gw2/professions/revenant/core/state-queries.js';
 import { REVENANT_TRAIT_IDS as TRAIT } from '#gw2/professions/revenant/data/ids.js';
 import { heraldFacetPassiveActive } from '#gw2/professions/revenant/specializations/herald/mechanics/facet-passives.js';
 import { scheduleFacetPulse } from '#gw2/professions/revenant/specializations/herald/mechanics/facets.js';
@@ -64,16 +64,6 @@ export function retainDraconicEcho(runtime: RevenantRuntime, facet: RevenantSkil
   runtime.schedule(ECHO_EXPIRY, expiresAt, { skillId: facet.id, expiresAt });
 }
 
-/** Supplies the capped Echo boon-duration contribution for active Nature. */
-export function draconicEchoBoonDuration(context: Gw2ModifierContext): number {
-  return hasTrait(context, TRAIT.DRACONIC_ECHO)
-    ? balanceProfileNumber(
-        requireBalanceProfileFromContext(context, HERALD_DRACONIC_ECHO_PROFILE_ID),
-        'boonDurationBonus'
-      )
-    : 0;
-}
-
 export const COMPASSION = 'revenant.herald-elevated-compassion';
 
 export function elevatedCompassionActive(runtime: RevenantRuntime): boolean {
@@ -114,8 +104,9 @@ export function grantCompassion(runtime: RevenantRuntime): void {
       audience: effect.audience ?? { recipients: 'party', maximumRecipients: 5 }
     }
   });
-  runtime.procs.readyAt['revenant.herald.elevatedCompassion'] = canonicalTime(
-    runtime.time + Math.max(EPSILON, balanceProfileNumber(profile, 'cooldown'))
+  runtime.procs.setDeadline(
+    'revenant.herald.elevatedCompassion',
+    canonicalTime(runtime.time + Math.max(EPSILON, balanceProfileNumber(profile, 'cooldown')))
   );
 }
 

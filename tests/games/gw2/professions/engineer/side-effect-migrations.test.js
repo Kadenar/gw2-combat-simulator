@@ -42,8 +42,8 @@ test('Gleam Saber declarations reduce only other sword recharges after commitmen
       );
       assert.deepEqual(result.warnings, []);
       const runtime = observedRuntime(result);
-      assert.equal(runtime.cooldowns.get(target), cancelled ? 48 : 47.2);
-      assert.equal(runtime.cooldowns.get(ID.POISON_DART_VOLLEY), 48);
+      assert.equal(runtime.cooldownController.readyAt(target), cancelled ? 48 : 47.2);
+      assert.equal(runtime.cooldownController.readyAt(ID.POISON_DART_VOLLEY), 48);
       const procs = result.events.filter((event) => event.type === 'proc' && event.sourceId === finisher);
       assert.equal(procs.length, cancelled ? 0 : 1);
       if (!cancelled) assert.equal(procs[0].cooldownReduction, 0.8);

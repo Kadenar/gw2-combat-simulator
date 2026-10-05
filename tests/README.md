@@ -10,7 +10,9 @@ Tests mirror the source tree under `js/`:
 - `games/gw2/app/` covers GW2 application composition and user-facing workflows, plus the saved-preset benchmarks in
   `games/gw2/app/benchmarks/`.
 - `games/gw2/platform/` covers GW2 platform contracts, including condition resolution, observation windows, and
-  equipment procs; `games/gw2/platform/engine/` covers engine contracts such as event resolution and scheduler ordering.
+  equipment procs. Its `events/`, `effects/`, `execution/`, `resolver/`, `skills/`, and `profession-definition/`
+  directories cover the corresponding platform owners; `architecture/platform-ownership.test.mjs` enforces their import
+  boundaries.
 - `games/gw2/professions/` covers cross-profession contracts, while `games/gw2/professions/<profession>/` owns
   profession behavior.
 - `games/gw2/integrations/logs/` covers combat-log reconstruction: `evtc/`, `dps-report/`, and `wingman/` for each

@@ -1,12 +1,12 @@
 import { purgeExpiredStacks } from '#gw2/platform/combat/resources/timed-stacks.js';
-import type { Gw2PlanningStateInput } from '#gw2/platform/simulation/types.js';
+import type { Gw2PlanningStateInput } from '#gw2/platform/results/types.js';
 import {
   snapshotProfessionState,
   projectPublicProfessionState,
   definePublicStateDefaults,
   defineProfessionSpecializationState
-} from '#gw2/platform/engine/profession/state.js';
-import type { RechargeProgress } from '#gw2/platform/engine/skills/recharge.js';
+} from '#gw2/platform/profession-definition/state.js';
+import type { RechargeProgress } from '#gw2/platform/execution/recharge.js';
 
 export interface SpellbreakerState {
   attackerInsightExpiries: number[];

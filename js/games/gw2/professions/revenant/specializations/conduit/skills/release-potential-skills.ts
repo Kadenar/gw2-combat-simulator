@@ -1,19 +1,17 @@
 import type { RevenantSkill } from '#gw2/professions/revenant/types.js';
-import { conditionEffectTicks, impactEffects } from '#gw2/platform/engine/effects/authoring.js';
-import {
-  balanceProfileNumber,
-  requireBalanceProfileFromContext
-} from '#gw2/platform/engine/skills/balance-profiles.js';
-import type { Skill, SkillEffect } from '#gw2/platform/engine/skills/types.js';
+import { conditionEffectTicks, impactEffects } from '#gw2/platform/effects/authoring.js';
+import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import type { Skill } from '#gw2/platform/skills/types.js';
+import type { SkillEffect } from '#gw2/platform/effects/types.js';
 import { gw2PrimaryWeapon } from '#gw2/platform/equipment/weapons/loadout.js';
-import type { RuntimeCast } from '#gw2/platform/simulation/runtime-state.js';
+import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import type { RevenantRuntime } from '#gw2/professions/revenant/core/events.js';
 import { REVENANT_SKILL_IDS as ID, REVENANT_LEGEND_IDS as LEGEND } from '#gw2/professions/revenant/data/ids.js';
 import { CONDUIT_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/revenant/specializations/conduit/profiles.js';
 import { effectiveConduitAffinity } from '#gw2/professions/revenant/specializations/conduit/traits/behavior.js';
 
 /** Capture equipped-legend eligibility at acceptance; full affinity unlocks every Dervish component. */
-const releaseLegend = (legend: string) => (runtime: RevenantRuntime) =>
+const releaseLegend = (legend: string) => (runtime: MechanicQueriesOf<RevenantRuntime>) =>
   runtime.profession.core.selectedLegendIds.includes(legend) ||
   effectiveConduitAffinity(runtime) >=
     balanceProfileNumber(requireBalanceProfileFromContext(runtime, PROFILE.affinity), 'minimumStacks');
@@ -202,3 +200,4 @@ export const CONDUIT_RELEASE_POTENTIAL_SKILL_MECHANICS: Readonly<Record<number, 
     ]
   }
 });
+import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';

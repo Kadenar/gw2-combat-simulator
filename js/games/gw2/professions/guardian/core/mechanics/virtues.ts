@@ -1,15 +1,16 @@
+import type { MechanicContext } from '#gw2/platform/profession-definition/mechanic-context.js';
 import { isGw2PlayerActorEvent, isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
-import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
+import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
 import {
   effectNumber,
   requireBalanceProfileFromContext,
   requireEffect
-} from '#gw2/platform/engine/skills/balance-profiles.js';
-import type { SkillId } from '#gw2/platform/engine/skills/types.js';
+} from '#gw2/platform/skills/balance-profiles.js';
+import type { SkillId } from '#gw2/platform/skills/types.js';
 import type { NativeResolvedDamageDetails } from '#gw2/platform/profession-definition/module-types.js';
 import { buildResolverCondition } from '#gw2/platform/resolver/packets.js';
-import type { Gw2Runtime } from '#gw2/platform/simulation/runtime-state.js';
-import { gw2CooldownReadyAt } from '#gw2/platform/skills/timing.js';
+
+import { gw2CooldownReadyAt } from '#gw2/platform/execution/cast-timing.js';
 import { GUARDIAN_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/guardian/core/profiles.js';
 import { permeatingWrathThreshold } from '#gw2/professions/guardian/core/traits/behavior.js';
 import { GUARDIAN_SKILL_IDS } from '#gw2/professions/guardian/data/ids.js';
@@ -26,7 +27,7 @@ import type {
  * refresh events, plus the reusable resolver-time Justice burning contract.
  */
 
-type Runtime = Gw2Runtime<GuardianRuntimeState, GuardianSkill>;
+type Runtime = MechanicContext<GuardianRuntimeState, GuardianSkill>;
 const VIRTUES_BY_SLOT: readonly (GuardianVirtue | null)[] = Object.freeze([null, 'justice', 'resolve', 'courage']);
 
 /** Decodes the slot's trailing digit; each caller owns its skill eligibility checks. */
@@ -70,7 +71,7 @@ export function applyJusticeBurn(
       skillName,
       // Justice owns this proc; the activation still records which hit caused it for chronological reactions.
       procType: 'profession',
-      icon: context.helpers.skillsById?.get(skillId)?.icon,
+      icon: context.helpers.skillsById.get(skillId)?.icon,
       activationId: event.activationId,
       causalOrder: event.causalOrder ?? event.eventOrder,
       name: `${skillName} — ${active ? 'Active' : 'Passive'} Burning`,
@@ -91,7 +92,7 @@ export function applyJusticeBurn(
       at: event.at,
       sourceSkill: event.skillName,
       detail: '',
-      icon: context.helpers.skillsById?.get(skillId)?.icon || ''
+      icon: context.helpers.skillsById.get(skillId)?.icon || ''
     }
   });
 }
@@ -184,5 +185,5 @@ export function refreshGuardianVirtues(runtime: Runtime): void {
   if (!virtues) return;
   runtime.cooldownController.refresh(runtime.time);
   for (const [id, virtue] of virtues)
-    runtime.profession.core.virtueReadyAt[virtue] = gw2CooldownReadyAt(runtime.cooldowns.get(id) ?? 0);
+    runtime.profession.core.virtueReadyAt[virtue] = gw2CooldownReadyAt(runtime.cooldownController.readyAt(id) ?? 0);
 }

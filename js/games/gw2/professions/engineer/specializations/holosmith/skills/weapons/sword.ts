@@ -4,12 +4,12 @@ import {
   requireEffect,
   balanceProfileNumber,
   effectNumber
-} from '#gw2/platform/engine/skills/balance-profiles.js';
+} from '#gw2/platform/skills/balance-profiles.js';
 import { HOLOSMITH_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/engineer/specializations/holosmith/profiles.js';
 import type { EngineerResolverContext, EngineerRuntime } from '#gw2/professions/engineer/types.js';
-import type { SimulationEventBase } from '#gw2/platform/engine/events/events.js';
+import type { SimulationEventBase } from '#gw2/platform/events/events.js';
 import type { HolosmithResolverEvent } from '#gw2/professions/engineer/specializations/holosmith/mechanics/heat-tiers.js';
-import { requireBalanceNumber } from '#gw2/platform/engine/skills/canonical-skill-catalog.js';
+import { requireBalanceNumber } from '#gw2/platform/effects/validation.js';
 import { buildEngineerBuff } from '#gw2/professions/engineer/core/mechanics/resolution-helpers.js';
 import {
   holosmithEventMetadata,
@@ -20,7 +20,7 @@ import {
  * Owns Holosmith sword skill fragments and heat-aware sword variants.
  * Sword cast behavior shared with Core lives in `core/hooks.ts`.
  */
-import { impactEffects } from '#gw2/platform/engine/effects/authoring.js';
+import { impactEffects } from '#gw2/platform/effects/authoring.js';
 import { ENGINEER_SKILL_IDS as ID } from '#gw2/professions/engineer/data/ids.js';
 import type {
   HolosmithSkill,

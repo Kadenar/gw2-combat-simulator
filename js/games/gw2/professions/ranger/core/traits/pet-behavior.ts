@@ -1,22 +1,15 @@
 import { professionStaticRulesApplied } from '#gw2/platform/builds/attribute-provenance.js';
-import {
-  buffApplicationStacks,
-  buffMatchesAudience,
-  durationStackingBoonCapSeconds,
-  GW2_STANDARD_BOONS,
-  isDurationStackingBoon,
-  remainingDurationStackSeconds
-} from '#gw2/platform/combat/boons.js';
+import { GW2_STANDARD_BOONS } from '#gw2/platform/combat/boons.js';
 import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
 import type { Gw2NumericStatKey } from '#gw2/platform/combat/query/combat-query.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
-import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
+import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
 import {
   balanceProfileNumber,
   effectNumber,
   requireBalanceProfileFromContext,
   requireEffect
-} from '#gw2/platform/engine/skills/balance-profiles.js';
+} from '#gw2/platform/skills/balance-profiles.js';
 import { buildResolverBuff } from '#gw2/platform/resolver/packets.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import { buildRangerPacket } from '#gw2/professions/ranger/core/events.js';
@@ -36,7 +29,6 @@ import type {
   RangerRuntime,
   RangerSkill
 } from '#gw2/professions/ranger/types.js';
-import { boundedNumber } from '#kernel/core/numeric.js';
 
 /** Owns Core Ranger Beastmastery command and companion-attack trait behavior. */
 
@@ -58,42 +50,9 @@ export function applyRangerCommandTraits(
   if (!professionCoreState(context).petActive || !hasTrait(context, TRAIT.RESOUNDING_TIMBRE)) return;
 
   for (const kind of GW2_STANDARD_BOONS) {
-    const configured = context.config.boons?.[kind];
-    const permanent = kind === 'might' ? boundedNumber(configured, 0, 0, 25) : configured ? 1 : 0;
-    const applications = context.boons.get(kind) ?? [];
-    const maximum = kind === 'might' || kind === 'stability' ? 25 : 1;
-    const stacks = Math.min(
-      maximum,
-      permanent + buffApplicationStacks(applications, kind, at, maximum, { ordered: true })
-    );
+    // The shared live query owns boon pools; this trait owns their unchanged-duration copy to the active pet.
+    const { stacks, duration } = context.combat.boonSnapshot(kind, at, { actor: 'player' });
     if (!stacks) continue;
-    // Golem refreshes refill duration-stacking boons to their cap; intensity grants retain their ten-second expiry.
-    // This source assumption is internal, anchored to rotation start including precasts, rather than a user tuning knob.
-    // ponytail: this steady pool cannot recover pre-recording state; log replay needs recorded source and pet boons.
-    const phaseMs = ((Math.round(at * 1000) % 10000) + 10000) % 10000;
-    const remaining = (10000 - phaseMs) / 1000;
-    const refreshAt = (Math.round(at * 1000) - phaseMs) / 1000;
-    const selfApplications = applications.filter((application) => buffMatchesAudience(application, 'all'));
-    // Replay self grants after the last refill through the same capped pool, rather than draining two pools separately.
-    const duration = isDurationStackingBoon(kind)
-      ? remainingDurationStackSeconds(
-          permanent > 0
-            ? [
-                { at: refreshAt, duration: durationStackingBoonCapSeconds(kind) },
-                ...selfApplications.filter((application) => application.at >= refreshAt)
-              ]
-            : selfApplications,
-          at,
-          { maximum: durationStackingBoonCapSeconds(kind), ordered: true }
-        )
-      : permanent > 0
-        ? remaining
-        : Math.max(
-            0,
-            ...selfApplications
-              .filter((application) => application.at <= at)
-              .map((application) => application.expiresAt - at)
-          );
     // Copied durations already include the original caster's boon duration.
     context.effects.emit({
       kind: 'packet',
@@ -154,9 +113,7 @@ export function triggerGoForTheThroat(context: RangerResolverContext, event: Gw2
       sourceSkill: event.skillName,
       detail: `${duration}s, +40% pet strike damage`,
       icon:
-        context.helpers.skillsById?.get(ID.LESSER_SIC_EM)?.icon ||
-        context.helpers.skillsById?.get(ID.SIC_EM)?.icon ||
-        ''
+        context.helpers.skillsById.get(ID.LESSER_SIC_EM)?.icon || context.helpers.skillsById.get(ID.SIC_EM)?.icon || ''
     }
   });
   context.effects.emit({
@@ -304,8 +261,8 @@ export function triggerMergedGoForTheThroat(context: RangerResolverContext, even
           sourceSkill: event.skillName,
           detail: `${duration}s, +15% strike damage`,
           icon:
-            context.helpers.skillsById?.get(ID.LESSER_SIC_EM)?.icon ||
-            context.helpers.skillsById?.get(ID.SIC_EM)?.icon ||
+            context.helpers.skillsById.get(ID.LESSER_SIC_EM)?.icon ||
+            context.helpers.skillsById.get(ID.SIC_EM)?.icon ||
             ''
         }
       });

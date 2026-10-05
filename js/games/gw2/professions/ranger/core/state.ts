@@ -1,9 +1,11 @@
-import { type SkillFlipWindows } from '#gw2/platform/engine/skills/skill-flips.js';
+import { createResourceClock } from '#gw2/platform/combat/resources/resource-policy.js';
+import type { ResourceClock } from '#gw2/platform/combat/resources/clock.js';
+import { type SkillFlipWindows } from '#gw2/platform/execution/skill-flips.js';
 import { grantCharges, type ChargeGrant } from '#gw2/platform/combat/resources/charges.js';
 import { RANGER_PETS } from '#gw2/professions/ranger/data/ranger-pet-data.js';
-import type { SkillId } from '#gw2/platform/engine/skills/types.js';
-import type { RechargeProgress } from '#gw2/platform/engine/skills/recharge.js';
-import type { SimulationEventBase } from '#gw2/platform/engine/events/events.js';
+import type { SkillId } from '#gw2/platform/skills/types.js';
+import type { RechargeProgress } from '#gw2/platform/execution/recharge.js';
+import type { SimulationEventBase } from '#gw2/platform/events/events.js';
 import type { RangerConfig, RangerState } from '#gw2/professions/ranger/types.js';
 
 export interface RangerCoreState {
@@ -12,16 +14,14 @@ export interface RangerCoreState {
   petNames: [string, string];
   activePetSkillIds: SkillId[];
   petActive: boolean;
-  endurance: number;
-
-  enduranceUpdatedAt: number;
+  endurance: ResourceClock;
   availableFlips: SkillFlipWindows;
   stealthUntil: number;
   revealedUntil: number;
   autoattackChains: Record<string, SkillId>;
   winterBiteReady: boolean;
 
-  quickDrawUntil: number;
+  quickDraw: ChargeGrant;
   trapCrippleActivations: Record<string, boolean>;
   pendingFrostTrapEvents: SimulationEventBase[];
   bloodThirst: ChargeGrant;
@@ -31,7 +31,7 @@ export interface RangerCoreState {
   poisonMasterPetAttackReady: boolean;
   paralyzingVenomUntil: number;
   poisonousStrikes: ChargeGrant;
-  sharpeningStoneExpirations: number[];
+  sharpeningStoneGrants: ChargeGrant[];
   petSwapCount: number;
   petAutoGeneration: number;
   petAutoNextAt: number;
@@ -66,16 +66,14 @@ export function createRangerCoreState(config: RangerConfig = {}): RangerCoreStat
     petNames: [pet?.name || '', pet2?.name || ''],
     activePetSkillIds: [...(pet?.skillIds || [])],
     petActive: true,
-    endurance: 100,
-
-    enduranceUpdatedAt: 0,
+    endurance: createResourceClock(100),
     availableFlips: {},
     stealthUntil: 0,
     revealedUntil: 0,
     autoattackChains: {},
     winterBiteReady: false,
 
-    quickDrawUntil: 0,
+    quickDraw: grantCharges(0, 0),
     trapCrippleActivations: {},
     pendingFrostTrapEvents: [],
     bloodThirst: grantCharges(0, 0),
@@ -85,7 +83,7 @@ export function createRangerCoreState(config: RangerConfig = {}): RangerCoreStat
     poisonMasterPetAttackReady: false,
     paralyzingVenomUntil: 0,
     poisonousStrikes: grantCharges(0, 0),
-    sharpeningStoneExpirations: [],
+    sharpeningStoneGrants: [],
     petSwapCount: 0,
     petAutoGeneration: 0,
     petAutoNextAt: 0,
@@ -115,10 +113,10 @@ export const RANGER_CORE_PUBLIC_END_STATE_KEYS: readonly (keyof RangerState)[] =
   'autoattackChains',
   'winterBiteReady',
 
-  'quickDrawUntil',
+  'quickDraw',
   'trapCrippleActivations',
 
-  'sharpeningStoneExpirations',
+  'sharpeningStoneGrants',
 
   'petSwapCount',
   'petAutoNextAt',

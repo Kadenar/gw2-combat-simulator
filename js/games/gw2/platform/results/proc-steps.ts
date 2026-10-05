@@ -1,7 +1,7 @@
 import { timedEffectState } from '#gw2/platform/combat/effect-state.js';
-import type { AnnouncementEmission } from '#gw2/platform/simulation/effect-emission.js';
+import type { AnnouncementEmission } from '#gw2/platform/effects/emission.js';
 import type { Gw2ResolverRuntime } from '#gw2/platform/resolver/runtime-state.js';
-import { gw2EffectExpiresAt } from '#gw2/platform/skills/timing.js';
+import { gw2EffectExpiresAt } from '#gw2/platform/effects/timing.js';
 
 /** Project an executed announcement into the timeline without introducing a combat packet or consuming RNG identity. */
 export function recordProcStep(

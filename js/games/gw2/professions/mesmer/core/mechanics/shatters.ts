@@ -1,14 +1,16 @@
 import {
+  buildMesmerConditions,
   buildMesmerStrikes,
-  mesmerPacketOwner,
-  buildMesmerConditions
+  mesmerPacketOwner
 } from '#gw2/professions/mesmer/core/mechanics/packets.js';
-import { mesmerConditionFromProfile, mesmerMechanicsFor } from '#gw2/professions/mesmer/core/mechanics/runtime.js';
+import { mesmerConditionFromProfile } from '#gw2/professions/mesmer/core/mechanics/conditions.js';
+import { cloneShatterConfusion, cloneShatterTier } from '#gw2/professions/mesmer/core/mechanics/shatter-projection.js';
 import type {
   MesmerShatterResolverRequest,
   MesmerShatterTraitHit
 } from '#gw2/professions/mesmer/core/mechanics/shatter-types.js';
-import { applyCryOfPain, triggerBlindingDissipation } from '#gw2/professions/mesmer/core/traits/behavior.js';
+import { applyCryOfPain } from '#gw2/professions/mesmer/core/traits/illusions.js';
+import { triggerBlindingDissipation } from '#gw2/professions/mesmer/core/traits/dueling.js';
 import type { MesmerRuntime } from '#gw2/professions/mesmer/types.js';
 
 /** Resolves clone-based shatter packets while keeping repeat strikes ineligible for first-strike traits. */
@@ -16,35 +18,29 @@ export function resolveCloneShatter(
   context: MesmerRuntime,
   { skill, shatter, at, spent, castStart, delivery }: MesmerShatterResolverRequest
 ): readonly MesmerShatterTraitHit[] {
-  const runtime = mesmerMechanicsFor(context);
-  const sources = spent + 1;
-  const strike = shatter.strikes[spent];
+  const tier = cloneShatterTier(shatter, skill, spent);
+  const { sources } = tier;
+  const strike = tier.strikes[0];
 
   const addStrikePackets = (): void => {
     if (!strike) return;
-    const ticks = strike.ticks ?? [{ atMs: strike.atMs ?? 0, coefficient: strike.coefficient }];
 
     // Each source contributes one hit to every packet, but shatter traits are
     // attached only to the first packet as required by repeat-strike shatters.
-    for (const [strikeIndex, tick] of ticks.entries()) {
+    for (const [strikeIndex, packet] of tier.strikes.entries()) {
       buildMesmerStrikes(
-        runtime.context,
+        context,
         skill,
-        at + tick.atMs / 1000,
+        at + (packet.atMs ?? 0) / 1000,
         {
-          ...strike,
-          name: undefined,
-          summonKind: undefined,
-          ticks: undefined,
-          coefficient: tick.coefficient,
-          hits: sources,
+          ...packet,
           atMs: 0,
           source: 'Player',
           weaponStrengthProfileId: 'nonweapon.profession-mechanic'
         },
         { metadata: { shatterTraitEligible: strikeIndex === 0 } }
       ).forEach((packet) => {
-        runtime.context.effects.emit({
+        context.effects.emit({
           ...delivery,
           kind: 'packet',
           event: packet,
@@ -60,21 +56,18 @@ export function resolveCloneShatter(
   } else if (shatter.kind === 'confusion') {
     if (strike)
       buildMesmerStrikes(
-        runtime.context,
+        context,
         skill,
         at,
         {
           ...strike,
-          name: undefined,
-          summonKind: undefined,
-          hits: sources,
           atMs: 0,
           source: 'Player',
           weaponStrengthProfileId: 'nonweapon.profession-mechanic'
         },
         { skillId: skill.id, metadata: { shatterTraitEligible: true } }
       ).forEach((packet) => {
-        runtime.context.effects.emit({
+        context.effects.emit({
           ...delivery,
           kind: 'packet',
           event: packet,
@@ -84,21 +77,13 @@ export function resolveCloneShatter(
       });
 
     const baseConfusion = mesmerConditionFromProfile(context, shatter.balanceProfileId || skill.id, 'Confusion');
-    const confusion = applyCryOfPain(context, baseConfusion);
+    const confusion = cloneShatterConfusion(applyCryOfPain(context, baseConfusion), sources);
     if (confusion)
-      buildMesmerConditions(
-        runtime.context,
-        skill.name,
-        at,
-        {
-          ...confusion,
-          stacks: sources * (confusion.stacks ?? 1)
-        },
-        'Player',
-        '',
-        { skillId: skill.id, metadata: { shatterTraitEligible: true } }
-      ).forEach((packet) => {
-        runtime.context.effects.emit({
+      buildMesmerConditions(context, skill.name, at, confusion, 'Player', '', {
+        skillId: skill.id,
+        metadata: { shatterTraitEligible: true }
+      }).forEach((packet) => {
+        context.effects.emit({
           ...delivery,
           kind: 'packet',
           event: packet,
@@ -107,26 +92,23 @@ export function resolveCloneShatter(
         });
       });
 
-    triggerBlindingDissipation(runtime, skill.name, at, sources, delivery);
+    triggerBlindingDissipation(context, skill.name, at, sources, delivery);
   } else if (shatter.kind === 'defense') {
     // An authored zero still hits; a removed packet cannot trigger hit traits.
     if (strike)
       buildMesmerStrikes(
-        runtime.context,
+        context,
         skill,
         at,
         {
           ...strike,
-          name: undefined,
-          summonKind: undefined,
-          hits: sources,
           atMs: 0,
           source: 'Player',
           weaponStrengthProfileId: 'nonweapon.profession-mechanic'
         },
         { metadata: { shatterTraitEligible: true } }
       ).forEach((packet) => {
-        runtime.context.effects.emit({
+        context.effects.emit({
           ...delivery,
           kind: 'packet',
           event: packet,
@@ -141,25 +123,16 @@ export function resolveCloneShatter(
       kind: 'profile',
       profile: {
         ...skill,
-        effects: (skill.effects || []).map((effect) => ({ ...effect, applications: sources }))
+        effects: tier.effects
       },
       at: castStart,
       fullEnd: at,
       attribution: {
         source: 'Player',
-        sourceId: {
-          ...skill,
-          effects: (skill.effects || []).map((effect) => ({ ...effect, applications: sources }))
-        }.id,
+        sourceId: skill.id,
         actorType: 'player',
-        skillId: {
-          ...skill,
-          effects: (skill.effects || []).map((effect) => ({ ...effect, applications: sources }))
-        }.id,
-        skillName: {
-          ...skill,
-          effects: (skill.effects || []).map((effect) => ({ ...effect, applications: sources }))
-        }.name
+        skillId: skill.id,
+        skillName: skill.name
       },
       priority: 0
     });
@@ -167,5 +140,5 @@ export function resolveCloneShatter(
     throw new Error(`Unsupported clone shatter kind: ${shatter.kind}.`);
   }
 
-  return strike || shatter.kind === 'control' ? [{ at, count: sources }] : [];
+  return shatter.strikes[spent] || shatter.kind === 'control' ? [{ at, count: sources }] : [];
 }

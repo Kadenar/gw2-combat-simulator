@@ -8,7 +8,6 @@ export interface DurationEditorOptions {
   readonly label: string;
   readonly value: number;
   readonly minimumMs?: number;
-  readonly maximumMs?: number | null;
   readonly stepMs?: number;
   readonly onApply: (durationMs: number) => void;
 }
@@ -16,12 +15,8 @@ export interface DurationEditorOptions {
 export type DurationValidation =
   { readonly valid: true; readonly value: number } | { readonly valid: false; readonly error: string };
 
-export function validateDurationMs(
-  rawValue: string | number,
-  minimumMs = 1,
-  maximumMs: number | null = null,
-  stepMs?: number
-): DurationValidation {
+/** Accept positive durations on the editor's grid without imposing an upper limit. */
+export function validateDurationMs(rawValue: string | number, minimumMs = 1, stepMs?: number): DurationValidation {
   const parsed = Number(rawValue);
   const minimum = Math.max(1, Math.round(Number(minimumMs) || 1));
   if (!Number.isFinite(parsed) || parsed < minimum) {
@@ -37,14 +32,6 @@ export function validateDurationMs(
   }
 
   const value = Math.round(parsed);
-  const maximum = Math.round(Number(maximumMs));
-  if (maximumMs != null && Number.isFinite(maximum) && value > maximum) {
-    return {
-      valid: false,
-      error: `Enter a duration no greater than ${maximum} ms.`
-    };
-  }
-
   return { valid: true, value };
 }
 
@@ -92,10 +79,6 @@ export function openDurationEditor(options: DurationEditorOptions): FloatingEdit
   input.value = String(Math.round(Number(options.value) || 0));
   input.min = String(Math.max(1, Math.round(Number(options.minimumMs) || 1)));
   input.step = String(options.stepMs ?? 1);
-  const maximum = Math.round(Number(options.maximumMs));
-  if (options.maximumMs != null && Number.isFinite(maximum)) {
-    input.max = String(maximum);
-  }
 
   input.addEventListener('input', () => {
     error.textContent = '';
@@ -104,7 +87,7 @@ export function openDurationEditor(options: DurationEditorOptions): FloatingEdit
   const handle = mountFloatingEditor(editor, options.anchor);
 
   const applyChanges = (): void => {
-    const validation = validateDurationMs(input.value, options.minimumMs, options.maximumMs, options.stepMs);
+    const validation = validateDurationMs(input.value, options.minimumMs, options.stepMs);
     if (!validation.valid) {
       error.textContent = validation.error;
       input.focus();

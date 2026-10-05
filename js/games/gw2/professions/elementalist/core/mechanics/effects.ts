@@ -1,8 +1,6 @@
-import type {
-  AnnouncementEmission,
-  EffectDelivery,
-  ProfileEmission
-} from '#gw2/platform/simulation/effect-emission.js';
+import type { ReadonlyMechanicState } from '#gw2/platform/profession-definition/runtime-context.js';
+import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
+import type { AnnouncementEmission, EffectDelivery, ProfileEmission } from '#gw2/platform/effects/emission.js';
 /**
  * Elementalist payload selection and attribution for the shared emission service.
  *
@@ -10,8 +8,8 @@ import type {
  * catalog and state lookups they depend on. Skill and trait handlers depend on
  * this module; it must not depend on them.
  */
-import { requireBalanceProfileFromContext, requireEffect } from '#gw2/platform/engine/skills/balance-profiles.js';
-import type { Skill } from '#gw2/platform/engine/skills/types.js';
+import { requireBalanceProfileFromContext, requireEffect } from '#gw2/platform/skills/balance-profiles.js';
+import type { Skill } from '#gw2/platform/skills/types.js';
 import { ETCHING_CHAINS } from '#gw2/professions/elementalist/core/constants.js';
 import type { ElementalistAuraState, ElementalistCoreState } from '#gw2/professions/elementalist/core/state.js';
 import type { ElementalistRuntime } from '#gw2/professions/elementalist/types.js';
@@ -27,7 +25,11 @@ export function etchingChain(skillId: Skill['id']) {
 }
 
 /** Returns the tracked application of one aura still active at `at`, or null. */
-export function activeAura(state: ElementalistCoreState, aura: string, at: number): ElementalistAuraState | null {
+export function activeAura(
+  state: ReadonlyMechanicState<ElementalistCoreState>,
+  aura: string,
+  at: number
+): ElementalistAuraState | null {
   return state.activeAuras.find((candidate) => candidate.type === aura && candidate.expiresAt > at) || null;
 }
 
@@ -40,7 +42,11 @@ export function combatStarted(context: ElementalistRuntime, at: number): boolean
 }
 
 // Resolve procedural sources through the catalog so request attribution retains canonical skill policy.
-export function elementalistEventSkill(context: ElementalistRuntime, source: string, sourceId: Skill['id']): Skill {
+export function elementalistEventSkill(
+  context: MechanicQueriesOf<ElementalistRuntime>,
+  source: string,
+  sourceId: Skill['id']
+): Skill {
   return context.helpers.skillsById.get(sourceId) || { id: sourceId, name: source };
 }
 
@@ -134,13 +140,3 @@ export function elementalistAnnouncement({
     announcement: { type: procType, name, at, sourceSkill, detail, icon }
   };
 }
-
-export interface ElementalistAuraApplication {
-  readonly at: number;
-  readonly aura: string;
-  readonly duration: number;
-  readonly skillName: string;
-  readonly sourceId: Skill['id'];
-  readonly priority?: number;
-}
-export type ElementalistAuraApplier = (context: ElementalistRuntime, application: ElementalistAuraApplication) => void;

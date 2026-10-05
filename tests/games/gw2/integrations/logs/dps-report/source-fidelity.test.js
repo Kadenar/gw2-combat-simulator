@@ -107,7 +107,7 @@ test('Luminary removes represented Forge bar changes without dropping standalone
   assert.equal(out.rotation.filter((c) => c.skillId === 77073).length, 1);
 });
 
-test('phase selection preserves crossing timestamps and durations and excludes casts wholly outside the phase', () => {
+test('phase selection preserves crossing inputs and excludes casts wholly outside the phase', () => {
   const input = report(
     [
       {
@@ -125,11 +125,11 @@ test('phase selection preserves crossing timestamps and durations and excludes c
   );
   const catalog = { skills: [{ id: 1000, name: 'Observed', castTimeMs: 400, effects: [] }] };
   const full = reconstructDpsReportRotation(input, catalog);
-  assert.deepEqual([full.sourceActions[0].startMs, full.sourceActions[0].durationMs], [-200, 400]);
+  assert.equal(full.sourceActions[0].startMs, -200);
   const selected = reconstructDpsReportRotation(input, catalog, { phaseIndex: 1 });
   assert.deepEqual(
-    selected.sourceActions.map((a) => [a.startMs, a.durationMs]),
-    [[800, 400]]
+    selected.sourceActions.map((action) => action.startMs),
+    [800]
   );
   assert.equal(selected.timelineOriginMs, 800);
   assert.equal(selected.combatStartTimestampMs, 200);

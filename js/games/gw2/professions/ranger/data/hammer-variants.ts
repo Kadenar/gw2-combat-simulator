@@ -3,8 +3,8 @@
  * Hammer skill fragments remain in `skills/weapons/hammer.ts`.
  */
 import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
-import type { SkillId } from '#gw2/platform/engine/skills/types.js';
-import { flattenProfessionState } from '#gw2/platform/engine/profession/state.js';
+import type { SkillId } from '#gw2/platform/skills/types.js';
+import { flattenProfessionState } from '#gw2/platform/profession-definition/state.js';
 import type { Gw2WeaponMatcherContext } from '#gw2/platform/equipment/weapons/types.js';
 import type { RangerConfig, RangerState } from '#gw2/professions/ranger/types.js';
 

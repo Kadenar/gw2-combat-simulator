@@ -6,7 +6,7 @@ import type { ElementalistCanonicalBuild } from '#gw2/professions/elementalist/b
 import { withActivePatchPreview } from '#gw2/integrations/patches/active-profession.js';
 import { normalizeProfessionBuild } from '#gw2/platform/builds/profession-contract.js';
 import type { Gw2Build, Gw2CanonicalBuild } from '#gw2/platform/builds/types.js';
-import type { ProfessionModifierDefinition } from '#gw2/platform/engine/profession/types.js';
+import type { ProfessionModifierDefinition } from '#gw2/platform/profession-definition/types.js';
 import type { ProfessionBuildDefinition } from '#gw2/platform/builds/types.js';
 import type { EngineerCanonicalBuild } from '#gw2/professions/engineer/types.js';
 import type { ProfessionUiContract } from '#gw2/platform/profession-presentation/types.js';

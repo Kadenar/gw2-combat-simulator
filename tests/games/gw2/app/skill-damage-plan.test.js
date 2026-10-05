@@ -11,7 +11,7 @@ import {
 import { createSkillDamageViewModel } from '#gw2/app/build/skill-damage/view-model.js';
 import { calculateSkillDamageAttributes } from '#gw2/app/build/buffed-attributes.js';
 import { createSkillDamagePreview } from '#gw2/app/build/skill-damage/preview.js';
-import { evaluateSkillDamage } from '#gw2/platform/skill-damage/evaluate.js';
+import { evaluateSkillDamage } from '#gw2/platform/skill-damage/measure-occurrences.js';
 import { firstPresetBuildPath, headlessApp } from '#tests/helpers/skill-damage.js';
 
 const BLADESWORN = 'data/gw2/builds/warrior/b-power-bladesworn-sword-pistol.json';

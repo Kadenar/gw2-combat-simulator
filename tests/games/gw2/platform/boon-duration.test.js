@@ -1,14 +1,15 @@
+import { observeGw2Runtime } from '#tests/helpers/observed-runtime.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { gw2BoonDurationMultiplier } from '#gw2/platform/combat/boons.js';
 import { gw2StaticAttributes } from '#gw2/platform/combat/query/combat-query.js';
-import { gw2ResolverBoonDuration } from '#gw2/platform/resolver/boons.js';
-import { createCanonicalCatalog } from '#gw2/platform/engine/skills/canonical-skill-catalog.js';
+import { gw2ResolverBoonDuration } from '#gw2/platform/resolver/boon-duration.js';
+import { createCanonicalCatalog } from '#gw2/platform/skills/catalog.js';
 import { defineTestProfession } from '#tests/helpers/profession.js';
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
 import { resolveTestGw2Events } from '#tests/helpers/gw2-resolver.js';
 import { GW2_STANDARD_BOONS } from '#gw2/platform/combat/boons.js';
-import { gw2EffectExpiresAt } from '#gw2/platform/skills/timing.js';
+import { gw2EffectExpiresAt } from '#gw2/platform/effects/timing.js';
 
 // Final applications keep their rounded duration but expire on the next absolute 40 ms action tick.
 test('boon grants round durations to milliseconds and expirations up to action ticks', () => {
@@ -109,7 +110,11 @@ test('resolver boon grants and extensions retain rounded expiry in detailed and 
               }
             });
           } else {
-            seen.push([event.at, ctx.query.mightStacksAt(event.at, ctx), ctx.query.furyActiveAt(event.at, ctx)]);
+            seen.push([
+              event.at,
+              ctx.combat.activeBoonStacks('might', event.at),
+              Boolean(ctx.combat.activeBoonStacks('fury', event.at))
+            ]);
           }
         }
       }
@@ -211,13 +216,6 @@ test('shared emissions scale live boons once and preserve fixed and custom durat
     hooks: {
       buffPolicies: () => [{ kind: 'custom' }],
       initialize(runtime) {
-        runtime.query = {
-          ...runtime.query,
-          statsAt(at, event) {
-            sampled.push([at, event.skillId, event.actorType]);
-            return { concentration: at === 2 ? 750 : 0 };
-          }
-        };
         runtime.effects.emit({
           kind: 'packet',
           event: application,
@@ -228,7 +226,20 @@ test('shared emissions scale live boons once and preserve fixed and custom durat
       }
     }
   });
-  const result = simulateGw2({ profession, rotation: [{ type: 'wait', durationMs: 4000 }] });
+  const result = observeGw2Runtime({
+    profession: profession.runtimeFor({}),
+    rotation: [{ type: 'wait', durationMs: 4000 }],
+    // Override a formula collaborator at the engine initialization boundary.
+    engineInitialize(runtime) {
+      runtime.query = {
+        ...runtime.query,
+        statsAt(at, event) {
+          sampled.push([at, event.skillId, event.actorType]);
+          return { concentration: at === 2 ? 750 : 0 };
+        }
+      };
+    }
+  });
   assert.deepEqual(
     result.events.filter((e) => e.type === 'buff').map((e) => e.duration),
     [15, 10, 10]
@@ -271,7 +282,7 @@ test('declarative boons can gate dynamic skill availability', () => {
     catalog,
     hooks: {
       availability: (runtime, skill) =>
-        skill.id !== 920002 || runtime.query.timeline.buffStacksAt('aegis', runtime.time, 0, 1) > 0
+        skill.id !== 920002 || runtime.combat.timeline.buffStacksAt('aegis', runtime.time, 0, 1) > 0
           ? { ready: true }
           : {
               ready: false,
@@ -327,7 +338,7 @@ test('declarative generic buffs use shared timed state without boon-duration sca
       buffPolicies: () => [{ kind: 'trait-charge', maximumStacks: 25 }],
       onCastStart(runtime, cast) {
         if (cast.skill.id === 920012)
-          observedAsBuff = runtime.query.timeline.buffStacksAt('trait-charge', runtime.time, 0, 25) > 0;
+          observedAsBuff = runtime.combat.timeline.buffStacksAt('trait-charge', runtime.time, 0, 25) > 0;
       }
     },
     catalog

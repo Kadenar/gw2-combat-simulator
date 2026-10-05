@@ -1,7 +1,5 @@
-import { reviseEffectState } from '#gw2/platform/combat/effect-revisions.js';
-import { grantCharges } from '#gw2/platform/combat/resources/charges.js';
-import { purgeExpiredStacks } from '#gw2/platform/combat/resources/timed-stacks.js';
-import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
+import { appendChargeGrant, grantCharges } from '#gw2/platform/combat/resources/charges.js';
+import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import { rangerPetCompanionId } from '#gw2/professions/ranger/core/mechanics/pets.js';
 import { rangerPetByName } from '#gw2/professions/ranger/core/state.js';
@@ -24,11 +22,12 @@ export function handleRangerPoisonousStrikes(context: RangerResolverContext, eve
 export function handleRangerSharpeningStone(context: RangerResolverContext, event: Gw2ResolverEvent): void {
   const state = professionCoreState(context);
   // Recasts add charges without renewing the lifetime of the remaining stones.
-  state.sharpeningStoneExpirations = purgeExpiredStacks(state.sharpeningStoneExpirations, event.at);
-  state.sharpeningStoneExpirations.push(
-    ...Array.from({ length: Math.max(0, Number(event.charges || 0)) }, () => event.at + (event.duration || 0))
+  state.sharpeningStoneGrants = appendChargeGrant(
+    state.sharpeningStoneGrants,
+    grantCharges(Math.trunc(Math.max(0, Number(event.charges || 0))), event.at + (event.duration || 0)),
+    event.at,
+    'earliest-expiry'
   );
-  state.sharpeningStoneExpirations.sort((a, b) => a - b);
 }
 
 // Retire the outgoing companion's lingering conditions after the swap delay,
@@ -37,23 +36,7 @@ export function handleRangerPetSwapped(context: RangerResolverContext, event: Gw
   const state = professionCoreState(context);
   const outgoingCompanionId = rangerPetCompanionId(context);
   const removedAt = event.at + 1;
-  for (const condition of context.conditionState.values()) {
-    for (const stack of condition.stacks) {
-      const application = stack.application;
-      if (
-        application.source === 'ranger-pet' &&
-        (!application.summonOwner || String(application.summonOwner) === outgoingCompanionId)
-      ) {
-        // Cancel queued ticks without suppressing natural expiry ticks; shorten live stack visibility separately.
-        if (application.naturalExpiresAt > removedAt) application.removedAt = removedAt;
-        if (stack.expiresAt > removedAt) {
-          stack.expiresAt = removedAt;
-          // Report the shortened pet window even though the history array has not changed.
-          reviseEffectState(condition);
-        }
-      }
-    }
-  }
+  context.combat.retireCompanionConditions('ranger-pet', outgoingCompanionId, removedAt);
 
   const pet = rangerPetByName(String(event.activePet || ''));
   state.activePet = pet.name;

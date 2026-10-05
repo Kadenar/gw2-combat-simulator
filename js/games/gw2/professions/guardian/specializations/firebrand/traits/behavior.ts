@@ -1,3 +1,4 @@
+import type { MechanicContext } from '#gw2/platform/profession-definition/mechanic-context.js';
 import { grantCharges } from '#gw2/platform/combat/resources/charges.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import {
@@ -5,16 +6,16 @@ import {
   effectNumber,
   requireBalanceProfileFromContext,
   requireEffect
-} from '#gw2/platform/engine/skills/balance-profiles.js';
-import type { Skill } from '#gw2/platform/engine/skills/types.js';
+} from '#gw2/platform/skills/balance-profiles.js';
+import type { Skill } from '#gw2/platform/skills/types.js';
 import type { NativeResolvedDamageDetails } from '#gw2/platform/profession-definition/module-types.js';
 import { buildResolverCondition } from '#gw2/platform/resolver/packets.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
-import type { Gw2Runtime, RuntimeCast } from '#gw2/platform/simulation/runtime-state.js';
-import { gw2EffectExpiresAt } from '#gw2/platform/skills/timing.js';
+import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
+import { gw2EffectExpiresAt } from '#gw2/platform/effects/timing.js';
 import { guardianCastCause } from '#gw2/professions/guardian/core/mechanics/event-handlers.js';
 import { reactToJusticeHitWithOptions } from '#gw2/professions/guardian/core/mechanics/virtues.js';
-import { guardianTraitIcon } from '#gw2/professions/guardian/core/traits/behavior.js';
+import { guardianTraitIcon } from '#gw2/professions/guardian/core/traits/metadata.js';
 
 import { isInternalCooldownReady } from '#gw2/platform/combat/procs.js';
 import { GUARDIAN_SKILL_IDS as ID, GUARDIAN_TRAIT_IDS as TRAIT } from '#gw2/professions/guardian/data/ids.js';
@@ -26,7 +27,6 @@ import {
 import { FIREBRAND_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/guardian/specializations/firebrand/profiles.js';
 import { firebrandState } from '#gw2/professions/guardian/specializations/firebrand/state.js';
 import type {
-  GuardianConfig,
   GuardianResolverContext,
   GuardianResolverEvent,
   GuardianRuntimeState,
@@ -34,7 +34,7 @@ import type {
 } from '#gw2/professions/guardian/types.js';
 import { canonicalTime } from '#kernel/core/clock.js';
 
-type Runtime = Gw2Runtime<GuardianRuntimeState, GuardianSkill>;
+type Runtime = MechanicContext<GuardianRuntimeState, GuardianSkill>;
 
 /** Tome session changes reset only the counter, never refunds earned by accepted casts. */
 export function resetSwiftScholar(runtime: Runtime, virtue?: string): void {
@@ -191,9 +191,12 @@ export function reactToFirebrandBuff(runtime: Runtime, event: Gw2ResolverEvent):
             icon: guardianTraitIcon(TRAIT.STALWART_SPEED)
           }
         });
-        runtime.procs.readyAt['guardian.firebrand.stalwartSpeed'] = canonicalTime(
-          runtime.time +
-            balanceProfileNumber(requireBalanceProfileFromContext(runtime, TRAIT.STALWART_SPEED), 'internalCooldown')
+        runtime.procs.setDeadline(
+          'guardian.firebrand.stalwartSpeed',
+          canonicalTime(
+            runtime.time +
+              balanceProfileNumber(requireBalanceProfileFromContext(runtime, TRAIT.STALWART_SPEED), 'internalCooldown')
+          )
         );
       }
     }
@@ -272,23 +275,3 @@ export const weightyTermsRewards: NonNullable<Skill['sideEffects']> = [
     }
   }
 ];
-
-/** Traits choose capacity, initial default, and cadence; the resource controller owns page accounting. */
-export function firebrandPageTuning(context: { readonly config: GuardianConfig }) {
-  const archivistOfWhispers = hasTrait(context, TRAIT.ARCHIVIST_OF_WHISPERS);
-
-  const resourcesProfile = requireBalanceProfileFromContext(context, PROFILE.resources);
-  const defaultMaximum = balanceProfileNumber(resourcesProfile, 'maximumStacks');
-  const traitMaximum = archivistOfWhispers
-    ? balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.ARCHIVIST_OF_WHISPERS), 'maximumStacks')
-    : defaultMaximum;
-  const interval = hasTrait(context, TRAIT.LOREMASTER)
-    ? balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.LOREMASTER), 'pulseInterval')
-    : balanceProfileNumber(resourcesProfile, 'pulseInterval');
-  const initial = context.config.initialTomePages ?? traitMaximum;
-  return {
-    maximum: traitMaximum,
-    initial: archivistOfWhispers && initial === defaultMaximum ? traitMaximum : initial,
-    interval
-  };
-}

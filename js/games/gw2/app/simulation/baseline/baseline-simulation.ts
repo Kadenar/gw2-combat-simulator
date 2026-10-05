@@ -1,5 +1,5 @@
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
-import type { Gw2ProfessionSource } from '#gw2/platform/simulation/types.js';
+import type { Gw2ProfessionSource } from '#gw2/platform/profession-definition/family-contract.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
 import type { RotationCommand } from '#gw2/platform/execution/types.js';
 import type {

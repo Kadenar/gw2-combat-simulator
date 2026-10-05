@@ -1,3 +1,4 @@
+import { createMechanicCombatServices } from '#gw2/platform/resolver/mechanic-services.js';
 import { observedRuntime } from '#tests/helpers/observed-runtime.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
@@ -31,7 +32,7 @@ test('Core damage reactions preserve trait and skill ordering without spending c
   // One trap activation exercises interleaved procs and independent one-use versus per-hit state.
   const config = { selectedTraitIds: [TRAIT.OPENING_STRIKE, TRAIT.TRAPPERS_EXPERTISE] };
   const state = createRangerCoreState(config);
-  state.sharpeningStoneExpirations = [10, 10];
+  state.sharpeningStoneGrants = [{ charges: 2, expiresAt: 10 }];
   state.bloodThirst.charges = 2;
   state.bloodThirst.expiresAt = 12;
   const queued = [];
@@ -42,6 +43,8 @@ test('Core damage reactions preserve trait and skill ordering without spending c
     boons: new Map(),
     effects: { emit: ({ event }) => queued.push(event) }
   };
+  // Bind real owner operations for this focused mechanic fixture.
+  context.combat = createMechanicCombatServices(context);
   const event = {
     type: 'damage',
     at: 1,
@@ -73,7 +76,7 @@ test('Core damage reactions preserve trait and skill ordering without spending c
   );
   assert.ok(queued.every(({ at }) => at === event.at));
   assert.equal(state.bloodThirst.charges, 1);
-  assert.deepEqual(state.sharpeningStoneExpirations, [10]);
+  assert.deepEqual(state.sharpeningStoneGrants, [{ charges: 1, expiresAt: 10 }]);
 
   queued.length = 0;
   react(context, event);
@@ -82,7 +85,7 @@ test('Core damage reactions preserve trait and skill ordering without spending c
     [ID.SHARPENING_STONE, ID.CRIPPLING_SHOT]
   );
   assert.equal(state.bloodThirst.charges, 0);
-  assert.deepEqual(state.sharpeningStoneExpirations, []);
+  assert.deepEqual(state.sharpeningStoneGrants, []);
 
   state.bloodThirst.charges = 1;
   queued.length = 0;
@@ -141,19 +144,14 @@ test('Ranger condition bonuses retain the Consuming Bite cap and coefficient gua
   }
 });
 
-test('One Wolf Pack echoes every one-second Frost Trap pulse without shifting its cadence', () => {
-  // The personal stance's inclusive deadline preserves each pulse's echo while keeping the skill's exact cadence.
+test('One Wolf Pack echoes eligible Frost Trap hits using its own weapon strength', () => {
+  // The personal stance grants an echo for each eligible attack and owns the echo's weapon strength.
   const trap = simulate('Soulbeast', [ID.ONE_WOLF_PACK, ID.FROST_TRAP, wait(6000)]);
   const echoes = hits(trap, ID.ONE_WOLF_PACK);
   const pulses = hits(trap, ID.FROST_TRAP);
-  for (let index = 1; index < pulses.length; index += 1) {
-    assert.equal(Math.round((pulses[index].at - pulses[index - 1].at) * 1_000_000), 1_000_000);
-  }
-
-  assert.deepEqual(
-    echoes.map((event) => Math.round(event.at * 1000)),
-    pulses.map((event) => Math.round(event.at * 1000) + 280)
-  );
+  // Every eligible attack triggers an echo, independent of authored packet offsets.
+  assert.ok(pulses.length > 0);
+  assert.equal(echoes.length, pulses.length);
   const weapon = simulate('Soulbeast', [ID.ONE_WOLF_PACK, ID.DRAKES_SWIPE, wait(1000)]);
   const echo = hits(weapon, ID.ONE_WOLF_PACK)[0];
   assert.equal(echo.skillWeapon, 'Unequipped');

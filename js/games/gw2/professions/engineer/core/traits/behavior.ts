@@ -9,12 +9,12 @@ import {
   requireBalanceProfileFromContext,
   requireEffect,
   balanceProfileNumber
-} from '#gw2/platform/engine/skills/balance-profiles.js';
-import type { RuntimeCast } from '#gw2/platform/simulation/runtime-state.js';
+} from '#gw2/platform/skills/balance-profiles.js';
+import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import { buildEngineerPackets } from '#gw2/professions/engineer/core/events.js';
 import { ENGINEER_SKILL_IDS as ID, ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
-import type { SimulationEventBase } from '#gw2/platform/engine/events/events.js';
-import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
+import type { SimulationEventBase } from '#gw2/platform/events/events.js';
+import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
 import { buildEngineerBuff } from '#gw2/professions/engineer/core/mechanics/resolution-helpers.js';
 import { isInternalCooldownReady } from '#gw2/platform/combat/procs.js';
 import { professionStaticRulesApplied } from '#gw2/platform/builds/attribute-provenance.js';
@@ -37,7 +37,7 @@ export function isElixirSkill(skill: EngineerSkill | undefined): boolean {
 /** Schedules Acid Bomb's extended final pulse while HGH is selected. */
 export function applyHghAcidBomb(context: EngineerRuntime, cast: RuntimeCast<EngineerSkill>): void {
   const skill = cast.skill;
-  if (!hasTrait(context.config, TRAIT.HGH) || skill.id !== ID.ACID_BOMB) return;
+  if (!hasTrait(context.traits, TRAIT.HGH) || skill.id !== ID.ACID_BOMB) return;
 
   const hghProfile = requireBalanceProfileFromContext(context, TRAIT.HGH);
   const strike = requireEffect(hghProfile, 'strike', 'HGH');
@@ -59,7 +59,7 @@ export function applyHghAcidBomb(context: EngineerRuntime, cast: RuntimeCast<Eng
 
 /** Extends scheduled elixir fields, boons, and conditions while HGH is selected. */
 export function prepareEngineerHghEvent(context: EngineerRuntime, event: SimulationEventBase): SimulationEventBase {
-  if (!hasTrait(context.config, TRAIT.HGH) || event.sourceId === TRAIT.HGH) return event;
+  if (!hasTrait(context.traits, TRAIT.HGH) || event.sourceId === TRAIT.HGH) return event;
   const skill = context.helpers.skillsById.get(event.skillId ?? event.sourceId);
   if (!isElixirSkill(skill)) return event;
   const hghProfile = requireBalanceProfileFromContext(context, TRAIT.HGH);
@@ -127,12 +127,12 @@ export function applyHematicFocus(context: EngineerResolverContext, event: Engin
     return;
   }
 
-  const state = context.procs.readyAt;
-  if (!isInternalCooldownReady(event.at, state.hematicFocus || 0)) return;
+  const state = context.procs;
+  if (!isInternalCooldownReady(event.at, state.deadline('hematicFocus') || 0)) return;
   const hematicFocusProfile = requireBalanceProfileFromContext(context, TRAIT.HEMATIC_FOCUS);
   const hematicFocusFury = requireEffect(hematicFocusProfile, 'boon', 'fury');
   if (hematicFocusFury) {
-    state.hematicFocus = event.at + balanceProfileNumber(hematicFocusProfile, 'internalCooldown');
+    state.setDeadline('hematicFocus', event.at + balanceProfileNumber(hematicFocusProfile, 'internalCooldown'));
     context.effects.emit({
       kind: 'packet',
       event: buildEngineerBuff(event, {

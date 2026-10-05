@@ -1,4 +1,4 @@
-import { normalizeSkillEffects } from '#gw2/platform/engine/skills/canonical-skill-catalog.js';
+import { normalizeSkillEffects } from '#gw2/platform/effects/validation.js';
 
 /** Overrides are construction boundaries too, so test consumers receive the same canonical effects as production. */
 function replaceOwner(current, change, label) {

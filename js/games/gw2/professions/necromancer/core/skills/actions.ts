@@ -5,7 +5,7 @@ import { createDodgeSkill, createWeaponSwapSkill } from '#gw2/platform/skills/sh
  * Runtime behavior remains in the platform weapon-swap and Core shroud mechanic owners.
  */
 import { NECROMANCER_SKILL_IDS as ID } from '#gw2/professions/necromancer/data/ids.js';
-import type { Skill } from '#gw2/platform/engine/skills/types.js';
+import type { Skill } from '#gw2/platform/skills/types.js';
 
 const extraSkills: Skill[] = [
   createWeaponSwapSkill(),

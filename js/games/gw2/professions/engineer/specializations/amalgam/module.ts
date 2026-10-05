@@ -1,5 +1,5 @@
 import { amalgamTraits } from '#gw2/professions/engineer/specializations/amalgam/traits/index.js';
-import { createPublicStateProjector } from '#gw2/platform/engine/profession/state.js';
+import { createPublicStateProjector } from '#gw2/platform/profession-definition/state.js';
 import { defineNativeModule } from '#gw2/platform/profession-definition/profession.js';
 import { createEngineerModuleData } from '#gw2/professions/engineer/data/module-data.js';
 import { amalgamHooks } from '#gw2/professions/engineer/specializations/amalgam/hooks.js';

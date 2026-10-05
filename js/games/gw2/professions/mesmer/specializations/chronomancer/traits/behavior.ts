@@ -1,13 +1,13 @@
+import { createMesmerIllusionRewards, mesmerActivePrimaryWeapon } from '#gw2/professions/mesmer/family-mechanics.js';
 import type { MesmerEventExtra } from '#gw2/professions/mesmer/data/types.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
-import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
+import type { SimulationEvent } from '#gw2/platform/events/events.js';
 import {
   balanceProfileNumber,
   requireBalanceProfileFromContext,
   requireEffect
-} from '#gw2/platform/engine/skills/balance-profiles.js';
+} from '#gw2/platform/skills/balance-profiles.js';
 import type { MesmerPhantasmPolicy } from '#gw2/professions/mesmer/core/mechanics/illusions/types.js';
-import { mesmerMechanicsFor } from '#gw2/professions/mesmer/core/mechanics/runtime.js';
 import type { MesmerShatterResolution } from '#gw2/professions/mesmer/core/mechanics/shatter-types.js';
 import { MESMER_SKILL_IDS as ID, MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
 import type { MesmerRuntime } from '#gw2/professions/mesmer/types.js';
@@ -15,7 +15,7 @@ import type { MesmerRuntime } from '#gw2/professions/mesmer/types.js';
 /** Arms Danger Time from Chronomancer control packets and Delayed Reactions. */
 export function observeChronomancerEvent(context: MesmerRuntime, event: SimulationEvent): void {
   if (event.type !== 'control') return;
-  const runtime = mesmerMechanicsFor(context);
+
   const skillId = Number(event.skillId);
   if (
     !hasTrait(context, TRAIT.DANGER_TIME) ||
@@ -35,7 +35,7 @@ export function observeChronomancerEvent(context: MesmerRuntime, event: Simulati
         sourceSkill: skillName
       }
     ];
-    const traitProfile = requireBalanceProfileFromContext(runtime.context, TRAIT.DANGER_TIME);
+    const traitProfile = requireBalanceProfileFromContext(context, TRAIT.DANGER_TIME);
     const traitSource = {
       source: 'Trait',
       sourceId: TRAIT.DANGER_TIME,
@@ -44,14 +44,14 @@ export function observeChronomancerEvent(context: MesmerRuntime, event: Simulati
       skillName: traitProfile.name
     };
     {
-      const proc = runtime.context.effects.emit({
+      const proc = context.effects.emit({
         kind: 'announcement',
         log: true,
         attribution: { ...traitSource, actorType: 'effect' },
         announcement: { type: 'trait', name: traitProfile.name, at: event.at, sourceSkill: skillName, detail: '' }
       });
       for (const grant of grants)
-        runtime.context.effects.emit({
+        context.effects.emit({
           kind: 'packet',
           cause: proc,
           event: {
@@ -92,7 +92,6 @@ const triggerShatterBoon = (
   traitId: number,
   effectName: 'alacrity' | 'quickness'
 ): void => {
-  const runtime = mesmerMechanicsFor(context);
   if (!hasTrait(context, traitId)) return;
 
   const traitProfile = requireBalanceProfileFromContext(context, traitId);
@@ -112,7 +111,7 @@ const triggerShatterBoon = (
         audience: effect.audience
       }
     ];
-    const traitProfile = requireBalanceProfileFromContext(runtime.context, traitId);
+    const traitProfile = requireBalanceProfileFromContext(context, traitId);
     const traitSource = {
       source: 'Trait',
       sourceId: traitId,
@@ -121,7 +120,7 @@ const triggerShatterBoon = (
       skillName: traitProfile.name
     };
     {
-      const proc = runtime.context.effects.emit({
+      const proc = context.effects.emit({
         ...resolution.delivery,
         kind: 'announcement',
         log: true,
@@ -135,7 +134,7 @@ const triggerShatterBoon = (
         }
       });
       for (const grant of grants)
-        runtime.context.effects.emit({
+        context.effects.emit({
           ...resolution.delivery,
           kind: 'packet',
           cause: proc,
@@ -160,7 +159,6 @@ export function resolveChronomancerShatterBoons(context: MesmerRuntime, resoluti
 
 /** Refunds one clone only when a Chronomancer shatter commits the configured full-clone threshold. */
 export function resolveIllusionaryReversion(context: MesmerRuntime, resolution: MesmerShatterResolution): void {
-  const runtime = mesmerMechanicsFor(context);
   if (
     !hasTrait(context, TRAIT.ILLUSIONARY_REVERSION) ||
     resolution.spent !==
@@ -170,10 +168,10 @@ export function resolveIllusionaryReversion(context: MesmerRuntime, resolution: 
   }
 
   const illusionaryReversionProfile = requireBalanceProfileFromContext(context, TRAIT.ILLUSIONARY_REVERSION);
-  runtime.resources.queueResources(
+  createMesmerIllusionRewards(context).queueResources(
     resolution.at,
     balanceProfileNumber(illusionaryReversionProfile, 'resourceGain'),
-    runtime.activePrimaryWeapon(),
+    mesmerActivePrimaryWeapon(context),
     'Illusionary Reversion',
     {
       traitId: TRAIT.ILLUSIONARY_REVERSION,

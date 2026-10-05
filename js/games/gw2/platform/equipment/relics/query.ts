@@ -1,5 +1,5 @@
 /** Exposes pure timestamped relic contributions to combat queries. */
-import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
+import type { SimulationEvent } from '#gw2/platform/events/events.js';
 import type { Gw2RelicContext, Gw2RelicRuntimeContext } from '#gw2/platform/equipment/relics/types.js';
 import { invokeRelicHook } from '#gw2/platform/equipment/relics/runtime.js';
 

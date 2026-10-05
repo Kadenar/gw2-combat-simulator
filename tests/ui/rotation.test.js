@@ -68,17 +68,16 @@ test('duration editor validates and rounds millisecond values', () => {
   assert.equal(validateDurationMs('').valid, false);
   assert.equal(validateDurationMs('Infinity').valid, false);
   assert.equal(validateDurationMs('0.9').valid, false);
-  assert.equal(validateDurationMs('501', 1, 500).valid, false);
 });
 
 // Configured duration grids reject off-grid input instead of silently rounding user edits.
 test('duration editor enforces configured 40 ms increments', () => {
   for (const value of ['', '0', '39', '41', '100', '40.1', 'Infinity']) {
-    assert.equal(validateDurationMs(value, 40, null, 40).valid, false, value);
+    assert.equal(validateDurationMs(value, 40, 40).valid, false, value);
   }
 
   for (const value of [40, 80, 120, 1000]) {
-    assert.deepEqual(validateDurationMs(value, 40, null, 40), { valid: true, value });
+    assert.deepEqual(validateDurationMs(value, 40, 40), { valid: true, value });
   }
 });
 

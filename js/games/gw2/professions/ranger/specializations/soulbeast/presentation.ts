@@ -1,6 +1,6 @@
-import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
-import { readProfessionSpecializationState } from '#gw2/platform/engine/profession/state.js';
-import type { CanonicalCatalog, SkillId } from '#gw2/platform/engine/skills/types.js';
+import type { SimulationEvent } from '#gw2/platform/events/events.js';
+import { readProfessionSpecializationState } from '#gw2/platform/profession-definition/state.js';
+import type { CanonicalCatalog, SkillId } from '#gw2/platform/skills/types.js';
 import type {
   ProfessionAttributePreviewContext,
   ProfessionAttributePreviewPreparation

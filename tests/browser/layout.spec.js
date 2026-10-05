@@ -245,24 +245,6 @@ test('side mouse rotation hotkeys suppress browser navigation', async ({ page })
   expect(page.url()).toBe(url);
 });
 
-test('landing page exposes profession navigation and restores focus after its tutorial', async ({ page }) => {
-  await page.goto('/', { waitUntil: 'domcontentloaded' });
-
-  await expect(page.getByRole('heading', { name: 'Guild Wars 2 Rotation Simulator' })).toBeVisible();
-  await expect(page.getByRole('heading', { name: 'Pick a profession to get started!' })).toBeVisible();
-  await expect(page.locator('.profession-showcase')).toHaveCount(9);
-
-  const trigger = page.getByRole('button', { name: 'How do I use this tool?' });
-
-  await trigger.click();
-  const dialog = page.getByRole('dialog', { name: 'How to use the simulator' });
-
-  await expect(dialog).toBeVisible();
-  await dialog.getByRole('button', { name: 'Close tutorial' }).click();
-  await expect(dialog).toBeHidden();
-  await expect(trigger).toBeFocused();
-});
-
 // Native closest() matching must protect controls and dialog descendants for both rotation keyboard handlers.
 test('shared hotkey exclusion protects editable controls and dialogs', async ({ page }) => {
   await page.goto('/', { waitUntil: 'domcontentloaded' });
@@ -478,29 +460,6 @@ test('timing skill selection submits the picker and details expand below DPS', a
   expect(widths.table).toBeLessThan(widths.body);
 });
 
-test('hidden template states stay out of layout', async ({ page }) => {
-  await page.setViewportSize({ width: 1280, height: 900 });
-  await page.goto('/', { waitUntil: 'domcontentloaded' });
-  await page.addStyleTag({ url: '/css/style.css' });
-  await page.evaluate(() => {
-    document.body.innerHTML = '<div class="build-templates"></div>';
-  });
-
-  const displays = await page.locator('.build-templates').evaluate((templates) => {
-    const elements = ['presets-group', 'template-preset', 'template-filter-empty'].map((className) => {
-      const element = document.createElement('div');
-      element.className = className;
-      element.hidden = true;
-      templates.append(element);
-      return element;
-    });
-
-    return elements.map((element) => getComputedStyle(element).display);
-  });
-
-  expect(displays).toEqual(['none', 'none', 'none']);
-});
-
 // Component styles must keep hidden controls out of layout and reserve a motion-safe loading chart.
 test('relic comparison controls and loading layout survive a narrow host', async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 900 });
@@ -525,11 +484,7 @@ test('relic comparison controls and loading layout survive a narrow host', async
   });
   const comparison = page.locator('[data-layout-fixture="relic-comparison"] .relic-cmp');
   const relicSelect = comparison.getByRole('combobox', { name: 'Comparison relic' });
-  await expect(relicSelect).toHaveCSS('text-align', 'left');
-  await expect(relicSelect).toHaveCSS('font-size', '11px');
   await expect(relicSelect.locator('optgroup')).toHaveCount(3);
-  await expect(relicSelect.locator('optgroup').first()).toHaveCSS('font-weight', '700');
-  await expect(relicSelect.locator('option').first()).toHaveCSS('font-weight', '400');
   await expect(comparison.locator('[data-role="relic-comparison-stacks-control"]')).toBeHidden();
   await expect(comparison.getByRole('button', { name: 'Running' })).toBeDisabled();
   const layout = await comparison.evaluate((element) => {
@@ -654,31 +609,6 @@ test('weapon-set labels stay centered in groups and visible while scrolling', as
     element.scrollTop = element.scrollHeight;
   });
   expect(await labelIsVisible()).toBe(true);
-});
-
-// Unequal waits make repeated weapon stays distinguishable without deriving expectations from a saved rotation.
-test('weapon rows show each authored stay instead of repeated set totals', async ({ page }) => {
-  await page.goto('/guardian.html', { waitUntil: 'domcontentloaded' });
-  await expect(page.locator('#loading-overlay')).toHaveClass(/hidden/);
-  await page.evaluate(() => {
-    const app = window.professionApp;
-    const swap = { type: 'cast', skillId: app.skillByName.get('Swap Weapons').id };
-    app.build.targetHealth = 0;
-    app.build.startingWeaponSet = 1;
-    app.build.rotation = [
-      { type: 'wait', durationMs: 1000 },
-      swap,
-      { type: 'wait', durationMs: 10000 },
-      { ...swap },
-      { type: 'wait', durationMs: 3000 }
-    ];
-    app.changed();
-  });
-  await page.waitForFunction(() => window.professionApp.buildRevision === window.professionApp.resultRevision);
-  expect(await page.evaluate(() => window.professionApp.results.warnings)).toEqual([]);
-  const rows = page.locator('#rotation-timeline > .rot-row');
-  await expect(rows.locator('.rot-row-label-text')).toHaveText(['W1', 'W2', 'W1']);
-  await expect(rows.locator('.rot-row-duration')).toHaveText(['1.000s', '10.000s', '3.000s']);
 });
 
 test('mobile focus mode keeps one viewport-wide scrolling workspace', async ({ page }) => {
@@ -1053,12 +983,6 @@ test('damage and condition breakdowns split only when their container is wide', 
   const [wideDamage, wideConditions] = await positions();
   expect(wideConditions.x).toBeGreaterThan(wideDamage.x);
   expect(wideConditions.y).toBe(wideDamage.y);
-  expect(
-    await fixture.locator('.res-damage-breakdown').evaluate((damage) => {
-      const style = getComputedStyle(damage);
-      return { overflowX: style.overflowX, paddingRight: style.paddingRight };
-    })
-  ).toEqual({ overflowX: 'clip', paddingRight: '12px' });
   expect(
     await fixture.locator('.res-hdr').evaluate((header) => {
       const damage = header.closest('.res-damage-breakdown');

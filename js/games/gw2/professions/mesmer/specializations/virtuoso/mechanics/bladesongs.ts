@@ -1,48 +1,50 @@
-import {
-  buildMesmerStrikes,
-  mesmerPacketOwner,
-  buildMesmerConditions
-} from '#gw2/professions/mesmer/core/mechanics/packets.js';
+import { denySkillCast } from '#gw2/platform/execution/availability.js';
 import type { AvailabilityResult } from '#gw2/platform/execution/types.js';
-import { mesmerConditionFromProfile, mesmerMechanicsFor } from '#gw2/professions/mesmer/core/mechanics/runtime.js';
+import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
+import {
+  buildMesmerConditions,
+  buildMesmerStrikes,
+  mesmerPacketOwner
+} from '#gw2/professions/mesmer/core/mechanics/packets.js';
+import { mesmerConditionFromProfile } from '#gw2/professions/mesmer/core/mechanics/conditions.js';
+import {
+  bladesongConfusion,
+  bladesongTier
+} from '#gw2/professions/mesmer/specializations/virtuoso/mechanics/bladesong-projection.js';
 import type {
   MesmerShatterResolverRequest,
   MesmerShatterTraitHit
 } from '#gw2/professions/mesmer/core/mechanics/shatter-types.js';
-import { applyCryOfPain, masterOfFragmentationRequiem } from '#gw2/professions/mesmer/core/traits/behavior.js';
-import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
-import type { MesmerRuntime } from '#gw2/professions/mesmer/types.js';
-import { denySkillCast } from '#gw2/platform/engine/skills/availability.js';
+import { applyCryOfPain, masterOfFragmentationRequiem } from '#gw2/professions/mesmer/core/traits/illusions.js';
 import { MESMER_SKILL_IDS as ID } from '#gw2/professions/mesmer/data/ids.js';
+import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
+import { virtuosoState } from '#gw2/professions/mesmer/specializations/virtuoso/state.js';
+import type { MesmerRuntime } from '#gw2/professions/mesmer/types.js';
 
 /** Resolves Virtuoso Bladesong packets and reports their actual impact timing to shared shatter traits. */
 export function resolveBladesong(
   context: MesmerRuntime,
   { skill, shatter, at, castStart, spent, delivery }: MesmerShatterResolverRequest
 ): readonly MesmerShatterTraitHit[] {
-  const runtime = mesmerMechanicsFor(context);
-  const strike = shatter.strikes[spent];
+  const tier = bladesongTier(shatter, skill, spent);
+  const { strike } = tier;
   const packetTicks = () => strike?.ticks ?? [];
 
   const addBladeDamage = (ticks: readonly { readonly atMs: number; readonly coefficient: number }[]) =>
     strike
       ? buildMesmerStrikes(
-          runtime.context,
+          context,
           skill,
           at,
           {
             ...strike,
-            name: undefined,
-            summonKind: undefined,
             ...(ticks.length ? { ticks } : {}),
-            timingAnchor: 'castStart',
-            timingScale: 'fixed',
             source: 'Player',
             weaponStrengthProfileId: 'nonweapon.profession-mechanic'
           },
           { metadata: { shatterTraitEligible: true, blade: true } }
         ).map((packet) => {
-          runtime.context.effects.emit({
+          context.effects.emit({
             ...delivery,
             kind: 'packet',
             event: packet,
@@ -60,39 +62,22 @@ export function resolveBladesong(
 
   if (shatter.kind === 'blade-confusion') {
     const baseConfusion = mesmerConditionFromProfile(context, shatter.balanceProfileId || skill.id, 'Confusion');
-    const confusion = applyCryOfPain(context, baseConfusion);
+    const confusion = bladesongConfusion(shatter, spent, applyCryOfPain(context, baseConfusion));
     const ticks = packetTicks();
 
     const hits = addBladeDamage(ticks);
     if (confusion)
-      buildMesmerConditions(
-        runtime.context,
-        skill.name,
-        at,
-        {
-          name: 'Confusion',
-          duration: confusion.duration,
-          ticks: (strike?.ticks?.map((tick) => tick.atMs) ?? shatter.conditionAtMs?.[spent] ?? []).map((atMs) => ({
-            atMs,
-            condition: 'Confusion',
-            duration: Number(confusion.duration),
-            stacks: Number(confusion.stacks)
-          })),
-          timingAnchor: 'castStart',
-          timingScale: 'fixed'
-        },
-        'Player',
-        '',
-        { skillId: skill.id }
-      ).forEach((packet) => {
-        runtime.context.effects.emit({
-          ...delivery,
-          kind: 'packet',
-          event: packet,
-          owner: mesmerPacketOwner(packet),
-          priority: Number(packet.priority ?? 0)
-        });
-      });
+      buildMesmerConditions(context, skill.name, at, confusion, 'Player', '', { skillId: skill.id }).forEach(
+        (packet) => {
+          context.effects.emit({
+            ...delivery,
+            kind: 'packet',
+            event: packet,
+            owner: mesmerPacketOwner(packet),
+            priority: Number(packet.priority ?? 0)
+          });
+        }
+      );
     return hits.map((event) => ({ at: event.at, count: 1 }));
   }
 
@@ -101,20 +86,17 @@ export function resolveBladesong(
     const damageAt = Math.max(at, castStart + (shatter.damageAtMs || 0) / 1000);
     if (strike)
       buildMesmerStrikes(
-        runtime.context,
+        context,
         skill,
         damageAt,
         {
           ...strike,
-          name: undefined,
-          summonKind: undefined,
-          hits: 1,
           source: 'Player',
           weaponStrengthProfileId: 'nonweapon.profession-mechanic'
         },
         { metadata: { shatterTraitEligible: true, blade: true } }
       ).forEach((packet) => {
-        runtime.context.effects.emit({
+        context.effects.emit({
           ...delivery,
           kind: 'packet',
           event: packet,
@@ -125,7 +107,7 @@ export function resolveBladesong(
     context.effects.emit({
       ...delivery,
       kind: 'profile',
-      profile: skill,
+      profile: { ...skill, effects: tier.effects },
       at: castStart,
       fullEnd: damageAt,
       attribution: {
@@ -146,20 +128,23 @@ export function resolveBladesong(
   }
 
   if (shatter.kind === 'blade-defense') {
-    return strike ? [{ at, count: 1 }] : [];
+    return tier.traitStrike ? [{ at, count: 1 }] : [];
   }
 
   throw new Error(`Unsupported Bladesong kind: ${shatter.kind}.`);
 }
 
 /** Requires at least one stocked blade before a Virtuoso bladesong can begin. */
-export function virtuosoAvailability(context: MesmerRuntime, skill: MesmerSkill): AvailabilityResult {
+export function virtuosoAvailability(
+  context: MechanicQueriesOf<MesmerRuntime>,
+  skill: MesmerSkill
+): AvailabilityResult {
   // Explicit IDs must obey the same weapon replacement as the palette.
   if (skill.id === ID.BLADECALL_NON_VIRTUOSO) {
     return denySkillCast(skill, 'mesmer.virtuoso-dagger-replaced', 'Virtuoso replaces this dagger skill.');
   }
 
-  if (!mesmerMechanicsFor(context).shatters[skill.id] || mesmerMechanicsFor(context).actions.currentResource() >= 1) {
+  if (!skill.shatter || virtuosoState.from(context).blades.value >= 1) {
     return { ready: true };
   }
 

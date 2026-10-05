@@ -1,16 +1,13 @@
 import { activeStackCount, addTimedStacks, purgeExpiredStacks } from '#gw2/platform/combat/resources/timed-stacks.js';
-import {
-  conditionEffectTicks,
-  effectFirstAtMs,
-  strikeEffectCoefficient
-} from '#gw2/platform/engine/effects/authoring.js';
-import { armSkillFlip, consumeSkillFlip } from '#gw2/platform/engine/skills/skill-flips.js';
-import type { Skill, StrikeEffect } from '#gw2/platform/engine/skills/types.js';
+import { conditionEffectTicks, effectFirstAtMs, strikeEffectCoefficient } from '#gw2/platform/effects/authoring.js';
+import { armSkillFlip, consumeSkillFlip } from '#gw2/platform/execution/skill-flips.js';
+import type { Skill } from '#gw2/platform/skills/types.js';
+import type { StrikeEffect } from '#gw2/platform/effects/types.js';
 import { gw2ConfiguredWeaponSet } from '#gw2/platform/equipment/weapons/loadout.js';
 import { buildResolverCondition, buildResolverStrike } from '#gw2/platform/resolver/packets.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
-import type { RuntimeCast } from '#gw2/platform/simulation/runtime-state.js';
-import { projectCastRelativeEffectTimingMs } from '#gw2/platform/skills/timing.js';
+import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
+import { projectCastRelativeEffectTimingMs } from '#gw2/platform/execution/cast-timing.js';
 import type { RevenantRuntime } from '#gw2/professions/revenant/core/events.js';
 import { REVENANT_SKILL_IDS as ID } from '#gw2/professions/revenant/data/ids.js';
 import type { RevenantSkill } from '#gw2/professions/revenant/types.js';

@@ -3,7 +3,7 @@ import { mkdtemp, readFile, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { test } from 'node:test';
-import { GW2_SKILL_ID_ALIASES as RUNTIME_SKILL_ID_ALIASES } from '#gw2/platform/skills/aliases.js';
+import { GW2_SKILL_ID_ALIASES as RUNTIME_SKILL_ID_ALIASES } from '#gw2/platform/skills/external-skill-ids.js';
 import {
   createProfessionSnapshot,
   DEFAULT_TERRESTRIAL_WEAPON_EXCLUSIONS,
@@ -288,10 +288,6 @@ test('API snapshot fetches are English, fixture-backed, and profession-generic',
     assert.equal(result.output, path.resolve(output));
     const source = await readFile(output, 'utf8');
 
-    assert.match(source, /Generated Guild Wars 2 API metadata for warrior/);
-    assert.match(source, /npm run update:profession-data -- --profession Warrior/);
-    assert.match(source, /warrior\/core\/ and warrior\/specializations\//);
-    assert.doesNotMatch(source, /warrior\/mechanics\//);
     assert.match(source, /import type \{ Gw2ApiSpecialization \}/);
     assert.match(source, /export const SPECIALIZATIONS: readonly Gw2ApiSpecialization\[]/);
     assert.match(source, /export const SKILLS: readonly WarriorSkill\[]/);

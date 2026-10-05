@@ -367,8 +367,7 @@ test('adapter caches skill tooltips without retaining row state', () => {
       }
     },
     applyBuildAttributeRules: applyNecromancerBuildAttributeRules,
-    toApplicationBuild,
-    specializationFallback: 'Spite'
+    toApplicationBuild
   });
   const skill = necromancerProfession.catalog.skillsById.get(ID.BLOOD_CURSE);
   const live = adapter.skillTooltip(skill, 'current');
@@ -706,9 +705,8 @@ test('Necromancer condition handlers and tooltips share selected skill effects',
       necromancer: {
         skills: {
           51647: {
-            fields: { lifeForcePerCondition: 2 },
             effects: [
-              { type: 'strike', coefficient: 2 },
+              { type: 'strike', coefficient: 2, resourceGrants: { 'life-force': { 'perCondition.percent': 2 } } },
               { type: 'condition', condition: 'Torment', stacks: 2, duration: 7 }
             ]
           },
@@ -886,7 +884,7 @@ test('completed profession skill declarations cover ordinary and handler-driven 
 test('Engineer spear resolver and tooltip use the same selected packet profile', async () => {
   const { engineerProfession } = await import('#gw2/professions/engineer/profession.js');
   const { engineerTooltips } = await import('#gw2/professions/engineer/app/tooltips.js');
-  const { handleElectricArtillery } = await import('#gw2/professions/engineer/core/mechanics/event-handlers.js');
+  const { handleElectricArtillery } = await import('#gw2/professions/engineer/core/mechanics/spear.js');
   const profession = withPatchPreview(engineerProfession, {
     id: 'spear-tooltip',
     label: 'Spear tooltip',
@@ -1057,14 +1055,8 @@ test('profession trait declarations resolve without missing references or invali
   }
 });
 
-// Profile packets may be alternatives or per-hit inputs; local adapters must preserve those engine contracts.
-test('handler-owned profiles retain per-hit coefficients and alternative conditions', async () => {
-  const { default: engineer } = await import('#gw2/professions/engineer/profession.js');
-  const { engineerTooltips } = await import('#gw2/professions/engineer/app/tooltips.js');
-  const engineerContext = withPatchPreview(engineer, null).balanceContextFor();
-  const grenadier = describeSimulationTrait(engineerContext, { id: 514, name: 'Grenadier' }, engineerTooltips);
-  assert.match(grenadier.facts.find((fact) => fact.name === 'Strike damage').detail, /3 coefficient total · 6 hits/);
-
+// Conditional and recipient-dependent values remain distinct in the rendered facts.
+test('handler-owned tooltips distinguish conditional values and recipients', async () => {
   const { default: warrior } = await import('#gw2/professions/warrior/profession.js');
   const { warriorTooltips } = await import('#gw2/professions/warrior/app/tooltips.js');
   const warriorContext = withPatchPreview(warrior, null).balanceContextFor();

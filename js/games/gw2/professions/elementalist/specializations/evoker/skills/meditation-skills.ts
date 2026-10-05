@@ -4,14 +4,12 @@ import { evokerState } from '#gw2/professions/elementalist/specializations/evoke
  * Meditation trait reactions are registered by the Evoker module.
  */
 import { buffApplicationStacks } from '#gw2/platform/combat/boons.js';
-import {
-  balanceProfileNumber,
-  requireBalanceProfileFromContext
-} from '#gw2/platform/engine/skills/balance-profiles.js';
+import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import { EVOKER_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/elementalist/specializations/evoker/profiles.js';
-import { impactEffects } from '#gw2/platform/engine/effects/authoring.js';
+import { impactEffects } from '#gw2/platform/effects/authoring.js';
 import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';
-import type { Skill, SkillEffect } from '#gw2/platform/engine/skills/types.js';
+import type { Skill } from '#gw2/platform/skills/types.js';
+import type { SkillEffect } from '#gw2/platform/effects/types.js';
 
 /** Declares the meditation catalog while the shared handler applies Altruistic Aspect. */
 // Shared impact timing keeps companion payloads independent and in their authored order.
@@ -27,7 +25,7 @@ export const EVOKER_MEDITATION_SKILL_MECHANICS: Readonly<Record<number, Partial<
         transform: (runtime, cast, effects) => {
           const might = runtime.config.boons?.might
             ? Number(runtime.config.boons.might)
-            : buffApplicationStacks(runtime.boons.get('might') ?? [], 'might', cast.start, 25, {
+            : buffApplicationStacks(runtime.combat.boonApplications('might'), 'might', cast.start, 25, {
                 includes: (application) => application.resolvedAudience.includesSelf
               });
           const profile = requireBalanceProfileFromContext(runtime, PROFILE.foxsFury);

@@ -5,7 +5,7 @@ import { createDodgeSkill } from '#gw2/platform/skills/shared-actions.js';
  * Bundle equip state remains with its persistent mechanics.
  */
 import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';
-import type { Skill } from '#gw2/platform/engine/skills/types.js';
+import type { Skill } from '#gw2/platform/skills/types.js';
 import { ELEMENTALIST_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/elementalist/core/profiles.js';
 
 /** Dodge is a fixed-duration rotation action; it spends endurance only once the roll commits. */

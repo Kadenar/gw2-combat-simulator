@@ -1,11 +1,7 @@
-import { normalizeEffectAudience } from '#gw2/platform/engine/effects/contracts.js';
+import { normalizeEffectAudience } from '#gw2/platform/effects/audience-metadata-validation.js';
 import { canonicalTime } from '#kernel/core/clock.js';
 
-import type {
-  EffectAudience,
-  ResolvedEffectAudience,
-  SimulationEventBase
-} from '#gw2/platform/engine/events/events.js';
+import type { EffectAudience, ResolvedEffectAudience, SimulationEventBase } from '#gw2/platform/events/events.js';
 import { boundedInteger, boundedNumber, clamp } from '#kernel/core/numeric.js';
 
 /**

@@ -16,7 +16,6 @@ export const necromancerAppAdapter = defineProfessionApp({
   tooltips: necromancerTooltips,
   applyBuildAttributeRules: applyNecromancerBuildAttributeRules,
   toApplicationBuild,
-  specializationFallback: 'Spite',
   runtime: {
     // Map persisted life force to the shared initial-resource input.
     buildConfigInputs: (app) => ({

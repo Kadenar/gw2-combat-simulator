@@ -1,4 +1,4 @@
-import type { ConditionEventFields } from '#gw2/platform/engine/events/events.js';
+import type { ConditionEventFields } from '#gw2/platform/events/events.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 
 // Callers select ownership and provenance explicitly; a trigger is never a packet template.

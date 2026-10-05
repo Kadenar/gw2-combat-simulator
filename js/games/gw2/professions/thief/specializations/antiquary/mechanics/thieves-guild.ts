@@ -1,7 +1,10 @@
-import type { ThiefSummonDefinition } from '#gw2/professions/thief/types.js';
+import type { ThiefGuildSummonProfile } from '#gw2/professions/thief/types.js';
 
 // Antiquary owns the Skritt third summon selected by Thieves Guild.
-export const ANTIQUARY_THIEVES_GUILD_SUMMON: ThiefSummonDefinition = Object.freeze({
+export const ANTIQUARY_THIEVES_GUILD_PROFILE: ThiefGuildSummonProfile = Object.freeze({
+  id: 'thief.antiquary.thieves-guild',
+  profileKind: 'mechanic',
+  effects: [],
   name: 'Sword/Dagger Skritt',
   displayName: 'Skritt',
   variant: 'Skritt',

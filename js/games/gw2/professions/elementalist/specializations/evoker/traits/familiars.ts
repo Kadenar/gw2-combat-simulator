@@ -4,9 +4,9 @@ import {
   balanceProfileNumber,
   requireBalanceProfileFromContext,
   requireEffect
-} from '#gw2/platform/engine/skills/balance-profiles.js';
-import type { Skill, SkillId } from '#gw2/platform/engine/skills/types.js';
-import type { RuntimeCast } from '#gw2/platform/simulation/runtime-state.js';
+} from '#gw2/platform/skills/balance-profiles.js';
+import type { Skill, SkillId } from '#gw2/platform/skills/types.js';
+import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import { elementalistBuffRequest } from '#gw2/professions/elementalist/core/events.js';
 import { elementalistProfiledBuffRequest } from '#gw2/professions/elementalist/core/mechanics/effects.js';
 import { elementalistMightStacks } from '#gw2/professions/elementalist/core/mechanics/modifier-queries.js';
@@ -20,6 +20,7 @@ import {
 } from '#gw2/professions/elementalist/data/ids.js';
 import { FAMILIAR_ELEMENTS } from '#gw2/professions/elementalist/specializations/evoker/mechanics/constants.js';
 import { applyGalvanicEnchantment } from '#gw2/professions/elementalist/specializations/evoker/traits/enchantments.js';
+import { familiarBlessingName } from '#gw2/professions/elementalist/specializations/evoker/traits/familiar-blessing.js';
 import type {
   ElementalistModifierContext,
   ElementalistRuntime,
@@ -72,9 +73,9 @@ function grantFamiliarProwess(context: ElementalistRuntime, cast: RuntimeCast<El
   const baseDuration = balanceProfileNumber(familiarsProwessProfile, 'durationMultiplier');
   const extension = balanceProfileNumber(familiarsProwessProfile, 'durationPerTier');
   const maximumDuration = balanceProfileNumber(familiarsProwessProfile, 'maximumStacks');
-  const current = activeElementalistBuffs(context, "familiar's-prowess", at).at(-1);
+  const current = activeElementalistBuffs(context, 'familiars-prowess', at).at(-1);
   if (current) {
-    refreshElementalistBuffs(context, "familiar's-prowess", at, (expiry) =>
+    refreshElementalistBuffs(context, 'familiars-prowess', at, (expiry) =>
       Math.min(expiry + extension, at + maximumDuration)
     );
     return;
@@ -88,7 +89,7 @@ function grantFamiliarProwess(context: ElementalistRuntime, cast: RuntimeCast<El
         sourceId: skill.id,
         actorType: 'player',
         skillName: "Familiar's Prowess",
-        kind: "familiar's-prowess",
+        kind: 'familiars-prowess',
         stacks: 1,
         duration: baseDuration
       },
@@ -110,14 +111,13 @@ export function applyFamiliarTraitProcs(
 
   const familiarElement = FAMILIAR_ELEMENTS.get(skill.id);
   if (familiarElement && hasTrait(context, TRAIT.FAMILIARS_BLESSING)) {
-    const quick = familiarElement === 'Fire' || familiarElement === 'Air';
     // Blessing stays after Prowess and before charge grants; only packet construction is shared.
     context.effects.emit(
       elementalistProfiledBuffRequest(
         context,
         at,
         TRAIT.FAMILIARS_BLESSING,
-        quick ? 'Quickness' : 'Alacrity',
+        familiarBlessingName(familiarElement),
         "Familiar's Blessing",
         skill.id,
         undefined,

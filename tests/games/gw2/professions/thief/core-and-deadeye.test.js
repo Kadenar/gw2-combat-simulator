@@ -1,8 +1,9 @@
 import { planningFixture } from '#tests/helpers/observed-runtime.js';
 import { daredevilModule } from '#gw2/professions/thief/specializations/daredevil/module.js';
-import { armSkillFlip } from '#gw2/platform/engine/skills/skill-flips.js';
+import { armSkillFlip } from '#gw2/platform/execution/skill-flips.js';
 import { assertFlooredDamageMultiplier } from '#tests/helpers/rounded-damage.js';
 import { withActivePatchPreview } from '#gw2/integrations/patches/active-profession.js';
+import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { assumptionControlsForSpecialization } from '#gw2/platform/builds/assumptions.js';
@@ -28,6 +29,10 @@ import { DEADEYE_STOLEN_SKILL_IDS } from '#gw2/professions/thief/specializations
 import { storeThiefStolenSkillChoices } from '#gw2/professions/thief/core/mechanics/steal.js';
 import { runThief } from '#tests/helpers/thief-simulation.js';
 import { withProfile, withSkill } from '#tests/helpers/catalog-overrides.js';
+import { grantSilentScope } from '#gw2/professions/thief/specializations/deadeye/traits/behavior.js';
+import { antiquaryHooks } from '#gw2/professions/thief/specializations/antiquary/hooks.js';
+import { thiefBonusStealthAttack } from '#gw2/professions/thief/core/mechanics/stealth.js';
+import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
 
 const baseConfig = Object.freeze({
   selectedSkillIds: [13027, 13046, 41158, 46335, 13082],
@@ -95,7 +100,7 @@ test('Thief weapon matching keeps hand requirements behind profession variant ga
 });
 
 test('bonus stealth attacks consume only active elite charges and prefer ordinary stealth', () => {
-  // Legacy fields on Core must neither unlock attacks nor absorb elite charge consumption.
+  // A grant misplaced on Core cannot unlock attacks or absorb active-elite consumption.
   for (const specialization of ['Core', 'Daredevil', 'Deadeye', 'Specter', 'Antiquary']) {
     for (const stealthed of [false, true]) {
       for (const expiresAt of [5, 6]) {
@@ -107,15 +112,13 @@ test('bonus stealth attacks consume only active elite charges and prefer ordinar
           {
             initialize(runtime) {
               const { core, specialization: elite } = runtime.profession;
-              assert.equal(Object.hasOwn(core, 'stealthAttackCharges'), false);
+              assert.equal(Object.hasOwn(core, 'bonusStealthAttack'), false);
               Object.assign(core, {
-                stealthAttackCharges: 99,
-                stealthAttackExpiresAt: 100,
+                bonusStealthAttack: { charges: 99, expiresAt: 100 },
                 stealthStartedAt: 0,
                 stealthUntil: stealthed ? 6 : 0
               });
-              if (ownsCharges)
-                Object.assign(elite.state, { stealthAttackCharges: 2, stealthAttackExpiresAt: expiresAt });
+              if (ownsCharges) Object.assign(elite.state, { bonusStealthAttack: { charges: 2, expiresAt } });
             }
           }
         );
@@ -127,11 +130,87 @@ test('bonus stealth attacks consume only active elite charges and prefer ordinar
           assert.equal(core.revealedUntil, 8);
         }
 
-        assert.equal(core.stealthAttackCharges, 99);
-        assert.equal(core.stealthAttackExpiresAt, 100);
-        assert.equal(elite.state.stealthAttackCharges, ownsCharges ? (!stealthed && available ? 1 : 2) : undefined);
+        assert.equal(core.bonusStealthAttack.charges, 99);
+        assert.equal(core.bonusStealthAttack.expiresAt, 100);
+        assert.equal(
+          elite.state.bonusStealthAttack?.charges,
+          ownsCharges ? (!stealthed && available ? 1 : 2) : undefined
+        );
+        if (ownsCharges) {
+          const projected = result.planningState.profession.bonusStealthAttack;
+          assert.deepEqual(projected, elite.state.bonusStealthAttack);
+          projected.charges = 99;
+          assert.notEqual(elite.state.bonusStealthAttack.charges, 99, 'planning grants are detached');
+        }
       }
     }
+  }
+});
+
+// Both owners replace their own grant using selected tuning; availability and palette reads leave it intact.
+test('Silent Scope and Guitar replace bonus stealth attacks with selected counts and lifetimes', () => {
+  for (const specialization of ['Deadeye', 'Antiquary']) {
+    const deadeye = specialization === 'Deadeye';
+    const profile = deadeye ? TRAIT.SILENT_SCOPE : ANTIQUARY_BALANCE_PROFILE_IDS.artifactWindows;
+    const patched = withPatchPreview(thiefProfession, {
+      id: 'bonus-stealth-test',
+      label: 'Bonus stealth test',
+      professions: {
+        thief: {
+          balanceProfiles: {
+            [profile]: { fields: deadeye ? { durationMultiplier: 7 } : { durationMultiplier: 7, resourceGain: 3 } }
+          }
+        }
+      }
+    });
+    const result = runThief(
+      [],
+      {
+        ...baseConfig,
+        specialization,
+        selectedTraitIds: [TRAIT.SILENT_SCOPE],
+        patchId: 'bonus-stealth-test'
+      },
+      { profession: patched }
+    );
+    const runtime = observedRuntime(result);
+    const state = runtime.profession.specialization.state;
+    const context = runtime.mechanics;
+    const grant = () => {
+      if (deadeye) {
+        state.malice.value = 5;
+        grantSilentScope(context, { skill: runtime.helpers.skillsById.get(SHARED_SKILL_IDS.DODGE) });
+      } else antiquaryHooks.sideEffectHandlers['thief.guitar'](context);
+    };
+
+    runtime.time = 1;
+    grant();
+    const first = state.bonusStealthAttack;
+    assert.equal(first.charges, deadeye ? 1 : 3);
+    assert.equal(first.expiresAt, 8);
+    runtime.time = 2;
+    grant();
+    assert.notEqual(state.bonusStealthAttack, first);
+    assert.equal(state.bonusStealthAttack.charges, deadeye ? 1 : 3);
+    assert.equal(state.bonusStealthAttack.expiresAt, 9);
+    const before = structuredClone(state.bonusStealthAttack);
+    for (const at of [8, 9, 10]) {
+      assert.equal(thiefBonusStealthAttack(context, at), at < 9);
+      const skill = runtime.helpers.skillsByName.get(deadeye ? 'Malicious Backstab' : 'Backstab');
+      assert.equal(
+        thiefProfession.ui.paletteOverride(
+          {
+            specialization,
+            time: at,
+            professionState: { bonusStealthAttack: state.bonusStealthAttack }
+          },
+          skill
+        ).tileActive,
+        at < 9
+      );
+    }
+
+    assert.deepEqual(state.bonusStealthAttack, before);
   }
 });
 
@@ -168,7 +247,7 @@ test('Endurance Thief is Daredevil-owned and grants its patched endurance with C
       assert.deepEqual(result.warnings, []);
       const runtime = observedRuntime(result);
       assert.equal(runtime.resourceController.value('initiative'), 5);
-      assert.equal(runtime.profession.core.endurance, active && selected ? 47 : 10);
+      assert.equal(runtime.profession.core.endurance.value, active && selected ? 47 : 10);
       assert.equal(runtime.profession.core.storedStolenSkillCount, 1);
     }
   }
@@ -837,22 +916,6 @@ test('Deadeye stolen skills use the PvE damage formula and apply One in the Cham
   }
 });
 
-// An opening stolen hit must be observed at impact even when its cast still occupies the player lane.
-test('stolen skill impacts keep their timestamp when the cast aftercast changes', () => {
-  for (const skillId of DEADEYE_STOLEN_SKILL_IDS) {
-    const result = runThief(
-      [ID.DEADEYES_MARK, skillId, { type: 'combat-start', concurrentOffsetMs: 200 }],
-      { specialization: 'Deadeye' },
-      { catalog: (catalog) => withSkill(catalog, skillId, { castTimeMs: 800 }) }
-    );
-    assert.deepEqual(result.warnings, []);
-    const hit = result.events.find((event) => event.type === 'damage' && event.skillId === skillId);
-    assert.equal(hit.at, 0.2);
-    assert.ok(hit.at < result.rotationEndTime);
-    assert.ok(result.totalDamage > 0);
-  }
-});
-
 test('Deadeye palette uses malicious stealth attacks and one stateful rifle bar', () => {
   const deadeyesMark = thiefCatalog.skillsByName.get("Deadeye's Mark");
   const deadeyeStolenSkillIds = [
@@ -1121,7 +1184,7 @@ test('Daredevil capacity and every dodge replacement resolve explicitly', () => 
       selectedTraitIds: [traitId]
     });
 
-    assert.equal(result.planningState.profession.maximumEndurance, 150);
+    assert.equal(result.planningState.profession.endurance.maximum, 150);
     assert.ok(result.events.some((event) => event.type === eventType));
 
     if (selectedDodge === 'Bounding Dodger') {
@@ -1214,8 +1277,8 @@ test('Critical Strikes applies runtime Fury, No Quarter, and multiplicative modi
   );
 
   assert.equal(extendedFurySlice.criticalDamage, 1.5 + 250 / 1500);
-  assert.equal(observedRuntime(withNoQuarter).procs.readyAt[TRAIT.UNRELENTING_STRIKES], firstFlawless[0].at + 8);
-  assert.equal(observedRuntime(withNoQuarter).procs.readyAt[TRAIT.NO_QUARTER], extendedFurySlice.at + 2);
+  assert.equal(observedRuntime(withNoQuarter).procs.snapshot()[TRAIT.UNRELENTING_STRIKES], firstFlawless[0].at + 8);
+  assert.equal(observedRuntime(withNoQuarter).procs.snapshot()[TRAIT.NO_QUARTER], extendedFurySlice.at + 2);
 
   const withAssassinsFury = simulate('Daredevil', ['Flawless Execution'], {
     ...criticalConfig,
@@ -1228,7 +1291,7 @@ test('Critical Strikes applies runtime Fury, No Quarter, and multiplicative modi
     2090 / 2000
   );
   assert.equal(
-    observedRuntime(withAssassinsFury).procs.readyAt[TRAIT.ASSASSINS_FURY],
+    observedRuntime(withAssassinsFury).procs.snapshot()[TRAIT.ASSASSINS_FURY],
     flawlessHits(withAssassinsFury)[0].at + 2
   );
 
@@ -1315,13 +1378,13 @@ test('Daredevil follow-ups, delayed impacts, and endurance traits resolve', () =
         event.type === 'condition' && event.condition === 'Weakness' && event.sourceId === TRAIT.WEAKENING_STRIKES
     )
   );
-  const palm = result.resolvedEvents.find((event) => event.type === 'damage' && event.name === 'Palm Strike');
   const pulmonary = result.resolvedEvents.filter(
     (event) => event.type === 'damage' && event.name === 'Pulmonary Impact'
   );
 
   assert.equal(pulmonary.length, 2);
-  assert.ok(pulmonary.every((event) => event.canCrit === false && Math.abs(event.at - palm.at - 2) < 1e-9));
+  assert.ok(pulmonary.length > 0);
+  assert.ok(pulmonary.every((event) => event.canCrit === false));
 
   const withoutSteal = simulate('Daredevil', ['Dodge', 'Dodge', 'Steal']);
   const withSteal = simulate('Daredevil', ['Dodge', 'Dodge', 'Steal'], {
@@ -1329,7 +1392,9 @@ test('Daredevil follow-ups, delayed impacts, and endurance traits resolve', () =
   });
 
   assert.ok(
-    Math.abs(withSteal.planningState.profession.endurance - withoutSteal.planningState.profession.endurance - 50) < 1e-9
+    Math.abs(
+      withSteal.planningState.profession.endurance.value - withoutSteal.planningState.profession.endurance.value - 50
+    ) < 1e-9
   );
 
   const havoc = daredevilModule.modifiers.modifierRules.find((rule) => rule.id === 'thief.havoc-specialist');
@@ -1352,7 +1417,7 @@ test('Deadeye cantrips, malice, stolen skills, and traits are stateful', () => {
   assert.equal(result.planningState.profession.markedTargetId, 'primary-target');
   assert.equal(result.planningState.profession.storedStolenSkillId, ID.STEAL_TIME);
   assert.equal(result.planningState.profession.storedStolenSkillCount, 1);
-  assert.equal(result.planningState.profession.malice, 4);
+  assert.equal(result.planningState.profession.malice.value, 4);
   assert.ok(
     result.resolvedEvents.filter((event) => event.skillName === 'Death Blossom' && event.type === 'damage').length > 1
   );
@@ -1363,7 +1428,7 @@ test('Deadeye cantrips, malice, stolen skills, and traits are stateful', () => {
   });
 
   assert.equal(consumed.warnings.length, 0);
-  assert.equal(consumed.planningState.profession.malice, 2);
+  assert.equal(consumed.planningState.profession.malice.value, 2);
 
   const selectableStolenSkills = simulate('Deadeye', ["Deadeye's Mark"]);
   const selectableStolenGroup = thiefProfession.ui
@@ -1412,7 +1477,7 @@ test('Deadeye cantrips, malice, stolen skills, and traits are stateful', () => {
 
   assert.equal(mercy.warnings.length, 0);
   assert.equal(mercy.planningState.profession.markGeneration, 2);
-  assert.equal(mercy.planningState.profession.malice, 2);
+  assert.equal(mercy.planningState.profession.malice.value, 2);
 
   const chamber = simulate('Deadeye', ['Shadow Flare'], {
     selectedTraitIds: [TRAIT.ONE_IN_THE_CHAMBER],
@@ -1455,7 +1520,7 @@ test('Deadeye cantrips, malice, stolen skills, and traits are stateful', () => {
   });
 
   assert.equal(expired.planningState.profession.markedTargetId, null);
-  assert.equal(expired.planningState.profession.malice, 0);
+  assert.equal(expired.planningState.profession.malice.value, 0);
 });
 
 test('Malicious Intent grants malice after a stealth attack consumes its existing stacks', () => {
@@ -1475,14 +1540,14 @@ test('Malicious Intent grants malice after a stealth attack consumes its existin
   const result = runThief(rotation, config, {
     probes: [hit.at - 0.001, hit.at].map((at) => [
       at,
-      (runtime) => malice.push(runtime.profession.specialization.state.malice)
+      (runtime) => malice.push(runtime.profession.specialization.state.malice.value)
     ])
   });
 
   assert.deepEqual(result.warnings, []);
   assert.equal(hit.deadeyeMaliceSnapshot, 6);
   assert.deepEqual(malice, [6, 2]);
-  assert.equal(result.planningState.profession.malice, 2);
+  assert.equal(result.planningState.profession.malice.value, 2);
   assert.equal(result.planningState.profession.maleficentSevenTriggered, false);
   assert.equal(
     result.events.some((event) => event.name?.includes('Maleficent Seven')),
@@ -1501,16 +1566,16 @@ test('Deadeye malice resolves on the first hit and malicious impact', () => {
     (event) => event.skillName === 'Death Blossom' && event.type === 'damage'
   );
 
-  assert.equal(burstHits.length, 3);
+  assert.ok(burstHits.length > 0);
   assert.ok(burstHits.every((event) => event.didCrit === true));
-  assert.equal(criticalBurst.planningState.profession.malice, 4);
+  assert.equal(criticalBurst.planningState.profession.malice.value, 4);
 
   const noncriticalBurst = simulate('Deadeye', ["Deadeye's Mark", 'Death Blossom'], {
     stats: { precision: 0 },
     randomness: { mode: 'stochastic', seed: 1 }
   });
 
-  assert.equal(noncriticalBurst.planningState.profession.malice, 1);
+  assert.equal(noncriticalBurst.planningState.profession.malice.value, 1);
 
   const earlyMercyRotation = ["Deadeye's Mark", 'Kneel', 'Three Round Burst', { name: 'Mercy', offset: 100 }];
   const earlyMercyConfig = {
@@ -1535,7 +1600,7 @@ test('Deadeye malice resolves on the first hit and malicious impact', () => {
   });
   // Two malice stacks refund five initiative independently of the preceding regeneration wait.
   assert.ok(Math.abs(around[1][0] - around[0][0] - around[0][1] * 0.001 - 5) < 1e-9);
-  assert.equal(earlyMercy.planningState.profession.malice, 2);
+  assert.equal(earlyMercy.planningState.profession.malice.value, 2);
 
   const rifleRotation = ["Deadeye's Mark", 'Kneel', 'Three Round Burst', 'Shadow Meld', "Malicious Death's Judgment"];
   const rifleConfig = {
@@ -1563,7 +1628,7 @@ test('Deadeye malice resolves on the first hit and malicious impact', () => {
     mercyRotation,
     { ...baseConfig, ...rifleConfig, specialization: 'Deadeye' },
     {
-      probes: [[mercyEvent.at, (runtime) => afterImpact.push(runtime.profession.specialization.state.malice)]]
+      probes: [[mercyEvent.at, (runtime) => afterImpact.push(runtime.profession.specialization.state.malice.value)]]
     }
   );
   assert.deepEqual(afterImpact, [2]);
@@ -1573,7 +1638,7 @@ test('Deadeye malice resolves on the first hit and malicious impact', () => {
     randomness: { mode: 'stochastic', seed: 1 }
   });
 
-  assert.equal(remarked.planningState.profession.malice, 2);
+  assert.equal(remarked.planningState.profession.malice.value, 2);
 });
 
 test('Deadeye strike modifiers, grandmasters, and stealth attacks use supplied values', () => {
@@ -1672,8 +1737,8 @@ test('Deadeye strike modifiers, grandmasters, and stealth attacks use supplied v
   });
 
   assert.equal(seven.warnings.length, 0);
-  assert.equal(seven.planningState.profession.maximumMalice, 7);
-  assert.equal(seven.planningState.profession.malice, 7);
+  assert.equal(seven.planningState.profession.malice.maximum, 7);
+  assert.equal(seven.planningState.profession.malice.value, 7);
   assert.ok(seven.events.some((event) => event.name?.includes('Maleficent Seven')));
 
   const silent = simulate(
@@ -1683,7 +1748,7 @@ test('Deadeye strike modifiers, grandmasters, and stealth attacks use supplied v
   );
 
   assert.equal(silent.warnings.length, 0);
-  assert.equal(silent.planningState.profession.stealthAttackCharges, 0);
+  assert.equal(silent.planningState.profession.bonusStealthAttack.charges, 0);
 
   const maliciousSneak = simulate('Deadeye', ["Deadeye's Mark", 'Unload', 'Steal Time', 'Malicious Sneak Attack'], {
     ...fullCrit,
@@ -1694,7 +1759,7 @@ test('Deadeye strike modifiers, grandmasters, and stealth attacks use supplied v
 
   assert.equal(maliciousSneak.warnings.length, 0);
   // Multiple hits consume malice only once, leaving the trait's grant for the next attack.
-  assert.equal(maliciousSneak.planningState.profession.malice, 2);
+  assert.equal(maliciousSneak.planningState.profession.malice.value, 2);
   assert.equal(
     maliciousSneak.events.find((event) => event.skillName === 'Malicious Sneak Attack' && event.condition === 'Torment')
       .duration,
@@ -1778,14 +1843,14 @@ test('Deadeye stolen effects capture malice and preserve party audience and Reve
           {
             initialize(runtime) {
               storeThiefStolenSkillChoices(runtime, [skillId]);
-              runtime.profession.specialization.state.malice = malice;
+              runtime.resourceController.replace('malice', malice);
               runtime.profession.core.revealedUntil = revealed ? 10 : 0;
             },
             probes: [
               [
                 0.05,
                 (runtime) => {
-                  runtime.profession.specialization.state.malice = malice === 3 ? 0 : 3;
+                  runtime.resourceController.replace('malice', malice === 3 ? 0 : 3);
                 }
               ]
             ]

@@ -1,9 +1,9 @@
 import { withSkill, withProfile } from '#tests/helpers/catalog-overrides.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { MODIFIER_HOOK_NAMES } from '#gw2/platform/engine/profession/contract.js';
-import { createCanonicalCatalog } from '#gw2/platform/engine/skills/canonical-skill-catalog.js';
-import { weaponFlipBlock, weaponFollowUpOpen } from '#gw2/platform/engine/skills/skill-flips.js';
+import { MODIFIER_HOOK_NAMES } from '#gw2/platform/profession-definition/compiler/compile-contract.js';
+import { createCanonicalCatalog } from '#gw2/platform/skills/catalog.js';
+import { weaponFlipBlock, weaponFollowUpOpen } from '#gw2/platform/execution/skill-flips.js';
 import { skillCostAvailability } from '#gw2/platform/execution/skill-cost.js';
 import { runGw2Runtime } from '#gw2/platform/simulation/runtime.js';
 import { testProfession } from '#tests/fixtures/profession.js';
@@ -245,9 +245,9 @@ test('declared costs are paid on acceptance, or only by activations that pass th
   assert.deepEqual(energy, [7, 3]);
 });
 
-test('committed costs settle once before completion rewards, including shortened successful casts', () => {
+test('successful resource costs settle once before completion rewards', () => {
   // Successful completion owns the debit; cancelled attempts neither pay nor receive completion rewards.
-  for (const interruptAfterMs of [undefined, 600, 100]) {
+  for (const interruptAfterMs of [undefined, 100]) {
     const observed = [];
     const result = runGw2Runtime({
       profession: {
@@ -308,27 +308,6 @@ test('automatic payments share the declared profile amount with affordability an
   }
 });
 
-test('committed activations schedule authored tasks after commit hooks while cancellations only clean up', () => {
-  const log = [];
-  run(
-    {
-      onCastCommit: (runtime, activation) => log.push(['commit', runtime.time, activation.skill.name]),
-      onCastCancel: (runtime, activation) => log.push(['cancel', runtime.time, activation.skill.name]),
-      tasks: {
-        'test.record-task': (runtime, data) => log.push(['task', runtime.time, data.cast.skill.name, data.trigger.atMs])
-      }
-    },
-    // The first activation commits before its interruption; the second is cancelled before its commit point.
-    [cast(991004, { interruptAfterMs: 800 }), cast(991004, { interruptAfterMs: 100 }), wait(2000)]
-  );
-  assert.deepEqual(log, [
-    ['commit', 0.8, 'Tasked'],
-    ['task', 0.8, 'Tasked', undefined],
-    ['cancel', 0.9, 'Tasked'],
-    ['task', 1.5, 'Tasked', 500]
-  ]);
-});
-
 test('the weapon follow-up rule hides a parent behind its open window and gates a closed follow-up', () => {
   const parent = { id: 1, name: 'Opener', type: 'Weapon', flipSkillId: 2 };
   const followUp = { id: 2, name: 'Follow-Up', type: 'Weapon', flipParentId: 1 };
@@ -342,11 +321,10 @@ test('the weapon follow-up rule hides a parent behind its open window and gates 
   assert.equal(weaponFollowUpOpen(open, parent, 5), false);
 });
 
-// Full and shortened committed casts receive identical rewards; cancelled attempts only retain start effects.
-test('commit rewards run once for full or shortened casts and resolve selected profile amounts', () => {
+// Successful resource transactions apply profile rewards once; cancelled attempts retain only start effects.
+test('resource rewards apply the selected profile only to successful transactions', () => {
   for (const [interruptAfterMs, expected] of [
     [100, 1],
-    [500, 7],
     [undefined, 7]
   ]) {
     const energy = [];
@@ -386,8 +364,8 @@ test('declared reset, ammo, flip, and profile effects settle before completion h
       onCastCommit(runtime, activation) {
         if (activation.skill.id === 991006)
           observed.push([
-            runtime.ammo.get(991007).charges,
-            runtime.cooldowns.get(991007),
+            runtime.cooldownController.readAmmo(991007).charges,
+            runtime.cooldownController.readyAt(991007),
             runtime.profession.core.availableFlips.flip.expiresAt
           ]);
       }
@@ -451,7 +429,7 @@ test('recharge rules compose with hooks and trait triggers claim before emitting
         }
       ],
       onCastCommit(runtime, activation) {
-        observations.push([activation.rechargeWork, runtime.procs.readyAt['test.proc']]);
+        observations.push([activation.rechargeWork, runtime.procs.snapshot()['test.proc']]);
       }
     },
     [cast(991009), wait(1000)]
@@ -545,28 +523,25 @@ test('effect variants can transform their own selected effects and retain remova
   );
 });
 
-// Recharge progress follows the accepted interval, including a committed shortened cast; offsets stay fixed.
+// Recharge progress selects the cooldown anchor while keeping its configured offset fixed.
 test('declared recharge progress scales the accepted anchor and validates its range', () => {
   for (const duration of [1000, 2000]) {
-    for (const interruptAfterMs of [undefined, duration * 0.75]) {
-      const seen = [];
-      const selected = withSkill(catalog, 991009, {
-        castTimeMs: duration,
-        interruptCommitMs: duration / 2,
-        rechargeProgress: 0.5,
-        rechargeOffsetMs: 100
-      });
-      run(
-        {
-          catalog: selected,
-          onCastCommit(_runtime, activation) {
-            seen.push(activation.rechargeStart);
-          }
-        },
-        [cast(991009, { interruptAfterMs })]
-      );
-      assert.deepEqual(seen, [(interruptAfterMs ?? duration) / 2000 + 0.1]);
-    }
+    const seen = [];
+    const selected = withSkill(catalog, 991009, {
+      castTimeMs: duration,
+      rechargeProgress: 0.5,
+      rechargeOffsetMs: 100
+    });
+    run(
+      {
+        catalog: selected,
+        onCastCommit(_runtime, activation) {
+          seen.push(activation.rechargeStart);
+        }
+      },
+      [cast(991009)]
+    );
+    assert.deepEqual(seen, [duration / 2000 + 0.1]);
   }
 
   for (const rechargeProgress of [-1, 1.1, Infinity, NaN, '0.5'])
@@ -579,8 +554,13 @@ test('declared recharge progress scales the accepted anchor and validates its ra
 // Dynamic metadata is evaluated only for an accepted proc, once for all packets, after the ICD claim.
 test('dynamic cast attribution preserves targeting and overrides authored packet identity once per proc', () => {
   const calls = [];
+  let procs;
   const result = run(
     {
+      // Observe claim ordering through the lifecycle owner, outside the attribution query capability.
+      initialize(runtime) {
+        procs = runtime.procs;
+      },
       traitTriggers: [
         {
           trait: 'test.trait',
@@ -588,8 +568,8 @@ test('dynamic cast attribution preserves targeting and overrides authored packet
           emit: 'test.attribution',
           icd: 'profile',
           when: (_runtime, activation) => activation.skill.id === 991001,
-          attribution(runtime, activation) {
-            calls.push([activation.id, runtime.procs.deadline('test.attribution')]);
+          attribution(_runtime, activation) {
+            calls.push([activation.id, procs.deadline('test.attribution')]);
             return {
               actorType: 'player',
               ownerActorType: 'player',

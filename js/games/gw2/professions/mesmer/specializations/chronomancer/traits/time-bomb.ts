@@ -1,17 +1,16 @@
-import { mesmerCastDelivery } from '#gw2/professions/mesmer/core/execution/cast-lifecycle.js';
-import {
-  buildMesmerPacket,
-  mesmerPacketOwner,
-  buildMesmerStrikes
-} from '#gw2/professions/mesmer/core/mechanics/packets.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import {
   balanceProfileNumber,
   requireBalanceProfileFromContext,
   requireEffect
-} from '#gw2/platform/engine/skills/balance-profiles.js';
-import type { RuntimeCast } from '#gw2/platform/simulation/runtime-state.js';
-import { mesmerMechanicsFor } from '#gw2/professions/mesmer/core/mechanics/runtime.js';
+} from '#gw2/platform/skills/balance-profiles.js';
+import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
+import { mesmerCastDelivery } from '#gw2/professions/mesmer/core/execution/cast-lifecycle.js';
+import {
+  buildMesmerPacket,
+  buildMesmerStrikes,
+  mesmerPacketOwner
+} from '#gw2/professions/mesmer/core/mechanics/packets.js';
 import { MESMER_SKILL_IDS as ID, MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
 import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
 import { chronomancerState } from '#gw2/professions/mesmer/specializations/chronomancer/state.js';
@@ -23,7 +22,6 @@ export function completeChronomancerTimeBomb(context: MesmerRuntime, cast: Runti
   const skill = cast.skill;
   if (skill.id !== ID.TIME_SINK) return;
 
-  const runtime = mesmerMechanicsFor(context);
   const state = chronomancerState.from(context);
   const at = cast.fullEnd;
   if (!hasTrait(context, TRAIT.TIME_BOMB) || at < state.timeBombUntil) return;
@@ -47,7 +45,7 @@ export function completeChronomancerTimeBomb(context: MesmerRuntime, cast: Runti
       expiresAt: state.timeBombUntil,
       sourceSkill: skill.name
     });
-    runtime.context.effects.emit({
+    context.effects.emit({
       ...delivery,
       kind: 'packet',
       event: packet,
@@ -57,7 +55,7 @@ export function completeChronomancerTimeBomb(context: MesmerRuntime, cast: Runti
   }
 
   buildMesmerStrikes(
-    runtime.context,
+    context,
     {
       id: 'Time Bomb',
       name: 'Time Bomb',
@@ -74,7 +72,7 @@ export function completeChronomancerTimeBomb(context: MesmerRuntime, cast: Runti
       weapon: 'utility'
     }
   ).forEach((packet) => {
-    runtime.context.effects.emit({
+    context.effects.emit({
       ...delivery,
       kind: 'packet',
       event: packet,
@@ -82,7 +80,7 @@ export function completeChronomancerTimeBomb(context: MesmerRuntime, cast: Runti
       priority: Number(packet.priority ?? 0)
     });
   });
-  runtime.context.effects.emit({
+  context.effects.emit({
     ...delivery,
     kind: 'announcement',
     log: true,

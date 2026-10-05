@@ -2,10 +2,11 @@ import { effectFields } from '#tests/helpers/effect-report.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { criticalChanceEventAt, timedBuffAt, timedBuffStacksAt } from '#gw2/platform/results/query.js';
+import { criticalChanceEventAt } from '#gw2/platform/results/query.js';
+import { effectStateAt } from '#gw2/platform/results/effect-report.js';
 
 // Report queries share committed effect history and half-open lifetimes with combat queries.
-test('result effects ignore predictions and retain older overlapping grants', () => {
+test('effect histories isolate self grants and retain older overlapping grants', () => {
   const resolvedAudience = {
     includesSelf: true,
     includesSummons: false,
@@ -15,7 +16,6 @@ test('result effects ignore predictions and retain older overlapping grants', ()
   };
   const older = { type: 'buff', kind: 'tracked', at: 0, duration: 10, stacks: 2, resolvedAudience };
   const result = {
-    events: [{ ...older, stacks: 99 }],
     ...effectFields(
       [
         older,
@@ -25,11 +25,12 @@ test('result effects ignore predictions and retain older overlapping grants', ()
       120
     )
   };
-  assert.deepEqual(timedBuffAt(result, 'tracked', 3), { remaining: 7, event: older });
-  assert.equal(timedBuffStacksAt(result, 'tracked', 3), 2);
-  assert.equal(timedBuffAt(result, 'tracked', 10), null);
-  assert.equal(timedBuffStacksAt(result, 'tracked', 10), 0);
-  assert.equal(timedBuffStacksAt({ events: result.events, ...effectFields([], 120) }, 'tracked', 3), 0);
+  const report = result.effectReport;
+  const track = report.tracks.find(
+    (track) => track.kind === 'tracked' && track.recipient === 'self' && track.origin === 'simulated'
+  );
+  assert.deepEqual(effectStateAt(report, track, 3), { count: 2, expiresAt: 10, source: older });
+  assert.equal(effectStateAt(report, track, 10).count, 0);
 });
 
 // Extensions use combat's duration-pool and intensity rules while retaining the original source grant.
@@ -55,12 +56,13 @@ test('reported boon extensions preserve pooled duration and surviving grant iden
       120
     )
   };
-  assert.deepEqual(timedBuffAt(result, 'might', 5), { remaining: 1, event: might });
-  assert.deepEqual(timedBuffAt(result, 'fury', 5), { remaining: 1, event: fury });
-  assert.equal(timedBuffStacksAt(result, 'might', 5), 2);
-  assert.equal(timedBuffStacksAt(result, 'fury', 5), 1);
-  assert.equal(timedBuffAt(result, 'fury', 6), null);
-  assert.equal(timedBuffStacksAt(result, 'might', 6), 0);
+  const report = result.effectReport;
+  const mightTrack = report.tracks.find((track) => track.kind === 'might');
+  const furyTrack = report.tracks.find((track) => track.kind === 'fury');
+  assert.deepEqual(effectStateAt(report, mightTrack, 5), { count: 2, expiresAt: 6, source: might });
+  assert.deepEqual(effectStateAt(report, furyTrack, 5), { count: 1, expiresAt: 6, source: fury });
+  assert.equal(effectStateAt(report, furyTrack, 6).count, 0);
+  assert.equal(effectStateAt(report, mightTrack, 6).count, 0);
 });
 
 test('critical chance query selects the next eligible player strike', () => {
@@ -82,7 +84,7 @@ test('critical chance query selects the next eligible player strike', () => {
   assert.equal(criticalChanceEventAt(result, 1000), after);
 });
 
-test('timed buff queries use the latest active application and sum live stacks', () => {
+test('effect histories retain the latest active source and sum live stacks', () => {
   const resolvedAudience = {
     includesSelf: true,
     includesSummons: false,
@@ -102,14 +104,15 @@ test('timed buff queries use the latest active application and sum live stacks',
     )
   };
 
-  assert.deepEqual(timedBuffAt(result, 'tracked', 3), { remaining: 4, event: latest });
-  assert.equal(timedBuffStacksAt(result, 'tracked', 3), 5);
-  assert.equal(timedBuffStacksAt(result, 'tracked', 4), 3);
-  assert.equal(timedBuffAt(result, 'tracked', 7), null);
+  const report = result.effectReport;
+  const track = report.tracks.find((track) => track.kind === 'tracked');
+  assert.deepEqual(effectStateAt(report, track, 3), { count: 5, expiresAt: 7, source: latest });
+  assert.equal(effectStateAt(report, track, 4).count, 3);
+  assert.equal(effectStateAt(report, track, 7).count, 0);
 
   const rounded = {
     ...effectFields([{ type: 'buff', kind: 'tracked', at: 0.36, duration: 1.002, stacks: 1, resolvedAudience }], 120)
   };
-  assert.equal(timedBuffStacksAt(rounded, 'tracked', 1.399999), 1);
-  assert.equal(timedBuffStacksAt(rounded, 'tracked', 1.4), 0);
+  assert.equal(effectStateAt(rounded.effectReport, rounded.effectReport.tracks[0], 1.399999).count, 1);
+  assert.equal(effectStateAt(rounded.effectReport, rounded.effectReport.tracks[0], 1.4).count, 0);
 });

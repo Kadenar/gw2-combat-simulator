@@ -1,14 +1,14 @@
-import type { EffectDelivery } from '#gw2/platform/simulation/effect-emission.js';
-import type { RuntimeCast } from '#gw2/platform/simulation/runtime-state.js';
+import type { EffectDelivery } from '#gw2/platform/effects/emission.js';
+import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import { EPSILON } from '#kernel/core/clock.js';
 /**
  * Owns Primordial Stance's scheduled pulses against the live Weaver attunement pair.
  * Skill packet templates remain in `skills/slot-skills.ts`.
  */
-import { materializeSkillEffectApplications, scaleCastBoundTiming } from '#gw2/platform/engine/effects/materializer.js';
-import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
-import { requireBalanceProfileFromContext, requireEffect } from '#gw2/platform/engine/skills/balance-profiles.js';
-import type { Skill } from '#gw2/platform/engine/skills/types.js';
+import { materializeSkillEffectApplications, scaleCastBoundTiming } from '#gw2/platform/effects/materializer.js';
+import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
+import { requireBalanceProfileFromContext, requireEffect } from '#gw2/platform/skills/balance-profiles.js';
+import type { Skill } from '#gw2/platform/skills/types.js';
 import { elementalistConditionRequest, elementalistStrikeRequest } from '#gw2/professions/elementalist/core/events.js';
 import { WEAVER_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/elementalist/specializations/weaver/profiles.js';
 import { weaverState } from '#gw2/professions/elementalist/specializations/weaver/state.js';

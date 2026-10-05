@@ -5,12 +5,12 @@ import {
   balanceProfileNumber,
   requireBalanceProfileFromContext,
   requireEffect
-} from '#gw2/platform/engine/skills/balance-profiles.js';
+} from '#gw2/platform/skills/balance-profiles.js';
 import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
-import type { RuntimeCast } from '#gw2/platform/simulation/runtime-state.js';
+import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import { guardianCastCause } from '#gw2/professions/guardian/core/mechanics/event-handlers.js';
 import { guardianBoonActive } from '#gw2/professions/guardian/core/mechanics/modifier-queries.js';
-import { guardianTraitIcon } from '#gw2/professions/guardian/core/traits/behavior.js';
+import { guardianTraitIcon } from '#gw2/professions/guardian/core/traits/metadata.js';
 
 import { GUARDIAN_TRAIT_IDS as TRAIT } from '#gw2/professions/guardian/data/ids.js';
 import { MANTRAS } from '#gw2/professions/guardian/data/mantra-definitions.js';
@@ -187,12 +187,15 @@ export const liberatorsVow = defineTrait({
               transform: (event) => ({ ...boonCause, ...event, audience: { recipients: 'party' } })
             });
             {
-              runtime.procs.readyAt['guardian.firebrand.liberatorsVow'] = canonicalTime(
-                runtime.time +
-                  balanceProfileNumber(
-                    requireBalanceProfileFromContext(runtime, TRAIT.LIBERATORS_VOW),
-                    'internalCooldown'
-                  )
+              runtime.procs.setDeadline(
+                'guardian.firebrand.liberatorsVow',
+                canonicalTime(
+                  runtime.time +
+                    balanceProfileNumber(
+                      requireBalanceProfileFromContext(runtime, TRAIT.LIBERATORS_VOW),
+                      'internalCooldown'
+                    )
+                )
               );
               {
                 runtime.effects.emit({

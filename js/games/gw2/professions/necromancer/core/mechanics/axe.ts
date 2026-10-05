@@ -1,4 +1,3 @@
-import { remainingTargetHealthBelow } from '#gw2/platform/combat/state/target-health.js';
 import { buildResolverCondition } from '#gw2/platform/resolver/packets.js';
 import { NECROMANCER_SKILL_IDS as ID } from '#gw2/professions/necromancer/data/ids.js';
 import type { NecromancerResolverContext, NecromancerResolverEvent } from '#gw2/professions/necromancer/types.js';
@@ -9,9 +8,9 @@ export function reactToNecromancerAxeHealth(
   event: NecromancerResolverEvent
 ): void {
   if (event.actorType !== 'player' || !(Number(event.coefficient) > 0)) return;
-  const skill = context.helpers.skillsById?.get(event.skillId ?? event.sourceId);
+  const skill = context.helpers.skillsById.get(event.skillId ?? event.sourceId);
   if (!skill || (skill.id !== ID.RENDING_CLAWS && skill.id !== ID.UNHOLY_FEAST)) return;
-  if (!remainingTargetHealthBelow(context.config, context, 0.5)) return;
+  if (!context.combat.targetHealthBelow(0.5)) return;
 
   if (skill.id === ID.RENDING_CLAWS) {
     const vulnerability = skill.effects?.find((effect) => effect.type === 'condition')?.ticks?.[
@@ -36,7 +35,7 @@ export function reactToNecromancerAxeHealth(
     return;
   }
 
-  const burst = context.helpers.skillsById?.get(ID.UNHOLY_BURST);
+  const burst = context.helpers.skillsById.get(ID.UNHOLY_BURST);
   if (!burst) return;
   // The shared service expands the selected strike profile at the resolved crossing hit.
   context.effects.emit({
