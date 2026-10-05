@@ -5,7 +5,7 @@ import {
 } from '#gw2/professions/mesmer/core/mechanics/packets.js';
 import { EPSILON } from '#kernel/core/clock.js';
 import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
-import { MESMER_CORE_CLONE_ATTACKS } from '#gw2/professions/mesmer/core/mechanics/definitions.js';
+import { axeCloneAttack } from '#gw2/professions/mesmer/core/skills/weapons/axe-clone.js';
 import { mesmerCastDelivery } from '#gw2/professions/mesmer/core/execution/cast-lifecycle.js';
 import type { MesmerRuntime } from '#gw2/professions/mesmer/types.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
@@ -189,7 +189,7 @@ export function scheduleAxesClones(state: MesmerRuntime, cast: RuntimeCast<Mesme
           coefficient: 1.75,
           hits: 1,
           source: 'Clone',
-          weaponStrength: MESMER_CORE_CLONE_ATTACKS.Axe.weaponStrength
+          weaponStrength: axeCloneAttack.weaponStrength
         },
         {
           metadata: { cloneId: clone.id },
