@@ -7,6 +7,53 @@ import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
 import { createGw2ComboResolution } from '#gw2/platform/resolver/combo-resolution.js';
 import { resolveElementalistAura } from '#gw2/professions/elementalist/core/mechanics/auras.js';
 import { createExecutedFacts } from '#gw2/platform/combat/history/executed-facts.js';
+import { observeGw2Runtime, observedRuntime } from '#tests/helpers/observed-runtime.js';
+
+// Lifecycle updates belong to gameplay facts even when score runs omit report collections.
+test('action updates change authoritative history without enabling score reporting', () => {
+  const profession = defineTestProfession({ id: 'action-updates', name: 'Action updates' });
+  for (const output of ['detailed', 'score']) {
+    const action = {
+      type: 'action',
+      at: 0,
+      source: 'fixture-pet',
+      sourceId: 'fixture-pet',
+      actorType: 'summon',
+      activationId: 'fixture-pet:attack',
+      endsAt: 3,
+      fullEndsAt: 3
+    };
+    const update = { ...action, type: 'action_update', at: 1, endsAt: 1, interrupted: true };
+    const result = observeGw2Runtime({
+      profession: profession.runtimeFor({}),
+      config: {},
+      rotation: [{ type: 'wait', durationMs: 2000 }],
+      output,
+      engineInitialize(runtime) {
+        runtime.effects.emit({ kind: 'packet', event: action });
+        runtime.effects.emit({ kind: 'packet', event: update });
+      }
+    });
+    const runtime = observedRuntime(result);
+    const fact = runtime.facts.actionFor(action.activationId);
+    assert.equal(fact.interrupted, true, output);
+    assert.equal(fact.endsAt, update.at, output);
+    assert.equal(runtime.facts.ofType('action').length, 1);
+    assert.equal(runtime.facts.ofType('action_update').length, 0);
+    assert.equal(action.interrupted, undefined, 'emission must detach the authored action');
+    if (output === 'score') {
+      assert.equal(runtime.reporting, false);
+      assert.equal(runtime.effectRecorder, null);
+      assert.deepEqual(runtime.resolved, []);
+      assert.equal('events' in result, false);
+    } else {
+      const reported = result.events.find((event) => event.activationId === action.activationId);
+      assert.equal(reported.interrupted, true);
+      assert.equal(reported.endsAt, fact.endsAt);
+      assert.notEqual(reported, fact, 'public reports must remain detached from gameplay facts');
+    }
+  }
+});
 
 test('combo and aura handlers skip score report rows while preserving state and reactions', () => {
   // Check the internal buffer: score output alone hides accidentally retained report rows.

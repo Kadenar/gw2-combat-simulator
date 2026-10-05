@@ -10,6 +10,7 @@ export interface ExecutedFactsReader {
 /** Delivery and registered mechanic handlers record facts through the store's explicit mutation boundary. */
 export interface ExecutedFactsWriter {
   record(event: Gw2ResolverEvent): void;
+  updateAction(activationId: unknown, update: Pick<Gw2ResolverEvent, 'endsAt' | 'interrupted'>): void;
   interruptAction(activationId: unknown, at: number): void;
 }
 
@@ -24,6 +25,11 @@ export function createExecutedFacts(events: Gw2ResolverEvent[]) {
   const writer: ExecutedFactsWriter = Object.freeze({
     record(event: Gw2ResolverEvent): void {
       events.push(event);
+    },
+    // Apply lifecycle facts to the owning history without requiring optional report collections.
+    updateAction(activationId: unknown, update: Pick<Gw2ResolverEvent, 'endsAt' | 'interrupted'>): void {
+      const action = events.find((event) => event.type === 'action' && event.activationId === activationId);
+      if (action) Object.assign(action, { endsAt: update.endsAt, interrupted: update.interrupted });
     },
     interruptAction(activationId: unknown, at: number): void {
       const action = events.find((event) => event.type === 'action' && event.activationId === activationId);

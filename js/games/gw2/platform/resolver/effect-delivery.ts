@@ -88,10 +88,12 @@ export function createEffectDelivery<T extends object>(
       })
     )
     .registerAll({
-      action_update(_context, update) {
-        // Lifetime changes update the executed action, never a mutable reference to a pending packet.
-        const action = executed.find((event) => event.type === 'action' && event.activationId === update.activationId);
-        if (action) Object.assign(action, { endsAt: update.endsAt, interrupted: update.interrupted });
+      action_update(context, update) {
+        // Gameplay history owns lifecycle updates in every output mode; reporting only observes the same fact.
+        context.observations.updateAction(update.activationId, {
+          endsAt: update.endsAt,
+          interrupted: update.interrupted
+        });
       },
       'relic.activate'(context, event) {
         // Delayed relic activations own their state only when this queue packet executes.
