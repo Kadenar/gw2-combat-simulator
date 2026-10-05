@@ -1,3 +1,12 @@
+import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
+import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
+import type { RevenantRuntime } from '#gw2/professions/revenant/core/events.js';
+import type { RevenantRuntimeState, RevenantSkill } from '#gw2/professions/revenant/types.js';
+import { canonicalTime } from '#kernel/core/clock.js';
+import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
+import type { AvailabilityResult } from '#gw2/platform/execution/types.js';
+import { denySkillCast } from '#gw2/platform/execution/availability.js';
+import { consumeSkillFlip, skillFlipReady } from '#gw2/platform/execution/skill-flips.js';
 /** Canonical Core revenant skill fragments grouped by their GW2 owner. */
 import { REVENANT_SKILL_IDS as ID } from '#gw2/professions/revenant/data/ids.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
@@ -87,7 +96,7 @@ export const REVENANT_WEAPONS_GREATSWORD_SKILL_MECHANICS: Readonly<Record<number
     ])
   },
   [ID.TRUE_STRIKE]: {
-    // The declaration owns this activation; shared mechanics retain its live state.
+    // This declaration opens the channel-owned True Strike window below.
     sideEffects: [{ on: 'castCommit', do: { type: 'flipConsume', skillId: ID.TRUE_STRIKE } }],
     castTimeMs: 520,
     cooldown: 0,
@@ -213,3 +222,62 @@ export const REVENANT_WEAPONS_GREATSWORD_SKILL_MECHANICS: Readonly<Record<number
     ]
   }
 });
+
+/** Imperial Guard blocks from acceptance; its True Strike follow-up belongs to this exact channel. */
+function startRevenantImperialGuard(runtime: RevenantRuntime, cast: RuntimeCast<RevenantSkill>): void {
+  // The follow-up window belongs to this channel; a later channel's rearm survives this deadline.
+  runtime.armFlip(ID.TRUE_STRIKE, {
+    availableAt: cast.start,
+    expiresAt: canonicalTime(cast.effectiveEnd + 4),
+    identity: cast.id,
+    expiryPriority: 0
+  });
+  runtime.effects.emit({
+    kind: 'packet',
+    event: {
+      ...{
+        type: 'buff',
+        at: cast.start,
+        source: 'revenant',
+        sourceId: cast.skill.id,
+        actorType: 'player',
+        skillId: cast.skill.id,
+        skillName: cast.skill.name,
+        activationId: cast.id,
+        name: 'Imperial Guard — Blocking',
+        kind: 'blocking',
+        duration: Math.max(0, cast.effectiveEnd - cast.start),
+        stacks: 1
+      },
+      fixedDuration: true
+    }
+  });
+}
+
+/** A cancelled True Strike still consumes the window its Imperial Guard channel opened. */
+function completeRevenantImperialGuard(runtime: RevenantRuntime, cast: RuntimeCast<RevenantSkill>): void {
+  if (cast.skill.id === ID.TRUE_STRIKE) consumeSkillFlip(runtime.profession.core.availableFlips, ID.TRUE_STRIKE);
+}
+
+/** Answer channel-specific gates before shared weapon-flip checks choose a generic denial. */
+export function imperialGuardAvailability(
+  runtime: MechanicQueriesOf<RevenantRuntime>,
+  skill: Skill
+): AvailabilityResult | undefined {
+  const flips = runtime.profession.core.availableFlips;
+  const now = runtime.time;
+  if (skill.id === ID.TRUE_STRIKE && !skillFlipReady(flips[ID.TRUE_STRIKE], now))
+    return denySkillCast(skill, 'revenant.imperial-guard-inactive', 'channel Imperial Guard first.');
+  if (skill.id === ID.IMPERIAL_GUARD && skillFlipReady(flips[ID.TRUE_STRIKE], now))
+    return denySkillCast(skill, 'revenant.true-strike-ready', 'use or let True Strike expire first.');
+}
+
+/** Imperial Guard owns activation and cancellation of the follow-up opened by its channel. */
+export const greatswordLifecycle = {
+  sideEffectHandlers: {
+    'revenant.imperial-guard'(runtime, context) {
+      if (context.kind === 'cast') startRevenantImperialGuard(runtime, context.cast);
+    }
+  },
+  onCastCancel: completeRevenantImperialGuard
+} satisfies RuntimeHooks<RevenantRuntimeState, RevenantSkill>;

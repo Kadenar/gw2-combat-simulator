@@ -17,6 +17,38 @@ import { heraldState } from '#gw2/professions/revenant/specializations/herald/st
 const wait = (durationMs) => ({ type: 'wait', durationMs });
 const core = (result) => observedRuntime(result).profession.core;
 
+// Weapon-swap traits must observe the spear owner's consumed pool and already-emitted Raze payload.
+test('Crushing Abyss resolves before Brutality observes the committed weapon swap', () => {
+  const observations = [];
+  let razeEmitted = false;
+  const result = runRevenant(
+    ['__combat_start', 'Swap Weapons'],
+    {
+      primaryWeapon: 'Spear',
+      weaponSet2Primary: 'Sword',
+      weaponSet2Secondary: 'Sword',
+      selectedTraitIds: [TRAIT.BRUTALITY],
+      initialBuffs: [{ kind: 'crushing-abyss', stacks: 3, duration: 10 }]
+    },
+    {
+      initialize(runtime) {
+        const effects = runtime.effects;
+        runtime.effects = {
+          emit(request) {
+            const event = request.kind === 'packet' ? request.event : request.attribution;
+            if (event?.type === 'damage' && event.sourceId === ID.ABYSSAL_RAZE) razeEmitted = true;
+            if (event?.sourceId === TRAIT.BRUTALITY)
+              observations.push({ remaining: runtime.profession.core.crushingAbyss.length, razeEmitted });
+            return effects.emit(request);
+          }
+        };
+      }
+    }
+  );
+  assert.deepEqual(result.warnings, []);
+  assert.deepEqual(observations, [{ remaining: 0, razeEmitted: true }]);
+});
+
 // Removing an intrinsic declaration must remove its transition, rather than leave a second hook dispatcher active.
 for (const [skillId, specialization, legend, active] of [
   [ID.IMPERIAL_GUARD, 'Core', LEGEND.ASSASSIN, (result) => Boolean(core(result).availableFlips[ID.TRUE_STRIKE])],

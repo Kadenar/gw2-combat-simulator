@@ -52,7 +52,7 @@ test('Revenant cost and state queries never reach active behavior through value 
   }
 });
 
-test('the migrated Revenant cost, upkeep, and Core modifier graph is acyclic', () => {
+test('Revenant cost, upkeep, Core modifiers, and skill lifecycle dependencies are acyclic', () => {
   const graph = new Map(dependencies());
   const complete = new Set();
   const visit = (file, chain) => {
@@ -67,6 +67,11 @@ test('the migrated Revenant cost, upkeep, and Core modifier graph is acyclic', (
     'family-state.ts',
     'core/modifiers.ts',
     'core/mechanics/upkeep.ts',
+    'core/hooks.ts',
+    'core/skills/weapons/scepter.ts',
+    'core/skills/weapons/spear.ts',
+    'core/skills/weapons/greatsword.ts',
+    'core/skills/legends/assassin.ts',
     'specializations/vindicator/traits/behavior.ts'
   ])
     visit(path.join(root, start), []);

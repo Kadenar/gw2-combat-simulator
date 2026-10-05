@@ -1,8 +1,7 @@
-import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
+import { composeRuntimeHooks, type RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
 import type { EndurancePolicy } from '#gw2/platform/combat/resources/endurance-policy.js';
 import type { ResourcePolicy } from '#gw2/platform/combat/resources/resource-policy.js';
-import { grantTimedStacks } from '#gw2/platform/combat/resources/timed-stacks.js';
 import { denySkillCast } from '#gw2/platform/execution/availability.js';
 import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import { armSkillFlip, skillFlipReady, weaponFlipBlock } from '#gw2/platform/execution/skill-flips.js';
@@ -13,10 +12,7 @@ import { damageInputEvent } from '#gw2/platform/skill-damage/occurrence-driver.j
 import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
 import type { RevenantRuntime } from '#gw2/professions/revenant/core/events.js';
 import { emitBattleScar } from '#gw2/professions/revenant/core/mechanics/battle-scars.js';
-import {
-  completeRevenantEnchantedDaggers,
-  emitEnchantedDagger
-} from '#gw2/professions/revenant/core/mechanics/enchanted-daggers.js';
+import { enchantedDaggersLifecycle } from '#gw2/professions/revenant/core/skills/legends/assassin.js';
 import { modifyRevenantLifeSiphon } from '#gw2/professions/revenant/core/mechanics/life-siphon.js';
 import {
   activateRevenantUpkeep,
@@ -34,18 +30,11 @@ import {
   starveRevenantUpkeeps
 } from '#gw2/professions/revenant/core/mechanics/upkeep.js';
 import {
-  completeRevenantCrushingAbyssSwap,
-  completeRevenantImperialGuard,
-  detonateRevenantBlossomingAura,
-  reactRevenantSpearRecharge,
-  REVENANT_ABYSSAL_RAZE,
-  REVENANT_BLOSSOMING_AURA,
-  revenantAbyssalRazeImpact,
-  revenantBlossomingAuraPulse,
-  startRevenantAbyssalRaze,
-  startRevenantBlossomingAura,
-  startRevenantImperialGuard
-} from '#gw2/professions/revenant/core/mechanics/weapons.js';
+  greatswordLifecycle,
+  imperialGuardAvailability
+} from '#gw2/professions/revenant/core/skills/weapons/greatsword.js';
+import { scepterLifecycle } from '#gw2/professions/revenant/core/skills/weapons/scepter.js';
+import { spearLifecycle } from '#gw2/professions/revenant/core/skills/weapons/spear.js';
 import { REVENANT_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/revenant/core/profiles.js';
 import { REVENANT_MAXIMUM_ENDURANCE } from '#gw2/professions/revenant/core/state.js';
 import {
@@ -62,7 +51,7 @@ import {
   reactRevenantConditionTraits,
   reactRevenantPlayerStrike
 } from '#gw2/professions/revenant/core/traits/dispatch.js';
-import { REVENANT_SKILL_IDS as DAMAGE_SKILL, REVENANT_SKILL_IDS as ID } from '#gw2/professions/revenant/data/ids.js';
+import { REVENANT_SKILL_IDS as ID } from '#gw2/professions/revenant/data/ids.js';
 import { isLegalRevenantLegendId } from '#gw2/professions/revenant/data/legends.js';
 import {
   isRevenantUpkeep,
@@ -73,14 +62,6 @@ import { VINDICATOR_JUMP_SKILL } from '#gw2/professions/revenant/data/vindicator
 import { revenantEnergyCost } from '#gw2/professions/revenant/family-state.js';
 import type { RevenantConfig, RevenantRuntimeState, RevenantSkill } from '#gw2/professions/revenant/types.js';
 import { EPSILON } from '#kernel/core/clock.js';
-
-// Custom Core owners emit these skills' packets from live state; their authored effects are templates only.
-const CUSTOM_EFFECT_SKILL_IDS = new Set<SkillId>([
-  ID.BLOSSOMING_AURA,
-  ID.DETONATE_BLOSSOMING_AURA,
-  ID.ENCHANTED_DAGGERS,
-  ID.ABYSSAL_RAZE
-]);
 
 const DODGE_IDS = new Set<SkillId>([SHARED_SKILL_IDS.DODGE, VINDICATOR_JUMP_SKILL.id]);
 
@@ -138,11 +119,9 @@ function revenantAvailability(
     return denySkillCast(skill, 'revenant.unyielding-impact-inactive', 'cast Call to Anguish first.');
   if (skill.id === ID.CALL_TO_ANGUISH && skillFlipReady(flips[ID.UNYIELDING_IMPACT], now))
     return denySkillCast(skill, 'revenant.unyielding-impact-ready', 'use Unyielding Impact first.');
-  if (skill.id === ID.TRUE_STRIKE && !skillFlipReady(flips[ID.TRUE_STRIKE], now))
-    return denySkillCast(skill, 'revenant.imperial-guard-inactive', 'channel Imperial Guard first.');
-  if (skill.id === ID.IMPERIAL_GUARD && skillFlipReady(flips[ID.TRUE_STRIKE], now))
-    return denySkillCast(skill, 'revenant.true-strike-ready', 'use or let True Strike expire first.');
-  // True Strike and Imperial Guard already answered above with their channel-specific reasons.
+  // Weapon-specific reasons take precedence over generic flip gates.
+  const imperialGuardBlock = imperialGuardAvailability(runtime, skill);
+  if (imperialGuardBlock) return imperialGuardBlock;
   const flipBlock = weaponFlipBlock(flips, runtime.helpers.skillsById, skill, now);
   if (flipBlock?.kind === 'closed')
     return denySkillCast(skill, 'revenant.weapon-flip-inactive', `use ${flipBlock.parent.name} first.`);
@@ -220,7 +199,7 @@ function swapLegend(runtime: RevenantRuntime, cast: RuntimeCast<RevenantSkill>):
 /** Core hooks: Energy, upkeeps, legends, weapon follow-ups, and actual hit/application trait reactions. */
 import { revenantBuffPolicies, revenantEffectStates } from '#gw2/professions/revenant/core/effect-state.js';
 
-export const revenantCoreHooks: RuntimeHooks<RevenantRuntimeState, RevenantSkill> = {
+const coreLifecycle: RuntimeHooks<RevenantRuntimeState, RevenantSkill> = {
   // Known damage payloads are invoked once without their activation requirements.
   damageEffects: [
     {
@@ -230,14 +209,6 @@ export const revenantCoreHooks: RuntimeHooks<RevenantRuntimeState, RevenantSkill
       unit: 'charge',
       sourceIds: ['revenant.battle-scars'],
       emit: (runtime) => emitBattleScar(runtime, damageInputEvent(runtime))
-    },
-    {
-      id: 'enchanted-daggers',
-      name: 'Enchanted Daggers',
-      source: 'Profession',
-      unit: 'charge',
-      sourceIds: [DAMAGE_SKILL.ENCHANTED_DAGGERS],
-      emit: (runtime) => emitEnchantedDagger(runtime, damageInputEvent(runtime))
     }
   ],
 
@@ -258,23 +229,8 @@ export const revenantCoreHooks: RuntimeHooks<RevenantRuntimeState, RevenantSkill
 
   buffPolicies: revenantBuffPolicies,
   observeEffects: revenantEffectStates,
-  // Base-second reductions remain with the cooldown controller, including partial-ammo progress.
+  // Shared actions own legends and upkeep; skill lifecycles register their own actions below.
   sideEffectHandlers: {
-    'revenant.imperial-guard'(runtime, context) {
-      if (context.kind === 'cast') startRevenantImperialGuard(runtime, context.cast);
-    },
-    'revenant.enchanted-daggers'(runtime, context) {
-      if (context.kind === 'cast') completeRevenantEnchantedDaggers(runtime, context.cast);
-    },
-    'revenant.blossoming-aura'(runtime, context) {
-      if (context.kind === 'cast') startRevenantBlossomingAura(runtime, context.cast);
-    },
-    'revenant.detonate-aura'(runtime, context) {
-      if (context.kind === 'cast') detonateRevenantBlossomingAura(runtime, context.cast);
-    },
-    'revenant.abyssal-raze'(runtime, context) {
-      if (context.kind === 'cast') startRevenantAbyssalRaze(runtime, context.cast);
-    },
     'revenant.embrace-opening'(runtime, context) {
       if (context.kind === 'cast') startRevenantEmbrace(runtime, context.cast);
     },
@@ -294,27 +250,11 @@ export const revenantCoreHooks: RuntimeHooks<RevenantRuntimeState, RevenantSkill
       upkeepCosts.delete(context.cast);
       if (cost != null) runtime.resourceController.spend('energy', cost);
       activateRevenantUpkeep(runtime, context.cast);
-    },
-    'revenant.spear-recharge'(runtime, context) {
-      if (context.kind === 'effect') reactRevenantSpearRecharge(runtime, context.trigger.event);
     }
   },
   resources: { energy: revenantEnergy },
   endurance: revenantEndurance,
   initialize(runtime) {
-    // Initial Crushing Abyss feeds the same expiring pool consumed by Raze and weapon swap.
-    for (const buff of runtime.config.initialBuffs ?? []) {
-      if (buff.kind !== 'crushing-abyss') continue;
-      const skill = runtime.helpers.skillsById.get(ID.ABYSSAL_RAZE)!;
-      runtime.profession.core.crushingAbyss = grantTimedStacks([], {
-        at: runtime.time,
-        expiresAt: runtime.time + buff.duration,
-        count: buff.stacks,
-        maximumStacks: Number(skill.maximumStacks),
-        retain: 'latest-expiry'
-      });
-    }
-
     startRevenantAssassinsPresence(runtime, runtime.time);
   },
   onCombatStart(runtime) {
@@ -327,7 +267,8 @@ export const revenantCoreHooks: RuntimeHooks<RevenantRuntimeState, RevenantSkill
   // Legend swaps stay free during setup until combat is established, like the runtime's weapon swaps.
   rechargeWork: (runtime, skill, work) => (skill.id === ID.SWAP_LEGENDS && !runtime.combatActive ? 0 : work),
   modifyEffects(runtime, cast, effects) {
-    if (CUSTOM_EFFECT_SKILL_IDS.has(cast.skill.id) || isRevenantUpkeep(cast.skill)) return [];
+    // Upkeep owners emit their own activation and recurring payloads.
+    if (isRevenantUpkeep(cast.skill)) return [];
     if (upkeepRelease(runtime, cast.skill)) return [];
     return effects;
   },
@@ -337,15 +278,13 @@ export const revenantCoreHooks: RuntimeHooks<RevenantRuntimeState, RevenantSkill
     if (!isRevenantUpkeep(skill) && skill.id !== ID.SWAP_LEGENDS)
       runtime.resourceController.spend('energy', revenantEnergyCost(runtime, skill));
   },
-  onCastCancel(runtime, cast) {
-    // A cancelled follow-up consumes its armed window without paying upkeep or granting cast rewards.
+  onCastCancel(_runtime, cast) {
+    // Cancellation discards the reserved upkeep cost without spending Energy.
     upkeepCosts.delete(cast);
-    completeRevenantImperialGuard(runtime, cast);
   },
   onCastCommit(runtime, cast) {
     const skill = cast.skill;
     if (skill.id === SHARED_SKILL_IDS.SWAP_WEAPONS) {
-      completeRevenantCrushingAbyssSwap(runtime, cast);
       completeRevenantBrutality(runtime, cast);
     }
 
@@ -373,8 +312,15 @@ export const revenantCoreHooks: RuntimeHooks<RevenantRuntimeState, RevenantSkill
   tasks: {
     [REVENANT_ENERGY_DEPLETED]: starveRevenantUpkeeps,
     [REVENANT_UPKEEP_PULSE]: revenantUpkeepPulse,
-    [REVENANT_BLOSSOMING_AURA]: revenantBlossomingAuraPulse,
-    [REVENANT_ABYSSAL_RAZE]: revenantAbyssalRazeImpact,
     [REVENANT_ASSASSINS_PRESENCE]: revenantAssassinsPresencePulse
   }
 };
+
+/** Resolve Crushing Abyss before swap traits and clear upkeep reservations before retiring a cancelled follow-up. */
+export const revenantCoreHooks = composeRuntimeHooks<RevenantRuntimeState, RevenantSkill>([
+  scepterLifecycle,
+  spearLifecycle,
+  coreLifecycle,
+  greatswordLifecycle,
+  enchantedDaggersLifecycle
+]);
