@@ -3,6 +3,7 @@ import { daredevilModule } from '#gw2/professions/thief/specializations/daredevi
 import { armSkillFlip } from '#gw2/platform/execution/skill-flips.js';
 import { assertFlooredDamageMultiplier } from '#tests/helpers/rounded-damage.js';
 import { withActivePatchPreview } from '#gw2/integrations/patches/active-profession.js';
+import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { assumptionControlsForSpecialization } from '#gw2/platform/builds/assumptions.js';
@@ -117,8 +118,7 @@ test('bonus stealth attacks consume only active elite charges and prefer ordinar
                 stealthStartedAt: 0,
                 stealthUntil: stealthed ? 6 : 0
               });
-              if (ownsCharges)
-                Object.assign(elite.state, { bonusStealthAttack: { charges: 2, expiresAt } });
+              if (ownsCharges) Object.assign(elite.state, { bonusStealthAttack: { charges: 2, expiresAt } });
             }
           }
         );
@@ -132,7 +132,16 @@ test('bonus stealth attacks consume only active elite charges and prefer ordinar
 
         assert.equal(core.bonusStealthAttack.charges, 99);
         assert.equal(core.bonusStealthAttack.expiresAt, 100);
-        assert.equal(elite.state.bonusStealthAttack?.charges, ownsCharges ? (!stealthed && available ? 1 : 2) : undefined);
+        assert.equal(
+          elite.state.bonusStealthAttack?.charges,
+          ownsCharges ? (!stealthed && available ? 1 : 2) : undefined
+        );
+        if (ownsCharges) {
+          const projected = result.planningState.profession.bonusStealthAttack;
+          assert.deepEqual(projected, elite.state.bonusStealthAttack);
+          projected.charges = 99;
+          assert.notEqual(elite.state.bonusStealthAttack.charges, 99, 'planning grants are detached');
+        }
       }
     }
   }
@@ -143,18 +152,35 @@ test('Silent Scope and Guitar replace bonus stealth attacks with selected counts
   for (const specialization of ['Deadeye', 'Antiquary']) {
     const deadeye = specialization === 'Deadeye';
     const profile = deadeye ? TRAIT.SILENT_SCOPE : ANTIQUARY_BALANCE_PROFILE_IDS.artifactWindows;
-    const result = runThief([], { ...baseConfig, specialization, selectedTraitIds: [TRAIT.SILENT_SCOPE] }, {
-      catalog: (catalog) => applyBalanceProfilePatch(catalog, {
-        balanceProfiles: { [profile]: deadeye ? { durationMultiplier: 7 } : { durationMultiplier: 7, resourceGain: 3 } }
-      })
+    const patched = withPatchPreview(thiefProfession, {
+      id: 'bonus-stealth-test',
+      label: 'Bonus stealth test',
+      professions: {
+        thief: {
+          balanceProfiles: {
+            [profile]: { fields: deadeye ? { durationMultiplier: 7 } : { durationMultiplier: 7, resourceGain: 3 } }
+          }
+        }
+      }
     });
+    const result = runThief(
+      [],
+      {
+        ...baseConfig,
+        specialization,
+        selectedTraitIds: [TRAIT.SILENT_SCOPE],
+        patchId: 'bonus-stealth-test'
+      },
+      { profession: patched }
+    );
     const runtime = observedRuntime(result);
     const state = runtime.profession.specialization.state;
+    const context = runtime.mechanics;
     const grant = () => {
       if (deadeye) {
         state.malice.value = 5;
-        grantSilentScope(runtime, { skill: runtime.catalog.skillsById.get(SHARED_SKILL_IDS.DODGE) });
-      } else antiquaryHooks.sideEffectHandlers['thief.guitar'](runtime);
+        grantSilentScope(context, { skill: runtime.helpers.skillsById.get(SHARED_SKILL_IDS.DODGE) });
+      } else antiquaryHooks.sideEffectHandlers['thief.guitar'](context);
     };
     runtime.time = 1;
     grant();
@@ -168,11 +194,19 @@ test('Silent Scope and Guitar replace bonus stealth attacks with selected counts
     assert.equal(state.bonusStealthAttack.expiresAt, 9);
     const before = structuredClone(state.bonusStealthAttack);
     for (const at of [8, 9, 10]) {
-      assert.equal(thiefBonusStealthAttack(runtime, at), at < 9);
-      const skill = runtime.catalog.skillsByName.get(deadeye ? 'Malicious Backstab' : 'Backstab');
-      assert.equal(thiefProfession.ui.paletteOverride({
-        specialization, time: at, professionState: { bonusStealthAttack: state.bonusStealthAttack }
-      }, skill).tileActive, at < 9);
+      assert.equal(thiefBonusStealthAttack(context, at), at < 9);
+      const skill = runtime.helpers.skillsByName.get(deadeye ? 'Malicious Backstab' : 'Backstab');
+      assert.equal(
+        thiefProfession.ui.paletteOverride(
+          {
+            specialization,
+            time: at,
+            professionState: { bonusStealthAttack: state.bonusStealthAttack }
+          },
+          skill
+        ).tileActive,
+        at < 9
+      );
     }
     assert.deepEqual(state.bonusStealthAttack, before);
   }

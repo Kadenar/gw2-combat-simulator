@@ -210,7 +210,7 @@ test('Mimic resets cooldown and lockout without restoring ammunition', () => {
   const ammo = context.cooldownController.ensureAmmo(utility);
   assert.equal(ammo.charges, 1);
   assert.equal(ammo.recharges.length, 1);
-  assert.equal(ammo.lockoutReadyAt, undefined);
+  assert.equal(ammo.lockoutReadyAt, 0);
   assert.equal(context.cooldownController.hasCooldown(utility.id), false);
 });
 
@@ -220,7 +220,13 @@ test('Mimic rearming during overlapping utilities rewards the first successful c
   const mimic = context.catalog.skillsById.get(ID.MIMIC);
   const utility = context.catalog.skillsById.get(ID.SIGNET_OF_ILLUSIONS);
   const cast = (skill, start, fullEnd, cancelled = false) => ({
-    skill, start, fullEnd, cancelled, command: {}, id: String(fullEnd), rechargeWork: 0
+    skill,
+    start,
+    fullEnd,
+    cancelled,
+    command: {},
+    id: String(fullEnd),
+    rechargeWork: 0
   });
   complete(context, cast(mimic, 0, 1));
   complete(context, cast(mimic, 3, 4));

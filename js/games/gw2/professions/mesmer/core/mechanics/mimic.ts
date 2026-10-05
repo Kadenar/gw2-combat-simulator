@@ -39,9 +39,7 @@ export function completeMimicCast(context: MesmerRuntime, cast: RuntimeCast<Mesm
 /** Mimic owns arming; the shared observer only consumes later eligible utilities. */
 export function armMimic(context: MesmerRuntime): void {
   const profile = requireBalanceProfileFromContext(context, PROFILE.mimic);
-  const expiresAt = canonicalTime(
-    context.time + balanceProfileNumber(profile, 'durationMultiplier')
-  );
+  const expiresAt = canonicalTime(context.time + balanceProfileNumber(profile, 'durationMultiplier'));
   // Keep the grant after expiry: an in-flight utility can still claim it using its earlier start.
   professionCoreState(context).mimic = grantCharges(expiresAt > 0 ? 1 : 0, expiresAt);
 }

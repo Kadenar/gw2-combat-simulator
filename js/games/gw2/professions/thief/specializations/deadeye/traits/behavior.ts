@@ -173,7 +173,10 @@ export function grantSilentScope(runtime: ThiefRuntime, cast: RuntimeCast<ThiefS
     const silentScope = requireBalanceProfileFromContext(runtime, TRAIT.SILENT_SCOPE);
     if (state.malice.value > balanceProfileNumber(silentScope, 'threshold')) {
       // Reapplying Silent Scope replaces the prior bonus rather than stacking attacks.
-      state.bonusStealthAttack = grantCharges(1, runtime.time + balanceProfileNumber(silentScope, 'durationMultiplier'));
+      state.bonusStealthAttack = grantCharges(
+        1,
+        runtime.time + balanceProfileNumber(silentScope, 'durationMultiplier')
+      );
     }
   }
 }

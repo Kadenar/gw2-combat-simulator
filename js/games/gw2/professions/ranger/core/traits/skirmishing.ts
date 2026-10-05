@@ -83,7 +83,9 @@ export const quickDraw = defineTrait({
     {
       order: 0,
       when: (runtime: MechanicQueriesOf<RangerRuntime>, skill) =>
-        skill.type === 'Weapon' && skill.slot !== 'Weapon_1' && activeChargeCount(runtime.profession.core.quickDraw, runtime.time) > 0,
+        skill.type === 'Weapon' &&
+        skill.slot !== 'Weapon_1' &&
+        activeChargeCount(runtime.profession.core.quickDraw, runtime.time) > 0,
       multiplier: { profile: TRAIT.QUICK_DRAW, field: 'rechargeMultiplier' }
     }
   ],

@@ -173,7 +173,9 @@ test('removed Quick Draw quickness keeps the trait-owned recharge window and coo
   applyRangerWeaponSwapTraits(context, rangerCatalog.skillsById.get(SHARED_SKILL_IDS.SWAP_WEAPONS), 2);
   assert.equal(core.quickDraw.expiresAt, 6);
   applyRangerWeaponSwapTraits(context, rangerCatalog.skillsById.get(SHARED_SKILL_IDS.SWAP_WEAPONS), 10);
-  assert.equal(core.quickDraw.expiresAt, 15);
+  assert.equal(core.quickDraw.expiresAt, 6, 'the ICD remains blocked at its exact boundary');
+  applyRangerWeaponSwapTraits(context, rangerCatalog.skillsById.get(SHARED_SKILL_IDS.SWAP_WEAPONS), 11);
+  assert.equal(core.quickDraw.expiresAt, 16);
   assert.equal(core.quickDraw.charges, 1);
 });
 

@@ -12,10 +12,13 @@ const config = { selectedTraitIds: [TRAIT.QUICK_DRAW], primaryWeapon: 'Greatswor
 test('Quick Draw reserves only one same-time weapon recharge and ignores ineligible skills', () => {
   const runtime = observedRuntime(runRanger([], config));
   const native = rangerProfession.runtimeFor(config);
-  const skill = runtime.catalog.skillsByName.get('Maul');
+  const skill = runtime.helpers.skillsByName.get('Maul');
   runtime.time = 4;
-  const grant = runtime.profession.core.quickDraw = grantCharges(1, 5);
-  for (const ineligible of [{ ...skill, slot: 'Weapon_1' }, { ...skill, type: 'Utility' }]) {
+  const grant = (runtime.profession.core.quickDraw = grantCharges(1, 5));
+  for (const ineligible of [
+    { ...skill, slot: 'Weapon_1' },
+    { ...skill, type: 'Utility' }
+  ]) {
     assert.equal(native.rechargeWork(runtime, ineligible, 10), 10);
     assert.equal(native.reserveRecharge(runtime, ineligible, 10), 10);
     assert.equal(grant.charges, 1);
@@ -36,8 +39,8 @@ test('Quick Draw reserves only one same-time weapon recharge and ignores ineligi
   assert.equal(runtime.profession.core.quickDraw.charges, 1, 'expiry queries do not spend');
 });
 
-// Cancellation does not refund a recharge entitlement already reserved at acceptance.
-test('a cancelled accepted weapon skill retains its Quick Draw spend', () => {
+// The execution owner skips reservation for an already-cancelled attempt, preserving the next discount.
+test('a cancelled weapon attempt preserves its unreserved Quick Draw grant', () => {
   let acceptedWork;
   const result = runRanger([{ name: 'Maul', interruptMs: 1 }], config, {
     initialize(runtime) {
@@ -48,7 +51,7 @@ test('a cancelled accepted weapon skill retains its Quick Draw spend', () => {
         onCastStart(runtime, cast) {
           native.onCastStart?.(runtime, cast);
           acceptedWork = cast.rechargeWork;
-          assert.equal(runtime.profession.core.quickDraw.charges, 0);
+          assert.equal(runtime.profession.core.quickDraw.charges, 1);
         }
       };
     }
@@ -56,9 +59,9 @@ test('a cancelled accepted weapon skill retains its Quick Draw spend', () => {
   const runtime = observedRuntime(result);
   assert.deepEqual(result.warnings, []);
   assert.ok(result.events.some((event) => event.type === 'action' && event.cancelled));
-  assert.equal(acceptedWork, runtime.catalog.skillsByName.get('Maul').cooldown * 0.34);
-  assert.equal(runtime.profession.core.quickDraw.charges, 0);
-  assert.equal(result.planningState.profession.quickDraw.charges, 0);
-  result.planningState.profession.quickDraw.charges = 1;
-  assert.equal(runtime.profession.core.quickDraw.charges, 0, 'planning state is detached');
+  assert.equal(acceptedWork, runtime.helpers.skillsByName.get('Maul').cooldown * 0.34);
+  assert.equal(runtime.profession.core.quickDraw.charges, 1);
+  assert.equal(result.planningState.profession.quickDraw.charges, 1);
+  result.planningState.profession.quickDraw.charges = 0;
+  assert.equal(runtime.profession.core.quickDraw.charges, 1, 'planning state is detached');
 });

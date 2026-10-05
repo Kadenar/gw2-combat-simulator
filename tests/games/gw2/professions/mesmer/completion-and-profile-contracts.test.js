@@ -26,24 +26,30 @@ test('cancelled Ether preserves an established phantasm cooldown', () => {
 // Mimic is armed by its successful completion, then claimed by the following completed utility.
 test('Mimic stays unarmed during its cast and resets the following utility on completion', () => {
   const states = [];
-  const result = runMesmer(['Mimic', 'Signet of Illusions'], {}, {
-    extend(native) {
-      return {
-        onCastStart(runtime, cast) {
-          native.onCastStart?.(runtime, cast);
-          states.push(['start', cast.skill.id, runtime.profession.core.mimic.charges]);
-        },
-        onCastCommit(runtime, cast) {
-          native.onCastCommit?.(runtime, cast);
-          states.push(['complete', cast.skill.id, runtime.profession.core.mimic.charges]);
-        }
-      };
+  const result = runMesmer(
+    ['Mimic', 'Signet of Illusions'],
+    {},
+    {
+      extend(native) {
+        return {
+          onCastStart(runtime, cast) {
+            native.onCastStart?.(runtime, cast);
+            states.push(['start', cast.skill.id, runtime.profession.core.mimic.charges]);
+          },
+          onCastCommit(runtime, cast) {
+            native.onCastCommit?.(runtime, cast);
+            states.push(['complete', cast.skill.id, runtime.profession.core.mimic.charges]);
+          }
+        };
+      }
     }
-  });
+  );
   assert.deepEqual(result.warnings, []);
   assert.deepEqual(states, [
-    ['start', ID.MIMIC, 0], ['complete', ID.MIMIC, 1],
-    ['start', ID.SIGNET_OF_ILLUSIONS, 1], ['complete', ID.SIGNET_OF_ILLUSIONS, 0]
+    ['start', ID.MIMIC, 0],
+    ['complete', ID.MIMIC, 1],
+    ['start', ID.SIGNET_OF_ILLUSIONS, 1],
+    ['complete', ID.SIGNET_OF_ILLUSIONS, 0]
   ]);
   assert.equal(result.planningState.cooldowns['Signet of Illusions'], undefined);
 });

@@ -43,7 +43,11 @@ export function grantCharges(charges: number, expiresAt: number, previous?: Char
 }
 
 /** Reads live entitlement without pruning it, including windows claimed against a historical cast start. */
-export function activeChargeCount(grant: Readonly<ChargeGrant> | undefined, at: number, inclusiveExpiry = false): number {
+export function activeChargeCount(
+  grant: Readonly<ChargeGrant> | undefined,
+  at: number,
+  inclusiveExpiry = false
+): number {
   return grant && grant.charges > 0 && (inclusiveExpiry ? at <= grant.expiresAt : at < grant.expiresAt)
     ? grant.charges
     : 0;
