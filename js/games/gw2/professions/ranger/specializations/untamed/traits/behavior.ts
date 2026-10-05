@@ -9,9 +9,10 @@ import type { SkillEffect } from '#gw2/platform/effects/types.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import { isPetStrike, isPlayerStrike } from '#gw2/professions/ranger/core/mechanics/resolution-helpers.js';
 import { rangerPetCompanionId } from '#gw2/professions/ranger/core/mechanics/pets.js';
-import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
+import { RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
 import { TRAITS } from '#gw2/professions/ranger/data/traits-data.js';
 import { untamedState } from '#gw2/professions/ranger/specializations/untamed/state.js';
+import { UNTAMED_AMBUSH_SKILL_IDS } from '#gw2/professions/ranger/data/untamed-ambushes.js';
 import type { RangerResolverContext } from '#gw2/professions/ranger/types.js';
 
 /** Ambushes retain their authored first-hit timing and unconditional life-steal packet. */
@@ -69,7 +70,7 @@ export function triggerFerociousSymbiosis(context: RangerResolverContext, event:
 export function triggerLetLoose(context: RangerResolverContext, event: Gw2ResolverEvent): void {
   if (
     !hasTrait(context, TRAIT.LET_LOOSE) ||
-    // Let Loose only procs on the two ambush skills (Relentless Whirl, Deft Strike).
+    // Every supported weapon ambush can grant Let Loose on its first landed strike.
     !AMBUSH_SKILL_IDS.has(Number(event.skillId)) ||
     // activationId is absent on synthetic events; guard prevents double-counting.
     !event.activationId
@@ -122,7 +123,7 @@ export function reactToUntamedDamage(context: RangerResolverContext, event: Gw2R
   if (isPlayerStrike(event)) triggerLetLoose(context, event);
 }
 
-const AMBUSH_SKILL_IDS = new Set<number>([ID.RELENTLESS_WHIRL, ID.DEFT_STRIKE]);
+const AMBUSH_SKILL_IDS = new Set<number>(UNTAMED_AMBUSH_SKILL_IDS);
 
 /** Reconciles Untamed's Natural Fortitude at the existing Druid-only runtime attribute boundary. */
 export function modifyNaturalFortitudeAttributes(

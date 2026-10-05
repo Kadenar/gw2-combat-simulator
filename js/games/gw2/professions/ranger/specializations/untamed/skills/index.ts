@@ -8,12 +8,14 @@ import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
 import { UNTAMED_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/ranger/specializations/untamed/profiles.js';
 import { untamedState } from '#gw2/professions/ranger/specializations/untamed/state.js';
 import { naturalFortitudeAmbushEffect } from '#gw2/professions/ranger/specializations/untamed/traits/behavior.js';
+import { UNTAMED_WEAPON_AMBUSH_MECHANICS } from '#gw2/professions/ranger/specializations/untamed/skills/weapon-ambushes.js';
 
 // Both Unleash actions replace the same F5 tile as control passes between pet and ranger.
 const UNLEASH_PALETTE_TILE = 'ranger-untamed-unleash';
 
 // Share adjacent impact timing while preserving local payloads, attribution, and independent timelines.
 export const UNTAMED_BASE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
+  ...UNTAMED_WEAPON_AMBUSH_MECHANICS,
   [ID.ENVELOPING_HAZE]: {
     castTimeMs: 0,
     // Share timing defaults while preserving each packet, effect order, and local schedule.

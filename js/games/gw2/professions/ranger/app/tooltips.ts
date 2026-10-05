@@ -24,6 +24,7 @@ import { DRUID_BALANCE_PROFILE_IDS as DRUID } from '#gw2/professions/ranger/spec
 import { UNTAMED_BALANCE_PROFILE_IDS as UNTAMED } from '#gw2/professions/ranger/specializations/untamed/profiles.js';
 import { GALESHOT_BALANCE_PROFILE_IDS as GALESHOT } from '#gw2/professions/ranger/specializations/galeshot/profiles.js';
 import { RANGER_SPEAR_STEALTH_FLIP_BY_PARENT } from '#gw2/professions/ranger/core/mechanics/weapon-state.js';
+import { UNTAMED_AMBUSH_SKILL_IDS } from '#gw2/professions/ranger/data/untamed-ambushes.js';
 
 /** Descriptions bind to canonical skill identities independently of runtime dispatch. */
 const familyTooltips = {
@@ -211,7 +212,7 @@ const familySkillIds: Record<keyof typeof familyTooltips, readonly (number | str
   ],
   'ranger.unleash-ranger': [ID.UNLEASH_RANGER],
   'ranger.unleash-pet': [ID.UNLEASH_PET],
-  'ranger.unleashed-ambush': [ID.RELENTLESS_WHIRL, ID.DEFT_STRIKE],
+  'ranger.unleashed-ambush': UNTAMED_AMBUSH_SKILL_IDS,
   'ranger.exploding-spores': [ID.EXPLODING_SPORES],
   'ranger.venomous-outburst': [ID.VENOMOUS_OUTBURST],
   'ranger.cyclone-bow-enter': [ID.SUMMON_CYCLONE_BOW],

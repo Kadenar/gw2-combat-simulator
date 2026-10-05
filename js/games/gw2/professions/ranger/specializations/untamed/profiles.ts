@@ -4,10 +4,19 @@ import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
 export const UNTAMED_BALANCE_PROFILE_IDS = Object.freeze({
   resources: 'ranger.untamed.resources',
   explodingSporesRanger: 'ranger.untamed.exploding-spores.ranger',
-  explodingSporesPet: 'ranger.untamed.exploding-spores.pet'
+  explodingSporesPet: 'ranger.untamed.exploding-spores.pet',
+  toxicShotPoisoned: 'ranger.untamed.toxic-shot.poisoned'
 });
 
 export const UNTAMED_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freeze([
+  // Poison already present at Toxic Shot's impact enables its additional condition at the same impact.
+  {
+    id: UNTAMED_BALANCE_PROFILE_IDS.toxicShotPoisoned,
+    parentId: ID.TOXIC_SHOT,
+    name: 'Toxic Shot - Poisoned Target',
+    profileKind: 'skill-variant',
+    effects: [{ type: 'condition', condition: 'Torment', stacks: 4, duration: 6 }]
+  },
   {
     id: UNTAMED_BALANCE_PROFILE_IDS.resources,
     name: 'Unleash and Ambush Windows',

@@ -1,7 +1,6 @@
-import { isStandardBoon } from '#gw2/platform/combat/boons.js';
 import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
 import { selectedSkillIdSet } from '#gw2/platform/builds/selected-skills.js';
-import { buffApplicationStacks, gw2BoonDurationMultiplier } from '#gw2/platform/combat/boons.js';
+import { gw2BoonDurationMultiplier } from '#gw2/platform/combat/boons.js';
 import { STANDARD_TARGET_ARMOR } from '#gw2/platform/combat/formulas.js';
 import { scaleCastBoundTiming } from '#gw2/platform/effects/materializer.js';
 import type { SimulationEventBase } from '#gw2/platform/events/events.js';
@@ -136,18 +135,13 @@ function owner(context: RangerRuntime, id = PET_AUTO_OWNER) {
   return { id, generation: context.profession.core.petAutoGeneration };
 }
 
-function petBuff(context: MechanicQueriesOf<RangerRuntime>, kind: string): boolean {
-  const id = rangerPetCompanionId(context);
+/** Pet mechanics query only the current incarnation's accepted boons. */
+function petBoonActive(context: MechanicQueriesOf<RangerRuntime>, kind: string): boolean {
   return (
-    buffApplicationStacks(
-      (isStandardBoon(kind) ? context.combat.boonApplications(kind) : context.combat.buffApplications(kind)).filter(
-        (buff) => buff.resolvedAudience.companionIds.includes(id)
-      ),
-      kind,
-      context.time,
-      1,
-      { ordered: true, audience: 'summon', companionId: id }
-    ) > 0
+    context.combat.activeBoonStacks(kind, context.time, 1, {
+      actor: 'companion',
+      companionId: rangerPetCompanionId(context)
+    }) > 0
   );
 }
 
@@ -159,7 +153,7 @@ export function rangerPetCastDurationMs(
 ): number {
   if (!skill.petSkill) return durationMs;
   return quantizeGw2ActionDurationUp(
-    petBuff(context, 'quickness') ? summonQuicknessCastTimeMs(skill) : (skill.castTimeMs ?? 0)
+    petBoonActive(context, 'quickness') ? summonQuicknessCastTimeMs(skill) : (skill.castTimeMs ?? 0)
   );
 }
 
@@ -183,7 +177,7 @@ function petCommandRecovery(context: RangerRuntime, cast: RuntimeCast<RangerSkil
   const skillId = cast.skill.id;
   const special = profile?.specials.find((entry) => entry.id === skillId);
   if (RANGER_PET_SKILL_TIMINGS[String(skillId)] || special)
-    return petRecovery(skillId, special?.recovery ?? 0, petBuff(context, 'quickness'));
+    return petRecovery(skillId, special?.recovery ?? 0, petBoonActive(context, 'quickness'));
   return (
     quantizeGw2ActionDurationUp((profile?.commandRecovery[String(skillId)] ?? cast.effectiveEnd - cast.start) * 1000) /
     1000
@@ -295,7 +289,7 @@ function emitPetSkill(
   cast?: RuntimeCast<RangerSkill>
 ): void {
   const timing = RANGER_PET_SKILL_TIMINGS[String(skill.id)];
-  const quickness = petBuff(context, 'quickness');
+  const quickness = petBoonActive(context, 'quickness');
   for (const effect of skill.effects ?? []) {
     if (
       cast &&
@@ -351,7 +345,7 @@ function petCommandStart(context: RangerRuntime, skill: RangerSkill): number {
   const openingEnd =
     opening && state.petAutoOpeningBasic && state.petAutoNextAt > context.time + EPSILON
       ? state.petAutoNextAt +
-        petRecovery(opening.id, opening.recovery, petBuff(context, 'quickness')) +
+        petRecovery(opening.id, opening.recovery, petBoonActive(context, 'quickness')) +
         (profile?.openingRecoveryDelay || 0)
       : 0;
   return gw2CooldownReadyAt(
@@ -394,7 +388,7 @@ export const rangerPetTasks = {
     const profile = rangerPetAutoProfile(state.activePet);
     if (!profile) return;
     const opening = state.petAutoOpeningBasic;
-    const quickness = petBuff(context, 'quickness');
+    const quickness = petBoonActive(context, 'quickness');
     const selected = autonomousSkill(context, profile, quickness);
     const skill = context.helpers.skillsById.get(selected.id);
     const recovery = petRecovery(selected.id, selected.recovery, quickness);
@@ -429,7 +423,7 @@ export const rangerPetTasks = {
     state.petAutoBusyUntil = context.time + recovery;
     if (selected.cooldown) {
       // Autonomous pets use only Alacrity addressed to the active companion.
-      const rate = !profile.ignoresAlacrity && petBuff(context, 'alacrity') ? GW2_ALACRITY_RECHARGE_RATE : 1;
+      const rate = !profile.ignoresAlacrity && petBoonActive(context, 'alacrity') ? GW2_ALACRITY_RECHARGE_RATE : 1;
       const cooldown =
         selected.id === ID.CRIPPLING_ANGUISH_PET && quickness
           ? balanceProfileNumber(

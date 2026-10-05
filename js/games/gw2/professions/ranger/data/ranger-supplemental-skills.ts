@@ -1,6 +1,59 @@
 import type { RangerSkill } from '#gw2/professions/ranger/types.js';
 
 export const RANGER_SUPPLEMENTAL_SKILLS: readonly RangerSkill[] = Object.freeze([
+  // Ambush metadata is supplemental because the profession API omits these weapon replacements.
+  ...[
+    {
+      id: 63129,
+      name: 'Sundering Volley',
+      weapon: 'Axe',
+      description: 'Throw two axes, bleeding the target and applying vulnerability followed by immobilize.'
+    },
+    {
+      id: 69223,
+      name: 'Neurotoxin Burst',
+      weapon: 'Dagger',
+      description: 'Shadowstep and strike, applying bleeding, poison, and vulnerability.'
+    },
+    {
+      id: 72079,
+      name: 'Rampant Growth',
+      weapon: 'Mace',
+      description: 'Strike with verdant growth and immobilize the target.'
+    },
+    {
+      id: 69175,
+      name: 'Solar Brilliance',
+      weapon: 'Staff',
+      description: 'Blind nearby enemies, then pulse damage around yourself.'
+    },
+    {
+      id: 63350,
+      name: 'Savage Slash',
+      weapon: 'Greatsword',
+      description: 'Strike nearby enemies, applying vulnerability and creating an exploding spore.'
+    },
+    { id: 63225, name: 'Multishot', weapon: 'Longbow', description: 'Fire arrows at your target and nearby enemies.' },
+    {
+      id: 63326,
+      name: 'Toxic Shot',
+      weapon: 'Shortbow',
+      description: 'Fire an explosive arrow that poisons and weakens. Already-poisoned targets also receive torment.'
+    },
+    {
+      id: 72932,
+      name: "Ravager's Abandon",
+      weapon: 'Spear',
+      description: 'Strike with a wave of corruption and create an exploding spore.'
+    }
+  ].map((skill) => ({
+    ...skill,
+    icon: `https://wiki.guildwars2.com/wiki/Special:FilePath/${encodeURIComponent(skill.name.replaceAll(' ', '_'))}.png`,
+    type: 'Weapon',
+    slot: 'Weapon_1',
+    specialization: 'Untamed',
+    unleashedAmbushSkill: true
+  })),
   {
     id: 63438,
     name: 'Relentless Whirl',

@@ -1,9 +1,10 @@
+import { boonActive, eventSkill as modifierEventSkill } from '#gw2/platform/combat/query/runtime-query.js';
 import { claimActivation } from '#gw2/platform/combat/activation-claims.js';
 import { grantCharges } from '#gw2/platform/combat/resources/charges.js';
 import { professionStaticRulesApplied } from '#gw2/platform/builds/attribute-provenance.js';
 import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
 import type { Gw2NumericStatKey, Gw2ResolvedStats } from '#gw2/platform/combat/query/combat-query.js';
-import { eventSkill as modifierEventSkill } from '#gw2/platform/combat/query/runtime-query.js';
+
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
 import {
@@ -32,7 +33,6 @@ import { rangerPetByName } from '#gw2/professions/ranger/core/state.js';
 import {
   activePetFamily,
   positional,
-  rangerBoonActive,
   weaponSetIncludes
 } from '#gw2/professions/ranger/core/traits/modifier-queries.js';
 import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
@@ -666,7 +666,7 @@ export function applyViciousQuarryAttributes(
     const viciousQuarryProfile = requireBalanceProfileFromContext(context, TRAIT.VICIOUS_QUARRY);
     adjust(
       'ferocity',
-      (Number(rangerBoonActive(context, 'fury')) - Number(staticRulesApplied && Boolean(context.config?.boons?.fury))) *
+      (Number(boonActive(context, 'fury')) - Number(staticRulesApplied && Boolean(context.config?.boons?.fury))) *
         balanceProfileNumber(viciousQuarryProfile, 'attributeBonus')
     );
   }

@@ -5,6 +5,15 @@ import { declaration, stableEntries } from './lib/generator-utils.mjs';
 import { fetchGw2Api, fetchManyGw2 } from './lib/gw2-profession-snapshot.mjs';
 
 const SUPPLEMENTAL_SKILLS = [
+  // Land ambush identities must survive metadata refreshes that omit their API records.
+  ['Sundering Volley', 63129],
+  ['Neurotoxin Burst', 69223],
+  ['Rampant Growth', 72079],
+  ['Savage Slash', 63350],
+  ['Multishot', 63225],
+  ['Toxic Shot', 63326],
+  ['Solar Brilliance', 69175],
+  ["Ravager's Abandon", 72932],
   // Bird AI identities are absent from the public skill endpoint.
   ['Bird Slash', 12682],
   ['Bird Swoop', 12719],

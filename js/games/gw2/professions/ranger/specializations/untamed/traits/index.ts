@@ -11,6 +11,7 @@ import { isPetStrike, isPlayerStrike } from '#gw2/professions/ranger/core/mechan
 import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
 import { grantAmbush } from '#gw2/professions/ranger/specializations/untamed/mechanics/unleash-effects.js';
 import { untamedState } from '#gw2/professions/ranger/specializations/untamed/state.js';
+import { UNTAMED_AMBUSH_SKILL_IDS } from '#gw2/professions/ranger/data/untamed-ambushes.js';
 
 function untamedModifierState(context: Gw2ModifierContext): Partial<UntamedModifierState> {
   return readProfessionSpecializationState<UntamedModifierState>(context.runtime?.profession, 'Untamed') || {};
@@ -261,7 +262,8 @@ interface UntamedModifierState {
   readonly ferociousSymbiosisPet?: RefreshedStacks;
 }
 
-const BLINDING_OUTBURST_SKILL_IDS = new Set<number>([ID.VENOMOUS_OUTBURST, ID.RELENTLESS_WHIRL, ID.DEFT_STRIKE]);
+// The ambush damage bonus follows the same supported identities as availability and Let Loose.
+const BLINDING_OUTBURST_SKILL_IDS = new Set<number>([ID.VENOMOUS_OUTBURST, ...UNTAMED_AMBUSH_SKILL_IDS]);
 
 /** Register authored owners in a fixed order; runtime boundaries stay explicit. */
 export const untamedTraits = [

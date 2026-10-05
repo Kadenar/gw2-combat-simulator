@@ -138,6 +138,7 @@ export const RANGER_SKILL_IDS = Object.freeze({
   ETERNAL_BOND: 59554, // Eternal Bond
   ENVELOPING_HAZE: 63094, // Enveloping Haze
   HAMMER_STRIKE: 63118, // Hammer Strike
+  SUNDERING_VOLLEY: 63129, // Sundering Volley
   NATURES_BINDING: 63130, // Nature's Binding
   UNLEASHED_SAVAGE_SHOCK_WAVE: 63131, // Unleashed Savage Shock Wave
   UNLEASH_RANGER: 63147, // Unleash Ranger
@@ -148,12 +149,15 @@ export const RANGER_SKILL_IDS = Object.freeze({
   UNLEASHED_THUMP: 63208, // Unleashed Thump
   VENOMOUS_OUTBURST: 63209, // Venomous Outburst
   HAMMER_SLAM: 63222, // Hammer Slam
+  MULTISHOT: 63225, // Multishot
   RENDING_VINES: 63258, // Rending Vines
   PERILOUS_GIFT: 63319, // Perilous Gift
+  TOXIC_SHOT: 63326, // Toxic Shot
   UNLEASHED_WILD_SWING: 63335, // Unleashed Wild Swing
   DEFT_STRIKE: 63336, // Deft Strike
   HEAVY_SMASH: 63337, // Heavy Smash
   EXPLODING_SPORE: 63352, // Exploding Spore
+  SAVAGE_SLASH: 63350, // Savage Slash
   UNLEASH_PET: 63344, // Unleash Pet
   RELENTLESS_WHIRL: 63438, // Relentless Whirl
   DASH: 64038, // Dash
@@ -162,6 +166,8 @@ export const RANGER_SKILL_IDS = Object.freeze({
   HEAVY_SHOT: 66258, // Heavy Shot
   PHASE_POUNCE: 67382, // Phase Pounce
   WILD_SWING: 69167, // Wild Swing
+  SOLAR_BRILLIANCE: 69175, // Solar Brilliance
+  NEUROTOXIN_BURST: 69223, // Neurotoxin Burst
   POUNCE: 69203, // Pounce
   THUMP: 69212, // Thump
   OVERBEARING_SMASH: 69262, // Overbearing Smash
@@ -176,12 +182,14 @@ export const RANGER_SKILL_IDS = Object.freeze({
   OAKEN_CUDGEL: 71963, // Oaken Cudgel
   FLOURISH: 71999, // Flourish
   BURGEON: 72044, // Burgeon
+  RAMPANT_GROWTH: 72079, // Rampant Growth
   GERMINATE: 72088, // Germinate
   TORMENTING_VISIONS: 72636, // Tormenting Visions
   STARING_VOID: 72851, // Staring Void
   OWLS_FLIGHT: 72913, // Owl's Flight
   DRAKES_SWIPE: 72922, // Drake's Swipe
   FALCONS_STOOP: 72928, // Falcon's Stoop
+  RAVAGERS_ABANDON: 72932, // Ravager's Abandon
   SPIDERS_WEB: 72993, // Spider's Web
   PANTHERS_PROWL: 73008, // Panther's Prowl
   WARCLAWS_ENGAGE: 73020, // Warclaw's Engage

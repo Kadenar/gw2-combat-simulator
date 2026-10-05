@@ -1,6 +1,5 @@
 import { claimActivation } from '#gw2/platform/combat/activation-claims.js';
 import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
-import { buffApplicationStacks } from '#gw2/platform/combat/boons.js';
 import { consumeCharge, expireCharges } from '#gw2/platform/combat/resources/charges.js';
 import { gw2AlliedPlayerProcTimeline } from '#gw2/platform/combat/state/allied-players.js';
 import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
@@ -47,7 +46,7 @@ export const soulbeastEventHandlers = Object.freeze({ 'ranger.shared-stance-hit'
 
 export function activeSoulbeastBuff(context: RangerResolverContext, kind: string, at: number): boolean {
   // These personal stance queries cannot borrow a companion's or ally's application.
-  return buffApplicationStacks(context.combat.buffApplications(kind), kind, at, 1) > 0;
+  return context.combat.activeBuffStacks(kind, at, 1) > 0;
 }
 
 // Beast Ability is always the last skill in beastmodeSkillIds; traits like Live Fast and Go for the Eyes

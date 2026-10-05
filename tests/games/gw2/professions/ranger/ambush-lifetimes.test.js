@@ -7,6 +7,7 @@ import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '#gw2/professi
 import { untamedCastAvailability } from '#gw2/professions/ranger/specializations/untamed/mechanics/unleash-effects.js';
 import { bindUntamedUi } from '#gw2/professions/ranger/specializations/untamed/presentation.js';
 import { rangerCatalog } from '#gw2/professions/ranger/catalog.js';
+import { UNTAMED_AMBUSH_SKILL_IDS } from '#gw2/professions/ranger/data/untamed-ambushes.js';
 
 const config = { specialization: 'Untamed', primaryWeapon: 'Hammer', selectedTraitIds: [TRAIT.LET_LOOSE] };
 const wait = (durationMs) => ({ type: 'wait', durationMs });
@@ -58,4 +59,81 @@ test('an admitted ambush consumes the grant while its delayed effects finish', (
     ).length,
     1
   );
+});
+
+// Every weapon replacement consumes the shared grant and owns only one Let Loose reward, including delayed hits.
+test('all supported weapon ambushes share availability and Let Loose ownership', () => {
+  for (const skillId of UNTAMED_AMBUSH_SKILL_IDS) {
+    const skill = rangerCatalog.skillsById.get(skillId);
+    assert.ok(skill?.unleashedAmbushSkill, String(skillId));
+    const result = runRanger(
+      [ID.UNLEASH_RANGER, skillId],
+      {
+        ...config,
+        primaryWeapon: skill.weapon
+      },
+      { observation: { kind: 'tail', durationMs: 5000 } }
+    );
+    assert.deepEqual(result.warnings, [], skill.name);
+    assert.equal(result.planningState.profession.ambushReadyUntil, 0, skill.name);
+    assert.equal(untamedCastAvailability(observedRuntime(result), skill).ready, false, skill.name);
+    assert.ok(
+      result.resolvedEvents.some((event) => event.type === 'damage' && event.skillId === skillId),
+      skill.name
+    );
+    assert.equal(
+      result.resolvedEvents.filter(
+        (event) => event.type === 'buff' && event.kind === 'quickness' && event.sourceId === TRAIT.LET_LOOSE
+      ).length,
+      1,
+      skill.name
+    );
+  }
+});
+
+// Poison gained or lost during flight changes the conditional payload; Toxic Shot cannot enable its own torment.
+test('Toxic Shot checks existing poison at impact and preserves its condition ownership', () => {
+  for (const [label, poisonAt, duration, expected] of [
+    ['clean target', null, 0, false],
+    ['poison arrives during flight', 0.2, 2, true],
+    ['poison expires during flight', 0.2, 0.1, false],
+    ['poison arrives after impact', 0.8, 2, false]
+  ]) {
+    const result = runRanger(
+      [ID.UNLEASH_RANGER, ID.TOXIC_SHOT],
+      {
+        specialization: 'Untamed',
+        primaryWeapon: 'Shortbow'
+      },
+      {
+        observation: { kind: 'tail', durationMs: 2000 },
+        initialize(runtime) {
+          if (poisonAt == null) return;
+          runtime.effects.emit({
+            kind: 'packet',
+            event: {
+              type: 'condition',
+              at: poisonAt,
+              condition: 'Poisoned',
+              stacks: 1,
+              duration,
+              source: 'fixture',
+              sourceId: 'fixture',
+              actorType: 'player',
+              skillName: 'Setup poison'
+            }
+          });
+        }
+      }
+    );
+    assert.deepEqual(result.warnings, [], label);
+    const torment = result.events.filter((event) => event.type === 'condition' && event.condition === 'Torment');
+    assert.equal(torment.length, expected ? 1 : 0, label);
+    for (const event of torment) {
+      assert.equal(event.skillId, ID.TOXIC_SHOT);
+      assert.equal(event.sourceId, ID.TOXIC_SHOT);
+      assert.equal(event.actorType, 'player');
+      assert.equal(event.stacks, 4);
+    }
+  }
 });

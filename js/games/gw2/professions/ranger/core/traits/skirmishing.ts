@@ -1,3 +1,4 @@
+import { boonActive } from '#gw2/platform/combat/query/runtime-query.js';
 import { activeBuff } from '#gw2/professions/ranger/core/traits/modifier-queries.js';
 import { activeChargeCount, consumeCharge } from '#gw2/platform/combat/resources/charges.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
@@ -5,7 +6,7 @@ import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-
 import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
 import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
-import { positional, rangerBoonActive } from '#gw2/professions/ranger/core/traits/modifier-queries.js';
+import { positional } from '#gw2/professions/ranger/core/traits/modifier-queries.js';
 import { RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
 import type { RangerRuntime } from '#gw2/professions/ranger/types.js';
 
@@ -190,7 +191,7 @@ export const viciousQuarry = defineTrait({
       amount: (context) =>
         balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.VICIOUS_QUARRY), 'criticalChance'),
       // Vicious Quarry improves the ranger's Fury; the pet retains its own independent critical chance.
-      when: (context) => isGw2PlayerModifierOwnedEvent(context.event) && rangerBoonActive(context, 'fury')
+      when: (context) => isGw2PlayerModifierOwnedEvent(context.event) && boonActive(context, 'fury')
     }
   ],
   buildAttributes: (_common, { balanceContext: profileContext, build }) => {

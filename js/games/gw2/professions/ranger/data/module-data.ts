@@ -8,6 +8,7 @@ import { SKILLS, SPECIALIZATIONS } from '#gw2/professions/ranger/data/ranger-api
 import { RANGER_PETS, RANGER_PET_SKILLS } from '#gw2/professions/ranger/data/ranger-pet-data.js';
 import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
 import { RANGER_SUPPLEMENTAL_SKILLS } from '#gw2/professions/ranger/data/ranger-supplemental-skills.js';
+import { UNTAMED_AMBUSH_SKILL_IDS } from '#gw2/professions/ranger/data/untamed-ambushes.js';
 import { TRAITS } from '#gw2/professions/ranger/data/traits-data.js';
 import { isRangerHammerVariant } from '#gw2/professions/ranger/data/hammer-variants.js';
 import type { SkillId } from '#gw2/platform/skills/types.js';
@@ -30,8 +31,7 @@ const UNTAMED_PROFESSION_SKILLS = Object.freeze([
   ID.VENOMOUS_OUTBURST,
   ID.RENDING_VINES,
   ID.UNLEASH_PET,
-  ID.RELENTLESS_WHIRL,
-  ID.DEFT_STRIKE
+  ...UNTAMED_AMBUSH_SKILL_IDS
 ]);
 
 const UNTAMED_PET_SKILLS: readonly SkillId[] = Object.freeze([
@@ -39,8 +39,6 @@ const UNTAMED_PET_SKILLS: readonly SkillId[] = Object.freeze([
   ID.VENOMOUS_OUTBURST,
   ID.RENDING_VINES
 ]);
-
-const UNTAMED_AMBUSH_SKILLS: readonly SkillId[] = Object.freeze([ID.RELENTLESS_WHIRL, ID.DEFT_STRIKE]);
 
 const GALESHOT_PROFESSION_SKILLS = Object.freeze([ID.SUMMON_CYCLONE_BOW, ID.DISMISS_CYCLONE_BOW]);
 
@@ -65,7 +63,7 @@ function normalize(skill: RangerSkill): RangerSkill {
 
   const unleashedPetSkill = UNTAMED_PET_SKILLS.includes(skill.id);
 
-  const unleashedAmbushSkill = UNTAMED_AMBUSH_SKILLS.includes(skill.id);
+  const unleashedAmbushSkill = UNTAMED_AMBUSH_SKILL_IDS.includes(Number(skill.id));
 
   return {
     ...normalizeGeneratedSkill(skill, flipParentById.get(skill.id) ?? null),
