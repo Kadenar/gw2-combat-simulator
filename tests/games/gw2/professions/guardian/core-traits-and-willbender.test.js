@@ -56,9 +56,9 @@ test('Guardian recharge applies Alacrity, ammo, and trait reductions', () => {
     secondaryWeapon: 'Pistol'
   })(undefined, ['Hail of Justice', 'Hail of Justice', 'Hail of Justice']);
 
-  assert.equal(alacrity.planningState.cooldowns['Virtue of Justice'].readyAt, 16000);
-  assert.equal(virtuous.planningState.cooldowns['Virtue of Justice'].readyAt, 13600);
-  assert.equal(ammo.planningState.ammo['Hail of Justice'].charges, 0);
+  assert.equal(alacrity.planningState.cooldowns[GUARDIAN_SKILL_IDS.JUSTICE].readyAt, 16000);
+  assert.equal(virtuous.planningState.cooldowns[GUARDIAN_SKILL_IDS.JUSTICE].readyAt, 13600);
+  assert.equal(ammo.planningState.ammoBySkillId[GUARDIAN_SKILL_IDS.HAIL_OF_JUSTICE].charges, 0);
   assert.equal(ammo.steps[2].start, ammo.steps[0].end + 8000);
   assert.deepEqual(ammo.warnings, []);
 });
@@ -722,7 +722,7 @@ test("Radiant Fire upgrades Zealot's Flame duration, recharge, and ammo", () => 
     flameActions.map((event) => event.at),
     [0, 1.08, 9.6]
   );
-  assert.equal(result.planningState.ammo["Zealot's Flame"].maximum, 2);
+  assert.equal(result.planningState.ammoBySkillId[GUARDIAN_SKILL_IDS.ZEALOTS_FLAME].maximum, 2);
   assert.ok(flameBurns.length > 0);
   assert.equal(
     flameBurns.every((event) => Math.abs(event.effectiveDuration - 5.4) < 1e-9),
@@ -764,9 +764,9 @@ test('Renewed Focus recharges all three core virtues', () => {
     'Renewed Focus'
   ]);
 
-  assert.equal(Object.hasOwn(result.planningState.cooldowns, 'Virtue of Justice'), false);
-  assert.equal(Object.hasOwn(result.planningState.cooldowns, 'Virtue of Resolve'), false);
-  assert.equal(Object.hasOwn(result.planningState.cooldowns, 'Virtue of Courage'), false);
+  assert.equal(Object.hasOwn(result.planningState.cooldowns, GUARDIAN_SKILL_IDS.JUSTICE), false);
+  assert.equal(Object.hasOwn(result.planningState.cooldowns, GUARDIAN_SKILL_IDS.RESOLVE), false);
+  assert.equal(Object.hasOwn(result.planningState.cooldowns, GUARDIAN_SKILL_IDS.COURAGE), false);
   assert.deepEqual(result.planningState.profession.virtueReadyAt, {
     justice: result.steps.at(-1).end / 1000,
     resolve: result.steps.at(-1).end / 1000,
@@ -824,7 +824,7 @@ for (const [name, recharge, boons, duration] of [
         [0, 5000 / rate, (recharge * 1000) / rate]
       );
       assert.ok(result.steps.every((step) => step.end === step.start));
-      assert.equal(result.planningState.ammo[name].charges, 0);
+      assert.equal(result.planningState.ammoBySkillId[guardianCatalog.skillsByName.get(name).id].charges, 0);
       const buffs = result.events.filter(
         (event) => event.type === 'buff' && event.skillName === name && event.at === 0
       );
@@ -883,6 +883,6 @@ test('Guardian results advance to cooldown expiry before recasting', () => {
   const casts = result.steps.filter((step) => step.skill === 'Virtue of Justice');
   assert.equal(casts[1].start - casts[0].start, 16000);
   assert.ok(result.steps.every((step) => !step.invalid));
-  assert.equal(result.planningState.cooldowns['Virtue of Justice'].readyAt, casts[1].end + 16000);
+  assert.equal(result.planningState.cooldowns[GUARDIAN_SKILL_IDS.JUSTICE].readyAt, casts[1].end + 16000);
   assert.deepEqual(result.warnings, []);
 });

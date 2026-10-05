@@ -639,13 +639,15 @@ test('Specter traits amplify force gains and add their Siphon recharge reduction
   const sleight = simulate('Specter', ['Siphon'], { selectedTraitIds: [TRAIT.SLEIGHT_OF_HAND] });
   // Both traits contribute additively, independent of Siphon's authored cooldown.
   assert.equal(
-    reduced.planningState.cooldowns.Siphon.remaining,
-    lead.planningState.cooldowns.Siphon.remaining +
-      sleight.planningState.cooldowns.Siphon.remaining -
-      baseline.planningState.cooldowns.Siphon.remaining
+    reduced.planningState.cooldowns[ID.SIPHON].remaining,
+    lead.planningState.cooldowns[ID.SIPHON].remaining +
+      sleight.planningState.cooldowns[ID.SIPHON].remaining -
+      baseline.planningState.cooldowns[ID.SIPHON].remaining
   );
-  assert.ok(reduced.planningState.cooldowns.Siphon.remaining < lead.planningState.cooldowns.Siphon.remaining);
-  assert.ok(reduced.planningState.cooldowns.Siphon.remaining < sleight.planningState.cooldowns.Siphon.remaining);
+  assert.ok(reduced.planningState.cooldowns[ID.SIPHON].remaining < lead.planningState.cooldowns[ID.SIPHON].remaining);
+  assert.ok(
+    reduced.planningState.cooldowns[ID.SIPHON].remaining < sleight.planningState.cooldowns[ID.SIPHON].remaining
+  );
 
   const larcenous = simulate(
     'Specter',

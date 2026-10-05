@@ -3,7 +3,7 @@ import { gw2CooldownReadyAt } from '#gw2/platform/execution/cast-timing.js';
 import type { CooldownController, AvailabilityResult } from '#gw2/platform/execution/types.js';
 import { flattenProfessionState } from '#gw2/platform/profession-definition/state.js';
 import type { Gw2PlanningStateInput, Gw2SimulationPlanningState } from '#gw2/platform/results/types.js';
-import type { Skill, SkillId } from '#gw2/platform/skills/types.js';
+import type { Skill } from '#gw2/platform/skills/types.js';
 
 /** Projects one observed boundary into detached public fields, using only recharge observations and profession data. */
 export function planningState<T extends object>(
@@ -15,12 +15,12 @@ export function planningState<T extends object>(
   effects: readonly EffectState[]
 ): Gw2SimulationPlanningState {
   const endTime = input.time;
-  const skillName = (id: SkillId): string => input.catalog.skillsById.get(id)?.name || String(id);
+  // Keep distinct skills separate even when their display names match.
   const cooldowns = Object.fromEntries(
     [...input.cooldownController.cooldownSkillIds()].map((id) => {
       const readyAt = input.cooldownController.readyAt(id)!;
       return [
-        skillName(id),
+        String(id),
         {
           readyAt: Math.round(gw2CooldownReadyAt(readyAt) * 1000),
           remaining: Math.max(0, Math.round((gw2CooldownReadyAt(readyAt) - endTime) * 1000))
@@ -43,9 +43,7 @@ export function planningState<T extends object>(
       }
     ] as const;
   });
-  const ammo = Object.fromEntries(ammoEntries.map(([id, value]) => [skillName(id), value]));
-  // Preserve exact skill identities for UI consumers because API variants can share names.
-  const ammoBySkillId = Object.fromEntries(ammoEntries.map(([id, value]) => [String(id), structuredClone(value)]));
+  const ammoBySkillId = Object.fromEntries(ammoEntries);
   const projected = project?.({
     profession: input.profession,
     time: input.time,
@@ -65,7 +63,6 @@ export function planningState<T extends object>(
     effects: structuredClone(effects),
     atSeconds: endTime,
     cooldowns,
-    ammo,
     ammoBySkillId,
     activeWeaponSet: input.activeWeaponSet,
     // Projection lets a profession hide its internal bookkeeping.

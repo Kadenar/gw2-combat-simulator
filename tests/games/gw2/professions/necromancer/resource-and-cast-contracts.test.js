@@ -237,11 +237,18 @@ test('shroud exits before combat leave entry ready without weakening combat rech
     assert.equal(precombat.steps.filter((step) => step.skill === entry).at(-1).start / 1000, precombat.combatStartTime);
     for (const prefix of [[], [{ type: 'combat-start' }]]) {
       const combat = simulate(specialization, [...prefix, entry, exit], { initialResource: 100 });
-      assert.ok(combat.planningState.cooldowns[entry].remaining > 0, specialization);
+      assert.ok(
+        combat.planningState.cooldowns[necromancerCatalog.skillsByName.get(entry).id].remaining > 0,
+        specialization
+      );
     }
 
     const depleted = simulate(specialization, [entry, wait(40000), { type: 'combat-start' }], { initialResource: 100 });
-    assert.equal(depleted.planningState.cooldowns[entry], undefined, specialization);
+    assert.equal(
+      depleted.planningState.cooldowns[necromancerCatalog.skillsByName.get(entry).id],
+      undefined,
+      specialization
+    );
   }
 });
 

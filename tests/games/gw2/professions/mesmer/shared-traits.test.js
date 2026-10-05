@@ -496,8 +496,8 @@ test('Shatter Storm gives Split Second two ammo charges', () => {
   assert.equal(result.steps[2].start, 8000);
   assert.deepEqual(
     {
-      charges: result.planningState.ammo['Split Second'].charges,
-      maximum: result.planningState.ammo['Split Second'].maximum
+      charges: result.planningState.ammoBySkillId[56930].charges,
+      maximum: result.planningState.ammoBySkillId[56930].maximum
     },
     { charges: 0, maximum: 2 }
   );
@@ -515,8 +515,8 @@ test('Shatter Storm initializes Split Second ammo before first cast', () => {
 
   assert.deepEqual(
     {
-      charges: result.planningState.ammo['Split Second'].charges,
-      maximum: result.planningState.ammo['Split Second'].maximum
+      charges: result.planningState.ammoBySkillId[56930].charges,
+      maximum: result.planningState.ammoBySkillId[56930].maximum
     },
     { charges: 2, maximum: 2 }
   );

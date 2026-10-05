@@ -710,7 +710,7 @@ test('Ranger pet commands require received Alacrity', () => {
   const rechargeMs = (result) => {
     const step = result.steps.find((candidate) => candidate.skill === 'Narcotic Spores');
 
-    return result.planningState.cooldowns['Narcotic Spores'].readyAt - step.end;
+    return result.planningState.cooldowns[step.skillId].readyAt - step.end;
   };
 
   assert.equal(rechargeMs(playerAlacrity), 15000);
@@ -1376,12 +1376,10 @@ test('Untamed Hammer pairs retain recharge across unleash transfers in both dire
       const config = { primaryWeapon: 'Hammer', initialUntamedState: rangerUnleashed ? 'Ranger' : 'Pet' };
       const initial = simulate('Untamed', [first], config);
       assert.deepEqual(initial.warnings, []);
-      const firstName = rangerCatalog.skillsById.get(first).name;
-      const secondName = rangerCatalog.skillsById.get(second).name;
-      const readyAt = initial.planningState.cooldowns[firstName].readyAt;
-      assert.equal(initial.planningState.cooldowns[secondName].readyAt, readyAt);
+      const readyAt = initial.planningState.cooldowns[first].readyAt;
+      assert.equal(initial.planningState.cooldowns[second].readyAt, readyAt);
       const other = RANGER_HAMMER_VARIANT_PAIRS.find((candidate) => candidate !== pair)[0];
-      assert.equal(initial.planningState.cooldowns[rangerCatalog.skillsById.get(other).name], undefined);
+      assert.equal(initial.planningState.cooldowns[other], undefined);
       const result = simulate('Untamed', [first, rangerUnleashed ? ID.UNLEASH_PET : ID.UNLEASH_RANGER, second], config);
       assert.deepEqual(result.warnings, []);
       assert.ok(result.steps.find((step) => step.skillId === second).start >= readyAt);
@@ -1411,8 +1409,8 @@ test('Cancelled Hammer casts also share their recharge with the other variant', 
   });
   assert.deepEqual(result.warnings, []);
   const cooldowns = result.planningState.cooldowns;
-  assert.ok(cooldowns['Wild Swing'].readyAt > 0);
-  assert.equal(cooldowns['Wild Swing'].readyAt, cooldowns['Unleashed Wild Swing'].readyAt);
+  assert.ok(cooldowns[ID.WILD_SWING].readyAt > 0);
+  assert.equal(cooldowns[ID.WILD_SWING].readyAt, cooldowns[ID.UNLEASHED_WILD_SWING].readyAt);
 });
 
 test('Untamed exposes and executes all three natural pet commands only with the ranger unleashed', () => {

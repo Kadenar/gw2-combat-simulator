@@ -33,7 +33,6 @@ function createHammerApp(hammerOrbs, time = 0) {
         atSeconds: time,
         cooldowns: {},
         // Orb state changes independently of the canonical ammo projection.
-        ammo: {},
         ammoBySkillId: {},
         profession: {
           primaryAttunement: 'Fire',

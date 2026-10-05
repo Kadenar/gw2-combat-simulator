@@ -596,20 +596,20 @@ test('Core Warrior weapon swap toggles the active set', () => {
     [0, 0]
   );
   assert.equal(precombat.planningState.activeWeaponSet, 1);
-  assert.equal(precombat.planningState.cooldowns['Swap Weapons'], undefined);
+  assert.equal(precombat.planningState.cooldowns[-3], undefined);
 
   const result = simulate('Core', ['__combat_start', 'Swap Weapons']);
 
   assert.deepEqual(result.warnings, []);
   assert.equal(result.planningState.activeWeaponSet, 2);
-  assert.equal(result.planningState.cooldowns['Swap Weapons'].readyAt, 5000);
+  assert.equal(result.planningState.cooldowns[-3].readyAt, 5000);
   assert.equal(
     result.events.some((event) => event.type === 'weapon_set' && event.weaponSet === 2),
     true
   );
 
   const relic = simulate('Core', ['__combat_start', 'Swap Weapons'], { relic: 'Warrior' });
-  assert.equal(relic.planningState.cooldowns['Swap Weapons'].readyAt, 2520);
+  assert.equal(relic.planningState.cooldowns[-3].readyAt, 2520);
 });
 
 test('Berserker gates primal bursts behind berserk mode', () => {
@@ -1236,8 +1236,8 @@ test('Rifle Butt restores rifle ammunition and readies Kill Shot', () => {
     [ID.VOLLEY, ID.EXPLOSIVE_SHELL, ID.BRUTAL_SHOT].map((id) => result.planningState.ammoBySkillId[String(id)].charges),
     [2, 2, 2]
   );
-  assert.equal(result.planningState.cooldowns['Kill Shot'], undefined);
-  assert.equal(result.planningState.cooldowns['Rifle Butt'].remaining, 9620);
+  assert.equal(result.planningState.cooldowns[ID.KILL_SHOT], undefined);
+  assert.equal(result.planningState.cooldowns[ID.RIFLE_BUTT].remaining, 9620);
 });
 
 test('Spellbreaker control grants independent Insight stacks and No Escape', () => {

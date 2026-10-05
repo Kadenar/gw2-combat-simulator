@@ -268,7 +268,7 @@ test('Dragon Trigger defers recharge while charging and still blocks re-entry', 
   });
   assert.deepEqual(active.warnings, []);
   assert.equal(active.planningState.profession.dragonTriggerActive, true);
-  assert.equal(active.planningState.cooldowns['Dragon Trigger'], undefined);
+  assert.equal(active.planningState.cooldowns[ID.DRAGON_TRIGGER], undefined);
 
   const repeated = simulate('Bladesworn', [ID.DRAGON_TRIGGER, ID.DRAGON_TRIGGER], { initialResource: 100 });
   assert.match(repeated.warnings[0], /Dragon Trigger is already active/);
@@ -288,7 +288,7 @@ test('Every Dragon Slash starts Dragon Trigger recharge at cast initiation', () 
         assert.deepEqual(result.warnings, []);
         assert.equal(result.planningState.profession.dragonTriggerActive, false);
         const rechargeMs = selectedTraitIds.includes(TRAIT.VERSATILE_POWER) ? 5440 : 6400;
-        assert.equal(result.planningState.cooldowns['Dragon Trigger'].readyAt, slash.start + rechargeMs);
+        assert.equal(result.planningState.cooldowns[ID.DRAGON_TRIGGER].readyAt, slash.start + rechargeMs);
       }
     }
   }
@@ -314,7 +314,7 @@ test('Leaving Dragon Trigger starts recharge at the exit timestamp', () => {
       assert.equal(result.planningState.profession.dragonTriggerActive, false);
       assert.equal(result.planningState.profession.dragonCharges.value, 0);
       const rechargeMs = selectedTraitIds.includes(TRAIT.VERSATILE_POWER) ? 5440 : 6400;
-      assert.equal(result.planningState.cooldowns['Dragon Trigger'].readyAt, exitAt + rechargeMs);
+      assert.equal(result.planningState.cooldowns[ID.DRAGON_TRIGGER].readyAt, exitAt + rechargeMs);
     }
   }
 });
@@ -572,9 +572,9 @@ test('Artillery Slash consumes all ammo and Tactical Reload restores a round', (
   const hits = fired.events.filter((event) => event.type === 'damage' && event.skillId === ID.ARTILLERY_SLASH);
 
   for (const result of [spent, reloaded, fired]) assert.deepEqual(result.warnings, []);
-  assert.equal(spent.planningState.ammo['Artillery Slash'].charges, 0);
-  assert.equal(reloaded.planningState.ammo['Artillery Slash'].charges, 1);
-  assert.equal(fired.planningState.ammo['Artillery Slash'].charges, 0);
+  assert.equal(spent.planningState.ammoBySkillId[ID.ARTILLERY_SLASH].charges, 0);
+  assert.equal(reloaded.planningState.ammoBySkillId[ID.ARTILLERY_SLASH].charges, 1);
+  assert.equal(fired.planningState.ammoBySkillId[ID.ARTILLERY_SLASH].charges, 0);
   assert.equal(hits.length, 2);
   assert.ok(hits[0].coefficient > hits[1].coefficient);
   assert.ok(fired.events.some((event) => event.skillId === ID.ARTILLERY_SLASH && event.controlKind === 'daze'));
@@ -586,9 +586,9 @@ test("Dragon's Roar consumes its magazine and Gunstinger reloads it", () => {
   const fired = simulate('Bladesworn', [ID.DRAGONS_ROAR, ID.GUNSTINGER, ID.DRAGONS_ROAR]);
 
   for (const result of [spent, reloaded, fired]) assert.deepEqual(result.warnings, []);
-  assert.equal(spent.planningState.ammo["Dragon's Roar"].charges, 0);
-  assert.ok(reloaded.planningState.ammo["Dragon's Roar"].charges > 0);
-  assert.equal(fired.planningState.ammo["Dragon's Roar"].charges, 0);
+  assert.equal(spent.planningState.ammoBySkillId[ID.DRAGONS_ROAR].charges, 0);
+  assert.ok(reloaded.planningState.ammoBySkillId[ID.DRAGONS_ROAR].charges > 0);
+  assert.equal(fired.planningState.ammoBySkillId[ID.DRAGONS_ROAR].charges, 0);
 });
 
 test('Gunsaber attacks resolve bundle strength and distinguish secondary explosions', () => {
@@ -672,20 +672,20 @@ test('Flow Stabilizer, Tactical Reload, and adrenaline conversion drive Flow', (
 
   assert.deepEqual(freshRecharge.warnings, []);
   assert.equal(
-    freshRecharge.planningState.ammo['Flow Stabilizer'].charges,
-    spent.planningState.ammo['Flow Stabilizer'].charges
+    freshRecharge.planningState.ammoBySkillId[ID.FLOW_STABILIZER].charges,
+    spent.planningState.ammoBySkillId[ID.FLOW_STABILIZER].charges
   );
-  assert.ok(spent.planningState.ammo['Flow Stabilizer'].nextRechargeAt > 0);
+  assert.ok(spent.planningState.ammoBySkillId[ID.FLOW_STABILIZER].nextRechargeAt > 0);
   const lastSpend = freshRecharge.events.findLast(
     (event) => event.type === 'action' && event.skillId === ID.FLOW_STABILIZER
   );
   assert.equal(
-    freshRecharge.planningState.ammo['Flow Stabilizer'].nextRechargeAt,
+    freshRecharge.planningState.ammoBySkillId[ID.FLOW_STABILIZER].nextRechargeAt,
     lastSpend.rechargeProgress.startedAt + lastSpend.rechargeProgress.work / 1.25
   );
   assert.ok(
-    freshRecharge.planningState.ammo['Flow Stabilizer'].nextRechargeAt >
-      spent.planningState.ammo['Flow Stabilizer'].nextRechargeAt
+    freshRecharge.planningState.ammoBySkillId[ID.FLOW_STABILIZER].nextRechargeAt >
+      spent.planningState.ammoBySkillId[ID.FLOW_STABILIZER].nextRechargeAt
   );
 
   const overlapping = simulate(
@@ -852,8 +852,8 @@ test('Dragon Trigger utilities expose defense, shadowstep ammo, and cooldown res
     [ID.DRAGON_TRIGGER, { skillId: ID.DRAGON_SLASH_FORCE, releaseAtCharges: 1 }, ID.DRAGONSPIKE_MINE],
     { initialResource: 100 }
   );
-  assert.ok(pending.planningState.cooldowns['Dragon Trigger'].remaining > 0);
-  assert.equal(cleared.planningState.cooldowns['Dragon Trigger'], undefined);
+  assert.ok(pending.planningState.cooldowns[ID.DRAGON_TRIGGER].remaining > 0);
+  assert.equal(cleared.planningState.cooldowns[ID.DRAGON_TRIGGER], undefined);
   assert.equal(
     reset.events.some(
       (event) => event.type === 'damage' && event.skillId === ID.DRAGONSPIKE_MINE && event.damageKind === 'explosion'
@@ -967,7 +967,7 @@ test('Overcharged Cartridges buffs explosion damage and burning', () => {
     ['overcharged-cartridges', 'supercharged-cartridges']
   );
   assert.equal(locked.steps.filter((step) => step.skill === 'Overcharged Cartridges').length, 3);
-  assert.equal(locked.planningState.ammo['Overcharged Cartridges'].charges, 0);
+  assert.equal(locked.planningState.ammoBySkillId[ID.OVERCHARGED_CARTRIDGES].charges, 0);
   assert.equal(
     locked.planningState.profession.overchargedCartridgeWindows.find((window) => window.supercharged).expiresAt,
     canonicalTime(lockedBuffs[1].at + 8)
@@ -1109,7 +1109,7 @@ test('Signet of Rage suspends passive adrenaline until its cooldown ends', () =>
 
   for (const result of [ready, cooling, recovered]) assert.deepEqual(result.warnings, []);
   assert.ok(ready.planningState.profession.adrenaline.value > 0);
-  assert.ok(cooling.planningState.cooldowns['Signet of Rage'].remaining > 0);
+  assert.ok(cooling.planningState.cooldowns[ID.SIGNET_OF_RAGE].remaining > 0);
   assert.equal(cooling.planningState.profession.adrenaline.value, 0);
   assert.ok(recovered.planningState.profession.adrenaline.value > 0);
 });

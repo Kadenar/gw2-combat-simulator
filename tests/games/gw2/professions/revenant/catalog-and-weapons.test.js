@@ -463,7 +463,7 @@ test('legend palette shows only the destination legend with the shared swap cool
   const cooldownContext = {
     ...context,
     time: 1,
-    cooldowns: { 'Swap Legends': { readyAt: 10000, remaining: 9000 } }
+    cooldowns: { [SKILL.SWAP_LEGENDS]: { readyAt: 10000, remaining: 9000 } }
   };
 
   assert.equal(
@@ -1137,7 +1137,7 @@ test("Abyssal Strike reduces Raze's displayed cooldown with no charges", () => {
   assert.equal(result.warnings.length, 0);
 
   assert.equal(observedRuntime(result).cooldownController.readAmmo(SKILL.ABYSSAL_RAZE).nextRechargeAt, 11.8);
-  assert.deepEqual(result.planningState.cooldowns['Abyssal Raze'], {
+  assert.deepEqual(result.planningState.cooldowns[SKILL.ABYSSAL_RAZE], {
     readyAt: 11800,
     remaining: 780
   });
@@ -1168,7 +1168,7 @@ test('Abyssal Raze recharge reduction carries only excess work into the next que
   assert.ok(overflow > 0 && overflow < 1);
   assert.ok(Math.abs(ammo.recharges[0].work - (15 - overflow)) < 1e-9);
   assert.equal(ammo.recharges[1].work, 15);
-  assert.equal(result.planningState.cooldowns['Abyssal Raze'], undefined);
+  assert.equal(result.planningState.cooldowns[SKILL.ABYSSAL_RAZE], undefined);
 });
 
 test('Crushing Abyss scales Raze and triggers at three stacks on weapon swap', () => {

@@ -115,7 +115,10 @@ test('axe weapon cooldowns begin at completed cast recharge anchors', () => {
     ['Unholy Feast', 10]
   ]) {
     const result = simulate('Core', [name]);
-    assert.equal(result.planningState.cooldowns[name].readyAt - result.steps[0].end, (seconds * 1000) / 1.25);
+    assert.equal(
+      result.planningState.cooldowns[necromancerCatalog.skillsByName.get(name).id].readyAt - result.steps[0].end,
+      (seconds * 1000) / 1.25
+    );
     assert.deepEqual(result.warnings, []);
   }
 });

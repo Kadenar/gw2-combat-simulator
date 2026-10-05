@@ -169,7 +169,7 @@ test('Chaotic Interruption recharges a phantasm cast before Tortured Mastermind 
 
   assert.equal(proc?.at, 3.92);
   assert.equal(proc?.sourceSkill, 'Tale of the Tortured Mastermind');
-  assert.equal(result.planningState.cooldowns['Phantasmal Warlock'].readyAt, 7440);
+  assert.equal(result.planningState.cooldowns[ID.PHANTASMAL_WARLOCK].readyAt, 7440);
 });
 
 test('Troubadour tales grant their boons and instrument-specific notes', () => {
@@ -278,7 +278,7 @@ test('Troubadour Dodge spends continuous endurance and waits for regeneration wi
     assert.ok(result.planningState.profession.endurance.value < 0.11);
     assert.equal(result.planningState.profession.endurance.maximum, 100);
     assert.equal(result.planningState.ammoBySkillId[SHARED_SKILL_IDS.DODGE], undefined);
-    assert.equal(Object.hasOwn(result.planningState.cooldowns, 'Dodge'), false);
+    assert.equal(Object.hasOwn(result.planningState.cooldowns, -5), false);
   }
 });
 
@@ -308,9 +308,9 @@ test('Honorable Rogue restores 50 endurance, preserving partial regeneration and
         before.planningState.profession.endurance.value + 50 + ((tale.end - tale.start) / 1000) * rate
       );
       assert.ok(Math.abs(after.planningState.profession.endurance.value - expected) < 0.000001);
-      assert.equal(Object.hasOwn(after.planningState.cooldowns, 'Dodge'), false);
+      assert.equal(Object.hasOwn(after.planningState.cooldowns, -5), false);
       assert.equal(after.planningState.ammoBySkillId[SHARED_SKILL_IDS.DODGE], undefined);
-      assert.ok(after.planningState.cooldowns['Tale of the Honorable Rogue'].remaining > 0);
+      assert.ok(after.planningState.cooldowns[ID.TALE_OF_THE_HONORABLE_ROGUE].remaining > 0);
     }
   }
 });
@@ -612,7 +612,7 @@ test('Harmonize, Call and Response, Fortissimo, and Altered Chord execute', () =
         initialResource,
         selectedTraitIds: [TRAIT.ALTERED_CHORD]
       })
-    ).planningState.cooldowns.Crescendo.readyAt;
+    ).planningState.cooldowns[ID.CRESCENDO].readyAt;
 
   assert.equal(crescendoReadyAt(0) - crescendoReadyAt(1), 1600);
 });

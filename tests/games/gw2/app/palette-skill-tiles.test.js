@@ -88,6 +88,25 @@ function catalogApp(skills, professionState = {}) {
   return projectionApp({ catalog }, { professionState, useProfessionUi: false });
 }
 
+// Display labels do not couple independent variants' countdowns, disabled states, or charge counts.
+test('same-name palette skills use their own cooldown and ammo identities', () => {
+  const skills = [990101, 990102].map((id) => ({ id, name: 'Shared Name', type: 'Utility', effects: [] }));
+  const app = catalogApp(skills);
+  app.profession.ui.resourceViews = () => [];
+  app.results.planningState.cooldowns = { 990101: { remaining: 4000, readyAt: 4000 } };
+  app.results.planningState.ammoBySkillId = {
+    990101: { charges: 0, maximum: 2, recharges: [], nextRechargeAt: null },
+    990102: { charges: 2, maximum: 2, recharges: [], nextRechargeAt: null }
+  };
+  const [cooling, ready] = skills.map((skill) => paletteSkillView(app, skill));
+  assert.equal(cooling.cooldownLabel, '4.000s');
+  assert.equal(cooling.disabled, true);
+  assert.equal(cooling.ammo.current, 0);
+  assert.equal(ready.cooldownLabel, '');
+  assert.equal(ready.disabled, false);
+  assert.equal(ready.ammo.current, 2);
+});
+
 // Startup is unknown; once observed, a missing candidate is a contract failure rather than permission to insert.
 test('palette distinguishes startup, missing verdicts, and runtime retry boundaries', () => {
   const skill = { id: 990001, name: 'Candidate', type: 'Utility', effects: [] };
@@ -482,7 +501,7 @@ test('Untamed ambush tiles glow only while their window is open and recharge is 
       [3, true, 1000, false]
     ]) {
       const context = { specialization: 'Untamed', time, professionState: { rangerUnleashed, ambushReadyUntil: 4 } };
-      const app = projectionApp(profession, { ...context, cooldowns: { [name]: { remaining, readyAt: 4000 } } });
+      const app = projectionApp(profession, { ...context, cooldowns: { [skill.id]: { remaining, readyAt: 4000 } } });
       const planning = planningFixture(profession, { specialization: 'Untamed' }, (runtime) => {
         Object.assign(runtime.profession.specialization.state, { rangerUnleashed, ambushReadyUntil: time < 4 ? 4 : 0 });
       });
@@ -520,7 +539,7 @@ test('Rock Barrier tile shows the root cooldown after Hurl consumes the flip', a
     professionState: { availableFlips: {} },
     time: 1,
     cooldowns: {
-      'Rock Barrier': { remaining: 8000, readyAt: 9000 }
+      [profession.catalog.skillsByName.get('Rock Barrier').id]: { remaining: 8000, readyAt: 9000 }
     }
   });
   const [skill] = displayedSkillTiles(app, [profession.catalog.skillsByName.get('Rock Barrier')]);
@@ -538,7 +557,7 @@ test('cooldown tooltip reports availability relative to combat start', async () 
   const app = projectionApp(profession, {
     time: 14.84,
     cooldowns: {
-      Wanderlust: { remaining: 8160, readyAt: 23000 }
+      [skill.id]: { remaining: 8160, readyAt: 23000 }
     }
   });
   app.results.events = [{ type: 'combat_start', at: 10 }];

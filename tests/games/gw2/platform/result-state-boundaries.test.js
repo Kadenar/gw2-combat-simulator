@@ -62,7 +62,7 @@ test('early death separates combat effects from later planned casts and cooldown
   assert.equal(result.planningState.atSeconds, 2);
   assert.equal(result.planningState.profession.plannedCasts, 2);
   assert.equal(result.planningState.profession.resolvedHits, 2);
-  assert.ok(result.planningState.cooldowns.Later.remaining > 0);
+  assert.ok(result.planningState.cooldowns[990002].remaining > 0);
   assert.ok(result.events.every((event) => event.at <= result.combatEndTime));
   assert.equal(result.totalDamage, 200);
   assert.equal(result.dps, 4000);
@@ -93,7 +93,7 @@ test('surviving combat and planning share the requested observation boundary', (
     assert.equal(result.combatEndTime, end);
     assert.equal(result.planningState.atSeconds, end);
     assert.equal(result.planningState.profession.resolvedHits, 4);
-    assert.equal(result.planningState.cooldowns.Later.remaining, (18 - end) * 1000);
+    assert.equal(result.planningState.cooldowns[990002].remaining, (18 - end) * 1000);
   }
 });
 

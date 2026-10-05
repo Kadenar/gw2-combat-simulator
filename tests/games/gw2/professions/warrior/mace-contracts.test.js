@@ -23,7 +23,7 @@ test('Counterblow arms one temporary Tactical Blow without dealing damage or gra
   assert.equal(flipped.steps[1].start, block.steps[0].end);
   assert.equal(flipped.planningState.profession.adrenaline.value, 6); // Five from the skill plus one ordinary strike.
   assert.equal(flipped.planningState.profession.availableFlips[ID.TACTICAL_BLOW], undefined);
-  assert.ok(flipped.planningState.cooldowns.Counterblow.remaining > 0);
+  assert.ok(flipped.planningState.cooldowns[ID.COUNTERBLOW].remaining > 0);
 
   for (const rotation of [
     [ID.TACTICAL_BLOW],

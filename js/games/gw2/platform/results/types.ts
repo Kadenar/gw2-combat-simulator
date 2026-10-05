@@ -30,10 +30,8 @@ export interface Gw2SimulationPlanningState {
   readonly availability: Readonly<Record<string, AvailabilityResult>>;
   /** Observed planning boundary in seconds; includes authoring continuation after target death. */
   readonly atSeconds: number;
-  /** Public cooldown deadlines and remaining durations are milliseconds. */
+  /** Skill-ID-keyed cooldown deadlines and remaining durations are milliseconds. */
   readonly cooldowns: Readonly<Record<string, { readyAt: number; remaining: number }>>;
-  /** Name-keyed observed ammo; absent entries do not imply full charges. Prefer ammoBySkillId for identity. */
-  readonly ammo: Readonly<Record<string, unknown>>;
   /** ID-keyed ammo avoids collisions between distinct skills sharing a display name. */
   readonly ammoBySkillId: Readonly<Record<string, Readonly<AmmoState>>>;
   readonly activeWeaponSet: number;

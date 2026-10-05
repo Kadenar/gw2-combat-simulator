@@ -459,7 +459,7 @@ test('lethal siblings finish but post-death hits grant nothing while self comman
   assert.equal(result.combatEndTime, 0.5);
   assert.equal(result.planningState.profession.hits, 1);
   assert.equal(result.planningState.atSeconds, 2);
-  assert.equal(result.planningState.cooldowns.Cast.readyAt, 3600);
+  assert.equal(result.planningState.cooldowns[990001].readyAt, 3600);
   result.planningState.profession.hits = 999;
   assert.equal(owner.profession.hits, 1);
   assert.equal(run([wait(1000), cast(990001)], { ...options, output: 'score' }).totalDamage, 20);

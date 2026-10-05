@@ -77,7 +77,7 @@ test('shared eligibility precedes profession filters and cast state changes', ()
   const accepted = simulateGw2({ profession, config: context, rotation: [{ type: 'cast', skillId: weapon.id }] });
   assert.deepEqual(accepted.warnings, []);
   assert.equal(accepted.planningState.profession.resource, 9);
-  assert.ok(accepted.planningState.cooldowns[weapon.name].readyAt > 0);
+  assert.ok(accepted.planningState.cooldowns[weapon.id].readyAt > 0);
 });
 
 test('every profession inherits build rejection in browser, palette, and resolved runtime', async () => {

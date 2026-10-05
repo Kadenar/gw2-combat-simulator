@@ -360,8 +360,8 @@ test('Fresh Air resets both Air Attunement and Overload Air', () => {
     observedRuntime(result).cooldownController.readyAt(elementalistCatalog.skillsByName.get('Air Attunement').id),
     undefined
   );
-  assert.equal(result.planningState.cooldowns['Air Attunement'], undefined);
-  assert.equal(result.planningState.cooldowns['Overload Air'], undefined);
+  assert.equal(result.planningState.cooldowns[5494], undefined);
+  assert.equal(result.planningState.cooldowns[29719], undefined);
 });
 
 test('Fresh Air consumes sampled criticals after scheduled strikes in RNG mode', () => {
@@ -397,8 +397,8 @@ test('Fresh Air consumes sampled criticals after scheduled strikes in RNG mode',
     observedRuntime(result).cooldownController.readyAt(elementalistCatalog.skillsByName.get('Air Attunement').id),
     undefined
   );
-  assert.equal(result.planningState.cooldowns['Air Attunement'], undefined);
-  assert.equal(result.planningState.cooldowns['Overload Air'], undefined);
+  assert.equal(result.planningState.cooldowns[5494], undefined);
+  assert.equal(result.planningState.cooldowns[29719], undefined);
 });
 
 test('Fresh Air resolves a queued critical after an intervening attunement', () => {
@@ -610,10 +610,9 @@ test('Weaver palette composes the active bar and preserves every slot-three cool
         activeWeaponSet: 1,
         atSeconds: 0,
         cooldowns: {
-          'Pyro Vortex': { remaining: 3400, readyAt: 3400 }
+          [elementalistCatalog.skillsByName.get('Pyro Vortex').id]: { remaining: 3400, readyAt: 3400 }
         },
         // Cooldown-only fixtures still provide the canonical empty ammo projection.
-        ammo: {},
         ammoBySkillId: {},
         profession: {
           primaryAttunement: 'Fire',
@@ -1071,8 +1070,8 @@ test('core attunements enforce and report their individual recharge', () => {
     [0, 1040, 6800]
   );
   assert.equal(result.planningState.profession.primaryAttunement, 'Fire');
-  assert.ok(result.planningState.cooldowns['Air Attunement'].remaining > 1000);
-  assert.ok(result.planningState.cooldowns['Water Attunement'].remaining > 1000);
+  assert.ok(result.planningState.cooldowns[5494].remaining > 1000);
+  assert.ok(result.planningState.cooldowns[5493].remaining > 1000);
   const waterAvailability =
     result.planningState.availability[elementalistCatalog.skillsByName.get('Water Attunement').id];
 

@@ -1,5 +1,4 @@
 import { skillForEvent } from '#gw2/platform/combat/query/runtime-query.js';
-import { RELIC_IDS } from '#gw2/platform/equipment/relics/data.js';
 import { invokeRelicHook } from '#gw2/platform/equipment/relics/runtime.js';
 import {
   applyRuntimeSigilStrike,
@@ -101,7 +100,8 @@ export function createCombatExecution<T extends object>(
       invokeRelicHook(runtime, 'action', event);
     },
     condition(runtime, event) {
-      if (runtime.relic.id === RELIC_IDS.SHACKLES) invokeRelicHook(runtime, 'emitConditionEffects', event);
+      // The selected relic's optional hook owns condition-trigger eligibility.
+      invokeRelicHook(runtime, 'emitConditionEffects', event);
     },
     report: (runtime, combatEndTime) => invokeRelicHook(runtime, 'passiveTimeline', combatEndTime)
   };

@@ -37,10 +37,10 @@ test('Renewed Focus restores core activation traits and Flowing Resolve charges 
       specialization: 'Willbender'
     })(undefined, ['Flowing Resolve', 'Flowing Resolve', focus]);
     assert.deepEqual(willbender.warnings, []);
-    const ammo = willbender.planningState.ammo['Flowing Resolve'];
+    const ammo = willbender.planningState.ammoBySkillId[GUARDIAN_SKILL_IDS.FLOWING_RESOLVE];
     assert.equal(ammo.charges, interrupted ? 0 : ammo.maximum);
     assert.equal(ammo.nextRechargeAt == null, !interrupted);
-    assert.equal(Object.hasOwn(willbender.planningState.cooldowns, 'Flowing Resolve'), interrupted);
+    assert.equal(Object.hasOwn(willbender.planningState.cooldowns, GUARDIAN_SKILL_IDS.FLOWING_RESOLVE), interrupted);
   }
 });
 

@@ -678,9 +678,10 @@ export function createPaletteContext(app: ProfessionAppState): PaletteContext {
 
 function currentCooldown(
   app: ProfessionAppState,
-  name: string
+  skill: Skill
 ): { readonly remaining: number; readonly readyAt: number } {
-  return palettePlanningState(app)?.cooldowns?.[name] || { remaining: 0, readyAt: 0 };
+  // Match ammo and availability identity so same-name variants retain independent deadlines.
+  return palettePlanningState(app)?.cooldowns?.[String(skill.id)] || { remaining: 0, readyAt: 0 };
 }
 
 /** Exact skill IDs prevent variant collisions; convert scheduler seconds to the displayed countdown. */
@@ -707,7 +708,7 @@ export function paletteSkillView(
   contextMessage = '',
   contextRetryAt: number | null = null
 ): PaletteSkillView {
-  const cd = currentCooldown(app, skill.name);
+  const cd = currentCooldown(app, skill);
   const editorAccess =
     skill.dragonSlash &&
     palettePlanningState(app)?.availability[skill.id] != null &&

@@ -182,7 +182,7 @@ describe('Power Conduit skill profiles', () => {
 
   test('Deathstrike exposes its cooldown after execution', () => {
     const deathstrike = simulate('Conduit', ['Deathstrike'], config);
-    assert.deepEqual(deathstrike.planningState.cooldowns.Deathstrike, {
+    assert.deepEqual(deathstrike.planningState.cooldowns[SKILL.DEATHSTRIKE], {
       readyAt: 12440,
       remaining: 11720
     });
@@ -197,7 +197,7 @@ describe('Power Conduit skill profiles', () => {
       primaryWeapon: 'Greatsword',
       secondaryWeapon: ''
     });
-    assert.deepEqual(onslaught.planningState.cooldowns["Phantom's Onslaught"], {
+    assert.deepEqual(onslaught.planningState.cooldowns[SKILL.PHANTOMS_ONSLAUGHT], {
       readyAt: 6440,
       remaining: 6000
     });
@@ -1160,7 +1160,7 @@ test('Conduit grandmasters alter release, invocation, and Cosmic Wisdom', () => 
     selectedTraitIds: [TRAIT.ENHANCED_EMBODIMENT, TRAIT.FOUND_PURPOSE, TRAIT.LINGERING_DETERMINATION, TRAIT.MISTFIRE]
   });
 
-  assert.equal(cosmic.planningState.cooldowns['Swap Legends'].readyAt, 6000);
+  assert.equal(cosmic.planningState.cooldowns[SKILL.SWAP_LEGENDS].readyAt, 6000);
   assert.equal(cosmic.planningState.profession.cosmicWisdomUntil, 8);
   assert.ok(
     cosmic.events.some(

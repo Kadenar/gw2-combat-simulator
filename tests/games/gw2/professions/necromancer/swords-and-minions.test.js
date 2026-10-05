@@ -475,7 +475,7 @@ test('Satiate expires after three seconds and base sword cooldowns continue duri
     const followUpAction = result.events.find((event) => event.type === 'action' && event.skillName === followUp);
 
     assert.deepEqual(result.warnings, [], `${parent} -> ${followUp}`);
-    const readyAt = result.planningState.cooldowns[parent].readyAt / 1000;
+    const readyAt = result.planningState.cooldowns[necromancerCatalog.skillsByName.get(parent).id].readyAt / 1000;
     assert.ok(Math.abs(readyAt - parentAction.endsAt - cooldown / 1.25) < 1e-9, parent);
     assert.ok(readyAt > followUpAction.at, parent);
   }
@@ -1322,7 +1322,7 @@ test('persistent minion summons cannot recharge until their minions die', () => 
 
     assert.equal(result.steps.filter((step) => step.skill === summon && !step.invalid).length, 1, summon);
     assert.match(result.warnings.join(' '), /summoned minion is still alive/, summon);
-    assert.equal(result.planningState.cooldowns[summon], undefined, summon);
+    assert.equal(result.planningState.cooldowns[necromancerCatalog.skillsByName.get(summon).id], undefined, summon);
     assert.equal(
       result.planningState.availability[necromancerCatalog.skillsByName.get(summon).id].ready,
       false,

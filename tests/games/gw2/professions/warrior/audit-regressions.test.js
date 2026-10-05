@@ -58,12 +58,12 @@ test('cancelled Head Butt and Blood Reckoning cannot grant resources or reset a 
   assert.deepEqual(cancelled.warnings, []);
   assert.equal(cancelled.planningState.profession.adrenaline.value, primed.planningState.profession.adrenaline.value);
   assert.equal(
-    cancelled.planningState.cooldowns['Arc Divider'].readyAt,
-    primed.planningState.cooldowns['Arc Divider'].readyAt
+    cancelled.planningState.cooldowns[ID.ARC_DIVIDER].readyAt,
+    primed.planningState.cooldowns[ID.ARC_DIVIDER].readyAt
   );
   const committed = simulate('Berserker', ['Berserk', 'Arc Divider', 'Blood Reckoning'], config);
   assert.deepEqual(committed.warnings, []);
-  assert.equal(committed.planningState.cooldowns['Arc Divider'], undefined);
+  assert.equal(committed.planningState.cooldowns[ID.ARC_DIVIDER], undefined);
   assert.equal(committed.planningState.profession.adrenaline.value, 10);
 });
 

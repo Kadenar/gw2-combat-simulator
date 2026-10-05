@@ -607,7 +607,7 @@ test('Tools traits materialize tool-belt, dodge, kit, and battery behavior', () 
     selectedTraitIds: [TRAIT.POWER_WRENCH]
   });
 
-  assert.equal(wrench.planningState.cooldowns['Supply Crate'].readyAt, wrench.steps[0].end + 57600);
+  assert.equal(wrench.planningState.cooldowns[ID.SUPPLY_CRATE].readyAt, wrench.steps[0].end + 57600);
 
   const adrenal = simulate('Core', ['Grenade Barrage', 'Dodge', { type: 'wait', durationMs: 1000 }], {
     selectedTraitIds: [TRAIT.MECHANIZED_DEPLOYMENT, TRAIT.ADRENAL_IMPLANT],
@@ -615,7 +615,7 @@ test('Tools traits materialize tool-belt, dodge, kit, and battery behavior', () 
   });
 
   assert.equal(
-    adrenal.planningState.cooldowns['Grenade Barrage'].readyAt,
+    adrenal.planningState.cooldowns[ID.GRENADE_BARRAGE].readyAt,
     Math.ceil((adrenal.steps[0].end + 16200) / 40) * 40
   );
   assert.equal(adrenal.planningState.profession.endurance.value, 65.75);
@@ -655,7 +655,7 @@ test('Tools traits materialize tool-belt, dodge, kit, and battery behavior', () 
   });
 
   // Amalgam F2-F5 mechanics replace tool-belt slots and retain every Tools interaction attached to those slots.
-  assert.equal(amalgamToolbelt.planningState.cooldowns['Defensive Protocol: Thorns'].readyAt, 12800);
+  assert.equal(amalgamToolbelt.planningState.cooldowns[ID.DEFENSIVE_PROTOCOL_THORNS_ID_77163].readyAt, 12800);
   assert.equal(
     amalgamToolbelt.events.filter(
       (event) => event.type === 'buff' && event.kind === 'vigor' && event.sourceId === TRAIT.OPTIMIZED_ACTIVATION

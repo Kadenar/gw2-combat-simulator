@@ -628,7 +628,7 @@ test('Continuum Split does not extend an existing weapon-swap cooldown', () => {
     config
   );
 
-  assert.equal(result.planningState.cooldowns['Swap Weapons'].readyAt, 10000);
+  assert.equal(result.planningState.cooldowns[-3].readyAt, 10000);
 });
 
 test('a build can open combat on its second weapon set', () => {

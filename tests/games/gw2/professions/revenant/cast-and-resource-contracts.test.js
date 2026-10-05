@@ -181,7 +181,7 @@ test('legend swap recharge ignores Alacrity in the runtime and palette', () => {
   const planned = runRevenant(rotation, {}, { initialize: alacrityAt(2, 4) });
   const swap = revenantCatalog.skillsById.get(SKILL.SWAP_LEGENDS);
   const projected = planned.planningState;
-  assert.equal(projected.cooldowns[swap.name].readyAt, 10000);
+  assert.equal(projected.cooldowns[swap.id].readyAt, 10000);
   // Recharge is a scheduler/display gate, separate from captured profession legality.
   assert.equal(projected.availability[swap.id].ready, true);
   const next = runRevenant([...rotation, 'Swap Legends'], {}, { initialize: alacrityAt(2, 4) });

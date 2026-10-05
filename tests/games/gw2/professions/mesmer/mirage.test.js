@@ -31,7 +31,7 @@ test('Mirage dodge spends 50 endurance and waits for continuous regeneration', (
   );
   assert.ok(result.planningState.profession.endurance.value < 0.01);
   assert.equal(result.planningState.profession.endurance.maximum, 100);
-  assert.equal(result.planningState.ammo['Dodge / Mirage Cloak'], undefined);
+  assert.equal(result.planningState.ammoBySkillId[ID.DODGE_MIRAGE_CLOAK], undefined);
 });
 
 // Endurance grants preserve fractional regeneration and cap the total, independent of skill cooldown modifiers.
@@ -56,7 +56,7 @@ test('Mirage endurance preserves partial regeneration through Energy sigil grant
       config
     );
     assert.ok(Math.abs(result.planningState.profession.endurance.value - expected) < 0.01);
-    assert.equal(result.planningState.ammo['Dodge / Mirage Cloak'], undefined);
+    assert.equal(result.planningState.ammoBySkillId[ID.DODGE_MIRAGE_CLOAK], undefined);
     const view = mesmerProfession.ui
       .resourceViews({
         catalog: mesmerCatalog,
@@ -449,7 +449,7 @@ test('Desert Distortion and Dune Cloak grant their shatter ambush windows', () =
   );
 
   assert.equal(dune.planningState.profession.availableAmbush.source, 'Dune Cloak');
-  assert.equal(dune.planningState.cooldowns['Mind Wrack'].readyAt, 8800);
+  assert.equal(dune.planningState.cooldowns[ID.MIND_WRACK].readyAt, 8800);
 
   const twoClones = simulateMesmer(
     ['Mind Wrack'],

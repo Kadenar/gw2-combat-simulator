@@ -725,7 +725,7 @@ test('Fire Elemental resumes autonomous attacks after Flame Burst recovery', () 
     result.planningState.profession.availableFlips[elementalistCatalog.skillsByName.get('Flame Barrage').id]?.expiresAt,
     result.planningState.profession.summonedElemental.activeUntil
   );
-  assert.equal(result.planningState.cooldowns['Glyph of Elementals'], undefined);
+  assert.equal(result.planningState.cooldowns[25488], undefined);
 });
 
 test('Flame Barrage replaces the active Glyph and obeys rotation timing', () => {

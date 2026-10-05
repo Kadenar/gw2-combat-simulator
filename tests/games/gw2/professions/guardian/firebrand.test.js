@@ -612,7 +612,7 @@ test('Firebrand mantras flip to their final charge and rearm after full recharge
 
   assert.ok(normal.planningState.profession.availableFlips[rush.id]);
   assert.equal(normal.planningState.profession.availableFlips[surge.id], undefined);
-  assert.equal(normal.planningState.ammo['Flame Rush'].charges, 2);
+  assert.equal(normal.planningState.ammoBySkillId[GUARDIAN_SKILL_IDS.FLAME_RUSH].charges, 2);
 
   const final = createObservedProfessionSimulator(guardianProfession, {
     ...config,
@@ -631,9 +631,9 @@ test('Firebrand mantras flip to their final charge and rearm after full recharge
 
   assert.equal(depleted.planningState.profession.availableFlips[rush.id], undefined);
   assert.equal(depleted.planningState.profession.availableFlips[surge.id], undefined);
-  assert.equal(depleted.planningState.ammo['Flame Rush'], undefined);
-  assert.ok(depleted.planningState.cooldowns['Mantra of Flame'].remaining > 0);
-  const rechargeReadyAt = depleted.planningState.cooldowns['Mantra of Flame'].readyAt;
+  assert.equal(depleted.planningState.ammoBySkillId[GUARDIAN_SKILL_IDS.FLAME_RUSH], undefined);
+  assert.ok(depleted.planningState.cooldowns[GUARDIAN_SKILL_IDS.MANTRA_OF_FLAME].remaining > 0);
+  const rechargeReadyAt = depleted.planningState.cooldowns[GUARDIAN_SKILL_IDS.MANTRA_OF_FLAME].readyAt;
   // A queued normal charge waits for the root recharge, which restores the prepared pool.
   const rearmed = createObservedProfessionSimulator(guardianProfession, {
     ...config,
@@ -642,7 +642,10 @@ test('Firebrand mantras flip to their final charge and rearm after full recharge
   })(undefined, ['Flame Rush', 'Flame Rush', 'Flame Surge', 'Flame Rush']);
   assert.deepEqual(rearmed.warnings, []);
   assert.equal(rearmed.steps.at(-1).start, rechargeReadyAt);
-  assert.equal(rearmed.planningState.ammo['Flame Rush'].charges, normal.planningState.ammo['Flame Rush'].charges);
+  assert.equal(
+    rearmed.planningState.ammoBySkillId[GUARDIAN_SKILL_IDS.FLAME_RUSH].charges,
+    normal.planningState.ammoBySkillId[GUARDIAN_SKILL_IDS.FLAME_RUSH].charges
+  );
   assert.ok(rearmed.planningState.profession.availableFlips[rush.id]);
 });
 

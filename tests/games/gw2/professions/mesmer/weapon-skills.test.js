@@ -52,7 +52,7 @@ test('Mental Collapse resets Mind the Gap cooldown', () => {
     })
   );
 
-  assert.equal(resetOnly.planningState.cooldowns['Mind the Gap'], undefined);
+  assert.equal(resetOnly.planningState.cooldowns[ID.MIND_THE_GAP], undefined);
 });
 
 // A shatter on the impact frame consumes existing clones before the attack's deferred clone arrives.
@@ -397,8 +397,8 @@ test('Dimensional Aperture adds 50% to Singularity Shot recharge', () => {
   const base = simulateMesmer(['Singularity Shot'], config);
   const aperture = simulateMesmer(['Singularity Shot', 'Dimensional Aperture'], config);
 
-  assert.equal(base.planningState.cooldowns['Singularity Shot'].readyAt, 16360);
-  assert.equal(aperture.planningState.cooldowns['Singularity Shot'].readyAt, 24360);
+  assert.equal(base.planningState.cooldowns[ID.SINGULARITY_SHOT].readyAt, 16360);
+  assert.equal(aperture.planningState.cooldowns[ID.SINGULARITY_SHOT].readyAt, 24360);
 });
 
 // The image's natural expiry and early detonation must remain mutually exclusive.
@@ -427,7 +427,7 @@ test('Inspiring Imagery grants boons at field expiry and closes Abstraction', ()
       [field.expiresAt, 'fury', 1, 9]
     ]
   );
-  assert.equal(result.planningState.cooldowns['Inspiring Imagery'].readyAt, Math.ceil((cast.end + 9600) / 40) * 40);
+  assert.equal(result.planningState.cooldowns[ID.INSPIRING_IMAGERY].readyAt, Math.ceil((cast.end + 9600) / 40) * 40);
   assert.equal(result.steps.at(-1).invalid, true);
   assert.match(result.warnings[0], /Inspiring Imagery is not active/);
 });

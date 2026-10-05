@@ -448,9 +448,7 @@ test('Specialized Elements familiar casts reduce active weapon recharge', () => 
     assert.deepEqual(specialized.warnings, []);
     assert.ok(
       Math.abs(
-        baseline.planningState.cooldowns['Flame Uprising'].readyAt -
-          specialized.planningState.cooldowns['Flame Uprising'].readyAt -
-          reduction
+        baseline.planningState.cooldowns[45313].readyAt - specialized.planningState.cooldowns[45313].readyAt - reduction
       ) < 1e-6
     );
   }

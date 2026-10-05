@@ -1,3 +1,4 @@
+import { warriorCatalog } from '#gw2/professions/warrior/profession.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { warriorProfession } from '#gw2/professions/warrior/profession.js';
@@ -464,8 +465,8 @@ test('Rifle Butt completion restores ammo and clears burst recharge while cancel
       { primaryWeapon: 'Rifle', initialResource: 30 }
     );
     assert.deepEqual(result.warnings, []);
-    assert.equal(result.planningState.ammo.Volley.charges, cancelled ? 1 : 2);
-    assert.equal(result.planningState.cooldowns['Kill Shot'] != null, cancelled);
+    assert.equal(result.planningState.ammoBySkillId[ID.VOLLEY].charges, cancelled ? 1 : 2);
+    assert.equal(result.planningState.cooldowns[ID.KILL_SHOT] != null, cancelled);
   }
 });
 
@@ -480,7 +481,7 @@ test('weapon recharge resets belong to completed activations independently of ho
         secondaryWeapon
       });
       assert.deepEqual(result.warnings, []);
-      assert.equal(result.planningState.cooldowns[first] != null, cancelled, reset);
+      assert.equal(result.planningState.cooldowns[warriorCatalog.skillsByName.get(first).id] != null, cancelled, reset);
     }
   }
 });
@@ -570,14 +571,14 @@ test('Gunstinger completion restores pistol ammunition while a canceled cast lea
       secondaryWeapon: 'Pistol'
     });
     assert.deepEqual(result.warnings, []);
-    assert.equal(result.planningState.ammo["Dragon's Roar"].charges, cancelled ? 0 : 3);
+    assert.equal(result.planningState.ammoBySkillId[ID.DRAGONS_ROAR].charges, cancelled ? 0 : 3);
   }
 });
 
 test("Dragon's Roar consumes its captured rounds on accepted uses", () => {
   const result = run(["Dragon's Roar", { type: 'wait', durationMs: 2000 }], { secondaryWeapon: 'Pistol' });
   assert.deepEqual(result.warnings, []);
-  assert.equal(result.planningState.ammo["Dragon's Roar"].charges, 0);
+  assert.equal(result.planningState.ammoBySkillId[ID.DRAGONS_ROAR].charges, 0);
   const cancelled = run(
     [
       { name: "Dragon's Roar", interruptAfterMs: 1 },
@@ -586,7 +587,7 @@ test("Dragon's Roar consumes its captured rounds on accepted uses", () => {
     { secondaryWeapon: 'Pistol' }
   );
   assert.deepEqual(cancelled.warnings, []);
-  assert.equal(cancelled.planningState.ammo["Dragon's Roar"].charges, 0);
+  assert.equal(cancelled.planningState.ammoBySkillId[ID.DRAGONS_ROAR].charges, 0);
   assert.equal(
     cancelled.resolvedEvents.some((event) => event.type === 'damage'),
     false

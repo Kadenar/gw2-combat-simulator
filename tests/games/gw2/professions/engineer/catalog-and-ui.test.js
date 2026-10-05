@@ -829,8 +829,8 @@ test('Engineer mine and healing turret detonations are armed by their parent ski
 
   const healing = simulate('Core', ['Healing Turret']);
 
-  assert.equal(healing.planningState.cooldowns['Healing Turret'], undefined);
-  assert.deepEqual(healing.planningState.cooldowns['Detonate Healing Turret'], {
+  assert.equal(healing.planningState.cooldowns[ID.HEALING_TURRET], undefined);
+  assert.deepEqual(healing.planningState.cooldowns[ID.DETONATE_HEALING_TURRET], {
     readyAt: Math.ceil((healing.steps[0].end + 500) / 40) * 40,
     remaining: Math.ceil((healing.steps[0].end + 500) / 40) * 40 - healing.steps[0].end
   });

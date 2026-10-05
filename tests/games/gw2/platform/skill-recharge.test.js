@@ -218,7 +218,7 @@ test('declarative ammo consumes and recharges shared charges', () => {
   });
 
   assert.equal(result.resolvedEvents.filter((event) => event.type === 'damage').length, 2);
-  const ammo = result.planningState.ammo['Fixture Ammo'];
+  const ammo = result.planningState.ammoBySkillId[930001];
   assert.equal(ammo.charges, 1);
   assert.equal(ammo.maximum, 2);
   assert.deepEqual(ammo.recharges, [{ startedAt: 4, work: 5 }]);
@@ -265,9 +265,8 @@ test('end state projects ammo and cooldowns at the resolution boundary', () => {
     });
     assert.equal(result.rotationEndTime, 1);
     assert.equal(result.planningState.atSeconds * 1000, time);
-    assert.equal(result.planningState.ammo[skill.name].charges, charges);
     assert.equal(result.planningState.ammoBySkillId[skill.id].charges, charges);
-    assert.deepEqual(result.planningState.cooldowns[skill.name], { readyAt: 24000, remaining: 24000 - time });
+    assert.deepEqual(result.planningState.cooldowns[skill.id], { readyAt: 24000, remaining: 24000 - time });
     rotationDamage ??= result.totalDamage;
     assert.ok(rotationDamage > 0);
     assert.equal(result.totalDamage, rotationDamage * (time > 1000 ? 2 : 1));
@@ -308,7 +307,7 @@ test("shared scheduler detects a skill's cooldown expiry on the next action tick
     [0, 320]
   );
   assert.equal(result.planningState.atSeconds * 1000, 320);
-  assert.equal(result.planningState.cooldowns['Fixture Cooldown'].readyAt, 640);
+  assert.equal(result.planningState.cooldowns[930002].readyAt, 640);
   assert.deepEqual(result.warnings, []);
 });
 

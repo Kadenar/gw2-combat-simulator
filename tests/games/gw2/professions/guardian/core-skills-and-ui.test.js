@@ -52,16 +52,13 @@ test('Binding Blade flips back when its ten-second tether expires', () => {
       tiles.map((skill) => skill.id),
       [expired ? parent.id : GUARDIAN_SKILL_IDS.PULL]
     );
-    assert.ok(result.planningState.cooldowns[parent.name].remaining > 0);
+    assert.ok(result.planningState.cooldowns[parent.id].remaining > 0);
 
     const pull = createObservedProfessionSimulator(guardianProfession, settings)(undefined, [...rotation, 'Pull']);
     assert.equal(Boolean(pull.steps.at(-1).invalid), expired);
     if (expired) assert.match(pull.warnings.join(' '), /not currently armed/);
     else assert.deepEqual(pull.warnings, []);
-    assert.equal(
-      pull.planningState.cooldowns[parent.name].readyAt,
-      result.planningState.cooldowns[parent.name].readyAt
-    );
+    assert.equal(pull.planningState.cooldowns[parent.id].readyAt, result.planningState.cooldowns[parent.id].readyAt);
   }
 });
 

@@ -42,7 +42,7 @@ test('cooldown reset refills shared life force for every Necromancer specializat
       result.planningState.profession.lifeForce.maximum,
       specialization
     );
-    assert.equal(result.planningState.cooldowns.Plaguelands, undefined, specialization);
+    assert.equal(result.planningState.cooldowns[10549], undefined, specialization);
   }
 });
 
@@ -57,7 +57,7 @@ test('cooldown reset refills Specter shadow force and clears skill recharge', ()
 
   assert.deepEqual(result.warnings, []);
   assert.equal(result.planningState.profession.shadowClock.value, 100);
-  assert.equal(result.planningState.cooldowns.Siphon, undefined);
+  assert.equal(result.planningState.cooldowns[63067], undefined);
 });
 
 test('cooldown reset restores Revenant energy only after combat starts', () => {

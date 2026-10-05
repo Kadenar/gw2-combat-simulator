@@ -52,9 +52,9 @@ test('Continuum restoration projects ammo without checkpoint-relative fields', (
     defaultSimulationConfig({ specialization: 'Chronomancer', initialResource: 3 })
   );
   assert.deepEqual(result.warnings, []);
-  assert.ok(result.planningState.ammo['Power Spike']);
+  assert.ok(result.planningState.ammoBySkillId[10212]);
   for (const ammo of [
-    ...Object.values(result.planningState.ammo),
+    ...Object.values(result.planningState.ammoBySkillId),
     ...Object.values(result.planningState.ammoBySkillId)
   ]) {
     assert.equal(Object.hasOwn(ammo, 'nextRechargeRemaining'), false);

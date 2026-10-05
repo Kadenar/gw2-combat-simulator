@@ -1071,12 +1071,12 @@ test('All for One refunds Energy and halves only enhanced-skill recharge', () =>
     revenantCatalog.balanceProfilesById.get('revenant.renegade.all-for-one').resourceGain
   );
   assert.equal(
-    traited.planningState.cooldowns["Icerazor's Ire"].remaining,
-    base.planningState.cooldowns["Icerazor's Ire"].remaining / 2
+    traited.planningState.cooldowns[SKILL.ICERAZORS_IRE].remaining,
+    base.planningState.cooldowns[SKILL.ICERAZORS_IRE].remaining / 2
   );
   assert.equal(
-    traited.planningState.cooldowns["Razorclaw's Rage"].readyAt,
-    base.planningState.cooldowns["Razorclaw's Rage"].readyAt
+    traited.planningState.cooldowns[SKILL.RAZORCLAWS_RAGE].readyAt,
+    base.planningState.cooldowns[SKILL.RAZORCLAWS_RAGE].readyAt
   );
 });
 
@@ -1290,8 +1290,8 @@ test('Vindicator dodge traits apply current endurance and damage behavior', () =
   );
   const baseline = simulate('Vindicator', ['Dodge', 'Energy Meld'], { ...config, selectedTraitIds: [] });
   assert.ok(
-    result.planningState.cooldowns['Energy Meld'].readyAt - meld.end <
-      baseline.planningState.cooldowns['Energy Meld'].readyAt - baseline.steps.at(-1).end
+    result.planningState.cooldowns[SKILL.ENERGY_MELD].readyAt - meld.end <
+      baseline.planningState.cooldowns[SKILL.ENERGY_MELD].readyAt - baseline.steps.at(-1).end
   );
   assert.ok(
     result.events.some(
@@ -1714,7 +1714,7 @@ test('Deathstrike weapon palette keeps the primary skill identity on cooldown', 
         atSeconds: 0.72,
         ammoBySkillId: {},
         cooldowns: {
-          Deathstrike: { readyAt: 12420, remaining: 11700 }
+          [SKILL.DEATHSTRIKE]: { readyAt: 12420, remaining: 11700 }
         }
       }
     },

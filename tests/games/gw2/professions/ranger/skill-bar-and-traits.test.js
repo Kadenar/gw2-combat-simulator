@@ -657,8 +657,8 @@ test('Ranger trait rules affect their owned damage and attributes', () => {
   });
 
   assert.ok(
-    ambidexterity.planningState.cooldowns['Double Arc'].readyAt <
-      daggerBaseline.planningState.cooldowns['Double Arc'].readyAt
+    ambidexterity.planningState.cooldowns[ID.DOUBLE_ARC].readyAt <
+      daggerBaseline.planningState.cooldowns[ID.DOUBLE_ARC].readyAt
   );
 
   // Verify Poison Master's multiplier before packet rounding, which need not preserve an exact aggregate ratio.

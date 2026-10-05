@@ -420,7 +420,7 @@ test('legend swap replaces the fixed bar, resets energy, and triggers sigils', (
   assert.equal(result.warnings.length, 0);
   assert.equal(result.planningState.profession.activeLegendId, LEGEND.DEMON);
   assert.ok(result.events.some((event) => event.type === 'sigil_swap'));
-  assert.ok(result.planningState.cooldowns['Swap Legends'].readyAt >= 10000);
+  assert.ok(result.planningState.cooldowns[SKILL.SWAP_LEGENDS].readyAt >= 10000);
   assert.ok(result.totalDamage > 0);
 
   const precombat = simulate('Core', ['Swap Legends', 'Swap Legends']);
@@ -430,7 +430,7 @@ test('legend swap replaces the fixed bar, resets energy, and triggers sigils', (
     precombat.steps.map((step) => step.start),
     [0, 0]
   );
-  assert.equal(precombat.planningState.cooldowns['Swap Legends'], undefined);
+  assert.equal(precombat.planningState.cooldowns[SKILL.SWAP_LEGENDS], undefined);
 
   const inCombat = simulate('Core', ['__combat_start', 'Swap Legends', 'Swap Legends']);
 
@@ -438,7 +438,7 @@ test('legend swap replaces the fixed bar, resets energy, and triggers sigils', (
     inCombat.steps.filter((step) => step.skill === 'Swap Legends').map((step) => step.start),
     [0, 10000]
   );
-  assert.equal(inCombat.planningState.cooldowns['Swap Legends'].readyAt, 20000);
+  assert.equal(inCombat.planningState.cooldowns[SKILL.SWAP_LEGENDS].readyAt, 20000);
 
   const sigilResult = simulate('Core', ['__combat_start', 'Swap Legends'], {
     sigilSets: [
@@ -1364,7 +1364,7 @@ test('Nature survives swaps into every legend and switches its consume without r
       legend === LEGEND.DWARF ? [['stability', 2, 4]] : []
     );
     const consumeStep = consumed.steps.find((step) => step.skillId === consumeId);
-    assert.equal(consumed.planningState.cooldowns['Facet of Nature'].readyAt, consumeStep.end + 16000);
+    assert.equal(consumed.planningState.cooldowns[SKILL.FACET_OF_NATURE].readyAt, consumeStep.end + 16000);
   }
 });
 
@@ -1526,7 +1526,7 @@ test('Herald consume skills apply their cooldown to the parent facet', () => {
     assert.deepEqual(result.warnings, [], facet);
     const readyAt = consumeStep.end + (cooldown * 1000) / 1.25;
 
-    assert.deepEqual(result.planningState.cooldowns[facet], {
+    assert.deepEqual(result.planningState.cooldowns[revenantCatalog.skillsByName.get(facet).id], {
       readyAt,
       remaining: readyAt - result.planningState.atSeconds * 1000
     });

@@ -18,8 +18,8 @@ test('cancelled Ether preserves an established phantasm cooldown', () => {
   assert.equal(ether.cancelled, true);
   assert.deepEqual(result.warnings, []);
   assert.equal(
-    result.planningState.cooldowns['Phantasmal Swordsman']?.readyAt,
-    original.planningState.cooldowns['Phantasmal Swordsman'].readyAt
+    result.planningState.cooldowns[ID.PHANTASMAL_SWORDSMAN]?.readyAt,
+    original.planningState.cooldowns[ID.PHANTASMAL_SWORDSMAN].readyAt
   );
 });
 
@@ -51,7 +51,7 @@ test('Mimic stays unarmed during its cast and resets the following utility on co
     ['start', ID.SIGNET_OF_ILLUSIONS, 1],
     ['complete', ID.SIGNET_OF_ILLUSIONS, 0]
   ]);
-  assert.equal(result.planningState.cooldowns['Signet of Illusions'], undefined);
+  assert.equal(result.planningState.cooldowns[ID.SIGNET_OF_ILLUSIONS], undefined);
 });
 
 test('cancelled Mimic cannot reset the next utility cooldown', () => {
@@ -61,9 +61,9 @@ test('cancelled Mimic cannot reset the next utility cooldown', () => {
   assert.equal(mimic.cancelled, true);
   assert.deepEqual(result.warnings, []);
   assert.equal(
-    result.planningState.cooldowns['Signet of Illusions']?.readyAt,
+    result.planningState.cooldowns[ID.SIGNET_OF_ILLUSIONS]?.readyAt,
     simulateMesmer([{ type: 'wait', durationMs: mimic.endsAt * 1000 }, 'Signet of Illusions']).planningState.cooldowns[
-      'Signet of Illusions'
+      ID.SIGNET_OF_ILLUSIONS
     ].readyAt
   );
   assert.equal(

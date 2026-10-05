@@ -407,7 +407,7 @@ test('live public projections observe planning after death without exposing cont
   const result = run(rotation, options, profession);
   // Planning includes self commands after death; combat counters stop when the target dies.
   assert.deepEqual(result.planningState.profession.counts, { uses: 2, hits: 1 });
-  assert.equal(result.planningState.cooldowns.Channel.readyAt, 5200);
+  assert.equal(result.planningState.cooldowns[991002].readyAt, 5200);
   assert.equal('privateGeneration' in result.planningState.profession, false);
   result.planningState.profession.counts.uses = 999;
   assert.equal(owner.profession.core.uses, 2);

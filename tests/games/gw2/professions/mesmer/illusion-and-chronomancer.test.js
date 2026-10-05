@@ -29,8 +29,8 @@ test('queueing a cooling-down icon waits until it is available', () => {
 
   assert.equal(result.steps[0].start, 0);
   assert.equal(result.steps[1].start, 4440);
-  assert.equal(result.planningState.cooldowns.Bladecall.readyAt, 8880);
-  assert.equal(result.planningState.cooldowns.Bladecall.remaining, 4000);
+  assert.equal(result.planningState.cooldowns[ID.BLADECALL].readyAt, 8880);
+  assert.equal(result.planningState.cooldowns[ID.BLADECALL].remaining, 4000);
 });
 
 // Controlled recharge data exercises the real profession without pinning the live balance value.
@@ -63,9 +63,9 @@ test('Lingering Thoughts spends available ammo before waiting for serial recharg
     result.steps.map((step) => step.start),
     [0, 400, 4000, 8000]
   );
-  assert.equal(result.planningState.ammo['Lingering Thoughts'].charges, 0);
+  assert.equal(result.planningState.ammoBySkillId[ID.LINGERING_THOUGHTS].charges, 0);
   assert.deepEqual(
-    result.planningState.ammo['Lingering Thoughts'].recharges.map((progress) => progress.work),
+    result.planningState.ammoBySkillId[ID.LINGERING_THOUGHTS].recharges.map((progress) => progress.work),
     [5, 5]
   );
 });
@@ -244,7 +244,7 @@ test('Master of Misdirection reduces shatter cooldowns by 15%', () => {
   );
 
   assert.ok(Math.abs(result.steps.find((step) => step.skillId != null).start - 2010) < 1e-9);
-  assert.equal(result.planningState.cooldowns['Continuum Split'].readyAt, 61520);
+  assert.equal(result.planningState.cooldowns[ID.CONTINUUM_SPLIT].readyAt, 61520);
 });
 
 test('Chronomancer shatter-boon traits count the mesmer and scale per shattered clone', () => {
@@ -466,7 +466,7 @@ test('Shift+click timeline form casts an instant skill 100ms into the prior cast
 
   assert.equal(result.steps[1].start, 100);
   assert.equal(result.planningState.atSeconds * 1000, 440);
-  assert.equal(result.planningState.cooldowns['Bladesong Distortion'].readyAt, 40120);
+  assert.equal(result.planningState.cooldowns[ID.BLADESONG_DISTORTION].readyAt, 40120);
 });
 
 test('shift-queued Rewinder waits past its parent cast for cooldown expiry', () => {
@@ -524,7 +524,7 @@ test('Confusing Images starts its cooldown after its channel ends', () => {
   const full = simulateMesmer(['Confusing Images', 'Confusing Images'], config);
   const interrupted = simulateMesmer([{ name: 'Confusing Images', interruptMs: 250 }], config);
   assert.equal(full.steps[1].start, 9120);
-  assert.equal(interrupted.planningState.cooldowns['Confusing Images'].readyAt, 7480);
+  assert.equal(interrupted.planningState.cooldowns[ID.CONFUSING_IMAGES].readyAt, 7480);
 });
 
 test('Phantasmal Swordsman registers its player hit before a later overlapping action', () => {
@@ -858,7 +858,7 @@ test('Well of Precognition grants support boons and restores endurance at field 
   const endurance = events.find((event) => event.type === 'resource' && event.resource === 'endurance');
   assert.equal(endurance.at, field.expiresAt);
   assert.equal(endurance.amount, 30);
-  assert.equal(result.planningState.cooldowns['Well of Precognition'].readyAt - cast.end, 40000);
+  assert.equal(result.planningState.cooldowns[ID.WELL_OF_PRECOGNITION].readyAt - cast.end, 40000);
   assert.deepEqual(result.warnings, []);
 });
 

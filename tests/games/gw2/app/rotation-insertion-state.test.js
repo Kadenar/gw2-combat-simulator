@@ -11,7 +11,6 @@ function planningState(overrides = {}) {
   return {
     atSeconds: 0,
     cooldowns: {},
-    ammo: {},
     ammoBySkillId: {},
     activeWeaponSet: 1,
     profession: {},
@@ -28,7 +27,7 @@ test('palette state uses and caches the selected insertion checkpoint', () => {
   const checkpoint = planningState({
     atSeconds: 1.2,
     cooldowns: {
-      Test: { remaining: 3800, readyAt: 5000 }
+      1: { remaining: 3800, readyAt: 5000 }
     },
     profession: { resource: 2 }
   });
@@ -192,9 +191,9 @@ test('native insertion previews project weapon set and cooldown state', async ()
   const afterFirstSwap = adapter.rotationPlanningStateAt(app, 2);
 
   assert.equal(initial.activeWeaponSet, 1);
-  assert.ok(afterFirstSkill.cooldowns['Phantasmal Berserker'].remaining > 0);
+  assert.ok(afterFirstSkill.cooldowns[10221].remaining > 0);
   assert.equal(afterFirstSwap.activeWeaponSet, 2);
-  assert.ok(afterFirstSwap.cooldowns['Phantasmal Berserker'].remaining > 0);
+  assert.ok(afterFirstSwap.cooldowns[10221].remaining > 0);
   assert.equal(adapter.rotationPlanningStateAt(app, 3), result.planningState);
 
   // Reusing a tailed result would make recovered cooldowns available too early when appending.

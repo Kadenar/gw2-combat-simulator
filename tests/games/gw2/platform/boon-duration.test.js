@@ -387,5 +387,5 @@ test('repeated Alacrity grants do not change permanent recharge', () => {
       'Stacked Alacrity Cooldown'
     ]
   });
-  assert.equal(result.planningState.cooldowns['Stacked Alacrity Cooldown'].readyAt, 11000);
+  assert.equal(result.planningState.cooldowns[930027].readyAt, 11000);
 });

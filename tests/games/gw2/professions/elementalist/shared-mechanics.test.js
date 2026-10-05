@@ -43,7 +43,12 @@ test('every Elementalist specialization can prepare attunements without precomba
         );
         assert.equal(result.planningState.profession.primaryAttunement, 'Fire');
         for (const attunement of ['Fire', 'Water', 'Air', 'Earth']) {
-          assert.equal(result.planningState.cooldowns[`${attunement} Attunement`]?.remaining ?? 0, 0, specialization);
+          assert.equal(
+            result.planningState.cooldowns[elementalistCatalog.skillsByName.get(`${attunement} Attunement`).id]
+              ?.remaining ?? 0,
+            0,
+            specialization
+          );
         }
       }
     }
@@ -255,7 +260,7 @@ test('Aerial Agility expires while its original cooldown keeps counting down', (
   });
 
   assert.equal(result.planningState.profession.autoattackChains[ID.AERIAL_AGILITY], undefined);
-  assert.ok(result.planningState.cooldowns['Aerial Agility'].remaining > 0);
+  assert.ok(result.planningState.cooldowns[ID.AERIAL_AGILITY].remaining > 0);
 });
 
 test('using the first Aerial Agility follow-up restarts its full cooldown', () => {
@@ -271,12 +276,12 @@ test('using the first Aerial Agility follow-up restarts its full cooldown', () =
     startAttunement: 'Air',
     weapons: ['Pistol', 'Dagger']
   });
-  const initialDuration = unused.planningState.cooldowns['Aerial Agility'].readyAt - unused.steps[0].end;
+  const initialDuration = unused.planningState.cooldowns[ID.AERIAL_AGILITY].readyAt - unused.steps[0].end;
   const followup = used.steps.find((step) => step.skill === 'Aerial Agility (chain)');
 
-  assert.equal(used.planningState.cooldowns['Aerial Agility'].readyAt - followup.end, initialDuration);
+  assert.equal(used.planningState.cooldowns[ID.AERIAL_AGILITY].readyAt - followup.end, initialDuration);
   assert.ok(
-    used.planningState.cooldowns['Aerial Agility'].readyAt > unused.planningState.cooldowns['Aerial Agility'].readyAt
+    used.planningState.cooldowns[ID.AERIAL_AGILITY].readyAt > unused.planningState.cooldowns[ID.AERIAL_AGILITY].readyAt
   );
 });
 

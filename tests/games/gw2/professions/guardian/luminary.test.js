@@ -99,11 +99,11 @@ test('Radiant Forge precombat exits leave entry ready', () => {
   );
   for (const prefix of [[], [{ type: 'combat-start' }]]) {
     const combat = run([...prefix, 'Enter Radiant Forge', 'Exit Radiant Forge']);
-    assert.ok(combat.planningState.cooldowns['Enter Radiant Forge'].remaining > 0);
+    assert.ok(combat.planningState.cooldowns[GUARDIAN_SKILL_IDS.ENTER_RADIANT_FORGE].remaining > 0);
   }
 
   const expired = run(['Enter Radiant Forge', { type: 'wait', durationMs: 30000 }, { type: 'combat-start' }]);
-  assert.equal(expired.planningState.cooldowns['Enter Radiant Forge'], undefined);
+  assert.equal(expired.planningState.cooldowns[GUARDIAN_SKILL_IDS.ENTER_RADIANT_FORGE], undefined);
 });
 
 // Reductions cap at readiness and leave unrelated or already-ready cooldowns alone.
@@ -383,7 +383,7 @@ test('Luminary Radiant Forge enforces entry and radiant weapon flips', () => {
   const glaring = result.resolvedEvents.find((event) => event.skillId === GUARDIAN_SKILL_IDS.GLARING_BURST);
 
   assert.equal(glaring.metadata?.radiantWeapon, 'hammer');
-  assert.equal(Object.hasOwn(result.planningState.cooldowns, 'Enter Radiant Forge'), false);
+  assert.equal(Object.hasOwn(result.planningState.cooldowns, GUARDIAN_SKILL_IDS.ENTER_RADIANT_FORGE), false);
   assert.ok(result.totalDamage > 0);
 });
 
@@ -635,8 +635,8 @@ test('Radiant Forge expiry starts the same reduced recharge as manual exit', () 
   assert.equal(exit.at, expiresAt);
   assert.equal(expired.planningState.profession.radiantForge, false);
   assert.equal(
-    expired.planningState.cooldowns['Enter Radiant Forge'].remaining,
-    manual.planningState.cooldowns['Enter Radiant Forge'].remaining
+    expired.planningState.cooldowns[GUARDIAN_SKILL_IDS.ENTER_RADIANT_FORGE].remaining,
+    manual.planningState.cooldowns[GUARDIAN_SKILL_IDS.ENTER_RADIANT_FORGE].remaining
   );
 });
 
@@ -808,7 +808,7 @@ test('Radiant weapon equips replace the prior flip and preserve its parent coold
 
     assert.equal(result.planningState.profession.availableFlips[flip], undefined, parent);
     assert.ok(result.planningState.profession.availableFlips[nextFlip], nextParent);
-    assert.ok(result.planningState.cooldowns[parent].remaining > 0, parent);
+    assert.ok(result.planningState.cooldowns[guardianCatalog.skillsByName.get(parent).id].remaining > 0, parent);
   }
 
   const glaringBurst = createObservedProfessionSimulator(guardianProfession, { ...config, specialization: 'Luminary' })(

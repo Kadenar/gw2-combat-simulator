@@ -46,16 +46,7 @@ test('Mesmer test scenarios use the registered live runtime', () => {
   assert.ok(canonical.totalDamage > 0);
   assert.deepEqual(
     Object.keys(canonical.planningState).sort(),
-    [
-      'activeWeaponSet',
-      'ammo',
-      'ammoBySkillId',
-      'atSeconds',
-      'availability',
-      'cooldowns',
-      'effects',
-      'profession'
-    ].sort()
+    ['activeWeaponSet', 'ammoBySkillId', 'atSeconds', 'availability', 'cooldowns', 'effects', 'profession'].sort()
   );
   // Virtuoso's initialized blade clock is the canonical balance in both execution paths.
   assert.equal(canonical.planningState.profession.blades.value, 5);
@@ -200,8 +191,8 @@ test('summon-owned cooldowns use received Alacrity until it expires', () => {
     config: { boons: { alacrity: true } }
   });
 
-  assert.equal(playerAlacrity.planningState.cooldowns['Summon Skill'].readyAt, 20000);
-  assert.equal(summonAlacrity.planningState.cooldowns['Summon Skill'].readyAt, 17520);
+  assert.equal(playerAlacrity.planningState.cooldowns[930041].readyAt, 20000);
+  assert.equal(summonAlacrity.planningState.cooldowns[930041].readyAt, 17520);
 });
 
 test('the shared effect contract rejects undeclared simulation fields', () => {
