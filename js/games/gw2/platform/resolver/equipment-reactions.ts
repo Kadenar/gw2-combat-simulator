@@ -1,5 +1,5 @@
 import { isStandardBoon } from '#gw2/platform/combat/boons.js';
-import { skillForEvent } from '#gw2/platform/combat/query/event-skill.js';
+import { skillForEvent } from '#gw2/platform/combat/query/runtime-query.js';
 import { isGw2PlayerActorEvent } from '#gw2/platform/combat/state/event-ownership.js';
 import { FOOD_DATA, NOURISHMENT_ICON } from '#gw2/platform/equipment/consumables/food.js';
 import { invokeRelicHook } from '#gw2/platform/equipment/relics/runtime.js';

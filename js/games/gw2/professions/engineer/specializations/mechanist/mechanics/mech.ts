@@ -1,3 +1,4 @@
+import { skillForEvent } from '#gw2/platform/combat/query/runtime-query.js';
 import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
 import { STANDARD_TARGET_ARMOR } from '#gw2/platform/combat/formulas.js';
 import { scaleCastBoundTiming } from '#gw2/platform/effects/materializer.js';
@@ -151,7 +152,7 @@ export function copyEngineerMechBoon(context: EngineerRuntime, event: EngineerRe
 export function prepareEngineerMechEvent(context: EngineerRuntime, event: SimulationEventBase): SimulationEventBase {
   if (event.actorType !== 'summon') return event;
   // Infer ownership when replay packets lack the explicit engineerMech marker.
-  const skill = context.helpers.skillsById.get(event.skillId ?? event.sourceId);
+  const skill = skillForEvent(context.helpers, event);
   const engineerMech =
     (event.metadata as Record<string, unknown> | undefined)?.engineerMech === true ||
     (event.skillId != null && MECH_BASIC_SKILL_IDS.has(event.skillId)) ||

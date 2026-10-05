@@ -1,6 +1,6 @@
 import { MODIFIER_TARGET, type Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
 import { targetHasCondition } from '#gw2/platform/combat/state/targets.js';
-import { eventSkill } from '#gw2/platform/combat/query/runtime-query.js';
+import { skillForEvent } from '#gw2/platform/combat/query/runtime-query.js';
 import { requireBalanceProfileFromContext, balanceProfileNumber } from '#gw2/platform/skills/balance-profiles.js';
 import { RANGER_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/ranger/core/profiles.js';
 import { stalkersStrikeTargetImpaired } from '#gw2/professions/ranger/core/mechanics/resolution-helpers.js';
@@ -217,7 +217,7 @@ export const rangerStalkersStrikeModifier: Gw2ModifierRule = {
     balanceProfileNumber(requireBalanceProfileFromContext(context, PROFILE.stalkersStrikeImpaired), 'damageMultiplier'),
   // Double only this skill's strike when Cripple, Slow, or Immobilize is active.
   when: (context) =>
-    eventSkill(context)?.id === ID.STALKERS_STRIKE &&
+    skillForEvent(context.profession?.catalog, context.event, context.skillId)?.id === ID.STALKERS_STRIKE &&
     stalkersStrikeTargetImpaired((condition) =>
       targetHasCondition(context.config ?? {}, condition, context.time, context.runtime)
     )

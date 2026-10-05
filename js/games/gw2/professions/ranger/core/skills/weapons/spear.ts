@@ -1,5 +1,5 @@
 import { MODIFIER_TARGET, type Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
-import { eventSkill, targetConditionActive } from '#gw2/platform/combat/query/runtime-query.js';
+import { skillForEvent, targetConditionActive } from '#gw2/platform/combat/query/runtime-query.js';
 import type { RangerSkill, RangerRuntime } from '#gw2/professions/ranger/types.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import { armSkillFlip, consumeSkillFlip } from '#gw2/platform/execution/skill-flips.js';
@@ -335,6 +335,6 @@ export const rangerFalconsStoopModifier: Gw2ModifierRule = {
   operation: 'multiply',
   factor: 1.2,
   when: (context) =>
-    eventSkill(context)?.id === ID.FALCONS_STOOP &&
+    skillForEvent(context.profession?.catalog, context.event, context.skillId)?.id === ID.FALCONS_STOOP &&
     (context.config?.target?.defiant || targetConditionActive(context, 'Immobilized'))
 };

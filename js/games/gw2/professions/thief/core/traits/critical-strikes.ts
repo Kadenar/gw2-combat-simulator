@@ -1,5 +1,5 @@
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
-import { eventSkill, playerHealthFraction, targetHealthFraction } from '#gw2/platform/combat/query/runtime-query.js';
+import { skillForEvent, playerHealthFraction, targetHealthFraction } from '#gw2/platform/combat/query/runtime-query.js';
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
 import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
 import {
@@ -60,7 +60,9 @@ export const deadlyAim = defineTrait({
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: 'multiply',
       factor: 1.1,
-      when: (context) => isGw2PlayerModifierOwnedEvent(context.event) && eventSkill(context)?.weapon === 'Pistol'
+      when: (context) =>
+        isGw2PlayerModifierOwnedEvent(context.event) &&
+        skillForEvent(context.profession?.catalog, context.event, context.skillId)?.weapon === 'Pistol'
     }
   ]
 });

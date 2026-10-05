@@ -1,5 +1,5 @@
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
-import { eventSkill } from '#gw2/platform/combat/query/runtime-query.js';
+import { skillForEvent } from '#gw2/platform/combat/query/runtime-query.js';
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
 import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
@@ -85,7 +85,11 @@ export const oneInTheChamber = defineTrait({
       factor: 1.25,
       when: (context) =>
         isGw2PlayerModifierOwnedEvent(context.event) &&
-        Boolean(eventSkill(context)?.categories?.includes('stolen skill'))
+        Boolean(
+          skillForEvent(context.profession?.catalog, context.event, context.skillId)?.categories?.includes(
+            'stolen skill'
+          )
+        )
     }
   ]
 });

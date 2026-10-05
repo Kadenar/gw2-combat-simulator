@@ -1,5 +1,5 @@
 import { MODIFIER_TARGET, type Gw2ModifierContext, type Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
-import { eventSkill } from '#gw2/platform/combat/query/runtime-query.js';
+import { skillForEvent } from '#gw2/platform/combat/query/runtime-query.js';
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
 import type { SkillEffect } from '#gw2/platform/effects/types.js';
@@ -843,7 +843,7 @@ export const deadeyeSkillModifiers: readonly Gw2ModifierRule[] = [
     when: (context) =>
       isGw2PlayerModifierOwnedEvent(context.event) &&
       markedTarget(context) &&
-      SHADOW_FLARE_SKILL_IDS.has(Number(eventSkill(context)?.id))
+      SHADOW_FLARE_SKILL_IDS.has(Number(skillForEvent(context.profession?.catalog, context.event, context.skillId)?.id))
   },
   {
     order: 201,
@@ -854,7 +854,7 @@ export const deadeyeSkillModifiers: readonly Gw2ModifierRule[] = [
     // Malicious Backstab belongs to Deadeye; its rear-position rule stays out of the base Thief modifier set.
     when: (context) =>
       isGw2PlayerModifierOwnedEvent(context.event) &&
-      eventSkill(context)?.id === ID.MALICIOUS_BACKSTAB &&
+      skillForEvent(context.profession?.catalog, context.event, context.skillId)?.id === ID.MALICIOUS_BACKSTAB &&
       Boolean(context.config?.target?.defiant)
   },
   {
@@ -870,7 +870,9 @@ export const deadeyeSkillModifiers: readonly Gw2ModifierRule[] = [
     when: (context) =>
       isGw2PlayerModifierOwnedEvent(context.event) &&
       markedTarget(context) &&
-      MALICIOUS_DAMAGE_SCALING_SKILL_IDS.has(Number(eventSkill(context)?.id))
+      MALICIOUS_DAMAGE_SCALING_SKILL_IDS.has(
+        Number(skillForEvent(context.profession?.catalog, context.event, context.skillId)?.id)
+      )
   }
 ];
 

@@ -1,6 +1,6 @@
 /** Shares live Warrior modifier queries without coupling trait-line fragments to their composer. */
 import { activeBuffStacks } from '#gw2/platform/combat/query/runtime-query.js';
-import { boonActive, countActiveBoons, eventSkill } from '#gw2/platform/combat/query/runtime-query.js';
+import { boonActive, countActiveBoons, skillForEvent } from '#gw2/platform/combat/query/runtime-query.js';
 import { gw2ConfiguredWeaponSet } from '#gw2/platform/equipment/weapons/loadout.js';
 import type { Gw2MutableStats } from '#gw2/platform/combat/types.js';
 import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
@@ -32,7 +32,7 @@ export function warriorActiveBoonCount(context: Gw2ModifierContext): number {
 
 // Test both weapon hands at query time, including projected modifier-evaluation swaps.
 export function warriorWieldingWeapon(context: Gw2ModifierContext, weapon: string): boolean {
-  if (eventSkill(context)?.weapon === weapon) return true;
+  if (skillForEvent(context.profession?.catalog, context.event, context.skillId)?.weapon === weapon) return true;
   const weaponSet = Number(context.runtime?.activeWeaponSet) === 2 ? 2 : 1;
   const [primary, secondary] = gw2ConfiguredWeaponSet(context.config, weaponSet);
   return (primary || '') === weapon || (secondary || '') === weapon;

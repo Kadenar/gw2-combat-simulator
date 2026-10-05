@@ -1,6 +1,6 @@
 import { lifeForceGrant } from '#gw2/professions/necromancer/core/skills/life-force-grants.js';
 import { MODIFIER_TARGET, type Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
-import { eventSkill, targetConditionCount } from '#gw2/platform/combat/query/runtime-query.js';
+import { skillForEvent, targetConditionCount } from '#gw2/platform/combat/query/runtime-query.js';
 import { gw2ActivePrimaryWeapon } from '#gw2/platform/equipment/weapons/loadout.js';
 import { weaponStrengthProfileForName } from '#gw2/platform/equipment/weapons/strength.js';
 import { ritualistState } from '#gw2/professions/necromancer/specializations/ritualist/state.js';
@@ -264,7 +264,9 @@ export const essenceBlastSpiritModifier: Gw2ModifierRule = {
   operation: 'damage-additive',
   parameters: { damagePerSpirit: 0.15 },
   amount: (context, _target, parameters) => (context.event?.metadata?.activeSpirits || 0) * parameters.damagePerSpirit,
-  when: (context) => eventSkill(context)?.id === ID.ESSENCE_BLAST && (context.event?.metadata?.activeSpirits || 0) > 0
+  when: (context) =>
+    skillForEvent(context.profession?.catalog, context.event, context.skillId)?.id === ID.ESSENCE_BLAST &&
+    (context.event?.metadata?.activeSpirits || 0) > 0
 };
 
 /** Intrinsic impact-time formula; the existing modifier registry preserves its operation and ordering. */

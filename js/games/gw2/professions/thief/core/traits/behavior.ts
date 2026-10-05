@@ -2,7 +2,7 @@ import { replaceThiefBuff } from '#gw2/professions/thief/core/mechanics/buffs.js
 import { professionStaticRulesApplied } from '#gw2/platform/builds/attribute-provenance.js';
 import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
 import type { Gw2ResolvedStats } from '#gw2/platform/combat/query/combat-query.js';
-import { eventSkill } from '#gw2/platform/combat/query/runtime-query.js';
+import { skillForEvent } from '#gw2/platform/combat/query/runtime-query.js';
 import { activeStackCount, grantTimedStacks } from '#gw2/platform/combat/resources/timed-stacks.js';
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
@@ -154,7 +154,9 @@ export function applyRevealedTrainingAttributes(
     }
 
     // A recalled Salvo is a later recall hit, not the stealth attack that applied Revealed.
-    const revealingAttack = eventSkill(context)?.stealthAttack && context.event?.metadata?.recallSkillId == null;
+    const revealingAttack =
+      skillForEvent(context.profession?.catalog, context.event, context.skillId)?.stealthAttack &&
+      context.event?.metadata?.recallSkillId == null;
     if ((state.revealedUntil || 0) > context.time && !revealingAttack) {
       const revealedTrainingProfile = requireBalanceProfileFromContext(context, TRAIT.REVEALED_TRAINING);
       result.power += balanceProfileNumber(revealedTrainingProfile, 'attributePerStack');

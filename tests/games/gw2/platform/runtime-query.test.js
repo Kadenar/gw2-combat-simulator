@@ -10,7 +10,7 @@ import {
   activeBoonStacks,
   activeBuffStacks,
   boonActive,
-  eventSkill,
+  skillForEvent,
   hasSelectedSkillId,
   playerHealthFraction,
   selectedSkillIds,
@@ -309,22 +309,34 @@ test('live boon presence respects duration pools, audience, and application wind
   assert.equal(boonActive(modifierContext, 'fury'), false);
 });
 
-test('runtime skill lookup preserves event, application, and context fallback precedence', () => {
-  const skillsById = new Map([
-    [1, { id: 1, name: 'Event' }],
-    [2, { id: 2, name: 'Application' }],
-    [3, { id: 3, name: 'Context' }]
-  ]);
-  const profession = { catalog: { skillsById } };
-
+// Packet and application identity are authoritative; labels and producer IDs cannot select another skill.
+test('skill lookup shares event, application, and explicit context identity precedence', () => {
+  const skills = [
+    { id: 1, name: 'Duplicate' },
+    { id: 2, name: 'Duplicate' },
+    { id: 3, name: 'Context' },
+    { id: 'generated', name: 'Generated' }
+  ];
+  const catalog = {
+    skillsById: new Map(skills.map((skill) => [skill.id, skill])),
+    skillsByName: new Map(skills.map((skill) => [skill.name, skill]))
+  };
+  assert.equal(skillForEvent(catalog, { skillId: 1, application: { skillId: 2 } }, 3), skills[0]);
+  assert.equal(skillForEvent(catalog, { application: { skillId: 2 } }, 3), skills[1]);
+  assert.equal(skillForEvent(catalog, {}, 3), skills[2]);
+  assert.equal(skillForEvent(catalog, null, 3), skills[2]);
+  assert.equal(skillForEvent(catalog, { skillId: 'generated' }), skills[3]);
+  assert.equal(skillForEvent(catalog, { skillId: 1, skillName: 'Duplicate' }), skills[0]);
+  assert.equal(skillForEvent(catalog, { skillId: 2, skillName: 'Duplicate' }), skills[1]);
   assert.equal(
-    eventSkill(context({ profession, event: { skillId: 1, application: { skillId: 2 } }, skillId: 3 })).id,
-    1
+    skillForEvent(catalog, { skillId: 99, application: { skillId: 2 }, sourceId: 1, skillName: 'Duplicate' }, 3),
+    undefined
   );
-  assert.equal(eventSkill(context({ profession, event: { application: { skillId: 2 } }, skillId: 3 })).id, 2);
-  assert.equal(eventSkill(context({ profession, event: {}, skillId: 3 })).id, 3);
-  assert.equal(eventSkill(context({ profession, event: { skillId: 99 } })), undefined);
-  assert.equal(eventSkill(context({ event: { skillId: 1 } })), undefined);
+  assert.equal(skillForEvent(catalog, { application: { skillId: 99 } }, 3), undefined);
+  assert.equal(skillForEvent(catalog, { sourceId: 1, skillName: 'Duplicate' }), undefined);
+  assert.equal(skillForEvent(catalog, undefined), undefined);
+  assert.equal(skillForEvent(undefined, { skillId: 1 }), undefined);
+  assert.equal(skillForEvent({}, { skillId: 1 }), undefined);
 });
 
 test('selected skill queries normalize name arrays and slot records', () => {

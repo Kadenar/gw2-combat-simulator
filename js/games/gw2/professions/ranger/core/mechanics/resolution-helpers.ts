@@ -6,15 +6,11 @@ import type { ConditionEffect } from '#gw2/platform/effects/types.js';
 import { buildResolverCondition } from '#gw2/platform/resolver/packets.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import { rangerPetCombatMetadata, rangerPetCompanionId } from '#gw2/professions/ranger/core/mechanics/pets.js';
-import type { RangerResolverContext, RangerSkill } from '#gw2/professions/ranger/types.js';
+import type { RangerResolverContext } from '#gw2/professions/ranger/types.js';
 
 /** Restricts Stalker's Strike's bonus to its three documented movement-impairing conditions. */
 export function stalkersStrikeTargetImpaired(hasCondition: (condition: string) => boolean): boolean {
   return ['Crippled', 'Slow', 'Immobilized'].some(hasCondition);
-}
-
-export function eventSkill(context: RangerResolverContext, event: Gw2ResolverEvent): RangerSkill | undefined {
-  return event.skillId == null ? undefined : context.helpers.skillsById.get(event.skillId);
 }
 
 export function isPetStrike(event: Gw2ResolverEvent): boolean {

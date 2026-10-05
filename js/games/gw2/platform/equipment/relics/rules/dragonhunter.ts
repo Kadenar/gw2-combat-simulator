@@ -1,7 +1,7 @@
 import { RELIC_IDS } from '#gw2/platform/equipment/relics/data.js';
 /** Dragonhunter relic rules. */
 import { isGw2PlayerActorEvent } from '#gw2/platform/combat/state/event-ownership.js';
-import { skillForEvent } from '#gw2/platform/combat/query/event-skill.js';
+import { skillForEvent } from '#gw2/platform/combat/query/runtime-query.js';
 import {
   defineRelic,
   relicBuffActive,

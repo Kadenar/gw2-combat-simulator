@@ -1,5 +1,5 @@
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
-import { eventSkill } from '#gw2/platform/combat/query/runtime-query.js';
+import { skillForEvent } from '#gw2/platform/combat/query/runtime-query.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import type { MechanicContext } from '#gw2/platform/profession-definition/mechanic-context.js';
@@ -29,7 +29,8 @@ export const crackShot = defineTrait({
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: 'multiply',
       factor: 1.1,
-      when: (context) => eventSkill(context)?.id === ID.FIERCE_SHOT
+      when: (context) =>
+        skillForEvent(context.profession?.catalog, context.event, context.skillId)?.id === ID.FIERCE_SHOT
     }
   ],
   triggers: [
@@ -57,7 +58,7 @@ export const burstMastery = defineTrait({
       operation: 'multiply',
       factor: 1.15,
       order: 100,
-      when: (context) => Boolean(eventSkill(context)?.burst)
+      when: (context) => Boolean(skillForEvent(context.profession?.catalog, context.event, context.skillId)?.burst)
     }
   ],
   profiles: [

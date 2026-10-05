@@ -1,5 +1,5 @@
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
-import { eventSkill, targetConditionActive } from '#gw2/platform/combat/query/runtime-query.js';
+import { skillForEvent, targetConditionActive } from '#gw2/platform/combat/query/runtime-query.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import type { MechanicContext } from '#gw2/platform/profession-definition/mechanic-context.js';
 import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
@@ -26,7 +26,12 @@ export const mercilessHammer = defineTrait({
       order: 94,
       when: (context) =>
         ['Hammer', 'Mace'].includes(
-          String(context.event?.skillWeapon || eventSkill(context)?.skillWeapon || eventSkill(context)?.weapon || '')
+          String(
+            context.event?.skillWeapon ||
+              skillForEvent(context.profession?.catalog, context.event, context.skillId)?.skillWeapon ||
+              skillForEvent(context.profession?.catalog, context.event, context.skillId)?.weapon ||
+              ''
+          )
         ) && Boolean(context.config?.target?.defiant)
     }
   ]

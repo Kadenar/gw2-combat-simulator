@@ -1,5 +1,5 @@
 import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
-import { eventSkill } from '#gw2/platform/combat/query/runtime-query.js';
+import { skillForEvent } from '#gw2/platform/combat/query/runtime-query.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import type { SkillId } from '#gw2/platform/skills/types.js';
 import { resolverSkill } from '#gw2/professions/engineer/core/mechanics/resolution-helpers.js';
@@ -44,7 +44,7 @@ export function selectedMechCommand(
 export function engineerMechModifierEvent(context: Gw2ModifierContext): boolean {
   return isEngineerMechEvent(
     engineerEvent(context),
-    () => eventSkill(context),
+    () => skillForEvent(context.profession?.catalog, context.event, context.skillId),
     context.config?.specialization === 'Mechanist'
   );
 }

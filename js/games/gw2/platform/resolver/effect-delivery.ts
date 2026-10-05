@@ -1,3 +1,4 @@
+import { skillForEvent } from '#gw2/platform/combat/query/runtime-query.js';
 import { isStandardBoon, normalizeBoonDuration } from '#gw2/platform/combat/boons.js';
 import { targetHealthLoss } from '#gw2/platform/combat/state/target-health.js';
 import {
@@ -171,7 +172,7 @@ export function createEffectDelivery<T extends object>(
       event.weaponStrengthProfileId == null &&
       event.weaponStrength == null
         ? weaponStrengthProfileIdForEvent(event, {
-            skill: profession.catalog.skillsById.get(event.skillId ?? event.sourceId) ?? null,
+            skill: skillForEvent(profession.catalog, event) ?? null,
             activeWeaponSet: runtime.activeWeaponSet,
             config
           })
@@ -280,7 +281,7 @@ export function createEffectDelivery<T extends object>(
         prepared.weaponStrengthProfileId == null &&
         prepared.weaponStrength == null
           ? weaponStrengthProfileIdForEvent(prepared, {
-              skill: profession.catalog.skillsById.get(prepared.skillId ?? prepared.sourceId) ?? null,
+              skill: skillForEvent(profession.catalog, prepared) ?? null,
               activeWeaponSet: runtime.activeWeaponSet,
               config
             })

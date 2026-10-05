@@ -1,4 +1,4 @@
-import { boonActive, eventSkill as modifierEventSkill } from '#gw2/platform/combat/query/runtime-query.js';
+import { boonActive, skillForEvent } from '#gw2/platform/combat/query/runtime-query.js';
 import { claimActivation } from '#gw2/platform/combat/activation-claims.js';
 import { grantCharges } from '#gw2/platform/combat/resources/charges.js';
 import { professionStaticRulesApplied } from '#gw2/platform/builds/attribute-provenance.js';
@@ -22,7 +22,6 @@ import { gw2EffectExpiresAt } from '#gw2/platform/effects/timing.js';
 import { buildRangerPacket } from '#gw2/professions/ranger/core/events.js';
 import { rangerPetBaseAttributes } from '#gw2/professions/ranger/core/mechanics/pet-profiles.js';
 import {
-  eventSkill,
   isPetStrike,
   isPlayerStrike,
   buildRangerBleeding,
@@ -521,7 +520,7 @@ export const rangerCoreCriticalReactions = Object.freeze({
 /** Apply Trapper's Expertise once per trap activation when its damage resolves. */
 export function triggerTrappersExpertise(context: RangerResolverContext, event: Gw2ResolverEvent): void {
   const state = professionCoreState(context);
-  const skill = eventSkill(context, event);
+  const skill = skillForEvent(context.helpers, event);
   if (skill?.categories?.includes('Trap') && event.activationId && hasTrait(context, TRAIT.TRAPPERS_EXPERTISE)) {
     const profile = requireBalanceProfileFromContext(context, TRAIT.TRAPPERS_EXPERTISE);
     const cripple = requireEffect(profile, 'condition', 'Crippled');
@@ -549,7 +548,7 @@ export function triggerTrappersExpertise(context: RangerResolverContext, event: 
 
 /** Apply the trait-selected shortbow condition upgrades after base on-hit effects. */
 export function triggerLightOnYourFeet(context: RangerResolverContext, event: Gw2ResolverEvent): void {
-  const skill = eventSkill(context, event);
+  const skill = skillForEvent(context.helpers, event);
   if (skill?.id === ID.CROSSFIRE && hasTrait(context, TRAIT.LIGHT_ON_YOUR_FEET) && context.config.target?.defiant) {
     const bleeding = skill.effects?.find((effect) => effect.type === 'condition' && effect.condition === 'Bleeding');
     // Defiant Crossfire gains a second stack with the same extended base duration; with the skill's own
@@ -617,7 +616,7 @@ export function stridersStrengthAttributeDelta(context: Gw2ModifierContext): num
 // multipliers before general Expertise scaling.
 export function modifyRangerConditionBaseDuration(context: Gw2ModifierContext, multiplier: number): number {
   let result = multiplier;
-  const skill = modifierEventSkill(context);
+  const skill = skillForEvent(context.profession?.catalog, context.event, context.skillId);
   if (skill?.categories?.includes('Trap') && hasTrait(context, TRAIT.TRAPPERS_EXPERTISE)) {
     return (
       multiplier *

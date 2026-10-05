@@ -1,7 +1,7 @@
 import { warriorBurstRules } from '#gw2/professions/warrior/resource-rules.js';
 /** Canonical Core warrior skill fragments grouped by their GW2 owner. */
 import { MODIFIER_TARGET, type Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
-import { eventSkill, targetHealthBelow } from '#gw2/platform/combat/query/runtime-query.js';
+import { skillForEvent, targetHealthBelow } from '#gw2/platform/combat/query/runtime-query.js';
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
 import type { SkillEffect } from '#gw2/platform/effects/types.js';
 import type { RuntimeProfession } from '#gw2/platform/profession-definition/runtime-contract.js';
@@ -459,7 +459,7 @@ export const warriorBurstSkillModifiers: readonly Gw2ModifierRule[] = [
     order: 100,
     // Kill Shot gets the same execute bonus from either a defiant target or live sub-50% health.
     when: (context) =>
-      eventSkill(context)?.id === ID.KILL_SHOT &&
+      skillForEvent(context.profession?.catalog, context.event, context.skillId)?.id === ID.KILL_SHOT &&
       (context.config?.target?.defiant === true || targetHealthBelow(context, 0.5))
   },
   {
@@ -468,7 +468,8 @@ export const warriorBurstSkillModifiers: readonly Gw2ModifierRule[] = [
     operation: 'multiply',
     factor: 1.5,
     order: 100,
-    when: (context) => eventSkill(context)?.id === ID.BREACHING_STRIKE
+    when: (context) =>
+      skillForEvent(context.profession?.catalog, context.event, context.skillId)?.id === ID.BREACHING_STRIKE
   }
 ];
 

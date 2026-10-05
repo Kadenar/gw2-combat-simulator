@@ -1,7 +1,7 @@
 import { advanceCriticalProc, criticalOpportunity } from '#gw2/platform/combat/critical-procs.js';
 import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
-import { eventSkill, targetConditionActive } from '#gw2/platform/combat/query/runtime-query.js';
+import { skillForEvent, targetConditionActive } from '#gw2/platform/combat/query/runtime-query.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { gw2ConfiguredWeaponSet } from '#gw2/platform/equipment/weapons/loadout.js';
 import type { MechanicContext } from '#gw2/platform/profession-definition/mechanic-context.js';
@@ -70,7 +70,8 @@ export const burstPrecision = defineTrait({
       amount: (context) =>
         balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.BURST_PRECISION), 'criticalChance'),
       when: (context) =>
-        Boolean(eventSkill(context)?.burst) || warriorActiveBuffStacks(context, 'burst-precision', 1) > 0
+        Boolean(skillForEvent(context.profession?.catalog, context.event, context.skillId)?.burst) ||
+        warriorActiveBuffStacks(context, 'burst-precision', 1) > 0
     }
   ]
 });

@@ -1,3 +1,4 @@
+import { skillForEvent } from '#gw2/platform/combat/query/runtime-query.js';
 import { buildResolverCondition } from '#gw2/platform/resolver/packets.js';
 import { NECROMANCER_SKILL_IDS as ID } from '#gw2/professions/necromancer/data/ids.js';
 import type { NecromancerResolverContext, NecromancerResolverEvent } from '#gw2/professions/necromancer/types.js';
@@ -8,7 +9,7 @@ export function reactToNecromancerAxeHealth(
   event: NecromancerResolverEvent
 ): void {
   if (event.actorType !== 'player' || !(Number(event.coefficient) > 0)) return;
-  const skill = context.helpers.skillsById.get(event.skillId ?? event.sourceId);
+  const skill = skillForEvent(context.helpers, event);
   if (!skill || (skill.id !== ID.RENDING_CLAWS && skill.id !== ID.UNHOLY_FEAST)) return;
   if (!context.combat.targetHealthBelow(0.5)) return;
 

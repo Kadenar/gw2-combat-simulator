@@ -17,7 +17,7 @@ import {
 } from '#gw2/professions/engineer/types.js';
 import { buildEngineerPackets } from '#gw2/professions/engineer/core/events.js';
 import { isInternalCooldownReady } from '#gw2/platform/combat/procs.js';
-import { eventSkill } from '#gw2/platform/combat/query/runtime-query.js';
+import { skillForEvent } from '#gw2/platform/combat/query/runtime-query.js';
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
 import { applyAmalgamStrain } from '#gw2/professions/engineer/specializations/amalgam/skills/evolved-state-skills.js';
 import {
@@ -82,7 +82,10 @@ export function evolveAttributeFactor(context: EngineerModifierContext): number 
 
 /** Restrict Symbiotic Synergy to player-owned Morph strikes. */
 export function morphStrike(context: EngineerModifierContext): boolean {
-  return Boolean(isGw2PlayerModifierOwnedEvent(context.event) && eventSkill(context)?.categories?.includes('Morph'));
+  return Boolean(
+    isGw2PlayerModifierOwnedEvent(context.event) &&
+    skillForEvent(context.profession?.catalog, context.event, context.skillId)?.categories?.includes('Morph')
+  );
 }
 
 /** The committed Morph tail preserves Willing Host, protection, strains, then New Genes. */

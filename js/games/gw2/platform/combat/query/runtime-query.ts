@@ -7,30 +7,26 @@ import {
   targetHasCondition
 } from '#gw2/platform/combat/state/targets.js';
 import { remainingTargetHealthBelow, remainingTargetHealthFraction } from '#gw2/platform/combat/state/target-health.js';
-import type { Skill, SkillId } from '#gw2/platform/skills/types.js';
+import type { CanonicalCatalog, Skill, SkillId } from '#gw2/platform/skills/types.js';
 import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
 import { boundedNumber, clamp } from '#kernel/core/numeric.js';
 
-interface RuntimeSkillEvent {
+interface SkillEventIdentity {
   readonly skillId?: SkillId | null;
   readonly application?: {
     readonly skillId?: SkillId | null;
   };
 }
 
-interface RuntimeSkillCatalog {
-  readonly catalog?: {
-    readonly skillsById?: ReadonlyMap<SkillId, Skill>;
-  };
-}
-
-/** Resolves the current event's catalog skill across every supported modifier-context skill-id path. */
-export function eventSkill(context: Gw2ModifierContext): Skill | undefined {
-  const event = context.event as RuntimeSkillEvent | null | undefined;
-  const skillId = event?.skillId ?? event?.application?.skillId ?? context.skillId;
+/** Resolve the packet's identity before its application or query context; an unknown ID never selects another skill. */
+export function skillForEvent<TSkill extends Skill>(
+  catalog: Partial<Pick<CanonicalCatalog<TSkill>, 'skillsById'>> | undefined,
+  event: SkillEventIdentity | null | undefined,
+  contextSkillId?: SkillId | null
+): TSkill | undefined {
+  const skillId = event?.skillId ?? event?.application?.skillId ?? contextSkillId;
   if (skillId == null) return undefined;
-  const profession = context.profession as RuntimeSkillCatalog | undefined;
-  return profession?.catalog?.skillsById?.get(skillId);
+  return catalog?.skillsById?.get(skillId);
 }
 
 /** Provides canonical ID membership for simulation loadouts. */

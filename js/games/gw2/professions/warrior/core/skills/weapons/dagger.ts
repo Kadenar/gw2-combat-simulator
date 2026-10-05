@@ -1,5 +1,5 @@
 /** Canonical Core warrior skill fragments grouped by their GW2 owner. */
-import { eventSkill } from '#gw2/platform/combat/query/runtime-query.js';
+import { skillForEvent } from '#gw2/platform/combat/query/runtime-query.js';
 import { MODIFIER_TARGET, type Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
 import { WARRIOR_SKILL_IDS as ID } from '#gw2/professions/warrior/data/ids.js';
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
@@ -153,7 +153,7 @@ export const warriorDaggerSkillModifiers: readonly Gw2ModifierRule[] = [
     factor: 1.15,
     order: 100,
     when: (context) => {
-      const skillId = Number(eventSkill(context)?.id);
+      const skillId = Number(skillForEvent(context.profession?.catalog, context.event, context.skillId)?.id);
       return skillId === ID.PRECISE_CUT || skillId === ID.FOCUSED_SLASH;
     }
   },
@@ -163,6 +163,8 @@ export const warriorDaggerSkillModifiers: readonly Gw2ModifierRule[] = [
     operation: 'multiply',
     factor: 2,
     order: 100,
-    when: (context) => eventSkill(context)?.id === ID.WASTRELS_RUIN && context.config?.target?.defiant === true
+    when: (context) =>
+      skillForEvent(context.profession?.catalog, context.event, context.skillId)?.id === ID.WASTRELS_RUIN &&
+      context.config?.target?.defiant === true
   }
 ];

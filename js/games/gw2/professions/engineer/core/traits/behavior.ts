@@ -24,7 +24,7 @@ import {
   engineerEvent,
   targetHealthFraction
 } from '#gw2/professions/engineer/core/traits/query-helpers.js';
-import { eventSkill } from '#gw2/platform/combat/query/runtime-query.js';
+import { skillForEvent } from '#gw2/platform/combat/query/runtime-query.js';
 import { powerScaledConditionAttributes } from '#gw2/platform/combat/modifiers.js';
 
 /** Owns HGH's elixir cast effects and scheduled-event duration extension. */
@@ -60,7 +60,7 @@ export function applyHghAcidBomb(context: EngineerRuntime, cast: RuntimeCast<Eng
 /** Extends scheduled elixir fields, boons, and conditions while HGH is selected. */
 export function prepareEngineerHghEvent(context: EngineerRuntime, event: SimulationEventBase): SimulationEventBase {
   if (!hasTrait(context.traits, TRAIT.HGH) || event.sourceId === TRAIT.HGH) return event;
-  const skill = context.helpers.skillsById.get(event.skillId ?? event.sourceId);
+  const skill = skillForEvent(context.helpers, event);
   if (!isElixirSkill(skill)) return event;
   const hghProfile = requireBalanceProfileFromContext(context, TRAIT.HGH);
   const durationMultiplier = balanceProfileNumber(hghProfile, 'durationMultiplier');
@@ -202,7 +202,7 @@ export function applyChemicalRoundsConditionDuration(context: Gw2ModifierContext
   const application = event?.application || event;
   // trait-sourced conditions (e.g. Incendiary Powder) don't get Chemical Rounds amplification
   if (application?.source === 'Trait') return multiplier;
-  const skill = eventSkill(context);
+  const skill = skillForEvent(context.profession?.catalog, context.event, context.skillId);
   // condition events from different layers carry the weapon type at different paths — check all three
   if (event?.skillWeapon !== 'Pistol' && event?.application?.skillWeapon !== 'Pistol' && skill?.weapon !== 'Pistol') {
     return multiplier;

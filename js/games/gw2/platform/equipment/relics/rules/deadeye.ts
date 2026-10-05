@@ -1,7 +1,7 @@
 import { RELIC_IDS } from '#gw2/platform/equipment/relics/data.js';
 /** Completed player cantrips refresh the relic's strike bonus regardless of profession. */
 import { isGw2PlayerActorEvent, isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
-import { skillForEvent } from '#gw2/platform/combat/query/event-skill.js';
+import { skillForEvent } from '#gw2/platform/combat/query/runtime-query.js';
 import { defineRelic, recordTimedBuffProc, timedStrikeBuff } from '#gw2/platform/equipment/relics/rules/shared.js';
 
 export const deadeye = defineRelic({

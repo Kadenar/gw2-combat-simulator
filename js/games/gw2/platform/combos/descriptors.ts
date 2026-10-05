@@ -1,3 +1,4 @@
+import { skillForEvent } from '#gw2/platform/combat/query/runtime-query.js';
 import type { UnvalidatedFields } from '#kernel/core/unvalidated.js';
 import type { CanonicalCatalog } from '#gw2/platform/skills/types.js';
 import type { SimulationEvent } from '#gw2/platform/events/events.js';
@@ -32,7 +33,7 @@ interface OwnedFinisherDescriptor extends UnvalidatedFields {
 }
 
 export function fieldDescriptors(catalog: CanonicalCatalog, event: SimulationEvent): readonly OwnedFieldDescriptor[] {
-  const skill = catalog.skillsById.get(event.skillId ?? event.sourceId);
+  const skill = skillForEvent(catalog, event);
   const descriptors = Array.isArray(event.comboFields)
     ? event.comboFields
     : event.type === 'action' && Array.isArray(skill?.comboFields)
@@ -73,7 +74,7 @@ export function finisherDescriptors(
   catalog: CanonicalCatalog,
   event: SimulationEvent
 ): readonly OwnedFinisherDescriptor[] {
-  const skill = catalog.skillsById.get(event.skillId ?? event.sourceId);
+  const skill = skillForEvent(catalog, event);
   let descriptors: readonly Readonly<UnvalidatedFields>[] = [];
   if (Array.isArray(event.comboFinishers)) {
     descriptors = event.comboFinishers;

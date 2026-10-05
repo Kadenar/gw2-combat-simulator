@@ -1,6 +1,6 @@
 import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
 import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
-import { eventSkill } from '#gw2/platform/combat/query/runtime-query.js';
+import { skillForEvent } from '#gw2/platform/combat/query/runtime-query.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { denySkillCast } from '#gw2/platform/execution/availability.js';
 import {
@@ -177,7 +177,7 @@ export function modifyLingeringCurseAttributes(
 }
 
 export function modifyNecromancerConditionBaseDuration(context: Gw2ModifierContext, duration: number): number {
-  return eventSkill(context)?.weapon === 'Scepter' &&
+  return skillForEvent(context.profession?.catalog, context.event, context.skillId)?.weapon === 'Scepter' &&
     context.event?.skillId !== ID.DEVOURING_DARKNESS &&
     hasTrait(context, TRAIT.LINGERING_CURSE)
     ? duration *
@@ -202,7 +202,7 @@ export function armPlagueSending(runtime: NecromancerRuntime, hasConditions: boo
 
 export function reactToNecromancerConditions(runtime: NecromancerRuntime, event: Gw2ResolverEvent): void {
   if (event.actorType !== 'player' || !(Number(event.coefficient) > 0)) return;
-  const skill = runtime.helpers.skillsById.get(event.skillId ?? event.sourceId);
+  const skill = skillForEvent(runtime.helpers, event);
   if (!skill) return;
   const work = { skillId: skill.id, activationId: event.activationId };
   const state = runtime.profession.core;

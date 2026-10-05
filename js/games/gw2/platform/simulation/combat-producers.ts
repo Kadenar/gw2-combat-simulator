@@ -1,3 +1,4 @@
+import { skillForEvent } from '#gw2/platform/combat/query/runtime-query.js';
 import { RELIC_IDS } from '#gw2/platform/equipment/relics/data.js';
 import { invokeRelicHook } from '#gw2/platform/equipment/relics/runtime.js';
 import {
@@ -96,12 +97,7 @@ export function createCombatExecution<T extends object>(
     },
     action(runtime, event) {
       if (!event.cancelled)
-        invokeRelicHook(
-          runtime,
-          'emitActionEffects',
-          event,
-          profession.catalog.skillsById.get(event.skillId ?? event.sourceId)
-        );
+        invokeRelicHook(runtime, 'emitActionEffects', event, skillForEvent(profession.catalog, event));
       invokeRelicHook(runtime, 'action', event);
     },
     condition(runtime, event) {

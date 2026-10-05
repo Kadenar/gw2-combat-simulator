@@ -388,6 +388,38 @@ test('unprofiled coefficient packets are rejected instead of receiving legacy fi
   );
 });
 
+// A packet must not acquire another skill's weapon profile through a matching label or producer ID.
+test('weapon resolution uses the canonical skill ID when names and sources conflict', () => {
+  const sword = { id: 1, name: 'Shared name', weapon: 'Sword' };
+  const rifle = { id: 2, name: 'Shared name', weapon: 'Rifle' };
+  const context = {
+    helpers: {
+      skillsById: new Map([
+        [1, sword],
+        [2, rifle]
+      ]),
+      skillsByName: new Map([['Shared name', rifle]])
+    },
+    random: { stochastic: false }
+  };
+  const event = {
+    type: 'damage',
+    at: 0,
+    actorType: 'player',
+    source: 'fixture',
+    sourceId: 2,
+    skillId: 1,
+    skillName: 'Shared name',
+    coefficient: 1
+  };
+  assert.equal(resolvedWeaponStrength(context, event).profileId, 'weapon.sword');
+  for (const skillId of [undefined, 99])
+    assert.throws(
+      () => resolvedWeaponStrength(context, { ...event, skillId }),
+      /requires a resolvable weapon-strength profile or explicit weaponStrength/
+    );
+});
+
 // The reported crit outcome scales damage in both modes without changing weapon-strength sampling.
 test('both modes share seeded crit damage outcomes while deterministic strength stays midpoint', () => {
   const run = (mode, seed) =>

@@ -1,6 +1,6 @@
 import { lifeForceGrant } from '#gw2/professions/necromancer/core/skills/life-force-grants.js';
 import { MODIFIER_TARGET, type Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
-import { eventSkill, targetConditionActive } from '#gw2/platform/combat/query/runtime-query.js';
+import { skillForEvent, targetConditionActive } from '#gw2/platform/combat/query/runtime-query.js';
 /** Canonical Core necromancer skill fragments grouped by their GW2 owner. */
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
 import { NECROMANCER_SKILL_IDS as ID } from '#gw2/professions/necromancer/data/ids.js';
@@ -156,5 +156,7 @@ export const lifeSiphonBleedingModifier: Gw2ModifierRule = {
   operation: 'multiply',
   factor: 1.5,
   order: 100,
-  when: (context) => eventSkill(context)?.id === ID.LIFE_SIPHON && targetConditionActive(context, 'Bleeding')
+  when: (context) =>
+    skillForEvent(context.profession?.catalog, context.event, context.skillId)?.id === ID.LIFE_SIPHON &&
+    targetConditionActive(context, 'Bleeding')
 };

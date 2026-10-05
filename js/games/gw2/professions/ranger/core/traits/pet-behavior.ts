@@ -1,3 +1,4 @@
+import { skillForEvent } from '#gw2/platform/combat/query/runtime-query.js';
 import { professionStaticRulesApplied } from '#gw2/platform/builds/attribute-provenance.js';
 import { GW2_STANDARD_BOONS } from '#gw2/platform/combat/boons.js';
 import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
@@ -17,7 +18,6 @@ import { rangerPetBaseAttributes } from '#gw2/professions/ranger/core/mechanics/
 import { rangerPetCompanionId } from '#gw2/professions/ranger/core/mechanics/pets.js';
 import { rangerPetByName } from '#gw2/professions/ranger/core/state.js';
 import {
-  eventSkill,
   rangerBuffRequest,
   rangerConditionRequest
 } from '#gw2/professions/ranger/core/mechanics/resolution-helpers.js';
@@ -87,7 +87,7 @@ export function applyRangerCommandTraits(
 // profile-owned companion strike with stable ownership.
 export function triggerGoForTheThroat(context: RangerResolverContext, event: Gw2ResolverEvent): void {
   const state = professionCoreState(context);
-  const skill = eventSkill(context, event);
+  const skill = skillForEvent(context.helpers, event);
   const beastSkillId = state.activePetSkillIds.at(-1);
   if (
     event.skillId !== beastSkillId ||

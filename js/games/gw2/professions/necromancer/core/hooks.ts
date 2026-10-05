@@ -1,3 +1,4 @@
+import { skillForEvent } from '#gw2/platform/combat/query/runtime-query.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import { emitVampirismPassive } from '#gw2/professions/necromancer/core/skills/slot-skills.js';
 import { denySkillCast } from '#gw2/platform/execution/availability.js';
@@ -77,7 +78,7 @@ import type {
 /** Landed player packets own weapon gains and the post-hit half-health test; no predicted observation is replayed. */
 function damage(runtime: NecromancerRuntime, event: Gw2ResolverEvent): void {
   if (!(Number(event.coefficient) > 0)) return;
-  const skill = runtime.helpers.skillsById.get(event.skillId ?? event.sourceId);
+  const skill = skillForEvent(runtime.helpers, event);
   if (!skill) return;
   if (event.actorType !== 'player') return;
   // Combine trait rewards before the shared conversion and pool refresh, ahead of condition transfers.

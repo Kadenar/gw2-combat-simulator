@@ -1,6 +1,6 @@
 import { lifeForceGrant } from '#gw2/professions/necromancer/core/skills/life-force-grants.js';
 import { MODIFIER_TARGET, type Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
-import { eventSkill } from '#gw2/platform/combat/query/runtime-query.js';
+import { skillForEvent } from '#gw2/platform/combat/query/runtime-query.js';
 import { isGw2PlayerActorEvent } from '#gw2/platform/combat/state/event-ownership.js';
 /**
  * Owns Reaper shout skill fragments.
@@ -94,6 +94,7 @@ export const reaperShoutMeleeModifier: Gw2ModifierRule = {
   when: (context) =>
     Boolean(
       // Shout doubling belongs to the player's skill packet, not merely an effect that inherits player modifiers.
-      isGw2PlayerActorEvent(context.event) && eventSkill(context)?.categories?.includes('Shout')
+      isGw2PlayerActorEvent(context.event) &&
+      skillForEvent(context.profession?.catalog, context.event, context.skillId)?.categories?.includes('Shout')
     )
 };
