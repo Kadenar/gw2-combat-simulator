@@ -16,7 +16,7 @@ import { defineProfession } from '#gw2/platform/profession-definition/compiler/c
 import { createGw2CombatQuery } from '#gw2/platform/combat/query/combat-query.js';
 import { normalizeSelectedTraitIds } from '#gw2/platform/combat/state/traits.js';
 import { createGw2TimelineIndex } from '#gw2/platform/combat/query/timeline-index.js';
-import { canonicalTargetConditionName } from '#gw2/platform/combat/state/targets.js';
+import { canonicalTargetConditionName, targetConditionStacks } from '#gw2/platform/combat/state/targets.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import {
   defaultWeaponSkillMatchesSet,
@@ -124,6 +124,36 @@ test('target-condition queries combine assumptions and chronological runtime sta
   assert.equal(query.targetHasCondition('Chilled', 1.5, runtime), false);
   assert.equal(query.targetConditionStacks('Vulnerability', 1, runtime), 5);
   assert.equal(query.targetConditionStacks('Vulnerability', 2, runtime), 2);
+});
+
+// Permanent assumptions and live applications share one condition cap across both query entry points.
+test('combat queries honor canonical caps on combined permanent and live target conditions', () => {
+  const cases = [
+    ...['Blindness', 'Chilled', 'Crippled', 'Fear', 'Immobilized', 'Slow', 'Taunt', 'Weakness'].map((name) => [
+      name,
+      true,
+      1,
+      1
+    ]),
+    ['Vulnerability', 20, 10, 25],
+    ...['Bleeding', 'Burning', 'Confusion', 'Poisoned', 'Torment'].map((name) => [name, 2, 3, 5])
+  ];
+  for (const [name, permanent, live, expected] of cases) {
+    const config = { target: { conditions: { [` ${name.toLowerCase()} `]: permanent } } };
+    const query = createGw2CombatQuery({ profession: queryProfession, config });
+    const stack = { appliedAt: 1, expiresAt: 3, weight: live };
+    const runtime = { conditionState: new Map([[name, { stacks: [stack] }]]) };
+    assert.equal(targetConditionStacks(config, name, 1, runtime), expected, name);
+    assert.equal(query.targetConditionStacks(name, 1, runtime), expected, name);
+    assert.equal(query.targetConditionStacks(name.toLowerCase(), 1, runtime), expected, name);
+    // Application, removal, and expiry must leave the configured assumption intact.
+    for (const at of [0, 3]) {
+      assert.equal(query.targetConditionStacks(name, at, runtime), Number(permanent), `${name} at ${at}`);
+    }
+
+    stack.removedAt = 2;
+    assert.equal(query.targetConditionStacks(name, 2, runtime), Number(permanent), `${name} removed`);
+  }
 });
 
 test('combat lookups normalize once per query without stale cross-query state', () => {

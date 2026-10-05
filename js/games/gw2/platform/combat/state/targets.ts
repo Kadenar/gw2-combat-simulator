@@ -170,18 +170,19 @@ export function runtimeTargetConditionStacks(
 
 /**
  * Gets target-condition stacks from permanent scenario assumptions plus
- * chronological runtime applications.
+ * chronological runtime applications. Live queries may supply their cached permanent count.
  */
 export function targetConditionStacks(
   config: Gw2Config,
   name: string,
   at: number,
-  runtime: Gw2RuntimeStateLike | null = null
+  runtime: Gw2RuntimeStateLike | null = null,
+  permanentStacks = permanentTargetConditionStacks(config, name)
 ): number {
-  return Math.min(
-    conditionStackLimit(name) ?? Infinity,
-    permanentTargetConditionStacks(config, name) + runtimeTargetConditionStacks(runtime, name, at || 0)
-  );
+  const maximum = conditionStackLimit(name) ?? Infinity;
+  // Permanent assumptions already at the cap cannot gain intensity from nonnegative live stacks.
+  if (permanentStacks >= maximum) return maximum;
+  return Math.min(maximum, permanentStacks + runtimeTargetConditionStacks(runtime, name, at || 0));
 }
 
 /** Reports whether permanent assumptions or runtime state give the target a condition. */

@@ -16,11 +16,7 @@ import type { Gw2TimelineIndex } from '#gw2/platform/combat/query/timeline-index
 import { createGw2TimelineIndex } from '#gw2/platform/combat/query/timeline-index.js';
 import { gw2EventActorType } from '#gw2/platform/combat/state/event-ownership.js';
 import type { Gw2RuntimeStateLike } from '#gw2/platform/combat/state/targets.js';
-import {
-  canonicalTargetConditionName,
-  createPermanentTargetConditionStacks,
-  runtimeTargetConditionStacks
-} from '#gw2/platform/combat/state/targets.js';
+import { createPermanentTargetConditionStacks, targetConditionStacks } from '#gw2/platform/combat/state/targets.js';
 import type { SimulationEvent } from '#gw2/platform/events/events.js';
 import type { NormalizedProfessionContract } from '#gw2/platform/profession-definition/types.js';
 import { UTILITY_STRIKE_DAMAGE_BONUSES } from '#gw2/platform/equipment/consumables/utilities.js';
@@ -332,25 +328,12 @@ export function createGw2CombatQuery({
     return dynamicBoonStacksAt('might', time, 25, runtime, 'summon', 0, summonCompanionId(event));
   };
 
-  /**
-   * Reads Vulnerability only from target-condition state so it follows condition stacking and expiry rules.
-   */
-  const vulnerabilityStacksAt = (time: number, runtime: Gw2QueryRuntime | null | undefined): number => {
-    const configured = configuredTargetConditionStacks('Vulnerability');
-    // Runtime stacks are nonnegative, so an already-capped permanent assumption needs no history scan.
-    return configured >= 25
-      ? 25
-      : clamp(configured + runtimeTargetConditionStacks(runtime, 'Vulnerability', time), 0, 25);
-  };
+  // Reuse normalized assumptions while the canonical target owner caps their combined live intensity.
+  const targetConditionStacksAt = (condition: string, time: number, runtime: Gw2QueryRuntime | null = null): number =>
+    targetConditionStacks(config, condition, time, runtime, configuredTargetConditionStacks(condition));
 
-  const targetConditionStacksAt = (condition: string, time: number, runtime: Gw2QueryRuntime | null = null): number => {
-    const name = canonicalTargetConditionName(condition);
-    if (name === 'Vulnerability') {
-      return vulnerabilityStacksAt(time, runtime);
-    }
-
-    return configuredTargetConditionStacks(name) + runtimeTargetConditionStacks(runtime, name, time);
-  };
+  const vulnerabilityStacksAt = (time: number, runtime: Gw2QueryRuntime | null | undefined): number =>
+    targetConditionStacksAt('Vulnerability', time, runtime);
 
   const activeWeaponSetAt = (time: number, runtime: Gw2QueryRuntime | null | undefined): number => {
     const runtimeSet = Number(runtime?.activeWeaponSet);
