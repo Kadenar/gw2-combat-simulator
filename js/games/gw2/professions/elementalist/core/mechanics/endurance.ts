@@ -20,7 +20,7 @@ function elementalistEnduranceRegenerationRate(context: ElementalistRuntime, vig
 
 /** Binds shared endurance operations to this module's live pool and balance rules. */
 export const elementalistEndurance: EndurancePolicy<ElementalistRuntime> = {
-  state: (context) => professionCoreState(context),
+  state: (context) => professionCoreState(context).endurance,
   maximum: (context) =>
     balanceProfileNumber(requireBalanceProfileFromContext(context, PROFILE.resources), 'maximumStacks'),
   regenerationRate: (context, vigor) => elementalistEnduranceRegenerationRate(context, vigor)

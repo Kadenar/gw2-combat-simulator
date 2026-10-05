@@ -57,7 +57,7 @@ function thiefEnduranceRate(runtime: ThiefRuntime, vigor: boolean): number {
 }
 
 export const thiefEndurance: EndurancePolicy<ThiefRuntime> = {
-  state: (runtime) => runtime.profession.core,
+  state: (runtime) => runtime.profession.core.endurance,
   maximum: () => 100,
   regenerationRate: (runtime, vigor) => thiefEnduranceRate(runtime, vigor)
 };

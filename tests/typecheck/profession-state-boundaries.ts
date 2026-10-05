@@ -41,6 +41,16 @@ type Owns<TState, TField extends PropertyKey> = TField extends keyof TState ? tr
 type Rejects<TState, TField extends PropertyKey> = TField extends keyof TState ? false : true;
 
 export type ProfessionModuleStateBoundaryAssertions = [
+  // Endurance capacity and observation time belong to the clock, never sibling scalar fields.
+  Assert<WarriorCoreState['endurance'] extends ResourceClock ? true : false>,
+  Assert<ElementalistCoreState['endurance'] extends ResourceClock ? true : false>,
+  Assert<EngineerCoreState['endurance'] extends ResourceClock ? true : false>,
+  Assert<GuardianCoreState['endurance'] extends ResourceClock ? true : false>,
+  Assert<NecromancerCoreState['endurance'] extends ResourceClock ? true : false>,
+  Assert<RevenantCoreState['endurance'] extends ResourceClock ? true : false>,
+  Assert<MesmerTroubadourState['endurance'] extends ResourceClock ? true : false>,
+  Assert<Rejects<WarriorCoreState, 'enduranceUpdatedAt'>>,
+  Assert<Rejects<WarriorCoreState, 'maximumEndurance'>>,
   Assert<DeadeyeState['malice'] extends ResourceClock ? true : false>,
   Assert<Rejects<DeadeyeState, 'maximumMalice'>>,
   Assert<EvokerState['familiarCharges'] extends ResourceClock ? true : false>,

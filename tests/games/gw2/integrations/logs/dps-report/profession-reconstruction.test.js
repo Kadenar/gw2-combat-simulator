@@ -49,7 +49,7 @@ test('Mirage cloak sources import once without spending endurance or applying Du
   const actual = simulateMesmer(imported.rotation, config);
   const expected = simulateMesmer(['__combat_start', 'Mind Wrack'], config);
   assert.deepEqual(actual.warnings, []);
-  assert.equal(actual.planningState.profession.endurance, 100);
+  assert.equal(actual.planningState.profession.endurance.value, 100);
   assert.equal(actual.planningState.profession.availableAmbush.source, 'Dune Cloak');
   assert.deepEqual(actual.planningState.cooldowns, expected.planningState.cooldowns);
   assert.ok(imported.sourceActions.some((action) => action.rawSkillId === -17));

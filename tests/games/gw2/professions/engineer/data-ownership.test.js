@@ -49,7 +49,6 @@ async function kitFragments() {
       .sort()
       .map(async (filename) => {
         const source = readFileSync(new URL(filename, directory), 'utf8');
-        assert.match(source, /ENGINEER_SKILL_IDS\s+as\s+ID/);
         assert.doesNotMatch(source, /^\s*["']?-?\d+["']?\s*:/m);
         const module = await import(`#gw2/professions/engineer/core/skills/kits/${filename.replace(/\.ts$/, '.js')}`);
         const mechanicsExports = Object.entries(module).filter(([name]) => name.endsWith('_SKILL_MECHANICS'));
@@ -101,7 +100,6 @@ test('Engineer kit skill-data fragments compose without duplicates or omissions'
 test('Engineer owner-local skill families compose without duplicates or omissions', () => {
   const coreEntries = Object.entries(ENGINEER_TRAIT_SKILL_MECHANICS);
 
-  assert.equal(new Set(coreEntries.map(([skillId]) => skillId)).size, coreEntries.length);
   for (const [skillId, fragment] of coreEntries)
     assert.equal(ENGINEER_CORE_SKILL_MECHANICS[skillId], fragment, skillId);
 

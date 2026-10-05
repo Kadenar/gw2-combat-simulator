@@ -444,8 +444,8 @@ test('Troubadour Dodge spends continuous endurance and waits for regeneration wi
       result.steps.map((step) => step.start),
       [0, 0, readyAt]
     );
-    assert.ok(result.planningState.profession.endurance < 0.11);
-    assert.equal(result.planningState.profession.maximumEndurance, 100);
+    assert.ok(result.planningState.profession.endurance.value < 0.11);
+    assert.equal(result.planningState.profession.endurance.maximum, 100);
     assert.equal(result.planningState.ammoBySkillId[SHARED_SKILL_IDS.DODGE], undefined);
     assert.equal(Object.hasOwn(result.planningState.cooldowns, 'Dodge'), false);
   }
@@ -470,13 +470,13 @@ test('Honorable Rogue restores 50 endurance, preserving partial regeneration and
       assert.deepEqual(before.warnings, []);
       assert.deepEqual(after.warnings, []);
       const rate = flute ? 6.25 : 5;
-      assert.equal(before.planningState.profession.endurance, 100 - 50 * dodges + rate);
+      assert.equal(before.planningState.profession.endurance.value, 100 - 50 * dodges + rate);
       const tale = after.steps.at(-1);
       const expected = Math.min(
         100,
-        before.planningState.profession.endurance + 50 + ((tale.end - tale.start) / 1000) * rate
+        before.planningState.profession.endurance.value + 50 + ((tale.end - tale.start) / 1000) * rate
       );
-      assert.ok(Math.abs(after.planningState.profession.endurance - expected) < 0.000001);
+      assert.ok(Math.abs(after.planningState.profession.endurance.value - expected) < 0.000001);
       assert.equal(Object.hasOwn(after.planningState.cooldowns, 'Dodge'), false);
       assert.equal(after.planningState.ammoBySkillId[SHARED_SKILL_IDS.DODGE], undefined);
       assert.ok(after.planningState.cooldowns['Tale of the Honorable Rogue'].remaining > 0);
@@ -493,7 +493,7 @@ test('Troubadour uses initial endurance and Energy grants through the shared poo
     sigilSets: [{ names: ['Energy'] }, { names: ['Energy'] }]
   });
   assert.deepEqual(result.warnings, []);
-  assert.equal(result.planningState.profession.endurance, 55);
+  assert.equal(result.planningState.profession.endurance.value, 55);
   const view = mesmerProfession.ui
     .resourceViews({
       catalog: mesmerCatalog,

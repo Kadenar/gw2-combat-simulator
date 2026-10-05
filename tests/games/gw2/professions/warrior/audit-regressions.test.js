@@ -316,7 +316,7 @@ test('endurance integration and Dodge readiness follow actual pooled Vigor windo
 
     for (const durations of [[10000], [1000, 1000, 2000, 6000], [30000]]) {
       const result = run(durations.map((durationMs) => ({ type: 'wait', durationMs })));
-      assert.equal(result.planningState.profession.endurance, durations[0] === 30000 ? 100 : expectedEndurance);
+      assert.equal(result.planningState.profession.endurance.value, durations[0] === 30000 ? 100 : expectedEndurance);
     }
 
     const dodge = run(['Dodge']);

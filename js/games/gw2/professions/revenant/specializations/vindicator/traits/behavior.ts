@@ -90,7 +90,7 @@ export function forerunnerOfDeathActive(runtime: RevenantRuntime): boolean {
 export function enduranceNotFull(context: Gw2ModifierContext): boolean {
   const state = revenantRuntimeCoreState(context);
   const maximum = REVENANT_MAXIMUM_ENDURANCE;
-  return !resourceAtLeast(state.endurance || 0, maximum);
+  return !resourceAtLeast(state.endurance?.value ?? 0, maximum);
 }
 
 /** Applies the trait at the mechanic's existing execution boundary. */

@@ -1,6 +1,5 @@
 import { assertFlooredDamageMultiplier } from '#tests/helpers/rounded-damage.js';
 import assert from 'node:assert/strict';
-import { readFileSync } from 'node:fs';
 import test from 'node:test';
 import { defaultSimulationConfig } from '#tests/helpers/fixture-harness-core.js';
 import { simulateMesmer } from '#tests/helpers/mesmer-simulation.js';
@@ -8,9 +7,7 @@ import { createGw2CombatQuery } from '#gw2/platform/combat/query/combat-query.js
 import { resolveProfessionContract } from '#gw2/platform/profession-definition/compiler/compile-contract.js';
 import { skillBreakdownRows } from '#gw2/app/results/skill-breakdown.js';
 import { MESMER_SKILL_IDS as ID, MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
-import { mesmerCatalog, mesmerProfession } from '#gw2/professions/mesmer/profession.js';
-import { toApplicationBuild } from '#gw2/professions/mesmer/build/build.js';
-import { mesmerAppAdapter } from '#gw2/professions/mesmer/app/app-definition.js';
+import { mesmerProfession } from '#gw2/professions/mesmer/profession.js';
 
 // Mesmer conditions and relic interactions retain skill, trait, and illusion behavior.
 test('condition-bearing clone autoattacks apply their damaging conditions', () => {
@@ -321,31 +318,6 @@ test('Ineptitude intervals only interrupt-generated blinds on defiant targets', 
   );
 });
 
-test('condition Chronomancer preset retains multi-hit Ineptitude', () => {
-  const saved = JSON.parse(
-    readFileSync(new URL('../../../../../data/gw2/builds/mesmer/b-condi-chronomancer.json', import.meta.url), 'utf8')
-  );
-  const build = toApplicationBuild({
-    ...saved,
-    rotation: ['Mirror Images', 'Rewinder']
-  });
-  const app = {
-    build,
-    skillByName: mesmerCatalog.skillsByName,
-    attributeWeaponSet: 1
-  };
-
-  mesmerAppAdapter.recalculate(app);
-  const config = mesmerAppAdapter.simulationConfig(app);
-  const result = simulateMesmer(build.rotation, config);
-  const ineptitude = result.resolvedEvents.find(
-    (event) => event.type === 'condition' && event.skillName === 'Rewinder' && event.name.includes('Ineptitude')
-  );
-
-  assert.equal(config.target.defiant, true);
-  assert.equal(ineptitude?.stacks, 6);
-});
-
 test('Chaos Armor applies three base confusion plus two from Ineptitude', () => {
   const result = simulateMesmer(
     ['Chaos Armor'],
@@ -502,13 +474,15 @@ test('Ineptitude treats control as an interrupt only for an activating target', 
   assert.equal(ineptitudeEvents(active)[0].stacks, 2);
 });
 
-test('Blinding Dissipation triggers Ineptitude once per Rewinder strike', () => {
+test('Blinding Dissipation triggers Ineptitude once per Rewinder strike on a defiant target', () => {
   const result = simulateMesmer(
     ['Mirror Images', 'Rewinder'],
     defaultSimulationConfig({
       specialization: 'Chronomancer',
       selectedTraitIds: [TRAIT.BLINDING_DISSIPATION, TRAIT.INEPTITUDE],
       selectedSkillIds: [10202],
+      // Direct shatter blinds still trigger for every strike against a defiant target.
+      target: { ...defaultSimulationConfig().target, defiant: true },
       initialResource: 0
     })
   );

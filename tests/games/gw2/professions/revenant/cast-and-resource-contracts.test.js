@@ -240,7 +240,7 @@ for (const [spec, name, legend, config = {}] of [
     assert.equal(state.activeUpkeeps.length, 0);
     if (name === 'Ancient Echo') assert.equal(state.energy.value, 50 + result.rotationEndTime * 5);
     if (name === 'Twin Moon Sweep') assert.equal(state.affinity.value, 0);
-    if (name === 'Dodge Jump') assert.equal(state.endurance, 50 + result.rotationEndTime * 5);
+    if (name === 'Dodge Jump') assert.equal(state.endurance.value, 50 + result.rotationEndTime * 5);
     if (name === 'Beguiling Haze') assert.equal(specialization(result).beguilingHazeRecharge, null);
   });
 }
@@ -663,8 +663,8 @@ test('Brutal Momentum Vigor stops increasing recovery when its self boon expires
   const probe = run(1000);
   const vigor = probe.events.find((event) => event.kind === 'vigor');
   const covered = core(run(vigor.duration * 1000));
-  assert.equal(covered.endurance, vigor.duration * 7.5);
-  assert.equal(core(run((vigor.duration + 2) * 1000)).endurance, vigor.duration * 7.5 + 10);
+  assert.equal(covered.endurance.value, vigor.duration * 7.5);
+  assert.equal(core(run((vigor.duration + 2) * 1000)).endurance.value, vigor.duration * 7.5 + 10);
 });
 
 test('Brutal Momentum only rearms after its Vigor internal cooldown expires', () => {

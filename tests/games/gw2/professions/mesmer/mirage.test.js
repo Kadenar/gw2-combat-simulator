@@ -29,8 +29,8 @@ test('Mirage dodge spends 50 endurance and waits for continuous regeneration', (
     result.steps.map((step) => step.start),
     [0, 0, 10000]
   );
-  assert.ok(result.planningState.profession.endurance < 0.01);
-  assert.equal(result.planningState.profession.maximumEndurance, 100);
+  assert.ok(result.planningState.profession.endurance.value < 0.01);
+  assert.equal(result.planningState.profession.endurance.maximum, 100);
   assert.equal(result.planningState.ammo['Dodge / Mirage Cloak'], undefined);
 });
 
@@ -55,7 +55,7 @@ test('Mirage endurance preserves partial regeneration through Energy sigil grant
       ],
       config
     );
-    assert.ok(Math.abs(result.planningState.profession.endurance - expected) < 0.01);
+    assert.ok(Math.abs(result.planningState.profession.endurance.value - expected) < 0.01);
     assert.equal(result.planningState.ammo['Dodge / Mirage Cloak'], undefined);
     const view = mesmerProfession.ui
       .resourceViews({
@@ -64,7 +64,7 @@ test('Mirage endurance preserves partial regeneration through Energy sigil grant
         professionState: result.planningState.profession
       })
       .find((resource) => resource.id === 'endurance');
-    assert.equal(view.value, result.planningState.profession.endurance);
+    assert.equal(view.value, result.planningState.profession.endurance.value);
     assert.equal(view.maximum, 100);
     assert.equal(view.displayMode, 'bar');
     assert.equal(view.paletteSkillId, ID.DODGE_MIRAGE_CLOAK);
@@ -712,7 +712,7 @@ test('False Oasis creates its Mirage Mirror three seconds after the first pulse'
   assert.ok(mirror);
   assert.ok(Math.abs(mirror.at - (falseOasis.start / 1000 + 3.24)) < 0.00001);
   assert.equal(observedRuntime(result).profession.specialization.state.mirrors.length, 0);
-  assert.equal(result.planningState.profession.endurance, 100, 'Picking up a mirror must not spend endurance');
+  assert.equal(result.planningState.profession.endurance.value, 100, 'Picking up a mirror must not spend endurance');
 });
 
 test('Mirage Mirror palette availability follows active ground mirrors', () => {

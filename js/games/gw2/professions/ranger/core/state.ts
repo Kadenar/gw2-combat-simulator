@@ -1,3 +1,5 @@
+import { createResourceClock } from '#gw2/platform/combat/resources/resource-policy.js';
+import type { ResourceClock } from '#gw2/platform/combat/resources/clock.js';
 import { type SkillFlipWindows } from '#gw2/platform/execution/skill-flips.js';
 import { grantCharges, type ChargeGrant } from '#gw2/platform/combat/resources/charges.js';
 import { RANGER_PETS } from '#gw2/professions/ranger/data/ranger-pet-data.js';
@@ -12,9 +14,7 @@ export interface RangerCoreState {
   petNames: [string, string];
   activePetSkillIds: SkillId[];
   petActive: boolean;
-  endurance: number;
-
-  enduranceUpdatedAt: number;
+  endurance: ResourceClock;
   availableFlips: SkillFlipWindows;
   stealthUntil: number;
   revealedUntil: number;
@@ -66,9 +66,7 @@ export function createRangerCoreState(config: RangerConfig = {}): RangerCoreStat
     petNames: [pet?.name || '', pet2?.name || ''],
     activePetSkillIds: [...(pet?.skillIds || [])],
     petActive: true,
-    endurance: 100,
-
-    enduranceUpdatedAt: 0,
+    endurance: createResourceClock(100),
     availableFlips: {},
     stealthUntil: 0,
     revealedUntil: 0,

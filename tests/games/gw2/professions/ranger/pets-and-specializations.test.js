@@ -6,6 +6,7 @@ import { withActivePatchPreview } from '#gw2/integrations/patches/active-profess
 import assert from 'node:assert/strict';
 import { readdir, readFile } from 'node:fs/promises';
 import { test } from 'node:test';
+import ts from 'typescript';
 import {
   currentAutoattackSkill,
   paletteActionSkills,
@@ -111,22 +112,18 @@ test('Ranger public state is composed from Core and specialization-owned manifes
   }
 });
 
-test('Ranger Core shared mechanics stay specialization-agnostic', async () => {
+// Inspect actual import and reexport specifiers so comments and local names cannot fail ownership checks.
+test('Ranger Core does not import specialization modules', async () => {
   const directory = new URL('../../../../../js/games/gw2/professions/ranger/core/', import.meta.url);
   const files = (await readdir(directory, { recursive: true })).filter((file) => file.endsWith('.ts'));
-  const sources = await Promise.all(files.map((file) => readFile(new URL(file, directory), 'utf8')));
-  assert.doesNotMatch(sources.join('\n'), /specializations\//);
-  // Trait owners may reconcile optional elite state; shared mechanics and state machines remain specialization-agnostic.
-  const recipientDefinitions = new Set(['skills/slot-skills.ts', 'skills/weapons/greatsword.ts']);
-  const coreSource = sources
-    .filter(
-      (_source, index) =>
-        !files[index].replaceAll('\\', '/').startsWith('traits/') &&
-        !recipientDefinitions.has(files[index].replaceAll('\\', '/'))
-    )
-    .join('\n');
-  assert.doesNotMatch(coreSource, /\b(?:Druid|Soulbeast|Untamed|Galeshot|Beastmode)\b/);
-  assert.doesNotMatch(coreSource, /\b(?:beastmodeActive|astralClock|rangerUnleashed|cycloneBowActive)\b/);
+  for (const file of files) {
+    const source = ts.createSourceFile(file, await readFile(new URL(file, directory), 'utf8'), ts.ScriptTarget.Latest, true);
+    for (const statement of source.statements) {
+      if (!ts.isImportDeclaration(statement) && !ts.isExportDeclaration(statement)) continue;
+      const specifier = statement.moduleSpecifier?.text;
+      if (specifier) assert.ok(!specifier.includes('specializations/'), `${file}: ${specifier}`);
+    }
+  }
 });
 
 test('Ranger catalog preserves runtime references and handlers', () => {
@@ -532,7 +529,7 @@ test('Ranger pet AI skills are autonomous and Beast commands stay independent', 
 
   const endurance = rangerProfession.ui.resourceViews({
     specialization: 'Galeshot',
-    professionState: { endurance: 35, maximumEndurance: 100 }
+    professionState: { endurance: { value: 35, maximum: 100, updatedAt: 0, rate: 0 } }
   })[0];
 
   assert.equal(endurance.value, 35);
@@ -542,7 +539,7 @@ test('Ranger pet AI skills are autonomous and Beast commands stay independent', 
     adapter: { eliteSpecialization: () => 'Core' },
     build: { initialResource: 0 },
     results: {
-      planningState: { availability: {}, profession: { endurance: 35, maximumEndurance: 100 } }
+      planningState: { availability: {}, profession: { endurance: { value: 35, maximum: 100, updatedAt: 0, rate: 0 } } }
     }
   };
 

@@ -1,3 +1,5 @@
+import { createResourceClock } from '#gw2/platform/combat/resources/resource-policy.js';
+import type { ResourceClock } from '#gw2/platform/combat/resources/clock.js';
 import type { Gw2PlanningStateInput } from '#gw2/platform/results/types.js';
 import { projectPublicProfessionState } from '#gw2/platform/profession-definition/state.js';
 import type { GuardianState } from '#gw2/professions/guardian/types.js';
@@ -9,9 +11,7 @@ import type { RechargeProgress } from '#gw2/platform/execution/recharge.js';
 import { purgeExpiredStacks } from '#gw2/platform/combat/resources/timed-stacks.js';
 
 export interface GuardianCoreState {
-  endurance: number;
-
-  enduranceUpdatedAt: number;
+  endurance: ResourceClock;
   justiceActiveArmed: boolean;
   justiceHitCount: number;
   justiceActiveBurns: number;
@@ -37,9 +37,7 @@ export interface GuardianCoreState {
 // virtue, trait, symbol, and flip bookkeeping.
 export function createGuardianCoreState(): GuardianCoreState {
   return {
-    endurance: 100,
-
-    enduranceUpdatedAt: 0,
+    endurance: createResourceClock(100),
     justiceActiveArmed: false,
     justiceHitCount: 0,
     justiceActiveBurns: 0,

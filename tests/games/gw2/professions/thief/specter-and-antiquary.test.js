@@ -296,7 +296,10 @@ test('Dagger attacks restore endurance and trigger shadowstep effects', () => {
     'Dodge',
     { type: 'wait', durationMs: chain.planningState.atSeconds * 1000 - dodged.planningState.atSeconds * 1000 }
   ]);
-  assert.equal(chain.planningState.profession.endurance - regenerated.planningState.profession.endurance, 10);
+  assert.equal(
+    chain.planningState.profession.endurance.value - regenerated.planningState.profession.endurance.value,
+    10
+  );
 
   const shadowShot = simulate('Core', ['Shadow Shot'], {
     primaryWeapon: 'Dagger',

@@ -1635,14 +1635,14 @@ test('Dragonhunter trap and elite completion traits reject canceled attempts and
     selectedTraitIds: [TRAIT.HUNTERS_PREMONITION, TRAIT.HUNTERS_DETERMINATION]
   };
   const canceled = run([{ skillId: ID.DRAGONS_MAW, interruptAfterMs: 1 }], config);
-  assert.equal(core(canceled).endurance, 0);
+  assert.equal(core(canceled).endurance.value, 0);
   assert.equal(
     canceled.events.some((event) => event.kind === 'aegis' && event.skillId === ID.DRAGONS_MAW),
     false
   );
   const complete = run([ID.DRAGONS_MAW], config);
   assert.deepEqual(complete.warnings, []);
-  assert.equal(core(complete).endurance, 100);
+  assert.equal(core(complete).endurance.value, 100);
   const aegis = complete.resolvedEvents.find((event) => event.kind === 'aegis' && event.skillId === ID.DRAGONS_MAW);
   assert.equal(aegis.activationId, complete.steps[0].activationId);
 });

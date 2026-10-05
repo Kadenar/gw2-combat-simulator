@@ -189,8 +189,8 @@ const traitCases = [
     config: { initialResource: 30 },
     verify: (result) =>
       assert.equal(
-        result.planningState.profession.endurance -
-          simulate('Core', ['Dodge', 'Eviscerate'], { initialResource: 30 }).planningState.profession.endurance,
+        result.planningState.profession.endurance.value -
+          simulate('Core', ['Dodge', 'Eviscerate'], { initialResource: 30 }).planningState.profession.endurance.value,
         15
       )
   },

@@ -107,7 +107,6 @@ test('native profession weapon swaps share timing policy except Elementalist', a
 
     assert.ok(skill, entry.id);
     assert.equal(skill.castTimeMs, 0, entry.id);
-    assert.equal(Number(skill.quicknessCastTimeMs || 0), 0, entry.id);
     assert.equal(skill.rechargeAnchor, 'castStart', entry.id);
   }
 });

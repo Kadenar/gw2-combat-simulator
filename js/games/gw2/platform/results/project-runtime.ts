@@ -90,7 +90,6 @@ export function projectRuntimeResult<T extends object>(
     planningState: planningState(
       { ...runtime, catalog: profession.catalog },
       profession.projectPlanningState,
-      profession.endurance?.maximum(runtime.mechanics),
       (skill) =>
         profession.availability?.(runtime.mechanicQueries, skill, { type: 'cast', skillId: skill.id }) ?? {
           ready: true

@@ -1,3 +1,4 @@
+import type { ResourceClock } from '#gw2/platform/combat/resources/clock.js';
 import type { MechanicContext, MechanicCombatContext } from '#gw2/platform/profession-definition/mechanic-context.js';
 import type { EffectDelivery } from '#gw2/platform/effects/emission.js';
 
@@ -43,8 +44,7 @@ export interface MesmerRuntimeState {
 }
 
 interface MesmerPlanningState {
-  readonly endurance?: number;
-  readonly maximumEndurance?: number;
+  readonly endurance?: ResourceClock;
   readonly resource?: number;
   readonly resourceDefinition?: MesmerResourceDefinition;
   readonly clarityRemaining: number;

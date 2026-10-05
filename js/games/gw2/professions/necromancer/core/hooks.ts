@@ -119,7 +119,7 @@ export const necromancerCoreHooks: RuntimeHooks<NecromancerRuntimeState, Necroma
   resources: { lifeForce: necromancerLifeForce },
   // Standard endurance recovery applies equally inside and outside shroud.
   endurance: {
-    state: (runtime) => runtime.profession.core,
+    state: (runtime) => runtime.profession.core.endurance,
     maximum: () => 100,
     regenerationRate: (_runtime, vigor) => 5 * (vigor ? 1.5 : 1)
   },

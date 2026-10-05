@@ -668,8 +668,7 @@ test("Kalla's Fervor stacks, refreshes, and improves with Lasting Legacy", () =>
     runtime: {
       profession: {
         core: {
-          endurance: 100,
-          maximumEndurance: 100
+          endurance: { value: 100, maximum: 100, updatedAt: 0, rate: 0 }
         },
         specialization: {
           kind: 'Renegade',
@@ -869,7 +868,7 @@ test('Heartpiercer and Brutal Momentum apply multiplicative combat bonuses', () 
       context(TRAIT.BRUTAL_MOMENTUM, {
         runtime: {
           profession: {
-            core: { endurance: 100, maximumEndurance: 100 },
+            core: { endurance: { value: 100, maximum: 100, updatedAt: 0, rate: 0 } },
             specialization: { kind: 'Renegade', state: {} }
           }
         }
@@ -884,7 +883,7 @@ test('Heartpiercer and Brutal Momentum apply multiplicative combat bonuses', () 
         context(TRAIT.BRUTAL_MOMENTUM, {
           runtime: {
             profession: {
-              core: { endurance: 50, maximumEndurance: 100 },
+              core: { endurance: { value: 50, maximum: 100, updatedAt: 0, rate: 0 } },
               specialization: { kind: 'Renegade', state: {} }
             }
           }
@@ -1403,7 +1402,7 @@ test('Vindicator Dodge waits for endurance and Vigor shortens that wait', () => 
   assert.equal(withVigor.steps[1].start, withVigor.steps[0].end);
   // Vigor accelerates regeneration; neither path can spend endurance below zero.
   assert.ok(withVigor.steps[2].start < withoutVigor.steps[2].start);
-  for (const result of [withoutVigor, withVigor]) assert.ok(result.planningState.profession.endurance >= 0);
+  for (const result of [withoutVigor, withVigor]) assert.ok(result.planningState.profession.endurance.value >= 0);
 });
 
 test('Vindicator resource display includes live endurance', () => {
@@ -1411,8 +1410,7 @@ test('Vindicator resource display includes live endurance', () => {
     specialization: 'Core',
     professionState: {
       energy: { value: 40.9, maximum: 100, updatedAt: 0, rate: 5 },
-      endurance: 25,
-      maximumEndurance: 100
+      endurance: { value: 25, maximum: 100, updatedAt: 0, rate: 0 }
     }
   });
   const conduit = revenantProfession.ui.resourceViews({
@@ -1426,8 +1424,7 @@ test('Vindicator resource display includes live endurance', () => {
     specialization: 'Vindicator',
     professionState: {
       energy: { value: 40, maximum: 100, updatedAt: 0, rate: 5 },
-      endurance: 25,
-      maximumEndurance: 100
+      endurance: { value: 25, maximum: 100, updatedAt: 0, rate: 0 }
     }
   });
 
@@ -1511,7 +1508,7 @@ test('Sigil of Energy restores 50 endurance on Revenant legend swap', () => {
     result.procSteps.filter((step) => step.skill === 'Sigil of Energy').map((step) => step.sourceSkill),
     ['Swap Legends']
   );
-  assert.equal(result.planningState.profession.endurance - baseline.planningState.profession.endurance, 50);
+  assert.equal(result.planningState.profession.endurance.value - baseline.planningState.profession.endurance.value, 50);
 });
 
 test('Call of the Alliance grants five endurance plus three per hit', () => {
@@ -1530,7 +1527,7 @@ test('Call of the Alliance grants five endurance plus three per hit', () => {
   });
   // Both runs end at the swap, so passive regeneration cancels out of the difference.
   assert.equal(
-    result.planningState.profession.endurance - baseline.planningState.profession.endurance,
+    result.planningState.profession.endurance.value - baseline.planningState.profession.endurance.value,
     call.resourceGain
   );
 });

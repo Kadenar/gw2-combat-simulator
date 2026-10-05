@@ -156,7 +156,7 @@ test('Signet of Agility grants precision while ready and restores 100 endurance 
         result.events.find((event) => event.type === 'action' && event.skillId === ID.SIGNET_OF_AGILITY).endsAt,
         0
       );
-      assert.ok(result.planningState.profession.endurance >= Math.min(capacity, initial + 100));
+      assert.ok(result.planningState.profession.endurance.value >= Math.min(capacity, initial + 100));
       for (const [time, staticRules, value] of observed) {
         if (staticRules === 'unselected') assert.equal(value, 1000, `${time}`);
         else if (time === 0) continue;
@@ -191,7 +191,7 @@ test('Signet of Agility restores endurance up to each elite capacity', () => {
         initialEndurance: initial
       });
       assert.deepEqual(result.warnings, []);
-      assert.equal(result.planningState.profession.endurance, Math.min(capacity, initial + 100));
+      assert.equal(result.planningState.profession.endurance.value, Math.min(capacity, initial + 100));
     }
   }
 });
@@ -211,8 +211,8 @@ test('Thief resource grants settle passive recovery at the live clock before app
             runtime.resourceController.grant('initiative', 0);
             runtime.endurance.grant(7);
             runtime.endurance.grant(0);
-            observed.push(runtime.resourceController.value('initiative'), runtime.profession.core.endurance);
-            observed.push(runtime.profession.core.enduranceUpdatedAt);
+            observed.push(runtime.resourceController.value('initiative'), runtime.profession.core.endurance.value);
+            observed.push(runtime.profession.core.endurance.updatedAt);
           }
         ]
       ]
@@ -253,7 +253,7 @@ test('permanent Vigor bypasses history for Thief advancement and readiness', () 
           (runtime) =>
             guarded(runtime, () => {
               runtime.endurance.advance();
-              observed.push(runtime.profession.core.endurance, runtime.endurance.readyAt(50));
+              observed.push(runtime.profession.core.endurance.value, runtime.endurance.readyAt(50));
             })
         ],
         [
@@ -261,7 +261,7 @@ test('permanent Vigor bypasses history for Thief advancement and readiness', () 
           (runtime) =>
             guarded(runtime, () => {
               runtime.endurance.advance();
-              observed.push(runtime.profession.core.endurance);
+              observed.push(runtime.profession.core.endurance.value);
             })
         ]
       ]
@@ -446,7 +446,7 @@ test('THF-008: endurance and readiness are invariant across Vigor expiry, extens
               target,
               (runtime) => {
                 runtime.endurance.advance();
-                observed.endurance = runtime.profession.core.endurance;
+                observed.endurance = runtime.profession.core.endurance.value;
                 observed.readyAfter = runtime.endurance.readyAt(50);
               }
             ])
@@ -468,7 +468,7 @@ test('THF-008: endurance and readiness are invariant across Vigor expiry, extens
   const split = simulate('Core', [...rotation, wait(10000), wait(2000)], config);
   assert.deepEqual(whole.warnings, []);
   assert.deepEqual(split.warnings, []);
-  near(whole.planningState.profession.endurance, split.planningState.profession.endurance);
+  near(whole.planningState.profession.endurance.value, split.planningState.profession.endurance.value);
 });
 
 /** Seeds a marked, stealthed Deadeye before its first command. */
@@ -507,7 +507,7 @@ test('THF-009: malicious sword, staff, axe, and scepter use the consumed malice 
       const runtime = observedRuntime(result);
       assert.equal(runtime.profession.specialization.state.malice.value, 2);
       if (weapon === 'Sword') {
-        near(runtime.profession.core.endurance, runtime.time * 5 + malice * 10);
+        near(runtime.profession.core.endurance.value, runtime.time * 5 + malice * 10);
       } else if (weapon === 'Staff') {
         const boon = result.events.find((event) => event.type === 'buff' && event.kind === 'quickness');
         near(Number(boon?.duration || 0), malice * 0.75);
@@ -538,7 +538,7 @@ test('THF-009: unmarked and missed attacks grant no malicious sword or staff ben
         result.events.some((event) => event.type === 'buff' && event.kind === 'quickness'),
         false
       );
-      near(runtime.profession.core.endurance, runtime.time * 5);
+      near(runtime.profession.core.endurance.value, runtime.time * 5);
     }
   }
 });

@@ -212,7 +212,7 @@ test('patched resource capacities seed simulation and presentation from the same
   for (const [profession, specialization, profile, balance] of [
     [elementalistProfession, 'Catalyst', CATALYST.resources, (state) => state.catalystEnergy.value],
     [elementalistProfession, 'Evoker', EVOKER.resources, (state) => state.familiarCharges.value],
-    [engineerProfession, 'Core', ENGINEER.resources, (state) => state.endurance]
+    [engineerProfession, 'Core', ENGINEER.resources, (state) => state.endurance.value]
   ]) {
     const balanceProfiles = { [profile]: { fields: { maximumStacks: 12 } } };
     const result = run(profession, balanceProfiles, specialization, []);

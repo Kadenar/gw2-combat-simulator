@@ -25,12 +25,24 @@ for (const [id, specialization, capacity] of [
     const result = observeGw2Runtime({ profession: profession.runtimeFor(config), config, rotation: [] });
     const runtime = observedRuntime(result);
     const state = id === 'mesmer' ? runtime.profession.specialization.state : runtime.profession.core;
-    assert.equal(state.endurance, capacity);
+    assert.equal(state.endurance.value, capacity);
+    // The selected policy initializes one live clock; reporting owns a detached copy with no scalar mirrors.
+    assert.equal(state.endurance.maximum, capacity);
+    assert.equal(state.endurance.updatedAt, 0);
+    assert.ok(Number.isFinite(state.endurance.rate));
+    assert.equal(Object.hasOwn(state, 'enduranceUpdatedAt'), false);
+    assert.equal(Object.hasOwn(result.planningState.profession, 'maximumEndurance'), false);
+    assert.deepEqual(result.planningState.profession.endurance, state.endurance);
+    assert.notEqual(result.planningState.profession.endurance, state.endurance);
+    const beforeQuery = structuredClone(state.endurance);
+    runtime.endurance.readyAt(capacity);
+    assert.deepEqual(state.endurance, beforeQuery);
     runtime.endurance.spend(capacity);
+    assert.equal(result.planningState.profession.endurance.value, capacity);
     assert.equal(runtime.endurance.grant(50), true);
-    assert.equal(state.endurance, 50);
+    assert.equal(state.endurance.value, 50);
     runtime.endurance.grant(capacity);
-    assert.equal(state.endurance, capacity);
+    assert.equal(state.endurance.value, capacity);
     assert.equal(runtime.endurance.readyAt(capacity + 1), null);
   });
 }
@@ -73,11 +85,11 @@ test('selected profile capacity controls initialization, grants, and readiness',
   });
   const runtime = observedRuntime(result);
   const pool = runtime.profession.core;
-  assert.equal(pool.endurance, 120);
+  assert.equal(pool.endurance.value, 120);
   assert.equal('maximumEndurance' in pool, false);
-  pool.endurance = 100;
+  pool.endurance.value = 100;
   runtime.endurance.grant(50);
-  assert.equal(pool.endurance, 120);
+  assert.equal(pool.endurance.value, 120);
   assert.equal(runtime.endurance.readyAt(121), null);
 });
 
@@ -90,8 +102,8 @@ test('malformed declared endurance fails rather than silently dropping grants', 
     id: 'bad-pool',
     name: 'Bad pool',
     resources: {
-      createState: () => ({ endurance: 0, enduranceUpdatedAt: 0 }),
-      endurance: { state: (context) => context.profession, maximum: () => NaN, regenerationRate: () => 5 }
+      createState: () => ({ endurance: { value: 0, maximum: 100, updatedAt: 0, rate: 0 } }),
+      endurance: { state: (context) => context.profession.endurance, maximum: () => NaN, regenerationRate: () => 5 }
     }
   });
   assert.throws(() => simulateGw2({ profession, rotation: [] }), /finite|Invalid endurance/);

@@ -8,8 +8,7 @@ import type { SimulationEvent } from '#gw2/platform/events/events.js';
 
 export interface MesmerTroubadourState {
   notes: ResourceClock;
-  endurance: number;
-  enduranceUpdatedAt: number;
+  endurance: ResourceClock;
   instruments: Record<string, number>;
   lastInstrument: string;
 }
@@ -18,8 +17,7 @@ export interface MesmerTroubadourState {
 function createTroubadourState(): MesmerTroubadourState {
   return {
     notes: createResourceClock(),
-    endurance: 100,
-    enduranceUpdatedAt: 0,
+    endurance: createResourceClock(100),
     instruments: {},
     lastInstrument: ''
   };

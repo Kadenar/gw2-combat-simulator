@@ -157,7 +157,7 @@ export const takedownRound = defineTrait({
         return (
           isGw2PlayerModifierOwnedEvent(context.event) &&
           !resourceAtLeast(
-            state.endurance || 0,
+            state.endurance?.value ?? 0,
             balanceProfileNumber(requireBalanceProfileFromContext(context, PROFILE.resources), 'maximumStacks')
           )
         );

@@ -50,13 +50,13 @@ test('Ranger endurance and Dodge readiness are invariant under wait partitions',
   for (const waits of [[4000], [1000, 1000, 1000, 1000]]) {
     const result = runRanger(waits.map(wait), config, {
       initialize(runtime) {
-        runtime.profession.core.endurance = 0;
+        runtime.profession.core.endurance.value = 0;
         boon(runtime, 'vigor', 0, 1);
         boon(runtime, 'vigor', 0.5, 1);
         boon(runtime, 'vigor', 2, 20, false);
       }
     });
-    close(observedRuntime(result).profession.core.endurance, 25);
+    close(observedRuntime(result).profession.core.endurance.value, 25);
     close(observedRuntime(result).endurance.readyAt(50), 9);
   }
 
@@ -69,7 +69,10 @@ test('Ranger endurance and Dodge readiness are invariant under wait partitions',
   );
   results.forEach((result) => assert.deepEqual(result.warnings, []));
   assert.equal(results[0].steps.at(-1).start, results[1].steps.at(-1).start);
-  close(observedRuntime(results[0]).profession.core.endurance, observedRuntime(results[1]).profession.core.endurance);
+  close(
+    observedRuntime(results[0]).profession.core.endurance.value,
+    observedRuntime(results[1]).profession.core.endurance.value
+  );
 });
 
 test('Ranger recovery rejects invalid profiles and uses each invocation profile', () => {
@@ -79,12 +82,12 @@ test('Ranger recovery rejects invalid profiles and uses each invocation profile'
         catalog: withProfile(native.catalog, PROFILE.resources, { enduranceRegenerationPerSecond: rate })
       }),
       initialize(runtime) {
-        runtime.profession.core.endurance = 0;
+        runtime.profession.core.endurance.value = 0;
       }
     });
   for (const invalid of [NaN, Infinity, undefined]) assert.throws(() => run(invalid), /Invalid balance data/);
-  close(observedRuntime(run(5)).profession.core.endurance, 20);
-  close(observedRuntime(run(4)).profession.core.endurance, 16);
+  close(observedRuntime(run(5)).profession.core.endurance.value, 20);
+  close(observedRuntime(run(4)).profession.core.endurance.value, 16);
 });
 
 test('Galeshot arrow regeneration ignores Alacrity gain and expiry across wait partitions', () => {
@@ -118,7 +121,7 @@ test('Galeshot arrow regeneration ignores Alacrity gain and expiry across wait p
 test('resource integration honors boon extensions and permanent boons', () => {
   const result = runRanger([wait(5000)], config, {
     initialize(runtime) {
-      runtime.profession.core.endurance = 0;
+      runtime.profession.core.endurance.value = 0;
       boon(runtime, 'vigor', 0, 2);
       runtime.effects.emit({
         kind: 'packet',
@@ -134,17 +137,17 @@ test('resource integration honors boon extensions and permanent boons', () => {
       });
     }
   });
-  close(observedRuntime(result).profession.core.endurance, 35);
+  close(observedRuntime(result).profession.core.endurance.value, 35);
   const permanent = runRanger(
     [wait(4000)],
     { ...config, boons: { vigor: true }, selectedTraitIds: [TRAIT.NATURAL_VIGOR] },
     {
       initialize(runtime) {
-        runtime.profession.core.endurance = 0;
+        runtime.profession.core.endurance.value = 0;
       }
     }
   );
-  close(observedRuntime(permanent).profession.core.endurance, 35);
+  close(observedRuntime(permanent).profession.core.endurance.value, 35);
 });
 
 test('personal stances ignore pet-only combat and trigger on the next player strike', () => {

@@ -1,3 +1,5 @@
+import { createResourceClock } from '#gw2/platform/combat/resources/resource-policy.js';
+import type { ResourceClock } from '#gw2/platform/combat/resources/clock.js';
 import type { ElementalistRuntime } from '#gw2/professions/elementalist/types.js';
 import { requireBalanceNumber } from '#gw2/platform/effects/validation.js';
 import {
@@ -62,8 +64,7 @@ export interface ElementalistCoreState {
   } | null;
   freshAirCandidates: number[];
   bountifulPowerProgress: number;
-  endurance: number;
-  enduranceUpdatedAt: number;
+  endurance: ResourceClock;
   activeAuras: ElementalistAuraState[];
   pistolBullets: Record<ElementalistAttunement, boolean>;
   dazingDischargeUntil: number;
@@ -107,8 +108,7 @@ export function createElementalistCoreState(config: ElementalistConfig = {}): El
     pendingAutoattackCarryover: null,
     freshAirCandidates: [],
     bountifulPowerProgress: 0,
-    endurance: BASE_MAXIMUM_ENDURANCE,
-    enduranceUpdatedAt: 0,
+    endurance: createResourceClock(BASE_MAXIMUM_ENDURANCE),
     activeAuras: [],
     pistolBullets: {
       Fire: Boolean(configuredBullets.Fire),

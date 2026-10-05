@@ -391,7 +391,7 @@ export function mirageAvailability(context: MechanicQueriesOf<MesmerRuntime>, sk
 
 /** Binds shared endurance operations to this module's live pool and balance rules. */
 export const mirageEndurance: EndurancePolicy<MesmerRuntime> = {
-  state: (context) => mirageState.from(context),
+  state: (context) => mirageState.from(context).endurance,
   maximum: () => 100,
   regenerationRate: (_context, vigor) => (vigor ? 7.5 : 5)
 };

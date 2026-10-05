@@ -134,8 +134,8 @@ export const vindicatorUi: RevenantUiSlice = Object.freeze({
         singular: 'endurance',
         plural: 'endurance',
         // Capacity is the shared Revenant bound used by live recovery.
-        maximum: REVENANT_MAXIMUM_ENDURANCE,
-        value: state.endurance ?? 100,
+        maximum: state.endurance?.maximum ?? REVENANT_MAXIMUM_ENDURANCE,
+        value: state.endurance?.value ?? 100,
         canStart: false,
         step: 1,
         displayMode: 'bar',

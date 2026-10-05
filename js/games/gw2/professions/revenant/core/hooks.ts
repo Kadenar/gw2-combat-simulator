@@ -120,7 +120,7 @@ export function revenantEnduranceRate(runtime: RevenantRuntime, vigor: boolean):
 }
 
 const revenantEndurance: EndurancePolicy<RevenantRuntime> = {
-  state: (runtime) => runtime.profession.core,
+  state: (runtime) => runtime.profession.core.endurance,
   maximum: () => REVENANT_MAXIMUM_ENDURANCE,
   regenerationRate: (runtime, vigor) => revenantEnduranceRate(runtime, vigor)
 };

@@ -238,7 +238,7 @@ test('extended Vigor preserves Elementalist and Mirage endurance through the new
           (specialization === 'Mirage'
             ? observedRuntime(result).profession.specialization.state
             : observedRuntime(result).profession.core
-          ).endurance,
+          ).endurance.value,
           expected
         );
       }

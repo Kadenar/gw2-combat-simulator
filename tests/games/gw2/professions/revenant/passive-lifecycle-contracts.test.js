@@ -33,7 +33,7 @@ const wait = (durationMs) => ({ type: 'wait', durationMs });
 // Minimal resource histories include delayed applications, pooled duration, and timestamped extension.
 test('Endurance accrual and readiness integrate the same Vigor windows regardless of wait boundaries', () => {
   const initialize = (runtime) => {
-    runtime.profession.core.endurance = 0;
+    runtime.profession.core.endurance.value = 0;
     for (const event of [
       { type: 'buff', at: 1, kind: 'vigor', duration: 2, stacks: 1 },
       { type: 'buff', at: 2, kind: 'vigor', duration: 1, stacks: 1 },
@@ -50,7 +50,7 @@ test('Endurance accrual and readiness integrate the same Vigor windows regardles
   // A 50-endurance Dodge becomes affordable exactly when the integrated Vigor windows reach its cost.
   assert.equal(run(['Dodge']).steps[0].start, 8000);
   for (const waits of [[8000], [1000, 1000, 1000, 1000, 1000, 2000, 1000]])
-    assert.equal(run(waits.map(wait)).planningState.profession.endurance, 50);
+    assert.equal(run(waits.map(wait)).planningState.profession.endurance.value, 50);
 });
 
 test('Vindicator Vigor produces equal endurance for equivalent public waits', () => {
@@ -60,7 +60,7 @@ test('Vindicator Vigor produces equal endurance for equivalent public waits', ()
   const split = simulate('Vindicator', [...rotation, wait(6000), wait(6000)], config);
   assert.deepEqual(single.warnings, []);
   assert.deepEqual(split.warnings, []);
-  assert.equal(single.planningState.profession.endurance, split.planningState.profession.endurance);
+  assert.equal(single.planningState.profession.endurance.value, split.planningState.profession.endurance.value);
 });
 
 test('Ancient Echo selects exactly the active Core legend package', () => {
@@ -294,13 +294,13 @@ test('Energy Meld declares one endurance reward for each trait selection and var
           {
             catalog: (catalog) => withSkill(catalog, skillId, { resourceGain: 17 }),
             initialize: (runtime) => {
-              runtime.profession.core.endurance = 0;
+              runtime.profession.core.endurance.value = 0;
             }
           }
         );
         assert.deepEqual(result.warnings, []);
         const expected = result.rotationEndTime * 5 + (cancelled ? 0 : song ? 40 : 17);
-        assert.ok(Math.abs(result.planningState.profession.endurance - expected) < 1e-9);
+        assert.ok(Math.abs(result.planningState.profession.endurance.value - expected) < 1e-9);
       }
     }
   }

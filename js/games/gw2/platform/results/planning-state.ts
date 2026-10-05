@@ -11,7 +11,6 @@ export function planningState<T extends object>(
     readonly cooldownController: Pick<CooldownController, 'cooldownSkillIds' | 'readyAt' | 'ammoSkillIds' | 'readAmmo'>;
   },
   project: ((input: Gw2PlanningStateInput<T>) => unknown) | undefined,
-  maximumEndurance: number | undefined,
   availability: (skill: Skill) => AvailabilityResult,
   effects: readonly EffectState[]
 ): Gw2SimulationPlanningState {
@@ -70,10 +69,6 @@ export function planningState<T extends object>(
     ammoBySkillId,
     activeWeaponSet: input.activeWeaponSet,
     // Projection lets a profession hide its internal bookkeeping.
-    profession: {
-      ...structuredClone(projected ?? flattenProfessionState(input.profession)),
-      // Capacity is policy-derived reporting data, never duplicated in mutable profession state.
-      ...(maximumEndurance == null ? {} : { maximumEndurance })
-    }
+    profession: structuredClone(projected ?? flattenProfessionState(input.profession))
   };
 }

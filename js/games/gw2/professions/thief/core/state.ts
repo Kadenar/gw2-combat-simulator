@@ -32,9 +32,7 @@ export interface ThiefCoreState {
   storedStolenSkillIds: SkillId[];
   storedStolenSkillCount: number;
   kneeling: boolean;
-  endurance: number;
-
-  enduranceUpdatedAt: number;
+  endurance: ResourceClock;
   leadAttackExpirations: number[];
   fluidStrikesUntil: number;
   spearChainStage: number;
@@ -94,9 +92,7 @@ export function createThiefCoreState(config: ThiefConfig = {}): ThiefCoreState {
     storedStolenSkillIds: [],
     storedStolenSkillCount: 0,
     kneeling: false,
-    endurance: 100,
-
-    enduranceUpdatedAt: 0,
+    endurance: createResourceClock(100),
     leadAttackExpirations: [],
     fluidStrikesUntil: 0,
     spearChainStage: 0,

@@ -15,7 +15,7 @@ function brawlersTenacityEnduranceGain(rotation) {
       selectedSkillIds: rotation.slice(0, 1).map((name) => thiefCatalog.skillsByName.get(name).id)
     });
     assert.deepEqual(result.warnings, []);
-    return result.planningState.profession.endurance;
+    return result.planningState.profession.endurance.value;
   };
 
   return endurance([TRAIT.BRAWLERS_TENACITY]) - endurance([]);

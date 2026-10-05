@@ -1,3 +1,5 @@
+import { createResourceClock } from '#gw2/platform/combat/resources/resource-policy.js';
+import type { ResourceClock } from '#gw2/platform/combat/resources/clock.js';
 import { requireBalanceNumber } from '#gw2/platform/effects/validation.js';
 import {
   ENGINEER_CORE_BALANCE_PROFILES,
@@ -9,9 +11,7 @@ import { normalizeSelectedTraitIds } from '#gw2/platform/combat/state/traits.js'
 import type { EngineerConfig } from '#gw2/professions/engineer/types.js';
 
 export interface EngineerCoreState {
-  endurance: number;
-
-  enduranceUpdatedAt: number;
+  endurance: ResourceClock;
   /** The equip skill identifies the active bundle independently of its display name. */
   activeKit: SkillId | null;
   availableFlips: SkillFlipWindows;
@@ -54,9 +54,7 @@ export function selectedEngineerTraits(config: EngineerConfig = {}): Set<SkillId
 /** Creates a fresh Core Engineer state with resources, kit state, flips, and proc windows reset. */
 export function createEngineerCoreState(): EngineerCoreState {
   return {
-    endurance: BASE_MAXIMUM_ENDURANCE,
-
-    enduranceUpdatedAt: 0,
+    endurance: createResourceClock(BASE_MAXIMUM_ENDURANCE),
     activeKit: null,
     availableFlips: {},
     autoattackChains: {},

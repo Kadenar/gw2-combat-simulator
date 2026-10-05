@@ -23,7 +23,7 @@ function recover(waits, events, config = {}) {
     config,
     {
       initialize(runtime) {
-        runtime.profession.core.endurance = 0;
+        runtime.profession.core.endurance.value = 0;
         for (const event of events) runtime.effects.emit({ kind: 'packet', event: event });
       }
     }
@@ -33,7 +33,7 @@ function recover(waits, events, config = {}) {
 test('Engineer endurance uses self Vigor applications and expiry across split waits', () => {
   for (const waits of [[6000], [2000, 1000, 1000, 2000]]) {
     const result = recover(waits, [vigor(2, 2), vigor(0, 20, false)]);
-    assert.equal(result.planningState.profession.endurance, 35);
+    assert.equal(result.planningState.profession.endurance.value, 35);
     assert.equal(observedRuntime(result).endurance.readyAt(50), 9);
   }
 });
@@ -55,13 +55,13 @@ test('Engineer endurance uses pooled Vigor duration and actual extensions', () =
       }
     ]
   );
-  assert.equal(result.planningState.profession.endurance, 52.5);
+  assert.equal(result.planningState.profession.endurance.value, 52.5);
 });
 
 test('Engineer preserves Adrenal Implant, permanent Vigor and its endurance cap', () => {
   const traits = { selectedTraitIds: [TRAIT.ADRENAL_IMPLANT] };
-  assert.equal(recover([6000], [vigor(2, 2)], traits).planningState.profession.endurance, 42.5);
+  assert.equal(recover([6000], [vigor(2, 2)], traits).planningState.profession.endurance.value, 42.5);
   const config = { ...traits, boons: { vigor: true } };
-  assert.equal(recover([6000], [vigor(2, 2)], config).planningState.profession.endurance, 52.5);
-  assert.equal(recover([30000], [], config).planningState.profession.endurance, 100);
+  assert.equal(recover([6000], [vigor(2, 2)], config).planningState.profession.endurance.value, 52.5);
+  assert.equal(recover([30000], [], config).planningState.profession.endurance.value, 100);
 });

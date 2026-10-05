@@ -31,9 +31,7 @@ export interface RevenantCoreState {
   activeUpkeeps: RevenantUpkeepState[];
   availableFlips: SkillFlipWindows;
   autoattackChains: Record<string, SkillId>;
-  endurance: number;
-
-  enduranceUpdatedAt: number;
+  endurance: ResourceClock;
   enchantedDaggers: ChargeGrant;
   battleScars: number[];
   crushingAbyss: number[];
@@ -73,9 +71,7 @@ export function createRevenantCoreState(config: RevenantConfig = {}): RevenantCo
     activeUpkeeps: [],
     availableFlips: {},
     autoattackChains: {},
-    endurance: 100,
-
-    enduranceUpdatedAt: 0,
+    endurance: createResourceClock(100),
     enchantedDaggers: {
       charges: 0,
       expiresAt: 0,

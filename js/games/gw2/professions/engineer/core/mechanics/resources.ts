@@ -18,7 +18,7 @@ function engineerEnduranceRegenerationRate(context: EngineerRuntime, vigor: bool
 
 /** Binds shared endurance operations to this module's live pool and balance rules. */
 export const engineerEndurance: EndurancePolicy<EngineerRuntime> = {
-  state: (context) => professionCoreState(context),
+  state: (context) => professionCoreState(context).endurance,
   maximum: (context) =>
     balanceProfileNumber(
       requireBalanceProfileFromContext(context, ENGINEER_CORE_BALANCE_PROFILE_IDS.resources),

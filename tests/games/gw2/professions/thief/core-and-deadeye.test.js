@@ -168,7 +168,7 @@ test('Endurance Thief is Daredevil-owned and grants its patched endurance with C
       assert.deepEqual(result.warnings, []);
       const runtime = observedRuntime(result);
       assert.equal(runtime.resourceController.value('initiative'), 5);
-      assert.equal(runtime.profession.core.endurance, active && selected ? 47 : 10);
+      assert.equal(runtime.profession.core.endurance.value, active && selected ? 47 : 10);
       assert.equal(runtime.profession.core.storedStolenSkillCount, 1);
     }
   }
@@ -1121,7 +1121,7 @@ test('Daredevil capacity and every dodge replacement resolve explicitly', () => 
       selectedTraitIds: [traitId]
     });
 
-    assert.equal(result.planningState.profession.maximumEndurance, 150);
+    assert.equal(result.planningState.profession.endurance.maximum, 150);
     assert.ok(result.events.some((event) => event.type === eventType));
 
     if (selectedDodge === 'Bounding Dodger') {
@@ -1329,7 +1329,9 @@ test('Daredevil follow-ups, delayed impacts, and endurance traits resolve', () =
   });
 
   assert.ok(
-    Math.abs(withSteal.planningState.profession.endurance - withoutSteal.planningState.profession.endurance - 50) < 1e-9
+    Math.abs(
+      withSteal.planningState.profession.endurance.value - withoutSteal.planningState.profession.endurance.value - 50
+    ) < 1e-9
   );
 
   const havoc = daredevilModule.modifiers.modifierRules.find((rule) => rule.id === 'thief.havoc-specialist');

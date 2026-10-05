@@ -195,7 +195,7 @@ test('Uncatchable conditions own independent pulses and dodge still spends endur
     false
   );
   assert.ok(conditions.some((event) => event.condition === 'Crippled'));
-  assert.ok(result.planningState.profession.endurance < 100);
+  assert.ok(result.planningState.profession.endurance.value < 100);
 });
 
 test('removed Weakening Strikes does not arm its grant or expiry', () => {

@@ -19,7 +19,7 @@ function rangerEnduranceRegenerationRates(context: RangerRuntime) {
 
 /** Binds shared endurance operations to this module's live pool and balance rules. */
 export const rangerEndurance: EndurancePolicy<RangerRuntime> = {
-  state: (context) => professionCoreState(context),
+  state: (context) => professionCoreState(context).endurance,
   maximum: () => 100,
   regenerationRate: (context, vigor) => rangerEnduranceRegenerationRates(context)[vigor ? 'vigor' : 'base']
 };

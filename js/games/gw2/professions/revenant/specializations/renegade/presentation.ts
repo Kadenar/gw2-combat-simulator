@@ -88,7 +88,8 @@ export const renegadeUi: RevenantUiSlice = Object.freeze({
   /** Seed only the detached attribute query; combat state and saved builds remain untouched. */
   prepareAttributePreview(context: ProfessionAttributePreviewPreparation) {
     if ('fullEndurance' in context.values)
-      readProfessionCoreState<RevenantCoreState>(context.professionState).endurance = context.values.fullEndurance
+      readProfessionCoreState<RevenantCoreState>(context.professionState).endurance!.value = context.values
+        .fullEndurance
         ? REVENANT_MAXIMUM_ENDURANCE
         : 0;
   },

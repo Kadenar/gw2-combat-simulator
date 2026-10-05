@@ -245,13 +245,13 @@ export function bindEngineerCoreUi(catalog: Readonly<CanonicalCatalog<EngineerSk
       const state = engineerUiState(context);
       if (!usesToolsTraitline(catalog, context)) return [];
       const resourcesProfile = requireBalanceProfileFromContext(context, PROFILE.resources);
-      const maximum = balanceProfileNumber(resourcesProfile, 'maximumStacks');
+      const maximum = state.endurance?.maximum ?? balanceProfileNumber(resourcesProfile, 'maximumStacks');
       const endurance: ProfessionResourceView = {
         id: 'endurance',
         singular: 'endurance',
         plural: 'endurance',
         maximum,
-        value: state.endurance ?? maximum,
+        value: state.endurance?.value ?? maximum,
         startMaximum: maximum,
         canStart: false,
         displayMode: 'bar',

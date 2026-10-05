@@ -94,7 +94,7 @@ export const warriorCoreHooks: RuntimeHooks<WarriorRuntimeState, WarriorSkill> =
     initializeEmpowerAllies(runtime);
   },
   endurance: {
-    state: (runtime) => runtime.profession.core,
+    state: (runtime) => runtime.profession.core.endurance,
     maximum: () => 100,
     regenerationRate(runtime, vigor) {
       const profile = requireBalanceProfileFromContext(runtime, PROFILE.resources);

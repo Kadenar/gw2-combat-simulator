@@ -169,7 +169,7 @@ export function createRuntimeEndurance<T extends object>(runtime: Gw2Runtime<T>,
     if (!policy) throw new TypeError('Profession does not model endurance.');
     const state = policy.state(runtime.mechanics);
     const maximum = amount(policy.maximum(runtime.mechanics));
-    if (![state.endurance, state.enduranceUpdatedAt].every(Number.isFinite) || maximum === 0)
+    if (![state.value, state.maximum, state.updatedAt, state.rate].every(Number.isFinite) || maximum === 0)
       throw new TypeError('Invalid endurance pool.');
     return { state, maximum };
   };
@@ -185,14 +185,18 @@ export function createRuntimeEndurance<T extends object>(runtime: Gw2Runtime<T>,
   const advance = () => {
     if (!policy) return;
     const { state, maximum } = pool();
-    Object.assign(state, advanceEnduranceIntervals(state, intervals(state.enduranceUpdatedAt, runtime.time), maximum));
+    // One interval traversal settles the balance and its current rate; ordinary pool advancement never accrues it again.
+    Object.assign(
+      state,
+      advanceEnduranceIntervals({ ...state, maximum }, intervals(state.updatedAt, Infinity), runtime.time)
+    );
   };
 
   if (policy) {
     const { state, maximum } = pool();
     // Every simulation starts with the selected profession's full endurance pool.
-    state.endurance = maximum;
-    state.enduranceUpdatedAt = runtime.time;
+    Object.assign(state, { value: maximum, maximum, updatedAt: runtime.time, rate: 0 });
+    advance();
   }
 
   return Object.freeze({
@@ -201,24 +205,24 @@ export function createRuntimeEndurance<T extends object>(runtime: Gw2Runtime<T>,
       amount(cost);
       const { state, maximum } = pool();
       // Availability is a query: project elapsed recovery without settling the live endurance clock.
-      const current = advanceEnduranceIntervals(state, intervals(state.enduranceUpdatedAt, runtime.time), maximum);
-      return enduranceIntervalsReadyAt(current, cost, intervals(runtime.time, Infinity), maximum);
+      const current = advanceEnduranceIntervals({ ...state, maximum }, intervals(state.updatedAt, runtime.time));
+      return enduranceIntervalsReadyAt(current, cost, intervals(runtime.time, Infinity));
     },
     grant(value: number) {
       amount(value);
       if (!policy) return false;
       advance();
-      const { state, maximum } = pool();
-      Object.assign(state, grantEndurance(state, value, runtime.time, maximum));
+      const { state } = pool();
+      Object.assign(state, grantEndurance(state, value, runtime.time));
       return true;
     },
     spend(value: number) {
       amount(value);
       advance();
-      const { state, maximum } = pool();
+      const { state } = pool();
       // Use the same affordability tolerance as endurance readiness after fractional regeneration.
-      if (state.endurance < value - EPSILON) throw new RangeError('Insufficient endurance.');
-      Object.assign(state, spendEndurance(state, value, runtime.time, maximum));
+      if (state.value < value - EPSILON) throw new RangeError('Insufficient endurance.');
+      Object.assign(state, spendEndurance(state, value, runtime.time));
     }
   });
 }

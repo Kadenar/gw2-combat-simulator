@@ -693,7 +693,7 @@ test('Dragonhunter traps and control traits apply their complete effects', () =>
     maw.procSteps.some((step) => step.skill === "Hunter's Determination"),
     true
   );
-  assert.equal(maw.planningState.profession.endurance, 100);
+  assert.equal(maw.planningState.profession.endurance.value, 100);
 });
 
 test('Dragonhunter relic boosts the triggering trap hit and expires for later attacks', () => {

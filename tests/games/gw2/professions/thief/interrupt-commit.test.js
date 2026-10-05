@@ -32,7 +32,7 @@ test('Channeled Vigor grants endurance only after commitment', () => {
     assert.deepEqual(result.warnings, []);
     assert.equal(cancelled(result, 0), interruptMs < commitMs);
     assert.equal(result.steps[1].start, result.steps[0].start + interruptMs);
-    endurance.push(result.planningState.profession.endurance);
+    endurance.push(result.planningState.profession.endurance.value);
   }
 
   // Regeneration differs by one millisecond; only the committed activation restores endurance.

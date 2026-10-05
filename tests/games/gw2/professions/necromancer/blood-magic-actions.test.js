@@ -56,7 +56,7 @@ test('Necromancer dodge spends endurance and remains usable in shroud and Lich F
   for (const form of ['Death Shroud', 'Lich Form']) {
     const transformed = simulate('Core', [form, 'Dodge'], { initialResource: 100 });
     assert.deepEqual(transformed.warnings, []);
-    assert.ok(transformed.planningState.profession.endurance < 100);
+    assert.ok(transformed.planningState.profession.endurance.value < 100);
   }
 });
 

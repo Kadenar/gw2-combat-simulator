@@ -49,7 +49,7 @@ test('Elementalist ignores cancelled and other-only Vigor without depending on w
         {},
         times.map((at) => ({ at, run: (r) => r.endurance.advance() }))
       );
-      assert.equal(observedRuntime(result).profession.core.endurance, cancelled ? 45 : 50);
+      assert.equal(observedRuntime(result).profession.core.endurance.value, cancelled ? 45 : 50);
       assert.equal(observedRuntime(result).endurance.readyAt(50), cancelled ? 9 : 8);
     }
 });
@@ -58,24 +58,24 @@ test('timed Vigor recovery crosses application and expiry boundaries', () => {
     { at: 0, run: (r) => assert.equal(r.endurance.readyAt(50), 10) },
     { at: 2.001, run: (r) => assert.equal(r.endurance.readyAt(50), 9) }
   ]);
-  assert.equal(observedRuntime(result).profession.core.endurance, 35);
+  assert.equal(observedRuntime(result).profession.core.endurance.value, 35);
 });
 test('Vigor stacks duration without stacking its rate and respects the duration cap', () => {
-  assert.equal(observedRuntime(recover([vigor(3, 2), vigor(2, 2)], 8)).profession.core.endurance, 50);
+  assert.equal(observedRuntime(recover([vigor(3, 2), vigor(2, 2)], 8)).profession.core.endurance.value, 50);
   const capped = recover([vigor(0, 20), vigor(0, 20)], 32, {}, [{ at: 29, run: (r) => r.endurance.spend(100) }]);
-  assert.equal(observedRuntime(capped).profession.core.endurance, 17.5);
+  assert.equal(observedRuntime(capped).profession.core.endurance.value, 17.5);
 });
 test('permanent Vigor keeps its rate through timed expiry and endurance remains capped', () => {
   const result = recover([vigor(2, 2)], 30, { boons: { vigor: true } }, [
     {
       at: 6,
       run: (r) => {
-        assert.equal(r.profession.core.endurance, 45);
+        assert.equal(r.profession.core.endurance.value, 45);
         assert.equal(r.endurance.readyAt(50), 6.68);
       }
     }
   ]);
-  assert.equal(observedRuntime(result).profession.core.endurance, 100);
+  assert.equal(observedRuntime(result).profession.core.endurance.value, 100);
 });
 
 test('Phoenix Vigor contributes to recovery and the next dodge after expiry', () => {
@@ -92,7 +92,7 @@ test('Phoenix Vigor contributes to recovery and the next dodge after expiry', ()
   assert.ok(end > buff.at + buff.duration);
   // The first dodge is spent at completion; subsequent regeneration includes exactly the Vigor window.
   const expected = (end - firstDodge.endsAt) * 5 + buff.duration * 2.5;
-  assert.ok(Math.abs(recovery.planningState.profession.endurance - expected) < 1e-6);
+  assert.ok(Math.abs(recovery.planningState.profession.endurance.value - expected) < 1e-6);
 
   const retry = runNative({ ...options, rotation: ['Dodge', 'Dodge', 'Phoenix', 'Dodge'] });
   const nextDodge = retry.events.filter((event) => event.type === 'action' && event.skillName === 'Dodge').at(-1);

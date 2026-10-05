@@ -154,12 +154,12 @@ test('Thief activation declarations are the sole owners of their state transitio
     {
       id: ID.SIGNET_OF_AGILITY,
       config: { selectedSkillIds: [13062], initialEndurance: 0 },
-      active: (runtime) => runtime.profession.core.endurance > 50
+      active: (runtime) => runtime.profession.core.endurance.value > 50
     },
     {
       id: ID.CHANNELED_VIGOR,
       config: { specialization: 'Daredevil', selectedSkillIds: [30400], initialEndurance: 0 },
-      active: (runtime) => runtime.profession.core.endurance > 100
+      active: (runtime) => runtime.profession.core.endurance.value > 100
     },
     {
       id: ID.PREPARE_PITFALL,

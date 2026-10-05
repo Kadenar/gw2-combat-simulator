@@ -139,8 +139,8 @@ test('planning verdicts and state are detached; score runs never capture candida
   const observation = planningState(
     { ...runtime, catalog: profession.catalog },
     profession.projectPlanningState,
-    undefined,
-    () => verdict
+    () => verdict,
+    []
   );
   const before = structuredClone(observation);
   verdict.reason = 'Changed';

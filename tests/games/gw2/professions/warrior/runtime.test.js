@@ -196,7 +196,7 @@ test('a multi-hit burst claims captured-tier rewards and endurance once after th
   const result = run(rotation, config);
   const baseline = run(rotation, { ...config, selectedTraitIds: [] });
   assert.deepEqual(result.warnings, []);
-  assert.equal(result.planningState.profession.endurance - baseline.planningState.profession.endurance, 15);
+  assert.equal(result.planningState.profession.endurance.value - baseline.planningState.profession.endurance.value, 15);
   const power = result.resolvedEvents.filter((event) => event.kind === 'berserkers-power');
   assert.equal(power.length, 1);
   assert.equal(power[0].stacks, 4);

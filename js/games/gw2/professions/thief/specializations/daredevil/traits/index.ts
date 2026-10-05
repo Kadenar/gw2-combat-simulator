@@ -108,7 +108,7 @@ export const havocSpecialist = defineTrait({
       when: (context) =>
         isGw2PlayerModifierOwnedEvent(context.event) &&
         // Trait activates whenever endurance is not at maximum — any spent dodge qualifies
-        (thiefRuntimeState(context).endurance || 0) <
+        (thiefRuntimeState(context).endurance?.value ?? 0) <
           balanceProfileNumber(requireBalanceProfileFromContext(context, PROFILE.resources), 'maximumStacks')
     }
   ]

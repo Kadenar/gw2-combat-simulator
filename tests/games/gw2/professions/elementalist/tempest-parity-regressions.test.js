@@ -8,17 +8,12 @@ import {
   ELEMENTALIST_OVERLOAD_SKILL_IDS
 } from '#gw2/professions/elementalist/data/ids.js';
 import assert from 'node:assert/strict';
-import { readFile } from 'node:fs/promises';
 import test from 'node:test';
-
-import { loadProfessionAppAdapter } from '#gw2/profession-registry.js';
 
 import { applyBalanceProfilePatch } from '#gw2/integrations/patches/authoring/patches.js';
 import { tempestHooks } from '#gw2/professions/elementalist/specializations/tempest/hooks.js';
 import { TEMPEST_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/elementalist/specializations/tempest/profiles.js';
 import { ELEMENTALIST_TRAIT_IDS as TRAIT } from '#gw2/professions/elementalist/data/ids.js';
-
-const repoUrl = (path) => new URL(`../../../../../${path}`, import.meta.url);
 
 // Overload and attunement hold the same remaining work as actual Alacrity applications change.
 test('Tempest attunement lockouts keep overload recharge unchanged by temporary Alacrity', () => {
@@ -96,26 +91,12 @@ test('Tempest overload completion preserves a longer attunement lockout', () => 
 
 // A two-skill rotation isolates the instant-cast scheduling rule without
 // depending on the composition or indices of a saved full rotation.
-test('delayed Tempest shouts do not advance the serial rotation lane', async () => {
-  const [savedBuild, adapter] = await Promise.all([
-    readFile(repoUrl('data/gw2/builds/elementalist/b-condi-alac-tempest-pistol.json'), 'utf8').then(JSON.parse),
-    loadProfessionAppAdapter('elementalist')
-  ]);
-  const build = adapter.toApplicationBuild({
-    ...savedBuild,
-    rotation: ['Feel the Burn!', 'Scorching Shot']
+test('delayed Tempest shouts do not advance the serial rotation lane', () => {
+  const result = runElementalist(['Feel the Burn!', 'Scorching Shot'], {
+    specialization: 'Tempest',
+    primaryWeapon: 'Pistol',
+    startAttunement: 'Fire'
   });
-  const app = {
-    build,
-    adapter,
-    profession: adapter.profession,
-    skillByName: adapter.profession.catalog.skillsByName,
-    skillById: adapter.profession.catalog.skillsById,
-    attributeWeaponSet: 1
-  };
-
-  adapter.recalculate(app);
-  const result = runElementalist(build.rotation, adapter.simulationConfig(app));
   const [shout, followingSerialCast] = result.steps;
 
   assert.equal(shout.skill, 'Feel the Burn!');
@@ -128,25 +109,19 @@ test('delayed Tempest shouts do not advance the serial rotation lane', async () 
   );
 });
 
-test('Alacrity shortens overload dwell and Lucid Singularity follows hit timing', () => {
-  const simulate = (alacrity) =>
-    runNative({
-      lines: [['Fire'], ['Air'], ['Tempest', '1-2-2']],
-      rotation: [1000, 'Fire Attunement', 'Overload Fire'],
-      startAttunement: 'Air',
-      assumptions: { ...elementalistProfession.createBuildDefaults().assumptions, alacrity }
-    });
-  const result = simulate(true);
-  const baseline = simulate(false);
+test('overload dwell uses permanent Alacrity and Lucid Singularity follows hit timing', () => {
+  const result = runNative({
+    lines: [['Fire'], ['Air'], ['Tempest', '1-2-2']],
+    rotation: [1000, 'Fire Attunement', 'Overload Fire'],
+    startAttunement: 'Air'
+  });
 
   const attunement = result.events.find((event) => event.type === 'elementalist.attunement' && event.to === 'Fire');
   const overload = result.events.find((event) => event.type === 'action' && event.skillName === 'Overload Fire');
   const alacrity = result.events.filter((event) => event.type === 'buff' && event.sourceId === TRAIT.LUCID_SINGULARITY);
 
-  const baseEntry = baseline.events.find((event) => event.type === 'elementalist.attunement' && event.to === 'Fire');
-  const baseOverload = baseline.events.find((event) => event.type === 'action' && event.skillName === 'Overload Fire');
-  // Dwell scales with Alacrity; the trait follows overload hits and rewards completion.
-  assert.ok(Math.abs(overload.at - attunement.at - (baseOverload.at - baseEntry.at)) < 0.001);
+  // Permanent Alacrity reduces the six-second dwell; the trait rewards hits and completion.
+  assert.ok(Math.abs(overload.at - attunement.at - 4.8) < 0.001);
   const hits = result.events.filter((event) => event.type === 'damage' && event.skillName === 'Overload Fire');
   assert.ok(alacrity.length > 1);
   assert.ok(alacrity.every((buff) => hits.some((hit) => hit.at === buff.at) || buff.at === overload.endsAt));

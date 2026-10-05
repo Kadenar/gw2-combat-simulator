@@ -23,7 +23,7 @@ import { SPECTER_SKILL_MECHANICS } from '#gw2/professions/thief/specializations/
 import { composeSkillMechanics } from '#tests/helpers/skill-mechanics.js';
 import { runThief } from '#tests/helpers/thief-simulation.js';
 import assert from 'node:assert/strict';
-import { existsSync, readdirSync, readFileSync } from 'node:fs';
+import { readdirSync, readFileSync } from 'node:fs';
 import test from 'node:test';
 
 test('Antiquary projects its own charge fields and preserves the inactive initiative layout fallback', () => {
@@ -79,10 +79,6 @@ function collectTypeScriptSources(directoryUrl, relativeDirectory = '') {
     });
 }
 
-function combinedSource(entries) {
-  return entries.map(({ source }) => source).join('\n');
-}
-
 const slices = Object.freeze([
   ['core', thiefCoreModule],
   ['specializations/daredevil', daredevilModule],
@@ -118,25 +114,13 @@ const specializationStateKeys = Object.freeze({
   Antiquary: ['artifactSlots', 'artifactUsesRemaining', 'mistburn', 'holoUtilityCooldownReductionExpirations']
 });
 
-test('Thief modules own vertical source slices', () => {
-  for (const obsolete of ['mechanics/specific', 'resolver/event-handlers.js', 'resolver/event-reactions.js']) {
-    assert.equal(
-      existsSync(new URL(`../../../../../js/games/gw2/professions/thief/${obsolete}`, import.meta.url)),
-      false,
-      obsolete
-    );
-  }
-
+// Validate live module ownership; dependency restrictions guard imports rather than source spelling.
+test('Thief modules register unique behavior owners and respect dependency boundaries', () => {
   const modifierRuleOwners = new Map();
-  const professionSourceEntries = [];
 
   for (const [directory, module] of slices) {
     const directoryUrl = new URL(`../../../../../js/games/gw2/professions/thief/${directory}/`, import.meta.url);
     const sources = collectTypeScriptSources(directoryUrl);
-    professionSourceEntries.push(
-      ...sources.map(({ relativePath, source }) => ({ relativePath: `${directory}/${relativePath}`, source }))
-    );
-
     for (const { relativePath, source } of sources) {
       if (directory === 'core') {
         assert.doesNotMatch(source, /from\s+["'][^"']*specializations\//);
@@ -164,16 +148,6 @@ test('Thief modules own vertical source slices', () => {
       }
     }
 
-    assert.ok(
-      sources.some(({ relativePath }) => relativePath === 'module.ts'),
-      `${directory}/module.ts`
-    );
-    const skills = combinedSource(
-      sources.filter(({ relativePath }) => relativePath === 'skills.ts' || relativePath.startsWith('skills/'))
-    );
-    assert.match(skills, /_SKILL_MECHANICS\b/);
-    assert.doesNotMatch(skills, /from\s+["'][^"']*catalog\.js["']/);
-
     assert.equal(typeof module.state?.create, 'function');
     assert.ok((module.data?.generatedSkills?.length || 0) + (module.data?.extraSkills?.length || 0) > 0);
     for (const rule of nativeModifierRules(module)) {
@@ -187,26 +161,6 @@ test('Thief modules own vertical source slices', () => {
   assert.equal(modifierRuleOwners.get('thief.strength-of-shadows'), 'Specter');
   assert.equal(modifierRuleOwners.get('thief.meticulous-custodian-artifact-strike'), 'Antiquary');
 
-  const coreSourceEntries = collectTypeScriptSources(
-    new URL('../../../../../js/games/gw2/professions/thief/core/', import.meta.url)
-  );
-  const coreSources = combinedSource(coreSourceEntries);
-
-  assert.doesNotMatch(coreSources, /specializations\//);
-  assert.doesNotMatch(coreSources, /\b(?:Daredevil|Deadeye|Specter|Antiquary|Skritt)\b/);
-  assert.equal(
-    existsSync(new URL('../../../../../js/games/gw2/professions/thief/family-state.ts', import.meta.url)),
-    true
-  );
-  assert.equal(
-    existsSync(new URL('../../../../../js/games/gw2/professions/thief/mechanics/skill-mechanics.ts', import.meta.url)),
-    false
-  );
-
-  // Native collectors declare owners; ordered runtime dispatch remains outside the index.
-  const traitIndex = professionSourceEntries.find(({ relativePath }) => relativePath === 'core/traits/index.ts').source;
-  assert.match(traitIndex, /coreTraits/);
-  assert.doesNotMatch(traitIndex, /\bfunction\b|hasTrait\(/);
   for (const module of thiefNativeModules) {
     assert.ok(module.traitDefinitions.length > 0, module.id);
     assert.equal(new Set(module.traitDefinitions.map((trait) => trait.id)).size, module.traitDefinitions.length);

@@ -28,8 +28,7 @@ interface NecromancerTasteForBloodApplication {
 }
 
 export interface NecromancerCoreState {
-  endurance: number;
-  enduranceUpdatedAt: number;
+  endurance: ResourceClock;
   lifeForce: ResourceClock;
   lifeForceWakeGeneration: number;
   /** Readiness reads the next actual passive wake without crediting a future grant. */

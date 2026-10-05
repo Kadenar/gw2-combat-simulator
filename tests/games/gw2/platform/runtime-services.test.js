@@ -77,7 +77,7 @@ function native(
   state = () => ({
     energy: createResourceClock(),
     pages: createDiscreteResourceClock(),
-    endurancePool: { endurance: 0, enduranceUpdatedAt: 0 },
+    endurancePool: { value: 0, maximum: 100, updatedAt: 0, rate: 0 },
     starts: [],
     grants: 0
   })
@@ -663,7 +663,7 @@ test('Energy sigils restore the selected endurance pool after actual Vigor recov
     { combatStartTime: 0, config: { ...config, sigilSets: [{ names: [] }, { names: ['Energy'] }] } },
     profession
   );
-  assert.equal(result.planningState.profession.endurancePool.endurance, 65);
+  assert.equal(result.planningState.profession.endurancePool.value, 65);
 });
 
 test('live endurance initializes at the selected profession capacity', () => {
@@ -676,7 +676,7 @@ test('live endurance initializes at the selected profession capacity', () => {
       }
     });
     const result = run([wait(100)], { config }, profession);
-    assert.equal(result.planningState.profession.endurancePool.endurance, maximum);
+    assert.equal(result.planningState.profession.endurancePool.value, maximum);
   }
 });
 

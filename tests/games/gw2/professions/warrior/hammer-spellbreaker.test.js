@@ -356,7 +356,7 @@ test('"To the Limit!" restores endurance, grants flow, and triggers Thick Skin',
   });
 
   assert.equal(core.planningState.profession.adrenaline.value, 30);
-  assert.equal(core.planningState.profession.endurance, 100);
+  assert.equal(core.planningState.profession.endurance.value, 100);
   const protection = core.events.find((event) => event.sourceId === TRAIT.THICK_SKIN);
 
   assert.deepEqual({ boon: protection.kind, duration: protection.duration }, { boon: 'protection', duration: 3 });

@@ -5,8 +5,7 @@ import type { SkillId } from '#gw2/platform/skills/types.js';
 
 export interface WarriorCoreState {
   adrenaline: ResourceClock;
-  endurance: number;
-  enduranceUpdatedAt: number;
+  endurance: ResourceClock;
 
   autoattackChains: Record<string, SkillId>;
   availableFlips: SkillFlipWindows;
@@ -29,7 +28,7 @@ const WARRIOR_CORE_PUBLIC_END_STATE_KEYS = Object.freeze([
 export const WARRIOR_CORE_PUBLIC_STATE_PROJECTION = Object.freeze({
   keys: WARRIOR_CORE_PUBLIC_END_STATE_KEYS,
   defaults: Object.freeze({
-    endurance: 100
+    endurance: createResourceClock(100)
   } satisfies Partial<WarriorCoreState>)
 });
 
@@ -37,8 +36,7 @@ export const WARRIOR_CORE_PUBLIC_STATE_PROJECTION = Object.freeze({
 export function createWarriorCoreState(): WarriorCoreState {
   return {
     adrenaline: createResourceClock(),
-    endurance: 100,
-    enduranceUpdatedAt: 0,
+    endurance: createResourceClock(100),
 
     autoattackChains: {},
     availableFlips: {},

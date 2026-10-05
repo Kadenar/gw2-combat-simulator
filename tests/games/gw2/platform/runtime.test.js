@@ -45,7 +45,7 @@ const cast = (skillId, extra = {}) => ({ type: 'cast', skillId, ...extra });
 const wait = (durationMs) => ({ type: 'wait', durationMs });
 
 test('endurance spending agrees with readiness after fractional regeneration', () => {
-  const pool = { endurance: 0, enduranceUpdatedAt: 0 };
+  const pool = { value: 0, maximum: 100, updatedAt: 0, rate: 0 };
   const runtime = { time: 0, config: {}, history: [] };
   const endurance = createRuntimeEndurance(runtime, {
     endurance: { state: () => pool, maximum: () => 100, regenerationRate: () => 7.5 }
@@ -57,7 +57,7 @@ test('endurance spending agrees with readiness after fractional regeneration', (
   endurance.advance();
   assert.equal(endurance.readyAt(50), runtime.time);
   endurance.spend(50);
-  assert.equal(pool.endurance, 0);
+  assert.equal(pool.value, 0);
   assert.throws(() => endurance.spend(1), /Insufficient endurance/);
 });
 

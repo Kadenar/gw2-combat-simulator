@@ -275,21 +275,21 @@ test('Flute endurance regeneration uses the final live microsecond and loses the
 test('Troubadour endurance integrates Flute replacement and Vigor boundaries without losing partial recovery', () => {
   const context = instrumentContext();
   const state = context.profession.specialization.state;
-  state.endurance = 0;
+  state.endurance.value = 0;
   play(context, ID.FLUSTERING_FLUTE, 1, 3);
   play(context, ID.FLUSTERING_FLUTE, 2);
   const vigor = { type: 'buff', kind: 'vigor', at: 3, duration: 2, stacks: 1, audience: { recipients: 'self' } };
   context.events.push({ ...vigor, resolvedAudience: gw2BoonApplicationRecipients({}, vigor) });
   // 0-1: 5; 1-3: 12.5; 3-5: 17.5; 5-7: 12.5. The remaining 2.5 takes 0.5s at the base rate.
   assert.equal(((context.time = 0), context.endurance.readyAt(50)), 7.52);
-  assert.equal(state.endurance, 0, 'Readiness must not mutate the pool');
+  assert.equal(state.endurance.value, 0, 'Readiness must not mutate the pool');
   context.time = 7;
   context.endurance.advance();
-  assert.equal(state.endurance, 47.5);
+  assert.equal(state.endurance.value, 47.5);
   context.time = 8;
   context.endurance.advance();
-  assert.equal(state.endurance, 52.5);
-  assert.equal(state.enduranceUpdatedAt, 8);
+  assert.equal(state.endurance.value, 52.5);
+  assert.equal(state.endurance.updatedAt, 8);
 });
 
 test('delayed performance packets survive instrument expiry without retaining its playing bonus', () => {

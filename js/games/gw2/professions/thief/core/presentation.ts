@@ -211,8 +211,8 @@ export const thiefCoreUi = Object.freeze({
     (context.specialization || context.config?.specialization || 'Core') === 'Core' ? thiefStealPaletteGroups() : [],
   resourceViews: (context: ThiefUiContext) => {
     const state = thiefUiState(context);
-    const enduranceCapacity = context.resources!.endurance!.maximum;
-    const endurance = state.endurance ?? enduranceCapacity;
+    const enduranceCapacity = state.endurance?.maximum ?? context.resources!.endurance!.maximum;
+    const endurance = state.endurance?.value ?? enduranceCapacity;
     return [
       {
         id: 'initiative',

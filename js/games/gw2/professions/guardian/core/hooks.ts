@@ -127,7 +127,7 @@ export const guardianCoreHooks: RuntimeHooks<GuardianRuntimeState, GuardianSkill
       runtime.profession.core.virtueReadyAt = { justice: runtime.time, resolve: runtime.time, courage: runtime.time };
     }
   },
-  endurance: { state: (runtime) => runtime.profession.core, maximum: () => 100, regenerationRate: () => 0 },
+  endurance: { state: (runtime) => runtime.profession.core.endurance, maximum: () => 100, regenerationRate: () => 0 },
   rechargeWork: guardianRechargeWork,
   maximumAmmo: (runtime, skill, maximum) =>
     eternalArmoryMaximumAmmo(runtime, skill, radiantFireMaximumAmmo(runtime, skill, maximum)),
