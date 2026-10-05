@@ -1,7 +1,7 @@
 import { selectedSkillIdSet } from '#gw2/platform/builds/selected-skills.js';
 import type { AvailabilityResult } from '#gw2/platform/execution/types.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
-import type { CanonicalCatalog, Skill } from '#gw2/platform/skills/types.js';
+import type { CanonicalCatalog, Skill, SkillId } from '#gw2/platform/skills/types.js';
 /** Cast availability distinguishes permanent denials from commands that can retry at a known time. */
 
 export const CAST_READY: AvailabilityResult = Object.freeze({ ready: true });
@@ -34,13 +34,24 @@ export function denySkillCast(
   return retryAt === null ? denyCast(code, reason) : retryCast(retryAt, code, reason);
 }
 
-/** Rejects unequipped slot skills before state gates; flips inherit their root's selection. */
+/** Profession policies identify alternate slot faces without moving mechanic-specific availability gates. */
+export interface SlotSelectionPolicy {
+  readonly omittedLoadout?: 'allow' | 'deny';
+  readonly identity?: (id: SkillId) => SkillId;
+  readonly allowsFollowUp?: (skill: Skill, selected: ReadonlySet<SkillId>, catalog: CanonicalCatalog) => boolean;
+}
+
+/** Rejects unequipped slot skills at the caller's gate position; flips inherit their root's selection. */
 export function selectedSlotSkillAvailability(
   context: { readonly config: Gw2Config; readonly catalog: CanonicalCatalog },
-  skill: Skill
+  skill: Skill,
+  policy: SlotSelectionPolicy = {}
 ): AvailabilityResult | null {
-  // An omitted loadout permits sandbox casts; an explicitly empty loadout equips nothing.
-  if (context.config.selectedSkillIds == null || !['Heal', 'Utility', 'Elite'].includes(skill.type || '')) return null;
+  if (!['Heal', 'Utility', 'Elite'].includes(skill.type || '')) return null;
+  // Ordinary sandbox casts allow omission; summon policies can require explicit equipment.
+  const loadout = context.config.selectedSkillIds;
+  if (loadout == null && policy.omittedLoadout !== 'deny') return null;
+  const selected = selectedSkillIdSet(loadout);
   let root = skill;
   while (root.flipParentId != null) {
     const parent = context.catalog.skillsById.get(root.flipParentId);
@@ -48,7 +59,9 @@ export function selectedSlotSkillAvailability(
     root = parent;
   }
 
-  return selectedSkillIdSet(context.config.selectedSkillIds).has(root.id)
+  const identity = policy.identity;
+  const equipped = identity ? [...selected].some((id) => identity(id) === identity(root.id)) : selected.has(root.id);
+  return equipped || policy.allowsFollowUp?.(skill, selected, context.catalog)
     ? null
     : denySkillCast(skill, 'gw2.slot-not-equipped', 'the skill is not equipped.');
 }

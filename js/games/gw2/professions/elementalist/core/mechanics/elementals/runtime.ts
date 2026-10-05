@@ -28,7 +28,7 @@ import { canonicalTime, EPSILON } from '#kernel/core/clock.js';
  */
 import { selectedSkillIdSet } from '#gw2/platform/builds/selected-skills.js';
 import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
-import { denyCast, retryCast } from '#gw2/platform/execution/availability.js';
+import { denyCast, retryCast, selectedSlotSkillAvailability } from '#gw2/platform/execution/availability.js';
 import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import { GW2_ALACRITY_RECHARGE_RATE } from '#gw2/platform/execution/recharge.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
@@ -51,7 +51,7 @@ import {
   EARTH_ELEMENTAL_EVTC_PROFILE,
   FIRE_ELEMENTAL_EVTC_PROFILE
 } from '#gw2/professions/elementalist/core/mechanics/elementals/profiles.js';
-import { isSelectedSlotSkill } from '#gw2/professions/elementalist/core/mechanics/weapon-state.js';
+import { elementalistLoadoutIdentity } from '#gw2/professions/elementalist/core/mechanics/selection-policy.js';
 import { ELEMENTALIST_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/elementalist/core/profiles.js';
 import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';
 import type { ElementalistRuntime, ElementalistSkill } from '#gw2/professions/elementalist/types.js';
@@ -848,7 +848,12 @@ export function elementalistElementalAvailability(
 
   if (!elementalForGlyph(skill)) return null;
   // Summon glyphs require an equipped slot before readiness or retry; command flips use the live elemental above.
-  if (!isSelectedSlotSkill(skill, selectedSkillIdSet(context.config.selectedSkillIds))) {
+  if (
+    selectedSlotSkillAvailability({ config: context.config, catalog: context.helpers }, skill, {
+      identity: elementalistLoadoutIdentity,
+      omittedLoadout: 'deny'
+    })
+  ) {
     return denyCast('elementalist.not-equipped', 'the skill is not equipped.');
   }
 

@@ -1,4 +1,4 @@
-import type { NecromancerSkill } from '#gw2/professions/necromancer/types.js';
+import type { NecromancerRuntime, NecromancerSkill } from '#gw2/professions/necromancer/types.js';
 
 interface NecromancerShroudLifecycle {
   readonly onEnter?: (skill: NecromancerSkill) => void;
@@ -6,11 +6,12 @@ interface NecromancerShroudLifecycle {
   readonly onDepletion?: () => void;
 }
 
-const shroudLifecycles = new WeakMap<object, Map<string, NecromancerShroudLifecycle>>();
+// Runtime ownership keeps selected-module subscriptions isolated between simulations.
+const shroudLifecycles = new WeakMap<NecromancerRuntime, Map<string, NecromancerShroudLifecycle>>();
 
 /** Registers specialization-owned shroud behavior while keeping Core unaware of active module identities. */
 export function registerNecromancerShroudLifecycle(
-  owner: object,
+  owner: NecromancerRuntime,
   id: string,
   lifecycle: NecromancerShroudLifecycle
 ): void {
@@ -24,20 +25,20 @@ export function registerNecromancerShroudLifecycle(
 }
 
 /** Notifies every registered module after Core has established the entered shroud state. */
-export function runNecromancerShroudEnter(owner: object, skill: NecromancerSkill): void {
+export function runNecromancerShroudEnter(owner: NecromancerRuntime, skill: NecromancerSkill): void {
   for (const lifecycle of shroudLifecycles.get(owner)?.values() || []) {
     lifecycle.onEnter?.(skill);
   }
 }
 
 /** Notifies every registered module when Core leaves shroud for the supplied reason. */
-export function runNecromancerShroudExit(owner: object): void {
+export function runNecromancerShroudExit(owner: NecromancerRuntime): void {
   for (const lifecycle of shroudLifecycles.get(owner)?.values() || []) {
     lifecycle.onExit?.();
   }
 }
 
 /** Resource exhaustion also ends specialization-owned lifetimes that can survive an ordinary shroud exit. */
-export function runNecromancerLifeForceDepletion(owner: object): void {
+export function runNecromancerLifeForceDepletion(owner: NecromancerRuntime): void {
   for (const lifecycle of shroudLifecycles.get(owner)?.values() || []) lifecycle.onDepletion?.();
 }

@@ -1,6 +1,7 @@
 import type { ReadonlyMechanicState } from '#gw2/platform/profession-definition/runtime-context.js';
 import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
-import { ELEMENTALIST_LOADOUT_SKILL_IDS } from '#gw2/professions/elementalist/data/skill-identities.js';
+import { elementalistLoadoutIdentity } from '#gw2/professions/elementalist/core/mechanics/selection-policy.js';
+import { elementalistAttunementPolicy } from '#gw2/professions/elementalist/family-state.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 /**
  * Weapon- and attunement-facing cast state for Core Elementalist.
@@ -10,7 +11,7 @@ import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
  * window.
  */
 import type { AvailabilityResult } from '#gw2/platform/execution/types.js';
-import type { Skill, SkillId } from '#gw2/platform/skills/types.js';
+import type { Skill } from '#gw2/platform/skills/types.js';
 import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
 import {
   resetAutoattackChains,
@@ -30,15 +31,6 @@ function ready(): AvailabilityResult {
   return { ready: true };
 }
 
-/** Authored loadout IDs link attunement variants without conflating unrelated same-name skills. */
-function loadoutId(id: SkillId): SkillId {
-  return typeof id === 'number' ? (ELEMENTALIST_LOADOUT_SKILL_IDS.get(id) ?? id) : id;
-}
-
-export function isSelectedSlotSkill(skill: Skill, selected: ReadonlySet<SkillId>): boolean {
-  return [...selected].some((id) => loadoutId(id) === loadoutId(skill.id));
-}
-
 // Attunement variants are alternate faces of one utility slot, so copy both
 // cooldown and ammo state to every variant after any one face is used.
 export function shareAttunementVariantRecharge(context: ElementalistRuntime, skill: Skill): void {
@@ -46,12 +38,12 @@ export function shareAttunementVariantRecharge(context: ElementalistRuntime, ski
     return;
   }
 
-  const identity = loadoutId(skill.id);
+  const identity = elementalistLoadoutIdentity(skill.id);
   const readyAt = context.cooldownController.readyAt(skill.id);
   const ammo = context.cooldownController.readAmmo(skill.id);
   if (readyAt == null && !ammo) return;
   for (const candidate of context.helpers.skills) {
-    if (candidate.type === skill.type && loadoutId(candidate.id) === identity) {
+    if (candidate.type === skill.type && elementalistLoadoutIdentity(candidate.id) === identity) {
       if (readyAt != null) context.cooldownController.copy(skill.id, candidate.id);
       if (ammo) context.cooldownController.linkAmmo(skill.id, candidate.id);
     }
@@ -80,22 +72,12 @@ export function weaponAttunementAvailable(
 
   const attunement = String(skill.attunement || '');
   if (!attunement) return ready();
-  const specialization = context.profession.specialization.state as Record<string, unknown>;
-  // A specialization that owns a secondary attunement supplies its own weapon-hand availability policy.
-  if (Object.hasOwn(specialization, 'secondaryAttunement')) return ready();
+  // The selected Weaver owns weapon-hand eligibility, regardless of incidental state fields.
+  if (elementalistAttunementPolicy(context).weaponGate === 'elite') return ready();
   const required = attunement.split('+');
   return required.length === 1 && required[0] === state.primaryAttunement
     ? ready()
     : unavailable(skill, 'elementalist.attunement', `requires ${attunement} attunement.`);
-}
-
-/** Reads the specialization-owned secondary attunement, or null when the active specialization has none. */
-export function activeSecondaryAttunement(
-  context: MechanicQueriesOf<ElementalistRuntime>
-): ElementalistAttunement | null {
-  const specialization = context.profession.specialization.state as Record<string, unknown>;
-  const value = specialization.secondaryAttunement;
-  return typeof value === 'string' ? (value as ElementalistAttunement) : null;
 }
 
 /** Captures the mid-chain autoattack of the attunement being left so its progress survives the swap. */
