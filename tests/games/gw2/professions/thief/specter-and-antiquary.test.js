@@ -301,13 +301,17 @@ test('Dagger attacks restore endurance and trigger shadowstep effects', () => {
     10
   );
 
-  const shadowShot = simulate('Core', ['Shadow Shot'], {
+  const shadowShot = simulate('Core', ['Shadow Shot', { type: 'wait', durationMs: 1000 }], {
     primaryWeapon: 'Dagger',
     secondaryWeapon: 'Pistol',
     relic: 'Peitha'
   });
 
-  assert.ok(shadowShot.events.some((event) => event.type === 'peitha' && event.skillName === 'Shadow Shot'));
+  assert.ok(
+    shadowShot.events.some(
+      (event) => event.type === 'buff' && event.kind === 'relic-peitha' && event.triggeredBy === 'Shadow Shot'
+    )
+  );
   assert.equal(
     shadowShot.events.find(
       (event) => event.type === 'condition' && event.condition === 'Blindness' && event.skillName === 'Shadow Shot'
@@ -783,7 +787,11 @@ test('Specter attribute, ally, and shadowstep traits resolve explicitly', () => 
     boons: { quickness: true }
   });
 
-  assert.ok(peitha.events.some((event) => event.type === 'peitha' && event.skillName === 'Well of Tears'));
+  assert.ok(
+    peitha.events.some(
+      (event) => event.type === 'buff' && event.kind === 'relic-peitha' && event.triggeredBy === 'Well of Tears'
+    )
+  );
 });
 
 test('Spear slots 2 and 3 expose and enforce their linked chain', () => {

@@ -1,101 +1,97 @@
 import type { SimulationEvent } from '#gw2/platform/events/events.js';
 import { RELIC_IDS } from '#gw2/platform/equipment/relics/data.js';
 import type { Gw2RelicContext, Gw2RelicState } from '#gw2/platform/equipment/relics/types.js';
-/** Peitha relic rules. */
 import { isInternalCooldownReady } from '#gw2/platform/combat/procs.js';
+import { buffApplicationStacks } from '#gw2/platform/combat/boons.js';
 import { isGw2PlayerActorEvent, isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
-import { defineRelic, timedStrikeBuff } from '#gw2/platform/equipment/relics/rules/shared.js';
+import { defineRelic } from '#gw2/platform/equipment/relics/rules/shared.js';
 import { gw2EffectExpiresAt } from '#gw2/platform/effects/timing.js';
-import { clamp } from '#kernel/core/numeric.js';
 
-/** Activation-to-impact delay for qualifying skills without a measured `peithaImpactDelayMs`. */
+const PEITHA_BUFF = 'relic-peitha';
 const PEITHA_DEFAULT_IMPACT_DELAY_MS = 240;
 
 export const peitha = defineRelic({
   damagePayload: emitDamagePayload,
-  createState: () => ({ readyAt: 0, buffFrom: 0, buffUntil: 0 }),
-  // Every profession shares one trigger: a committed player activation of a shadowstep or Deception skill.
-  // The trigger stays at activation so the internal cooldown gates on use; the skill supplies the impact delay.
-  emitActionEffects(ctx, _state, event, skill) {
+  createState: () => ({ readyAt: 0 }),
+  buffPolicies: [{ kind: PEITHA_BUFF, maximumStacks: 1 }],
+  // Qualifying activations share one cooldown; their delayed payloads settle through ordinary effect handling.
+  emitActionEffects(ctx, state, event, skill) {
     if (!isGw2PlayerActorEvent(event)) return;
     if (!skill?.shadowstepSkill && !skill?.categories?.includes('Deception')) return;
-    // Cast-end anchors follow variants whose cast length changes per activation; the event stores the total from activation.
+    if (!isInternalCooldownReady(event.at, state.readyAt)) return;
+    state.readyAt = event.at + 4;
     const anchorOffsetMs =
       skill.peithaImpactAnchor === 'castEnd' ? (Number(event.fullEndsAt ?? event.at) - event.at) * 1000 : 0;
-    ctx.effects.emit({
-      kind: 'packet',
-      cause: event,
-      event: {
-        type: 'peitha',
-        at: event.at,
-        source: event.source,
-        sourceId: skill.id,
-        actorType: 'player',
-        skillId: skill.id,
-        skillName: skill.name,
-        name: 'Relic of Peitha',
-        peithaImpactDelayMs: anchorOffsetMs + (skill.peithaImpactDelayMs ?? PEITHA_DEFAULT_IMPACT_DELAY_MS)
-      }
+    emitDamagePayload(ctx, state, event, {
+      impactDelayMs: anchorOffsetMs + (skill.peithaImpactDelayMs ?? PEITHA_DEFAULT_IMPACT_DELAY_MS)
     });
   },
-  peitha(ctx, state, event) {
-    const triggerAt = event.at;
-    if (!isInternalCooldownReady(triggerAt, state.readyAt)) return;
-    state.readyAt = triggerAt + 4;
-    emitDamagePayload(ctx, state, event);
-  },
-  // Follow-up strikes inherit their owner's Peitha bonus; summoned actors remain excluded.
-  strikeMultiplier: timedStrikeBuff(1.1, isGw2PlayerModifierOwnedEvent)
+  strikeMultiplier(ctx, _state, event) {
+    return isGw2PlayerModifierOwnedEvent(event) &&
+      buffApplicationStacks(ctx.boons?.get(PEITHA_BUFF) ?? [], PEITHA_BUFF, event.at, 1) > 0
+      ? 1.1
+      : 1;
+  }
 });
 
-/** One occurrence shares its payload with simulation after activation checks have succeeded. */
+/** Torment and the player's damage buff arrive together, including in isolated damage calculations. */
 function emitDamagePayload(
-  ctx: Gw2RelicContext,
-  state: Gw2RelicState,
+  ctx: Pick<Gw2RelicContext, 'effects' | 'combatStartTime'>,
+  _state: Gw2RelicState,
   event: SimulationEvent,
   inputs: import('#gw2/platform/skill-damage/types.js').DamageInputs = {}
 ): void {
-  const combatStart = ctx.combatStartTime ?? -Infinity;
-  // The trigger carries its skill's launch latency and travel; only impacts that would still land before
-  // combat clamp to combat start, so their conditions cannot preload.
-  const impactAt = clamp(
-    event.at +
-      Math.max(0, Number(inputs.impactDelayMs ?? event.peithaImpactDelayMs ?? PEITHA_DEFAULT_IMPACT_DELAY_MS)) / 1000,
-    combatStart,
-    Infinity
+  const impactAt = Math.max(
+    event.at + Math.max(0, Number(inputs.impactDelayMs ?? PEITHA_DEFAULT_IMPACT_DELAY_MS)) / 1000,
+    ctx.combatStartTime ?? -Infinity
   );
-  state.buffFrom = impactAt;
-  state.buffUntil = gw2EffectExpiresAt(impactAt, 4);
-  ctx.effects.emit({
+  const attribution = {
+    source: 'Relic',
+    sourceId: `relic.${RELIC_IDS.PEITHA}`,
+    actorType: 'effect' as const,
+    ownerActorType: 'player' as const,
+    activationId: event.activationId,
+    skillName: 'Relic of Peitha',
+    triggeredBy: event.skillName
+  };
+  const proc = ctx.effects.emit({
     kind: 'announcement',
+    log: true,
+    cause: event,
+    attribution,
     announcement: {
       type: 'relic',
       name: 'Relic of Peitha',
       at: impactAt,
       sourceSkill: event.skillName,
-      detail: '',
-      icon: '',
-      cooldownReduction: null,
-      expiresAt: state.buffUntil
+      expiresAt: gw2EffectExpiresAt(impactAt, 4)
     }
   });
-  // Delayed impacts enter the common queue so duration and condition reactions see impact-time state.
   ctx.effects.emit({
     kind: 'packet',
+    cause: proc,
     event: {
+      ...attribution,
+      type: 'buff',
+      at: impactAt,
+      name: 'Relic of Peitha',
+      kind: PEITHA_BUFF,
+      duration: 4,
+      stacks: 1,
+      audience: { recipients: 'self' }
+    }
+  });
+  ctx.effects.emit({
+    kind: 'packet',
+    cause: proc,
+    event: {
+      ...attribution,
       type: 'condition',
       at: impactAt,
       name: 'Relic of Peitha — Torment',
-      skillName: 'Relic of Peitha',
       condition: 'Torment',
       duration: 7,
-      stacks: 2,
-      source: 'Relic',
-      actorType: 'effect',
-      ownerActorType: 'player',
-      sourceId: `relic.${RELIC_IDS.PEITHA}`,
-      activationId: event.activationId,
-      triggeredBy: event.skillName
+      stacks: 2
     }
   });
 }

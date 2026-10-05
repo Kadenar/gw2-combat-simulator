@@ -42,8 +42,7 @@ export const COMMON_EVENT_TYPES = Object.freeze([
   'buff',
   'boon_extension',
   'cooldown_snapshot',
-  'self_condition',
-  'peitha'
+  'self_condition'
 ] as const);
 
 const COMMON_EVENT_TYPE_SET: ReadonlySet<string> = new Set(COMMON_EVENT_TYPES);
@@ -361,11 +360,6 @@ interface BoonExtensionEvent extends SimulationEventBase<'boon_extension'> {
 
 type WeaponSetEvent = SimulationEventBase<'weapon_set'>;
 
-/** Relic of Peitha trigger at activation; the impact delay comes from the triggering skill. */
-interface PeithaEvent extends SimulationEventBase<'peitha'> {
-  readonly peithaImpactDelayMs: number;
-}
-
 /** Environment ticks and direct condition packets carry data only; mutable owner wakes belong to condition resolution. */
 interface ConditionTickEvent extends SimulationEventBase<'condition_tick'> {
   readonly condition?: string;
@@ -378,9 +372,8 @@ type CommonSimulationEvent =
   | BoonExtensionEvent
   | WeaponSetEvent
   | ConditionTickEvent
-  | PeithaEvent
   | SimulationEventBase<
-      Exclude<CommonSimulationEventType, 'buff' | 'boon_extension' | 'weapon_set' | 'condition_tick' | 'peitha'>
+      Exclude<CommonSimulationEventType, 'buff' | 'boon_extension' | 'weapon_set' | 'condition_tick'>
     >;
 
 type CustomSimulationEvent = SimulationEventBase<CustomSimulationEventType>;

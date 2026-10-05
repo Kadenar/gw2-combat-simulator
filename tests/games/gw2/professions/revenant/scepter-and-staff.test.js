@@ -83,7 +83,7 @@ test('Unrelenting Assault triggers Peitha once from its opening shadowstep', () 
   assert.ok(
     result.events.filter((event) => event.type === 'damage' && event.skillId === ID.UNRELENTING_ASSAULT).length > 1
   );
-  const triggers = result.events.filter((event) => event.type === 'peitha');
+  const triggers = result.events.filter((event) => event.type === 'buff' && event.kind === 'relic-peitha');
   assert.equal(triggers.length, 1);
-  assert.equal(triggers[0].skillId, ID.UNRELENTING_ASSAULT);
+  assert.equal(triggers[0].triggeredBy, 'Unrelenting Assault');
 });

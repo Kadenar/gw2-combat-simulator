@@ -1012,7 +1012,6 @@ test('Claw and Peitha follow player modifier ownership for direct and triggered 
   };
   const claw = createRelicRuntime('Claw');
 
-  claw.state.buffFrom = 0;
   claw.state.buffUntil = 8;
   assert.equal(relicStrikeMultiplier({ relic: claw }, player), 1.07);
   assert.equal(relicStrikeMultiplier({ relic: claw }, ownedEffect), 1.07);
@@ -1020,12 +1019,20 @@ test('Claw and Peitha follow player modifier ownership for direct and triggered 
 
   const peitha = createRelicRuntime('Peitha');
 
-  peitha.state.buffFrom = 0;
-  peitha.state.buffUntil = 8;
-  assert.equal(relicStrikeMultiplier({ relic: peitha }, player), 1.1);
+  const context = { relic: peitha, boons: new Map() };
+  recordBuffApplication(context.boons, {
+    type: 'buff',
+    kind: 'relic-peitha',
+    at: 0,
+    duration: 4,
+    stacks: 1,
+    resolvedAudience: gw2BoonApplicationRecipients({}, { audience: { recipients: 'self' } })
+  });
+  assert.equal(relicStrikeMultiplier(context, player), 1.1);
   // Player follow-ups inherit the buff, while independently owned summons do not.
-  assert.equal(relicStrikeMultiplier({ relic: peitha }, ownedEffect), 1.1);
-  assert.equal(relicStrikeMultiplier({ relic: peitha }, { ...ownedEffect, ownerActorType: 'summon' }), 1);
+  assert.equal(relicStrikeMultiplier(context, ownedEffect), 1.1);
+  assert.equal(relicStrikeMultiplier(context, { ...ownedEffect, ownerActorType: 'summon' }), 1);
+  assert.equal(relicStrikeMultiplier(context, { ...player, at: 4 }), 1);
 });
 
 test('Relic of the Shackles strikes five seconds after immobilize with a strict ten-second ICD', () => {

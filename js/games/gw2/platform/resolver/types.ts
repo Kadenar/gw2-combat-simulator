@@ -128,8 +128,7 @@ export type Gw2ResolverStage =
   | 'condition.applied'
   | 'condition-tick.resolved'
   | 'control.resolved'
-  | 'blind.resolved'
-  | 'peitha.resolved';
+  | 'blind.resolved';
 
 export type Gw2ResolverReactions = Readonly<Partial<Record<Gw2ResolverStage, Gw2ResolverReaction>>>;
 

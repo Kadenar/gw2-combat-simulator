@@ -186,6 +186,26 @@ test('Fractal evaluates its shared payload without a Bleeding prerequisite and w
   assert.deepEqual(config, saved);
 });
 
+// The isolated occurrence uses the same delayed Torment payload and ordinary buff registration as combat.
+test('Peitha isolated damage completes its delayed payload without special trigger events', () => {
+  const profession = fixture([]);
+  const [row] = evaluate(
+    profession,
+    [
+      occurrence('peitha', {
+        effect: { kind: 'relic', id: RELIC_IDS.PEITHA },
+        source: 'Relic',
+        unit: 'occurrence',
+        inputs: { impactDelayMs: 2000 }
+      })
+    ],
+    { relic: 'Peitha', stats: { conditionDamage: 1000 }, target: { health: 0, conditions: {} } }
+  );
+  assert.equal(row.status, 'measured');
+  assert.ok(row.measurement.conditionDamage > 0);
+  assert.equal(row.measurement.strike, 0);
+});
+
 test('measured zero, invalid inputs, and unsupported content remain distinct', () => {
   const profession = fixture([{ type: 'strike', coefficient: 0 }]);
   const rows = evaluate(profession, [

@@ -103,7 +103,11 @@ test("Infiltrator's Signet pulses discrete initiative only while ready and resta
     selectedTraitIds: [TRAIT.FLUID_STRIKES]
   });
   assert.deepEqual(step.warnings, []);
-  assert.ok(step.events.some((event) => event.type === 'peitha' && event.skillId === ID.INFILTRATORS_SIGNET));
+  assert.ok(
+    step.events.some(
+      (event) => event.type === 'buff' && event.kind === 'relic-peitha' && event.triggeredBy === "Infiltrator's Signet"
+    )
+  );
   assert.ok(step.planningState.profession.fluidStrikesUntil > 1);
   assert.ok(
     step.resolvedEvents.some(

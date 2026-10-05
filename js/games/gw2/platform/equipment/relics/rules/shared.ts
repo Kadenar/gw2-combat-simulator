@@ -70,11 +70,7 @@ export function timedStrikeBuff(
   predicate?: (event: SimulationEvent) => boolean
 ): NonNullable<Gw2RelicRule['strikeMultiplier']> {
   return (_ctx, state, event) =>
-    (state.buffFrom ?? -Infinity) <= event.at &&
-    (state.buffUntil || 0) > event.at &&
-    (predicate ? predicate(event) : true)
-      ? multiplier
-      : 1;
+    (state.buffUntil || 0) > event.at && (predicate ? predicate(event) : true) ? multiplier : 1;
 }
 
 /** Activates buffs from live completed slot skills, retaining precombat elapsed time and each relic's own cooldown. */

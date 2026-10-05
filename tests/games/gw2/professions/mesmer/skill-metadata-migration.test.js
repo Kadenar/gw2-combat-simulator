@@ -58,7 +58,11 @@ test('cancelled Mirage casts create neither hostile effects nor movement procs',
   for (const name of ['Mirage Advance', 'Crystal Sands']) {
     const result = simulateMesmer([{ name, interruptMs: 100 }, wait(1500)], config({ relic: 'Peitha' }));
     assert.ok(result.events.find((event) => event.type === 'action').cancelled);
-    assert.equal(result.events.filter((event) => ['peitha', 'control', 'condition'].includes(event.type)).length, 0);
+    assert.equal(
+      result.events.filter((event) => ['control', 'condition'].includes(event.type) || event.kind === 'relic-peitha')
+        .length,
+      0
+    );
     assert.equal(procs(result, 'Relic of Peitha').length, 0);
   }
 });

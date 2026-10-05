@@ -268,18 +268,6 @@ export function simulationEventLogRows(
       case 'control':
         push(event, 'trigger', `CONTROL ${event.skillName}`, 'trigger');
         break;
-      case 'peitha':
-        if (!build || build.relic === 'Peitha') {
-          // Show the skill-authored travel so the trigger row explains when its Torment lands.
-          push(
-            event,
-            'trigger',
-            `PEITHA TRIGGER ${event.skillName} (impact +${Number(event.peithaImpactDelayMs)}ms)`,
-            'trigger'
-          );
-        }
-
-        break;
       case 'buff':
         // Let professions hide automatic bookkeeping grants without removing them from the simulation.
         pushProfessionRow(event, () =>

@@ -835,23 +835,21 @@ test('Twin Moon Sweep resolves both attackers and legend resonance', () => {
 });
 
 // Each shadowstep variant attributes Peitha to the triggering skill.
-test('Revenant Peitha triggers resolve at the observed projectile impact', () => {
+test('Revenant shadowsteps own Peitha buff and Torment applications', () => {
   for (const { specialization, rotation, selectedLegends, startingLegend, sourceSkill, weapons = {} } of [
     {
       specialization: 'Conduit',
       rotation: ['Deathstrike', { name: '__wait', waitMs: 1000 }],
       selectedLegends: [LEGEND.ASSASSIN, LEGEND.ENTITY],
       startingLegend: LEGEND.ASSASSIN,
-      sourceSkill: 'Deathstrike',
-      delay: 0.56
+      sourceSkill: 'Deathstrike'
     },
     {
       specialization: 'Conduit',
       rotation: ['Beguiling Haze', { name: '__wait', waitMs: 1000 }],
       selectedLegends: [LEGEND.ENTITY, LEGEND.ASSASSIN],
       startingLegend: LEGEND.ENTITY,
-      sourceSkill: 'Beguiling Haze',
-      delay: 0.84
+      sourceSkill: 'Beguiling Haze'
     },
     {
       specialization: 'Renegade',
@@ -859,7 +857,6 @@ test('Revenant Peitha triggers resolve at the observed projectile impact', () =>
       selectedLegends: [LEGEND.RENEGADE, LEGEND.ASSASSIN],
       startingLegend: LEGEND.RENEGADE,
       sourceSkill: 'Phase Smash',
-      delay: 0.84,
       weapons: {
         primaryWeapon: 'Hammer',
         secondaryWeapon: ''
@@ -874,7 +871,9 @@ test('Revenant Peitha triggers resolve at the observed projectile impact', () =>
       ...weapons
     });
     const cast = result.events.find((event) => event.type === 'action' && event.skillName === sourceSkill);
-    const peitha = result.events.find((event) => event.type === 'peitha' && event.skillName === sourceSkill);
+    const peitha = result.events.find(
+      (event) => event.type === 'buff' && event.kind === 'relic-peitha' && event.triggeredBy === sourceSkill
+    );
     const torment = result.resolvedEvents.find(
       (event) => event.type === 'condition' && event.skillName === 'Relic of Peitha'
     );
@@ -882,7 +881,9 @@ test('Revenant Peitha triggers resolve at the observed projectile impact', () =>
     assert.ok(cast, `${sourceSkill} cast`);
     assert.ok(peitha, `${sourceSkill} Peitha event`);
     assert.ok(torment, `${sourceSkill} Peitha torment`);
-    assert.equal(peitha.at, cast.at, `${sourceSkill} trigger timing`);
+    assert.equal(peitha.activationId, cast.activationId);
+    assert.equal(torment.activationId, cast.activationId);
+    assert.equal(peitha.at, torment.at);
   }
 });
 

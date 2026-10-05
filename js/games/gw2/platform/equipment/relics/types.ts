@@ -1,4 +1,6 @@
 import type { EffectEmissionService } from '#gw2/platform/effects/emission.js';
+import type { Gw2TimedBuffApplication } from '#gw2/platform/combat/boons.js';
+import type { BuffStatePolicy } from '#gw2/platform/combat/effect-state.js';
 import type { RefreshedStacks } from '#gw2/platform/combat/resources/refreshed-stacks.js';
 /** Owns the equipment/relics/types.ts contracts so type dependencies follow their runtime feature boundaries. */
 import type { Gw2TargetConfig } from '#gw2/platform/combat/state/targets.js';
@@ -20,7 +22,6 @@ export interface Gw2RelicState {
   combatStartTime?: number;
   timelineEvents?: readonly SimulationEvent[];
   timelineLength?: number;
-  buffFrom?: number;
   activationTimes?: number[];
   trackedActivations?: Set<string>;
   count?: number;
@@ -51,6 +52,7 @@ interface Gw2RelicEmissionContext {
 }
 
 export interface Gw2RelicContext {
+  readonly boons?: ReadonlyMap<string, readonly Gw2TimedBuffApplication[]>;
   readonly combatStartPending?: boolean;
   readonly helpers?: Gw2ResolverHelpers;
   precastRelics?: readonly Gw2RelicRuntime[];
@@ -67,6 +69,7 @@ export interface Gw2ConditionHelpers {
 }
 
 export interface Gw2RelicRule {
+  readonly buffPolicies?: readonly BuffStatePolicy[];
   /** The same per-occurrence payload is called after combat eligibility or directly by the damage calculator. */
   readonly damagePayload?: (
     context: Gw2RelicContext,
@@ -129,7 +132,6 @@ export interface Gw2RelicRule {
     helpers: Gw2ConditionHelpers
   ) => unknown;
   readonly damageResolved?: (context: Gw2RelicContext, state: Gw2RelicState, event: SimulationEvent) => unknown;
-  readonly peitha?: (context: Gw2RelicContext, state: Gw2RelicState, event: SimulationEvent) => unknown;
 }
 
 export interface Gw2RelicRuntime {

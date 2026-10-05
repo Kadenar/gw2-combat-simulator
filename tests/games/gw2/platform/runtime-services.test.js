@@ -5,6 +5,8 @@ import test from 'node:test';
 import { defineNativeModule, defineNativeProfession } from '#gw2/platform/profession-definition/profession.js';
 import { createResourceClock, createDiscreteResourceClock } from '#gw2/platform/combat/resources/resource-policy.js';
 import { observeGw2Runtime, observedRuntime } from '#tests/helpers/observed-runtime.js';
+import { effectStateAt } from '#gw2/platform/results/effect-report.js';
+import { simulationEventLogRows } from '#gw2/app/results/event-log.js';
 
 // Native fixtures exercise the same state and hook composition that profession waves will migrate to.
 const skills = [
@@ -25,6 +27,7 @@ const skills = [
   },
   { id: 991003, name: 'Might', castTimeMs: 0, effects: [{ type: 'boon', boon: 'might', stacks: 1, duration: 2 }] },
   { id: 991004, name: 'Step', castTimeMs: 0, shadowstepSkill: true, effects: [] },
+  { id: 991014, name: 'Deception', castTimeMs: 0, categories: ['Deception'], peithaImpactDelayMs: 1000, effects: [] },
   {
     id: 991005,
     name: 'Field',
@@ -711,13 +714,97 @@ test('a permanent combo field exists before the first finisher and retains one o
   );
 });
 
-test('Peitha conditions wait for actual impact and cannot leak beyond the observation window', () => {
+test('Peitha effects wait for impact and cannot leak beyond the observation window', () => {
   const options = { config: { ...config, relic: 'Peitha' } };
   const short = run([cast(991004)], options);
   assert.equal(short.resolvedEvents.filter((event) => event.type === 'condition').length, 0);
+  assert.equal(observedRuntime(short).boons.has('relic-peitha'), false);
   const observed = run([cast(991004), wait(1500)], options);
   assert.equal(observed.resolvedEvents.find((event) => event.type === 'condition').at, 0.24);
   assert.ok(observed.conditionDamage > 0);
+  const buff = observed.events.find((event) => event.type === 'buff' && event.kind === 'relic-peitha');
+  assert.equal(buff.at, observed.resolvedEvents.find((event) => event.type === 'condition').at);
+  assert.equal(buff.duration, 4);
+});
+
+// Pending refreshes cannot replace live buff state; only landed applications change damage and observed expiry.
+test('Peitha shares its activation cooldown and retains ordinary buff lifetimes across delayed refreshes', () => {
+  const times = [0, 0.23, 0.24, 4.001, 4.23, 4.24, 5, 5.001, 9, 9.04];
+  const active = [false, false, true, true, true, false, false, true, true, false];
+  const profession = native({
+    initialize(runtime) {
+      runtime.effects.emit({ kind: 'packet', event: { ...hit(0.24), priority: -10 } });
+      for (const at of times) runtime.effects.emit({ kind: 'packet', event: { ...hit(at), priority: 10 } });
+    }
+  });
+  const totals = [];
+  for (const output of ['detailed', 'score']) {
+    const result = run(
+      [cast(991004), wait(3999), cast(991004), wait(1), cast(991014), wait(1), cast(991014), wait(5039)],
+      {
+        output,
+        config: { ...config, relic: 'Peitha', stats: { ...config.stats, concentration: 1500 } }
+      },
+      profession
+    );
+    assert.deepEqual(result.warnings, []);
+    const runtime = observedRuntime(result);
+    assert.deepEqual(runtime.relic.state, { readyAt: 4.001 + 4 });
+    assert.deepEqual(
+      runtime.boons.get('relic-peitha').map(({ at, expiresAt }) => [at, expiresAt]),
+      [
+        [0.24, 4.24],
+        [5.001, 9.04]
+      ]
+    );
+    totals.push(result.totalDamage);
+    if (output !== 'detailed') continue;
+    const hits = result.resolvedEvents.filter((event) => event.type === 'damage' && event.priority === 10);
+    assert.equal(
+      result.resolvedEvents.find((event) => event.type === 'damage' && event.priority === -10).damage,
+      hits[0].damage
+    );
+    assert.deepEqual(
+      hits.map((event) => event.damage > hits[0].damage),
+      active
+    );
+    const track = result.effectReport.tracks.find((entry) => entry.kind === 'relic-peitha');
+    assert.ok(track);
+    assert.equal(track.recipient, 'self');
+    assert.deepEqual(
+      times.map((at) => effectStateAt(result.effectReport, track, at).count > 0),
+      active
+    );
+    const buff = result.events.find((event) => event.type === 'buff' && event.kind === 'relic-peitha');
+    const torment = result.events.find(
+      (event) => event.type === 'condition' && event.sourceId === `relic.${RELIC_IDS.PEITHA}`
+    );
+    const proc = result.events.find((event) => event.eventOrder === buff.parentEventOrder);
+    assert.equal(proc.type, 'proc');
+    assert.equal(torment.parentEventOrder, proc.eventOrder);
+    const rows = simulationEventLogRows(result);
+    const row = rows.find((entry) => entry.id === `event:${torment.eventOrder}`);
+    assert.equal(row.parentId, `event:${proc.eventOrder}`);
+  }
+
+  assert.equal(totals[0], totals[1]);
+});
+
+// Explicit combat entry clamps both halves of a precombat proc to the same accepted impact.
+test('Peitha precombat impacts cannot preload Torment or the damage buff', () => {
+  const result = run([cast(991004), wait(2000)], { config: { ...config, relic: 'Peitha' }, combatStartTime: 1 });
+  const runtime = observedRuntime(result);
+  const buffs = runtime.boons.get('relic-peitha');
+  assert.deepEqual(
+    buffs.map(({ at, expiresAt }) => [at, expiresAt]),
+    [[1, 5]]
+  );
+  const conditions = result.resolvedEvents.filter((event) => event.type === 'condition');
+  assert.equal(
+    conditions.reduce((sum, event) => sum + event.stacks, 0),
+    2
+  );
+  assert.ok(conditions.every((event) => event.condition === 'Torment' && event.at === buffs[0].at));
 });
 
 test('recharge entitlements are reserved once at acceptance and completion observes actual cooldown state', () => {

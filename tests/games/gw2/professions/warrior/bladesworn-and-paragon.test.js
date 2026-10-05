@@ -862,21 +862,22 @@ test('Dragon Trigger utilities expose defense, shadowstep ammo, and cooldown res
   );
 });
 
-// Peitha triggers on activation and lands after the skill's measured missile travel, not the relic default.
-test('Flicker Step triggers Peitha on activation with its measured impact delay', () => {
+// The shadowstep's activation owns both relic effects while Dragon Trigger is active.
+test('Flicker Step applies Peitha with its activation ownership', () => {
   const result = simulate('Bladesworn', [ID.DRAGON_TRIGGER, ID.FLICKER_STEP, { name: '__wait', waitMs: 1000 }], {
     initialResource: 100,
     relic: 'Peitha'
   });
   const cast = result.events.find((event) => event.type === 'action' && event.skillId === ID.FLICKER_STEP);
-  const triggers = result.events.filter((event) => event.type === 'peitha');
+  const buffs = result.events.filter((event) => event.type === 'buff' && event.kind === 'relic-peitha');
   const torment = result.resolvedEvents.filter(
     (event) => event.type === 'condition' && event.skillName === 'Relic of Peitha'
   );
 
   assert.deepEqual(result.warnings, []);
-  assert.equal(triggers.length, 1);
-  assert.equal(triggers[0].at, cast.at);
+  assert.equal(buffs.length, 1);
+  assert.equal(buffs[0].activationId, cast.activationId);
+  assert.equal(buffs[0].at, torment[0].at);
   assert.equal(
     torment.reduce((sum, event) => sum + event.stacks, 0),
     2

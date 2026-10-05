@@ -121,12 +121,6 @@ export function createGw2ResolverEventHandlers({
       });
     },
 
-    peitha(ctx, event) {
-      reactions.dispatch('peitha.resolved', ctx, event, {
-        activeConditionStackCount
-      });
-    },
-
     weapon_set(ctx, event) {
       // Invalid/missing values normalize to set one so later sigil and weapon
       // queries always have a valid one-based set number.

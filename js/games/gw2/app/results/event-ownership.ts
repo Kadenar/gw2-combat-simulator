@@ -4,7 +4,7 @@
  * Rules run in order and the first match wins:
  * 1. Recorded parent: `parentEventOrder`, walked through events the log hides (combo finishers, sigil swaps); a walk
  *    that ends on a hidden packet of a cast resolves to that cast.
- * 2. Proc and Peitha pairs: a proc's damage and a Peitha relic condition sit under their trigger row (inferred).
+ * 2. Proc pairs: a proc's damage sits under its trigger row (inferred).
  * 3. Activation: `activationId` names a cast.
  * 4. Spawned entity: derived activation ids such as `guardian.symbol:<id>:cast:3:1.6` or `cast:3:flames`
  *    become a synthetic group under the cast that spawned them.
@@ -212,7 +212,6 @@ export function deriveEventLogOwnership(
   };
 
   const procs = new Map<string, { readonly name: string; readonly id: string }[]>();
-  const peithaTriggers = new Map<string, string>();
   const owners = new Map<SimulationEvent, EventLogOwnership>();
 
   for (const { event } of sorted) {
@@ -225,19 +224,12 @@ export function deriveEventLogOwnership(
         event.type === 'damage' && event.parentSkillName && event.activationId
           ? findLast(procs.get(event.activationId), (candidate) => candidate.name === event.skillName)
           : undefined;
-      const peitha =
-        event.source === 'Relic' && event.triggeredBy && event.activationId
-          ? peithaTriggers.get(event.activationId)
-          : undefined;
       if (recordedId && recordedId !== id) {
         parentId = recordedId;
         parentLink = TRIGGERED_BY;
       } else if (proc) {
         parentId = proc.id;
         parentLink = inferredFrom(proc.name);
-      } else if (peitha) {
-        parentId = peitha;
-        parentLink = inferredFrom('Relic of Peitha');
       } else if (event.activationId && castIds.has(event.activationId)) {
         parentId = castIds.get(event.activationId);
         parentLink = PART_OF;
@@ -290,8 +282,6 @@ export function deriveEventLogOwnership(
       entries.push({ name: event.name, id });
       procs.set(event.activationId, entries);
     }
-
-    if (event.type === 'peitha' && event.activationId) peithaTriggers.set(event.activationId, id);
   }
 
   return { owners, entities };

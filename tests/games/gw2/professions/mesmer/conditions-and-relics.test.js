@@ -724,16 +724,16 @@ test('Relic of Thorns uses the deterministic incoming-hit assumption', () => {
   assert.equal(query.statsAt(3).conditionDamage, 1180);
 });
 
-// Activation and projectile impact are separate: the log shows Peitha arriving before cast completion.
+// Both relic effects retain their originating activation and arrive together through standard effect handling.
 test('Mesmer Peitha follows actual shadowsteps or successful Deception use', () => {
   const cases = [
-    ['Phase Retreat', ID.PHASE_RETREAT, 'Staff', 0.84],
-    ['Crystal Sands', ID.CRYSTAL_SANDS, 'Axe', 0.24],
-    ['Jaunt', ID.JAUNT, 'Axe', 0.24],
-    ['Axes of Symmetry', ID.AXES_OF_SYMMETRY, 'Axe', 0.52],
-    ['Mental Collapse', ID.MENTAL_COLLAPSE, 'Spear', 0.8]
+    ['Phase Retreat', ID.PHASE_RETREAT, 'Staff'],
+    ['Crystal Sands', ID.CRYSTAL_SANDS, 'Axe'],
+    ['Jaunt', ID.JAUNT, 'Axe'],
+    ['Axes of Symmetry', ID.AXES_OF_SYMMETRY, 'Axe'],
+    ['Mental Collapse', ID.MENTAL_COLLAPSE, 'Spear']
   ];
-  for (const [skillName, skillId, primaryWeapon, responseDelay] of cases) {
+  for (const [skillName, skillId, primaryWeapon] of cases) {
     const result = simulateMesmer(
       [
         { name: skillName, skillId },
@@ -749,19 +749,20 @@ test('Mesmer Peitha follows actual shadowsteps or successful Deception use', () 
       })
     );
     const cast = result.events.find((event) => event.type === 'action' && event.skillId === skillId);
-    const triggers = result.events.filter((event) => event.type === 'peitha' && event.skillId === skillId);
+    const buffs = result.events.filter((event) => event.type === 'buff' && event.kind === 'relic-peitha');
     const torment = result.resolvedEvents.filter(
       (event) => event.type === 'condition' && event.skillName === 'Relic of Peitha'
     );
-    assert.equal(triggers.length, 1, skillName);
-    assert.equal(triggers[0].at, cast.at);
+    assert.equal(buffs.length, 1, skillName);
+    assert.equal(buffs[0].activationId, cast.activationId);
+    assert.equal(buffs[0].triggeredBy, skillName);
     assert.equal(
       torment.reduce((sum, event) => sum + event.stacks, 0),
       2,
       skillName
     );
-    assert.ok(Math.abs(torment[0].at - cast.at - responseDelay) < 1e-9, skillName);
-    if (['Crystal Sands', 'Axes of Symmetry'].includes(skillName)) assert.ok(torment[0].at < cast.endsAt);
+    assert.equal(torment[0].at, buffs[0].at);
+    assert.equal(torment[0].parentEventOrder, buffs[0].parentEventOrder);
     assert.equal(torment[0].activationId, cast.activationId);
   }
 });

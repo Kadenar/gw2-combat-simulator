@@ -2,7 +2,6 @@ import { isStandardBoon } from '#gw2/platform/combat/boons.js';
 import { skillForEvent } from '#gw2/platform/combat/query/event-skill.js';
 import { isGw2PlayerActorEvent } from '#gw2/platform/combat/state/event-ownership.js';
 import { FOOD_DATA, NOURISHMENT_ICON } from '#gw2/platform/equipment/consumables/food.js';
-import { RELIC_IDS } from '#gw2/platform/equipment/relics/data.js';
 import { invokeRelicHook } from '#gw2/platform/equipment/relics/runtime.js';
 import { decideCriticalSigils } from '#gw2/platform/equipment/sigils/critical-procs.js';
 import { SIGIL_BY_ID, SIGIL_PROCS } from '#gw2/platform/equipment/sigils/data.js';
@@ -256,15 +255,6 @@ export function createGw2EquipmentReactionContributions(): Gw2ResolverReactionCo
         order: GW2_REACTION_ORDER.COMMON,
         handler(ctx, event, details = {}) {
           invokeRelicHook(ctx, 'control', event, conditionHelpers(ctx, details));
-        }
-      }
-    ],
-    'peitha.resolved': [
-      {
-        id: `relic.${RELIC_IDS.PEITHA}`,
-        order: GW2_REACTION_ORDER.COMMON,
-        handler(ctx, event) {
-          invokeRelicHook(ctx, 'peitha', event);
         }
       }
     ]

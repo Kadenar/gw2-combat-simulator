@@ -207,6 +207,9 @@ export function runRuntime<T extends object>(
     onFirstDamage: conditions.startDamageClock,
     reactions
   });
+  const precastRelics = normalizePrecastRelics(config.precastRelics)
+    .map(createRelicRuntime)
+    .filter((relic) => relic.id !== base.relic.id);
   // Capacity queries share one selected-content capability and follow the live profession state across replacements.
   const maximumAmmoContext = createMaximumAmmoContext(() => runtime.profession, base.traits, profession.catalog);
   // The recharge owner keeps its stores private and reads the single live runtime clock.
@@ -222,7 +225,11 @@ export function runRuntime<T extends object>(
     skillFor: (id) => profession.catalog.skillsById.get(id)
   });
   runtime = Object.assign(base, {
-    equipmentBuffPolicies: sigilBuffPolicies(config),
+    precastRelics,
+    equipmentBuffPolicies: [
+      ...sigilBuffPolicies(config),
+      ...[base.relic, ...precastRelics].flatMap((relic) => relic.rules.buffPolicies ?? [])
+    ],
     effectReactions,
     profession: base.profession as T,
     time: 0,
@@ -373,9 +380,6 @@ export function runRuntime<T extends object>(
 
   const targetHealth = Number(config.target?.health) > 0 ? Number(config.target?.health) : Infinity;
   if (targetHealthLoss(config, runtime) >= targetHealth) runtime.deathTime = 0;
-  runtime.precastRelics = normalizePrecastRelics(config.precastRelics)
-    .map(createRelicRuntime)
-    .filter((relic) => relic.id !== runtime.relic.id);
   if (combatStartTime != null) {
     const marker = assertSimulationEvent({
       type: 'combat_start',
@@ -385,7 +389,7 @@ export function runRuntime<T extends object>(
       actorType: 'environment',
       eventOrder: 0
     });
-    for (const relic of [runtime.relic, ...runtime.precastRelics]) relic.state.combatMarker = marker;
+    for (const relic of [runtime.relic, ...precastRelics]) relic.state.combatMarker = marker;
     // An inherited marker is also an executed boundary, so timed profession producers see the same start as rotation markers.
     runtime.effects.emit({ kind: 'packet', event: marker });
   }
