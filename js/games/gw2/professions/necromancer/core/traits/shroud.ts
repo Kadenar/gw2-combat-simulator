@@ -10,6 +10,7 @@ import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import { grantNecromancerLifeForce } from '#gw2/professions/necromancer/core/mechanics/life-force.js';
 import { cloneNecromancerAttributes } from '#gw2/professions/necromancer/core/mechanics/modifier-queries.js';
 import { emitNecromancerShroudTrait } from '#gw2/professions/necromancer/core/mechanics/trait-effects.js';
+import { dhuumfireProjection } from '#gw2/professions/necromancer/core/traits/dhuumfire.js';
 import { NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
 import type {
   NecromancerResolverContext,
@@ -49,9 +50,7 @@ export function applyDhuumfire(
   shroudSkillOne: boolean
 ): void {
   if (!hasTrait(context, TRAIT.DHUUMFIRE) || !shroudSkillOne) return;
-  const profile = requireBalanceProfileFromContext(context, TRAIT.DHUUMFIRE);
-  const effect = requireEffect(profile, 'condition', 'Burning');
-  const interval = event.metadata?.dhuumfireInterval || 0;
+  const { effect, interval } = dhuumfireProjection(context, event.metadata, skillDuration);
   // Zero or absent intervals bypass the claim so same-time applications remain unrestricted; the claim gates only
   // Burning, so a removed packet leaves it ready.
   if (!effect) return;
@@ -72,10 +71,10 @@ export function applyDhuumfire(
         triggeredBy: event.skillName,
         type: 'condition',
         ownerActorType: 'player',
-        name: 'Dhuumfire' + ' - ' + String(effect.condition),
-        condition: String(effect.condition),
-        stacks: effectNumber(profile, effect, 'stacks'),
-        duration: Number(event.metadata?.dhuumfireDuration ?? skillDuration ?? effect.duration ?? 3)
+        name: 'Dhuumfire' + ' - ' + effect.condition,
+        condition: effect.condition,
+        stacks: effect.stacks,
+        duration: effect.duration
       }
     });
     context.effects.emit({

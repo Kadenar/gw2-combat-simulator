@@ -16,6 +16,7 @@ import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import { removeNecromancerSelfCondition } from '#gw2/professions/necromancer/core/mechanics/conditions.js';
 import { NECROMANCER_SKILL_IDS as ID } from '#gw2/professions/necromancer/data/ids.js';
 import { party } from '#gw2/professions/necromancer/specializations/scourge/mechanics/audiences.js';
+import { shadeDhuumfireParameters } from '#gw2/professions/necromancer/specializations/scourge/mechanics/shade-projection.js';
 import { SCOURGE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/necromancer/specializations/scourge/profiles.js';
 import { purgeScourgeTimedState, scourgeState } from '#gw2/professions/necromancer/specializations/scourge/state.js';
 import {
@@ -106,8 +107,7 @@ function shadeStrike(runtime: NecromancerRuntime, cast: RuntimeCast<NecromancerS
       coefficient: effectNumber(profile, strike, 'coefficient'),
       metadata: {
         necromancerShroudSkillOne: true,
-        dhuumfireDuration: balanceProfileNumber(profile, 'dhuumfireDuration'),
-        dhuumfireInterval: balanceProfileNumber(profile, 'dhuumfireInterval')
+        ...shadeDhuumfireParameters(profile)
       }
     });
 

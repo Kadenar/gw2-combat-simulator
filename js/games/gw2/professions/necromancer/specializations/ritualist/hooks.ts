@@ -40,6 +40,7 @@ import {
   ritualistSpellHooks
 } from '#gw2/professions/necromancer/specializations/ritualist/mechanics/spells.js';
 import { spiritDefinition } from '#gw2/professions/necromancer/specializations/ritualist/mechanics/spirits.js';
+import { RITUALIST_SPIRIT_SKILL_IDS } from '#gw2/professions/necromancer/specializations/ritualist/mechanics/spirit-projection.js';
 import { RITUALIST_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/necromancer/specializations/ritualist/profiles.js';
 import { ritualistState } from '#gw2/professions/necromancer/specializations/ritualist/state.js';
 import {
@@ -338,7 +339,8 @@ export const ritualistHooks: RuntimeHooks<NecromancerRuntimeState, NecromancerSk
     'ritualist.summon-spirits'(runtime, context) {
       if (context.kind !== 'cast') return;
       const cast = context.cast;
-      for (const id of [ID.ANGUISH, ID.WANDERLUST, ID.PRESERVATION]) {
+      // The shared inventory preserves command ordering and the same participating spirits shown by tooltips.
+      for (const id of RITUALIST_SPIRIT_SKILL_IDS) {
         const spirit = spiritDefinition(runtime, id)!;
         if (!canActivateRitualistSpirit(runtime, spirit.key)) continue;
         strikes(runtime, cast, spirit, spirit.activeTicks, 'summon-spirits');

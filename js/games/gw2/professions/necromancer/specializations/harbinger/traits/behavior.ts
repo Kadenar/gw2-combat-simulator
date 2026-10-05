@@ -23,6 +23,7 @@ import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '#gw
 import { party } from '#gw2/professions/necromancer/specializations/harbinger/mechanics/audiences.js';
 import { HARBINGER_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/necromancer/specializations/harbinger/profiles.js';
 import { harbingerState } from '#gw2/professions/necromancer/specializations/harbinger/state.js';
+import { darkBarrageEffects } from '#gw2/professions/necromancer/specializations/harbinger/mechanics/dark-barrage.js';
 import type { NecromancerResolverContext, NecromancerResolverEvent } from '#gw2/professions/necromancer/types.js';
 
 /** Applies Alchemic Vigor at the original attribute-conversion position. */
@@ -418,35 +419,7 @@ export const doomApproachesDarkBarrage: NonNullable<Skill['effectVariants']> = [
     profileId: PROFILE.darkBarrageDoomApproaches,
     transform: (runtime, _cast, effects) => {
       const profile = requireBalanceProfileFromContext(runtime, PROFILE.darkBarrageDoomApproaches);
-      const ticks = Array.from({ length: balanceProfileNumber(profile, 'pulseCount') }, (_, index) => ({
-        atMs: (index + 1) * balanceProfileNumber(profile, 'pulseInterval') * 1000
-      }));
-      return effects.flatMap((effect): SkillEffect[] => {
-        if (effect.type === 'strike')
-          return [
-            {
-              ...effect,
-              timingAnchor: 'castStart',
-              timingScale: 'fixed',
-              ticks: ticks.map((tick) => ({ ...tick, coefficient: effectNumber(profile, effect, 'coefficient') }))
-            }
-          ];
-        if (effect.type === 'condition')
-          return [
-            {
-              ...effect,
-              timingAnchor: 'castStart',
-              timingScale: 'fixed',
-              ticks: ticks.map((tick) => ({
-                ...tick,
-                condition: String(effect.condition),
-                stacks: effectNumber(profile, effect, 'stacks'),
-                duration: effectNumber(profile, effect, 'duration')
-              }))
-            }
-          ];
-        return [];
-      });
+      return darkBarrageEffects(profile, effects);
     }
   }
 ];

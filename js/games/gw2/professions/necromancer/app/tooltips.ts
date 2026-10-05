@@ -26,15 +26,19 @@ import {
   NECROMANCER_CORE_BALANCE_PROFILE_IDS as PROFILE
 } from '#gw2/professions/necromancer/core/profiles.js';
 import { actualNecromancerLifeForceCost } from '#gw2/professions/necromancer/core/state.js';
+import { dhuumfireProjection } from '#gw2/professions/necromancer/core/traits/dhuumfire.js';
+import { darkBarrageEffects } from '#gw2/professions/necromancer/specializations/harbinger/mechanics/dark-barrage.js';
+import { shadeDhuumfireParameters } from '#gw2/professions/necromancer/specializations/scourge/mechanics/shade-projection.js';
+import {
+  RITUALIST_SPIRIT_SKILL_IDS,
+  spiritAttackEffects
+} from '#gw2/professions/necromancer/specializations/ritualist/mechanics/spirit-projection.js';
 import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
 import {
   HARBINGER_BALANCE_PROFILE_IDS as HARBINGER,
   HARBINGER_EMPOWERED_PROFILE_BY_SKILL_ID
 } from '#gw2/professions/necromancer/specializations/harbinger/profiles.js';
-import {
-  RITUALIST_BALANCE_PROFILE_IDS as RITUALIST,
-  RITUALIST_SPIRIT_PROFILE_BY_SKILL_ID
-} from '#gw2/professions/necromancer/specializations/ritualist/profiles.js';
+import { RITUALIST_BALANCE_PROFILE_IDS as RITUALIST } from '#gw2/professions/necromancer/specializations/ritualist/profiles.js';
 import { SCOURGE_BALANCE_PROFILE_IDS as SCOURGE } from '#gw2/professions/necromancer/specializations/scourge/profiles.js';
 
 const lifeForce = (value: number) => `${value}% life force`;
@@ -146,7 +150,7 @@ const weaponSpellTooltip: DescribeSimulationTooltip = skillTooltip(
   }
 );
 
-// Match runtime's named spirit attacks so profile removals cannot move packets between summon and command facts.
+// Spirit owners select named attack roles; this layer formats their selected summon and command packets.
 const ritualistTooltip: DescribeSimulationTooltip = (balanceContext, entity) => {
   const selected = balanceContext.catalog.skillsById.get(entity.id);
   if (!selected) throw new Error(`Missing tooltip skill: ${entity.id}`);
@@ -159,22 +163,15 @@ const ritualistTooltip: DescribeSimulationTooltip = (balanceContext, entity) => 
     return {
       description:
         'Command available active spirits to perform their coordinated attacks. Spirits still in their opening attack cannot participate. Wanderlust also dazes; Preservation has no direct damage from this command.',
-      facts: [
-        ...simulationEffectFacts(
-          tooltipProfile(balanceContext, RITUALIST.anguish).effects?.filter(
-            (effect) => effect.type === 'strike' && effect.name === 'Summon Spirits - Anguish'
-          ),
-          'requires Anguish'
-        ).facts,
-        ...simulationEffectFacts(
-          tooltipProfile(balanceContext, RITUALIST.wanderlust).effects?.filter(
-            (effect) => effect.type === 'strike' && effect.name === 'Summon Spirits - Wanderlust'
-          ),
-          'requires Wanderlust'
-        ).facts
-      ]
+      facts: RITUALIST_SPIRIT_SKILL_IDS.flatMap((skillId) => {
+        const attack = spiritAttackEffects(balanceContext, skillId)!.active;
+        return attack
+          ? simulationEffectFacts([attack], `requires ${balanceContext.catalog.skillsById.get(skillId)!.name}`).facts
+          : [];
+      })
     };
-  const profile = tooltipProfile(balanceContext, RITUALIST_SPIRIT_PROFILE_BY_SKILL_ID[id]);
+  const attacks = spiritAttackEffects(balanceContext, id)!;
+  const { profile } = attacks;
   return {
     description:
       'Summon or replace this spirit, apply its opening effects, and start its autonomous attacks. Busy spirits skip recurring attack opportunities.' +
@@ -186,18 +183,7 @@ const ritualistTooltip: DescribeSimulationTooltip = (balanceContext, entity) => 
     facts: [
       ...simulationEffectFacts(selected.effects, 'on summon').facts,
       ...simulationEffectFacts(
-        profile.effects?.filter(
-          (effect) =>
-            effect.type === 'strike' &&
-            [
-              'Anguish Autoattack',
-              'Anguish Initial Barrage',
-              'Wanderlust Autoattack',
-              'Wanderlust Initial Swing',
-              'Wanderlust Initial Field',
-              'Preservation Autoattack'
-            ].includes(effect.name || '')
-        )
+        [attacks.autoattack, attacks.initial, attacks.lingering].flatMap((effect) => (effect ? [effect] : []))
       ).facts,
       ...simulationEffectFacts(
         profile.effects?.filter((effect) => effect.type === 'condition'),
@@ -240,8 +226,8 @@ const darkBarrageTooltip: DescribeSimulationTooltip = (balanceContext, entity) =
   const base = simulationEffectFacts(selected.effects, 'without Doom Approaches');
   const profile = tooltipProfile(balanceContext, HARBINGER.darkBarrageDoomApproaches);
   const replacement = simulationEffectFacts(
-    profile.effects?.map((effect) => ({ ...effect, applications: tooltipNumber(profile, 'pulseCount') })),
-    'with Doom Approaches; per projectile, replaces base volley'
+    darkBarrageEffects(profile, profile.effects ?? []),
+    'with Doom Approaches; replaces base volley'
   );
   return {
     description:
@@ -796,32 +782,19 @@ export const necromancerTooltips: ProfessionTooltips = {
         ['criticalDamage', 'Critical damage while in shroud', tooltipFactorChange]
       ]
     ),
-    // Match the selected specialization's combat override instead of always showing the core duration.
-    [TRAIT.DHUUMFIRE]: (context, entity, specialization) => {
+    // Compose owner-provided overrides with Core's same named Burning projection used by hit reactions.
+    [TRAIT.DHUUMFIRE]: (context, _entity, specialization) => {
       const scourge = specialization === 'Scourge';
-      const source = scourge
-        ? tooltipProfile(context, SCOURGE.shade)
-        : specialization === 'Harbinger'
-          ? context.catalog.skillsById.get(ID.TAINTED_BOLTS)
-          : undefined;
-      const profile = tooltipProfile(context, entity.id);
-      const effects = simulationEffectFacts(
-        profile.effects?.map((effect) =>
-          effect.type === 'condition' && (scourge || specialization === 'Harbinger')
-            ? { ...effect, duration: tooltipNumber(source, 'dhuumfireDuration') }
-            : effect
-        ),
-        scourge ? 'on shade strikes' : 'on shroud skill 1'
+      const { effect, interval } = dhuumfireProjection(
+        context,
+        scourge ? shadeDhuumfireParameters(tooltipProfile(context, SCOURGE.shade)) : undefined,
+        specialization === 'Harbinger' ? context.catalog.skillsById.get(ID.TAINTED_BOLTS)?.dhuumfireDuration : undefined
       );
+      const effects = simulationEffectFacts(effect ? [effect] : [], scourge ? 'on shade strikes' : 'on shroud skill 1');
       return {
         ...effects,
         description: scourge ? 'Shade strikes inflict burning.' : 'Shroud skill 1 inflicts burning.',
-        facts: [
-          ...effects.facts,
-          ...(scourge
-            ? [profileFact(context, SCOURGE.shade, 'dhuumfireInterval', 'Internal cooldown', tooltipSeconds)]
-            : [])
-        ]
+        facts: [...effects.facts, ...(scourge ? [{ name: 'Internal cooldown', detail: tooltipSeconds(interval) }] : [])]
       };
     },
     [TRAIT.SHROUD_KNIGHT]: traitTooltip("This specialization uses Reaper's Shroud and its melee shroud skills."),
