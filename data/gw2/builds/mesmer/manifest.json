@@ -35,14 +35,14 @@
         "label": "Power (Spear / Greatsword)",
         "build": "data/gw2/builds/mesmer/b-power-mirage-spear-greatsword.json",
         "rotation": "data/gw2/rotations/mesmer/r-power-mirage-spear-greatsword-bench.json",
-        "benchmarkDps": 40954,
+        "benchmarkDps": 40966,
         "upToDate": true
       },
       {
         "label": "Condition (Staff-Axe/Torch) - Dune Cloak",
         "build": "data/gw2/builds/mesmer/b-condi-mirage-dune-cloak.json",
         "rotation": "data/gw2/rotations/mesmer/r-condi-mirage-dune-cloak-bench.json",
-        "benchmarkDps": 40432,
+        "benchmarkDps": 40431,
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/mesmer/condition-mirage-dune-cloak-staff-axe-torch",
         "upToDate": true
       }
