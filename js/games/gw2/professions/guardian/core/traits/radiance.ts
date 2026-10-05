@@ -225,7 +225,15 @@ export const justiceIsBlind = defineTrait({
   id: TRAIT.JUSTICE_IS_BLIND,
   name: 'Justice is Blind',
   balance: {
-    effects: [{ type: 'blind', name: 'Blind', duration: 3 }]
+    effects: [
+      {
+        type: 'condition',
+        condition: 'Blindness',
+        stacks: 1,
+        duration: 3,
+        name: 'Blind'
+      }
+    ]
   }
 });
 

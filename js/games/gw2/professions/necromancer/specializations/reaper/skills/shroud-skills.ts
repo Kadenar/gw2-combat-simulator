@@ -47,7 +47,14 @@ export const REAPER_SHROUD_SKILL_MECHANICS: Readonly<Record<number, Partial<Skil
     // A committed follow-up consumes its window and restores the parent.
     sideEffects: [{ on: 'castCommit', do: { type: 'flipConsume', skillId: ID.TERRIFY } }],
     castTimeMs: 320,
-    effects: [{ type: 'control', controlKind: 'fear' }],
+    effects: [
+      {
+        type: 'condition',
+        condition: 'Fear',
+        stacks: 1,
+        duration: 1
+      }
+    ],
     type: 'Profession',
     slot: 'Weapon_3',
     shroud: 'reaper',
@@ -215,7 +222,12 @@ export const REAPER_SHROUD_SKILL_MECHANICS: Readonly<Record<number, Partial<Skil
           coefficient: 1.625,
           name: "Death's Charge — Final Strike"
         },
-        { type: 'blind' }
+        {
+          type: 'condition',
+          condition: 'Blindness',
+          stacks: 1,
+          duration: 3
+        }
       ])
     ],
     type: 'Profession',

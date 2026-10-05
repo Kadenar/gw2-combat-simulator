@@ -323,8 +323,7 @@ test('Elixirs apply all authored packets together at impact', () => {
     const result = simulate('Harbinger', [name], { selectedSkillIds: [necromancerCatalog.skillsByName.get(name).id] });
     const impacts = result.events
       .filter(
-        (event) =>
-          event.skillId === skillId && ['damage', 'condition', 'buff', 'blind'].includes(String(event.type || ''))
+        (event) => event.skillId === skillId && ['damage', 'condition', 'buff'].includes(String(event.type || ''))
       )
       .map((event) => event.at);
 
@@ -365,11 +364,15 @@ test('Signet of Spite follows its live passive and active profile', () => {
     ['Bleeding', 2, 10],
     ['Poisoned', 2, 10],
     ['Torment', 2, 6],
+    ['Blindness', 1, 5],
     ['Crippled', 1, 10],
     ['Vulnerability', 5, 10],
     ['Weakness', 1, 10]
   ]);
-  assert.equal(signetEvents.find((event) => event.type === 'blind')?.duration, 5);
+  assert.equal(
+    signetEvents.find((event) => event.type === 'condition' && event.condition === 'Blindness')?.duration,
+    5
+  );
   assert.deepEqual(
     signetEvents
       .filter((event) => event.type === 'condition' && event.condition === 'Vulnerability')

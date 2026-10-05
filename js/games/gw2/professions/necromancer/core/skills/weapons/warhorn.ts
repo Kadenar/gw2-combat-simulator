@@ -10,8 +10,10 @@ export const NECROMANCER_WEAPONS_WARHORN_SKILL_MECHANICS: Readonly<Record<number
     castTimeMs: 1000,
     effects: [
       {
-        type: 'control',
-        controlKind: 'fear'
+        type: 'condition',
+        condition: 'Fear',
+        stacks: 1,
+        duration: 1
       }
     ]
   },

@@ -230,13 +230,14 @@ test('condition sampling restarts after an idle gap and preserves an unpaid hori
   }
 });
 
-// Trait-emitted Fear uses its damage formula; ordinary fear controls and ambient Fear remain harmless.
-test('explicit Fear condition applications deal damage in detailed and score output', () => {
+// Traits may add a damage formula while ordinary and ambient Fear remain harmless.
+test('a trait damage formula makes Fear damaging in detailed and score output', () => {
   for (const output of ['detailed', 'score']) {
     const control = {
-      type: 'control',
+      type: 'condition',
       at: 0,
-      controlKind: 'fear',
+      condition: 'Fear',
+      stacks: 1,
       duration: 1,
       source: 'Player',
       sourceId: 'fear-control',
@@ -244,14 +245,17 @@ test('explicit Fear condition applications deal damage in detailed and score out
     };
     const options = { output, target: { conditions: { Fear: true } } };
     assert.equal(resolve([control], options).conditionDamage, 0);
-    const result = resolve([control, condition(0, { condition: 'Fear', sourceId: 'terror' })], options);
+    const result = resolve(
+      [condition(0, { condition: 'Fear', sourceId: 'terror', conditionDamageFormula: { base: 444, scaling: 0.4 } })],
+      options
+    );
     assert.equal(result.conditionDamage, 444 + 0.4 * 125);
   }
 });
 
 // Zero-damage applications retain duration snapshots and live target effects, but never rebuild damage attributes.
 test('non-damaging conditions preserve other skills modifiers, expiry, and reporting without damage sampling', () => {
-  const statuses = ['Vulnerability', 'Chilled', 'Weakness', 'Crippled'];
+  const statuses = ['Vulnerability', 'Chilled', 'Weakness', 'Crippled', 'Blindness', 'Fear'];
   for (const output of ['detailed', 'score']) {
     const durationQueries = [];
     const strikes = [];
@@ -320,7 +324,7 @@ test('non-damaging conditions preserve other skills modifiers, expiry, and repor
     );
     assert.deepEqual(durationQueries, statuses);
     assert.deepEqual(applied, ['Bleeding', ...Array(5).fill('Vulnerability'), ...statuses.slice(1)]);
-    assert.deepEqual(strikes, [2, 1.05 * 6 * 2, 2]);
+    assert.deepEqual(strikes, [2, 1.05 * (statuses.length + 2) * 2, 2]);
     // Transient conditions affect intervening strikes, but have expired before Bleeding samples at 1s.
     assert.deepEqual([...bleeding], [[1000, 1]]);
     assert.ok(result.conditionDamage > 0);
@@ -335,6 +339,41 @@ test('non-damaging conditions preserve other skills modifiers, expiry, and repor
       const probeHits = result.resolvedEvents.filter((event) => event.sourceId === 'probe');
       assert.equal(probeHits[0].damage, probeHits[2].damage);
       assert.ok(probeHits[1].damage > probeHits[0].damage);
+    }
+  }
+});
+
+// Proc consumers see each accepted application after insertion; missed and precombat packets do not react.
+test('Blindness and Fear dispatch their reactions once per accepted condition stack', () => {
+  for (const output of ['detailed', 'score']) {
+    for (const [name, stage] of [
+      ['Blindness', 'blind.resolved'],
+      ['Fear', 'control.resolved']
+    ]) {
+      const seen = [];
+      const observe = (ctx, event) => {
+        assert.equal(event.type, 'condition');
+        assert.equal(event.condition, name);
+        assert.equal(event.sourceId, 'source-skill');
+        assert.equal(event.effectiveDuration, 2);
+        assert.equal(ctx.conditionState.get(name).stacks.at(-1).application.eventOrder, event.eventOrder);
+        if (name === 'Fear') assert.equal(event.controlKind, 'fear');
+        seen.push(stage);
+      };
+
+      const packet = condition(2, { condition: name, sourceId: 'source-skill', duration: 1, stacks: 2 });
+      const result = resolve([{ ...packet, at: 0 }, { ...packet, at: 1, offTarget: true }, packet], {
+        output,
+        combatStartTime: 1,
+        end: 4,
+        query: { conditionDurationMultiplier: () => 2 },
+        reactions: {
+          'condition.applied': () => seen.push('condition.applied'),
+          [stage]: observe
+        }
+      });
+      assert.deepEqual(seen, ['condition.applied', stage, 'condition.applied', stage]);
+      assert.equal(result.conditionDamage, 0);
     }
   }
 });

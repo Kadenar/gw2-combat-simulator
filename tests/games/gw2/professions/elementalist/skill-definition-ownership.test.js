@@ -487,8 +487,7 @@ test('Elemental Procession replays only surviving familiar payloads without fami
       false
     );
     const replay = result.events.filter(
-      (event) =>
-        ['damage', 'condition', 'control', 'blind'].includes(event.type) && event.triggeredBy === 'Elemental Procession'
+      (event) => ['damage', 'condition', 'control'].includes(event.type) && event.triggeredBy === 'Elemental Procession'
     );
     if (mode === 'removed' || mode === 'cancelled') assert.deepEqual(replay, []);
     else {

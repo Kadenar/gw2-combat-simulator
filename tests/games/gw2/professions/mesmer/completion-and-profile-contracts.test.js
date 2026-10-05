@@ -168,7 +168,9 @@ test('core blinds are five-second skill effects without duplicate completion eve
   ]) {
     const result = simulateMesmer(rotation, { specialization: 'Core', primaryWeapon, secondaryWeapon });
     assert.deepEqual(result.warnings, []);
-    const blinds = result.events.filter((event) => event.type === 'blind' && event.skillId === skillId);
+    const blinds = result.events.filter(
+      (event) => event.type === 'condition' && event.condition === 'Blindness' && event.skillId === skillId
+    );
     assert.equal(blinds.length, 1);
     assert.equal(blinds[0].duration, 5);
   }

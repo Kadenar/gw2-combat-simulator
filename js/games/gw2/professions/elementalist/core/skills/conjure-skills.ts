@@ -251,7 +251,13 @@ export const ELEMENTALIST_CONJURE_SKILL_MECHANICS: Readonly<Record<number, Parti
         ],
         metadata: {}
       },
-      { type: 'blind', duration: 3, applications: 1, controlKind: 'blind' }
+      {
+        type: 'condition',
+        condition: 'Blindness',
+        stacks: 1,
+        duration: 3,
+        applications: 1
+      }
     ])
   },
   [ID.LIGHTNING_LEAP]: {

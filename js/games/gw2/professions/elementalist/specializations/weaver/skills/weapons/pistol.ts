@@ -98,7 +98,13 @@ export const WEAVER_PISTOL_SKILL_MECHANICS: Readonly<Record<number, Partial<Skil
         ],
         metadata: {}
       },
-      { type: 'blind', applications: 1, controlKind: 'blind' },
+      {
+        type: 'condition',
+        condition: 'Blindness',
+        stacks: 1,
+        duration: 2,
+        applications: 1
+      },
       { type: 'condition', condition: 'Vulnerability', stacks: 5, duration: 5, metadata: {} }
     ]),
     specialization: 'Weaver'

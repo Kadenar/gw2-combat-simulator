@@ -1,6 +1,7 @@
 import { professionStaticRulesApplied } from '#gw2/platform/builds/attribute-provenance.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { targetConditionCount } from '#gw2/platform/combat/query/runtime-query.js';
+import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import { defineTrait, traitAttributeEffects } from '#gw2/platform/profession-definition/traits.js';
 import { NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
@@ -189,5 +190,16 @@ export const plagueSending = defineTrait({
   balance: { maximumConditions: 2 }
 });
 
-/** Owns Terror's ordered mechanic integration. */
-export const terror = defineTrait({ id: TRAIT.TERROR, name: 'Terror' });
+/** Terror adds damage to the skill's Fear application without creating another condition or control reaction. */
+export const terror = defineTrait({
+  id: TRAIT.TERROR,
+  name: 'Terror',
+  hooks: {
+    prepareEvent: (runtime, event) =>
+      event.type === 'condition' && event.condition === 'Fear' && hasTrait(runtime, TRAIT.TERROR)
+        ? { ...event, conditionDamageFormula: TERROR_DAMAGE }
+        : event
+  }
+});
+
+const TERROR_DAMAGE = Object.freeze({ base: 444, scaling: 0.4 });

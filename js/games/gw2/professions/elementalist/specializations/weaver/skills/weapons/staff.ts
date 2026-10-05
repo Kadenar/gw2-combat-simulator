@@ -33,7 +33,13 @@ export const WEAVER_STAFF_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill
     skillFamily: 'Weapon skill',
     effects: impactEffects({ atMs: 600, timingAnchor: 'castStart', timingScale: 'cast' }, [
       { type: 'strike', coefficient: 2 },
-      { type: 'blind', applications: 1, controlKind: 'blind' },
+      {
+        type: 'condition',
+        condition: 'Blindness',
+        stacks: 1,
+        duration: 4,
+        applications: 1
+      },
       { type: 'boon', boon: 'Regeneration', stacks: 1, duration: 4, metadata: {} }
     ]),
     specialization: 'Weaver'

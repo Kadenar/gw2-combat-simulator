@@ -87,9 +87,11 @@ export const ENGINEER_GRENADE_KIT_SKILL_MECHANICS: Readonly<Record<string, Parti
         projectile: true
       },
       {
-        type: 'blind',
-        actorType: 'player',
-        duration: 5
+        type: 'condition',
+        condition: 'Blindness',
+        stacks: 1,
+        duration: 5,
+        actorType: 'player'
       }
     ],
     kitId: ID.GRENADE_KIT

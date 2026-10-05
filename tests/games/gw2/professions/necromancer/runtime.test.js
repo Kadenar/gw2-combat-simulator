@@ -1521,19 +1521,48 @@ test('Fear of Death follows accepted fear with one cooldown and cannot fund entr
         runtime.effects.emit({
           kind: 'packet',
           event: {
-            type: 'control',
+            type: 'condition',
             at,
             source: 'necromancer',
             sourceId: ID.REAPERS_MARK,
             skillId: ID.REAPERS_MARK,
             actorType: 'player',
-            controlKind: 'fear'
+            condition: 'Fear',
+            duration: 1,
+            stacks: 1
           }
         });
     }
   };
   const repeated = simulate([wait(5000)], config, { profession });
   assert.equal(repeated.planningState.profession.lifeForce.value, 30);
+});
+
+// Terror changes the originating Fear's damage while control rewards still observe only one application.
+test('Terror adds damage to canonical Fear without duplicating Fear of Death', () => {
+  const damage = new Map();
+  for (const output of ['detailed', 'score']) {
+    for (const enabled of [false, true]) {
+      const config = {
+        ...base,
+        primaryWeapon: 'Staff',
+        selectedTraitIds: [TRAIT.FEAR_OF_DEATH, ...(enabled ? [TRAIT.TERROR] : [])],
+        sigilSets: [{ names: [] }]
+      };
+      const result = simulate([cast(ID.REAPERS_MARK), wait(3000)], config, { output });
+      assert.deepEqual(result.warnings, []);
+      assert.equal(observedRuntime(result).profession.core.lifeForce.value, 15);
+      if (enabled) assert.ok(result.conditionDamage > 0);
+      else assert.equal(result.conditionDamage, 0);
+      if (output === 'detailed') {
+        const fear = result.resolvedEvents.filter((event) => event.type === 'condition' && event.condition === 'Fear');
+        assert.equal(fear.length, 1);
+        assert.equal(fear[0].sourceId, ID.REAPERS_MARK);
+        assert.equal(fear[0].damage > 0, enabled);
+        damage.set(enabled, result.conditionDamage);
+      } else assert.equal(result.conditionDamage, damage.get(enabled));
+    }
+  }
 });
 
 // Completion-only reset and shard grants must remain canceled together if a cast never finishes.

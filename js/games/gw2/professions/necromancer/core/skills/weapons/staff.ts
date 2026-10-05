@@ -64,8 +64,10 @@ export const NECROMANCER_WEAPONS_STAFF_SKILL_MECHANICS: Readonly<Record<number, 
         hits: 1
       },
       {
-        type: 'control',
-        controlKind: 'fear'
+        type: 'condition',
+        condition: 'Fear',
+        stacks: 1,
+        duration: 1
       }
     ]
   },

@@ -123,7 +123,7 @@ export function timelineImpactOffsets(
   for (const event of ownPackets) {
     if (
       !event.activationId ||
-      !['damage', 'condition', 'control', 'blind'].includes(event.type) ||
+      !['damage', 'condition', 'control'].includes(event.type) ||
       event.controlKind === 'initial-state' ||
       (damagingActivations.has(event.activationId) &&
         !(event.type === 'damage' || (event.type === 'condition' && isDamagingCondition(event.condition))))

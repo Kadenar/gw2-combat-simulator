@@ -76,9 +76,11 @@ export const HERALD_BASE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>
         actorType: 'player'
       },
       {
-        type: 'blind',
-        actorType: 'player',
-        duration: 5
+        type: 'condition',
+        condition: 'Blindness',
+        stacks: 1,
+        duration: 5,
+        actorType: 'player'
       }
     ],
     legendId: 'LegendaryDragon',

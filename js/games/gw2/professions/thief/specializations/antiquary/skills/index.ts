@@ -280,9 +280,11 @@ export const ANTIQUARY_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>>
         timingScale: 'fixed'
       },
       {
-        type: 'blind',
-        actorType: 'player',
-        duration: 5
+        type: 'condition',
+        condition: 'Blindness',
+        stacks: 1,
+        duration: 5,
+        actorType: 'player'
       }
     ],
     artifactKind: 'defensive'

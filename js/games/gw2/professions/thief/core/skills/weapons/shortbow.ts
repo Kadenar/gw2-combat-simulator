@@ -70,7 +70,10 @@ export const THIEF_WEAPONS_SHORTBOW_SKILL_MECHANICS: Readonly<Record<number, Par
     initiativeCost: 6,
     effects: [
       {
-        type: 'blind',
+        type: 'condition',
+        condition: 'Blindness',
+        stacks: 1,
+        duration: 5,
         actorType: 'player'
       }
     ]

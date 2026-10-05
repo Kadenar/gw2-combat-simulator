@@ -104,7 +104,7 @@ test('activation hit counts exclude non-damaging debuffs and control application
       { activationId, type: 'condition', condition: 'Vulnerability', at: 0.4 },
       { activationId, type: 'condition', condition: 'Crippled', at: 0.5 },
       { activationId, type: 'control', controlKind: 'daze', at: 0.6 },
-      { activationId, type: 'blind', at: 0.7 },
+      { activationId, type: 'condition', condition: 'Blindness', stacks: 1, duration: 3, at: 0.7 },
       { activationId, type: 'damage', at: 1 },
       { activationId, type: 'condition', condition: 'Bleeding', at: 1 },
       { activationId, type: 'damage', at: 2 }

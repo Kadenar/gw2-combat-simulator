@@ -158,7 +158,14 @@ export const MESMER_WEAPONS_STAFF_SKILL_MECHANICS: Readonly<Record<number, Parti
     rechargeAnchor: 'castStart',
     effects: [
       // The activation blinds once for five seconds, independently of its Confusion.
-      { type: 'blind', duration: 5, source: 'Player', actorType: 'player' },
+      {
+        type: 'condition',
+        condition: 'Blindness',
+        stacks: 1,
+        duration: 5,
+        source: 'Player',
+        actorType: 'player'
+      },
       {
         type: 'condition',
         condition: 'confusion',

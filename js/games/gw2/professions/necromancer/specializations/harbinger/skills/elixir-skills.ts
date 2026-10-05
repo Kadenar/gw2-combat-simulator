@@ -47,7 +47,12 @@ export const HARBINGER_ELIXIR_SKILL_MECHANICS: Readonly<Record<number, Partial<S
     castTimeMs: 360,
     effects: impactEffects({ atMs: 0, timingAnchor: 'castEnd', timingScale: 'fixed' }, [
       { type: 'strike', coefficient: 0.8, hits: 1 },
-      { type: 'blind', duration: 0 }
+      {
+        type: 'condition',
+        condition: 'Blindness',
+        stacks: 1,
+        duration: 2
+      }
     ])
   },
   [ID.ELIXIR_OF_AMBITION]: {

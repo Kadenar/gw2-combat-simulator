@@ -1120,7 +1120,9 @@ test('cross-specialization Necromancer trait triggers remain executable', () => 
     true
   );
   assert.equal(
-    fear.resolvedEvents.some((event) => event.sourceId === TRAIT.TERROR && event.condition === 'Fear'),
+    fear.resolvedEvents.some(
+      (event) => event.skillId === ID.REAPERS_MARK && event.condition === 'Fear' && event.damage > 0
+    ),
     true
   );
   assert.ok(fear.conditionDamage > 0);

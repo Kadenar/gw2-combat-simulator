@@ -740,7 +740,13 @@ export const ELEMENTALIST_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Pa
     skillFamily: 'Weapon skill',
     effects: impactEffects({ atMs: 560, timingAnchor: 'castStart', timingScale: 'cast' }, [
       { type: 'strike', coefficient: 1.75 },
-      { type: 'blind', applications: 1, controlKind: 'blind' },
+      {
+        type: 'condition',
+        condition: 'Blindness',
+        stacks: 1,
+        duration: 3,
+        applications: 1
+      },
       { type: 'condition', condition: 'Crippled', stacks: 1, duration: 5, metadata: {} }
     ])
   },
@@ -759,7 +765,13 @@ export const ELEMENTALIST_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Pa
     skillFamily: 'Weapon skill',
     effects: impactEffects({ atMs: 560, timingAnchor: 'castStart', timingScale: 'cast' }, [
       { type: 'strike', coefficient: 4.25 },
-      { type: 'blind', applications: 1, controlKind: 'blind' },
+      {
+        type: 'condition',
+        condition: 'Blindness',
+        stacks: 1,
+        duration: 3,
+        applications: 1
+      },
       { type: 'condition', condition: 'Vulnerability', stacks: 5, duration: 6, metadata: {} },
       { type: 'condition', condition: 'Weakness', stacks: 1, duration: 4, metadata: {} },
       { type: 'condition', condition: 'Crippled', stacks: 1, duration: 5, metadata: {} }

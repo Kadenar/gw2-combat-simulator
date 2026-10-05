@@ -45,16 +45,18 @@ test('Wanderlust omits minion knockdown while its player controls still apply', 
     ]
   );
   assert.deepEqual(
-    controls(innervated).map((event) => ({
-      skillId: event.skillId,
-      controlKind: event.controlKind,
-      actorType: event.actorType,
-      spiritAttackType: event.metadata?.spiritAttackType
-    })),
+    innervated.events
+      .filter((event) => event.type === 'condition' && event.condition === 'Fear')
+      .map((event) => ({
+        skillId: event.skillId,
+        condition: event.condition,
+        actorType: event.actorType,
+        spiritAttackType: event.metadata?.spiritAttackType
+      })),
     [
       {
         skillId: ID.INNERVATE_WANDERLUST,
-        controlKind: 'fear',
+        condition: 'Fear',
         actorType: 'player',
         spiritAttackType: 'innervate'
       }

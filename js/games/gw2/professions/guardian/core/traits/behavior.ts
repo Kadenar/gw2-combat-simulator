@@ -162,19 +162,22 @@ export function justiceIsBlindEligible(runtime: Runtime, skill: Skill): boolean 
 /** Emit the surviving Blind packet after Luminary schedules its independent aura grant. */
 export function emitJusticeIsBlind(runtime: Runtime, event: Gw2ResolverEvent, skill: Skill): void {
   const profile = requireBalanceProfileFromContext(runtime, TRAIT.JUSTICE_IS_BLIND);
-  const blind = requireEffect(profile, 'blind', 'Blind');
+  const blind = requireEffect(profile, 'condition', 'Blind');
   if (blind)
     runtime.effects.emit({
       kind: 'packet',
       event: {
         ...event,
-        type: 'blind',
+        type: 'condition',
+        condition: 'Blindness',
+        stacks: effectNumber(profile, blind, 'stacks'),
+        duration: effectNumber(profile, blind, 'duration'),
         sourceId: TRAIT.JUSTICE_IS_BLIND,
         skillId: TRAIT.JUSTICE_IS_BLIND,
         actorType: 'effect',
+        ownerActorType: 'player',
         skillName: 'Justice is Blind',
-        triggeredBy: skill.name,
-        duration: effectNumber(profile, blind, 'duration')
+        triggeredBy: skill.name
       }
     });
 }

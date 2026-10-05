@@ -102,7 +102,9 @@ export const WARRIOR_WEAPONS_LONGBOW_SKILL_MECHANICS: Readonly<Record<number, Pa
         damageKind: 'explosion'
       },
       {
-        type: 'blind',
+        type: 'condition',
+        condition: 'Blindness',
+        stacks: 1,
         duration: 5
       },
       {

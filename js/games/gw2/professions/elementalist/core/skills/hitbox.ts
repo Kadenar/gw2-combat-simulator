@@ -93,7 +93,7 @@ export function withSmallHitboxCap(skill: Partial<Skill>, smallHitboxCap: number
         };
       }
 
-      if (effect.type !== 'condition' && effect.type !== 'blind' && effect.type !== 'control') {
+      if (effect.type !== 'condition' && effect.type !== 'control') {
         return effect;
       }
 

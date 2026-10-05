@@ -276,9 +276,10 @@ export function createGw2ConditionResolution({
     };
     for (const state of ctx.conditionState.values()) {
       for (const group of state.groups?.values() ?? []) {
-        // Explicit applications may use trait-only formulas such as Terror's Fear outside the standard damaging subset.
-        const dealsDamage = Object.hasOwn(CONDITION_FORMULAS, group.condition);
         for (const application of group.applications) {
+          // Optional trait damage belongs to the accepted application; ordinary conditions use their shared formula.
+          const formula = application.conditionDamageFormula;
+          const dealsDamage = formula != null || Object.hasOwn(CONDITION_FORMULAS, group.condition);
           if (isRemoved(application, at)) continue;
           // An off-grid expiry samples only its own tail; other applications retain their regular sampling times.
           if (!onGrid && at !== application.naturalExpiresAt) continue;
@@ -293,7 +294,9 @@ export function createGw2ConditionResolution({
               const calculation = application.conditionCalculation;
               const damageContributors: Gw2ModifierContribution[] | undefined =
                 calculation && calculation.multiplier == null ? [] : undefined;
-              const rate = conditionRate(ctx, group.condition, stats.conditionDamage);
+              const rate = formula
+                ? formula.base + formula.scaling * stats.conditionDamage
+                : conditionRate(ctx, group.condition, stats.conditionDamage);
               const multiplier = ctx.query.conditionMultiplier(
                 group.condition,
                 at,
@@ -444,8 +447,15 @@ export function createGw2ConditionResolution({
         conditionStackIndex: index + 1,
         activeConditionStackCount
       });
-      // Blind consumers observe the successful condition application exactly once.
+      // Blind and fear reactions observe accepted condition state, without separate trigger packets.
       if (name === 'Blindness') reactions.dispatch('blind.resolved', ctx, application);
+      if (name === 'Fear')
+        reactions.dispatch(
+          'control.resolved',
+          ctx,
+          { ...application, controlKind: 'fear' },
+          { activeConditionStackCount }
+        );
       applications.push(application);
     }
 

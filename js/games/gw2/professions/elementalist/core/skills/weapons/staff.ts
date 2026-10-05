@@ -113,7 +113,13 @@ export const ELEMENTALIST_CORE_STAFF_SKILL_MECHANICS: Readonly<Record<number, Pa
         duration: 6,
         metadata: {}
       },
-      { type: 'blind', applications: 1, controlKind: 'blind' }
+      {
+        type: 'condition',
+        condition: 'Blindness',
+        stacks: 1,
+        duration: 3,
+        applications: 1
+      }
     ])
   },
   // Leaves a burning trail: one strike as the skill starts plus six field-tick packets one
@@ -424,7 +430,13 @@ export const ELEMENTALIST_CORE_STAFF_SKILL_MECHANICS: Readonly<Record<number, Pa
     skillFamily: 'Weapon skill',
     effects: impactEffects({ atMs: 800, timingAnchor: 'castStart', timingScale: 'cast' }, [
       { type: 'strike', coefficient: 1.8 },
-      { type: 'blind', applications: 1, controlKind: 'blind' }
+      {
+        type: 'condition',
+        condition: 'Blindness',
+        stacks: 1,
+        duration: 5,
+        applications: 1
+      }
     ])
   },
   [ID.GUST]: {

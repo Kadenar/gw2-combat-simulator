@@ -61,7 +61,10 @@ test('Shimmering Stances grants party Protection and blinds only with the trait 
       const effects = result.resolvedEvents.filter((event) => event.sourceId === GUARDIAN_TRAIT_IDS.SHIMMERING_STANCES);
       const protection = effects.filter((event) => event.type === 'buff' && event.kind === 'protection');
       const blind = result.events.filter(
-        (event) => event.sourceId === GUARDIAN_TRAIT_IDS.SHIMMERING_STANCES && event.type === 'blind'
+        (event) =>
+          event.sourceId === GUARDIAN_TRAIT_IDS.SHIMMERING_STANCES &&
+          event.type === 'condition' &&
+          event.condition === 'Blindness'
       );
       const eligible = traited && !interrupted && name !== 'Orb of Wrath';
       assert.deepEqual(result.warnings, [], name);
@@ -1175,7 +1178,10 @@ test('Luminary Light Aura follows resolved combos instead of hardcoded leap cast
   const dazzlingUnbound = simulate(['Enter Radiant Forge', 'Dazzling Hammer']);
   const dazzlingBound = simulate(['Symbol of Resolution', 'Enter Radiant Forge', 'Dazzling Hammer']);
 
-  assert.equal(unbound.events.find((event) => event.type === 'blind').duration, 3);
+  assert.equal(
+    unbound.events.find((event) => event.type === 'condition' && event.condition === 'Blindness').duration,
+    3
+  );
   assert.equal(combo(unbound, 'Leap of Faith'), undefined);
   assert.equal(
     unbound.resolvedEvents.some((event) => event.name === 'Sovereign of Light'),
@@ -1306,7 +1312,11 @@ test('Sovereign of Light consumes combo and trait-granted light auras', () => {
     sovereignProcs.every((step) => Boolean(step.icon)),
     true
   );
-  assert.ok(justice.events.some((event) => event.type === 'blind' && event.skillName === 'Justice is Blind'));
+  assert.ok(
+    justice.events.some(
+      (event) => event.type === 'condition' && event.condition === 'Blindness' && event.skillName === 'Justice is Blind'
+    )
+  );
   assert.equal(justice.resolvedEvents.filter((event) => event.name === 'Sovereign of Light').length, 1);
   // Activating Radiant Justice disables its passive counter until recharge completes.
   assert.equal(activationJustice.planningState.profession.justiceHitCount, 0);

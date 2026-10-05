@@ -114,19 +114,13 @@ export interface ControlEffect extends SkillEffectBase {
   readonly controlKind?: string;
 }
 
-/** Blind retains its status duration independently of control applications. */
-export interface BlindEffect extends SkillEffectBase {
-  readonly type: 'blind';
-  readonly duration?: number;
-}
-
 export interface CustomEffect extends SkillEffectBase {
   readonly type: 'custom';
   readonly eventType: string;
   readonly event: Readonly<Record<string, unknown>>;
 }
 
-export type SkillEffect = StrikeEffect | ConditionEffect | ControlEffect | BlindEffect | StatusEffect | CustomEffect;
+export type SkillEffect = StrikeEffect | ConditionEffect | ControlEffect | StatusEffect | CustomEffect;
 
 export interface StatusEffect extends SkillEffectBase {
   readonly type: 'boon' | 'buff';

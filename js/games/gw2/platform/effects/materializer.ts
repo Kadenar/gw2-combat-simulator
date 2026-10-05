@@ -5,7 +5,7 @@ import { projectCastRelativeEffectTimingMs } from '#gw2/platform/execution/cast-
 import type { Skill, SkillId } from '#gw2/platform/skills/types.js';
 /**
  * Effect materialization. Expands one canonical skill effect (strike,
- * condition, control, blind, boon/buff, or custom) into its ordered timed event
+ * condition, control, boon/buff, or custom) into its ordered timed event
  * applications, resolving per-tick timing against the cast start or end. Cast
  * interruption and actual event emission remain scheduler concerns.
  */
@@ -219,7 +219,7 @@ export function materializeSkillEffectApplications({
         }
       });
     }
-  } else if (effect.type === 'control' || effect.type === 'blind') {
+  } else if (effect.type === 'control') {
     const count = Math.max(1, Math.trunc(effect.applications || 1));
     const interval = Math.max(0, effect.intervalMs || 0) / 1000;
     for (let applicationIndex = 1; applicationIndex <= count; applicationIndex += 1) {
@@ -231,8 +231,6 @@ export function materializeSkillEffectApplications({
           at,
           type: effect.type,
           ...(effect.controlKind != null ? { controlKind: effect.controlKind } : {}),
-          // Controls are instantaneous proc facts; only blindness retains an authored duration.
-          ...(effect.type === 'blind' && effect.duration != null ? { duration: effect.duration } : {}),
           applicationIndex,
           totalApplications: count,
           ...nestedEffectMetadata(baseEvent.metadata, effect.metadata),

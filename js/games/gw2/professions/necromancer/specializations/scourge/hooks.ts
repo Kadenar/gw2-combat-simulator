@@ -203,19 +203,22 @@ export const scourgeHooks: RuntimeHooks<NecromancerRuntimeState, NecromancerSkil
     'scourge.garish-pillar'(runtime, context) {
       if (context.kind !== 'cast') return;
       const profile = requireBalanceProfileFromContext(runtime, PROFILE.garishPillar);
-      if (requireEffect(profile, 'control', 'Control')) {
+      const fear = requireEffect(profile, 'condition', 'Fear');
+      if (fear) {
         // Shared emission owns transport; the mechanic selects attribution and delivery.
         const emissionRuntime: NecromancerRuntime = runtime;
         const emissionCast: RuntimeCast<NecromancerSkill> = context.cast;
         const emissionEvent: SimulationEventBase = {
-          type: 'control',
+          type: 'condition',
+          condition: 'Fear',
+          stacks: Number(fear.stacks),
+          duration: Number(fear.duration),
           at: runtime.time,
           source: 'necromancer',
           sourceId: context.skill.id,
           actorType: 'player',
           skillId: context.skill.id,
-          skillName: context.skill.name,
-          controlKind: 'fear'
+          skillName: context.skill.name
         };
 
         emissionRuntime.effects.emit({

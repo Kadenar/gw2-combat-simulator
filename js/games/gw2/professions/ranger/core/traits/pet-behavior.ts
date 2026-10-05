@@ -276,20 +276,23 @@ export function triggerMergedGoForTheThroat(context: RangerResolverContext, even
 export function triggerMergedGoForTheEyes(context: RangerResolverContext, event: Gw2ResolverEvent): void {
   if (hasTrait(context, TRAIT.GO_FOR_THE_EYES)) {
     const profile = requireBalanceProfileFromContext(context, TRAIT.GO_FOR_THE_EYES);
-    const blind = requireEffect(profile, 'blind', 'Blind');
+    const blind = requireEffect(profile, 'condition', 'Blind');
     // The cooldown gates only the blind, so a removed blind leaves it ready.
     if (blind && context.procs.claim(TRAIT.GO_FOR_THE_EYES, 'ranger.soulbeast.goForTheEyes', event.at)) {
       context.effects.emit({
         kind: 'packet',
         event: {
-          type: 'blind',
+          type: 'condition',
+          condition: 'Blindness',
+          stacks: effectNumber(profile, blind, 'stacks'),
+          duration: effectNumber(profile, blind, 'duration'),
           at: event.at,
           source: 'Trait',
           sourceId: TRAIT.GO_FOR_THE_EYES,
           actorType: 'effect',
+          ownerActorType: 'player',
           skillId: TRAIT.GO_FOR_THE_EYES,
           skillName: 'Go for the Eyes',
-          duration: effectNumber(profile, blind, 'duration'),
           triggeredBy: event.skillName
         }
       });

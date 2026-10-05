@@ -173,7 +173,6 @@ export function createEffectTemplate(type: string): SkillEffect {
     case 'buff':
       return { type, kind: 'buff', stacks: 1, duration: 1 };
     case 'control':
-    case 'blind':
       return { type };
     case 'custom':
       return { type, eventType: 'custom', event: {} };

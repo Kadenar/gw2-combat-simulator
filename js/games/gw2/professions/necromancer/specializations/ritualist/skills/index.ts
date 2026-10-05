@@ -89,7 +89,14 @@ export const RITUALIST_BASE_SKILL_MECHANICS: Readonly<Record<number, Partial<Ski
     effectVariants: [{ when: () => true, transform: () => [] }],
     castTimeMs: 0,
 
-    effects: [{ type: 'control', controlKind: 'fear' }],
+    effects: [
+      {
+        type: 'condition',
+        condition: 'Fear',
+        stacks: 1,
+        duration: 2
+      }
+    ],
     usableInShroud: true
   },
   [ID.NIGHTMARE_WEAPON]: {

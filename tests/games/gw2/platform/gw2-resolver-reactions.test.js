@@ -49,7 +49,14 @@ test('GW2 resolver registry orders hooks stably and returns the last result', ()
 
   assert.deepEqual(registry.dispatch('damage.resolved', {}, { type: 'damage', at: 0 }), { owner: 'last' });
   assert.deepEqual(calls, ['early', 'profession', 'tie-a', 'tie-b']);
-  assert.equal(registry.dispatch('blind.resolved', {}, { type: 'blind', at: 0 }), undefined);
+  assert.equal(
+    registry.dispatch(
+      'blind.resolved',
+      {},
+      { type: 'condition', condition: 'Blindness', stacks: 1, duration: 3, at: 0 }
+    ),
+    undefined
+  );
 });
 
 // Generic buffs share the stage with boons but must not activate relic boon rules.

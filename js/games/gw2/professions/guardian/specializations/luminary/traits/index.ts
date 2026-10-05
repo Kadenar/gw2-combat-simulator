@@ -16,7 +16,13 @@ export const shimmeringStances = defineTrait({
   balance: {
     effects: [
       { type: 'boon', name: 'protection', boon: 'protection', duration: 3, audience: { recipients: 'party' } },
-      { type: 'blind', name: 'Blind', duration: 3 }
+      {
+        type: 'condition',
+        condition: 'Blindness',
+        stacks: 1,
+        duration: 3,
+        name: 'Blind'
+      }
     ]
   },
   triggers: [

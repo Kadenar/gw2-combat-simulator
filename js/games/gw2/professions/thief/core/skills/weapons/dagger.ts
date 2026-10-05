@@ -158,9 +158,11 @@ export const THIEF_WEAPONS_DAGGER_SKILL_MECHANICS: Readonly<Record<number, Parti
         metadata: {}
       },
       {
-        type: 'blind',
-        actorType: 'player',
-        duration: 5
+        type: 'condition',
+        condition: 'Blindness',
+        stacks: 1,
+        duration: 5,
+        actorType: 'player'
       }
     ],
     requiredMainHand: 'Dagger',

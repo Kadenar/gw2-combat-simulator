@@ -65,7 +65,10 @@ export const THIEF_MISC_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>
         timingScale: 'fixed'
       },
       {
-        type: 'blind',
+        type: 'condition',
+        condition: 'Blindness',
+        stacks: 1,
+        duration: 2,
         actorType: 'player'
       }
     ]

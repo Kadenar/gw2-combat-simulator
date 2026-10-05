@@ -83,7 +83,10 @@ export const ENGINEER_WEAPONS_PISTOL_SKILL_MECHANICS: Readonly<Record<number, Pa
         actorType: 'player'
       },
       {
-        type: 'blind',
+        type: 'condition',
+        condition: 'Blindness',
+        stacks: 1,
+        duration: 3,
         actorType: 'player'
       }
     ]

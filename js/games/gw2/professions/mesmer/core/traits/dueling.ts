@@ -15,7 +15,7 @@ import {
   requireEffect
 } from '#gw2/platform/skills/balance-profiles.js';
 import { illusionSource, timedStacks } from '#gw2/professions/mesmer/core/mechanics/modifier-queries.js';
-import { buildMesmerPacket, mesmerPacketOwner } from '#gw2/professions/mesmer/core/mechanics/packets.js';
+import { mesmerPacketOwner } from '#gw2/professions/mesmer/core/mechanics/packets.js';
 import { MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
 import type { MesmerEventExtra, MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
 import { gw2ActivePrimaryWeapon } from '#gw2/platform/equipment/weapons/loadout.js';
@@ -143,7 +143,10 @@ export const superiorityComplex = defineTrait<MesmerSkill>({
 /** Blindness follows the native confusion shatter packets at their existing emission boundary. */
 export const blindingDissipation = defineTrait<MesmerSkill>({
   id: TRAIT.BLINDING_DISSIPATION,
-  name: 'Blinding Dissipation'
+  name: 'Blinding Dissipation',
+  balance: {
+    effects: [{ name: 'Blindness', type: 'condition', condition: 'Blindness', stacks: 1, duration: 3 }]
+  }
 });
 
 /** Mirage invokes this reward only after its dodge has granted cloak. */
@@ -248,14 +251,28 @@ export function triggerBlindingDissipation(
   delivery: EffectDelivery = {}
 ): void {
   if (!hasTrait(context, TRAIT.BLINDING_DISSIPATION)) return;
+  const profile = requireBalanceProfileFromContext(context, TRAIT.BLINDING_DISSIPATION);
+  const effect = requireEffect(profile, 'condition', 'Blindness');
+  if (!effect) return;
   {
-    const packet = buildMesmerPacket({ type: 'blind', at, skillName, count });
+    const packet = buildResolverCondition({
+      at,
+      skillName,
+      name: 'Blinding Dissipation',
+      source: 'Trait',
+      sourceId: TRAIT.BLINDING_DISSIPATION,
+      actorType: 'effect',
+      ownerActorType: 'player',
+      condition: 'Blindness',
+      stacks: Number(effect.stacks) * count,
+      duration: Number(effect.duration)
+    });
     context.effects.emit({
       ...delivery,
       kind: 'packet',
       event: packet,
       owner: mesmerPacketOwner(packet),
-      priority: Number(packet.priority ?? 0)
+      priority: 0
     });
   }
 

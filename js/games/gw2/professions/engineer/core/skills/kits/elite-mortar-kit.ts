@@ -32,7 +32,10 @@ export const ENGINEER_ELITE_MORTAR_KIT_SKILL_MECHANICS: Readonly<Record<string, 
         actorType: 'player'
       },
       {
-        type: 'blind',
+        type: 'condition',
+        condition: 'Blindness',
+        stacks: 1,
+        duration: 5,
         actorType: 'player'
       }
     ],

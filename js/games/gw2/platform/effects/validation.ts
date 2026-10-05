@@ -11,7 +11,7 @@ import { weaponStrengthProfile } from '#gw2/platform/equipment/weapons/strength.
 
 // Closed vocabulary sets used for fast membership checks during catalog validation.
 // Any value outside these sets is rejected as an authoring error.
-const EFFECT_TYPES = new Set(['strike', 'condition', 'control', 'blind', 'boon', 'buff', 'custom']);
+const EFFECT_TYPES = new Set(['strike', 'condition', 'control', 'boon', 'buff', 'custom']);
 
 const TIMING_ANCHORS = new Set(['castStart', 'castEnd']);
 
@@ -402,7 +402,6 @@ function normalizeEffectFields(effect: unknown, label: string): SkillEffect {
     if (
       normalizedEffect.type !== 'condition' &&
       normalizedEffect.type !== 'control' &&
-      normalizedEffect.type !== 'blind' &&
       normalizedEffect.type !== 'boon' &&
       normalizedEffect.type !== 'buff' &&
       normalizedEffect.type !== 'custom'

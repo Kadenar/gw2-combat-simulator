@@ -805,7 +805,12 @@ test("Nature's Vengeance repeats each spirit slam after its final shake without 
             1
           );
         if (skillId === ID.SUN_SPIRIT)
-          assert.equal(result.events.filter((event) => event.skillId === skillId && event.type === 'blind').length, 1);
+          assert.equal(
+            result.events.filter(
+              (event) => event.skillId === skillId && event.type === 'condition' && event.condition === 'Blindness'
+            ).length,
+            1
+          );
       }
     }
   }

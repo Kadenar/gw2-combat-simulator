@@ -415,7 +415,7 @@ function skillDetail(
       <div class="patch-effect-list">${effectCards(skill) || '<p class="patch-empty-inline">No live effects.</p>'}</div>
       <div class="patch-add-effect-controls">
         <select data-new-effect-type aria-label="New effect type">
-          ${['strike', 'condition', 'boon', 'buff', 'control', 'blind', 'custom'].map((type) => `<option value="${type}">${type}</option>`).join('')}
+          ${['strike', 'condition', 'boon', 'buff', 'control', 'custom'].map((type) => `<option value="${type}">${type}</option>`).join('')}
         </select>
         <button type="button" data-add-effect="${escapeHtml(skill.id)}">Add effect</button>
       </div>

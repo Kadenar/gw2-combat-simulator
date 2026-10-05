@@ -18,7 +18,7 @@ test('shared impacts preserve event order, local attribution and recipient owner
         castTimeMs: 400,
         effects: impactEffects(timing, [
           strike,
-          { type: 'blind', duration: 3 },
+          { type: 'condition', condition: 'Blindness', stacks: 1, duration: 3 },
           {
             type: 'boon',
             boon: 'might',
@@ -28,21 +28,21 @@ test('shared impacts preserve event order, local attribution and recipient owner
             ownerActorType: 'player',
             metadata: { packetKind: 'impact-boon' }
           },
-          { type: 'blind', duration: 1, atMs: 300 }
+          { type: 'condition', condition: 'Blindness', stacks: 1, duration: 1, atMs: 300 }
         ])
       }
     ]
   });
   const profession = defineTestProfession({ id: 'impacts', name: 'Impacts', catalog });
   const result = simulateGw2({ profession, rotation: ['Impact'] });
-  const packets = result.events.filter((event) => ['damage', 'blind', 'buff'].includes(event.type));
+  const packets = result.events.filter((event) => ['damage', 'condition', 'buff'].includes(event.type));
   assert.deepEqual(
     packets.map(({ type, source, sourceId, skillId }) => [type, source, sourceId, skillId]),
     [
       ['buff', 'impacts', 1, 1],
       ['damage', 'impact', 2, 1],
-      ['blind', 'impacts', 1, 1],
-      ['blind', 'impacts', 1, 1]
+      ['condition', 'impacts', 1, 1],
+      ['condition', 'impacts', 1, 1]
     ]
   );
   assert.deepEqual(packets[0].audience, { recipients: 'party', affectsSelf: false, maximumRecipients: 2 });
@@ -54,7 +54,7 @@ test('shared impacts preserve event order, local attribution and recipient owner
 
 // Grouping is authoring sugar: malformed timing and payloads still fail at the catalog boundary.
 test('shared impacts retain canonical catalog validation', () => {
-  const load = (timing, effect = { type: 'blind', duration: 1 }) =>
+  const load = (timing, effect = { type: 'condition', condition: 'Blindness', stacks: 1, duration: 1 }) =>
     createCanonicalCatalog({
       generated: [{ id: 1, name: 'Invalid impact', effects: impactEffects(timing, [effect]) }]
     });

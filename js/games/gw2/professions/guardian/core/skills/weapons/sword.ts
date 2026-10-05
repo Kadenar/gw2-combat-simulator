@@ -21,7 +21,10 @@ export const GUARDIAN_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Par
         timingScale: 'fixed'
       },
       {
-        type: 'blind'
+        type: 'condition',
+        condition: 'Blindness',
+        stacks: 1,
+        duration: 3
       },
       {
         type: 'boon',

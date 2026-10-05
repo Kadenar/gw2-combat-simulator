@@ -135,7 +135,10 @@ export const ENGINEER_BOMB_KIT_SKILL_MECHANICS: Readonly<Record<string, Partial<
     cooldown: 20,
     effects: [
       {
-        type: 'blind',
+        type: 'condition',
+        condition: 'Blindness',
+        stacks: 1,
+        duration: 3,
         actorType: 'player'
       }
     ],

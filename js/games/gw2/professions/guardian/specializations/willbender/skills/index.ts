@@ -34,7 +34,10 @@ export const WILLBENDER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>
         controlKind: 'control'
       },
       {
-        type: 'blind'
+        type: 'condition',
+        condition: 'Blindness',
+        stacks: 1,
+        duration: 5
       }
     ]
   },

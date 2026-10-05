@@ -293,7 +293,7 @@ test('Thief catalog retains valid effect schemas and skill metadata', () => {
         for (const packet of effect.ticks ?? [effect]) {
           assert.ok(packet.condition, skill.name);
           assert.ok(packet.stacks > 0 && packet.duration > 0, skill.name);
-          assert.ok(Number.isFinite(packet.atMs), skill.name);
+          assert.ok(packet.atMs == null || Number.isFinite(packet.atMs), skill.name);
         }
       }
     }

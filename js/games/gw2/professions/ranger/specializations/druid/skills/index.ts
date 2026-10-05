@@ -35,7 +35,9 @@ export const DRUID_BASE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>
   [ID.SEED_OF_LIFE]: {
     effects: [
       {
-        type: 'blind',
+        type: 'condition',
+        condition: 'Blindness',
+        stacks: 1,
         duration: 4
       }
     ],

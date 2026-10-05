@@ -20,7 +20,7 @@ test('small-hitbox caps pair offensive packets by timestamp and occurrence while
             metadata: { original: true }
           }))
         },
-        ...[100, 100, 200].map((atMs) => ({ type: 'blind', atMs })),
+        ...[100, 100, 200].map((atMs) => ({ type: 'condition', condition: 'Blindness', stacks: 1, duration: 3, atMs })),
         { type: 'boon', boon: 'Resistance', atMs: 200, stacks: 1, duration: 4 },
         { type: 'buff', kind: 'test buff', atMs: 200, stacks: 1, duration: 4 },
         { type: 'condition', condition: 'Weakness', atMs: 150, stacks: 1, duration: 3 },

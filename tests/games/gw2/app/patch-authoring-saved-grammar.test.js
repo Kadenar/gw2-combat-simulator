@@ -38,7 +38,7 @@ for (const section of ['skills', 'balanceProfiles']) {
                   duration: 5,
                   audience: { recipients: 'party', maximumRecipients: 5 }
                 },
-                { type: 'blind', name: 'Removed' }
+                { type: 'condition', condition: 'Blindness', stacks: 1, duration: 3, name: 'Removed' }
               ]
             : [])
         ]
@@ -65,7 +65,7 @@ for (const section of ['skills', 'balanceProfiles']) {
               conditions: { Burning: { duration: { add: 2 } } },
               boons: { might: { stacks: 3 } },
               removeEffects: [{ name: 'Removed' }],
-              addEffects: [{ type: 'blind', name: 'Added' }]
+              addEffects: [{ type: 'condition', condition: 'Blindness', stacks: 1, duration: 3, name: 'Added' }]
             }
           : {})
       };
@@ -125,7 +125,7 @@ for (const section of ['skills', 'balanceProfiles']) {
           .flatMap((effect) => (effect.ticks ? effect.ticks.map((tick) => tick.coefficient) : [effect.coefficient]))
       );
       if (stacked) {
-        assert.deepEqual(displayed('duration'), [5, 5]);
+        assert.deepEqual(displayed('duration'), [5, 5, 3]);
         assert.deepEqual(displayed('audience.maximumRecipients'), [2]);
       }
 

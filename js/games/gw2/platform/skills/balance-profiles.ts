@@ -1,5 +1,4 @@
 import type {
-  BlindEffect,
   ConditionEffect,
   ControlEffect,
   CustomEffect,
@@ -20,13 +19,11 @@ type SkillEffectByType<TType extends SkillEffect['type']> = TType extends Strike
     ? ConditionEffect
     : TType extends ControlEffect['type']
       ? ControlEffect
-      : TType extends BlindEffect['type']
-        ? BlindEffect
-        : TType extends StatusEffect['type']
-          ? StatusEffect
-          : TType extends CustomEffect['type']
-            ? CustomEffect
-            : never;
+      : TType extends StatusEffect['type']
+        ? StatusEffect
+        : TType extends CustomEffect['type']
+          ? CustomEffect
+          : never;
 
 interface BalanceProfileCatalogLike {
   readonly balanceProfilesById?: ReadonlyMap<SkillId, BalanceProfile>;

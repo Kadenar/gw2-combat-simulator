@@ -175,7 +175,12 @@ export const NECROMANCER_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, 
         ],
         coefficient: 1.5
       },
-      { type: 'control', controlKind: 'fear' }
+      {
+        type: 'condition',
+        condition: 'Fear',
+        stacks: 1,
+        duration: 2
+      }
     ])
   },
   [ID.GORMANDIZE]: {

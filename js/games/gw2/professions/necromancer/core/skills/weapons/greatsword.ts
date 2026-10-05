@@ -82,7 +82,10 @@ export const NECROMANCER_WEAPONS_GREATSWORD_SKILL_MECHANICS: Readonly<Record<num
       },
       ...impactEffects({ timingAnchor: 'castStart', timingScale: 'cast', persistsAfterInterrupt: true }, [
         {
-          type: 'blind',
+          type: 'condition',
+          condition: 'Blindness',
+          stacks: 1,
+          duration: 3,
           applications: 4,
           atMs: 400,
           intervalMs: 1000,

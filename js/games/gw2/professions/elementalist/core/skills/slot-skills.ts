@@ -445,11 +445,13 @@ export const ELEMENTALIST_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, P
         metadata: {}
       },
       {
-        type: 'blind',
+        type: 'condition',
+        condition: 'Blindness',
+        stacks: 1,
+        duration: 3,
         atMs: 880,
         applications: 11,
-        intervalMs: 1000,
-        controlKind: 'blind'
+        intervalMs: 1000
       }
     ])
   },

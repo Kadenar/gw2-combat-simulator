@@ -110,7 +110,13 @@ export const DEADEYE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> =
         when: (runtime) => deadeyeState.from(runtime).malice.value >= 3
       },
       { type: 'boon', boon: 'fury', duration: 8, stacks: 1, audience: { recipients: 'party', maximumRecipients: 5 } },
-      { type: 'blind', actorType: 'player', duration: 6 }
+      {
+        type: 'condition',
+        condition: 'Blindness',
+        stacks: 1,
+        duration: 6,
+        actorType: 'player'
+      }
     ])
   },
   [ID.STEAL_HEALTH]: {

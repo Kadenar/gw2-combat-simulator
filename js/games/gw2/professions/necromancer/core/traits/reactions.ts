@@ -7,7 +7,6 @@ import {
 import {
   applyChillingDarkness,
   applyInsidiousDisruption,
-  applyTerror,
   necromancerBarbedPrecisionReaction
 } from '#gw2/professions/necromancer/core/traits/conditions.js';
 import { applyCorruptorsFervor } from '#gw2/professions/necromancer/core/traits/carapace.js';
@@ -64,7 +63,5 @@ export function reactToNecromancerCoreControl(
   event: NecromancerResolverEvent
 ): void {
   applyDreadWindow(context, event);
-
-  applyTerror(context, event);
   applyInsidiousDisruption(context, event);
 }

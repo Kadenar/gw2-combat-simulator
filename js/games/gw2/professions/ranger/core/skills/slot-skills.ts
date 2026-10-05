@@ -239,7 +239,9 @@ export const RANGER_CORE_SLOT_SKILL_MECHANICS: Readonly<Record<number, Partial<S
     effects: [
       spiritShakes('might', 15, 2),
       {
-        type: 'blind',
+        type: 'condition',
+        condition: 'Blindness',
+        stacks: 1,
         duration: 5
       }
     ],

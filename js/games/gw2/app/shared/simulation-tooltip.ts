@@ -339,12 +339,6 @@ export function simulationEffectFacts(effects: readonly SkillEffect[] = [], cont
           .join(' · '),
         showStacks && !attribute ? stacks : undefined
       );
-    } else if (effect.type === 'blind') {
-      add(
-        effect,
-        'Blindness',
-        effect.duration == null ? 'Applies blindness; duration is not modeled' : `${tooltipDecimal(effect.duration)}s`
-      );
     } else if (effect.type === 'control') {
       // Name the disable directly while retaining its application count and context.
       add(effect, effect.controlKind || 'Control', '');
@@ -398,7 +392,6 @@ function ordinarySkillDescription(skill: Skill): string {
   if (effects.some((effect) => effect.type === 'boon'))
     sentences.push('Grant the listed boons to their indicated recipients.');
   if (effects.some((effect) => effect.type === 'buff')) sentences.push('Apply the listed combat effects.');
-  if (effects.some((effect) => effect.type === 'blind')) sentences.push('Blind your target.');
   if (effects.some((effect) => effect.type === 'control'))
     sentences.push('Apply control to your target, triggering eligible control effects.');
   if (effects.some((effect) => effect.type === 'custom' && effect.eventType === 'resource'))

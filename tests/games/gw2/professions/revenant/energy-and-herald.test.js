@@ -395,8 +395,7 @@ test('non-damaging Revenant heals do not enter combat', () => {
   assert.equal(breakrazor.planningState.profession.energy.value, 50);
   assert.equal(
     breakrazor.events.some(
-      (event) =>
-        event.skillId === SKILL.BREAKRAZORS_BASTION && ['damage', 'condition', 'control', 'blind'].includes(event.type)
+      (event) => event.skillId === SKILL.BREAKRAZORS_BASTION && ['damage', 'condition', 'control'].includes(event.type)
     ),
     false
   );
@@ -1656,7 +1655,11 @@ test('Herald consume skills apply their full outgoing profiles', () => {
   );
   assert.ok(
     gaze.events.some(
-      (event) => event.type === 'blind' && event.skillName === 'Gaze of Darkness' && event.duration === 5
+      (event) =>
+        event.type === 'condition' &&
+        event.condition === 'Blindness' &&
+        event.skillName === 'Gaze of Darkness' &&
+        event.duration === 5
     )
   );
   assert.ok(gaze.events.some((event) => event.condition === 'Revealed' && event.duration === 5));

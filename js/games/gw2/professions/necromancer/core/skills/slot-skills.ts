@@ -250,11 +250,13 @@ export const NECROMANCER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Pa
           }))
         },
         {
-          type: 'blind',
+          type: 'condition',
+          condition: 'Blindness',
+          stacks: 1,
+          duration: 3,
           applications: 3,
           atMs: 7000,
-          intervalMs: 1000,
-          duration: 3
+          intervalMs: 1000
         },
         {
           type: 'condition',
@@ -383,7 +385,13 @@ export const NECROMANCER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Pa
           }
         ]
       },
-      { type: 'blind', actorType: 'summon', duration: 5 },
+      {
+        type: 'condition',
+        condition: 'Blindness',
+        stacks: 1,
+        duration: 5,
+        actorType: 'summon'
+      },
       {
         type: 'condition',
         condition: 'Chilled',
@@ -417,12 +425,14 @@ export const NECROMANCER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Pa
       },
       ...impactEffects({ timingAnchor: 'castStart', timingScale: 'cast', persistsAfterInterrupt: true }, [
         {
-          type: 'blind',
+          type: 'condition',
+          condition: 'Blindness',
+          stacks: 1,
+          duration: 3,
           applications: 6,
           atMs: 280,
           intervalMs: 1000,
-          intervalTimingScale: 'fixed',
-          duration: 3
+          intervalTimingScale: 'fixed'
         },
         {
           type: 'condition',
@@ -471,7 +481,12 @@ export const NECROMANCER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Pa
       { type: 'condition', condition: 'Bleeding', stacks: 2, duration: 10 },
       { type: 'condition', condition: 'Poisoned', stacks: 2, duration: 10 },
       { type: 'condition', condition: 'Torment', stacks: 2, duration: 6 },
-      { type: 'blind', duration: 5 },
+      {
+        type: 'condition',
+        condition: 'Blindness',
+        stacks: 1,
+        duration: 5
+      },
       { type: 'condition', condition: 'Crippled', stacks: 1, duration: 10 },
       { type: 'condition', condition: 'Vulnerability', stacks: 5, duration: 10 },
       { type: 'condition', condition: 'Weakness', stacks: 1, duration: 10 }

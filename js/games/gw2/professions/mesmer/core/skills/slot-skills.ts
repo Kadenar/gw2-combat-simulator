@@ -43,7 +43,16 @@ export const MESMER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Partial
     castTimeMs: 0,
     rechargeAnchor: 'castStart',
     // Activating the signet applies one five-second blind.
-    effects: [{ type: 'blind', duration: 5, source: 'Player', actorType: 'player' }]
+    effects: [
+      {
+        type: 'condition',
+        condition: 'Blindness',
+        stacks: 1,
+        duration: 5,
+        source: 'Player',
+        actorType: 'player'
+      }
+    ]
   },
   [ID.MASS_INVISIBILITY]: {
     castTimeMs: 1080,

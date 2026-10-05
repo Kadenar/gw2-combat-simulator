@@ -178,9 +178,11 @@ export const THIEF_WEAPONS_STAFF_SKILL_MECHANICS: Readonly<Record<number, Partia
         timingScale: 'cast'
       },
       {
-        type: 'blind',
-        actorType: 'player',
-        duration: 1
+        type: 'condition',
+        condition: 'Blindness',
+        stacks: 1,
+        duration: 1,
+        actorType: 'player'
       }
     ]
   },

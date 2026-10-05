@@ -61,7 +61,7 @@ export const evokerHooks: RuntimeHooks<ElementalistRuntimeState, ElementalistSki
   effectOwner(_runtime, event) {
     if (
       FAMILIAR_ELEMENTS.has(event.skillId ?? event.sourceId) &&
-      ['damage', 'condition', 'control', 'blind'].includes(event.type)
+      ['damage', 'condition', 'control'].includes(event.type)
     )
       return { id: String(event.activationId), generation: 0 };
     return undefined;

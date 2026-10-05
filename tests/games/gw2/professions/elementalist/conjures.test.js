@@ -139,7 +139,9 @@ test('Lightning Hammer advances its autoattack chain and resets it when dropped'
     ]
   });
   assert.deepEqual(result.warnings, []);
-  const blind = result.events.find((event) => event.type === 'blind' && event.skillName === 'Thunderclap');
+  const blind = result.events.find(
+    (event) => event.type === 'condition' && event.condition === 'Blindness' && event.skillName === 'Thunderclap'
+  );
   assert.equal(blind.duration, 3);
   const denied = runNative({ ...hammerOptions, rotation: ['Conjure Lightning Hammer', 'Static Swing'] });
   assert.ok(denied.warnings.some((warning) => /Lightning Swing/.test(warning)));

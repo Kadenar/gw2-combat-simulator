@@ -232,7 +232,7 @@ function commandImpact(runtime: NecromancerRuntime, data: unknown): void {
     name: skill.name,
     coefficient: command.coefficient,
     effect: command.strike,
-    controlKind: command.control === 'blind' ? undefined : command.control
+    controlKind: command.control
   });
   const attribution = {
     at: runtime.time,
@@ -258,8 +258,6 @@ function commandImpact(runtime: NecromancerRuntime, data: unknown): void {
         duration: Number(condition[2])
       })
     });
-  if (command.control === 'blind')
-    runtime.effects.emit({ kind: 'packet', event: { ...attribution, type: 'blind', duration: command.blindDuration } });
 }
 
 /** Staggered horrors outlive their creating cast and Lich Form. */

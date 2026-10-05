@@ -157,7 +157,15 @@ export const goForTheEyes = defineTrait({
   name: 'Go for the Eyes',
   balance: {
     internalCooldown: 12,
-    effects: [{ name: 'Blind', type: 'blind', duration: 5 }]
+    effects: [
+      {
+        name: 'Blind',
+        type: 'condition',
+        condition: 'Blindness',
+        stacks: 1,
+        duration: 5
+      }
+    ]
   }
 });
 

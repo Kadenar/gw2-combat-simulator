@@ -41,9 +41,7 @@ export function elementalProcessionEffects(skillsById: ReadonlyMap<SkillId, Skil
     if (!familiar) throw new Error(`Missing Elemental Procession familiar: ${id}`);
     return {
       familiar,
-      effects: (familiar.effects ?? []).filter((effect) =>
-        ['strike', 'condition', 'control', 'blind'].includes(effect.type)
-      )
+      effects: (familiar.effects ?? []).filter((effect) => ['strike', 'condition', 'control'].includes(effect.type))
     };
   });
 }

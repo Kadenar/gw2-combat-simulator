@@ -266,7 +266,13 @@ export const ELEMENTALIST_CORE_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, 
     ammoRecharge: 10,
     skillFamily: 'Weapon skill',
     effects: impactEffects({ atMs: 0, timingAnchor: 'castStart', timingScale: 'cast' }, [
-      { type: 'blind', applications: 1, controlKind: 'blind' },
+      {
+        type: 'condition',
+        condition: 'Blindness',
+        stacks: 1,
+        duration: 6,
+        applications: 1
+      },
       { type: 'condition', condition: 'Weakness', stacks: 1, duration: 4, metadata: {} }
     ])
   },
@@ -437,10 +443,12 @@ export const ELEMENTALIST_CORE_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, 
         persistsAfterInterrupt: true
       },
       {
-        type: 'blind',
+        type: 'condition',
+        condition: 'Blindness',
+        stacks: 1,
+        duration: 6,
         atMs: 160,
-        applications: 1,
-        controlKind: 'blind'
+        applications: 1
       },
       {
         type: 'condition',

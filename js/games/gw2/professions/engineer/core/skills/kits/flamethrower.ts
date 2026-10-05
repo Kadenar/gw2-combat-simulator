@@ -144,7 +144,10 @@ export const ENGINEER_FLAMETHROWER_SKILL_MECHANICS: Readonly<Record<string, Part
     cooldown: 15,
     effects: [
       {
-        type: 'blind',
+        type: 'condition',
+        condition: 'Blindness',
+        stacks: 1,
+        duration: 5,
         actorType: 'player'
       }
     ],

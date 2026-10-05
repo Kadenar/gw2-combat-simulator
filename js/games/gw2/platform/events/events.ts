@@ -34,7 +34,6 @@ export const COMMON_EVENT_TYPES = Object.freeze([
   'condition_buffer',
   'condition_tick',
   'control',
-  'blind',
   'weapon_set',
   'sigil_swap',
   'proc',
@@ -58,6 +57,22 @@ export function assertSimulationEvent(candidate: unknown): SimulationEvent {
   }
 
   const event = candidate as Record<string, unknown>;
+  // Trait-added condition damage must provide a finite, nonnegative rate formula.
+  if (event.conditionDamageFormula !== undefined) {
+    const formula = event.conditionDamageFormula as Record<string, unknown> | null;
+    if (
+      event.type !== 'condition' ||
+      !formula ||
+      typeof formula !== 'object' ||
+      !['base', 'scaling'].every(
+        (key) => typeof formula[key] === 'number' && Number.isFinite(formula[key]) && formula[key] >= 0
+      )
+    )
+      throw new TypeError(
+        'Condition damage formula requires non-negative finite base and scaling values on a condition event.'
+      );
+  }
+
   // Procedural emissions use the same profile registry as authored strikes.
   if (event.weaponStrengthProfileId !== undefined) weaponStrengthProfile(event.weaponStrengthProfileId);
   if (typeof event.type !== 'string' || !event.type) {
@@ -271,6 +286,8 @@ export interface SimulationEventBase<TType extends string = string> {
   readonly resolvedAudience?: ResolvedEffectAudience;
   readonly metadata?: EffectMetadata;
   readonly damageCalculation?: Gw2DamageCalculation;
+  /** A trait may add damage to a normally non-damaging condition without applying it twice. */
+  readonly conditionDamageFormula?: Readonly<{ base: number; scaling: number }>;
   readonly [field: string]: unknown;
 }
 

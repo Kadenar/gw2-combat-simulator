@@ -343,7 +343,10 @@ export const LUMINARY_RADIANT_FORGE_SKILL_MECHANICS: Readonly<Record<number, Par
           controlKind: 'control'
         },
         {
-          type: 'blind'
+          type: 'condition',
+          condition: 'Blindness',
+          stacks: 1,
+          duration: 3
         }
       ])
     ]

@@ -48,12 +48,14 @@ export const ELEMENTALIST_CORE_TRAIT_SKILL_MECHANICS: Readonly<Record<number, Pa
     skillFamily: 'Trait',
     effects: [
       {
-        type: 'blind',
+        type: 'condition',
+        condition: 'Blindness',
+        stacks: 1,
+        duration: 5,
         atMs: 0,
         applications: 1,
         timingAnchor: 'castStart',
-        timingScale: 'cast',
-        controlKind: 'blind'
+        timingScale: 'cast'
       }
     ]
   },

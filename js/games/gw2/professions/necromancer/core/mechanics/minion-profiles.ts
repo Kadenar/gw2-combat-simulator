@@ -50,7 +50,6 @@ interface MinionCommandDefinition {
   readonly conditions?: readonly (readonly (string | number)[])[];
   readonly control?: string;
 
-  readonly blindDuration?: number;
   readonly impactDelay?: number;
   readonly consumes?: number;
   readonly attacks?: readonly MinionAttack[];
@@ -149,14 +148,12 @@ export function commandDefinitionFor(skill: NecromancerSkill): MinionCommandDefi
     condition: conditions[0]
   }));
 
-  const controlEffect = effects.find((effect) => effect.type === 'control' || effect.type === 'blind');
+  const controlEffect = effects.find((effect) => effect.type === 'control');
   return {
     strike,
     coefficient: Number(strike?.coefficient || 0),
     conditions,
-    control: controlEffect?.type === 'blind' ? 'blind' : controlEffect?.controlKind || attacks[0]?.controlKind || '',
-
-    blindDuration: Number(controlEffect?.duration || 0),
+    control: controlEffect?.controlKind || attacks[0]?.controlKind || '',
     impactDelay: Number(skill.impactDelay || 0),
     consumes: Number(skill.consumes || 0),
     attacks

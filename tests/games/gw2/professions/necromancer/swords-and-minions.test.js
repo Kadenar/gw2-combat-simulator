@@ -389,7 +389,7 @@ test('off-hand sword follow-ups use their complete PvE effects', () => {
   );
   assert.equal(
     result.events.some(
-      (event) => event.type === 'control' && event.skillId === ID.DEVOURING_VISAGE && event.controlKind === 'fear'
+      (event) => event.type === 'condition' && event.skillId === ID.DEVOURING_VISAGE && event.condition === 'Fear'
     ),
     true
   );
@@ -722,7 +722,7 @@ test('Greatsword control and Nightfall pulses use their live mechanics', () => {
 
   assert.deepEqual(
     nightfallSkill.effects.map((effect) => effect.type),
-    ['strike', 'blind', 'condition']
+    ['strike', 'condition', 'condition']
   );
   assert.deepEqual(
     grasp.events
@@ -745,7 +745,11 @@ test('Greatsword control and Nightfall pulses use their live mechanics', () => {
     grasp.procSteps.some((step) => step.skill === 'Relic of the Claw'),
     true
   );
-  assert.ok(nightfall.events.filter((event) => event.type === 'blind' && event.skillId === ID.NIGHTFALL).length > 0);
+  assert.ok(
+    nightfall.events.filter(
+      (event) => event.type === 'condition' && event.condition === 'Blindness' && event.skillId === ID.NIGHTFALL
+    ).length > 0
+  );
   assert.ok(
     nightfall.events.filter(
       (event) => event.type === 'condition' && event.skillId === ID.NIGHTFALL && event.condition === 'Crippled'
@@ -1506,7 +1510,9 @@ test("Shadow Fiend reports Slash and Haunt's full command effects", () => {
   });
   const haunt = result.resolvedEvents.find((event) => event.type === 'damage' && event.skillId === ID.HAUNT);
   const slash = result.resolvedEvents.find((event) => event.type === 'damage' && event.skillId === 3642);
-  const blind = result.events.find((event) => event.type === 'blind' && event.skillId === ID.HAUNT);
+  const blind = result.events.find(
+    (event) => event.type === 'condition' && event.condition === 'Blindness' && event.skillId === ID.HAUNT
+  );
   const conditionDuration = (condition) =>
     result.resolvedEvents.find(
       (event) => event.type === 'condition' && event.skillId === ID.HAUNT && event.condition === condition

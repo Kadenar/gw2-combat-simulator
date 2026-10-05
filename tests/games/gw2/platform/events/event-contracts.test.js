@@ -101,7 +101,7 @@ test('typed event boundary rejects values outside the declared contract', () => 
   );
 });
 
-test('live snapshot event types are canonical and event-form boon is rejected', () => {
+test('live snapshot event types are canonical and obsolete boon and blind events are rejected', () => {
   for (const type of ['cooldown_snapshot', 'self_condition']) {
     assert.equal(COMMON_EVENT_TYPES.includes(type), true);
     assert.equal(
@@ -110,8 +110,38 @@ test('live snapshot event types are canonical and event-form boon is rejected', 
     );
   }
 
+  for (const type of ['boon', 'blind']) {
+    assert.throws(
+      () => assertSimulationEvent({ type, actorType: 'player', at: 0, source: 'fixture', sourceId: 1 }),
+      /Unsupported simulation event type/
+    );
+  }
+});
+
+// Trait formulas enter the damage sampler only through valid condition applications.
+test('condition damage formulas reject invalid rates and non-condition packets', () => {
+  const event = {
+    type: 'condition',
+    actorType: 'player',
+    at: 0,
+    source: 'fixture',
+    sourceId: 1,
+    condition: 'Fear',
+    stacks: 1,
+    duration: 1
+  };
+  const conditionDamageFormula = { base: 444, scaling: 0.4 };
+  assert.equal(
+    assertSimulationEvent({ ...event, conditionDamageFormula }).conditionDamageFormula,
+    conditionDamageFormula
+  );
+  for (const formula of [null, 1, {}, { base: -1, scaling: 0.4 }, { base: 444, scaling: Infinity }])
+    assert.throws(
+      () => assertSimulationEvent({ ...event, conditionDamageFormula: formula }),
+      /Condition damage formula/
+    );
   assert.throws(
-    () => assertSimulationEvent({ type: 'boon', actorType: 'player', at: 0, source: 'fixture', sourceId: 1 }),
-    /Unsupported simulation event type/
+    () => assertSimulationEvent({ ...event, type: 'damage', coefficient: 1, conditionDamageFormula }),
+    /Condition damage formula/
   );
 });

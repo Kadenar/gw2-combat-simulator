@@ -69,7 +69,14 @@ export const MESMER_WEAPONS_TORCH_SKILL_MECHANICS: Readonly<Record<number, Parti
     rechargeAnchor: 'castStart',
     effects: [
       // Blind on activation; the later burning explosion performs the blast finisher.
-      { type: 'blind', duration: 5, source: 'Player', actorType: 'player' },
+      {
+        type: 'condition',
+        condition: 'Blindness',
+        stacks: 1,
+        duration: 5,
+        source: 'Player',
+        actorType: 'player'
+      },
       ...impactEffects({ atMs: 3000, timingAnchor: 'castStart', timingScale: 'fixed' }, [
         {
           type: 'strike',

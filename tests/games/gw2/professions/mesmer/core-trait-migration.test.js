@@ -100,6 +100,7 @@ test('The Pledge adds separate trait-owned Burning stacks to each supported torc
       const base = result.events.find(
         (event) =>
           event.type === 'condition' &&
+          event.condition === 'Burning' &&
           event.skillName === name &&
           event.actorType === 'player' &&
           event.sourceId === event.skillId
@@ -207,7 +208,9 @@ test('Cry of Pain overrides Confusion before Blinding Dissipation', () => {
   const confusion = result.events.find(
     (event) => event.type === 'condition' && event.skillName === 'Cry of Frustration' && event.condition === 'Confusion'
   );
-  const blind = result.events.find((event) => event.type === 'blind' && event.skillName === 'Cry of Frustration');
+  const blind = result.events.find(
+    (event) => event.type === 'condition' && event.condition === 'Blindness' && event.skillName === 'Cry of Frustration'
+  );
 
   assert.ok(confusion);
   assert.ok(blind);

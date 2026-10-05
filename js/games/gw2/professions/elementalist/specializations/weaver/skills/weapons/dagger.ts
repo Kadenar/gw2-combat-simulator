@@ -101,7 +101,13 @@ export const WEAVER_DAGGER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skil
     effects: [
       ...impactEffects({ atMs: 440, timingAnchor: 'castStart', timingScale: 'cast' }, [
         { type: 'strike', coefficient: 0.1 },
-        { type: 'blind', applications: 1, controlKind: 'blind' }
+        {
+          type: 'condition',
+          condition: 'Blindness',
+          stacks: 1,
+          duration: 3,
+          applications: 1
+        }
       ]),
       ...impactEffects({ atMs: 920, timingAnchor: 'castStart', timingScale: 'cast' }, [
         { type: 'strike', coefficient: 1.4 },

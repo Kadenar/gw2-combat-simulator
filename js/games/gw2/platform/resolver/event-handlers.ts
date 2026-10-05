@@ -121,10 +121,6 @@ export function createGw2ResolverEventHandlers({
       });
     },
 
-    blind(ctx, event) {
-      reactions.dispatch('blind.resolved', ctx, event);
-    },
-
     peitha(ctx, event) {
       reactions.dispatch('peitha.resolved', ctx, event, {
         activeConditionStackCount

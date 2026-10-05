@@ -239,14 +239,16 @@ export function triggerEvasiveArcana(
     context.effects.emit({
       kind: 'packet',
       event: {
-        type: 'blind',
+        type: 'condition',
+        condition: 'Blindness',
+        stacks: 1,
+        duration: 5,
         at,
         source,
         sourceId: skill.id,
         actorType: 'effect',
         ownerActorType: 'player',
-        skillName: source,
-        controlKind: 'blind'
+        skillName: source
       }
     });
   } else if (attunement === 'Earth') {
@@ -379,13 +381,16 @@ export function applyArcaneLightning(
     context.effects.emit({
       kind: 'packet',
       event: {
-        type: 'blind',
+        type: 'condition',
+        condition: 'Blindness',
+        stacks: 1,
+        duration: 5,
         at,
         source: 'Trait',
         sourceId: TRAIT.ARCANE_LIGHTNING,
         actorType: 'effect',
-        skillName: skill.name,
-        controlKind: 'blind'
+        ownerActorType: 'player',
+        skillName: skill.name
       }
     });
   } else if (skill.id === ID.ARCANE_ECHO) {

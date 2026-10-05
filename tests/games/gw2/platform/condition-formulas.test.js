@@ -8,7 +8,7 @@ test('condition damage uses the canonical combat-domain formulas', () => {
     ['Bleeding', 1000, undefined, 82],
     ['Burning', 1000, undefined, 286],
     ['Confusion', 1000, undefined, 68.25],
-    ['Fear', 1000, undefined, 844],
+    ['Fear', 1000, undefined, 0],
     ['Poisoned', 1000, undefined, 93.5],
     ['Torment', 1000, undefined, 121.8],
     ['Torment', 1000, { stationary: false }, 82],

@@ -254,7 +254,10 @@ export const THIEF_WEAPONS_PISTOL_SKILL_MECHANICS: Readonly<Record<number, Parti
         metadata: {}
       },
       {
-        type: 'blind',
+        type: 'condition',
+        condition: 'Blindness',
+        stacks: 1,
+        duration: 2,
         actorType: 'player',
         applications: 3,
         atMs: 0,

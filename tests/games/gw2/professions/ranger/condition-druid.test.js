@@ -94,7 +94,7 @@ test('condition Druid weapon packets and cooldowns use configured profiles', () 
     sunSpirit.effects.map(({ type, duration, stacks }) => [type, duration, stacks]),
     [
       ['boon', 15, 2],
-      ['blind', 5, undefined]
+      ['condition', 5, 1]
     ]
   );
   assert.equal(sunSpirit.effects[0].audience.recipients, 'party');

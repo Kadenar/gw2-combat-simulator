@@ -109,34 +109,6 @@ export function applyChillingDarkness(context: NecromancerResolverContext, event
   }
 }
 
-export function applyTerror(context: NecromancerResolverContext, event: NecromancerResolverEvent): void {
-  if ((event.controlKind !== 'fear' && event.kind !== 'fear') || !hasTrait(context, TRAIT.TERROR)) return;
-  {
-    /* Trait payloads and their timeline annotation share the same emission boundary. */ context.effects.emit({
-      kind: 'packet',
-      settlement: 'reaction',
-      event: {
-        at: event.at,
-        source: 'Trait',
-        sourceId: TRAIT.TERROR,
-        actorType: 'effect',
-        skillName: 'Terror',
-        triggeredBy: event.skillName,
-        type: 'condition',
-        ownerActorType: 'player',
-        name: 'Terror' + ' - ' + 'Fear',
-        condition: 'Fear',
-        stacks: 1,
-        duration: event.duration ?? 1
-      }
-    });
-    context.effects.emit({
-      kind: 'announcement',
-      announcement: { type: 'trait', name: 'Terror', at: event.at, sourceSkill: event.skillName }
-    });
-  }
-}
-
 export function applyInsidiousDisruption(context: NecromancerResolverContext, event: NecromancerResolverEvent): void {
   if (!hasTrait(context, TRAIT.INSIDIOUS_DISRUPTION)) return;
   const profile = requireBalanceProfileFromContext(context, TRAIT.INSIDIOUS_DISRUPTION);

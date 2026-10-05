@@ -136,9 +136,11 @@ export const SPECTER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> =
         actorType: 'player'
       },
       {
-        type: 'control',
-        actorType: 'player',
-        controlKind: 'fear'
+        type: 'condition',
+        condition: 'Fear',
+        stacks: 1,
+        duration: 1,
+        actorType: 'player'
       }
     ]),
     comboFinishers: [

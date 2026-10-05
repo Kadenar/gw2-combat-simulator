@@ -309,7 +309,9 @@ test('Dagger attacks restore endurance and trigger shadowstep effects', () => {
 
   assert.ok(shadowShot.events.some((event) => event.type === 'peitha' && event.skillName === 'Shadow Shot'));
   assert.equal(
-    shadowShot.events.find((event) => event.type === 'blind' && event.skillName === 'Shadow Shot').duration,
+    shadowShot.events.find(
+      (event) => event.type === 'condition' && event.condition === 'Blindness' && event.skillName === 'Shadow Shot'
+    ).duration,
     5
   );
 });
@@ -1098,7 +1100,7 @@ test('Thieves Guild waits for the player to enter combat before attacking', () =
   assert.equal(idle.combatStartTime, null);
   assert.equal(
     idle.events.some(
-      (event) => event.actorType === 'summon' && ['damage', 'condition', 'control', 'blind'].includes(event.type)
+      (event) => event.actorType === 'summon' && ['damage', 'condition', 'control'].includes(event.type)
     ),
     false
   );

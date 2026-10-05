@@ -266,10 +266,12 @@ export const ELEMENTALIST_CORE_WARHORN_SKILL_MECHANICS: Readonly<Record<number, 
           { metadata: {} }
         ),
         ...DUST_STORM_TICK_OFFSETS_MS.map((atMs) => ({
-          type: 'blind' as const,
+          type: 'condition' as const,
+          condition: 'Blindness',
+          stacks: 1,
+          duration: 2,
           atMs,
-          applications: 1,
-          controlKind: 'blind'
+          applications: 1
         })),
         {
           type: 'boon',
