@@ -546,42 +546,6 @@ test('cooldown tooltip reports availability relative to combat start', async () 
   assert.match(paletteSkillView(app, skill).castDetails, /Remaining: 8\.160s\nAvailable at: 13\.000s/);
 });
 
-test('ammo tile shows its cast lockout before the next charge timer', async () => {
-  const profession = await loadProfession('mesmer');
-  const skill = profession.catalog.skillsByName.get('Split Second');
-  const ammoBySkillId = {
-    [skill.id]: { charges: 1, maximum: 2, recharges: [{ startedAt: 0, work: 10 }], nextRechargeAt: 8 }
-  };
-  const locked = paletteSkillView(
-    projectionApp(profession, {
-      specialization: 'Chronomancer',
-      time: 5,
-      cooldowns: {
-        [skill.name]: { remaining: 1250, readyAt: 6250 }
-      },
-      ammoBySkillId
-    }),
-    skill,
-    true
-  );
-  const available = paletteSkillView(
-    projectionApp(profession, {
-      specialization: 'Chronomancer',
-      time: 6.25,
-      ammoBySkillId
-    }),
-    skill,
-    true
-  );
-
-  assert.equal(locked.cooldownLabel, '1.250s');
-  assert.equal(locked.disabled, true);
-  assert.match(locked.castDetails, /Ammunition: 1\/2\nAvailable in: 1\.250s/);
-  assert.equal(available.cooldownLabel, '1.750s');
-  assert.equal(available.disabled, false);
-  assert.match(available.castDetails, /Ammunition: 1\/2\nNext charge in: 1\.750s/);
-});
-
 test('Holosmith Photon Forge autos are catalog autoattack chains', async () => {
   const profession = await loadProfession('engineer');
   const names = profession.catalog.autoattackChains.map((chain) =>

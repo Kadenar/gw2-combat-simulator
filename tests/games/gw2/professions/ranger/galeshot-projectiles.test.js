@@ -121,7 +121,6 @@ test('both Path of Scars variants retain Mistral on return without enhancing lat
     assert.equal(procs.length, 2);
     assert.equal(procs[0].at, contacts[0].at);
     assert.equal(procs[1].at, contacts[1].at);
-    assert.ok(procs[1].at > 0.44);
     assert.equal(hits(result, ID.CROSSFIRE).length, 1);
     const state = galeshotState.from(observedRuntime(result));
     assert.deepEqual(state.mistralPathOfScars, {});

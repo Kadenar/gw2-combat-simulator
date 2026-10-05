@@ -1,9 +1,13 @@
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import { buildResolverCondition, buildResolverBuff } from '#gw2/platform/resolver/packets.js';
-import { consumeCharge, expireCharges } from '#gw2/platform/combat/resources/charges.js';
+import {
+  activeChargeGrants,
+  consumeChargeBatch,
+  consumeCharge,
+  expireCharges
+} from '#gw2/platform/combat/resources/charges.js';
 /** Owns Core Ranger skill-armed hit reactions that are not trait-line definitions. */
 import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
-import { consumeOldestStacks } from '#gw2/platform/combat/resources/timed-stacks.js';
 import {
   requireBalanceProfileFromContext,
   requireEffect,
@@ -57,9 +61,8 @@ export function triggerSharpeningStone(context: RangerResolverContext, event: Gw
   const bleeding = profile && requireEffect(profile, 'condition', 'Bleeding');
   // Grants sort by expiry: spend the earliest deadline, and still prune on ineligible hits. Grants exist only to
   // deliver bleeding, so a removed packet only prunes them.
-  const { expiries, consumed } = consumeOldestStacks(state.sharpeningStoneExpirations, bleeding ? 1 : 0, event.at);
-  state.sharpeningStoneExpirations = expiries;
-  if (!consumed || !profile || !bleeding) return;
+  state.sharpeningStoneGrants = activeChargeGrants(state.sharpeningStoneGrants, event.at);
+  if (!profile || !bleeding || !consumeChargeBatch(state.sharpeningStoneGrants, event.at)) return;
   context.effects.emit({
     kind: 'packet',
     event: buildResolverCondition({

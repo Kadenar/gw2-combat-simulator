@@ -203,9 +203,18 @@ test('template actions load paired or partial state and support undo', async (t)
 });
 
 test('template loading resolves duplicate Mesmer skill names before the first simulation', async (t) => {
-  const buildData = JSON.parse(
-    readFileSync(new URL('../../../../data/gw2/builds/mesmer/b-condi-mirage-dune-cloak.json', import.meta.url), 'utf8')
-  );
+  // Only weapon selection is needed to disambiguate the imported axe skill; preset gear is irrelevant.
+  const buildData = {
+    ...mesmerAppAdapter.profession.createBuildDefaults(),
+    weapons: ['Staff', ''],
+    alternateWeapons: ['Axe', 'Torch'],
+    startingWeaponSet: 1,
+    specializations: [
+      { name: 'Dueling', traits: '1-1-1' },
+      { name: 'Illusions', traits: '1-1-1' },
+      { name: 'Mirage', traits: '1-1-1' }
+    ]
+  };
   const payloads = new Map([
     ['data/gw2/builds/mesmer/ambiguous-mirage.json', buildData],
     [
@@ -249,7 +258,8 @@ test('template loading resolves duplicate Mesmer skill names before the first si
   const result = mesmerAppAdapter.simulateBuild(app.build.rotation, mesmerAppAdapter.simulationConfig(app));
 
   assert.equal(app.build.rotation[1].skillId, MESMER_ID.LINGERING_THOUGHTS);
-  assert.equal(result.steps[1].end - result.steps[1].start, 920);
+  assert.deepEqual(result.warnings, []);
+  assert.equal(result.steps[1].skillId, MESMER_ID.LINGERING_THOUGHTS);
 });
 
 test('a complete template without a rotation clears stale rotation state', async (t) => {

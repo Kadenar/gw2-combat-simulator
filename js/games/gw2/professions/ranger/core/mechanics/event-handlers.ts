@@ -1,5 +1,4 @@
-import { grantCharges } from '#gw2/platform/combat/resources/charges.js';
-import { purgeExpiredStacks } from '#gw2/platform/combat/resources/timed-stacks.js';
+import { appendChargeGrant, grantCharges } from '#gw2/platform/combat/resources/charges.js';
 import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import { rangerPetCompanionId } from '#gw2/professions/ranger/core/mechanics/pets.js';
@@ -23,11 +22,12 @@ export function handleRangerPoisonousStrikes(context: RangerResolverContext, eve
 export function handleRangerSharpeningStone(context: RangerResolverContext, event: Gw2ResolverEvent): void {
   const state = professionCoreState(context);
   // Recasts add charges without renewing the lifetime of the remaining stones.
-  state.sharpeningStoneExpirations = purgeExpiredStacks(state.sharpeningStoneExpirations, event.at);
-  state.sharpeningStoneExpirations.push(
-    ...Array.from({ length: Math.max(0, Number(event.charges || 0)) }, () => event.at + (event.duration || 0))
+  state.sharpeningStoneGrants = appendChargeGrant(
+    state.sharpeningStoneGrants,
+    grantCharges(Math.trunc(Math.max(0, Number(event.charges || 0))), event.at + (event.duration || 0)),
+    event.at,
+    'earliest-expiry'
   );
-  state.sharpeningStoneExpirations.sort((a, b) => a - b);
 }
 
 // Retire the outgoing companion's lingering conditions after the swap delay,

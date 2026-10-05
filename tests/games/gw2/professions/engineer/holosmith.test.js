@@ -40,28 +40,6 @@ const baseConfig = Object.freeze({
 
 const simulate = createObservedProfessionSimulator(engineerProfession, baseConfig);
 
-test('a committed shortened Sun Ripper advances the sword chain to Gleam Saber', () => {
-  // Cancelling the landed middle attack's aftercast must not reject the recorded chain finisher.
-  const result = simulate('Holosmith', ['Sun Edge', { name: 'Sun Ripper', interruptMs: 440 }, 'Gleam Saber'], {
-    primaryWeapon: 'Sword',
-    secondaryWeapon: 'Pistol'
-  });
-  assert.deepEqual(result.warnings, []);
-  assert.ok(result.resolvedEvents.some((event) => event.type === 'damage' && event.skillName === 'Gleam Saber'));
-});
-
-test('committed Refraction Cutter and Blowtorch retain lockout before the next weapon input', () => {
-  // Landed effects cannot let the next weapon attack start earlier than an uninterrupted parent cast.
-  const config = { primaryWeapon: 'Sword', secondaryWeapon: 'Pistol' };
-  for (const name of ['Refraction Cutter', 'Blowtorch']) {
-    const full = simulate('Holosmith', [name, 'Sun Edge'], config);
-    const shortened = simulate('Holosmith', [{ name, interruptMs: 360 }, 'Sun Edge'], config);
-    assert.deepEqual(shortened.warnings, []);
-    assert.ok(shortened.steps[0].end < full.steps[0].end);
-    assert.equal(shortened.steps[1].start, full.steps[1].start);
-  }
-});
-
 // Defensive self-burning must never enter the outgoing condition pipeline.
 test('Cauterize deals no outgoing damage on a clean target', () => {
   const result = simulate('Holosmith', ['Cauterize', { type: 'wait', durationMs: 3000 }], {

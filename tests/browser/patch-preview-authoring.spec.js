@@ -3,6 +3,37 @@ import { withActivePatchPreview } from '#gw2/integrations/patches/active-profess
 import { necromancerProfession } from '#gw2/professions/necromancer/profession.js';
 import { NECROMANCER_SKILL_IDS as NECRO_ID } from '#gw2/professions/necromancer/data/ids.js';
 
+// Generated changes are reviewable but not directly editable, and source metadata produces a usable link.
+test('patch overview renders generated changes read-only with its official source link', async ({ page }) => {
+  const sourceUrl = 'https://en-forum.guildwars2.com/topic/fixture-patch-notes/';
+  const preview = {
+    id: 'overview-fixture',
+    label: 'Overview fixture',
+    sourceUrl,
+    professions: {
+      necromancer: {
+        skills: { [NECRO_ID.FEAST_OF_CORRUPTION]: { cooldown: { from: 10, to: 12 } } }
+      }
+    }
+  };
+  await page.route('**/api/patch-preview', (route) =>
+    route.fulfill({
+      json: {
+        preview,
+        professions: [withActivePatchPreview(necromancerProfession).patchAuthoring],
+        sourceFile: 'active-preview.ts'
+      }
+    })
+  );
+  await page.goto('/patch-preview.html');
+  await page.locator('[data-select-section="overview"]').click();
+  const overview = page.getByRole('region', { name: 'Patch overview', exact: true });
+  await expect(overview).toContainText('Feast of Corruption');
+  await expect(overview).toContainText('Generated from diff');
+  await expect(overview.locator('input, textarea, select, [contenteditable="true"]')).toHaveCount(0);
+  await expect(overview.getByRole('link', { name: 'View official patch notes' })).toHaveAttribute('href', sourceUrl);
+});
+
 // Actual authored metadata must render independent resource controls and preserve them across an API save/reload.
 test('resource grant controls save, reopen, and restore one field without removing siblings', async ({ page }) => {
   let preview = { id: 'resource-preview', label: 'Resource preview' };

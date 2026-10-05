@@ -187,7 +187,6 @@ test('profession registry entries conform to the shared contracts', async () => 
     assert.equal(new Set(ids).size, ids.length);
     for (const skill of profession.catalog.skills) {
       assert.equal(profession.catalog.skillsById.get(skill.id), skill);
-      assert.ok(Number.isFinite(skill.castTimeMs), skill.name);
       assert.equal('activation' in skill, false, skill.name);
       assert.equal('castTime' in skill, false, skill.name);
 

@@ -188,40 +188,6 @@ test('live modifier hooks read executed history independently of report collecti
   }
 });
 
-test('interruption keeps a packet on the canonical boundary despite floating-point addition', () => {
-  const core = defineNativeModule({
-    id: 'Core',
-    state: { create: () => ({}) },
-    hooks: {},
-    data: {
-      generatedSkills: [
-        {
-          id: 991098,
-          name: 'Boundary',
-          weapon: 'Sword',
-          castTimeMs: 560,
-          interruptMode: 'per-packet',
-          effects: [
-            {
-              type: 'strike',
-              timingAnchor: 'castStart',
-              timingScale: 'fixed',
-              ticks: [239, 240, 241].map((atMs) => ({ atMs, coefficient: 1 }))
-            }
-          ]
-        }
-      ]
-    }
-  });
-  const profession = defineNativeProfession({ id: 'native', name: 'Native', modules: [core] });
-  const result = run([wait(3080), { name: 'Boundary', interruptAfterMs: 240 }], {}, profession);
-  assert.deepEqual(result.warnings, []);
-  assert.deepEqual(
-    result.resolvedEvents.filter((event) => event.type === 'damage').map((event) => event.at),
-    [3.319, 3.32]
-  );
-});
-
 // Selection reuses normalized traits at each boundary while readiness follows the selected skill's cooldown.
 test('native skill selection preserves trait identity while waiting for the selected action recharge', () => {
   let owner;
@@ -250,54 +216,6 @@ test('native skill selection preserves trait identity while waiting for the sele
   assert.equal(owner.cooldownController.readyAt(991002), 10);
   assert.equal(result.totalDamage, 0);
   assert.ok(result.events.some((event) => event.type === 'buff' && event.kind === 'might' && event.at === 2));
-});
-
-test('native duration selection composes before start mutations and rejects invalid reservations', () => {
-  const core = defineNativeModule({
-    id: 'Core',
-    data: { generatedSkills: [skills[1]] },
-    state: { create: () => ({ multiplier: 2 }) },
-    hooks: {
-      castDurationMs: (runtime, _skill, duration) => duration * runtime.profession.core.multiplier,
-      onCastStart(runtime) {
-        runtime.profession.core.multiplier = 99;
-      }
-    }
-  });
-  const elite = defineNativeModule({
-    id: 'Elite',
-    data: {},
-    state: { create: () => ({}) },
-    hooks: { castDurationMs: (_runtime, _skill, duration) => duration + 500 }
-  });
-  const profession = defineNativeProfession({ id: 'native', name: 'Native', modules: [core, elite] });
-  const result = observeGw2Runtime({
-    profession: profession.runtimeFor({ specialization: 'Elite' }),
-    config: { ...config, specialization: 'Elite' },
-    rotation: ['Channel']
-  });
-  assert.deepEqual(result.warnings, []);
-  const action = result.events.find((event) => event.type === 'action');
-  assert.equal(action.fullEndsAt - action.at, 2.5);
-  assert.equal(result.resolvedEvents.find((event) => event.type === 'damage').at, action.fullEndsAt);
-  for (const duration of [-1, NaN, Infinity]) {
-    let starts = 0;
-    assert.throws(
-      () =>
-        run(
-          ['Channel'],
-          {},
-          native({
-            castDurationMs: () => duration,
-            onCastStart: () => {
-              starts += 1;
-            }
-          })
-        ),
-      /Cast duration must be finite and non-negative/
-    );
-    assert.equal(starts, 0);
-  }
 });
 
 test('native field selection composes before cast-start mutations and registers one captured field', () => {

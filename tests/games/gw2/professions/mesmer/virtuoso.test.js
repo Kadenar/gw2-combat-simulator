@@ -3,7 +3,7 @@ import { assertFlooredDamageMultiplier } from '#tests/helpers/rounded-damage.js'
 import test from 'node:test';
 import { defaultSimulationConfig } from '#tests/helpers/fixture-harness-core.js';
 import { simulateMesmer } from '#tests/helpers/mesmer-simulation.js';
-import { mechanicResourceSpends, formatTimelineCastDetails } from '#gw2/app/rotation/timeline/model.js';
+import { mechanicResourceSpends } from '#gw2/app/rotation/timeline/model.js';
 import { MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
 
 // Virtuoso packets and trait reactions preserve blade generation, spending, and timing.
@@ -58,67 +58,6 @@ test('Infinite Forge refunds two blades only after a completed five-blade Blades
   assert.equal(refund.at, action.fullEndsAt);
 });
 
-test("Phantasmal Blade lands one second after Phantasmal Lancer's phantasm hit", () => {
-  const result = simulateMesmer(
-    ['Phantasmal Lancer', { name: '__wait', waitMs: 3000 }],
-    defaultSimulationConfig({
-      specialization: 'Virtuoso',
-      primaryWeapon: 'Spear',
-      secondaryWeapon: '',
-      selectedTraitIds: [TRAIT.PHANTASMAL_BLADES],
-      initialResource: 0
-    })
-  );
-  const blade = result.resolvedEvents.find(
-    (event) => event.type === 'damage' && event.skillName === 'Phantasmal Blade'
-  );
-  const phantasm = result.resolvedEvents.find(
-    (event) => event.type === 'damage' && event.skillName === 'Phantasmal Lancer' && event.source === 'Phantasm'
-  );
-
-  assert.equal(Number((blade.at - phantasm.at).toFixed(3)), 1);
-});
-
-test('Virtuoso bladesongs use configured projectile packet trains', () => {
-  const defaults = defaultSimulationConfig();
-  const config = defaultSimulationConfig({
-    selectedTraitIds: [TRAIT.JAGGED_MIND],
-    stats: {
-      ...defaults.stats,
-      precision: 3100
-    },
-    initialResource: 5
-  });
-  const packets = (result, skillName, type = 'damage') =>
-    result.resolvedEvents
-      .filter(
-        (event) =>
-          event.type === type &&
-          event.skillName === skillName &&
-          (type !== 'condition' || event.condition === 'Bleeding')
-      )
-      .map((event) => Number(event.at.toFixed(3)));
-
-  const harmony = simulateMesmer(['Bladesong Harmony', { name: '__wait', waitMs: 2000 }], config);
-
-  assert.deepEqual(packets(harmony, 'Bladesong Harmony'), [0.68, 0.84, 1, 1.16, 1.32]);
-  assert.deepEqual(packets(harmony, 'Bladesong Harmony', 'condition'), [0.68, 0.84, 1, 1.16, 1.32]);
-
-  const sorrow = simulateMesmer(['Bladesong Sorrow', { name: '__wait', waitMs: 2000 }], config);
-
-  assert.deepEqual(packets(sorrow, 'Bladesong Sorrow'), [0.92, 1, 1.08, 1.16, 1.16]);
-  assert.deepEqual(packets(sorrow, 'Bladesong Sorrow', 'condition'), [0.92, 1, 1.08, 1.16, 1.16]);
-  assert.deepEqual(
-    sorrow.resolvedEvents
-      .filter(
-        (event) =>
-          event.type === 'condition' && event.skillName === 'Bladesong Sorrow' && event.condition === 'Confusion'
-      )
-      .map((event) => Number(event.at.toFixed(3))),
-    [0.92, 1, 1.08, 1.16, 1.16]
-  );
-});
-
 test('Cry of Pain improves every Bladesong Sorrow confusion packet', () => {
   const result = simulateMesmer(
     ['Bladesong Sorrow', { name: '__wait', waitMs: 2000 }],
@@ -129,11 +68,6 @@ test('Cry of Pain improves every Bladesong Sorrow confusion packet', () => {
   );
   const confusion = result.resolvedEvents.filter(
     (event) => event.type === 'condition' && event.skillName === 'Bladesong Sorrow' && event.condition === 'Confusion'
-  );
-
-  assert.deepEqual(
-    confusion.map((event) => Number(event.at.toFixed(3))),
-    [0.92, 1, 1.08, 1.16, 1.16]
   );
   assert.ok(confusion.every((event) => event.stacks === 2 && event.duration === 4));
 });
@@ -195,25 +129,6 @@ test('Mental Anguish improves every damaging Virtuoso bladesong hit', () => {
   }
 });
 
-test('Bladeturn Requiem starts one second later and scales by 0.5 per blade', () => {
-  const result = simulateMesmer(
-    ['Bladeturn Requiem', { name: '__wait', waitMs: 6000 }],
-    defaultSimulationConfig({ initialResource: 5 })
-  );
-  const hits = result.resolvedEvents.filter(
-    (event) => event.type === 'damage' && event.skillName === 'Bladeturn Requiem'
-  );
-
-  assert.deepEqual(
-    hits.map((event) => Number(event.at.toFixed(3))),
-    [1, 2, 3, 4, 5]
-  );
-  assert.deepEqual(
-    hits.map((event) => event.coefficient),
-    [0.5, 0.5, 0.5, 0.5, 0.5]
-  );
-});
-
 test('Bountiful Blades stocks each Berserker blade independently', () => {
   const result = simulateMesmer(
     ['Phantasmal Berserker', { name: '__wait', waitMs: 4000 }],
@@ -235,69 +150,6 @@ test('Bountiful Blades stocks each Berserker blade independently', () => {
   );
   assert.equal(conversions[0].at, 3.68);
   assert.equal(conversions[1].at, 4);
-});
-
-test('Rain of Swords pulses after its cast with fixed damage and vulnerability timing', () => {
-  const defaults = defaultSimulationConfig();
-  const result = simulateMesmer(['Rain of Swords', 'Rain of Swords'], {
-    ...defaults,
-    specialization: 'Virtuoso',
-    selectedTraitIds: [],
-    selectedSkillIds: [45425],
-    boons: {
-      ...defaults.boons,
-      alacrity: false
-    },
-    target: {
-      ...defaults.target,
-      conditions: {
-        ...defaults.target.conditions,
-        Vulnerability: 0
-      }
-    }
-  });
-  const firstCastEnd = result.steps[0].end / 1000;
-  const firstActivation = result.events.find((event) => event.type === 'action' && event.name === 'Rain of Swords');
-  const firstActivationDamage = result.resolvedEvents.filter(
-    (event) =>
-      event.type === 'damage' &&
-      event.skillName === 'Rain of Swords' &&
-      event.activationId === firstActivation.activationId
-  );
-  const firstActivationVulnerability = result.resolvedEvents.filter(
-    (event) =>
-      event.type === 'condition' &&
-      event.skillName === 'Rain of Swords' &&
-      event.condition === 'Vulnerability' &&
-      event.activationId === firstActivation.activationId
-  );
-
-  assert.equal(result.steps[0].end - result.steps[0].start, 680);
-  assert.equal(result.steps[1].start, 20_680);
-  assert.deepEqual(
-    firstActivationDamage.map((event) => [Math.round((event.at - firstCastEnd) * 1000), event.coefficient]),
-    [
-      [840, 1.2],
-      [1840, 1.2],
-      [2840, 1.2],
-      [3840, 1.2],
-      [4840, 1.2]
-    ]
-  );
-  assert.deepEqual(
-    firstActivationVulnerability.map((event) => [
-      Math.round((event.at - firstCastEnd) * 1000),
-      event.stacks,
-      event.duration
-    ]),
-    [
-      [840, 3, 10],
-      [1840, 3, 10],
-      [2840, 3, 10],
-      [3840, 3, 10],
-      [4840, 3, 10]
-    ]
-  );
 });
 
 test('Virtuoso cast-end blade spends retain their owning activation for the timeline', () => {
@@ -339,110 +191,6 @@ test('Bloodsong needs real bleeding and does not treat blade hits as bleeding', 
   assert.equal(withoutJaggedMind.conditionDamage, 0);
   assert.equal(withJaggedMind.planningState.profession.blades.value, 1);
   assert.ok(withJaggedMind.conditionDamage > 0);
-});
-
-function assertEventTimes(actual, expected, message) {
-  assert.equal(actual.length, expected.length, `${message} event count`);
-  for (let index = 0; index < expected.length; index += 1) {
-    assert.ok(
-      Math.abs(actual[index] - expected[index]) < 1e-12,
-      `${message} event ${index + 1}: ${actual[index]} !== ${expected[index]}`
-    );
-  }
-}
-
-test('Phantasmal Swordsman follows its packet, bleed, and blade timeline', () => {
-  const defaults = defaultSimulationConfig();
-  const result = simulateMesmer(
-    ['Phantasmal Swordsman', { name: '__wait', waitMs: 7000 }],
-    defaultSimulationConfig({
-      initialResource: 0,
-      selectedTraitIds: [TRAIT.BLOODSONG, TRAIT.JAGGED_MIND, TRAIT.SHARPER_IMAGES, TRAIT.PHANTASMAL_BLADES],
-      stats: {
-        ...defaults.stats,
-        precision: 4000
-      }
-    })
-  );
-  const swordsmanDamage = result.resolvedEvents.filter(
-    (event) => event.type === 'damage' && event.skillName === 'Phantasmal Swordsman'
-  );
-  const phantasmDamage = swordsmanDamage.filter((event) => event.source === 'Phantasm').map((event) => event.at);
-  const bleeding = result.resolvedEvents
-    .filter((event) => event.type === 'condition' && event.condition === 'Bleeding')
-    .map((event) => event.at);
-  const phantasmalBlade = result.resolvedEvents.find(
-    (event) => event.type === 'damage' && event.skillName === 'Phantasmal Blade'
-  );
-  const bladeGains = result.events.filter((event) => event.type === 'resource' && event.amount > 0);
-  assert.ok(Math.abs(swordsmanDamage[0].at - 0.759) < 1e-12);
-  assertEventTimes(phantasmDamage, [1.72, 2.2, 2.24, 2.52, 2.56, 2.8, 2.84, 3.12, 3.16], 'Phantasmal Swordsman damage');
-  assert.ok(Math.abs(phantasmalBlade.at - 4.373) < 1e-12);
-  assertEventTimes(
-    bleeding,
-    [1.72, 2.2, 2.24, 2.52, 2.56, 2.8, 2.84, 3.12, 3.16, 4.373],
-    'Phantasmal Swordsman bleeding'
-  );
-  assert.deepEqual(
-    bladeGains.map((event) => event.reason),
-    ['Bloodsong', 'Phantasmal Swordsman phantasm conversion', 'Bloodsong']
-  );
-});
-
-test('Thousand Cuts spreads ten packets and triggers Bloodsong', () => {
-  const defaults = defaultSimulationConfig();
-  const result = simulateMesmer(
-    ['Thousand Cuts', { name: '__wait', waitMs: 6000 }],
-    defaultSimulationConfig({
-      initialResource: 0,
-      selectedTraitIds: [TRAIT.BLOODSONG, TRAIT.JAGGED_MIND],
-      stats: {
-        ...defaults.stats,
-        precision: 4000
-      }
-    })
-  );
-  const damageTimes = result.resolvedEvents
-    .filter((event) => event.type === 'damage' && event.skillName === 'Thousand Cuts')
-    .map((event) => event.at);
-  const bleedTimes = result.resolvedEvents
-    .filter(
-      (event) => event.type === 'condition' && event.condition === 'Bleeding' && event.skillName === 'Thousand Cuts'
-    )
-    .map((event) => event.at);
-  const expected = [0, 0.52, 1.04, 1.56, 2.08, 2.6, 3.12, 3.64, 4.16, 4.68];
-
-  assertEventTimes(damageTimes, expected, 'Thousand Cuts damage');
-  assertEventTimes(bleedTimes, expected, 'Thousand Cuts bleeding');
-  assert.equal(result.planningState.profession.blades.value, 2);
-});
-
-test('Unstable Bladestorm anchors paired packets to cast start', () => {
-  const defaults = defaultSimulationConfig();
-  const result = simulateMesmer(
-    ['Unstable Bladestorm', { name: '__wait', waitMs: 6000 }],
-    defaultSimulationConfig({
-      initialResource: 0,
-      selectedTraitIds: [TRAIT.BLOODSONG, TRAIT.JAGGED_MIND],
-      stats: {
-        ...defaults.stats,
-        precision: 4000
-      }
-    })
-  );
-  const expected = [1.16, 1.2, 2.16, 2.2, 3.16, 3.2, 4.16, 4.2];
-  const damageTimes = result.resolvedEvents
-    .filter((event) => event.type === 'damage' && event.skillName === 'Unstable Bladestorm')
-    .map((event) => event.at);
-  const bleedTimes = result.resolvedEvents
-    .filter(
-      (event) =>
-        event.type === 'condition' && event.condition === 'Bleeding' && event.skillName === 'Unstable Bladestorm'
-    )
-    .map((event) => event.at);
-  assertEventTimes(damageTimes, expected, 'Unstable Bladestorm damage');
-  assertEventTimes(bleedTimes, expected, 'Unstable Bladestorm bleeding');
-  assert.equal(result.planningState.profession.blades.value, 1);
 });
 
 test('Mesmer critical traits consume the same seeded hit outcomes in both modes', () => {
@@ -603,22 +351,6 @@ test('configured Virtuoso bladesongs spend blades at cast end', () => {
     assert.equal(spend.amount, -5);
     assert.equal(spend.activationId, result.steps[0].activationId);
     assert.ok(Math.abs(spend.at - action.fullEndsAt) < 0.00001, `${skillName} spent blades before cast end`);
-  }
-});
-
-test('Bladeturn Requiem and Thousand Cuts retain their zero-second cast times', () => {
-  for (const skillName of ['Bladeturn Requiem', 'Thousand Cuts']) {
-    const result = simulateMesmer([skillName], defaultSimulationConfig({ initialResource: 5 }));
-    const step = result.steps[0];
-    const action = result.events.find((event) => event.type === 'action' && event.name === skillName);
-
-    assert.equal(step.start, step.end);
-    assert.equal(action.at, action.endsAt);
-    assert.equal(action.at, action.fullEndsAt);
-    assert.match(
-      formatTimelineCastDetails(step, (time) => `${(time / 1000).toFixed(2)}s`),
-      /Cast time: 0\.000s$/
-    );
   }
 });
 

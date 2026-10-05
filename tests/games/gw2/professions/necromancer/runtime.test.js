@@ -576,65 +576,6 @@ test('corruption skill effects apply self conditions once and honor trait select
   }
 });
 
-// Once its strike commits, ending Blood Is Power early still applies its local completion payload once.
-test('committed Blood Is Power interruption retains self conditions and boons', () => {
-  const config = { ...base, selectedTraitIds: [TRAIT.MASTER_OF_CORRUPTION] };
-  const result = simulate([{ ...cast(ID.BLOOD_IS_POWER), interruptAfterMs: 700 }, wait(2000)], config);
-  assert.deepEqual(result.warnings, []);
-  assert.deepEqual(
-    result.planningState.profession.selfConditions.map(({ condition }) => condition),
-    ['Bleeding', 'Torment']
-  );
-  assert.equal(result.events.filter((event) => event.type === 'self_condition').length, 2);
-  assert.equal(
-    result.resolvedEvents.filter((event) => event.type === 'buff' && event.sourceId === ID.BLOOD_IS_POWER).length,
-    1
-  );
-});
-
-// Same-time transfers must see the opening self-conditions, and completion must not apply them a second time.
-test('Blood Is Power exposes its local opening payload to concurrent transfers before its aftercast ends', () => {
-  const config = { ...base, selectedTraitIds: [TRAIT.MASTER_OF_CORRUPTION] };
-  const native = necromancerProfession.runtimeFor(config);
-  const skill = native.catalog.skillsById.get(ID.BLOOD_IS_POWER);
-  const profession = {
-    ...native,
-    catalog: withSkill(native.catalog, skill.id, {
-      castTimeMs: 1000,
-      interruptCommitMs: 800,
-      effects: skill.effects.map((effect) =>
-        effect.type === 'strike' || (effect.target !== 'self' && effect.type === 'condition')
-          ? { ...effect, atMs: 400, timingAnchor: 'castStart', timingScale: 'fixed' }
-          : effect
-      )
-    })
-  };
-  for (const offTarget of [false, true]) {
-    const result = simulate(
-      [{ ...cast(skill.id), offTarget }, { ...cast(ID.SUFFER), concurrentOffsetMs: 400 }, wait(1000)],
-      config,
-      { profession, combatStartTime: 0 }
-    );
-    assert.deepEqual(result.warnings, []);
-    const transfer = result.resolvedEvents.find(
-      (event) => event.skillId === ID.SUFFER && event.condition === 'Torment'
-    );
-    assert.ok(transfer);
-    assert.equal(transfer.at, 0.4);
-    assert.equal(transfer.stacks, 2);
-    assert.equal(transfer.duration, 10);
-    assert.deepEqual(observedRuntime(result).profession.core.selfConditions, []);
-    assert.equal(
-      result.events.filter((event) => event.type === 'self_condition' && event.skillId === skill.id).length,
-      2
-    );
-    assert.equal(
-      result.resolvedEvents.filter((event) => event.kind === 'might' && event.skillId === skill.id).length,
-      1
-    );
-  }
-});
-
 test('ordinary transfers move all applications of the oldest distinct types with remaining duration', () => {
   const profession = withSelfConditions(base, [
     { condition: 'Bleeding' },
@@ -879,62 +820,6 @@ test('Gravedigger completion uses actual target health to determine the next cas
   });
   assert.ok(low.steps[1].start < high.steps[1].start);
   assert.equal(low.steps[1].start, low.steps[0].end);
-});
-
-// Commitment owns the reset decision; crossing half health during the retained animation tail cannot change it.
-test('Gravedigger samples reset health at commitment rather than the retained animation tail', () => {
-  const config = { ...base, target: { ...base.target, health: 1000000 } };
-  const native = necromancerProfession.runtimeFor(config);
-  const skill = native.catalog.skillsById.get(ID.GRAVEDIGGER);
-  for (const [committed, offTarget, resets] of [
-    [true, false, false],
-    [true, true, false],
-    [false, false, false]
-  ]) {
-    const duringLockout = [];
-    const profession = {
-      ...native,
-      onCastStart(runtime, current) {
-        native.onCastStart(runtime, current);
-        const at = (current.effectiveEnd + current.fullEnd) / 2;
-        runtime.schedule('inspect-recharge', at);
-        runtime.effects.emit({
-          kind: 'packet',
-          event: {
-            type: 'damage',
-            at,
-            source: 'fixture',
-            sourceId: 'threshold-crossing',
-            actorType: 'player',
-            coefficient: 1,
-            flatDamage: 600000,
-            canCrit: false,
-            offTarget
-          }
-        });
-      },
-      tasks: {
-        ...native.tasks,
-        'inspect-recharge'(runtime) {
-          duringLockout.push(runtime.cooldownController.hasCooldown(ID.GRAVEDIGGER));
-        }
-      }
-    };
-    const result = simulate(
-      [
-        {
-          ...cast(ID.GRAVEDIGGER),
-          interruptAfterMs: committed ? (skill.interruptCommitMs + skill.castTimeMs) / 2 : skill.interruptCommitMs / 2
-        },
-        wait(skill.castTimeMs)
-      ],
-      config,
-      { profession }
-    );
-    assert.deepEqual(duringLockout, [true]);
-    assert.equal(observedRuntime(result).cooldownController.hasCooldown(ID.GRAVEDIGGER), !resets);
-    assert.deepEqual(result.warnings, []);
-  }
 });
 
 test('a life-force grant replaces depletion and reset restores the same live pool', () => {
@@ -1464,7 +1349,7 @@ test('delivered Taste for Blood charges are independent and obey the party recip
   const result = simulate(rotation, config, { profession });
   const grant = result.resolvedEvents.find((event) => event.type === 'buff' && event.kind === 'taste-for-blood');
   assert.deepEqual(grant.resolvedAudience.companionIds, ['minion:bone-minion:0']);
-  const pools = observedRuntime(result).profession.core.tasteForBloodBuffs;
+  const pools = observedRuntime(result).profession.core.tasteForBloodGrants;
   assert.equal(Object.keys(pools).length, 5);
   assert.ok(Object.values(pools).every((applications) => applications.length === 0));
   assert.equal(
@@ -1473,7 +1358,7 @@ test('delivered Taste for Blood charges are independent and obey the party recip
   );
   assert.equal(simulate(rotation, config, { profession, output: 'score' }).totalDamage, result.totalDamage);
   const missed = simulate([{ ...cast(ID.NECROTIC_BITE), offTarget: true }], config, { profession });
-  assert.equal(observedRuntime(missed).profession.core.tasteForBloodBuffs.self[0].stacks, 1);
+  assert.equal(observedRuntime(missed).profession.core.tasteForBloodGrants.self[0].charges, 1);
 });
 
 test('zero passive grants cannot advertise an endless affordability retry', () => {

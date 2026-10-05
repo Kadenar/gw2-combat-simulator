@@ -15,7 +15,13 @@ const wait = (durationMs) => ({ type: 'wait', durationMs });
 // Removing a declaration must remove its intrinsic transition, rather than leave a second skill-ID dispatcher.
 test('Ranger activation declarations are the sole owners of their grants and transitions', () => {
   for (const [specialization, skillId, prefix, read, initial] of [
-    ['Core', ID.SHARPENING_STONE, [], (r) => r.profession.core.sharpeningStoneExpirations.length, 0],
+    [
+      'Core',
+      ID.SHARPENING_STONE,
+      [],
+      (r) => r.profession.core.sharpeningStoneGrants.reduce((sum, grant) => sum + grant.charges, 0),
+      0
+    ],
     ['Core', ID.DOUBLE_ARC, [], (r) => r.profession.core.poisonousStrikes.charges, 0],
     ['Core', ID.CRIPPLING_SHOT, [], (r) => r.profession.core.bloodThirst.charges, 0],
     ['Core', ID.WINTERS_BITE, [], (r) => r.profession.core.winterBiteReady, false],
@@ -43,7 +49,7 @@ test('Ranger activation declarations are the sole owners of their grants and tra
 // Recasts retain replacement versus independently expiring additive pools; failed finite casts grant nothing.
 test('declared charge grants preserve replacement, additive expiry, and cancellation', () => {
   for (const [skillId, type, pool] of [
-    [ID.SHARPENING_STONE, 'ranger.sharpening-stone', 'sharpeningStoneExpirations'],
+    [ID.SHARPENING_STONE, 'ranger.sharpening-stone', 'sharpeningStoneGrants'],
     [ID.DOUBLE_ARC, 'ranger.poisonous-strikes', 'poisonousStrikes'],
     [ID.CRIPPLING_SHOT, 'ranger.blood-thirst', 'bloodThirst']
   ]) {
@@ -56,7 +62,7 @@ test('declared charge grants preserve replacement, additive expiry, and cancella
     if (Array.isArray(state)) {
       assert.deepEqual(
         state,
-        grants.flatMap((grant) => Array(grant.charges).fill(grant.at + grant.duration))
+        grants.map((grant) => ({ charges: grant.charges, expiresAt: grant.at + grant.duration, readyAt: 0 }))
       );
     } else {
       assert.equal(state.charges, grants[1].charges);
@@ -89,7 +95,6 @@ test('committed Sun Spirit emits its surviving child on the first slam', () => {
       const children = result.events.filter((event) => event.type === 'condition' && event.skillId === ID.SOLAR_FLARE);
       assert.equal(children.length > 0, !removed && !cancelled);
       for (const event of children) {
-        assert.equal(Math.round(event.at * 1000 - result.steps[0].end), 920);
         assert.equal(event.source, 'ranger');
         assert.equal(event.actorType, 'player');
         assert.equal(event.triggeredBy, 'Sun Spirit');

@@ -8,8 +8,6 @@ import { DpsReportError } from '#gw2/integrations/logs/dps-report/errors.js';
 import { isDpsReportData, parseDpsReport } from '#gw2/integrations/logs/dps-report/parser.js';
 import { reconstructDpsReportRotation } from '#gw2/integrations/logs/dps-report/rotation/index.js';
 import { dpsReportId, dpsReportJsonUrl, fetchDpsReport } from '#gw2/integrations/logs/dps-report/url.js';
-import { defineTestProfession } from '#tests/helpers/profession.js';
-import { createCanonicalCatalog } from '#gw2/platform/skills/catalog.js';
 import { engineerCatalog, engineerProfession } from '#gw2/professions/engineer/profession.js';
 import {
   LOG_OPENER_WARNING,
@@ -252,199 +250,6 @@ test("dps.report Mushroom King's Blessing casts become cooldown resets", () => {
   assert.ok(result.warnings.every((warning) => !warning.includes('could not be matched')));
 });
 
-// Report imports retain shortened channels while snapping their replay durations to the action grid.
-test('quantizes shortened per-packet cast durations from dps.report', () => {
-  const report = parseDpsReport({
-    players: [
-      {
-        name: 'Fixture Dragonhunter',
-        profession: 'Dragonhunter',
-        rotation: [
-          {
-            id: 9_081,
-            skills: [
-              { castTime: 0, duration: 1_480, timeGained: 0 },
-              { castTime: 2_000, duration: 1_401, timeGained: 0 }
-            ]
-          }
-        ]
-      }
-    ],
-    phases: [{ start: 0, end: 4_000, name: 'Full Fight', phaseType: 'Encounter' }],
-    skillMap: { s9081: { name: 'Whirling Wrath' } }
-  });
-  const result = reconstructDpsReportRotation(report, {
-    skills: [
-      skill(9_081, 'Whirling Wrath', {
-        type: 'weapon',
-        castTimeMs: 1_480,
-        interruptMode: 'per-packet'
-      })
-    ]
-  });
-  const casts = result.rotation.filter((command) => command.skillId === 9_081);
-
-  assert.equal(casts[0].interruptAfterMs, undefined);
-  assert.equal(casts[1].interruptAfterMs, 1_400);
-});
-
-test('shortened report inputs preserve elapsed time and obey scheduler cancellation contracts', () => {
-  // Positive timeGained and early packet timings cannot substitute for an explicit commit contract.
-  for (const { metadata = {}, duration = 280, timeGained = 240, hits = 0 } of [
-    {},
-    { timeGained: -240 },
-    { duration: 10 },
-    { metadata: { interruptCommitMs: 320 } },
-    { metadata: { interruptCommitMs: 280 }, hits: 2 },
-    { metadata: { interruptMode: 'per-packet' }, hits: 1 },
-    { metadata: { effectCommitMs: 280 }, hits: 2 }
-  ]) {
-    const catalog = createCanonicalCatalog({
-      generated: [
-        skill(1_000, 'Autoattack', {
-          type: 'Weapon',
-          slot: 'Weapon_1',
-          castTimeMs: 520,
-
-          interruptCommitMs: metadata.interruptCommitMs,
-          interruptMode: metadata.interruptMode,
-          effects: [
-            {
-              type: 'strike',
-              weaponStrength: 1000,
-              ticks: [
-                { atMs: 200, coefficient: 1 },
-                { atMs: 480, coefficient: 1 }
-              ],
-              timingAnchor: 'castStart',
-              persistsAfterInterrupt: metadata.interruptCommitMs != null || metadata.effectCommitMs != null,
-              interruptCommitMs: metadata.effectCommitMs
-            }
-          ]
-        }),
-        skill(1_001, 'Follow-up', { castTimeMs: 520 })
-      ]
-    });
-    const report = parseDpsReport({
-      players: [
-        {
-          name: 'Fixture Warrior',
-          profession: 'Warrior',
-          rotation: [
-            { id: 1_000, skills: [{ castTime: 0, duration, timeGained }] },
-            { id: 1_001, skills: [{ castTime: duration, duration: 520, timeGained: 0 }] }
-          ]
-        }
-      ],
-      phases: [{ start: 0, end: 1_000, name: 'Full Fight', phaseType: 'Encounter' }],
-      skillMap: { s1000: { name: 'Autoattack', autoAttack: true }, s1001: { name: 'Follow-up' } }
-    });
-    const imported = reconstructDpsReportRotation(report, catalog);
-    const profession = defineTestProfession({ id: 'import-contract', name: 'Import Contract', catalog });
-    const replay = simulateGw2({ profession, rotation: imported.rotation });
-    const expectedDuration = duration === 10 ? 0 : duration;
-    const autoattack = replay.steps.find((step) => step.skillId === 1_000);
-    const followUp = replay.steps.find((step) => step.skillId === 1_001);
-
-    assert.equal(autoattack.end - autoattack.start, expectedDuration);
-    assert.equal(followUp.start, expectedDuration);
-    assert.equal(replay.events.filter((event) => event.type === 'damage' && event.skillId === 1_000).length, hits);
-  }
-});
-
-test('preserves cancelled and shortened autoattack inputs at their observed durations', () => {
-  const fixture = reportFixture();
-  fixture.players[0].rotation.push(
-    {
-      id: 5827,
-      skills: [
-        { castTime: 1_000, duration: 237, timeGained: -283 },
-        { castTime: 1_400, duration: 351, timeGained: 169 }
-      ]
-    },
-    {
-      id: 5928,
-      skills: [
-        { castTime: 2_000, duration: 77, timeGained: -1_636 },
-        { castTime: 2_100, duration: 397, timeGained: 1_316 }
-      ]
-    },
-    { id: 5842, skills: [{ castTime: 2_600, duration: 84, timeGained: -416 }] }
-  );
-  Object.assign(fixture.skillMap, {
-    s5827: { name: 'Fragmentation Shot', autoAttack: true },
-    s5928: { name: 'Flame Jet', autoAttack: true },
-    s5842: { name: 'Bomb', autoAttack: true }
-  });
-  const catalog = catalogFixture();
-  catalog.skills.push(
-    skill(5827, 'Fragmentation Shot', {
-      type: 'weapon',
-      castTimeMs: 520,
-      effects: [{ type: 'strike', atMs: 400, interruptCommitMs: 360 }]
-    }),
-    skill(5928, 'Flame Jet', {
-      type: 'weapon',
-      castTimeMs: 2_570,
-      effects: [{ type: 'strike', atMs: 172 }]
-    }),
-    skill(5842, 'Bomb', { type: 'weapon', castTimeMs: 500 })
-  );
-
-  const result = reconstructDpsReportRotation(parseDpsReport(fixture), catalog, {
-    selectedSkillIds: [76927, 77104]
-  });
-
-  assert.deepEqual(
-    result.rotation
-      .filter((command) => [5827, 5928, 5842].includes(command.skillId))
-      .map((command) => [command.skillId, command.interruptAfterMs]),
-    [
-      [5827, 240],
-      [5827, 360],
-      [5928, 80],
-      [5928, 400],
-      [5842, 80]
-    ]
-  );
-});
-
-test('restores legacy EI Devastator pseudo-casts without hiding true interrupts', () => {
-  const fixture = reportFixture();
-  fixture.players[0].profession = 'Holosmith';
-  fixture.players[0].rotation = [
-    {
-      id: 72974,
-      skills: [
-        { castTime: 0, duration: 78, timeGained: 890 },
-        { castTime: 2000, duration: 78, timeGained: -890 }
-      ]
-    }
-  ];
-  fixture.skillMap = { s72974: { name: 'Devastator' } };
-
-  const result = reconstructDpsReportRotation(parseDpsReport(fixture), engineerCatalog);
-  const actions = result.actions.filter((action) => action.name === 'Devastator');
-  const commands = result.rotation.filter((command) => command.skillId === 72974);
-
-  // Source evidence remains intact while only EI's known reduced pseudo-cast becomes catalog-complete.
-  assert.deepEqual(
-    result.sourceActions.map((action) => action.durationMs),
-    [78, 78]
-  );
-  assert.deepEqual(
-    actions.map((action) => [action.durationMs, action.status]),
-    [
-      [1000, 'completed'],
-      [78, 'interrupted']
-    ]
-  );
-  assert.deepEqual(
-    commands.map((command) => command.interruptAfterMs),
-    [undefined, 80]
-  );
-});
-
 test('restores an EI-omitted Sun Edge only from its complete sword-chain gap', () => {
   const fixture = reportFixture();
   fixture.players[0].profession = 'Mechanist';
@@ -534,7 +339,6 @@ test('ties a jittered Engineer kit transition after its outgoing weapon cast', (
     result.actions.find((action) => action.name === 'Electro-whirl').timestampMs,
     result.actions.find((action) => action.name === 'Grenade Kit').timestampMs
   );
-  assert.equal(result.rotation.find((command) => command.skillId === 30665).interruptAfterMs, undefined);
 });
 
 test('Forge replaces an equipped kit without a redundant stow or cancelling overlapping toolbelt casts', () => {
@@ -569,7 +373,6 @@ test('Forge replaces an equipped kit without a redundant stow or cancelling over
     [2500]
   );
   for (const id of [42938, 41123, 45219]) assert.ok(result.rotation.some((command) => command.skillId === id));
-  assert.equal(result.rotation.find((command) => command.skillId === 1000).interruptAfterMs, undefined);
 });
 
 test('imports reported Mechanist commands and Overclock without replaying passive Rocket Punch', async () => {

@@ -1,3 +1,4 @@
+import type { RefreshedStacks } from '#gw2/platform/combat/resources/refreshed-stacks.js';
 import type { Gw2PlanningStateInput } from '#gw2/platform/results/types.js';
 import {
   snapshotProfessionState,
@@ -13,11 +14,9 @@ export interface UntamedState {
   rangerUnleashed: boolean;
   ambushReadyUntil: number;
 
-  ferociousSymbiosisPlayerStacks: number;
-  ferociousSymbiosisPlayerUntil: number;
+  ferociousSymbiosisPlayer: RefreshedStacks;
 
-  ferociousSymbiosisPetStacks: number;
-  ferociousSymbiosisPetUntil: number;
+  ferociousSymbiosisPet: RefreshedStacks;
 
   letLooseActivations: Record<string, boolean>;
 }
@@ -26,10 +25,8 @@ export interface UntamedState {
 export const UNTAMED_PUBLIC_STATE_PROJECTION = definePublicStateDefaults({
   rangerUnleashed: false,
   ambushReadyUntil: 0,
-  ferociousSymbiosisPlayerStacks: 0,
-  ferociousSymbiosisPlayerUntil: 0,
-  ferociousSymbiosisPetStacks: 0,
-  ferociousSymbiosisPetUntil: 0
+  ferociousSymbiosisPlayer: { stacks: 0, expiresAt: 0 },
+  ferociousSymbiosisPet: { stacks: 0, expiresAt: 0 }
 } satisfies Partial<RangerState>);
 
 export function createUntamedState(config: RangerConfig = {}): UntamedState {
@@ -43,12 +40,10 @@ export function createUntamedState(config: RangerConfig = {}): UntamedState {
     // Separate cooldown for Let Loose (weapon-swap trigger), not related to Unleash cooldown.
 
     // Player and pet track separate stacks because each cross-triggers the other's buff.
-    ferociousSymbiosisPlayerStacks: 0,
-    ferociousSymbiosisPlayerUntil: 0,
+    ferociousSymbiosisPlayer: { stacks: 0, expiresAt: 0 },
     // 0.5s ICD per source prevents multi-hit skills from inflating stacks.
 
-    ferociousSymbiosisPetStacks: 0,
-    ferociousSymbiosisPetUntil: 0,
+    ferociousSymbiosisPet: { stacks: 0, expiresAt: 0 },
 
     // Keyed by activationId so multi-hit ambush skills only grant Let Loose buffs once per cast.
     letLooseActivations: {}

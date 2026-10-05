@@ -69,8 +69,8 @@ test('Lethal Tempo removal suppresses scheduler and resolver stacks without remo
     { type: 'wait', durationMs: 5000 }
   ]);
   for (const state of [result.planningState.profession, result.planningState.profession]) {
-    assert.equal(state.lethalTempoStacks, 0);
-    assert.equal(state.lethalTempoUntil, 0);
+    assert.equal(state.lethalTempo.stacks, 0);
+    assert.equal(state.lethalTempo.expiresAt, 0);
   }
 
   assert.equal(has(result, 'buff', 'kind', 'lethal-tempo'), false);

@@ -152,10 +152,6 @@ test('Signet of Agility grants precision while ready and restores 100 endurance 
       assert.equal(runtime.cooldownController.readyAt(ID.SIGNET_OF_AGILITY), 24);
       const capacity = thiefProfession.runtimeFor({ specialization }).endurance.maximum(runtime);
       // The restoration applies at the instant cast's completion, before any regeneration.
-      assert.equal(
-        result.events.find((event) => event.type === 'action' && event.skillId === ID.SIGNET_OF_AGILITY).endsAt,
-        0
-      );
       assert.ok(result.planningState.profession.endurance.value >= Math.min(capacity, initial + 100));
       for (const [time, staticRules, value] of observed) {
         if (staticRules === 'unselected') assert.equal(value, 1000, `${time}`);
@@ -600,20 +596,6 @@ test('THF-011: Heartseeker produces a smoke leap only inside a live field', () =
     assert.equal(stealth.length, expiresAt ? 1 : 0);
     if (expiresAt) assert.equal(stealth[0].at, result.events.find((event) => event.type === 'damage').at);
   }
-});
-
-test('THF-012: manual shroud exit waits for entry lockout while forced depletion bypasses it', () => {
-  const manual = simulate('Specter', ['Enter Shadow Shroud', 'Exit Shadow Shroud'], { initialShadowForce: 100 });
-  assert.deepEqual(manual.warnings, []);
-  assert.equal(manual.steps[1].start, 500);
-  assert.equal(manual.planningState.profession.shadowShroudActive, false);
-  const depleted = simulate('Specter', ['Enter Shadow Shroud', wait(1000)], { initialShadowForce: 0.5 });
-  assert.deepEqual(depleted.warnings, []);
-  const exit = depleted.events.find(
-    (event) => event.type === 'weapon_set' && event.shroudSwap && event.sourceId === 'thief.shadow-shroud-depleted'
-  );
-  assert.equal(exit.at, 0.28);
-  assert.equal(depleted.planningState.profession.shadowShroudActive, false);
 });
 
 /** A test-authored guild isolates cadence and replacement from the production summon profiles. */

@@ -4,6 +4,7 @@ import {
 } from '#gw2/platform/profession-definition/state.js';
 import type { ResourceClock } from '#gw2/platform/combat/resources/clock.js';
 import { createResourceClock } from '#gw2/platform/combat/resources/resource-policy.js';
+import type { RefreshedStacks } from '#gw2/platform/combat/resources/refreshed-stacks.js';
 
 /**
  * Catalyst combat bookkeeping: Jade Sphere energy, the per-attunement sphere
@@ -13,6 +14,7 @@ import { createResourceClock } from '#gw2/platform/combat/resources/resource-pol
 export interface CatalystState {
   catalystEnergy: ResourceClock;
   elementalEmpowermentExpiries: number[];
+  empoweringAuras: RefreshedStacks;
   elementalEmpowermentRefreshStarted: boolean;
   sphereActiveUntil: number;
   sphereExpiry: Record<string, number>;
@@ -25,6 +27,7 @@ export interface CatalystState {
 export const catalystState = defineProfessionSpecializationState('Catalyst', (): CatalystState => ({
   catalystEnergy: createResourceClock(),
   elementalEmpowermentExpiries: [],
+  empoweringAuras: { stacks: 0, expiresAt: 0 },
   elementalEmpowermentRefreshStarted: false,
   sphereActiveUntil: 0,
   sphereExpiry: { Fire: 0, Water: 0, Air: 0, Earth: 0 },
@@ -36,6 +39,7 @@ export const catalystState = defineProfessionSpecializationState('Catalyst', ():
 export const CATALYST_PUBLIC_STATE_PROJECTION = definePublicStateDefaults({
   catalystEnergy: createResourceClock(),
   elementalEmpowermentExpiries: [],
+  empoweringAuras: { stacks: 0, expiresAt: 0 },
   sphereActiveUntil: 0,
   sphereExpiry: { Fire: 0, Water: 0, Air: 0, Earth: 0 }
 } satisfies Partial<CatalystState>);

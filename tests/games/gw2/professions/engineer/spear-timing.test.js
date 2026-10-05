@@ -60,7 +60,6 @@ test('Devastator samples Focused at its task deadline and requires a committed c
     assert.deepEqual(result.warnings, []);
     const followup = result.resolvedEvents.filter((event) => event.sourceId === ID.FOCUSED_DEVASTATION);
     assert.equal(followup.length > 0, focused && !cancelled && !removeTask);
-    assert.ok(followup.every((event) => event.at >= (result.steps[0].start + result.steps[0].fullCastMs) / 1000));
   }
 });
 

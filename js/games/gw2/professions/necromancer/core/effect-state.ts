@@ -19,8 +19,13 @@ export function necromancerEffectStates(
   runtime: MechanicQueriesOf<MechanicContext<NecromancerRuntimeState, NecromancerSkill>>
 ): EffectState[] {
   const core = runtime.profession.core;
-  const effects: EffectState[] = Object.entries(core.tasteForBloodBuffs).map(([recipient, windows]) =>
-    timedEffectState('taste-for-blood', windows, null, { recipient })
+  const effects: EffectState[] = Object.entries(core.tasteForBloodGrants).map(([recipient, windows]) =>
+    timedEffectState(
+      'taste-for-blood',
+      windows.map((grant) => ({ stacks: grant.charges, expiresAt: grant.expiresAt })),
+      null,
+      { recipient }
+    )
   );
   if (!effects.some((effect) => effect.recipient === 'self')) effects.push(timedEffectState('taste-for-blood', []));
   return effects;

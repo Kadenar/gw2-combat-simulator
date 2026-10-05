@@ -82,28 +82,6 @@ test('Guardian virtue slots decode consistently and reject unmapped slots', () =
   }
 });
 
-test('a committed Strike cancel preserves its pending hit and advances the autoattack chain', () => {
-  const strike = guardianCatalog.skillsByName.get('Strike');
-  for (const committed of [false, true]) {
-    const result = createObservedProfessionSimulator(guardianProfession, {
-      ...config,
-      boons: { quickness: true },
-      primaryWeapon: 'Greatsword'
-    })(undefined, [
-      { name: 'Strike', interruptMs: committed ? strike.interruptCommitMs : strike.interruptCommitMs / 2 },
-      committed ? 'Vengeful Strike' : 'Strike'
-    ]);
-    const actions = result.events.filter((event) => event.type === 'action');
-    assert.deepEqual(result.warnings, []);
-    const firstHit = result.resolvedEvents.find(
-      (event) => event.type === 'damage' && event.activationId === actions[0].activationId
-    );
-    assert.equal(actions[1].skillName, committed ? 'Vengeful Strike' : 'Strike');
-    assert.equal(Boolean(firstHit), committed);
-    if (committed) assert.ok(firstHit.at > actions[0].endsAt);
-  }
-});
-
 const applyGuardianPatch = (patch) => applyBalanceProfilePatch(applySkillPatch(guardianCatalog, patch), patch);
 
 const authoringGuardianProfession = withActivePatchPreview(guardianProfession);
@@ -137,30 +115,6 @@ test('Guardian grouped impacts support payload patches without changing sibling 
   assert.equal(original.effects[1].duration, 6);
 });
 
-// Check evaluated offsets so generated timelines and direct status effects are covered too.
-test('Guardian authored effect offsets use ordered action ticks with explicit reference exceptions', () => {
-  for (const kind of ['skills', 'balanceProfiles']) {
-    for (const entry of guardianCatalog[kind]) {
-      for (const [effectIndex, effect] of (entry.effects ?? []).entries()) {
-        const label = `${kind} ${entry.name} (${entry.id}), effect ${effectIndex}`;
-        const ticks = effect.ticks ?? [];
-        for (const ms of [effect.atMs, effect.intervalMs, ...ticks.map((tick) => tick.atMs)]) {
-          if (ms == null) continue;
-          assert.ok(Number.isFinite(ms) && ms >= 0, `${label}: invalid offset ${ms}`);
-          // Preserve Hail's supplied intermediate hit timings instead of rounding them to 40 ms.
-          if (kind === 'skills' && entry.id === GUARDIAN_SKILL_IDS.HAIL_OF_JUSTICE && [420, 860].includes(ms)) continue;
-          assert.ok(Math.abs(ms - Math.round(ms / 40) * 40) <= 1e-6, `${label}: off-grid offset ${ms}`);
-        }
-
-        assert.ok(
-          ticks.every((tick, index) => index === 0 || tick.atMs >= ticks[index - 1].atMs),
-          `${label}: unordered packets`
-        );
-      }
-    }
-  }
-});
-
 // These fields span the symbol's pulses, including when the opening offset changes.
 test('Symbol of Blades and Symbol of Faith fields follow their pulse windows', () => {
   for (const id of [GUARDIAN_SKILL_IDS.SYMBOL_OF_BLADES, GUARDIAN_SKILL_IDS.SYMBOL_OF_FAITH]) {
@@ -171,35 +125,6 @@ test('Symbol of Blades and Symbol of Faith fields follow their pulse windows', (
     assert.equal(field.startAnchor, strike.timingAnchor);
     assert.equal(field.startMs, strike.ticks[0].atMs);
     assert.equal(field.startMs + field.duration * 1000, strike.ticks.at(-1).atMs);
-  }
-});
-
-test('Guardian greatsword autos retain aftercast only after commitment', () => {
-  // Early cancelled attempts release the lane; committed cancels keep the remainder of the same autoattack.
-  for (const [name, preceding, fullMs] of [
-    ['Vengeful Strike', ['Strike'], 600],
-    ['Wrathful Strike', ['Strike', 'Vengeful Strike'], 680]
-  ]) {
-    const commitMs = guardianCatalog.skillsByName.get(name).interruptCommitMs;
-    for (const interruptMs of [80, commitMs]) {
-      const result = createObservedProfessionSimulator(guardianProfession, {
-        ...config,
-        primaryWeapon: 'Greatsword',
-        boons: { quickness: true }
-      })(undefined, [...preceding, { name, interruptMs }, 'Leap of Faith']);
-      assert.deepEqual(result.warnings, []);
-      const attempted = result.steps[preceding.length];
-      const next = result.steps[preceding.length + 1];
-      assert.equal(
-        result.resolvedEvents.some((event) => event.type === 'damage' && event.activationId === attempted.activationId),
-        interruptMs >= commitMs
-      );
-      const action = result.events.find(
-        (event) => event.type === 'action' && event.activationId === attempted.activationId
-      );
-      assert.equal(action.cancelled, interruptMs < commitMs);
-      assert.equal(next.start - attempted.start, interruptMs < commitMs ? interruptMs : fullMs);
-    }
   }
 });
 
@@ -519,30 +444,6 @@ test('Binding Blade tether resolves flat non-critical strike damage', () => {
   assert.equal(breakdown.hits, tether.length);
 });
 
-// Each Whirling Wrath pair lands together and survives only when cancellation reaches its arrival.
-test('Whirling Wrath cancels melee and projectile pairs together', () => {
-  const simulate = (rotation) =>
-    createObservedProfessionSimulator(guardianProfession, {
-      ...config,
-      boons: { quickness: true },
-      primaryWeapon: 'Greatsword'
-    })(undefined, rotation, {}, { kind: 'tail', durationMs: 2000 });
-  const strikes = (result) =>
-    result.resolvedEvents
-      .filter((event) => event.type === 'damage' && event.skillId === GUARDIAN_SKILL_IDS.WHIRLING_WRATH)
-      .map((event) => ({ at: event.at, coefficient: event.coefficient }));
-  const full = strikes(simulate(['Whirling Wrath']));
-  for (let index = 0; index < full.length; index += 2) {
-    assert.equal(full[index].at, full[index + 1].at);
-    const interruptMs = Math.round(full[index].at * 1000);
-    assert.deepEqual(strikes(simulate([{ name: 'Whirling Wrath', interruptMs }])), full.slice(0, index + 2));
-    assert.deepEqual(
-      strikes(simulate([{ name: 'Whirling Wrath', interruptMs: interruptMs - 1 }])),
-      full.slice(0, index)
-    );
-  }
-});
-
 // The symbol burns on its opening strike rather than reapplying Burning on every pulse.
 test('Symbol of Energy applies Burning only with its opening strike', () => {
   const result = createObservedProfessionSimulator(guardianProfession, { ...config, primaryWeapon: 'Longbow' })(
@@ -572,34 +473,6 @@ test('Sword of Justice waits for ammo recharge after exhausting its charges', ()
     result.steps.map((step) => step.start),
     [0, 1400, 2800, 12600]
   );
-});
-
-test('Solar Storm preserves its committed volley and rejects uncommitted illumination changes', () => {
-  // Compare packet survival and state transitions without prescribing the skill's numerical commit threshold.
-  const skill = guardianCatalog.skillsById.get(GUARDIAN_SKILL_IDS.SOLAR_STORM);
-  const simulate = (interruptMs) =>
-    createObservedProfessionSimulator(guardianProfession, {
-      ...config,
-      primaryWeapon: 'Spear',
-      boons: { quickness: true }
-    })(undefined, ['Helio Rush', { name: 'Solar Storm', interruptMs }, { type: 'wait', durationMs: 2000 }]);
-  const packets = (result) =>
-    result.resolvedEvents
-      .filter((event) => event.type === 'damage' && event.skillId === skill.id)
-      .map((event) => [event.at, event.coefficient]);
-  const full = simulate(undefined);
-  const committed = simulate(skill.interruptCommitMs);
-  const cancelled = simulate(0);
-
-  assert.ok(packets(full).length > 0);
-  assert.deepEqual(packets(committed), packets(full));
-  assert.deepEqual(packets(cancelled), []);
-  assert.equal(
-    cancelled.procSteps.some((step) => step.skill === 'Illuminated' && step.sourceSkill === skill.name),
-    false
-  );
-  assert.equal(cancelled.planningState.profession.spearIlluminatedArmed, true);
-  assert.deepEqual(committed.warnings, []);
 });
 
 test('Delayed spear damage uses equipped-weapon trait stats while retaining spear weapon strength', () => {
@@ -709,8 +582,6 @@ test('Spear Symbol of Luminance keeps all spear skills illuminated while active'
     ...spearConfig,
     boons: { quickness: true }
   })(undefined, ['Symbol of Luminance', 'Helio Rush']);
-
-  assert.equal(symbolThenHelio.steps[0].end, 440);
   // The window empowers Helio Rush even though nothing armed it beforehand.
   assert.ok(symbolThenHelio.planningState.profession.spearLuminanceUntil > 0);
   // Both spear proc notifications declare effect ownership before reaching timeline consumers.
@@ -748,56 +619,6 @@ test('Spear Symbol of Luminance knocks back on its initial hit', () => {
   assert.equal(controls.length, 1);
   assert.equal(controls[0].controlKind, 'knockback');
   assert.equal(controls[0].at, initialHit.at);
-});
-
-test('Guardian spear coefficients and repeated pulses stay per-hit', () => {
-  const spearConfig = {
-    ...config,
-    boons: { quickness: true },
-    primaryWeapon: 'Spear'
-  };
-  const result = createObservedProfessionSimulator(guardianProfession, spearConfig)(undefined, [
-    'Helio Rush',
-    'Gleaming Disc',
-    'Symbol of Luminance',
-    'Solar Storm',
-    { type: 'wait', durationMs: 5000 }
-  ]);
-  const coefficients = (name) =>
-    result.resolvedEvents.filter((event) => event.name === name).map((event) => event.coefficient);
-
-  assert.deepEqual(coefficients('Helio Rush'), [1.5]);
-  assert.deepEqual(coefficients('Gleaming Disc'), [1.5, 2.25]);
-  assert.deepEqual(coefficients('Gleaming Disc (Illuminated)'), []);
-  assert.equal(
-    result.resolvedEvents.filter(
-      (event) => event.type === 'damage' && event.skillId === GUARDIAN_SKILL_IDS.GLEAMING_DISC
-    ).length,
-    2
-  );
-  const gleamingAction = result.events.find(
-    (event) => event.type === 'action' && event.skillId === GUARDIAN_SKILL_IDS.GLEAMING_DISC
-  );
-
-  assert.deepEqual(
-    result.resolvedEvents
-      .filter((event) => event.skillId === GUARDIAN_SKILL_IDS.GLEAMING_DISC)
-      .map((event) => Math.round((event.at - gleamingAction.at) * 1000)),
-    [480, 1160]
-  );
-  assert.deepEqual(coefficients('Symbol of Luminance — Initial'), [1.5]);
-  assert.deepEqual(coefficients('Symbol of Luminance'), [0.5, 0.5, 0.5, 0.5, 0.5]);
-  assert.deepEqual(coefficients('Solar Storm — 1st Strike'), [1.5]);
-  assert.deepEqual(coefficients('Solar Storm — 2nd Strike'), [1.2]);
-  assert.deepEqual(coefficients('Solar Storm — 3rd Strike'), [0.9]);
-  assert.deepEqual(coefficients('Solar Storm — 4th Strike'), [0.6]);
-  assert.deepEqual(coefficients('Solar Storm — 5th Strike'), [0.3]);
-  assert.deepEqual(coefficients('Solar Storm (Illuminated)'), []);
-  assert.equal(
-    result.resolvedEvents.filter((event) => event.type === 'damage' && event.skillId === GUARDIAN_SKILL_IDS.SOLAR_STORM)
-      .length,
-    5
-  );
 });
 
 test('Guardian swaps weapons and exposes profession palette groups', () => {

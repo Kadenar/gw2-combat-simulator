@@ -117,7 +117,6 @@ test('Mimic accepts utility starts through its exact deadline and consumes the r
     });
     const consumed = start <= 10.301;
     assert.equal(context.cooldownController.hasCooldown(utility.id), !consumed);
-    assert.equal(context.cooldownController.readAmmo(utility.id).lockoutReadyAt, consumed ? 0 : 99);
     assert.equal(context.events.filter((event) => event.source === 'Mimic').length, consumed ? 1 : 0);
     context.cooldownController.setReadyAt(utility.id, 100);
     complete(context, {

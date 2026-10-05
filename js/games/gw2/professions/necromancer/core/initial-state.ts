@@ -44,7 +44,7 @@ export function createNecromancerCoreState(config: NecromancerConfig = {}): Necr
     targetChilledUntil: 0,
     dreadUntil: 0,
 
-    tasteForBloodBuffs: {}
+    tasteForBloodGrants: {}
   };
   return state;
 }

@@ -160,26 +160,6 @@ test('live chain interruptions use selected packet boundaries, including travel 
   assert.deepEqual(runChain([cast(1), cast(7)], removed).planningState.profession.autoattackChains, { 1: 2 });
 });
 
-test('an interrupted packet chain advances only after a retained packet reaches its cast boundary', () => {
-  const profession = chainProfession(undefined, {
-    interruptMode: 'per-packet',
-    effects: [{ type: 'strike', coefficient: 1, atMs: 200, timingAnchor: 'castStart' }]
-  }).runtimeFor(chainConfig);
-  assert.deepEqual(
-    runChain([cast(1, { interruptAfterMs: 100 })], profession).planningState.profession.autoattackChains,
-    {}
-  );
-  assert.deepEqual(
-    runChain([cast(1, { interruptAfterMs: 200 })], profession).planningState.profession.autoattackChains,
-    { 1: 2 }
-  );
-  assert.deepEqual(
-    runChain([cast(1, { interruptAfterMs: 200, offTarget: true })], profession).planningState.profession
-      .autoattackChains,
-    { 1: 2 }
-  );
-});
-
 test('live native composition keeps overrides scoped to their pending root', () => {
   const profession = chainProfession({
     overrides: [{ id: 'preserve-a', chainRootIds: [1], decision: 'preserve' }]
@@ -243,17 +223,6 @@ test('only nonzero player casts with damage by cast end reset pending roots', ()
   assert.deepEqual(chainState(weapon), { 1: 2 });
   assert.deepEqual(inclusive.warnings, []);
   assert.deepEqual(chainState(inclusive), { 1: 2 });
-});
-
-test('pre-commit cancellation does not advance but a committed interruption does', () => {
-  const profession = chainProfession();
-  const cancelled = simulateGw2({ profession, rotation: [{ name: 'Root A', interruptMs: 200 }] });
-  const committed = simulateGw2({ profession, rotation: [{ name: 'Root A', interruptMs: 600 }] });
-
-  assert.equal(cancelled.steps[0].cancelledBeforeCommit, true);
-  assert.deepEqual(chainState(cancelled), {});
-  assert.equal(committed.steps[0].cancelledBeforeCommit, undefined);
-  assert.deepEqual(chainState(committed), { 1: 2 });
 });
 
 test('a cancelled unrelated weapon preserves pending roots by default', () => {

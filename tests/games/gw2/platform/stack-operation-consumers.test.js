@@ -74,8 +74,8 @@ test('Holo-Dancer commits spend grant order even when the newest charge expires 
 });
 
 test('Sharpening Stone prunes excluded hits and spends the earliest surviving expiry on player strikes', () => {
-  const prior = Object.freeze([1, 5, 30]);
-  const core = { sharpeningStoneExpirations: prior };
+  const prior = Object.freeze([1, 5, 30].map((expiresAt) => ({ charges: 1, expiresAt })));
+  const core = { sharpeningStoneGrants: prior };
   const queued = [];
   const context = {
     catalog: rangerCatalog,
@@ -84,13 +84,19 @@ test('Sharpening Stone prunes excluded hits and spends the earliest surviving ex
   };
   const event = { type: 'damage', at: 1, actorType: 'effect', coefficient: 1 };
   triggerSharpeningStone(context, event);
-  assert.deepEqual(core.sharpeningStoneExpirations, [5, 30]);
+  assert.deepEqual(
+    core.sharpeningStoneGrants,
+    [5, 30].map((expiresAt) => ({ charges: 1, expiresAt }))
+  );
   assert.deepEqual(queued, []);
   triggerSharpeningStone(context, { ...event, actorType: 'player' });
-  assert.deepEqual(core.sharpeningStoneExpirations, [30]);
+  assert.deepEqual(core.sharpeningStoneGrants, [{ charges: 1, expiresAt: 30 }]);
   assert.equal(queued.length, 1);
   assert.equal(queued[0].condition, 'Bleeding');
-  assert.deepEqual(prior, [1, 5, 30]);
+  assert.deepEqual(
+    prior,
+    [1, 5, 30].map((expiresAt) => ({ charges: 1, expiresAt }))
+  );
 });
 
 // Live control replaces oldest grants without mutating an earlier pool or public snapshot.

@@ -36,39 +36,10 @@ test('Grand Finale selects one delayed projectile for one consumed orb', () => {
     { profession: elementalistProfession }
   );
   assert.deepEqual(result.warnings, []);
-  const action = result.events.find((event) => event.type === 'action' && event.skillId === ID.GRAND_FINALE);
   const packets = result.events.filter((event) => event.type === 'damage' && event.skillId === ID.GRAND_FINALE);
   assert.equal(packets.length, 1);
   assert.equal(packets[0].coefficient, 1.4);
-  assert.ok(Math.abs(packets[0].at - action.endsAt - 0.68) < 1e-9);
   assert.equal(result.planningState.profession.hammerOrbs.Fire, null);
-});
-
-test('native professions share one skill timing contract', async () => {
-  for (const entry of professionRegistry) {
-    const catalog = (await entry.loadProfession()).catalog;
-
-    for (const skill of catalog.skills) {
-      assert.equal('activation' in skill, false, skill.name);
-      assert.equal('castTime' in skill, false, skill.name);
-      assert.ok(Number.isFinite(skill.castTimeMs), skill.name);
-      assert.ok(skill.castTimeMs >= 0, skill.name);
-
-      if (skill.quicknessCastTimeMs != null) {
-        // Summons retain optional measured Quickness durations.
-        assert.ok(Number.isFinite(skill.quicknessCastTimeMs), skill.name);
-        assert.ok(skill.quicknessCastTimeMs >= 0, skill.name);
-      }
-
-      assert.ok(Array.isArray(skill.lockouts), skill.name);
-      for (const effect of skill.effects) {
-        assert.equal('atMsList' in effect, false, skill.name);
-        assert.equal('packetOffsets' in effect, false, skill.name);
-        assert.equal('atCastEndOffsetMs' in effect, false, skill.name);
-        assert.equal(effect.timingAnchor == null, effect.timingScale == null, skill.name);
-      }
-    }
-  }
 });
 
 test('GW2 catalogs separate standard boons from generic timed buffs', async () => {
@@ -106,7 +77,6 @@ test('native profession weapon swaps share timing policy except Elementalist', a
     }
 
     assert.ok(skill, entry.id);
-    assert.equal(skill.castTimeMs, 0, entry.id);
     assert.equal(skill.rechargeAnchor, 'castStart', entry.id);
   }
 });

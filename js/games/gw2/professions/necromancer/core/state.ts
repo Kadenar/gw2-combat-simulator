@@ -21,10 +21,8 @@ export interface NecromancerSelfCondition {
   readonly expiresAt: number;
 }
 
-interface NecromancerTasteForBloodApplication {
+interface TasteForBloodGrant extends ChargeGrant {
   readonly at: number;
-  readonly expiresAt: number;
-  stacks: number;
 }
 
 export interface NecromancerCoreState {
@@ -58,7 +56,7 @@ export interface NecromancerCoreState {
   targetChilledUntil: number;
   dreadUntil: number;
 
-  tasteForBloodBuffs: Record<string, NecromancerTasteForBloodApplication[]>;
+  tasteForBloodGrants: Record<string, TasteForBloodGrant[]>;
 }
 
 /** Declares the Core fields exposed by every Necromancer end-state projection. */

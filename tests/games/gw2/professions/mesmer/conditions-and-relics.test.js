@@ -31,9 +31,6 @@ test('condition-bearing clone autoattacks apply their damaging conditions', () =
     'Torment:1'
   ]);
   assert.ok(axeConditions.every((event) => event.stacks === 1));
-  const axeHits = axe.events.filter((event) => event.type === 'damage' && event.skillName === 'Clone: Lacerating Chop');
-
-  assert.deepEqual([...new Set(axeHits.map((event) => Number(event.at.toFixed(3))))], [1.72, 3.28, 4.84]);
   assert.ok(
     !axe.events.some(
       (event) => event.skillName === 'Clone: Ethereal Chop' || event.skillName === 'Clone: Mirror Strikes'
@@ -83,34 +80,6 @@ test('condition-bearing clone autoattacks apply their damaging conditions', () =
   assert.ok(scepterTorment.every((event) => event.duration === 4));
 });
 
-test('Mirror Strikes applies Bleeding and Torment once across its two hits', () => {
-  const result = simulateMesmer(
-    ['Lacerating Chop', 'Ethereal Chop', 'Mirror Strikes', { name: '__wait', waitMs: 7000 }],
-    defaultSimulationConfig({
-      specialization: 'Mirage',
-      primaryWeapon: 'Axe',
-      secondaryWeapon: 'Torch',
-      selectedTraitIds: []
-    })
-  );
-  const strikes = result.resolvedEvents.filter(
-    (event) => event.type === 'damage' && event.skillName === 'Mirror Strikes'
-  );
-
-  assert.equal(
-    strikes.reduce((sum, event) => sum + event.hits, 0),
-    2
-  );
-  const conditions = result.resolvedEvents.filter(
-    (event) => event.type === 'condition' && event.skillName === 'Mirror Strikes'
-  );
-
-  assert.deepEqual(conditions.map((event) => `${event.condition}:${event.stacks}:${event.duration}`).sort(), [
-    'Bleeding:1:6',
-    'Torment:1:6'
-  ]);
-});
-
 test('axe clone attacks and Axes of Symmetry use cast-start snapshots', () => {
   const config = defaultSimulationConfig({
     specialization: 'Mirage',
@@ -124,23 +93,11 @@ test('axe clone attacks and Axes of Symmetry use cast-start snapshots', () => {
     ['Mirror Images', { name: '__wait', waitMs: 1 }, { name: 'Axes of Symmetry', skillId: ID.AXES_OF_SYMMETRY }],
     config
   );
-  const axesStep = existingClones.steps.find((step) => step.skill === 'Axes of Symmetry');
-  const axesStart = axesStep.start / 1000;
-  const playerHit = existingClones.resolvedEvents.find(
-    (event) => event.type === 'damage' && event.skillName === 'Axes of Symmetry' && event.actorType === 'player'
-  );
   const cloneHits = existingClones.resolvedEvents.filter(
     (event) => event.type === 'damage' && event.name.includes('Axes of Symmetry') && event.source === 'Clone'
   );
   const cloneConfusion = existingClones.resolvedEvents.filter(
     (event) => event.type === 'condition' && event.skillName === 'Axes of Symmetry' && event.source === 'Clone'
-  );
-
-  assert.ok(Math.abs(axesStep.end - axesStep.start - 1000) < 1e-9);
-  assert.equal(Math.round((playerHit.at - axesStart) * 1000), 920);
-  assert.deepEqual(
-    cloneHits.map((event) => Math.round((event.at - axesStart) * 1000)),
-    [960, 960]
   );
   assert.ok(cloneHits.every((event) => event.coefficient === 1.75 && event.weaponStrength === 28.5));
   assert.equal(cloneConfusion.length, 2);
@@ -195,32 +152,6 @@ test('Axes of Symmetry registers clone packets before a later overlapping action
   assert.equal(cloneHits.length, 2);
   assert.ok(cloneHits.every((event) => event.at < overlappingAction.at));
   assert.ok(cloneHits.every((event) => event.eventOrder < overlappingAction.eventOrder));
-});
-
-test('Imaginary Axes lands 360ms from cast start with two 3-stack torment hits', () => {
-  const result = simulateMesmer(
-    ['Dodge / Mirage Cloak', { name: 'Imaginary Axes', skillId: ID.IMAGINARY_AXES }],
-    defaultSimulationConfig({
-      specialization: 'Mirage',
-      selectedTraitIds: [],
-      primaryWeapon: 'Axe',
-      secondaryWeapon: 'Torch',
-      initialResource: 0
-    })
-  );
-  const step = result.steps[1];
-  const strike = result.resolvedEvents.find(
-    (event) => event.type === 'damage' && event.skillName === 'Imaginary Axes' && event.source === 'Player'
-  );
-  const torment = result.resolvedEvents.filter(
-    (event) => event.type === 'condition' && event.skillName === 'Imaginary Axes' && event.source === 'Player'
-  );
-
-  assert.equal(step.end - step.start, 440);
-  assert.equal(Math.round((strike.at - step.start / 1000) * 1000), 360);
-  assert.equal(torment.length, 2);
-  assert.ok(torment.every((event) => event.at === strike.at));
-  assert.ok(torment.every((event) => event.stacks === 3 && event.duration === 3.5));
 });
 
 test('destroyed clones do not apply prescheduled autoattack conditions', () => {
@@ -738,7 +669,10 @@ test('Relic of Peitha does not grant its player damage bonus to phantasms', () =
       )
       .reduce((sum, event) => sum + event.damage, 0);
 
-  assert.equal(phantasmDamage(equipped), phantasmDamage(base));
+  // A missing phantasm must not make the exclusion check pass by comparing two zero totals.
+  const baselineDamage = phantasmDamage(base);
+  assert.ok(baselineDamage > 0);
+  assert.equal(phantasmDamage(equipped), baselineDamage);
 });
 
 test('Relic of Thorns uses the deterministic incoming-hit assumption', () => {

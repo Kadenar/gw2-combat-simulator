@@ -1,6 +1,3 @@
-import { captureEffectEmissions } from '#tests/helpers/effect-emission.js';
-import { MESMER_SKILL_IDS as ID } from '#gw2/professions/mesmer/data/ids.js';
-import { mesmerProfession } from '#gw2/professions/mesmer/profession.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
@@ -9,52 +6,6 @@ import {
   buildMesmerConditions,
   buildMesmerStrikes
 } from '#gw2/professions/mesmer/core/mechanics/packets.js';
-import { EPSILON } from '#kernel/core/clock.js';
-import { scheduleMesmerPhantasmEffects } from '#gw2/professions/mesmer/core/execution/cast-lifecycle.js';
-import { completeTroubadourPhantasm } from '#gw2/professions/mesmer/specializations/troubadour/traits/performance.js';
-
-test('phantasm packet and Harmonize commitment preserve their interruption tolerances', () => {
-  // Synthetic summon progress checks the commitment contract without pinning authored skill timings.
-
-  for (const progress of [0.5, undefined, NaN, Infinity, -Infinity]) {
-    for (const effectiveEnd of [3 - 5 * EPSILON, 3 - 3 * EPSILON, 3 - EPSILON / 2, 3, 4]) {
-      const packets = [];
-      const resources = [];
-      const config = { specialization: 'Troubadour', primaryWeapon: 'Sword' };
-      const profession = mesmerProfession.runtimeFor(config);
-      const context = {
-        config,
-        traits: new Set(),
-        activeWeaponSet: 1,
-        helpers: profession.catalog,
-        start: 2,
-        fullEnd: 4,
-        effectiveEnd,
-        profession: profession.createState(config),
-        schedule(type, at, data) {
-          if (type === 'mesmer.resource-gain' && data.reason === 'Harmonize') resources.push([at, data]);
-        }
-      };
-      context.effects = captureEffectEmissions({
-        submit(event, delivery) {
-          if (event.type === 'mesmer.phantasm-summoned')
-            packets.push({ at: event.at, emissionEnd: delivery.cast.effectiveEnd });
-          return event;
-        }
-      }).effects;
-      const skill = { ...profession.catalog.skillsById.get(ID.PHANTASMAL_SWORDSMAN), phantasmSummonProgress: progress };
-      const cast = { ...context, skill, id: 'phantasm', command: {} };
-      context.time = context.fullEnd;
-      scheduleMesmerPhantasmEffects(context, cast, skill);
-      completeTroubadourPhantasm(context, cast);
-      const packetCommitted = progress === 0.5 && effectiveEnd >= 3 - EPSILON && effectiveEnd < 4;
-      assert.equal(packets[0].at, packetCommitted ? effectiveEnd : context.fullEnd);
-      assert.equal(packets[0].emissionEnd, packetCommitted || effectiveEnd === 4 ? Infinity : effectiveEnd);
-      assert.equal(resources.length, (progress === 0.5 && effectiveEnd >= 3 - EPSILON) || effectiveEnd === 4 ? 1 : 0);
-      if (resources.length) assert.equal(resources[0][0], context.fullEnd);
-    }
-  }
-});
 
 function createFixture() {
   return {

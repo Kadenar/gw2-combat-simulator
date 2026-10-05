@@ -2,11 +2,12 @@ import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import type { SkillEffect } from '#gw2/platform/effects/types.js';
 import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
-import { elementalistTimedBuffStacks } from '#gw2/professions/elementalist/core/mechanics/modifier-queries.js';
 import { ELEMENTALIST_TRAIT_IDS as TRAIT } from '#gw2/professions/elementalist/data/ids.js';
 import { catalystState } from '#gw2/professions/elementalist/specializations/catalyst/state.js';
 import {
   applyEmpoweringAura,
+  applyEmpoweringAurasBuff,
+  empoweringAuraStacks,
   applyEpitomeAura,
   applyEpitomeCombo,
   applySynergyCombo
@@ -35,7 +36,7 @@ const aura = (name: string, auraName: string, duration: number): SkillEffect => 
 export const empoweringAuras = defineTrait({
   id: TRAIT.EMPOWERING_AURAS,
   name: 'Empowering Auras',
-  hooks: { reactions: { 'aura.applied': applyEmpoweringAura } },
+  hooks: { reactions: { 'aura.applied': applyEmpoweringAura, 'buff.applied': applyEmpoweringAurasBuff } },
   balance: {
     maximumStacks: 5,
     durationMultiplier: 10,
@@ -48,7 +49,7 @@ export const empoweringAuras = defineTrait({
       operation: 'damage-additive',
       parameters: { maximumStacks: 5, damagePerStack: 0.01 },
       amount: (context, _target, parameters) =>
-        elementalistTimedBuffStacks(context, 'empowering auras', parameters.maximumStacks) * parameters.damagePerStack
+        Math.min(parameters.maximumStacks, empoweringAuraStacks(context)) * parameters.damagePerStack
     },
     {
       id: 'elementalist.empowering-auras-condition',
@@ -56,7 +57,7 @@ export const empoweringAuras = defineTrait({
       operation: 'damage-additive',
       parameters: { maximumStacks: 5, damagePerStack: 0.01 },
       amount: (context, _target, parameters) =>
-        elementalistTimedBuffStacks(context, 'empowering auras', parameters.maximumStacks) * parameters.damagePerStack
+        Math.min(parameters.maximumStacks, empoweringAuraStacks(context)) * parameters.damagePerStack
     }
   ]
 });

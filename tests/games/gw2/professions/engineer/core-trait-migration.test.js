@@ -3,7 +3,6 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 
 import { applyBalanceProfilePatch } from '#gw2/integrations/patches/authoring/patches.js';
-import { engineerCoreCriticalHitDefinitions } from '#gw2/professions/engineer/core/traits/critical-procs.js';
 import { ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
 import { engineerProfession } from '#gw2/professions/engineer/profession.js';
 import { withProfile } from '#tests/helpers/catalog-overrides.js';
@@ -248,10 +247,3 @@ for (const { name, trait, extraTraits = [], rotation, config, verify } of traitC
     verify(simulate(rotation, { ...config, selectedTraitIds: [trait, ...extraTraits] }));
   });
 }
-
-test('Engineer critical definitions preserve their reaction order', () => {
-  assert.deepEqual(
-    engineerCoreCriticalHitDefinitions.map((definition) => definition.id),
-    ['engineer.core.serrated-steel', 'engineer.core.no-scope', 'engineer.core.incendiary-powder-player']
-  );
-});

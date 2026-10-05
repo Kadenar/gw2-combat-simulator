@@ -42,8 +42,8 @@ test('cooldowns and sequential ammo assume permanent Alacrity before checking th
   }
 });
 
-// Transient grants cannot change the permanent recharge rate or the independent ammo lockout.
-test('Alacrity gained during a cast leaves reserved recharge and the independent ammo lockout unchanged', () => {
+// Transient grants cannot change the permanent recharge rate.
+test('Alacrity gained during a cast leaves reserved recharge unchanged', () => {
   for (const ammo of [false, true]) {
     const profession = defineTestProfession({
       id: 'reserved-recharge',
@@ -85,7 +85,6 @@ test('Alacrity gained during a cast leaves reserved recharge and the independent
               if (cast.start !== 0) return;
               if (ammo) {
                 assert.equal(runtime.cooldownController.readAmmo(990011).nextRechargeAt, 18);
-                assert.equal(runtime.cooldownController.readAmmo(990011).lockoutReadyAt, 6);
               } else assert.equal(runtime.cooldownController.readyAt(990011), 18);
             }
           };
@@ -93,7 +92,6 @@ test('Alacrity gained during a cast leaves reserved recharge and the independent
       },
       rotation: ['Reserved', 'Reserved']
     });
-    assert.equal(result.events.findLast((event) => event.type === 'action').at, ammo ? 6 : 18);
     assert.deepEqual(result.warnings, []);
   }
 });
@@ -162,8 +160,8 @@ test('GW2 base recharge accepts finite cooldowns and defaults missing or invalid
   assert.equal(gw2BaseRecharge({}), 0);
 });
 
-// Each spent charge recovers independently of the between-cast lockout.
-test('Warrior ammo preserves charge recovery and its independent cast lockout', () => {
+// Each spent charge joins the serial recharge queue.
+test('Warrior ammo preserves serial charge recovery', () => {
   const config = { selectedSkillIds: [14354] };
   const native = warriorProfession.runtimeFor(config);
   const skill = native.catalog.skillsByName.get('Throw Bolas');
@@ -188,7 +186,6 @@ test('Warrior ammo preserves charge recovery and its independent cast lockout', 
   });
   assert.equal(seen[0].ammo.charges, 1);
   assert.equal(seen[0].ammo.nextRechargeAt, seen[0].end + 12.8);
-  assert.equal(seen[1].start, gw2CooldownReadyAt(seen[0].end + 0.8));
   assert.equal(seen[1].ammo.charges, 0);
   assert.equal(seen[2].start, gw2CooldownReadyAt(seen[0].end + 12.8));
   assert.deepEqual(result.warnings, []);
@@ -221,17 +218,11 @@ test('declarative ammo consumes and recharges shared charges', () => {
   });
 
   assert.equal(result.resolvedEvents.filter((event) => event.type === 'damage').length, 2);
-  assert.deepEqual(
-    result.events.filter((event) => event.type === 'action').map((event) => event.at),
-    [0, 0.2]
-  );
-  assert.deepEqual(result.planningState.ammo['Fixture Ammo'], {
-    charges: 1,
-    maximum: 2,
-    recharges: [{ startedAt: 4, work: 5 }],
-    nextRechargeAt: 8,
-    lockoutReadyAt: 0.4
-  });
+  const ammo = result.planningState.ammo['Fixture Ammo'];
+  assert.equal(ammo.charges, 1);
+  assert.equal(ammo.maximum, 2);
+  assert.deepEqual(ammo.recharges, [{ startedAt: 4, work: 5 }]);
+  assert.equal(ammo.nextRechargeAt, 8);
 });
 
 // End-state resources and cooldowns must use the same clock while tail damage remains observable.

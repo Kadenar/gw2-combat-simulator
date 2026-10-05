@@ -96,7 +96,7 @@ test('Lethal Tempo activation and trigger grants share the buff-history and disp
       });
       const application = result.events.find((event) => event.kind === 'lethal-tempo');
       const [buff] = boonApplicationsAt(result.events, 'lethal-tempo', application.at);
-      assert.equal(state(result).lethalTempoUntil, buff.expiresAt);
+      assert.equal(state(result).lethalTempo.expiresAt, buff.expiresAt);
       for (const atSeconds of [buff.expiresAt, buff.expiresAt + 0.000001]) {
         const items = ui.rotationStateSnapshot({
           balanceContext: { catalog: guardianCatalog, modifierRulesById: new Map() },

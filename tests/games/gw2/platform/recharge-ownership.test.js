@@ -17,17 +17,15 @@ function fixture() {
 }
 
 // Magazine reservation consumes charges now without advancing existing pools to a future completion anchor.
-test('reserved magazine rounds recharge serially from their future anchor and retain lockouts', () => {
+test('reserved magazine rounds recharge serially from their future anchor', () => {
   const { controller } = fixture();
   controller.ensureAmmo(magazine);
-  controller.setAmmoLockout(magazine, 20, 0);
   assert.equal(controller.reserveAmmo(magazine, 2, { startedAt: 4, work: 5 }), 2);
   assert.equal(controller.readAmmo(1).charges, 1);
   assert.equal(controller.refreshAmmo(magazine, 3).charges, 1);
   controller.spendAmmo(magazine, 4, 5);
   assert.equal(controller.refreshAmmo(magazine, 9).charges, 1);
   assert.equal(controller.refreshAmmo(magazine, 14).charges, 2);
-  assert.equal(controller.readAmmo(1).lockoutReadyAt, 20);
 });
 
 // Checkpoint ownership includes earned work, queued rounds and independent exclusions, without aliasing live stores.
@@ -37,7 +35,6 @@ test('recharge checkpoints restore relative work and preserve explicitly exclude
   controller.setReadyAt(preserved.id, 20);
   controller.spendAmmo(magazine, 0);
   controller.spendAmmo(magazine, 0);
-  controller.setAmmoLockout(magazine, 20, 0);
   const excluded = new Set([preserved.id]);
   const saved = controller.checkpoint(2, excluded, 'independent');
   assert.deepEqual(saved.ammo.get(1).pendingRechargeWork, [3, 5]);
@@ -50,32 +47,27 @@ test('recharge checkpoints restore relative work and preserve explicitly exclude
   assert.equal(controller.readyAt(preserved.id), 140);
   assert.equal(controller.refreshAmmo(magazine, 103).charges, 2);
   assert.equal(controller.refreshAmmo(magazine, 108).charges, 3);
-  assert.equal(controller.readAmmo(1).lockoutReadyAt, 118);
   assert.deepEqual(saved.ammo.get(1).pendingRechargeWork, [3, 5]);
 });
 
 // Linked identities share one queue; replacement and retirement remain explicit service-owned operations.
-test('linked and temporary ammo pools preserve their independent lockout until explicitly reset', () => {
+test('linked and temporary ammo pools share charges until explicitly retired', () => {
   const { controller } = fixture();
   controller.ensureAmmo(magazine);
   controller.linkAmmo(1, 9);
   controller.spendAmmo(magazine, 0);
   assert.equal(controller.readAmmo(9).charges, 2);
-  controller.setAmmoLockout(magazine, 20, 0);
   controller.replaceAmmoCharges(magazine, 2, 2, []);
   assert.equal(controller.readAmmo(9).charges, 2);
-  assert.equal(controller.readAmmo(1).lockoutReadyAt, 20);
   controller.replaceAmmoCharges(magazine, 1, 0, [{ startedAt: 0, work: 5 }]);
   assert.equal(controller.refreshAmmo(magazine, 5).charges, 1);
-  controller.clearAmmoLockout(1);
-  assert.equal(controller.readAmmo(9).lockoutReadyAt, 0);
   controller.retireAmmo(9);
   assert.equal(controller.hasAmmo(9), false);
   assert.equal(controller.hasAmmo(1), true);
 });
 
 // Formula readiness keeps sub-tick precision and refreshes only the requested magazine on the live clock.
-test('live readiness owns ordinary progress, ammo settlement, and independent lockouts', () => {
+test('live readiness owns ordinary progress and ammo settlement', () => {
   const { state, controller } = fixture();
   controller.startRecharge(ordinary, 0, 0.015);
   state.time = 0.01;
@@ -95,8 +87,4 @@ test('live readiness owns ordinary progress, ammo settlement, and independent lo
   assert.equal(controller.isOnCooldown(magazine.id), false);
   assert.equal(controller.readAmmo(magazine.id).charges, 1);
   assert.equal(controller.readAmmo(other.id).charges, 0);
-  controller.setAmmoLockout(magazine, 2, 5);
-  assert.equal(controller.isOnCooldown(magazine.id), true);
-  state.time = 7;
-  assert.equal(controller.isOnCooldown(magazine.id), false);
 });

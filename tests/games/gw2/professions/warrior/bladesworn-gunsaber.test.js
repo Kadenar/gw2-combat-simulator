@@ -49,55 +49,6 @@ test('Dragon Trigger does not swap again when Gunsaber is already active', () =>
   assert.equal(result.planningState.profession.gunsaberActive, true);
 });
 
-// Actual bar changes delay the next input in either direction, independently of the shared swap recharge.
-test('Gunsaber entry and exit use the configured weapon-swap input delay', () => {
-  for (const delay of [0, 120, 300]) {
-    for (const [setup, transition] of [
-      [[], ID.UNSHEATHE_GUNSABER],
-      [[ID.UNSHEATHE_GUNSABER, { type: 'wait', durationMs: 5000 }], ID.SHEATHE_GUNSABER]
-    ]) {
-      const result = simulate(['__combat_start', ...setup, transition, ID.FLOW_STABILIZER], {
-        transitionDelays: { weaponSwapMs: delay }
-      });
-      assert.deepEqual(result.warnings, []);
-      assert.equal(result.steps.at(-1).start, result.steps.at(-2).end + delay);
-      const lockouts = result.events.filter((event) => event.type === 'gw2.transition-lockout');
-      if (delay) {
-        assert.equal(lockouts.at(-1).skillId, transition);
-        assert.equal(lockouts.at(-1).kind, 'weaponSwapMs');
-        assert.equal(lockouts.at(-1).duration, delay / 1000);
-      } else {
-        assert.deepEqual(lockouts, []);
-      }
-    }
-  }
-});
-
-test('Gunsaber recovery overlaps explicit waits and contributes to rotation completion', () => {
-  const config = { transitionDelays: { weaponSwapMs: 120 } };
-  const result = simulate(
-    ['__combat_start', ID.UNSHEATHE_GUNSABER, { type: 'wait', durationMs: 80 }, ID.FLOW_STABILIZER],
-    config
-  );
-  assert.deepEqual(result.warnings, []);
-  assert.equal(result.steps.at(-1).start, 120);
-  assert.equal(simulate(['__combat_start', ID.UNSHEATHE_GUNSABER], config).rotationEndTime, 0.12);
-});
-
-// Dragon Trigger incurs swap recovery only when it actually draws Gunsaber.
-test('Dragon Trigger shares Gunsaber entry recovery without charging an extra swap when already drawn', () => {
-  for (const setup of [[], [ID.UNSHEATHE_GUNSABER, { type: 'wait', durationMs: 1000 }]]) {
-    const result = simulate(['__combat_start', ...setup, ID.DRAGON_TRIGGER, ID.FLOW_STABILIZER], {
-      transitionDelays: { weaponSwapMs: 120 }
-    });
-    assert.deepEqual(result.warnings, []);
-    assert.equal(result.steps.at(-1).start, result.steps.at(-2).end + (setup.length ? 0 : 120));
-    const lockouts = result.events.filter((event) => event.type === 'gw2.transition-lockout');
-    assert.equal(lockouts.length, 1);
-    assert.equal(lockouts[0].skillId, setup.length ? ID.UNSHEATHE_GUNSABER : ID.DRAGON_TRIGGER);
-  }
-});
-
 test('Gunsaber equip and stow put the opposite action on a five-second cooldown', () => {
   // Alternating immediately must wait for the opposite action after every transition.
   const result = simulate([

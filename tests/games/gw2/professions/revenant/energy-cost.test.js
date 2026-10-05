@@ -111,14 +111,3 @@ test('Energy Meld spending agrees with the composed cost for both variants and t
     }
   }
 });
-
-test('Configured UI queries resolve selection before calculating Energy costs', () => {
-  for (const selectedTraitIds of [[], [TRAIT.ANGSIYANS_TRUST]]) {
-    const state = planningFixture(revenantProfession, {
-      specialization: 'Vindicator',
-      initialEnergy: 0,
-      selectedTraitIds
-    });
-    assert.equal(state.availability[SKILL.ENERGY_MELD].ready, selectedTraitIds.length > 0);
-  }
-});

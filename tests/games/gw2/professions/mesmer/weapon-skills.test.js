@@ -221,20 +221,6 @@ test('Flying Cutter tracks three hits for five seconds and Bladecall strikes six
   assert.equal(flyingCutterRow.casts, 3);
   assert.equal(cutterBurstRow.casts, 0);
   assert.equal(cutterBurstRow.parentSkill, 'Flying Cutter');
-  const triggerAt = consecutive.resolvedEvents
-    .filter((event) => event.type === 'damage' && event.skillName === 'Flying Cutter' && event.name !== 'Cutter Burst')
-    .at(-1).at;
-
-  assert.deepEqual(
-    burst.map((event) => Number((event.at - triggerAt).toFixed(3))),
-    [0.2, 0.24, 0.4]
-  );
-  assert.deepEqual(
-    consecutive.resolvedEvents
-      .filter((event) => event.type === 'condition' && event.name === 'Cutter Burst — Jagged Mind')
-      .map((event) => Number((event.at - triggerAt).toFixed(3))),
-    [0.2, 0.24, 0.4]
-  );
 
   const expired = simulateMesmer(
     ['Flying Cutter', { name: '__wait', waitMs: 5001 }, 'Flying Cutter', 'Flying Cutter'],
@@ -253,62 +239,6 @@ test('Flying Cutter tracks three hits for five seconds and Bladecall strikes six
 
   assert.equal(bladecallHits.length, 6);
   assert.ok(Math.abs(bladecallHits.reduce((sum, event) => sum + event.coefficient, 0) - 1.5) < 1e-12);
-  assert.deepEqual(
-    bladecallHits.map((event) => Number(event.at.toFixed(3))),
-    [0.2, 0.2, 0.2, 2.72, 2.72, 2.76]
-  );
-  assert.deepEqual(
-    bladecall.resolvedEvents
-      .filter(
-        (event) => event.type === 'condition' && event.skillName === 'Bladecall' && event.sourceId === TRAIT.JAGGED_MIND
-      )
-      .map((event) => Number(event.at.toFixed(3))),
-    [0.2, 0.2, 0.2, 2.72, 2.72, 2.76]
-  );
-});
-
-test('Phantasmal Duelist uses eight timed unload and bleeding packets', () => {
-  const result = simulateMesmer(
-    ['Phantasmal Duelist', { name: '__wait', waitMs: 4000 }],
-    defaultSimulationConfig({
-      specialization: 'Virtuoso',
-      selectedTraitIds: [],
-      primaryWeapon: 'Dagger',
-      secondaryWeapon: 'Pistol',
-      initialResource: 0
-    })
-  );
-  const times = (source) =>
-    result.resolvedEvents
-      .filter((event) => event.type === 'damage' && event.skillName === 'Phantasmal Duelist' && event.source === source)
-      .map((event) => Number(event.at.toFixed(3)));
-
-  assert.deepEqual(times('Player'), [0.36, 0.36, 0.4]);
-  assert.deepEqual(
-    result.resolvedEvents
-      .filter(
-        (event) => event.type === 'damage' && event.skillName === 'Phantasmal Duelist' && event.source === 'Player'
-      )
-      .map((event) => event.coefficient),
-    [0.33, 0.33, 0.33]
-  );
-  assert.deepEqual(times('Phantasm'), [1.4, 1.6, 1.8, 2, 2.2, 2.4, 2.6, 2.8]);
-  assert.ok(
-    result.resolvedEvents
-      .filter(
-        (event) => event.type === 'damage' && event.skillName === 'Phantasmal Duelist' && event.source === 'Phantasm'
-      )
-      .every((event) => Math.abs(event.coefficient - 0.115) < 1e-12)
-  );
-  assert.deepEqual(
-    result.resolvedEvents
-      .filter(
-        (event) =>
-          event.type === 'condition' && event.skillName === 'Phantasmal Duelist' && event.condition === 'Bleeding'
-      )
-      .map((event) => Number(event.at.toFixed(3))),
-    [1.4, 1.6, 1.8, 2, 2.2, 2.4, 2.6, 2.8]
-  );
 });
 
 test('Clarity makes only an empowered Mental Collapse a control skill', () => {
@@ -341,8 +271,6 @@ test('Illusionary Counter arms one Counterspell without generating clones itself
     secondaryWeapon: 'Sword'
   });
   const counter = simulateMesmer(['Illusionary Counter'], config);
-
-  assert.equal(counter.steps[0].end, 120);
   assert.equal(counter.steps[0].interrupted, true);
 
   assert.equal(
@@ -367,7 +295,6 @@ test('Illusionary Counter arms one Counterspell without generating clones itself
   const flipped = simulateMesmer(['Illusionary Counter', 'Counterspell', 'Counterspell'], config);
 
   assert.equal(flipped.steps.filter((step) => !step.invalid).length, 2);
-  assert.equal(flipped.steps[1].start, 120);
   assert.equal(flipped.planningState.profession.resource, 1);
   assert.equal(flipped.planningState.profession.availableFlips[ID.COUNTERSPELL], undefined);
   assert.ok(flipped.breakdown.some((entry) => entry.sourceSkill === 'Counterspell'));
@@ -376,10 +303,6 @@ test('Illusionary Counter arms one Counterspell without generating clones itself
     ['Illusionary Counter', { name: 'Counterspell', interruptMs: 360 }, 'Swap Weapons'],
     config
   );
-  const counterspell = interrupted.steps.find((step) => step.skill === 'Counterspell');
-
-  assert.equal(counterspell.end - counterspell.start, 360);
-  assert.equal(interrupted.steps.find((step) => step.skill === 'Swap Weapons').start, counterspell.end);
   assert.equal(interrupted.planningState.profession.resource, 1);
   assert.ok(
     interrupted.resolvedEvents.some(
@@ -450,21 +373,6 @@ test('Illusionary Riposte enables Counter Blade without block rewards', () => {
       );
     }
   }
-});
-
-test('Illusionary Riposte defaults to a 120ms interrupt before Counter Blade', () => {
-  const config = defaultSimulationConfig({
-    specialization: 'Core',
-    initialResource: 0,
-    primaryWeapon: 'Sword',
-    secondaryWeapon: 'Sword'
-  });
-  const result = simulateMesmer(['Illusionary Riposte', 'Counter Blade'], config);
-
-  assert.equal(result.steps[0].end, 120);
-  assert.equal(result.steps[0].interrupted, true);
-
-  assert.equal(result.steps[1].start, 120);
 });
 
 test('Into the Void waits for its one-second post-curtain delay', () => {

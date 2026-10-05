@@ -57,12 +57,7 @@ export type RangerState = RangerCoreState &
       Pick<SoulbeastState, 'beastmodeActive' | 'archetype' | 'oneWolfPackUntil'> &
       Pick<
         UntamedState,
-        | 'rangerUnleashed'
-        | 'ambushReadyUntil'
-        | 'ferociousSymbiosisPlayerStacks'
-        | 'ferociousSymbiosisPlayerUntil'
-        | 'ferociousSymbiosisPetStacks'
-        | 'ferociousSymbiosisPetUntil'
+        'rangerUnleashed' | 'ambushReadyUntil' | 'ferociousSymbiosisPlayer' | 'ferociousSymbiosisPet'
       > &
       Pick<
         GaleshotState,

@@ -1,3 +1,4 @@
+import { appendChargeGrant, consumeChargeBatch, grantCharges } from '#gw2/platform/combat/resources/charges.js';
 import { gw2AlliedEffectRecipients, gw2AlliedPlayerAssumptions } from '#gw2/platform/combat/state/allied-players.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
@@ -155,27 +156,6 @@ export function reactToVampiricPresenceAlliedHit(
   queueVampiricPresence(context, event, `ally:${Number(event.allyIndex || 0)}`, true);
 }
 
-// Taste for Blood uses generic buff reporting while profession-owned pools
-// preserve independent charge consumption for every affected recipient.
-function consumeTasteForBloodBuff(context: NecromancerResolverContext, recipient: string, at: number): boolean {
-  const buffs = professionCoreState(context).tasteForBloodBuffs;
-  const applications = buffs[recipient] || [];
-  const index = applications.findIndex(
-    (application) => application.at <= at && application.expiresAt > at && application.stacks > 0
-  );
-  if (index < 0) return false;
-
-  const application = applications[index];
-  if (application.stacks === 1) {
-    applications.splice(index, 1);
-  } else {
-    applications[index] = { ...application, stacks: application.stacks - 1 };
-  }
-
-  buffs[recipient] = applications;
-  return true;
-}
-
 function alliedTasteForBloodRecipient(allyIndex: number): string {
   return `ally:${allyIndex}`;
 }
@@ -190,16 +170,13 @@ function addTasteForBloodApplication(
   event: NecromancerResolverEvent,
   recipient: string
 ): void {
-  const buffs = professionCoreState(context).tasteForBloodBuffs;
-  const applications = (buffs[recipient] || []).filter(
-    (application) => application.expiresAt > event.at && application.stacks > 0
+  const grants = professionCoreState(context).tasteForBloodGrants;
+  grants[recipient] = appendChargeGrant(
+    grants[recipient] ?? [],
+    { ...grantCharges(Math.max(1, event.stacks ?? 1), event.at + Math.max(0, event.duration || 0)), at: event.at },
+    event.at,
+    'insertion'
   );
-  applications.push({
-    at: event.at,
-    expiresAt: event.at + Math.max(0, event.duration || 0),
-    stacks: Math.max(1, event.stacks ?? 1)
-  });
-  buffs[recipient] = applications;
 }
 
 // Trait-derived Taste for Blood packets and proc markers keep Overflowing
@@ -217,7 +194,9 @@ function consumeTasteForBlood(
 ): void {
   const profile = requireBalanceProfileFromContext(context, TRAIT.OVERFLOWING_THIRST);
   const effect = requireEffect(profile, 'strike', 'Strike');
-  if (!effect || !consumeTasteForBloodBuff(context, recipient, event.at)) return;
+  // Application time remains owner metadata: future grants cannot pay for an earlier hit.
+  const grants = professionCoreState(context).tasteForBloodGrants[recipient] ?? [];
+  if (!effect || !consumeChargeBatch(grants, event.at, (grant) => grant.at <= event.at)) return;
   // Taste for Blood is a power-only life siphon, so armor and weapon strength
   // must not enter its flat base plus Power damage formula.
   queueBloodMagicLifeSteal(context, event, {

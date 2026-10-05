@@ -59,6 +59,7 @@ export async function assertManifestRegressions(
         ...savedBuild,
         rotation
       });
+      assert.equal(build.schemaVersion, adapter.profession.createBuildDefaults().schemaVersion, label);
       // The app object mirrors the real shell: `adapter` exposes the assumption
       // controls (e.g. the shared `permanentComboField` testing assumption) and
       // `profession` backs the slot-loadout skill resolution used by config building.

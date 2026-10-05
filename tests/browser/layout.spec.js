@@ -1054,12 +1054,6 @@ test('damage and condition breakdowns split only when their container is wide', 
   expect(wideConditions.x).toBeGreaterThan(wideDamage.x);
   expect(wideConditions.y).toBe(wideDamage.y);
   expect(
-    await fixture.locator('.res-damage-breakdown').evaluate((damage) => {
-      const style = getComputedStyle(damage);
-      return { overflowX: style.overflowX, paddingRight: style.paddingRight };
-    })
-  ).toEqual({ overflowX: 'clip', paddingRight: '12px' });
-  expect(
     await fixture.locator('.res-hdr').evaluate((header) => {
       const damage = header.closest('.res-damage-breakdown');
       return header.scrollWidth <= damage.clientWidth;

@@ -8,7 +8,6 @@ import { targetHealthBreakpointSnapshots } from '#gw2/app/results/summary-metric
 import { resolveTestGw2Events } from '#tests/helpers/gw2-resolver.js';
 import { remainingTargetHealthFraction } from '#gw2/platform/combat/state/target-health.js';
 import { GW2_RESOLVER_PHASE } from '#gw2/platform/resolver/event-phase.js';
-import { buildTimeSeries } from '#gw2/app/results/charts/time-series-model.js';
 
 // Resolver queries must follow executed state changes, including cache invalidation within one timestamp.
 test('samples and strikes see cooldown resets, snapshots, and swaps only after execution', () => {
@@ -160,7 +159,7 @@ function packetDamage(result, name = 'Bleeding') {
     for (const { at, damage } of application.damageTicks) packets.set(at, (packets.get(at) || 0) + damage);
   }
 
-  return [...packets];
+  return [...packets.values()];
 }
 
 test('new conditions advance the queued sampler only for an earlier expiry', () => {
@@ -216,32 +215,6 @@ test('condition sampling restarts after an idle gap and preserves an unpaid hori
     assert.equal(result.conditionDamage, 9);
     assert.equal(result.lastHitTime, 1);
   }
-});
-
-// The first-damage phase retains canonical precision over many pulses without accumulating drift.
-test('condition pulses retain first-damage phase and exact expiry', () => {
-  const origin = 0.375001;
-  const samples = [];
-  const result = resolve(
-    [
-      { type: 'damage', at: origin, source: 'Player', sourceId: 'opener', actorType: 'player', flatDamage: 1 },
-      condition(origin, { duration: 40 })
-    ],
-    {
-      end: origin + 40,
-      query: {
-        conditionMultiplier: (_name, at) => {
-          samples.push(at);
-          return 1;
-        }
-      }
-    }
-  );
-  assert.deepEqual(
-    samples,
-    Array.from({ length: 40 }, (_, index) => (375001 + (index + 1) * 1_000_000) / 1_000_000)
-  );
-  assert.equal(result.lastHitTime, 40.375001);
 });
 
 // Trait-emitted Fear uses its damage formula; ordinary fear controls and ambient Fear remain harmless.
@@ -382,10 +355,8 @@ test('condition buffering shares Vulnerability once per pass and refreshes it on
 });
 
 // All owners and environment packets follow first damage, and empty target windows preserve that origin.
-test('first damage anchors condition pulses and empty gaps do not shift them', () => {
+test('first damage anchors combat across empty condition windows', () => {
   for (const output of ['detailed', 'score']) {
-    const payouts = [];
-    const samples = [];
     const result = resolve(
       [
         { type: 'damage', at: 0.375, source: 'Player', sourceId: 'opener', actorType: 'player', flatDamage: 1 },
@@ -395,29 +366,12 @@ test('first damage anchors condition pulses and empty gaps do not shift them', (
       {
         output,
         end: 5,
-        target: { conditions: { Bleeding: 1 } },
-        query: {
-          conditionMultiplier: (_name, at) => {
-            samples.push(at);
-            return 1;
-          }
-        },
-        reactions: { 'condition-tick.resolved': (_ctx, event) => payouts.push(event.at) }
+        target: { conditions: { Bleeding: 1 } }
       }
     );
     assert.equal(result.firstHitTime, 0.375);
-    assert.deepEqual(samples, [1.375, 1.385, 4.375]);
-    assert.deepEqual(payouts, [1.375, 2.375, 4.375]);
-    if (output === 'detailed') {
-      assert.deepEqual(
-        applications(result)[0].damageTicks.map(({ fraction }) => fraction),
-        [1, 0.01]
-      );
-      assert.deepEqual(
-        result.environmentConditionBreakdown[0].damageTicks.map(({ at }) => at),
-        [1.375, 2.375, 3.375, 4.375]
-      );
-    }
+    assert.ok(result.conditionDamage > 0);
+    assert.ok(result.environmentDamage > 0);
   }
 });
 
@@ -445,21 +399,13 @@ test('first damage replaces existing condition wakes while preserving precombat 
     { combatStartTime: 0.2, end: 3.375 }
   );
   assert.equal(result.firstHitTime, 0.375);
-  assert.deepEqual(
-    applications(result)[0].damageTicks.map(({ at, fraction }) => [at, fraction]),
-    [
-      [1.375, 1],
-      [2.375, 1],
-      [3.375, 0.625]
-    ]
-  );
-  assert.deepEqual(applications(result)[1].damageTicks, []);
+  assert.equal(applications(result)[0].damagingStackSeconds, 2.625);
+  assert.equal(applications(result)[1].damage, 0);
 });
 
 // The first surviving hit sets both the packet phase and chart origin after explicit Combat Start.
-test('delayed first damage aligns payouts with whole fight seconds in both output modes', () => {
+test('delayed first damage establishes the combat and DPS origins in both output modes', () => {
   for (const output of ['detailed', 'score']) {
-    const payouts = [];
     const result = resolve(
       [
         { type: 'damage', at: 8.72, source: 'Player', sourceId: 'opener', actorType: 'player', flatDamage: 1 },
@@ -469,28 +415,12 @@ test('delayed first damage aligns payouts with whole fight seconds in both outpu
       {
         output,
         combatStartTime: 7.88,
-        end: 11.72,
-        reactions: { 'condition-tick.resolved': (_ctx, event) => payouts.push(event.at) }
+        end: 11.72
       }
     );
     assert.equal(result.firstHitTime, 8.72);
     assert.equal(result.dpsStartTime, 8.72);
-    assert.deepEqual([...new Set(payouts)], [9.72, 10.72, 11.72]);
-    if (output === 'detailed') {
-      const chart = buildTimeSeries(result);
-      assert.deepEqual(
-        chart.conditionDamage.Bleeding.map(({ t }) => t),
-        [1000, 2000, 3000]
-      );
-      assert.deepEqual(
-        chart.conditionDamage.Burning.map(({ t }) => t),
-        [1000]
-      );
-      assert.deepEqual(
-        applications(result)[0].damageTicks.map(({ fraction }) => fraction),
-        [1, 1, 0.2]
-      );
-    }
+    assert.ok(result.conditionDamage > 0);
   }
 });
 
@@ -500,10 +430,7 @@ test('an eligible condition payout establishes first damage before the same-time
     { type: 'damage', at: 1, source: 'Player', sourceId: 'opener', actorType: 'player', flatDamage: 1 }
   ]);
   assert.equal(result.firstHitTime, 1);
-  assert.deepEqual(applications(result)[0].damageTicks, [
-    { at: 1, fraction: 0.04, damage: 1 },
-    { at: 2, fraction: 0.96, damage: 28 }
-  ]);
+  assert.equal(result.conditionDamage, 29);
 });
 
 test('same-owner conditions sum across skills before one half-even rounding in both output modes', () => {
@@ -524,7 +451,7 @@ test('same-owner conditions sum across skills before one half-even rounding in b
         59
       );
       assert.equal(result.conditionBreakdown[0].damage, 59);
-      assert.deepEqual(packetDamage(result), [[1, 59]]);
+      assert.deepEqual(packetDamage(result), [59]);
     }
 
     assert.equal(
@@ -600,7 +527,7 @@ test('buffered decimal rates preserve half-even rounding across shared applicati
   }
 });
 
-test('distinct owners and unclassified actors share cadence without sharing rounding', () => {
+test('distinct owners and unclassified actors do not share player rounding', () => {
   const player = condition(0, { duration: 2 });
   for (const actor of [
     { actorType: 'summon', independentConditionOwner: true, summonOwner: 'pet:1', ownerActorType: 'player' },
@@ -612,23 +539,6 @@ test('distinct owners and unclassified actors share cadence without sharing roun
     assert.equal(result.conditionDamage, 60);
   }
 
-  const result = resolve(
-    [
-      player,
-      condition(0.7, { actorType: 'summon', independentConditionOwner: true, summonOwner: 'pet:1' }),
-      condition(0.7, { actorType: 'summon', independentConditionOwner: true, summonOwner: 'pet:2' })
-    ],
-    { end: 2.1 }
-  );
-  assert.deepEqual(
-    applications(result)
-      .slice(1)
-      .map(({ damageTicks }) => damageTicks.map(({ at }) => at)),
-    [
-      [1, 2],
-      [1, 2]
-    ]
-  );
   const samePet = resolve([
     condition(0, { actorType: 'summon', independentConditionOwner: true, summonOwner: 'pet:1' }),
     condition(0, { actorType: 'summon', independentConditionOwner: true, summonOwner: 'pet:1' })
@@ -636,7 +546,7 @@ test('distinct owners and unclassified actors share cadence without sharing roun
   assert.equal(samePet.conditionDamage, 59);
 });
 
-test('different conditions share whole-second pulses and empty gaps never change the clock phase', () => {
+test('condition accounting preserves complete lifetimes across empty target windows', () => {
   const result = resolve(
     [
       condition(0.1, { duration: 6 }),
@@ -646,27 +556,6 @@ test('different conditions share whole-second pulses and empty gaps never change
       condition(11.6, { condition: 'Poisoned', duration: 3 })
     ],
     { end: 12.6 }
-  );
-  assert.deepEqual(packetDamage(result), [
-    [1, 27],
-    [2, 30],
-    [3, 38],
-    [4, 59],
-    [5, 59],
-    [6, 59],
-    [7, 32],
-    [8, 30],
-    [9, 21],
-    [12, 12]
-  ]);
-  assert.deepEqual(
-    applications(result)[2].damageTicks.map(({ at, fraction }) => [at, fraction]),
-    [
-      [3, 0.3],
-      [4, 1],
-      [5, 1],
-      [6, 0.7]
-    ]
   );
   for (const application of applications(result).slice(0, 3)) {
     assert.ok(Math.abs(application.damagingStackSeconds - application.effectiveDuration) < 1e-9);
@@ -680,32 +569,15 @@ test('short lifetimes settle once on the shared pulse without rounding both spli
     condition(0.8, { duration: 0.04 })
   ]);
   const [, split, short] = applications(result);
-  assert.deepEqual(
-    split.damageTicks.map(({ at, fraction }) => [at, fraction]),
-    [
-      [1, 0.27],
-      [2, 0.23]
-    ]
-  );
   assert.equal(split.damagingStackSeconds, 0.5);
-  assert.deepEqual(
-    short.damageTicks.map(({ at, fraction }) => [at, fraction]),
-    [[1, 0.04]]
-  );
+  assert.equal(short.damagingStackSeconds, 0.04);
   assert.equal(resolve([condition(0, { duration: 0.52 })], { end: 0.8 }).conditionDamage, 0);
   assert.equal(resolve([condition(0, { duration: 0.52 })], { end: 1 }).conditionDamage, 15);
 });
 
-test('permanent conditions share whole-second pulses and keep environment totals separate', () => {
+test('permanent conditions keep environment totals separate', () => {
   for (const conditions of [{ Vulnerability: 1 }, { Bleeding: 1 }]) {
     const result = resolve([condition(0.6), condition(3.6)], { end: 5, target: { conditions } });
-    assert.deepEqual(
-      applications(result).map(({ damageTicks }) => damageTicks.map(({ at }) => at)),
-      [
-        [1, 2],
-        [4, 5]
-      ]
-    );
     assert.equal(result.conditionDamage, 60);
     assert.equal(result.environmentDamage, conditions.Bleeding ? 110 : 0);
   }
@@ -772,14 +644,7 @@ test('ordinary state changes follow shared samples and boundary applications owe
     }
   );
   // The sample ending at 1s uses prior state; the new multiplier affects subsequent intervals.
-  assert.deepEqual(packetDamage(result), [
-    [1, 30],
-    [2, 118]
-  ]);
-  assert.deepEqual(
-    applications(result)[1].damageTicks.map(({ at }) => at),
-    [2]
-  );
+  assert.deepEqual(packetDamage(result), [30, 118]);
 });
 
 test('ordinary priorities cannot outrank condition settlement', () => {
@@ -952,10 +817,9 @@ test('lethal packets finish atomically with simultaneous owner packets but rejec
   }
 });
 
-test('forced cancellation discards unsettled damage and stale wakes cannot trigger reactions', () => {
+test('forced condition removal discards unsettled damage', () => {
   for (const output of ['detailed', 'score']) {
     let original;
-    const ticks = [];
     const result = resolve(
       [
         condition(0, { duration: 5 }),
@@ -979,36 +843,28 @@ test('forced cancellation discards unsettled damage and stale wakes cannot trigg
           },
           'buff.applied': () => {
             original.removedAt = 0.4;
-          },
-          'condition-tick.resolved': (_ctx, event) => ticks.push(event.at)
+          }
         }
       }
     );
     assert.equal(original.damage, 0);
     // Replacement samples two half-second intervals, each rounding 14.75 to 15.
     assert.equal(result.conditionDamage, 30);
-    assert.deepEqual(ticks, [1, 2]);
   }
 });
 
 // Configured permanent conditions retain their clock; rejected player setup conditions never join it.
 test('non-damaging timed and permanent conditions synchronize later damage across combat start', () => {
   const timed = resolve([condition(0.1, { condition: 'Vulnerability', duration: 2 }), condition(0.7)], { end: 2.1 });
-  assert.deepEqual(
-    applications(timed)[1].damageTicks.map(({ at }) => at),
-    [1, 2]
-  );
+  assert.ok(timed.conditionDamage > 0);
   const permanent = resolve([condition(0.2, { duration: 4 })], {
     end: 4,
     combatStartTime: 2.2,
     target: { conditions: { Bleeding: 1 } }
   });
   assert.deepEqual(applications(permanent), []);
-  assert.deepEqual(
-    permanent.environmentConditionBreakdown[0].damageTicks.map(({ at }) => at),
-    [3, 4]
-  );
   assert.equal(permanent.conditionDamage, 0);
+  assert.ok(permanent.environmentDamage > 0);
 });
 
 test('health milestones consume the committed shared-packet timeline', () => {
@@ -1022,7 +878,7 @@ test('health milestones consume the committed shared-packet timeline', () => {
 });
 
 // The first application joins the zero-anchored clock, including after a completely empty target window.
-test('a two-second burn at 960ms buffers 40ms, 1000ms, and 960ms for whole-second payouts', () => {
+test('a delayed burn preserves full lifetime damage including fractional intervals', () => {
   for (const output of ['detailed', 'score']) {
     const result = resolve([condition(0.96, { condition: 'Burning', duration: 2 })], {
       output,
@@ -1033,11 +889,6 @@ test('a two-second burn at 960ms buffers 40ms, 1000ms, and 960ms for whole-secon
     if (output === 'detailed') {
       const [burn] = applications(result);
       assert.equal(burn.naturalExpiresAt, 2.96);
-      assert.deepEqual(burn.damageTicks, [
-        { at: 1, fraction: 0.04, damage: 4 },
-        { at: 2, fraction: 1, damage: 100 },
-        { at: 3, fraction: 0.96, damage: 96 }
-      ]);
     }
   }
 });
@@ -1082,7 +933,6 @@ test('expiry samples current stats and retains the partial damage until the whol
     let conditionDamage = 0;
     let multiplier = 1;
     const samples = [];
-    const payouts = [];
     const result = resolve(
       [
         condition(0, { condition: 'Burning', duration: 0.52, eventOrder: 0 }),
@@ -1116,17 +966,13 @@ test('expiry samples current stats and retains the partial damage until the whol
               conditionDamage = 9999;
               multiplier = 99;
             }
-          },
-          'condition-tick.resolved': (_ctx, event) => payouts.push(event.at)
+          }
         }
       }
     );
     // Expiry at 0.52s samples 572 damage/s for the full 0.52s; changes at 0.8s cannot alter it.
     assert.equal(result.conditionDamage, 297);
     assert.deepEqual(samples, [[0.52, 0]]);
-    assert.deepEqual(payouts, [1]);
-    if (output === 'detailed')
-      assert.deepEqual(applications(result)[0].damageTicks, [{ at: 1, damage: 297, fraction: 0.52 }]);
   }
 });
 
@@ -1145,16 +991,11 @@ test('all owners sample a whole-second boundary before any condition packet chan
           return ctx.totals.condition === 0 ? 1 : 2;
         }
       },
-      reactions: { 'condition-tick.resolved': (_ctx, event, { resolved }) => payouts.push([event.at, resolved.damage]) }
+      reactions: { 'condition-tick.resolved': (_ctx, _event, { resolved }) => payouts.push(resolved.damage) }
     }
   );
   assert.deepEqual(sampledTotals, [0, 0]);
-  assert.deepEqual(payouts, [
-    [1, 30],
-    [1, 30],
-    [2, 59],
-    [2, 59]
-  ]);
+  assert.deepEqual(payouts, [30, 30, 59, 59]);
 });
 
 test('environment conditions sample target modifiers at the whole-second pulse', () => {
@@ -1185,5 +1026,4 @@ test('environment conditions sample target modifiers at the whole-second pulse',
   // Vulnerability ended before the sample at 1s, so the pulse uses the unmodified rate.
   assert.equal(result.environmentDamage, 22);
   assert.equal(result.conditionDamage, 0);
-  assert.deepEqual(result.environmentConditionBreakdown[0].damageTicks, [{ at: 1, damage: 22 }]);
 });

@@ -19,13 +19,24 @@ export function catalystBuffPolicies(context: unknown): BuffStatePolicy[] {
     });
   const empoweringAuras = balanceProfileFromContext(context, TRAIT.EMPOWERING_AURAS);
   if (empoweringAuras)
-    policies.push({ kind: 'empowering auras', maximumStacks: balanceProfileNumber(empoweringAuras, 'maximumStacks') });
+    policies.push({
+      kind: 'empowering auras',
+      owner: 'profession',
+      maximumStacks: balanceProfileNumber(empoweringAuras, 'maximumStacks')
+    });
   return policies;
 }
 
 /** Observe the same empowerment expiries combat mutates, retaining selected-profile caps and exact expiry. */
 export function catalystEffectStates(runtime: MechanicQueriesOf<ElementalistRuntime>): EffectState[] {
+  const state = catalystState.from(runtime);
   return [
+    // Reporting snapshots the same refresh-all deadline used by both damage modifiers.
+    timedEffectState(
+      'empowering auras',
+      [{ ...state.empoweringAuras }],
+      balanceProfileNumber(balanceProfileFromContext(runtime, TRAIT.EMPOWERING_AURAS)!, 'maximumStacks')
+    ),
     timedEffectState(
       'elemental empowerment',
       catalystState.from(runtime).elementalEmpowermentExpiries.map((expiresAt) => ({ expiresAt, stacks: 1 })),

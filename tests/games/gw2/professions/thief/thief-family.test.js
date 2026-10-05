@@ -25,6 +25,8 @@ import { runThief } from '#tests/helpers/thief-simulation.js';
 import assert from 'node:assert/strict';
 import { readdirSync, readFileSync } from 'node:fs';
 import test from 'node:test';
+import path from 'node:path';
+import ts from 'typescript';
 
 test('Antiquary projects its own charge fields and preserves the inactive initiative layout fallback', () => {
   // The slice must expose its charges without relying on Deadeye's contribution to the family metadata.
@@ -92,21 +94,6 @@ const thiefSkillOwners = new Map(
   )
 );
 
-// Check evaluated arrays, including generated packets and alternate outcome profiles, at the catalog boundary.
-test('Thief authored effect ticks use ordered non-negative 40 ms offsets', () => {
-  for (const entry of [...thiefCatalog.skills, ...thiefCatalog.balanceProfiles]) {
-    for (const effect of entry.effects || []) {
-      let previous = 0;
-      for (const tick of effect.ticks || []) {
-        const label = `${entry.id} ${entry.name}: ${tick.atMs} ms`;
-        assert.ok(Number.isFinite(tick.atMs) && tick.atMs >= previous, label);
-        assert.ok(Math.abs(tick.atMs - Math.round(tick.atMs / 40) * 40) < 1e-6, label);
-        previous = tick.atMs;
-      }
-    }
-  }
-});
-
 const specializationStateKeys = Object.freeze({
   Daredevil: ['selectedDodge', 'boundingDamageUntil', 'lotusConditionDamageUntil', 'weakeningStrikeReady'],
   Deadeye: ['markedTargetId', 'malice', 'maleficentSevenTriggered'],
@@ -121,30 +108,27 @@ test('Thief modules register unique behavior owners and respect dependency bound
   for (const [directory, module] of slices) {
     const directoryUrl = new URL(`../../../../../js/games/gw2/professions/thief/${directory}/`, import.meta.url);
     const sources = collectTypeScriptSources(directoryUrl);
+    // Resolve import and reexport targets so aliases are checked and comments cannot create false violations.
     for (const { relativePath, source } of sources) {
-      if (directory === 'core') {
-        assert.doesNotMatch(source, /from\s+["'][^"']*specializations\//);
-      } else {
-        assert.doesNotMatch(
-          source,
-          /from\s+["']\.\.\/(?:daredevil|deadeye|specter|antiquary)(?:\/|["'])/,
-          `${directory}/${relativePath} imports a sibling specialization`
+      const parsed = ts.createSourceFile(relativePath, source, ts.ScriptTarget.Latest, true);
+      for (const statement of parsed.statements) {
+        if (!ts.isImportDeclaration(statement) && !ts.isExportDeclaration(statement)) continue;
+        const specifier = statement.moduleSpecifier?.text;
+        if (!specifier) continue;
+        const alias = '#gw2/professions/thief/';
+        const target = specifier.startsWith(alias)
+          ? specifier.slice(alias.length)
+          : specifier.startsWith('.')
+            ? path.posix.normalize(path.posix.join(directory, path.posix.dirname(relativePath), specifier))
+            : null;
+        if (!target) continue;
+        const label = `${directory}/${relativePath} -> ${target}`;
+        if (target.startsWith('specializations/')) assert.ok(target.startsWith(`${directory}/`), label);
+        assert.ok(
+          !/^(?:assumptions|attribute-rules|definition|family|handlers|resolver|state|ui)\.js$/.test(target),
+          label
         );
-      }
-
-      const rootFacadeImport =
-        directory === 'core'
-          ? /from\s+["']\.\.\/(?:assumptions|attribute-rules|definition|family|handlers|resolver|ui)\.js["']/
-          : /from\s+["']\.\.\/\.\.\/(?:assumptions|attribute-rules|definition|family|handlers|resolver|state|ui)\.js["']/;
-
-      assert.doesNotMatch(source, rootFacadeImport, `${directory}/${relativePath} imports an application facade`);
-
-      if (relativePath !== 'module.ts') {
-        assert.doesNotMatch(
-          source,
-          directory === 'core' ? /from\s+["']\.\.\/catalog\.js["']/ : /from\s+["']\.\.\/\.\.\/catalog\.js["']/,
-          `${directory}/${relativePath} imports the application catalog`
-        );
+        if (relativePath !== 'module.ts') assert.notEqual(target, 'catalog.js', label);
       }
     }
 

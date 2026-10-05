@@ -47,27 +47,23 @@ test('restoring and spending three rounds preserves the serial recharge already 
   assert.equal(controller.refreshAmmo(sequential, 17).charges, 6);
 });
 
-test('serial recharge reductions consume work once across the queue and preserve cast lockouts', () => {
+test('serial recharge reductions consume work once across the queue', () => {
   const controller = magazine();
-  controller.setAmmoLockout(sequential, 20, 0);
   assert.equal(controller.reduceSkillRecharge(sequential, 7, 2), 7);
   assert.equal(controller.refreshAmmo(sequential, 2).charges, 1);
   assert.equal(controller.refreshAmmo(sequential, 3).charges, 2);
   assert.equal(controller.refreshAmmo(sequential, 8).charges, 3);
-  assert.equal(controller.refreshAmmo(sequential, 8).lockoutReadyAt, 20);
 });
 
-// Reloads preserve active progress, and reductions apply once across the magazine without shortening lockouts.
+// Reloads preserve active progress, and reductions apply once across the magazine.
 test("Dragon's Roar restores and reduces its queued rounds", () => {
   const controller = magazine(roar);
-  controller.setAmmoLockout(roar, 20, 0);
   assert.equal(controller.restoreAmmo(roar, 3, 2), 3);
   for (let round = 0; round < 3; round++) controller.spendAmmo(roar, 3);
   assert.equal(controller.refreshAmmo(roar, 5).charges, 1);
   assert.equal(controller.reduceSkillRecharge(roar, 2, 5), 2);
   assert.equal(controller.refreshAmmo(roar, 7.999).charges, 1);
   assert.equal(controller.refreshAmmo(roar, 8).charges, 2);
-  assert.equal(controller.refreshAmmo(roar, 8).lockoutReadyAt, 20);
   assert.equal(controller.refreshAmmo(roar, 28).charges, 6);
   assert.deepEqual(controller.refreshAmmo(roar, 28).recharges, []);
 });

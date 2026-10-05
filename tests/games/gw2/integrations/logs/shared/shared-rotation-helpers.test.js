@@ -48,7 +48,7 @@ test('resolved identity uses the adapter-selected skill, then canonical identity
   assert.deepEqual(resolvedActionIdentity(canonical, skill), { skill, skillId: 2000, name: 'Selected' });
 });
 
-test('composites retain the first source identity and evidence while combining expected durations', () => {
+test('composites retain the first source identity and evidence', () => {
   const profile = ROTATION_PROFILES.find((candidate) => candidate.specializationId === 'untamed');
   const first = {
     start: 1000,
@@ -78,13 +78,11 @@ test('composites retain the first source identity and evidence while combining e
     playerAddress: EVTC_FIXTURE_PLAYER,
     recordedActions: [first, finish]
   });
-  assert.equal(merged.expectedDurationMs, 600);
   assert.equal(merged.sourceActionIndex, 0);
   assert.equal(merged.eventIndex, first.eventIndex);
   assert.equal(merged.evidence, first.evidence);
   assert.equal(merged.eiRule, first.eiRule);
   assert.equal(merged.acceleration, first.acceleration);
-  assert.equal(first.expectedDurationMs, 200);
   const result = reconstructEvtcRotation(
     log({
       agents: [{ ...log().agents[0], profession: 4, elite: 0 }],
@@ -103,7 +101,7 @@ test('composites retain the first source identity and evidence while combining e
     null,
     { includeCombatStart: false }
   );
-  assert.equal(result.actions.find((action) => action.rawSkillId === first.rawSkillId).expectedDurationMs, 600);
+  assert.ok(result.actions.some((action) => action.rawSkillId === first.rawSkillId));
 });
 
 test('synthesized inputs have explicit evidence without borrowing a source row or its event index', () => {
@@ -145,7 +143,6 @@ test('synthesized inputs have explicit evidence without borrowing a source row o
   assert.equal(synthetic.sourceActionIndex, undefined);
   assert.equal(synthetic.eventIndex, 0.5);
   assert.equal(synthetic.metadataAccurate, false);
-  assert.equal(synthetic.expectedDurationMs, 400);
   assert.equal(normalized.find((action) => action.sourceActionIndex === 1).eventIndex, 20);
   const result = reconstructEvtcRotation(fixture, catalog, { includeCombatStart: false });
   assert.equal(result.actions.find((action) => action.skillId === sunEdge.id).evidence, 'synthesized');

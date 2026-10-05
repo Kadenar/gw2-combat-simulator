@@ -1056,14 +1056,8 @@ test('profession trait declarations resolve without missing references or invali
   }
 });
 
-// Profile packets may be alternatives or per-hit inputs; local adapters must preserve those engine contracts.
-test('handler-owned profiles retain per-hit coefficients and alternative conditions', async () => {
-  const { default: engineer } = await import('#gw2/professions/engineer/profession.js');
-  const { engineerTooltips } = await import('#gw2/professions/engineer/app/tooltips.js');
-  const engineerContext = withPatchPreview(engineer, null).balanceContextFor();
-  const grenadier = describeSimulationTrait(engineerContext, { id: 514, name: 'Grenadier' }, engineerTooltips);
-  assert.match(grenadier.facts.find((fact) => fact.name === 'Strike damage').detail, /3 coefficient total · 6 hits/);
-
+// Conditional and recipient-dependent values remain distinct in the rendered facts.
+test('handler-owned tooltips distinguish conditional values and recipients', async () => {
   const { default: warrior } = await import('#gw2/professions/warrior/profession.js');
   const { warriorTooltips } = await import('#gw2/professions/warrior/app/tooltips.js');
   const warriorContext = withPatchPreview(warrior, null).balanceContextFor();

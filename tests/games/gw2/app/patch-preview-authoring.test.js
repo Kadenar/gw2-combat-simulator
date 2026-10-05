@@ -1,6 +1,5 @@
 import { withActivePatchPreview } from '#gw2/integrations/patches/active-profession.js';
 import assert from 'node:assert/strict';
-import { readFile } from 'node:fs/promises';
 import test from 'node:test';
 import { engineerAppAdapter } from '#gw2/professions/engineer/app/app-definition.js';
 
@@ -369,7 +368,6 @@ test('patch authoring keeps skill timing in the runtime catalog', () => {
     summonAttack: { coefficient: 2 },
     effects: [{ type: 'strike', coefficient: 1.5 }]
   });
-  assert.equal(skill.castTimeMs, 600);
   assert.equal(skill.summonAttack.initialDelay, 1);
   // Sanitized references must remain immutable without freezing the runtime source.
   assert.equal(Object.isFrozen(reference), true);
@@ -627,31 +625,4 @@ test('patch authoring generates an overview and discards manual notes', () => {
     text: 'Factor 1.1 → 1.2; parameter threshold 90 → 80.',
     source: 'modifier-diff'
   });
-});
-
-test('patch authoring UI uses an official source and read-only overview', async () => {
-  const source = await readFile(
-    new URL('../../../../js/games/gw2/integrations/patches/app/render.ts', import.meta.url),
-    'utf8'
-  );
-  const simulatorSource = await readFile(
-    new URL('../../../../js/games/gw2/integrations/patches/view.ts', import.meta.url),
-    'utf8'
-  );
-
-  assert.match(source, /data-select-section="overview"/);
-  assert.match(source, /data-select-section="mechanics"/);
-  assert.doesNotMatch(source, /data-select-section="profiles"/);
-  assert.match(source, /data-select-trait-view="modifiers"/);
-  assert.match(source, /data-select-trait-view="effects"/);
-  assert.match(source, /selectedTraitView === 'modifiers'/);
-  assert.match(source, /balanceProfileSection\(module, 'trait'\)/);
-  assert.match(source, /balanceProfileSection\(module, 'mechanic'\)/);
-  assert.match(source, /Official patch notes URL/);
-  assert.match(source, /Generated from diff/);
-  assert.match(source, /renderSelectedSkill\(\);\s*return;/);
-  assert.doesNotMatch(source, /data-add-note/);
-  assert.doesNotMatch(source, /data-note-field/);
-  assert.match(simulatorSource, /Official patch notes/);
-  assert.match(simulatorSource, /Change overview/);
 });

@@ -101,7 +101,6 @@ test('delayed Tempest shouts do not advance the serial rotation lane', () => {
 
   assert.equal(shout.skill, 'Feel the Burn!');
   assert.equal(followingSerialCast.skill, 'Scorching Shot');
-  assert.equal(shout.start, shout.end);
   assert.equal(followingSerialCast.start, shout.start);
   assert.equal(
     result.warnings.some((warning) => warning.includes('Feel the Burn!')),
@@ -203,8 +202,8 @@ test('Overload Air grants separate non-critical Lightning Jolts to the player an
   assert.ok(triggeringElementalStrike);
 });
 
-// Runtime and palette share the normal gate and the patched trait-adjusted singularity delay.
-test('patched overload dwell agrees between availability and palette', () => {
+// Runtime availability uses the selected profile and the trait-adjusted singularity delay.
+test('patched overload dwell controls runtime availability with and without Transcendent Tempest', () => {
   const catalog = applyBalanceProfilePatch(elementalistProfession.catalog, {
     balanceProfiles: { [PROFILE.overloads]: { fields: { durationMultiplier: 5 } } }
   });

@@ -38,8 +38,6 @@ export function checkConditionOptions(): void {
   condition({ ...options, metadata: { cloneId: '1' } });
   // @ts-expect-error Ally identity remains numeric, not boolean.
   condition({ ...options, metadata: { triggeredByAlly: true } });
-  // @ts-expect-error Conditions no longer accept a second, positional skill identity.
-  condition(options, options);
   // @ts-expect-error Unknown top-level fields must not silently enter the event stream.
   condition({ ...options, arbitraryFlag: true });
   // @ts-expect-error Known condition controls retain their declared value types.

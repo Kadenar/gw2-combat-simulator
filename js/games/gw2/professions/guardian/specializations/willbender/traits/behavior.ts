@@ -1,3 +1,4 @@
+import { activeRefreshedStacks, grantRefreshedStacks } from '#gw2/platform/combat/resources/refreshed-stacks.js';
 import type { MechanicContext } from '#gw2/platform/profession-definition/mechanic-context.js';
 import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
@@ -45,15 +46,20 @@ export function gainLethalTempo(
 ): number {
   // Grants through the expiry tick refresh every stack; only a later grant starts a new stack window.
   at = canonicalTime(at);
-  if (state.lethalTempoUntil <= 0 || at > state.lethalTempoUntil) state.lethalTempoStacks = 0;
-  state.lethalTempoStacks = Math.min(maximumStacks, state.lethalTempoStacks + 1);
-  state.lethalTempoUntil = gw2EffectExpiresAt(at, duration);
-  return state.lethalTempoStacks;
+  state.lethalTempo = grantRefreshedStacks(
+    state.lethalTempo,
+    1,
+    at,
+    gw2EffectExpiresAt(at, duration),
+    maximumStacks,
+    'inclusive'
+  );
+  return state.lethalTempo.stacks;
 }
 
 export function activeLethalTempo(state: GuardianWillbenderState, at: number): number {
   // Damage on the final effect tick still receives the bonus, matching the refresh boundary.
-  return state.lethalTempoUntil > 0 && canonicalTime(at) <= state.lethalTempoUntil ? state.lethalTempoStacks : 0;
+  return activeRefreshedStacks(state.lethalTempo, canonicalTime(at), 'inclusive');
 }
 
 export function lethalTempoStacks(context: Gw2ModifierContext): number {

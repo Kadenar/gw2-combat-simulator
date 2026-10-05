@@ -29,7 +29,7 @@ export function willbenderEffectStates(
   effects.push(
     timedEffectState(
       'lethal-tempo',
-      [{ stacks: state.lethalTempoStacks, expiresAt: state.lethalTempoUntil }],
+      [{ stacks: state.lethalTempo.stacks, expiresAt: state.lethalTempo.expiresAt }],
       balanceProfileNumber(balanceProfileFromContext(runtime, TRAIT.LETHAL_TEMPO)!, 'maximumStacks')
     )
   );

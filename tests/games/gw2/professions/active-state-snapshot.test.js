@@ -209,8 +209,7 @@ test('Guardian snapshots combine core and elite active state', () => {
         justiceUntil: 8,
         resolveUntil: 7,
         courageUntil: 3,
-        lethalTempoStacks: 4,
-        lethalTempoUntil: 10
+        lethalTempo: { stacks: 4, expiresAt: 10 }
       },
       4
     )
@@ -308,10 +307,8 @@ test('Ranger snapshots expose elite windows and resolver-owned Ferocious Symbios
       'Untamed',
       {
         ambushReadyUntil: 7,
-        ferociousSymbiosisPlayerStacks: 3,
-        ferociousSymbiosisPlayerUntil: 9,
-        ferociousSymbiosisPetStacks: 5,
-        ferociousSymbiosisPetUntil: 8
+        ferociousSymbiosisPlayer: { stacks: 3, expiresAt: 9 },
+        ferociousSymbiosisPet: { stacks: 5, expiresAt: 8 }
       },
       4
     )
@@ -326,8 +323,8 @@ test('Ranger snapshots expose elite windows and resolver-owned Ferocious Symbios
       specialization: { kind: 'Untamed', state: { rangerUnleashed: true, ambushReadyUntil: 7 } }
     }
   });
-  assert.equal(projected.ferociousSymbiosisPlayerStacks, 0);
-  assert.equal(projected.ferociousSymbiosisPlayerUntil, 0);
+  assert.equal(projected.ferociousSymbiosisPlayer.stacks, 0);
+  assert.equal(projected.ferociousSymbiosisPlayer.expiresAt, 0);
 
   const galeshot = valuesById(snapshot(rangerProfession, 'Galeshot', { mistralUntil: 7.5 }, 4));
   assert.equal(galeshot['galeshot-mistral'], '3.5s');

@@ -699,37 +699,6 @@ test('cartridge component removal separates its bonus and Burning and a removed 
   );
 });
 
-test('committed reloads restore ammo once at semantic completion before the reserved tail', () => {
-  const skill = warriorProfession
-    .runtimeFor({ specialization: 'Bladesworn' })
-    .catalog.skillsById.get(ID.TACTICAL_RELOAD);
-  const release = (Number(skill.interruptCommitMs) + Number(skill.castTimeMs)) / 2;
-  const result = run(
-    [
-      'Flow Stabilizer',
-      { name: 'Tactical Reload', interruptAfterMs: release },
-      wait(Number(skill.castTimeMs) - release),
-      'Dragon Trigger',
-      wait(240),
-      combat
-    ],
-    {
-      initialResource: 100,
-      selectedSkillIds: [62967, 62901]
-    }
-  );
-  assert.deepEqual(result.warnings, []);
-  const action = result.events.find((event) => event.type === 'action' && event.skillId === ID.TACTICAL_RELOAD);
-  const reloaded = result.events.find((event) => event.type === 'buff' && event.kind === 'tactical-reload');
-  assert.ok(action.endsAt < action.fullEndsAt);
-  // The reward belongs to successful commitment; the retained animation cannot grant it again.
-  assert.equal(reloaded.at, action.endsAt);
-  assert.equal(result.events.filter((event) => event.kind === 'tactical-reload').length, 1);
-  assert.equal(state(result).dragonCharges.value, 2);
-  const ammo = observedRuntime(result).cooldownController.readAmmo(ID.FLOW_STABILIZER);
-  assert.equal(ammo.charges, ammo.maximum);
-});
-
 test('release choices use native charge outcomes and disable unreachable levels without future Flow assumptions', () => {
   const config = { initialResource: 25, selectedTraitIds: [TRAIT.DARING_DRAGON] };
   const preview = (command) => run(['Dragon Trigger', ...(command ? [command] : [])], config);

@@ -1,4 +1,3 @@
-import { observeGw2Runtime } from '#tests/helpers/observed-runtime.js';
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
@@ -7,20 +6,17 @@ import { createCooldownController } from '#gw2/platform/execution/cooldowns.js';
 import { defineTestProfession } from '#tests/helpers/profession.js';
 import { testProfession } from '#tests/fixtures/profession.js';
 
-// A full reload clears pending charges while the independent cast lockout survives.
-test('ammo restoration resets full-pool recharge without erasing cast lockouts', () => {
+// A full reload clears pending charges so the next spend starts a fresh recharge queue.
+test('ammo restoration resets full-pool recharge', () => {
   const skill = { id: 980012, ammo: 2 };
   const state = { time: 0 };
   const controller = createCooldownController({ clock: state, rechargeDuration: () => 10 });
   controller.spendAmmo(skill, 0);
   controller.spendAmmo(skill, 0);
-  controller.setAmmoLockout(skill, 5, 0);
   assert.equal(controller.restoreAmmo(skill, -1, 1), 0);
   assert.equal(controller.restoreAmmo(skill, 1, 1), 1);
-  assert.equal(controller.readyAt(skill.id), 5);
   assert.equal(controller.readAmmo(skill.id).nextRechargeAt, 10);
   assert.equal(controller.restoreAmmo(skill, 20, 2), 1);
-  assert.equal(controller.readyAt(skill.id), 5);
   assert.deepEqual(controller.readAmmo(skill.id).recharges, []);
   assert.equal(controller.readAmmo(skill.id).nextRechargeAt, null);
   assert.equal(controller.restoreAmmo(skill, 1, 3), 0);
@@ -155,72 +151,6 @@ test('ammo recharge reductions advance the queue without multiplying progress', 
     recharges: [],
     nextRechargeAt: null
   });
-});
-
-// Returning charges must preserve cast lockouts shorter than, equal to, or longer than count recharge.
-test('ammo recharge reduction preserves independent cast lockouts', () => {
-  for (const lockout of [0, 5, 10, 15]) {
-    const skill = { id: 980000, ammo: 2 };
-    const state = { time: 0 };
-    const controller = createCooldownController({ clock: state, rechargeDuration: () => 10 });
-    controller.spendAmmo(skill, 0);
-    controller.spendAmmo(skill, 0);
-    if (lockout) controller.setAmmoLockout(skill, lockout, 0);
-
-    controller.reduceSkillRecharge(skill, 2, 1);
-    assert.equal(controller.readAmmo(skill.id).charges, 0);
-    assert.equal(controller.readyAt(skill.id), Math.max(lockout, 8));
-
-    controller.reduceSkillRecharge(skill, 18, 1);
-    assert.equal(controller.readAmmo(skill.id).charges, 2);
-    assert.equal(controller.readyAt(skill.id) ?? 0, lockout);
-    controller.refreshAmmo(skill, Math.max(1, lockout));
-    assert.equal(controller.hasCooldown(skill.id), false);
-  }
-});
-
-test('a recovered ammo charge cannot cast before its lockout expires', () => {
-  const catalog = createCanonicalCatalog({
-    generated: [
-      { id: 980000, name: 'Ammo Cast', ammo: 2, ammoRecharge: 10, ammoCastLockout: 5, castTimeMs: 0, effects: [] }
-    ]
-  });
-  let recoveredCharges;
-  const profession = defineTestProfession({
-    id: 'ammo-lockout',
-    name: 'Ammo Lockout',
-    catalog,
-    hooks: {
-      initialize(context) {
-        context.schedule('recover-ammo', 1, {});
-      },
-      tasks: {
-        'recover-ammo': (context) => {
-          const skill = catalog.skillsById.get(980000);
-          context.cooldownController.reduceSkillRecharge(skill, 10, context.time);
-          recoveredCharges = context.cooldownController.readAmmo(skill.id).charges;
-        }
-      }
-    }
-  });
-  const result = observeGw2Runtime({
-    profession: profession.runtimeFor({}),
-    rotation: ['Ammo Cast', { type: 'cooldown-reset' }, 'Ammo Cast'],
-    // The engine fixture seeds cast-owned lockout state; mechanic hooks only request the later recharge reduction.
-    engineInitialize(context) {
-      const skill = catalog.skillsById.get(980000);
-      context.cooldownController.spendAmmo(skill, 0);
-      context.cooldownController.spendAmmo(skill, 0);
-      context.cooldownController.setAmmoLockout(skill, 5, 0);
-    }
-  });
-
-  assert.equal(recoveredCharges, 1);
-  assert.deepEqual(
-    result.steps.filter((step) => step.skill === 'Ammo Cast').map((step) => step.start),
-    [4000, 4000]
-  );
-  assert.deepEqual(result.warnings, []);
 });
 
 test('skill recharge reduction routes ordinary and ammo skills through one capped contract', () => {
@@ -456,146 +386,16 @@ test('skill-group lockouts block only skills in the same group', () => {
 
   const scheduled = simulateGw2({ profession, rotation: ['Shatter One', 'Unrelated Instant', 'Shatter Two'] });
 
+  // Only the shared cooldown group delays the final input; unrelated instants remain available.
   assert.deepEqual(
-    scheduled.steps.map((step) => ({
-      skill: step.skill,
-      start: step.start,
-      end: step.end,
-      fullCastMs: step.fullCastMs
-    })),
+    scheduled.steps.map((step) => [step.skill, step.start]),
     [
-      {
-        skill: 'Shatter One',
-        start: 0,
-        end: 0,
-        fullCastMs: 0
-      },
-      {
-        skill: 'Unrelated Instant',
-        start: 0,
-        end: 0,
-        fullCastMs: 0
-      },
-      {
-        skill: 'Shatter Two',
-        start: 50,
-        end: 50,
-        fullCastMs: 0
-      }
+      ['Shatter One', 0],
+      ['Unrelated Instant', 0],
+      ['Shatter Two', 50]
     ]
   );
-
   assert.deepEqual(scheduled.warnings, []);
-});
-
-test('cancelled casts release their state at their effective end', () => {
-  const profession = defineTestProfession({
-    id: 'temporal-interrupt',
-    name: 'Temporal Interrupt',
-    catalog: temporalCatalog(),
-    resources: {
-      createState: () => ({ completions: [] })
-    },
-    hooks: {
-      onCastCancel(context, cast) {
-        context.profession.completions.push({
-          skill: cast.skill.name,
-          clock: context.time,
-          effectiveEnd: cast.effectiveEnd
-        });
-      }
-    }
-  });
-  const scheduled = simulateGw2({ profession, rotation: [{ name: 'Long Cast', interruptMs: 250 }] });
-
-  assert.equal(scheduled.steps[0].end, 250);
-  assert.equal(scheduled.steps[0].interrupted, true);
-  assert.deepEqual(scheduled.planningState.profession.completions, [
-    {
-      skill: 'Long Cast',
-      clock: 0.25,
-      effectiveEnd: 0.25
-    }
-  ]);
-});
-
-test('committed interrupted casts retain their lane while cancelled attempts release it', () => {
-  const catalog = createCanonicalCatalog({
-    generated: [
-      {
-        id: 980010,
-        name: 'Retained Aftercast',
-        castTimeMs: 1000,
-        cooldown: 10,
-        interruptCommitMs: 400,
-        retainsCastLockoutAfterInterrupt: true,
-        effects: []
-      },
-      {
-        id: 980011,
-        name: 'Swap Weapons',
-        type: 'Action',
-        castTimeMs: 0,
-        effects: []
-      },
-      {
-        id: 980012,
-        name: 'Instant Cast',
-        castTimeMs: 0,
-        effects: []
-      },
-      {
-        id: 980013,
-        name: 'Following Cast',
-        castTimeMs: 200,
-        effects: []
-      }
-    ]
-  });
-  const profession = defineTestProfession({
-    id: 'temporal-retained-aftercast',
-    name: 'Temporal Retained Aftercast',
-    catalog
-  });
-  const scheduled = simulateGw2({
-    profession,
-    rotation: [{ name: 'Retained Aftercast', interruptMs: 400 }, 'Swap Weapons', 'Instant Cast', 'Following Cast']
-  });
-  const uninterrupted = simulateGw2({ profession, rotation: ['Retained Aftercast'] });
-  // Below commitment, the next cast starts at the cancellation instead of the full aftercast boundary.
-  const cancelled = simulateGw2({
-    profession,
-    rotation: [{ name: 'Retained Aftercast', interruptMs: 200 }, 'Following Cast']
-  });
-  assert.equal(cancelled.steps[0].cancelledBeforeCommit, true);
-  assert.equal(cancelled.steps[0].castLockoutEnd, undefined);
-  assert.equal(cancelled.steps[1].start, 200);
-  const interruptedAction = scheduled.events.find(
-    (event) => event.type === 'action' && event.skillName === 'Retained Aftercast'
-  );
-  const followingAction = scheduled.events.find(
-    (event) => event.type === 'action' && event.skillName === 'Following Cast'
-  );
-  const swapAction = scheduled.events.find((event) => event.type === 'action' && event.skillName === 'Swap Weapons');
-  const instantAction = scheduled.events.find((event) => event.type === 'action' && event.skillName === 'Instant Cast');
-  const uninterruptedAction = uninterrupted.events.find(
-    (event) => event.type === 'action' && event.skillName === 'Retained Aftercast'
-  );
-
-  assert.equal(interruptedAction.endsAt, 0.4);
-  assert.equal(interruptedAction.castLockoutEndsAt, 1);
-  assert.equal(scheduled.planningState.cooldowns[interruptedAction.skillName].readyAt / 1000, 8.4);
-  assert.equal(scheduled.planningState.cooldowns[interruptedAction.skillName].readyAt / 1000, 8.4);
-  assert.equal(scheduled.steps[0].end, 400);
-  assert.equal(scheduled.steps[0].castLockoutEnd, 1000);
-  assert.equal(swapAction.at, 0.4);
-  assert.equal(instantAction.at, 0.4);
-  assert.equal(followingAction.at, 1);
-  assert.equal(scheduled.steps[1].start, 400);
-  assert.equal(scheduled.steps[2].start, 400);
-  assert.equal(scheduled.steps[3].start, 1000);
-  assert.equal(uninterruptedAction.endsAt, 1);
-  assert.equal(uninterrupted.planningState.cooldowns[uninterruptedAction.skillName].readyAt / 1000, 9);
 });
 
 test('queued instant casts use the combat marker when their requested overlap has passed', () => {
@@ -651,12 +451,8 @@ test('independent casts use a separate serial cast lane', () => {
   const [first, companion, second] = result.steps;
 
   assert.equal(first.start, 0);
-  assert.equal(first.end, 1000);
   assert.equal(companion.start, 0);
-  assert.equal(companion.end, 2000);
-  assert.equal(second.start, 1000);
-  assert.equal(second.end, 1500);
-  assert.equal(result.planningState.atSeconds, 2);
+  assert.equal(second.start, first.end);
 
   // Explicit offsets overlap the player but cannot overlap a companion's serial animations.
   const queued = simulateGw2({

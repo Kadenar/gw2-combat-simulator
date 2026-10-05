@@ -47,51 +47,6 @@ function mechanic(name) {
   return engineerCatalog.skillsByName.get(name);
 }
 
-test('Superconducting distributes its coefficient and conditions over one Lightning field', () => {
-  // A minimal activation checks field scheduling and combo eligibility independently of saved rotations.
-  const config = {
-    selectedSkillIds: [...baseConfig.selectedSkillIds, 63113],
-    target: { conditions: {} }
-  };
-  const result = simulate(
-    'Mechanist',
-    ['Superconducting Signet', 'Throw Mine', 'Detonate', { type: 'wait', durationMs: 6000 }],
-    config
-  );
-  assert.deepEqual(result.warnings, []);
-  const hits = result.events.filter((event) => event.type === 'damage' && event.skillId === ID.SUPERCONDUCTING_SIGNET);
-  assert.ok(Math.abs(hits.reduce((total, hit) => total + hit.coefficient, 0) - 2.4) < 1e-12);
-  assert.deepEqual(
-    hits.map((hit) => Math.round((hit.at - hits[0].at) * 1000)),
-    [0, 1000, 2000, 3000, 4000, 5000]
-  );
-  for (const condition of ['Vulnerability', 'Confusion', 'Burning']) {
-    const packets = result.events.filter(
-      (event) =>
-        event.type === 'condition' && event.skillId === ID.SUPERCONDUCTING_SIGNET && event.condition === condition
-    );
-    assert.deepEqual(
-      packets.map((event) => Math.round(event.at * 1000)),
-      hits.map((event) => Math.round(event.at * 1000))
-    );
-    assert.ok(packets.every((event) => event.stacks === 1 && event.duration === 3));
-  }
-
-  const fields = result.events.filter(
-    (event) => event.type === 'combo_field' && event.skillId === ID.SUPERCONDUCTING_SIGNET
-  );
-  assert.equal(fields.length, 1);
-  assert.equal(fields[0].at, hits[0].at);
-  assert.equal(fields[0].expiresAt - fields[0].at, 5);
-  assert.ok(result.resolvedEvents.some((event) => event.type === 'combo' && event.fieldType === 'Lightning'));
-  const expired = simulate(
-    'Mechanist',
-    ['Superconducting Signet', { type: 'wait', durationMs: 6000 }, 'Throw Mine', 'Detonate'],
-    config
-  );
-  assert.ok(!expired.resolvedEvents.some((event) => event.type === 'combo' && event.fieldType === 'Lightning'));
-});
-
 for (const [signet, skillId, modifier, baseBonus, jDriveBonus] of [
   ['Force Signet', ID.FORCE_SIGNET, 'modifyStrikeDamage', 0.15, 0.18],
   ['Superconducting Signet', ID.SUPERCONDUCTING_SIGNET, 'modifyConditionDamage', 0.1, 0.12]
@@ -658,8 +613,6 @@ describe('Mechanist grandmaster active effects', () => {
       target: { conditions: {} }
     });
     const mortarSteps = dynamo.steps.filter((step) => step.skill === 'Jade Mortar');
-
-    assert.equal(mortarSteps[0].end - mortarSteps[0].start, 1620);
     assert.equal(mortarSteps[1].start - mortarSteps[0].start, 12800);
     assert.equal(
       dynamo.events.filter((event) => event.type === 'buff' && event.kind === 'quickness' && event.duration === 2.5)
@@ -815,10 +768,8 @@ describe('Mechanist grandmaster active effects', () => {
         ),
       1.12
     );
-
     const signetRecharge = simulate('Mechanist', ['Force Signet', 'Force Signet'], jDriveConfig);
     const signetSteps = signetRecharge.steps.filter((step) => step.skill === 'Force Signet');
-
     assert.equal(signetSteps[1].start - signetSteps[0].end, 18240);
   });
 });

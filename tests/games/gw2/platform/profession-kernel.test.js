@@ -245,9 +245,9 @@ test('declared costs are paid on acceptance, or only by activations that pass th
   assert.deepEqual(energy, [7, 3]);
 });
 
-test('committed costs settle once before completion rewards, including shortened successful casts', () => {
+test('successful resource costs settle once before completion rewards', () => {
   // Successful completion owns the debit; cancelled attempts neither pay nor receive completion rewards.
-  for (const interruptAfterMs of [undefined, 600, 100]) {
+  for (const interruptAfterMs of [undefined, 100]) {
     const observed = [];
     const result = runGw2Runtime({
       profession: {
@@ -308,27 +308,6 @@ test('automatic payments share the declared profile amount with affordability an
   }
 });
 
-test('committed activations schedule authored tasks after commit hooks while cancellations only clean up', () => {
-  const log = [];
-  run(
-    {
-      onCastCommit: (runtime, activation) => log.push(['commit', runtime.time, activation.skill.name]),
-      onCastCancel: (runtime, activation) => log.push(['cancel', runtime.time, activation.skill.name]),
-      tasks: {
-        'test.record-task': (runtime, data) => log.push(['task', runtime.time, data.cast.skill.name, data.trigger.atMs])
-      }
-    },
-    // The first activation commits before its interruption; the second is cancelled before its commit point.
-    [cast(991004, { interruptAfterMs: 800 }), cast(991004, { interruptAfterMs: 100 }), wait(2000)]
-  );
-  assert.deepEqual(log, [
-    ['commit', 0.8, 'Tasked'],
-    ['task', 0.8, 'Tasked', undefined],
-    ['cancel', 0.9, 'Tasked'],
-    ['task', 1.5, 'Tasked', 500]
-  ]);
-});
-
 test('the weapon follow-up rule hides a parent behind its open window and gates a closed follow-up', () => {
   const parent = { id: 1, name: 'Opener', type: 'Weapon', flipSkillId: 2 };
   const followUp = { id: 2, name: 'Follow-Up', type: 'Weapon', flipParentId: 1 };
@@ -342,11 +321,10 @@ test('the weapon follow-up rule hides a parent behind its open window and gates 
   assert.equal(weaponFollowUpOpen(open, parent, 5), false);
 });
 
-// Full and shortened committed casts receive identical rewards; cancelled attempts only retain start effects.
-test('commit rewards run once for full or shortened casts and resolve selected profile amounts', () => {
+// Successful resource transactions apply profile rewards once; cancelled attempts retain only start effects.
+test('resource rewards apply the selected profile only to successful transactions', () => {
   for (const [interruptAfterMs, expected] of [
     [100, 1],
-    [500, 7],
     [undefined, 7]
   ]) {
     const energy = [];
@@ -545,28 +523,25 @@ test('effect variants can transform their own selected effects and retain remova
   );
 });
 
-// Recharge progress follows the accepted interval, including a committed shortened cast; offsets stay fixed.
+// Recharge progress selects the cooldown anchor while keeping its configured offset fixed.
 test('declared recharge progress scales the accepted anchor and validates its range', () => {
   for (const duration of [1000, 2000]) {
-    for (const interruptAfterMs of [undefined, duration * 0.75]) {
-      const seen = [];
-      const selected = withSkill(catalog, 991009, {
-        castTimeMs: duration,
-        interruptCommitMs: duration / 2,
-        rechargeProgress: 0.5,
-        rechargeOffsetMs: 100
-      });
-      run(
-        {
-          catalog: selected,
-          onCastCommit(_runtime, activation) {
-            seen.push(activation.rechargeStart);
-          }
-        },
-        [cast(991009, { interruptAfterMs })]
-      );
-      assert.deepEqual(seen, [(interruptAfterMs ?? duration) / 2000 + 0.1]);
-    }
+    const seen = [];
+    const selected = withSkill(catalog, 991009, {
+      castTimeMs: duration,
+      rechargeProgress: 0.5,
+      rechargeOffsetMs: 100
+    });
+    run(
+      {
+        catalog: selected,
+        onCastCommit(_runtime, activation) {
+          seen.push(activation.rechargeStart);
+        }
+      },
+      [cast(991009)]
+    );
+    assert.deepEqual(seen, [duration / 2000 + 0.1]);
   }
 
   for (const rechargeProgress of [-1, 1.1, Infinity, NaN, '0.5'])

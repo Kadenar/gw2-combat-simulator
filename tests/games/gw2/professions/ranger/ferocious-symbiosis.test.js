@@ -39,8 +39,8 @@ test('Ferocious Symbiosis buffs the tiger only when the ranger attacks', () => {
     assert.deepEqual(result.warnings, []);
     assert.deepEqual(baseline.warnings, []);
     const state = result.planningState.profession;
-    assert.equal(state.ferociousSymbiosisPlayerStacks, 5);
-    assert.equal(state.ferociousSymbiosisPetStacks, attacks ? 5 : 0);
+    assert.equal(state.ferociousSymbiosisPlayer.stacks, 5);
+    assert.equal(state.ferociousSymbiosisPet.stacks, attacks ? 5 : 0);
     const lastPetHit = (run) =>
       run.resolvedEvents.findLast((event) => event.type === 'damage' && event.source === 'ranger-pet');
     assertFlooredDamageMultiplier(lastPetHit(result).damage, lastPetHit(baseline).damage, attacks ? 1.25 : 1);
@@ -65,16 +65,16 @@ test('Ferocious Symbiosis independently throttles, caps, refreshes, and expires 
   }
 
   for (const beneficiary of ['Player', 'Pet']) {
-    assert.equal(state[`ferociousSymbiosis${beneficiary}Stacks`], 1);
-    assert.equal(state[`ferociousSymbiosis${beneficiary}Until`], 6);
+    assert.equal(state[`ferociousSymbiosis${beneficiary}`].stacks, 1);
+    assert.equal(state[`ferociousSymbiosis${beneficiary}`].expiresAt, 6);
   }
 
   hit(1.6, true);
   for (const at of [1.6, 2.2, 2.8, 3.4, 4]) hit(at);
-  assert.equal(state.ferociousSymbiosisPlayerStacks, 2);
-  assert.equal(state.ferociousSymbiosisPlayerUntil, 6.6);
-  assert.equal(state.ferociousSymbiosisPetStacks, 5);
-  assert.equal(state.ferociousSymbiosisPetUntil, 9);
+  assert.equal(state.ferociousSymbiosisPlayer.stacks, 2);
+  assert.equal(state.ferociousSymbiosisPlayer.expiresAt, 6.6);
+  assert.equal(state.ferociousSymbiosisPet.stacks, 5);
+  assert.equal(state.ferociousSymbiosisPet.expiresAt, 9);
 
   const petEvent = {
     source: 'ranger-pet',
@@ -88,6 +88,6 @@ test('Ferocious Symbiosis independently throttles, caps, refreshes, and expires 
   assert.equal(runtime.query.strikeMultiplier(playerEvent, 6.59, runtime), 1.1);
   assert.equal(runtime.query.strikeMultiplier(playerEvent, 6.6, runtime), 1);
   hit(9);
-  assert.equal(state.ferociousSymbiosisPetStacks, 1);
-  assert.equal(state.ferociousSymbiosisPetUntil, 14);
+  assert.equal(state.ferociousSymbiosisPet.stacks, 1);
+  assert.equal(state.ferociousSymbiosisPet.expiresAt, 14);
 });

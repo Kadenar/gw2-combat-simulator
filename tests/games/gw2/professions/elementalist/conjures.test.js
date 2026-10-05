@@ -74,10 +74,10 @@ test('a late ground pickup grants a fresh lifetime, is consumed once, and keeps 
     ]
   });
   assert.deepEqual(result.warnings, []);
-  const leaps = result.steps.filter((step) => step.skill === 'Lightning Leap');
-  assert.equal(leaps[1].start - leaps[0].end, 6400);
   assert.equal(result.planningState.profession.conjureEquipped, 'Lightning Hammer');
   assert.deepEqual(result.planningState.profession.conjurePickups, {});
+  const leaps = result.steps.filter((step) => step.skill === 'Lightning Leap');
+  assert.equal(leaps[1].start - leaps[0].end, 6400);
 
   // The pickup starts while the ground copy exists and finishes after the original lifetime ends.
   const late = runNative({

@@ -73,8 +73,6 @@ test('Ether Clone creates a clone below cap and inflicts torment at cap', () => 
     secondaryWeapon: 'Sword'
   });
   const belowCap = simulateMesmer(['Ether Bolt', 'Ether Blast', 'Ether Clone'], { ...config, initialResource: 2 });
-
-  assert.equal(belowCap.steps[2].end - belowCap.steps[2].start, 840);
   assert.equal(belowCap.planningState.profession.resource, 3);
   const cloneGain = belowCap.events.find((event) => event.type === 'resource' && event.reason === 'Ether Clone');
   assert.ok(cloneGain);

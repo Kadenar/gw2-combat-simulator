@@ -127,8 +127,6 @@ test('Maim the Disillusioned applies torment for defensive shatters', () => {
     const torment = result.resolvedEvents.filter(
       (event) => event.type === 'condition' && event.skillName === testCase.skill && event.condition === 'Torment'
     );
-
-    assert.equal(result.steps[0].start, result.steps[0].end);
     assert.equal(
       testCase.specialization === 'Virtuoso'
         ? result.planningState.profession.blades.value

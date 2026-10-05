@@ -1,6 +1,10 @@
 import { applyElementalistAura } from '#gw2/professions/elementalist/core/mechanics/auras.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
-import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
+import { professionCoreState, readProfessionSpecializationState } from '#gw2/platform/profession-definition/state.js';
+import { activeRefreshedStacks, grantRefreshedStacks } from '#gw2/platform/combat/resources/refreshed-stacks.js';
+import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
+import { gw2EffectExpiresAt } from '#gw2/platform/effects/timing.js';
+import { catalystState, type CatalystState } from '#gw2/professions/elementalist/specializations/catalyst/state.js';
 import {
   balanceProfileNumber,
   requireBalanceProfileFromContext,
@@ -8,10 +12,6 @@ import {
 } from '#gw2/platform/skills/balance-profiles.js';
 import { resolverSourceSkill } from '#gw2/platform/resolver/packets.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
-import {
-  activeElementalistBuffs,
-  refreshElementalistBuffs
-} from '#gw2/professions/elementalist/core/mechanics/reactions.js';
 import type { ElementalistAttunement } from '#gw2/professions/elementalist/core/state.js';
 import { ELEMENTALIST_TRAIT_IDS as TRAIT } from '#gw2/professions/elementalist/data/ids.js';
 import type { ElementalistRuntime } from '#gw2/professions/elementalist/types.js';
@@ -20,9 +20,18 @@ import type { ElementalistRuntime } from '#gw2/professions/elementalist/types.js
 export function applyEmpoweringAura(context: ElementalistRuntime, event: Gw2ResolverEvent): void {
   if (hasTrait(context, TRAIT.EMPOWERING_AURAS)) {
     const { maximumStacks, duration } = empoweringAurasParameters(context);
-    const current = activeElementalistBuffs(context, 'Empowering Auras', event.at);
-    refreshElementalistBuffs(context, 'Empowering Auras', event.at, () => event.at + duration);
-    const activeStacks = current.reduce((total, application) => total + (application.stacks || 1), 0);
+    const state = catalystState.from(context);
+    const activeStacks = activeRefreshedStacks(state.empoweringAuras, event.at, 'exclusive');
+    // Refresh survivors now, including at cap; new stacks still arrive at their queued buff-application boundary.
+    const expiresAt = gw2EffectExpiresAt(event.at, duration);
+    state.empoweringAuras = grantRefreshedStacks(
+      state.empoweringAuras,
+      0,
+      event.at,
+      expiresAt,
+      maximumStacks,
+      'exclusive'
+    );
     if (activeStacks < maximumStacks) {
       context.effects.emit({
         kind: 'packet',
@@ -54,10 +63,31 @@ export function applyEmpoweringAura(context: ElementalistRuntime, event: Gw2Reso
         detail: '',
         icon: '',
         cooldownReduction: null,
-        expiresAt: event.at + duration
+        expiresAt
       }
     });
   }
+}
+
+/** Accepted self buffs add to the same refreshed pool, including isolated preview inputs. */
+export function applyEmpoweringAurasBuff(context: ElementalistRuntime, event: Gw2ResolverEvent): void {
+  if (event.kind !== 'empowering auras' || !event.resolvedAudience?.includesSelf) return;
+  const state = catalystState.from(context);
+  const { maximumStacks } = empoweringAurasParameters(context);
+  state.empoweringAuras = grantRefreshedStacks(
+    state.empoweringAuras,
+    event.stacks || 1,
+    event.at,
+    gw2EffectExpiresAt(event.at, event.duration || 0),
+    maximumStacks,
+    'exclusive'
+  );
+}
+
+/** Strike and condition modifiers read the canonical Catalyst pool without replaying buff receipts. */
+export function empoweringAuraStacks(context: Gw2ModifierContext): number {
+  const state = readProfessionSpecializationState<CatalystState>(context.runtime?.profession, 'Catalyst');
+  return activeRefreshedStacks(state?.empoweringAuras, context.time, 'exclusive');
 }
 
 /** Aura acceptance grants Epitome stacks only after combat starts. */

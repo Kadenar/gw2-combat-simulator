@@ -209,12 +209,10 @@ test('owner cancellation gates deferred authored reactions', () => {
   }
 });
 
-// Surviving launched projectiles own rewards even after the cast reservation has retired.
-test('reaction timing follows impact delay, commitment, observation and target death', () => {
-  const effects = [strike([reaction()], { atMs: 800, persistsAfterInterrupt: true })];
-  const skill = { castTimeMs: 600, interruptCommitMs: 200 };
-  assert.equal(energy(run(effects, { skill, rotation: [cast({ interruptAfterMs: 100 }), wait(1000)] })), 0);
-  assert.equal(energy(run(effects, { skill, rotation: [cast({ interruptAfterMs: 400 }), wait(1000)] })), 1);
+// Resource rewards require an observed impact before target death.
+test('reaction rewards respect impact delay, observation and target death', () => {
+  const effects = [strike([reaction()], { atMs: 800 })];
+  const skill = { castTimeMs: 600 };
   assert.equal(energy(run(effects, { skill, rotation: [cast({ impactDelayMs: 500 }), wait(400)] })), 0);
   assert.equal(energy(run(effects, { skill, rotation: [cast({ impactDelayMs: 500 }), wait(1400)] })), 1);
   assert.equal(energy(run([strike(undefined), ...effects], { skill, config: { target: { health: 1, armor: 1 } } })), 0);

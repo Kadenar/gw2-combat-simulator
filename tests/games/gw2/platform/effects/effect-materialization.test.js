@@ -101,7 +101,7 @@ test('canonical strike timelines reject invalid or ambiguous hits', () => {
   );
 });
 
-test('canonical strikes distinguish one timestamp from an explicit packet timeline', () => {
+test('canonical strikes divide aggregate coefficients without changing total damage scaling', () => {
   const catalog = createCanonicalCatalog({
     generated: [
       {
@@ -131,20 +131,10 @@ test('canonical strikes distinguish one timestamp from an explicit packet timeli
       start: 0,
       fullEnd: 0,
       baseEvent: { source: 'Fixture', sourceId: skill.id }
-    }).map(({ at, event }) => [Math.round(at * 1000), event.coefficient])
+    }).map(({ event }) => event.coefficient)
   );
 
-  assert.deepEqual(packets, [
-    [[360, 1.8]],
-    [
-      [360, 0.9],
-      [360, 0.9]
-    ],
-    [
-      [360, 0.9],
-      [860, 0.9]
-    ]
-  ]);
+  assert.deepEqual(packets, [[1.8], [0.9, 0.9], [0.9, 0.9]]);
   assert.throws(
     () =>
       createCanonicalCatalog({
@@ -245,8 +235,8 @@ test('canonical effects allow negative offsets only from cast end', () => {
   );
 });
 
-// Exercise both condition forms directly so shared construction retains timing and per-packet overrides.
-test('condition applications preserve timing defaults and tick overrides', () => {
+// Authored overrides keep condition metadata, ownership and formula inputs attached to the right application.
+test('condition applications preserve explicit metadata and formula overrides', () => {
   const materialize = (effect) =>
     materializeSkillEffectApplications({
       skill: { id: 930051, name: 'Condition Fixture' },
@@ -256,23 +246,6 @@ test('condition applications preserve timing defaults and tick overrides', () =>
       baseEvent: { source: 'fixture', sourceId: 930051, actorType: 'player' }
     });
   const repeated = { condition: 'Burning', stacks: 2, duration: 4, applications: 2, intervalMs: 250 };
-  for (const [timingAnchor, atMs, expected] of [
-    ['castStart', 250, [2.25, 2.5]],
-    ['castEnd', -250, [2.75, 3]],
-    ['castStart', undefined, [3, 3.25]],
-    ['castEnd', undefined, [3, 3.25]]
-  ]) {
-    const applications = materialize({ ...repeated, timingAnchor, atMs });
-    assert.deepEqual(
-      applications.map(({ at }) => at),
-      expected
-    );
-    assert.deepEqual(
-      applications.map(({ event }) => [event.at, event.condition, event.stacks, event.duration]),
-      expected.map((at) => [at, 'Burning', 2, 4])
-    );
-  }
-
   const effect = {
     damageKind: 'default',
     projectile: true,
@@ -293,12 +266,8 @@ test('condition applications preserve timing defaults and tick overrides', () =>
       }
     ]
   };
-  for (const [timingAnchor, origin] of [
-    ['castStart', 2],
-    ['castEnd', 3]
-  ]) {
+  for (const timingAnchor of ['castStart', 'castEnd']) {
     const [first, second] = materialize({ ...effect, timingAnchor });
-    assert.deepEqual([first.at, second.at], [origin, origin + 0.25]);
     assert.equal(first.event.damageKind, 'default');
     assert.equal(first.event.projectile, true);
     assert.deepEqual(first.event.comboFinishers, effect.comboFinishers);

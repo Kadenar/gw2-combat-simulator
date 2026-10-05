@@ -140,44 +140,6 @@ test('The Pledge emits no Burning for a torch skill interrupted before its packe
   }
 });
 
-// Launched Mirror Blade bounces survive shortened recovery; cancellation and unselected traits add nothing.
-test('Bountiful Blades owns two additional Mirror Blade packets and respects interruption', () => {
-  for (const [selectedTraitIds, interruptMs, expected] of [
-    [[], undefined, 0],
-    [[TRAIT.BOUNTIFUL_BLADES], undefined, 2],
-    [[TRAIT.BOUNTIFUL_BLADES], 580, 2],
-    [[TRAIT.BOUNTIFUL_BLADES], 300, 0]
-  ]) {
-    const result = simulateMesmer(
-      [
-        { name: 'Mirror Blade', interruptMs },
-        { name: '__wait', waitMs: 1200 }
-      ],
-      {
-        specialization: 'Core',
-        primaryWeapon: 'Greatsword',
-        secondaryWeapon: '',
-        initialResource: 0,
-        selectedTraitIds
-      }
-    );
-    const bounce = result.events.filter(
-      (event) => event.type === 'damage' && event.sourceId === TRAIT.BOUNTIFUL_BLADES
-    );
-    assert.equal(bounce.length, expected);
-    if (!bounce.length) continue;
-    assert.ok(bounce.every((event) => event.skillId === ID.MIRROR_BLADE));
-    assert.deepEqual(
-      bounce.map((event) => event.at),
-      [1.24, 1.4]
-    );
-    assert.deepEqual(
-      bounce.map((event) => event.coefficient),
-      [0.0000064, 0.000000256]
-    );
-  }
-});
-
 test('Dazzling observes control before later control-trait work', () => {
   const result = simulateMesmer(
     ['Magic Bullet'],

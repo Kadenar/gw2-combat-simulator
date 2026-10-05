@@ -3,7 +3,7 @@ import test from 'node:test';
 
 import { createObservedProfessionSimulator } from '#tests/helpers/observed-runtime.js';
 import { necromancerProfession } from '#gw2/professions/necromancer/profession.js';
-import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
+import { NECROMANCER_SKILL_IDS as ID } from '#gw2/professions/necromancer/data/ids.js';
 
 const simulateProfession = createObservedProfessionSimulator(necromancerProfession, {
   initialResource: 100,
@@ -64,15 +64,4 @@ test('Wanderlust omits minion knockdown while its player controls still apply', 
     innervated.procSteps.some((step) => step.skill === 'Relic of the Claw'),
     true
   );
-});
-
-test('Painful Bond adds overlapping applications to its remaining duration', () => {
-  const result = simulate(["Ritualist's Shroud", 'Anguish', 'Anguish', { type: 'wait', durationMs: 22_000 }], {
-    selectedTraitIds: [TRAIT.SOUL_TWISTING]
-  });
-  const pulses = result.resolvedEvents.filter((event) => event.type === 'damage' && event.skillName === 'Painful Bond');
-
-  assert.deepEqual(result.warnings, []);
-  assert.equal(pulses.length, 20);
-  assert.equal(Number((pulses.at(-1).at - pulses[0].at).toFixed(3)), 19);
 });

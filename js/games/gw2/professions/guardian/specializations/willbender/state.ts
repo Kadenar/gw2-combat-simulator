@@ -1,3 +1,4 @@
+import type { RefreshedStacks } from '#gw2/platform/combat/resources/refreshed-stacks.js';
 import {
   defineProfessionSpecializationState,
   definePublicStateDefaults
@@ -14,8 +15,7 @@ export interface GuardianWillbenderState {
   resolveUntil: number;
   courageUntil: number;
   virtueHitCounts: Record<'justice' | 'resolve' | 'courage', number>;
-  lethalTempoStacks: number;
-  lethalTempoUntil: number;
+  lethalTempo: RefreshedStacks;
   triggeredVirtueEffects: number;
 }
 
@@ -33,8 +33,7 @@ function createWillbenderState(): GuardianWillbenderState {
       resolve: 0,
       courage: 0
     },
-    lethalTempoStacks: 0,
-    lethalTempoUntil: 0,
+    lethalTempo: { stacks: 0, expiresAt: 0 },
     triggeredVirtueEffects: 0
   };
 }
@@ -46,8 +45,7 @@ export const WILLBENDER_PUBLIC_STATE_PROJECTION = definePublicStateDefaults({
   resolveUntil: 0,
   courageUntil: 0,
   virtueHitCounts: { justice: 0, resolve: 0, courage: 0 },
-  lethalTempoStacks: 0,
-  lethalTempoUntil: 0,
+  lethalTempo: { stacks: 0, expiresAt: 0 },
   triggeredVirtueEffects: 0
 } satisfies Partial<GuardianWillbenderState>);
 

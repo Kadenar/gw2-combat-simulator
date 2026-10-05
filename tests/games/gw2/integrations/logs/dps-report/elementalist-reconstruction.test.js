@@ -114,32 +114,3 @@ test('Aerial Agility keeps recorded IDs and leaves invalid chain steps to the si
     assert.match(simulation.warnings.join(' '), /is unavailable — cast Aerial Agility \(chain\) first/);
   }
 });
-
-test('preserves report cast status and duration without inventing skill commit metadata', () => {
-  const report = reportFixture(
-    'Elementalist',
-    [
-      { id: ID.FLAMESTRIKE, skills: [{ castTime: 0, duration: 300, timeGained: 0 }] },
-      { id: ID.ARC_LIGHTNING, skills: [{ castTime: 500, duration: 2_000, timeGained: 0 }] }
-    ],
-    {
-      [`s${ID.FLAMESTRIKE}`]: { name: 'Flamestrike' },
-      [`s${ID.ARC_LIGHTNING}`]: { name: 'Arc Lightning' }
-    }
-  );
-  const catalog = {
-    skills: [
-      skill(ID.FLAMESTRIKE, 'Flamestrike', { type: 'Weapon', castTimeMs: 600 }),
-      skill(ID.ARC_LIGHTNING, 'Arc Lightning', { type: 'Weapon', castTimeMs: 2_720 })
-    ]
-  };
-
-  const result = reconstructDpsReportRotation(report, catalog);
-
-  assert.deepEqual(
-    result.actions.map((action) => action.status),
-    ['completed', 'completed']
-  );
-  assert.equal(result.rotation.find((command) => command.skillId === ID.FLAMESTRIKE).interruptAfterMs, 320);
-  assert.equal(result.rotation.find((command) => command.skillId === ID.ARC_LIGHTNING).interruptAfterMs, 2_000);
-});

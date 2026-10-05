@@ -31,7 +31,7 @@ export interface RangerCoreState {
   poisonMasterPetAttackReady: boolean;
   paralyzingVenomUntil: number;
   poisonousStrikes: ChargeGrant;
-  sharpeningStoneExpirations: number[];
+  sharpeningStoneGrants: ChargeGrant[];
   petSwapCount: number;
   petAutoGeneration: number;
   petAutoNextAt: number;
@@ -83,7 +83,7 @@ export function createRangerCoreState(config: RangerConfig = {}): RangerCoreStat
     poisonMasterPetAttackReady: false,
     paralyzingVenomUntil: 0,
     poisonousStrikes: grantCharges(0, 0),
-    sharpeningStoneExpirations: [],
+    sharpeningStoneGrants: [],
     petSwapCount: 0,
     petAutoGeneration: 0,
     petAutoNextAt: 0,
@@ -116,7 +116,7 @@ export const RANGER_CORE_PUBLIC_END_STATE_KEYS: readonly (keyof RangerState)[] =
   'quickDrawUntil',
   'trapCrippleActivations',
 
-  'sharpeningStoneExpirations',
+  'sharpeningStoneGrants',
 
   'petSwapCount',
   'petAutoNextAt',

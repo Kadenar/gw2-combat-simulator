@@ -1,4 +1,5 @@
 import type { EffectEmissionService } from '#gw2/platform/effects/emission.js';
+import type { RefreshedStacks } from '#gw2/platform/combat/resources/refreshed-stacks.js';
 /** Owns the equipment/relics/types.ts contracts so type dependencies follow their runtime feature boundaries. */
 import type { Gw2TargetConfig } from '#gw2/platform/combat/state/targets.js';
 import type { SimulationEvent } from '#gw2/platform/events/events.js';
@@ -15,6 +16,7 @@ interface Gw2RelicConfig {
 
 /** Optional fields are initialized by the relic rule that owns each timer or history. */
 export interface Gw2RelicState {
+  refreshedStacks?: RefreshedStacks;
   combatStartTime?: number;
   timelineEvents?: readonly SimulationEvent[];
   timelineLength?: number;

@@ -64,7 +64,7 @@ test('marks replace or add malice and ignore stale expiry generations', () => {
         runtime.resourceController.replace('malice', 5);
         Object.assign(runtime.profession.specialization.state, { markedTargetId: 'other-target', markExpiresAt: 10 });
       },
-      timeline: [{ at: 0.5, run: (runtime) => runtime.resourceController.grant('malice', 1) }],
+      // Keep the re-mark below capacity so an extra grant cannot be hidden by clamping.
       probes: [0.1, 1.1, 2.1, 3.1].map((at) => [
         at,
         (runtime) =>
@@ -78,8 +78,8 @@ test('marks replace or add malice and ignore stale expiry generations', () => {
   assert.deepEqual(result.warnings, []);
   assert.deepEqual(readings, [
     [2, 'primary-target'],
-    [5, 'primary-target'],
-    [5, 'primary-target'],
+    [4, 'primary-target'],
+    [4, 'primary-target'],
     [0, null]
   ]);
 });

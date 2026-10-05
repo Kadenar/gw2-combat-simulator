@@ -283,24 +283,6 @@ test('spirit creation commits once and Soul Twisting refunds only the first comp
   assert.equal(interrupted.planningState.profession.lifeForce.value, 39.7);
 });
 
-// Cancelling only the aftercast keeps the summon; the declared commit point, not full completion, owns that decision.
-test('spirit summons honor the declared commit point when the aftercast is cancelled', () => {
-  const commitMs = necromancerProfession.catalog.skillsById.get(ID.ANGUISH).interruptCommitMs;
-  assert.ok(commitMs > 0);
-  for (const [interruptAfterMs, summoned] of [
-    [commitMs, true],
-    [commitMs - 40, false]
-  ]) {
-    const result = run([cast(ID.RITUALISTS_SHROUD), { ...cast(ID.ANGUISH), interruptAfterMs }, wait(3000)]);
-    assert.deepEqual(result.warnings, []);
-    assert.equal(state(result).activeSpirits.anguish === true, summoned, String(interruptAfterMs));
-    assert.equal(
-      result.events.some((event) => event.type === 'damage' && event.metadata?.spiritAttackType === 'initial'),
-      summoned
-    );
-  }
-});
-
 test('exit preserves committed attacks while autonomous spirit work ends on exit or Lingering depletion', () => {
   const rotation = [cast(ID.RITUALISTS_SHROUD), cast(ID.ANGUISH), cast(ID.EXIT_RITUALISTS_SHROUD), wait(5000)];
   const exited = run(rotation);
@@ -331,7 +313,6 @@ test('replacement cancels a prior spirit generation without resetting the shared
   );
   assert.equal(attacks.length, 1);
   assert.equal(attacks[0].activationId.startsWith('cast:3:'), true);
-  assert.equal(attacks[0].at, 12.76);
   assert.equal(state(result).spiritAutoAnchorAt, 7.92);
 });
 

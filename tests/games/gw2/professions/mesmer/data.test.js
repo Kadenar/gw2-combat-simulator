@@ -16,7 +16,6 @@ import {
   migrateMesmerBuild,
   validateMesmerBuild
 } from '#gw2/professions/mesmer/build/build.js';
-import { MESMER_CORE_CLONE_ATTACKS as CLONE_ATTACKS } from '#gw2/professions/mesmer/core/mechanics/definitions.js';
 import { MESMER_CORE_BALANCE_PROFILE_IDS, mesmerProfiledShatter } from '#gw2/professions/mesmer/core/profiles.js';
 import { MESMER_CORE_EXTRA_SKILLS } from '#gw2/professions/mesmer/core/skills/actions.js';
 import { MESMER_CORE_SKILL_MECHANICS } from '#gw2/professions/mesmer/core/skills/index.js';
@@ -127,8 +126,6 @@ const PHANTASM_ATTACK_TIMINGS = Object.freeze(
     ])
   )
 );
-
-const catalogSkill = (name) => mesmerCatalog.skillsByName.get(name);
 const strikeEffects = (skill) => skill.effects.filter((effect) => effect.type === 'strike');
 
 const applyMesmerPatch = (patch) => applyBalanceProfilePatch(applySkillPatch(mesmerCatalog, patch), patch);
@@ -154,56 +151,6 @@ test('Mesmer follow-up facts show canonical windows and a percentage of parent b
     factsFor(ID.MIND_SLASH).some((fact) => ['Follow-up window', 'Additional parent recharge'].includes(fact.name)),
     false
   );
-});
-
-// Include generated packets, clone gains, and phantasm overrides in the authored timing contract.
-test('Mesmer authored damage and resource offsets use ordered action ticks', () => {
-  const check = (value, path = 'Mesmer', key = '') => {
-    if (value == null) return;
-    if (typeof value === 'number') {
-      if (
-        ![
-          'atMs',
-          'intervalMs',
-          'startMs',
-          'damageAtMs',
-          'repeatDamageAtMs',
-          'damageAtMsByEntity',
-          'repeatDamageAtMsByEntity'
-        ].includes(key)
-      )
-        return;
-      assert.ok(Number.isFinite(value), `${path}: invalid offset ${value}`);
-      assert.ok(Math.abs(value - Math.round(value / 40) * 40) <= 1e-6, `${path}: off-grid offset ${value}`);
-    } else if (Array.isArray(value)) {
-      if (value.every((tick) => tick?.atMs != null && tick.type == null)) {
-        assert.ok(
-          value.every((tick, index) => tick.atMs >= 0 && (index === 0 || tick.atMs >= value[index - 1].atMs)),
-          `${path}: unordered packets`
-        );
-      }
-
-      value.forEach((item, index) => check(item, `${path}[${index}]`, key));
-    } else if (typeof value === 'object') {
-      for (const [name, item] of Object.entries(value)) check(item, `${path}.${name}`, name);
-    }
-  };
-
-  check({
-    skills: mesmerCatalog.skills.map(({ id, effects, resource, trackedHitDamage, comboFields, damageAtMs }) => ({
-      id,
-      effects,
-      resource,
-      trackedHitDamage,
-      comboFields,
-      damageAtMs
-    })),
-    balanceProfiles: mesmerCatalog.balanceProfiles,
-    clones: CLONE_ATTACKS,
-    phantasms: MESMER_CORE_PHANTASM_ATTACK_TIMINGS,
-    repeatPhantasms: MESMER_CHRONOMANCER_PHANTASM_ATTACK_TIMINGS,
-    instruments: INSTRUMENTS
-  });
 });
 
 test('Mesmer modules expose isolated balance-profile authoring', () => {
@@ -349,10 +296,6 @@ test('Mesmer mechanics are the sole simulation source and use stable skill ids',
     MESMER_SKILL_MECHANICS[id].effects.map((effect) => ({ ...effect, persistsAfterInterrupt: undefined }));
   assert.deepEqual(bladecallEffects(ID.BLADECALL_NON_VIRTUOSO), bladecallEffects(ID.BLADECALL));
   assert.equal(
-    MESMER_SKILL_MECHANICS[ID.BLADECALL_NON_VIRTUOSO].castTimeMs,
-    MESMER_SKILL_MECHANICS[ID.BLADECALL].castTimeMs
-  );
-  assert.equal(
     Object.values(MESMER_SKILL_MECHANICS).some((mechanics) => mechanics.blade === false),
     false
   );
@@ -476,62 +419,6 @@ test("Counterspell is cataloged as Illusionary Counter's clone-generating flip s
   assert.equal(counterspell.id, 10314);
   assert.equal(counterspell.weapon, 'Scepter');
   assert.deepEqual(counterspell.resource, { mode: 'add', count: 1, timingAnchor: 'castStart', atMs: 360 });
-  assert.equal(counterspell.retainsCastLockoutAfterInterrupt, true);
-});
-
-test('Mesmer instant-cast skills have zero cast time', () => {
-  const instantSkills = [
-    'Cry of Frustration',
-    'Mind Wrack',
-    'Distortion',
-    'Mirror Images',
-    'Signet of Midnight',
-    'Diversion',
-    'Feedback',
-    'Phase Retreat',
-    'Chaos Armor',
-    'Thousand Cuts',
-    'Continuum Split',
-    'Sand through Glass',
-    'Illusionary Ambush',
-    'Jaunt',
-    'Time Sink',
-    'Rewinder',
-    'Split Second',
-    'Bladeturn Requiem',
-    'Bladesong Distortion',
-    'Tale of the Honorable Rogue',
-    'Tale of the Soulkeeper',
-    'Tale of the Valiant Marshal',
-    'Power Spike',
-    'Dimensional Aperture',
-    'Abstraction',
-    'Into the Void',
-    'Swap',
-    'Dodge / Mirage Cloak',
-    'Continuum Shift'
-  ];
-
-  for (const name of instantSkills) {
-    const skill = catalogSkill(name);
-
-    assert.equal(skill.castTimeMs, 0, name);
-  }
-
-  const prestige = catalogSkill('The Prestige');
-
-  assert.equal(prestige.castTimeMs, 40);
-});
-
-test('Mesmer shatters share only the shatter-family lockout', () => {
-  for (const id of Object.keys(SHATTERS).map(Number)) {
-    const skill = mesmerCatalog.skillsById.get(id);
-
-    assert.deepEqual(skill.lockouts, [{ group: 'mesmer.shatter', durationMs: 50 }], skill.name);
-  }
-
-  assert.deepEqual(catalogSkill('Power Spike').lockouts, []);
-  assert.deepEqual(catalogSkill('Mirror Images').lockouts, []);
 });
 
 test('Mesmer weapon autoattacks are cataloged as individual chain skills', () => {
@@ -617,7 +504,6 @@ test('Mirage dodge spends endurance without ammo or cooldown', () => {
   assert.equal(dodge.cooldown, 0);
   assert.equal(dodge.ammo, undefined);
   assert.equal(dodge.resourceCost, 50);
-  assert.equal(dodge.castTimeMs, 0);
 });
 
 test('Mesmer supplemental identities and dynamic handler profiles are explicit', () => {

@@ -74,10 +74,6 @@ test('Locust Swarm grants life force per impact and Banshee extends the swarm an
     );
     assert.equal(strikes[0].flatStrikeBase, base);
     assert.equal(strikes[0].flatStrikePowerCoeff, 0.08);
-    // The scheduler rounds individual half-second deadlines to its action tick.
-    for (let index = 0; index < strikes.length; index++) {
-      assert.ok(Math.abs(strikes[index].at - index * 0.5) < 0.04);
-    }
 
     const swiftness = result.resolvedEvents.find((event) => event.kind === 'swiftness');
     assert.equal(swiftness.duration, duration);

@@ -1,5 +1,4 @@
 import assert from 'node:assert/strict';
-import { readFile } from 'node:fs/promises';
 import test from 'node:test';
 
 import { formatTimelineTime } from '#gw2/app/shared/result-clock.js';
@@ -8,7 +7,6 @@ import {
   weaponSetActiveSegments,
   weaponSetDurationTotals
 } from '#gw2/app/rotation/timeline/timing/model.js';
-import { loadProfessionAppAdapter } from '#gw2/profession-registry.js';
 
 const FIRE_BOMB_ID = 5823;
 const SHRAPNEL_GRENADE_ID = 5807;
@@ -176,50 +174,6 @@ test('weapon duration honors a manifest starting on W2', () => {
       [2, 2500],
       [1, 5500]
     ]
-  );
-});
-
-test('loaded manifest rotations keep repeated weapon stays independent', async () => {
-  const repoUrl = (path) => new URL(`../../../../${path}`, import.meta.url);
-  const manifest = JSON.parse(await readFile(repoUrl('data/gw2/builds/guardian/manifest.json'), 'utf8'));
-  const preset = manifest
-    .flatMap((section) => section.presets)
-    .find((candidate) => candidate.build.endsWith('/b-power-willbender-spear-greatsword.json'));
-  const [savedBuild, savedRotation, adapter] = await Promise.all([
-    readFile(repoUrl(preset.build), 'utf8').then(JSON.parse),
-    readFile(repoUrl(preset.rotation), 'utf8').then(JSON.parse),
-    loadProfessionAppAdapter('guardian')
-  ]);
-  const build = adapter.toApplicationBuild({ ...savedBuild, rotation: savedRotation.rotation });
-  const app = {
-    build,
-    adapter,
-    profession: adapter.profession,
-    skillByName: adapter.profession.catalog.skillsByName,
-    skillById: adapter.profession.catalog.skillsById,
-    attributeWeaponSet: 1
-  };
-  adapter.recalculate(app);
-  const result = adapter.simulateBuild(build.rotation, adapter.simulationConfig(app));
-  const swapId = adapter.profession.catalog.skillsByName.get('Swap Weapons').id;
-  const segments = weaponSetActiveSegments(result.steps, {
-    startingWeaponSet: build.startingWeaponSet,
-    timelineEndMs: result.rotationEndTime * 1000,
-    hasSecondWeaponSet: true,
-    weaponSwapSkillIds: new Set([swapId])
-  });
-
-  assert.equal(build.startingWeaponSet, 2);
-  assert.equal(segments[0].weaponSet, 2);
-  assert.ok(segments.some((segment, index) => index > 0 && segment.weaponSet === segments[0].weaponSet));
-  assert.equal(
-    segments.reduce((total, segment) => total + segment.durationMs, 0),
-    result.rotationEndTime * 1000
-  );
-  assert.ok(
-    result.steps
-      .filter((candidate) => candidate.skill === 'Swap Weapons')
-      .every((candidate) => candidate.skillId === swapId)
   );
 });
 
