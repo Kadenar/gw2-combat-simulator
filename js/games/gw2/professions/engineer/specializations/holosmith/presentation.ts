@@ -156,14 +156,15 @@ export function bindHolosmithUi(catalog: Readonly<CanonicalCatalog<HolosmithSkil
     },
     resourceViews: (context: EngineerUiContext): ProfessionResourceView[] => {
       const state = engineerUiState(context);
-      const maximum = state.maximumHeat || 100;
+      // Use the observed clock capacity, or selected traits before an initial result exists.
+      const maximum = state.heat?.maximum ?? enhancedCapacityMaximumHeat(context.config ?? {});
       return [
         {
           id: 'heat',
           singular: 'heat',
           plural: 'heat',
           maximum,
-          value: state.heat ?? context.initialHeat ?? 0,
+          value: state.heat?.value ?? context.initialHeat ?? 0,
           startMaximum: maximum,
           canStart: true,
           buildKey: 'initialHeat',

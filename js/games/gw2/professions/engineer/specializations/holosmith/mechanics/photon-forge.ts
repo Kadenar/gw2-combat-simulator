@@ -1,7 +1,7 @@
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import { holosmithCastAvailability } from '#gw2/professions/engineer/specializations/holosmith/mechanics/availability.js';
 import { OBSERVABLE_EVENT_HANDLER } from '#gw2/platform/resolver/handler-registry.js';
-import { grantCapped } from '#gw2/platform/combat/resources/pool.js';
+import { boundedNumber } from '#kernel/core/numeric.js';
 import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
 import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
@@ -19,6 +19,7 @@ import { HOLOSMITH_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/engin
 import { holosmithState } from '#gw2/professions/engineer/specializations/holosmith/state.js';
 import {
   emitPhotonicBlastingModuleEffects,
+  enhancedCapacityMaximumHeat,
   initializeEnhancedCapacityMight,
   lightDensityHeatPerSecond,
   photonicOverheatTiming,
@@ -27,7 +28,12 @@ import {
 } from '#gw2/professions/engineer/specializations/holosmith/traits/heat.js';
 import { grantSolarFocusingLens } from '#gw2/professions/engineer/specializations/holosmith/traits/behavior.js';
 import type { HolosmithSkill } from '#gw2/professions/engineer/specializations/holosmith/types.js';
-import type { EngineerRuntime, EngineerRuntimeState, EngineerSkill } from '#gw2/professions/engineer/types.js';
+import type {
+  EngineerConfig,
+  EngineerRuntime,
+  EngineerRuntimeState,
+  EngineerSkill
+} from '#gw2/professions/engineer/types.js';
 import { EPSILON } from '#kernel/core/clock.js';
 
 interface PhotonForgeHeatPayload {
@@ -44,7 +50,7 @@ function reportHeat(context: EngineerRuntime<HolosmithSkill>, reason: string): v
   buildEngineerPackets('engineer.heat', {
     at: context.time,
     reason,
-    heat: state.heat
+    heat: state.heat.value
   }).forEach((packet) => context.effects.emit({ kind: 'packet', event: packet }));
 }
 
@@ -101,7 +107,7 @@ function forceOverheat(context: EngineerRuntime<HolosmithSkill>, at: number): vo
   const state = holosmithState.from(context);
   const blast = photonicOverheatTiming(context, at);
   const effectAt = blast?.at ?? at + HOLOSMITH_HEAT.overheatEffectDelay;
-  state.heat = state.maximumHeat;
+  context.resourceController.replace('heat', state.heat.maximum);
   state.overheated = true;
   reportHeat(context, 'overheat');
   // Cooling follows the physical Overheat timestamp even while the rotation still owes its bar exit.
@@ -131,10 +137,12 @@ function startPassiveHeatCadence(context: EngineerRuntime<HolosmithSkill>, at: n
 /** Starts cooling cadence for simulations configured with nonzero initial heat. */
 function initializePhotonForgeHeat(context: EngineerRuntime<HolosmithSkill>): void {
   const state = holosmithState.from(context);
+  // The policy has already clamped initialHeat against the trait-selected capacity.
+  state.forgeExitedAt = state.heat.value > 0 ? context.time : null;
   initializeEnhancedCapacityMight(context);
 
   // Preheated simulations start the same 100 ms cooling cadence as a Forge exit.
-  if (state.heat > EPSILON && state.forgeExitedAt != null) {
+  if (state.heat.value > EPSILON && state.forgeExitedAt != null) {
     startPassiveHeatCadence(context, Math.max(context.time, state.forgeExitedAt));
   }
 }
@@ -143,27 +151,31 @@ function initializePhotonForgeHeat(context: EngineerRuntime<HolosmithSkill>): vo
 function applyPassiveHeat(context: EngineerRuntime<HolosmithSkill>, at: number): void {
   const state = holosmithState.from(context);
 
-  const previousHeat = state.heat;
+  const previousHeat = state.heat.value;
   if (state.photonForgeActive && !state.overheated) {
     // The Forge-relative tick overheats only when heat was already capped at tick
     // start, so passive heat that fills the bar gets one final 100 ms window.
-    if (state.heat >= state.maximumHeat - EPSILON) {
+    if (state.heat.value >= state.heat.maximum - EPSILON) {
       forceOverheat(context, at);
       return;
     }
 
-    state.heat = Math.min(state.maximumHeat, Math.round((state.heat + passiveHeatPerTick(context)) * 1e9) / 1e9);
+    // Preserve Forge's nine-decimal accumulation while the shared controller enforces capacity.
+    context.resourceController.replace('heat', Math.round((previousHeat + passiveHeatPerTick(context)) * 1e9) / 1e9);
     triggerInstantEnhancedCapacityMight(context, at, previousHeat);
   } else {
-    state.heat = Math.max(0, Math.round((state.heat - passiveCoolingPerTick(context, at)) * 1e9) / 1e9);
-    if (state.heat <= EPSILON) {
-      state.heat = 0;
+    context.resourceController.replace(
+      'heat',
+      Math.max(0, Math.round((previousHeat - passiveCoolingPerTick(context, at)) * 1e9) / 1e9)
+    );
+    if (state.heat.value <= EPSILON) {
+      context.resourceController.replace('heat', 0);
       // Reaching zero cannot re-enable the exhausted Forge bar before its explicit exit.
       if (!state.photonForgeActive) state.overheated = false;
     }
   }
 
-  if (state.heat !== previousHeat) {
+  if (state.heat.value !== previousHeat) {
     reportHeat(context, 'passive-heat');
   }
 }
@@ -201,7 +213,7 @@ function leavePhotonForge(context: EngineerRuntime<HolosmithSkill>, skill: Engin
     grantSolarFocusingLens(context, at, 'minimumStacks');
   }
 
-  if (state.heat === 0) state.overheated = false;
+  if (state.heat.value === 0) state.overheated = false;
 }
 
 /** The explicit Forge exit owns its swap; kit swaps are already emitted by Core. */
@@ -331,8 +343,8 @@ export function triggerVentExhaust(
 
   // Vent heat immediately after its combat packets are queued at the same timestamp.
   const state = holosmithState.from(context);
-  state.heat = Math.max(0, state.heat - Math.max(0, ventExhaust.heatLoss || 0));
-  if (state.heat === 0 && !state.photonForgeActive) state.overheated = false;
+  context.resourceController.spend('heat', Math.min(state.heat.value, Math.max(0, ventExhaust.heatLoss || 0)));
+  if (state.heat.value === 0 && !state.photonForgeActive) state.overheated = false;
   reportHeat(context, 'vent-exhaust');
 }
 
@@ -361,7 +373,7 @@ const photonForgeTasks: RuntimeProfession<EngineerRuntimeState, HolosmithSkill>[
       !state.photonForgeActive &&
       state.forgeExitedAt != null &&
       context.time <= state.forgeExitedAt + HOLOSMITH_HEAT.coolingDelay + EPSILON;
-    if ((state.photonForgeActive && !state.overheated) || state.heat > EPSILON || coolingGrace)
+    if ((state.photonForgeActive && !state.overheated) || state.heat.value > EPSILON || coolingGrace)
       startPassiveHeatCadence(context, context.time);
     else state.passiveHeatAt = null;
   },
@@ -369,8 +381,8 @@ const photonForgeTasks: RuntimeProfession<EngineerRuntimeState, HolosmithSkill>[
     const payload = data as PhotonForgeHeatPayload;
     const state = holosmithState.from(context);
     if (state.overheated || (!state.photonForgeActive && !payload.persistsOutsideForge)) return;
-    const previous = state.heat;
-    state.heat = grantCapped(state.heat, payload.amount, state.maximumHeat);
+    const previous = state.heat.value;
+    context.resourceController.grant('heat', payload.amount);
     triggerInstantEnhancedCapacityMight(context, context.time, previous);
     reportHeat(context, 'heat');
   },
@@ -381,6 +393,16 @@ const photonForgeTasks: RuntimeProfession<EngineerRuntimeState, HolosmithSkill>[
 
 /** Forge registration lives with its heat lifecycle so new timed work has a single authoring owner. */
 export const photonForgeHooks = {
+  // The pool stores heat; Forge-relative tasks retain heating, cooling, and overheat timing.
+  resources: {
+    heat: {
+      kind: 'continuous',
+      state: (context) => holosmithState.from(context).heat,
+      maximum: (context) => enhancedCapacityMaximumHeat(context.config),
+      initial: (context, maximum) => boundedNumber((context.config as EngineerConfig).initialHeat, 0, 0, maximum),
+      recovery: () => 0
+    }
+  },
   initialize: initializePhotonForgeHeat,
   availability: holosmithCastAvailability,
   sideEffectHandlers: {

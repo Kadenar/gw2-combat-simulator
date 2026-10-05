@@ -42,7 +42,7 @@ export function triggerInstantEnhancedCapacityMight(
   if (
     !hasTrait(context.traits, TRAIT.ENHANCED_CAPACITY_STORAGE_UNIT) ||
     previousHeat > HOLOSMITH_HEAT.enhancedCapacityThreshold ||
-    state.heat <= HOLOSMITH_HEAT.enhancedCapacityThreshold
+    state.heat.value <= HOLOSMITH_HEAT.enhancedCapacityThreshold
   )
     return;
   emitEnhancedCapacityMight(context, at);
@@ -102,7 +102,7 @@ export function initializeEnhancedCapacityMight(context: EngineerRuntime<Holosmi
   const state = holosmithState.from(context);
   if (
     hasTrait(context.traits, TRAIT.ENHANCED_CAPACITY_STORAGE_UNIT) &&
-    state.heat > HOLOSMITH_HEAT.enhancedCapacityThreshold
+    state.heat.value > HOLOSMITH_HEAT.enhancedCapacityThreshold
   ) {
     state.enhancedCapacityMightAt = context.time;
     context.schedule('engineer.enhanced-capacity-might', context.time, undefined, undefined, -200);

@@ -64,7 +64,7 @@ export function holosmithCastAvailability(
       return denyEngineerCast(skill, 'engineer.forge-active', 'Photon Forge is already active.');
     }
 
-    if (state.overheated || state.heat >= state.maximumHeat) {
+    if (state.overheated || state.heat.value >= state.heat.maximum) {
       return denyEngineerCast(skill, 'engineer.overheated', 'Photon Forge remains disabled until heat reaches zero.');
     }
   }

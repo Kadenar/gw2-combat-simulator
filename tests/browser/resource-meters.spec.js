@@ -6,6 +6,7 @@ test('profession resource clocks render through the shared meter UI', async ({ p
   for (const [profession, specialization, resourceId, key] of [
     ['mesmer', 'Virtuoso', 'blades', 'blades'],
     ['mesmer', 'Troubadour', 'notes', 'notes'],
+    ['engineer', 'Holosmith', 'heat', 'heat'],
     ['thief', null, 'initiative', 'initiative'],
     ['thief', 'Deadeye', 'malice', 'malice'],
     ['guardian', 'Firebrand', 'pages', 'tomePages'],

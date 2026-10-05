@@ -1125,7 +1125,7 @@ const engineerSlices = Object.freeze([
 ]);
 
 const engineerSpecializationStateKeys = Object.freeze({
-  Holosmith: ['heat', 'maximumHeat', 'photonForgeActive', 'overheated', 'solarFocusingLens'],
+  Holosmith: ['heat', 'photonForgeActive', 'overheated', 'solarFocusingLens'],
   Mechanist: ['mech'],
   Amalgam: ['selectedMorphSkillIds', 'evolvedUntil', 'plasmaticStateUntil']
 });

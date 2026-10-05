@@ -61,7 +61,7 @@ export const enhancedCapacityStorageUnit = defineTrait({
         const state = holosmithState.from(context);
         if (state.enhancedCapacityMightAt !== context.time) return;
         state.enhancedCapacityMightAt = Infinity;
-        if (state.heat <= HOLOSMITH_HEAT.enhancedCapacityThreshold) return;
+        if (state.heat.value <= HOLOSMITH_HEAT.enhancedCapacityThreshold) return;
         emitEnhancedCapacityMight(context, context.time);
         const interval = balanceProfileNumber(
           requireBalanceProfileFromContext(context, TRAIT.ENHANCED_CAPACITY_STORAGE_UNIT),
@@ -121,14 +121,16 @@ export const lasersEdge = defineTrait({
         const maximum = hasTrait(context, TRAIT.ENHANCED_CAPACITY_STORAGE_UNIT)
           ? parameters.enhancedMaximum
           : parameters.standardMaximum;
-        return 1 + Math.min(maximum, (state.heat || 0) * parameters.bonusPerHeat);
+        return 1 + Math.min(maximum, (state.heat?.value ?? 0) * parameters.bonusPerHeat);
       },
       when: (context) => {
         const state = engineerSpecializationState(context, 'Holosmith');
         return (
           isGw2PlayerModifierOwnedEvent(context.event) &&
           ((Boolean(state.photonForgeActive) && !state.overheated) ||
-            (hasTrait(context, TRAIT.PHOTONIC_BLASTING_MODULE) && Boolean(state.overheated) && (state.heat || 0) > 0))
+            (hasTrait(context, TRAIT.PHOTONIC_BLASTING_MODULE) &&
+              Boolean(state.overheated) &&
+              (state.heat?.value ?? 0) > 0))
         );
       }
     }
@@ -193,6 +195,6 @@ function triggerThermalReleaseValve(context: EngineerRuntime<HolosmithSkill>, sk
     }).forEach((packet) => context.effects.emit({ kind: 'packet', event: packet }));
   }
 
-  if (state.heat <= 0 || preservesPhotonicHeat(context)) return;
+  if (state.heat.value <= 0 || preservesPhotonicHeat(context)) return;
   triggerVentExhaust(context, skill, at);
 }

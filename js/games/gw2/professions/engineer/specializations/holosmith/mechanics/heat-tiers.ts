@@ -39,7 +39,7 @@ export function holosmithEventMetadata(event: unknown): HolosmithEventMetadata {
 export function snapshotHolosmithHeat(context: unknown): HolosmithHeatSnapshot {
   const source = context as { readonly config?: EngineerConfig };
   return Object.freeze({
-    heat: holosmithState.from(context).heat || 0,
+    heat: holosmithState.from(context).heat.value,
     enhancedCapacitySelected: enhancedCapacitySelected(source.config || {})
   });
 }
