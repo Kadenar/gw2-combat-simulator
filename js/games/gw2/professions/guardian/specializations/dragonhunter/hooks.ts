@@ -12,6 +12,7 @@ import { buildResolverCondition } from '#gw2/platform/resolver/packets.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import { projectCastRelativeEffectTimingMs } from '#gw2/platform/execution/cast-timing.js';
+import { createPassiveCourageTask } from '#gw2/professions/guardian/core/mechanics/passive-courage.js';
 import { guardianVirtueForSlot, refreshGuardianVirtues } from '#gw2/professions/guardian/core/mechanics/virtues.js';
 import {
   applyGuardianVirtueActivationTraits,
@@ -38,14 +39,16 @@ const TETHER = 'guardian.dragonhunter.tether';
 const BURN = 'guardian.dragonhunter.tether-burn';
 const EXPIRY = 'guardian.dragonhunter.tether-expiry';
 
-/** One recurring wake preserves Courage's cadence while actual recharge suppresses individual pulses. */
-function couragePulse(runtime: Runtime): void {
-  const profile = requireBalanceProfileFromContext(runtime, PROFILE.passiveCourage);
-  const interval = indomitableCourageInterval(runtime, profile);
-  const effect = requireEffect(profile, 'boon', 'aegis');
-  if (!(interval > 0) || !effect) return;
-  refreshGuardianVirtues(runtime);
-  if (runtime.profession.core.virtueReadyAt.courage <= runtime.time) {
+/** Dragonhunter gates its attributed Aegis packet on actual recharge and retains Indomitable Courage tuning. */
+const couragePulse = createPassiveCourageTask({
+  taskId: COURAGE,
+  profileId: PROFILE.passiveCourage,
+  interval: indomitableCourageInterval,
+  ready(runtime) {
+    refreshGuardianVirtues(runtime);
+    return runtime.profession.core.virtueReadyAt.courage <= runtime.time;
+  },
+  deliver(runtime, profile, effect) {
     const skill = runtime.helpers.skillsById.get(ID.SHIELD_OF_COURAGE)!;
     runtime.effects.emit({
       kind: 'packet',
@@ -64,9 +67,7 @@ function couragePulse(runtime: Runtime): void {
       }
     });
   }
-
-  runtime.schedule(COURAGE, canonicalTime(runtime.time + interval), undefined, undefined, -200);
-}
+});
 
 /** A landed spear attaches after commitment; failed hostile outcomes cannot arm the follow-up or create burning. */
 function attachTether(runtime: Runtime, data: unknown): void {

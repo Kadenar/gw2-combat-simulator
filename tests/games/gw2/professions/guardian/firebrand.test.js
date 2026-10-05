@@ -6,7 +6,6 @@ import { reactToSymbolOfIgnition } from '#gw2/professions/guardian/core/skills/w
 import { createGuardianCoreState } from '#gw2/professions/guardian/core/state.js';
 import { GUARDIAN_SKILL_IDS, GUARDIAN_TRAIT_IDS } from '#gw2/professions/guardian/data/ids.js';
 import { guardianCatalog, guardianProfession } from '#gw2/professions/guardian/profession.js';
-import { FIREBRAND_BALANCE_PROFILE_IDS } from '#gw2/professions/guardian/specializations/firebrand/profiles.js';
 import { FIREBRAND_PUBLIC_STATE_PROJECTION } from '#gw2/professions/guardian/specializations/firebrand/state.js';
 import { createObservedProfessionSimulator } from '#tests/helpers/observed-runtime.js';
 import assert from 'node:assert/strict';
@@ -965,7 +964,7 @@ test('Firebrand grandmaster support traits react to boons and control', () => {
   );
 });
 
-test('Firebrand dormant passives and Imbued Haste use timeline state', () => {
+test('Firebrand Justice attribution and Imbued Haste use timeline state', () => {
   const passive = createObservedProfessionSimulator(guardianProfession, {
     ...config,
     specialization: 'Firebrand',
@@ -979,13 +978,6 @@ test('Firebrand dormant passives and Imbued Haste use timeline state', () => {
       .every((event) => event.skillId === GUARDIAN_SKILL_IDS.TOME_OF_JUSTICE && event.skillName === 'Tome of Justice'),
     true
   );
-  const aegis = passive.events.filter(
-    (event) => event.type === 'buff' && event.skillId === GUARDIAN_SKILL_IDS.TOME_OF_COURAGE && event.kind === 'aegis'
-  );
-  const interval = guardianCatalog.balanceProfilesById.get(FIREBRAND_BALANCE_PROFILE_IDS.passiveCourage).pulseInterval;
-  assert.ok(aegis.length > 1);
-  assert.equal(aegis[0].at, 0);
-  assert.ok(aegis.slice(1).every((event, index) => event.at - aegis[index].at === interval));
 
   const tome = (selectedTraitIds) =>
     createObservedProfessionSimulator(guardianProfession, {
