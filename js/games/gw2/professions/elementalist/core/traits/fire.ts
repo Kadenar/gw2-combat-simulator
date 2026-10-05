@@ -1,4 +1,5 @@
 import { MODIFIER_TARGET, powerScaledConditionAttributes } from '#gw2/platform/combat/modifiers.js';
+import { CONDITION_FORMULAS } from '#gw2/platform/combat/formulas.js';
 import { targetConditionActive } from '#gw2/platform/combat/query/runtime-query.js';
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
@@ -44,7 +45,8 @@ export const empoweringFlame = defineTrait({
 export const inferno = defineTrait({
   id: TRAIT.INFERNO,
   name: 'Inferno',
-  balance: { coefficientMultiplier: 0.0825 / 0.155 }
+  // Convert the intended Power rate through the canonical Burning scaling used by combat.
+  balance: { coefficientMultiplier: 0.0825 / CONDITION_FORMULAS.Burning.scaling }
 });
 
 export const burningPrecision = defineTrait({

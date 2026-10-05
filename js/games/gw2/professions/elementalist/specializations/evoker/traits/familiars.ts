@@ -20,6 +20,7 @@ import {
 } from '#gw2/professions/elementalist/data/ids.js';
 import { FAMILIAR_ELEMENTS } from '#gw2/professions/elementalist/specializations/evoker/mechanics/constants.js';
 import { applyGalvanicEnchantment } from '#gw2/professions/elementalist/specializations/evoker/traits/enchantments.js';
+import { familiarBlessingName } from '#gw2/professions/elementalist/specializations/evoker/traits/familiar-blessing.js';
 import type {
   ElementalistModifierContext,
   ElementalistRuntime,
@@ -110,14 +111,13 @@ export function applyFamiliarTraitProcs(
 
   const familiarElement = FAMILIAR_ELEMENTS.get(skill.id);
   if (familiarElement && hasTrait(context, TRAIT.FAMILIARS_BLESSING)) {
-    const quick = familiarElement === 'Fire' || familiarElement === 'Air';
     // Blessing stays after Prowess and before charge grants; only packet construction is shared.
     context.effects.emit(
       elementalistProfiledBuffRequest(
         context,
         at,
         TRAIT.FAMILIARS_BLESSING,
-        quick ? 'Quickness' : 'Alacrity',
+        familiarBlessingName(familiarElement),
         "Familiar's Blessing",
         skill.id,
         undefined,

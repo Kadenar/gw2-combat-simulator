@@ -40,6 +40,12 @@ import {
 } from '#gw2/professions/elementalist/specializations/evoker/mechanics/resources.js';
 import { EVOKER_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/elementalist/specializations/evoker/profiles.js';
 import { evokerState, grantElectricEnchantments } from '#gw2/professions/elementalist/specializations/evoker/state.js';
+import {
+  elementalProcessionEffects,
+  IGNITE_TIERS,
+  igniteTierEffect,
+  projectIgniteEffects
+} from '#gw2/professions/elementalist/specializations/evoker/mechanics/familiar-projection.js';
 import type {
   ElementalistRuntime,
   ElementalistRuntimeState,
@@ -51,11 +57,8 @@ export function releaseElementalProcession(
   cast: RuntimeCast<ElementalistSkill>,
   sourceSkill: Skill
 ): void {
-  for (const skillId of [ID.CONFLAGRATION, ID.BUOYANT_DELUGE, ID.LIGHTNING_BLITZ, ID.SEISMIC_IMPACT]) {
-    const familiar = context.helpers.skillsById.get(skillId);
-    if (!familiar) continue;
-    for (const effect of familiar.effects || []) {
-      if (!['strike', 'condition', 'control', 'blind'].includes(effect.type)) continue;
+  for (const { familiar, effects } of elementalProcessionEffects(context.helpers.skillsById)) {
+    for (const effect of effects) {
       // Procession preserves the familiar's unquickened timing and each surviving packet's representation.
       const runtimeCastMs = Math.max(0, (familiar.castTimeMs || 0) * GW2_QUICKNESS_ACTION_RATE);
       const scale = effect.timingScale === 'cast' ? castRelativeEffectTimingScale(familiar, runtimeCastMs) : 1;
@@ -149,11 +152,8 @@ export function captureIgniteTier(context: ElementalistRuntime, cast: RuntimeCas
   if (state.cancelledFamiliarActivations[cast.id]) return;
   const profile = requireBalanceProfileFromContext(context, PROFILE.ignite);
   if (cast.start - state.igniteLastUsedAt >= balanceProfileNumber(profile, 'threshold')) state.igniteTier = 0;
-  igniteBurningByCast.set(
-    cast,
-    requireEffect(profile, 'condition', ['Tier 1', 'Tier 2', 'Tier 3', 'Tier 4'][state.igniteTier])
-  );
-  state.igniteTier = Math.min(state.igniteTier + 1, 3);
+  igniteBurningByCast.set(cast, igniteTierEffect(context, state.igniteTier));
+  state.igniteTier = Math.min(state.igniteTier + 1, IGNITE_TIERS.length - 1);
   state.igniteLastUsedAt = cast.start;
 }
 
@@ -168,25 +168,7 @@ export function modifyFamiliarEffects(
 
 /** Ignite's definition selects Burning from its accepted tier without advancing state during a query. */
 export function selectIgniteEffects(cast: RuntimeCast<ElementalistSkill>): readonly SkillEffect[] {
-  const burning = igniteBurningByCast.get(cast);
-  const effects = cast.skill.effects ?? [];
-  return effects.flatMap<SkillEffect>((effect) => {
-    if (effect.type !== 'condition') return [effect];
-    if (effect.ticks)
-      return [
-        {
-          ...effect,
-          ticks: effect.ticks.flatMap((tick) =>
-            tick.condition !== 'Burning' ? [tick] : burning ? [{ ...tick, duration: Number(burning.duration) }] : []
-          )
-        }
-      ];
-    return effect.condition !== 'Burning'
-      ? [effect]
-      : burning
-        ? [{ ...effect, duration: Number(burning.duration) }]
-        : [];
-  });
+  return projectIgniteEffects(cast.skill.effects ?? [], igniteBurningByCast.get(cast));
 }
 
 /** Skill-selected commit work runs after this cast's shared trait/bookkeeping hooks and before the next completion. */
