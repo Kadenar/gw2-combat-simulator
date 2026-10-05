@@ -13,6 +13,17 @@ Use the npm commands in the root `package.json` for routine workflows.
 Tests and headless scripts use package aliases to load compiled `dist/js` modules directly in Node. Build the modules
 before running them; no custom loader is required.
 
+## Validation
+
+Use focused Node tests for engine, profession, and data changes. Run `npm run build:modules` first, then
+`node --test <test-files>`. `npm run check` runs formatting, lint, build, Node tests, type checking, and artifact checks
+without launching browsers.
+
+For browser behavior changes, select the affected files with `npm run test:browser -- tests/browser/<name>.spec.js`.
+Browser tests should protect interactions, focus, layout, and browser integration; numerical and profession matrices
+belong in Node. Use `npm run check:all` for explicit full integration/release validation. CI continues to run the full
+browser suite.
+
 ## Formatting touched files
 
 Format only files changed by the current task. From the repository root, pass their explicit paths:

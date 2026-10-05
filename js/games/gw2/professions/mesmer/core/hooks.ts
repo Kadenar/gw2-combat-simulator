@@ -154,12 +154,6 @@ export const mesmerCoreHooks: RuntimeHooks<MesmerRuntimeState, MesmerSkill> = co
     // Clone attacks and the signet's passive continue indefinitely after their enabling cast.
     backgroundTasks: ['mesmer.signet-illusions-passive'],
     tasks: {
-      'mesmer.flip-expire'(runtime, data) {
-        const { id, identity } = data as { id: number; identity: string };
-        // A replaced flip survives its predecessor's pending expiry.
-        if (runtime.profession.core.availableFlips[id]?.identity === identity)
-          delete runtime.profession.core.availableFlips[id];
-      },
       'mesmer.signet-illusions-passive': signetIllusionsPulse,
       'mesmer.core.imagery-expire': (runtime, data) =>
         expireInspiringImagery(runtime, (data as { cast: RuntimeCast<MesmerSkill> }).cast),

@@ -7,7 +7,6 @@ import { simulateMesmer, runMesmer } from '#tests/helpers/mesmer-simulation.js';
 import { applySkillSideEffects } from '#gw2/platform/effects/action-dispatch.js';
 import { mesmerCoreHooks } from '#gw2/professions/mesmer/core/hooks.js';
 import { troubadourHooks } from '#gw2/professions/mesmer/specializations/troubadour/hooks.js';
-import { armMesmerSkillFlip } from '#gw2/professions/mesmer/core/mechanics/flips.js';
 import { scheduleAxesClones, completeAxesConfusion } from '#gw2/professions/mesmer/core/skills/weapons/axe.js';
 import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
 
@@ -79,23 +78,6 @@ test('Lancer consumes Clarity before preparation and never reuses another activa
   }
 
   assert.deepEqual(prepared, [2, 1, 1]);
-});
-
-test('a replaced flip survives its old expiry task', () => {
-  const tasks = [];
-  const runtime = {
-    time: 1,
-    profession: { core: { availableFlips: {} } },
-    schedule: (_type, _at, data) => tasks.push(data)
-  };
-  const skill = { flipArm: { skillId: ID.ABSTRACTION, duration: 2, anchor: 'castCommit' } };
-  armMesmerSkillFlip(runtime, { id: 'old', start: 0, skill });
-  runtime.time = 2;
-  armMesmerSkillFlip(runtime, { id: 'new', start: 1, skill });
-  mesmerCoreHooks.tasks['mesmer.flip-expire'](runtime, tasks[0]);
-  assert.equal(runtime.profession.core.availableFlips[ID.ABSTRACTION].identity, 'new');
-  mesmerCoreHooks.tasks['mesmer.flip-expire'](runtime, tasks[1]);
-  assert.equal(runtime.profession.core.availableFlips[ID.ABSTRACTION], undefined);
 });
 
 test('Axe variants retain acceptance snapshots versus live pre-cast clone selection', () => {

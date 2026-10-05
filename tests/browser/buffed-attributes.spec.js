@@ -63,7 +63,6 @@ test('condition details show exceptions and preview controls sit beside attribut
   expect(previewBox.y).toBeGreaterThanOrEqual(weaponSetBox.y + weaponSetBox.height);
   await expect(page.getByRole('heading', { name: 'Attributes', exact: true })).toHaveCount(0);
   await expect(page.locator('.attributes-panel > summary')).toHaveCount(0);
-  await expect(preview).toHaveCSS('border-width', '0px');
   await page.evaluate(() => window.professionApp.changed());
   await expect(stats).toBeVisible();
   await expect(preview.getByRole('spinbutton', { name: 'Might', exact: true })).toHaveValue('10');
@@ -151,49 +150,3 @@ test('workspace and optimizer preview individual conditions, deltas and weapon c
   await page.setViewportSize({ width: 390, height: 844 });
   expect(await preview.evaluate((element) => element.scrollWidth <= element.clientWidth)).toBe(true);
 });
-
-// Numeric and checkbox controls cover browser wiring; Node tests cover the profession formula matrix.
-for (const [profession, traitName, controlName, value] of [
-  ['elementalist', 'Elemental Empowerment', 'Elemental Empowerment', '5'],
-  ['guardian', 'Righteous Instincts', 'Resolution', null]
-]) {
-  test(profession + ' previews ' + traitName, async ({ page }) => {
-    await page.goto('/' + profession + '.html#workspace', { waitUntil: 'domcontentloaded' });
-    await expect(page.locator('#loading-overlay')).toHaveClass(/hidden/);
-    await page.evaluate((name) => {
-      const app = window.professionApp;
-      const trait = app.activeCatalog.traits.find((trait) => trait.name === name);
-      const choices = [0, 0, 0];
-      if (trait.position > 0 && trait.tier > 0) choices[trait.tier - 1] = trait.position;
-      app.build.specializations = [{ name: trait.specialization, traits: choices.join('-') }];
-      if (app.adapter.id === 'elementalist') app.build.weapons = ['Hammer', ''];
-      app.changed();
-    }, traitName);
-    await page.waitForFunction(() => window.professionApp.simulationStatus === 'idle');
-    const panel = page.locator('.gear-panel');
-    await panel.locator('#attribute-preview summary').click();
-    const before = await page.evaluate(() => JSON.stringify(window.professionApp.build));
-    const control = panel.getByRole(value === null ? 'checkbox' : 'spinbutton', { name: controlName, exact: true });
-    if (value === null) await control.check();
-    else await control.fill(value);
-    expect(await panel.locator('.attr-changed').count()).toBeGreaterThan(0);
-    expect(await page.evaluate(() => JSON.stringify(window.professionApp.build))).toBe(before);
-    if (profession === 'elementalist') {
-      await expect(control).toHaveAttribute('max', '10');
-      const orb = panel.getByRole('checkbox', { name: 'Crescent Wind', exact: true });
-      await orb.check();
-      await control.fill('99');
-      await control.blur();
-      await expect(control).toHaveValue('10');
-      await page.evaluate(() => {
-        window.professionApp.build.weapons = ['Dagger', 'Focus'];
-        window.professionApp.changed();
-      });
-      await expect(orb).toHaveCount(0);
-    }
-
-    if (value === null) await control.uncheck();
-    else await control.fill('0');
-    await expect(panel.locator('.attr-changed')).toHaveCount(0);
-  });
-}

@@ -6,7 +6,7 @@ import type { MesmerRuntime } from '#gw2/professions/mesmer/types.js';
 import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 
-/** Arm the parent's exact authored window without extending a cast-start deadline. */
+/** Keep the parent's authored window while the shared runtime owns identity-safe expiry. */
 export function armMesmerSkillFlip(context: MesmerRuntime, cast: RuntimeCast<MesmerSkill>): void {
   const arm = cast.skill.flipArm!;
   const at = context.time;
@@ -14,15 +14,13 @@ export function armMesmerSkillFlip(context: MesmerRuntime, cast: RuntimeCast<Mes
   const availableAt = canonicalTime(start + (arm.delay ?? 0));
   const expiresAt = canonicalTime(start + arm.duration);
   if (expiresAt <= canonicalTime(at)) return;
-  armSkillFlip(
-    context.profession.core.availableFlips,
-    arm.skillId,
+  context.armFlip(arm.skillId, {
     availableAt,
     expiresAt,
-    Math.min(at, availableAt),
-    cast.id
-  );
-  context.schedule('mesmer.flip-expire', expiresAt, { id: arm.skillId, identity: cast.id }, undefined, 50);
+    visibleAt: Math.min(at, availableAt),
+    identity: cast.id,
+    expiryPriority: 50
+  });
 }
 
 /** A prepared mantra replaces the entire pool, including old recharge and independent lockout. */

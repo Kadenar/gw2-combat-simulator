@@ -1,32 +1,19 @@
 import { expect, test } from '@playwright/test';
 
-// Canonical resource clocks must survive the real app boundary and render finite meter values.
-test('profession resource clocks render through the shared meter UI', async ({ page }) => {
+// Representative pip, bar, and composite meters exercise browser wiring; Node covers the profession matrix.
+test('pip, bar, and composite resources render through the shared meter UI', async ({ page }) => {
   test.setTimeout(60_000);
-  for (const [profession, specialization, resourceId, key] of [
-    ['mesmer', 'Virtuoso', 'blades', 'blades'],
-    ['mesmer', 'Troubadour', 'notes', 'notes'],
-    ['engineer', 'Holosmith', 'heat', 'heat'],
-    ['thief', null, 'initiative', 'initiative'],
-    ['thief', 'Deadeye', 'malice', 'malice'],
-    ['guardian', 'Firebrand', 'pages', 'tomePages'],
-    ['ranger', 'Galeshot', 'arrows', 'arrows'],
-    ['ranger', 'Galeshot', 'wind-force', 'windForce'],
-    ['revenant', null, 'energy', 'energy'],
-    ['necromancer', null, 'life-force', 'lifeForce'],
-    ['elementalist', 'Catalyst', 'catalyst-energy', 'catalystEnergy'],
-    ['elementalist', 'Evoker', 'evoker-charges', 'familiarCharges'],
-    ['warrior', 'Paragon', 'motivation', 'motivation'],
-    ['warrior', 'Paragon', 'adrenaline', 'adrenaline'],
-    ['warrior', 'Bladesworn', 'flow', 'flow'],
-    ['revenant', 'Conduit', 'affinity', 'affinity']
+  for (const [profession, specialization, resourceId] of [
+    ['mesmer', 'Virtuoso', 'blades'],
+    ['revenant', null, 'energy'],
+    ['elementalist', 'Evoker', 'evoker-charges']
   ]) {
     await page.goto(`/${profession}.html#workspace`, { waitUntil: 'domcontentloaded' });
     await expect(page.locator('#loading-overlay')).toHaveClass(/hidden/);
     if (specialization) {
       const picker = page.locator('.spec-picker').last();
       await picker.locator('summary').click();
-      // A second resource check can revisit the persisted selection, whose picker button is disabled.
+      // A default build may already select the requested specialization, disabling its option.
       const option = picker.getByRole('button', { name: specialization, exact: true });
       if ((await option.getAttribute('aria-pressed')) === 'true') await picker.locator('summary').click();
       else await option.click();
@@ -36,18 +23,5 @@ test('profession resource clocks render through the shared meter UI', async ({ p
     const meter = page.locator(`.active-resource[data-resource-id="${resourceId}"]`);
     await expect(meter).toBeVisible();
     expect(Number.isFinite(Number(await meter.getAttribute('data-resource-count')))).toBe(true);
-    const pool = await page.evaluate((key) => window.professionApp.results.planningState.profession[key], key);
-    expect(Number.isFinite(pool.value)).toBe(true);
-    expect(pool.maximum).toBeGreaterThan(0);
-    expect(pool.value).toBeLessThanOrEqual(pool.maximum);
-    if (key === 'familiarCharges') {
-      // Evoker's single visible dial also consumes the separately projected empowered clock.
-      const empowered = await page.evaluate(
-        () => window.professionApp.results.planningState.profession.empoweredCharges
-      );
-      expect(Number.isFinite(empowered.value)).toBe(true);
-      expect(empowered.maximum).toBeGreaterThan(0);
-      expect(empowered.value).toBeLessThanOrEqual(empowered.maximum);
-    }
   }
 });
