@@ -5,6 +5,8 @@ import { effectStateValue, timedEffectState } from '#gw2/platform/combat/effect-
 import { captureRuntimeEffects, observeRuntimeEffects } from '#gw2/platform/results/observe-effects.js';
 import { reviseEffectState } from '#gw2/platform/combat/effect-revisions.js';
 import { EffectRecorder, effectStateAt } from '#gw2/platform/results/effect-report.js';
+import { sigilBuffPolicies } from '#gw2/platform/equipment/sigils/effect-state.js';
+import { chronomancerBuffPolicies } from '#gw2/professions/mesmer/specializations/chronomancer/effect-state.js';
 
 const audience = {
   includesSelf: true,
@@ -13,7 +15,7 @@ const audience = {
   companionIds: ['clone:1'],
   recipientCount: 3
 };
-const runtime = () => ({ boons: new Map(), config: {}, conditionState: new Map(), time: 0 });
+const runtime = () => ({ boons: new Map(), config: {}, conditionState: new Map(), time: 0, equipmentBuffPolicies: [] });
 const grant = (state, kind, at, stacks, duration) =>
   recordBuffApplication(state.boons, {
     type: 'buff',
@@ -29,6 +31,48 @@ const value = (state, kind, recipient = 'self', profession = {}) => {
   );
   return effect && effectStateValue(effect, state.time);
 };
+
+// Policies follow their contributing owner even when planning has no chart recorder.
+test('profession effects require their owner contribution', () => {
+  const state = runtime();
+  grant(state, 'time-bomb', 0, 1, 5);
+  assert.throws(() => observeRuntimeEffects(state, {}), /policy/i);
+  assert.equal(value(state, 'time-bomb', 'self', { buffPolicies: chronomancerBuffPolicies }).count, 1);
+  assert.equal(state.effectRecorder, undefined);
+});
+
+test('equipment policies cover both configured sets and surviving effects after a swap', () => {
+  const state = runtime();
+  state.config = { sigilSets: [{ names: ['Force'] }, { names: ['Severance'] }] };
+  state.equipmentBuffPolicies = sigilBuffPolicies(state.config);
+  assert.deepEqual(sigilBuffPolicies({}), []);
+  assert.equal(sigilBuffPolicies({ sigilSets: [{ names: ['Severance'] }, { names: ['Severance'] }] }).length, 1);
+  state.activeWeaponSet = 2;
+  grant(state, 'sigil-severance', 0, 1, 5);
+  assert.equal(value(state, 'sigil-severance').count, 1);
+  state.activeWeaponSet = 1;
+  state.time = 1;
+  assert.equal(value(state, 'sigil-severance').count, 1);
+  state.time = 5;
+  assert.equal(value(state, 'sigil-severance').count, 0);
+});
+
+test('policy composition rejects duplicate owners and replacement of shared boons', () => {
+  const state = runtime();
+  state.equipmentBuffPolicies = [{ kind: 'charges', maximumStacks: 1 }];
+  assert.throws(
+    () => observeRuntimeEffects(state, { buffPolicies: () => [{ kind: 'charges', maximumStacks: 2 }] }),
+    /Duplicate equipment buff policy: charges.*profession/
+  );
+  for (const owner of ['profession', 'equipment']) {
+    const policies = [{ kind: 'might', maximumStacks: 1 }];
+    state.equipmentBuffPolicies = owner === 'equipment' ? policies : [];
+    assert.throws(
+      () => observeRuntimeEffects(state, { buffPolicies: () => (owner === 'profession' ? policies : []) }),
+      /Duplicate.*might.*shared/
+    );
+  }
+});
 
 // Observation reuse must still see same-time grants, immutable replacements, removals, and expiry.
 test('generic observation follows grant-history changes and time boundaries for each recipient', () => {

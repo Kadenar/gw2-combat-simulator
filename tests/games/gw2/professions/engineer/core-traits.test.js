@@ -164,15 +164,35 @@ test('generated rocket explosions can trigger Shrapnel', () => {
     ],
     {
       selectedTraitIds: [TRAIT.AIM_ASSISTED_ROCKET, TRAIT.SHRAPNEL],
+      stats: { expertise: 750, concentration: 1500 },
       procRateOverrides: { 'engineer.shrapnel': 1 }
     }
   );
   assert.deepEqual(result.warnings, []);
-  const bleed = result.resolvedEvents.filter((event) => event.type === 'condition' && event.skillName === 'Shrapnel');
+  const bleed = result.resolvedEvents.filter(
+    (event) => event.type === 'condition' && event.skillName === 'Shrapnel' && event.condition === 'Bleeding'
+  );
   assert.equal(bleed.length, 1);
   assert.equal(bleed[0].triggeredBy, 'Aim-Assisted Rocket');
   assert.equal(bleed[0].stacks, 1);
-  assert.equal(bleed[0].duration, 6);
+  assert.equal(bleed[0].effectiveDuration, 9);
+  // Both effects share the proc; Crippled uses condition duration and participates in target state.
+  const crippled = result.resolvedEvents.filter(
+    (event) => event.type === 'condition' && event.sourceId === TRAIT.SHRAPNEL && event.condition === 'Crippled'
+  );
+  assert.equal(crippled.length, 1);
+  assert.equal(crippled[0].at, bleed[0].at);
+  assert.equal(crippled[0].effectiveDuration, 1.5);
+  assert.equal(crippled[0].ownerActorType, 'player');
+  assert.equal(crippled[0].metadata?.procCount ?? 0, 0);
+  const runtime = observedRuntime(result);
+  assert.equal(runtime.combat.targetConditionStacks('Crippled', crippled[0].at), 1);
+  assert.equal(runtime.combat.targetConditionStacks('Crippled', crippled[0].at + 1.5), 0);
+  assert.ok(
+    result.effectReport.tracks.some(
+      (track) => track.kind === 'Crippled' && track.category === 'condition' && track.recipient === 'target'
+    )
+  );
 });
 
 test('Shrapnel uses reproducible seeded rolls in both modes and honors chance overrides', () => {
@@ -188,7 +208,14 @@ test('Shrapnel uses reproducible seeded rolls in both modes and honors chance ov
       (event) => event.type === 'damage' && event.skillName === 'Grenade'
     );
     const bleeds = result.resolvedEvents.filter(
-      (event) => event.type === 'condition' && event.skillName === 'Shrapnel'
+      (event) => event.type === 'condition' && event.skillName === 'Shrapnel' && event.condition === 'Bleeding'
+    );
+    const cripples = result.resolvedEvents.filter(
+      (event) => event.type === 'condition' && event.skillName === 'Shrapnel' && event.condition === 'Crippled'
+    );
+    assert.deepEqual(
+      cripples.map((event) => event.at),
+      bleeds.map((event) => event.at)
     );
     const random = createSimulationRandom({ mode, seed });
     const expected = explosions.filter(() => random.roll(chance, 'engineer.shrapnel'));
@@ -240,7 +267,7 @@ test('Electric Artillery and Devastator each contribute their explosion to Shrap
     );
     assert.deepEqual(result.warnings, []);
     const bleeds = result.resolvedEvents.filter(
-      (event) => event.type === 'condition' && event.skillName === 'Shrapnel'
+      (event) => event.type === 'condition' && event.skillName === 'Shrapnel' && event.condition === 'Bleeding'
     );
     assert.equal(bleeds.length, 1, name);
     assert.equal(bleeds[0].triggeredBy, name);

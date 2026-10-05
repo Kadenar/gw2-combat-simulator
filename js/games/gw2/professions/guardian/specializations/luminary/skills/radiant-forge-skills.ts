@@ -124,6 +124,7 @@ export const LUMINARY_RADIANT_FORGE_SKILL_MECHANICS: Readonly<Record<number, Par
         audience: { recipients: 'party' }
       },
       {
+        weaponStrengthProfileId: 'transform.radiant-forge',
         type: 'strike',
         metadata: { guardianSymbol: true },
         // EVTC records four Quickness packets at 440 ms and fixed one-second intervals.
@@ -140,6 +141,7 @@ export const LUMINARY_RADIANT_FORGE_SKILL_MECHANICS: Readonly<Record<number, Par
     interruptCommitMs: 440,
     effects: [
       {
+        weaponStrengthProfileId: 'transform.radiant-forge',
         type: 'strike',
         ticks: [{ atMs: 400, coefficient: 1.25 }],
         timingAnchor: 'castStart',
@@ -157,6 +159,7 @@ export const LUMINARY_RADIANT_FORGE_SKILL_MECHANICS: Readonly<Record<number, Par
     castTimeMs: 840,
     effects: [
       {
+        weaponStrengthProfileId: 'transform.radiant-forge',
         type: 'strike',
         // Gleaming Blade creates a combo only when its leap lands through an active field.
         ticks: [{ atMs: 760, coefficient: 1.5 }],
@@ -178,6 +181,7 @@ export const LUMINARY_RADIANT_FORGE_SKILL_MECHANICS: Readonly<Record<number, Par
     castTimeMs: 480,
     effects: [
       {
+        weaponStrengthProfileId: 'transform.radiant-forge',
         type: 'strike',
         coefficient: 1.2,
         hits: 1
@@ -282,6 +286,7 @@ export const LUMINARY_RADIANT_FORGE_SKILL_MECHANICS: Readonly<Record<number, Par
           audience: { recipients: 'party' }
         },
         {
+          weaponStrengthProfileId: 'transform.radiant-forge',
           type: 'strike',
           // Dazzling Hammer grants Light Aura only after this blast successfully finishes a combo.
           reactions: [
@@ -318,12 +323,14 @@ export const LUMINARY_RADIANT_FORGE_SKILL_MECHANICS: Readonly<Record<number, Par
     // Share the melee control and blind timing without moving the separate projectile declaration.
     effects: [
       {
+        weaponStrengthProfileId: 'transform.radiant-forge',
         type: 'strike',
         ticks: [{ atMs: 440, coefficient: 1 }],
         timingAnchor: 'castStart',
         timingScale: 'cast'
       },
       {
+        weaponStrengthProfileId: 'transform.radiant-forge',
         type: 'strike',
         ticks: [{ atMs: 480, coefficient: 0.8 }],
         name: 'Lucent Thrust — Projectile Damage',

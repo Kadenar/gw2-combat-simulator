@@ -12,7 +12,13 @@ export const HARBINGER_SHROUD_SKILL_MECHANICS: Readonly<Record<number, Partial<S
     effectVariants: [{ when: () => true, transform: () => [] }],
     castTimeMs: 840,
     effects: [
-      { name: 'Strike', type: 'strike', coefficient: 1.4, hits: 1 },
+      {
+        weaponStrengthProfileId: 'transform.harbinger-shroud',
+        name: 'Strike',
+        type: 'strike',
+        coefficient: 1.4,
+        hits: 1
+      },
       { type: 'control', controlKind: 'daze' }
     ],
     type: 'Profession',
@@ -37,6 +43,7 @@ export const HARBINGER_SHROUD_SKILL_MECHANICS: Readonly<Record<number, Partial<S
     // Share timing defaults while preserving each packet, effect order, and local schedule.
     effects: impactEffects({ timingAnchor: 'castStart', timingScale: 'fixed' }, [
       {
+        weaponStrengthProfileId: 'transform.harbinger-shroud',
         type: 'strike',
         // Accepted strikes apply their declared percentage through the shared resource owner.
         reactions: [
@@ -88,6 +95,7 @@ export const HARBINGER_SHROUD_SKILL_MECHANICS: Readonly<Record<number, Partial<S
     // Share timing defaults while preserving each packet, effect order, and local schedule.
     effects: impactEffects({ timingAnchor: 'castStart', timingScale: 'fixed', persistsAfterInterrupt: true }, [
       {
+        weaponStrengthProfileId: 'transform.harbinger-shroud',
         type: 'strike',
         ticks: [320, 600].map((atMs) => ({ atMs, coefficient: 0.6 }))
       },
@@ -112,6 +120,7 @@ export const HARBINGER_SHROUD_SKILL_MECHANICS: Readonly<Record<number, Partial<S
     // Share timing defaults while preserving each packet, effect order, and local schedule.
     effects: impactEffects({ timingAnchor: 'castStart', timingScale: 'fixed' }, [
       {
+        weaponStrengthProfileId: 'transform.harbinger-shroud',
         type: 'strike',
         ticks: [600, 680, 680, 800, 800, 800].map((atMs) => ({ atMs, coefficient: 0.6 }))
       },
@@ -133,7 +142,15 @@ export const HARBINGER_SHROUD_SKILL_MECHANICS: Readonly<Record<number, Partial<S
     castTimeMs: 480,
     // Devouring Cut commits at its impact frame before the default cast finishes.
     interruptCommitMs: 280,
-    effects: [{ name: 'Strike', type: 'strike', coefficient: 1, hits: 1 }],
+    effects: [
+      {
+        weaponStrengthProfileId: 'transform.harbinger-shroud',
+        name: 'Strike',
+        type: 'strike',
+        coefficient: 1,
+        hits: 1
+      }
+    ],
     type: 'Profession',
     slot: 'Weapon_3',
     shroud: 'harbinger',

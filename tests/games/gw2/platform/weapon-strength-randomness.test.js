@@ -7,6 +7,9 @@ import { resolvedWeaponStrength } from '#gw2/platform/resolver/weapon-strength-r
 import { createSimulationRandom } from '#kernel/core/simulation-random.js';
 import { WEAPON_DATA } from '#gw2/platform/equipment/weapons/data.js';
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
+import { normalizeEffect } from '#gw2/platform/effects/validation.js';
+import { assertSimulationEvent } from '#gw2/platform/events/events.js';
+import { materializeSkillEffectApplications } from '#gw2/platform/effects/materializer.js';
 import {
   WEAPON_STRENGTH_PROFILES,
   sampleWeaponStrength,
@@ -72,7 +75,7 @@ test('canonical weapon-strength bounds derive every documented midpoint', () => 
 test('profile lookup and continuous sampling validate their inputs', () => {
   assert.equal(weaponStrengthProfileForName('Dagger')?.id, 'weapon.dagger');
   assert.equal(weaponStrengthProfileForName('Profession mechanic')?.id, 'nonweapon.profession-mechanic');
-  assert.equal(weaponStrengthProfileForName('Gunsaber')?.id, 'bundle.exotic');
+  assert.equal(weaponStrengthProfileForName('Gunsaber'), null);
   assert.equal(weaponStrengthProfileForName('unknown'), null);
   assert.throws(() => weaponStrengthProfile('weapon.unknown'), /Unknown/);
   const rifle = weaponStrengthProfile('weapon.rifle');
@@ -82,111 +85,85 @@ test('profile lookup and continuous sampling validate their inputs', () => {
   assert.throws(() => sampleWeaponStrength(rifle, 1), /\[0, 1\)/);
 });
 
-test('skill metadata classifies transforms, kits, shrouds, and effects', () => {
-  const event = {
-    type: 'damage',
-    at: 0,
-    source: 'player',
-    sourceId: 1,
-    actorType: 'player',
-    coefficient: 1
-  };
+// Explicit effect profiles retain transform ownership independently of skill flags, labels, and later weapon sets.
+test('explicit profiles select transforms while ordinary weapons use equipment metadata', () => {
+  const event = { type: 'damage', at: 0, source: 'renamed', sourceId: 1, actorType: 'player', coefficient: 1 };
+  for (const profile of Object.keys(WEAPON_STRENGTH_PROFILES).filter((id) => /^(transform|bundle)\./.test(id))) {
+    assert.equal(
+      weaponStrengthProfileIdForEvent(
+        { ...event, weaponStrengthProfileId: profile },
+        {
+          skill: { id: 1, name: 'renamed', weapon: 'Axe' },
+          activeWeaponSet: 2,
+          config: { weaponSet2Primary: 'Rifle' }
+        }
+      ),
+      profile
+    );
+  }
 
   assert.equal(
-    weaponStrengthProfileIdForEvent(event, {
-      skill: { id: 1, name: 'Kit', kitId: 5805 }
-    }),
-    'bundle.ascended'
-  );
-  assert.equal(
-    weaponStrengthProfileIdForEvent(event, {
-      skill: { id: 2, name: 'Tome Chapter', tome: 'justice' },
-      config: { primaryWeapon: 'Axe' }
-    }),
-    'bundle.exotic'
-  );
-  assert.equal(
-    weaponStrengthProfileIdForEvent(event, {
-      skill: { id: 1, name: 'Dodge', type: 'Action' }
-    }),
+    weaponStrengthProfileIdForEvent(event, { skill: { id: 1, name: 'Action', type: 'Action' } }),
     'nonweapon.unequipped'
-  );
-  assert.equal(
-    weaponStrengthProfileIdForEvent(event, {
-      skill: { id: 1, name: 'Forge', forgeSkill: true }
-    }),
-    'transform.photon-forge'
-  );
-  assert.equal(
-    weaponStrengthProfileIdForEvent(event, {
-      skill: {
-        id: 1,
-        name: 'Radiant Hammer',
-        radiantForgeSkill: true,
-        radiantWeapon: 'hammer'
-      }
-    }),
-    'transform.radiant-forge'
-  );
-  assert.equal(
-    weaponStrengthProfileIdForEvent(
-      { ...event, radiantWeapon: 'blade' },
-      {
-        skill: { id: 1, name: 'Glaring Burst', radiantForgeSkill: true }
-      }
-    ),
-    'transform.radiant-forge'
-  );
-  assert.equal(
-    weaponStrengthProfileIdForEvent(event, {
-      skill: {
-        id: 1,
-        name: 'Radiant Shield',
-        radiantForgeSkill: true,
-        radiantWeapon: 'bulwark'
-      }
-    }),
-    'transform.radiant-forge'
-  );
-  assert.equal(
-    weaponStrengthProfileIdForEvent(event, {
-      skill: { id: 1, name: 'Cyclone Bow', cycloneBowSkill: true }
-    }),
-    'transform.cyclone-bow'
-  );
-  assert.equal(
-    weaponStrengthProfileIdForEvent(event, {
-      skill: { id: 1, name: 'Natural Convergence', celestialAvatarSkill: true }
-    }),
-    'transform.celestial-avatar'
-  );
-  assert.equal(
-    weaponStrengthProfileIdForEvent(event, {
-      skill: { id: 1, name: 'Shroud', shroud: 'reaper' }
-    }),
-    'transform.reaper-shroud'
   );
   assert.equal(
     weaponStrengthProfileIdForEvent(
       { ...event, weaponStrengthSource: 'equipped' },
       {
-        skill: { id: 1, name: 'Stolen Skill', type: 'Profession' },
         activeWeaponSet: 2,
-        config: {
-          primaryWeapon: 'Dagger',
-          weaponSet2Primary: 'Rifle'
-        }
+        config: { primaryWeapon: 'Axe', weaponSet2Primary: 'Rifle' }
       }
     ),
     'weapon.rifle'
   );
-  assert.equal(
-    weaponStrengthProfileIdForEvent({
-      ...event,
-      source: 'Trait',
-      actorType: 'effect'
+  assert.equal(weaponStrengthProfileIdForEvent({ ...event, actorType: 'effect' }), 'nonweapon.unequipped');
+});
+
+// Both authored declarations and procedural packets must reference a registered profile.
+test('unknown explicit profiles fail at effect and event boundaries', () => {
+  assert.throws(
+    () => normalizeEffect({ type: 'strike', coefficient: 1, weaponStrengthProfileId: 'transform.misspelled' }),
+    /Unknown weapon-strength profile/
+  );
+  assert.throws(
+    () =>
+      assertSimulationEvent({
+        type: 'damage',
+        at: 0,
+        source: 'player',
+        sourceId: 1,
+        actorType: 'player',
+        coefficient: 1,
+        weaponStrengthProfileId: 'transform.misspelled'
+      }),
+    /Unknown weapon-strength profile/
+  );
+});
+
+// Delayed strikes retain their authored range when the owning skill's bar has changed.
+test('materialized transform strikes retain their profile across equipment changes', () => {
+  const skill = { id: 1, name: 'Transform attack', weapon: 'Sword' };
+  const [application] = materializeSkillEffectApplications({
+    skill,
+    effect: normalizeEffect({
+      type: 'strike',
+      coefficient: 1,
+      atMs: 1000,
+      weaponStrengthProfileId: 'transform.photon-forge'
     }),
-    'nonweapon.unequipped'
+    start: 0,
+    fullEnd: 1,
+    baseEvent: { source: 'player', sourceId: 1, actorType: 'player' }
+  });
+  assert.equal(application.event.weaponStrengthProfileId, 'transform.photon-forge');
+  skill.weapon = 'Rifle';
+  assert.equal(
+    weaponStrengthProfileIdForEvent(application.event, {
+      skill,
+      activeWeaponSet: 2,
+      config: { weaponSet2Primary: 'Rifle' }
+    }),
+    'transform.photon-forge'
   );
 });
 

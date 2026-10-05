@@ -29,6 +29,7 @@ export const FIREBRAND_TOME_SKILL_MECHANICS: Readonly<Record<number, Partial<Ski
     // Share timing defaults while preserving each packet, effect order, and local schedule.
     effects: impactEffects({ timingAnchor: 'castStart', timingScale: 'fixed' }, [
       {
+        weaponStrengthProfileId: 'bundle.exotic',
         type: 'strike',
         ticks: [0, 1000, 2000, 3000, 4000].map((offsetMs) => ({
           atMs: scorchedAftermathApplicationMs + offsetMs,
@@ -57,6 +58,7 @@ export const FIREBRAND_TOME_SKILL_MECHANICS: Readonly<Record<number, Partial<Ski
     // Keep the page's strike, Burning, and Weakness on one impact.
     effects: impactEffects({ atMs: 440, timingAnchor: 'castStart', timingScale: 'fixed' }, [
       {
+        weaponStrengthProfileId: 'bundle.exotic',
         type: 'strike',
         coefficient: 0.55
       },
@@ -130,6 +132,7 @@ export const FIREBRAND_TOME_SKILL_MECHANICS: Readonly<Record<number, Partial<Ski
       { atMs: 320, timingAnchor: 'castStart', timingScale: 'fixed', persistsAfterInterrupt: true },
       [
         {
+          weaponStrengthProfileId: 'bundle.exotic',
           type: 'strike',
           coefficient: 0.95
         },
@@ -181,6 +184,7 @@ export const FIREBRAND_TOME_SKILL_MECHANICS: Readonly<Record<number, Partial<Ski
     castTimeMs: 200,
     effects: [
       {
+        weaponStrengthProfileId: 'bundle.exotic',
         type: 'strike',
         coefficient: 1.4,
         hits: 1
@@ -262,6 +266,7 @@ export const FIREBRAND_TOME_SKILL_MECHANICS: Readonly<Record<number, Partial<Ski
     castTimeMs: 200,
     effects: [
       {
+        weaponStrengthProfileId: 'bundle.exotic',
         type: 'strike',
         coefficient: 0.45,
         hits: 1

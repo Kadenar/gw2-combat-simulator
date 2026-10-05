@@ -54,7 +54,13 @@ for (const reporting of [true, false]) {
     );
     context.queue.enqueue({ type: 'ranger.pet-swapped', at: 1, activePet: 'Smokescale', activePetSlot: 2 });
     // Prime reporting before the swap so shortened in-place deadlines must invalidate the observation.
-    const observationRuntime = { config: {}, boons: new Map(), conditionState: context.conditionState, time: 1 };
+    const observationRuntime = {
+      config: {},
+      boons: new Map(),
+      conditionState: context.conditionState,
+      time: 1,
+      equipmentBuffPolicies: []
+    };
     const observeBleeding = () =>
       observeRuntimeEffects(observationRuntime, {}).find((effect) => effect.kind === 'Bleeding');
     assert.equal(effectStateValue(observeBleeding(), 2).count, 4);

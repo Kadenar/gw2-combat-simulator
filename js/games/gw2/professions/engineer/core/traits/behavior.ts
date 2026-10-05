@@ -47,6 +47,7 @@ export function applyHghAcidBomb(context: EngineerRuntime, cast: RuntimeCast<Eng
       {
         at: cast.fullEnd + 6,
         activationId: cast.id,
+        weaponStrengthProfileId: strike.weaponStrengthProfileId,
         coefficient: Number(strike.coefficient),
         hits: Number(strike.hits),
         name: 'Acid Bomb',

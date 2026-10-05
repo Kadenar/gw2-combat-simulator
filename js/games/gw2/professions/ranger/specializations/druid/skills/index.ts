@@ -87,6 +87,7 @@ export const DRUID_BASE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>
     // Share timing defaults while preserving each packet, effect order, and local schedule.
     effects: impactEffects({ timingAnchor: 'castStart', timingScale: 'fixed' }, [
       {
+        weaponStrengthProfileId: 'transform.celestial-avatar',
         type: 'strike',
         ticks: [520, 1160, 1640].map((atMs) => ({
           atMs,
@@ -94,6 +95,7 @@ export const DRUID_BASE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>
         }))
       },
       {
+        weaponStrengthProfileId: 'transform.celestial-avatar',
         type: 'strike',
         ticks: [{ atMs: 2040, coefficient: 2 }]
       },
@@ -121,6 +123,7 @@ export const DRUID_BASE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>
         ]
       },
       {
+        weaponStrengthProfileId: 'transform.celestial-avatar',
         type: 'strike',
         name: 'Black Hole',
         // This child effect has no catalog entry, so carry its dedicated icon into damage breakdown rows.

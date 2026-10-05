@@ -112,15 +112,20 @@ function visitRuntimeEffects<T extends object>(
   const policies = new Map<string, BuffStatePolicy>(
     GW2_STANDARD_BOONS.map((kind) => [kind, { kind, maximumStacks: standardBoonPresentation(kind)?.maximumStacks }])
   );
-  for (const kind of ['sigil-severance', 'target-crippled', 'time-bomb', 'stealth', 'superspeed'])
-    policies.set(kind, { kind, maximumStacks: 1 });
-  const nativeKinds = new Set<string>();
-  for (const policy of profession.buffPolicies?.(runtime.mechanicQueries) ?? []) {
-    if (nativeKinds.has(policy.kind)) throw new TypeError(`Duplicate profession buff policy: ${policy.kind}`);
-    nativeKinds.add(policy.kind);
-    if (isStandardBoon(policy.kind))
-      throw new TypeError(`Profession cannot replace a standard boon policy: ${policy.kind}`);
-    policies.set(policy.kind, policy);
+  for (const kind of ['stealth', 'superspeed']) policies.set(kind, { kind, maximumStacks: 1 });
+  // Owners contribute live policies; dynamic profession caps continue following the selected balance profile.
+  const owners = new Map([...policies.keys()].map((kind) => [kind, 'shared']));
+  for (const { owner, contributions } of [
+    { owner: 'profession', contributions: profession.buffPolicies?.(runtime.mechanicQueries) ?? [] },
+    { owner: 'equipment', contributions: runtime.equipmentBuffPolicies }
+  ]) {
+    for (const policy of contributions) {
+      const previous = owners.get(policy.kind);
+      if (previous)
+        throw new TypeError(`Duplicate ${owner} buff policy: ${policy.kind} (already owned by ${previous}).`);
+      owners.set(policy.kind, owner);
+      policies.set(policy.kind, policy);
+    }
   }
 
   const owned = (profession.observeEffects?.(runtime.mechanicQueries) ?? []).map((state) => ({

@@ -93,24 +93,7 @@ const NAME_TO_PROFILE_ID: Readonly<Record<string, string>> = Object.freeze({
   staff: 'weapon.staff',
   unequipped: 'nonweapon.unequipped',
   utility: 'nonweapon.unequipped',
-  'profession mechanic': 'nonweapon.profession-mechanic',
-  gunsaber: 'bundle.exotic',
-  'ascended bundle': 'bundle.ascended',
-  bundle: 'bundle.ascended',
-  kit: 'bundle.ascended',
-  'radiant forge': 'transform.radiant-forge',
-  rampage: 'transform.rampage',
-  'photon forge': 'transform.photon-forge',
-  'celestial avatar': 'transform.celestial-avatar',
-  'cyclone bow': 'transform.cyclone-bow',
-  'shadow shroud': 'transform.shadow-shroud',
-  'lich form': 'transform.lich-form',
-  'death shroud': 'transform.death-shroud',
-  'reaper shroud': 'transform.reaper-shroud',
-  "reaper's shroud": 'transform.reaper-shroud',
-  'harbinger shroud': 'transform.harbinger-shroud',
-  'ritualist shroud': 'transform.ritualist-shroud',
-  "ritualist's shroud": 'transform.ritualist-shroud'
+  'profession mechanic': 'nonweapon.profession-mechanic'
 });
 
 /** Returns a validated weapon-strength profile by stable identifier. */
@@ -121,7 +104,7 @@ export function weaponStrengthProfile(id: unknown): Readonly<Gw2WeaponStrengthPr
   return profile;
 }
 
-/** Resolves a weapon or transform name to its weapon-strength profile. */
+/** Resolves an equipment name to its weapon-strength profile. */
 export function weaponStrengthProfileForName(name: unknown): Readonly<Gw2WeaponStrengthProfile> | null {
   const value = String(name || '')
     .trim()
@@ -145,14 +128,6 @@ export function sampleWeaponStrength(profile: Gw2WeaponStrengthProfile, unitInte
   return profile.min + sample * (profile.max - profile.min);
 }
 
-const SHROUD_PROFILE_IDS: Readonly<Record<string, string>> = Object.freeze({
-  death: 'transform.death-shroud',
-  reaper: 'transform.reaper-shroud',
-  harbinger: 'transform.harbinger-shroud',
-  ritualist: 'transform.ritualist-shroud',
-  lich: 'transform.lich-form'
-});
-
 interface WeaponStrengthProfileContext {
   readonly skill?: Skill | null;
   readonly activeWeaponSet?: number;
@@ -172,28 +147,7 @@ export function weaponStrengthProfileIdForEvent(
     return weaponStrengthProfile(event.weaponStrengthProfileId).id;
   }
 
-  // Skill metadata owns transform profiles so delayed hits cannot inherit a later transform state.
-  if (skill?.radiantForgeSkill) return 'transform.radiant-forge';
-  if (skill?.cycloneBowSkill) return 'transform.cyclone-bow';
-  // Celestial Avatar replaces the weapon bar and scales its strikes from the transform, not the equipped weapon.
-  if (skill?.celestialAvatarSkill) return 'transform.celestial-avatar';
-  if (skill?.forgeSkill) {
-    return 'transform.photon-forge';
-  }
-
-  if (skill?.shadowShroudSkill) {
-    return 'transform.shadow-shroud';
-  }
-
-  const skillShroud = String(skill?.shroud || '').toLowerCase();
-  if (skillShroud && SHROUD_PROFILE_IDS[skillShroud]) {
-    return SHROUD_PROFILE_IDS[skillShroud];
-  }
-
-  // Tome strike ranges match the exotic bundle; engineering kits scale to ascended equipment.
-  if (skill?.tome) return 'bundle.exotic';
-  if (skill?.kitId) return 'bundle.ascended';
-
+  // Explicit effect profiles own transformations; names below describe equipped weapons only.
   for (const candidate of [event.weapon, event.skillWeapon]) {
     const profile = weaponStrengthProfileForName(candidate);
     if (profile) return profile.id;

@@ -283,17 +283,19 @@ export function applyShrapnel(
 
   const shrapnelCrippled = requireEffect(shrapnelProfile, 'condition', 'Crippled');
   if (shrapnelCrippled) {
+    // Resolve Crippled as a target condition so duration bonuses and condition queries include it.
     context.effects.emit({
       kind: 'packet',
-      event: buildEngineerBuff(event, {
+      event: buildEngineerCondition(event, {
         name: 'Shrapnel',
-        kind: 'target-crippled',
+        condition: String(shrapnelCrippled.condition),
         stacks: Number(shrapnelCrippled.stacks),
         duration: Number(shrapnelCrippled.duration),
         sourceId: TRAIT.SHRAPNEL,
-        actorType: 'effect'
+        actorType: 'effect',
+        ownerActorType: 'player'
       }),
-      durationContext: event
+      settlement: 'reaction'
     });
   }
 

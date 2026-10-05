@@ -20,6 +20,7 @@ import {
 import type { Skill, SkillId } from '#gw2/platform/skills/types.js';
 import { normalizePrecastRelics } from '#gw2/platform/equipment/relics/catalog.js';
 import { createRelicRuntime } from '#gw2/platform/equipment/relics/runtime.js';
+import { sigilBuffPolicies } from '#gw2/platform/equipment/sigils/effect-state.js';
 import { createCastExecution } from '#gw2/platform/execution/cast-execution.js';
 import { createCooldownController } from '#gw2/platform/execution/cooldowns.js';
 import { createMaximumAmmoContext } from '#gw2/platform/profession-definition/runtime-context.js';
@@ -221,6 +222,7 @@ export function runRuntime<T extends object>(
     skillFor: (id) => profession.catalog.skillsById.get(id)
   });
   runtime = Object.assign(base, {
+    equipmentBuffPolicies: sigilBuffPolicies(config),
     effectReactions,
     profession: base.profession as T,
     time: 0,

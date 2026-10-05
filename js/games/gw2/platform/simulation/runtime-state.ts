@@ -30,6 +30,7 @@ export interface Gw2Runtime<T extends object = object, TSkill extends Skill = Sk
   readonly mechanics: MechanicContext<T, TSkill>;
   readonly mechanicQueries: MechanicQueryContext<T, TSkill>;
   readonly history: Gw2ResolverEvent[];
+  readonly equipmentBuffPolicies: readonly import('#gw2/platform/combat/effect-state.js').BuffStatePolicy[];
   readonly facts: import('#gw2/platform/combat/history/executed-facts.js').ExecutedFactsReader;
   readonly observations: import('#gw2/platform/combat/history/executed-facts.js').ExecutedFactsWriter;
   readonly steps: SimulationStep[];

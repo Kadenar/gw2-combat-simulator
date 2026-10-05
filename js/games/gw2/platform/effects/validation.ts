@@ -6,6 +6,7 @@ import type { ConditionTick, SkillEffect, StrikeTick } from '#gw2/platform/effec
 import { ACTOR_TYPES } from '#gw2/platform/events/actors.js';
 import type { BalanceProfile, Skill } from '#gw2/platform/skills/types.js';
 import type { UnvalidatedFields } from '#kernel/core/unvalidated.js';
+import { weaponStrengthProfile } from '#gw2/platform/equipment/weapons/strength.js';
 /** Validate authored effects and retain canonical immutable lists before any runtime consumes them. */
 
 // Closed vocabulary sets used for fast membership checks during catalog validation.
@@ -282,6 +283,8 @@ function normalizeEffectFields(effect: unknown, label: string): SkillEffect {
 
   const normalizedEffect = candidate as unknown as SkillEffect;
   validateEffectNumbers(candidate, label);
+  // Validate explicit profiles before authored effects enter the runtime.
+  if (candidate.weaponStrengthProfileId !== undefined) weaponStrengthProfile(candidate.weaponStrengthProfileId);
 
   // Custom packets must declare their dispatch type and payload before they can enter the event queue.
   if (normalizedEffect.type === 'custom') {

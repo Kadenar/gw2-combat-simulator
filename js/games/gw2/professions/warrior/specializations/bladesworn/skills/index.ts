@@ -167,12 +167,14 @@ export const BLADESWORN_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>
   [ID.SWIFT_CUT]: {
     effects: [
       {
+        weaponStrengthProfileId: 'bundle.exotic',
         type: 'strike',
         name: 'Swift Cut — Blade',
         coefficient: 0.9,
         hits: 1
       },
       {
+        weaponStrengthProfileId: 'bundle.exotic',
         type: 'strike',
         name: 'Swift Cut — Shot',
         coefficient: 0.75 * 0.33,
@@ -186,12 +188,14 @@ export const BLADESWORN_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>
   [ID.STEEL_DIVIDE]: {
     effects: [
       {
+        weaponStrengthProfileId: 'bundle.exotic',
         type: 'strike',
         name: 'Steel Divide — Blade',
         coefficient: 1.1,
         hits: 1
       },
       {
+        weaponStrengthProfileId: 'bundle.exotic',
         type: 'strike',
         name: 'Steel Divide — Shot',
         coefficient: 0.75 * 0.33,
@@ -205,12 +209,14 @@ export const BLADESWORN_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>
   [ID.EXPLOSIVE_THRUST]: {
     effects: [
       {
+        weaponStrengthProfileId: 'bundle.exotic',
         type: 'strike',
         name: 'Explosive Thrust — Blade',
         coefficient: 1.35,
         hits: 1
       },
       {
+        weaponStrengthProfileId: 'bundle.exotic',
         type: 'strike',
         name: 'Explosive Thrust — Explosion',
         coefficient: 1.2 * 0.33,
@@ -229,6 +235,7 @@ export const BLADESWORN_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>
     ammoCastLockout: 2,
     effects: [
       {
+        weaponStrengthProfileId: 'bundle.exotic',
         type: 'strike',
         name: 'Blooming Fire — Blade',
         coefficient: 0.8,
@@ -236,6 +243,7 @@ export const BLADESWORN_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>
         persistsAfterInterrupt: true
       },
       {
+        weaponStrengthProfileId: 'bundle.exotic',
         type: 'strike',
         name: 'Blooming Fire — Explosion',
         coefficient: 1.2,
@@ -277,6 +285,7 @@ export const BLADESWORN_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>
     ammoCastLockout: 1,
     effects: [
       {
+        weaponStrengthProfileId: 'bundle.exotic',
         type: 'strike',
         coefficient: 2.5,
         hits: 1,
@@ -304,6 +313,7 @@ export const BLADESWORN_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>
     ammoCastLockout: 1,
     effects: [
       {
+        weaponStrengthProfileId: 'bundle.exotic',
         type: 'strike',
         coefficient: 0.5,
         hits: 1,
@@ -425,23 +435,48 @@ function sharpAsTheWindVariant(id: number, parentId: number, name: string, overr
 export const BLADESWORN_SHARP_AS_THE_WIND_SKILLS: readonly Skill[] = Object.freeze([
   sharpAsTheWindVariant(ID.SHARP_SWIFT_CUT, ID.SWIFT_CUT, 'Swift Cut', {
     effects: [
-      { type: 'strike', name: 'Swift Cut — Blade', coefficient: 0.3, hits: 1 },
-      { type: 'strike', name: 'Swift Cut — Shot', coefficient: 0.1, hits: 1 },
+      {
+        type: 'strike',
+        weaponStrengthProfileId: 'bundle.exotic',
+        name: 'Swift Cut — Blade',
+        coefficient: 0.3,
+        hits: 1
+      },
+      { type: 'strike', weaponStrengthProfileId: 'bundle.exotic', name: 'Swift Cut — Shot', coefficient: 0.1, hits: 1 },
       { type: 'condition', condition: 'Bleeding', stacks: 2, duration: 3 }
     ]
   }),
   sharpAsTheWindVariant(ID.SHARP_STEEL_DIVIDE, ID.STEEL_DIVIDE, 'Steel Divide', {
     effects: [
-      { type: 'strike', name: 'Steel Divide — Blade', coefficient: 0.4, hits: 1 },
-      { type: 'strike', name: 'Steel Divide — Shot', coefficient: 0.1, hits: 1 },
+      {
+        type: 'strike',
+        weaponStrengthProfileId: 'bundle.exotic',
+        name: 'Steel Divide — Blade',
+        coefficient: 0.4,
+        hits: 1
+      },
+      {
+        type: 'strike',
+        weaponStrengthProfileId: 'bundle.exotic',
+        name: 'Steel Divide — Shot',
+        coefficient: 0.1,
+        hits: 1
+      },
       { type: 'condition', condition: 'Bleeding', stacks: 1, duration: 3 }
     ]
   }),
   sharpAsTheWindVariant(ID.SHARP_EXPLOSIVE_THRUST, ID.EXPLOSIVE_THRUST, 'Explosive Thrust', {
     effects: [
-      { type: 'strike', name: 'Explosive Thrust — Blade', coefficient: 0.6, hits: 1 },
       {
         type: 'strike',
+        weaponStrengthProfileId: 'bundle.exotic',
+        name: 'Explosive Thrust — Blade',
+        coefficient: 0.6,
+        hits: 1
+      },
+      {
+        type: 'strike',
+        weaponStrengthProfileId: 'bundle.exotic',
         name: 'Explosive Thrust — Explosion',
         coefficient: 0.1,
         hits: 1,
@@ -455,12 +490,14 @@ export const BLADESWORN_SHARP_AS_THE_WIND_SKILLS: readonly Skill[] = Object.free
     effects: impactEffects({ persistsAfterInterrupt: true }, [
       {
         type: 'strike',
+        weaponStrengthProfileId: 'bundle.exotic',
         name: 'Blooming Fire — Blade',
         coefficient: 0.5,
         hits: 1
       },
       {
         type: 'strike',
+        weaponStrengthProfileId: 'bundle.exotic',
         name: 'Blooming Fire — Explosion',
         coefficient: 0.3,
         hits: 3,
@@ -484,7 +521,13 @@ export const BLADESWORN_SHARP_AS_THE_WIND_SKILLS: readonly Skill[] = Object.free
   }),
   sharpAsTheWindVariant(ID.SHARP_CYCLONE_TRIGGER, ID.CYCLONE_TRIGGER, 'Cyclone Trigger', {
     effects: [
-      { type: 'strike', coefficient: 1, hits: 1, persistsAfterInterrupt: true },
+      {
+        type: 'strike',
+        weaponStrengthProfileId: 'bundle.exotic',
+        coefficient: 1,
+        hits: 1,
+        persistsAfterInterrupt: true
+      },
       { type: 'boon', boon: 'aegis', duration: 5, stacks: 1, persistsAfterInterrupt: true },
       {
         type: 'condition',
@@ -499,6 +542,7 @@ export const BLADESWORN_SHARP_AS_THE_WIND_SKILLS: readonly Skill[] = Object.free
     effects: [
       {
         type: 'strike',
+        weaponStrengthProfileId: 'bundle.exotic',
         coefficient: 0.1,
         hits: 1,
         damageKind: 'explosion',
@@ -557,6 +601,7 @@ function artilleryEffects(runtime: Runtime, cast: RuntimeCast<WarriorSkill>, sha
   if (strike)
     effects.push({
       type: 'strike',
+      weaponStrengthProfileId: 'bundle.exotic',
       coefficient: effectNumber(profile, strike, 'coefficient'),
       weapon: 'Gunsaber',
       damageKind: 'explosion',

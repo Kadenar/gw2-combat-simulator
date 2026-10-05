@@ -12,7 +12,14 @@ import type { Skill } from '#gw2/platform/skills/types.js';
 export const REAPER_SHROUD_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
   [ID.LIFE_REND]: {
     castTimeMs: 400,
-    effects: [{ type: 'strike', coefficient: 1.4, hits: 1 }],
+    effects: [
+      {
+        weaponStrengthProfileId: 'transform.reaper-shroud',
+        type: 'strike',
+        coefficient: 1.4,
+        hits: 1
+      }
+    ],
     type: 'Profession',
     slot: 'Weapon_1',
     shroud: 'reaper',
@@ -23,6 +30,7 @@ export const REAPER_SHROUD_SKILL_MECHANICS: Readonly<Record<number, Partial<Skil
     castTimeMs: 600,
     effects: [
       {
+        weaponStrengthProfileId: 'transform.reaper-shroud',
         type: 'strike',
         ticks: [{ atMs: 400, coefficient: 1.6 }],
         timingAnchor: 'castStart',
@@ -65,6 +73,7 @@ export const REAPER_SHROUD_SKILL_MECHANICS: Readonly<Record<number, Partial<Skil
     castTimeMs: 560,
     effects: [
       {
+        weaponStrengthProfileId: 'transform.reaper-shroud',
         type: 'strike',
         // Accepted strikes apply their declared percentage through the shared resource owner.
         reactions: [
@@ -95,6 +104,7 @@ export const REAPER_SHROUD_SKILL_MECHANICS: Readonly<Record<number, Partial<Skil
     // Share timing defaults while preserving each packet, effect order, and local schedule.
     effects: impactEffects({ timingAnchor: 'castStart', timingScale: 'fixed' }, [
       {
+        weaponStrengthProfileId: 'transform.reaper-shroud',
         type: 'strike',
         comboFinishers: [
           {
@@ -134,6 +144,7 @@ export const REAPER_SHROUD_SKILL_MECHANICS: Readonly<Record<number, Partial<Skil
     effects: [
       ...impactEffects({ atMs: 840, timingAnchor: 'castStart', timingScale: 'cast' }, [
         {
+          weaponStrengthProfileId: 'transform.reaper-shroud',
           type: 'strike',
           coefficient: 4,
           comboFields: [{ ownerId: 'necromancer', fieldType: 'Ice', duration: 4 }],
@@ -181,6 +192,7 @@ export const REAPER_SHROUD_SKILL_MECHANICS: Readonly<Record<number, Partial<Skil
     // Share this impact's timing while preserving independent payloads and declaration order.
     effects: [
       {
+        weaponStrengthProfileId: 'transform.reaper-shroud',
         type: 'strike',
         ticks: [
           { atMs: 40, coefficient: 0.25 },
@@ -197,7 +209,12 @@ export const REAPER_SHROUD_SKILL_MECHANICS: Readonly<Record<number, Partial<Skil
         timingScale: 'fixed'
       },
       ...impactEffects({ atMs: 1160, timingAnchor: 'castStart', timingScale: 'fixed' }, [
-        { type: 'strike', coefficient: 1.625, name: "Death's Charge — Final Strike" },
+        {
+          weaponStrengthProfileId: 'transform.reaper-shroud',
+          type: 'strike',
+          coefficient: 1.625,
+          name: "Death's Charge — Final Strike"
+        },
         { type: 'blind' }
       ])
     ],

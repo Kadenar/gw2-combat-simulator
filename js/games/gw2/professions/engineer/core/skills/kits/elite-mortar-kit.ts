@@ -24,6 +24,7 @@ export const ENGINEER_ELITE_MORTAR_KIT_SKILL_MECHANICS: Readonly<Record<string, 
     cooldown: 20,
     effects: [
       {
+        weaponStrengthProfileId: 'bundle.ascended',
         type: 'strike',
         coefficient: 1,
         hits: 1,
@@ -42,6 +43,7 @@ export const ENGINEER_ELITE_MORTAR_KIT_SKILL_MECHANICS: Readonly<Record<string, 
     cooldown: 15,
     effects: [
       {
+        weaponStrengthProfileId: 'bundle.ascended',
         type: 'strike',
         coefficient: 1,
         hits: 1,
@@ -64,6 +66,7 @@ export const ENGINEER_ELITE_MORTAR_KIT_SKILL_MECHANICS: Readonly<Record<string, 
     cooldown: 0,
     effects: [
       {
+        weaponStrengthProfileId: 'bundle.ascended',
         type: 'strike',
         coefficient: 1,
         hits: 1,
@@ -122,6 +125,7 @@ export const ENGINEER_ELITE_MORTAR_KIT_SKILL_MECHANICS: Readonly<Record<string, 
     ],
     effects: [
       {
+        weaponStrengthProfileId: 'bundle.ascended',
         type: 'strike',
         coefficient: 1,
         hits: 1,

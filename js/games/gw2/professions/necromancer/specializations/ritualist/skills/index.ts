@@ -206,6 +206,7 @@ export const RITUALIST_BASE_SKILL_MECHANICS: Readonly<Record<number, Partial<Ski
     interruptCommitMs: 560,
     effects: [
       {
+        weaponStrengthProfileId: 'transform.ritualist-shroud',
         type: 'strike',
         coefficient: 0.75,
         hits: 1,

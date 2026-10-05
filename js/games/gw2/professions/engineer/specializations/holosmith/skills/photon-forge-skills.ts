@@ -39,6 +39,7 @@ export const HOLOSMITH_PHOTON_FORGE_SKILL_MECHANICS: Readonly<Record<string, Hol
     ],
     effects: [
       {
+        weaponStrengthProfileId: 'transform.photon-forge',
         type: 'strike',
         ticks: [200, 360].map((atMs) => ({ atMs, coefficient: 1.6 / 2 })),
         timingAnchor: 'castStart',
@@ -71,6 +72,7 @@ export const HOLOSMITH_PHOTON_FORGE_SKILL_MECHANICS: Readonly<Record<string, Hol
     ],
     effects: [
       {
+        weaponStrengthProfileId: 'transform.photon-forge',
         type: 'strike',
         ticks: [{ atMs: 320, coefficient: 1 }],
         timingAnchor: 'castStart',
@@ -96,6 +98,7 @@ export const HOLOSMITH_PHOTON_FORGE_SKILL_MECHANICS: Readonly<Record<string, Hol
     comboFinishers: [{ ownerId: 'engineer', finisherType: 'Blast' }],
     effects: [
       {
+        weaponStrengthProfileId: 'transform.photon-forge',
         type: 'strike',
         coefficient: 1.8,
         hits: 1,
@@ -133,6 +136,7 @@ export const HOLOSMITH_PHOTON_FORGE_SKILL_MECHANICS: Readonly<Record<string, Hol
     heatGain: 7,
     effects: [
       {
+        weaponStrengthProfileId: 'transform.photon-forge',
         type: 'strike',
         coefficient: 1.8,
         hits: 1,
@@ -195,6 +199,7 @@ export const HOLOSMITH_PHOTON_FORGE_SKILL_MECHANICS: Readonly<Record<string, Hol
     ],
     effects: [
       {
+        weaponStrengthProfileId: 'transform.photon-forge',
         type: 'strike',
         coefficient: 1,
         hits: 1,
@@ -224,6 +229,7 @@ export const HOLOSMITH_PHOTON_FORGE_SKILL_MECHANICS: Readonly<Record<string, Hol
     effects: [
       ...impactEffects({ timingAnchor: 'castStart', timingScale: 'fixed', persistsAfterInterrupt: true }, [
         {
+          weaponStrengthProfileId: 'transform.photon-forge',
           type: 'strike',
           ticks: [{ atMs: 400, coefficient: 1.5 }],
           name: 'Initial Damage',
@@ -231,6 +237,7 @@ export const HOLOSMITH_PHOTON_FORGE_SKILL_MECHANICS: Readonly<Record<string, Hol
           damageKind: 'explosion'
         },
         {
+          weaponStrengthProfileId: 'transform.photon-forge',
           type: 'strike',
           ticks: [{ atMs: 1800, coefficient: 1.5 }],
           name: 'Explosion Damage',
@@ -302,6 +309,7 @@ export const HOLOSMITH_PHOTON_FORGE_SKILL_MECHANICS: Readonly<Record<string, Hol
     heatGain: 2,
     effects: [
       {
+        weaponStrengthProfileId: 'transform.photon-forge',
         type: 'strike',
         ticks: [{ atMs: 200, coefficient: 1 }],
         timingAnchor: 'castStart',
@@ -337,6 +345,7 @@ export const HOLOSMITH_PHOTON_FORGE_SKILL_MECHANICS: Readonly<Record<string, Hol
     heatGain: 2,
     effects: [
       {
+        weaponStrengthProfileId: 'transform.photon-forge',
         type: 'strike',
         ticks: [{ atMs: 280, coefficient: 1 }],
         timingAnchor: 'castStart',
@@ -369,6 +378,7 @@ export const HOLOSMITH_PHOTON_FORGE_SKILL_MECHANICS: Readonly<Record<string, Hol
     // Share timing defaults while preserving each packet, effect order, and local schedule.
     effects: impactEffects({ timingAnchor: 'castStart', timingScale: 'fixed' }, [
       {
+        weaponStrengthProfileId: 'transform.photon-forge',
         type: 'strike',
         ticks: [240, 400, 480, 640, 720, 880, 960, 1120].map((atMs) => ({ atMs, coefficient: 0.64 })),
         name: 'Photon Blitz',
@@ -399,6 +409,7 @@ export const HOLOSMITH_PHOTON_FORGE_SKILL_MECHANICS: Readonly<Record<string, Hol
     heatGain: 2,
     effects: [
       {
+        weaponStrengthProfileId: 'transform.photon-forge',
         type: 'strike',
         // The second impact precedes the aftercast; shortening it must not stretch or drop either strike.
         ticks: [280, 440].map((atMs) => ({ atMs, coefficient: 1.6 / 2 })),

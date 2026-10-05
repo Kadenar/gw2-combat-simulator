@@ -33,6 +33,7 @@ export const ENGINEER_BOMB_KIT_SKILL_MECHANICS: Readonly<Record<string, Partial<
       { atMs: 2760, timingAnchor: 'castEnd', timingScale: 'fixed', persistsAfterInterrupt: true },
       [
         {
+          weaponStrengthProfileId: 'bundle.ascended',
           type: 'strike',
           coefficient: 3,
           hits: 1,
@@ -65,6 +66,7 @@ export const ENGINEER_BOMB_KIT_SKILL_MECHANICS: Readonly<Record<string, Partial<
     // Share one impact timing while preserving independent payloads and declaration order.
     effects: impactEffects({ atMs: 760, timingAnchor: 'castEnd', timingScale: 'fixed', persistsAfterInterrupt: true }, [
       {
+        weaponStrengthProfileId: 'bundle.ascended',
         type: 'strike',
         coefficient: 2.5,
         hits: 1,
@@ -103,6 +105,7 @@ export const ENGINEER_BOMB_KIT_SKILL_MECHANICS: Readonly<Record<string, Partial<
     // Share timing defaults while preserving each packet, effect order, and local schedule.
     effects: impactEffects({ timingAnchor: 'castEnd', timingScale: 'fixed', persistsAfterInterrupt: true }, [
       {
+        weaponStrengthProfileId: 'bundle.ascended',
         type: 'strike',
         ticks: Array.from({ length: 4 }, (_, index) => ({ atMs: 760 + index * 1000, coefficient: 1 / 4 })),
         name: 'Fire Bomb',
@@ -144,6 +147,7 @@ export const ENGINEER_BOMB_KIT_SKILL_MECHANICS: Readonly<Record<string, Partial<
     cooldown: 0,
     effects: [
       {
+        weaponStrengthProfileId: 'bundle.ascended',
         type: 'strike',
         ticks: [{ atMs: 1000, coefficient: 1.2 }],
         timingAnchor: 'castStart',
@@ -178,6 +182,7 @@ export const ENGINEER_BOMB_KIT_SKILL_MECHANICS: Readonly<Record<string, Partial<
       { atMs: 1760, timingAnchor: 'castEnd', timingScale: 'fixed', persistsAfterInterrupt: true },
       [
         {
+          weaponStrengthProfileId: 'bundle.ascended',
           type: 'strike',
           coefficient: 1.5,
           hits: 1,

@@ -54,6 +54,7 @@ export const SPECTER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> =
     // Share timing defaults while preserving each packet, effect order, and local schedule.
     effects: impactEffects({ timingAnchor: 'castStart', timingScale: 'cast' }, [
       {
+        weaponStrengthProfileId: 'transform.shadow-shroud',
         type: 'strike',
         ticks: Array.from({ length: 2 }, (_, index) => ({ atMs: 360 + index * 320, coefficient: 3.5 / 2 })),
         name: 'Eternal Night',
@@ -83,6 +84,7 @@ export const SPECTER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> =
     initiativeCost: 0,
     effects: impactEffects({ atMs: 1000, timingAnchor: 'castEnd', timingScale: 'fixed' }, [
       {
+        weaponStrengthProfileId: 'transform.shadow-shroud',
         type: 'strike',
         coefficient: 1.66,
         hits: 1,
@@ -126,6 +128,7 @@ export const SPECTER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> =
     initiativeCost: 0,
     effects: impactEffects({ atMs: 800, timingAnchor: 'castStart', timingScale: 'fixed' }, [
       {
+        weaponStrengthProfileId: 'transform.shadow-shroud',
         type: 'strike',
         coefficient: 1,
         hits: 1,
@@ -166,6 +169,7 @@ export const SPECTER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> =
     initiativeCost: 0,
     effects: [
       {
+        weaponStrengthProfileId: 'transform.shadow-shroud',
         type: 'strike',
         ticks: [{ atMs: 3000, coefficient: 2 }],
         name: 'Mind Shock',
@@ -365,6 +369,7 @@ export const SPECTER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> =
     effects: [
       ...impactEffects({ atMs: 560, timingAnchor: 'castStart', timingScale: 'cast', persistsAfterInterrupt: true }, [
         {
+          weaponStrengthProfileId: 'transform.shadow-shroud',
           type: 'strike',
           coefficient: 1.075,
           hits: 1,

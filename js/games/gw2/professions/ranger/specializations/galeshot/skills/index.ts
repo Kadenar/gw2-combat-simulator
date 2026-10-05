@@ -168,6 +168,7 @@ export const GALESHOT_BASE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skil
     paletteTileOrder: 1,
     effects: [
       {
+        weaponStrengthProfileId: 'transform.cyclone-bow',
         type: 'strike',
         projectile: true,
         ticks: [{ atMs: 480, coefficient: 0.75 }],
@@ -185,6 +186,7 @@ export const GALESHOT_BASE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skil
     paletteTileOrder: 2,
     effects: [
       {
+        weaponStrengthProfileId: 'transform.cyclone-bow',
         type: 'strike',
         projectile: true,
         ticks: [800, 920, 1040, 1160, 1280].map((atMs) => ({
@@ -207,6 +209,7 @@ export const GALESHOT_BASE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skil
     ],
     effects: [
       {
+        weaponStrengthProfileId: 'transform.cyclone-bow',
         type: 'strike',
         projectile: true,
         ticks: [520, 600, 640].map((atMs) => ({
@@ -232,6 +235,7 @@ export const GALESHOT_BASE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skil
     evades: true,
     effects: [
       {
+        weaponStrengthProfileId: 'transform.cyclone-bow',
         type: 'strike',
         projectile: true,
         ticks: [{ atMs: 280, coefficient: 0.8 }],
@@ -261,6 +265,7 @@ export const GALESHOT_BASE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skil
     ],
     effects: [
       {
+        weaponStrengthProfileId: 'transform.cyclone-bow',
         type: 'strike',
         projectile: true,
         ticks: [{ atMs: 800, coefficient: 2.5 }],
@@ -291,6 +296,7 @@ export const GALESHOT_BASE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skil
     ],
     effects: [
       {
+        weaponStrengthProfileId: 'transform.cyclone-bow',
         type: 'strike',
         projectile: true,
         ticks: [{ atMs: 800, coefficient: 2.5 }],
@@ -314,6 +320,7 @@ export const GALESHOT_BASE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skil
     ],
     effects: [
       {
+        weaponStrengthProfileId: 'transform.cyclone-bow',
         type: 'strike',
         projectile: true,
         ticks: [{ atMs: 800, coefficient: 4 }],

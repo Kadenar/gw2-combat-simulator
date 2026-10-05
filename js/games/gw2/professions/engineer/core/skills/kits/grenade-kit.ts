@@ -26,6 +26,7 @@ export const ENGINEER_GRENADE_KIT_SKILL_MECHANICS: Readonly<Record<string, Parti
     // Share timing defaults while preserving each packet, effect order, and local schedule.
     effects: impactEffects({ timingAnchor: 'castStart', timingScale: 'fixed', persistsAfterInterrupt: true }, [
       {
+        weaponStrengthProfileId: 'bundle.ascended',
         type: 'strike',
         ticks: [400, 440, 440].map((atMs) => ({ atMs, coefficient: 0.75 })),
         name: 'Poison Grenade',
@@ -49,6 +50,7 @@ export const ENGINEER_GRENADE_KIT_SKILL_MECHANICS: Readonly<Record<string, Parti
     // Share timing defaults while preserving each packet, effect order, and local schedule.
     effects: impactEffects({ timingAnchor: 'castStart', timingScale: 'fixed', persistsAfterInterrupt: true }, [
       {
+        weaponStrengthProfileId: 'bundle.ascended',
         type: 'strike',
         ticks: [400, 440, 440].map((atMs) => ({ atMs, coefficient: 0.63 })),
         name: 'Shrapnel Grenade',
@@ -69,6 +71,7 @@ export const ENGINEER_GRENADE_KIT_SKILL_MECHANICS: Readonly<Record<string, Parti
     cooldown: 10,
     effects: [
       {
+        weaponStrengthProfileId: 'bundle.ascended',
         type: 'strike',
         // Each of the three packets has a 0.1 coefficient; explicit ticks avoid interpreting 0.1 as a split total.
         ticks: [
@@ -99,6 +102,7 @@ export const ENGINEER_GRENADE_KIT_SKILL_MECHANICS: Readonly<Record<string, Parti
     // Share timing defaults while preserving each packet, effect order, and local schedule.
     effects: impactEffects({ timingAnchor: 'castStart', timingScale: 'fixed', persistsAfterInterrupt: true }, [
       {
+        weaponStrengthProfileId: 'bundle.ascended',
         type: 'strike',
         ticks: [400, 440, 440].map((atMs) => ({ atMs, coefficient: 0.75 })),
         name: 'Freeze Grenade',
@@ -151,6 +155,7 @@ export const ENGINEER_GRENADE_KIT_SKILL_MECHANICS: Readonly<Record<string, Parti
     ],
     effects: [
       {
+        weaponStrengthProfileId: 'bundle.ascended',
         type: 'strike',
         ticks: [
           { atMs: 400, coefficient: 0.33 },

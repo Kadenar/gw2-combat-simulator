@@ -28,7 +28,14 @@ export const hgh = defineTrait({
     effects: [
       { name: 'might', type: 'boon', boon: 'might', stacks: 2, duration: 12 },
       { name: 'fury', type: 'boon', boon: 'fury', stacks: 1, duration: 4 },
-      { name: 'HGH', type: 'strike', coefficient: 0.85, hits: 1, packetLabel: 'additional Acid Bomb strike' }
+      {
+        name: 'HGH',
+        type: 'strike',
+        weaponStrengthProfileId: 'bundle.ascended',
+        coefficient: 0.85,
+        hits: 1,
+        packetLabel: 'additional Acid Bomb strike'
+      }
     ]
   },
   triggers: ['might', 'fury'].map((boon) => ({

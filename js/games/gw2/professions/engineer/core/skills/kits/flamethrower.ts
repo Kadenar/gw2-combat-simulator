@@ -28,6 +28,7 @@ export const ENGINEER_FLAMETHROWER_SKILL_MECHANICS: Readonly<Record<string, Part
     cooldown: 0,
     effects: [
       {
+        weaponStrengthProfileId: 'bundle.ascended',
         type: 'strike',
         ticks: [160, 360, 520, 680, 880, 1040, 1200, 1360, 1560, 1720].map((atMs) => ({ atMs, coefficient: 2.5 / 10 })),
         timingAnchor: 'castStart',
@@ -53,6 +54,7 @@ export const ENGINEER_FLAMETHROWER_SKILL_MECHANICS: Readonly<Record<string, Part
     // Share timing defaults while preserving each packet, effect order, and local schedule.
     effects: impactEffects({ timingAnchor: 'castStart', timingScale: 'fixed' }, [
       {
+        weaponStrengthProfileId: 'bundle.ascended',
         type: 'strike',
         // The EVTC records five visual volleys as ten damage packets. Each
         // packet has a 0.5 coefficient and a matching Burning application.
@@ -97,6 +99,7 @@ export const ENGINEER_FLAMETHROWER_SKILL_MECHANICS: Readonly<Record<string, Part
       { atMs: 520, timingAnchor: 'castStart', timingScale: 'fixed', persistsAfterInterrupt: true },
       [
         {
+          weaponStrengthProfileId: 'bundle.ascended',
           type: 'strike',
           coefficient: 1.3,
           hits: 1,
@@ -163,6 +166,7 @@ export const ENGINEER_FLAMETHROWER_SKILL_MECHANICS: Readonly<Record<string, Part
     // The hit, Burning, boons, and fire field resolve around 360 ms, two ticks before the cast completes.
     effects: impactEffects({ atMs: 360, timingAnchor: 'castStart', timingScale: 'fixed' }, [
       {
+        weaponStrengthProfileId: 'bundle.ascended',
         type: 'strike',
         coefficient: 0.5,
         hits: 1,

@@ -11,6 +11,7 @@ export const NECROMANCER_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<numb
     castTimeMs: 920,
     effects: [
       {
+        weaponStrengthProfileId: 'transform.death-shroud',
         type: 'strike',
         coefficient: 1.4,
         hits: 1
@@ -49,6 +50,7 @@ export const NECROMANCER_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<numb
     castTimeMs: 600,
     effects: [
       {
+        weaponStrengthProfileId: 'transform.death-shroud',
         type: 'strike',
         coefficient: 0.1,
         hits: 1
@@ -70,6 +72,7 @@ export const NECROMANCER_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<numb
     // Group bleeding applications in one timeline while retaining their shared strike timing.
     effects: impactEffects({ timingAnchor: 'castStart', timingScale: 'fixed' }, [
       {
+        weaponStrengthProfileId: 'transform.death-shroud',
         type: 'strike',
         // Accepted strikes apply their declared percentage through the shared resource owner.
         reactions: [
@@ -106,6 +109,7 @@ export const NECROMANCER_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<numb
     flipDuration: 3,
     effects: [
       {
+        weaponStrengthProfileId: 'transform.death-shroud',
         type: 'strike',
         coefficient: 0.25,
         hits: 1
@@ -238,6 +242,7 @@ export const NECROMANCER_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<numb
     castTimeMs: 920,
     effects: [
       {
+        weaponStrengthProfileId: 'transform.death-shroud',
         type: 'strike',
         coefficient: 1.4,
         hits: 1
@@ -279,6 +284,7 @@ export const NECROMANCER_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<numb
         ticks: [{ atMs: 3240, condition: 'Torment', stacks: 2, duration: 12 }]
       },
       {
+        weaponStrengthProfileId: 'transform.death-shroud',
         type: 'strike',
         ticks: [{ atMs: 4240, coefficient: 1.25 }]
       },

@@ -202,6 +202,8 @@ export function slashEffects(_runtime: Runtime, cast: RuntimeCast<WarriorSkill>)
     {
       ...timing,
       type: 'strike',
+      // Dragon Slash retains the Gunsaber bundle range after the mode is cleared.
+      weaponStrengthProfileId: 'bundle.exotic',
       coefficient: released.coefficient,
       weapon: 'Gunsaber',
       damageKind: 'explosion',

@@ -4,6 +4,7 @@ import { ACTOR_TYPES, type SimulationActorType } from '#gw2/platform/events/acto
 import type { RechargeProgress } from '#gw2/platform/execution/recharge.js';
 import type { SkillId } from '#gw2/platform/skills/types.js';
 import { timeKey } from '#kernel/core/clock.js';
+import { weaponStrengthProfile } from '#gw2/platform/equipment/weapons/strength.js';
 
 /**
  * Canonical event schema shared by the unified runtime and reports.
@@ -57,6 +58,8 @@ export function assertSimulationEvent(candidate: unknown): SimulationEvent {
   }
 
   const event = candidate as Record<string, unknown>;
+  // Procedural emissions use the same profile registry as authored strikes.
+  if (event.weaponStrengthProfileId !== undefined) weaponStrengthProfile(event.weaponStrengthProfileId);
   if (typeof event.type !== 'string' || !event.type) {
     throw new Error('Event type is required.');
   }

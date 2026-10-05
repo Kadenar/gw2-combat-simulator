@@ -5,6 +5,10 @@ import {
 import type { Gw2CriticalChanceContributor, Gw2QueryRuntime } from '#gw2/platform/combat/query/combat-query.js';
 import { SIGIL_IDS, SIGIL_BY_ID } from '#gw2/platform/equipment/sigils/data.js';
 import { buffApplicationStacks } from '#gw2/platform/combat/boons.js';
+import type { BuffStatePolicy } from '#gw2/platform/combat/effect-state.js';
+
+/** Keep the observation schema available after a swap while an accepted Severance grant survives. */
+export const SEVERANCE_BUFF_POLICY: BuffStatePolicy = Object.freeze({ kind: 'sigil-severance', maximumStacks: 1 });
 
 interface SeveranceCriticalContribution {
   readonly chance: number;

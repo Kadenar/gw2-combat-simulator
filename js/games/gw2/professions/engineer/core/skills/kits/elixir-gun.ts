@@ -31,6 +31,7 @@ export const ENGINEER_ELIXIR_GUN_SKILL_MECHANICS: Readonly<Record<string, Partia
     ],
     effects: [
       {
+        weaponStrengthProfileId: 'bundle.ascended',
         type: 'strike',
         coefficient: 0.4,
         hits: 1,
@@ -59,6 +60,7 @@ export const ENGINEER_ELIXIR_GUN_SKILL_MECHANICS: Readonly<Record<string, Partia
     cooldown: 8,
     effects: [
       {
+        weaponStrengthProfileId: 'bundle.ascended',
         type: 'strike',
         coefficient: 0.75,
         hits: 1,
@@ -101,6 +103,7 @@ export const ENGINEER_ELIXIR_GUN_SKILL_MECHANICS: Readonly<Record<string, Partia
     ],
     effects: [
       {
+        weaponStrengthProfileId: 'bundle.ascended',
         type: 'strike',
         coefficient: 1.35,
         hits: 1,
@@ -115,6 +118,7 @@ export const ENGINEER_ELIXIR_GUN_SKILL_MECHANICS: Readonly<Record<string, Partia
         ]
       },
       {
+        weaponStrengthProfileId: 'bundle.ascended',
         type: 'strike',
         ticks: Array.from({ length: 5 }, (_, index) => ({ atMs: 1000 + index * 1000, coefficient: 4.25 / 5 })),
         timingAnchor: 'castEnd',
@@ -145,6 +149,7 @@ export const ENGINEER_ELIXIR_GUN_SKILL_MECHANICS: Readonly<Record<string, Partia
     // Share timing defaults while preserving each packet, effect order, and local schedule.
     effects: impactEffects({ timingAnchor: 'castStart', timingScale: 'cast' }, [
       {
+        weaponStrengthProfileId: 'bundle.ascended',
         type: 'strike',
         ticks: [320, 600, 920, 1200, 1520].map((atMs) => ({ atMs, coefficient: 2 / 5 })),
         name: 'Fumigate',

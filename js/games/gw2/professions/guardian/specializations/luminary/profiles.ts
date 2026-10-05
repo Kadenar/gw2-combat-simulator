@@ -71,14 +71,18 @@ export const LUMINARY_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freez
     name: 'Glaring Burst - Radiant Hammer',
     profileKind: 'skill-variant',
     parentId: ID.GLARING_BURST,
-    effects: [{ type: 'strike', name: 'Strike', coefficient: 1, hits: 1 }]
+    effects: [
+      { type: 'strike', weaponStrengthProfileId: 'transform.radiant-forge', name: 'Strike', coefficient: 1, hits: 1 }
+    ]
   },
   {
     id: LUMINARY_BALANCE_PROFILE_IDS.glaringBurstBlade,
     name: 'Glaring Burst - Radiant Blade',
     profileKind: 'skill-variant',
     parentId: ID.GLARING_BURST,
-    effects: [{ type: 'strike', name: 'Strike', coefficient: 1, hits: 1 }]
+    effects: [
+      { type: 'strike', weaponStrengthProfileId: 'transform.radiant-forge', name: 'Strike', coefficient: 1, hits: 1 }
+    ]
   },
   {
     id: LUMINARY_BALANCE_PROFILE_IDS.radiantJusticeImpact,
@@ -89,6 +93,7 @@ export const LUMINARY_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freez
     effects: impactEffects({ atMs: 760, timingAnchor: 'castEnd', timingScale: 'fixed' }, [
       {
         type: 'strike',
+        weaponStrengthProfileId: 'transform.radiant-forge',
         name: 'Strike',
         coefficient: 1.5,
         hits: 1
