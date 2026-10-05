@@ -4,7 +4,10 @@ import { skillTooltipAttributes, wikiTooltipAttributes } from '#gw2/app/shared/t
 import { escapeHtml as esc } from '#ui/shared/html.js';
 import { isSlotSkillSelectable } from '#gw2/app/build/state/skill-selection.js';
 
-import type { ProfessionSkillBarGroup } from '#gw2/platform/profession-presentation/types.js';
+import type {
+  ProfessionSkillBarGroup,
+  ProfessionSkillBarSelectionOption
+} from '#gw2/platform/profession-presentation/types.js';
 import type { RotationProfessionState } from '#gw2/app/rotation/context.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
 import type { ProfessionAppState } from '#gw2/app/types.js';
@@ -66,6 +69,38 @@ export function skillBarDisplaySkill(
   return display;
 }
 
+/** Match preset warning badges while keeping the limitation available to assistive technology. */
+function selectionWarningHtml(warning: string | undefined): string {
+  return warning
+    ? `<span class="sbar-selection-warning" role="img" aria-label="${esc(warning)}" title="${esc(warning)}">⚠</span>`
+    : '';
+}
+
+/** Keep named sections inside searchable groups so filtering and keyboard navigation share the same choices. */
+function selectionOptionsHtml(app: ProfessionAppState, options: readonly ProfessionSkillBarSelectionOption[]): string {
+  const sections = new Map<string, string[]>();
+  for (const option of options) {
+    const name = option.group || '';
+    const entries = sections.get(name) || [];
+    entries.push(`<button type="button" class="dd-item" data-selection-value="${esc(option.value)}"${
+      option.skillId == null ? '' : ` data-skill-id="${esc(option.skillId)}"`
+    } ${option.skillId != null && app.skillById.has(Number(option.skillId)) ? skillTooltipAttributes(app.skillById.get(Number(option.skillId))!, app.adapter.skillTooltip(app.skillById.get(Number(option.skillId))!, app.patchId)) : wikiTooltipAttributes(option.label)}>
+        <img src="${esc(option.icon || '')}" alt="">
+        <span>${esc(option.label)}</span>
+        ${selectionWarningHtml(option.warning)}
+      </button>`);
+    sections.set(name, entries);
+  }
+
+  return [...sections]
+    .map(([name, entries]) =>
+      name
+        ? `<div role="group" aria-label="${esc(name)}"><div class="sbar-option-group-heading">${esc(name)}</div>${entries.join('')}</div>`
+        : entries.join('')
+    )
+    .join('');
+}
+
 /** Renders a profession group containing multiple independently selectable slots. */
 function multiSelectionInspectionGroupHtml(app: ProfessionAppState, group: ProfessionSkillBarGroup): string {
   const selectionSlots = (group.selections || [])
@@ -73,7 +108,7 @@ function multiSelectionInspectionGroupHtml(app: ProfessionAppState, group: Profe
       const optionSkills = (selection.optionSkillIds || [])
         .map((id) => app.skillById.get(id))
         .filter((skill) => skill != null);
-      const options = selection.optionEntries?.length
+      const options: readonly ProfessionSkillBarSelectionOption[] = selection.optionEntries?.length
         ? selection.optionEntries
         : optionSkills.map((skill) => ({
             value: String(skill.id),
@@ -95,21 +130,12 @@ function multiSelectionInspectionGroupHtml(app: ProfessionAppState, group: Profe
       return `<div class="skill-bar-inspection-slot selectable"
           data-selection-key="${esc(selection.selectionKey)}"
           data-selection-index="${selection.selectionIndex}">
-          <button type="button" class="sbar-icon" aria-label="Change ${esc(group.label)} ${selection.selectionIndex + 1}" ${selectedSkill ? skillTooltipAttributes(selectedSkill, app.adapter.skillTooltip(selectedSkill, app.patchId)) : wikiTooltipAttributes(display.name)}>
+          <button type="button" class="sbar-icon" aria-label="Change ${esc(group.label)} ${selection.selectionIndex + 1}${selectedEntry?.warning ? `. ${esc(selectedEntry.warning)}` : ''}" ${selectedSkill ? skillTooltipAttributes(selectedSkill, app.adapter.skillTooltip(selectedSkill, app.patchId)) : wikiTooltipAttributes(display.name)}>
               <img src="${esc(display.icon || '')}" alt="">
+              ${selectionWarningHtml(selectedEntry?.warning)}
           </button>
           <div class="sbar-arrow">&#9660;</div>
-          <div class="sbar-dropdown" data-search-label="${esc(selection.filterPlaceholder || `Search ${group.label}`)}">${options
-            .map(
-              (option) =>
-                `<button type="button" class="dd-item" data-selection-value="${esc(option.value)}"${
-                  option.skillId == null ? '' : ` data-skill-id="${esc(option.skillId)}"`
-                } ${option.skillId != null && app.skillById.has(Number(option.skillId)) ? skillTooltipAttributes(app.skillById.get(Number(option.skillId))!, app.adapter.skillTooltip(app.skillById.get(Number(option.skillId))!, app.patchId)) : wikiTooltipAttributes(option.label)}>
-                  <img src="${esc(option.icon || '')}" alt="">
-                  <span>${esc(option.label)}</span>
-              </button>`
-            )
-            .join('')}</div>
+          <div class="sbar-dropdown" data-search-label="${esc(selection.filterPlaceholder || `Search ${group.label}`)}">${selectionOptionsHtml(app, options)}</div>
       </div>`;
     })
     .join('');
@@ -144,6 +170,21 @@ export function renderSkills(app: ProfessionAppState): void {
   // Profession contracts now expose only editable build selectors here.
   const inspectionGroups = app.profession.ui.skillBarGroups?.(context) || [];
   skillBar.classList.toggle('has-inspection', inspectionGroups.length > 0);
+
+  // Name unsupported selections from the same profession markers that control notice visibility.
+  const petWarningDetail = document.querySelector('.ranger-pet-warning-detail');
+  if (petWarningDetail) {
+    const petNames = [
+      ...new Set(
+        inspectionGroups
+          .filter((group) => group.className?.split(' ').includes('ranger-pet-unmodeled'))
+          .map((group) => group.label)
+      )
+    ];
+    petWarningDetail.textContent = petNames.length
+      ? `${petNames.join(' and ')} ${petNames.length === 1 ? 'is' : 'are'} not modeled and may produce inaccurate results.`
+      : '';
+  }
 
   const slots: readonly (readonly [string, string])[] = [
     ['Heal', 'Heal'],

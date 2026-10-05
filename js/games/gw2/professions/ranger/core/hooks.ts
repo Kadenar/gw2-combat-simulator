@@ -35,6 +35,7 @@ import {
   activateSicEm,
   copyHealingBoons,
   emitSunSpiritBurning,
+  emitStormSpiritSlam,
   RANGER_SPIRIT_SLAM_DELAY_MS,
   prepareFrostTrapEvent,
   releaseFrostTrap
@@ -114,6 +115,11 @@ export const rangerCoreHooks: RuntimeHooks<RangerRuntimeState, RangerSkill> = {
       // Solar Flare lands with the first shake, after the same summon delay as every other spirit.
       emitSunSpiritBurning(runtime, context.skill, runtime.time + RANGER_SPIRIT_SLAM_DELAY_MS / 1000);
     },
+    'ranger.storm-spirit'(runtime, context) {
+      // Spirit damage is an independent child, so later pet swaps cannot cancel its slam.
+      if (context.kind === 'cast')
+        emitStormSpiritSlam(runtime, context.cast, runtime.time + RANGER_SPIRIT_SLAM_DELAY_MS / 1000);
+    },
     'ranger.sic-em'(runtime, context) {
       activateSicEm(runtime, context.skill);
     },
@@ -140,8 +146,25 @@ export const rangerCoreHooks: RuntimeHooks<RangerRuntimeState, RangerSkill> = {
   endurance: rangerEndurance,
   availability: rangerCoreCastAvailability,
   castDurationMs: rangerPetCastDurationMs,
+  // Pet packets and delayed field creation end with their caster; existing fields and ranger-stat packets survive.
+  effectOwner(_context, event) {
+    if (
+      event.actorType === 'summon' &&
+      typeof event.summonOwner === 'string' &&
+      event.summonOwner.startsWith('ranger-pet:')
+    )
+      return { id: event.summonOwner, generation: 0 };
+    return undefined;
+  },
   prepareEvent(runtime, event) {
     const state = runtime.profession.core;
+    // A surviving ranger-stat effect cannot create new pet-owned children after that pet is removed.
+    if (
+      event.actorType === 'summon' &&
+      typeof event.summonOwner === 'string' &&
+      runtime.time >= (runtime.combat.companionRetiredAt(event.summonOwner) ?? Infinity)
+    )
+      return null;
     const skill = runtime.helpers.skillsById.get(event.skillId!);
     // The pet lane publishes its action only when the command actually starts in the current generation.
     if (event.type === 'action' && skill?.petSkill && event.actorType !== 'summon') return null;

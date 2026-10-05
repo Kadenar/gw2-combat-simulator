@@ -88,8 +88,8 @@ test('Beastly Warden increases only ursine and porcine pet strike damage by 67 p
   }
 });
 
-// A delayed strike belongs to the old pet even after the active slot changes to an ineligible family.
-test('Beastly Warden preserves the launching pet bonus across swaps', () => {
+// A trait bonus cannot keep a retired pet's pending damage alive.
+test('Beastly Warden damage ends with the outgoing pet', () => {
   const baseline = simulate('Pig', false, true);
   const traited = simulate('Pig', true, true);
   for (const result of [baseline, traited]) {
@@ -101,5 +101,6 @@ test('Beastly Warden preserves the launching pet bonus across swaps', () => {
     result.resolvedEvents.find(
       (event) => event.type === 'damage' && event.sourceId === 'warden-fixture' && event.source === 'ranger-pet'
     );
-  assertFlooredDamageMultiplier(strike(traited).damage, strike(baseline).damage, 1.67);
+  assert.equal(strike(traited), undefined);
+  assert.equal(strike(baseline), undefined);
 });

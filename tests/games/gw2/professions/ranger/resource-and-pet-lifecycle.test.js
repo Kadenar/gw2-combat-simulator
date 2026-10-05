@@ -181,8 +181,8 @@ test('personal stances ignore pet-only combat and trigger on the next player str
   );
 });
 
-test('pet swaps preserve committed projectiles but interrupt unfinished melee attacks', () => {
-  // Autonomous projectiles commit when launched, while non-persistent melee packets leave with the outgoing pet.
+test('pet swaps cancel outgoing projectiles and unfinished melee attacks', () => {
+  // Entity removal cancels both launched and unlaunched pet-stat damage.
   for (const selectedPet2 of ['Tiger', 'Pig']) {
     for (const selectedPet of ['Carrion Devourer', 'Jacaranda']) {
       const result = simulate('Core', [{ type: 'combat-start' }, wait(500), ID.PET_SWAP, wait(2000)], {
@@ -193,11 +193,7 @@ test('pet swaps preserve committed projectiles but interrupt unfinished melee at
       const outgoing = result.resolvedEvents.filter(
         (event) => event.type === 'damage' && event.summonOwner === 'ranger-pet:1:0' && event.at > 0.5
       );
-      if (selectedPet === 'Carrion Devourer') {
-        assert.ok(outgoing.some((event) => event.skillId === ID.TWIN_DARTS));
-      } else {
-        assert.deepEqual(outgoing, []);
-      }
+      assert.deepEqual(outgoing, []);
 
       const swap = result.events.find((event) => event.type === 'ranger.pet-swapped');
       assert.equal(swap.generation, 1);
@@ -241,8 +237,8 @@ test('a swap retires a queued command before its pet can start it', () => {
   );
 });
 
-test('committed autonomous effects survive swaps with the outgoing pet identity and attributes', () => {
-  // Call Lightning commits on launch, so its remaining pulses belong to the outgoing Jacaranda.
+test('pet retirement ends already-started autonomous damage effects', () => {
+  // Call Lightning starts before the swap, but its remaining pulses require the outgoing Jacaranda.
   for (const selectedPet2 of ['Tiger', 'Pig']) {
     const result = simulate('Core', [{ type: 'combat-start' }, wait(2500), ID.PET_SWAP, wait(5000)], {
       selectedPet: 'Jacaranda',
@@ -255,11 +251,7 @@ test('committed autonomous effects survive swaps with the outgoing pet identity 
     const before = lightning.find((event) => event.at < 2.5);
     const after = lightning.filter((event) => event.at > 2.5);
     assert.ok(before);
-    assert.ok(after.length > 0);
-    for (const event of after) {
-      assert.equal(event.summonOwner, before.summonOwner);
-      assert.equal(event.summonBasePower, before.summonBasePower);
-    }
+    assert.deepEqual(after, []);
 
     assert.equal(
       result.events.some(
@@ -274,7 +266,7 @@ test('committed autonomous effects survive swaps with the outgoing pet identity 
   }
 });
 
-test('a queued command that starts still lands, and already-started persistent pet effects survive swapping', () => {
+test('started commands resolve while the pet exists and stop creating effects after its retirement', () => {
   const queued = simulate('Core', [{ type: 'combat-start' }, ID.FURIOUS_POUNCE, wait(4000)]);
   assert.deepEqual(queued.warnings, []);
   assert.ok(queued.resolvedEvents.some((event) => event.type === 'damage' && event.skillId === ID.FURIOUS_POUNCE));
@@ -284,9 +276,10 @@ test('a queued command that starts still lands, and already-started persistent p
   });
   assert.deepEqual(persistent.warnings, []);
   const swappedAt = persistent.events.find((event) => event.type === 'ranger.pet-swapped').at;
-  assert.ok(
+  assert.equal(
     persistent.resolvedEvents.some(
       (event) => event.type === 'condition' && event.skillId === ID.JACARANDAS_EMBRACE && event.at > swappedAt
-    )
+    ),
+    false
   );
 });

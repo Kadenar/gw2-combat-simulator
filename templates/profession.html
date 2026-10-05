@@ -70,10 +70,10 @@
               <div class="selectable-skills-panel workspace-card">
                 <div class="selectable-skills-title">Skills</div>
                 <div id="skill-bar" class="skill-bar selectable-skills-bar"></div>
-                <!-- Keep the pet limitation visible beside Ranger pet choices, with a direct reporting link. -->
+                <!-- Pet selectors expose missing simulation profiles to conditionally show this notice. -->
                 <p class="ranger-pet-warning" role="note">
-                  <strong>Pet simulation is incomplete.</strong> Most pets will behave incorrectly or produce inaccurate
-                  results. If you want support for a specific pet,
+                  <strong>Pet simulation is incomplete.</strong>
+                  <span class="ranger-pet-warning-detail"></span> If you want support for a specific pet,
                   <a
                     href="https://github.com/Kadenar/gw2-combat-simulator/issues"
                     target="_blank"

@@ -1,7 +1,7 @@
 import type { RangerRuntime } from '#gw2/professions/ranger/types.js';
 import { rangerPetByName } from '#gw2/professions/ranger/core/state.js';
 import { handleRangerPetSwapped } from '#gw2/professions/ranger/core/mechanics/event-handlers.js';
-import { resetRangerPet } from '#gw2/professions/ranger/core/mechanics/pets.js';
+import { rangerPetCompanionId, resetRangerPet } from '#gw2/professions/ranger/core/mechanics/pets.js';
 import { buildRangerPacket } from '#gw2/professions/ranger/core/events.js';
 import { createDodgeSkill, createWeaponSwapSkill } from '#gw2/platform/skills/shared-actions.js';
 
@@ -37,9 +37,24 @@ export const RANGER_CORE_ACTION_SKILLS: readonly Skill[] = Object.freeze([
   createWeaponSwapSkill()
 ]);
 
-/** Retire the outgoing pet and publish exactly one fact after the incoming generation is ready. */
+/** Record outgoing retirement, then publish the swap after the incoming generation is ready. */
 export function swapRangerPets(runtime: RangerRuntime, skill: Skill): void {
   const state = runtime.profession.core;
+  const outgoingCompanionId = rangerPetCompanionId(runtime);
+  // Pet lifetime cancellation also covers launched packets; registered fields have independent lifetimes.
+  runtime.cancelOwner({ id: outgoingCompanionId, generation: 0 });
+  runtime.effects.emit({
+    kind: 'packet',
+    event: {
+      type: 'marker',
+      action: 'companion-retired',
+      at: runtime.time,
+      source: 'ranger',
+      sourceId: skill.id,
+      actorType: 'player',
+      summonOwner: outgoingCompanionId
+    }
+  });
   const slot = state.activePetSlot === 1 ? 2 : 1;
   const pet = rangerPetByName(state.petNames[slot - 1]);
   handleRangerPetSwapped(

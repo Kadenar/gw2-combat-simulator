@@ -77,6 +77,7 @@ export function createGw2TimelineIndex({
     cooldown: []
   };
   const indexedBuffs = new Map<string, IndexedBuffEvents>();
+  const retiredCompanions = new Map<string, number>();
   // Only queried skills need their own history; snapshots and resets remain visible to every skill.
   const indexedCooldowns = new Map<SkillId, SimulationEvent[]>();
   // retain one argument combination per kind; cache variants if mixed-audience sampling dominates.
@@ -107,6 +108,7 @@ export function createGw2TimelineIndex({
     clearQueryCache();
     for (const values of Object.values(indexed)) values.length = 0;
     indexedBuffs.clear();
+    retiredCompanions.clear();
     alacrityWindows = undefined;
     indexedCooldowns.clear();
     indexedLength = 0;
@@ -143,6 +145,8 @@ export function createGw2TimelineIndex({
     clearQueryCache();
     while (indexedLength < events.length) {
       const event = events[indexedLength++];
+      if (event.type === 'marker' && event.action === 'companion-retired' && event.summonOwner)
+        retiredCompanions.set(String(event.summonOwner), event.at);
       if (event.type === 'boon_extension') {
         hasExtensions = true;
         alacrityWindows = undefined;
@@ -188,6 +192,8 @@ export function createGw2TimelineIndex({
     companionId?: string | null
   ): number => {
     time = canonicalTime(time);
+    // Retirement facts end recipient visibility without rewriting earlier shared boon applications.
+    if (audience !== 'all' && companionId && time >= (retiredCompanions.get(companionId) ?? Infinity)) return 0;
     // Reuse chronological extension replay only for histories that contain an extension.
     if (hasExtensions && isStandardBoon(kind)) {
       const applications = timedBuffApplicationsAt(events, kind.toLowerCase(), time, duration);

@@ -41,7 +41,7 @@ test('Storm Spirit uses spirit power and weapon strength with Ranger critical st
     });
     assert.deepEqual(result.warnings, []);
     const strikes = result.resolvedEvents.filter(
-      (event) => event.type === 'damage' && event.skillId === ID.STORM_SPIRIT
+      (event) => event.type === 'damage' && event.skillId === ID.CALL_LIGHTNING
     );
     const chance = 0.3 + (precision - 1000) / 2100;
     const criticalMultiplier = 1 + chance * (0.5 + ferocity / 1500);
@@ -62,7 +62,9 @@ test('Storm Spirit uses spirit power and weapon strength with Ranger critical st
       boons: { might: 25, fury: true }
     });
     assert.deepEqual(result.warnings, []);
-    const strike = result.resolvedEvents.find((event) => event.type === 'damage' && event.skillId === ID.STORM_SPIRIT);
+    const strike = result.resolvedEvents.find(
+      (event) => event.type === 'damage' && event.skillId === ID.CALL_LIGHTNING
+    );
     const runtime = observedRuntime(result);
     const spirit = runtime.query.statsAt(runtime.time, strike, runtime);
     const player = runtime.query.statsAt(runtime.time, null, runtime);

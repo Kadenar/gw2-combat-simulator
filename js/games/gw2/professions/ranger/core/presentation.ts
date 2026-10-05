@@ -15,6 +15,7 @@ import type {
 import { SIMULATION_RANDOMNESS_ASSUMPTION_CONTROLS } from '#gw2/platform/builds/randomness-assumptions.js';
 import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
 import { RANGER_ASSUMPTION_CONTROLS } from '#gw2/professions/ranger/build/assumptions.js';
+import { rangerPetAutoProfile } from '#gw2/professions/ranger/core/mechanics/pet-profiles.js';
 import {
   RANGER_SPEAR_STEALTH_FLIP_BY_PARENT,
   rangerSpearStealthAvailable
@@ -211,12 +212,18 @@ export function bindRangerCoreUi(catalog: Readonly<CanonicalCatalog<RangerSkill>
       const pet = selectedRangerUiPet(context);
       const pet2 = selectedRangerUiPet(context, 2);
       const specialization = rangerUiSpecialization(context);
-      const petOptions = RANGER_PETS.map((option) => ({
-        value: option.name,
-        label: option.name,
-        icon: option.icon,
-        description: option.description
-      }));
+      // Put supported pets first, with alphabetical choices within each combat-support section.
+      const petOptions = RANGER_PETS.map((option) => {
+        const supported = rangerPetAutoProfile(option.name) !== null;
+        return {
+          value: option.name,
+          label: option.name,
+          icon: option.icon,
+          description: option.description,
+          group: supported ? 'Supported' : 'Unsupported',
+          warning: supported ? undefined : `${option.name} is not modeled.`
+        };
+      }).sort((a, b) => a.group.localeCompare(b.group, 'en') || a.label.localeCompare(b.label, 'en'));
       // Each specialization gets a stable layout hook without Core naming specific elite mechanics.
       const layout =
         specialization === 'Core'
@@ -238,7 +245,8 @@ export function bindRangerCoreUi(catalog: Readonly<CanonicalCatalog<RangerSkill>
             }
           ],
           color: '#7ca64a',
-          className: 'ranger-pet ranger-pet-1',
+          // Use the simulation's profiles so the notice follows support for the selected pets.
+          className: `ranger-pet ranger-pet-1${rangerPetAutoProfile(pet.name) ? '' : ' ranger-pet-unmodeled'}`,
           layout
         },
         {
@@ -255,7 +263,7 @@ export function bindRangerCoreUi(catalog: Readonly<CanonicalCatalog<RangerSkill>
             }
           ],
           color: '#7ca64a',
-          className: 'ranger-pet ranger-pet-2',
+          className: `ranger-pet ranger-pet-2${rangerPetAutoProfile(pet2.name) ? '' : ' ranger-pet-unmodeled'}`,
           layout
         }
       ];

@@ -23,7 +23,7 @@ export function modifyStormSpiritAttributes(
   context: Gw2ModifierContext,
   attributes: Gw2ResolvedStats
 ): Gw2ResolvedStats {
-  return context.event?.type === 'damage' && context.event.skillId === ID.STORM_SPIRIT
+  return context.event?.type === 'damage' && context.event.skillId === ID.CALL_LIGHTNING
     ? { ...attributes, power: 1580 }
     : attributes;
 }
@@ -140,7 +140,8 @@ export const RANGER_CORE_SLOT_SKILL_MECHANICS: Readonly<Record<number, Partial<S
     ]
   },
   [ID.STORM_SPIRIT]: {
-    // The measured Quickness timeline lands the slam and first Fury pulse together at 1.28 seconds.
+    // A committed summon invokes Call Lightning; the parent owns only its summon reward and boon shakes.
+    sideEffects: [{ on: 'castCommit', do: { type: 'ranger.storm-spirit' } }],
     effects: [
       {
         type: 'condition',
@@ -148,11 +149,6 @@ export const RANGER_CORE_SLOT_SKILL_MECHANICS: Readonly<Record<number, Partial<S
         stacks: 10,
         duration: 10
       },
-      ...spiritSlam([
-        { type: 'control', controlKind: 'daze' },
-        // Storm Spirit supplies power and weapon strength; the Ranger supplies critical stats and strike modifiers.
-        { type: 'strike', coefficient: 2, weaponStrengthProfileId: 'summon.storm-spirit' }
-      ]),
       spiritShakes('fury', 2)
     ],
     castTimeMs: 360
@@ -390,10 +386,15 @@ export const RANGER_CORE_SLOT_SKILL_MECHANICS: Readonly<Record<number, Partial<S
     castTimeMs: 500
   },
   [ID.CALL_LIGHTNING]: {
+    // Use the dedicated spirit icon because the API supplies a generic missing-icon asset.
+    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Call_Lightning_(Ranger).png',
+    // The spirit owns the slam formula; the Ranger supplies critical stats and outgoing modifiers.
     effects: [
+      { type: 'control', controlKind: 'daze' },
       {
         type: 'strike',
         coefficient: 2,
+        weaponStrengthProfileId: 'summon.storm-spirit',
         hits: 1
       }
     ],
@@ -554,6 +555,38 @@ export function emitSunSpiritBurning(runtime: RangerRuntime, skill: Skill, at: n
       )
     });
   }
+}
+
+/** Invoke the selected child skill once per slam; the trait repeat halves only its strike damage. */
+export function emitStormSpiritSlam(
+  runtime: RangerRuntime,
+  cast: RuntimeCast<RangerSkill>,
+  at: number,
+  repeat = false
+): void {
+  const lightning = runtime.helpers.skillsById.get(ID.CALL_LIGHTNING);
+  if (!lightning) throw new Error('Storm Spirit requires the Call Lightning skill.');
+  runtime.effects.emit({
+    kind: 'profile',
+    profile: lightning,
+    at,
+    attribution: {
+      source: 'ranger',
+      sourceId: lightning.id,
+      actorType: 'player',
+      skillId: lightning.id,
+      skillName: lightning.name,
+      // Keep the summon activation so isolated previews and causal queries include its child damage.
+      activationId: cast.id,
+      triggeredBy: cast.skill.name,
+      metadata: { packetKind: 'ranger.spirit-slam' }
+    },
+    transform: (event) => ({
+      ...event,
+      icon: lightning.icon,
+      ...(repeat && event.type === 'damage' ? { coefficient: Number(event.coefficient) / 2 } : {})
+    })
+  });
 }
 
 /** Select the live recipient at activation; Core always registers this action, including unmerged builds. */

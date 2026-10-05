@@ -122,8 +122,8 @@
   border-left: 1px solid var(--border);
 }
 
-/* Show the persistent pet notice only on Ranger, including every elite specialization. */
-body:not([data-profession='ranger']) .ranger-pet-warning {
+/* Show the notice only while either selected pet lacks a simulation profile. */
+.selectable-skills-panel:not(:has(.ranger-pet-unmodeled)) .ranger-pet-warning {
   display: none;
 }
 
@@ -139,6 +139,38 @@ body:not([data-profession='ranger']) .ranger-pet-warning {
 .ranger-pet-warning a {
   color: inherit;
   text-decoration: underline;
+}
+
+/* Separate supported and unsupported choices without adding selectable rows. */
+.sbar-option-group-heading {
+  padding: 8px;
+  color: var(--text-dim);
+  font-size: 11px;
+  font-weight: 600;
+  border-bottom: 1px solid var(--border);
+}
+
+/* Match outdated-build warnings in the picker and keep portrait badges clear of the pet artwork. */
+.sbar-selection-warning {
+  flex-shrink: 0;
+  margin-left: auto;
+  color: #ffb454;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1;
+}
+
+.skill-bar-inspection-slot .sbar-icon {
+  position: relative;
+}
+
+.sbar-icon > .sbar-selection-warning {
+  position: absolute;
+  top: 1px;
+  right: 1px;
+  padding: 2px;
+  border-radius: 3px;
+  background: rgba(5, 5, 10, 0.9);
 }
 
 /* Keep the restored selector strip compact and its native buttons keyboard accessible. */

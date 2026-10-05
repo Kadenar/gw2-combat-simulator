@@ -111,7 +111,7 @@ export function rangerPetCombatMetadata(context: RangerRuntime | RangerResolverC
 /** Stamps pet-owned packets before shared consumers such as combo finishers derive child events. */
 export function prepareRangerPetEvent(context: RangerRuntime, event: SimulationEventBase): SimulationEventBase {
   if (event.source !== 'ranger-pet' || event.actorType !== 'summon') return event;
-  // Launched pet effects retain their original owner and attributes after a swap.
+  // Packets retain their launching identity so entity retirement cannot retarget them to a replacement.
   if (event.summonOwner) return { ...event, independentConditionOwner: true };
   // Every pet-owned event needs concrete caster identity for audience resolution;
   // damaging packets additionally receive the pet's independent combat stats.
@@ -130,7 +130,7 @@ export function prepareRangerPetEvent(context: RangerRuntime, event: SimulationE
     : { ...event, summonOwner: rangerPetCompanionId(context), independentConditionOwner: true };
 }
 
-/** Every renewed pet owns a fresh generation; already launched persistent effects have no pet-loop owner. */
+/** Pet scheduling generations are separate from the lifetime of each companion's emitted effects. */
 function owner(context: RangerRuntime, id = PET_AUTO_OWNER) {
   return { id, generation: context.profession.core.petAutoGeneration };
 }
@@ -288,6 +288,7 @@ function emitPetSkill(
   activationId: string,
   cast?: RuntimeCast<RangerSkill>
 ): void {
+  const companionId = rangerPetCompanionId(context);
   const timing = RANGER_PET_SKILL_TIMINGS[String(skill.id)];
   const quickness = petBoonActive(context, 'quickness');
   for (const effect of skill.effects ?? []) {
@@ -299,14 +300,19 @@ function emitPetSkill(
       cancelledBeforeEffectCommit(skill, effect, cast.start, cast.fullEnd, cast.effectiveEnd)
     )
       continue;
-    // Preserve pet commitment, measured timing, and generation cancellation on the shared heap.
+    // Ranger-stat damage is independent; all other pending skill effects require the casting pet.
+    const rangerDamage = effect.actorType === 'player' && (effect.type === 'strike' || effect.type === 'condition');
     context.effects.emit({
       kind: 'profile',
       profile: skill,
       effects: [cast ? scaleCastBoundTiming(cast, skill, effect) : effect],
       at: start,
       fullEnd,
-      owner: cast || effect.persistsAfterInterrupt ? undefined : owner(context, PET_AI_ATTACK_OWNER),
+      owner: rangerDamage
+        ? undefined
+        : !cast && !effect.persistsAfterInterrupt
+          ? owner(context, PET_AI_ATTACK_OWNER)
+          : { id: companionId, generation: 0 },
       // Actual impacts follow same-time commitment rewards; the removed -20 task only prepared these packets.
       priority: 0,
       attribution: {
@@ -330,7 +336,8 @@ function emitPetSkill(
           !effect.persistsAfterInterrupt
         )
           return null;
-        return { ...prepareRangerPetEvent(context, event), at, icon: skill.icon };
+        // Ranger-stat exceptions retain caster provenance too, so their pet-owned trait children cannot migrate on swap.
+        return { ...prepareRangerPetEvent(context, event), summonOwner: companionId, at, icon: skill.icon };
       }
     });
   }
@@ -451,7 +458,7 @@ export const rangerPetTasks = {
     let { cast } = data as { cast: RuntimeCast<RangerSkill> };
     const state = context.profession.core;
     // Command-controlled pets preempt AI windups and recovery, cancelling only unlaunched AI effects.
-    // Queued commands and already launched persistent effects retain their separate ownership.
+    // Launched effects survive command interruption but remain bound to the companion's lifetime.
     if (rangerPetSkillsRequireCommands(context.config.specialization || 'Core') && state.petAutoAction) {
       context.cancelOwner(owner(context, PET_AI_ATTACK_OWNER));
       if (state.petAutoAction.endsAt > context.time) {

@@ -90,7 +90,7 @@ const SIMULATED_SKILL_FALLBACKS = new Map([
       id: 64891,
       name: 'Vampiric Bite',
       description: 'Bite your foe, siphoning health.',
-      icon: 'https://wiki.guildwars2.com/images/6/67/Vampiric_Bite.png',
+      icon: 'https://render.guildwars2.com/file/0901C0B004F60F4DB5B4B503BF35B09278AA4491/2604860.png',
       recharge: 0,
       petNames: ['Wallow']
     }
@@ -101,7 +101,8 @@ const SIMULATED_SKILL_FALLBACKS = new Map([
       id: 67277,
       name: 'Maul',
       description: 'Maul your foes and make them bleed.',
-      icon: 'https://wiki.guildwars2.com/images/f/fb/Maul_%28wallow%29.png',
+      // Wallow shares the Porcine Maul artwork; there is no separate Wallow icon.
+      icon: 'https://render.guildwars2.com/file/24073F5A0566ABE32DFB74204E9FA01025D85D71/104055.png',
       recharge: 12,
       petNames: ['Wallow']
     }
@@ -123,7 +124,7 @@ const SIMULATED_SKILL_FALLBACKS = new Map([
       id: 12655,
       name: 'Slash',
       description: 'Slash at your foe.',
-      icon: 'https://wiki.guildwars2.com/images/c/c3/Maul_%28feline%29.png',
+      icon: 'https://render.guildwars2.com/file/D5420B910EE4DA1D2F63AEC71F4DF862E414D6E1/103515.png',
       recharge: 0,
       petNames: ['Tiger']
     }
@@ -134,7 +135,7 @@ const SIMULATED_SKILL_FALLBACKS = new Map([
       id: 12657,
       name: 'Maul',
       description: 'Slash a foe multiple times and make them bleed.',
-      icon: 'https://wiki.guildwars2.com/images/c/c3/Maul_%28feline%29.png',
+      icon: 'https://render.guildwars2.com/file/D5420B910EE4DA1D2F63AEC71F4DF862E414D6E1/103515.png',
       recharge: 16,
       petNames: ['Tiger']
     }
@@ -145,7 +146,7 @@ const SIMULATED_SKILL_FALLBACKS = new Map([
       id: 12673,
       name: 'Tail Lash',
       description: 'Push back a foe with your tail.',
-      icon: 'https://wiki.guildwars2.com/images/f/f5/Tail_Lash.png',
+      icon: 'https://render.guildwars2.com/file/086363EFF41571AD74CD1B506DF2B2F6F1F038D1/104029.png',
       recharge: 20,
       petNames: ['Carrion Devourer', 'Whiptail Devourer', 'Lashtail Devourer']
     }
@@ -156,7 +157,7 @@ const SIMULATED_SKILL_FALLBACKS = new Map([
       id: 12694,
       name: 'Bite',
       description: 'Bite your foe for severe damage.',
-      icon: 'https://wiki.guildwars2.com/images/c/c2/Bite_%28feline%29.png',
+      icon: 'https://render.guildwars2.com/file/520693759A79FD464CA7AD08947D10B4B50F7A96/103516.png',
       recharge: 8,
       petNames: ['Tiger']
     }
@@ -178,7 +179,7 @@ const SIMULATED_SKILL_FALLBACKS = new Map([
       id: 41864,
       name: 'Crippling Anguish',
       description: 'Launch a projectile that inflicts conditions.',
-      icon: 'https://wiki.guildwars2.com/images/c/c8/Crippling_Anguish.png',
+      icon: 'https://render.guildwars2.com/file/DF000038FF639A0601ECBC46222467D6FECE7046/1770580.png',
       recharge: 10,
       petNames: ['Fanged Iboga']
     }
@@ -189,7 +190,7 @@ const SIMULATED_SKILL_FALLBACKS = new Map([
       id: 45262,
       name: 'Narcotic Spores',
       description: 'Spit a glob of confusing spores at a foe, inflicting confusion at that location.',
-      icon: 'https://wiki.guildwars2.com/images/8/84/Narcotic_Spores.png',
+      icon: 'https://render.guildwars2.com/file/510AE44E0E0452005337386A66526522F817424E/1770581.png',
       recharge: 15,
       petNames: ['Fanged Iboga']
     }
@@ -197,14 +198,21 @@ const SIMULATED_SKILL_FALLBACKS = new Map([
 ]);
 const SIMULATED_SKILL_OVERRIDES = new Map([
   // Preserve combat-log recharge corrections when upstream pet metadata differs.
-  [40487, { recharge: 15 }],
+  [
+    40487,
+    {
+      recharge: 15,
+      // Keep Jacaranda's shared skill artwork on ArenaNet's CDN during data refreshes.
+      icon: 'https://render.guildwars2.com/file/731C0827CBB7E4015F3C45B4C49C58B42416BFA8/1770576.png'
+    }
+  ],
   [
     12676,
     {
       icon: 'https://render.guildwars2.com/file/9D3C1CD36EAFF4F4F5E4EB7B41C318771E579C78/103583.png'
     }
   ],
-  [12724, { icon: 'https://wiki.guildwars2.com/images/3/3a/Spit.png' }],
+  [12724, { icon: 'https://render.guildwars2.com/file/B7A1AB65571565525A5C35DBCBEF0326DF65C3FA/104050.png' }],
   ...SIMULATED_SKILL_FALLBACKS
 ]);
 const SIMULATED_SKILL_KEY_OVERRIDES = new Map([

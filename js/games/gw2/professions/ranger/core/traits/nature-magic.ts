@@ -9,7 +9,7 @@ import { materializeSkillEffectApplications } from '#gw2/platform/effects/materi
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import { rangerPetCompanionId } from '#gw2/professions/ranger/core/mechanics/pets.js';
-import { emitSunSpiritBurning } from '#gw2/professions/ranger/core/skills/slot-skills.js';
+import { emitStormSpiritSlam, emitSunSpiritBurning } from '#gw2/professions/ranger/core/skills/slot-skills.js';
 import { rangerActiveBoonCount, rangerPetEvent } from '#gw2/professions/ranger/core/traits/modifier-queries.js';
 import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
 import type { RangerSkill, RangerRuntime } from '#gw2/professions/ranger/types.js';
@@ -143,10 +143,6 @@ export const naturesVengeance = defineTrait({
         ...effects,
         ...slams.map((effect) => ({
           ...effect,
-          // Paired critical and noncritical hits support half damage for Storm's second slam only.
-          ...(cast.skill.id === ID.STORM_SPIRIT && effect.type === 'strike'
-            ? { coefficient: (effect.coefficient ?? 0) / 2 }
-            : {}),
           atMs,
           timingAnchor: 'castStart' as const,
           timingScale: 'fixed' as const
@@ -154,13 +150,20 @@ export const naturesVengeance = defineTrait({
       ];
     },
     onCastCommit(runtime: RangerRuntime, cast: RuntimeCast<RangerSkill>) {
-      // Solar Flare owns a separately patchable child profile rather than an inline slam packet.
-      if (hasTrait(runtime, TRAIT.NATURES_VENGEANCE) && cast.skill.id === ID.SUN_SPIRIT)
+      // Child-owned slams repeat their own selected profiles rather than duplicating parent effects.
+      if (!hasTrait(runtime, TRAIT.NATURES_VENGEANCE)) return;
+      if (cast.skill.id === ID.SUN_SPIRIT)
         runtime.schedule('ranger.natures-vengeance-sun', spiritRepeatSlamAt(cast), cast.skill);
+      if (cast.skill.id === ID.STORM_SPIRIT)
+        runtime.scheduleForCast('ranger.natures-vengeance-storm', spiritRepeatSlamAt(cast), cast);
     },
     tasks: {
       'ranger.natures-vengeance-sun'(runtime: RangerRuntime, data: unknown) {
         emitSunSpiritBurning(runtime, data as RuntimeCast<RangerSkill>['skill'], runtime.time);
+      },
+      'ranger.natures-vengeance-storm'(runtime: RangerRuntime, data: unknown) {
+        const { cast } = data as { cast: RuntimeCast<RangerSkill> };
+        emitStormSpiritSlam(runtime, cast, runtime.time, true);
       }
     }
   }

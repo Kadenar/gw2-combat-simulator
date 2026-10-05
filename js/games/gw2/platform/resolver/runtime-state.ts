@@ -79,6 +79,7 @@ export function createGw2ResolverRuntimeState({
     procs: createProcRegistry(() => runtime),
     boons: new Map(),
     buffs: new Map(),
+    retiredCompanions: new Map(),
     totals: {
       strike: 0,
       condition: 0
@@ -216,6 +217,8 @@ export interface Gw2ResolverRuntime {
   procSteps: Gw2ProcStep[];
   procKeys: Set<string>;
   boons: Map<string, Gw2TimedBuffApplication[]>;
+  /** Retirement ends a companion's live effects while retaining pre-removal history. */
+  retiredCompanions: Map<string, number>;
   buffs: Map<string, Gw2TimedBuffApplication[]>;
   totals: { strike: number; condition: number };
   firstHitTime: number | null;

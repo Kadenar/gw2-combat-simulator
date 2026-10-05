@@ -724,8 +724,8 @@ test('Ranger pet commands require received Alacrity', () => {
   assert.match(petAlacrityApplication.resolvedAudience.companionIds[0], /^ranger-pet:/);
 });
 
-test('Storm Spirit applies vulnerability on summon and starts four Fury shakes alongside its damaging daze', () => {
-  // A single summon checks effect ordering and pulse scheduling without a saved rotation.
+test('Storm Spirit owns its summon rewards while Call Lightning owns the damaging daze', () => {
+  // Child attribution preserves the causal connection between the summon, its slam, and the first boon shake.
   const result = simulate('Core', ['Storm Spirit', { type: 'wait', durationMs: 6000 }], {
     selectedSkillIds: [12493],
     selectedTraitIds: [],
@@ -735,8 +735,9 @@ test('Storm Spirit applies vulnerability on summon and starts four Fury shakes a
   const events = result.events.filter((event) => event.skillId === ID.STORM_SPIRIT);
   const action = events.find((event) => event.type === 'action');
   const vulnerability = events.find((event) => event.type === 'condition');
-  const daze = events.find((event) => event.type === 'control');
-  const strike = events.find((event) => event.type === 'damage');
+  const lightning = result.events.filter((event) => event.skillId === ID.CALL_LIGHTNING);
+  const daze = lightning.find((event) => event.type === 'control');
+  const strike = lightning.find((event) => event.type === 'damage');
   const fury = events.filter((event) => event.type === 'buff' && event.kind === 'fury');
 
   assert.equal(vulnerability.condition, 'Vulnerability');
@@ -746,6 +747,7 @@ test('Storm Spirit applies vulnerability on summon and starts four Fury shakes a
   assert.equal(daze.controlKind, 'daze');
   assert.equal(strike.at, daze.at);
   assert.equal(strike.coefficient, 2);
+  assert.equal(strike.triggeredBy, 'Storm Spirit');
   assert.equal(daze.at, fury[0].at);
   assert.ok(fury.every((event) => event.audience.recipients === 'party' && event.audience.maximumRecipients === 5));
 });
@@ -776,7 +778,8 @@ test("Nature's Vengeance repeats each spirit slam after its final shake without 
         const slams = result.events.filter((event) =>
           skillId === ID.SUN_SPIRIT
             ? event.skillId === ID.SOLAR_FLARE && event.type === 'condition'
-            : event.skillId === skillId && event.metadata?.packetKind === 'ranger.spirit-slam'
+            : event.skillId === (skillId === ID.STORM_SPIRIT ? ID.CALL_LIGHTNING : skillId) &&
+              event.metadata?.packetKind === 'ranger.spirit-slam'
         );
         const packetsPerSlam = [ID.STORM_SPIRIT, ID.STONE_SPIRIT].includes(skillId) ? 2 : 1;
         assert.equal(slams.length, cancelled ? 0 : packetsPerSlam * (selected ? 2 : 1));

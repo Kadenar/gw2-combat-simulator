@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
+import test from 'node:test';
 import { createGw2CombatQuery } from '#gw2/platform/combat/query/combat-query.js';
 import { testProfession } from '#tests/fixtures/profession.js';
-import test from 'node:test';
 import { StableEventQueue } from '#kernel/events/queue.js';
 import { createGw2ConditionResolution } from '#gw2/platform/resolver/condition-resolution.js';
 import { createGw2ResolverRuntimeState } from '#gw2/platform/resolver/runtime-state.js';
@@ -12,7 +12,7 @@ import { observeRuntimeEffects } from '#gw2/platform/results/observe-effects.js'
 import { effectStateValue } from '#gw2/platform/combat/effect-state.js';
 
 for (const reporting of [true, false]) {
-  test(`pet swaps cancel outgoing conditions after one second with reporting=${reporting}`, () => {
+  test(`pet retirement cancels independent conditions immediately with reporting=${reporting}`, () => {
     const conditions = createGw2ConditionResolution({ reactions: { dispatch() {} } });
     const context = createGw2ResolverRuntimeState({
       reporting,
@@ -29,69 +29,58 @@ for (const reporting of [true, false]) {
       professionState: { core: createRangerCoreState() }
     });
     const outgoing = rangerPetCompanionId(context);
-    // Mixed owners and natural expiries distinguish cancellation from ordinary expiry.
+    const swappedAt = 1.5;
+    // Removal cancels unpaid pet damage, including buffered remainders, without touching other owners.
     const cases = [
-      { sourceId: 'outgoing', summonOwner: outgoing, duration: 4, removedAt: 2 },
-      { sourceId: 'ownerless', duration: 4, removedAt: 2 },
+      { sourceId: 'outgoing', summonOwner: outgoing, duration: 4, retired: true },
+      { sourceId: 'expired-buffer', summonOwner: outgoing, duration: 1.2, retired: true },
       { sourceId: 'unrelated-pet', summonOwner: 'other-pet', duration: 4 },
-      { sourceId: 'player', source: 'Player', summonOwner: outgoing, duration: 4 },
-      { sourceId: 'early-expiry', summonOwner: outgoing, duration: 1.5 },
-      { sourceId: 'boundary-expiry', summonOwner: outgoing, duration: 2 }
+      { sourceId: 'ranger-stats', actorType: 'player', duration: 4 }
     ];
-    const applications = cases.flatMap(({ sourceId, source = 'ranger-pet', summonOwner, duration }) =>
+    const applications = cases.flatMap(({ sourceId, actorType = 'summon', summonOwner, duration }) =>
       conditions.applyCondition(context, {
         type: 'condition',
         at: 0,
         sourceId,
-        source,
-        actorType: source === 'Player' ? 'player' : 'summon',
-        independentConditionOwner: source !== 'Player',
+        source: 'ranger-pet',
+        actorType,
+        independentConditionOwner: actorType === 'summon',
         summonOwner,
         duration,
         condition: 'Bleeding',
         stacks: 1
       })
     );
-    context.queue.enqueue({ type: 'ranger.pet-swapped', at: 1, activePet: 'Smokescale', activePetSlot: 2 });
-    // Prime reporting before the swap so shortened in-place deadlines must invalidate the observation.
-    const observationRuntime = {
-      config: {},
-      boons: new Map(),
-      buffs: new Map(),
-      conditionState: context.conditionState,
-      time: 1,
-      equipmentBuffPolicies: []
-    };
+    context.queue.enqueue({ type: 'ranger.pet-swapped', at: swappedAt, activePet: 'Smokescale', activePetSlot: 2 });
+    const observationRuntime = { ...context, time: 1, equipmentBuffPolicies: [] };
     const observeBleeding = () =>
       observeRuntimeEffects(observationRuntime, {}).find((effect) => effect.kind === 'Bleeding');
-    assert.equal(effectStateValue(observeBleeding(), 2).count, 4);
+    assert.equal(effectStateValue(observeBleeding(), swappedAt).count, 3);
+    const paidAfterSwap = new Set();
     while (context.queue.length) {
       const event = context.queue.dequeue();
       if (event.type === 'ranger.pet-swapped') {
         handleRangerPetSwapped(context, event);
-        assert.equal(effectStateValue(observeBleeding(), 2).count, 2);
+        assert.equal(effectStateValue(observeBleeding(), swappedAt).count, 2);
         assert.notEqual(rangerPetCompanionId(context), outgoing);
-        assert.equal(conditions.activeConditionStackCount(context, 'Bleeding', 1.25), 6);
-        assert.equal(conditions.activeConditionStackCount(context, 'Bleeding', 1.75), 5);
-        assert.equal(conditions.activeConditionStackCount(context, 'Bleeding', 2), 2);
-        assert.equal(conditions.activeConditionStackCount(context, 'Bleeding', 4), 0);
+        assert.equal(conditions.activeConditionStackCount(context, 'Bleeding', swappedAt), 2);
       } else if (event.type === 'condition_buffer') {
-        // Advance chronological samples before checking cancellation at whole-second payout.
         conditions.handleConditionBuffer(context, event);
       } else {
-        // Group packets may contain several pet applications; every included share must survive removal.
         const tick = conditions.handleConditionTick(context, event);
         for (const { application } of tick?.contributions ?? []) {
-          assert.ok(application.removedAt == null || event.at < application.removedAt, application.sourceId);
+          if (event.at >= swappedAt) {
+            paidAfterSwap.add(application.sourceId);
+            assert.notEqual(application.summonOwner, outgoing);
+          }
         }
       }
     }
 
+    assert.deepEqual(paidAfterSwap, new Set(['unrelated-pet', 'ranger-stats']));
     for (const [index, application] of applications.entries()) {
-      assert.equal(application.removedAt, cases[index].removedAt, application.sourceId);
-      const expectedDuration = cases[index].removedAt == null ? Math.min(application.effectiveDuration, 3) : 1;
-      assert.equal(application.damagingStackSeconds, expectedDuration, application.sourceId);
-      assert.ok(application.damage > 0, application.sourceId);
+      assert.equal(application.removedAt, cases[index].retired ? swappedAt : undefined, application.sourceId);
+      assert.ok(application.damage > 0, 'damage settled before retirement remains credited');
     }
   });
 }

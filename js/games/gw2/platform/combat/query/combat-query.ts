@@ -708,6 +708,7 @@ export function createGw2CombatQuery({
 }
 
 export interface Gw2QueryRuntime extends Gw2RuntimeStateLike {
+  readonly retiredCompanions?: ReadonlyMap<string, number>;
   readonly boons?: Map<string, Gw2TimedBuffApplication[]>;
   readonly buffs?: Map<string, Gw2TimedBuffApplication[]>;
   readonly activeWeaponSet?: number;

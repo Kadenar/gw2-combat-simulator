@@ -18,6 +18,7 @@ const audience = {
 const runtime = () => ({
   boons: new Map(),
   buffs: new Map(),
+  retiredCompanions: new Map(),
   config: {},
   conditionState: new Map(),
   time: 0,

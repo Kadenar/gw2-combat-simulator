@@ -204,6 +204,7 @@ test('combat history ends at death while the planning observation includes later
 test('effect observation rejects unregistered buffs and duplicate native policies', () => {
   const runtime = {
     boons: new Map([]),
+    retiredCompanions: new Map(),
     buffs: new Map([['unknown', []]]),
     config: {},
     conditionState: new Map(),

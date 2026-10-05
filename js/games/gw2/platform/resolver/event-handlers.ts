@@ -35,9 +35,20 @@ const noop: Gw2ResolverReaction = () => {};
 function handleBuff(ctx: Gw2ResolverRuntime, event: Gw2ResolverEvent, reactions: Gw2ResolverReactionRegistry): void {
   const kind = (event.kind || '').toLowerCase();
   // Standard boons honor the summon-sharing setting; generic positive statuses do not.
-  const resolvedAudience = isStandardBoon(kind)
+  const audience = isStandardBoon(kind)
     ? gw2BoonApplicationRecipients(ctx.config, event)
     : gw2BuffApplicationRecipients(ctx.config, event);
+  // Delayed grants cannot address a retired entity; other recipients keep their accepted slots.
+  const companionIds = audience.companionIds.filter((id) => event.at < (ctx.retiredCompanions.get(id) ?? Infinity));
+  const resolvedAudience =
+    companionIds.length === audience.companionIds.length
+      ? audience
+      : {
+          ...audience,
+          companionIds,
+          includesSummons: companionIds.length > 0,
+          recipientCount: audience.recipientCount - audience.companionIds.length + companionIds.length
+        };
   Object.assign(event, { resolvedAudience });
   // Retain actual applications, including trait-generated boons, for effects charts.
   if (ctx.reporting) ctx.resolved.push(event);

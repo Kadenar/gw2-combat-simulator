@@ -16,6 +16,7 @@ import {
 /** Mechanics request shared-state changes at their existing phase; resolver stores never leave their owner. */
 export function createMechanicCombatServices(runtime: Gw2ResolverRuntime) {
   return Object.freeze({
+    companionRetiredAt: (companionId: string): number | undefined => runtime.retiredCompanions.get(companionId),
     activeBoonStacks: (kind: string, at: number, maximum = 25, recipient: EffectRecipient = { actor: 'player' }) =>
       activeBoonStacks({ config: runtime.config, runtime, time: at }, kind, maximum, recipient),
     activeBuffStacks: (kind: string, at: number, maximum = 25, recipient: EffectRecipient = { actor: 'player' }) =>
@@ -37,7 +38,11 @@ export function createMechanicCombatServices(runtime: Gw2ResolverRuntime) {
     },
     boonApplications: (kind: string): readonly Readonly<Gw2TimedBuffApplication>[] => runtime.boons.get(kind) ?? [],
     boonSnapshot: (kind: string, at: number, recipient: EffectRecipient) =>
-      liveBoonSnapshot(runtime.boons.get(kind) ?? [], runtime.config, kind, at, recipient),
+      recipient.actor === 'companion' &&
+      recipient.companionId &&
+      at >= (runtime.retiredCompanions.get(recipient.companionId) ?? Infinity)
+        ? { stacks: 0, duration: 0 }
+        : liveBoonSnapshot(runtime.boons.get(kind) ?? [], runtime.config, kind, at, recipient),
     reviseBuffExpiry(
       kind: string,
       select: (application: Readonly<Gw2TimedBuffApplication>) => boolean,
@@ -52,17 +57,22 @@ export function createMechanicCombatServices(runtime: Gw2ResolverRuntime) {
           )
         );
     },
-    retireCompanionConditions(source: string, companionId: string, removedAt: number): void {
-      // Cancellation and live stack visibility are distinct; natural expiry ticks retain their existing treatment.
+    retireCompanion(companionId: string, removedAt: number): void {
+      // Retire the entity, not its shared grants to other recipients or ranger-owned damage.
+      if (runtime.retiredCompanions.has(companionId)) return;
+      runtime.retiredCompanions.set(companionId, removedAt);
+      // End future payouts and live stacks without rolling back damage already settled.
       for (const condition of runtime.conditionState.values())
         for (const stack of condition.stacks) {
           const application = stack.application;
           if (
-            application.source !== source ||
-            (application.summonOwner && String(application.summonOwner) !== companionId)
+            !application.independentConditionOwner ||
+            application.actorType !== 'summon' ||
+            application.summonOwner !== companionId
           )
             continue;
-          if (application.naturalExpiresAt > removedAt) application.removedAt = removedAt;
+          // Even naturally expired stacks can have unpaid buffered damage, which removal cancels.
+          application.removedAt = Math.min(application.removedAt ?? Infinity, removedAt);
           if (stack.expiresAt > removedAt) {
             stack.expiresAt = removedAt;
             reviseEffectState(condition);

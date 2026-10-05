@@ -49,21 +49,23 @@ test('Ranger and Soulbeast standard boons use live player recipients and duratio
   assert.equal(boonActive({ time: 4, timeline: { timedActive: () => true } }, 'sic-em-pet'), false);
 });
 
-test('pet boon counts follow packet identity across swaps and exclude future same-time applications', () => {
+test('pet retirement clears live boon queries while preserving pre-swap history', () => {
   const runtime = {
     profession: { core: createRangerCoreState() },
     boons: new Map(),
     buffs: new Map(),
+    retiredCompanions: new Map(),
     conditionState: new Map()
   };
   // Bind real owner operations for this focused mechanic fixture.
   runtime.combat = createMechanicCombatServices(runtime);
   const oldPet = rangerPetCompanionId(runtime);
   const fury = buff('fury', { recipients: 'summons', affectsSelf: false, eligibleCompanionIds: [oldPet] });
+  const history = [fury];
   const context = {
     time: 4,
     event: { actorType: 'summon', source: 'ranger-pet', summonOwner: oldPet },
-    timeline: createGw2TimelineIndex({ events: [fury] }),
+    timeline: createGw2TimelineIndex({ events: history }),
     runtime
   };
   assert.equal(rangerActiveBoonCount({ ...context, runtime: undefined }, 'pet'), 1);
@@ -75,19 +77,23 @@ test('pet boon counts follow packet identity across swaps and exclude future sam
   assert.equal(rangerActiveBoonCount({ ...context, time: 8 }, 'pet'), 0);
 
   handleRangerPetSwapped(runtime, { at: 5, activePet: 'Smokescale', activePetSlot: 2 });
+  history.push({ type: 'marker', action: 'companion-retired', at: 5, summonOwner: oldPet });
   const newPet = rangerPetCompanionId(runtime);
   assert.notEqual(newPet, oldPet);
   const incoming = { ...context, time: 5, event: { ...context.event, summonOwner: newPet } };
   assert.equal(rangerActiveBoonCount(incoming, 'pet'), 0);
   assert.equal(rangerActiveBoonCount({ ...incoming, runtime: undefined }, 'pet'), 0);
-  // A delayed old-pet packet still queries its own recipient identity after the swap.
-  assert.equal(rangerActiveBoonCount({ ...context, time: 5 }, 'pet'), 1);
+  // Both live and historical query modes end this recipient at the swap boundary.
+  assert.equal(rangerActiveBoonCount({ ...context, time: 5 }, 'pet'), 0);
+  assert.equal(rangerActiveBoonCount({ ...context, time: 5, runtime: undefined }, 'pet'), 0);
+  assert.equal(rangerActiveBoonCount(context, 'pet'), 1);
+  assert.equal(rangerActiveBoonCount({ ...context, runtime: undefined }, 'pet'), 1);
   recordBuffApplication(runtime.boons, {
     ...buff('might', { recipients: 'summons', affectsSelf: false, eligibleCompanionIds: [newPet] }),
     at: 5
   });
   assert.equal(rangerActiveBoonCount(incoming, 'pet'), 1);
-  assert.equal(rangerActiveBoonCount({ ...context, time: 5 }, 'pet'), 1);
+  assert.equal(rangerActiveBoonCount({ ...context, time: 5 }, 'pet'), 0);
   assert.equal(rangerActiveBoonCount({ ...context, event: undefined }, 'pet'), 0);
 });
 

@@ -30,13 +30,11 @@ export function handleRangerSharpeningStone(context: RangerResolverContext, even
   );
 }
 
-// Retire the outgoing companion's lingering conditions after the swap delay,
-// then advance pet identity and generation state for subsequent attacks.
+// Removal immediately ends the outgoing entity's boons and independent conditions.
 export function handleRangerPetSwapped(context: RangerResolverContext, event: Gw2ResolverEvent): void {
   const state = professionCoreState(context);
   const outgoingCompanionId = rangerPetCompanionId(context);
-  const removedAt = event.at + 1;
-  context.combat.retireCompanionConditions('ranger-pet', outgoingCompanionId, removedAt);
+  context.combat.retireCompanion(outgoingCompanionId, event.at);
 
   const pet = rangerPetByName(String(event.activePet || ''));
   state.activePet = pet.name;

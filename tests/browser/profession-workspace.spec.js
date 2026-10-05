@@ -1,5 +1,89 @@
 import { expect, test } from '@playwright/test';
 
+// Searching grouped pet choices hides empty headings and retains keyboard selection.
+test('pet selector groups filter and support keyboard selection', async ({ page }) => {
+  await page.goto('/ranger.html#workspace', { waitUntil: 'domcontentloaded' });
+  await expect(page.locator('#loading-overlay')).toHaveClass(/hidden/);
+  for (const key of ['selectedPet', 'selectedPet2']) {
+    const selector = page.locator(`#skill-bar [data-selection-key="${key}"]`);
+    await selector.locator('.sbar-icon').click();
+    await expect(selector.locator('.sbar-option-group-heading')).toHaveText(['Supported', 'Unsupported']);
+    const supported = selector.getByRole('group', { name: 'Supported', exact: true });
+    const unsupported = selector.getByRole('group', { name: 'Unsupported', exact: true });
+    const search = selector.getByRole('searchbox');
+    await search.fill('Lynx');
+    await expect(supported).toBeHidden();
+    await expect(unsupported).toBeVisible();
+    await search.fill('no matching pet');
+    await expect(selector.locator('.sbar-option-group-heading:visible')).toHaveCount(0);
+    await expect(selector.getByRole('status')).toHaveText('No matching choices');
+    await search.fill('Hawk');
+    await expect(supported).toBeVisible();
+    await expect(unsupported).toBeHidden();
+    await search.press('ArrowDown');
+    await expect(selector.locator('[data-selection-value="Hawk"]')).toBeFocused();
+    await page.keyboard.press('Enter');
+    await expect(selector.locator('.sbar-icon')).toHaveAccessibleName(/Change Hawk/);
+    await expect(selector.locator('.sbar-dropdown')).toBeHidden();
+  }
+});
+
+// Native selection changes and saved builds must keep the notice in sync with both pet slots.
+test('Ranger pet warning appears only for unsupported selections', async ({ page }) => {
+  await page.goto('/ranger.html#workspace', { waitUntil: 'domcontentloaded' });
+  await expect(page.locator('#loading-overlay')).toHaveClass(/hidden/);
+  const warning = page.locator('.ranger-pet-warning');
+  const selectPet = async (key, name) => {
+    const selector = page.locator(`#skill-bar [data-selection-key="${key}"]`);
+    await selector.locator('.sbar-icon').click();
+    await selector.locator(`[data-selection-value="${name}"]`).click();
+  };
+
+  await selectPet('selectedPet', 'Tiger');
+  await selectPet('selectedPet2', 'Hawk');
+  await expect(warning).toBeHidden();
+  await expect(page.locator('.sbar-icon > .sbar-selection-warning')).toHaveCount(0);
+  const secondPet = page.locator('#skill-bar [data-selection-key="selectedPet2"]');
+  await secondPet.locator('.sbar-icon').click();
+  await expect(secondPet.locator('[data-selection-value="Lynx"] .sbar-selection-warning')).toBeVisible();
+  await expect(secondPet.locator('[data-selection-value="Hawk"] .sbar-selection-warning')).toHaveCount(0);
+  await page.locator('.selectable-skills-title').click();
+  await selectPet('selectedPet2', 'Lynx');
+  await expect(warning).toBeVisible();
+  await expect(secondPet.locator('.sbar-icon > .sbar-selection-warning')).toBeVisible();
+  await expect(secondPet.locator('.sbar-icon')).toHaveAccessibleName('Change Lynx 2. Lynx is not modeled.');
+  await expect(warning.locator('.ranger-pet-warning-detail')).toHaveText(
+    'Lynx is not modeled and may produce inaccurate results.'
+  );
+  await selectPet('selectedPet', 'Pig');
+  await expect(page.locator('.sbar-icon > .sbar-selection-warning')).toHaveCount(2);
+  await expect(warning.locator('.ranger-pet-warning-detail')).toHaveText(
+    'Pig and Lynx are not modeled and may produce inaccurate results.'
+  );
+  await selectPet('selectedPet2', 'Pig');
+  await expect(warning.locator('.ranger-pet-warning-detail')).toHaveText(
+    'Pig is not modeled and may produce inaccurate results.'
+  );
+  await selectPet('selectedPet', 'Tiger');
+  await selectPet('selectedPet2', 'Hawk');
+  await expect(warning).toBeHidden();
+  await selectPet('selectedPet', 'Pig');
+  await expect(warning).toBeVisible();
+  await page.reload({ waitUntil: 'domcontentloaded' });
+  await expect(page.locator('#loading-overlay')).toHaveClass(/hidden/);
+  await expect(warning).toBeVisible();
+  await expect(page.locator('.sbar-icon > .sbar-selection-warning')).toHaveCount(1);
+  await expect(warning.locator('.ranger-pet-warning-detail')).toHaveText(
+    'Pig is not modeled and may produce inaccurate results.'
+  );
+  await selectPet('selectedPet', 'Tiger');
+  await expect(warning).toBeHidden();
+  await page.reload({ waitUntil: 'domcontentloaded' });
+  await expect(page.locator('#loading-overlay')).toHaveClass(/hidden/);
+  await expect(warning).toBeHidden();
+  await expect(page.locator('.sbar-icon > .sbar-selection-warning')).toHaveCount(0);
+});
+
 // Profession selectors share the desktop skill strip and wrap below it on phones.
 test('profession selectors stay compact beside skills and wrap on phones', async ({ page }) => {
   for (const profession of ['engineer', 'ranger', 'elementalist']) {

@@ -226,11 +226,15 @@ interface ProfessionSkillBarSelection {
   readonly selectionIndex: number;
 }
 
-interface ProfessionSkillBarSelectionOption {
+export interface ProfessionSkillBarSelectionOption {
+  /** Optional named section; search hides sections without matching choices. */
+  readonly group?: string;
   readonly value: string;
   readonly label: string;
   readonly icon?: string;
   readonly description?: string;
+  /** Explains a selection limitation beside its portrait and dropdown entry. */
+  readonly warning?: string;
   readonly skillId?: SkillId;
 }
 

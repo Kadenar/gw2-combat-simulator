@@ -56,6 +56,48 @@ const baseConfig = Object.freeze({
 const simulate = createObservedProfessionSimulator(rangerProfession, baseConfig);
 
 describe('Ranger skill-bar selections', () => {
+  // Both selectors offer every pet once, grouped by support and alphabetized within each section.
+  test('pet options are grouped by support and sorted alphabetically', () => {
+    const groups = rangerProfession.ui
+      .skillBarGroups({ build: createRangerBuildDefaults(), specialization: 'Core', catalog: rangerCatalog })
+      .filter((group) => group.id.startsWith('ranger-pet-'));
+    for (const group of groups) {
+      const options = group.selections[0].optionEntries;
+      assert.deepEqual([...new Set(options.map((option) => option.group))], ['Supported', 'Unsupported']);
+      assert.equal(new Set(options.map((option) => option.value)).size, RANGER_PETS.length);
+      for (const section of ['Supported', 'Unsupported']) {
+        const entries = options.filter((option) => option.group === section);
+        const names = entries.map((option) => option.label);
+        assert.deepEqual(
+          names,
+          [...names].sort((a, b) => a.localeCompare(b, 'en'))
+        );
+        assert.ok(entries.every((option) => Boolean(option.warning) === (section === 'Unsupported')));
+      }
+    }
+  });
+
+  // Both build slots report missing combat profiles across every Ranger specialization.
+  test('pet warnings follow modeled combat support in either selection', () => {
+    const modeledPets = new Set(['Carrion Devourer', 'Fanged Iboga', 'Hawk', 'Tiger', 'Wallow', 'Jacaranda']);
+    for (const specialization of ['Core', 'Druid', 'Soulbeast', 'Untamed', 'Galeshot']) {
+      for (const pet of RANGER_PETS) {
+        const build = { ...createRangerBuildDefaults(), selectedPet: pet.name, selectedPet2: pet.name };
+        const groups = rangerProfession.ui
+          .skillBarGroups({ build, specialization, catalog: rangerCatalog })
+          .filter((group) => group.id.startsWith('ranger-pet-'));
+        assert.equal(groups.length, 2);
+        for (const group of groups) {
+          assert.equal(
+            group.className.includes('ranger-pet-unmodeled'),
+            !modeledPets.has(pet.name),
+            `${specialization}: ${group.id}: ${pet.name}`
+          );
+        }
+      }
+    }
+  });
+
   test('Soulbeast pet selections update detached merged Beast skill previews', () => {
     const build = createRangerBuildDefaults();
     const soulbeastContext = {
@@ -83,7 +125,7 @@ describe('Ranger skill-bar selections', () => {
     );
     assert.deepEqual(
       petGroups.map((group) => group.className),
-      ['ranger-pet ranger-pet-1', 'ranger-pet ranger-pet-2']
+      ['ranger-pet ranger-pet-1 ranger-pet-unmodeled', 'ranger-pet ranger-pet-2 ranger-pet-unmodeled']
     );
     assert.equal(pet1Group.layout, 'ranger-mechanics ranger-soulbeast-mechanics');
     assert.equal(pet2Group.layout, 'ranger-mechanics ranger-soulbeast-mechanics');

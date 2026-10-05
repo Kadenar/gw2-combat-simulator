@@ -103,12 +103,48 @@ function observeGenericBuff(
   return states;
 }
 
+const retirementObservations = new WeakMap<
+  object,
+  { count: number; states: WeakMap<readonly EffectState[], readonly EffectState[]> }
+>();
+
 /** Visit complete kind scopes; native observations replace only their own generic recipients. */
 function visitRuntimeEffects<T extends object>(
   runtime: Gw2Runtime<T>,
   profession: RuntimeProfession<T>,
-  visit: (scope: string, states: readonly EffectState[]) => void
+  visitor: (scope: string, states: readonly EffectState[]) => void
 ): void {
+  // Reuse clipped scopes until another entity retires, preserving unchanged report capture identity.
+  let retirement = retirementObservations.get(runtime);
+  if (runtime.retiredCompanions.size && retirement?.count !== runtime.retiredCompanions.size) {
+    retirement = { count: runtime.retiredCompanions.size, states: new WeakMap() };
+    retirementObservations.set(runtime, retirement);
+  }
+
+  const visit = (scope: string, states: readonly EffectState[]): void => {
+    if (!retirement) return visitor(scope, states);
+    let clipped = retirement.states.get(states);
+    if (!clipped) {
+      clipped = states.map((state) => {
+        const removedAt = state.recipient.startsWith('companion:')
+          ? runtime.retiredCompanions.get(state.recipient.slice('companion:'.length))
+          : undefined;
+        return removedAt == null
+          ? state
+          : {
+              ...state,
+              windows: state.windows.map((window) => ({
+                ...window,
+                expiresAt: Math.min(window.expiresAt ?? Infinity, removedAt)
+              }))
+            };
+      });
+      retirement.states.set(states, clipped);
+    }
+
+    visitor(scope, clipped);
+  };
+
   const policies = new Map<string, BuffStatePolicy>(
     GW2_STANDARD_BOONS.map((kind) => [kind, { kind, maximumStacks: standardBoonPresentation(kind)?.maximumStacks }])
   );
