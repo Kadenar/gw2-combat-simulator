@@ -45,12 +45,120 @@ const SIMULATED_FAMILY_SKILL_IDS = Object.freeze({
   spider: [12724]
 });
 // Modeled pets retain family membership while receiving their specific AI and merged overrides.
-const SIMULATED_PET_SKILL_IDS = Object.freeze({ Wallow: [64891, 67277, 67084], Hawk: [12682, 12719, 12720] });
+const SIMULATED_PET_SKILL_IDS = Object.freeze({
+  Wallow: [64891, 67277, 67084],
+  Hawk: [12682, 12719, 12720],
+  Boar: [12735, 12734, 12738],
+  'Aether Hunter': [69822, 70950, 70332],
+  'Raptor Swiftwing': [78335, 78204, 77805]
+});
 const SOULBEAST_PET_SKILL_IDS = Object.freeze({ Wallow: [41406, 64882] });
 const AUTONOMOUS_PET_SKILL_IDS = new Set([
-  12655, 12657, 12676, 12673, 12694, 12703, 43734, 41864, 41156, 64891, 67277, 67084, 12682, 12719, 12720
+  // These API-omitted natural attacks become explicit commands on Untamed.
+  12735, 12734, 12738, 69822, 70950, 70332, 78335, 78204, 77805, 12655, 12657, 12676, 12673, 12694, 12703, 43734, 41864,
+  41156, 64891, 67277, 67084, 12682, 12719, 12720
 ]);
+// API-omitted pet skills reuse their verified Soulbeast CDN artwork where available.
 const SIMULATED_SKILL_FALLBACKS = new Map([
+  [
+    12735,
+    {
+      id: 12735,
+      name: 'Jab',
+      description: 'Jab your foe with your tusks.',
+      icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Jab_(porcine).png',
+      recharge: 0,
+      petNames: ['Boar']
+    }
+  ],
+  [
+    12734,
+    {
+      id: 12734,
+      name: 'Maul',
+      description: 'Maul your foes and make them bleed.',
+      icon: 'https://render.guildwars2.com/file/24073F5A0566ABE32DFB74204E9FA01025D85D71/104055.png',
+      recharge: 10,
+      petNames: ['Boar']
+    }
+  ],
+  [
+    12738,
+    {
+      id: 12738,
+      name: 'Brutal Charge',
+      description: 'Charge your foes and knock them down.',
+      icon: 'https://render.guildwars2.com/file/D89C043113B1B24AE538C6F5DC297924459E3EBA/104054.png',
+      recharge: 24,
+      petNames: ['Boar']
+    }
+  ],
+  [
+    69822,
+    {
+      id: 69822,
+      name: 'Bite',
+      description: 'Bite at your foe and inflict bleeding.',
+      icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Bite_(aether_hunter).png',
+      recharge: 0,
+      petNames: ['Aether Hunter']
+    }
+  ],
+  [
+    70950,
+    {
+      id: 70950,
+      name: 'Lunge',
+      description: 'Lunge forward, crippling opponents in the path.',
+      icon: 'https://render.guildwars2.com/file/B65ECEBB72F4F10C4144510777E899E477DEE5B2/3124960.png',
+      recharge: 8,
+      petNames: ['Aether Hunter']
+    }
+  ],
+  [
+    70332,
+    {
+      id: 70332,
+      name: 'Ley-Line Vortex',
+      description: 'Spin around, striking and tormenting nearby enemies.',
+      icon: 'https://render.guildwars2.com/file/030E7AB1CB18A4B348FD17B54B2B68FDABDB1DBC/3124961.png',
+      recharge: 20,
+      petNames: ['Aether Hunter']
+    }
+  ],
+  [
+    78335,
+    {
+      id: 78335,
+      name: 'Claw',
+      description: 'Rake your enemy with sharp claws.',
+      icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Claw_(raptor_swiftwing).png',
+      recharge: 0,
+      petNames: ['Raptor Swiftwing']
+    }
+  ],
+  [
+    78204,
+    {
+      id: 78204,
+      name: 'Saurian Might',
+      description: 'Smash the ground before you with primal strength.',
+      icon: 'https://render.guildwars2.com/file/6A21666A796F0FCC59C513DAEAF6073161034004/3713166.png',
+      recharge: 10,
+      petNames: ['Raptor Swiftwing']
+    }
+  ],
+  [
+    77805,
+    {
+      id: 77805,
+      name: 'Leaping Lizard',
+      description: 'Leap through the air, crippling enemies upon landing.',
+      icon: 'https://render.guildwars2.com/file/4BACB4F4A1A9BABF560CDF59A9016CDEB516E571/3713167.png',
+      recharge: 15,
+      petNames: ['Raptor Swiftwing']
+    }
+  ],
   [
     12682,
     {
@@ -216,6 +324,15 @@ const SIMULATED_SKILL_OVERRIDES = new Map([
   ...SIMULATED_SKILL_FALLBACKS
 ]);
 const SIMULATED_SKILL_KEY_OVERRIDES = new Map([
+  [12735, 'PORCINE_JAB'],
+  [12734, 'PORCINE_MAUL'],
+  [12738, 'PORCINE_BRUTAL_CHARGE'],
+  [69822, 'AETHER_HUNTER_BITE'],
+  [70950, 'AETHER_HUNTER_LUNGE'],
+  [70332, 'AETHER_HUNTER_LEY_LINE_VORTEX'],
+  [78335, 'RAPTOR_SWIFTWING_CLAW'],
+  [78204, 'RAPTOR_SWIFTWING_SAURIAN_MIGHT'],
+  [77805, 'RAPTOR_SWIFTWING_LEAPING_LIZARD'],
   [12682, 'BIRD_SLASH'],
   [12719, 'BIRD_SWOOP'],
   [12720, 'QUICKENING_SCREECH_PET'],

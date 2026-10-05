@@ -294,6 +294,15 @@ export const RANGER_SKILL_IDS = Object.freeze({
   GALE_BREATH: 63716, // Gale Breath
   HUNKER_DOWN: 65418, // Hunker Down
   DIMENSION_BREACH: 71002, // Dimension Breach
+  PORCINE_JAB: 12735, // Jab (pet)
+  PORCINE_MAUL: 12734, // Maul (pet)
+  PORCINE_BRUTAL_CHARGE: 12738, // Brutal Charge (pet)
+  AETHER_HUNTER_BITE: 69822, // Bite (pet)
+  AETHER_HUNTER_LUNGE: 70950, // Lunge (pet)
+  AETHER_HUNTER_LEY_LINE_VORTEX: 70332, // Ley-Line Vortex (pet)
+  RAPTOR_SWIFTWING_CLAW: 78335, // Claw (pet)
+  RAPTOR_SWIFTWING_SAURIAN_MIGHT: 78204, // Saurian Might (pet)
+  RAPTOR_SWIFTWING_LEAPING_LIZARD: 77805, // Leaping Lizard (pet)
   LEY_ENERGY_PULSE: 71688, // Ley Energy Pulse
   PANOPTICON: 72843, // Panopticon
   RALLYING_ROAR: 74314, // Rallying Roar

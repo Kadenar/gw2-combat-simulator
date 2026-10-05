@@ -79,7 +79,17 @@ describe('Ranger skill-bar selections', () => {
 
   // Both build slots report missing combat profiles across every Ranger specialization.
   test('pet warnings follow modeled combat support in either selection', () => {
-    const modeledPets = new Set(['Carrion Devourer', 'Fanged Iboga', 'Hawk', 'Tiger', 'Wallow', 'Jacaranda']);
+    const modeledPets = new Set([
+      'Carrion Devourer',
+      'Fanged Iboga',
+      'Hawk',
+      'Tiger',
+      'Wallow',
+      'Jacaranda',
+      'Boar',
+      'Aether Hunter',
+      'Raptor Swiftwing'
+    ]);
     for (const specialization of ['Core', 'Druid', 'Soulbeast', 'Untamed', 'Galeshot']) {
       for (const pet of RANGER_PETS) {
         const build = { ...createRangerBuildDefaults(), selectedPet: pet.name, selectedPet2: pet.name };

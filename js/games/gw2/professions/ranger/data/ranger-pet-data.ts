@@ -4,6 +4,142 @@ import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
 import type { RangerPetDefinition, RangerSkill } from '#gw2/professions/ranger/types.js';
 
 export const RANGER_PET_SKILLS: readonly RangerSkill[] = Object.freeze([
+  // Natural attacks measured in the 20261005 unquickened pet logs.
+  {
+    id: ID.PORCINE_JAB,
+    name: 'Jab',
+    description: 'Jab your foe with your tusks.',
+    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Jab_(porcine).png',
+    type: 'Profession',
+    slot: 'Profession_2',
+    categories: ['Pet'],
+    specialization: '',
+    cooldown: 0,
+    petSkill: true,
+    petFamilySkill: true,
+    petAutonomousSkill: true,
+    petNames: ['Boar']
+  },
+  {
+    id: ID.PORCINE_MAUL,
+    name: 'Maul',
+    description: 'Maul your foes and make them bleed.',
+    icon: 'https://render.guildwars2.com/file/24073F5A0566ABE32DFB74204E9FA01025D85D71/104055.png',
+    type: 'Profession',
+    slot: 'Profession_2',
+    categories: ['Pet'],
+    specialization: '',
+    cooldown: 10,
+    petSkill: true,
+    petFamilySkill: true,
+    petAutonomousSkill: true,
+    petNames: ['Boar']
+  },
+  {
+    id: ID.PORCINE_BRUTAL_CHARGE,
+    name: 'Brutal Charge',
+    description: 'Charge your foes and knock them down.',
+    icon: 'https://render.guildwars2.com/file/D89C043113B1B24AE538C6F5DC297924459E3EBA/104054.png',
+    type: 'Profession',
+    slot: 'Profession_2',
+    categories: ['Pet'],
+    specialization: '',
+    cooldown: 24,
+    petSkill: true,
+    petFamilySkill: true,
+    petAutonomousSkill: true,
+    petNames: ['Boar']
+  },
+  {
+    id: ID.AETHER_HUNTER_BITE,
+    name: 'Bite',
+    description: 'Bite at your foe and inflict bleeding.',
+    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Bite_(aether_hunter).png',
+    type: 'Profession',
+    slot: 'Profession_2',
+    categories: ['Pet'],
+    specialization: '',
+    cooldown: 0,
+    petSkill: true,
+    petFamilySkill: true,
+    petAutonomousSkill: true,
+    petNames: ['Aether Hunter']
+  },
+  {
+    id: ID.AETHER_HUNTER_LUNGE,
+    name: 'Lunge',
+    description: 'Lunge forward, crippling opponents in the path.',
+    icon: 'https://render.guildwars2.com/file/B65ECEBB72F4F10C4144510777E899E477DEE5B2/3124960.png',
+    type: 'Profession',
+    slot: 'Profession_2',
+    categories: ['Pet'],
+    specialization: '',
+    cooldown: 8,
+    petSkill: true,
+    petFamilySkill: true,
+    petAutonomousSkill: true,
+    petNames: ['Aether Hunter']
+  },
+  {
+    id: ID.AETHER_HUNTER_LEY_LINE_VORTEX,
+    name: 'Ley-Line Vortex',
+    description: 'Spin around, striking and tormenting nearby enemies.',
+    icon: 'https://render.guildwars2.com/file/030E7AB1CB18A4B348FD17B54B2B68FDABDB1DBC/3124961.png',
+    type: 'Profession',
+    slot: 'Profession_2',
+    categories: ['Pet'],
+    specialization: '',
+    cooldown: 20,
+    petSkill: true,
+    petFamilySkill: true,
+    petAutonomousSkill: true,
+    petNames: ['Aether Hunter']
+  },
+  {
+    id: ID.RAPTOR_SWIFTWING_CLAW,
+    name: 'Claw',
+    description: 'Rake your enemy with sharp claws.',
+    icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Claw_(raptor_swiftwing).png',
+    type: 'Profession',
+    slot: 'Profession_2',
+    categories: ['Pet'],
+    specialization: '',
+    cooldown: 0,
+    petSkill: true,
+    petFamilySkill: true,
+    petAutonomousSkill: true,
+    petNames: ['Raptor Swiftwing']
+  },
+  {
+    id: ID.RAPTOR_SWIFTWING_SAURIAN_MIGHT,
+    name: 'Saurian Might',
+    description: 'Smash the ground before you with primal strength.',
+    icon: 'https://render.guildwars2.com/file/6A21666A796F0FCC59C513DAEAF6073161034004/3713166.png',
+    type: 'Profession',
+    slot: 'Profession_2',
+    categories: ['Pet'],
+    specialization: '',
+    cooldown: 10,
+    petSkill: true,
+    petFamilySkill: true,
+    petAutonomousSkill: true,
+    petNames: ['Raptor Swiftwing']
+  },
+  {
+    id: ID.RAPTOR_SWIFTWING_LEAPING_LIZARD,
+    name: 'Leaping Lizard',
+    description: 'Leap through the air, crippling enemies upon landing.',
+    icon: 'https://render.guildwars2.com/file/4BACB4F4A1A9BABF560CDF59A9016CDEB516E571/3713167.png',
+    type: 'Profession',
+    slot: 'Profession_2',
+    categories: ['Pet'],
+    specialization: '',
+    cooldown: 15,
+    petSkill: true,
+    petFamilySkill: true,
+    petAutonomousSkill: true,
+    petNames: ['Raptor Swiftwing']
+  },
   // Hawk exposes its bird AI separately from the commanded Beast skill.
   {
     id: ID.BIRD_SLASH,
@@ -1350,7 +1486,7 @@ export const RANGER_PETS: readonly RangerPetDefinition[] = Object.freeze([
       "This boar is a tough, strong fighter with wicked tusks. It's difficult for foes to stay on their feet against his charges. Though polite society may not appreciate his charms, a boar can be a ranger's best friend. —Acht",
     family: 'porcine',
     archetype: 'Versatile',
-    skillIds: [ID.FORAGE_ROCK],
+    skillIds: [ID.PORCINE_JAB, ID.PORCINE_MAUL, ID.PORCINE_BRUTAL_CHARGE, ID.FORAGE_ROCK],
     beastmodeSkillIds: [ID.MAUL_ID_41406, ID.BRUTAL_CHARGE_ID_46432, ID.PRELUDE_LASH]
   },
   {
@@ -1977,7 +2113,7 @@ export const RANGER_PETS: readonly RangerPetDefinition[] = Object.freeze([
       'Imbued with ley-line energy, aether hunters can travel through the toughest of terrains with ease, unlike their sand-dwelling counterparts. —Acht',
     family: 'aether hunter',
     archetype: 'Versatile',
-    skillIds: [ID.DIMENSION_BREACH],
+    skillIds: [ID.AETHER_HUNTER_BITE, ID.AETHER_HUNTER_LUNGE, ID.AETHER_HUNTER_LEY_LINE_VORTEX, ID.DIMENSION_BREACH],
     beastmodeSkillIds: [ID.LUNGE, ID.LEY_LINE_VORTEX, ID.PRELUDE_LASH]
   },
   {
@@ -2032,7 +2168,12 @@ export const RANGER_PETS: readonly RangerPetDefinition[] = Object.freeze([
       "Only recently discovered on the island of Castora, the swiftwing raptor is covered in a thick layer of jewel-toned feathers that blend in with the island's vivid vegetation. Researchers have noted its ear-shattering shriek and razor-edged talons, urging members of the Tyrian Alliance to approach the saurian with caution. —Acht",
     family: 'raptor swiftwing',
     archetype: 'Versatile',
-    skillIds: [ID.PIERCING_SHRIEK],
+    skillIds: [
+      ID.RAPTOR_SWIFTWING_CLAW,
+      ID.RAPTOR_SWIFTWING_SAURIAN_MIGHT,
+      ID.RAPTOR_SWIFTWING_LEAPING_LIZARD,
+      ID.PIERCING_SHRIEK
+    ],
     beastmodeSkillIds: [ID.SAURIAN_MIGHT, ID.LEAPING_LIZARD, ID.PRELUDE_LASH]
   },
   {

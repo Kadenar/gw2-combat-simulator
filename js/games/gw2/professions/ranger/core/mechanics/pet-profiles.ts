@@ -48,6 +48,30 @@ const DEFAULT_PET_BASE_ATTRIBUTES: RangerPetAttributes = Object.freeze({
 
 // Keep explicitly modeled pet stats in one lookup so supporting another pet is a data-only change.
 const PET_BASE_ATTRIBUTES: Readonly<Record<string, RangerPetAttributes>> = Object.freeze({
+  // The October pet logs directly confirm these independent condition baselines.
+  Boar: {
+    ...DEFAULT_PET_BASE_ATTRIBUTES,
+    precision: 1180,
+    toughness: 2211,
+    vitality: 3585,
+    conditionDamage: 1500,
+    healingPower: 600
+  },
+  'Aether Hunter': {
+    ...DEFAULT_PET_BASE_ATTRIBUTES,
+    power: 1868,
+    toughness: 1524,
+    vitality: 3585,
+    conditionDamage: 1800
+  },
+  'Raptor Swiftwing': {
+    ...DEFAULT_PET_BASE_ATTRIBUTES,
+    power: 1868,
+    precision: 2211,
+    toughness: 1524,
+    vitality: 2898,
+    conditionDamage: 1500
+  },
   'Carrion Devourer': {
     ...DEFAULT_PET_BASE_ATTRIBUTES,
     toughness: 2898,
@@ -110,6 +134,91 @@ export const RANGER_PET_SKILL_TIMINGS: Readonly<
     }
   >
 > = Object.freeze({
+  // Quickness values in this block use standard 1.5x scaling pending dedicated recordings.
+  [ID.PORCINE_JAB]: {
+    castTimeMs: 1400,
+    quicknessCastTimeMs: 960,
+    recoveryMs: 1480,
+    quicknessRecoveryMs: 1000,
+    unbuffedImpactMs: { '240': 320 }
+  },
+  [ID.PORCINE_MAUL]: {
+    castTimeMs: 1200,
+    quicknessCastTimeMs: 800,
+    recoveryMs: 1280,
+    quicknessRecoveryMs: 880,
+    unbuffedImpactMs: { '400': 600 }
+  },
+  [ID.PORCINE_BRUTAL_CHARGE]: {
+    castTimeMs: 1840,
+    quicknessCastTimeMs: 1240,
+    recoveryMs: 1920,
+    quicknessRecoveryMs: 1280,
+    unbuffedImpactMs: { '720': 1080 }
+  },
+  [ID.FORAGE_ROCK]: {
+    castTimeMs: 1200,
+    quicknessCastTimeMs: 800,
+    recoveryMs: 1240,
+    quicknessRecoveryMs: 840,
+    unbuffedImpactMs: {}
+  },
+  [ID.AETHER_HUNTER_BITE]: {
+    castTimeMs: 2040,
+    quicknessCastTimeMs: 1360,
+    recoveryMs: 2120,
+    quicknessRecoveryMs: 1440,
+    unbuffedImpactMs: { '320': 440 }
+  },
+  [ID.AETHER_HUNTER_LUNGE]: {
+    castTimeMs: 1480,
+    quicknessCastTimeMs: 1000,
+    recoveryMs: 1560,
+    quicknessRecoveryMs: 1040,
+    unbuffedImpactMs: { '160': 200 }
+  },
+  [ID.AETHER_HUNTER_LEY_LINE_VORTEX]: {
+    castTimeMs: 4040,
+    quicknessCastTimeMs: 2720,
+    recoveryMs: 4160,
+    quicknessRecoveryMs: 2800,
+    unbuffedImpactMs: { '0': 0, '680': 1000, '1360': 2000, '2000': 3000, '2680': 4000 }
+  },
+  [ID.DIMENSION_BREACH]: {
+    castTimeMs: 3000,
+    quicknessCastTimeMs: 2000,
+    recoveryMs: 3040,
+    quicknessRecoveryMs: 2040,
+    unbuffedImpactMs: { '880': 1280 }
+  },
+  [ID.RAPTOR_SWIFTWING_CLAW]: {
+    castTimeMs: 1600,
+    quicknessCastTimeMs: 1080,
+    recoveryMs: 1680,
+    quicknessRecoveryMs: 1120,
+    unbuffedImpactMs: { '480': 680, '680': 1000 }
+  },
+  [ID.RAPTOR_SWIFTWING_SAURIAN_MIGHT]: {
+    castTimeMs: 2200,
+    quicknessCastTimeMs: 1480,
+    recoveryMs: 2280,
+    quicknessRecoveryMs: 1520,
+    unbuffedImpactMs: { '760': 1120 }
+  },
+  [ID.RAPTOR_SWIFTWING_LEAPING_LIZARD]: {
+    castTimeMs: 3120,
+    quicknessCastTimeMs: 2080,
+    recoveryMs: 3200,
+    quicknessRecoveryMs: 2160,
+    unbuffedImpactMs: { '1240': 1840 }
+  },
+  [ID.PIERCING_SHRIEK]: {
+    castTimeMs: 1800,
+    quicknessCastTimeMs: 1200,
+    recoveryMs: 1920,
+    quicknessRecoveryMs: 1280,
+    unbuffedImpactMs: { '560': 800 }
+  },
   // 20260930-154237: stop records include the full animation; impacts occur well before the next AI decision.
   [ID.BIRD_SLASH]: {
     castTimeMs: 2600,
@@ -202,6 +311,34 @@ export const RANGER_PET_SKILL_TIMINGS: Readonly<
 });
 
 const PET_AUTO_PROFILES: Readonly<Record<string, PetAutoProfile>> = Object.freeze({
+  // Untamed commands the specials; other specializations use the shared ready-special scheduler.
+  Boar: {
+    openingDelay: 0.44,
+    basic: { id: ID.PORCINE_JAB, recovery: 1.48 },
+    specials: [
+      { id: ID.PORCINE_MAUL, recovery: 1.28, cooldown: 10 },
+      { id: ID.PORCINE_BRUTAL_CHARGE, recovery: 1.92, cooldown: 24 }
+    ],
+    commandRecovery: { [ID.FORAGE_ROCK]: 1.24 }
+  },
+  'Aether Hunter': {
+    openingDelay: 0.44,
+    basic: { id: ID.AETHER_HUNTER_BITE, recovery: 2.12 },
+    specials: [
+      { id: ID.AETHER_HUNTER_LUNGE, recovery: 1.56, cooldown: 8 },
+      { id: ID.AETHER_HUNTER_LEY_LINE_VORTEX, recovery: 4.16, cooldown: 20 }
+    ],
+    commandRecovery: { [ID.DIMENSION_BREACH]: 3.04 }
+  },
+  'Raptor Swiftwing': {
+    openingDelay: 0.44,
+    basic: { id: ID.RAPTOR_SWIFTWING_CLAW, recovery: 1.68 },
+    specials: [
+      { id: ID.RAPTOR_SWIFTWING_SAURIAN_MIGHT, recovery: 2.28, cooldown: 10 },
+      { id: ID.RAPTOR_SWIFTWING_LEAPING_LIZARD, recovery: 3.2, cooldown: 15 }
+    ],
+    commandRecovery: { [ID.PIERCING_SHRIEK]: 1.92 }
+  },
   Hawk: {
     // The command-controlled log measures cadence; autonomous pets use the existing ready-special priority.
     openingDelay: 0.44,

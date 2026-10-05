@@ -8,6 +8,53 @@ import { RANGER_PET_SKILL_TIMINGS } from '#gw2/professions/ranger/core/mechanics
 import type { Skill } from '#gw2/platform/skills/types.js';
 
 export const RANGER_CORE_PORCINE_PET_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
+  [ID.PORCINE_JAB]: {
+    // The tusk impact precedes recovery; pet ownership supplies independent stats and swap cancellation.
+    effects: impactEffects({ atMs: 240, timingAnchor: 'castStart', timingScale: 'fixed' }, [
+      { type: 'strike', coefficient: 0.41, source: 'ranger-pet', actorType: 'summon' }
+    ]),
+    castTimeMs: RANGER_PET_SKILL_TIMINGS[ID.PORCINE_JAB]!.castTimeMs,
+    quicknessCastTimeMs: RANGER_PET_SKILL_TIMINGS[ID.PORCINE_JAB]!.quicknessCastTimeMs,
+    petSkill: true
+  },
+  [ID.PORCINE_MAUL]: {
+    // The Boar log records two simultaneous strikes, each applying two six-second bleeds.
+    effects: impactEffects({ timingAnchor: 'castStart', timingScale: 'fixed' }, [
+      {
+        type: 'strike',
+        ticks: [400, 400].map((atMs) => ({ atMs, coefficient: 0.33 })),
+        source: 'ranger-pet',
+        actorType: 'summon'
+      },
+      {
+        type: 'condition',
+        ticks: [400, 400].map((atMs) => ({ atMs, condition: 'Bleeding', stacks: 2, duration: 6 })),
+        source: 'ranger-pet',
+        actorType: 'summon'
+      }
+    ]),
+    castTimeMs: RANGER_PET_SKILL_TIMINGS[ID.PORCINE_MAUL]!.castTimeMs,
+    quicknessCastTimeMs: RANGER_PET_SKILL_TIMINGS[ID.PORCINE_MAUL]!.quicknessCastTimeMs,
+    petSkill: true
+  },
+  [ID.PORCINE_BRUTAL_CHARGE]: {
+    // Resolve the leap and knockdown with the charge impact so control-triggered traits observe the landed attack.
+    effects: impactEffects({ atMs: 720, timingAnchor: 'castStart', timingScale: 'fixed' }, [
+      {
+        type: 'strike',
+        coefficient: 0.67,
+        comboFinishers: [
+          { ownerId: 'ranger', ownerActorType: 'summon', finisherType: 'Leap', ambiguousFieldSelection: 'oldest' }
+        ],
+        source: 'ranger-pet',
+        actorType: 'summon'
+      },
+      { type: 'control', controlKind: 'knockdown', source: 'ranger-pet', actorType: 'summon' }
+    ]),
+    castTimeMs: RANGER_PET_SKILL_TIMINGS[ID.PORCINE_BRUTAL_CHARGE]!.castTimeMs,
+    quicknessCastTimeMs: RANGER_PET_SKILL_TIMINGS[ID.PORCINE_BRUTAL_CHARGE]!.quicknessCastTimeMs,
+    petSkill: true
+  },
   [ID.VAMPIRIC_BITE]: {
     // The bite can crit; its healing does not add a separate life-siphon damage packet.
     effects: impactEffects({ atMs: 240, timingAnchor: 'castStart', timingScale: 'fixed' }, [
@@ -61,8 +108,10 @@ export const RANGER_CORE_PORCINE_PET_SKILL_MECHANICS: Readonly<Record<number, Pa
     petSkill: true
   },
   [ID.FORAGE_ROCK]: {
+    // Foraging occupies the pet lane but creates no direct damage; picked-up bundle skills belong to the player.
     effects: [],
-    quicknessCastTimeMs: 667,
+    castTimeMs: RANGER_PET_SKILL_TIMINGS[ID.FORAGE_ROCK]!.castTimeMs,
+    quicknessCastTimeMs: RANGER_PET_SKILL_TIMINGS[ID.FORAGE_ROCK]!.quicknessCastTimeMs,
     petSkill: true
   },
   [ID.FORAGE_SCALE]: {
