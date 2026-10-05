@@ -11,7 +11,7 @@ const EMBRACE_PULSE_TIMES_MS = [0, 1520, 3000, 4520, 6000];
 
 export const RANGER_CORE_JACARANDA_PET_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
   [ID.JACARANDAS_EMBRACE]: {
-    // Share timing defaults while preserving each packet, effect order, and local schedule.
+    // Embrace's condition pulses use Ranger stats and survive pet swap; its direct strike remains pet-owned.
     effects: impactEffects({ timingAnchor: 'castStart', timingScale: 'fixed' }, [
       {
         type: 'strike',
@@ -29,7 +29,7 @@ export const RANGER_CORE_JACARANDA_PET_SKILL_MECHANICS: Readonly<Record<number, 
           duration: 8
         })),
         source: 'ranger-pet',
-        actorType: 'summon'
+        actorType: 'player'
       },
       {
         type: 'condition',
@@ -40,7 +40,7 @@ export const RANGER_CORE_JACARANDA_PET_SKILL_MECHANICS: Readonly<Record<number, 
           duration
         })),
         source: 'ranger-pet',
-        actorType: 'summon'
+        actorType: 'player'
       }
     ]),
     quicknessCastTimeMs: 1480,
@@ -62,7 +62,7 @@ export const RANGER_CORE_JACARANDA_PET_SKILL_MECHANICS: Readonly<Record<number, 
     petSkill: true
   },
   [ID.JACARANDA_CALL_LIGHTNING]: {
-    // The autonomous storm commits when launched, so swapping pets does not erase its remaining pulses.
+    // The autonomous storm survives attack interruption, but its remaining pulses still end on pet swap.
     interruptCommitMs: 0,
     // Share timing defaults while preserving each packet, effect order, and local schedule.
     effects: impactEffects({ timingAnchor: 'castStart', timingScale: 'fixed', persistsAfterInterrupt: true }, [

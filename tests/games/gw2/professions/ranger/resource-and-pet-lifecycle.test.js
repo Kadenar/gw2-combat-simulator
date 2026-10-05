@@ -266,7 +266,8 @@ test('pet retirement ends already-started autonomous damage effects', () => {
   }
 });
 
-test('started commands resolve while the pet exists and stop creating effects after its retirement', () => {
+// Player-stat condition pulses follow the Ranger's lifetime even though a pet launched the command.
+test('started commands resolve and player-owned Embrace conditions survive pet retirement', () => {
   const queued = simulate('Core', [{ type: 'combat-start' }, ID.FURIOUS_POUNCE, wait(4000)]);
   assert.deepEqual(queued.warnings, []);
   assert.ok(queued.resolvedEvents.some((event) => event.type === 'damage' && event.skillId === ID.FURIOUS_POUNCE));
@@ -278,8 +279,12 @@ test('started commands resolve while the pet exists and stop creating effects af
   const swappedAt = persistent.events.find((event) => event.type === 'ranger.pet-swapped').at;
   assert.equal(
     persistent.resolvedEvents.some(
-      (event) => event.type === 'condition' && event.skillId === ID.JACARANDAS_EMBRACE && event.at > swappedAt
+      (event) =>
+        event.type === 'condition' &&
+        event.skillId === ID.JACARANDAS_EMBRACE &&
+        event.actorType === 'player' &&
+        event.at > swappedAt
     ),
-    false
+    true
   );
 });

@@ -13,6 +13,72 @@ const wait = (durationMs) => ({ type: 'wait', durationMs });
 const config = { selectedPet: 'Tiger', selectedPet2: 'Pig' };
 
 for (const output of ['detailed', 'score']) {
+  // Embrace outlives its caster without reviving that pet or moving its effects onto the replacement.
+  test(`Jacaranda's Embrace retains its conditions and pulses after pet swap (${output})`, () => {
+    let originalPet;
+    const result = runRanger(
+      [ID.JACARANDAS_EMBRACE, wait(1500), ID.PET_SWAP, wait(13000)],
+      {
+        specialization: 'Druid',
+        selectedPet: 'Jacaranda',
+        selectedPet2: 'Pig',
+        stats: { expertise: 750 },
+        selectedTraitIds: [TRAIT.BLOOD_MOON]
+      },
+      {
+        output,
+        initialize(runtime) {
+          originalPet = rangerPetCompanionId(runtime);
+        },
+        probes: [
+          [
+            4,
+            (runtime) => {
+              assert.notEqual(rangerPetCompanionId(runtime), originalPet);
+              assert.ok(runtime.combat.companionRetiredAt(originalPet) < runtime.time);
+              assert.ok(runtime.combat.targetHasCondition('Immobilized', runtime.time));
+            }
+          ],
+          [7, (runtime) => assert.ok(runtime.combat.targetHasCondition('Immobilized', runtime.time))],
+          [15, (runtime) => assert.equal(runtime.combat.targetHasCondition('Immobilized', runtime.time), false)]
+        ]
+      }
+    );
+    assert.deepEqual(result.warnings, []);
+    if (output === 'score') return;
+    const swappedAt = result.events.find((event) => event.type === 'ranger.pet-swapped').at;
+    const embrace = result.resolvedEvents.filter(
+      (event) => event.type === 'condition' && event.skillId === ID.JACARANDAS_EMBRACE
+    );
+    assert.ok(embrace.some((event) => event.at < swappedAt && event.expiresAt > swappedAt));
+    assert.ok(embrace.some((event) => event.at > swappedAt));
+    assert.ok(embrace.every((event) => event.summonOwner === originalPet && event.removedAt == null));
+    assert.ok(embrace.every((event) => event.actorType === 'player' && !event.independentConditionOwner));
+    // Player Expertise extends these conditions instead of using the casting pet's independent attributes.
+    assert.ok(embrace.every((event) => event.effectiveDuration === event.duration * 1.5));
+    assert.ok(
+      result.resolvedEvents.some(
+        (event) =>
+          event.skillId === TRAIT.BLOOD_MOON &&
+          event.triggeredBy === "Jacaranda's Embrace" &&
+          event.at > swappedAt &&
+          event.damage > 0
+      )
+    );
+    assert.equal(
+      result.resolvedEvents.some(
+        (event) =>
+          ['damage', 'condition'].includes(event.type) &&
+          event.summonOwner === originalPet &&
+          event.skillId !== ID.JACARANDAS_EMBRACE &&
+          event.at > swappedAt
+      ),
+      false
+    );
+  });
+}
+
+for (const output of ['detailed', 'score']) {
   test(`swap retires only the outgoing boon recipient and never restores its old grants (${output})`, () => {
     let oldPet;
     let replacement;
