@@ -309,8 +309,8 @@ export const antiquaryHooks: RuntimeHooks<ThiefRuntimeState, ThiefSkill> = {
       const state = antiquaryState.from(runtime);
       const at = runtime.time;
       const { windows, duration } = artifactWindow(runtime);
-      state.stealthAttackCharges = balanceProfileNumber(windows, 'resourceGain');
-      state.stealthAttackExpiresAt = at + duration;
+      // Guitar replaces the active bonus-attack grant with the selected artifact count and lifetime.
+      state.bonusStealthAttack = grantCharges(balanceProfileNumber(windows, 'resourceGain'), at + duration);
     },
     'thief.mortar'(runtime) {
       const state = antiquaryState.from(runtime);

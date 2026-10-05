@@ -251,7 +251,5 @@ export interface CatalogEntity {
 }
 
 export interface CatalogLookup {
-  readonly skills?: readonly CatalogEntity[];
-  readonly skillsById?: ReadonlyMap<SkillId, CatalogEntity>;
   readonly skillsByName?: ReadonlyMap<string, CatalogEntity>;
 }

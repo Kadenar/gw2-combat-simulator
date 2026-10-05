@@ -227,5 +227,4 @@ export interface Gw2RuntimeStateLike {
     readonly strike?: number;
     readonly condition?: number;
   };
-  readonly environmentDamage?: number;
 }

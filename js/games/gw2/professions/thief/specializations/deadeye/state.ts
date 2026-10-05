@@ -1,3 +1,4 @@
+import { grantCharges, type ChargeGrant } from '#gw2/platform/combat/resources/charges.js';
 import { createResourceClock } from '#gw2/platform/combat/resources/resource-policy.js';
 import type { ResourceClock } from '#gw2/platform/combat/resources/clock.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
@@ -7,9 +8,10 @@ import {
   definePublicStateDefaults
 } from '#gw2/platform/profession-definition/state.js';
 
-import type { ThiefStealthAttackChargeState, ThiefSkill } from '#gw2/professions/thief/types.js';
+import type { ThiefSkill } from '#gw2/professions/thief/types.js';
 
-export interface DeadeyeState extends ThiefStealthAttackChargeState {
+export interface DeadeyeState {
+  bonusStealthAttack: ChargeGrant;
   markedTargetId: string | null;
   markExpiresAt: number;
   markGeneration: number;
@@ -30,9 +32,8 @@ function createDeadeyeState(): DeadeyeState {
     maliceResolvedActivations: {},
     // Prevents Maleficent Seven from firing more than once per mark application at full malice
     maleficentSevenTriggered: false,
-    // Silent Scope charge path: these mirror AntiquaryState fields so beginStealthAttack can consume them generically
-    stealthAttackCharges: 0,
-    stealthAttackExpiresAt: 0
+    // Silent Scope owns its replacement grant; Core consumes it only for the active specialization.
+    bonusStealthAttack: grantCharges(0, 0)
   };
 }
 
@@ -42,8 +43,7 @@ export const DEADEYE_PUBLIC_STATE_PROJECTION = definePublicStateDefaults({
   markExpiresAt: 0,
   markGeneration: 0,
   malice: createResourceClock(),
-  stealthAttackCharges: 0,
-  stealthAttackExpiresAt: 0,
+  bonusStealthAttack: grantCharges(0, 0),
   maleficentSevenTriggered: false
 } satisfies Partial<DeadeyeState>);
 

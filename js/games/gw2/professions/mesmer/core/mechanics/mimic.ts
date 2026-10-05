@@ -6,8 +6,9 @@ import { MESMER_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/mes
 import { MESMER_SKILL_IDS as ID } from '#gw2/professions/mesmer/data/ids.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import type { MesmerRuntime } from '#gw2/professions/mesmer/types.js';
+import { consumeCharge, grantCharges } from '#gw2/platform/combat/resources/charges.js';
 
-/** Arms Mimic on completion and consumes it on the next eligible completed utility skill. */
+/** Successful completion claims the current grant against the utility's start, including exact expiry. */
 export function completeMimicCast(context: MesmerRuntime, cast: RuntimeCast<MesmerSkill>): void {
   const skill = cast.skill;
   if (cast.cancelled) return;
@@ -18,8 +19,7 @@ export function completeMimicCast(context: MesmerRuntime, cast: RuntimeCast<Mesm
     skill.id === ID.MIMIC ||
     skill.type !== 'Utility' ||
     skill.flipParentId ||
-    core.mimicUntil <= 0 ||
-    core.mimicUntil < cast.start
+    !consumeCharge(core.mimic, cast.start, 0, true)
   ) {
     return;
   }
@@ -28,7 +28,6 @@ export function completeMimicCast(context: MesmerRuntime, cast: RuntimeCast<Mesm
   context.cooldownController.clearAmmoLockout(skill.id);
 
   context.cooldownController.clear(skill.id);
-  core.mimicUntil = 0;
   context.effects.emit({
     kind: 'announcement',
     log: true,
@@ -40,7 +39,9 @@ export function completeMimicCast(context: MesmerRuntime, cast: RuntimeCast<Mesm
 /** Mimic owns arming; the shared observer only consumes later eligible utilities. */
 export function armMimic(context: MesmerRuntime): void {
   const profile = requireBalanceProfileFromContext(context, PROFILE.mimic);
-  professionCoreState(context).mimicUntil = canonicalTime(
+  const expiresAt = canonicalTime(
     context.time + balanceProfileNumber(profile, 'durationMultiplier')
   );
+  // Keep the grant after expiry: an in-flight utility can still claim it using its earlier start.
+  professionCoreState(context).mimic = grantCharges(expiresAt > 0 ? 1 : 0, expiresAt);
 }

@@ -30,7 +30,6 @@ type SkillEffectByType<TType extends SkillEffect['type']> = TType extends Strike
 
 interface BalanceProfileCatalogLike {
   readonly balanceProfilesById?: ReadonlyMap<SkillId, BalanceProfile>;
-  readonly skillsById?: ReadonlyMap<SkillId, Skill>;
   readonly balanceDataContext?: { readonly professionId: string; readonly patchId: string };
 }
 

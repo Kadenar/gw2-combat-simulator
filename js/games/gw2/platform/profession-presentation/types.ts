@@ -210,11 +210,6 @@ export interface ProfessionSkillBarGroup {
   /** Lower values render before other build-selection groups. */
   readonly order?: number;
   readonly selections?: readonly ProfessionSkillBarSelection[];
-  readonly optionSkillIds?: readonly SkillId[];
-  readonly optionEntries?: readonly ProfessionSkillBarSelectionOption[];
-  readonly selectionValue?: string;
-  readonly selectionKey?: string;
-  readonly selectionIndex?: number;
   readonly color?: string;
   readonly className?: string;
   readonly layout?: string;

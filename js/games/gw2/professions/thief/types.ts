@@ -48,12 +48,6 @@ export interface ThiefConfig extends Gw2Config {
   readonly deterministicChoices?: ThiefDeterministicChoices;
 }
 
-// Shared by Core stealth attacks, Deadeye, and Antiquary.
-export interface ThiefStealthAttackChargeState {
-  stealthAttackCharges: number;
-  stealthAttackExpiresAt: number;
-}
-
 export type ThiefArtifactKind = 'offensive' | 'defensive';
 export type ThiefDoubleEdgeOutcome = 'success' | 'backfire';
 

@@ -379,8 +379,7 @@ test('Thief snapshots expose stealth gates, Bounding Dodger, Combat High, and ar
       {
         combatHighExpirations: [6, 8, 10, 12, 14, 16, 18, 20],
         antiquaryDamageUntil: 9,
-        stealthAttackCharges: 2,
-        stealthAttackExpiresAt: 8,
+        bonusStealthAttack: { charges: 2, expiresAt: 8 },
         mistburn: { charges: 4, expiresAt: 10 },
         kryptisDamageUntil: 11,
         chakInitiativeRefundUntil: 12,

@@ -259,7 +259,6 @@ export interface ProfessionFeatureRunner {
   readonly isRunning?: boolean;
   cancel?(): void;
   schedule(run?: boolean): void;
-  run?(value?: string, extra?: number): void;
 }
 
 export interface Gw2AppAdapter extends ProfessionRuntimeApi {

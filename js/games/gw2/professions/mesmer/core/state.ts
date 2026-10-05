@@ -18,7 +18,7 @@ export interface MesmerCoreState {
   cloneSequence: number;
   trackedSkillHits: Record<string, number[]>;
 
-  mimicUntil: number;
+  mimic: ChargeGrant;
   availableFlips: SkillFlipWindows;
   autoattackChains: Record<string, SkillId>;
   chaosStormCasts: number;
@@ -34,7 +34,7 @@ export function createMesmerCoreState(): MesmerCoreState {
     cloneSequence: 0,
     trackedSkillHits: {},
 
-    mimicUntil: 0,
+    mimic: { charges: 0, expiresAt: 0 },
     availableFlips: {},
     autoattackChains: {},
     chaosStormCasts: 0,

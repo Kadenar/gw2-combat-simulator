@@ -355,7 +355,7 @@ export function createSkillDamagePlan(
   const rows = new Map<string, SkillDamageRowDefinition>();
   const occurrences: SkillDamageOccurrence[] = [];
   const addRow = (
-    group: { id: string; title: string; kind: SkillDamageGroupKind },
+    group: { id: string },
     skill: Skill,
     status: SkillDamageRowStatus,
     base: { context: string; weaponSet?: number }

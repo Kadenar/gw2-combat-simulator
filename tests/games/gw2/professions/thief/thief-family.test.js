@@ -32,17 +32,17 @@ test('Antiquary projects its own charge fields and preserves the inactive initia
   // The slice must expose its charges without relying on Deadeye's contribution to the family metadata.
   const { keys, defaults } = ANTIQUARY_PUBLIC_STATE_PROJECTION;
   const state = createAntiquaryState();
-  Object.assign(state, { stealthAttackCharges: 2, stealthAttackExpiresAt: 10 });
+  state.bonusStealthAttack = { charges: 2, expiresAt: 10 };
   const active = projectPublicProfessionState(state, keys, defaults);
   assert.equal(active.initiativePipRows, 3);
-  assert.equal(active.stealthAttackCharges, 2);
-  assert.equal(active.stealthAttackExpiresAt, 10);
+  assert.equal(active.bonusStealthAttack.charges, 2);
+  assert.equal(active.bonusStealthAttack.expiresAt, 10);
 
   const inactive = projectPublicProfessionState({}, keys, defaults);
   assert.equal(Object.hasOwn(inactive, 'initiativePipRows'), true);
   assert.equal(inactive.initiativePipRows, undefined);
-  assert.equal(inactive.stealthAttackCharges, 0);
-  assert.equal(inactive.stealthAttackExpiresAt, 0);
+  assert.equal(inactive.bonusStealthAttack.charges, 0);
+  assert.equal(inactive.bonusStealthAttack.expiresAt, 0);
 });
 
 test('Daredevil projects its Weakening Strikes grant from a detached snapshot', () => {

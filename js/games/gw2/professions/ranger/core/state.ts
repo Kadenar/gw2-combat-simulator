@@ -21,7 +21,7 @@ export interface RangerCoreState {
   autoattackChains: Record<string, SkillId>;
   winterBiteReady: boolean;
 
-  quickDrawUntil: number;
+  quickDraw: ChargeGrant;
   trapCrippleActivations: Record<string, boolean>;
   pendingFrostTrapEvents: SimulationEventBase[];
   bloodThirst: ChargeGrant;
@@ -73,7 +73,7 @@ export function createRangerCoreState(config: RangerConfig = {}): RangerCoreStat
     autoattackChains: {},
     winterBiteReady: false,
 
-    quickDrawUntil: 0,
+    quickDraw: grantCharges(0, 0),
     trapCrippleActivations: {},
     pendingFrostTrapEvents: [],
     bloodThirst: grantCharges(0, 0),
@@ -113,7 +113,7 @@ export const RANGER_CORE_PUBLIC_END_STATE_KEYS: readonly (keyof RangerState)[] =
   'autoattackChains',
   'winterBiteReady',
 
-  'quickDrawUntil',
+  'quickDraw',
   'trapCrippleActivations',
 
   'sharpeningStoneGrants',

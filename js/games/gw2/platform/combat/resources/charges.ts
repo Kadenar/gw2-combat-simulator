@@ -42,6 +42,13 @@ export function grantCharges(charges: number, expiresAt: number, previous?: Char
   };
 }
 
+/** Reads live entitlement without pruning it, including windows claimed against a historical cast start. */
+export function activeChargeCount(grant: Readonly<ChargeGrant> | undefined, at: number, inclusiveExpiry = false): number {
+  return grant && grant.charges > 0 && (inclusiveExpiry ? at <= grant.expiresAt : at < grant.expiresAt)
+    ? grant.charges
+    : 0;
+}
+
 /** Consumes only the selected recipient's grant, preserving each mechanic's explicit expiry boundary and ICD. */
 export function consumeCharge(
   grant: ChargeGrant | undefined,
@@ -51,8 +58,7 @@ export function consumeCharge(
 ): boolean {
   if (
     !grant ||
-    grant.charges <= 0 ||
-    (inclusiveExpiry ? at > grant.expiresAt : at >= grant.expiresAt) ||
+    activeChargeCount(grant, at, inclusiveExpiry) === 0 ||
     (cooldown > 0 && !isInternalCooldownReady(at, grant.readyAt ?? 0))
   )
     return false;

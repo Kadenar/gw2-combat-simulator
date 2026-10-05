@@ -5,14 +5,12 @@ import type { Gw2ProfessionSource } from '#gw2/platform/profession-definition/fa
 
 interface BaselineSimulationWorkerMessage {
   readonly requestId: number;
-  readonly revision: number;
   readonly request: BaselineSimulationRequest;
   readonly warmup?: false;
 }
 
 interface BaselineWarmupMessage {
   readonly requestId: number;
-  readonly revision: number;
   readonly request: Pick<BaselineSimulationRequest, 'gameId' | 'contentId'>;
   readonly warmup: true;
 }

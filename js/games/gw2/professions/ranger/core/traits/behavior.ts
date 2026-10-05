@@ -1,3 +1,4 @@
+import { grantCharges } from '#gw2/platform/combat/resources/charges.js';
 import { professionStaticRulesApplied } from '#gw2/platform/builds/attribute-provenance.js';
 import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
 import type { Gw2NumericStatKey, Gw2ResolvedStats } from '#gw2/platform/combat/query/combat-query.js';
@@ -445,7 +446,7 @@ export function applyRangerWeaponSwapTraits(context: RangerRuntime, skill: Range
     const profile = requireBalanceProfileFromContext(context, TRAIT.QUICK_DRAW);
     const effect = requireEffect(profile, 'boon', 'quickness');
     // The recharge window is trait-owned, so it and its cooldown survive a removed quickness packet.
-    state.quickDrawUntil = at + balanceProfileNumber(profile, 'durationMultiplier');
+    state.quickDraw = grantCharges(1, at + balanceProfileNumber(profile, 'durationMultiplier'));
     if (effect)
       context.effects.emit({
         kind: 'packet',

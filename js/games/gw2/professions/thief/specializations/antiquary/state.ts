@@ -8,7 +8,7 @@ import {
 } from '#gw2/platform/profession-definition/state.js';
 import type { SkillId } from '#gw2/platform/skills/types.js';
 import type { Gw2PlanningStateInput } from '#gw2/platform/results/types.js';
-import type { ThiefArtifactKind, ThiefConfig, ThiefStealthAttackChargeState } from '#gw2/professions/thief/types.js';
+import type { ThiefArtifactKind, ThiefConfig } from '#gw2/professions/thief/types.js';
 import { boundedNumber } from '#kernel/core/numeric.js';
 
 export interface ThiefArtifactSlot {
@@ -16,7 +16,8 @@ export interface ThiefArtifactSlot {
   readonly skillId: SkillId;
 }
 
-export interface AntiquaryState extends ThiefStealthAttackChargeState {
+export interface AntiquaryState {
+  bonusStealthAttack: ChargeGrant;
   initiativePipRows: number;
   artifactSlots: ThiefArtifactSlot[];
   artifactUsesRemaining: number;
@@ -48,8 +49,7 @@ export function createAntiquaryState(config: ThiefConfig = {}): AntiquaryState {
     nextSkrittScufflePilferAt: 0,
     antiquaryDamageUntil: 0,
     combatHighExpirations: [],
-    stealthAttackCharges: 0,
-    stealthAttackExpiresAt: 0,
+    bonusStealthAttack: grantCharges(0, 0),
     mistburn: grantCharges(0, 0),
     kryptisDamageUntil: 0,
     chakInitiativeRefundUntil: 0,
@@ -74,8 +74,7 @@ export const ANTIQUARY_PUBLIC_STATE_PROJECTION = definePublicStateDefaults({
   nextSkrittScufflePilferAt: 0,
   antiquaryDamageUntil: 0,
   combatHighExpirations: [],
-  stealthAttackCharges: 0,
-  stealthAttackExpiresAt: 0,
+  bonusStealthAttack: grantCharges(0, 0),
   mistburn: grantCharges(0, 0),
   kryptisDamageUntil: 0,
   chakInitiativeRefundUntil: 0,

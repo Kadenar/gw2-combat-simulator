@@ -14,8 +14,7 @@ export function isBeastSkill(skill: RangerSkill): boolean {
   return Boolean(skill.petSkill && !skill.petFamilySkill);
 }
 
-// Route completed casts through shared Ranger trait families while consuming
-// transient Quick Draw state only on the next qualifying weapon skill.
+// Route successful completions to their trait rewards; recharge reservations happen at acceptance.
 export function completeRangerTraits(context: RangerRuntime, skill: RangerSkill): void {
   if (skill.type === 'Heal') emitChildOfEarth(context, skill);
 

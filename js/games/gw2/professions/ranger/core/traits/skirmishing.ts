@@ -1,3 +1,4 @@
+import { activeChargeCount, consumeCharge } from '#gw2/platform/combat/resources/charges.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
 import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
@@ -82,15 +83,15 @@ export const quickDraw = defineTrait({
     {
       order: 0,
       when: (runtime: MechanicQueriesOf<RangerRuntime>, skill) =>
-        skill.type === 'Weapon' && skill.slot !== 'Weapon_1' && runtime.profession.core.quickDrawUntil > runtime.time,
+        skill.type === 'Weapon' && skill.slot !== 'Weapon_1' && activeChargeCount(runtime.profession.core.quickDraw, runtime.time) > 0,
       multiplier: { profile: TRAIT.QUICK_DRAW, field: 'rechargeMultiplier' }
     }
   ],
   hooks: {
     reserveRecharge(runtime: RangerRuntime, skill, work) {
       // Quick Draw is reserved at acceptance so concurrent casts cannot consume the same grant twice.
-      if (skill.type === 'Weapon' && skill.slot !== 'Weapon_1' && runtime.profession.core.quickDrawUntil > runtime.time)
-        runtime.profession.core.quickDrawUntil = 0;
+      if (skill.type === 'Weapon' && skill.slot !== 'Weapon_1')
+        consumeCharge(runtime.profession.core.quickDraw, runtime.time);
       return work;
     }
   }

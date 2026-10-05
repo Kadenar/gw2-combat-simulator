@@ -165,9 +165,16 @@ test('removed Quick Draw quickness keeps the trait-owned recharge window and coo
   };
   applyRangerWeaponSwapTraits(context, rangerCatalog.skillsById.get(SHARED_SKILL_IDS.SWAP_WEAPONS), 1);
   const core = context.state.profession.core;
-  assert.equal(core.quickDrawUntil, 6);
+  assert.equal(core.quickDraw.expiresAt, 6);
+  assert.equal(core.quickDraw.charges, 1);
   assert.equal(context.procs.deadline('ranger.core.quickDraw'), 10);
   assert.deepEqual(events, []);
+  // The grant cannot bypass the trait's independent ICD, even when its boon packet is absent.
+  applyRangerWeaponSwapTraits(context, rangerCatalog.skillsById.get(SHARED_SKILL_IDS.SWAP_WEAPONS), 2);
+  assert.equal(core.quickDraw.expiresAt, 6);
+  applyRangerWeaponSwapTraits(context, rangerCatalog.skillsById.get(SHARED_SKILL_IDS.SWAP_WEAPONS), 10);
+  assert.equal(core.quickDraw.expiresAt, 15);
+  assert.equal(core.quickDraw.charges, 1);
 });
 
 test('removed Poisonous Strikes poison leaves its charges unspent', () => {

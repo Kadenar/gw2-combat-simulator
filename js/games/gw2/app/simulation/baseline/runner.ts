@@ -42,7 +42,6 @@ export class BaselineSimulationRunner {
       worker = this.createWorker();
       worker.postMessage({
         requestId: 0,
-        revision: -1,
         warmup: true,
         request: { gameId: this.app.gameId, contentId: this.app.contentId }
       });
@@ -142,7 +141,8 @@ export class BaselineSimulationRunner {
     try {
       // Worker construction can be blocked by browser policy; failures use the same cleanup path as postMessage errors.
       worker ||= this.createWorker();
-      worker.postMessage(job);
+      // Revision and chart-publication policy stay with the runner; the worker only needs the calculation request.
+      worker.postMessage({ requestId: job.requestId, request: job.request });
     } catch (error) {
       worker?.terminate();
       if (this.worker === worker) this.worker = null;

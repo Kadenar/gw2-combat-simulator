@@ -99,7 +99,7 @@ test('Mimic accepts utility starts through its exact deadline and consumes the r
       rechargeWork: 0,
       skill: mimic
     });
-    assert.equal(core.mimicUntil, 10.301);
+    assert.equal(core.mimic.expiresAt, 10.301);
     context.start = start;
     context.fullEnd = start + 1;
     context.cooldownController.setReadyAt(utility.id, 99);
@@ -117,6 +117,7 @@ test('Mimic accepts utility starts through its exact deadline and consumes the r
     });
     const consumed = start <= 10.301;
     assert.equal(context.cooldownController.hasCooldown(utility.id), !consumed);
+    assert.equal(core.mimic.charges, consumed ? 0 : 1);
     assert.equal(context.events.filter((event) => event.source === 'Mimic').length, consumed ? 1 : 0);
     context.cooldownController.setReadyAt(utility.id, 100);
     complete(context, {
@@ -159,7 +160,7 @@ test('Mimic refresh replaces the deadline while cancelled casts and flips leave 
     rechargeWork: 0,
     skill: mimic
   });
-  assert.equal(core.mimicUntil, 11.301);
+  assert.equal(core.mimic.expiresAt, 11.301);
   context.action.cancelled = true;
   context.fullEnd = 2.301;
   complete(context, {
@@ -182,7 +183,7 @@ test('Mimic refresh replaces the deadline while cancelled casts and flips leave 
     rechargeWork: 0,
     skill: context.catalog.skillsById.get(ID.SIGNET_OF_ILLUSIONS)
   });
-  assert.equal(core.mimicUntil, 11.301);
+  assert.equal(core.mimic.expiresAt, 11.301);
   context.action.cancelled = false;
   complete(context, {
     start: context.start,
@@ -194,7 +195,44 @@ test('Mimic refresh replaces the deadline while cancelled casts and flips leave 
     rechargeWork: 0,
     skill: { id: -1, type: 'Utility', flipParentId: 1 }
   });
-  assert.equal(core.mimicUntil, 11.301);
+  assert.equal(core.mimic.expiresAt, 11.301);
+});
+
+// Resetting the skill's deadline clears its lockout but leaves independently recharging ammunition spent.
+test('Mimic resets cooldown and lockout without restoring ammunition', () => {
+  const context = lifetimeContext();
+  const mimic = context.catalog.skillsById.get(ID.MIMIC);
+  const utility = { ...context.catalog.skillsById.get(ID.SIGNET_OF_ILLUSIONS), ammo: 2 };
+  complete(context, { skill: mimic, start: 0, fullEnd: 1, command: {}, id: 'mimic' });
+  context.cooldownController.spendAmmo(utility, 2, 100);
+  context.cooldownController.setAmmoLockout(utility, 99, 2);
+  complete(context, { skill: utility, start: 2, fullEnd: 3, command: {}, id: 'utility' });
+  const ammo = context.cooldownController.ensureAmmo(utility);
+  assert.equal(ammo.charges, 1);
+  assert.equal(ammo.recharges.length, 1);
+  assert.equal(ammo.lockoutReadyAt, undefined);
+  assert.equal(context.cooldownController.hasCooldown(utility.id), false);
+});
+
+// Completion consumes the currently armed window, even if it was replaced after the utility started.
+test('Mimic rearming during overlapping utilities rewards the first successful completion only', () => {
+  const context = lifetimeContext();
+  const mimic = context.catalog.skillsById.get(ID.MIMIC);
+  const utility = context.catalog.skillsById.get(ID.SIGNET_OF_ILLUSIONS);
+  const cast = (skill, start, fullEnd, cancelled = false) => ({
+    skill, start, fullEnd, cancelled, command: {}, id: String(fullEnd), rechargeWork: 0
+  });
+  complete(context, cast(mimic, 0, 1));
+  complete(context, cast(mimic, 3, 4));
+  context.cooldownController.setReadyAt(utility.id, 99);
+  complete(context, cast(utility, 2, 5, true));
+  assert.equal(context.cooldownController.readyAt(utility.id), 99);
+  complete(context, cast(utility, 2, 15));
+  assert.equal(context.cooldownController.hasCooldown(utility.id), false);
+  context.cooldownController.setReadyAt(utility.id, 99);
+  complete(context, cast(utility, 3, 16));
+  assert.equal(context.cooldownController.readyAt(utility.id), 99);
+  assert.equal(context.events.filter((event) => event.source === 'Mimic').length, 1);
 });
 
 test('Mirror availability, palette, projection, and one-time pickup agree on exact half-open boundaries', () => {

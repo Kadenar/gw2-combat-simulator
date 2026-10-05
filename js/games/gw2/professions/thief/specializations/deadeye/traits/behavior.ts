@@ -1,3 +1,4 @@
+import { grantCharges } from '#gw2/platform/combat/resources/charges.js';
 import type { ThiefSkill } from '#gw2/professions/thief/types.js';
 import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
 import type { Gw2ResolvedStats } from '#gw2/platform/combat/query/combat-query.js';
@@ -171,8 +172,8 @@ export function grantSilentScope(runtime: ThiefRuntime, cast: RuntimeCast<ThiefS
   if (skill.id === SHARED_SKILL_IDS.DODGE && hasTrait(runtime, TRAIT.SILENT_SCOPE)) {
     const silentScope = requireBalanceProfileFromContext(runtime, TRAIT.SILENT_SCOPE);
     if (state.malice.value > balanceProfileNumber(silentScope, 'threshold')) {
-      state.stealthAttackCharges = 1;
-      state.stealthAttackExpiresAt = runtime.time + balanceProfileNumber(silentScope, 'durationMultiplier');
+      // Reapplying Silent Scope replaces the prior bonus rather than stacking attacks.
+      state.bonusStealthAttack = grantCharges(1, runtime.time + balanceProfileNumber(silentScope, 'durationMultiplier'));
     }
   }
 }

@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import {
   activeChargeGrants,
+  activeChargeCount,
   consumeCharge,
   expireCharges,
   grantCharges,
@@ -31,6 +32,18 @@ test('charge refresh survives old expiry, preserves ICD, and keeps independent r
   active[0].charges = 1;
   assert.equal(consumeCharge(grantCharges(1, 4), 4), false);
   assert.equal(consumeCharge(grantCharges(1, 4), 4, 0, true), true);
+});
+
+// Expired observations cannot erase entitlement needed by a later completion with an earlier eligibility time.
+test('charge queries are read-only and distinguish exclusive from inclusive expiry', () => {
+  const grant = Object.freeze(grantCharges(2, 5));
+  assert.equal(activeChargeCount(undefined, 0), 0);
+  assert.equal(activeChargeCount(grant, 4), 2);
+  assert.equal(activeChargeCount(grant, 5), 0);
+  assert.equal(activeChargeCount(grant, 5, true), 2);
+  assert.equal(activeChargeCount(grant, 6, true), 0);
+  assert.equal(activeChargeCount(grant, 4), 2);
+  assert.equal(activeChargeCount(grantCharges(0, 5), 4), 0);
 });
 
 test('anchored accrual queries retain their original anchor', () => {

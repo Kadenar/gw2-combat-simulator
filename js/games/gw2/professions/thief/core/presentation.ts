@@ -1,3 +1,4 @@
+import { activeChargeCount } from '#gw2/platform/combat/resources/charges.js';
 import { activeStackCount } from '#gw2/platform/combat/resources/timed-stacks.js';
 import { readProfessionCoreState } from '#gw2/platform/profession-definition/state.js';
 import type {
@@ -190,7 +191,7 @@ export const thiefCoreUi = Object.freeze({
         ((state.stealthStartedAt || 0) <= now &&
           (state.stealthUntil || 0) > now &&
           (state.revealedUntil || 0) <= now) ||
-        ((state.stealthAttackCharges || 0) > 0 && (state.stealthAttackExpiresAt || 0) > now)
+        activeChargeCount(state.bonusStealthAttack, now) > 0
     };
   },
   // Equal-duration grants replace oldest stacks, so capping their active sum matches the engine's stack count.

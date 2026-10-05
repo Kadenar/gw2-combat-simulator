@@ -28,6 +28,10 @@ import { DEADEYE_STOLEN_SKILL_IDS } from '#gw2/professions/thief/specializations
 import { storeThiefStolenSkillChoices } from '#gw2/professions/thief/core/mechanics/steal.js';
 import { runThief } from '#tests/helpers/thief-simulation.js';
 import { withProfile, withSkill } from '#tests/helpers/catalog-overrides.js';
+import { grantSilentScope } from '#gw2/professions/thief/specializations/deadeye/traits/behavior.js';
+import { antiquaryHooks } from '#gw2/professions/thief/specializations/antiquary/hooks.js';
+import { thiefBonusStealthAttack } from '#gw2/professions/thief/core/mechanics/stealth.js';
+import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
 
 const baseConfig = Object.freeze({
   selectedSkillIds: [13027, 13046, 41158, 46335, 13082],
@@ -95,7 +99,7 @@ test('Thief weapon matching keeps hand requirements behind profession variant ga
 });
 
 test('bonus stealth attacks consume only active elite charges and prefer ordinary stealth', () => {
-  // Legacy fields on Core must neither unlock attacks nor absorb elite charge consumption.
+  // A grant misplaced on Core cannot unlock attacks or absorb active-elite consumption.
   for (const specialization of ['Core', 'Daredevil', 'Deadeye', 'Specter', 'Antiquary']) {
     for (const stealthed of [false, true]) {
       for (const expiresAt of [5, 6]) {
@@ -107,15 +111,14 @@ test('bonus stealth attacks consume only active elite charges and prefer ordinar
           {
             initialize(runtime) {
               const { core, specialization: elite } = runtime.profession;
-              assert.equal(Object.hasOwn(core, 'stealthAttackCharges'), false);
+              assert.equal(Object.hasOwn(core, 'bonusStealthAttack'), false);
               Object.assign(core, {
-                stealthAttackCharges: 99,
-                stealthAttackExpiresAt: 100,
+                bonusStealthAttack: { charges: 99, expiresAt: 100 },
                 stealthStartedAt: 0,
                 stealthUntil: stealthed ? 6 : 0
               });
               if (ownsCharges)
-                Object.assign(elite.state, { stealthAttackCharges: 2, stealthAttackExpiresAt: expiresAt });
+                Object.assign(elite.state, { bonusStealthAttack: { charges: 2, expiresAt } });
             }
           }
         );
@@ -127,11 +130,51 @@ test('bonus stealth attacks consume only active elite charges and prefer ordinar
           assert.equal(core.revealedUntil, 8);
         }
 
-        assert.equal(core.stealthAttackCharges, 99);
-        assert.equal(core.stealthAttackExpiresAt, 100);
-        assert.equal(elite.state.stealthAttackCharges, ownsCharges ? (!stealthed && available ? 1 : 2) : undefined);
+        assert.equal(core.bonusStealthAttack.charges, 99);
+        assert.equal(core.bonusStealthAttack.expiresAt, 100);
+        assert.equal(elite.state.bonusStealthAttack?.charges, ownsCharges ? (!stealthed && available ? 1 : 2) : undefined);
       }
     }
+  }
+});
+
+// Both owners replace their own grant using selected tuning; availability and palette reads leave it intact.
+test('Silent Scope and Guitar replace bonus stealth attacks with selected counts and lifetimes', () => {
+  for (const specialization of ['Deadeye', 'Antiquary']) {
+    const deadeye = specialization === 'Deadeye';
+    const profile = deadeye ? TRAIT.SILENT_SCOPE : ANTIQUARY_BALANCE_PROFILE_IDS.artifactWindows;
+    const result = runThief([], { ...baseConfig, specialization, selectedTraitIds: [TRAIT.SILENT_SCOPE] }, {
+      catalog: (catalog) => applyBalanceProfilePatch(catalog, {
+        balanceProfiles: { [profile]: deadeye ? { durationMultiplier: 7 } : { durationMultiplier: 7, resourceGain: 3 } }
+      })
+    });
+    const runtime = observedRuntime(result);
+    const state = runtime.profession.specialization.state;
+    const grant = () => {
+      if (deadeye) {
+        state.malice.value = 5;
+        grantSilentScope(runtime, { skill: runtime.catalog.skillsById.get(SHARED_SKILL_IDS.DODGE) });
+      } else antiquaryHooks.sideEffectHandlers['thief.guitar'](runtime);
+    };
+    runtime.time = 1;
+    grant();
+    const first = state.bonusStealthAttack;
+    assert.equal(first.charges, deadeye ? 1 : 3);
+    assert.equal(first.expiresAt, 8);
+    runtime.time = 2;
+    grant();
+    assert.notEqual(state.bonusStealthAttack, first);
+    assert.equal(state.bonusStealthAttack.charges, deadeye ? 1 : 3);
+    assert.equal(state.bonusStealthAttack.expiresAt, 9);
+    const before = structuredClone(state.bonusStealthAttack);
+    for (const at of [8, 9, 10]) {
+      assert.equal(thiefBonusStealthAttack(runtime, at), at < 9);
+      const skill = runtime.catalog.skillsByName.get(deadeye ? 'Malicious Backstab' : 'Backstab');
+      assert.equal(thiefProfession.ui.paletteOverride({
+        specialization, time: at, professionState: { bonusStealthAttack: state.bonusStealthAttack }
+      }, skill).tileActive, at < 9);
+    }
+    assert.deepEqual(state.bonusStealthAttack, before);
   }
 });
 
@@ -1669,7 +1712,7 @@ test('Deadeye strike modifiers, grandmasters, and stealth attacks use supplied v
   );
 
   assert.equal(silent.warnings.length, 0);
-  assert.equal(silent.planningState.profession.stealthAttackCharges, 0);
+  assert.equal(silent.planningState.profession.bonusStealthAttack.charges, 0);
 
   const maliciousSneak = simulate('Deadeye', ["Deadeye's Mark", 'Unload', 'Steal Time', 'Malicious Sneak Attack'], {
     ...fullCrit,
