@@ -1,6 +1,6 @@
-import { balanceProfileNumber } from '#gw2/platform/skills/balance-profiles.js';
+import { createResourceClock } from '#gw2/platform/combat/resources/resource-policy.js';
+import type { ResourceClock } from '#gw2/platform/combat/resources/clock.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
-import { DEADEYE_RESOURCE_PROFILE } from '#gw2/professions/thief/specializations/deadeye/profiles.js';
 
 import {
   defineProfessionSpecializationState,
@@ -13,21 +13,19 @@ export interface DeadeyeState extends ThiefStealthAttackChargeState {
   markedTargetId: string | null;
   markExpiresAt: number;
   markGeneration: number;
-  malice: number;
-  maximumMalice: number;
+  malice: ResourceClock;
   maliceResolvedActivations: Record<string, boolean>;
   maleficentSevenTriggered: boolean;
 }
 
-function createDeadeyeState(maximumMalice: number): DeadeyeState {
+/** Starts an empty pool; the selected runtime policy supplies its trait and patch capacity. */
+function createDeadeyeState(): DeadeyeState {
   return {
     markedTargetId: null,
     markExpiresAt: 0,
     // Bumped each time Deadeye's Mark is applied; the expiry task checks this to ignore stale scheduled expirations
     markGeneration: 0,
-    malice: 0,
-    // Module composition supplies authored defaults; initialization applies the selected patch.
-    maximumMalice,
+    malice: createResourceClock(),
     // Tracks which activationIds have already had their malice effect applied to prevent multi-hit double-counting
     maliceResolvedActivations: {},
     // Prevents Maleficent Seven from firing more than once per mark application at full malice
@@ -38,13 +36,12 @@ function createDeadeyeState(maximumMalice: number): DeadeyeState {
   };
 }
 
-// Inactive public fallbacks declare only the Deadeye fields exposed by the family projection.
+// Detached defaults describe fields exposed only when the Deadeye module is active.
 export const DEADEYE_PUBLIC_STATE_PROJECTION = definePublicStateDefaults({
   markedTargetId: null,
   markExpiresAt: 0,
   markGeneration: 0,
-  malice: 0,
-  maximumMalice: balanceProfileNumber(DEADEYE_RESOURCE_PROFILE, 'maximumStacks'),
+  malice: createResourceClock(),
   stealthAttackCharges: 0,
   stealthAttackExpiresAt: 0,
   maleficentSevenTriggered: false

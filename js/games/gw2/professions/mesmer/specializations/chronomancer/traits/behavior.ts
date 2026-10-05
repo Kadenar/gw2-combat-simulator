@@ -1,4 +1,4 @@
-import { createMesmerResources, mesmerActivePrimaryWeapon } from '#gw2/professions/mesmer/family-mechanics.js';
+import { createMesmerIllusionRewards, mesmerActivePrimaryWeapon } from '#gw2/professions/mesmer/family-mechanics.js';
 import type { MesmerEventExtra } from '#gw2/professions/mesmer/data/types.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import type { SimulationEvent } from '#gw2/platform/events/events.js';
@@ -168,7 +168,7 @@ export function resolveIllusionaryReversion(context: MesmerRuntime, resolution: 
   }
 
   const illusionaryReversionProfile = requireBalanceProfileFromContext(context, TRAIT.ILLUSIONARY_REVERSION);
-  createMesmerResources(context).queueResources(
+  createMesmerIllusionRewards(context).queueResources(
     resolution.at,
     balanceProfileNumber(illusionaryReversionProfile, 'resourceGain'),
     mesmerActivePrimaryWeapon(context),

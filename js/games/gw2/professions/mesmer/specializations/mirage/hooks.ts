@@ -1,5 +1,5 @@
 import {
-  createMesmerResources,
+  createMesmerIllusionRewards,
   createMesmerActions,
   mesmerActivePrimaryWeapon
 } from '#gw2/professions/mesmer/family-mechanics.js';
@@ -37,7 +37,7 @@ export const mirageHooks: RuntimeHooks<MesmerRuntimeState, MesmerSkill> = {
   onCastCommit(runtime, cast) {
     completeMirageSkill(runtime, cast, {
       currentResource: () => createMesmerActions(runtime).currentResource(),
-      queueResources: (...args) => createMesmerResources(runtime).queueResources(...args),
+      queueResources: (...args) => createMesmerIllusionRewards(runtime).queueResources(...args),
       activePrimaryWeapon: () => mesmerActivePrimaryWeapon(runtime)
     });
     for (const trigger of cast.skill.tasks ?? [])
@@ -49,7 +49,7 @@ export const mirageHooks: RuntimeHooks<MesmerRuntimeState, MesmerSkill> = {
   tasks: {
     'mesmer.mirage.ambush-clone'(runtime, data) {
       const cast = (data as TriggerData).cast;
-      createMesmerResources(runtime).queueResources(
+      createMesmerIllusionRewards(runtime).queueResources(
         runtime.time,
         1,
         cast.skill.weapon || mesmerActivePrimaryWeapon(runtime),
@@ -72,7 +72,7 @@ export const mirageHooks: RuntimeHooks<MesmerRuntimeState, MesmerSkill> = {
     'mesmer.mirage.dodge'(runtime, data) {
       const { cast } = data as TriggerData;
       createMirageMechanics(runtime).grantMirageCloak(runtime.time, cast.skill.name);
-      triggerDeceptiveEvasion(runtime, (...args) => createMesmerResources(runtime).queueResources(...args));
+      triggerDeceptiveEvasion(runtime, (...args) => createMesmerIllusionRewards(runtime).queueResources(...args));
     }
   }
 };

@@ -10,10 +10,23 @@ import {
 } from '#gw2/professions/mesmer/specializations/troubadour/mechanics/instruments.js';
 import { resolveTroubadourTale } from '#gw2/professions/mesmer/specializations/troubadour/mechanics/tales.js';
 import { activeTroubadourInstrumentsAt } from '#gw2/professions/mesmer/specializations/troubadour/state.js';
+import { troubadourState } from '#gw2/professions/mesmer/specializations/troubadour/state.js';
+import { boundedNumber } from '#kernel/core/numeric.js';
+import { mesmerResourceDefinition } from '#gw2/professions/mesmer/family-state.js';
 import type { MesmerRuntimeState } from '#gw2/professions/mesmer/types.js';
 
 /** Instruments commit notes on completion; delayed waves and accepted disables retain their own timing. */
 export const troubadourHooks: RuntimeHooks<MesmerRuntimeState, MesmerSkill> = {
+  // Seed the selected pool before initialization; only earned gains trigger illusion rewards.
+  resources: {
+    notes: {
+      kind: 'continuous',
+      state: (context) => troubadourState.from(context).notes,
+      maximum: (context) => mesmerResourceDefinition('Troubadour', context).maximum,
+      initial: (context, maximum) => boundedNumber(context.config.initialResource ?? 0, 0, 0, maximum),
+      recovery: () => 0
+    }
+  },
   initialize(runtime) {
     // Seed selected instrument ammo before accepting casts.
     for (const skill of runtime.helpers.skills) runtime.cooldownController.ensureAmmo(skill);

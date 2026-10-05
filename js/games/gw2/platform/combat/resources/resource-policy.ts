@@ -9,6 +9,7 @@ export const RESOURCE_KEYS = [
   'tomePages',
   'arrows',
   'initiative',
+  'malice',
   'shadowForce',
   'astralForce',
   'energy',
@@ -21,6 +22,8 @@ export const RESOURCE_KEYS = [
   'dragonCharges',
   'familiarCharges',
   'empoweredCharges',
+  'blades',
+  'notes',
   'lifeForce'
 ] as const;
 export type ResourceKey = (typeof RESOURCE_KEYS)[number];

@@ -213,7 +213,7 @@ test('Harmonious Harp replays at 480ms after its Harp Playing packet commits wit
   assert.equal(interrupted.steps[0].fullCastMs, full.steps[0].fullCastMs);
   assert.equal(interrupted.steps[0].end - interrupted.steps[0].start, 480);
   assert.equal(interrupted.steps[0].interrupted, true);
-  assert.equal(interrupted.planningState.profession.resource, 0);
+  assert.equal(interrupted.planningState.profession.notes.value, 0);
   const instrument = interrupted.events.find(
     (event) => event.type === 'mesmer.instrument' && event.instrument === 'Harp'
   );
@@ -319,7 +319,7 @@ test('Tortured Mastermind follows its four-hit condition timeline', () => {
       (event) => event.type === 'damage' && event.skillName === 'Syncopate' && event.at === 3.92
     )
   );
-  assert.equal(result.planningState.profession.resource, 1);
+  assert.equal(result.planningState.profession.notes.value, 1);
 });
 
 test('Chaotic Interruption recharges a phantasm cast before Tortured Mastermind delayed control lands', () => {
@@ -376,7 +376,7 @@ test('Troubadour tales grant their boons and instrument-specific notes', () => {
       })
     );
 
-    assert.equal(result.planningState.profession.resource, expectedNotes, tale);
+    assert.equal(result.planningState.profession.notes.value, expectedNotes, tale);
     assert.ok(
       result.events.some((event) => event.type === 'mesmer.instrument' && instrument.includes(event.instrument))
     );
@@ -424,7 +424,7 @@ test('Tale of the Honorable Rogue owns its Aegis, note gate, and two-charge timi
     casts.map((step) => step.start),
     [0, 3200, 20000]
   );
-  assert.equal(result.planningState.profession.resource, 0);
+  assert.equal(result.planningState.profession.notes.value, 0);
   assert.equal(aegis.length, 3);
   assert.ok(aegis.every((event) => event.duration === 4));
 });
@@ -700,7 +700,7 @@ test('Harmonize, Call and Response, Fortissimo, and Altered Chord execute', () =
     harmonize.events.filter((event) => event.type === 'resource').map((event) => event.reason),
     ['Harmonize', 'Phantasmal Swordsman phantasm conversion']
   );
-  assert.equal(harmonize.planningState.profession.resource, 2);
+  assert.equal(harmonize.planningState.profession.notes.value, 2);
 
   const response = simulateMesmer(
     ['Lively Lute', { name: '__wait', waitMs: 2500 }],

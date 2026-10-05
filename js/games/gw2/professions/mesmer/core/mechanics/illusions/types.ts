@@ -69,7 +69,7 @@ export interface MesmerCloneAttackScheduler {
   initializeClone(clone: MesmerClone): MesmerClone;
 }
 
-export interface MesmerResourceController {
+export interface MesmerIllusionRewards {
   gainResources(
     at: number,
     count: number,

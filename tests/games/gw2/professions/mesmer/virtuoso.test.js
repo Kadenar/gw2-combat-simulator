@@ -51,9 +51,9 @@ test('Infinite Forge refunds two blades only after a completed five-blade Blades
     (event) => event.type === 'resource' && event.reason === 'Infinite Forge refund'
   );
 
-  assert.equal(fullShatter.planningState.profession.resource, 2);
-  assert.equal(partialShatter.planningState.profession.resource, 0);
-  assert.equal(interruptedShatter.planningState.profession.resource, 5);
+  assert.equal(fullShatter.planningState.profession.blades.value, 2);
+  assert.equal(partialShatter.planningState.profession.blades.value, 0);
+  assert.equal(interruptedShatter.planningState.profession.blades.value, 5);
   assert.equal(refund.amount, 2);
   assert.equal(refund.at, action.fullEndsAt);
 });
@@ -335,9 +335,9 @@ test('Bloodsong needs real bleeding and does not treat blade hits as bleeding', 
     })
   );
 
-  assert.equal(withoutJaggedMind.planningState.profession.resource, 0);
+  assert.equal(withoutJaggedMind.planningState.profession.blades.value, 0);
   assert.equal(withoutJaggedMind.conditionDamage, 0);
-  assert.equal(withJaggedMind.planningState.profession.resource, 1);
+  assert.equal(withJaggedMind.planningState.profession.blades.value, 1);
   assert.ok(withJaggedMind.conditionDamage > 0);
 });
 
@@ -414,7 +414,7 @@ test('Thousand Cuts spreads ten packets and triggers Bloodsong', () => {
 
   assertEventTimes(damageTimes, expected, 'Thousand Cuts damage');
   assertEventTimes(bleedTimes, expected, 'Thousand Cuts bleeding');
-  assert.equal(result.planningState.profession.resource, 2);
+  assert.equal(result.planningState.profession.blades.value, 2);
 });
 
 test('Unstable Bladestorm anchors paired packets to cast start', () => {
@@ -442,7 +442,7 @@ test('Unstable Bladestorm anchors paired packets to cast start', () => {
     .map((event) => event.at);
   assertEventTimes(damageTimes, expected, 'Unstable Bladestorm damage');
   assertEventTimes(bleedTimes, expected, 'Unstable Bladestorm bleeding');
-  assert.equal(result.planningState.profession.resource, 1);
+  assert.equal(result.planningState.profession.blades.value, 1);
 });
 
 test('Mesmer critical traits consume the same seeded hit outcomes in both modes', () => {
@@ -599,7 +599,7 @@ test('configured Virtuoso bladesongs spend blades at cast end', () => {
       (event) => event.type === 'resource' && event.activationId === action.activationId
     );
 
-    assert.equal(result.planningState.profession.resource, 0);
+    assert.equal(result.planningState.profession.blades.value, 0);
     assert.equal(spend.amount, -5);
     assert.equal(spend.activationId, result.steps[0].activationId);
     assert.ok(Math.abs(spend.at - action.fullEndsAt) < 0.00001, `${skillName} spent blades before cast end`);
@@ -628,7 +628,7 @@ test('interrupting a bladesong restores its reserved blades', () => {
     defaultSimulationConfig({ initialResource: 5 })
   );
 
-  assert.equal(result.planningState.profession.resource, 5);
+  assert.equal(result.planningState.profession.blades.value, 5);
   assert.equal(
     result.events.some(
       (event) => event.type === 'resource' && event.activationId === result.steps[0].activationId && event.amount < 0

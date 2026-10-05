@@ -1,12 +1,13 @@
 import type { Gw2PlanningStateInput } from '#gw2/platform/results/types.js';
 import { snapshotProfessionState } from '#gw2/platform/profession-definition/state.js';
-import { mesmerResourceDefinition } from '#gw2/professions/mesmer/family-state.js';
+import { createResourceClock } from '#gw2/platform/combat/resources/resource-policy.js';
+import type { ResourceClock } from '#gw2/platform/combat/resources/clock.js';
 import { defineProfessionSpecializationState } from '#gw2/platform/profession-definition/state.js';
 import { canonicalTime } from '#kernel/core/clock.js';
 import type { SimulationEvent } from '#gw2/platform/events/events.js';
 
 export interface MesmerTroubadourState {
-  numericResource: number;
+  notes: ResourceClock;
   endurance: number;
   enduranceUpdatedAt: number;
   instruments: Record<string, number>;
@@ -16,7 +17,7 @@ export interface MesmerTroubadourState {
 /** Starts Troubadour resources with no instrument performance carried into the simulation. */
 function createTroubadourState(): MesmerTroubadourState {
   return {
-    numericResource: 0,
+    notes: createResourceClock(),
     endurance: 100,
     enduranceUpdatedAt: 0,
     instruments: {},
@@ -60,8 +61,7 @@ export function projectTroubadourPlanningState(input: Gw2PlanningStateInput) {
   const state = snapshotProfessionState(input.profession) as MesmerTroubadourState;
   const at = canonicalTime(input.time);
   return {
-    resource: state.numericResource,
-    resourceDefinition: mesmerResourceDefinition('Troubadour', { catalog: input.catalog }),
+    notes: state.notes,
     endurance: state.endurance,
     activeInstruments: Object.entries(state.instruments)
       .filter(([, expiresAt]) => expiresAt > at)

@@ -19,7 +19,7 @@ import {
 } from '#gw2/professions/mesmer/specializations/mirage/traits/behavior.js';
 import { mirageAvailability } from '#gw2/professions/mesmer/specializations/mirage/mechanics/cloak-and-ambushes.js';
 import { mirageHooks } from '#gw2/professions/mesmer/specializations/mirage/hooks.js';
-import { createMesmerResources } from '#gw2/professions/mesmer/family-mechanics.js';
+import { createMesmerIllusionRewards } from '#gw2/professions/mesmer/family-mechanics.js';
 
 // Real profiles and specialization initialization isolate the lifetime contracts from rotation and cast timing.
 function lifetimeContext(traits = []) {
@@ -354,16 +354,16 @@ test('Infinite Horizon reacts once per qualifying resource transaction across co
     const firstClonePackets = () =>
       context.events.filter((event) => event.type === 'damage' && event.metadata?.cloneId === 1);
 
-    createMesmerResources(context).gainResources(1.1, 1, 'Sword', 'test', cause);
+    createMesmerIllusionRewards(context).gainResources(1.1, 1, 'Sword', 'test', cause);
     assert.equal(procs().length, 1);
     assert.deepEqual(ambushCloneIds(), new Set([1]));
     const firstAmbush = firstClonePackets();
-    createMesmerResources({ ...context }).gainResources(1.2, 1, 'Sword', 'test', cause);
+    createMesmerIllusionRewards({ ...context }).gainResources(1.2, 1, 'Sword', 'test', cause);
     assert.equal(procs().length, 2);
     assert.deepEqual(ambushCloneIds(), new Set([1, 2]));
     assert.deepEqual(firstClonePackets(), firstAmbush);
 
-    createMesmerResources(context).gainResources(1.3, 1, 'Sword', 'unrelated gain', {
+    createMesmerIllusionRewards(context).gainResources(1.3, 1, 'Sword', 'unrelated gain', {
       sourceSkillId: ID.ILLUSIONARY_AMBUSH
     });
     assert.equal(context.profession.core.clones.length, 3);

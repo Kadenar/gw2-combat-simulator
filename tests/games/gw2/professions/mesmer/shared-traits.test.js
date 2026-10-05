@@ -129,7 +129,12 @@ test('Maim the Disillusioned applies torment for defensive shatters', () => {
     );
 
     assert.equal(result.steps[0].start, result.steps[0].end);
-    assert.equal(result.planningState.profession.resource, 0);
+    assert.equal(
+      testCase.specialization === 'Virtuoso'
+        ? result.planningState.profession.blades.value
+        : result.planningState.profession.resource,
+      0
+    );
     assert.equal(torment.length, 1);
     assert.equal(torment[0].stacks, testCase.expectedStacks);
     assert.equal(torment[0].duration, 6);

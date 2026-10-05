@@ -1,7 +1,4 @@
-import type { MesmerRuntime } from '#gw2/professions/mesmer/types.js';
 import { requireBalanceProfileFromContext, balanceProfileNumber } from '#gw2/platform/skills/balance-profiles.js';
-
-import { readProfessionSpecializationState } from '#gw2/platform/profession-definition/state.js';
 
 import type { MesmerResourceDefinition } from '#gw2/professions/mesmer/core/mechanics/resource-types.js';
 
@@ -23,17 +20,9 @@ export function mesmerResourceProfileId(specialization: string): string {
   return 'mesmer.core.resources';
 }
 
-interface MesmerNumericResourceState {
-  numericResource: number;
-}
-
-/** Returns the active numeric resource state and rejects clone-owning Mesmer specializations. */
-export function mesmerNumericResourceState(state: MesmerRuntime): MesmerNumericResourceState {
-  const kind = state.profession.specialization.kind;
-  const active = readProfessionSpecializationState<MesmerNumericResourceState>(state.profession, kind);
-  if (typeof active?.numericResource !== 'number') {
-    throw new TypeError(`${kind} does not own a numeric Mesmer resource.`);
-  }
-
-  return active as MesmerNumericResourceState;
+/** Selects entity ownership or the active elite clock without inspecting arbitrary state shapes. */
+export function mesmerResourceKind(specialization: string): 'clones' | 'blades' | 'notes' {
+  if (specialization === 'Virtuoso') return 'blades';
+  if (specialization === 'Troubadour') return 'notes';
+  return 'clones';
 }

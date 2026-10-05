@@ -45,8 +45,8 @@ export interface MesmerRuntimeState {
 interface MesmerPlanningState {
   readonly endurance?: number;
   readonly maximumEndurance?: number;
-  readonly resource: number;
-  readonly resourceDefinition: MesmerResourceDefinition;
+  readonly resource?: number;
+  readonly resourceDefinition?: MesmerResourceDefinition;
   readonly clarityRemaining: number;
   readonly availableAmbush?: {
     readonly name: string;

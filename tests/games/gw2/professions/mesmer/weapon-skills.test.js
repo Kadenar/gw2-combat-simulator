@@ -435,7 +435,14 @@ test('Illusionary Riposte enables Counter Blade without block rewards', () => {
         { specialization, primaryWeapon: 'Sword', secondaryWeapon: 'Sword', initialResource: 0 }
       );
       assert.deepEqual(result.warnings, []);
-      assert.equal(result.planningState.profession.resource, 0);
+      assert.equal(
+        specialization === 'Virtuoso'
+          ? result.planningState.profession.blades.value
+          : specialization === 'Troubadour'
+            ? result.planningState.profession.notes.value
+            : result.planningState.profession.resource,
+        0
+      );
       assert.ok(result.steps.some((step) => step.skill === 'Counter Blade' && !step.invalid));
       assert.equal(
         result.resolvedEvents.some((event) => event.type === 'damage' && event.skillId === ID.ILLUSIONARY_RIPOSTE),

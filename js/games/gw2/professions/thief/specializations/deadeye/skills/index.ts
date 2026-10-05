@@ -54,7 +54,7 @@ export const DEADEYE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> =
         kind: 'stealth',
         duration: 3,
         stacks: 1,
-        when: (runtime) => deadeyeState.from(runtime).malice >= 3
+        when: (runtime) => deadeyeState.from(runtime).malice.value >= 3
       },
       { type: 'boon', boon: 'vigor', duration: 10, stacks: 1, audience: { recipients: 'party', maximumRecipients: 5 } },
       { type: 'condition', condition: 'Chilled', stacks: 1, duration: 3, actorType: 'player' }
@@ -78,7 +78,7 @@ export const DEADEYE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> =
         kind: 'stealth',
         duration: 3,
         stacks: 1,
-        when: (runtime) => deadeyeState.from(runtime).malice >= 3
+        when: (runtime) => deadeyeState.from(runtime).malice.value >= 3
       },
       {
         type: 'boon',
@@ -108,7 +108,7 @@ export const DEADEYE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> =
         kind: 'stealth',
         duration: 3,
         stacks: 1,
-        when: (runtime) => deadeyeState.from(runtime).malice >= 3
+        when: (runtime) => deadeyeState.from(runtime).malice.value >= 3
       },
       { type: 'boon', boon: 'fury', duration: 8, stacks: 1, audience: { recipients: 'party', maximumRecipients: 5 } },
       { type: 'blind', actorType: 'player', duration: 6 }
@@ -132,7 +132,7 @@ export const DEADEYE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> =
         kind: 'stealth',
         duration: 3,
         stacks: 1,
-        when: (runtime) => deadeyeState.from(runtime).malice >= 3
+        when: (runtime) => deadeyeState.from(runtime).malice.value >= 3
       },
       { type: 'condition', condition: 'Bleeding', stacks: 5, duration: 8, actorType: 'player' }
     ])
@@ -155,7 +155,7 @@ export const DEADEYE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> =
         kind: 'stealth',
         duration: 3,
         stacks: 1,
-        when: (runtime) => deadeyeState.from(runtime).malice >= 3
+        when: (runtime) => deadeyeState.from(runtime).malice.value >= 3
       },
       { type: 'boon', boon: 'might', duration: 12, stacks: 5, audience: { recipients: 'party', maximumRecipients: 5 } },
       { type: 'condition', condition: 'Weakness', stacks: 1, duration: 8, actorType: 'player' }
@@ -262,7 +262,7 @@ export const DEADEYE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> =
         kind: 'stealth',
         duration: 3,
         stacks: 1,
-        when: (runtime) => deadeyeState.from(runtime).malice >= 3
+        when: (runtime) => deadeyeState.from(runtime).malice.value >= 3
       },
       {
         type: 'boon',
@@ -292,7 +292,7 @@ export const DEADEYE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> =
         kind: 'stealth',
         duration: 3,
         stacks: 1,
-        when: (runtime) => deadeyeState.from(runtime).malice >= 3
+        when: (runtime) => deadeyeState.from(runtime).malice.value >= 3
       },
       {
         type: 'boon',
@@ -333,7 +333,7 @@ export const DEADEYE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> =
         kind: 'stealth',
         duration: 3,
         stacks: 1,
-        when: (runtime) => deadeyeState.from(runtime).malice >= 3
+        when: (runtime) => deadeyeState.from(runtime).malice.value >= 3
       },
       { type: 'boon', boon: 'aegis', duration: 5, stacks: 1, audience: { recipients: 'party', maximumRecipients: 5 } },
       { type: 'condition', condition: 'Poisoned', stacks: 2, duration: 8, actorType: 'player' }
@@ -375,7 +375,7 @@ export const DEADEYE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> =
         kind: 'stealth',
         duration: 3,
         stacks: 1,
-        when: (runtime) => deadeyeState.from(runtime).malice >= 3
+        when: (runtime) => deadeyeState.from(runtime).malice.value >= 3
       },
       { type: 'condition', condition: 'Immobilized', stacks: 1, duration: 1.5, actorType: 'player' }
     ])

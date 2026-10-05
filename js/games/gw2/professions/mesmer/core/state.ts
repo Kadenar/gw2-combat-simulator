@@ -3,7 +3,7 @@ import type { Gw2PlanningStateInput } from '#gw2/platform/results/types.js';
 import { snapshotProfessionState } from '#gw2/platform/profession-definition/state.js';
 import { canonicalTime } from '#kernel/core/clock.js';
 import { skillFlipVisible } from '#gw2/platform/execution/skill-flips.js';
-import { mesmerResourceDefinition } from '#gw2/professions/mesmer/family-state.js';
+import { mesmerResourceDefinition, mesmerResourceKind } from '#gw2/professions/mesmer/family-state.js';
 import { type SkillFlipWindows } from '#gw2/platform/execution/skill-flips.js';
 import type { SkillId } from '#gw2/platform/skills/types.js';
 import type { MesmerClone } from '#gw2/professions/mesmer/core/mechanics/illusions/types.js';
@@ -47,8 +47,13 @@ export function projectMesmerCorePlanningState(input: Gw2PlanningStateInput) {
   const state = snapshotProfessionState(input.profession) as MesmerCoreState;
   const at = canonicalTime(input.time);
   return {
-    resource: state.clones.length,
-    resourceDefinition: mesmerResourceDefinition('Core', { catalog: input.catalog }),
+    // Clone counts remain entity observations; elite numeric pools are projected by their owners.
+    ...(mesmerResourceKind(input.config.specialization ?? 'Core') === 'clones'
+      ? {
+          resource: state.clones.length,
+          resourceDefinition: mesmerResourceDefinition('Core', { catalog: input.catalog })
+        }
+      : {}),
     clarityRemaining: Math.max(0, Math.round((state.clarityUntil - at) * 1000)),
     availableFlips: Object.fromEntries(
       Object.entries(state.availableFlips).filter(([, window]) => skillFlipVisible(window, at))

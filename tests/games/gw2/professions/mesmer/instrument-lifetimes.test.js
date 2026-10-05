@@ -1,8 +1,8 @@
-import { createMesmerResources } from '#gw2/professions/mesmer/family-mechanics.js';
+import { createMesmerIllusionRewards } from '#gw2/professions/mesmer/family-mechanics.js';
 import { createExecutedFacts } from '#gw2/platform/combat/history/executed-facts.js';
 import { captureEffectEmissions } from '#tests/helpers/effect-emission.js';
 import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
-import { createRuntimeEndurance } from '#gw2/platform/combat/resources/runtime-resources.js';
+import { createRuntimeEndurance, createRuntimeResources } from '#gw2/platform/combat/resources/runtime-resources.js';
 import { gw2BoonApplicationRecipients } from '#gw2/platform/combat/state/allied-players.js';
 import { applySkillSideEffects } from '#gw2/platform/effects/action-dispatch.js';
 import { MESMER_SKILL_IDS as ID, MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
@@ -61,7 +61,7 @@ function instrumentContext() {
   // Execute immediate resource tasks through their real owner while leaving unrelated scheduled work isolated.
   context.schedule = (type, at, data) => {
     if (type === 'mesmer.resource-gain')
-      createMesmerResources(context).gainResources(at, data.count, data.weapon, data.reason, data.cause);
+      createMesmerIllusionRewards(context).gainResources(at, data.count, data.weapon, data.reason, data.cause);
   };
 
   // Endurance receives its engine clock and the explicit policy capability.
@@ -76,14 +76,25 @@ function instrumentContext() {
     },
     { endurance: troubadourEndurance }
   );
+  // Numeric transactions use the same initialized clock policy as the engine.
+  context.resourceController = createRuntimeResources(
+    {
+      get time() {
+        return context.time;
+      },
+      mechanics: context
+    },
+    { resources: troubadourHooks.resources }
+  );
+  context.resourceController.initialize();
   return context;
 }
 
 function play(context, id, at, notes = 0) {
   context.fullEnd = context.effectiveEnd = at;
-  context.profession.specialization.state.numericResource = notes;
   const skill = context.catalog.skillsById.get(id);
   context.time = at;
+  context.resourceController.replace('notes', notes);
   completeTroubadourPerformance(
     context,
     { skill, start: at, fullEnd: at, effectiveEnd: at, id: 'fixture', command: {} },
@@ -228,7 +239,7 @@ test('Tale rewards commit before recovery and are available to the next instrume
   assert.equal(boon.audience.recipients, 'party');
   assert.equal(boon.audience.maximumRecipients, 5);
   play(context, ID.FLUSTERING_FLUTE, context.time, note.amount);
-  assert.equal(context.profession.specialization.state.numericResource, 0);
+  assert.equal(context.profession.specialization.state.notes.value, 0);
   assert.ok(context.profession.specialization.state.instruments.Flute > context.time + 5);
 });
 

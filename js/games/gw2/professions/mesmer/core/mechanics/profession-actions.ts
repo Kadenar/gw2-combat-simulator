@@ -14,7 +14,7 @@ import type {
 } from '#gw2/professions/mesmer/core/mechanics/resource-types.js';
 import type { MesmerShatter, MesmerShatterResolution } from '#gw2/professions/mesmer/core/mechanics/shatter-types.js';
 import { triggerMesmerPostShatterTraits } from '#gw2/professions/mesmer/core/traits/dispatch.js';
-import { mesmerNumericResourceState } from '#gw2/professions/mesmer/family-state.js';
+import { mesmerResourceKind } from '#gw2/professions/mesmer/family-state.js';
 import type {
   MesmerProfessionActionController,
   MesmerRuntime,
@@ -42,13 +42,11 @@ export function createProfessionActionController({
   warn,
   shatterResolvers
 }: ProfessionActionControllerOptions): MesmerProfessionActionController {
-  const numericResourceState = () => mesmerNumericResourceState(state);
+  const kind = mesmerResourceKind(state.profession.specialization.kind);
 
-  // Clone-based specs (core/Chronomancer) count live clones; numeric specs (Virtuoso/Troubadour) use a counter.
+  // Clone-based specs (core/Chronomancer) count live clones; numeric specs (Virtuoso/Troubadour) read their shared clock.
   const currentResource = () =>
-    resourceDefinition.singular === 'clone'
-      ? professionCoreState(state).clones.length
-      : numericResourceState().numericResource;
+    kind === 'clones' ? professionCoreState(state).clones.length : state.resourceController.value(kind);
 
   const addResourceSpendEvent = (
     at: number,
@@ -62,6 +60,7 @@ export function createProfessionActionController({
         amount: -spent,
         value: currentResource(),
         resource: resourceDefinition.plural,
+        ...(kind !== 'clones' ? { maximum: resourceDefinition.maximum } : {}),
         reason: 'profession mechanic',
         activationId
       });
@@ -76,17 +75,17 @@ export function createProfessionActionController({
     return spent;
   };
 
-  // Spending clones cancels their pending attacks; numeric resources only need their counter cleared.
+  // Spending clones cancels their pending attacks; numeric resources spend the current shared balance.
   const consumeResources = (at: number, { activationId }: MesmerResourceSpendDetails = {}): number => {
     const spent = currentResource();
-    if (resourceDefinition.singular === 'clone') {
+    if (kind === 'clones') {
       for (const clone of professionCoreState(state).clones) {
         destroyClone(clone);
       }
 
       professionCoreState(state).clones = [];
     } else {
-      numericResourceState().numericResource = 0;
+      state.resourceController.spend(kind, spent);
     }
 
     return addResourceSpendEvent(at, spent, { activationId });
@@ -96,11 +95,11 @@ export function createProfessionActionController({
   // (e.g. a Virtuoso skill whose coefficient scales with blades but costs all blades on hit, not on cast).
   const reserveResources = (): number => {
     const spent = currentResource();
-    if (resourceDefinition.singular === 'clone') {
+    if (kind === 'clones') {
       throw new Error('Clone resources cannot be reserved.');
     }
 
-    numericResourceState().numericResource = 0;
+    state.resourceController.spend(kind, spent);
     return spent;
   };
 
@@ -111,22 +110,18 @@ export function createProfessionActionController({
     { activationId }: MesmerResourceSpendDetails = {}
   ): number => {
     const reservedCount = boundedNumber(reserved, 0, 0, resourceDefinition.maximum);
-    const additionalSpent = Math.min(
-      numericResourceState().numericResource,
-      resourceDefinition.maximum - reservedCount
-    );
-    numericResourceState().numericResource -= additionalSpent;
+    const additionalSpent = Math.min(currentResource(), resourceDefinition.maximum - reservedCount);
+    if (kind === 'clones') throw new Error('Clone resources cannot be committed from a reservation.');
+    state.resourceController.spend(kind, additionalSpent);
     return addResourceSpendEvent(at, reservedCount + additionalSpent, {
       activationId
     });
   };
 
   const restoreReservedResources = (spent: number): void => {
-    if (resourceDefinition.singular === 'clone') return;
-    numericResourceState().numericResource = Math.min(
-      resourceDefinition.maximum,
-      numericResourceState().numericResource + Math.max(0, spent || 0)
-    );
+    if (kind === 'clones') return;
+    // Refunds restore the capped balance without earning traits or reporting a committed spend.
+    state.resourceController.grant(kind, Math.max(0, spent || 0));
   };
 
   // Shared traits consume resolver-produced hit groups so Core does not need to know how a specialization attacks.

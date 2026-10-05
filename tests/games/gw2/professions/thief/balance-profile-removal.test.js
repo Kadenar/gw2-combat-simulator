@@ -235,7 +235,7 @@ test('Malicious Sneak Attack removal preserves Bleeding and malice spending', ()
     false
   );
   assert.ok(conditions.some((event) => event.condition === 'Bleeding'));
-  assert.equal(result.planningState.profession.malice, 0);
+  assert.equal(result.planningState.profession.malice.value, 0);
 });
 
 for (const id of [ANTIQUARY.forgedSurfer, ANTIQUARY.forgedSurferMeticulous]) {
@@ -376,6 +376,6 @@ test('patched Preparedness and Maleficent Seven capacities initialize before res
     const runtime = observedRuntime(result);
     assert.equal(runtime.profession.core.initiative.maximum, selectedTraitIds.length ? 21 : 18);
     assert.equal(runtime.profession.core.initiative.value, selectedTraitIds.length ? 21 : 18);
-    assert.equal(runtime.profession.specialization.state.maximumMalice, selectedTraitIds.length ? 11 : 9);
+    assert.equal(runtime.profession.specialization.state.malice.maximum, selectedTraitIds.length ? 11 : 9);
   }
 });

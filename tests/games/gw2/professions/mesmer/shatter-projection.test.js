@@ -165,7 +165,7 @@ test('removed blade strikes retain condition facts and combat applications witho
     result.events.some((event) => event.type === 'condition' && event.condition === 'Torment'),
     false
   );
-  assert.equal(result.planningState.profession.resource, 0);
+  assert.equal(result.planningState.profession.blades.value, 0);
 });
 
 // Control shatters project the entire emitted skill payload, including Time Sink's companion condition.

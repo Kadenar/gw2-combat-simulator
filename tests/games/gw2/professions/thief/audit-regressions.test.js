@@ -476,8 +476,8 @@ test('THF-008: endurance and readiness are invariant across Vigor expiry, extens
 function markedDeadeye(malice, marked) {
   return (runtime) => {
     Object.assign(runtime.profession.core, { stealthUntil: 10 });
+    runtime.resourceController.replace('malice', malice);
     Object.assign(runtime.profession.specialization.state, {
-      malice,
       markedTargetId: marked ? 'primary-target' : null,
       markExpiresAt: marked ? 30 : 0
     });
@@ -506,7 +506,7 @@ test('THF-009: malicious sword, staff, axe, and scepter use the consumed malice 
       );
       assert.deepEqual(result.warnings, []);
       const runtime = observedRuntime(result);
-      assert.equal(runtime.profession.specialization.state.malice, 2);
+      assert.equal(runtime.profession.specialization.state.malice.value, 2);
       if (weapon === 'Sword') {
         near(runtime.profession.core.endurance, runtime.time * 5 + malice * 10);
       } else if (weapon === 'Staff') {
@@ -534,7 +534,7 @@ test('THF-009: unmarked and missed attacks grant no malicious sword or staff ben
       );
       assert.deepEqual(result.warnings, []);
       const runtime = observedRuntime(result);
-      assert.equal(runtime.profession.specialization.state.malice, 4);
+      assert.equal(runtime.profession.specialization.state.malice.value, 4);
       assert.equal(
         result.events.some((event) => event.type === 'buff' && event.kind === 'quickness'),
         false

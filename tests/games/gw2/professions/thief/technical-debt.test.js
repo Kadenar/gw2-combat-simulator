@@ -9,7 +9,6 @@ import { thiefTooltips } from '#gw2/professions/thief/app/tooltips.js';
 import { beginThiefStealthAttack, grantThiefStealth } from '#gw2/professions/thief/core/mechanics/stealth.js';
 import { modifyThiefLifeSiphon } from '#gw2/professions/thief/core/traits/behavior.js';
 import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
-import { deadeyeModule } from '#gw2/professions/thief/specializations/deadeye/module.js';
 import { withProfile } from '#tests/helpers/catalog-overrides.js';
 import { observedRuntime } from '#tests/helpers/observed-runtime.js';
 import { runThief } from '#tests/helpers/thief-simulation.js';
@@ -23,10 +22,14 @@ function patched(balanceProfiles) {
   });
 }
 
-// State-only previews use canonical defaults; both tooltips follow the trait's selected replacement cap.
+// Initialized pools and tooltips follow the selected trait cap.
 test('Maleficent Seven owns the raised malice cap in previews and tooltips', () => {
-  assert.equal(deadeyeModule.state.create({}).maximumMalice, 5);
-  assert.equal(deadeyeModule.state.create({ selectedTraitIds: [TRAIT.MALEFICENT_SEVEN] }).maximumMalice, 7);
+  assert.equal(runThief([], { specialization: 'Deadeye' }).planningState.profession.malice.maximum, 5);
+  assert.equal(
+    runThief([], { specialization: 'Deadeye', selectedTraitIds: [TRAIT.MALEFICENT_SEVEN] }).planningState.profession
+      .malice.maximum,
+    7
+  );
   const context = patched({
     [TRAIT.MALEFICENT_SEVEN]: { fields: { maximumStacks: 11 } }
   }).balanceContextFor('thief-debt');

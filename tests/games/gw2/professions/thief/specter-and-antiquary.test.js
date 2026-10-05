@@ -332,7 +332,7 @@ test('Stealth attacks gain positional damage and consume malice for bonus damage
     skillDamage(unmarked, 'Malicious Backstab'),
     1.5
   );
-  assert.equal(marked.planningState.profession.malice, 2);
+  assert.equal(marked.planningState.profession.malice.value, 2);
 
   const rifleConfig = {
     selectedSkillIds: [45508],
@@ -358,7 +358,7 @@ test('Stealth attacks gain positional damage and consume malice for bonus damage
     skillDamage(unmarkedRifle, "Malicious Death's Judgment"),
     1.4
   );
-  assert.equal(markedRifle.planningState.profession.malice, 2);
+  assert.equal(markedRifle.planningState.profession.malice.value, 2);
 });
 
 test('Revealed Training does not empower the stealth attack that reveals the thief', () => {

@@ -1,4 +1,4 @@
-import { createMesmerResources, mesmerActivePrimaryWeapon } from '#gw2/professions/mesmer/family-mechanics.js';
+import { createMesmerIllusionRewards, mesmerActivePrimaryWeapon } from '#gw2/professions/mesmer/family-mechanics.js';
 import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
@@ -24,7 +24,7 @@ export const egoRestoration = defineTrait<MesmerSkill>({
   hooks: {
     onCastCommit(runtime, cast) {
       if (!hasTrait(runtime, TRAIT.EGO_RESTORATION) || !runtime.combatStartedAt() || cast.skill.type !== 'Heal') return;
-      createMesmerResources(runtime).gainResources(
+      createMesmerIllusionRewards(runtime).gainResources(
         runtime.time,
         1,
         mesmerActivePrimaryWeapon(runtime),

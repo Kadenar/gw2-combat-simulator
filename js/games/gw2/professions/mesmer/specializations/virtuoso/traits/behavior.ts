@@ -1,4 +1,4 @@
-import { createMesmerResources, mesmerActivePrimaryWeapon } from '#gw2/professions/mesmer/family-mechanics.js';
+import { createMesmerIllusionRewards, mesmerActivePrimaryWeapon } from '#gw2/professions/mesmer/family-mechanics.js';
 import type { MesmerEventExtra } from '#gw2/professions/mesmer/data/types.js';
 import { professionStaticRulesApplied } from '#gw2/platform/builds/attribute-provenance.js';
 import { advanceCriticalProc, criticalOpportunity } from '#gw2/platform/combat/critical-procs.js';
@@ -180,7 +180,7 @@ export function resolveInfiniteForgeRefund(context: MesmerRuntime, resolution: M
   }
 
   const infiniteForgeProfile = requireBalanceProfileFromContext(context, TRAIT.INFINITE_FORGE);
-  createMesmerResources(context).queueResources(
+  createMesmerIllusionRewards(context).queueResources(
     resolution.at,
     balanceProfileNumber(infiniteForgeProfile, 'resourceGain'),
     mesmerActivePrimaryWeapon(context),

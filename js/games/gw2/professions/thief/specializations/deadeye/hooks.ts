@@ -24,7 +24,6 @@ import {
   requireBalanceProfileFromContext,
   requireEffect
 } from '#gw2/platform/skills/balance-profiles.js';
-import { boundedNumber } from '#kernel/core/numeric.js';
 
 import type { SkillId } from '#gw2/platform/skills/types.js';
 import type { Gw2HitResolutionContext } from '#gw2/platform/resolver/hit-resolution.js';
@@ -65,9 +64,8 @@ function completeDeadeyesMark(runtime: ThiefRuntime, cast: RuntimeCast<ThiefSkil
       balanceProfileNumber(requireBalanceProfileFromContext(runtime, PROFILE.resources), 'durationMultiplier')
   );
   state.markGeneration += 1;
-  state.malice = remarking
-    ? Math.min(state.maximumMalice, state.malice + initialMalice(runtime))
-    : initialMalice(runtime);
+  if (remarking) runtime.resourceController.grant('malice', initialMalice(runtime));
+  else runtime.resourceController.replace('malice', initialMalice(runtime));
   if (!remarking) state.maleficentSevenTriggered = false;
   applyMaleficentSeven(runtime, cast);
   const grant = stolenSkillGrant(runtime);
@@ -84,7 +82,7 @@ function expireDeadeyesMark(runtime: ThiefRuntime, data: unknown): void {
     return;
   state.markedTargetId = null;
   state.markExpiresAt = 0;
-  state.malice = 0;
+  runtime.resourceController.replace('malice', 0);
   state.maleficentSevenTriggered = false;
 }
 
@@ -146,7 +144,7 @@ function reactDeadeyeMalice(runtime: ThiefRuntime, event: Gw2ResolverEvent, hit?
   state.maliceResolvedActivations[event.activationId] = true;
   if (skill.malicious) {
     refundMaliciousTacticalStrike(runtime, event);
-    state.malice = 0;
+    runtime.resourceController.replace('malice', 0);
     state.maleficentSevenTriggered = false;
     restoreMaliciousIntent(runtime);
 
@@ -157,24 +155,32 @@ function reactDeadeyeMalice(runtime: ThiefRuntime, event: Gw2ResolverEvent, hit?
     ? criticalOpportunity(hit.critEligible ? hit.critical.chance : 0, hit.critical.didCrit).sampledCriticals
     : 0;
   const resources = requireBalanceProfileFromContext(runtime, PROFILE.resources);
-  state.malice = Math.min(
-    state.maximumMalice,
-    state.malice +
-      balanceProfileNumber(resources, 'resourceGain') +
-      criticals * balanceProfileNumber(resources, 'playerStacks')
+  runtime.resourceController.grant(
+    'malice',
+    balanceProfileNumber(resources, 'resourceGain') + criticals * balanceProfileNumber(resources, 'playerStacks')
   );
   applyMaleficentSeven(runtime, null);
 }
 
 /** Deadeye hooks: the mark and malice, malicious attacks, stolen skills, Mercy, Shadow Flare, and cantrip traits. */
 export const deadeyeHooks: RuntimeHooks<ThiefRuntimeState, ThiefSkill> = {
+  // Malice has no passive recovery; only accepted mark and hit transactions earn its cycle rewards.
+  resources: {
+    malice: {
+      kind: 'continuous',
+      state: (runtime) => deadeyeState.from(runtime).malice,
+      maximum: maximumDeadeyeMalice,
+      initial: () => 0,
+      recovery: () => 0
+    }
+  },
   /** Initialize only damage-relevant form and scaling state for one assumed occurrence. */
   prepareDamageState(runtime, _skill, inputs) {
     const state = deadeyeState.from(runtime);
     const malice = Number(inputs.malice ?? 0);
-    if (!Number.isInteger(malice) || malice > state.maximumMalice)
+    if (!Number.isInteger(malice) || malice < 0 || malice > state.malice.maximum)
       throw new RangeError('Malice exceeds the selected build maximum.');
-    state.malice = malice;
+    runtime.resourceController.replace('malice', malice);
     state.markedTargetId = 'target';
     state.markExpiresAt = Infinity;
   },
@@ -189,8 +195,8 @@ export const deadeyeHooks: RuntimeHooks<ThiefRuntimeState, ThiefSkill> = {
     'thief.mercy'(runtime) {
       // Consume live commitment-time malice before refunding the selected profile's amount.
       const state = deadeyeState.from(runtime);
-      const malice = Math.max(0, state.malice || 0);
-      state.malice = 0;
+      const malice = runtime.resourceController.value('malice');
+      runtime.resourceController.replace('malice', 0);
       state.maleficentSevenTriggered = false;
       const mercy = requireBalanceProfileFromContext(runtime, PROFILE.mercy);
       grantThiefInitiative(
@@ -220,19 +226,12 @@ export const deadeyeHooks: RuntimeHooks<ThiefRuntimeState, ThiefSkill> = {
     }
   },
 
-  initialize(runtime) {
-    const state = deadeyeState.from(runtime);
-    // The selected trait owns its replacement cap; otherwise use Deadeye's base resource cap.
-    state.maximumMalice = maximumDeadeyeMalice(runtime);
-    state.malice = Math.min(state.malice, state.maximumMalice);
-  },
   availability: (runtime, skill) =>
     deadeyeCastAvailability(runtime.profession.core.availableFlips, skill, runtime.time),
   onCastStart(runtime, cast) {
     const skill = cast.skill;
-    const state = deadeyeState.from(runtime);
     if (!skill.malicious && !STOLEN_SKILLS.has(skill.id)) return;
-    const malice = boundedNumber(state.malice, 0, 0, state.maximumMalice);
+    const malice = runtime.resourceController.value('malice');
     deadeyeCastFacts.set(cast, {
       malice,
       // Poison, quickness, and duration scaling apply only against a live mark and a hit target.

@@ -8,7 +8,7 @@ import type {
   MesmerPhantasmAttackTiming
 } from '#gw2/professions/mesmer/core/mechanics/illusions/types.js';
 import { createProfessionActionController } from '#gw2/professions/mesmer/core/mechanics/profession-actions.js';
-import { createResourceController } from '#gw2/professions/mesmer/core/mechanics/resources.js';
+import { createIllusionRewardController } from '#gw2/professions/mesmer/core/mechanics/resources.js';
 import { resolveCloneShatter } from '#gw2/professions/mesmer/core/mechanics/shatters.js';
 import type {
   MesmerShatterDefinition,
@@ -39,7 +39,6 @@ import {
 } from '#gw2/professions/mesmer/specializations/virtuoso/traits/behavior.js';
 import type { MesmerRuntime } from '#gw2/professions/mesmer/types.js';
 import { EPSILON } from '#kernel/core/clock.js';
-import { clamp } from '#kernel/core/numeric.js';
 
 /** Membership and resource timing read authored metadata without resolving unrelated damage profiles. */
 export function mesmerShatterDefinition(context: MesmerRuntime, id: SkillId): MesmerShatterDefinition | undefined {
@@ -72,11 +71,10 @@ export function createMesmerCloneScheduler(context: MesmerRuntime) {
 }
 
 /** Resource reactions are selected explicitly rather than registered into a live service container. */
-export function createMesmerResources(context: MesmerRuntime) {
-  return createResourceController({
+export function createMesmerIllusionRewards(context: MesmerRuntime) {
+  return createIllusionRewardController({
     state: context,
     resourceDefinition: mesmerResourceDefinition(context.profession.specialization.kind, context),
-    clamp,
     activePrimaryWeapon: () => mesmerActivePrimaryWeapon(context),
     cloneAttackScheduler: createMesmerCloneScheduler(context),
     destroyClone: (clone) => destroyClone(context, clone),
@@ -170,6 +168,6 @@ export function createMesmerSkillEffects(context: MesmerRuntime) {
       spawnModifiers: { ...policy.spawnModifiers, ...selectedPolicy?.spawnModifiers }
     }),
     activePrimaryWeapon: () => mesmerActivePrimaryWeapon(context),
-    queueResources: createMesmerResources(context).queueResources
+    queueResources: createMesmerIllusionRewards(context).queueResources
   });
 }

@@ -163,9 +163,10 @@ test('Mesmer state creation and planning projections are profession owned', () =
 
   assert.equal(Object.hasOwn(state.specialization.state, 'nextForgeAt'), false);
   assert.equal(Object.hasOwn(projected, 'nextForgeAt'), false);
-  assert.equal(state.specialization.state.numericResource, 3);
-  assert.equal(projected.resource, 3);
-  assert.equal(projected.resourceDefinition.singular, 'blade');
+  assert.equal(state.specialization.state.blades.value, 3);
+  assert.equal(projected.blades.value, 3);
+  assert.equal(projected.blades.maximum, 5);
+  assert.equal(Object.hasOwn(projected, 'resource'), false);
   assert.equal(mesmerProfession.id, 'mesmer');
   assert.equal(Object.hasOwn(virtuosoRuntime.reactions, 'damage.resolved'), true);
   assert.equal(typeof virtuosoRuntime.reactions['control.resolved'], 'function');

@@ -888,8 +888,8 @@ const mesmerSlices = Object.freeze([
 const mesmerSpecializationStateKeys = Object.freeze({
   Chronomancer: ['continuum', 'timeBombUntil'],
   Mirage: ['ambushUntil', 'ambushSource', 'cloneAmbushUntil', 'riddleOfSandReady'],
-  Virtuoso: ['numericResource', 'bloodsongProgress'],
-  Troubadour: ['numericResource', 'instruments', 'lastInstrument']
+  Virtuoso: ['blades', 'bloodsongProgress'],
+  Troubadour: ['notes', 'instruments', 'lastInstrument']
 });
 
 test('Mesmer modules contribute disjoint runtime slices', () => {
@@ -937,8 +937,7 @@ test('Mesmer runtimes exclude inactive elite catalogs, registries, and state', (
     );
     for (const [owner, keys] of Object.entries(mesmerSpecializationStateKeys)) {
       for (const key of keys) {
-        const expected =
-          key === 'numericResource' ? active === 'Virtuoso' || active === 'Troubadour' : owner === active;
+        const expected = owner === active;
 
         assert.equal(Object.hasOwn(state.specialization.state, key), expected, `${active}:slice:${owner}:${key}`);
       }

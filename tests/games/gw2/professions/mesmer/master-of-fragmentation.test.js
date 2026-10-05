@@ -130,7 +130,7 @@ test('Fragmentation appends one Requiem pulse without changing existing pulses o
     const extended = pulses(improved);
     assert.deepEqual(extended.slice(0, -1), original);
     assert.deepEqual(extended.at(-1), { at: original.at(-1).at + 1, coefficient: original.at(-1).coefficient });
-    assert.equal(improved.planningState.profession.resource, baseline.planningState.profession.resource);
+    assert.equal(improved.planningState.profession.blades.value, baseline.planningState.profession.blades.value);
   }
 });
 

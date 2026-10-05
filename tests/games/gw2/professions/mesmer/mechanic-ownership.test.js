@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { mesmerProfession } from '#gw2/professions/mesmer/profession.js';
-import { createMesmerResources, createMesmerActions } from '#gw2/professions/mesmer/family-mechanics.js';
+import { createMesmerIllusionRewards, createMesmerActions } from '#gw2/professions/mesmer/family-mechanics.js';
 import { captureEffectEmissions } from '#tests/helpers/effect-emission.js';
 
 function fixture() {
@@ -28,7 +28,7 @@ function fixture() {
 test('explicit Mesmer operations preserve clone identity across replacement, shatter, and interleaved runs', () => {
   const first = fixture();
   const second = fixture();
-  const gain = (context, count) => createMesmerResources(context).gainResources(0, count, 'Sword');
+  const gain = (context, count) => createMesmerIllusionRewards(context).gainResources(0, count, 'Sword');
   gain(first.context, 3);
   gain(second.context, 1);
   gain({ ...first.context }, 1);

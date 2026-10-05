@@ -373,17 +373,17 @@ test('Salvo refunds on impact and recalled malicious axes use base poison withou
     {
       initialize(runtime) {
         runtime.profession.core.spinningAxes = [{ skillId: ID.MALICIOUS_CUNNING_SALVO, expiresAt: 10 }];
+        runtime.resourceController.replace('malice', 4);
         Object.assign(runtime.profession.specialization.state, {
           markedTargetId: 'primary-target',
-          markExpiresAt: 30,
-          malice: 4
+          markExpiresAt: 30
         });
       }
     }
   );
   assert.deepEqual(result.warnings, []);
   assert.equal(returned(result, 'condition').find((event) => event.condition === 'Poisoned').duration, 1);
-  assert.equal(observedRuntime(result).profession.specialization.state.malice, 5);
+  assert.equal(observedRuntime(result).profession.specialization.state.malice.value, 5);
   assert.ok(observedRuntime(result).resourceController.value('initiative') >= 2);
 });
 
@@ -395,10 +395,10 @@ test('outgoing malicious poison lasts exactly the consumed malice and is absent 
       {
         initialize(runtime) {
           runtime.profession.core.stealthUntil = 10;
+          runtime.resourceController.replace('malice', 4);
           Object.assign(runtime.profession.specialization.state, {
             markedTargetId: marked ? 'primary-target' : null,
-            markExpiresAt: 30,
-            malice: 4
+            markExpiresAt: 30
           });
         }
       }

@@ -4,7 +4,10 @@ import { expect, test } from '@playwright/test';
 test('profession resource clocks render through the shared meter UI', async ({ page }) => {
   test.setTimeout(60_000);
   for (const [profession, specialization, resourceId, key] of [
+    ['mesmer', 'Virtuoso', 'blades', 'blades'],
+    ['mesmer', 'Troubadour', 'notes', 'notes'],
     ['thief', null, 'initiative', 'initiative'],
+    ['thief', 'Deadeye', 'malice', 'malice'],
     ['guardian', 'Firebrand', 'pages', 'tomePages'],
     ['ranger', 'Galeshot', 'arrows', 'arrows'],
     ['ranger', 'Galeshot', 'wind-force', 'windForce'],

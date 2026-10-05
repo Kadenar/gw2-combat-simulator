@@ -1,3 +1,4 @@
+import type { DeadeyeState } from '#gw2/professions/thief/specializations/deadeye/state.js';
 import type { EvokerState } from '#gw2/professions/elementalist/specializations/evoker/state.js';
 import type { WarriorCoreState } from '#gw2/professions/warrior/core/state.js';
 import type { BladeswornState } from '#gw2/professions/warrior/specializations/bladesworn/state.js';
@@ -29,6 +30,7 @@ import type { WeaverState } from '#gw2/professions/elementalist/specializations/
 import type { ElementalistCoreState } from '#gw2/professions/elementalist/core/state.js';
 import type { ElementalistRuntime } from '#gw2/professions/elementalist/types.js';
 import type { MesmerCoreState } from '#gw2/professions/mesmer/core/state.js';
+import type { MesmerTroubadourState } from '#gw2/professions/mesmer/specializations/troubadour/state.js';
 import type { MesmerVirtuosoState } from '#gw2/professions/mesmer/specializations/virtuoso/state.js';
 import type { ParagonState } from '#gw2/professions/warrior/specializations/paragon/state.js';
 import type { ResourceClock } from '#gw2/platform/combat/resources/clock.js';
@@ -39,6 +41,8 @@ type Owns<TState, TField extends PropertyKey> = TField extends keyof TState ? tr
 type Rejects<TState, TField extends PropertyKey> = TField extends keyof TState ? false : true;
 
 export type ProfessionModuleStateBoundaryAssertions = [
+  Assert<DeadeyeState['malice'] extends ResourceClock ? true : false>,
+  Assert<Rejects<DeadeyeState, 'maximumMalice'>>,
   Assert<EvokerState['familiarCharges'] extends ResourceClock ? true : false>,
   Assert<EvokerState['empoweredCharges'] extends ResourceClock ? true : false>,
   Assert<Rejects<EvokerState, 'charges'>>,
@@ -70,7 +74,10 @@ export type ProfessionModuleStateBoundaryAssertions = [
   Assert<Rejects<GuardianCoreState, 'tomePages'>>,
   Assert<Owns<MesmerCoreState, 'clones'>>,
   Assert<Rejects<MesmerVirtuosoState, 'clones'>>,
-  Assert<Owns<MesmerVirtuosoState, 'numericResource'>>,
+  Assert<MesmerVirtuosoState['blades'] extends ResourceClock ? true : false>,
+  Assert<MesmerTroubadourState['notes'] extends ResourceClock ? true : false>,
+  Assert<Rejects<MesmerVirtuosoState, 'numericResource'>>,
+  Assert<Rejects<MesmerTroubadourState, 'numericResource'>>,
   Assert<Rejects<MesmerCoreState, 'numericResource'>>,
   Assert<Owns<NecromancerCoreState, 'lifeForce'>>,
   Assert<Rejects<ScourgeState, 'lifeForce'>>,

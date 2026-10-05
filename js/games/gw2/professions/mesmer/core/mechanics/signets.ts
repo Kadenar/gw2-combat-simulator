@@ -1,6 +1,6 @@
 import {
   mesmerShatterDefinition,
-  createMesmerResources,
+  createMesmerIllusionRewards,
   mesmerActivePrimaryWeapon
 } from '#gw2/professions/mesmer/family-mechanics.js';
 import { buildMesmerPacket, mesmerPacketOwner } from '#gw2/professions/mesmer/core/mechanics/packets.js';
@@ -90,7 +90,7 @@ export function signetIllusionsPulse(context: MesmerRuntime, data: unknown): voi
     return;
   }
 
-  createMesmerResources(context).gainResources(
+  createMesmerIllusionRewards(context).gainResources(
     context.time,
     balanceProfileNumber(requireBalanceProfileFromContext(context, PROFILE.signetOfIllusions), 'resourceGain'),
     mesmerActivePrimaryWeapon(context),

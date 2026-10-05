@@ -281,7 +281,7 @@ test('Mercy declares its Mark reset independently of the Malice refund', () => {
               })
             : catalog,
         initialize(runtime) {
-          runtime.profession.specialization.state.malice = 3;
+          runtime.resourceController.replace('malice', 3);
           runtime.cooldownController.startRecharge(runtime.helpers.skillsById.get(THIEF.DEADEYES_MARK), 0, 50);
         }
       }
@@ -289,7 +289,7 @@ test('Mercy declares its Mark reset independently of the Malice refund', () => {
     assert.deepEqual(result.warnings, []);
     const runtime = observedRuntime(result);
     assert.equal(runtime.cooldownController.hasCooldown(THIEF.DEADEYES_MARK), removed);
-    assert.equal(runtime.profession.specialization.state.malice, 0);
+    assert.equal(runtime.profession.specialization.state.malice.value, 0);
     refunds.push(runtime.profession.core.initiative.value);
   }
 

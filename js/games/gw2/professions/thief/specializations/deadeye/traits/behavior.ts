@@ -88,7 +88,7 @@ export const STOLEN_SKILLS = new Set<SkillId>(DEADEYE_STOLEN_SKILL_IDS);
 export function applyMaleficentSeven(runtime: ThiefRuntime, cast: RuntimeCast<ThiefSkill> | null): void {
   const state = deadeyeState.from(runtime);
   if (
-    state.malice !== state.maximumMalice ||
+    state.malice.value !== state.malice.maximum ||
     state.maleficentSevenTriggered ||
     !hasTrait(runtime, TRAIT.MALEFICENT_SEVEN)
   )
@@ -121,12 +121,10 @@ export function initialMalice(runtime: ThiefRuntime): number {
 
 /** Applies Malicious Intent at its established mechanical boundary. */
 export function restoreMaliciousIntent(runtime: ThiefRuntime): void {
-  const state = deadeyeState.from(runtime);
   if (hasTrait(runtime, TRAIT.MALICIOUS_INTENT)) {
-    state.malice = Math.min(
-      state.maximumMalice,
-      state.malice +
-        balanceProfileNumber(requireBalanceProfileFromContext(runtime, TRAIT.MALICIOUS_INTENT), 'resourceGain')
+    runtime.resourceController.grant(
+      'malice',
+      balanceProfileNumber(requireBalanceProfileFromContext(runtime, TRAIT.MALICIOUS_INTENT), 'resourceGain')
     );
     applyMaleficentSeven(runtime, null);
   }
@@ -172,7 +170,7 @@ export function grantSilentScope(runtime: ThiefRuntime, cast: RuntimeCast<ThiefS
   const state = deadeyeState.from(runtime);
   if (skill.id === SHARED_SKILL_IDS.DODGE && hasTrait(runtime, TRAIT.SILENT_SCOPE)) {
     const silentScope = requireBalanceProfileFromContext(runtime, TRAIT.SILENT_SCOPE);
-    if (state.malice > balanceProfileNumber(silentScope, 'threshold')) {
+    if (state.malice.value > balanceProfileNumber(silentScope, 'threshold')) {
       state.stealthAttackCharges = 1;
       state.stealthAttackExpiresAt = runtime.time + balanceProfileNumber(silentScope, 'durationMultiplier');
     }

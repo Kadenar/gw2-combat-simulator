@@ -61,6 +61,7 @@ export interface MesmerEventExtra {
   readonly count?: number;
   readonly multiplier?: number;
   readonly amount?: number;
+  readonly maximum?: number;
   readonly value?: number;
   readonly resource?: string;
   readonly reason?: string;

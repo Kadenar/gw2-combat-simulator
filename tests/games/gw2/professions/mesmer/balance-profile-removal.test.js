@@ -73,7 +73,7 @@ test('removed Virtuoso tier preserves Confusion and blade spending without hit-t
     result.events.some((event) => event.type === 'condition' && event.condition === 'Torment'),
     false
   );
-  assert.equal(result.planningState.profession.resource, 0);
+  assert.equal(result.planningState.profession.blades.value, 0);
 });
 
 test('removed condition wrapper output leaves its shatter strike intact', () => {
@@ -226,7 +226,7 @@ test('removed Flute strike keeps conditions, note spending, and playing state', 
     false
   );
   assert.ok(result.events.some((event) => event.type === 'condition'));
-  assert.equal(result.planningState.profession.resource, 0);
+  assert.equal(result.planningState.profession.notes.value, 0);
   assert.ok(result.planningState.profession.activeInstruments.some(({ name }) => name === 'Flute'));
 });
 
@@ -346,7 +346,7 @@ test('removed mirror window never creates pickup state and zero forge interval d
     [{ type: 'wait', durationMs: 4000 }],
     { selectedTraitIds: [TRAIT.INFINITE_FORGE] }
   );
-  assert.equal(virtuoso.planningState.profession.resource, 0);
+  assert.equal(virtuoso.planningState.profession.blades.value, 0);
 });
 
 test('tick edits survive deletion of a lower Virtuoso resource tier', () => {

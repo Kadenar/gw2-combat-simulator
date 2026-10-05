@@ -1,4 +1,4 @@
-import { createMesmerResources, mesmerActivePrimaryWeapon } from '#gw2/professions/mesmer/family-mechanics.js';
+import { createMesmerIllusionRewards, mesmerActivePrimaryWeapon } from '#gw2/professions/mesmer/family-mechanics.js';
 import type { EffectDelivery } from '#gw2/platform/effects/emission.js';
 import type { MesmerEventExtra } from '#gw2/professions/mesmer/data/types.js';
 import {
@@ -34,7 +34,7 @@ export function completeTroubadourPhantasm(context: MesmerRuntime, cast: Runtime
   const completedInterruptedPhantasm = isCommittedInterruptedPhantasm(cast, skill);
   if (interrupted && !completedInterruptedPhantasm) return;
   const harmonizeProfile = requireBalanceProfileFromContext(context, TRAIT.HARMONIZE);
-  createMesmerResources(context).queueResources(
+  createMesmerIllusionRewards(context).queueResources(
     context.time,
     balanceProfileNumber(harmonizeProfile, 'resourceGain'),
     mesmerActivePrimaryWeapon(context),
@@ -307,7 +307,7 @@ export function applyCrescendoTraits(
     const interval = balanceProfileNumber(fortissimoProfile, 'pulseInterval');
     const resourceGain = balanceProfileNumber(fortissimoProfile, 'resourceGain');
     for (let index = 1; index <= applications; index += 1) {
-      createMesmerResources(context).queueResources(
+      createMesmerIllusionRewards(context).queueResources(
         at + index * interval,
         resourceGain,
         mesmerActivePrimaryWeapon(context),

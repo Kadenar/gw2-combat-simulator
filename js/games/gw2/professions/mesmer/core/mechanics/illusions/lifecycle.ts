@@ -12,18 +12,45 @@ import type { MesmerRuntimeState } from '#gw2/professions/mesmer/types.js';
 import { boundedNumber } from '#kernel/core/numeric.js';
 
 import {
-  createMesmerResources,
+  createMesmerIllusionRewards,
   createMesmerCloneScheduler,
   mesmerActivePrimaryWeapon,
   mesmerShatterDefinition
 } from '#gw2/professions/mesmer/family-mechanics.js';
-import { mesmerResourceDefinition } from '#gw2/professions/mesmer/family-state.js';
+import { buildMesmerPacket, mesmerPacketOwner } from '#gw2/professions/mesmer/core/mechanics/packets.js';
+import { mesmerResourceDefinition, mesmerResourceKind } from '#gw2/professions/mesmer/family-state.js';
 
 /** Illusions share one resource transaction owner; tasks and cast selection travel with that lifecycle. */
 export const mesmerIllusionHooks = {
   initialize(runtime) {
     const resourceDefinition = mesmerResourceDefinition(runtime.profession.specialization.kind, runtime);
-    createMesmerResources(runtime).gainResources(
+    const kind = mesmerResourceKind(runtime.profession.specialization.kind);
+    // Numeric policies already seeded their clocks; observe the seed without granting it or earning rewards again.
+    if (kind !== 'clones') {
+      const value = runtime.resourceController.value(kind);
+      if (value > 0) {
+        const packet = buildMesmerPacket({
+          type: 'resource',
+          at: 0,
+          amount: value,
+          value,
+          maximum: resourceDefinition.maximum,
+          resource: kind,
+          reason: 'initial',
+          created: []
+        });
+        runtime.effects.emit({
+          kind: 'packet',
+          event: packet,
+          owner: mesmerPacketOwner(packet),
+          priority: Number(packet.priority ?? 0)
+        });
+      }
+
+      return;
+    }
+
+    createMesmerIllusionRewards(runtime).gainResources(
       0,
       boundedNumber(runtime.config.initialResource ?? 0, 0, 0, resourceDefinition.maximum),
       mesmerActivePrimaryWeapon(runtime),
@@ -52,7 +79,7 @@ export const mesmerIllusionHooks = {
     },
     'mesmer.resource-gain'(runtime, data) {
       const { count, weapon, reason, cause } = data as MesmerPendingResource;
-      createMesmerResources(runtime).gainResources(runtime.time, count, weapon, reason, cause);
+      createMesmerIllusionRewards(runtime).gainResources(runtime.time, count, weapon, reason, cause);
     }
   },
   sideEffectHandlers: {
@@ -65,7 +92,7 @@ export const mesmerIllusionHooks = {
     // Impact-owned illusion gains use the same clone/blade/imagery resource owner as other skills.
     'mesmer.illusion-gain'(runtime, context, action) {
       if (action.type !== 'mesmer.illusion-gain') return;
-      createMesmerResources(runtime).gainResources(
+      createMesmerIllusionRewards(runtime).gainResources(
         runtime.time,
         sideEffectAmount(runtime, action.amount!),
         context.skill.weapon || mesmerActivePrimaryWeapon(runtime),

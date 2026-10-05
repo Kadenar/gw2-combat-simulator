@@ -28,8 +28,8 @@ test('committed dagger casts preserve projectiles and their declared cast occupa
       firstCastHits(full).map((event) => event.at)
     );
     assert.equal(firstCastHits(cancelled).length, 0);
-    assert.equal(committed.planningState.profession.resource, full.planningState.profession.resource);
-    assert.equal(cancelled.planningState.profession.resource, 0);
+    assert.equal(committed.planningState.profession.blades.value, full.planningState.profession.blades.value);
+    assert.equal(cancelled.planningState.profession.blades.value, 0);
     assert.equal(committed.steps[1].start, name === 'Bladecall' ? full.steps[1].start : committed.steps[0].end);
     assert.equal(cancelled.steps[1].start, cancelled.steps[0].end);
   }
@@ -58,9 +58,9 @@ test('committed Harmony spends its reservation while cancelled Harmony restores 
   assert.equal(spends(committed).length, 1);
   assert.equal(spends(committed)[0].amount, -5);
   assert.equal(spends(committed)[0].at, committed.events.find((event) => event.type === 'action').endsAt);
-  assert.equal(committed.planningState.profession.resource, 2);
+  assert.equal(committed.planningState.profession.blades.value, 2);
   assert.equal(spends(cancelled).length, 0);
-  assert.equal(cancelled.planningState.profession.resource, 5);
+  assert.equal(cancelled.planningState.profession.blades.value, 5);
   assert.ok(hits(committed).length > 0);
   assert.deepEqual(
     hits(committed).map((event) => event.at),
@@ -167,9 +167,9 @@ test('instrument commitment requires a performance that was not cancelled', () =
 
     assert.equal(cancelled.events.find((event) => event.type === 'action').cancelled, true);
     assert.deepEqual(cancelled.warnings, []);
-    assert.equal(cancelled.planningState.profession.resource, 3);
+    assert.equal(cancelled.planningState.profession.notes.value, 3);
     assert.deepEqual(cancelled.planningState.profession.activeInstruments, []);
-    assert.equal(completed.planningState.profession.resource, 0);
+    assert.equal(completed.planningState.profession.notes.value, 0);
     assert.equal(completed.planningState.profession.activeInstruments[0].name, instrument);
     assert.ok(completed.planningState.profession.activeInstruments[0].remaining > 0);
   }

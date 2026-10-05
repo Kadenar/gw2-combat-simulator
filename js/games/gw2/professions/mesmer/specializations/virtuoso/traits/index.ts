@@ -1,4 +1,4 @@
-import { createMesmerResources, mesmerActivePrimaryWeapon } from '#gw2/professions/mesmer/family-mechanics.js';
+import { createMesmerIllusionRewards, mesmerActivePrimaryWeapon } from '#gw2/professions/mesmer/family-mechanics.js';
 import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { isGw2PlayerActorEvent } from '#gw2/platform/combat/state/event-ownership.js';
@@ -70,7 +70,7 @@ export const bloodsong = defineTrait<MesmerSkill>({
         const threshold = balanceProfileNumber(profile, 'threshold');
         while (threshold > 0 && state.bloodsongProgress >= threshold - 1e-9) {
           state.bloodsongProgress -= threshold;
-          createMesmerResources(runtime).queueResources(
+          createMesmerIllusionRewards(runtime).queueResources(
             runtime.time,
             balanceProfileNumber(profile, 'resourceGain'),
             mesmerActivePrimaryWeapon(runtime),
@@ -193,7 +193,7 @@ export const infiniteForge = defineTrait<MesmerSkill>({
     tasks: {
       'mesmer.infinite-forge'(runtime) {
         const profile = requireBalanceProfileFromContext(runtime, TRAIT.INFINITE_FORGE);
-        createMesmerResources(runtime).gainResources(
+        createMesmerIllusionRewards(runtime).gainResources(
           runtime.time,
           balanceProfileNumber(profile, 'playerStacks'),
           mesmerActivePrimaryWeapon(runtime),

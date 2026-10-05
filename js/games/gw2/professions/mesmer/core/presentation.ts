@@ -83,14 +83,17 @@ export function mesmerResourceViews(
   const state = mesmerUiState(context);
   // Palette pips use the same selected capacity as runtime resource spending.
   const specialization = definition.id === 'blades' ? 'Virtuoso' : definition.id === 'notes' ? 'Troubadour' : 'Core';
-  const maximum = balanceProfileNumber(
-    requireBalanceProfileFromContext(context, mesmerResourceProfileId(specialization)),
-    'maximumStacks'
-  );
+  const clock = definition.id === 'clones' ? undefined : state[definition.id];
+  const maximum =
+    clock?.maximum ??
+    balanceProfileNumber(
+      requireBalanceProfileFromContext(context, mesmerResourceProfileId(specialization)),
+      'maximumStacks'
+    );
   const value =
     definition.id === 'clones'
       ? Number(state.clones?.length ?? state.resource ?? context.value ?? 0)
-      : Number(state.numericResource || context.value || 0);
+      : Number(clock?.value ?? context.value ?? 0);
   return [
     {
       ...definition,

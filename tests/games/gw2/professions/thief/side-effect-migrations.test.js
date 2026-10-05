@@ -321,8 +321,8 @@ test('Malicious Ashen declarations retain accepted malice and own their commitme
     {
       initialize(runtime) {
         runtime.profession.core.stealthUntil = 10;
+        runtime.resourceController.replace('malice', 5);
         Object.assign(runtime.profession.specialization.state, {
-          malice: 5,
           markedTargetId: 'primary-target',
           markExpiresAt: 10
         });
@@ -331,7 +331,7 @@ test('Malicious Ashen declarations retain accepted malice and own their commitme
         [
           0.1,
           (runtime) => {
-            runtime.profession.specialization.state.malice = 1;
+            runtime.resourceController.replace('malice', 1);
           }
         ]
       ],
@@ -365,7 +365,7 @@ test('Malicious Ashen declarations retain accepted malice and own their commitme
     5
   );
   assert.equal(observedRuntime(result).resourceController.value('initiative'), 7);
-  assert.equal(observedRuntime(result).profession.specialization.state.malice, 0);
+  assert.equal(observedRuntime(result).profession.specialization.state.malice.value, 0);
 });
 
 // The finisher window begins at commitment after the throw's own packet; later attacks see its modifier.

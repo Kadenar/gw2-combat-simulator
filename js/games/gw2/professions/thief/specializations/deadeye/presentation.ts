@@ -85,9 +85,17 @@ export const deadeyeUi = Object.freeze({
         id: 'malice',
         singular: 'malice',
         plural: 'malice',
-        // Default to 5 when state is not yet initialized; maximumMalice becomes 7 when Maleficent Seven is equipped
-        maximum: state.maximumMalice || 5,
-        value: state.malice || 0,
+        // Render the observed clock; before a result exists use the selected profile's trait capacity.
+        maximum:
+          state.malice?.maximum ??
+          balanceProfileNumber(
+            requireBalanceProfileFromContext(
+              context,
+              hasTrait(context, TRAIT.MALEFICENT_SEVEN) ? TRAIT.MALEFICENT_SEVEN : DEADEYE_BALANCE_PROFILE_IDS.resources
+            ),
+            'maximumStacks'
+          ),
+        value: state.malice?.value ?? 0,
         canStart: false,
         step: 1,
         displayMode: 'pips',
