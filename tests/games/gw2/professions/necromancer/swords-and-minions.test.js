@@ -32,10 +32,18 @@ test('allied attack clocks preserve independent intervals across partitioned and
         ...native,
         tasks: {
           ...native.tasks,
-          'necromancer.allied-opportunity'(runtime, pulse) {
-            pulses.push([pulse.trait, runtime.time]);
-            native.tasks['necromancer.allied-opportunity'](runtime, pulse);
-          }
+          ...Object.fromEntries(
+            [
+              ['necromancer.vampiric-presence-opportunity', TRAIT.VAMPIRIC_PRESENCE],
+              ['necromancer.taste-for-blood-opportunity', TRAIT.OVERFLOWING_THIRST]
+            ].map(([name, trait]) => [
+              name,
+              (runtime, pulse) => {
+                pulses.push([trait, runtime.time]);
+                native.tasks[name](runtime, pulse);
+              }
+            ])
+          )
         }
       }
     });

@@ -1,6 +1,7 @@
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import { grantCharges, type ChargeGrant } from '#gw2/platform/combat/resources/charges.js';
 import { gw2AlliedEffectRecipients, gw2AlliedPlayerAssumptions } from '#gw2/platform/combat/state/allied-players.js';
+import { defineAlliedOpportunityTask } from '#gw2/platform/combat/state/allied-opportunities.js';
 import {
   balanceProfileNumber,
   effectNumber,
@@ -27,27 +28,50 @@ import type {
 import { canonicalTime } from '#kernel/core/clock.js';
 
 const EXPIRE = 'ritualist.weapon-spell-expiry';
-const ALLY = 'ritualist.weapon-spell-opportunity';
 const BOND = 'ritualist.painful-bond-pulse';
 const owner = (spell: string, generation: number) => ({ id: `ritualist.weapon-spell:${spell}`, generation });
 
-interface AllyOpportunity {
+interface WeaponSpellOpportunity {
   spell: 'nightmare' | 'splinter';
-  generation: number;
   allyIndex: number;
-  anchor: number;
-  pulse: number;
-  interval: number;
 }
 
-/** Replacements cancel all old opportunities; each ally retains only one next wake while its current grant is spendable. */
-function scheduleAlly(runtime: NecromancerRuntime, work: AllyOpportunity): void {
-  const active = ritualistState.from(runtime).weaponSpells[work.spell];
-  const grant = active?.recipients?.[`ally:${work.allyIndex}`];
-  const at = canonicalTime(work.anchor + work.pulse * work.interval);
-  if (active?.generation === work.generation && grant && grant.charges > 0 && at < grant.expiresAt)
-    runtime.schedule(ALLY, at, work, owner(work.spell, work.generation));
-}
+/** Each replacement owns independent allied streams; live grants alone decide expiry, payload eligibility, and ICDs. */
+const weaponSpellOpportunities = defineAlliedOpportunityTask<
+  NecromancerRuntimeState,
+  NecromancerSkill,
+  WeaponSpellOpportunity
+>({
+  name: 'ritualist.weapon-spell-opportunity',
+  priority: 0,
+  cadence: 'anchored',
+  eligibleAt(runtime, stream, at) {
+    const active = ritualistState.from(runtime).weaponSpells[stream.data.spell];
+    const grant = active?.recipients?.[`ally:${stream.data.allyIndex}`];
+    return active?.generation === stream.owner?.generation && !!grant && grant.charges > 0 && at < grant.expiresAt;
+  },
+  attempt(runtime, stream) {
+    if (!runtime.combatActive) return;
+    const { spell, allyIndex } = stream.data;
+    const active = ritualistState.from(runtime).weaponSpells[spell]!;
+    // Only the resulting spell packets enter target resolution; an opportunity is never allied damage.
+    triggerRitualistWeaponSpell(
+      runtime,
+      {
+        type: 'proc',
+        at: runtime.time,
+        source: 'Weapon Spell',
+        sourceId: active.skillId!,
+        actorType: 'effect',
+        skillId: active.skillId,
+        skillName: active.skillName,
+        metadata: { triggeredByAlly: allyIndex }
+      },
+      spell,
+      [`ally:${allyIndex}`]
+    );
+  }
+});
 
 /** Duration stacking retains the first cadence without queuing idle pulses between disjoint Bond windows. */
 function applyBond(runtime: NecromancerRuntime, event: Gw2ResolverEvent): void {
@@ -156,7 +180,12 @@ function grantWeaponSpell(
   // Model actual strikes on the allied cadence; the shared charge owner alone decides whether its ICD allows a proc.
   const interval = 1 / rate;
   for (let allyIndex = 1; allyIndex <= audience.alliedPlayerCount; allyIndex++)
-    scheduleAlly(runtime, { spell, generation, allyIndex, anchor: runtime.time, pulse: 1, interval });
+    weaponSpellOpportunities.start(runtime, {
+      owner: owner(spell, generation),
+      anchor: runtime.time,
+      interval,
+      data: { spell, allyIndex }
+    });
 }
 
 /** Weapon spells and Bond own their live grants and timers alongside the specialization's spirit lifecycle. */
@@ -175,33 +204,11 @@ export const ritualistSpellHooks: RuntimeHooks<NecromancerRuntimeState, Necroman
   eventHandlers: { 'necromancer.painful-bond': applyBond },
   reactions: { 'damage.resolved': ritualistResolverEventReactions.damage },
   tasks: {
+    ...weaponSpellOpportunities.tasks,
     [EXPIRE](runtime, data) {
       const { spell, generation } = data as { spell: string; generation: number };
       const state = ritualistState.from(runtime);
       if (state.weaponSpells[spell]?.generation === generation) delete state.weaponSpells[spell];
-    },
-    [ALLY](runtime, data) {
-      const work = data as AllyOpportunity;
-      const active = ritualistState.from(runtime).weaponSpells[work.spell];
-      if (active?.generation !== work.generation) return;
-      // Opportunities are not damage events: only the resulting spell packets enter target resolution.
-      if (runtime.combatActive && runtime.deathTime == null)
-        triggerRitualistWeaponSpell(
-          runtime,
-          {
-            type: 'proc',
-            at: runtime.time,
-            source: 'Weapon Spell',
-            sourceId: active.skillId!,
-            actorType: 'effect',
-            skillId: active.skillId,
-            skillName: active.skillName,
-            metadata: { triggeredByAlly: work.allyIndex }
-          },
-          work.spell,
-          [`ally:${work.allyIndex}`]
-        );
-      scheduleAlly(runtime, { ...work, pulse: work.pulse + 1 });
     },
     [BOND](runtime, data) {
       const state = ritualistState.from(runtime);

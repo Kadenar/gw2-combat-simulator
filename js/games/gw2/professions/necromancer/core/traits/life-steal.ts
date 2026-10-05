@@ -1,5 +1,6 @@
 import { appendChargeGrant, consumeChargeBatch, grantCharges } from '#gw2/platform/combat/resources/charges.js';
 import { gw2AlliedEffectRecipients, gw2AlliedPlayerAssumptions } from '#gw2/platform/combat/state/allied-players.js';
+import { defineAlliedOpportunityTask } from '#gw2/platform/combat/state/allied-opportunities.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
 import {
@@ -18,6 +19,7 @@ import type {
   NecromancerResolverContext,
   NecromancerResolverEvent,
   NecromancerRuntime,
+  NecromancerRuntimeState,
   NecromancerSkill
 } from '#gw2/professions/necromancer/types.js';
 import { canonicalTime } from '#kernel/core/clock.js';
@@ -282,44 +284,69 @@ export function applyOverflowingThirstCast(runtime: NecromancerRuntime, cast: Ru
   });
 }
 
-export function alliedPulse(runtime: NecromancerRuntime, data: unknown): void {
+/** Vampiric Presence keeps its unlimited, ICD-adjusted cadence independent of finite Taste for Blood grants. */
+function vampiricPresencePulse(runtime: NecromancerRuntime, data: unknown): void {
   if (runtime.deathTime != null) return;
-  const pulse = data as AlliedPulse;
+  const pulse = data as { interval: number };
   const allies = gw2AlliedPlayerAssumptions(runtime.config);
-  const reaction =
-    pulse.trait === TRAIT.VAMPIRIC_PRESENCE ? reactToVampiricPresenceAlliedHit : reactToTasteForBloodAlliedHit;
   for (let allyIndex = 1; allyIndex <= allies.count; allyIndex++)
-    reaction(runtime, {
+    reactToVampiricPresenceAlliedHit(runtime, {
       type: 'necromancer.allied-hit',
       at: runtime.time,
       source: 'Trait',
-      sourceId: pulse.trait,
+      sourceId: TRAIT.VAMPIRIC_PRESENCE,
       actorType: 'effect',
       skillName: `Allied Player ${allyIndex} Attack`,
       allyIndex
     });
-  runtime.schedule(ALLIED, canonicalTime(runtime.time + pulse.interval), pulse, undefined, -200);
+  runtime.schedule(VAMPIRIC_PRESENCE_ALLIED, canonicalTime(runtime.time + pulse.interval), pulse, undefined, -200);
 }
 
+/** Empty pools do not reset the allied phase; a cohort wakes before ordinary applications at the same instant. */
+const tasteForBloodOpportunities = defineAlliedOpportunityTask<NecromancerRuntimeState, NecromancerSkill, null>({
+  name: 'necromancer.taste-for-blood-opportunity',
+  priority: -200,
+  cadence: 'stepped',
+  eligibleAt: () => true,
+  attempt(runtime) {
+    const allies = gw2AlliedPlayerAssumptions(runtime.config);
+    for (let allyIndex = 1; allyIndex <= allies.count; allyIndex++)
+      reactToTasteForBloodAlliedHit(runtime, {
+        type: 'necromancer.allied-hit',
+        at: runtime.time,
+        source: 'Trait',
+        sourceId: TRAIT.OVERFLOWING_THIRST,
+        actorType: 'effect',
+        skillName: `Allied Player ${allyIndex} Attack`,
+        allyIndex
+      });
+  }
+});
+
+/** The existing explicit/implicit combat boundary starts both traits once, in their original ordering. */
 export function startNecromancerAlliedOpportunities(runtime: NecromancerRuntime): void {
   const allies = gw2AlliedPlayerAssumptions(runtime.config);
   if (!allies.count || !allies.strikesPerSecond) return;
-  for (const trait of [TRAIT.VAMPIRIC_PRESENCE, TRAIT.OVERFLOWING_THIRST]) {
-    if (!hasTrait(runtime, trait)) continue;
-    const minimum =
-      trait === TRAIT.VAMPIRIC_PRESENCE
-        ? balanceProfileNumber(requireBalanceProfileFromContext(runtime, TRAIT.VAMPIRIC_PRESENCE), 'cooldown')
-        : 0;
+  if (hasTrait(runtime, TRAIT.VAMPIRIC_PRESENCE)) {
+    const minimum = balanceProfileNumber(
+      requireBalanceProfileFromContext(runtime, TRAIT.VAMPIRIC_PRESENCE),
+      'cooldown'
+    );
     const interval = Math.max(minimum, 1 / allies.strikesPerSecond);
-    runtime.schedule(ALLIED, canonicalTime(runtime.time + interval), { trait, interval }, undefined, -200);
+    runtime.schedule(VAMPIRIC_PRESENCE_ALLIED, canonicalTime(runtime.time + interval), { interval }, undefined, -200);
   }
+
+  if (hasTrait(runtime, TRAIT.OVERFLOWING_THIRST))
+    tasteForBloodOpportunities.start(runtime, {
+      anchor: runtime.time,
+      interval: 1 / allies.strikesPerSecond,
+      data: null
+    });
 }
 
-const ALLIED = 'necromancer.allied-opportunity';
+const VAMPIRIC_PRESENCE_ALLIED = 'necromancer.vampiric-presence-opportunity';
 
-interface AlliedPulse {
-  trait: number;
-  interval: number;
-}
-
-export const necromancerAlliedTasks = { [ALLIED]: alliedPulse };
+export const necromancerAlliedTasks = {
+  [VAMPIRIC_PRESENCE_ALLIED]: vampiricPresencePulse,
+  ...tasteForBloodOpportunities.tasks
+};
