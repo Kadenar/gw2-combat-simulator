@@ -1,3 +1,4 @@
+import { specterBuffPolicies } from '#gw2/professions/thief/specializations/specter/effect-state.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
 import { improvisationShadowForceMultiplier } from '#gw2/professions/thief/core/traits/steal.js';
@@ -171,6 +172,7 @@ function specterAvailability(runtime: MechanicQueriesOf<ThiefRuntime>, skill: Th
 
 /** Specter hooks: Shadow Force and its shroud, Siphon, shroud skill traits, Dark Sentry, and Larcenous Torment. */
 export const specterHooks: RuntimeHooks<ThiefRuntimeState, ThiefSkill> = {
+  buffPolicies: specterBuffPolicies,
   /** Initialize only damage-relevant form and scaling state for one assumed occurrence. */
   prepareDamageState(runtime, skill, _inputs) {
     specterState.from(runtime).shadowShroudActive = Boolean(skill?.shadowShroudSkill);

@@ -88,7 +88,8 @@ export const EVOKER_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freeze(
       {
         type: 'buff',
         name: 'Zap Window',
-        kind: 'zap-buff',
+        // The emitter, policy, and damage modifier share this single buff identity.
+        kind: 'zap buff',
         stacks: 1,
         duration: 5
       },

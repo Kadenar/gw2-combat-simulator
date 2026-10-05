@@ -1,3 +1,4 @@
+import { harbingerBuffPolicies } from '#gw2/professions/necromancer/specializations/harbinger/effect-state.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import { timedEffectState } from '#gw2/platform/combat/effect-state.js';
 import { BLIGHT_MAXIMUM_STACKS } from '#gw2/professions/necromancer/specializations/harbinger/state.js';
@@ -153,6 +154,7 @@ function launchMovement(runtime: NecromancerRuntime, cast: RuntimeCast<Necromanc
 
 /** Blight lives on the one runtime; shroud callbacks own every entry and exit, including automatic depletion. */
 export const harbingerHooks: RuntimeHooks<NecromancerRuntimeState, NecromancerSkill> = {
+  buffPolicies: harbingerBuffPolicies,
   // Observe the same retained pools and mode flags that Harbinger combat mutates.
   observeEffects(runtime) {
     const state = harbingerState.from(runtime);

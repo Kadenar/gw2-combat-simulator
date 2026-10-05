@@ -1,3 +1,4 @@
+import { mirageBuffPolicies } from '#gw2/professions/mesmer/specializations/mirage/effect-state.js';
 import {
   createMesmerIllusionRewards,
   createMesmerActions,
@@ -26,6 +27,7 @@ type TriggerData = { cast: RuntimeCast<MesmerSkill>; trigger: SkillTask };
 
 /** Cloak, mirror pickup, and endurance execute at actual command and owned-task boundaries. */
 export const mirageHooks: RuntimeHooks<MesmerRuntimeState, MesmerSkill> = {
+  buffPolicies: mirageBuffPolicies,
   initialize: initializeMirageTraits,
   endurance: mirageEndurance,
   availability: mirageAvailability,

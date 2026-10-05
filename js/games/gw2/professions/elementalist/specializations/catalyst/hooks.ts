@@ -1,3 +1,7 @@
+import {
+  catalystBuffPolicies,
+  catalystEffectStates
+} from '#gw2/professions/elementalist/specializations/catalyst/effect-state.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
 import { requireBalanceNumber } from '#gw2/platform/effects/validation.js';
@@ -148,6 +152,8 @@ function gainEnergy(runtime: ElementalistRuntime, event: SimulationEvent): void 
 
 /** Sphere spending, weapon refreshes, and accepted-hit traits operate on the same live state. */
 export const catalystHooks: RuntimeHooks<ElementalistRuntimeState, ElementalistSkill> = {
+  buffPolicies: catalystBuffPolicies,
+  observeEffects: catalystEffectStates,
   resources: { catalystEnergy: catalystEnergyPolicy },
   initialize,
   availability,

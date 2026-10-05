@@ -225,7 +225,8 @@ export const evokerSkillCommitTasks: NonNullable<
               sourceId: skill.id,
               actorType: 'player',
               skillName: skill.name,
-              kind: 'zap buff',
+              // Use the declared identity so the policy and damage modifier observe this same window.
+              kind: String(zap.kind),
               stacks: Number(zap.stacks),
               duration: zap.duration
             },

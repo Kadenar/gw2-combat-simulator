@@ -1,3 +1,4 @@
+import { daredevilBuffPolicies } from '#gw2/professions/thief/specializations/daredevil/effect-state.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
 import {
@@ -38,6 +39,7 @@ function completeDaredevilCast(runtime: ThiefRuntime, cast: RuntimeCast<ThiefSki
 
 /** Daredevil hooks: the larger endurance pool, selected dodges, trait refunds, and Palm Strike. */
 export const daredevilHooks: RuntimeHooks<ThiefRuntimeState, ThiefSkill> = {
+  buffPolicies: daredevilBuffPolicies,
   // Daredevil replaces only the capacity while retaining Core's pool and regeneration.
   endurance: {
     ...thiefEndurance,

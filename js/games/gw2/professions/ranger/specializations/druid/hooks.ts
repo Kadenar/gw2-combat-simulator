@@ -1,3 +1,4 @@
+import { druidBuffPolicies } from '#gw2/professions/ranger/specializations/druid/effect-state.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import { denySkillCast as deny } from '#gw2/platform/execution/availability.js';
 import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
@@ -60,6 +61,7 @@ function avatar(runtime: RangerRuntime, active: boolean, exhausted = false): voi
 }
 
 export const druidHooks: RuntimeHooks<RangerRuntimeState, RangerSkill> = {
+  buffPolicies: druidBuffPolicies,
   resources: {
     astralForce: {
       kind: 'continuous',

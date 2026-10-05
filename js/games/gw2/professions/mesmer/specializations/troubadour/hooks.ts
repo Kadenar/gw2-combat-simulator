@@ -1,3 +1,4 @@
+import { troubadourBuffPolicies } from '#gw2/professions/mesmer/specializations/troubadour/effect-state.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import { mesmerCastDelivery } from '#gw2/professions/mesmer/core/execution/cast-lifecycle.js';
@@ -17,6 +18,7 @@ import type { MesmerRuntimeState } from '#gw2/professions/mesmer/types.js';
 
 /** Instruments commit notes on completion; delayed waves and accepted disables retain their own timing. */
 export const troubadourHooks: RuntimeHooks<MesmerRuntimeState, MesmerSkill> = {
+  buffPolicies: troubadourBuffPolicies,
   // Seed the selected pool before initialization; only earned gains trigger illusion rewards.
   resources: {
     notes: {

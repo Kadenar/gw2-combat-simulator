@@ -1,3 +1,7 @@
+import {
+  scourgeBuffPolicies,
+  scourgeEffectStates
+} from '#gw2/professions/necromancer/specializations/scourge/effect-state.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import { grantTimedStacks } from '#gw2/platform/combat/resources/timed-stacks.js';
 import { isHostileTargetEvent } from '#gw2/platform/combat/state/targets.js';
@@ -173,6 +177,8 @@ function manifestShade(runtime: NecromancerRuntime, cast: RuntimeCast<Necromance
 
 /** Scourge consumes Core life force once at acceptance; its specialization owns shades, barrier pulses, and trait claims. */
 export const scourgeHooks: RuntimeHooks<NecromancerRuntimeState, NecromancerSkill> = {
+  buffPolicies: scourgeBuffPolicies,
+  observeEffects: scourgeEffectStates,
   sideEffectHandlers: {
     'scourge.manifest-start'(runtime, context) {
       if (context.kind === 'cast' && !context.cast.cancelled)

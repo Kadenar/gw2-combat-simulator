@@ -1,3 +1,4 @@
+import { ritualistBuffPolicies } from '#gw2/professions/necromancer/specializations/ritualist/effect-state.js';
 import {
   canActivateRitualistSpirit,
   initializeRitualistSpiritLifecycle,
@@ -142,8 +143,7 @@ export const ritualistHooks: RuntimeHooks<NecromancerRuntimeState, NecromancerSk
   ],
 
   // Recipient pools already own replacement and charge consumption; publish their retained grants directly.
-  buffPolicies: () =>
-    ['nightmare', 'splinter', 'resilient'].map((spell) => ({ kind: spell + '-weapon', owner: 'profession' as const })),
+  buffPolicies: ritualistBuffPolicies,
   observeEffects(runtime) {
     return Object.entries(ritualistState.from(runtime).weaponSpells).flatMap(([spell, state]) =>
       Object.entries(state.recipients ?? {}).map(([recipient, grant]) =>

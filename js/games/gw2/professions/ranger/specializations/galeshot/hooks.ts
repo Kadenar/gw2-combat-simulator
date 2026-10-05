@@ -1,3 +1,4 @@
+import { galeshotBuffPolicies } from '#gw2/professions/ranger/specializations/galeshot/effect-state.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
 import {
@@ -24,6 +25,7 @@ import type { RangerRuntimeState, RangerSkill } from '#gw2/professions/ranger/ty
 
 /** Arrow spending is immediate; Wind Force and completion traits become visible only at their own queue boundary. */
 export const galeshotHooks: RuntimeHooks<RangerRuntimeState, RangerSkill> = {
+  buffPolicies: galeshotBuffPolicies,
   /** Initialize only damage-relevant form and scaling state for one assumed occurrence. */
   prepareDamageState(runtime, skill, _inputs) {
     galeshotState.from(runtime).cycloneBowActive = Boolean(skill?.cycloneBowSkill);

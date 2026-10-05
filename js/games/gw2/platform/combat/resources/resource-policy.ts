@@ -10,6 +10,7 @@ export const RESOURCE_KEYS = [
   'arrows',
   'initiative',
   'malice',
+  'heat',
   'shadowForce',
   'astralForce',
   'energy',

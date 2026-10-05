@@ -1,3 +1,4 @@
+import { evokerBuffPolicies } from '#gw2/professions/elementalist/specializations/evoker/effect-state.js';
 import { initializeSpecializedElements } from '#gw2/professions/elementalist/specializations/evoker/traits/attunements.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import type { SkillTaskData } from '#gw2/platform/execution/cast-contracts.js';
@@ -33,6 +34,7 @@ import { applyAltruisticAspect } from '#gw2/professions/elementalist/specializat
 import type { ElementalistRuntimeState, ElementalistSkill } from '#gw2/professions/elementalist/types.js';
 /** Familiar casts own pending packets; accepted impacts spend enchantments in chronological order. */
 export const evokerHooks: RuntimeHooks<ElementalistRuntimeState, ElementalistSkill> = {
+  buffPolicies: evokerBuffPolicies,
   resources: { familiarCharges: familiarChargePolicy, empoweredCharges: empoweredChargePolicy },
   // Invoke the damage payload without activation requirements and reuse its proc icon in the damage preview.
   damageEffects: [

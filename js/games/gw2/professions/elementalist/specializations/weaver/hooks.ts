@@ -1,3 +1,4 @@
+import { weaverBuffPolicies } from '#gw2/professions/elementalist/specializations/weaver/effect-state.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
 import type { RuntimeCast, SkillTaskData } from '#gw2/platform/execution/cast-contracts.js';
@@ -223,6 +224,7 @@ function onCastCommit(context: ElementalistRuntime, cast: RuntimeCast<Elementali
 
 /** Native tasks own Weave Self and stance pulses; actual controls and swaps own their trait reactions. */
 export const weaverHooks: RuntimeHooks<ElementalistRuntimeState, ElementalistSkill> = {
+  buffPolicies: weaverBuffPolicies,
   initialize,
   availability,
   // The Air bullet and Flow State reductions compose without consuming bullet state during lookup.

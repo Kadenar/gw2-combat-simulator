@@ -136,7 +136,7 @@ export const familiarsProwess = defineTrait({
       amount: (context, _target, parameters) =>
         hasTrait(context, TRAIT.FAMILIARS_FOCUS) ? parameters.focusedAmount : parameters.baseAmount,
       when: (context: ElementalistModifierContext) =>
-        context.config?.evokerElement === 'Air' && elementalistTimedBuffStacks(context, "familiar's-prowess", 1) > 0
+        context.config?.evokerElement === 'Air' && elementalistTimedBuffStacks(context, 'familiars-prowess', 1) > 0
     },
     {
       requiresSelection: false,
@@ -147,7 +147,7 @@ export const familiarsProwess = defineTrait({
       amount: (context, _target, parameters) =>
         hasTrait(context, TRAIT.FAMILIARS_FOCUS) ? parameters.focusedAmount : parameters.baseAmount,
       when: (context: ElementalistModifierContext) =>
-        context.config?.evokerElement === 'Fire' && elementalistTimedBuffStacks(context, "familiar's-prowess", 1) > 0
+        context.config?.evokerElement === 'Fire' && elementalistTimedBuffStacks(context, 'familiars-prowess', 1) > 0
     }
   ]
 });

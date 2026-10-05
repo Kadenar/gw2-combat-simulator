@@ -390,7 +390,7 @@ test('Familiar Prowess retains its applied window and patched Focus scaling afte
     catalog: runtime.catalog,
     event: { actorType: 'player' },
     config: { evokerElement: 'Air', selectedTraitIds: [] },
-    runtime: { boons: new Map([["familiar's-prowess", [{ at: 0, expiresAt: 2, stacks: 1 }]]]) }
+    runtime: { boons: new Map([['familiars-prowess', [{ at: 0, expiresAt: 2, stacks: 1 }]]]) }
   };
   assert.equal(runtime.modifyStrikeDamage(context, 100), 120);
   assert.equal(

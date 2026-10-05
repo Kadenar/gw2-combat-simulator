@@ -1,4 +1,4 @@
-import { elementalistBuffPolicies } from '#gw2/professions/elementalist/core/effect-state.js';
+import { catalystBuffPolicies } from '#gw2/professions/elementalist/specializations/catalyst/effect-state.js';
 import { effectFields } from '#tests/helpers/effect-report.js';
 import { planningFixture } from '#tests/helpers/observed-runtime.js';
 import assert from 'node:assert/strict';
@@ -57,7 +57,7 @@ test('Catalyst chart uses the Elemental Empowerment stack cap', () => {
           }
         ],
         2,
-        { policies: elementalistBuffPolicies({ catalog: elementalistProfession.catalog }) }
+        { policies: catalystBuffPolicies({ catalog: elementalistProfession.catalog }) }
       )
     },
     1000,

@@ -1,3 +1,4 @@
+import { virtuosoBuffPolicies } from '#gw2/professions/mesmer/specializations/virtuoso/effect-state.js';
 import { createMesmerActions } from '#gw2/professions/mesmer/family-mechanics.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
@@ -11,6 +12,7 @@ import type { MesmerRuntimeState } from '#gw2/professions/mesmer/types.js';
 
 /** Blade resources follow committed spending, accepted Bleeding, and actual shared critical outcomes. */
 export const virtuosoHooks: RuntimeHooks<MesmerRuntimeState, MesmerSkill> = {
+  buffPolicies: virtuosoBuffPolicies,
   // Seed the selected pool before initialization; only earned gains trigger illusion rewards.
   resources: {
     blades: {

@@ -1,3 +1,4 @@
+import { chronomancerBuffPolicies } from '#gw2/professions/mesmer/specializations/chronomancer/effect-state.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import { OBSERVABLE_EVENT_HANDLER } from '#gw2/platform/resolver/handler-registry.js';
 import { dispatchShatterResolved } from '#gw2/professions/mesmer/family-mechanics.js';
@@ -9,6 +10,7 @@ import type { MesmerRuntimeState } from '#gw2/professions/mesmer/types.js';
 
 /** Continuum restores its deliberate checkpoint once; accepted control owns Danger Time. */
 export const chronomancerHooks: RuntimeHooks<MesmerRuntimeState, MesmerSkill> = {
+  buffPolicies: chronomancerBuffPolicies,
   // Chronomancer strengthens permanent player Alacrity without changing summon recharge or base work.
   playerAlacrityRechargeRate: 1.5,
   // Seed selected ammo pools so Continuum checkpoints include unused skills.

@@ -512,7 +512,12 @@ for (const [specialization, kind, name, maximumStacks] of [
             resolvedAudience: PLAYER_RESOLVED_AUDIENCE
           })),
           10,
-          { policies: mesmerBuffPolicies({ catalog: mesmerProfession.catalog }) }
+          // Chart caps come from the selected composition, including Mirage's Phantom Pain policy.
+          {
+            policies: mesmerProfession
+              .runtimeFor({ specialization })
+              .buffPolicies({ catalog: mesmerProfession.catalog })
+          }
         )
       },
       100,

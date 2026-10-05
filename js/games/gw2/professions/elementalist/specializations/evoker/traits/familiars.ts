@@ -73,9 +73,9 @@ function grantFamiliarProwess(context: ElementalistRuntime, cast: RuntimeCast<El
   const baseDuration = balanceProfileNumber(familiarsProwessProfile, 'durationMultiplier');
   const extension = balanceProfileNumber(familiarsProwessProfile, 'durationPerTier');
   const maximumDuration = balanceProfileNumber(familiarsProwessProfile, 'maximumStacks');
-  const current = activeElementalistBuffs(context, "familiar's-prowess", at).at(-1);
+  const current = activeElementalistBuffs(context, 'familiars-prowess', at).at(-1);
   if (current) {
-    refreshElementalistBuffs(context, "familiar's-prowess", at, (expiry) =>
+    refreshElementalistBuffs(context, 'familiars-prowess', at, (expiry) =>
       Math.min(expiry + extension, at + maximumDuration)
     );
     return;
@@ -89,7 +89,7 @@ function grantFamiliarProwess(context: ElementalistRuntime, cast: RuntimeCast<El
         sourceId: skill.id,
         actorType: 'player',
         skillName: "Familiar's Prowess",
-        kind: "familiar's-prowess",
+        kind: 'familiars-prowess',
         stacks: 1,
         duration: baseDuration
       },
