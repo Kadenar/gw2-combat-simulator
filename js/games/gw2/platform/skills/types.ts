@@ -252,4 +252,6 @@ export interface CatalogEntity {
 
 export interface CatalogLookup {
   readonly skillsByName?: ReadonlyMap<string, CatalogEntity>;
+  /** Command validation reads skill capabilities by canonical identity. */
+  readonly skillsById?: ReadonlyMap<SkillId, CatalogEntity>;
 }

@@ -1,5 +1,6 @@
 import { SelectedSkillMigrationError } from '#gw2/platform/builds/selected-skills.js';
 import { normalizeRotation } from '#gw2/platform/execution/rotation.js';
+import { validateRotationCommand } from '#gw2/platform/execution/rotation-validation.js';
 import { FOOD_NAMES } from '#gw2/platform/equipment/consumables/food.js';
 import { GEAR_SLOTS } from '#gw2/platform/equipment/gear/slots.js';
 import { GEAR_STATS } from '#gw2/platform/equipment/gear/prefixes/data.js';
@@ -712,109 +713,6 @@ function validateSpecializations(
   }
 }
 
-function validCanonicalMilliseconds(command: UnvalidatedBuildRecord, field: string): boolean {
-  if (!Object.hasOwn(command, field)) return true;
-  const value = Number(command[field]);
-  return Number.isFinite(value) && value >= 0;
-}
-
-/** Allows any finite number (including negative) — used for combat-start concurrentOffsetMs. */
-function validCanonicalOffset(command: UnvalidatedBuildRecord, field: string): boolean {
-  if (!Object.hasOwn(command, field)) return true;
-  return Number.isFinite(Number(command[field]));
-}
-
-/** Field is optional; when present must be an integer ≥ 1 (used for releaseAtCharges). */
-function validCanonicalPositiveInteger(command: UnvalidatedBuildRecord, field: string): boolean {
-  if (!Object.hasOwn(command, field)) return true;
-  const value = Number(command[field]);
-  return Number.isInteger(value) && value >= 1;
-}
-
-function validateRotationCommand(command: unknown, catalog: CanonicalCatalog, errors: string[]): void {
-  if (!command || typeof command !== 'object' || Array.isArray(command)) {
-    errors.push('rotation contains an invalid canonical command.');
-    return;
-  }
-
-  const candidate = command as UnvalidatedBuildRecord;
-  // Accept every canonical command emitted by migration while keeping cast-only payloads guarded below.
-  if (!['cast', 'wait', 'combat-start', 'cooldown-reset'].includes(String(candidate.type))) {
-    errors.push('rotation contains an invalid canonical command.');
-    return;
-  }
-
-  if (
-    !(candidate.type === 'combat-start'
-      ? validCanonicalOffset(candidate, 'concurrentOffsetMs')
-      : validCanonicalMilliseconds(candidate, 'concurrentOffsetMs')) ||
-    !validCanonicalMilliseconds(candidate, 'interruptAfterMs') ||
-    !validCanonicalMilliseconds(candidate, 'initialStateDurationMs') ||
-    !validCanonicalMilliseconds(candidate, 'impactDelayMs') ||
-    !validCanonicalMilliseconds(candidate, 'releaseDelayMs')
-  ) {
-    errors.push('rotation timing fields must be finite; cast timing must be non-negative.');
-  }
-
-  if (!validCanonicalPositiveInteger(candidate, 'releaseAtCharges')) {
-    errors.push('releaseAtCharges must be a positive whole number.');
-  }
-
-  if (
-    Object.hasOwn(candidate, 'doubleEdgeOutcome') &&
-    !['success', 'backfire'].includes(String(candidate.doubleEdgeOutcome))
-  ) {
-    errors.push('doubleEdgeOutcome must be success or backfire.');
-  }
-
-  if (candidate.type !== 'cast' && Object.hasOwn(candidate, 'interruptAfterMs')) {
-    errors.push('only cast commands may contain interruptAfterMs.');
-  }
-
-  if (candidate.type !== 'cast' && Object.hasOwn(candidate, 'initialStateDurationMs')) {
-    errors.push('only cast commands may contain initialStateDurationMs.');
-  }
-
-  if (candidate.type !== 'cast' && Object.hasOwn(candidate, 'releaseAtCharges')) {
-    errors.push('only cast commands may contain releaseAtCharges.');
-  }
-
-  // Release holds are owned by Dragon Slash; reject silent no-ops on other actions.
-  if (
-    Object.hasOwn(candidate, 'releaseDelayMs') &&
-    (candidate.type !== 'cast' || !catalog.skillsById.get(candidate.skillId as SkillId)?.dragonSlash)
-  ) {
-    errors.push('only Dragon Slash casts may contain releaseDelayMs.');
-  }
-
-  if (candidate.type !== 'cast' && Object.hasOwn(candidate, 'doubleEdgeOutcome')) {
-    errors.push('only cast commands may contain doubleEdgeOutcome.');
-  }
-
-  if (candidate.type !== 'cast' && Object.hasOwn(candidate, 'impactDelayMs')) {
-    errors.push('only cast commands may contain impactDelayMs.');
-  }
-
-  // Off-target packets never land, so they cannot also be delayed.
-  if (candidate.offTarget === true && Number(candidate.impactDelayMs) > 0) {
-    errors.push('off-target casts cannot contain impactDelayMs.');
-  }
-
-  if (candidate.type === 'wait') {
-    if (!Object.hasOwn(candidate, 'durationMs') || !validCanonicalMilliseconds(candidate, 'durationMs')) {
-      errors.push('wait commands require a non-negative durationMs.');
-    }
-
-    if (Object.hasOwn(candidate, 'concurrentOffsetMs')) {
-      errors.push('wait commands cannot contain concurrentOffsetMs.');
-    }
-  }
-
-  if (candidate.type === 'cast' && (!isSkillId(candidate.skillId) || !catalog.skillsById.has(candidate.skillId))) {
-    errors.push(`rotation contains unknown skill ${candidate.skillId}.`);
-  }
-}
-
 function isSkillId(value: unknown): value is SkillId {
   return typeof value === 'string' || typeof value === 'number';
 }
@@ -856,7 +754,7 @@ function validateCommonBuild(
     errors.push('rotation must be an array.');
   } else {
     for (const command of candidate.rotation) {
-      validateRotationCommand(command, catalog, errors);
+      errors.push(...validateRotationCommand(command, catalog, { requireKnownSkill: true }));
     }
   }
 

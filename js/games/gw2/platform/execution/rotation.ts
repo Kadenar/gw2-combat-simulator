@@ -2,143 +2,77 @@
  * Rotation normalization keeps downloaded legacy rotations and shorthand inputs at
  * the boundary while the runtime and application use canonical commands.
  */
-import type { CatalogLookup } from '#gw2/platform/skills/types.js';
+import type { CatalogLookup, SkillId } from '#gw2/platform/skills/types.js';
 import type { RotationCommand } from '#gw2/platform/execution/types.js';
 import { canonicalGw2SkillId } from '#gw2/platform/skills/external-skill-ids.js';
+import { validateRotationCommand } from '#gw2/platform/execution/rotation-validation.js';
 
-function finiteMilliseconds(
-  value: unknown,
-  field: string,
-  { allowNegative = false }: { readonly allowNegative?: boolean } = {}
-): number {
-  const number = Number(value);
-  if (!Number.isFinite(number) || (!allowNegative && number < 0)) {
-    throw new TypeError(`${field} must be ${allowNegative ? 'a finite' : 'a non-negative'} number.`);
-  }
-
-  return number;
-}
-
-function positiveInteger(value: unknown, field: string): number {
-  const number = Number(value);
-  if (!Number.isInteger(number) || number < 1) {
-    throw new TypeError(`${field} must be a positive whole number.`);
-  }
-
-  return number;
-}
-
-/**
- * Converts one rotation entry into the canonical command shape.
- */
-function normalizeRotationCommand(entry: unknown, catalog: CatalogLookup | null = null): RotationCommand {
+/** Decode existing shorthand without dropping fields that the canonical validator must inspect. */
+function decodeRotationCommand(entry: unknown, catalog: CatalogLookup | null): unknown {
   if (typeof entry === 'number') return { type: 'cast', skillId: canonicalGw2SkillId(entry) };
-  if (typeof entry === 'string') {
-    if (entry === '__combat_start') return { type: 'combat-start' };
-    if (entry === '__cooldown_reset') return { type: 'cooldown-reset' };
-    if (entry === '__wait') return { type: 'wait', durationMs: 0 };
-    const skill = catalog?.skillsByName?.get(entry);
-    return skill ? { type: 'cast', skillId: canonicalGw2SkillId(skill.id) } : { type: 'cast', skillId: entry };
-  }
-
-  if (!entry || typeof entry !== 'object' || Array.isArray(entry)) {
-    throw new TypeError('Rotation command must be a skill, wait, cooldown-reset, ' + 'or combat-start entry.');
-  }
+  if (typeof entry === 'string') return decodeRotationCommand({ name: entry }, catalog);
+  if (!entry || typeof entry !== 'object' || Array.isArray(entry)) return entry;
 
   const candidate = entry as Record<string, unknown>;
-
-  if (candidate.type === 'cooldown-reset' || candidate.name === '__cooldown_reset') {
-    return { type: 'cooldown-reset' };
-  }
-
-  if (candidate.type === 'combat-start' || candidate.name === '__combat_start') {
-    const concurrent = candidate.concurrentOffsetMs ?? candidate.offset;
-    return concurrent == null
-      ? { type: 'combat-start' }
-      : {
-          type: 'combat-start',
-          concurrentOffsetMs: finiteMilliseconds(concurrent, 'Concurrent offset', { allowNegative: true })
-        };
-  }
-
-  if (candidate.type === 'wait' || candidate.name === '__wait') {
-    return {
-      type: 'wait',
-      durationMs: finiteMilliseconds(candidate.durationMs ?? candidate.waitMs ?? 0, 'Wait duration')
-    };
-  }
-
+  const type =
+    candidate.type ??
+    (candidate.name === '__cooldown_reset'
+      ? 'cooldown-reset'
+      : candidate.name === '__combat_start'
+        ? 'combat-start'
+        : candidate.name === '__wait'
+          ? 'wait'
+          : 'cast');
   const skillId =
     candidate.skillId ??
     candidate.id ??
     (typeof candidate.name === 'string' ? catalog?.skillsByName?.get(candidate.name)?.id : undefined) ??
     candidate.name;
-  if (skillId === undefined || skillId === null || skillId === '') {
-    throw new TypeError('Cast command requires skillId.');
-  }
-
-  if (typeof skillId !== 'number' && typeof skillId !== 'string') {
-    throw new TypeError('Cast command skillId must be a string or number.');
-  }
-
-  const concurrent = candidate.concurrentOffsetMs ?? candidate.offset;
-  const interrupt = candidate.interruptAfterMs ?? candidate.interruptMs;
-  const initialStateDuration = candidate.initialStateDurationMs;
-  const releaseAtCharges = candidate.releaseAtCharges;
-  const releaseDelay =
-    candidate.releaseDelayMs == null ? 0 : finiteMilliseconds(candidate.releaseDelayMs, 'Release delay');
-  const doubleEdgeOutcome = candidate.doubleEdgeOutcome;
-  const offTarget = candidate.offTarget;
-  const impactDelay = candidate.impactDelayMs == null ? 0 : finiteMilliseconds(candidate.impactDelayMs, 'Impact delay');
-  if (doubleEdgeOutcome != null && doubleEdgeOutcome !== 'success' && doubleEdgeOutcome !== 'backfire') {
-    throw new TypeError('Double Edge outcome must be either success or backfire.');
-  }
-
-  if (offTarget != null && typeof offTarget !== 'boolean') {
-    throw new TypeError('Off-target cast must be a boolean.');
-  }
-
-  // An off-target cast never lands, so a landing delay on the same cast has no meaning.
-  if (offTarget === true && impactDelay > 0) {
-    throw new TypeError('Off-target cast cannot also have an impact delay.');
-  }
-
   return {
-    type: 'cast',
-    skillId: canonicalGw2SkillId(skillId),
-    ...(offTarget === true ? { offTarget: true } : {}),
-    // A zero delay is an ordinary on-target cast, so only a positive delay is stored.
-    ...(impactDelay > 0 ? { impactDelayMs: impactDelay } : {}),
-    ...(concurrent == null
-      ? {}
-      : {
-          concurrentOffsetMs: finiteMilliseconds(concurrent, 'Concurrent offset')
-        }),
-    ...(interrupt == null
-      ? {}
-      : {
-          interruptAfterMs: finiteMilliseconds(interrupt, 'Interrupt duration')
-        }),
-    ...(initialStateDuration == null
-      ? {}
-      : {
-          initialStateDurationMs: finiteMilliseconds(initialStateDuration, 'Initial-state duration')
-        }),
-    ...(releaseAtCharges == null
-      ? {}
-      : {
-          releaseAtCharges: positiveInteger(releaseAtCharges, 'Release-at charge count')
-        }),
-    ...(doubleEdgeOutcome == null ? {} : { doubleEdgeOutcome }),
-    // An absent or zero hold retains the ordinary charge-release behavior.
-    ...(releaseDelay > 0 ? { releaseDelayMs: releaseDelay } : {})
+    ...candidate,
+    type,
+    ...(type === 'cast' ? { skillId: typeof skillId === 'number' ? canonicalGw2SkillId(skillId) : skillId } : {}),
+    concurrentOffsetMs: candidate.concurrentOffsetMs ?? candidate.offset,
+    interruptAfterMs: candidate.interruptAfterMs ?? candidate.interruptMs,
+    ...(type === 'wait'
+      ? { durationMs: candidate.durationMs ?? candidate.waitMs ?? (candidate.type == null ? 0 : undefined) }
+      : {})
   };
 }
 
-/**
- * Normalizes an entire rotation, optionally dropping malformed entries when the
- * caller is doing best-effort migration instead of strict scheduling.
- */
+/** Shared validation precedes numeric conversion and removal of redundant optional fields. */
+function normalizeRotationCommand(entry: unknown, catalog: CatalogLookup | null): RotationCommand {
+  const decoded = decodeRotationCommand(entry, catalog);
+  const errors = validateRotationCommand(decoded, catalog);
+  if (errors.length) throw new TypeError(errors[0]);
+  const candidate = decoded as Record<string, unknown>;
+  if (candidate.type === 'cooldown-reset') return { type: 'cooldown-reset' };
+  if (candidate.type === 'combat-start')
+    return {
+      type: 'combat-start',
+      ...(candidate.concurrentOffsetMs == null ? {} : { concurrentOffsetMs: Number(candidate.concurrentOffsetMs) })
+    };
+  if (candidate.type === 'wait') return { type: 'wait', durationMs: Number(candidate.durationMs) };
+
+  return {
+    type: 'cast',
+    skillId: candidate.skillId as SkillId,
+    ...(candidate.offTarget === true ? { offTarget: true } : {}),
+    ...(Number(candidate.impactDelayMs) > 0 ? { impactDelayMs: Number(candidate.impactDelayMs) } : {}),
+    ...(candidate.concurrentOffsetMs == null ? {} : { concurrentOffsetMs: Number(candidate.concurrentOffsetMs) }),
+    ...(candidate.interruptAfterMs == null ? {} : { interruptAfterMs: Number(candidate.interruptAfterMs) }),
+    ...(candidate.initialStateDurationMs == null
+      ? {}
+      : { initialStateDurationMs: Number(candidate.initialStateDurationMs) }),
+    ...(candidate.releaseAtCharges == null ? {} : { releaseAtCharges: Number(candidate.releaseAtCharges) }),
+    ...(candidate.doubleEdgeOutcome == null
+      ? {}
+      : { doubleEdgeOutcome: candidate.doubleEdgeOutcome as 'success' | 'backfire' }),
+    ...(Number(candidate.releaseDelayMs) > 0 ? { releaseDelayMs: Number(candidate.releaseDelayMs) } : {})
+  };
+}
+
+/** Normalize rotations, dropping malformed entries only during best-effort migration. */
 export function normalizeRotation(
   rotation: unknown,
   catalog: CatalogLookup | null = null,

@@ -81,7 +81,7 @@ test('normalized casts keep positive impact delays and reject contradictory targ
       normalizeRotation([{ name: 'Fixture Slash', offTarget: true, impactDelayMs: 500 }], testProfession.catalog, {
         strict: true
       }),
-    /Off-target cast cannot also have an impact delay/
+    /off-target casts cannot contain impactDelayMs/
   );
 });
 
