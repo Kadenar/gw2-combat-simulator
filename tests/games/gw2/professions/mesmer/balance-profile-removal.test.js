@@ -3,7 +3,7 @@ import { applyBalanceProfilePatch } from '#gw2/integrations/patches/authoring/pa
 import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
 import { mesmerTooltips } from '#gw2/professions/mesmer/app/tooltips.js';
 import { mesmerCoreUi } from '#gw2/professions/mesmer/core/presentation.js';
-import { mesmerProfiledShatters } from '#gw2/professions/mesmer/core/profiles.js';
+import { mesmerProfiledShatter } from '#gw2/professions/mesmer/core/profiles.js';
 import { MESMER_CORE_SHATTERS } from '#gw2/professions/mesmer/core/skills/profession-skills.js';
 import { methodOfMadnessDamage } from '#gw2/professions/mesmer/core/traits/chaos.js';
 import { MESMER_SKILL_IDS as ID, MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
@@ -38,7 +38,7 @@ test('shatter removal keeps surviving tier edits and the current catalog isolate
       }
     }
   });
-  const compiled = mesmerProfiledShatters({ catalog }, MESMER_CORE_SHATTERS)[ID.MIND_WRACK];
+  const compiled = mesmerProfiledShatter({ catalog }, MESMER_CORE_SHATTERS[ID.MIND_WRACK]);
   assert.equal(compiled.strikes[1], undefined);
   assert.equal(compiled.strikes[2].coefficient, 7);
   assert.equal(mesmerCatalog.balanceProfilesById.get(id).effects[2].coefficient, 2.42);

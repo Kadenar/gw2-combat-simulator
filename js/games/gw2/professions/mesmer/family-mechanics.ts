@@ -10,8 +10,12 @@ import type {
 import { createProfessionActionController } from '#gw2/professions/mesmer/core/mechanics/profession-actions.js';
 import { createResourceController } from '#gw2/professions/mesmer/core/mechanics/resources.js';
 import { resolveCloneShatter } from '#gw2/professions/mesmer/core/mechanics/shatters.js';
-import type { MesmerShatterResolution } from '#gw2/professions/mesmer/core/mechanics/shatter-types.js';
-import { mesmerProfiledShatters } from '#gw2/professions/mesmer/core/profiles.js';
+import type {
+  MesmerShatterDefinition,
+  MesmerShatterResolution
+} from '#gw2/professions/mesmer/core/mechanics/shatter-types.js';
+import type { SkillId } from '#gw2/platform/skills/types.js';
+import { mesmerProfiledShatter } from '#gw2/professions/mesmer/core/profiles.js';
 import { MESMER_CORE_SHATTERS } from '#gw2/professions/mesmer/core/skills/profession-skills.js';
 import { bountifulBladesSpawnModifiers } from '#gw2/professions/mesmer/core/traits/domination.js';
 import { mesmerResourceDefinition } from '#gw2/professions/mesmer/family-state.js';
@@ -37,17 +41,16 @@ import type { MesmerRuntime } from '#gw2/professions/mesmer/types.js';
 import { EPSILON } from '#kernel/core/clock.js';
 import { clamp } from '#kernel/core/numeric.js';
 
-/** Select content from the build and patch directly; no initialization or context-identity lookup is required. */
-export function mesmerShatters(context: MesmerRuntime) {
+/** Membership and resource timing read authored metadata without resolving unrelated damage profiles. */
+export function mesmerShatterDefinition(context: MesmerRuntime, id: SkillId): MesmerShatterDefinition | undefined {
   const specialization = context.profession.specialization.kind;
-  return mesmerProfiledShatters(context, {
-    ...MESMER_CORE_SHATTERS,
-    ...(specialization === 'Chronomancer'
-      ? MESMER_CHRONOMANCER_SHATTERS
+  return (
+    (specialization === 'Chronomancer'
+      ? MESMER_CHRONOMANCER_SHATTERS[Number(id)]
       : specialization === 'Virtuoso'
-        ? MESMER_VIRTUOSO_SHATTERS
-        : {})
-  });
+        ? MESMER_VIRTUOSO_SHATTERS[Number(id)]
+        : undefined) ?? MESMER_CORE_SHATTERS[Number(id)]
+  );
 }
 
 export function mesmerActivePrimaryWeapon(context: MesmerRuntime): string {
@@ -96,7 +99,11 @@ export function createMesmerActions(context: MesmerRuntime) {
     state: context,
     resourceDefinition: mesmerResourceDefinition(context.profession.specialization.kind, context),
     destroyClone: (clone) => destroyClone(context, clone),
-    shatters: mesmerShatters(context),
+    // Resolve only the requested shatter against the current catalog; no cross-run cache can retain another patch.
+    shatterFor: (id) => {
+      const definition = mesmerShatterDefinition(context, id);
+      return definition ? mesmerProfiledShatter(context, definition) : undefined;
+    },
     shatterResolvers: {
       'mesmer.core.clone-shatter': resolveCloneShatter,
       'mesmer.virtuoso.bladesong': resolveBladesong

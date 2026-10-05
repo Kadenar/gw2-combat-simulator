@@ -15,7 +15,7 @@ import {
   createMesmerResources,
   createMesmerCloneScheduler,
   mesmerActivePrimaryWeapon,
-  mesmerShatters
+  mesmerShatterDefinition
 } from '#gw2/professions/mesmer/family-mechanics.js';
 import { mesmerResourceDefinition } from '#gw2/professions/mesmer/family-state.js';
 
@@ -35,7 +35,7 @@ export const mesmerIllusionHooks = {
     const skill = cast.skill;
     if (skill.phantasm)
       return effects.filter((effect) => effect.type === 'control' && effect.summonKind !== 'phantasm');
-    if (mesmerShatters(runtime)[skill.id] || skill.id === ID.INSPIRING_IMAGERY) return [];
+    if (mesmerShatterDefinition(runtime, skill.id) || skill.id === ID.INSPIRING_IMAGERY) return [];
     return effects.filter((effect) => !(effect.type === 'buff' && effect.kind === 'clarity'));
   },
   onCastStart(runtime, cast) {

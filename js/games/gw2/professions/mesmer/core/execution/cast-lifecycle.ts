@@ -2,7 +2,7 @@ import {
   dispatchShatterResolved,
   createMesmerActions,
   createMesmerSkillEffects,
-  mesmerShatters,
+  mesmerShatterDefinition,
   mesmerActivePrimaryWeapon
 } from '#gw2/professions/mesmer/family-mechanics.js';
 import type { EffectDelivery } from '#gw2/platform/effects/emission.js';
@@ -114,7 +114,7 @@ export function completeMesmerCast(context: MesmerRuntime, cast: RuntimeCast<Mes
 
     if (skill.id === SHARED_SKILL_IDS.SWAP_WEAPONS) return;
     if (
-      !mesmerShatters(context)[skill.id] &&
+      !mesmerShatterDefinition(context, skill.id) &&
       !skill.phantasm &&
       !skill.ambush &&
       !skill.instrument &&
@@ -139,7 +139,7 @@ export function completeMesmerCast(context: MesmerRuntime, cast: RuntimeCast<Mes
  * stores cast-local details for completion or interruption handling.
  */
 export function startMesmerCast(context: MesmerRuntime, cast: RuntimeCast<MesmerSkill>, skill: MesmerSkill): void {
-  const shatter = mesmerShatters(context)[skill.id];
+  const shatter = mesmerShatterDefinition(context, skill.id);
   let shatterSpent = null;
   const spendProgress = Number(shatter?.resourceSpendProgress);
   const delayedResourceSpend =

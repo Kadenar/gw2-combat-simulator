@@ -23,12 +23,13 @@ import type {
 import { boundedNumber } from '#kernel/core/numeric.js';
 
 import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
+import type { SkillId } from '#gw2/platform/skills/types.js';
 
 interface ProfessionActionControllerOptions {
   readonly state: MesmerRuntime;
   readonly resourceDefinition: MesmerResourceDefinition;
   readonly destroyClone: MesmerDestroyClone;
-  readonly shatters: Readonly<Record<number, MesmerShatter>>;
+  readonly shatterFor: (id: SkillId) => MesmerShatter | undefined;
   readonly warn: (message: string) => void;
   readonly shatterResolvers: Readonly<Record<string, MesmerShatterResolver>>;
 }
@@ -37,7 +38,7 @@ export function createProfessionActionController({
   state,
   resourceDefinition,
   destroyClone,
-  shatters,
+  shatterFor,
   warn,
   shatterResolvers
 }: ProfessionActionControllerOptions): MesmerProfessionActionController {
@@ -130,7 +131,7 @@ export function createProfessionActionController({
 
   // Shared traits consume resolver-produced hit groups so Core does not need to know how a specialization attacks.
   const triggerShatterTraits = (resolution: MesmerShatterResolution): void => {
-    triggerMesmerPostShatterTraits(state, shatters[resolution.skill.id], resolution);
+    triggerMesmerPostShatterTraits(state, shatterFor(resolution.skill.id), resolution);
   };
 
   // Orchestrates resource spending and shared traits while the registered resolver owns packet behavior.
@@ -144,7 +145,7 @@ export function createProfessionActionController({
     packetAt = at,
     delivery: EffectDelivery = {}
   ): MesmerShatterResolution | null => {
-    const shatter = shatters[skill.id];
+    const shatter = shatterFor(skill.id);
     if (!shatter) {
       throw new Error(`Missing Mesmer shatter data for ${skill.name}.`);
     }
@@ -176,7 +177,8 @@ export function createProfessionActionController({
         spent
       })
     };
-    triggerShatterTraits(resolution);
+    // The resolved profile is already available for this transaction; share it with post-shatter traits.
+    triggerMesmerPostShatterTraits(state, shatter, resolution);
     {
       const packet = buildMesmerPacket({
         type: 'marker',

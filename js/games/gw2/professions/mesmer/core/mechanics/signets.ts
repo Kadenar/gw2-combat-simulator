@@ -1,5 +1,5 @@
 import {
-  mesmerShatters,
+  mesmerShatterDefinition,
   createMesmerResources,
   mesmerActivePrimaryWeapon
 } from '#gw2/professions/mesmer/family-mechanics.js';
@@ -20,14 +20,14 @@ const SIGNET_ILLUSIONS_OWNER = 'mesmer.signet-illusions-passive';
 
 /** Applies active signet resets to the cooldown and ammo state shared by later casts. */
 export function applyMesmerSignetReset(state: MesmerRuntime, context: ActionContext<MesmerSkill>): void {
-  const shatters = mesmerShatters(state);
   const phantasms = context.skill.id === ID.SIGNET_OF_THE_ETHER;
-  const targets = state.helpers.skills.filter((candidate) =>
-    phantasms
+  const targets = state.helpers.skills.filter((candidate) => {
+    const shatter = mesmerShatterDefinition(state, candidate.id);
+    return phantasms
       ? candidate.phantasm
       : (state.profession.specialization.kind === 'Troubadour' && Boolean(candidate.instrument)) ||
-        (shatters[candidate.id] && shatters[candidate.id].resetBySignetOfIllusions !== false)
-  );
+          (shatter && shatter.resetBySignetOfIllusions !== false);
+  });
   // Catalog selection stays local; the shared actions own recharge and existing ammo restoration.
   if (!phantasms)
     applySideEffect(state, context, {

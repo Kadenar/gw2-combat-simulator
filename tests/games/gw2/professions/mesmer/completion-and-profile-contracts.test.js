@@ -5,7 +5,7 @@ import { applyBalanceProfilePatch, applySkillPatch } from '#gw2/integrations/pat
 import { runMesmer } from '#tests/helpers/mesmer-simulation.js';
 import { mesmerCatalog, mesmerProfession } from '#gw2/professions/mesmer/profession.js';
 import { MESMER_SKILL_IDS as ID, MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
-import { mesmerProfiledShatters } from '#gw2/professions/mesmer/core/profiles.js';
+import { mesmerProfiledShatter } from '#gw2/professions/mesmer/core/profiles.js';
 import { MESMER_VIRTUOSO_SHATTERS } from '#gw2/professions/mesmer/specializations/virtuoso/skills/index.js';
 
 // Committed projectiles survive an ended animation; only skills with retained aftercast reserve the cast lane.
@@ -186,7 +186,7 @@ test('Virtuoso executes a patched shatter tick beside an empty zero-blade tier',
     }
   };
   const catalog = applyBalanceProfilePatch(mesmerCatalog, patch);
-  const shatter = mesmerProfiledShatters({ catalog }, MESMER_VIRTUOSO_SHATTERS)[ID.BLADESONG_HARMONY];
+  const shatter = mesmerProfiledShatter({ catalog }, MESMER_VIRTUOSO_SHATTERS[ID.BLADESONG_HARMONY]);
   const profession = {
     runtimeFor(config) {
       const runtime = mesmerProfession.runtimeFor(config);

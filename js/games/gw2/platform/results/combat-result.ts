@@ -103,8 +103,10 @@ export function buildCombatResult(
     : null;
   const effectReport = ctx.effectRecorder?.finish(effectiveEnd);
   const partyReport = generation ? projectedPartyEffects(generation, effectiveEnd) : null;
-  return structuredClone({
+  // Recorder reports already own detached snapshots; copy only fields still owned by the live resolver.
+  return {
     ...numeric,
+    warnings: [...numeric.warnings],
     effectReport:
       effectReport && partyReport ? { ...effectReport, tracks: [...effectReport.tracks, ...partyReport.tracks] } : null,
     boonGeneration: generation
@@ -127,21 +129,23 @@ export function buildCombatResult(
         dps: environmentDamagePerSecond(entry.damage),
         averageStacks: environmentDamagePerSecond(entry.stackSeconds),
         stacks: entry.stacks,
-        damageTicks: [...entry.damageTicks]
+        damageTicks: entry.damageTicks.map((tick) => ({ ...tick }))
       }))
       .sort((left, right) => right.damage - left.damage),
-    events: effectiveEvents,
+    events: structuredClone(effectiveEvents),
     resolvedEvents: projectResolvedEvents(
       ctx.resolved.filter((event) => event.at <= effectiveEnd),
       effectiveEnd
     ).sort((left, right) => left.at - right.at),
-    procSteps: ctx.procSteps
-      .filter((step) => step.start <= Math.round(effectiveEnd * 1000 + 0.1))
-      .sort((left, right) => left.start - right.start),
+    procSteps: structuredClone(
+      ctx.procSteps
+        .filter((step) => step.start <= Math.round(effectiveEnd * 1000 + 0.1))
+        .sort((left, right) => left.start - right.start)
+    ),
     casts: [...casts.values()].sort((left, right) => right.count - left.count),
     randomness: {
       mode: ctx.random.mode,
       seed: ctx.random.seed
     }
-  });
+  };
 }
