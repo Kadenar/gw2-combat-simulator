@@ -21,7 +21,8 @@ import { illusionSource, timedStacks } from '#gw2/professions/mesmer/core/mechan
 import { buildMesmerConditions, mesmerPacketOwner } from '#gw2/professions/mesmer/core/mechanics/packets.js';
 import type { MesmerShatterResolution } from '#gw2/professions/mesmer/core/mechanics/shatter-types.js';
 import { MESMER_SKILL_IDS as ID, MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
-import type { MesmerConditionApplication, MesmerEventExtra, MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
+import type { ConditionEffect } from '#gw2/platform/effects/types.js';
+import type { MesmerEventExtra, MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
 import type { MesmerRuntime, MesmerRuntimeState } from '#gw2/professions/mesmer/types.js';
 
 /** Own Compounding Power tuning alongside its runtime behavior. */
@@ -254,12 +255,12 @@ export function triggerThePledge(context: MesmerRuntime, event: SimulationEvent)
 /** Returns Cry of Pain's Confusion override before the owning shatter emits packets. */
 export function applyCryOfPain(
   context: MesmerRuntime,
-  condition: MesmerConditionApplication | undefined
-): MesmerConditionApplication | undefined {
+  condition: ConditionEffect | undefined
+): ConditionEffect | undefined {
   if (!hasTrait(context, TRAIT.CRY_OF_PAIN)) return condition;
   const cryOfPainProfile = requireBalanceProfileFromContext(context, TRAIT.CRY_OF_PAIN);
   const effect = requireEffect(cryOfPainProfile, 'condition', 'Confusion');
-  return effect ? { ...effect, summonKind: undefined, name: effect.condition! } : condition;
+  return effect ?? condition;
 }
 
 /** Emits Compounding Power stacks and its proc record at the owning lifecycle position. */
@@ -324,18 +325,13 @@ export function triggerMaimTheDisillusioned(context: MesmerRuntime, resolution: 
   const maimTheDisillusionedProfile = requireBalanceProfileFromContext(context, TRAIT.MAIM_THE_DISILLUSIONED);
   const effect = requireEffect(maimTheDisillusionedProfile, 'condition', 'Torment');
   if (!effect) return;
-  const maim = {
-    name: String(effect.condition),
-    duration: Number(effect.duration),
-    stacks: Number(effect.stacks)
-  };
   for (const hit of resolution.traitHits) {
     if (hit.count <= 0) continue;
     buildMesmerConditions(
       context,
       resolution.skill.name,
       hit.at,
-      { ...maim, stacks: maim.stacks * hit.count },
+      { ...effect, stacks: Number(effect.stacks) * hit.count },
       'Player',
       'Maim the Disillusioned — Torment',
       // Preserve shatter ownership for reactions while naming the separate trait and its grouped hit opportunities.

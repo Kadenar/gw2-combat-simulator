@@ -58,12 +58,8 @@ function mesmerInstrumentProfile(
           ? [{ name: 'Strike', type: 'strike' as const, coefficient: instrument.coefficient, hits: instrument.hits }]
           : []),
       ...(instrument.conditions || []).map((status) => ({
-        name: status.name,
-        type: 'condition' as const,
-        condition: status.name,
-        duration: status.duration,
-        stacks: status.stacks,
-        ...(status.applications == null ? {} : { applications: status.applications })
+        ...status,
+        name: status.condition
       }))
     ]
   });
@@ -79,13 +75,7 @@ export function mesmerProfiledInstrument(
   const strike =
     instrument.ticks?.length || Number(instrument.hits) > 0 ? requireEffect(profile, 'strike', 'Strike') : undefined;
   // Runtime instrument statuses derive from the canonical list without rebuilding its effects.
-  const conditions = requireCanonicalSkillEffects(profile)
-    .filter((effect) => effect.type === 'condition')
-    .map((effect) => ({
-      ...effect,
-      summonKind: undefined,
-      name: String(effect.condition ?? effect.name)
-    }));
+  const conditions = requireCanonicalSkillEffects(profile).filter((effect) => effect.type === 'condition');
   return {
     slot: instrument.slot,
     instrument: instrument.instrument,

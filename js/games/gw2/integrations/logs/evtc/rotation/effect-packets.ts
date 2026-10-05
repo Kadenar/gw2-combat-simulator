@@ -25,11 +25,6 @@ interface ExpectedStrikePacket {
   readonly interruptCommitMs: number | null;
 }
 
-export interface StrikePacketMatcherOptions {
-  readonly toleranceMs?: number;
-  readonly runtimeDurationMs?: (skill: Skill, action: EvtcRecordedRotationAction) => number;
-}
-
 export { normalized };
 
 function skillForAction(
@@ -41,9 +36,9 @@ function skillForAction(
 
 export { referenceCastTimeMs, strikePacketOffsets };
 
+/** Match observed strikes against catalog timing using the shared EVTC tolerance. */
 export function createStrikePacketMatcher(
-  context: EvtcProfessionReconstructionContext,
-  options: StrikePacketMatcherOptions = {}
+  context: EvtcProfessionReconstructionContext
 ): (action: EvtcRecordedRotationAction) => StrikePacketValidation {
   const names = new Map(context.log.skills.map((skill) => [skill.id, skill.name.trim()]));
   const availableNames = new Set([...names.values()].map((name) => normalized(name)));
@@ -63,7 +58,7 @@ export function createStrikePacketMatcher(
     const cached = cache.get(action);
     if (cached) return cached;
     const skill = skillForAction(context, action);
-    const runtimeDurationMs = skill ? (options.runtimeDurationMs?.(skill, action) ?? referenceCastTimeMs(skill)) : 0;
+    const runtimeDurationMs = skill ? referenceCastTimeMs(skill) : 0;
     const packets: ExpectedStrikePacket[] = skill
       ? (skill.effects || []).flatMap((effect) => {
           if (effect.type !== 'strike' || effect.actorType === 'summon') {
@@ -106,9 +101,8 @@ export function createStrikePacketMatcher(
             !used.has(eventIndex) &&
             normalized(names.get(event.skillId)) === packet.signalName &&
             (packet.timingExplicit
-              ? Math.abs(event.time - expectedTime) <= (options.toleranceMs ?? EFFECT_PACKET_TOLERANCE_MS)
-              : event.time >= action.start &&
-                event.time <= expectedTime + (options.toleranceMs ?? EFFECT_PACKET_TOLERANCE_MS))
+              ? Math.abs(event.time - expectedTime) <= EFFECT_PACKET_TOLERANCE_MS
+              : event.time >= action.start && event.time <= expectedTime + EFFECT_PACKET_TOLERANCE_MS)
         )
         .sort(
           (left, right) =>

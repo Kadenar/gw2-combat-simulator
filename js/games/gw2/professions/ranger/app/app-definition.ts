@@ -13,7 +13,6 @@ export const rangerAppAdapter = defineProfessionApp({
   profession: rangerProfession,
   applyBuildAttributeRules: applyRangerBuildAttributeRules,
   toApplicationBuild,
-  specializationFallback: 'Marksmanship',
   resetPrompt: 'Reset the Ranger build, pet, assumptions, and rotation?',
   runtime: {
     buildConfigExtras: (app) => {

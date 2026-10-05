@@ -1,5 +1,5 @@
 import { boonApplicationsAt } from '#gw2/platform/combat/boons.js';
-import { timedBuffAt } from '#gw2/platform/results/query.js';
+import { effectStateAt } from '#gw2/platform/results/effect-report.js';
 import { guardianCatalog } from '#gw2/professions/guardian/catalog.js';
 import { GUARDIAN_SPEAR_EXPIRY } from '#gw2/professions/guardian/core/mechanics/spear.js';
 import { GUARDIAN_SKILL_IDS as ID, GUARDIAN_TRAIT_IDS as TRAIT } from '#gw2/professions/guardian/data/ids.js';
@@ -83,9 +83,13 @@ test('Radiant Armaments damage and display agree through the final live microsec
   const buff = result.events.find((event) => event.kind === 'guardian-radiant-armaments');
   const expiry = boonApplicationsAt(result.events, buff.kind, buff.at)[0].expiresAt;
   const rule = luminaryModule.modifiers.modifierRules.find((entry) => entry.id === 'guardian.radiant-armaments');
+  // Chart history must expose the same half-open lifetime as the damage modifier.
+  const track = result.effectReport.tracks.find(
+    (track) => track.kind === buff.kind && track.recipient === 'self' && track.origin === 'simulated'
+  );
   for (const time of [expiry - 0.000001, expiry, expiry + 0.000001]) {
     assert.equal(rule.when({ events: result.events, time }), time < expiry);
-    assert.equal(Boolean(timedBuffAt(result, buff.kind, time)), time < expiry);
+    assert.equal(effectStateAt(result.effectReport, track, time).count > 0, time < expiry);
   }
 
   const replaced = runGuardian([ID.ENTER_RADIANT_FORGE, ID.DAZZLING_HAMMER, ID.LUMINOUS_STAFF], settings);

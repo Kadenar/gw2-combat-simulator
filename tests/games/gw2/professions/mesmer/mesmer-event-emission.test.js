@@ -29,8 +29,7 @@ test('Mesmer packet builders merge application, tick, and explicit metadata with
     'Fixture',
     1,
     {
-      name: 'Bleeding',
-      duration: 2,
+      type: 'condition',
       metadata,
       ticks: [{ atMs: 250, condition: 'Bleeding', duration: 2, stacks: 1, metadata: tickMetadata }]
     },
@@ -49,7 +48,6 @@ test('Mesmer packet builders merge application, tick, and explicit metadata with
     extra
   );
   for (const event of [condition, damage]) {
-    assert.equal(event.at, 1.25);
     assert.deepEqual(event.metadata, { cloneId: 0, blade: false, shatterTraitEligible: false });
     for (const key of Object.keys(event.metadata)) assert.equal(Object.hasOwn(event, key), false);
   }
@@ -58,7 +56,7 @@ test('Mesmer packet builders merge application, tick, and explicit metadata with
     context,
     'Fixture',
     0,
-    { name: 'Bleeding', duration: 2, metadata },
+    { type: 'condition', condition: 'Bleeding', duration: 2, metadata, stacks: 1 },
     'Player',
     '',
     { skillId: 123 }
@@ -71,9 +69,11 @@ test('Mesmer packet builders merge application, tick, and explicit metadata with
         'Fixture',
         0,
         {
-          name: 'Bleeding',
+          type: 'condition',
+          condition: 'Bleeding',
           duration: 2,
-          metadata: { cloneId: 'invalid' }
+          metadata: { cloneId: 'invalid' },
+          stacks: 1
         },
         'Player',
         '',
@@ -83,16 +83,63 @@ test('Mesmer packet builders merge application, tick, and explicit metadata with
   );
 });
 
+// An empty derived timeline suppresses the effect; it cannot resurrect an aggregate payload after selection.
+test('Mesmer packet expansion does not invent packets for empty derived timelines', () => {
+  const { context } = createFixture();
+  assert.deepEqual(buildMesmerStrikes(context, { id: 1, name: 'Fixture' }, 0, { ticks: [] }), []);
+  assert.deepEqual(
+    buildMesmerConditions(context, 'Fixture', 0, { type: 'condition', ticks: [] }, 'Player', '', { skillId: 1 }),
+    []
+  );
+});
+
+// Procedural descriptors obey the same explicit numeric contract as selected catalog effects.
+test('Mesmer condition expansion requires numeric stacks and duration in both authoring forms', () => {
+  const { context } = createFixture();
+  for (const field of ['stacks', 'duration']) {
+    for (const invalid of [undefined, '1', NaN]) {
+      const payload = { condition: 'Bleeding', stacks: 1, duration: 2, [field]: invalid };
+      for (const effect of [
+        { type: 'condition', ...payload },
+        { type: 'condition', ticks: [{ atMs: 0, ...payload }] }
+      ]) {
+        assert.throws(
+          () => buildMesmerConditions(context, 'Fixture', 0, effect, 'Player', '', { skillId: 1 }),
+          /expected=finite number/
+        );
+      }
+    }
+  }
+});
+
+test('Mesmer strike expansion preserves zero coefficients and rejects invalid formulas', () => {
+  const { context } = createFixture();
+  for (const coefficient of [0, undefined, '1', NaN]) {
+    const build = () =>
+      buildMesmerStrikes(context, { id: 1, name: 'Fixture' }, 0, { ticks: [{ atMs: 0, coefficient }] });
+    if (coefficient === 0) assert.equal(build()[0].coefficient, 0);
+    else assert.throws(build, /expected=finite number/);
+  }
+});
+
 test('Mesmer packet builders attach canonical skill and summon identity', () => {
   const { events, context } = createFixture();
 
   events.push(buildMesmerPacket({ type: 'marker', at: 1, skillId: 123 }));
   events.push(
-    ...buildMesmerConditions(context, 'Condition Skill', 2, { name: 'Bleeding', duration: 3 }, 'Clone', '', {
-      skillId: 123,
-      actorType: 'summon',
-      summonKind: 'clone'
-    })
+    ...buildMesmerConditions(
+      context,
+      'Condition Skill',
+      2,
+      { type: 'condition', condition: 'Bleeding', duration: 3, stacks: 1 },
+      'Clone',
+      '',
+      {
+        skillId: 123,
+        actorType: 'summon',
+        summonKind: 'clone'
+      }
+    )
   );
   events.push(...buildMesmerStrikes(context, { id: 456, name: 'Damage Skill' }, 3, { coefficient: 1 }));
 
@@ -122,13 +169,21 @@ test('Mesmer packet builders preserve explicit derived-effect identity', () => {
   const { events, context } = createFixture();
 
   events.push(
-    ...buildMesmerConditions(context, 'Condition Skill', 2, { name: 'Bleeding', duration: 3 }, 'Player', '', {
-      skillId: 123,
-      source: 'Phantasm',
-      sourceId: 'explicit-condition',
-      actorType: 'summon',
-      summonKind: 'phantasm'
-    })
+    ...buildMesmerConditions(
+      context,
+      'Condition Skill',
+      2,
+      { type: 'condition', condition: 'Bleeding', duration: 3, stacks: 1 },
+      'Player',
+      '',
+      {
+        skillId: 123,
+        source: 'Phantasm',
+        sourceId: 'explicit-condition',
+        actorType: 'summon',
+        summonKind: 'phantasm'
+      }
+    )
   );
   events.push(
     ...buildMesmerStrikes(
@@ -170,10 +225,18 @@ test('Mesmer packet ownership is independent of source labels', () => {
     assert.equal(events.at(-1).summonKind, 'phantasm');
 
     events.push(
-      ...buildMesmerConditions(context, 'Condition Skill', 0, { name: 'Bleeding', duration: 3 }, source, '', {
-        skillId: 123,
-        summonKind: 'phantasm'
-      })
+      ...buildMesmerConditions(
+        context,
+        'Condition Skill',
+        0,
+        { type: 'condition', condition: 'Bleeding', duration: 3, stacks: 1 },
+        source,
+        '',
+        {
+          skillId: 123,
+          summonKind: 'phantasm'
+        }
+      )
     );
     assert.equal(events.at(-1).actorType, 'summon');
     assert.equal(events.at(-1).summonKind, 'phantasm');

@@ -274,7 +274,6 @@ export interface Gw2AppAdapter extends ProfessionRuntimeApi {
   readonly globalName: string;
   readonly filenames: ProfessionAppFilenames;
   readonly resetPrompt: string;
-  readonly specializationFallback: string;
   readonly createDefaultTargetConditions: () => Record<string, number | boolean>;
   readonly toApplicationBuild: (build: unknown) => Gw2CanonicalBuild;
   readonly isSkillAvailable: ProfessionIsSkillAvailable;
@@ -296,7 +295,6 @@ export interface DefineProfessionAppOptions {
   readonly applyBuildAttributeRules: Gw2ApplyBuildAttributeRules;
   readonly createDefaultTargetConditions?: () => Record<string, number | boolean>;
   readonly toApplicationBuild: (build: unknown) => Gw2CanonicalBuild;
-  readonly specializationFallback: string;
   readonly storageVersion?: number;
   readonly storageKey?: string;
   readonly globalName?: string;
@@ -315,5 +313,4 @@ export interface Gw2SimulationConfigOptions {
   readonly disabled?: ProfessionModifier | null;
   readonly selectedTraitIds?: readonly SkillId[];
   readonly initialResource?: number;
-  readonly adjustConditionDurationBonus?: (name: string, bonus: number) => number;
 }

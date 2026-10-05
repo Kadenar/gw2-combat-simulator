@@ -36,12 +36,14 @@ export const MESMER_CORE_CLONE_ATTACKS: Readonly<Record<string, MesmerCloneAttac
     interval: 1.56,
     conditions: [
       {
-        name: 'Bleeding',
+        type: 'condition',
+        condition: 'Bleeding',
         duration: 1,
         stacks: 1
       },
       {
-        name: 'Torment',
+        type: 'condition',
+        condition: 'Torment',
         duration: 1,
         stacks: 1
       }
@@ -83,7 +85,8 @@ export const MESMER_CORE_CLONE_ATTACKS: Readonly<Record<string, MesmerCloneAttac
     weaponStrength: 34,
     conditions: [
       {
-        name: 'Torment',
+        type: 'condition',
+        condition: 'Torment',
         duration: 4,
         stacks: 1
       }
@@ -127,12 +130,14 @@ export const MESMER_CORE_CLONE_ATTACKS: Readonly<Record<string, MesmerCloneAttac
     weaponStrength: 26,
     conditions: [
       {
-        name: 'Torment',
+        type: 'condition',
+        condition: 'Torment',
         duration: 2,
         stacks: 1
       },
       {
-        name: 'Confusion',
+        type: 'condition',
+        condition: 'Confusion',
         duration: 2,
         stacks: 1
       }

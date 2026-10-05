@@ -8,7 +8,7 @@ import {
   buildMesmerStrikes,
   mesmerPacketOwner
 } from '#gw2/professions/mesmer/core/mechanics/packets.js';
-import { buildMirageBoon, statusFromEffect } from '#gw2/professions/mesmer/specializations/mirage/mechanics/boons.js';
+import { buildMirageBoon } from '#gw2/professions/mesmer/specializations/mirage/mechanics/boons.js';
 import { MESMER_MIRAGE_AMBUSH_SKILLS } from '#gw2/professions/mesmer/specializations/mirage/skills/index.js';
 import { mirageState } from '#gw2/professions/mesmer/specializations/mirage/state.js';
 import {
@@ -302,7 +302,7 @@ export function createMirageActionController({
     // Only a consumed, available mirror applies its authored Weakness.
     const weakness = requireEffect(mechanicsProfile, 'condition', 'Weakness');
     if (weakness)
-      buildMesmerConditions(state, pseudo.name, at, statusFromEffect(weakness), 'Player', '', {
+      buildMesmerConditions(state, pseudo.name, at, weakness, 'Player', '', {
         skillId: pseudo.id,
         sourceId: pseudo.id,
         actorType: 'player'

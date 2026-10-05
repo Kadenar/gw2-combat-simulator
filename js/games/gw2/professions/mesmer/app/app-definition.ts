@@ -15,7 +15,6 @@ export const mesmerAppAdapter = defineProfessionApp({
   profession: mesmerProfession,
   applyBuildAttributeRules: applyMesmerBuildAttributeRules,
   toApplicationBuild,
-  specializationFallback: 'Domination',
   storageVersion: 2,
   runtime: {
     buildConfigInputs(app, { specialization }) {

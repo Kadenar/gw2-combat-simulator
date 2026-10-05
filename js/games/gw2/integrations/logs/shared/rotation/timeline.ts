@@ -22,11 +22,7 @@ export interface ReplayTimelineAction {
 
 export interface ReplayTimelinePolicy<Action extends ReplayTimelineAction> {
   readonly timingToleranceMs?: number;
-  /** Positive source gaps at or below this threshold are timing jitter, not intentional simulator idle time. */
-  readonly minimumWaitMs?: number;
   readonly quantizeMs?: (value: number) => number;
-  /** Quantizes imported idle durations independently from offsets when their replay precision differs. */
-  readonly quantizeWaitMs?: (value: number) => number;
   readonly replayEnd?: (action: Action) => number;
   /** Makes waits compensate when emitted commands use a different cast duration than the source log. */
   readonly alignWaitsToSimulatorTiming?: boolean;
@@ -61,9 +57,8 @@ export function buildReplayTimeline<Action extends ReplayTimelineAction>(
   policy: ReplayTimelinePolicy<Action>
 ): RotationCommand[] {
   const timingToleranceMs = policy.timingToleranceMs ?? 50;
-  const minimumWaitMs = Math.max(0, Number(policy.minimumWaitMs || 0));
+  // Idle waits and action offsets use the same source-specific precision.
   const quantizeMs = policy.quantizeMs ?? identityMilliseconds;
-  const quantizeWaitMs = policy.quantizeWaitMs ?? quantizeMs;
   const replayEnd = policy.replayEnd ?? ((action: Action) => action.end);
   const alignWaitsToSimulatorTiming = policy.alignWaitsToSimulatorTiming === true;
   const canEmit = policy.canEmit ?? ((action: Action) => action.skill != null);
@@ -186,8 +181,8 @@ export function buildReplayTimeline<Action extends ReplayTimelineAction>(
   const appendPendingAftercastWait = (): void => {
     if (!pendingAftercast) return;
     const waitMs = alignWaitsToSimulatorTiming
-      ? quantizeWaitMs(pendingAftercast.until - Math.max(projectedTime, projectedReservedEnd))
-      : quantizeWaitMs(pendingAftercast.until - pendingAftercast.progressedTo);
+      ? quantizeMs(pendingAftercast.until - Math.max(projectedTime, projectedReservedEnd))
+      : quantizeMs(pendingAftercast.until - pendingAftercast.progressedTo);
     appendWait(waitMs);
     pendingAftercast = null;
   };
@@ -198,19 +193,17 @@ export function buildReplayTimeline<Action extends ReplayTimelineAction>(
     const retainedTimingJitter =
       retainedCastEnd > origin && retainedCastEnd >= activeCastEnd && observedGapMs <= timingToleranceMs;
     const waitMs = alignWaitsToSimulatorTiming
-      ? quantizeWaitMs(nextActionAt - Math.max(projectedTime, projectedReservedEnd))
-      : quantizeWaitMs(observedGapMs);
-    const aftercastWaitMs = pendingAftercast
-      ? quantizeWaitMs(pendingAftercast.until - pendingAftercast.progressedTo)
-      : 0;
+      ? quantizeMs(nextActionAt - Math.max(projectedTime, projectedReservedEnd))
+      : quantizeMs(observedGapMs);
+    const aftercastWaitMs = pendingAftercast ? quantizeMs(pendingAftercast.until - pendingAftercast.progressedTo) : 0;
     pendingAftercast = null;
     // A cancelled skill's retained aftercast already occupies this interval in the scheduler;
     // tolerate one source-timing frame around that boundary instead of replaying it as extra idle time.
     if (alignWaitsToSimulatorTiming) {
       // Skip local jitter without shifting later source timestamps; the next eligible wait absorbs the difference.
-      if (!retainedTimingJitter && waitMs > minimumWaitMs) appendWait(waitMs);
+      if (!retainedTimingJitter && waitMs > 0) appendWait(waitMs);
     } else {
-      appendWait(aftercastWaitMs + (!retainedTimingJitter && waitMs > minimumWaitMs ? waitMs : 0));
+      appendWait(aftercastWaitMs + (!retainedTimingJitter && waitMs > 0 ? waitMs : 0));
     }
 
     activeCastEnd = nextActionAt;
@@ -245,8 +238,8 @@ export function buildReplayTimeline<Action extends ReplayTimelineAction>(
       else appendObservedIdle(at);
       appendWait(
         alignWaitsToSimulatorTiming
-          ? quantizeWaitMs(actionReplayEnd - Math.max(projectedTime, projectedReservedEnd))
-          : quantizeWaitMs(actionReplayEnd - at)
+          ? quantizeMs(actionReplayEnd - Math.max(projectedTime, projectedReservedEnd))
+          : quantizeMs(actionReplayEnd - at)
       );
       activeCastEnd = Math.max(activeCastEnd, actionReplayEnd);
       previousCastStart = null;

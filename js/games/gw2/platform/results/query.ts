@@ -1,9 +1,6 @@
-import type { SimulationEvent } from '#gw2/platform/events/events.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import type { Gw2SimulationResult, Gw2SimulationPlanningState } from '#gw2/platform/results/types.js';
-import { effectStateAt } from '#gw2/platform/results/effect-report.js';
 import { effectStateValue } from '#gw2/platform/combat/effect-state.js';
-import { canonicalTime } from '#kernel/core/clock.js';
 
 /**
  * Finds the player strike whose resolved critical chance best represents a
@@ -39,43 +36,6 @@ export function criticalChanceEventAt(
   }
 
   return after ?? before;
-}
-
-/** A prefix simulation supplies one planning boundary beyond combat; arbitrary future queries remain unavailable. */
-function observedBuffAt(result: Gw2SimulationResult, kind: string, at: number) {
-  if (!result.effectReport) throw new TypeError('Historical effect queries require chart data.');
-  const matches = (state: { kind: string; recipient: string; origin: string }) =>
-    state.kind === kind.toLowerCase() && state.recipient === 'self' && state.origin === 'simulated';
-  if (at > result.effectReport.end && canonicalTime(at) === canonicalTime(result.planningState.atSeconds)) {
-    const state = result.planningState.effects.find(matches);
-    return state ? effectStateValue(state, at) : null;
-  }
-
-  const track = result.effectReport.tracks.find(matches);
-  return track ? effectStateAt(result.effectReport, track, at) : null;
-}
-
-/** Cursor inspection uses the same accepted state and deadlines as effect charts. */
-export function timedBuffAt(
-  result: Gw2SimulationResult | null | undefined,
-  kind: string,
-  atSeconds: number
-): { readonly remaining: number; readonly event?: SimulationEvent } | null {
-  if (!result) return null;
-  const state = observedBuffAt(result, kind, Math.max(0, atSeconds));
-  return state && state.count > 0
-    ? { remaining: state.expiresAt == null ? Infinity : Math.max(0, state.expiresAt - atSeconds), event: state.source }
-    : null;
-}
-
-/** Effective counts are supplied by the engine owner, including consumption and replacements. */
-export function timedBuffStacksAt(
-  result: Gw2SimulationResult | null | undefined,
-  kind: string,
-  atSeconds: number
-): number {
-  if (!result) return 0;
-  return observedBuffAt(result, kind, Math.max(0, atSeconds))?.count ?? 0;
 }
 
 /** Read the inspected engine boundary directly; editor state remains available without chart histories. */

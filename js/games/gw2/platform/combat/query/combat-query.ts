@@ -733,9 +733,6 @@ export function createGw2CombatQuery({
     targetHasCondition(condition: string, time: number, runtime: Gw2QueryRuntime | null = null) {
       return targetConditionStacksAt(condition, time, runtime) > 0;
     },
-    activeWeaponSetAt: timeline.activeWeaponSetAt,
-    activeSigilSetAt: timeline.activeSigilSetAt,
-    timedStacks: timeline.timedStacks,
     timeline
   });
   query = completedQuery;
@@ -807,9 +804,6 @@ export interface Gw2CombatQuery {
   ): number;
   targetConditionStacks(condition: string, time: number, runtime?: Gw2QueryRuntime | null): number;
   targetHasCondition(condition: string, time: number, runtime?: Gw2QueryRuntime | null): boolean;
-  readonly activeWeaponSetAt: Gw2TimelineIndex['activeWeaponSetAt'];
-  readonly activeSigilSetAt: Gw2TimelineIndex['activeSigilSetAt'];
-  readonly timedStacks: Gw2TimelineIndex['timedStacks'];
   readonly timeline: Readonly<Gw2TimelineIndex>;
 }
 

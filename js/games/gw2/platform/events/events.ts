@@ -192,7 +192,6 @@ export interface EffectMetadata {
   /** Proc activations represented by this one primary effect, independent of stacks and damage ticks. */
   readonly procCount?: number;
   /** Selected damage owner when the packet's source identity belongs to a distinct triggered skill. */
-  readonly procOwnerId?: SkillId;
   readonly activeSpirits?: number;
   readonly affinityOnHit?: boolean;
   readonly anguishConditionalDamage?: boolean;

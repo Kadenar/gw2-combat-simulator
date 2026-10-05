@@ -38,8 +38,7 @@ export function createGw2SimulationConfig({
   specialization,
   disabled = null,
   selectedTraitIds = [],
-  initialResource = 0,
-  adjustConditionDurationBonus = (_name, bonus) => bonus
+  initialResource = 0
 }: Gw2SimulationConfigOptions): Gw2Config {
   const assumptions = app.build.assumptions as ProfessionBuildAssumptions;
   const targetSkillActivationsPerSecond = Math.max(0, Number(assumptions.targetSkillActivationsPerSecond) || 0);
@@ -61,7 +60,8 @@ export function createGw2SimulationConfig({
       ['Bleeding', 'Burning', 'Confusion', 'Poison', 'Torment']
         .map((name): [string, number] => {
           const duration = breakdown(`${name} Duration`);
-          const bonus = adjustConditionDurationBonus(name, Number(duration.final || 0) - Number(duration.sigils || 0));
+          // Sigil duration is applied by the combat query for the active weapon set.
+          const bonus = Number(duration.final || 0) - Number(duration.sigils || 0);
           return [name === 'Poison' ? 'Poisoned' : name, Math.max(0, bonus)];
         })
         .filter(([, bonus]) => bonus > 0)

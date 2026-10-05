@@ -367,8 +367,7 @@ test('adapter caches skill tooltips without retaining row state', () => {
       }
     },
     applyBuildAttributeRules: applyNecromancerBuildAttributeRules,
-    toApplicationBuild,
-    specializationFallback: 'Spite'
+    toApplicationBuild
   });
   const skill = necromancerProfession.catalog.skillsById.get(ID.BLOOD_CURSE);
   const live = adapter.skillTooltip(skill, 'current');

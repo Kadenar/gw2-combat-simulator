@@ -364,7 +364,7 @@ test('clone attack selection returns the next cadence and ignores destroyed clon
         hits: 1,
         interval: 2,
         weaponStrength: 20,
-        conditions: [{ name: 'Bleeding', duration: 1, stacks: 1 }]
+        conditions: [{ type: 'condition', condition: 'Bleeding', duration: 1, stacks: 1 }]
       }
     },
     scheduleTask: (clone, at) => tasks.push({ cloneId: clone.id, at })

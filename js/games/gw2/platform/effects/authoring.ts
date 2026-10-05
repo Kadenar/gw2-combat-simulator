@@ -6,6 +6,7 @@ import type {
   StrikeEffect,
   StrikeTick
 } from '#gw2/platform/effects/types.js';
+import { requireBalanceNumber } from '#gw2/platform/effects/validation.js';
 
 /** Shares one impact's timing without changing effect order, local overrides, or hit eligibility. */
 export const impactEffects = (
@@ -39,26 +40,47 @@ export const conditionTimeline = (
   ...withoutTimelineFields(options)
 });
 
-/** Projects either canonical strike form into the packet descriptors consumed by profession mechanics. */
-export function strikeEffectTicks(effect: StrikeEffect): readonly StrikeTick[] {
-  if (effect.ticks) return effect.ticks;
+/** Expands canonical strike fields; an explicit empty derived timeline emits nothing instead of inventing a hit. */
+export function strikeEffectTicks(
+  effect: Pick<StrikeEffect, 'ticks' | 'hits' | 'coefficient' | 'atMs'>
+): readonly StrikeTick[] {
+  if (effect.ticks) {
+    for (const tick of effect.ticks) {
+      requireBalanceNumber(tick.atMs, 'strike tick offset');
+      requireBalanceNumber(tick.coefficient, 'strike tick coefficient');
+    }
+
+    return effect.ticks;
+  }
+
   const hits = Math.max(1, Math.trunc(effect.hits || 1));
-  const coefficient = (effect.coefficient || 0) / hits;
+  const coefficient = requireBalanceNumber(effect.coefficient ?? 0, 'strike coefficient') / hits;
   const atMs = effect.atMs || 0;
   return Array.from({ length: hits }, () => ({ atMs, coefficient }));
 }
 
-/** Expands either condition authoring form into its individual application descriptors. */
+/** Expands canonical conditions with explicit payload values; catalog validation owns authored timeline validity. */
 export function conditionEffectTicks(effect: ConditionEffect): readonly ConditionTick[] {
-  if (effect.ticks) return effect.ticks;
+  if (effect.ticks) {
+    for (const tick of effect.ticks) {
+      requireBalanceNumber(tick.atMs, 'condition tick offset');
+      requireBalanceNumber(tick.stacks, 'condition tick stacks');
+      requireBalanceNumber(tick.duration, 'condition tick duration');
+    }
+
+    return effect.ticks;
+  }
+
   const applications = Math.max(1, Math.trunc(effect.applications || 1));
   const atMs = effect.atMs || 0;
   const intervalMs = Math.max(0, effect.intervalMs || 0);
+  const stacks = requireBalanceNumber(effect.stacks, 'condition stacks');
+  const duration = requireBalanceNumber(effect.duration, 'condition duration');
   return Array.from({ length: applications }, (_, index) => ({
     atMs: atMs + index * intervalMs,
     condition: effect.condition || '',
-    stacks: effect.stacks || 0,
-    duration: effect.duration || 0
+    stacks,
+    duration
   }));
 }
 

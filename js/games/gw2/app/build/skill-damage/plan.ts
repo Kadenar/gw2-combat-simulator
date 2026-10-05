@@ -34,7 +34,6 @@ export interface SkillDamageRowDefinition {
   readonly icon: string;
   readonly badge: string;
   readonly context: string;
-  readonly groupId: string;
   readonly status: SkillDamageRowStatus;
 }
 
@@ -395,7 +394,6 @@ export function createSkillDamagePlan(
       icon: String(skill.icon || ''),
       badge: slotBadge(skill),
       context: owned?.context ?? base.context,
-      groupId: group.id,
       status
     });
     return id;

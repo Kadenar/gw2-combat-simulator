@@ -15,7 +15,6 @@ import {
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import { MESMER_SKILL_IDS as ID, MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
 import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
-import { statusFromEffect } from '#gw2/professions/mesmer/specializations/mirage/mechanics/boons.js';
 import { mirageState } from '#gw2/professions/mesmer/specializations/mirage/state.js';
 import type { MesmerMirageController } from '#gw2/professions/mesmer/specializations/mirage/types.js';
 import type { MesmerAmbushAttack, MesmerRuntime } from '#gw2/professions/mesmer/types.js';
@@ -162,15 +161,9 @@ export function applyMirageAmbushTraits(
       ? requireEffect(requireBalanceProfileFromContext(state, TRAIT.RIDDLE_OF_SAND), 'condition', 'Confusion')
       : undefined;
   if (riddleOfSand) {
-    buildMesmerConditions(
-      state,
-      ambush.name,
-      impactAt,
-      statusFromEffect(riddleOfSand),
-      'Player',
-      `${ambush.name} — Riddle of Sand`,
-      { skillId: ambush.id }
-    ).forEach((packet) => {
+    buildMesmerConditions(state, ambush.name, impactAt, riddleOfSand, 'Player', `${ambush.name} — Riddle of Sand`, {
+      skillId: ambush.id
+    }).forEach((packet) => {
       state.effects.emit({
         ...delivery,
         kind: 'packet',

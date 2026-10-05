@@ -872,7 +872,6 @@ export function mountRotationResults(
       );
       mountHitTimeline(damageTimeline, pulseHits, {
         durationMs: chartSeries.durationMs,
-        color: options.chartOptions?.skillDamageColor,
         label: 'Damage Events'
       });
     }
@@ -952,7 +951,6 @@ export function mountRotationResults(
     showDialog(dialog);
     mountHitTimeline(timeline, chartSeries.conditionDamage?.[name] || [], {
       durationMs: chartSeries.durationMs,
-      color: options.chartOptions?.skillDamageColor,
       label: `${name} damage · fight time`,
       timeLabel: 'fight time',
       inspectAllTicks: true

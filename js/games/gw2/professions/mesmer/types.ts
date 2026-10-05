@@ -27,7 +27,8 @@ import type {
   MesmerShatterTraitHit
 } from '#gw2/professions/mesmer/core/mechanics/shatter-types.js';
 
-import type { MesmerConditionApplication, MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
+import type { ConditionEffect } from '#gw2/platform/effects/types.js';
+import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
 
 // Module state is declared beside each state factory; re-export it for existing family type importers.
 interface MesmerProfessionState
@@ -114,8 +115,8 @@ export interface MesmerAmbushStrike extends Partial<StrikeEffect> {
   /** Repeated statuses retain their cadence when their sibling strike is removed. */
   readonly statusAtMs?: readonly number[];
   readonly ticks?: readonly StrikeTick[];
-  readonly conditions?: readonly MesmerConditionApplication[];
-  readonly boons?: readonly MesmerConditionApplication[];
+  readonly conditions?: readonly ConditionEffect[];
+  readonly boons?: readonly import('#gw2/platform/effects/types.js').StatusEffect[];
 }
 
 /** A catalog skill also supplies the player and clone variants used by the Mirage controller. */
@@ -139,7 +140,7 @@ export interface MesmerInstrument extends Partial<StrikeEffect> {
   /** Launched performance packets can outlive an interruption after the skill's commit point. */
   readonly persistsAfterInterrupt?: boolean;
   readonly ticks?: readonly StrikeTick[];
-  readonly conditions?: readonly MesmerConditionApplication[];
+  readonly conditions?: readonly ConditionEffect[];
 }
 
 export type MesmerShatterResolver = (

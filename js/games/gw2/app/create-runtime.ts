@@ -45,8 +45,7 @@ import type { ObservationPolicy } from '#kernel/execution/observation.js';
  *
  * - `buildConfigInputs(app, { attributeData, specialization, activeTraits })`
  *   returns extra fields passed *into* `createGw2SimulationConfig` (e.g.
- *   Necromancer's `initialResource`, Mesmer's clone-start resource and
- *   `adjustConditionDurationBonus`).
+ *   Necromancer's `initialResource` and Mesmer's clone-start resource).
  * - `buildConfigExtras(app)` returns extra fields merged *onto* the resulting
  *   config (e.g. Guardian's `initialTomePages`, Necromancer's `initialBlight`).
  * Runtime functions shared by the

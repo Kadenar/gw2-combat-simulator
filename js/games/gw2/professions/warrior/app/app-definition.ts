@@ -10,7 +10,6 @@ export const warriorAppAdapter = defineProfessionApp({
   profession: warriorProfession,
   applyBuildAttributeRules: applyWarriorBuildAttributeRules,
   toApplicationBuild,
-  specializationFallback: 'Strength',
   runtime: {
     buildConfigInputs: (app) => ({
       initialResource: app.build.initialResource

@@ -9,6 +9,7 @@ import {
 import { applyRangerCommandTraits } from '#gw2/professions/ranger/core/traits/pet-behavior.js';
 import type { RangerRuntime, RangerSkill } from '#gw2/professions/ranger/types.js';
 
+/** Shared trait dispatch recognizes commandable pet Beast skills and excludes family skills. */
 export function isBeastSkill(skill: RangerSkill): boolean {
   return Boolean(skill.petSkill && !skill.petFamilySkill);
 }

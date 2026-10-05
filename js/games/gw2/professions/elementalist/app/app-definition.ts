@@ -60,7 +60,6 @@ export const elementalistAppAdapter = defineProfessionApp({
   profession: elementalistProfession,
   applyBuildAttributeRules: applyElementalistBuildAttributeRules,
   toApplicationBuild,
-  specializationFallback: 'Fire',
   runtime: {
     buildConfigExtras: (app, { attributeData }) => {
       const catalyst = build(app).specializations.some((specialization) => specialization.name === 'Catalyst');

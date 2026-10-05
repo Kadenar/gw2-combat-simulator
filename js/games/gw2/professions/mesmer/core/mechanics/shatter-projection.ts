@@ -1,5 +1,6 @@
 import type { SkillEffect, StrikeEffect } from '#gw2/platform/effects/types.js';
-import type { MesmerConditionApplication, MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
+import type { ConditionEffect } from '#gw2/platform/effects/types.js';
+import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
 import type { MesmerShatter } from '#gw2/professions/mesmer/core/mechanics/shatter-types.js';
 import { mesmerConditionFromProfile } from '#gw2/professions/mesmer/core/mechanics/conditions.js';
 
@@ -40,7 +41,7 @@ export function cloneShatterTier(shatter: MesmerShatter, skill: MesmerSkill, spe
 }
 
 /** Each clone and the player apply the selected Confusion budget, including runtime trait overrides. */
-export function cloneShatterConfusion(condition: MesmerConditionApplication | undefined, sources: number) {
+export function cloneShatterConfusion(condition: ConditionEffect | undefined, sources: number) {
   return condition ? { ...condition, stacks: sources * (condition.stacks ?? 1) } : undefined;
 }
 
@@ -56,9 +57,5 @@ export function cloneShatterEffects(
     shatter.kind === 'confusion'
       ? cloneShatterConfusion(mesmerConditionFromProfile(context, shatter.balanceProfileId, 'Confusion'), tier.sources)
       : undefined;
-  return [
-    ...(shatter.kind === 'defense' ? [] : tier.strikes),
-    ...(confusion ? [{ ...confusion, type: 'condition' as const, condition: confusion.name }] : []),
-    ...tier.effects
-  ];
+  return [...(shatter.kind === 'defense' ? [] : tier.strikes), ...(confusion ? [confusion] : []), ...tier.effects];
 }

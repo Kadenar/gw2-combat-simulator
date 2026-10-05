@@ -15,7 +15,6 @@ export const revenantAppAdapter = defineProfessionApp({
   profession: revenantProfession,
   applyBuildAttributeRules: applyRevenantBuildAttributeRules,
   toApplicationBuild,
-  specializationFallback: 'Invocation',
   resetPrompt: 'Reset the Revenant build, legends, and rotation?',
   runtime: {
     buildConfigInputs: (app) => ({

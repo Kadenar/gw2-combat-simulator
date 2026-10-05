@@ -50,7 +50,6 @@ export function defineProfessionApp<
   applyBuildAttributeRules,
   createDefaultTargetConditions = createSharedDefaultTargetConditions,
   toApplicationBuild,
-  specializationFallback,
   storageVersion = 3,
   storageKey = `gw2-${nativeProfession.id}-simulator-v${storageVersion}`,
   globalName = `${nativeProfession.id}App`,
@@ -123,7 +122,6 @@ export function defineProfessionApp<
     globalName,
     filenames: Object.freeze({ ...filenames }),
     resetPrompt,
-    specializationFallback,
     specializations: profession.catalog.specializations,
     weaponData: createProfessionWeaponData(profession.catalog, {
       weaponData: WEAPON_DATA

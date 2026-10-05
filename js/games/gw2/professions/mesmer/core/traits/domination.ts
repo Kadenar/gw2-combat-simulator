@@ -196,7 +196,8 @@ export function triggerRendingShatter(
       resolution.skill.name,
       hit.at,
       {
-        name: 'Vulnerability',
+        type: 'condition',
+        condition: 'Vulnerability',
         duration: effect.duration,
         stacks: Number(effect.stacks) * hit.count
       },

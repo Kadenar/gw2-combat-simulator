@@ -15,7 +15,6 @@ export const engineerAppAdapter = defineProfessionApp({
   profession: engineerProfession,
   applyBuildAttributeRules: applyEngineerBuildAttributeRules,
   toApplicationBuild,
-  specializationFallback: 'Explosives',
   runtime: {
     // Map persisted Heat to the shared initial-resource runtime input.
     buildConfigInputs: (app) => ({

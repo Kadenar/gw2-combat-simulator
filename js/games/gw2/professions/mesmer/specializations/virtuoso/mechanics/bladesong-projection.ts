@@ -1,5 +1,6 @@
 import type { SkillEffect } from '#gw2/platform/effects/types.js';
-import type { MesmerConditionApplication, MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
+import type { ConditionEffect } from '#gw2/platform/effects/types.js';
+import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
 import type { MesmerShatter } from '#gw2/professions/mesmer/core/mechanics/shatter-types.js';
 import { mesmerConditionFromProfile } from '#gw2/professions/mesmer/core/mechanics/conditions.js';
 
@@ -27,12 +28,11 @@ export function bladesongTier(shatter: MesmerShatter, skill: MesmerSkill, spent:
 export function bladesongConfusion(
   shatter: MesmerShatter,
   spent: number,
-  condition: MesmerConditionApplication | undefined
-): MesmerConditionApplication | undefined {
+  condition: ConditionEffect | undefined
+): ConditionEffect | undefined {
   if (!condition) return undefined;
   return {
-    name: 'Confusion',
-    duration: condition.duration,
+    type: 'condition',
     ticks: (shatter.strikes[spent]?.ticks?.map((tick) => tick.atMs) ?? shatter.conditionAtMs?.[spent] ?? []).map(
       (atMs) => ({
         atMs,
@@ -58,9 +58,5 @@ export function bladesongEffects(
     shatter.kind === 'blade-confusion'
       ? bladesongConfusion(shatter, spent, mesmerConditionFromProfile(context, shatter.balanceProfileId, 'Confusion'))
       : undefined;
-  return [
-    ...(tier.strike ? [tier.strike] : []),
-    ...(confusion ? [{ ...confusion, type: 'condition' as const, condition: confusion.name }] : []),
-    ...tier.effects
-  ];
+  return [...(tier.strike ? [tier.strike] : []), ...(confusion ? [confusion] : []), ...tier.effects];
 }

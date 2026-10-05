@@ -1,23 +1,18 @@
-import { requireBalanceNumber } from '#gw2/platform/effects/validation.js';
+import { conditionEffectTicks, strikeEffectTicks } from '#gw2/platform/effects/authoring.js';
 import { canonicalTargetConditionName } from '#gw2/platform/combat/state/targets.js';
 import { buildResolverCondition, buildResolverStrike } from '#gw2/platform/resolver/packets.js';
 import { normalizeEffectMetadata } from '#gw2/platform/effects/audience-metadata-validation.js';
 import type { SimulationEventBase } from '#gw2/platform/events/events.js';
 import type { SimulationActorType } from '#gw2/platform/events/actors.js';
-import type { ConditionTick, StrikeTick } from '#gw2/platform/effects/types.js';
+import type { ConditionEffect } from '#gw2/platform/effects/types.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
 import type { MesmerRuntime } from '#gw2/professions/mesmer/types.js';
-import type {
-  MesmerEventExtra,
-  MesmerSummonKind,
-  MesmerConditionApplication,
-  MesmerStrikeEffect
-} from '#gw2/professions/mesmer/data/types.js';
+import type { MesmerEventExtra, MesmerStrikeEffect } from '#gw2/professions/mesmer/data/types.js';
 import { gw2ActivePrimaryWeapon } from '#gw2/platform/equipment/weapons/loadout.js';
 import { MESMER_CORE_WEAPON_STRENGTH } from '#gw2/professions/mesmer/core/mechanics/definitions.js';
 import type { WorkOwner } from '#gw2/platform/simulation/work-contract.js';
 /** Player events are the default; explicit summon metadata keeps ownership independent of display labels. */
-function ownership(actorType: SimulationActorType | undefined, summonKind: MesmerSummonKind | undefined) {
+function ownership(actorType: SimulationActorType | undefined, summonKind: string | undefined) {
   return {
     actorType: actorType ?? (summonKind ? 'summon' : 'player'),
     ...(summonKind ? { summonKind } : {})
@@ -54,7 +49,7 @@ export function buildMesmerConditions(
   context: MesmerRuntime,
   skillName: string,
   at: number,
-  condition: MesmerConditionApplication,
+  condition: ConditionEffect,
   source = 'Player',
   label = '',
   extra: MesmerEventExtra = {}
@@ -62,14 +57,8 @@ export function buildMesmerConditions(
   const skill = skillForCondition(context, skillName, extra);
   const baseOwnership = ownership(extra.actorType, extra.summonKind ?? condition.summonKind);
   const fields = supplementalFields(extra, ['actorType', 'skillId', 'skillName', 'source', 'sourceId', 'summonKind']);
-  const ticks: readonly ConditionTick[] = condition.ticks?.length
-    ? condition.ticks
-    : Array.from({ length: Math.max(1, Math.trunc(condition.applications ?? 1)) }, (_, index) => ({
-        atMs: (condition.atMs || 0) + index * (condition.intervalMs || 0),
-        condition: condition.name,
-        duration: requireBalanceNumber(condition.duration, `${skillName} condition duration`),
-        stacks: condition.stacks ?? 1
-      }));
+  // Canonical descriptors own expansion; Mesmer retains attribution, lifetime ownership, and final metadata overrides.
+  const ticks = conditionEffectTicks(condition);
 
   return ticks.flatMap((tick, index) => {
     const name = canonicalTargetConditionName(tick.condition);
@@ -127,13 +116,8 @@ export function buildMesmerStrikes(
     'type',
     'weapon'
   ]);
-  const ticks: readonly StrikeTick[] = group.ticks?.length
-    ? group.ticks
-    : // Untimed strikes share their offset; repeated timing is authored through ticks.
-      Array.from({ length: Math.max(1, Math.trunc(group.hits ?? 1)) }, () => ({
-        atMs: group.atMs || 0,
-        coefficient: (group.coefficient || 0) / Math.max(1, Math.trunc(group.hits ?? 1))
-      }));
+  // Shared expansion keeps aggregate and explicit strikes consistent without moving summon formula policy.
+  const ticks = strikeEffectTicks(group);
   const slotSkill = ['Heal', 'Utility', 'Elite'].includes(skill.type || '');
 
   return ticks.flatMap((tick, index) => {

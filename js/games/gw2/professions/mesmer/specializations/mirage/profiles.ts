@@ -10,7 +10,6 @@ import {
   MIRAGE_MIRROR_EFFECTS
 } from '#gw2/professions/mesmer/specializations/mirage/skills/index.js';
 
-import type { MesmerConditionApplication } from '#gw2/professions/mesmer/data/types.js';
 import type { MesmerAmbushAttack, MesmerAmbushStrike } from '#gw2/professions/mesmer/types.js';
 
 export const MIRAGE_BALANCE_PROFILE_IDS = Object.freeze({
@@ -36,23 +35,19 @@ export const MIRAGE_AMBUSH_PROFILE_IDS: Readonly<Record<string, string>> = Objec
   Sword: MIRAGE_BALANCE_PROFILE_IDS.mirageThrust
 });
 
-function attackStatusEffect(status: MesmerConditionApplication, source: 'Player' | 'Clone'): SkillEffect {
+function attackStatusEffect(status: ConditionEffect, source: 'Player' | 'Clone'): SkillEffect {
   return {
-    type: 'condition',
-    source,
-    condition: status.name,
-    duration: Number(status.duration),
-    stacks: status.stacks
+    ...status,
+    // The ambush profile expands repeated statuses into independently selectable effects.
+    applications: undefined,
+    source
   };
 }
 
-function boonStatusEffect(status: MesmerConditionApplication, source: 'Player' | 'Clone'): SkillEffect {
+function boonStatusEffect(status: StatusEffect, source: 'Player' | 'Clone'): SkillEffect {
   return {
-    type: 'boon',
-    source,
-    boon: status.name.toLowerCase(),
-    duration: Number(status.duration),
-    stacks: status.stacks
+    ...status,
+    source
   };
 }
 
@@ -108,19 +103,15 @@ function mesmerAmbushProfile(id: string, attack: MesmerAmbushAttack): BalancePro
 
 // Merge Mirage profile status effects into the base skill while preserving
 // explicit skill overrides and packet ordering.
-function profileStatuses(
+function profileStatuses<T extends 'condition' | 'boon'>(
   profile: BalanceProfile,
-  type: 'condition' | 'boon',
+  type: T,
   source: 'Player' | 'Clone'
-): MesmerConditionApplication[] {
-  // Project shared canonical effects into runtime statuses without revalidating the profile.
-  return requireCanonicalSkillEffects(profile)
-    .filter((effect): effect is ConditionEffect | StatusEffect => effect.type === type && effect.source === source)
-    .map((effect) => ({
-      ...effect,
-      summonKind: undefined,
-      name: String(type === 'condition' ? (effect.condition ?? effect.name) : effect.boon)
-    }));
+): (T extends 'condition' ? ConditionEffect : StatusEffect)[] {
+  // Keep selected effects canonical so runtime expansion retains patched payloads and metadata.
+  return requireCanonicalSkillEffects(profile).filter(
+    (effect) => effect.type === type && effect.source === source
+  ) as (T extends 'condition' ? ConditionEffect : StatusEffect)[];
 }
 
 /** Applies the active Mirage ambush profile to its runtime attack definition. */

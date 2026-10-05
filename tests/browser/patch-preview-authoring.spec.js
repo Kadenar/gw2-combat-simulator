@@ -127,8 +127,7 @@ for (const mode of ['preview', 'absent', 'invalid']) {
           }
         },
         applyBuildAttributeRules: () => {},
-        toApplicationBuild: (build) => build,
-        specializationFallback: 'Core'
+        toApplicationBuild: (build) => build
       };
       if (mode === 'invalid') {
         try {

@@ -4,7 +4,7 @@ import type { SkillId } from '#gw2/platform/skills/types.js';
 import type { StrikeTick, StrikeEffect } from '#gw2/platform/effects/types.js';
 
 import type { MesmerResourceCause } from '#gw2/professions/mesmer/core/mechanics/resource-types.js';
-import type { MesmerConditionApplication } from '#gw2/professions/mesmer/data/types.js';
+import type { ConditionEffect } from '#gw2/platform/effects/types.js';
 
 export interface MesmerClone {
   id: number;
@@ -94,7 +94,7 @@ export interface MesmerCloneAttackStep {
   readonly damageAtMs?: number;
   readonly ticks?: readonly StrikeTick[];
   readonly interval: number;
-  readonly conditions?: readonly MesmerConditionApplication[];
+  readonly conditions?: readonly ConditionEffect[];
 }
 
 interface MesmerCloneAttackBase {

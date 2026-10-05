@@ -1,3 +1,4 @@
+import { isBeastSkill } from '#gw2/professions/ranger/core/traits/dispatch.js';
 import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
 import type { Gw2TraitLookupContext } from '#gw2/platform/combat/state/traits.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
@@ -138,11 +139,6 @@ export function reactToGaleshotControl(context: RangerRuntime, event: Gw2Resolve
   // 0.25 s ICD prevents one multi-hit ability from restoring more than one arrow.
   const profile = requireBalanceProfileFromContext(context, TRAIT.THRILL_OF_THE_CATCH);
   context.resourceController.grant('arrows', balanceProfileNumber(profile, 'resourceGain'));
-}
-
-export function isBeastSkill(skill: RangerSkill): boolean {
-  // Only commandable pet Beast skills can trigger Galeshot's completed-skill traits.
-  return Boolean(skill.petSkill && !skill.petFamilySkill);
 }
 
 // Commit Galeshot resource spending, Wind Force transitions, Cyclone Bow state,

@@ -7,10 +7,6 @@ import type {
 } from '#gw2/app/optimizer/relic-comparison/relic-comparison.js';
 import { clamp } from '#kernel/core/numeric.js';
 export interface RelicComparisonChartOptions {
-  /** Colour for the equipped (opponent) relic curve. */
-  readonly opponentColor?: string;
-  /** Colour for the selected comparison relic curve. */
-  readonly targetColor?: string;
   /** Human label for the opponent relic (defaults to "Relic of <key>"). */
   readonly opponentLabel?: string;
 }
@@ -23,8 +19,8 @@ const PLOT_HEIGHT = HEIGHT - PAD.top - PAD.bottom;
 // High-contrast, clearly distinct pair on the dark chart card: warm amber for
 // the equipped relic, cool cyan for the comparison. Different in both hue and lightness
 // so the two lines never blur together.
-const DEFAULT_OPPONENT_COLOR = '#ffb02e';
-const DEFAULT_TARGET_COLOR = '#2ee6c4';
+const OPPONENT_COLOR = '#ffb02e';
+const TARGET_COLOR = '#2ee6c4';
 const LINE_WIDTH = 2;
 
 function relicLabel(relic: string): string {
@@ -144,8 +140,6 @@ export function relicComparisonChartSvg(
   model: RelicComparisonModel,
   options: RelicComparisonChartOptions = {}
 ): string {
-  const opponentColor = options.opponentColor || DEFAULT_OPPONENT_COLOR;
-  const targetColor = options.targetColor || DEFAULT_TARGET_COLOR;
   const opponentLabel = options.opponentLabel || relicLabel(model.opponentRelic);
   const targetLabel = relicLabel(model.targetRelic);
 
@@ -156,8 +150,8 @@ export function relicComparisonChartSvg(
     <thead><tr><th scope="col">Relic</th><th scope="col">Build DPS</th><th scope="col">Direct relic damage</th><th scope="col">Relic DPS contribution</th></tr></thead>
     <tbody>${(
       [
-        [`${opponentLabel} (standard)`, opponentColor, 'dashed', model.opponentDamage, model.opponentFinalDps],
-        [targetLabel, targetColor, 'solid', model.targetDamage, model.targetFinalDps]
+        [`${opponentLabel} (standard)`, OPPONENT_COLOR, 'dashed', model.opponentDamage, model.opponentFinalDps],
+        [targetLabel, TARGET_COLOR, 'solid', model.targetDamage, model.targetFinalDps]
       ] as const
     )
       .map(
@@ -193,8 +187,8 @@ export function relicComparisonChartSvg(
         aria-label="Average DPS versus fight duration for ${escapeHtml(opponentLabel)} and ${escapeHtml(targetLabel)}">
         ${axisMarkup(plotPoints, startMs, endMs, scale)}
         ${crossoverMarkup(model, plotPoints, scale)}
-        ${polyline(plotPoints, opponentColor, (point) => point.opponentDps, scale, '7 4')}
-        ${polyline(plotPoints, targetColor, (point) => point.targetDps, scale, 'none')}
+        ${polyline(plotPoints, OPPONENT_COLOR, (point) => point.opponentDps, scale, '7 4')}
+        ${polyline(plotPoints, TARGET_COLOR, (point) => point.targetDps, scale, 'none')}
       </svg>
       <div class="chart-tooltip" data-role="relic-comparison-tooltip"></div>
     </div>

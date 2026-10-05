@@ -10,7 +10,7 @@ import { WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/professions/warrior/data/ids.js
 import { gunsAndGloryExplosion } from '#gw2/professions/warrior/specializations/bladesworn/traits/behavior.js';
 import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
 
-import { timedBuffAt, timedBuffStacksAt } from '#gw2/platform/results/query.js';
+import { planningBuffAt, planningBuffStacks } from '#gw2/platform/results/query.js';
 import { observeRuntimeEffects } from '#gw2/platform/results/observe-effects.js';
 
 const track = (result, kind) =>
@@ -192,9 +192,10 @@ test('combat history ends at death while the planning observation includes later
     rotation: [{ type: 'wait', durationMs: 4000 }]
   });
   assert.equal(result.effectReport.end, 1);
-  assert.equal(timedBuffStacksAt(result, 'peak-performance', 4), 1);
-  assert.equal(timedBuffAt(result, 'peak-performance', 4).remaining, 8);
-  assert.equal(timedBuffAt(result, 'peak-performance', 3), null);
+  // The editor reads its detached boundary; post-death effects never enter chart history.
+  assert.equal(result.planningState.atSeconds, 4);
+  assert.equal(planningBuffStacks(result.planningState, 'peak-performance'), 1);
+  assert.equal(planningBuffAt(result.planningState, 'peak-performance').remaining, 8);
   assert.equal(track(result, 'peak-performance'), undefined);
   assert.ok(result.planningState.effects.some((effect) => effect.kind === 'peak-performance' && effect.windows.length));
 });

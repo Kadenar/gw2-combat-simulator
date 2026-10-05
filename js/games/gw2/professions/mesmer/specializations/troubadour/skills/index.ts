@@ -120,7 +120,7 @@ export const MESMER_TROUBADOUR_SKILL_MECHANICS: Readonly<
       coefficient: 1,
       hits: 1,
       damageAtMs: 360,
-      conditions: [{ name: 'Confusion', duration: 4, stacks: 3 }]
+      conditions: [{ type: 'condition', condition: 'Confusion', duration: 4, stacks: 3 }]
     },
     effects: [
       // Performance and afterimage impacts materialize the same authored control.

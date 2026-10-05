@@ -121,9 +121,8 @@ export function createSkillDamageController({
     delivery: EffectDelivery
   ): void => {
     for (const effect of conditions) {
-      const condition = { ...effect, name: effect.condition };
       const timingAnchorAt = effect.timingAnchor === 'castStart' ? castStart : at;
-      buildMesmerConditions(state, skill.name, timingAnchorAt, condition, 'Player', '', { skillId: skill.id }).forEach(
+      buildMesmerConditions(state, skill.name, timingAnchorAt, effect, 'Player', '', { skillId: skill.id }).forEach(
         (packet) => {
           state.effects.emit({
             ...delivery,

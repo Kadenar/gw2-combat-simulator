@@ -1,5 +1,5 @@
 /** Declarative Mesmer skill records shared by generated data and runtime consumers. */
-import type { ConditionEffect, ConditionTick, SkillEffect, StrikeEffect } from '#gw2/platform/effects/types.js';
+import type { ConditionEffect, SkillEffect, StrikeEffect } from '#gw2/platform/effects/types.js';
 import type { Skill, SkillId } from '#gw2/platform/skills/types.js';
 import type { EffectMetadata } from '#gw2/platform/events/events.js';
 import type { SimulationActorType } from '#gw2/platform/events/actors.js';
@@ -30,20 +30,6 @@ export interface MesmerConditionEffect extends ConditionEffect {
   readonly packetLabel?: string;
   readonly summonKind?: MesmerSummonKind;
   readonly phantasmEntityIndex?: number;
-}
-
-export interface MesmerConditionApplication {
-  readonly metadata?: EffectMetadata;
-  readonly name: string;
-  readonly duration?: number;
-  readonly stacks?: number;
-  readonly applications?: number;
-  readonly atMs?: number;
-  readonly intervalMs?: number;
-  readonly timingAnchor?: 'castStart' | 'castEnd';
-  readonly timingScale?: 'cast' | 'fixed';
-  readonly ticks?: readonly ConditionTick[];
-  readonly summonKind?: MesmerSummonKind;
 }
 
 /** Optional fields emitted by Mesmer controllers, beyond the shared event envelope. */

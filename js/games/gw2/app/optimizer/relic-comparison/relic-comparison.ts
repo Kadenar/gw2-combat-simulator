@@ -64,8 +64,6 @@ export interface RelicComparisonModelInput {
   readonly targetDps: readonly ChartPoint[];
   readonly opponentFinalDps: number;
   readonly targetFinalDps: number;
-  /** Fight time before which crossovers are ignored as opener noise. */
-  readonly crossoverStartMs?: number;
 }
 
 /** Interpolates the exact crossing time between samples that straddle a target-minus-opponent sign change. */
@@ -85,8 +83,7 @@ export function buildRelicComparisonModel({
   opponentDps,
   targetDps,
   opponentFinalDps,
-  targetFinalDps,
-  crossoverStartMs = CROSSOVER_EVALUATION_START_MS
+  targetFinalDps
 }: RelicComparisonModelInput): RelicComparisonModel {
   const durationMs = Math.min(opponentDps.at(-1)?.t ?? 0, targetDps.at(-1)?.t ?? 0);
   const startMs = Math.max(opponentDps[0]?.t ?? 0, targetDps[0]?.t ?? 0);
@@ -106,7 +103,7 @@ export function buildRelicComparisonModel({
     });
   }
 
-  const firstEvalIndex = points.findIndex((point) => point.tMs >= crossoverStartMs);
+  const firstEvalIndex = points.findIndex((point) => point.tMs >= CROSSOVER_EVALUATION_START_MS);
   const evalStart = firstEvalIndex >= 0 ? firstEvalIndex : 0;
 
   // Use the last opponent lead so the result remains stable across tick-to-tick wobble.

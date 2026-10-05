@@ -19,7 +19,6 @@ const METADATA_VALUE_KINDS = Object.freeze({
   venomProcEffectIndex: 'number',
   recallSkillId: 'skillId',
   procCount: 'number',
-  procOwnerId: 'skillId',
   activeSpirits: 'number',
   affinityOnHit: 'boolean',
   anguishConditionalDamage: 'boolean',

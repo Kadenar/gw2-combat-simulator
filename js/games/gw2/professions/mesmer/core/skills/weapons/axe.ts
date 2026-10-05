@@ -211,7 +211,7 @@ export function scheduleAxesClones(state: MesmerRuntime, cast: RuntimeCast<Mesme
         state,
         skill.name,
         impactAt,
-        { name: 'Confusion', duration: 6, stacks: 1 },
+        { type: 'condition', condition: 'Confusion', duration: 6, stacks: 1 },
         'Clone',
         `${skill.name} — Clone`,
         { metadata: { cloneId: clone.id }, skillId: skill.id, actorType: 'summon', summonKind: 'clone' }
@@ -243,7 +243,7 @@ export function completeAxesConfusion(state: MesmerRuntime, cast: RuntimeCast<Me
         state,
         skill.name,
         at,
-        { name: 'Confusion', duration: 6, stacks: clones.length },
+        { type: 'condition', condition: 'Confusion', duration: 6, stacks: clones.length },
         'Player',
         skill.name,
         {

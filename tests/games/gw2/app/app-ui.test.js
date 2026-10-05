@@ -141,7 +141,6 @@ test('specialization selection replaces another elite line and refreshes its res
       { name: 'New Elite', elite: true }
     ],
     adapter: {
-      specializationFallback: 'Fallback',
       eliteSpecialization: (build) =>
         build.specializations.find((specialization) => specialization.name.endsWith('Elite'))?.name || 'Core'
     },
