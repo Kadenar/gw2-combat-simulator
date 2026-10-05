@@ -182,6 +182,7 @@ test('Silent Scope and Guitar replace bonus stealth attacks with selected counts
         grantSilentScope(context, { skill: runtime.helpers.skillsById.get(SHARED_SKILL_IDS.DODGE) });
       } else antiquaryHooks.sideEffectHandlers['thief.guitar'](context);
     };
+
     runtime.time = 1;
     grant();
     const first = state.bonusStealthAttack;
@@ -208,6 +209,7 @@ test('Silent Scope and Guitar replace bonus stealth attacks with selected counts
         at < 9
       );
     }
+
     assert.deepEqual(state.bonusStealthAttack, before);
   }
 });

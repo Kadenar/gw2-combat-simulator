@@ -23,6 +23,7 @@ test('Quick Draw reserves only one same-time weapon recharge and ignores ineligi
     assert.equal(native.reserveRecharge(runtime, ineligible, 10), 10);
     assert.equal(grant.charges, 1);
   }
+
   const first = native.rechargeWork(runtime, skill, 10);
   assert.ok(Math.abs(first - 3.4) < 1e-9);
   assert.equal(native.rechargeWork(runtime, skill, 10), first);
