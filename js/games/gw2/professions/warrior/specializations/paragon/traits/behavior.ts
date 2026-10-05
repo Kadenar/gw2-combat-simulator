@@ -7,7 +7,6 @@ import type { MechanicContext } from '#gw2/platform/profession-definition/mechan
 import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import { WARRIOR_SKILL_IDS as ID, WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/professions/warrior/data/ids.js';
 import { grantWarriorResource } from '#gw2/professions/warrior/core/mechanics/resource-policy.js';
-import { gainMotivation } from '#gw2/professions/warrior/specializations/paragon/mechanics/refrains.js';
 import type { WarriorRuntimeState, WarriorSkill } from '#gw2/professions/warrior/types.js';
 
 type Runtime = MechanicContext<WarriorRuntimeState, WarriorSkill>;
@@ -35,7 +34,7 @@ export function applyInspiringImplements(runtime: Runtime, cast: RuntimeCast<War
   ) {
     const profile = requireBalanceProfileFromContext(runtime, TRAIT.INSPIRING_IMPLEMENTS);
     grantWarriorResource(runtime, balanceProfileNumber(profile, 'resourceGain'));
-    gainMotivation(runtime, balanceProfileNumber(profile, 'minimumStacks'));
+    runtime.resourceController.grant('motivation', balanceProfileNumber(profile, 'minimumStacks'));
   }
 }
 

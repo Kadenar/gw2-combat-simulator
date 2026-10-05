@@ -257,7 +257,7 @@ test('zero Empower Allies and Paragon intervals disable queued recurrence', () =
     [ID.CHANT_OF_ACTION, { type: 'wait', durationMs: 5000 }],
     { initialResource: 30 }
   );
-  assert.equal(refrain.planningState.profession.motivation, 4);
+  assert.equal(refrain.planningState.profession.motivation.value, 4);
   assert.equal(refrain.planningState.profession.activeRefrain, 'Chant of Action');
 });
 
@@ -300,7 +300,7 @@ test('removed Spellbreaker buffs cannot retain Insight stacks or a tether window
 test('Paragon opening Might removal preserves Fury, Motivation, and tooltip identity', () => {
   const profiles = { [PARAGON.chants]: remove('boon', 'might') };
   const result = run(profiles, 'Paragon', [ID.CHANT_OF_ACTION], { initialResource: 30 });
-  assert.equal(result.planningState.profession.motivation, 4);
+  assert.equal(result.planningState.profession.motivation.value, 4);
   assert.ok(result.events.some((e) => e.kind === 'fury'));
   const catalog = applyBalanceProfilePatch(warriorCatalog, { balanceProfiles: profiles });
   const tooltip = warriorTooltips.skills[ID.CHANT_OF_ACTION]({ catalog }, catalog.skillsById.get(ID.CHANT_OF_ACTION));

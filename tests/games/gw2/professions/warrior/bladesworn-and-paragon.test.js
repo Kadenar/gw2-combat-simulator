@@ -995,7 +995,7 @@ test('Paragon chants consume adrenaline and start a refrain', () => {
   assert.deepEqual(result.warnings, []);
   assert.equal(result.planningState.profession.maximumAdrenaline, 30);
   assert.equal(result.planningState.profession.adrenaline, 20);
-  assert.equal(result.planningState.profession.motivation, 4);
+  assert.equal(result.planningState.profession.motivation.value, 4);
   assert.equal(result.planningState.profession.activeRefrain, 'Chant of Action');
   assert.equal(
     result.events.some((event) => event.type === 'warrior.paragon-state'),
@@ -1048,7 +1048,7 @@ test('Paragon Action refrain boons reach the caster and party', () => {
     assert.equal(boon.resolvedAudience.alliedPlayerCount, 4);
   }
 
-  assert.equal(result.planningState.profession.motivation, 3);
+  assert.equal(result.planningState.profession.motivation.value, 3);
 });
 
 test('Rally the Valiant grants motivation when a burst starts', () => {
@@ -1058,7 +1058,7 @@ test('Rally the Valiant grants motivation when a burst starts', () => {
     selectedTraitIds
   });
 
-  assert.equal(result.planningState.profession.motivation, 8);
+  assert.equal(result.planningState.profession.motivation.value, 8);
   assert.equal(
     result.events.some((event) => event.type === 'warrior.paragon-state'),
     false
@@ -1069,7 +1069,7 @@ test('Rally the Valiant grants motivation when a burst starts', () => {
     selectedTraitIds: [TRAIT.CALL_TO_ACTION]
   });
 
-  assert.equal(withoutRally.planningState.profession.motivation, 4);
+  assert.equal(withoutRally.planningState.profession.motivation.value, 4);
 });
 
 test('Signet active buffs ignore boon duration and mastery requires activation', () => {

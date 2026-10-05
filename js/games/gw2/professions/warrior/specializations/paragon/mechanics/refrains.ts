@@ -1,5 +1,4 @@
 import type { MechanicContext } from '#gw2/platform/profession-definition/mechanic-context.js';
-import { grantCapped } from '#gw2/platform/combat/resources/pool.js';
 import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
 
 import { PARAGON_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/warrior/specializations/paragon/profiles.js';
@@ -9,12 +8,6 @@ import { canonicalTime } from '#kernel/core/clock.js';
 
 type Runtime = MechanicContext<WarriorRuntimeState, WarriorSkill>;
 export const REFRAIN = 'warrior.paragon-refrain';
-/** Motivation is a single capped live pool, immediately visible to damage modifiers. */
-export function gainMotivation(runtime: Runtime, amount: number): void {
-  const state = paragonState.from(runtime);
-  state.motivation = grantCapped(state.motivation, amount, state.maximumMotivation);
-}
-
 /** Replacing even the same chant invalidates the old pulse before arming a new cadence. */
 export function startRefrain(runtime: Runtime): void {
   const state = paragonState.from(runtime);

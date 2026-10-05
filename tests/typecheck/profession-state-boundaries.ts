@@ -27,12 +27,16 @@ import type { ElementalistCoreState } from '#gw2/professions/elementalist/core/s
 import type { ElementalistRuntime } from '#gw2/professions/elementalist/types.js';
 import type { MesmerCoreState } from '#gw2/professions/mesmer/core/state.js';
 import type { MesmerVirtuosoState } from '#gw2/professions/mesmer/specializations/virtuoso/state.js';
+import type { ParagonState } from '#gw2/professions/warrior/specializations/paragon/state.js';
+import type { ResourceClock } from '#gw2/platform/combat/resources/clock.js';
 
 type Assert<T extends true> = T;
 type Owns<TState, TField extends PropertyKey> = TField extends keyof TState ? true : false;
 type Rejects<TState, TField extends PropertyKey> = TField extends keyof TState ? false : true;
 
 export type ProfessionModuleStateBoundaryAssertions = [
+  Assert<ParagonState['motivation'] extends ResourceClock ? true : false>,
+  Assert<Rejects<ParagonState, 'maximumMotivation'>>,
   Assert<Owns<ElementalistCoreState, 'primaryAttunement'>>,
   Assert<Rejects<WeaverState, 'primaryAttunement'>>,
   Assert<Owns<WeaverState, 'unravelUntil'>>,

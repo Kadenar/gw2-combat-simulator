@@ -6,12 +6,11 @@ import {
   grantWarriorResource,
   selectWarriorResourcePolicy
 } from '#gw2/professions/warrior/core/mechanics/resource-policy.js';
+import { REFRAIN, startRefrain } from '#gw2/professions/warrior/specializations/paragon/mechanics/refrains.js';
 import {
-  REFRAIN,
-  gainMotivation,
-  startRefrain
-} from '#gw2/professions/warrior/specializations/paragon/mechanics/refrains.js';
-import { paragonResourcePolicy } from '#gw2/professions/warrior/specializations/paragon/mechanics/resources.js';
+  paragonMotivationPolicy,
+  paragonResourcePolicy
+} from '#gw2/professions/warrior/specializations/paragon/mechanics/resources.js';
 import { PARAGON_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/warrior/specializations/paragon/profiles.js';
 import {
   PARAGON_COMMAND_ECHO_PROFILES,
@@ -37,16 +36,17 @@ const ECHO = 'warrior.paragon-command-echo';
 function pulseRefrain(runtime: Runtime): void {
   const state = paragonState.from(runtime);
   const skill = state.activeRefrainId == null ? undefined : runtime.helpers.skillsById.get(state.activeRefrainId);
-  if (!skill || state.motivation <= 0) {
+  const motivation = runtime.resourceController.value('motivation');
+  if (!skill || motivation <= 0) {
     state.activeRefrainId = null;
     return;
   }
 
   const profile = requireBalanceProfileFromContext(runtime, PROFILE.resources);
   const level =
-    state.motivation >= balanceProfileNumber(profile, 'threshold')
+    motivation >= balanceProfileNumber(profile, 'threshold')
       ? 3
-      : state.motivation >= balanceProfileNumber(profile, 'minimumStacks')
+      : motivation >= balanceProfileNumber(profile, 'minimumStacks')
         ? 2
         : 1;
   const recipe = paragonRefrains[Number(skill.id)];
@@ -74,10 +74,10 @@ function pulseRefrain(runtime: Runtime): void {
     })
   });
 
-  const spent = Math.min(cost, state.motivation);
-  state.motivation -= spent;
+  const spent = Math.min(cost, runtime.resourceController.value('motivation'));
+  runtime.resourceController.spend('motivation', spent);
   applyInvigoratingTempo(runtime, spent);
-  if (state.motivation <= 0) state.activeRefrainId = null;
+  if (runtime.resourceController.value('motivation') <= 0) state.activeRefrainId = null;
   const interval = balanceProfileNumber(profile, 'pulseInterval');
   if (state.activeRefrainId != null && interval > 0)
     runtime.schedule(
@@ -94,7 +94,10 @@ function activateChant(runtime: Runtime, cast: RuntimeCast<WarriorSkill>): void 
   const state = paragonState.from(runtime);
   state.activeRefrainId = cast.skill.id;
   const profile = requireBalanceProfileFromContext(runtime, PROFILE.chants);
-  gainMotivation(runtime, balanceProfileNumber(profile, 'resourceGain') + enduringRefrainMotivation(runtime));
+  runtime.resourceController.grant(
+    'motivation',
+    balanceProfileNumber(profile, 'resourceGain') + enduringRefrainMotivation(runtime)
+  );
   startRefrain(runtime);
   const kinds = paragonRefrains[Number(cast.skill.id)].openingBoons;
   {
@@ -189,6 +192,7 @@ function activateCommand(runtime: Runtime, cast: RuntimeCast<WarriorSkill>): voi
 
 /** Paragon mutates live state at combat entry, committed casts, swaps, and queued pulses without replay events. */
 export const paragonHooks: RuntimeHooks<WarriorRuntimeState, WarriorSkill> = {
+  resources: { motivation: paragonMotivationPolicy },
   // Declarations own eligibility; these actions retain shared motivation, replacement, and echo lifetimes.
   sideEffectHandlers: {
     'warrior.chant-activate'(runtime, context) {
@@ -202,12 +206,6 @@ export const paragonHooks: RuntimeHooks<WarriorRuntimeState, WarriorSkill> = {
 
   initialize(runtime) {
     selectWarriorResourcePolicy(runtime, paragonResourcePolicy);
-    const state = paragonState.from(runtime);
-    state.maximumMotivation = balanceProfileNumber(
-      requireBalanceProfileFromContext(runtime, PROFILE.resources),
-      'maximumStacks'
-    );
-    state.motivation = Math.min(state.motivation, state.maximumMotivation);
   },
   onCastCommit(runtime, cast) {
     if (cast.skill.burst)

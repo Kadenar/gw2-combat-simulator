@@ -90,7 +90,8 @@ test('Invigorating Tempo grants capped adrenaline for each point of Motivation a
         onCastCommit(runtime, cast) {
           profession.onCastCommit?.(runtime, cast);
           runtime.profession.core.adrenaline = adrenaline;
-          runtime.profession.specialization.state.motivation = motivation;
+          runtime.resourceController.spend('motivation', runtime.resourceController.value('motivation'));
+          runtime.resourceController.grant('motivation', motivation);
         }
       },
       config,
@@ -98,7 +99,7 @@ test('Invigorating Tempo grants capped adrenaline for each point of Motivation a
     });
     assert.deepEqual(result.warnings, []);
     const owner = observedRuntime(result).profession;
-    assert.equal(owner.specialization.state.motivation, motivation - spent);
+    assert.equal(owner.specialization.state.motivation.value, motivation - spent);
     assert.equal(owner.core.adrenaline, expected);
   }
 });

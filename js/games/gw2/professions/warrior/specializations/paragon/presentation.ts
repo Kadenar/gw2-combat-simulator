@@ -22,9 +22,9 @@ function resources(context: WarriorUiContext): ProfessionResourceView[] {
       plural: 'motivation',
       // Reflect the initialized pool, including patch-selected Motivation limits.
       maximum:
-        state.maximumMotivation ??
+        state.motivation?.maximum ??
         balanceProfileNumber(requireBalanceProfileFromContext(context, PROFILE.resources), 'maximumStacks'),
-      value: state.motivation || 0,
+      value: state.motivation?.value ?? 0,
       canStart: false,
       step: 1,
       displayMode: 'counter',
@@ -39,7 +39,7 @@ function resources(context: WarriorUiContext): ProfessionResourceView[] {
 function paragonStateSnapshot(context: WarriorUiContext): RotationStateSnapshotItem[] {
   const state = warriorUiState(context);
   const refrain = state.activeRefrain || '';
-  return refrain && (state.motivation || 0) > 0
+  return refrain && (state.motivation?.value ?? 0) > 0
     ? [
         {
           id: 'paragon-active-refrain',

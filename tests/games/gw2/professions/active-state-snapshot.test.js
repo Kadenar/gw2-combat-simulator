@@ -473,7 +473,12 @@ test('Warrior snapshots expose shared stacks, Bladesworn buffs, and Paragon refr
   assert.equal(bladesworn['bladesworn-guns-and-glory'], '9.0s');
 
   const paragon = valuesById(
-    snapshot(warriorProfession, 'Paragon', { activeRefrain: 'Chant of Action', motivation: 5 }, 4)
+    snapshot(
+      warriorProfession,
+      'Paragon',
+      { activeRefrain: 'Chant of Action', motivation: { value: 5, maximum: 10, rate: 0, updatedAt: 4 } },
+      4
+    )
   );
   assert.equal(paragon['paragon-active-refrain'], 'Chant of Action');
 });
