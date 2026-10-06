@@ -73,3 +73,13 @@ export interface RandomDistributionSummary {
   readonly p99: number;
   readonly explanation?: RandomDistributionExplanation;
 }
+
+/** Holds this feature's session result and pending/error state alongside its owning contracts. */
+export interface RandomDistributionResultState {
+  randomDistributionRequested?: boolean;
+  randomDistributionStale?: boolean;
+  randomDistributionTrials?: number;
+  randomDistributionError?: string;
+  randomDistributionProgress?: RandomDistributionProgress;
+  randomDistribution?: RandomDistributionSummary;
+}

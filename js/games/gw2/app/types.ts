@@ -1,3 +1,8 @@
+import type { BuildLibraryState } from '#gw2/app/build/library/state.js';
+import type { RotationEditingState, RotationActionOptions } from '#gw2/app/rotation/editing/state.js';
+import type { RotationTimelineState } from '#gw2/app/rotation/timeline/state.js';
+import type { RotationComparisonSession } from '#gw2/app/rotation/comparison-state.js';
+import type { ResultViewState } from '#gw2/app/results/state.js';
 import type { FixedSlotLoadout } from '#gw2/platform/builds/slot-loadout.js';
 import type { ThiefConfig } from '#gw2/professions/thief/types.js';
 import type { ProfessionBalanceContext } from '#gw2/platform/profession-presentation/balance-context.js';
@@ -23,17 +28,21 @@ import type {
 } from '#gw2/app/simulation/baseline/types.js';
 import type {
   ModifierContribution,
+  ModifierContributionResultState,
   ProfessionModifier,
   ModifierContributionRequest
 } from '#gw2/app/simulation/modifier-contributions/types.js';
 import type {
-  RandomDistributionProgress,
   RandomDistributionSummary,
+  RandomDistributionResultState,
   RandomDistributionJobRequest,
   RandomDistributionRequest,
   RandomDistributionOptions
 } from '#gw2/app/simulation/random-distribution/types.js';
-import type { RelicComparisonJobRequest } from '#gw2/app/optimizer/relic-comparison/types.js';
+import type {
+  RelicComparisonJobRequest,
+  RelicComparisonResultState
+} from '#gw2/app/optimizer/relic-comparison/types.js';
 import type {
   Gw2CanonicalBuild,
   Gw2CalculateAttributes,
@@ -44,12 +53,9 @@ import type { Gw2WeaponDataEntry, Gw2WeaponSkillMatcher } from '#gw2/platform/eq
 import type { ProfessionResourceView } from '#gw2/platform/profession-presentation/types.js';
 import type {
   ProfessionAttributeData,
-  BuildTemplatePreset,
-  BuildTemplateSelection,
   ProfessionIsSkillAvailable,
   ProfessionDefaultOffhand
 } from '#gw2/app/build/types.js';
-import type { RelicComparisonModel } from '#gw2/app/optimizer/relic-comparison/relic-comparison.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
 import type { SkillDamageEvaluation, SkillDamageRequest } from '#gw2/platform/skill-damage/types.js';
 import type { BuildEditor, SimulationPresentation } from '#browser/shell/types.js';
@@ -60,26 +66,8 @@ export type ProfessionAppContract = Gw2ProfessionSource & {
   readonly balanceContextFor: (patchId?: string) => ProfessionBalanceContext;
 };
 
-export interface RotationActionOptions {
-  readonly skillId?: SkillId | null;
-  readonly offTarget?: boolean | null;
-  readonly impactDelayMs?: number | null;
-  readonly concurrentOffsetMs?: number | null;
-  readonly interruptAfterMs?: number | null;
-  readonly releaseAtCharges?: number | null;
-  readonly releaseDelayMs?: number | null;
-  readonly doubleEdgeOutcome?: 'success' | 'backfire' | null;
-  readonly durationMs?: number | null;
-}
-
-export interface RotationComparisonState {
-  referenceRotation: RotationCommand[];
-  referenceResult: Gw2SimulationResult | null;
-  referenceStatus: 'empty' | 'fresh' | 'queued' | 'error';
-  referenceError: string;
-}
-
-export interface ProfessionAppState {
+export interface ProfessionAppState
+  extends BuildLibraryState, RotationEditingState, RotationTimelineState, RotationComparisonSession, ResultViewState {
   skillDamageRunner: import('#gw2/app/simulation/skill-damage/runner.js').SkillDamageRunner;
   gearOptimizerRunner?: import('#gw2/app/optimizer/gear/runner.js').GearOptimizerRunner;
   workspace?: import('#gw2/app/build/state/workspace.js').BuildWorkspace;
@@ -108,33 +96,8 @@ export interface ProfessionAppState {
   setDamageDiagnostics(enabled: boolean): void;
   buildRevision: number;
   resultRevision: number;
-  rotationComparison: RotationComparisonState | null;
   simulationStatus: 'idle' | 'queued' | 'running' | 'error';
   simulationError: string;
-  /** Template-only progress is scoped to a revision so ordinary rotation edits dismiss it. */
-  templateRotationLoading?: { revision: number; fetching: boolean };
-  dragState: ProfessionRotationDragState | null;
-  rotationInsertionIndex?: number | null;
-  procVisibility?: Set<string>;
-  procVisibilityKeys?: Set<string>;
-  procFilterOpen?: boolean;
-  procHighlightKey?: string | null;
-  overlaySigilProcs?: boolean;
-  overlayRelicProcs?: boolean;
-  timelineOverlayVisibility?: Record<string, boolean>;
-  rotationSkillHighlightKey?: string | null;
-  _skillSortCol?: string | null;
-  _skillSortDir?: 'asc' | 'desc' | null;
-  _rotationHistory?: {
-    undo: RotationCommand[][];
-    redo: RotationCommand[][];
-    current: RotationCommand[];
-  };
-  templatePresets: BuildTemplatePreset[];
-  templateContainer: HTMLElement | null;
-  currentTemplate: BuildTemplateSelection | null;
-  templateUndoBuild: Gw2CanonicalBuild | null;
-  templateUndoMessage?: string;
   modifierContributionRunner: ProfessionFeatureRunner;
   randomDistributionRunner: ProfessionFeatureRunner;
   relicComparisonRunner: ProfessionFeatureRunner;
@@ -161,32 +124,13 @@ export interface ProfessionChangeOptions {
   readonly deferRotationRender?: boolean;
 }
 
-/** Carries a timeline index or palette name so drops can resolve the dragged entry. */
-export interface ProfessionRotationDragState {
-  readonly source?: string;
-  readonly index?: number;
-  readonly name?: string;
-  readonly skillId?: SkillId;
-}
-
-export interface ProfessionAppResult extends BaselineSimulationResult {
-  contributions?: ModifierContribution[];
-  modifierContributionsStale?: boolean;
-  modifierContributionsError?: string;
-  randomDistributionRequested?: boolean;
-  randomDistributionStale?: boolean;
-  randomDistributionTrials?: number;
-  randomDistributionError?: string;
-  randomDistributionProgress?: RandomDistributionProgress;
-  randomDistribution?: RandomDistributionSummary;
-  relicComparisonAvailable?: boolean;
-  relicComparisonStale?: boolean;
-  relicComparisonError?: string;
-  relicComparisonOpponent?: string;
-  relicComparisonTarget?: string;
-  relicComparisonInitialStacks?: number;
-  relicComparison?: RelicComparisonModel;
-}
+/** Combines baseline output with session state owned by each optional analysis feature. */
+export interface ProfessionAppResult
+  extends
+    BaselineSimulationResult,
+    ModifierContributionResultState,
+    RandomDistributionResultState,
+    RelicComparisonResultState {}
 
 export interface ProfessionAppFilenames {
   readonly build: string;

@@ -1,3 +1,4 @@
+import type { RotationHistory } from '#gw2/app/rotation/editing/state.js';
 import type { RotationCommand } from '#gw2/platform/execution/types.js';
 import type { ProfessionAppState } from '#gw2/app/types.js';
 
@@ -14,12 +15,6 @@ import type { ProfessionAppState } from '#gw2/app/types.js';
  */
 
 const HISTORY_LIMIT = 100;
-
-interface RotationHistory {
-  undo: RotationCommand[][];
-  redo: RotationCommand[][];
-  current: RotationCommand[];
-}
 
 export function cloneRotation(rotation: readonly RotationCommand[]): RotationCommand[] {
   // Clone canonical value objects while preserving legacy primitive commands until normalization handles them.

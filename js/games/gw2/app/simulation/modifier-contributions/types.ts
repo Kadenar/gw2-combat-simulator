@@ -29,3 +29,10 @@ export interface ModifierContribution {
   readonly dpsIncrease: number;
   readonly pctIncrease: number;
 }
+
+/** Holds this feature's session result and pending/error state alongside its owning contracts. */
+export interface ModifierContributionResultState {
+  contributions?: ModifierContribution[];
+  modifierContributionsStale?: boolean;
+  modifierContributionsError?: string;
+}

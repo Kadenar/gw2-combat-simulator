@@ -364,7 +364,7 @@ calculations use.
 Two shared helpers are available in:
 
 ```text
-js/games/gw2/platform/results/query.ts
+js/games/gw2/platform/results/result-queries.ts
 ```
 
 ## Timed buff
@@ -380,7 +380,7 @@ to find an active timed buff and its remaining duration.
 Example:
 
 ```ts
-import { timedBuffAt } from '#gw2/platform/results/query.js';
+import { timedBuffAt } from '#gw2/platform/results/result-queries.js';
 ```
 
 Then:

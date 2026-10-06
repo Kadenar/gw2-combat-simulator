@@ -22,6 +22,31 @@ export function isSlotSkillSelectable(
   );
 }
 
+/** Lists the legal, deduplicated choices for a heal, utility, or elite slot. */
+export function availableSlotSkills(app: ProfessionAppState, type: string): Skill[] {
+  const spec = app.adapter.eliteSpecialization(app.build);
+  const byLoadoutId = new Map<Skill['id'], Skill>();
+  for (const skill of app.skills) {
+    if (
+      skill.type !== type ||
+      !isSlotSkillSelectable(app, skill, spec) ||
+      (skill.specialization && skill.specialization !== spec) ||
+      !app.adapter.isSkillAvailable(skill, {
+        build: app.build,
+        specialization: spec
+      })
+    ) {
+      continue;
+    }
+
+    // Collapse authored attunement variants while retaining distinct skills with identical labels.
+    const loadoutId = skill.paletteTileId ?? skill.id;
+    if (!byLoadoutId.has(loadoutId)) byLoadoutId.set(loadoutId, skill);
+  }
+
+  return [...byLoadoutId.values()];
+}
+
 export function normalizeSelectedSkills(app: ProfessionAppState): void {
   const spec = app.adapter.eliteSpecialization(app.build);
   if (app.adapter.slotLoadout) {

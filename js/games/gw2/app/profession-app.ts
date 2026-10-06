@@ -1,3 +1,4 @@
+import * as comparisonState from '#gw2/app/rotation/comparison-state.js';
 import { SkillDamageRunner } from '#gw2/app/simulation/skill-damage/runner.js';
 import { receiveSkillDamage } from '#gw2/app/build/panels/skill-damage.js';
 import { readStoredTimelineOverlayVisibility } from '#gw2/app/rotation/timeline/preferences.js';
@@ -13,7 +14,7 @@ import {
 } from '#gw2/app/build/state/workspace.js';
 import { mountBuildTabs, renderBuildTabs } from '#gw2/app/build/panels/workspace-tabs.js';
 import { addRotation } from '#gw2/app/rotation/editing/actions.js';
-import { cloneRotation, recordRotationHistory, resetRotationHistory } from '#gw2/app/rotation/editing/history.js';
+import { recordRotationHistory } from '#gw2/app/rotation/editing/history.js';
 import { ModifierContributionRunner } from '#gw2/app/simulation/modifier-contributions/runner.js';
 import { RandomDistributionRunner } from '#gw2/app/simulation/random-distribution/runner.js';
 import { GearOptimizerRunner } from '#gw2/app/optimizer/gear/runner.js';
@@ -37,10 +38,9 @@ import type {
   Gw2AppAdapter,
   ProfessionAppResult,
   ProfessionAppState,
-  ProfessionChangeOptions,
-  ProfessionRotationDragState,
-  RotationActionOptions
+  ProfessionChangeOptions
 } from '#gw2/app/types.js';
+import type { ProfessionRotationDragState, RotationActionOptions } from '#gw2/app/rotation/editing/state.js';
 import type { BaselineSimulationOutput } from '#gw2/app/simulation/baseline/types.js';
 import type { Gw2CanonicalBuild } from '#gw2/platform/builds/types.js';
 import type { RotationCommand } from '#gw2/platform/execution/types.js';
@@ -207,10 +207,7 @@ export class ProfessionApp implements ProfessionAppState {
     this.dragState = null;
     const revision = this.prepareSimulationState();
     // Shared build/config changes invalidate the pinned result; rotation-only edits keep it reusable.
-    if (this.rotationComparison?.referenceRotation.length && rebuildStatic) {
-      this.rotationComparison.referenceStatus = 'queued';
-      this.rotationComparison.referenceError = '';
-    }
+    if (rebuildStatic) comparisonState.queueRotationReference(this);
 
     this.baselineSimulationRunner.schedule(revision);
     if (rebuildStatic) this.renderBuildSections(rebuildGear);
@@ -287,7 +284,7 @@ export class ProfessionApp implements ProfessionAppState {
   setDamageDiagnostics(enabled: boolean): void {
     if (this.damageDiagnostics === enabled) return;
     this.damageDiagnostics = enabled;
-    if (this.rotationComparison?.referenceStatus === 'fresh') this.rotationComparison.referenceStatus = 'queued';
+    if (this.rotationComparison?.referenceStatus === 'fresh') comparisonState.queueRotationReference(this);
     this.baselineSimulationRunner.schedule(this.buildRevision);
     if (document.body) document.body.dataset.simulationStatus = this.simulationStatus;
     renderEventLog(this);
@@ -302,15 +299,7 @@ export class ProfessionApp implements ProfessionAppState {
     this.results = output.result as ProfessionAppResult;
     this.patchComparison = output.patchComparison;
     // Optional reference output only exists for shared-context refreshes; ordinary rotation edits preserve it.
-    if (
-      output.referenceResult &&
-      this.rotationComparison?.referenceStatus === 'queued' &&
-      this.rotationComparison.referenceRotation.length
-    ) {
-      this.rotationComparison.referenceResult = output.referenceResult;
-      this.rotationComparison.referenceStatus = 'fresh';
-      this.rotationComparison.referenceError = '';
-    }
+    comparisonState.publishRotationReference(this, output.referenceResult);
 
     if (Array.isArray(previousContributions)) this.results.contributions = previousContributions;
     // Each baseline invalidates comparisons, even when Workspace defers their calculation.
@@ -348,10 +337,7 @@ export class ProfessionApp implements ProfessionAppState {
     this.simulationStatus = 'error';
     this.simulationError = error instanceof Error ? error.message : String(error || 'Simulation failed.');
     // A failed shared job leaves the prior pinned result visible but prevents a misleading delta.
-    if (this.rotationComparison?.referenceStatus === 'queued') {
-      this.rotationComparison.referenceStatus = 'error';
-      this.rotationComparison.referenceError = this.simulationError;
-    }
+    comparisonState.failRotationReference(this, this.simulationError);
 
     if (document.body) document.body.dataset.simulationStatus = this.simulationStatus;
     if (renderDeferredRotation) this.adapter.renderRotationBuilder(this);
@@ -440,85 +426,39 @@ export class ProfessionApp implements ProfessionAppState {
     addRotation(this, name, options);
   }
 
-  /** Opens a focused comparison workspace with an empty reference ready to load. */
+  /** Coordinates focus and rendering after the comparison owner accepts a fresh Current. */
   startRotationComparison(): void {
-    if (
-      this.rotationComparison ||
-      !this.build.rotation.length ||
-      !this.results ||
-      this.resultRevision !== this.buildRevision ||
-      this.simulationStatus !== 'idle'
-    ) {
-      return;
-    }
-
-    this.rotationComparison = {
-      referenceRotation: [],
-      referenceResult: null,
-      referenceStatus: 'empty',
-      referenceError: ''
-    };
+    if (!comparisonState.beginRotationComparison(this)) return;
     if (typeof document !== 'undefined') {
       enterRotationFocus(document);
       this.adapter.renderRotationBuilder(this);
     }
   }
 
-  /** Loads an independent reference rotation and schedules it under Current's shared build context. */
+  /** Schedules a newly copied reference under the current build revision. */
   loadRotationReference(rotation: readonly RotationCommand[]): void {
-    if (!this.rotationComparison || !rotation.length) return;
-    this.rotationComparison.referenceRotation = cloneRotation(rotation);
-    this.rotationComparison.referenceResult = null;
-    this.rotationComparison.referenceStatus = 'queued';
-    this.rotationComparison.referenceError = '';
+    if (!comparisonState.setRotationReference(this, rotation)) return;
     this.baselineSimulationRunner.schedule(this.buildRevision);
     if (typeof document !== 'undefined') renderRotationComparison(this);
   }
 
-  /** Clears only the loaded reference while leaving Current and focus mode intact. */
+  /** Repaints the empty reference without changing Current or leaving focus mode. */
   clearRotationReference(): void {
-    if (!this.rotationComparison) return;
-    this.rotationComparison.referenceRotation = [];
-    this.rotationComparison.referenceResult = null;
-    this.rotationComparison.referenceStatus = 'empty';
-    this.rotationComparison.referenceError = '';
+    if (!comparisonState.clearRotationReference(this)) return;
     if (typeof document !== 'undefined') renderRotationComparison(this);
   }
 
-  /** Atomically exchanges editable and pinned rotations, then refreshes Current-only derived output. */
+  /** Refreshes Current-only output after an atomic swap, retaining its matching cached timeline while queued. */
   swapRotationComparison(): void {
-    const comparison = this.rotationComparison;
-    if (
-      !comparison ||
-      comparison.referenceStatus !== 'fresh' ||
-      !comparison.referenceResult ||
-      !this.build.rotation.length ||
-      !this.results ||
-      this.resultRevision !== this.buildRevision ||
-      this.simulationStatus !== 'idle'
-    ) {
-      return;
-    }
-
-    const currentRotation = cloneRotation(this.build.rotation);
-    const currentResult = this.results;
-    this.build.rotation = cloneRotation(comparison.referenceRotation);
-    this.results = comparison.referenceResult as ProfessionAppResult;
-    comparison.referenceRotation = currentRotation;
-    comparison.referenceResult = currentResult;
-    comparison.referenceStatus = 'fresh';
-    comparison.referenceError = '';
-    resetRotationHistory(this);
+    if (!comparisonState.swapRotationComparison(this)) return;
     this.changed(false);
-    // The cached pinned result matches the newly editable rotation and prevents its timeline from collapsing.
     this.resultRevision = this.buildRevision;
     if (typeof document !== 'undefined') this.adapter.renderRotationBuilder(this);
   }
 
-  /** Discards session-only comparison state while preserving Current and its history. */
+  /** Repaints the ordinary rotation workspace after the feature discards its reference. */
   exitRotationComparison(): void {
-    if (!this.rotationComparison) return;
-    this.rotationComparison = null;
+    if (!comparisonState.discardRotationComparison(this)) return;
     if (typeof document !== 'undefined') this.adapter.renderRotationBuilder(this);
   }
 

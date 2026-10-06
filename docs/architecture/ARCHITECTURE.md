@@ -179,7 +179,7 @@ selection and observation callbacks read-only profession state, service queries,
 `MechanicContext` extends that combat capability for lifecycle handlers with cast/resource/recharge operations, named
 scheduling, and explicit observation writes. None exposes the command cursor, shared heap, or report collections.
 
-`simulation/mechanic-context.ts` binds stable query and lifecycle views to the live run. `resolver/mechanic-services.ts`
+`simulation/bind-mechanic-context.ts` binds stable query and lifecycle views to the live run. `resolver/mechanic-services.ts`
 binds combat operations to their resolver-owned stores. `combat/history/executed-facts.ts` supplies the `facts` reader
 and `observations` writer independently of optional reports; pending work becomes history only when it executes.
 Professions inspect in-flight casts, query detached pending charge-release intent, and request lockouts through

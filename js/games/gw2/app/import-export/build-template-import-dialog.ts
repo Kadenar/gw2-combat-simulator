@@ -7,7 +7,7 @@ import {
 import { ensureDocumentStyles } from '#ui/shared/dom.js';
 import { errorMessage } from '#ui/shared/errors.js';
 
-import type { ResolvedGw2BuildTemplate } from '#gw2/platform/builds/templates/codec.js';
+import type { ResolvedGw2BuildTemplate } from '#gw2/platform/builds/chat-code/codec.js';
 import type { ProfessionAppState } from '#gw2/app/types.js';
 
 interface BuildTemplateDialogElements {

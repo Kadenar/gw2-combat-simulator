@@ -3,7 +3,7 @@ import type {
   PreviewControl
 } from '#gw2/platform/profession-presentation/attribute-preview.js';
 import { createSkillDamagePreview } from '#gw2/app/build/skill-damage/preview.js';
-import { queryDamagePreview } from '#gw2/platform/skill-damage/preview-state.js';
+import { queryDamagePreview } from '#gw2/platform/skill-damage/query-preview.js';
 import type { Gw2ModifierContribution } from '#gw2/platform/combat/modifiers.js';
 import { derivedAttribute, PRIMARY_ATTRIBUTES } from '#gw2/platform/builds/attributes.js';
 import { createGw2CombatQuery } from '#gw2/platform/combat/query/combat-query.js';

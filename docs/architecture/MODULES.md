@@ -140,20 +140,30 @@ workers, and tooling. Equipment UI used by both build panels and the optimizer l
 
 Non-type imports inside `js/games/gw2/app/`:
 
-| Folder           | May import                                                                                                                                                  |
-| ---------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `shared/`        | platform, `#ui`, `#kernel`, `app/types.ts`. **No other app folder.**                                                                                        |
-| `simulation/`    | `shared/`, other `simulation/` files. No `build/`, `optimizer/`, `results/`, `rotation/`, `import-export/`, or `page/`.                                     |
-| `optimizer/`     | `shared/`, `build/panels/attributes.ts`, `results/model.ts`, `#gw2/profession-registry.ts`, other `optimizer/` files.                                       |
-| `results/`       | `shared/`, `simulation/` types, `rotation/timeline/model.ts` (timeline projections for the idle metric), `rotation/context.ts` (`professionPlanningState`). |
-| `import-export/` | `shared/`, `build/state/`, `build/types.ts`, `#gw2/profession-registry.ts` (build-template identities), integrations.                                       |
-| `build/`         | `shared/`, `import-export/`, `#gw2/profession-registry.ts`, `rotation/timeline/view.ts` (presets repaint).                                                  |
-| `rotation/`      | `shared/`, `results/`, `import-export/rotation-import-dialog.ts`, `build/types.ts`.                                                                         |
-| `page/`          | `shared/`, `#gw2/profession-registry.ts`, `rotation/timeline/preferences.ts`, `#browser`.                                                                   |
-| root             | anything.                                                                                                                                                   |
+| Folder           | May import                                                                                                                                                                                  |
+| ---------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `shared/`        | platform, `#ui`, `#kernel`, `app/types.ts`. **No other app folder.**                                                                                                                        |
+| `simulation/`    | `shared/`, other `simulation/` files. No `build/`, `optimizer/`, `results/`, `rotation/`, `import-export/`, or `page/`.                                                                     |
+| `optimizer/`     | `shared/`, `build/panels/attributes.ts`, `results/model.ts`, `#gw2/profession-registry.ts`, other `optimizer/` files.                                                                       |
+| `results/`       | `shared/`, `simulation/` types, `rotation/timeline/model.ts` (timeline projections for the idle metric), `rotation/context.ts` (`professionPlanningState`).                                 |
+| `import-export/` | `shared/`, `build/state/`, `build/types.ts`, `#gw2/profession-registry.ts` (build-template identities), integrations.                                                                       |
+| `build/`         | `shared/`, `import-export/`, `#gw2/profession-registry.ts`, `rotation/timeline/view.ts` (presets repaint), feature session defaults in `rotation/` and `results/state.ts` (workspace tabs). |
+| `rotation/`      | `shared/`, `results/`, `import-export/rotation-import-dialog.ts`, `build/types.ts`.                                                                                                         |
+| `page/`          | `shared/`, `#gw2/profession-registry.ts`, `rotation/timeline/preferences.ts`, `#browser`.                                                                                                   |
+| root             | anything.                                                                                                                                                                                   |
 
 `rotation/comparison.ts` and `rotation/timeline/view.ts` import each other. Both edges are calls inside functions, so
 load order is safe; don't add top-level code in either file that calls into the other.
+
+`types.ts` composes feature-owned state contracts into `ProfessionAppState`. Library selection and undo live in
+`build/library/state.ts`; editing/history and timeline filters live in `rotation/editing/state.ts` and
+`rotation/timeline/state.ts`; result ordering lives in `results/state.ts`. Workspace tabs compose these owners' session
+defaults, keeping transient drag/loading state and shared overlay preferences outside tab capture. Optional modifier,
+RNG, and relic result status lives beside each feature's job contracts and composes into `ProfessionAppResult`.
+
+`rotation/comparison-state.ts` owns reference transitions, result admission, and swaps. `ProfessionApp` coordinates
+their simulation scheduling, revisions, focus, and rendering. State-default modules do not import views or the app
+class, so workspace persistence can use them without constructing the UI.
 
 ### `build/`
 
@@ -171,6 +181,9 @@ these owners directly.
 This layer may translate a build into application state, but it must not implement profession combat mechanics. Fixed
 slot-loadout contracts and views come directly from `platform/builds/slot-loadout.ts`; profession presentation exposes
 that typed contract, including optional palette placement and child actions.
+
+`state/skill-selection.ts` owns selectable slot-skill queries as well as selection normalization. Both the skill panel
+and isolated damage planner consume this owner, keeping selection logic independent of panel DOM code.
 
 Attribute previews use `profession-presentation/attribute-preview.ts` contracts. Core, the selected elite, and family
 presentation contribute controls, optional static-trait suppression before recalculation, and detached query-state
@@ -299,7 +312,7 @@ are relative to `js/games/gw2/platform/`.
 | `profession-definition/profession.ts`                | Native Core/elite selection, state/modifier composition, and lazy UI                                              |
 | `profession-definition/compiler/compile-contract.ts` | Runtime hook normalization and query-contract resolution                                                          |
 | `profession-presentation/`                           | UI composition, normalization, and presentation types                                                             |
-| `builds/profession-contract.ts`                      | Build callback validation and defaults                                                                            |
+| `builds/profession-build.ts`                         | Build callback validation and defaults                                                                            |
 | `resolver/handler-registry.ts`                       | Exclusive resolver event-handler ownership                                                                        |
 | `results/combat-result.ts`                           | Resolver score and detailed report construction                                                                   |
 | `results/planning-state.ts`                          | Detached public planning state at the observation boundary                                                        |
@@ -364,9 +377,10 @@ effects and dispatch reactions:
   event/result/reaction contracts stay in `resolver/types.ts`.
 - `execution/` owns reusable rotation, reservation, cooldown, ammo, and interruption services; `resolver/` owns hit and
   condition calculation and reaction services; `simulation/runtime.ts` composes them into one live loop.
-- `results/query.ts` indexes committed resolver effects and shares combat stacking/expiry semantics; report
-  construction, planning-state projection, and input-rate reporting (`results/rotation-apm.ts`) live in `results/`.
-- `skills/balance-profiles.ts` owns catalog profile lookup; `combat/query/event-skill.ts` owns event-to-skill lookup
+- `results/result-queries.ts` reads detached results and planning boundaries (critical-chance strikes, buff state);
+  report construction, planning-state projection, and input-rate reporting (`results/rotation-apm.ts`) live in
+  `results/`.
+- `skills/balance-profiles.ts` owns catalog profile lookup; `combat/query/runtime-query.ts` owns event-to-skill lookup
   without depending on resolver implementations.
 - `execution/transition-lockouts.ts` owns bar-transition timing, `execution/autoattack-chains.ts` owns live chain
   transitions, and `skills/autoattack-chain-index.ts` indexes catalog chains.

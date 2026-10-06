@@ -1,7 +1,7 @@
 import type { GameContentAddress } from '#browser/game/contracts.js';
 import { attributePreviewContext, normalizeAttributePreview } from '#gw2/app/build/attribute-effects.js';
 import { createSkillDamagePreview } from '#gw2/app/build/skill-damage/preview.js';
-import { availableSlotSkills } from '#gw2/app/build/panels/skills.js';
+import { availableSlotSkills } from '#gw2/app/build/state/skill-selection.js';
 import {
   createPaletteContext,
   paletteActionSkills,
@@ -20,7 +20,7 @@ import {
   type PreviewControl
 } from '#gw2/platform/profession-presentation/attribute-preview.js';
 import type { SkillDamageState } from '#gw2/platform/profession-presentation/skill-damage.js';
-import { damageOccurrences } from '#gw2/platform/skill-damage/catalog.js';
+import { damageOccurrences } from '#gw2/platform/skill-damage/list-occurrences.js';
 import type { SkillDamageOccurrence, SkillDamageRequest } from '#gw2/platform/skill-damage/types.js';
 
 export type SkillDamageRowStatus = 'equipped' | 'unslotted';
