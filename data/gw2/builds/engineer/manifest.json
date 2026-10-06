@@ -42,7 +42,7 @@
         "build": "data/gw2/builds/engineer/b-condi-alac-amalgam-2kit.json",
         "rotation": "data/gw2/rotations/engineer/r-condi-alac-amalgam-2kit-bench.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/engineer/condition-alacrity-amalgam-two-kits-spear",
-        "benchmarkDps": 35823,
+        "benchmarkDps": 35802,
         "upToDate": true
       },
       {
@@ -94,10 +94,17 @@
     "section": "Mechanist",
     "presets": [
       {
-        "label": "Condition Alacrity (Spear)",
+        "label": "Condition Spear (1 Kit)",
+        "build": "data/gw2/builds/engineer/b-condi-mechanist-spear-1kit.json",
+        "rotation": "data/gw2/rotations/engineer/r-condi-mechanist-spear-1kit-bench.json",
+        "benchmarkDps": 40000,
+        "upToDate": true
+      },
+      {
+        "label": "Condition Alacrity Spear (1 Kit)",
         "build": "data/gw2/builds/engineer/b-condi-alac-mechanist-spear.json",
         "rotation": "data/gw2/rotations/engineer/r-condi-alac-mechanist-spear-wingman.json",
-        "benchmarkDps": 30820,
+        "benchmarkDps": 30038,
         "upToDate": true
       },
       {
@@ -105,7 +112,7 @@
         "build": "data/gw2/builds/engineer/b-power-mechanist-sword-pistol.json",
         "rotation": "data/gw2/rotations/engineer/r-power-mechanist-sword-pistol-bench.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/engineer/power-mechanist-sword-pistol",
-        "benchmarkDps": 40838,
+        "benchmarkDps": 40843,
         "upToDate": true
       },
       {
@@ -113,7 +120,7 @@
         "build": "data/gw2/builds/engineer/b-power-mechanist-rifle.json",
         "rotation": "data/gw2/rotations/engineer/r-power-mechanist-rifle-bench.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/engineer/power-mechanist-rifle",
-        "benchmarkDps": 38944,
+        "benchmarkDps": 39073,
         "upToDate": true
       }
     ]

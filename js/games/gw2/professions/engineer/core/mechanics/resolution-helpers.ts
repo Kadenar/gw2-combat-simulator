@@ -48,7 +48,7 @@ interface ApplyConditionOptions {
   readonly sourceId?: SkillId | null;
   readonly actorType?: SimulationActorType;
   readonly ownerActorType?: SimulationActorType;
-  /** These flags are spread onto derived conditions to preserve duration and companion ownership. */
+  /** Derived conditions retain fixed-duration behavior and nested companion ownership metadata. */
   readonly metadata?: {
     readonly fixedDuration?: boolean;
     readonly engineerMech?: boolean;
@@ -170,9 +170,13 @@ export function buildEngineerCondition(
     // Effect-owned conditions can inherit player modifiers without becoming player actors for proc eligibility.
     ...(ownerActorType == null ? {} : { ownerActorType }),
     triggeredBy: event.skillName,
-    ...metadata,
-    // The primary condition records activations separately from its stack count and optional sibling effects.
-    ...(procCount == null ? {} : { metadata: { procCount } })
+    ...(metadata.fixedDuration == null ? {} : { fixedDuration: metadata.fixedDuration }),
+    // Companion identity must remain in event metadata so derived conditions use the mech's attributes.
+    metadata: {
+      ...(metadata.engineerMech == null ? {} : { engineerMech: metadata.engineerMech }),
+      ...(procCount == null ? {} : { procCount })
+    },
+    ...(actorType === 'summon' && metadata.engineerMech ? { summonInheritsAttributes: true } : {})
   });
   return application;
 }

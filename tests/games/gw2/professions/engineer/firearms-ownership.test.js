@@ -116,7 +116,7 @@ test('Firearms emissions retain player and concrete mech ownership and announcem
       assert.equal(packet.ownerActorType, actor === 'player' ? 'player' : undefined);
       assert.equal(packet.summonOwner, actor === 'mech' ? 'engineer.mech' : undefined);
       assert.equal(packet.independentConditionOwner, actor === 'mech' ? true : undefined);
-      assert.equal(packet.engineerMech, actor === 'mech' ? true : undefined);
+      assert.equal(packet.metadata?.engineerMech, actor === 'mech' ? true : undefined);
       assert.equal(packet.coefficient, undefined);
     }
 

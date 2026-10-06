@@ -182,6 +182,8 @@ export function triggerMechFighter(context: EngineerRuntime, skill: EngineerSkil
     skill.type === 'Weapon' &&
     !skill.kitId &&
     skill.slot === 'Weapon_3' &&
+    // Spear triggers the punch on Electric Artillery; placing Lightning Rod does not fire it or consume its cooldown.
+    skill.id !== ID.LIGHTNING_ROD &&
     context.procs.claim(TRAIT.MECH_FIGHTER, 'rocketPunch', at)
   ) {
     // The weapon trigger owns the interval even when Rocket Punch's optional strike is removed.

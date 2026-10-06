@@ -242,18 +242,18 @@ export const MECHANIST_MECH_COMMAND_SKILL_MECHANICS: Readonly<Record<string, Par
   [ID.DISCHARGE_ARRAY]: mechCommand({
     castTimeMs: 0,
     cooldown: 30,
-    // Share timing defaults while preserving each packet, effect order, and local schedule.
+    // The charged armor begins pulsing one second after activation; all conditions share its damage pulse.
     effects: impactEffects({ timingAnchor: 'castStart', timingScale: 'fixed' }, [
       {
         type: 'strike',
-        ticks: Array.from({ length: 5 }, (_, index) => ({ atMs: 0 + index * 1000, coefficient: 1.5 / 5 })),
+        ticks: Array.from({ length: 5 }, (_, index) => ({ atMs: (index + 1) * 1000, coefficient: 1.5 / 5 })),
         name: 'Discharge Array',
         actorType: 'summon'
       },
       {
         type: 'condition',
         ticks: Array.from({ length: 5 }, (_, index) => ({
-          atMs: 0 + index * 1000,
+          atMs: (index + 1) * 1000,
           condition: 'Slow',
           stacks: 1,
           duration: 2
@@ -263,7 +263,7 @@ export const MECHANIST_MECH_COMMAND_SKILL_MECHANICS: Readonly<Record<string, Par
       {
         type: 'condition',
         ticks: Array.from({ length: 5 }, (_, index) => ({
-          atMs: 0 + index * 1000,
+          atMs: (index + 1) * 1000,
           condition: 'Confusion',
           stacks: 2,
           duration: 3
@@ -273,7 +273,7 @@ export const MECHANIST_MECH_COMMAND_SKILL_MECHANICS: Readonly<Record<string, Par
       {
         type: 'condition',
         ticks: Array.from({ length: 5 }, (_, index) => ({
-          atMs: 0 + index * 1000,
+          atMs: (index + 1) * 1000,
           condition: 'Burning',
           stacks: 1,
           duration: 3

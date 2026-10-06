@@ -1,4 +1,5 @@
 /** Canonical Core engineer skill fragments grouped by their GW2 owner. */
+import { impactEffects } from '#gw2/platform/effects/authoring.js';
 import { ENGINEER_SKILL_IDS as ID } from '#gw2/professions/engineer/data/ids.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
 
@@ -6,8 +7,10 @@ import type { Skill } from '#gw2/platform/skills/types.js';
 export const ENGINEER_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
   [ID.PUNCTURING_JAB]: {
     castTimeMs: 440,
+    interruptCommitMs: 360,
     cooldown: 0,
-    effects: [
+    // Spear autoattacks land before recovery ends; strike and conditions share the measured impact.
+    effects: impactEffects({ atMs: 360, timingAnchor: 'castStart', timingScale: 'cast' }, [
       {
         type: 'strike',
         coefficient: 0.45,
@@ -22,7 +25,7 @@ export const ENGINEER_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Par
         duration: 6,
         actorType: 'player'
       }
-    ]
+    ])
   },
   [ID.DEVASTATOR]: {
     // Check Focused at the reserved cast end before emitting the delayed follow-up.
@@ -81,8 +84,10 @@ export const ENGINEER_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Par
   },
   [ID.AMPLIFYING_SLICE]: {
     castTimeMs: 640,
+    interruptCommitMs: 600,
     cooldown: 0,
-    effects: [
+    // The finishing sweep applies its damage and conditions before its final recovery.
+    effects: impactEffects({ atMs: 600, timingAnchor: 'castStart', timingScale: 'cast' }, [
       {
         type: 'strike',
         coefficient: 0.99,
@@ -104,7 +109,7 @@ export const ENGINEER_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Par
         duration: 6,
         actorType: 'player'
       }
-    ]
+    ])
   },
   [ID.LIGHTNING_ROD]: {
     // Replace the owned pulse sequence and arm Artillery's delayed follow-up window on commitment.
@@ -141,8 +146,10 @@ export const ENGINEER_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Par
   },
   [ID.RENDING_STRIKE]: {
     castTimeMs: 520,
+    // The strike lands before recovery ends; cancelling recovery still advances the spear chain.
+    interruptCommitMs: 400,
     cooldown: 0,
-    effects: [
+    effects: impactEffects({ atMs: 400, timingAnchor: 'castStart', timingScale: 'cast' }, [
       {
         type: 'strike',
         coefficient: 0.65,
@@ -164,7 +171,7 @@ export const ENGINEER_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Par
         duration: 8,
         actorType: 'player'
       }
-    ]
+    ])
   },
   [ID.CONDUIT_SURGE]: {
     // Resolve the committed impact through the owner that establishes the target's Focused window.
@@ -178,6 +185,8 @@ export const ENGINEER_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Par
     // Snapshot charges at release, then retire Lightning Rod while the launched projectile remains pending.
     sideEffects: [{ on: 'castCommit', do: { type: 'engineer.electric-artillery' } }],
     castTimeMs: 520,
+    // Releasing the projectile consumes the flip even if its final recovery is cancelled.
+    interruptCommitMs: 480,
     cooldown: 1,
     effects: []
   }

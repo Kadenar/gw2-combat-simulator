@@ -270,7 +270,11 @@ export function buildReplayTimeline<Action extends ReplayTimelineAction>(
       (action.name !== 'Swap Weapons' || swapDuringDodge) &&
       (independent || action.concurrentTimeline === true || (instant && action.skill?.canCastConcurrently !== false));
     const boundaryTransition = policy.isBoundaryTransition?.(action, blockingEnd, previousCastStart) === true;
-    if (independent && previousCastStart != null && at >= previousCastStart) {
+    // A companion can open before the player's first cast. Anchor that overlap to rotation start;
+    // a serial wait would incorrectly wait for the companion's entire animation.
+    if (alignWaitsToSimulatorTiming && previousCastStart == null && projectedIndependentReadyAt > at && at > origin) {
+      command.concurrentOffsetMs = quantizeMs(at - origin);
+    } else if (independent && previousCastStart != null && at >= previousCastStart) {
       command.concurrentOffsetMs = quantizeMs(at - previousCastStart);
     } else if (previousCastStart != null && ((concurrent && overlapping) || boundaryTransition)) {
       command.concurrentOffsetMs = quantizeMs(at - previousCastStart);

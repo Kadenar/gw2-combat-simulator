@@ -166,6 +166,8 @@ export function prepareEngineerMechEvent(context: EngineerRuntime, event: Simula
     // All mech skills belong to the same concrete companion for shared condition rounding.
     summonOwner: 'engineer.mech',
     independentConditionOwner: true,
+    // Condition packets need the same inherited-stat input as strikes before mech attribute replacement.
+    summonInheritsAttributes: true,
     metadata: { ...(event.metadata as object), engineerMech: true }
   };
   // Support grants use player-first party selection; the mech receives them only when a target slot remains.

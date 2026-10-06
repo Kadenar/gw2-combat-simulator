@@ -6,6 +6,8 @@ import { defineProfession } from '#gw2/platform/profession-definition/compiler/c
 import { normalizeRotation } from '#gw2/platform/execution/rotation.js';
 import { reconstructEvtcRotation } from '#gw2/integrations/logs/evtc/rotation/index.js';
 import { event, log } from '#tests/helpers/evtc-fixture.js';
+import { buildReplayTimeline } from '#gw2/integrations/logs/shared/rotation/timeline.js';
+import { RotationCursor } from '#gw2/platform/execution/rotation-cursor.js';
 
 // Minimal skills expose a recharge the recorded casts violate without depending on benchmark rotations.
 const catalog = createCanonicalCatalog({
@@ -16,6 +18,25 @@ const catalog = createCanonicalCatalog({
 });
 
 const waitDurations = (rotation) => rotation.filter((command) => command.type === 'wait').map((c) => c.durationMs);
+
+// A companion opener must neither pull the player's first input forward nor force it to wait for the companion.
+test('an independent opener preserves the first player input and combat boundary', () => {
+  const companion = { id: 3, name: 'Companion', independentCast: true, quicknessCastTimeMs: 2000, castTimeMs: 3000 };
+  const player = { id: 4, name: 'Player', castTimeMs: 400 };
+  const actions = [
+    { start: 1000, end: 3000, eventIndex: 0, skill: companion, name: companion.name, skillId: companion.id },
+    { start: 1520, end: 1920, eventIndex: 1, skill: player, name: player.name, skillId: player.id }
+  ];
+  const rotation = buildReplayTimeline(actions, 1000, 1600, {
+    alignWaitsToSimulatorTiming: true,
+    commandFor: (action) => ({ type: 'cast', skillId: action.skillId })
+  });
+  const cursor = new RotationCursor(rotation);
+  cursor.acceptCast(companion, cursor.command, 0, 2, 2);
+  assert.equal(cursor.requestAt(0, player), 0.52);
+  cursor.acceptCast(player, cursor.command, 0.52, 0.92, 0.92);
+  assert.equal(cursor.requestAt(0.52), 0.6);
+});
 
 test('dps.report import keeps log-derived waits when replayed casts would be delayed', async () => {
   let initializations = 0;
