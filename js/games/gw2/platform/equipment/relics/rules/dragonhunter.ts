@@ -10,7 +10,7 @@ import {
 } from '#gw2/platform/equipment/relics/rules/shared.js';
 
 export const dragonhunter = defineRelic({
-  buffPolicies: [{ kind: 'relic-dragonhunter', maximumStacks: 1 }],
+  buffPolicies: [{ kind: 'relic-dragonhunter', name: 'Relic of the Dragonhunter', maximumStacks: 1 }],
   afterHit(ctx, _state, event, skill) {
     if (!isGw2PlayerActorEvent(event) || !skill?.categories?.includes('Trap')) {
       return;

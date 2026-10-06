@@ -9,7 +9,7 @@ import type { SimulationEvent } from '#gw2/platform/events/events.js';
 import { canonicalTime } from '#kernel/core/clock.js';
 
 /** Detached observations of existing gameplay owners; these are never a second mutable combat pool. */
-export interface EffectState {
+export interface EffectState<Source = SimulationEvent> {
   readonly kind: string;
   readonly category: 'boon' | 'buff' | 'condition';
   readonly recipient: string;
@@ -21,9 +21,9 @@ export interface EffectState {
   readonly windows: readonly {
     readonly expiresAt: number | null;
     readonly stacks: number;
-    readonly source?: SimulationEvent;
+    readonly source?: Source;
   }[];
-  readonly source?: SimulationEvent;
+  readonly source?: Source;
 }
 
 /** Every generic buff has an explicit gameplay policy; tuning is resolved by its native owner. */
@@ -31,6 +31,8 @@ export interface BuffStatePolicy {
   /** Profession pools replace all generic recipient histories for this effect. */
   readonly owner?: 'profession';
   readonly kind: string;
+  /** Stable display identity belongs to the buff owner, independent of the granting skill. */
+  readonly name?: string;
   readonly maximumStacks?: number;
   readonly maximumDuration?: number;
 }
@@ -56,10 +58,10 @@ export function timedEffectState(
 }
 
 /** Reuse the combat query for capped intensity; a window snapshot contains no future applications. */
-export function effectStateValue(
-  state: EffectState,
+export function effectStateValue<Source>(
+  state: EffectState<Source>,
   at: number
-): { count: number; expiresAt: number | null; source?: SimulationEvent } {
+): { count: number; expiresAt: number | null; source?: Source } {
   const live = state.windows.filter(
     (window) => window.stacks > 0 && (window.expiresAt == null || window.expiresAt > at)
   );
@@ -92,6 +94,7 @@ export function observeBuffState(
   return {
     kind,
     category: duration || ['might', 'stability', 'aegis'].includes(kind) ? 'boon' : 'buff',
+    name: policy.name,
     recipient,
     origin: 'simulated',
     source: applications

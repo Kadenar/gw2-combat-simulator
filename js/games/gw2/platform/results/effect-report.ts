@@ -1,8 +1,17 @@
 import { effectStateValue, type EffectState } from '#gw2/platform/combat/effect-state.js';
+import type { EffectMetadata, SimulationEvent, SimulationEventBase } from '#gw2/platform/events/events.js';
 import { canonicalTime } from '#kernel/core/clock.js';
 
+/** Charts retain stable source identity and label inputs without carrying full combat payloads into every segment. */
+export interface EffectSource extends Pick<
+  SimulationEventBase,
+  'type' | 'kind' | 'at' | 'eventOrder' | 'source' | 'skillName' | 'name'
+> {
+  readonly metadata?: Pick<EffectMetadata, 'radiantWeapon'>;
+}
+
 export interface EffectSegment {
-  readonly source?: EffectState['source'];
+  readonly source?: EffectSource;
   readonly start: number;
   readonly end: number;
   readonly count: number;
@@ -10,13 +19,13 @@ export interface EffectSegment {
   readonly expiresAt: number | null;
 }
 
-export interface EffectTrack extends Omit<EffectState, 'windows'> {
+export interface EffectTrack extends Omit<EffectState<EffectSource>, 'windows'> {
   readonly id: string;
   readonly segments: readonly EffectSegment[];
   readonly terminal: {
     readonly count: number;
     readonly expiresAt: number | null;
-    readonly source?: EffectState['source'];
+    readonly source?: EffectSource;
   };
 }
 
@@ -32,31 +41,8 @@ export interface EffectReportObserver {
   finish(end: number): EffectReport;
 }
 
-/** Copy scalar windows directly; only source events need deep detachment, once per distinct source in a snapshot. */
-function snapshotEffectState(state: EffectState): EffectState {
-  const sources = new Map<NonNullable<EffectState['source']>, NonNullable<EffectState['source']>>();
-  const copySource = (source: NonNullable<EffectState['source']>) => {
-    let copy = sources.get(source);
-    if (!copy) {
-      copy = structuredClone(source);
-      sources.set(source, copy);
-    }
-
-    return copy;
-  };
-
-  return {
-    ...state,
-    ...(state.source ? { source: copySource(state.source) } : {}),
-    windows: state.windows.map((window) => ({
-      ...window,
-      ...(window.source ? { source: copySource(window.source) } : {})
-    }))
-  };
-}
-
 interface RecordedEffect {
-  state: EffectState;
+  state: EffectState<EffectSource>;
   at: number;
   segments: EffectSegment[];
   owner: string;
@@ -79,7 +65,40 @@ export class EffectRecorder implements EffectReportObserver {
   private readonly tracks = new Map<string, RecordedEffect>();
   private readonly owners = new Map<string, Set<RecordedEffect>>();
   private readonly origins = new Map<string, Map<string, Map<string, Map<string, RecordedEffect>>>>();
+  private readonly sources = new WeakMap<SimulationEvent, EffectSource>();
   private captureNumber = 0;
+
+  /** Snapshot each source once per recorder; mutable action lifecycle and damage details are not chart label inputs. */
+  private copySource(source: SimulationEvent | undefined): EffectSource | undefined {
+    if (!source) return undefined;
+    let copy = this.sources.get(source);
+    if (!copy) {
+      copy = Object.freeze({
+        type: source.type,
+        kind: source.kind,
+        at: source.at,
+        eventOrder: source.eventOrder,
+        source: source.source,
+        skillName: source.skillName,
+        name: source.name,
+        ...(source.metadata?.radiantWeapon == null
+          ? {}
+          : { metadata: Object.freeze({ radiantWeapon: source.metadata.radiantWeapon }) })
+      });
+      this.sources.set(source, copy);
+    }
+
+    return copy;
+  }
+
+  /** Keep scalar windows detached while sharing their compact, immutable source records across captures. */
+  private snapshotEffectState(state: EffectState): EffectState<EffectSource> {
+    return {
+      ...state,
+      source: this.copySource(state.source),
+      windows: state.windows.map((window) => ({ ...window, source: this.copySource(window.source) }))
+    };
+  }
 
   capture(at: number, states: readonly EffectState[], owner = 'runtime'): void {
     const capture = ++this.captureNumber;
@@ -119,11 +138,11 @@ export class EffectRecorder implements EffectReportObserver {
         continue;
       if (previous) {
         this.advance(previous, at);
-        previous.state = snapshotEffectState(state);
+        previous.state = this.snapshotEffectState(state);
         previous.at = at;
         previous.owner = owner;
       } else {
-        const track = { state: snapshotEffectState(state), at, segments: [], owner, capture };
+        const track = { state: this.snapshotEffectState(state), at, segments: [], owner, capture };
         kinds.set(state.kind, track);
         owned.add(track);
         this.tracks.set(`${state.origin}:${state.recipient}:${state.category}:${state.kind}`, track);
@@ -138,7 +157,7 @@ export class EffectRecorder implements EffectReportObserver {
     }
   }
 
-  private advance(track: { state: EffectState; at: number; segments: EffectSegment[] }, end: number): void {
+  private advance(track: RecordedEffect, end: number): void {
     if (end < track.at) throw new RangeError('Effect observations must follow execution time.');
     const boundaries = [
       track.at,

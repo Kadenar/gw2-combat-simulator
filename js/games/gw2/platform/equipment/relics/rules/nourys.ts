@@ -58,7 +58,9 @@ export const nourys = defineRelic({
             detail: 'activated',
             icon: '',
             cooldownReduction: null,
-            expiresAt: gw2EffectExpiresAt(at, NOURYS_BUFF_DURATION)
+            expiresAt: gw2EffectExpiresAt(at, NOURYS_BUFF_DURATION),
+            // Nourys owns its window directly, so its announcement supplies the observation.
+            effectState: { stacks: 1, maximumStacks: 1 }
           }
         });
         at += NOURYS_BUFF_DURATION + NOURYS_STACK_INTERVAL;

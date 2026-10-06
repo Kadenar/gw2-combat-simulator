@@ -13,7 +13,7 @@ const PEITHA_DEFAULT_IMPACT_DELAY_MS = 240;
 export const peitha = defineRelic({
   damagePayload: emitDamagePayload,
   createState: () => ({ readyAt: 0 }),
-  buffPolicies: [{ kind: PEITHA_BUFF, maximumStacks: 1 }],
+  buffPolicies: [{ kind: PEITHA_BUFF, name: 'Relic of Peitha', maximumStacks: 1 }],
   // Qualifying activations share one cooldown; their delayed payloads settle through ordinary effect handling.
   emitActionEffects(ctx, state, event, skill) {
     if (!isGw2PlayerActorEvent(event)) return;

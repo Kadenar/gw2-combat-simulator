@@ -15,7 +15,7 @@ import { activeRefreshedStacks, grantRefreshedStacks } from '#gw2/platform/comba
 // The fourth qualifying blast consumes the native three-stack pool.
 const VOLATILITY_STACKS = 3;
 export const bloodstone = defineRelic({
-  buffPolicies: [{ kind: 'bloodstone-fervor', maximumStacks: 1 }],
+  buffPolicies: [{ kind: 'bloodstone-fervor', name: 'Relic of Bloodstone', maximumStacks: 1 }],
   damagePayload: emitDamagePayload,
   createState: () => ({
     refreshedStacks: { stacks: 0, expiresAt: 0 }

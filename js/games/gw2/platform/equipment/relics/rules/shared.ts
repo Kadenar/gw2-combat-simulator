@@ -136,7 +136,7 @@ export function skillUseStrikeRelic(skillType: 'Heal' | 'Elite'): Readonly<Gw2Re
   }
 
   return defineRelic({
-    buffPolicies: [{ kind, maximumStacks: 1 }],
+    buffPolicies: [{ kind, name, maximumStacks: 1 }],
     createState: () => ({ readyAt: -Infinity }),
     activate,
     completed(ctx, state, event) {

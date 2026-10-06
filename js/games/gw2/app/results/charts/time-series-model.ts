@@ -1,4 +1,4 @@
-import { effectStateAt, effectSummary } from '#gw2/platform/results/effect-report.js';
+import { effectStateAt, effectSummary, type EffectSource } from '#gw2/platform/results/effect-report.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import type { SkillHit } from '#gw2/app/results/charts/hit-timeline-model.js';
 import { type BoonGenerationByAudience } from '#gw2/platform/results/boon-generation.js';
@@ -58,7 +58,7 @@ export interface ChartSeries {
 export interface BuildChartSeriesOptions {
   /** Damage-only comparisons do not require effect histories or party projections. */
   readonly includeEffects?: boolean;
-  readonly effectName?: (value: unknown, event: Gw2ResolverEvent) => string;
+  readonly effectName?: (value: unknown, event: EffectSource) => string;
   // Attributes a resolved damage/condition event to a skill breakdown row key
   // (`group|name`), or null to omit it from the per-skill damage series.
   readonly skillKey?: (event: Gw2ResolverEvent) => string | null;
@@ -289,7 +289,7 @@ function buildEffectSeries(
   const effectUnits: Record<string, string> = {};
   const effectSummaries: Record<string, ChartEffectSummary> = {};
   const label = (kind: string, _category: ChartEffectType, name?: string): string =>
-    name ?? effectName(kind, { type: 'buff', kind, at: 0, source: 'effect', sourceId: kind, actorType: 'effect' });
+    name ?? effectName(kind, { type: 'buff', kind, at: 0, source: 'effect' });
   const valueAt = (track: (typeof report.tracks)[number], at: number): number => {
     const state = effectStateAt(report, track, at);
     return track.measure === 'remaining-duration'
@@ -300,7 +300,7 @@ function buildEffectSeries(
   };
 
   for (const original of report.tracks) {
-    const displayName = (source?: Gw2ResolverEvent) =>
+    const displayName = (source?: EffectSource) =>
       original.name ??
       effectName(
         original.kind,
@@ -308,9 +308,7 @@ function buildEffectSeries(
           type: 'buff',
           kind: original.kind,
           at: 0,
-          source: 'effect',
-          sourceId: original.kind,
-          actorType: 'effect'
+          source: 'effect'
         }
       );
     // A metadata-dependent label can split an already-resolved track into visual variants without replaying mechanics.

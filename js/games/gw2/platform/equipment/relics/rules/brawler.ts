@@ -11,7 +11,7 @@ import {
 } from '#gw2/platform/equipment/relics/rules/shared.js';
 
 export const brawler = defineRelic({
-  buffPolicies: [{ kind: 'relic-brawler', maximumStacks: 1 }],
+  buffPolicies: [{ kind: 'relic-brawler', name: 'Relic of the Brawler', maximumStacks: 1 }],
   createState: () => ({ readyAt: 0 }),
   boon(ctx, state, event) {
     // Preparation can leave a buff running, but only the equipped relic can trigger again after the marker.

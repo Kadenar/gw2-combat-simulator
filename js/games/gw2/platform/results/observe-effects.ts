@@ -19,6 +19,7 @@ import type { RuntimeProfession } from '#gw2/platform/profession-definition/runt
 
 interface BuffObservation {
   readonly applications: readonly Gw2TimedBuffApplication[];
+  readonly name: string | undefined;
   readonly maximumStacks: number | undefined;
   readonly maximumDuration: number | undefined;
   readonly at: number;
@@ -42,6 +43,7 @@ function observeGenericBuff(
     previous &&
     at >= previous.at &&
     at < previous.until &&
+    previous.name === policy.name &&
     previous.maximumStacks === policy.maximumStacks &&
     previous.maximumDuration === policy.maximumDuration &&
     previous.applications.length === applications.length &&
@@ -94,6 +96,7 @@ function observeGenericBuff(
       if (window.expiresAt != null && window.expiresAt > at) until = Math.min(until, window.expiresAt);
   cache.set(kind, {
     applications: [...applications],
+    name: policy.name,
     maximumStacks: policy.maximumStacks,
     maximumDuration: policy.maximumDuration,
     at,

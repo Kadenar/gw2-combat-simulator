@@ -36,6 +36,10 @@ export function createCooldownController({
   const rechargeProgress = new Map<SkillId, RechargeProgress>();
   const ammoPools = new Map<SkillId, AmmoState>();
 
+  // Only received summon Alacrity can change a running recharge's projected deadline.
+  const hasVariableRechargeRate = (skill: Skill): boolean =>
+    skill.rechargeBuffAudience === 'summon' && !skill.rechargeIgnoresAlacrity;
+
   if (typeof rechargeDuration !== 'function') {
     throw new TypeError('Cooldown controller requires rechargeDuration.');
   }
@@ -245,7 +249,9 @@ export function createCooldownController({
       const skill = skillFor(id);
       if (skill && ammoPools.has(id)) refreshAmmo(skill, at);
       const progress = rechargeProgress.get(id);
-      const readyAt = skill && progress ? project(skill, progress) : (cooldowns.get(id) ?? 0);
+      // Same-timestamp summon boon changes must be visible before the next clock refresh.
+      const readyAt =
+        skill && progress && hasVariableRechargeRate(skill) ? project(skill, progress) : (cooldowns.get(id) ?? 0);
       return readyAt > at;
     },
     readyAt: (id: SkillId) => cooldowns.get(id),
@@ -345,7 +351,14 @@ export function createCooldownController({
       for (const deadline of deadlines) cooldowns.set(deadline.skillId, deadline.readyAt);
       rechargeProgress.clear();
       for (const [id, value] of progress) rechargeProgress.set(id, value);
-      for (const [id, work] of checkpoint.remainingRechargeWork) rechargeProgress.set(id, { startedAt: at, work });
+      // Restored work must publish its deadline now; constant-rate timers no longer reproject during refresh.
+      for (const [id, work] of checkpoint.remainingRechargeWork) {
+        const restored = { startedAt: at, work };
+        rechargeProgress.set(id, restored);
+        const skill = skillFor(id);
+        if (skill) cooldowns.set(id, project(skill, restored));
+      }
+
       ammoPools.clear();
       for (const [id, ammo] of checkpoint.ammo)
         ammoPools.set(id, {
@@ -372,9 +385,10 @@ export function createCooldownController({
     project,
     remaining,
     refresh(at: number) {
+      // Retain completed progress for mechanic consumers while skipping constant-rate projection work.
       for (const [id, progress] of rechargeProgress) {
         const skill = skillFor(id);
-        if (skill) cooldowns.set(id, project(skill, progress));
+        if (skill && hasVariableRechargeRate(skill)) cooldowns.set(id, project(skill, progress));
       }
 
       for (const id of ammoPools.keys()) {

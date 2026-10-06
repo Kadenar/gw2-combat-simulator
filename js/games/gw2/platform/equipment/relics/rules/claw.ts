@@ -4,7 +4,7 @@ import { isGw2PlayerActorEvent, isGw2PlayerModifierOwnedEvent } from '#gw2/platf
 import { defineRelic, timedStrikeBuff, recordTimedBuffProc } from '#gw2/platform/equipment/relics/rules/shared.js';
 
 export const claw = defineRelic({
-  buffPolicies: [{ kind: 'relic-claw', maximumStacks: 1 }],
+  buffPolicies: [{ kind: 'relic-claw', name: 'Relic of the Claw', maximumStacks: 1 }],
   control(ctx, _state, event) {
     if (!isGw2PlayerActorEvent(event)) return;
     recordTimedBuffProc(ctx, event, {

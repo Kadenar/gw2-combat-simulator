@@ -21,21 +21,14 @@ export function recordProcStep(
   } = announcement;
   // Proc rows are presentation only; combat effects have already been applied by the caller.
   if (!context.reporting) return;
-  // Equipment already publishes its accepted state; record it once where the announcement executes.
-  if (
-    type === 'relic' &&
-    (expiresAt != null || effectState != null) &&
-    (context.deathTime == null || at <= context.deathTime)
-  )
+  // Only explicit mechanic-owned state creates a track; timed buff packets are observed from accepted storage.
+  if (type === 'relic' && effectState != null && (context.deathTime == null || at <= context.deathTime))
     context.effectRecorder?.capture(
       at,
       [
-        timedEffectState(
-          'relic:' + name,
-          [{ stacks: effectState?.stacks ?? 1, expiresAt }],
-          effectState?.maximumStacks ?? 1,
-          { name }
-        )
+        timedEffectState('relic:' + name, [{ stacks: effectState.stacks, expiresAt }], effectState.maximumStacks, {
+          name
+        })
       ],
       'relic:' + name
     );

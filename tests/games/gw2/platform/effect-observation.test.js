@@ -176,20 +176,20 @@ test('policy changes and native consumption remain visible with unchanged generi
   assert.equal(value(state, 'charges', 'companion:clone:1', profession).count, 1);
 });
 
-// Scalar window copying must retain deep isolation of nested source metadata and finished reports.
+// Scalar windows and the retained label metadata stay detached from live sources and finished report consumers.
 test('recorded windows and source events stay detached from their owner and report consumers', () => {
   const recorder = new EffectRecorder();
-  const source = { type: 'buff', at: 0, metadata: { variant: 'original' } };
+  const source = { type: 'buff', at: 0, metadata: { radiantWeapon: 'original' } };
   const windows = [{ stacks: 2, expiresAt: 5, source }];
   recorder.capture(0, [timedEffectState('charges', windows, 3, { source })]);
-  source.metadata.variant = 'changed';
+  source.metadata.radiantWeapon = 'changed';
   windows[0].stacks = 1;
   const report = recorder.finish(2);
   const observed = effectStateAt(report, report.tracks[0], 1);
   assert.equal(observed.count, 2);
-  assert.equal(observed.source.metadata.variant, 'original');
-  observed.source.metadata.variant = 'consumer edit';
-  assert.equal(recorder.finish(3).tracks[0].terminal.source.metadata.variant, 'original');
+  assert.equal(observed.source.metadata.radiantWeapon, 'original');
+  observed.source.metadata.radiantWeapon = 'consumer edit';
+  assert.equal(recorder.finish(3).tracks[0].terminal.source.metadata.radiantWeapon, 'original');
 });
 
 // Identity indexing must distinguish every scope while removals remain local to the capturing owner.

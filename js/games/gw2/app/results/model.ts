@@ -7,7 +7,7 @@ import type {
   ProfessionChartApplication,
   ProfessionEffectPresentation
 } from '#gw2/platform/profession-presentation/types.js';
-import type { SimulationEvent } from '#gw2/platform/events/events.js';
+import type { EffectSource } from '#gw2/platform/results/effect-report.js';
 import type { Gw2SimulationResult } from '#gw2/platform/results/types.js';
 
 export function resultSummaryMetrics(result: Gw2SimulationResult) {
@@ -77,10 +77,10 @@ function effectPresentation(
   return presentations.find((presentation) => presentation.kind.toLowerCase() === key);
 }
 
-/** Resolves shared boon names and profession-owned labels before applying the generic fallback. */
+/** Resolve labels from compact source fields shared by chart records and full event-log entries. */
 export function effectName(
   kind: unknown,
-  event: Readonly<Record<string, unknown>> = {},
+  event: Partial<EffectSource> = {},
   presentations: readonly ProfessionEffectPresentation[] = []
 ): string {
   const key = String(kind || '');
@@ -88,7 +88,7 @@ export function effectName(
   if (professionPresentation) {
     const name =
       typeof professionPresentation.name === 'function'
-        ? professionPresentation.name(event as SimulationEvent)
+        ? professionPresentation.name(event)
         : professionPresentation.name;
     if (name) return name;
   }

@@ -64,6 +64,7 @@ export interface AnnouncementEmission extends EffectDelivery, EmissionOptions {
     readonly icon?: string;
     readonly cooldownReduction?: number | null;
     readonly expiresAt?: number | null;
+    /** Publish mechanic-owned state only when no accepted buff packet already supplies its chart track. */
     readonly effectState?: Gw2ProcStep['effectState'];
   };
 }

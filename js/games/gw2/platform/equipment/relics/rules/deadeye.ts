@@ -5,7 +5,7 @@ import { skillForEvent } from '#gw2/platform/combat/query/runtime-query.js';
 import { defineRelic, recordTimedBuffProc, timedStrikeBuff } from '#gw2/platform/equipment/relics/rules/shared.js';
 
 export const deadeye = defineRelic({
-  buffPolicies: [{ kind: 'relic-deadeye', maximumStacks: 1 }],
+  buffPolicies: [{ kind: 'relic-deadeye', name: 'Relic of the Deadeye', maximumStacks: 1 }],
   completed(ctx, _state, event) {
     if (event.cancelled || !isGw2PlayerActorEvent(event)) return;
     const skill = ctx.helpers ? skillForEvent(ctx.helpers, event) : undefined;

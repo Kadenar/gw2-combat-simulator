@@ -55,7 +55,9 @@ export const visionary = defineRelic({
         detail: '+10% strike and condition damage',
         icon: '',
         cooldownReduction: null,
-        expiresAt: until
+        expiresAt: until,
+        // The reward window lives in this mechanic rather than generic buff storage.
+        effectState: { stacks: 1, maximumStacks: 1 }
       }
     });
   },
