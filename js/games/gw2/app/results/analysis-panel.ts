@@ -513,6 +513,7 @@ export function modifierContributionsHtml(model: RotationResultsModel): string {
       ${modifierLoadingHtml()}
     </div>`;
   }
+
   return `${
     contributions.length || contributionsError
       ? `<div class="res-contributions">

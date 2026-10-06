@@ -2,6 +2,7 @@ import { expect, test } from '@playwright/test';
 
 // Analysis stays usable while modifiers run, and their completion preserves the existing interactive DOM.
 test('modifiers run on demand in Analysis and update only their own section', async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: 'no-preference' });
   const modifierWorkers = [];
   page.on('worker', (worker) => {
     if (worker.url().includes('/simulation/modifier-contributions/worker.')) modifierWorkers.push(worker);
@@ -37,11 +38,15 @@ test('modifiers run on demand in Analysis and update only their own section', as
   const loadingScene = pending.locator('.contrib-loading-skeleton');
   await expect(loadingScene).toBeVisible();
   await expect(loadingScene).toHaveAttribute('aria-hidden', 'true');
-  expect(await loadingScene.evaluate((element) => getComputedStyle(element, '::after').animationName)).toBe(
-    'chart-loading-sweep'
-  );
+  // Analysis publishes chart results asynchronously and may replace the skeleton between browser calls.
+  await expect
+    .poll(() => loadingScene.evaluate((element) => getComputedStyle(element, '::after').animationName))
+    .toBe('chart-loading-sweep');
   await page.emulateMedia({ reducedMotion: 'reduce' });
-  expect(await loadingScene.evaluate((element) => element.getAnimations({ subtree: true }).length)).toBe(0);
+  await expect
+    .poll(() => loadingScene.evaluate((element) => getComputedStyle(element, '::after').animationName))
+    .toBe('none');
+  await expect.poll(() => loadingScene.evaluate((element) => element.getAnimations({ subtree: true }).length)).toBe(0);
   await expect(pending).toBeVisible();
   await page.emulateMedia({ reducedMotion: 'no-preference' });
   await expect(page.locator('[data-role="result-charts"]')).toBeVisible();
