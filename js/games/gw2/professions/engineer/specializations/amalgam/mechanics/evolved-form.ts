@@ -46,7 +46,8 @@ export function scheduleThornsRetaliation(context: EngineerRuntime, skill: Engin
         hits: 1,
         hitIndex: index + 1,
         totalHits: hits,
-        skillWeapon: 'Unequipped'
+        // Retaliation shares the initial Morph hit's strength; utility strength understates its half-coefficient damage.
+        skillWeapon: 'Profession mechanic'
       }).forEach((packet) => context.effects.emit({ kind: 'packet', event: packet }));
     }
   }

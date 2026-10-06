@@ -495,6 +495,15 @@ test('Symbiotic Synergy boosts Thorns retaliation for every protocol slot', () =
     assert.deepEqual(traited.warnings, []);
     const damageEvents = (result, name) =>
       result.resolvedEvents.filter((event) => event.type === 'damage' && event.name === name);
+    // Both Thorns components use profession-mechanic strength; retaliation's half coefficient sets their ratio.
+    for (const result of [baseline, traited]) {
+      const initial = damageEvents(result, 'Initial Damage')[0];
+      for (const hit of damageEvents(result, 'Thorns Retaliation')) {
+        assert.equal(hit.weaponStrengthProfileId, 'nonweapon.profession-mechanic');
+        assertFlooredDamageMultiplier(hit.damage, initial.damage, 0.5);
+      }
+    }
+
     const retaliation = damageEvents(traited, 'Thorns Retaliation');
     assert.ok(retaliation.length > 0);
     assert.ok(retaliation.some((event) => event.at > traited.steps[0].end / 1000));
