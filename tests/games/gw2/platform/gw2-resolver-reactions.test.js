@@ -222,7 +222,7 @@ test('condition stage runs once per stack after insertion, including profession 
   assert.ok(trace.every((entry) => entry.queued > 0));
 });
 
-test('resolver duration queries use live relic state while historical queries replay new triggers', () => {
+test('resolver duration queries use accepted relic state and preserve causal ordering', () => {
   const config = { relic: 'Aristocracy' };
   const events = [1, 1, 1.001].map((at) => ({
     type: 'condition',
@@ -234,8 +234,6 @@ test('resolver duration queries use live relic state while historical queries re
     duration: 1,
     stacks: 1
   }));
-  const query = createGw2CombatQuery({ profession: testProfession, config, events });
-  assert.equal(query.conditionDurationMultiplier('Bleeding', 1.001), 1);
   events.splice(1, 0, {
     type: 'condition',
     condition: 'Vulnerability',
@@ -246,9 +244,6 @@ test('resolver duration queries use live relic state while historical queries re
     sourceId: 'fixture.trigger',
     actorType: 'player'
   });
-  // A new trigger invalidates historical replay, but cannot boost applications at its own timestamp.
-  assert.equal(query.conditionDurationMultiplier('Bleeding', 1), 1);
-  assert.equal(query.conditionDurationMultiplier('Bleeding', 1.001), 1.03);
   const durations = [];
   const liveBonuses = [];
   resolveTestGw2Events({
@@ -260,7 +255,12 @@ test('resolver duration queries use live relic state while historical queries re
         durations.push(application.effectiveDuration);
         // Live state must exclude the queued trigger until its handler has run.
         liveBonuses.push(
-          context.combat.conditionDurationMultiplier('Bleeding', 1.001, undefined, application, context)
+          context.combat.conditionDurationMultiplier(
+            'Bleeding',
+            1.001,
+            context.combat.statsAt(1.001, application),
+            application
+          )
         );
       }
     }

@@ -4,11 +4,7 @@ import { isInternalCooldownReady } from '#gw2/platform/combat/procs/registry.js'
 import { isGw2PlayerActorEvent } from '#gw2/platform/combat/state/event-ownership.js';
 import { missesTarget } from '#gw2/platform/combat/state/targets.js';
 import { gw2EffectExpiresAt } from '#gw2/platform/effects/timing.js';
-import {
-  defineRelic,
-  compareTimelineEvents,
-  explicitCombatStartTime
-} from '#gw2/platform/equipment/relics/rules/shared.js';
+import { defineRelic } from '#gw2/platform/equipment/relics/rules/shared.js';
 import type { SimulationEvent } from '#gw2/platform/events/events.js';
 import type { Gw2RelicState } from '#gw2/platform/equipment/relics/types.js';
 
@@ -70,30 +66,8 @@ function applyAristocracyTrigger(state: AristocracyState, event: SimulationEvent
   return activation;
 }
 
-function replayAristocracyTimeline(events: readonly SimulationEvent[], combatStartTime: number): AristocracyState {
-  const state = createAristocracyState();
-  const ordered = [...events]
-    .filter((event) => isAristocracyApplication(event) && event.at >= combatStartTime - EPSILON)
-    .sort(compareTimelineEvents);
-  for (const event of ordered) applyAristocracyTrigger(state, event);
-  return state;
-}
-
-function syncAristocracyTimeline(state: AristocracyState): void {
-  const events = state.timelineEvents;
-  if (!events || state.timelineLength === events.length) return;
-  const replay = replayAristocracyTimeline(events, explicitCombatStartTime(events));
-  state.readyAt = replay.readyAt;
-  state.stacks = replay.stacks;
-  state.expiresAt = replay.expiresAt;
-  state.activations = replay.activations;
-  state.timelineLength = events.length;
-}
-
-// syncAristocracyTimeline replays only when the event array has grown since the
-// last call — this lazily keeps historical query state in sync with new events.
+/** Reads accepted stack windows so later activations cannot change an earlier duration query. */
 function aristocracyActivationAt(state: AristocracyState, at: number): AristocracyActivation | null {
-  syncAristocracyTimeline(state);
   for (let index = state.activations.length - 1; index >= 0; index -= 1) {
     const activation = state.activations[index];
     // A triggering application cannot benefit from its own same-time stack.
@@ -108,7 +82,7 @@ export const aristocracy = defineRelic({
   createState: createAristocracyState,
   condition(ctx, state, event) {
     if (ctx.combatStartTime != null && event.at < ctx.combatStartTime - EPSILON) return;
-    // Actual applications own both the stack claim and its report; previews still use pure timeline queries.
+    // Accepted applications own the stack claim and report; isolated previews seed their own activation window.
     const activation = applyAristocracyTrigger(state as AristocracyState, event);
     if (activation)
       ctx.effects.emit({

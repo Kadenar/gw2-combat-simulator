@@ -9,11 +9,7 @@ import { createCanonicalCatalog } from '#gw2/platform/skills/catalog.js';
 import { defineTestProfession } from '#tests/helpers/profession.js';
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
 import { createGw2ResolverRuntimeState } from '#gw2/platform/resolver/runtime-state.js';
-import {
-  createRelicRuntime,
-  createRelicTimelineRuntime,
-  invokeRelicHook
-} from '#gw2/platform/equipment/relics/runtime.js';
+import { createRelicRuntime, invokeRelicHook } from '#gw2/platform/equipment/relics/runtime.js';
 import {
   relicConditionDurationBonus,
   relicOutgoingDamageBonus,
@@ -481,53 +477,35 @@ test('Aristocracy rule state owns strict ICD, stack cap, and expiry', () => {
   assert.equal(relicConditionDurationBonus(context, 13.04), 0);
 });
 
-test('Aristocracy historical queries preserve combat and timestamp boundaries', () => {
-  const events = [
-    {
-      type: 'condition',
-      condition: 'Vulnerability',
-      stacks: 1,
-      duration: 5,
-      actorType: 'player',
-      at: 1.001,
-      skillName: 'Second'
-    },
-    {
-      type: 'condition',
-      condition: 'Vulnerability',
-      stacks: 1,
-      duration: 5,
-      actorType: 'player',
-      at: -1,
-      skillName: 'Precombat'
-    },
-    { type: 'combat_start', at: 0 },
-    {
-      type: 'condition',
-      condition: 'Vulnerability',
-      stacks: 1,
-      duration: 5,
-      actorType: 'player',
-      at: 0,
-      skillName: 'First'
-    },
-    {
-      type: 'condition',
-      condition: 'Vulnerability',
-      stacks: 1,
-      duration: 5,
-      actorType: 'player',
-      at: 1,
-      skillName: 'Blocked'
-    }
-  ];
+test('Aristocracy accepted applications preserve combat entry and historical stack windows', () => {
   const context = {
-    relic: createRelicTimelineRuntime('Aristocracy', events)
+    relic: createRelicRuntime('Aristocracy'),
+    combatStartTime: 2,
+    effects: captureEffectEmissions().effects
   };
+  const trigger = (at) =>
+    invokeRelicHook(context, 'condition', {
+      type: 'condition',
+      condition: 'Vulnerability',
+      stacks: 1,
+      duration: 5,
+      actorType: 'player',
+      at,
+      skillName: `Trigger ${at}`
+    });
 
-  assert.equal(relicConditionDurationBonus(context, 0), 0);
-  assert.equal(relicConditionDurationBonus(context, 0.001), 0.03);
-  assert.equal(relicConditionDurationBonus(context, 1.002), 0.06);
+  // A precombat application cannot consume the cooldown or create a stack window.
+  trigger(1);
+  assert.equal(context.relic.state.stacks, 0);
+  trigger(2);
+  assert.equal(relicConditionDurationBonus(context, 2), 0);
+  assert.equal(relicConditionDurationBonus(context, 2.001), 0.03);
+  trigger(3);
+  assert.equal(context.relic.state.stacks, 1);
+  trigger(3.001);
+  assert.equal(relicConditionDurationBonus(context, 3.002), 0.06);
+  // Reading an earlier time uses the accepted window at that time, not the latest stack total.
+  assert.equal(relicConditionDurationBonus(context, 2.001), 0.03);
 });
 
 // Labels cannot grant eligibility, and summons do not become player effects merely by carrying an owner.

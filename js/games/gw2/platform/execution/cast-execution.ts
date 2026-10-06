@@ -302,7 +302,6 @@ export function createCastExecution<T extends object>(
         endsAt: effectiveEnd,
         // Queued mechanic windows can extend through a retained animation lockout, independently of packet completion.
         castLockoutEndsAt: laneEnd,
-        rechargeProgress: { startedAt: cast.rechargeStart, work: cast.rechargeWork },
         ...(detail == null ? {} : { detail }),
         ...(comboFields ? { comboFields } : {}),
         cancelled

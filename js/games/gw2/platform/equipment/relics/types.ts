@@ -20,7 +20,6 @@ export interface Gw2RelicState {
   refreshedStacks?: RefreshedStacks;
   combatStartTime?: number;
   timelineEvents?: readonly SimulationEvent[];
-  timelineLength?: number;
   trackedActivations?: Set<string>;
   count?: number;
   combatMarker?: SimulationEvent;

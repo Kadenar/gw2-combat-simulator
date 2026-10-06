@@ -27,17 +27,13 @@ export function createRelicRuntime(name: unknown): Readonly<Gw2RelicRuntime> {
   });
 }
 
-// Sets timelineLength to -1 (not events.length) so a replaying rule — see
-// syncAristocracyTimeline in rules/aristocracy.ts — treats the state as dirty
-// and replays on the first call even when the events array is empty.
-/** Creates relic runtime state prepared to replay chronological timeline events. */
+/** Supplies timeline facts for time-based rules such as Nourys's combat-start-relative damage window. */
 export function createRelicTimelineRuntime(
   name: unknown,
   events: readonly SimulationEvent[]
 ): Readonly<Gw2RelicRuntime> {
   const runtime = createRelicRuntime(name);
   runtime.state.timelineEvents = events;
-  runtime.state.timelineLength = -1;
   return runtime;
 }
 

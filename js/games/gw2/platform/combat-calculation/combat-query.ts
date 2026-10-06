@@ -57,6 +57,7 @@ export type Gw2QueryProfession = Pick<
 
 interface CreateGw2CombatQueryOptions {
   readonly profession?: Gw2QueryProfession;
+  /** Queries that inspect skill readiness require live cooldown state or an explicit preview policy. */
   readonly skillOnCooldown?: (skillId: import('#gw2/platform/skills/types.js').SkillId, time: number) => boolean;
   readonly config?: Gw2Config;
   readonly events?: readonly SimulationEvent[];
@@ -148,7 +149,6 @@ export function createGw2CombatQuery({
   const timeline = createGw2TimelineIndex({
     config,
     playerAlacrityRechargeRate: profession.playerAlacrityRechargeRate,
-    skillsById: profession.catalog.skillsById,
     skillOnCooldown,
     events: resolvedTimelineEvents ?? events,
     resolved: resolvedTimelineEvents != null
@@ -160,7 +160,7 @@ export function createGw2CombatQuery({
   // `query` is assigned after `completedQuery` is constructed. Hook handlers
   // that reference `query` are only called during scheduling/resolution (after
   // this function returns), so the null-during-construction window is safe.
-  // Default to chronological live relic state, replaying history only when no live relic is supplied.
+  // Live relic state owns earned activations; detached queries retain only the selected relic's base context.
   const equipmentConditionDurationBonus =
     conditionDurationBonus ||
     ((runtime: Gw2QueryRuntime | null | undefined, at: number): number =>

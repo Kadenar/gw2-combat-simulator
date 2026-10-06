@@ -2,7 +2,6 @@ import type { OwnedComboDescriptor } from '#gw2/platform/combos/types.js';
 import type { Gw2ModifierContribution } from '#gw2/platform/combat/modifiers.js';
 import type { EffectReactionRef } from '#gw2/platform/effects/reactions.js';
 import { ACTOR_TYPES, type SimulationActorType } from '#gw2/platform/events/actors.js';
-import type { RechargeProgress } from '#gw2/platform/combat/recharge.js';
 import type { SkillId } from '#gw2/platform/skills/types.js';
 import { timeKey } from '#kernel/core/clock.js';
 import { weaponStrengthProfile } from '#gw2/platform/equipment/weapons/strength.js';
@@ -10,7 +9,8 @@ import { weaponStrengthProfile } from '#gw2/platform/equipment/weapons/strength.
 /**
  * Canonical event schema shared by the unified runtime and reports.
  * Professions may add custom types, but every event crossing the boundary must
- * still satisfy this base shape.
+ * still satisfy this base shape. Live cooldown state belongs to the cooldown
+ * controller; events do not duplicate its recharge bookkeeping.
  */
 
 const EVENT_SCHEMA_VERSION = 1 as const;
@@ -282,8 +282,6 @@ export interface SimulationEventBase<TType extends string = string> {
   readonly weaponStrengthProfileId?: string;
   readonly weaponStrength?: number;
   readonly cooldownReduction?: number;
-  /** Committed base work keeps passive cooldown queries aligned with scheduling and rewinds. */
-  readonly rechargeProgress?: RechargeProgress;
   readonly audience?: EffectAudience;
   readonly resolvedAudience?: ResolvedEffectAudience;
   readonly metadata?: EffectMetadata;

@@ -1144,15 +1144,12 @@ test("Abyssal Strike reduces Raze's displayed cooldown with no charges", () => {
 });
 
 test('Abyssal Raze recharge reduction carries only excess work into the next queued charge', () => {
-  const result = simulate(
-    'Core',
-    ['Abyssal Raze', 'Abyssal Raze', 'Abyssal Raze', { type: 'wait', durationMs: 8100 }, 'Abyssal Strike'],
-    {
-      primaryWeapon: 'Spear',
-      secondaryWeapon: '',
-      initialEnergy: 100
-    }
-  );
+  const rotation = ['Abyssal Raze', 'Abyssal Raze', 'Abyssal Raze', { type: 'wait', durationMs: 8100 }];
+  const config = { primaryWeapon: 'Spear', secondaryWeapon: '', initialEnergy: 100 };
+  // Observe the pending queue before the refund so the expectation does not reconstruct action history.
+  const beforeReduction = observedRuntime(simulate('Core', rotation, config)).cooldownController;
+  const pendingRecharge = beforeReduction.readAmmo(SKILL.ABYSSAL_RAZE).recharges[0];
+  const result = simulate('Core', [...rotation, 'Abyssal Strike'], config);
 
   const rechargeProc = result.procSteps.find((proc) => proc.skill.endsWith('Abyssal Raze recharge'));
 
@@ -1160,8 +1157,11 @@ test('Abyssal Raze recharge reduction carries only excess work into the next que
   // Completing the front charge carries only the unused reduction into the next, leaving later work intact.
   const runtime = observedRuntime(result);
   const ammo = runtime.cooldownController.readAmmo(SKILL.ABYSSAL_RAZE);
-  const casts = result.events.filter((event) => event.type === 'action' && event.skillId === SKILL.ABYSSAL_RAZE);
-  const remainingWork = 15 - (rechargeProc.start / 1000 - casts[0].rechargeProgress.startedAt) * 1.25;
+  const remainingWork = beforeReduction.remaining(
+    revenantCatalog.skillsById.get(SKILL.ABYSSAL_RAZE),
+    pendingRecharge,
+    rechargeProc.start / 1000
+  );
   const overflow = 1 - remainingWork;
   assert.equal(ammo.charges, 1);
   assert.equal(ammo.recharges.length, 2);

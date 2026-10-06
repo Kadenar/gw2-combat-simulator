@@ -179,6 +179,8 @@ function calculatePreview(
     profession,
     config: queryConfig,
     events,
+    // Attribute previews have no executed casts, so equipped skills keep their ready-state passives.
+    skillOnCooldown: () => false,
     attributePreviewPlayerHealthFraction: playerHealth
   });
   // Seed an isolated active stack window so both displayed and conjure durations use the relic's combat formula.

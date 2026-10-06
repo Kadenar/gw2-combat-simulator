@@ -12,12 +12,10 @@ import {
 } from '#gw2/platform/combat/boons.js';
 import type { SimulationEvent } from '#gw2/platform/events/events.js';
 import type { Skill, SkillId } from '#gw2/platform/skills/types.js';
-import type { RechargeProgress } from '#gw2/platform/combat/recharge.js';
-import { GW2_ALACRITY_RECHARGE_RATE, gw2RechargeIntervals, projectRecharge } from '#gw2/platform/combat/recharge.js';
+import { GW2_ALACRITY_RECHARGE_RATE, gw2RechargeIntervals } from '#gw2/platform/combat/recharge.js';
 import { gw2SigilSet } from '#gw2/platform/equipment/sigils/loadout.js';
 import type { Gw2SigilSet } from '#gw2/platform/equipment/sigils/types.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
-import { gw2CooldownReadyAt } from '#gw2/platform/combat/action-tick.js';
 import { gw2EffectExpiresAt } from '#gw2/platform/effects/timing.js';
 import { canonicalTime } from '#kernel/core/clock.js';
 import { insertSorted } from '#kernel/core/collections.js';
@@ -25,14 +23,12 @@ import { eventCausalOrder } from '#kernel/events/queue.js';
 
 interface CreateGw2TimelineIndexOptions {
   readonly playerAlacrityRechargeRate?: number;
-  readonly skillOnCooldown?: (skillId: import('#gw2/platform/skills/types.js').SkillId, time: number) => boolean;
+  /** Required when querying cooldowns; previews supply their own explicit readiness policy. */
+  readonly skillOnCooldown?: (skillId: SkillId, time: number) => boolean;
   readonly config?: Gw2Config;
   readonly events?: readonly SimulationEvent[];
-  readonly skillsById?: ReadonlyMap<SkillId, Skill>;
   readonly resolved?: boolean;
 }
-
-type IndexedEvents = Record<'weaponSet' | 'cooldown', SimulationEvent[]>;
 
 interface IndexedBuffEvents {
   readonly all: SimulationEvent[];
@@ -58,7 +54,6 @@ export function createGw2TimelineIndex({
   config = {},
   skillOnCooldown,
   events = [],
-  skillsById,
   resolved = false
 }: CreateGw2TimelineIndexOptions = {}): Readonly<Gw2TimelineIndex> {
   // Timestamp ties follow scheduler causal order so derived events are queried
@@ -73,22 +68,15 @@ export function createGw2TimelineIndex({
     else insertSorted(target, event, compareEvents);
   };
 
-  const indexed: IndexedEvents = {
-    weaponSet: [],
-    cooldown: []
-  };
+  const weaponSets: SimulationEvent[] = [];
   const indexedBuffs = new Map<string, IndexedBuffEvents>();
   const retiredCompanions = new Map<string, number>();
-  // Only queried skills need their own history; resets remain visible to every skill.
-  const indexedCooldowns = new Map<SkillId, SimulationEvent[]>();
   // retain one argument combination per kind; cache variants if mixed-audience sampling dominates.
   const buffCache = new Map<string, CachedBuffStacks>();
-  const cooldownCache = new Map<SkillId, boolean>();
   let cachedTime: number | undefined;
   // Sampling repeatedly asks for the same facts; retain only the current time's answers within this timeline.
   const clearQueryCache = (): void => {
     buffCache.clear();
-    cooldownCache.clear();
   };
 
   let alacrityWindows: readonly BoonWindow[] | undefined;
@@ -100,18 +88,15 @@ export function createGw2TimelineIndex({
 
   const rechargeIntervals = (skill: Skill, start: number, end: number): Iterable<RateInterval> =>
     gw2RechargeIntervals(playerAlacrityRechargeRate, summonAlacrityWindows, skill, start, end);
-  const rechargeReadyAt = (skill: Skill, progress: RechargeProgress): number =>
-    projectRecharge(progress, rechargeIntervals(skill, progress.startedAt, Infinity));
 
   let indexedLength = 0;
   let hasExtensions = false;
   const resetIndex = (): void => {
     clearQueryCache();
-    for (const values of Object.values(indexed)) values.length = 0;
+    weaponSets.length = 0;
     indexedBuffs.clear();
     retiredCompanions.clear();
     alacrityWindows = undefined;
-    indexedCooldowns.clear();
     indexedLength = 0;
     hasExtensions = false;
   };
@@ -159,14 +144,7 @@ export function createGw2TimelineIndex({
       }
 
       if (event.type === 'weapon_set') {
-        insertOrdered(indexed.weaponSet, event);
-      }
-
-      if (event.type === 'action' || (event.type === 'marker' && event.action === 'cooldown-reset')) {
-        insertOrdered(indexed.cooldown, event);
-        for (const [skillId, history] of indexedCooldowns) {
-          if (event.type !== 'action' || event.skillId === skillId) insertOrdered(history, event);
-        }
+        insertOrdered(weaponSets, event);
       }
     }
   };
@@ -268,7 +246,7 @@ export function createGw2TimelineIndex({
     time = canonicalTime(time);
     refreshIndex();
     let activeSet = Number(config.startingWeaponSet) === 2 ? 2 : 1;
-    for (const event of indexed.weaponSet) {
+    for (const event of weaponSets) {
       if (canonicalTime(event.at) > time) break;
       // Same-timestamp swaps are visible to effects emitted after the swap.
       activeSet = Number(event.weaponSet);
@@ -280,53 +258,9 @@ export function createGw2TimelineIndex({
   const activeSigilSetAt = (time: number): Gw2SigilSet => gw2SigilSet(config, activeWeaponSetAt(time));
 
   const skillOnCooldownAt = (skillId: SkillId, time: number): boolean => {
-    time = canonicalTime(time);
-    if (skillOnCooldown) return skillOnCooldown(skillId, time);
-    refreshQueryCache(time);
-    const cached = cooldownCache.get(skillId);
-    if (cached !== undefined) return cached;
-    let history = indexedCooldowns.get(skillId);
-    if (!history) {
-      history = indexed.cooldown.filter((event) => event.type !== 'action' || event.skillId === skillId);
-      indexedCooldowns.set(skillId, history);
-    }
-
-    // Find the latest visible update without replaying earlier cooldowns; history stays available for backward queries.
-    let low = 0;
-    let high = history.length;
-    while (low < high) {
-      const middle = (low + high) >>> 1;
-      if (canonicalTime(history[middle].at) <= time) low = middle + 1;
-      else high = middle;
-    }
-
-    let readyAt = 0;
-    let progress: RechargeProgress | undefined;
-    for (let index = low - 1; index >= 0; index -= 1) {
-      const event = history[index];
-      if (event.type === 'action') {
-        // Predictions must not see their own action's cooldown; resolved history contains only completed events.
-        if (!resolved && canonicalTime(event.at) === time) continue;
-        // Canonical action events carry committed recharge work; live restoration belongs to the cooldown controller.
-        progress = event.rechargeProgress;
-      } else if (event.type === 'marker' && event.action === 'cooldown-reset') {
-        // Training-area resets restore signet passives as soon as the scheduler clears their recharge.
-        readyAt = 0;
-      }
-
-      break;
-    }
-
-    if (progress) {
-      // Project committed work with the same received-boon history used by scheduling.
-      const skill = skillsById?.get(skillId);
-      if (!skill) throw new Error(`Missing skill ${skillId} for passive recharge query.`);
-      readyAt = gw2CooldownReadyAt(rechargeReadyAt(skill, progress));
-    }
-
-    const value = readyAt === Infinity || canonicalTime(readyAt) > time;
-    cooldownCache.set(skillId, value);
-    return value;
+    // The owner supplies current cooldown state or an explicit preview policy; events cannot reconstruct it.
+    if (!skillOnCooldown) throw new Error('Cooldown queries require a readiness provider.');
+    return skillOnCooldown(skillId, canonicalTime(time));
   };
 
   return Object.freeze({
@@ -337,14 +271,12 @@ export function createGw2TimelineIndex({
     activeWeaponSetAt,
     activeSigilSetAt,
     skillOnCooldownAt,
-    rechargeIntervals,
-    rechargeReadyAt
+    rechargeIntervals
   });
 }
 
 export interface Gw2TimelineIndex {
   rechargeIntervals(skill: Skill, start: number, end: number): Iterable<RateInterval>;
-  rechargeReadyAt(skill: Skill, progress: RechargeProgress): number;
   buffStacksAt(
     kind: string,
     time: number,
@@ -358,5 +290,5 @@ export interface Gw2TimelineIndex {
   vigorActiveAt(time: number): boolean;
   activeWeaponSetAt(time: number): number;
   activeSigilSetAt(time: number): Gw2SigilSet;
-  skillOnCooldownAt(skillId: import('#gw2/platform/skills/types.js').SkillId, time: number): boolean;
+  skillOnCooldownAt(skillId: SkillId, time: number): boolean;
 }

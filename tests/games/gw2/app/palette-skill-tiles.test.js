@@ -1,4 +1,4 @@
-import { planningFixture } from '#tests/helpers/observed-runtime.js';
+import { observeGw2Runtime, observedRuntime, planningFixture } from '#tests/helpers/observed-runtime.js';
 import { armSkillFlip } from '#gw2/platform/execution/skill-flips.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
@@ -63,7 +63,8 @@ test('a used 20-second skill displays 16 seconds under Alacrity', () => {
     [false, '16.000s'],
     [true, '16.000s']
   ]) {
-    const result = simulateGw2({ profession, rotation: [skill.name], config: { boons: { alacrity } } });
+    const config = { boons: { alacrity } };
+    const result = observeGw2Runtime({ profession: profession.runtimeFor(config), rotation: [skill.name], config });
     const app = projectionApp(profession, {
       time: result.planningState.atSeconds,
       cooldowns: result.planningState.cooldowns
@@ -71,10 +72,7 @@ test('a used 20-second skill displays 16 seconds under Alacrity', () => {
     const view = paletteSkillView(app, skill, true);
     assert.equal(view.cooldownLabel, label);
     assert.equal(view.disabled, true);
-    assert.equal(
-      result.events.find((event) => event.type === 'action' && event.skillId === skill.id).rechargeProgress.work,
-      20
-    );
+    assert.equal(observedRuntime(result).cooldownController.rechargeFor(skill.id).work, 20);
   }
 });
 

@@ -483,12 +483,10 @@ test('Tactical Reload clears full Cartridges recharge and restores the longest t
 
   const spentAgain = run([cartridges, wait(4000), reload, wait(4000), cartridges], config);
   const newAmmo = observedRuntime(spentAgain).cooldownController.readAmmo(ID.OVERCHARGED_CARTRIDGES);
-  const lastCast = spentAgain.events.findLast(
-    (event) => event.type === 'action' && event.skillId === ID.OVERCHARGED_CARTRIDGES
-  );
   assert.deepEqual(spentAgain.warnings, []);
   assert.equal(newAmmo.recharges.length, 1);
-  close(newAmmo.nextRechargeAt, lastCast.rechargeProgress.startedAt + 16);
+  // The new magazine owns fresh recharge work after the full refill removed its previous queue.
+  close(newAmmo.nextRechargeAt, newAmmo.recharges[0].startedAt + 16);
   assert.ok(newAmmo.nextRechargeAt > firstDeadline);
 
   const partial = run([cartridges, cartridges, wait(4000), reload], config);

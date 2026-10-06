@@ -2,6 +2,7 @@ import { createMechanicCombatServices } from '#gw2/platform/resolver/mechanic-se
 import { recordBuffApplication } from '#gw2/platform/combat/boons.js';
 import { skillBreakdownRows } from '#gw2/app/results/skill-breakdown.js';
 import { createGw2TimelineIndex } from '#gw2/platform/combat-calculation/timeline-index.js';
+import { createCooldownController } from '#gw2/platform/execution/cooldowns.js';
 import { ENGINEER_SKILL_IDS as ID, ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
 import { engineerCatalog, engineerProfession } from '#gw2/professions/engineer/profession.js';
 import { engineerMechHasQuickness } from '#gw2/professions/engineer/specializations/mechanist/mechanics/mech.js';
@@ -54,9 +55,14 @@ for (const [signet, skillId, modifier, baseBonus, jDriveBonus] of [
 ]) {
   test(`${signet} passive follows equipment, recharge, and J-Drive`, () => {
     const runtime = engineerProfession.runtimeFor({ specialization: 'Mechanist' });
-    // Cooldown history must remove the ordinary passive and restore it when recharge finishes.
-    const events = [{ type: 'action', at: 1, skillId, rechargeProgress: { startedAt: 1, work: 30 } }];
-    const timeline = createGw2TimelineIndex({ events, skillsById: engineerCatalog.skillsById });
+    // Signet passives follow the live cooldown owner without relying on recorded actions.
+    const clock = { time: 0 };
+    const controller = createCooldownController({
+      clock,
+      skillFor: (id) => engineerCatalog.skillsById.get(id),
+      rechargeDuration: () => 30
+    });
+    const timeline = createGw2TimelineIndex({ skillOnCooldown: (id, at) => controller.isOnCooldown(id, at) });
     for (const [selected, traits, time, expected] of [
       [false, [], 0, 1],
       [false, [TRAIT.MECH_CORE_J_DRIVE], 0, 1],
@@ -67,6 +73,9 @@ for (const [signet, skillId, modifier, baseBonus, jDriveBonus] of [
       [true, [TRAIT.MECH_CORE_J_DRIVE], 2, 1 + jDriveBonus],
       [true, [TRAIT.MECH_CORE_J_DRIVE], 25, 1 + jDriveBonus]
     ]) {
+      clock.time = time;
+      controller.resetAll();
+      if (time > 0) controller.setReadyAt(skillId, 25);
       assert.equal(
         runtime[modifier](
           {

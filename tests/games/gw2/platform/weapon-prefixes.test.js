@@ -124,6 +124,8 @@ test('runtime stats follow chronological weapon-set swaps', () => {
   const query = createGw2CombatQuery({
     profession: resolveProfessionContract(mesmerProfession, config),
     config,
+    // This detached weapon-set fixture has no casts, so equipped signets remain ready.
+    skillOnCooldown: () => false,
     events: [{ type: 'weapon_set', at: 1, weaponSet: 2 }]
   });
 

@@ -9,7 +9,7 @@ import { buildChartSeries } from '#gw2/app/results/model.js';
 import { skillBreakdownRows } from '#gw2/app/results/skill-breakdown.js';
 import { warriorCatalog, warriorProfession } from '#gw2/professions/warrior/profession.js';
 import { WARRIOR_SKILL_IDS as ID, WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/professions/warrior/data/ids.js';
-import { createObservedProfessionSimulator } from '#tests/helpers/observed-runtime.js';
+import { createObservedProfessionSimulator, observedRuntime } from '#tests/helpers/observed-runtime.js';
 import {
   dragonChargeTickOffsetSeconds,
   dragonChargesForDurationMs
@@ -676,12 +676,11 @@ test('Flow Stabilizer, Tactical Reload, and adrenaline conversion drive Flow', (
     spent.planningState.ammoBySkillId[ID.FLOW_STABILIZER].charges
   );
   assert.ok(spent.planningState.ammoBySkillId[ID.FLOW_STABILIZER].nextRechargeAt > 0);
-  const lastSpend = freshRecharge.events.findLast(
-    (event) => event.type === 'action' && event.skillId === ID.FLOW_STABILIZER
-  );
+  // Compare the public deadline with the fresh queue owned by the cooldown controller.
+  const recharge = observedRuntime(freshRecharge).cooldownController.readAmmo(ID.FLOW_STABILIZER).recharges[0];
   assert.equal(
     freshRecharge.planningState.ammoBySkillId[ID.FLOW_STABILIZER].nextRechargeAt,
-    lastSpend.rechargeProgress.startedAt + lastSpend.rechargeProgress.work / 1.25
+    recharge.startedAt + recharge.work / 1.25
   );
   assert.ok(
     freshRecharge.planningState.ammoBySkillId[ID.FLOW_STABILIZER].nextRechargeAt >
