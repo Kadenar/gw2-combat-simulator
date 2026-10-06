@@ -132,9 +132,24 @@ function luminaryStateSnapshot(context: GuardianUiContext): RotationStateSnapsho
   return items;
 }
 
-/** Labels Luminary armament effects and makes mutually exclusive radiant weapons replace one another. */
+/** Give Luminary effects readable labels without exposing internal profession prefixes. */
 function luminaryEffectPresentations(): ProfessionEffectPresentation[] {
   return [
+    {
+      id: 'guardian-daring-advance',
+      kind: 'guardian-daring-advance',
+      name: 'Daring Advance'
+    },
+    {
+      id: 'guardian-piercing-stance',
+      kind: 'guardian-piercing-stance',
+      name: 'Piercing Stance'
+    },
+    {
+      id: 'guardian-radiant-courage-sword',
+      kind: 'guardian-radiant-courage-sword',
+      name: 'Radiant Courage (Sword)'
+    },
     {
       id: 'guardian-empowered-armaments',
       kind: 'guardian-empowered-armaments',
