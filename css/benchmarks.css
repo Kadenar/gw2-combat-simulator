@@ -46,6 +46,8 @@ body[data-simulator-view='benchmarks'] :is(.profession-layout, .build-editor) {
   grid-template-columns: minmax(0, 1fr);
 }
 .benchmark-main {
+  /* Use the available content width so embedded charts also stack before becoming cramped. */
+  container: benchmark-main / inline-size;
   grid-column: 1;
   grid-row: 2;
   min-width: 0;
@@ -1438,6 +1440,9 @@ body[data-simulator-view='benchmarks'] :is(.profession-layout, .build-editor) {
   #benchmarks-view[data-benchmark-active-panel='builds'] .benchmark-profession-tabs {
     grid-row: 4;
   }
+}
+/* Give the plot the full row when there is too little room for a readable side-by-side legend. */
+@container benchmark-main (max-width: 1200px) {
   [data-health-chart] {
     height: auto;
     grid-template-columns: minmax(0, 1fr);

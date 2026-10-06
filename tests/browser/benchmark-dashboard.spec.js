@@ -105,7 +105,15 @@ test('health comparison keeps the chart beside scrolling rows and shares pinned-
   await expect(chart.locator('[data-health-point]:visible')).toHaveCount(0);
   await table.getByRole('checkbox', { name: 'Pinned only' }).uncheck();
   await expect(table.locator('[data-health-row]:visible')).not.toHaveCount(0);
-  for (const width of [768, 375, 320]) {
+  // A narrow embedded content area must stack even when the browser viewport remains wide.
+  const main = page.locator('.benchmark-main');
+  await main.evaluate((node) => (node.style.width = '1100px'));
+  const embeddedPlot = await plot.boundingBox();
+  expect((await table.boundingBox()).y).toBeGreaterThanOrEqual(embeddedPlot.y + embeddedPlot.height);
+  await main.evaluate((node) => node.style.removeProperty('width'));
+  const widePlot = await plot.boundingBox();
+  expect((await table.boundingBox()).x).toBeGreaterThanOrEqual(widePlot.x + widePlot.width);
+  for (const width of [1280, 1100, 768, 375, 320]) {
     await page.setViewportSize({ width, height: 1000 });
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
     const mobilePlot = await plot.boundingBox();
