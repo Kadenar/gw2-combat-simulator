@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { assertFlooredDamageMultiplier } from '#tests/helpers/rounded-damage.js';
 import test from 'node:test';
 import { createModifierHooks, MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
-import { createGw2CombatQuery } from '#gw2/platform/combat/query/combat-query.js';
+import { createGw2CombatQuery } from '#gw2/platform/combat-calculation/combat-query.js';
 import { createCanonicalCatalog } from '#gw2/platform/skills/catalog.js';
 import { aggregateSigilSet } from '#gw2/platform/equipment/sigils/loadout.js';
 import { mesmerAppAdapter } from '#gw2/professions/mesmer/app/app-definition.js';

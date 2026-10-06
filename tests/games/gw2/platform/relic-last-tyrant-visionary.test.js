@@ -18,7 +18,7 @@ import { createGw2ResolverRuntimeState } from '#gw2/platform/resolver/runtime-st
 import { createGw2ResolverReactionRegistry } from '#gw2/platform/resolver/reaction-registry.js';
 import { createGw2EquipmentReactionContributions } from '#gw2/platform/resolver/equipment-reactions.js';
 import { resolveTestGw2Events } from '#tests/helpers/gw2-resolver.js';
-import { createGw2CombatQuery } from '#gw2/platform/combat/query/combat-query.js';
+import { createGw2CombatQuery } from '#gw2/platform/combat-calculation/combat-query.js';
 import { testProfession } from '#tests/fixtures/profession.js';
 
 // Real condition resolution includes direct relic applications, so its own Burning must not feed another Fury cycle.

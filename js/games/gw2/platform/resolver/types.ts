@@ -1,4 +1,4 @@
-import type { Gw2CriticalChanceContributor } from '#gw2/platform/combat/query/combat-query.js';
+import type { Gw2CriticalChanceContributor } from '#gw2/platform/combat-calculation/combat-query.js';
 import type { SimulationEvent } from '#gw2/platform/events/events.js';
 import type { Gw2ConditionWork } from '#gw2/platform/resolver/condition-resolution.js';
 import type { Gw2ResolverRuntime } from '#gw2/platform/resolver/runtime-state.js';

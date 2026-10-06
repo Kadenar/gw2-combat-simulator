@@ -50,7 +50,8 @@ interface CachedBuffStacks {
 }
 
 /**
- * Common timestamp queries over scheduled GW2 events.
+ * Indexes scheduled or resolved GW2 events so combat calculations can query
+ * timestamped state without repeatedly scanning the full event history.
  */
 export function createGw2TimelineIndex({
   playerAlacrityRechargeRate = GW2_ALACRITY_RECHARGE_RATE,

@@ -1,7 +1,7 @@
 import { createMechanicCombatServices } from '#gw2/platform/resolver/mechanic-services.js';
 import { recordBuffApplication } from '#gw2/platform/combat/boons.js';
 import { skillBreakdownRows } from '#gw2/app/results/skill-breakdown.js';
-import { createGw2TimelineIndex } from '#gw2/platform/combat/query/timeline-index.js';
+import { createGw2TimelineIndex } from '#gw2/platform/combat-calculation/timeline-index.js';
 import { ENGINEER_SKILL_IDS as ID, ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
 import { engineerCatalog, engineerProfession } from '#gw2/professions/engineer/profession.js';
 import { engineerMechHasQuickness } from '#gw2/professions/engineer/specializations/mechanist/mechanics/mech.js';

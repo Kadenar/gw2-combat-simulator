@@ -13,8 +13,8 @@ import type {
   Gw2ModifierContribution,
   Gw2ModifierHook
 } from '#gw2/platform/combat/modifiers.js';
-import type { Gw2TimelineIndex } from '#gw2/platform/combat/query/timeline-index.js';
-import { createGw2TimelineIndex } from '#gw2/platform/combat/query/timeline-index.js';
+import type { Gw2TimelineIndex } from '#gw2/platform/combat-calculation/timeline-index.js';
+import { createGw2TimelineIndex } from '#gw2/platform/combat-calculation/timeline-index.js';
 import { gw2EventActorType } from '#gw2/platform/combat/state/event-ownership.js';
 import type { Gw2RuntimeStateLike } from '#gw2/platform/combat/state/targets.js';
 import { createPermanentTargetConditionStacks, targetConditionStacks } from '#gw2/platform/combat/state/targets.js';
@@ -123,7 +123,8 @@ function conditionOwnerEvent(event: SimulationEvent | null): SimulationEvent | n
 }
 
 /**
- * Builds the timestamp-aware combat facts shared by scheduling and resolution.
+ * Combines combat primitives, equipment rules, and profession hooks into
+ * timestamp-aware combat values shared by simulation and attribute previews.
  * A supplied runtime makes same-timestamp buffs, weapon sets, profession state,
  * conditions, and active equipment effects chronological instead of looking
  * ahead in the completed event stream.

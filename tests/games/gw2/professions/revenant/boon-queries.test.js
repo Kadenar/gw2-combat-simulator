@@ -4,7 +4,7 @@ const revenantCoreModifierRules = revenantCoreModule.modifiers.modifierRules;
 import { revenantCatalog } from '#gw2/professions/revenant/catalog.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { createGw2TimelineIndex } from '#gw2/platform/combat/query/timeline-index.js';
+import { createGw2TimelineIndex } from '#gw2/platform/combat-calculation/timeline-index.js';
 import { gw2BoonApplicationRecipients } from '#gw2/platform/combat/state/allied-players.js';
 import { recordBuffApplication } from '#gw2/platform/combat/boons.js';
 import { revenantCoreModifiers } from '#gw2/professions/revenant/core/modifiers.js';

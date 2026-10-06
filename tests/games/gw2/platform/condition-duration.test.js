@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { StableEventQueue } from '#kernel/events/queue.js';
-import { createGw2CombatQuery } from '#gw2/platform/combat/query/combat-query.js';
+import { createGw2CombatQuery } from '#gw2/platform/combat-calculation/combat-query.js';
 import { testProfession } from '#tests/fixtures/profession.js';
 import { createGw2ConditionResolution } from '#gw2/platform/resolver/condition-resolution.js';
 import { projectResolvedEvents } from '#gw2/platform/results/resolved-events.js';

@@ -341,34 +341,37 @@ Presentation consumes these contracts rather than owning calculation inputs.
 This layer owns behavior shared by several professions: strike and condition damage, attributes, weapon strength, boons
 and target state, sigils, relics, profession module assembly, and modifier rules.
 
-| Module                            | Responsibility                                                                          |
-| --------------------------------- | --------------------------------------------------------------------------------------- |
-| `events/`, `effects/`, `skills/`  | Event contracts, authored effects, and immutable skill catalogs                         |
-| `profession-definition/`          | Stable profession authoring APIs, catalog assembly, metadata, and mechanic declarations |
-| `combat/modifiers.ts`             | Declarative scalar modifier system                                                      |
-| `builds/attributes.ts`            | Shared attribute calculations                                                           |
-| `builds/codec.ts`                 | Build normalization and validation                                                      |
-| `combat/formulas.ts`              | Pure strike/condition formulas and stat conversions, preserving calculation units       |
-| `combat/procs/critical.ts`        | Critical-proc kernel: seeded critical outcomes, secondary proc rolls, and ICD claims    |
-| `combat/boons.ts`                 | Standard boon metadata, shared stack queries, duration pools, and grant recording       |
-| `execution/cast-timing.ts`        | Cast timing and cast-relative packet scaling                                            |
-| `equipment/weapons/strength.ts`   | Weapon-strength profiles                                                                |
-| `equipment/sigils/loadout.ts`     | Sigil selection, modifier aggregation, and configured weapon-set lookup                 |
-| `equipment/sigils/runtime.ts`     | Sigil state, pending hit effects, swap/control/strike procs, and buff-state policies    |
-| `equipment/sigils/severance.ts`   | Severance buff queries and critical modifiers                                           |
-| `equipment/`                      | Gear, consumable, relic, sigil, and weapon data                                         |
-| `combat/state/targets.ts`         | Target assumptions                                                                      |
-| `builds/selected-traits.ts`       | Shared selected-trait lookup                                                            |
-| `combat/state/event-ownership.ts` | Player/summon/effect ownership rules                                                    |
+| Module                            | Responsibility                                                                                            |
+| --------------------------------- | --------------------------------------------------------------------------------------------------------- |
+| `events/`, `effects/`, `skills/`  | Event contracts, authored effects, and immutable skill catalogs                                           |
+| `profession-definition/`          | Stable profession authoring APIs, catalog assembly, metadata, and mechanic declarations                   |
+| `combat/modifiers.ts`             | Declarative scalar modifier system                                                                        |
+| `builds/attributes.ts`            | Shared attribute calculations                                                                             |
+| `builds/codec.ts`                 | Build normalization and validation                                                                        |
+| `combat/formulas.ts`              | Pure strike/condition formulas and stat conversions, preserving calculation units                         |
+| `combat-calculation/`             | Effective combat attributes and multipliers combining primitives, equipment, hooks, and timestamped state |
+| `combat/procs/critical.ts`        | Critical-proc kernel: seeded critical outcomes, secondary proc rolls, and ICD claims                      |
+| `combat/boons.ts`                 | Standard boon metadata, shared stack queries, duration pools, and grant recording                         |
+| `execution/cast-timing.ts`        | Cast timing and cast-relative packet scaling                                                              |
+| `equipment/weapons/strength.ts`   | Weapon-strength profiles                                                                                  |
+| `equipment/sigils/loadout.ts`     | Sigil selection, modifier aggregation, and configured weapon-set lookup                                   |
+| `equipment/sigils/runtime.ts`     | Sigil state, pending hit effects, swap/control/strike procs, and buff-state policies                      |
+| `equipment/sigils/severance.ts`   | Severance buff queries and critical modifiers                                                             |
+| `equipment/`                      | Gear, consumable, relic, sigil, and weapon data                                                           |
+| `combat/state/targets.ts`         | Target assumptions                                                                                        |
+| `builds/selected-traits.ts`       | Shared selected-trait lookup                                                                              |
+| `combat/state/event-ownership.ts` | Player/summon/effect ownership rules                                                                      |
 
 Builds and public simulation configuration use readable sigil and relic names. Equipment catalogs resolve those names to
 item IDs for runtime rule dispatch, cooldown keys, and proc source attribution; display labels stay name-based.
 
-Combat queries select visible state and equipment, formulas and modifiers calculate, and resolver handlers commit
-effects and dispatch reactions:
+Combat calculations combine visible state, equipment, profession hooks, formulas, and modifiers; resolver handlers
+commit effects and dispatch reactions:
 
-- Query contracts: `combat/query/combat-query.ts` and `timeline-index.ts`. Event payloads, validation, and the shared
-  damage-diagnostic contract: `events/events.ts`.
+- Query implementations: `combat-calculation/combat-query.ts` computes effective combat values and
+  `combat-calculation/timeline-index.ts` indexes timestamped state for live combat and previews. Primitive state checks
+  and stack lookup remain in `combat/query/`. Event payloads, validation, and the shared damage-diagnostic contract:
+  `events/events.ts`.
 - Internal work payloads and lifetime ownership: `simulation/work-contract.ts`; validated construction:
   `simulation/internal-work.ts`. Hit diagnostics, condition applications, and mutable runtime types live with
   `resolver/hit-resolution.ts`, `resolver/condition-resolution.ts`, and `resolver/runtime-state.ts`; shared

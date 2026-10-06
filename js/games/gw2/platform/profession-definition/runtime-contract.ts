@@ -1,4 +1,4 @@
-import type { Gw2QueryProfession } from '#gw2/platform/combat/query/combat-query.js';
+import type { Gw2QueryProfession } from '#gw2/platform/combat-calculation/combat-query.js';
 import type { EndurancePolicy, ResourceKey, ResourcePolicy } from '#gw2/platform/combat/resources/resource-policy.js';
 import type { ActionContext, SideEffectAction } from '#gw2/platform/effects/actions.js';
 import type { SkillEffect } from '#gw2/platform/effects/types.js';

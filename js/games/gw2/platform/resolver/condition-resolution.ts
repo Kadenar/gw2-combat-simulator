@@ -5,7 +5,7 @@ import type { Gw2ModifierContribution } from '#gw2/platform/combat/modifiers.js'
 import {
   conditionApplicationDuration,
   type Gw2ConditionDurationTrace
-} from '#gw2/platform/combat/query/combat-query.js';
+} from '#gw2/platform/combat-calculation/combat-query.js';
 import { GW2_EVENT_ACTOR_TYPES } from '#gw2/platform/events/actors.js';
 import type { Gw2RuntimeConditionEntry, Gw2RuntimeConditionStack } from '#gw2/platform/combat/state/targets.js';
 import {

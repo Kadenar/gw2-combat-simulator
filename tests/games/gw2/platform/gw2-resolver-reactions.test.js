@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 
 import { StableEventQueue } from '#kernel/events/queue.js';
-import { createGw2CombatQuery } from '#gw2/platform/combat/query/combat-query.js';
+import { createGw2CombatQuery } from '#gw2/platform/combat-calculation/combat-query.js';
 import { createGw2ConditionResolution } from '#gw2/platform/resolver/condition-resolution.js';
 import { createGw2EquipmentReactionContributions } from '#gw2/platform/resolver/equipment-reactions.js';
 import { createGw2ResolverReactionRegistry } from '#gw2/platform/resolver/reaction-registry.js';

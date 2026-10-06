@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { activeBoonStacks, boonActive } from '#gw2/platform/combat/query/runtime-query.js';
 import { runtimeTargetConditionStacks } from '#gw2/platform/combat/state/targets.js';
-import { createGw2TimelineIndex } from '#gw2/platform/combat/query/timeline-index.js';
+import { createGw2TimelineIndex } from '#gw2/platform/combat-calculation/timeline-index.js';
 
 import {
   durationStackingBoonCapSeconds,

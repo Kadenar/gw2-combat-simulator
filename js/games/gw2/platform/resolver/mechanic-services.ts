@@ -12,7 +12,7 @@ import {
   remainingTargetHealthFraction,
   remainingTargetHealthBelow
 } from '#gw2/platform/combat/state/target-health.js';
-import type { Gw2TimelineIndex } from '#gw2/platform/combat/query/timeline-index.js';
+import type { Gw2TimelineIndex } from '#gw2/platform/combat-calculation/timeline-index.js';
 import type { ComboFieldEvent } from '#gw2/platform/combos/types.js';
 
 /** Combat capabilities granted to mechanics: shared-state queries plus phase-preserving mutation requests. */

@@ -6,7 +6,7 @@ import {
   conditionStackLimit,
   isDamagingCondition
 } from '#gw2/platform/combat/state/targets.js';
-import { createGw2CombatQuery } from '#gw2/platform/combat/query/combat-query.js';
+import { createGw2CombatQuery } from '#gw2/platform/combat-calculation/combat-query.js';
 import { targetConditionActive, targetConditionCount } from '#gw2/platform/combat/query/runtime-query.js';
 import { defineTestProfession } from '#tests/helpers/profession.js';
 import { targetHealthBreakpointSnapshots } from '#gw2/app/results/summary-metrics.js';

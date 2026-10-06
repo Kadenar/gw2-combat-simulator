@@ -2,7 +2,7 @@ import { flattenProfessionState } from '#gw2/platform/profession-definition/stat
 import { renderPalette } from '#gw2/app/rotation/palette/view.js';
 import { timelineWeaponRows } from '#gw2/app/rotation/timeline/model.js';
 import { createCalculateAttributes } from '#gw2/platform/builds/attributes.js';
-import { createGw2CombatQuery } from '#gw2/platform/combat/query/combat-query.js';
+import { createGw2CombatQuery } from '#gw2/platform/combat-calculation/combat-query.js';
 import { resolveProfessionContract } from '#gw2/platform/profession-definition/compile-contract.js';
 import { loadProfession, loadProfessionAppAdapter, professionOptions } from '#gw2/profession-registry.js';
 import { rangerAppAdapter } from '#gw2/professions/ranger/app/app-definition.js';

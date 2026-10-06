@@ -2,7 +2,7 @@ import { applySideEffect } from '#gw2/platform/effects/action-dispatch.js';
 import { validateResourceGrantSupport } from '#gw2/platform/effects/action-validation.js';
 import { EffectRecorder } from '#gw2/platform/results/effect-report.js';
 import { prepareSelectedSkillLoadout } from '#gw2/platform/builds/selected-skills.js';
-import { createGw2CombatQuery } from '#gw2/platform/combat/query/combat-query.js';
+import { createGw2CombatQuery } from '#gw2/platform/combat-calculation/combat-query.js';
 import { createRuntimeEndurance, createRuntimeResources } from '#gw2/platform/simulation/runtime-resources.js';
 import { RESOURCE_KEYS, type ResourceKey } from '#gw2/platform/combat/resources/resource-policy.js';
 import { targetHealthLoss } from '#gw2/platform/combat/state/target-health.js';

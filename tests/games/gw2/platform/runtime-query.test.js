@@ -1,9 +1,9 @@
-import { createGw2TimelineIndex } from '#gw2/platform/combat/query/timeline-index.js';
+import { createGw2TimelineIndex } from '#gw2/platform/combat-calculation/timeline-index.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
 import { createModifierHooks, MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
-import { createGw2CombatQuery } from '#gw2/platform/combat/query/combat-query.js';
+import { createGw2CombatQuery } from '#gw2/platform/combat-calculation/combat-query.js';
 import { recordBuffApplication } from '#gw2/platform/combat/boons.js';
 import { createCanonicalCatalog } from '#gw2/platform/skills/catalog.js';
 import {

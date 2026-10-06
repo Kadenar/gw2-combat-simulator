@@ -1,6 +1,6 @@
 import { createDefaultBuild, replaceBuild } from '#gw2/app/build/state/persistence.js';
 import { createCalculateAttributes } from '#gw2/platform/builds/attributes.js';
-import { createGw2CombatQuery } from '#gw2/platform/combat/query/combat-query.js';
+import { createGw2CombatQuery } from '#gw2/platform/combat-calculation/combat-query.js';
 import { gw2StatsForWeaponSet } from '#gw2/platform/combat/stats.js';
 import { resolveProfessionContract } from '#gw2/platform/profession-definition/compile-contract.js';
 import { PREFIXES } from '#gw2/platform/equipment/gear/prefixes/catalog.js';

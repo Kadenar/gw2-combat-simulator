@@ -2,7 +2,7 @@ import { boonActive } from '#gw2/platform/combat/query/runtime-query.js';
 import { createMechanicCombatServices } from '#gw2/platform/resolver/mechanic-services.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { createGw2TimelineIndex } from '#gw2/platform/combat/query/timeline-index.js';
+import { createGw2TimelineIndex } from '#gw2/platform/combat-calculation/timeline-index.js';
 import { gw2BoonApplicationRecipients } from '#gw2/platform/combat/state/allied-players.js';
 import { recordBuffApplication } from '#gw2/platform/combat/boons.js';
 import { createRangerCoreState } from '#gw2/professions/ranger/core/state.js';

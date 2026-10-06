@@ -6,7 +6,7 @@ import { createSkillDamagePreview } from '#gw2/app/build/skill-damage/preview.js
 import { queryDamagePreview } from '#gw2/platform/skill-damage/query-preview.js';
 import type { Gw2ModifierContribution } from '#gw2/platform/combat/modifiers.js';
 import { derivedAttribute, PRIMARY_ATTRIBUTES } from '#gw2/platform/builds/attributes.js';
-import { createGw2CombatQuery } from '#gw2/platform/combat/query/combat-query.js';
+import { createGw2CombatQuery } from '#gw2/platform/combat-calculation/combat-query.js';
 import { GW2_STANDARD_BOONS, isStandardBoon } from '#gw2/platform/combat/boons.js';
 import { createRelicRuntime } from '#gw2/platform/equipment/relics/runtime.js';
 import { relicConditionDurationBonus } from '#gw2/platform/equipment/relics/query.js';

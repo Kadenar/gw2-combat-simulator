@@ -2,7 +2,7 @@ import {
   FEROCITY_PER_CRITICAL_DAMAGE_MULTIPLIER,
   PRECISION_PER_CRITICAL_CHANCE_FRACTION
 } from '#gw2/platform/combat/formulas.js';
-import type { Gw2CriticalChanceContributor, Gw2QueryRuntime } from '#gw2/platform/combat/query/combat-query.js';
+import type { Gw2CriticalChanceContributor, Gw2QueryRuntime } from '#gw2/platform/combat-calculation/combat-query.js';
 import { SIGIL_IDS, SIGIL_BY_ID } from '#gw2/platform/equipment/sigils/data.js';
 import { buffApplicationStacks } from '#gw2/platform/combat/boons.js';
 import type { BuffStatePolicy } from '#gw2/platform/combat/effect-state.js';
