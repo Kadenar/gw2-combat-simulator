@@ -109,15 +109,24 @@ export class RelicComparisonRunner {
       this.timer = null;
       if (requestId !== this.requestId || !app.results) return;
       try {
-        const targetResult = app.adapter.simulateBuild(request.rotation, {
-          ...request.baseConfig,
-          relic: request.comparisonRelic,
-          ...(request.comparisonRelic === 'Thorns' ? { initialThornsStacks: this.initialStacks } : null)
-        });
+        // The comparison rebuilds its DPS series from events and does not consume effect charts.
+        const targetResult = app.adapter.simulateBuild(
+          request.rotation,
+          {
+            ...request.baseConfig,
+            relic: request.comparisonRelic,
+            ...(request.comparisonRelic === 'Thorns' ? { initialThornsStacks: this.initialStacks } : null)
+          },
+          { collectChartData: false }
+        );
         const opponentSeries = buildTimeSeries(opponentResult, 250, { includeEffects: false });
         const targetSeries = buildTimeSeries(targetResult, 250, { includeEffects: false });
         // One shared no-relic run attributes both direct damage and modifier effects.
-        const withoutRelic = app.adapter.simulateBuild(request.rotation, { ...request.baseConfig, relic: '' });
+        const withoutRelic = app.adapter.simulateBuild(
+          request.rotation,
+          { ...request.baseConfig, relic: '' },
+          { output: 'score' }
+        );
         const model = buildRelicComparisonModel({
           opponentRelic: request.opponentRelic,
           targetRelic: request.comparisonRelic,

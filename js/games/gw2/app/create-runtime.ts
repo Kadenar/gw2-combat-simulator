@@ -21,19 +21,23 @@ import type {
   RandomDistributionRequest,
   RandomDistributionSummary
 } from '#gw2/app/simulation/random-distribution/types.js';
-import type { ProfessionAppState, ProfessionRuntimeApi, ProfessionRuntimeOptions } from '#gw2/app/types.js';
+import type {
+  ProfessionAppState,
+  ProfessionRuntimeApi,
+  ProfessionRuntimeOptions,
+  ProfessionSimulationOptions
+} from '#gw2/app/types.js';
 import type { Gw2CanonicalBuild } from '#gw2/platform/builds/types.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
 import type { RotationCommand } from '#gw2/platform/execution/types.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
-import type { Gw2SimulationResult } from '#gw2/platform/results/types.js';
+import type { Gw2SimulationResult, Gw2SimulationScore } from '#gw2/platform/results/types.js';
 import { evaluateSkillDamage } from '#gw2/platform/skill-damage/measure-occurrences.js';
 import type { SkillDamageEvaluation, SkillDamageRequest } from '#gw2/platform/skill-damage/types.js';
 import { clamp } from '#kernel/core/numeric.js';
 import { analysisViewIsActive } from '#browser/shell/result-view.js';
 import { SIMULATION_RANDOMNESS_MODES } from '#kernel/core/simulation-random.js';
-import type { ObservationPolicy } from '#kernel/execution/observation.js';
 
 /**
  * Builds the shared browser runtime orchestration for a GW2 profession.
@@ -57,17 +61,27 @@ export function createProfessionRuntime({
   buildConfigInputs,
   buildConfigExtras
 }: ProfessionRuntimeOptions): ProfessionRuntimeApi {
-  const simulateBuild = (
+  function simulateBuild(
     rotation: readonly RotationCommand[],
     config: Gw2Config,
-    observationPolicy?: ObservationPolicy
-  ): Gw2SimulationResult =>
-    simulateGw2({
-      profession,
-      rotation,
-      config,
-      observationPolicy
-    });
+    options: ProfessionSimulationOptions & { output: 'score' }
+  ): Gw2SimulationScore;
+  function simulateBuild(
+    rotation: readonly RotationCommand[],
+    config: Gw2Config,
+    options?: ProfessionSimulationOptions & { output?: 'detailed' }
+  ): Gw2SimulationResult;
+  function simulateBuild(
+    rotation: readonly RotationCommand[],
+    config: Gw2Config,
+    options: ProfessionSimulationOptions & { output?: 'detailed' | 'score' } = {}
+  ): Gw2SimulationResult | Gw2SimulationScore {
+    // Preserve detailed output by default while allowing analysis callers to avoid unused reporting.
+    const request = { profession, rotation, config, ...options };
+    return options.output === 'score'
+      ? simulateGw2({ ...request, output: 'score' })
+      : simulateGw2({ ...request, output: 'detailed' });
+  }
 
   const eliteNames = new Set(
     profession.catalog.specializations
@@ -220,7 +234,12 @@ export function createProfessionRuntime({
     request: RandomDistributionRequest,
     options?: RandomDistributionOptions
   ): RandomDistributionSummary {
-    return calculateDistribution(request, simulateBuild, options);
+    // Distribution explanations need events, but never boon or attribute chart histories.
+    return calculateDistribution(
+      request,
+      (rotation, config) => simulateBuild(rotation, config, { collectChartData: false }),
+      options
+    );
   }
 
   function baselineSimulationConfig(app: ProfessionAppState): Gw2Config {
@@ -257,7 +276,7 @@ export function createProfessionRuntime({
     // A prefix before the marker still uses the full rotation's boundary, including casts that finish across it.
     const combatStartTime =
       index <= rotation.findIndex((command) => command.type === 'combat-start')
-        ? (app.results ?? simulateBuild(rotation, config, { kind: 'rotation' })).combatStartTime
+        ? (app.results ?? simulateBuild(rotation, config, { observationPolicy: { kind: 'rotation' } })).combatStartTime
         : undefined;
     return simulateGw2({
       profession,

@@ -971,6 +971,7 @@ test('relic comparison scopes assumptions and attributes damage against a no-rel
   runTimersImmediately(t);
   let renderCount = 0;
   const simulatedConfigs = [];
+  const simulationOptions = [];
   const results = minimalResult(4000);
   const app = {
     build: { rotation: STRIKE_ROTATION, relic: 'Fractal' },
@@ -987,10 +988,11 @@ test('relic comparison scopes assumptions and attributes damage against a no-rel
           comparisonRelic
         };
       },
-      simulateBuild(_rotation, config) {
+      simulateBuild(_rotation, config, options) {
         simulatedConfigs.push(config);
-
-        return minimalResult(config.relic ? 4200 : 3600);
+        simulationOptions.push(options);
+        // A score-only baseline deliberately has no events or charts for the runner to consume.
+        return options.output === 'score' ? { dps: minimalResult(3600).dps } : minimalResult(4200);
       },
       presentation: testPresentation(() => assert.fail('Relic updates must not render Analysis'))
     }
@@ -1003,6 +1005,10 @@ test('relic comparison scopes assumptions and attributes damage against a no-rel
   runner.run('Thorns', 4);
   runner.run('Mirage', 4);
 
+  assert.deepEqual(
+    simulationOptions,
+    Array.from({ length: 3 }, () => [{ collectChartData: false }, { output: 'score' }]).flat()
+  );
   assert.deepEqual(
     simulatedConfigs.map(({ relic, initialThornsStacks }) => ({
       relic,

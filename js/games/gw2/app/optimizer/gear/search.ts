@@ -458,7 +458,7 @@ export function createOptimizerEvaluator(request: GearOptimizerRequest, adapter:
   }
 
   const evaluate = (equipment: OptimizerEquipment): Gw2SimulationResult =>
-    adapter.simulateBuild(request.build.rotation, prepare(equipment), request.observationPolicy);
+    adapter.simulateBuild(request.build.rotation, prepare(equipment), { observationPolicy: request.observationPolicy });
   const score = (equipment: OptimizerEquipment): OptimizerScore | null => {
     const config = prepare(equipment, true);
     if (!config) return null;

@@ -198,8 +198,7 @@ test('native insertion previews project weapon set and cooldown state', async ()
 
   // Reusing a tailed result would make recovered cooldowns available too early when appending.
   app.results = adapter.simulateBuild(build.rotation, adapter.simulationConfig(app), {
-    kind: 'tail',
-    durationMs: 20000
+    observationPolicy: { kind: 'tail', durationMs: 20000 }
   });
   assert.ok(app.results.planningState.atSeconds * 1000 > result.planningState.atSeconds * 1000);
   assert.deepEqual(adapter.rotationPlanningStateAt(app, 3), result.planningState);

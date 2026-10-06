@@ -420,6 +420,11 @@ test('RNG analysis is available while detailed Engineer results stay determinist
     ...request,
     trials: 10
   });
+  // Omitting charts must preserve the seeded distribution and its event-derived explanations.
+  const withCharts = calculateRandomDistribution({ ...request, trials: 10 }, (rotation, config) =>
+    engineerAppAdapter.simulateBuild(rotation, config)
+  );
+  assert.deepEqual(distribution, withCharts);
 
   assert.equal(distribution.trials, 10);
   assert.equal(Number.isFinite(distribution.mean), true);

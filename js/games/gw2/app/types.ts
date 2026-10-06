@@ -10,11 +10,11 @@ import type { EngineerConfig } from '#gw2/professions/engineer/types.js';
 import type { ElementalistConfig } from '#gw2/professions/elementalist/build/types.js';
 /** Composes application state, adapters, and runtime callbacks from domain-owned contracts. */
 import type { Gw2ProfessionSource } from '#gw2/platform/profession-definition/family-contract.js';
-import type { Gw2SimulationResult } from '#gw2/platform/results/types.js';
+import type { Gw2SimulationResult, Gw2SimulationScore } from '#gw2/platform/results/types.js';
+import type { Gw2SimulationOptions } from '#gw2/platform/simulation/options.js';
 import type { PatchPreview } from '#gw2/integrations/patches/authoring/patches.js';
 import type { CanonicalCatalog, SkillId, Skill, CatalogEntity } from '#gw2/platform/skills/types.js';
 import type { RotationCommand } from '#gw2/platform/execution/types.js';
-import type { ObservationPolicy } from '#kernel/execution/observation.js';
 import type {
   PatchComparison,
   BaselineSimulationOutput,
@@ -225,11 +225,19 @@ export interface ProfessionRuntimeOptions extends ProfessionRuntimeOverrides {
   readonly calculateAttributes: Gw2CalculateAttributes;
 }
 
+/** Callers select only the observations and output needed for their analysis. */
+export type ProfessionSimulationOptions = Pick<Gw2SimulationOptions, 'observationPolicy' | 'collectChartData'>;
+
 export interface ProfessionRuntimeApi {
   simulateBuild(
     rotation: readonly RotationCommand[],
     config: Gw2Config,
-    observationPolicy?: ObservationPolicy
+    options: ProfessionSimulationOptions & { output: 'score' }
+  ): Gw2SimulationScore;
+  simulateBuild(
+    rotation: readonly RotationCommand[],
+    config: Gw2Config,
+    options?: ProfessionSimulationOptions & { output?: 'detailed' }
   ): Gw2SimulationResult;
   eliteSpecialization(build: Gw2CanonicalBuild): string;
   recalculate(app: ProfessionAppState, disabledTrait?: string | null): void;

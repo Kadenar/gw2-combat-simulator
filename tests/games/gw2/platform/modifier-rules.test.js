@@ -172,6 +172,47 @@ test('modifier rules compose declarative attribute targets', () => {
   assert.equal(initial.power, 1000);
 });
 
+// Compiled attribute plans preserve event-sensitive evaluation and isolate each caller's numeric stat record.
+test('attribute plans preserve predicates, rule order, and dynamic validation without caching live state', () => {
+  const hooks = createModifierHooks({
+    rules: [
+      { id: 'scale', target: MODIFIER_TARGET.ATTRIBUTE_POWER, operation: 'multiply', factor: 2, order: 2 },
+      {
+        id: 'add',
+        target: MODIFIER_TARGET.ATTRIBUTE_POWER,
+        operation: 'add',
+        amount: (current, target, parameters) => {
+          assert.equal(target, MODIFIER_TARGET.ATTRIBUTE_POWER);
+          return current.event.bonus * parameters.scale;
+        },
+        parameters: { scale: 2 },
+        order: 1
+      },
+      {
+        id: 'conditional',
+        target: MODIFIER_TARGET.ATTRIBUTE_VITALITY,
+        operation: 'add',
+        amount: 25,
+        when: (current) => current.active
+      }
+    ]
+  });
+  const initial = Object.freeze({ power: 1000, healingPower: 50 });
+  const current = { ...context({ active: false }), event: { bonus: 10 } };
+  const first = hooks.modifyAttributes(current, initial);
+  assert.deepEqual(first, { power: 2040, healingPower: 50 });
+  current.event = { bonus: 20 };
+  current.active = true;
+  assert.deepEqual(hooks.modifyAttributes(current, initial), { power: 2080, healingPower: 50, vitality: 25 });
+  assert.equal(initial.power, 1000);
+  assert.equal(first.power, 2040);
+  current.event.bonus = NaN;
+  assert.throws(() => hooks.modifyAttributes(current, initial), /amount must resolve to a finite number/);
+  const empty = createModifierHooks().modifyAttributes(current, initial);
+  assert.deepEqual(empty, initial);
+  assert.notEqual(empty, initial);
+});
+
 test('critical chance rules expose their active contributions', () => {
   const hooks = createModifierHooks({
     rules: [

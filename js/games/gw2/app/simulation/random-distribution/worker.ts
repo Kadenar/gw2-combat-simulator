@@ -24,7 +24,8 @@ createGameWorkerEndpoint<Gw2ProfessionSource, RandomDistributionWorkerMessage>({
   calculate(profession, { request }, postUpdate) {
     const outcomes = calculateRandomDistributionOutcomes(
       request,
-      (rotation, config) => simulateGw2({ profession, rotation, config }),
+      // Keep events for distribution explanations without collecting unused chart histories per trial.
+      (rotation, config) => simulateGw2({ profession, rotation, config, collectChartData: false }),
       {
         onProgress(progress) {
           postUpdate({ progress });

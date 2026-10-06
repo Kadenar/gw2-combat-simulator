@@ -441,24 +441,33 @@ function createScalarHook(
 function createAttributeHook(
   rulesByTarget: Readonly<Record<Gw2ModifierTarget, readonly Readonly<Gw2NormalizedModifierRule>[]>>
 ): Gw2AttributeModifierHook {
+  // Compile only authored targets once; resolved numeric stats on other targets need no repeated work.
+  // Constant operands were validated during normalization. Dynamic operands still resolve for every event.
+  const targets = [...ATTRIBUTE_TARGETS]
+    .filter((target) => rulesByTarget[target].length)
+    .map((target) => ({
+      key: ATTRIBUTE_KEY_BY_TARGET[target as keyof typeof ATTRIBUTE_KEY_BY_TARGET],
+      rules: rulesByTarget[target].map((rule) => {
+        const field = rule.operation === 'add' ? 'amount' : 'factor';
+        const declared = rule[field];
+        return {
+          when: rule.when,
+          add: rule.operation === 'add',
+          value:
+            typeof declared === 'number'
+              ? () => declared
+              : (context: Gw2ModifierContext) => resolveNumeric(rule, field, context, target)
+        };
+      })
+    }));
   return Object.freeze((context: Gw2ModifierContext, initialValue: Gw2ResolvedStats): Gw2ResolvedStats => {
     const result = { ...initialValue };
-    for (const target of ATTRIBUTE_TARGETS) {
-      const key = ATTRIBUTE_KEY_BY_TARGET[target as keyof typeof ATTRIBUTE_KEY_BY_TARGET] as keyof Gw2ResolvedStats;
-      const hadKey = Object.hasOwn(result, key);
-      let applied = false;
-      let value = Number(result[key] || 0);
-      for (const rule of rulesByTarget[target]) {
+    for (const { key, rules } of targets) {
+      let value = result[key] || 0;
+      for (const rule of rules) {
         if (rule.when && !rule.when(context)) continue;
-        applied = true;
-        value =
-          rule.operation === 'add'
-            ? value + resolveNumeric(rule, 'amount', context, target)
-            : value * resolveNumeric(rule, 'factor', context, target);
-      }
-
-      if (hadKey || applied) {
-        (result as Record<string, unknown>)[key] = value;
+        value = rule.add ? value + rule.value(context) : value * rule.value(context);
+        result[key] = value;
       }
     }
 

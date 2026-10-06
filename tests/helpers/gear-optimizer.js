@@ -20,7 +20,9 @@ export function runOrdinaryOptimizer(request, adapter) {
       {
         key: JSON.stringify(equipment),
         equipment,
-        score: optimizerScore(adapter.simulateBuild(request.build.rotation, config, request.observationPolicy)),
+        score: optimizerScore(
+          adapter.simulateBuild(request.build.rotation, config, { observationPolicy: request.observationPolicy })
+        ),
         represented: '1'
       },
       request.limit
