@@ -1,4 +1,4 @@
-import { appliedEffectStacks } from '#gw2/platform/combat/query/effect-query.js';
+import { appliedEffectStacks } from '#gw2/platform/combat/query/effect-stacks.js';
 import { normalizeSelectedTraitIds } from '#gw2/platform/builds/selected-traits.js';
 import type { Gw2TimedBuffApplication } from '#gw2/platform/combat/boons.js';
 import { MIGHT_ATTRIBUTE_BONUS_PER_STACK } from '#gw2/platform/combat/boons.js';
@@ -31,7 +31,7 @@ import { createRelicTimelineRuntime } from '#gw2/platform/equipment/relics/runti
 import type { Gw2RelicRuntime } from '#gw2/platform/equipment/relics/types.js';
 import { gw2SigilSet } from '#gw2/platform/equipment/sigils/loadout.js';
 import { severanceCriticalContribution } from '#gw2/platform/equipment/sigils/severance.js';
-import type { Gw2Stats } from '#gw2/platform/combat/types.js';
+import { gw2StaticAttributes, gw2StatsForWeaponSet, type Gw2ResolvedStats } from '#gw2/platform/combat/stats.js';
 import { gw2PrimaryWeapon } from '#gw2/platform/equipment/weapons/loadout.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
 import { roundEffectDuration } from '#gw2/platform/effects/timing.js';
@@ -777,27 +777,6 @@ export interface Gw2CombatQuery {
   readonly timeline: Readonly<Gw2TimelineIndex>;
 }
 
-/** Keys whose resolved values support numeric attribute adjustments. */
-export type Gw2NumericStatKey = {
-  [Key in keyof Gw2ResolvedStats]: Gw2ResolvedStats[Key] extends number ? Key : never;
-}[keyof Gw2ResolvedStats];
-
-export interface Gw2ResolvedStats {
-  readonly power: number;
-  readonly precision: number;
-  readonly toughness: number;
-  readonly vitality: number;
-  readonly ferocity: number;
-  readonly conditionDamage: number;
-  readonly expertise: number;
-  readonly concentration: number;
-  readonly healingPower: number;
-  readonly boonDurationBonus: number;
-  readonly boonDurationBonuses: Readonly<Record<string, number>>;
-  readonly conditionDurationBonus: number;
-  readonly conditionDurationBonuses: Readonly<Record<string, number>>;
-}
-
 /** Snapshots natural condition duration at application time; each phase owns its stacks and observation window. */
 export function conditionApplicationDuration(
   query: Readonly<Gw2CombatQuery>,
@@ -828,41 +807,4 @@ export interface Gw2ConditionDurationTrace {
   readonly durationContributors: Gw2ModifierContribution[];
   durationMultiplier?: number;
   baseDurationMultiplier?: number;
-}
-
-/** Overlays one-based weapon-set attributes on the base simulation stats. */
-export function gw2StatsForWeaponSet(config: Gw2Config, weaponSet = config.startingWeaponSet): Gw2Stats {
-  const index = Number(weaponSet) === 2 ? 1 : 0;
-  return {
-    ...(config.stats || {}),
-    ...(config.weaponSetStats?.[index] || {})
-  };
-}
-
-export function gw2StaticAttributes(
-  config: Gw2Config,
-  mightStacks: number | boolean | undefined = config.boons?.might,
-  weaponSet = config.startingWeaponSet
-): Gw2ResolvedStats {
-  const mightBonus = MIGHT_ATTRIBUTE_BONUS_PER_STACK * Number(mightStacks || 0);
-  const stats = gw2StatsForWeaponSet(config, weaponSet);
-  return {
-    power: (stats.power || 0) + mightBonus,
-    precision: stats.precision || 0,
-    toughness: stats.toughness || 0,
-    vitality: stats.vitality || 0,
-    ferocity: stats.ferocity || 0,
-    conditionDamage: (stats.conditionDamage || 0) + mightBonus,
-    expertise: stats.expertise || 0,
-    concentration: stats.concentration || 0,
-    healingPower: stats.healingPower || 0,
-    boonDurationBonus: stats.boonDurationBonus || 0,
-    boonDurationBonuses: {
-      ...(stats.boonDurationBonuses || {})
-    },
-    conditionDurationBonus: stats.conditionDurationBonus || 0,
-    conditionDurationBonuses: {
-      ...(stats.conditionDurationBonuses || {})
-    }
-  };
 }

@@ -1,7 +1,7 @@
 import { MESMER_SKILL_IDS as ID } from '#gw2/professions/mesmer/data/ids.js';
 import type { CanonicalCatalog } from '#gw2/platform/skills/types.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
-import type { Gw2Stats } from '#gw2/platform/combat/types.js';
+import type { Gw2Stats } from '#gw2/platform/combat/stats.js';
 import { selectedSkillIdSet } from '#gw2/platform/builds/selected-skills.js';
 import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import { MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';

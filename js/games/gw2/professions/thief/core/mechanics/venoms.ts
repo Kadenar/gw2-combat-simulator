@@ -1,5 +1,5 @@
 import { gw2AlliedPlayerProcTimeline } from '#gw2/platform/combat/state/allied-players.js';
-import { buildResolverCondition } from '#gw2/platform/resolver/packets.js';
+import { buildResolverCondition } from '#gw2/platform/effects/packet-builders.js';
 
 import {
   balanceProfileNumber,

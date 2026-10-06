@@ -6,7 +6,7 @@ import { defineSkillVariantProfile as variant } from '#gw2/platform/profession-d
 import { grantSkillCharges } from '#gw2/professions/ranger/core/skills/charge-grants.js';
 import { consumeCharge, expireCharges, grantCharges } from '#gw2/platform/combat/resources/charges.js';
 import { isPetStrike, isPlayerStrike } from '#gw2/professions/ranger/core/mechanics/resolution-helpers.js';
-import { buildResolverCondition } from '#gw2/platform/resolver/packets.js';
+import { buildResolverCondition } from '#gw2/platform/effects/packet-builders.js';
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
 import {
   requireBalanceProfileFromContext,

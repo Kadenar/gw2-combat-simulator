@@ -1,6 +1,6 @@
 import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
-import type { Gw2Stats } from '#gw2/platform/combat/types.js';
+import type { Gw2Stats } from '#gw2/platform/combat/stats.js';
 import type { SimulationEvent } from '#gw2/platform/events/events.js';
 import { professionCoreState, readProfessionSpecializationState } from '#gw2/platform/profession-definition/state.js';
 import { denySkillCast } from '#gw2/platform/execution/availability.js';

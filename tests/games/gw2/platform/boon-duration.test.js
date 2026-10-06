@@ -2,7 +2,7 @@ import { observeGw2Runtime } from '#tests/helpers/observed-runtime.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { gw2BoonDurationMultiplier } from '#gw2/platform/combat/boons.js';
-import { gw2StaticAttributes } from '#gw2/platform/combat/query/combat-query.js';
+import { gw2StaticAttributes } from '#gw2/platform/combat/stats.js';
 import { gw2ResolverBoonDuration } from '#gw2/platform/resolver/boon-duration.js';
 import { createCanonicalCatalog } from '#gw2/platform/skills/catalog.js';
 import { defineTestProfession } from '#tests/helpers/profession.js';

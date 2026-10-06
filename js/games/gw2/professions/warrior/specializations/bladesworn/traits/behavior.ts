@@ -3,12 +3,12 @@ import { activeBuffStacks } from '#gw2/platform/combat/query/runtime-query.js';
 import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
 import type { Gw2TraitLookupContext } from '#gw2/platform/builds/selected-traits.js';
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
-import type { Gw2MutableStats, Gw2Stats } from '#gw2/platform/combat/types.js';
+import type { Gw2MutableStats, Gw2Stats } from '#gw2/platform/combat/stats.js';
 import { gw2EffectExpiresAt } from '#gw2/platform/effects/timing.js';
 import { gw2ConfiguredWeaponSet } from '#gw2/platform/equipment/weapons/loadout.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import type { MechanicContext } from '#gw2/platform/profession-definition/mechanic-context.js';
-import { buildResolverCondition, buildResolverStrike } from '#gw2/platform/resolver/packets.js';
+import { buildResolverCondition, buildResolverStrike } from '#gw2/platform/effects/packet-builders.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import {
   balanceProfileNumber,

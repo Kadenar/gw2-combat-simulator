@@ -5,13 +5,12 @@ import type {
   Gw2CombatQuery,
   Gw2ConditionSample,
   Gw2CriticalChanceContributor,
-  Gw2QueryRuntime,
-  Gw2ResolvedStats
+  Gw2QueryRuntime
 } from '#gw2/platform/combat/query/combat-query.js';
+import type { Gw2ResolvedStats, Gw2Stats } from '#gw2/platform/combat/stats.js';
 import type { Gw2TimelineIndex } from '#gw2/platform/combat/query/timeline-index.js';
 import type { SimulationEvent } from '#gw2/platform/events/events.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
-import type { Gw2Stats } from '#gw2/platform/combat/types.js';
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
 import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';

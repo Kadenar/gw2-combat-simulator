@@ -3,7 +3,7 @@ import { professionStaticRulesApplied } from '#gw2/platform/builds/attribute-pro
 import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
 import { hasSelectedSkillId } from '#gw2/platform/combat/query/runtime-query.js';
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
-import type { Gw2MutableStats } from '#gw2/platform/combat/types.js';
+import type { Gw2MutableStats } from '#gw2/platform/combat/stats.js';
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
 import { readProfessionCoreState } from '#gw2/platform/profession-definition/state.js';
 import {
@@ -13,7 +13,7 @@ import {
   requireEffect
 } from '#gw2/platform/skills/balance-profiles.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
-import { buildResolverStrike } from '#gw2/platform/resolver/packets.js';
+import { buildResolverStrike } from '#gw2/platform/effects/packet-builders.js';
 import { isCorruptionCompletionEffect } from '#gw2/professions/necromancer/core/mechanics/conditions.js';
 import { grantNecromancerLifeForce } from '#gw2/professions/necromancer/core/mechanics/life-force.js';
 import { NECROMANCER_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/necromancer/core/profiles.js';

@@ -7,7 +7,7 @@ import {
   buildMesmerPacket
 } from '#gw2/professions/mesmer/core/mechanics/packets.js';
 import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
-import type { Gw2ResolvedStats } from '#gw2/platform/combat/query/combat-query.js';
+import type { Gw2ResolvedStats } from '#gw2/platform/combat/stats.js';
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import {
   balanceProfileNumber,

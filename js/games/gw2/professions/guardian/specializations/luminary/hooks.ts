@@ -14,7 +14,7 @@ import {
 import { gw2BaseRecharge } from '#gw2/platform/execution/recharge.js';
 import { armSkillFlip, consumeSkillFlip } from '#gw2/platform/execution/skill-flips.js';
 import type { NativeResolvedDamageDetails } from '#gw2/platform/profession-definition/module-types.js';
-import { buildResolverCondition } from '#gw2/platform/resolver/packets.js';
+import { buildResolverCondition } from '#gw2/platform/effects/packet-builders.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import { resetAutoattackChains } from '#gw2/platform/execution/autoattack-chains.js';
 import { lockTransitionInput } from '#gw2/platform/execution/transition-lockouts.js';

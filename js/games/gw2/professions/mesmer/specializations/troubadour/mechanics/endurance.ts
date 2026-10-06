@@ -1,4 +1,4 @@
-import type { EndurancePolicy } from '#gw2/platform/combat/resources/endurance-policy.js';
+import type { EndurancePolicy } from '#gw2/platform/combat/resources/resource-policy.js';
 import {
   activeTroubadourInstrumentsAt,
   troubadourState

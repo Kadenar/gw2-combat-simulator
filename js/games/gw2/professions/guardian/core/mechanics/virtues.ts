@@ -9,7 +9,7 @@ import {
 } from '#gw2/platform/skills/balance-profiles.js';
 import type { SkillId } from '#gw2/platform/skills/types.js';
 import type { NativeResolvedDamageDetails } from '#gw2/platform/profession-definition/module-types.js';
-import { buildResolverCondition } from '#gw2/platform/resolver/packets.js';
+import { buildResolverCondition } from '#gw2/platform/effects/packet-builders.js';
 
 import { gw2CooldownReadyAt } from '#gw2/platform/execution/cast-timing.js';
 import { GUARDIAN_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/guardian/core/profiles.js';

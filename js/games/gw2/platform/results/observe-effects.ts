@@ -10,8 +10,12 @@ import {
   buffMatchesAudience,
   type Gw2TimedBuffApplication
 } from '#gw2/platform/combat/boons.js';
-import { observeBuffState, type BuffStatePolicy, type EffectState } from '#gw2/platform/combat/effect-state.js';
-import { effectStateRevision } from '#gw2/platform/combat/effect-revisions.js';
+import {
+  observeBuffState,
+  type BuffStatePolicy,
+  type EffectState,
+  effectStateRevision
+} from '#gw2/platform/combat/effect-state.js';
 import type { Gw2ResolverConditionState } from '#gw2/platform/resolver/condition-resolution.js';
 import type { EffectReportObserver } from '#gw2/platform/results/effect-report.js';
 import type { Gw2Runtime } from '#gw2/platform/simulation/runtime-state.js';

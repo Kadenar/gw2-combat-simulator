@@ -3,7 +3,7 @@ import { SIGIL_IDS } from '#gw2/platform/equipment/sigils/data.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { defineNativeModule, defineNativeProfession } from '#gw2/platform/profession-definition/profession.js';
-import { createResourceClock, createDiscreteResourceClock } from '#gw2/platform/combat/resources/resource-policy.js';
+import { createResourceClock, createDiscreteResourceClock } from '#gw2/platform/combat/resources/clock.js';
 import { observeGw2Runtime, observedRuntime } from '#tests/helpers/observed-runtime.js';
 import { effectStateAt } from '#gw2/platform/results/effect-report.js';
 import { simulationEventLogRows } from '#gw2/app/results/event-log.js';

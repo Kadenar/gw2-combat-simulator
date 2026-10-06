@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { MODIFIER_HOOK_NAMES } from '#gw2/platform/profession-definition/compiler/compile-contract.js';
+import { MODIFIER_HOOK_NAMES } from '#gw2/platform/profession-definition/compile-contract.js';
 import { createCanonicalCatalog } from '#gw2/platform/skills/catalog.js';
 import { anchorResourceClock } from '#gw2/platform/combat/resources/clock.js';
 import { observeGw2Runtime } from '#tests/helpers/observed-runtime.js';

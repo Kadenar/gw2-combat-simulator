@@ -2,7 +2,7 @@ import { skillForEvent } from '#gw2/platform/combat/query/runtime-query.js';
 import { professionStaticRulesApplied } from '#gw2/platform/builds/attribute-provenance.js';
 import { GW2_STANDARD_BOONS } from '#gw2/platform/combat/boons.js';
 import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
-import type { Gw2NumericStatKey } from '#gw2/platform/combat/query/combat-query.js';
+import type { Gw2NumericStatKey } from '#gw2/platform/combat/stats.js';
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
 import {
@@ -11,7 +11,7 @@ import {
   requireBalanceProfileFromContext,
   requireEffect
 } from '#gw2/platform/skills/balance-profiles.js';
-import { buildResolverBuff } from '#gw2/platform/resolver/packets.js';
+import { buildResolverBuff } from '#gw2/platform/effects/packet-builders.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import { buildRangerPacket } from '#gw2/professions/ranger/core/events.js';
 import { rangerPetBaseAttributes } from '#gw2/professions/ranger/core/mechanics/pet-profiles.js';

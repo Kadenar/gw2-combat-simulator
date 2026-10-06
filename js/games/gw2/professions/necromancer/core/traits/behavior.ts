@@ -8,7 +8,7 @@ import {
 } from '#gw2/platform/skills/balance-profiles.js';
 import type { BalanceProfile } from '#gw2/platform/skills/types.js';
 import type { ConditionEffect } from '#gw2/platform/effects/types.js';
-import { buildResolverBuff, buildResolverCondition } from '#gw2/platform/resolver/packets.js';
+import { buildResolverBuff, buildResolverCondition } from '#gw2/platform/effects/packet-builders.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import { cloneNecromancerAttributes } from '#gw2/professions/necromancer/core/mechanics/modifier-queries.js';
 import { emitNecromancerShroudTrait } from '#gw2/professions/necromancer/core/mechanics/trait-effects.js';

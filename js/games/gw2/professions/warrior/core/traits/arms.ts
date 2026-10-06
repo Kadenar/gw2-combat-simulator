@@ -6,7 +6,7 @@ import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import { gw2ConfiguredWeaponSet } from '#gw2/platform/equipment/weapons/loadout.js';
 import type { MechanicContext } from '#gw2/platform/profession-definition/mechanic-context.js';
 import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
-import { buildResolverBuff } from '#gw2/platform/resolver/packets.js';
+import { buildResolverBuff } from '#gw2/platform/effects/packet-builders.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import {
   balanceProfileNumber,

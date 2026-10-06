@@ -9,7 +9,7 @@ import { evolveAttributeFactor } from '#gw2/professions/engineer/specializations
 import type { EngineerModifierContext } from '#gw2/professions/engineer/types.js';
 
 import type { Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
-import type { Gw2ResolvedStats } from '#gw2/platform/combat/query/combat-query.js';
+import type { Gw2ResolvedStats } from '#gw2/platform/combat/stats.js';
 import { AMALGAM_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/engineer/specializations/amalgam/profiles.js';
 
 // Evolved adds 10% of its eligible stat pool, or 20% with Double Helix.

@@ -1,4 +1,4 @@
-import { appliedEffectStacks, type EffectRecipient } from '#gw2/platform/combat/query/effect-query.js';
+import { appliedEffectStacks, type EffectRecipient } from '#gw2/platform/combat/query/effect-stacks.js';
 import { isDurationStackingBoon, isStandardBoon, GW2_STANDARD_BOONS } from '#gw2/platform/combat/boons.js';
 import { selectedSkillIdSet } from '#gw2/platform/builds/selected-skills.js';
 import {

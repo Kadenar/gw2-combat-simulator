@@ -1,8 +1,11 @@
 import { createRuntimeResources } from '#gw2/platform/simulation/runtime-resources.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { createResourceClock, createDiscreteResourceClock } from '#gw2/platform/combat/resources/resource-policy.js';
-import { resourceAnchor } from '#gw2/platform/combat/resources/clock.js';
+import {
+  createResourceClock,
+  createDiscreteResourceClock,
+  resourceAnchor
+} from '#gw2/platform/combat/resources/clock.js';
 // Settle each observed clock through the production resource controller.
 function advance(runtime, at) {
   runtime.time = at;

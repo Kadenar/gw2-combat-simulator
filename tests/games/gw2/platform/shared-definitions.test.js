@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { resourceAtLeast, RESOURCE_TOLERANCE } from '#gw2/platform/combat/resources/pool.js';
-import { isFlatLifeStealPacket } from '#gw2/platform/resolver/packets.js';
+import { isFlatLifeStealPacket } from '#gw2/platform/effects/packet-builders.js';
 import { createDodgeSkill, createWeaponSwapSkill, SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
 
 // Small rounding drift must not block affordability, while a real resource deficit still does.

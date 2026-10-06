@@ -1,6 +1,6 @@
 import { professionStaticRulesApplied } from '#gw2/platform/builds/attribute-provenance.js';
 import type { Gw2ModifierContext, Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
-import type { Gw2Stats } from '#gw2/platform/combat/types.js';
+import type { Gw2Stats } from '#gw2/platform/combat/stats.js';
 import { warriorBurstSkillModifiers } from '#gw2/professions/warrior/core/skills/profession-skills.js';
 import { modifySignetAttributes } from '#gw2/professions/warrior/core/skills/slot-skills.js';
 import { warriorDaggerSkillModifiers } from '#gw2/professions/warrior/core/skills/weapons/dagger.js';

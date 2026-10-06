@@ -1,7 +1,7 @@
 import { professionStaticRulesApplied } from '#gw2/platform/builds/attribute-provenance.js';
 import type { Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
-import type { Gw2NumericStatKey, Gw2ResolvedStats } from '#gw2/platform/combat/query/combat-query.js';
+import type { Gw2NumericStatKey, Gw2ResolvedStats } from '#gw2/platform/combat/stats.js';
 import { readProfessionCoreState } from '#gw2/platform/profession-definition/state.js';
 import { rangerPetByName } from '#gw2/professions/ranger/core/state.js';
 import { applyPackAlphaMerged, applyPetsProwessMerged } from '#gw2/professions/ranger/core/traits/pet-behavior.js';

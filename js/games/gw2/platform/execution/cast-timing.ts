@@ -1,5 +1,6 @@
 import { GW2_ACTION_TICK_MS, quantizeGw2ActionDurationUp } from '#gw2/platform/combat/action-tick.js';
-import type { Skill } from '#gw2/platform/skills/types.js';
+import type { Skill, SkillTask } from '#gw2/platform/skills/types.js';
+import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import { EPSILON, canonicalTime, timeKey } from '#kernel/core/clock.js';
 
 /** Quickness increases action rate by 50%, so duration is divided by 1.5. */
@@ -80,4 +81,18 @@ export function projectCastRelativeEffectTimingMs(skill: Skill, runtimeCastMs: n
   if (!(baseMs > 0) || !(referenceMs > 0)) return authoredMs;
   const baseTimelineMs = (authoredMs * baseMs) / referenceMs;
   return baseTimelineMs * (Math.max(0, runtimeCastMs) / baseMs);
+}
+
+/** Scheduling and readiness use the same cast-relative deadline, clamped to the live clock. */
+export function skillTaskAt(cast: RuntimeCast, trigger: SkillTask, now: number): number {
+  const castTimeMs = Number(cast.skill.castTimeMs);
+  const scale =
+    trigger.timingScale === 'cast' && castTimeMs > 0 ? ((cast.fullEnd - cast.start) * 1000) / castTimeMs : 1;
+  const origin =
+    trigger.timingAnchor === 'castStart'
+      ? cast.start
+      : trigger.timingAnchor === 'castCommit'
+        ? cast.effectiveEnd
+        : cast.fullEnd;
+  return canonicalTime(Math.max(now, origin + ((trigger.atMs ?? 0) * scale) / 1000));
 }

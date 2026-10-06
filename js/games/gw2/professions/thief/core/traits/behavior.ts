@@ -1,14 +1,14 @@
 import { replaceThiefBuff } from '#gw2/professions/thief/core/mechanics/buffs.js';
 import { professionStaticRulesApplied } from '#gw2/platform/builds/attribute-provenance.js';
 import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
-import type { Gw2ResolvedStats } from '#gw2/platform/combat/query/combat-query.js';
+import type { Gw2ResolvedStats } from '#gw2/platform/combat/stats.js';
 import { skillForEvent } from '#gw2/platform/combat/query/runtime-query.js';
 import { activeStackCount, grantTimedStacks } from '#gw2/platform/combat/resources/timed-stacks.js';
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import { readProfessionCoreState } from '#gw2/platform/profession-definition/state.js';
-import { isFlatLifeStealPacket } from '#gw2/platform/resolver/packets.js';
+import { isFlatLifeStealPacket } from '#gw2/platform/effects/packet-builders.js';
 import {
   balanceProfileNumber,
   effectNumber,

@@ -12,7 +12,7 @@ import {
   validateProfessionAssumptions
 } from '#gw2/platform/builds/assumptions.js';
 import { normalizeProfessionUi } from '#gw2/platform/profession-presentation/contract.js';
-import { defineProfession } from '#gw2/platform/profession-definition/compiler/compile-contract.js';
+import { defineProfession } from '#gw2/platform/profession-definition/compile-contract.js';
 import { createGw2CombatQuery } from '#gw2/platform/combat/query/combat-query.js';
 import { normalizeSelectedTraitIds } from '#gw2/platform/builds/selected-traits.js';
 import { createGw2TimelineIndex } from '#gw2/platform/combat/query/timeline-index.js';
@@ -25,7 +25,7 @@ import {
 import { engineerProfession } from '#gw2/professions/engineer/profession.js';
 import { guardianProfession } from '#gw2/professions/guardian/profession.js';
 import { necromancerProfession } from '#gw2/professions/necromancer/profession.js';
-import { isBuildSkillAvailable } from '#gw2/platform/builds/skill-eligibility.js';
+import { isBuildSkillAvailable } from '#gw2/platform/builds/selected-skills.js';
 
 test('shared build eligibility allows elite weapons while restricting slot skills and actions', () => {
   // Synthetic actions follow their skill type, so negative IDs need no separate rule.

@@ -1,7 +1,7 @@
 import type { MechanicCombatContext } from '#gw2/platform/profession-definition/mechanic-context.js';
 import { activeStackCount } from '#gw2/platform/combat/resources/timed-stacks.js';
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
-import type { Gw2Stats } from '#gw2/platform/combat/types.js';
+import type { Gw2Stats } from '#gw2/platform/combat/stats.js';
 import { readProfessionSpecializationState } from '#gw2/platform/profession-definition/state.js';
 import {
   balanceProfileNumber,
@@ -9,7 +9,7 @@ import {
   requireEffect
 } from '#gw2/platform/skills/balance-profiles.js';
 import type { BalanceProfile } from '#gw2/platform/skills/types.js';
-import { resolverSourceSkill } from '#gw2/platform/resolver/packets.js';
+import { resolverSourceSkill } from '#gw2/platform/effects/packet-builders.js';
 
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import { gw2EffectExpiresAt } from '#gw2/platform/effects/timing.js';

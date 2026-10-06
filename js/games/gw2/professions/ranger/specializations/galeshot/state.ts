@@ -2,9 +2,9 @@ import type { ActivationClaims } from '#gw2/platform/combat/activation-claims.js
 import {
   createDiscreteResourceClock,
   createResourceClock,
-  type DiscreteResourceClock,
-  type ResourcePolicy
-} from '#gw2/platform/combat/resources/resource-policy.js';
+  type DiscreteResourceClock
+} from '#gw2/platform/combat/resources/clock.js';
+import { type ResourcePolicy } from '#gw2/platform/combat/resources/resource-policy.js';
 import { requireBalanceProfileFromContext, balanceProfileNumber } from '#gw2/platform/skills/balance-profiles.js';
 import { GALESHOT_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/ranger/specializations/galeshot/profiles.js';
 import type { RangerRuntime } from '#gw2/professions/ranger/types.js';

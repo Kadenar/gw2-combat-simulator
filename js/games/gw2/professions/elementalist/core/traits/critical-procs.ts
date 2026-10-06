@@ -2,7 +2,7 @@ import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mech
 import type { MechanicCombatContext } from '#gw2/platform/profession-definition/mechanic-context.js';
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import type { NativeResolvedDamageDetails } from '#gw2/platform/profession-definition/module-types.js';
-import { resolverSourceSkill } from '#gw2/platform/resolver/packets.js';
+import { resolverSourceSkill } from '#gw2/platform/effects/packet-builders.js';
 
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 /** Core critical traits share player-hit eligibility while keeping separate accumulation and ICD state. */

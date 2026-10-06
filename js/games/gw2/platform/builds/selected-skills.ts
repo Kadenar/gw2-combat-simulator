@@ -1,4 +1,4 @@
-import type { CanonicalCatalog, SkillId } from '#gw2/platform/skills/types.js';
+import type { CanonicalCatalog, Skill, SkillId } from '#gw2/platform/skills/types.js';
 
 /** Editor slots retain empties; runtime selections are flat immutable ID snapshots. */
 export type Gw2SelectedSkillSlots = Record<string, SkillId | null>;
@@ -51,3 +51,13 @@ export function prepareSelectedSkillLoadout(
 
 /** A failed persisted selection must remain recoverable instead of being replaced with defaults. */
 export class SelectedSkillMigrationError extends TypeError {}
+
+/** Shares build eligibility across selectors, palette, and casts; Weaponmaster Training is always active. */
+export function isBuildSkillAvailable(
+  skill: Skill,
+  { specialization }: { readonly specialization?: string } = {}
+): boolean {
+  if (skill.simulatorExcluded) return false;
+  if (skill.type === 'Weapon') return true;
+  return !skill.specialization || skill.specialization === specialization;
+}

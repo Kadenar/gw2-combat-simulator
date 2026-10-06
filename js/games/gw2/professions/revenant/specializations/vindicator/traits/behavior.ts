@@ -3,7 +3,7 @@ import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
 import { playerHealthFraction } from '#gw2/platform/combat/query/runtime-query.js';
 import { resourceAtLeast } from '#gw2/platform/combat/resources/pool.js';
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
-import type { Gw2Stats } from '#gw2/platform/combat/types.js';
+import type { Gw2Stats } from '#gw2/platform/combat/stats.js';
 import {
   balanceProfileNumber,
   effectNumber,

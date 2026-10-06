@@ -7,7 +7,7 @@ import {
 import type { WarriorState } from '#gw2/professions/warrior/types.js';
 import type { SkillId } from '#gw2/platform/skills/types.js';
 import type { ResourceClock } from '#gw2/platform/combat/resources/clock.js';
-import { createResourceClock } from '#gw2/platform/combat/resources/resource-policy.js';
+import { createResourceClock } from '#gw2/platform/combat/resources/clock.js';
 
 export interface ParagonState {
   motivation: ResourceClock;

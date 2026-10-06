@@ -2,7 +2,11 @@ import type { ComboFieldType, ComboFinisherType } from '#gw2/platform/combos/typ
 import type { SimulationActorType } from '#gw2/platform/events/actors.js';
 import type { SimulationEventBase } from '#gw2/platform/events/events.js';
 import type { SkillId } from '#gw2/platform/skills/types.js';
-import { buildResolverBuff, buildResolverCondition, buildResolverStrike } from '#gw2/platform/resolver/packets.js';
+import {
+  buildResolverBuff,
+  buildResolverCondition,
+  buildResolverStrike
+} from '#gw2/platform/effects/packet-builders.js';
 import type { EngineerResolverContext, EngineerResolverEvent, EngineerSkill } from '#gw2/professions/engineer/types.js';
 
 interface QueueDamageOptions {

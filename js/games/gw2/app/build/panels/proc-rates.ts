@@ -1,4 +1,4 @@
-import { resolveProfessionContract } from '#gw2/platform/profession-definition/compiler/compile-contract.js';
+import { resolveProfessionContract } from '#gw2/platform/profession-definition/compile-contract.js';
 import { availableProcRateProfiles, normalizeProcRateOverrides } from '#gw2/platform/builds/proc-rates.js';
 import type { ProfessionAppState } from '#gw2/app/types.js';
 

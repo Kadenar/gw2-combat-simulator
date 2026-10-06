@@ -11,7 +11,7 @@ import {
 } from '#gw2/platform/skills/balance-profiles.js';
 import type { BalanceProfile } from '#gw2/platform/skills/types.js';
 import type { SkillEffect } from '#gw2/platform/effects/types.js';
-import { buildResolverBuff, buildResolverCondition } from '#gw2/platform/resolver/packets.js';
+import { buildResolverBuff, buildResolverCondition } from '#gw2/platform/effects/packet-builders.js';
 import { THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
 import type { ThiefResolverContext, ThiefResolverEvent } from '#gw2/professions/thief/types.js';
 

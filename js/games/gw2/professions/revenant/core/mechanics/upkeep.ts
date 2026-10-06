@@ -5,7 +5,7 @@ import { conditionEffectTicks, effectFirstAtMs, strikeEffectCoefficient } from '
 import { requireEffect } from '#gw2/platform/skills/balance-profiles.js';
 import { armSkillFlip, consumeSkillFlip } from '#gw2/platform/execution/skill-flips.js';
 import type { SkillId } from '#gw2/platform/skills/types.js';
-import { buildResolverCondition, buildResolverStrike } from '#gw2/platform/resolver/packets.js';
+import { buildResolverCondition, buildResolverStrike } from '#gw2/platform/effects/packet-builders.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import { gw2CooldownReadyAt } from '#gw2/platform/execution/cast-timing.js';

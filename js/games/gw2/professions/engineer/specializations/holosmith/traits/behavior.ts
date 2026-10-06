@@ -11,7 +11,7 @@ import { type HolosmithSkill } from '#gw2/professions/engineer/specializations/h
 import { grantCharges, consumeCharge } from '#gw2/platform/combat/resources/charges.js';
 import { gw2EffectExpiresAt } from '#gw2/platform/effects/timing.js';
 import { type HolosmithResolverEvent } from '#gw2/professions/engineer/specializations/holosmith/mechanics/heat-tiers.js';
-import { buildResolverCondition } from '#gw2/platform/resolver/packets.js';
+import { buildResolverCondition } from '#gw2/platform/effects/packet-builders.js';
 
 /** Replaces Lens charges only when the Forge transition's grant reaches the resolver. */
 export function handleSolarFocusingLens(context: EngineerResolverContext, event: HolosmithResolverEvent): void {

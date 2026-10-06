@@ -1,5 +1,5 @@
 import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
-import type { Gw2MutableStats, Gw2Stats } from '#gw2/platform/combat/types.js';
+import type { Gw2MutableStats, Gw2Stats } from '#gw2/platform/combat/stats.js';
 import { flameJetModifier } from '#gw2/professions/engineer/core/skills/kits/flamethrower.js';
 import { applyExplosiveTemperAttributes } from '#gw2/professions/engineer/core/traits/explosions.js';
 import {

@@ -3,7 +3,7 @@ import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import type { GuardianRuntimeState, GuardianSkill } from '#gw2/professions/guardian/types.js';
 import type { DamageEvent } from '#gw2/platform/events/events.js';
-import { buildResolverStrike } from '#gw2/platform/resolver/packets.js';
+import { buildResolverStrike } from '#gw2/platform/effects/packet-builders.js';
 import type { GuardianStrikeFields } from '#gw2/professions/guardian/types.js';
 
 /** Retains Guardian defaults and caller overrides for strikes emitted in either phase. */

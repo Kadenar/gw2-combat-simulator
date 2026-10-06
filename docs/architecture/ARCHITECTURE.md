@@ -80,7 +80,7 @@ and invalid specialization-only IDs. Weapon skills belong to Core (Weaponmaster 
 
 ### Build eligibility
 
-`platform/builds/skill-eligibility.ts` is the baseline gate: excluded skills are never selectable or castable, weapon
+`platform/builds/selected-skills.ts` (`isBuildSkillAvailable`) is the baseline gate: excluded skills are never selectable or castable, weapon
 skills are shared across specializations, and other skills need their declared specialization. Core installs it in
 runtime and palette availability for every profession; runtime rejection uses `gw2.build-unavailable` and runs before
 profession state checks. Profession callbacks only add restrictions. Equipped slots, weapon variants, resources,

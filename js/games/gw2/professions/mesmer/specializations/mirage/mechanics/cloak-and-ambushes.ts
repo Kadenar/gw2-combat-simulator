@@ -34,7 +34,7 @@ import type {
 } from '#gw2/professions/mesmer/specializations/mirage/types.js';
 import type { MesmerActivePrimaryWeapon, MesmerAmbushAttack } from '#gw2/professions/mesmer/types.js';
 
-import type { EndurancePolicy } from '#gw2/platform/combat/resources/endurance-policy.js';
+import type { EndurancePolicy } from '#gw2/platform/combat/resources/resource-policy.js';
 import { materializeSkillEffectApplications } from '#gw2/platform/effects/materializer.js';
 import { denySkillCast } from '#gw2/platform/execution/availability.js';
 import type { AvailabilityResult } from '#gw2/platform/execution/availability.js';

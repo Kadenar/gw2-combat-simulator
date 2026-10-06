@@ -8,7 +8,7 @@ import { applyRevealedTrainingAttributes } from '#gw2/professions/thief/core/tra
 import { applyNoQuarterAttributes } from '#gw2/professions/thief/core/traits/critical-boons.js';
 
 import type { Gw2ModifierContext, Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
-import type { Gw2ResolvedStats } from '#gw2/platform/combat/query/combat-query.js';
+import type { Gw2ResolvedStats } from '#gw2/platform/combat/stats.js';
 import { hasSelectedSkillId } from '#gw2/platform/combat/query/runtime-query.js';
 import { THIEF_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/thief/core/profiles.js';
 import { THIEF_SKILL_IDS as ID } from '#gw2/professions/thief/data/ids.js';

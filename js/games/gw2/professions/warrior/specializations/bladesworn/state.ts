@@ -9,7 +9,7 @@ import {
   definePublicStateDefaults,
   defineProfessionSpecializationState
 } from '#gw2/platform/profession-definition/state.js';
-import { createResourceClock } from '#gw2/platform/combat/resources/resource-policy.js';
+import { createResourceClock } from '#gw2/platform/combat/resources/clock.js';
 import type { ResourceClock } from '#gw2/platform/combat/resources/clock.js';
 
 export interface BladeswornState extends DragonTriggerState {

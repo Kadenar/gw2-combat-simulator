@@ -7,8 +7,7 @@ import type { ExecutedFactsReader, ExecutedFactsWriter } from '#gw2/platform/com
 import type { SimulationRandom } from '#kernel/core/simulation-random.js';
 import type { CooldownController } from '#gw2/platform/execution/cooldown-contracts.js';
 import type { CastControl } from '#gw2/platform/execution/cast-contracts.js';
-import type { ResourceController } from '#gw2/platform/combat/resources/resource-policy.js';
-import type { EnduranceController } from '#gw2/platform/combat/resources/endurance-policy.js';
+import type { ResourceController, EnduranceController } from '#gw2/platform/combat/resources/resource-policy.js';
 import type { EffectReactionRegistry } from '#gw2/platform/resolver/effect-reactions.js';
 import type { WorkOwner } from '#gw2/platform/simulation/work-contract.js';
 import type { FlipWindowOptions } from '#gw2/platform/execution/skill-flips.js';

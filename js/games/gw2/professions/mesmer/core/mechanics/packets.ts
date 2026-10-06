@@ -1,6 +1,6 @@
 import { conditionEffectTicks, strikeEffectTicks } from '#gw2/platform/effects/authoring.js';
 import { canonicalTargetConditionName } from '#gw2/platform/combat/state/targets.js';
-import { buildResolverCondition, buildResolverStrike } from '#gw2/platform/resolver/packets.js';
+import { buildResolverCondition, buildResolverStrike } from '#gw2/platform/effects/packet-builders.js';
 import { normalizeEffectMetadata } from '#gw2/platform/effects/audience-metadata-validation.js';
 import type { SimulationEventBase } from '#gw2/platform/events/events.js';
 import type { SimulationActorType } from '#gw2/platform/events/actors.js';

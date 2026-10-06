@@ -4,7 +4,7 @@ import {
   requireBalanceProfileFromContext,
   requireEffect
 } from '#gw2/platform/skills/balance-profiles.js';
-import { buildResolverCondition } from '#gw2/platform/resolver/packets.js';
+import { buildResolverCondition } from '#gw2/platform/effects/packet-builders.js';
 import { THIEF_SKILL_IDS as ID } from '#gw2/professions/thief/data/ids.js';
 import { antiquaryState } from '#gw2/professions/thief/specializations/antiquary/state.js';
 import { applyMeticulousSunCrystal } from '#gw2/professions/thief/specializations/antiquary/traits/meticulous-custodian.js';

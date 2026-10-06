@@ -47,7 +47,7 @@ selects eligible reactions without importing simulation construction or acquirin
 
 `simulation/work-contract.ts` declares internal task data and lifetime generations. `simulation/internal-work.ts`
 constructs validated detached work. Execution/delivery receive that factory through their host contracts. Generation
-cancellation must not erase committed projectiles. `execution/task-timing.ts` owns cast-relative task deadlines.
+cancellation must not erase committed projectiles. `execution/cast-timing.ts` owns cast-relative task deadlines.
 
 `combat/history/executed-facts.ts` is the gameplay history in every output mode. Its factory returns separate readers
 and writers. Mechanic queries receive only `facts`; registered mechanic handlers receive the explicit `observations`
@@ -61,7 +61,7 @@ catalog references; `effects/validation.ts` validates effect payloads and canoni
 normalization belongs to `skills/external-skill-ids.ts`; these mappings are domain data, not obsolete module aliases.
 
 `profession-definition/profession.ts` is the public native compiler. Its internal contract compilation stage lives in
-`profession-definition/compiler/`; public state helpers remain in `profession-definition/state.ts`.
+`profession-definition/compile-contract.ts`; public state helpers remain in `profession-definition/state.ts`.
 `runtime-contract.ts` declares the compiled runtime; `family-contract.ts` joins runtime, build, and lazy UI surfaces.
 Authoring contracts never import the aggregate `Gw2Runtime`.
 

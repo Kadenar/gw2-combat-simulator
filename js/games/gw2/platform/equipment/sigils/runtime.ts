@@ -5,6 +5,9 @@ import { createSigilConditionEvent, createSigilStrikeEvent } from '#gw2/platform
 import type { MechanicContext } from '#gw2/platform/profession-definition/mechanic-context.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import type { Gw2SigilProc, Gw2SigilRuntimeState } from '#gw2/platform/equipment/sigils/types.js';
+import { SEVERANCE_BUFF_POLICY } from '#gw2/platform/equipment/sigils/severance.js';
+import type { BuffStatePolicy } from '#gw2/platform/combat/effect-state.js';
+import type { Gw2Config } from '#gw2/platform/simulation/config.js';
 
 const procs = SIGIL_PROCS as Readonly<Record<number, Gw2SigilProc>>;
 
@@ -119,4 +122,11 @@ export function applyRuntimeSigils(
       }
     });
   }
+}
+
+/** Register both configured sets for the run so swapping cannot retire an active effect's owner. */
+export function sigilBuffPolicies(config: Gw2Config): readonly BuffStatePolicy[] {
+  return Object.freeze(
+    [1, 2].some((set) => gw2SigilIds(config, set).includes(SIGIL_IDS.SEVERANCE)) ? [SEVERANCE_BUFF_POLICY] : []
+  );
 }

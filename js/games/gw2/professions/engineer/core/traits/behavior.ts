@@ -18,7 +18,7 @@ import { buildEngineerBuff } from '#gw2/professions/engineer/core/mechanics/reso
 import { isInternalCooldownReady } from '#gw2/platform/combat/procs.js';
 import { professionStaticRulesApplied } from '#gw2/platform/builds/attribute-provenance.js';
 import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
-import type { Gw2MutableStats, Gw2Stats } from '#gw2/platform/combat/types.js';
+import type { Gw2MutableStats, Gw2Stats } from '#gw2/platform/combat/stats.js';
 import {
   activeBoonStacks,
   engineerEvent,

@@ -6,7 +6,7 @@ import {
   buildResolverCondition,
   buildResolverStrike,
   resolverSourceSkill
-} from '#gw2/platform/resolver/packets.js';
+} from '#gw2/platform/effects/packet-builders.js';
 import {
   buildEngineerCondition,
   buildEngineerStrike

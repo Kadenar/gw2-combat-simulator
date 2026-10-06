@@ -2,7 +2,7 @@ import type { DeadeyeState } from '#gw2/professions/thief/specializations/deadey
 import type { EvokerState } from '#gw2/professions/elementalist/specializations/evoker/state.js';
 import type { WarriorCoreState } from '#gw2/professions/warrior/core/state.js';
 import type { BladeswornState } from '#gw2/professions/warrior/specializations/bladesworn/state.js';
-import { createDiscreteResourceClock } from '#gw2/platform/combat/resources/resource-policy.js';
+import { createDiscreteResourceClock } from '#gw2/platform/combat/resources/clock.js';
 import {
   definePublicStateDefaults,
   defineProfessionSpecializationState,

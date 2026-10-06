@@ -6,7 +6,7 @@ import { createSigilConditionEvent, createSigilStrikeEvent } from '#gw2/platform
 import type { Gw2SigilProc } from '#gw2/platform/equipment/sigils/types.js';
 import type { SimulationEventBase } from '#gw2/platform/events/events.js';
 import type { Gw2ProfessionSource } from '#gw2/platform/profession-definition/family-contract.js';
-import { createCriticalFoodEffect } from '#gw2/platform/resolver/equipment-reactions.js';
+import { createCriticalFoodEffect } from '#gw2/platform/equipment/consumables/food-procs.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
 import type { Gw2Runtime } from '#gw2/platform/simulation/runtime-state.js';
 import { runRuntime } from '#gw2/platform/simulation/runtime.js';

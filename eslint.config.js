@@ -162,7 +162,7 @@ export default [
       'js/games/gw2/platform/builds/{codec,assumptions,attributes}.ts',
       'js/games/gw2/platform/combat/modifiers.ts',
       'js/games/gw2/platform/combos/{definitions,descriptors}.ts',
-      'js/games/gw2/platform/profession-definition/compiler/compile-contract.ts',
+      'js/games/gw2/platform/profession-definition/compile-contract.ts',
       'js/games/gw2/platform/skills/{catalog,validation}.ts',
       'js/games/gw2/platform/effects/{validation,action-validation}.ts',
       'js/games/gw2/platform/profession-definition/profession.ts',

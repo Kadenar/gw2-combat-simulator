@@ -1,16 +1,15 @@
 import type { Skill } from '#gw2/platform/skills/types.js';
 
 import { normalizeProfessionBuild } from '#gw2/platform/builds/profession-build.js';
-import { isBuildSkillAvailable } from '#gw2/platform/builds/skill-eligibility.js';
+import { isBuildSkillAvailable } from '#gw2/platform/builds/selected-skills.js';
 import type { Gw2Build, Gw2TraitBuildAttributeCalculator } from '#gw2/platform/builds/types.js';
 import { compileGw2ModifierRules } from '#gw2/platform/combat/modifiers.js';
-import type { EndurancePolicy } from '#gw2/platform/combat/resources/endurance-policy.js';
-import type { ResourcePolicies } from '#gw2/platform/combat/resources/resource-policy.js';
+import type { EndurancePolicy, ResourcePolicies } from '#gw2/platform/combat/resources/resource-policy.js';
 import {
   MODIFIER_HOOK_NAMES,
   assertDefinition,
   defineProfession
-} from '#gw2/platform/profession-definition/compiler/compile-contract.js';
+} from '#gw2/platform/profession-definition/compile-contract.js';
 import type {
   NormalizedProfessionContract,
   ProfessionHook,

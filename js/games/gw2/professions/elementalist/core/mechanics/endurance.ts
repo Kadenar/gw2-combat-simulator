@@ -7,7 +7,7 @@ import type { ElementalistRuntime } from '#gw2/professions/elementalist/types.js
 
 import { ELEMENTALIST_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/elementalist/core/profile-ids.js';
 
-import type { EndurancePolicy } from '#gw2/platform/combat/resources/endurance-policy.js';
+import type { EndurancePolicy } from '#gw2/platform/combat/resources/resource-policy.js';
 import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
 
 /** Resolves Elementalist's profile-aware endurance rate while leaving shared arithmetic to the GW2 primitive. */

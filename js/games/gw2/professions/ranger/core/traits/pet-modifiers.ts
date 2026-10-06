@@ -1,7 +1,7 @@
 import { activeBuff } from '#gw2/professions/ranger/core/traits/modifier-queries.js';
 import type { Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
-import type { Gw2NumericStatKey, Gw2ResolvedStats } from '#gw2/platform/combat/query/combat-query.js';
+import type { Gw2NumericStatKey, Gw2ResolvedStats } from '#gw2/platform/combat/stats.js';
 import {
   applyArachnophobiaPetAttributes,
   applyWellspringPetAttributes

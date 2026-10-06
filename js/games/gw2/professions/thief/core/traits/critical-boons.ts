@@ -5,7 +5,7 @@ import {
   remainingDurationStackSeconds
 } from '#gw2/platform/combat/boons.js';
 import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
-import type { Gw2ResolvedStats } from '#gw2/platform/combat/query/combat-query.js';
+import type { Gw2ResolvedStats } from '#gw2/platform/combat/stats.js';
 import { missesTarget } from '#gw2/platform/combat/state/targets.js';
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import {
@@ -18,7 +18,7 @@ import type { SkillId } from '#gw2/platform/skills/types.js';
 import type { ResolvedCriticalHitOptions } from '#gw2/platform/profession-definition/critical-proc-handler.js';
 import { criticalProcHandler } from '#gw2/platform/profession-definition/critical-proc-handler.js';
 import type { NativeResolvedDamageDetails } from '#gw2/platform/profession-definition/module-types.js';
-import { buildResolverBuff } from '#gw2/platform/resolver/packets.js';
+import { buildResolverBuff } from '#gw2/platform/effects/packet-builders.js';
 import { THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
 import type { ThiefResolverContext, ThiefResolverEvent } from '#gw2/professions/thief/types.js';
 

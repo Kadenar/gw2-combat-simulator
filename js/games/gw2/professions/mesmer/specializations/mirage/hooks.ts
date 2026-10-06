@@ -6,7 +6,7 @@ import {
 } from '#gw2/professions/mesmer/family-mechanics.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import type { SkillTask } from '#gw2/platform/skills/types.js';
-import { skillTaskAt } from '#gw2/platform/execution/task-timing.js';
+import { skillTaskAt } from '#gw2/platform/execution/cast-timing.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import { mesmerCastDelivery } from '#gw2/professions/mesmer/core/execution/cast-lifecycle.js';
 import { triggerDeceptiveEvasion } from '#gw2/professions/mesmer/core/traits/dueling.js';

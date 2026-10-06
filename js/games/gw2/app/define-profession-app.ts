@@ -17,7 +17,7 @@ import type { DefineProfessionAppOptions, Gw2AppAdapter } from '#gw2/app/types.j
 import { withActivePatchPreview } from '#gw2/integrations/patches/active-profession.js';
 import { createCalculateAttributes } from '#gw2/platform/builds/attributes.js';
 import { createDefaultTargetConditions as createSharedDefaultTargetConditions } from '#gw2/platform/builds/default-target-conditions.js';
-import { isBuildSkillAvailable } from '#gw2/platform/builds/skill-eligibility.js';
+import { isBuildSkillAvailable } from '#gw2/platform/builds/selected-skills.js';
 import type { Gw2Build, ProfessionAssumptionControl } from '#gw2/platform/builds/types.js';
 import type { CatalogEntity, Skill, SkillId } from '#gw2/platform/skills/types.js';
 import { RELIC_NAMES } from '#gw2/platform/equipment/relics/catalog.js';

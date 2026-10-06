@@ -3,10 +3,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { defineNativeModule, defineNativeProfession } from '#gw2/platform/profession-definition/profession.js';
 import { normalizeProfessionUi } from '#gw2/platform/profession-presentation/contract.js';
-import {
-  createEventReactions,
-  defineProfession
-} from '#gw2/platform/profession-definition/compiler/compile-contract.js';
+import { createEventReactions, defineProfession } from '#gw2/platform/profession-definition/compile-contract.js';
 
 // Profession contracts provide neutral defaults and deterministic hooks for every implementation.
 test('profession contract supplies defaults and deterministic hook ordering', () => {

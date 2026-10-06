@@ -10,7 +10,7 @@ import type { MaximumAmmoContext } from '#gw2/platform/profession-definition/run
 import type { TraitDefinition } from '#gw2/platform/profession-definition/traits.js';
 import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
 import { compileRechargeRules } from '#gw2/platform/profession-definition/trigger-rules.js';
-import { buildResolverCondition } from '#gw2/platform/resolver/packets.js';
+import { buildResolverCondition } from '#gw2/platform/effects/packet-builders.js';
 import {
   balanceProfileNumber,
   requireBalanceProfileFromContext,

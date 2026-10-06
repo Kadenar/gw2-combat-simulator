@@ -2,7 +2,7 @@
 import { activeBuffStacks } from '#gw2/platform/combat/query/runtime-query.js';
 import { boonActive, countActiveBoons, skillForEvent } from '#gw2/platform/combat/query/runtime-query.js';
 import { gw2ConfiguredWeaponSet } from '#gw2/platform/equipment/weapons/loadout.js';
-import type { Gw2MutableStats } from '#gw2/platform/combat/types.js';
+import type { Gw2MutableStats } from '#gw2/platform/combat/stats.js';
 import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
 
 export type WarriorModifierAttributes = Gw2MutableStats & {

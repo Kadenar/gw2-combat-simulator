@@ -1,15 +1,14 @@
 import { resourceAtLeast } from '#gw2/platform/combat/resources/pool.js';
 import { canonicalTime, EPSILON } from '#kernel/core/clock.js';
-import { anchorResourceClock } from '#gw2/platform/combat/resources/clock.js';
 import {
+  anchorResourceClock,
   advanceResource,
   resourceAt,
   resourceRecoveryReadyAt,
-  type DiscreteResourceClock,
-  type ResourceController,
-  type ResourceKey
-} from '#gw2/platform/combat/resources/resource-policy.js';
-import type { EnduranceController } from '#gw2/platform/combat/resources/endurance-policy.js';
+  type DiscreteResourceClock
+} from '#gw2/platform/combat/resources/clock.js';
+import { type ResourceController, type ResourceKey } from '#gw2/platform/combat/resources/resource-policy.js';
+import type { EnduranceController } from '#gw2/platform/combat/resources/resource-policy.js';
 import {
   advanceEnduranceIntervals,
   enduranceIntervalsReadyAt,

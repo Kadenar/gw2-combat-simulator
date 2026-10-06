@@ -16,7 +16,7 @@ import {
 } from '#gw2/platform/profession-definition/state.js';
 import type { ElementalistConfig } from '#gw2/professions/elementalist/build/types.js';
 import { ELEMENTALIST_ATTUNEMENTS, type ElementalistAttunement } from '#gw2/professions/elementalist/core/state.js';
-import { createResourceClock } from '#gw2/platform/combat/resources/resource-policy.js';
+import { createResourceClock } from '#gw2/platform/combat/resources/clock.js';
 import type { ResourceClock } from '#gw2/platform/combat/resources/clock.js';
 
 /** Per-simulation Evoker state carried across every cast, deadline, and accepted impact. */

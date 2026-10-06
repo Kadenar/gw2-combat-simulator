@@ -1,6 +1,5 @@
 import { SelectedSkillMigrationError } from '#gw2/platform/builds/selected-skills.js';
-import { normalizeRotation } from '#gw2/platform/execution/rotation.js';
-import { validateRotationCommand } from '#gw2/platform/execution/rotation-validation.js';
+import { normalizeRotation, validateRotationCommand } from '#gw2/platform/execution/rotation.js';
 import { FOOD_NAMES } from '#gw2/platform/equipment/consumables/food.js';
 import { GEAR_SLOTS } from '#gw2/platform/equipment/gear/slots.js';
 import { GEAR_STATS } from '#gw2/platform/equipment/gear/prefixes/data.js';

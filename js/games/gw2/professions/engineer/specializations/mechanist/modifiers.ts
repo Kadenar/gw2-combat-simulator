@@ -3,7 +3,7 @@ import { professionStaticRulesApplied } from '#gw2/platform/builds/attribute-pro
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import { MIGHT_ATTRIBUTE_BONUS_PER_STACK } from '#gw2/platform/combat/boons.js';
 import type { Gw2ModifierContext, Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
-import type { Gw2MutableStats, Gw2Stats } from '#gw2/platform/combat/types.js';
+import type { Gw2MutableStats, Gw2Stats } from '#gw2/platform/combat/stats.js';
 import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import { noScopeBoonFerocity } from '#gw2/professions/engineer/core/traits/behavior.js';
 import { activeBoonStacks } from '#gw2/professions/engineer/core/traits/query-helpers.js';

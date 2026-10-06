@@ -1,5 +1,5 @@
 import { skillFlipVisible } from '#gw2/platform/execution/skill-flips.js';
-import { isBuildSkillAvailable } from '#gw2/platform/builds/skill-eligibility.js';
+import { isBuildSkillAvailable } from '#gw2/platform/builds/selected-skills.js';
 import type { SimulationTooltip } from '#gw2/app/shared/simulation-tooltip.js';
 import {
   rotationHotkeyActionForSkillName,

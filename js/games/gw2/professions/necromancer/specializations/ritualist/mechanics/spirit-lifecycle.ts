@@ -3,7 +3,7 @@ import type { SimulationEventBase } from '#gw2/platform/events/events.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import type { SkillId } from '#gw2/platform/skills/types.js';
 import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
-import { buildResolverStrike } from '#gw2/platform/resolver/packets.js';
+import { buildResolverStrike } from '#gw2/platform/effects/packet-builders.js';
 import { registerNecromancerShroudLifecycle } from '#gw2/professions/necromancer/core/mechanics/shroud-lifecycle.js';
 import { runCreatureSummonReactions } from '#gw2/professions/necromancer/core/mechanics/state-helpers.js';
 import { spiritFields } from '#gw2/professions/necromancer/specializations/ritualist/mechanics/attribution.js';

@@ -1,5 +1,4 @@
-import type { EnduranceController } from '#gw2/platform/combat/resources/endurance-policy.js';
-import type { ResourceController } from '#gw2/platform/combat/resources/resource-policy.js';
+import type { EnduranceController, ResourceController } from '#gw2/platform/combat/resources/resource-policy.js';
 import type { CastControl, RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import type { RotationCursor } from '#gw2/platform/execution/rotation-cursor.js';
 import type { FlipWindowOptions, SkillFlipWindow } from '#gw2/platform/execution/skill-flips.js';

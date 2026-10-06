@@ -1,8 +1,7 @@
 import type { ProfessionBuildDefinition } from '#gw2/platform/builds/types.js';
 import type { Gw2ModifierContext, Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
-import type { EndurancePolicy } from '#gw2/platform/combat/resources/endurance-policy.js';
-import type { ResourcePolicies } from '#gw2/platform/combat/resources/resource-policy.js';
-import type { Gw2Stats } from '#gw2/platform/combat/types.js';
+import type { EndurancePolicy, ResourcePolicies } from '#gw2/platform/combat/resources/resource-policy.js';
+import type { Gw2Stats } from '#gw2/platform/combat/stats.js';
 import type { Gw2WeaponSkillMatcher } from '#gw2/platform/equipment/weapons/types.js';
 import type { ProfessionUiContract } from '#gw2/platform/profession-presentation/types.js';
 import type { AutoattackChainOptions } from '#gw2/platform/skills/catalog.js';

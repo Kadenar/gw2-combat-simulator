@@ -14,7 +14,7 @@ import type { BalanceProfile } from '#gw2/platform/skills/types.js';
 import type { StatusEffect } from '#gw2/platform/effects/types.js';
 import type { ConditionEffect, StrikeEffect } from '#gw2/platform/effects/types.js';
 import type { AvailabilityResult } from '#gw2/platform/execution/availability.js';
-import { buildResolverCondition, buildResolverStrike } from '#gw2/platform/resolver/packets.js';
+import { buildResolverCondition, buildResolverStrike } from '#gw2/platform/effects/packet-builders.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import {
   isPlayerStrike,

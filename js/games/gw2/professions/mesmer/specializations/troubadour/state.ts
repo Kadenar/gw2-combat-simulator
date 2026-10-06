@@ -1,6 +1,6 @@
 import type { Gw2PlanningStateInput } from '#gw2/platform/results/types.js';
 import { snapshotProfessionState } from '#gw2/platform/profession-definition/state.js';
-import { createResourceClock } from '#gw2/platform/combat/resources/resource-policy.js';
+import { createResourceClock } from '#gw2/platform/combat/resources/clock.js';
 import type { ResourceClock } from '#gw2/platform/combat/resources/clock.js';
 import { defineProfessionSpecializationState } from '#gw2/platform/profession-definition/state.js';
 import { canonicalTime } from '#kernel/core/clock.js';

@@ -1,7 +1,10 @@
 import { resourcePolicies, validateResourcePolicies } from '#gw2/platform/combat/resources/resource-policy.js';
-import type { ProfessionConfig } from '#gw2/platform/profession-definition/types.js';
+import type {
+  ProfessionConfig,
+  NormalizedProfessionContract,
+  ProfessionDefinition
+} from '#gw2/platform/profession-definition/types.js';
 import type { ProfessionFamilyContract } from '#gw2/platform/profession-definition/family-contract.js';
-import type { NormalizedProfessionContract, ProfessionDefinition } from '#gw2/platform/profession-definition/types.js';
 import { createCanonicalCatalog } from '#gw2/platform/skills/catalog.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
 import type { DynamicFields } from '#kernel/core/dynamic-fields.js';

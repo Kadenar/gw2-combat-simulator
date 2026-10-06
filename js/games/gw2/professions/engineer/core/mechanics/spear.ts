@@ -8,7 +8,7 @@ import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-h
 import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
 import type { AvailabilityResult } from '#gw2/platform/execution/availability.js';
 import { denySkillCast as denyEngineerCast } from '#gw2/platform/execution/availability.js';
-import { buildResolverCondition } from '#gw2/platform/resolver/packets.js';
+import { buildResolverCondition } from '#gw2/platform/effects/packet-builders.js';
 import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
 import {
   buildEngineerCondition,

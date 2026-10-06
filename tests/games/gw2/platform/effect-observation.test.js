@@ -1,11 +1,10 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { applyBoonExtension, isStandardBoon, recordBuffApplication } from '#gw2/platform/combat/boons.js';
-import { effectStateValue, timedEffectState } from '#gw2/platform/combat/effect-state.js';
+import { effectStateValue, timedEffectState, reviseEffectState } from '#gw2/platform/combat/effect-state.js';
 import { captureRuntimeEffects, observeRuntimeEffects } from '#gw2/platform/results/observe-effects.js';
-import { reviseEffectState } from '#gw2/platform/combat/effect-revisions.js';
 import { EffectRecorder, effectStateAt } from '#gw2/platform/results/effect-report.js';
-import { sigilBuffPolicies } from '#gw2/platform/equipment/sigils/effect-state.js';
+import { sigilBuffPolicies } from '#gw2/platform/equipment/sigils/runtime.js';
 import { chronomancerBuffPolicies } from '#gw2/professions/mesmer/specializations/chronomancer/effect-state.js';
 
 const audience = {

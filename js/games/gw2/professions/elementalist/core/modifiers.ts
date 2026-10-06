@@ -1,5 +1,5 @@
 import { activeBuffStacks } from '#gw2/platform/combat/query/runtime-query.js';
-import type { Gw2MutableStats, Gw2Stats } from '#gw2/platform/combat/types.js';
+import type { Gw2MutableStats, Gw2Stats } from '#gw2/platform/combat/stats.js';
 import { wieldedConjure } from '#gw2/professions/elementalist/core/mechanics/modifier-queries.js';
 import { applyAirTraitAttributes } from '#gw2/professions/elementalist/core/traits/air.js';
 import { applyArcaneTraitAttributes } from '#gw2/professions/elementalist/core/traits/arcane.js';

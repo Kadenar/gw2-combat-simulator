@@ -301,8 +301,8 @@ are relative to `js/games/gw2/platform/`.
 | `profession-definition/runtime-hooks.ts`             | Explicit mechanic contribution surface and ordered composition                                                    |
 | `profession-definition/runtime-context.ts`           | Narrow author capabilities; selected content for effect ownership and read-only profession state for cast details |
 | `results/project-runtime.ts`                         | Projection of settled damage, score, and detailed results                                                         |
-| `execution/cast-lifecycle.ts`                        | Reservation identity/storage primitive used by cast execution                                                     |
-| `execution/effect-commit.ts`                         | Effect scheduling and interruption filtering                                                                      |
+| `execution/cast-reservations.ts`                     | Reservation identity/storage primitive used by cast execution                                                     |
+| `execution/cast-effects.ts`                          | Effect variant selection and interruption filtering                                                               |
 | `execution/cooldowns.ts`                             | Cooldown and ammo state transitions                                                                               |
 | `events/actors.ts`                                   | Shared actor types and validation vocabulary                                                                      |
 | `effects/authoring.ts`                               | Effect constructors and authored packet readers                                                                   |
@@ -310,7 +310,7 @@ are relative to `js/games/gw2/platform/`.
 | `skills/catalog.ts`                                  | Immutable catalog assembly and indexing                                                                           |
 | `profession-definition/assemble-module-catalog.ts`   | Native Core/elite catalog ownership and assembly                                                                  |
 | `profession-definition/profession.ts`                | Native Core/elite selection, state/modifier composition, and lazy UI                                              |
-| `profession-definition/compiler/compile-contract.ts` | Runtime hook normalization and query-contract resolution                                                          |
+| `profession-definition/compile-contract.ts`          | Runtime hook normalization and query-contract resolution                                                          |
 | `profession-presentation/`                           | UI composition, normalization, and presentation types                                                             |
 | `builds/profession-build.ts`                         | Build callback validation and defaults                                                                            |
 | `resolver/handler-registry.ts`                       | Exclusive resolver event-handler ownership                                                                        |

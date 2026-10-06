@@ -8,7 +8,7 @@ import type {
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import type { BalanceProfile } from '#gw2/platform/skills/types.js';
 import { consumeCharge, grantCharges } from '#gw2/platform/combat/resources/charges.js';
-import { resolverSourceSkill } from '#gw2/platform/resolver/packets.js';
+import { resolverSourceSkill } from '#gw2/platform/effects/packet-builders.js';
 import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
 import {
   balanceProfileNumber,

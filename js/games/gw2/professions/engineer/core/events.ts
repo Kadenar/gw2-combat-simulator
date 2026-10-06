@@ -1,4 +1,4 @@
-import { splitStrikeHits } from '#gw2/platform/effects/procedural-packets.js';
+import { splitStrikeHits } from '#gw2/platform/effects/packet-builders.js';
 import type { SimulationEventBase } from '#gw2/platform/events/events.js';
 import type { EngineerSkill } from '#gw2/professions/engineer/types.js';
 

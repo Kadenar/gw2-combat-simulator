@@ -6,7 +6,7 @@ import {
 import { professionStaticRulesApplied } from '#gw2/platform/builds/attribute-provenance.js';
 
 import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
-import type { Gw2ResolvedStats } from '#gw2/platform/combat/query/combat-query.js';
+import type { Gw2ResolvedStats } from '#gw2/platform/combat/stats.js';
 
 function modifySpecterAttributes(context: Gw2ModifierContext, attributes: Gw2ResolvedStats): Gw2ResolvedStats {
   if (professionStaticRulesApplied(context.config)) return attributes;

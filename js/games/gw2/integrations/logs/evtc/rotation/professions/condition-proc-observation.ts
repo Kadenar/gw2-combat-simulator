@@ -3,7 +3,7 @@ import { balanceProfileNumber, effectNumber } from '#gw2/platform/skills/balance
 import { gw2ConditionDurationMultiplier } from '#gw2/platform/combat/formulas.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
 import type { Gw2SigilSet } from '#gw2/platform/equipment/sigils/types.js';
-import type { Gw2Stats } from '#gw2/platform/combat/types.js';
+import type { Gw2Stats } from '#gw2/platform/combat/stats.js';
 import {
   EVTC_ACTIVATION,
   EVTC_STATE_CHANGE,

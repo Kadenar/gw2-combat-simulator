@@ -1,4 +1,4 @@
-import { createResourceClock } from '#gw2/platform/combat/resources/resource-policy.js';
+import { createResourceClock } from '#gw2/platform/combat/resources/clock.js';
 import { grantCharges } from '#gw2/platform/combat/resources/charges.js';
 import { clamp } from '#kernel/core/numeric.js';
 import type { NecromancerConfig } from '#gw2/professions/necromancer/types.js';

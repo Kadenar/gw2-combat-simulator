@@ -4,7 +4,7 @@ import test from 'node:test';
 import { defaultSimulationConfig } from '#tests/helpers/fixture-harness-core.js';
 import { simulateMesmer } from '#tests/helpers/mesmer-simulation.js';
 import { createGw2CombatQuery } from '#gw2/platform/combat/query/combat-query.js';
-import { resolveProfessionContract } from '#gw2/platform/profession-definition/compiler/compile-contract.js';
+import { resolveProfessionContract } from '#gw2/platform/profession-definition/compile-contract.js';
 import { skillBreakdownRows } from '#gw2/app/results/skill-breakdown.js';
 import { MESMER_SKILL_IDS as ID, MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
 import { mesmerProfession } from '#gw2/professions/mesmer/profession.js';

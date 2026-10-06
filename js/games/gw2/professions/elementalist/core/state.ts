@@ -1,4 +1,4 @@
-import { createResourceClock } from '#gw2/platform/combat/resources/resource-policy.js';
+import { createResourceClock } from '#gw2/platform/combat/resources/clock.js';
 import type { ResourceClock } from '#gw2/platform/combat/resources/clock.js';
 import type { ElementalistRuntime } from '#gw2/professions/elementalist/types.js';
 import { requireBalanceNumber } from '#gw2/platform/effects/validation.js';

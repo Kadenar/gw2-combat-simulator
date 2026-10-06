@@ -15,11 +15,11 @@ import {
   appendChargeGrant,
   grantCharges
 } from '#gw2/platform/combat/resources/charges.js';
-import { buildResolverCondition } from '#gw2/platform/resolver/packets.js';
+import { buildResolverCondition } from '#gw2/platform/effects/packet-builders.js';
 import { isPlayerStrike } from '#gw2/professions/ranger/core/mechanics/resolution-helpers.js';
 
 import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
-import type { Gw2ResolvedStats } from '#gw2/platform/combat/query/combat-query.js';
+import type { Gw2ResolvedStats } from '#gw2/platform/combat/stats.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import type { SimulationEventBase } from '#gw2/platform/events/events.js';
 import { rangerPetCompanionId } from '#gw2/professions/ranger/core/mechanics/pets.js';

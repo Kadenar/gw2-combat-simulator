@@ -1,4 +1,4 @@
-import { reviseEffectState } from '#gw2/platform/combat/effect-revisions.js';
+import { reviseEffectState } from '#gw2/platform/combat/effect-state.js';
 import type { Gw2ConditionCalculation, SimulationEventBase } from '#gw2/platform/events/events.js';
 import { CONDITION_FORMULAS, conditionTickDamage } from '#gw2/platform/combat/formulas.js';
 import type { Gw2ModifierContribution } from '#gw2/platform/combat/modifiers.js';

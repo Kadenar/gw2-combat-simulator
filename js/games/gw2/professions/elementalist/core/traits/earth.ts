@@ -2,11 +2,11 @@ import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { hasSelectedSkillId, targetConditionActive } from '#gw2/platform/combat/query/runtime-query.js';
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
-import type { Gw2MutableStats } from '#gw2/platform/combat/types.js';
+import type { Gw2MutableStats } from '#gw2/platform/combat/stats.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import type { MechanicCombatContext, MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
 import { defineTrait, traitAttributeEffects } from '#gw2/platform/profession-definition/traits.js';
-import { resolverSourceSkill } from '#gw2/platform/resolver/packets.js';
+import { resolverSourceSkill } from '#gw2/platform/effects/packet-builders.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import {
   balanceProfileNumber,

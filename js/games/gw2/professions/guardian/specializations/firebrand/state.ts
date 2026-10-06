@@ -1,8 +1,5 @@
 import { grantCharges, type ChargeGrant } from '#gw2/platform/combat/resources/charges.js';
-import {
-  createDiscreteResourceClock,
-  type DiscreteResourceClock
-} from '#gw2/platform/combat/resources/resource-policy.js';
+import { createDiscreteResourceClock, type DiscreteResourceClock } from '#gw2/platform/combat/resources/clock.js';
 import {
   defineProfessionSpecializationState,
   definePublicStateDefaults

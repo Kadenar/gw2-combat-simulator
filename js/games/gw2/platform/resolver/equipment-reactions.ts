@@ -1,13 +1,13 @@
 import { isStandardBoon } from '#gw2/platform/combat/boons.js';
 import { skillForEvent } from '#gw2/platform/combat/query/runtime-query.js';
 import { isGw2PlayerActorEvent } from '#gw2/platform/combat/state/event-ownership.js';
-import { FOOD_DATA, NOURISHMENT_ICON } from '#gw2/platform/equipment/consumables/food.js';
 import { invokeRelicHook } from '#gw2/platform/equipment/relics/runtime.js';
 import { decideCriticalSigils } from '#gw2/platform/equipment/sigils/critical-procs.js';
 import { SIGIL_BY_ID, SIGIL_PROCS } from '#gw2/platform/equipment/sigils/data.js';
 import { gw2SigilIds } from '#gw2/platform/equipment/sigils/loadout.js';
 import { createCriticalSigilEvent } from '#gw2/platform/equipment/sigils/proc-events.js';
 import { criticalProcHandler } from '#gw2/platform/profession-definition/critical-proc-handler.js';
+import { createCriticalFoodEffect, criticalFoodProc } from '#gw2/platform/equipment/consumables/food-procs.js';
 
 import type { Gw2ConditionHelpers } from '#gw2/platform/equipment/relics/types.js';
 import type { Gw2SigilProc } from '#gw2/platform/equipment/sigils/types.js';
@@ -25,34 +25,12 @@ const GW2_REACTION_ORDER = Object.freeze({
 
 const SIGIL_PROC_LOOKUP = SIGIL_PROCS as Readonly<Record<number, Gw2SigilProc>>;
 
-interface CriticalFoodEffect {
-  readonly type: 'boon' | 'condition';
-  readonly name: string;
-  readonly stacks: number;
-  readonly duration: number;
-}
-
-interface CriticalFoodProc {
-  readonly type: string;
-  readonly chance: number;
-  readonly icdMs?: number;
-  readonly flatDamage?: number;
-  readonly name: string;
-  readonly dayEffect?: CriticalFoodEffect;
-  readonly nightEffect?: CriticalFoodEffect;
-}
-
 function conditionHelpers(context: Gw2ResolverRuntime, details: Record<string, unknown>): Gw2ConditionHelpers {
   const activeConditionStackCount =
     details.activeConditionStackCount as Gw2ConditionResolution['activeConditionStackCount'];
   return {
     activeConditionStackCount: (_relicContext, condition, at) => activeConditionStackCount(context, condition, at)
   };
-}
-
-function criticalFoodProc(ctx: Gw2ResolverRuntime): CriticalFoodProc | undefined {
-  const proc = FOOD_DATA[ctx.config.food || '']?.proc as CriticalFoodProc | undefined;
-  return proc?.type === 'critStrike' ? proc : undefined;
 }
 
 /** Accepted hits claim critical sigils from the shared sampled outcome and live ICD map. */
@@ -88,70 +66,6 @@ function createResolvedCriticalSigilEffects(
       }
     });
   }
-}
-
-/** Enqueues each food proc directly so its normal damage, condition, or boon handler resolves it. */
-export function createCriticalFoodEffect(ctx: Gw2ResolverRuntime, event: Gw2ResolverEvent): void {
-  const proc = criticalFoodProc(ctx);
-  if (!proc) return;
-  const conditionalEffect = ctx.config.timeOfDay === 'night' ? proc.nightEffect : proc.dayEffect;
-  const commonEvent = {
-    at: event.at,
-    skillName: proc.name,
-    source: 'Food',
-    sourceId: `food.${(proc.name || 'proc').toLowerCase()}`,
-    actorType: 'effect',
-    ownerActorType: 'player',
-    triggeredBy: event.skillName
-  } as const;
-  let foodEvent: Gw2ResolverEvent;
-  if (conditionalEffect?.type === 'boon') {
-    const name = conditionalEffect.name;
-    foodEvent = {
-      ...commonEvent,
-      type: 'buff',
-      name: `${proc.name} — ${name}`,
-      kind: name.toLowerCase(),
-      stacks: conditionalEffect.stacks,
-      duration: conditionalEffect.duration
-    };
-  } else if (conditionalEffect?.type === 'condition') {
-    foodEvent = {
-      ...commonEvent,
-      type: 'condition',
-      name: `${proc.name} — ${conditionalEffect.name}`,
-      condition: conditionalEffect.name,
-      stacks: conditionalEffect.stacks,
-      duration: conditionalEffect.duration
-    };
-  } else {
-    // Nourishment is a flat life-siphon strike, so it bypasses coefficient and critical scaling but stays strike damage.
-    foodEvent = {
-      ...commonEvent,
-      type: 'damage',
-      name: proc.name,
-      coefficient: 0,
-      flatDamage: proc.flatDamage,
-      damageKind: 'life-steal',
-      hits: 1,
-      hitIndex: 1,
-      totalHits: 1,
-      canCrit: false
-    };
-  }
-
-  ctx.effects.emit({ kind: 'packet', durationContext: event, event: foodEvent });
-  ctx.effects.emit({
-    kind: 'announcement',
-    announcement: {
-      type: 'food',
-      name: proc.name,
-      at: event.at,
-      sourceSkill: event.skillName,
-      detail: '',
-      icon: String(FOOD_DATA[ctx.config.food || '']?.icon || NOURISHMENT_ICON)
-    }
-  });
 }
 
 /** Resolver-time equipment hooks. Scheduler-owned sigil generation stays out. */

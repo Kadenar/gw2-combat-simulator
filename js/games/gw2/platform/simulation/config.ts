@@ -2,7 +2,7 @@ import type { Gw2SelectedSkillLoadout } from '#gw2/platform/builds/selected-skil
 import type { Gw2AttributeProvenance, ProfessionBuildAssumptions } from '#gw2/platform/builds/types.js';
 import type { Gw2CriticalDamageMode } from '#gw2/platform/combat/critical-damage-mode.js';
 import type { Gw2TargetConfig } from '#gw2/platform/combat/state/targets.js';
-import type { Gw2Stats } from '#gw2/platform/combat/types.js';
+import type { Gw2Stats } from '#gw2/platform/combat/stats.js';
 import type { Gw2SigilSet } from '#gw2/platform/equipment/sigils/types.js';
 import type { TransitionDelays } from '#gw2/platform/execution/transition-lockouts.js';
 import type { SimulationRandomnessConfig } from '#kernel/core/simulation-random.js';

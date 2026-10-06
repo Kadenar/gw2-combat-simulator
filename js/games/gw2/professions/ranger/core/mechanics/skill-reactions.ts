@@ -1,5 +1,5 @@
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
-import { buildResolverCondition, buildResolverBuff } from '#gw2/platform/resolver/packets.js';
+import { buildResolverCondition, buildResolverBuff } from '#gw2/platform/effects/packet-builders.js';
 
 /** Owns Core Ranger skill-armed hit reactions that are not trait-line definitions. */
 
