@@ -157,9 +157,16 @@ load order is safe; don't add top-level code in either file that calls into the 
 
 ### `build/`
 
-Build authoring and persistence: `editor.ts`, `state/` (persistence, skill selection, workspace tabs and saved builds),
-and `panels/` (gear, traits, attributes, skills, assumptions, proc rates, simulation settings, metadata, presets,
-workspace tabs). Build and rotation file, chat-code, and log import live in the sibling `import-export/` directory.
+Build authoring and persistence: `editor.ts`, `state/` (persistence, skill selection, and workspace tabs), `library/`
+(standard presets and named saved builds), and `panels/` (gear, traits, attributes, skills, assumptions, proc rates,
+simulation settings, metadata, and workspace tabs). Build and rotation file, chat-code, and log import live in the
+sibling `import-export/` directory.
+
+`library/controller.ts` initializes the catalog and binds browsing and save interactions; `view.ts` owns markup,
+dialogs, filters, and selection feedback. `model.ts` derives catalog labels and filter values without the DOM.
+`actions.ts` coordinates loading, destination validation, replacement, and undo; `assets.ts` loads preset bundles.
+`storage.ts` owns the durable My Builds snapshots, independently of open tabs in `state/workspace.ts`. Consumers import
+these owners directly.
 
 This layer may translate a build into application state, but it must not implement profession combat mechanics. Fixed
 slot-loadout contracts and views come directly from `platform/builds/slot-loadout.ts`; profession presentation exposes
