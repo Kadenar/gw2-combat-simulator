@@ -33,12 +33,42 @@ test('skill details distinguish normal and empowered applications', async ({ pag
   await page.goto('/', { waitUntil: 'domcontentloaded' });
   await page.addStyleTag({ url: '/css/style.css' });
   await page.evaluate(async () => {
-    const { mountRotationResults, SKILL_COLS } = await import('/js/games/gw2/app/results/analysis-panel.ts');
+    const { mountDamageBreakdown } = await import('/js/games/gw2/app/results/breakdown/view.ts');
+    const { mountResultCharts } = await import('/js/games/gw2/app/results/charts/section-view.ts');
+    const { SKILL_COLS } = await import('/js/games/gw2/app/results/breakdown/model.ts');
     document.body.innerHTML = '<div id="series"></div>';
     document.body.className = 'guardian-theme';
-    mountRotationResults(document.querySelector('#series'), {
-      showSummary: false,
-      skillColumns: SKILL_COLS,
+    const chartSeries = {
+      durationMs: 8000,
+      damageContributions: { strike: [{ t: 8000, v: 400 }], condition: [] },
+      dps: [
+        { t: 0, v: 0 },
+        { t: 8000, v: 100 }
+      ],
+      cumulativeDamage: [
+        { t: 0, v: 0 },
+        { t: 8000, v: 400 }
+      ],
+      effects: {},
+      skillDamage: {
+        embrace: [
+          ...[0, 1000, 2000, 3000, 3500, 6000].map((t) => ({ t, v: 100 })),
+          ...[1000, 2000].map((t) => ({ t, v: 20, damageType: 'condition', conditionType: 'Torment' }))
+        ],
+        other: [
+          { t: 0, v: 100 },
+          { t: 1000, v: 100 }
+        ]
+      },
+      skillApplications: {
+        'Embrace the Darkness': [0, 1000, 2000, 3000, 6000].map((t) => ({
+          t,
+          label: 'Embrace the Darkness',
+          empowered: t === 1000 || t === 6000
+        }))
+      }
+    };
+    mountDamageBreakdown(document.querySelector('#series'), {
       skillRows: [
         {
           key: 'embrace',
@@ -49,37 +79,11 @@ test('skill details distinguish normal and empowered applications', async ({ pag
         },
         { key: 'other', name: 'Other Skill', sourceSkill: 'Other Skill', group: 'Player', total: 300 }
       ],
-      chartSeries: {
-        durationMs: 8000,
-        damageContributions: { strike: [{ t: 8000, v: 400 }], condition: [] },
-        dps: [
-          { t: 0, v: 0 },
-          { t: 8000, v: 100 }
-        ],
-        cumulativeDamage: [
-          { t: 0, v: 0 },
-          { t: 8000, v: 400 }
-        ],
-        effects: {},
-        skillDamage: {
-          embrace: [
-            ...[0, 1000, 2000, 3000, 3500, 6000].map((t) => ({ t, v: 100 })),
-            ...[1000, 2000].map((t) => ({ t, v: 20, damageType: 'condition', conditionType: 'Torment' }))
-          ],
-          other: [
-            { t: 0, v: 100 },
-            { t: 1000, v: 100 }
-          ]
-        },
-        skillApplications: {
-          'Embrace the Darkness': [0, 1000, 2000, 3000, 6000].map((t) => ({
-            t,
-            label: 'Embrace the Darkness',
-            empowered: t === 1000 || t === 6000
-          }))
-        }
-      }
+      skillColumns: SKILL_COLS,
+      chartSeries,
+      conditions: []
     });
+    mountResultCharts(document.querySelector('#series'), { chartSeries });
   });
   const embraceRow = page.locator('[data-skill-key="embrace"]');
   const otherRow = page.locator('[data-skill-key="other"]');
@@ -93,6 +97,11 @@ test('skill details distinguish normal and empowered applications', async ({ pag
   await embraceRow.focus();
   await embraceRow.press('Enter');
   const timeline = page.locator('[data-role="skill-timeline"]');
+  // Sorting replaces the rows, so the expanded inspector must follow the selected skill into its new position.
+  await page.locator('[data-sort-col="name"]').click();
+  await expect(embraceRow).toHaveAttribute('aria-pressed', 'true');
+  await expect(timeline).toBeVisible();
+  await expect(page.locator('[data-skill-key="embrace"] + [data-role="skill-timeline"]')).toHaveCount(1);
   await expect(page.locator('[data-role="result-charts"] [data-role="dps-hit-strip"]')).toHaveCount(0);
   await expect(page.locator('[data-role="result-charts"] [data-role="hit-timeline-canvas"]')).toHaveCount(0);
   const strikes = timeline.getByRole('group', { name: 'Strike damage', exact: true });
@@ -122,7 +131,9 @@ test('condition inspectors filter views and restore keyboard focus', async ({ pa
   await page.goto('/', { waitUntil: 'domcontentloaded' });
   await page.addStyleTag({ url: '/css/style.css' });
   await page.evaluate(async () => {
-    const { mountRotationResults } = await import('/js/games/gw2/app/results/analysis-panel.ts');
+    const { mountDamageBreakdown } = await import('/js/games/gw2/app/results/breakdown/view.ts');
+    const { mountResultCharts } = await import('/js/games/gw2/app/results/charts/section-view.ts');
+
     const { buildTimeSeries } = await import('/js/games/gw2/app/results/charts/time-series-model.ts');
     const chartSeries = buildTimeSeries({
       dpsStartTime: 0.36,
@@ -174,15 +185,17 @@ test('condition inspectors filter views and restore keyboard focus', async ({ pa
       ]
     });
     document.body.innerHTML = '<div id="results"></div>';
-    mountRotationResults(document.querySelector('#results'), {
-      showSummary: false,
-      chartSeries,
+    mountDamageBreakdown(document.querySelector('#results'), {
       conditions: [
         { name: 'Torment', damage: 989, dps: 989 / 6, averageStacks: 1 },
         { name: 'Bleeding', damage: 21, dps: 21 / 6, averageStacks: 1 },
         { name: 'Crippled', damage: 0, dps: 0, averageStacks: 1 }
-      ]
+      ],
+      chartSeries,
+      skillRows: [],
+      skillColumns: []
     });
+    mountResultCharts(document.querySelector('#results'), { chartSeries });
   });
   const torment = page.getByRole('button', { name: 'Inspect Torment ticks', exact: true });
   await torment.focus();

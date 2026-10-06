@@ -12,17 +12,16 @@ import {
   chartValueAt
 } from '#gw2/app/results/charts/time-series-model.js';
 import { mountTimeSeriesCharts } from '#gw2/app/results/charts/time-series-view.js';
+import { mountSimulationSection } from '#ui/results/simulation-view.js';
 import { createGw2SimulationViewModel } from '#gw2/app/results/view.js';
 import { eventLogCsv, mountEventLog } from '#ui/results/event-log.js';
 import { baseResultSummaryMetrics, targetHealthBreakpointSnapshots } from '#gw2/app/results/summary-metrics.js';
-import {
-  dismissResultMetricDetails,
-  modifierContributionsHtml,
-  mountRotationResults,
-  nextResultSortState,
-  SKILL_COLS,
-  sortResultRows
-} from '#gw2/app/results/analysis-panel.js';
+import { mountResultSummary, dismissResultMetricDetails } from '#gw2/app/results/summary-view.js';
+import { mountRandomDistribution } from '#gw2/app/results/random-distribution-view.js';
+import { modifierContributionsHtml, mountModifierContributions } from '#gw2/app/results/modifier-contributions-view.js';
+import { mountDamageBreakdown } from '#gw2/app/results/breakdown/view.js';
+import { mountResultCharts } from '#gw2/app/results/charts/section-view.js';
+import { SKILL_COLS, nextResultSortState, sortResultRows } from '#gw2/app/results/breakdown/model.js';
 import { inertContainer } from '#tests/helpers/dom.js';
 import { defaultSimulationConfig } from '#tests/helpers/fixture-harness-core.js';
 import { simulateMesmer } from '#tests/helpers/mesmer-simulation.js';
@@ -298,7 +297,7 @@ test('Analysis charts are prepared only when the Analysis view is active', (t) =
     const model = createGw2SimulationViewModel(app);
     assert.equal(chartReads > 0, view === 'analysis');
     const summary = inertContainer();
-    model.summary.panels[0].mount(summary);
+    mountSimulationSection(summary, model.summary);
     assert.match(summary.innerHTML, /Player DPS/);
     assert.match(summary.innerHTML, />100</);
   }
@@ -635,7 +634,7 @@ for (const [startingHealthPercent, targetDied] of [
         )
       }
     });
-    view.analysis.panels[0].mount(container);
+    mountSimulationSection(container, view.analysis);
 
     const phaseEnabled = (id) => {
       const button = chartContainer.innerHTML.match(new RegExp(`<button[^>]*data-chart-phase="${id}"[^>]*>`));
@@ -784,27 +783,32 @@ test('effect counts render as steps for both audiences while duration and DPS cu
 test('result charts reuse the target-health DPS snapshot breakpoints', () => {
   const chartContainer = inertContainer();
   const container = {
-    innerHTML: '',
+    ...inertContainer(),
     querySelector: (selector) => (selector === '[data-role="result-charts"]' ? chartContainer : null),
     querySelectorAll: () => []
   };
 
-  mountRotationResults(container, {
-    breakpoints: [
-      { healthPercent: 80, dps: 1200, elapsed: 1, damage: 1200 },
-      { healthPercent: 60, dps: 1400, elapsed: 2, damage: 2800 }
-    ],
-    chartSeries: {
-      durationMs: 3000,
-      damageContributions: { strike: [{ t: 3000, v: 4000 }], condition: [] },
-      dps: [{ t: 0, v: 0 }],
-      effects: {},
-      cumulativeDamage: [
-        { t: 0, v: 0 },
-        { t: 3000, v: 4000 }
+  mountResultCharts(
+    container,
+    {
+      chartSeries: {
+        durationMs: 3000,
+        damageContributions: { strike: [{ t: 3000, v: 4000 }], condition: [] },
+        dps: [{ t: 0, v: 0 }],
+        effects: {},
+        cumulativeDamage: [
+          { t: 0, v: 0 },
+          { t: 3000, v: 4000 }
+        ]
+      }
+    },
+    {
+      healthBreakpoints: [
+        { healthPercent: 80, dps: 1200, elapsed: 1, damage: 1200 },
+        { healthPercent: 60, dps: 1400, elapsed: 2, damage: 2800 }
       ]
     }
-  });
+  );
 
   assert.match(chartContainer.innerHTML, /data-chart-phase="100-80"[\s\S]*?aria-pressed="false"/);
   assert.match(chartContainer.innerHTML, /data-chart-phase="80-60"[\s\S]*?aria-pressed="false"/);
@@ -818,9 +822,9 @@ test('damage contribution percentages share a denominator and handle empty damag
     { name: 'Burn', group: 'Entities', total: 30 },
     { name: 'External', group: 'Environment', total: 10 }
   ];
-  mountRotationResults(container, {
-    skillColumns: SKILL_COLS,
+  mountDamageBreakdown(container, {
     skillRows,
+    skillColumns: SKILL_COLS,
     conditions: [{ name: 'Burning', damage: 30, dps: 3, averageStacks: 1 }],
     conditionTotal: { damage: 30, dps: 3 }
   });
@@ -836,9 +840,11 @@ test('damage contribution percentages share a denominator and handle empty damag
   assert.match(container.innerHTML, /<b>30\.00%<\/b>/);
   assert.equal(skillRows[0].damagePercent, undefined);
 
-  mountRotationResults(container, {
+  container.innerHTML = '';
+  mountDamageBreakdown(container, {
+    skillRows: [{ name: 'No damage', total: 0 }],
     skillColumns: SKILL_COLS,
-    skillRows: [{ name: 'No damage', total: 0 }]
+    conditions: []
   });
   assert.match(container.innerHTML, /<span>0\.00%<\/span>/);
   assert.doesNotMatch(container.innerHTML, /NaN|Infinity/);
@@ -892,75 +898,60 @@ test('shared results render summaries, totals, contributions, and icons', () => 
   const container = inertContainer();
   const resolved = [];
 
-  mountRotationResults(
+  mountResultSummary(container, {
+    metrics: [
+      { label: 'Player DPS', value: '1,234', className: 'dps' },
+      { label: 'Environment Damage', value: '50', className: 'environment', group: 'target' },
+      { label: 'Target Damage', value: '1,284', className: 'target-damage', group: 'target' }
+    ],
+    breakpoints: [{ healthPercent: 80, dps: 1234, elapsed: 3.25 }]
+  });
+  mountRandomDistribution(container, {
+    randomDistributionRequested: true,
+    randomDistribution: {
+      trials: 500,
+      mean: 1234,
+      p01: 1000,
+      p10: 1100,
+      p50: 1225,
+      p90: 1350,
+      p99: 1500,
+      explanation: {
+        cohortPercent: 10,
+        lowDpsMean: 1040,
+        highDpsMean: 1460,
+        drivers: [
+          {
+            id: 'critical:illusion',
+            label: 'Illusion critical hits',
+            category: 'critical',
+            unit: 'count',
+            lowAverage: 18.2,
+            highAverage: 25.4,
+            delta: 7.2,
+            correlation: 0.84,
+            estimatedDpsDelta: 360
+          }
+        ]
+      }
+    }
+  });
+  mountDamageBreakdown(
     container,
     {
-      metrics: [
-        { label: 'Player DPS', value: '1,234', className: 'dps' },
-        { label: 'Environment Damage', value: '50', className: 'environment', group: 'target' },
-        { label: 'Target Damage', value: '1,284', className: 'target-damage', group: 'target' }
-      ],
-      breakpoints: [{ healthPercent: 80, dps: 1234, elapsed: 3.25 }],
-      skillColumns: [
-        { key: 'name', label: 'Skill', numeric: false },
-        { key: 'total', label: 'Total', numeric: true }
-      ],
       skillRows: [
         { name: 'Low', total: 10 },
         { name: 'High', total: 20 }
+      ],
+      skillColumns: [
+        { key: 'name', label: 'Skill', numeric: false },
+        { key: 'total', label: 'Total', numeric: true }
       ],
       conditions: [
         { name: 'Weak <slow>', damage: 0, dps: 0, averageStacks: 0.5 },
         { name: 'Burn <hot>', damage: 25, dps: 5, averageStacks: 1.25 }
       ],
-      conditionTotal: { label: 'Total Conditions', damage: 25, dps: 5 },
-      contributions: [
-        {
-          name: 'Bonus',
-          dpsIncrease: 12,
-          pctIncrease: 1.5,
-          icon: 'bonus.png'
-        },
-        {
-          name: 'Noise',
-          dpsIncrease: -0.1,
-          pctIncrease: -0.001
-        },
-        {
-          name: 'Penalty',
-          dpsIncrease: -12,
-          pctIncrease: -1.5
-        }
-      ],
-      contributionsStale: false,
-      randomDistributionRequested: true,
-      randomDistribution: {
-        trials: 500,
-        mean: 1234,
-        p01: 1000,
-        p10: 1100,
-        p50: 1225,
-        p90: 1350,
-        p99: 1500,
-        explanation: {
-          cohortPercent: 10,
-          lowDpsMean: 1040,
-          highDpsMean: 1460,
-          drivers: [
-            {
-              id: 'critical:illusion',
-              label: 'Illusion critical hits',
-              category: 'critical',
-              unit: 'count',
-              lowAverage: 18.2,
-              highAverage: 25.4,
-              delta: 7.2,
-              correlation: 0.84,
-              estimatedDpsDelta: 360
-            }
-          ]
-        }
-      }
+      conditionTotal: { label: 'Total Conditions', damage: 25, dps: 5 }
     },
     {
       resolveSkillIcon: (row) => {
@@ -970,6 +961,27 @@ test('shared results render summaries, totals, contributions, and icons', () => 
       }
     }
   );
+  mountModifierContributions(container, {
+    contributions: [
+      {
+        name: 'Bonus',
+        dpsIncrease: 12,
+        pctIncrease: 1.5,
+        icon: 'bonus.png'
+      },
+      {
+        name: 'Noise',
+        dpsIncrease: -0.1,
+        pctIncrease: -0.001
+      },
+      {
+        name: 'Penalty',
+        dpsIncrease: -12,
+        pctIncrease: -1.5
+      }
+    ],
+    contributionsStale: false
+  });
 
   assert.match(container.innerHTML, /res-summary/);
   assert.equal((container.innerHTML.match(/res-stat-target-start/g) || []).length, 1);
@@ -1020,15 +1032,13 @@ test('shared results render summaries, totals, contributions, and icons', () => 
   assert.ok(container.innerHTML.indexOf('DPS snapshots') < container.innerHTML.indexOf('Randomized DPS range'));
   assert.deepEqual(resolved, ['High', 'Low']);
 
-  assert.doesNotThrow(() => mountRotationResults(inertContainer(), {}));
+  assert.doesNotThrow(() => mountResultSummary(inertContainer(), { metrics: [] }));
 });
 
 test('modifier contribution errors are visible and escaped', () => {
   const container = inertContainer();
 
-  mountRotationResults(container, {
-    contributionsError: 'Comparison <failed>'
-  });
+  mountModifierContributions(container, { contributionsError: 'Comparison <failed>' });
 
   assert.match(container.innerHTML, /Modifier Contributions/);
   assert.match(container.innerHTML, /class="contrib-pending contrib-error"/);
@@ -1039,7 +1049,7 @@ test('modifier contribution errors are visible and escaped', () => {
 test('summary metrics render a clickable and escaped contributor disclosure', () => {
   const container = inertContainer();
 
-  mountRotationResults(container, {
+  mountResultSummary(container, {
     metrics: [
       {
         label: 'Total Idle Time',
@@ -1084,7 +1094,7 @@ test('summary metric click-away dismissal binds before the native details click 
   };
   const container = { ...inertContainer(), ownerDocument };
 
-  mountRotationResults(container, { metrics: [] });
+  mountResultSummary(container, { metrics: [] });
 
   assert.deepEqual(eventTypes, ['pointerdown']);
 });
@@ -1092,19 +1102,7 @@ test('summary metric click-away dismissal binds before the native details click 
 test('skill damage rows group player damage before owned entities', () => {
   const container = inertContainer();
 
-  mountRotationResults(container, {
-    skillColumns: [
-      { key: 'name', label: 'Skill', numeric: false },
-      { key: 'strike', label: 'Strike', numeric: true },
-      {
-        key: 'condition',
-        label: 'Condition',
-        numeric: true,
-        className: 'condi'
-      },
-      { key: 'total', label: 'Total', numeric: true, className: 'total' },
-      { key: 'dps', label: 'DPS', numeric: true, className: 'dps' }
-    ],
+  mountDamageBreakdown(container, {
     skillRows: [
       {
         name: 'Player Low',
@@ -1138,7 +1136,20 @@ test('skill damage rows group player damage before owned entities', () => {
         dps: 10,
         group: 'Entities'
       }
-    ]
+    ],
+    skillColumns: [
+      { key: 'name', label: 'Skill', numeric: false },
+      { key: 'strike', label: 'Strike', numeric: true },
+      {
+        key: 'condition',
+        label: 'Condition',
+        numeric: true,
+        className: 'condi'
+      },
+      { key: 'total', label: 'Total', numeric: true, className: 'total' },
+      { key: 'dps', label: 'DPS', numeric: true, className: 'dps' }
+    ],
+    conditions: []
   });
 
   const html = container.innerHTML;
@@ -1168,13 +1179,9 @@ test('randomized DPS range waits for its calculate button', () => {
   };
   let runCount = 0;
 
-  mountRotationResults(
+  mountRandomDistribution(
     container,
-    {
-      metrics: [],
-      randomDistributionRequested: true,
-      randomDistributionTrials: 500
-    },
+    { randomDistributionRequested: true, randomDistributionTrials: 500 },
     {
       onRunRandomDistribution() {
         runCount += 1;
@@ -1193,8 +1200,7 @@ test('randomized DPS range waits for its calculate button', () => {
 test('randomized DPS range renders completed simulations and percentage progress', () => {
   const container = inertContainer();
 
-  mountRotationResults(container, {
-    metrics: [],
+  mountRandomDistribution(container, {
     randomDistributionRequested: true,
     randomDistributionStale: true,
     randomDistributionTrials: 500,

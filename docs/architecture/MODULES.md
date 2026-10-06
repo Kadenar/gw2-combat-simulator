@@ -240,6 +240,17 @@ GW2 result adapters own event ordering and profession event-log descriptor norma
 prepared rows for rendering, filtering, CSV export, and mounting. `charts/` owns both time-series and hit-timeline
 models/views, including condition payout attribution and empowered pulse presentation.
 
+`view.ts` projects simulation output into section-specific models and composes their mounts for Summary, Workspace, and
+Analysis. The shell clears each host once; section mounts append without replacing their siblings. `summary-view.ts`
+owns metric disclosures, `random-distribution-view.ts` owns RNG status and controls, and
+`modifier-contributions-view.ts` owns independently refreshed modifier rows. `charts/section-view.ts` owns chart loading
+status and mounting; it receives the same health breakpoints used by the summary.
+
+`breakdown/model.ts` owns columns, sorting, damage shares, and condition grouping. `breakdown/view.ts` renders the
+combined skill/condition card and owns its selection state. `breakdown/inspectors.ts` renders expanded skill details and
+condition dialogs using the existing hit-timeline view. Sorting preserves the selected skill identity, and modifier
+completion updates only its own host so charts and expanded rows remain mounted.
+
 ## Neutral kernel and UI
 
 `js/kernel/` contains primitives that make sense for any deterministic simulator: monotonic clock helpers, collections,

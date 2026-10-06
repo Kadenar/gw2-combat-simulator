@@ -11,11 +11,11 @@ test('RNG range and impact table fit the workspace without a percentile table', 
   });
   const render = async (equal = false) => {
     await page.evaluate(async (equal) => {
-      const { mountRotationResults } = await import('/js/games/gw2/app/results/analysis-panel.ts');
-      mountRotationResults(
+      const { mountRandomDistribution } = await import('/js/games/gw2/app/results/random-distribution-view.ts');
+      document.querySelector('#rotation-results').innerHTML = '';
+      mountRandomDistribution(
         document.querySelector('#rotation-results'),
         {
-          showSummary: false,
           randomDistributionRequested: true,
           randomDistribution: {
             trials: 500,

@@ -8,7 +8,7 @@ test('modifier contributions adapt to phone and narrow panel widths', async ({ p
   await page.goto('/');
   await page.addStyleTag({ url: '/css/style.css' });
   await page.evaluate(async () => {
-    const { modifierContributionsHtml } = await import('/js/games/gw2/app/results/analysis-panel.ts');
+    const { modifierContributionsHtml } = await import('/js/games/gw2/app/results/modifier-contributions-view.ts');
     document.body.innerHTML = '<main style="padding: 16px; width: 100%; min-width: 0"></main>';
     document.querySelector('main').innerHTML = modifierContributionsHtml({
       contributions: [

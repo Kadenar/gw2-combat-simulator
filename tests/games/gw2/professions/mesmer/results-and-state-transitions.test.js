@@ -7,7 +7,7 @@ import { defaultSimulationConfig } from '#tests/helpers/fixture-harness-core.js'
 import { simulateMesmer } from '#tests/helpers/mesmer-simulation.js';
 import { chartValueAt } from '#gw2/app/results/charts/time-series-model.js';
 import { eventLogCsv } from '#ui/results/event-log.js';
-import { nextResultSortState, sortResultRows } from '#gw2/app/results/analysis-panel.js';
+import { nextResultSortState, sortResultRows } from '#gw2/app/results/breakdown/model.js';
 import { buildChartSeries, resultSummaryMetrics } from '#gw2/app/results/model.js';
 import { skillBreakdownRows } from '#gw2/app/results/skill-breakdown.js';
 import { formatResultTimelineTime } from '#gw2/app/shared/result-clock.js';

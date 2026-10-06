@@ -2,6 +2,10 @@
 export function inertContainer() {
   return {
     innerHTML: '',
+    // Section mounts append without replacing previously mounted sibling markup.
+    insertAdjacentHTML(_position, html) {
+      this.innerHTML += html;
+    },
     querySelector: () => null,
     querySelectorAll: () => []
   };

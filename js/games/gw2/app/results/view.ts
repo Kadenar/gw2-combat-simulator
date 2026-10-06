@@ -1,11 +1,11 @@
 import { targetHealthBreakpointSnapshots } from '#gw2/app/results/summary-metrics.js';
-import {
-  mountRotationResults,
-  modifierContributionsHtml,
-  SKILL_COLS,
-  type RotationResultsModel,
-  type RotationResultsOptions
-} from '#gw2/app/results/analysis-panel.js';
+import { mountResultSummary } from '#gw2/app/results/summary-view.js';
+import { mountRandomDistribution } from '#gw2/app/results/random-distribution-view.js';
+import { mountModifierContributions, modifierContributionsHtml } from '#gw2/app/results/modifier-contributions-view.js';
+import { mountDamageBreakdown, type DamageBreakdownOptions } from '#gw2/app/results/breakdown/view.js';
+import { SKILL_COLS, type DamageBreakdownModel } from '#gw2/app/results/breakdown/model.js';
+import { mountResultCharts, type ResultChartsModel } from '#gw2/app/results/charts/section-view.js';
+import type { ChartOptions } from '#gw2/app/results/charts/time-series-view.js';
 import { PLACEHOLDER_ICON } from '#gw2/app/shared/icons.js';
 import { resultSkillIcon } from '#gw2/app/results/skill-icons.js';
 import { buildChartSeries, resultSummaryMetrics } from '#gw2/app/results/model.js';
@@ -56,18 +56,9 @@ const EMPTY_RESULT_METRICS = Object.freeze([
   { label: 'Condition', value: '—', className: 'condi' }
 ]);
 
-/** Adapts the existing GW2 result surface as one explicit game-owned extension panel. */
-function gw2ResultView(model: RotationResultsModel, options?: RotationResultsOptions): SimulationViewSection {
-  return {
-    panels: [
-      {
-        kind: 'extension',
-        mount(container) {
-          mountRotationResults(container, model, options);
-        }
-      }
-    ]
-  };
+/** Composes independent section mounts; the shell clears the host once before they append in order. */
+function resultSection(...mounts: Array<(container: HTMLElement) => void>): SimulationViewSection {
+  return { panels: mounts.map((mount) => ({ kind: 'extension', mount })) };
 }
 
 /** Projects RNG state independently so the workspace can render it without analysis tables. */
@@ -106,7 +97,9 @@ export function createGw2SimulationViewModel(app: ProfessionAppState): Simulatio
   const result = app.results;
   if (!app.build.rotation.length || !result) {
     return {
-      summary: gw2ResultView({ metrics: EMPTY_RESULT_METRICS, summaryPlaceholder: true }),
+      summary: resultSection((container) =>
+        mountResultSummary(container, { metrics: EMPTY_RESULT_METRICS, summaryPlaceholder: true })
+      ),
       workspace: null,
       analysis: null,
       headerDps: null,
@@ -159,74 +152,73 @@ export function createGw2SimulationViewModel(app: ProfessionAppState): Simulatio
     app.build.targetStartingHealthPercent
   );
 
+  const summary = { metrics, breakpoints };
+  const rng = randomDistributionModel(result);
+  const rngOptions = { onRunRandomDistribution: () => app.runRandomDistribution() };
+  const modifiers = modifierContributionModel(app);
+  const charts: ResultChartsModel = {
+    // Navigation rebuilds stale Analysis views on entry, so hidden charts need no preparation or cache.
+    chartsPending: analysisViewIsActive() && (!result.effectReport || app.resultRevision !== app.buildRevision),
+    chartsError: analysisViewIsActive() && !result.effectReport ? app.simulationError : undefined,
+    chartSeries:
+      analysisViewIsActive() && result.effectReport && app.resultRevision === app.buildRevision
+        ? buildChartSeries(result, 250, effectPresentations, chartApplications)
+        : null
+  };
+  const breakdown: DamageBreakdownModel = {
+    chartSeries: charts.chartSeries,
+    skillRows,
+    // Proc records use absolute milliseconds; align them with the damage charts' DPS clock.
+    procSteps: (result.procSteps || []).map((proc) => ({
+      skill: proc.skill,
+      sourceSkill: proc.sourceSkill,
+      start: proc.start - Math.max(0, Number(result.dpsStartTime ?? result.firstHitTime ?? 0) * 1000)
+    })),
+    skillColumns: SKILL_COLS,
+    conditions,
+    conditionTotal: conditions.length
+      ? {
+          label: 'Total Conditions',
+          damage: result.conditionDamage,
+          dps: result.conditionDamage / Math.max(0.001, Number(result.dpsWindow ?? result.rotationEndTime ?? 0))
+        }
+      : null
+  };
+  const breakdownOptions: DamageBreakdownOptions = {
+    resolveSkillIcon: (row) => resultSkillIcon(app, row as ResultIconRow),
+    placeholderIcon: PLACEHOLDER_ICON,
+    skillBreakdownClassName: `${app.adapter?.id || 'simulation'}-skill-breakdown`,
+    sortState: {
+      column: app._skillSortCol,
+      direction: app._skillSortDir
+    },
+    onSortStateChange(nextState) {
+      app._skillSortCol = nextState.column;
+      app._skillSortDir = nextState.direction;
+    }
+  };
+  const chartOptions: Partial<ChartOptions> = {
+    // Phase controls need actual health endpoints to distinguish complete ranges from partial observations.
+    targetStartingHealthPercent: app.build.targetStartingHealthPercent ?? 100,
+    targetDied: result.deathTime != null,
+    title: 'DPS & Effects Over Time',
+    dpsLabel: 'Average DPS',
+    dpsColor: '#54c96b',
+    colors: effectColors(effectPresentations),
+    defaultVisibleEffectLimit: 8,
+    emptyEffectsText: 'No timed effects in this rotation',
+    healthBreakpoints: breakpoints
+  };
+
   return {
-    summary: gw2ResultView({ metrics, breakpoints }),
+    summary: resultSection((container) => mountResultSummary(container, summary)),
     headerDps: metrics.find((metric) => metric.className === 'dps')?.value,
-    workspace: gw2ResultView(
-      {
-        showSummary: false,
-        ...randomDistributionModel(result)
-      },
-      {
-        onRunRandomDistribution: () => app.runRandomDistribution()
-      }
-    ),
-    analysis: gw2ResultView(
-      {
-        metrics,
-        showSummary: false,
-        breakpoints,
-        skillRows,
-        // Proc records use absolute milliseconds; align them with the damage charts' DPS clock.
-        procSteps: (result.procSteps || []).map((proc) => ({
-          skill: proc.skill,
-          sourceSkill: proc.sourceSkill,
-          start: proc.start - Math.max(0, Number(result.dpsStartTime ?? result.firstHitTime ?? 0) * 1000)
-        })),
-        skillColumns: SKILL_COLS,
-        conditions,
-        conditionTotal: conditions.length
-          ? {
-              label: 'Total Conditions',
-              damage: result.conditionDamage,
-              dps: result.conditionDamage / Math.max(0.001, Number(result.dpsWindow ?? result.rotationEndTime ?? 0))
-            }
-          : null,
-        ...modifierContributionModel(app),
-        ...randomDistributionModel(result),
-        // Navigation rebuilds stale Analysis views on entry, so hidden charts need no preparation or cache.
-        chartsPending: analysisViewIsActive() && (!result.effectReport || app.resultRevision !== app.buildRevision),
-        chartsError: analysisViewIsActive() && !result.effectReport ? app.simulationError : undefined,
-        chartSeries:
-          analysisViewIsActive() && result.effectReport && app.resultRevision === app.buildRevision
-            ? buildChartSeries(result, 250, effectPresentations, chartApplications)
-            : null
-      },
-      {
-        resolveSkillIcon: (row) => resultSkillIcon(app, row as ResultIconRow),
-        placeholderIcon: PLACEHOLDER_ICON,
-        skillBreakdownClassName: `${app.adapter?.id || 'simulation'}-skill-breakdown`,
-        chartOptions: {
-          // Phase controls need actual health endpoints to distinguish complete ranges from partial observations.
-          targetStartingHealthPercent: app.build.targetStartingHealthPercent ?? 100,
-          targetDied: result.deathTime != null,
-          title: 'DPS & Effects Over Time',
-          dpsLabel: 'Average DPS',
-          dpsColor: '#54c96b',
-          colors: effectColors(effectPresentations),
-          defaultVisibleEffectLimit: 8,
-          emptyEffectsText: 'No timed effects in this rotation'
-        },
-        sortState: {
-          column: app._skillSortCol,
-          direction: app._skillSortDir
-        },
-        onSortStateChange(nextState) {
-          app._skillSortCol = nextState.column;
-          app._skillSortDir = nextState.direction;
-        },
-        onRunRandomDistribution: () => app.runRandomDistribution()
-      }
+    workspace: resultSection((container) => mountRandomDistribution(container, rng, rngOptions)),
+    analysis: resultSection(
+      (container) => mountRandomDistribution(container, rng, rngOptions),
+      (container) => mountDamageBreakdown(container, breakdown, breakdownOptions),
+      (container) => mountResultCharts(container, charts, chartOptions),
+      (container) => mountModifierContributions(container, modifiers)
     ),
     afterAnalysisRender(container) {
       // The patch comparison module loads only when an authored preview can produce a comparison.

@@ -1,8 +1,9 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { resultSummaryMetrics } from '#gw2/app/results/model.js';
-import { mountRotationResults } from '#gw2/app/results/analysis-panel.js';
+import { mountResultSummary } from '#gw2/app/results/summary-view.js';
 import { createGw2SimulationViewModel } from '#gw2/app/results/view.js';
+import { mountSimulationSection } from '#ui/results/simulation-view.js';
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
 import { testProfession } from '#tests/fixtures/profession.js';
 import { inertContainer } from '#tests/helpers/dom.js';
@@ -25,7 +26,7 @@ test('APM renders next to duration with a tooltip and sustained peak details', (
     ]
   );
   const container = inertContainer();
-  mountRotationResults(container, { metrics });
+  mountResultSummary(container, { metrics });
   assert.match(container.innerHTML, /title="1 non-autoattack actions/);
   assert.match(container.innerHTML, /aria-label="6 APM:/);
   assert.match(container.innerHTML, /Show Actions \/ min breakdown/);
@@ -44,7 +45,7 @@ test('zero-duration and empty views show an em dash while positive-duration zero
 
   const container = inertContainer();
   const view = createGw2SimulationViewModel({ build: { rotation: [] } });
-  view.summary.panels[0].mount(container);
+  mountSimulationSection(container, view.summary);
   assert.match(container.innerHTML, /Actions \/ min/);
   assert.doesNotMatch(container.innerHTML, /NaN|Infinity/);
 });
