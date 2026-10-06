@@ -37,7 +37,10 @@ export const RANGER_CORE_SHORTBOW_SKILL_MECHANICS: Readonly<Record<number, Parti
         {
           type: 'condition',
           condition: 'Poisoned',
-          stacks: 5,
+          // One application per arrow preserves per-application poison reactions.
+          applications: 5,
+          intervalMs: 0,
+          stacks: 1,
           duration: 5
         }
       ]
@@ -203,7 +206,7 @@ export function triggerBloodThirst(context: RangerResolverContext, event: Gw2Res
   expireCharges(state.bloodThirst, event.at);
   if (event.sourceId === ID.CRIPPLING_SHOT) return;
   const specialization = context.profession.specialization;
-  const merged = specialization?.kind === 'Soulbeast' && specialization.state.beastmodeActive;
+  const merged = specialization.kind === 'Soulbeast' && specialization.state.beastmodeActive;
   if (!(Number(event.coefficient) > 0) || !(merged ? isPlayerStrike(event) : isPetStrike(event))) return;
   const profile = requireBalanceProfileFromContext(context, PROFILE.bloodThirst);
   const bleeding = requireEffect(profile, 'condition', 'Bleeding');
