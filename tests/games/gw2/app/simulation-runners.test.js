@@ -260,7 +260,13 @@ test('damage capture queues baseline and reference work without changing the bui
   const app = Object.assign(Object.create(ProfessionApp.prototype), {
     damageDiagnostics: false,
     buildRevision: 3,
-    rotationComparison: { referenceStatus: 'fresh' },
+    // Reference work is queued only when comparison holds a nonempty pinned rotation.
+    rotationComparison: {
+      referenceRotation: [{ type: 'wait', durationMs: 1000 }],
+      referenceResult: null,
+      referenceStatus: 'fresh',
+      referenceError: ''
+    },
     baselineSimulationRunner: { schedule: (revision) => scheduled.push(revision) }
   });
   app.setDamageDiagnostics(true);

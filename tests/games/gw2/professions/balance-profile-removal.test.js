@@ -190,11 +190,12 @@ test('removed Ignite tier stays empty while the next named tier retains its dura
 });
 
 test('Rocket Punch keeps Burning and control when its strike is removed', () => {
+  // Electric Artillery triggers the punch; Lightning Rod only prepares the spear flip.
   const result = run(
     engineerProfession,
     {},
     'Mechanist',
-    ['Lightning Rod', { type: 'wait', durationMs: 1000 }],
+    ['Lightning Rod', 'Electric Artillery', { type: 'wait', durationMs: 1000 }],
     {},
     { [ENG_SKILL.ROCKET_PUNCH_MECH]: { removeEffects: [{ type: 'strike' }] } }
   );

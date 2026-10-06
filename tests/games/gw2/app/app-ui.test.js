@@ -799,6 +799,11 @@ test('shared app metadata owns common attributes and target conditions', () => {
 test('empty rotations keep placeholder DPS metrics grouped with the builder', () => {
   const results = {
     innerHTML: '',
+    // Panels append markup after the shell clears each section.
+    insertAdjacentHTML(position, html) {
+      assert.equal(position, 'beforeend');
+      this.innerHTML += html;
+    },
     querySelector: () => null,
     querySelectorAll: () => []
   };
@@ -863,12 +868,22 @@ test('workspace renders RNG controls while detailed analysis stays lazy', () => 
   const results = {
     dataset: {},
     innerHTML: '',
+    // Preserve appended panels so assertions inspect the complete workspace section.
+    insertAdjacentHTML(position, html) {
+      assert.equal(position, 'beforeend');
+      this.innerHTML += html;
+    },
     querySelector: (selector) => (selector === '[data-role="rng-run"]' ? runButton : null),
     querySelectorAll: () => []
   };
   const summaryStrip = {
     dataset: {},
     innerHTML: '',
+    // Summary panels use the same append contract as workspace panels.
+    insertAdjacentHTML(position, html) {
+      assert.equal(position, 'beforeend');
+      this.innerHTML += html;
+    },
     querySelector: () => null,
     querySelectorAll: () => [],
     setAttribute(name, value) {

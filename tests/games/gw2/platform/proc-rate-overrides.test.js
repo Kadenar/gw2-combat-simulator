@@ -65,11 +65,47 @@ test('proc overrides control every opted-in trait without bypassing selection or
     }
 
     assert.equal(applications(run(1, false)).length, 0, name);
-    // The Mechanist's mech retains its own Precision and can proc Serrated Steel independently of the player.
-    assert.equal(applications(run(1, true, 0)).length > 0, ['Serrated Steel', 'Shrapnel'].includes(name), name);
+    // Player critical eligibility excludes autonomous mech procs; Shrapnel does not require a critical hit.
+    assert.equal(
+      applications(run(1, true, 0)).some((event) => event.actorType !== 'summon'),
+      name === 'Shrapnel',
+      name
+    );
     const runtime = profession.resolveProfession({ specialization });
     assert.deepEqual(availableProcRateProfiles(runtime.catalog, []), []);
     assert.ok(availableProcRateProfiles(runtime.catalog, [traitId]).some((entry) => entry.procRate.id === key));
+  }
+});
+
+test('Serrated Steel overrides preserve independent mech critical eligibility and trait selection', async () => {
+  const profession = await loadProfession('engineer');
+  const profile = profession.catalog.balanceProfiles.find((entry) => entry.name === 'Serrated Steel');
+  for (const [rate, selected] of [
+    [0, true],
+    [1, true],
+    [1, false]
+  ]) {
+    // Allow the mech's low critical chance to accumulate while the player cannot land critical hits.
+    const result = runRuntime({
+      profession,
+      rotation: ['Fragmentation Shot', { type: 'wait', durationMs: 30000 }],
+      config: {
+        specialization: 'Mechanist',
+        primaryWeapon: 'Pistol',
+        stats: { power: 2000, precision: 0, conditionDamage: 1200 },
+        target: { armor: 2597 },
+        selectedTraitIds: selected ? [profile.procRate.traitId] : [],
+        randomness: { mode: 'deterministic', seed: 1 },
+        procRateOverrides: { [profile.procRate.id]: rate }
+      },
+      observationPolicy: { kind: 'tail', durationMs: 7000 }
+    });
+    assert.deepEqual(result.warnings, []);
+    const applications = result.resolvedEvents.filter(
+      (event) => event.type === 'condition' && event.sourceId === profile.id
+    );
+    assert.equal(applications.length > 0, rate === 1 && selected);
+    assert.ok(applications.every((event) => event.actorType === 'summon' && event.summonOwner === 'engineer.mech'));
   }
 });
 

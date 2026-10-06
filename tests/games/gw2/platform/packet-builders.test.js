@@ -171,7 +171,9 @@ test('profession packet builders retain pet and mech ownership without copying t
   assert.equal(mech.summonOwner, 'mech:1');
   assert.equal(mech.independentConditionOwner, true);
   assert.equal(mech.fixedDuration, true);
-  assert.deepEqual(mech.metadata, { procCount: 2 });
+  // Explicit mech identity selects companion attributes without inheriting trigger annotations.
+  assert.deepEqual(mech.metadata, { engineerMech: true, procCount: 2 });
+  assert.equal(mech.summonInheritsAttributes, true);
   assert.equal(mech.holosmithStrikeFactor, undefined);
 });
 
