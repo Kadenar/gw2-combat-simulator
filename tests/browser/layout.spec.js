@@ -159,7 +159,7 @@ test('template skeleton preserves the populated builder dimensions', async ({ pa
       releaseBuild = resolve;
     });
     const visibleDuringLoad = await page.evaluate(async () => {
-      const { loadTemplateAction } = await import('/js/games/gw2/app/build/panels/presets.ts');
+      const { loadTemplateAction } = await import('/js/games/gw2/app/build/library/actions.ts');
       const app = window.professionApp;
       void loadTemplateAction(app, app.templatePresets[0], 'template', document.querySelector('.template-load-btn'));
       // Check the first paint without locator retries masking a visibility transition.

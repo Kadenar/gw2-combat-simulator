@@ -7,16 +7,13 @@ import {
   captureBuildDestination,
   closeBuildTab,
   createBuildTab,
-  deleteMyBuild,
   emptyBuildTabSession,
   loadBuildWorkspace,
-  loadMyBuilds,
-  myBuildsStorageKey,
-  saveMyBuild,
   saveBuildWorkspace,
   workspaceStorageKey
 } from '#gw2/app/build/state/workspace.js';
-import { loadTemplateAction, undoTemplateLoad } from '#gw2/app/build/panels/presets.js';
+import { deleteMyBuild, loadMyBuilds, myBuildsStorageKey, saveMyBuild } from '#gw2/app/build/library/storage.js';
+import { loadTemplateAction, undoTemplateLoad } from '#gw2/app/build/library/actions.js';
 import { recordRotationHistory, undoRotation } from '#gw2/app/rotation/editing/history.js';
 import { BaselineSimulationRunner } from '#gw2/app/simulation/baseline/runner.js';
 import { ModifierContributionRunner } from '#gw2/app/simulation/modifier-contributions/runner.js';

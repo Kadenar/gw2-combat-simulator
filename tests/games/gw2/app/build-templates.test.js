@@ -2,17 +2,12 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import test from 'node:test';
 
-import {
-  loadTemplateAction,
-  templateBoon,
-  templateCategory,
-  templateSpecializations,
-  undoTemplateLoad
-} from '#gw2/app/build/panels/presets.js';
+import { loadTemplateAction, undoTemplateLoad } from '#gw2/app/build/library/actions.js';
+import { templateBoon, templateCategory, templateSpecializations } from '#gw2/app/build/library/model.js';
 import { normalizeRotation } from '#gw2/platform/execution/rotation.js';
 import { mesmerAppAdapter } from '#gw2/professions/mesmer/app/app-definition.js';
 import { MESMER_SKILL_IDS as MESMER_ID } from '#gw2/professions/mesmer/data/ids.js';
-import { loadPresetBundle } from '#gw2/app/import-export/files.js';
+import { loadPresetBundle } from '#gw2/app/build/library/assets.js';
 
 function createApp() {
   return {
