@@ -4,7 +4,7 @@ import { sharpeningStoneLifecycle } from '#gw2/professions/ranger/core/skills/sl
 import { composeRuntimeHooks, type RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import { prepareGw2BuffCompanionCandidates } from '#gw2/platform/combat/state/allied-players.js';
 
-import { criticalProcHandler } from '#gw2/platform/profession-definition/mechanics.js';
+import { criticalProcHandler } from '#gw2/platform/profession-definition/critical-proc-handler.js';
 import { OBSERVABLE_EVENT_HANDLER } from '#gw2/platform/resolver/handler-registry.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';

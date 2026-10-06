@@ -1,6 +1,6 @@
 import { RANGER_CORE_BALANCE_PROFILE_IDS } from '#gw2/professions/ranger/core/profile-ids.js';
 import type { BalanceProfile } from '#gw2/platform/skills/types.js';
-import { defineSkillVariantProfile as variant } from '#gw2/platform/profession-definition/balance-profiles.js';
+import { defineSkillVariantProfile as variant } from '#gw2/platform/profession-definition/profile-authoring.js';
 import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
 
 export const RANGER_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freeze([

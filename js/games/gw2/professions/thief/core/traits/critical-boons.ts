@@ -15,8 +15,8 @@ import {
   requireEffect
 } from '#gw2/platform/skills/balance-profiles.js';
 import type { SkillId } from '#gw2/platform/skills/types.js';
-import type { ResolvedCriticalHitOptions } from '#gw2/platform/profession-definition/mechanics.js';
-import { criticalProcHandler } from '#gw2/platform/profession-definition/mechanics.js';
+import type { ResolvedCriticalHitOptions } from '#gw2/platform/profession-definition/critical-proc-handler.js';
+import { criticalProcHandler } from '#gw2/platform/profession-definition/critical-proc-handler.js';
 import type { NativeResolvedDamageDetails } from '#gw2/platform/profession-definition/module-types.js';
 import { buildResolverBuff } from '#gw2/platform/resolver/packets.js';
 import { THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';

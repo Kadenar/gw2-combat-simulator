@@ -6,7 +6,7 @@ import {
   emitExplosiveEntrance,
   emitAimAssistedRocket
 } from '#gw2/professions/engineer/core/traits/explosions.js';
-import { criticalProcHandler } from '#gw2/platform/profession-definition/mechanics.js';
+import { criticalProcHandler } from '#gw2/platform/profession-definition/critical-proc-handler.js';
 import { sideEffectAmount } from '#gw2/platform/effects/action-dispatch.js';
 import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
 import { reduceEngineerRecharge } from '#gw2/professions/engineer/core/mechanics/recharge.js';

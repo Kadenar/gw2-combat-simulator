@@ -1,4 +1,4 @@
-/** Owns the combat/types.ts contracts so type dependencies follow their runtime feature boundaries. */
+/** Combat attributes supplied to a simulation; stat queries and profession modifier rules read and adjust them. */
 
 export interface Gw2Stats {
   readonly power?: number;

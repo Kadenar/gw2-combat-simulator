@@ -3,7 +3,7 @@ import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { targetConditionActive } from '#gw2/platform/combat/query/runtime-query.js';
 import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
-import { defineSkillVariantProfile as variant } from '#gw2/platform/profession-definition/balance-profiles.js';
+import { defineSkillVariantProfile as variant } from '#gw2/platform/profession-definition/profile-authoring.js';
 import { defineTrait, traitAttributeEffects } from '#gw2/platform/profession-definition/traits.js';
 import { necromancerRuntimeSpecializationState } from '#gw2/professions/necromancer/core/mechanics/modifier-queries.js';
 import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';

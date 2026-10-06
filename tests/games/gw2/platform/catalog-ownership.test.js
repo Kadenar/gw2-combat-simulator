@@ -6,7 +6,7 @@ import {
   createNativeModuleData,
   getNativeCatalogAssembly
 } from '#gw2/platform/profession-definition/assemble-module-catalog.js';
-import { criticalProcHandler } from '#gw2/platform/profession-definition/mechanics.js';
+import { criticalProcHandler } from '#gw2/platform/profession-definition/critical-proc-handler.js';
 import { defineNativeModule, defineNativeProfession } from '#gw2/platform/profession-definition/profession.js';
 import { createProfessionModuleDataFactory } from '#gw2/professions/shared/catalog-data.js';
 

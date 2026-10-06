@@ -3,7 +3,7 @@ import test from 'node:test';
 import { loadProfession } from '#gw2/profession-registry.js';
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
 import { EffectRecorder } from '#gw2/platform/results/effect-report.js';
-import { planningBuffAt, planningBuffStacks } from '#gw2/platform/results/query.js';
+import { planningBuffAt, planningBuffStacks } from '#gw2/platform/results/result-queries.js';
 import { buildTimeSeries } from '#gw2/app/results/charts/time-series-model.js';
 import { runGw2Runtime } from '#gw2/platform/simulation/runtime.js';
 

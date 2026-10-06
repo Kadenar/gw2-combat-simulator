@@ -1,7 +1,8 @@
 import type { SkillId } from '#gw2/platform/skills/types.js';
-/** Owns the builds/types.ts contracts so type dependencies follow their runtime feature boundaries. */
 import type { CanonicalCatalog, Skill } from '#gw2/platform/skills/types.js';
 import type { ProfessionBalanceContext } from '#gw2/platform/profession-presentation/balance-context.js';
+
+/** Saved-build schemas, assumption controls, and attribute-calculation contracts shared by the app and runtime. */
 
 export type Gw2NumericAttributes = Record<string, number>;
 

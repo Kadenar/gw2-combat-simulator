@@ -1,6 +1,6 @@
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import { prepareGw2BuffCompanionCandidates } from '#gw2/platform/combat/state/allied-players.js';
-import { criticalProcHandler } from '#gw2/platform/profession-definition/mechanics.js';
+import { criticalProcHandler } from '#gw2/platform/profession-definition/critical-proc-handler.js';
 import { summonQuicknessCastTimeMs } from '#gw2/platform/execution/cast-timing.js';
 import { engineerMechCriticalDefinitions } from '#gw2/professions/engineer/specializations/mechanist/traits/firearms.js';
 import { overclockRechargeRules } from '#gw2/professions/engineer/specializations/mechanist/skills/signet-skills.js';

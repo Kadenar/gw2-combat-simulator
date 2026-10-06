@@ -1,4 +1,4 @@
-/** Owns the simulation/config.ts contracts so type dependencies follow their runtime feature boundaries. */
+/** Selects whether strikes apply expected critical damage or each hit's sampled critical outcome. */
 
 /** Reject unknown policies at the simulation boundary; absent settings use the averaged baseline. */
 export function normalizeCriticalDamageMode(mode: unknown = 'averaged'): Gw2CriticalDamageMode {

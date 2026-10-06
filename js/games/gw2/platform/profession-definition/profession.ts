@@ -1,6 +1,6 @@
 import type { Skill } from '#gw2/platform/skills/types.js';
 
-import { normalizeProfessionBuild } from '#gw2/platform/builds/profession-contract.js';
+import { normalizeProfessionBuild } from '#gw2/platform/builds/profession-build.js';
 import { isBuildSkillAvailable } from '#gw2/platform/builds/skill-eligibility.js';
 import type { Gw2Build, Gw2TraitBuildAttributeCalculator } from '#gw2/platform/builds/types.js';
 import { compileGw2ModifierRules } from '#gw2/platform/combat/modifiers.js';
@@ -35,7 +35,7 @@ import {
   assembleNativeRuntimeCatalog,
   getNativeCatalogAssembly
 } from '#gw2/platform/profession-definition/assemble-module-catalog.js';
-import { defineTraitProfile } from '#gw2/platform/profession-definition/balance-profiles.js';
+import { defineTraitProfile } from '#gw2/platform/profession-definition/profile-authoring.js';
 import type {
   AnyNativeModule,
   NativeModule,

@@ -5,7 +5,7 @@ import type {
   ProfessionAttributePreviewContext,
   ProfessionAttributePreviewPreparation
 } from '#gw2/platform/profession-presentation/attribute-preview.js';
-import { planningBuffAt } from '#gw2/platform/results/query.js';
+import { planningBuffAt } from '#gw2/platform/results/result-queries.js';
 import { elementalistWeaponGroups } from '#gw2/professions/elementalist/core/weapon-groups.js';
 import type {
   ElementalistPistolBullets,

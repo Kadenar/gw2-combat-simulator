@@ -3,6 +3,11 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 
 import { ProfessionApp } from '#gw2/app/profession-app.js';
+import {
+  queueRotationReference,
+  publishRotationReference,
+  failRotationReference
+} from '#gw2/app/rotation/comparison-state.js';
 import { manifestRotationMatchesBuild } from '#gw2/app/import-export/rotation-import-dialog.js';
 import {
   rotationComparisonMetrics,
@@ -141,6 +146,37 @@ test('loading and clearing Reference preserve Current and its history', () => {
   assert.equal(app.rotationComparison, null);
   assert.equal(app.build.rotation, current);
   assert.equal(app._rotationHistory, history);
+});
+
+// Reference state admits only queued completions, so late callbacks cannot resurrect a cleared reference.
+test('reference completion and failure respect the comparison lifecycle', () => {
+  const app = comparisonApp();
+  const current = app.results;
+  const reference = result('reference');
+  app.startRotationComparison();
+  app.loadRotationReference([{ type: 'cast', skillId: 2 }]);
+  app.clearRotationReference();
+  publishRotationReference(app, reference);
+  failRotationReference(app, 'Late failure');
+  assert.equal(app.rotationComparison.referenceStatus, 'empty');
+  assert.equal(app.rotationComparison.referenceResult, null);
+  assert.equal(app.rotationComparison.referenceError, '');
+
+  app.loadRotationReference([{ type: 'cast', skillId: 2 }]);
+  publishRotationReference(app, reference);
+  failRotationReference(app, 'Already completed');
+  assert.equal(app.rotationComparison.referenceStatus, 'fresh');
+  assert.equal(app.rotationComparison.referenceResult, reference);
+  assert.equal(app.rotationComparison.referenceError, '');
+
+  queueRotationReference(app);
+  failRotationReference(app, 'Failed refresh');
+  assert.equal(app.rotationComparison.referenceStatus, 'error');
+  assert.equal(app.rotationComparison.referenceError, 'Failed refresh');
+  queueRotationReference(app);
+  assert.equal(app.rotationComparison.referenceStatus, 'queued');
+  assert.equal(app.rotationComparison.referenceError, '');
+  assert.equal(app.results, current);
 });
 
 test('swap exchanges independent rotations and results and resets Current history', () => {

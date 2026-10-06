@@ -4,7 +4,7 @@ import { createCalculateAttributes, resolveAttributeEffects } from '#gw2/platfor
 import { createModifierHooks } from '#gw2/platform/combat/modifiers.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
-import { criticalProcHandler } from '#gw2/platform/profession-definition/mechanics.js';
+import { criticalProcHandler } from '#gw2/platform/profession-definition/critical-proc-handler.js';
 import { defineNativeModule, defineNativeProfession } from '#gw2/platform/profession-definition/profession.js';
 import { defineTrait, traitAttributeEffects } from '#gw2/platform/profession-definition/traits.js';
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';

@@ -4,7 +4,7 @@ import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import type { SkillEffect } from '#gw2/platform/effects/types.js';
-import { defineSkillVariantProfile as variant } from '#gw2/platform/profession-definition/balance-profiles.js';
+import { defineSkillVariantProfile as variant } from '#gw2/platform/profession-definition/profile-authoring.js';
 import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
 
 import { ELEMENTALIST_TRAIT_IDS as TRAIT } from '#gw2/professions/elementalist/data/ids.js';

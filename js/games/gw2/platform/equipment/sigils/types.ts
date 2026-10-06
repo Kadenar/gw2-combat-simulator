@@ -1,5 +1,3 @@
-/** Owns the equipment/sigils/types.ts contracts so type dependencies follow their runtime feature boundaries. */
-
 /** Doom remains armed until an eligible hit consumes it, independently of its swap cooldown. */
 export interface Gw2SigilRuntimeState {
   doomPending: boolean;

@@ -2,7 +2,6 @@ import type { EffectEmissionService } from '#gw2/platform/effects/emission.js';
 import type { Gw2TimedBuffApplication } from '#gw2/platform/combat/boons.js';
 import type { BuffStatePolicy } from '#gw2/platform/combat/effect-state.js';
 import type { RefreshedStacks } from '#gw2/platform/combat/resources/refreshed-stacks.js';
-/** Owns the equipment/relics/types.ts contracts so type dependencies follow their runtime feature boundaries. */
 import type { Gw2TargetConfig } from '#gw2/platform/combat/state/targets.js';
 import type { SimulationEvent } from '#gw2/platform/events/events.js';
 import type { Skill } from '#gw2/platform/skills/types.js';

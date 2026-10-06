@@ -3,7 +3,7 @@ import { requireCanonicalSkillEffects } from '#gw2/platform/effects/validation.j
 import type { BalanceProfile } from '#gw2/platform/skills/types.js';
 import type { StatusEffect } from '#gw2/platform/effects/types.js';
 import type { ConditionEffect, SkillEffect, StrikeEffect } from '#gw2/platform/effects/types.js';
-import { defineSkillVariantProfile as variant } from '#gw2/platform/profession-definition/balance-profiles.js';
+import { defineSkillVariantProfile as variant } from '#gw2/platform/profession-definition/profile-authoring.js';
 
 import {
   MESMER_MIRAGE_AMBUSH_SKILLS,

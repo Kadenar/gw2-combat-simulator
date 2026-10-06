@@ -16,7 +16,7 @@ import {
   requireBalanceProfileFromContext,
   requireEffect
 } from '#gw2/platform/skills/balance-profiles.js';
-import { defineSkillVariantProfile as variant } from '#gw2/platform/profession-definition/balance-profiles.js';
+import { defineSkillVariantProfile as variant } from '#gw2/platform/profession-definition/profile-authoring.js';
 import { projectCastRelativeEffectTimingMs } from '#gw2/platform/execution/cast-timing.js';
 import { elementalistBuffRequest, elementalistStrikeRequest } from '#gw2/professions/elementalist/core/events.js';
 import {

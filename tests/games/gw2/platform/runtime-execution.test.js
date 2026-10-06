@@ -3,7 +3,7 @@ import test from 'node:test';
 import { defineNativeModule, defineNativeProfession } from '#gw2/platform/profession-definition/profession.js';
 import { executeDamageOccurrence } from '#gw2/platform/skill-damage/run-occurrence.js';
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
-import { createCombatExecution } from '#gw2/platform/simulation/combat-producers.js';
+import { createCombatExecution } from '#gw2/platform/simulation/combat-execution.js';
 import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
 
 // The real acceptance boundary reuses one context, reads replaced state, and keeps cached patch selections per run.

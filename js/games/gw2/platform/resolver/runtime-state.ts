@@ -187,8 +187,7 @@ export function createGw2ResolverRuntimeState({
   return runtime;
 }
 
-/** Owns the resolver/types.ts contracts so type dependencies follow their runtime feature boundaries. */
-// Resolution consumes kernel randomness and generic records without execution dependencies.
+/** Mutable per-run resolver state: combat stores, reporting collections, and the services resolution handlers share. */
 
 export interface Gw2ResolverRuntime {
   readonly combat: ReturnType<typeof createMechanicCombatServices>;

@@ -7,7 +7,7 @@ import {
 } from '#gw2/platform/builds/selected-skills.js';
 import { selectedSlotSkillAvailability } from '#gw2/platform/execution/availability.js';
 import { hasSelectedSkillId } from '#gw2/platform/combat/query/runtime-query.js';
-import { availableSlotSkills } from '#gw2/app/build/panels/skills.js';
+import { availableSlotSkills } from '#gw2/app/build/state/skill-selection.js';
 
 const first = { id: 1, name: 'Shared name', type: 'Utility' };
 const second = { id: '1', name: 'Shared name', type: 'Utility' };

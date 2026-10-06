@@ -5,7 +5,7 @@ import test from 'node:test';
 import { defineTestProfession } from '#tests/helpers/profession.js';
 import { createCanonicalCatalog } from '#gw2/platform/skills/catalog.js';
 import { evaluateSkillDamage } from '#gw2/platform/skill-damage/measure-occurrences.js';
-import { damageOccurrences } from '#gw2/platform/skill-damage/catalog.js';
+import { damageOccurrences } from '#gw2/platform/skill-damage/list-occurrences.js';
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
 import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';
 import { RELIC_IDS } from '#gw2/platform/equipment/relics/data.js';

@@ -5,7 +5,7 @@ import type {
   ProfessionEventLogDescriptor,
   RotationStateSnapshotItem
 } from '#gw2/platform/profession-presentation/types.js';
-import { planningBuffAt } from '#gw2/platform/results/query.js';
+import { planningBuffAt } from '#gw2/platform/results/result-queries.js';
 import {
   mesmerMechanicPaletteGroups,
   mesmerResourceViews,

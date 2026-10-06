@@ -1,6 +1,6 @@
 import { GW2_DAMAGING_CONDITIONS } from '#gw2/platform/combat/state/targets.js';
 import type { BalanceProfile } from '#gw2/platform/skills/types.js';
-import { defineSkillVariantProfile as variant } from '#gw2/platform/profession-definition/balance-profiles.js';
+import { defineSkillVariantProfile as variant } from '#gw2/platform/profession-definition/profile-authoring.js';
 import { NECROMANCER_SKILL_IDS as ID } from '#gw2/professions/necromancer/data/ids.js';
 
 export const HARBINGER_BALANCE_PROFILE_IDS = Object.freeze({

@@ -1,4 +1,4 @@
-import { planningBuffAt } from '#gw2/platform/results/query.js';
+import { planningBuffAt } from '#gw2/platform/results/result-queries.js';
 import { activeChargeCount } from '#gw2/platform/combat/resources/charges.js';
 import { activeStackCount } from '#gw2/platform/combat/resources/timed-stacks.js';
 import { readProfessionCoreState } from '#gw2/platform/profession-definition/state.js';

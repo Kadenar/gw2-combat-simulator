@@ -7,7 +7,7 @@ import { decideCriticalSigils } from '#gw2/platform/equipment/sigils/critical-pr
 import { SIGIL_BY_ID, SIGIL_PROCS } from '#gw2/platform/equipment/sigils/data.js';
 import { gw2SigilIds } from '#gw2/platform/equipment/sigils/loadout.js';
 import { createCriticalSigilEvent } from '#gw2/platform/equipment/sigils/proc-events.js';
-import { criticalProcHandler } from '#gw2/platform/profession-definition/mechanics.js';
+import { criticalProcHandler } from '#gw2/platform/profession-definition/critical-proc-handler.js';
 
 import type { Gw2ConditionHelpers } from '#gw2/platform/equipment/relics/types.js';
 import type { Gw2SigilProc } from '#gw2/platform/equipment/sigils/types.js';

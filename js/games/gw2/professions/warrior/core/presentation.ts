@@ -14,7 +14,7 @@ import type {
   ProfessionResourceView,
   RotationStateSnapshotItem
 } from '#gw2/platform/profession-presentation/types.js';
-import { planningBuffAt, planningBuffStacks } from '#gw2/platform/results/query.js';
+import { planningBuffAt, planningBuffStacks } from '#gw2/platform/results/result-queries.js';
 import { SIMULATION_RANDOMNESS_ASSUMPTION_CONTROLS } from '#gw2/platform/builds/randomness-assumptions.js';
 import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
 import { WARRIOR_SKILL_IDS as ID, WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/professions/warrior/data/ids.js';

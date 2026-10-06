@@ -1,4 +1,4 @@
-import { planningBuffAt } from '#gw2/platform/results/query.js';
+import { planningBuffAt } from '#gw2/platform/results/result-queries.js';
 import type { RotationStateSnapshotItem } from '#gw2/platform/profession-presentation/types.js';
 import { thiefStealPaletteGroups } from '#gw2/professions/thief/core/presentation.js';
 import type { ThiefUiContext } from '#gw2/professions/thief/types.js';

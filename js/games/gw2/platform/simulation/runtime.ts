@@ -34,8 +34,8 @@ import type { Gw2ResolverEvent, Gw2ResolverReactionRegistry } from '#gw2/platfor
 import { captureRuntimeEffects } from '#gw2/platform/results/observe-effects.js';
 import { projectRuntimeResult } from '#gw2/platform/results/project-runtime.js';
 import { createExecutedFacts } from '#gw2/platform/combat/history/executed-facts.js';
-import { createMechanicContext, createMechanicQueryContext } from '#gw2/platform/simulation/mechanic-context.js';
-import { createCombatExecution } from '#gw2/platform/simulation/combat-producers.js';
+import { createMechanicContext, createMechanicQueryContext } from '#gw2/platform/simulation/bind-mechanic-context.js';
+import { createCombatExecution } from '#gw2/platform/simulation/combat-execution.js';
 import { createExecutionCoordinator } from '#gw2/platform/simulation/coordinator.js';
 import { createEffectEmissionService } from '#gw2/platform/effects/emission.js';
 import { createEffectReactions } from '#gw2/platform/resolver/effect-reactions.js';

@@ -538,8 +538,7 @@ export function createGw2ConditionResolution({
   });
 }
 
-/** Owns the resolver/types.ts contracts so type dependencies follow their runtime feature boundaries. */
-// Resolution consumes kernel randomness and generic records without execution dependencies.
+/** Condition application, owner-clock, and damage-allocation records retained by the condition resolver. */
 
 export type Gw2ResolvedConditionApplication = Gw2ResolverEvent & {
   readonly name: string;

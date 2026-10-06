@@ -1,6 +1,6 @@
 import type { BalanceProfile } from '#gw2/platform/skills/types.js';
 import type { SkillEffect } from '#gw2/platform/effects/types.js';
-import { defineSkillVariantProfile as variant } from '#gw2/platform/profession-definition/balance-profiles.js';
+import { defineSkillVariantProfile as variant } from '#gw2/platform/profession-definition/profile-authoring.js';
 import { NECROMANCER_SKILL_IDS as ID } from '#gw2/professions/necromancer/data/ids.js';
 // Name packets independently for patch deletion while preserving their shared attribution.
 

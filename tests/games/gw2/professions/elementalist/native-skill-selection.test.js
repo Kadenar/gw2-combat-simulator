@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { availableSlotSkills } from '#gw2/app/build/panels/skills.js';
+import { availableSlotSkills } from '#gw2/app/build/state/skill-selection.js';
 import { elementalistAppAdapter } from '#gw2/professions/elementalist/app/app-definition.js';
 import { elementalistCatalog, elementalistProfession } from '#gw2/professions/elementalist/profession.js';
 

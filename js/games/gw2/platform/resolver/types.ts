@@ -5,9 +5,7 @@ import type { Gw2ResolverRuntime } from '#gw2/platform/resolver/runtime-state.js
 import type { Skill } from '#gw2/platform/skills/types.js';
 import type { StableEventQueue } from '#kernel/events/queue.js';
 
-/** Owns the resolver/types.ts contracts so type dependencies follow their runtime feature boundaries. */
-
-// Resolution consumes kernel randomness and generic records without execution dependencies.
+/** Resolver event, breakdown, and reaction contracts; resolution consumes kernel randomness without execution dependencies. */
 
 export type Gw2ResolverEvent = SimulationEvent &
   Gw2ConditionWork & {

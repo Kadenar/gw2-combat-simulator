@@ -11,7 +11,7 @@ import {
   requireEffect
 } from '#gw2/platform/skills/balance-profiles.js';
 import type { SkillEffect } from '#gw2/platform/effects/types.js';
-import { criticalProcHandler } from '#gw2/platform/profession-definition/mechanics.js';
+import { criticalProcHandler } from '#gw2/platform/profession-definition/critical-proc-handler.js';
 import type { NativeResolvedDamageDetails } from '#gw2/platform/profession-definition/module-types.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';

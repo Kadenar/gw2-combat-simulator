@@ -4,7 +4,7 @@ import { toApplicationBuild as engineerApplicationBuild } from '#gw2/professions
 import { toApplicationBuild as elementalistApplicationBuild } from '#gw2/professions/elementalist/build/build.js';
 import type { ElementalistCanonicalBuild } from '#gw2/professions/elementalist/build/types.js';
 import { withActivePatchPreview } from '#gw2/integrations/patches/active-profession.js';
-import { normalizeProfessionBuild } from '#gw2/platform/builds/profession-contract.js';
+import { normalizeProfessionBuild } from '#gw2/platform/builds/profession-build.js';
 import type { Gw2Build, Gw2CanonicalBuild } from '#gw2/platform/builds/types.js';
 import type { ProfessionModifierDefinition } from '#gw2/platform/profession-definition/types.js';
 import type { ProfessionBuildDefinition } from '#gw2/platform/builds/types.js';

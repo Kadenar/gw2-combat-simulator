@@ -28,7 +28,7 @@ import {
   requireBalanceProfileFromContext,
   requireEffect
 } from '#gw2/platform/skills/balance-profiles.js';
-import { criticalProcHandler } from '#gw2/platform/profession-definition/mechanics.js';
+import { criticalProcHandler } from '#gw2/platform/profession-definition/critical-proc-handler.js';
 
 import { setElementalistAttunementReadyAt } from '#gw2/professions/elementalist/core/state.js';
 

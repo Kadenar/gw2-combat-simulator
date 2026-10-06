@@ -10,7 +10,7 @@ import { ELEMENTALIST_CORE_BALANCE_PROFILE_IDS } from '#gw2/professions/elementa
  */
 import type { BalanceProfile } from '#gw2/platform/skills/types.js';
 import type { SkillEffect } from '#gw2/platform/effects/types.js';
-import { defineSkillVariantProfile as variant } from '#gw2/platform/profession-definition/balance-profiles.js';
+import { defineSkillVariantProfile as variant } from '#gw2/platform/profession-definition/profile-authoring.js';
 import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';
 
 const aura = (name: string, auraName: string, duration: number): SkillEffect => ({

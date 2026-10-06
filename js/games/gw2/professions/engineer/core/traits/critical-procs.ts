@@ -1,5 +1,5 @@
 import { emitSerratedSteel, emitIncendiaryPowder } from '#gw2/professions/engineer/core/traits/firearms-emissions.js';
-import type { ResolvedCriticalHitOptions } from '#gw2/platform/profession-definition/mechanics.js';
+import type { ResolvedCriticalHitOptions } from '#gw2/platform/profession-definition/critical-proc-handler.js';
 import type { NativeResolvedDamageDetails } from '#gw2/platform/profession-definition/module-types.js';
 import type { EngineerResolverContext, EngineerResolverEvent } from '#gw2/professions/engineer/types.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';

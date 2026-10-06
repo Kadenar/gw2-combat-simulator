@@ -1,4 +1,4 @@
-import { planningBuffAt, planningBuffStacks } from '#gw2/platform/results/query.js';
+import { planningBuffAt, planningBuffStacks } from '#gw2/platform/results/result-queries.js';
 import type {
   ProfessionAttributePreviewContext,
   ProfessionAttributePreviewPreparation

@@ -7,7 +7,7 @@ import type { BalanceProfile, SkillId } from '#gw2/platform/skills/types.js';
 import {
   defineTraitProfile as trait,
   defineSkillVariantProfile as variant
-} from '#gw2/platform/profession-definition/balance-profiles.js';
+} from '#gw2/platform/profession-definition/profile-authoring.js';
 import type { MesmerTraitDamage } from '#gw2/professions/mesmer/core/mechanics/illusions/types.js';
 import type { MesmerShatter, MesmerShatterDefinition } from '#gw2/professions/mesmer/core/mechanics/shatter-types.js';
 import { MESMER_CORE_SHATTERS } from '#gw2/professions/mesmer/core/skills/profession-skills.js';

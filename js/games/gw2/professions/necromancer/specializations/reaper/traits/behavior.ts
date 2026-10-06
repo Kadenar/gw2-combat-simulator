@@ -8,7 +8,7 @@ import {
 } from '#gw2/platform/skills/balance-profiles.js';
 import type { BalanceProfile } from '#gw2/platform/skills/types.js';
 import type { ConditionEffect } from '#gw2/platform/effects/types.js';
-import { criticalProcHandler } from '#gw2/platform/profession-definition/mechanics.js';
+import { criticalProcHandler } from '#gw2/platform/profession-definition/critical-proc-handler.js';
 import type { NativeResolvedDamageDetails } from '#gw2/platform/profession-definition/module-types.js';
 import { buildResolverCondition } from '#gw2/platform/resolver/packets.js';
 import {

@@ -6,7 +6,7 @@ point; consumers import other contracts directly from their canonical owners.
 
 | Directory                  | Owns                                                                                                      | Delegates                                                        |
 | -------------------------- | --------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------- |
-| `builds/`                  | Saved schemas, normalization, validation, attributes, loadouts, assumptions, templates                    | Live resources, scheduling, rendering                            |
+| `builds/`                  | Saved schemas, normalization, validation, attributes, loadouts, assumptions, chat codes                  | Live resources, scheduling, rendering                            |
 | `skills/`                  | Skill identities, immutable catalogs, validation, balance profiles, shared actions, chain indexes         | Cast acceptance, recharge, effect application                    |
 | `events/`                  | Event schemas, actor identities, packet identity contracts                                                | Queues, clocks, handlers, history                                |
 | `effects/`                 | Effect declarations, validation, materialization, emission, actions, duration/expiry policy               | Cast acceptance, target gating, hit resolution, resource storage |
@@ -81,7 +81,7 @@ selection, content, recharge-anchor, capacity, cast-detail, and effect-ownership
 - `MechanicContext` extends the combat capability with lifecycle operations: cast/resource/recharge services, named
   scheduling, and explicit observation writes.
 
-`simulation/mechanic-context.ts` binds stable query and lifecycle views to the live run, and
+`simulation/bind-mechanic-context.ts` binds stable query and lifecycle views to the live run, and
 `resolver/mechanic-services.ts` binds combat operations to resolver-owned stores. `combat/history/executed-facts.ts`
 provides separate `facts` readers and `observations` writers in every output mode. Author capabilities do not expose the
 command cursor, shared heap, cast maps, or report collections.

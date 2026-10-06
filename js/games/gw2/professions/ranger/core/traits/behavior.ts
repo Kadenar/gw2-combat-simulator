@@ -14,7 +14,7 @@ import {
   requireEffect
 } from '#gw2/platform/skills/balance-profiles.js';
 import { gw2PrimaryWeapon } from '#gw2/platform/equipment/weapons/loadout.js';
-import type { ResolvedCriticalHitOptions } from '#gw2/platform/profession-definition/mechanics.js';
+import type { ResolvedCriticalHitOptions } from '#gw2/platform/profession-definition/critical-proc-handler.js';
 import type { NativeResolvedDamageDetails } from '#gw2/platform/profession-definition/module-types.js';
 import { buildResolverBuff, buildResolverCondition } from '#gw2/platform/resolver/packets.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';

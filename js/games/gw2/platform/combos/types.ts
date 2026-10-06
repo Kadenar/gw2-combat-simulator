@@ -1,4 +1,3 @@
-/** Owns the combos/types.ts contracts so type dependencies follow their runtime feature boundaries. */
 import type { SimulationEventBase } from '#gw2/platform/events/events.js';
 import type { SimulationActorType } from '#gw2/platform/events/actors.js';
 

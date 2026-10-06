@@ -1,8 +1,8 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { decodeGw2BuildTemplate, resolveGw2BuildTemplate } from '#gw2/platform/builds/templates/codec.js';
-import { GW2_BUILD_TEMPLATE_PROFESSIONS } from '#gw2/platform/builds/templates/data.js';
+import { decodeGw2BuildTemplate, resolveGw2BuildTemplate } from '#gw2/platform/builds/chat-code/codec.js';
+import { GW2_BUILD_TEMPLATE_PROFESSIONS } from '#gw2/platform/builds/chat-code/palette-data.js';
 import { elementalistCatalog } from '#gw2/professions/elementalist/profession.js';
 import { engineerCatalog } from '#gw2/professions/engineer/profession.js';
 

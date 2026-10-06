@@ -8,7 +8,7 @@ import type {
   SkillDamageState
 } from '#gw2/platform/profession-presentation/skill-damage.js';
 import type { ProfessionResourceView, RotationStateSnapshotItem } from '#gw2/platform/profession-presentation/types.js';
-import { planningBuffAt, planningBuffStacks } from '#gw2/platform/results/query.js';
+import { planningBuffAt, planningBuffStacks } from '#gw2/platform/results/result-queries.js';
 import { createPreviewControls } from '#gw2/professions/shared/attribute-preview.js';
 import {
   formatSecondsRemaining,

@@ -54,7 +54,7 @@ test('platform imports preserve declaration, composition, history, and presentat
     if (file !== 'index.ts' && !/^(simulation|skill-damage)\//.test(file)) {
       assert.doesNotMatch(
         specifier,
-        /^#gw2\/platform\/simulation\/(runtime|coordinator|internal-work|combat-producers|simulate|mechanic-context)\.js$/,
+        /^#gw2\/platform\/simulation\/(runtime|coordinator|internal-work|combat-execution|simulate|bind-mechanic-context)\.js$/,
         label
       );
     }

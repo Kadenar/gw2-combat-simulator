@@ -10,7 +10,7 @@ import { WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/professions/warrior/data/ids.js
 import { gunsAndGloryExplosion } from '#gw2/professions/warrior/specializations/bladesworn/traits/behavior.js';
 import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
 
-import { planningBuffAt, planningBuffStacks } from '#gw2/platform/results/query.js';
+import { planningBuffAt, planningBuffStacks } from '#gw2/platform/results/result-queries.js';
 import { observeRuntimeEffects } from '#gw2/platform/results/observe-effects.js';
 
 const track = (result, kind) =>

@@ -5,7 +5,7 @@ import { createPreviewControls } from '#gw2/professions/shared/attribute-preview
  * previews overload availability so the editor can grey out casts the scheduler would reject.
  */
 import type { RotationStateSnapshotItem } from '#gw2/platform/profession-presentation/types.js';
-import { planningBuffAt } from '#gw2/platform/results/query.js';
+import { planningBuffAt } from '#gw2/platform/results/result-queries.js';
 
 import { ELEMENTALIST_OVERLOAD_SKILL_IDS } from '#gw2/professions/elementalist/data/ids.js';
 

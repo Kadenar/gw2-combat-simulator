@@ -7,7 +7,7 @@ import type {
 } from '#gw2/professions/ranger/types.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
-import { defineSkillVariantProfile as variant } from '#gw2/platform/profession-definition/balance-profiles.js';
+import { defineSkillVariantProfile as variant } from '#gw2/platform/profession-definition/profile-authoring.js';
 import { grantSkillCharges } from '#gw2/professions/ranger/core/skills/charge-grants.js';
 import {
   activeChargeGrants,

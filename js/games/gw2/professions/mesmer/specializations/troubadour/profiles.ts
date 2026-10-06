@@ -1,7 +1,7 @@
 import { requireBalanceProfileFromContext, requireEffect } from '#gw2/platform/skills/balance-profiles.js';
 import { requireCanonicalSkillEffects } from '#gw2/platform/effects/validation.js';
 import type { BalanceProfile, SkillId } from '#gw2/platform/skills/types.js';
-import { defineSkillVariantProfile as variant } from '#gw2/platform/profession-definition/balance-profiles.js';
+import { defineSkillVariantProfile as variant } from '#gw2/platform/profession-definition/profile-authoring.js';
 import { MESMER_SKILL_IDS as ID } from '#gw2/professions/mesmer/data/ids.js';
 import {
   HARMONIOUS_HARP_DISTORTION,
