@@ -317,6 +317,7 @@ function emitFencersFinesseStacks(context: MesmerRuntime, skill: MesmerSkill, at
       const proc =
         options.announce !== false
           ? context.effects.emit({
+              receipt: true,
               kind: 'announcement',
               log: true,
               attribution: { ...traitSource, actorType: 'effect' },
@@ -381,6 +382,7 @@ export function triggerMasterFencer(
     return;
   // Record one canonical proc as the cause of both grants so the log can summarize their resolved durations.
   const proc = context.state.effects.emit({
+    receipt: true,
     kind: 'announcement',
     cause: event,
     log: true,

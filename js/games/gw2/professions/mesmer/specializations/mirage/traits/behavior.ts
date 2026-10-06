@@ -108,6 +108,7 @@ export function applyMirageCloakTraits(
       };
       {
         const proc = state.effects.emit({
+          receipt: true,
           ...delivery,
           kind: 'announcement',
           log: true,
@@ -211,6 +212,7 @@ export function applyMirageAmbushTraits(
       };
       {
         const proc = state.effects.emit({
+          receipt: true,
           ...delivery,
           kind: 'announcement',
           log: true,
@@ -280,6 +282,7 @@ export function applyMirageShatterTraits(
       };
       {
         const proc = state.effects.emit({
+          receipt: true,
           ...delivery,
           kind: 'announcement',
           log: true,
@@ -319,6 +322,7 @@ export function applyMirageShatterTraits(
       };
       {
         const proc = state.effects.emit({
+          receipt: true,
           ...delivery,
           kind: 'announcement',
           log: true,

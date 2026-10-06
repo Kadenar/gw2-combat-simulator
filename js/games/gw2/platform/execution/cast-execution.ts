@@ -272,6 +272,7 @@ export function createCastExecution<T extends object>(
     const comboFields =
       profession.modifyComboFields?.(runtime.mechanicQueries, cast, skill.comboFields) ?? skill.comboFields;
     const action = runtime.effects.emit({
+      receipt: true,
       kind: 'packet',
       event: {
         ...attribution,

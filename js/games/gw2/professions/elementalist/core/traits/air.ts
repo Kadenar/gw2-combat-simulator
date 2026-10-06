@@ -263,8 +263,8 @@ export function applyLightningRod(
   }
 
   const conditionEmitted =
-    context.effects.emit(
-      elementalistProfiledConditionRequest(
+    context.effects.emit({
+      ...elementalistProfiledConditionRequest(
         context,
         event.at,
         TRAIT.LIGHTNING_ROD,
@@ -273,8 +273,9 @@ export function applyLightningRod(
         sourceId,
         undefined,
         emissionCast
-      )
-    ).length > 0;
+      ),
+      receipt: true
+    }).length > 0;
   if (lightningRodStrike || conditionEmitted)
     context.effects.emit(
       elementalistAnnouncement({

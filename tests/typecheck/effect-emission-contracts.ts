@@ -5,8 +5,8 @@ declare const runtime: Gw2Runtime;
 declare const packet: PacketEmission;
 declare const profile: ProfileEmission;
 declare const announcement: AnnouncementEmission;
-const receipt = runtime.effects.emit(packet);
-const receipts = runtime.effects.emit(profile);
+const receipt = runtime.effects.emit({ ...packet, receipt: true });
+const receipts = runtime.effects.emit({ ...profile, receipt: true });
 runtime.effects.emit(announcement);
 // @ts-expect-error Emission receipts cannot rewrite queued time.
 receipt.at = 3;

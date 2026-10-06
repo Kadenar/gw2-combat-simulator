@@ -186,6 +186,7 @@ export function triggerIllusionaryMembrane(
       const proc =
         options.announce !== false
           ? context.effects.emit({
+              receipt: true,
               ...delivery,
               kind: 'announcement',
               log: true,

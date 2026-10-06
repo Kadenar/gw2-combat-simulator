@@ -24,7 +24,8 @@ test('announcements preserve combat order and sampled damage in detailed and sco
                 attribution,
                 announcement: { type: 'trait', name: 'Fixture trait', at }
               });
-          for (const at of [1, 2]) references.push(runtime.effects.emit({ kind: 'packet', event: { ...strike, at } }));
+          for (const at of [1, 2])
+            references.push(runtime.effects.emit({ receipt: true, kind: 'packet', event: { ...strike, at } }));
         }
       }
     });
@@ -58,6 +59,7 @@ test('profile and computed grants use one submission contract', () => {
       initialize(runtime) {
         references.push(
           ...runtime.effects.emit({
+            receipt: true,
             kind: 'profile',
             at: 1,
             profile: { id: 42, name: 'Fixture', effects: [{ type: 'boon', boon: 'Fury', duration: 4, stacks: 1 }] },
@@ -66,6 +68,7 @@ test('profile and computed grants use one submission contract', () => {
         );
         references.push(
           runtime.effects.emit({
+            receipt: true,
             kind: 'packet',
             event: { ...attribution, type: 'buff', at: 1, kind: 'fury', duration: 4, stacks: 1 }
           })
@@ -136,6 +139,7 @@ test('same-time owner cancellation removes visible announcements and their grant
         const owner = { id: 'trait-owner', generation: 0 };
         const cast = { activationId: 'cast-fixture', skillId: 42 };
         announcement = runtime.effects.emit({
+          receipt: true,
           kind: 'announcement',
           log: true,
           owner,
@@ -182,7 +186,7 @@ test('queued effects snapshot nested payloads and return deeply frozen receipts'
     name: 'Receipt fixture',
     hooks: {
       initialize(runtime) {
-        receipt = runtime.effects.emit({ kind: 'packet', event: input });
+        receipt = runtime.effects.emit({ receipt: true, kind: 'packet', event: input });
         input.audience.maximumRecipients = 5;
         assert.ok(Object.isFrozen(receipt.audience));
         assert.throws(() => {

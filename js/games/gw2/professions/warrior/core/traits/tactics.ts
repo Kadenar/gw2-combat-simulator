@@ -199,7 +199,7 @@ export function empowerPulse(runtime: WarriorRuntime): void {
       profile: traitProfile,
       effects: [might],
       attribution: { source: 'Trait', sourceId: TRAIT.EMPOWER_ALLIES, actorType: 'effect' },
-      cause: { type: 'buff', at: runtime.time, source: 'Trait', sourceId: TRAIT.EMPOWER_ALLIES, actorType: 'effect' },
+      cause: { sourceId: TRAIT.EMPOWER_ALLIES, actorType: 'effect' },
       transform: (packet) => ({
         ...packet,
         name: traitProfile.name,

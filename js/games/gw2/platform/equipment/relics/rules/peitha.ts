@@ -55,6 +55,7 @@ function emitDamagePayload(
     triggeredBy: event.skillName
   };
   const proc = ctx.effects.emit({
+    receipt: true,
     kind: 'announcement',
     log: true,
     cause: event,

@@ -176,12 +176,14 @@ test('procedural buffs wait for their own instant and owner-bound packets cancel
         const base = { source: 'fixture', sourceId: 'proc', actorType: 'player' };
         returned.push(
           runtime.effects.emit({
+            receipt: true,
             kind: 'packet',
             event: { ...base, type: 'buff', at: 0, kind: 'might', stacks: 1, duration: 5 }
           })
         );
         returned.push(
           runtime.effects.emit({
+            receipt: true,
             kind: 'packet',
             event: { ...base, type: 'buff', at: 2, kind: 'fury', stacks: 1, duration: 5 }
           })
@@ -189,6 +191,7 @@ test('procedural buffs wait for their own instant and owner-bound packets cancel
         const owner = { id: 'fixture.owner', generation: 0 };
         returned.push(
           runtime.effects.emit({
+            receipt: true,
             kind: 'packet',
             event: { ...base, type: 'damage', at: 3, coefficient: 1, skillWeapon: '' },
             ...{ owner }

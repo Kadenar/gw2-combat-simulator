@@ -219,6 +219,7 @@ export function applyCrescendoTraits(
       const alteredChordProfile = requireBalanceProfileFromContext(context, TRAIT.ALTERED_CHORD);
       // The activation owns its status row without changing the status's post-strike priority.
       const proc = context.effects.emit({
+        receipt: true,
         ...delivery,
         kind: 'announcement',
         log: true,
@@ -349,6 +350,7 @@ export function triggerRaconteur(context: MesmerRuntime, skill: MesmerSkill, at:
       };
       {
         const proc = context.effects.emit({
+          receipt: true,
           kind: 'announcement',
           log: true,
           attribution: { ...traitSource, actorType: 'effect' },

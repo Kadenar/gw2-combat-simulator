@@ -33,7 +33,7 @@ import type { RuntimeWork, WorkInput } from '#gw2/platform/simulation/work-contr
 import { EPSILON, canonicalTime } from '#kernel/core/clock.js';
 
 /** Derived copies cannot reuse the parent's declaration, including after serialization or deferral. */
-function withoutInheritedReaction(event: SimulationEventBase, cause?: Gw2ResolverEvent | null): SimulationEventBase {
+function withoutInheritedReaction(event: SimulationEventBase, cause?: EffectDelivery['cause']): SimulationEventBase {
   if (
     event.effectReaction &&
     cause?.effectReaction &&

@@ -86,6 +86,8 @@ export function activeBoonStacks(
   const base = recipient.actor === 'player' ? Number(context.config?.boons?.[boon] || 0) : 0;
   // Configured duration presence needs no history, but must still respect the caller's output cap.
   if (base > 0 && isDurationStackingBoon(boon)) return clamp(1, 0, maximum);
+  // Live grants cannot increase configured intensity stacks that already meet the requested cap.
+  if (base >= maximum) return clamp(base, 0, maximum);
   const dynamic = appliedEffectStacks(context, boon, maximum, recipient);
   return clamp((isDurationStackingBoon(boon) ? 0 : base) + dynamic, 0, maximum);
 }

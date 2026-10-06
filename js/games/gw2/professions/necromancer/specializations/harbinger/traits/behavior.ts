@@ -211,6 +211,7 @@ export function applyCascadingCorruption(
         if (meltdown)
           state.meltdownUntil = canonicalTime(runtime.time + effectNumber(corruption, meltdown, 'duration'));
         const proc = runtime.effects.emit({
+          receipt: true,
           kind: 'announcement',
           log: true,
           attribution: {

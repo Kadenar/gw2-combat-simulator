@@ -45,6 +45,7 @@ export function observeChronomancerEvent(context: MesmerRuntime, event: Simulati
     };
     {
       const proc = context.effects.emit({
+        receipt: true,
         kind: 'announcement',
         log: true,
         attribution: { ...traitSource, actorType: 'effect' },
@@ -121,6 +122,7 @@ const triggerShatterBoon = (
     };
     {
       const proc = context.effects.emit({
+        receipt: true,
         ...resolution.delivery,
         kind: 'announcement',
         log: true,

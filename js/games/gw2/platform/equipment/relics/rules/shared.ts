@@ -52,6 +52,7 @@ export function recordTimedBuffProc(
       .map((application) => application.expiresAt)
   );
   const proc = ctx.effects.emit({
+    receipt: true,
     kind: 'announcement',
     cause: event,
     announcement: {

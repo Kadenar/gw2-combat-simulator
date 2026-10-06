@@ -16,21 +16,29 @@ export interface EffectDelivery {
     readonly effectiveEnd?: number;
     readonly offTarget?: boolean;
   };
-  readonly cause?: Gw2ResolverEvent | null;
+  readonly cause?: Pick<
+    Gw2ResolverEvent,
+    'sourceId' | 'actorType' | 'activationId' | 'eventOrder' | 'causalOrder' | 'effectReaction'
+  > | null;
   readonly owner?: WorkOwner;
   readonly priority?: number;
   /** The mechanic can name a triggering skill as its modifier context without changing the granting source. */
   readonly durationContext?: Gw2ResolverEvent;
 }
 
-export interface PacketEmission extends EffectDelivery {
+/** Only callers retaining submitted events pay for detached, immutable receipts. */
+interface EmissionOptions {
+  readonly receipt?: boolean;
+}
+
+export interface PacketEmission extends EffectDelivery, EmissionOptions {
   readonly kind: 'packet';
   readonly event: SimulationEventBase;
   /** An application inside the current reaction transaction must settle before the caller's next state query. */
   readonly settlement?: 'reaction';
 }
 
-export interface ProfileEmission extends EffectDelivery {
+export interface ProfileEmission extends EffectDelivery, EmissionOptions {
   readonly kind: 'profile';
   readonly profile: Skill | BalanceProfile;
   readonly effects?: readonly SkillEffect[];
@@ -42,7 +50,7 @@ export interface ProfileEmission extends EffectDelivery {
   readonly transform?: (event: SimulationEventBase, effect: SkillEffect) => SimulationEventBase | null;
 }
 
-export interface AnnouncementEmission extends EffectDelivery {
+export interface AnnouncementEmission extends EffectDelivery, EmissionOptions {
   readonly kind: 'announcement';
   readonly attribution?: EffectEventBase;
   /** A visible activation owns effect rows; timeline-only annotations do not add an event-log row. */
@@ -62,9 +70,10 @@ export interface AnnouncementEmission extends EffectDelivery {
 
 /** Every producer uses the same service; only payload authoring differs between a profile and a computed packet. */
 export interface EffectEmissionService {
-  emit(request: PacketEmission): SimulationEvent;
-  emit(request: ProfileEmission): readonly SimulationEvent[];
-  emit(request: AnnouncementEmission): SimulationEvent;
+  emit(request: PacketEmission & { readonly receipt: true }): SimulationEvent;
+  emit(request: ProfileEmission & { readonly receipt: true }): readonly SimulationEvent[];
+  emit(request: AnnouncementEmission & { readonly receipt: true }): SimulationEvent;
+  emit(request: PacketEmission | ProfileEmission | AnnouncementEmission): void;
 }
 
 /** Receipts detach nested payloads so retaining causality cannot mutate pending combat work. */
@@ -82,18 +91,28 @@ function immutableReceipt(event: SimulationEvent): SimulationEvent {
   return receipt;
 }
 
-/** Delivery is data; profile selection callbacks stay outside the queued packet's snapshot. */
+/** Retain only causal identity; a triggering event's report payload is not part of effect delivery. */
 function deliverySnapshot(
   request: EffectDelivery & { readonly settlement?: 'reaction' }
 ): EffectDelivery & { readonly settlement?: 'reaction' } {
-  return structuredClone({
-    cast: request.cast,
-    cause: request.cause,
-    owner: request.owner,
+  const cause = request.cause;
+  return {
+    cast: request.cast ? { ...request.cast } : undefined,
+    cause: cause
+      ? {
+          sourceId: cause.sourceId,
+          actorType: cause.actorType,
+          activationId: cause.activationId,
+          eventOrder: cause.eventOrder,
+          causalOrder: cause.causalOrder,
+          effectReaction: cause.effectReaction ? { ...cause.effectReaction } : undefined
+        }
+      : cause,
+    owner: request.owner ? { ...request.owner } : undefined,
     priority: request.priority,
-    durationContext: request.durationContext,
+    durationContext: request.durationContext ? structuredClone(request.durationContext) : undefined,
     settlement: request.settlement
-  });
+  };
 }
 
 /** Expand authored effects once and submit computed and materialized packets to the same runtime boundary. */
@@ -106,12 +125,13 @@ export function createEffectEmissionService(host: {
   ) => SimulationEvent;
   readonly announce: (request: AnnouncementEmission) => SimulationEvent;
 }): EffectEmissionService {
-  function emit(request: PacketEmission): SimulationEvent;
-  function emit(request: ProfileEmission): readonly SimulationEvent[];
-  function emit(request: AnnouncementEmission): SimulationEvent;
+  function emit(request: PacketEmission & { readonly receipt: true }): SimulationEvent;
+  function emit(request: ProfileEmission & { readonly receipt: true }): readonly SimulationEvent[];
+  function emit(request: AnnouncementEmission & { readonly receipt: true }): SimulationEvent;
+  function emit(request: PacketEmission | ProfileEmission | AnnouncementEmission): void;
   function emit(
     request: PacketEmission | ProfileEmission | AnnouncementEmission
-  ): SimulationEvent | readonly SimulationEvent[] {
+  ): SimulationEvent | readonly SimulationEvent[] | void {
     // Every ingress validates delivery policy before it can reserve or submit combat work.
     if (request.priority != null && !Number.isFinite(request.priority))
       throw new RangeError('Effect priority must be finite.');
@@ -124,19 +144,24 @@ export function createEffectEmissionService(host: {
     )
       throw new TypeError('Effect lifetime requires an owner id and a nonnegative safe integer generation.');
     const delivery = deliverySnapshot(request);
-    if (request.kind === 'announcement')
-      return immutableReceipt(
-        host.announce({
-          ...delivery,
-          kind: 'announcement',
-          log: request.log,
-          attribution: structuredClone(request.attribution),
-          announcement: structuredClone(request.announcement)
-        })
-      );
-    if (request.kind === 'packet') return immutableReceipt(host.submit(structuredClone(request.event), delivery));
+    if (request.kind === 'announcement') {
+      const event = host.announce({
+        ...delivery,
+        kind: 'announcement',
+        log: request.log,
+        attribution: structuredClone(request.attribution),
+        announcement: structuredClone(request.announcement)
+      });
+      return request.receipt ? immutableReceipt(event) : undefined;
+    }
+
+    if (request.kind === 'packet') {
+      const event = host.submit(structuredClone(request.event), delivery);
+      return request.receipt ? immutableReceipt(event) : undefined;
+    }
+
     const at = request.at ?? host.now();
-    const events: SimulationEvent[] = [];
+    const events: SimulationEvent[] | undefined = request.receipt ? [] : undefined;
     for (const effect of request.effects ?? request.profile.effects ?? []) {
       for (const { event } of materializeSkillEffectApplications({
         skill: request.profile,
@@ -148,11 +173,14 @@ export function createEffectEmissionService(host: {
         skillWeaponFallback: request.skillWeaponFallback
       })) {
         const packet = request.transform ? request.transform(event, effect) : event;
-        if (packet) events.push(immutableReceipt(host.submit(structuredClone(packet), delivery)));
+        if (packet) {
+          const submitted = host.submit(structuredClone(packet), delivery);
+          if (events) events.push(immutableReceipt(submitted));
+        }
       }
     }
 
-    return Object.freeze(events);
+    return events ? Object.freeze(events) : undefined;
   }
 
   return Object.freeze({ emit });

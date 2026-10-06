@@ -67,8 +67,8 @@ export function emitElectricDischarge(
   }
 
   const conditionEmitted =
-    context.effects.emit(
-      elementalistProfiledConditionRequest(
+    context.effects.emit({
+      ...elementalistProfiledConditionRequest(
         context,
         at,
         TRAIT.ELECTRIC_DISCHARGE,
@@ -77,8 +77,9 @@ export function emitElectricDischarge(
         sourceId,
         undefined,
         emissionCast
-      )
-    ).length > 0;
+      ),
+      receipt: true
+    }).length > 0;
   if (electricDischargeStrike || conditionEmitted)
     context.effects.emit(
       elementalistAnnouncement({
@@ -488,8 +489,8 @@ export function emitSunspot(
 
   const burningEmitted =
     hasTrait(context, TRAIT.BURNING_RAGE) &&
-    context.effects.emit(
-      elementalistProfiledConditionRequest(
+    context.effects.emit({
+      ...elementalistProfiledConditionRequest(
         context,
         at,
         TRAIT.BURNING_RAGE,
@@ -498,8 +499,9 @@ export function emitSunspot(
         sourceId,
         sourceSkill,
         emissionCast
-      )
-    ).length > 0;
+      ),
+      receipt: true
+    }).length > 0;
   if (sunspotAura || sunspotStrike || burningEmitted)
     context.effects.emit(
       elementalistAnnouncement({

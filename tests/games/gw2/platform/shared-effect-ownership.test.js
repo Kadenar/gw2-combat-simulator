@@ -28,8 +28,8 @@ test('owned effects prepare once at impact and retain their reserved identity', 
     catalog: createCanonicalCatalog({ generated: [] }),
     createState: () => ({ value: 1 }),
     initialize(runtime) {
-      references.push(runtime.effects.emit({ kind: 'packet', event: packet('cancelled', 1) }));
-      references.push(runtime.effects.emit({ kind: 'packet', event: packet('survivor', 1) }));
+      references.push(runtime.effects.emit({ receipt: true, kind: 'packet', event: packet('cancelled', 1) }));
+      references.push(runtime.effects.emit({ receipt: true, kind: 'packet', event: packet('survivor', 1) }));
       runtime.schedule('change', 0.5);
     },
     effectOwner(_runtime, event) {

@@ -50,6 +50,7 @@ export function resolveDeadlyBlades(context: MesmerRuntime, resolution: MesmerSh
     };
     {
       const proc = context.effects.emit({
+        receipt: true,
         ...resolution.delivery,
         kind: 'announcement',
         log: true,
