@@ -1042,6 +1042,31 @@ test('Blast Zone tooltip describes its combo finisher', async () => {
   assert.equal(model.facts.find(({ name }) => name === 'Combo finisher').detail, 'Blast');
 });
 
+// New Genes must project each packet once while keeping universal and Morph-specific Might distinct.
+test('New Genes tooltip lists shared boons and each Morph bonus once', async () => {
+  const { engineerProfession } = await import('#gw2/professions/engineer/profession.js');
+  const { engineerTooltips } = await import('#gw2/professions/engineer/app/tooltips.js');
+  const context = withPatchPreview(engineerProfession, null).balanceContextFor();
+  const trait = context.catalog.traits.find(({ name }) => name === 'New Genes');
+  const model = describeSimulationTrait(context, trait, engineerTooltips);
+  const effects = context.catalog.balanceProfilesById.get(trait.id).effects;
+  assert.equal(model.facts.length, effects.length);
+  for (const effect of effects) {
+    const qualifier = effect.metadata?.trigger
+      ? `${effect.metadata.trigger.replace(/^\w/, (letter) => letter.toUpperCase())} only`
+      : 'All Morph skills';
+    const matching = model.facts.filter(
+      (fact) => fact.name.toLowerCase() === effect.boon && fact.detail.endsWith(`— ${qualifier}`)
+    );
+    assert.equal(matching.length, 1, `${effect.name} appears once with its granting skill`);
+  }
+
+  assert.deepEqual(
+    model.facts.filter(({ name }) => name === 'Might').map(({ stacks }) => stacks),
+    [4, 5]
+  );
+});
+
 // Every registered trait must resolve real declarations, including traits backed by separately named profiles.
 test('profession trait declarations resolve without missing references or invalid numeric facts', async () => {
   for (const name of [

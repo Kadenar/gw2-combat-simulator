@@ -31,6 +31,8 @@ export const RESULT_PROC_NAMES: Readonly<Record<string, string>> = {
 
 /** Use the game's direct render assets for tooltip facts, build controls, and effect result rows. */
 export const MODIFIER_EFFECT_ICONS: Readonly<Record<string, string>> = {
+  // Health-threshold facts use the game's target glyph, matching Heavy Metal's API facts.
+  Target: 'https://render.guildwars2.com/file/9352ED3244417304995F26CB01AE76BB7E547052/156661.png',
   // Barrier facts share the game's shield glyph, including minimum and maximum amounts.
   Barrier: 'https://render.guildwars2.com/file/357922487919E8E84B914EAC13D5796DDDC42D14/1770209.png',
   'Strike damage': 'https://render.guildwars2.com/file/61AA4919C4A7990903241B680A69530121E994C7/156657.png',
@@ -62,6 +64,8 @@ export const MODIFIER_EFFECT_ICONS: Readonly<Record<string, string>> = {
   'Enchanted Daggers': 'https://render.guildwars2.com/file/A01907F923B160E6261174BEF5975D070D4D6511/1012989.png',
   'Burst of Strength': 'https://render.guildwars2.com/file/91F9252B1F3C71C934B75502B8DD070A064115D8/1013008.png',
   'Explosive Temper': 'https://render.guildwars2.com/file/273E26303F072C3EEEF0DA25D5ACC1E59AECACF6/2261504.png',
+  // Thermal Vision's temporary effect uses its granting trait's icon.
+  'Thermal Vision': 'https://render.guildwars2.com/file/F806ACB6130CED2DACC9DD804E4303327073385A/1012358.png',
   'Twice as Vicious': 'https://render.guildwars2.com/file/42AE5234142F3045D5B665EC60D6E3FF7C564D62/1769986.png',
   'Relentless Fire': 'https://render.guildwars2.com/file/31372EE16EAB80BDB213EB99D1BF4C6C3B67B6AF/2491601.png',
   'Shattering Ice': 'https://render.guildwars2.com/file/A1C20E2CE05D80B5A9DDF47ED0780301FC2C7477/2491603.png',

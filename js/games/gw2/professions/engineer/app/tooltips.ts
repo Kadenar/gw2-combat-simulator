@@ -1,5 +1,5 @@
 import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
-import { requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import { MODIFIER_EFFECT_ICONS } from '#gw2/app/shared/icons.js';
 import {
   fromProfile,
   fromModifier,
@@ -642,17 +642,15 @@ export const engineerTooltips: ProfessionTooltips = {
       'Player-owned strikes deal increased damage for each different condition on the target.',
       [fromModifier('engineer.modified-ammunition', 'damagePerCondition', 'Strike damage per target condition')]
     ),
-    [TRAIT.CHEMICAL_ROUNDS]: traitTooltip(
-      'Gain condition damage. Supported pistol conditions have longer base durations.',
+    [TRAIT.CHEMICAL_ROUNDS]: traitTooltip('Gain condition damage. Conditions inflicted by pistol skills last longer.', [
+      ['attributeBonus', 'Condition damage'],
       [
-        ['attributeBonus', 'Condition damage'],
-        [
-          'conditionDurationMultiplier',
-          'Pistol condition base duration multiplier',
-          (value) => `${tooltipDecimal(value)}×`
-        ]
+        'conditionDurationMultiplier',
+        'Pistol condition duration',
+        // Present the duration increase as a rounded percentage instead of the internal multiplier.
+        (value) => tooltipPercent(Math.round((value - 1) * 100) / 100)
       ]
-    ),
+    ]),
     [TRAIT.SANGUINE_ARRAY]: traitTooltip('Player-owned bleeding applications grant might.'),
     [TRAIT.HIGH_CALIBER]: traitTooltip(
       "Gain player critical-strike chance within the simulator's fixed positioning assumptions.",
@@ -671,29 +669,31 @@ export const engineerTooltips: ProfessionTooltips = {
       ['internalCooldown', 'Fury cooldown', tooltipSeconds]
     ]),
     [TRAIT.HEAVY_METAL]: traitTooltip(
-      'Gain player critical chance and critical damage as target health falls. Lower health tiers replace the preceding bonuses.',
-      (balanceContext) =>
-        (['upper', 'middle', 'lower'] as const).flatMap((tier) => [
-          profileFact(
-            balanceContext,
-            TRAIT.HEAVY_METAL,
-            `${tier}Threshold`,
-            `${tier}-tier target health threshold`,
-            tooltipPercent
-          ),
-          profileFact(
-            balanceContext,
-            TRAIT.HEAVY_METAL,
-            `${tier}Bonus`,
-            `${tier}-tier critical chance`,
-            tooltipPercent
-          ),
-          profileFact(balanceContext, TRAIT.HEAVY_METAL, `${tier}Bonus`, `${tier}-tier critical damage`, tooltipPercent)
-        ])
+      'Your critical-strike chance and critical damage are increased against foes that are below the health threshold.',
+      (balanceContext) => {
+        // Pair each target-health threshold with its bonuses so each row explains when they apply.
+        const profile = tooltipProfile(balanceContext, TRAIT.HEAVY_METAL);
+        return (['upper', 'middle', 'lower'] as const).map((tier) => {
+          const threshold = tooltipDecimal(tooltipNumber(profile, `${tier}Threshold`) * 100);
+          const bonus = tooltipDecimal(tooltipNumber(profile, `${tier}Bonus`) * 100);
+          return {
+            name: `Increase below ${threshold}%`,
+            detail: `${bonus}%`,
+            icon: MODIFIER_EFFECT_ICONS.Target
+          };
+        });
+      }
     ),
     [TRAIT.SHARPSHOOTER]: traitTooltip(
-      'Player-owned bleeding uses a fraction of current power in place of condition damage.',
-      [['coefficientMultiplier', 'Power used as bleeding condition damage', tooltipPercent]]
+      'Your bleeding damage scales with Power instead of Condition Damage. This affects only bleeding you inflict.',
+      // Show the replacement attribute as a share of Power, without a misleading bonus sign or repeating decimals.
+      [
+        [
+          'coefficientMultiplier',
+          'Condition Damage for bleeding',
+          (value) => `${Number((value * 100).toFixed(2))}% of Power`
+        ]
+      ]
     ),
     [TRAIT.INCENDIARY_POWDER]: traitTooltip(
       'Eligible critical hits inflict burning. Burning lasts longer; the mech maintains its own proc cooldown.',
@@ -899,13 +899,18 @@ export const engineerTooltips: ProfessionTooltips = {
     [TRAIT.SYMBIOTIC_SYNERGY]: traitTooltip('Morph strikes deal increased damage. Evolve recharges Morph skills.', [
       fromModifier('engineer.symbiotic-synergy', 'amount', 'Morph strike damage')
     ]),
-    [TRAIT.NEW_GENES]: traitTooltip(
-      'Protocols grant party alacrity, might, and an additional boon determined by the protocol.',
-      (balanceContext) =>
-        requireBalanceProfileFromContext(balanceContext, TRAIT.NEW_GENES).effects?.flatMap((effect) =>
-          effect.metadata?.trigger ? simulationEffectFacts([effect], `${effect.metadata.trigger} protocol`).facts : []
-        ) ?? []
-    ),
+    [TRAIT.NEW_GENES]: (balanceContext, entity) => ({
+      description:
+        'Using a Morph skill grants alacrity and might to you and nearby allies. Each Morph skill also grants the additional boon listed below.',
+      // Render each boon once and replace internal packet names with the Morph skill that grants it.
+      facts: (tooltipProfile(balanceContext, entity.id).effects || []).flatMap((effect) => {
+        const trigger = effect.metadata?.trigger;
+        const qualifier = trigger
+          ? `${trigger.replace(/^\w/, (letter) => letter.toUpperCase())} only`
+          : 'All Morph skills';
+        return simulationEffectFacts([{ ...effect, name: undefined }], qualifier).facts;
+      })
+    }),
     [TRAIT.DOUBLE_HELIX]: traitTooltip(
       'Evolve gains ammunition and a stronger attribute increase from its eligible attribute pool.',
       [
