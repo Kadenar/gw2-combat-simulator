@@ -2,6 +2,7 @@ import { createReadStream, readFileSync } from 'node:fs';
 import { cp, stat } from 'node:fs/promises';
 import path from 'node:path';
 import { defineConfig } from 'vite';
+import { benchmarkPreviews } from './scripts/build/benchmark-previews.mjs';
 
 // Serve and copy runtime data only at the game-owned paths declared in the manifest.
 const gameDataManifest = JSON.parse(readFileSync(path.resolve('data', 'games.json'), 'utf8'));
@@ -58,7 +59,11 @@ const professionPages = {
 };
 
 // Public entry points; the local authoring page is added only to development builds below.
-const pageEntries = ['index.html', ...Object.keys(professionPages).map((professionId) => `${professionId}.html`)];
+const pageEntries = [
+  'index.html',
+  'benchmarks.html',
+  ...Object.keys(professionPages).map((professionId) => `${professionId}.html`)
+];
 
 // Expands each thin profession entry into the shared simulator document before Vite processes its assets.
 function renderProfessionPages() {
@@ -186,6 +191,7 @@ export default defineConfig(({ command, mode }) => ({
     renderProfessionPages(),
     copyRuntimeData(),
     serveRuntimeData(),
+    benchmarkPreviews(),
     // Only the GitHub Pages artifact should redirect visitors; other production builds stay self-hostable.
     ...(mode === 'github-pages' ? [injectGithubPagesRedirect()] : [])
   ],

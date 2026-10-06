@@ -9,22 +9,147 @@ async function openDashboard(page, path = '/mesmer.html#benchmarks') {
 // Home-page users can reach the all-profession tool directly, including in an embedded host.
 test('home page links directly to benchmarks and preserves hosting modes', async ({ page }) => {
   await page.goto('/index.html');
-  const link = page.getByRole('link', { name: 'Benchmarks', exact: false });
+  const navigation = page.getByRole('navigation', { name: 'Main navigation' });
+  const link = navigation.getByRole('link', { name: 'Benchmarks', exact: true });
   await expect(link).toBeVisible();
-  await expect(link).toHaveAttribute('href', 'elementalist.html#benchmarks');
+  await expect(link).toHaveAttribute('href', 'benchmarks.html');
+  await expect(navigation.getByRole('link', { name: 'Simulator', exact: true })).toHaveAttribute(
+    'aria-current',
+    'page'
+  );
   await page.goto('/index.html?embed=1&standalone=1');
   await expect(link).toBeVisible();
-  await expect(link).toHaveAttribute('href', 'elementalist.html?embed=1&standalone=1#benchmarks');
+  await expect(link).toHaveAttribute('href', 'benchmarks.html?embed=1&standalone=1');
   await link.focus();
   await page.keyboard.press('Enter');
-  await expect(page).toHaveURL(/elementalist\.html\?embed=1&standalone=1#benchmarks$/);
-  await expect(page.locator('#loading-overlay')).toHaveClass(/hidden/);
+  await expect(page).toHaveURL(/benchmarks\.html\?embed=1&standalone=1$/);
+  await expect(link).toHaveAttribute('aria-current', 'page');
   await expect(page.locator('[data-benchmark-dashboard]')).toHaveAttribute('aria-busy', 'false');
   await expect(page.locator('[data-benchmark-cards]')).toBeVisible();
   await expect(page.getByRole('button', { name: 'Build benchmarks', exact: true })).toHaveAttribute(
     'aria-pressed',
     'true'
   );
+  await navigation.getByRole('link', { name: 'Simulator', exact: true }).click();
+  await expect(page).toHaveURL(/index\.html\?embed=1&standalone=1$/);
+  await expect(page.locator('[data-profession-grid]')).toBeVisible();
+});
+
+// Profession deep links must survive reloads and open a real saved build with the hosting mode intact.
+test('home profession actions open filtered benchmarks and their simulator builds', async ({ page }) => {
+  await page.goto('/index.html?embed=1&standalone=1');
+  const card = page.locator('.profession-showcase.profession-card-mesmer');
+  await expect(card.getByRole('link', { name: 'Open Mesmer simulator', exact: true })).toHaveAttribute(
+    'href',
+    'mesmer.html?embed=1&standalone=1'
+  );
+  await card.getByRole('link', { name: 'View Mesmer benchmarks', exact: true }).click();
+  await expect(page).toHaveURL(/benchmarks\.html\?profession=mesmer&embed=1&standalone=1$/);
+  await expect(page.locator('[data-benchmark-dashboard]')).toHaveAttribute('aria-busy', 'false');
+  await expect(page.locator('button[data-overview-profession="mesmer"]')).toHaveAttribute('aria-pressed', 'true');
+  await expect(page.locator('[data-build-table]')).toBeVisible();
+  await expect(page.locator('[data-benchmark-cards]')).toBeHidden();
+  await expect(page.getByRole('button', { name: 'Table', exact: true })).toHaveAttribute('aria-pressed', 'true');
+  await expect(page.locator('[data-build-table] tbody tr').first()).toContainText('Mesmer');
+  await expect(page.locator('[data-build-table] tbody .profession-card-elementalist')).toHaveCount(0);
+  await page.reload();
+  await expect(page.locator('button[data-overview-profession="mesmer"]')).toHaveAttribute('aria-pressed', 'true');
+  await expect(page.locator('[data-build-table]')).toBeVisible();
+  await page.locator('[data-build-table] [data-inspect-overview]').first().click();
+  const build = page.locator('#benchmark-overview-inspector').getByRole('link', { name: 'Open in workspace' });
+  await build.click();
+  await expect(page).toHaveURL(/mesmer\.html\?.*benchmark=.*embed=1&standalone=1#workspace$/);
+  await expect(page.locator('#loading-overlay')).toHaveClass(/hidden/);
+  await page.goBack();
+  await expect(page.locator('button[data-overview-profession="mesmer"]')).toHaveAttribute('aria-pressed', 'true');
+  await page.getByRole('button', { name: 'Reset', exact: true }).click();
+  await expect(page.locator('button[data-overview-profession="all"]')).toHaveAttribute('aria-pressed', 'true');
+  await expect(page).toHaveURL(/benchmarks\.html\?embed=1&standalone=1$/);
+});
+
+// Card actions and primary navigation remain reachable without horizontal page scrolling on narrow screens.
+for (const width of [1440, 768, 375]) {
+  test(`home benchmark access fits a ${width}px viewport`, async ({ page }) => {
+    await page.setViewportSize({ width, height: 1000 });
+    await page.goto('/index.html');
+    const navigation = page.getByRole('navigation', { name: 'Main navigation' });
+    await expect(navigation.getByRole('link', { name: 'Benchmarks', exact: true })).toBeInViewport();
+    await expect(page.locator('.profession-showcase-actions')).toHaveCount(9);
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+    const actionsFit = await page
+      .locator('.profession-showcase-actions a')
+      .evaluateAll((links) =>
+        links.every((link) => link.scrollWidth <= link.clientWidth && link.getBoundingClientRect().height >= 44)
+      );
+    expect(actionsFit).toBe(true);
+    await navigation.getByRole('link', { name: 'Benchmarks', exact: true }).click();
+    await expect(page.locator('[data-benchmark-dashboard]')).toHaveAttribute('aria-busy', 'false');
+    await expect(page.locator('[data-benchmark-cards]')).toBeVisible();
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+
+    // Profession controls keep their position and selection when changing the results presentation.
+    const professions = page.getByRole('group', { name: 'Overview professions' });
+    const ranger = professions.getByRole('button', { name: 'Ranger', exact: true });
+    await ranger.focus();
+    await page.keyboard.press('Enter');
+    await expect(ranger).toHaveAttribute('aria-pressed', 'true');
+    await expect(page.locator('#benchmarks-ranger')).toBeVisible();
+    await expect(page.locator('.benchmark-card')).toHaveCount(1);
+    const filterBounds = await page.locator('.benchmark-sidebar').boundingBox();
+    await page.getByRole('button', { name: 'Table', exact: true }).click();
+    await expect(page.locator('[data-build-table]')).toBeVisible();
+    await expect(ranger).toHaveAttribute('aria-pressed', 'true');
+    expect(await page.locator('.benchmark-sidebar').boundingBox()).toEqual(filterBounds);
+    await professions.getByRole('button', { name: 'Mesmer', exact: true }).click();
+    await page.getByRole('button', { name: 'Cards', exact: true }).click();
+    await expect(professions.getByRole('button', { name: 'Mesmer', exact: true })).toHaveAttribute(
+      'aria-pressed',
+      'true'
+    );
+    await expect(page.locator('#benchmarks-mesmer')).toBeVisible();
+    await expect(page.locator('.benchmark-card')).toHaveCount(1);
+  });
+}
+
+// Delayed manifests retain the selected presentation and accessible loading state until real results arrive.
+test('benchmark loading skeleton follows cards and table views until manifests resolve', async ({ page }) => {
+  let releaseManifests;
+  const pending = new Promise((resolve) => {
+    releaseManifests = resolve;
+  });
+  await page.route('**/data/gw2/builds/*/manifest.json', async (route) => {
+    await pending;
+    await route.continue();
+  });
+  try {
+    await page.emulateMedia({ reducedMotion: 'reduce' });
+    await page.goto('/benchmarks.html?profession=ranger');
+    await expect(page.locator('#benchmarks-view')).toHaveAttribute('aria-busy', 'true');
+    await expect(page.locator('[data-build-table] .benchmark-skeleton')).toBeVisible();
+    await expect(page.locator('[data-build-table] .benchmark-skeleton')).toHaveAttribute('aria-hidden', 'true');
+    expect(
+      await page
+        .locator('[data-build-table] .benchmark-skeleton-bar')
+        .first()
+        .evaluate((bar) => getComputedStyle(bar).animationName)
+    ).toBe('none');
+    await page.getByRole('button', { name: 'Cards', exact: true }).click();
+    await expect(page.locator('[data-benchmark-cards] .benchmark-skeleton')).toBeVisible();
+    await page
+      .getByRole('group', { name: 'Overview professions' })
+      .getByRole('button', { name: 'Mesmer', exact: true })
+      .click();
+    await expect(page.locator('[data-benchmark-cards] .benchmark-skeleton')).toBeVisible();
+    await page.getByRole('button', { name: 'Table', exact: true }).click();
+    await expect(page.locator('[data-build-table] .benchmark-skeleton')).toBeVisible();
+  } finally {
+    releaseManifests();
+  }
+
+  await expect(page.locator('#benchmarks-view')).toHaveAttribute('aria-busy', 'false');
+  await expect(page.locator('.benchmark-skeleton')).toHaveCount(0);
+  await expect(page.locator('[data-build-table] tbody tr').first()).toBeVisible();
+  await expect(page.locator('button[data-overview-profession="mesmer"]')).toHaveAttribute('aria-pressed', 'true');
 });
 
 // Native controls must update both chart surfaces and recover from empty searches without losing focus.
@@ -64,7 +189,10 @@ test('benchmark filters, card scrolling, and APM point inspection work with keyb
   await cardScroll.focus();
   await page.keyboard.press('PageDown');
   await expect.poll(() => cardScroll.evaluate((node) => node.scrollTop)).toBeGreaterThan(0);
-  await page.locator('select[data-overview-profession]').selectOption('elementalist');
+  await page
+    .getByRole('group', { name: 'Overview professions' })
+    .getByRole('button', { name: 'Elementalist', exact: true })
+    .click();
   await expect(page.locator('#benchmarks-mesmer')).toHaveCount(0);
   await expect(page.locator('.scatter-point.profession-card-mesmer')).toHaveCount(0);
 });
@@ -103,29 +231,30 @@ test('build overview switches between concise cards and a sortable table', async
   await expect(table).toBeVisible();
   await expect(table.locator('tbody tr')).toHaveCount(cardCount);
   await expect(table.locator('thead')).toContainText('Damage type');
-  await expect(table.locator('thead')).toContainText('Actions');
-  // Action labels must fit inside their hit areas, with room between links and the scrollbar.
-  const actions = table.locator('.benchmark-overview-actions').first();
-  const bounds = await actions.locator('a').evaluateAll((links) =>
-    links.map((link) => {
-      const text = document.createRange();
-      text.selectNodeContents(link);
-      const label = text.getBoundingClientRect();
-      const button = link.getBoundingClientRect();
-      return { left: button.left, right: button.right, labelLeft: label.left, labelRight: label.right };
-    })
-  );
-  expect(bounds).toHaveLength(2);
+  await expect(table.locator('thead')).toContainText('Source');
+  // Source labels fit inside their hit areas without overlapping the scrollbar.
+  const bounds = await table
+    .locator('.benchmark-source-link')
+    .first()
+    .evaluateAll((links) =>
+      links.map((link) => {
+        const text = document.createRange();
+        text.selectNodeContents(link);
+        const label = text.getBoundingClientRect();
+        const button = link.getBoundingClientRect();
+        return { left: button.left, right: button.right, labelLeft: label.left, labelRight: label.right };
+      })
+    );
+  expect(bounds).toHaveLength(1);
   for (const button of bounds) {
     expect(button.labelLeft).toBeGreaterThan(button.left);
     expect(button.labelRight).toBeLessThan(button.right);
   }
 
-  expect(bounds[1].left - bounds[0].right).toBeGreaterThanOrEqual(8);
   const viewportRight = await table
     .locator('.benchmark-overview-table-scroll')
     .evaluate((node) => node.getBoundingClientRect().left + node.clientWidth);
-  expect(bounds[1].right).toBeLessThan(viewportRight);
+  expect(bounds[0].right).toBeLessThan(viewportRight);
   const dps = table.locator('[data-build-sort="dps"]');
   await dps.click();
   await expect(dps).toBeFocused();
@@ -288,7 +417,7 @@ test('bar previews load saved builds, cache requests, and ignore stale responses
   let heldRequest;
   let firstUrl;
   let firstRequests = 0;
-  await page.route('**/data/gw2/builds/elementalist/*.json', async (route) => {
+  await page.route('**/data/gw2/benchmark-previews/elementalist/*.json', async (route) => {
     if (!firstUrl) firstUrl = route.request().url();
     if (route.request().url() === firstUrl) firstRequests += 1;
     if (!heldRequest) heldRequest = route;
@@ -325,7 +454,7 @@ test('bar hover does not resize or load a build; clicked inspector persists and 
   await page.getByRole('button', { name: 'DPS / APM by Build', exact: true }).click();
   let buildRequests = 0;
   page.on('request', (request) => {
-    if (/\/builds\/elementalist\/b-/.test(request.url())) buildRequests += 1;
+    if (/\/(?:builds|benchmark-previews)\/elementalist\/b-/.test(request.url())) buildRequests += 1;
   });
   const plot = page.locator('[data-bar-metric="dps"] .bar-chart-frame');
   const fullWidth = (await plot.boundingBox()).width;
@@ -360,6 +489,14 @@ test('bar hover does not resize or load a build; clicked inspector persists and 
   await expect(inspector).toBeVisible();
   await page.keyboard.press('Escape');
   await expect(inspector).toBeHidden();
+  // Escape clears chart focus as well as inspection, while the close button above still restores focus.
+  await expect(bars.last()).not.toBeFocused();
+  await expect(bars.last()).toHaveCSS('outline-style', 'none');
+  await expect(bars.last().locator('.benchmark-bar-label')).toHaveCSS('outline-style', 'none');
+  await bars.last().focus();
+  await page.keyboard.press('Escape');
+  await expect(bars.last()).not.toBeFocused();
+  await expect(page.locator('[data-bar-metric="dps"] [data-bar-detail]')).toBeHidden();
 });
 
 // Wheel gestures over the bars pan their own viewport; horizontal trackpads and the surrounding page stay native.
@@ -499,6 +636,200 @@ test('health-band chart switches build scope and supports point inspection', asy
 });
 
 // Table sorting preserves the chart and disclosure, and follows the selected DPS metric across mode changes.
+// Whole-series emphasis and persistent labels make crowded health comparisons readable with pointer or keyboard.
+test('health chart highlights whole builds and retains non-overlapping pins across metrics and filters', async ({
+  page
+}) => {
+  await page.setViewportSize({ width: 1440, height: 1000 });
+  await page.goto('/benchmarks.html');
+  await expect(page.locator('[data-benchmark-dashboard]')).toHaveAttribute('aria-busy', 'false');
+  await page.getByRole('button', { name: 'DPS by health', exact: true }).click();
+  const chart = page.locator('[data-health-chart]');
+  const builds = await chart.locator('[data-health-point]').evaluateAll((points) => {
+    const unique = new Map();
+    for (const point of [...points].sort((a, b) => parseFloat(b.style.bottom) - parseFloat(a.style.bottom))) {
+      if (!unique.has(point.dataset.healthSeries)) {
+        unique.set(point.dataset.healthSeries, {
+          key: point.dataset.healthSeries,
+          name: point.dataset.healthName,
+          label: point.getAttribute('aria-label')
+        });
+      }
+    }
+
+    return [...unique.values()].slice(0, 6);
+  });
+  const point = chart.getByRole('button', { name: builds[0].label, exact: true });
+  await point.hover();
+  await expect(chart.locator('.health-line.is-health-active')).not.toHaveCount(0);
+  await page.locator('[data-health-metric]').hover();
+  await expect(chart.locator('.is-health-muted')).toHaveCount(0);
+  await point.focus();
+  expect(
+    await chart
+      .locator('.health-line')
+      .evaluateAll(
+        (lines, key) =>
+          lines.every((line) =>
+            line.classList.contains(line.dataset.healthSeries === key ? 'is-health-active' : 'is-health-muted')
+          ),
+        builds[0].key
+      )
+  ).toBe(true);
+  await point.click();
+  await expect(point).toHaveAttribute('aria-pressed', 'true');
+  await expect(chart.getByRole('group', { name: 'Pinned builds' })).toContainText(builds[0].name);
+  await page.keyboard.press('Escape');
+  await expect(point).not.toBeFocused();
+  await expect(point).toHaveClass(/is-health-active/);
+  for (const build of builds.slice(1, 5)) {
+    await chart.getByRole('button', { name: build.label, exact: true }).focus();
+    await page.keyboard.press('Enter');
+  }
+
+  await expect(chart.locator('.health-pin-label')).toHaveCount(5);
+  await chart.getByRole('button', { name: builds[5].label, exact: true }).focus();
+  await page.keyboard.press('Enter');
+  await expect(chart.locator('[data-health-pin-status]')).toContainText('Up to 5 builds');
+  await expect(chart.locator('.health-pin-label')).toHaveCount(5);
+  await page.keyboard.press('Escape');
+  for (const width of [1440, 375]) {
+    await page.setViewportSize({ width, height: 1000 });
+    await expect
+      .poll(() =>
+        chart.locator('.health-pin-label').evaluateAll((labels) => {
+          const boxes = labels.map((label) => label.getBoundingClientRect()).sort((a, b) => a.top - b.top);
+          return boxes.every((box, index) => index === 0 || box.top >= boxes[index - 1].bottom + 9);
+        })
+      )
+      .toBe(true);
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+  }
+
+  await page.locator('[data-health-metric]').selectOption('phase');
+  await expect(chart.locator('.health-pin-label')).toHaveCount(5);
+  await page.locator('[data-health-phase]').selectOption('40-20');
+  await expect(chart.locator('.health-pin-label')).toHaveCount(5);
+  await expect(chart.locator('.health-pin-connectors line')).toHaveCount(5);
+  await chart.getByRole('button', { name: `Unpin ${builds[0].name}`, exact: true }).click();
+  await expect(chart.locator('.health-pin-label')).toHaveCount(4);
+  await page.getByRole('searchbox', { name: 'Search benchmarks' }).fill('no-such-build');
+  await expect(chart.locator('.health-pin-label')).toHaveCount(0);
+  await expect(chart).toContainText('No completed health bands');
+});
+
+// Unpinning ends that build's emphasis instead of refocusing its point and making it look selected again.
+test('removing health pins clears their highlights with mouse and keyboard', async ({ page }) => {
+  await page.goto('/benchmarks.html');
+  await expect(page.locator('[data-benchmark-dashboard]')).toHaveAttribute('aria-busy', 'false');
+  await page.getByRole('button', { name: 'DPS by health', exact: true }).click();
+  const chart = page.locator('[data-health-chart]');
+  const builds = await chart.locator('[data-health-point]').evaluateAll((points) =>
+    [
+      ...new Map(
+        points.map((point) => [
+          point.dataset.healthSeries,
+          {
+            key: point.dataset.healthSeries,
+            name: point.dataset.healthName,
+            label: point.getAttribute('aria-label')
+          }
+        ])
+      ).values()
+    ].slice(0, 2)
+  );
+  for (const build of builds) {
+    await chart.getByRole('button', { name: build.label, exact: true }).focus();
+    await page.keyboard.press('Enter');
+  }
+
+  await chart.getByRole('button', { name: `Unpin ${builds[0].name}`, exact: true }).click();
+  await expect(chart.locator('.health-pin-label')).toHaveCount(1);
+  const removedMarks = await chart.locator('.health-line, [data-health-point]').evaluateAll(
+    (marks, key) =>
+      marks
+        .filter((mark) => mark.dataset.healthSeries === key)
+        .map((mark) => ({
+          active: mark.classList.contains('is-health-active'),
+          muted: mark.classList.contains('is-health-muted'),
+          focused: mark === document.activeElement
+        })),
+    builds[0].key
+  );
+  expect(removedMarks.length).toBeGreaterThan(0);
+  for (const mark of removedMarks) expect(mark).toEqual({ active: false, muted: true, focused: false });
+  await expect(chart.getByRole('button', { name: builds[1].label, exact: true })).toHaveAttribute(
+    'aria-pressed',
+    'true'
+  );
+  await chart.getByRole('button', { name: `Unpin ${builds[1].name}`, exact: true }).press('Enter');
+  await expect(chart.locator('.health-pin-label')).toHaveCount(0);
+  await expect(chart.locator('.is-health-active, .is-health-muted')).toHaveCount(0);
+  expect(
+    await chart
+      .locator('[data-health-point]')
+      .evaluateAll((points) => points.some((point) => point === document.activeElement))
+  ).toBe(false);
+  await chart.getByRole('button', { name: builds[0].label, exact: true }).focus();
+  await expect(chart.locator('.health-line.is-health-active')).not.toHaveCount(0);
+});
+
+// Table names and values operate on the same build as its chart points, including after table sorting.
+test('health table rows share chart highlighting and toggle pins in both directions', async ({ page }) => {
+  await page.goto('/benchmarks.html');
+  await expect(page.locator('[data-benchmark-dashboard]')).toHaveAttribute('aria-busy', 'false');
+  await page.getByRole('button', { name: 'DPS by health', exact: true }).click();
+  const chart = page.locator('[data-health-chart]');
+  await chart.locator('.health-values summary').click();
+  const name = await chart.locator('[data-health-toggle]').first().textContent();
+  const toggle = chart.getByRole('button', { name, exact: true });
+  const row = toggle.locator('../..');
+  const key = await row.getAttribute('data-health-series');
+  const pointName = await chart
+    .locator('[data-health-point]')
+    .evaluateAll(
+      (points, key) => points.find((point) => point.dataset.healthSeries === key).getAttribute('aria-label'),
+      key
+    );
+  const point = chart.getByRole('button', { name: pointName, exact: true });
+  await row.locator('td').first().hover();
+  await expect(row).toHaveClass(/is-health-active/);
+  await expect(point).toHaveClass(/is-health-active/);
+  expect(
+    await chart
+      .locator('.health-line')
+      .evaluateAll(
+        (lines, key) =>
+          lines
+            .filter((line) => line.dataset.healthSeries === key)
+            .every((line) => line.classList.contains('is-health-active')),
+        key
+      )
+  ).toBe(true);
+  await row.locator('td').first().click();
+  await expect(toggle).toHaveAttribute('aria-pressed', 'true');
+  await expect(point).toHaveAttribute('aria-pressed', 'true');
+  await expect(row).toHaveClass(/is-health-pinned/);
+  await expect(chart.locator('.health-pin-label')).toContainText(name);
+  await chart.locator('[data-health-sort="20-0"]').click();
+  await expect(toggle).toHaveAttribute('aria-pressed', 'true');
+  await toggle.press('Space');
+  await expect(point).toHaveAttribute('aria-pressed', 'false');
+  await expect(row).not.toHaveClass(/is-health-pinned/);
+  await expect(chart.locator('.health-pin-label')).toHaveCount(0);
+  await page.keyboard.press('Escape');
+  await expect(toggle).not.toBeFocused();
+  await expect(point).not.toHaveClass(/is-health-active/);
+  await point.focus();
+  await expect(row).toHaveClass(/is-health-active/);
+  await point.press('Enter');
+  await expect(toggle).toHaveAttribute('aria-pressed', 'true');
+  await chart.getByRole('button', { name: `Unpin ${name}`, exact: true }).click();
+  await expect(toggle).toHaveAttribute('aria-pressed', 'false');
+  await expect(row).not.toHaveClass(/is-health-active|is-health-pinned/);
+  await expect(point).not.toHaveClass(/is-health-active/);
+});
+
 test('health values sort by build and each health column with mouse and keyboard', async ({ page }) => {
   await openDashboard(page);
   await page.getByRole('button', { name: 'DPS by health', exact: true }).click();
@@ -730,4 +1061,110 @@ test('benchmark navigation preserves the workspace, filters, browser history, an
     .click();
   await expect(page).toHaveURL(/guardian\.html\?embed=1&standalone=1#benchmarks$/);
   await expect(page.locator('[data-benchmark-dashboard]')).toHaveAttribute('aria-busy', 'false');
+});
+
+// Table activation uses native buttons for keyboard access and preserves selection across ranking changes.
+test('build benchmark table rows open previews, survive sorting, and dismiss accessibly', async ({ page, context }) => {
+  await page.setViewportSize({ width: 1600, height: 1100 });
+  await page.goto('/benchmarks.html?profession=revenant');
+  const table = page.locator('[data-build-table]');
+  const row = table.locator('[data-overview-row]').filter({ hasText: 'Power Renegade (Hammer)' });
+  const trigger = row.locator('[data-inspect-overview]');
+  const inspector = table.locator('#benchmark-overview-inspector');
+  await expect(trigger).toBeVisible();
+  await expect(inspector).toBeHidden();
+  await row.locator('[data-build-dps]').click();
+  await expect(trigger).toHaveAttribute('aria-expanded', 'true');
+  await expect(row).toHaveClass(/is-inspected/);
+  await expect(inspector.locator('.benchmark-preview-equipment')).toContainText('Hammer');
+  const build = await inspector.locator('[data-build-preview]').getAttribute('data-build');
+  await table.locator('[data-build-sort="apm"]').click();
+  await expect(inspector.locator('[data-build-preview]')).toHaveAttribute('data-build', build);
+  await expect(row).toHaveClass(/is-inspected/);
+  await inspector.getByRole('button', { name: 'Close build inspector' }).click();
+  await expect(trigger).toBeFocused();
+  await expect(inspector).toBeHidden();
+  await trigger.press('Enter');
+  await expect(inspector).toBeVisible();
+  await trigger.press('Escape');
+  await expect(inspector).toBeHidden();
+  await expect(trigger).not.toBeFocused();
+  await expect(trigger).toHaveCSS('outline-style', 'none');
+  await expect(trigger).toHaveCSS('text-decoration-line', 'none');
+  await trigger.focus();
+  await trigger.press('Space');
+  await expect(inspector).toBeVisible();
+  await page.getByRole('searchbox', { name: 'Search benchmarks' }).fill('Vindicator');
+  await expect(inspector).toBeHidden();
+  await expect(table.locator('.is-inspected')).toHaveCount(0);
+
+  // The preview provides the only workspace link, preserving normal modified-click navigation.
+  await table.locator('[data-inspect-overview]').first().click();
+  const workspace = inspector.getByRole('link', { name: 'Open in workspace' });
+  await expect(table.locator('a[href*="#workspace"]')).toHaveCount(1);
+  await expect(table.locator('tbody a[href*="#workspace"]')).toHaveCount(0);
+  const popupPromise = context.waitForEvent('page');
+  await workspace.click({ modifiers: ['ControlOrMeta'] });
+  const popup = await popupPromise;
+  await expect(popup).toHaveURL(/revenant\.html\?.*benchmark=.*rotation=.*#workspace/);
+  await popup.close();
+  await expect(inspector).toBeVisible();
+});
+
+// Late responses cannot replace another table selection, and mobile inspection must fit outside horizontal scrolling.
+test('table preview ignores stale selections and fits a narrow viewport', async ({ page }) => {
+  await page.setViewportSize({ width: 375, height: 900 });
+  await page.goto('/benchmarks.html?profession=revenant');
+  const table = page.locator('[data-build-table]');
+  const rows = table.locator('[data-overview-row]');
+  const inspector = table.locator('#benchmark-overview-inspector');
+  let held;
+  await page.route('**/data/gw2/benchmark-previews/revenant/*.json', async (route) => {
+    if (!held) held = route;
+    else await route.continue();
+  });
+  await rows.first().locator('[data-inspect-overview]').click();
+  await expect.poll(() => Boolean(held)).toBe(true);
+  await rows.nth(1).locator('[data-inspect-overview]').click();
+  await expect(inspector.locator('.benchmark-preview-equipment')).toBeVisible();
+  const contents = await inspector.locator('[data-build-preview]').innerHTML();
+  const completed = page.waitForResponse(held.request().url());
+  await held.continue();
+  await completed;
+  await expect(inspector.locator('[data-build-preview]')).toHaveJSProperty('innerHTML', contents);
+  const bounds = await inspector.boundingBox();
+  expect(bounds.x).toBeGreaterThanOrEqual(0);
+  expect(bounds.x + bounds.width).toBeLessThanOrEqual(375);
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+  await inspector.getByRole('button', { name: 'Close build inspector' }).click();
+  await expect(rows.nth(1).locator('[data-inspect-overview]')).toBeFocused();
+  await expect(inspector).toBeHidden();
+});
+
+// Standalone inspection must stay data-only even when profession and rotation requests cannot succeed.
+test('standalone build previews load without profession modules or rotations and retry failed assets', async ({
+  page
+}) => {
+  const forbidden = [];
+  await page.route(/\/js\/games\/gw2\/professions\/|\/data\/gw2\/rotations\//, async (route) => {
+    forbidden.push(route.request().url());
+    await route.abort();
+  });
+  await page.goto('/benchmarks.html');
+  await expect(page.locator('[data-benchmark-dashboard]')).toHaveAttribute('aria-busy', 'false');
+  await page.getByRole('button', { name: 'DPS / APM by Build', exact: true }).click();
+  await page.locator('[data-bar-profession]').selectOption('revenant');
+  const bar = page.locator('[data-bar-metric="dps"] [data-bar-point]').filter({ hasText: 'Power Renegade (Hammer)' });
+  const inspector = page.locator('#benchmark-build-inspector-dps');
+  await page.route('**/data/gw2/benchmark-previews/revenant/*.json', (route) =>
+    route.fulfill({ status: 503, body: 'Unavailable' })
+  );
+  await bar.locator('.benchmark-bar-label').click();
+  await expect(inspector.locator('[data-build-preview]')).toHaveText('Build preview unavailable.');
+  await inspector.getByRole('button', { name: 'Close build inspector' }).click();
+  await page.unroute('**/data/gw2/benchmark-previews/revenant/*.json');
+  await bar.locator('.benchmark-bar-label').click();
+  await expect(inspector.locator('.benchmark-preview-equipment')).toContainText('Hammer');
+  await expect(inspector.locator('.benchmark-preview-equipment')).toContainText('LegendaryRenegade');
+  expect(forbidden).toEqual([]);
 });

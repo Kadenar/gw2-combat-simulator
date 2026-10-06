@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <meta
+      name="description"
+      content="Compare Guild Wars 2 build benchmarks by profession, damage, and actions per minute."
+    />
+    <title>Benchmarks | Guild Wars 2 Rotation Simulator</title>
+    <link rel="stylesheet" href="css/style.css" />
+  </head>
+  <body class="landing-page benchmark-page" data-simulator-view="benchmarks">
+    <main id="app" class="landing-shell">
+      <header class="landing-header">
+        <div class="header-brand">
+          <h1>Guild Wars 2 <span class="accent">Rotation Simulator</span></h1>
+        </div>
+      </header>
+      <!-- The overview has its own destination without requiring a profession workspace to load. -->
+      <nav class="site-navigation" aria-label="Main navigation">
+        <a href="index.html">Simulator</a>
+        <a href="benchmarks.html" aria-current="page">Benchmarks</a>
+      </nav>
+      <section class="benchmark-page-content" aria-labelledby="benchmark-page-heading">
+        <h2 id="benchmark-page-heading">Benchmarks</h2>
+        <section id="benchmarks-view" aria-label="Benchmarks"><p role="status">Loading benchmarks...</p></section>
+      </section>
+    </main>
+    <script type="module" src="js/games/gw2/app/page/entry.js"></script>
+  </body>
+</html>

@@ -3,6 +3,7 @@ import { navigationRoute } from '#browser/page/embed.js';
 import { escapeHtml as html } from '#ui/shared/html.js';
 import { TARGET_HEALTH_BANDS } from '#gw2/app/results/summary-metrics.js';
 import { benchmarkBuildPreview } from '#gw2/app/page/benchmark-build-preview.js';
+import { mountHealthInteractions } from '#gw2/app/page/benchmark-health-interactions.js';
 import { templateBoon, templateCategory } from '#gw2/app/build/library/model.js';
 import {
   benchmarkColors,
@@ -34,7 +35,6 @@ export function mountBenchmarks(root: HTMLElement): void {
     <aside class="benchmark-sidebar" aria-label="Benchmark filters">
       <div class="filter-heading"><h2>Professions</h2><button type="button" data-reset-filters>Reset</button></div>
       <label class="filter-field" for="benchmark-search"><span>Search benchmarks</span><svg class="benchmark-search-icon" viewBox="0 0 20 20" aria-hidden="true"><circle cx="8" cy="8" r="5.5"/><path d="m12 12 5 5"/></svg><input id="benchmark-search" type="search" placeholder="Search builds…" autocomplete="off"></label>
-      <label class="benchmark-overview-profession filter-field"><span class="benchmark-filter-label">Profession</span><select data-overview-profession><option value="all">All</option><option value="custom" disabled>Selected professions</option>${professionRegistry.map((entry) => `<option value="${entry.id}">${entry.name}</option>`).join('')}</select></label>
       <fieldset class="profession-filters"><legend>Include professions</legend><div data-profession-filters></div></fieldset>
       <label class="filter-field" for="benchmark-damage"><span class="benchmark-filter-label">Damage type</span><select id="benchmark-damage"><option value="all">All</option><option value="power">Power</option><option value="condi">Condition</option></select></label>
       <label class="filter-field" for="benchmark-role"><span class="benchmark-filter-label">Boon role</span><select id="benchmark-role"><option value="all">All</option><option value="none">DPS</option><option value="quickness">Quickness</option><option value="alacrity">Alacrity</option></select></label>
@@ -64,7 +64,12 @@ export function mountBenchmarks(root: HTMLElement): void {
   </div>`;
   const number = new Intl.NumberFormat('en-US', { maximumFractionDigits: 0 });
   const apmNumber = new Intl.NumberFormat('en-US', { maximumFractionDigits: 1 });
-  const selected = new Set(professionRegistry.map(({ id }) => id));
+  // Standalone profession links start filtered without coupling benchmarks to a simulator workspace.
+  const pageWindow = root.ownerDocument.defaultView;
+  const standalone = root.ownerDocument.body.classList.contains('benchmark-page');
+  const requestedProfession = standalone ? new URLSearchParams(pageWindow?.location.search).get('profession') : null;
+  const initialProfession = professionRegistry.find(({ id }) => id === requestedProfession);
+  const selected = new Set(initialProfession ? [initialProfession.id] : professionRegistry.map(({ id }) => id));
   const search = root.querySelector<HTMLInputElement>('#benchmark-search')!;
   const damage = root.querySelector<HTMLSelectElement>('#benchmark-damage')!;
   const role = root.querySelector<HTMLSelectElement>('#benchmark-role')!;
@@ -73,7 +78,18 @@ export function mountBenchmarks(root: HTMLElement): void {
   const status = root.querySelector<HTMLElement>('[data-benchmark-status]')!;
   const cards = root.querySelector<HTMLElement>('[data-benchmark-cards]')!;
   const buildTable = root.querySelector<HTMLElement>('[data-build-table]')!;
+  // A profession-specific entry opens the comparison table immediately; the global overview starts with cards.
+  if (initialProfession) {
+    root.dataset.buildView = 'table';
+    cards.hidden = true;
+    buildTable.hidden = false;
+    root.querySelectorAll<HTMLElement>('button[data-build-view]').forEach((button) => {
+      button.setAttribute('aria-pressed', String(button.dataset.buildView === 'table'));
+    });
+  }
+
   let buildSortAscending = true;
+  let overviewInspectedBuild: Benchmark | null = null;
   const retry = root.querySelector<HTMLButtonElement>('[data-benchmark-retry]')!;
   let benchmarks: Benchmark[] = [];
   let failures: string[] = [];
@@ -88,6 +104,7 @@ export function mountBenchmarks(root: HTMLElement): void {
   let apmAscending = true;
   let healthSort = 'name';
   let healthAscending = true;
+  const healthInteractions = mountHealthInteractions(root.querySelector<HTMLElement>('[data-health-chart]')!);
   const boonLabel = (row: Benchmark): string => {
     const boon = templateBoon(row);
     return boon === 'none' ? 'DPS' : boon[0]!.toUpperCase() + boon.slice(1);
@@ -98,7 +115,7 @@ export function mountBenchmarks(root: HTMLElement): void {
     .map(
       (entry) => `
   <label class="profession-filter profession-card-${entry.id}">
-    <input type="checkbox" value="${entry.id}" checked>
+    <input type="checkbox" value="${entry.id}" ${selected.has(entry.id) ? 'checked' : ''}>
     <span class="profession-dot" aria-hidden="true"></span><span>${entry.name}</span>
   </label>`
     )
@@ -115,7 +132,7 @@ export function mountBenchmarks(root: HTMLElement): void {
   /** Name the external destination so users know where the benchmark reference opens. */
   function benchmarkSource(row: Benchmark): string {
     return row.snowCrowsUrl && /^https:\/\/snowcrows\.com\//.test(row.snowCrowsUrl)
-      ? `<a href="${html(row.snowCrowsUrl)}" target="_blank" rel="noopener noreferrer" aria-label="View on Snowcrows: ${html(`${row.specialization} · ${row.label}`)}">View on Snowcrows</a>`
+      ? `<a class="benchmark-source-link" href="${html(row.snowCrowsUrl)}" target="_blank" rel="noopener noreferrer" aria-label="View on Snowcrows: ${html(`${row.specialization} · ${row.label}`)}">View on Snowcrows</a>`
       : '';
   }
 
@@ -148,29 +165,115 @@ export function mountBenchmarks(root: HTMLElement): void {
   }
 
   function renderBuildTable(rows: readonly Benchmark[]): void {
+    // Sorting retains the selected build; filtering it out dismisses details and invalidates pending responses.
+    if (overviewInspectedBuild && !rows.includes(overviewInspectedBuild)) overviewInspectedBuild = null;
     const sortHeader = (key: string, label: string): string =>
       `<th scope="col" aria-sort="${sort.value === key ? (buildSortAscending ? 'ascending' : 'descending') : 'none'}"><button type="button" data-build-sort="${key}">${label}${sort.value === key ? (buildSortAscending ? ' ↑' : ' ↓') : ''}</button></th>`;
     buildTable.innerHTML = rows.length
-      ? `<div class="benchmark-overview-table-scroll" tabindex="0" role="region" aria-label="Build benchmarks table"><table><thead><tr><th scope="col">#</th><th scope="col">Build</th>${sortHeader('name', 'Profession')}<th scope="col">Damage type</th>${sortHeader('dps', 'DPS')}${sortHeader('apm', 'APM')}<th scope="col">Actions</th></tr></thead><tbody>${[
+      ? `<div class="benchmark-overview-layout"><div class="benchmark-overview-table-scroll" tabindex="0" role="region" aria-label="Build benchmarks table"><table><thead><tr><th scope="col">#</th><th scope="col">Build</th>${sortHeader('name', 'Profession')}<th scope="col">Damage type</th>${sortHeader('dps', 'DPS')}${sortHeader('apm', 'APM')}<th scope="col">Source</th></tr></thead><tbody>${[
           ...rows
         ]
           .sort(compareOverviewBuilds)
           .map((row, index) => {
             const category = templateCategory(row);
-            return `<tr><td>${index + 1}</td><th scope="row"><div class="benchmark-build-name">${benchmarkBuildName(row)}</div></th><td class="profession-card-${row.profession}"><span class="profession-dot" aria-hidden="true"></span> ${html(row.professionName)}</td><td>${category === 'power' ? 'Power' : category === 'condi' ? 'Condition' : '—'}</td><td data-build-dps>${number.format(row.benchmarkDps)}</td><td data-build-apm>${hasBenchmarkApm(row) ? apmNumber.format(row.benchmarkApm) : '—'}</td><td><div class="benchmark-overview-actions"><a href="${html(benchmarkWorkspaceHref(row))}" aria-label="Open ${html(`${row.specialization} · ${row.label}`)} in workspace">Open build</a>${benchmarkSource(row)}</div></td></tr>`;
+            return `<tr data-overview-row="${benchmarks.indexOf(row)}"><td>${index + 1}</td><th scope="row"><button type="button" class="benchmark-build-name" data-inspect-overview aria-expanded="false" aria-controls="benchmark-overview-inspector" aria-label="Preview ${html(`${row.specialization} · ${row.label}`)}">${benchmarkBuildName(row)}</button></th><td class="profession-card-${row.profession}"><span class="profession-dot" aria-hidden="true"></span> ${html(row.professionName)}</td><td>${category === 'power' ? 'Power' : category === 'condi' ? 'Condition' : '—'}</td><td data-build-dps>${number.format(row.benchmarkDps)}</td><td data-build-apm>${hasBenchmarkApm(row) ? apmNumber.format(row.benchmarkApm) : '—'}</td><td>${benchmarkSource(row)}</td></tr>`;
           })
-          .join('')}</tbody></table></div>`
+          .join('')}</tbody></table></div>${buildInspectorMarkup('benchmark-overview-inspector')}</div>`
       : '<p class="benchmark-empty">No benchmarks match these filters.</p>';
+    if (overviewInspectedBuild) openOverviewInspector(overviewInspectedBuild);
+  }
+
+  /** Reuse the cached chart preview while keeping table selection attached to build identity rather than rank. */
+  function openOverviewInspector(row: Benchmark): void {
+    overviewInspectedBuild = row;
+    buildTable.querySelector('.benchmark-overview-layout')!.classList.add('has-build-inspector');
+    const inspector = buildTable.querySelector<HTMLElement>('#benchmark-overview-inspector')!;
+    inspector.hidden = false;
+    populateBuildInspector(inspector, row, () => overviewInspectedBuild === row);
+    updateOverviewSelection();
+  }
+
+  function updateOverviewSelection(): void {
+    buildTable.querySelectorAll<HTMLElement>('[data-overview-row]').forEach((element) => {
+      const active = benchmarks[Number(element.dataset.overviewRow)] === overviewInspectedBuild;
+      element.classList.toggle('is-inspected', active);
+      element.querySelector('[data-inspect-overview]')!.setAttribute('aria-expanded', String(active));
+    });
+  }
+
+  /** Dismissal restores keyboard focus to the selected build without changing scroll position. */
+  function closeOverviewInspector(): void {
+    if (!overviewInspectedBuild) return;
+    const index = benchmarks.indexOf(overviewInspectedBuild);
+    overviewInspectedBuild = null;
+    buildTable.querySelector('#benchmark-overview-inspector')!.setAttribute('hidden', '');
+    buildTable.querySelector('.benchmark-overview-layout')!.classList.remove('has-build-inspector');
+    updateOverviewSelection();
+    buildTable
+      .querySelector<HTMLElement>(`[data-overview-row="${index}"] [data-inspect-overview]`)
+      ?.focus({ preventScroll: true });
+  }
+
+  // Rows only preview builds; the inspector owns workspace navigation and source links stay external.
+  buildTable.addEventListener('click', (event) => {
+    const target = event.target as Element;
+    if (target.closest('[data-close-build-inspector]')) return closeOverviewInspector();
+    if (target.closest('a')) return;
+    const element = target.closest<HTMLElement>('[data-overview-row]');
+    if (!element) return;
+    const row = benchmarks[Number(element.dataset.overviewRow)];
+    if (!row) return;
+    openOverviewInspector(row);
+    element.querySelector<HTMLElement>('[data-inspect-overview]')!.focus({ preventScroll: true });
+    if (pageWindow?.matchMedia('(max-width: 1100px)').matches) {
+      buildTable.querySelector('#benchmark-overview-inspector')!.scrollIntoView({ block: 'nearest' });
+    }
+  });
+  buildTable.addEventListener('keydown', (event) => {
+    if (event.key === 'Escape' && overviewInspectedBuild) {
+      event.preventDefault();
+      closeOverviewInspector();
+      // Escape ends row interaction without leaving the restored button outlined; the close button still restores focus.
+      const focused = root.ownerDocument.activeElement;
+      if (focused instanceof HTMLElement && buildTable.contains(focused)) focused.blur();
+    }
+  });
+
+  /** Reserve the selected overview's shape while manifests load, without exposing fake data to assistive technology. */
+  function renderLoadingBenchmarks(): void {
+    const bar = '<span class="benchmark-skeleton-bar"></span>';
+    const cardRow = `<div class="benchmark-skeleton-card-row">${bar.repeat(3)}</div>`;
+    cards.innerHTML = professionRegistry
+      .filter(({ id }) => selected.has(id))
+      .map(
+        () =>
+          `<div class="benchmark-card benchmark-skeleton" aria-hidden="true"><div class="benchmark-skeleton-heading">${bar}</div><div class="benchmark-skeleton-card-columns">${bar.repeat(3)}</div>${cardRow.repeat(4)}</div>`
+      )
+      .join('');
+    const tableRow = `<tr>${`<td>${bar}</td>`.repeat(7)}</tr>`;
+    buildTable.innerHTML = `<div class="benchmark-overview-table-scroll benchmark-skeleton" aria-hidden="true"><table><thead><tr><th>#</th><th>Build</th><th>Profession</th><th>Damage type</th><th>DPS</th><th>APM</th><th>Source</th></tr></thead><tbody>${tableRow.repeat(8)}</tbody></table></div>`;
   }
 
   /** Recompute all views together so ranking and individual bars always describe the active filters. */
   function render(): void {
     const professionScope =
       selected.size === professionRegistry.length ? 'all' : selected.size === 1 ? [...selected][0]! : 'custom';
-    root.querySelector<HTMLSelectElement>('select[data-overview-profession]')!.value = professionScope;
+    // Keep a single-profession destination accurate after changing or resetting the overview picker.
+    if (standalone && pageWindow) {
+      const url = new URL(pageWindow.location.href);
+      if (selected.size === 1) url.searchParams.set('profession', professionScope);
+      else url.searchParams.delete('profession');
+      if (url.href !== pageWindow.location.href) pageWindow.history.replaceState(null, '', url);
+    }
+
     root.querySelectorAll<HTMLElement>('button[data-overview-profession]').forEach((button) => {
       button.setAttribute('aria-pressed', String(button.dataset.overviewProfession === professionScope));
     });
+    if (root.getAttribute('aria-busy') === 'true' && !benchmarks.length) {
+      renderLoadingBenchmarks();
+      return;
+    }
+
     const rows = filterBenchmarks(benchmarks, {
       professions: selected,
       query: search.value,
@@ -248,9 +351,12 @@ export function mountBenchmarks(root: HTMLElement): void {
     const axis = benchmarkComparisonAxis(values, 50);
     const heightPercent = (value: number): number => ((value - axis.min) / (axis.max - axis.min)) * 100;
     const host = root.querySelector<HTMLElement>('[data-health-chart]')!;
+    const seriesKey = (row: Benchmark): string =>
+      html(JSON.stringify([row.profession, row.build, row.rotation, row.label]));
     const tableOpen = host.querySelector<HTMLDetailsElement>('.health-values')?.open ?? false;
     if (!values.length) {
       host.innerHTML = '<p class="benchmark-empty">No completed health bands for matching benchmarks.</p>';
+      healthInteractions.refresh();
       return;
     }
 
@@ -263,7 +369,7 @@ export function mountBenchmarks(root: HTMLElement): void {
             const to = valueAt(row, index + 1);
             return from === null || to === null
               ? ''
-              : `<line class="health-line profession-card-${row.profession}" style="${colorStyle(row)}" x1="${xPercent(index)}" y1="${100 - heightPercent(from)}" x2="${xPercent(index + 1)}" y2="${100 - heightPercent(to)}" vector-effect="non-scaling-stroke"/>`;
+              : `<line class="health-line profession-card-${row.profession}" data-health-series="${seriesKey(row)}" style="${colorStyle(row)}" x1="${xPercent(index)}" y1="${100 - heightPercent(from)}" x2="${xPercent(index + 1)}" y2="${100 - heightPercent(to)}" vector-effect="non-scaling-stroke"/>`;
           })
           .join('')
       )
@@ -275,7 +381,7 @@ export function mountBenchmarks(root: HTMLElement): void {
             const value = valueAt(row, index);
             if (value === null) return '';
             const label = `${row.professionName} · ${row.specialization} · ${row.label} · ${bandLabel(index)}: ${number.format(value)} ${mode} DPS`;
-            return `<button type="button" class="scatter-point profession-card-${row.profession}" data-health-point style="${colorStyle(row)};left:${xPercent(index)}%;bottom:${heightPercent(value)}%" aria-label="${html(label)}"></button>`;
+            return `<button type="button" class="scatter-point profession-card-${row.profession}" data-health-point data-health-series="${seriesKey(row)}" data-health-name="${html(`${row.professionName} · ${row.specialization} · ${row.label}`)}" aria-pressed="false" style="${colorStyle(row)};left:${xPercent(index)}%;bottom:${heightPercent(value)}%" aria-label="${html(label)}"></button>`;
           })
           .join('')
       )
@@ -294,12 +400,13 @@ export function mountBenchmarks(root: HTMLElement): void {
         return (healthAscending ? 1 : -1) * (left - right) || nameOrder;
       });
       const columns = [['name', 'Build'], ...bands.map((band, index) => [band.id, bandLabel(index)])];
-      return `<thead><tr>${columns.map(([key, label]) => `<th scope="col" aria-sort="${key === healthSort ? (healthAscending ? 'ascending' : 'descending') : 'none'}"><button type="button" data-health-sort="${key}">${label}${key === healthSort ? (healthAscending ? ' ↑' : ' ↓') : ''}</button></th>`).join('')}</tr></thead><tbody>${ordered.map((row) => `<tr><th scope="row">${html(buildName(row))}</th>${bands.map((_, index) => `<td>${valueAt(row, index) === null ? '—' : number.format(valueAt(row, index)!)}</td>`).join('')}</tr>`).join('')}</tbody>`;
+      return `<thead><tr>${columns.map(([key, label]) => `<th scope="col" aria-sort="${key === healthSort ? (healthAscending ? 'ascending' : 'descending') : 'none'}"><button type="button" data-health-sort="${key}">${label}${key === healthSort ? (healthAscending ? ' ↑' : ' ↓') : ''}</button></th>`).join('')}</tr></thead><tbody>${ordered.map((row) => `<tr data-health-row data-health-series="${seriesKey(row)}" style="${colorStyle(row)}"><th scope="row"><button type="button" data-health-toggle aria-pressed="false"${bands.some((_, index) => valueAt(row, index) !== null) ? '' : ' disabled'}>${html(buildName(row))}</button></th>${bands.map((_, index) => `<td>${valueAt(row, index) === null ? '—' : number.format(valueAt(row, index)!)}</td>`).join('')}</tr>`).join('')}</tbody>`;
     }
 
-    host.innerHTML = `      <div class="scatter-layout"><div class="scatter-y-axis comparison-y-axis">${axis.ticks.map((tick, index) => `<span style="top:${100 - heightPercent(tick)}%">${number.format(tick)}${index === 0 ? ' DPS' : ''}</span>`).join('')}</div>
+    host.innerHTML = `      <div class="health-chart-scroll"><div class="scatter-layout health-chart-layout"><div class="scatter-y-axis comparison-y-axis">${axis.ticks.map((tick, index) => `<span style="top:${100 - heightPercent(tick)}%">${number.format(tick)}${index === 0 ? ' DPS' : ''}</span>`).join('')}</div>
       <div class="scatter-plot health-plot" aria-label="DPS by target health"><div class="scatter-grid" aria-hidden="true">${axis.ticks.map((tick) => `<i style="top:${100 - heightPercent(tick)}%"></i>`).join('')}</div><svg class="health-lines" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">${lines}</svg>${dots}${inspectionMarkup('data-health-detail')}</div>
-      <div class="health-x-axis" style="--health-band-count:${bands.length}">${bands.map((_, index) => `<span>${bandLabel(index)}</span>`).join('')}</div></div>
+      <div class="health-pin-labels" role="group" aria-label="Pinned builds" hidden></div>
+      <div class="health-x-axis" style="--health-band-count:${bands.length}">${bands.map((_, index) => `<span>${bandLabel(index)}</span>`).join('')}</div></div></div><p class="health-pin-status" data-health-pin-status role="status"></p>
       <details class="health-values" ${tableOpen ? 'open' : ''}><summary>DPS values (${series.length} builds)</summary><div class="health-table-scroll"><table>${healthTableMarkup()}</table></div></details>`;
     const table = host.querySelector<HTMLTableElement>('.health-values table')!;
     table.addEventListener('click', (event) => {
@@ -310,7 +417,10 @@ export function mountBenchmarks(root: HTMLElement): void {
       healthSort = key;
       table.innerHTML = healthTableMarkup();
       table.querySelector<HTMLButtonElement>(`[data-health-sort="${healthSort}"]`)!.focus({ preventScroll: true });
+      // Reapply shared chart selection to the newly sorted rows without changing any pins.
+      healthInteractions.refresh();
     });
+    healthInteractions.refresh();
   }
 
   root.querySelector('[data-health-builds]')!.addEventListener('change', render);
@@ -549,9 +659,16 @@ export function mountBenchmarks(root: HTMLElement): void {
         }
 
         const tableRow = (event.target as Element).closest<HTMLElement>('[data-apm-row]');
+        const healthLine = (event.target as Element).closest<SVGElement>('.health-line');
+        const healthEndpoint = healthLine
+          ? [...host.querySelectorAll<HTMLButtonElement>('[data-health-point]')]
+              .filter((point) => point.dataset.healthSeries === healthLine.dataset.healthSeries)
+              .at(-1)
+          : undefined;
         const point = tableRow
           ? host.querySelector<HTMLButtonElement>(`[data-point="${tableRow.dataset.apmRow}"]`)
-          : (event.target as Element).closest<HTMLButtonElement>('[data-point], [data-health-point]');
+          : (healthEndpoint ??
+            (event.target as Element).closest<HTMLButtonElement>('[data-point], [data-health-point]'));
         if (!point) return;
         clearTimeout(pendingHide);
         if (event.type === 'pointermove' && point.classList.contains('is-selected')) return;
@@ -578,7 +695,12 @@ export function mountBenchmarks(root: HTMLElement): void {
       dismiss();
     });
     host.addEventListener('keydown', (event) => {
-      if (event.key === 'Escape') dismiss();
+      if (event.key !== 'Escape') return;
+      dismiss();
+      if (host.hasAttribute('data-health-chart')) {
+        const focused = root.ownerDocument.activeElement;
+        if (focused instanceof HTMLElement && host.contains(focused)) focused.blur();
+      }
     });
     // Leaving a mark must not pin its badge or move keyboard focus back into the chart.
     for (const eventName of ['pointerout', 'focusout'] as const) {
@@ -750,6 +872,9 @@ export function mountBenchmarks(root: HTMLElement): void {
     if (event.key !== 'Escape') return;
     if (inspectedBuild) closeBuildInspector();
     else hideBarHover();
+    // Escape dismisses chart interaction completely; ordinary close actions still return focus to the build.
+    const focused = root.ownerDocument.activeElement;
+    if (focused instanceof HTMLElement && barChart.contains(focused)) focused.blur();
   });
 
   /** Load only lightweight manifests; one unavailable profession must not prevent comparison of the others. */
@@ -757,6 +882,7 @@ export function mountBenchmarks(root: HTMLElement): void {
     root.setAttribute('aria-busy', 'true');
     retry.disabled = true;
     status.textContent = 'Loading profession benchmarks…';
+    if (!benchmarks.length) render();
     const results = await Promise.allSettled(
       professionRegistry.map(async (entry) => {
         const response = await fetch(`data/gw2/builds/${entry.id}/manifest.json`);
@@ -780,7 +906,7 @@ export function mountBenchmarks(root: HTMLElement): void {
     else selected.delete(input.value);
     render();
   });
-  /** The overview uses a compact profession picker or tabs, sharing selection with the chart filters. */
+  /** Both overview layouts use the same profession tabs, sharing selection with the chart filters. */
   function selectOverviewProfession(profession: string): void {
     selected.clear();
     professionRegistry.forEach(({ id }) => {
@@ -792,9 +918,6 @@ export function mountBenchmarks(root: HTMLElement): void {
     render();
   }
 
-  root.querySelector<HTMLSelectElement>('select[data-overview-profession]')!.addEventListener('change', (event) => {
-    selectOverviewProfession((event.target as HTMLSelectElement).value);
-  });
   search.addEventListener('input', render);
   for (const input of [damage, role, outdated]) input.addEventListener('change', render);
   sort.addEventListener('change', () => {

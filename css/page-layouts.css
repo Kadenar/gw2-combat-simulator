@@ -33,7 +33,7 @@
 
 .landing-section-heading {
   margin-bottom: 18px;
-  text-align: center;
+  text-align: left;
 }
 
 .landing-section-heading h2 {
@@ -61,14 +61,62 @@
   color: var(--accent);
 }
 
-/* Keep benchmark navigation visible beside the existing profession-picker help. */
-.landing-benchmark-navigation {
-  margin-top: 14px;
+/* Primary destinations share a stable navigation row outside the embed-hidden title bar. */
+.site-navigation {
+  display: flex;
+  width: 100%;
+  max-width: 1120px;
+  margin: 24px auto 0;
+  border-bottom: 1px solid var(--border-light);
 }
 
-.landing-benchmark-navigation a {
-  display: inline-block;
+.site-navigation a {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 48px;
+  padding: 10px 24px;
+  border-bottom: 3px solid transparent;
+  color: var(--text);
+  font-size: 16px;
+  font-weight: 600;
   text-decoration: none;
+}
+
+.site-navigation a[aria-current='page'] {
+  border-bottom-color: var(--accent);
+  color: var(--text-bright);
+}
+
+.site-navigation a:hover {
+  background: var(--bg-panel);
+  color: var(--accent);
+}
+
+.site-navigation a:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: -2px;
+}
+
+.benchmark-page .site-navigation {
+  max-width: none;
+}
+
+.benchmark-page-content {
+  min-width: 0;
+  margin-top: 28px;
+}
+
+.benchmark-page-content > h2 {
+  color: var(--text-bright);
+  font-size: 23px;
+  font-weight: 600;
+}
+
+/* The standalone dashboard is page content, without a surrounding panel frame. */
+.benchmark-page #benchmarks-view {
+  border: 0;
+  background: transparent;
 }
 
 .landing-community {
@@ -212,7 +260,7 @@
 
 .profession-showcase-header {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-columns: minmax(0, 1fr);
   align-items: center;
   gap: 12px;
   padding: 11px 13px;
@@ -234,16 +282,40 @@
 
 .profession-showcase-link {
   color: var(--profession-accent);
-  font-size: 10px;
-  font-weight: 700;
-  letter-spacing: 0.04em;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0;
   text-decoration: none;
-  text-transform: uppercase;
+}
+
+/* Both card actions retain usable hit areas as the grid narrows. */
+.profession-showcase-actions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  border-top: 1px solid color-mix(in srgb, var(--profession-accent) 28%, var(--border));
+}
+
+.profession-showcase-actions a {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  padding: 8px;
+  text-align: center;
+}
+
+.profession-showcase-actions a + a {
+  border-left: 1px solid color-mix(in srgb, var(--profession-accent) 28%, var(--border));
+}
+
+.profession-showcase-actions a:hover {
+  color: var(--text-bright);
+  background: color-mix(in srgb, var(--profession-accent) 12%, transparent);
 }
 
 .profession-showcase-link:focus-visible {
   outline: 2px solid var(--profession-accent);
-  outline-offset: 3px;
+  outline-offset: -3px;
 }
 
 .specialization-showcase-grid {

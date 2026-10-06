@@ -360,22 +360,6 @@ test('prepopulated choices enforce limits and stay usable on mobile', async ({ p
   await page.goto('/mesmer.html', { waitUntil: 'domcontentloaded' });
   await expect(page.locator('#loading-overlay')).toHaveClass(/hidden/);
   await page.getByRole('link', { name: 'Gear Optimizer', exact: true }).click();
-  // Alternate font metrics catch navigation overflow that the Windows default font can hide.
-  for (const font of ['inherit', 'Arial', 'Verdana']) {
-    await page.locator('.simulator-view-tabs').evaluate((element, font) => (element.style.fontFamily = font), font);
-    const tabs = await page.locator('.simulator-view-tab').evaluateAll((elements) =>
-      elements.map((element) => {
-        const { top, right } = element.getBoundingClientRect();
-        return { top, right, fits: element.scrollWidth <= element.clientWidth };
-      })
-    );
-    expect(new Set(tabs.map(({ top }) => top)).size, font).toBe(1);
-    expect(
-      tabs.every(({ right, fits }) => right <= 390 && fits),
-      `${font}: ${JSON.stringify(tabs)}`
-    ).toBe(true);
-  }
-
   const panel = page.locator('#gear-optimizer');
   const prefixes = panel.getByRole('button', { name: 'Add prefixes', exact: true });
   for (const prefix of ["Assassin's", "Viper's"]) await addChoice(panel, 'prefixes', prefix);

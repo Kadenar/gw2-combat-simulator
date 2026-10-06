@@ -302,6 +302,7 @@ a.simulator-view-tab:focus-visible {
 }
 
 @media (max-width: 600px) {
+  /* Four tools, including Benchmarks, stay fully visible in two rows below the profession picker. */
   .simulator-view-tabs {
     grid-template-columns: repeat(2, minmax(0, 1fr));
     width: 100%;

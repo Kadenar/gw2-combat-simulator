@@ -6,6 +6,7 @@ const siteRoot = path.resolve('dist', 'site');
 const development = process.argv.includes('--development');
 const pages = [
   'index.html',
+  'benchmarks.html',
   ...(development ? ['patch-preview.html'] : []),
   'elementalist.html',
   'engineer.html',
@@ -44,7 +45,7 @@ for (const page of pages) {
     throw new Error(`${page} does not reference a bundled asset.`);
   }
 
-  if (page !== 'index.html' && page !== 'patch-preview.html') {
+  if (!['index.html', 'benchmarks.html', 'patch-preview.html'].includes(page)) {
     const professionId = path.basename(page, '.html');
     if (
       !source.includes(`data-profession="${professionId}"`) ||

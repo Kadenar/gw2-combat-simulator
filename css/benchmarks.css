@@ -634,6 +634,66 @@ body[data-simulator-view='benchmarks'] :is(.profession-layout, .build-editor) {
   gap: 28px 40px;
   align-items: start;
 }
+/* Loading placeholders match result rows and stay still when reduced motion is requested. */
+.benchmark-skeleton-bar {
+  display: block;
+  width: 75%;
+  height: 12px;
+  border-radius: 3px;
+  background: var(--border-light);
+  animation: benchmark-skeleton-pulse 1.6s ease-in-out infinite alternate;
+}
+.benchmark-skeleton-heading {
+  display: flex;
+  align-items: center;
+  height: 48px;
+}
+.benchmark-skeleton-heading .benchmark-skeleton-bar {
+  width: 40%;
+  height: 16px;
+}
+.benchmark-skeleton-card-columns,
+.benchmark-skeleton-card-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 60px 50px;
+  align-items: center;
+  gap: 12px;
+  height: 44px;
+  border-bottom: 1px solid var(--benchmark-border);
+}
+.benchmark-skeleton-card-columns {
+  background: var(--bg-panel);
+}
+.benchmark-skeleton tbody tr {
+  height: 61px;
+}
+.benchmark-skeleton tbody td:nth-child(2) .benchmark-skeleton-bar {
+  width: 80%;
+  height: 24px;
+}
+.benchmark-skeleton tbody td:first-child .benchmark-skeleton-bar {
+  width: 12px;
+}
+.benchmark-skeleton tbody td:last-child .benchmark-skeleton-bar {
+  height: 30px;
+}
+.benchmark-overview-table .benchmark-skeleton :is(th, td):last-child {
+  width: 160px;
+}
+@keyframes benchmark-skeleton-pulse {
+  from {
+    opacity: 0.35;
+  }
+  to {
+    opacity: 0.75;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .benchmark-skeleton-bar {
+    animation: none;
+    opacity: 0.5;
+  }
+}
 .benchmark-card {
   min-width: 0;
   scroll-margin-top: 85px;
@@ -795,13 +855,9 @@ body[data-simulator-view='benchmarks'] :is(.profession-layout, .build-editor) {
   color: var(--benchmark-accent);
   font-size: 10px;
 }
-.benchmark-view-switch,
-.benchmark-overview-actions {
+.benchmark-view-switch {
   display: flex;
   align-items: center;
-  gap: 12px;
-}
-.benchmark-view-switch {
   gap: 0;
   padding: 3px;
   border: 1px solid var(--benchmark-border);
@@ -822,9 +878,39 @@ body[data-simulator-view='benchmarks'] :is(.profession-layout, .build-editor) {
   background: var(--menu-surface);
 }
 .benchmark-overview-table-scroll {
+  min-width: 0;
   max-height: 70vh;
   overflow: auto;
   scrollbar-gutter: stable;
+}
+/* Row activation shares the chart inspector while keeping the table's scrolling and source links intact. */
+.benchmark-overview-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 16px;
+}
+.benchmark-overview-layout.has-build-inspector {
+  grid-template-columns: minmax(0, 1fr) 330px;
+}
+.benchmark-overview-table [data-overview-row] {
+  cursor: pointer;
+}
+.benchmark-overview-table [data-overview-row].is-inspected {
+  background: #d3b69018;
+  box-shadow: inset 3px 0 var(--benchmark-accent);
+}
+.benchmark-overview-table [data-inspect-overview] {
+  width: 100%;
+  text-align: left;
+}
+@media (max-width: 1100px) {
+  .benchmark-overview-layout.has-build-inspector {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .benchmark-overview-layout > .benchmark-build-inspector {
+    border-left: 0;
+    border-top: 1px solid var(--benchmark-border);
+  }
 }
 .benchmark-overview-table table {
   min-width: 780px;
@@ -859,19 +945,13 @@ body[data-simulator-view='benchmarks'] :is(.profession-layout, .build-editor) {
 .benchmark-overview-table th[aria-sort]:not([aria-sort='none']) {
   color: var(--benchmark-accent);
 }
-/* Size actions from their labels so text cannot overflow a fixed slot or overlap its neighboring link. */
+/* External references stay secondary to the preview's single workspace action. */
 .benchmark-overview-table :is(th, td):last-child {
   width: 1%;
   padding-left: 24px;
   padding-right: 12px;
 }
-.benchmark-overview-actions {
-  display: grid;
-  grid-template-columns: max-content max-content;
-  width: max-content;
-  gap: 8px;
-}
-.benchmark-overview-actions a {
+.benchmark-source-link {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -880,37 +960,31 @@ body[data-simulator-view='benchmarks'] :is(.profession-layout, .build-editor) {
   white-space: nowrap;
   height: 32px;
   padding: 0 10px;
-  border: 1px solid color-mix(in srgb, var(--benchmark-accent) 30%, transparent);
+  border: 1px solid var(--border-light);
   border-radius: var(--radius);
-  background: color-mix(in srgb, var(--benchmark-accent) 8%, transparent);
-  color: var(--benchmark-accent);
+  background: transparent;
+  color: var(--text-dim);
   text-decoration: none;
   font-size: 12px;
-  font-weight: 500;
+  font-weight: 400;
   line-height: 18px;
   transition:
     background-color 120ms,
     border-color 120ms,
     color 120ms;
 }
-.benchmark-overview-actions a + a {
-  border-color: var(--border-light);
-  background: transparent;
-  color: var(--text-dim);
-  font-weight: 400;
-}
-.benchmark-overview-actions a:is(:hover, :focus-visible) {
+.benchmark-source-link:is(:hover, :focus-visible) {
   border-color: var(--benchmark-accent);
   background: color-mix(in srgb, var(--benchmark-accent) 16%, transparent);
   color: var(--benchmark-accent);
 }
-.benchmark-overview-actions a:focus-visible {
+.benchmark-source-link:focus-visible {
   outline: 2px solid var(--benchmark-accent);
   outline-offset: 2px;
 }
-/* Workspace and source links share clear pointer and keyboard feedback without decorative arrows. */
+/* Row preview buttons use row highlighting, reserving underlines for navigation and sorting. */
 .benchmark-card a:is(:hover, :focus-visible),
-.benchmark-overview-table th button:is(:hover, :focus-visible) {
+.benchmark-overview-table thead button:is(:hover, :focus-visible) {
   color: var(--benchmark-accent);
   text-decoration: underline;
   text-underline-offset: 3px;
@@ -934,6 +1008,83 @@ body[data-simulator-view='benchmarks'] :is(.profession-layout, .build-editor) {
   stroke: var(--benchmark-color);
   stroke-width: 1.5px;
   opacity: 0.65;
+  pointer-events: stroke;
+  cursor: pointer;
+}
+/* Whole-build emphasis keeps colors traceable; pinned labels use a separate lane with collision-free connectors. */
+.health-line.is-health-active {
+  opacity: 1;
+  stroke-width: 3px;
+}
+.health-plot .is-health-muted {
+  opacity: 0.1;
+}
+.health-plot .scatter-point.is-health-active {
+  z-index: 2;
+}
+.health-chart-scroll {
+  max-width: 100%;
+  overflow-x: auto;
+  padding: 8px 0;
+}
+.health-chart-layout {
+  grid-template-rows: minmax(var(--health-label-min-height, 360px), calc(100vh - 370px)) auto;
+}
+.health-chart-layout.has-health-pins {
+  grid-template-columns: 64px minmax(280px, 1fr) 230px;
+  min-width: 610px;
+}
+.health-pin-labels {
+  position: relative;
+  grid-column: 3;
+  grid-row: 1;
+  min-width: 0;
+}
+.health-pin-label {
+  position: absolute;
+  left: 0;
+  width: 100%;
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 8px 4px 8px 10px;
+  border-left: 3px solid var(--benchmark-color);
+  background: var(--bg-panel);
+  color: var(--text-bright);
+  font-size: 11px;
+  line-height: 1.5;
+}
+.health-pin-label span {
+  min-width: 0;
+  overflow-wrap: anywhere;
+  flex: 1;
+}
+.health-pin-label button {
+  flex: 0 0 24px;
+  height: 24px;
+  border: 0;
+  background: transparent;
+  color: var(--text-dim);
+  font-size: 20px;
+  cursor: pointer;
+}
+.health-pin-label button:hover {
+  color: var(--text-bright);
+}
+.health-pin-connectors {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  pointer-events: none;
+  stroke-width: 1px;
+}
+.health-pin-status {
+  min-height: 18px;
+  margin-top: 8px;
+  color: var(--text-dim);
+  font-size: 11px;
 }
 .health-x-axis {
   grid-column: 2;
@@ -972,8 +1123,33 @@ body[data-simulator-view='benchmarks'] :is(.profession-layout, .build-editor) {
   min-width: 180px;
   white-space: normal;
 }
+/* Health rows share chart emphasis and expose a native toggle for keyboard pinning. */
+.health-values [data-health-row] {
+  cursor: pointer;
+}
+.health-values [data-health-row].is-health-active {
+  background: color-mix(in srgb, var(--benchmark-color) 12%, transparent);
+  color: var(--text-bright);
+}
+.health-values [data-health-row].is-health-pinned {
+  box-shadow: inset 3px 0 var(--benchmark-color);
+}
+.health-values [data-health-toggle] {
+  display: block;
+  width: 100%;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.health-values [data-health-row]:has([data-health-toggle]:disabled),
+.health-values [data-health-toggle]:disabled {
+  cursor: default;
+}
 /* Only the overview uses the compact mockup header; chart sidebars retain their established layout. */
-.benchmark-overview-profession,
 .benchmark-profession-tabs,
 .benchmark-overview-sort,
 .benchmark-search-icon {
@@ -990,7 +1166,7 @@ body[data-simulator-view='benchmarks'] :is(.profession-layout, .build-editor) {
   grid-column: 1;
   grid-row: 1;
   display: grid;
-  grid-template-columns: minmax(180px, 1fr) 215px 185px 175px auto 200px auto;
+  grid-template-columns: minmax(180px, 1fr) 185px 175px auto 200px auto;
   align-items: center;
   gap: 12px;
   padding: 18px 24px;
@@ -1001,7 +1177,7 @@ body[data-simulator-view='benchmarks'] :is(.profession-layout, .build-editor) {
   display: none;
 }
 #benchmarks-view[data-benchmark-active-panel='builds'] .filter-heading {
-  grid-column: 7;
+  grid-column: 6;
   grid-row: 1;
   margin: 0;
 }
@@ -1053,23 +1229,20 @@ body[data-simulator-view='benchmarks'] :is(.profession-layout, .build-editor) {
   font: inherit;
   color: #eee;
 }
-#benchmarks-view[data-benchmark-active-panel='builds'] .benchmark-overview-profession {
+#benchmarks-view[data-benchmark-active-panel='builds'] .filter-field:has(#benchmark-damage) {
   grid-column: 2;
 }
-#benchmarks-view[data-benchmark-active-panel='builds'] .filter-field:has(#benchmark-damage) {
+#benchmarks-view[data-benchmark-active-panel='builds'] .filter-field:has(#benchmark-role) {
   grid-column: 3;
 }
-#benchmarks-view[data-benchmark-active-panel='builds'] .filter-field:has(#benchmark-role) {
-  grid-column: 4;
-}
 #benchmarks-view[data-benchmark-active-panel='builds'] .outdated-filter {
-  grid-column: 5;
+  grid-column: 4;
   grid-row: 1;
   font-size: 12px;
   color: #ddd;
 }
 #benchmarks-view[data-benchmark-active-panel='builds'] .benchmark-overview-sort {
-  grid-column: 6;
+  grid-column: 5;
 }
 #benchmarks-view[data-benchmark-active-panel='builds'] :is(.benchmark-cards, .benchmark-overview-table) {
   grid-row: 2;
@@ -1079,13 +1252,8 @@ body[data-simulator-view='benchmarks'] :is(.profession-layout, .build-editor) {
 #benchmarks-view[data-benchmark-active-panel='builds'] .benchmark-status-row {
   grid-row: 3;
 }
-#benchmarks-view[data-benchmark-active-panel='builds'][data-build-view='table'] .benchmark-overview-profession {
-  display: none;
-}
-#benchmarks-view[data-benchmark-active-panel='builds'][data-build-view='table'] .filter-field:has(input) {
-  grid-column: 1 / 3;
-}
-#benchmarks-view[data-benchmark-active-panel='builds'][data-build-view='table'] .benchmark-profession-tabs {
+/* Card and table layouts share one profession selector so changing presentation never moves the filters. */
+#benchmarks-view[data-benchmark-active-panel='builds'] .benchmark-profession-tabs {
   display: flex;
   flex-wrap: wrap;
   gap: 8px 18px;
@@ -1211,24 +1379,31 @@ body[data-simulator-view='benchmarks'] :is(.profession-layout, .build-editor) {
     grid-template-columns: minmax(160px, 1.5fr) minmax(140px, 1fr) minmax(140px, 1fr);
     gap: 12px;
   }
-  #benchmarks-view[data-benchmark-active-panel='builds'] .filter-field:has(#benchmark-role) {
+  #benchmarks-view[data-benchmark-active-panel='builds'] .filter-field:has(input) {
+    grid-column: 1 / -1;
+  }
+  #benchmarks-view[data-benchmark-active-panel='builds'] .filter-field:has(#benchmark-damage) {
     grid-column: 1;
     grid-row: 2;
   }
-  #benchmarks-view[data-benchmark-active-panel='builds'] .outdated-filter {
+  #benchmarks-view[data-benchmark-active-panel='builds'] .filter-field:has(#benchmark-role) {
     grid-column: 2;
     grid-row: 2;
   }
-  #benchmarks-view[data-benchmark-active-panel='builds'] .benchmark-overview-sort {
+  #benchmarks-view[data-benchmark-active-panel='builds'] .outdated-filter {
     grid-column: 3;
     grid-row: 2;
+  }
+  #benchmarks-view[data-benchmark-active-panel='builds'] .benchmark-overview-sort {
+    grid-column: 1;
+    grid-row: 3;
   }
   #benchmarks-view[data-benchmark-active-panel='builds'] .filter-heading {
     grid-column: 3;
     grid-row: 3;
     justify-content: flex-end;
   }
-  #benchmarks-view[data-benchmark-active-panel='builds'][data-build-view='table'] .benchmark-profession-tabs {
+  #benchmarks-view[data-benchmark-active-panel='builds'] .benchmark-profession-tabs {
     grid-row: 4;
   }
 }
@@ -1243,36 +1418,29 @@ body[data-simulator-view='benchmarks'] :is(.profession-layout, .build-editor) {
   #benchmarks-view[data-benchmark-active-panel='builds'] .filter-field:has(input) {
     grid-column: 1 / -1;
   }
-  #benchmarks-view[data-benchmark-active-panel='builds'] .benchmark-overview-profession {
-    grid-column: 1;
-    grid-row: 2;
-  }
   #benchmarks-view[data-benchmark-active-panel='builds'] .filter-field:has(#benchmark-damage) {
-    grid-column: 2;
+    grid-column: 1;
     grid-row: 2;
   }
   #benchmarks-view[data-benchmark-active-panel='builds'] .filter-field:has(#benchmark-role) {
-    grid-column: 1;
-    grid-row: 3;
+    grid-column: 2;
+    grid-row: 2;
   }
   #benchmarks-view[data-benchmark-active-panel='builds'] .outdated-filter {
-    grid-column: 2;
+    grid-column: 1;
     grid-row: 3;
   }
   #benchmarks-view[data-benchmark-active-panel='builds'] .benchmark-overview-sort {
-    grid-column: 1;
-    grid-row: 4;
+    grid-column: 2;
+    grid-row: 3;
   }
   #benchmarks-view[data-benchmark-active-panel='builds'] .filter-heading {
     grid-column: 2;
     grid-row: 4;
     justify-content: flex-end;
   }
-  #benchmarks-view[data-benchmark-active-panel='builds'][data-build-view='table'] .benchmark-profession-tabs {
+  #benchmarks-view[data-benchmark-active-panel='builds'] .benchmark-profession-tabs {
     grid-row: 5;
-  }
-  #benchmarks-view[data-benchmark-active-panel='builds'][data-build-view='table'] .filter-field:has(input) {
-    grid-column: 1 / -1;
   }
   .benchmark-cards {
     grid-template-columns: minmax(0, 1fr);

@@ -435,6 +435,51 @@ test('failed template loading clears progress and re-enables the picker', async 
   await expect(page.locator('.build-tab')).toHaveCount(1);
 });
 
+// Four section links stay readable in a mobile grid and retain keyboard access to the benchmark view.
+test('section navigation fits four tools on mobile and desktop', async ({ page }) => {
+  await openWorkspace(page);
+  const navigation = page.getByRole('navigation', { name: 'Simulator sections' });
+  const links = navigation.locator('.simulator-view-tab');
+  await expect(links).toHaveText(['Workspace', 'Analysis', 'Gear Optimizer', 'Benchmarks']);
+
+  for (const width of [320, 390, 600, 1100]) {
+    await page.setViewportSize({ width, height: 844 });
+    // Alternate font metrics catch clipping without depending on the host's default font.
+    for (const font of ['inherit', 'Arial', 'Verdana']) {
+      await navigation.evaluate((element, font) => (element.style.fontFamily = font), font);
+      const tabs = await links.evaluateAll((elements) =>
+        elements.map((element) => {
+          const { top, left, right } = element.getBoundingClientRect();
+          return { top, left, right, fits: element.scrollWidth <= element.clientWidth };
+        })
+      );
+      const context = `${width}px ${font}: ${JSON.stringify(tabs)}`;
+      expect(new Set(tabs.map(({ top }) => top)).size, context).toBe(width <= 600 ? 2 : 1);
+      expect(tabs[0].top, context).toBe(tabs[1].top);
+      expect(tabs[2].top, context).toBe(tabs[3].top);
+      expect(
+        tabs.every(({ left, right, fits }) => left >= 0 && right <= width && fits),
+        context
+      ).toBe(true);
+    }
+  }
+
+  await page.setViewportSize({ width: 320, height: 844 });
+  const benchmarks = navigation.getByRole('link', { name: 'Benchmarks', exact: true });
+  await navigation.getByRole('link', { name: 'Gear Optimizer', exact: true }).focus();
+  await page.keyboard.press('Tab');
+  await expect(benchmarks).toBeFocused();
+  await expect(benchmarks).toBeInViewport({ ratio: 1 });
+  await page.keyboard.press('Enter');
+  await expect(benchmarks).toHaveAttribute('aria-current', 'page');
+  await expect(page.locator('#benchmarks-view')).toBeVisible();
+  const workspace = navigation.getByRole('link', { name: 'Workspace', exact: true });
+  await workspace.focus();
+  await page.keyboard.press('Enter');
+  await expect(workspace).toHaveAttribute('aria-current', 'page');
+  await expect(page.locator('#build-workspace-tabs')).toBeVisible();
+});
+
 // Both responsive layouts keep all actions reachable without widening the iframe.
 test('toolbar adapts to narrow embeds and native menus dismiss with keyboard and outside clicks', async ({ page }) => {
   await page.goto('/mesmer.html?embed=1');

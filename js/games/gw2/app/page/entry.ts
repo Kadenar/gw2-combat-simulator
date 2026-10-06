@@ -118,7 +118,18 @@ function renderProfessionShowcases(root: Document, grid: Element, entries: reado
     simulatorLink.className = 'profession-showcase-link';
     simulatorLink.href = professionLink(entry);
     simulatorLink.textContent = 'Open simulator →';
-    header.append(name, simulatorLink);
+    simulatorLink.setAttribute('aria-label', `Open ${entry.name} simulator`);
+    header.append(name);
+
+    // Equal, separate actions let visitors choose a workspace or a profession-filtered benchmark overview.
+    const actions = root.createElement('div');
+    actions.className = 'profession-showcase-actions';
+    const benchmarksLink = root.createElement('a');
+    benchmarksLink.className = 'profession-showcase-link';
+    benchmarksLink.href = navigationRoute(`benchmarks.html?profession=${entry.id}`);
+    benchmarksLink.textContent = 'View benchmarks';
+    benchmarksLink.setAttribute('aria-label', `View ${entry.name} benchmarks`);
+    actions.append(simulatorLink, benchmarksLink);
 
     const gallery = root.createElement('div');
     gallery.className = 'specialization-showcase-grid';
@@ -161,7 +172,7 @@ function renderProfessionShowcases(root: Document, grid: Element, entries: reado
       gallery.append(placeholder);
     }
 
-    showcase.append(header, gallery);
+    showcase.append(header, gallery, actions);
     grid.append(showcase);
   }
 }
@@ -198,11 +209,20 @@ async function renderLoaderArtwork(root: Document): Promise<void> {
  * landing and simulator pages.
  */
 function bindProfessionSelector(root: Document = document): void {
-  // Direct benchmark navigation retains the same hosting modes as profession-card links.
-  const benchmarksLink = root.querySelector<HTMLAnchorElement>('[data-benchmarks-link]');
-  if (benchmarksLink) {
-    benchmarksLink.href = navigationRoute(benchmarksLink.getAttribute('href')!, root.defaultView?.location.search);
+  // Shared primary navigation carries hosting modes between the picker and standalone benchmarks.
+  for (const link of root.querySelectorAll<HTMLAnchorElement>('.site-navigation a')) {
+    link.href = navigationRoute(link.getAttribute('href')!, root.defaultView?.location.search);
   }
+
+  const benchmarkHost = root.querySelector<HTMLElement>('.benchmark-page #benchmarks-view');
+  if (benchmarkHost) {
+    void import('#gw2/app/page/benchmark-dashboard.js')
+      .then(({ mountBenchmarks }) => mountBenchmarks(benchmarkHost))
+      .catch(() => {
+        benchmarkHost.textContent = 'Could not load the benchmark view. Reload the page to retry.';
+      });
+  }
+
   void renderLoaderArtwork(root);
   mountGw2IconFallback(root);
   mountRotationWorkspace(root);
