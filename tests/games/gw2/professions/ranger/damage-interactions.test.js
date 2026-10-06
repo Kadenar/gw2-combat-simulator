@@ -38,7 +38,8 @@ test('Core damage reactions preserve trait and skill ordering without spending c
   const queued = [];
   const context = {
     config,
-    profession: { core: state },
+    // Player strikes consume Blood Thirst only while merged with the pet.
+    profession: { core: state, specialization: { kind: 'Soulbeast', state: { beastmodeActive: true } } },
     helpers: rangerCatalog,
     boons: new Map(),
     buffs: new Map(),

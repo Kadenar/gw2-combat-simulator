@@ -549,28 +549,7 @@ export function triggerTrappersExpertise(context: RangerResolverContext, event: 
 /** Apply the trait-selected shortbow condition upgrades after base on-hit effects. */
 export function triggerLightOnYourFeet(context: RangerResolverContext, event: Gw2ResolverEvent): void {
   const skill = skillForEvent(context.helpers, event);
-  if (skill?.id === ID.CROSSFIRE && hasTrait(context, TRAIT.LIGHT_ON_YOUR_FEET) && context.config.target?.defiant) {
-    const bleeding = skill.effects?.find((effect) => effect.type === 'condition' && effect.condition === 'Bleeding');
-    // Defiant Crossfire gains a second stack with the same extended base duration; with the skill's own
-    // Bleeding removed there is no base stack to duplicate.
-    if (bleeding) {
-      const extension = balanceProfileNumber(
-        requireBalanceProfileFromContext(context, TRAIT.LIGHT_ON_YOUR_FEET),
-        'durationPerTier'
-      );
-      context.effects.emit({
-        kind: 'packet',
-        event: buildRangerBleeding(
-          context,
-          event,
-          effectNumber(skill, bleeding, 'duration') + extension,
-          TRAIT.LIGHT_ON_YOUR_FEET,
-          'Light on your Feet'
-        )
-      });
-    }
-  }
-
+  // Crossfire gains duration through the base-duration hook, never an additional bleed stack.
   if (skill?.id === ID.CONCUSSION_SHOT && hasTrait(context, TRAIT.LIGHT_ON_YOUR_FEET)) {
     const profile = requireBalanceProfileFromContext(context, TRAIT.LIGHT_ON_YOUR_FEET);
     const vulnerability = requireEffect(profile, 'condition', 'Vulnerability');
@@ -627,20 +606,26 @@ export function modifyRangerConditionBaseDuration(context: Gw2ModifierContext, m
     );
   }
 
-  let extension = 0;
+  // Intrinsic positional bonuses apply without the trait; its extensions add to those base durations.
+  let extension =
+    skill?.id === ID.CROSSFIRE && context.condition === 'Bleeding' && !positional(context)
+      ? -1
+      : skill?.id === ID.POISON_VOLLEY && context.condition === 'Poisoned' && positional(context)
+        ? 2
+        : 0;
   if (hasTrait(context, TRAIT.LIGHT_ON_YOUR_FEET) && positional(context)) {
     if (skill?.id === ID.CROSSFIRE && context.condition === 'Bleeding') {
-      extension = balanceProfileNumber(
+      extension += balanceProfileNumber(
         requireBalanceProfileFromContext(context, TRAIT.LIGHT_ON_YOUR_FEET),
         'durationPerTier'
       );
     } else if (skill?.id === ID.POISON_VOLLEY && context.condition === 'Poisoned') {
-      extension = balanceProfileNumber(
+      extension += balanceProfileNumber(
         requireBalanceProfileFromContext(context, TRAIT.LIGHT_ON_YOUR_FEET),
         'durationPerTier'
       );
     } else if (skill?.id === ID.CRIPPLING_SHOT && context.condition === 'Immobilized') {
-      extension = balanceProfileNumber(
+      extension += balanceProfileNumber(
         requireBalanceProfileFromContext(context, TRAIT.LIGHT_ON_YOUR_FEET),
         'minimumStacks'
       );
@@ -651,7 +636,7 @@ export function modifyRangerConditionBaseDuration(context: Gw2ModifierContext, m
     skill?.effects?.find((effect) => effect.type === 'condition' && effect.condition === context.condition)?.duration ||
       0
   );
-  if (extension > 0 && baseDuration > 0) result *= (baseDuration + extension) / baseDuration;
+  if (extension !== 0 && baseDuration > 0) result *= Math.max(0, baseDuration + extension) / baseDuration;
   return result;
 }
 

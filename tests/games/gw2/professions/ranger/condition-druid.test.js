@@ -186,7 +186,7 @@ test('Light on Your Feet applies its six-second buff and shortbow upgrades', () 
   assert.equal(buff.duration, 6);
   assert.equal(
     crossfireBleeding.reduce((total, event) => total + event.stacks, 0),
-    2
+    1
   );
   assert.ok(crossfireBleeding.every((event) => event.effectiveDuration === 5.5));
 
@@ -235,7 +235,7 @@ test('Light on Your Feet applies its six-second buff and shortbow upgrades', () 
   );
 
   assert.equal(poison.duration, 5);
-  assert.equal(immobilized.duration, 1.5);
+  assert.equal(immobilized, undefined);
   assert.equal(
     upgrades.resolvedEvents
       .filter((event) => event.sourceId === TRAIT.LIGHT_ON_YOUR_FEET && event.condition === 'Vulnerability')
@@ -244,7 +244,7 @@ test('Light on Your Feet applies its six-second buff and shortbow upgrades', () 
   );
   assert.equal(vulnerability.duration, 10);
 
-  const defiant = simulate(['Poison Volley', 'Crippling Shot'], {
+  const defiant = simulate(['Poison Volley', 'Crippling Shot', { type: 'wait', durationMs: 1000 }], {
     primaryWeapon: 'Shortbow',
     offHandWeapon: '',
     stats: { expertise: 0 },
@@ -254,7 +254,7 @@ test('Light on Your Feet applies its six-second buff and shortbow upgrades', () 
   assert.equal(
     defiant.resolvedEvents.find((event) => event.sourceId === ID.POISON_VOLLEY && event.condition === 'Poisoned')
       .effectiveDuration,
-    7
+    9
   );
   assert.equal(
     defiant.resolvedEvents.find((event) => event.sourceId === ID.CRIPPLING_SHOT && event.condition === 'Immobilized')

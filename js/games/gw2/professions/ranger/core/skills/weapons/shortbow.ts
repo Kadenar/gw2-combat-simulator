@@ -5,7 +5,9 @@ import { professionCoreState } from '#gw2/platform/profession-definition/state.j
 import { defineSkillVariantProfile as variant } from '#gw2/platform/profession-definition/balance-profiles.js';
 import { grantSkillCharges } from '#gw2/professions/ranger/core/skills/charge-grants.js';
 import { consumeCharge, expireCharges, grantCharges } from '#gw2/platform/combat/resources/charges.js';
-import { buildRangerBleeding } from '#gw2/professions/ranger/core/mechanics/resolution-helpers.js';
+import { isPetStrike, isPlayerStrike } from '#gw2/professions/ranger/core/mechanics/resolution-helpers.js';
+import { buildResolverCondition } from '#gw2/platform/resolver/packets.js';
+import { impactEffects } from '#gw2/platform/effects/authoring.js';
 import {
   requireBalanceProfileFromContext,
   requireEffect,
@@ -16,136 +18,166 @@ import { RANGER_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/ran
 import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
 
-// Projectile flags belong to strikes so Mistral and Shrike count impacts independently of combo success.
+// Full-cast medians and successful minimums from 20261006-010612, snapped to 40 ms.
+// Committed arrows retain their impacts and observed aftercast; offsets include this log's projectile travel.
 export const RANGER_CORE_SHORTBOW_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
   [ID.POISON_VOLLEY]: {
-    effects: [
-      {
-        type: 'strike',
-        projectile: true,
-        coefficient: 1.5,
-        hits: 5,
-        atMs: 0
-      },
-      {
-        type: 'condition',
-        condition: 'Poisoned',
-        stacks: 5,
-        duration: 5
-      }
-    ],
-    castTimeMs: 167
+    interruptCommitMs: 320,
+    retainsCastLockoutAfterInterrupt: true,
+    effects: impactEffects(
+      { atMs: 280, timingAnchor: 'castStart', timingScale: 'fixed', persistsAfterInterrupt: true },
+      [
+        {
+          type: 'strike',
+          projectile: true,
+          coefficient: 1.5,
+          hits: 5,
+          atMs: 280
+        },
+        {
+          type: 'condition',
+          condition: 'Poisoned',
+          stacks: 5,
+          duration: 5
+        }
+      ]
+    ),
+    castTimeMs: 560
   },
   [ID.CROSSFIRE]: {
     autoattack: true, // Ordinary repeatable attack; excluded from player-input metrics.
-    effects: [
-      {
-        type: 'strike',
-        projectile: true,
-        coefficient: 0.5,
-        hits: 1,
-        comboFinishers: [
-          {
-            ownerId: 'ranger',
-            finisherType: 'Projectile',
-            chance: 0.2,
-            ambiguousFieldSelection: 'oldest'
-          }
-        ]
-      },
-      {
-        type: 'condition',
-        condition: 'Bleeding',
-        stacks: 1,
-        duration: 3
-      }
-    ],
-    castTimeMs: 333
+    interruptCommitMs: 320,
+    retainsCastLockoutAfterInterrupt: true,
+    effects: impactEffects(
+      { atMs: 240, timingAnchor: 'castStart', timingScale: 'fixed', persistsAfterInterrupt: true },
+      [
+        {
+          type: 'strike',
+          projectile: true,
+          coefficient: 0.5,
+          hits: 1,
+          comboFinishers: [
+            {
+              ownerId: 'ranger',
+              finisherType: 'Projectile',
+              chance: 0.2,
+              ambiguousFieldSelection: 'oldest'
+            }
+          ]
+        },
+        {
+          type: 'condition',
+          condition: 'Bleeding',
+          stacks: 1,
+          duration: 3
+        }
+      ]
+    ),
+    castTimeMs: 360
   },
   [ID.CRIPPLING_SHOT]: {
     // Arm subsequent qualifying hits only on semantic commitment.
     sideEffects: [{ on: 'castCommit', do: { type: 'ranger.blood-thirst' } }],
-    effects: [
-      {
-        type: 'strike',
-        projectile: true,
-        coefficient: 0.8,
-        hits: 1,
-        comboFinishers: [
-          {
-            ownerId: 'ranger',
-            finisherType: 'Projectile',
-            ambiguousFieldSelection: 'oldest'
-          }
-        ]
-      },
-      {
-        type: 'condition',
-        condition: 'Bleeding',
-        stacks: 1,
-        duration: 15
-      },
-      {
-        type: 'condition',
-        condition: 'Crippled',
-        stacks: 1,
-        duration: 4
-      },
-      {
-        type: 'condition',
-        condition: 'Immobilized',
-        stacks: 1,
-        duration: 1.5
-      }
-    ],
-    castTimeMs: 333
+    interruptCommitMs: 160,
+    retainsCastLockoutAfterInterrupt: true,
+    effects: impactEffects(
+      { atMs: 400, timingAnchor: 'castStart', timingScale: 'fixed', persistsAfterInterrupt: true },
+      [
+        {
+          type: 'strike',
+          projectile: true,
+          coefficient: 0.8,
+          hits: 1,
+          comboFinishers: [
+            {
+              ownerId: 'ranger',
+              finisherType: 'Projectile',
+              ambiguousFieldSelection: 'oldest'
+            }
+          ]
+        },
+        {
+          type: 'condition',
+          condition: 'Crippled',
+          stacks: 1,
+          duration: 4
+        },
+        {
+          type: 'condition',
+          condition: 'Immobilized',
+          // Defiance is the simulation's supported proxy for the flank/behind bonus.
+          when: (runtime) => Boolean(runtime.config.target?.defiant),
+          stacks: 1,
+          duration: 1.5
+        }
+      ]
+    ),
+    castTimeMs: 360
   },
   [ID.CONCUSSION_SHOT]: {
-    effects: [
-      {
-        type: 'strike',
-        projectile: true,
-        coefficient: 0.4,
-        hits: 1,
-        comboFinishers: [
-          {
-            ownerId: 'ranger',
-            finisherType: 'Projectile',
-            ambiguousFieldSelection: 'oldest'
-          }
-        ]
-      },
-      {
-        type: 'control',
-        controlKind: 'daze'
-      }
-    ],
-    castTimeMs: 167
+    interruptCommitMs: 640,
+    retainsCastLockoutAfterInterrupt: true,
+    effects: impactEffects(
+      { atMs: 400, timingAnchor: 'castStart', timingScale: 'fixed', persistsAfterInterrupt: true },
+      [
+        {
+          type: 'strike',
+          projectile: true,
+          coefficient: 0.4,
+          hits: 1,
+          comboFinishers: [
+            {
+              ownerId: 'ranger',
+              finisherType: 'Projectile',
+              ambiguousFieldSelection: 'oldest'
+            }
+          ]
+        },
+        {
+          type: 'control',
+          controlKind: 'daze',
+          when: (runtime) => !runtime.config.target?.defiant
+        },
+        {
+          type: 'control',
+          controlKind: 'stun',
+          when: (runtime) => Boolean(runtime.config.target?.defiant)
+        }
+      ]
+    ),
+    castTimeMs: 640
   },
   [ID.QUICK_SHOT]: {
     evades: true,
-    effects: [
-      {
-        type: 'strike',
-        projectile: true,
-        coefficient: 0.5,
-        hits: 1,
-        comboFinishers: [
-          {
-            ownerId: 'ranger',
-            finisherType: 'Projectile',
-            ambiguousFieldSelection: 'oldest'
-          }
-        ]
-      },
-      {
-        type: 'boon',
-        boon: 'swiftness',
-        duration: 9,
-        stacks: 1
-      }
-    ],
-    castTimeMs: 167
+    interruptCommitMs: 840,
+    retainsCastLockoutAfterInterrupt: true,
+    effects: impactEffects(
+      { atMs: 400, timingAnchor: 'castStart', timingScale: 'fixed', persistsAfterInterrupt: true },
+      [
+        {
+          type: 'strike',
+          projectile: true,
+          coefficient: 0.5,
+          hits: 1,
+          comboFinishers: [
+            {
+              ownerId: 'ranger',
+              finisherType: 'Projectile',
+              ambiguousFieldSelection: 'oldest'
+            }
+          ]
+        },
+        {
+          type: 'boon',
+          boon: 'swiftness',
+          // Swiftness is self-applied at launch, independently of the later projectile hit.
+          atMs: 280,
+          duration: 9,
+          stacks: 1
+        }
+      ]
+    ),
+    castTimeMs: 840
   }
 });
 
@@ -153,7 +185,8 @@ export const RANGER_CORE_SHORTBOW_SKILL_MECHANICS: Readonly<Record<number, Parti
 export const bloodThirstProfile = variant(PROFILE.bloodThirst, ID.CRIPPLING_SHOT, 'Blood Thirst', {
   playerStacks: 3,
   durationMultiplier: 12,
-  effects: [{ name: 'Bleeding', type: 'condition', condition: 'Bleeding', stacks: 1, duration: 12 }]
+  // The log grants a 12-second charge window; each triggered bleed lasts 15 seconds.
+  effects: [{ name: 'Bleeding', type: 'condition', condition: 'Bleeding', stacks: 1, duration: 15 }]
 });
 
 export function handleRangerBloodThirst(context: RangerResolverContext, event: Gw2ResolverEvent): void {
@@ -164,25 +197,35 @@ export function handleRangerBloodThirst(context: RangerResolverContext, event: G
   );
 }
 
-/** Consume one live Blood Thirst charge per qualifying hit, excluding its arming skill and exact expiry. */
+/** Pet hits, or player hits in Beastmode, spend charges using the Ranger's condition attributes. */
 export function triggerBloodThirst(context: RangerResolverContext, event: Gw2ResolverEvent): void {
   const state = professionCoreState(context);
   expireCharges(state.bloodThirst, event.at);
   if (event.sourceId === ID.CRIPPLING_SHOT) return;
+  const specialization = context.profession.specialization;
+  const merged = specialization?.kind === 'Soulbeast' && specialization.state.beastmodeActive;
+  if (!(Number(event.coefficient) > 0) || !(merged ? isPlayerStrike(event) : isPetStrike(event))) return;
   const profile = requireBalanceProfileFromContext(context, PROFILE.bloodThirst);
   const bleeding = requireEffect(profile, 'condition', 'Bleeding');
   // Charges exist only to deliver bleeding, so a removed packet leaves them unspent.
   if (bleeding && consumeCharge(state.bloodThirst, event.at)) {
     context.effects.emit({
       kind: 'packet',
-      event: buildRangerBleeding(
-        context,
-        event,
-        effectNumber(profile, bleeding, 'duration'),
-        ID.CRIPPLING_SHOT,
-        'Blood Thirst',
-        effectNumber(profile, bleeding, 'stacks')
-      )
+      // Player ownership implements the June 2024 change, even when a pet delivers the strike.
+      event: buildResolverCondition({
+        at: event.at,
+        source: 'ranger',
+        sourceId: ID.CRIPPLING_SHOT,
+        skillId: ID.CRIPPLING_SHOT,
+        skillName: 'Blood Thirst',
+        name: 'Blood Thirst — Bleeding',
+        actorType: 'effect',
+        ownerActorType: 'player',
+        condition: 'Bleeding',
+        duration: effectNumber(profile, bleeding, 'duration'),
+        stacks: effectNumber(profile, bleeding, 'stacks'),
+        triggeredBy: event.skillName
+      })
     });
   }
 }
