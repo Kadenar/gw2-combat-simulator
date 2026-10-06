@@ -49,9 +49,6 @@ export function prepareSelectedSkillLoadout(
   return ids;
 }
 
-/** A failed persisted selection must remain recoverable instead of being replaced with defaults. */
-export class SelectedSkillMigrationError extends TypeError {}
-
 /** Shares build eligibility across selectors, palette, and casts; Weaponmaster Training is always active. */
 export function isBuildSkillAvailable(
   skill: Skill,

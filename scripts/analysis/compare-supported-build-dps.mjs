@@ -151,22 +151,41 @@ export async function updateManifestBenchmarks(metrics, root = repoRoot, gameId 
         // Save whole DPS and one decimal of simulated APM to keep regenerated comparisons stable and readable.
         const nextBenchmarkDps = Math.round(metric.dps);
         const nextBenchmarkApm = Math.round(metric.apm * 10) / 10;
-        // Require every band, retaining null for incomplete phases instead of manufacturing a zero-DPS value.
+        // Require both measurements for every band, preserving explicit gaps and the final-DPS non-kill value.
         if (!metric.dpsByHealth || Object.keys(metric.dpsByHealth).length !== TARGET_HEALTH_BANDS.length) {
           throw new TypeError(`${metric.id} produced invalid target-health DPS bands.`);
         }
 
-        const nextBenchmarkDpsByHealth = Object.fromEntries(TARGET_HEALTH_BANDS.map(({ id }) => {
-          const value = metric.dpsByHealth[id];
-          if (value !== null && (!Number.isFinite(value) || value < 0)) {
-            throw new TypeError(`${metric.id} produced invalid DPS for ${id}%: ${value}.`);
-          }
-          
-          return [id, value === null ? null : Math.round(value)];
-        }));
+        const nextBenchmarkDpsByHealth = Object.fromEntries(
+          TARGET_HEALTH_BANDS.map(({ id }) => {
+            const band = metric.dpsByHealth[id];
+            if (!band || Object.keys(band).length !== 2)
+              throw new TypeError(`${metric.id} produced invalid DPS for ${id}%.`);
+            return [
+              id,
+              Object.fromEntries(
+                ['cumulative', 'phase'].map((mode) => {
+                  const value = band[mode];
+                  if (value !== null && (!Number.isFinite(value) || value < 0)) {
+                    throw new TypeError(`${metric.id} produced invalid ${mode} DPS for ${id}%: ${value}.`);
+                  }
 
-        if (!Object.is(preset.benchmarkDps, nextBenchmarkDps) || !Object.is(preset.benchmarkApm, nextBenchmarkApm) ||
-          TARGET_HEALTH_BANDS.some(({ id }) => preset.benchmarkDpsByHealth?.[id] !== nextBenchmarkDpsByHealth[id]))
+                  return [mode, value === null ? null : Math.round(value)];
+                })
+              )
+            ];
+          })
+        );
+
+        if (
+          !Object.is(preset.benchmarkDps, nextBenchmarkDps) ||
+          !Object.is(preset.benchmarkApm, nextBenchmarkApm) ||
+          TARGET_HEALTH_BANDS.some(({ id }) =>
+            ['cumulative', 'phase'].some(
+              (mode) => preset.benchmarkDpsByHealth?.[id]?.[mode] !== nextBenchmarkDpsByHealth[id][mode]
+            )
+          )
+        )
           changedEntries += 1;
 
         preset.benchmarkDps = nextBenchmarkDps;
@@ -239,7 +258,7 @@ if (import.meta.main) {
   for (const metric of metrics) {
     for (const warning of metric.warnings) console.warn(`${metric.id}: ${warning}`);
   }
-  
+
   const mismatches = printDpsComparison(metrics, MAXIMUM_RELATIVE_ERROR, maximumAbsoluteDpsError);
 
   if (mode === 'commit') {

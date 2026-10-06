@@ -4,7 +4,8 @@
  *
  * For each requested profession it loads the build manifest, simulates each preset
  * that has a rotation through the profession's app adapter, and records duration,
- * DPS, APM, total/strike/condition damage, the final damaging packet, and any warnings.
+ * DPS, APM, cumulative and phase DPS by target health, total/strike/condition damage, the final damaging packet,
+ * and any warnings. Non-killing runs use final overall DPS for both final-band measurements.
  * The output is a stable baseline that other tooling diffs against (see
  * render-supported-build-metrics-report.mjs).
  *

@@ -12,8 +12,8 @@ import {
 } from '#gw2/platform/combat/boons.js';
 import type { SimulationEvent } from '#gw2/platform/events/events.js';
 import type { Skill, SkillId } from '#gw2/platform/skills/types.js';
-import type { RechargeProgress } from '#gw2/platform/execution/recharge.js';
-import { GW2_ALACRITY_RECHARGE_RATE, gw2RechargeIntervals, projectRecharge } from '#gw2/platform/execution/recharge.js';
+import type { RechargeProgress } from '#gw2/platform/combat/recharge.js';
+import { GW2_ALACRITY_RECHARGE_RATE, gw2RechargeIntervals, projectRecharge } from '#gw2/platform/combat/recharge.js';
 import { gw2SigilSet } from '#gw2/platform/equipment/sigils/loadout.js';
 import type { Gw2SigilSet } from '#gw2/platform/equipment/sigils/types.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';

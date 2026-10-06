@@ -11,7 +11,7 @@ import {
   requireBalanceProfileFromContext,
   requireEffect
 } from '#gw2/platform/skills/balance-profiles.js';
-import type { RechargeProgress } from '#gw2/platform/execution/recharge.js';
+import type { RechargeProgress } from '#gw2/platform/combat/recharge.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 
 import { gw2CooldownReadyAt } from '#gw2/platform/combat/action-tick.js';

@@ -8,11 +8,11 @@ import {
   missesTarget
 } from '#gw2/platform/combat/state/targets.js';
 import { fieldDescriptors, finisherDescriptors } from '#gw2/platform/combos/descriptors.js';
-import { prepareGw2ComboEvent } from '#gw2/platform/combos/events.js';
+import { prepareGw2ComboEvent } from '#gw2/platform/combos/validation.js';
 import { bindRuntimeCombo, produceRuntimeCombos } from '#gw2/platform/combos/runtime.js';
 import { type AnnouncementEmission, type EffectDelivery } from '#gw2/platform/effects/emission.js';
 import { relicStrikeMultiplier } from '#gw2/platform/equipment/relics/query.js';
-import { weaponStrengthProfileIdForEvent } from '#gw2/platform/equipment/weapons/strength.js';
+import { weaponStrengthProfileIdForEvent } from '#gw2/platform/resolver/weapon-strength-resolution.js';
 import { assertSimulationEvent, type SimulationEventBase } from '#gw2/platform/events/events.js';
 import type { PacketIdentity } from '#gw2/platform/events/identity.js';
 import {

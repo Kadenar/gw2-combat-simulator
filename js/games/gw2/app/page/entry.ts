@@ -198,6 +198,11 @@ async function renderLoaderArtwork(root: Document): Promise<void> {
  * landing and simulator pages.
  */
 function bindProfessionSelector(root: Document = document): void {
+  // Direct benchmark navigation retains the same hosting modes as profession-card links.
+  const benchmarksLink = root.querySelector<HTMLAnchorElement>('[data-benchmarks-link]');
+  if (benchmarksLink) {
+    benchmarksLink.href = navigationRoute(benchmarksLink.getAttribute('href')!, root.defaultView?.location.search);
+  }
   void renderLoaderArtwork(root);
   mountGw2IconFallback(root);
   mountRotationWorkspace(root);

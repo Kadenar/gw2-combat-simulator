@@ -7,7 +7,7 @@ import {
   isGw2PlayerActorEvent,
   isGw2PlayerModifierOwnedEvent
 } from '#gw2/platform/combat/state/event-ownership.js';
-import { weaponStrengthProfileIdForEvent } from '#gw2/platform/equipment/weapons/strength.js';
+import { weaponStrengthProfileIdForEvent } from '#gw2/platform/resolver/weapon-strength-resolution.js';
 
 test('non-weapon effect ownership has one canonical classifier', () => {
   assert.equal(isGw2NonWeaponEffectEvent({ actorType: 'effect' }), true);

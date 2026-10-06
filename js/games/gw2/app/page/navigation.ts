@@ -12,14 +12,15 @@ import { navigationRoute } from '#browser/page/embed.js';
 import { professionRegistry } from '#gw2/profession-registry.js';
 import { clamp } from '#kernel/core/numeric.js';
 
-export type SimulatorView = 'workspace' | 'analysis' | 'gear-optimizer';
+export type SimulatorView = 'workspace' | 'analysis' | 'gear-optimizer' | 'benchmarks';
 
 type ScrollPosition = Readonly<{ left: number; top: number }>;
 
 const VIEW_HASHES: Readonly<Record<SimulatorView, string>> = {
   workspace: '#workspace',
   analysis: '#analysis',
-  'gear-optimizer': '#gear-optimizer'
+  'gear-optimizer': '#gear-optimizer',
+  benchmarks: '#benchmarks'
 };
 
 /** Maps a URL hash to a view, defaulting to `workspace` when unrecognized. */
@@ -27,6 +28,7 @@ export function simulatorViewFromHash(hash: string): SimulatorView {
   const normalized = hash.toLowerCase();
   if (normalized === VIEW_HASHES.analysis) return 'analysis';
   if (normalized === VIEW_HASHES['gear-optimizer']) return 'gear-optimizer';
+  if (normalized === VIEW_HASHES.benchmarks) return 'benchmarks';
   return 'workspace';
 }
 
@@ -74,6 +76,17 @@ function updateActiveView(root: Document, view: SimulatorView): void {
   if (!root.body) return;
   root.body.dataset.simulatorView = view;
   if (view !== 'workspace') resetRotationWorkspace(root);
+  // Load cross-profession comparisons only when their tool tab is opened; the current build stays mounted.
+  if (view === 'benchmarks') {
+    const host = root.getElementById('benchmarks-view');
+    if (host) {
+      void import('#gw2/app/page/benchmark-dashboard.js')
+        .then(({ mountBenchmarks }) => mountBenchmarks(host))
+        .catch(() => {
+          host.textContent = 'Could not load the benchmark view. Reload the page to retry.';
+        });
+    }
+  }
 
   for (const link of root.querySelectorAll<HTMLAnchorElement>('.simulator-view-tab[data-simulator-view]')) {
     const active = link.dataset.simulatorView === view;
@@ -222,12 +235,18 @@ export function mountSimulatorNavigation(root: Document = document): void {
     restoreScrollPosition(view, position);
   };
 
-  for (const view of ['workspace', 'analysis', 'gear-optimizer'] as const) {
+  for (const view of ['workspace', 'analysis', 'gear-optimizer', 'benchmarks'] as const) {
     const route = simulatorViewHref(pathname, view);
     const link = createNavigationLink(
       root,
       view,
-      view === 'workspace' ? 'Workspace' : view === 'analysis' ? 'Analysis' : 'Gear Optimizer',
+      view === 'workspace'
+        ? 'Workspace'
+        : view === 'analysis'
+          ? 'Analysis'
+          : view === 'benchmarks'
+            ? 'Benchmarks'
+            : 'Gear Optimizer',
       navigationRoute(route)
     );
     navigation.append(link);

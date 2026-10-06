@@ -7,7 +7,7 @@ import { snapshotProfessionState } from '#gw2/platform/profession-definition/sta
 import { skillFlipVisible } from '#gw2/platform/execution/skill-flips.js';
 import { type SkillFlipWindows } from '#gw2/platform/execution/skill-flips.js';
 import type { SkillId } from '#gw2/platform/skills/types.js';
-import type { RechargeProgress } from '#gw2/platform/execution/recharge.js';
+import type { RechargeProgress } from '#gw2/platform/combat/recharge.js';
 import { purgeExpiredStacks } from '#gw2/platform/combat/resources/timed-stacks.js';
 
 export interface GuardianCoreState {

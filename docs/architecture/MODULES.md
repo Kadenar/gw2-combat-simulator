@@ -290,31 +290,30 @@ are relative to `js/games/gw2/platform/`.
 
 ### Engine
 
-| Module                                               | Responsibility                                                                                                    |
-| ---------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------- |
-| `simulation/simulate.ts`                             | Canonical `simulateGw2()` entry point                                                                             |
-| `simulation/runtime.ts`                              | Per-run service construction and binding                                                                          |
-| `simulation/coordinator.ts`                          | Single queue, clock progression, causal scope, and stop decisions                                                 |
-| `execution/cast-execution.ts`                        | Readiness, acceptance, reservation ownership, lockouts, and completion                                            |
-| `resolver/effect-delivery.ts`                        | Admission, deferred preparation, target gates, and reaction settlement                                            |
-| `profession-definition/runtime-hooks.ts`             | Explicit mechanic contribution surface and ordered composition                                                    |
-| `profession-definition/runtime-context.ts`           | Narrow author capabilities; selected content for effect ownership and read-only profession state for cast details |
-| `results/project-runtime.ts`                         | Projection of settled damage, score, and detailed results                                                         |
-| `execution/cast-reservations.ts`                     | Reservation identity/storage primitive used by cast execution                                                     |
-| `execution/cast-effects.ts`                          | Effect variant selection and interruption filtering                                                               |
-| `execution/cooldowns.ts`                             | Cooldown and ammo state transitions                                                                               |
-| `events/actors.ts`                                   | Shared actor types and validation vocabulary                                                                      |
-| `effects/authoring.ts`                               | Effect constructors and authored packet readers                                                                   |
-| `effects/materializer.ts`                            | Pure effect expansion                                                                                             |
-| `skills/catalog.ts`                                  | Immutable catalog assembly and indexing                                                                           |
-| `profession-definition/assemble-module-catalog.ts`   | Native Core/elite catalog ownership and assembly                                                                  |
-| `profession-definition/profession.ts`                | Native Core/elite selection, state/modifier composition, and lazy UI                                              |
-| `profession-definition/compile-contract.ts`          | Runtime hook normalization and query-contract resolution                                                          |
-| `profession-presentation/`                           | UI composition, normalization, and presentation types                                                             |
-| `builds/profession-build.ts`                         | Build callback validation and defaults                                                                            |
-| `resolver/handler-registry.ts`                       | Exclusive resolver event-handler ownership                                                                        |
-| `results/combat-result.ts`                           | Resolver score and detailed report construction                                                                   |
-| `results/planning-state.ts`                          | Detached public planning state at the observation boundary                                                        |
+| Module                                             | Responsibility                                                                                                    |
+| -------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------- |
+| `simulation/simulate.ts`                           | Canonical `simulateGw2()` entry point                                                                             |
+| `simulation/runtime.ts`                            | Per-run service construction and binding                                                                          |
+| `simulation/coordinator.ts`                        | Single queue, clock progression, causal scope, and stop decisions                                                 |
+| `execution/cast-execution.ts`                      | Readiness, acceptance, reservation identity and ownership, lockouts, and completion                               |
+| `resolver/effect-delivery.ts`                      | Admission, deferred preparation, target gates, and reaction settlement                                            |
+| `profession-definition/runtime-hooks.ts`           | Explicit mechanic contribution surface and ordered composition                                                    |
+| `profession-definition/runtime-context.ts`         | Narrow author capabilities; selected content for effect ownership and read-only profession state for cast details |
+| `results/project-runtime.ts`                       | Projection of settled damage, score, and detailed results                                                         |
+| `execution/cast-effects.ts`                        | Effect variant selection and interruption filtering                                                               |
+| `execution/cooldowns.ts`                           | Cooldown and ammo state transitions                                                                               |
+| `events/actors.ts`                                 | Shared actor types and validation vocabulary                                                                      |
+| `effects/authoring.ts`                             | Effect constructors and authored packet readers                                                                   |
+| `effects/materializer.ts`                          | Pure effect expansion                                                                                             |
+| `skills/catalog.ts`                                | Immutable catalog assembly and indexing                                                                           |
+| `profession-definition/assemble-module-catalog.ts` | Native Core/elite catalog ownership and assembly                                                                  |
+| `profession-definition/profession.ts`              | Native Core/elite selection, state/modifier composition, and lazy UI                                              |
+| `profession-definition/compile-contract.ts`        | Runtime hook normalization and query-contract resolution                                                          |
+| `profession-presentation/`                         | UI composition, normalization, and presentation types                                                             |
+| `builds/profession-build.ts`                       | Build callback validation and defaults                                                                            |
+| `resolver/handler-registry.ts`                     | Exclusive resolver event-handler ownership                                                                        |
+| `results/combat-result.ts`                         | Resolver score and detailed report construction                                                                   |
+| `results/planning-state.ts`                        | Detached public planning state at the observation boundary                                                        |
 
 Native modules are the only profession composition input. `defineNativeProfession` shares each selected Core/elite
 catalog, state factory, and compiled modifiers between `resolveProfession` queries and `runtimeFor` execution.
@@ -428,8 +427,7 @@ imports `build/`, and `build/` reads the catalog at module load; merging them cr
 Code outside a profession folder imports only `profession.js`, `app/app-definition.js`, `build/build.js`,
 `build/attributes.js`, `types.js`, `data/**`, and `profiles.js` files. Log integrations import helpers from `data/`,
 never `profession.js`, so lazy log chunks don't load the whole profession graph. Tests are exempt. The shared
-`professions/shared/` helpers are not a profession. `eslint.config.js` enforces these import
-boundaries.
+`professions/shared/` helpers are not a profession. `eslint.config.js` enforces these import boundaries.
 
 ### Module manifest
 
@@ -608,7 +606,8 @@ logs/
 Adapters do not import implementation code from one another, except that `wingman/` reshapes its document into the
 `dps-report/` shape and calls `dps-report/` for every reconstruction rule. Add new EI JSON rules to `dps-report/` so
 both URL importers share them. The simulator engine contains no log-specific assumptions; reconstructed actions become
-ordinary simulator rotations before execution. See [EVTC-ROTATION-RECONSTRUCTION.md](../EVTC-ROTATION-RECONSTRUCTION.md).
+ordinary simulator rotations before execution. See
+[EVTC-ROTATION-RECONSTRUCTION.md](../EVTC-ROTATION-RECONSTRUCTION.md).
 
 ### Patch previews (`js/games/gw2/integrations/patches/`)
 

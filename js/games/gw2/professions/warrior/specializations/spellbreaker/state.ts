@@ -6,7 +6,7 @@ import {
   definePublicStateDefaults,
   defineProfessionSpecializationState
 } from '#gw2/platform/profession-definition/state.js';
-import type { RechargeProgress } from '#gw2/platform/execution/recharge.js';
+import type { RechargeProgress } from '#gw2/platform/combat/recharge.js';
 
 export interface SpellbreakerState {
   attackerInsightExpiries: number[];

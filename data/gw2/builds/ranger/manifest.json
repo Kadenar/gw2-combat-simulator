@@ -9,7 +9,29 @@
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/ranger/condition-alacrity-druid-dagger-torch-axe-dagger",
         "benchmarkDps": 39168,
         "upToDate": true,
-        "benchmarkApm": 104.5
+        "benchmarkApm": 104.5,
+        "benchmarkDpsByHealth": {
+          "100-80": {
+            "cumulative": 34863,
+            "phase": 34863
+          },
+          "80-60": {
+            "cumulative": 37433,
+            "phase": 40389
+          },
+          "60-40": {
+            "cumulative": 37559,
+            "phase": 37817
+          },
+          "40-20": {
+            "cumulative": 39099,
+            "phase": 44575
+          },
+          "20-0": {
+            "cumulative": 39168,
+            "phase": 39450
+          }
+        }
       }
     ]
   },
@@ -23,7 +45,29 @@
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/ranger/power-soulbeast-hammer-axe-axe",
         "benchmarkDps": 43152,
         "upToDate": true,
-        "benchmarkApm": 56.5
+        "benchmarkApm": 56.5,
+        "benchmarkDpsByHealth": {
+          "100-80": {
+            "cumulative": 53785,
+            "phase": 53785
+          },
+          "80-60": {
+            "cumulative": 46781,
+            "phase": 41064
+          },
+          "60-40": {
+            "cumulative": 44333,
+            "phase": 40292
+          },
+          "40-20": {
+            "cumulative": 41800,
+            "phase": 35504
+          },
+          "20-0": {
+            "cumulative": 43152,
+            "phase": 43152
+          }
+        }
       },
       {
         "label": "Power (Hammer / Sword-Axe)",
@@ -32,7 +76,29 @@
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/ranger/power-soulbeast-hammer-sword-axe",
         "benchmarkDps": 42995,
         "upToDate": true,
-        "benchmarkApm": 54.4
+        "benchmarkApm": 54.4,
+        "benchmarkDpsByHealth": {
+          "100-80": {
+            "cumulative": 53084,
+            "phase": 53084
+          },
+          "80-60": {
+            "cumulative": 46797,
+            "phase": 41957
+          },
+          "60-40": {
+            "cumulative": 43909,
+            "phase": 38928
+          },
+          "40-20": {
+            "cumulative": 41673,
+            "phase": 36207
+          },
+          "20-0": {
+            "cumulative": 42995,
+            "phase": 42995
+          }
+        }
       },
       {
         "label": "Power (Spear / Axe-Axe)",
@@ -40,7 +106,30 @@
         "rotation": "data/gw2/rotations/ranger/r-power-soulbeast-spear-axe-evtc.json",
         "benchmarkDps": 41023,
         "upToDate": true,
-        "benchmarkApm": 63.9
+        "snowCrowsUrl": "https://snowcrows.com/builds/raids/ranger/power-soulbeast-spear-axe-axe",
+        "benchmarkApm": 63.9,
+        "benchmarkDpsByHealth": {
+          "100-80": {
+            "cumulative": 49618,
+            "phase": 49618
+          },
+          "80-60": {
+            "cumulative": 45008,
+            "phase": 41167
+          },
+          "60-40": {
+            "cumulative": 41803,
+            "phase": 36585
+          },
+          "40-20": {
+            "cumulative": 40460,
+            "phase": 36943
+          },
+          "20-0": {
+            "cumulative": 41023,
+            "phase": 41023
+          }
+        }
       }
     ]
   },
@@ -54,7 +143,29 @@
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/ranger/power-untamed-beastmastery-hammer-sword-axe",
         "benchmarkDps": 44626,
         "upToDate": true,
-        "benchmarkApm": 103.8
+        "benchmarkApm": 103.8,
+        "benchmarkDpsByHealth": {
+          "100-80": {
+            "cumulative": 49596,
+            "phase": 49596
+          },
+          "80-60": {
+            "cumulative": 47042,
+            "phase": 44679
+          },
+          "60-40": {
+            "cumulative": 45315,
+            "phase": 42174
+          },
+          "40-20": {
+            "cumulative": 44609,
+            "phase": 42629
+          },
+          "20-0": {
+            "cumulative": 44626,
+            "phase": 44695
+          }
+        }
       },
       {
         "label": "Power Quickness (Sword-Axe / Hammer) (Beastmastery)",
@@ -62,7 +173,30 @@
         "rotation": "data/gw2/rotations/ranger/r-power-quick-untamed-beastmastery-sword-axe-hammer-bench.json",
         "benchmarkDps": 33707,
         "upToDate": true,
-        "benchmarkApm": 79.6
+        "snowCrowsUrl": "https://snowcrows.com/builds/raids/ranger/power-quickness-untamed-hammer-sword-axe",
+        "benchmarkApm": 79.6,
+        "benchmarkDpsByHealth": {
+          "100-80": {
+            "cumulative": 38211,
+            "phase": 38211
+          },
+          "80-60": {
+            "cumulative": 35263,
+            "phase": 32683
+          },
+          "60-40": {
+            "cumulative": 33975,
+            "phase": 31668
+          },
+          "40-20": {
+            "cumulative": 34085,
+            "phase": 34417
+          },
+          "20-0": {
+            "cumulative": 33707,
+            "phase": 33707
+          }
+        }
       },
       {
         "label": "Power Quickness (Sword-Axe / Hammer) (Nature Magic)",
@@ -70,7 +204,30 @@
         "rotation": "data/gw2/rotations/ranger/r-power-quick-untamed-nature-magic-sword-axe-hammer-bench.json",
         "benchmarkDps": 33683,
         "upToDate": true,
-        "benchmarkApm": 84
+        "snowCrowsUrl": "https://snowcrows.com/builds/raids/ranger/power-quickness-untamed-nature-magic-hammer-sword-axe",
+        "benchmarkApm": 84,
+        "benchmarkDpsByHealth": {
+          "100-80": {
+            "cumulative": 36273,
+            "phase": 36273
+          },
+          "80-60": {
+            "cumulative": 34207,
+            "phase": 32337
+          },
+          "60-40": {
+            "cumulative": 33770,
+            "phase": 32929
+          },
+          "40-20": {
+            "cumulative": 33728,
+            "phase": 33603
+          },
+          "20-0": {
+            "cumulative": 33683,
+            "phase": 33683
+          }
+        }
       }
     ]
   },
@@ -84,7 +241,29 @@
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/ranger/power-galeshot-longbow-axe-axe",
         "benchmarkDps": 42422,
         "upToDate": true,
-        "benchmarkApm": 85.1
+        "benchmarkApm": 85.1,
+        "benchmarkDpsByHealth": {
+          "100-80": {
+            "cumulative": 46351,
+            "phase": 46351
+          },
+          "80-60": {
+            "cumulative": 41769,
+            "phase": 37928
+          },
+          "60-40": {
+            "cumulative": 42764,
+            "phase": 44921
+          },
+          "40-20": {
+            "cumulative": 42461,
+            "phase": 41578
+          },
+          "20-0": {
+            "cumulative": 42422,
+            "phase": 42268
+          }
+        }
       },
       {
         "label": "Power Quickness (Longbow / Axe-Axe)",
@@ -93,7 +272,29 @@
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/ranger/power-quickness-galeshot-longbow-axe-axe",
         "benchmarkDps": 35111,
         "upToDate": true,
-        "benchmarkApm": 86.4
+        "benchmarkApm": 86.4,
+        "benchmarkDpsByHealth": {
+          "100-80": {
+            "cumulative": 34712,
+            "phase": 34712
+          },
+          "80-60": {
+            "cumulative": 34874,
+            "phase": 35043
+          },
+          "60-40": {
+            "cumulative": 34898,
+            "phase": 34946
+          },
+          "40-20": {
+            "cumulative": 35196,
+            "phase": 36120
+          },
+          "20-0": {
+            "cumulative": 35111,
+            "phase": 35111
+          }
+        }
       }
     ]
   }

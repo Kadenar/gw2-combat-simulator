@@ -1,0 +1,1333 @@
+﻿/* Benchmarks and charts share the application's panel palette while preserving the mounted workspace. */
+body:not([data-simulator-view='benchmarks']) #benchmarks-view,
+body[data-simulator-view='benchmarks'] :is(.profession-layout, .build-editor) {
+  display: none;
+}
+#benchmarks-view {
+  --benchmark-muted: #96928a;
+  --benchmark-border: #262522;
+  --benchmark-accent: #d3b690;
+  color: #eee;
+  background: var(--bg-panel);
+  margin-top: 12px;
+  border: 1px solid var(--benchmark-border);
+  font-size: 12px;
+}
+#benchmarks-view [hidden] {
+  display: none;
+}
+#benchmarks-view :is(button, a, input, select, summary):focus-visible {
+  outline: 2px solid var(--benchmark-accent);
+  outline-offset: 3px;
+}
+.benchmark-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 24px;
+  align-items: center;
+  padding: 0 24px;
+  border-bottom: 1px solid var(--benchmark-border);
+}
+.benchmark-toolbar > button {
+  padding: 17px 0;
+  border: 0;
+  border-bottom: 2px solid transparent;
+  background: none;
+  color: var(--benchmark-muted);
+  font: inherit;
+  cursor: pointer;
+}
+.benchmark-toolbar > button[aria-pressed='true'] {
+  color: #fff;
+  border-bottom-color: var(--benchmark-accent);
+}
+.benchmark-dashboard {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 220px;
+}
+.benchmark-main {
+  grid-column: 1;
+  grid-row: 1;
+  min-width: 0;
+  padding: 24px;
+}
+.benchmark-sidebar {
+  grid-column: 2;
+  grid-row: 1;
+  padding: 22px 18px;
+  border-left: 1px solid var(--benchmark-border);
+}
+.filter-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 24px;
+}
+#benchmarks-view h2 {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: #f5f5f5;
+}
+#benchmarks-view button[data-reset-filters],
+#benchmarks-view button[data-benchmark-retry] {
+  border: 0;
+  background: none;
+  color: var(--benchmark-accent);
+  font: inherit;
+  font-size: 11px;
+  cursor: pointer;
+}
+.filter-field {
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+  margin-bottom: 22px;
+  color: var(--benchmark-muted);
+  font-size: 11px;
+}
+.filter-field :is(input, select) {
+  width: 100%;
+  min-width: 0;
+  color: #eee;
+  background: var(--bg-panel-alt);
+  border: 0;
+  border-bottom: 1px solid #3c3831;
+  border-radius: 0;
+  padding: 7px 0;
+  font: inherit;
+}
+.profession-filters {
+  border: 0;
+  padding: 0 0 20px;
+}
+.profession-filters legend {
+  margin-bottom: 10px;
+  color: var(--benchmark-muted);
+  font-size: 11px;
+}
+.profession-filter {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 8px 0;
+  cursor: pointer;
+}
+.profession-filter input,
+.outdated-filter input {
+  accent-color: var(--benchmark-accent);
+  width: 12px;
+  height: 12px;
+}
+.profession-filter:has(input:not(:checked)) {
+  opacity: 0.45;
+}
+.profession-dot {
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  background: var(--profession-accent);
+}
+.outdated-filter {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 11px;
+  color: var(--benchmark-muted);
+}
+.benchmark-section-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 28px;
+}
+.benchmark-section-heading > span,
+.benchmark-sort {
+  color: var(--benchmark-muted);
+  font-size: 11px;
+}
+.benchmark-sort {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+/* Keep measurement and build-scope controls together while allowing narrow chart headers to wrap. */
+.benchmark-health-controls,
+.benchmark-bar-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+.benchmark-sort select {
+  border: 0;
+  background: var(--bg-panel-alt);
+  font-size: 11px;
+}
+
+.benchmark-status-row {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  padding-top: 18px;
+  margin-top: 28px;
+  border-top: 1px solid var(--benchmark-border);
+  color: var(--benchmark-muted);
+  font-size: 10px;
+}
+.benchmark-status-row:has([data-benchmark-status]:empty) {
+  display: none;
+}
+.scatter-layout {
+  display: grid;
+  grid-template-columns: 64px minmax(0, 1fr);
+  grid-template-rows: minmax(360px, calc(100vh - 370px)) auto;
+  gap: 14px 12px;
+  padding-right: 12px;
+}
+/* Leave room for the linked benchmark rows in the same viewport as the APM plot. */
+[data-apm-chart] .scatter-layout {
+  grid-template-rows: clamp(200px, 28vh, 300px) auto;
+}
+.scatter-y-axis {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  text-align: right;
+  color: var(--benchmark-muted);
+  font: 11px var(--mono);
+}
+/* Comparison-axis labels are centered on the same tick positions as their grid lines. */
+.comparison-y-axis {
+  position: relative;
+}
+.comparison-y-axis span {
+  position: absolute;
+  right: 0;
+  transform: translateY(-50%);
+  white-space: nowrap;
+}
+.scatter-plot {
+  position: relative;
+  border-left: 1px solid #302c25;
+  border-bottom: 1px solid #302c25;
+}
+.scatter-grid {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+.scatter-grid i {
+  position: absolute;
+  left: 0;
+  right: 0;
+  border-top: 1px dotted #302c25;
+}
+.scatter-point {
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  padding: 0;
+  transform: translate(-50%, 50%);
+  background: var(--benchmark-color);
+  border: 1px solid var(--bg-panel);
+  border-radius: 50%;
+  cursor: pointer;
+}
+.scatter-point:is(:hover, :focus-visible, .is-selected, .is-inspected) {
+  z-index: 2;
+  outline: 2px solid var(--benchmark-color);
+  outline-offset: 2px;
+}
+.scatter-x-axis {
+  grid-column: 2;
+  position: relative;
+  min-height: 14px;
+  color: var(--benchmark-muted);
+  font: 11px var(--mono);
+}
+/* Position labels on their measured ticks and keep the endpoint labels inside the plot width. */
+.scatter-x-axis span {
+  position: absolute;
+  transform: translateX(-50%);
+  white-space: nowrap;
+}
+.scatter-x-axis span:first-child {
+  transform: none;
+}
+.scatter-x-axis span:last-child {
+  transform: translateX(-100%);
+}
+/* Compact inspection stays anchored without intercepting chart points beneath it. */
+.benchmark-inspection {
+  pointer-events: none;
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  z-index: 3;
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  width: min(360px, calc(100% - 24px));
+  box-sizing: border-box;
+  padding: 14px;
+  border: 1px solid #39352f;
+  border-radius: 7px;
+  background: var(--bg-panel-alt);
+  box-shadow: 0 4px 16px #0006;
+  line-height: 1.6;
+}
+.benchmark-inspection p {
+  margin: 0;
+  flex: 1;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.benchmark-inspection-dot {
+  width: 8px;
+  height: 8px;
+  flex-shrink: 0;
+  margin-top: 6px;
+  border-radius: 50%;
+  background: var(--benchmark-color);
+}
+.benchmark-inspection button {
+  pointer-events: auto;
+  padding: 0 3px;
+  border: 0;
+  background: none;
+  color: var(--benchmark-muted);
+  cursor: pointer;
+  font-size: 18px;
+  line-height: 1;
+}
+/* A click reserves an inspector column; ordinary hover leaves the plot's dimensions unchanged. */
+.benchmark-build-inspector {
+  min-width: 0;
+  padding: 16px;
+  border-left: 1px solid var(--benchmark-border);
+  background: var(--bg-panel-alt);
+  align-self: start;
+}
+.benchmark-inspector-heading {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+.benchmark-inspector-heading h3 {
+  margin: 0;
+  flex: 1;
+  color: var(--benchmark-color);
+  font-size: 13px;
+  line-height: 1.5;
+}
+.benchmark-inspector-heading button {
+  border: 0;
+  padding: 2px 4px;
+  background: none;
+  color: var(--benchmark-muted);
+  font-size: 18px;
+  cursor: pointer;
+}
+.benchmark-workspace-link {
+  display: inline-block;
+  margin: 0 0 14px;
+  color: var(--benchmark-accent);
+  text-underline-offset: 3px;
+}
+.benchmark-workspace-link:is(:hover, :focus-visible) {
+  color: #fff;
+}
+.benchmark-build-preview {
+  grid-column: 1 / -1;
+  min-width: 0;
+  padding-top: 10px;
+  border-top: 1px solid var(--benchmark-border);
+  font-size: 11px;
+}
+.benchmark-preview-equipment {
+  display: grid;
+  gap: 4px;
+  margin: 0 0 12px;
+}
+.benchmark-preview-equipment > div {
+  display: grid;
+  grid-template-columns: 68px minmax(0, 1fr);
+  gap: 8px;
+}
+.benchmark-preview-equipment dt,
+.benchmark-build-preview small {
+  color: var(--benchmark-muted);
+}
+.benchmark-preview-equipment dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+.benchmark-preview-specializations {
+  display: grid;
+  gap: 8px;
+}
+.benchmark-preview-traits {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 0;
+  border-top: 1px solid var(--benchmark-border);
+}
+.benchmark-preview-spec-name {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.benchmark-preview-trait-grid {
+  display: flex;
+  gap: 10px;
+}
+.benchmark-preview-trait-grid > div {
+  display: grid;
+  gap: 4px;
+}
+.benchmark-preview-trait {
+  border: 1px solid transparent;
+  border-radius: 3px;
+  opacity: 0.3;
+}
+.benchmark-preview-trait.is-picked {
+  border-color: var(--benchmark-color);
+  box-shadow: 0 0 0 1px var(--benchmark-color);
+  opacity: 1;
+}
+.benchmark-preview-trait img {
+  width: 22px;
+  height: 22px;
+}
+.benchmark-build-preview img {
+  display: block;
+  object-fit: cover;
+  border-radius: 3px;
+}
+.benchmark-build-preview small {
+  display: block;
+  font-size: 9px;
+}
+.benchmark-preview-skills {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 8px;
+  margin-top: 12px;
+}
+.benchmark-preview-skills > span {
+  display: grid;
+  justify-items: center;
+  gap: 3px;
+  width: 42px;
+  text-align: center;
+  overflow-wrap: anywhere;
+}
+.benchmark-preview-icon {
+  color: var(--benchmark-muted);
+  font-size: 9px;
+}
+/* The APM table shares build colors and selection with the plot while keeping numeric columns aligned. */
+.benchmark-apm-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 12px;
+}
+.benchmark-apm-layout.has-build-inspector {
+  grid-template-columns: minmax(0, 1fr) 330px;
+}
+.benchmark-apm-content {
+  min-width: 0;
+}
+.benchmark-apm-table {
+  margin-top: 32px;
+}
+.benchmark-apm-table h3 {
+  font-size: 13px;
+  margin: 0 0 16px;
+}
+.benchmark-apm-table-scroll {
+  max-height: clamp(240px, 36vh, 420px);
+  overflow: auto;
+  scrollbar-gutter: stable;
+}
+.benchmark-apm-table table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 11px;
+}
+.benchmark-apm-table :is(th, td) {
+  padding: 12px 8px;
+  border-bottom: 1px solid var(--benchmark-border);
+  font-weight: 400;
+  text-align: right;
+}
+.benchmark-apm-table :is(th, td):nth-child(-n + 2) {
+  text-align: left;
+}
+.benchmark-apm-table td {
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+.benchmark-apm-table button,
+.health-values thead button {
+  border: 0;
+  padding: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+  text-align: inherit;
+}
+.benchmark-apm-table thead {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  background: var(--bg-panel);
+  color: var(--benchmark-muted);
+  font-size: 10px;
+}
+.benchmark-apm-table th[aria-sort]:not([aria-sort='none']),
+.health-values th[aria-sort]:not([aria-sort='none']) {
+  color: var(--benchmark-accent);
+}
+.benchmark-apm-table tbody tr {
+  cursor: pointer;
+}
+.benchmark-apm-table tbody tr:is(:hover, :focus-within, .is-selected, .is-inspected) {
+  background: color-mix(in srgb, white 5%, var(--bg-panel));
+}
+.benchmark-apm-table tbody tr:is(.is-selected, .is-inspected) {
+  box-shadow: inset 2px 0 var(--benchmark-color);
+}
+.benchmark-apm-table [data-inspect-apm] {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.benchmark-table-dot {
+  width: 6px;
+  height: 6px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  background: var(--benchmark-color);
+}
+.benchmark-apm-table small {
+  display: block;
+  margin-top: 4px;
+  color: var(--benchmark-muted);
+  font-size: 9px;
+}
+.benchmark-apm-table button:is(:hover, :focus-visible):not(:disabled),
+.health-values thead button:is(:hover, :focus-visible) {
+  color: var(--benchmark-accent);
+}
+/* A horizontally scrollable plot keeps every build label readable without widening the page. */
+.benchmark-bar-heading {
+  margin: 0 0 16px;
+  font-size: 13px;
+}
+.bar-chart-layout + .benchmark-bar-heading {
+  margin-top: 36px;
+}
+.bar-chart-layout {
+  --benchmark-bar-height: clamp(440px, 52vh, 640px);
+  display: grid;
+  grid-template-columns: 64px minmax(0, 1fr);
+  gap: 12px;
+}
+[data-bar-metric='apm'] {
+  --benchmark-bar-height: clamp(260px, 36vh, 400px);
+  padding-bottom: 36px;
+}
+.benchmark-bar-missing {
+  padding-bottom: 6px;
+}
+.bar-chart-layout.has-build-inspector {
+  grid-template-columns: 64px minmax(0, 1fr) 330px;
+}
+.bar-chart-frame {
+  position: relative;
+  min-width: 0;
+}
+.bar-chart-scroll {
+  overflow-x: auto;
+  padding-top: 18px;
+}
+.bar-y-axis {
+  height: var(--benchmark-bar-height);
+  margin-top: 18px;
+}
+.benchmark-bars {
+  display: grid;
+  grid-template-columns: repeat(var(--bar-count), minmax(100px, 1fr));
+  min-width: 100%;
+  width: max-content;
+  gap: 10px;
+  padding: 0 10px;
+}
+.benchmark-bar {
+  display: grid;
+  grid-template-rows: var(--benchmark-bar-height) auto;
+  align-content: start;
+  width: 100px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--benchmark-muted);
+  cursor: pointer;
+  font: inherit;
+}
+.benchmark-bar-column {
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  border-bottom: 1px solid #302c25;
+  background: repeating-linear-gradient(to top, transparent 0 calc(25% - 1px), #302c2566 calc(25% - 1px) 25%);
+}
+.benchmark-bar-fill {
+  position: relative;
+  display: block;
+  width: 54px;
+  height: var(--bar-height);
+  border-radius: 3px 3px 0 0;
+  background: var(--benchmark-color);
+  opacity: 0.7;
+}
+.benchmark-bar:is(:hover, :focus-visible, .is-selected, .is-inspected) .benchmark-bar-fill {
+  opacity: 1;
+}
+.benchmark-bar.is-inspected .benchmark-bar-fill {
+  outline: 2px solid var(--benchmark-color);
+  outline-offset: 3px;
+}
+.benchmark-bar-value {
+  position: absolute;
+  bottom: calc(100% + 6px);
+  left: 50%;
+  transform: translateX(-50%);
+  white-space: nowrap;
+  color: #eee;
+  font: 10px var(--mono);
+}
+.benchmark-bar-label {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 12px 2px;
+  font-size: 10px;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+.benchmark-bar-label strong {
+  color: var(--benchmark-color);
+  font-weight: 500;
+}
+.benchmark-cards {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 28px 40px;
+  align-items: start;
+}
+.benchmark-card {
+  min-width: 0;
+  scroll-margin-top: 85px;
+  border-top: 1px solid #393631;
+  padding-top: 16px;
+}
+.benchmark-card-heading {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+.benchmark-card-heading h3 {
+  padding: 0;
+  border: 0;
+  margin: 0;
+  color: var(--profession-accent);
+  font-size: 16px;
+}
+.benchmark-card-heading h3 button {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.benchmark-card-heading h3 button:hover {
+  text-decoration: underline;
+}
+.benchmark-card-heading small {
+  color: var(--benchmark-muted);
+  font-size: 12px;
+  font-weight: 400;
+}
+.benchmark-card-heading a {
+  color: var(--benchmark-muted);
+  font-size: 12px;
+  white-space: nowrap;
+  text-decoration: none;
+}
+/* Cards and the overview table use neutral rows and aligned fields; color identifies only the profession. */
+.benchmark-card-table,
+.benchmark-overview-table table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+.benchmark-card-table :is(th, td),
+.benchmark-overview-table :is(th, td) {
+  padding: 12px 8px;
+  border-bottom: 1px solid var(--benchmark-border);
+  text-align: left;
+  font-weight: 400;
+  line-height: 1.5;
+}
+.benchmark-card-table :is(th, td):first-child {
+  padding-left: 0;
+}
+.benchmark-card-table :is(th, td):last-child {
+  padding-right: 0;
+}
+.benchmark-card-table thead,
+.benchmark-overview-table thead {
+  color: var(--benchmark-muted);
+  font-size: 11px;
+}
+.benchmark-card-table :is(th, td):nth-child(n + 2),
+.benchmark-overview-table :is(th, td):nth-child(5),
+.benchmark-overview-table :is(th, td):nth-child(6) {
+  text-align: right;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+.benchmark-card-table [data-build-dps],
+.benchmark-overview-table [data-build-dps] {
+  color: #f5f5f5;
+  font-weight: 600;
+}
+.benchmark-build-name {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  color: #ddd;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+  text-decoration: none;
+}
+.benchmark-build-name strong {
+  color: #f5f5f5;
+  font-size: 12px;
+  font-weight: 500;
+}
+.benchmark-build-name span {
+  color: #aaa69f;
+  font-size: 11px;
+}
+/* Keep four build rows plus the header visible, with remaining builds available by scrolling. */
+.benchmark-card-scroll {
+  height: 216px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  scrollbar-gutter: stable;
+  /* Overlay scrollbars ignore the native gutter, so reserve a clear lane beside the APM values. */
+  padding-right: 18px;
+  box-sizing: border-box;
+}
+.benchmark-card-table {
+  table-layout: fixed;
+}
+.benchmark-card-table thead {
+  position: sticky;
+  top: 0;
+  background: var(--bg-panel);
+  z-index: 1;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.benchmark-card-table thead th {
+  height: 36px;
+  padding: 7px 8px;
+  box-sizing: border-box;
+}
+.benchmark-card-table tbody tr {
+  height: 44px;
+}
+.benchmark-card-table tbody :is(th, td) {
+  padding: 10px 8px;
+}
+.benchmark-card-table th:nth-child(2) {
+  width: 72px;
+}
+.benchmark-card-table th:nth-child(3) {
+  width: 58px;
+}
+.benchmark-card-table .benchmark-build-name {
+  display: block;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: #e0ded9;
+  font-size: 12px;
+}
+.benchmark-card-heading .profession-dot,
+.benchmark-overview-table .profession-dot {
+  width: 12px;
+  height: 12px;
+}
+.benchmark-card-table tbody tr:hover,
+.benchmark-overview-table tbody tr:is(:hover, :focus-within) {
+  background: #ffffff05;
+}
+.outdated-badge {
+  color: var(--benchmark-accent);
+  font-size: 10px;
+}
+.benchmark-view-switch,
+.benchmark-overview-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.benchmark-view-switch {
+  gap: 0;
+  padding: 3px;
+  border: 1px solid var(--benchmark-border);
+  border-radius: 5px;
+  background: var(--bg-panel-alt);
+}
+.benchmark-view-switch button {
+  border: 0;
+  padding: 6px 12px;
+  color: var(--benchmark-muted);
+  background: transparent;
+  border-radius: 3px;
+  font: inherit;
+  cursor: pointer;
+}
+.benchmark-view-switch button[aria-pressed='true'] {
+  color: #fff;
+  background: var(--menu-surface);
+}
+.benchmark-overview-table-scroll {
+  max-height: 70vh;
+  overflow: auto;
+  scrollbar-gutter: stable;
+}
+.benchmark-overview-table table {
+  min-width: 780px;
+}
+.benchmark-overview-table thead {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  background: var(--bg-panel-alt);
+}
+.benchmark-overview-table th:first-child {
+  width: 32px;
+}
+.benchmark-overview-table th:nth-child(2) {
+  width: 30%;
+  min-width: 230px;
+}
+.benchmark-overview-table tbody th:nth-child(2) {
+  white-space: normal;
+}
+.benchmark-overview-table td:not(:first-child) {
+  white-space: nowrap;
+}
+.benchmark-overview-table th button {
+  border: 0;
+  padding: 0;
+  color: inherit;
+  background: none;
+  font: inherit;
+  cursor: pointer;
+}
+.benchmark-overview-table th[aria-sort]:not([aria-sort='none']) {
+  color: var(--benchmark-accent);
+}
+/* Size actions from their labels so text cannot overflow a fixed slot or overlap its neighboring link. */
+.benchmark-overview-table :is(th, td):last-child {
+  width: 1%;
+  padding-left: 24px;
+  padding-right: 12px;
+}
+.benchmark-overview-actions {
+  display: grid;
+  grid-template-columns: max-content max-content;
+  width: max-content;
+  gap: 8px;
+}
+.benchmark-overview-actions a {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  min-width: max-content;
+  white-space: nowrap;
+  height: 32px;
+  padding: 0 10px;
+  border: 1px solid color-mix(in srgb, var(--benchmark-accent) 30%, transparent);
+  border-radius: var(--radius);
+  background: color-mix(in srgb, var(--benchmark-accent) 8%, transparent);
+  color: var(--benchmark-accent);
+  text-decoration: none;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 18px;
+  transition:
+    background-color 120ms,
+    border-color 120ms,
+    color 120ms;
+}
+.benchmark-overview-actions a + a {
+  border-color: var(--border-light);
+  background: transparent;
+  color: var(--text-dim);
+  font-weight: 400;
+}
+.benchmark-overview-actions a:is(:hover, :focus-visible) {
+  border-color: var(--benchmark-accent);
+  background: color-mix(in srgb, var(--benchmark-accent) 16%, transparent);
+  color: var(--benchmark-accent);
+}
+.benchmark-overview-actions a:focus-visible {
+  outline: 2px solid var(--benchmark-accent);
+  outline-offset: 2px;
+}
+/* Workspace and source links share clear pointer and keyboard feedback without decorative arrows. */
+.benchmark-card a:is(:hover, :focus-visible),
+.benchmark-overview-table th button:is(:hover, :focus-visible) {
+  color: var(--benchmark-accent);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.benchmark-empty {
+  color: var(--benchmark-muted);
+  padding: 28px 0;
+}
+
+/* Phase lines share one DPS axis; missing intervals stay disconnected and exact values remain accessible. */
+.health-lines {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  pointer-events: none;
+}
+.health-line {
+  stroke: var(--benchmark-color);
+  stroke-width: 1.5px;
+  opacity: 0.65;
+}
+.health-x-axis {
+  grid-column: 2;
+  display: grid;
+  grid-template-columns: repeat(var(--health-band-count), minmax(0, 1fr));
+  color: var(--benchmark-muted);
+  font: 10px var(--mono);
+  text-align: center;
+}
+.health-values {
+  margin-top: 24px;
+  color: var(--benchmark-muted);
+  font-size: 11px;
+}
+.health-values summary {
+  cursor: pointer;
+}
+.health-table-scroll {
+  max-width: 100%;
+  overflow-x: auto;
+  margin-top: 12px;
+}
+.health-values table {
+  width: 100%;
+  border-collapse: collapse;
+}
+.health-values :is(th, td) {
+  padding: 8px;
+  border-bottom: 1px solid var(--benchmark-border);
+  text-align: right;
+  font-weight: 400;
+  white-space: nowrap;
+}
+.health-values th:first-child {
+  text-align: left;
+  min-width: 180px;
+  white-space: normal;
+}
+/* Only the overview uses the compact mockup header; chart sidebars retain their established layout. */
+.benchmark-overview-profession,
+.benchmark-profession-tabs,
+.benchmark-overview-sort,
+.benchmark-search-icon {
+  display: none;
+}
+#benchmarks-view[data-benchmark-active-panel='builds'] .benchmark-dashboard {
+  grid-template-columns: minmax(0, 1fr);
+}
+#benchmarks-view[data-benchmark-active-panel='builds'] .benchmark-main,
+#benchmarks-view[data-benchmark-active-panel='builds'] [data-chart-panel='builds'] {
+  display: contents;
+}
+#benchmarks-view[data-benchmark-active-panel='builds'] .benchmark-sidebar {
+  grid-column: 1;
+  grid-row: 1;
+  display: grid;
+  grid-template-columns: minmax(180px, 1fr) 215px 185px 175px auto 200px auto;
+  align-items: center;
+  gap: 12px;
+  padding: 18px 24px;
+  border: 0;
+}
+#benchmarks-view[data-benchmark-active-panel='builds'] .profession-filters,
+#benchmarks-view[data-benchmark-active-panel='builds'] .filter-heading h2 {
+  display: none;
+}
+#benchmarks-view[data-benchmark-active-panel='builds'] .filter-heading {
+  grid-column: 7;
+  grid-row: 1;
+  margin: 0;
+}
+#benchmarks-view[data-benchmark-active-panel='builds'] .filter-field,
+#benchmarks-view[data-benchmark-active-panel='builds'] .benchmark-overview-sort {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 10px;
+  grid-row: 1;
+  margin: 0;
+  min-width: 0;
+  height: 40px;
+  padding: 0 12px;
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius);
+  color: #c4c1bc;
+  font-size: 12px;
+  white-space: nowrap;
+  background: var(--bg-panel-alt);
+}
+#benchmarks-view[data-benchmark-active-panel='builds'] .filter-field:has(input) {
+  grid-column: 1;
+}
+#benchmarks-view[data-benchmark-active-panel='builds'] .filter-field:has(input) > span {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  clip-path: inset(50%);
+  overflow: hidden;
+}
+#benchmarks-view[data-benchmark-active-panel='builds'] .benchmark-search-icon {
+  display: block;
+  flex: 0 0 18px;
+  width: 18px;
+  height: 18px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.5;
+}
+#benchmarks-view[data-benchmark-active-panel='builds'] .filter-field :is(input, select),
+#benchmarks-view[data-benchmark-active-panel='builds'] .benchmark-overview-sort select {
+  padding: 0;
+  min-width: 0;
+  flex: 1;
+  width: 100%;
+  border: 0;
+  background: transparent;
+  font: inherit;
+  color: #eee;
+}
+#benchmarks-view[data-benchmark-active-panel='builds'] .benchmark-overview-profession {
+  grid-column: 2;
+}
+#benchmarks-view[data-benchmark-active-panel='builds'] .filter-field:has(#benchmark-damage) {
+  grid-column: 3;
+}
+#benchmarks-view[data-benchmark-active-panel='builds'] .filter-field:has(#benchmark-role) {
+  grid-column: 4;
+}
+#benchmarks-view[data-benchmark-active-panel='builds'] .outdated-filter {
+  grid-column: 5;
+  grid-row: 1;
+  font-size: 12px;
+  color: #ddd;
+}
+#benchmarks-view[data-benchmark-active-panel='builds'] .benchmark-overview-sort {
+  grid-column: 6;
+}
+#benchmarks-view[data-benchmark-active-panel='builds'] :is(.benchmark-cards, .benchmark-overview-table) {
+  grid-row: 2;
+  min-width: 0;
+  margin: 0 24px 24px;
+}
+#benchmarks-view[data-benchmark-active-panel='builds'] .benchmark-status-row {
+  grid-row: 3;
+}
+#benchmarks-view[data-benchmark-active-panel='builds'][data-build-view='table'] .benchmark-overview-profession {
+  display: none;
+}
+#benchmarks-view[data-benchmark-active-panel='builds'][data-build-view='table'] .filter-field:has(input) {
+  grid-column: 1 / 3;
+}
+#benchmarks-view[data-benchmark-active-panel='builds'][data-build-view='table'] .benchmark-profession-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 18px;
+  grid-column: 1 / -1;
+  grid-row: 2;
+  border-bottom: 1px solid var(--benchmark-border);
+}
+.benchmark-profession-tabs button {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border: 0;
+  border-bottom: 2px solid transparent;
+  padding: 8px 0;
+  background: none;
+  color: #c4c1bc;
+  font: inherit;
+  cursor: pointer;
+}
+.benchmark-profession-tabs button[aria-pressed='true'] {
+  color: #fff;
+  border-bottom-color: var(--benchmark-accent);
+}
+
+/* On narrow screens the same filters wrap above the chart without changing simulator navigation. */
+@media (max-width: 1100px) {
+  .benchmark-cards {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+@media (max-width: 760px) {
+  .benchmark-dashboard {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .benchmark-sidebar {
+    grid-column: 1;
+    grid-row: 1;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    border: 0;
+    border-bottom: 1px solid var(--benchmark-border);
+    padding: 18px;
+  }
+  .benchmark-main {
+    grid-row: 2;
+    padding: 18px 12px;
+  }
+  .filter-heading,
+  .profession-filters,
+  .outdated-filter,
+  .filter-field:has(input) {
+    grid-column: 1 / -1;
+  }
+  .filter-heading,
+  .filter-field {
+    margin: 0;
+  }
+  .profession-filters {
+    padding: 0;
+  }
+  [data-profession-filters] {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+  .profession-filter {
+    font-size: 11px;
+    gap: 6px;
+  }
+  .benchmark-toolbar {
+    padding: 0 12px;
+    gap: 18px;
+  }
+  .benchmark-toolbar > button {
+    font-size: 11px;
+  }
+
+  .scatter-layout,
+  .bar-chart-layout,
+  .bar-chart-layout.has-build-inspector {
+    grid-template-columns: 46px minmax(0, 1fr);
+    column-gap: 8px;
+  }
+  .benchmark-build-inspector {
+    grid-column: 1 / -1;
+    border-left: 0;
+    border-top: 1px solid var(--benchmark-border);
+  }
+  .benchmark-apm-layout.has-build-inspector {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .scatter-y-axis,
+  .scatter-x-axis {
+    font-size: 9px;
+  }
+}
+@media (max-width: 480px) {
+  /* Keep labels legible on narrow charts without changing the measured tick positions. */
+  .scatter-x-axis span:nth-child(even):not(:last-child),
+  .scatter-x-axis span:nth-last-child(2) {
+    display: none;
+  }
+  .health-heading {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .health-x-axis {
+    font-size: 8px;
+  }
+  .benchmark-cards {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .profession-filter {
+    font-size: 10px;
+  }
+  .benchmark-section-heading {
+    gap: 8px;
+  }
+}
+
+@media (max-width: 1400px) {
+  #benchmarks-view[data-benchmark-active-panel='builds'] .benchmark-sidebar {
+    grid-template-columns: minmax(160px, 1.5fr) minmax(140px, 1fr) minmax(140px, 1fr);
+    gap: 12px;
+  }
+  #benchmarks-view[data-benchmark-active-panel='builds'] .filter-field:has(#benchmark-role) {
+    grid-column: 1;
+    grid-row: 2;
+  }
+  #benchmarks-view[data-benchmark-active-panel='builds'] .outdated-filter {
+    grid-column: 2;
+    grid-row: 2;
+  }
+  #benchmarks-view[data-benchmark-active-panel='builds'] .benchmark-overview-sort {
+    grid-column: 3;
+    grid-row: 2;
+  }
+  #benchmarks-view[data-benchmark-active-panel='builds'] .filter-heading {
+    grid-column: 3;
+    grid-row: 3;
+    justify-content: flex-end;
+  }
+  #benchmarks-view[data-benchmark-active-panel='builds'][data-build-view='table'] .benchmark-profession-tabs {
+    grid-row: 4;
+  }
+}
+@media (max-width: 760px) {
+  #benchmarks-view[data-benchmark-active-panel='builds'] .benchmark-sidebar {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    padding: 12px;
+  }
+  #benchmarks-view[data-benchmark-active-panel='builds'] :is(.benchmark-cards, .benchmark-overview-table) {
+    margin: 0 12px 18px;
+  }
+  #benchmarks-view[data-benchmark-active-panel='builds'] .filter-field:has(input) {
+    grid-column: 1 / -1;
+  }
+  #benchmarks-view[data-benchmark-active-panel='builds'] .benchmark-overview-profession {
+    grid-column: 1;
+    grid-row: 2;
+  }
+  #benchmarks-view[data-benchmark-active-panel='builds'] .filter-field:has(#benchmark-damage) {
+    grid-column: 2;
+    grid-row: 2;
+  }
+  #benchmarks-view[data-benchmark-active-panel='builds'] .filter-field:has(#benchmark-role) {
+    grid-column: 1;
+    grid-row: 3;
+  }
+  #benchmarks-view[data-benchmark-active-panel='builds'] .outdated-filter {
+    grid-column: 2;
+    grid-row: 3;
+  }
+  #benchmarks-view[data-benchmark-active-panel='builds'] .benchmark-overview-sort {
+    grid-column: 1;
+    grid-row: 4;
+  }
+  #benchmarks-view[data-benchmark-active-panel='builds'] .filter-heading {
+    grid-column: 2;
+    grid-row: 4;
+    justify-content: flex-end;
+  }
+  #benchmarks-view[data-benchmark-active-panel='builds'][data-build-view='table'] .benchmark-profession-tabs {
+    grid-row: 5;
+  }
+  #benchmarks-view[data-benchmark-active-panel='builds'][data-build-view='table'] .filter-field:has(input) {
+    grid-column: 1 / -1;
+  }
+  .benchmark-cards {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+/* Tabs identify each page; their compact view switch avoids a second header band. */
+.benchmark-toolbar .benchmark-view-switch {
+  display: none;
+  margin-left: auto;
+}
+#benchmarks-view[data-benchmark-active-panel='builds'] .benchmark-toolbar .benchmark-view-switch {
+  display: flex;
+}
+#benchmarks-view[data-benchmark-active-panel='builds'] .benchmark-filter-label {
+  color: var(--text-dim);
+  flex-shrink: 0;
+  font-size: 13px;
+  line-height: 20px;
+}
+#benchmarks-view[data-benchmark-active-panel='builds'] .benchmark-filter-label::after {
+  content: ':';
+}
+#benchmarks-view[data-benchmark-active-panel='builds'] .filter-field select,
+#benchmarks-view[data-benchmark-active-panel='builds'] .benchmark-overview-sort select {
+  font-size: 13px;
+  font-weight: 500;
+  height: 20px;
+  line-height: 20px;
+}
+/* Native selects and plain labels share a baseline, rather than centering different text boxes. */
+#benchmarks-view[data-benchmark-active-panel='builds'] .filter-field:has(select),
+#benchmarks-view[data-benchmark-active-panel='builds'] .benchmark-overview-sort {
+  align-items: baseline;
+  padding-top: 9px;
+  padding-bottom: 9px;
+}
+#benchmarks-view[data-benchmark-active-panel='builds'] .filter-field:has(input) input {
+  font-size: 13px;
+}
+#benchmarks-view[data-benchmark-active-panel='builds'] .outdated-filter {
+  min-height: 40px;
+  gap: 10px;
+  white-space: nowrap;
+  font-size: 13px;
+  line-height: 20px;
+}
+#benchmarks-view[data-benchmark-active-panel='builds'] .outdated-filter input {
+  width: 15px;
+  height: 15px;
+  flex-shrink: 0;
+}
+#benchmarks-view[data-benchmark-active-panel='builds'] :is(.filter-field, .benchmark-overview-sort):hover {
+  border-color: var(--text-dim);
+}
+#benchmarks-view[data-benchmark-active-panel='builds'] :is(.filter-field, .benchmark-overview-sort):focus-within {
+  border-color: var(--benchmark-accent);
+}

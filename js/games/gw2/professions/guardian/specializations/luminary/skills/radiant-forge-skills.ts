@@ -4,13 +4,13 @@ import type { MechanicContext } from '#gw2/platform/profession-definition/mechan
 import type { CastDetailContext } from '#gw2/platform/profession-definition/runtime-context.js';
 import { MODIFIER_TARGET, type Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
 import { impactEffects, strikeEffectCoefficient } from '#gw2/platform/effects/authoring.js';
-import { effectFirstAt, scaleCastBoundTiming } from '#gw2/platform/effects/materializer.js';
+import { effectFirstAt } from '#gw2/platform/effects/materializer.js';
 import { requireBalanceProfileFromContext, requireEffect } from '#gw2/platform/skills/balance-profiles.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
 import type { SkillEffect } from '#gw2/platform/effects/types.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import type { RuntimeProfession } from '#gw2/platform/profession-definition/runtime-contract.js';
-import { projectCastRelativeEffectTimingMs } from '#gw2/platform/execution/cast-timing.js';
+import { projectCastRelativeEffectTimingMs, scaleCastBoundTiming } from '#gw2/platform/execution/cast-timing.js';
 
 import { GUARDIAN_SKILL_IDS as ID } from '#gw2/professions/guardian/data/ids.js';
 import { canonicalTime } from '#kernel/core/clock.js';

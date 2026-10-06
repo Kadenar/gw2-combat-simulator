@@ -1,7 +1,7 @@
 import type { RateInterval } from '#gw2/platform/combat/resources/pool.js';
 import { gw2CooldownReadyAt } from '#gw2/platform/combat/action-tick.js';
 import { clamp } from '#kernel/core/numeric.js';
-import { projectRecharge, type RechargeProgress } from '#gw2/platform/execution/recharge.js';
+import { projectRecharge, type RechargeProgress } from '#gw2/platform/combat/recharge.js';
 /**
  * Shared cooldown and ammo-charge recharge state machine. Owns the common
  * between-cast lockout and charge bookkeeping (recharge timers, charge

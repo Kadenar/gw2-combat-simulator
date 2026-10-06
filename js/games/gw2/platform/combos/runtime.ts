@@ -1,7 +1,7 @@
 import { canonicalTime } from '#kernel/core/clock.js';
 import { fieldDescriptors, finisherDescriptors, fieldAt } from '#gw2/platform/combos/descriptors.js';
 import { comboCombatMetadata } from '#gw2/platform/combos/definitions.js';
-import { isComboFieldActiveAt, selectComboFieldForFinisher } from '#gw2/platform/combos/events.js';
+import { isComboFieldActiveAt, selectComboFieldForFinisher } from '#gw2/platform/combos/resolution.js';
 import type { Gw2Runtime } from '#gw2/platform/simulation/runtime-state.js';
 import type { MechanicContext } from '#gw2/platform/profession-definition/mechanic-context.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';

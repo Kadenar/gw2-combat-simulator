@@ -1,6 +1,6 @@
 import { captureEffectEmissions } from '#tests/helpers/effect-emission.js';
 import { applyBalanceProfilePatch } from '#gw2/integrations/patches/authoring/patches.js';
-import { GW2_ALACRITY_RECHARGE_RATE, gw2BaseRecharge } from '#gw2/platform/execution/recharge.js';
+import { GW2_ALACRITY_RECHARGE_RATE, gw2BaseRecharge } from '#gw2/platform/combat/recharge.js';
 import { elementalistStrikeRequest } from '#gw2/professions/elementalist/core/events.js';
 import { ELEMENTALIST_TRAIT_IDS as TRAIT } from '#gw2/professions/elementalist/data/ids.js';
 import { elementalistCatalog, elementalistProfession } from '#gw2/professions/elementalist/profession.js';

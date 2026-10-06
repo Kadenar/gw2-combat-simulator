@@ -2,7 +2,6 @@ import { skillForEvent } from '#gw2/platform/combat/query/runtime-query.js';
 import { gw2AlliedEffectRecipients } from '#gw2/platform/combat/state/allied-players.js';
 import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
 import { STANDARD_TARGET_ARMOR } from '#gw2/platform/combat/formulas.js';
-import { scaleCastBoundTiming } from '#gw2/platform/effects/materializer.js';
 import { buildEngineerPackets } from '#gw2/professions/engineer/core/events.js';
 import { isEngineerMechCommand } from '#gw2/professions/engineer/specializations/mechanist/mechanics/mech-ownership.js';
 import {
@@ -14,7 +13,7 @@ import { isStandardBoon } from '#gw2/platform/combat/boons.js';
 import type { SimulationEventBase } from '#gw2/platform/events/events.js';
 import type { SkillId } from '#gw2/platform/skills/types.js';
 import { weaponStrengthMidpoint, weaponStrengthProfile } from '#gw2/platform/equipment/weapons/strength.js';
-import { GW2_QUICKNESS_ACTION_RATE } from '#gw2/platform/execution/cast-timing.js';
+import { GW2_QUICKNESS_ACTION_RATE, scaleCastBoundTiming } from '#gw2/platform/execution/cast-timing.js';
 import { ENGINEER_SKILL_IDS as ID, ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
 import { MECHANIST_ATTACK_TIMING } from '#gw2/professions/engineer/specializations/mechanist/mechanics/constants.js';
 import { shiftSignetPassive } from '#gw2/professions/engineer/specializations/mechanist/skills/signet-skills.js';

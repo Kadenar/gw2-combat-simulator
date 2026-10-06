@@ -59,9 +59,14 @@ scratch script. `.lavish/` remains tool-managed review output, separate from man
 
 - `npm run benchmarks:compare` simulates every rotation-backed manifest preset and reports DPS values more than 1% away
   from `benchmarkDps`. Pass `-- --absolute-dps` for a fixed 100 DPS tolerance or `-- --commit` to update `benchmarkDps`
-  (whole DPS) and `benchmarkApm` (one decimal) for every rotation-backed preset. APM comes from the simulation's
-  non-autoattack input count over its execution window, excluding precasts before an explicit combat boundary. Entries
-  without rotations remain unchanged. Simulation warnings identify their emitting presets.
+  (whole DPS), `benchmarkApm` (one decimal), and `benchmarkDpsByHealth` for every rotation-backed preset. The health
+  bands (`100-80`, `80-60`, `60-40`, `40-20`, `20-0`) each store `{ cumulative, phase }` in whole player DPS, using the
+  same packet boundaries as Analysis. Cumulative DPS uses damage and elapsed time from combat start to the band's ending
+  health; phase DPS uses only that band's damage and duration. Environment damage advances target health but is excluded
+  from player DPS. Unreached endpoints and zero-duration phases are `null`. When the target survives, both `20-0` values
+  use the simulation's final overall DPS, even if it did not reach 20%. APM comes from the simulation's non-autoattack
+  input count over its execution window, excluding precasts before an explicit combat boundary. Entries without
+  rotations remain unchanged. Simulation warnings identify their emitting presets.
 - `npm run build:modules && node scripts/analysis/capture-supported-build-metrics.mjs [profession...]` prints current
   deterministic preset metrics as JSON.
 - `npm run build:modules && node scripts/analysis/analyze-evtc.mjs <fight.evtc|fight.evtc.zip|fight.zevtc>` inspects a

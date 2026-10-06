@@ -3,7 +3,11 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 
 import { createSimulationRandom } from '#kernel/core/simulation-random.js';
-import { createGw2ComboRuntimeState, registerComboField, resolveComboAttempt } from '#gw2/platform/combos/events.js';
+import {
+  createGw2ComboRuntimeState,
+  registerComboField,
+  resolveComboAttempt
+} from '#gw2/platform/combos/resolution.js';
 import { resolveTestGw2Events } from '#tests/helpers/gw2-resolver.js';
 import { skillBreakdownRows } from '#gw2/app/results/skill-breakdown.js';
 import { resultSkillIcon } from '#gw2/app/results/skill-icons.js';

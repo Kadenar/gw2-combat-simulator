@@ -3,7 +3,7 @@ import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import type { Gw2MutableStats } from '#gw2/platform/combat/stats.js';
-import { scaleCastBoundTiming } from '#gw2/platform/effects/materializer.js';
+import { scaleCastBoundTiming } from '#gw2/platform/execution/cast-timing.js';
 import { gw2ConfiguredWeaponSet } from '#gw2/platform/equipment/weapons/loadout.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import type { MechanicContext } from '#gw2/platform/profession-definition/mechanic-context.js';

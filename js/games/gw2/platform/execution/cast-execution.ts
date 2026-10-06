@@ -1,6 +1,5 @@
 import { isHostileTargetEvent } from '#gw2/platform/combat/state/targets.js';
 import { applySkillSideEffects } from '#gw2/platform/effects/action-dispatch.js';
-import { scaleCastBoundTiming } from '#gw2/platform/effects/materializer.js';
 import { relicWeaponSwapRechargeReduction } from '#gw2/platform/equipment/relics/catalog.js';
 import { isGw2WeaponSkillEquipped } from '#gw2/platform/equipment/weapons/skill-matcher.js';
 import type { SimulationEvent } from '#gw2/platform/events/events.js';
@@ -17,15 +16,15 @@ import {
   cancelledBeforeInterruptCommit,
   interruptCommitCutoffs
 } from '#gw2/platform/execution/cast-effects.js';
-import { createCastReservations } from '#gw2/platform/execution/cast-reservations.js';
 import { gw2CooldownReadyAt } from '#gw2/platform/combat/action-tick.js';
 import {
   castWasInterrupted,
   retainsInterruptedCastLockout,
+  scaleCastBoundTiming,
   summonQuicknessCastTimeMs,
   skillTaskAt
 } from '#gw2/platform/execution/cast-timing.js';
-import { gw2BaseRecharge } from '#gw2/platform/execution/recharge.js';
+import { gw2BaseRecharge } from '#gw2/platform/combat/recharge.js';
 import { lockTransitionInput } from '#gw2/platform/execution/transition-lockouts.js';
 import type { AvailabilityResult } from '#gw2/platform/execution/availability.js';
 import type { CastCommand } from '#gw2/platform/execution/rotation.js';
@@ -46,6 +45,21 @@ interface CastExecutionHost {
   recordAction(id: string, event: SimulationEvent): void;
   withCause<R>(cause: SimulationEvent | null, run: () => R): R;
   captureEffects(): void;
+}
+
+/** Reservations are allocated once per accepted cast and retained until its one completion consumes them. */
+function createCastReservations<T extends object>() {
+  const reservations = new Map<string, T & { id: string }>();
+  let sequence = 0;
+  return {
+    reserve(details: T): T & { id: string } {
+      const reservation = { ...details, id: `cast:${++sequence}` };
+      reservations.set(reservation.id, reservation);
+      return reservation;
+    },
+    get: (id: string) => reservations.get(id),
+    delete: (id: string) => reservations.delete(id)
+  };
 }
 
 /** One owner reserves, admits, and completes casts; isolated evaluation deliberately enters below readiness. */

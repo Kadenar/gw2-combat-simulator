@@ -1,5 +1,5 @@
 import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
-import { gw2BaseRecharge } from '#gw2/platform/execution/recharge.js';
+import { gw2BaseRecharge } from '#gw2/platform/combat/recharge.js';
 import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
 import { fencersFinesseRecharge } from '#gw2/professions/mesmer/core/traits/dueling.js';
 import {

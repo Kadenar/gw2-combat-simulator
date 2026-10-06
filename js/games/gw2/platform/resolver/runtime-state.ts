@@ -1,7 +1,7 @@
 import type { Gw2TimedBuffApplication } from '#gw2/platform/combat/boons.js';
 import { createProcRegistry, type ProcRegistry } from '#gw2/platform/combat/procs/registry.js';
 import type { Gw2CombatQuery, Gw2CriticalResult } from '#gw2/platform/combat/query/combat-query.js';
-import { createGw2ComboRuntimeState } from '#gw2/platform/combos/events.js';
+import { createGw2ComboRuntimeState } from '#gw2/platform/combos/resolution.js';
 import type { Gw2ComboRuntimeState } from '#gw2/platform/combos/types.js';
 import { createRelicRuntime } from '#gw2/platform/equipment/relics/runtime.js';
 import type { Gw2RelicRuntime } from '#gw2/platform/equipment/relics/types.js';

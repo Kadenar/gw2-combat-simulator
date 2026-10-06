@@ -2,13 +2,77 @@ import {
   sampleWeaponStrength,
   weaponStrengthMidpoint,
   weaponStrengthProfile,
-  weaponStrengthProfileIdForEvent
+  weaponStrengthProfileForName
 } from '#gw2/platform/equipment/weapons/strength.js';
+import { gw2ActivePrimaryWeapon } from '#gw2/platform/equipment/weapons/loadout.js';
 import { skillForEvent } from '#gw2/platform/combat/query/runtime-query.js';
+import { isGw2NonWeaponEffectEvent } from '#gw2/platform/combat/state/event-ownership.js';
 
+import type { SimulationEventBase } from '#gw2/platform/events/events.js';
 import type { Gw2ResolvedWeaponStrength } from '#gw2/platform/equipment/weapons/types.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import type { Gw2ResolverRuntime } from '#gw2/platform/resolver/runtime-state.js';
+import type { Gw2Config } from '#gw2/platform/simulation/config.js';
+import type { Skill } from '#gw2/platform/skills/types.js';
+
+/** Weapon-strength resolution: choose each packet's profile, then resolve its midpoint or per-activation sample. */
+
+interface WeaponStrengthProfileContext {
+  readonly skill?: Skill | null;
+  readonly activeWeaponSet?: number;
+  readonly config?: Gw2Config;
+}
+
+/**
+ * Selects a profile from canonical metadata and the active weapon set without receiving runtime state. This function is
+ * intended to run while an activation is being scheduled, before a delayed
+ * packet can observe a later weapon or transform state.
+ */
+export function weaponStrengthProfileIdForEvent(
+  event: SimulationEventBase,
+  { skill = null, activeWeaponSet = 1, config = {} }: WeaponStrengthProfileContext = {}
+): string | null {
+  if (event.weaponStrengthProfileId != null) {
+    return weaponStrengthProfile(event.weaponStrengthProfileId).id;
+  }
+
+  // Explicit effect profiles own transformations; names below describe equipped weapons only.
+  for (const candidate of [event.weapon, event.skillWeapon]) {
+    const profile = weaponStrengthProfileForName(candidate);
+    if (profile) return profile.id;
+  }
+
+  if (event.weaponStrengthSource === 'equipped') {
+    const activeSet = activeWeaponSet === 2 ? 2 : 1;
+    const configured = gw2ActivePrimaryWeapon(config, activeSet);
+    const profile = weaponStrengthProfileForName(configured);
+    if (profile) return profile.id;
+  }
+
+  if (isGw2NonWeaponEffectEvent(event)) {
+    return 'nonweapon.unequipped';
+  }
+
+  for (const candidate of [skill?.weapon, skill?.skillWeapon]) {
+    const profile = weaponStrengthProfileForName(candidate);
+    if (profile) return profile.id;
+  }
+
+  // Slot skills and system actions are explicitly independent of equipped weapons.
+  if (['Action', 'Heal', 'Utility', 'Elite'].includes(skill?.type || '')) {
+    return 'nonweapon.unequipped';
+  }
+
+  if ((skill?.type || '') === 'Profession') {
+    return 'nonweapon.profession-mechanic';
+  }
+
+  // This final configured-weapon branch only runs in the scheduler, where the
+  // active set still represents activation time.
+  const activeSet = activeWeaponSet === 2 ? 2 : 1;
+  const configured = gw2ActivePrimaryWeapon(config, activeSet);
+  return weaponStrengthProfileForName(configured)?.id || null;
+}
 
 function streamActor(event: Gw2ResolverEvent): string {
   if (event.actorType === 'summon') {

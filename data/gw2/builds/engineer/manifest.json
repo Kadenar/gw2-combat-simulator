@@ -8,7 +8,29 @@
         "rotation": "data/gw2/rotations/engineer/r-power-core-hammer-evtc.json",
         "benchmarkDps": 36458,
         "upToDate": true,
-        "benchmarkApm": 99.2
+        "benchmarkApm": 99.2,
+        "benchmarkDpsByHealth": {
+          "100-80": {
+            "cumulative": 39570,
+            "phase": 39570
+          },
+          "80-60": {
+            "cumulative": 36987,
+            "phase": 34708
+          },
+          "60-40": {
+            "cumulative": 36398,
+            "phase": 35256
+          },
+          "40-20": {
+            "cumulative": 35631,
+            "phase": 33542
+          },
+          "20-0": {
+            "cumulative": 36458,
+            "phase": 40445
+          }
+        }
       }
     ]
   },
@@ -22,7 +44,29 @@
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/engineer/power-amalgam-hammer",
         "benchmarkDps": 41756,
         "upToDate": true,
-        "benchmarkApm": 102.7
+        "benchmarkApm": 102.7,
+        "benchmarkDpsByHealth": {
+          "100-80": {
+            "cumulative": 52200,
+            "phase": 52200
+          },
+          "80-60": {
+            "cumulative": 42746,
+            "phase": 36080
+          },
+          "60-40": {
+            "cumulative": 42829,
+            "phase": 42995
+          },
+          "40-20": {
+            "cumulative": 41062,
+            "phase": 36496
+          },
+          "20-0": {
+            "cumulative": 41756,
+            "phase": 41756
+          }
+        }
       },
       {
         "label": "Power (Hammer - Double Helix)",
@@ -31,7 +75,29 @@
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/engineer/power-amalgam-double-helix-hammer",
         "benchmarkDps": 43262,
         "upToDate": true,
-        "benchmarkApm": 107.8
+        "benchmarkApm": 107.8,
+        "benchmarkDpsByHealth": {
+          "100-80": {
+            "cumulative": 45913,
+            "phase": 45913
+          },
+          "80-60": {
+            "cumulative": 43904,
+            "phase": 42052
+          },
+          "60-40": {
+            "cumulative": 44066,
+            "phase": 44404
+          },
+          "40-20": {
+            "cumulative": 43002,
+            "phase": 40105
+          },
+          "20-0": {
+            "cumulative": 43262,
+            "phase": 43262
+          }
+        }
       },
       {
         "label": "Power (Rifle - Double Helix)",
@@ -39,7 +105,29 @@
         "rotation": "data/gw2/rotations/engineer/r-power-amalgam-rifle-double-helix-bench.json",
         "benchmarkDps": 43841,
         "upToDate": true,
-        "benchmarkApm": 116.7
+        "benchmarkApm": 116.7,
+        "benchmarkDpsByHealth": {
+          "100-80": {
+            "cumulative": 47054,
+            "phase": 47054
+          },
+          "80-60": {
+            "cumulative": 45297,
+            "phase": 43643
+          },
+          "60-40": {
+            "cumulative": 44915,
+            "phase": 44136
+          },
+          "40-20": {
+            "cumulative": 43574,
+            "phase": 39977
+          },
+          "20-0": {
+            "cumulative": 43841,
+            "phase": 43841
+          }
+        }
       },
       {
         "label": "Condition Alacrity Spear (2 Kit)",
@@ -48,7 +136,29 @@
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/engineer/condition-alacrity-amalgam-two-kits-spear",
         "benchmarkDps": 35802,
         "upToDate": true,
-        "benchmarkApm": 114.8
+        "benchmarkApm": 114.8,
+        "benchmarkDpsByHealth": {
+          "100-80": {
+            "cumulative": 35975,
+            "phase": 35975
+          },
+          "80-60": {
+            "cumulative": 35709,
+            "phase": 35444
+          },
+          "60-40": {
+            "cumulative": 36137,
+            "phase": 37020
+          },
+          "40-20": {
+            "cumulative": 36219,
+            "phase": 36467
+          },
+          "20-0": {
+            "cumulative": 35802,
+            "phase": 35802
+          }
+        }
       },
       {
         "label": "Condition Alacrity (Pistol / Pistol - Tools)",
@@ -56,7 +166,29 @@
         "rotation": "data/gw2/rotations/engineer/r-condi-alac-amalgam-pistol-pistol-tools-bench.json",
         "benchmarkDps": 37851,
         "upToDate": true,
-        "benchmarkApm": 110.2
+        "benchmarkApm": 110.2,
+        "benchmarkDpsByHealth": {
+          "100-80": {
+            "cumulative": 36147,
+            "phase": 36147
+          },
+          "80-60": {
+            "cumulative": 38392,
+            "phase": 40861
+          },
+          "60-40": {
+            "cumulative": 37849,
+            "phase": 36763
+          },
+          "40-20": {
+            "cumulative": 38080,
+            "phase": 38774
+          },
+          "20-0": {
+            "cumulative": 37851,
+            "phase": 36935
+          }
+        }
       },
       {
         "label": "Condition Spear (3 Kit)",
@@ -65,7 +197,29 @@
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/engineer/condition-amalgam-three-kits-spear",
         "benchmarkDps": 43595,
         "upToDate": true,
-        "benchmarkApm": 132.9
+        "benchmarkApm": 132.9,
+        "benchmarkDpsByHealth": {
+          "100-80": {
+            "cumulative": 51623,
+            "phase": 51623
+          },
+          "80-60": {
+            "cumulative": 43361,
+            "phase": 37066
+          },
+          "60-40": {
+            "cumulative": 45251,
+            "phase": 49620
+          },
+          "40-20": {
+            "cumulative": 42571,
+            "phase": 36046
+          },
+          "20-0": {
+            "cumulative": 43595,
+            "phase": 43595
+          }
+        }
       }
     ]
   },
@@ -79,7 +233,29 @@
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/engineer/condition-holosmith-pistol-pistol",
         "benchmarkDps": 42801,
         "upToDate": true,
-        "benchmarkApm": 109.6
+        "benchmarkApm": 109.6,
+        "benchmarkDpsByHealth": {
+          "100-80": {
+            "cumulative": 44215,
+            "phase": 44215
+          },
+          "80-60": {
+            "cumulative": 43197,
+            "phase": 42232
+          },
+          "60-40": {
+            "cumulative": 42645,
+            "phase": 41570
+          },
+          "40-20": {
+            "cumulative": 43552,
+            "phase": 46543
+          },
+          "20-0": {
+            "cumulative": 42801,
+            "phase": 42801
+          }
+        }
       },
       {
         "label": "Condition (Pistol / Pistol - Tools TRV)",
@@ -87,7 +263,29 @@
         "rotation": "data/gw2/rotations/engineer/r-condi-holosmith-pistol-pistol-tools-trv-bench.json",
         "benchmarkDps": 36754,
         "upToDate": true,
-        "benchmarkApm": 94.8
+        "benchmarkApm": 94.8,
+        "benchmarkDpsByHealth": {
+          "100-80": {
+            "cumulative": 35613,
+            "phase": 35613
+          },
+          "80-60": {
+            "cumulative": 36391,
+            "phase": 37244
+          },
+          "60-40": {
+            "cumulative": 36322,
+            "phase": 36181
+          },
+          "40-20": {
+            "cumulative": 36952,
+            "phase": 38973
+          },
+          "20-0": {
+            "cumulative": 36754,
+            "phase": 36754
+          }
+        }
       },
       {
         "label": "Power (Sword / Pistol)",
@@ -96,7 +294,29 @@
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/engineer/power-holosmith-sword-pistol",
         "benchmarkDps": 41621,
         "upToDate": true,
-        "benchmarkApm": 96.6
+        "benchmarkApm": 96.6,
+        "benchmarkDpsByHealth": {
+          "100-80": {
+            "cumulative": 43312,
+            "phase": 43312
+          },
+          "80-60": {
+            "cumulative": 41279,
+            "phase": 39438
+          },
+          "60-40": {
+            "cumulative": 39912,
+            "phase": 37420
+          },
+          "40-20": {
+            "cumulative": 40963,
+            "phase": 44496
+          },
+          "20-0": {
+            "cumulative": 41621,
+            "phase": 44485
+          }
+        }
       }
     ]
   },
@@ -109,7 +329,30 @@
         "rotation": "data/gw2/rotations/engineer/r-condi-mechanist-spear-1kit-bench.json",
         "benchmarkDps": 40000,
         "upToDate": true,
-        "benchmarkApm": 86.5
+        "snowCrowsUrl": "https://snowcrows.com/builds/raids/engineer/condition-mechanist-one-kit-spear",
+        "benchmarkApm": 86.5,
+        "benchmarkDpsByHealth": {
+          "100-80": {
+            "cumulative": 38714,
+            "phase": 38714
+          },
+          "80-60": {
+            "cumulative": 38582,
+            "phase": 38450
+          },
+          "60-40": {
+            "cumulative": 39101,
+            "phase": 40249
+          },
+          "40-20": {
+            "cumulative": 39842,
+            "phase": 42218
+          },
+          "20-0": {
+            "cumulative": 40000,
+            "phase": 40000
+          }
+        }
       },
       {
         "label": "Condition Alacrity Spear (1 Kit)",
@@ -117,7 +360,30 @@
         "rotation": "data/gw2/rotations/engineer/r-condi-alac-mechanist-spear-wingman.json",
         "benchmarkDps": 30038,
         "upToDate": true,
-        "benchmarkApm": 79.9
+        "snowCrowsUrl": "https://snowcrows.com/builds/raids/engineer/condition-alacrity-mechanist-one-kit-spear",
+        "benchmarkApm": 79.9,
+        "benchmarkDpsByHealth": {
+          "100-80": {
+            "cumulative": 29524,
+            "phase": 29524
+          },
+          "80-60": {
+            "cumulative": 29870,
+            "phase": 30227
+          },
+          "60-40": {
+            "cumulative": 30160,
+            "phase": 30755
+          },
+          "40-20": {
+            "cumulative": 30211,
+            "phase": 30366
+          },
+          "20-0": {
+            "cumulative": 30038,
+            "phase": 29366
+          }
+        }
       },
       {
         "label": "Power (Sword / Pistol)",
@@ -126,7 +392,29 @@
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/engineer/power-mechanist-sword-pistol",
         "benchmarkDps": 40843,
         "upToDate": true,
-        "benchmarkApm": 58.9
+        "benchmarkApm": 58.9,
+        "benchmarkDpsByHealth": {
+          "100-80": {
+            "cumulative": 42702,
+            "phase": 42702
+          },
+          "80-60": {
+            "cumulative": 41550,
+            "phase": 40448
+          },
+          "60-40": {
+            "cumulative": 40543,
+            "phase": 38675
+          },
+          "40-20": {
+            "cumulative": 40537,
+            "phase": 40517
+          },
+          "20-0": {
+            "cumulative": 40843,
+            "phase": 40843
+          }
+        }
       },
       {
         "label": "Power (Rifle)",
@@ -135,7 +423,29 @@
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/engineer/power-mechanist-rifle",
         "benchmarkDps": 39073,
         "upToDate": true,
-        "benchmarkApm": 78.5
+        "benchmarkApm": 78.5,
+        "benchmarkDpsByHealth": {
+          "100-80": {
+            "cumulative": 41935,
+            "phase": 41935
+          },
+          "80-60": {
+            "cumulative": 38922,
+            "phase": 36312
+          },
+          "60-40": {
+            "cumulative": 39101,
+            "phase": 39464
+          },
+          "40-20": {
+            "cumulative": 38677,
+            "phase": 37455
+          },
+          "20-0": {
+            "cumulative": 39073,
+            "phase": 40725
+          }
+        }
       }
     ]
   },
@@ -149,7 +459,29 @@
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/engineer/condition-quickness-scrapper-spear",
         "benchmarkDps": 33647,
         "upToDate": true,
-        "benchmarkApm": 134.9
+        "benchmarkApm": 134.9,
+        "benchmarkDpsByHealth": {
+          "100-80": {
+            "cumulative": 31341,
+            "phase": 31341
+          },
+          "80-60": {
+            "cumulative": 32954,
+            "phase": 34778
+          },
+          "60-40": {
+            "cumulative": 32822,
+            "phase": 32550
+          },
+          "40-20": {
+            "cumulative": 33442,
+            "phase": 35502
+          },
+          "20-0": {
+            "cumulative": 33647,
+            "phase": 34492
+          }
+        }
       },
       {
         "label": "Power (Hammer)",
@@ -158,7 +490,29 @@
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/engineer/power-scrapper-hammer",
         "benchmarkDps": 40914,
         "upToDate": true,
-        "benchmarkApm": 107.7
+        "benchmarkApm": 107.7,
+        "benchmarkDpsByHealth": {
+          "100-80": {
+            "cumulative": 44994,
+            "phase": 44994
+          },
+          "80-60": {
+            "cumulative": 41589,
+            "phase": 38542
+          },
+          "60-40": {
+            "cumulative": 40938,
+            "phase": 39699
+          },
+          "40-20": {
+            "cumulative": 40731,
+            "phase": 40124
+          },
+          "20-0": {
+            "cumulative": 40914,
+            "phase": 40914
+          }
+        }
       }
     ]
   }

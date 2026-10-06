@@ -9,7 +9,29 @@
         "benchmarkDps": 41187,
         "upToDate": true,
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/warrior/power-bladesworn-faf-sword-pistol",
-        "benchmarkApm": 71.8
+        "benchmarkApm": 71.8,
+        "benchmarkDpsByHealth": {
+          "100-80": {
+            "cumulative": 61277,
+            "phase": 61277
+          },
+          "80-60": {
+            "cumulative": 47792,
+            "phase": 38266
+          },
+          "60-40": {
+            "cumulative": 44121,
+            "phase": 37915
+          },
+          "40-20": {
+            "cumulative": 42270,
+            "phase": 37205
+          },
+          "20-0": {
+            "cumulative": 41187,
+            "phase": 41187
+          }
+        }
       },
       {
         "label": "Condition (Sword / Pistol)",
@@ -18,7 +40,29 @@
         "benchmarkDps": 42429,
         "upToDate": true,
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/warrior/condition-bladesworn-sword-pistol",
-        "benchmarkApm": 78.7
+        "benchmarkApm": 78.7,
+        "benchmarkDpsByHealth": {
+          "100-80": {
+            "cumulative": 42651,
+            "phase": 42651
+          },
+          "80-60": {
+            "cumulative": 43027,
+            "phase": 43402
+          },
+          "60-40": {
+            "cumulative": 41555,
+            "phase": 38760
+          },
+          "40-20": {
+            "cumulative": 42054,
+            "phase": 43695
+          },
+          "20-0": {
+            "cumulative": 42429,
+            "phase": 43973
+          }
+        }
       }
     ]
   },
@@ -32,7 +76,29 @@
         "benchmarkDps": 42254,
         "upToDate": true,
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/warrior/power-berserker-tactics-spear-greatsword",
-        "benchmarkApm": 73.8
+        "benchmarkApm": 73.8,
+        "benchmarkDpsByHealth": {
+          "100-80": {
+            "cumulative": 51785,
+            "phase": 51785
+          },
+          "80-60": {
+            "cumulative": 46274,
+            "phase": 41829
+          },
+          "60-40": {
+            "cumulative": 43305,
+            "phase": 38225
+          },
+          "40-20": {
+            "cumulative": 42599,
+            "phase": 40607
+          },
+          "20-0": {
+            "cumulative": 42254,
+            "phase": 40944
+          }
+        }
       },
       {
         "label": "Power Quickness (Spear + Greatsword) (Tactics)",
@@ -41,7 +107,29 @@
         "benchmarkDps": 36604,
         "upToDate": true,
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/warrior/power-quickness-berserker-tactics-spear-greatsword",
-        "benchmarkApm": 71.2
+        "benchmarkApm": 71.2,
+        "benchmarkDpsByHealth": {
+          "100-80": {
+            "cumulative": 46183,
+            "phase": 46183
+          },
+          "80-60": {
+            "cumulative": 39874,
+            "phase": 34834
+          },
+          "60-40": {
+            "cumulative": 38132,
+            "phase": 35123
+          },
+          "40-20": {
+            "cumulative": 37118,
+            "phase": 34244
+          },
+          "20-0": {
+            "cumulative": 36604,
+            "phase": 34687
+          }
+        }
       },
       {
         "label": "Power (Hammer + Axe/Mace)",
@@ -50,7 +138,29 @@
         "benchmarkDps": 42727,
         "upToDate": true,
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/warrior/power-berserker-hammer-axe-mace",
-        "benchmarkApm": 92.8
+        "benchmarkApm": 92.8,
+        "benchmarkDpsByHealth": {
+          "100-80": {
+            "cumulative": 43212,
+            "phase": 43212
+          },
+          "80-60": {
+            "cumulative": 42130,
+            "phase": 41107
+          },
+          "60-40": {
+            "cumulative": 42585,
+            "phase": 43536
+          },
+          "40-20": {
+            "cumulative": 42636,
+            "phase": 42789
+          },
+          "20-0": {
+            "cumulative": 42727,
+            "phase": 43090
+          }
+        }
       },
       {
         "label": "Condition (Longbow + Sword/Torch)",
@@ -59,7 +169,29 @@
         "benchmarkDps": 44416,
         "upToDate": true,
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/warrior/condition-berserker-longbow-sword-torch",
-        "benchmarkApm": 93.6
+        "benchmarkApm": 93.6,
+        "benchmarkDpsByHealth": {
+          "100-80": {
+            "cumulative": 41285,
+            "phase": 41285
+          },
+          "80-60": {
+            "cumulative": 43734,
+            "phase": 46615
+          },
+          "60-40": {
+            "cumulative": 43870,
+            "phase": 44150
+          },
+          "40-20": {
+            "cumulative": 44216,
+            "phase": 45335
+          },
+          "20-0": {
+            "cumulative": 44416,
+            "phase": 44416
+          }
+        }
       }
     ]
   },
@@ -73,7 +205,29 @@
         "benchmarkDps": 42813,
         "upToDate": true,
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/warrior/power-spellbreaker-dagger-mace-sword-axe",
-        "benchmarkApm": 60.4
+        "benchmarkApm": 60.4,
+        "benchmarkDpsByHealth": {
+          "100-80": {
+            "cumulative": 45999,
+            "phase": 45999
+          },
+          "80-60": {
+            "cumulative": 43779,
+            "phase": 41697
+          },
+          "60-40": {
+            "cumulative": 42797,
+            "phase": 40972
+          },
+          "40-20": {
+            "cumulative": 42556,
+            "phase": 41863
+          },
+          "20-0": {
+            "cumulative": 42813,
+            "phase": 42813
+          }
+        }
       },
       {
         "label": "Power (Dagger/Mace + Sword/Dagger)",
@@ -82,7 +236,29 @@
         "benchmarkDps": 43286,
         "upToDate": true,
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/warrior/power-spellbreaker-dagger-mace-sword-dagger",
-        "benchmarkApm": 62.8
+        "benchmarkApm": 62.8,
+        "benchmarkDpsByHealth": {
+          "100-80": {
+            "cumulative": 47041,
+            "phase": 47041
+          },
+          "80-60": {
+            "cumulative": 43920,
+            "phase": 41000
+          },
+          "60-40": {
+            "cumulative": 43017,
+            "phase": 41317
+          },
+          "40-20": {
+            "cumulative": 42430,
+            "phase": 40760
+          },
+          "20-0": {
+            "cumulative": 43286,
+            "phase": 43286
+          }
+        }
       },
       {
         "label": "Power (Hammer + Dagger/Mace)",
@@ -91,7 +267,29 @@
         "benchmarkDps": 42903,
         "upToDate": true,
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/warrior/power-spellbreaker-hammer-dagger-mace",
-        "benchmarkApm": 65.6
+        "benchmarkApm": 65.6,
+        "benchmarkDpsByHealth": {
+          "100-80": {
+            "cumulative": 47362,
+            "phase": 47362
+          },
+          "80-60": {
+            "cumulative": 44353,
+            "phase": 41706
+          },
+          "60-40": {
+            "cumulative": 43619,
+            "phase": 42192
+          },
+          "40-20": {
+            "cumulative": 43182,
+            "phase": 41903
+          },
+          "20-0": {
+            "cumulative": 42903,
+            "phase": 41825
+          }
+        }
       }
     ]
   },
@@ -105,7 +303,29 @@
         "benchmarkDps": 42306,
         "upToDate": true,
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/warrior/power-paragon-sword-axe-dagger-mace",
-        "benchmarkApm": 57.8
+        "benchmarkApm": 57.8,
+        "benchmarkDpsByHealth": {
+          "100-80": {
+            "cumulative": 44413,
+            "phase": 44413
+          },
+          "80-60": {
+            "cumulative": 42590,
+            "phase": 40896
+          },
+          "60-40": {
+            "cumulative": 41794,
+            "phase": 40196
+          },
+          "40-20": {
+            "cumulative": 41995,
+            "phase": 42599
+          },
+          "20-0": {
+            "cumulative": 42306,
+            "phase": 43625
+          }
+        }
       }
     ]
   }

@@ -1,4 +1,5 @@
 import { escapeHtml } from '#ui/shared/html.js';
+import { TARGET_HEALTH_BANDS } from '#gw2/app/results/summary-metrics.js';
 import { PRESENTATION_ALLIED_PLAYER_COUNT } from '#gw2/platform/results/boon-generation.js';
 import {
   buildPhaseDpsSeries,
@@ -160,14 +161,6 @@ function healthBreakpointMarkers(
     }));
 }
 
-const FIGHT_PHASE_RANGES = [
-  { id: '100-80', label: '100-80%', startHealth: 100, endHealth: 80 },
-  { id: '80-60', label: '80-60%', startHealth: 80, endHealth: 60 },
-  { id: '60-40', label: '60-40%', startHealth: 60, endHealth: 40 },
-  { id: '40-20', label: '40-20%', startHealth: 40, endHealth: 20 },
-  { id: '20-0', label: '20-0%', startHealth: 20, endHealth: 0 }
-] as const;
-
 function fightPhases(series: ChartSeries, markers: readonly ChartMarker[], options: ChartOptions): ChartFightPhase[] {
   const cumulativeDamage = series.cumulativeDamage || [];
   const finalDamage = Number(cumulativeDamage.at(-1)?.v);
@@ -201,7 +194,7 @@ function fightPhases(series: ChartSeries, markers: readonly ChartMarker[], optio
       startDamage: 0,
       endDamage: Number.isFinite(finalDamage) ? finalDamage : 0
     },
-    ...FIGHT_PHASE_RANGES.map((range) => {
+    ...TARGET_HEALTH_BANDS.map((range) => {
       const start = boundaries.get(range.startHealth);
       const end = boundaries.get(range.endHealth);
       const enabled = Boolean(start && end && end.timeMs > start.timeMs && end.damage >= start.damage);

@@ -9,7 +9,7 @@ import {
   normalizeComboFieldType,
   normalizeComboFinisherType,
   normalizeComboFieldSelectionAnchor
-} from '#gw2/platform/combos/events.js';
+} from '#gw2/platform/combos/validation.js';
 import { boundedNumber } from '#kernel/core/numeric.js';
 
 /** Normalizes canonical combo descriptors without observing combat state or predicting outcomes. */

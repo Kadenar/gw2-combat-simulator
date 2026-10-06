@@ -2,7 +2,7 @@ import type { BalanceProfile, CatalogEntity, Skill, SkillId, TooltipFact } from 
 import type { SkillEffect } from '#gw2/platform/effects/types.js';
 import type { ProfessionBalanceContext } from '#gw2/platform/profession-definition/balance-context.js';
 import { MODIFIER_EFFECT_ICONS, tooltipFactIcon } from '#gw2/app/shared/icons.js';
-import { gw2BaseRecharge } from '#gw2/platform/execution/recharge.js';
+import { gw2BaseRecharge } from '#gw2/platform/combat/recharge.js';
 import { isStandardBoon } from '#gw2/platform/combat/boons.js';
 import { requireBalanceProfileFromContext, balanceProfileNumber } from '#gw2/platform/skills/balance-profiles.js';
 

@@ -61,6 +61,16 @@
   color: var(--accent);
 }
 
+/* Keep benchmark navigation visible beside the existing profession-picker help. */
+.landing-benchmark-navigation {
+  margin-top: 14px;
+}
+
+.landing-benchmark-navigation a {
+  display: inline-block;
+  text-decoration: none;
+}
+
 .landing-community {
   border: 0;
 }

@@ -1,6 +1,7 @@
 /** Defines build presets and selection contracts shared by the build editor and professions. */
 import type { Gw2FinalizedAttributeResult, Gw2CanonicalBuild } from '#gw2/platform/builds/types.js';
 import type { CatalogEntity, Skill } from '#gw2/platform/skills/types.js';
+import type { TargetHealthBandDps } from '#gw2/app/results/summary-metrics.js';
 
 export interface ProfessionAttributeData extends Gw2FinalizedAttributeResult {
   activeTraits: CatalogEntity[];
@@ -14,6 +15,8 @@ export interface BuildTemplatePreset {
   readonly benchmarkDps?: number;
   /** Simulated non-autoattack actions per minute over the rotation execution window. */
   readonly benchmarkApm?: number;
+  /** Cumulative and phase player DPS at each health band; non-killing runs use final overall DPS for 20-0%. */
+  readonly benchmarkDpsByHealth?: TargetHealthBandDps;
   readonly upToDate?: boolean;
   readonly section?: string | null;
 }

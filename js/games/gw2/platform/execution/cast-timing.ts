@@ -1,4 +1,5 @@
 import { quantizeGw2ActionDurationUp } from '#gw2/platform/combat/action-tick.js';
+import type { SkillEffect } from '#gw2/platform/effects/types.js';
 import type { Skill, SkillTask } from '#gw2/platform/skills/types.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import { EPSILON, canonicalTime } from '#kernel/core/clock.js';
@@ -70,6 +71,38 @@ export function projectCastRelativeEffectTimingMs(skill: Skill, runtimeCastMs: n
   if (!(baseMs > 0) || !(referenceMs > 0)) return authoredMs;
   const baseTimelineMs = (authoredMs * baseMs) / referenceMs;
   return baseTimelineMs * (Math.max(0, runtimeCastMs) / baseMs);
+}
+
+/** Projects authored timing onto a runtime cast, preserving fixed intervals and the declared anchor. */
+export function scaleCastBoundTiming(
+  context: { start: number; fullEnd: number },
+  skill: Skill,
+  effect: SkillEffect
+): SkillEffect {
+  if (effect.timingScale !== 'cast' || !(Number(skill.castTimeMs) > 0)) return effect;
+  const adjustedCastMs = Math.max(0, context.fullEnd - context.start) * 1000;
+  const firstTickAtMs = Array.isArray(effect.ticks) ? Number(effect.ticks[0]?.atMs || 0) : 0;
+  // Return a copy because skill metadata is shared by every simulation run.
+  return {
+    ...effect,
+    ...(Array.isArray(effect.ticks)
+      ? {
+          ticks: effect.ticks.map((tick) => ({
+            ...tick,
+            atMs:
+              effect.intervalTimingScale === 'fixed'
+                ? projectCastRelativeEffectTimingMs(skill, adjustedCastMs, firstTickAtMs) +
+                  Number(tick.atMs) -
+                  firstTickAtMs
+                : projectCastRelativeEffectTimingMs(skill, adjustedCastMs, Number(tick.atMs))
+          }))
+        }
+      : {}),
+    ...(effect.atMs == null ? {} : { atMs: projectCastRelativeEffectTimingMs(skill, adjustedCastMs, effect.atMs) }),
+    ...(effect.intervalMs == null || effect.intervalTimingScale === 'fixed'
+      ? {}
+      : { intervalMs: projectCastRelativeEffectTimingMs(skill, adjustedCastMs, effect.intervalMs) })
+  } as SkillEffect;
 }
 
 /** Scheduling and readiness use the same cast-relative deadline, clamped to the live clock. */

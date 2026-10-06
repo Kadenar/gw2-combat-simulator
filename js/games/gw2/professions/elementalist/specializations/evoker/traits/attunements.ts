@@ -9,7 +9,7 @@ import {
   requireBalanceProfileFromContext,
   requireEffect
 } from '#gw2/platform/skills/balance-profiles.js';
-import { gw2BaseRecharge } from '#gw2/platform/execution/recharge.js';
+import { gw2BaseRecharge } from '#gw2/platform/combat/recharge.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
 import type { AvailabilityResult } from '#gw2/platform/execution/availability.js';
 import type { EffectDelivery } from '#gw2/platform/effects/emission.js';

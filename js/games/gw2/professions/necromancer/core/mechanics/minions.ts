@@ -1,6 +1,6 @@
 import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
 import { denySkillCast } from '#gw2/platform/execution/availability.js';
-import { gw2BaseRecharge } from '#gw2/platform/execution/recharge.js';
+import { gw2BaseRecharge } from '#gw2/platform/combat/recharge.js';
 import { armSkillFlip, consumeSkillFlip } from '#gw2/platform/execution/skill-flips.js';
 import type { SkillId } from '#gw2/platform/skills/types.js';
 import { buildResolverCondition, buildResolverStrike } from '#gw2/platform/effects/packet-builders.js';

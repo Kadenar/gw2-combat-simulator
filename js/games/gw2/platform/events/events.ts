@@ -2,7 +2,7 @@ import type { OwnedComboDescriptor } from '#gw2/platform/combos/types.js';
 import type { Gw2ModifierContribution } from '#gw2/platform/combat/modifiers.js';
 import type { EffectReactionRef } from '#gw2/platform/effects/reactions.js';
 import { ACTOR_TYPES, type SimulationActorType } from '#gw2/platform/events/actors.js';
-import type { RechargeProgress } from '#gw2/platform/execution/recharge.js';
+import type { RechargeProgress } from '#gw2/platform/combat/recharge.js';
 import type { SkillId } from '#gw2/platform/skills/types.js';
 import { timeKey } from '#kernel/core/clock.js';
 import { weaponStrengthProfile } from '#gw2/platform/equipment/weapons/strength.js';

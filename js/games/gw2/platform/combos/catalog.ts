@@ -5,7 +5,7 @@ import {
   normalizeComboFieldType,
   normalizeComboFinisherType,
   normalizeComboFieldSelectionAnchor
-} from '#gw2/platform/combos/events.js';
+} from '#gw2/platform/combos/validation.js';
 import type { SkillEffect } from '#gw2/platform/effects/types.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
 import { clamp } from '#kernel/core/numeric.js';

@@ -1,4 +1,4 @@
-import { gw2BaseRecharge } from '#gw2/platform/execution/recharge.js';
+import { gw2BaseRecharge } from '#gw2/platform/combat/recharge.js';
 import {
   createFlipParentMap,
   createProfessionModuleDataFactory,

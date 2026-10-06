@@ -1,7 +1,6 @@
 import type { SkillEffect, StrikeEffect, StrikeTick } from '#gw2/platform/effects/types.js';
 import type { SimulationActorType } from '#gw2/platform/events/actors.js';
 import type { EffectMetadata, SimulationEventBase } from '#gw2/platform/events/events.js';
-import { projectCastRelativeEffectTimingMs } from '#gw2/platform/execution/cast-timing.js';
 import type { Skill, SkillId } from '#gw2/platform/skills/types.js';
 /**
  * Effect materialization. Expands one canonical skill effect (strike,
@@ -9,38 +8,6 @@ import type { Skill, SkillId } from '#gw2/platform/skills/types.js';
  * applications, resolving per-tick timing against the cast start or end. Cast
  * interruption and actual event emission remain scheduler concerns.
  */
-
-/** Projects authored timing onto a runtime cast, preserving fixed intervals and the declared anchor. */
-export function scaleCastBoundTiming(
-  context: { start: number; fullEnd: number },
-  skill: Skill,
-  effect: SkillEffect
-): SkillEffect {
-  if (effect.timingScale !== 'cast' || !(Number(skill.castTimeMs) > 0)) return effect;
-  const adjustedCastMs = Math.max(0, context.fullEnd - context.start) * 1000;
-  const firstTickAtMs = Array.isArray(effect.ticks) ? Number(effect.ticks[0]?.atMs || 0) : 0;
-  // Return a copy because skill metadata is shared by every simulation run.
-  return {
-    ...effect,
-    ...(Array.isArray(effect.ticks)
-      ? {
-          ticks: effect.ticks.map((tick) => ({
-            ...tick,
-            atMs:
-              effect.intervalTimingScale === 'fixed'
-                ? projectCastRelativeEffectTimingMs(skill, adjustedCastMs, firstTickAtMs) +
-                  Number(tick.atMs) -
-                  firstTickAtMs
-                : projectCastRelativeEffectTimingMs(skill, adjustedCastMs, Number(tick.atMs))
-          }))
-        }
-      : {}),
-    ...(effect.atMs == null ? {} : { atMs: projectCastRelativeEffectTimingMs(skill, adjustedCastMs, effect.atMs) }),
-    ...(effect.intervalMs == null || effect.intervalTimingScale === 'fixed'
-      ? {}
-      : { intervalMs: projectCastRelativeEffectTimingMs(skill, adjustedCastMs, effect.intervalMs) })
-  } as SkillEffect;
-}
 
 export interface EffectEventBase {
   readonly metadata?: EffectMetadata;

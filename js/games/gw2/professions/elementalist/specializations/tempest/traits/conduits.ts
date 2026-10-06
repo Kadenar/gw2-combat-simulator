@@ -1,5 +1,6 @@
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
-import { materializeSkillEffectApplications, scaleCastBoundTiming } from '#gw2/platform/effects/materializer.js';
+import { materializeSkillEffectApplications } from '#gw2/platform/effects/materializer.js';
+import { scaleCastBoundTiming } from '#gw2/platform/execution/cast-timing.js';
 import {
   balanceProfileNumber,
   requireBalanceProfileFromContext,

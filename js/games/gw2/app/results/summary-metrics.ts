@@ -26,6 +26,64 @@ export interface TargetHealthBreakpointSnapshot {
   readonly targetDamage: number;
 }
 
+export const TARGET_HEALTH_BANDS = [
+  { id: '100-80', label: '100-80%', startHealth: 100, endHealth: 80 },
+  { id: '80-60', label: '80-60%', startHealth: 80, endHealth: 60 },
+  { id: '60-40', label: '60-40%', startHealth: 60, endHealth: 40 },
+  { id: '40-20', label: '40-20%', startHealth: 40, endHealth: 20 },
+  { id: '20-0', label: '20-0%', startHealth: 20, endHealth: 0 }
+] as const;
+
+export type TargetHealthBandId = (typeof TARGET_HEALTH_BANDS)[number]['id'];
+export type TargetHealthBandDps = Readonly<
+  Record<
+    TargetHealthBandId,
+    {
+      readonly cumulative: number | null;
+      readonly phase: number | null;
+    }
+  >
+>;
+
+/** Report player DPS from combat start and within each health band using the same boundaries as Analysis. */
+export function targetHealthBandDps(
+  result: Gw2SimulationResult,
+  targetHealth: number,
+  startingHealthPercent = 100
+): TargetHealthBandDps {
+  const boundaries = new Map<number, { elapsed: number; damage: number }>();
+  if (Number.isFinite(targetHealth) && targetHealth > 0) {
+    boundaries.set(clamp(startingHealthPercent, 0, 100), { elapsed: 0, damage: 0 });
+    for (const point of targetHealthBreakpointSnapshots(result, targetHealth, undefined, startingHealthPercent)) {
+      boundaries.set(point.healthPercent, point);
+    }
+
+    // A recorded kill supplies an exact final boundary; surviving targets use final overall DPS below.
+    if (result.deathTime != null) {
+      boundaries.set(0, { elapsed: Math.max(0, result.deathTime - result.dpsStartTime), damage: result.totalDamage });
+    }
+  }
+
+  return Object.fromEntries(
+    TARGET_HEALTH_BANDS.map(({ id, startHealth, endHealth }) => {
+      if (endHealth === 0 && result.deathTime == null && Number.isFinite(targetHealth) && targetHealth > 0) {
+        // Non-killing runs still get a final chart value in both modes, using the simulation's reported DPS.
+        const finalDps = Number.isFinite(result.dps) && result.dps >= 0 ? result.dps : null;
+        return [id, { cumulative: finalDps, phase: finalDps }];
+      }
+
+      const start = boundaries.get(startHealth);
+      const end = boundaries.get(endHealth);
+      const phase =
+        start && end && end.elapsed > start.elapsed && end.damage >= start.damage
+          ? (end.damage - start.damage) / (end.elapsed - start.elapsed)
+          : null;
+      const cumulative = end && end.elapsed > 0 ? end.damage / end.elapsed : null;
+      return [id, { cumulative, phase }];
+    })
+  ) as TargetHealthBandDps;
+}
+
 /**
  * Produces the ordered, preformatted metric cards consumed by result renderers.
  * Kill time is optional because fixed-horizon simulations may never reach the

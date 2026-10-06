@@ -1,6 +1,7 @@
 import type { MechanicContext } from '#gw2/platform/profession-definition/mechanic-context.js';
 import { strikeEffectCoefficient, strikeEffectTicks } from '#gw2/platform/effects/authoring.js';
-import { effectFirstAt, scaleCastBoundTiming } from '#gw2/platform/effects/materializer.js';
+import { effectFirstAt } from '#gw2/platform/effects/materializer.js';
+import { scaleCastBoundTiming } from '#gw2/platform/execution/cast-timing.js';
 import {
   balanceProfileNumber,
   effectNumber,

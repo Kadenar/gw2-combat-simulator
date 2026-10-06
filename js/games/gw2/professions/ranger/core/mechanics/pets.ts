@@ -2,17 +2,17 @@ import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mech
 import { selectedSkillIdSet } from '#gw2/platform/builds/selected-skills.js';
 import { gw2BoonDurationMultiplier } from '#gw2/platform/combat/boons.js';
 import { STANDARD_TARGET_ARMOR } from '#gw2/platform/combat/formulas.js';
-import { scaleCastBoundTiming } from '#gw2/platform/effects/materializer.js';
 import type { SimulationEventBase } from '#gw2/platform/events/events.js';
 import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
 import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
-import { GW2_ALACRITY_RECHARGE_RATE } from '#gw2/platform/execution/recharge.js';
+import { GW2_ALACRITY_RECHARGE_RATE } from '#gw2/platform/combat/recharge.js';
 import { cancelledBeforeEffectCommit } from '#gw2/platform/execution/cast-effects.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import {
   castWasInterrupted,
   GW2_QUICKNESS_ACTION_RATE,
+  scaleCastBoundTiming,
   summonQuicknessCastTimeMs
 } from '#gw2/platform/execution/cast-timing.js';
 import { gw2CooldownReadyAt, quantizeGw2ActionDurationUp } from '#gw2/platform/combat/action-tick.js';

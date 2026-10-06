@@ -14,7 +14,7 @@ import {
   registerComboField,
   resolveComboAttempt,
   selectComboFieldForFinisher
-} from '#gw2/platform/combos/events.js';
+} from '#gw2/platform/combos/resolution.js';
 import { COMBO_FIELD_TYPES, COMBO_FINISHER_TYPES } from '#gw2/platform/combos/types.js';
 import { professionRegistry } from '#gw2/profession-registry.js';
 import { normalizeEffect } from '#gw2/platform/effects/validation.js';

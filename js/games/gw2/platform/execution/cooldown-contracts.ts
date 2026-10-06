@@ -1,4 +1,4 @@
-import type { RechargeProgress } from '#gw2/platform/execution/recharge.js';
+import type { RechargeProgress } from '#gw2/platform/combat/recharge.js';
 import type { Skill, SkillId } from '#gw2/platform/skills/types.js';
 
 /** Cooldown and ammo contracts: execution/cooldowns.ts privately owns the state; consumers use these views. */

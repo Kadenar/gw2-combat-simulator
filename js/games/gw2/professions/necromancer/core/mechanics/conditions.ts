@@ -1,6 +1,6 @@
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import { effectFirstAtMs } from '#gw2/platform/effects/authoring.js';
-import { scaleCastBoundTiming } from '#gw2/platform/effects/materializer.js';
+import { scaleCastBoundTiming } from '#gw2/platform/execution/cast-timing.js';
 import { effectNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import type { SkillEffect } from '#gw2/platform/effects/types.js';
 import type { SkillId } from '#gw2/platform/skills/types.js';

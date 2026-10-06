@@ -1,17 +1,13 @@
 /**
- * Canonical level-80 ascended/legendary PvE weapon-strength profiles, their ID and weapon-name lookups, sampling, and
- * the per-event choice of which profile a strike uses.
+ * Canonical level-80 ascended/legendary PvE weapon-strength profiles, their ID and weapon-name lookups, and sampling.
+ * It has no runtime imports, so event and effect validation can check profile IDs without loading loadout or ownership
+ * code; choosing a packet's profile belongs to resolver/weapon-strength-resolution.ts.
  *
  * Bounds are the only stored source data. Midpoints and half-ranges are always derived so every consumer stays
  * consistent with the sampled ranges.
  */
 
-import type { SimulationEventBase } from '#gw2/platform/events/events.js';
-import type { Skill } from '#gw2/platform/skills/types.js';
-import { isGw2NonWeaponEffectEvent } from '#gw2/platform/combat/state/event-ownership.js';
-import type { Gw2Config } from '#gw2/platform/simulation/config.js';
 import type { Gw2WeaponStrengthProfile } from '#gw2/platform/equipment/weapons/types.js';
-import { gw2ActivePrimaryWeapon } from '#gw2/platform/equipment/weapons/loadout.js';
 
 const PROFILE_ROWS: ReadonlyArray<readonly [string, number, number]> = Object.freeze([
   ['weapon.axe', 900, 1100],
@@ -127,61 +123,4 @@ export function sampleWeaponStrength(profile: Gw2WeaponStrengthProfile, unitInte
   }
 
   return profile.min + sample * (profile.max - profile.min);
-}
-
-interface WeaponStrengthProfileContext {
-  readonly skill?: Skill | null;
-  readonly activeWeaponSet?: number;
-  readonly config?: Gw2Config;
-}
-
-/**
- * Selects a profile from canonical metadata and the active weapon set without receiving runtime state. This function is
- * intended to run while an activation is being scheduled, before a delayed
- * packet can observe a later weapon or transform state.
- */
-export function weaponStrengthProfileIdForEvent(
-  event: SimulationEventBase,
-  { skill = null, activeWeaponSet = 1, config = {} }: WeaponStrengthProfileContext = {}
-): string | null {
-  if (event.weaponStrengthProfileId != null) {
-    return weaponStrengthProfile(event.weaponStrengthProfileId).id;
-  }
-
-  // Explicit effect profiles own transformations; names below describe equipped weapons only.
-  for (const candidate of [event.weapon, event.skillWeapon]) {
-    const profile = weaponStrengthProfileForName(candidate);
-    if (profile) return profile.id;
-  }
-
-  if (event.weaponStrengthSource === 'equipped') {
-    const activeSet = activeWeaponSet === 2 ? 2 : 1;
-    const configured = gw2ActivePrimaryWeapon(config, activeSet);
-    const profile = weaponStrengthProfileForName(configured);
-    if (profile) return profile.id;
-  }
-
-  if (isGw2NonWeaponEffectEvent(event)) {
-    return 'nonweapon.unequipped';
-  }
-
-  for (const candidate of [skill?.weapon, skill?.skillWeapon]) {
-    const profile = weaponStrengthProfileForName(candidate);
-    if (profile) return profile.id;
-  }
-
-  // Slot skills and system actions are explicitly independent of equipped weapons.
-  if (['Action', 'Heal', 'Utility', 'Elite'].includes(skill?.type || '')) {
-    return 'nonweapon.unequipped';
-  }
-
-  if ((skill?.type || '') === 'Profession') {
-    return 'nonweapon.profession-mechanic';
-  }
-
-  // This final configured-weapon branch only runs in the scheduler, where the
-  // active set still represents activation time.
-  const activeSet = activeWeaponSet === 2 ? 2 : 1;
-  const configured = gw2ActivePrimaryWeapon(config, activeSet);
-  return weaponStrengthProfileForName(configured)?.id || null;
 }

@@ -3,7 +3,8 @@ import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-h
 import { timedEffectState } from '#gw2/platform/combat/effect-state.js';
 import { BLIGHT_MAXIMUM_STACKS } from '#gw2/professions/necromancer/specializations/harbinger/state.js';
 import { isHostileTargetEvent } from '#gw2/platform/combat/state/targets.js';
-import { effectFirstAt, scaleCastBoundTiming } from '#gw2/platform/effects/materializer.js';
+import { effectFirstAt } from '#gw2/platform/effects/materializer.js';
+import { scaleCastBoundTiming } from '#gw2/platform/execution/cast-timing.js';
 import type { EffectMetadata, SimulationEvent } from '#gw2/platform/events/events.js';
 import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import type { Skill } from '#gw2/platform/skills/types.js';

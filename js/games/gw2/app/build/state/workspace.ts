@@ -3,7 +3,7 @@ import { emptyRotationEditingSession } from '#gw2/app/rotation/editing/state.js'
 import { emptyRotationTimelineSession } from '#gw2/app/rotation/timeline/state.js';
 import { emptyRotationComparisonSession } from '#gw2/app/rotation/comparison-state.js';
 import { emptyResultViewState } from '#gw2/app/results/state.js';
-import { SelectedSkillMigrationError } from '#gw2/platform/builds/selected-skills.js';
+import { SelectedSkillMigrationError } from '#gw2/platform/builds/codec.js';
 import { createDefaultBuild, loadBuild, replaceBuild } from '#gw2/app/build/state/persistence.js';
 import type { Gw2AppAdapter, ProfessionAppState } from '#gw2/app/types.js';
 import type { Gw2CanonicalBuild } from '#gw2/platform/builds/types.js';

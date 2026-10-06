@@ -168,7 +168,14 @@ test('commit mode writes simulated DPS and APM to matching manifest entries', as
         build: 'data/gw2/builds/mesmer/power.json',
         rotation: 'data/gw2/rotations/mesmer/power.json',
         dps: 40_123.5,
-        apm: 42.36
+        apm: 42.36,
+        dpsByHealth: {
+          '100-80': { cumulative: 45000.6, phase: 45000.6 },
+          '80-60': { cumulative: 42500.8, phase: 40000.2 },
+          '60-40': { cumulative: 28000, phase: 0 },
+          '40-20': { cumulative: null, phase: null },
+          '20-0': { cumulative: 40123.5, phase: 40123.5 }
+        }
       }
     ],
     root
@@ -177,6 +184,13 @@ test('commit mode writes simulated DPS and APM to matching manifest entries', as
 
   assert.equal(section.presets[0].benchmarkDps, 40_124);
   assert.equal(section.presets[0].benchmarkApm, 42.4);
+  assert.deepEqual(section.presets[0].benchmarkDpsByHealth, {
+    '100-80': { cumulative: 45001, phase: 45001 },
+    '80-60': { cumulative: 42501, phase: 40000 },
+    '60-40': { cumulative: 28000, phase: 0 },
+    '40-20': { cumulative: null, phase: null },
+    '20-0': { cumulative: 40124, phase: 40124 }
+  });
   assert.equal(section.presets[1].benchmarkDps, 30_000);
   assert.equal(section.presets[1].benchmarkApm, undefined);
   assert.deepEqual(update, {
@@ -199,16 +213,35 @@ test('commit mode writes simulated DPS and APM to matching manifest entries', as
     id: 'mesmer|Chronomancer|Power',
     profession: 'mesmer',
     section: 'Chronomancer',
-    dps: 40124
+    dps: 40124,
+    dpsByHealth: section.presets[0].benchmarkDpsByHealth
   };
   for (const apm of [undefined, null, NaN, Infinity, -1]) {
     await assert.rejects(updateManifestBenchmarks([{ ...metric, apm }], root), /invalid APM/);
     assert.equal(await readFile(manifestPath, 'utf8'), saved);
   }
-  
+
+  for (const dpsByHealth of [
+    undefined,
+    {},
+    { ...metric.dpsByHealth, '100-80': -1 },
+    { ...metric.dpsByHealth, '20-0': undefined },
+    { ...metric.dpsByHealth, '80-60': { cumulative: Infinity, phase: 40000 } },
+    { ...metric.dpsByHealth, '80-60': { cumulative: 42501, phase: -1 } },
+    { ...metric.dpsByHealth, '80-60': { cumulative: 42501 } }
+  ]) {
+    await assert.rejects(updateManifestBenchmarks([{ ...metric, apm: 42.4, dpsByHealth }], root), /invalid/);
+    assert.equal(await readFile(manifestPath, 'utf8'), saved);
+  }
+
   // A zero-input execution is valid; changing APM alone still counts as a changed benchmark.
   const apmOnly = await updateManifestBenchmarks([{ ...metric, apm: 0 }], root);
   assert.equal(apmOnly.changedEntries, 1);
   assert.equal(JSON.parse(await readFile(manifestPath, 'utf8'))[0].presets[0].benchmarkApm, 0);
   assert.equal((await updateManifestBenchmarks([{ ...metric, apm: 0 }], root)).changedEntries, 0);
+  const bandOnly = await updateManifestBenchmarks(
+    [{ ...metric, apm: 0, dpsByHealth: { ...metric.dpsByHealth, '40-20': { cumulative: 41000, phase: 42000 } } }],
+    root
+  );
+  assert.equal(bandOnly.changedEntries, 1);
 });

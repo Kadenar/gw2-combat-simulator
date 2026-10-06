@@ -5,7 +5,8 @@ import { EPSILON } from '#kernel/core/clock.js';
  * Owns Primordial Stance's scheduled pulses against the live Weaver attunement pair.
  * Skill packet templates remain in `skills/slot-skills.ts`.
  */
-import { materializeSkillEffectApplications, scaleCastBoundTiming } from '#gw2/platform/effects/materializer.js';
+import { materializeSkillEffectApplications } from '#gw2/platform/effects/materializer.js';
+import { scaleCastBoundTiming } from '#gw2/platform/execution/cast-timing.js';
 import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
 import { requireBalanceProfileFromContext, requireEffect } from '#gw2/platform/skills/balance-profiles.js';
 import type { Skill } from '#gw2/platform/skills/types.js';

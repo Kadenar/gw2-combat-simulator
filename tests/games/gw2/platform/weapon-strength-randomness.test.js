@@ -3,7 +3,10 @@ import test from 'node:test';
 
 import { createCanonicalCatalog } from '#gw2/platform/skills/catalog.js';
 import { defineTestProfession } from '#tests/helpers/profession.js';
-import { resolvedWeaponStrength } from '#gw2/platform/resolver/weapon-strength-resolution.js';
+import {
+  resolvedWeaponStrength,
+  weaponStrengthProfileIdForEvent
+} from '#gw2/platform/resolver/weapon-strength-resolution.js';
 import { createSimulationRandom } from '#kernel/core/simulation-random.js';
 import { WEAPON_DATA } from '#gw2/platform/equipment/weapons/data.js';
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
@@ -15,8 +18,7 @@ import {
   sampleWeaponStrength,
   weaponStrengthMidpoint,
   weaponStrengthProfile,
-  weaponStrengthProfileForName,
-  weaponStrengthProfileIdForEvent
+  weaponStrengthProfileForName
 } from '#gw2/platform/equipment/weapons/strength.js';
 
 const EXPECTED_PROFILES = Object.freeze({

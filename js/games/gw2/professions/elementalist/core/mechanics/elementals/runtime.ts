@@ -29,7 +29,7 @@ import { selectedSkillIdSet } from '#gw2/platform/builds/selected-skills.js';
 import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
 import { denyCast, retryCast, selectedSlotSkillAvailability } from '#gw2/platform/execution/availability.js';
 import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
-import { GW2_ALACRITY_RECHARGE_RATE } from '#gw2/platform/execution/recharge.js';
+import { GW2_ALACRITY_RECHARGE_RATE } from '#gw2/platform/combat/recharge.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
 import type { AvailabilityResult } from '#gw2/platform/execution/availability.js';
 import {

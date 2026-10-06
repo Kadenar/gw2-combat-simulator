@@ -1,4 +1,3 @@
-import { SelectedSkillMigrationError } from '#gw2/platform/builds/selected-skills.js';
 import { normalizeRotation, validateRotationCommand } from '#gw2/platform/execution/rotation.js';
 import { FOOD_NAMES } from '#gw2/platform/equipment/consumables/food.js';
 import { GEAR_SLOTS } from '#gw2/platform/equipment/gear/slots.js';
@@ -484,6 +483,12 @@ function selectableSlotSkill(
     (!skill.specialization || selectedSpecializations?.has(skill.specialization))
   );
 }
+
+/**
+ * A failed persisted selection must remain recoverable instead of being replaced with defaults. The codec throws it while
+ * normalizing saved selected skills; application persistence rethrows it rather than falling back to a default build.
+ */
+export class SelectedSkillMigrationError extends TypeError {}
 
 /** Resolve the explicitly supported old persistence field once, then discard names from the canonical build. */
 function migrateLegacySelectedSkills(saved: UnvalidatedBuildRecord, catalog: CanonicalCatalog): void {

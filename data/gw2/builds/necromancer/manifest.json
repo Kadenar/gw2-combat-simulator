@@ -9,7 +9,29 @@
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/necromancer/condition-scourge-scepter-torch-pistol",
         "benchmarkDps": 39770,
         "upToDate": true,
-        "benchmarkApm": 75.1
+        "benchmarkApm": 75.1,
+        "benchmarkDpsByHealth": {
+          "100-80": {
+            "cumulative": 38107,
+            "phase": 38107
+          },
+          "80-60": {
+            "cumulative": 39012,
+            "phase": 39963
+          },
+          "60-40": {
+            "cumulative": 38542,
+            "phase": 37618
+          },
+          "40-20": {
+            "cumulative": 40270,
+            "phase": 46497
+          },
+          "20-0": {
+            "cumulative": 39770,
+            "phase": 39770
+          }
+        }
       },
       {
         "label": "Condition Alacrity (Pistol / Torch + Scepter / Torch)",
@@ -17,7 +39,30 @@
         "rotation": "data/gw2/rotations/necromancer/r-condi-alac-scourge-bench.json",
         "benchmarkDps": 29960,
         "upToDate": true,
-        "benchmarkApm": 79.7
+        "snowCrowsUrl": "https://snowcrows.com/builds/raids/necromancer/condition-alacrity-scourge-scepter-torch-pistol",
+        "benchmarkApm": 79.7,
+        "benchmarkDpsByHealth": {
+          "100-80": {
+            "cumulative": 29595,
+            "phase": 29595
+          },
+          "80-60": {
+            "cumulative": 29303,
+            "phase": 29021
+          },
+          "60-40": {
+            "cumulative": 30092,
+            "phase": 31899
+          },
+          "40-20": {
+            "cumulative": 29385,
+            "phase": 27461
+          },
+          "20-0": {
+            "cumulative": 29960,
+            "phase": 29960
+          }
+        }
       }
     ]
   },
@@ -31,7 +76,29 @@
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/necromancer/power-reaper-greatsword-spear",
         "benchmarkDps": 42824,
         "upToDate": true,
-        "benchmarkApm": 60.5
+        "benchmarkApm": 60.5,
+        "benchmarkDpsByHealth": {
+          "100-80": {
+            "cumulative": 40408,
+            "phase": 40408
+          },
+          "80-60": {
+            "cumulative": 38641,
+            "phase": 37022
+          },
+          "60-40": {
+            "cumulative": 39822,
+            "phase": 42414
+          },
+          "40-20": {
+            "cumulative": 41269,
+            "phase": 46344
+          },
+          "20-0": {
+            "cumulative": 42824,
+            "phase": 49611
+          }
+        }
       },
       {
         "label": "Condition (Dagger / Sword + Spear)",
@@ -40,7 +107,29 @@
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/necromancer/condition-reaper-spear-dagger-sword",
         "benchmarkDps": 43599,
         "upToDate": true,
-        "benchmarkApm": 84.3
+        "benchmarkApm": 84.3,
+        "benchmarkDpsByHealth": {
+          "100-80": {
+            "cumulative": 44636,
+            "phase": 44636
+          },
+          "80-60": {
+            "cumulative": 43456,
+            "phase": 42314
+          },
+          "60-40": {
+            "cumulative": 42144,
+            "phase": 39790
+          },
+          "40-20": {
+            "cumulative": 44317,
+            "phase": 52573
+          },
+          "20-0": {
+            "cumulative": 43599,
+            "phase": 43599
+          }
+        }
       },
       {
         "label": "Condition (Fields - Pistol / Torch + Greatsword)",
@@ -48,7 +137,29 @@
         "rotation": "data/gw2/rotations/necromancer/r-condi-fields-reaper-bench.json",
         "benchmarkDps": 51909,
         "upToDate": true,
-        "benchmarkApm": 74.2
+        "benchmarkApm": 74.2,
+        "benchmarkDpsByHealth": {
+          "100-80": {
+            "cumulative": 47939,
+            "phase": 47939
+          },
+          "80-60": {
+            "cumulative": 47266,
+            "phase": 46602
+          },
+          "60-40": {
+            "cumulative": 47903,
+            "phase": 49225
+          },
+          "40-20": {
+            "cumulative": 49954,
+            "phase": 57256
+          },
+          "20-0": {
+            "cumulative": 51909,
+            "phase": 51909
+          }
+        }
       }
     ]
   },
@@ -62,7 +173,29 @@
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/necromancer/power-ritualist-greatsword-spear",
         "benchmarkDps": 42516,
         "upToDate": true,
-        "benchmarkApm": 90.1
+        "benchmarkApm": 90.1,
+        "benchmarkDpsByHealth": {
+          "100-80": {
+            "cumulative": 40979,
+            "phase": 40979
+          },
+          "80-60": {
+            "cumulative": 39025,
+            "phase": 37161
+          },
+          "60-40": {
+            "cumulative": 39976,
+            "phase": 41984
+          },
+          "40-20": {
+            "cumulative": 40887,
+            "phase": 43951
+          },
+          "20-0": {
+            "cumulative": 42516,
+            "phase": 42516
+          }
+        }
       },
       {
         "label": "Power Quickness (Spear / Greatsword)",
@@ -70,7 +203,30 @@
         "rotation": "data/gw2/rotations/necromancer/r-power-quick-ritualist-bench.json",
         "benchmarkDps": 35634,
         "upToDate": true,
-        "benchmarkApm": 87.6
+        "snowCrowsUrl": "https://snowcrows.com/builds/raids/necromancer/power-quickness-ritualist-greatsword-spear",
+        "benchmarkApm": 87.6,
+        "benchmarkDpsByHealth": {
+          "100-80": {
+            "cumulative": 34457,
+            "phase": 34457
+          },
+          "80-60": {
+            "cumulative": 32485,
+            "phase": 30722
+          },
+          "60-40": {
+            "cumulative": 33429,
+            "phase": 35493
+          },
+          "40-20": {
+            "cumulative": 34803,
+            "phase": 39674
+          },
+          "20-0": {
+            "cumulative": 35634,
+            "phase": 35634
+          }
+        }
       }
     ]
   },
@@ -84,7 +240,29 @@
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/necromancer/power-harbinger-greatsword-spear",
         "benchmarkDps": 43086,
         "upToDate": true,
-        "benchmarkApm": 74.6
+        "benchmarkApm": 74.6,
+        "benchmarkDpsByHealth": {
+          "100-80": {
+            "cumulative": 40228,
+            "phase": 40228
+          },
+          "80-60": {
+            "cumulative": 39598,
+            "phase": 39008
+          },
+          "60-40": {
+            "cumulative": 39107,
+            "phase": 38126
+          },
+          "40-20": {
+            "cumulative": 41641,
+            "phase": 52118
+          },
+          "20-0": {
+            "cumulative": 43086,
+            "phase": 43086
+          }
+        }
       },
       {
         "label": "Condition Quickness (Pistol / Dagger + Scepter / Torch)",
@@ -93,7 +271,29 @@
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/necromancer/condition-quickness-harbinger-pistol-dagger-scepter-torch",
         "benchmarkDps": 36248,
         "upToDate": true,
-        "benchmarkApm": 69.7
+        "benchmarkApm": 69.7,
+        "benchmarkDpsByHealth": {
+          "100-80": {
+            "cumulative": 36123,
+            "phase": 36123
+          },
+          "80-60": {
+            "cumulative": 36154,
+            "phase": 36185
+          },
+          "60-40": {
+            "cumulative": 36797,
+            "phase": 38145
+          },
+          "40-20": {
+            "cumulative": 36324,
+            "phase": 34986
+          },
+          "20-0": {
+            "cumulative": 36248,
+            "phase": 36248
+          }
+        }
       },
       {
         "label": "Condition (Pistol / Torch + Scepter / Dagger)",
@@ -102,7 +302,29 @@
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/necromancer/condition-harbinger-pistol-torch-scepter-dagger",
         "benchmarkDps": 44667,
         "upToDate": true,
-        "benchmarkApm": 69.8
+        "benchmarkApm": 69.8,
+        "benchmarkDpsByHealth": {
+          "100-80": {
+            "cumulative": 42050,
+            "phase": 42050
+          },
+          "80-60": {
+            "cumulative": 43940,
+            "phase": 45935
+          },
+          "60-40": {
+            "cumulative": 43667,
+            "phase": 43104
+          },
+          "40-20": {
+            "cumulative": 44356,
+            "phase": 46586
+          },
+          "20-0": {
+            "cumulative": 44667,
+            "phase": 44667
+          }
+        }
       },
       {
         "label": "Condition (Dagger / Dagger + Pistol / Torch)",
@@ -110,7 +332,29 @@
         "rotation": "data/gw2/rotations/necromancer/r-condi-harbinger-dagger-dagger-pistol-torch-bench.json",
         "benchmarkDps": 44565,
         "upToDate": true,
-        "benchmarkApm": 69.8
+        "benchmarkApm": 69.8,
+        "benchmarkDpsByHealth": {
+          "100-80": {
+            "cumulative": 42915,
+            "phase": 42915
+          },
+          "80-60": {
+            "cumulative": 45126,
+            "phase": 47597
+          },
+          "60-40": {
+            "cumulative": 44131,
+            "phase": 42145
+          },
+          "40-20": {
+            "cumulative": 44445,
+            "phase": 45390
+          },
+          "20-0": {
+            "cumulative": 44565,
+            "phase": 44565
+          }
+        }
       }
     ]
   }

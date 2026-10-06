@@ -159,7 +159,7 @@ header h1 {
 /* The profession control leads a flat tool strip; the accent underline marks the current view. */
 .simulator-view-tabs {
   display: grid;
-  grid-template-columns: auto repeat(3, auto);
+  grid-template-columns: auto repeat(4, auto);
   align-items: center;
   gap: 0 4px;
   max-width: 100%;
@@ -303,7 +303,7 @@ a.simulator-view-tab:focus-visible {
 
 @media (max-width: 600px) {
   .simulator-view-tabs {
-    grid-template-columns: repeat(3, auto);
+    grid-template-columns: repeat(2, minmax(0, 1fr));
     width: 100%;
   }
 

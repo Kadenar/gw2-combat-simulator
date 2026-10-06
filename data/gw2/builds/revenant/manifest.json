@@ -9,7 +9,29 @@
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/revenant/power-renegade-greatsword-sword-sword",
         "benchmarkDps": 43843,
         "upToDate": true,
-        "benchmarkApm": 54.9
+        "benchmarkApm": 54.9,
+        "benchmarkDpsByHealth": {
+          "100-80": {
+            "cumulative": 56685,
+            "phase": 56685
+          },
+          "80-60": {
+            "cumulative": 45484,
+            "phase": 37873
+          },
+          "60-40": {
+            "cumulative": 44124,
+            "phase": 41641
+          },
+          "40-20": {
+            "cumulative": 43878,
+            "phase": 43165
+          },
+          "20-0": {
+            "cumulative": 43843,
+            "phase": 43843
+          }
+        }
       },
       {
         "label": "Power Renegade (Hammer)",
@@ -18,7 +40,29 @@
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/revenant/power-renegade-hammer-sword-sword",
         "benchmarkDps": 48767,
         "upToDate": true,
-        "benchmarkApm": 48.9
+        "benchmarkApm": 48.9,
+        "benchmarkDpsByHealth": {
+          "100-80": {
+            "cumulative": 59014,
+            "phase": 59014
+          },
+          "80-60": {
+            "cumulative": 49888,
+            "phase": 43258
+          },
+          "60-40": {
+            "cumulative": 48285,
+            "phase": 45309
+          },
+          "40-20": {
+            "cumulative": 48424,
+            "phase": 48850
+          },
+          "20-0": {
+            "cumulative": 48767,
+            "phase": 50201
+          }
+        }
       },
       {
         "label": "Power Alacrity (Sword/Sword)",
@@ -27,7 +71,29 @@
         "rotation": "data/gw2/rotations/revenant/r-power-alac-renegade-sword-sword-bench.json",
         "benchmarkDps": 34463,
         "upToDate": true,
-        "benchmarkApm": 42.1
+        "benchmarkApm": 42.1,
+        "benchmarkDpsByHealth": {
+          "100-80": {
+            "cumulative": 39418,
+            "phase": 39418
+          },
+          "80-60": {
+            "cumulative": 34073,
+            "phase": 29953
+          },
+          "60-40": {
+            "cumulative": 33667,
+            "phase": 32890
+          },
+          "40-20": {
+            "cumulative": 33776,
+            "phase": 34110
+          },
+          "20-0": {
+            "cumulative": 34463,
+            "phase": 37530
+          }
+        }
       },
       {
         "label": "Condition (Shortbow - Mace/Axe)",
@@ -36,7 +102,29 @@
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/revenant/condition-renegade-shortbow-mace-axe",
         "benchmarkDps": 41073,
         "upToDate": true,
-        "benchmarkApm": 69.5
+        "benchmarkApm": 69.5,
+        "benchmarkDpsByHealth": {
+          "100-80": {
+            "cumulative": 39097,
+            "phase": 39097
+          },
+          "80-60": {
+            "cumulative": 40225,
+            "phase": 41473
+          },
+          "60-40": {
+            "cumulative": 40877,
+            "phase": 42301
+          },
+          "40-20": {
+            "cumulative": 41176,
+            "phase": 42062
+          },
+          "20-0": {
+            "cumulative": 41073,
+            "phase": 41073
+          }
+        }
       },
       {
         "label": "Condition (Mace/Axe - Spear)",
@@ -45,7 +133,29 @@
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/revenant/condition-renegade-spear-mace-axe",
         "benchmarkDps": 41467,
         "upToDate": true,
-        "benchmarkApm": 68.6
+        "benchmarkApm": 68.6,
+        "benchmarkDpsByHealth": {
+          "100-80": {
+            "cumulative": 40289,
+            "phase": 40289
+          },
+          "80-60": {
+            "cumulative": 41593,
+            "phase": 42965
+          },
+          "60-40": {
+            "cumulative": 41451,
+            "phase": 41159
+          },
+          "40-20": {
+            "cumulative": 41550,
+            "phase": 41851
+          },
+          "20-0": {
+            "cumulative": 41467,
+            "phase": 41134
+          }
+        }
       }
     ]
   },
@@ -59,7 +169,29 @@
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/revenant/power-quickness-herald-greatsword-sword-sword",
         "benchmarkDps": 31990,
         "upToDate": true,
-        "benchmarkApm": 77.8
+        "benchmarkApm": 77.8,
+        "benchmarkDpsByHealth": {
+          "100-80": {
+            "cumulative": 36918,
+            "phase": 36918
+          },
+          "80-60": {
+            "cumulative": 31630,
+            "phase": 27633
+          },
+          "60-40": {
+            "cumulative": 31802,
+            "phase": 32151
+          },
+          "40-20": {
+            "cumulative": 31795,
+            "phase": 31776
+          },
+          "20-0": {
+            "cumulative": 31990,
+            "phase": 31990
+          }
+        }
       },
       {
         "label": "Condition Quickness (Shortbow - Mace/Axe)",
@@ -68,7 +200,29 @@
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/revenant/condition-quickness-herald-shortbow-mace-axe",
         "benchmarkDps": 31830,
         "upToDate": true,
-        "benchmarkApm": 88.5
+        "benchmarkApm": 88.5,
+        "benchmarkDpsByHealth": {
+          "100-80": {
+            "cumulative": 29562,
+            "phase": 29562
+          },
+          "80-60": {
+            "cumulative": 30511,
+            "phase": 31538
+          },
+          "60-40": {
+            "cumulative": 31408,
+            "phase": 33345
+          },
+          "40-20": {
+            "cumulative": 31476,
+            "phase": 31687
+          },
+          "20-0": {
+            "cumulative": 31830,
+            "phase": 31830
+          }
+        }
       }
     ]
   },
@@ -82,7 +236,29 @@
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/revenant/power-vindicator-greatsword-sword-sword",
         "benchmarkDps": 43666,
         "upToDate": true,
-        "benchmarkApm": 66.8
+        "benchmarkApm": 66.8,
+        "benchmarkDpsByHealth": {
+          "100-80": {
+            "cumulative": 58193,
+            "phase": 58193
+          },
+          "80-60": {
+            "cumulative": 44149,
+            "phase": 35235
+          },
+          "60-40": {
+            "cumulative": 42888,
+            "phase": 40562
+          },
+          "40-20": {
+            "cumulative": 43484,
+            "phase": 45364
+          },
+          "20-0": {
+            "cumulative": 43666,
+            "phase": 44402
+          }
+        }
       },
       {
         "label": "Power (Greatsword - Sword/Sword - Hydro)",
@@ -90,7 +266,29 @@
         "rotation": "data/gw2/rotations/revenant/r-power-vindicator-greatsword-hydro-bench.json",
         "benchmarkDps": 42714,
         "upToDate": true,
-        "benchmarkApm": 65.1
+        "benchmarkApm": 65.1,
+        "benchmarkDpsByHealth": {
+          "100-80": {
+            "cumulative": 56754,
+            "phase": 56754
+          },
+          "80-60": {
+            "cumulative": 43728,
+            "phase": 35626
+          },
+          "60-40": {
+            "cumulative": 41444,
+            "phase": 37284
+          },
+          "40-20": {
+            "cumulative": 40558,
+            "phase": 38111
+          },
+          "20-0": {
+            "cumulative": 42714,
+            "phase": 53855
+          }
+        }
       }
     ]
   },
@@ -104,7 +302,29 @@
         "rotation": "data/gw2/rotations/revenant/r-power-conduit-bench.json",
         "benchmarkDps": 42392,
         "upToDate": true,
-        "benchmarkApm": 83.1
+        "benchmarkApm": 83.1,
+        "benchmarkDpsByHealth": {
+          "100-80": {
+            "cumulative": 47282,
+            "phase": 47282
+          },
+          "80-60": {
+            "cumulative": 42493,
+            "phase": 38582
+          },
+          "60-40": {
+            "cumulative": 40692,
+            "phase": 37484
+          },
+          "40-20": {
+            "cumulative": 41798,
+            "phase": 45479
+          },
+          "20-0": {
+            "cumulative": 42392,
+            "phase": 42392
+          }
+        }
       },
       {
         "label": "Condition (Spear - Mace/Axe) - Mistfire",
@@ -113,7 +333,29 @@
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/revenant/condition-conduit-mistfire-spear-mace-axe",
         "benchmarkDps": 39539,
         "upToDate": true,
-        "benchmarkApm": 94
+        "benchmarkApm": 94,
+        "benchmarkDpsByHealth": {
+          "100-80": {
+            "cumulative": 38491,
+            "phase": 38491
+          },
+          "80-60": {
+            "cumulative": 39342,
+            "phase": 40236
+          },
+          "60-40": {
+            "cumulative": 39263,
+            "phase": 39101
+          },
+          "40-20": {
+            "cumulative": 39792,
+            "phase": 41467
+          },
+          "20-0": {
+            "cumulative": 39539,
+            "phase": 39539
+          }
+        }
       }
     ]
   }

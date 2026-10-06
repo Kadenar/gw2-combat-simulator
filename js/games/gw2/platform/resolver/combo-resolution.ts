@@ -1,5 +1,5 @@
 import { materializeComboOutcome } from '#gw2/platform/combos/definitions.js';
-import { registerComboField, resolveComboAttempt } from '#gw2/platform/combos/events.js';
+import { registerComboField, resolveComboAttempt } from '#gw2/platform/combos/resolution.js';
 
 import type { ComboFieldEvent, ComboFinisherEvent } from '#gw2/platform/combos/types.js';
 import type {

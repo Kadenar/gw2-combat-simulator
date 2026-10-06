@@ -19,6 +19,11 @@ async function mountProfession(contentId: string, root: Document): Promise<Profe
   globalScope.professionApp = app;
   if (adapter.globalName) globalScope[adapter.globalName] = app;
   await app.init();
+  if (new URLSearchParams(root.defaultView?.location.search).has('benchmark')) {
+    const { openBenchmarkWorkspace } = await import('#gw2/app/page/benchmark-workspace.js');
+    await openBenchmarkWorkspace(app, root);
+  }
+
   root.getElementById('app')?.removeAttribute('inert');
   return app;
 }
