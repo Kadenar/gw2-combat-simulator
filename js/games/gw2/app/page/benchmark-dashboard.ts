@@ -32,16 +32,15 @@ export function mountBenchmarks(root: HTMLElement): void {
     <div class="benchmark-view-switch" role="group" aria-label="Build benchmark view"><button type="button" data-build-view="cards" aria-pressed="true">Cards</button><button type="button" data-build-view="table" aria-pressed="false">Table</button></div>
   </div>
   <div class="benchmark-dashboard">
-    <aside class="benchmark-sidebar" aria-label="Benchmark filters">
-      <div class="filter-heading"><h2>Professions</h2><button type="button" data-reset-filters>Reset</button></div>
+    <section class="benchmark-filters" aria-label="Benchmark filters">
+      <div class="filter-heading"><button type="button" data-reset-filters>Reset</button></div>
       <label class="filter-field" for="benchmark-search"><span>Search benchmarks</span><svg class="benchmark-search-icon" viewBox="0 0 20 20" aria-hidden="true"><circle cx="8" cy="8" r="5.5"/><path d="m12 12 5 5"/></svg><input id="benchmark-search" type="search" placeholder="Search builds…" autocomplete="off"></label>
-      <fieldset class="profession-filters"><legend>Include professions</legend><div data-profession-filters></div></fieldset>
       <label class="filter-field" for="benchmark-damage"><span class="benchmark-filter-label">Damage type</span><select id="benchmark-damage"><option value="all">All</option><option value="power">Power</option><option value="condi">Condition</option></select></label>
       <label class="filter-field" for="benchmark-role"><span class="benchmark-filter-label">Boon role</span><select id="benchmark-role"><option value="all">All</option><option value="none">DPS</option><option value="quickness">Quickness</option><option value="alacrity">Alacrity</option></select></label>
       <label class="outdated-filter"><input type="checkbox" id="benchmark-outdated">Include outdated</label>
-      <div class="benchmark-profession-tabs" role="group" aria-label="Overview professions"><button type="button" data-overview-profession="all" aria-pressed="true">All professions</button>${professionRegistry.map((entry) => `<button type="button" class="profession-card-${entry.id}" data-overview-profession="${entry.id}" aria-pressed="false"><span class="profession-dot" aria-hidden="true"></span>${entry.name}</button>`).join('')}</div>
+      <div class="benchmark-profession-tabs" role="group" aria-label="Benchmark professions"><button type="button" data-benchmark-profession="all" aria-pressed="true">All professions<span class="benchmark-profession-check" aria-hidden="true">&#10003;</span></button>${professionRegistry.map((entry) => `<button type="button" class="profession-card-${entry.id}" data-benchmark-profession="${entry.id}" aria-pressed="true"><span class="profession-dot" aria-hidden="true"></span>${entry.name}<span class="benchmark-profession-check" aria-hidden="true">&#10003;</span></button>`).join('')}</div>
       <label class="benchmark-sort benchmark-overview-sort"><span class="benchmark-filter-label">Sort by</span><select id="benchmark-sort"><option value="name">Profession</option><option value="dps">Highest DPS</option><option value="apm">Lowest APM</option></select></label>
-    </aside>
+    </section>
     <div class="benchmark-main">
       <section data-chart-panel="apm" aria-label="DPS vs APM" hidden>
         <div data-apm-chart></div>
@@ -51,7 +50,7 @@ export function mountBenchmarks(root: HTMLElement): void {
         <div data-health-chart></div>
       </section>
       <section data-chart-panel="profession" aria-label="DPS / APM by Build" hidden>
-        <div class="benchmark-section-heading health-heading"><div class="benchmark-bar-controls"><label class="benchmark-sort">Profession <select data-bar-profession><option value="all">All</option>${professionRegistry.map((entry) => `<option value="${entry.id}">${entry.name}</option>`).join('')}</select></label><label class="benchmark-sort">Specialization <select data-bar-specialization><option value="all">All</option></select></label></div></div>
+        <div class="benchmark-section-heading health-heading"><div class="benchmark-bar-controls"><label class="benchmark-sort">Specialization <select data-bar-specialization><option value="all">All</option></select></label></div></div>
         <div data-bar-chart></div>
       </section>
       <section data-chart-panel="builds" aria-label="Build benchmarks">
@@ -59,7 +58,7 @@ export function mountBenchmarks(root: HTMLElement): void {
         <div class="benchmark-cards" data-benchmark-cards></div>
         <div class="benchmark-overview-table" data-build-table hidden></div>
       </section>
-      <div class="benchmark-status-row"><p role="status" data-benchmark-status>Loading benchmarks…</p><button type="button" data-benchmark-retry hidden>Retry loading</button></div>
+      <div class="benchmark-status-row"><p role="status" data-benchmark-status></p><button type="button" data-benchmark-retry hidden>Retry loading</button></div>
     </div>
   </div>`;
   const number = new Intl.NumberFormat('en-US', { maximumFractionDigits: 0 });
@@ -105,21 +104,20 @@ export function mountBenchmarks(root: HTMLElement): void {
   let healthSort = 'name';
   let healthAscending = true;
   const healthInteractions = mountHealthInteractions(root.querySelector<HTMLElement>('[data-health-chart]')!);
+  /** Fit the side-by-side comparison below its actual header, including embedded and wrapped layouts. */
+  function fitHealthViewport(): void {
+    const chart = root.querySelector<HTMLElement>('[data-health-chart]')!;
+    if (!pageWindow || !chart.getClientRects().length) return;
+    const top = chart.getBoundingClientRect().top + pageWindow.scrollY;
+    chart.style.setProperty('--health-viewport-height', `${Math.max(440, pageWindow.innerHeight - top - 28)}px`);
+  }
+
+  new ResizeObserver(fitHealthViewport).observe(root);
+  pageWindow?.addEventListener('resize', fitHealthViewport);
   const boonLabel = (row: Benchmark): string => {
     const boon = templateBoon(row);
     return boon === 'none' ? 'DPS' : boon[0]!.toUpperCase() + boon.slice(1);
   };
-
-  /** Native checkboxes keep profession selection keyboard accessible without treating navigation as a filter. */
-  root.querySelector('[data-profession-filters]')!.innerHTML = professionRegistry
-    .map(
-      (entry) => `
-  <label class="profession-filter profession-card-${entry.id}">
-    <input type="checkbox" value="${entry.id}" ${selected.has(entry.id) ? 'checked' : ''}>
-    <span class="profession-dot" aria-hidden="true"></span><span>${entry.name}</span>
-  </label>`
-    )
-    .join('');
 
   /** Overview links open the exact saved build and rotation, sharing the inspector's workspace route. */
   function benchmarkWorkspaceHref(row: Benchmark): string {
@@ -266,8 +264,12 @@ export function mountBenchmarks(root: HTMLElement): void {
       if (url.href !== pageWindow.location.href) pageWindow.history.replaceState(null, '', url);
     }
 
-    root.querySelectorAll<HTMLElement>('button[data-overview-profession]').forEach((button) => {
-      button.setAttribute('aria-pressed', String(button.dataset.overviewProfession === professionScope));
+    root.querySelectorAll<HTMLElement>('button[data-benchmark-profession]').forEach((button) => {
+      const id = button.dataset.benchmarkProfession!;
+      button.setAttribute(
+        'aria-pressed',
+        String(id === 'all' ? selected.size === professionRegistry.length : selected.has(id))
+      );
     });
     if (root.getAttribute('aria-busy') === 'true' && !benchmarks.length) {
       renderLoadingBenchmarks();
@@ -353,7 +355,6 @@ export function mountBenchmarks(root: HTMLElement): void {
     const host = root.querySelector<HTMLElement>('[data-health-chart]')!;
     const seriesKey = (row: Benchmark): string =>
       html(JSON.stringify([row.profession, row.build, row.rotation, row.label]));
-    const tableOpen = host.querySelector<HTMLDetailsElement>('.health-values')?.open ?? false;
     if (!values.length) {
       host.innerHTML = '<p class="benchmark-empty">No completed health bands for matching benchmarks.</p>';
       healthInteractions.refresh();
@@ -407,7 +408,7 @@ export function mountBenchmarks(root: HTMLElement): void {
       <div class="scatter-plot health-plot" aria-label="DPS by target health"><div class="scatter-grid" aria-hidden="true">${axis.ticks.map((tick) => `<i style="top:${100 - heightPercent(tick)}%"></i>`).join('')}</div><svg class="health-lines" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">${lines}</svg>${dots}${inspectionMarkup('data-health-detail')}</div>
       <div class="health-pin-labels" role="group" aria-label="Pinned builds" hidden></div>
       <div class="health-x-axis" style="--health-band-count:${bands.length}">${bands.map((_, index) => `<span>${bandLabel(index)}</span>`).join('')}</div></div></div><p class="health-pin-status" data-health-pin-status role="status"></p>
-      <details class="health-values" ${tableOpen ? 'open' : ''}><summary>DPS values (${series.length} builds)</summary><div class="health-table-scroll"><table>${healthTableMarkup()}</table></div></details>`;
+      <section class="health-values" aria-label="DPS values"><div class="health-table-heading"><h3>DPS values (<span data-health-visible-count>${series.length}</span> builds)</h3><label><input type="checkbox" data-health-pinned-only> Pinned only</label></div><div class="health-table-scroll" tabindex="0" role="region" aria-label="Build DPS values"><table>${healthTableMarkup()}</table></div><p data-health-pinned-empty hidden>No pinned builds.</p></section>`;
     const table = host.querySelector<HTMLTableElement>('.health-values table')!;
     table.addEventListener('click', (event) => {
       const button = (event.target as Element).closest<HTMLButtonElement>('[data-health-sort]');
@@ -563,16 +564,11 @@ export function mountBenchmarks(root: HTMLElement): void {
 
   /** Keep DPS and APM bars in matching build order and colors, with separate zero-based scales and inspection. */
   function renderBarChart(rows: readonly Benchmark[]): void {
-    const select = root.querySelector<HTMLSelectElement>('[data-bar-profession]')!;
-    for (const option of select.options) option.disabled = option.value !== 'all' && !selected.has(option.value);
-    if (select.value !== 'all' && !selected.has(select.value)) select.value = 'all';
     const specialization = root.querySelector<HTMLSelectElement>('[data-bar-specialization]')!;
     const previousSpecialization = specialization.value;
     const specializationKey = (row: Benchmark): string => `${row.profession}:${row.specialization}`;
     // Specialization choices follow the profession scope, while search and role filters only narrow the plotted builds.
-    const professions = professionRegistry.filter(
-      ({ id }) => selected.has(id) && (select.value === 'all' || select.value === id)
-    );
+    const professions = professionRegistry.filter(({ id }) => selected.has(id));
     specialization.innerHTML =
       '<option value="all">All</option>' +
       professions
@@ -583,16 +579,14 @@ export function mountBenchmarks(root: HTMLElement): void {
           const options = names
             .map((name) => `<option value="${html(`${entry.id}:${name}`)}">${html(name)}</option>`)
             .join('');
-          return select.value === 'all' ? `<optgroup label="${entry.name}">${options}</optgroup>` : options;
+          return `<optgroup label="${entry.name}">${options}</optgroup>`;
         })
         .join('');
     specialization.value = [...specialization.options].some((option) => option.value === previousSpecialization)
       ? previousSpecialization
       : 'all';
     const builds = rows.filter(
-      (row) =>
-        (select.value === 'all' || row.profession === select.value) &&
-        (specialization.value === 'all' || specializationKey(row) === specialization.value)
+      (row) => specialization.value === 'all' || specializationKey(row) === specialization.value
     );
     const host = root.querySelector<HTMLElement>('[data-bar-chart]')!;
     if (inspectedBuild && !builds.includes(inspectedBuild)) inspectedBuild = null;
@@ -607,7 +601,7 @@ export function mountBenchmarks(root: HTMLElement): void {
         const scale = metric === 'dps' ? benchmarkScale(builds) : benchmarkApmScale(builds);
         const formatter = metric === 'dps' ? number : apmNumber;
         return `<h3 class="benchmark-bar-heading">${unit} by build</h3><div class="bar-chart-layout" data-bar-metric="${metric}"><div class="scatter-y-axis bar-y-axis"><span>${formatter.format(scale)} ${unit}</span><span>${formatter.format(scale / 2)}</span><span>0</span></div>
-      <div class="bar-chart-frame"><div class="bar-chart-scroll" tabindex="0" role="region" aria-label="${html(select.value === 'all' ? 'All professions' : builds[0]!.professionName)} build ${unit} chart"><div class="benchmark-bars" style="--bar-count:${builds.length}">
+      <div class="bar-chart-frame"><div class="bar-chart-scroll" tabindex="0" role="region" aria-label="${html(selected.size !== 1 ? 'Selected professions' : builds[0]!.professionName)} build ${unit} chart"><div class="benchmark-bars" style="--bar-count:${builds.length}">
       ${builds
         .map((row) => {
           const value = metric === 'dps' ? row.benchmarkDps : hasBenchmarkApm(row) ? row.benchmarkApm : null;
@@ -616,7 +610,7 @@ export function mountBenchmarks(root: HTMLElement): void {
             value === null
               ? '<span class="benchmark-bar-missing">—</span>'
               : `<span class="benchmark-bar-fill"><span class="benchmark-bar-value">${formatter.format(value)}</span></span>`;
-          return `<button type="button" class="benchmark-bar" data-bar-point="${benchmarks.indexOf(row)}" aria-expanded="false" aria-controls="benchmark-build-inspector-${metric}" style="${colorStyle(row)};--bar-height:${value === null ? 0 : (value / scale) * 100}%" aria-label="${html(label)}"><span class="benchmark-bar-column">${bar}</span><span class="benchmark-bar-label"><strong>${html(select.value === 'all' ? `${row.professionName} · ${row.specialization}` : row.specialization)}</strong><span>${html(row.label)}</span></span></button>`;
+          return `<button type="button" class="benchmark-bar" data-bar-point="${benchmarks.indexOf(row)}" aria-expanded="false" aria-controls="benchmark-build-inspector-${metric}" style="${colorStyle(row)};--bar-height:${value === null ? 0 : (value / scale) * 100}%" aria-label="${html(label)}"><span class="benchmark-bar-column">${bar}</span><span class="benchmark-bar-label"><strong>${html(selected.size !== 1 ? `${row.professionName} · ${row.specialization}` : row.specialization)}</strong><span>${html(row.label)}</span></span></button>`;
         })
         .join(
           ''
@@ -729,10 +723,6 @@ export function mountBenchmarks(root: HTMLElement): void {
     if (event.key === 'Escape') closeApmInspector();
   });
 
-  root.querySelector('[data-bar-profession]')!.addEventListener('change', () => {
-    root.querySelector<HTMLSelectElement>('[data-bar-specialization]')!.value = 'all';
-    render();
-  });
   root.querySelector('[data-bar-specialization]')!.addEventListener('change', render);
 
   const barChart = root.querySelector<HTMLElement>('[data-bar-chart]')!;
@@ -881,7 +871,9 @@ export function mountBenchmarks(root: HTMLElement): void {
   async function load(): Promise<void> {
     root.setAttribute('aria-busy', 'true');
     retry.disabled = true;
-    status.textContent = 'Loading profession benchmarks…';
+    // Skeletons show initial progress; aria-busy covers reloads while status text is reserved for failures.
+    status.textContent = '';
+    retry.hidden = true;
     if (!benchmarks.length) render();
     const results = await Promise.allSettled(
       professionRegistry.map(async (entry) => {
@@ -900,21 +892,15 @@ export function mountBenchmarks(root: HTMLElement): void {
     render();
   }
 
-  root.querySelector('[data-profession-filters]')!.addEventListener('change', (event) => {
-    const input = event.target as HTMLInputElement;
-    if (input.checked) selected.add(input.value);
-    else selected.delete(input.value);
-    render();
-  });
-  /** Both overview layouts use the same profession tabs, sharing selection with the chart filters. */
-  function selectOverviewProfession(profession: string): void {
-    selected.clear();
-    professionRegistry.forEach(({ id }) => {
-      if (profession === 'all' || profession === id) selected.add(id);
-    });
-    root.querySelectorAll<HTMLInputElement>('[data-profession-filters] input').forEach((input) => {
-      input.checked = selected.has(input.value);
-    });
+  /** Profession toggles share additive selection across every view; All toggles the entire group. */
+  function toggleProfession(profession: string): void {
+    if (profession === 'all') {
+      const selectAll = selected.size !== professionRegistry.length;
+      selected.clear();
+      if (selectAll) professionRegistry.forEach(({ id }) => selected.add(id));
+    } else if (selected.has(profession)) selected.delete(profession);
+    else selected.add(profession);
+    root.querySelector<HTMLSelectElement>('[data-bar-specialization]')!.value = 'all';
     render();
   }
 
@@ -935,13 +921,10 @@ export function mountBenchmarks(root: HTMLElement): void {
     root.querySelector<HTMLSelectElement>('[data-health-phase]')!.value = 'all';
     healthSort = 'name';
     healthAscending = true;
-    root.querySelector<HTMLSelectElement>('[data-bar-profession]')!.value = 'all';
+    healthInteractions.reset();
     root.querySelector<HTMLSelectElement>('[data-bar-specialization]')!.value = 'all';
     outdated.checked = false;
     professionRegistry.forEach(({ id }) => selected.add(id));
-    root.querySelectorAll<HTMLInputElement>('[data-profession-filters] input').forEach((input) => {
-      input.checked = true;
-    });
     render();
   });
   retry.addEventListener('click', () => {
@@ -950,13 +933,13 @@ export function mountBenchmarks(root: HTMLElement): void {
   // Chart selection stays local to this tool and never overwrites the simulator's view hash.
   function showPanel(name: string): void {
     root.dataset.benchmarkActivePanel = name;
-    search.placeholder = name === 'builds' ? 'Search builds…' : 'Find builds';
     root.querySelectorAll<HTMLElement>('[data-chart-panel]').forEach((panel) => {
       panel.hidden = panel.dataset.chartPanel !== name;
     });
     root.querySelectorAll<HTMLButtonElement>('[data-benchmark-panel]').forEach((button) => {
       button.setAttribute('aria-pressed', String(button.dataset.benchmarkPanel === name));
     });
+    fitHealthViewport();
   }
 
   root.addEventListener('click', (event) => {
@@ -971,9 +954,9 @@ export function mountBenchmarks(root: HTMLElement): void {
       });
     }
 
-    const overviewProfession = target.closest<HTMLButtonElement>('button[data-overview-profession]')?.dataset
-      .overviewProfession;
-    if (overviewProfession) selectOverviewProfession(overviewProfession);
+    const professionToggle = target.closest<HTMLButtonElement>('button[data-benchmark-profession]')?.dataset
+      .benchmarkProfession;
+    if (professionToggle) toggleProfession(professionToggle);
 
     const buildSort = target.closest<HTMLElement>('[data-build-sort]')?.dataset.buildSort;
     if (buildSort) {
@@ -987,11 +970,12 @@ export function mountBenchmarks(root: HTMLElement): void {
     if (panel) showPanel(panel);
     const profession = target.closest<HTMLElement>('[data-profession-bars]')?.dataset.professionBars;
     if (profession) {
-      root.querySelector<HTMLSelectElement>('[data-bar-profession]')!.value = profession;
+      selected.clear();
+      selected.add(profession);
       root.querySelector<HTMLSelectElement>('[data-bar-specialization]')!.value = 'all';
       render();
       showPanel('profession');
-      root.querySelector<HTMLSelectElement>('[data-bar-profession]')!.focus();
+      root.querySelector<HTMLButtonElement>(`[data-benchmark-profession="${profession}"]`)!.focus();
     }
   });
   void load();

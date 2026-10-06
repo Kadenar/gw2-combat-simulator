@@ -181,6 +181,8 @@ export default defineConfig(({ command, mode }) => ({
   appType: 'mpa',
   base: command === 'serve' ? '/' : './',
   publicDir: false,
+  // Browser code uses local ES modules only; skip crawling every profession for npm dependencies to prebundle.
+  optimizeDeps: { noDiscovery: true, include: [] },
   // Keep all local artwork under images, with one alias independent of JavaScript and CSS source depth.
   resolve: {
     alias: {

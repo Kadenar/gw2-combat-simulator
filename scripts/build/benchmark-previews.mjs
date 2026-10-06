@@ -23,8 +23,8 @@ export async function createPreviewGenerator(root) {
   });
   return {
     close: () => runner.close(),
-    async generate() {
-      runner.moduleGraph.invalidateAll();
+    invalidate: () => runner.moduleGraph.invalidateAll(),
+    async generate(requestedPath) {
       const { professionRegistry } = await runner.ssrLoadModule('/js/games/gw2/profession-registry.ts');
       const { readBenchmarks } = await runner.ssrLoadModule('/js/games/gw2/app/page/benchmarks.ts');
       const { createBenchmarkPreview } = await runner.ssrLoadModule(
@@ -35,10 +35,14 @@ export async function createPreviewGenerator(root) {
       );
       const assets = new Map();
       for (const entry of professionRegistry) {
+        // Dev requests load only the requested profession and a manifest-listed build.
+        if (requestedPath && !requestedPath.startsWith(`data/gw2/benchmark-previews/${entry.id}/`)) continue;
         const manifest = JSON.parse(
           await readFile(path.join(root, 'data/gw2/builds', entry.id, 'manifest.json'), 'utf8')
         );
-        const rows = readBenchmarks(entry, manifest);
+        const rows = readBenchmarks(entry, manifest).filter(
+          (row) => !requestedPath || benchmarkPreviewPath(row.build) === requestedPath
+        );
         if (!rows.length) continue;
         const adapter = await entry.loadAppAdapter();
         for (const row of rows) {
@@ -56,7 +60,7 @@ export async function createPreviewGenerator(root) {
   };
 }
 
-/** Publish the same generated JSON in production and dev, rebuilding on preset or source changes. */
+/** Build every production preview, but defer dev generation until a preview is requested. */
 export function benchmarkPreviews() {
   let root;
   let closeGenerator;
@@ -75,37 +79,55 @@ export function benchmarkPreviews() {
         await generator.close();
       }
     },
-    async configureServer(server) {
-      const generator = await createPreviewGenerator(root);
-      let assets;
-      try {
-        assets = await generator.generate();
-      } catch (error) {
-        await generator.close();
-        throw error;
+    configureServer(server) {
+      let generator;
+      const assets = new Map();
+      let generation = 0;
+      let loadedGeneration = 0;
+      let pending = Promise.resolve();
+      let closed = false;
+      let timer;
+
+      // Share concurrent requests and serialize SSR work; retry if an edit overtakes generation.
+      async function preview(pathname) {
+        while (!closed) {
+          const requestedGeneration = generation;
+          let result = assets.get(pathname);
+          if (!result) {
+            result = pending.then(async () => {
+              generator ??= await createPreviewGenerator(root);
+              if (loadedGeneration !== requestedGeneration) {
+                generator.invalidate();
+                loadedGeneration = requestedGeneration;
+              }
+
+              return (await generator.generate(pathname)).get(pathname);
+            });
+            pending = result.catch(() => {});
+            assets.set(pathname, result);
+          }
+
+          try {
+            const source = await result;
+            if (requestedGeneration === generation) return source;
+          } catch (error) {
+            if (requestedGeneration !== generation) continue;
+            if (assets.get(pathname) === result) assets.delete(pathname);
+            throw error;
+          }
+        }
       }
 
-      // Serialize refreshes so an older generation cannot replace a newer source edit.
-      let refresh = Promise.resolve();
-      let generationError;
-      let timer;
       const onChange = (_event, file) => {
         const relative = path.relative(root, file).replaceAll('\\', '/');
         if (!/^(data\/gw2\/builds\/|js\/(games\/gw2|kernel|ui|browser)\/)/.test(relative)) return;
+        // Invalidate immediately, but do no generation until another preview request arrives.
+        generation += 1;
+        assets.clear();
         clearTimeout(timer);
         timer = setTimeout(() => {
-          refresh = refresh.then(async () => {
-            try {
-              assets = await generator.generate();
-              generationError = undefined;
-            } catch (error) {
-              generationError = error;
-              server.config.logger.error(`Benchmark preview generation failed: ${error.message}`);
-            }
-
-            // Reload also clears the browser's promise cache after a saved build changes.
-            server.ws.send({ type: 'full-reload' });
-          });
+          // Reload also clears the browser's promise cache after a saved build changes.
+          server.ws.send({ type: 'full-reload' });
         }, 50);
       };
 
@@ -114,24 +136,30 @@ export function benchmarkPreviews() {
       server.middlewares.use(async (request, response, next) => {
         const pathname = new URL(request.url ?? '/', 'http://local').pathname.slice(1);
         if (!pathname.startsWith('data/gw2/benchmark-previews/')) return next();
-        await refresh;
         response.setHeader('Content-Type', 'application/json; charset=utf-8');
         response.setHeader('Cache-Control', 'no-store');
-        if (generationError) {
-          response.statusCode = 500;
-          return response.end(JSON.stringify({ error: 'Benchmark preview generation failed' }));
+        if (!/^data\/gw2\/benchmark-previews\/[a-z]+\/[a-zA-Z0-9_-]+\.json$/.test(pathname)) {
+          response.statusCode = 404;
+          return response.end(JSON.stringify({ error: 'Benchmark preview unavailable' }));
         }
 
-        const source = assets.get(pathname);
-        response.statusCode = source === undefined ? 404 : 200;
-        response.end(source ?? JSON.stringify({ error: 'Benchmark preview unavailable' }));
+        try {
+          const source = await preview(pathname);
+          response.statusCode = source === undefined ? 404 : 200;
+          response.end(source ?? JSON.stringify({ error: 'Benchmark preview unavailable' }));
+        } catch (error) {
+          server.config.logger.error(`Benchmark preview generation failed: ${error.message}`);
+          response.statusCode = 500;
+          response.end(JSON.stringify({ error: 'Benchmark preview generation failed' }));
+        }
       });
       // Vite closes plugin resources even when used in middleware mode without an HTTP listener.
       closeGenerator = async () => {
+        closed = true;
         clearTimeout(timer);
         server.watcher.off('all', onChange);
-        await refresh;
-        await generator.close();
+        await pending;
+        await generator?.close();
       };
     },
     async closeBundle() {

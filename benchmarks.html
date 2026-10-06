@@ -22,10 +22,21 @@
         <a href="index.html">Simulator</a>
         <a href="benchmarks.html" aria-current="page">Benchmarks</a>
       </nav>
-      <section class="benchmark-page-content" aria-labelledby="benchmark-page-heading">
-        <h2 id="benchmark-page-heading">Benchmarks</h2>
-        <section id="benchmarks-view" aria-label="Benchmarks"><p role="status">Loading benchmarks...</p></section>
-      </section>
+      <div class="benchmark-page-content">
+        <!-- Reserve benchmark rows before the dashboard module arrives, without a duplicate page heading. -->
+        <section id="benchmarks-view" aria-label="Benchmarks">
+          <div class="benchmark-startup-skeleton" role="status" aria-label="Loading benchmarks" aria-busy="true">
+            <div class="benchmark-skeleton" aria-hidden="true">
+              <span class="benchmark-skeleton-bar"></span>
+              <span class="benchmark-skeleton-bar"></span>
+              <span class="benchmark-skeleton-bar"></span>
+              <span class="benchmark-skeleton-bar"></span>
+              <span class="benchmark-skeleton-bar"></span>
+              <span class="benchmark-skeleton-bar"></span>
+            </div>
+          </div>
+        </section>
+      </div>
     </main>
     <script type="module" src="js/games/gw2/app/page/entry.js"></script>
   </body>

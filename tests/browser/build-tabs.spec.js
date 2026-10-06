@@ -529,11 +529,19 @@ test('toolbar adapts to narrow embeds and native menus dismiss with keyboard and
     expect(Math.abs(newButton.y - tab.y)).toBeLessThan(2);
   }
 
-  const nav = await page.locator('.simulator-view-tabs').boundingBox();
-  const firstTab = await page.locator('.build-tab-list').boundingBox();
-  const help = await page.locator('.community-actions').boundingBox();
-  expect(nav.x).toBe(firstTab.x);
-  expect(help.x - (nav.x + nav.width)).toBeGreaterThanOrEqual(24);
+  // Help may wrap with wider system fonts; preserve the header's gap in the actual direction of flow.
+  for (const width of [700, 1100, 1600]) {
+    await page.setViewportSize({ width, height: 844 });
+    const nav = await page.locator('.simulator-view-tabs').boundingBox();
+    const firstTab = await page.locator('.build-tab-list').boundingBox();
+    const help = await page.locator('.community-actions').boundingBox();
+    expect(nav.x).toBe(firstTab.x);
+    const wrapped = help.y >= nav.y + nav.height;
+    if (width === 700) expect(wrapped).toBe(true);
+    if (width === 1600) expect(wrapped).toBe(false);
+    if (wrapped) expect(help.y - (nav.y + nav.height)).toBeGreaterThanOrEqual(8);
+    else expect(help.x - (nav.x + nav.width)).toBeGreaterThanOrEqual(24);
+  }
 });
 
 // Both export buttons accept custom names without losing JSON extensions or cancellation.

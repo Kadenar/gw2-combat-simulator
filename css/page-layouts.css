@@ -107,12 +107,6 @@
   margin-top: 28px;
 }
 
-.benchmark-page-content > h2 {
-  color: var(--text-bright);
-  font-size: 23px;
-  font-weight: 600;
-}
-
 /* The standalone dashboard is page content, without a surrounding panel frame. */
 .benchmark-page #benchmarks-view {
   border: 0;
