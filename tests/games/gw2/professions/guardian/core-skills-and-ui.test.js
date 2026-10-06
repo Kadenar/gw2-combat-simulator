@@ -13,7 +13,7 @@ import { DRAGONHUNTER_BALANCE_PROFILE_IDS } from '#gw2/professions/guardian/spec
 import { FIREBRAND_BALANCE_PROFILE_IDS } from '#gw2/professions/guardian/specializations/firebrand/profiles.js';
 import { LUMINARY_BALANCE_PROFILE_IDS } from '#gw2/professions/guardian/specializations/luminary/profiles.js';
 import { WILLBENDER_BALANCE_PROFILE_IDS } from '#gw2/professions/guardian/specializations/willbender/profiles.js';
-import { createObservedProfessionSimulator } from '#tests/helpers/observed-runtime.js';
+import { createObservedProfessionSimulator, observedRuntime } from '#tests/helpers/observed-runtime.js';
 import { assertFlooredDamageMultiplier } from '#tests/helpers/rounded-damage.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
@@ -392,16 +392,16 @@ test('Justice passive counts individual hits and respects its active cooldown', 
   })(undefined, ['Radiant Justice', 'Whirling Wrath']);
 
   assert.equal(passive.planningState.profession.justicePassiveBurns, 2);
-  assert.equal(passive.planningState.profession.justiceHitCount, 4);
+  assert.equal(observedRuntime(passive).profession.core.justiceHitCount, 4);
   assert.equal(activated.planningState.profession.justiceActiveBurns, 1);
   assert.equal(activated.planningState.profession.justicePassiveBurns, 0);
-  assert.equal(activated.planningState.profession.virtueReadyAt.justice, 16);
+  assert.equal(observedRuntime(activated).profession.core.virtueReadyAt.justice, 16);
   assert.equal(permeating.planningState.profession.justicePassiveBurns, 4);
-  assert.equal(permeating.planningState.profession.justiceHitCount, 2);
+  assert.equal(observedRuntime(permeating).profession.core.justiceHitCount, 2);
   assert.equal(radiantPassive.planningState.profession.justicePassiveBurns, 2);
-  assert.equal(radiantPassive.planningState.profession.justiceHitCount, 4);
+  assert.equal(observedRuntime(radiantPassive).profession.core.justiceHitCount, 4);
   assert.equal(radiantPermeating.planningState.profession.justicePassiveBurns, 4);
-  assert.equal(radiantPermeating.planningState.profession.justiceHitCount, 2);
+  assert.equal(observedRuntime(radiantPermeating).profession.core.justiceHitCount, 2);
   assert.equal(radiantActivated.planningState.profession.justicePassiveBurns, 0);
 });
 

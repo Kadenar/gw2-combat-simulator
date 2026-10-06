@@ -273,16 +273,25 @@ export const THIEF_WEAPONS_DAGGER_SKILL_MECHANICS: Readonly<Record<number, Parti
     requiredOffHand: false
   },
   [ID.CLOAK_AND_DAGGER]: {
-    // The skill owns this transition at successful commitment.
-    sideEffects: [{ on: 'castCommit', do: { type: 'thief.stealth' } }],
+    // Stealth requires the dagger to land and begins before aftercast, allowing other strikes to reveal the thief.
     castTimeMs: 600,
+    interruptCommitMs: 400,
     cooldown: 0,
     initiativeCost: 5,
-    // All companions resolve at cast completion; handlers retain stealth, control, and recipient rules.
-    effects: impactEffects({ atMs: 0, timingAnchor: 'castEnd', timingScale: 'fixed' }, [
-      { type: 'strike', coefficient: 1.6, hits: 1, name: 'Cloak and Dagger', actorType: 'player' },
-      { type: 'buff', kind: 'stealth', duration: 3, stacks: 1 },
-      { type: 'condition', condition: 'Vulnerability', stacks: 5, duration: 5, actorType: 'player' }
-    ])
+    effects: impactEffects(
+      { atMs: 400, timingAnchor: 'castStart', timingScale: 'fixed', persistsAfterInterrupt: true },
+      [
+        {
+          type: 'strike',
+          coefficient: 1.6,
+          hits: 1,
+          name: 'Cloak and Dagger',
+          actorType: 'player',
+          reactions: [{ on: 'damage.resolved', actor: 'player', packets: 'first', do: { type: 'thief.stealth' } }]
+        },
+        { type: 'buff', kind: 'stealth', duration: 3, stacks: 1 },
+        { type: 'condition', condition: 'Vulnerability', stacks: 5, duration: 5, actorType: 'player' }
+      ]
+    )
   }
 });

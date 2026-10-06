@@ -16,6 +16,41 @@ import { revenantProfession } from '#gw2/professions/revenant/profession.js';
 import { thiefProfession } from '#gw2/professions/thief/profession.js';
 import { warriorProfession } from '#gw2/professions/warrior/profession.js';
 
+test('planning projections omit private mechanic state while retaining visible observations', () => {
+  // Availability is observed in the runtime; presentation does not need its internal counters, costs, or schedules.
+  for (const [family, specialization, slice, privateKeys, visibleKey] of [
+    [
+      elementalistProfession,
+      'Core',
+      'core',
+      ['spearNextDamageBonus', 'spearNextRechargeReduction', 'spearNextGuaranteedCritical', 'spearNextControlHit'],
+      'primaryAttunement'
+    ],
+    [guardianProfession, 'Core', 'core', ['justiceHitCount', 'virtueReadyAt'], 'symbolicAvengerExpirations'],
+    [rangerProfession, 'Core', 'core', ['petAutoNextAt', 'petAutoBusyUntil', 'petAutoCooldowns'], 'activePetSlot'],
+    [
+      thiefProfession,
+      'Antiquary',
+      'specialization',
+      ['backfireState', 'forgedSurferMaximumBombHits', 'canachCoinIndex'],
+      'artifactSlots'
+    ],
+    [revenantProfession, 'Conduit', 'specialization', ['energyCostOverrides'], 'affinity']
+  ]) {
+    const config = { specialization };
+    const profession = family.runtimeFor(config).createState(config);
+    const owner = slice === 'core' ? profession.core : profession.specialization.state;
+    const projected = projectObservedState(family, { profession, config, time: 0 });
+    for (const key of privateKeys) {
+      assert.equal(Object.hasOwn(owner, key), true, `${family.id}/${specialization}: live ${key}`);
+      assert.equal(Object.hasOwn(projected, key), false, `${family.id}/${specialization}: projected ${key}`);
+    }
+
+    assert.deepEqual(projected[visibleKey], owner[visibleKey]);
+    if (typeof owner[visibleKey] === 'object') assert.notEqual(projected[visibleKey], owner[visibleKey]);
+  }
+});
+
 test('public expiry projections use exclusive deadlines without mutating the live owner', () => {
   // Expiration is an observation of stored deadlines, independent of queued work or a later grant.
   for (const [family, specialization, slice, key, value, expired] of [

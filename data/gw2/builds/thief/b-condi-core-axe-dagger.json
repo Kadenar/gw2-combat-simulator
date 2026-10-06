@@ -1,0 +1,103 @@
+{
+  "schemaVersion": 4,
+  "profession": "thief",
+  "gear": {
+    "Helm": "Viper's",
+    "Shoulders": "Viper's",
+    "Chest": "Viper's",
+    "Gloves": "Viper's",
+    "Leggins": "Viper's",
+    "Boots": "Viper's",
+    "Amulet": "Viper's",
+    "Ring1": "Viper's",
+    "Ring2": "Viper's",
+    "Accessory1": "Viper's",
+    "Accessory2": "Viper's",
+    "Back": "Viper's",
+    "Weapon1": "Viper's",
+    "Weapon2": "Viper's"
+  },
+  "alternateWeaponPrefixes": ["Viper's", "Viper's"],
+  "weapons": ["Axe", "Dagger"],
+  "alternateWeapons": ["Spear", ""],
+  "rune": "Trapper",
+  "weaponSigils": [
+    ["Earth", "Bursting"],
+    ["Earth", "Torment"]
+  ],
+  "relic": "Fractal",
+  "food": "Plate of Kimchi Pancakes",
+  "utility": "Toxic Tuning Crystal",
+  "jadeBotCore": true,
+  "infusions": [
+    {
+      "stat": "Condition Damage",
+      "count": 18
+    },
+    {
+      "stat": "Power",
+      "count": 0
+    }
+  ],
+  "specializations": [
+    {
+      "name": "Deadly Arts",
+      "traits": "3-2-1"
+    },
+    {
+      "name": "Trickery",
+      "traits": "2-3-3"
+    },
+    {
+      "name": "Shadow Arts",
+      "traits": "1-2-2"
+    }
+  ],
+  "selectedSkillIds": {
+    "Heal": 13027,
+    "Utility1": 13037,
+    "Utility2": 13026,
+    "Utility3": 13028,
+    "Elite": 13082
+  },
+  "selectedDodge": "Dodge",
+  "assumptions": {
+    "simulationMode": "deterministic",
+    "simulationSeed": 1,
+    "criticalDamageMode": "averaged",
+    "permanentComboField": "none",
+    "might": 25,
+    "fury": true,
+    "quickness": true,
+    "alacrity": true,
+    "protection": true,
+    "resolution": true,
+    "regeneration": true,
+    "swiftness": true,
+    "vigor": true,
+    "aegis": true,
+    "targetMoving": false,
+    "targetConditions": {
+      "Bleeding": 1,
+      "Burning": true,
+      "Torment": 1,
+      "Confusion": 1,
+      "Poisoned": true,
+      "Chilled": true,
+      "Slow": true,
+      "Weakness": true,
+      "Vulnerability": 25,
+      "Crippled": true
+    },
+    "targetDefiant": true,
+    "forgedSurferBombsHit": "3"
+  },
+  "startingWeaponSet": 1,
+  "targetHealth": 4000000,
+  "targetStartingHealthPercent": 100,
+  "targetArmor": 2597,
+  "initialInitiative": 15,
+  "initialSpinningAxes": 6,
+  "initialShadowForce": 0,
+  "precastRelics": []
+}

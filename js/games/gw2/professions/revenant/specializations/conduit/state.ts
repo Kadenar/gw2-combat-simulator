@@ -16,14 +16,13 @@ export interface ConduitState {
   energyCostOverrides: Record<string, number>;
 }
 
+// Publish form and resource displays; patched cost overrides remain with the live availability owner.
 export const CONDUIT_PUBLIC_STATE_PROJECTION = definePublicStateDefaults({
   affinity: createResourceClock(),
   cosmicWisdomUntil: 0,
   conduitForm: '',
   beguilingHazeCharges: 0,
-  beguilingHazeReadyAt: 0,
-  // Palette affordability consumes the same patched costs as the live form.
-  energyCostOverrides: {} as Record<string, number>
+  beguilingHazeReadyAt: 0
 } satisfies Partial<ConduitState>);
 
 export function revenantConduitFormIsActive(

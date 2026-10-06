@@ -100,7 +100,7 @@ export function createRangerCoreState(config: RangerConfig = {}): RangerCoreStat
   };
 }
 
-// Core declares only the public state fields that it semantically owns.
+// Publish pet identity and visible state; pet scheduling remains private to the live execution owner.
 export const RANGER_CORE_PUBLIC_END_STATE_KEYS: readonly (keyof RangerState)[] = Object.freeze([
   'activePet',
   'activePetSlot',
@@ -118,10 +118,7 @@ export const RANGER_CORE_PUBLIC_END_STATE_KEYS: readonly (keyof RangerState)[] =
 
   'sharpeningStoneGrants',
 
-  'petSwapCount',
-  'petAutoNextAt',
-  'petAutoBusyUntil',
-  'petAutoCooldowns'
+  'petSwapCount'
 ]);
 
 // Core fields have no inactive fallbacks; their values come from the live state.

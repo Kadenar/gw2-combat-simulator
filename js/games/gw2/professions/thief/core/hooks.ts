@@ -205,7 +205,7 @@ const coreLifecycle: RuntimeHooks<ThiefRuntimeState, ThiefSkill> = {
       if (context.kind === 'cast') activateVenom(runtime, context.cast);
     },
     'thief.stealth'(runtime, context) {
-      if (context.kind === 'cast') commitThiefStealth(runtime, context.cast);
+      commitThiefStealth(runtime, context);
     },
 
     'thief.ground-axe': grantThiefGroundAxe,

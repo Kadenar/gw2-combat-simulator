@@ -1319,11 +1319,11 @@ test('Sovereign of Light consumes combo and trait-granted light auras', () => {
   );
   assert.equal(justice.resolvedEvents.filter((event) => event.name === 'Sovereign of Light').length, 1);
   // Activating Radiant Justice disables its passive counter until recharge completes.
-  assert.equal(activationJustice.planningState.profession.justiceHitCount, 0);
+  assert.equal(observedRuntime(activationJustice).profession.core.justiceHitCount, 0);
   const justiceSovereign = justice.resolvedEvents.find((event) => event.name === 'Sovereign of Light');
   const clawSovereign = justiceWithClaw.resolvedEvents.find((event) => event.name === 'Sovereign of Light');
 
-  assert.equal(sovereignJustice.planningState.profession.justiceHitCount, 2);
+  assert.equal(observedRuntime(sovereignJustice).profession.core.justiceHitCount, 2);
   assert.deepEqual(
     {
       actorType: clawSovereign.actorType,

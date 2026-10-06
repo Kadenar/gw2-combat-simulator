@@ -61,7 +61,7 @@ export function createAntiquaryState(config: ThiefConfig = {}): AntiquaryState {
   };
 }
 
-// Declares Antiquary public fields, including its own stealth-attack charges, without borrowing sibling metadata.
+// Publish Antiquary's visible resources and windows; artifact outcomes and sequence counters remain runtime-only.
 export const ANTIQUARY_PUBLIC_STATE_PROJECTION = definePublicStateDefaults({
   // Inactive builds retain their two-row UI fallback; live Antiquary state supplies three rows.
   initiativePipRows: undefined,
@@ -70,7 +70,6 @@ export const ANTIQUARY_PUBLIC_STATE_PROJECTION = definePublicStateDefaults({
   initiativeSpentSincePilfer: 0,
   scoundrelsLuck: 0,
 
-  backfireState: {},
   nextSkrittScufflePilferAt: 0,
   antiquaryDamageUntil: 0,
   combatHighExpirations: [],
@@ -79,9 +78,7 @@ export const ANTIQUARY_PUBLIC_STATE_PROJECTION = definePublicStateDefaults({
   kryptisDamageUntil: 0,
   chakInitiativeRefundUntil: 0,
   holoUtilityCooldownReductionExpirations: [],
-  forgedSurferBombDropUntil: 0,
-  forgedSurferMaximumBombHits: 5,
-  canachCoinIndex: 0
+  forgedSurferBombDropUntil: 0
 } satisfies Partial<AntiquaryState>);
 
 export const antiquaryState = defineProfessionSpecializationState('Antiquary', createAntiquaryState);

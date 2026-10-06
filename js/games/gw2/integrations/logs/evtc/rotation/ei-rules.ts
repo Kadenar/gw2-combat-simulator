@@ -30,6 +30,8 @@ export interface EiInstantRule {
   readonly minBuild?: number;
   readonly maxBuild?: number;
   readonly secondary?: readonly string[];
+  /** Delay from the primary visual to its required same-source corroborating effects. */
+  readonly secondaryTimeOffset?: number;
   readonly relatedHit?: number;
   readonly absentRelatedHits?: readonly number[];
   readonly gainedBuff?: number;
@@ -3217,6 +3219,16 @@ export const EI_INSTANT_RULES: readonly EiInstantRule[] = [
     signal: '7325E9B0DD2E914F9837E5FCFC740A95',
     kind: 'effect',
     rule: 'ThiefHelper.EffectCastFinder(Pitfall)'
+  },
+  {
+    profession: 'thief',
+    skillId: 56897,
+    signal: '2125A13079C1C5479C150926EB60A15D',
+    kind: 'effect',
+    rule: 'ThiefHelper.EffectCastFinder(ThousandNeedles)',
+    // EI d7f186c requires both delayed needle visuals; the generic hostile circle alone is ambiguous.
+    secondary: ['9AF103E33FC235498190448A9496C98A', 'B8DC8C6736C8E0439295A9DBBADC6296'],
+    secondaryTimeOffset: 280
   },
   {
     profession: 'thief',

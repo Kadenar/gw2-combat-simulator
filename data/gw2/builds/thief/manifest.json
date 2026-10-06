@@ -328,5 +328,17 @@
         }
       }
     ]
+  },
+  {
+    "section": "Core",
+    "presets": [
+      {
+        "label": "Condition (Axe / Dagger)",
+        "build": "data/gw2/builds/thief/b-condi-core-axe-dagger.json",
+        "rotation": "data/gw2/rotations/thief/r-condi-core-axe-dagger-evtc.json",
+        "benchmarkDps": 37090,
+        "upToDate": true
+      }
+    ]
   }
 ]

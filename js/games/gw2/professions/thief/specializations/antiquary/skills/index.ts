@@ -240,6 +240,8 @@ export const ANTIQUARY_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>>
     artifactKind: 'defensive'
   },
   [ID.ANTIVENOM_DRAUGHT_BACKFIRED]: {
+    // Backfire states are internal outcomes, not independently equipable loadout choices.
+    slotSelectable: false,
     castTimeMs: 520,
     cooldown: 10,
     initiativeCost: 0,
@@ -290,6 +292,8 @@ export const ANTIQUARY_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>>
     artifactKind: 'defensive'
   },
   [ID.UNSTABLE_SKRITT_BOMB]: {
+    // The Double Edge skill owns this outcome; it cannot occupy a selected utility slot.
+    slotSelectable: false,
     castTimeMs: 0,
     cooldown: 0,
     initiativeCost: 0,
@@ -320,6 +324,8 @@ export const ANTIQUARY_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>>
     effects: []
   },
   [ID.STONE_SUMMIT_CANNON_ID_77092]: {
+    // Only the usable cannon is selectable, even though its disabled backfire state shares the same name.
+    slotSelectable: false,
     castTimeMs: 360,
     cooldown: 15,
     initiativeCost: 0,

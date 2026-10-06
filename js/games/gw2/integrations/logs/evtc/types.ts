@@ -94,6 +94,8 @@ export type EvtcRotationEvidence =
 
 export interface EvtcRotationAction extends RotationActionSummary {
   readonly evidence: EvtcRotationEvidence;
+  /** Present only for casts reconstructed by a named Elite Insights finder. */
+  readonly eiRule?: string;
   readonly weaponSet?: number | null;
   readonly doubleEdgeOutcome?: 'success' | 'backfire';
   /** Identifies an autoattack observed during Vindicator's pre-landing dodge window. */

@@ -1,7 +1,7 @@
 import { assertFlooredDamageMultiplier } from '#tests/helpers/rounded-damage.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { createObservedProfessionSimulator } from '#tests/helpers/observed-runtime.js';
+import { createObservedProfessionSimulator, observedRuntime } from '#tests/helpers/observed-runtime.js';
 import { guardianProfession } from '#gw2/professions/guardian/profession.js';
 import { GUARDIAN_SKILL_IDS, GUARDIAN_TRAIT_IDS } from '#gw2/professions/guardian/data/ids.js';
 
@@ -70,7 +70,8 @@ test('Renewed Focus restores Firebrand pages and dormancy only on completion', (
       );
       assert.equal(state.tomePages.nextAt, spent.endsAt + state.tomePages.interval);
       assert.equal(state.tomeDormantReadyAt.justice > focus.endsAt, interrupted);
-      if (!interrupted) assert.deepEqual(state.tomeDormantReadyAt, state.virtueReadyAt);
+      if (!interrupted)
+        assert.deepEqual(state.tomeDormantReadyAt, observedRuntime(result).profession.core.virtueReadyAt);
     }
   }
 });

@@ -307,7 +307,7 @@ export function eiInstantActions(context: EvtcProfessionReconstructionContext): 
                 other !== e &&
                 other.guid === guid &&
                 owns(caster(other.event)) &&
-                Math.abs(other.event.time - e.event.time) < 10
+                Math.abs(other.event.time - e.event.time - (rule.secondaryTimeOffset ?? 0)) < 10
             )
           )
       );

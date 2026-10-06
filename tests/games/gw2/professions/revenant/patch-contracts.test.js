@@ -93,8 +93,8 @@ test('removed Cosmic Wisdom leaves no Mesmer discount and zero-duration patches 
   );
 });
 
-// Public planning state must carry patched discounts and stop exposing them at the form boundary.
-test('Mesmer planning costs match runtime before and at expiry', () => {
+// The live cost owner applies patched discounts and restores native costs at the form boundary.
+test('Mesmer runtime costs restore native values at form expiry', () => {
   const catalog = (catalog) =>
     applyBalanceProfilePatch(
       applySkillPatch(catalog, {
@@ -114,7 +114,7 @@ test('Mesmer planning costs match runtime before and at expiry', () => {
     assert.equal(revenantEnergyCost(runtime, skill), expected);
   }
 
-  assert.deepEqual(expired.planningState.profession.energyCostOverrides, {});
+  assert.deepEqual(observedRuntime(expired).profession.specialization.state.energyCostOverrides, {});
 });
 
 // An old expiry cannot clear a form extended by a legend swap, and each legend selects its own cost policy.

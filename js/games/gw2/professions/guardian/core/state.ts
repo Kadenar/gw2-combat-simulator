@@ -69,15 +69,13 @@ export function activeSymbolicAvengerExpirations(state: Partial<GuardianCoreStat
   return purgeExpiredStacks(state.symbolicAvengerExpirations || [], at);
 }
 
-/** Declares the Core-owned portion of Guardian's stable public end-state contract. */
+/** Publish visible Core state; virtue readiness and hit counters stay with live availability and mechanics. */
 const GUARDIAN_CORE_PUBLIC_END_STATE_KEYS: readonly (keyof GuardianCoreState)[] = Object.freeze([
   'endurance',
 
   'justiceActiveArmed',
-  'justiceHitCount',
   'justiceActiveBurns',
   'justicePassiveBurns',
-  'virtueReadyAt',
   'autoattackChains',
   'availableFlips',
   'symbolIgnitionStartsAt',

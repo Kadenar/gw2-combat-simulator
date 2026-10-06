@@ -1071,7 +1071,7 @@ test('Antiquary artifacts, per-cast Double Edge, and summons are deterministic',
   );
 
   assert.equal(doubleEdge.warnings.length, 0);
-  assert.ok(doubleEdge.planningState.profession.backfireState[76725]);
+  assert.ok(observedRuntime(doubleEdge).profession.specialization.state.backfireState[76725]);
 
   const doubleEdgeSuccess = simulate(
     'Antiquary',
@@ -1090,7 +1090,7 @@ test('Antiquary artifacts, per-cast Double Edge, and summons are deterministic',
   );
 
   assert.equal(doubleEdgeSuccess.warnings.length, 0);
-  assert.equal(doubleEdgeSuccess.planningState.profession.backfireState[76725], undefined);
+  assert.equal(observedRuntime(doubleEdgeSuccess).profession.specialization.state.backfireState[76725], undefined);
 
   const guild = simulate('Antiquary', ['Thieves Guild', { type: 'combat-start' }, { type: 'wait', durationMs: 2100 }], {
     primaryWeapon: 'Axe',

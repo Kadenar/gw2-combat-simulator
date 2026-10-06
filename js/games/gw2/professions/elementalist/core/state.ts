@@ -173,7 +173,7 @@ export function resetElementalistAttunementCooldowns(context: ElementalistRuntim
   for (const element of ELEMENTALIST_ATTUNEMENTS) setElementalistAttunementReadyAt(context, element, context.time);
 }
 
-// Core declares only the public fields present in every Elementalist runtime.
+// Publish presentation state; pending spear rewards stay with the live mechanics that consume them.
 const ELEMENTALIST_CORE_PUBLIC_END_STATE_KEYS = Object.freeze([
   'primaryAttunement',
   'attunementEnteredAt',
@@ -186,10 +186,6 @@ const ELEMENTALIST_CORE_PUBLIC_END_STATE_KEYS = Object.freeze([
   'hammerOrbs',
   'hammerOrbLastCastAt',
   'etchings',
-  'spearNextDamageBonus',
-  'spearNextRechargeReduction',
-  'spearNextGuaranteedCritical',
-  'spearNextControlHit',
   'conjureEquipped',
   'conjureExpiresAt',
   'conjurePickups',

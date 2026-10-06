@@ -6,6 +6,40 @@ import { loadBuildWorkspace, workspaceStorageKey } from '#gw2/app/build/state/wo
 import { loadMyBuilds, myBuildsStorageKey } from '#gw2/app/build/library/storage.js';
 import { previewBuildFileImport, applyBuildFileImport } from '#gw2/app/import-export/build-file-import.js';
 import { createGw2BuildCodec } from '#gw2/platform/builds/codec.js';
+import { thiefAppAdapter } from '#gw2/professions/thief/app/app-definition.js';
+import { THIEF_SKILL_IDS as THIEF } from '#gw2/professions/thief/data/ids.js';
+
+// The disabled cannon shares its display name with the usable utility but must never compete for a saved slot.
+test('saved Antiquary cannon selections load and rewrite to the usable cannon ID', (t) => {
+  const values = mockStorage(t);
+  const { selectedSkillIds, ...fields } = thiefAppAdapter.profession.createBuildDefaults();
+  const saved = {
+    ...fields,
+    schemaVersion: fields.schemaVersion - 1,
+    specializations: [
+      { name: 'Deadly Arts', traits: '3-2-1' },
+      { name: 'Trickery', traits: '2-3-3' },
+      { name: 'Antiquary', traits: '1-1-1' }
+    ],
+    selectedSkills: {
+      ...Object.fromEntries(
+        Object.entries(selectedSkillIds).map(([slot, id]) => [
+          slot,
+          id === null ? '' : thiefAppAdapter.profession.catalog.skillsById.get(id).name
+        ])
+      ),
+      Utility1: 'Stone Summit Cannon'
+    }
+  };
+  values.set(thiefAppAdapter.storageKey, JSON.stringify(saved));
+  const loaded = loadBuild(thiefAppAdapter);
+  assert.equal(loaded.selectedSkillIds.Utility1, THIEF.STONE_SUMMIT_CANNON);
+  const persisted = JSON.parse(values.get(thiefAppAdapter.storageKey));
+  assert.equal(persisted.selectedSkillIds.Utility1, THIEF.STONE_SUMMIT_CANNON);
+  assert.equal(Object.hasOwn(persisted, 'selectedSkills'), false);
+  for (const id of [THIEF.ANTIVENOM_DRAUGHT_BACKFIRED, THIEF.UNSTABLE_SKRITT_BOMB, THIEF.STONE_SUMMIT_CANNON_ID_77092])
+    assert.equal(thiefAppAdapter.profession.catalog.skillsById.get(id).slotSelectable, false);
+});
 
 /** Reconstruct the old persisted schema without changing the source build used for identity assertions. */
 function oldBuild() {

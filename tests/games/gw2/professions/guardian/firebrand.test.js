@@ -7,7 +7,7 @@ import { createGuardianCoreState } from '#gw2/professions/guardian/core/state.js
 import { GUARDIAN_SKILL_IDS, GUARDIAN_TRAIT_IDS } from '#gw2/professions/guardian/data/ids.js';
 import { guardianCatalog, guardianProfession } from '#gw2/professions/guardian/profession.js';
 import { FIREBRAND_PUBLIC_STATE_PROJECTION } from '#gw2/professions/guardian/specializations/firebrand/state.js';
-import { createObservedProfessionSimulator } from '#tests/helpers/observed-runtime.js';
+import { createObservedProfessionSimulator, observedRuntime } from '#tests/helpers/observed-runtime.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
@@ -810,7 +810,7 @@ test('dormant Tome equips preserve recharge and do not trigger virtue traits', (
       specialization: 'Firebrand',
       selectedTraitIds: [GUARDIAN_TRAIT_IDS.FURIOUS_FOCUS, GUARDIAN_TRAIT_IDS.INSPIRED_VIRTUE]
     })(undefined, rotation);
-  const readyAt = simulate(['Tome of Justice']).planningState.profession.virtueReadyAt.justice;
+  const readyAt = observedRuntime(simulate(['Tome of Justice'])).profession.core.virtueReadyAt.justice;
   const result = simulate([
     'Tome of Justice',
     'Stow Tome',
@@ -827,7 +827,7 @@ test('dormant Tome equips preserve recharge and do not trigger virtue traits', (
     { type: 'wait', durationMs: readyAt * 500 },
     'Tome of Justice'
   ]);
-  assert.equal(dormant.planningState.profession.virtueReadyAt.justice, readyAt);
+  assert.equal(observedRuntime(dormant).profession.core.virtueReadyAt.justice, readyAt);
   assert.deepEqual(
     result.procSteps.filter((step) => step.skill === 'Lesser Symbol of Blades').map((step) => step.start),
     [0, readyAt * 1000]
@@ -843,7 +843,7 @@ test('dormant Tome equips preserve recharge and do not trigger virtue traits', (
       .length,
     2
   );
-  assert.equal(result.planningState.profession.virtueReadyAt.justice, readyAt * 2);
+  assert.equal(observedRuntime(result).profession.core.virtueReadyAt.justice, readyAt * 2);
   assert.deepEqual(result.warnings, []);
 });
 

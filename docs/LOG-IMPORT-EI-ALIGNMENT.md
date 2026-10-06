@@ -19,6 +19,12 @@ incomplete openers themselves after importing.
 An import is successful when it faithfully converts the available cast evidence. It does not need to produce a complete
 benchmark opener or a rotation that immediately simulates without missing-state or availability warnings.
 
+Core Steal has an explicitly local EVTC inference rule outside the EI baseline. It requires a target-attached effect
+corroborated by same-owner Serpent's Touch and Deadly Ambush condition bursts; see the
+[EVTC evidence contract](../js/games/gw2/integrations/logs/evtc/README.md#cast-evidence) for its limits. It does not
+infer missing setup or alter dps.report timelines. Thousand Needles now uses the pinned EI finder with both delayed
+secondary visuals, rather than remaining in the unsupported checker list.
+
 ## Required behavior
 
 | Concern                               | Contract                                                                                                                               |
@@ -201,7 +207,7 @@ as a generated diff of the current table:
   `Renegade.BandTogetherCastFinder(DarkrazorsDaringSkill, DarkrazorsDari`,
   `Renegade.BandTogetherCastFinder(IcerazorsIreSkill, IcerazorsIreSkillE`, `Conduit.CosmicWisdomSkill`,
   `Conduit.FormOfTheDervishDamage`, `Conduit.FormOfTheDervishDamageElite`.
-- **Thief:** `Thief.ShadowReturn`, `Thief.SpiderVenomSkill`, `Thief.ThousandNeedles`.
+- **Thief:** `Thief.ShadowReturn`, `Thief.SpiderVenomSkill`.
 - **Warrior:** `Warrior.MendingMight`, `Bladesworn.FlowStabilizer`.
 
 ## Preserve necessary import behavior

@@ -106,16 +106,17 @@ test('Empowering Might requires player critical strikes and shares the one-secon
   }
 });
 
-test('Guardian planning projections detach counters from the live state', () => {
+test('Guardian planning projections detach visible resources and counters from the live state', () => {
   // Public planning data stays detached from the live state owner.
   const result = runGuardian(['Virtue of Justice', 'Orb of Wrath']);
   const runtime = observedRuntime(result);
   assert.equal(runtime.profession.core.justiceActiveBurns, 1);
   assert.equal(result.planningState.profession.justiceActiveArmed, false);
   const projected = projectObservedState(guardianProfession, { profession: runtime.profession, time: runtime.time });
-  projected.virtueReadyAt.justice = 99;
+  const liveEndurance = runtime.profession.core.endurance.value;
+  projected.endurance.value = 99;
   runtime.profession.core.justiceActiveBurns = 9;
-  assert.notEqual(runtime.profession.core.virtueReadyAt.justice, 99);
+  assert.equal(runtime.profession.core.endurance.value, liveEndurance);
   assert.equal(result.planningState.profession.justiceActiveBurns, 1);
 });
 

@@ -24,7 +24,7 @@ import {
 
 import { EvtcError } from '#gw2/integrations/logs/evtc/errors.js';
 import { encounterEndTime, encounterStartTime } from '#gw2/integrations/logs/evtc/rotation/encounter.js';
-import { deadeyeMarkActions } from '#gw2/integrations/logs/evtc/rotation/professions/thief.js';
+import { deadeyeMarkActions, thiefStealActions } from '#gw2/integrations/logs/evtc/rotation/professions/thief.js';
 
 import {
   EVTC_STATE_CHANGE,
@@ -240,7 +240,11 @@ function buildRotation(
 }
 
 function warningList(actions: readonly EvtcRotationAction[]): string[] {
-  const inferred = actions.filter((action) => action.evidence === 'effect' || action.evidence === 'missile');
+  // Local evidence rules retain their own provenance instead of being attributed to Elite Insights.
+  const inferred = actions.filter(
+    (action) => (action.evidence === 'effect' || action.evidence === 'missile') && action.eiRule
+  );
+  const localInferred = actions.filter((action) => action.evidence === 'effect' && !action.eiRule);
   const unsupported = actions.filter(
     (action) => !action.supportedByCatalog && !isMushroomKingsBlessing(action) && !isWeaponStow(action)
   );
@@ -249,6 +253,12 @@ function warningList(actions: readonly EvtcRotationAction[]): string[] {
   if (inferred.length) {
     warnings.push(
       `${inferred.length} instant cast${inferred.length === 1 ? ' was' : 's were'} inferred using explicit Elite Insights rules.`
+    );
+  }
+
+  if (localInferred.length) {
+    warnings.push(
+      `${localInferred.length} cast${localInferred.length === 1 ? ' was' : 's were'} inferred using corroborated profession-specific EVTC evidence.`
     );
   }
 
@@ -298,6 +308,7 @@ function reconstructWithProfile(
   const playerActions = [
     ...genericActions,
     ...deadeyeMarkActions(professionContext),
+    ...thiefStealActions(professionContext),
     ...eiInstantActions(professionContext),
     ...eiCustomAnimatedActions(professionContext),
     ...eiMesmerPhaseRetreat(professionContext),

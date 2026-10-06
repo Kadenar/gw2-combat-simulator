@@ -20,6 +20,17 @@ extensions. Effect namespaces remain separate; secondary effects and effect-avai
 declared. Stable nested minion ownership is supported; ambiguous reused instances or changing masters are rejected
 pending time-aware ownership.
 
+Thousand Needles uses EI's generic hostile circle plus both same-source needle effects 280 ms later. Missing either
+secondary effect leaves the cast unproven.
+
+Core Steal also has a local, non-EI finder, observed in `20260810-102224.zevtc`: effect GUID
+`A0F99AB672E77E459EBF8185867C4961` must accompany at least two long Poison applications and three long Bleeding
+applications from the selected player to the same target within 10 ms. These corroborate Serpent's Touch and Deadly
+Ambush. Initial snapshots, other actors, other specializations, and uncorroborated visuals do not establish a cast.
+Recorded casts and repeated markers within 50 ms suppress duplicates. This intentionally does not detect every Steal
+loadout; logs without the effect or the two condition bursts remain incomplete. Inference notices distinguish this
+empirical rule from EI finders, and dps.report rotations remain unchanged.
+
 Pet-command rules preserve the pinned EI registrations, including multiple skills for some species. EI's generic
 command-buff finder does not distinguish those competing registrations. Player detection retains decoded animations so
 the app/CLI picker and reconstruction reuse the same evidence.
