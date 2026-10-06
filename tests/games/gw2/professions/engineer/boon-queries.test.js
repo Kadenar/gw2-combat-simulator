@@ -25,8 +25,7 @@ test('Engineer boon stacks preserve normalization, permanent stacks, caps, and l
   const applications = [
     { at: 0, expiresAt: 5, stacks: 20, resolvedAudience: { includesSelf: true } },
     { at: 5, expiresAt: 10, stacks: 3, resolvedAudience: { includesSelf: true } },
-    { at: 5, expiresAt: 10, stacks: 2, resolvedAudience: { includesSelf: false, includesSummons: true } },
-    { at: 6, expiresAt: 10, stacks: 10, resolvedAudience: { includesSelf: true } }
+    { at: 5, expiresAt: 10, stacks: 2, resolvedAudience: { includesSelf: false, includesSummons: true } }
   ];
   const context = {
     config: { boons: { might: 4, stability: true } },
@@ -36,12 +35,16 @@ test('Engineer boon stacks preserve normalization, permanent stacks, caps, and l
   context.combat = createMechanicCombatServices(context);
   assert.equal(activeBoonStacks(context, 'Might', 25, 5), 7);
   assert.equal(activeBoonStacks(context, 'might', 6, 5), 6);
-  assert.equal(activeBoonStacks(context, 'might', 25, 10), 4);
   assert.equal(activeBoonStacks(context, 'Stability', 1, 5), 1);
 
   // An application becomes visible only after insertion, even when it shares the queried timestamp.
   applications.push({ at: 5, expiresAt: 10, stacks: 1, resolvedAudience: { includesSelf: true } });
   assert.equal(activeBoonStacks(context, 'might', 25, 5), 8);
+  // Accepted runtime grants arrive chronologically; later grants must not change historical queries.
+  applications.push({ at: 6, expiresAt: 10, stacks: 10, resolvedAudience: { includesSelf: true } });
+  assert.equal(activeBoonStacks(context, 'might', 25, 5), 8);
+  assert.equal(activeBoonStacks(context, 'might', 25, 6), 18);
+  assert.equal(activeBoonStacks(context, 'might', 25, 10), 4);
   assert.equal(
     activeBoonStacks(
       { combat: createMechanicCombatServices({ config: {}, boons: new Map(), buffs: new Map() }) },

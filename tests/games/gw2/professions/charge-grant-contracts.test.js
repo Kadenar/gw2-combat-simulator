@@ -237,8 +237,10 @@ test('Poisonous Strikes shares one inclusive-expiry grant across pet and Beastmo
   assert.equal(context.events.length, 4);
 });
 
-test('Blood Thirst grants twelve seconds, replaces remaining charges, and respects strike eligibility', () => {
-  const context = contextFor(rangerProfession, 'Core');
+test('Blood Thirst grants merged players twelve seconds, replaces remaining charges, and respects strike eligibility', () => {
+  // The intentional player duration applies in Beastmode, where player strikes consume the pet's charges.
+  const context = contextFor(rangerProfession, 'Soulbeast');
+  context.profession.specialization.state.beastmodeActive = true;
   const core = context.profession.core;
   const skill = context.catalog.skillsById.get(RANGER.CRIPPLING_SHOT);
   const grant = (at) => {
@@ -261,6 +263,7 @@ test('Blood Thirst grants twelve seconds, replaces remaining charges, and respec
   const hit = { at: 2, source: 'ranger', actorType: 'player', coefficient: 1 };
   for (const fields of [
     { sourceId: skill.id },
+    { source: 'ranger-pet', actorType: 'summon' },
     { actorType: 'effect' },
     { coefficient: 0 },
     { coefficient: undefined }

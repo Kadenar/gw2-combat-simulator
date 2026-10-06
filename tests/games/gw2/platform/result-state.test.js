@@ -29,7 +29,12 @@ test('effect histories isolate self grants and retain older overlapping grants',
   const track = report.tracks.find(
     (track) => track.kind === 'tracked' && track.recipient === 'self' && track.origin === 'simulated'
   );
-  assert.deepEqual(effectStateAt(report, track, 3), { count: 2, expiresAt: 10, source: older });
+  // Reports retain source identity separately from the original grant's combat payload.
+  assert.partialDeepStrictEqual(effectStateAt(report, track, 3), {
+    count: 2,
+    expiresAt: 10,
+    source: { kind: 'tracked', at: 0 }
+  });
   assert.equal(effectStateAt(report, track, 10).count, 0);
 });
 
@@ -59,8 +64,16 @@ test('reported boon extensions preserve pooled duration and surviving grant iden
   const report = result.effectReport;
   const mightTrack = report.tracks.find((track) => track.kind === 'might');
   const furyTrack = report.tracks.find((track) => track.kind === 'fury');
-  assert.deepEqual(effectStateAt(report, mightTrack, 5), { count: 2, expiresAt: 6, source: might });
-  assert.deepEqual(effectStateAt(report, furyTrack, 5), { count: 1, expiresAt: 6, source: fury });
+  assert.partialDeepStrictEqual(effectStateAt(report, mightTrack, 5), {
+    count: 2,
+    expiresAt: 6,
+    source: { kind: 'might', at: 0 }
+  });
+  assert.partialDeepStrictEqual(effectStateAt(report, furyTrack, 5), {
+    count: 1,
+    expiresAt: 6,
+    source: { kind: 'fury', at: 1 }
+  });
   assert.equal(effectStateAt(report, furyTrack, 6).count, 0);
   assert.equal(effectStateAt(report, mightTrack, 6).count, 0);
 });
@@ -106,7 +119,11 @@ test('effect histories retain the latest active source and sum live stacks', () 
 
   const report = result.effectReport;
   const track = report.tracks.find((track) => track.kind === 'tracked');
-  assert.deepEqual(effectStateAt(report, track, 3), { count: 5, expiresAt: 7, source: latest });
+  assert.partialDeepStrictEqual(effectStateAt(report, track, 3), {
+    count: 5,
+    expiresAt: 7,
+    source: { kind: 'tracked', at: 2 }
+  });
   assert.equal(effectStateAt(report, track, 4).count, 3);
   assert.equal(effectStateAt(report, track, 7).count, 0);
 

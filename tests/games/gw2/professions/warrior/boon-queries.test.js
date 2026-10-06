@@ -112,8 +112,7 @@ test('Warrior and Bladesworn stacks preserve self audience, caps, expiry, and sa
   const applications = [
     { at: 0, expiresAt: 5, stacks: 10, resolvedAudience: { includesSelf: true } },
     { at: 5, expiresAt: 10, stacks: 4, resolvedAudience: { includesSelf: true } },
-    { at: 5, expiresAt: 10, stacks: 10, resolvedAudience: { includesSelf: false, includesSummons: true } },
-    { at: 6, expiresAt: 10, stacks: 10, resolvedAudience: { includesSelf: true } }
+    { at: 5, expiresAt: 10, stacks: 10, resolvedAudience: { includesSelf: false, includesSummons: true } }
   ];
   const context = {
     time: 5,
@@ -130,6 +129,10 @@ test('Warrior and Bladesworn stacks preserve self audience, caps, expiry, and sa
   applications.push({ at: 5, expiresAt: 10, stacks: 8, resolvedAudience: { includesSelf: true } });
   assert.equal(warriorActiveBuffStacks(context, 'fierce-as-fire', 10), 10);
   assert.equal(rule.amount(context), 0.1);
+  // Accepted runtime grants arrive chronologically; uncapped queries also exclude later applications.
+  applications.push({ at: 6, expiresAt: 10, stacks: 10, resolvedAudience: { includesSelf: true } });
+  assert.equal(warriorActiveBuffStacks(context, 'fierce-as-fire', 25), 12);
+  assert.equal(warriorActiveBuffStacks({ ...context, time: 6 }, 'fierce-as-fire', 25), 22);
   assert.equal(rule.amount({ ...context, time: 10 }), 0);
   assert.equal(rule.amount({ ...context, runtime: undefined }), 0);
 });
