@@ -12,6 +12,22 @@ export interface ChartPoint {
 
 export type ChartEffectType = 'boon' | 'condition' | 'buff';
 
+/** Fit the visible series to readable axis bounds, including shared scales for overlaid DPS curves. */
+export function chartAxisMaximum(values: readonly number[], tight = false): number {
+  const value = values.reduce((maximum, current) => Math.max(maximum, current), 0);
+  if (!(value > 0)) return 1;
+  const magnitude = 10 ** Math.floor(Math.log10(value));
+  // DPS needs modest headroom rather than the large gaps between standard 1/2/5 axis bounds.
+  if (tight) {
+    const increment = magnitude / 10;
+    return Math.ceil((value * 1.05) / increment) * increment;
+  }
+
+  const normalized = value / magnitude;
+  const rounded = normalized <= 1 ? 1 : normalized <= 2 ? 2 : normalized <= 5 ? 5 : 10;
+  return rounded * magnitude;
+}
+
 /** Presentation-only application markers, independent of subsequent condition payouts. */
 export interface SkillApplication {
   readonly t: number;
@@ -267,6 +283,20 @@ export function buildPhaseEffectSeries(points: readonly ChartPoint[], startMs: n
       .map((point) => ({ t: point.t - startMs, v: point.v })),
     { t: durationMs, v: chartValueAt(points, endMs) }
   ];
+}
+
+/** Average damage over the selected window, using elapsed time while the window fills. */
+export function buildRollingDpsSeries(cumulativeDamage: readonly ChartPoint[], windowMs: 1000 | 5000): ChartPoint[] {
+  let startIndex = 0;
+  return cumulativeDamage.map((point) => {
+    const start = Math.max(0, point.t - windowMs);
+    while (startIndex + 1 < cumulativeDamage.length && cumulativeDamage[startIndex + 1]!.t <= start) startIndex++;
+    const startDamage = cumulativeDamage[startIndex]?.v ?? 0;
+    return {
+      t: point.t,
+      v: point.t > 0 ? Math.max(0, point.v - startDamage) / (Math.min(windowMs, point.t) / 1000) : 0
+    };
+  });
 }
 
 /** Effect charts are an explicit consumer of optional engine-owned histories. */

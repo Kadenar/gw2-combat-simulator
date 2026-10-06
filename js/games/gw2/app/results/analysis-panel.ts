@@ -492,23 +492,37 @@ function bindResultMetricDetailsDismissal(container: HTMLElement): void {
   root.addEventListener('pointerdown', (event) => dismissResultMetricDetails(root, event.target));
 }
 
+/** Reserves modifier rows with the charts' subtle shimmer, keeping the loading announcement nonvisual. */
+function modifierLoadingHtml(): string {
+  return `<div class="contrib-loading" role="status" aria-label="Calculating modifier contributions">
+    <div class="contrib-loading-skeleton" aria-hidden="true">
+      ${Array.from({ length: 4 }, () => '<div class="contrib-loading-row"><span></span><span></span><span></span></div>').join('')}
+    </div>
+  </div>`;
+}
+
 /** Renders modifier status independently so worker completion preserves chart and table interactions. */
 export function modifierContributionsHtml(model: RotationResultsModel): string {
   const contributions = model.contributions || [];
   const contributionsStale = model.contributionsStale === true;
   const contributionsError = String(model.contributionsError || '');
+  // Keep the section identifiable while pending; only assistive technology receives the loading announcement.
+  if (contributionsStale) {
+    return `<div class="res-contributions">
+      <h4><span>Modifier Contributions</span></h4>
+      ${modifierLoadingHtml()}
+    </div>`;
+  }
   return `${
-    contributions.length || contributionsStale || contributionsError
+    contributions.length || contributionsError
       ? `<div class="res-contributions">
     <h4>
       <span>Modifier Contributions</span>
     </h4>
     <p class="contrib-disclaimer">Values are estimated by disabling each modifier and rerunning the simulation. They may be misleading if doing so breaks the rotation.</p>
     ${
-      contributionsStale
-        ? '<div class="contrib-pending" role="status">Calculating modifier contributions&hellip;</div>'
-        : contributions.length
-          ? `<div class="contrib-table">
+      contributions.length
+        ? `<div class="contrib-table">
       <div class="contrib-hdr">
         <span>Modifier</span><span>DPS Increase</span><span>% Increase</span>
       </div>
@@ -525,9 +539,9 @@ export function modifierContributionsHtml(model: RotationResultsModel): string {
         })
         .join('')}
     </div>`
-          : contributionsError
-            ? `<div class="contrib-pending contrib-error">${escapeHtml(contributionsError)}</div>`
-            : '<div class="contrib-pending">Calculating modifier contributions…</div>'
+        : contributionsError
+          ? `<div class="contrib-pending contrib-error">${escapeHtml(contributionsError)}</div>`
+          : ''
     }
   </div>`
       : ''

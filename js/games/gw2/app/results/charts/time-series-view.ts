@@ -2,13 +2,14 @@ import { escapeHtml } from '#ui/shared/html.js';
 import { PRESENTATION_ALLIED_PLAYER_COUNT } from '#gw2/platform/results/boon-generation.js';
 import {
   buildPhaseDpsSeries,
+  chartAxisMaximum,
+  buildRollingDpsSeries,
   buildPhaseEffectSeries,
-  chartValueAt,
   type ChartEffectType,
   type ChartPoint,
   type ChartSeries
 } from '#gw2/app/results/charts/time-series-model.js';
-import { clamp } from '#kernel/core/numeric.js';
+import { bindTimeSeriesInteractions } from '#gw2/app/results/charts/time-series-interactions.js';
 
 // Mounts chart data as interactive DOM and canvas output without owning simulation transforms.
 export interface ChartHealthBreakpoint {
@@ -32,9 +33,11 @@ export interface ChartOptions {
 
 interface ChartLine {
   readonly name: string;
+  readonly effectName?: string;
   readonly color: string;
   readonly points: readonly ChartPoint[];
   readonly dashed?: boolean;
+  readonly stepped?: boolean;
   readonly unit?: string;
 }
 
@@ -109,15 +112,6 @@ const chartNumber = (value: unknown): string => {
 
   return number.toFixed(number < 10 && number % 1 ? 1 : 0);
 };
-
-function niceAxisMaximum(value: number): number {
-  if (!(value > 0)) return 1;
-  // Use familiar 1/2/5/10 axis bounds instead of arbitrary maxima.
-  const magnitude = 10 ** Math.floor(Math.log10(value));
-  const normalized = value / magnitude;
-  const rounded = normalized <= 1 ? 1 : normalized <= 2 ? 2 : normalized <= 5 ? 5 : 10;
-  return rounded * magnitude;
-}
 
 function fallbackColor(index: number): string {
   return `hsl(${(index * 61 + 210) % 360} 62% 62%)`;
@@ -279,12 +273,16 @@ function drawLineChart(
     height = 260,
     emptyText = '',
     markers = [],
-    timeOffsetMs = 0
+    timeOffsetMs = 0,
+    highlightedEffect = null,
+    tightScale = false
   }: {
     readonly height?: number;
     readonly emptyText?: string;
     readonly markers?: readonly ChartMarker[];
     readonly timeOffsetMs?: number;
+    readonly highlightedEffect?: string | null;
+    readonly tightScale?: boolean;
   } = {}
 ): ChartLayout | null {
   if (!canvas?.getContext) return null;
@@ -312,8 +310,9 @@ function drawLineChart(
   };
   const plotWidth = cssWidth - pad.left - pad.right;
   const plotHeight = height - pad.top - pad.bottom;
-  const maxValue = niceAxisMaximum(
-    Math.max(0, ...lines.flatMap((line) => line.points.map((point) => Number(point.v || 0))))
+  const maxValue = chartAxisMaximum(
+    lines.flatMap((line) => line.points.map((point) => point.v)),
+    tightScale
   );
   context.font = '10px sans-serif';
   context.lineWidth = 1;
@@ -368,18 +367,35 @@ function drawLineChart(
     context.fillText(group.map((marker) => marker.label).join(' / '), x, pad.top - 10);
   }
 
-  for (const line of lines) {
+  // Emphasize both audience curves for a visible effect without changing the scale or checkbox selection.
+  const hasHighlight = lines.some((line) => line.effectName === highlightedEffect);
+  const orderedLines = hasHighlight
+    ? [...lines].sort(
+        (left, right) => Number(left.effectName === highlightedEffect) - Number(right.effectName === highlightedEffect)
+      )
+    : lines;
+  for (const line of orderedLines) {
     if (!line.points.length) continue;
     context.save();
     context.setLineDash(line.dashed ? [6, 4] : []);
     context.strokeStyle = line.color;
-    context.lineWidth = 2;
+    const highlighted = hasHighlight && line.effectName === highlightedEffect;
+    context.globalAlpha = hasHighlight && !highlighted ? 0.2 : 1;
+    context.lineWidth = highlighted ? 3.5 : 2;
     context.beginPath();
     line.points.forEach((point, index) => {
       const x = pad.left + (Number(point.t || 0) / durationMs) * plotWidth;
       const y = pad.top + (1 - Number(point.v || 0) / maxValue) * plotHeight;
       if (index === 0) context.moveTo(x, y);
-      else context.lineTo(x, y);
+      else {
+        // Stack counts hold until the next sample changes them; countdowns and DPS retain continuous segments.
+        if (line.stepped) {
+          const previousY = pad.top + (1 - line.points[index - 1]!.v / maxValue) * plotHeight;
+          context.lineTo(x, previousY);
+        }
+
+        context.lineTo(x, y);
+      }
     });
     context.stroke();
     context.restore();
@@ -494,7 +510,14 @@ function chartHtml(
   phases: readonly ChartFightPhase[]
 ): string {
   const effects = [...new Set([...Object.keys(series.effects || {}), ...Object.keys(series.alliedEffects || {})])];
-  const visibleEffects = new Set(effects.slice(0, Math.max(0, options.defaultVisibleEffectLimit)));
+  // Give each chart its own initial selection so conditions cannot crowd out boons or buffs.
+  const visibleEffects = new Set(
+    [false, true].flatMap((condition) =>
+      effects
+        .filter((name) => (series.effectTypes?.[name] === 'condition') === condition)
+        .slice(0, Math.max(0, options.defaultVisibleEffectLimit))
+    )
+  );
   const effectIndexes = new Map(effects.map((name, index) => [name, index]));
   const effectGroups: readonly {
     type: ChartEffectType;
@@ -504,10 +527,10 @@ function chartHtml(
     { type: 'condition', label: 'Conditions' },
     { type: 'buff', label: 'Buffs' }
   ];
-  // Effect visibility checkboxes live with the Effects Over Time panel they
-  // control (below the DPS graph).
-  const effectTogglesMarkup = `<div class="chart-toggles" data-role="chart-toggles">
+  // Keep each effect control beside the chart it changes.
+  const effectTogglesMarkup = (conditions: boolean): string => `<div class="chart-toggles" data-role="chart-toggles">
       ${effectGroups
+        .filter(({ type }) => (type === 'condition') === conditions)
         .map(({ type, label }) => {
           const groupEffects = effects
             .filter((name) => (series.effectTypes?.[name] || 'buff') === type)
@@ -555,16 +578,28 @@ function chartHtml(
     </div>`
         : ''
     }
+    <div class="chart-phase-toggles">
+      <span data-role="chart-zoom-label" aria-live="polite">Full range</span>
+      <button type="button" data-role="chart-reset-zoom" disabled>Reset zoom</button>
+    </div>
     <div class="chart-panels">
       <div class="chart-panel">
         <div class="chart-panel-title" data-role="dps-panel-title">${escapeHtml(options.dpsLabel)} Over Time</div>
+        <div class="chart-phase-toggles" role="group" aria-label="DPS display">
+          <button type="button" data-dps-mode="cumulative" aria-pressed="true">Cumulative</button>
+          <button type="button" data-dps-mode="rolling-1s" aria-pressed="false">Rolling 1s</button>
+          <button type="button" data-dps-mode="rolling-5s" aria-pressed="false">Rolling 5s</button>
+          <button type="button" data-dps-mode="all" aria-pressed="false">All</button>
+          <span>Cumulative: solid · Rolling 1s: amber · Rolling 5s: blue dashed</span>
+        </div>
         <div class="chart-canvas-wrap">
-          <canvas class="chart-canvas" data-role="dps-canvas"></canvas>
+          <canvas class="chart-canvas" data-role="dps-canvas" tabindex="0" aria-label="DPS chart"></canvas>
+          <div class="chart-crosshair" hidden></div><div class="chart-selection" hidden></div>
           <div class="chart-tooltip" data-role="dps-tooltip"></div>
         </div>
       </div>
       <div class="chart-panel">
-        <div class="chart-panel-title" data-role="effects-panel-title">Effects Over Time</div>
+        <div class="chart-panel-title" data-role="effects-panel-title">Boons &amp; Buffs Over Time</div>
         <div class="chart-phase-toggles" data-role="boon-audience" role="group" aria-label="Boon audience">
           <span class="chart-toggle-label">Boons</span>
           <button type="button" data-boon-audience="self" aria-pressed="true">Self</button>
@@ -572,13 +607,23 @@ function chartHtml(
           <button type="button" data-boon-audience="both" aria-pressed="false">Both</button>
           <span>Self: solid · Allies: dashed</span>
         </div>
-        ${effectTogglesMarkup}
+        ${effectTogglesMarkup(false)}
         <div class="chart-canvas-wrap">
-          <canvas class="chart-canvas" data-role="effects-canvas"></canvas>
+          <canvas class="chart-canvas" data-role="effects-canvas" tabindex="0" aria-label="Boons and buffs chart"></canvas>
+          <div class="chart-crosshair" hidden></div><div class="chart-selection" hidden></div>
           <div class="chart-tooltip" data-role="effects-tooltip"></div>
         </div>
-        ${effectSummaryHtml(series)}
       </div>
+      <div class="chart-panel">
+        <div class="chart-panel-title" data-role="conditions-panel-title">Conditions Over Time</div>
+        ${effectTogglesMarkup(true)}
+        <div class="chart-canvas-wrap">
+          <canvas class="chart-canvas" data-role="conditions-canvas" tabindex="0" aria-label="Conditions chart"></canvas>
+          <div class="chart-crosshair" hidden></div><div class="chart-selection" hidden></div>
+          <div class="chart-tooltip" data-role="conditions-tooltip"></div>
+        </div>
+      </div>
+      ${effectSummaryHtml(series)}
     </div>
   </div>`;
 }
@@ -637,190 +682,197 @@ export function mountTimeSeriesCharts(
   ];
   container.innerHTML = chartHtml(resolvedSeries, resolvedOptions, healthMarkers, phases);
 
-  // Cached control roots for toggle/phase state queries during redraw.
-  const chartTogglesEl = container.querySelector<HTMLElement>('[data-role="chart-toggles"]');
   const chartPhaseTogglesEl = container.querySelector<HTMLElement>('[data-role="chart-phase-toggles"]');
-
-  const chartState: {
-    dpsLayout: ChartLayout | null;
-    dpsView: ChartDpsView;
-    effectsLayout: ChartLayout | null;
-    effectsView: ChartEffectsView;
-    effectLines: ChartLine[];
-  } = {
-    dpsLayout: null,
-    dpsView: dpsViewForPhase(resolvedSeries, healthMarkers, phases[0]!),
-    effectsLayout: null,
-    effectsView: effectsViewForPhase(resolvedSeries, phases[0]!),
-    effectLines: []
-  };
-  let phaseStartMs = 0;
+  const resetButton = container.querySelector<HTMLButtonElement>('[data-role="chart-reset-zoom"]');
+  const zoomLabel = container.querySelector<HTMLElement>('[data-role="chart-zoom-label"]');
+  const panels: { kind: string; layout: ChartLayout | null; lines: ChartLine[] }[] = [
+    { kind: 'dps', layout: null, lines: [] },
+    { kind: 'effects', layout: null, lines: [] },
+    { kind: 'conditions', layout: null, lines: [] }
+  ];
+  let dpsMode = 'cumulative';
+  let hoveredEffect: string | null = null;
+  let focusedEffect: string | null = null;
+  let zoomRange: { start: number; end: number } | null = null;
+  let viewRange = { start: 0, end: resolvedSeries.durationMs, offset: 0 };
+  let clearInteraction = (): void => {};
 
   const redraw = (): void => {
     if (ACTIVE_MOUNTS.get(container)?.token !== mountToken) return;
+    clearInteraction();
     const selected = new Set(
-      [...(chartTogglesEl?.querySelectorAll<HTMLInputElement>('input:checked') || [])].map(
-        (input) => input.dataset.series
-      )
+      [...container.querySelectorAll<HTMLInputElement>('[data-series]:checked')].map((input) => input.dataset.series)
     );
     const activePhase = phases.find((phase) => phase.id === activePhaseId && phase.enabled) || phases[0]!;
-    // Keep axes and tooltips on the fight clock while calculating phase DPS from phase-local elapsed time.
-    phaseStartMs = activePhase.startMs;
-    chartState.dpsView = dpsViewForPhase(resolvedSeries, healthMarkers, activePhase);
-    chartState.effectsView = effectsViewForPhase(resolvedSeries, activePhase);
-    const dpsTitle = container.querySelector<HTMLElement>('[data-role="dps-panel-title"]');
-    if (dpsTitle) {
-      dpsTitle.textContent =
-        `${resolvedOptions.dpsLabel} Over Time` + (activePhase.id === 'full' ? '' : ` — ${activePhase.label}`);
-    }
-
-    const effectsTitle = container.querySelector<HTMLElement>('[data-role="effects-panel-title"]');
-    if (effectsTitle) {
-      effectsTitle.textContent = 'Effects Over Time' + (activePhase.id === 'full' ? '' : ` — ${activePhase.label}`);
-    }
-
-    // DPS is always shown; only effect series are toggleable.
-    chartState.dpsLayout = drawLineChart(
-      container.querySelector<HTMLCanvasElement>('[data-role="dps-canvas"]'),
-      [
-        {
-          name: resolvedOptions.dpsLabel,
-          color: resolvedOptions.dpsColor,
-          points: chartState.dpsView.dps
-        }
-      ],
-      chartState.dpsView.durationMs,
-      {
-        height: 280,
-        emptyText: resolvedOptions.emptyEffectsText,
-        markers: chartState.dpsView.markers,
-        timeOffsetMs: phaseStartMs
-      }
-    );
-    // Overlay averaged allied boons on the same scale; keep self buffs and target conditions as their own series.
+    const dpsView = dpsViewForPhase(resolvedSeries, healthMarkers, activePhase);
+    const effectsView = effectsViewForPhase(resolvedSeries, activePhase);
     const alliedView = effectsViewForPhase({ ...resolvedSeries, effects: resolvedSeries.alliedEffects! }, activePhase);
-    chartState.effectLines = effectNames
-      .filter((name) => selected.has(name))
-      .flatMap((name) => {
-        const boon = resolvedSeries.effectTypes?.[name] === 'boon';
-        const color = resolvedOptions.colors[name] || fallbackColor(effectNames.indexOf(name));
-        const unit = resolvedSeries.effectUnits?.[name];
-        const lines: ChartLine[] = [];
-        const own = chartState.effectsView.effects[name];
-        if (own && (!boon || boonAudience !== 'allies')) {
-          lines.push({ name: boon ? `${name} (Self)` : name, points: own, color, unit });
-        }
-
-        const allied = alliedView.effects[name];
-        if (boon && allied && boonAudience !== 'self') {
-          lines.push({ name: `${name} (Allies avg)`, points: allied, color, unit, dashed: true });
-        }
-
-        return lines;
-      });
-    chartState.effectsLayout = drawLineChart(
-      container.querySelector<HTMLCanvasElement>('[data-role="effects-canvas"]'),
-      chartState.effectLines,
-      chartState.effectsView.durationMs,
-      { height: 260, emptyText: resolvedOptions.emptyEffectsText, timeOffsetMs: phaseStartMs }
-    );
-  };
-
-  const bindHover = (canvasRole: string, tooltipRole: string, kind: 'dps' | 'effects'): void => {
-    const canvas = container.querySelector<HTMLCanvasElement>(`[data-role="${canvasRole}"]`);
-    const tooltip = container.querySelector<HTMLElement>(`[data-role="${tooltipRole}"]`);
-    if (!canvas || !tooltip) return;
-
-    canvas.onmouseleave = () => {
-      tooltip.style.display = 'none';
+    // Zoom only crops the view: neither cumulative DPS nor the rolling window restarts at its left edge.
+    viewRange = {
+      start: zoomRange?.start ?? 0,
+      end: zoomRange?.end ?? dpsView.durationMs,
+      offset: activePhase.startMs
     };
-
-    canvas.onmousemove = (event) => {
-      const layout = kind === 'dps' ? chartState.dpsLayout : chartState.effectsLayout;
-      if (!layout) return;
-
-      const rect = canvas.getBoundingClientRect();
-      // Canvas CSS size can differ from its logical drawing size.
-      const scaleX = layout.cssWidth / Math.max(1, rect.width);
-      const scaleY = layout.height / Math.max(1, rect.height);
-      const pointerX = event.clientX - rect.left;
-      const pointerY = event.clientY - rect.top;
-      const chartX = pointerX * scaleX;
-      const chartY = pointerY * scaleY;
-      const minX = layout.pad.left;
-      const maxX = layout.cssWidth - layout.pad.right;
-      const minY = layout.pad.top;
-      const maxY = layout.pad.top + layout.plotHeight;
-
-      if (chartX < minX || chartX > maxX || chartY < minY || chartY > maxY) {
-        tooltip.style.display = 'none';
-        return;
-      }
-
-      const durationMs = kind === 'dps' ? chartState.dpsView.durationMs : chartState.effectsView.durationMs;
-      const time = clamp(((chartX - minX) / layout.plotWidth) * durationMs, 0, durationMs);
-      // Preserve milliseconds in hover details to match the rotation and event log.
-      const timeLabel = `${((phaseStartMs + time) / 1000).toFixed(3)}s`;
-      let body: string;
-      if (kind === 'dps') {
-        const dps = Math.round(chartValueAt(chartState.dpsView.dps, time));
-        body =
-          `<div>${escapeHtml(chartState.dpsView.label)}</div>` +
-          `<div>${escapeHtml(resolvedOptions.dpsLabel)}: ${dps.toLocaleString()}</div>`;
+    if (resetButton) resetButton.disabled = !zoomRange;
+    if (zoomLabel)
+      zoomLabel.textContent = `${zoomRange ? 'Zoom: ' : ''}${((viewRange.offset + viewRange.start) / 1000).toFixed(3)}s – ${((viewRange.offset + viewRange.end) / 1000).toFixed(3)}s`;
+    const cumulativeDamage =
+      activePhase.id === 'full'
+        ? resolvedSeries.cumulativeDamage!
+        : dpsView.dps.map((point) => ({ t: point.t, v: (point.v * point.t) / 1000 }));
+    for (const panel of panels) {
+      const title = container.querySelector<HTMLElement>(`[data-role="${panel.kind}-panel-title"]`);
+      const label =
+        panel.kind === 'dps' ? resolvedOptions.dpsLabel : panel.kind === 'conditions' ? 'Conditions' : 'Boons & Buffs';
+      if (title) title.textContent = `${label} Over Time${activePhase.id === 'full' ? '' : ` — ${activePhase.label}`}`;
+      if (panel.kind === 'dps') {
+        panel.lines = [
+          ...(dpsMode === 'cumulative' || dpsMode === 'all'
+            ? [{ name: `Cumulative ${resolvedOptions.dpsLabel}`, color: resolvedOptions.dpsColor, points: dpsView.dps }]
+            : []),
+          ...(dpsMode === 'rolling-1s' || dpsMode === 'all'
+            ? [
+                {
+                  name: `Rolling 1s ${resolvedOptions.dpsLabel}`,
+                  color: '#efba62',
+                  points: buildRollingDpsSeries(cumulativeDamage, 1000)
+                }
+              ]
+            : []),
+          ...(dpsMode === 'rolling-5s' || dpsMode === 'all'
+            ? [
+                {
+                  name: `Rolling 5s ${resolvedOptions.dpsLabel}`,
+                  color: '#65b9ff',
+                  dashed: true,
+                  points: buildRollingDpsSeries(cumulativeDamage, 5000)
+                }
+              ]
+            : [])
+        ];
       } else {
-        const entries = chartState.effectLines
-          .map((line) => {
-            const value = chartValueAt(line.points, time);
-            return {
-              name: line.name,
-              value,
-              displayValue: `${Number(value.toFixed(2))}${line.unit || ''}`
-            };
-          })
-          .filter((entry) => entry.value > 0)
-          .sort((a, b) => b.value - a.value);
-        body = entries.length
-          ? entries.map((entry) => `<div>${escapeHtml(entry.name)}: ${escapeHtml(entry.displayValue)}</div>`).join('')
-          : '<div>No visible stack effects</div>';
+        // Target conditions own a separate scale; only boons participate in the audience selector.
+        panel.lines = effectNames
+          .filter(
+            (name) =>
+              selected.has(name) &&
+              (resolvedSeries.effectTypes?.[name] === 'condition') === (panel.kind === 'conditions')
+          )
+          .flatMap((name) => {
+            const boon = resolvedSeries.effectTypes?.[name] === 'boon';
+            const color = resolvedOptions.colors[name] || fallbackColor(effectNames.indexOf(name));
+            const unit = resolvedSeries.effectUnits?.[name];
+            const stepped = unit !== 's';
+            const lines: ChartLine[] = [];
+            const own = effectsView.effects[name];
+            if (own && (!boon || boonAudience !== 'allies'))
+              lines.push({ name: boon ? `${name} (Self)` : name, effectName: name, points: own, color, unit, stepped });
+            const allied = alliedView.effects[name];
+            if (boon && allied && boonAudience !== 'self')
+              lines.push({
+                name: `${name} (Allies avg)`,
+                effectName: name,
+                points: allied,
+                color,
+                unit,
+                stepped,
+                dashed: true
+              });
+            return lines;
+          });
       }
 
-      tooltip.innerHTML = `<div><b>${timeLabel}</b></div>${body}`;
-      // Measure at the chart origin before clamping so the right edge cannot clip or shrink the tooltip.
-      tooltip.style.left = '0px';
-      tooltip.style.display = 'block';
-      tooltip.style.left = `${clamp(pointerX + 12, 0, rect.width - tooltip.offsetWidth - 4)}px`;
-      tooltip.style.top = `${pointerY + 12}px`;
-    };
+      panel.layout = drawLineChart(
+        container.querySelector<HTMLCanvasElement>(`[data-role="${panel.kind}-canvas"]`),
+        panel.lines.map((line) => ({
+          ...line,
+          points: buildPhaseEffectSeries(line.points, viewRange.start, viewRange.end)
+        })),
+        viewRange.end - viewRange.start,
+        {
+          height: panel.kind === 'dps' ? 280 : 260,
+          tightScale: panel.kind === 'dps',
+          highlightedEffect: hoveredEffect ?? focusedEffect,
+          emptyText: panel.kind === 'conditions' ? 'No visible conditions' : resolvedOptions.emptyEffectsText,
+          timeOffsetMs: viewRange.offset + viewRange.start,
+          markers:
+            panel.kind === 'dps'
+              ? dpsView.markers
+                  .filter((marker) => marker.timeMs >= viewRange.start && marker.timeMs <= viewRange.end)
+                  .map((marker) => ({ ...marker, timeMs: marker.timeMs - viewRange.start }))
+              : []
+        }
+      );
+    }
   };
 
-  for (const input of chartTogglesEl?.querySelectorAll<HTMLInputElement>('input') || []) {
+  const resetZoom = (): void => {
+    zoomRange = null;
+    redraw();
+  };
+
+  if (resetButton) resetButton.onclick = resetZoom;
+  // Only keyboard focus sustains inspection; mouse clicks keep native focus without pinning the highlight.
+  for (const input of container.querySelectorAll<HTMLInputElement>('[data-series]')) {
     input.onchange = redraw;
-  }
+    const label = input.closest('label');
+    if (!label) continue;
+    label.onpointerenter = (event) => {
+      if (event.pointerType === 'touch') return;
+      hoveredEffect = input.dataset.series!;
+      redraw();
+    };
 
-  for (const button of container.querySelectorAll<HTMLButtonElement>('[data-boon-audience]')) {
-    button.onclick = () => {
-      boonAudience = button.dataset.boonAudience || 'self';
-      for (const control of container.querySelectorAll<HTMLButtonElement>('[data-boon-audience]')) {
-        control.setAttribute('aria-pressed', String(control.dataset.boonAudience === boonAudience));
-      }
+    label.onpointerleave = () => {
+      hoveredEffect = null;
+      redraw();
+    };
 
-      const tooltip = container.querySelector<HTMLElement>('[data-role="effects-tooltip"]');
-      if (tooltip) tooltip.style.display = 'none';
+    label.onpointerdown = () => {
+      focusedEffect = null;
+      redraw();
+    };
+
+    input.onfocus = () => {
+      focusedEffect = input.matches(':focus-visible') ? input.dataset.series! : null;
+      redraw();
+    };
+
+    input.onkeydown = () => {
+      focusedEffect = input.dataset.series!;
+      redraw();
+    };
+
+    input.onblur = () => {
+      focusedEffect = null;
       redraw();
     };
   }
 
-  for (const button of chartTogglesEl?.querySelectorAll<HTMLButtonElement>(
-    '[data-role="chart-toggle-group"] [data-toggle-action]'
-  ) || []) {
+  for (const button of container.querySelectorAll<HTMLButtonElement>('[data-dps-mode]')) {
+    button.onclick = () => {
+      dpsMode = button.dataset.dpsMode!;
+      for (const control of container.querySelectorAll<HTMLButtonElement>('[data-dps-mode]'))
+        control.setAttribute('aria-pressed', String(control.dataset.dpsMode === dpsMode));
+      redraw();
+    };
+  }
+
+  for (const button of container.querySelectorAll<HTMLButtonElement>('[data-boon-audience]')) {
+    button.onclick = () => {
+      boonAudience = button.dataset.boonAudience!;
+      for (const control of container.querySelectorAll<HTMLButtonElement>('[data-boon-audience]'))
+        control.setAttribute('aria-pressed', String(control.dataset.boonAudience === boonAudience));
+      redraw();
+    };
+  }
+
+  for (const button of container.querySelectorAll<HTMLButtonElement>('[data-toggle-action]')) {
     button.onclick = () => {
       const group = button.closest('[data-role="chart-toggle-group"]');
       if (!group) return;
-      const checked = button.dataset.toggleAction === 'all';
-      for (const input of group.querySelectorAll<HTMLInputElement>('input[type="checkbox"]')) {
-        input.checked = checked;
-      }
-
+      for (const input of group.querySelectorAll<HTMLInputElement>('input'))
+        input.checked = button.dataset.toggleAction === 'all';
       redraw();
     };
   }
@@ -828,18 +880,24 @@ export function mountTimeSeriesCharts(
   for (const button of chartPhaseTogglesEl?.querySelectorAll<HTMLButtonElement>('button') || []) {
     button.onclick = () => {
       if (button.disabled) return;
-      activePhaseId = button.dataset.chartPhase || 'full';
-      for (const phaseButton of chartPhaseTogglesEl?.querySelectorAll<HTMLButtonElement>('button') || []) {
-        phaseButton.setAttribute('aria-pressed', String(phaseButton.dataset.chartPhase === activePhaseId));
-      }
-
-      redraw();
+      activePhaseId = button.dataset.chartPhase!;
+      for (const control of chartPhaseTogglesEl?.querySelectorAll<HTMLButtonElement>('button') || [])
+        control.setAttribute('aria-pressed', String(control.dataset.chartPhase === activePhaseId));
+      resetZoom();
     };
   }
 
-  bindHover('dps-canvas', 'dps-tooltip', 'dps');
-  bindHover('effects-canvas', 'effects-tooltip', 'effects');
   redraw();
+  clearInteraction = bindTimeSeriesInteractions(
+    container,
+    () => panels,
+    () => viewRange,
+    (start, end) => {
+      zoomRange = { start, end };
+      redraw();
+    },
+    resetZoom
+  );
 
   let redrawFrame: number | null = null;
   const requestRedraw = (): void => {
@@ -867,7 +925,7 @@ export function mountTimeSeriesCharts(
   if (ResizeObserverConstructor && observedContainer) {
     activeMount.resizeObserver = new ResizeObserverConstructor(() => {
       const visibleWidth = Math.floor(observedContainer.clientWidth);
-      if (visibleWidth > 0 && visibleWidth !== chartState.dpsLayout?.cssWidth) {
+      if (visibleWidth > 0 && visibleWidth !== panels[0]?.layout?.cssWidth) {
         requestRedraw();
       }
     });

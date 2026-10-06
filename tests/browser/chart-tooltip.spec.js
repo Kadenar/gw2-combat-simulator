@@ -2,6 +2,10 @@ import { expect, test } from '@playwright/test';
 
 // Hover real charts at both edges to catch clipping inside chart containers and narrow viewports.
 test('graph tooltips stay inside the chart at desktop and mobile widths', async ({ page }) => {
+  // Isolate chart fixtures from the landing page's startup navigation.
+  await page.route('http://127.0.0.1:4173/', (route) =>
+    route.fulfill({ contentType: 'text/html', body: '<!doctype html><html><head></head><body></body></html>' })
+  );
   await page.goto('/', { waitUntil: 'domcontentloaded' });
   await page.addStyleTag({ url: '/css/style.css' });
   await page.evaluate(async () => {
@@ -49,6 +53,7 @@ test('graph tooltips stay inside the chart at desktop and mobile widths', async 
     for (const [chartRole, tooltipRole] of [
       ['dps-canvas', 'dps-tooltip'],
       ['effects-canvas', 'effects-tooltip'],
+      ['conditions-canvas', 'conditions-tooltip'],
       ['relic-comparison-chart', 'relic-comparison-tooltip']
     ]) {
       const chart = page.locator(`[data-role="${chartRole}"]`);

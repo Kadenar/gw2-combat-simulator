@@ -6,6 +6,8 @@ import {
   buildTimeSeries,
   buildPhaseDpsSeries,
   buildPhaseEffectSeries,
+  buildRollingDpsSeries,
+  chartAxisMaximum,
   chartValueAt
 } from '#gw2/app/results/charts/time-series-model.js';
 import { mountTimeSeriesCharts } from '#gw2/app/results/charts/time-series-view.js';
@@ -31,7 +33,8 @@ import { normalizeProfessionUi } from '#gw2/platform/profession-presentation/con
 test('modifier section shows pending, completed, empty, and failed states', () => {
   const contributions = [{ name: 'Old modifier', dpsIncrease: 12, pctIncrease: 1 }];
   const pending = modifierContributionsHtml({ contributions, contributionsStale: true });
-  assert.match(pending, /role="status">Calculating modifier contributions/);
+  assert.match(pending, /role="status"/);
+  assert.match(pending, /Calculating modifier contributions/);
   assert.doesNotMatch(pending, /Old modifier|contrib-table/);
   assert.match(modifierContributionsHtml({ contributions }), /Old modifier/);
   assert.equal(modifierContributionsHtml({ contributions: [] }), '');
@@ -420,6 +423,58 @@ test('phase effects are cropped and rebased to the selected health range', () =>
   assert.deepEqual(buildPhaseEffectSeries([{ t: 0, v: 1 }], 1000, 1000), []);
 });
 
+// A small damage history checks window expiry and startup normalization without depending on a rotation.
+test('rolling DPS uses elapsed startup time and expires damage outside its five-second window', () => {
+  const damage = [
+    { t: 0, v: 0 },
+    { t: 1000, v: 100 },
+    { t: 2000, v: 300 },
+    { t: 5000, v: 500 },
+    { t: 6000, v: 600 },
+    { t: 6500, v: 750 },
+    { t: 12000, v: 750 }
+  ];
+  assert.deepEqual(
+    buildRollingDpsSeries(damage, 5000).map((point) => point.v),
+    [0, 100, 150, 100, 100, 130, 0]
+  );
+  assert.deepEqual(buildRollingDpsSeries([], 5000), []);
+  const phaseDps = buildPhaseDpsSeries(damage, 1000, 6000, 100, 600);
+  const phaseDamage = phaseDps.map((point) => ({ t: point.t, v: (point.v * point.t) / 1000 }));
+  assert.equal(buildRollingDpsSeries(phaseDamage, 5000).at(-1).v, 100);
+  const shortWindowDamage = [
+    { t: 0, v: 0 },
+    { t: 500, v: 100 },
+    { t: 1000, v: 300 },
+    { t: 1500, v: 500 },
+    { t: 2500, v: 500 }
+  ];
+  assert.deepEqual(
+    buildRollingDpsSeries(shortWindowDamage, 1000).map((point) => point.v),
+    [0, 200, 300, 400, 0]
+  );
+});
+
+// The visible curves set the scale; neither rolling mode nor a previous zoom may impose a fixed DPS ceiling.
+test('chart axes fit observed DPS and rescale when a zoom excludes the peak', () => {
+  const rolling = [
+    { t: 0, v: 0 },
+    { t: 1000, v: 72000 },
+    { t: 6000, v: 12000 },
+    { t: 8000, v: 8000 }
+  ];
+  assert.equal(chartAxisMaximum(rolling.map((point) => point.v)), 100000);
+  const zoomed = buildPhaseEffectSeries(rolling, 6000, 8000);
+  assert.equal(chartAxisMaximum(zoomed.map((point) => point.v)), 20000);
+  assert.equal(chartAxisMaximum([...zoomed.map((point) => point.v), 42000]), 50000);
+  assert.equal(chartAxisMaximum([250000]), 500000);
+  assert.equal(chartAxisMaximum([0]), 1);
+  // A burst near 125k should occupy most of the chart instead of rounding up to a 200k ceiling.
+  assert.equal(chartAxisMaximum([42000, 125000], true), 140000);
+  assert.equal(chartAxisMaximum([42000, 12000], true), 45000);
+  assert.equal(chartAxisMaximum([0], true), 1);
+});
+
 test('shared chart markup escapes effect names and uses scoped roles without ids', () => {
   const container = inertContainer();
 
@@ -463,7 +518,7 @@ test('shared chart markup escapes effect names and uses scoped roles without ids
     [...container.innerHTML.matchAll(/data-role="chart-toggle-group" data-effect-type="([^"]+)"/g)].map(
       (match) => match[1]
     ),
-    ['boon', 'condition', 'buff']
+    ['boon', 'buff', 'condition']
   );
   assert.equal(
     container.innerHTML.indexOf('Alacrity'),
@@ -583,6 +638,92 @@ test('chart canvases stay fluid when their initial container width is unavailabl
   assert.equal(effectsCanvas.width, 760);
   assert.equal(dpsCanvas.style.width, '100%');
   assert.equal(effectsCanvas.style.width, '100%');
+});
+
+// Inspect renderer paths directly: count changes must not imply intermediate stacks, while countdowns can slope.
+test('effect counts render as steps for both audiences while duration and DPS curves stay linear', () => {
+  const strokes = [];
+  let path = [];
+  let dashed = false;
+  const context = {
+    beginPath() {
+      path = [];
+    },
+    clearRect() {},
+    fillText() {},
+    lineTo(x, y) {
+      path.push([x, y]);
+    },
+    moveTo(x, y) {
+      path.push([x, y]);
+    },
+    restore() {},
+    save() {},
+    setLineDash(values) {
+      dashed = values.length > 0;
+    },
+    setTransform() {},
+    stroke() {
+      if (this.lineWidth === 2) strokes.push({ color: this.strokeStyle, path: [...path], dashed });
+    }
+  };
+  const canvases = new Map(
+    ['dps', 'effects', 'conditions'].map((kind) => [
+      `[data-role="${kind}-canvas"]`,
+      { getContext: () => context, parentElement: { clientWidth: 760 }, style: {} }
+    ])
+  );
+  const colors = { Might: '#112233', Buff: '#223344', Burning: '#334455', Duration: '#445566' };
+  const both = { dataset: { boonAudience: 'both' }, setAttribute() {} };
+  const container = {
+    innerHTML: '',
+    querySelector: (selector) => canvases.get(selector) || null,
+    querySelectorAll: (selector) =>
+      selector === '[data-series]:checked'
+        ? Object.keys(colors).map((name) => ({ dataset: { series: name } }))
+        : selector === '[data-boon-audience]'
+          ? [both]
+          : []
+  };
+  const points = [
+    { t: 0, v: 1 },
+    { t: 500, v: 3 },
+    { t: 1000, v: 0 }
+  ];
+  mountTimeSeriesCharts(
+    container,
+    {
+      durationMs: 1000,
+      dps: points,
+      effects: Object.fromEntries(Object.keys(colors).map((name) => [name, points])),
+      alliedEffects: { Might: points },
+      effectTypes: { Might: 'boon', Buff: 'buff', Burning: 'condition', Duration: 'buff' },
+      effectUnits: { Duration: 's' }
+    },
+    { colors, dpsColor: '#556677' }
+  );
+  strokes.length = 0;
+  both.onclick();
+  const hasDiagonal = (stroke) =>
+    stroke.path.some(
+      ([x, y], index) => index > 0 && x !== stroke.path[index - 1][0] && y !== stroke.path[index - 1][1]
+    );
+  for (const name of ['Might', 'Buff', 'Burning']) {
+    const curves = strokes.filter((stroke) => stroke.color === colors[name]);
+    assert.equal(curves.length, name === 'Might' ? 2 : 1);
+    for (const curve of curves) {
+      assert.equal(hasDiagonal(curve), false, `${name} must hold its previous count until the change`);
+      assert.ok(
+        curve.path.some(
+          ([x, y], index) => index > 0 && x === curve.path[index - 1][0] && y !== curve.path[index - 1][1]
+        )
+      );
+    }
+  }
+
+  assert.ok(strokes.some((stroke) => stroke.color === colors.Might && stroke.dashed));
+  assert.ok(hasDiagonal(strokes.find((stroke) => stroke.color === colors.Duration)));
+  assert.ok(hasDiagonal(strokes.find((stroke) => stroke.color === '#556677')));
 });
 
 test('result charts reuse the target-health DPS snapshot breakpoints', () => {

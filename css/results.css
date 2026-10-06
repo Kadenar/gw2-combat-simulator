@@ -1461,7 +1461,8 @@ body:not([data-rotation-focus]) .rotation-panel:has(.rotation-event-log .res-log
     linear-gradient(to top, color-mix(in srgb, var(--accent) 5%, transparent), transparent);
 }
 
-.chart-loading-plot::after {
+.chart-loading-plot::after,
+.contrib-loading-skeleton::after {
   content: '';
   position: absolute;
   inset: 0;
@@ -1510,7 +1511,8 @@ body:not([data-rotation-focus]) .rotation-panel:has(.rotation-event-log .res-log
 
 @media (prefers-reduced-motion: reduce) {
   .chart-loading-spinner,
-  .chart-loading-plot::after {
+  .chart-loading-plot::after,
+  .contrib-loading-skeleton::after {
     animation: none;
   }
 }
@@ -1718,11 +1720,38 @@ body:not([data-rotation-focus]) .rotation-panel:has(.rotation-event-log .res-log
 
 [data-role='dps-canvas'],
 [data-role='effects-canvas'],
+[data-role='conditions-canvas'],
 [data-role='hit-timeline-canvas'] {
   /* All result canvases share the same sizing and presentation. */
   width: 100%;
   border-radius: 4px;
   display: block;
+}
+
+/* Pointer-transparent overlays synchronize inspection without redrawing chart data. */
+.chart-crosshair,
+.chart-selection {
+  position: absolute;
+  pointer-events: none;
+}
+
+.chart-crosshair {
+  border-left: 1px dashed var(--text-bright);
+}
+
+.chart-selection {
+  background: rgba(101, 185, 255, 0.16);
+  border-inline: 1px solid #65b9ff;
+}
+
+.chart-panels .chart-canvas {
+  cursor: crosshair;
+  touch-action: pan-y;
+}
+
+.chart-panels .chart-canvas:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: -2px;
 }
 
 /* Transparent native controls make canvas hit groups focusable without hiding their markers. */
@@ -2301,6 +2330,39 @@ body[data-simulation-config-open][data-rotation-focus] .rotation-section {
 .contrib-pending {
   color: var(--text-dim);
   font-size: 0.82rem;
+}
+
+/* Reserve table-shaped rows while reusing the charts' shimmer and reduced-motion behavior. */
+.contrib-loading {
+  padding: 14px 0;
+}
+
+.contrib-loading-skeleton {
+  position: relative;
+  display: grid;
+  gap: 18px;
+  overflow: hidden;
+}
+
+.contrib-loading-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(40px, 110px) minmax(35px, 90px);
+  gap: 8px;
+  padding: 4px 6px;
+}
+
+.contrib-loading-row span {
+  height: 12px;
+  border-radius: 3px;
+  background: color-mix(in srgb, var(--text-dim) 12%, transparent);
+}
+
+.contrib-loading-row span:first-child {
+  width: 70%;
+}
+
+.contrib-loading-row:nth-child(even) span:first-child {
+  width: 50%;
 }
 
 .contrib-error {

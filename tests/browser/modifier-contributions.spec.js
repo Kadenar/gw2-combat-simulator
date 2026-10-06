@@ -32,7 +32,18 @@ test('modifiers run on demand in Analysis and update only their own section', as
   });
   await page.getByRole('link', { name: 'Analysis', exact: true }).click();
   const pending = page.locator('[data-role="modifier-contributions"] [role="status"]');
-  await expect(pending).toHaveText('Calculating modifier contributions…');
+  await expect(pending).toHaveAccessibleName('Calculating modifier contributions');
+  // The shared chart shimmer must respect reduced motion while retaining the loading announcement.
+  const loadingScene = pending.locator('.contrib-loading-skeleton');
+  await expect(loadingScene).toBeVisible();
+  await expect(loadingScene).toHaveAttribute('aria-hidden', 'true');
+  expect(await loadingScene.evaluate((element) => getComputedStyle(element, '::after').animationName)).toBe(
+    'chart-loading-sweep'
+  );
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  expect(await loadingScene.evaluate((element) => element.getAnimations({ subtree: true }).length)).toBe(0);
+  await expect(pending).toBeVisible();
+  await page.emulateMedia({ reducedMotion: 'no-preference' });
   await expect(page.locator('[data-role="result-charts"]')).toBeVisible();
   expect(await page.evaluate(() => window.professionApp.results.dps)).toBe(editor.dps);
   expect(await page.evaluate(() => window.professionApp.results.rotationApm)).toEqual(editor.apm);
