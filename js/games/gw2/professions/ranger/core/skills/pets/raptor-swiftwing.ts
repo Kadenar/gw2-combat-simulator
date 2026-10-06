@@ -10,11 +10,11 @@ import type { Skill } from '#gw2/platform/skills/types.js';
 export const RANGER_CORE_RAPTOR_SWIFTWING_PET_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze(
   {
     [ID.RAPTOR_SWIFTWING_CLAW]: {
-      // Claw makes two separate contacts using the same pet-owned activation.
+      // The paired logs place Claw's first Quickness contact earlier while both contacts retain one pet activation.
       effects: impactEffects({ timingAnchor: 'castStart', timingScale: 'fixed' }, [
         {
           type: 'strike',
-          ticks: [480, 680].map((atMs) => ({ atMs, coefficient: 0.2165 })),
+          ticks: [440, 680].map((atMs) => ({ atMs, coefficient: 0.2165 })),
           source: 'ranger-pet',
           actorType: 'summon'
         }

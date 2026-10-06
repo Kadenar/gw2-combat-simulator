@@ -18,17 +18,17 @@ export const RANGER_CORE_PORCINE_PET_SKILL_MECHANICS: Readonly<Record<number, Pa
     petSkill: true
   },
   [ID.PORCINE_MAUL]: {
-    // The Boar log records two simultaneous strikes, each applying two six-second bleeds.
+    // Both contacts apply two bleeds each; Quickness does not accelerate the measured Maul animation.
     effects: impactEffects({ timingAnchor: 'castStart', timingScale: 'fixed' }, [
       {
         type: 'strike',
-        ticks: [400, 400].map((atMs) => ({ atMs, coefficient: 0.33 })),
+        ticks: [600, 600].map((atMs) => ({ atMs, coefficient: 0.33 })),
         source: 'ranger-pet',
         actorType: 'summon'
       },
       {
         type: 'condition',
-        ticks: [400, 400].map((atMs) => ({ atMs, condition: 'Bleeding', stacks: 2, duration: 6 })),
+        ticks: [600, 600].map((atMs) => ({ atMs, condition: 'Bleeding', stacks: 2, duration: 6 })),
         source: 'ranger-pet',
         actorType: 'summon'
       }
@@ -38,8 +38,8 @@ export const RANGER_CORE_PORCINE_PET_SKILL_MECHANICS: Readonly<Record<number, Pa
     petSkill: true
   },
   [ID.PORCINE_BRUTAL_CHARGE]: {
-    // Resolve the leap and knockdown with the charge impact so control-triggered traits observe the landed attack.
-    effects: impactEffects({ atMs: 720, timingAnchor: 'castStart', timingScale: 'fixed' }, [
+    // Quickness leaves the charge unchanged; its leap and knockdown resolve with the landed strike.
+    effects: impactEffects({ atMs: 1080, timingAnchor: 'castStart', timingScale: 'fixed' }, [
       {
         type: 'strike',
         coefficient: 0.67,

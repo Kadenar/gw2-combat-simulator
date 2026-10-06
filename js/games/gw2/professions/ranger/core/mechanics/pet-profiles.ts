@@ -134,92 +134,91 @@ export const RANGER_PET_SKILL_TIMINGS: Readonly<
     }
   >
 > = Object.freeze({
-  // Quickness values in this block use standard 1.5x scaling pending dedicated recordings.
+  // Maul, Brutal Charge, and Lunge keep their unquickened motion; Vortex only accelerates its damage pulses.
   [ID.PORCINE_JAB]: {
     castTimeMs: 1400,
     quicknessCastTimeMs: 960,
     recoveryMs: 1480,
-    quicknessRecoveryMs: 1000,
+    quicknessRecoveryMs: 1040,
     unbuffedImpactMs: { '240': 320 }
   },
   [ID.PORCINE_MAUL]: {
     castTimeMs: 1200,
-    quicknessCastTimeMs: 800,
+    quicknessCastTimeMs: 1200,
     recoveryMs: 1280,
-    quicknessRecoveryMs: 880,
-    unbuffedImpactMs: { '400': 600 }
+    quicknessRecoveryMs: 1280,
+    unbuffedImpactMs: { '600': 600 }
   },
   [ID.PORCINE_BRUTAL_CHARGE]: {
     castTimeMs: 1840,
-    quicknessCastTimeMs: 1240,
+    quicknessCastTimeMs: 1840,
     recoveryMs: 1920,
-    quicknessRecoveryMs: 1280,
-    unbuffedImpactMs: { '720': 1080 }
+    quicknessRecoveryMs: 1920,
+    unbuffedImpactMs: { '1080': 1080 }
   },
   [ID.FORAGE_ROCK]: {
     castTimeMs: 1200,
-    quicknessCastTimeMs: 800,
+    quicknessCastTimeMs: 880,
     recoveryMs: 1240,
-    quicknessRecoveryMs: 840,
+    quicknessRecoveryMs: 880,
     unbuffedImpactMs: {}
   },
   [ID.AETHER_HUNTER_BITE]: {
     castTimeMs: 2040,
-    quicknessCastTimeMs: 1360,
+    quicknessCastTimeMs: 1400,
     recoveryMs: 2120,
-    quicknessRecoveryMs: 1440,
-    unbuffedImpactMs: { '320': 440 }
+    quicknessRecoveryMs: 1480,
+    unbuffedImpactMs: { '280': 440 }
   },
   [ID.AETHER_HUNTER_LUNGE]: {
     castTimeMs: 1480,
-    quicknessCastTimeMs: 1000,
+    quicknessCastTimeMs: 1480,
     recoveryMs: 1560,
-    quicknessRecoveryMs: 1040,
-    unbuffedImpactMs: { '160': 200 }
+    quicknessRecoveryMs: 1560,
+    unbuffedImpactMs: { '200': 200 }
   },
   [ID.AETHER_HUNTER_LEY_LINE_VORTEX]: {
     castTimeMs: 4040,
-    quicknessCastTimeMs: 2720,
+    quicknessCastTimeMs: 4040,
     recoveryMs: 4160,
-    quicknessRecoveryMs: 2800,
-    unbuffedImpactMs: { '0': 0, '680': 1000, '1360': 2000, '2000': 3000, '2680': 4000 }
+    quicknessRecoveryMs: 4160,
+    unbuffedImpactMs: { '0': 0, '680': 1000, '1360': 2000, '2040': 3000, '2720': 4000 }
   },
   [ID.DIMENSION_BREACH]: {
     castTimeMs: 3000,
-    quicknessCastTimeMs: 2000,
+    quicknessCastTimeMs: 2040,
     recoveryMs: 3040,
-    quicknessRecoveryMs: 2040,
+    quicknessRecoveryMs: 2120,
     unbuffedImpactMs: { '880': 1280 }
   },
   [ID.RAPTOR_SWIFTWING_CLAW]: {
     castTimeMs: 1600,
-    quicknessCastTimeMs: 1080,
+    quicknessCastTimeMs: 1040,
     recoveryMs: 1680,
     quicknessRecoveryMs: 1120,
-    unbuffedImpactMs: { '480': 680, '680': 1000 }
+    unbuffedImpactMs: { '440': 680, '680': 1000 }
   },
   [ID.RAPTOR_SWIFTWING_SAURIAN_MIGHT]: {
     castTimeMs: 2200,
     quicknessCastTimeMs: 1480,
     recoveryMs: 2280,
-    quicknessRecoveryMs: 1520,
+    quicknessRecoveryMs: 1600,
     unbuffedImpactMs: { '760': 1120 }
   },
   [ID.RAPTOR_SWIFTWING_LEAPING_LIZARD]: {
     castTimeMs: 3120,
-    quicknessCastTimeMs: 2080,
+    quicknessCastTimeMs: 2120,
     recoveryMs: 3200,
-    quicknessRecoveryMs: 2160,
+    quicknessRecoveryMs: 2240,
     unbuffedImpactMs: { '1240': 1840 }
   },
   [ID.PIERCING_SHRIEK]: {
     castTimeMs: 1800,
-    quicknessCastTimeMs: 1200,
+    quicknessCastTimeMs: 1240,
     recoveryMs: 1920,
-    quicknessRecoveryMs: 1280,
+    quicknessRecoveryMs: 1320,
     unbuffedImpactMs: { '560': 800 }
   },
-  // 20260930-154237: stop records include the full animation; impacts occur well before the next AI decision.
   [ID.BIRD_SLASH]: {
     castTimeMs: 2600,
     quicknessCastTimeMs: 1760,
