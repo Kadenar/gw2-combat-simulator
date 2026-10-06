@@ -12,7 +12,7 @@ import {
   REVENANT_TRAIT_IDS as TRAIT
 } from '#gw2/professions/revenant/data/ids.js';
 import type { HeraldState } from '#gw2/professions/revenant/specializations/herald/state.js';
-import { hasTrait } from '#gw2/platform/combat/state/traits.js';
+import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import { HERALD_DRACONIC_ECHO_PROFILE_ID } from '#gw2/professions/revenant/specializations/herald/profiles.js';
 

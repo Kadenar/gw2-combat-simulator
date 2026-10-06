@@ -2,7 +2,7 @@ import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mech
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { isStandardBoon } from '#gw2/platform/combat/boons.js';
 import { gw2EventOwnerActorType, isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
-import { hasTrait } from '#gw2/platform/combat/state/traits.js';
+import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import { requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import { defineTrait, traitAttributeEffects } from '#gw2/platform/profession-definition/traits.js';
 import { materializeSkillEffectApplications } from '#gw2/platform/effects/materializer.js';

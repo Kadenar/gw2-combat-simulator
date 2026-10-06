@@ -1,6 +1,6 @@
 import { appendChargeGrant, consumeChargeBatch, grantCharges } from '#gw2/platform/combat/resources/charges.js';
 import { gw2AlliedEffectRecipients, gw2AlliedPlayerAssumptions } from '#gw2/platform/combat/state/allied-players.js';
-import { hasTrait } from '#gw2/platform/combat/state/traits.js';
+import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
 import {
   balanceProfileNumber,

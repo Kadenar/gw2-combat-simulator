@@ -20,7 +20,7 @@ import { lockTransitionInput } from '#gw2/platform/execution/transition-lockouts
 import { THIEF_SKILL_IDS as ID } from '#gw2/professions/thief/data/ids.js';
 
 import type { ResourcePolicy } from '#gw2/platform/combat/resources/resource-policy.js';
-import type { AvailabilityResult } from '#gw2/platform/execution/types.js';
+import type { AvailabilityResult } from '#gw2/platform/execution/availability.js';
 import { buildThiefBuff } from '#gw2/professions/thief/core/events.js';
 import { completeThiefSteal } from '#gw2/professions/thief/core/mechanics/steal.js';
 import { emitThiefStealTraits } from '#gw2/professions/thief/core/traits/steal.js';

@@ -1,5 +1,5 @@
 import { skillFlipReady } from '#gw2/platform/execution/skill-flips.js';
-import type { AvailabilityResult } from '#gw2/platform/execution/types.js';
+import type { AvailabilityResult } from '#gw2/platform/execution/availability.js';
 import { THIEF_SKILL_IDS as ID } from '#gw2/professions/thief/data/ids.js';
 import type { ThiefSkill } from '#gw2/professions/thief/types.js';
 import type { ThiefCoreState } from '#gw2/professions/thief/core/state.js';

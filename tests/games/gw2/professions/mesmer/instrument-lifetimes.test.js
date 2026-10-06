@@ -2,7 +2,7 @@ import { createMesmerIllusionRewards } from '#gw2/professions/mesmer/family-mech
 import { createExecutedFacts } from '#gw2/platform/combat/history/executed-facts.js';
 import { captureEffectEmissions } from '#tests/helpers/effect-emission.js';
 import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
-import { createRuntimeEndurance, createRuntimeResources } from '#gw2/platform/combat/resources/runtime-resources.js';
+import { createRuntimeEndurance, createRuntimeResources } from '#gw2/platform/simulation/runtime-resources.js';
 import { gw2BoonApplicationRecipients } from '#gw2/platform/combat/state/allied-players.js';
 import { applySkillSideEffects } from '#gw2/platform/effects/action-dispatch.js';
 import { MESMER_SKILL_IDS as ID, MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';

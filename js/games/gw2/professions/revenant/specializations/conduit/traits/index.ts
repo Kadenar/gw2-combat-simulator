@@ -3,7 +3,7 @@ import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { vulnerabilityStacks } from '#gw2/platform/combat/query/runtime-query.js';
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
 import { isDamagingCondition } from '#gw2/platform/combat/state/targets.js';
-import { hasTrait } from '#gw2/platform/combat/state/traits.js';
+import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import {
   balanceProfileNumber,
   requireBalanceProfileFromContext,

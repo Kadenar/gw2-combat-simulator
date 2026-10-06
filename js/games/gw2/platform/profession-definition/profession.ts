@@ -18,7 +18,7 @@ import type {
 } from '#gw2/platform/profession-definition/types.js';
 import { denyCast, selectedSlotSkillAvailability } from '#gw2/platform/execution/availability.js';
 import type { CanonicalCatalog } from '#gw2/platform/skills/types.js';
-import type { ProfessionConfig } from '#gw2/platform/execution/types.js';
+import type { ProfessionConfig } from '#gw2/platform/profession-definition/types.js';
 import { createProfessionFamilyUi } from '#gw2/platform/profession-presentation/compose.js';
 import { normalizeProfessionUi } from '#gw2/platform/profession-presentation/contract.js';
 import type { ProfessionUiContract } from '#gw2/platform/profession-presentation/types.js';
@@ -29,7 +29,7 @@ import type {
 } from '#gw2/platform/profession-definition/runtime-contract.js';
 import type { Gw2ProfessionContract } from '#gw2/platform/profession-definition/family-contract.js';
 
-import { hasTrait } from '#gw2/platform/combat/state/traits.js';
+import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import { skillCostAvailability } from '#gw2/platform/execution/skill-cost.js';
 import {
   assembleNativeRuntimeCatalog,

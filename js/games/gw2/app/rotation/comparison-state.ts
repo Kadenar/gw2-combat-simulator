@@ -1,4 +1,4 @@
-import type { RotationCommand } from '#gw2/platform/execution/types.js';
+import type { RotationCommand } from '#gw2/platform/execution/rotation.js';
 import type { Gw2SimulationResult } from '#gw2/platform/results/types.js';
 import type { ProfessionAppState, ProfessionAppResult } from '#gw2/app/types.js';
 import { cloneRotation, resetRotationHistory } from '#gw2/app/rotation/editing/history.js';

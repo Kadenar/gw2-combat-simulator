@@ -1,4 +1,4 @@
-import type { CastCommand, CooldownResetCommand, RotationCommand } from '#gw2/platform/execution/types.js';
+import type { CastCommand, CooldownResetCommand, RotationCommand } from '#gw2/platform/execution/rotation.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
 import { actionKind } from '#gw2/integrations/logs/shared/rotation/catalog.js';
 import { retainsReplayCastLockout } from '#gw2/integrations/logs/shared/rotation/timing.js';

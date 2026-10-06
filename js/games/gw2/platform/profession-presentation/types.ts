@@ -6,7 +6,7 @@ import type {
   ProfessionAttributePreviewInput,
   ProfessionAttributePreviewPreparation
 } from '#gw2/platform/profession-presentation/attribute-preview.js';
-import type { ProfessionBalanceContext } from '#gw2/platform/profession-presentation/balance-context.js';
+import type { ProfessionBalanceContext } from '#gw2/platform/profession-definition/balance-context.js';
 import type {
   SkillDamageConfigPatch,
   SkillDamageGroup,
@@ -18,7 +18,8 @@ import type {
 import type { Gw2BuildResources, Gw2CanonicalBuild, ProfessionAssumptionControl } from '#gw2/platform/builds/types.js';
 import type { SimulationEvent } from '#gw2/platform/events/events.js';
 import type { CanonicalCatalog, Skill, SkillId } from '#gw2/platform/skills/types.js';
-import type { CastCommand, ProfessionConfig, RotationCommand } from '#gw2/platform/execution/types.js';
+import type { CastCommand, RotationCommand } from '#gw2/platform/execution/rotation.js';
+import type { ProfessionConfig } from '#gw2/platform/profession-definition/types.js';
 import type { Gw2ProcStep } from '#gw2/platform/resolver/types.js';
 import type { Gw2SimulationPlanningState, Gw2SimulationResult } from '#gw2/platform/results/types.js';
 import type { EffectSource } from '#gw2/platform/results/effect-report.js';

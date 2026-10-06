@@ -1,4 +1,4 @@
-import { createRuntimeResources } from '#gw2/platform/combat/resources/runtime-resources.js';
+import { createRuntimeResources } from '#gw2/platform/simulation/runtime-resources.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { createResourceClock, createDiscreteResourceClock } from '#gw2/platform/combat/resources/resource-policy.js';

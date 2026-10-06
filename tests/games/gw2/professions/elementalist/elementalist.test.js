@@ -1,6 +1,6 @@
 import { withActivePatchPreview } from '#gw2/integrations/patches/active-profession.js';
 import { applyBalanceProfilePatch, applySkillPatch } from '#gw2/integrations/patches/authoring/patches.js';
-import { normalizeSelectedTraitIds } from '#gw2/platform/combat/state/traits.js';
+import { normalizeSelectedTraitIds } from '#gw2/platform/builds/selected-traits.js';
 import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import {
   loadProfession,

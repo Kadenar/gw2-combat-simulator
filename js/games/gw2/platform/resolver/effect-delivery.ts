@@ -21,7 +21,7 @@ import {
 } from '#gw2/platform/profession-definition/runtime-context.js';
 import type { RuntimeProfession } from '#gw2/platform/profession-definition/runtime-contract.js';
 import { gw2ResolverBoonDuration } from '#gw2/platform/resolver/boon-duration.js';
-import { createGw2ConditionResolution } from '#gw2/platform/resolver/condition-resolution.js';
+import type { Gw2ConditionResolution } from '#gw2/platform/resolver/condition-resolution.js';
 import { createGw2ResolverEventHandlers } from '#gw2/platform/resolver/event-handlers.js';
 import { HandlerRegistry, OBSERVABLE_EVENT_HANDLER } from '#gw2/platform/resolver/handler-registry.js';
 import { createGw2HitResolution } from '#gw2/platform/resolver/hit-resolution.js';
@@ -63,7 +63,7 @@ export function createEffectDelivery<T extends object>(
   runtime: Gw2Runtime<T>,
   profession: RuntimeProfession<T>,
   execution: RuntimeExecution<T>,
-  conditions: ReturnType<typeof createGw2ConditionResolution>,
+  conditions: Readonly<Gw2ConditionResolution>,
   reactions: Gw2ResolverReactionRegistry,
   host: DeliveryHost
 ) {

@@ -9,3 +9,12 @@ export interface EndurancePolicy<TContext = MechanicContext<any>> {
   regenerationRate(context: TContext, vigor: boolean, at: number): number;
   regenerationBoundaries?(context: TContext): readonly number[];
 }
+
+/** The live endurance pool; readiness projects Vigor-aware regeneration without settling the clock. */
+export interface EnduranceController {
+  advance(): void;
+  readyAt(cost: number): number | null;
+  /** Returns false when the profession models no endurance pool. */
+  grant(value: number): boolean;
+  spend(value: number): void;
+}

@@ -14,7 +14,7 @@ import {
 } from '#gw2/professions/engineer/specializations/holosmith/traits/heat.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
-import { hasTrait } from '#gw2/platform/combat/state/traits.js';
+import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import { engineerSpecializationState } from '#gw2/professions/engineer/core/traits/query-helpers.js';
 import { holosmithEventMetadata } from '#gw2/professions/engineer/specializations/holosmith/mechanics/heat-tiers.js';
 import {

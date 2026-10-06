@@ -34,7 +34,7 @@ import {
   requireEffect
 } from '#gw2/platform/skills/balance-profiles.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
-import type { AvailabilityResult } from '#gw2/platform/execution/types.js';
+import type { AvailabilityResult } from '#gw2/platform/execution/availability.js';
 import { elementalistStrikeRequest } from '#gw2/professions/elementalist/core/events.js';
 import { elementalistAnnouncement } from '#gw2/professions/elementalist/core/mechanics/effects.js';
 import {

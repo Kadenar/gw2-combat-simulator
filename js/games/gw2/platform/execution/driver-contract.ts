@@ -1,5 +1,6 @@
 import type { RotationCursor } from '#gw2/platform/execution/rotation-cursor.js';
-import type { AvailabilityResult, CastCommand } from '#gw2/platform/execution/types.js';
+import type { AvailabilityResult } from '#gw2/platform/execution/availability.js';
+import type { CastCommand } from '#gw2/platform/execution/rotation.js';
 import type { Gw2Runtime } from '#gw2/platform/simulation/runtime-state.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
 

@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { hasTrait, normalizeSelectedTraitIds } from '#gw2/platform/combat/state/traits.js';
+import { hasTrait, normalizeSelectedTraitIds } from '#gw2/platform/builds/selected-traits.js';
 
 // Runtime membership contains canonical IDs only; names in catalogs cannot become trait aliases.
 test('selected trait normalization retains IDs without expanding display names', () => {

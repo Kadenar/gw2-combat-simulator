@@ -7,7 +7,7 @@ import {
   isEngineerMechCommand
 } from '#gw2/professions/engineer/specializations/mechanist/mechanics/mech-ownership.js';
 import { overclockPassive } from '#gw2/professions/engineer/specializations/mechanist/traits/behavior.js';
-import { hasTrait } from '#gw2/platform/combat/state/traits.js';
+import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import { MECHANIST_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/engineer/specializations/mechanist/profiles.js';
 import {
   BARRIER_ENGINE_TASK,

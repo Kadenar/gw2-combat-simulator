@@ -13,7 +13,7 @@ const sharedPlatformBoundaryPattern = {
 };
 const simulationImplementationPattern = {
   regex:
-    '^#gw2/platform/simulation/(?:runtime|coordinator|internal-work|combat-execution|simulate|bind-mechanic-context)\\.js$',
+    '^#gw2/platform/simulation/(?:runtime|coordinator|internal-work|combat-execution|simulate|bind-mechanic-context|runtime-resources)\\.js$',
   message:
     'Domain owners receive runtime services through contracts; only composition may import simulation implementations.'
 };

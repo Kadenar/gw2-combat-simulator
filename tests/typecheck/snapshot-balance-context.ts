@@ -1,4 +1,4 @@
-import type { ProfessionBalanceContext } from '#gw2/platform/profession-presentation/balance-context.js';
+import type { ProfessionBalanceContext } from '#gw2/platform/profession-definition/balance-context.js';
 import type { ProfessionStateSnapshotContext } from '#gw2/platform/profession-presentation/types.js';
 
 type Assert<T extends true> = T;

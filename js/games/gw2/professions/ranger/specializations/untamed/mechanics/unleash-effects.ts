@@ -1,7 +1,7 @@
 import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
 import { denySkillCast as deny } from '#gw2/platform/execution/availability.js';
 import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
-import type { AvailabilityResult } from '#gw2/platform/execution/types.js';
+import type { AvailabilityResult } from '#gw2/platform/execution/availability.js';
 import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
 import { UNTAMED_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/ranger/specializations/untamed/profiles.js';
 import { untamedState } from '#gw2/professions/ranger/specializations/untamed/state.js';

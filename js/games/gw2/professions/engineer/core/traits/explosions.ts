@@ -1,5 +1,5 @@
 import { activeBuffStacks } from '#gw2/platform/combat/query/runtime-query.js';
-import { hasTrait } from '#gw2/platform/combat/state/traits.js';
+import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import { advanceCyclicCounter } from '#gw2/platform/combat/resources/counters.js';
 import {
   requireBalanceProfileFromContext,

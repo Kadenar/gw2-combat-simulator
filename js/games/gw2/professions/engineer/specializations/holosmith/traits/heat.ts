@@ -8,7 +8,7 @@ import {
 import { buildEngineerPackets } from '#gw2/professions/engineer/core/events.js';
 import { ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
 import type { EngineerRuntime, EngineerConfig } from '#gw2/professions/engineer/types.js';
-import { hasTrait } from '#gw2/platform/combat/state/traits.js';
+import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import { HOLOSMITH_HEAT } from '#gw2/professions/engineer/specializations/holosmith/mechanics/constants.js';
 import { holosmithState } from '#gw2/professions/engineer/specializations/holosmith/state.js';
 import { selectedEngineerTraits } from '#gw2/professions/engineer/core/state.js';

@@ -8,7 +8,7 @@ import { projectRecharge, type RechargeProgress } from '#gw2/platform/execution/
  * depletion, recharge reduction) so professions only override maximum ammo and
  * recharge duration instead of reimplementing the mechanics.
  */
-import type { AmmoState, CooldownController, RechargeCheckpoint } from '#gw2/platform/execution/types.js';
+import type { AmmoState, CooldownController, RechargeCheckpoint } from '#gw2/platform/execution/cooldown-contracts.js';
 import type { Skill, SkillId } from '#gw2/platform/skills/types.js';
 
 interface CooldownControllerOptions {

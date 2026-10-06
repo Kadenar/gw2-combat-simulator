@@ -6,7 +6,7 @@ import { createPreviewControls } from '#gw2/professions/shared/attribute-preview
 import { readProfessionCoreState } from '#gw2/platform/profession-definition/state.js';
 import { REVENANT_MAXIMUM_ENDURANCE, type RevenantCoreState } from '#gw2/professions/revenant/core/state.js';
 import { REVENANT_SKILL_IDS as SKILL, REVENANT_TRAIT_IDS as TRAIT } from '#gw2/professions/revenant/data/ids.js';
-import { hasTrait } from '#gw2/platform/combat/state/traits.js';
+import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import { getActiveTraits } from '#gw2/professions/revenant/data/traits-data.js';
 import { RENEGADE_ENHANCED_SKILL_BY_ID } from '#gw2/professions/revenant/data/renegade-enhanced-skills.js';
 import { requireBalanceProfileFromContext, balanceProfileNumber } from '#gw2/platform/skills/balance-profiles.js';

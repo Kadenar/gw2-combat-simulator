@@ -1,6 +1,6 @@
 import { SIGIL_IDS } from '#gw2/platform/equipment/sigils/data.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
-import { hasTrait } from '#gw2/platform/combat/state/traits.js';
+import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import { defineTrait, traitAttributeEffects } from '#gw2/platform/profession-definition/traits.js';
 import { GUARDIAN_TRAIT_IDS as TRAIT } from '#gw2/professions/guardian/data/ids.js';
 import { willbenderState } from '#gw2/professions/guardian/specializations/willbender/state.js';

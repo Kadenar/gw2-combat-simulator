@@ -3,9 +3,49 @@
  * the boundary while the runtime and application use canonical commands.
  */
 import type { CatalogLookup, SkillId } from '#gw2/platform/skills/types.js';
-import type { RotationCommand } from '#gw2/platform/execution/types.js';
 import { canonicalGw2SkillId } from '#gw2/platform/skills/external-skill-ids.js';
 import { validateRotationCommand } from '#gw2/platform/execution/rotation-validation.js';
+
+/** Canonical rotation commands: saved builds, the application, and the runtime driver share this one schema. */
+
+export interface CastCommand {
+  readonly type: 'cast';
+  readonly skillId: SkillId;
+  /** Casts normally but prevents this activation's hostile packets from reaching the target. */
+  readonly offTarget?: boolean;
+  /** Casts normally but lands this activation's hostile packets later, as when a precast travels from range. */
+  readonly impactDelayMs?: number;
+  readonly concurrentOffsetMs?: number;
+  readonly interruptAfterMs?: number;
+  /** Exact remaining duration carried by a hidden combat-log initial-state action. */
+  readonly initialStateDurationMs?: number;
+  readonly releaseAtCharges?: number;
+  /** Extra hold after the selected Dragon Charge threshold; holding spends no additional Flow. */
+  readonly releaseDelayMs?: number;
+  readonly doubleEdgeOutcome?: 'success' | 'backfire';
+}
+
+/** Detached release intent contains only the facts a charging mechanic needs to decide whether to hold. */
+export interface ChargeReleaseIntent {
+  readonly skillId: SkillId;
+  readonly charges?: number;
+}
+
+export interface WaitCommand {
+  readonly type: 'wait';
+  readonly durationMs: number;
+}
+
+interface CombatStartCommand {
+  readonly type: 'combat-start';
+  readonly concurrentOffsetMs?: number;
+}
+
+export interface CooldownResetCommand {
+  readonly type: 'cooldown-reset';
+}
+
+export type RotationCommand = CastCommand | WaitCommand | CombatStartCommand | CooldownResetCommand;
 
 /** Decode existing shorthand without dropping fields that the canonical validator must inspect. */
 function decodeRotationCommand(entry: unknown, catalog: CatalogLookup | null): unknown {

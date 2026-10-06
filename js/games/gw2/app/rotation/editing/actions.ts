@@ -1,4 +1,4 @@
-import type { RotationCommand } from '#gw2/platform/execution/types.js';
+import type { RotationCommand } from '#gw2/platform/execution/rotation.js';
 import type { Skill, SkillId } from '#gw2/platform/skills/types.js';
 import type { ProfessionAppState } from '#gw2/app/types.js';
 import type { RotationActionOptions } from '#gw2/app/rotation/editing/state.js';

@@ -8,7 +8,7 @@ import type { Gw2WeaponSkillMatcher } from '#gw2/platform/equipment/weapons/type
 
 import type { Gw2TraitBuildAttributeCalculator } from '#gw2/platform/builds/types.js';
 import type { Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
-import type { ProfessionConfig } from '#gw2/platform/execution/types.js';
+import type { ProfessionConfig } from '#gw2/platform/profession-definition/types.js';
 import type { TraitDefinition } from '#gw2/platform/profession-definition/traits.js';
 import type { Gw2HitResolutionContext } from '#gw2/platform/resolver/hit-resolution.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';

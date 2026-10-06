@@ -53,7 +53,8 @@ import { weaponSetActiveSegments, weaponSetDurationTotals } from '#gw2/app/rotat
 import type { ProfessionAppResult, ProfessionAppState } from '#gw2/app/types.js';
 import type { Gw2ProcStep } from '#gw2/platform/resolver/types.js';
 import type { Gw2CanonicalBuild } from '#gw2/platform/builds/types.js';
-import type { RotationCommand, SimulationStep } from '#gw2/platform/execution/types.js';
+import type { RotationCommand } from '#gw2/platform/execution/rotation.js';
+import type { SimulationStep } from '#gw2/platform/results/types.js';
 import { rotationInsertionGapHtml, rotationTimelineEntryHtml } from '#ui/rotation/insertion-cursor.js';
 
 /** The view retains a row's DOM node while both its identity and rendered HTML remain unchanged. */

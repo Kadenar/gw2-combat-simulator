@@ -7,7 +7,7 @@ import type { PaletteOverride } from '#gw2/platform/profession-presentation/type
 import { PERMANENT_COMBO_FIELD_ASSUMPTION_CONTROLS } from '#gw2/platform/combos/permanent-field-assumption.js';
 import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import { gw2PrimaryWeapon } from '#gw2/platform/equipment/weapons/loadout.js';
-import type { ProfessionBalanceContext } from '#gw2/platform/profession-presentation/balance-context.js';
+import type { ProfessionBalanceContext } from '#gw2/platform/profession-definition/balance-context.js';
 import type {
   ProfessionEffectPresentation,
   ProfessionPaletteGroup,

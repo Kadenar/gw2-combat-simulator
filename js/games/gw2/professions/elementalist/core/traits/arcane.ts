@@ -1,6 +1,6 @@
 import { activeBuffStacks } from '#gw2/platform/combat/query/runtime-query.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
-import { hasTrait } from '#gw2/platform/combat/state/traits.js';
+import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import type { Gw2MutableStats } from '#gw2/platform/combat/types.js';
 import type { EffectDelivery } from '#gw2/platform/effects/emission.js';
 import type { SimulationEvent } from '#gw2/platform/events/events.js';

@@ -1,4 +1,4 @@
-import type { SimulationStep } from '#gw2/platform/execution/types.js';
+import type { SimulationStep } from '#gw2/platform/results/types.js';
 import type { SkillId } from '#gw2/platform/skills/types.js';
 import { boundedNumber } from '#kernel/core/numeric.js';
 

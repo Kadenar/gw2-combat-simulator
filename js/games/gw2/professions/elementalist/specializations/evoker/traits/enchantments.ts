@@ -1,5 +1,5 @@
 import { consumeCharge } from '#gw2/platform/combat/resources/charges.js';
-import { hasTrait } from '#gw2/platform/combat/state/traits.js';
+import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import type { SimulationEvent } from '#gw2/platform/events/events.js';
 import {
   balanceProfileNumber,

@@ -1,6 +1,6 @@
 import type { SkillId } from '#gw2/platform/skills/types.js';
 import type { CanonicalCatalog, Skill } from '#gw2/platform/skills/types.js';
-import type { ProfessionBalanceContext } from '#gw2/platform/profession-presentation/balance-context.js';
+import type { ProfessionBalanceContext } from '#gw2/platform/profession-definition/balance-context.js';
 
 /** Saved-build schemas, assumption controls, and attribute-calculation contracts shared by the app and runtime. */
 
@@ -220,7 +220,7 @@ export interface Gw2CanonicalBuild extends Gw2Build {
   targetHealth: number;
   targetStartingHealthPercent: number;
   targetArmor: number;
-  rotation: import('#gw2/platform/execution/types.js').RotationCommand[];
+  rotation: import('#gw2/platform/execution/rotation.js').RotationCommand[];
 }
 
 interface Gw2BuildCodecContext {

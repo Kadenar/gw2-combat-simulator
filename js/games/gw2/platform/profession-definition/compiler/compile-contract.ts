@@ -1,5 +1,5 @@
 import { resourcePolicies, validateResourcePolicies } from '#gw2/platform/combat/resources/resource-policy.js';
-import type { ProfessionConfig } from '#gw2/platform/execution/types.js';
+import type { ProfessionConfig } from '#gw2/platform/profession-definition/types.js';
 import type { ProfessionFamilyContract } from '#gw2/platform/profession-definition/family-contract.js';
 import type { NormalizedProfessionContract, ProfessionDefinition } from '#gw2/platform/profession-definition/types.js';
 import { createCanonicalCatalog } from '#gw2/platform/skills/catalog.js';

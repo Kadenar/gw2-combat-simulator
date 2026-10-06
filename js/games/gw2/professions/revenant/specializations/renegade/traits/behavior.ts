@@ -1,6 +1,6 @@
 import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
 import { resourceAtLeast } from '#gw2/platform/combat/resources/pool.js';
-import { hasTrait } from '#gw2/platform/combat/state/traits.js';
+import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import {
   balanceProfileNumber,
   effectNumber,

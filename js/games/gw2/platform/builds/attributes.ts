@@ -466,7 +466,7 @@ export function createCalculateAttributes(
     weaponSet = 1,
     disabledTrait: string | null = null,
     disabledSigil: string | null = null,
-    balanceContext?: import('#gw2/platform/profession-presentation/balance-context.js').ProfessionBalanceContext
+    balanceContext?: import('#gw2/platform/profession-definition/balance-context.js').ProfessionBalanceContext
   ) {
     // Modifier comparisons omit the named sigil here so attribute and runtime effects use the same effective loadout.
     const sigilNames = disabledSigil

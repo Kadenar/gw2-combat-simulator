@@ -14,8 +14,23 @@ export interface EffectReactionActions<T extends object> {
   apply(runtime: MechanicContext<T>, context: ActionContext, action: SideEffectAction): void;
 }
 
+/** Interned reaction groups for authored effects; packets carry only their serializable group reference. */
+export interface EffectReactionRegistry<T extends object> {
+  /** Validates and interns an effect's reactions, returning its group or undefined when it declares none. */
+  register(skill: Skill, effect: SkillEffect): number | undefined;
+  dispatch(
+    runtime: { readonly mechanics: MechanicContext<T>; readonly mechanicQueries: MechanicQueryContext<T> },
+    on: EffectReactionStage,
+    event: Gw2ResolverEvent,
+    details: NativeResolvedDamageDetails & { readonly conditionStackIndex?: number }
+  ): void;
+}
+
 /** Shared groups are interned by skill and declaration identity, independent of ordinary packet count. */
-export function createEffectReactions<T extends object>(catalog: CanonicalCatalog, actions: EffectReactionActions<T>) {
+export function createEffectReactions<T extends object>(
+  catalog: CanonicalCatalog,
+  actions: EffectReactionActions<T>
+): EffectReactionRegistry<T> {
   const groups: { skill: Skill; rules: readonly EffectReaction[] }[] = [];
   const identities = new WeakMap<Skill, WeakMap<readonly EffectReaction[], number>>();
   return {

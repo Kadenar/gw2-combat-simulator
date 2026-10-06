@@ -1,4 +1,4 @@
-import { hasTrait } from '#gw2/platform/combat/state/traits.js';
+import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import { materializeSkillEffectApplications, scaleCastBoundTiming } from '#gw2/platform/effects/materializer.js';
 import {
   balanceProfileNumber,

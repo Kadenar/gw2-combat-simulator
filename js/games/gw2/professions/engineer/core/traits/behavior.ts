@@ -4,7 +4,7 @@ import type {
   EngineerResolverContext,
   EngineerResolverEvent
 } from '#gw2/professions/engineer/types.js';
-import { hasTrait } from '#gw2/platform/combat/state/traits.js';
+import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import {
   requireBalanceProfileFromContext,
   requireEffect,

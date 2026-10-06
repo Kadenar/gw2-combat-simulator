@@ -1,5 +1,5 @@
 import { appliedEffectStacks } from '#gw2/platform/combat/query/effect-query.js';
-import { normalizeSelectedTraitIds } from '#gw2/platform/combat/state/traits.js';
+import { normalizeSelectedTraitIds } from '#gw2/platform/builds/selected-traits.js';
 import type { Gw2TimedBuffApplication } from '#gw2/platform/combat/boons.js';
 import { MIGHT_ATTRIBUTE_BONUS_PER_STACK } from '#gw2/platform/combat/boons.js';
 import {

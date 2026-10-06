@@ -25,7 +25,7 @@ import { thiefSpearAvailability } from '#gw2/professions/thief/core/mechanics/sp
 import { THIEF_SKILL_IDS as ID } from '#gw2/professions/thief/data/ids.js';
 
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
-import type { AvailabilityResult } from '#gw2/platform/execution/types.js';
+import type { AvailabilityResult } from '#gw2/platform/execution/availability.js';
 import type { ThiefRuntime } from '#gw2/professions/thief/core/events.js';
 import { deferThiefCompletion } from '#gw2/professions/thief/core/events.js';
 import {

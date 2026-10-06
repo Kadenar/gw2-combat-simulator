@@ -7,7 +7,7 @@ import {
 } from '#gw2/professions/engineer/core/profiles.js';
 import { type SkillFlipWindows } from '#gw2/platform/execution/skill-flips.js';
 import type { SkillId } from '#gw2/platform/skills/types.js';
-import { normalizeSelectedTraitIds } from '#gw2/platform/combat/state/traits.js';
+import { normalizeSelectedTraitIds } from '#gw2/platform/builds/selected-traits.js';
 import type { EngineerConfig } from '#gw2/professions/engineer/types.js';
 
 export interface EngineerCoreState {

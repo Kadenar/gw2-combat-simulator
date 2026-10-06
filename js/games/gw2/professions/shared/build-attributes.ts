@@ -1,6 +1,6 @@
 import { finalizeBuildAttributes, resolveAttributeEffects } from '#gw2/platform/builds/attributes.js';
 import type { Gw2BuildAttributeRuleContext } from '#gw2/platform/builds/types.js';
-import type { ProfessionBalanceContext } from '#gw2/platform/profession-presentation/balance-context.js';
+import type { ProfessionBalanceContext } from '#gw2/platform/profession-definition/balance-context.js';
 import type { ProfessionTraitSelection } from '#gw2/professions/shared/trait-data.js';
 
 import type {

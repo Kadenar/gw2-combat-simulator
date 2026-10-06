@@ -1,6 +1,7 @@
 import type { RechargeProgress } from '#gw2/platform/execution/recharge.js';
-/** Defines scheduling state, cast commands, and observation contracts used to execute rotations. */
 import type { Skill, SkillId } from '#gw2/platform/skills/types.js';
+
+/** Cooldown and ammo contracts: execution/cooldowns.ts privately owns the state; consumers use these views. */
 
 export interface AmmoState {
   charges: number;
@@ -33,27 +34,6 @@ export interface RechargeCheckpoint {
       readonly pendingLockoutWork?: number;
     }
   >;
-}
-
-export type AvailabilityResult =
-  | Readonly<{ ready: true }>
-  | Readonly<{
-      ready: false;
-      retryAt: null;
-      reason: string;
-      code: string;
-    }>
-  | Readonly<{
-      ready: false;
-      retryAt: number;
-      reason: string;
-      code: string;
-    }>;
-
-export interface ProfessionConfig {
-  /** Active elite specialization, or "Core"; module composition resolves the runtime from it. */
-  readonly specialization?: string;
-  readonly boons?: Readonly<Record<string, boolean | number>>;
 }
 
 export interface CooldownController {
@@ -103,63 +83,3 @@ export interface CooldownController {
   setAmmoLockout(skill: Skill, work: number, at?: number): void;
   spendAmmo(skill: Skill, at: number, committedRechargeWork?: number): void;
 }
-
-export interface SimulationStep {
-  readonly ri: number;
-  readonly skill: string;
-  /** Stable cast identity used by result analysis without relying on display names or bar positions. */
-  readonly skillId?: SkillId;
-  /** Scheduled start in milliseconds, used to position this step on the timeline. */
-  readonly start: number;
-  readonly end: number;
-  readonly activationId?: string;
-  readonly fullCastMs?: number;
-  readonly interrupted?: boolean;
-  /** Millisecond timestamp through which this cast still reserves its execution lane after ending. */
-  readonly castLockoutEnd?: number;
-  /** Identifies an interrupted commit-mode cast that ended before every declared interrupt cutoff. */
-  readonly cancelledBeforeCommit?: boolean;
-  /** Identifies interrupted commit-mode casts whose damage had no commit cutoff and can therefore be reported as wasted time. */
-  readonly missingInterruptCommit?: boolean;
-  readonly invalid?: boolean;
-  readonly invalidReason?: string;
-}
-
-export interface CastCommand {
-  readonly type: 'cast';
-  readonly skillId: SkillId;
-  /** Casts normally but prevents this activation's hostile packets from reaching the target. */
-  readonly offTarget?: boolean;
-  /** Casts normally but lands this activation's hostile packets later, as when a precast travels from range. */
-  readonly impactDelayMs?: number;
-  readonly concurrentOffsetMs?: number;
-  readonly interruptAfterMs?: number;
-  /** Exact remaining duration carried by a hidden combat-log initial-state action. */
-  readonly initialStateDurationMs?: number;
-  readonly releaseAtCharges?: number;
-  /** Extra hold after the selected Dragon Charge threshold; holding spends no additional Flow. */
-  readonly releaseDelayMs?: number;
-  readonly doubleEdgeOutcome?: 'success' | 'backfire';
-}
-
-/** Detached release intent contains only the facts a charging mechanic needs to decide whether to hold. */
-export interface ChargeReleaseIntent {
-  readonly skillId: SkillId;
-  readonly charges?: number;
-}
-
-export interface WaitCommand {
-  readonly type: 'wait';
-  readonly durationMs: number;
-}
-
-interface CombatStartCommand {
-  readonly type: 'combat-start';
-  readonly concurrentOffsetMs?: number;
-}
-
-export interface CooldownResetCommand {
-  readonly type: 'cooldown-reset';
-}
-
-export type RotationCommand = CastCommand | WaitCommand | CombatStartCommand | CooldownResetCommand;

@@ -1,7 +1,7 @@
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { activeStackCount } from '#gw2/platform/combat/resources/timed-stacks.js';
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
-import { hasTrait } from '#gw2/platform/combat/state/traits.js';
+import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import { denySkillCast } from '#gw2/platform/execution/availability.js';
 import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
 import { thiefRuntimeSpecializationState } from '#gw2/professions/thief/core/state-queries.js';

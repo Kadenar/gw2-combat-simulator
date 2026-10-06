@@ -3,7 +3,7 @@ import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/pla
 import type { RevenantRuntime } from '#gw2/professions/revenant/core/events.js';
 import { CONDUIT_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/revenant/specializations/conduit/profiles.js';
 import { conduitState } from '#gw2/professions/revenant/specializations/conduit/state.js';
-import { hasTrait } from '#gw2/platform/combat/state/traits.js';
+import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import { REVENANT_TRAIT_IDS as TRAIT } from '#gw2/professions/revenant/data/ids.js';
 
 /** Affinity starts empty with no passive recovery; the selected profile retains its minimum-one capacity rule. */

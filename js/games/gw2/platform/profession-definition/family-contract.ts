@@ -1,6 +1,6 @@
 import type { BuildValidationResult, Gw2Build, UnvalidatedBuild } from '#gw2/platform/builds/types.js';
 import type { Gw2WeaponSkillMatcher } from '#gw2/platform/equipment/weapons/types.js';
-import type { ProfessionConfig } from '#gw2/platform/execution/types.js';
+import type { ProfessionConfig } from '#gw2/platform/profession-definition/types.js';
 import type {
   ProfessionRuntimeOptions,
   RuntimeProfession

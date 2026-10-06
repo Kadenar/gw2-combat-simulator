@@ -29,7 +29,7 @@ import type {
 } from '#gw2/app/types.js';
 import type { Gw2CanonicalBuild } from '#gw2/platform/builds/types.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
-import type { RotationCommand } from '#gw2/platform/execution/types.js';
+import type { RotationCommand } from '#gw2/platform/execution/rotation.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
 import type { Gw2SimulationResult, Gw2SimulationScore } from '#gw2/platform/results/types.js';

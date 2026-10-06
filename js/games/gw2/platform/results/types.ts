@@ -1,6 +1,7 @@
 import type { EffectState } from '#gw2/platform/combat/effect-state.js';
 import type { SimulationEvent } from '#gw2/platform/events/events.js';
-import type { AmmoState, AvailabilityResult, SimulationStep } from '#gw2/platform/execution/types.js';
+import type { AvailabilityResult } from '#gw2/platform/execution/availability.js';
+import type { AmmoState } from '#gw2/platform/execution/cooldown-contracts.js';
 import type { Gw2DamageBreakdownEntry } from '#gw2/platform/resolver/hit-resolution.js';
 import type {
   Gw2EnvironmentConditionBreakdownEntry,
@@ -9,10 +10,32 @@ import type {
 } from '#gw2/platform/resolver/types.js';
 import type { RotationApm } from '#gw2/platform/results/rotation-apm.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
-import type { CanonicalCatalog } from '#gw2/platform/skills/types.js';
+import type { CanonicalCatalog, SkillId } from '#gw2/platform/skills/types.js';
 import type { SimulationRandom } from '#kernel/core/simulation-random.js';
 
 /** Declare detached combat and planning observations, independently of runtime construction. */
+
+/** One reported rotation cast, positioned on the result timeline in milliseconds. */
+export interface SimulationStep {
+  readonly ri: number;
+  readonly skill: string;
+  /** Stable cast identity used by result analysis without relying on display names or bar positions. */
+  readonly skillId?: SkillId;
+  /** Scheduled start in milliseconds, used to position this step on the timeline. */
+  readonly start: number;
+  readonly end: number;
+  readonly activationId?: string;
+  readonly fullCastMs?: number;
+  readonly interrupted?: boolean;
+  /** Millisecond timestamp through which this cast still reserves its execution lane after ending. */
+  readonly castLockoutEnd?: number;
+  /** Identifies an interrupted commit-mode cast that ended before every declared interrupt cutoff. */
+  readonly cancelledBeforeCommit?: boolean;
+  /** Identifies interrupted commit-mode casts whose damage had no commit cutoff and can therefore be reported as wasted time. */
+  readonly missingInterruptCommit?: boolean;
+  readonly invalid?: boolean;
+  readonly invalidReason?: string;
+}
 
 /** Public projections read an observed state and immutable inputs, never execution controllers or future history. */
 export interface Gw2PlanningStateInput<T extends object = object> {

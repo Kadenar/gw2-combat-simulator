@@ -3,7 +3,7 @@ import { weaponFlipBlock } from '#gw2/platform/execution/skill-flips.js';
 import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
 import { denySkillCast } from '#gw2/platform/execution/availability.js';
 import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
-import type { AvailabilityResult } from '#gw2/platform/execution/types.js';
+import type { AvailabilityResult } from '#gw2/platform/execution/availability.js';
 import type { RangerRuntime, RangerSkill } from '#gw2/professions/ranger/types.js';
 import {
   isRangerHammerVariant,

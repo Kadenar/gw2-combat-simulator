@@ -1,5 +1,5 @@
 import { CAST_READY, denyCast } from '#gw2/platform/execution/availability.js';
-import type { AvailabilityResult } from '#gw2/platform/execution/types.js';
+import type { AvailabilityResult } from '#gw2/platform/execution/availability.js';
 import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
 import { resolveAutoattackChainStep } from '#gw2/platform/skills/autoattack-chain-index.js';
 import type { CanonicalCatalog, Skill, SkillId } from '#gw2/platform/skills/types.js';

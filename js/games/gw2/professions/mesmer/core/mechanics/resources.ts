@@ -1,6 +1,6 @@
 import type { EffectDelivery } from '#gw2/platform/effects/emission.js';
 import { buildMesmerPacket, mesmerPacketOwner } from '#gw2/professions/mesmer/core/mechanics/packets.js';
-import { hasTrait } from '#gw2/platform/combat/state/traits.js';
+import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
 import type {
   MesmerClone,

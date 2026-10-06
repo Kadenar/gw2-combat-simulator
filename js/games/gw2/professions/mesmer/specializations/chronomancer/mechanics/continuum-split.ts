@@ -7,7 +7,8 @@ import { replaceAutoattackChains } from '#gw2/platform/execution/autoattack-chai
 /**
  * Chronomancer-owned Continuum Split checkpoints and restoration.
  */
-import type { AvailabilityResult, CooldownController } from '#gw2/platform/execution/types.js';
+import type { AvailabilityResult } from '#gw2/platform/execution/availability.js';
+import type { CooldownController } from '#gw2/platform/execution/cooldown-contracts.js';
 import type { SkillId } from '#gw2/platform/skills/types.js';
 import type { MesmerRefreshAmmo } from '#gw2/professions/mesmer/types.js';
 import type { MesmerResourceSpendDetails } from '#gw2/professions/mesmer/core/mechanics/resource-types.js';

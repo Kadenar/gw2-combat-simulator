@@ -1,5 +1,5 @@
 import type { Gw2TimedBuffApplication } from '#gw2/platform/combat/boons.js';
-import { createProcRegistry } from '#gw2/platform/combat/procs.js';
+import { createProcRegistry, type ProcRegistry } from '#gw2/platform/combat/procs.js';
 import type { Gw2CombatQuery, Gw2CriticalResult } from '#gw2/platform/combat/query/combat-query.js';
 import { createGw2ComboRuntimeState } from '#gw2/platform/combos/events.js';
 import type { Gw2ComboRuntimeState } from '#gw2/platform/combos/types.js';
@@ -26,7 +26,7 @@ import type { EffectEmissionService } from '#gw2/platform/effects/emission.js';
 import { normalizeCriticalDamageMode } from '#gw2/platform/combat/critical-damage-mode.js';
 import type { SimulationRandom } from '#kernel/core/simulation-random.js';
 import { createSimulationRandom } from '#kernel/core/simulation-random.js';
-import { createMechanicCombatServices } from '#gw2/platform/resolver/mechanic-services.js';
+import { createMechanicCombatServices, type MechanicCombatServices } from '#gw2/platform/resolver/mechanic-services.js';
 
 /**
  * Creates the mutable state for the full GW2 timeline resolver.
@@ -188,12 +188,11 @@ export function createGw2ResolverRuntimeState({
 }
 
 /** Mutable per-run resolver state: combat stores, reporting collections, and the services resolution handlers share. */
-
 export interface Gw2ResolverRuntime {
-  readonly combat: ReturnType<typeof createMechanicCombatServices>;
+  readonly combat: MechanicCombatServices;
   readonly effectRecorder: EffectReportObserver | null;
   readonly criticalDamageMode: Gw2CriticalDamageMode;
-  readonly procs: ReturnType<typeof createProcRegistry>;
+  readonly procs: ProcRegistry;
   readonly reporting: boolean;
   readonly damageDiagnostics: boolean;
   config: Gw2Config;

@@ -1,5 +1,5 @@
 import type { RotationHistory } from '#gw2/app/rotation/editing/state.js';
-import type { RotationCommand } from '#gw2/platform/execution/types.js';
+import type { RotationCommand } from '#gw2/platform/execution/rotation.js';
 import type { ProfessionAppState } from '#gw2/app/types.js';
 
 /**

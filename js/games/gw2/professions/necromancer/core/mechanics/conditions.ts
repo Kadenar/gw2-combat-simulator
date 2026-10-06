@@ -1,4 +1,4 @@
-import { hasTrait } from '#gw2/platform/combat/state/traits.js';
+import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import { effectFirstAtMs } from '#gw2/platform/effects/authoring.js';
 import { scaleCastBoundTiming } from '#gw2/platform/effects/materializer.js';
 import { effectNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';

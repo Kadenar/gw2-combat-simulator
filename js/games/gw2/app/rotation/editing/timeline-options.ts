@@ -20,7 +20,7 @@ import {
   timelineTargetImpactDetails
 } from '#gw2/app/rotation/timeline/model.js';
 import type { ProfessionAppState } from '#gw2/app/types.js';
-import type { SimulationStep } from '#gw2/platform/execution/types.js';
+import type { SimulationStep } from '#gw2/platform/results/types.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
 import { GW2_ACTION_TICK_MS } from '#gw2/platform/combat/action-tick.js';
 import { openDurationEditor } from '#ui/rotation/editing/duration-editor.js';

@@ -3,7 +3,7 @@ import type { ProfessionAttributePreviewContext } from '#gw2/platform/profession
 import { createPreviewControls } from '#gw2/professions/shared/attribute-preview.js';
 import { DEADEYE_BALANCE_PROFILE_IDS } from '#gw2/professions/thief/specializations/deadeye/profiles.js';
 
-import { hasTrait } from '#gw2/platform/combat/state/traits.js';
+import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import type { Skill, SkillId } from '#gw2/platform/skills/types.js';
 import type {
   SkillDamagePreviewPreparation,

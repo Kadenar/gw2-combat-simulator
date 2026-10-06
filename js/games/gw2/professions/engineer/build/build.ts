@@ -5,12 +5,12 @@ import {
   validAmalgamMorphs
 } from '#gw2/professions/engineer/specializations/amalgam/selection-policy.js';
 import { ENGINEER_SKILL_IDS as SKILL, ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
-import { hasTrait } from '#gw2/platform/combat/state/traits.js';
+import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
 import { GEAR_SLOTS } from '#gw2/platform/equipment/gear/slots.js';
 import { DEFAULT_WEAPON_SIGILS, normalizeWeaponSigils } from '#gw2/platform/equipment/sigils/loadout.js';
 import { normalizeRotation } from '#gw2/platform/execution/rotation.js';
-import type { RotationCommand } from '#gw2/platform/execution/types.js';
+import type { RotationCommand } from '#gw2/platform/execution/rotation.js';
 import { ENGINEER_ASSUMPTION_CONTROLS } from '#gw2/professions/engineer/build/assumptions.js';
 import { engineerCatalog } from '#gw2/professions/engineer/catalog.js';
 import { getActiveTraits } from '#gw2/professions/engineer/data/traits-data.js';

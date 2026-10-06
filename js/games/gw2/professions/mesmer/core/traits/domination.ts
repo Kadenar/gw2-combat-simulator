@@ -1,7 +1,7 @@
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { remainingTargetHealthBelow } from '#gw2/platform/combat/state/target-health.js';
 import { missesTarget } from '#gw2/platform/combat/state/targets.js';
-import { hasTrait } from '#gw2/platform/combat/state/traits.js';
+import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
 import {
   balanceProfileNumber,

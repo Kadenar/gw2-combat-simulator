@@ -3,7 +3,7 @@ import type { CriticalBleedingProcObservation } from '#gw2/integrations/logs/evt
 import type { EngineerShrapnelObservation } from '#gw2/integrations/logs/evtc/rotation/professions/engineer/proc-observations.js';
 import type { MesmerSharperImagesObservation } from '#gw2/integrations/logs/evtc/rotation/professions/mesmer/sharper-images-observation.js';
 import type { RangerSharpenedEdgesObservation } from '#gw2/integrations/logs/evtc/rotation/professions/ranger/sharpened-edges-observation.js';
-import type { RotationCommand } from '#gw2/platform/execution/types.js';
+import type { RotationCommand } from '#gw2/platform/execution/rotation.js';
 import type { ProfessionAppState } from '#gw2/app/types.js';
 import {
   appLogReconstructionOptions,

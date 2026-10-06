@@ -1,6 +1,6 @@
 import type { MechanicCombatContext } from '#gw2/platform/profession-definition/mechanic-context.js';
 import { activeStackCount } from '#gw2/platform/combat/resources/timed-stacks.js';
-import { hasTrait } from '#gw2/platform/combat/state/traits.js';
+import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import type { Gw2Stats } from '#gw2/platform/combat/types.js';
 import { readProfessionSpecializationState } from '#gw2/platform/profession-definition/state.js';
 import {

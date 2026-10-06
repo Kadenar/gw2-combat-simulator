@@ -10,7 +10,7 @@ import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
  * autoattack chain carryover across attunement swaps, and the Aerial Agility flip
  * window.
  */
-import type { AvailabilityResult } from '#gw2/platform/execution/types.js';
+import type { AvailabilityResult } from '#gw2/platform/execution/availability.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
 import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
 import {

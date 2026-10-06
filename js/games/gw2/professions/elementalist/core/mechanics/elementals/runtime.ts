@@ -31,7 +31,7 @@ import { denyCast, retryCast, selectedSlotSkillAvailability } from '#gw2/platfor
 import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import { GW2_ALACRITY_RECHARGE_RATE } from '#gw2/platform/execution/recharge.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
-import type { AvailabilityResult } from '#gw2/platform/execution/types.js';
+import type { AvailabilityResult } from '#gw2/platform/execution/availability.js';
 import {
   elementalistBuffRequest,
   elementalistConditionRequest,

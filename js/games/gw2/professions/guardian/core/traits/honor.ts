@@ -5,7 +5,7 @@ import type { SkillEffect } from '#gw2/platform/effects/types.js';
 import type { GuardianRuntimeState, GuardianSkill } from '#gw2/professions/guardian/types.js';
 import { isGuardianSymbolSkill } from '#gw2/professions/guardian/core/mechanics/symbols.js';
 import { impactEffects, strikeEffectTicks } from '#gw2/platform/effects/authoring.js';
-import { hasTrait } from '#gw2/platform/combat/state/traits.js';
+import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import { isStandardBoon } from '#gw2/platform/combat/boons.js';
 import {
   balanceProfileNumber,

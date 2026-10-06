@@ -1,5 +1,5 @@
 import type { ReadonlyMechanicState } from '#gw2/platform/profession-definition/runtime-context.js';
-import { normalizeSelectedTraitIds } from '#gw2/platform/combat/state/traits.js';
+import { normalizeSelectedTraitIds } from '#gw2/platform/builds/selected-traits.js';
 import type { SkillId } from '#gw2/platform/skills/types.js';
 import { REVENANT_SKILL_IDS as ID, REVENANT_LEGEND_IDS as LEGEND } from '#gw2/professions/revenant/data/ids.js';
 import { applyConduitEnergyCostRules } from '#gw2/professions/revenant/specializations/conduit/mechanics/energy-cost.js';

@@ -23,7 +23,7 @@ import type {
   ProfessionPaletteSkillEntry,
   ProfessionPaletteStatusIcon
 } from '#gw2/platform/profession-presentation/types.js';
-import type { AmmoState } from '#gw2/platform/execution/types.js';
+import type { AmmoState } from '#gw2/platform/execution/cooldown-contracts.js';
 import type { RotationProfessionState } from '#gw2/app/rotation/context.js';
 
 import type { Skill, SkillId } from '#gw2/platform/skills/types.js';

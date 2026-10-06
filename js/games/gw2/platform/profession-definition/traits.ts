@@ -9,7 +9,7 @@ import type { BalanceProfile, Skill, SkillId } from '#gw2/platform/skills/types.
 import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import type { NativeModuleHooks } from '#gw2/platform/profession-definition/module-types.js';
 import type { RechargeRule, TraitTrigger } from '#gw2/platform/profession-definition/trigger-rules.js';
-import type { ProfessionBalanceContext } from '#gw2/platform/profession-presentation/balance-context.js';
+import type { ProfessionBalanceContext } from '#gw2/platform/profession-definition/balance-context.js';
 
 // Keep the existing discriminated trigger signatures while supplying selection ownership once.
 type OwnedTrigger<T> = T extends { readonly trait: SkillId } ? Omit<T, 'trait'> : never;

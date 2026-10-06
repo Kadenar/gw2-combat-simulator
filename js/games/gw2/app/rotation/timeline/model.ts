@@ -1,6 +1,7 @@
 import type { MechanicResourceSpend, ProfessionTimelineMarker } from '#gw2/platform/profession-presentation/types.js';
 import type { ProfessionAppState } from '#gw2/app/types.js';
-import type { RotationCommand, SimulationStep } from '#gw2/platform/execution/types.js';
+import type { RotationCommand } from '#gw2/platform/execution/rotation.js';
+import type { SimulationStep } from '#gw2/platform/results/types.js';
 import type { SkillId } from '#gw2/platform/skills/types.js';
 import type { Gw2ProcStep } from '#gw2/platform/resolver/types.js';
 

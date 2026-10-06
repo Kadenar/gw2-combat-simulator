@@ -1,6 +1,6 @@
 import { buffApplicationStacks } from '#gw2/platform/combat/boons.js';
 import { advanceCounter } from '#gw2/platform/combat/resources/counters.js';
-import { hasTrait } from '#gw2/platform/combat/state/traits.js';
+import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
 import {
   balanceProfileNumber,

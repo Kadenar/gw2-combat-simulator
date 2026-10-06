@@ -3,7 +3,7 @@ import { snapshotProfessionState } from '#gw2/platform/profession-definition/sta
 import { canonicalTime } from '#kernel/core/clock.js';
 import { defineProfessionSpecializationState } from '#gw2/platform/profession-definition/state.js';
 import type { SkillId } from '#gw2/platform/skills/types.js';
-import type { RechargeCheckpoint } from '#gw2/platform/execution/types.js';
+import type { RechargeCheckpoint } from '#gw2/platform/execution/cooldown-contracts.js';
 
 interface MesmerContinuumSnapshot {
   splitId: SkillId;

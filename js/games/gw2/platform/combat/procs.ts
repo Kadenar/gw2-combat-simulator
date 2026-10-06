@@ -3,8 +3,20 @@ import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/pla
 import type { Gw2ResolverRuntime } from '#gw2/platform/resolver/runtime-state.js';
 import type { SkillId } from '#gw2/platform/skills/types.js';
 
+/** Per-run proc deadlines shared by traits, sigils, relics, and food; observations receive detached copies. */
+export interface ProcRegistry {
+  setDeadline(key: SkillId, at: number): void;
+  snapshot(): Readonly<Record<string, number>>;
+  /** Unarmed owners are ready at zero. */
+  deadline(key: SkillId): number;
+  /** Claims a balance profile's internal cooldown, keyed by the profile unless a scoped key is given. */
+  claim(profileId: SkillId, key?: SkillId, at?: number): boolean;
+  claimCooldown(key: SkillId, at: number, duration: number): boolean;
+  reset(key: SkillId): void;
+}
+
 /** One registry per simulation owns proc deadlines; profile IDs and equipment namespaces isolate unrelated claims. */
-export function createProcRegistry(context: () => Gw2ResolverRuntime & { readonly time?: number }) {
+export function createProcRegistry(context: () => Gw2ResolverRuntime & { readonly time?: number }): ProcRegistry {
   const readyAt: Record<string, number> = Object.create(null);
   return {
     /** Sampled proc commits use the same owner; observations receive a detached deadline record. */

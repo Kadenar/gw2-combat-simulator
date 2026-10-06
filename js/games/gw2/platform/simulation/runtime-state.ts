@@ -1,13 +1,12 @@
-import type {
-  createRuntimeEndurance,
-  createRuntimeResources
-} from '#gw2/platform/combat/resources/runtime-resources.js';
+import type { EnduranceController } from '#gw2/platform/combat/resources/endurance-policy.js';
+import type { ResourceController } from '#gw2/platform/combat/resources/resource-policy.js';
 import type { CastControl, RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import type { RotationCursor } from '#gw2/platform/execution/rotation-cursor.js';
 import type { FlipWindowOptions, SkillFlipWindow } from '#gw2/platform/execution/skill-flips.js';
-import type { CooldownController, SimulationStep } from '#gw2/platform/execution/types.js';
+import type { CooldownController } from '#gw2/platform/execution/cooldown-contracts.js';
+import type { SimulationStep } from '#gw2/platform/results/types.js';
 import type { MechanicContext, MechanicQueryContext } from '#gw2/platform/profession-definition/mechanic-context.js';
-import type { createEffectReactions } from '#gw2/platform/resolver/effect-reactions.js';
+import type { EffectReactionRegistry } from '#gw2/platform/resolver/effect-reactions.js';
 import type { Gw2ResolverRuntime } from '#gw2/platform/resolver/runtime-state.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import type { WorkOwner } from '#gw2/platform/simulation/work-contract.js';
@@ -25,7 +24,7 @@ export interface Gw2Runtime<T extends object = object, TSkill extends Skill = Sk
   rotationEndTime: number | null;
   readonly cursor: RotationCursor;
   readonly castController: CastControl;
-  readonly effectReactions: ReturnType<typeof createEffectReactions<T>>;
+  readonly effectReactions: EffectReactionRegistry<T>;
   readonly cooldownController: CooldownController;
   readonly mechanics: MechanicContext<T, TSkill>;
   readonly mechanicQueries: MechanicQueryContext<T, TSkill>;
@@ -34,8 +33,8 @@ export interface Gw2Runtime<T extends object = object, TSkill extends Skill = Sk
   readonly facts: import('#gw2/platform/combat/history/executed-facts.js').ExecutedFactsReader;
   readonly observations: import('#gw2/platform/combat/history/executed-facts.js').ExecutedFactsWriter;
   readonly steps: SimulationStep[];
-  resourceController: ReturnType<typeof createRuntimeResources<T>>;
-  endurance: ReturnType<typeof createRuntimeEndurance<T>>;
+  resourceController: ResourceController;
+  endurance: EnduranceController;
   readonly hasExplicitCombatStart: boolean;
   /**
    * Opens a follow-up window on the profession's Core state. A finite window retires itself at expiry, and only this

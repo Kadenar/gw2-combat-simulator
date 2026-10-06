@@ -1,5 +1,5 @@
 import { applyElementalistAura } from '#gw2/professions/elementalist/core/mechanics/auras.js';
-import { hasTrait } from '#gw2/platform/combat/state/traits.js';
+import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import { professionCoreState, readProfessionSpecializationState } from '#gw2/platform/profession-definition/state.js';
 import { activeRefreshedStacks, grantRefreshedStacks } from '#gw2/platform/combat/resources/refreshed-stacks.js';
 import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';

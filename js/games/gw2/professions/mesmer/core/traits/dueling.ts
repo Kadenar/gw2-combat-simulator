@@ -3,7 +3,7 @@ import type { Gw2ModifierContext, Gw2ModifierRule } from '#gw2/platform/combat/m
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { targetConditionActive, targetHealthBelow } from '#gw2/platform/combat/query/runtime-query.js';
 import { isGw2PlayerActorEvent } from '#gw2/platform/combat/state/event-ownership.js';
-import { hasTrait } from '#gw2/platform/combat/state/traits.js';
+import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import type { EffectDelivery } from '#gw2/platform/effects/emission.js';
 import type { SimulationEvent } from '#gw2/platform/events/events.js';
 import { defineTrait } from '#gw2/platform/profession-definition/traits.js';

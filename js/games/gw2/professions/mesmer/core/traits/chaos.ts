@@ -4,7 +4,7 @@ import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { isInternalCooldownReady } from '#gw2/platform/combat/procs.js';
 
-import { hasTrait } from '#gw2/platform/combat/state/traits.js';
+import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import type { EffectDelivery } from '#gw2/platform/effects/emission.js';
 import { gw2ConfiguredWeaponSet } from '#gw2/platform/equipment/weapons/loadout.js';
 import type { SimulationEvent } from '#gw2/platform/events/events.js';

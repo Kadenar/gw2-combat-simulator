@@ -3,7 +3,7 @@ import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
 import { activeBoonStacks, boonActive } from '#gw2/platform/combat/query/runtime-query.js';
 import { addTimedStacks } from '#gw2/platform/combat/resources/timed-stacks.js';
 import { isDamagingCondition } from '#gw2/platform/combat/state/targets.js';
-import { hasTrait } from '#gw2/platform/combat/state/traits.js';
+import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import type { Gw2Stats } from '#gw2/platform/combat/types.js';
 import {
   balanceProfileNumber,

@@ -24,7 +24,7 @@ import {
   uniqueSkillIds
 } from '#gw2/professions/engineer/core/presentation.js';
 import { ENGINEER_SKILL_IDS as ID, ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
-import { hasTrait } from '#gw2/platform/combat/state/traits.js';
+import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import { getActiveTraits } from '#gw2/professions/engineer/data/traits-data.js';
 import type {
   EngineerSkill,

@@ -1,5 +1,5 @@
 import type { Gw2Build } from '#gw2/platform/builds/types.js';
-import type { ProfessionBalanceContext } from '#gw2/platform/profession-presentation/balance-context.js';
+import type { ProfessionBalanceContext } from '#gw2/platform/profession-definition/balance-context.js';
 import type { BalanceProfile, CanonicalCatalog, CatalogEntity, Skill, SkillId } from '#gw2/platform/skills/types.js';
 import type { AnyNativeModule, NativeProfessionContract } from '#gw2/platform/profession-definition/module-types.js';
 import type { PatchPreview, ProfessionPatchPreview } from '#gw2/integrations/patches/authoring/patches.js';

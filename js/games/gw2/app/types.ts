@@ -5,7 +5,7 @@ import type { RotationComparisonSession } from '#gw2/app/rotation/comparison-sta
 import type { ResultViewState } from '#gw2/app/results/state.js';
 import type { FixedSlotLoadout } from '#gw2/platform/builds/slot-loadout.js';
 import type { ThiefConfig } from '#gw2/professions/thief/types.js';
-import type { ProfessionBalanceContext } from '#gw2/platform/profession-presentation/balance-context.js';
+import type { ProfessionBalanceContext } from '#gw2/platform/profession-definition/balance-context.js';
 import type { ProfessionTooltips, SimulationTooltip } from '#gw2/app/shared/simulation-tooltip.js';
 import type { RevenantConfig } from '#gw2/professions/revenant/types.js';
 import type { RangerConfig } from '#gw2/professions/ranger/types.js';
@@ -19,7 +19,7 @@ import type { Gw2SimulationResult, Gw2SimulationScore } from '#gw2/platform/resu
 import type { Gw2SimulationOptions } from '#gw2/platform/simulation/options.js';
 import type { PatchPreview } from '#gw2/integrations/patches/authoring/patches.js';
 import type { CanonicalCatalog, SkillId, Skill, CatalogEntity } from '#gw2/platform/skills/types.js';
-import type { RotationCommand } from '#gw2/platform/execution/types.js';
+import type { RotationCommand } from '#gw2/platform/execution/rotation.js';
 import type {
   PatchComparison,
   BaselineSimulationOutput,

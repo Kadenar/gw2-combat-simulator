@@ -5,7 +5,7 @@ import { armSkillFlip, consumeSkillFlip, skillFlipVisible } from '#gw2/platform/
 import { THIEF_SKILL_IDS as ID } from '#gw2/professions/thief/data/ids.js';
 
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
-import type { AvailabilityResult } from '#gw2/platform/execution/types.js';
+import type { AvailabilityResult } from '#gw2/platform/execution/availability.js';
 import type { SkillId } from '#gw2/platform/skills/types.js';
 import type { ThiefRuntime } from '#gw2/professions/thief/core/events.js';
 import type { ThiefSkill } from '#gw2/professions/thief/types.js';

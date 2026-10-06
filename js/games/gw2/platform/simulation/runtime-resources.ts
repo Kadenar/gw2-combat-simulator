@@ -6,8 +6,10 @@ import {
   resourceAt,
   resourceRecoveryReadyAt,
   type DiscreteResourceClock,
+  type ResourceController,
   type ResourceKey
 } from '#gw2/platform/combat/resources/resource-policy.js';
+import type { EnduranceController } from '#gw2/platform/combat/resources/endurance-policy.js';
 import {
   advanceEnduranceIntervals,
   enduranceIntervalsReadyAt,
@@ -18,13 +20,18 @@ import {
 import type { Gw2Runtime } from '#gw2/platform/simulation/runtime-state.js';
 import type { RuntimeProfession } from '#gw2/platform/profession-definition/runtime-contract.js';
 
+/** Run construction binds the profession's resource and endurance policies to the live runtime clock. */
+
 function amount(value: number): number {
   if (!Number.isFinite(value) || value < 0) throw new RangeError('Resource amounts must be finite and non-negative.');
   return value;
 }
 
 /** Policies select live pools; every mutation settles the old segment before changing capacity, value or rate. */
-export function createRuntimeResources<T extends object>(runtime: Gw2Runtime<T>, profession: RuntimeProfession<T>) {
+export function createRuntimeResources<T extends object>(
+  runtime: Gw2Runtime<T>,
+  profession: RuntimeProfession<T>
+): ResourceController {
   const policies = profession.resources ?? {};
   const pools = new Set();
   const keys = Object.keys(policies) as ResourceKey[];
@@ -163,7 +170,10 @@ export function createRuntimeResources<T extends object>(runtime: Gw2Runtime<T>,
 }
 
 /** Endurance uses the same executed Vigor windows for regeneration and affordability, including elite pool selection. */
-export function createRuntimeEndurance<T extends object>(runtime: Gw2Runtime<T>, profession: RuntimeProfession<T>) {
+export function createRuntimeEndurance<T extends object>(
+  runtime: Gw2Runtime<T>,
+  profession: RuntimeProfession<T>
+): EnduranceController {
   const policy = profession.endurance;
   const pool = () => {
     if (!policy) throw new TypeError('Profession does not model endurance.');

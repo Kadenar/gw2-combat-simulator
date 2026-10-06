@@ -2,7 +2,7 @@ import { professionStaticRulesApplied } from '#gw2/platform/builds/attribute-pro
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { isGw2PlayerActorEvent } from '#gw2/platform/combat/state/event-ownership.js';
 import { missesTarget } from '#gw2/platform/combat/state/targets.js';
-import { hasTrait } from '#gw2/platform/combat/state/traits.js';
+import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import type { EffectDelivery } from '#gw2/platform/effects/emission.js';
 import type { StrikeTick } from '#gw2/platform/effects/types.js';
 import type { SimulationEvent } from '#gw2/platform/events/events.js';

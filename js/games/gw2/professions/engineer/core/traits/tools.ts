@@ -6,7 +6,7 @@ import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/pla
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
 import { OBSERVABLE_EVENT_HANDLER } from '#gw2/platform/resolver/handler-registry.js';
 import { activeBoonStacks, engineerRuntimeState } from '#gw2/professions/engineer/core/traits/query-helpers.js';
-import { hasTrait } from '#gw2/platform/combat/state/traits.js';
+import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import { isEngineerToolbeltSkill } from '#gw2/professions/engineer/core/traits/toolbelt.js';
 import { resourceAtLeast } from '#gw2/platform/combat/resources/pool.js';
 import { ENGINEER_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/engineer/core/profiles.js';

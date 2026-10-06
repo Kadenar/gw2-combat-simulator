@@ -1,6 +1,6 @@
 import { activeChargeCount } from '#gw2/platform/combat/resources/charges.js';
 import { purgeExpiredStacks } from '#gw2/platform/combat/resources/timed-stacks.js';
-import { hasTrait } from '#gw2/platform/combat/state/traits.js';
+import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import type { RotationStateSnapshotItem } from '#gw2/platform/profession-presentation/types.js';
 import { THIEF_ANTIQUARY_ASSUMPTION_CONTROLS } from '#gw2/professions/thief/build/antiquary-assumptions.js';

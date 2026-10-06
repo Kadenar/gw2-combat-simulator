@@ -11,7 +11,7 @@ import { clearTimelineDropIndicators } from '#gw2/app/rotation/timeline/interact
 import { rotationEntryName } from '#gw2/app/rotation/timeline/model.js';
 import type { ProfessionAppState } from '#gw2/app/types.js';
 import type { ProfessionRotationDragState, RotationActionOptions } from '#gw2/app/rotation/editing/state.js';
-import type { RotationCommand } from '#gw2/platform/execution/types.js';
+import type { RotationCommand } from '#gw2/platform/execution/rotation.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
 import { GW2_ACTION_TICK_MS } from '#gw2/platform/combat/action-tick.js';
 import { summonQuicknessCastTimeMs } from '#gw2/platform/execution/cast-timing.js';

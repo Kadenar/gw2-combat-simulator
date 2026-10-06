@@ -1,5 +1,5 @@
 import type { CanonicalCatalog, SkillId } from '#gw2/platform/skills/types.js';
-import type { ProfessionConfig } from '#gw2/platform/execution/types.js';
+import type { ProfessionConfig } from '#gw2/platform/profession-definition/types.js';
 /**
  * Shared model for profession slot skills chosen as fixed packages rather than
  * as independent skills (for example, a Revenant legend and its entire bar).

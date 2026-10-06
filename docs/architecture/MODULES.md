@@ -360,7 +360,7 @@ and target state, sigils, relics, profession module assembly, and modifier rules
 | `equipment/sigils/severance.ts`   | Severance buff queries and critical modifiers                                           |
 | `equipment/`                      | Gear, consumable, relic, sigil, and weapon data                                         |
 | `combat/state/targets.ts`         | Target assumptions                                                                      |
-| `combat/state/traits.ts`          | Shared selected-trait lookup                                                            |
+| `builds/selected-traits.ts`       | Shared selected-trait lookup                                                            |
 | `combat/state/event-ownership.ts` | Player/summon/effect ownership rules                                                    |
 
 Builds and public simulation configuration use readable sigil and relic names. Equipment catalogs resolve those names to

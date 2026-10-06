@@ -2,7 +2,7 @@ import type { ProfessionAttributePreviewContext } from '#gw2/platform/profession
 import { createPreviewControls } from '#gw2/professions/shared/attribute-preview.js';
 
 import { selectedSkillIdSet } from '#gw2/platform/builds/selected-skills.js';
-import { hasTrait } from '#gw2/platform/combat/state/traits.js';
+import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import { PERMANENT_COMBO_FIELD_ASSUMPTION_CONTROLS } from '#gw2/platform/combos/permanent-field-assumption.js';
 import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import { planningBuffAt } from '#gw2/platform/results/result-queries.js';

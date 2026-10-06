@@ -3,7 +3,7 @@ import { fetchDpsReport } from '#gw2/integrations/logs/dps-report/url.js';
 import { fetchWingmanReport } from '#gw2/integrations/logs/wingman/url.js';
 import { normalizeRotation } from '#gw2/platform/execution/rotation.js';
 import type { ParsedDpsReport } from '#gw2/integrations/logs/dps-report/types.js';
-import type { RotationCommand } from '#gw2/platform/execution/types.js';
+import type { RotationCommand } from '#gw2/platform/execution/rotation.js';
 import type { ProfessionAppState } from '#gw2/app/types.js';
 import {
   appLogReconstructionOptions,

@@ -1,6 +1,7 @@
 import type { EffectState } from '#gw2/platform/combat/effect-state.js';
 import { gw2CooldownReadyAt } from '#gw2/platform/execution/cast-timing.js';
-import type { CooldownController, AvailabilityResult } from '#gw2/platform/execution/types.js';
+import type { CooldownController } from '#gw2/platform/execution/cooldown-contracts.js';
+import type { AvailabilityResult } from '#gw2/platform/execution/availability.js';
 import { flattenProfessionState } from '#gw2/platform/profession-definition/state.js';
 import type { Gw2PlanningStateInput, Gw2SimulationPlanningState } from '#gw2/platform/results/types.js';
 import type { Skill } from '#gw2/platform/skills/types.js';

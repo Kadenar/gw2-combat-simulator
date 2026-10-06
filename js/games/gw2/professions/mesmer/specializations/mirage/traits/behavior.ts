@@ -5,7 +5,7 @@ import type {
 import type { EffectDelivery } from '#gw2/platform/effects/emission.js';
 import type { MesmerEventExtra } from '#gw2/professions/mesmer/data/types.js';
 import { buildMesmerConditions, mesmerPacketOwner } from '#gw2/professions/mesmer/core/mechanics/packets.js';
-import { hasTrait } from '#gw2/platform/combat/state/traits.js';
+import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
 import {
   balanceProfileNumber,

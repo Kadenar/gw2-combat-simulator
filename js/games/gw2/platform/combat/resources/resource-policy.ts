@@ -47,6 +47,20 @@ export interface ResourcePolicy<TContext = MechanicContext<any>> {
 }
 export type ResourcePolicies = Partial<Record<ResourceKey, ResourcePolicy>>;
 
+/** Live pools selected by the profession's policies; every mutation settles the old segment before changing it. */
+export interface ResourceController {
+  initialize(): void;
+  advance(): void;
+  value(key: ResourceKey): number;
+  refresh(key: ResourceKey): void;
+  /** Resets and conversions replace the settled balance without restarting recovery or emitting reward semantics. */
+  replace(key: ResourceKey, value: number): void;
+  grant(key: ResourceKey, value: number): void;
+  spend(key: ResourceKey, value: number): void;
+  /** The earliest time the pool can pay the cost, or null when recovery never reaches it. */
+  readyAt(key: ResourceKey, cost: number): number | null;
+}
+
 /** Factories create detached pools; selected policies supply their tuning during runtime initialization. */
 export function createResourceClock(value = 0): ResourceClock {
   return { value, maximum: value, rate: 0, updatedAt: 0 };

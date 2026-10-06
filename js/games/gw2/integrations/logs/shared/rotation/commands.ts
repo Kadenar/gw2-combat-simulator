@@ -1,4 +1,4 @@
-import type { CastCommand, CooldownResetCommand } from '#gw2/platform/execution/types.js';
+import type { CastCommand, CooldownResetCommand } from '#gw2/platform/execution/rotation.js';
 import { isMushroomKingsBlessing } from '#gw2/integrations/logs/shared/rotation/model.js';
 
 /** Encodes the adapter's resolved input and cancellation decision without interpreting source timing or evidence. */

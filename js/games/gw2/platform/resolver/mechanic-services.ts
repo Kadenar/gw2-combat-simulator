@@ -12,9 +12,49 @@ import {
   remainingTargetHealthFraction,
   remainingTargetHealthBelow
 } from '#gw2/platform/combat/state/target-health.js';
+import type { Gw2TimelineIndex } from '#gw2/platform/combat/query/timeline-index.js';
+import type { ComboFieldEvent } from '#gw2/platform/combos/types.js';
+
+/** Combat capabilities granted to mechanics: shared-state queries plus phase-preserving mutation requests. */
+export interface MechanicCombatServices {
+  companionRetiredAt(companionId: string): number | undefined;
+  activeBoonStacks(kind: string, at: number, maximum?: number, recipient?: EffectRecipient): number;
+  activeBuffStacks(kind: string, at: number, maximum?: number, recipient?: EffectRecipient): number;
+  buffApplications(kind: string): readonly Readonly<Gw2TimedBuffApplication>[];
+  targetHasCondition(condition: string, at: number): boolean;
+  targetConditionStacks(condition: string, at: number): number;
+  targetHealthLoss(): number;
+  targetHealthBelow(threshold: number): boolean;
+  /** Null when target health is unbounded. */
+  remainingTargetHealthFraction(): number | null;
+  targetConditionCount(at: number): number;
+  statsAt(at: number, event: Gw2ResolverEvent): Gw2ResolvedStats;
+  conditionDurationMultiplier(condition: string, at: number, stats: Gw2ResolvedStats, event: Gw2ResolverEvent): number;
+  readonly timeline: Readonly<Gw2TimelineIndex>;
+  boonApplications(kind: string): readonly Readonly<Gw2TimedBuffApplication>[];
+  /** A boon copy reads executed applications; a retired companion has no live boons to copy. */
+  boonSnapshot(
+    kind: string,
+    at: number,
+    recipient: EffectRecipient
+  ): { readonly stacks: number; readonly duration: number };
+  reviseBuffExpiry(
+    kind: string,
+    select: (application: Readonly<Gw2TimedBuffApplication>) => boolean,
+    expiry: (at: number) => number
+  ): void;
+  retireCompanion(companionId: string, removedAt: number): void;
+  fieldFor(skillId: SkillId, at: number | undefined): Readonly<ComboFieldEvent> | undefined;
+  expireField(fieldId: string, at: number): void;
+  allocateEffectActivation(prefix: string): string;
+  warn(message: string): void;
+  react(
+    ...args: Parameters<Gw2ResolverRuntime['dispatchReaction']>
+  ): ReturnType<Gw2ResolverRuntime['dispatchReaction']>;
+}
 
 /** Mechanics request shared-state changes at their existing phase; resolver stores never leave their owner. */
-export function createMechanicCombatServices(runtime: Gw2ResolverRuntime) {
+export function createMechanicCombatServices(runtime: Gw2ResolverRuntime): MechanicCombatServices {
   return Object.freeze({
     companionRetiredAt: (companionId: string): number | undefined => runtime.retiredCompanions.get(companionId),
     activeBoonStacks: (kind: string, at: number, maximum = 25, recipient: EffectRecipient = { actor: 'player' }) =>
@@ -79,10 +119,7 @@ export function createMechanicCombatServices(runtime: Gw2ResolverRuntime) {
           }
         }
     },
-    fieldFor: (
-      skillId: SkillId,
-      at: number | undefined
-    ): Readonly<NonNullable<ReturnType<typeof runtime.combo.fields.get>>> | undefined =>
+    fieldFor: (skillId: SkillId, at: number | undefined): Readonly<ComboFieldEvent> | undefined =>
       [...runtime.combo.fields.values()].find((field) => field.skillId === skillId && field.at === at),
     expireField(fieldId: string, at: number): void {
       const field = runtime.combo.fields.get(fieldId);

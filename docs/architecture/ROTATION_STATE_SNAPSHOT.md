@@ -150,11 +150,6 @@ Do you want to display a new value?
         |       +-- YES → Project it into planningState.profession
         |                 → Add rotationStateSnapshot item
         |
-        +-- Is it represented by simulation events/buffs?
-        |       |
-        |       +-- YES → Read context.result at context.atSeconds
-        |                 → Add rotationStateSnapshot item
-        |
         +-- Is it generic state shared by every profession?
         |       |
         |       +-- YES → Add it in state-snapshot/model.ts
@@ -352,101 +347,7 @@ Active state bar
 
 ---
 
-# Case 3: the value already exists in simulation events
-
-Not every temporary effect should be duplicated into profession state.
-
-If the simulator already emits the effect into its event timeline, derive the snapshot from the event timeline instead.
-
-This is the preferred approach for many temporary buffs because it keeps the display tied to the same data that combat
-calculations use.
-
-Two shared helpers are available in:
-
-```text
-js/games/gw2/platform/results/result-queries.ts
-```
-
-## Timed buff
-
-Use:
-
-```ts
-timedBuffAt(result, kind, atSeconds);
-```
-
-to find an active timed buff and its remaining duration.
-
-Example:
-
-```ts
-import { timedBuffAt } from '#gw2/platform/results/result-queries.js';
-```
-
-Then:
-
-```ts
-rotationStateSnapshot: (context) => {
-  const buff = timedBuffAt(
-    context.result,
-    "peak-performance",
-    context.atSeconds,
-  );
-
-  if (!buff) return [];
-
-  return [
-    {
-      id: "peak-performance",
-      label: "Peak Performance",
-      value: formatSecondsRemaining(buff.remaining),
-    },
-  ];
-},
-```
-
-This does **not** require:
-
-- a new profession-state field;
-- a public end-state projection;
-- a second timer maintained only for the UI.
-
-The event timeline remains the source of truth.
-
----
-
-## Stacking timed buff
-
-For effects where each application contributes stacks independently, use:
-
-```ts
-timedBuffStacksAt(result, kind, atSeconds);
-```
-
-For example:
-
-```ts
-const stacks = Math.min(5, timedBuffStacksAt(context.result, 'signet-mastery', context.atSeconds));
-
-if (stacks <= 0) return [];
-
-return [
-  {
-    id: 'signet-mastery',
-    label: 'Signet Mastery',
-    value: `${stacks}/5`,
-    title: `+${stacks * 100} ferocity`
-  }
-];
-```
-
-This is the pattern used by Warrior's Signet Mastery snapshot.
-
-Use event-derived state when the event timeline already represents the mechanic accurately.
-
----
-
-# Case 4: arrays of expirations or active windows
+# Case 3: arrays of expirations or active windows
 
 Some mechanics store several expiration times rather than one `*Until` value.
 
@@ -501,7 +402,7 @@ The important rule is:
 
 ---
 
-# Case 5: add a generic value for every profession
+# Case 4: add a generic value for every profession
 
 Values that are not profession-specific belong in:
 
@@ -543,7 +444,7 @@ independently recalculated attribute snapshot. Relic timers use `result.procStep
 
 ---
 
-# Case 6: the simulator does not track the value yet
+# Case 5: the simulator does not track the value yet
 
 The snapshot system is a **view of simulation state**, not a second state-management system.
 

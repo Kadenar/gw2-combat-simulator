@@ -27,7 +27,7 @@ import { HOLOSMITH_HEAT } from '#gw2/professions/engineer/specializations/holosm
 import { ENGINEER_SKILL_IDS as ID, ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
 import type { SkillEffect } from '#gw2/platform/effects/types.js';
 import type { SkillId, TooltipFact } from '#gw2/platform/skills/types.js';
-import type { ProfessionBalanceContext } from '#gw2/platform/profession-presentation/balance-context.js';
+import type { ProfessionBalanceContext } from '#gw2/platform/profession-definition/balance-context.js';
 
 /** Both improved-inheritance traits read the same live mech caps and ratio. */
 function improvedMechInheritanceFacts(balanceContext: ProfessionBalanceContext) {

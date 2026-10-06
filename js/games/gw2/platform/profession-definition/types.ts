@@ -4,12 +4,18 @@ import type { EndurancePolicy } from '#gw2/platform/combat/resources/endurance-p
 import type { ResourcePolicies } from '#gw2/platform/combat/resources/resource-policy.js';
 import type { Gw2Stats } from '#gw2/platform/combat/types.js';
 import type { Gw2WeaponSkillMatcher } from '#gw2/platform/equipment/weapons/types.js';
-import type { ProfessionConfig } from '#gw2/platform/execution/types.js';
 import type { ProfessionUiContract } from '#gw2/platform/profession-presentation/types.js';
 import type { AutoattackChainOptions } from '#gw2/platform/skills/catalog.js';
 import type { BalanceProfile, CanonicalCatalog, CatalogEntity, Skill, SkillId } from '#gw2/platform/skills/types.js';
 
 /** Defines runtime capabilities and composition inputs; display and build callback types have separate owners. */
+
+/** The configuration slice that selects a profession's modules and seeds its state factories. */
+export interface ProfessionConfig {
+  /** Active elite specialization, or "Core"; module composition resolves the runtime from it. */
+  readonly specialization?: string;
+  readonly boons?: Readonly<Record<string, boolean | number>>;
+}
 
 export interface ProfessionResourceDefinition<TProfessionState extends object = object> extends ResourcePolicies {
   readonly endurance?: EndurancePolicy;

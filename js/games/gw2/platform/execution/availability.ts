@@ -1,8 +1,22 @@
 import { selectedSkillIdSet } from '#gw2/platform/builds/selected-skills.js';
-import type { AvailabilityResult } from '#gw2/platform/execution/types.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
 import type { CanonicalCatalog, Skill, SkillId } from '#gw2/platform/skills/types.js';
 /** Cast availability distinguishes permanent denials from commands that can retry at a known time. */
+
+export type AvailabilityResult =
+  | Readonly<{ ready: true }>
+  | Readonly<{
+      ready: false;
+      retryAt: null;
+      reason: string;
+      code: string;
+    }>
+  | Readonly<{
+      ready: false;
+      retryAt: number;
+      reason: string;
+      code: string;
+    }>;
 
 export const CAST_READY: AvailabilityResult = Object.freeze({ ready: true });
 

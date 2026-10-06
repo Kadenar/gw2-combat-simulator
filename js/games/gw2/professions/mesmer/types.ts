@@ -10,7 +10,7 @@ import type { Gw2CanonicalBuild, Gw2Build } from '#gw2/platform/builds/types.js'
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 
-import type { AmmoObservation } from '#gw2/platform/execution/types.js';
+import type { AmmoObservation } from '#gw2/platform/execution/cooldown-contracts.js';
 import type { MesmerCoreState } from '#gw2/professions/mesmer/core/state.js';
 import type { MesmerChronomancerState } from '#gw2/professions/mesmer/specializations/chronomancer/state.js';
 import type { MesmerMirageState } from '#gw2/professions/mesmer/specializations/mirage/state.js';

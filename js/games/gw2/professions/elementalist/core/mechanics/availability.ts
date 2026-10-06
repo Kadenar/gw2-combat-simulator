@@ -14,7 +14,7 @@ import { professionCoreState } from '#gw2/platform/profession-definition/state.j
 import { denySkillCast as unavailable, selectedSlotSkillAvailability } from '#gw2/platform/execution/availability.js';
 import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
-import type { AvailabilityResult } from '#gw2/platform/execution/types.js';
+import type { AvailabilityResult } from '#gw2/platform/execution/availability.js';
 import {
   AURA_TRANSMUTE_SKILLS,
   CONJURE_PICKUP_WEAPONS,

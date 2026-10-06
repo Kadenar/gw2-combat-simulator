@@ -8,7 +8,7 @@ import { EPSILON } from '#kernel/core/clock.js';
  */
 import { denyCast, retryCast } from '#gw2/platform/execution/availability.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
-import type { AvailabilityResult } from '#gw2/platform/execution/types.js';
+import type { AvailabilityResult } from '#gw2/platform/execution/availability.js';
 import {
   BASIC_FAMILIARS,
   FAMILIAR_ELEMENTS

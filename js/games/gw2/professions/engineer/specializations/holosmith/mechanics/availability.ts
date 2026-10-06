@@ -1,10 +1,10 @@
 import { denySkillCast as denyEngineerCast } from '#gw2/platform/execution/availability.js';
-import type { AvailabilityResult } from '#gw2/platform/execution/types.js';
+import type { AvailabilityResult } from '#gw2/platform/execution/availability.js';
 import { ENGINEER_SKILL_IDS as ID, ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
 import { NON_HOLOSMITH_SWORD_SKILL_IDS } from '#gw2/professions/engineer/data/module-data.js';
 import { HOLOSMITH_FORGE_TOGGLE_SKILL_IDS } from '#gw2/professions/engineer/specializations/holosmith/mechanics/constants.js';
 import { holosmithState } from '#gw2/professions/engineer/specializations/holosmith/state.js';
-import { hasTrait } from '#gw2/platform/combat/state/traits.js';
+import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import type { HolosmithSkill } from '#gw2/professions/engineer/specializations/holosmith/types.js';
 import type { EngineerRuntime } from '#gw2/professions/engineer/types.js';
 

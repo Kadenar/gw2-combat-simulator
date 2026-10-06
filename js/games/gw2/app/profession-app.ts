@@ -43,7 +43,7 @@ import type {
 import type { ProfessionRotationDragState, RotationActionOptions } from '#gw2/app/rotation/editing/state.js';
 import type { BaselineSimulationOutput } from '#gw2/app/simulation/baseline/types.js';
 import type { Gw2CanonicalBuild } from '#gw2/platform/builds/types.js';
-import type { RotationCommand } from '#gw2/platform/execution/types.js';
+import type { RotationCommand } from '#gw2/platform/execution/rotation.js';
 
 export class ProfessionApp implements ProfessionAppState {
   readonly workspace: BuildWorkspace;

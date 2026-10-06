@@ -5,7 +5,7 @@ import type { Gw2ResolvedStats } from '#gw2/platform/combat/query/combat-query.j
 import { skillForEvent } from '#gw2/platform/combat/query/runtime-query.js';
 import { activeStackCount, grantTimedStacks } from '#gw2/platform/combat/resources/timed-stacks.js';
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
-import { hasTrait } from '#gw2/platform/combat/state/traits.js';
+import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import { readProfessionCoreState } from '#gw2/platform/profession-definition/state.js';
 import { isFlatLifeStealPacket } from '#gw2/platform/resolver/packets.js';

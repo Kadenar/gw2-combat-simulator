@@ -1,5 +1,5 @@
 import type { ResourcePolicies } from '#gw2/platform/combat/resources/resource-policy.js';
-import type { ProfessionConfig } from '#gw2/platform/execution/types.js';
+import type { ProfessionConfig } from '#gw2/platform/profession-definition/types.js';
 import type {
   ProfessionAttributePreviewInput,
   ProfessionAttributePreviewPreparation

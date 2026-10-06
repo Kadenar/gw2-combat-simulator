@@ -1,7 +1,7 @@
 import type { MaximumAmmoContext } from '#gw2/platform/profession-definition/runtime-context.js';
 import { type SkillId } from '#gw2/platform/skills/types.js';
 import { ENGINEER_SKILL_IDS as ID, ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
-import { hasTrait } from '#gw2/platform/combat/state/traits.js';
+import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import {
   balanceProfileNumber,
   requireBalanceProfileFromContext,

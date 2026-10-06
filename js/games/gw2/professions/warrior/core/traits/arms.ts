@@ -2,7 +2,7 @@ import { advanceCriticalProc, criticalOpportunity } from '#gw2/platform/combat/c
 import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { skillForEvent, targetConditionActive } from '#gw2/platform/combat/query/runtime-query.js';
-import { hasTrait } from '#gw2/platform/combat/state/traits.js';
+import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import { gw2ConfiguredWeaponSet } from '#gw2/platform/equipment/weapons/loadout.js';
 import type { MechanicContext } from '#gw2/platform/profession-definition/mechanic-context.js';
 import { defineTrait } from '#gw2/platform/profession-definition/traits.js';

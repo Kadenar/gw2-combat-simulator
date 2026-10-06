@@ -7,7 +7,7 @@ import { balanceProfileNumber } from '#gw2/platform/skills/balance-profiles.js';
 import { THIEF_CORE_RESOURCE_PROFILE } from '#gw2/professions/thief/core/profiles.js';
 import { preparednessCapacityField } from '#gw2/professions/thief/core/traits/resource-queries.js';
 
-import { normalizeSelectedTraitIds } from '#gw2/platform/combat/state/traits.js';
+import { normalizeSelectedTraitIds } from '#gw2/platform/builds/selected-traits.js';
 import type { SkillId } from '#gw2/platform/skills/types.js';
 import { THIEF_SKILL_IDS as ID } from '#gw2/professions/thief/data/ids.js';
 import type { ThiefConfig } from '#gw2/professions/thief/types.js';

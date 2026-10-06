@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { createRuntimeResources } from '#gw2/platform/combat/resources/runtime-resources.js';
+import { createRuntimeResources } from '#gw2/platform/simulation/runtime-resources.js';
 import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
 import { mesmerProfession } from '#gw2/professions/mesmer/profession.js';
 import { createMesmerActions, createMesmerIllusionRewards } from '#gw2/professions/mesmer/family-mechanics.js';

@@ -4,7 +4,7 @@ import { missesTarget } from '#gw2/platform/combat/state/targets.js';
 import { SIGIL_PROCS } from '#gw2/platform/equipment/sigils/data.js';
 import type { SimulationEvent } from '#gw2/platform/events/events.js';
 import type { Gw2SigilProc } from '#gw2/platform/equipment/sigils/types.js';
-import type { createProcRegistry } from '#gw2/platform/combat/procs.js';
+import type { ProcRegistry } from '#gw2/platform/combat/procs.js';
 
 const PROCS = SIGIL_PROCS as Readonly<Record<number, Gw2SigilProc>>;
 
@@ -27,7 +27,7 @@ export function decideCriticalSigils(
   event: SimulationEvent,
   ids: readonly number[],
   critical: { readonly chance: number; readonly didCrit?: boolean },
-  procs: Pick<ReturnType<typeof createProcRegistry>, 'deadline'>
+  procs: Pick<ProcRegistry, 'deadline'>
 ): CriticalSigilDecision {
   const next = { procs: [] as CriticalSigilIntent[] };
   const active = [...new Set(ids.filter(isCriticalSigil))];

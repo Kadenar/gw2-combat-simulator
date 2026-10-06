@@ -5,7 +5,7 @@ import {
   requireBalanceProfileFromContext,
   requireEffect
 } from '#gw2/platform/skills/balance-profiles.js';
-import type { AvailabilityResult } from '#gw2/platform/execution/types.js';
+import type { AvailabilityResult } from '#gw2/platform/execution/availability.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import { buildRangerStrikes, buildRangerPacket } from '#gw2/professions/ranger/core/events.js';
 import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';

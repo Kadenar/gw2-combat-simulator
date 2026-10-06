@@ -3,11 +3,11 @@ import { validateResourceGrantSupport } from '#gw2/platform/effects/action-valid
 import { EffectRecorder } from '#gw2/platform/results/effect-report.js';
 import { prepareSelectedSkillLoadout } from '#gw2/platform/builds/selected-skills.js';
 import { createGw2CombatQuery } from '#gw2/platform/combat/query/combat-query.js';
-import { createRuntimeEndurance, createRuntimeResources } from '#gw2/platform/combat/resources/runtime-resources.js';
+import { createRuntimeEndurance, createRuntimeResources } from '#gw2/platform/simulation/runtime-resources.js';
 import { RESOURCE_KEYS, type ResourceKey } from '#gw2/platform/combat/resources/resource-policy.js';
 import { targetHealthLoss } from '#gw2/platform/combat/state/target-health.js';
 import { canonicalTargetConditionName } from '#gw2/platform/combat/state/targets.js';
-import { normalizeSelectedTraitIds } from '#gw2/platform/combat/state/traits.js';
+import { normalizeSelectedTraitIds } from '#gw2/platform/builds/selected-traits.js';
 import { permanentComboFieldAssumption } from '#gw2/platform/combos/permanent-field-assumption.js';
 import { assertSimulationEvent } from '#gw2/platform/events/events.js';
 import { readProfessionCoreState } from '#gw2/platform/profession-definition/state.js';

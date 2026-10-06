@@ -1,8 +1,8 @@
 import { claimActivation } from '#gw2/platform/combat/activation-claims.js';
 import { isBeastSkill } from '#gw2/professions/ranger/core/traits/dispatch.js';
 import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
-import type { Gw2TraitLookupContext } from '#gw2/platform/combat/state/traits.js';
-import { hasTrait } from '#gw2/platform/combat/state/traits.js';
+import type { Gw2TraitLookupContext } from '#gw2/platform/builds/selected-traits.js';
+import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import { advanceCounter } from '#gw2/platform/combat/resources/counters.js';
 import { denySkillCast as deny } from '#gw2/platform/execution/availability.js';
 import {
@@ -11,7 +11,7 @@ import {
   requireBalanceProfileFromContext,
   requireEffect
 } from '#gw2/platform/skills/balance-profiles.js';
-import type { AvailabilityResult } from '#gw2/platform/execution/types.js';
+import type { AvailabilityResult } from '#gw2/platform/execution/availability.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import type { SkillSideEffect } from '#gw2/platform/effects/actions.js';
 import { buildRangerStrikes, buildRangerPacket } from '#gw2/professions/ranger/core/events.js';

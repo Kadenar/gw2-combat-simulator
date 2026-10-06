@@ -2,7 +2,7 @@ import { emitSerratedSteel, emitIncendiaryPowder } from '#gw2/professions/engine
 import type { EngineerCriticalHitDefinition } from '#gw2/professions/engineer/core/traits/critical-procs.js';
 import { engineerMechResolverEvent } from '#gw2/professions/engineer/specializations/mechanist/mechanics/mech-ownership.js';
 import { ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
-import { hasTrait } from '#gw2/platform/combat/state/traits.js';
+import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import {
   balanceProfileNumber,
   procChanceFromContext,

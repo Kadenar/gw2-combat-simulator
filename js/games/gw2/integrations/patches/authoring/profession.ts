@@ -1,5 +1,5 @@
 import type { Gw2Build } from '#gw2/platform/builds/types.js';
-import type { ProfessionBalanceContext } from '#gw2/platform/profession-presentation/balance-context.js';
+import type { ProfessionBalanceContext } from '#gw2/platform/profession-definition/balance-context.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
 import type { CanonicalCatalog } from '#gw2/platform/skills/types.js';
 import type { ProfessionModuleCatalogFragment } from '#gw2/platform/profession-definition/types.js';

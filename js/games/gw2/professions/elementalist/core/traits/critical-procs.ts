@@ -1,6 +1,6 @@
 import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
 import type { MechanicCombatContext } from '#gw2/platform/profession-definition/mechanic-context.js';
-import { hasTrait } from '#gw2/platform/combat/state/traits.js';
+import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import type { NativeResolvedDamageDetails } from '#gw2/platform/profession-definition/module-types.js';
 import { resolverSourceSkill } from '#gw2/platform/resolver/packets.js';
 

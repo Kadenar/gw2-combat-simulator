@@ -1,7 +1,7 @@
 import { professionStaticRulesApplied } from '#gw2/platform/builds/attribute-provenance.js';
 import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
 import { isHostileTargetEvent } from '#gw2/platform/combat/state/targets.js';
-import { hasTrait } from '#gw2/platform/combat/state/traits.js';
+import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import type { SimulationEventBase } from '#gw2/platform/events/events.js';
 import { denySkillCast } from '#gw2/platform/execution/availability.js';
 import {
