@@ -17,8 +17,8 @@ import type { ProfessionAppState } from '#gw2/app/types.js';
 const HISTORY_LIMIT = 100;
 
 export function cloneRotation(rotation: readonly RotationCommand[]): RotationCommand[] {
-  // Clone canonical value objects while preserving legacy primitive commands until normalization handles them.
-  return rotation.map((command) => (typeof command === 'object' && command !== null ? { ...command } : command));
+  // Loading and imports normalize commands before history captures them; copy each object to isolate later edits.
+  return rotation.map((command) => ({ ...command }));
 }
 
 /** Starts a new history around the supplied rotation so an atomic role swap cannot undo into the other side. */

@@ -42,7 +42,6 @@ export const COMMON_EVENT_TYPES = Object.freeze([
   'resource',
   'buff',
   'boon_extension',
-  'cooldown_snapshot',
   'self_condition'
 ] as const);
 

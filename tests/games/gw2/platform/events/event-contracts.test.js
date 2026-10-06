@@ -101,16 +101,13 @@ test('typed event boundary rejects values outside the declared contract', () => 
   );
 });
 
-test('live snapshot event types are canonical and obsolete boon and blind events are rejected', () => {
-  for (const type of ['cooldown_snapshot', 'self_condition']) {
-    assert.equal(COMMON_EVENT_TYPES.includes(type), true);
-    assert.equal(
-      assertSimulationEvent({ type, actorType: 'player', at: 0, source: 'fixture', sourceId: 1 }).type,
-      type
-    );
-  }
+// Removed event protocols must not re-enter the resolver through the shared schema.
+test('self conditions are canonical and retired event types are rejected', () => {
+  const type = 'self_condition';
+  assert.equal(COMMON_EVENT_TYPES.includes(type), true);
+  assert.equal(assertSimulationEvent({ type, actorType: 'player', at: 0, source: 'fixture', sourceId: 1 }).type, type);
 
-  for (const type of ['boon', 'blind']) {
+  for (const type of ['boon', 'blind', 'cooldown_snapshot']) {
     assert.throws(
       () => assertSimulationEvent({ type, actorType: 'player', at: 0, source: 'fixture', sourceId: 1 }),
       /Unsupported simulation event type/

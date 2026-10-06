@@ -15,15 +15,18 @@ import { remainingTargetHealthFraction } from '#gw2/platform/combat/state/target
 import { GW2_RESOLVER_PHASE } from '#gw2/platform/resolver/event-phase.js';
 
 // Resolver queries must follow executed state changes, including cache invalidation within one timestamp.
-test('samples and strikes see cooldown resets, snapshots, and swaps only after execution', () => {
+test('samples and strikes see cooldown resets, checkpoint restoration, and swaps only after execution', () => {
   for (const output of ['detailed', 'score']) {
     for (const reset of [{ type: 'fixture.reset' }, { type: 'fixture.rewind' }]) {
       const seen = [];
+      let checkpoint;
       const profession = defineTestProfession({
         id: 'timeline-resolution',
         name: 'Timeline resolution',
         hooks: {
           initialize(ctx) {
+            // Capture the ready state before spending so rewinds exercise the same controller path as Chronomancer.
+            checkpoint = ctx.cooldownController.checkpoint(ctx.time, new Set(), 1);
             ctx.cooldownController.setReadyAt(1, 10);
           },
           eventHandlers: {
@@ -31,7 +34,7 @@ test('samples and strikes see cooldown resets, snapshots, and swaps only after e
               ctx.cooldownController.clear(1);
             },
             'fixture.rewind'(ctx) {
-              ctx.cooldownController.clear(1);
+              ctx.cooldownController.restoreCheckpoint(checkpoint, ctx.time, new Set(), []);
             }
           }
         },
@@ -54,7 +57,6 @@ test('samples and strikes see cooldown resets, snapshots, and swaps only after e
         config: { sigilSets: [{ names: [] }] },
         ...{
           events: [
-            { ...owner, type: 'action', at: 0, skillId: 1, rechargeReadyAt: 10 },
             { ...owner, type: 'damage', at: 0, flatDamage: 1 },
             condition(0, { duration: 2 }),
             { ...owner, type: 'damage', at: 1, flatDamage: 1, priority: -10 },

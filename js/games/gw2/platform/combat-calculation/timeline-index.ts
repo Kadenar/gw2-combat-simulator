@@ -79,7 +79,7 @@ export function createGw2TimelineIndex({
   };
   const indexedBuffs = new Map<string, IndexedBuffEvents>();
   const retiredCompanions = new Map<string, number>();
-  // Only queried skills need their own history; snapshots and resets remain visible to every skill.
+  // Only queried skills need their own history; resets remain visible to every skill.
   const indexedCooldowns = new Map<SkillId, SimulationEvent[]>();
   // retain one argument combination per kind; cache variants if mixed-audience sampling dominates.
   const buffCache = new Map<string, CachedBuffStacks>();
@@ -162,11 +162,7 @@ export function createGw2TimelineIndex({
         insertOrdered(indexed.weaponSet, event);
       }
 
-      if (
-        event.type === 'action' ||
-        event.type === 'cooldown_snapshot' ||
-        (event.type === 'marker' && event.action === 'cooldown-reset')
-      ) {
+      if (event.type === 'action' || (event.type === 'marker' && event.action === 'cooldown-reset')) {
         insertOrdered(indexed.cooldown, event);
         for (const [skillId, history] of indexedCooldowns) {
           if (event.type !== 'action' || event.skillId === skillId) insertOrdered(history, event);
@@ -311,12 +307,8 @@ export function createGw2TimelineIndex({
       if (event.type === 'action') {
         // Predictions must not see their own action's cooldown; resolved history contains only completed events.
         if (!resolved && canonicalTime(event.at) === time) continue;
-        readyAt = Number(event.rechargeReadyAt || 0);
+        // Canonical action events carry committed recharge work; live restoration belongs to the cooldown controller.
         progress = event.rechargeProgress;
-      } else if (event.type === 'cooldown_snapshot') {
-        // A snapshot replaces prior knowledge for the requested skill.
-        const cooldowns = (event.cooldowns || {}) as Readonly<Record<string, unknown>>;
-        readyAt = Number(cooldowns[String(skillId)] || 0);
       } else if (event.type === 'marker' && event.action === 'cooldown-reset') {
         // Training-area resets restore signet passives as soon as the scheduler clears their recharge.
         readyAt = 0;

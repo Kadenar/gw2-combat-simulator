@@ -16,7 +16,6 @@ import {
 import type { DefineProfessionAppOptions, Gw2AppAdapter } from '#gw2/app/types.js';
 import { withActivePatchPreview } from '#gw2/integrations/patches/active-profession.js';
 import { createCalculateAttributes } from '#gw2/platform/builds/attributes.js';
-import { createDefaultTargetConditions as createSharedDefaultTargetConditions } from '#gw2/platform/builds/default-target-conditions.js';
 import { isBuildSkillAvailable } from '#gw2/platform/builds/selected-skills.js';
 import type { Gw2Build, ProfessionAssumptionControl } from '#gw2/platform/builds/types.js';
 import type { CatalogEntity, Skill, SkillId } from '#gw2/platform/skills/types.js';
@@ -38,7 +37,6 @@ export function preferOffhand(preferred: string): ProfessionDefaultOffhand {
 /**
  * Composes a native profession's attribute calculator and runtime into the
  * single shared-shell adapter consumed by the browser application.
- * Shared GW2 target conditions are used unless a profession overrides them.
  */
 export function defineProfessionApp<
   const TModules extends readonly [AnyNativeModule<'Core'>, ...AnyNativeModule[]],
@@ -48,7 +46,6 @@ export function defineProfessionApp<
   profession: nativeProfession,
   tooltips,
   applyBuildAttributeRules,
-  createDefaultTargetConditions = createSharedDefaultTargetConditions,
   toApplicationBuild,
   storageVersion = 3,
   storageKey = `gw2-${nativeProfession.id}-simulator-v${storageVersion}`,
@@ -127,7 +124,6 @@ export function defineProfessionApp<
       weaponData: WEAPON_DATA
     }),
     relicNames: RELIC_NAMES,
-    createDefaultTargetConditions,
     toApplicationBuild,
     ...runtimeApi,
     renderRotationBuilder,

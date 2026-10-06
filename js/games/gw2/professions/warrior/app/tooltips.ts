@@ -168,9 +168,6 @@ export const warriorTooltips: ProfessionTooltips = {
         ];
       return [];
     }),
-    ...Object.entries({ flowGain: 'Flow gained' }).flatMap(([field, name]) =>
-      entity[field] == null ? [] : [{ name, detail: tooltipDecimal(tooltipNumber(entity, field)) }]
-    ),
     ...(entity.adrenalineCost == null
       ? []
       : [

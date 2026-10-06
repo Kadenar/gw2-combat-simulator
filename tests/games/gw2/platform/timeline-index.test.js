@@ -7,6 +7,13 @@ import { createGw2CombatQuery } from '#gw2/platform/combat-calculation/combat-qu
 import { createCanonicalCatalog } from '#gw2/platform/skills/catalog.js';
 import { defineTestProfession } from '#tests/helpers/profession.js';
 
+// Unit-rate fixtures isolate history visibility and cache invalidation from profession recharge modifiers.
+const cooldownSkills = new Map([1, 2, 3].map((id) => [id, { id, rechargeIgnoresAlacrity: true }]));
+
+function cooldownAction(skillId, at, work, causalOrder) {
+  return { type: 'action', at, skillId, causalOrder, rechargeProgress: { startedAt: at, work } };
+}
+
 // Constant recharge rates bypass boon history, including explicit false console inputs.
 test('player recharge never samples Alacrity grants or expiry', () => {
   for (const alacrity of [undefined, false, true]) {
@@ -96,26 +103,27 @@ test('passive cooldown queries honor recharge anchors and completion ticks despi
   assert.equal(timeline.skillOnCooldownAt(skill.id, 10), false);
 });
 
-// Adjacent microseconds remain distinct for swaps, actions, snapshots, resets, and recharge deadlines.
+// Adjacent microseconds remain distinct for swaps, actions, resets, and quantized recharge deadlines.
 test('timeline state uses canonical instants without admitting future events', () => {
   const events = [
     weaponSetEvent(0.56 + 0.04, 0, 2),
     weaponSetEvent(0.600001, 1, 1),
-    { type: 'action', at: 0, skillId: 1, rechargeReadyAt: 0.600001 },
-    { type: 'action', at: 0.56 + 0.04, skillId: 2, rechargeReadyAt: 2 },
-    { type: 'cooldown_snapshot', at: 0.600002, cooldowns: { 1: 3 } },
-    { type: 'marker', action: 'cooldown-reset', at: 0.600003 }
+    cooldownAction(1, 0, 0.6),
+    cooldownAction(2, 0.56 + 0.04, 1.4),
+    cooldownAction(1, 0.600002, 2.4),
+    { type: 'marker', action: 'cooldown-reset', at: 0.600004 }
   ];
-  const timeline = createGw2TimelineIndex({ events });
+  const timeline = createGw2TimelineIndex({ events, skillsById: cooldownSkills });
   assert.equal(timeline.activeWeaponSetAt(0.599999), 1);
   assert.equal(timeline.activeWeaponSetAt(0.6), 2);
   assert.equal(timeline.activeWeaponSetAt(0.600001), 1);
-  assert.equal(timeline.skillOnCooldownAt(1, 0.56 + 0.04), true);
-  assert.equal(timeline.skillOnCooldownAt(1, 0.600001), false);
+  assert.equal(timeline.skillOnCooldownAt(1, 0.599999), true);
+  assert.equal(timeline.skillOnCooldownAt(1, 0.56 + 0.04), false);
   assert.equal(timeline.skillOnCooldownAt(2, 0.6), false);
   assert.equal(timeline.skillOnCooldownAt(2, 0.600001), true);
-  assert.equal(timeline.skillOnCooldownAt(1, 0.600002), true);
-  assert.equal(timeline.skillOnCooldownAt(1, 0.600003), false);
+  assert.equal(timeline.skillOnCooldownAt(1, 0.600002), false);
+  assert.equal(timeline.skillOnCooldownAt(1, 0.600003), true);
+  assert.equal(timeline.skillOnCooldownAt(1, 0.600004), false);
 });
 
 test('new Compounding Power stacks do not refresh earlier stacks', () => {
@@ -184,15 +192,16 @@ test('repeated timeline queries reuse answers, including zero stacks and a ready
     }
   });
   const timeline = createGw2TimelineIndex({
+    skillsById: cooldownSkills,
     events: [
       measured,
       {
         type: 'action',
         at: 0,
         skillId: 1,
-        get rechargeReadyAt() {
+        get rechargeProgress() {
           cooldownReads++;
-          return 2;
+          return { startedAt: 0, work: 2 };
         }
       }
     ]
@@ -212,19 +221,24 @@ test('repeated timeline queries reuse answers, including zero stacks and a ready
 });
 
 test('same-time appends, resets, and truncation invalidate timeline answers', () => {
-  const events = [buffEvent(), { type: 'action', at: 0, skillId: 1, rechargeReadyAt: 2 }];
-  const timeline = createGw2TimelineIndex({ events });
+  const events = [buffEvent(), cooldownAction(1, 0, 2)];
+  const timeline = createGw2TimelineIndex({ events, skillsById: cooldownSkills, resolved: true });
   assert.equal(timeline.timedStacks('might', 1, 0, 25), 4);
   assert.equal(timeline.skillOnCooldownAt(1, 1), true);
   assert.equal(timeline.skillOnCooldownAt(2, 1), false);
 
-  events.push(buffEvent({ at: 1, stacks: 2 }), { type: 'cooldown_snapshot', at: 1, cooldowns: { 2: 3 } });
+  events.push(
+    buffEvent({ at: 1, stacks: 2 }),
+    { type: 'marker', action: 'cooldown-reset', at: 1 },
+    cooldownAction(2, 1, 2)
+  );
   assert.equal(timeline.timedStacks('might', 1, 0, 25), 6);
   assert.equal(timeline.skillOnCooldownAt(1, 1), false);
   assert.equal(timeline.skillOnCooldownAt(2, 1), true);
 
   events.push({ type: 'marker', action: 'cooldown-reset', at: 1 });
   assert.equal(timeline.skillOnCooldownAt(1, 1), false);
+  assert.equal(timeline.skillOnCooldownAt(2, 1), false);
   assert.equal(timeline.skillOnCooldownAt(1, 0.25), true);
   assert.equal(timeline.timedStacks('might', 0.25, 0, 25), 4);
   events.length = 0;
@@ -304,15 +318,15 @@ test('buff history bounds retain grants until their quantized expiry', () => {
 });
 
 test('cooldown histories preserve prediction visibility and resolved execution order at timestamp ties', () => {
-  // Resolver execution order can differ from causal order; prediction excludes same-time actions but includes snapshots.
+  // Resolver execution order can differ from causal order; prediction excludes same-time actions but includes resets.
   const events = [
-    { type: 'action', at: 0, skillId: 1, rechargeReadyAt: 10 },
-    { type: 'action', at: 1, causalOrder: 2, skillId: 1, rechargeReadyAt: 8 },
-    { type: 'cooldown_snapshot', at: 1, causalOrder: 9, cooldowns: {} },
-    { type: 'action', at: 1, causalOrder: 1, skillId: 1, rechargeReadyAt: Infinity }
+    cooldownAction(1, 0, 10),
+    cooldownAction(1, 1, 7, 2),
+    { type: 'marker', action: 'cooldown-reset', at: 1, causalOrder: 9 },
+    cooldownAction(1, 1, Infinity, 1)
   ];
-  const predicted = createGw2TimelineIndex({ events });
-  const resolved = createGw2TimelineIndex({ events, resolved: true });
+  const predicted = createGw2TimelineIndex({ events, skillsById: cooldownSkills });
+  const resolved = createGw2TimelineIndex({ events, skillsById: cooldownSkills, resolved: true });
   assert.equal(predicted.skillOnCooldownAt(1, 1), false);
   assert.equal(predicted.skillOnCooldownAt(1, 2), false);
   assert.equal(resolved.skillOnCooldownAt(1, 1), true);
@@ -323,15 +337,15 @@ test('cooldown histories preserve prediction visibility and resolved execution o
   assert.equal(resolved.skillOnCooldownAt(1, 0.5), true);
 });
 
-test('queried cooldown histories accept late actions and snapshots for previously unseen skills', () => {
+test('queried cooldown histories accept late actions and resets for previously unseen skills', () => {
   // Lazily selected skill histories must receive later updates, including chronologically earlier insertions.
-  const events = [{ type: 'action', at: 0, skillId: 1, rechargeReadyAt: 10 }];
-  const timeline = createGw2TimelineIndex({ events });
+  const events = [cooldownAction(1, 0, 10)];
+  const timeline = createGw2TimelineIndex({ events, skillsById: cooldownSkills });
   assert.equal(timeline.skillOnCooldownAt(1, 3), true);
   assert.equal(timeline.skillOnCooldownAt(2, 3), false);
-  events.push({ type: 'action', at: 2, skillId: 2, rechargeReadyAt: 5 });
+  events.push(cooldownAction(2, 2, 3));
   assert.equal(timeline.skillOnCooldownAt(2, 3), true);
-  events.push({ type: 'cooldown_snapshot', at: 1, cooldowns: { 3: 6 } });
+  events.push({ type: 'marker', action: 'cooldown-reset', at: 1 }, cooldownAction(3, 1, 5));
   assert.equal(timeline.skillOnCooldownAt(1, 3), false);
   assert.equal(timeline.skillOnCooldownAt(2, 3), true);
   assert.equal(timeline.skillOnCooldownAt(3, 3), true);

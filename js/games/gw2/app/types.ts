@@ -225,7 +225,6 @@ export interface Gw2AppAdapter extends ProfessionRuntimeApi {
   readonly globalName: string;
   readonly filenames: ProfessionAppFilenames;
   readonly resetPrompt: string;
-  readonly createDefaultTargetConditions: () => Record<string, number | boolean>;
   readonly toApplicationBuild: (build: unknown) => Gw2CanonicalBuild;
   readonly isSkillAvailable: ProfessionIsSkillAvailable;
   readonly defaultOffhand: ProfessionDefaultOffhand;
@@ -244,7 +243,6 @@ export interface DefineProfessionAppOptions {
   readonly tooltips: ProfessionTooltips;
   readonly profession: ProfessionAppContract;
   readonly applyBuildAttributeRules: Gw2ApplyBuildAttributeRules;
-  readonly createDefaultTargetConditions?: () => Record<string, number | boolean>;
   readonly toApplicationBuild: (build: unknown) => Gw2CanonicalBuild;
   readonly storageVersion?: number;
   readonly storageKey?: string;

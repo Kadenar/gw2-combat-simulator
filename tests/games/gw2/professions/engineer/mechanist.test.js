@@ -55,17 +55,17 @@ for (const [signet, skillId, modifier, baseBonus, jDriveBonus] of [
   test(`${signet} passive follows equipment, recharge, and J-Drive`, () => {
     const runtime = engineerProfession.runtimeFor({ specialization: 'Mechanist' });
     // Cooldown history must remove the ordinary passive and restore it when recharge finishes.
-    const events = [{ type: 'action', at: 1, skillId, rechargeReadyAt: 31 }];
-    const timeline = createGw2TimelineIndex({ events });
+    const events = [{ type: 'action', at: 1, skillId, rechargeProgress: { startedAt: 1, work: 30 } }];
+    const timeline = createGw2TimelineIndex({ events, skillsById: engineerCatalog.skillsById });
     for (const [selected, traits, time, expected] of [
       [false, [], 0, 1],
       [false, [TRAIT.MECH_CORE_J_DRIVE], 0, 1],
       [true, [], 0, 1 + baseBonus],
       [true, [], 2, 1],
-      [true, [], 31, 1 + baseBonus],
+      [true, [], 25, 1 + baseBonus],
       [true, [TRAIT.MECH_CORE_J_DRIVE], 0, 1 + jDriveBonus],
       [true, [TRAIT.MECH_CORE_J_DRIVE], 2, 1 + jDriveBonus],
-      [true, [TRAIT.MECH_CORE_J_DRIVE], 31, 1 + jDriveBonus]
+      [true, [TRAIT.MECH_CORE_J_DRIVE], 25, 1 + jDriveBonus]
     ]) {
       assert.equal(
         runtime[modifier](

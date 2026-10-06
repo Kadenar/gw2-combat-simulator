@@ -44,7 +44,6 @@ export interface WarriorSkill extends Skill {
    */
   readonly dualWieldCastTimeMs?: number;
   readonly adrenalineCost?: number;
-  readonly flowGain?: number;
   readonly burst?: boolean;
   readonly primalBurst?: boolean;
   readonly gunsaberSkill?: boolean;

@@ -102,8 +102,6 @@ export const bladeswornHooks: RuntimeHooks<WarriorRuntimeState, WarriorSkill> = 
     onCastCommit(runtime, cast) {
       // Successful ammunition commitment earns its reward even when the remaining animation is interrupted.
       ammoTraits(runtime, cast);
-      // Preserve the commit reward after ammunition traits and before Dragon Slash completion traits.
-      runtime.resourceController.grant('flow', cast.skill.flowGain ?? 0);
       const release = dragonSlashRelease(runtime, cast);
       if (release) {
         burstMasteryDragonSlash(runtime, cast, release);

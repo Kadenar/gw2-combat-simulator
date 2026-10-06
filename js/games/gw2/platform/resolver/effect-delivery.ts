@@ -380,7 +380,7 @@ export function createEffectDelivery<T extends object>(
         expiresAt: Number(event.duration) > 0 ? event.at + Number(event.duration) : null
       });
     if (event.type === 'weapon_set' || event.type === 'sigil_swap') host.weaponSwap?.(event);
-    if (['action', 'cooldown_snapshot', 'weapon_set', 'buff', 'boon_extension', 'marker'].includes(event.type))
+    if (['action', 'weapon_set', 'buff', 'boon_extension', 'marker'].includes(event.type))
       runtime.observations.record(event);
     if (!preparedCombos.has(event)) produceRuntimeCombos(runtime, profession.catalog, event);
     if (runtime.reporting && !['condition_buffer', 'condition_tick', 'action_update'].includes(event.type))
