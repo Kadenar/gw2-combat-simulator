@@ -94,6 +94,13 @@
     "section": "Mechanist",
     "presets": [
       {
+        "label": "Condition Alacrity (Spear)",
+        "build": "data/gw2/builds/engineer/b-condi-alac-mechanist-spear.json",
+        "rotation": "data/gw2/rotations/engineer/r-condi-alac-mechanist-spear-wingman.json",
+        "benchmarkDps": 30820,
+        "upToDate": true
+      },
+      {
         "label": "Power (Sword / Pistol)",
         "build": "data/gw2/builds/engineer/b-power-mechanist-sword-pistol.json",
         "rotation": "data/gw2/rotations/engineer/r-power-mechanist-sword-pistol-bench.json",
