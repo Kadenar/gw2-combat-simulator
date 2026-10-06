@@ -202,6 +202,19 @@ test('a Celestial helm contributes Vitality and Healing Power before utility con
   assert.equal(attributes['Condition Damage'].final, 92);
 });
 
+test('Potent Master Tuning Crystal converts Precision and Expertise to Condition Damage', () => {
+  // A single Viper item supplies both conversion sources and keeps utility bonuses out of the source pool.
+  const build = { gear: { Helm: "Viper's" } };
+  const base = calculateCommonAttributes(build).attributes;
+  const { attributes } = calculateCommonAttributes({ ...build, utility: 'Potent Master Tuning Crystal' });
+  assert.equal(
+    attributes['Condition Damage'].utility,
+    Math.round(base.Precision.final * 0.03) + Math.round(base.Expertise.final * 0.08)
+  );
+  assert.equal(attributes.Precision.final, base.Precision.final);
+  assert.equal(attributes.Expertise.final, base.Expertise.final);
+});
+
 test('Leviathan Tempering Oil grants three percent of every primary attribute', () => {
   // Real Celestial gear exercises every primary stat without injecting alternate gear tables.
   const build = { gear: { Helm: 'Celestial' } };

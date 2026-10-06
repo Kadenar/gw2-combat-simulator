@@ -1,5 +1,6 @@
 import type { SkillId } from '#gw2/platform/skills/types.js';
 import type { EngineerSkill } from '#gw2/professions/engineer/types.js';
+import { selectedSkillIdSet } from '#gw2/platform/builds/selected-skills.js';
 import { quantizeGw2ActionTimingMs, referenceCastTimeMs } from '#gw2/platform/execution/cast-timing.js';
 import { ENGINEER_SKILL_IDS as ID } from '#gw2/professions/engineer/data/ids.js';
 import { normalizedName as normalized, recordedActionSkill } from '#gw2/integrations/logs/shared/rotation/catalog.js';
@@ -57,6 +58,11 @@ function kitStow(
 
 /** Converts represented kit swaps and mine detonations without inserting missing preparation. */
 export function reconstructEngineerDependencies(context: LogActionNormalizationContext): readonly RecordedLogAction[] {
+  const selectedSkills = selectedSkillIdSet(
+    context.professionConfig?.selectedSkillIds as Parameters<typeof selectedSkillIdSet>[0]
+  );
+  const selectedKits =
+    context.catalog?.skills.filter((skill) => selectedSkills.has(skill.id) && equippedKitId(skill) != null) ?? [];
   const kitSwapSignals = context.recordedActions.filter(
     (action) => action.isSwap && normalized(action.rawName) === 'weapon swap'
   );
@@ -85,7 +91,7 @@ export function reconstructEngineerDependencies(context: LogActionNormalizationC
   let activeKit: SkillId | null = null;
   let lastKitEquip: RecordedLogAction | null = null;
 
-  for (const action of sorted) {
+  for (const [index, action] of sorted.entries()) {
     // EI reports do not always label known trait procs, so reject their fixed IDs before reconstructing player inputs.
     if (TRIGGERED_PROC_SKILL_IDS.has(action.rawSkillId)) continue;
     const skill = recordedActionSkill(action, context);
@@ -123,6 +129,28 @@ export function reconstructEngineerDependencies(context: LogActionNormalizationC
         activeKit = null;
         lastKitEquip = null;
         continue;
+      }
+
+      // EI can omit a kit equip when no kit attack follows. Paired bundle swaps plus one equipped kit
+      // identify the transition without guessing a kit for ambiguous loadouts or moving either timestamp.
+      if (selectedKits.length === 1) {
+        const nextBarAction = sorted.slice(index + 1).find((candidate) => {
+          const nextSkill = recordedActionSkill(candidate, context);
+          return candidate.isSwap || nextSkill?.type === 'Weapon' || equippedKitId(nextSkill) != null;
+        });
+        if (nextBarAction?.isSwap && normalized(nextBarAction.rawName) === 'weapon swap') {
+          const kit = selectedKits[0];
+          result.push({
+            ...action,
+            rawSkillId: Number(kit.id),
+            rawName: kit.name,
+            canonicalSkillId: Number(kit.id),
+            canonicalName: kit.name
+          });
+          activeKit = kit.id;
+          lastKitEquip = null;
+          continue;
+        }
       }
     }
 

@@ -9,6 +9,12 @@ import {
 import { overclockPassive } from '#gw2/professions/engineer/specializations/mechanist/traits/behavior.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { MECHANIST_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/engineer/specializations/mechanist/profiles.js';
+import {
+  BARRIER_ENGINE_TASK,
+  startBarrierEngine,
+  pulseBarrierEngine,
+  channelBarrierAlacrity
+} from '#gw2/professions/engineer/specializations/mechanist/traits/barrier.js';
 
 /** Owns Jade Cannons command selection and existing trait behavior. */
 export const jadeCannons = defineTrait({
@@ -103,8 +109,34 @@ export const jDrive = defineTrait({
   ]
 });
 
-/** Owns Mech Core: Barrier Engine command selection and existing trait behavior. */
-export const barrierEngine = defineTrait({ id: TRAIT.MECH_CORE_BARRIER_ENGINE, name: 'Mech Core: Barrier Engine' });
+/** Barrier Engine supplies its command and a combat-only passive barrier independent of mech attacks. */
+export const barrierEngine = defineTrait({
+  id: TRAIT.MECH_CORE_BARRIER_ENGINE,
+  name: 'Mech Core: Barrier Engine',
+  balance: {
+    interval: 3,
+    effects: [
+      {
+        type: 'buff',
+        name: 'barrier',
+        kind: 'barrier',
+        stacks: 1,
+        duration: 5,
+        audience: { recipients: 'party', maximumRecipients: 5 }
+      }
+    ]
+  },
+  hooks: {
+    initialize(runtime) {
+      if (!runtime.combatStartPending) startBarrierEngine(runtime);
+    },
+    onCombatStart(runtime) {
+      if (runtime.hasExplicitCombatStart) startBarrierEngine(runtime);
+    },
+    backgroundTasks: [BARRIER_ENGINE_TASK],
+    tasks: { [BARRIER_ENGINE_TASK]: pulseBarrierEngine }
+  }
+});
 
 /** Owns Mech Frame: Conductive Alloys command selection and existing trait behavior. */
 export const conductiveAlloys = defineTrait({
@@ -112,10 +144,15 @@ export const conductiveAlloys = defineTrait({
   name: 'Mech Frame: Conductive Alloys'
 });
 
-/** Owns Mech Frame: Channeling Conduits command selection and existing trait behavior. */
+/** Accepted player and mech barriers grant alacrity with one shared cooldown per recipient. */
 export const channelingConduits = defineTrait({
   id: TRAIT.MECH_FRAME_CHANNELING_CONDUITS,
-  name: 'Mech Frame: Channeling Conduits'
+  name: 'Mech Frame: Channeling Conduits',
+  balance: {
+    internalCooldown: 1,
+    effects: [{ type: 'boon', name: 'alacrity', boon: 'alacrity', stacks: 1, duration: 1 }]
+  },
+  hooks: { reactions: { 'buff.applied': channelBarrierAlacrity } }
 });
 
 /** Owns Mech Frame: Variable Mass Distributor command selection and existing trait behavior. */

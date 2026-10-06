@@ -354,7 +354,7 @@ test('Mechanical Genius gives the jade mech independent inherited attributes', (
 });
 
 test('Mechanist arm traits alter mech hits and their command skills', () => {
-  const singleEdge = simulate('Mechanist', ['Rolling Smash', { type: 'wait', durationMs: 1500 }], {
+  const singleEdge = simulate('Mechanist', ['Rolling Smash', { type: 'wait', durationMs: 4000 }], {
     selectedTraitIds: [
       TRAIT.MECH_ARMS_SINGLE_EDGE_CUTTERS,
       TRAIT.MECH_FRAME_CONDUCTIVE_ALLOYS,
@@ -381,15 +381,15 @@ test('Mechanist arm traits alter mech hits and their command skills', () => {
   assert.ok(rollingSmashBleeds.every((event) => event.duration === 8));
   const cutterBleeds = rollingBleeds.filter((event) => event.skillName === 'Mech Arms: Single-Edge Cutters');
 
-  assert.equal(cutterBleeds.length, 2);
+  assert.ok(cutterBleeds.length > 1);
   assert.ok(cutterBleeds.every((event) => event.stacks === 1 && event.duration === 3));
   // Resolver-derived bleeds and scheduled commands must retain the same concrete mech owner.
   assert.ok(
     rollingBleeds.every((event) => event.summonOwner === 'engineer.mech' && event.independentConditionOwner === true)
   );
-  assert.ok(cutterBleeds[1].at - cutterBleeds[0].at >= 1);
+  assert.ok(cutterBleeds.slice(1).every((event, index) => event.at - cutterBleeds[index].at > 1));
 
-  const highImpact = simulate('Mechanist', ['Explosive Knuckle', { type: 'wait', durationMs: 1500 }], {
+  const highImpact = simulate('Mechanist', ['Explosive Knuckle', { type: 'wait', durationMs: 4000 }], {
     selectedTraitIds: [
       TRAIT.MECH_ARMS_HIGH_IMPACT_DRIVERS,
       TRAIT.MECH_FRAME_CHANNELING_CONDUITS,
@@ -413,8 +413,8 @@ test('Mechanist arm traits alter mech hits and their command skills', () => {
   );
   const highImpactProcs = highImpact.procSteps.filter((step) => step.skill === 'Mech Arms: High-Impact Drivers');
 
-  assert.equal(highImpactProcs.length, 2);
-  assert.ok(highImpactProcs[1].start - highImpactProcs[0].start >= 1);
+  assert.ok(highImpactProcs.length > 1);
+  assert.ok(highImpactProcs.slice(1).every((step, index) => step.start - highImpactProcs[index].start > 1));
 
   const jadeCannons = simulate('Mechanist', ['Spark Revolver', { type: 'wait', durationMs: 2300 }], {
     selectedTraitIds: [TRAIT.MECH_ARMS_JADE_CANNONS, TRAIT.MECH_FRAME_CONDUCTIVE_ALLOYS, TRAIT.MECH_CORE_J_DRIVE],

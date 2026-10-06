@@ -17,7 +17,8 @@ import {
   initializeEngineerMech,
   isEngineerMechCommand,
   prepareEngineerMechEvent,
-  stepMechAttack
+  stepMechAttack,
+  type MechAttackPayload
 } from '#gw2/professions/engineer/specializations/mechanist/mechanics/mech.js';
 import { mechanistState } from '#gw2/professions/engineer/specializations/mechanist/state.js';
 import type { EngineerSkill, EngineerRuntimeState } from '#gw2/professions/engineer/types.js';
@@ -26,6 +27,8 @@ const critical = engineerMechCriticalDefinitions.map(criticalProcHandler);
 
 /** Commands reserve the summon lane immediately; its autoattack phase resumes only after command recovery. */
 export const mechanistHooks: RuntimeHooks<EngineerRuntimeState, EngineerSkill> = {
+  // Barrier tracks applications and expiry for trait reactions without modeling incoming damage or health.
+  buffPolicies: () => [{ kind: 'barrier', maximumStacks: 1 }],
   // Completed commands grant player Quickness; mech recovery and Overclock retain their lifecycle owner.
 
   initialize(runtime) {
@@ -66,7 +69,7 @@ export const mechanistHooks: RuntimeHooks<EngineerRuntimeState, EngineerSkill> =
     'engineer.mech-attack'(runtime, data) {
       const mech = mechanistState.from(runtime).mech;
       if (!mech.enabled || !mech.active) return;
-      const phase = data as { phase: number };
+      const phase = data as MechAttackPayload;
       if (runtime.time < mech.busyUntil - EPSILON) {
         runtime.schedule('engineer.mech-attack', mech.busyUntil, phase);
         return;

@@ -341,6 +341,44 @@ test('ties a jittered Engineer kit transition after its outgoing weapon cast', (
   );
 });
 
+test('paired Engineer bundle swaps recover an unused kit only for an unambiguous loadout', () => {
+  // Entry and exit signals survive even when EI omits the equip pseudo-cast because no kit skill was used.
+  const fixture = reportFixture();
+  fixture.players[0].profession = 'Mechanist';
+  fixture.players[0].rotation = [
+    { id: -2, skills: [100, 1100].map((castTime) => ({ castTime, duration: 0 })) },
+    { id: 63293, skills: [{ castTime: 500, duration: 0 }] },
+    { id: 72944, skills: [{ castTime: 1300, duration: 440 }] }
+  ];
+  fixture.skillMap = {
+    's-2': { name: 'Weapon Swap', isSwap: true },
+    s63293: { name: 'Crisis Zone' },
+    s72944: { name: 'Puncturing Jab' }
+  };
+  const report = parseDpsReport(fixture);
+  const imported = reconstructDpsReportRotation(report, engineerCatalog, {
+    professionConfig: { selectedSkillIds: { Utility1: 5805 } }
+  });
+  const entry = imported.actions.find((action) => action.name === 'Grenade Kit');
+  const exit = imported.actions.find((action) => action.name === 'Stow Grenade Kit');
+  assert.ok(entry && exit);
+  assert.equal(exit.timestampMs - entry.timestampMs, 1000);
+  assert.ok(imported.rotation.some((command) => command.type === 'wait'));
+  const result = simulateGw2({
+    profession: engineerProfession,
+    rotation: imported.rotation,
+    config: { specialization: 'Mechanist', selectedSkillIds: [5805], selectedTraitIds: [2276] }
+  });
+  assert.deepEqual(result.warnings, []);
+  for (const selectedSkillIds of [[], [5805, 5812]]) {
+    const ambiguous = reconstructDpsReportRotation(report, engineerCatalog, { professionConfig: { selectedSkillIds } });
+    assert.equal(
+      ambiguous.actions.some((action) => action.name === 'Grenade Kit'),
+      false
+    );
+  }
+});
+
 test('Forge replaces an equipped kit without a redundant stow or cancelling overlapping toolbelt casts', () => {
   const fixture = reportFixture();
   fixture.players[0].profession = 'Holosmith';

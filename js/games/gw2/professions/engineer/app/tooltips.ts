@@ -848,8 +848,11 @@ export const engineerTooltips: ProfessionTooltips = {
       improvedMechInheritanceFacts
     ),
     [TRAIT.MECH_FRAME_CHANNELING_CONDUITS]: traitTooltip(
-      'Select Crisis Zone as the second mech command. Improve mech concentration and healing-power inheritance.',
-      improvedMechInheritanceFacts
+      'Select Crisis Zone as the second mech command. Player and mech barrier applications grant alacrity to their recipients. Improve mech concentration and healing-power inheritance.',
+      (balanceContext, id) => [
+        ...improvedMechInheritanceFacts(balanceContext),
+        profileFact(balanceContext, id, 'internalCooldown', 'Alacrity cooldown per recipient', tooltipSeconds)
+      ]
     ),
     [TRAIT.MECH_FRAME_VARIABLE_MASS_DISTRIBUTOR]: traitTooltip(
       'Select Core Reactor Shot as the second mech command. The mech inherits player precision up to its cap.',
@@ -859,7 +862,11 @@ export const engineerTooltips: ProfessionTooltips = {
       'Select Jade Mortar as the third mech command. Mech commands recharge faster and grant quickness.',
       [['rechargeMultiplier', 'Command recharge duration', tooltipFactorChange]]
     ),
-    [TRAIT.MECH_CORE_BARRIER_ENGINE]: traitTooltip('Select Barrier Burst as the third mech command.'),
+    // Passive cadence comes from the same profile that schedules combat barrier grants.
+    [TRAIT.MECH_CORE_BARRIER_ENGINE]: traitTooltip(
+      'Select Barrier Burst as the third mech command. While in combat, the mech periodically grants barrier to nearby allies.',
+      [['interval', 'Barrier interval', tooltipSeconds]]
+    ),
     [TRAIT.MECH_CORE_J_DRIVE]: traitTooltip(
       "Select Sky Circus as the third mech command. Supported signet passives remain active during recharge and gain their enhanced bonuses; Overclock Signet's recharge changes.",
       [

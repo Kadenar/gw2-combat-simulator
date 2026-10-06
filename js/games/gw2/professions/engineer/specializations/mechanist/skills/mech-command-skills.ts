@@ -53,22 +53,41 @@ export const MECHANIST_MECH_COMMAND_SKILL_MECHANICS: Readonly<Record<string, Par
     mechanicSlot: 3
   }),
   [ID.BARRIER_BURST]: mechCommand({
-    castTimeMs: 3750,
+    // Reserve the entire observed channel so autonomous melee attacks cannot run between barrier pulses.
+    quicknessCastTimeMs: MECHANIST_COMMAND_DURATIONS[ID.BARRIER_BURST] * 1000,
     cooldown: 30,
-    effects: [
-      {
-        type: 'boon',
-        boon: 'might',
-        duration: 20,
-        stacks: 2
-      },
-      {
-        type: 'boon',
-        boon: 'fury',
-        duration: 3,
-        stacks: 1
-      }
-    ],
+    // Barrier and both boons pulse together with players taking priority over summons in the five-target cap.
+    effects: (
+      [
+        {
+          type: 'buff',
+          kind: 'barrier',
+          duration: 5,
+          stacks: 1
+        },
+        {
+          type: 'boon',
+          boon: 'might',
+          duration: 20,
+          stacks: 2
+        },
+        {
+          type: 'boon',
+          boon: 'fury',
+          duration: 3,
+          stacks: 1
+        }
+      ] as const
+    ).map((effect) => ({
+      ...effect,
+      actorType: 'summon',
+      audience: { recipients: 'party', maximumRecipients: 5 },
+      applications: 5,
+      atMs: 0,
+      intervalMs: 1000,
+      timingAnchor: 'castStart',
+      timingScale: 'fixed'
+    })),
     mechanicSlot: 3
   }),
   [ID.SPARK_REVOLVER]: mechCommand({
@@ -156,7 +175,8 @@ export const MECHANIST_MECH_COMMAND_SKILL_MECHANICS: Readonly<Record<string, Par
     mechanicSlot: 2
   }),
   [ID.ROLLING_SMASH]: mechCommand({
-    castTimeMs: 750,
+    // The mech remains occupied through the full slam animation before restarting its basic chain.
+    quicknessCastTimeMs: MECHANIST_COMMAND_DURATIONS[ID.ROLLING_SMASH] * 1000,
     cooldown: 20,
     effects: [
       {

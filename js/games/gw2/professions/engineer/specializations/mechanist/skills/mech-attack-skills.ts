@@ -75,9 +75,9 @@ export const MECHANIST_MECH_ATTACK_SKILL_MECHANICS: Readonly<Record<string, Part
     effects: [
       {
         type: 'strike',
-        ticks: [200, 360].map((atMs) => ({ atMs, coefficient: 0.8 / 2 })),
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
+        // Both arms form one damaging strike, so critical and on-hit reactions get one opportunity.
+        coefficient: 0.8,
+        hits: 1,
         name: 'Twin Strike (Mech)',
         actorType: 'summon'
       }

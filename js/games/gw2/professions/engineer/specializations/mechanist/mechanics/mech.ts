@@ -1,4 +1,5 @@
 import { skillForEvent } from '#gw2/platform/combat/query/runtime-query.js';
+import { gw2AlliedEffectRecipients } from '#gw2/platform/combat/state/allied-players.js';
 import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
 import { STANDARD_TARGET_ARMOR } from '#gw2/platform/combat/formulas.js';
 import { scaleCastBoundTiming } from '#gw2/platform/effects/materializer.js';
@@ -14,7 +15,7 @@ import type { SimulationEventBase } from '#gw2/platform/events/events.js';
 import type { SkillId } from '#gw2/platform/skills/types.js';
 import { weaponStrengthMidpoint, weaponStrengthProfile } from '#gw2/platform/equipment/weapons/strength.js';
 import { GW2_QUICKNESS_ACTION_RATE } from '#gw2/platform/execution/cast-timing.js';
-import { ENGINEER_SKILL_IDS as ID } from '#gw2/professions/engineer/data/ids.js';
+import { ENGINEER_SKILL_IDS as ID, ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
 import { MECHANIST_ATTACK_TIMING } from '#gw2/professions/engineer/specializations/mechanist/mechanics/constants.js';
 import { shiftSignetPassive } from '#gw2/professions/engineer/specializations/mechanist/skills/signet-skills.js';
 import { mechanistState } from '#gw2/professions/engineer/specializations/mechanist/state.js';
@@ -81,8 +82,9 @@ function mechDamageMetadata(skillId: SkillId | null | undefined) {
   };
 }
 
-interface MechAttackPayload {
+export interface MechAttackPayload {
   readonly phase: number;
+  readonly previousCommandEnd: number;
 }
 
 /** Commands and basic attacks share the mech's direct or copied Quickness, evaluated at execution time. */
@@ -166,6 +168,18 @@ export function prepareEngineerMechEvent(context: EngineerRuntime, event: Simula
     independentConditionOwner: true,
     metadata: { ...(event.metadata as object), engineerMech: true }
   };
+  // Support grants use player-first party selection; the mech receives them only when a target slot remains.
+  if (
+    event.type === 'buff' &&
+    event.audience?.recipients === 'party' &&
+    (event.skillId === ID.BARRIER_BURST || event.sourceId === TRAIT.MECH_CORE_BARRIER_ENGINE)
+  ) {
+    updates.resolvedAudience = gw2AlliedEffectRecipients(
+      { ...context.config, sharePlayerBoonsWithSummons: true },
+      { ...event.audience, eligibleCompanionIds: ['engineer.mech'] }
+    );
+  }
+
   // Positive damage packets additionally need the native scaling metadata
   // consumed by summon damage resolution; other mech events need ownership only.
   if (event.type === 'damage' && Number(event.coefficient) > 0) {
@@ -188,11 +202,11 @@ export function completeEngineerMechCast(context: EngineerRuntime, skill: Engine
   const state = mechanistState.from(context);
   const at = context.time;
 
-  if (state.mech.active && isEngineerMechCommand(skill)) {
+  if (state.mech.active && isEngineerMechCommand(skill) && (skill.castTimeMs || 0) > 0) {
     // The command cast already reserves its measured animation on the mech lane;
     // only its recovery extends the pause before the basic attack chain resumes.
-    const hasCommandAnimation = (skill.castTimeMs || 0) > 0;
-    const busyUntil = at + (hasCommandAnimation ? MECHANIST_ATTACK_TIMING.commandRecovery : 0);
+    // Instant support commands neither occupy this lane nor reset the melee chain.
+    const busyUntil = at + MECHANIST_ATTACK_TIMING.commandRecovery;
     state.mech.busyUntil = Math.max(state.mech.busyUntil || 0, busyUntil);
   }
 
@@ -204,7 +218,7 @@ export function initializeEngineerMech(context: EngineerRuntime): void {
   const state = mechanistState.from(context);
   if (!state.mech.enabled || !state.mech.active) return;
   const firstAttackAt = context.time + MECHANIST_ATTACK_TIMING.initialDelay;
-  context.schedule('engineer.mech-attack', firstAttackAt, { phase: 0 });
+  context.schedule('engineer.mech-attack', firstAttackAt, { phase: 0, previousCommandEnd: 0 });
 }
 
 /** Executes one autonomous mech attack phase and schedules the next phase on the mech lane. */
@@ -216,22 +230,24 @@ export function stepMechAttack(
   const state = mechanistState.from(context);
   if (!state.mech.enabled) return null;
   const rate = mechAttackRate(context, at);
-  const phase = payload.phase || 0;
   // Jade Cannons replaces the melee chain with alternating arm shots and
   // distinct within-pair and between-pair delays.
-  const cannon = jadeCannonsAttack(context.config, phase);
+  const cannon = jadeCannonsAttack(context.config, payload.phase);
   if (cannon) {
     emitMechAttack(context, cannon.skillId, at);
-    return { at: at + cannon.interval / rate, state: { phase: cannon.nextPhase } };
+    return {
+      at: at + cannon.interval / rate,
+      state: { phase: cannon.nextPhase, previousCommandEnd: state.mech.busyUntil }
+    };
   }
 
-  // The default chassis advances through its three-hit melee chain, wrapping
-  // back to Hard Strike after Twin Strike.
+  // Commands interrupt the melee chain; even a command completed between scheduled attacks restarts at Hard Strike.
+  const phase = state.mech.busyUntil > payload.previousCommandEnd ? 0 : payload.phase;
   const skillId = [ID.HARD_STRIKE, ID.HEAVY_SMASH_MECH, ID.TWIN_STRIKE_MECH][phase];
   emitMechAttack(context, skillId, at);
 
   const nextAt = at + MECHANIST_ATTACK_TIMING.meleeChainIntervals[phase] / rate;
-  return { at: nextAt, state: { phase: (phase + 1) % 3 } };
+  return { at: nextAt, state: { phase: (phase + 1) % 3, previousCommandEnd: state.mech.busyUntil } };
 }
 
 /** Reserves the mech lane and emits Overclock Signet's timed Jade Buster Cannon burst. */

@@ -1,7 +1,6 @@
 import { FOOD_DATA } from '#gw2/platform/equipment/consumables/food.js';
 import { wikiTooltipAttributes } from '#gw2/app/shared/tooltip-overlay.js';
 import {
-  UTILITY_CONVERSION_RATES,
   UTILITY_DATA,
   UTILITY_STRIKE_DAMAGE_BONUSES,
   UTILITY_STAT_DATA
@@ -168,7 +167,7 @@ const relicData = RELIC_DATA as Readonly<Record<string, UnknownValues>>;
 const runeData = RUNE_DATA as Readonly<Record<string, { stats: NumericValues; durations: NumericValues }>>;
 const sigilProcs = SIGIL_PROCS as Readonly<Record<string, UnknownValues>>;
 const utilityData = UTILITY_DATA as Readonly<
-  Record<string, readonly { readonly from: string; readonly to: string; readonly percent?: number }[]>
+  Record<string, readonly { readonly from: string; readonly to: string; readonly percent: number }[]>
 >;
 const utilityStatData = UTILITY_STAT_DATA as Readonly<Record<string, NumericValues>>;
 
@@ -235,12 +234,10 @@ export function utilityOptionLabel(name: string): string {
     conversions.length > 4 &&
     firstPercent != null &&
     conversions.every(({ from, to, percent }) => from === to && percent === firstPercent);
+  // Labels use the same explicit percentage as attribute calculation.
   const conversionDetails = uniformSelfConversion
     ? [`+${firstPercent}% all attributes`]
-    : conversions.map(
-        ({ from, to, percent }) =>
-          `+${percent ?? UTILITY_CONVERSION_RATES[from as keyof typeof UTILITY_CONVERSION_RATES]}% of ${from} as ${to}`
-      );
+    : conversions.map(({ from, to, percent }) => `+${percent}% of ${from} as ${to}`);
   return optionLabel(name, [...attributeDetails(utilityStatData[name]), ...conversionDetails]);
 }
 

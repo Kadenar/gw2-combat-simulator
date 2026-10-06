@@ -4,11 +4,7 @@ import {
   criticalDamagePercentFromFerocity
 } from '#gw2/platform/combat/formulas.js';
 import { FOOD_DATA } from '#gw2/platform/equipment/consumables/food.js';
-import {
-  UTILITY_CONVERSION_RATES,
-  UTILITY_DATA,
-  UTILITY_STAT_DATA
-} from '#gw2/platform/equipment/consumables/utilities.js';
+import { UTILITY_DATA, UTILITY_STAT_DATA } from '#gw2/platform/equipment/consumables/utilities.js';
 import { INFUSION_BONUS } from '#gw2/platform/equipment/gear/infusions.js';
 import { GEAR_STATS } from '#gw2/platform/equipment/gear/prefixes/data.js';
 import { RUNE_DATA } from '#gw2/platform/equipment/gear/runes.js';
@@ -312,12 +308,10 @@ export function calculateCommonAttributes(
   }
 
   for (const conversion of (
-    UTILITY_DATA as Readonly<Record<string, readonly { from: string; to: string; percent?: number }[]>>
+    UTILITY_DATA as Readonly<Record<string, readonly { from: string; to: string; percent: number }[]>>
   )[build.utility || ''] || []) {
-    // Explicit rates support uniform all-attribute boosts; ordinary utility
-    // conversions continue to derive their rate from the source attribute.
-    const rate =
-      (conversion.percent ?? (UTILITY_CONVERSION_RATES as Readonly<Gw2NumericAttributes>)[conversion.from] ?? 0) / 100;
+    // Each utility supplies its complete conversion rule, independent of other source-stat conversions.
+    const rate = conversion.percent / 100;
     // GW2 stat conversions round each declared conversion independently.
     addAttribute(utility, conversion.to, Math.round((conversionPool[conversion.from] || 0) * rate));
   }
