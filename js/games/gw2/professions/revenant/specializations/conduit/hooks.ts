@@ -12,7 +12,7 @@ import {
 import type { Skill, SkillId } from '#gw2/platform/skills/types.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
-import { gw2CooldownReadyAt } from '#gw2/platform/execution/cast-timing.js';
+import { gw2CooldownReadyAt } from '#gw2/platform/combat/action-tick.js';
 import type { RevenantRuntime } from '#gw2/professions/revenant/core/events.js';
 import { activeRevenantUpkeep } from '#gw2/professions/revenant/core/mechanics/upkeep.js';
 import { completeRevenantCastTraits } from '#gw2/professions/revenant/core/traits/dispatch.js';

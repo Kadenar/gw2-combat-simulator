@@ -13,7 +13,7 @@ import {
 import type { Skill } from '#gw2/platform/skills/types.js';
 import type { SkillEffect } from '#gw2/platform/effects/types.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
-import { quantizeGw2ActionTimingMs } from '#gw2/platform/execution/cast-timing.js';
+import { quantizeGw2ActionTimingMs } from '#gw2/platform/combat/action-tick.js';
 import { grantNecromancerLifeForce } from '#gw2/professions/necromancer/core/mechanics/life-force.js';
 import { cloneNecromancerAttributes } from '#gw2/professions/necromancer/core/mechanics/modifier-queries.js';
 import type { NecromancerRuntime, NecromancerSkill } from '#gw2/professions/necromancer/types.js';

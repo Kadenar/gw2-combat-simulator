@@ -18,6 +18,7 @@ import { readFile } from 'node:fs/promises';
 import path from 'node:path';
 
 import { loadProfessionAppAdapter } from '#gw2/profession-registry.js';
+import { targetHealthBandDps } from '#gw2/app/results/summary-metrics.js';
 import { parseGameOption, resolveGameData } from '../lib/game-data.mjs';
 
 const DEFAULT_PROFESSIONS = [
@@ -102,6 +103,7 @@ async function captureProfession(professionId, gameId) {
         rotation: preset.rotation,
         benchmarkDps: preset.benchmarkDps,
         benchmarkApm: preset.benchmarkApm,
+        benchmarkDpsByHealth: preset.benchmarkDpsByHealth,
         rotationEndTime: result.rotationEndTime,
         observationEndTime: result.observationEndTime,
         combatEndTime: result.combatEndTime,
@@ -112,6 +114,8 @@ async function captureProfession(professionId, gameId) {
         dps: result.dps,
         // Reuse the simulator's input accounting rather than estimating actions from saved rotation length.
         apm: result.rotationApm.apm,
+        // Measure each band within the same simulation, including its live target-health modifiers.
+        dpsByHealth: targetHealthBandDps(result, app.build.targetHealth, app.build.targetStartingHealthPercent ?? 100),
         totalDamage: result.totalDamage,
         strikeDamage: result.strikeDamage,
         conditionDamage: result.conditionDamage,

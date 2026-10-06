@@ -4,7 +4,7 @@ import {
   dragonChargesForDurationMs,
   dragonChargeTickOffsetSeconds
 } from '#gw2/professions/warrior/data/dragon-charges.js';
-import { quantizeGw2ActionTimingMs } from '#gw2/platform/execution/cast-timing.js';
+import { quantizeGw2ActionTimingMs } from '#gw2/platform/combat/action-tick.js';
 
 import type {
   LogActionNormalizationContext,

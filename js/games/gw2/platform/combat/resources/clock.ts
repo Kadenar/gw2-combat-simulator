@@ -1,7 +1,6 @@
 import { cappedResource, resourceAtLeast } from '#gw2/platform/combat/resources/pool.js';
 import { timeKey } from '#kernel/core/clock.js';
-import { GW2_ACTION_TICK_MS } from '#gw2/platform/combat/action-tick.js';
-import { gw2CooldownReadyAt } from '#gw2/platform/execution/cast-timing.js';
+import { GW2_ACTION_TICK_MS, gw2CooldownReadyAt } from '#gw2/platform/combat/action-tick.js';
 
 /** Resource clock arithmetic: continuous and discrete pools, their accrual anchors, and affordability deadlines. */
 

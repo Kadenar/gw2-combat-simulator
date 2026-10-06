@@ -5,7 +5,7 @@ import { createCanonicalCatalog } from '#gw2/platform/skills/catalog.js';
 import { defineTestProfession } from '#tests/helpers/profession.js';
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
 import { warriorProfession } from '#gw2/professions/warrior/profession.js';
-import { gw2CooldownReadyAt } from '#gw2/platform/execution/cast-timing.js';
+import { gw2CooldownReadyAt } from '#gw2/platform/combat/action-tick.js';
 
 // Minimal recharges isolate permanent Alacrity and tick detection from profession rotations.
 test('cooldowns and sequential ammo assume permanent Alacrity before checking the absolute tick', () => {

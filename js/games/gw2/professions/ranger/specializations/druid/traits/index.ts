@@ -5,7 +5,7 @@ import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
-import { gw2CooldownReadyAt } from '#gw2/platform/execution/cast-timing.js';
+import { gw2CooldownReadyAt } from '#gw2/platform/combat/action-tick.js';
 import { RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
 import { druidState } from '#gw2/professions/ranger/specializations/druid/state.js';
 

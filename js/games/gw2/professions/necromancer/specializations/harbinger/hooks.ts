@@ -10,7 +10,7 @@ import type { Skill } from '#gw2/platform/skills/types.js';
 import type { SkillEffect } from '#gw2/platform/effects/types.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import { sideEffectAmount } from '#gw2/platform/effects/action-dispatch.js';
-import { quantizeGw2ActionTimingMs } from '#gw2/platform/execution/cast-timing.js';
+import { quantizeGw2ActionTimingMs } from '#gw2/platform/combat/action-tick.js';
 import { registerNecromancerShroudLifecycle } from '#gw2/professions/necromancer/core/mechanics/shroud-lifecycle.js';
 import { NECROMANCER_SKILL_IDS as ID } from '#gw2/professions/necromancer/data/ids.js';
 import { HARBINGER_EMPOWERED_PROFILE_BY_SKILL_ID } from '#gw2/professions/necromancer/specializations/harbinger/profiles.js';

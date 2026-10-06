@@ -15,7 +15,7 @@ import {
 } from '#gw2/platform/skills/balance-profiles.js';
 
 import { denySkillCast } from '#gw2/platform/execution/availability.js';
-import { gw2CooldownReadyAt } from '#gw2/platform/execution/cast-timing.js';
+import { gw2CooldownReadyAt } from '#gw2/platform/combat/action-tick.js';
 import { lockTransitionInput } from '#gw2/platform/execution/transition-lockouts.js';
 import { THIEF_SKILL_IDS as ID } from '#gw2/professions/thief/data/ids.js';
 

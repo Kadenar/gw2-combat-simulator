@@ -1,5 +1,5 @@
 import type { EffectState } from '#gw2/platform/combat/effect-state.js';
-import { gw2CooldownReadyAt } from '#gw2/platform/execution/cast-timing.js';
+import { gw2CooldownReadyAt } from '#gw2/platform/combat/action-tick.js';
 import type { CooldownController } from '#gw2/platform/execution/cooldown-contracts.js';
 import type { AvailabilityResult } from '#gw2/platform/execution/availability.js';
 import { flattenProfessionState } from '#gw2/platform/profession-definition/state.js';

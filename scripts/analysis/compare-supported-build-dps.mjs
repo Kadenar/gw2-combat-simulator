@@ -11,6 +11,7 @@ import path from 'node:path';
 
 import { captureSupportedBuildMetrics } from './capture-supported-build-metrics.mjs';
 import { parseGameOption, resolveGameData } from '../lib/game-data.mjs';
+import { TARGET_HEALTH_BANDS } from '#gw2/app/results/summary-metrics.js';
 
 export const MAXIMUM_RELATIVE_ERROR = 0.01;
 export const MAXIMUM_ABSOLUTE_DPS_ERROR = 100;
@@ -150,12 +151,27 @@ export async function updateManifestBenchmarks(metrics, root = repoRoot, gameId 
         // Save whole DPS and one decimal of simulated APM to keep regenerated comparisons stable and readable.
         const nextBenchmarkDps = Math.round(metric.dps);
         const nextBenchmarkApm = Math.round(metric.apm * 10) / 10;
+        // Require every band, retaining null for incomplete phases instead of manufacturing a zero-DPS value.
+        if (!metric.dpsByHealth || Object.keys(metric.dpsByHealth).length !== TARGET_HEALTH_BANDS.length) {
+          throw new TypeError(`${metric.id} produced invalid target-health DPS bands.`);
+        }
 
-        if (!Object.is(preset.benchmarkDps, nextBenchmarkDps) || !Object.is(preset.benchmarkApm, nextBenchmarkApm))
+        const nextBenchmarkDpsByHealth = Object.fromEntries(TARGET_HEALTH_BANDS.map(({ id }) => {
+          const value = metric.dpsByHealth[id];
+          if (value !== null && (!Number.isFinite(value) || value < 0)) {
+            throw new TypeError(`${metric.id} produced invalid DPS for ${id}%: ${value}.`);
+          }
+          
+          return [id, value === null ? null : Math.round(value)];
+        }));
+
+        if (!Object.is(preset.benchmarkDps, nextBenchmarkDps) || !Object.is(preset.benchmarkApm, nextBenchmarkApm) ||
+          TARGET_HEALTH_BANDS.some(({ id }) => preset.benchmarkDpsByHealth?.[id] !== nextBenchmarkDpsByHealth[id]))
           changedEntries += 1;
 
         preset.benchmarkDps = nextBenchmarkDps;
         preset.benchmarkApm = nextBenchmarkApm;
+        preset.benchmarkDpsByHealth = nextBenchmarkDpsByHealth;
         updatedEntries += 1;
         unmatchedMetrics.delete(key);
       }
@@ -214,7 +230,7 @@ if (import.meta.main) {
 
   console.log(
     mode === 'commit'
-      ? 'Commit mode: manifest benchmarkDps and benchmarkApm values will be updated.'
+      ? 'Commit mode: manifest benchmarkDps, benchmarkApm, and benchmarkDpsByHealth values will be updated.'
       : 'Dry mode: manifest files will not be changed.'
   );
 
@@ -230,7 +246,7 @@ if (import.meta.main) {
     const update = await updateManifestBenchmarks(metrics, repoRoot, gameId);
 
     console.log(
-      `Updated ${update.updatedEntries} DPS/APM benchmark entries (${update.changedEntries} changed) ` +
+      `Updated ${update.updatedEntries} DPS/APM/health-band benchmark entries (${update.changedEntries} changed) ` +
         `across ${update.manifestsWritten} manifests.`
     );
 

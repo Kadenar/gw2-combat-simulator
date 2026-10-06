@@ -1,7 +1,7 @@
-import { GW2_ACTION_TICK_MS, quantizeGw2ActionDurationUp } from '#gw2/platform/combat/action-tick.js';
+import { quantizeGw2ActionDurationUp } from '#gw2/platform/combat/action-tick.js';
 import type { Skill, SkillTask } from '#gw2/platform/skills/types.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
-import { EPSILON, canonicalTime, timeKey } from '#kernel/core/clock.js';
+import { EPSILON, canonicalTime } from '#kernel/core/clock.js';
 
 /** Quickness increases action rate by 50%, so duration is divided by 1.5. */
 export const GW2_QUICKNESS_ACTION_RATE = 1.5;
@@ -25,17 +25,6 @@ export function castReachedFullDuration(cast: Gw2CastEndTimes): boolean {
 /** Cancelled attempts release the cast lane; only committed skills retain their aftercast. */
 export function retainsInterruptedCastLockout(skill: Skill | null, cancelledBeforeCommit: boolean): boolean {
   return skill?.retainsCastLockoutAfterInterrupt === true && !cancelledBeforeCommit;
-}
-
-/** Snaps observed timing to the nearest GW2 action tick so imported replay values do not retain false precision. */
-export function quantizeGw2ActionTimingMs(value: number): number {
-  return Math.max(0, Math.round(value / GW2_ACTION_TICK_MS) * GW2_ACTION_TICK_MS);
-}
-
-/** Cooldowns become usable on the next absolute action tick, including negative precast timestamps. */
-export function gw2CooldownReadyAt(at: number): number {
-  if (!Number.isFinite(at)) return at;
-  return canonicalTime((Math.ceil(timeKey(at) / (GW2_ACTION_TICK_MS * 1000)) * GW2_ACTION_TICK_MS) / 1000);
 }
 
 /**

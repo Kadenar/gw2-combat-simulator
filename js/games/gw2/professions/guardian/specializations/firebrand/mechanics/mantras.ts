@@ -5,7 +5,7 @@ import { CAST_READY, denyCast, retryCast } from '#gw2/platform/execution/availab
 import { armSkillFlip, consumeSkillFlip, skillFlipReady } from '#gw2/platform/execution/skill-flips.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
 import type { RuntimeProfession } from '#gw2/platform/profession-definition/runtime-contract.js';
-import { gw2CooldownReadyAt } from '#gw2/platform/execution/cast-timing.js';
+import { gw2CooldownReadyAt } from '#gw2/platform/combat/action-tick.js';
 import { MANTRAS, type MantraDefinition } from '#gw2/professions/guardian/data/mantra-definitions.js';
 import { firebrandState } from '#gw2/professions/guardian/specializations/firebrand/state.js';
 import type { GuardianRuntimeState, GuardianSkill } from '#gw2/professions/guardian/types.js';

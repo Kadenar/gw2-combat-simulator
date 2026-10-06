@@ -18,9 +18,9 @@ import {
   interruptCommitCutoffs
 } from '#gw2/platform/execution/cast-effects.js';
 import { createCastReservations } from '#gw2/platform/execution/cast-reservations.js';
+import { gw2CooldownReadyAt } from '#gw2/platform/combat/action-tick.js';
 import {
   castWasInterrupted,
-  gw2CooldownReadyAt,
   retainsInterruptedCastLockout,
   summonQuicknessCastTimeMs,
   skillTaskAt

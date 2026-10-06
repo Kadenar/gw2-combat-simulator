@@ -1,6 +1,6 @@
 import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
 import { skillFlipReady } from '#gw2/platform/execution/skill-flips.js';
-import { gw2CooldownReadyAt } from '#gw2/platform/execution/cast-timing.js';
+import { gw2CooldownReadyAt } from '#gw2/platform/combat/action-tick.js';
 import { EPSILON } from '#kernel/core/clock.js';
 /**
  * Core Elementalist cast availability.

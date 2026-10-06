@@ -20,7 +20,8 @@ import { selectRotationPlayer } from '#gw2/integrations/logs/shared/rotation/sel
 import { buildReplayTimeline } from '#gw2/integrations/logs/shared/rotation/timeline.js';
 import { retainsReplayCastLockout } from '#gw2/integrations/logs/shared/rotation/timing.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
-import { quantizeGw2ActionTimingMs, referenceCastTimeMs } from '#gw2/platform/execution/cast-timing.js';
+import { quantizeGw2ActionTimingMs } from '#gw2/platform/combat/action-tick.js';
+import { referenceCastTimeMs } from '#gw2/platform/execution/cast-timing.js';
 import { DpsReportError } from '#gw2/integrations/logs/dps-report/errors.js';
 import type {
   DpsReportCast,

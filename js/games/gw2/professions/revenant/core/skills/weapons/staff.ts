@@ -1,5 +1,5 @@
 /** Canonical Core revenant skill fragments grouped by their GW2 owner. */
-import { quantizeGw2ActionTimingMs } from '#gw2/platform/execution/cast-timing.js';
+import { quantizeGw2ActionTimingMs } from '#gw2/platform/combat/action-tick.js';
 import { REVENANT_SKILL_IDS as ID } from '#gw2/professions/revenant/data/ids.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
 

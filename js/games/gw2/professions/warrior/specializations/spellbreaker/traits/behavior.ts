@@ -14,7 +14,7 @@ import {
 import type { RechargeProgress } from '#gw2/platform/execution/recharge.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 
-import { gw2CooldownReadyAt } from '#gw2/platform/execution/cast-timing.js';
+import { gw2CooldownReadyAt } from '#gw2/platform/combat/action-tick.js';
 import { WARRIOR_SKILL_IDS as ID, WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/professions/warrior/data/ids.js';
 import type { SpellbreakerState } from '#gw2/professions/warrior/specializations/spellbreaker/state.js';
 import { spellbreakerState } from '#gw2/professions/warrior/specializations/spellbreaker/state.js';

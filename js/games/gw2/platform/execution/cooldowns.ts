@@ -1,5 +1,5 @@
 import type { RateInterval } from '#gw2/platform/combat/resources/pool.js';
-import { gw2CooldownReadyAt } from '#gw2/platform/execution/cast-timing.js';
+import { gw2CooldownReadyAt } from '#gw2/platform/combat/action-tick.js';
 import { clamp } from '#kernel/core/numeric.js';
 import { projectRecharge, type RechargeProgress } from '#gw2/platform/execution/recharge.js';
 /**

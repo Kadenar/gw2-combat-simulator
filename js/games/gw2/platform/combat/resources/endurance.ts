@@ -1,6 +1,6 @@
 import type { RateInterval } from '#gw2/platform/combat/resources/pool.js';
 import { EPSILON } from '#kernel/core/clock.js';
-import { gw2CooldownReadyAt } from '#gw2/platform/execution/cast-timing.js';
+import { gw2CooldownReadyAt } from '#gw2/platform/combat/action-tick.js';
 
 import { cappedResource, grantCapped } from '#gw2/platform/combat/resources/pool.js';
 import { boonIntervals } from '#gw2/platform/combat/boons.js';

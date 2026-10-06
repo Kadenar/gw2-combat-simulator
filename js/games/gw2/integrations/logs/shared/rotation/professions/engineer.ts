@@ -1,6 +1,7 @@
 import { reconstructAmalgamDpsReportActions } from '#gw2/integrations/logs/shared/rotation/professions/engineer/amalgam.js';
 import { reconstructEngineerDependencies } from '#gw2/integrations/logs/shared/rotation/professions/engineer/shared.js';
-import { quantizeGw2ActionTimingMs, referenceCastTimeMs } from '#gw2/platform/execution/cast-timing.js';
+import { quantizeGw2ActionTimingMs } from '#gw2/platform/combat/action-tick.js';
+import { referenceCastTimeMs } from '#gw2/platform/execution/cast-timing.js';
 import { ENGINEER_SKILL_IDS as ID } from '#gw2/professions/engineer/data/ids.js';
 import type {
   LogActionNormalizer,

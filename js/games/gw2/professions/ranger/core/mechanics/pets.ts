@@ -13,10 +13,9 @@ import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import {
   castWasInterrupted,
   GW2_QUICKNESS_ACTION_RATE,
-  gw2CooldownReadyAt,
   summonQuicknessCastTimeMs
 } from '#gw2/platform/execution/cast-timing.js';
-import { quantizeGw2ActionDurationUp } from '#gw2/platform/combat/action-tick.js';
+import { gw2CooldownReadyAt, quantizeGw2ActionDurationUp } from '#gw2/platform/combat/action-tick.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
 import {
   rangerPetAutoProfile,

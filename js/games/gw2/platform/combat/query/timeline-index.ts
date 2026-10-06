@@ -17,7 +17,7 @@ import { GW2_ALACRITY_RECHARGE_RATE, gw2RechargeIntervals, projectRecharge } fro
 import { gw2SigilSet } from '#gw2/platform/equipment/sigils/loadout.js';
 import type { Gw2SigilSet } from '#gw2/platform/equipment/sigils/types.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
-import { gw2CooldownReadyAt } from '#gw2/platform/execution/cast-timing.js';
+import { gw2CooldownReadyAt } from '#gw2/platform/combat/action-tick.js';
 import { gw2EffectExpiresAt } from '#gw2/platform/effects/timing.js';
 import { canonicalTime } from '#kernel/core/clock.js';
 import { insertSorted } from '#kernel/core/collections.js';
