@@ -70,6 +70,7 @@ test('Blood Thirst spends only eligible pet or merged-player charges and expires
     assert.equal(core.bloodThirst.charges, 3);
     assert.deepEqual(emitted, []);
     for (let i = 0; i < 4; i++) triggerBloodThirst(context, eligible);
+
     assert.equal(core.bloodThirst.charges, 0);
     assert.equal(emitted.length, 3);
     for (const event of emitted) {
@@ -80,6 +81,7 @@ test('Blood Thirst spends only eligible pet or merged-player charges and expires
       assert.equal(event.source, 'ranger');
       assert.equal(event.summonOwner, undefined);
     }
+
     core.bloodThirst.charges = 1;
     triggerBloodThirst(context, { ...eligible, at: 12 });
     assert.equal(core.bloodThirst.charges, 0);
