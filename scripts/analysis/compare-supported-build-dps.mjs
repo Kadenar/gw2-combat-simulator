@@ -102,7 +102,7 @@ function presetKey(section, preset) {
 }
 
 /** Replace manifest benchmark values only after every simulated preset has matched its source entry. */
-export async function updateManifestBenchmarkDps(metrics, root = repoRoot, gameId = 'gw2') {
+export async function updateManifestBenchmarks(metrics, root = repoRoot, gameId = 'gw2') {
   const data = resolveGameData(root, gameId);
   // Match each profession's results against its own manifest before writing any updates.
   const metricsByProfession = Map.groupBy(metrics, (metric) => metric.profession);
@@ -143,12 +143,19 @@ export async function updateManifestBenchmarkDps(metrics, root = repoRoot, gameI
           throw new TypeError(`${metric.id} produced invalid DPS: ${metric.dps}.`);
         }
 
-        // Manifest benchmarks use whole DPS values so routine regeneration does not add meaningless floating-point noise.
-        const nextBenchmarkDps = Math.round(metric.dps);
+        if (!Number.isFinite(metric.apm) || metric.apm < 0) {
+          throw new TypeError(`${metric.id} produced invalid APM: ${metric.apm}.`);
+        }
 
-        if (!Object.is(preset.benchmarkDps, nextBenchmarkDps)) changedEntries += 1;
+        // Save whole DPS and one decimal of simulated APM to keep regenerated comparisons stable and readable.
+        const nextBenchmarkDps = Math.round(metric.dps);
+        const nextBenchmarkApm = Math.round(metric.apm * 10) / 10;
+
+        if (!Object.is(preset.benchmarkDps, nextBenchmarkDps) || !Object.is(preset.benchmarkApm, nextBenchmarkApm))
+          changedEntries += 1;
 
         preset.benchmarkDps = nextBenchmarkDps;
+        preset.benchmarkApm = nextBenchmarkApm;
         updatedEntries += 1;
         unmatchedMetrics.delete(key);
       }
@@ -207,18 +214,23 @@ if (import.meta.main) {
 
   console.log(
     mode === 'commit'
-      ? 'Commit mode: manifest benchmarkDps values will be updated.'
+      ? 'Commit mode: manifest benchmarkDps and benchmarkApm values will be updated.'
       : 'Dry mode: manifest files will not be changed.'
   );
 
   const metrics = await captureSupportedBuildMetrics(undefined, { gameId });
+  // Keep each preset's simulation warnings visible when regenerating reference metrics.
+  for (const metric of metrics) {
+    for (const warning of metric.warnings) console.warn(`${metric.id}: ${warning}`);
+  }
+  
   const mismatches = printDpsComparison(metrics, MAXIMUM_RELATIVE_ERROR, maximumAbsoluteDpsError);
 
   if (mode === 'commit') {
-    const update = await updateManifestBenchmarkDps(metrics, repoRoot, gameId);
+    const update = await updateManifestBenchmarks(metrics, repoRoot, gameId);
 
     console.log(
-      `Updated ${update.updatedEntries} benchmarkDps entries (${update.changedEntries} changed) ` +
+      `Updated ${update.updatedEntries} DPS/APM benchmark entries (${update.changedEntries} changed) ` +
         `across ${update.manifestsWritten} manifests.`
     );
 

@@ -7,14 +7,16 @@
         "build": "data/gw2/builds/thief/b-power-deadeye-axe-pistol-dagger-pistol.json",
         "rotation": "data/gw2/rotations/thief/r-power-deadeye-axe-pistol-dagger-pistol-bench.json",
         "benchmarkDps": 44162,
-        "upToDate": true
+        "upToDate": true,
+        "benchmarkApm": 90.3
       },
       {
         "label": "Power Quickness (Axe / Pistol + Dagger / Pistol)",
         "build": "data/gw2/builds/thief/b-power-quick-deadeye-axe-pistol-dagger-pistol.json",
         "rotation": "data/gw2/rotations/thief/r-power-quick-deadeye-axe-pistol-dagger-pistol-bench.json",
         "benchmarkDps": 40723,
-        "upToDate": true
+        "upToDate": true,
+        "benchmarkApm": 88.9
       },
       {
         "label": "Power Quickness (Sword / Pistol)",
@@ -22,7 +24,8 @@
         "rotation": "data/gw2/rotations/thief/r-power-quick-deadeye-sword-pistol-bench.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/thief/power-quickness-deadeye-sword-pistol",
         "benchmarkDps": 34998,
-        "upToDate": true
+        "upToDate": true,
+        "benchmarkApm": 65.9
       },
       {
         "label": "Power Quickness (Rifle)",
@@ -30,7 +33,8 @@
         "rotation": "data/gw2/rotations/thief/r-power-quick-deadeye-rifle-bench.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/thief/power-quickness-deadeye-rifle-only",
         "benchmarkDps": 36706,
-        "upToDate": true
+        "upToDate": true,
+        "benchmarkApm": 77.8
       }
     ]
   },
@@ -43,7 +47,8 @@
         "rotation": "data/gw2/rotations/thief/r-power-antiquary-sword-pistol-bench.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/thief/power-antiquary-sword-pistol-only",
         "benchmarkDps": 44521,
-        "upToDate": true
+        "upToDate": true,
+        "benchmarkApm": 65.9
       },
       {
         "label": "Condition (Spear)",
@@ -51,7 +56,8 @@
         "rotation": "data/gw2/rotations/thief/r-condi-antiquary-spear-bench.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/thief/condition-antiquary-spear-only",
         "benchmarkDps": 42064,
-        "upToDate": true
+        "upToDate": true,
+        "benchmarkApm": 115.9
       },
       {
         "label": "Condition (Dagger / Dagger)",
@@ -59,7 +65,8 @@
         "rotation": "data/gw2/rotations/thief/r-condi-antiquary-dagger-dagger-bench.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/thief/condition-antiquary-dagger-only",
         "benchmarkDps": 43535,
-        "upToDate": true
+        "upToDate": true,
+        "benchmarkApm": 61.3
       }
     ]
   },
@@ -72,7 +79,8 @@
         "rotation": "data/gw2/rotations/thief/r-condi-specter-scepter-dagger-bench.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/thief/condition-specter-scepter-dagger-only",
         "benchmarkDps": 36839,
-        "upToDate": true
+        "upToDate": true,
+        "benchmarkApm": 71.2
       }
     ]
   },
@@ -85,7 +93,8 @@
         "rotation": "data/gw2/rotations/thief/r-power-daredevil-dagger-dagger-bench.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/thief/power-daredevil-dagger-dagger-axe-pistol",
         "benchmarkDps": 42685,
-        "upToDate": true
+        "upToDate": true,
+        "benchmarkApm": 61
       },
       {
         "label": "Condition (Dagger / Dagger)",
@@ -93,7 +102,8 @@
         "rotation": "data/gw2/rotations/thief/r-condi-daredevil-dagger-dagger-bench.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/thief/condition-daredevil-dagger-only",
         "benchmarkDps": 38319,
-        "upToDate": true
+        "upToDate": true,
+        "benchmarkApm": 62.8
       }
     ]
   }

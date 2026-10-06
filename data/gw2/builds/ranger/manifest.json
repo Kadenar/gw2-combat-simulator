@@ -8,7 +8,8 @@
         "rotation": "data/gw2/rotations/ranger/r-condi-alac-druid-dagger-torch-axe-dagger-bench.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/ranger/condition-alacrity-druid-dagger-torch-axe-dagger",
         "benchmarkDps": 39168,
-        "upToDate": true
+        "upToDate": true,
+        "benchmarkApm": 104.5
       }
     ]
   },
@@ -21,7 +22,8 @@
         "rotation": "data/gw2/rotations/ranger/r-power-soulbeast-hammer-axe-bench.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/ranger/power-soulbeast-hammer-axe-axe",
         "benchmarkDps": 43152,
-        "upToDate": true
+        "upToDate": true,
+        "benchmarkApm": 56.5
       },
       {
         "label": "Power (Hammer / Sword-Axe)",
@@ -29,14 +31,16 @@
         "rotation": "data/gw2/rotations/ranger/r-power-soulbeast-hammer-sword-axe-bench.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/ranger/power-soulbeast-hammer-sword-axe",
         "benchmarkDps": 42995,
-        "upToDate": true
+        "upToDate": true,
+        "benchmarkApm": 54.4
       },
       {
         "label": "Power (Spear / Axe-Axe)",
         "build": "data/gw2/builds/ranger/b-power-soulbeast-spear-axe.json",
         "rotation": "data/gw2/rotations/ranger/r-power-soulbeast-spear-axe-evtc.json",
         "benchmarkDps": 41023,
-        "upToDate": true
+        "upToDate": true,
+        "benchmarkApm": 63.9
       }
     ]
   },
@@ -49,21 +53,24 @@
         "rotation": "data/gw2/rotations/ranger/r-power-untamed-hammer-sword-axe-bench.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/ranger/power-untamed-beastmastery-hammer-sword-axe",
         "benchmarkDps": 44626,
-        "upToDate": true
+        "upToDate": true,
+        "benchmarkApm": 103.8
       },
       {
         "label": "Power Quickness (Sword-Axe / Hammer) (Beastmastery)",
         "build": "data/gw2/builds/ranger/b-power-quick-untamed-beastmastery-sword-axe-hammer.json",
         "rotation": "data/gw2/rotations/ranger/r-power-quick-untamed-beastmastery-sword-axe-hammer-bench.json",
         "benchmarkDps": 33707,
-        "upToDate": true
+        "upToDate": true,
+        "benchmarkApm": 79.6
       },
       {
         "label": "Power Quickness (Sword-Axe / Hammer) (Nature Magic)",
         "build": "data/gw2/builds/ranger/b-power-quick-untamed-nature-magic-sword-axe-hammer.json",
         "rotation": "data/gw2/rotations/ranger/r-power-quick-untamed-nature-magic-sword-axe-hammer-bench.json",
         "benchmarkDps": 33683,
-        "upToDate": true
+        "upToDate": true,
+        "benchmarkApm": 84
       }
     ]
   },
@@ -76,7 +83,8 @@
         "rotation": "data/gw2/rotations/ranger/r-power-galeshot-longbow-axe-bench.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/ranger/power-galeshot-longbow-axe-axe",
         "benchmarkDps": 42422,
-        "upToDate": true
+        "upToDate": true,
+        "benchmarkApm": 85.1
       },
       {
         "label": "Power Quickness (Longbow / Axe-Axe)",
@@ -84,7 +92,8 @@
         "rotation": "data/gw2/rotations/ranger/r-power-quick-galeshot-longbow-axe-bench.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/ranger/power-quickness-galeshot-longbow-axe-axe",
         "benchmarkDps": 35111,
-        "upToDate": true
+        "upToDate": true,
+        "benchmarkApm": 86.4
       }
     ]
   }

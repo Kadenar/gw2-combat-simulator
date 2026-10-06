@@ -6,7 +6,10 @@ import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import type { MechanicQueryContext } from '#gw2/platform/profession-definition/mechanic-context.js';
 import type { SkillId } from '#gw2/platform/skills/types.js';
 
-/** Defines catalog skills and declarative effects so authored data stays independent of runtime implementations. */
+/**
+ * Declarative skill-effect schemas (strike, condition, control, status, custom) so authored effects stay independent
+ * of runtime implementations.
+ */
 
 export interface StrikeTick {
   readonly atMs: number;

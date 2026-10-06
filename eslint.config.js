@@ -295,11 +295,7 @@ export default [
   // Domain implementations receive services; simulation and isolated measurement are the two run composition owners.
   {
     files: ['js/games/gw2/platform/**/*.{ts,tsx}'],
-    ignores: [
-      'js/games/gw2/platform/index.ts',
-      'js/games/gw2/platform/simulation/**',
-      'js/games/gw2/platform/skill-damage/**'
-    ],
+    ignores: ['js/games/gw2/platform/simulation/**', 'js/games/gw2/platform/skill-damage/**'],
     rules: {
       'no-restricted-imports': restrictedImports(sharedPlatformBoundaryPattern, simulationImplementationPattern)
     }

@@ -1,4 +1,4 @@
-| `effects/`                 | Effect declarations, validation, materialization, emission, actions, packet builders, expiry policy       | Cast acceptance, target gating, hit resolution, resource storage || `builds/`                  | Saved schemas, normalization, validation, attributes, loadouts, skill/trait selections, assumptions       | Live resources, scheduling, rendering                            |﻿# GW2 platform ownership
+﻿# GW2 platform ownership
 
 Put a module beside the domain that guarantees its behavior. Shared platform code receives profession contributions; it
 does not import concrete professions, application code, or integrations. `index.ts` exposes the public simulation entry

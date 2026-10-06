@@ -58,8 +58,10 @@ scratch script. `.lavish/` remains tool-managed review output, separate from man
   replace `images/tutorials/` assets.
 
 - `npm run benchmarks:compare` simulates every rotation-backed manifest preset and reports DPS values more than 1% away
-  from `benchmarkDps`. Pass `-- --absolute-dps` for a fixed 100 DPS tolerance or `-- --commit` to update every rounded
-  manifest value.
+  from `benchmarkDps`. Pass `-- --absolute-dps` for a fixed 100 DPS tolerance or `-- --commit` to update `benchmarkDps`
+  (whole DPS) and `benchmarkApm` (one decimal) for every rotation-backed preset. APM comes from the simulation's
+  non-autoattack input count over its execution window, excluding precasts before an explicit combat boundary. Entries
+  without rotations remain unchanged. Simulation warnings identify their emitting presets.
 - `npm run build:modules && node scripts/analysis/capture-supported-build-metrics.mjs [profession...]` prints current
   deterministic preset metrics as JSON.
 - `npm run build:modules && node scripts/analysis/analyze-evtc.mjs <fight.evtc|fight.evtc.zip|fight.zevtc>` inspects a

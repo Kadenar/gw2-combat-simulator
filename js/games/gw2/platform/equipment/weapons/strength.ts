@@ -1,8 +1,9 @@
 /**
- * Canonical level-80 ascended/legendary PvE weapon-strength profiles.
+ * Canonical level-80 ascended/legendary PvE weapon-strength profiles, their ID and weapon-name lookups, sampling, and
+ * the per-event choice of which profile a strike uses.
  *
- * Bounds are the only stored source data. Midpoints and half-ranges are always
- * derived so compatibility consumers cannot drift from the sampled ranges.
+ * Bounds are the only stored source data. Midpoints and half-ranges are always derived so every consumer stays
+ * consistent with the sampled ranges.
  */
 
 import type { SimulationEventBase } from '#gw2/platform/events/events.js';

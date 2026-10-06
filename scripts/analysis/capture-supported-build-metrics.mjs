@@ -4,7 +4,7 @@
  *
  * For each requested profession it loads the build manifest, simulates each preset
  * that has a rotation through the profession's app adapter, and records duration,
- * DPS, total/strike/condition damage, the final damaging packet, and any warnings.
+ * DPS, APM, total/strike/condition damage, the final damaging packet, and any warnings.
  * The output is a stable baseline that other tooling diffs against (see
  * render-supported-build-metrics-report.mjs).
  *
@@ -101,6 +101,7 @@ async function captureProfession(professionId, gameId) {
         build: preset.build,
         rotation: preset.rotation,
         benchmarkDps: preset.benchmarkDps,
+        benchmarkApm: preset.benchmarkApm,
         rotationEndTime: result.rotationEndTime,
         observationEndTime: result.observationEndTime,
         combatEndTime: result.combatEndTime,
@@ -109,6 +110,8 @@ async function captureProfession(professionId, gameId) {
         deathTime: result.deathTime,
         lastHitTime: result.lastHitTime,
         dps: result.dps,
+        // Reuse the simulator's input accounting rather than estimating actions from saved rotation length.
+        apm: result.rotationApm.apm,
         totalDamage: result.totalDamage,
         strikeDamage: result.strikeDamage,
         conditionDamage: result.conditionDamage,

@@ -12,6 +12,8 @@ export interface BuildTemplatePreset {
   readonly rotation?: string;
   readonly snowCrowsUrl?: string;
   readonly benchmarkDps?: number;
+  /** Simulated non-autoattack actions per minute over the rotation execution window. */
+  readonly benchmarkApm?: number;
   readonly upToDate?: boolean;
   readonly section?: string | null;
 }

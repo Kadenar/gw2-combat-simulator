@@ -8,7 +8,8 @@
         "rotation": "data/gw2/rotations/guardian/r-power-willbender-spear-greatsword-bench.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/guardian/power-willbender-spear-greatsword",
         "benchmarkDps": 42059,
-        "upToDate": true
+        "upToDate": true,
+        "benchmarkApm": 77.6
       },
       {
         "label": "Condition (Pistol / Torch + Pistol / Pistol)",
@@ -16,7 +17,8 @@
         "rotation": "data/gw2/rotations/guardian/r-condi-willbender-pistol-torch-bench.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/guardian/condition-willbender-pistol-torch-pistol",
         "benchmarkDps": 41995,
-        "upToDate": true
+        "upToDate": true,
+        "benchmarkApm": 78.8
       },
       {
         "label": "Condition (Scepter / Pistol + Pistol / Torch)",
@@ -24,7 +26,8 @@
         "rotation": "data/gw2/rotations/guardian/r-condi-willbender-scepter-pistol-bench.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/guardian/condition-willbender-scepter-pistol-pistol-torch",
         "benchmarkDps": 42311,
-        "upToDate": true
+        "upToDate": true,
+        "benchmarkApm": 84.6
       },
       {
         "label": "Power Alacrity (Greatsword + Sword / Sword)",
@@ -32,7 +35,8 @@
         "rotation": "data/gw2/rotations/guardian/r-power-alac-willbender-greatsword-sword-sword-bench.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/guardian/power-alacrity-willbender-greatsword-sword-sword",
         "benchmarkDps": 33556,
-        "upToDate": true
+        "upToDate": true,
+        "benchmarkApm": 70
       },
       {
         "label": "Power Alacrity (Greatsword + Sword / Focus)",
@@ -40,7 +44,8 @@
         "rotation": "data/gw2/rotations/guardian/r-power-alac-willbender-greatsword-sword-focus-bench.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/guardian/power-alacrity-willbender-greatsword-sword-focus",
         "benchmarkDps": 32956,
-        "upToDate": true
+        "upToDate": true,
+        "benchmarkApm": 69.3
       }
     ]
   },
@@ -53,7 +58,8 @@
         "rotation": "data/gw2/rotations/guardian/r-condi-firebrand-bench.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/guardian/condition-firebrand-axe-torch-pistol-pistol",
         "benchmarkDps": 41074,
-        "upToDate": true
+        "upToDate": true,
+        "benchmarkApm": 114.4
       },
       {
         "label": "Condition Quickness (Axe / Torch + Pistol / Pistol)",
@@ -61,7 +67,8 @@
         "rotation": "data/gw2/rotations/guardian/r-condi-qfb-ritualists-bench.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/guardian/condition-quickness-firebrand-axe-torch-pistol-pistol",
         "benchmarkDps": 35214,
-        "upToDate": true
+        "upToDate": true,
+        "benchmarkApm": 126
       }
     ]
   },
@@ -74,14 +81,16 @@
         "rotation": "data/gw2/rotations/guardian/r-power-dragonhunter-spear-greatsword-bench.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/guardian/power-dragonhunter-radiance-spear-greatsword",
         "benchmarkDps": 41743,
-        "upToDate": true
+        "upToDate": true,
+        "benchmarkApm": 62.3
       },
       {
         "label": "Power (Longbow / Greatsword)",
         "build": "data/gw2/builds/guardian/b-power-dragonhunter-longbow-greatsword.json",
         "rotation": "data/gw2/rotations/guardian/r-power-dragonhunter-longbow-greatsword-bench.json",
         "benchmarkDps": 41929,
-        "upToDate": true
+        "upToDate": true,
+        "benchmarkApm": 62.2
       }
     ]
   },
@@ -94,14 +103,16 @@
         "rotation": "data/gw2/rotations/guardian/r-power-luminary-bench.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/guardian/power-luminary-spear-greatsword",
         "benchmarkDps": 41395,
-        "upToDate": true
+        "upToDate": true,
+        "benchmarkApm": 95.9
       },
       {
         "label": "Power (Greatsword / Spear) - Nagy Rotation",
         "build": "data/gw2/builds/guardian/b-power-luminary-nagy.json",
         "rotation": "data/gw2/rotations/guardian/r-power-luminary-nagy.json",
         "benchmarkDps": 42074,
-        "upToDate": true
+        "upToDate": true,
+        "benchmarkApm": 97.4
       },
       {
         "label": "Power (Greatsword / Longbow)",
@@ -109,7 +120,8 @@
         "rotation": "data/gw2/rotations/guardian/r-power-luminary-greatsword-longbow-bench.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/guardian/power-luminary-longbow-greatsword",
         "benchmarkDps": 41424,
-        "upToDate": true
+        "upToDate": true,
+        "benchmarkApm": 97.7
       },
       {
         "label": "Power Alacrity (Greatsword / Spear)",
@@ -117,7 +129,8 @@
         "rotation": "data/gw2/rotations/guardian/r-power-alac-luminary-bench.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/guardian/power-alacrity-luminary-spear-greatsword",
         "benchmarkDps": 37179,
-        "upToDate": true
+        "upToDate": true,
+        "benchmarkApm": 100.4
       }
     ]
   }

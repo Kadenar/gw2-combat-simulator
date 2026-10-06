@@ -58,7 +58,7 @@ Create `run-engineer.mjs` in the repository root:
 
 ```js
 import { prepareSimulationConfig } from './tests/helpers/simulation-config.js';
-import { simulateGw2 } from '#gw2/platform/index.js';
+import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
 import { skillBreakdownRows } from '#gw2/app/results/skill-breakdown.js';
 import { engineerProfession } from '#gw2/professions/engineer/profession.js';
 
@@ -139,7 +139,7 @@ under `dist/js`; TypeScript and Vite resolve them to source modules. No custom l
 Use the same aliases in headless scripts kept inside the repository:
 
 ```js
-import { simulateGw2 } from '#gw2/platform/index.js';
+import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
 import { engineerProfession } from '#gw2/professions/engineer/profession.js';
 ```
 
@@ -283,7 +283,7 @@ Use the registry when the profession is selected by a command-line argument or c
 
 ```js
 import { loadProfession } from '#gw2/profession-registry.js';
-import { simulateGw2 } from '#gw2/platform/index.js';
+import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
 
 const profession = await loadProfession('engineer');
 if (!profession) throw new Error('Unknown profession');

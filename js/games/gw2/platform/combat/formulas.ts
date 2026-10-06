@@ -1,7 +1,8 @@
 import type { Gw2ResolvedStats, Gw2Stats } from '#gw2/platform/combat/stats.js';
 import { boundedNumber, clamp } from '#kernel/core/numeric.js';
 
-// Stateless GW2 damage formulas used by timestamp-aware runtime resolution.
+// Stateless GW2 strike and condition damage formulas, plus the precision, ferocity, and expertise percentage
+// conversions shared by build attribute assembly and timestamp-aware runtime resolution.
 
 /** Standard benchmark armor shared by damage formulas and build defaults. */
 export const STANDARD_TARGET_ARMOR = 2597;

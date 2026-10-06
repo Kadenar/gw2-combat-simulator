@@ -12,7 +12,7 @@ import {
   parseMaximumAbsoluteDpsError,
   parseMode,
   printDpsComparison,
-  updateManifestBenchmarkDps
+  updateManifestBenchmarks
 } from '../../scripts/analysis/compare-supported-build-dps.mjs';
 import { parseGameOption } from '../../scripts/lib/game-data.mjs';
 
@@ -119,7 +119,7 @@ test('absolute DPS comparison output identifies the fixed tolerance', (context) 
   assert.deepEqual(output, ['All 1 rotation-backed builds across 1 manifests are within 100 DPS of benchmark DPS.']);
 });
 
-test('commit mode writes simulated DPS to matching manifest entries', async (context) => {
+test('commit mode writes simulated DPS and APM to matching manifest entries', async (context) => {
   const root = await mkdtemp(path.join(tmpdir(), 'gw2-benchmark-update-'));
   const manifestDirectory = path.join(root, 'data', 'gw2', 'builds', 'mesmer');
   const manifestPath = path.join(manifestDirectory, 'manifest.json');
@@ -158,7 +158,7 @@ test('commit mode writes simulated DPS to matching manifest entries', async (con
     'utf8'
   );
 
-  const update = await updateManifestBenchmarkDps(
+  const update = await updateManifestBenchmarks(
     [
       {
         id: 'mesmer|Chronomancer|Power',
@@ -167,7 +167,8 @@ test('commit mode writes simulated DPS to matching manifest entries', async (con
         label: 'Power',
         build: 'data/gw2/builds/mesmer/power.json',
         rotation: 'data/gw2/rotations/mesmer/power.json',
-        dps: 40_123.5
+        dps: 40_123.5,
+        apm: 42.36
       }
     ],
     root
@@ -175,7 +176,9 @@ test('commit mode writes simulated DPS to matching manifest entries', async (con
   const [section] = JSON.parse(await readFile(manifestPath, 'utf8'));
 
   assert.equal(section.presets[0].benchmarkDps, 40_124);
+  assert.equal(section.presets[0].benchmarkApm, 42.4);
   assert.equal(section.presets[1].benchmarkDps, 30_000);
+  assert.equal(section.presets[1].benchmarkApm, undefined);
   assert.deepEqual(update, {
     updatedEntries: 1,
     changedEntries: 1,
@@ -188,4 +191,24 @@ test('commit mode writes simulated DPS to matching manifest entries', async (con
       }
     ]
   });
+
+  // Invalid simulated APM must leave the complete manifest untouched, even when DPS is otherwise valid.
+  const saved = await readFile(manifestPath, 'utf8');
+  const metric = {
+    ...section.presets[0],
+    id: 'mesmer|Chronomancer|Power',
+    profession: 'mesmer',
+    section: 'Chronomancer',
+    dps: 40124
+  };
+  for (const apm of [undefined, null, NaN, Infinity, -1]) {
+    await assert.rejects(updateManifestBenchmarks([{ ...metric, apm }], root), /invalid APM/);
+    assert.equal(await readFile(manifestPath, 'utf8'), saved);
+  }
+  
+  // A zero-input execution is valid; changing APM alone still counts as a changed benchmark.
+  const apmOnly = await updateManifestBenchmarks([{ ...metric, apm: 0 }], root);
+  assert.equal(apmOnly.changedEntries, 1);
+  assert.equal(JSON.parse(await readFile(manifestPath, 'utf8'))[0].presets[0].benchmarkApm, 0);
+  assert.equal((await updateManifestBenchmarks([{ ...metric, apm: 0 }], root)).changedEntries, 0);
 });

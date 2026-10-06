@@ -1,11 +1,9 @@
 /**
- * Rotation normalization keeps downloaded legacy rotations and shorthand inputs at
- * the boundary while the runtime and application use canonical commands.
+ * Canonical rotation commands shared by saved builds, the application, and the runtime driver, plus the boundary
+ * validation and normalization that turn downloaded legacy and shorthand rotation inputs into those commands.
  */
 import type { CatalogLookup, SkillId } from '#gw2/platform/skills/types.js';
 import { canonicalGw2SkillId } from '#gw2/platform/skills/external-skill-ids.js';
-
-/** Canonical rotation commands: saved builds, the application, and the runtime driver share this one schema. */
 
 export interface CastCommand {
   readonly type: 'cast';

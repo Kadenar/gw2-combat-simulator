@@ -8,14 +8,16 @@
         "rotation": "data/gw2/rotations/necromancer/r-condi-scourge-bench.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/necromancer/condition-scourge-scepter-torch-pistol",
         "benchmarkDps": 39770,
-        "upToDate": true
+        "upToDate": true,
+        "benchmarkApm": 75.1
       },
       {
         "label": "Condition Alacrity (Pistol / Torch + Scepter / Torch)",
         "build": "data/gw2/builds/necromancer/b-condi-alac-scourge.json",
         "rotation": "data/gw2/rotations/necromancer/r-condi-alac-scourge-bench.json",
         "benchmarkDps": 29960,
-        "upToDate": true
+        "upToDate": true,
+        "benchmarkApm": 79.7
       }
     ]
   },
@@ -28,7 +30,8 @@
         "rotation": "data/gw2/rotations/necromancer/r-power-reaper-bench.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/necromancer/power-reaper-greatsword-spear",
         "benchmarkDps": 42824,
-        "upToDate": true
+        "upToDate": true,
+        "benchmarkApm": 60.5
       },
       {
         "label": "Condition (Dagger / Sword + Spear)",
@@ -36,14 +39,16 @@
         "rotation": "data/gw2/rotations/necromancer/r-condi-reaper-bench.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/necromancer/condition-reaper-spear-dagger-sword",
         "benchmarkDps": 43599,
-        "upToDate": true
+        "upToDate": true,
+        "benchmarkApm": 84.3
       },
       {
         "label": "Condition (Fields - Pistol / Torch + Greatsword)",
         "build": "data/gw2/builds/necromancer/b-condi-fields-reaper.json",
         "rotation": "data/gw2/rotations/necromancer/r-condi-fields-reaper-bench.json",
         "benchmarkDps": 51909,
-        "upToDate": true
+        "upToDate": true,
+        "benchmarkApm": 74.2
       }
     ]
   },
@@ -56,14 +61,16 @@
         "rotation": "data/gw2/rotations/necromancer/r-power-ritualist-bench.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/necromancer/power-ritualist-greatsword-spear",
         "benchmarkDps": 42516,
-        "upToDate": true
+        "upToDate": true,
+        "benchmarkApm": 90.1
       },
       {
         "label": "Power Quickness (Spear / Greatsword)",
         "build": "data/gw2/builds/necromancer/b-power-quick-ritualist.json",
         "rotation": "data/gw2/rotations/necromancer/r-power-quick-ritualist-bench.json",
         "benchmarkDps": 35634,
-        "upToDate": true
+        "upToDate": true,
+        "benchmarkApm": 87.6
       }
     ]
   },
@@ -76,7 +83,8 @@
         "rotation": "data/gw2/rotations/necromancer/r-power-harbinger-bench.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/necromancer/power-harbinger-greatsword-spear",
         "benchmarkDps": 43086,
-        "upToDate": true
+        "upToDate": true,
+        "benchmarkApm": 74.6
       },
       {
         "label": "Condition Quickness (Pistol / Dagger + Scepter / Torch)",
@@ -84,7 +92,8 @@
         "rotation": "data/gw2/rotations/necromancer/r-condi-quick-harbinger-bench.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/necromancer/condition-quickness-harbinger-pistol-dagger-scepter-torch",
         "benchmarkDps": 36248,
-        "upToDate": true
+        "upToDate": true,
+        "benchmarkApm": 69.7
       },
       {
         "label": "Condition (Pistol / Torch + Scepter / Dagger)",
@@ -92,14 +101,16 @@
         "rotation": "data/gw2/rotations/necromancer/r-condi-harbinger-bench.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/necromancer/condition-harbinger-pistol-torch-scepter-dagger",
         "benchmarkDps": 44667,
-        "upToDate": true
+        "upToDate": true,
+        "benchmarkApm": 69.8
       },
       {
         "label": "Condition (Dagger / Dagger + Pistol / Torch)",
         "build": "data/gw2/builds/necromancer/b-condi-harbinger-dagger-dagger-pistol-torch.json",
         "rotation": "data/gw2/rotations/necromancer/r-condi-harbinger-dagger-dagger-pistol-torch-bench.json",
         "benchmarkDps": 44565,
-        "upToDate": true
+        "upToDate": true,
+        "benchmarkApm": 69.8
       }
     ]
   }

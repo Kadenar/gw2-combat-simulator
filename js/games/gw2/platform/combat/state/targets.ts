@@ -1,4 +1,7 @@
-/** Targets never carry boons; configured conditions and runtime condition stacks remain queryable. */
+/**
+ * Hostile-target model: which packets face the target or establish combat, the condition vocabulary, and configured
+ * and runtime condition stacks. Targets never carry boons.
+ */
 import type { SimulationEvent } from '#gw2/platform/events/events.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
 import { isTimeInWindow } from '#kernel/core/clock.js';

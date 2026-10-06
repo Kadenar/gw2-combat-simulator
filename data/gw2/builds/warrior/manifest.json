@@ -8,7 +8,8 @@
         "rotation": "data/gw2/rotations/warrior/r-power-bladesworn-sword-pistol-bench.json",
         "benchmarkDps": 41187,
         "upToDate": true,
-        "snowCrowsUrl": "https://snowcrows.com/builds/raids/warrior/power-bladesworn-faf-sword-pistol"
+        "snowCrowsUrl": "https://snowcrows.com/builds/raids/warrior/power-bladesworn-faf-sword-pistol",
+        "benchmarkApm": 71.8
       },
       {
         "label": "Condition (Sword / Pistol)",
@@ -16,7 +17,8 @@
         "rotation": "data/gw2/rotations/warrior/r-condi-bladesworn-sword-pistol-bench.json",
         "benchmarkDps": 42429,
         "upToDate": true,
-        "snowCrowsUrl": "https://snowcrows.com/builds/raids/warrior/condition-bladesworn-sword-pistol"
+        "snowCrowsUrl": "https://snowcrows.com/builds/raids/warrior/condition-bladesworn-sword-pistol",
+        "benchmarkApm": 78.7
       }
     ]
   },
@@ -29,7 +31,8 @@
         "rotation": "data/gw2/rotations/warrior/r-power-berserker-spear-greatsword-bench.json",
         "benchmarkDps": 42254,
         "upToDate": true,
-        "snowCrowsUrl": "https://snowcrows.com/builds/raids/warrior/power-berserker-tactics-spear-greatsword"
+        "snowCrowsUrl": "https://snowcrows.com/builds/raids/warrior/power-berserker-tactics-spear-greatsword",
+        "benchmarkApm": 73.8
       },
       {
         "label": "Power Quickness (Spear + Greatsword) (Tactics)",
@@ -37,7 +40,8 @@
         "rotation": "data/gw2/rotations/warrior/r-power-quickness-berserker-tactics-spear-greatsword-bench.json",
         "benchmarkDps": 36604,
         "upToDate": true,
-        "snowCrowsUrl": "https://snowcrows.com/builds/raids/warrior/power-quickness-berserker-tactics-spear-greatsword"
+        "snowCrowsUrl": "https://snowcrows.com/builds/raids/warrior/power-quickness-berserker-tactics-spear-greatsword",
+        "benchmarkApm": 71.2
       },
       {
         "label": "Power (Hammer + Axe/Mace)",
@@ -45,7 +49,8 @@
         "rotation": "data/gw2/rotations/warrior/r-power-berserker-hammer-axe-mace-bench.json",
         "benchmarkDps": 42727,
         "upToDate": true,
-        "snowCrowsUrl": "https://snowcrows.com/builds/raids/warrior/power-berserker-hammer-axe-mace"
+        "snowCrowsUrl": "https://snowcrows.com/builds/raids/warrior/power-berserker-hammer-axe-mace",
+        "benchmarkApm": 92.8
       },
       {
         "label": "Condition (Longbow + Sword/Torch)",
@@ -53,7 +58,8 @@
         "rotation": "data/gw2/rotations/warrior/r-condi-berserker-longbow-sword-torch-bench.json",
         "benchmarkDps": 44416,
         "upToDate": true,
-        "snowCrowsUrl": "https://snowcrows.com/builds/raids/warrior/condition-berserker-longbow-sword-torch"
+        "snowCrowsUrl": "https://snowcrows.com/builds/raids/warrior/condition-berserker-longbow-sword-torch",
+        "benchmarkApm": 93.6
       }
     ]
   },
@@ -66,7 +72,8 @@
         "rotation": "data/gw2/rotations/warrior/r-power-spellbreaker-dagger-mace-sword-axe-bench.json",
         "benchmarkDps": 42813,
         "upToDate": true,
-        "snowCrowsUrl": "https://snowcrows.com/builds/raids/warrior/power-spellbreaker-dagger-mace-sword-axe"
+        "snowCrowsUrl": "https://snowcrows.com/builds/raids/warrior/power-spellbreaker-dagger-mace-sword-axe",
+        "benchmarkApm": 60.4
       },
       {
         "label": "Power (Dagger/Mace + Sword/Dagger)",
@@ -74,7 +81,8 @@
         "rotation": "data/gw2/rotations/warrior/r-power-spellbreaker-dagger-mace-sword-dagger-bench.json",
         "benchmarkDps": 43286,
         "upToDate": true,
-        "snowCrowsUrl": "https://snowcrows.com/builds/raids/warrior/power-spellbreaker-dagger-mace-sword-dagger"
+        "snowCrowsUrl": "https://snowcrows.com/builds/raids/warrior/power-spellbreaker-dagger-mace-sword-dagger",
+        "benchmarkApm": 62.8
       },
       {
         "label": "Power (Hammer + Dagger/Mace)",
@@ -82,7 +90,8 @@
         "rotation": "data/gw2/rotations/warrior/r-power-spellbreaker-hammer-dagger-mace-bench.json",
         "benchmarkDps": 42903,
         "upToDate": true,
-        "snowCrowsUrl": "https://snowcrows.com/builds/raids/warrior/power-spellbreaker-hammer-dagger-mace"
+        "snowCrowsUrl": "https://snowcrows.com/builds/raids/warrior/power-spellbreaker-hammer-dagger-mace",
+        "benchmarkApm": 65.6
       }
     ]
   },
@@ -95,7 +104,8 @@
         "rotation": "data/gw2/rotations/warrior/r-power-paragon-sword-axe-dagger-mace-bench.json",
         "benchmarkDps": 42306,
         "upToDate": true,
-        "snowCrowsUrl": "https://snowcrows.com/builds/raids/warrior/power-paragon-sword-axe-dagger-mace"
+        "snowCrowsUrl": "https://snowcrows.com/builds/raids/warrior/power-paragon-sword-axe-dagger-mace",
+        "benchmarkApm": 57.8
       }
     ]
   }

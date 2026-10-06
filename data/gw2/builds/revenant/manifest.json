@@ -8,7 +8,8 @@
         "rotation": "data/gw2/rotations/revenant/r-power-renegade-greatsword-bench.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/revenant/power-renegade-greatsword-sword-sword",
         "benchmarkDps": 43843,
-        "upToDate": true
+        "upToDate": true,
+        "benchmarkApm": 54.9
       },
       {
         "label": "Power Renegade (Hammer)",
@@ -16,7 +17,8 @@
         "rotation": "data/gw2/rotations/revenant/r-power-renegade-hammer-bench.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/revenant/power-renegade-hammer-sword-sword",
         "benchmarkDps": 48767,
-        "upToDate": true
+        "upToDate": true,
+        "benchmarkApm": 48.9
       },
       {
         "label": "Power Alacrity (Sword/Sword)",
@@ -24,7 +26,8 @@
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/revenant/power-alacrity-renegade-staff-sword-sword",
         "rotation": "data/gw2/rotations/revenant/r-power-alac-renegade-sword-sword-bench.json",
         "benchmarkDps": 34463,
-        "upToDate": true
+        "upToDate": true,
+        "benchmarkApm": 42.1
       },
       {
         "label": "Condition (Shortbow - Mace/Axe)",
@@ -32,7 +35,8 @@
         "rotation": "data/gw2/rotations/revenant/r-condi-renegade-shortbow-mace-axe-bench.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/revenant/condition-renegade-shortbow-mace-axe",
         "benchmarkDps": 41073,
-        "upToDate": true
+        "upToDate": true,
+        "benchmarkApm": 69.5
       },
       {
         "label": "Condition (Mace/Axe - Spear)",
@@ -40,7 +44,8 @@
         "rotation": "data/gw2/rotations/revenant/r-condi-renegade-spear-mace-axe-bench.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/revenant/condition-renegade-spear-mace-axe",
         "benchmarkDps": 41467,
-        "upToDate": true
+        "upToDate": true,
+        "benchmarkApm": 68.6
       }
     ]
   },
@@ -53,7 +58,8 @@
         "rotation": "data/gw2/rotations/revenant/r-power-quick-herald-greatsword-sword-sword-bench.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/revenant/power-quickness-herald-greatsword-sword-sword",
         "benchmarkDps": 31990,
-        "upToDate": true
+        "upToDate": true,
+        "benchmarkApm": 77.8
       },
       {
         "label": "Condition Quickness (Shortbow - Mace/Axe)",
@@ -61,7 +67,8 @@
         "rotation": "data/gw2/rotations/revenant/r-condi-quick-herald-shortbow-mace-axe-bench.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/revenant/condition-quickness-herald-shortbow-mace-axe",
         "benchmarkDps": 31830,
-        "upToDate": true
+        "upToDate": true,
+        "benchmarkApm": 88.5
       }
     ]
   },
@@ -74,14 +81,16 @@
         "rotation": "data/gw2/rotations/revenant/r-power-vindicator-greatsword-bench.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/revenant/power-vindicator-greatsword-sword-sword",
         "benchmarkDps": 43666,
-        "upToDate": true
+        "upToDate": true,
+        "benchmarkApm": 66.8
       },
       {
         "label": "Power (Greatsword - Sword/Sword - Hydro)",
         "build": "data/gw2/builds/revenant/b-power-vindicator-greatsword-hydro.json",
         "rotation": "data/gw2/rotations/revenant/r-power-vindicator-greatsword-hydro-bench.json",
         "benchmarkDps": 42714,
-        "upToDate": true
+        "upToDate": true,
+        "benchmarkApm": 65.1
       }
     ]
   },
@@ -94,7 +103,8 @@
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/revenant/power-conduit-greatsword-sword-sword",
         "rotation": "data/gw2/rotations/revenant/r-power-conduit-bench.json",
         "benchmarkDps": 42392,
-        "upToDate": true
+        "upToDate": true,
+        "benchmarkApm": 83.1
       },
       {
         "label": "Condition (Spear - Mace/Axe) - Mistfire",
@@ -102,7 +112,8 @@
         "rotation": "data/gw2/rotations/revenant/r-condi-conduit-mistfire-bench.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/revenant/condition-conduit-mistfire-spear-mace-axe",
         "benchmarkDps": 39539,
-        "upToDate": true
+        "upToDate": true,
+        "benchmarkApm": 94
       }
     ]
   }

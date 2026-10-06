@@ -4,7 +4,7 @@ import { loadProfession, loadProfessionAppAdapter } from '#gw2/profession-regist
 import { availableProcRateProfiles, normalizeProcRateOverrides } from '#gw2/platform/builds/proc-rates.js';
 import { validateCommonAssumptions } from '#gw2/platform/builds/assumptions.js';
 import { procChanceFromContext } from '#gw2/platform/skills/balance-profiles.js';
-import { simulateGw2 } from '#gw2/platform/index.js';
+import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
 import { runGw2Runtime } from '#gw2/platform/simulation/runtime.js';
 import { skillBreakdownRows } from '#gw2/app/results/skill-breakdown.js';
 

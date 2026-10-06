@@ -51,7 +51,7 @@ test('platform imports preserve declaration, composition, history, and presentat
   for (const { file, specifier } of edges) {
     const label = `${file} -> ${specifier}`;
     assert.doesNotMatch(specifier, /^#gw2\/(professions|app|integrations)\//, label);
-    if (file !== 'index.ts' && !/^(simulation|skill-damage)\//.test(file)) {
+    if (!/^(simulation|skill-damage)\//.test(file)) {
       assert.doesNotMatch(
         specifier,
         /^#gw2\/platform\/simulation\/(runtime|coordinator|internal-work|combat-execution|simulate|bind-mechanic-context|runtime-resources)\.js$/,

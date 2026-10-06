@@ -5,7 +5,10 @@ import type { SkillEffect } from '#gw2/platform/effects/types.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import type { MechanicContext, MechanicQueryContext } from '#gw2/platform/profession-definition/mechanic-context.js';
 
-/** Defines catalog skills and declarative effects so authored data stays independent of runtime implementations. */
+/**
+ * Catalog skill, balance-profile, task, and lookup schemas so authored skill data stays independent of runtime
+ * implementations.
+ */
 
 export type SkillId = string | number;
 
