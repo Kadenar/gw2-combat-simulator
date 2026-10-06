@@ -1,4 +1,4 @@
-import type { ActivationClaims } from '#gw2/platform/combat/activation-claims.js';
+import type { ActivationClaims } from '#gw2/platform/combat/procs/activation-claims.js';
 import { createResourceClock } from '#gw2/platform/combat/resources/clock.js';
 import type { ResourceClock } from '#gw2/platform/combat/resources/clock.js';
 import { type SkillFlipWindows } from '#gw2/platform/execution/skill-flips.js';

@@ -1,5 +1,5 @@
 import { applyBalanceProfilePatch } from '#gw2/integrations/patches/authoring/patches.js';
-import { createProcRegistry } from '#gw2/platform/combat/procs.js';
+import { createProcRegistry } from '#gw2/platform/combat/procs/registry.js';
 import { engineerAppAdapter } from '#gw2/professions/engineer/app/app-definition.js';
 import { createEngineerBuildDefaults, toApplicationBuild } from '#gw2/professions/engineer/build/build.js';
 import { ENGINEER_SKILL_IDS as ID, ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';

@@ -1,6 +1,6 @@
 import { captureEffectEmissions } from '#tests/helpers/effect-emission.js';
 import { createModifierHooks } from '#gw2/platform/combat/modifiers.js';
-import { createProcRegistry } from '#gw2/platform/combat/procs.js';
+import { createProcRegistry } from '#gw2/platform/combat/procs/registry.js';
 import { elementalistAppAdapter } from '#gw2/professions/elementalist/app/app-definition.js';
 import { elementalistCatalog } from '#gw2/professions/elementalist/catalog.js';
 import { ELEMENTALIST_TRAIT_IDS as TRAIT } from '#gw2/professions/elementalist/data/ids.js';

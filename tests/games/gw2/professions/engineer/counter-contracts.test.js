@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { applyBalanceProfilePatch } from '#gw2/integrations/patches/authoring/patches.js';
-import { createProcRegistry } from '#gw2/platform/combat/procs.js';
+import { createProcRegistry } from '#gw2/platform/combat/procs/registry.js';
 import { engineerCatalog } from '#gw2/professions/engineer/catalog.js';
 import { createEngineerCoreState } from '#gw2/professions/engineer/core/state.js';
 import { applyAimAssistedRocket } from '#gw2/professions/engineer/core/traits/explosions.js';

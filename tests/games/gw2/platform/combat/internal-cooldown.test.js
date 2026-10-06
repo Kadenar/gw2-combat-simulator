@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { isInternalCooldownReady } from '#gw2/platform/combat/procs.js';
+import { isInternalCooldownReady } from '#gw2/platform/combat/procs/registry.js';
 
 // GW2 procs require a later canonical instant, even when arithmetic differs at the boundary.
 test('internal cooldowns remain active through their boundary timestamp', () => {

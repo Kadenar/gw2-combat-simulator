@@ -115,8 +115,7 @@ default to no-op or identity behavior. A module with only declarative skill data
   denies missing entries in completed observations.
 - Optional `paletteOverride(context, skill)` separates shared-tile identity (`tileActive`), proven authoring insertion
   exceptions (`available`, `message`), and command-editor access (`editorAccess`). Core, elite, and family fields merge
-  in that order; none bypass build eligibility. See
-  [PALETTE-RUNTIME-AVAILABILITY.md](../cleanup/PALETTE-RUNTIME-AVAILABILITY.md).
+  in that order; none bypass build eligibility.
 - Event presenters return `{ type, description, className, order, flags }`; null hides an event and undefined delegates.
 
 ### Families
@@ -275,8 +274,7 @@ weapon metadata. Imperative behavior lives in module hooks, not in the catalog. 
 normalizing rotation input that names skills (see [Rotation commands](#rotation-commands)). Profession catalogs own
 exact `weaponHands`; shared weapon data owns broad capabilities; app adapters combine both.
 
-Skills and balance profiles are open records today, so field names are checked by runtime lists rather than types; see
-[SKILL-CATALOG-FIELDS.md](../cleanup/SKILL-CATALOG-FIELDS.md).
+Skills and balance profiles are open records today, so field names are checked by runtime lists rather than types.
 
 ### Timing contract
 
@@ -310,8 +308,7 @@ skills not on the active set unless the caller supplies no equipment config (mec
 
 `platform/execution/rotation.ts` normalizes every rotation input to these commands. It also accepts the documented
 shorthand (a numeric skill ID or a skill-name string; see [PROGRAMMATIC-SIMULATION.md](./PROGRAMMATIC-SIMULATION.md))
-and several undocumented aliases. Many saved presets still use skill-name strings. The inventory and removal plan are in
-[LEGACY-INPUT-HANDLING.md](../cleanup/LEGACY-INPUT-HANDLING.md).
+and several undocumented aliases. Saved presets use canonical `{ type, skillId }` commands.
 
 - Concurrent and interrupted timing is decided before effects and cooldowns are scheduled.
 - Serial casts and queued concurrent instants wait for finite cooldown, ammo, or profession availability; permanent

@@ -1,4 +1,4 @@
-﻿# GW2 platform ownership
+| `effects/`                 | Effect declarations, validation, materialization, emission, actions, packet builders, expiry policy       | Cast acceptance, target gating, hit resolution, resource storage || `builds/`                  | Saved schemas, normalization, validation, attributes, loadouts, skill/trait selections, assumptions       | Live resources, scheduling, rendering                            |﻿# GW2 platform ownership
 
 Put a module beside the domain that guarantees its behavior. Shared platform code receives profession contributions; it
 does not import concrete professions, application code, or integrations. `index.ts` exposes the public simulation entry
@@ -6,11 +6,11 @@ point; consumers import other contracts directly from their canonical owners.
 
 | Directory                  | Owns                                                                                                      | Delegates                                                        |
 | -------------------------- | --------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------- |
-| `builds/`                  | Saved schemas, normalization, validation, attributes, loadouts, assumptions, chat codes                  | Live resources, scheduling, rendering                            |
+| `builds/`                  | Saved schemas, normalization, validation, attributes, loadouts, selections, assumptions, chat codes       | Live resources, scheduling, rendering                            |
 | `skills/`                  | Skill identities, immutable catalogs, validation, balance profiles, shared actions, chain indexes         | Cast acceptance, recharge, effect application                    |
 | `events/`                  | Event schemas, actor identities, packet identity contracts                                                | Queues, clocks, handlers, history                                |
-| `effects/`                 | Effect declarations, validation, materialization, emission, actions, duration/expiry policy               | Cast acceptance, target gating, hit resolution, resource storage |
-| `combat/`                  | Formulas, modifiers, queries, target/boon state, resources, executed history, action-tick arithmetic      | Rotation driving and result assembly                             |
+| `effects/`                 | Effect declarations, validation, materialization, emission, actions, packet builders, duration/expiry     | Cast acceptance, target gating, hit resolution, resource storage |
+| `combat/`                  | Stats, formulas, modifiers, queries, target/boon state, resources, procs, executed history, action ticks  | Rotation driving and result assembly                             |
 | `combos/`                  | Fields, finishers, descriptors, combo state and rules                                                     | Clock ownership and damage resolution                            |
 | `equipment/`               | Gear, consumables, weapons, sigils, relics, item-owned state and proc rules                               | Global scheduling and rotation traversal                         |
 | `execution/`               | Rotation commands, cast lifecycle, readiness, cooldown/ammo progress, lockouts, flips, live attack chains | Hit/condition resolution and reporting                           |

@@ -1,5 +1,5 @@
-import { claimActivation } from '#gw2/platform/combat/activation-claims.js';
-import { criticalOpportunity } from '#gw2/platform/combat/critical-procs.js';
+import { claimActivation } from '#gw2/platform/combat/procs/activation-claims.js';
+import { criticalOpportunity } from '#gw2/platform/combat/procs/critical.js';
 import type { MechanicContext } from '#gw2/platform/profession-definition/mechanic-context.js';
 import type { Gw2HitResolutionContext } from '#gw2/platform/resolver/hit-resolution.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';

@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { createSimulationRandom } from '#kernel/core/simulation-random.js';
-import { createProcRegistry } from '#gw2/platform/combat/procs.js';
+import { createProcRegistry } from '#gw2/platform/combat/procs/registry.js';
 import { criticalProcHandler } from '#gw2/platform/profession-definition/critical-proc-handler.js';
 import { applyBalanceProfilePatch } from '#gw2/integrations/patches/authoring/patches.js';
 import { engineerCatalog } from '#gw2/professions/engineer/catalog.js';

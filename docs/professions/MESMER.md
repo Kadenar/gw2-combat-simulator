@@ -42,8 +42,7 @@ owners implement Crescendo, Syncopate, Harmonize, dodge, and note decisions.
 
 Build callbacks consume active patch values. Runtime attributes retain build provenance and the existing per-query
 fixed-value cache while reading live stacks. Intrinsic Harmonize and Symphonic Resonance preserve their existing
-selection-independent behavior. Generated identity metadata remains in `data/`. See the
-[S5 migration record](../architecture/TRAIT-DEFINITIONS-PLAN.md#s5-progress-mesmer).
+selection-independent behavior. Generated identity metadata remains in `data/`.
 
 ## Implemented systems
 

@@ -1,7 +1,7 @@
 import type { CanonicalCatalog, Skill, SkillId } from '#gw2/platform/skills/types.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
 import type { EffectEmissionService } from '#gw2/platform/effects/emission.js';
-import type { ProcRegistry } from '#gw2/platform/combat/procs.js';
+import type { ProcRegistry } from '#gw2/platform/combat/procs/registry.js';
 import type { MechanicCombatServices } from '#gw2/platform/resolver/mechanic-services.js';
 import type { ExecutedFactsReader, ExecutedFactsWriter } from '#gw2/platform/combat/history/executed-facts.js';
 import type { SimulationRandom } from '#kernel/core/simulation-random.js';

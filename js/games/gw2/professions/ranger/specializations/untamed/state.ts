@@ -1,4 +1,4 @@
-import type { ActivationClaims } from '#gw2/platform/combat/activation-claims.js';
+import type { ActivationClaims } from '#gw2/platform/combat/procs/activation-claims.js';
 import type { RefreshedStacks } from '#gw2/platform/combat/resources/refreshed-stacks.js';
 import type { Gw2PlanningStateInput } from '#gw2/platform/results/types.js';
 import {

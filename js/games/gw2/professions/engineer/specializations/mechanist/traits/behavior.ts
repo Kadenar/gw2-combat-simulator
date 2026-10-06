@@ -23,7 +23,7 @@ import {
   buildEngineerCondition,
   buildEngineerBuff
 } from '#gw2/professions/engineer/core/mechanics/resolution-helpers.js';
-import { isInternalCooldownReady } from '#gw2/platform/combat/procs.js';
+import { isInternalCooldownReady } from '#gw2/platform/combat/procs/registry.js';
 import { mechanistState } from '#gw2/professions/engineer/specializations/mechanist/state.js';
 import { MECHANIST_ATTACK_TIMING } from '#gw2/professions/engineer/specializations/mechanist/mechanics/constants.js';
 import { overclockSignetApplies } from '#gw2/professions/engineer/specializations/mechanist/skills/signet-skills.js';

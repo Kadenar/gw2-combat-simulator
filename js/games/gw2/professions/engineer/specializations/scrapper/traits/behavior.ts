@@ -13,7 +13,7 @@ import {
   type EngineerRuntime,
   type EngineerResolverContext
 } from '#gw2/professions/engineer/types.js';
-import { isInternalCooldownReady } from '#gw2/platform/combat/procs.js';
+import { isInternalCooldownReady } from '#gw2/platform/combat/procs/registry.js';
 import { type Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
 import { type Gw2Stats } from '#gw2/platform/combat/stats.js';
 import { activeBoonStacks as modifierBoonStacks } from '#gw2/professions/engineer/core/traits/query-helpers.js';

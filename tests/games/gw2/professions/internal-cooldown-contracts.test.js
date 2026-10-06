@@ -1,5 +1,5 @@
 import { createMechanicCombatServices } from '#gw2/platform/resolver/mechanic-services.js';
-import { createProcRegistry } from '#gw2/platform/combat/procs.js';
+import { createProcRegistry } from '#gw2/platform/combat/procs/registry.js';
 import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
 import { createElementalistCoreState } from '#gw2/professions/elementalist/core/state.js';
 import { ELEMENTALIST_TRAIT_IDS } from '#gw2/professions/elementalist/data/ids.js';

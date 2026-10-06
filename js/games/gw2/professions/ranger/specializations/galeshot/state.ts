@@ -1,4 +1,4 @@
-import type { ActivationClaims } from '#gw2/platform/combat/activation-claims.js';
+import type { ActivationClaims } from '#gw2/platform/combat/procs/activation-claims.js';
 import {
   createDiscreteResourceClock,
   createResourceClock,

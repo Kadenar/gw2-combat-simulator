@@ -1,6 +1,6 @@
 import { createFirebrandState } from '#gw2/professions/guardian/specializations/firebrand/initial-state.js';
 import { timelineWeaponRows } from '#gw2/app/rotation/timeline/model.js';
-import { createProcRegistry } from '#gw2/platform/combat/procs.js';
+import { createProcRegistry } from '#gw2/platform/combat/procs/registry.js';
 import { projectPublicProfessionState } from '#gw2/platform/profession-definition/state.js';
 import { reactToSymbolOfIgnition } from '#gw2/professions/guardian/core/skills/weapons/pistol.js';
 import { createGuardianCoreState } from '#gw2/professions/guardian/core/state.js';

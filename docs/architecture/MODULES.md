@@ -24,7 +24,6 @@ For how the simulator works (layers, phases, profession contracts, events, timin
 | `data/gw2/rotations/`                 | Saved GW2 rotation presets                                                                                   |
 | `tests/`                              | Unit, integration, architecture, browser, and regression tests                                               |
 | `scripts/`                            | Build, data generation, analysis, audit, and authoring tools                                                 |
-| `docs/cleanup/`                       | Proposed simplifications that are not implemented yet                                                        |
 
 ```text
 build + rotation
@@ -351,12 +350,12 @@ and target state, sigils, relics, profession module assembly, and modifier rules
 | `builds/attributes.ts`            | Shared attribute calculations                                                           |
 | `builds/codec.ts`                 | Build normalization and validation                                                      |
 | `combat/formulas.ts`              | Pure strike/condition formulas and stat conversions, preserving calculation units       |
-| `combat/critical-procs.ts`        | Critical-proc kernel: seeded critical outcomes, secondary proc rolls, and ICD claims    |
+| `combat/procs/critical.ts`        | Critical-proc kernel: seeded critical outcomes, secondary proc rolls, and ICD claims    |
 | `combat/boons.ts`                 | Standard boon metadata, shared stack queries, duration pools, and grant recording       |
 | `execution/cast-timing.ts`        | Cast timing and cast-relative packet scaling                                            |
 | `equipment/weapons/strength.ts`   | Weapon-strength profiles                                                                |
 | `equipment/sigils/loadout.ts`     | Sigil selection, modifier aggregation, and configured weapon-set lookup                 |
-| `equipment/sigils/runtime.ts`     | Sigil state initialization, pending hit effects, and swap/control/strike procs          |
+| `equipment/sigils/runtime.ts`     | Sigil state, pending hit effects, swap/control/strike procs, and buff-state policies    |
 | `equipment/sigils/severance.ts`   | Severance buff queries and critical modifiers                                           |
 | `equipment/`                      | Gear, consumable, relic, sigil, and weapon data                                         |
 | `combat/state/targets.ts`         | Target assumptions                                                                      |
@@ -429,8 +428,8 @@ imports `build/`, and `build/` reads the catalog at module load; merging them cr
 Code outside a profession folder imports only `profession.js`, `app/app-definition.js`, `build/build.js`,
 `build/attributes.js`, `types.js`, `data/**`, and `profiles.js` files. Log integrations import helpers from `data/`,
 never `profession.js`, so lazy log chunks don't load the whole profession graph. Tests are exempt. The shared
-`professions/shared/` helpers are not a profession. `eslint.config.js` and
-`tests/architecture/profession-layout.test.js` enforce this layout.
+`professions/shared/` helpers are not a profession. `eslint.config.js` enforces these import
+boundaries.
 
 ### Module manifest
 
@@ -467,8 +466,7 @@ Ownership rules for the sections:
 - **`presentation`**: palette groups, skill-bar groups, resource displays, active-state snapshot items, timeline and
   event-log presentation, and palette availability messages. Use a `bind…Ui(catalog)` factory (for example
   `bindGuardianCoreUi`) when the UI needs the completed catalog. Presentation reads simulation state and must not
-  reproduce combat rules. Palette availability is the current exception; see
-  [PALETTE-RUNTIME-AVAILABILITY.md](../cleanup/PALETTE-RUNTIME-AVAILABILITY.md).
+  reproduce combat rules. Palette availability is the current exception.
 
 ### Profession file roles
 
@@ -610,8 +608,7 @@ logs/
 Adapters do not import implementation code from one another, except that `wingman/` reshapes its document into the
 `dps-report/` shape and calls `dps-report/` for every reconstruction rule. Add new EI JSON rules to `dps-report/` so
 both URL importers share them. The simulator engine contains no log-specific assumptions; reconstructed actions become
-ordinary simulator rotations before execution. See [EVTC-ROTATION-RECONSTRUCTION.md](../EVTC-ROTATION-RECONSTRUCTION.md)
-and, for the planned shared back end, [LOG-IMPORTER-CONSOLIDATION.md](../cleanup/LOG-IMPORTER-CONSOLIDATION.md).
+ordinary simulator rotations before execution. See [EVTC-ROTATION-RECONSTRUCTION.md](../EVTC-ROTATION-RECONSTRUCTION.md).
 
 ### Patch previews (`js/games/gw2/integrations/patches/`)
 

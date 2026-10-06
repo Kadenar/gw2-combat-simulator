@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { claimActivation } from '#gw2/platform/combat/activation-claims.js';
+import { claimActivation } from '#gw2/platform/combat/procs/activation-claims.js';
 
 // Identity, rather than elapsed time or packet order, determines whether a reaction has already run.
 test('activation claims isolate scopes, activations, and state owners', () => {

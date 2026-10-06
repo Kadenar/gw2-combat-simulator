@@ -1,7 +1,7 @@
 import { RELIC_IDS } from '#gw2/platform/equipment/relics/data.js';
 import { relicIdForName } from '#gw2/platform/equipment/relics/catalog.js';
 /** Brawler relic rules. */
-import { isInternalCooldownReady } from '#gw2/platform/combat/procs.js';
+import { isInternalCooldownReady } from '#gw2/platform/combat/procs/registry.js';
 import { isGw2PlayerActorEvent } from '#gw2/platform/combat/state/event-ownership.js';
 import {
   defineRelic,

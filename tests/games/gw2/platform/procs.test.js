@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { createProcRegistry, tryConsumeProcCooldown } from '#gw2/platform/combat/procs.js';
+import { createProcRegistry, tryConsumeProcCooldown } from '#gw2/platform/combat/procs/registry.js';
 
 // Exercise ordinary proc claims independently of profession effects and critical progress.
 test('proc cooldown claims preserve canonical boundaries and isolate keys and owners', () => {

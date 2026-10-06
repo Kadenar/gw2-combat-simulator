@@ -6,7 +6,7 @@ import type {
   SelectedContentContext
 } from '#gw2/platform/profession-definition/runtime-context.js';
 import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
-import { isInternalCooldownReady } from '#gw2/platform/combat/procs.js';
+import { isInternalCooldownReady } from '#gw2/platform/combat/procs/registry.js';
 import { grantTimedStacks } from '#gw2/platform/combat/resources/timed-stacks.js';
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import { professionCoreState } from '#gw2/platform/profession-definition/state.js';

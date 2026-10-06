@@ -3,7 +3,7 @@ import {
   advanceCriticalProc,
   criticalOpportunity,
   type CriticalProcApplication
-} from '#gw2/platform/combat/critical-procs.js';
+} from '#gw2/platform/combat/procs/critical.js';
 import type { NativeResolvedDamageDetails } from '#gw2/platform/profession-definition/module-types.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 

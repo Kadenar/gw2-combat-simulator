@@ -1,4 +1,4 @@
-import { claimActivation } from '#gw2/platform/combat/activation-claims.js';
+import { claimActivation } from '#gw2/platform/combat/procs/activation-claims.js';
 import { skillForEvent } from '#gw2/platform/combat/query/runtime-query.js';
 import { CANONICAL_TARGET_CONDITIONS } from '#gw2/platform/combat/state/targets.js';
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';

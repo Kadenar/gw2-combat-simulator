@@ -190,4 +190,4 @@ Hook order does not move events on the timeline. Modifier order does not determi
 - `js/kernel/events/queue.ts` owns stable phased ordering and cancellation.
 - `js/games/gw2/platform/simulation/runtime.ts` owns command acceptance and queue dispatch.
 - `js/games/gw2/platform/simulation/internal-work.ts` validates private payloads and ownership.
-- `tests/games/gw2/platform/engine/event-ordering.test.js` and `live-services.test.js` cover ordering contracts.
+- `tests/games/gw2/platform/events/event-ordering.test.js` covers ordering contracts.

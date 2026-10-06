@@ -15,7 +15,7 @@ import { buildEngineerPackets } from '#gw2/professions/engineer/core/events.js';
 import { ENGINEER_SKILL_IDS as ID, ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
 import type { SimulationEventBase } from '#gw2/platform/events/events.js';
 import { buildEngineerBuff } from '#gw2/professions/engineer/core/mechanics/resolution-helpers.js';
-import { isInternalCooldownReady } from '#gw2/platform/combat/procs.js';
+import { isInternalCooldownReady } from '#gw2/platform/combat/procs/registry.js';
 import { professionStaticRulesApplied } from '#gw2/platform/builds/attribute-provenance.js';
 import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
 import type { Gw2MutableStats, Gw2Stats } from '#gw2/platform/combat/stats.js';

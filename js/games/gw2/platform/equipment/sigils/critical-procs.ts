@@ -1,10 +1,10 @@
-import { isInternalCooldownReady } from '#gw2/platform/combat/procs.js';
+import { isInternalCooldownReady } from '#gw2/platform/combat/procs/registry.js';
 import { isGw2PlayerActorEvent } from '#gw2/platform/combat/state/event-ownership.js';
 import { missesTarget } from '#gw2/platform/combat/state/targets.js';
 import { SIGIL_PROCS } from '#gw2/platform/equipment/sigils/data.js';
 import type { SimulationEvent } from '#gw2/platform/events/events.js';
 import type { Gw2SigilProc } from '#gw2/platform/equipment/sigils/types.js';
-import type { ProcRegistry } from '#gw2/platform/combat/procs.js';
+import type { ProcRegistry } from '#gw2/platform/combat/procs/registry.js';
 
 const PROCS = SIGIL_PROCS as Readonly<Record<number, Gw2SigilProc>>;
 

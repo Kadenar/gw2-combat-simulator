@@ -2,7 +2,7 @@ import { buffApplicationStacks } from '#gw2/platform/combat/boons.js';
 import { RELIC_IDS } from '#gw2/platform/equipment/relics/data.js';
 import { relicIdForName } from '#gw2/platform/equipment/relics/catalog.js';
 /** Helpers shared by more than one relic rule module. */
-import { isInternalCooldownReady } from '#gw2/platform/combat/procs.js';
+import { isInternalCooldownReady } from '#gw2/platform/combat/procs/registry.js';
 import { isGw2PlayerActorEvent, isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
 import { targetHasCondition } from '#gw2/platform/combat/state/targets.js';
 import { gw2EffectExpiresAt } from '#gw2/platform/effects/timing.js';

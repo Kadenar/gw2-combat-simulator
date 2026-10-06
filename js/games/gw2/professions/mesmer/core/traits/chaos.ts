@@ -2,7 +2,7 @@ import { boonActive, buffActive } from '#gw2/platform/combat/query/runtime-query
 import { professionStaticRulesApplied } from '#gw2/platform/builds/attribute-provenance.js';
 import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
-import { isInternalCooldownReady } from '#gw2/platform/combat/procs.js';
+import { isInternalCooldownReady } from '#gw2/platform/combat/procs/registry.js';
 
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import type { EffectDelivery } from '#gw2/platform/effects/emission.js';

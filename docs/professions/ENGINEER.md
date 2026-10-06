@@ -54,9 +54,6 @@ Holosmith, Mechanist, or Amalgam. Each specialization owns its data, state, mech
 - `specializations/amalgam/traits/index.ts` — nine definitions own Morph/Evolve payoffs, trait build contributions,
   variant selection, and accepted-control recharge reductions. `traits/behavior.ts` owns the shared Morph/Evolve and
   Carbolic Composition helpers. The committed Morph task retains cross-trait ordering.
-- Supporting elite behavior remains under each `traits/` directory; mechanic callers import those helpers directly. The
-  [trait file organization](../architecture/TRAIT-FILE-ORGANIZATION.md) defines the Core and elite ownership rules.
-- See the [trait-definition plan](../architecture/TRAIT-DEFINITIONS-PLAN.md#s5-progress-engineer) for the full
-  inventory, retained timing boundaries, and validation record.
+- Supporting elite behavior remains under each `traits/` directory; mechanic callers import those helpers directly.
 - `specializations/mechanist/mechanics/mech.ts` — persistent mech attacks and commands.
 - `core/module.ts` and each specialization's `module.ts` — native module registration and phase ownership.

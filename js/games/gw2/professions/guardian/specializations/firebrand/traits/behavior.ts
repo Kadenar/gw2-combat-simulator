@@ -17,7 +17,7 @@ import { guardianCastCause } from '#gw2/professions/guardian/core/mechanics/even
 import { reactToJusticeHitWithOptions } from '#gw2/professions/guardian/core/mechanics/virtues.js';
 import { guardianTraitIcon } from '#gw2/professions/guardian/core/traits/metadata.js';
 
-import { isInternalCooldownReady } from '#gw2/platform/combat/procs.js';
+import { isInternalCooldownReady } from '#gw2/platform/combat/procs/registry.js';
 import { GUARDIAN_SKILL_IDS as ID, GUARDIAN_TRAIT_IDS as TRAIT } from '#gw2/professions/guardian/data/ids.js';
 import {
   alliedAshes,

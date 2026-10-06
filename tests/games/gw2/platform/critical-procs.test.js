@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { advanceCriticalProc, criticalOpportunity } from '#gw2/platform/combat/critical-procs.js';
+import { advanceCriticalProc, criticalOpportunity } from '#gw2/platform/combat/procs/critical.js';
 
 test('critical procs consume sampled facts and independent secondary rolls', () => {
   const streams = [];

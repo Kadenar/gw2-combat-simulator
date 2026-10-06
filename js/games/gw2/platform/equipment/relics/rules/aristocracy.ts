@@ -1,6 +1,6 @@
 /** Aristocracy relic rules. */
 import { EPSILON, isTimeInWindow } from '#kernel/core/clock.js';
-import { isInternalCooldownReady } from '#gw2/platform/combat/procs.js';
+import { isInternalCooldownReady } from '#gw2/platform/combat/procs/registry.js';
 import { isGw2PlayerActorEvent } from '#gw2/platform/combat/state/event-ownership.js';
 import { missesTarget } from '#gw2/platform/combat/state/targets.js';
 import { gw2EffectExpiresAt } from '#gw2/platform/effects/timing.js';

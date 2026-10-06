@@ -9,8 +9,7 @@ or rotations.
 Trait definitions expand at native module registration, before preview authoring reads profiles or modifier rules.
 Preview reconstruction consumes those expanded modules without registering definitions again, so edited rules cannot be
 replaced by base declarations. Trait callbacks and build calculations read the active balance context; tooltip selectors
-use that same context. Removing an effect retains the existing removal provenance. The patch format is unchanged; see
-[the trait composition contract](./TRAIT-DEFINITIONS-PLAN.md#shared-implementation-record-s0-s3).
+use that same context. Removing an effect retains the existing removal provenance. The patch format is unchanged.
 
 This allows the same build and rotation to be simulated against:
 

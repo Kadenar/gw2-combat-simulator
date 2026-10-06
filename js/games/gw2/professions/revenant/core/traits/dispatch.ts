@@ -1,4 +1,4 @@
-import { claimActivation } from '#gw2/platform/combat/activation-claims.js';
+import { claimActivation } from '#gw2/platform/combat/procs/activation-claims.js';
 import type { RevenantSkill } from '#gw2/professions/revenant/types.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';

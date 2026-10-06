@@ -1,7 +1,7 @@
 import { createMesmerIllusionRewards, mesmerActivePrimaryWeapon } from '#gw2/professions/mesmer/family-mechanics.js';
 import type { MesmerEventExtra } from '#gw2/professions/mesmer/data/types.js';
 import { professionStaticRulesApplied } from '#gw2/platform/builds/attribute-provenance.js';
-import { advanceCriticalProc, criticalOpportunity } from '#gw2/platform/combat/critical-procs.js';
+import { advanceCriticalProc, criticalOpportunity } from '#gw2/platform/combat/procs/critical.js';
 import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
 import type { Gw2ResolvedStats } from '#gw2/platform/combat/stats.js';
 import { boonActive } from '#gw2/platform/combat/query/runtime-query.js';

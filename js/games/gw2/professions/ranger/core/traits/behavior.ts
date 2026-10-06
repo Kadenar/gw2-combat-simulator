@@ -1,5 +1,5 @@
 import { boonActive, skillForEvent } from '#gw2/platform/combat/query/runtime-query.js';
-import { claimActivation } from '#gw2/platform/combat/activation-claims.js';
+import { claimActivation } from '#gw2/platform/combat/procs/activation-claims.js';
 import { grantCharges } from '#gw2/platform/combat/resources/charges.js';
 import { professionStaticRulesApplied } from '#gw2/platform/builds/attribute-provenance.js';
 import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';

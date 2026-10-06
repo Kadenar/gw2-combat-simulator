@@ -1,4 +1,4 @@
-import { claimActivation } from '#gw2/platform/combat/activation-claims.js';
+import { claimActivation } from '#gw2/platform/combat/procs/activation-claims.js';
 import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
 import { consumeCharge, expireCharges } from '#gw2/platform/combat/resources/charges.js';
 import { gw2AlliedPlayerProcTimeline } from '#gw2/platform/combat/state/allied-players.js';
@@ -37,7 +37,7 @@ import {
 } from '#gw2/professions/ranger/specializations/soulbeast/traits/behavior.js';
 import type { RangerResolverContext, RangerRuntime, RangerSkill } from '#gw2/professions/ranger/types.js';
 import { canonicalTime } from '#kernel/core/clock.js';
-import { isInternalCooldownReady } from '#gw2/platform/combat/procs.js';
+import { isInternalCooldownReady } from '#gw2/platform/combat/procs/registry.js';
 
 /** Soulbeast resolver-phase reactions and event handlers. */
 

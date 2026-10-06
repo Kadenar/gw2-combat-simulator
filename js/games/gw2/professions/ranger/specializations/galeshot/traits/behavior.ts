@@ -1,4 +1,4 @@
-import { claimActivation } from '#gw2/platform/combat/activation-claims.js';
+import { claimActivation } from '#gw2/platform/combat/procs/activation-claims.js';
 import { isBeastSkill } from '#gw2/professions/ranger/core/traits/dispatch.js';
 import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
 import type { Gw2TraitLookupContext } from '#gw2/platform/builds/selected-traits.js';

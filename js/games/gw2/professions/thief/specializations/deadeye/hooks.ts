@@ -1,4 +1,4 @@
-import { claimActivation } from '#gw2/platform/combat/activation-claims.js';
+import { claimActivation } from '#gw2/platform/combat/procs/activation-claims.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import { maximumDeadeyeMalice } from '#gw2/professions/thief/specializations/deadeye/traits/behavior.js';
 
@@ -16,7 +16,7 @@ import {
   stolenSkillGrant
 } from '#gw2/professions/thief/specializations/deadeye/traits/behavior.js';
 
-import { criticalOpportunity } from '#gw2/platform/combat/critical-procs.js';
+import { criticalOpportunity } from '#gw2/platform/combat/procs/critical.js';
 import { canonicalTime } from '#kernel/core/clock.js';
 
 import {

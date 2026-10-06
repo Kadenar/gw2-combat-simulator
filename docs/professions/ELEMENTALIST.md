@@ -51,9 +51,7 @@ existing patch IDs and supplies singularity tuning to Transcendent Tempest. Weav
 execution in mechanics, with explicit trait calls at initialization, accepted entry, and committed completion. Catalyst
 traits own empowerment renewal and aura/combo reactions while sphere execution and resource accounting remain in
 mechanics. Evoker traits own familiar rewards, synthetic entry policy, recharge adjustments, and enchantment payloads;
-skill casts and deferred resource settlement retain their existing scheduler boundaries. See the
-[trait migration inventory](../architecture/TRAIT-DEFINITIONS-PLAN.md#s5-progress-elementalist) for retained state, call
-sites, and ordering.
+skill casts and deferred resource settlement retain their existing scheduler boundaries.
 
 ## Owned systems
 

@@ -1,5 +1,5 @@
 import { captureEffectEmissions } from '#tests/helpers/effect-emission.js';
-import { createProcRegistry } from '#gw2/platform/combat/procs.js';
+import { createProcRegistry } from '#gw2/platform/combat/procs/registry.js';
 import { createMesmerCoreState } from '#gw2/professions/mesmer/core/state.js';
 import { triggerMesmerCriticalTraits } from '#gw2/professions/mesmer/core/traits/dueling.js';
 import { triggerMesmerControlTraits } from '#gw2/professions/mesmer/core/traits/dispatch.js';

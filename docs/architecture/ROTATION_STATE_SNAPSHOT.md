@@ -293,9 +293,9 @@ export const BERSERKER_PUBLIC_STATE_PROJECTION = definePublicStateDefaults({
 } satisfies Partial<BerserkerState>);
 ```
 
-`definePublicStateDefaults()` comes from `#gw2/platform/profession-definition/state.js`. Warrior's `family-state.ts`
-combines the slice projections with `composePublicStateProjections()` and derives `WARRIOR_PUBLIC_END_STATE_KEYS` from
-the combined projection. There is no separate per-slice key list to maintain.
+`definePublicStateDefaults()` comes from `#gw2/platform/profession-definition/state.js`. Each module manifest passes its
+projection to `createPublicStateProjector()` as `state.project`, and `defineNativeProfession` merges the selected Core
+and elite projections into the planning state. There is no separate per-slice key list to maintain.
 
 Now the value can reach:
 

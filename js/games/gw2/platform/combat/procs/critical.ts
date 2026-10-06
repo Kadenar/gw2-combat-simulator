@@ -1,4 +1,4 @@
-import { isInternalCooldownReady } from '#gw2/platform/combat/procs.js';
+import { isInternalCooldownReady } from '#gw2/platform/combat/procs/registry.js';
 
 interface CriticalOpportunity {
   readonly sampledCriticals: number;

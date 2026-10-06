@@ -35,7 +35,7 @@ canonical default profiles to its state factory, keeping runtime state independe
 - **Spear (Janthir Wilds)** — the Illuminated mechanic (armed by spear 2/3/4, held open by Symbol of Luminance; consumed
   by the next supported enhanced spear skill: Helio Rush, Gleaming Disc, or Solar Storm; filler autoattacks do not
   consume it). Skill data lives in `core/skills/weapons/spear.ts`; persistent Illuminated behavior lives in
-  `core/mechanics/spear-illumination.ts`.
+  `core/mechanics/spear.ts`.
 - Explicit strike-modifier grouping (Force/Impact, Empowered/Radiant Armaments, Furious Focus, Retribution, Symbolic
   Avenger, Piercing Stance share one additive bucket; Fiery Wrath, Symbolic Exposure, gates, vulnerability, and relics
   stay separate multipliers). Permanent Protection/Resolution/Regeneration/Swiftness are on by default; permanent Aegis

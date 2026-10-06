@@ -5,7 +5,7 @@ import { chartValueAt } from '#gw2/app/results/charts/time-series-model.js';
 import { buildChartSeries } from '#gw2/app/results/model.js';
 import { applyBalanceProfilePatch } from '#gw2/integrations/patches/authoring/patches.js';
 import { remainingDurationStackSeconds } from '#gw2/platform/combat/boons.js';
-import { createProcRegistry } from '#gw2/platform/combat/procs.js';
+import { createProcRegistry } from '#gw2/platform/combat/procs/registry.js';
 import { activeStackCount } from '#gw2/platform/combat/resources/timed-stacks.js';
 import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
 import { thiefCoreUi } from '#gw2/professions/thief/core/presentation.js';
