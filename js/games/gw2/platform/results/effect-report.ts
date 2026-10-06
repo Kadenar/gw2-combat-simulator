@@ -204,6 +204,11 @@ export class EffectRecorder implements EffectReportObserver {
       tracks.push({ ...metadata, id, segments, terminal });
     }
 
+    // First visible intervals define chart order; stable IDs break timestamp ties independently of capture order.
+    tracks.sort(
+      (a, b) =>
+        (a.segments[0]?.start ?? end) - (b.segments[0]?.start ?? end) || (a.id < b.id ? -1 : a.id > b.id ? 1 : 0)
+    );
     return structuredClone({ start: 0, end, tracks });
   }
 }

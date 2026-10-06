@@ -86,6 +86,7 @@ export function runRuntime<T extends object>(
   } = { observation: undefined, ...options };
   let config = inputConfig;
   const ownsEffect = options.output === 'damage' ? options.ownsEffect : undefined;
+  let effectsCapturePending = false;
   const started = onPhase ? performance.now() : 0;
   // Validate the invocation's selected catalog, including patches, before initializing or mutating live state.
   const supportedResources = new Set<ResourceKey | 'endurance'>(
@@ -439,9 +440,16 @@ export function runRuntime<T extends object>(
     captureEffects();
   }
 
-  // Observe the existing owners after each accepted transaction, including custom tasks with no buff packet.
+  // Every accepted transaction dirties chart state, including custom tasks with no buff packet.
   function captureEffects(): void {
     if (!runtime.effectRecorder || (runtime.deathTime != null && runtime.time > runtime.deathTime)) return;
+    effectsCapturePending = true;
+  }
+
+  // Same-timestamp transactions have no visible duration between them; record only their settled state.
+  function flushEffects(): void {
+    if (!effectsCapturePending) return;
+    effectsCapturePending = false;
     captureRuntimeEffects(runtime, profession);
   }
 
@@ -453,7 +461,15 @@ export function runRuntime<T extends object>(
     acceptCast: casts.acceptCast,
     reject: casts.reject
   };
-  coordinator.run(runtime, execution, policy, driverContext, dispatch, ownsEffect ? damageCompletionTime : undefined);
+  coordinator.run(
+    runtime,
+    execution,
+    policy,
+    driverContext,
+    dispatch,
+    flushEffects,
+    ownsEffect ? damageCompletionTime : undefined
+  );
   if (runtime.rotationEndTime == null) throw new Error('Execution completed without a rotation boundary.');
   const reportingStarted = onPhase ? performance.now() : 0;
   onPhase?.('execution', reportingStarted - started);

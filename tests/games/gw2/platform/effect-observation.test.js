@@ -208,12 +208,24 @@ test('recorder keeps identity scopes distinct and clears only the owner that omi
   recorder.capture(1, [state(6)]);
   const report = recorder.finish(2);
   assert.deepEqual(
-    report.tracks.map((track) => effectStateAt(report, track, 0).count),
-    [1, 2, 3, 4, 1]
+    new Map(report.tracks.map((track) => [track.id, effectStateAt(report, track, 0).count])),
+    new Map([
+      ['simulated:self:buff:shared', 1],
+      ['assumption:self:buff:shared', 2],
+      ['simulated:companion:1:buff:shared', 3],
+      ['simulated:self:boon:shared', 4],
+      ['simulated:self:buff:relic:shared', 1]
+    ])
   );
   assert.deepEqual(
-    report.tracks.map((track) => effectStateAt(report, track, 1).count),
-    [6, 0, 0, 0, 1]
+    new Map(report.tracks.map((track) => [track.id, effectStateAt(report, track, 1).count])),
+    new Map([
+      ['simulated:self:buff:shared', 6],
+      ['assumption:self:buff:shared', 0],
+      ['simulated:companion:1:buff:shared', 0],
+      ['simulated:self:boon:shared', 0],
+      ['simulated:self:buff:relic:shared', 1]
+    ])
   );
 });
 

@@ -119,6 +119,7 @@ export function createExecutionCoordinator<T extends object>(getRuntime: () => G
     policy: ObservationPolicy,
     driverContext: RuntimeDriverContext<T>,
     dispatch: (event: Gw2ResolverEvent) => void,
+    flushEffects: () => void,
     completion?: () => number
   ): void {
     const cursor = execution.driver.cursor;
@@ -171,6 +172,8 @@ export function createExecutionCoordinator<T extends object>(getRuntime: () => G
 
       const next = Math.min(nextCommandAt, queue.peek()?.at ?? Infinity, runtime.horizon ?? Infinity, completionAt);
       if (!Number.isFinite(next) || next <= runtime.time) throw new Error('Live runtime has no advancing boundary.');
+      // Observe the settled timestamp before the clock and time-dependent resources move forward.
+      flushEffects();
       runtime.time = canonicalTime(next);
       runtime.resourceController.advance();
       runtime.endurance.advance();
@@ -178,6 +181,8 @@ export function createExecutionCoordinator<T extends object>(getRuntime: () => G
     }
 
     if (!finished || runtime.rotationEndTime == null) throw new Error('Live runtime exceeded its action safety limit.');
+    // The final timestamp has no following clock advance to flush its accepted state.
+    flushEffects();
   }
 
   return {
