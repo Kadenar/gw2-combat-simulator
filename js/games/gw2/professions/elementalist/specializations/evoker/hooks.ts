@@ -11,7 +11,10 @@ import {
   ELECTRIC_ENCHANTMENT_ICON,
   FAMILIAR_ELEMENTS
 } from '#gw2/professions/elementalist/specializations/evoker/mechanics/constants.js';
-import { onAcceptedEvent } from '#gw2/professions/elementalist/specializations/evoker/mechanics/event-handlers.js';
+import {
+  applyCalcifyProtection,
+  onAcceptedEvent
+} from '#gw2/professions/elementalist/specializations/evoker/mechanics/event-handlers.js';
 import {
   beginFamiliarCast,
   captureIgniteTier,
@@ -114,5 +117,9 @@ export const evokerHooks: RuntimeHooks<ElementalistRuntimeState, ElementalistSki
       delete evokerState.from(runtime).cancelledFamiliarActivations[cast.id];
     }
   },
-  reactions: { 'damage.resolved': onAcceptedEvent, 'condition.applied': onAcceptedEvent }
+  reactions: {
+    'damage.resolved': onAcceptedEvent,
+    'condition.applied': onAcceptedEvent,
+    'control.resolved': applyCalcifyProtection
+  }
 };

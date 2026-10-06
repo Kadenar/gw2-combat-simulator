@@ -2,6 +2,7 @@ import { escapeHtml } from '#ui/shared/html.js';
 import { PRESENTATION_ALLIED_PLAYER_COUNT } from '#gw2/platform/results/boon-generation.js';
 import {
   buildPhaseDpsSeries,
+  buildContributionDamageSeries,
   chartAxisMaximum,
   buildRollingDpsSeries,
   buildPhaseEffectSeries,
@@ -36,7 +37,7 @@ interface ChartLine {
   readonly effectName?: string;
   readonly color: string;
   readonly points: readonly ChartPoint[];
-  readonly dashed?: boolean;
+  readonly dash?: readonly number[];
   readonly stepped?: boolean;
   readonly unit?: string;
 }
@@ -377,7 +378,7 @@ function drawLineChart(
   for (const line of orderedLines) {
     if (!line.points.length) continue;
     context.save();
-    context.setLineDash(line.dashed ? [6, 4] : []);
+    context.setLineDash([...(line.dash || [])]);
     context.strokeStyle = line.color;
     const highlighted = hasHighlight && line.effectName === highlightedEffect;
     context.globalAlpha = hasHighlight && !highlighted ? 0.2 : 1;
@@ -585,13 +586,19 @@ function chartHtml(
     <div class="chart-panels">
       <div class="chart-panel">
         <div class="chart-panel-title" data-role="dps-panel-title">${escapeHtml(options.dpsLabel)} Over Time</div>
-        <div class="chart-phase-toggles" role="group" aria-label="DPS display">
-          <button type="button" data-dps-mode="cumulative" aria-pressed="true">Cumulative</button>
-          <button type="button" data-dps-mode="rolling-1s" aria-pressed="false">Rolling 1s</button>
-          <button type="button" data-dps-mode="rolling-5s" aria-pressed="false">Rolling 5s</button>
-          <button type="button" data-dps-mode="all" aria-pressed="false">All</button>
-          <span>Cumulative: solid · Rolling 1s: amber · Rolling 5s: blue dashed</span>
+        <div class="chart-toggles chart-dps-controls" role="group" aria-label="Damage sources">
+          <span class="chart-toggle-label">Damage</span>
+          <label><input type="checkbox" data-dps-source="total" checked /><span class="swatch" style="background:${escapeHtml(options.dpsColor)}"></span>Total</label>
+          <label><input type="checkbox" data-dps-source="strike" /><span class="swatch" style="background:#65b9ff"></span>Strike</label>
+          <label><input type="checkbox" data-dps-source="condition" /><span class="swatch" style="background:#e889c8"></span>Condition</label>
         </div>
+        <div class="chart-toggles chart-dps-controls" role="group" aria-label="DPS averaging">
+          <span class="chart-toggle-label">Average</span>
+          <label><input type="checkbox" data-dps-window="cumulative" checked />Average so far</label>
+          <label><input type="checkbox" data-dps-window="rolling-1s" />Last 1s</label>
+          <label><input type="checkbox" data-dps-window="rolling-5s" />Last 5s</label>
+        </div>
+        <div class="chart-toggles" data-role="dps-legend"></div>
         <div class="chart-canvas-wrap">
           <canvas class="chart-canvas" data-role="dps-canvas" tabindex="0" aria-label="DPS chart"></canvas>
           <div class="chart-crosshair" hidden></div><div class="chart-selection" hidden></div>
@@ -648,6 +655,7 @@ export function mountTimeSeriesCharts(
   const resolvedSeries: ChartSeries = {
     durationMs: Math.max(1, Number(series?.durationMs || 0)),
     dps: resolvedDps,
+    damageContributions: series.damageContributions,
     effects: series?.effects || {},
     alliedEffects: series?.alliedEffects || {},
     alliedAverageStacks: series?.alliedAverageStacks || {},
@@ -690,7 +698,8 @@ export function mountTimeSeriesCharts(
     { kind: 'effects', layout: null, lines: [] },
     { kind: 'conditions', layout: null, lines: [] }
   ];
-  let dpsMode = 'cumulative';
+  const dpsWindows = new Set(['cumulative']);
+  const dpsSources = new Set(['total']);
   let hoveredEffect: string | null = null;
   let focusedEffect: string | null = null;
   let zoomRange: { start: number; end: number } | null = null;
@@ -726,30 +735,70 @@ export function mountTimeSeriesCharts(
         panel.kind === 'dps' ? resolvedOptions.dpsLabel : panel.kind === 'conditions' ? 'Conditions' : 'Boons & Buffs';
       if (title) title.textContent = `${label} Over Time${activePhase.id === 'full' ? '' : ` — ${activePhase.label}`}`;
       if (panel.kind === 'dps') {
-        panel.lines = [
-          ...(dpsMode === 'cumulative' || dpsMode === 'all'
-            ? [{ name: `Cumulative ${resolvedOptions.dpsLabel}`, color: resolvedOptions.dpsColor, points: dpsView.dps }]
+        // Every source uses the same phase origin and rolling denominator, so contributions sum to total DPS.
+        const sources = [
+          ...(dpsSources.has('total')
+            ? [{ label: 'Total', color: resolvedOptions.dpsColor, damage: cumulativeDamage }]
             : []),
-          ...(dpsMode === 'rolling-1s' || dpsMode === 'all'
-            ? [
-                {
-                  name: `Rolling 1s ${resolvedOptions.dpsLabel}`,
-                  color: '#efba62',
-                  points: buildRollingDpsSeries(cumulativeDamage, 1000)
-                }
-              ]
-            : []),
-          ...(dpsMode === 'rolling-5s' || dpsMode === 'all'
-            ? [
-                {
-                  name: `Rolling 5s ${resolvedOptions.dpsLabel}`,
-                  color: '#65b9ff',
-                  dashed: true,
-                  points: buildRollingDpsSeries(cumulativeDamage, 5000)
-                }
-              ]
-            : [])
+          ...(['strike', 'condition'] as const)
+            .filter((kind) => dpsSources.has(kind))
+            .map((kind) => ({
+              label: kind === 'strike' ? 'Strike' : 'Condition',
+              color: kind === 'strike' ? '#65b9ff' : '#e889c8',
+              damage: buildContributionDamageSeries(
+                resolvedSeries.damageContributions[kind],
+                dpsView.dps,
+                activePhase.startMs,
+                activePhase.id === 'full'
+              )
+            }))
         ];
+        panel.lines = sources.flatMap((source): ChartLine[] => {
+          const name = (window: string): string =>
+            `${window}${source.label ? ` ${source.label}` : ''} ${resolvedOptions.dpsLabel}`;
+          return [
+            ...(dpsWindows.has('cumulative')
+              ? [
+                  {
+                    name: name('Average so far'),
+                    color: source.color,
+                    points:
+                      source.label !== 'Total'
+                        ? source.damage.map(({ t, v }) => ({ t, v: t > 0 ? v / (t / 1000) : 0 }))
+                        : dpsView.dps
+                  }
+                ]
+              : []),
+            ...(dpsWindows.has('rolling-1s')
+              ? [
+                  {
+                    name: name('Last 1s'),
+                    color: source.color,
+                    dash: [2, 3],
+                    points: buildRollingDpsSeries(source.damage, 1000)
+                  }
+                ]
+              : []),
+            ...(dpsWindows.has('rolling-5s')
+              ? [
+                  {
+                    name: name('Last 5s'),
+                    color: source.color,
+                    dash: [6, 4],
+                    points: buildRollingDpsSeries(source.damage, 5000)
+                  }
+                ]
+              : [])
+          ];
+        });
+        const legend = container.querySelector<HTMLElement>('[data-role="dps-legend"]');
+        if (legend)
+          legend.innerHTML = panel.lines
+            .map(
+              (line) =>
+                `<span><span class="swatch" style="background:${escapeHtml(line.color)}"></span> ${escapeHtml(line.name)}${line.dash ? (line.dash[0] === 2 ? ' (dotted)' : ' (dashed)') : ''}</span>`
+            )
+            .join('');
       } else {
         // Target conditions own a separate scale; only boons participate in the audience selector.
         panel.lines = effectNames
@@ -776,7 +825,7 @@ export function mountTimeSeriesCharts(
                 color,
                 unit,
                 stepped,
-                dashed: true
+                dash: [6, 4]
               });
             return lines;
           });
@@ -793,7 +842,12 @@ export function mountTimeSeriesCharts(
           height: panel.kind === 'dps' ? 280 : 260,
           tightScale: panel.kind === 'dps',
           highlightedEffect: hoveredEffect ?? focusedEffect,
-          emptyText: panel.kind === 'conditions' ? 'No visible conditions' : resolvedOptions.emptyEffectsText,
+          emptyText:
+            panel.kind === 'dps'
+              ? 'Select a damage source and averaging window'
+              : panel.kind === 'conditions'
+                ? 'No visible conditions'
+                : resolvedOptions.emptyEffectsText,
           timeOffsetMs: viewRange.offset + viewRange.start,
           markers:
             panel.kind === 'dps'
@@ -849,11 +903,13 @@ export function mountTimeSeriesCharts(
     };
   }
 
-  for (const button of container.querySelectorAll<HTMLButtonElement>('[data-dps-mode]')) {
-    button.onclick = () => {
-      dpsMode = button.dataset.dpsMode!;
-      for (const control of container.querySelectorAll<HTMLButtonElement>('[data-dps-mode]'))
-        control.setAttribute('aria-pressed', String(control.dataset.dpsMode === dpsMode));
+  // Independent checkboxes make every curve combination explicit and preserve selections across phase and zoom changes.
+  for (const input of container.querySelectorAll<HTMLInputElement>('[data-dps-source], [data-dps-window]')) {
+    input.onchange = () => {
+      const selected = input.dataset.dpsSource ? dpsSources : dpsWindows;
+      const key = input.dataset.dpsSource ?? input.dataset.dpsWindow!;
+      if (input.checked) selected.add(key);
+      else selected.delete(key);
       redraw();
     };
   }
@@ -896,7 +952,9 @@ export function mountTimeSeriesCharts(
       zoomRange = { start, end };
       redraw();
     },
-    resetZoom
+    () => {
+      if (zoomRange) resetZoom();
+    }
   );
 
   let redrawFrame: number | null = null;

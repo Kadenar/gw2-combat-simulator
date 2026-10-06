@@ -17,6 +17,42 @@ const trackFor = (report, kind, recipient = 'ally:1') =>
   report.tracks.find((track) => track.kind === kind && track.recipient === recipient);
 const valueAt = (report, kind, at, recipient) => effectStateAt(report, trackFor(report, kind, recipient), at);
 
+// Combat entry limits generation credit, but preparation grants still seed each ally's live boon pool.
+test('party projection retains preparation boons while generation counts only the combat window', () => {
+  const events = [grant('alacrity', 0, 4), grant('alacrity', 3, 4)];
+  const generation = buildBoonGeneration(events, 2, 10);
+  const report = projectedPartyEffects(generation, 10);
+  const completeHistory = reportFor(events, 10);
+  assert.equal(generation.boons.get('alacrity').self.generatedStackSeconds, 4);
+  assert.equal(generation.boons.get('alacrity').allies.generatedStackSeconds, 16);
+  for (const recipient of ['ally:1', 'ally:2', 'ally:3', 'ally:4']) {
+    for (const at of [0, 2, 3, 7, 8]) {
+      assert.deepEqual(valueAt(report, 'alacrity', at, recipient), valueAt(completeHistory, 'alacrity', at, recipient));
+    }
+  }
+});
+
+// Extensions after combat entry can extend preparation boons; earlier grants and extensions earn no combat credit.
+test('party generation credits in-combat extensions of preparation boons for their actual recipients', () => {
+  const generation = buildBoonGeneration(
+    [
+      grant('alacrity', 0, 4),
+      grant('fury', 0, 4, 1, { audience: { recipients: 'self' } }),
+      { type: 'boon_extension', at: 1, duration: 1, extensionAudience: 'all' },
+      { type: 'boon_extension', at: 3, duration: 2, extensionAudience: 'all' }
+    ],
+    2,
+    10
+  );
+  assert.equal(generation.boons.get('alacrity').self.generatedStackSeconds, 2);
+  assert.equal(generation.boons.get('alacrity').allies.generatedStackSeconds, 8);
+  assert.equal(generation.boons.get('fury').self.generatedStackSeconds, 2);
+  assert.equal(generation.boons.get('fury').allies.generatedStackSeconds, 0);
+  const report = projectedPartyEffects(generation, 10);
+  assert.equal(valueAt(report, 'alacrity', 3).expiresAt, 7);
+  assert.equal(trackFor(report, 'fury'), undefined);
+});
+
 // Independent capture scopes must retain other allies and boons while the current track changes.
 test('party projection preserves unrelated tracks and partial recipient audiences', () => {
   const report = reportFor(

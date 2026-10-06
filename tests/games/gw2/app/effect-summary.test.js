@@ -199,7 +199,6 @@ test('allied boon state preserves recipient caps, extensions, expiry, and observ
       dpsStartTime: 1,
       ...effectFields(
         [
-          buff('might', -1, 30, 25, { audience: { recipients: 'party' } }),
           buff('might', 0, 2, 30, { audience: { recipients: 'party', maximumRecipients: 3 } }),
           buff('fury', 0, 2, 1, { audience: { recipients: 'party', maximumRecipients: 3 } }),
           buff('fury', 0, 20),
@@ -430,6 +429,23 @@ test('empty observation windows do not accrue uptime or generated duration', () 
   assert.equal(series.boonGeneration.Might, undefined);
 });
 
+// A boon supplied only before combat still has an allied duration curve, with zero combat generation.
+test('preparation-only party boons remain visible on both chart audiences', () => {
+  const series = buildChartSeries({
+    rotationEndTime: 6,
+    observationEndTime: 6,
+    combatEndTime: 6,
+    combatStartTime: 2,
+    dpsStartTime: 2,
+    ...effectFields([buff('alacrity', 0, 4, 1, { audience: { recipients: 'party' } })], 6, { start: 2 })
+  });
+  assert.equal(series.boonGeneration.Alacrity.self.generatedStackSeconds, 0);
+  assert.equal(series.boonGeneration.Alacrity.allies.generatedStackSeconds, 0);
+  for (const at of [0, 1000, 2000, 3000]) {
+    assert.equal(chartValueAt(series.alliedEffects.Alacrity, at), chartValueAt(series.effects.Alacrity, at));
+  }
+});
+
 test('charts retain accepted preparation state while generation uses the combat window', () => {
   const series = buildChartSeries({
     rotationEndTime: 10,
@@ -461,7 +477,9 @@ test('charts retain accepted preparation state while generation uses the combat 
     )
   });
   assert.equal(series.effectSummaries.Alacrity.uptime, 1);
-  assert.equal(series.boonGeneration.Alacrity, undefined);
+  // The preparation grant earns no combat credit, but the later extension reaches its existing party pools.
+  assert.equal(series.boonGeneration.Alacrity.self.generatedStackSeconds, 10);
+  assert.equal(series.boonGeneration.Alacrity.allies.generatedStackSeconds, 40);
   assert.equal(series.effectSummaries.Quickness.uptime, 1);
   assert.equal(series.boonGeneration.Quickness.self.generatedStackSeconds, 35);
   assert.equal(series.boonGeneration.Quickness.allies.generatedStackSeconds, 140);

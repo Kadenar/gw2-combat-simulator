@@ -145,6 +145,12 @@ export function bindTimeSeriesInteractions(
     canvas.onpointercancel = cancel;
     canvas.onlostpointercapture = cancel;
     canvas.onblur = cancel;
+    // Double-click restores the current phase's shared range after any drag or keyboard zoom.
+    canvas.ondblclick = () => {
+      cancel();
+      reset();
+    };
+
     // Keyboard users can inspect samples, zoom around the cursor, and restore the current phase.
     canvas.onkeydown = (event) => {
       if (event.key === 'Escape') {

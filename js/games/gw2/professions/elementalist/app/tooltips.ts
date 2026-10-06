@@ -545,6 +545,13 @@ export const elementalistTooltips: ProfessionTooltips = {
         incomplete: tiers.some(({ model }) => model.incomplete)
       };
     },
+    [ID.CALCIFY]: skillTooltip(
+      'While the Earth familiar is selected, disabling an enemy grants Protection to yourself. The active familiar blast can trigger this passive.',
+      (balanceContext) => [
+        ...simulationEffectFacts(tooltipProfile(balanceContext, EVOKER.calcify).effects, 'on disabling an enemy').facts,
+        profileFact(balanceContext, EVOKER.calcify, 'internalCooldown', 'Protection interval', tooltipSeconds)
+      ]
+    ),
     [ID.ZAP]: skillTooltip(
       'Spend the full familiar charge bar, add an empowered stack, and strike with your familiar. Gain the Zap buff for eligible follow-up effects.',
       (balanceContext) =>

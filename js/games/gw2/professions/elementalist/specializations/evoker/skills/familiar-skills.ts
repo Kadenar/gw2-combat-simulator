@@ -270,7 +270,20 @@ export const EVOKER_FAMILIAR_SKILL_MECHANICS: Readonly<Record<number, Partial<Sk
         canCrit: true
       },
       { type: 'condition', condition: 'Bleeding', stacks: 6, duration: 10, metadata: {} },
-      { type: 'control', applications: 1, controlKind: 'crowd-control' }
+      // The initial knockdown triggers disable passives before the later damage and barrier pulses.
+      { type: 'control', applications: 1, controlKind: 'crowd-control', atMs: 1320 },
+      // The barrier supplies party Protection independently of hitting an enemy; its pulses keep a fixed cadence.
+      {
+        type: 'boon',
+        boon: 'Protection',
+        stacks: 1,
+        duration: 1.5,
+        applications: 5,
+        atMs: 2320,
+        intervalMs: 1000,
+        intervalTimingScale: 'fixed',
+        audience: { recipients: 'party', maximumRecipients: 5 }
+      }
     ])
   }
 });

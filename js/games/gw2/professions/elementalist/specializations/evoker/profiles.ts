@@ -144,6 +144,9 @@ export const EVOKER_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freeze(
   }),
   variant(EVOKER_BALANCE_PROFILE_IDS.calcify, ID.CALCIFY, 'Calcify - Familiar State', {
     initialDelay: 0.28,
-    durationMultiplier: 2.2
+    durationMultiplier: 2.2,
+    // The equipped Earth familiar grants personal Protection on disables, independently of party pulses.
+    internalCooldown: 0.25,
+    effects: [{ ...boon('Protection', 'protection', 1, 2), audience: { recipients: 'self' } }]
   })
 ]);

@@ -26,6 +26,7 @@ import type {
   ElementalistRuntime,
   ElementalistSkill
 } from '#gw2/professions/elementalist/types.js';
+
 /** Meditation skills whose named profile effects grant Altruistic Aspect boons. */
 const ALTRUISTIC_ASPECT_SKILLS: ReadonlySet<SkillId> = new Set([
   ID.FOXS_FURY,
@@ -33,6 +34,7 @@ const ALTRUISTIC_ASPECT_SKILLS: ReadonlySet<SkillId> = new Set([
   ID.TOADS_FORTITUDE,
   ID.ELEMENTAL_PROCESSION
 ]);
+
 /**
  * Grants Altruistic Aspect's per-meditation boon when the trait is slotted and
  * the completing skill is one of the four it covers; otherwise a no-op.
@@ -58,6 +60,8 @@ export function applyAltruisticAspect(
           kind: String(effect.boon).toLowerCase(),
           stacks: Number(effect.stacks),
           duration: effect.duration,
+          // Meditation trait boons share the same five-recipient party scope as the skill's allied effects.
+          audience: { recipients: 'party', maximumRecipients: 5 },
           skillName: skill.name
         },
         { activationId: cast.id, skillId: cast.skill.id, offTarget: cast.command.offTarget }
@@ -111,7 +115,7 @@ export function applyFamiliarTraitProcs(
 
   const familiarElement = FAMILIAR_ELEMENTS.get(skill.id);
   if (familiarElement && hasTrait(context, TRAIT.FAMILIARS_BLESSING)) {
-    // Blessing stays after Prowess and before charge grants; only packet construction is shared.
+    // Blessing reaches the five-person party so ally boon generation and uptime include familiar grants.
     context.effects.emit(
       elementalistProfiledBuffRequest(
         context,
@@ -121,7 +125,7 @@ export function applyFamiliarTraitProcs(
         "Familiar's Blessing",
         skill.id,
         undefined,
-        undefined,
+        'party',
         { activationId: cast.id, skillId: cast.skill.id, offTarget: cast.command.offTarget }
       )
     );

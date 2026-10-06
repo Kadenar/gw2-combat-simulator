@@ -920,9 +920,10 @@ test('meditation declarations own their live-element bonuses and refill before A
             !removed && element === 'Earth'
           );
         if (id === ID.FOXS_FURY) {
+          // Both grants target the party; removing the intrinsic reward leaves the trait's grant intact.
           const partyMight = buffs.filter((event) => event.kind === 'might' && event.audience?.recipients === 'party');
-          assert.equal(partyMight.length, removed ? 0 : 1);
-          if (!removed) assert.ok(partyMight[0].audience.maximumRecipients === 5);
+          assert.equal(partyMight.length, removed ? 1 : 2);
+          assert.ok(partyMight.every((event) => event.audience.maximumRecipients === 5));
         }
 
         // The meditation trait remains active even when its intrinsic reward is removed.
@@ -932,7 +933,7 @@ test('meditation declarations own their live-element bonuses and refill before A
         if (traitBoon)
           assert.ok(
             buffs.some(
-              (event) => event.sourceId === id && event.kind === traitBoon && event.audience?.recipients !== 'party'
+              (event) => event.sourceId === id && event.kind === traitBoon && event.audience?.recipients === 'party'
             )
           );
       }

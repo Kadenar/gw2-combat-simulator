@@ -469,6 +469,51 @@ test('Willing Host and Symbiotic Synergy apply their damage windows', () => {
   assert.equal(morphSteps[1].start, evolveStep.end);
 });
 
+test('Symbiotic Synergy boosts Thorns retaliation for every protocol slot', () => {
+  // Retaliation retains its Morph identity after activation, so the trait boosts both immediate and delayed hits.
+  for (const [slot, skillId] of [
+    ID.DEFENSIVE_PROTOCOL_THORNS_ID_77163,
+    ID.DEFENSIVE_PROTOCOL_THORNS_ID_77104,
+    ID.DEFENSIVE_PROTOCOL_THORNS
+  ].entries()) {
+    const selectedMorphSkillIds = [...baseConfig.selectedMorphSkillIds];
+    selectedMorphSkillIds[slot] = skillId;
+    const config = {
+      selectedMorphSkillIds,
+      professionAssumptions: { inDamagingField: true },
+      target: { conditions: {} }
+    };
+    const rotation = [skillId, 'Puncturing Jab'];
+    const baseline = simulate('Amalgam', rotation, config, observationTail(6000));
+    const traited = simulate(
+      'Amalgam',
+      rotation,
+      { ...config, selectedTraitIds: [TRAIT.SYMBIOTIC_SYNERGY] },
+      observationTail(6000)
+    );
+    assert.deepEqual(baseline.warnings, []);
+    assert.deepEqual(traited.warnings, []);
+    const damageEvents = (result, name) =>
+      result.resolvedEvents.filter((event) => event.type === 'damage' && event.name === name);
+    const retaliation = damageEvents(traited, 'Thorns Retaliation');
+    assert.ok(retaliation.length > 0);
+    assert.ok(retaliation.some((event) => event.at > traited.steps[0].end / 1000));
+    for (const event of retaliation) {
+      const original = damageEvents(baseline, 'Thorns Retaliation').find((hit) => hit.at === event.at);
+      assert.ok(original);
+      assert.equal(event.skillId, skillId);
+      assertFlooredDamageMultiplier(event.damage, original.damage, 1.33);
+    }
+
+    assertFlooredDamageMultiplier(
+      damageEvents(traited, 'Initial Damage')[0].damage,
+      damageEvents(baseline, 'Initial Damage')[0].damage,
+      1.33
+    );
+    assert.equal(damageEvents(traited, 'Puncturing Jab')[0].damage, damageEvents(baseline, 'Puncturing Jab')[0].damage);
+  }
+});
+
 test('Double Helix gives Evolve two charges and doubles its attribute bonus', () => {
   const config = {
     selectedMorphSkillIds: [76815, 77285, 77358],

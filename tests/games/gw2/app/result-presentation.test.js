@@ -7,6 +7,7 @@ import {
   buildPhaseDpsSeries,
   buildPhaseEffectSeries,
   buildRollingDpsSeries,
+  buildContributionDamageSeries,
   chartAxisMaximum,
   chartValueAt
 } from '#gw2/app/results/charts/time-series-model.js';
@@ -208,6 +209,57 @@ test('DPS samples accumulate unordered hits and ticks without changing reporting
   assert.equal(series.cumulativeDamage.at(-1).v, result.totalDamage);
   assert.equal(series.dps.at(-1).v, result.dps);
   assert.deepEqual(baseResultSummaryMetrics(result), metrics);
+});
+
+// Damage attribution follows actual payouts and preserves additivity at off-grid phase boundaries and rolling windows.
+test('strike and condition contributions sum to total DPS for full fights and phases', () => {
+  const series = buildTimeSeries(
+    {
+      combatEndTime: 7,
+      dpsStartTime: 1,
+      resolvedEvents: [
+        { type: 'damage', at: 1, damage: 100 },
+        { type: 'damage', at: 2.1, damage: 200 },
+        { type: 'damage', at: 2.1, damage: 50 },
+        { type: 'damage', at: 5, damage: 300 },
+        {
+          type: 'condition',
+          at: 1,
+          damage: 9999,
+          damageTicks: [
+            { at: 2.1, damage: 80 },
+            { at: 3, damage: 120 },
+            { at: 7, damage: 200 },
+            { at: 8, damage: 9999 }
+          ]
+        }
+      ]
+    },
+    500,
+    { includeEffects: false }
+  );
+  assert.equal(series.damageContributions.strike.at(-1).v, 650);
+  assert.equal(series.damageContributions.condition.at(-1).v, 400);
+  for (const start of [0, 1100]) {
+    const full = start === 0;
+    const totalDps = full ? series.dps : buildPhaseDpsSeries(series.cumulativeDamage, start, 6000, 430, 1050);
+    const totalDamage = totalDps.map(({ t, v }) => ({ t, v: (v * t) / 1000 }));
+    const parts = ['strike', 'condition'].map((kind) =>
+      buildContributionDamageSeries(series.damageContributions[kind], totalDps, start, full)
+    );
+    for (const window of [null, 1000, 5000]) {
+      const dps = (points) =>
+        window ? buildRollingDpsSeries(points, window) : points.map(({ t, v }) => ({ t, v: t ? v / (t / 1000) : 0 }));
+      const total = dps(totalDamage);
+      const [strike, condition] = parts.map(dps);
+      total.forEach((point, index) => assert.ok(Math.abs(point.v - strike[index].v - condition[index].v) < 1e-8));
+    }
+  }
+
+  assert.deepEqual(
+    buildContributionDamageSeries([], series.dps, 0, true).map((point) => point.v),
+    series.dps.map(() => 0)
+  );
 });
 
 // Only chart preparation reads a relic's expiry; hidden-view creation must not visit that history.
@@ -482,6 +534,7 @@ test('shared chart markup escapes effect names and uses scoped roles without ids
     container,
     {
       durationMs: 1000,
+      damageContributions: { strike: [{ t: 1000, v: 1000 }], condition: [] },
       dps: [{ t: 0, v: 0 }],
       effects: {
         'Bad"><img src=x>': [{ t: 0, v: 1 }],
@@ -630,6 +683,7 @@ test('chart canvases stay fluid when their initial container width is unavailabl
 
   mountTimeSeriesCharts(container, {
     durationMs: 1000,
+    damageContributions: { strike: [], condition: [] },
     dps: [{ t: 0, v: 100 }],
     effects: {}
   });
@@ -694,6 +748,7 @@ test('effect counts render as steps for both audiences while duration and DPS cu
     container,
     {
       durationMs: 1000,
+      damageContributions: { strike: [{ t: 1000, v: 1000 }], condition: [] },
       dps: points,
       effects: Object.fromEntries(Object.keys(colors).map((name) => [name, points])),
       alliedEffects: { Might: points },
@@ -741,6 +796,7 @@ test('result charts reuse the target-health DPS snapshot breakpoints', () => {
     ],
     chartSeries: {
       durationMs: 3000,
+      damageContributions: { strike: [{ t: 3000, v: 4000 }], condition: [] },
       dps: [{ t: 0, v: 0 }],
       effects: {},
       cumulativeDamage: [
@@ -933,16 +989,12 @@ test('shared results render summaries, totals, contributions, and icons', () => 
   assert.ok(container.innerHTML.indexOf('Other Conditions') < container.innerHTML.indexOf('Weak &lt;slow&gt;'));
   assert.match(container.innerHTML, /\+12/);
   assert.match(container.innerHTML, /\+1\.50%/);
-  assert.match(
-    container.innerHTML,
-    /Noise<\/span>\s*<span class="contrib-val">0<\/span>\s*<span class="contrib-pct">0\.00%/
-  );
-  assert.match(
-    container.innerHTML,
-    /Penalty<\/span>\s*<span class="contrib-val">-12<\/span>\s*<span class="contrib-pct">-1\.50%/
-  );
+  // Check signed display values independently of the spans used to arrange mobile metrics.
+  const resultText = container.innerHTML.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ');
+  assert.match(resultText, /Noise DPS Increase 0 % Increase 0\.00%/);
+  assert.match(resultText, /Penalty DPS Increase -12 % Increase -1\.50%/);
   assert.doesNotMatch(container.innerHTML, /-0(?:\.00)?%?/);
-  assert.match(container.innerHTML, /<img src="bonus\.png" alt="" \/>Bonus/);
+  assert.match(container.innerHTML, /<img src="bonus\.png" alt="" \/><span class="contrib-name-label">Bonus/);
   assert.match(container.innerHTML, /disabling each modifier and rerunning the simulation/);
   assert.match(container.innerHTML, /misleading if doing so breaks the rotation/);
   assert.match(container.innerHTML, /Randomized DPS range/);

@@ -45,6 +45,8 @@ export interface ChartEffectSummary {
 export interface ChartSeries {
   readonly durationMs: number;
   readonly dps: readonly ChartPoint[];
+  /** Exact cumulative player damage by type, including same-time packets for phase boundaries. */
+  readonly damageContributions: Readonly<Record<'strike' | 'condition', readonly ChartPoint[]>>;
   readonly effects: Readonly<Record<string, readonly ChartPoint[]>>;
   readonly alliedEffects?: Readonly<Record<string, readonly ChartPoint[]>>;
   readonly alliedAverageStacks?: Readonly<Record<string, number>>;
@@ -120,17 +122,30 @@ export function buildTimeSeries(
   const damageHits = damageEvents
     .flatMap((event) => {
       const ticks = eventDamageTicks(event);
-      return ticks.length ? ticks : [{ at: event.at, damage: Number(event.damage || 0) }];
+      return (ticks.length ? ticks : [{ at: event.at, damage: Number(event.damage || 0) }]).map((hit) => ({
+        ...hit,
+        kind: event.type === 'condition' ? ('condition' as const) : ('strike' as const)
+      }));
     })
     .sort((left, right) => Number(left.at || 0) - Number(right.at || 0));
   let hitIndex = 0;
   let damage = 0;
+  const damageContributions: Record<'strike' | 'condition', ChartPoint[]> = { strike: [], condition: [] };
+  const totals = { strike: 0, condition: 0 };
   const dps = times.map((time) => {
     const elapsed = time / 1000;
     if (elapsed <= 0) return { t: time, v: 0 };
     const absoluteTime = dpsStartMs + time;
     while (hitIndex < damageHits.length && Number(damageHits[hitIndex]!.at || 0) * 1000 <= absoluteTime) {
-      damage += Number(damageHits[hitIndex]!.damage || 0);
+      const hit = damageHits[hitIndex]!;
+      const amount = Number(hit.damage || 0);
+      damage += amount;
+      totals[hit.kind] += amount;
+      const points = damageContributions[hit.kind];
+      const t = Math.max(0, Number(hit.at || 0) * 1000 - dpsStartMs);
+      // Collapse simultaneous hits so a phase boundary includes the whole damage packet.
+      if (points.at(-1)?.t === t) points[points.length - 1] = { t, v: totals[hit.kind] };
+      else points.push({ t, v: totals[hit.kind] });
       hitIndex++;
     }
 
@@ -234,6 +249,7 @@ export function buildTimeSeries(
   return {
     durationMs,
     dps,
+    damageContributions,
     ...effectSeries,
     cumulativeDamage,
     skillDamage,
@@ -271,6 +287,25 @@ export function buildPhaseDpsSeries(
     v: Math.max(0, endDamage - startDamage) / Math.max(0.001, durationMs / 1000)
   });
   return points;
+}
+
+/** Sample exact damage contributions on the total curve's clock, subtracting damage before a selected phase. */
+export function buildContributionDamageSeries(
+  points: readonly ChartPoint[],
+  sampleTimes: readonly ChartPoint[],
+  phaseStartMs: number,
+  fullFight: boolean
+): ChartPoint[] {
+  let index = 0;
+  let damage = 0;
+  let baseline = 0;
+  while (index < points.length && points[index]!.t <= phaseStartMs) baseline = points[index++]!.v;
+  damage = baseline;
+  if (fullFight) baseline = 0;
+  return sampleTimes.map(({ t }) => {
+    while (index < points.length && points[index]!.t <= phaseStartMs + t) damage = points[index++]!.v;
+    return { t, v: t > 0 ? Math.max(0, damage - baseline) : 0 };
+  });
 }
 
 export function buildPhaseEffectSeries(points: readonly ChartPoint[], startMs: number, endMs: number): ChartPoint[] {

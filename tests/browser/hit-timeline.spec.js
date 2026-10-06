@@ -51,6 +51,7 @@ test('skill details distinguish normal and empowered applications', async ({ pag
       ],
       chartSeries: {
         durationMs: 8000,
+        damageContributions: { strike: [{ t: 8000, v: 400 }], condition: [] },
         dps: [
           { t: 0, v: 0 },
           { t: 8000, v: 100 }
@@ -304,6 +305,7 @@ test('conditions use separate bounded windows with accessible tick details', asy
       document.querySelector('#series'),
       {
         durationMs: 12_000,
+        damageContributions: { strike: [{ t: 12_000, v: 520 }], condition: [] },
         dps: [
           { t: 0, v: 0 },
           { t: 12_000, v: 520 / 12 }
@@ -403,6 +405,7 @@ test('multi-hit groups support hover, keyboard inspection, resizing, and phase c
       document.querySelector('#series'),
       {
         durationMs: 20_000,
+        damageContributions: { strike: [{ t: 20_000, v: 530 }], condition: [] },
         dps: [
           { t: 0, v: 0 },
           { t: 20_000, v: 26.5 }

@@ -18,6 +18,7 @@ test('graph tooltips stay inside the chart at desktop and mobile widths', async 
       document.querySelector('#charts'),
       {
         durationMs: 10000,
+        damageContributions: { strike: [{ t: 10000, v: 300000 }], condition: [] },
         dps: [
           { t: 0, v: 30000 },
           { t: 10000, v: 30000 }
@@ -31,6 +32,10 @@ test('graph tooltips stay inside the chart at desktop and mobile widths', async 
       },
       { dpsLabel: 'Average DPS' }
     );
+    for (const input of document.querySelectorAll('[data-dps-source], [data-dps-window]')) {
+      if (!input.checked) input.click();
+    }
+
     const model = {
       opponentRelic: 'Fractal',
       targetRelic: 'Akeem',

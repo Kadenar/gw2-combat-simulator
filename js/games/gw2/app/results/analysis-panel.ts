@@ -529,13 +529,13 @@ export function modifierContributionsHtml(model: RotationResultsModel): string {
       </div>
       ${contributions
         .map((contribution) => {
-          // Keep modifier labels passive so hover cards do not obscure the breakdown.
+          // Keep names passive and provide metric labels for the stacked narrow-panel layout.
           return `<div class="contrib-row">
           <span class="contrib-name">${
             contribution.icon ? `<img src="${escapeHtml(contribution.icon)}" alt="" />` : ''
-          }${escapeHtml(contribution.name)}</span>
-          <span class="contrib-val">${signedInteger(contribution.dpsIncrease)}</span>
-          <span class="contrib-pct">${signedFixed(contribution.pctIncrease)}%</span>
+          }<span class="contrib-name-label">${escapeHtml(contribution.name)}</span></span>
+          <span class="contrib-val"><span class="contrib-metric-label">DPS Increase</span><span>${signedInteger(contribution.dpsIncrease)}</span></span>
+          <span class="contrib-pct"><span class="contrib-metric-label">% Increase</span><span>${signedFixed(contribution.pctIncrease)}%</span></span>
         </div>`;
         })
         .join('')}

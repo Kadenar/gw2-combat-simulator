@@ -93,7 +93,6 @@ export function buildBoonGeneration(
   const ordered = events
     .filter(
       (event) =>
-        event.at >= start &&
         !event.cancelled &&
         event.actorType !== 'environment' &&
         (event.type === 'buff' || event.type === 'boon_extension')
@@ -127,8 +126,9 @@ export function buildBoonGeneration(
     const amounts = new Map<string, number[]>();
     for (const [index, boons] of recipients.entries()) {
       const credit = (kind: string, amount: number): void => {
+        // Keep preparation-only boons visible in charts with zero credit; only combat applications add generation.
         const values = amounts.get(kind) || Array(recipients.length).fill(0);
-        values[index] = amount;
+        values[index] = event.at < start ? 0 : amount;
         amounts.set(kind, values);
       };
 

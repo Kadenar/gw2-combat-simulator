@@ -297,3 +297,10 @@
   pointer-events: none;
   white-space: nowrap;
 }
+
+/* Source and window names need room together without pushing DPS details outside a narrow chart. */
+[data-role='dps-tooltip'] {
+  max-width: min(300px, 100%);
+  white-space: normal;
+  overflow-wrap: anywhere;
+}

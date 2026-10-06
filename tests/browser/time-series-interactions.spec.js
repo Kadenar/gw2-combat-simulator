@@ -16,6 +16,10 @@ test.beforeEach(async ({ page }) => {
       {
         durationMs: 20000,
         cumulativeDamage,
+        damageContributions: {
+          strike: cumulativeDamage.map(({ t, v }) => ({ t, v: v * 0.6 })),
+          condition: cumulativeDamage.map(({ t, v }) => ({ t, v: v * 0.4 }))
+        },
         dps: cumulativeDamage.map(({ t, v }) => ({ t, v: t ? v / (t / 1000) : 0 })),
         effects: {
           Might: [
@@ -56,32 +60,58 @@ async function dragChart(page, kind, from, to) {
   await page.mouse.up();
 }
 
-test('DPS display and condition controls stay independent with a synchronized cursor', async ({ page }) => {
-  const display = page.getByRole('group', { name: 'DPS display' });
+// Independent controls compose across source, averaging window, phase, and zoom selections.
+test('DPS checkboxes select arbitrary sources and windows without changing other selections', async ({ page }) => {
+  const sources = page.getByRole('group', { name: 'Damage sources' });
+  const windows = page.getByRole('group', { name: 'DPS averaging' });
+  const tooltip = page.locator('[data-role="dps-tooltip"]');
+  await sources.getByRole('checkbox', { name: 'Total', exact: true }).uncheck();
+  await sources.getByRole('checkbox', { name: 'Strike', exact: true }).check();
+  await sources.getByRole('checkbox', { name: 'Condition', exact: true }).check();
+  await windows.getByRole('checkbox', { name: 'Last 1s', exact: true }).check();
+  await hoverChart(page, 'dps');
+  await expect(tooltip).toContainText('Average so far Strike DPS');
+  await expect(tooltip).toContainText('Last 1s Condition DPS');
+  await expect(tooltip).not.toContainText('Total DPS');
+  await expect(tooltip).not.toContainText('Last 5s');
+  await windows.getByRole('checkbox', { name: 'Average so far', exact: true }).uncheck();
+  await windows.getByRole('checkbox', { name: 'Last 5s', exact: true }).check();
+  await sources.getByRole('checkbox', { name: 'Condition', exact: true }).uncheck();
+  await hoverChart(page, 'dps');
+  await expect(tooltip).toContainText('Last 1s Strike DPS');
+  await expect(tooltip).toContainText('Last 5s Strike DPS');
+  await expect(tooltip).not.toContainText('Condition');
+  await expect(tooltip).not.toContainText('Average so far');
+  await dragChart(page, 'dps', 0.2, 0.8);
+  await page.locator('[data-chart-phase="100-80"]').click();
+  await expect(windows.getByRole('checkbox', { name: 'Last 1s', exact: true })).toBeChecked();
+  await expect(windows.getByRole('checkbox', { name: 'Last 5s', exact: true })).toBeChecked();
+  await expect(sources.getByRole('checkbox', { name: 'Condition', exact: true })).not.toBeChecked();
+  await page.setViewportSize({ width: 390, height: 844 });
+  await sources.getByRole('checkbox', { name: 'Strike', exact: true }).uncheck();
+  await sources.getByRole('checkbox', { name: 'Total', exact: true }).check();
+  await hoverChart(page, 'dps');
+  await expect(tooltip).toContainText('Last 1s Total DPS');
+  await expect(tooltip).not.toContainText('Strike');
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+});
+
+test('DPS averaging and condition controls stay independent with a synchronized cursor', async ({ page }) => {
+  const windows = page.getByRole('group', { name: 'DPS averaging' });
   const dps = page.locator('[data-role="dps-tooltip"]');
   await hoverChart(page, 'dps');
-  await expect(dps).toContainText('Cumulative DPS');
-  await expect(dps).not.toContainText('Rolling');
-  await display.getByRole('button', { name: 'Rolling 1s', exact: true }).click();
-  await hoverChart(page, 'dps');
-  await expect(dps).toContainText('Rolling 1s DPS');
-  await expect(dps).not.toContainText('Cumulative');
-  await expect(dps).not.toContainText('Rolling 5s');
-  await display.getByRole('button', { name: 'Rolling 5s', exact: true }).click();
-  await hoverChart(page, 'dps');
-  await expect(dps).toContainText('Rolling 5s DPS');
-  await expect(dps).not.toContainText('Cumulative');
-  await expect(dps).not.toContainText('Rolling 1s');
-  await display.getByRole('button', { name: 'All', exact: true }).click();
+  await expect(dps).toContainText('Average so far Total DPS');
+  await expect(dps).not.toContainText('Last');
+  await windows.getByRole('checkbox', { name: 'Last 1s', exact: true }).check();
+  await windows.getByRole('checkbox', { name: 'Last 5s', exact: true }).check();
   await hoverChart(page, 'conditions');
-  await expect(dps).toContainText('Cumulative DPS');
-  await expect(dps).toContainText('Rolling 1s DPS');
-  await expect(dps).toContainText('Rolling 5s DPS');
+  await expect(dps).toContainText('Average so far Total DPS');
+  await expect(dps).toContainText('Last 1s Total DPS');
+  await expect(dps).toContainText('Last 5s Total DPS');
   await expect(page.locator('[data-role="effects-tooltip"]')).toContainText('Might (Self)');
   await expect(page.locator('[data-role="effects-tooltip"]')).toContainText('Empowered');
   await expect(page.locator('[data-role="effects-tooltip"]')).not.toContainText('Burning');
   await expect(page.locator('[data-role="conditions-tooltip"]')).toContainText('Burning');
-  await expect(page.locator('[data-role="conditions-tooltip"]')).not.toContainText('Might');
   const times = await page.locator('.chart-crosshair').evaluateAll((nodes) => nodes.map((node) => node.dataset.time));
   expect(new Set(times).size).toBe(1);
   await expect(page.locator('.chart-crosshair:visible')).toHaveCount(3);
@@ -92,7 +122,8 @@ test('DPS display and condition controls stay independent with a synchronized cu
 });
 
 test('dragging either direction zooms all charts and preserves DPS values, modes, and selections', async ({ page }) => {
-  await page.getByRole('group', { name: 'DPS display' }).getByRole('button', { name: 'All', exact: true }).click();
+  await page.locator('[data-dps-window="rolling-1s"]').check();
+  await page.locator('[data-dps-window="rolling-5s"]').check();
   await page.locator('[data-series="Empowered"]').uncheck();
   const dps = page.locator('[data-role="dps-tooltip"]');
   await hoverChart(page, 'dps');
@@ -103,7 +134,8 @@ test('dragging either direction zooms all charts and preserves DPS values, modes
   await hoverChart(page, 'effects');
   expect((await dps.innerText()).split('\n').slice(1)).toEqual(originalValues);
   await expect(page.locator('[data-series="Empowered"]')).not.toBeChecked();
-  await expect(page.locator('[data-dps-mode="all"]')).toHaveAttribute('aria-pressed', 'true');
+  await expect(page.locator('[data-dps-window="rolling-1s"]')).toBeChecked();
+  await expect(page.locator('[data-dps-window="rolling-5s"]')).toBeChecked();
   const firstRange = await page.locator('[data-role="chart-zoom-label"]').innerText();
   await dragChart(page, 'effects', 0.8, 0.2);
   await expect(page.locator('[data-role="chart-zoom-label"]')).not.toHaveText(firstRange);
@@ -113,7 +145,35 @@ test('dragging either direction zooms all charts and preserves DPS values, modes
   await page.locator('[data-chart-phase="100-80"]').click();
   await expect(page.getByRole('button', { name: 'Reset zoom' })).toBeDisabled();
   await expect(page.locator('[data-role="conditions-panel-title"]')).toContainText('100-80%');
-  await expect(page.locator('[data-dps-mode="all"]')).toHaveAttribute('aria-pressed', 'true');
+  await expect(page.locator('[data-dps-window="rolling-1s"]')).toBeChecked();
+  await expect(page.locator('[data-dps-window="rolling-5s"]')).toBeChecked();
+});
+
+// Native double-clicks reset the linked viewport while preserving the selected phase and chart controls.
+test('double-clicking any chart resets active zoom to the current phase', async ({ page }) => {
+  await page.locator('[data-chart-phase="100-80"]').click();
+  await expect(page.locator('[data-role="dps-panel-title"]')).toContainText('100-80%');
+  await page.locator('[data-dps-window="rolling-1s"]').check();
+  await page.locator('[data-dps-source="strike"]').check();
+  const reset = page.getByRole('button', { name: 'Reset zoom' });
+  const range = page.locator('[data-role="chart-zoom-label"]');
+  const initialRange = await range.innerText();
+  for (const kind of ['dps', 'effects', 'conditions']) {
+    const canvas = page.locator(`[data-role="${kind}-canvas"]`);
+    await dragChart(page, kind, 0.2, 0.8);
+    await expect(reset).toBeEnabled();
+    await canvas.click({ position: { x: 100, y: 100 } });
+    await expect(reset).toBeEnabled();
+    await canvas.dblclick({ position: { x: 100, y: 100 } });
+    await expect(reset).toBeDisabled();
+    await expect(range).toHaveText(initialRange);
+    await expect(page.locator('.chart-selection:visible')).toHaveCount(0);
+    await expect(page.locator('[data-chart-phase="100-80"]')).toHaveAttribute('aria-pressed', 'true');
+    await expect(page.locator('[data-dps-window="rolling-1s"]')).toBeChecked();
+    await expect(page.locator('[data-dps-source="strike"]')).toBeChecked();
+    await canvas.dblclick({ position: { x: 100, y: 100 } });
+    await expect(range).toHaveText(initialRange);
+  }
 });
 
 test('keyboard inspection, cancellation, and zoom work after resizing to mobile', async ({ page }) => {

@@ -1549,6 +1549,26 @@ body:not([data-rotation-focus]) .rotation-panel:has(.rotation-event-log .res-log
   border-radius: 2px;
 }
 
+/* Wrap source/window legend entries horizontally so combined DPS views leave room for the plot. */
+[data-role='dps-legend'] {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 14px;
+  color: var(--text-dim);
+}
+
+/* Source and averaging checkboxes expose independent choices in compact, wrapping rows. */
+.chart-dps-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 14px;
+}
+
+.chart-dps-controls .chart-toggle-label {
+  min-width: 52px;
+}
+
 .chart-toggle-group {
   display: grid;
   grid-template-columns: 128px minmax(0, 1fr);
@@ -2305,6 +2325,7 @@ body[data-simulation-config-open][data-rotation-focus] .rotation-section {
 
 /* ─── Modifier Contributions ─── */
 .res-contributions {
+  container: modifier-contributions / inline-size;
   margin-top: 12px;
   background: var(--bg-panel-alt);
   border: 1px solid var(--border);
@@ -2378,7 +2399,7 @@ body[data-simulation-config-open][data-rotation-focus] .rotation-section {
 .contrib-hdr,
 .contrib-row {
   display: grid;
-  grid-template-columns: 1fr 110px 90px;
+  grid-template-columns: minmax(0, 1fr) 110px 90px;
   gap: 8px;
   padding: 4px 6px;
   font-size: 0.82rem;
@@ -2396,14 +2417,25 @@ body[data-simulation-config-open][data-rotation-focus] .rotation-section {
   background: rgba(255, 255, 255, 0.02);
 }
 
+.contrib-hdr span:not(:first-child) {
+  text-align: right;
+}
+
 .contrib-name {
+  min-width: 0;
   color: var(--text);
   display: inline-flex;
   align-items: center;
   gap: 6px;
 }
 
+.contrib-name-label {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
 .contrib-name img {
+  flex-shrink: 0;
   width: 20px;
   height: 20px;
   border-radius: 3px;
@@ -2420,4 +2452,47 @@ body[data-simulation-config-open][data-rotation-focus] .rotation-section {
   text-align: right;
   color: #aaccff;
   font-family: var(--mono);
+}
+
+.contrib-metric-label {
+  display: none;
+}
+
+/* Stack names above labeled metrics when the panel cannot comfortably fit three columns. */
+@container modifier-contributions (max-width: 560px) {
+  .contrib-hdr {
+    display: none;
+  }
+
+  .contrib-row,
+  .contrib-loading-row {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px 16px;
+    padding: 12px 8px;
+  }
+
+  .contrib-row + .contrib-row {
+    border-top: 1px solid var(--border);
+  }
+
+  .contrib-name,
+  .contrib-loading-row span:first-child {
+    grid-column: 1 / -1;
+  }
+
+  .contrib-val,
+  .contrib-pct {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    text-align: left;
+    overflow-wrap: anywhere;
+  }
+
+  .contrib-metric-label {
+    display: block;
+    color: var(--text-dim);
+    font-family: 'Segoe UI', system-ui, sans-serif;
+    font-size: 0.72rem;
+  }
 }

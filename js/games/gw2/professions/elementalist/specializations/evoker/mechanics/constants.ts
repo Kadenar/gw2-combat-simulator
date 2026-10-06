@@ -20,8 +20,10 @@ export const FAMILIAR_ELEMENTS: ReadonlyMap<SkillId, ElementalistAttunement> = n
   [ID.CALCIFY, 'Earth'],
   [ID.SEISMIC_IMPACT, 'Earth']
 ]);
+
 /** The four non-empowered familiar skills: they spend the full charge bar and add an empowered stack. */
 export const BASIC_FAMILIARS: ReadonlySet<SkillId> = new Set([ID.IGNITE, ID.SPLASH, ID.ZAP, ID.CALCIFY]);
+
 /** Weapon skills exempted from familiar charge generation despite sitting in slots 2-5. */
 export const EVOKER_NO_CHARGE_SKILLS: ReadonlySet<SkillId> = new Set([
   ID.TRANSMUTE_EARTH,
@@ -31,8 +33,10 @@ export const EVOKER_NO_CHARGE_SKILLS: ReadonlySet<SkillId> = new Set([
   ID.TRANSMUTE_FIRE,
   ID.GRAND_FINALE
 ]);
+
 /** Shared icon for every Electric Enchantment proc entry in the log. */
 export const ELECTRIC_ENCHANTMENT_ICON = 'https://wiki.guildwars2.com/images/7/7b/Hare%27s_Agility.png';
+
 /** Lesser and completed spear etchings excluded from charge generation. */
 export const EVOKER_NO_CHARGE_SPEAR_SKILLS: ReadonlySet<SkillId> = new Set([
   ID.LESSER_VOLCANO,
@@ -44,6 +48,7 @@ export const EVOKER_NO_CHARGE_SPEAR_SKILLS: ReadonlySet<SkillId> = new Set([
   ID.LESSER_HABOOB,
   ID.HABOOB
 ]);
+
 /** Basic-to-empowered identity; delays and interruption windows belong to the profiles. */
 export const FAMILIAR_EMPOWERED_BY_BASIC: ReadonlyMap<SkillId, SkillId> = new Map([
   [ID.IGNITE, ID.CONFLAGRATION],
@@ -51,6 +56,7 @@ export const FAMILIAR_EMPOWERED_BY_BASIC: ReadonlyMap<SkillId, SkillId> = new Ma
   [ID.SPLASH, ID.BUOYANT_DELUGE],
   [ID.CALCIFY, ID.SEISMIC_IMPACT]
 ]);
+
 /** Balance profile that owns each basic familiar's timing values. */
 export const FAMILIAR_PROFILE_BY_BASIC: ReadonlyMap<SkillId, SkillId> = new Map([
   [ID.IGNITE, PROFILE.ignite],
@@ -58,6 +64,7 @@ export const FAMILIAR_PROFILE_BY_BASIC: ReadonlyMap<SkillId, SkillId> = new Map(
   [ID.ZAP, PROFILE.zap],
   [ID.CALCIFY, PROFILE.calcify]
 ]);
+
 /** Reverse index of the flip pairing: empowered familiar ID back to its basic form. */
 export const FAMILIAR_BASIC_BY_EMPOWERED: ReadonlyMap<SkillId, SkillId> = new Map(
   [...FAMILIAR_EMPOWERED_BY_BASIC].map(([basic, empowered]) => [empowered, basic])
