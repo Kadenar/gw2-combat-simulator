@@ -183,6 +183,12 @@ export default defineConfig(({ command, mode }) => ({
   publicDir: false,
   // Browser code uses local ES modules only; skip crawling every profession for npm dependencies to prebundle.
   optimizeDeps: { noDiscovery: true, include: [] },
+  // Local captures and compiled copies can dwarf the app; keep their watcher crawl from starving source reads.
+  server: {
+    watch: {
+      ignored: ['**/.scratch/**', '**/.tmp/**', '**/.lavish/**', '**/dist/**', '**/reference-repos/**']
+    }
+  },
   // Keep all local artwork under images, with one alias independent of JavaScript and CSS source depth.
   resolve: {
     alias: {
