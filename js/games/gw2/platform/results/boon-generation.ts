@@ -31,30 +31,26 @@ export interface BoonGenerationByAudience {
 /** Project four hypothetical allies with the existing boon helpers, isolated from live combat and RNG. */
 export function projectedPartyEffects(generation: ReturnType<typeof buildBoonGeneration>, end: number) {
   const recorder = new EffectRecorder();
-  const times = new Set([0, end]);
-  for (const recipient of generation.alliedApplications)
-    for (const applications of recipient.values())
+  // Each track owns its capture scope, so unrelated grants never replay or clear its accepted history.
+  for (const [index, recipient] of generation.alliedApplications.entries())
+    for (const [kind, applications] of recipient) {
+      const recipientId = `ally:${index + 1}`;
+      const scope = `${recipientId}:${kind}`;
+      const policy = { kind, maximumStacks: standardBoonPresentation(kind)?.maximumStacks };
+      const times = new Set([0, end]);
       for (const application of applications) {
         if (application.at <= end) times.add(application.at);
         if (application.expiresAt <= end) times.add(application.expiresAt);
       }
 
-  for (const at of [...times].sort((a, b) => a - b))
-    recorder.capture(
-      at,
-      generation.alliedApplications.flatMap((recipient, index) =>
-        [...recipient].map(([kind, applications]) => ({
-          ...observeBuffState(
-            kind,
-            applications,
-            at,
-            { kind, maximumStacks: standardBoonPresentation(kind)?.maximumStacks },
-            `ally:${index + 1}`
-          ),
-          origin: 'party-projection' as const
-        }))
-      )
-    );
+      for (const at of [...times].sort((a, b) => a - b))
+        recorder.capture(
+          at,
+          [{ ...observeBuffState(kind, applications, at, policy, recipientId), origin: 'party-projection' }],
+          scope
+        );
+    }
+
   return recorder.finish(end);
 }
 
