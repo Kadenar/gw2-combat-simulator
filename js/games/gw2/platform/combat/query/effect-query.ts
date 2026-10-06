@@ -20,5 +20,6 @@ export function appliedEffectStacks(
   if (!context.runtime)
     return context.timeline?.buffStacksAt(kind, context.time, fallbackDuration, maximum, audience, companionId) ?? 0;
   const applications = (isStandardBoon(kind) ? context.runtime.boons : context.runtime.buffs)?.get(kind) ?? [];
-  return buffApplicationStacks(applications, kind, context.time, maximum, { audience, companionId });
+  // Accepted histories are chronological, so duration pools can replay without copying and sorting each query.
+  return buffApplicationStacks(applications, kind, context.time, maximum, { audience, companionId, ordered: true });
 }

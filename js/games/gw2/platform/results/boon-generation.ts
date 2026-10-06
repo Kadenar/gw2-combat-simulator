@@ -1,4 +1,5 @@
 import {
+  advanceDurationStack,
   durationStackingBoonCapSeconds,
   isDurationStackingBoon,
   isStandardBoon,
@@ -14,6 +15,7 @@ import { gw2BoonApplicationRecipients } from '#gw2/platform/combat/state/allied-
 import { observeBuffState } from '#gw2/platform/combat/effect-state.js';
 import { standardBoonPresentation } from '#gw2/platform/combat/boons.js';
 import { EffectRecorder } from '#gw2/platform/results/effect-report.js';
+import { canonicalTime } from '#kernel/core/clock.js';
 
 // Reporting projects party grants onto a full subgroup without changing combat assumptions or events.
 export const PRESENTATION_ALLIED_PLAYER_COUNT = 4;
@@ -37,18 +39,42 @@ export function projectedPartyEffects(generation: ReturnType<typeof buildBoonGen
       const recipientId = `ally:${index + 1}`;
       const scope = `${recipientId}:${kind}`;
       const policy = { kind, maximumStacks: standardBoonPresentation(kind)?.maximumStacks };
+      const duration = isDurationStackingBoon(kind);
+      const template = observeBuffState(kind, [], 0, policy, recipientId);
+      const maximum = durationStackingBoonCapSeconds(kind);
       const times = new Set([0, end]);
       for (const application of applications) {
         if (application.at <= end) times.add(application.at);
         if (application.expiresAt <= end) times.add(application.expiresAt);
       }
 
-      for (const at of [...times].sort((a, b) => a - b))
-        recorder.capture(
-          at,
-          [{ ...observeBuffState(kind, applications, at, policy, recipientId), origin: 'party-projection' }],
-          scope
-        );
+      // Generation histories are chronological, including extension splits; retain only live intensity windows.
+      let next = 0;
+      let live: Gw2TimedBuffApplication[] = [];
+      let remaining = 0;
+      let previousTime = 0;
+      let source: SimulationEvent | undefined;
+      for (const at of [...times].sort((a, b) => a - b)) {
+        if (!duration) live = live.filter((application) => application.expiresAt > at);
+        while (next < applications.length && applications[next]!.at <= at) {
+          const application = applications[next++]!;
+          if (duration) {
+            remaining = advanceDurationStack(remaining, application, previousTime, maximum);
+            previousTime = application.at;
+            if (application.event) source = application.event;
+          } else if (application.expiresAt > at) live.push(application);
+        }
+
+        const pool = duration ? canonicalTime(Math.max(0, remaining - Math.max(0, at - previousTime))) : 0;
+        const state = duration
+          ? {
+              ...template,
+              source,
+              windows: pool > 0 ? [{ stacks: 1, expiresAt: canonicalTime(at + pool) }] : []
+            }
+          : observeBuffState(kind, live, at, policy, recipientId);
+        recorder.capture(at, [{ ...state, origin: 'party-projection' }], scope);
+      }
     }
 
   return recorder.finish(end);

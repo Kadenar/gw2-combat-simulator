@@ -182,14 +182,16 @@ export function standardBoonPresentation(kind: unknown): StandardBoonPresentatio
 
 const normalizeDurationPool = (value: number): number => (value === Infinity ? Infinity : canonicalTime(value));
 
-/** Share capped, tick-rounded grants between point queries and prepared windows; extensions cannot revive a pool. */
-function addDurationStack<T extends DurationStackApplication>(
+/** Advance a pool to its next grant with shared caps and rounding; extensions cannot revive an expired pool. */
+export function advanceDurationStack<T extends DurationStackApplication>(
   remaining: number,
   application: T,
-  appliedAt: number,
+  previousTime: number,
   maximum: number,
   duration?: (application: T) => number
 ): number {
+  const appliedAt = canonicalTime(Number(application.at));
+  remaining = normalizeDurationPool(Math.max(0, remaining - Math.max(0, appliedAt - previousTime)));
   if (application.extension && remaining <= 0) return remaining;
   const applicationDuration = duration
     ? duration(application)
@@ -224,8 +226,7 @@ export function remainingDurationStackSeconds<T extends DurationStackApplication
     if (ordered && !includes(application)) continue;
     const appliedAt = canonicalTime(Number(application.at));
     if (appliedAt > time) break;
-    remaining = normalizeDurationPool(Math.max(0, remaining - Math.max(0, appliedAt - previousTime)));
-    remaining = addDurationStack(remaining, application, appliedAt, maximum, duration);
+    remaining = advanceDurationStack(remaining, application, previousTime, maximum, duration);
     previousTime = appliedAt;
   }
 
@@ -294,8 +295,7 @@ export function prepareBoonWindows(
     if (!buffMatchesAudience(application, audience)) continue;
     const at = application.at;
     appendUntil(at);
-    remaining = normalizeDurationPool(Math.max(0, remaining - (at - start)));
-    remaining = addDurationStack(remaining, application, at, maximum);
+    remaining = advanceDurationStack(remaining, application, start, maximum);
     start = at;
   }
 

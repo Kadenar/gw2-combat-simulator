@@ -60,6 +60,16 @@ test('party duration pools preserve caps, expiry gaps, and terminal observation'
   assert.equal(valueAt(report, 'quickness', 43).count, 1);
   assert.equal(valueAt(report, 'quickness', 43).expiresAt, 45);
   assert.ok(trackFor(report, 'quickness').segments.every((segment) => segment.end <= 43));
+
+  const rounded = reportFor(
+    [
+      grant('fury', 0.36, 1.002),
+      { type: 'boon_extension', kind: 'fury', at: 1.4, duration: 1, extensionAudience: 'all' }
+    ],
+    2
+  );
+  assert.equal(valueAt(rounded, 'fury', 1.399999).count, 1);
+  assert.equal(valueAt(rounded, 'fury', 1.4).count, 0);
 });
 
 // Excess stacks remain available after expiry; source follows application order while expiry uses all live windows.
