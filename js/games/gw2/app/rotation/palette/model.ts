@@ -23,7 +23,7 @@ import type {
   ProfessionPaletteSkillEntry,
   ProfessionPaletteStatusIcon
 } from '#gw2/platform/profession-presentation/types.js';
-import type { Gw2PlanningAmmo } from '#gw2/platform/results/types.js';
+import type { Gw2PlanningAmmo, Gw2SimulationPlanningState } from '#gw2/platform/results/types.js';
 import type { RotationProfessionState } from '#gw2/app/rotation/context.js';
 
 import type { Skill, SkillId } from '#gw2/platform/skills/types.js';
@@ -316,6 +316,37 @@ interface PaletteSkillAvailability {
   readonly retryAt?: number | null;
 }
 
+/** UI-only actions inherit their existing cast components' gates without changing the commands they insert. */
+function compositePaletteAvailability(
+  app: ProfessionAppState,
+  context: ProfessionPaletteContext,
+  skill: Skill,
+  planning: Gw2SimulationPlanningState
+): PaletteSkillAvailability {
+  const missing = { available: false, message: 'No runtime availability verdict for this skill.' };
+  // A missing ordinary skill verdict remains an error; only profession-owned UI actions can expand into components.
+  if (app.activeCatalog.skillsById.has(skill.id)) return missing;
+  const action = app.profession.ui?.resolvePaletteAction?.(context, { name: skill.name, skillId: skill.id });
+  const commands = Array.isArray(action) ? action : action ? [action] : [];
+  if (!commands.length) return missing;
+  let result: PaletteSkillAvailability = { available: true, message: '' };
+  for (const command of commands) {
+    if (command.type !== 'cast') return missing;
+    const component = app.activeCatalog.skillsById.get(command.skillId);
+    const verdict = planning.availability[command.skillId];
+    if (!component || !verdict) return missing;
+    if (!isBuildSkillAvailable(component, { specialization: context.specialization }))
+      return { available: false, message: `${component.name} is unavailable for this build.` };
+    if (verdict.ready) continue;
+    // A permanent denial vetoes the action; otherwise retain the latest component retry for ordinary waitable insertion.
+    const denied = { available: false, message: verdict.reason, retryAt: verdict.retryAt };
+    if (verdict.retryAt == null) return denied;
+    if (result.available || verdict.retryAt > (result.retryAt ?? 0)) result = denied;
+  }
+
+  return result;
+}
+
 /** Read current default-command gates; missing completed verdicts are denied, while startup is explicitly unevaluated. */
 export function paletteAvailability(
   app: ProfessionAppState,
@@ -327,7 +358,7 @@ export function paletteAvailability(
   const planning = palettePlanningState(app);
   if (!planning) return { available: true, message: 'Runtime availability has not been evaluated yet.' };
   const verdict = planning.availability[skill.id];
-  if (!verdict) return { available: false, message: 'No runtime availability verdict for this skill.' };
+  if (!verdict) return compositePaletteAvailability(app, context, skill, planning);
   const override = app.profession.ui?.paletteOverride?.(context, skill);
   if (override?.available != null) return { available: override.available, message: override.message || '' };
   return verdict.ready
@@ -729,11 +760,11 @@ export function paletteSkillView(
   const ammoDisplay = ammoDisplayView(ammo?.charges ?? maximumAmmo, maximumAmmo);
   // Show the cast lockout while disabled, then the next charge timer, with millisecond precision shared by tooltips.
   const displayedRemaining = remaining || Number(ammo?.remaining || 0);
-  // Label resource/state waits as retries because the next attempt can still be unavailable.
+  // Keep icon labels compact; tooltips distinguish known cooldowns from the next resource or state check.
   const cooldownLabel = displayedRemaining
     ? `${(displayedRemaining / 1000).toFixed(3)}s`
     : contextRemaining
-      ? `Retry ${(contextRemaining / 1000).toFixed(3)}s`
+      ? `${(contextRemaining / 1000).toFixed(3)}s`
       : '';
   const unavailable = remaining > 0 || !contextAvailable;
   // Available unleashed ambushes use the same glow as cloak and stealth attacks.
@@ -748,23 +779,23 @@ export function paletteSkillView(
       : `Cast time: ${castTimeSeconds ? `${castTimeSeconds.toFixed(3)}s` : 'Instant'}`,
     !contextAvailable
       ? remaining
-        ? `Remaining: ${cooldownLabel}`
+        ? `Ready in: ${cooldownLabel}`
         : ''
       : ammoDisplay
         ? `Ammunition: ${ammoDisplay.current}/${ammoDisplay.maximum}${
-            displayedRemaining ? `\n${remaining ? 'Available in' : 'Next charge in'}: ${cooldownLabel}` : ''
+            displayedRemaining ? `\n${remaining ? 'Ready in' : 'Next charge in'}: ${cooldownLabel}` : ''
           }`
         : remaining
-          ? `Remaining: ${cooldownLabel}\nAvailable at: ${((readyAt - resultCombatReferenceMs(app.results)) / 1000).toFixed(3)}s`
+          ? `Ready in: ${cooldownLabel}\nAvailable at: ${((readyAt - resultCombatReferenceMs(app.results)) / 1000).toFixed(3)}s`
           : 'Status: Available now',
-    contextRemaining ? `Retry in: ${(contextRemaining / 1000).toFixed(3)}s` : ''
+    contextRemaining ? `Next check in: ${(contextRemaining / 1000).toFixed(3)}s` : ''
   ]
     .filter(Boolean)
     .join('\n');
   return {
     name: skill.name,
     skill,
-    tooltip: app.adapter.skillTooltip(skill, app.patchId),
+    tooltip: app.adapter.skillTooltip(skill, app.patchId, app.build),
     skillId: skill.id,
     hotkeyAction:
       String(skill.hotkeyAction || '') ||

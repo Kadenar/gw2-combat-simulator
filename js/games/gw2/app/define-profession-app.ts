@@ -17,7 +17,7 @@ import type { DefineProfessionAppOptions, Gw2AppAdapter } from '#gw2/app/types.j
 import { withActivePatchPreview } from '#gw2/integrations/patches/active-profession.js';
 import { createCalculateAttributes } from '#gw2/platform/builds/attributes.js';
 import { isBuildSkillAvailable } from '#gw2/platform/builds/selected-skills.js';
-import type { Gw2Build, ProfessionAssumptionControl } from '#gw2/platform/builds/types.js';
+import type { Gw2Build, Gw2CanonicalBuild, ProfessionAssumptionControl } from '#gw2/platform/builds/types.js';
 import type { CatalogEntity, Skill, SkillId } from '#gw2/platform/skills/types.js';
 import { RELIC_NAMES } from '#gw2/platform/equipment/relics/catalog.js';
 import { WEAPON_DATA, createProfessionWeaponData } from '#gw2/platform/equipment/weapons/data.js';
@@ -73,7 +73,10 @@ export function defineProfessionApp<
   });
 
   // Repeated timeline skills share a model; replacing balance declarations naturally selects a fresh cache.
-  const skillTooltips = new WeakMap<ProfessionBalanceContext, Map<SkillId, SimulationTooltip>>();
+  const skillTooltips = new WeakMap<
+    ProfessionBalanceContext,
+    { selection: string; models: Map<SkillId, SimulationTooltip> }
+  >();
 
   // A malformed presentation must not prevent selecting a skill or trait; validation reports its source separately.
   const tooltip = (describe: () => SimulationTooltip, name: string): SimulationTooltip => {
@@ -91,23 +94,26 @@ export function defineProfessionApp<
     id: profession.id,
     name: profession.name,
     profession,
-    skillTooltip: (skill: Skill, patchId: string) =>
+    skillTooltip: (skill: Skill, patchId: string, build?: Pick<Gw2CanonicalBuild, 'specializations'>) =>
       tooltip(() => {
         const context = profession.balanceContextFor(patchId);
+        // Trait changes invalidate cached payloads even when the selected balance patch stays the same.
+        const selection = JSON.stringify(build?.specializations ?? []);
         let cached = skillTooltips.get(context);
-        const existing = cached?.get(skill.id);
-        if (existing) return existing;
-        const selected = context.catalog.skillsById.get(skill.id);
-        // Palette-only actions have explicit local descriptions but no combat catalog entry.
-        if (!selected && tooltips.skills?.[skill.id]) return tooltips.skills[skill.id](context, skill);
-        if (!selected) throw new Error(`Missing tooltip skill: ${skill.id}`);
-        const model = describeSimulationSkill(context, selected, tooltips);
-        if (!cached) {
-          cached = new Map();
+        if (cached?.selection !== selection) {
+          cached = { selection, models: new Map() };
           skillTooltips.set(context, cached);
         }
 
-        cached.set(skill.id, model);
+        const existing = cached.models.get(skill.id);
+        if (existing) return existing;
+        const selected = context.catalog.skillsById.get(skill.id);
+        // Palette-only actions have explicit local descriptions but no combat catalog entry.
+        if (!selected && tooltips.skills?.[skill.id])
+          return tooltips.skills[skill.id](context, skill, undefined, build);
+        if (!selected) throw new Error(`Missing tooltip skill: ${skill.id}`);
+        const model = describeSimulationSkill(context, selected, tooltips, build);
+        cached.models.set(skill.id, model);
         return model;
       }, skill.name),
     traitTooltip: (trait: CatalogEntity, patchId: string, specialization: string) =>

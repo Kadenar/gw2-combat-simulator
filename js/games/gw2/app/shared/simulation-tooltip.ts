@@ -1,5 +1,6 @@
 import type { BalanceProfile, CatalogEntity, Skill, SkillId, TooltipFact } from '#gw2/platform/skills/types.js';
 import type { SkillEffect } from '#gw2/platform/effects/types.js';
+import type { Gw2CanonicalBuild } from '#gw2/platform/builds/types.js';
 import type { ProfessionBalanceContext } from '#gw2/platform/profession-definition/balance-context.js';
 import { MODIFIER_EFFECT_ICONS, tooltipFactIcon } from '#gw2/app/shared/icons.js';
 import { gw2BaseRecharge } from '#gw2/platform/combat/recharge.js';
@@ -17,7 +18,8 @@ export interface SimulationTooltip {
 export type DescribeSimulationTooltip = (
   context: ProfessionBalanceContext,
   entity: CatalogEntity,
-  specialization?: string
+  specialization?: string,
+  build?: Pick<Gw2CanonicalBuild, 'specializations'>
 ) => SimulationTooltip;
 
 /** Separate entity namespaces retain identity even when a skill and trait share the same numeric API ID. */
@@ -403,12 +405,13 @@ function ordinarySkillDescription(skill: Skill): string {
 export function describeSimulationSkill(
   context: ProfessionBalanceContext,
   skill: Skill,
-  presentation: ProfessionTooltips
+  presentation: ProfessionTooltips,
+  build?: Pick<Gw2CanonicalBuild, 'specializations'>
 ): SimulationTooltip {
   const describe = presentation.skills?.[skill.id];
   // Custom descriptions own their packets; only format generic effects when no override handles the skill.
   let model: SimulationTooltip;
-  if (describe) model = describe(context, skill);
+  if (describe) model = describe(context, skill, undefined, build);
   else {
     const effects = simulationEffectFacts(skill.effects);
     model = {

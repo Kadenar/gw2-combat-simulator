@@ -128,8 +128,8 @@ test('palette distinguishes startup, missing verdicts, and runtime retry boundar
   const availability = paletteAvailability(app, context, skill);
   const view = paletteSkillView(app, skill, availability.available, availability.message, availability.retryAt);
   assert.equal(view.contextDisabled, false);
-  assert.equal(view.cooldownLabel, 'Retry 2.000s');
-  assert.match(view.castDetails, /Retry in: 2\.000s/);
+  assert.equal(view.cooldownLabel, '2.000s');
+  assert.match(view.castDetails, /Next check in: 2\.000s/);
   assert.equal(paletteAvailability(app, context, { ...skill, specialization: 'Bladesworn' }).available, false);
 });
 
@@ -182,10 +182,10 @@ test('weapon, action, loadout, and custom weapon tiles preserve runtime retries'
     const tile = tiles()[0]?.[0];
     assert.ok(tile, name);
     assert.doesNotMatch(tile, /pal-context-disabled/, name);
-    assert.match(tile, /Retry in:/, name);
+    assert.match(tile, /Next check in:/, name);
     if (name === 'Heartseeker') {
       assert.match(tiles()[1][0], /pal-context-disabled/);
-      assert.doesNotMatch(tiles()[1][0], /Retry in:/);
+      assert.doesNotMatch(tiles()[1][0], /Next check in:/);
     }
 
     if (id === 'revenant') {
@@ -194,7 +194,7 @@ test('weapon, action, loadout, and custom weapon tiles preserve runtime retries'
         slotLoadout: { ...adapter.slotLoadout, unavailableReason: () => 'Requires another loadout' }
       };
       assert.match(tiles()[0][0], /pal-context-disabled/);
-      assert.doesNotMatch(tiles()[0][0], /Retry in:/);
+      assert.doesNotMatch(tiles()[0][0], /Next check in:/);
     }
   }
 });
@@ -214,6 +214,70 @@ test('a denied follow-up stays in the shared palette slot', () => {
     displayedSkillTiles(app, [root, followup]).map((skill) => skill.id),
     [followup.id]
   );
+});
+
+// The synthetic button checks the same two skills its existing resolver inserts, including the current chain step.
+test('Dodge + Auto derives availability from its unchanged command expansion', async () => {
+  const profession = await loadProfession('revenant');
+  const app = projectionApp(profession, { specialization: 'Vindicator' });
+  const opener = profession.catalog.skillsByName.get('Preparation Thrust');
+  const followup = profession.catalog.skillsByName.get('Brutal Blade');
+  const context = { specialization: 'Vindicator', activeAutoattack: followup };
+  const skill = profession.ui.paletteActionSkills(context, []).find((entry) => entry.id === '__vindicator_dodge_auto');
+  const availability = app.results.planningState.availability;
+  availability[23275] = { ready: true };
+  availability[opener.id] = { ready: true };
+  availability[followup.id] = { ready: true };
+  const commands = profession.ui.resolvePaletteAction(context, { name: skill.name });
+  assert.deepEqual(commands, [
+    { type: 'cast', skillId: 23275 },
+    { type: 'cast', skillId: followup.id, concurrentOffsetMs: 0 }
+  ]);
+  assert.deepEqual(paletteAvailability(app, context, skill), { available: true, message: '' });
+
+  availability[23275] = { ready: false, reason: 'Recover endurance.', code: 'fixture.endurance', retryAt: 5 };
+  const retry = paletteAvailability(app, context, skill);
+  assert.equal(retry.retryAt, 5);
+  assert.equal(paletteSkillView(app, skill, retry.available, retry.message, retry.retryAt).contextDisabled, false);
+  availability[followup.id] = { ready: false, reason: 'Weapon unavailable.', code: 'fixture.weapon', retryAt: null };
+  assert.deepEqual(paletteAvailability(app, context, skill), {
+    available: false,
+    message: 'Weapon unavailable.',
+    retryAt: null
+  });
+  availability[followup.id] = { ready: false, reason: 'Recharge.', code: 'fixture.cooldown', retryAt: 8 };
+  assert.equal(paletteAvailability(app, context, skill).retryAt, 8);
+  // Neither a ready opener nor a retryable dodge may excuse a missing verdict for the selected chain step.
+  delete availability[followup.id];
+  assert.equal(paletteAvailability(app, context, skill).available, false);
+  availability[followup.id] = { ready: true };
+  delete availability[23275];
+  assert.equal(paletteAvailability(app, context, skill).available, false);
+  assert.deepEqual(profession.ui.resolvePaletteAction(context, { name: skill.name }), commands);
+});
+
+// Composite admission must not turn unknown entries, empty actions, or missing ordinary verdicts into permission.
+test('composite palette availability only admits owned cast actions with observed components', () => {
+  const component = { id: 990001, name: 'Component', type: 'Weapon' };
+  const ordinary = { id: 990002, name: 'Ordinary', type: 'Weapon' };
+  const action = { id: '__fixture', name: '__fixture', type: 'Action' };
+  const app = catalogApp([component, ordinary]);
+  app.results.planningState.availability[component.id] = { ready: true };
+  const context = { specialization: 'Core' };
+  for (const expansion of [
+    undefined,
+    null,
+    [],
+    [{ type: 'wait', durationMs: 100 }],
+    [{ type: 'cast', skillId: 999 }]
+  ]) {
+    app.profession.ui.resolvePaletteAction = () => expansion;
+    assert.equal(paletteAvailability(app, context, action).available, false);
+  }
+
+  app.profession.ui.resolvePaletteAction = () => [{ type: 'cast', skillId: component.id }];
+  assert.equal(paletteAvailability(app, context, ordinary).available, false);
+  assert.equal(paletteAvailability(app, context, action).available, true);
 });
 
 // Command editors can expose valid lower-charge releases while the default maximum-charge command is denied.
@@ -545,7 +609,7 @@ test('Rock Barrier tile shows the root cooldown after Hurl consumes the flip', a
 
   assert.equal(skill.name, 'Rock Barrier');
   assert.equal(view.cooldownLabel, '8.000s');
-  assert.match(view.castDetails, /Remaining: 8\.000s/);
+  assert.match(view.castDetails, /Ready in: 8\.000s/);
   assert.equal(view.disabled, true);
 });
 
@@ -560,7 +624,7 @@ test('cooldown tooltip reports availability relative to combat start', async () 
   });
   app.results.events = [{ type: 'combat_start', at: 10 }];
 
-  assert.match(paletteSkillView(app, skill).castDetails, /Remaining: 8\.160s\nAvailable at: 13\.000s/);
+  assert.match(paletteSkillView(app, skill).castDetails, /Ready in: 8\.160s\nAvailable at: 13\.000s/);
 });
 
 test('Holosmith Photon Forge autos are catalog autoattack chains', async () => {

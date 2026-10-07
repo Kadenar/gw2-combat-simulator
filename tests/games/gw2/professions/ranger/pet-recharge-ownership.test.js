@@ -4,6 +4,93 @@ import { runRanger } from '#tests/helpers/ranger-simulation.js';
 import { rangerPetCompanionId } from '#gw2/professions/ranger/core/mechanics/pets.js';
 import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
 import { gw2CooldownReadyAt } from '#gw2/platform/combat/action-tick.js';
+import { rangerProfession } from '#gw2/professions/ranger/profession.js';
+
+// Natural pet skills must stay available independently of their same-named merged counterparts.
+test('Jacaranda Photosynthesize resolves to a companion skill outside and inside Soulbeast', () => {
+  for (const specialization of ['Core', 'Druid', 'Soulbeast', 'Untamed', 'Galeshot']) {
+    const { catalog } = rangerProfession.runtimeFor({ specialization });
+    const pet = catalog.skillsById.get(ID.JACARANDA_PHOTOSYNTHESIZE);
+    assert.ok(pet, specialization);
+    assert.equal(pet.petSkill, true);
+    assert.equal(pet.petAutonomousSkill, true);
+    assert.equal(pet.beastmodeSkill, false);
+    assert.equal(pet.rechargeBuffAudience, 'summon');
+    const merged = catalog.skillsById.get(ID.PHOTOSYNTHESIZE);
+    if (specialization === 'Soulbeast') {
+      assert.ok(merged);
+      assert.equal(merged.petSkill, false);
+      assert.equal(merged.beastmodeSkill, true);
+      assert.notEqual(pet.id, merged.id);
+    } else {
+      assert.equal(merged, undefined);
+    }
+  }
+});
+
+// A commanded heal retains its cooldown and caster without triggering autonomous healing.
+test('commanded Jacaranda Photosynthesize recharges and grants regeneration only to its companion', () => {
+  const samples = [];
+  const result = runRanger(
+    [
+      { type: 'combat-start' },
+      { type: 'cast', skillId: ID.JACARANDA_PHOTOSYNTHESIZE },
+      { type: 'wait', durationMs: 15000 }
+    ],
+    { specialization: 'Untamed', initialUntamedState: 'Ranger', selectedPet: 'Jacaranda' },
+    {
+      probes: [3, 10].map((at) => [
+        at,
+        (runtime) => {
+          const progress = runtime.profession.core.petCommandRecharges[ID.JACARANDA_PHOTOSYNTHESIZE];
+          const skill = runtime.helpers.skillsById.get(ID.JACARANDA_PHOTOSYNTHESIZE);
+          assert.ok(progress);
+          assert.equal(progress.companionId, rangerPetCompanionId(runtime));
+          const readyAt = runtime.cooldownController.project(skill, progress);
+          assert.equal(readyAt, progress.startedAt + skill.cooldown);
+          samples.push({ ...progress, readyAt });
+          if (at === 3) {
+            assert.equal(
+              runtime.mechanics.combat.activeBoonStacks('regeneration', at, 1, {
+                actor: 'companion',
+                companionId: progress.companionId
+              }),
+              1
+            );
+            assert.equal(runtime.mechanics.combat.activeBoonStacks('regeneration', at, 1), 0);
+          }
+        }
+      ])
+    }
+  );
+  assert.deepEqual(result.warnings, []);
+  assert.equal(samples.length, 2);
+  assert.deepEqual(samples[1], samples[0], 'AI decisions must not restart the commanded heal recharge.');
+  assert.ok(
+    result.events.some(
+      (event) =>
+        event.type === 'action' &&
+        event.skillId === ID.JACARANDA_ROOT_SLAP &&
+        event.at > samples[0].startedAt &&
+        event.at < samples[0].readyAt
+    ),
+    'Jacaranda must resume basic attacks while Photosynthesize recharges.'
+  );
+});
+
+// The simulator has no incoming damage that would justify autonomous self-healing.
+test('Jacaranda damage AI never requests Photosynthesize', () => {
+  const result = runRanger([{ type: 'combat-start' }, { type: 'wait', durationMs: 30000 }], {
+    specialization: 'Druid',
+    selectedPet: 'Jacaranda'
+  });
+  assert.deepEqual(result.warnings, []);
+  assert.equal(
+    result.events.some((event) => [ID.JACARANDA_PHOTOSYNTHESIZE, ID.PHOTOSYNTHESIZE].includes(event.skillId)),
+    false
+  );
+  assert.ok(result.events.some((event) => event.type === 'action' && event.skillId === ID.JACARANDA_ROOT_SLAP));
+});
 
 // Feed real received boons into the runtime so autonomous cooldowns exercise the same history as manual commands.
 const grantAlacrity = (runtime, duration) =>

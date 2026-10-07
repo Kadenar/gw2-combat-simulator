@@ -388,10 +388,8 @@ const PET_AUTO_PROFILES: Readonly<Record<string, PetAutoProfile>> = Object.freez
   Jacaranda: {
     openingDelay: 0.44,
     basic: { id: ID.JACARANDA_ROOT_SLAP, recovery: 1.6 },
-    specials: [
-      { id: ID.JACARANDA_CALL_LIGHTNING, recovery: 1.48, cooldown: 15 },
-      { id: ID.PHOTOSYNTHESIZE, recovery: 1.48, cooldown: 20 }
-    ],
+    // Damage-only AI has no healing demand; Photosynthesize remains available to explicit pet commands.
+    specials: [{ id: ID.JACARANDA_CALL_LIGHTNING, recovery: 1.48, cooldown: 15 }],
     commandRecovery: { [ID.JACARANDAS_EMBRACE]: 1.48 }
   }
 });

@@ -59,7 +59,7 @@ function selectionOptionsHtml(app: ProfessionAppState, options: readonly Profess
     const entries = sections.get(name) || [];
     entries.push(`<button type="button" class="dd-item" data-selection-value="${esc(option.value)}"${
       option.skillId == null ? '' : ` data-skill-id="${esc(option.skillId)}"`
-    } ${option.skillId != null && app.skillById.has(Number(option.skillId)) ? skillTooltipAttributes(app.skillById.get(Number(option.skillId))!, app.adapter.skillTooltip(app.skillById.get(Number(option.skillId))!, app.patchId)) : wikiTooltipAttributes(option.label)}>
+    } ${option.skillId != null && app.skillById.has(Number(option.skillId)) ? skillTooltipAttributes(app.skillById.get(Number(option.skillId))!, app.adapter.skillTooltip(app.skillById.get(Number(option.skillId))!, app.patchId, app.build)) : wikiTooltipAttributes(option.label)}>
         <img src="${esc(option.icon || '')}" alt="">
         <span>${esc(option.label)}</span>
         ${selectionWarningHtml(option.warning)}
@@ -105,7 +105,7 @@ function multiSelectionInspectionGroupHtml(app: ProfessionAppState, group: Profe
       return `<div class="skill-bar-inspection-slot selectable"
           data-selection-key="${esc(selection.selectionKey)}"
           data-selection-index="${selection.selectionIndex}">
-          <button type="button" class="sbar-icon" aria-label="Change ${esc(group.label)} ${selection.selectionIndex + 1}${selectedEntry?.warning ? `. ${esc(selectedEntry.warning)}` : ''}" ${selectedSkill ? skillTooltipAttributes(selectedSkill, app.adapter.skillTooltip(selectedSkill, app.patchId)) : wikiTooltipAttributes(display.name)}>
+          <button type="button" class="sbar-icon" aria-label="Change ${esc(group.label)} ${selection.selectionIndex + 1}${selectedEntry?.warning ? `. ${esc(selectedEntry.warning)}` : ''}" ${selectedSkill ? skillTooltipAttributes(selectedSkill, app.adapter.skillTooltip(selectedSkill, app.patchId, app.build)) : wikiTooltipAttributes(display.name)}>
               <img src="${esc(display.icon || '')}" alt="">
               ${selectionWarningHtml(selectedEntry?.warning)}
           </button>
@@ -175,12 +175,12 @@ export function renderSkills(app: ProfessionAppState): void {
       const current = app.skillById.get(app.build.selectedSkillIds[key]!);
       const display = skillBarDisplaySkill(app, current);
       return `<div class="skill-bar-slot ${type === 'Elite' ? 'elite-border' : ''}" data-key="${key}">
-                <button type="button" class="sbar-icon" aria-label="Change ${key.replace(/(\d)$/, ' $1').toLowerCase()} skill" ${display ? skillTooltipAttributes(display, app.adapter.skillTooltip(display, app.patchId)) : ''}><img src="${esc(display?.icon || '')}" alt=""><span class="sbar-icon-arrow" aria-hidden="true">▼</span></button>
+                <button type="button" class="sbar-icon" aria-label="Change ${key.replace(/(\d)$/, ' $1').toLowerCase()} skill" ${display ? skillTooltipAttributes(display, app.adapter.skillTooltip(display, app.patchId, app.build)) : ''}><img src="${esc(display?.icon || '')}" alt=""><span class="sbar-icon-arrow" aria-hidden="true">▼</span></button>
                 <div class="sbar-arrow">▼</div>
                 <div class="sbar-dropdown">${availableSlotSkills(app, type)
                   .map(
                     (skill) =>
-                      `<button type="button" class="dd-item" data-skill-id="${esc(JSON.stringify(skill.id))}" aria-pressed="${skill.id === current?.id}" ${skillTooltipAttributes(skill, app.adapter.skillTooltip(skill, app.patchId))}><img src="${esc(skill.icon)}" alt=""><span>${esc(skill.displayName || skill.name)}</span></button>`
+                      `<button type="button" class="dd-item" data-skill-id="${esc(JSON.stringify(skill.id))}" aria-pressed="${skill.id === current?.id}" ${skillTooltipAttributes(skill, app.adapter.skillTooltip(skill, app.patchId, app.build))}><img src="${esc(skill.icon)}" alt=""><span>${esc(skill.displayName || skill.name)}</span></button>`
                   )
                   .join('')}</div>
             </div>`;

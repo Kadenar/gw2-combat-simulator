@@ -10,6 +10,23 @@ import type { Skill } from '#gw2/platform/skills/types.js';
 const EMBRACE_PULSE_TIMES_MS = [0, 1520, 3000, 4520, 6000];
 
 export const RANGER_CORE_JACARANDA_PET_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
+  [ID.JACARANDA_PHOTOSYNTHESIZE]: {
+    // Regeneration belongs to the casting companion, while healing and cleansing remain outside combat scope.
+    effects: [
+      {
+        type: 'boon',
+        boon: 'regeneration',
+        duration: 5,
+        stacks: 1,
+        source: 'ranger-pet',
+        actorType: 'summon',
+        audience: { recipients: 'self' }
+      }
+    ],
+    castTimeMs: 750,
+    quicknessCastTimeMs: 500,
+    petSkill: true
+  },
   [ID.JACARANDAS_EMBRACE]: {
     // Embrace's condition pulses use Ranger stats and survive pet swap; its direct strike remains pet-owned.
     effects: impactEffects({ timingAnchor: 'castStart', timingScale: 'fixed' }, [

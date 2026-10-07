@@ -28,6 +28,30 @@ import { HERALD_NATURE_ASSASSIN_PROFILE_ID } from '#gw2/professions/revenant/spe
 import { RENEGADE_PROFILE_IDS as RENEGADE } from '#gw2/professions/revenant/specializations/renegade/profiles.js';
 import { VINDICATOR_DODGE_AUTO_ACTION } from '#gw2/professions/revenant/specializations/vindicator/presentation.js';
 import type { RevenantSkill } from '#gw2/professions/revenant/types.js';
+import { getActiveTraits } from '#gw2/professions/revenant/data/traits-data.js';
+
+/** Describe only the landing and modifiers selected by this build, matching the simulated dodge choice. */
+const vindicatorDodgeTooltip: DescribeSimulationTooltip = (balanceContext, _entity, _specialization, build) => {
+  const traits = new Set(getActiveTraits(build?.specializations).map((trait) => trait.id));
+  const landingId = traits.has(TRAIT.SAINT_OF_ZU_HELTZER)
+    ? ID.SAINTS_SHIELD
+    : traits.has(TRAIT.VASSALS_OF_THE_EMPIRE)
+      ? ID.IMPERIAL_IMPACT
+      : ID.DEATH_DROP;
+  const landing = balanceContext.catalog.skillsById.get(landingId)!;
+  return {
+    ...simulationEffectFacts(landing.effects, landing.name),
+    description: [
+      `Spend endurance to leap, then land with ${landing.name}.`,
+      traits.has(TRAIT.REAVERS_CURSE) ? "Reaver's Curse can empower the next landing." : '',
+      landingId === ID.DEATH_DROP && traits.has(TRAIT.FORERUNNER_OF_DEATH)
+        ? 'Death Drop starts its Forerunner of Death bonus after its own damage resolves.'
+        : ''
+    ]
+      .filter(Boolean)
+      .join(' ')
+  };
+};
 
 /** Put requirement-specific effects in tabs while shared effects stay visible with every selection. */
 function variantEffects(effects: readonly SkillEffect[] = [], context = '') {
@@ -79,17 +103,15 @@ const familyTooltips = {
       )
     ]
   ),
-  dodge: skillTooltip(
-    'Spend endurance to dodge. Vindicator also applies the grandmaster-selected landing package; other specializations only apply their supported dodge-related traits. Incoming damage is outside simulation scope.'
-  ),
-  'vindicator-jump': (balanceContext) => ({
-    description:
-      "Spend endurance to leap, then apply the landing selected by your grandmaster trait. Reaver's Curse can empower the next landing. Death Drop starts its Forerunner of Death bonus after its own damage resolves.",
-    facts: [ID.DEATH_DROP, ID.IMPERIAL_IMPACT, ID.SAINTS_SHIELD].flatMap((id) => {
-      const landing = balanceContext.catalog.skillsById.get(id)!;
-      return simulationEffectFacts(landing.effects, `${landing.name}: alternative landing`).facts;
-    })
-  }),
+  dodge: (context, entity, specialization, build) =>
+    build?.specializations.some((selection) => selection.name === 'Vindicator')
+      ? vindicatorDodgeTooltip(context, entity, specialization, build)
+      : {
+          description:
+            'Spend endurance to dodge and apply supported dodge-related traits. Incoming damage is outside simulation scope.',
+          facts: []
+        },
+  'vindicator-jump': vindicatorDodgeTooltip,
   'ancient-echo': (balanceContext, entity) => {
     const effects = variantEffects(balanceContext.catalog.skillsById.get(entity.id)!.effects);
     return {

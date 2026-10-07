@@ -269,7 +269,7 @@ test('Jacaranda exposes its pet skills, recharge, coefficients, and summon attri
   assert.deepEqual(jacaranda.skillIds, [
     ID.JACARANDA_ROOT_SLAP,
     ID.JACARANDA_CALL_LIGHTNING,
-    ID.PHOTOSYNTHESIZE,
+    ID.JACARANDA_PHOTOSYNTHESIZE,
     ID.JACARANDAS_EMBRACE
   ]);
 

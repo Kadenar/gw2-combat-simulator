@@ -1267,6 +1267,22 @@ export const RANGER_PET_SKILLS: readonly RangerSkill[] = Object.freeze([
     petNames: ['Jacaranda']
   },
   {
+    id: ID.JACARANDA_PHOTOSYNTHESIZE,
+    name: 'Photosynthesize',
+    description: 'Restore health, gain regeneration, and remove conditions.',
+    icon: 'https://render.guildwars2.com/file/976A0CC4EA0F36C8A4A705FDE22F03D65CD050D1/1770577.png',
+    type: 'Profession',
+    slot: 'Profession_2',
+    categories: ['Pet'],
+    specialization: '',
+    // The autonomous pet owns this recharge; the merged Soulbeast skill has a separate identity.
+    cooldown: 20,
+    petSkill: true,
+    petFamilySkill: true,
+    petAutonomousSkill: true,
+    petNames: ['Jacaranda']
+  },
+  {
     id: ID.JACARANDAS_EMBRACE,
     name: "Jacaranda's Embrace",
     description: 'Beast. Fire a missile that roots foes for a period of time.',
@@ -2036,7 +2052,12 @@ export const RANGER_PETS: readonly RangerPetDefinition[] = Object.freeze([
       'Capable of calling lightning from the skies while blending into terrain. They are not standing still; they are lying in wait. —Acht',
     family: 'jacaranda',
     archetype: 'Supportive',
-    skillIds: [ID.JACARANDA_ROOT_SLAP, ID.JACARANDA_CALL_LIGHTNING, ID.PHOTOSYNTHESIZE, ID.JACARANDAS_EMBRACE],
+    skillIds: [
+      ID.JACARANDA_ROOT_SLAP,
+      ID.JACARANDA_CALL_LIGHTNING,
+      ID.JACARANDA_PHOTOSYNTHESIZE,
+      ID.JACARANDAS_EMBRACE
+    ],
     beastmodeSkillIds: [ID.CALL_LIGHTNING_ID_43788, ID.PHOTOSYNTHESIZE, ID.SPIRITUAL_REPRIEVE]
   },
   {
