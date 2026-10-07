@@ -1092,6 +1092,12 @@ test('profession bar charts use distinct build colors and share filters with the
     nodes.map((node) => node.style.getPropertyValue('--benchmark-color'))
   );
   expect(new Set(colors).size).toBe(colors.length);
+  // The rendered bars must resolve the same profession accent used by the filter controls.
+  const accent = await page
+    .locator('[data-benchmark-profession="elementalist"]')
+    .evaluate((node) => getComputedStyle(node).getPropertyValue('--profession-accent').trim());
+  expect(colors.every((color) => color.includes(accent))).toBe(true);
+  await expect(bars.first().locator('.benchmark-bar-fill')).not.toHaveCSS('background-color', 'rgba(0, 0, 0, 0)');
   const first = bars.first();
   const label = await first.getAttribute('aria-label');
   await first.focus();

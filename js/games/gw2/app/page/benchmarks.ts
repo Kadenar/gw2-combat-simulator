@@ -16,17 +16,27 @@ export interface BenchmarkFilters {
   readonly includeOutdated: boolean;
 }
 
-/** Assign colors from the full catalog so filtering and DPS sorting never recolor a build. */
-export function benchmarkColors(rows: readonly Benchmark[]): ReadonlyMap<Benchmark, string> {
+/** Shade each profession's accent from the full catalog so filtering and sorting never recolor a build. */
+export function benchmarkColors(
+  rows: readonly Benchmark[],
+  professionColors: ReadonlyMap<string, string>
+): ReadonlyMap<Benchmark, string> {
   const colors = new Map<Benchmark, string>();
+  const professionIndices = new Map<string, number>();
   const ordered = [...rows].sort((a, b) =>
     JSON.stringify([a.profession, a.specialization, a.build, a.rotation, a.label]).localeCompare(
       JSON.stringify([b.profession, b.specialization, b.build, b.rotation, b.label])
     )
   );
-  ordered.forEach((row, index) => {
-    // Golden-angle spacing separates neighbors; alternating lightness helps crowded series remain distinct.
-    colors.set(row, `hsl(${((index * 137.508) % 360).toFixed(3)} 58% ${index % 2 ? 68 : 56}%)`);
+  ordered.forEach((row) => {
+    const index = professionIndices.get(row.profession) ?? 0;
+    professionIndices.set(row.profession, index + 1);
+    // Small alternating tints and shades distinguish builds while retaining the profession's hue.
+    const accentPercent = index === 0 ? 100 : 92 - ((Math.floor(index / 2) * 0.618034) % 1) * 14;
+    colors.set(
+      row,
+      `color-mix(in srgb, ${professionColors.get(row.profession)} ${accentPercent.toFixed(3)}%, ${index % 2 ? 'black' : 'white'})`
+    );
   });
   return colors;
 }

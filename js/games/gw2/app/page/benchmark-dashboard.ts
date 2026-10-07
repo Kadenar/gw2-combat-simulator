@@ -883,7 +883,16 @@ export function mountBenchmarks(root: HTMLElement): void {
       })
     );
     benchmarks = results.flatMap((result) => (result.status === 'fulfilled' ? result.value : []));
-    colors = benchmarkColors(benchmarks);
+    // Resolve the existing profession accents once so every chart and detached label shares the same palette.
+    const professionColors = new Map(
+      professionRegistry.map(({ id }) => [
+        id,
+        getComputedStyle(root.querySelector<HTMLElement>(`[data-benchmark-profession="${id}"]`)!)
+          .getPropertyValue('--profession-accent')
+          .trim()
+      ])
+    );
+    colors = benchmarkColors(benchmarks, professionColors);
     failures = results.flatMap((result, index) =>
       result.status === 'rejected' ? [professionRegistry[index]!.name] : []
     );

@@ -26,15 +26,23 @@ const rows = readBenchmarks(profession, [
 ]);
 const filters = { professions: new Set(['mesmer']), query: '', damage: 'all', role: 'all', includeOutdated: false };
 
-// Catalog order and filtering must not change a build's color or merge colors within a profession.
-test('benchmark colors distinguish builds and remain stable across catalog ordering and filters', () => {
+// Shades retain the supplied profession accent and stay stable when other professions or filters change.
+test('benchmark colors shade profession accents and remain stable across catalog ordering and filters', () => {
   const catalog = Array.from({ length: 50 }, (_, index) => ({ ...rows[0], build: `${index}.json` }));
-  const colors = benchmarkColors(catalog);
-  const reordered = benchmarkColors([...catalog].reverse());
+  const accents = new Map([
+    ['mesmer', '#ad83df'],
+    ['guardian', '#72c1d9']
+  ]);
+  const guardian = { ...rows[0], profession: 'guardian' };
+  const colors = benchmarkColors(catalog, accents);
+  const reordered = benchmarkColors([guardian, ...catalog].reverse(), accents);
   assert.equal(new Set(colors.values()).size, catalog.length);
   for (const row of filterBenchmarks(catalog, filters)) {
     assert.equal(colors.get(row), reordered.get(row));
+    assert.match(colors.get(row), /^color-mix\(in srgb, #ad83df /);
   }
+
+  assert.match(reordered.get(guardian), /^color-mix\(in srgb, #72c1d9 /);
 });
 
 // Keep filtering and graph math in Node; browsers only verify native control and layout behavior.
