@@ -249,6 +249,27 @@ body[data-profession] .rotation-section {
   color: inherit;
 }
 
+/* Keep transient simulation feedback beneath the title, with a stable line even when idle. */
+.rotation-builder-label {
+  display: grid;
+  flex-shrink: 0;
+}
+
+.palette-update-status {
+  min-height: 14px;
+  color: var(--text-dim);
+  font-size: 11px;
+  font-weight: 400;
+  line-height: 14px;
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+.palette-update-status[hidden] {
+  display: block;
+  visibility: hidden;
+}
+
 .rotation-builder-controls {
   margin-left: auto;
 }

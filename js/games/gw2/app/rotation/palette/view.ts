@@ -2,6 +2,7 @@
 import { escapeHtml as esc } from '#ui/shared/html.js';
 import { skillTooltipAttributes } from '#gw2/app/shared/tooltip-overlay.js';
 import { bindAppPaletteInteractions } from '#gw2/app/rotation/palette/interactions.js';
+import { updatePaletteFreshness } from '#gw2/app/rotation/palette/freshness.js';
 import {
   createPaletteContext,
   displayedWeaponSkills,
@@ -492,6 +493,7 @@ export function renderPalette(app: ProfessionAppState): void {
   if (!element) return;
   const paletteContext = createPaletteContext(app);
   element.innerHTML = paletteHtml(app, paletteContext);
+  updatePaletteFreshness(app);
 
   bindAppPaletteInteractions(app, element, paletteContext);
 }

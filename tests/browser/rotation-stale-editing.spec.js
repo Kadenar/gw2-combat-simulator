@@ -1,5 +1,65 @@
 import { expect, test } from '@playwright/test';
 
+// Keep the old palette visible across a swap to test native input rejection, failure feedback, and recovery.
+test('palette waits for fresh state before accepting hotkeys, clicks, or drags', async ({ page }) => {
+  await page.goto('/revenant.html');
+  await expect(page.locator('#loading-overlay')).toHaveClass(/hidden/);
+  await page.evaluate(async () => {
+    const app = window.professionApp;
+    const build = await (await fetch('/data/gw2/builds/revenant/b-power-vindicator-greatsword-energy.json')).json();
+    app.build = app.adapter.toApplicationBuild({ ...build, rotation: [] });
+    app.changed();
+  });
+  await page.waitForFunction(() => window.professionApp.simulationStatus === 'idle');
+  await page.evaluate(() => {
+    const app = window.professionApp;
+    const runner = app.baselineSimulationRunner;
+    runner.schedule = () => {};
+
+    window.resumeBaseline = () => {
+      delete runner.schedule;
+      runner.schedule(app.buildRevision);
+    };
+
+    document.addEventListener('keydown', (event) => {
+      if (event.code === 'F1') window.blockedFunctionKey = event.defaultPrevented;
+    });
+  });
+  const palette = page.locator('#rotation-palette');
+  const status = page.locator('.rotation-builder-heading [data-palette-update-status]');
+  await palette.dispatchEvent('pointerdown', { button: 0 });
+  await page.keyboard.press('Backquote');
+  await expect(status).toHaveText('Updating skills…');
+  await expect(status).toBeVisible();
+  await expect(palette).toHaveAttribute('aria-busy', 'true');
+  await page.keyboard.press('Digit1');
+  await page.keyboard.press('F1');
+  expect(await page.evaluate(() => window.blockedFunctionKey)).toBe(true);
+  await palette.locator('[data-skill-id="62913"]').click();
+  expect(
+    await palette
+      .locator('[data-skill-id="62913"]')
+      .evaluate((tile) => tile.dispatchEvent(new DragEvent('dragstart', { bubbles: true, cancelable: true })))
+  ).toBe(false);
+  expect(await page.evaluate(() => window.professionApp.build.rotation)).toEqual([{ type: 'cast', skillId: -3 }]);
+  await page.evaluate(() => {
+    const app = window.professionApp;
+    app.failBaselineSimulation(new Error('Fixture failure'), app.buildRevision);
+  });
+  await expect(status).toHaveText('Simulation failed');
+  await expect(palette).toHaveAttribute('aria-busy', 'false');
+  await page.keyboard.press('Digit1');
+  expect(await page.evaluate(() => window.professionApp.build.rotation)).toEqual([{ type: 'cast', skillId: -3 }]);
+  await page.evaluate(() => window.resumeBaseline());
+  await page.waitForFunction(() => window.professionApp.simulationStatus === 'idle');
+  await expect(status).toBeHidden();
+  await palette.dispatchEvent('pointerdown', { button: 0 });
+  await page.keyboard.press('Digit1');
+  await page.waitForFunction(() => window.professionApp.simulationStatus === 'idle');
+  expect(await page.evaluate(() => window.professionApp.build.rotation.at(-1).skillId)).toBe(29057);
+  expect(await page.evaluate(() => window.professionApp.results.warnings)).toEqual([]);
+});
+
 // Hold edit-triggered simulation publication so stale controls are exercised deterministically.
 test('retained timeline controls reject stale indexes and resume after publication', async ({ page }) => {
   await page.goto('/mesmer.html');

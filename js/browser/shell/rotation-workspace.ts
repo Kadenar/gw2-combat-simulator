@@ -167,9 +167,19 @@ function mountRotationHeading(
   title.className = 'rotation-builder-title';
   title.textContent = titleText;
 
+  // Reserve a quiet status line under the title so palette refreshes never cover skills or move controls.
+  const paletteStatus = root.createElement('span');
+  paletteStatus.className = 'palette-update-status';
+  paletteStatus.dataset.paletteUpdateStatus = '';
+  paletteStatus.setAttribute('role', 'status');
+  paletteStatus.hidden = true;
+  const label = root.createElement('span');
+  label.className = 'rotation-builder-label';
+  label.append(title, paletteStatus);
+
   const headingTitle = root.createElement('span');
   headingTitle.className = 'rotation-builder-heading-title';
-  headingTitle.append(title);
+  headingTitle.append(label);
   // Keep the compact interaction guide beside the title instead of consuming a separate builder row.
   if (hint) headingTitle.append(hint);
 

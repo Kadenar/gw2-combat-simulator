@@ -41,6 +41,10 @@
   align-items: flex-start;
 }
 
+.rotation-palette[data-palette-pending='true'] .pal-skill {
+  cursor: progress;
+}
+
 /* Keep weapon rows and adjacent actions grouped while allowing standard weapon sets to wrap. */
 .weapon-palette-section,
 .weapon-palette-stack {

@@ -665,9 +665,11 @@ export function rotationSkillHighlightKey(entry: RotationCommand): string {
   return `skill:${entry.type === 'cast' ? String(entry.skillId) : entry.type}`;
 }
 
-/** Reads the recorded stack state so every stacking proc labels itself without parsing display text. */
+/** Label active buildup only; consumed stacks remain in the recorded state without a misleading zero-stack badge. */
 export function procStackLabel(proc: Gw2ProcStep): string {
-  return proc.effectState ? `${proc.effectState.stacks}/${proc.effectState.maximumStacks}` : '';
+  return proc.effectState && proc.effectState.stacks > 0
+    ? `${proc.effectState.stacks}/${proc.effectState.maximumStacks}`
+    : '';
 }
 
 export function procBadgeLabel(procSteps: readonly Gw2ProcStep[] = []): string {
