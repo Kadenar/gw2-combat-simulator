@@ -135,7 +135,9 @@ test('Mesmer entry and legend reselection reject missing or invalid selected cos
               });
             return { ...base, balanceDataContext, balanceProfilesById };
           };
+
           const rotation = startingLegend === LEGEND.DEMON ? ['Cosmic Wisdom'] : ['Cosmic Wisdom', 'Swap Legends'];
+
           assert.throws(
             () => runRevenant(rotation, { ...conduitConfig, startingLegend }, { catalog, output }),
             (error) => {

@@ -53,6 +53,7 @@ test('Mesmer costs read each selected profile and preserve native costs outside 
       for (const time of [10, 11]) {
         assert.equal(effectiveRevenantEnergyCost({ ...input, time }, skill), skill.energyCost);
       }
+
       assert.equal(effectiveRevenantEnergyCost({ ...input, specialization: 'Core' }, skill), skill.energyCost);
       assert.equal(
         effectiveRevenantEnergyCost({ ...input, state: { ...state, conduitForm: 'Dervish' } }, skill),

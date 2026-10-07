@@ -49,9 +49,8 @@ export function revenantEnergyCost(
   runtime: ReadonlyMechanicState<{
     readonly profession: RevenantRuntimeState;
     readonly config: RevenantConfig;
-    readonly helpers: CanonicalCatalog;
     readonly time: number;
-  }>,
+  }> & { readonly helpers: CanonicalCatalog },
   skill: RevenantSkill
 ): number {
   const { core, specialization } = runtime.profession;
