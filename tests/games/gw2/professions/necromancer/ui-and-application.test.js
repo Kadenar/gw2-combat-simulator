@@ -242,6 +242,8 @@ test('Necromancer renders life force above its F-skills', async () => {
     adapter,
     profession: necromancerProfession,
     skills: necromancerCatalog.skills,
+    // Match application initialization so resource-only planning still has a catalog for palette availability.
+    activeCatalog: necromancerCatalog,
     skillById: necromancerCatalog.skillsById,
     skillByName: necromancerCatalog.skillsByName,
     weaponData: adapter.weaponData,

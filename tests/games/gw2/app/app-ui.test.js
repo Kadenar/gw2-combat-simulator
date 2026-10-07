@@ -486,6 +486,45 @@ test('timed relic expiration markers merge refreshes and stay within the rotatio
   );
 });
 
+// Consuming a stack pool ends its pending lifetime without erasing unrelated or later natural expirations.
+test('relic consumption cancels stale timeouts and makes subsequent buildup a fresh activation', () => {
+  const volatility = (start, stacks, expiresAt) => ({
+    type: 'relic_proc',
+    skill: 'Bloodstone Volatility',
+    start,
+    end: start,
+    ...(expiresAt === undefined ? {} : { expiresAt }),
+    effectState: { stacks, maximumStacks: 3 }
+  });
+  const result = {
+    combatEndTime: 40,
+    steps: [],
+    procSteps: [
+      volatility(1000, 3, 11000),
+      volatility(1000, 0),
+      { type: 'relic_proc', skill: 'Relic of Bloodstone', start: 1000, end: 1000, expiresAt: 9000 },
+      volatility(9000, 1, 19000),
+      volatility(20000, 3, 30000),
+      volatility(21000, 0),
+      volatility(22000, 1, 32000),
+      // A later state clear must preserve a timeout that has already happened.
+      volatility(33000, 0)
+    ]
+  };
+
+  assert.deepEqual(
+    relicProcExpirationTimelineMarkers(result).map(({ skill, start }) => ({ skill, start })),
+    [
+      { skill: 'Relic of Bloodstone', start: 9000 },
+      { skill: 'Bloodstone Volatility', start: 19000 },
+      { skill: 'Bloodstone Volatility', start: 32000 }
+    ]
+  );
+  for (const start of [9000, 22000]) {
+    assert.equal(relicProcTimelineMarkers(result).find((marker) => marker.start === start).refreshed, false);
+  }
+});
+
 test('relic overlay markers flag activations that only refresh an active window', () => {
   const relic = (skill, start, expiresAt, effectState) => ({
     type: 'relic_proc',

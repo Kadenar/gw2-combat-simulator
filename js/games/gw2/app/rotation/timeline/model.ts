@@ -575,9 +575,16 @@ function relicRefreshActivations(procSteps: readonly Gw2ProcStep[]): Set<Gw2Proc
   const refreshes = new Set<Gw2ProcStep>();
   const windows = new Map<string, { expiresAt: number; stacks: number }>();
   for (const proc of [...procSteps]
-    .filter((step) => step.type === 'relic_proc' && Number(step.expiresAt) > step.start)
+    .filter((step) => step.type === 'relic_proc')
     .sort((left, right) => left.start - right.start)) {
     const key = procFilterKey(proc);
+    // Consumption closes the old pool so later buildup is a new activation, not a refresh.
+    if (proc.effectState?.stacks === 0) {
+      windows.delete(key);
+      continue;
+    }
+
+    if (!(Number(proc.expiresAt) > proc.start)) continue;
     const window = windows.get(key);
     const stacks = proc.effectState?.stacks ?? 0;
     // The window is strictly open, matching the relic rules: an activation at
@@ -613,6 +620,7 @@ export function traitProcTimelineMarkers(
  * Emits one marker at the true end of each continuous timed-relic window.
  * Activations at or before the current deadline are refreshes, so their window
  * is merged and no misleading crossed icon is shown at the earlier deadline.
+ * Consumed pools cancel their pending timeout because their state already ended.
  */
 export function relicProcExpirationTimelineMarkers(
   result: Gw2SimulationResult | null | undefined,
@@ -640,11 +648,19 @@ export function relicProcExpirationTimelineMarkers(
   };
 
   for (const proc of [...(result?.procSteps || [])]
-    .filter((step) => step.type === 'relic_proc' && Number(step.expiresAt) > step.start)
+    .filter((step) => step.type === 'relic_proc')
     .sort((left, right) => left.start - right.start)) {
     const key = procFilterKey(proc);
-    const expiresAt = Number(proc.expiresAt);
     const window = windows.get(key);
+    if (proc.effectState?.stacks === 0) {
+      // Preserve a timeout that already happened, but discard one superseded by consumption.
+      if (window && window.expiresAt < proc.start) appendExpiration(window);
+      windows.delete(key);
+      continue;
+    }
+
+    const expiresAt = Number(proc.expiresAt);
+    if (!(expiresAt > proc.start)) continue;
     if (window && proc.start <= window.expiresAt) {
       window.proc = proc;
       window.expiresAt = Math.max(window.expiresAt, expiresAt);
