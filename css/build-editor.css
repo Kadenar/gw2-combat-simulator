@@ -1432,10 +1432,6 @@ body[data-profession='revenant'] .workspace-build-choices .selectable-skills-pan
   flex: 0;
 }
 
-body[data-profession='revenant'] .workspace-build-choices .fixed-loadout-bar {
-  display: none;
-}
-
 .gear-panel .attributes-panel .attr-section h4 {
   font-size: 16px;
   font-weight: 600;

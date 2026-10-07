@@ -11,7 +11,7 @@ import type {
 import type { RotationProfessionState } from '#gw2/app/rotation/context.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
 import type { ProfessionAppState } from '#gw2/app/types.js';
-import type { SlotLoadoutBar, SlotLoadoutSelector } from '#gw2/platform/builds/slot-loadout.js';
+import type { SlotLoadoutSelector } from '#gw2/platform/builds/slot-loadout.js';
 import { requiredElement } from '#ui/shared/dom.js';
 
 /** Resolves the armed member of a selected skill's flip chain for display. */
@@ -267,12 +267,18 @@ export function renderSkills(app: ProfessionAppState): void {
         }
 
         app.changed();
+        // Resume at the replacement slot; conditional selectors may disappear during the rebuild.
+        skillBar
+          .querySelector<HTMLElement>(
+            `.skill-bar-inspection-slot[data-selection-key="${CSS.escape(key)}"][data-selection-index="${index}"] .sbar-icon`
+          )
+          ?.focus();
       });
     });
   });
 }
 
-/** Renders profession-defined fixed slot bars and their loadout selectors. */
+/** Renders editable loadout selectors; fixed skills and their children belong in the rotation palette. */
 function renderFixedSlotLoadout(app: ProfessionAppState, spec: string): void {
   const loadout = app.adapter.slotLoadout;
   if (!loadout) return;
@@ -284,48 +290,9 @@ function renderFixedSlotLoadout(app: ProfessionAppState, spec: string): void {
   };
   const view = loadout.view(context);
   const skillBar = requiredElement('skill-bar');
-  // Name the retained legend selectors independently of their hidden, fixed skill rows.
+  // Name the panel after the editable loadout selectors.
   const title = skillBar.parentElement?.querySelector('.selectable-skills-title');
   if (title) title.textContent = view.label;
-
-  // Keep Revenant slots icon-only
-  const slotHtml = (skill: Skill, index: number, child = false): string => {
-    return `<div class="skill-bar-slot fixed-loadout-skill${
-      child ? ' child-skill' : ''
-    }${!child && index === 4 ? ' elite-border' : ''}">
-        <div class="sbar-icon" tabindex="0" aria-label="${esc(skill.name)}" ${skillTooltipAttributes(skill, app.adapter.skillTooltip(skill, app.patchId))}><img src="${esc(skill.icon || '')}" alt=""></div>
-    </div>`;
-  };
-
-  // Render a fixed root skill together with its profession-defined children.
-  const barSkillHtml = (skill: Skill, index: number): string => {
-    const childIds = typeof loadout.skillChildren === 'function' ? loadout.skillChildren(context, skill.id) : [];
-    const children = childIds.map((id) => app.skillById.get(id)).filter((child): child is Skill => child != null);
-    return `<div class="fixed-loadout-skill-stack">
-        ${slotHtml(skill, index)}
-        ${children
-          .map(
-            (child) =>
-              `<div class="fixed-loadout-chain-step">
-                <span class="weapon-chain-arrow" aria-hidden="true">&#8627;</span>
-                ${slotHtml(child, index, true)}
-              </div>`
-          )
-          .join('')}
-      </div>`;
-  };
-
-  // Render one complete fixed loadout bar and its active-state styling.
-  const barHtml = (bar: SlotLoadoutBar): string =>
-    `<div class="fixed-loadout-bar skill-bar-selected${
-      view.formatActiveBar ? (bar.active ? ' active' : ' inactive') : ' static'
-    }">
-        ${bar.skillIds
-          .map((id) => app.skillById.get(id))
-          .filter((skill): skill is Skill => skill != null)
-          .map(barSkillHtml)
-          .join('')}
-      </div>`;
 
   // Legend portraits open the existing choices; names remain available to tooltips and assistive technology.
   const selectorHtml = (selector: SlotLoadoutSelector, index: number): string => {
@@ -333,7 +300,7 @@ function renderFixedSlotLoadout(app: ProfessionAppState, spec: string): void {
       const selected = selector.options.find((entry) => entry.value === selector.value);
       return `<div class="skill-bar-slot fixed-loadout-icon-selector">
           <button type="button" class="fixed-loadout-trigger sbar-icon"
-            data-loadout-toggle aria-expanded="false"
+            data-loadout-toggle="${esc(selector.key)}" aria-expanded="false"
             aria-label="Change ${esc(selector.label.toLowerCase())}: ${esc(selected?.label || 'Choose loadout')}"
             ${wikiTooltipAttributes(selected?.label)}
             aria-haspopup="listbox" aria-controls="fixed-loadout-menu-${index}">
@@ -372,20 +339,19 @@ function renderFixedSlotLoadout(app: ProfessionAppState, spec: string): void {
 
   const pairedIconLoadout = view.selectionControl === 'icons' && view.selectors.length === view.bars.length;
 
-  // Pair icon selectors with their bars when the profession exposes parallel sets.
+  // Preserve the selector layout for parallel loadouts without rendering duplicate fixed skills.
   const fixedLoadoutHtml = pairedIconLoadout
     ? `<div class="fixed-loadout-pairs">${view.selectors
         .map(
           (selector, index) =>
             `<div class="fixed-loadout-pair">
               ${selectorHtml(selector, index)}
-              ${barHtml(view.bars[index])}
           </div>`
         )
         .join('')}</div>`
     : `<div class="fixed-loadout-selectors">
           ${view.selectors.map(selectorHtml).join('')}
-      </div>${view.bars.map(barHtml).join('')}`;
+      </div>`;
   // Render Revenant's legend selectors directly in the selectable-skills panel.
   skillBar.innerHTML = fixedLoadoutHtml;
 
@@ -399,6 +365,8 @@ function renderFixedSlotLoadout(app: ProfessionAppState, spec: string): void {
       if (!key) return;
       loadout.updateBuild(app.build, key, select.value, context);
       app.changed();
+      // The build update replaces the select, so continue from the same loadout control.
+      skillBar.querySelector<HTMLSelectElement>(`select[data-loadout-key="${CSS.escape(key)}"]`)?.focus();
     });
   });
 
@@ -412,6 +380,8 @@ function renderFixedSlotLoadout(app: ProfessionAppState, spec: string): void {
       if (!key || value === undefined) return;
       loadout.updateBuild(app.build, key, value, context);
       app.changed();
+      // Use the loadout key rather than retaining a detached trigger or relying on display order.
+      skillBar.querySelector<HTMLButtonElement>(`button[data-loadout-toggle="${CSS.escape(key)}"]`)?.focus();
     });
   });
 }

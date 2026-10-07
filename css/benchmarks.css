@@ -1017,13 +1017,6 @@ body[data-simulator-view='benchmarks'] :is(.profession-layout, .build-editor) {
   overflow-x: auto;
   padding: 8px 0;
 }
-.health-chart-layout {
-  grid-template-rows: minmax(var(--health-label-min-height, 360px), calc(100vh - 370px)) auto;
-}
-.health-chart-layout.has-health-pins {
-  grid-template-columns: 64px minmax(280px, 1fr) 230px;
-  min-width: 610px;
-}
 .health-pin-labels {
   position: relative;
   grid-column: 3;
@@ -1072,7 +1065,6 @@ body[data-simulator-view='benchmarks'] :is(.profession-layout, .build-editor) {
 }
 .health-pin-status {
   min-height: 18px;
-  margin-top: 8px;
   color: var(--text-dim);
   font-size: 11px;
 }
@@ -1085,21 +1077,17 @@ body[data-simulator-view='benchmarks'] :is(.profession-layout, .build-editor) {
   text-align: center;
 }
 .health-values {
-  margin-top: 24px;
   color: var(--benchmark-muted);
   font-size: 11px;
 }
 .health-table-scroll {
   max-width: 100%;
-  overflow-x: auto;
-  margin-top: 12px;
 }
 .health-values table {
   width: 100%;
   border-collapse: collapse;
 }
 .health-values :is(th, td) {
-  padding: 8px;
   border-bottom: 1px solid var(--benchmark-border);
   text-align: right;
   font-weight: 400;
@@ -1107,7 +1095,6 @@ body[data-simulator-view='benchmarks'] :is(.profession-layout, .build-editor) {
 }
 .health-values th:first-child {
   text-align: left;
-  min-width: 180px;
   white-space: normal;
 }
 /* Health rows share chart emphasis and expose a native toggle for keyboard pinning. */
