@@ -492,7 +492,8 @@ test('Shatter Storm gives Split Second two ammo charges', () => {
   );
 
   assert.equal(result.steps[0].start, 0);
-  assert.equal(result.steps[1].start, 50);
+  // The second charge waits for the first action tick after the 50 ms shared lockout.
+  assert.equal(result.steps[1].start, 80);
   assert.equal(result.steps[2].start, 8000);
   assert.deepEqual(
     {

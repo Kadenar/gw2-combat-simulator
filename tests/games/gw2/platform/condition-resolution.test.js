@@ -594,7 +594,7 @@ test('environment scheduling preserves permanent status counts without duplicati
   });
   const context = {
     horizon: null,
-    queue: new StableEventQueue([], { phaseFor: gw2ResolverPhase }),
+    queue: new StableEventQueue({ phaseFor: gw2ResolverPhase }),
     conditionState: new Map(),
     environmentConditions: new Map()
   };

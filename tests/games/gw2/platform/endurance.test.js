@@ -90,8 +90,11 @@ test('endurance spend and grant clamp values and carry their timestamps', () => 
   assert.deepEqual(grantEndurance(clock(80, 4), 50, 6), clock(100, 6));
 });
 
-test('endurance readiness honors epsilon and reports an unavailable zero-rate recovery', () => {
-  assert.equal(steadyEnduranceReadyAt(49.99995, 50, 10, 5), 10);
+test('endurance readiness waits for the full cost and reports an unavailable zero-rate recovery', () => {
+  // A real shortage waits for recovery; only floating-point arithmetic drift counts as already funded.
+  assert.equal(steadyEnduranceReadyAt(49.99995, 50, 10, 5), 10.04);
+  assert.equal(steadyEnduranceReadyAt(49.99995, 50, 10, 0), null);
+  assert.equal(steadyEnduranceReadyAt(50 - 1e-12, 50, 10, 0), 10);
   assert.equal(steadyEnduranceReadyAt(25, 50, 10, 5), 15);
   assert.equal(steadyEnduranceReadyAt(25, 50, 10, 0), null);
 });
@@ -149,17 +152,18 @@ test('endurance observations settle once and retain the current policy rate', ()
   assert.deepEqual(initial, clock(0));
 });
 
-test('endurance interval readiness respects caps and epsilon without predicting impossible recovery', () => {
+test('endurance interval readiness respects caps without predicting impossible recovery', () => {
   // A cap is an affordability limit, not merely a clamp applied after an unbounded prediction.
   const state = clock(40, 0, 50);
   const intervals = [{ start: 0, end: Infinity, rate: 5 }];
   const unreadable = new Proxy([], { get: () => assert.fail('Impossible costs must not consume intervals') });
   assert.equal(enduranceIntervalsReadyAt(state, 51, unreadable), null);
+  assert.equal(enduranceIntervalsReadyAt(state, 50.00005, unreadable), null);
   assert.equal(enduranceIntervalsReadyAt(state, 50, intervals), 2);
   assert.equal(enduranceIntervalsReadyAt(state, 50, [{ start: 0, end: 1, rate: 5 }]), null);
   const capped = advanceEnduranceIntervals(state, intervals);
   assert.deepEqual(capped, clock(50, Infinity, 50, 5));
-  assert.equal(enduranceIntervalsReadyAt({ ...state, value: 49.99995 }, 50, intervals), 0);
+  assert.equal(enduranceIntervalsReadyAt({ ...state, value: 49.99995 }, 50, intervals), 0.04);
 });
 
 test('zero and negative endurance rates stay idle, including infinite windows', () => {

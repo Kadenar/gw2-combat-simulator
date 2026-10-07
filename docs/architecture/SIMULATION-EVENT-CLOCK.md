@@ -165,9 +165,11 @@ Cooldown and ammo state commits in the completion task at `effectiveEnd`, even w
 earlier. Alacrity is sampled when recharge begins, not necessarily when the cast begins. Ammo charge recharge and the
 optional between-cast ammo lockout are independent deadlines; availability uses the later applicable deadline.
 
-Retryable availability does not fail the command. The clock advances to the earlier of the declared retry time and the
-next state-changing task, then checks again. A fractional retry time is rounded up to the first representable
-microsecond strictly after the current clock. A non-retryable denial records an invalid zero-duration step.
+Retryable availability does not fail the command. The GW2 rotation driver rounds a future retry deadline up to the first
+absolute 40 ms action tick at or after that deadline. The clock advances to the earlier of that tick and the next
+state-changing task, then checks again. The game-neutral kernel retains its microsecond event clock. Cost admission
+never borrows the clock epsilon to accept a future resource deadline; resource owners use their shared amount-rounding
+tolerance for readiness and payment. A non-retryable denial records an invalid zero-duration step.
 
 Ordinary cooldown availability uses the shared canonical readiness calculation. Internal proc cooldowns use a stricter
 contract: a previously armed cooldown remains blocked at its exact `readyAt` boundary and becomes ready only at a later

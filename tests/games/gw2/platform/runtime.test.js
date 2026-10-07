@@ -61,8 +61,8 @@ test('endurance spending agrees with readiness after fractional regeneration', (
   assert.throws(() => endurance.spend(1), /Insufficient endurance/);
 });
 
-test('shared lockout deadlines advance at the canonical concurrent-command boundary', () => {
-  // Decimal addition must not leave readiness infinitesimally beyond its already-dispatched wake.
+test('shared lockout deadlines retry at the next absolute action tick', () => {
+  // A 50 ms lockout expires off-grid, so its deferred command waits for the next 40 ms retry tick.
   const skill = {
     id: 990020,
     name: 'Lockout',
@@ -73,7 +73,7 @@ test('shared lockout deadlines advance at the canonical concurrent-command bound
   const profession = { ...fixture(), catalog: createCanonicalCatalog({ generated: [skill] }) };
   const result = observeGw2Runtime({ profession, config, rotation: [wait(1360), cast(skill.id), cast(skill.id)] });
   assert.deepEqual(result.warnings, []);
-  assert.equal(result.steps.findLast((step) => step.skillId === skill.id).start, 1410);
+  assert.equal(result.steps.findLast((step) => step.skillId === skill.id).start, 1440);
 });
 const config = {
   stats: { power: 1000, precision: 1000, ferocity: 0, conditionDamage: 0, expertise: 0 },
@@ -173,7 +173,8 @@ test('one live state spends an actual hit gain before its estimated retry, with 
   assert.equal(queries.size, 2);
 });
 
-test('continuous recovery advances to its finite threshold without polling', () => {
+test('continuous recovery retries at the action tick covering its finite threshold without polling', () => {
+  // Recovery continues through the rounded retry boundary instead of crediting the cost early.
   const attempts = [];
   const result = run([cast(990002)], {
     profession: fixture({
@@ -189,9 +190,9 @@ test('continuous recovery advances to its finite threshold without polling', () 
       }
     })
   });
-  assert.deepEqual(attempts.slice(0, -Object.keys(result.planningState.availability).length), [0, 1.5]);
-  assert.equal(result.rotationEndTime, 1.5);
-  assert.equal(result.planningState.profession.energy.value, 3);
+  assert.deepEqual(attempts.slice(0, -Object.keys(result.planningState.availability).length), [0, 1.52]);
+  assert.equal(result.rotationEndTime, 1.52);
+  assert.equal(result.planningState.profession.energy.value, 3.04);
 });
 
 test('explicit overlaps use the previous player start and waits join independent lanes', () => {

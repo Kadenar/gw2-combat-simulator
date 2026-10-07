@@ -237,7 +237,7 @@ test('Shadow Shroud depletion follows force gains and cooldown resets', () => {
 });
 
 test('manual Shadow Shroud exit cancels depletion and preserves remaining force', () => {
-  // Keep enough force to survive entry's mandatory half-second exit lockout.
+  // The half-second exit lockout retries at 520 ms, draining force until that action tick and then stopping.
   const result = simulate(
     'Specter',
     [
@@ -253,7 +253,7 @@ test('manual Shadow Shroud exit cancels depletion and preserves remaining force'
     result.events.some((event) => event.sourceId === DEPLETED),
     false
   );
-  assert.equal(result.planningState.profession.shadowClock.value, 1);
+  assert.equal(result.planningState.profession.shadowClock.value, 0.96);
   assert.equal(result.planningState.profession.shadowShroudActive, false);
 });
 

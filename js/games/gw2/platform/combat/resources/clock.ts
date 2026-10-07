@@ -122,5 +122,7 @@ export function resourceRecoveryReadyAt(state: ResourceClock, cost: number, at: 
     readyAt = gw2CooldownReadyAt(anchor.updatedAt + (cost - anchor.value) / state.rate);
   }
 
-  return Number.isFinite(readyAt) ? readyAt : null;
+  if (!Number.isFinite(readyAt)) return null;
+  // A rounded recovery forecast must remain future while the current balance is still below the cost.
+  return readyAt <= at ? gw2CooldownReadyAt(at + GW2_ACTION_TICK_MS / 1000) : readyAt;
 }

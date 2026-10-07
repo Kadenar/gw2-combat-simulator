@@ -2,7 +2,6 @@
  * Declared activation costs. One owner decides affordability and spending for every profession, so a dodge or any
  * other priced skill waits for regeneration and pays its cost the same way everywhere.
  */
-import { EPSILON } from '#kernel/core/clock.js';
 import { denySkillCast } from '#gw2/platform/execution/availability.js';
 import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
@@ -38,7 +37,8 @@ export function skillCostAvailability<T extends object>(
   if (amount === 0) return null;
   const readyAt =
     resource === 'endurance' ? runtime.endurance.readyAt(amount) : runtime.resourceController.readyAt(resource, amount);
-  if (readyAt != null && readyAt <= runtime.time + EPSILON) return null;
+  // Resource owners decide affordability; a future deadline cannot fund the current activation.
+  if (readyAt != null && readyAt <= runtime.time) return null;
   return denySkillCast(
     skill,
     `gw2.insufficient-${resource}`,

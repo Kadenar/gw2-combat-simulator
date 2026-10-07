@@ -290,7 +290,7 @@
         "label": "Power (Dagger/Dagger) - Fresh Air",
         "build": "data/gw2/builds/elementalist/b-power-tempest-dagger.json",
         "rotation": "data/gw2/rotations/elementalist/r-power-tempest-dagger.json",
-        "benchmarkDps": 43435,
+        "benchmarkDps": 43415,
         "upToDate": true,
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/elementalist/power-tempest-dagger-dagger",
         "benchmarkApm": 81,
@@ -304,16 +304,16 @@
             "phase": 43582
           },
           "60-40": {
-            "cumulative": 44256,
-            "phase": 42188
+            "cumulative": 44223,
+            "phase": 42099
           },
           "40-20": {
-            "cumulative": 43399,
-            "phase": 41056
+            "cumulative": 43375,
+            "phase": 41054
           },
           "20-0": {
-            "cumulative": 43435,
-            "phase": 43584
+            "cumulative": 43415,
+            "phase": 43582
           }
         }
       },

@@ -386,13 +386,13 @@ test('skill-group lockouts block only skills in the same group', () => {
 
   const scheduled = simulateGw2({ profession, rotation: ['Shatter One', 'Unrelated Instant', 'Shatter Two'] });
 
-  // Only the shared cooldown group delays the final input; unrelated instants remain available.
+  // Only the shared group delays the final input to the 80 ms retry tick; unrelated instants remain available.
   assert.deepEqual(
     scheduled.steps.map((step) => [step.skill, step.start]),
     [
       ['Shatter One', 0],
       ['Unrelated Instant', 0],
-      ['Shatter Two', 50]
+      ['Shatter Two', 80]
     ]
   );
   assert.deepEqual(scheduled.warnings, []);

@@ -1,5 +1,5 @@
 import { resourceAtLeast } from '#gw2/platform/combat/resources/pool.js';
-import { canonicalTime, EPSILON } from '#kernel/core/clock.js';
+import { canonicalTime } from '#kernel/core/clock.js';
 import {
   anchorResourceClock,
   advanceResource,
@@ -230,8 +230,8 @@ export function createRuntimeEndurance<T extends object>(
       amount(value);
       advance();
       const { state } = pool();
-      // Use the same affordability tolerance as endurance readiness after fractional regeneration.
-      if (state.value < value - EPSILON) throw new RangeError('Insufficient endurance.');
+      // Readiness and payment share resource rounding, never the simulation clock's time allowance.
+      if (!resourceAtLeast(state.value, value)) throw new RangeError('Insufficient endurance.');
       Object.assign(state, spendEndurance(state, value, runtime.time));
     }
   });

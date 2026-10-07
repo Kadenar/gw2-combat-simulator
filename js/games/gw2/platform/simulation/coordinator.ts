@@ -17,7 +17,7 @@ const SHARED_PULSE_TYPES = new Set(['condition_tick', 'condition_buffer']);
 /** The coordinator is the sole clock authority and retains causal scope on the same stable event heap. */
 export function createExecutionCoordinator<T extends object>(getRuntime: () => Gw2Runtime<T>) {
   // Resolver code may enqueue directly; those packets receive the same identity and cause as emitted ones.
-  const queue = new StableEventQueue<Gw2ResolverEvent>([], {
+  const queue = new StableEventQueue<Gw2ResolverEvent>({
     phaseFor: gw2ResolverPhase,
     prepare: (event) => identify(event)
   });
