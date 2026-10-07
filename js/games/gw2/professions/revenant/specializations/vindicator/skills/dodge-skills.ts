@@ -90,17 +90,27 @@ export const VINDICATOR_DODGE_SKILL_MECHANICS: Readonly<Record<number, Partial<S
         timingAnchor: 'castStart',
         timingScale: 'fixed'
       },
+      // The landing chills foes and shares both boons with the party; tooltips read these same packets.
+      {
+        type: 'condition',
+        condition: 'Chilled',
+        stacks: 1,
+        duration: 2,
+        actorType: 'player'
+      },
       {
         type: 'boon',
         boon: 'might',
         duration: 10,
-        stacks: 5
+        stacks: 5,
+        audience: { recipients: 'party', maximumRecipients: 5 }
       },
       {
         type: 'boon',
         boon: 'protection',
         duration: 5,
-        stacks: 1
+        stacks: 1,
+        audience: { recipients: 'party', maximumRecipients: 5 }
       }
     ]
   }

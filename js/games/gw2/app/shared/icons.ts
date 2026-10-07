@@ -71,6 +71,9 @@ export const MODIFIER_EFFECT_ICONS: Readonly<Record<string, string>> = {
   'Shattering Ice': 'https://render.guildwars2.com/file/A1C20E2CE05D80B5A9DDF47ED0780301FC2C7477/2491603.png',
   // Fervor facts use the effect's icon wherever its stack duration is displayed.
   "Kalla's Fervor": 'https://render.guildwars2.com/file/4DDE151C71EDB6120E3454036C4C3504EADB02D8/1770161.png',
+  // Vindicator buff rows use Death Drop and the Reaver's Curse effect icons from the game CDN.
+  'Forerunner of Death': 'https://render.guildwars2.com/file/2864D963D3FC9156E6F52FA95DD34C2DE30306BE/2491537.png',
+  "Reaver's Curse": 'https://render.guildwars2.com/file/00B56F050D44B6690427AFF77901E3074FF221AD/2491534.png',
   // Razorclaw's party buff shares its originating skill's icon in both base and enhanced tooltips.
   "Razorclaw's Rage": 'https://render.guildwars2.com/file/2449F064B1D3427FF311D3B4C101009C52250A0C/1770606.png',
   // Both personal and pet Lesser Sic Em duration facts use the command's icon.

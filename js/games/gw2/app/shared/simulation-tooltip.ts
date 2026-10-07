@@ -81,6 +81,9 @@ function resolveFacts(
 const effectNames = new Map(Object.keys(MODIFIER_EFFECT_ICONS).map((name) => [name.toLowerCase(), name]));
 // Resolve authored buff IDs to display names so their facts receive the matching effect icons.
 effectNames.set('kallas-fervor', "Kalla's Fervor");
+// Resolve Vindicator's internal buff names to the named CDN icons used in trait tooltips.
+effectNames.set('forerunner-of-death', 'Forerunner of Death');
+effectNames.set('reavers-curse', "Reaver's Curse");
 effectNames.set('razorclaws-rage', "Razorclaw's Rage");
 effectNames.set('battle-scars', 'Battle Scars');
 effectNames.set('peak-performance', 'Peak Performance');

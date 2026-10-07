@@ -983,14 +983,23 @@ export const revenantTooltips: ProfessionTooltips = {
     [TRAIT.SONG_OF_ARBOREUM]: traitTooltip('Energy Meld grants increased endurance and vigor.', [
       ['resourceGain', 'Endurance gained']
     ]),
-    [TRAIT.FORERUNNER_OF_DEATH]: traitTooltip('Death Drop grants a temporary player strike-damage bonus.', [
-      fromModifier('revenant.forerunner-of-death', 'amount', 'Strike damage during the bonus')
-    ]),
+    // Grandmaster tooltips expose their landing payload directly from the same skill definitions as dodge.
+    [TRAIT.FORERUNNER_OF_DEATH]: traitTooltip(
+      'Dodge with Death Drop, then gain a temporary player strike-damage bonus after the landing damage resolves.',
+      (context) => [
+        ...simulationEffectFacts(context.catalog.skillsById.get(ID.DEATH_DROP)!.effects, 'Death Drop').facts,
+        modifierFact(context, 'revenant.forerunner-of-death', 'amount', 'Strike damage during the bonus')
+      ]
+    ),
     [TRAIT.VASSALS_OF_THE_EMPIRE]: traitTooltip(
-      'Use Imperial Impact as the dodge skill, applying its strike and boon effects.'
+      'Dodge with Imperial Impact, striking and chilling foes while granting might and protection to nearby allies.',
+      (context) =>
+        simulationEffectFacts(context.catalog.skillsById.get(ID.IMPERIAL_IMPACT)!.effects, 'Imperial Impact').facts
     ),
     [TRAIT.SAINT_OF_ZU_HELTZER]: traitTooltip(
-      "Use Saint's Shield as the dodge skill. Incoming damage and healing are outside combat simulation scope."
+      "Dodge with Saint's Shield, granting alacrity to nearby allies. Incoming damage and healing are outside combat simulation scope.",
+      (context) =>
+        simulationEffectFacts(context.catalog.skillsById.get(ID.SAINTS_SHIELD)!.effects, "Saint's Shield").facts
     ),
     [TRAIT.ENIGMATIC_CONNECTION]: traitTooltip(
       'Unlock Legendary Entity, affinity, Release Potential, and Cosmic Wisdom forms determined by the equipped legends.'
