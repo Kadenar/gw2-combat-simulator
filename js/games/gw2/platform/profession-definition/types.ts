@@ -60,6 +60,8 @@ export interface ProfessionDefinition<
 > {
   /** One equipment eligibility policy used by simulation and application consumers. */
   readonly weaponSkillMatchesSet?: Gw2WeaponSkillMatcher;
+  /** Equipment stays universal; this capability restricts only swaps after combat begins. */
+  readonly canSwapWeaponSetsInCombat?: boolean;
   readonly id: string;
   readonly name: string;
   readonly catalog?: CanonicalCatalog<TSkill>;
@@ -83,6 +85,7 @@ export interface ProfessionModuleCatalogFragment<TSkill extends Skill = Skill> {
 
 /** Keeps scheduler contracts resolver-neutral while typed resolver layers supply their own registries. */
 export interface NormalizedProfessionContract<TProfessionState extends object = object, TSkill extends Skill = Skill> {
+  readonly canSwapWeaponSetsInCombat: boolean;
   /** One equipment eligibility policy used by simulation and application consumers. */
   readonly weaponSkillMatchesSet?: Gw2WeaponSkillMatcher;
   readonly id: string;

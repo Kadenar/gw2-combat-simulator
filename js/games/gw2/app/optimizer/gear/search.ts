@@ -1,3 +1,4 @@
+import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
 import { GEAR_SLOTS } from '#gw2/platform/equipment/gear/slots.js';
 import { PREFIXES } from '#gw2/platform/equipment/gear/prefixes/catalog.js';
 import { INFUSION_STATS } from '#gw2/platform/equipment/gear/infusions.js';
@@ -146,10 +147,18 @@ function choices(value: string[] | undefined, current: string, names: readonly s
   return selected;
 }
 
-/** Retain usable equipped sets; kit and Gunsaber builds use their starting normal weapon set. */
+/** Include alternate gear when combat permits it or authored swaps can use it during preparation. */
 export function optimizerWeaponSets(build: Gw2CanonicalBuild, adapter: Gw2AppAdapter): number[] {
-  if (adapter.profession.ui.weaponSwapChangesSet === false || adapter.eliteSpecialization(build) === 'Bladesworn')
-    return [build.startingWeaponSet === 2 ? 1 : 0];
+  const canSwap = adapter.profession.resolveProfession({
+    specialization: adapter.eliteSpecialization(build)
+  }).canSwapWeaponSetsInCombat;
+  const combatEntry = build.rotation.findIndex((command) => command.type === 'combat-start');
+  // Rejected combat inputs cannot make inactive equipment a search dimension.
+  const preparation = combatEntry < 0 ? build.rotation : build.rotation.slice(0, combatEntry);
+  const hasPreparationSwap = preparation.some(
+    (command) => command.type === 'cast' && command.skillId === SHARED_SKILL_IDS.SWAP_WEAPONS
+  );
+  if (!canSwap && !hasPreparationSwap) return [build.startingWeaponSet === 2 ? 1 : 0];
   return build.alternateWeapons[0] ? [0, 1] : [0];
 }
 

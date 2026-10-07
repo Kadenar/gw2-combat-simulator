@@ -68,7 +68,7 @@ for (const adapter of [elementalistAppAdapter, engineerAppAdapter]) {
     );
   });
 
-  test(`${adapter.id} exposes only the starting weapon set to rotation skills`, () => {
+  test(`${adapter.id} retains skills on both equipped sets while bar changes preserve the active set`, () => {
     const build = adapter.toApplicationBuild({
       ...adapter.profession.createBuildDefaults(),
       alternateWeapons: adapter.id === 'elementalist' ? ['Staff', ''] : ['Pistol', 'Shield']
@@ -84,7 +84,8 @@ for (const adapter of [elementalistAppAdapter, engineerAppAdapter]) {
     };
     for (const set of [1, 2]) {
       build.startingWeaponSet = set;
-      assert.deepEqual(weaponSkills(app, set === 1 ? 2 : 1), []);
+      // Equipment enumeration supports precombat swapping and isolated previews for either starting set.
+      assert.ok(weaponSkills(app, set === 1 ? 2 : 1).length > 0);
       assert.ok(weaponSkills(app, set).length > 0);
     }
 

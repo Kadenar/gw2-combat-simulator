@@ -695,9 +695,9 @@ test('kits replace the weapon bar and trigger swap procs', () => {
     assert.equal(exited.planningState.activeWeaponSet, 1, exitSkill);
   }
 
-  const swapDenied = simulate('Core', ['Swap Weapons']);
+  const swapDenied = simulate('Core', [{ type: 'combat-start' }, 'Swap Weapons']);
 
-  assert.match(swapDenied.warnings[0], /only to leave an active kit/);
+  assert.match(swapDenied.warnings[0], /cannot swap weapon sets in combat/);
 });
 
 test('Photon Forge entry and exit start dedicated timeline rows', () => {

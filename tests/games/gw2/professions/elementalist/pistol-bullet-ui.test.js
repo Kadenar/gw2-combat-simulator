@@ -186,6 +186,8 @@ test('pistol controls and Elemental Explosion follow the active equipment set', 
     );
   }
 
+  // Once combat starts, the inactive equipment bar is no longer reachable.
+  live.planningState.combatActive = true;
   live.planningState.activeWeaponSet = 1;
   assert.doesNotMatch(renderPaletteMarkup(app), /data-palette-group="elementalist-pistol-bullets"/);
   assert.doesNotMatch(renderPaletteMarkup(app), /data-skill="Elemental Explosion"/);

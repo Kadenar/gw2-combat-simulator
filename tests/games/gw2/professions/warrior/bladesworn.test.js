@@ -152,7 +152,7 @@ test('Gunsaber gates standard weapons, ordinary swaps, weapon bursts, and unavai
     ['Sheathe Gunsaber'],
     ['Unsheathe Gunsaber', 'Chop'],
     ['Unsheathe Gunsaber', 'Unsheathe Gunsaber'],
-    ['Swap Weapons'],
+    ['__combat_start', 'Swap Weapons'],
     ['Eviscerate'],
     [{ skillId: ID.DRAGON_SLASH_FORCE }]
   ]) {

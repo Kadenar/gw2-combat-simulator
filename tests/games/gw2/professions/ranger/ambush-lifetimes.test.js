@@ -35,7 +35,7 @@ test('ambush cast, palette, and display agree at expiry', () => {
 test('Let Loose refresh survives the superseded expiry', () => {
   const result = runRanger(
     [{ type: 'combat-start' }, ID.UNLEASH_RANGER, wait(1000), SHARED_SKILL_IDS.SWAP_WEAPONS, wait(3000)],
-    config
+    { ...config, weaponSet2Primary: 'Axe' }
   );
   assert.deepEqual(result.warnings, []);
   assert.equal(result.planningState.profession.ambushReadyUntil, 5);

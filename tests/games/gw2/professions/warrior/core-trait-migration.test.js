@@ -34,7 +34,7 @@ for (const [key, trait, trigger, literalDuration] of [
           selectedTraitIds: selected ? [trait] : [],
           initialResource: 0,
           primaryWeapon: 'Axe',
-          swapPrimaryWeapon: 'Mace',
+          weaponSet2Primary: 'Mace',
           target: { health: 1000000, startingHealthFraction: 0.4, armor: 2597 },
           stats: { power: 2000, precision: 4000 }
         };
@@ -294,6 +294,7 @@ const traitCases = [
   {
     name: 'Furious Burst',
     trait: TRAIT.FURIOUS_BURST,
+    config: { primaryWeapon: 'Axe', weaponSet2Primary: 'Mace' },
     rotation: ['Swap Weapons'],
     verify: (result) => assert.ok(result.events.some((event) => event.sourceId === TRAIT.FURIOUS_BURST))
   },
@@ -345,7 +346,7 @@ const traitCases = [
     name: 'Versatile Rage',
     trait: TRAIT.VERSATILE_RAGE,
     rotation: ['Swap Weapons'],
-    config: { initialResource: 0 },
+    config: { initialResource: 0, primaryWeapon: 'Axe', weaponSet2Primary: 'Mace' },
     verify: (result) => assert.equal(result.planningState.profession.adrenaline.value, 5)
   },
   {
@@ -365,7 +366,11 @@ for (const { name, trait, extraTraits = [], rotation, config, verify } of traitC
 
 // Shared emission gives weapon-swap Fury the same causal identity as its activation.
 test('Furious Burst retains activation ordering through the shared emission path', () => {
-  const result = simulate('Core', ['Swap Weapons'], { selectedTraitIds: [TRAIT.FURIOUS_BURST] });
+  const result = simulate('Core', ['Swap Weapons'], {
+    primaryWeapon: 'Axe',
+    weaponSet2Primary: 'Mace',
+    selectedTraitIds: [TRAIT.FURIOUS_BURST]
+  });
   const action = result.events.find(
     (event) => event.type === 'action' && event.skillId === SHARED_SKILL_IDS.SWAP_WEAPONS
   );

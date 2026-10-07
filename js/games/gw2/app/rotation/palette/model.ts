@@ -133,9 +133,7 @@ function uniqueBySpecializedIdentity(skills: readonly Skill[], specialization: s
 }
 
 export function weaponSkills(app: ProfessionAppState, weaponSet = 1): Skill[] {
-  // Inactive equipment on non-swapping professions supplies persistent sigils, never rotation skills.
-  const activeWeaponSet = Number(palettePlanningState(app)?.activeWeaponSet || app.build.startingWeaponSet || 1);
-  if (app.profession?.ui?.weaponSwapChangesSet === false && weaponSet !== activeWeaponSet) return [];
+  // Equipment enumeration also serves isolated previews, independently of live combat restrictions.
   const [mainHand, offHand] = weaponSet === 2 ? app.build.alternateWeapons : app.build.weapons;
   return uniqueBySpecializedIdentity(
     app.skills.filter((skill) => {
@@ -517,7 +515,13 @@ export function weaponPaletteRows(
   activeWeaponSet = 1,
   context?: ProfessionPaletteContext
 ): WeaponPaletteRow[] {
+  const planning = palettePlanningState(app);
+  const canSwap = app.profession.resolveProfession({
+    specialization: activeSpecialization(app)
+  }).canSwapWeaponSetsInCombat;
+  // Precombat exposes both sets; combat keeps only the reachable bar for restricted builds.
   const rows = [1, 2]
+    .filter((set) => !planning?.combatActive || canSwap || set === activeWeaponSet)
     .map((weaponSet) => ({
       id: `weapon-set-${weaponSet}`,
       label: `W${weaponSet}`,
@@ -570,9 +574,7 @@ export function paletteActionSkills(
         // classified as Action are usually trait procs, bundles, or encounter
         // skills and require an explicit opt-in before entering the palette.
         ((Number(skill.id) < 0 && skill.paletteAction !== false) || skill.paletteAction === true) &&
-        (skill.name !== 'Swap Weapons' ||
-          app.profession.ui?.weaponSwapChangesSet === false ||
-          Boolean(app.build.alternateWeapons?.[0])) &&
+        (skill.inputCategory !== 'weapon-swap' || Boolean(app.build.alternateWeapons?.[0])) &&
         (!skill.specialization || skill.specialization === specialization) &&
         app.adapter.isSkillAvailable(skill, {
           build: app.build,

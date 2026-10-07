@@ -433,13 +433,11 @@ function timelineRows(
     startingWeaponSet = 1,
     startingWeaponLine = null,
     isWeaponSwap = () => false,
-    isWeaponSetRefresh = () => false,
     weaponLineTransition = () => undefined
   }: {
     readonly startingWeaponSet?: number;
     readonly startingWeaponLine?: string | null;
-    readonly isWeaponSwap?: (entry: RotationCommand) => boolean;
-    readonly isWeaponSetRefresh?: (entry: RotationCommand) => boolean;
+    readonly isWeaponSwap?: (entry: RotationCommand, index: number) => boolean;
     readonly weaponLineTransition?: (
       entry: RotationCommand,
       current: { weaponSet: number; weaponLine: string | null },
@@ -458,7 +456,7 @@ function timelineRows(
   let weaponLine: string | null = startingWeaponLine;
   rotation.forEach((entry, index) => {
     rows.at(-1)?.skills.push({ entry, index });
-    const swapsWeaponSet = isWeaponSwap(entry);
+    const swapsWeaponSet = isWeaponSwap(entry, index);
     // Supply the source rotation index so callers can apply simulated
     // transitions that occur immediately after this authored entry.
     const nextWeaponLine = weaponLineTransition(
@@ -470,7 +468,7 @@ function timelineRows(
       index
     );
     const changesWeaponLine = nextWeaponLine !== undefined;
-    if (!swapsWeaponSet && !isWeaponSetRefresh(entry) && !changesWeaponLine) return;
+    if (!swapsWeaponSet && !changesWeaponLine) return;
     // A real swap changes the next row's set. Transform transitions start a
     // fresh row for the same equipped set.
     if (swapsWeaponSet) weaponSet = weaponSet === 1 ? 2 : 1;
@@ -706,7 +704,8 @@ export function groupConsecutiveProcSteps(procSteps: readonly Gw2ProcStep[] = []
 export interface TimelineWeaponRowOptions {
   readonly startingWeaponSet?: number;
   readonly startingWeaponLine?: string | null;
-  readonly weaponSwapChangesSet?: boolean;
+  /** Classify actual set transitions per command, including precombat swaps and contextual bar exits. */
+  readonly isWeaponSwap?: (entry: RotationCommand, index: number) => boolean;
   readonly skillName?: (entry: RotationCommand) => string;
   readonly weaponLineTransition?: (
     entry: RotationCommand,
@@ -737,21 +736,15 @@ export function timelineWeaponRows(
   {
     startingWeaponSet = 1,
     startingWeaponLine = null,
-    weaponSwapChangesSet = true,
     skillName = rotationEntryName,
+    isWeaponSwap = (entry) => skillName(entry) === 'Swap Weapons',
     weaponLineTransition = () => undefined
   }: TimelineWeaponRowOptions = {}
 ) {
   return timelineRows(rotation, {
     startingWeaponSet,
     startingWeaponLine,
-    isWeaponSwap(entry) {
-      return weaponSwapChangesSet && skillName(entry) === 'Swap Weapons';
-    },
-    isWeaponSetRefresh(entry) {
-      const name = skillName(entry);
-      return !weaponSwapChangesSet && name === 'Swap Weapons';
-    },
+    isWeaponSwap,
     // Profession transitions own named-lane boundaries.
     weaponLineTransition
   });

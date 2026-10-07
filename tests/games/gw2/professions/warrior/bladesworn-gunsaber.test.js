@@ -128,7 +128,7 @@ test('Gunsaber transitions start separate rotation lines', () => {
   ];
   const rows = timelineWeaponRows(rotation, {
     startingWeaponSet: 1,
-    weaponSwapChangesSet: false,
+    isWeaponSwap: () => false,
     weaponLineTransition(entry, current) {
       const name = typeof entry === 'string' ? entry : entry.name;
 
@@ -154,7 +154,7 @@ test('Gunsaber transitions start separate rotation lines', () => {
   const alreadyUnsheathed = timelineWeaponRows(
     ['Unsheathe Gunsaber', 'Swift Cut', 'Dragon Trigger', 'Dragon Slash—Force'],
     {
-      weaponSwapChangesSet: false,
+      isWeaponSwap: () => false,
       weaponLineTransition(entry, current) {
         const name = typeof entry === 'string' ? entry : entry.name;
 

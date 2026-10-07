@@ -588,7 +588,9 @@ test('Core bursts require and consume adrenaline', () => {
 });
 
 test('Core Warrior weapon swap toggles the active set', () => {
-  const precombat = simulate('Core', ['Swap Weapons', 'Swap Weapons']);
+  // Equip both sets so the test covers preparation and combat swap behavior.
+  const equipped = { primaryWeapon: 'Axe', weaponSet2Primary: 'Sword' };
+  const precombat = simulate('Core', ['Swap Weapons', 'Swap Weapons'], equipped);
 
   assert.deepEqual(precombat.warnings, []);
   assert.deepEqual(
@@ -598,7 +600,7 @@ test('Core Warrior weapon swap toggles the active set', () => {
   assert.equal(precombat.planningState.activeWeaponSet, 1);
   assert.equal(precombat.planningState.cooldowns[-3], undefined);
 
-  const result = simulate('Core', ['__combat_start', 'Swap Weapons']);
+  const result = simulate('Core', ['__combat_start', 'Swap Weapons'], equipped);
 
   assert.deepEqual(result.warnings, []);
   assert.equal(result.planningState.activeWeaponSet, 2);
@@ -608,7 +610,7 @@ test('Core Warrior weapon swap toggles the active set', () => {
     true
   );
 
-  const relic = simulate('Core', ['__combat_start', 'Swap Weapons'], { relic: 'Warrior' });
+  const relic = simulate('Core', ['__combat_start', 'Swap Weapons'], { ...equipped, relic: 'Warrior' });
   assert.equal(relic.planningState.cooldowns[-3].readyAt, 2520);
 });
 

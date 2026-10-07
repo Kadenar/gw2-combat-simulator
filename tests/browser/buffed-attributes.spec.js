@@ -150,3 +150,37 @@ test('workspace and optimizer preview individual conditions, deltas and weapon c
   await page.setViewportSize({ width: 390, height: 844 });
   expect(await preview.evaluate((element) => element.scrollWidth <= element.clientWidth)).toBe(true);
 });
+
+// The native selector must contain both options even for professions whose combat swaps are restricted.
+test('Elementalist previews alternate gear and resets after its removal', async ({ page }) => {
+  await page.goto('/elementalist.html#workspace', { waitUntil: 'domcontentloaded' });
+  await expect(page.locator('#loading-overlay')).toHaveClass(/hidden/);
+  await page.evaluate(() => {
+    const app = window.professionApp;
+    app.build.alternateWeapons = ['Staff', ''];
+    app.build.alternateWeaponPrefixes = ["Minstrel's", "Minstrel's"];
+    app.changed();
+  });
+  const selector = page.locator('#attribute-weapon-set');
+  await expect(selector.locator('option')).toHaveText(['1', '2']);
+  await expect(selector).toBeVisible();
+  const controls = page.locator('#attribute-preview');
+  await controls.locator('summary').click();
+  await controls.getByRole('spinbutton', { name: 'Might', exact: true }).fill('10');
+  const values = page.locator('#attributes-list .attr-current');
+  const primary = await values.allTextContents();
+  const startingSet = await page.evaluate(() => window.professionApp.build.startingWeaponSet);
+  await selector.selectOption('2');
+  expect(await values.allTextContents()).not.toEqual(primary);
+  await expect(controls.getByRole('spinbutton', { name: 'Might', exact: true })).toHaveValue('10');
+  expect(await page.evaluate(() => window.professionApp.build.startingWeaponSet)).toBe(startingSet);
+  // Remove alternate equipment through its visible picker so native change handling resets the preview.
+  await page.locator('[popovertarget="weapon-editor-2-0"]').first().click();
+  const picker = page.locator('.gear-select-display').filter({ has: page.locator('#sel-mh2') });
+  await picker.locator('.gear-select-trigger').click();
+  await picker.locator('[role="option"][data-value=""]').click();
+  await expect(selector).toBeHidden();
+  await expect(selector).toBeDisabled();
+  await expect(selector).toHaveValue('1');
+  await expect(controls.getByRole('spinbutton', { name: 'Might', exact: true })).toHaveValue('10');
+});

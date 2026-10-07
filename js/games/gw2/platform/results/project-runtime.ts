@@ -90,10 +90,14 @@ export function projectRuntimeResult<T extends object>(
     planningState: planningState(
       { ...runtime, catalog: profession.catalog },
       profession.projectPlanningState,
-      (skill) =>
-        profession.availability?.(runtime.mechanicQueries, skill, { type: 'cast', skillId: skill.id }) ?? {
-          ready: true
-        },
+      (skill) => {
+        const resolved = profession.resolveCastSkill?.(runtime.mechanicQueries, skill) ?? skill;
+        return (
+          profession.availability?.(runtime.mechanicQueries, resolved, { type: 'cast', skillId: resolved.id }) ?? {
+            ready: true
+          }
+        );
+      },
       observeRuntimeEffects(runtime, profession)
     )
   };

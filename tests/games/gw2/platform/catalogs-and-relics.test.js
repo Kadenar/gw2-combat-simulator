@@ -42,7 +42,16 @@ test('Mesmer test scenarios use the registered live runtime', () => {
   assert.ok(canonical.totalDamage > 0);
   assert.deepEqual(
     Object.keys(canonical.planningState).sort(),
-    ['activeWeaponSet', 'ammoBySkillId', 'atSeconds', 'availability', 'cooldowns', 'effects', 'profession'].sort()
+    [
+      'activeWeaponSet',
+      'ammoBySkillId',
+      'atSeconds',
+      'availability',
+      'combatActive',
+      'cooldowns',
+      'effects',
+      'profession'
+    ].sort()
   );
   // Virtuoso's initialized blade clock is the canonical balance in both execution paths.
   assert.equal(canonical.planningState.profession.blades.value, 5);

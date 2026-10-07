@@ -550,7 +550,6 @@ export function bindElementalistCoreUi(catalog: Readonly<CanonicalCatalog<Elemen
     updatePaletteControl,
     rotationStateSnapshot,
     timelineWeaponLineTransition,
-    eventLogRow,
-    weaponSwapChangesSet: false
+    eventLogRow
   });
 }

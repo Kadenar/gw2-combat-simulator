@@ -1,6 +1,5 @@
 import { engineerSpearAvailability } from '#gw2/professions/engineer/core/mechanics/spear.js';
 import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
-import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
 import { skillFlipReady } from '#gw2/platform/execution/skill-flips.js';
 import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
 import { selectedSkillIdSet } from '#gw2/platform/builds/selected-skills.js';
@@ -22,17 +21,6 @@ export function engineerCoreCastAvailability(
 
   const spear = engineerSpearAvailability(context, skill);
   if (!spear.ready) return spear;
-
-  if (skill.id === SHARED_SKILL_IDS.SWAP_WEAPONS) {
-    // engineers have no weapon swap except to exit a kit back to baseline weapons
-    return state.activeKit
-      ? { ready: true }
-      : denyEngineerCast(
-          skill,
-          'engineer.weapon-swap-disabled',
-          'engineers can use weapon swap only to leave an active kit.'
-        );
-  }
 
   if (skill.kitId) {
     if (state.activeKit !== skill.kitId) {

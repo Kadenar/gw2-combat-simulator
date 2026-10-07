@@ -65,6 +65,8 @@ export interface NativeModuleDefinition<
   TPresentation extends object,
   TSkill extends Skill = Skill
 > {
+  /** Equipment stays universal; this capability restricts only swaps after combat begins. */
+  readonly canSwapWeaponSetsInCombat?: boolean;
   readonly id: TId;
   readonly data: NativeModuleCatalogData<TSkill>;
   readonly state: NativeStateDefinition<TState, TProjectOptions, TProjectedState>;

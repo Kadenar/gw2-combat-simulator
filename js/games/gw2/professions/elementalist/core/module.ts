@@ -21,6 +21,7 @@ import { createElementalistModuleData } from '#gw2/professions/elementalist/data
  * that every Elementalist specialization builds on.
  */
 export const elementalistCoreModule = defineNativeModule({
+  canSwapWeaponSetsInCombat: false,
   id: 'Core',
   data: createElementalistModuleData('Core', {
     skillMechanics: ELEMENTALIST_CORE_SKILL_MECHANICS,

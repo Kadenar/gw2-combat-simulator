@@ -483,5 +483,4 @@ export interface ProfessionUiContract<TProfessionState = unknown> {
     context: ProfessionUiContext<TProfessionState>,
     selection: ProfessionSkillBarSelectionChange
   ) => boolean;
-  readonly weaponSwapChangesSet: boolean;
 }

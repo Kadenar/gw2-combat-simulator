@@ -188,6 +188,12 @@ export function bindEngineerCoreUi(catalog: Readonly<CanonicalCatalog<EngineerSk
       if (skill.kitTransition === 'equip') return { tileActive: state.activeKit !== skill.id };
       if (skill.kitTransition === 'stow') return { tileActive: state.activeKit === skill.kitId };
     },
+    // Each kit group already owns its stow tile; hide the equipped-set input while a kit replaces the bar.
+    paletteActionSkills(context, skills) {
+      const kit = engineerUiState(context).activeKit;
+      if (!kit) return [...skills];
+      return skills.filter((skill) => skill.id !== SHARED_SKILL_IDS.SWAP_WEAPONS);
+    },
     assumptionControls: [...SIMULATION_RANDOMNESS_ASSUMPTION_CONTROLS, ...PERMANENT_COMBO_FIELD_ASSUMPTION_CONTROLS],
     // Builds one stacked palette group per selected kit, plus Core's profession-skill group.
     paletteGroups: (context: EngineerUiContext) => {
@@ -296,8 +302,6 @@ export function bindEngineerCoreUi(catalog: Readonly<CanonicalCatalog<EngineerSk
         !(skill.name || '').startsWith('Detonate')
       );
     },
-    // engineer weapon swap exits a kit, not a true weapon set change — sigil system must know this
-    weaponSwapChangesSet: false,
     eventLogRow: engineerEventLogRow
   });
 }

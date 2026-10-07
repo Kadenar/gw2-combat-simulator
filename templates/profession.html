@@ -11,7 +11,7 @@
     data-game="gw2"
     data-content="{{profession-id}}"
     data-profession="{{profession-id}}"
-    class="{{profession-id}}-theme{{loadout-theme}}"
+    class="{{profession-id}}-theme"
   >
     <div id="loading-overlay">
       <!-- The forged workspace paints before game modules arrive; its assembly is decorative, not progress. -->
@@ -172,12 +172,12 @@
             <div class="attributes-panel">
               <!-- Align weapon-set selection with Primary so preview controls follow the stats directly. -->
               <div class="attributes-body">
-                <label class="attribute-preview-weapon-set" for="attribute-weapon-set" {{weapon-set-hidden}}>
+                <label class="attribute-preview-weapon-set" for="attribute-weapon-set" hidden>
                   <span>Weapon set</span>
-                  <!-- Keep this two-option toggle native instead of enabling the searchable gear picker. -->
+                  <!-- Every profession can preview both equipped sets independently of combat swapping. -->
                   <select id="attribute-weapon-set">
                     <option value="1">1</option>
-                    {{weapon-set-two}}
+                    <option value="2">2</option>
                   </select>
                 </label>
                 <div id="attributes-list"></div>

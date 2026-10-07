@@ -24,12 +24,13 @@ export function createRotationDriver<T extends object>(
       let nextCommandAt = Infinity;
       if (command) {
         // Reevaluate transformed actions after every actual boundary, before accepting their reservation.
-        const skill =
+        let skill =
           command.type === 'cast'
             ? profession.catalog.skillsById.get(
                 profession.modifySkillId?.(selectionContext, command.skillId) ?? command.skillId
               )
             : undefined;
+        if (skill) skill = profession.resolveCastSkill?.(runtime.mechanicQueries, skill) ?? skill;
         // A forbidden overlap is permanently invalid, so it cannot reserve a lane or wait for cooldown readiness.
         if (command.type === 'cast' && command.concurrentOffsetMs != null && skill?.canCastConcurrently === false) {
           advanceFrontier('command rejection');

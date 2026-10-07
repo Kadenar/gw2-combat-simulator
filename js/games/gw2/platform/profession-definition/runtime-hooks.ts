@@ -22,6 +22,7 @@ export type RuntimeHooks<State extends object, TSkill extends Skill = Skill> = P
     | 'castDurationMs'
     | 'castDetail'
     | 'modifySkillId'
+    | 'resolveCastSkill'
     | 'modifyComboFields'
     | 'modifyEffects'
     | 'boonDuration'
@@ -106,6 +107,10 @@ export function composeRuntimeHooks<State extends object, TSkill extends Skill =
       let detail: string | undefined;
       for (const hook of hooks) detail = hook.castDetail?.(context, cast) ?? detail;
       return detail;
+    },
+    resolveCastSkill(context, skill) {
+      for (const hook of hooks) skill = hook.resolveCastSkill?.(context, skill) ?? skill;
+      return skill;
     },
     modifySkillId(context, skillId) {
       for (const hook of hooks) skillId = hook.modifySkillId?.(context, skillId) ?? skillId;

@@ -1,25 +1,25 @@
 /* Owns shared equipped skill bars, build selections, inspection chains, and fixed loadout controls. */
 
-/* Both loadout layouts render the equipped skill bar with the same presentation. */
-:is(.elementalist-theme, .profession-loadout-theme) .skill-bar.has-inspection {
+/* Every profession shares the skill-bar layout without a separate loadout theme. */
+.skill-bar.has-inspection {
   align-items: stretch;
   gap: 16px;
 }
 
-:is(.elementalist-theme, .profession-loadout-theme) .skill-bar-selected {
+.skill-bar-selected {
   display: grid;
   grid-template-columns: repeat(5, minmax(0, 1fr));
   gap: 10px;
   width: 100%;
 }
 
-:is(.elementalist-theme, .profession-loadout-theme) .skill-bar-selected .skill-bar-slot {
+.skill-bar-selected .skill-bar-slot {
   display: grid;
   justify-items: center;
   min-width: 0;
 }
 
-:is(.elementalist-theme, .profession-loadout-theme) .skill-bar-selected .sbar-icon {
+.skill-bar-selected .sbar-icon {
   position: relative;
   width: 62px;
   height: 62px;
@@ -28,7 +28,7 @@
   box-shadow: 0 2px 7px rgba(0, 0, 0, 0.5);
 }
 
-:is(.elementalist-theme, .profession-loadout-theme) .skill-bar-selected .sbar-icon-arrow {
+.skill-bar-selected .sbar-icon-arrow {
   position: absolute;
   right: 2px;
   bottom: 2px;
@@ -47,11 +47,11 @@
   place-items: center;
 }
 
-:is(.elementalist-theme, .profession-loadout-theme) .skill-bar-selected .sbar-arrow {
+.skill-bar-selected .sbar-arrow {
   display: none;
 }
 
-:is(.elementalist-theme, .profession-loadout-theme) .skill-bar-inspection-group {
+.skill-bar-inspection-group {
   display: grid;
   gap: 7px;
   width: 100%;
@@ -61,7 +61,7 @@
 }
 
 /* Render inspection headings as plain text for every profession. */
-:is(.elementalist-theme, .profession-loadout-theme) .skill-bar-inspection-label {
+.skill-bar-inspection-label {
   display: flex;
   align-items: center;
   gap: 7px;
@@ -73,7 +73,7 @@
   border-bottom: 1px solid var(--border);
 }
 
-:is(.elementalist-theme, .profession-loadout-theme) .skill-bar-inspection-skills {
+.skill-bar-inspection-skills {
   justify-content: flex-start;
   gap: 8px;
   width: max-content;
@@ -84,7 +84,7 @@
   background: transparent;
 }
 
-:is(.elementalist-theme, .profession-loadout-theme) .skill-bar-inspection-slot .sbar-icon {
+.skill-bar-inspection-slot .sbar-icon {
   width: 52px;
   height: 52px;
   border-width: 2px;
@@ -92,21 +92,21 @@
 }
 
 @media (max-width: 620px) {
-  :is(.elementalist-theme, .profession-loadout-theme) .skill-bar-selected {
+  .skill-bar-selected {
     gap: 5px;
   }
 
-  :is(.elementalist-theme, .profession-loadout-theme) .skill-bar-selected .sbar-icon {
+  .skill-bar-selected .sbar-icon {
     width: min(58px, 14vw);
     height: min(58px, 14vw);
   }
 }
 
-.profession-loadout-theme .skill-bar-selected .skill-bar-slot.elite-border .sbar-icon {
+.skill-bar-selected .skill-bar-slot.elite-border .sbar-icon {
   border-color: var(--accent);
 }
 
-.profession-loadout-theme .skill-bar-inspection-group {
+.skill-bar-inspection-group {
   justify-self: stretch;
 }
 

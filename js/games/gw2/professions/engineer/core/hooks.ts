@@ -105,6 +105,16 @@ export const engineerCoreHooks: RuntimeHooks<EngineerRuntimeState, EngineerSkill
   buffPolicies: engineerBuffPolicies,
   endurance: engineerEndurance,
   availability: engineerCoreCastAvailability,
+  // The swap input leaves a kit first; only a subsequent precombat input changes equipped sets.
+  resolveCastSkill(context, skill) {
+    const kit = context.profession.core.activeKit;
+    if (skill.id !== SHARED_SKILL_IDS.SWAP_WEAPONS || !kit) return skill;
+    const stow = context.helpers.skills.find(
+      (candidate) => candidate.kitTransition === 'stow' && candidate.kitId === kit
+    );
+    if (!stow) throw new Error('Active kit has no stow action.');
+    return stow;
+  },
   sideEffectHandlers: {
     ...engineerSpearSideEffectHandlers,
     ...engineerTurretSideEffectHandlers,

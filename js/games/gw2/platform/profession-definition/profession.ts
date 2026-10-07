@@ -15,7 +15,11 @@ import type {
   ProfessionHook,
   ProfessionModifierDefinition
 } from '#gw2/platform/profession-definition/types.js';
-import { denyCast, selectedSlotSkillAvailability } from '#gw2/platform/execution/availability.js';
+import {
+  denyCast,
+  selectedSlotSkillAvailability,
+  weaponSetSwapAvailability
+} from '#gw2/platform/execution/availability.js';
 import type { CanonicalCatalog } from '#gw2/platform/skills/types.js';
 import type { ProfessionConfig } from '#gw2/platform/profession-definition/types.js';
 import { createProfessionFamilyUi } from '#gw2/platform/profession-presentation/compose.js';
@@ -66,13 +70,15 @@ const NATIVE_MODULE_FIELDS = Object.freeze([
   'modifiers',
   'hooks',
   'presentation',
-  'traitDefinitions'
+  'traitDefinitions',
+  'canSwapWeaponSetsInCombat'
 ]);
 
 function assertNativeModuleDefinition(definition: object): void {
   assertObject(definition, 'Native profession module');
   const candidate = definition as {
     readonly id?: string;
+    readonly canSwapWeaponSetsInCombat?: boolean;
     readonly data?: Record<string, unknown>;
     readonly state?: {
       readonly create?: (...args: never[]) => object;
@@ -90,6 +96,9 @@ function assertNativeModuleDefinition(definition: object): void {
   for (const key of Object.keys(candidate)) {
     if (!NATIVE_MODULE_FIELDS.includes(key)) throw new TypeError(`Unsupported native module field: ${key}.`);
   }
+
+  if (candidate.canSwapWeaponSetsInCombat != null && typeof candidate.canSwapWeaponSetsInCombat !== 'boolean')
+    throw new TypeError('canSwapWeaponSetsInCombat must be a boolean.');
 
   assertObject(candidate.data, `${candidate.id}.data`);
   assertObject(candidate.state, `${candidate.id}.state`);
@@ -374,6 +383,7 @@ export function defineNativeProfession<
     const source = defineProfession<State, object, TSkill>({
       id: definition.id,
       name: definition.name,
+      canSwapWeaponSetsInCombat: elite?.canSwapWeaponSetsInCombat ?? core.canSwapWeaponSetsInCombat ?? true,
       weaponSkillMatchesSet: definition.weaponSkillMatchesSet,
       catalog: assembleNativeRuntimeCatalog(selected.map((module) => assembly.fragments.get(module.id)!)),
       resources: {
@@ -420,6 +430,7 @@ export function defineNativeProfession<
     const runtime: RuntimeProfession<State, TSkill> = {
       ...composed,
       id: definition.id,
+      canSwapWeaponSetsInCombat: source.canSwapWeaponSetsInCombat,
       catalog: source.catalog,
       skillSelectionCatalog: assembly.catalog,
       projectPlanningState: source.projectPlanningState,
@@ -436,6 +447,8 @@ export function defineNativeProfession<
       autoattackChainOverrides: definition.autoattackChains?.overrides,
       weaponSkillMatchesSet: definition.weaponSkillMatchesSet,
       availability(context, skill, command) {
+        const swap = weaponSetSwapAvailability(context, source.canSwapWeaponSetsInCombat, skill);
+        if (swap) return swap;
         if (!isBuildSkillAvailable(skill, context.config))
           return denyCast('gw2.build-unavailable', `${skill.name} is unavailable for this build.`);
         if (definition.requireEquippedSlotSkills) {

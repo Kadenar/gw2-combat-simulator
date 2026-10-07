@@ -185,7 +185,7 @@ function buildStart(app: ProfessionAppState): ProfessionAppState {
   return { ...app, results: null, rotationInsertionIndex: null } as ProfessionAppState;
 }
 
-/** Weapon skills of each equipped set; a non-swapping profession contributes only its active set. */
+/** Isolated damage previews inspect either equipped set without borrowing combat swap restrictions. */
 function weaponRows(app: ProfessionAppState): { set: number; weapon: string; skills: Skill[] }[] {
   const sets = app.build.alternateWeapons?.[0] ? [1, 2] : [1];
   const groups: { set: number; weapon: string; skills: Skill[] }[] = [];

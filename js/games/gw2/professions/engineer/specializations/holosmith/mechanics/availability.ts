@@ -43,6 +43,9 @@ export function holosmithCastAvailability(
   }
 
   const state = holosmithState.from(context);
+  // The explicit Forge exit owns its cooldown and state changes; swapping cannot bypass it during preparation.
+  if (skill.inputCategory === 'weapon-swap' && state.photonForgeActive)
+    return denyEngineerCast(skill, 'engineer.forge-active', 'Deactivate Photon Forge before swapping weapon sets.');
   const storm = crystalStormAvailability(context, skill);
   if (!storm.ready) return storm;
 

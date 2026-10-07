@@ -925,6 +925,11 @@ test('only usable weapon sets contribute search dimensions and equivalence', asy
   assert.deepEqual(optimizerWeaponSets(build, engineer), [1]);
   assert.ok(optimizerSlots(build, engineer).includes('AlternateWeapon1'));
   assert.ok(!optimizerSlots(build, engineer).includes('Weapon1'));
+  // Preparation can use either set even though subsequent combat swaps are restricted.
+  build.rotation = [{ type: 'cast', skillId: -3 }, { type: 'combat-start' }];
+  assert.deepEqual(optimizerWeaponSets(build, engineer), [0, 1]);
+  build.rotation = [{ type: 'combat-start' }, { type: 'cast', skillId: -3 }];
+  assert.deepEqual(optimizerWeaponSets(build, engineer), [1]);
   const bladesworn = request(
     {},
     {
