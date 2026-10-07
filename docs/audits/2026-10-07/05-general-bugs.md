@@ -39,8 +39,8 @@ Commands and actual results:
 - `rg` source/caller/test searches and numbered source reads checked the paths and references below. Relevant
   architecture, module, platform ownership, Mesmer/Revenant, and EVTC reconstruction documents were read. Issue states
   were checked against the supplied recent records rather than inferred from original issue bodies.
-- `npx prettier --write --ignore-path .gitignore docs/audits/2026-10-07/05-general-bugs.md` formatted only this report.
-  The repository-wide baseline remained the coordinator's responsibility.
+- `npx prettier --write --ignore-path .gitignore docs/audits/2026-10-07/05-general-bugs.md` formatted only this report;
+  the corresponding `--check` passed. The repository-wide baseline remained the coordinator's responsibility.
 
 ## Findings
 
@@ -242,17 +242,18 @@ console.log(app.build.rotation, second.totalDamage, second.warnings);
 - **Trigger / impact:** Load the shipped Power Vindicator Greatsword Energy build, which starts on Greatsword set 2.
   Click Swap Weapons, then Dodge + Auto before the new baseline publishes. The resulting commands are Swap Weapons (−3),
   Dodge Jump (23275), **Mist Swing (62913)**. The correct post-swap weapon set is Sword set 1, whose autoattack is
-  **Preparation Thrust**. Simulation rejects the appended Mist Swing with
+  **Preparation Thrust (29057)**. Simulation rejects the appended Mist Swing with
   `Mist Swing: Mist Swing is unavailable — its required weapon is not equipped.` The wrong command is saved in the
   rotation and remains wrong after calculation completes. This is an authoring race, not a Revenant damage-mechanic
   disagreement.
 - **Reproduction:** The following focused probe invokes the real palette dispatcher, action insertion, palette
   projection, adapter, and engine. The `changed` stub intentionally holds the queued interval, matching the production
   deferred render branch; no timers or engine responses are allowed to complete between the two actions. Production's
-  baseline runner debounces 40 ms (`simulation/baseline/runner.ts:18,71–75`) and then waits for the worker, so this is a
-  reachable pending state. Save under `.scratch/audit/bugs/palette-race-probe.mjs` and run with Node from the repository
-  root. Actual output showed `before: {set:2,auto:"Mist Swing"}`, the same stale context after Swap Weapons,
-  `fresh: {set:1,auto:"Preparation Thrust"}`, and the warning above.
+  baseline runner debounces 40 ms (`js/games/gw2/app/simulation/baseline/runner.ts:18,71–75`) and then waits for the
+  worker, so this is a reachable pending state. Save under `.scratch/audit/bugs/palette-race-probe.mjs` and run with
+  Node from the repository root. Actual output showed `before: {set:2,auto:"Mist Swing"}`, the same stale context after
+  Swap Weapons, `fresh: {set:1,auto:"Preparation Thrust"}`, and the warning above. Repeating the macro against the
+  freshly simulated post-swap state selected Preparation Thrust (29057) and produced no warnings.
 
 ```js
 import fs from 'node:fs';
@@ -305,6 +306,19 @@ dispatchPaletteActivation(app, '__vindicator_dodge_auto', {
   ctrlKey: false
 });
 const result = adapter.calculateBaselineSimulation(adapter.baselineSimulationRequest(app)).result;
+const corrected = {
+  ...app,
+  build: { ...app.build, rotation: app.build.rotation.slice(0, 1) },
+  results: swapped,
+  resultRevision: app.buildRevision,
+  simulationStatus: 'idle'
+};
+dispatchPaletteActivation(corrected, '__vindicator_dodge_auto', {
+  currentTarget: { dataset: {} },
+  shiftKey: false,
+  ctrlKey: false
+});
+const correctedResult = adapter.calculateBaselineSimulation(adapter.baselineSimulationRequest(corrected)).result;
 console.log(
   JSON.stringify(
     {
@@ -312,7 +326,9 @@ console.log(
       stale: { set: stale.activeWeaponSet, auto: stale.activeAutoattack.name },
       fresh: { set: fresh.activeWeaponSet, auto: fresh.activeAutoattack.name },
       rotation: app.build.rotation,
-      warnings: result.warnings
+      warnings: result.warnings,
+      correctedRotation: corrected.build.rotation,
+      correctedWarnings: correctedResult.warnings
     },
     null,
     2

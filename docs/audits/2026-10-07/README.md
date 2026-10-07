@@ -1,7 +1,7 @@
 # Repository audit — 2026-10-07
 
-Status: baseline validated; five initial auditors running concurrently. This file will be reconciled after independent
-review.
+Status: all five initial reports complete and frozen; five fresh independent reviewers are running concurrently. This
+file will be reconciled after review.
 
 ## Evidence baseline
 
@@ -37,8 +37,9 @@ review.
 Architecture and contract references include `docs/architecture/ARCHITECTURE.md`, `MODULES.md`, event-clock/ordering
 documents, programmatic simulation documentation, profession documents, and `js/games/gw2/platform/README.md`. Current
 source uses one simulation queue and clock. Constant player Quickness/Alacrity assumptions, full player health, and
-omitted incoming damage are documented scope choices. Summon recharge is distinct: `js/games/gw2/platform/combat/recharge.ts`
-integrates received Alacrity grants and expiry; the architecture document's blanket statement about summons is stale.
+omitted incoming damage are documented scope choices. Summon recharge is distinct:
+`js/games/gw2/platform/combat/recharge.ts` integrates received Alacrity grants and expiry; the architecture document's
+blanket statement about summons is stale.
 
 ## Validation
 
@@ -62,9 +63,27 @@ Node/DOM fixtures can validate logic but cannot establish computed layout or rea
 All five initial agents were explicitly spawned concurrently with model `gpt-6-astra` and reasoning effort `high`:
 `audit_professions`, `audit_frontend`, `audit_kernel`, `audit_platform`, and `audit_bugs`. Each owns only its assigned
 report. Agents were prohibited from spawning other agents or making Git mutations. The coordinator owns this summary and
-Git operations. Independent review will use five new agents after all initial reports are frozen.
+Git operations. After all five originals were complete, five fresh agents were explicitly spawned with the same model
+and effort: `review_professions`, `review_frontend`, `review_kernel`, `review_platform`, and `review_bugs`. No
+additional agents were spawned. The eight-hour budget is a maximum; phases advance when their substantive work is
+complete.
+
+## Frozen initial reports
+
+All five originals completed before any reviewer was spawned. They were frozen on 2026-10-07 at 05:07:57 UTC with **21
+stable finding IDs**. Initial source-path/range checks and explicit touched-Markdown formatting checks passed. Initial
+reports remain unchanged during review; corrections and rejections belong in the corresponding review and final
+register.
+
+| Initial report                                               | SHA-256 at freeze                                                  |
+| ------------------------------------------------------------ | ------------------------------------------------------------------ |
+| [01-profession-consistency.md](01-profession-consistency.md) | `ddd9945dd039ea0fc04eba6ba60c56f225f59215b9a0c2ea9ece44be0dbfc25b` |
+| [02-frontend-cleanup.md](02-frontend-cleanup.md)             | `c338d28650728e398a6618bd62de52ff3cb866b8b76db0328d12fd5cd73c571c` |
+| [03-kernel-audit.md](03-kernel-audit.md)                     | `44f50c48c27bc5e7e68b25ebe0854a8ac8d6afab00fbcdc7091271bbe9548d52` |
+| [04-platform-audit.md](04-platform-audit.md)                 | `950f423ddb6ab2b3eef379b8aa49070c0bd5c8563abefe90bf04564936c41f69` |
+| [05-general-bugs.md](05-general-bugs.md)                     | `8e2434f8ef713066002ce171577482a92e7aa8bae89000034b28de450820afca` |
 
 ## Reports and reconciliation
 
-The five initial reports and five fresh independent reviews will be linked here once complete. The final register will
-preserve every original finding, including rejected and unresolved findings.
+The five corresponding review reports are in progress. The final register will preserve every original finding,
+including rejected and unresolved findings, and clearly distinguish any independently validated reviewer discoveries.
