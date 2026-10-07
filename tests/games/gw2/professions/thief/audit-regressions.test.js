@@ -43,16 +43,22 @@ test('Basilisk Venom contributes control and retains its 40-second recharge', ()
 test("Sniper's Cover spends four initiative and opens a five-second smoke field and follow-up", () => {
   const config = { primaryWeapon: 'Rifle', secondaryWeapon: '' };
   const spent = [];
+  let available = 0;
   const result = runThief(
     ['Kneel', "Sniper's Cover"],
     { ...config, specialization: 'Deadeye' },
     {
-      // Read the pool around the composed cast-start hook that spends the activation's initiative.
+      // Shared payment happens after admission and before profession start rewards.
       extend: (native) => ({
+        availability(runtime, skill, command) {
+          const result = native.availability(runtime, skill, command);
+          if (result.ready && skill.id === ID.SNIPERS_COVER) available = runtime.resourceController.value('initiative');
+          return result;
+        },
         onCastStart(runtime, cast) {
-          const before = runtime.resourceController.value('initiative');
+          if (cast.skill.id === ID.SNIPERS_COVER)
+            spent.push(available - runtime.resourceController.value('initiative'));
           native.onCastStart(runtime, cast);
-          if (cast.skill.id === ID.SNIPERS_COVER) spent.push(before - runtime.resourceController.value('initiative'));
         }
       })
     }

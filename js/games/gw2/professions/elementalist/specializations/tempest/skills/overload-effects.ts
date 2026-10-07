@@ -75,10 +75,10 @@ function overloadFireEffects(): readonly SkillEffect[] {
   });
 }
 
-// Overload Air: a uniform pulse train of strike, vulnerability, and party fury.
+// Overload Air's storm survives an aftercast cancellation once the channel has committed.
 function overloadAirEffects(): readonly SkillEffect[] {
   return OVERLOAD_AIR_TICKS.flatMap((atMs) =>
-    impactEffects({ atMs, timingAnchor: 'castStart', timingScale: 'cast' }, [
+    impactEffects({ atMs, timingAnchor: 'castStart', timingScale: 'cast', persistsAfterInterrupt: true }, [
       strike(0.85),
       condition('Vulnerability', 1, 10),
       boon('Fury', 1, 1)

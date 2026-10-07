@@ -197,8 +197,8 @@ export function createEffectDelivery<T extends object>(
           throw new RangeError('Reaction settlement requires a condition, buff, or boon extension at the live clock.');
         withCause(packet, () => {
           if (packet.type === 'condition') applyConditionNow(packet);
-          else if (packet.type === 'buff') dispatchEvent(packet);
-          else handlers.dispatch(packet, runtime);
+          // Buffs and extensions settle immediately through the shared path so history records each application once.
+          else dispatchEvent(packet);
         });
       } else queue.enqueue(packet);
     }
@@ -361,6 +361,8 @@ export function createEffectDelivery<T extends object>(
     }
 
     event = bindRuntimeCombo(runtime, event);
+    // A grant precedes its synchronous buff reactions in gameplay; record that order before nested delivery runs.
+    if (event.type === 'buff') runtime.observations.record(event);
     handlers.dispatch(event, runtime);
     // Shared relic descriptors react to actual events and queue their effects on this clock.
     if (event.type === 'action') execution.action?.(runtime, event);
@@ -380,8 +382,7 @@ export function createEffectDelivery<T extends object>(
         expiresAt: Number(event.duration) > 0 ? event.at + Number(event.duration) : null
       });
     if (event.type === 'weapon_set' || event.type === 'sigil_swap') host.weaponSwap?.(event);
-    if (['action', 'weapon_set', 'buff', 'boon_extension', 'marker'].includes(event.type))
-      runtime.observations.record(event);
+    if (['action', 'weapon_set', 'boon_extension', 'marker'].includes(event.type)) runtime.observations.record(event);
     if (!preparedCombos.has(event)) produceRuntimeCombos(runtime, profession.catalog, event);
     if (runtime.reporting && !['condition_buffer', 'condition_tick', 'action_update'].includes(event.type))
       executed.push(event);

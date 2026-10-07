@@ -1,5 +1,10 @@
-import { normalizeTransitionDelays, TRANSITION_DELAY_KEYS } from '#gw2/platform/execution/transition-lockouts.js';
+import {
+  normalizeTransitionDelays,
+  TRANSITION_DELAY_KEYS,
+  type TransitionDelays
+} from '#gw2/platform/execution/transition-lockouts.js';
 import { loadSimulationSettings, saveSimulationSettings } from '#gw2/app/simulation/settings.js';
+import { invalidateInactiveBuildTabs } from '#gw2/app/build/state/workspace.js';
 import type { ProfessionAppState } from '#gw2/app/types.js';
 
 /** Mount native numeric inputs outside build assumptions; changing them reruns every dependent simulation. */
@@ -17,9 +22,13 @@ export function mountSimulationSettings(app: ProfessionAppState, root: Document 
   const controls = root.createElement('div');
   controls.className = 'perma-group-content';
   const settings = (app.simulationSettings ??= loadSimulationSettings());
-  const update = (): void => {
-    settings.transitionDelays = normalizeTransitionDelays(settings.transitionDelays);
+  const update = (delays: TransitionDelays): void => {
+    const normalized = normalizeTransitionDelays(delays);
+    // Preserve valid caches for no-op inputs; changed shared delays refresh inactive tabs on their next activation.
+    if (TRANSITION_DELAY_KEYS.every((key) => normalized[key] === settings.transitionDelays[key])) return;
+    settings.transitionDelays = normalized;
     saveSimulationSettings(settings);
+    invalidateInactiveBuildTabs(app);
     app.changed();
   };
 
@@ -59,8 +68,8 @@ export function mountSimulationSettings(app: ProfessionAppState, root: Document 
       input.title =
         'Additional input delay after the transition. Overlaps existing cast recovery. Shared across builds.';
       input.addEventListener('change', () => {
-        settings.transitionDelays[key] = Number(input.value);
-        update();
+        update({ ...settings.transitionDelays, [key]: Number(input.value) });
+        input.value = String(settings.transitionDelays[key]);
       });
       cell.append(input);
     }
@@ -80,8 +89,9 @@ export function mountSimulationSettings(app: ProfessionAppState, root: Document 
     button.className = 'btn';
     button.textContent = label;
     button.addEventListener('click', () => {
-      for (const key of TRANSITION_DELAY_KEYS) settings.transitionDelays[key] = delay;
-      update();
+      const delays = { ...settings.transitionDelays };
+      for (const key of TRANSITION_DELAY_KEYS) delays[key] = delay;
+      update(delays);
     });
     actions.append(button);
   }

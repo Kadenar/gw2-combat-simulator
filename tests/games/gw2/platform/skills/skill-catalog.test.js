@@ -193,6 +193,25 @@ test('resource grants validate current-skill amounts without accepting them for 
   );
 });
 
+// Cost selectors must resolve to one numeric amount before any cast can be admitted or paid.
+test('skill costs validate authored field selectors and reject competing amount sources', () => {
+  const load = (initiativeCost, cost = { resource: 'initiative', skillAmount: 'initiativeCost' }) =>
+    createCanonicalCatalog({ generated: [{ id: 1, name: 'Paid', initiativeCost, cost }] });
+  for (const value of [0, 0.1, 4]) assert.doesNotThrow(() => load(value));
+  for (const value of [undefined, -1, Infinity, NaN, '4']) assert.throws(() => load(value), TypeError);
+  for (const skillAmount of ['missing', 'name', '', 4])
+    assert.throws(() => load(4, { resource: 'initiative', skillAmount }), TypeError);
+  assert.throws(
+    () =>
+      load(4, {
+        resource: 'initiative',
+        skillAmount: 'initiativeCost',
+        profileAmount: { profileId: 'other', field: 'resourceCost' }
+      }),
+    TypeError
+  );
+});
+
 // Unknown and retired keys must fail in every authoring layer instead of accepting fields with no runtime behavior.
 test('catalogs reject unsupported skill fields in every authoring layer', () => {
   const skill = { id: 1, name: 'Validation' };

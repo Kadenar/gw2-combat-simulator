@@ -2,6 +2,48 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { createGw2TimelineIndex } from '#gw2/platform/combat-calculation/timeline-index.js';
 import { createCooldownController } from '#gw2/platform/execution/cooldowns.js';
+import { projectRecharge } from '#gw2/platform/combat/recharge.js';
+
+// Received duration pools stay separate; retirement invalidates cached projections without erasing earned work.
+test('companion recharge windows isolate grants, extensions and retirement', () => {
+  const grant = (companionId) => ({
+    type: 'buff',
+    kind: 'alacrity',
+    at: 0,
+    duration: 4,
+    stacks: 1,
+    resolvedAudience: {
+      includesSelf: false,
+      includesSummons: true,
+      companionIds: [companionId],
+      alliedPlayerCount: 0,
+      recipientCount: 1
+    }
+  });
+  const events = [grant('a'), grant('b')];
+  const skill = { id: 1, rechargeBuffAudience: 'summon' };
+  const timeline = createGw2TimelineIndex({ events });
+  const ready = (companionId) =>
+    projectRecharge({ startedAt: 0, work: 10 }, timeline.rechargeIntervals(skill, 0, Infinity, companionId));
+  assert.equal(ready('a'), 9);
+  assert.equal(ready('b'), 9);
+  assert.equal(ready('c'), 10);
+  events.push({ type: 'boon_extension', at: 2, duration: 2, kind: 'alacrity', extensionAudience: 'all' });
+  assert.equal(ready('a'), 8.5);
+  assert.equal(ready('b'), 8.5);
+  assert.equal(ready('c'), 10);
+  events.push({ type: 'marker', action: 'companion-retired', summonOwner: 'a', at: 3 });
+  assert.equal(ready('a'), 9.25);
+  assert.equal(ready('b'), 8.5);
+  // A later lifetime's grant cannot revive an old owner's retired boon pool.
+  events.push({ ...grant('a:next'), at: 4, duration: 30 });
+  assert.equal(ready('a'), 9.25);
+  assert.throws(() => [...timeline.rechargeIntervals(skill, 0, 10)], /companion identity/);
+  assert.deepEqual(
+    [...timeline.rechargeIntervals({ ...skill, rechargeIgnoresAlacrity: true }, 0, 10)],
+    [{ start: 0, end: 10, rate: 1 }]
+  );
+});
 
 // Constant recharge rates bypass boon history, including explicit false console inputs.
 test('player recharge never samples Alacrity grants or expiry', () => {
@@ -34,7 +76,10 @@ test('declared recharge rate applies only to player skills', () => {
     [{ ...skill, rechargeBuffAudience: 'summon' }, 1],
     [{ ...skill, rechargeIgnoresAlacrity: true }, 1]
   ]) {
-    assert.deepEqual([...timeline.rechargeIntervals(selected, 0, 10)], [{ start: 0, end: 10, rate }]);
+    assert.deepEqual(
+      [...timeline.rechargeIntervals(selected, 0, 10, 'fixture-companion')],
+      [{ start: 0, end: 10, rate }]
+    );
   }
 });
 

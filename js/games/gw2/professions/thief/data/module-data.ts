@@ -119,6 +119,10 @@ const normalize = (skill: ThiefSkill): ThiefSkill => ({
       }),
   flipParentId: flipParentById.get(skill.id) ?? null,
   dualWieldOpener: Object.hasOwn(DUAL_FOLLOWUP_BY_PARENT, skill.id),
+  // Keep zero costs declared too, so later patches can price a free skill without a second cost source.
+  ...(skill.initiativeCost != null
+    ? { cost: { resource: 'initiative', skillAmount: 'initiativeCost', spendOn: 'castStart' } as const }
+    : {}),
   ...((skill.initiativeCost || 0) > 0
     ? {
         resource: 'initiative'
@@ -206,13 +210,17 @@ export function createThiefModuleData(
   id: string,
   { skillMechanics, ...options }: ProfessionModuleDataOptions<ThiefSkill>
 ) {
-  const terrestrialMechanics = Object.fromEntries(
+  const mechanics = Object.fromEntries(
     Object.entries(skillMechanics)
       .filter(([skillId]) => declaredIds.has(Number(skillId)))
       .map(([skillId, mechanics]) => [
         skillId,
         {
           ...mechanics,
+          // Shared admission and payment read the same price as profession-owned rewards.
+          ...(mechanics.initiativeCost != null
+            ? { cost: { resource: 'initiative', skillAmount: 'initiativeCost', spendOn: 'castStart' } as const }
+            : {}),
           ...((mechanics.initiativeCost || 0) > 0
             ? {
                 resource: 'initiative'
@@ -231,6 +239,6 @@ export function createThiefModuleData(
 
   return createModuleData(id, {
     ...options,
-    skillMechanics: terrestrialMechanics
+    skillMechanics: mechanics
   });
 }

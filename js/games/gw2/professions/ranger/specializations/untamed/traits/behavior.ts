@@ -125,7 +125,7 @@ export function reactToUntamedDamage(context: RangerResolverContext, event: Gw2R
 
 const AMBUSH_SKILL_IDS = new Set<number>(UNTAMED_AMBUSH_SKILL_IDS);
 
-/** Reconciles Untamed's Natural Fortitude at the existing Druid-only runtime attribute boundary. */
+/** Adds selected Natural Fortitude Vitality when the supplied stats do not already include static trait rules. */
 export function modifyNaturalFortitudeAttributes(
   context: Gw2ModifierContext,
   attributes: Gw2ResolvedStats

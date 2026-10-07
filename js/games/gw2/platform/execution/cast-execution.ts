@@ -91,7 +91,7 @@ export function createCastExecution<T extends object>(
       cooldownController.spendAmmo(cast.skill, cast.rechargeStart, cast.rechargeWork);
       cooldownController.setAmmoLockout(cast.skill, cast.ammoLockoutWork, cast.rechargeStart);
     } else if (cast.rechargeWork > 0)
-      cooldownController.startRecharge(cast.skill, cast.rechargeStart, cast.rechargeWork);
+      cooldownController.startRecharge(cast.skill, cast.rechargeStart, cast.rechargeWork, cast.rechargeCompanionId);
     const cancelled = cast.cancelled;
     // Ordinary swaps commit one actual set transition before completion hooks and queued equipment reactions.
     if (cast.skill.inputCategory === 'weapon-swap' && !castWasInterrupted(cast)) {
@@ -240,6 +240,7 @@ export function createCastExecution<T extends object>(
       rechargeStart: canonicalTime(Math.max(start, rechargeStart)),
       // Reserve one-shot recharge entitlements at acceptance, querying only the current live instant.
       rechargeWork,
+      rechargeCompanionId: profession.rechargeCompanionId?.(runtime.mechanicQueries, skill),
       // Persistent recharge modifiers also govern the gap between charges; one-shot entitlements do not.
       ammoLockoutWork:
         ammo && Number(skill.ammoCastLockout) > 0 ? rechargeWorkFor(skill, Number(skill.ammoCastLockout)) : 0,

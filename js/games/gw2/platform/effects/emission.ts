@@ -1,4 +1,11 @@
 import type { EffectEventBase } from '#gw2/platform/effects/materializer.js';
+import {
+  effectApplicationCount,
+  MAX_EFFECT_EXPANSION,
+  requireEffectExpansionCount,
+  validateConditionExpansion,
+  type EffectExpansionBudget
+} from '#gw2/platform/effects/expansion-budget.js';
 import { materializeSkillEffectApplications } from '#gw2/platform/effects/materializer.js';
 import type { SkillEffect } from '#gw2/platform/effects/types.js';
 import type { SimulationEvent, SimulationEventBase } from '#gw2/platform/events/events.js';
@@ -118,6 +125,7 @@ function deliverySnapshot(
 
 /** Expand authored effects once and submit computed and materialized packets to the same runtime boundary. */
 export function createEffectEmissionService(host: {
+  readonly expansionBudget: EffectExpansionBudget;
   readonly now: () => number;
   readonly registerReaction: (profile: Skill | BalanceProfile, effect: SkillEffect) => number | undefined;
   readonly submit: (
@@ -146,6 +154,7 @@ export function createEffectEmissionService(host: {
       throw new TypeError('Effect lifetime requires an owner id and a nonnegative safe integer generation.');
     const delivery = deliverySnapshot(request);
     if (request.kind === 'announcement') {
+      host.expansionBudget.reserve(1, `announcement=${request.announcement.name}`);
       const event = host.announce({
         ...delivery,
         kind: 'announcement',
@@ -157,13 +166,28 @@ export function createEffectEmissionService(host: {
     }
 
     if (request.kind === 'packet') {
+      host.expansionBudget.reserve(1, `packet=${request.event.type} source=${request.event.sourceId}`);
       const event = host.submit(structuredClone(request.event), delivery);
       return request.receipt ? immutableReceipt(event) : undefined;
     }
 
+    const effects = request.effects ?? request.profile.effects ?? [];
+    const label = `${request.profile.name} (${request.profile.id})`;
+    if (effects.length > MAX_EFFECT_EXPANSION)
+      throw new RangeError(`${label} exceeds the effect expansion limit (${MAX_EFFECT_EXPANSION}).`);
+    // Reserve the whole profile before attribution, reaction registration, transforms, allocation, or submission.
+    let count = 0;
+    for (const effect of effects) {
+      const effectLabel = `${label} effect=${effect.type}/${effect.name ?? '<unnamed>'}`;
+      count += effectApplicationCount(effect, effectLabel);
+      requireEffectExpansionCount(count, label);
+      validateConditionExpansion(effect, effectLabel);
+    }
+
+    host.expansionBudget.reserve(count, label);
     const at = request.at ?? host.now();
     const events: SimulationEvent[] | undefined = request.receipt ? [] : undefined;
-    for (const effect of request.effects ?? request.profile.effects ?? []) {
+    for (const effect of effects) {
       for (const { event } of materializeSkillEffectApplications({
         skill: request.profile,
         effect,

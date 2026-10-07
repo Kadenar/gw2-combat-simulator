@@ -331,7 +331,7 @@ test('two infusion rows retain selections and enforce the shared infusion limit'
   await expect(page.locator('.inf-total')).toHaveText('18/18');
 });
 
-// Non-swapping professions keep stacking gear saved while only their starting weapon enters the rotation.
+// Restricted professions retain both equipment sets, with the starting set selecting the first active bar.
 for (const profession of ['elementalist', 'engineer']) {
   test(`${profession} supports inactive stacking gear and either starting set`, async ({ page }) => {
     await page.goto(`/${profession}.html#workspace`, { waitUntil: 'domcontentloaded' });
@@ -359,7 +359,16 @@ for (const profession of ['elementalist', 'engineer']) {
     expect(await page.evaluate(() => window.professionApp.attributeData.attributes['Condition Damage'].sigils)).toBe(
       250
     );
-    await expect(page.locator(`#rotation-palette .pal-skill[data-skill="${alternateSkill}"]`)).toHaveCount(0);
+    if (profession === 'engineer')
+      await expect(page.locator(`#rotation-palette .pal-skill[data-skill="${alternateSkill}"]`).first()).toBeVisible();
+    else {
+      // Weaver displays its active dual-attunement bar; the precombat swap input makes the alternate bar reachable.
+      await expect(page.locator(`#rotation-palette .pal-skill[data-skill="${alternateSkill}"]`)).toHaveCount(0);
+      await expect(page.locator('#rotation-palette .pal-skill[data-skill="Swap Weapons"]')).not.toHaveClass(
+        /pal-disabled/
+      );
+    }
+
     await page.reload({ waitUntil: 'domcontentloaded' });
     await expect(page.locator('#loading-overlay')).toHaveClass(/hidden/);
     await expect(page.locator('#sel-mh2')).toHaveValue(alternate);
@@ -388,6 +397,9 @@ for (const profession of ['elementalist', 'engineer']) {
       await expect
         .poll(() => page.evaluate(() => window.professionApp.results.planningState.profession.activeKit))
         .toBe(5805);
+      // Stow and Swap Weapons are separate in-game key binds, so both stay available while a kit is active.
+      await expect(page.locator('#rotation-palette .pal-skill[data-skill="Stow Grenade Kit"]')).toHaveCount(1);
+      await expect(page.locator('#rotation-palette .pal-skill[data-skill="Swap Weapons"]')).toHaveCount(1);
       await page.locator('#rotation-palette .pal-skill[data-skill="Grenade"]').click();
       await expect
         .poll(() => page.evaluate(() => window.professionApp.results.steps.some((step) => step.skill === 'Grenade')))
@@ -441,4 +453,33 @@ test('both weapon sets keep their own stats and sigils when switching handedness
   await chooseEquipment(page, '#sel-mh2', '');
   await expect(page.locator('.weapon-set').nth(1).locator('.weapon-sigil:visible')).toHaveCount(0);
   await expect(page.locator('#attribute-preview .attribute-effects-title')).toBeVisible();
+});
+
+// Real palette input crosses combat entry through the worker while equipped gear and attribute inspection stay independent.
+test('Elementalist swaps precombat through the palette and locks equipment swaps after combat entry', async ({
+  page
+}) => {
+  await page.goto('/elementalist.html#workspace', { waitUntil: 'domcontentloaded' });
+  await expect(page.locator('#loading-overlay')).toHaveClass(/hidden/);
+  await page.evaluate(() => {
+    const app = window.professionApp;
+    app.build.rotation = [];
+    app.build.startingWeaponSet = 1;
+    app.build.alternateWeapons = ['Staff', ''];
+    app.changed();
+  });
+  await page.waitForFunction(() => window.professionApp.simulationStatus === 'idle');
+  const swap = page.locator('#rotation-palette .pal-skill[data-skill="Swap Weapons"]');
+  await expect(swap).toBeVisible();
+  await expect(swap).not.toHaveClass(/pal-disabled/);
+  await swap.click();
+  await expect.poll(() => page.evaluate(() => window.professionApp.results.planningState.activeWeaponSet)).toBe(2);
+  await page.locator('#rotation-palette .pal-skill[data-skill="__combat_start"]').click();
+  await expect.poll(() => page.evaluate(() => window.professionApp.results.planningState.combatActive)).toBe(true);
+  await expect(swap).toHaveClass(/pal-disabled/);
+  await page.locator('#attribute-weapon-set').selectOption('1');
+  expect(await page.evaluate(() => window.professionApp.results.planningState.activeWeaponSet)).toBe(2);
+  expect(await page.evaluate(() => window.professionApp.build.startingWeaponSet)).toBe(1);
+  expect(await page.evaluate(() => window.professionApp.results.warnings)).toEqual([]);
+  await expect(page.locator('#rotation-timeline')).toContainText('W2');
 });

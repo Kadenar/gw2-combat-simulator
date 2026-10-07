@@ -48,10 +48,6 @@ function assertUiDefinition(ui: UnvalidatedFields): void {
   if (ui.slotLoadout != null && (typeof ui.slotLoadout !== 'object' || Array.isArray(ui.slotLoadout))) {
     throw new TypeError('ui.slotLoadout must be an object.');
   }
-
-  if (ui.weaponSwapChangesSet != null && typeof ui.weaponSwapChangesSet !== 'boolean') {
-    throw new TypeError('ui.weaponSwapChangesSet must be a boolean.');
-  }
 }
 
 /** Validate narrow presentation exceptions without inventing a runtime verdict. */
@@ -122,8 +118,7 @@ export function normalizeProfessionUi(
     timelineWeaponLineTransition: ui.timelineWeaponLineTransition || (() => undefined),
     timelineSkillIcon: ui.timelineSkillIcon || (() => ''),
     updatePaletteControl: ui.updatePaletteControl || (() => false),
-    updateSkillBarSelection: ui.updateSkillBarSelection || (() => false),
-    weaponSwapChangesSet: ui.weaponSwapChangesSet !== false
+    updateSkillBarSelection: ui.updateSkillBarSelection || (() => false)
   };
 
   return Object.freeze(normalizedUi);

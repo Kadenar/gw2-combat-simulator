@@ -1,4 +1,5 @@
 import type { SkillEffect, StrikeEffect, StrikeTick } from '#gw2/platform/effects/types.js';
+import { effectApplicationCount, validateConditionExpansion } from '#gw2/platform/effects/expansion-budget.js';
 import type { SimulationActorType } from '#gw2/platform/events/actors.js';
 import type { EffectMetadata, SimulationEventBase } from '#gw2/platform/events/events.js';
 import type { Skill, SkillId } from '#gw2/platform/skills/types.js';
@@ -104,6 +105,10 @@ export function materializeSkillEffectApplications({
   skillWeaponFallback = '',
   reactionGroup
 }: MaterializeSkillEffectOptions): readonly MaterializedEffectApplication[] {
+  const label = `${skill.name} (${skill.id}) effect=${effect.type}/${effect.name ?? '<unnamed>'}`;
+  // Direct mechanic callers also materialize effects, so reject oversized batches before creating any packets.
+  const count = effectApplicationCount(effect, label);
+  validateConditionExpansion(effect, label);
   const firstAt = effectFirstAt(start, fullEnd, effect);
   const applications: MaterializedEffectApplication[] = [];
   const comboMetadata = effect.comboFinishers ? { comboFinishers: effect.comboFinishers } : {};
@@ -120,7 +125,7 @@ export function materializeSkillEffectApplications({
 
   if (effect.type === 'strike') {
     const ticks = Array.isArray(effect.ticks) ? effect.ticks : null;
-    const hits = ticks?.length || Math.max(1, Math.trunc(effect.hits || 1));
+    const hits = count;
     const equalCoefficient = (effect.coefficient || 0) / hits;
     const origin = effect.timingAnchor === 'castStart' ? start : fullEnd;
     for (let hitIndex = 1; hitIndex <= hits; hitIndex += 1) {
@@ -155,7 +160,6 @@ export function materializeSkillEffectApplications({
   } else if (effect.type === 'condition') {
     // Both authoring forms share packet construction; untimed repetitions still begin at cast completion.
     const ticks = Array.isArray(effect.ticks) ? effect.ticks : null;
-    const count = ticks?.length ?? Math.max(1, Math.trunc(effect.applications || 1));
     const interval = Math.max(0, effect.intervalMs || 0) / 1000;
     const origin = effect.timingAnchor === 'castStart' ? start : fullEnd;
     for (let applicationIndex = 1; applicationIndex <= count; applicationIndex += 1) {
@@ -187,7 +191,6 @@ export function materializeSkillEffectApplications({
       });
     }
   } else if (effect.type === 'control') {
-    const count = Math.max(1, Math.trunc(effect.applications || 1));
     const interval = Math.max(0, effect.intervalMs || 0) / 1000;
     for (let applicationIndex = 1; applicationIndex <= count; applicationIndex += 1) {
       const at = firstAt + (applicationIndex - 1) * interval;
@@ -207,7 +210,6 @@ export function materializeSkillEffectApplications({
       });
     }
   } else if (effect.type === 'boon' || effect.type === 'buff') {
-    const count = Math.max(1, Math.trunc(effect.applications || 1));
     const interval = Math.max(0, effect.intervalMs || 0) / 1000;
     for (let applicationIndex = 1; applicationIndex <= count; applicationIndex += 1) {
       const at = firstAt + (applicationIndex - 1) * interval;
@@ -234,7 +236,6 @@ export function materializeSkillEffectApplications({
     // StatusEffect groups boon/buff discriminants, so TypeScript still needs this check to narrow the custom payload.
     // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
   } else if (effect.type === 'custom') {
-    const count = Math.max(1, Math.trunc(effect.applications || 1));
     const interval = Math.max(0, effect.intervalMs || 0) / 1000;
     for (let applicationIndex = 1; applicationIndex <= count; applicationIndex += 1) {
       const at = firstAt + (applicationIndex - 1) * interval;

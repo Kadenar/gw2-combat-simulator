@@ -9,6 +9,7 @@ import type { Skill } from '#gw2/platform/skills/types.js';
 /** Projects one observed boundary into detached public fields, using only recharge observations and profession data. */
 export function planningState<T extends object>(
   input: Gw2PlanningStateInput<T> & {
+    readonly combatActive: boolean;
     readonly cooldownController: Pick<CooldownController, 'cooldownSkillIds' | 'readyAt' | 'ammoSkillIds' | 'readAmmo'>;
   },
   project: ((input: Gw2PlanningStateInput<T>) => unknown) | undefined,
@@ -60,6 +61,7 @@ export function planningState<T extends object>(
     ),
     effects: structuredClone(effects),
     atSeconds: endTime,
+    combatActive: input.combatActive,
     cooldowns,
     ammoBySkillId,
     activeWeaponSet: input.activeWeaponSet,

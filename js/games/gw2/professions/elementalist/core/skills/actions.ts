@@ -1,5 +1,5 @@
 import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
-import { createDodgeSkill } from '#gw2/platform/skills/shared-actions.js';
+import { createDodgeSkill, createWeaponSwapSkill } from '#gw2/platform/skills/shared-actions.js';
 /**
  * Owns declarative simulator-only Elementalist actions.
  * Bundle equip state remains with its persistent mechanics.
@@ -29,6 +29,7 @@ const CONJURE_ACTION_ICONS = Object.freeze({
 
 /** Supplies bundle controls absent from the API catalog so rotations can drop and recover conjures. */
 export const ELEMENTALIST_CORE_ACTION_EXTRA_SKILLS: readonly Skill[] = Object.freeze([
+  createWeaponSwapSkill(),
   {
     id: ID.DROP_BUNDLE,
     // Dropping clears the equipped copy and reports one real bundle swap.

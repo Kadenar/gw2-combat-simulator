@@ -429,7 +429,7 @@ export function createProfessionFamilyUi(definition: ProfessionFamilyUiDefinitio
     };
   }
 
-  for (const name of ['slotLoadout', 'weaponSwapChangesSet'] as const) {
+  for (const name of ['slotLoadout'] as const) {
     const owners = [family, ...allSlices].filter((slice) => slice[name] != null);
     if (owners.length > 1) {
       throw new TypeError(`ui.${name} has multiple application owners.`);

@@ -3,7 +3,6 @@ import { CAST_READY, denyCast } from '#gw2/platform/execution/availability.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import { lockTransitionInput } from '#gw2/platform/execution/transition-lockouts.js';
 import type { MechanicContext, MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
-import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
 import { resetSoldierFocus } from '#gw2/professions/warrior/core/traits/tactics.js';
 import { WARRIOR_SKILL_IDS as ID } from '#gw2/professions/warrior/data/ids.js';
 import { bladeswornState } from '#gw2/professions/warrior/specializations/bladesworn/state.js';
@@ -42,10 +41,11 @@ export function swapGunsaber(runtime: Runtime, cast: RuntimeCast<WarriorSkill>, 
 /** Bar replacement and explicit transition eligibility precede charge-specific readiness. */
 export function gunsaberBarAvailability(runtime: MechanicQueriesOf<Runtime>, skill: WarriorSkill) {
   const state = bladeswornState.from(runtime);
+  // Equipment changes require returning to the normal bar, even before combat begins.
+  if (skill.inputCategory === 'weapon-swap' && (state.gunsaberActive || state.dragonTriggerActive))
+    return denyCast('warrior.gunsaber', 'Sheathe the gunsaber before swapping weapon sets.');
   if (skill.burst && !skill.dragonSlash)
     return denyCast('warrior.flow', 'Bladesworn replaces weapon bursts with Dragon Slash.');
-  if (skill.id === SHARED_SKILL_IDS.SWAP_WEAPONS)
-    return denyCast('warrior.gunsaber', 'Bladesworn cannot swap normal weapon sets in combat.');
   if (skill.id === ID.UNSHEATHE_GUNSABER && state.gunsaberActive)
     return denyCast('warrior.gunsaber', 'Gunsaber is already active.');
   if (skill.id === ID.SHEATHE_GUNSABER && !state.gunsaberActive)

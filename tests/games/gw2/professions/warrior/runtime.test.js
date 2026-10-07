@@ -510,7 +510,7 @@ test('a canceled block or an expired channel cannot leave an available Tactical 
 
 test('weapon swaps commit the set before Core traits and repeated swaps share one Fury cooldown', () => {
   const config = {
-    alternatePrimaryWeapon: 'Sword',
+    weaponSet2Primary: 'Sword',
     selectedTraitIds: [TRAIT.VERSATILE_RAGE, TRAIT.FURIOUS_BURST, TRAIT.MARTIAL_CADENCE]
   };
   const first = run([{ type: 'combat-start' }, { type: 'wait', durationMs: 1000 }, 'Swap Weapons'], config);

@@ -6,6 +6,7 @@ import {
   readDpsReportRotationUrl
 } from '#gw2/app/import-export/logs/dps-report-rotation-import.js';
 import { guardianCatalog } from '#gw2/professions/guardian/profession.js';
+import { guardianAppAdapter } from '#gw2/professions/guardian/app/app-definition.js';
 import { LOG_OPENER_WARNING } from '#gw2/integrations/logs/shared/rotation/model.js';
 import { previewRotationFile } from '#gw2/app/import-export/rotation-import-dialog.js';
 
@@ -36,7 +37,11 @@ test('native saved rotations keep their manual preparation without receiving the
   const rotation = [{ type: 'cast', skillId: 77073 }];
   const preview = await previewRotationFile(
     { name: 'manual.json', type: 'application/json', text: async () => JSON.stringify(rotation) },
-    { activeCatalog: guardianCatalog }
+    {
+      activeCatalog: guardianCatalog,
+      adapter: guardianAppAdapter,
+      build: guardianAppAdapter.toApplicationBuild(guardianAppAdapter.profession.createBuildDefaults())
+    }
   );
   assert.equal(preview.rotation[0].skillId, 77073);
   assert.deepEqual(preview.warnings, []);

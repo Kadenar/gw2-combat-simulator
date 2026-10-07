@@ -1,5 +1,57 @@
 import { expect, test } from '@playwright/test';
 
+// A native settings edit must invalidate an inactive tab and let the worker replace both cached comparison results.
+test('returning to a cached tab refreshes Current and Reference after a shared delay edit', async ({ page }) => {
+  await page.goto('/mesmer.html');
+  await expect(page.locator('#loading-overlay')).toHaveClass(/hidden/);
+  await page.evaluate(() => {
+    const app = window.professionApp;
+    app.build.rotation = [{ type: 'combat-start' }, { type: 'cast', skillId: -3 }, { type: 'cast', skillId: 73154 }];
+    app.changed(false);
+  });
+  await page.waitForFunction(() => window.professionApp.simulationStatus === 'idle');
+  await page.evaluate(() => {
+    const app = window.professionApp;
+    app.startRotationComparison();
+    app.loadRotationReference(app.build.rotation);
+  });
+  await page.waitForFunction(() => window.professionApp.rotationComparison?.referenceStatus === 'fresh');
+  const cached = await page.evaluateHandle(() => {
+    const app = window.professionApp;
+    return {
+      tabId: app.workspace.activeTabId,
+      current: app.results,
+      reference: app.rotationComparison.referenceResult
+    };
+  });
+  await page.evaluate(async () => {
+    const { addBuildTab } = await import('/js/games/gw2/app/build/state/workspace.ts');
+    const app = window.professionApp;
+    addBuildTab(app, app.build, 'Other build');
+  });
+  await page.waitForFunction(() => window.professionApp.simulationStatus === 'idle');
+  await page.getByRole('button', { name: 'Open simulation config', exact: true }).click();
+  const delay = page.locator('#simulation-weaponSwapMs');
+  await delay.fill('1000');
+  await delay.press('Tab');
+  await page.evaluate(({ tabId }) => window.professionApp.activateBuildTab(tabId), cached);
+  await page.waitForFunction(() => {
+    const app = window.professionApp;
+    return app.simulationStatus === 'idle' && app.rotationComparison?.referenceStatus === 'fresh';
+  });
+  expect(
+    await page.evaluate(({ current, reference }) => {
+      const app = window.professionApp;
+      return {
+        currentReplaced: app.results !== current,
+        referenceReplaced: app.rotationComparison.referenceResult !== reference,
+        revisionMatches: app.resultRevision === app.buildRevision
+      };
+    }, cached)
+  ).toEqual({ currentReplaced: true, referenceReplaced: true, revisionMatches: true });
+  await cached.dispose();
+});
+
 // Real controls must survive build switches, imports, reloads, and navigation to another profession.
 test('transition delay preferences are global and imported waits overlap them', async ({ page }) => {
   const warnings = [];

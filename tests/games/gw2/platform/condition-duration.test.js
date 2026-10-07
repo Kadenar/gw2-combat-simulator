@@ -1,3 +1,4 @@
+import { createEffectExpansionBudget } from '#gw2/platform/effects/expansion-budget.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { StableEventQueue } from '#kernel/events/queue.js';
@@ -28,7 +29,10 @@ test('condition duration preserves phase context, fixed durations, and natural e
       stacks: 1,
       fixedDuration
     };
-    const resolution = createGw2ConditionResolution({ reactions: { dispatch() {} } });
+    const resolution = createGw2ConditionResolution({
+      expansionBudget: createEffectExpansionBudget(),
+      reactions: { dispatch() {} }
+    });
     const resolver = createGw2ResolverRuntimeState({
       config: {},
       horizon: 5.5,

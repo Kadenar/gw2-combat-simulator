@@ -1,4 +1,5 @@
 import * as comparisonState from '#gw2/app/rotation/comparison-state.js';
+import { updatePaletteFreshness } from '#gw2/app/rotation/palette/freshness.js';
 import { SkillDamageRunner } from '#gw2/app/simulation/skill-damage/runner.js';
 import { receiveSkillDamage } from '#gw2/app/build/panels/skill-damage.js';
 import { readStoredTimelineOverlayVisibility } from '#gw2/app/rotation/timeline/preferences.js';
@@ -250,6 +251,7 @@ export class ProfessionApp implements ProfessionAppState {
     saveBuildWorkspace(this);
     renderBuildTabs(this);
     if (document.body) document.body.dataset.simulationStatus = this.simulationStatus;
+    updatePaletteFreshness(this);
     return this.buildRevision;
   }
 
@@ -340,6 +342,7 @@ export class ProfessionApp implements ProfessionAppState {
     comparisonState.failRotationReference(this, this.simulationError);
 
     if (document.body) document.body.dataset.simulationStatus = this.simulationStatus;
+    updatePaletteFreshness(this);
     if (renderDeferredRotation) this.adapter.renderRotationBuilder(this);
     else renderRotationComparison(this);
   }

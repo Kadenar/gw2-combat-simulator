@@ -360,6 +360,12 @@ function activateRotationHotkey(controller: RotationHotkeyController, event: Key
   if (shouldIgnoreHotkey(event)) return;
   const action = activeRotationHotkeyAction(controller.bindings, event, controller.active);
   if (!action) return;
+  // Consume bound keys before consulting stale tiles, including function keys with native browser actions.
+  if (controller.root.dataset.palettePending === 'true') {
+    event.preventDefault();
+    return;
+  }
+
   const target = currentHotkeyTarget(controller.root, action);
   const MouseEventConstructor = controller.root.ownerDocument.defaultView?.MouseEvent;
   if (!target || !MouseEventConstructor) return;
@@ -378,6 +384,11 @@ function activateRotationHotkey(controller: RotationHotkeyController, event: Key
 function activateRotationMouseHotkey(controller: RotationHotkeyController, event: PointerEvent): void {
   const action = activeRotationMouseHotkeyAction(controller.bindings, event, controller.active);
   if (!action) return;
+  if (controller.root.dataset.palettePending === 'true') {
+    event.preventDefault();
+    return;
+  }
+
   const target = currentHotkeyTarget(controller.root, action);
   const MouseEventConstructor = controller.root.ownerDocument.defaultView?.MouseEvent;
   if (!target || !MouseEventConstructor) return;

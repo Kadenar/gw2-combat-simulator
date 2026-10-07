@@ -27,7 +27,8 @@ test('internal work validates its boundary and dispatches renewed owners without
   assert.throws(() => {
     old.at = 2;
   }, TypeError);
-  const queue = new StableEventQueue([old]);
+  const queue = new StableEventQueue();
+  queue.enqueue(old);
   queue.cancelWhere((work) => work.owner.id === 'pet' && work.owner.generation === 1);
   const renewed = create({ ...input, payload: { amount: 3 } });
   const projectile = create({ ...input, owner: { id: 'projectile', generation: 1 }, payload: { amount: 4 } });

@@ -67,6 +67,19 @@ function activationEvent(skillId, { shiftKey = false, ctrlKey = false } = {}) {
   };
 }
 
+// A retained tile must not resolve a profession macro or skill against a newer, unsimulated rotation.
+test('palette activation waits for matching result and build revisions', () => {
+  const skill = { id: 1, name: 'Ordinary', type: 'Weapon' };
+  const { app, added } = activationApp([skill]);
+  app.buildRevision = 2;
+  app.resultRevision = 1;
+  dispatchPaletteActivation(app, skill.name, activationEvent(skill.id));
+  assert.deepEqual(added, []);
+  app.resultRevision = 2;
+  dispatchPaletteActivation(app, skill.name, activationEvent(skill.id));
+  assert.deepEqual(added, [{ name: skill.name, options: { skillId: skill.id } }]);
+});
+
 test('palette activation dispatches ordinary and exceptional actions', () => {
   const ordinary = { id: 1, name: 'Ordinary', type: 'Utility', castTimeMs: 500 };
   const instant = { id: 2, name: 'Instant', type: 'Utility', castTimeMs: 0 };

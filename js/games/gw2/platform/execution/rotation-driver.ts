@@ -7,6 +7,7 @@ import { normalizeRotation } from '#gw2/platform/execution/rotation.js';
 import type { RuntimeDriver } from '#gw2/platform/execution/driver-contract.js';
 import type { RuntimeProfession } from '#gw2/platform/profession-definition/runtime-contract.js';
 import { canonicalTime } from '#kernel/core/clock.js';
+import { GW2_ACTION_TICK_MS, gw2CooldownReadyAt } from '#gw2/platform/combat/action-tick.js';
 
 /** Rotation commands enter through equipment, resource, and timing gates at each live boundary. */
 export function createRotationDriver<T extends object>(
@@ -24,12 +25,13 @@ export function createRotationDriver<T extends object>(
       let nextCommandAt = Infinity;
       if (command) {
         // Reevaluate transformed actions after every actual boundary, before accepting their reservation.
-        const skill =
+        let skill =
           command.type === 'cast'
             ? profession.catalog.skillsById.get(
                 profession.modifySkillId?.(selectionContext, command.skillId) ?? command.skillId
               )
             : undefined;
+        if (skill) skill = profession.resolveCastSkill?.(runtime.mechanicQueries, skill) ?? skill;
         // A forbidden overlap is permanently invalid, so it cannot reserve a lane or wait for cooldown readiness.
         if (command.type === 'cast' && command.concurrentOffsetMs != null && skill?.canCastConcurrently === false) {
           advanceFrontier('command rejection');
@@ -124,12 +126,14 @@ export function createRotationDriver<T extends object>(
               return 'handled';
             }
 
-            if (!Number.isFinite(availability.retryAt) || canonicalTime(availability.retryAt) <= runtime.time) {
+            if (!Number.isFinite(availability.retryAt) || availability.retryAt <= runtime.time) {
               reject(`${availability.reason} (no future retry boundary).`);
               return 'handled';
             }
 
-            nextCommandAt = canonicalTime(availability.retryAt);
+            // GW2 retries wait for an absolute action tick, including deadlines less than a microsecond after a tick.
+            const tickAt = gw2CooldownReadyAt(availability.retryAt);
+            nextCommandAt = tickAt < availability.retryAt ? canonicalTime(tickAt + GW2_ACTION_TICK_MS / 1000) : tickAt;
           } else {
             acceptCast(skill, command);
             return 'handled';

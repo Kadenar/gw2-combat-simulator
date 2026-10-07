@@ -2,7 +2,6 @@
  * Declared activation costs. One owner decides affordability and spending for every profession, so a dodge or any
  * other priced skill waits for regeneration and pays its cost the same way everywhere.
  */
-import { EPSILON } from '#kernel/core/clock.js';
 import { denySkillCast } from '#gw2/platform/execution/availability.js';
 import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
@@ -11,6 +10,15 @@ import type { MechanicContext, MechanicQueryContext } from '#gw2/platform/profes
 
 /** Resolves the declared amount from the selected balance data at the moment it is read. */
 function skillCostAmount(runtime: Pick<MechanicQueryContext, 'helpers'>, skill: Skill): number {
+  // Read the authoritative authored field so patches affect admission and payment together.
+  const field = skill.cost!.skillAmount;
+  if (field != null) {
+    const amount = skill[field];
+    if (typeof amount !== 'number' || !Number.isFinite(amount) || amount < 0)
+      throw new TypeError(`Skill ${skill.id} has an invalid cost amount field "${field}".`);
+    return amount;
+  }
+
   const source = skill.cost!.profileAmount;
   return source
     ? balanceProfileNumber(requireBalanceProfileFromContext(runtime, source.profileId), source.field)
@@ -25,9 +33,12 @@ export function skillCostAvailability<T extends object>(
   if (!skill.cost) return null;
   const { resource } = skill.cost;
   const amount = skillCostAmount(runtime, skill);
+  // Free skills need no pool readiness and remain valid when recovery is disabled.
+  if (amount === 0) return null;
   const readyAt =
     resource === 'endurance' ? runtime.endurance.readyAt(amount) : runtime.resourceController.readyAt(resource, amount);
-  if (readyAt != null && readyAt <= runtime.time + EPSILON) return null;
+  // Resource owners decide affordability; a future deadline cannot fund the current activation.
+  if (readyAt != null && readyAt <= runtime.time) return null;
   return denySkillCast(
     skill,
     `gw2.insufficient-${resource}`,

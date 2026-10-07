@@ -286,7 +286,8 @@ test('condition applications preserve explicit metadata and formula overrides', 
     assert.deepEqual(second.event.comboFinishers, []);
   }
 
-  assert.deepEqual(materialize({ ...repeated, ticks: [] }), []);
+  // Direct materialization enforces the canonical requirement that an explicit timeline contains applications.
+  assert.throws(() => materialize({ ...repeated, ticks: [] }), /positive safe integer count/);
 });
 
 test('canonical condition timelines reject invalid or ambiguous applications', () => {

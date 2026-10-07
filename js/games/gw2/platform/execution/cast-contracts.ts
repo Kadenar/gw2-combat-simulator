@@ -11,6 +11,8 @@ export interface RuntimeCast<TSkill extends Skill = Skill> {
   readonly effectiveEnd: number;
   readonly rechargeStart: number;
   readonly rechargeWork: number;
+  /** Recharge follows the accepted companion incarnation through delayed completion and replacement. */
+  readonly rechargeCompanionId?: string;
   readonly ammoLockoutWork: number;
   readonly ammo: boolean;
   /**

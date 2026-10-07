@@ -48,6 +48,20 @@ export function denySkillCast(
   return retryAt === null ? denyCast(code, reason) : retryCast(retryAt, code, reason);
 }
 
+/** All professions may swap precombat; combat capability and equipped destinations govern real set changes. */
+export function weaponSetSwapAvailability(
+  context: { readonly combatActive: boolean; readonly config: Gw2Config; readonly activeWeaponSet: number },
+  canSwapInCombat: boolean,
+  skill: Skill
+): AvailabilityResult | null {
+  if (skill.inputCategory !== 'weapon-swap') return null;
+  if (context.combatActive && !canSwapInCombat)
+    return denyCast('gw2.weapon-swap-disabled', 'This build cannot swap weapon sets in combat.');
+  const destination = context.activeWeaponSet === 1 ? context.config.weaponSet2Primary : context.config.primaryWeapon;
+  if (!destination) return denyCast('gw2.weapon-set-empty', 'The other weapon set is not equipped.');
+  return null;
+}
+
 /** Profession policies identify alternate slot faces without moving mechanic-specific availability gates. */
 export interface SlotSelectionPolicy {
   readonly omittedLoadout?: 'allow' | 'deny';

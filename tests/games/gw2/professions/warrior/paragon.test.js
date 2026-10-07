@@ -358,7 +358,7 @@ test('score and detailed execution retain the same live Motivation, echoes, and 
 test('Inspiring Implements composes with Core swap grants and respects its own exclusive cooldown', () => {
   const config = {
     initialResource: 0,
-    alternatePrimaryWeapon: 'Sword',
+    weaponSet2Primary: 'Sword',
     selectedTraitIds: [TRAIT.INSPIRING_IMPLEMENTS, TRAIT.VERSATILE_RAGE]
   };
   const first = run([combat, 'Swap Weapons'], config);

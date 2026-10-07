@@ -62,8 +62,8 @@ test('Fresh Air keeps only future strike wakes for selected builds', () => {
 });
 
 test('all native Elementalist specializations retain two equipped sets without combat swapping', () => {
-  assert.equal(elementalistProfession.ui.weaponSwapChangesSet, false);
-  assert.equal(elementalistCatalog.skillsByName.has('Swap Weapons'), false);
+  assert.equal(elementalistProfession.resolveProfession().canSwapWeaponSetsInCombat, false);
+  assert.equal(elementalistCatalog.skillsByName.has('Swap Weapons'), true);
 
   for (const specialization of ['Core', 'Tempest', 'Weaver', 'Catalyst', 'Evoker']) {
     const build = elementalistAppAdapter.toApplicationBuild({
@@ -431,7 +431,7 @@ test('attunement swaps start labeled rotation timeline rows', () => {
       specialization: 'Core',
       build
     }),
-    weaponSwapChangesSet: false,
+    isWeaponSwap: () => false,
     weaponLineTransition(entry, current) {
       const name = typeof entry === 'string' ? entry : entry.name;
 
@@ -467,7 +467,7 @@ test('Weaver timeline rows show both active attunements', () => {
       specialization: 'Weaver',
       build
     }),
-    weaponSwapChangesSet: false,
+    isWeaponSwap: () => false,
     weaponLineTransition(entry, current) {
       const name = typeof entry === 'string' ? entry : entry.name;
 
@@ -499,7 +499,7 @@ test('Unravel starts a fully attuned Weaver timeline row', () => {
       specialization: 'Weaver',
       build
     }),
-    weaponSwapChangesSet: false,
+    isWeaponSwap: () => false,
     weaponLineTransition(entry, current) {
       const name = typeof entry === 'string' ? entry : entry.name;
 

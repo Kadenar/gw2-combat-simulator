@@ -495,7 +495,7 @@ test('Core Ranger exposes only the selected pet Beast skill', () => {
   assert.equal(result.planningState.profession.activePetSkillIds.includes(ID.RENDING_POUNCE), true);
   assert.equal(result.totalDamage > 0, true);
 
-  const swapped = simulate('Core', ['Swap Weapons']);
+  const swapped = simulate('Core', ['Swap Weapons'], { primaryWeapon: 'Longbow', weaponSet2Primary: 'Axe' });
 
   assert.deepEqual(swapped.warnings, []);
   assert.equal(swapped.planningState.activeWeaponSet, 2);

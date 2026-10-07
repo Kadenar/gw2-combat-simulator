@@ -62,17 +62,17 @@ function compareHeapEntries<T extends QueuedEvent>(left: HeapEntry<T>, right: He
  * leaking ordering state between simulations.
  */
 export class StableEventQueue<T extends QueuedEvent = QueuedEvent> {
-  private readonly heap: HeapEntry<T>[];
-  private nextSequence: number;
-  currentCausalOrder: number | null;
+  private readonly heap: HeapEntry<T>[] = [];
+  private nextSequence = 0;
+  currentCausalOrder: number | null = null;
   private current: { at: number; phase: number } | null = null;
   private sameTimeCount = 0;
   private readonly phaseFor?: (event: T, current: Readonly<{ at: number; phase: number }> | null) => number;
   private readonly prepare?: (event: T) => T;
   private readonly safetyLimit: number;
 
+  /** Start empty so every event passes through enqueue preparation after its owner's initialization finishes. */
   constructor(
-    events: readonly T[] = [],
     options: {
       phaseFor?: (event: T, current: Readonly<{ at: number; phase: number }> | null) => number;
       /** Lets the owner stamp identity on every enqueued event before its ordering keys are captured. */
@@ -85,13 +85,6 @@ export class StableEventQueue<T extends QueuedEvent = QueuedEvent> {
     this.safetyLimit = options.safetyLimit ?? DEFAULT_EXECUTION_ITERATION_LIMIT;
     if (!Number.isSafeInteger(this.safetyLimit) || this.safetyLimit < 1) {
       throw new RangeError('Event safety limit must be a positive safe integer.');
-    }
-
-    this.currentCausalOrder = null;
-    this.heap = [...events].map((event, sequence) => this.entry(event, sequence));
-    this.nextSequence = this.heap.length;
-    for (let index = Math.floor(this.heap.length / 2) - 1; index >= 0; index -= 1) {
-      this.siftDown(index);
     }
   }
 

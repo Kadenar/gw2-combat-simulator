@@ -13,6 +13,7 @@ import { applyElementalistAura } from '#gw2/professions/elementalist/core/mechan
 import { ELEMENTALIST_TRAIT_IDS as TRAIT } from '#gw2/professions/elementalist/data/ids.js';
 import { TEMPEST_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/elementalist/specializations/tempest/profiles.js';
 import type { ElementalistRuntime, ElementalistSkill } from '#gw2/professions/elementalist/types.js';
+
 /** Schedule alacrity from accepted overload hits before packet emission, retaining shortened-channel behavior. */
 export function applyLucidSingularity(
   context: ElementalistRuntime,
@@ -43,7 +44,8 @@ export function applyLucidSingularity(
       (event) =>
         event.type === 'damage' &&
         Number(event.coefficient) > 0 &&
-        (cast.effectiveEnd >= cast.fullEnd || event.at <= cast.effectiveEnd)
+        // Reuse the engine's commitment decision so the surviving storm retains its alacrity pulses.
+        (!cast.cancelled || event.at <= cast.effectiveEnd)
     )
     .sort((a, b) => a.at - b.at)
     .slice(0, balanceProfileNumber(lucidSingularityProfile, 'maximumStacks'));

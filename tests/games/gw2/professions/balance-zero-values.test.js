@@ -143,8 +143,8 @@ test('Thief zero Quick Pockets gain matches a swap without the trait', () => {
   const config = {
     primaryWeapon: 'Dagger',
     secondaryWeapon: 'Dagger',
-    alternatePrimaryWeapon: 'Sword',
-    alternateSecondaryWeapon: 'Pistol',
+    weaponSet2Primary: 'Sword',
+    weaponSet2Secondary: 'Pistol',
     initialInitiative: 6
   };
   const baseline = run(thiefProfession, {}, 'Core', rotation, config, runRuntimeObserved);

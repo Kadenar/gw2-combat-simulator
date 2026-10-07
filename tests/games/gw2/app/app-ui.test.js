@@ -3,6 +3,8 @@ import { planningFixture } from '#tests/helpers/observed-runtime.js';
 import { ENGINEER_SKILL_IDS } from '#gw2/professions/engineer/data/ids.js';
 import { STANDARD_TARGET_ARMOR } from '#gw2/platform/combat/formulas.js';
 import { armSkillFlip } from '#gw2/platform/execution/skill-flips.js';
+import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
+import { runGw2Runtime } from '#gw2/platform/simulation/runtime.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
@@ -1507,7 +1509,7 @@ test('weapon actions stay ordered beside the stacked weapon sets', () => {
   assert.equal(html.indexOf('weapon-set-stack') < html.indexOf('Act'), true);
 });
 
-test('Engineer weapon swap stays visible as a state-gated kit exit', async () => {
+test('Engineer swap action changes from precombat equipment swapping to a live kit exit', async () => {
   const adapter = await loadProfessionAppAdapter('engineer');
   const engineer = {
     profession: adapter.profession,
@@ -1528,14 +1530,34 @@ test('Engineer weapon swap stays visible as a state-gated kit exit', async () =>
     engineer.adapter.isSkillAvailable(engineer.skillByName.get('Rifle Burst Grenade'), { specialization: 'Core' }),
     false
   );
+  assert.equal(
+    planningFixture(engineer.profession, { weaponSet2Primary: 'Pistol' }).availability[swapWeapons.id].ready,
+    true
+  );
+  // The swap stays beside Dodge without an alternate set; availability disables it when no kit can be stowed.
+  engineer.build = { ...engineer.build, alternateWeapons: ['', ''] };
+  const actionIds = paletteActionSkills(engineer).map((skill) => skill.id);
+  assert.equal(actionIds[actionIds.indexOf(SHARED_SKILL_IDS.DODGE) + 1], swapWeapons.id);
   assert.equal(planningFixture(engineer.profession).availability[swapWeapons.id].ready, false);
+  const combatSwapReady = (rotation) => {
+    const config = { specialization: 'Core', primaryWeapon: 'Rifle', weaponSet2Primary: 'Pistol' };
+    return runGw2Runtime({
+      profession: engineer.profession.runtimeFor(config),
+      config,
+      rotation: [{ type: 'combat-start' }, ...rotation]
+    }).planningState.availability[swapWeapons.id].ready;
+  };
+
+  assert.equal(combatSwapReady([]), false);
+  assert.equal(combatSwapReady([{ type: 'cast', skillId: ENGINEER_SKILL_IDS.GRENADE_KIT }]), true);
   engineer.results = {
     planningState: { availability: {}, profession: { activeKit: ENGINEER_SKILL_IDS.GRENADE_KIT } }
   };
-  assert.equal(
-    paletteActionSkills(engineer).some((skill) => skill.name === 'Swap Weapons'),
-    true
-  );
+  // Swap Weapons and the kit's stow are separate in-game inputs, so the swap stays in the action row
+  // while the stow remains owned by its kit group.
+  const kitActions = paletteActionSkills(engineer).map((skill) => skill.id);
+  assert.equal(kitActions.includes(swapWeapons.id), true);
+  assert.equal(kitActions.includes(ENGINEER_SKILL_IDS.STOW_GRENADE_KIT), false);
   assert.equal(
     planningFixture(engineer.profession, {}, (runtime) => {
       runtime.profession.core.activeKit = ENGINEER_SKILL_IDS.GRENADE_KIT;
@@ -1587,20 +1609,6 @@ test('Engineer weapon swap stays visible as a state-gated kit exit', async () =>
     }),
     'https://render.guildwars2.com/file/' + '5B565BA46C111902EE65AB4592590442A5A6E754/3680135.png'
   );
-  assert.deepEqual(
-    timelineWeaponRows(
-      ['Grenade Kit', 'Swap Weapons', 'Blunderbuss'].map((name) => ({
-        type: 'cast',
-        skillId: engineer.skillByName.get(name).id
-      })),
-      {
-        startingWeaponSet: 1,
-        weaponSwapChangesSet: false,
-        skillName: (entry) => engineer.skillById.get(entry.skillId)?.name || ''
-      }
-    ).map((row) => row.weaponSet),
-    [1, 1]
-  );
   for (const [parentName, flipName] of [
     ['Throw Mine', 'Detonate'],
     ['Healing Turret', 'Detonate Healing Turret']
@@ -1631,7 +1639,7 @@ test('Engineer kits register distinct weapon lines in the timeline', async () =>
   const rotation = rotationNames.map((name) => ({ type: 'cast', skillId: skillByName.get(name).id }));
   const rows = timelineWeaponRows(rotation, {
     startingWeaponSet: 1,
-    weaponSwapChangesSet: false,
+    isWeaponSwap: () => false,
     skillName: (entry) => adapter.profession.catalog.skillsById.get(entry.skillId)?.name || '',
     weaponLineTransition(entry, current) {
       const skill = adapter.profession.catalog.skillsById.get(entry.skillId);
@@ -1712,6 +1720,7 @@ test('shared palettes reject supplemental effects from weapon and action rows', 
       },
       {
         id: -3,
+        inputCategory: 'weapon-swap',
         name: 'Swap Weapons',
         type: 'Action',
         slot: 'Action'

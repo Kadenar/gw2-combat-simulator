@@ -1,5 +1,10 @@
 import { validateComboOwnership } from '#gw2/platform/combos/ownership.js';
 import {
+  effectApplicationCount,
+  MAX_EFFECT_EXPANSION,
+  requireEffectExpansionCount
+} from '#gw2/platform/effects/expansion-budget.js';
+import {
   normalizeEffectAudience,
   normalizeEffectMetadata
 } from '#gw2/platform/effects/audience-metadata-validation.js';
@@ -156,6 +161,16 @@ export function requireCanonicalSkillEffects(owner: Skill | BalanceProfile): rea
 /** Validate complete surviving lists at both catalog assembly and patch boundaries. */
 export function normalizeSkillEffects(effects: readonly SkillEffect[], label: string): readonly SkillEffect[] {
   if (!Array.isArray(effects)) throw new TypeError(`${label} effects must be an array.`);
+  if (effects.length > MAX_EFFECT_EXPANSION)
+    throw new RangeError(`${label} exceeds the effect expansion limit (${MAX_EFFECT_EXPANSION}).`);
+  // Bound the complete list before normalizing tick arrays; many individually valid effects must not multiply the cap.
+  let packetCount = 0;
+  for (const effect of effects) {
+    if (!effect || !EFFECT_TYPES.has(effect.type)) continue;
+    packetCount += effectApplicationCount(effect, `${label} effect=${effect.type}/${effect.name ?? '<unnamed>'}`);
+    requireEffectExpansionCount(packetCount, label);
+  }
+
   const keys = new Set<string>();
   const normalizedEffects = Object.freeze(
     effects.map((effect) => {
@@ -246,6 +261,8 @@ function normalizeConditionTicks(value: unknown): readonly ConditionTick[] {
         throw new TypeError(`Condition application ${index + 1} requires positive stacks.`);
       }
 
+      requireEffectExpansionCount(Math.ceil(stacks), `Condition application ${index + 1} stacks`);
+
       if (!(duration > 0) || !Number.isFinite(duration)) {
         throw new TypeError(`Condition application ${index + 1} requires a positive duration.`);
       }
@@ -285,6 +302,8 @@ function normalizeEffectFields(effect: unknown, label: string): SkillEffect {
   // Profiles and procedural effects also enter here, so their combo ownership cannot bypass catalog checks.
   validateComboOwnership(candidate, label);
   if (Array.isArray(candidate.ticks)) {
+    // Bound explicit timelines before visiting or copying their entries.
+    requireEffectExpansionCount(candidate.ticks.length, `${label} ticks`);
     candidate.ticks.forEach((tick, index) => {
       if (tick && typeof tick === 'object' && !Array.isArray(tick)) {
         validateComboOwnership(tick, `${label} tick=${index + 1}`);
@@ -423,9 +442,7 @@ function normalizeEffectFields(effect: unknown, label: string): SkillEffect {
     }
 
     applications = Number(normalizedEffect.applications);
-    if (!Number.isInteger(applications) || !(applications > 0)) {
-      throw new TypeError('Repeated effects require a positive integer application count.');
-    }
+    requireEffectExpansionCount(applications, 'Repeated effects application count');
 
     if (hasTicks) {
       throw new TypeError('Repeated applications cannot be combined with a tick timeline.');
@@ -541,13 +558,8 @@ function normalizeEffectFields(effect: unknown, label: string): SkillEffect {
     throw new TypeError('Strike effects require a non-negative coefficient or flat strike data.');
   }
 
-  if (
-    normalizedEffect.type === 'strike' &&
-    !strikeTicks &&
-    (!Number.isInteger(Number(normalizedEffect.hits ?? 1)) || !(Number(normalizedEffect.hits ?? 1) > 0))
-  ) {
-    throw new TypeError('Strike effects require a positive integer hit count.');
-  }
+  if (normalizedEffect.type === 'strike' && !strikeTicks)
+    requireEffectExpansionCount(normalizedEffect.hits ?? 1, 'Strike effects hit count');
 
   if (normalizedEffect.type === 'strike' && !strikeTicks && normalizedEffect.intervalMs != null) {
     throw new TypeError('Strike intervals must be authored as an explicit tick timeline.');
@@ -575,6 +587,8 @@ function normalizeEffectFields(effect: unknown, label: string): SkillEffect {
     if (!conditionTicks && (!(Number(normalizedEffect.stacks) > 0) || !(Number(normalizedEffect.duration) > 0))) {
       throw new TypeError('Condition effects require positive stacks and duration.');
     }
+
+    if (!conditionTicks) requireEffectExpansionCount(Math.ceil(Number(normalizedEffect.stacks)), 'Condition stacks');
   }
 
   if (normalizedEffect.type === 'boon' || normalizedEffect.type === 'buff') {

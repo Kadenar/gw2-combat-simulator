@@ -234,7 +234,10 @@ export function defineProfession<
     composedHooks[name] = composeHooks(sources[name], name, fallback);
   }
 
+  if (definition.canSwapWeaponSetsInCombat != null && typeof definition.canSwapWeaponSetsInCombat !== 'boolean')
+    throw new TypeError('canSwapWeaponSetsInCombat must be a boolean.');
   const profession = {
+    canSwapWeaponSetsInCombat: definition.canSwapWeaponSetsInCombat ?? true,
     id: definition.id,
     name: definition.name,
     weaponSkillMatchesSet: definition.weaponSkillMatchesSet,

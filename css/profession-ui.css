@@ -31,34 +31,34 @@
   border-color: #bb561f;
 }
 
-.profession-loadout-theme .skill-bar-inspection.engineer-amalgam-protocols {
+.engineer-theme .skill-bar-inspection.engineer-amalgam-protocols {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   align-items: start;
   gap: 10px;
 }
 
-.profession-loadout-theme .engineer-amalgam-protocol {
+.engineer-theme .engineer-amalgam-protocol {
   min-width: 0;
 }
 
 /* Center protocol names over their icons without the shared header marker shifting the text. */
-.profession-loadout-theme .engineer-amalgam-protocol .skill-bar-inspection-label {
+.engineer-theme .engineer-amalgam-protocol .skill-bar-inspection-label {
   justify-content: center;
   text-align: center;
   border-bottom: 0;
 }
 
-.profession-loadout-theme .engineer-amalgam-protocol .skill-bar-inspection-label::before {
+.engineer-theme .engineer-amalgam-protocol .skill-bar-inspection-label::before {
   content: none;
 }
 
-.profession-loadout-theme .engineer-amalgam-protocol .skill-bar-inspection-skills {
+.engineer-theme .engineer-amalgam-protocol .skill-bar-inspection-skills {
   justify-content: center;
   width: 100%;
 }
 
-.profession-loadout-theme .engineer-amalgam-protocol .skill-bar-inspection-slot .sbar-icon {
+.engineer-theme .engineer-amalgam-protocol .skill-bar-inspection-slot .sbar-icon {
   width: 62px;
   height: 62px;
   box-shadow: 0 2px 7px rgba(0, 0, 0, 0.5);

@@ -195,13 +195,15 @@ export interface BalanceProfile extends CatalogEntity {
 }
 
 /**
- * What an activation pays. The runtime rejects or waits for an unaffordable cast before any profession gate, then
- * spends on acceptance or successful completion according to the declared phase.
+ * What an activation pays. Permanent cost failures reject before profession gates; retryable costs combine with
+ * those gates. Accepted casts spend on acceptance or successful completion according to the declared phase.
  */
 interface SkillCost {
   readonly resource: 'endurance' | ResourceKey;
-  /** A balance-profile field that one patch retunes everywhere; otherwise the skill's own `resourceCost` is paid. */
+  /** A balance-profile field that one patch retunes everywhere; mutually exclusive with skillAmount. */
   readonly profileAmount?: { readonly profileId: SkillId; readonly field: string };
+  /** Read an authored numeric skill field live; without either selector, pay resourceCost. */
+  readonly skillAmount?: string;
   readonly spendOn?: 'castStart' | 'castCommit';
 }
 

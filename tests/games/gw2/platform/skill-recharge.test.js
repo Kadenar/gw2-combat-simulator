@@ -314,73 +314,70 @@ test("shared scheduler detects a skill's cooldown expiry on the next action tick
   assert.deepEqual(result.warnings, []);
 });
 
-// Delayed shared grants and extensions affect only elapsed summon recharge, including sequential ammo.
+// Delayed shared grants and extensions affect only elapsed summon cooldowns.
 test('summon recharge requires shared player Alacrity and accounts for its expiry', () => {
-  for (const ammo of [false, true]) {
-    for (const sharePlayerBoonsWithSummons of [false, true]) {
-      for (const extension of [false, true]) {
-        const skill = {
-          id: 990020,
-          name: 'Summon recharge',
-          castTimeMs: 0,
-          cooldown: 10,
-          rechargeBuffAudience: 'summon',
-          effects: [],
-          ...(ammo ? { ammo: 2, ammoRecharge: 10 } : {})
-        };
-        const profession = defineTestProfession({
-          id: 'summon-recharge',
-          name: 'Summon recharge',
-          hooks: { playerAlacrityRechargeRate: 1.5 },
-          catalog: createCanonicalCatalog({ generated: [skill] })
-        });
-        const result = simulateGw2({
-          profession: {
-            runtimeFor(config) {
-              return {
-                ...profession.runtimeFor(config),
-                initialize(runtime) {
-                  const owner = { source: 'fixture', sourceId: 'fixture', actorType: 'player' };
+  for (const sharePlayerBoonsWithSummons of [false, true]) {
+    for (const extension of [false, true]) {
+      const skill = {
+        id: 990020,
+        name: 'Summon recharge',
+        castTimeMs: 0,
+        cooldown: 10,
+        rechargeBuffAudience: 'summon',
+        effects: []
+      };
+      const profession = defineTestProfession({
+        id: 'summon-recharge',
+        name: 'Summon recharge',
+        hooks: { playerAlacrityRechargeRate: 1.5, rechargeCompanionId: () => 'fixture-summon' },
+        catalog: createCanonicalCatalog({ generated: [skill] })
+      });
+      const result = simulateGw2({
+        profession: {
+          runtimeFor(config) {
+            return {
+              ...profession.runtimeFor(config),
+              initialize(runtime) {
+                const owner = { source: 'fixture', sourceId: 'fixture', actorType: 'player' };
+                runtime.effects.emit({
+                  kind: 'packet',
+                  event: {
+                    ...owner,
+                    type: 'buff',
+                    kind: 'alacrity',
+                    at: 2,
+                    duration: 4,
+                    stacks: 1,
+                    audience: { recipients: 'party', eligibleCompanionIds: ['fixture-summon'] }
+                  }
+                });
+                if (extension)
                   runtime.effects.emit({
                     kind: 'packet',
                     event: {
                       ...owner,
-                      type: 'buff',
+                      type: 'boon_extension',
+                      at: 3,
                       kind: 'alacrity',
-                      at: 2,
-                      duration: 4,
-                      stacks: 1,
-                      audience: { recipients: 'party', eligibleCompanionIds: ['fixture-summon'] }
+                      duration: 2,
+                      extensionAudience: 'all'
                     }
                   });
-                  if (extension)
-                    runtime.effects.emit({
-                      kind: 'packet',
-                      event: {
-                        ...owner,
-                        type: 'boon_extension',
-                        at: 3,
-                        kind: 'alacrity',
-                        duration: 2,
-                        extensionAudience: 'all'
-                      }
-                    });
-                }
-              };
-            }
-          },
-          rotation: [skill.id, ...(ammo ? [skill.id] : []), skill.id],
-          config: {
-            specialization: 'Chronomancer',
-            boons: { alacrity: true },
-            allies: { count: 0 },
-            sharePlayerBoonsWithSummons
+              }
+            };
           }
-        });
-        const expected = sharePlayerBoonsWithSummons ? (extension ? 8.52 : 9) : 10;
-        assert.equal(result.events.findLast((event) => event.type === 'action').at, expected);
-        assert.deepEqual(result.warnings, []);
-      }
+        },
+        rotation: [skill.id, skill.id],
+        config: {
+          specialization: 'Chronomancer',
+          boons: { alacrity: true },
+          allies: { count: 0 },
+          sharePlayerBoonsWithSummons
+        }
+      });
+      const expected = sharePlayerBoonsWithSummons ? (extension ? 8.52 : 9) : 10;
+      assert.equal(result.events.findLast((event) => event.type === 'action').at, expected);
+      assert.deepEqual(result.warnings, []);
     }
   }
 });

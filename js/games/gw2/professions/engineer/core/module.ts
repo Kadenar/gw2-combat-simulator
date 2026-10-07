@@ -16,6 +16,7 @@ import { ENGINEER_SKILL_IDS as ID } from '#gw2/professions/engineer/data/ids.js'
 import { createEngineerModuleData } from '#gw2/professions/engineer/data/module-data.js';
 
 export const engineerCoreModule = defineNativeModule({
+  canSwapWeaponSetsInCombat: false,
   id: 'Core',
   traitDefinitions: engineerCoreTraits,
   data: createEngineerModuleData('Core', {

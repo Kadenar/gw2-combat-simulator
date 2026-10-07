@@ -5,7 +5,6 @@ import { ARMOR_ICONS, EQUIPMENT_ICONS, GEAR_ICONS } from '#gw2/app/shared/equipm
 import { RELIC_DATA } from '#gw2/platform/equipment/relics/data.js';
 import { SIGIL_DATA } from '#gw2/platform/equipment/sigils/data.js';
 import {
-  optimizerWeaponSets,
   isOptimizerRequestCurrent,
   type GearOptimizerRequest,
   type OptimizerCandidate
@@ -41,7 +40,8 @@ export function renderOptimizerPreview(
   const specialization = app.adapter.eliteSpecialization(build);
   const entry = getProfessionEntry(app.adapter.id);
   const artwork = entry?.specializationArtwork?.find(({ name }) => name === specialization)?.conceptArt;
-  const sets = optimizerWeaponSets(build, app.adapter);
+  // Inspection includes all equipped gear, even when this rotation optimizes only one set.
+  const sets = build.alternateWeapons[0] ? [0, 1] : [0];
   // Keep preview content free of wiki tooltips; accessible names retain the complete equipment configuration.
   const item = (
     label: string,

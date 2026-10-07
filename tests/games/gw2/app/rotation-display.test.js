@@ -1,3 +1,5 @@
+import { loadProfessionAppAdapter } from '#gw2/profession-registry.js';
+import { runGw2Runtime } from '#gw2/platform/simulation/runtime.js';
 import { normalizeProfessionUi } from '#gw2/platform/profession-presentation/contract.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
@@ -31,7 +33,9 @@ test('timeline marks failed zero-damage casts without marking committed buffs as
       [3, buffSkill]
     ]),
     adapter: { skillTooltip: () => ({ description: '', facts: [] }), eliteSpecialization: () => '' },
-    profession: { ui: normalizeProfessionUi('fixture', { timelineWeaponLineTransition: () => null }) }
+    profession: {
+      ui: normalizeProfessionUi('fixture', { timelineWeaponLineTransition: () => null })
+    }
   };
   const steps = [
     { interrupted: true },
@@ -103,7 +107,9 @@ test('timeline labels the executed skill variant while preserving the saved comm
       [traited.id, traited]
     ]),
     adapter: { skillTooltip: () => ({ description: '', facts: [] }), eliteSpecialization: () => 'Amalgam' },
-    profession: { ui: normalizeProfessionUi('fixture', { timelineWeaponLineTransition: () => null }) }
+    profession: {
+      ui: normalizeProfessionUi('fixture', { timelineWeaponLineTransition: () => null })
+    }
   };
   const build = {
     rotation: [{ type: 'cast', skillId: base.id }],
@@ -366,4 +372,51 @@ test('rotation proc overlay preferences persist independently', () => {
   assert.equal(readStoredRotationProcOverlayVisibility(root, 'sigil'), false);
   assert.equal(readStoredRotationProcOverlayVisibility(root, 'relic'), true);
   assert.equal(readStoredTimelineOverlayVisibility(root, 'gw2-rotation-overlay-sovereign-of-light-procs'), true);
+});
+
+// Shared weapon_set notifications include bar refreshes; only actual swaps may change equipment row ownership.
+test('timeline keeps tome and kit transitions on their equipped set and follows real precombat swaps', async () => {
+  for (const [id, specialization, actions, expected] of [
+    ['guardian', 'Firebrand', ['Tome of Justice', 'Stow Tome'], [1]],
+    ['engineer', 'Core', ['Grenade Kit', 'Swap Weapons', { type: 'wait', durationMs: 1000 }], [1]],
+    ['elementalist', 'Core', ['Swap Weapons', { type: 'wait', durationMs: 1000 }], [1, 2]]
+  ]) {
+    const adapter = await loadProfessionAppAdapter(id);
+    const profession = adapter.profession;
+    const rotation = actions.map((action) =>
+      typeof action === 'string' ? { type: 'cast', skillId: profession.catalog.skillsByName.get(action).id } : action
+    );
+    const [primary, alternate] = id === 'engineer' ? ['Rifle', 'Pistol'] : ['Scepter', 'Staff'];
+    const build = {
+      ...profession.createBuildDefaults(),
+      weapons: [primary, ''],
+      alternateWeapons: [alternate, ''],
+      startingWeaponSet: 1,
+      rotation
+    };
+    const config = { specialization, primaryWeapon: primary, weaponSet2Primary: alternate };
+    const results = runGw2Runtime({ profession: profession.runtimeFor(config), config, rotation });
+    assert.deepEqual(results.warnings, []);
+    const app = {
+      adapter: { ...adapter, eliteSpecialization: () => specialization },
+      profession,
+      build,
+      skills: profession.catalog.skills,
+      skillById: profession.catalog.skillsById,
+      skillByName: profession.catalog.skillsByName
+    };
+    const rows = timelineRowsView(app, build, results, false, new Set(), false).rows;
+    assert.deepEqual(
+      rows.map((row) => Number(row.key.split(':')[0])),
+      expected,
+      id
+    );
+    assert.equal(results.planningState.activeWeaponSet, expected.at(-1), id);
+    if (expected.length === 1) assert.doesNotMatch(rows[0].html, /Weapon set 2:/);
+    // Before execution, do not predict that a possibly rejected swap changes the set.
+    assert.deepEqual(
+      timelineRowsView(app, build, null, false, new Set(), false).rows.map((row) => Number(row.key.split(':')[0])),
+      [1]
+    );
+  }
 });

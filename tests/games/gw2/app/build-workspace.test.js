@@ -92,7 +92,11 @@ test('saved legacy rotations load canonically from every persistence boundary', 
     );
     assert.deepEqual(loadMyBuilds(adapter)[0].build.rotation, expected, profession);
     const file = new File([JSON.stringify({ rotation })], 'saved-rotation.json', { type: 'application/json' });
-    const preview = await previewRotationFile(file, { activeCatalog: adapter.profession.catalog });
+    const preview = await previewRotationFile(file, {
+      activeCatalog: adapter.profession.catalog,
+      adapter,
+      build: workspace.tabs[0].build
+    });
     assert.deepEqual(preview.rotation, expected, profession);
     saveBuildWorkspace({
       adapter,

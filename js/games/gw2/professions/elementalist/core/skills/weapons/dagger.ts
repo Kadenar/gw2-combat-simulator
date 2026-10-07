@@ -31,6 +31,9 @@ export const ELEMENTALIST_CORE_DAGGER_SKILL_MECHANICS: Readonly<Record<number, P
     attunement: 'Fire',
     categories: ['Weapon skill'],
     castTimeMs: 720,
+    // The three projectiles commit together by 440 ms; cancelling the aftercast keeps their damage and lockout.
+    interruptCommitMs: 440,
+    retainsCastLockoutAfterInterrupt: true,
     cooldown: 0,
     skillFamily: 'Weapon skill',
     effects: [
@@ -40,7 +43,8 @@ export const ELEMENTALIST_CORE_DAGGER_SKILL_MECHANICS: Readonly<Record<number, P
         hits: 3,
         atMs: 440,
         timingAnchor: 'castStart',
-        timingScale: 'cast'
+        timingScale: 'cast',
+        persistsAfterInterrupt: true
       }
     ]
   },
@@ -135,6 +139,8 @@ export const ELEMENTALIST_CORE_DAGGER_SKILL_MECHANICS: Readonly<Record<number, P
     attunement: 'Fire',
     categories: ['Weapon skill'],
     castTimeMs: 480,
+    // The field is committed before the final 40 ms of aftercast.
+    interruptCommitMs: 440,
     cooldown: 15,
     comboFields: [
       {
@@ -349,6 +355,8 @@ export const ELEMENTALIST_CORE_DAGGER_SKILL_MECHANICS: Readonly<Record<number, P
   },
   // Two-hit auto-attack landing inside a single cast.
   [ID.LIGHTNING_WHIP]: {
+    // Cutting the two-hit attack short keeps only strikes that have already landed.
+    interruptMode: 'per-packet',
     autoattack: true, // Ordinary repeatable attack; excluded from player-input metrics.
     name: 'Lightning Whip',
     type: 'Weapon',
@@ -439,13 +447,17 @@ export const ELEMENTALIST_CORE_DAGGER_SKILL_MECHANICS: Readonly<Record<number, P
     attunement: 'Air',
     categories: ['Weapon skill'],
     castTimeMs: 360,
+    interruptCommitMs: 280,
     cooldown: 10,
     nextChainId: ID.SHOCKING_AURA,
     skillFamily: 'Weapon skill',
-    effects: impactEffects({ atMs: 840, timingAnchor: 'castStart', timingScale: 'cast' }, [
-      { type: 'strike', coefficient: 1.5, canCrit: true },
-      { type: 'control', applications: 1, controlKind: 'crowd-control' }
-    ])
+    effects: impactEffects(
+      { atMs: 840, timingAnchor: 'castStart', timingScale: 'cast', persistsAfterInterrupt: true },
+      [
+        { type: 'strike', coefficient: 1.5, canCrit: true },
+        { type: 'control', applications: 1, controlKind: 'crowd-control' }
+      ]
+    )
   },
   [ID.RIDE_THE_LIGHTNING]: {
     name: 'Ride the Lightning',
@@ -600,6 +612,8 @@ export const ELEMENTALIST_CORE_DAGGER_SKILL_MECHANICS: Readonly<Record<number, P
     attunement: 'Earth',
     categories: ['Weapon skill'],
     castTimeMs: 960,
+    // The eruption commits at 800 ms; cancelling the remaining aftercast keeps its damage and conditions.
+    interruptCommitMs: 800,
     cooldown: 20,
     skillFamily: 'Weapon skill',
     effects: [
@@ -622,7 +636,7 @@ export const ELEMENTALIST_CORE_DAGGER_SKILL_MECHANICS: Readonly<Record<number, P
         timingAnchor: 'castStart',
         timingScale: 'cast'
       },
-      ...impactEffects({ atMs: 800, timingAnchor: 'castStart', timingScale: 'cast' }, [
+      ...impactEffects({ atMs: 800, timingAnchor: 'castStart', timingScale: 'cast', persistsAfterInterrupt: true }, [
         { type: 'strike', coefficient: 3 },
         { type: 'condition', condition: 'Bleeding', stacks: 10, duration: 8, metadata: {} },
         { type: 'condition', condition: 'Crippled', stacks: 1, duration: 4, metadata: {} }

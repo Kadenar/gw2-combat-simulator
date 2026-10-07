@@ -35,6 +35,11 @@ modifier queries, and pet modifiers. Core trait-only completion and swap dispatc
 consumers use `RANGER_TRAIT_IDS` directly; module `profiles.ts` files retain only skill and mechanic packages. Build
 calculators compose `rangerProfession.traitBuildAttributes` alongside skill passives and Soulbeast archetype attributes.
 
+Commanded pet recharge captures the accepting companion's incarnation and retains it through shared cooldown projection.
+Received Alacrity is integrated only from that companion's grants and extensions, ending at retirement while preserving
+earlier recharge work. Pet swaps keep existing cooldowns; replacement and returning incarnations cannot apply their
+boons to a previous incarnation's recharge.
+
 The following execution boundaries remain explicit to preserve ordering and actor ownership:
 
 - Core damage dispatch interleaves trait procs with weapon charges. Pet packet creation applies trait inheritance before
@@ -48,10 +53,10 @@ The following execution boundaries remain explicit to preserve ordering and acto
   boundary after Twice as Vicious; the merged Loud Whistle and Lesser Sic 'Em modifiers remain installed at Soulbeast's
   modifier boundary. Applied buff rules do not gain a new selection gate.
 - Untamed mechanics own unleash and ambush windows. Let Loose owns swap eligibility and its independent proc interval,
-  then calls the mechanical ambush grant. Natural Fortitude's definition follows its actual Untamed identity; its
-  existing Druid-only runtime attribute call uses the Untamed-owned `modifyNaturalFortitudeAttributes` helper. Its build
-  contribution remains available to selected Untamed builds. Its owner also supplies the unconditional ambush life-steal
-  packets, while skill declarations retain their first-hit timing and patch identity.
+  then calls the mechanical ambush grant. Untamed owns Natural Fortitude's definition and runtime attribute callback.
+  The `modifyNaturalFortitudeAttributes` helper adds its selected Vitality bonus to baseline stats while preserving
+  precomputed build stats without double counting. Its owner also supplies the unconditional ambush life-steal packets,
+  while skill declarations retain their first-hit timing and patch identity.
 - Galeshot mechanics own arrows, Wind Force, Cyclone Bow, and Mistral. Trait owners handle Shrike projectile counting,
   Wuthering Wind pet charges, control refunds, bow completion rewards, and Perilous Skies availability. Cloudburst's
   authored reset remains in the triggering skill's commit-side-effect phase.

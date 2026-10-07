@@ -4,6 +4,50 @@ import { compareQueuedEvents } from '#tests/helpers/event-order.js';
 import { StableEventQueue } from '#kernel/events/queue.js';
 import { canonicalTime, timeKey } from '#kernel/core/clock.js';
 
+// Construction cannot prepare work before its owner exists; every event uses the same insertion path afterward.
+test('queues start empty and prepare every enqueued event once before capturing its ordering keys', () => {
+  const prepared = [];
+  const queue = new StableEventQueue({
+    prepare(event) {
+      assert.equal(queue.currentTime, null);
+      prepared.push(event.name);
+      return { ...event, eventOrder: prepared.length };
+    }
+  });
+  assert.equal(queue.length, 0);
+  assert.equal(queue.peek(), undefined);
+  assert.deepEqual(prepared, []);
+  const first = Object.freeze({ at: 0.56 + 0.04, name: 'first' });
+  const firstHandle = queue.enqueue(first);
+  const secondHandle = queue.enqueue(Object.freeze({ at: 0.6, name: 'second' }));
+  assert.deepEqual(prepared, ['first', 'second']);
+  assert.equal(firstHandle.eventOrder, 1);
+  assert.equal(secondHandle.eventOrder, 2);
+  assert.equal(firstHandle.at, 0.6);
+  assert.equal(first.eventOrder, undefined);
+  assert.equal(first.at, 0.56 + 0.04);
+  assert.equal(queue.dequeue(), firstHandle);
+  assert.equal(queue.dequeue(), secondHandle);
+  assert.deepEqual(prepared, ['first', 'second']);
+});
+
+// A rejected preparation never inserts a partial event or disrupts already accepted work.
+test('a throwing preparation leaves the queue usable', () => {
+  const queue = new StableEventQueue({
+    prepare(event) {
+      if (event.name === 'invalid') throw new Error('Preparation failed');
+      return event;
+    }
+  });
+  const first = queue.enqueue({ at: 1, name: 'first' });
+  assert.throws(() => queue.enqueue({ at: 0, name: 'invalid' }), /Preparation failed/);
+  assert.equal(queue.length, 1);
+  const second = queue.enqueue({ at: 1, name: 'second' });
+  assert.equal(queue.dequeue(), first);
+  assert.equal(queue.dequeue(), second);
+  assert.equal(queue.dequeue(), undefined);
+});
+
 // Peeking may discard canceled work, but must never advance time or consume the inclusive boundary.
 test('live peeking skips canceled entries and leaves endpoint descendants available', () => {
   const queue = new StableEventQueue();
@@ -43,7 +87,7 @@ test('renewed owners and committed projectiles survive cancellation of an old li
 
 // A command with no preceding event still closes earlier phases and clears the previous cause.
 test('command frontiers canonicalize time, reject rewinds, and start independent causal roots', () => {
-  const queue = new StableEventQueue([], { phaseFor: (event) => (event.type === 'sample' ? 0 : 2) });
+  const queue = new StableEventQueue({ phaseFor: (event) => (event.type === 'sample' ? 0 : 2) });
   queue.advanceFrontier(0.56 + 0.04, 2);
   assert.equal(queue.currentTime, 0.6);
   assert.throws(() => queue.enqueue({ at: 0.599999 }), /past time or phase/);
@@ -65,19 +109,19 @@ test('command frontiers canonicalize time, reject rewinds, and start independent
 
 // Neither commands nor events can reset the other's same-time safety budget, including phase-free consumers.
 test('alternating commands and events share one same-time safety limit', () => {
-  const queue = new StableEventQueue([], { safetyLimit: 3 });
+  const queue = new StableEventQueue({ safetyLimit: 3 });
   queue.advanceFrontier(1);
   queue.enqueue({ at: 1 });
   queue.dequeue();
   queue.advanceFrontier(1);
   queue.enqueue({ at: 1, sourceId: 'alternating-loop' });
   assert.throws(() => queue.dequeue(), /safety limit.*alternating-loop/);
-  const commands = new StableEventQueue([], { safetyLimit: 1 });
+  const commands = new StableEventQueue({ safetyLimit: 1 });
   commands.advanceFrontier(0);
   commands.advanceFrontier(1);
   assert.throws(() => commands.advanceFrontier(1), /safety limit/);
   for (const safetyLimit of [0, -1, 1.5, Infinity, NaN]) {
-    assert.throws(() => new StableEventQueue([], { safetyLimit }), /positive safe integer/);
+    assert.throws(() => new StableEventQueue({ safetyLimit }), /positive safe integer/);
   }
 });
 
@@ -90,7 +134,9 @@ test('pending ordering keys require cancel-and-enqueue replacement', () => {
     ['eventOrder', 0]
   ]) {
     const event = { at: 2, priority: 0 };
-    const queue = new StableEventQueue([{ at: 1 }, event]);
+    const queue = new StableEventQueue();
+    queue.enqueue({ at: 1 });
+    queue.enqueue(event);
     event[field] = value;
     assert.throws(() => {
       while (queue.peek()) queue.dequeue();
@@ -101,20 +147,16 @@ test('pending ordering keys require cancel-and-enqueue replacement', () => {
   }
 
   for (const priority of [NaN, Infinity, -Infinity]) {
-    assert.throws(() => new StableEventQueue([{ at: 0, priority }]), /priority must be finite/);
+    assert.throws(() => new StableEventQueue().enqueue({ at: 0, priority }), /priority must be finite/);
   }
 });
 
 // Resolver owners supply phases without putting game event names or author-controlled phase fields in the kernel.
 test('private phases outrank priority and prevent backward time, phase rewinds and unbounded chains', () => {
   const phaseFor = (event) => (event.type === 'early' ? 0 : 1);
-  const queue = new StableEventQueue(
-    [
-      { at: 1, type: 'late', priority: -100, phase: -999 },
-      { at: 0.96 + 0.04, type: 'early' }
-    ],
-    { phaseFor, safetyLimit: 3 }
-  );
+  const queue = new StableEventQueue({ phaseFor, safetyLimit: 3 });
+  queue.enqueue({ at: 1, type: 'late', priority: -100, phase: -999 });
+  queue.enqueue({ at: 0.96 + 0.04, type: 'early' });
   assert.equal(queue.dequeue().type, 'early');
   assert.equal(queue.currentPhase, 0);
   assert.equal(queue.dequeue().type, 'late');
@@ -124,28 +166,28 @@ test('private phases outrank priority and prevent backward time, phase rewinds a
   queue.dequeue();
   queue.enqueue({ at: 1, type: 'late', sourceId: 'loop' });
   assert.throws(() => queue.dequeue(), /safety limit.*1s.*loop/);
-  const future = new StableEventQueue([{ at: 1, type: 'late' }], { phaseFor });
+  const future = new StableEventQueue({ phaseFor });
+  future.enqueue({ at: 1, type: 'late' });
   future.dequeue();
   future.enqueue({ at: 1.000001, type: 'early' });
   assert.equal(future.dequeue().type, 'early');
 });
 
 // Floating arithmetic must share one instant without merging adjacent microseconds or mutating frozen events.
-test('canonical queue time is transitive in bulk, incremental and derived ordering', () => {
+test('canonical queue time is transitive in enqueued and derived ordering', () => {
   const events = Object.freeze([
     Object.freeze({ at: 0.56 + 0.04, name: 'first', priority: -1 }),
     Object.freeze({ at: 0.6, name: 'second' }),
     Object.freeze({ at: 0.600001, name: 'third', priority: -10 })
   ]);
-  for (const queue of [new StableEventQueue(events), new StableEventQueue()]) {
-    if (!queue.length) events.forEach((event) => queue.enqueue(event));
-    assert.deepEqual(queue.dequeue(), { at: 0.6, name: 'first', priority: -1 });
-    const derived = queue.enqueue({ at: 0.56 + 0.04, name: 'derived', priority: -1 });
-    assert.equal(derived.at, 0.6);
-    assert.equal(queue.dequeue(), derived);
-    assert.equal(queue.dequeue().name, 'second');
-    assert.equal(queue.dequeue().name, 'third');
-  }
+  const queue = new StableEventQueue();
+  for (const event of events) queue.enqueue(event);
+  assert.deepEqual(queue.dequeue(), { at: 0.6, name: 'first', priority: -1 });
+  const derived = queue.enqueue({ at: 0.56 + 0.04, name: 'derived', priority: -1 });
+  assert.equal(derived.at, 0.6);
+  assert.equal(queue.dequeue(), derived);
+  assert.equal(queue.dequeue().name, 'second');
+  assert.equal(queue.dequeue().name, 'third');
 
   assert.equal(events[0].at, 0.56 + 0.04);
   assert.deepEqual(
@@ -158,7 +200,6 @@ test('canonical queue time is transitive in bulk, incremental and derived orderi
   assert.equal(timeKey(0.56 + 0.04), 600000);
   assert.equal(canonicalTime(-0.0000001), 0);
   for (const at of [Infinity, -Infinity, NaN, Number.MAX_SAFE_INTEGER]) {
-    assert.throws(() => new StableEventQueue([{ at }]), /microseconds/);
     assert.throws(() => new StableEventQueue().enqueue({ at }), /microseconds/);
   }
 });
@@ -170,7 +211,8 @@ test('queues from independently loaded modules retain their enqueue and dequeue 
   );
   const later = { at: 2 };
   const earlier = { at: 1 };
-  const queue = new IndependentQueue([later]);
+  const queue = new IndependentQueue();
+  queue.enqueue(later);
 
   assert.equal(queue instanceof StableEventQueue, false);
   assert.equal(queue.enqueue(earlier), earlier);
@@ -199,11 +241,10 @@ test('same-time queued events retain stable insertion order', () => {
 });
 
 test('heap event queues preserve priority and stable insertion order', () => {
-  const queue = new StableEventQueue([
-    { type: 'damage', at: 2, name: 'later' },
-    { type: 'damage', at: 1, name: 'first' },
-    { type: 'damage', at: 1, name: 'second' }
-  ]);
+  const queue = new StableEventQueue();
+  queue.enqueue({ type: 'damage', at: 2, name: 'later' });
+  queue.enqueue({ type: 'damage', at: 1, name: 'first' });
+  queue.enqueue({ type: 'damage', at: 1, name: 'second' });
 
   queue.enqueue({
     type: 'damage',
@@ -219,8 +260,8 @@ test('heap event queues preserve priority and stable insertion order', () => {
   assert.deepEqual(names, ['priority', 'first', 'second', 'third', 'later']);
 });
 
-// Heap construction and incremental insertion must agree with the scheduler history comparator.
-test('mixed causal tags retain stable ties in bulk and incremental heaps', () => {
+// Enqueued events must agree with the scheduler history comparator, including untagged ties.
+test('mixed causal tags retain stable ties in the heap', () => {
   const events = [
     { at: 1, name: 'tagged-3', causalOrder: 3 },
     { at: 1, name: 'untagged-A' },
@@ -229,42 +270,39 @@ test('mixed causal tags retain stable ties in bulk and incremental heaps', () =>
     { at: 1, name: 'tagged-2', causalOrder: 2 }
   ];
 
-  for (const queue of [new StableEventQueue(events), new StableEventQueue()]) {
-    if (!queue.length) {
-      for (const event of events) queue.enqueue(event);
-    }
+  const queue = new StableEventQueue();
+  for (const event of events) queue.enqueue(event);
+  queue.enqueue({ at: 1, name: 'tagged-2-tie', causalOrder: 2 });
+  queue.enqueue({ at: 1, name: 'invalid-tag', causalOrder: Number.NaN });
 
-    queue.enqueue({ at: 1, name: 'tagged-2-tie', causalOrder: 2 });
-    queue.enqueue({ at: 1, name: 'invalid-tag', causalOrder: Number.NaN });
-
-    const names = [];
-    while (queue.length) names.push(queue.dequeue().name);
-    assert.deepEqual(
-      names,
-      [
-        ...events,
-        { at: 1, name: 'tagged-2-tie', causalOrder: 2 },
-        { at: 1, name: 'invalid-tag', causalOrder: Number.NaN }
-      ]
-        .sort(compareQueuedEvents)
-        .map((event) => event.name)
-    );
-    assert.deepEqual(names, [
-      'tagged-1',
-      'tagged-2',
-      'tagged-2-tie',
-      'tagged-3',
-      'untagged-A',
-      'untagged-B',
-      'invalid-tag'
-    ]);
-  }
+  const names = [];
+  while (queue.length) names.push(queue.dequeue().name);
+  assert.deepEqual(
+    names,
+    [
+      ...events,
+      { at: 1, name: 'tagged-2-tie', causalOrder: 2 },
+      { at: 1, name: 'invalid-tag', causalOrder: Number.NaN }
+    ]
+      .sort(compareQueuedEvents)
+      .map((event) => event.name)
+  );
+  assert.deepEqual(names, [
+    'tagged-1',
+    'tagged-2',
+    'tagged-2-tie',
+    'tagged-3',
+    'untagged-A',
+    'untagged-B',
+    'invalid-tag'
+  ]);
 });
 
 test('heap event queues keep derived causal order local to each queue', () => {
   // Consume enough fallback insertions to expose implementations that share
   // an ordering counter across otherwise independent simulations.
-  const warmup = new StableEventQueue([{ type: 'damage', at: 0, name: 'warmup', eventOrder: 0 }]);
+  const warmup = new StableEventQueue();
+  warmup.enqueue({ type: 'damage', at: 0, name: 'warmup', eventOrder: 0 });
 
   warmup.dequeue();
   for (let index = 0; index < 20; index += 1) {
@@ -275,11 +313,10 @@ test('heap event queues keep derived causal order local to each queue', () => {
     });
   }
 
-  const queue = new StableEventQueue([
-    { type: 'damage', at: 1, name: 'cause', eventOrder: 10 },
-    { type: 'damage', at: 1, name: 'untagged' },
-    { type: 'damage', at: 1, name: 'unrelated', eventOrder: 11 }
-  ]);
+  const queue = new StableEventQueue();
+  queue.enqueue({ type: 'damage', at: 1, name: 'cause', eventOrder: 10 });
+  queue.enqueue({ type: 'damage', at: 1, name: 'untagged' });
+  queue.enqueue({ type: 'damage', at: 1, name: 'unrelated', eventOrder: 11 });
 
   assert.equal(queue.dequeue().name, 'cause');
   // Explicit causal placement wins over the current cause and the event's emission order.

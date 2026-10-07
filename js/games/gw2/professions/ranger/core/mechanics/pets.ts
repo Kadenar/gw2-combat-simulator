@@ -376,7 +376,8 @@ export function beginRangerPetCommand(context: RangerRuntime, cast: RuntimeCast<
   state.petCommandReadyAt = start + recovery;
   state.petCommandRecharges[String(skill.id)] = {
     startedAt: start,
-    work: cast.rechargeWork
+    work: cast.rechargeWork,
+    companionId: cast.rechargeCompanionId
   };
   context.scheduleForCast(PET_COMMAND_START_TASK, start, cast, {}, owner(context));
 }
@@ -521,8 +522,12 @@ export const rangerPetTasks = {
     state.petAutoBusyUntil = Math.max(state.petAutoBusyUntil, busyUntil);
     state.petAutoAction = null;
     state.petAutoNextAt = 0;
-    state.petCommandRecharges[String(cast.skill.id)] = { startedAt: context.time, work: cast.rechargeWork };
-    context.cooldownController.startRecharge(cast.skill, context.time, cast.rechargeWork);
+    state.petCommandRecharges[String(cast.skill.id)] = {
+      startedAt: context.time,
+      work: cast.rechargeWork,
+      companionId: cast.rechargeCompanionId
+    };
+    context.cooldownController.startRecharge(cast.skill, context.time, cast.rechargeWork, cast.rechargeCompanionId);
     emitPetSkill(context, cast.skill, context.time, cast.fullEnd + context.time - cast.start, cast.id, cast);
     schedulePet(context, state.petAutoBusyUntil);
   }

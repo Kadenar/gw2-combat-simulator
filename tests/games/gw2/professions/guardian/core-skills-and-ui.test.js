@@ -619,7 +619,12 @@ test('Spear Symbol of Luminance knocks back on its initial hit', () => {
 });
 
 test('Guardian swaps weapons and exposes profession palette groups', () => {
-  const result = createObservedProfessionSimulator(guardianProfession, config)(undefined, ['Swap Weapons']);
+  // A real destination is required before a weapon swap can change sets.
+  const result = createObservedProfessionSimulator(guardianProfession, {
+    ...config,
+    primaryWeapon: 'Sword',
+    weaponSet2Primary: 'Scepter'
+  })(undefined, ['Swap Weapons']);
 
   assert.equal(result.planningState.activeWeaponSet, 2);
   assert.deepEqual(guardianProfession.ui.resourceViews({}), []);
@@ -632,11 +637,12 @@ test('Guardian swaps weapons and exposes profession palette groups', () => {
 
 test('weapon swap ignores Alacrity and Relic of the Warrior reduces its recharge to 7.5 seconds', () => {
   const swapStarts = (extraConfig) =>
-    createObservedProfessionSimulator(guardianProfession, { ...config, ...extraConfig })(undefined, [
-      '__combat_start',
-      'Swap Weapons',
-      'Swap Weapons'
-    ])
+    createObservedProfessionSimulator(guardianProfession, {
+      ...config,
+      primaryWeapon: 'Sword',
+      weaponSet2Primary: 'Scepter',
+      ...extraConfig
+    })(undefined, ['__combat_start', 'Swap Weapons', 'Swap Weapons'])
       .steps.filter((step) => step.skill === 'Swap Weapons')
       .map((step) => step.start);
 

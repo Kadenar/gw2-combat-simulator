@@ -599,7 +599,7 @@ test('an overheated Forge lane stays open until its authored exit', () => {
   const result = simulate('Holosmith', rotation, { initialHeat: 90 });
   const transition = engineerProfession.ui.timelineWeaponLineTransition;
   const rows = timelineWeaponRows(rotation, {
-    weaponSwapChangesSet: false,
+    isWeaponSwap: () => false,
     weaponLineTransition(entry, current) {
       const name = typeof entry === 'string' ? entry : entry.name;
       return transition({

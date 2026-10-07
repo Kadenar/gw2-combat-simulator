@@ -23,8 +23,7 @@ const runtimeContentTypes = {
 const professionPages = {
   elementalist: {
     attributeNote:
-      'Values are calculated for the equipped weapon set. Dynamic Elementalist modifiers resolve during simulation.',
-    singleWeaponSet: true
+      'Values are calculated for the selected weapon set. Dynamic Elementalist modifiers resolve during simulation.'
   },
   engineer: {
     attributeNote:
@@ -89,10 +88,7 @@ function renderProfessionPages() {
         return readFileSync(path.resolve('templates', 'profession.html'), 'utf8')
           .replaceAll('{{profession-id}}', professionId)
           .replaceAll('{{profession-name}}', name)
-          .replaceAll('{{attribute-note}}', page.attributeNote)
-          .replaceAll('{{weapon-set-hidden}}', page.singleWeaponSet ? ' hidden' : '')
-          .replaceAll('{{weapon-set-two}}', page.singleWeaponSet ? '' : '<option value="2">2</option>')
-          .replaceAll('{{loadout-theme}}', page.singleWeaponSet ? '' : ' profession-loadout-theme');
+          .replaceAll('{{attribute-note}}', page.attributeNote);
       }
     }
   };

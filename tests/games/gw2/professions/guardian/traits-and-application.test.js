@@ -834,14 +834,10 @@ test('elite specializations expose their profession mechanics', () => {
 });
 
 test('Guardian declarative scheduling respects the configured starting set', () => {
-  const initial = createObservedProfessionSimulator(guardianProfession, { ...config, startingWeaponSet: 2 })(
-    undefined,
-    []
-  );
-  const swapped = createObservedProfessionSimulator(guardianProfession, { ...config, startingWeaponSet: 2 })(
-    undefined,
-    ['Swap Weapons']
-  );
+  // Starting on set two still requires equipped weapons when swapping back to set one.
+  const equipped = { ...config, primaryWeapon: 'Sword', weaponSet2Primary: 'Scepter', startingWeaponSet: 2 };
+  const initial = createObservedProfessionSimulator(guardianProfession, equipped)(undefined, []);
+  const swapped = createObservedProfessionSimulator(guardianProfession, equipped)(undefined, ['Swap Weapons']);
 
   assert.equal(initial.planningState.activeWeaponSet, 2);
   assert.equal(swapped.planningState.activeWeaponSet, 1);

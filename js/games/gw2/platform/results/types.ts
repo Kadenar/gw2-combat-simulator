@@ -54,6 +54,8 @@ export interface Gw2PlanningAmmo {
 }
 
 export interface Gw2SimulationPlanningState {
+  /** Distinguishes precombat authoring from combat, including equal-time entry commands. */
+  readonly combatActive: boolean;
   /** Detached owner observations at the planning boundary, including continuation after death. */
   readonly effects: readonly EffectState[];
   /** Default-command profession gates at this boundary, not predicted scheduler acceptance. */

@@ -198,7 +198,7 @@ export const specterHooks: RuntimeHooks<ThiefRuntimeState, ThiefSkill> = {
   resources: { shadowForce },
   availability: specterAvailability,
   onCastStart(runtime, cast) {
-    // Spent initiative converts into Shadow Force in parallel with Core's spend.
+    // Shared start payment precedes this conversion of gross initiative cost into Shadow Force.
     const cost = cast.skill.initiativeCost || 0;
     if (cost > 0)
       runtime.resourceController.grant(

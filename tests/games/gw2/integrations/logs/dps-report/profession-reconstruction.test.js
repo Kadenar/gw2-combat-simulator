@@ -137,7 +137,8 @@ test('Firebrand bundle transitions preserve ongoing casts and real weapon swaps'
       ...defaultSimulationConfig(),
       specialization: 'Firebrand',
       primaryWeapon: 'Axe',
-      secondaryWeapon: 'Torch'
+      secondaryWeapon: 'Torch',
+      weaponSet2Primary: 'Scepter'
     }
   });
   assert.deepEqual(sim.warnings, []);

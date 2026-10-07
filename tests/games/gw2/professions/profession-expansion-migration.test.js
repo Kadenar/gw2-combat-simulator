@@ -274,7 +274,16 @@ test('profession registry entries conform to the shared contracts', async () => 
 
     assert.deepEqual(
       Object.keys(result.planningState).sort(),
-      ['activeWeaponSet', 'ammoBySkillId', 'atSeconds', 'availability', 'cooldowns', 'effects', 'profession'].sort()
+      [
+        'activeWeaponSet',
+        'ammoBySkillId',
+        'atSeconds',
+        'availability',
+        'combatActive',
+        'cooldowns',
+        'effects',
+        'profession'
+      ].sort()
     );
     assert.equal(typeof result.planningState.profession, 'object');
     const unknown = simulateGw2({

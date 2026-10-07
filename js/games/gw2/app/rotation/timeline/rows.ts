@@ -132,15 +132,33 @@ export function timelineRowsView(
       weaponSet: startingWeaponSet,
       weaponLine: null
     }) ?? null;
-  const hasSecondWeaponSet = app.profession.ui.weaponSwapChangesSet !== false && Boolean(build.alternateWeapons?.[0]);
+  const hasSecondWeaponSet = Boolean(build.alternateWeapons?.[0]);
+  // Executed transitions distinguish legal precombat swaps from rejected inputs and kit exits.
+  const swappedActivations = new Set(
+    (results?.events ?? [])
+      .filter(
+        (event) =>
+          event.type === 'weapon_set' &&
+          event.skillId != null &&
+          app.skillById.get(event.skillId)?.inputCategory === 'weapon-swap'
+      )
+      .map((event) => event.activationId)
+  );
   const rows = timelineWeaponRows(rotation, {
     startingWeaponSet,
     startingWeaponLine,
-    weaponSwapChangesSet: hasSecondWeaponSet,
+    isWeaponSwap(_entry, index) {
+      // Pending rows keep the starting set until execution confirms a transition, including implicit combat entry.
+      const activation = steps.get(index)?.activationId;
+      return hasSecondWeaponSet && activation != null && swappedActivations.has(activation);
+    },
     skillName: (entry) => resolveEntrySkill(app, entry)?.name || rotationEntryName(entry),
-    weaponLineTransition: (entry, current) => {
+    weaponLineTransition: (entry, current, index) => {
       const item = timelineItem(entry);
-      const skill = resolveEntrySkill(app, item.command);
+      const step = steps.get(index);
+      if (step?.invalid) return undefined;
+      const skill =
+        (step?.skillId == null ? undefined : app.skillById.get(step.skillId)) ?? resolveEntrySkill(app, item.command);
       return app.profession.ui.timelineWeaponLineTransition({
         entry: item.command,
         skill,
@@ -154,7 +172,9 @@ export function timelineRowsView(
     startingWeaponSet,
     timelineEndMs: Number(results?.rotationEndTime || 0) * 1000,
     hasSecondWeaponSet,
-    weaponSwapSkillIds: new Set(app.skills.filter((skill) => skill.name === 'Swap Weapons').map((skill) => skill.id))
+    weaponSwapSkillIds: new Set(
+      app.skills.filter((skill) => skill.inputCategory === 'weapon-swap').map((skill) => skill.id)
+    )
   };
   const weaponDurationSegments = results ? weaponSetActiveSegments(resultSteps, weaponDurationOptions) : [];
   const weaponDurationTotals = results

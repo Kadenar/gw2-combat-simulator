@@ -282,6 +282,48 @@ test('an unaffordable declared cost waits for regeneration or rejects when no re
   assert.equal(skillCostAvailability(runtime(null), skill).retryAt, null);
 });
 
+// Authored costs stay live across patches, including free casts, and settle before profession rewards.
+test('skill-field costs share their patched amount between admission and start payment', () => {
+  const declared = withSkill(catalog, 991002, {
+    initiativeCost: 0,
+    cost: { resource: 'energy', skillAmount: 'initiativeCost', spendOn: 'castStart' }
+  });
+  for (const amount of [0, 2, 4]) {
+    const patched = applySkillPatch(declared, { skills: { 991002: { fields: { initiativeCost: amount } } } });
+    const skill = patched.skillsById.get(991002);
+    const queried = [];
+    const admission = skillCostAvailability(
+      {
+        time: 0,
+        resourceController: {
+          readyAt: (resource, value) => {
+            queried.push([resource, value]);
+            return 2;
+          }
+        }
+      },
+      skill
+    );
+    assert.deepEqual(queried, amount === 0 ? [] : [['energy', amount]]);
+    if (amount === 0) assert.equal(admission, null);
+    else assert.equal(admission.retryAt, 2);
+    for (const interruptAfterMs of [undefined, 100]) {
+      const observed = [];
+      const result = runGw2Runtime({
+        profession: {
+          ...fixture({ onCastStart: (runtime) => observed.push(runtime.resourceController.value('energy')) }),
+          catalog: patched
+        },
+        config,
+        rotation: [cast(991002, { interruptAfterMs })]
+      });
+      assert.deepEqual(result.warnings, []);
+      assert.deepEqual(observed, [10 - amount]);
+      assert.equal(result.planningState.profession.energy.value, 10 - amount);
+    }
+  }
+});
+
 test('automatic payments share the declared profile amount with affordability and pay only once', () => {
   // Both automatic payment phases use the profile cost shared with affordability instead of the inline amount.
   for (const spendOn of ['castStart', 'castCommit']) {

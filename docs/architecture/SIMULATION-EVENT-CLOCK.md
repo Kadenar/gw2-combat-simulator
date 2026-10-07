@@ -165,9 +165,11 @@ Cooldown and ammo state commits in the completion task at `effectiveEnd`, even w
 earlier. Alacrity is sampled when recharge begins, not necessarily when the cast begins. Ammo charge recharge and the
 optional between-cast ammo lockout are independent deadlines; availability uses the later applicable deadline.
 
-Retryable availability does not fail the command. The clock advances to the earlier of the declared retry time and the
-next state-changing task, then checks again. A fractional retry time is rounded up to the first representable
-microsecond strictly after the current clock. A non-retryable denial records an invalid zero-duration step.
+Retryable availability does not fail the command. The GW2 rotation driver rounds a future retry deadline up to the first
+absolute 40 ms action tick at or after that deadline. The clock advances to the earlier of that tick and the next
+state-changing task, then checks again. The game-neutral kernel retains its microsecond event clock. Cost admission
+never borrows the clock epsilon to accept a future resource deadline; resource owners use their shared amount-rounding
+tolerance for readiness and payment. A non-retryable denial records an invalid zero-duration step.
 
 Ordinary cooldown availability uses the shared canonical readiness calculation. Internal proc cooldowns use a stricter
 contract: a previously armed cooldown remains blocked at its exact `readyAt` boundary and becomes ready only at a later
@@ -182,14 +184,16 @@ reservation. Final input recovery is included. It does not automatically extend 
 
 `observationEndTime` is selected by the observation policy:
 
-| Policy                            | Resolution end                           |
-| --------------------------------- | ---------------------------------------- |
-| omitted or `{ kind: "rotation" }` | `rotationEndTime`                        |
-| `{ kind: "tail", durationMs }`    | `rotationEndTime + durationMs / 1000`    |
-| `{ kind: "absolute", endTimeMs }` | `max(rotationEndTime, endTimeMs / 1000)` |
+| Policy                            | Resolution end                        |
+| --------------------------------- | ------------------------------------- |
+| omitted or `{ kind: "rotation" }` | `rotationEndTime`                     |
+| `{ kind: "tail", durationMs }`    | `rotationEndTime + durationMs / 1000` |
+| `{ kind: "absolute", endTimeMs }` | `endTimeMs / 1000`                    |
 
-Durations and absolute endpoints must be non-negative and finite. An absolute endpoint more than `EPSILON` before the
-rotation end is rejected. A tail is applied once; recurring work inside the tail does not recursively extend it.
+Durations and absolute endpoints must be non-negative and finite. Rotation and observation endpoints use the canonical
+microsecond clock. An absolute endpoint earlier than the canonical rotation end is rejected, without an epsilon
+allowance; inputs that round to the same microsecond represent the same instant. A tail is added to the canonical
+rotation end once and the result is canonicalized; recurring work inside the tail does not recursively extend it.
 
 The runtime drains the shared heap through the inclusive horizon. Work exactly at that instant is eligible; work one
 microsecond later remains pending and does not change state. Tail work never extends rotation duration.
@@ -303,6 +307,13 @@ The engine fails instead of silently truncating runaway work:
 
 - More than 100,000 normalized commands is rejected.
 - The runtime loop and same-time queue chains have action safety limits.
+- Effect expansion has a separate cumulative budget of 100,000 records per simulation: each emitted packet or
+  announcement costs one record, and each condition stack created at application costs one (a fractional final stack
+  also costs one). A profile reserves all its packets before materialization or submission; a condition application
+  reserves all its stacks before state insertion or reactions. Filtered and cancelled work is not refunded.
+- Hits and repeated applications require positive safe integers no greater than 100,000. Effect-list and explicit
+  tick-array lengths are bounded before traversal or copying, and standalone materialization enforces the same batch
+  ceiling. Oversized batches throw with source context rather than allocating or partially emitting the batch.
 - Unknown internal handlers, unserializable payloads, past work, and same-time phase rewinds throw.
 
 Stable insertion ordering and queue-local causal inheritance keep independent simulations deterministic. Stochastic

@@ -7,14 +7,10 @@ import { gw2ResolverPhase, GW2_RESOLVER_PHASE } from '#gw2/platform/resolver/eve
 
 // Phase 1 contract for the future cursor: settle due hits, then drain each command's effects before the next command.
 test('command boundaries see settled conditions and hit gains before same-time self transitions', () => {
-  const queue = new StableEventQueue(
-    [
-      { type: 'damage', at: 1, eventOrder: 3 },
-      { type: 'condition_tick', at: 1, eventOrder: 2 },
-      { type: 'condition_buffer', at: 1, eventOrder: 1 }
-    ],
-    { phaseFor: gw2ResolverPhase }
-  );
+  const queue = new StableEventQueue({ phaseFor: gw2ResolverPhase });
+  queue.enqueue({ type: 'damage', at: 1, eventOrder: 3 });
+  queue.enqueue({ type: 'condition_tick', at: 1, eventOrder: 2 });
+  queue.enqueue({ type: 'condition_buffer', at: 1, eventOrder: 1 });
   const trace = [];
   let resource = 0;
   assert.throws(() => queue.advanceFrontier(1, GW2_RESOLVER_PHASE.Ordinary), /pending work/);
@@ -49,7 +45,8 @@ test('event queues retain timestamp, priority, causal, and stable insertion orde
     { name: 'priority-first', at: 1, priority: -1 },
     { name: 'later', at: 2, priority: -10 }
   ];
-  const queue = new StableEventQueue(events);
+  const queue = new StableEventQueue();
+  for (const event of events) queue.enqueue(event);
   const ordered = [];
   while (queue.length) ordered.push(queue.dequeue().name);
 

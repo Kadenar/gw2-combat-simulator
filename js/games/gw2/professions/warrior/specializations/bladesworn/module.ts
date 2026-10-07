@@ -17,6 +17,7 @@ import {
 import { warriorBladeswornTraits } from '#gw2/professions/warrior/specializations/bladesworn/traits/index.js';
 
 export const bladeswornModule = defineNativeModule({
+  canSwapWeaponSetsInCombat: false,
   traitDefinitions: warriorBladeswornTraits,
   id: 'Bladesworn',
   data: createWarriorModuleData('Bladesworn', {

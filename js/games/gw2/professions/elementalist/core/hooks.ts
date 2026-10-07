@@ -4,6 +4,7 @@ import {
   acceptElementalistAuraReaction
 } from '#gw2/professions/elementalist/core/mechanics/auras.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
+import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
 import {
   ELEMENTALIST_TRAIT_IDS as DAMAGE_TRAIT,
   ELEMENTALIST_SKILL_IDS as ID
@@ -137,6 +138,13 @@ export const elementalistCoreHooks: RuntimeHooks<ElementalistRuntimeState, Eleme
   sideEffectHandlers: elementalistCoreSideEffectHandlers,
   endurance: elementalistEndurance,
   availability: elementalistCoreAvailability,
+  // The swap input drops a conjure first; only a later precombat input may change equipped weapon sets.
+  resolveCastSkill(context, skill) {
+    if (skill.id !== SHARED_SKILL_IDS.SWAP_WEAPONS || !context.profession.core.conjureEquipped) return skill;
+    const drop = context.helpers.skillsById.get(ID.DROP_BUNDLE);
+    if (!drop) throw new Error('Elementalist conjures require a Drop Bundle action.');
+    return drop;
+  },
   rechargeWork: elementalistRechargeWork,
   reserveRecharge: reserveElementalistRecharge,
   onCombatStart: ensureElementalistElemental,

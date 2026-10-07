@@ -41,12 +41,7 @@ import {
   prepareTrap,
   thiefTrapAvailability
 } from '#gw2/professions/thief/core/mechanics/preparations.js';
-import {
-  setThiefKneeling,
-  spendThiefCoreResources,
-  thiefEndurance,
-  thiefInitiative
-} from '#gw2/professions/thief/core/mechanics/resources.js';
+import { setThiefKneeling, thiefEndurance, thiefInitiative } from '#gw2/professions/thief/core/mechanics/resources.js';
 import {
   expireThiefScepterChain,
   THIEF_SCEPTER_CHAIN_EXPIRY,
@@ -84,7 +79,7 @@ import type { ThiefRuntimeState, ThiefSkill } from '#gw2/professions/thief/types
 
 /**
  * Core gates for endurance, follow-up windows, spear stages, preparations, stealth replacements, rifle stance, stored
- * stolen skills, and initiative, all read from the one live state at the current instant.
+ * stolen skills, all read from the one live state at the current instant. Shared cost declarations gate initiative.
  */
 function thiefAvailability(runtime: MechanicQueriesOf<ThiefRuntime>, skill: ThiefSkill): AvailabilityResult {
   const core = runtime.profession.core;
@@ -140,14 +135,7 @@ function thiefAvailability(runtime: MechanicQueriesOf<ThiefRuntime>, skill: Thie
   )
     return denySkillCast(skill, 'thief.stolen-skill', 'steal this skill before using it.');
 
-  const cost = skill.initiativeCost || 0;
-  if (cost <= 0) return { ready: true };
-  const readyAt = runtime.resourceController.readyAt('initiative', cost);
-  // Retain fractional initiative while waiting for the tick that detects affordability.
-  return runtime.resourceController.value('initiative') + EPSILON >= cost &&
-    (readyAt == null || readyAt <= now + EPSILON)
-    ? { ready: true }
-    : denySkillCast(skill, 'thief.initiative', `requires ${skill.initiativeCost} initiative.`, readyAt);
+  return { ready: true };
 }
 
 /** Additive steal reductions retain their combined formula; ordinary multipliers use declared rules. */
@@ -228,7 +216,6 @@ const coreLifecycle: RuntimeHooks<ThiefRuntimeState, ThiefSkill> = {
   onCastStart(runtime, cast) {
     const skill = cast.skill;
     pruneSkillFlips(runtime.profession.core.availableFlips, runtime.time);
-    spendThiefCoreResources(runtime, cast);
     if (skill.id === SHARED_SKILL_IDS.DODGE) startThiefDodge(runtime, cast);
     if (skill.stealthAttack) beginThiefStealthAttack(runtime, cast);
   },

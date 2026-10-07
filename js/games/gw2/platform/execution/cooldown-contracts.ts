@@ -67,7 +67,7 @@ export interface CooldownController {
   /** Reset all recharge and ammunition pools at an authored reset boundary. */
   resetAll(): void;
   /** Starts a cooldown with base-recharge work; fixed deadlines use setReadyAt instead. */
-  startRecharge(skill: Skill, at: number, work?: number): number;
+  startRecharge(skill: Skill, at: number, work?: number, companionId?: string): number;
   setReadyAt(skillId: SkillId, readyAt: number): void;
   clear(skillId: SkillId): void;
   copy(sourceId: SkillId, targetId: SkillId): void;

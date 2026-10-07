@@ -1,8 +1,7 @@
 import type { RateInterval } from '#gw2/platform/combat/resources/pool.js';
-import { EPSILON } from '#kernel/core/clock.js';
-import { gw2CooldownReadyAt } from '#gw2/platform/combat/action-tick.js';
+import { GW2_ACTION_TICK_MS, gw2CooldownReadyAt } from '#gw2/platform/combat/action-tick.js';
 
-import { cappedResource, grantCapped } from '#gw2/platform/combat/resources/pool.js';
+import { cappedResource, grantCapped, resourceAtLeast } from '#gw2/platform/combat/resources/pool.js';
 import { boonIntervals } from '#gw2/platform/combat/boons.js';
 import type { SimulationEvent } from '#gw2/platform/events/events.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
@@ -11,7 +10,11 @@ import type { ResourceClock } from '#gw2/platform/combat/resources/clock.js';
 
 /** Shares self-Vigor history for recovery and readiness while professions retain their rate policy. */
 export function* vigorEnduranceIntervals(
-  context: { readonly events: readonly SimulationEvent[]; readonly config: Pick<Gw2Config, 'boons'> },
+  context: {
+    readonly events: readonly SimulationEvent[];
+    readonly config: Pick<Gw2Config, 'boons'>;
+    readonly resolved?: boolean;
+  },
   start: number,
   end: number,
   rateAt: (vigor: boolean, at: number) => number,
@@ -20,7 +23,15 @@ export function* vigorEnduranceIntervals(
   // Timed profession bonuses split the same windows used by both recovery and affordability forecasts.
   const boundaries = [...new Set(rateBoundaries.filter((at) => at > start && at < end))].sort((a, b) => a - b);
   let index = 0;
-  for (const interval of boonIntervals(context.events, 'vigor', start, end, Boolean(context.config.boons?.vigor))) {
+  for (const interval of boonIntervals(
+    context.events,
+    'vigor',
+    start,
+    end,
+    Boolean(context.config.boons?.vigor),
+    'all',
+    context.resolved
+  )) {
     let from = interval.start;
     while (index < boundaries.length && boundaries[index] < interval.end) {
       const boundary = boundaries[index++];
@@ -79,7 +90,8 @@ function enduranceThresholdAt(
   regenerationPerSecond: number
 ): number | null {
   const missing = Math.max(0, Math.max(0, cost) - currentEndurance);
-  if (missing <= Math.max(0, EPSILON)) return at;
+  // Only resource arithmetic drift is tolerated; the clock epsilon must not discount the cost.
+  if (resourceAtLeast(currentEndurance, Math.max(0, cost))) return at;
   return regenerationPerSecond > 0 ? at + missing / regenerationPerSecond : null;
 }
 
@@ -110,7 +122,7 @@ export function enduranceIntervalsReadyAt(
   cost: number,
   intervals: Iterable<RateInterval>
 ): number | null {
-  if (cost - Math.max(0, state.maximum) > Math.max(0, EPSILON)) return null;
+  if (!resourceAtLeast(Math.max(0, state.maximum), cost)) return null;
   let current = {
     ...state,
     value: cappedResource(state.value, state.maximum),
@@ -120,8 +132,15 @@ export function enduranceIntervalsReadyAt(
     const start = Math.max(current.updatedAt, interval.start);
     if (interval.end <= start) continue;
     const readyAt = enduranceThresholdAt(current.value, cost, start, interval.rate);
-    if (readyAt != null && Number.isFinite(readyAt) && readyAt <= interval.end)
-      return readyAt === state.updatedAt ? readyAt : gw2CooldownReadyAt(readyAt);
+    if (readyAt != null && Number.isFinite(readyAt) && readyAt <= interval.end) {
+      if (resourceAtLeast(current.value, cost) && start === state.updatedAt) return start;
+      const tickAt = gw2CooldownReadyAt(readyAt);
+      // Clock rounding cannot turn a real shortage into present affordability, even below microsecond precision.
+      return tickAt <= start && !resourceAtLeast(current.value, cost)
+        ? gw2CooldownReadyAt(start + GW2_ACTION_TICK_MS / 1000)
+        : tickAt;
+    }
+
     if (interval.end === Infinity) return null;
     current = advanceEndurance({ ...current, updatedAt: start }, interval.end, interval.rate);
   }

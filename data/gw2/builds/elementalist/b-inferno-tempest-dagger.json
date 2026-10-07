@@ -1,0 +1,110 @@
+{
+  "schemaVersion": 5,
+  "profession": "elementalist",
+  "gear": {
+    "Helm": "Berserker's",
+    "Shoulders": "Berserker's",
+    "Chest": "Berserker's",
+    "Gloves": "Berserker's",
+    "Leggins": "Berserker's",
+    "Boots": "Berserker's",
+    "Amulet": "Berserker's",
+    "Ring1": "Berserker's",
+    "Ring2": "Berserker's",
+    "Accessory1": "Berserker's",
+    "Accessory2": "Berserker's",
+    "Back": "Berserker's",
+    "Weapon1": "Berserker's",
+    "Weapon2": "Berserker's"
+  },
+  "alternateWeaponPrefixes": ["Berserker's", "Berserker's"],
+  "weapons": ["Dagger", "Dagger"],
+  "alternateWeapons": ["", ""],
+  "rune": "Flame Legion",
+  "weaponSigils": [
+    ["Smoldering", "Accuracy"],
+    ["Smoldering", "Accuracy"]
+  ],
+  "relic": "Last Tyrant",
+  "food": "Plate of Coq Au Vin with Salsa",
+  "utility": "Superior Sharpening Stone",
+  "jadeBotCore": true,
+  "infusions": [
+    {
+      "stat": "Power",
+      "count": 18
+    },
+    {
+      "stat": "Precision",
+      "count": 0
+    },
+    {
+      "stat": "Condition Damage",
+      "count": 0
+    }
+  ],
+  "specializations": [
+    {
+      "name": "Fire",
+      "traits": "1-3-3"
+    },
+    {
+      "name": "Air",
+      "traits": "3-3-1"
+    },
+    {
+      "name": "Tempest",
+      "traits": "3-1-1"
+    }
+  ],
+  "selectedSkillIds": {
+    "Heal": 29535,
+    "Utility1": 30662,
+    "Utility2": 5736,
+    "Utility3": 5542,
+    "Elite": 25488
+  },
+  "assumptions": {
+    "simulationMode": "deterministic",
+    "hitboxSize": "small",
+    "might": 25,
+    "fury": true,
+    "quickness": true,
+    "alacrity": true,
+    "protection": true,
+    "resolution": true,
+    "regeneration": true,
+    "swiftness": true,
+    "vigor": true,
+    "aegis": true,
+    "targetMoving": false,
+    "targetConditions": {
+      "Bleeding": 1,
+      "Burning": true,
+      "Torment": 1,
+      "Confusion": 1,
+      "Poisoned": true,
+      "Chilled": true,
+      "Crippled": true,
+      "Slow": true,
+      "Weakness": true,
+      "Vulnerability": 25
+    }
+  },
+  "startingWeaponSet": 1,
+  "targetHealth": 4000000,
+  "targetArmor": 2597,
+  "rotation": [],
+  "startAttunement": "Air",
+  "secondaryAttunement": "Air",
+  "initialCatalystEnergy": 30,
+  "evokerElement": "Fire",
+  "initialEvokerCharges": 6,
+  "initialEvokerEmpowered": 0,
+  "pistolBullets": {
+    "Fire": false,
+    "Water": false,
+    "Air": false,
+    "Earth": false
+  }
+}

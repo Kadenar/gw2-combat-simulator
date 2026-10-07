@@ -5,6 +5,70 @@ import { simulateMesmer } from '#tests/helpers/mesmer-simulation.js';
 import { resolveTestGw2Events } from '#tests/helpers/gw2-resolver.js';
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
 import { testProfession } from '#tests/fixtures/profession.js';
+import { observationEndTime } from '#kernel/execution/observation.js';
+
+// Absolute horizons must agree with the kernel for waits and cast completion in both reporting modes.
+test('absolute observation uses exact canonical rotation boundaries', () => {
+  for (const output of ['detailed', 'score']) {
+    for (const rotation of [[{ type: 'wait', durationMs: 1000 }], ['Fixture Slash']]) {
+      const options = {
+        profession: testProfession,
+        rotation,
+        output,
+        config: { target: {}, sigilSets: [{ names: [] }] }
+      };
+      const baseline = simulateGw2(options);
+      assert.deepEqual(baseline.warnings, []);
+      const endMs = baseline.rotationEndTime * 1000;
+      for (const offsetMs of [-0.2, -0.05, -0.001, -0.0004, 0, 0.001, 0.05]) {
+        const policy = { kind: 'absolute', endTimeMs: endMs + offsetMs };
+        const run = () => simulateGw2({ ...options, observationPolicy: policy });
+        if (offsetMs <= -0.001) {
+          assert.throws(run, {
+            name: 'RangeError',
+            message: 'Absolute observation endTimeMs cannot precede rotation end.'
+          });
+        } else {
+          const result = run();
+          assert.deepEqual(result.warnings, []);
+          assert.equal(result.rotationEndTime, baseline.rotationEndTime);
+          assert.equal(result.observationEndTime, observationEndTime(policy, baseline.rotationEndTime));
+        }
+      }
+    }
+  }
+});
+
+// Finishing commands cannot bypass final input recovery; the accepted horizon includes only work at or before it.
+test('absolute observation respects final input recovery and drains the inclusive endpoint', () => {
+  for (const output of ['detailed', 'score']) {
+    const options = {
+      output,
+      endTime: 1,
+      config: { target: {}, sigilSets: [{ names: [] }] },
+      engineInitialize(runtime) {
+        runtime.inputReadyAt = 1.2;
+      },
+      events: [1.2, 1.200001].map((at) => ({
+        type: 'damage',
+        at,
+        source: 'Player',
+        sourceId: 'horizon-probe',
+        actorType: 'player',
+        flatDamage: 1
+      }))
+    };
+    assert.throws(() => resolveTestGw2Events({ ...options, observation: { kind: 'absolute', endTimeMs: 1199.999 } }), {
+      name: 'RangeError',
+      message: 'Absolute observation endTimeMs cannot precede rotation end.'
+    });
+    const result = resolveTestGw2Events({ ...options, observation: { kind: 'absolute', endTimeMs: 1200 } });
+    assert.deepEqual(result.warnings, []);
+    assert.equal(result.rotationEndTime, 1.2);
+    assert.equal(result.observationEndTime, 1.2);
+    assert.equal(result.totalDamage, 1);
+  }
+});
 
 // Endpoint discovery must finish an empty cursor at zero; a tail is added once and never becomes rotation time.
 test('empty rotations establish their boundary before an observation tail', () => {

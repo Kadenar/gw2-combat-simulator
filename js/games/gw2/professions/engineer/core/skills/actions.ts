@@ -14,16 +14,7 @@ const extraSkills: EngineerSkill[] = [
   createDodgeSkill({
     cost: { resource: 'endurance', profileAmount: { profileId: PROFILE.resources, field: 'resourceCost' } }
   }),
-  {
-    ...createWeaponSwapSkill({
-      description: 'Stow the active engineer kit and return to equipped weapons.',
-      inputCategory: 'bar-swap',
-      cooldown: 0
-    }),
-    // Commit the bar transition before cast traits observe the selected kit.
-    sideEffects: [{ on: 'castCommit', do: { type: 'engineer.kit-transition' } }],
-    kitTransition: 'stow'
-  }
+  createWeaponSwapSkill()
 ];
 
 /** Supplies the frozen synthetic-action catalog to Core module composition. */
