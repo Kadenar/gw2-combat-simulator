@@ -212,7 +212,7 @@ IDs:
 console.table(engineerProfession.catalog.skills.map(({ id, name }) => ({ id, name })));
 ```
 
-Use `engineerProfession.resolveRuntime({ specialization: 'Core' }).catalog` to inspect only the active runtime catalog.
+Use `engineerProfession.runtimeFor({ specialization: 'Core' }).catalog` to inspect only the active runtime catalog.
 
 Unknown, unavailable, or mistimed skills can produce warnings instead of the result the caller expected. Always inspect
 `result.warnings`.

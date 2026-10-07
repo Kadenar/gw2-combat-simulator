@@ -1,13 +1,12 @@
 import { preparednessCapacityField } from '#gw2/professions/thief/core/traits/resource-queries.js';
 
 import type { EndurancePolicy, ResourcePolicy } from '#gw2/platform/combat/resources/resource-policy.js';
-import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import type { ThiefRuntime } from '#gw2/professions/thief/core/events.js';
 import { THIEF_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/thief/core/profiles.js';
 import type { ThiefCoreState } from '#gw2/professions/thief/core/state.js';
 
-import type { ThiefConfig, ThiefSkill } from '#gw2/professions/thief/types.js';
+import type { ThiefConfig } from '#gw2/professions/thief/types.js';
 
 /** Initiative regeneration: the selected base rate plus the kneeling bonus while kneeling. */
 export function thiefInitiativeRegenerationRate(state: Pick<ThiefCoreState, 'kneeling'>, context: unknown): number {
@@ -61,11 +60,4 @@ export const thiefEndurance: EndurancePolicy<ThiefRuntime> = {
 export function setThiefKneeling(runtime: ThiefRuntime, kneeling: boolean): void {
   runtime.profession.core.kneeling = kneeling;
   runtime.resourceController.refresh('initiative');
-}
-
-/** Initiative costs are paid when the cast is accepted. */
-export function spendThiefCoreResources(runtime: ThiefRuntime, cast: RuntimeCast<ThiefSkill>): void {
-  const skill = cast.skill as { initiativeCost?: number };
-  const cost = skill.initiativeCost || 0;
-  if (cost > 0) runtime.resourceController.spend('initiative', cost);
 }

@@ -379,10 +379,25 @@ export function normalizeSkill<TSkill extends Skill>(
     merged.cost != null &&
     (typeof merged.cost !== 'object' ||
       Array.isArray(merged.cost) ||
-      Object.keys(merged.cost).some((key) => !['resource', 'profileAmount', 'spendOn'].includes(key)) ||
+      Object.keys(merged.cost).some((key) => !['resource', 'profileAmount', 'skillAmount', 'spendOn'].includes(key)) ||
       (merged.cost.spendOn != null && !['castStart', 'castCommit'].includes(merged.cost.spendOn)))
   )
     throw new TypeError(`Skill ${id} has an invalid cost declaration.`);
+  // A skill-field selector must name one finite nonnegative amount, without a competing profile source.
+  if (merged.cost?.skillAmount != null) {
+    const field = merged.cost.skillAmount;
+    if (
+      merged.cost.profileAmount != null ||
+      typeof field !== 'string' ||
+      !SKILL_FIELDS.has(field) ||
+      !Object.hasOwn(merged, field) ||
+      typeof merged[field] !== 'number' ||
+      !Number.isFinite(merged[field]) ||
+      merged[field] < 0
+    )
+      throw new TypeError(`Skill ${id} has an invalid cost amount field "${field}".`);
+  }
+
   // Reject obsolete or misspelled task anchors before scheduling can silently choose the full cast end.
   if (!Array.isArray(merged.tasks ?? [])) throw new TypeError(`Skill ${id} tasks must be an array.`);
   for (const task of merged.tasks ?? [])

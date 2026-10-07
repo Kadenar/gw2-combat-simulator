@@ -1841,6 +1841,37 @@ test('initiative-funded casts retain readiness across intermediate observations'
   }
 });
 
+// Initiative follows shared admission priority: permanent costs win, but retryable costs allow state denials.
+test('initiative uses shared warning codes and cost-gate priority', () => {
+  for (const [rate, expected] of [
+    [0, 'gw2.insufficient-initiative'],
+    [1, 'thief.rifle-stance']
+  ]) {
+    const codes = [];
+    const result = runThief(
+      ["Sniper's Cover"],
+      {
+        specialization: 'Deadeye',
+        primaryWeapon: 'Rifle',
+        secondaryWeapon: '',
+        initialInitiative: 0
+      },
+      {
+        catalog: (live) => withProfile(live, THIEF_CORE_BALANCE_PROFILE_IDS.resources, { resourceGain: rate }),
+        extend: (native) => ({
+          availability(runtime, skill, command) {
+            const result = native.availability(runtime, skill, command);
+            if (!result.ready && skill.id === ID.SNIPERS_COVER) codes.push(result.code);
+            return result;
+          }
+        })
+      }
+    );
+    assert.deepEqual([...new Set(codes)], [expected]);
+    assert.equal(result.warnings.length, 1);
+  }
+});
+
 // Known signet pulses remain affordability boundaries when ordinary recovery is disabled.
 test('initiative availability waits for a signet grant with zero regeneration', () => {
   const result = runThief(
