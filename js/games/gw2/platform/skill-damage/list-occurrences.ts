@@ -1,4 +1,5 @@
 import { hasDamage } from '#gw2/platform/skill-damage/run-occurrence.js';
+import { hasTrait, normalizeSelectedTraitIds } from '#gw2/platform/builds/selected-traits.js';
 import { RELIC_DATA } from '#gw2/platform/equipment/relics/data.js';
 import { RELIC_RULES } from '#gw2/platform/equipment/relics/rules/index.js';
 import { normalizePrecastRelics } from '#gw2/platform/equipment/relics/catalog.js';
@@ -10,13 +11,14 @@ import type { SkillDamageOccurrence } from '#gw2/platform/skill-damage/types.js'
 
 /** Enumerate selected damage owners from declarations; trigger eligibility never changes this list. */
 export function damageOccurrences(profession: RuntimeProfession<object>, config: Gw2Config): SkillDamageOccurrence[] {
-  const selected = new Set(config.selectedTraitIds ?? []);
+  // Match simulation membership so numeric-string selections retain their damage occurrences.
+  const selected = normalizeSelectedTraitIds(config.selectedTraitIds);
   const result: SkillDamageOccurrence[] = [];
   for (const profile of profession.catalog.balanceProfiles) {
     const ownerId =
       typeof profile.parentId === 'number' || typeof profile.parentId === 'string' ? profile.parentId : profile.id;
     if (
-      !selected.has(ownerId) ||
+      !hasTrait(selected, ownerId) ||
       profile.damagePreviewAttribution ||
       profession.damageEffects?.some((entry) => entry.ownerId === ownerId) ||
       !hasDamage(profile.effects)
@@ -34,7 +36,7 @@ export function damageOccurrences(profession: RuntimeProfession<object>, config:
   }
 
   for (const declared of profession.damageEffects ?? []) {
-    if (declared.ownerId != null && !selected.has(declared.ownerId)) continue;
+    if (declared.ownerId != null && !hasTrait(selected, declared.ownerId)) continue;
     result.push({
       id: `profession:${declared.id}`,
       effect: { kind: 'profession', id: declared.id },
