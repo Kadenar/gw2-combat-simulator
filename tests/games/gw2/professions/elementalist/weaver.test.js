@@ -2,6 +2,11 @@ import { captureEffectEmissions } from '#tests/helpers/effect-emission.js';
 import { observedRuntime } from '#tests/helpers/observed-runtime.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
+import {
+  skillBreakdownRows,
+  skillDamageIdentityKey,
+  skillDamageKeyByIdentity
+} from '#gw2/app/results/skill-breakdown.js';
 import { runNative } from '#tests/helpers/elementalist-simulation.js';
 import { elementalistCatalog, elementalistProfession } from '#gw2/professions/elementalist/profession.js';
 import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';
@@ -245,7 +250,7 @@ test('Primordial Stance retains dynamic profile patches and activation ownership
   assert.deepEqual(result.warnings, []);
   const action = result.events.find((event) => event.type === 'action');
   const pulses = result.events.filter(
-    (event) => event.skillName === 'Primordial Stance' && (event.type === 'damage' || event.type === 'condition')
+    (event) => event.skillId === ID.PRIMORDIAL_STANCE_FIRE && (event.type === 'damage' || event.type === 'condition')
   );
   assert.ok(pulses.length > 0);
   assert.ok(
@@ -309,6 +314,50 @@ test('Primordial Stance variants share charges and count recharge', () => {
   assert.ok(casts[2].start - casts[0].start >= recharge);
 });
 
+// Shared display grouping must count repeated and distinct variants without counting each damage contribution as a cast.
+test('Primordial Stance groups variant activations once across strikes and conditions', () => {
+  const result = runNative({
+    lines: [['Fire'], ['Air'], ['Weaver']],
+    rotation: [
+      'Primordial Stance (Fire)',
+      'Air Attunement',
+      'Primordial Stance (Air)',
+      'Fire Attunement',
+      'Primordial Stance (Fire)',
+      6000
+    ],
+    startAttunement: 'Fire',
+    secondaryAttunement: 'Fire',
+    selectedSkillIds: { Heal: 34743, Utility1: 40183, Utility2: 5736, Utility3: 5638, Elite: 43638 }
+  });
+  assert.deepEqual(result.warnings, []);
+  const actions = result.events.filter(
+    (event) => event.type === 'action' && [ID.PRIMORDIAL_STANCE_FIRE, ID.PRIMORDIAL_STANCE_AIR].includes(event.skillId)
+  );
+  assert.equal(new Set(actions.map((event) => event.activationId)).size, 3);
+  const rows = skillBreakdownRows(result).filter((row) => row.name === 'Primordial Stance');
+  assert.equal(rows.length, 1);
+  const row = rows[0];
+  assert.equal(row.casts, 3);
+  assert.equal(row.average, row.total / 3);
+  assert.ok(row.strike > 0 && row.condition > 0);
+  const keyByIdentity = skillDamageKeyByIdentity(result);
+  for (const action of actions) {
+    const contributions = result.resolvedEvents.filter(
+      (event) =>
+        event.activationId === action.activationId &&
+        event.skillId === action.skillId &&
+        (event.type === 'damage' || event.type === 'condition')
+    );
+    assert.ok(contributions.some((event) => event.type === 'damage'));
+    assert.ok(contributions.some((event) => event.type === 'condition'));
+    for (const event of contributions) {
+      assert.equal(event.skillName, action.skillName);
+      assert.equal(keyByIdentity.get(skillDamageIdentityKey(event)), row.key);
+    }
+  }
+});
+
 test('Primordial Stance pulses use the active attunements at each pulse', () => {
   const result = runNative({
     lines: [['Fire'], ['Earth'], ['Weaver']],
@@ -320,10 +369,10 @@ test('Primordial Stance pulses use the active attunements at each pulse', () => 
   const swap = result.events.find((event) => event.type === 'elementalist.attunement' && event.to === 'Earth');
 
   const hits = result.resolvedEvents.filter(
-    (event) => event.type === 'damage' && event.skillName === 'Primordial Stance'
+    (event) => event.type === 'damage' && event.skillId === ID.PRIMORDIAL_STANCE_FIRE
   );
   const conditions = result.events.filter(
-    (event) => event.type === 'condition' && event.skillName === 'Primordial Stance'
+    (event) => event.type === 'condition' && event.skillId === ID.PRIMORDIAL_STANCE_FIRE
   );
 
   // Each pulse reads both live attunements instead of capturing them at activation.
@@ -336,6 +385,12 @@ test('Primordial Stance pulses use the active attunements at each pulse', () => 
       .sort();
     assert.deepEqual(applied, hit.at < swap.at ? ['Burning', 'Burning'] : ['Bleeding', 'Burning']);
   }
+
+  // Attunement changes alter the effects of the same activation, never its displayed cast count.
+  assert.deepEqual(result.warnings, []);
+  const row = skillBreakdownRows(result).find((entry) => entry.name === 'Primordial Stance');
+  assert.equal(row.casts, 1);
+  assert.equal(row.average, row.total);
 });
 
 test('Weaver mechanics execute through native hooks', () => {

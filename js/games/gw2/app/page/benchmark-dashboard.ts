@@ -5,6 +5,7 @@ import { TARGET_HEALTH_BANDS } from '#gw2/app/results/summary-metrics.js';
 import { benchmarkBuildPreview } from '#gw2/app/page/benchmark-build-preview.js';
 import { mountHealthInteractions } from '#gw2/app/page/benchmark-health-interactions.js';
 import { templateBoon, templateCategory } from '#gw2/app/build/library/model.js';
+import type { BenchmarkComparisonView } from '#gw2/app/page/benchmark-comparison/view.js';
 import {
   benchmarkColors,
   benchmarkScale,
@@ -29,6 +30,7 @@ export function mountBenchmarks(root: HTMLElement): void {
     <button type="button" data-benchmark-panel="profession" aria-pressed="false">DPS / APM by Build</button>
     <button type="button" data-benchmark-panel="apm" aria-pressed="false">DPS vs APM</button>
     <button type="button" data-benchmark-panel="health" aria-pressed="false">DPS by health</button>
+    <button type="button" data-benchmark-panel="comparison" aria-pressed="false">Simulate comparison</button>
     <div class="benchmark-view-switch" role="group" aria-label="Build benchmark view"><button type="button" data-build-view="cards" aria-pressed="true">Cards</button><button type="button" data-build-view="table" aria-pressed="false">Table</button></div>
   </div>
   <div class="benchmark-dashboard">
@@ -42,6 +44,7 @@ export function mountBenchmarks(root: HTMLElement): void {
       <label class="benchmark-sort benchmark-overview-sort"><span class="benchmark-filter-label">Sort by</span><select id="benchmark-sort"><option value="name">Profession</option><option value="dps">Highest DPS</option><option value="apm">Lowest APM</option></select></label>
     </section>
     <div class="benchmark-main">
+      <section data-chart-panel="comparison" aria-label="Simulate comparison" hidden></section>
       <section data-chart-panel="apm" aria-label="DPS vs APM" hidden>
         <div data-apm-chart></div>
       </section>
@@ -91,6 +94,8 @@ export function mountBenchmarks(root: HTMLElement): void {
   let overviewInspectedBuild: Benchmark | null = null;
   const retry = root.querySelector<HTMLButtonElement>('[data-benchmark-retry]')!;
   let benchmarks: Benchmark[] = [];
+  let comparison: BenchmarkComparisonView | null = null;
+  let comparisonLoading: Promise<void> | null = null;
   let failures: string[] = [];
   let inspectedBuild: Benchmark | null = null;
   let inspectedMetric = 'dps';
@@ -893,6 +898,7 @@ export function mountBenchmarks(root: HTMLElement): void {
       ])
     );
     colors = benchmarkColors(benchmarks, professionColors);
+    comparison?.update(benchmarks, colors);
     failures = results.flatMap((result, index) =>
       result.status === 'rejected' ? [professionRegistry[index]!.name] : []
     );
@@ -949,6 +955,28 @@ export function mountBenchmarks(root: HTMLElement): void {
       button.setAttribute('aria-pressed', String(button.dataset.benchmarkPanel === name));
     });
     fitHealthViewport();
+    if (name === 'comparison') void loadComparison();
+    else comparison?.deactivate();
+  }
+
+  /** Import the live tool only on entry; ordinary benchmark visits never load its simulation pipeline. */
+  async function loadComparison(): Promise<void> {
+    if (comparison || comparisonLoading) return;
+    const panel = root.querySelector<HTMLElement>('[data-chart-panel="comparison"]')!;
+    panel.textContent = 'Loading comparison…';
+    comparisonLoading = import('#gw2/app/page/benchmark-comparison/view.js')
+      .then(({ mountBenchmarkComparison }) => {
+        comparison = mountBenchmarkComparison(panel);
+        comparison.update(benchmarks, colors);
+      })
+      .catch((error: unknown) => {
+        panel.innerHTML = `<p role="alert">Could not load comparison: ${html(error instanceof Error ? error.message : String(error))}</p><button type="button" data-retry-comparison>Retry comparison</button>`;
+        panel.querySelector('[data-retry-comparison]')!.addEventListener('click', () => void loadComparison());
+      })
+      .finally(() => {
+        comparisonLoading = null;
+      });
+    await comparisonLoading;
   }
 
   root.addEventListener('click', (event) => {

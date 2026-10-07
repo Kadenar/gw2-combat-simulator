@@ -997,14 +997,7 @@ const revenantSlices = Object.freeze([
 const revenantSpecializationStateKeys = Object.freeze({
   Renegade: ['bandTogether', 'kallasFervor', 'razorclawsRage'],
   Vindicator: ['reaversCurseUntil'],
-  Conduit: [
-    'affinity',
-    'cosmicWisdomUntil',
-    'conduitForm',
-    'beguilingHazeCharges',
-    'beguilingHazeReadyAt',
-    'energyCostOverrides'
-  ]
+  Conduit: ['affinity', 'cosmicWisdomUntil', 'conduitForm', 'beguilingHazeCharges', 'beguilingHazeReadyAt']
 });
 
 test('Revenant modules contribute disjoint runtime slices', () => {

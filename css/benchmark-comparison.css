@@ -1,0 +1,577 @@
+/* The live comparison is isolated from the lightweight dashboard and uses its existing panel palette. */
+#benchmarks-view[data-benchmark-active-panel='comparison'] .benchmark-filters {
+  display: none;
+}
+#benchmarks-view[data-benchmark-active-panel='comparison'] .benchmark-main {
+  padding-top: 0;
+}
+.benchmark-comparison {
+  color-scheme: dark;
+  --bc-line: #302e32;
+  --bc-muted: #a39fa6;
+  --bc-gold: #d3b690;
+  container: comparison / inline-size;
+}
+.benchmark-comparison :is(button, input, select) {
+  font: inherit;
+  border-radius: 4px;
+}
+.benchmark-comparison button {
+  cursor: pointer;
+  color: #e8e6eb;
+  background: #222126;
+  border: 1px solid var(--bc-line);
+  padding: 8px 12px;
+}
+.benchmark-comparison button:hover:enabled {
+  background: #2c2930;
+  border-color: #62564a;
+}
+.benchmark-comparison button:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+.benchmark-comparison :is(input, select) {
+  min-width: 0;
+  color: #e8e6eb;
+  background: var(--bg-panel-alt);
+  border: 1px solid var(--border-light);
+  padding: 8px 10px;
+}
+.benchmark-comparison input[type='checkbox'] {
+  accent-color: var(--bc-gold);
+}
+.benchmark-comparison .bc-primary {
+  color: #211b15;
+  background: var(--bc-gold);
+  border-color: var(--bc-gold);
+  font-weight: 600;
+}
+.benchmark-comparison .bc-primary:hover:enabled {
+  background: #e4c9a8;
+}
+.benchmark-comparison .bc-quiet {
+  background: transparent;
+  border-color: transparent;
+  color: var(--bc-muted);
+}
+.benchmark-comparison h3 {
+  color: #f5f5f5;
+  font-size: 13px;
+  font-weight: 600;
+  margin: 0;
+}
+.bc-intro {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 22px 0;
+}
+#benchmarks-view .bc-intro h2 {
+  font-size: 18px;
+  margin-bottom: 4px;
+}
+.bc-intro p {
+  color: var(--bc-muted);
+  font-size: 12px;
+}
+.bc-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+.bc-workspace {
+  display: grid;
+  grid-template-columns: 268px minmax(0, 1fr);
+  border: 1px solid var(--bc-line);
+  border-radius: 5px;
+}
+.bc-picker {
+  min-width: 0;
+  background: #19181b;
+  border-right: 1px solid var(--bc-line);
+  padding: 18px 14px;
+}
+.bc-picker-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin: 0 2px 15px;
+}
+.bc-picker-heading > span {
+  color: var(--bc-gold);
+  font: 11px var(--mono);
+}
+.bc-picker > :is(input, select) {
+  width: 100%;
+  margin: 8px 0;
+}
+/* Preserve the shared select's flex layout so its chevron stays beside the label, matching benchmark filters. */
+.bc-picker > select {
+  display: flex;
+  align-items: center;
+  height: 40px;
+  padding: 9px 12px;
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 20px;
+  color: #eee;
+}
+.bc-filters {
+  display: flex;
+  gap: 5px;
+  margin: 12px 0;
+}
+.bc-filters button {
+  flex: 1;
+  font-size: 11px;
+  padding: 5px;
+  background: transparent;
+}
+.bc-filters button[aria-pressed='true'] {
+  background: #312a24;
+  border-color: #78614a;
+  color: #ecd1af;
+}
+/* Keep the clearing action with the picker controls, outside the scrolling build list. */
+.bc-picker-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+.bc-picker-actions > button {
+  font-size: 11px;
+  padding: 4px;
+}
+.bc-outdated {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 11px;
+  color: var(--bc-muted);
+}
+.bc-catalog-heading {
+  margin: 15px 3px 8px;
+  font-size: 10px;
+  color: var(--bc-muted);
+}
+.bc-catalog {
+  max-height: 490px;
+  overflow: auto;
+  scrollbar-width: thin;
+  padding-right: 3px;
+}
+.bc-group-heading {
+  grid-column: 1 / -1;
+  margin: 16px 0 4px;
+  padding: 8px 9px;
+  border-bottom: 1px solid var(--bc-line);
+  color: var(--bc-color);
+  font-size: 11px;
+  font-weight: 600;
+}
+.bc-group-heading:first-child {
+  margin-top: 0;
+}
+.benchmark-comparison .bc-build {
+  width: 100%;
+  text-align: left;
+  background: transparent;
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 12px 9px;
+  border: 1px solid transparent;
+  border-bottom-color: #28262b;
+  border-radius: 4px;
+  cursor: pointer;
+}
+.bc-build:hover {
+  background: #232126;
+}
+.benchmark-comparison .bc-build.is-selected {
+  background: #27242a;
+  border-color: #46404d;
+  margin-bottom: 4px;
+}
+.bc-build > span {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.bc-build strong {
+  display: block;
+  font-size: 12px;
+  font-weight: 550;
+}
+.bc-build small {
+  display: block;
+  font-size: 10px;
+  color: var(--bc-muted);
+  margin-top: 3px;
+}
+.bc-build.is-selected strong {
+  color: var(--bc-color);
+}
+.bc-analysis {
+  min-width: 0;
+}
+.bc-selected {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 7px;
+  padding: 15px 20px;
+  min-height: 66px;
+  background: #1c1b1f;
+  border-bottom: 1px solid var(--bc-line);
+}
+.bc-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 11px;
+  background: #242228;
+  border: 1px solid #3b3740;
+  border-radius: 4px;
+  padding: 5px 7px 5px 10px;
+  max-width: 100%;
+}
+.bc-chip > span {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.bc-chip button {
+  padding: 0 3px;
+  border: 0;
+  background: transparent;
+  color: var(--bc-muted);
+  font-size: 16px;
+  line-height: 1;
+}
+.bc-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  display: inline-block;
+  background: var(--bc-color);
+  flex-shrink: 0;
+}
+.bc-status {
+  padding: 10px 20px;
+  border-bottom: 1px solid var(--bc-line);
+  font-size: 11px;
+  color: var(--bc-muted);
+  min-height: 39px;
+}
+.bc-status::before {
+  content: '';
+  display: inline-block;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: #88b59a;
+  margin-right: 8px;
+}
+.benchmark-comparison[data-running='true'] .bc-status::before {
+  background: var(--bc-gold);
+}
+.bc-chart-section {
+  padding: 20px 20px 0;
+}
+.bc-chart-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.bc-chart-heading p {
+  font-size: 11px;
+  margin-top: 3px;
+  color: var(--bc-muted);
+}
+.bc-segmented {
+  display: flex;
+  padding: 3px;
+  gap: 3px;
+  background: var(--bg-panel-alt);
+  border: 1px solid var(--bc-line);
+  border-radius: 4px;
+}
+.bc-segmented button {
+  border: 0;
+  background: none;
+  color: var(--bc-muted);
+  padding: 6px 11px;
+  font-size: 11px;
+}
+.bc-segmented button[aria-pressed='true'] {
+  background: #34302e;
+  color: #ebd6bc;
+}
+.bc-chart-controls {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: center;
+  margin-top: 16px;
+  font-size: 10px;
+  color: var(--bc-muted);
+}
+.bc-chart-controls button {
+  font-size: 10px;
+  padding: 4px 7px;
+}
+.bc-plot {
+  position: relative;
+  height: 308px;
+  margin-top: 5px;
+}
+.bc-plot canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+  touch-action: pan-y;
+}
+.bc-empty {
+  position: absolute;
+  inset: 40px 25px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  text-align: center;
+  background: #171717e8;
+  pointer-events: none;
+}
+.bc-empty strong {
+  font-size: 17px;
+  font-weight: 500;
+}
+.bc-empty p {
+  color: var(--bc-muted);
+  font-size: 12px;
+  max-width: 330px;
+}
+.bc-legend {
+  display: flex;
+  gap: 8px 18px;
+  flex-wrap: wrap;
+  min-height: 40px;
+  padding: 4px 0 12px;
+}
+.bc-legend button {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 3px 0;
+  border: 0;
+  background: none;
+  font-size: 11px;
+  text-align: left;
+  overflow-wrap: anywhere;
+  min-width: 0;
+}
+.bc-legend button[aria-pressed='false'] {
+  opacity: 0.4;
+  text-decoration: line-through;
+}
+.bc-legend svg {
+  /* The swatch reproduces the actual curve pattern, including gaps, rather than showing color alone. */
+  width: 32px;
+  height: 10px;
+  color: var(--bc-color);
+  flex-shrink: 0;
+}
+.bc-inspector {
+  border-top: 1px solid var(--bc-line);
+}
+.bc-inspector-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 13px 20px;
+  background: #1c1b1f;
+}
+.bc-inspector-heading p {
+  color: var(--bc-muted);
+  font-size: 10px;
+}
+.bc-time-control {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 11px;
+}
+.bc-time-control label {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+.bc-time-control input {
+  width: 86px;
+  font: 12px var(--mono);
+  padding: 5px 6px;
+}
+.bc-time-control button {
+  padding: 5px 9px;
+  font-size: 10px;
+  white-space: nowrap;
+}
+.bc-time-control button[aria-pressed='true'] {
+  color: var(--bc-gold);
+  border-color: #78614a;
+}
+.bc-table-scroll {
+  overflow-x: auto;
+}
+.benchmark-comparison table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+}
+.benchmark-comparison thead th {
+  font-size: 10px;
+  font-weight: 400;
+  color: var(--bc-muted);
+  background: #151417;
+  padding: 10px 16px;
+  text-align: right;
+  white-space: nowrap;
+}
+.benchmark-comparison thead th:first-child {
+  text-align: left;
+}
+.benchmark-comparison tbody :is(th, td) {
+  border-top: 1px solid #28262b;
+  padding: 12px 16px;
+  text-align: right;
+  font-family: var(--mono);
+  white-space: nowrap;
+}
+.benchmark-comparison tbody th {
+  text-align: left;
+  font-family: 'Segoe UI', sans-serif;
+  white-space: normal;
+  min-width: 170px;
+  font-weight: 500;
+  overflow-wrap: anywhere;
+}
+.bc-row-name {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.benchmark-comparison td small,
+.benchmark-comparison th small {
+  display: block;
+  font:
+    10px 'Segoe UI',
+    sans-serif;
+  color: var(--bc-muted);
+  margin-top: 2px;
+}
+.benchmark-comparison td.bc-value {
+  color: var(--bc-color);
+  font-weight: 600;
+}
+.bc-leading {
+  color: var(--bc-gold);
+  font:
+    10px 'Segoe UI',
+    sans-serif;
+}
+.bc-hidden-line {
+  opacity: 0.4;
+}
+.bc-muted,
+.bc-no-matches {
+  color: var(--bc-muted);
+}
+.benchmark-comparison .bc-no-matches {
+  padding: 20px 8px;
+  text-align: center;
+}
+.bc-warnings {
+  padding: 12px 20px;
+  color: var(--bc-gold);
+  font-size: 11px;
+  border-bottom: 1px solid var(--bc-line);
+  overflow-wrap: anywhere;
+}
+.bc-warnings p + p {
+  margin-top: 7px;
+}
+.benchmark-comparison .bc-error {
+  color: #ef9d9d;
+}
+.bc-help {
+  margin-top: 14px;
+  font-size: 10px;
+  color: #96928a;
+}
+@container comparison (max-width: 1050px) {
+  .bc-workspace {
+    grid-template-columns: 230px minmax(0, 1fr);
+  }
+  .bc-intro {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 12px;
+  }
+  .bc-chart-section {
+    padding: 16px 14px 0;
+  }
+  .bc-inspector-heading {
+    flex-wrap: wrap;
+  }
+  .benchmark-comparison tbody :is(th, td),
+  .benchmark-comparison thead th {
+    padding: 10px 12px;
+  }
+}
+@container comparison (max-width: 760px) {
+  .bc-workspace {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .bc-picker {
+    border-right: 0;
+    border-bottom: 1px solid var(--bc-line);
+  }
+  .bc-catalog {
+    max-height: 205px;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 4px;
+  }
+  .benchmark-comparison .bc-build {
+    padding: 9px 5px;
+    gap: 7px;
+  }
+  .bc-actions {
+    width: 100%;
+    flex-wrap: wrap;
+  }
+  .bc-actions .bc-primary {
+    flex: 1;
+  }
+  .bc-plot {
+    height: 280px;
+  }
+  .bc-selected,
+  .bc-status,
+  .bc-inspector-heading {
+    padding-left: 12px;
+    padding-right: 12px;
+  }
+  .bc-chart-controls {
+    gap: 7px;
+  }
+}

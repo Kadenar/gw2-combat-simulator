@@ -47,6 +47,7 @@ function emitPrimordialStancePulse(
   at: number,
   captured: {
     readonly sourceId: Skill['id'];
+    readonly skillName: string;
   },
   emissionCast?: EffectDelivery['cast']
 ): void {
@@ -67,7 +68,9 @@ function emitPrimordialStancePulse(
           source: 'elementalist',
           sourceId,
           actorType: 'player',
-          skillName: 'Primordial Stance',
+          // Retain the casting variant for action counts while all variants share one displayed row.
+          skillName: captured.skillName,
+          damageBreakdownName: 'Primordial Stance',
           skillId: sourceId,
           coefficient: Number(strike.coefficient),
           skillWeapon: 'Unequipped',
@@ -85,7 +88,8 @@ function emitPrimordialStancePulse(
           at,
           source: 'Primordial Stance',
           sourceId,
-          skillName: 'Primordial Stance',
+          skillName: captured.skillName,
+          damageBreakdownName: 'Primordial Stance',
           condition: String(effect.condition),
           stacks: Number(effect.stacks),
           duration: Number(effect.duration)
@@ -104,7 +108,7 @@ export function primordialStancePulse(runtime: ElementalistRuntime, data: unknow
   emitPrimordialStancePulse(
     runtime,
     runtime.time,
-    { sourceId: cast.skill.id },
+    { sourceId: cast.skill.id, skillName: cast.skill.name },
     { activationId: cast.id, skillId: cast.skill.id, offTarget: cast.command.offTarget }
   );
 }

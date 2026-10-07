@@ -1,6 +1,6 @@
 import type { ReadonlyMechanicState } from '#gw2/platform/profession-definition/runtime-context.js';
 import { normalizeSelectedTraitIds } from '#gw2/platform/builds/selected-traits.js';
-import type { SkillId } from '#gw2/platform/skills/types.js';
+import type { CanonicalCatalog, SkillId } from '#gw2/platform/skills/types.js';
 import { REVENANT_SKILL_IDS as ID, REVENANT_LEGEND_IDS as LEGEND } from '#gw2/professions/revenant/data/ids.js';
 import { applyConduitEnergyCostRules } from '#gw2/professions/revenant/specializations/conduit/mechanics/energy-cost.js';
 import { HERALD_SPIRIT_BOON_PROFILE_ID } from '#gw2/professions/revenant/specializations/herald/profiles.js';
@@ -44,11 +44,12 @@ export function effectiveRevenantEnergyCost(input: RevenantEnergyCostInput, skil
   }
 }
 
-/** Runtime hooks and the palette share one composed cost, read from the single runtime state. */
+/** Runtime hooks and palette availability share costs from live state and the selected catalog. */
 export function revenantEnergyCost(
   runtime: ReadonlyMechanicState<{
     readonly profession: RevenantRuntimeState;
     readonly config: RevenantConfig;
+    readonly helpers: CanonicalCatalog;
     readonly time: number;
   }>,
   skill: RevenantSkill
@@ -57,6 +58,7 @@ export function revenantEnergyCost(
   return effectiveRevenantEnergyCost(
     {
       specialization: specialization.kind,
+      catalog: runtime.helpers,
       time: runtime.time,
       state: {
         activeUpkeeps: core.activeUpkeeps,

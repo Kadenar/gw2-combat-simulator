@@ -294,7 +294,6 @@ export interface Gw2DamageBreakdownEntry {
   strikeDamage: number;
   conditionDamage: number;
   hits: number;
-  casts?: number;
   // Crit accounting counts seeded critical outcomes in both modes;
   // critEligibleHits is the number of strike hits those crits are drawn from.
   critHits?: number;

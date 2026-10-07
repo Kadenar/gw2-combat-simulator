@@ -35,7 +35,7 @@ test('planning projections omit private mechanic state while retaining visible o
       ['backfireState', 'forgedSurferMaximumBombHits', 'canachCoinIndex'],
       'artifactSlots'
     ],
-    [revenantProfession, 'Conduit', 'specialization', ['energyCostOverrides'], 'affinity']
+    [revenantProfession, 'Conduit', 'specialization', ['beguilingHazeRecharge'], 'affinity']
   ]) {
     const config = { specialization };
     const profession = family.runtimeFor(config).createState(config);

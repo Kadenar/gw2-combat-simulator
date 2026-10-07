@@ -13,10 +13,9 @@ export interface ConduitState {
   beguilingHazeCharges: number;
   beguilingHazeReadyAt: number;
   beguilingHazeRecharge: RechargeProgress | null;
-  energyCostOverrides: Record<string, number>;
 }
 
-// Publish form and resource displays; patched cost overrides remain with the live availability owner.
+// Publish form and resource displays; in-flight recharge remains private to the mechanic.
 export const CONDUIT_PUBLIC_STATE_PROJECTION = definePublicStateDefaults({
   affinity: createResourceClock(),
   cosmicWisdomUntil: 0,
@@ -42,10 +41,7 @@ function createConduitState(): ConduitState {
     conduitForm: '',
     beguilingHazeCharges: 0,
     beguilingHazeReadyAt: 0,
-    beguilingHazeRecharge: null,
-    // Tracks in-flight main-cast reservations so follow-up charges arm exactly once per main cast, not per follow-up.
-    // Only populated during Mesmer form; cleared on form exit so native legend skill costs are restored.
-    energyCostOverrides: {}
+    beguilingHazeRecharge: null
   };
 }
 

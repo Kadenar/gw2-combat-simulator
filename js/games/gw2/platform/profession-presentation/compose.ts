@@ -1,4 +1,4 @@
-import type { ResourcePolicies } from '#gw2/platform/combat/resources/resource-policy.js';
+import type { EndurancePolicy, ResourcePolicies } from '#gw2/platform/combat/resources/resource-policy.js';
 import type { ProfessionConfig } from '#gw2/platform/profession-definition/types.js';
 import type {
   ProfessionAttributePreviewInput,
@@ -14,7 +14,6 @@ import type {
  */
 import type { ProfessionAssumptionControl } from '#gw2/platform/builds/types.js';
 import type { SimulationEvent } from '#gw2/platform/events/events.js';
-import type { ProfessionResourceDefinition } from '#gw2/platform/profession-definition/types.js';
 import type { CanonicalCatalog, Skill } from '#gw2/platform/skills/types.js';
 import type {
   ProfessionChargeReleaseContext,
@@ -54,9 +53,7 @@ interface UiSelectionCandidate {
 type UiSlice = Partial<ProfessionUiContract>;
 
 interface ProfessionFamilyUiDefinition {
-  readonly resourcesFor?: (
-    specialization: string
-  ) => Pick<ProfessionResourceDefinition, 'endurance'> & ResourcePolicies;
+  readonly resourcesFor?: (specialization: string) => ResourcePolicies & { readonly endurance?: EndurancePolicy };
   readonly catalog: CanonicalCatalog;
   readonly core: UiSlice;
   readonly specializations: Readonly<Record<string, UiSlice>>;

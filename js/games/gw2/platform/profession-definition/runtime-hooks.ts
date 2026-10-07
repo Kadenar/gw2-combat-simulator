@@ -1,4 +1,5 @@
 import type { MechanicContext } from '#gw2/platform/profession-definition/mechanic-context.js';
+import { validateResourcePolicies } from '#gw2/platform/combat/resources/resource-policy.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
 import type { Gw2ResolverEvent, Gw2ResolverStage } from '#gw2/platform/resolver/types.js';
 import type { WorkOwner } from '#gw2/platform/simulation/work-contract.js';
@@ -203,5 +204,7 @@ export function composeRuntimeHooks<State extends object, TSkill extends Skill =
   for (const hook of hooks)
     for (const key of Object.keys(hook))
       if (!Object.hasOwn(composed, key)) throw new TypeError(`Unsupported runtime hook ${key}.`);
+  // Capacity previews consume these policies before simulation, so validate the selected declarations here too.
+  validateResourcePolicies(composed.resources, composed.endurance);
   return composed;
 }

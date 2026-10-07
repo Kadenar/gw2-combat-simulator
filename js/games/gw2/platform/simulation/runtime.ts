@@ -4,7 +4,11 @@ import { EffectRecorder } from '#gw2/platform/results/effect-report.js';
 import { prepareSelectedSkillLoadout } from '#gw2/platform/builds/selected-skills.js';
 import { createGw2CombatQuery } from '#gw2/platform/combat-calculation/combat-query.js';
 import { createRuntimeEndurance, createRuntimeResources } from '#gw2/platform/simulation/runtime-resources.js';
-import { RESOURCE_KEYS, type ResourceKey } from '#gw2/platform/combat/resources/resource-policy.js';
+import {
+  RESOURCE_KEYS,
+  validateResourcePolicies,
+  type ResourceKey
+} from '#gw2/platform/combat/resources/resource-policy.js';
 import { targetHealthLoss } from '#gw2/platform/combat/state/target-health.js';
 import { canonicalTargetConditionName } from '#gw2/platform/combat/state/targets.js';
 import { normalizeSelectedTraitIds } from '#gw2/platform/builds/selected-traits.js';
@@ -88,6 +92,8 @@ export function runRuntime<T extends object>(
   const ownsEffect = options.output === 'damage' ? options.ownsEffect : undefined;
   let effectsCapturePending = false;
   const started = onPhase ? performance.now() : 0;
+  // Direct runtime callers can override composed policies; reject malformed inputs before state creation.
+  validateResourcePolicies(profession.resources, profession.endurance);
   // Validate the invocation's selected catalog, including patches, before initializing or mutating live state.
   const supportedResources = new Set<ResourceKey | 'endurance'>(
     RESOURCE_KEYS.filter((key) => profession.resources?.[key] != null)

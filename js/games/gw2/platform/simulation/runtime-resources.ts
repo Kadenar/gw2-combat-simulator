@@ -33,7 +33,8 @@ export function createRuntimeResources<T extends object>(
 ): ResourceController {
   const policies = profession.resources ?? {};
   const pools = new Set();
-  const keys = Object.keys(policies) as ResourceKey[];
+  // Explicitly absent optional policies grant no pool, matching runtime capability admission.
+  const keys = (Object.keys(policies) as ResourceKey[]).filter((key) => policies[key] != null);
   const get = (key: ResourceKey) => {
     const policy = policies[key];
     if (!policy) throw new TypeError(`Unsupported resource: ${key}.`);

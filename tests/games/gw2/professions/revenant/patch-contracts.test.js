@@ -77,7 +77,6 @@ test('removed Cosmic Wisdom leaves no Mesmer discount and zero-duration patches 
   assert.deepEqual(result.warnings, []);
   assert.equal(state.conduitForm, '');
   assert.equal(state.cosmicWisdomUntil, 0);
-  assert.deepEqual(state.energyCostOverrides, {});
   const skill = runtime.helpers.skillsById.get(ID.EMPOWERING_MISERY);
   assert.equal(revenantEnergyCost(runtime, skill), skill.energyCost);
   assert.throws(
@@ -114,11 +113,46 @@ test('Mesmer runtime costs restore native values at form expiry', () => {
     assert.equal(revenantEnergyCost(runtime, skill), expected);
   }
 
-  assert.deepEqual(observedRuntime(expired).profession.specialization.state.energyCostOverrides, {});
+  assert.equal(observedRuntime(expired).profession.specialization.state.conduitForm, '');
+  assert.equal(observedRuntime(expired).profession.specialization.state.cosmicWisdomUntil, 0);
+});
+
+// Form entry validates even unused costs in score output, and errors identify the selected patch rather than a fallback.
+test('Mesmer entry and legend reselection reject missing or invalid selected cost profiles', () => {
+  const balanceDataContext = { professionId: 'revenant', patchId: 'invalid-conduit-cost' };
+  for (const output of ['score', 'detailed']) {
+    for (const startingLegend of [LEGEND.DEMON, LEGEND.ENTITY]) {
+      for (const profileId of [CONDUIT.mesmerEmpoweringMisery, CONDUIT.mesmerEmbraceTheDarkness]) {
+        for (const fault of ['missing', 'invalid']) {
+          const catalog = (base) => {
+            const balanceProfilesById = new Map(base.balanceProfilesById);
+            if (fault === 'missing') balanceProfilesById.delete(profileId);
+            else
+              balanceProfilesById.set(profileId, {
+                ...balanceProfilesById.get(profileId),
+                balanceDataContext,
+                energyCost: NaN
+              });
+            return { ...base, balanceDataContext, balanceProfilesById };
+          };
+          const rotation = startingLegend === LEGEND.DEMON ? ['Cosmic Wisdom'] : ['Cosmic Wisdom', 'Swap Legends'];
+          assert.throws(
+            () => runRevenant(rotation, { ...conduitConfig, startingLegend }, { catalog, output }),
+            (error) => {
+              assert.ok(error.message.includes(`profession=revenant patch=invalid-conduit-cost profile=${profileId}`));
+              assert.match(error.message, fault === 'missing' ? /missing required profile/ : /expected=finite number/);
+              return true;
+            },
+            `${output}/${startingLegend}/${profileId}/${fault}`
+          );
+        }
+      }
+    }
+  }
 });
 
 // An old expiry cannot clear a form extended by a legend swap, and each legend selects its own cost policy.
-test('legend swaps preserve extended Cosmic Wisdom and refresh Mesmer overrides', () => {
+test('legend swaps preserve extended Cosmic Wisdom and select Mesmer costs', () => {
   const result = runRevenant(
     ['__combat_start', 'Cosmic Wisdom', 'Swap Legends', wait(10000), 'Swap Legends'],
     { ...conduitConfig, selectedTraitIds: [TRAIT.ENHANCED_EMBODIMENT] },

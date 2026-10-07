@@ -1,4 +1,3 @@
-import { resourcePolicies, validateResourcePolicies } from '#gw2/platform/combat/resources/resource-policy.js';
 import type {
   ProfessionConfig,
   NormalizedProfessionContract,
@@ -202,9 +201,8 @@ function assertCallbackContainer(container: object, names: readonly string[], sc
 }
 
 /**
- * Creates an immutable profession contract with stable defaults for every
- * optional capability. The returned object is what the engine depends on; raw
- * profession definition objects are intentionally not used directly elsewhere.
+ * Creates immutable state and modifier capabilities with stable defaults.
+ * Executable resource policies are validated separately with the runtime hooks.
  */
 
 export function defineProfession<
@@ -216,17 +214,6 @@ export function defineProfession<
 ): Readonly<NormalizedProfessionContract<TProfessionState, TSkill>> {
   assertDefinition(definition);
   const resources = definition.resources || {};
-  validateResourcePolicies(resources);
-  // A selected resource capability must be complete; absence is the only unsupported-resource representation.
-  if (
-    resources.endurance &&
-    ['state', 'maximum', 'regenerationRate'].some(
-      (key) => typeof resources.endurance?.[key as keyof typeof resources.endurance] !== 'function'
-    )
-  ) {
-    throw new TypeError('Endurance requires state, maximum, and regenerationRate callbacks.');
-  }
-
   const modifiers = definition.modifiers || {};
   assertCallbackContainer(resources, ['createState', 'projectPlanningState'], 'resources');
   const sources: UnvalidatedFields = {
@@ -253,7 +240,6 @@ export function defineProfession<
     weaponSkillMatchesSet: definition.weaponSkillMatchesSet,
     catalog: definition.catalog ?? createCanonicalCatalog<TSkill>(),
     createState: (config: Readonly<ProfessionConfig>) => resources.createState?.(config) ?? {},
-    resources: Object.freeze({ ...resourcePolicies(resources), endurance: resources.endurance ?? null }),
     ...composedHooks
   };
   return Object.freeze(profession) as unknown as Readonly<NormalizedProfessionContract<TProfessionState, TSkill>>;

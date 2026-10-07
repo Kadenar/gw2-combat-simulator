@@ -80,11 +80,11 @@ and invalid specialization-only IDs. Weapon skills belong to Core (Weaponmaster 
 
 ### Build eligibility
 
-`platform/builds/selected-skills.ts` (`isBuildSkillAvailable`) is the baseline gate: excluded skills are never selectable or castable, weapon
-skills are shared across specializations, and other skills need their declared specialization. Core installs it in
-runtime and palette availability for every profession; runtime rejection uses `gw2.build-unavailable` and runs before
-profession state checks. Profession callbacks only add restrictions. Equipped slots, weapon variants, resources,
-cooldowns, and dynamic state are separate checks.
+`platform/builds/selected-skills.ts` (`isBuildSkillAvailable`) is the baseline gate: excluded skills are never
+selectable or castable, weapon skills are shared across specializations, and other skills need their declared
+specialization. Core installs it in runtime and palette availability for every profession; runtime rejection uses
+`gw2.build-unavailable` and runs before profession state checks. Profession callbacks only add restrictions. Equipped
+slots, weapon variants, resources, cooldowns, and dynamic state are separate checks.
 
 ### Source roles
 
@@ -106,8 +106,11 @@ Native professions expose identity, catalog, build and UI contracts, and `runtim
 `createState`, `projectPlanningState`, availability/cast/recharge hooks, named tasks, custom event handlers, resource
 policies, and stage-specific reactions. The application surface stays separate from execution.
 
-Standalone fixtures can use `defineProfession({ id, name, catalog, resources: { createState }, hooks })`. Optional hooks
-default to no-op or identity behavior. A module with only declarative skill data needs no hooks.
+Standalone test fixtures use `defineTestProfession({ id, name, catalog, resources: { createState }, hooks })` from
+`tests/helpers/profession.js`. `defineProfession` supplies state factories, projections, and normalized modifiers;
+executable policies belong in `hooks.resources` and `hooks.endurance`. Native runtime composition and the shared
+execution entry validate policy declarations before use; live controllers validate their returned tuning and clocks.
+Optional native hooks default to no-op or identity behavior. A module with only declarative skill data needs no hooks.
 
 - `planningState.availability` captures the composed runtime profession gate for each player-castable candidate and its
   default command. It is detached, excludes scheduler cooldown/lane checks, and is omitted from score runs. Retry times
@@ -178,14 +181,15 @@ selection and observation callbacks read-only profession state, service queries,
 `MechanicContext` extends that combat capability for lifecycle handlers with cast/resource/recharge operations, named
 scheduling, and explicit observation writes. None exposes the command cursor, shared heap, or report collections.
 
-`simulation/bind-mechanic-context.ts` binds stable query and lifecycle views to the live run. `resolver/mechanic-services.ts`
-binds combat operations to their resolver-owned stores. `combat/history/executed-facts.ts` supplies the `facts` reader
-and `observations` writer independently of optional reports; pending work becomes history only when it executes.
-Professions inspect in-flight casts, query detached pending charge-release intent, and request lockouts through
-`castController`, without access to its maps. `execution/cooldowns.ts` privately owns all cooldown, recharge-progress,
-and ammo stores. Cast admission, live combat queries, and planning projection use controller operations and read-only
-observations. Live cooldown queries compare unrounded deadlines and settle only the requested magazine; cast admission
-and displayed deadlines retain their action-tick rounding.
+`simulation/bind-mechanic-context.ts` binds stable query and lifecycle views to the live run.
+`resolver/mechanic-services.ts` binds combat operations to their resolver-owned stores.
+`combat/history/executed-facts.ts` supplies the `facts` reader and `observations` writer independently of optional
+reports; pending work becomes history only when it executes. Professions inspect in-flight casts, query detached pending
+charge-release intent, and request lockouts through `castController`, without access to its maps.
+`execution/cooldowns.ts` privately owns all cooldown, recharge-progress, and ammo stores. Cast admission, live combat
+queries, and planning projection use controller operations and read-only observations. Live cooldown queries compare
+unrounded deadlines and settle only the requested magazine; cast admission and displayed deadlines retain their
+action-tick rounding.
 
 Dragon Trigger owns charging, release capture, charge-scaled packets, and expiry, with state defaults in its leaf state
 module. Its immutable release records are stored per run. Gunsaber transitions and Flow regeneration have separate

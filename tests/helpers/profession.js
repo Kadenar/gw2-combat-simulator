@@ -1,18 +1,18 @@
 import { defineProfession } from '#gw2/platform/profession-definition/compile-contract.js';
-import { resourcePolicies } from '#gw2/platform/combat/resources/resource-policy.js';
+import { validateResourcePolicies } from '#gw2/platform/combat/resources/resource-policy.js';
 
-/** Builds focused runtime fixtures from the same normalized modifiers and resources used by native professions. */
+/** Fixtures keep state and modifiers separate from executable policies, validating the final hook overrides. */
 export function defineTestProfession({ hooks, ...definition }) {
   const profession = defineProfession(definition);
   return {
     ...profession,
     runtimeFor() {
-      return {
+      const runtime = {
         ...profession,
-        resources: resourcePolicies(definition.resources ?? {}),
-        endurance: definition.resources?.endurance,
         ...hooks
       };
+      validateResourcePolicies(runtime.resources, runtime.endurance);
+      return runtime;
     }
   };
 }

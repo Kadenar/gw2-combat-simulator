@@ -24,6 +24,7 @@ import {
 } from '#gw2/professions/revenant/data/legends.js';
 import { isRevenantUpkeep } from '#gw2/professions/revenant/data/upkeep-skills.js';
 import { revenantEnergyCost } from '#gw2/professions/revenant/family-state.js';
+import { validateConduitMesmerEnergyCosts } from '#gw2/professions/revenant/specializations/conduit/mechanics/energy-cost.js';
 import {
   conduitAffinityPolicy,
   gainAffinity
@@ -183,32 +184,17 @@ function mesmerRelease(runtime: RevenantRuntime, data: unknown): void {
   });
 }
 
-/** Mesmer form overrides these canonical Demon skills' Energy costs; other forms use native costs. */
-const MESMER_FORM_COSTS = [
-  [ID.EMPOWERING_MISERY, PROFILE.mesmerEmpoweringMisery],
-  [ID.PAIN_ABSORPTION, PROFILE.mesmerPainAbsorption],
-  [ID.BANISH_ENCHANTMENT, PROFILE.mesmerBanishEnchantment],
-  [ID.CALL_TO_ANGUISH, PROFILE.mesmerCallToAnguish],
-  [ID.UNYIELDING_IMPACT, PROFILE.mesmerUnyieldingImpact],
-  [ID.EMBRACE_THE_DARKNESS, PROFILE.mesmerEmbraceTheDarkness]
-] as const;
-
-/** Expired or removed windows clear the form immediately and restore native costs. */
-function syncConduitEnergyCostOverrides(runtime: RevenantRuntime): void {
+/** Clear expired or removed windows; otherwise select the current legend's form and validate its costs. */
+function updateConduitForm(runtime: RevenantRuntime): void {
   const state = conduit(runtime);
   if (state.cosmicWisdomUntil <= runtime.time) {
     state.cosmicWisdomUntil = 0;
     state.conduitForm = '';
+    return;
   }
 
-  state.energyCostOverrides = revenantConduitFormIsActive(state, 'Mesmer', runtime.time)
-    ? Object.fromEntries(
-        MESMER_FORM_COSTS.map(([skillId, profileId]) => [
-          skillId,
-          balanceProfileNumber(requireBalanceProfileFromContext(runtime, profileId), 'energyCost')
-        ])
-      )
-    : {};
+  state.conduitForm = REVENANT_CONDUIT_FORM_BY_LEGEND[runtime.profession.core.activeLegendId] || '';
+  if (revenantConduitFormIsActive(state, 'Mesmer', runtime.time)) validateConduitMesmerEnergyCosts(runtime.helpers);
 }
 
 /** Form expiry clears the form and restores native Energy costs, unless an extension moved the deadline. */
@@ -217,7 +203,6 @@ function formExpiry(runtime: RevenantRuntime, data: unknown): void {
   if (state.cosmicWisdomUntil !== (data as { until: number }).until) return;
   state.cosmicWisdomUntil = 0;
   state.conduitForm = '';
-  syncConduitEnergyCostOverrides(runtime);
 }
 
 /** Cosmic Wisdom resolves Mistfire, then opens the current legend's form and grants Numinous Gift. */
@@ -230,8 +215,7 @@ function cosmicWisdom(runtime: RevenantRuntime, cast: RuntimeCast<RevenantSkill>
   state.cosmicWisdomUntil = canonicalTime(
     runtime.time + (window ? Math.max(0, effectNumber(cast.skill, window, 'duration')) : 0)
   );
-  state.conduitForm = REVENANT_CONDUIT_FORM_BY_LEGEND[runtime.profession.core.activeLegendId] || '';
-  syncConduitEnergyCostOverrides(runtime);
+  updateConduitForm(runtime);
   scheduleFormExpiry(runtime);
   numinousGift(runtime, cast);
 }
@@ -239,7 +223,6 @@ function cosmicWisdom(runtime: RevenantRuntime, cast: RuntimeCast<RevenantSkill>
 /** Legend swaps reset affinity, extend and re-select the form, and share Found Purpose. */
 function swapLegend(runtime: RevenantRuntime, cast: RuntimeCast<RevenantSkill>): void {
   const state = conduit(runtime);
-  const core = runtime.profession.core;
   const combat = runtime.combatStartedAt();
   // The form state before the reset decides Enhanced Embodiment and the form update.
   const formActive = state.cosmicWisdomUntil > runtime.time;
@@ -247,10 +230,7 @@ function swapLegend(runtime: RevenantRuntime, cast: RuntimeCast<RevenantSkill>):
   grantLingeringDetermination(runtime, combat);
   extendEnhancedEmbodiment(runtime, formActive);
 
-  if (formActive) {
-    state.conduitForm = REVENANT_CONDUIT_FORM_BY_LEGEND[core.activeLegendId] || '';
-    syncConduitEnergyCostOverrides(runtime);
-  }
+  if (formActive) updateConduitForm(runtime);
 
   // Found Purpose shares invocation boons only once combat has started.
   grantFoundPurpose(runtime, cast, combat);

@@ -1,6 +1,6 @@
 import type { MechanicCombatContext } from '#gw2/platform/profession-definition/mechanic-context.js';
 import type { ProfessionUiCallbackContext, ProfessionUiContract } from '#gw2/platform/profession-presentation/types.js';
-import type { Skill, SkillId } from '#gw2/platform/skills/types.js';
+import type { CanonicalCatalog, Skill, SkillId } from '#gw2/platform/skills/types.js';
 import type { Gw2CanonicalBuild, Gw2Build } from '#gw2/platform/builds/types.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
 
@@ -70,15 +70,11 @@ export interface RevenantRuntimeState {
 
 /** Explicit cost inputs shared by simulation and palette calculations. */
 export interface RevenantEnergyCostInput {
+  readonly catalog: CanonicalCatalog;
   readonly specialization: string;
   readonly time: number;
   readonly state: ReadonlyMechanicState<
-    Partial<
-      Pick<
-        RevenantState,
-        'activeUpkeeps' | 'beguilingHazeCharges' | 'energyCostOverrides' | 'conduitForm' | 'cosmicWisdomUntil'
-      >
-    >
+    Partial<Pick<RevenantState, 'activeUpkeeps' | 'beguilingHazeCharges' | 'conduitForm' | 'cosmicWisdomUntil'>>
   >;
   readonly traits: ReadonlySet<SkillId>;
 }

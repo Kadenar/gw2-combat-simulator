@@ -73,20 +73,26 @@ export interface EnduranceController {
   spend(value: number): void;
 }
 
-/** Extract only capabilities, leaving profession state factories out of resource dispatch. */
-export function resourcePolicies(resources: ResourcePolicies): ResourcePolicies {
-  return Object.fromEntries(RESOURCE_KEYS.filter((key) => resources[key] != null).map((key) => [key, resources[key]]));
-}
-
-/** Validate declarations before any simulation can silently omit a declared resource. */
-export function validateResourcePolicies(resources: ResourcePolicies): void {
-  for (const policy of Object.values(resourcePolicies(resources))) {
+/** Validate executable declarations before previews call them or simulation initializes live pools. */
+export function validateResourcePolicies(resources: ResourcePolicies = {}, endurance?: EndurancePolicy): void {
+  for (const key of Object.keys(resources) as ResourceKey[]) {
+    if (!RESOURCE_KEYS.includes(key)) throw new TypeError(`Unknown resource policy: ${key}.`);
+    const policy = resources[key];
+    if (policy == null) continue;
     if (
       !['continuous', 'discrete'].includes(policy.kind) ||
       ['state', 'maximum', 'initial', 'recovery'].some(
         (key) => typeof policy[key as keyof ResourcePolicy] !== 'function'
       )
     )
-      throw new TypeError('Resource policies require kind, state, maximum, initial, and recovery.');
+      throw new TypeError(`Resource policies require kind, state, maximum, initial, and recovery (${key}).`);
   }
+
+  if (
+    endurance != null &&
+    ['state', 'maximum', 'regenerationRate'].some(
+      (key) => typeof endurance[key as keyof EndurancePolicy] !== 'function'
+    )
+  )
+    throw new TypeError('Endurance requires state, maximum, and regenerationRate callbacks.');
 }

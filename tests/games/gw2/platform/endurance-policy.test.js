@@ -95,14 +95,16 @@ test('selected profile capacity controls initialization, grants, and readiness',
 
 test('malformed declared endurance fails rather than silently dropping grants', () => {
   assert.throws(
-    () => defineTestProfession({ id: 'bad', name: 'Bad', resources: { endurance: {} } }),
+    () => defineTestProfession({ id: 'bad', name: 'Bad', hooks: { endurance: {} } }).runtimeFor(),
     /Endurance requires/
   );
   const profession = defineTestProfession({
     id: 'bad-pool',
     name: 'Bad pool',
     resources: {
-      createState: () => ({ endurance: { value: 0, maximum: 100, updatedAt: 0, rate: 0 } }),
+      createState: () => ({ endurance: { value: 0, maximum: 100, updatedAt: 0, rate: 0 } })
+    },
+    hooks: {
       endurance: { state: (context) => context.profession.endurance, maximum: () => NaN, regenerationRate: () => 5 }
     }
   });

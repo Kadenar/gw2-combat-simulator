@@ -10,26 +10,15 @@ interface CastCount {
   count: number;
 }
 
-// Count casts from the already-filtered reporting window so rows and events share the same boundary.
-function addCastsToBreakdown(ctx: Gw2ResolverRuntime, events: readonly Gw2ResolverEvent[]): Map<string, CastCount> {
-  const countsById = new Map<string, number>();
+// Build the public named cast summary from the same combat-bounded actions exposed in the result.
+function countCasts(events: readonly Gw2ResolverEvent[]): Map<string, CastCount> {
   const output = new Map<string, CastCount>();
   for (const event of events) {
     if (event.type !== 'action') continue;
-    const id = String(event.skillId ?? event.sourceId);
     const name = event.name || event.skillName || String(event.sourceId);
-    countsById.set(id, (countsById.get(id) || 0) + 1);
     const row = output.get(name);
     if (row) row.count += 1;
     else output.set(name, { name, count: 1 });
-  }
-
-  // Match each breakdown row to its caster by stable id (breakdown keys already
-  // carry skillId/sourceId). The display-name fallback covers effect/summon
-  // rows whose events have no catalog skill id.
-  for (const entry of ctx.breakdown.values()) {
-    const identityId = String(entry.skillId ?? entry.sourceId);
-    entry.casts = countsById.get(identityId) ?? output.get(entry.name)?.count ?? 0;
   }
 
   return output;
@@ -94,9 +83,7 @@ export function buildCombatResult(
     environmentWindow > 0 ? damage / environmentWindow : 0;
   const { output, ...numeric } = score;
   const effectiveEvents = events.filter((event) => event.at <= effectiveEnd);
-  // Cast counts decorate detached output rows, never the resolver's damage accumulation stores.
-  const breakdown = new Map([...ctx.breakdown].map(([key, entry]) => [key, { ...entry }]));
-  const casts = addCastsToBreakdown({ ...ctx, breakdown }, effectiveEvents);
+  const casts = countCasts(effectiveEvents);
   // Editor-only runs retain combat facts but skip both live histories and expensive hypothetical party projection.
   const generation = ctx.effectRecorder
     ? buildBoonGeneration(ctx.resolved, score.combatStartTime ?? score.dpsStartTime, effectiveEnd)
@@ -112,7 +99,9 @@ export function buildCombatResult(
     boonGeneration: generation
       ? { alliedPlayerCount: generation.alliedPlayerCount, boons: Object.fromEntries(generation.boons) }
       : null,
-    breakdown: [...breakdown.values()].sort((left, right) => right.damage - left.damage),
+    breakdown: [...ctx.breakdown.values()]
+      .map((entry) => ({ ...entry }))
+      .sort((left, right) => right.damage - left.damage),
     conditionBreakdown: [...ctx.conditions.values()]
       .map((entry) => ({
         name: entry.name,

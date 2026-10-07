@@ -189,8 +189,16 @@ export function skillBreakdownRows(result: Gw2ResolverResult): SkillBreakdownRow
   // Canonical action events are the authoritative source for cast count/time.
   const actionDurations = new Map<string, number>();
   const actionCounts = new Map<string, number>();
+  const actionCountsById = new Map<string, number>();
+  const actionCountsByEventName = new Map<string, number>();
   for (const event of result.events || []) {
     if (event.type !== 'action') continue;
+    // Renamed contributions match accepted actions by ID, then event display name;
+    // derive these counts here instead of transporting them on every contribution.
+    const id = String(event.skillId ?? event.sourceId);
+    const eventName = event.name || event.skillName || String(event.sourceId);
+    actionCountsById.set(id, (actionCountsById.get(id) || 0) + 1);
+    actionCountsByEventName.set(eventName, (actionCountsByEventName.get(eventName) || 0) + 1);
     const name = String(event.skillName || event.name || event.sourceId);
     actionDurations.set(
       name,
@@ -234,15 +242,16 @@ export function skillBreakdownRows(result: Gw2ResolverResult): SkillBreakdownRow
     current.hits += Number(entry.hits || 0);
     current.critHits += Number(entry.critHits || 0);
     current.critEligibleHits += Number(entry.critEligibleHits || 0);
-    current.fallbackCasts = Math.max(current.fallbackCasts, Number(entry.casts || 0));
+    const contributionCasts =
+      actionCountsById.get(String(entry.skillId ?? entry.sourceId)) ?? actionCountsByEventName.get(entry.name) ?? 0;
+    current.fallbackCasts = Math.max(current.fallbackCasts, contributionCasts);
     grouped.set(groupKey, current);
   }
 
   return [...grouped.values()]
     .map((entry): SkillBreakdownRow => {
-      // Older breakdown producers supplied casts directly; use that only when
-      // no canonical action count is available. Child effects are not casts
-      // of their parent skill even when the resolver preserves that skill ID.
+      // Prefer source-name counts; renamed contributions use ID/display-name counts.
+      // Child effects are not casts of their parent even when they preserve its skill ID.
       // A shared row can contain distinct range variants; count each source's actions once.
       const sources = [...entry.sourceSkills];
       const casts = sources.some((source) => actionCounts.has(source))

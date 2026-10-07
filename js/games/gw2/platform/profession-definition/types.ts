@@ -1,6 +1,5 @@
 import type { ProfessionBuildDefinition } from '#gw2/platform/builds/types.js';
 import type { Gw2ModifierContext, Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
-import type { EndurancePolicy, ResourcePolicies } from '#gw2/platform/combat/resources/resource-policy.js';
 import type { Gw2Stats } from '#gw2/platform/combat/stats.js';
 import type { Gw2WeaponSkillMatcher } from '#gw2/platform/equipment/weapons/types.js';
 import type { ProfessionUiContract } from '#gw2/platform/profession-presentation/types.js';
@@ -16,8 +15,8 @@ export interface ProfessionConfig {
   readonly boons?: Readonly<Record<string, boolean | number>>;
 }
 
-export interface ProfessionResourceDefinition<TProfessionState extends object = object> extends ResourcePolicies {
-  readonly endurance?: EndurancePolicy;
+/** State construction and projection; executable resource policies belong to runtime hooks. */
+export interface ProfessionResourceDefinition<TProfessionState extends object = object> {
   readonly createState?: (config: Readonly<ProfessionConfig>) => TProfessionState;
   readonly projectPlanningState?: unknown;
 }
@@ -84,7 +83,6 @@ export interface ProfessionModuleCatalogFragment<TSkill extends Skill = Skill> {
 
 /** Keeps scheduler contracts resolver-neutral while typed resolver layers supply their own registries. */
 export interface NormalizedProfessionContract<TProfessionState extends object = object, TSkill extends Skill = Skill> {
-  readonly resources: ResourcePolicies & { readonly endurance: EndurancePolicy | null };
   /** One equipment eligibility policy used by simulation and application consumers. */
   readonly weaponSkillMatchesSet?: Gw2WeaponSkillMatcher;
   readonly id: string;
