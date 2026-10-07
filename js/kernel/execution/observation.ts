@@ -1,4 +1,4 @@
-import { EPSILON } from '#kernel/core/clock.js';
+import { canonicalTime } from '#kernel/core/clock.js';
 /**
  * Resolver observation-window policy. Normalizes the caller-owned policy
  * (`rotation`, `tail`, or `absolute`) and, once the rotation timeline is known,
@@ -49,15 +49,17 @@ export function observationEndTime(policy: ObservationPolicy, rotationEndTime: n
     throw new TypeError('Rotation end time must be a non-negative finite number.');
   }
 
-  if (policy.kind === 'rotation') return normalizedRotationEnd;
+  // Compare canonical instants so observation cannot extend an absolute horizon through a tolerance allowance.
+  const rotationEnd = canonicalTime(normalizedRotationEnd);
+  if (policy.kind === 'rotation') return rotationEnd;
   if (policy.kind === 'tail') {
-    return normalizedRotationEnd + policy.durationMs / 1000;
+    return canonicalTime(rotationEnd + policy.durationMs / 1000);
   }
 
-  const absoluteEnd = policy.endTimeMs / 1000;
-  if (absoluteEnd < normalizedRotationEnd - EPSILON) {
+  const absoluteEnd = canonicalTime(policy.endTimeMs / 1000);
+  if (absoluteEnd < rotationEnd) {
     throw new RangeError('Absolute observation endTimeMs cannot precede rotation end.');
   }
 
-  return Math.max(normalizedRotationEnd, absoluteEnd);
+  return absoluteEnd;
 }

@@ -184,14 +184,16 @@ reservation. Final input recovery is included. It does not automatically extend 
 
 `observationEndTime` is selected by the observation policy:
 
-| Policy                            | Resolution end                           |
-| --------------------------------- | ---------------------------------------- |
-| omitted or `{ kind: "rotation" }` | `rotationEndTime`                        |
-| `{ kind: "tail", durationMs }`    | `rotationEndTime + durationMs / 1000`    |
-| `{ kind: "absolute", endTimeMs }` | `max(rotationEndTime, endTimeMs / 1000)` |
+| Policy                            | Resolution end                        |
+| --------------------------------- | ------------------------------------- |
+| omitted or `{ kind: "rotation" }` | `rotationEndTime`                     |
+| `{ kind: "tail", durationMs }`    | `rotationEndTime + durationMs / 1000` |
+| `{ kind: "absolute", endTimeMs }` | `endTimeMs / 1000`                    |
 
-Durations and absolute endpoints must be non-negative and finite. An absolute endpoint more than `EPSILON` before the
-rotation end is rejected. A tail is applied once; recurring work inside the tail does not recursively extend it.
+Durations and absolute endpoints must be non-negative and finite. Rotation and observation endpoints use the canonical
+microsecond clock. An absolute endpoint earlier than the canonical rotation end is rejected, without an epsilon
+allowance; inputs that round to the same microsecond represent the same instant. A tail is added to the canonical
+rotation end once and the result is canonicalized; recurring work inside the tail does not recursively extend it.
 
 The runtime drains the shared heap through the inclusive horizon. Work exactly at that instant is eligible; work one
 microsecond later remains pending and does not change state. Tail work never extends rotation duration.
