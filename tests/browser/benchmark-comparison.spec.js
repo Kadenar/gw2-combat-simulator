@@ -22,7 +22,7 @@ test('same-profession comparisons retain distinct colors and line patterns while
   await page.locator('[data-bc-profession]').selectOption('elementalist');
   for (let index = 0; index < 3; index++) await page.locator('[data-bc-pick]:enabled').nth(index).click();
   await page.locator('[data-bc-run]').click();
-  await expect(page.locator('[data-bc-status]')).toContainText('3 builds ready', { timeout: 90_000 });
+  await expect(page.locator('[data-bc-run]')).toHaveText('Run again', { timeout: 90_000 });
   const styles = () =>
     page.locator('[data-bc-legend] button').evaluateAll((buttons) =>
       buttons.map((button) => ({
@@ -38,15 +38,34 @@ test('same-profession comparisons retain distinct colors and line patterns while
       .locator('[data-bc-readout] tr')
       .evaluateAll((rows) => rows.map((row) => row.style.getPropertyValue('--bc-color')))
   ).toEqual(initial.map(({ color }) => color));
-  await page.locator('[data-bc-time]').fill('20');
+  // Unequal run lengths must preserve final values while marking ended cursor values and the partial viewport.
+  const canvas = page.locator('[data-bc-canvas]');
+  const finalDps = await page.locator('[data-bc-final]').allTextContents();
+  await expect(page.locator('[data-bc-partial]')).toBeVisible();
+  await canvas.scrollIntoViewIfNeeded();
+  const bounds = await canvas.boundingBox();
+  await canvas.click({ position: { x: bounds.width - 21, y: 100 } });
+  const cursorValues = await page.locator('[data-bc-readout] .bc-value').allTextContents();
+  expect(cursorValues.some((value) => /^Ended at \d+\.\d+s$/.test(value))).toBe(true);
+  expect(cursorValues.some((value) => /^[\d,]+$/.test(value))).toBe(true);
+  expect(await page.locator('[data-bc-final]').allTextContents()).toEqual(finalDps);
   await page.screenshot({ path: testInfo.outputPath('elementalist-comparison.png'), fullPage: true });
+  await page.mouse.move(bounds.x + 90, bounds.y + 100);
+  await page.mouse.down();
+  await page.mouse.move(bounds.x + 200, bounds.y + 100, { steps: 8 });
+  await page.mouse.up();
+  await expect(page.locator('[data-bc-partial]')).toBeHidden();
+  await page.locator('[data-bc-reset]').click();
+  await expect(page.locator('[data-bc-partial]')).toBeVisible();
   await page.locator('[data-bc-search]').fill('no matching builds');
   await page.locator('[data-bc-legend] button').nth(1).click();
   await page.getByRole('button', { name: 'Last 5s', exact: true }).click();
+  expect(await page.locator('[data-bc-final]').allTextContents()).toEqual(finalDps);
   expect(await styles()).toEqual(initial);
   await page.locator('[data-bc-search]').fill('');
-  await page.locator('[data-bc-remove]').first().click();
+  await page.locator('[data-bc-pick][aria-pressed="true"]').first().click();
   expect(await styles()).toEqual(initial.slice(1));
+  await expect(page.locator('[data-bc-partial]')).toBeHidden();
 });
 
 // Native worker/module loading and chart interactions belong here; damage formulas are covered in Node.
@@ -79,19 +98,28 @@ test('comparison loads on demand, runs different professions, and keeps chart in
   expect(requests.some((url) => /\/data\/gw2\/builds\/[^/]+\/b-/.test(url))).toBe(false);
   expect(workers).toBe(0);
   await page.locator('[data-bc-run]').click();
-  await expect(page.locator('[data-bc-status]')).toContainText('2 builds ready', { timeout: 90_000 });
+  await expect(page.locator('[data-bc-run]')).toHaveText('Run again', { timeout: 90_000 });
   expect(workers).toBe(2);
   await expect(page.locator('[data-bc-legend] button')).toHaveCount(2);
   await expect(page.locator('[data-bc-readout] tr')).toHaveCount(2);
-  await page.locator('[data-bc-time]').fill('20');
-  await expect(page.locator('[data-bc-pin]')).toHaveAttribute('aria-pressed', 'true');
+  const canvas = page.locator('[data-bc-canvas]');
+  await canvas.click({ position: { x: 250, y: 100 } });
+  // Mouse inspection must not draw a focus ring; tab navigation must still identify the chart.
+  await expect(canvas).toHaveCSS('outline-style', 'none');
+  await page.keyboard.press('Tab');
+  await page.keyboard.press('Shift+Tab');
+  await expect(canvas).toBeFocused();
+  await expect(canvas).toHaveCSS('outline-style', 'solid');
+  await canvas.click({ position: { x: 250, y: 100 } });
+  await expect(canvas).toHaveCSS('outline-style', 'none');
   const before = await page.locator('[data-bc-readout]').textContent();
+  await page.locator('[data-bc-canvas]').hover({ position: { x: 350, y: 100 } });
+  await expect(page.locator('[data-bc-readout]')).toHaveText(before);
   await page.getByRole('button', { name: 'Last 1s', exact: true }).click();
   await expect(page.locator('[data-bc-title]')).toHaveText('1-second rolling DPS');
   expect(await page.locator('[data-bc-readout]').textContent()).not.toBe(before);
   await page.locator('[data-bc-legend] button').first().click();
   await expect(page.locator('[data-bc-legend] button').first()).toHaveAttribute('aria-pressed', 'false');
-  const canvas = page.locator('[data-bc-canvas]');
   await canvas.scrollIntoViewIfNeeded();
   const bounds = await canvas.boundingBox();
   await page.mouse.move(bounds.x + 90, bounds.y + 100);
@@ -102,14 +130,15 @@ test('comparison loads on demand, runs different professions, and keeps chart in
   await canvas.press('Escape');
   await expect(page.locator('[data-bc-reset]')).toBeDisabled();
   await expect(canvas).not.toBeFocused();
-  await expect(page.locator('[data-bc-pin]')).toHaveAttribute('aria-pressed', 'false');
-  await page.locator('[data-bc-time]').fill('20');
-  await page.locator('[data-bc-time]').press('Escape');
-  await expect(canvas).not.toBeFocused();
-  await expect(page.locator('[data-bc-time]')).not.toBeFocused();
-  await expect(page.locator('[data-bc-pin]')).toHaveAttribute('aria-pressed', 'false');
+  // Inspection resumes after Escape, while keyboard inspection pins the readout against pointer movement.
+  const readout = page.locator('[data-bc-readout]');
+  const unpinned = await readout.textContent();
+  await page.mouse.move(bounds.x + 350, bounds.y + 100);
+  await expect(readout).not.toHaveText(unpinned);
   await canvas.press('ArrowRight');
-  await expect(page.locator('[data-bc-pin]')).toHaveAttribute('aria-pressed', 'true');
+  const pinned = await readout.textContent();
+  await page.mouse.move(bounds.x + 450, bounds.y + 100);
+  await expect(readout).toHaveText(pinned);
   await page.getByRole('button', { name: 'Build benchmarks', exact: true }).click();
   await page.getByRole('button', { name: 'Simulate comparison', exact: true }).click();
   await expect(page.locator('[data-bc-readout] tr')).toHaveCount(2);
@@ -136,13 +165,17 @@ test('failed assets show a per-build error and can be retried', async ({ page })
   await expect(page.locator('[data-bc-readout]')).toContainText('saved rotation is required');
   await page.unroute(rotations);
   await page.locator('[data-bc-run]').click();
-  await expect(page.locator('[data-bc-status]')).toContainText('1 builds ready', { timeout: 90_000 });
+  await expect(page.locator('[data-bc-run]')).toHaveText('Run again', { timeout: 90_000 });
 });
 
-test('leaving comparison terminates preparation and a later run uses a fresh worker', async ({ page }) => {
+test('leaving comparison terminates preparation and a later run uses a fresh worker', async ({ page }, testInfo) => {
   test.setTimeout(120_000);
   await openComparison(page);
   await pickFirst(page, 'guardian');
+  const loading = page.locator('[data-bc-loading]');
+  await expect(loading).toBeHidden();
+  await expect(page.locator('[data-bc-empty-title]')).toBeHidden();
+  const plotBefore = await page.locator('.bc-plot').boundingBox();
   let release;
   const gate = new Promise((resolve) => {
     release = resolve;
@@ -165,6 +198,16 @@ test('leaving comparison terminates preparation and a later run uses a fresh wor
   await page.locator('[data-bc-run]').click();
   await started;
   await expect(page.locator('[data-bc-cancel]')).toBeVisible();
+  await expect(page.locator('[data-bc-status]')).toBeHidden();
+  expect((await page.locator('.bc-plot').boundingBox()).y).toBe(plotBefore.y);
+  // Loading feedback follows the actual worker lifecycle and stays static for reduced-motion users.
+  await expect(loading).toBeVisible();
+  const curve = loading.locator('.bc-loading-curve').first();
+  await expect(curve).toHaveCSS('animation-name', 'bc-loading-draw');
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  await expect(curve).toHaveCSS('animation-name', 'none');
+  await page.screenshot({ path: testInfo.outputPath('comparison-loading.png'), fullPage: true });
+  await page.emulateMedia({ reducedMotion: 'no-preference' });
   expect(workers).toBe(1);
   const closed = activeWorker.waitForEvent('close');
   await page.getByRole('button', { name: 'Build benchmarks', exact: true }).click();
@@ -173,9 +216,11 @@ test('leaving comparison terminates preparation and a later run uses a fresh wor
   await page.getByRole('button', { name: 'Simulate comparison', exact: true }).click();
   await expect(page.locator('[data-bc-status]')).toContainText('Run cancelled');
   await expect(page.locator('[data-bc-cancel]')).toBeHidden();
+  await expect(loading).toBeHidden();
   expect(workers).toBe(1);
   await page.locator('[data-bc-run]').click();
-  await expect(page.locator('[data-bc-status]')).toContainText('1 builds ready', { timeout: 90_000 });
+  await expect(page.locator('[data-bc-run]')).toHaveText('Run again', { timeout: 90_000 });
+  await expect(loading).toBeHidden();
   expect(workers).toBe(2);
 });
 
@@ -193,11 +238,92 @@ test('repeated comparisons reuse workers and prepared preset assets', async ({ p
   await pickFirst(page, 'mesmer');
   for (let run = 0; run < 2; run++) {
     await page.locator('[data-bc-run]').click();
-    await expect(page.locator('[data-bc-status]')).toContainText('2 builds ready', { timeout: 90_000 });
+    await expect(page.locator('[data-bc-run]')).toHaveText('Run again', { timeout: 90_000 });
     expect(workers).toBe(2);
     expect(assets).toHaveLength(4);
   }
 
   const imports = await page.evaluate(() => performance.getEntriesByType('resource').map((entry) => entry.name));
   expect(imports.filter((url) => /\/professions\/[^/]+\/(app\/app-definition|profession)\./.test(url))).toEqual([]);
+});
+
+// Control result delivery and the browser clock to verify reveals without depending on worker speed.
+test('fresh results reveal once while cached visibility changes stay immediate', async ({ page }) => {
+  await page.clock.install({ time: new Date('2026-01-01T00:00:00Z') });
+  await page.route('**/benchmark-comparison/execute.ts*', (route) =>
+    route.fulfill({
+      contentType: 'application/javascript',
+      body: `
+        window.comparisonJobs = [];
+        export function createComparisonExecutor() {
+          return {
+            execute: () => new Promise(resolve => window.comparisonJobs.push(resolve)),
+            dispose() {}
+          };
+        }
+      `
+    })
+  );
+  await openComparison(page);
+  await pickFirst(page, 'guardian');
+  await page.locator('[data-bc-run]').click();
+  await expect.poll(() => page.evaluate(() => window.comparisonJobs?.length)).toBe(1);
+  await page.clock.pauseAt(new Date('2026-01-02T00:00:00Z'));
+  const finish = (damage) =>
+    page.evaluate((totalDamage) => {
+      window.comparisonJobs.shift()({
+        durationMs: 10000,
+        damage: [
+          { t: 1000, v: totalDamage / 5 },
+          { t: 10000, v: totalDamage }
+        ],
+        dps: totalDamage / 10,
+        totalDamage,
+        targetDied: true,
+        warnings: []
+      });
+    }, damage);
+  const pixels = () =>
+    page.locator('[data-bc-canvas]').evaluate(async (canvas) => {
+      const digest = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(canvas.toDataURL()));
+      return Array.from(new Uint8Array(digest), (byte) => byte.toString(16).padStart(2, '0')).join('');
+    });
+  const click = (selector) => page.locator(selector).evaluate((button) => button.click());
+  await finish(500000);
+  const initial = await pixels();
+  await page.clock.runFor(200);
+  const revealing = await pixels();
+  expect(revealing).not.toBe(initial);
+  await page.clock.runFor(1000);
+  const complete = await pixels();
+  expect(complete).not.toBe(revealing);
+
+  await click('[data-bc-visible]');
+  await click('[data-bc-visible]');
+  expect(await pixels()).toBe(complete);
+  await click('[data-bc-pick][aria-pressed="true"]');
+  await click('[data-bc-pick]:enabled >> nth=0');
+  expect(await pixels()).toBe(complete);
+  await page.clock.runFor(1000);
+  expect(await pixels()).toBe(complete);
+
+  await click('[data-bc-pick]:enabled >> nth=1');
+  await click('[data-bc-run]');
+  expect(await page.evaluate(() => window.comparisonJobs.length)).toBe(1);
+  await finish(250000);
+  // Adding a new curve must leave the previously completed curve fully drawn.
+  expect(await pixels()).toBe(complete);
+  await page.clock.runFor(200);
+  const added = await pixels();
+  expect(added).not.toBe(complete);
+  await page.clock.runFor(1000);
+  expect(await pixels()).not.toBe(added);
+
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  await click('[data-bc-run]');
+  await finish(500000);
+  await finish(250000);
+  const reduced = await pixels();
+  await page.clock.runFor(1000);
+  expect(await pixels()).toBe(reduced);
 });

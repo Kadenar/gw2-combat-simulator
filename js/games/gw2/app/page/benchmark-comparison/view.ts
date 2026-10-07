@@ -24,7 +24,7 @@ export interface BenchmarkComparisonView {
 export function mountBenchmarkComparison(root: HTMLElement): BenchmarkComparisonView {
   root.classList.add('benchmark-comparison');
   root.innerHTML = `
-    <div class="bc-intro"><div><h2>See how builds perform over time</h2><p>Compare openers, sustained damage, and the moments where one build pulls ahead.</p></div><div class="bc-actions"><button type="button" data-bc-cancel hidden>Cancel run</button><button type="button" data-bc-run class="bc-primary" disabled>Run comparison</button></div></div>
+    <div class="bc-toolbar"><p class="bc-help" id="bc-chart-help">Drag across the chart to zoom · Click to pin a time · Toggle legend entries to hide curves · Completed results stay cached until this page reloads</p><div class="bc-actions"><button type="button" data-bc-cancel hidden>Cancel run</button><button type="button" data-bc-run class="bc-primary" disabled>Run comparison</button></div></div>
     <div class="bc-workspace">
       <aside class="bc-picker" aria-label="Choose builds"><div class="bc-picker-heading"><h3>Choose builds</h3><span data-bc-count>0 selected</span></div>
         <input data-bc-search type="search" aria-label="Search comparison builds" placeholder="Search builds…" autocomplete="off">
@@ -34,28 +34,27 @@ export function mountBenchmarkComparison(root: HTMLElement): BenchmarkComparison
         <p class="bc-catalog-heading" data-bc-catalog-count></p><div data-bc-catalog class="bc-catalog"></div>
       </aside>
       <div class="bc-analysis">
-        <div class="bc-selected" data-bc-selected role="group" aria-label="Selected builds"></div>
         <p class="bc-status" data-bc-status role="status" aria-live="polite"></p>
         <div class="bc-chart-section"><div class="bc-chart-heading"><div><h3 data-bc-title>Average DPS over time</h3><p data-bc-description>Total damage divided by time since first damage.</p></div><div class="bc-segmented" role="group" aria-label="DPS measurement"><button type="button" data-bc-mode="average" aria-pressed="true">Average</button><button type="button" data-bc-mode="1" aria-pressed="false">Last 1s</button><button type="button" data-bc-mode="5" aria-pressed="false">Last 5s</button></div></div>
-          <div class="bc-chart-controls"><span data-bc-range>Aligned to first damage</span><button type="button" data-bc-reset class="bc-quiet" disabled>Reset zoom</button></div>
-          <div class="bc-plot"><canvas data-bc-canvas tabindex="0" aria-label="Build DPS comparison. Left and right arrows inspect time; Enter pins time; drag to zoom; Escape resets zoom." aria-describedby="bc-chart-help"></canvas><div class="bc-empty" data-bc-empty><strong data-bc-empty-title>Choose your builds</strong><p data-bc-empty-copy>Add one or more builds, then run a comparison.</p></div></div>
+          <div class="bc-chart-controls"><button type="button" data-bc-reset class="bc-quiet" disabled>Reset zoom</button></div>
+          <div class="bc-plot"><canvas data-bc-canvas tabindex="0" aria-label="Build DPS comparison. Left and right arrows inspect time; Enter pins time; drag to zoom; Escape resets zoom." aria-describedby="bc-chart-help"></canvas><span class="bc-partial" data-bc-partial hidden title="Some visible runs have ended. Values in this region cover fewer builds.">Partial comparison</span><div class="bc-empty" data-bc-empty><div class="bc-loading" data-bc-loading hidden aria-hidden="true"><svg viewBox="0 0 160 64" fill="none"><path class="bc-loading-grid" d="M8 16H152M8 32H152M8 48H152"/><path class="bc-loading-curve bc-loading-gold" pathLength="1" d="M8 54C20 54 21 8 35 12S50 43 67 34S90 19 107 25S130 30 152 18"/><path class="bc-loading-curve bc-loading-blue" pathLength="1" d="M8 54C22 54 24 38 38 35S55 17 73 24S91 42 110 33S137 22 152 27"/><path class="bc-loading-curve bc-loading-purple" pathLength="1" d="M8 54C27 54 34 48 48 44S68 30 87 35S122 15 152 21"/></svg></div><strong data-bc-empty-title>Choose your builds</strong><p data-bc-empty-copy>Add one or more builds, then run a comparison.</p></div></div>
           <div class="bc-legend" data-bc-legend role="group" aria-label="Visible build curves"></div>
         </div>
-        <section class="bc-inspector" aria-label="Values at selected time"><div class="bc-inspector-heading"><div><h3>At this moment</h3><p data-bc-hint>Hover the chart or enter a time to compare.</p></div><div class="bc-time-control"><label>Time <input data-bc-time type="number" min="0" step="0.001" value="0.000" aria-label="Comparison time in seconds"></label><span>s</span><button type="button" data-bc-pin aria-pressed="false">Pin time</button></div></div>
-          <div class="bc-table-scroll" role="region" aria-label="Build DPS values at selected time" tabindex="0"><table><thead><tr><th scope="col">Build</th><th scope="col" data-bc-metric>Average DPS</th><th scope="col">Gap to leader</th><th scope="col">Damage so far</th><th scope="col">Run ends</th></tr></thead><tbody data-bc-readout></tbody></table></div>
+        <section class="bc-inspector" aria-label="Values at selected time">
+          <div class="bc-table-scroll" role="region" aria-label="Build DPS values at selected time" tabindex="0"><table><thead><tr><th scope="col">Build</th><th scope="col" data-bc-metric>DPS at cursor<small>Average</small></th><th scope="col" title="Average DPS over each build's complete run">Final DPS</th><th scope="col">Damage so far</th><th scope="col">Run ends</th></tr></thead><tbody data-bc-readout></tbody></table></div>
         </section>
       </div>
     </div>
-    <p class="bc-help" id="bc-chart-help">Drag across the chart to zoom · Click to pin a time · Toggle legend entries to hide curves · Completed results stay cached until this page reloads</p>`;
+`;
   const get = <T extends HTMLElement = HTMLElement>(name: string): T => root.querySelector<T>(`[data-bc-${name}]`)!;
   const search = get<HTMLInputElement>('search');
   const profession = get<HTMLSelectElement>('profession');
   const outdated = get<HTMLInputElement>('outdated');
-  const time = get<HTMLInputElement>('time');
   const runButton = get<HTMLButtonElement>('run');
   const selected = new Map<string, Benchmark>();
   const styleSlots = new Map<string, number>();
   const hidden = new Set<string>();
+  const presented = new WeakSet<ComparisonResult>();
   const curves = new WeakMap<ComparisonResult, Map<ComparisonMode, ReturnType<typeof comparisonCurve>>>();
   let rows: readonly Benchmark[] = [];
   let colors: ReadonlyMap<Benchmark, string> = new Map();
@@ -80,6 +79,7 @@ export function mountBenchmarkComparison(root: HTMLElement): BenchmarkComparison
     Math.max(1000, ...[...selected.values()].map((row) => resultFor(row)?.durationMs ?? 0));
   const chart = mountComparisonChart(
     get<HTMLCanvasElement>('canvas'),
+    get('partial'),
     () => ({ lines, mode, cursor, pinned, durationMs: duration() }),
     (value, pin) => {
       cursor = Math.min(duration(), Math.max(0, value));
@@ -87,8 +87,8 @@ export function mountBenchmarkComparison(root: HTMLElement): BenchmarkComparison
       renderValues();
       chart.draw();
     },
-    (start, end, zoomed) => {
-      get('range').textContent = `${(start / 1000).toFixed(1)}–${(end / 1000).toFixed(1)}s · Aligned to first damage`;
+    (_start, _end, zoomed) => {
+      // Expose zoom recovery without repeating the chart's time axis in a separate label.
       get<HTMLButtonElement>('reset').disabled = !zoomed;
     }
   );
@@ -131,18 +131,7 @@ export function mountBenchmarkComparison(root: HTMLElement): BenchmarkComparison
   }
 
   function renderValues(): void {
-    if (root.ownerDocument.activeElement !== time) time.value = (cursor / 1000).toFixed(3);
-    time.max = String(duration() / 1000);
-    get('pin').setAttribute('aria-pressed', String(pinned));
-    get('pin').textContent = pinned ? 'Unpin time' : 'Pin time';
-    get('hint').textContent = pinned
-      ? 'Time pinned. Hovering leaves these values in place.'
-      : 'Hover the chart or enter a time to compare.';
-    const values = [...selected.values()].flatMap((row) => {
-      const result = resultFor(row);
-      return result && !hidden.has(comparisonKey(row)) ? [comparisonDpsAt(result, cursor, mode) ?? 0] : [];
-    });
-    const leader = Math.max(0, ...values);
+    // Keep full-run averages separate from cursor values so ended runs never compete at a later time.
     const number = (value: number): string => Math.round(value).toLocaleString('en-US');
     get('readout').innerHTML =
       [...selected.values()]
@@ -151,12 +140,6 @@ export function mountBenchmarkComparison(root: HTMLElement): BenchmarkComparison
           const entry = runner.entries.get(key);
           const result = entry?.result;
           const value = result ? comparisonDpsAt(result, cursor, mode) : null;
-          const gap =
-            value === null || hidden.has(key)
-              ? '—'
-              : value === leader && leader > 0
-                ? '<span class="bc-leading">LEADING</span>'
-                : `−${number(leader - value)}`;
           const state =
             entry?.status === 'error'
               ? entry.error!
@@ -169,7 +152,7 @@ export function mountBenchmarkComparison(root: HTMLElement): BenchmarkComparison
                     : hidden.has(key)
                       ? 'Hidden from chart'
                       : templateTileContent(row).weapons;
-          return `<tr class="${hidden.has(key) ? 'bc-hidden-line' : ''}" style="--bc-color:${html(color(row))}"><th scope="row"><span class="bc-row-name"><i class="bc-dot"></i>${html(name(row))}</span><small>${html(row.label)}</small><small ${entry?.status === 'error' ? 'class="bc-error"' : ''}>${html(state)}</small></th><td class="bc-value">${result ? (value === null ? 'Ended' : number(value)) : '—'}</td><td>${gap}</td><td>${result ? `${(comparisonDamageAt(result.damage, cursor) / 1000000).toFixed(3)}M` : '—'}</td><td>${result ? `${(result.durationMs / 1000).toFixed(2)}s<small>${result.targetDied ? 'Target defeated' : 'Rotation ended'}</small>` : '—'}</td></tr>`;
+          return `<tr class="${hidden.has(key) ? 'bc-hidden-line' : ''}" style="--bc-color:${html(color(row))}"><th scope="row"><span class="bc-row-name"><i class="bc-dot"></i>${html(name(row))}</span><small>${html(row.label)}</small><small ${entry?.status === 'error' ? 'class="bc-error"' : ''}>${html(state)}</small></th><td class="bc-value">${result ? (value === null ? `Ended at ${(result.durationMs / 1000).toFixed(1)}s` : number(value)) : '—'}</td><td data-bc-final>${result ? number(result.dps) : '\u2014'}</td><td>${result ? `${(comparisonDamageAt(result.damage, cursor) / 1000000).toFixed(3)}M` : '—'}</td><td>${result ? `${(result.durationMs / 1000).toFixed(2)}s<small>${result.targetDied ? 'Target defeated' : 'Rotation ended'}</small>` : '—'}</td></tr>`;
         })
         .join('') || '<tr><td colspan="5" class="bc-no-matches">Choose a build to start comparing.</td></tr>';
   }
@@ -196,30 +179,27 @@ export function mountBenchmarkComparison(root: HTMLElement): BenchmarkComparison
     assignComparisonSlots(selected.keys(), styleSlots);
     const picked = [...selected.values()];
     const finished = picked.filter((row) => runner.entries.get(comparisonKey(row))?.status === 'complete');
+    // Result identity survives visibility/selection toggles; only a fresh simulation earns a reveal.
+    for (const row of finished) {
+      const result = resultFor(row)!;
+      if (presented.has(result)) continue;
+      presented.add(result);
+      if (!hidden.has(comparisonKey(row))) chart.reveal(result);
+    }
+
     const failed = picked.filter((row) => runner.entries.get(comparisonKey(row))?.status === 'error');
     const pending = picked.length - finished.length;
     get('count').textContent = `${picked.length} selected`;
-    get('selected').innerHTML =
-      picked
-        .map(
-          (row) =>
-            `<span class="bc-chip" style="--bc-color:${html(color(row))}" title="${html(fullName(row))}"><i class="bc-dot"></i><span>${html(fullName(row))}</span><button type="button" data-bc-remove="${index(row)}" aria-label="Remove ${html(fullName(row))}" ${runner.running ? 'disabled' : ''}>×</button></span>`
-        )
-        .join('') || '<span class="bc-muted">Your selected builds will appear here</span>';
-    const runningCount = picked.filter((row) => runner.entries.get(comparisonKey(row))?.status === 'running').length;
-    get('status').textContent = runner.running
-      ? `${finished.length + failed.length} of ${picked.length} complete · ${runningCount} loading / simulating`
-      : !picked.length
+    // Keep preparation within the plot so starting a run does not shift the chart vertically.
+    get('status').textContent =
+      runner.running || !picked.length
         ? ''
         : cancelled
           ? `Run cancelled · ${finished.length} completed results kept`
           : failed.length
             ? `${failed.length} build${failed.length === 1 ? '' : 's'} failed · Run comparison to retry`
-            : pending
-              ? `${pending} build${pending === 1 ? '' : 's'} waiting · Run comparison to add ${pending === 1 ? 'its curve' : 'their curves'}`
-              : `${finished.length} builds ready · Results cached for this session`;
-    root.dataset.running = String(runner.running);
-    get('status').hidden = !picked.length;
+            : '';
+    get('status').hidden = !get('status').textContent;
     runButton.disabled = runner.running || !picked.length;
     runButton.textContent = runner.running ? 'Running…' : pending ? `Run comparison (${pending})` : 'Run again';
     get<HTMLButtonElement>('clear').disabled = runner.running || !picked.length;
@@ -253,6 +233,8 @@ export function mountBenchmarkComparison(root: HTMLElement): BenchmarkComparison
       });
     cursor = Math.min(cursor, duration());
     get('empty').hidden = lines.length > 0;
+    // Animate only initial preparation; completed curves take over as soon as results arrive.
+    get('loading').hidden = !runner.running || finished.length > 0;
     get('empty-title').textContent = !picked.length
       ? 'Choose your builds'
       : finished.length
@@ -261,7 +243,8 @@ export function mountBenchmarkComparison(root: HTMLElement): BenchmarkComparison
           ? 'Building your comparison…'
           : failed.length
             ? 'Simulation needs attention'
-            : 'Ready when you are';
+            : '';
+    get('empty-title').hidden = !get('empty-title').textContent;
     get('empty-copy').textContent = !picked.length
       ? 'Add one or more builds, then run a comparison.'
       : finished.length
@@ -281,7 +264,7 @@ export function mountBenchmarkComparison(root: HTMLElement): BenchmarkComparison
   root.addEventListener('click', (event) => {
     const button = (event.target as Element).closest<HTMLButtonElement>('button');
     if (!button) return;
-    const { bcPick, bcFilter, bcMode, bcRemove, bcVisible } = button.dataset;
+    const { bcPick, bcFilter, bcMode, bcVisible } = button.dataset;
     // Native row buttons expose selection to keyboard and assistive technology without separate checkboxes.
     if (bcPick !== undefined && !runner.running) {
       const row = rows[Number(bcPick)]!;
@@ -313,17 +296,8 @@ export function mountBenchmarkComparison(root: HTMLElement): BenchmarkComparison
         mode === 'average'
           ? 'Total damage divided by time since first damage.'
           : `Damage in the last ${mode} second${mode === '1' ? '' : 's'}, divided by the window’s duration.`;
-      get('metric').textContent = mode === 'average' ? 'Average DPS' : `Last ${mode}s DPS`;
+      get('metric').innerHTML = `DPS at cursor<small>${mode === 'average' ? 'Average' : `Last ${mode}s`}</small>`;
       render();
-    }
-
-    if (bcRemove !== undefined && !runner.running) {
-      const row = rows[Number(bcRemove)]!;
-      selected.delete(comparisonKey(row));
-      hidden.delete(comparisonKey(row));
-      render();
-      chart.reset();
-      root.querySelector<HTMLButtonElement>(`[data-bc-pick="${bcRemove}"]`)?.focus({ preventScroll: true });
     }
 
     if (bcVisible !== undefined) {
@@ -357,32 +331,9 @@ export function mountBenchmarkComparison(root: HTMLElement): BenchmarkComparison
     search.focus();
   });
   get('reset').addEventListener('click', chart.reset);
-  get('pin').addEventListener('click', () => {
-    pinned = !pinned;
-    renderValues();
-    chart.draw();
-  });
-  time.addEventListener('input', () => {
-    if (!Number.isFinite(time.valueAsNumber)) return;
-    cursor = Math.max(0, Math.min(duration(), time.valueAsNumber * 1000));
-    pinned = true;
-    renderValues();
-    chart.draw();
-  });
-  time.addEventListener('blur', () => {
-    time.value = (cursor / 1000).toFixed(3);
-  });
-  // Escape dismisses typed/pinned inspection too, without moving focus onto the canvas.
-  root.addEventListener('keydown', (event) => {
-    if (event.key !== 'Escape' || (event.target !== time && event.target !== get('pin'))) return;
-    event.preventDefault();
-    pinned = false;
-    renderValues();
-    chart.reset();
-    (event.target as HTMLElement).blur();
-  });
   root.ownerDocument.defaultView?.addEventListener('pagehide', () => {
     runner.cancel();
+    chart.dispose();
     executor.dispose();
   });
   render();

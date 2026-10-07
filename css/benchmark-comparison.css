@@ -61,24 +61,18 @@
   font-weight: 600;
   margin: 0;
 }
-.bc-intro {
+/* Present chart guidance beside run controls, wrapping above them on narrow screens. */
+.bc-toolbar {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 20px;
-  padding: 22px 0;
-}
-#benchmarks-view .bc-intro h2 {
-  font-size: 18px;
-  margin-bottom: 4px;
-}
-.bc-intro p {
-  color: var(--bc-muted);
-  font-size: 12px;
+  flex-wrap: wrap;
+  gap: 12px;
+  padding: 14px 0;
 }
 .bc-actions {
   display: flex;
   align-items: center;
+  justify-content: flex-end;
   gap: 8px;
   flex-shrink: 0;
 }
@@ -220,39 +214,6 @@
 .bc-analysis {
   min-width: 0;
 }
-.bc-selected {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 7px;
-  padding: 15px 20px;
-  min-height: 66px;
-  background: #1c1b1f;
-  border-bottom: 1px solid var(--bc-line);
-}
-.bc-chip {
-  display: inline-flex;
-  align-items: center;
-  gap: 7px;
-  font-size: 11px;
-  background: #242228;
-  border: 1px solid #3b3740;
-  border-radius: 4px;
-  padding: 5px 7px 5px 10px;
-  max-width: 100%;
-}
-.bc-chip > span {
-  min-width: 0;
-  overflow-wrap: anywhere;
-}
-.bc-chip button {
-  padding: 0 3px;
-  border: 0;
-  background: transparent;
-  color: var(--bc-muted);
-  font-size: 16px;
-  line-height: 1;
-}
 .bc-dot {
   width: 7px;
   height: 7px;
@@ -276,9 +237,6 @@
   border-radius: 50%;
   background: #88b59a;
   margin-right: 8px;
-}
-.benchmark-comparison[data-running='true'] .bc-status::before {
-  background: var(--bc-gold);
 }
 .bc-chart-section {
   padding: 20px 20px 0;
@@ -316,7 +274,7 @@
 }
 .bc-chart-controls {
   display: flex;
-  justify-content: space-between;
+  justify-content: flex-end;
   gap: 12px;
   align-items: center;
   margin-top: 16px;
@@ -338,6 +296,28 @@
   height: 100%;
   touch-action: pan-y;
 }
+/* Pointer inspection stays visually quiet while keyboard navigation retains a focus indicator. */
+.bc-plot canvas:focus:not(:focus-visible),
+.bc-plot canvas[data-pointer-focus] {
+  outline: none;
+}
+.bc-plot canvas:focus-visible:not([data-pointer-focus]) {
+  outline: 2px solid var(--bc-gold);
+  outline-offset: 2px;
+}
+/* Keep the partial-window explanation inside the plot without blocking chart inspection. */
+.bc-partial {
+  position: absolute;
+  top: 30px;
+  right: 26px;
+  max-width: calc(100% - 81px);
+  padding: 3px 5px;
+  border-radius: 3px;
+  color: var(--bc-gold);
+  background: #24211e;
+  font-size: 10px;
+  pointer-events: none;
+}
 .bc-empty {
   position: absolute;
   inset: 40px 25px;
@@ -358,6 +338,65 @@
   color: var(--bc-muted);
   font-size: 12px;
   max-width: 330px;
+}
+/* Drawing miniature curves signals preparation without implying a measured completion percentage. */
+.bc-loading {
+  width: 160px;
+  max-width: 100%;
+  margin-bottom: 8px;
+}
+.bc-loading svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  overflow: visible;
+}
+.bc-loading-grid {
+  stroke: var(--bc-line);
+  stroke-dasharray: 2 5;
+}
+.bc-loading-curve {
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-dasharray: 1;
+}
+.bc-loading-gold {
+  stroke: var(--bc-gold);
+  --bc-delay: 0s;
+}
+.bc-loading-blue {
+  stroke: #70d5e8;
+  --bc-delay: 0.2s;
+}
+.bc-loading-purple {
+  stroke: #bd9bea;
+  --bc-delay: 0.4s;
+}
+.bc-loading:not([hidden]) .bc-loading-curve {
+  animation: bc-loading-draw 2.8s ease-in-out var(--bc-delay) infinite both;
+}
+@keyframes bc-loading-draw {
+  0% {
+    stroke-dashoffset: 1;
+    opacity: 0;
+  }
+  15% {
+    opacity: 1;
+  }
+  65%,
+  80% {
+    stroke-dashoffset: 0;
+    opacity: 1;
+  }
+  100% {
+    stroke-dashoffset: 0;
+    opacity: 0;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .bc-loading:not([hidden]) .bc-loading-curve {
+    animation: none;
+  }
 }
 .bc-legend {
   display: flex;
@@ -391,43 +430,6 @@
 }
 .bc-inspector {
   border-top: 1px solid var(--bc-line);
-}
-.bc-inspector-heading {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  padding: 13px 20px;
-  background: #1c1b1f;
-}
-.bc-inspector-heading p {
-  color: var(--bc-muted);
-  font-size: 10px;
-}
-.bc-time-control {
-  display: flex;
-  align-items: center;
-  gap: 7px;
-  font-size: 11px;
-}
-.bc-time-control label {
-  display: flex;
-  align-items: center;
-  gap: 7px;
-}
-.bc-time-control input {
-  width: 86px;
-  font: 12px var(--mono);
-  padding: 5px 6px;
-}
-.bc-time-control button {
-  padding: 5px 9px;
-  font-size: 10px;
-  white-space: nowrap;
-}
-.bc-time-control button[aria-pressed='true'] {
-  color: var(--bc-gold);
-  border-color: #78614a;
 }
 .bc-table-scroll {
   overflow-x: auto;
@@ -482,16 +484,9 @@
   color: var(--bc-color);
   font-weight: 600;
 }
-.bc-leading {
-  color: var(--bc-gold);
-  font:
-    10px 'Segoe UI',
-    sans-serif;
-}
 .bc-hidden-line {
   opacity: 0.4;
 }
-.bc-muted,
 .bc-no-matches {
   color: var(--bc-muted);
 }
@@ -513,7 +508,8 @@
   color: #ef9d9d;
 }
 .bc-help {
-  margin-top: 14px;
+  flex: 1 1 420px;
+  margin: 0;
   font-size: 10px;
   color: #96928a;
 }
@@ -521,16 +517,8 @@
   .bc-workspace {
     grid-template-columns: 230px minmax(0, 1fr);
   }
-  .bc-intro {
-    align-items: flex-start;
-    flex-direction: column;
-    gap: 12px;
-  }
   .bc-chart-section {
     padding: 16px 14px 0;
-  }
-  .bc-inspector-heading {
-    flex-wrap: wrap;
   }
   .benchmark-comparison tbody :is(th, td),
   .benchmark-comparison thead th {
@@ -565,9 +553,7 @@
   .bc-plot {
     height: 280px;
   }
-  .bc-selected,
-  .bc-status,
-  .bc-inspector-heading {
+  .bc-status {
     padding-left: 12px;
     padding-right: 12px;
   }
