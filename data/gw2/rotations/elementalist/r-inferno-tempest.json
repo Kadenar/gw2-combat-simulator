@@ -2,6 +2,18 @@
   "rotation": [
     {
       "type": "cast",
+      "skillId": 5695
+    },
+    {
+      "type": "cast",
+      "skillId": 5494
+    },
+    {
+      "type": "wait",
+      "durationMs": 5000
+    },
+    {
+      "type": "cast",
       "skillId": 2662,
       "concurrentOffsetMs": 40
     },
