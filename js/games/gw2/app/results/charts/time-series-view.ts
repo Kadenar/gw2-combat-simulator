@@ -101,6 +101,7 @@ const DEFAULT_OPTIONS: ChartOptions = {
 interface ActiveChartMount {
   readonly token: object;
   resizeObserver?: ResizeObserver;
+  dispose?: () => void;
 }
 
 const ACTIVE_MOUNTS = new WeakMap<HTMLElement, ActiveChartMount>();
@@ -269,7 +270,8 @@ function drawLineChart(
     markers = [],
     timeOffsetMs = 0,
     highlightedEffect = null,
-    tightScale = false
+    tightScale = false,
+    revealProgress = 1
   }: {
     readonly height?: number;
     readonly emptyText?: string;
@@ -277,6 +279,7 @@ function drawLineChart(
     readonly timeOffsetMs?: number;
     readonly highlightedEffect?: string | null;
     readonly tightScale?: boolean;
+    readonly revealProgress?: number;
   } = {}
 ): ChartLayout | null {
   if (!canvas?.getContext) return null;
@@ -287,8 +290,8 @@ function drawLineChart(
   const dpr = Math.max(1, Number(globalThis.window?.devicePixelRatio) || 1);
   // Keep layout width fluid so a hidden or stale measurement cannot widen the
   // mobile viewport; only the backing store uses the measured pixel width.
-  canvas.width = Math.round(cssWidth * dpr);
-  canvas.height = Math.round(height * dpr);
+  if (canvas.width !== Math.round(cssWidth * dpr)) canvas.width = Math.round(cssWidth * dpr);
+  if (canvas.height !== Math.round(height * dpr)) canvas.height = Math.round(height * dpr);
   canvas.style.width = '100%';
   canvas.style.height = `${height}px`;
   const context = canvas.getContext('2d');
@@ -368,6 +371,14 @@ function drawLineChart(
         (left, right) => Number(left.effectName === highlightedEffect) - Number(right.effectName === highlightedEffect)
       )
     : lines;
+  // Reveal only the curves, keeping axes, health markers, scales, and line patterns stable.
+  context.save();
+  if (revealProgress < 1) {
+    context.beginPath();
+    context.rect(pad.left, pad.top - 2, Math.max(0, plotWidth * revealProgress), plotHeight + 4);
+    context.clip();
+  }
+
   for (const line of orderedLines) {
     if (!line.points.length) continue;
     context.save();
@@ -394,6 +405,8 @@ function drawLineChart(
     context.stroke();
     context.restore();
   }
+
+  context.restore();
 
   if (!lines.length && emptyText) {
     context.fillStyle = '#8d8d9f';
@@ -640,7 +653,7 @@ export function mountTimeSeriesCharts(
 ): void {
   if (!container) return;
   // A token makes a queued animation-frame redraw from an older mount harmless.
-  ACTIVE_MOUNTS.get(container)?.resizeObserver?.disconnect();
+  ACTIVE_MOUNTS.get(container)?.dispose?.();
   const mountToken = {};
   const activeMount: ActiveChartMount = { token: mountToken };
   ACTIVE_MOUNTS.set(container, activeMount);
@@ -686,11 +699,23 @@ export function mountTimeSeriesCharts(
   const chartPhaseTogglesEl = container.querySelector<HTMLElement>('[data-role="chart-phase-toggles"]');
   const resetButton = container.querySelector<HTMLButtonElement>('[data-role="chart-reset-zoom"]');
   const zoomLabel = container.querySelector<HTMLElement>('[data-role="chart-zoom-label"]');
-  const panels: { kind: string; layout: ChartLayout | null; lines: ChartLine[] }[] = [
-    { kind: 'dps', layout: null, lines: [] },
-    { kind: 'effects', layout: null, lines: [] },
-    { kind: 'conditions', layout: null, lines: [] }
-  ];
+  const panels: {
+    kind: string;
+    layout: ChartLayout | null;
+    lines: ChartLine[];
+    canvas: HTMLCanvasElement | null;
+    revealProgress: number;
+    revealStarted: number | null;
+    paint: () => void;
+  }[] = ['dps', 'effects', 'conditions'].map((kind) => ({
+    kind,
+    layout: null,
+    lines: [],
+    canvas: container.querySelector<HTMLCanvasElement>(`[data-role="${kind}-canvas"]`),
+    revealProgress: 1,
+    revealStarted: null,
+    paint: () => {}
+  }));
   const dpsWindows = new Set(['cumulative']);
   const dpsSources = new Set(['total']);
   let hoveredEffect: string | null = null;
@@ -699,8 +724,34 @@ export function mountTimeSeriesCharts(
   let viewRange = { start: 0, end: resolvedSeries.durationMs, offset: 0 };
   let clearInteraction = (): void => {};
 
+  const chartWindow = container.ownerDocument?.defaultView;
+  const reducedMotion = chartWindow?.matchMedia('(prefers-reduced-motion: reduce)');
+  let revealFrame: number | null = null;
+  let revealObserver: IntersectionObserver | null = null;
+  const finishReveal = (includePending = true): void => {
+    for (const panel of panels) {
+      if (includePending || panel.revealStarted !== null) panel.revealProgress = 1;
+      panel.revealStarted = null;
+    }
+
+    if (revealFrame !== null) chartWindow?.cancelAnimationFrame(revealFrame);
+    revealFrame = null;
+    if (panels.every((panel) => panel.revealProgress === 1)) {
+      revealObserver?.disconnect();
+      reducedMotion?.removeEventListener('change', motionChanged);
+    }
+  };
+
+  const motionChanged = (): void => {
+    if (!reducedMotion?.matches) return;
+    finishReveal();
+    for (const panel of panels) panel.paint();
+  };
+
   const redraw = (): void => {
     if (ACTIVE_MOUNTS.get(container)?.token !== mountToken) return;
+    // Finish active reveals on interaction, but preserve the entrance for charts still below the viewport.
+    finishReveal(false);
     clearInteraction();
     const selected = new Set(
       [...container.querySelectorAll<HTMLInputElement>('[data-series]:checked')].map((input) => input.dataset.series)
@@ -824,16 +875,15 @@ export function mountTimeSeriesCharts(
           });
       }
 
-      panel.layout = drawLineChart(
-        container.querySelector<HTMLCanvasElement>(`[data-role="${panel.kind}-canvas"]`),
-        panel.lines.map((line) => ({
-          ...line,
-          points: buildPhaseEffectSeries(line.points, viewRange.start, viewRange.end)
-        })),
-        viewRange.end - viewRange.start,
-        {
+      const visibleLines = panel.lines.map((line) => ({
+        ...line,
+        points: buildPhaseEffectSeries(line.points, viewRange.start, viewRange.end)
+      }));
+      panel.paint = (): void => {
+        panel.layout = drawLineChart(panel.canvas, visibleLines, viewRange.end - viewRange.start, {
           height: panel.kind === 'dps' ? 280 : 260,
           tightScale: panel.kind === 'dps',
+          revealProgress: panel.revealProgress,
           highlightedEffect: hoveredEffect ?? focusedEffect,
           emptyText:
             panel.kind === 'dps'
@@ -848,8 +898,10 @@ export function mountTimeSeriesCharts(
                   .filter((marker) => marker.timeMs >= viewRange.start && marker.timeMs <= viewRange.end)
                   .map((marker) => ({ ...marker, timeMs: marker.timeMs - viewRange.start }))
               : []
-        }
-      );
+        });
+      };
+
+      panel.paint();
     }
   };
 
@@ -983,5 +1035,59 @@ export function mountTimeSeriesCharts(
     activeMount.resizeObserver.observe(observedContainer);
   }
 
-  requestRedraw();
+  // Reveal each chart once when enough of its plot is visible to see the entrance while scrolling.
+  if (chartWindow && !reducedMotion?.matches) {
+    for (const panel of panels) {
+      panel.revealProgress = 0;
+      panel.paint();
+    }
+
+    reducedMotion?.addEventListener('change', motionChanged);
+    const animate = (): void => {
+      revealFrame = null;
+      if (!container.isConnected || ACTIVE_MOUNTS.get(container)?.token !== mountToken) {
+        activeMount.dispose?.();
+        return;
+      }
+
+      for (const panel of panels) {
+        if (panel.revealStarted === null) continue;
+        const progress = Math.min(1, (chartWindow.performance.now() - panel.revealStarted) / 1000);
+        panel.revealProgress = 1 - (1 - progress) ** 3;
+        panel.paint();
+        if (progress === 1) panel.revealStarted = null;
+      }
+
+      if (panels.some((panel) => panel.revealStarted !== null))
+        revealFrame = chartWindow.requestAnimationFrame(animate);
+      else if (panels.every((panel) => panel.revealProgress === 1)) finishReveal();
+    };
+
+    revealObserver = new chartWindow.IntersectionObserver(
+      (entries) => {
+        if (ACTIVE_MOUNTS.get(container)?.token !== mountToken) return;
+        for (const entry of entries) {
+          if (!entry.isIntersecting || entry.intersectionRatio < 0.2) continue;
+          const panel = panels.find((panel) => panel.canvas === entry.target);
+          if (!panel || panel.revealProgress === 1 || panel.revealStarted !== null) continue;
+          panel.revealStarted = chartWindow.performance.now();
+          revealObserver?.unobserve(entry.target);
+        }
+
+        if (revealFrame === null && panels.some((panel) => panel.revealStarted !== null))
+          revealFrame = chartWindow.requestAnimationFrame(animate);
+      },
+      { threshold: 0.2 }
+    );
+    for (const panel of panels) {
+      if (panel.canvas) revealObserver.observe(panel.canvas);
+    }
+  }
+
+  activeMount.dispose = () => {
+    finishReveal();
+    revealObserver?.disconnect();
+    if (redrawFrame !== null) chartWindow?.cancelAnimationFrame(redrawFrame);
+    activeMount.resizeObserver?.disconnect();
+  };
 }

@@ -27,7 +27,7 @@ test('planning projections omit private mechanic state while retaining visible o
       'primaryAttunement'
     ],
     [guardianProfession, 'Core', 'core', ['justiceHitCount', 'virtueReadyAt'], 'symbolicAvengerExpirations'],
-    [rangerProfession, 'Core', 'core', ['petAutoNextAt', 'petAutoBusyUntil', 'petAutoCooldowns'], 'activePetSlot'],
+    [rangerProfession, 'Core', 'core', ['petAutoNextAt', 'petAutoBusyUntil', 'petAutoRecharges'], 'activePetSlot'],
     [
       thiefProfession,
       'Antiquary',

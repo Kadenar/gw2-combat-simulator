@@ -5,7 +5,6 @@ import { STANDARD_TARGET_ARMOR } from '#gw2/platform/combat/formulas.js';
 import type { SimulationEventBase } from '#gw2/platform/events/events.js';
 import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
 import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
-import { GW2_ALACRITY_RECHARGE_RATE } from '#gw2/platform/combat/recharge.js';
 import { cancelledBeforeEffectCommit } from '#gw2/platform/execution/cast-effects.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
@@ -252,6 +251,19 @@ function petCommandRechargeReadyAt(context: RangerRuntime, skillId: string | num
   return progress && skill ? context.cooldownController.project(skill, progress) : 0;
 }
 
+/** Reproject autonomous work against its original companion's boons, retaining pet-specific immunity after swaps. */
+function petAutonomousRechargeReadyAt(context: RangerRuntime, skillId: string | number): number {
+  const progress = context.profession.core.petAutoRecharges[String(skillId)];
+  const skill = context.helpers.skillsById.get(skillId);
+  if (!progress || !skill) return 0;
+  return gw2CooldownReadyAt(
+    context.cooldownController.project(
+      progress.ignoresAlacrity ? { ...skill, rechargeIgnoresAlacrity: true } : skill,
+      progress
+    )
+  );
+}
+
 function autonomousSkill(context: RangerRuntime, profile: PetAutoProfile, quickness: boolean): PetAutoSkill {
   const state = context.profession.core;
   // Command-controlled pets retain their basic cadence without spending F1/F3, including the opener.
@@ -264,7 +276,12 @@ function autonomousSkill(context: RangerRuntime, profile: PetAutoProfile, quickn
     state.petAutoOpeningBasic = false;
     // A precombat manual command may already have spent the opening skill's recharge.
     const opening = profile.opening || profile.basic;
-    return petCommandRechargeReadyAt(context, opening.id) <= context.time + EPSILON ? opening : profile.basic;
+    return Math.max(
+      petAutonomousRechargeReadyAt(context, opening.id),
+      petCommandRechargeReadyAt(context, opening.id)
+    ) <= context.time
+      ? opening
+      : profile.basic;
   }
 
   const later = state.activePet === 'Fanged Iboga' && state.petAutoActivationCounts[state.activePetSlot - 1] > 1;
@@ -272,8 +289,8 @@ function autonomousSkill(context: RangerRuntime, profile: PetAutoProfile, quickn
     (later ? [...profile.specials].reverse() : profile.specials).find(
       (skill) =>
         (!later || quickness || (state.petAutoActivationUses[String(skill.id)] || 0) < 1) &&
-        Math.max(state.petAutoCooldowns[String(skill.id)] || 0, petCommandRechargeReadyAt(context, skill.id)) <=
-          context.time + EPSILON
+        Math.max(petAutonomousRechargeReadyAt(context, skill.id), petCommandRechargeReadyAt(context, skill.id)) <=
+          context.time
     ) || profile.basic
   );
 }
@@ -360,7 +377,7 @@ function petCommandStart(context: RangerRuntime, skill: RangerSkill): number {
       interruptsAI && state.petAutoAction ? context.time : state.petAutoBusyUntil,
       state.petCommandReadyAt,
       petCommandRechargeReadyAt(context, skill.id),
-      state.petAutoCooldowns[String(skill.id)] || 0,
+      petAutonomousRechargeReadyAt(context, skill.id),
       openingEnd
     )
   );
@@ -429,8 +446,6 @@ export const rangerPetTasks = {
 
     state.petAutoBusyUntil = context.time + recovery;
     if (selected.cooldown) {
-      // Autonomous pets use only Alacrity addressed to the active companion.
-      const rate = !profile.ignoresAlacrity && petBoonActive(context, 'alacrity') ? GW2_ALACRITY_RECHARGE_RATE : 1;
       const cooldown =
         selected.id === ID.CRIPPLING_ANGUISH_PET && quickness
           ? balanceProfileNumber(
@@ -438,10 +453,21 @@ export const rangerPetTasks = {
               'cooldown'
             )
           : selected.cooldown * packAlphaPetRecharge(context);
-      state.petAutoCooldowns[String(selected.id)] = gw2CooldownReadyAt(context.time + cooldown / rate);
-      // Commandable automatic pet activations also publish recharge for manual commands.
-      if (rangerPetSkillCommandable(skill, context.config.specialization || 'Core'))
-        context.cooldownController.setReadyAt(selected.id, state.petAutoCooldowns[String(selected.id)]);
+      // Store base work, not the current-rate deadline, so later grants and expiry change only unearned recharge.
+      const progress = {
+        startedAt: context.time,
+        work: cooldown,
+        companionId: rangerPetCompanionId(context),
+        ignoresAlacrity: profile.ignoresAlacrity === true
+      };
+      state.petAutoRecharges[String(selected.id)] = progress;
+      // Manual commands share this work; an immune autonomous activation deliberately retains a constant deadline.
+      if (skill && rangerPetSkillCommandable(skill, context.config.specialization || 'Core')) {
+        if (progress.ignoresAlacrity)
+          context.cooldownController.setReadyAt(selected.id, petAutonomousRechargeReadyAt(context, selected.id));
+        else context.cooldownController.startRecharge(skill, progress.startedAt, progress.work, progress.companionId);
+      }
+
       state.petAutoActivationUses[String(selected.id)] = (state.petAutoActivationUses[String(selected.id)] || 0) + 1;
     }
 
@@ -482,9 +508,16 @@ export const rangerPetTasks = {
       state.petAutoAction = null;
     }
 
-    // Automatic attacks may start while a queued command waits for recharge; finish that action first.
-    if (context.time < state.petAutoBusyUntil - EPSILON) {
-      context.scheduleForCast(PET_COMMAND_START_TASK, state.petAutoBusyUntil, cast, {}, owner(context));
+    // A queued command must still wait if autonomous work loses Alacrity or another pet action occupies the lane.
+    const autoReadyAt = petAutonomousRechargeReadyAt(context, cast.skill.id);
+    if (context.time < state.petAutoBusyUntil - EPSILON || context.time < autoReadyAt) {
+      context.scheduleForCast(
+        PET_COMMAND_START_TASK,
+        Math.max(state.petAutoBusyUntil, autoReadyAt),
+        cast,
+        {},
+        owner(context)
+      );
       return;
     }
 

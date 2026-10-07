@@ -38,7 +38,8 @@ export interface RangerCoreState {
   petAutoBusyUntil: number;
   petAutoAction: { activationId: string; endsAt: number } | null;
   petAutoSequence: number;
-  petAutoCooldowns: Record<string, number>;
+  // Autonomous recharge retains its original recipient and immunity policy across pet swaps.
+  petAutoRecharges: Record<string, RechargeProgress & { ignoresAlacrity: boolean }>;
   petAutoActivationUses: Record<string, number>;
   petAutoActivationCounts: [number, number];
   petAutoOpeningBasic: boolean;
@@ -89,7 +90,7 @@ export function createRangerCoreState(config: RangerConfig = {}): RangerCoreStat
     petAutoBusyUntil: 0,
     petAutoAction: null,
     petAutoSequence: 0,
-    petAutoCooldowns: {},
+    petAutoRecharges: {},
     petAutoActivationUses: {},
     petAutoActivationCounts: [1, 0],
     petAutoOpeningBasic: true,

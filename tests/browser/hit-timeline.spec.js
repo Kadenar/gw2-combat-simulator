@@ -1,5 +1,12 @@
 import { expect, test } from '@playwright/test';
 
+// Keep application startup navigation from replacing the isolated chart fixtures.
+test.beforeEach(async ({ page }) => {
+  await page.route('http://127.0.0.1:4173/', (route) =>
+    route.fulfill({ contentType: 'text/html', body: '<!doctype html><html><head></head><body></body></html>' })
+  );
+});
+
 // Averaged damage needs a visible explanation while the reported proc outcomes remain Yes/No.
 test('averaged hit details explain critical outcomes without changing rolled hit labels', async ({ page }) => {
   await page.goto('/', { waitUntil: 'domcontentloaded' });

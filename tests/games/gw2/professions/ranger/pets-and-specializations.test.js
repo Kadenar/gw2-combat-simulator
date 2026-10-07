@@ -989,7 +989,11 @@ test('Ranger autonomous pet cooldowns require shared Alacrity', () => {
       );
       const action = result.events.find((event) => event.type === 'action' && event.skillId === ID.PET_TAIL_LASH);
       assert.ok(action);
-      const readyAt = observedRuntime(result).profession.core.petAutoCooldowns[ID.PET_TAIL_LASH];
+      const runtime = observedRuntime(result);
+      const readyAt = runtime.cooldownController.project(
+        runtime.helpers.skillsById.get(ID.PET_TAIL_LASH),
+        runtime.profession.core.petAutoRecharges[ID.PET_TAIL_LASH]
+      );
       assert.equal(readyAt - action.at, grant && sharePlayerBoonsWithSummons ? 16 : 20);
       assert.deepEqual(result.warnings, []);
     }

@@ -308,7 +308,8 @@ test('pet recharge consumes patched Pack Alpha and Crippling Anguish values', ()
     assert.deepEqual(result.warnings, []);
     const cast = result.events.find((event) => event.type === 'action' && event.skillId === ID.CRIPPLING_ANGUISH_PET);
     assert.ok(cast);
-    const deadline = observedRuntime(result).profession.core.petAutoCooldowns[String(ID.CRIPPLING_ANGUISH_PET)];
-    assert.ok(Math.abs(deadline - cast.at - (quickness ? 7 : 10)) < 1e-9);
+    const progress = observedRuntime(result).profession.core.petAutoRecharges[String(ID.CRIPPLING_ANGUISH_PET)];
+    assert.equal(progress.startedAt, cast.at);
+    assert.equal(progress.work, quickness ? 7 : 10);
   }
 });

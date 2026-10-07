@@ -7,9 +7,15 @@ test.beforeEach(async ({ page }) => {
   );
   await page.goto('/');
   await page.addStyleTag({ url: '/css/style.css' });
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  await mountCharts(page);
+});
+
+async function mountCharts(page) {
   await page.evaluate(async () => {
     const { mountTimeSeriesCharts } = await import('/js/games/gw2/app/results/charts/time-series-view.ts');
-    document.body.innerHTML = '<main style="max-width:1000px;margin:auto"><div id="charts"></div></main>';
+    if (!document.querySelector('#charts'))
+      document.body.innerHTML = '<main style="max-width:1000px;margin:auto"><div id="charts"></div></main>';
     const cumulativeDamage = Array.from({ length: 81 }, (_, index) => ({ t: index * 250, v: index * index * 100 }));
     mountTimeSeriesCharts(
       document.querySelector('#charts'),
@@ -40,6 +46,133 @@ test.beforeEach(async ({ page }) => {
       { healthBreakpoints: [{ healthPercent: 80, elapsed: 10, damage: 160000 }] }
     );
   });
+}
+
+// Control the browser clock to check real canvas reveals and keep inspection stable while frames advance.
+test('visible charts reveal once and respect motion changes and replacement mounts', async ({ page }) => {
+  await page.setViewportSize({ width: 1280, height: 2000 });
+  await page.clock.install({ time: new Date('2026-01-01T00:00:00Z') });
+  await page.clock.pauseAt(new Date('2026-01-02T00:00:00Z'));
+  const pixels = () =>
+    page.locator('.chart-canvas').evaluateAll(async (canvases) =>
+      Promise.all(
+        canvases.map(async (canvas) => {
+          const digest = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(canvas.toDataURL()));
+          return Array.from(new Uint8Array(digest)).join(',');
+        })
+      )
+    );
+  const complete = await pixels();
+  expect(complete).toHaveLength(3);
+  await page.emulateMedia({ reducedMotion: 'no-preference' });
+  await mountCharts(page);
+  await waitForVisibleChart(page, 'conditions');
+  const initial = await pixels();
+  await page.clock.runFor(200);
+  const partial = await pixels();
+  for (let index = 0; index < 3; index++) {
+    expect(partial[index]).not.toBe(initial[index]);
+    expect(partial[index]).not.toBe(complete[index]);
+  }
+
+  // Keyboard inspection also avoids dependence on the fixture's position within the page.
+  await page.locator('[data-role="dps-canvas"]').dispatchEvent('keydown', { key: 'ArrowRight' });
+  await expect(page.locator('[data-role="dps-tooltip"]')).toBeVisible();
+  await page.clock.runFor(1000);
+  await expect(page.locator('[data-role="dps-tooltip"]')).toBeVisible();
+  expect(await pixels()).toEqual(complete);
+  await page.locator('[data-dps-source="strike"]').evaluate((input) => {
+    input.click();
+    input.click();
+  });
+  expect(await pixels()).toEqual(complete);
+  await page.clock.runFor(1000);
+  expect(await pixels()).toEqual(complete);
+
+  await mountCharts(page);
+  await waitForVisibleChart(page, 'conditions');
+  await page.clock.runFor(200);
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  await expect.poll(pixels).toEqual(complete);
+  await mountCharts(page);
+  expect(await pixels()).toEqual(complete);
+  await page.clock.runFor(1200);
+  expect(await pixels()).toEqual(complete);
+
+  await page.emulateMedia({ reducedMotion: 'no-preference' });
+  await mountCharts(page);
+  await waitForVisibleChart(page, 'conditions');
+  await page.clock.runFor(200);
+  await mountCharts(page);
+  await waitForVisibleChart(page, 'conditions');
+  expect(await pixels()).toEqual(initial);
+  await page.clock.runFor(1200);
+  expect(await pixels()).toEqual(complete);
+});
+
+// Intersection delivery is native even with a paused animation clock; wait for visibility before advancing frames.
+async function waitForVisibleChart(page, kind) {
+  await page.locator(`[data-role="${kind}-canvas"]`).evaluate(
+    (canvas) =>
+      new Promise((resolve) => {
+        const observer = new IntersectionObserver(
+          (entries) => {
+            if (!entries.some((entry) => entry.isIntersecting && entry.intersectionRatio >= 0.2)) return;
+            observer.disconnect();
+            resolve();
+          },
+          { threshold: 0.2 }
+        );
+        observer.observe(canvas);
+      })
+  );
+}
+
+// Scrolling to one panel must not spend another panel's reveal while it remains below the fold.
+test('offscreen charts wait for their own viewport entry and never replay on return', async ({ page }) => {
+  await page.setViewportSize({ width: 1280, height: 600 });
+  await page.addStyleTag({ content: 'main { padding-top: 1400px; } .chart-panel { margin-bottom: 700px; }' });
+  await page.clock.install({ time: new Date('2026-01-01T00:00:00Z') });
+  await page.clock.pauseAt(new Date('2026-01-02T00:00:00Z'));
+  const pixels = () =>
+    page.locator('.chart-canvas').evaluateAll((canvases) => canvases.map((canvas) => canvas.toDataURL()));
+  const complete = await pixels();
+  await page.emulateMedia({ reducedMotion: 'no-preference' });
+  await mountCharts(page);
+  const initial = await pixels();
+  await page.clock.runFor(2000);
+  expect(await pixels()).toEqual(initial);
+  // Resizing before scrolling must preserve every pending entrance.
+  await page.setViewportSize({ width: 1000, height: 650 });
+  await page.clock.runFor(32);
+  const resized = await pixels();
+  await page.clock.runFor(2000);
+  expect(await pixels()).toEqual(resized);
+  await page.setViewportSize({ width: 1280, height: 650 });
+  await page.clock.runFor(32);
+  expect(await pixels()).toEqual(initial);
+  for (const [index, kind] of ['dps', 'effects', 'conditions'].entries()) {
+    await page.locator(`[data-role="${kind}-canvas"]`).evaluate((canvas) => canvas.scrollIntoView({ block: 'center' }));
+    await waitForVisibleChart(page, kind);
+    await page.clock.runFor(200);
+    const partial = await pixels();
+    expect(partial[index]).not.toBe(initial[index]);
+    expect(partial[index]).not.toBe(complete[index]);
+    expect(partial.slice(index + 1)).toEqual(initial.slice(index + 1));
+    await page.clock.runFor(1000);
+    expect((await pixels())[index]).toBe(complete[index]);
+  }
+
+  await page.evaluate(() => window.scrollTo(0, 0));
+  await page.clock.runFor(100);
+  await page.locator('[data-role="dps-canvas"]').evaluate((canvas) => canvas.scrollIntoView({ block: 'center' }));
+  await waitForVisibleChart(page, 'dps');
+  await page.clock.runFor(200);
+  expect(await pixels()).toEqual(complete);
+  await page.evaluate(() => window.scrollTo(0, 0));
+  await mountCharts(page);
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  await expect.poll(pixels).toEqual(complete);
 });
 
 async function hoverChart(page, kind, ratio = 0.5) {
