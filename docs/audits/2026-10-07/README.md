@@ -36,8 +36,9 @@ review.
 
 Architecture and contract references include `docs/architecture/ARCHITECTURE.md`, `MODULES.md`, event-clock/ordering
 documents, programmatic simulation documentation, profession documents, and `js/games/gw2/platform/README.md`. Current
-source uses one simulation queue and clock. Constant Quickness/Alacrity assumptions, full player health, and omitted
-incoming damage are documented scope choices.
+source uses one simulation queue and clock. Constant player Quickness/Alacrity assumptions, full player health, and
+omitted incoming damage are documented scope choices. Summon recharge is distinct: `js/games/gw2/platform/combat/recharge.ts`
+integrates received Alacrity grants and expiry; the architecture document's blanket statement about summons is stale.
 
 ## Validation
 
