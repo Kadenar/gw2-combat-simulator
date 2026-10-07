@@ -7,29 +7,29 @@
         "build": "data/gw2/builds/ranger/b-condi-alac-druid-dagger-torch-axe-dagger.json",
         "rotation": "data/gw2/rotations/ranger/r-condi-alac-druid-dagger-torch-axe-dagger-bench.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/ranger/condition-alacrity-druid-dagger-torch-axe-dagger",
-        "benchmarkDps": 39168,
+        "benchmarkDps": 38713,
         "upToDate": true,
         "benchmarkApm": 104.5,
         "benchmarkDpsByHealth": {
           "100-80": {
-            "cumulative": 34863,
-            "phase": 34863
+            "cumulative": 33952,
+            "phase": 33952
           },
           "80-60": {
-            "cumulative": 37433,
-            "phase": 40389
+            "cumulative": 37042,
+            "phase": 40945
           },
           "60-40": {
-            "cumulative": 37559,
-            "phase": 37817
+            "cumulative": 37160,
+            "phase": 37392
           },
           "40-20": {
-            "cumulative": 39099,
-            "phase": 44575
+            "cumulative": 38423,
+            "phase": 43065
           },
           "20-0": {
-            "cumulative": 39168,
-            "phase": 39450
+            "cumulative": 38713,
+            "phase": 39896
           }
         }
       }
