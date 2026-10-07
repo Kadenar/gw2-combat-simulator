@@ -14,6 +14,7 @@ import type { Skill } from '#gw2/platform/skills/types.js';
  * and take their tick effects from TEMPEST_OVERLOAD_EFFECTS; the gating, aura, and trait behavior
  * lives in hooks.ts. Shouts use the native completion owner
  * and declare their self-aura as `element|seconds`, which the core cast pipeline applies for them.
+ * The engine dispatches castCommit only after the skill's commit cutoff, so overload rewards need no second check.
  */
 // Shared impact timing keeps companion payloads independent and in their authored order.
 export const TEMPEST_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
@@ -22,12 +23,10 @@ export const TEMPEST_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> =
     sideEffects: [
       {
         on: 'castCommit',
-        when: (_runtime, cast) => cast.effectiveEnd >= cast.fullEnd,
         do: { type: 'elementalist.tempest.overload-lockout' }
       },
       {
         on: 'castCommit',
-        when: (_runtime, cast) => cast.effectiveEnd >= cast.fullEnd,
         do: { type: 'elementalist.tempest.etching-credits' }
       }
     ],
@@ -60,7 +59,6 @@ export const TEMPEST_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> =
     sideEffects: [
       {
         on: 'castCommit',
-        when: (_runtime, cast) => cast.effectiveEnd >= cast.fullEnd,
         do: { type: 'elementalist.tempest.overload-lockout' }
       }
     ],
@@ -83,17 +81,14 @@ export const TEMPEST_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> =
     sideEffects: [
       {
         on: 'castCommit',
-        when: (_runtime, cast) => cast.effectiveEnd >= cast.fullEnd,
         do: { type: 'elementalist.tempest.overload-lockout' }
       },
       {
         on: 'castCommit',
-        when: (_runtime, cast) => cast.effectiveEnd >= cast.fullEnd,
         do: { type: 'elementalist.tempest.lightning-jolt' }
       },
       {
         on: 'castCommit',
-        when: (_runtime, cast) => cast.effectiveEnd >= cast.fullEnd,
         do: { type: 'elementalist.tempest.etching-credits' }
       }
     ],
@@ -105,6 +100,8 @@ export const TEMPEST_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> =
     mechanicSlot: 3,
     categories: ['Attunement'],
     castTimeMs: 3200,
+    // The channel commits before the remaining aftercast, retaining the storm and completion rewards.
+    interruptCommitMs: 3140,
     cooldown: 20,
     comboFields: [
       {
@@ -124,12 +121,10 @@ export const TEMPEST_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> =
     sideEffects: [
       {
         on: 'castCommit',
-        when: (_runtime, cast) => cast.effectiveEnd >= cast.fullEnd,
         do: { type: 'elementalist.tempest.overload-lockout' }
       },
       {
         on: 'castCommit',
-        when: (_runtime, cast) => cast.effectiveEnd >= cast.fullEnd,
         do: { type: 'elementalist.tempest.etching-credits' }
       }
     ],

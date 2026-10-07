@@ -535,6 +535,36 @@
         }
       },
       {
+        "label": "Inferno (Dagger/Dagger) - Bolt to the Heart",
+        "build": "data/gw2/builds/elementalist/b-inferno-tempest-dagger.json",
+        "rotation": "data/gw2/rotations/elementalist/r-inferno-tempest-dagger.json",
+        "benchmarkDps": 41546,
+        "upToDate": true,
+        "benchmarkApm": 77.7,
+        "benchmarkDpsByHealth": {
+          "100-80": {
+            "cumulative": 40008,
+            "phase": 40008
+          },
+          "80-60": {
+            "cumulative": 39975,
+            "phase": 39941
+          },
+          "60-40": {
+            "cumulative": 40144,
+            "phase": 40493
+          },
+          "40-20": {
+            "cumulative": 40624,
+            "phase": 42130
+          },
+          "20-0": {
+            "cumulative": 41546,
+            "phase": 41546
+          }
+        }
+      },
+      {
         "label": "Inferno Alacrity (Scepter/Focus)",
         "build": "data/gw2/builds/elementalist/b-inferno-alac-tempest.json",
         "rotation": "data/gw2/rotations/elementalist/r-inferno-alac-tempest.json",

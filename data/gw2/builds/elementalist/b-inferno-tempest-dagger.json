@@ -18,7 +18,7 @@
     "Weapon2": "Berserker's"
   },
   "alternateWeaponPrefixes": ["Berserker's", "Berserker's"],
-  "weapons": ["Scepter", "Dagger"],
+  "weapons": ["Dagger", "Dagger"],
   "alternateWeapons": ["", ""],
   "rune": "Flame Legion",
   "weaponSigils": [
@@ -95,7 +95,7 @@
   "targetHealth": 4000000,
   "targetArmor": 2597,
   "rotation": [],
-  "startAttunement": "Earth",
+  "startAttunement": "Air",
   "secondaryAttunement": "Air",
   "initialCatalystEnergy": 30,
   "evokerElement": "Fire",

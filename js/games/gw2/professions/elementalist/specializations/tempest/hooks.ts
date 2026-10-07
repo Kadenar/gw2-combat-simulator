@@ -241,7 +241,7 @@ export const tempestHooks: RuntimeHooks<ElementalistRuntimeState, ElementalistSk
     }
   },
   onCastCommit(runtime, cast) {
-    if (cast.skill.overload && cast.effectiveEnd < cast.fullEnd) return;
+    // The engine admits committed casts here, including overloads whose remaining aftercast was cancelled.
     {
       onCastCommit(runtime, cast, cast.skill);
       if (cast.skill.skillFamily === 'Shout') applyTempestShoutTraits(runtime, cast, cast.skill);
