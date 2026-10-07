@@ -38,7 +38,7 @@ export function mountBenchmarks(root: HTMLElement): void {
       <label class="filter-field" for="benchmark-damage"><span class="benchmark-filter-label">Damage type</span><select id="benchmark-damage"><option value="all">All</option><option value="power">Power</option><option value="condi">Condition</option></select></label>
       <label class="filter-field" for="benchmark-role"><span class="benchmark-filter-label">Boon role</span><select id="benchmark-role"><option value="all">All</option><option value="none">DPS</option><option value="quickness">Quickness</option><option value="alacrity">Alacrity</option></select></label>
       <label class="outdated-filter"><input type="checkbox" id="benchmark-outdated">Include outdated</label>
-      <div class="benchmark-profession-tabs" role="group" aria-label="Benchmark professions"><button type="button" data-benchmark-profession="all" aria-pressed="true">All professions<span class="benchmark-profession-check" aria-hidden="true">&#10003;</span></button>${professionRegistry.map((entry) => `<button type="button" class="profession-card-${entry.id}" data-benchmark-profession="${entry.id}" aria-pressed="true"><span class="profession-dot" aria-hidden="true"></span>${entry.name}<span class="benchmark-profession-check" aria-hidden="true">&#10003;</span></button>`).join('')}</div>
+      <div class="benchmark-profession-tabs" role="group" aria-label="Benchmark professions"><button type="button" data-benchmark-profession="all" aria-pressed="true">All professions<span class="benchmark-profession-check" aria-hidden="true">&#10003;</span></button>${professionRegistry.map((entry) => `<button type="button" class="profession-card-${entry.id} ${entry.themeClass}" data-benchmark-profession="${entry.id}" aria-pressed="true"><span class="profession-dot" aria-hidden="true"></span>${entry.name}<span class="benchmark-profession-check" aria-hidden="true">&#10003;</span></button>`).join('')}</div>
       <label class="benchmark-sort benchmark-overview-sort"><span class="benchmark-filter-label">Sort by</span><select id="benchmark-sort"><option value="name">Profession</option><option value="dps">Highest DPS</option><option value="apm">Lowest APM</option></select></label>
     </section>
     <div class="benchmark-main">
@@ -883,12 +883,12 @@ export function mountBenchmarks(root: HTMLElement): void {
       })
     );
     benchmarks = results.flatMap((result) => (result.status === 'fulfilled' ? result.value : []));
-    // Resolve the existing profession accents once so every chart and detached label shares the same palette.
+    // Read each profession's actual theme accent so chart shades match its workspace, including embedded views.
     const professionColors = new Map(
       professionRegistry.map(({ id }) => [
         id,
         getComputedStyle(root.querySelector<HTMLElement>(`[data-benchmark-profession="${id}"]`)!)
-          .getPropertyValue('--profession-accent')
+          .getPropertyValue('--accent')
           .trim()
       ])
     );

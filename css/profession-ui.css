@@ -1,7 +1,8 @@
 /* Owns profession themes, mechanic exceptions, resources, and profession controls. */
 
-/* Mesmer standalone overrides */
-:root {
+/* Keep Mesmer's theme explicit so nested profession views do not inherit another page's accent. */
+:root,
+.mesmer-theme {
   --accent: #ad83df;
   --accent-dim: #7657a0;
 }
