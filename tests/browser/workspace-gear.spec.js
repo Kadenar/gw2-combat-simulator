@@ -397,8 +397,9 @@ for (const profession of ['elementalist', 'engineer']) {
       await expect
         .poll(() => page.evaluate(() => window.professionApp.results.planningState.profession.activeKit))
         .toBe(5805);
+      // Stow and Swap Weapons are separate in-game key binds, so both stay available while a kit is active.
       await expect(page.locator('#rotation-palette .pal-skill[data-skill="Stow Grenade Kit"]')).toHaveCount(1);
-      await expect(page.locator('#rotation-palette .pal-skill[data-skill="Swap Weapons"]')).toHaveCount(0);
+      await expect(page.locator('#rotation-palette .pal-skill[data-skill="Swap Weapons"]')).toHaveCount(1);
       await page.locator('#rotation-palette .pal-skill[data-skill="Grenade"]').click();
       await expect
         .poll(() => page.evaluate(() => window.professionApp.results.steps.some((step) => step.skill === 'Grenade')))

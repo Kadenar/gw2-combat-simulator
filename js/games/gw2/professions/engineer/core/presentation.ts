@@ -188,11 +188,13 @@ export function bindEngineerCoreUi(catalog: Readonly<CanonicalCatalog<EngineerSk
       if (skill.kitTransition === 'equip') return { tileActive: state.activeKit !== skill.id };
       if (skill.kitTransition === 'stow') return { tileActive: state.activeKit === skill.kitId };
     },
-    // Each kit group already owns its stow tile; hide the equipped-set input while a kit replaces the bar.
-    paletteActionSkills(context, skills) {
-      const kit = engineerUiState(context).activeKit;
-      if (!kit) return [...skills];
-      return skills.filter((skill) => skill.id !== SHARED_SKILL_IDS.SWAP_WEAPONS);
+    // Swap Weapons also leaves an active kit, so it stays beside Dodge even without an alternate set; planning
+    // availability disables it whenever it can neither stow a kit nor swap equipped sets before combat.
+    paletteActionSkills(_context, skills) {
+      const swap = catalog.skillsById.get(SHARED_SKILL_IDS.SWAP_WEAPONS);
+      if (!swap || skills.some((skill) => skill.id === swap.id)) return [...skills];
+      const dodge = skills.findIndex((skill) => skill.id === SHARED_SKILL_IDS.DODGE);
+      return [...skills.slice(0, dodge + 1), swap, ...skills.slice(dodge + 1)];
     },
     assumptionControls: [...SIMULATION_RANDOMNESS_ASSUMPTION_CONTROLS, ...PERMANENT_COMBO_FIELD_ASSUMPTION_CONTROLS],
     // Builds one stacked palette group per selected kit, plus Core's profession-skill group.

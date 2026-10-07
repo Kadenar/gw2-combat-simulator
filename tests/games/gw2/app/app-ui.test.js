@@ -3,6 +3,8 @@ import { planningFixture } from '#tests/helpers/observed-runtime.js';
 import { ENGINEER_SKILL_IDS } from '#gw2/professions/engineer/data/ids.js';
 import { STANDARD_TARGET_ARMOR } from '#gw2/platform/combat/formulas.js';
 import { armSkillFlip } from '#gw2/platform/execution/skill-flips.js';
+import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
+import { runGw2Runtime } from '#gw2/platform/simulation/runtime.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
@@ -1532,15 +1534,30 @@ test('Engineer swap action changes from precombat equipment swapping to a live k
     planningFixture(engineer.profession, { weaponSet2Primary: 'Pistol' }).availability[swapWeapons.id].ready,
     true
   );
+  // The swap stays beside Dodge without an alternate set; availability disables it when no kit can be stowed.
+  engineer.build = { ...engineer.build, alternateWeapons: ['', ''] };
+  const actionIds = paletteActionSkills(engineer).map((skill) => skill.id);
+  assert.equal(actionIds[actionIds.indexOf(SHARED_SKILL_IDS.DODGE) + 1], swapWeapons.id);
+  assert.equal(planningFixture(engineer.profession).availability[swapWeapons.id].ready, false);
+  const combatSwapReady = (rotation) => {
+    const config = { specialization: 'Core', primaryWeapon: 'Rifle', weaponSet2Primary: 'Pistol' };
+    return runGw2Runtime({
+      profession: engineer.profession.runtimeFor(config),
+      config,
+      rotation: [{ type: 'combat-start' }, ...rotation]
+    }).planningState.availability[swapWeapons.id].ready;
+  };
+
+  assert.equal(combatSwapReady([]), false);
+  assert.equal(combatSwapReady([{ type: 'cast', skillId: ENGINEER_SKILL_IDS.GRENADE_KIT }]), true);
   engineer.results = {
     planningState: { availability: {}, profession: { activeKit: ENGINEER_SKILL_IDS.GRENADE_KIT } }
   };
-  assert.equal(
-    paletteActionSkills(engineer).some(
-      (skill) => skill.id === ENGINEER_SKILL_IDS.STOW_GRENADE_KIT || skill.id === swapWeapons.id
-    ),
-    false
-  );
+  // Swap Weapons and the kit's stow are separate in-game inputs, so the swap stays in the action row
+  // while the stow remains owned by its kit group.
+  const kitActions = paletteActionSkills(engineer).map((skill) => skill.id);
+  assert.equal(kitActions.includes(swapWeapons.id), true);
+  assert.equal(kitActions.includes(ENGINEER_SKILL_IDS.STOW_GRENADE_KIT), false);
   assert.equal(
     planningFixture(engineer.profession, {}, (runtime) => {
       runtime.profession.core.activeKit = ENGINEER_SKILL_IDS.GRENADE_KIT;
