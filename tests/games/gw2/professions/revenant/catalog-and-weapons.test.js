@@ -1,4 +1,5 @@
 import { renderSkills } from '#gw2/app/build/panels/skills.js';
+import { inertContainer } from '#tests/helpers/dom.js';
 import { skillBreakdownRows } from '#gw2/app/results/skill-breakdown.js';
 import {
   displayedSkillTiles,
@@ -555,11 +556,12 @@ test('legend palette shows only the destination legend with the shared swap cool
     weaponData: adapter.weaponData,
     results: simulate('Core', build.rotation)
   };
-  const palette = { innerHTML: '', querySelectorAll: () => [] };
+  const palette = inertContainer();
   const skillBar = { innerHTML: '', classList: { remove() {} }, querySelectorAll: () => [] };
   const previousDocument = globalThis.document;
 
   globalThis.document = {
+    querySelector: () => null,
     getElementById: (id) => (id === 'rotation-palette' ? palette : id === 'skill-bar' ? skillBar : null)
   };
   try {
@@ -600,10 +602,11 @@ test('Revenant utilities and Conduit resources render by their related skills', 
     weaponData: adapter.weaponData,
     results: null
   };
-  const palette = { innerHTML: '', querySelectorAll: () => [] };
+  const palette = inertContainer();
   const previousDocument = globalThis.document;
 
   globalThis.document = {
+    querySelector: () => null,
     getElementById: (id) => (id === 'rotation-palette' ? palette : null)
   };
   try {

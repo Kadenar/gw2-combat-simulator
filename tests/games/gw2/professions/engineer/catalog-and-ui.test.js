@@ -1,5 +1,6 @@
 import { flattenProfessionState } from '#gw2/platform/profession-definition/state.js';
 import { renderPalette } from '#gw2/app/rotation/palette/view.js';
+import { inertContainer } from '#tests/helpers/dom.js';
 import { withActivePatchPreview } from '#gw2/integrations/patches/active-profession.js';
 import {
   applyBalanceProfilePatch,
@@ -434,10 +435,11 @@ test('Engineer Tools endurance renders beneath Dodge instead of as a standalone 
     weaponData: adapter.weaponData,
     results: null
   };
-  const palette = { innerHTML: '', querySelectorAll: () => [] };
+  const palette = inertContainer();
   const previousDocument = globalThis.document;
 
   globalThis.document = {
+    querySelector: () => null,
     getElementById: (id) => (id === 'rotation-palette' ? palette : null)
   };
   try {
@@ -470,10 +472,11 @@ test('Engineer kits render beneath weapons while Holosmith mechanics stay groupe
     weaponData: adapter.weaponData,
     results: null
   };
-  const palette = { innerHTML: '', querySelectorAll: () => [] };
+  const palette = inertContainer();
   const previousDocument = globalThis.document;
 
   globalThis.document = {
+    querySelector: () => null,
     getElementById: (id) => (id === 'rotation-palette' ? palette : null)
   };
   try {

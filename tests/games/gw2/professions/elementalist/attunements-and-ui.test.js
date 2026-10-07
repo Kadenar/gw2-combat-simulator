@@ -3,6 +3,8 @@ import { observedRuntime } from '#tests/helpers/observed-runtime.js';
 import assert from 'node:assert/strict';
 import { assertFlooredDamageMultiplier } from '#tests/helpers/rounded-damage.js';
 import test from 'node:test';
+
+import { inertContainer } from '#tests/helpers/dom.js';
 import { runNative, resolvedAndScheduledEvents } from '#tests/helpers/elementalist-simulation.js';
 import { timelineWeaponRows } from '#gw2/app/rotation/timeline/model.js';
 import { paletteSkillView } from '#gw2/app/rotation/palette/model.js';
@@ -622,10 +624,11 @@ test('Weaver palette composes the active bar and preserves every slot-three cool
       }
     }
   };
-  const palette = { innerHTML: '', querySelectorAll: () => [] };
+  const palette = inertContainer();
   const previousDocument = globalThis.document;
 
   globalThis.document = {
+    querySelector: () => null,
     getElementById: (id) => (id === 'rotation-palette' ? palette : null)
   };
   try {
@@ -766,10 +769,11 @@ test('rotation palette exposes each attunement as an action', () => {
     weaponData: elementalistAppAdapter.weaponData,
     results: null
   };
-  const palette = { innerHTML: '', querySelectorAll: () => [] };
+  const palette = inertContainer();
   const previousDocument = globalThis.document;
 
   globalThis.document = {
+    querySelector: () => null,
     getElementById: (id) => (id === 'rotation-palette' ? palette : null)
   };
   try {
@@ -796,6 +800,7 @@ test('rotation palette exposes each attunement as an action', () => {
 
   app.build.specializations[2] = { name: 'Tempest', traits: '1-1-1' };
   globalThis.document = {
+    querySelector: () => null,
     getElementById: (id) => (id === 'rotation-palette' ? palette : null)
   };
   try {

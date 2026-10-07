@@ -1,6 +1,8 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
+import { inertContainer } from '#tests/helpers/dom.js';
+
 import { paletteView } from '#gw2/app/rotation/palette/model.js';
 import { renderPalette } from '#gw2/app/rotation/palette/view.js';
 import { elementalistAppAdapter } from '#gw2/professions/elementalist/app/app-definition.js';
@@ -127,10 +129,11 @@ test('Weaver current bar exposes a carried autoattack from the previous primary 
       }
     }
   };
-  const palette = { innerHTML: '', querySelectorAll: () => [] };
+  const palette = inertContainer();
   const previousDocument = globalThis.document;
 
   globalThis.document = {
+    querySelector: () => null,
     getElementById: (id) => (id === 'rotation-palette' ? palette : null)
   };
   try {

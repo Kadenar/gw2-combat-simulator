@@ -1,4 +1,5 @@
 import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
+import { inertContainer } from '#tests/helpers/dom.js';
 import { skillBreakdownRows } from '#gw2/app/results/skill-breakdown.js';
 import { rangerCatalog } from '#gw2/professions/ranger/catalog.js';
 import { assertFlooredDamageMultiplier } from '#tests/helpers/rounded-damage.js';
@@ -1039,13 +1040,11 @@ test('Ranger palette groups the active pet, command, swap, and Dodge endurance',
       weaponSet2Secondary: 'Axe'
     })
   };
-  const paletteElement = {
-    innerHTML: '',
-    querySelectorAll: () => []
-  };
+  const paletteElement = inertContainer();
   const previousDocument = globalThis.document;
 
   globalThis.document = {
+    querySelector: () => null,
     getElementById: (id) => (id === 'rotation-palette' ? paletteElement : null)
   };
   try {
@@ -1584,13 +1583,11 @@ test('Selected unleashed Hammer skills remain castable after Overbearing Smash',
     assert.equal(availableIds.has(skillId), true);
   }
 
-  const paletteElement = {
-    innerHTML: '',
-    querySelectorAll: () => []
-  };
+  const paletteElement = inertContainer();
   const previousDocument = globalThis.document;
 
   globalThis.document = {
+    querySelector: () => null,
     getElementById: (id) => (id === 'rotation-palette' ? paletteElement : null)
   };
   try {

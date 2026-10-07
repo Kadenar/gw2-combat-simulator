@@ -19,6 +19,8 @@ import { observedRuntime } from '#tests/helpers/observed-runtime.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
+import { inertContainer } from '#tests/helpers/dom.js';
+
 // Shared expansion preserves completion attribution while honoring authored offsets and repeated boon grants.
 test('Gale Song and Bolstered Elements expand their selected boon profile at completion', () => {
   for (const [specialization, trait, name] of [
@@ -821,10 +823,11 @@ test('Flame Barrage replaces the active Glyph and obeys rotation timing', () => 
     weaponData: elementalistAppAdapter.weaponData,
     results: armedResult
   };
-  const palette = { innerHTML: '', querySelectorAll: () => [] };
+  const palette = inertContainer();
   const previousDocument = globalThis.document;
 
   globalThis.document = {
+    querySelector: () => null,
     getElementById: (id) => (id === 'rotation-palette' ? palette : null)
   };
   try {
@@ -1098,10 +1101,11 @@ test('Elementalist actions expose Dodge and contextual conjure controls', () => 
 
   const renderResult = (result) => {
     app.results = result;
-    const palette = { innerHTML: '', querySelectorAll: () => [] };
+    const palette = inertContainer();
     const previousDocument = globalThis.document;
 
     globalThis.document = {
+      querySelector: () => null,
       getElementById: (id) => (id === 'rotation-palette' ? palette : null)
     };
     try {

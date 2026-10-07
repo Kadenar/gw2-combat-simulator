@@ -1,5 +1,6 @@
 import { flattenProfessionState } from '#gw2/platform/profession-definition/state.js';
 import { renderPalette } from '#gw2/app/rotation/palette/view.js';
+import { inertContainer } from '#tests/helpers/dom.js';
 import { timelineWeaponRows } from '#gw2/app/rotation/timeline/model.js';
 import { createCalculateAttributes } from '#gw2/platform/builds/attributes.js';
 import { createGw2CombatQuery } from '#gw2/platform/combat-calculation/combat-query.js';
@@ -393,10 +394,11 @@ describe('Galeshot Cyclone Bow', () => {
       skillByName: rangerCatalog.skillsByName,
       results: charged
     };
-    const paletteElement = { innerHTML: '', querySelectorAll: () => [] };
+    const paletteElement = inertContainer();
     const previousDocument = globalThis.document;
 
     globalThis.document = {
+      querySelector: () => null,
       getElementById: (id) => (id === 'rotation-palette' ? paletteElement : null)
     };
     try {

@@ -1,6 +1,8 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
+import { inertContainer } from '#tests/helpers/dom.js';
+
 import { renderPalette } from '#gw2/app/rotation/palette/view.js';
 import { renderPaletteMarkup } from '#tests/helpers/palette.js';
 import { elementalistAppAdapter } from '#gw2/professions/elementalist/app/app-definition.js';
@@ -91,7 +93,7 @@ test('Elementalist pistol palette toggles the selected starting bullet', () => {
     onclick: null
   }));
   const palette = {
-    innerHTML: '',
+    ...inertContainer(),
     querySelectorAll(selector) {
       return selector === '.pal-control[data-palette-control-id]' ? bulletButtons : [];
     }
@@ -99,6 +101,7 @@ test('Elementalist pistol palette toggles the selected starting bullet', () => {
   const previousDocument = globalThis.document;
 
   globalThis.document = {
+    querySelector: () => null,
     getElementById: (id) => (id === 'rotation-palette' ? palette : null)
   };
   try {

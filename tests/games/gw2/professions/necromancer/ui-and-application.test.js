@@ -4,6 +4,8 @@ import { armSkillFlip } from '#gw2/platform/execution/skill-flips.js';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import test from 'node:test';
+
+import { inertContainer } from '#tests/helpers/dom.js';
 import { loadProfession, loadProfessionAppAdapter, professionOptions } from '#gw2/profession-registry.js';
 import { formatResourceValue } from '#gw2/app/rotation/palette/resource-view.js';
 import { simulationEventLogRows } from '#gw2/app/results/event-log.js';
@@ -245,10 +247,11 @@ test('Necromancer renders life force above its F-skills', async () => {
     weaponData: adapter.weaponData,
     results: null
   };
-  const palette = { innerHTML: '', querySelectorAll: () => [] };
+  const palette = inertContainer();
   const previousDocument = globalThis.document;
 
   globalThis.document = {
+    querySelector: () => null,
     getElementById: (id) => (id === 'rotation-palette' ? palette : null)
   };
   try {
@@ -291,6 +294,7 @@ test('Necromancer renders life force above its F-skills', async () => {
     }
   };
   globalThis.document = {
+    querySelector: () => null,
     getElementById: (id) => (id === 'rotation-palette' ? palette : null)
   };
   try {
@@ -309,6 +313,7 @@ test('Necromancer renders life force above its F-skills', async () => {
   );
   app.results.planningState.profession.soulShardGrant.charges = 4;
   globalThis.document = {
+    querySelector: () => null,
     getElementById: (id) => (id === 'rotation-palette' ? palette : null)
   };
   try {
