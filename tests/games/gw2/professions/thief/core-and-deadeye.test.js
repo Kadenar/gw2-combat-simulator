@@ -27,7 +27,7 @@ import { ANTIQUARY_BALANCE_PROFILE_IDS } from '#gw2/professions/thief/specializa
 import { createObservedProfessionSimulator, observedRuntime } from '#tests/helpers/observed-runtime.js';
 import { DEADEYE_STOLEN_SKILL_IDS } from '#gw2/professions/thief/specializations/deadeye/mechanics/stolen-skills.js';
 import { storeThiefStolenSkillChoices } from '#gw2/professions/thief/core/mechanics/steal.js';
-import { runThief } from '#tests/helpers/thief-simulation.js';
+import { runThief, thiefHit } from '#tests/helpers/thief-simulation.js';
 import { withProfile, withSkill } from '#tests/helpers/catalog-overrides.js';
 import { grantSilentScope } from '#gw2/professions/thief/specializations/deadeye/traits/behavior.js';
 import { antiquaryHooks } from '#gw2/professions/thief/specializations/antiquary/hooks.js';
@@ -838,6 +838,32 @@ test('delayed strikes break stealth on impact without blocking a same-time steal
 
   assert.deepEqual(sameTimeAttack.warnings, []);
   assert.ok(Math.abs(deathJudgment.start / 1000 - flare.at) < 1e-9);
+});
+
+// A field impact and a stealth-granting hit can quantize to one tick; queue insertion order must not change the bar.
+test('concurrent unrelated strikes reveal newly granted stealth in either queue order', () => {
+  const baseline = runThief(['Cloak and Dagger']);
+  const hitAt = baseline.events.find((event) => event.type === 'damage' && event.skillId === ID.CLOAK_AND_DAGGER).at;
+  for (const priority of [-10, 10]) {
+    const result = runThief(
+      ['Cloak and Dagger', 'Double Strike'],
+      {},
+      {
+        timeline: [
+          {
+            at: hitAt,
+            priority,
+            run(runtime) {
+              runtime.effects.emit({ kind: 'packet', event: thiefHit(hitAt) });
+            }
+          }
+        ]
+      }
+    );
+    assert.deepEqual(result.warnings, []);
+    assert.ok(observedRuntime(result).profession.core.revealedUntil > result.rotationEndTime);
+    assert.ok(result.steps.some((step) => step.skillId === ID.DOUBLE_STRIKE && !step.invalid));
+  }
 });
 
 test('stealth replaces weapon skill 1 without a separate palette group', () => {

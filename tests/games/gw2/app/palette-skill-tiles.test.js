@@ -93,8 +93,8 @@ test('same-name palette skills use their own cooldown and ammo identities', () =
   app.profession.ui.resourceViews = () => [];
   app.results.planningState.cooldowns = { 990101: { remaining: 4000, readyAt: 4000 } };
   app.results.planningState.ammoBySkillId = {
-    990101: { charges: 0, maximum: 2, recharges: [], nextRechargeAt: null },
-    990102: { charges: 2, maximum: 2, recharges: [], nextRechargeAt: null }
+    990101: { charges: 0, maximum: 2, nextRechargeAt: null },
+    990102: { charges: 2, maximum: 2, nextRechargeAt: null }
   };
   const [cooling, ready] = skills.map((skill) => paletteSkillView(app, skill));
   assert.equal(cooling.cooldownLabel, '4.000s');

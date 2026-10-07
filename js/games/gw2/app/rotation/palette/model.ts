@@ -23,7 +23,7 @@ import type {
   ProfessionPaletteSkillEntry,
   ProfessionPaletteStatusIcon
 } from '#gw2/platform/profession-presentation/types.js';
-import type { AmmoState } from '#gw2/platform/execution/cooldown-contracts.js';
+import type { Gw2PlanningAmmo } from '#gw2/platform/results/types.js';
 import type { RotationProfessionState } from '#gw2/app/rotation/context.js';
 
 import type { Skill, SkillId } from '#gw2/platform/skills/types.js';
@@ -685,7 +685,7 @@ function currentCooldown(
 }
 
 /** Exact skill IDs prevent variant collisions; convert scheduler seconds to the displayed countdown. */
-function currentAmmo(app: ProfessionAppState, skill: Skill): (AmmoState & { readonly remaining: number }) | null {
+function currentAmmo(app: ProfessionAppState, skill: Skill): (Gw2PlanningAmmo & { readonly remaining: number }) | null {
   const planningState = palettePlanningState(app);
   const ammo = planningState?.ammoBySkillId[String(skill.id)];
   if (!ammo) return null;

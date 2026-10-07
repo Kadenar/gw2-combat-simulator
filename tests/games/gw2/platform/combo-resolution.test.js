@@ -28,8 +28,7 @@ const query = {
   strikeMultiplier: () => 1,
   conditionMultiplier: () => 1,
   conditionDurationMultiplier: () => 1,
-  activeWeaponSetAt: () => 1,
-  activeSigilSetAt: () => ({ names: [] })
+  activeWeaponSetAt: () => 1
 };
 
 const helpers = {

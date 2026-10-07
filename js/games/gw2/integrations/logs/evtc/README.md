@@ -23,6 +23,11 @@ pending time-aware ownership.
 Thousand Needles uses EI's generic hostile circle plus both same-source needle effects 280 ms later. Missing either
 secondary effect leaves the cast unproven.
 
+Spider Venom follows EI's `ThiefHelper.BuffGiveCastFinder`: a non-initial grant to another agent qualifies regardless of
+duration; a self grant must be within strictly less than 10 ms of 24 seconds. This excludes the trait's 30-second self
+grants. It uses final-master attribution, the shared sliding 50 ms duplicate window, and inaccurate skill-origin
+metadata. It does not require all six charges to be recorded.
+
 Core Steal also has a local, non-EI finder, observed in `20260810-102224.zevtc`: effect GUID
 `A0F99AB672E77E459EBF8185867C4961` must accompany at least two long Poison applications and three long Bleeding
 applications from the selected player to the same target within 10 ms. These corroborate Serpent's Touch and Deadly

@@ -6,6 +6,7 @@ import { defineTestProfession } from '#tests/helpers/profession.js';
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
 import { warriorProfession } from '#gw2/professions/warrior/profession.js';
 import { gw2CooldownReadyAt } from '#gw2/platform/combat/action-tick.js';
+import { observeGw2Runtime, observedRuntime } from '#tests/helpers/observed-runtime.js';
 
 // Minimal recharges isolate permanent Alacrity and tick detection from profession rotations.
 test('cooldowns and sequential ammo assume permanent Alacrity before checking the absolute tick', () => {
@@ -212,8 +213,9 @@ test('declarative ammo consumes and recharges shared charges', () => {
     name: 'Ammo Fixture',
     catalog
   });
-  const result = simulateGw2({
-    profession,
+  const result = observeGw2Runtime({
+    profession: profession.runtimeFor({}),
+    config: {},
     rotation: ['Fixture Ammo', 'Fixture Ammo', { type: 'wait', durationMs: 5000 }]
   });
 
@@ -221,7 +223,8 @@ test('declarative ammo consumes and recharges shared charges', () => {
   const ammo = result.planningState.ammoBySkillId[930001];
   assert.equal(ammo.charges, 1);
   assert.equal(ammo.maximum, 2);
-  assert.deepEqual(ammo.recharges, [{ startedAt: 4, work: 5 }]);
+  // Serial recovery belongs to the live controller; planning exposes only charges and the next deadline.
+  assert.deepEqual(observedRuntime(result).cooldownController.readAmmo(930001).recharges, [{ startedAt: 4, work: 5 }]);
   assert.equal(ammo.nextRechargeAt, 8);
 });
 

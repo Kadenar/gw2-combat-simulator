@@ -6,30 +6,30 @@
         "label": "Power (Axe / Pistol + Dagger / Pistol)",
         "build": "data/gw2/builds/thief/b-power-deadeye-axe-pistol-dagger-pistol.json",
         "rotation": "data/gw2/rotations/thief/r-power-deadeye-axe-pistol-dagger-pistol-bench.json",
-        "benchmarkDps": 44162,
+        "benchmarkDps": 44265,
         "upToDate": true,
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/thief/power-deadeye-axe-pistol-dagger",
-        "benchmarkApm": 90.3,
+        "benchmarkApm": 90.5,
         "benchmarkDpsByHealth": {
           "100-80": {
-            "cumulative": 42181,
-            "phase": 42181
+            "cumulative": 42269,
+            "phase": 42269
           },
           "80-60": {
-            "cumulative": 42049,
-            "phase": 41914
+            "cumulative": 42175,
+            "phase": 42078
           },
           "60-40": {
-            "cumulative": 41190,
-            "phase": 39563
+            "cumulative": 41356,
+            "phase": 39803
           },
           "40-20": {
-            "cumulative": 42983,
-            "phase": 49377
+            "cumulative": 43118,
+            "phase": 49354
           },
           "20-0": {
-            "cumulative": 44162,
-            "phase": 49469
+            "cumulative": 44265,
+            "phase": 49411
           }
         }
       },
@@ -37,30 +37,30 @@
         "label": "Power Quickness (Axe / Pistol + Dagger / Pistol)",
         "build": "data/gw2/builds/thief/b-power-quick-deadeye-axe-pistol-dagger-pistol.json",
         "rotation": "data/gw2/rotations/thief/r-power-quick-deadeye-axe-pistol-dagger-pistol-bench.json",
-        "benchmarkDps": 40723,
+        "benchmarkDps": 40709,
         "upToDate": true,
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/thief/power-quickness-deadeye-axe-pistol-dagger",
         "benchmarkApm": 88.9,
         "benchmarkDpsByHealth": {
           "100-80": {
-            "cumulative": 40796,
-            "phase": 40796
+            "cumulative": 40879,
+            "phase": 40879
           },
           "80-60": {
-            "cumulative": 40105,
-            "phase": 39430
+            "cumulative": 40178,
+            "phase": 39492
           },
           "60-40": {
-            "cumulative": 39289,
-            "phase": 37734
+            "cumulative": 39257,
+            "phase": 37521
           },
           "40-20": {
-            "cumulative": 40234,
-            "phase": 43303
+            "cumulative": 40220,
+            "phase": 43367
           },
           "20-0": {
-            "cumulative": 40723,
-            "phase": 40723
+            "cumulative": 40709,
+            "phase": 40709
           }
         }
       },
@@ -336,8 +336,31 @@
         "label": "Condition (Axe / Dagger)",
         "build": "data/gw2/builds/thief/b-condi-core-axe-dagger.json",
         "rotation": "data/gw2/rotations/thief/r-condi-core-axe-dagger-evtc.json",
-        "benchmarkDps": 37090,
-        "upToDate": true
+        "benchmarkDps": 38902,
+        "upToDate": true,
+        "benchmarkApm": 75.8,
+        "benchmarkDpsByHealth": {
+          "100-80": {
+            "cumulative": 38657,
+            "phase": 38657
+          },
+          "80-60": {
+            "cumulative": 38988,
+            "phase": 39336
+          },
+          "60-40": {
+            "cumulative": 38941,
+            "phase": 38851
+          },
+          "40-20": {
+            "cumulative": 38751,
+            "phase": 38163
+          },
+          "20-0": {
+            "cumulative": 38902,
+            "phase": 38902
+          }
+        }
       }
     ]
   }

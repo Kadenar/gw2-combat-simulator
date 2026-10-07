@@ -1,4 +1,4 @@
-import { normalizeRotation } from '#gw2/platform/execution/rotation.js';
+import type { RotationCommand } from '#gw2/platform/execution/rotation.js';
 import type { SimulationStep } from '#gw2/platform/results/types.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import { isAutoattackSkill } from '#gw2/platform/skills/autoattack-chain-index.js';
@@ -61,7 +61,7 @@ function peakApm(starts: readonly number[], duration: number, windowSeconds: num
   return peak;
 }
 
-/** Counts executed command activations over the execution window, independently of damage and observation tails. */
+/** Counts activations against the driver's canonical commands so reporting shares execution's input identities. */
 export function rotationApm(
   executed: {
     steps: readonly SimulationStep[];
@@ -69,10 +69,9 @@ export function rotationApm(
     rotationEndTime: number;
     combatStartTime: number | null;
   },
-  rotation: readonly unknown[],
+  commands: readonly RotationCommand[],
   catalog: CanonicalCatalog
 ): RotationApm {
-  const commands = normalizeRotation(rotation, catalog, { strict: true });
   const { events, steps } = executed;
   // An explicit combat boundary excludes precasts; otherwise input accounting begins at zero.
   const start = executed.combatStartTime ?? 0;

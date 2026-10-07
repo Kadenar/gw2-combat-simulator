@@ -94,9 +94,9 @@ test('new Compounding Power stacks do not refresh earlier stacks', () => {
       buffEvent({ kind: 'compounding', at: 7, duration: 8, stacks: 1 })
     ]
   });
-  assert.equal(timeline.timedStacks('compounding', 7, 8, 5), 2);
-  assert.equal(timeline.timedStacks('compounding', 8, 8, 5), 1);
-  assert.equal(timeline.timedStacks('compounding', 15, 8, 5), 0);
+  assert.equal(timeline.buffStacksAt('compounding', 7, 8, 5), 2);
+  assert.equal(timeline.buffStacksAt('compounding', 8, 8, 5), 1);
+  assert.equal(timeline.buffStacksAt('compounding', 15, 8, 5), 0);
 });
 
 function weaponSetEvent(at, causalOrder, weaponSet) {
@@ -166,12 +166,12 @@ test('repeated timeline queries reuse answers, including zero stacks', () => {
 test('same-time appends and truncation invalidate timeline answers', () => {
   const events = [buffEvent()];
   const timeline = createGw2TimelineIndex({ events, resolved: true });
-  assert.equal(timeline.timedStacks('might', 1, 0, 25), 4);
+  assert.equal(timeline.buffStacksAt('might', 1, 0, 25), 4);
   events.push(buffEvent({ at: 1, stacks: 2 }));
-  assert.equal(timeline.timedStacks('might', 1, 0, 25), 6);
-  assert.equal(timeline.timedStacks('might', 0.25, 0, 25), 4);
+  assert.equal(timeline.buffStacksAt('might', 1, 0, 25), 6);
+  assert.equal(timeline.buffStacksAt('might', 0.25, 0, 25), 4);
   events.length = 0;
-  assert.equal(timeline.timedStacks('might', 0.25, 0, 25), 0);
+  assert.equal(timeline.buffStacksAt('might', 0.25, 0, 25), 0);
 });
 
 test('buff query arguments and timeline instances cannot share another audience or duration answer', () => {
@@ -205,13 +205,13 @@ test('buff query arguments and timeline instances cannot share another audience 
 test('appended boon extensions invalidate intensity and duration queries', () => {
   const events = [buffEvent(), buffEvent({ kind: 'fury', stacks: 1 })];
   const timeline = createGw2TimelineIndex({ events });
-  assert.equal(timeline.timedStacks('might', 2.5, 0, 25), 0);
+  assert.equal(timeline.buffStacksAt('might', 2.5, 0, 25), 0);
   assert.equal(timeline.timedActive('fury', 2.5), false);
   const extension = { type: 'boon_extension', at: 1, duration: 2, source: 'Trait' };
   events.push(extension);
-  assert.equal(timeline.timedStacks('might', 2.5, 0, 25), 4);
+  assert.equal(timeline.buffStacksAt('might', 2.5, 0, 25), 4);
   assert.equal(timeline.timedActive('fury', 2.5), true);
-  assert.equal(timeline.timedStacks('might', 0.5, 0, 25), 4);
+  assert.equal(timeline.buffStacksAt('might', 0.5, 0, 25), 4);
   assert.equal(timeline.timedActive('fury', 0.5), true);
 });
 
@@ -226,14 +226,14 @@ test('buff history bounds preserve mixed lifetimes, fallback durations, and back
     buffEvent({ at: 20, duration: 1, stacks: 32 })
   ];
   const timeline = createGw2TimelineIndex({ events });
-  assert.equal(timeline.timedStacks('might', 9, 2, 100), 2);
-  assert.equal(timeline.timedStacks('might', 11, 2, 100), 0);
-  assert.equal(timeline.timedStacks('might', 4, 2, 100), 6);
-  assert.equal(timeline.timedStacks('might', 4, 0, 100), 2);
-  assert.equal(timeline.timedStacks('might', 12, 10, 100), 4);
+  assert.equal(timeline.buffStacksAt('might', 9, 2, 100), 2);
+  assert.equal(timeline.buffStacksAt('might', 11, 2, 100), 0);
+  assert.equal(timeline.buffStacksAt('might', 4, 2, 100), 6);
+  assert.equal(timeline.buffStacksAt('might', 4, 0, 100), 2);
+  assert.equal(timeline.buffStacksAt('might', 12, 10, 100), 4);
   events.push(buffEvent({ at: 0.5, duration: 30, stacks: 64 }));
-  assert.equal(timeline.timedStacks('might', 12, 2, 100), 25);
-  assert.equal(timeline.timedStacks('might', 0.25, 2, 100), 1);
+  assert.equal(timeline.buffStacksAt('might', 12, 2, 100), 25);
+  assert.equal(timeline.buffStacksAt('might', 0.25, 2, 100), 1);
 });
 
 test('buff history bounds retain grants until their quantized expiry', () => {
@@ -241,6 +241,6 @@ test('buff history bounds retain grants until their quantized expiry', () => {
   const timeline = createGw2TimelineIndex({
     events: [buffEvent({ kind: 'compounding', at: 0.005, duration: 1, stacks: 1 })]
   });
-  assert.equal(timeline.timedStacks('compounding', 1.005, 0, 5), 1);
-  assert.equal(timeline.timedStacks('compounding', 1.04, 0, 5), 0);
+  assert.equal(timeline.buffStacksAt('compounding', 1.005, 0, 5), 1);
+  assert.equal(timeline.buffStacksAt('compounding', 1.04, 0, 5), 0);
 });

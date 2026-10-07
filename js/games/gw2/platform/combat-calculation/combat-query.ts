@@ -63,7 +63,6 @@ interface CreateGw2CombatQueryOptions {
   readonly events?: readonly SimulationEvent[];
   readonly resolvedTimelineEvents?: readonly SimulationEvent[];
   readonly traits?: ReadonlySet<string | number>;
-  readonly conditionDurationBonus?: (context: Gw2QueryRuntime | null | undefined, at: number) => number;
   /** Isolated stat previews may vary health; simulation configs cannot supply this query-only input. */
   readonly attributePreviewPlayerHealthFraction?: number;
 }
@@ -137,7 +136,6 @@ export function createGw2CombatQuery({
   events = [],
   resolvedTimelineEvents,
   traits = normalizeSelectedTraitIds(config.selectedTraitIds),
-  conditionDurationBonus,
   attributePreviewPlayerHealthFraction
 }: CreateGw2CombatQueryOptions = {}): Readonly<Gw2CombatQuery> {
   if (!profession?.id) {
@@ -161,10 +159,8 @@ export function createGw2CombatQuery({
   // that reference `query` are only called during scheduling/resolution (after
   // this function returns), so the null-during-construction window is safe.
   // Live relic state owns earned activations; detached queries retain only the selected relic's base context.
-  const equipmentConditionDurationBonus =
-    conditionDurationBonus ||
-    ((runtime: Gw2QueryRuntime | null | undefined, at: number): number =>
-      relicConditionDurationBonus(runtime?.relic ? runtime : historicalRelicContext, at));
+  const equipmentConditionDurationBonus = (runtime: Gw2QueryRuntime | null | undefined, at: number): number =>
+    relicConditionDurationBonus(runtime?.relic ? runtime : historicalRelicContext, at);
   const configWithBaselineStats = (weaponSet: number): Gw2Config => {
     const stats = gw2StatsForWeaponSet(config, weaponSet);
     return {

@@ -830,7 +830,6 @@ test('Ranger pet-swap and Marksmanship traits resolve at their combat timings', 
   });
 
   assert.deepEqual(swapped.warnings, []);
-  assert.equal(swapped.planningState.profession.petSwapCount, 1);
   assert.equal(swapped.planningState.profession.activePetSlot, 2);
   assert.equal(swapped.planningState.profession.activePet, 'Fanged Iboga');
   assert.deepEqual(swapped.planningState.profession.petNames, ['Carrion Devourer', 'Fanged Iboga']);

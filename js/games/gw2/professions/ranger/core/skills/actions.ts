@@ -61,7 +61,6 @@ export function swapRangerPets(runtime: RangerRuntime, skill: Skill): void {
     runtime,
     buildRangerPacket({ at: runtime.time, activePet: pet.name, activePetSlot: slot }, 'ranger.pet-swapped')
   );
-  state.petSwapCount += 1;
   state.petAutoActivationCounts[slot - 1] += 1;
   state.petAutoActivationUses = {};
   state.petAutoOpeningBasic = state.petAutoActivationCounts[slot - 1] === 1;

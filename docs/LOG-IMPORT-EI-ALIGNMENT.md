@@ -207,7 +207,7 @@ as a generated diff of the current table:
   `Renegade.BandTogetherCastFinder(DarkrazorsDaringSkill, DarkrazorsDari`,
   `Renegade.BandTogetherCastFinder(IcerazorsIreSkill, IcerazorsIreSkillE`, `Conduit.CosmicWisdomSkill`,
   `Conduit.FormOfTheDervishDamage`, `Conduit.FormOfTheDervishDamageElite`.
-- **Thief:** `Thief.ShadowReturn`, `Thief.SpiderVenomSkill`.
+- **Thief:** `Thief.ShadowReturn`.
 - **Warrior:** `Warrior.MendingMight`, `Bladesworn.FlowStabilizer`.
 
 ## Preserve necessary import behavior

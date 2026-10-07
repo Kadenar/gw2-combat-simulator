@@ -55,7 +55,6 @@ export function createDamageExecution<T extends object>(
     ),
     driver: {
       cursor: new RotationCursor([]),
-      rotation: [],
       advance({ runtime, acceptCast }) {
         if (started) return Infinity;
         started = true;

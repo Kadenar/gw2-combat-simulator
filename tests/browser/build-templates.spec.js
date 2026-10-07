@@ -1,5 +1,36 @@
 import { expect, test } from '@playwright/test';
 
+// Optional catalog failures must not prevent users from saving and opening their personal library.
+for (const failure of ['missing', 'network']) {
+  test(`My Builds remains usable when the template catalog is ${failure}`, async ({ page }) => {
+    const consoleErrors = [];
+    page.on('console', (message) => {
+      if (message.type() === 'error') consoleErrors.push(message.text());
+    });
+    await page.route('**/data/gw2/builds/mesmer/manifest.json*', (route) =>
+      failure === 'missing' ? route.fulfill({ status: 404 }) : route.abort('failed')
+    );
+    await page.goto('/mesmer.html');
+    await expect(page.locator('#loading-overlay')).toHaveClass(/hidden/);
+    await page.locator('.build-tab.is-active .build-tab-menu-trigger').click();
+    await page.getByRole('button', { name: /Save to My Builds/ }).click();
+    const save = page.getByRole('dialog', { name: 'Save to My Builds' });
+    await save.getByLabel('Build name').fill('Personal build');
+    await save.getByRole('button', { name: 'Save', exact: true }).click();
+    await page.locator('.build-tab.is-active .build-tab-menu-trigger').click();
+    await page.getByRole('button', { name: /Load build/ }).click();
+    const library = page.getByRole('dialog', { name: 'Build library', exact: true });
+    await expect(library.locator('.template-filter-empty')).toBeVisible();
+    await library.getByRole('tab', { name: 'My Builds' }).click();
+    await expect(library.getByRole('button', { name: 'Personal build', exact: true })).toBeVisible();
+    if (failure === 'network') {
+      expect(consoleErrors.some((message) => message.includes('Failed to load build templates for mesmer:'))).toBe(
+        true
+      );
+    }
+  });
+}
+
 // The personal library owns durable snapshots while search spans whichever library tab is active.
 test('My Builds saves new snapshots, overwrites, searches, loads, and deletes them', async ({ page }) => {
   await page.goto('/mesmer.html');

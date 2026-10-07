@@ -10,29 +10,9 @@ export type TemplateBoonFilter = 'all' | Exclude<TemplateBoon, 'none'>;
 export const TEMPLATE_FILTERS: readonly TemplateFilter[] = ['all', 'power', 'condi'];
 export const TEMPLATE_BOON_FILTERS: readonly TemplateBoonFilter[] = ['all', 'alacrity', 'quickness'];
 
-export function normalizeTemplateSections(manifest: unknown): BuildTemplateSection[] {
-  if (!Array.isArray(manifest) || manifest.length === 0) return [];
-  const sections = manifest as BuildTemplateSection[];
-  return sections[0]?.presets !== undefined
-    ? sections
-    : [
-        {
-          section: null,
-          presets: manifest as BuildTemplatePreset[]
-        }
-      ];
-}
-
-export function templateSpecializations(manifest: unknown): string[] {
+export function templateSpecializations(manifest: readonly BuildTemplateSection[]): string[] {
   // Manifest sections represent active specializations, so they can drive the filter without loading every build file.
-  return [
-    ...new Set(
-      normalizeTemplateSections(manifest).flatMap((section) => {
-        const specialization = section.section?.trim();
-        return specialization ? [specialization] : [];
-      })
-    )
-  ];
+  return [...new Set(manifest.map(({ section }) => section))];
 }
 
 export function templateTileContent(preset: BuildTemplatePreset): {

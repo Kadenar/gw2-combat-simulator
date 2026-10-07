@@ -53,8 +53,17 @@ test('local artwork aliases resolve to loadable images', async ({ page }) => {
 test('all four tutorials switch, replay and respect reduced motion', async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto('/');
-  await page.locator('[data-tutorial-trigger]').first().click();
   const dialog = page.locator('.tutorial-dialog');
+  // The static landing link and compact header launcher must share the same lazy-loaded dialog.
+  const landingTrigger = page.locator('.landing-tutorial-link');
+  await expect(dialog.locator('.tutorial-animation[src]')).toHaveCount(0);
+  await landingTrigger.click();
+  await expect(dialog).toBeVisible();
+  await page.keyboard.press('Escape');
+  await expect(dialog).toBeHidden();
+  await expect(landingTrigger).toBeFocused();
+  await expect(dialog.locator('.tutorial-animation[src]')).toHaveCount(0);
+  await page.locator('.community-actions [data-tutorial-trigger]').click();
   const choices = dialog.locator('[data-tutorial-choice]');
   await expect(choices).toHaveCount(4);
   for (const choice of await choices.all()) {

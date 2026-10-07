@@ -193,7 +193,11 @@ const createModuleData = createProfessionModuleDataFactory<ThiefSkill>({
   traits: TRAITS,
   specializations: SPECIALIZATIONS,
   specializationOnlySkills: SPECIALIZATION_ONLY_SKILLS,
-  core: WEAPON_DATA
+  core: {
+    ...WEAPON_DATA,
+    // Name-based requests select the opener rather than its identically named follow-up.
+    skillNameOverrides: { 'Spinning Axe': ID.SPINNING_AXE_ID_71967 }
+  }
 });
 
 // Normalize generated and supplemental Thief mechanics into one specialization

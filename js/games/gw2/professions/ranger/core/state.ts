@@ -33,7 +33,6 @@ export interface RangerCoreState {
   paralyzingVenomUntil: number;
   poisonousStrikes: ChargeGrant;
   sharpeningStoneGrants: ChargeGrant[];
-  petSwapCount: number;
   petAutoGeneration: number;
   petAutoNextAt: number;
   petAutoBusyUntil: number;
@@ -85,7 +84,6 @@ export function createRangerCoreState(config: RangerConfig = {}): RangerCoreStat
     paralyzingVenomUntil: 0,
     poisonousStrikes: grantCharges(0, 0),
     sharpeningStoneGrants: [],
-    petSwapCount: 0,
     petAutoGeneration: 0,
     petAutoNextAt: 0,
     petAutoBusyUntil: 0,
@@ -116,9 +114,7 @@ export const RANGER_CORE_PUBLIC_END_STATE_KEYS: readonly (keyof RangerState)[] =
 
   'quickDraw',
 
-  'sharpeningStoneGrants',
-
-  'petSwapCount'
+  'sharpeningStoneGrants'
 ]);
 
 // Core fields have no inactive fallbacks; their values come from the live state.

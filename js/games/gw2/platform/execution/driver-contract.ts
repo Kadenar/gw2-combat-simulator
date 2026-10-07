@@ -16,7 +16,6 @@ export interface RuntimeDriverContext<T extends object> {
 
 export interface RuntimeDriver<T extends object> {
   readonly cursor: RotationCursor;
-  readonly rotation: readonly unknown[];
   /** Return handled after consuming work, otherwise the next command boundary or Infinity. */
   advance(context: RuntimeDriverContext<T>): number | 'handled';
 }

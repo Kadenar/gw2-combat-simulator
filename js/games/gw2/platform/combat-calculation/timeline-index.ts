@@ -13,8 +13,6 @@ import {
 import type { SimulationEvent } from '#gw2/platform/events/events.js';
 import type { Skill, SkillId } from '#gw2/platform/skills/types.js';
 import { GW2_ALACRITY_RECHARGE_RATE, gw2RechargeIntervals } from '#gw2/platform/combat/recharge.js';
-import { gw2SigilSet } from '#gw2/platform/equipment/sigils/loadout.js';
-import type { Gw2SigilSet } from '#gw2/platform/equipment/sigils/types.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
 import { gw2EffectExpiresAt } from '#gw2/platform/effects/timing.js';
 import { canonicalTime } from '#kernel/core/clock.js';
@@ -233,9 +231,7 @@ export function createGw2TimelineIndex({
     return value;
   };
 
-  const timedStacks = (kind: string, time: number, duration: number, maximum: number): number =>
-    buffStacksAt(kind, time, duration, maximum);
-
+  // Presence queries share the same expiry and audience rules as stack queries.
   const timedActive = (kind: string, time: number): boolean => {
     return buffStacksAt(kind, time, 0, 1) > 0;
   };
@@ -255,8 +251,6 @@ export function createGw2TimelineIndex({
     return activeSet;
   };
 
-  const activeSigilSetAt = (time: number): Gw2SigilSet => gw2SigilSet(config, activeWeaponSetAt(time));
-
   const skillOnCooldownAt = (skillId: SkillId, time: number): boolean => {
     // The owner supplies current cooldown state or an explicit preview policy; events cannot reconstruct it.
     if (!skillOnCooldown) throw new Error('Cooldown queries require a readiness provider.');
@@ -265,11 +259,9 @@ export function createGw2TimelineIndex({
 
   return Object.freeze({
     buffStacksAt,
-    timedStacks,
     timedActive,
     vigorActiveAt,
     activeWeaponSetAt,
-    activeSigilSetAt,
     skillOnCooldownAt,
     rechargeIntervals
   });
@@ -285,10 +277,8 @@ export interface Gw2TimelineIndex {
     audience?: Gw2BuffAudience,
     companionId?: string | null
   ): number;
-  timedStacks(kind: string, time: number, duration: number, maximum: number): number;
   timedActive(kind: string, time: number): boolean;
   vigorActiveAt(time: number): boolean;
   activeWeaponSetAt(time: number): number;
-  activeSigilSetAt(time: number): Gw2SigilSet;
   skillOnCooldownAt(skillId: SkillId, time: number): boolean;
 }

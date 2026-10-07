@@ -1,7 +1,6 @@
 import type { EffectState } from '#gw2/platform/combat/effect-state.js';
 import type { SimulationEvent } from '#gw2/platform/events/events.js';
 import type { AvailabilityResult } from '#gw2/platform/execution/availability.js';
-import type { AmmoState } from '#gw2/platform/execution/cooldown-contracts.js';
 import type { Gw2DamageBreakdownEntry } from '#gw2/platform/resolver/hit-resolution.js';
 import type {
   Gw2EnvironmentConditionBreakdownEntry,
@@ -46,6 +45,14 @@ export interface Gw2PlanningStateInput<T extends object = object> {
   readonly catalog: CanonicalCatalog;
 }
 
+/** Detached display facts; serial recharge work and lockouts remain owned by the live cooldown controller. */
+export interface Gw2PlanningAmmo {
+  readonly charges: number;
+  readonly maximum: number;
+  /** Absolute detection-tick deadline in seconds, or null when no charge is recovering. */
+  readonly nextRechargeAt: number | null;
+}
+
 export interface Gw2SimulationPlanningState {
   /** Detached owner observations at the planning boundary, including continuation after death. */
   readonly effects: readonly EffectState[];
@@ -56,7 +63,7 @@ export interface Gw2SimulationPlanningState {
   /** Skill-ID-keyed cooldown deadlines and remaining durations are milliseconds. */
   readonly cooldowns: Readonly<Record<string, { readyAt: number; remaining: number }>>;
   /** ID-keyed ammo avoids collisions between distinct skills sharing a display name. */
-  readonly ammoBySkillId: Readonly<Record<string, Readonly<AmmoState>>>;
+  readonly ammoBySkillId: Readonly<Record<string, Gw2PlanningAmmo>>;
   readonly activeWeaponSet: number;
   readonly profession: unknown;
 }

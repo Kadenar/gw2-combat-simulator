@@ -19,12 +19,16 @@ import {
   updateTemplateSelection
 } from '#gw2/app/build/library/view.js';
 import type { ProfessionAppState } from '#gw2/app/types.js';
+import type { BuildTemplateSection } from '#gw2/app/build/types.js';
 
 /** Connects catalog loading and library interactions to their view, storage, and build actions. */
 export async function initBuildTemplates(app: ProfessionAppState): Promise<void> {
-  let manifest: unknown = [];
+  let manifest: readonly BuildTemplateSection[] = [];
   try {
-    manifest = await fetchJsonAsset(`data/gw2/builds/${app.adapter.id}/manifest.json`, { optional: true });
+    // Bundled catalogs use named sections; a missing optional asset leaves the personal library available.
+    manifest =
+      ((await fetchJsonAsset(`data/gw2/builds/${app.adapter.id}/manifest.json`, { optional: true })) as
+        BuildTemplateSection[] | null) ?? [];
   } catch (error) {
     // The user's local library remains available even when the standard catalog cannot be fetched.
     console.error(`Failed to load build templates for ${app.adapter.id}:`, error);

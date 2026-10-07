@@ -5,7 +5,7 @@
     "benchmarkDurationSeconds": 90.773,
     "benchmarkDamage": 4003922,
     "benchmarkDps": 44109,
-    "note": "User-supplied build and rotation with six Shadow Swap activations restored at their EVTC damage timestamps relative to each Shadow Flare. Target conditions match the EVTC: Blind and Immobilize replace Burning and Confusion. The build starts with six autoattack axes. Six grounded slots are shared; outgoing axes can be recalled before landing and returning axes no longer occupy those slots. Damage and missile evidence are documented in docs/LOG-IMPORT-EI-ALIGNMENT.md."
+    "note": "User-supplied build and rotation with six Shadow Swap activations restored at their EVTC damage timestamps relative to each Shadow Flare. Target conditions match the EVTC: Blind and Immobilize replace Burning and Confusion. The build starts with six autoattack axes. Six grounded slots are shared; outgoing axes can be recalled before landing and returning axes no longer occupy those slots. Damage and missile evidence are documented in docs/LOG-IMPORT-EI-ALIGNMENT.md. Slow Spinning Axe aftercast waits are absorbed into its corrected cast duration; attempts shorter than the selected variant retain their cancellation. Spinning Axe variants follow the normal autoattack chain: fast opener, slow follow-up, and fast again after a chain reset."
   },
   "rotation": [
     {
@@ -88,10 +88,6 @@
       "skillId": 71854
     },
     {
-      "type": "wait",
-      "durationMs": 320
-    },
-    {
       "type": "cast",
       "skillId": 71967
     },
@@ -139,10 +135,6 @@
       "skillId": 71854
     },
     {
-      "type": "wait",
-      "durationMs": 320
-    },
-    {
       "type": "cast",
       "skillId": 71967
     },
@@ -176,11 +168,8 @@
     },
     {
       "type": "cast",
-      "skillId": 71854
-    },
-    {
-      "type": "wait",
-      "durationMs": 240
+      "skillId": 71854,
+      "interruptAfterMs": 680
     },
     {
       "type": "cast",
@@ -210,10 +199,6 @@
     {
       "type": "cast",
       "skillId": 71854
-    },
-    {
-      "type": "wait",
-      "durationMs": 320
     },
     {
       "type": "cast",
@@ -255,11 +240,8 @@
     },
     {
       "type": "cast",
-      "skillId": 71854
-    },
-    {
-      "type": "wait",
-      "durationMs": 240
+      "skillId": 71854,
+      "interruptAfterMs": 680
     },
     {
       "type": "cast",
@@ -287,11 +269,8 @@
     },
     {
       "type": "cast",
-      "skillId": 71854
-    },
-    {
-      "type": "wait",
-      "durationMs": 240
+      "skillId": 71854,
+      "interruptAfterMs": 680
     },
     {
       "type": "cast",
@@ -316,10 +295,6 @@
     {
       "type": "cast",
       "skillId": 71854
-    },
-    {
-      "type": "wait",
-      "durationMs": 320
     },
     {
       "type": "cast",
@@ -357,14 +332,6 @@
     },
     {
       "type": "cast",
-      "skillId": 71854
-    },
-    {
-      "type": "wait",
-      "durationMs": 320
-    },
-    {
-      "type": "cast",
       "skillId": 71967
     },
     {
@@ -372,8 +339,8 @@
       "skillId": 71854
     },
     {
-      "type": "wait",
-      "durationMs": 240
+      "type": "cast",
+      "skillId": 71967
     },
     {
       "type": "cast",
@@ -420,10 +387,6 @@
     {
       "type": "cast",
       "skillId": 71854
-    },
-    {
-      "type": "wait",
-      "durationMs": 320
     },
     {
       "type": "cast",
@@ -465,11 +428,8 @@
     },
     {
       "type": "cast",
-      "skillId": 71854
-    },
-    {
-      "type": "wait",
-      "durationMs": 240
+      "skillId": 71854,
+      "interruptAfterMs": 680
     },
     {
       "type": "cast",
@@ -502,11 +462,8 @@
     },
     {
       "type": "cast",
-      "skillId": 71854
-    },
-    {
-      "type": "wait",
-      "durationMs": 240
+      "skillId": 71854,
+      "interruptAfterMs": 680
     },
     {
       "type": "cast",
@@ -536,10 +493,6 @@
     {
       "type": "cast",
       "skillId": 71854
-    },
-    {
-      "type": "wait",
-      "durationMs": 320
     },
     {
       "type": "cast",
@@ -581,11 +534,8 @@
     },
     {
       "type": "cast",
-      "skillId": 71854
-    },
-    {
-      "type": "wait",
-      "durationMs": 240
+      "skillId": 71854,
+      "interruptAfterMs": 680
     },
     {
       "type": "cast",
@@ -618,7 +568,7 @@
     },
     {
       "type": "wait",
-      "durationMs": 360
+      "durationMs": 40
     },
     {
       "type": "cast",
@@ -643,11 +593,8 @@
     },
     {
       "type": "cast",
-      "skillId": 71854
-    },
-    {
-      "type": "wait",
-      "durationMs": 240
+      "skillId": 71854,
+      "interruptAfterMs": 680
     },
     {
       "type": "cast",
@@ -677,10 +624,6 @@
     {
       "type": "cast",
       "skillId": 71854
-    },
-    {
-      "type": "wait",
-      "durationMs": 320
     },
     {
       "type": "cast",
@@ -738,10 +681,6 @@
       "skillId": 71854
     },
     {
-      "type": "wait",
-      "durationMs": 320
-    },
-    {
       "type": "cast",
       "skillId": 71967
     },
@@ -768,19 +707,15 @@
     },
     {
       "type": "cast",
-      "skillId": 71854
-    },
-    {
-      "type": "wait",
-      "durationMs": 320
-    },
-    {
-      "type": "cast",
       "skillId": 71967
     },
     {
       "type": "cast",
-      "skillId": 71854,
+      "skillId": 71854
+    },
+    {
+      "type": "cast",
+      "skillId": 71967,
       "interruptAfterMs": 40
     },
     {
@@ -806,10 +741,6 @@
     {
       "type": "cast",
       "skillId": 71854
-    },
-    {
-      "type": "wait",
-      "durationMs": 320
     },
     {
       "type": "cast",

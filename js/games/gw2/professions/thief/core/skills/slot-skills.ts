@@ -40,7 +40,8 @@ export const THIEF_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Partial<
   [ID.HIDE_IN_SHADOWS]: {
     // The skill owns this transition at successful commitment.
     sideEffects: [{ on: 'castCommit', do: { type: 'thief.stealth' } }],
-    castTimeMs: 680,
+    // The heal occupies its full recorded animation before granting stealth.
+    castTimeMs: 920,
     cooldown: 25,
     initiativeCost: 0,
     effects: [

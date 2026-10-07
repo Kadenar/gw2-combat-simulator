@@ -648,6 +648,8 @@ export const DEADEYE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> =
     malicious: true
   },
   [ID.MALICIOUS_CUNNING_SALVO]: {
+    // The axe exists after a committed throw even when its outgoing strike misses.
+    sideEffects: [{ on: 'castCommit', do: { type: 'thief.ground-axe' } }],
     // A committed axe preserves its impact and the remaining cast lockout after interruption.
     interruptCommitMs: 400,
     retainsCastLockoutAfterInterrupt: true,
@@ -674,9 +676,7 @@ export const DEADEYE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> =
     effects: impactEffects({ atMs: 0, timingAnchor: 'castEnd', timingScale: 'fixed', persistsAfterInterrupt: true }, [
       {
         type: 'strike',
-        // Each accepted axe packet contributes one expiring ground axe.
         reactions: [
-          { on: 'damage.resolved', actor: 'player', packets: 'each', do: { type: 'thief.ground-axe' } },
           // Refund on impact so misses and cancelled casts grant nothing.
           {
             on: 'damage.resolved',

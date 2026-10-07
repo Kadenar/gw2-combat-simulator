@@ -332,7 +332,13 @@ export function eiInstantActions(context: EvtcProfessionReconstructionContext): 
               matches = isBuffApply(log, event) && owns(event.target);
               break;
             case 'buff-give':
-              matches = isBuffApply(log, event) && owns(event.source);
+              // Compare the actual source/recipient before final-master attribution, as EI's checker does.
+              matches =
+                isBuffApply(log, event) &&
+                owns(event.source) &&
+                (rule.selfAppliedDuration == null ||
+                  event.target !== event.source ||
+                  Math.abs(event.value - rule.selfAppliedDuration) < 10);
               break;
             case 'buff-loss':
               matches = isBuffRemoveAll(log, event) && owns(event.source);

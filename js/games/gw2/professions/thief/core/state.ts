@@ -24,6 +24,8 @@ interface ThievesGuildState {
 }
 
 export interface ThiefCoreState {
+  /** Same-tick hostile impacts must reveal a new stealth grant regardless of queue insertion order. */
+  lastStealthBreakingStrike: { at: number; skillId: SkillId } | null;
   initiative: ResourceClock;
   stealthStartedAt: number;
   stealthUntil: number;
@@ -70,6 +72,7 @@ export function createThiefCoreState(config: ThiefConfig = {}): ThiefCoreState {
   // Current-patch previews use the same authored capacity as the live resource policy.
   const maximumInitiative = balanceProfileNumber(THIEF_CORE_RESOURCE_PROFILE, preparednessCapacityField(traits));
   return {
+    lastStealthBreakingStrike: null,
     initiative: {
       ...createResourceClock(
         boundedNumber(
@@ -95,12 +98,12 @@ export function createThiefCoreState(config: ThiefConfig = {}): ThiefCoreState {
     spearChainStage: 0,
     spearPreviousSkillId: null,
     spearLastWasFinisher: false,
-    // Starting axes are fresh autoattack axes: no outgoing damage or initiative cost, ten seconds to recall them.
+    // Starting axes persist through setup; combat entry starts their ordinary ten-second recall window.
     spinningAxes: Array.from(
       { length: boundedInteger(config.initialSpinningAxes, 0, 0, MAXIMUM_SPINNING_AXES) },
       () => ({
         skillId: ID.SPINNING_AXE,
-        expiresAt: 10
+        expiresAt: Infinity
       })
     ),
     outboundAxes: [],

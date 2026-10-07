@@ -32,6 +32,8 @@ import {
   grantThiefGroundAxe,
   landThiefAxe,
   recallThiefAxes,
+  scheduleThiefAxeRecall,
+  startThiefAxeExpiry,
   THIEF_AXE_LAND
 } from '#gw2/professions/thief/core/mechanics/axes.js';
 import {
@@ -186,7 +188,7 @@ const coreLifecycle: RuntimeHooks<ThiefRuntimeState, ThiefSkill> = {
     'thief.assassins-signet': activateAssassinsSignet,
     'thief.kneel': (runtime) => setThiefKneeling(runtime, true),
     'thief.stand': (runtime) => setThiefKneeling(runtime, false),
-    'thief.recall-axes': recallThiefAxes,
+    'thief.recall-axes': scheduleThiefAxeRecall,
     'thief.spear-chain': (runtime, context) => updateSpearChain(runtime, context.skill),
     'thief.consume-stolen': (runtime, context) => consumeThiefStolenSkill(runtime, context.skill),
     'thief.steal'(runtime, context) {
@@ -214,6 +216,7 @@ const coreLifecycle: RuntimeHooks<ThiefRuntimeState, ThiefSkill> = {
     }
   },
   resources: { initiative: thiefInitiative },
+  onCombatStart: startThiefAxeExpiry,
   endurance: thiefEndurance,
   availability: thiefAvailability,
   rechargeWork: thiefRechargeWork,
@@ -245,6 +248,9 @@ const coreLifecycle: RuntimeHooks<ThiefRuntimeState, ThiefSkill> = {
     'condition.applied': reactThiefCoreCondition
   },
   tasks: {
+    'thief.recall-axes'(runtime, data) {
+      recallThiefAxes(runtime, (data as { cast: RuntimeCast<ThiefSkill> }).cast);
+    },
     [THIEF_AXE_LAND]: landThiefAxe,
     'thief.distracting-throw-window': grantDistractingThrowWindow,
     [THIEF_CORE_COMPLETE](runtime, data) {

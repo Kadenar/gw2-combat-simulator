@@ -18,7 +18,6 @@ export function createRotationDriver<T extends object>(
   let selectionContext: TraitSelectionContext | undefined;
   return {
     cursor,
-    rotation,
     advance({ runtime, evaluateReadiness, resetCooldowns, advanceFrontier, acceptCast, reject }) {
       selectionContext ??= createSkillSelectionContext(runtime.traits);
       const command = cursor.command;

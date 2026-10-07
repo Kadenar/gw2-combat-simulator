@@ -78,7 +78,7 @@ test('non-damaging, concurrent, ammo, bar, weapon and manual pet inputs each cou
 });
 
 test('multi-hit effects, passive activations and duplicate scheduler records cannot inflate input counts', () => {
-  const rotation = ['Channel'];
+  const rotation = [{ type: 'cast', skillId: 980011 }];
   const { scheduled } = analyze(rotation);
   const duplicated = {
     ...scheduled,

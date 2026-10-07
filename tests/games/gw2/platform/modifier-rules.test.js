@@ -18,9 +18,6 @@ function context({
     damageInputs: {
       strikeSigilBonus: sigils.strikeAdd ?? Number(sigils.strike || 1) - 1,
       conditionSigilBonus: sigils.conditionAdd ?? Number(sigils.condition || 1) - 1
-    },
-    timeline: {
-      activeSigilSetAt: () => sigils
     }
   };
 }

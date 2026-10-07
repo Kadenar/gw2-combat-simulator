@@ -52,6 +52,12 @@ export function grantThiefStealth(runtime: ThiefRuntime, skill: ThiefSkill, dura
   grantLeechingVenomCharges(runtime, at);
 
   enterCloakedInShadow(runtime, skill, at);
+  // Quantized concurrent impacts reveal the new stealth even when an older field's packet ran first in the queue.
+  const concurrent = core.lastStealthBreakingStrike;
+  if (concurrent?.at === at) {
+    const revealingSkill = thiefSkill(runtime, concurrent.skillId);
+    if (revealingSkill && breakThiefStealth(runtime, revealingSkill, at)) core.strikeBrokeStealthAt = at;
+  }
 }
 
 /** Removes active stealth, applies Revealed, and fires the traits shared by every attack that breaks stealth. */
@@ -79,6 +85,7 @@ export function reactThiefStealthBreakingStrike(runtime: ThiefRuntime, event: Gw
   const skill = thiefSkill(runtime, event.skillId);
   if (!skill || skill.stealthAttack) return;
   if (stealthGrantActivations.get(runtime)?.has(String(event.activationId))) return;
+  runtime.profession.core.lastStealthBreakingStrike = { at: runtime.time, skillId: skill.id };
   if (breakThiefStealth(runtime, skill, runtime.time)) runtime.profession.core.strikeBrokeStealthAt = runtime.time;
 }
 

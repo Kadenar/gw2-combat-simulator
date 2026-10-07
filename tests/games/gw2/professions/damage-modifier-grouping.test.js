@@ -78,9 +78,7 @@ function modifierContext({
       conditionSigilBonus: sigils.conditionAdd ?? Number(sigils.condition || 1) - 1
     },
     timeline: {
-      activeSigilSetAt: () => sigils,
       timedActive: (kind) => activeKinds.has(kind),
-      timedStacks: (kind) => Number(stacks[kind] || 0),
       vigorActiveAt: () => Boolean(config.boons?.vigor)
     }
   };

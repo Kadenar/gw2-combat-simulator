@@ -18,12 +18,12 @@ export interface BuildTemplatePreset {
   /** Cumulative and phase player DPS at each health band; non-killing runs use final overall DPS for 20-0%. */
   readonly benchmarkDpsByHealth?: TargetHealthBandDps;
   readonly upToDate?: boolean;
-  readonly section?: string | null;
+  readonly section?: string;
 }
 
 export interface BuildTemplateSection {
-  readonly section?: string | null;
-  readonly presets?: readonly BuildTemplatePreset[];
+  readonly section: string;
+  readonly presets: readonly BuildTemplatePreset[];
 }
 
 export interface BuildTemplateSelection {

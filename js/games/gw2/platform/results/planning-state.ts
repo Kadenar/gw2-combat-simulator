@@ -29,7 +29,7 @@ export function planningState<T extends object>(
       ];
     })
   );
-  // UI deadlines report the detection tick while execution retains unrounded recharge progress.
+  // Publish detached display facts; execution keeps recharge work and lockouts, and UI deadlines use the detection tick.
   const ammoEntries = [...input.cooldownController.ammoSkillIds()].map((id) => {
     const value = input.cooldownController.readAmmo(id)!;
     return [
@@ -37,10 +37,7 @@ export function planningState<T extends object>(
       {
         charges: value.charges,
         maximum: value.maximum,
-        // Detach every charge timer so public observations cannot mutate live recharge progress.
-        recharges: value.recharges.map((progress) => ({ ...progress })),
-        nextRechargeAt: value.nextRechargeAt == null ? null : gw2CooldownReadyAt(value.nextRechargeAt),
-        ...(value.lockoutReadyAt == null ? {} : { lockoutReadyAt: gw2CooldownReadyAt(value.lockoutReadyAt) })
+        nextRechargeAt: value.nextRechargeAt == null ? null : gw2CooldownReadyAt(value.nextRechargeAt)
       }
     ] as const;
   });

@@ -92,8 +92,7 @@ test('specialization filters come from unique manifest section names', () => {
   const manifest = [
     { section: 'Weaver', presets: [] },
     { section: 'Tempest', presets: [] },
-    { section: 'Weaver', presets: [] },
-    { section: null, presets: [] }
+    { section: 'Weaver', presets: [] }
   ];
 
   assert.deepEqual(templateSpecializations(manifest), ['Weaver', 'Tempest']);

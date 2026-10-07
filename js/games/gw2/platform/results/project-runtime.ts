@@ -84,7 +84,7 @@ export function projectRuntimeResult<T extends object>(
         rotationEndTime: runtime.rotationEndTime,
         combatStartTime: explicitCombat ? (runtime.combatStartTime ?? null) : null
       },
-      execution.driver.rotation,
+      execution.driver.cursor.commands,
       profession.catalog
     ),
     planningState: planningState(

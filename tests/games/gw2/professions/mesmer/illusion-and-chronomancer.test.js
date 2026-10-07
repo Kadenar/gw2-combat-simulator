@@ -10,7 +10,7 @@ import { mesmerProfession } from '#gw2/professions/mesmer/profession.js';
 import { withSkill } from '#tests/helpers/catalog-overrides.js';
 import { defaultSimulationConfig } from '#tests/helpers/fixture-harness-core.js';
 import { createDefaultConfig, runMesmer, simulateMesmer } from '#tests/helpers/mesmer-simulation.js';
-import { observeGw2Runtime } from '#tests/helpers/observed-runtime.js';
+import { observeGw2Runtime, observedRuntime } from '#tests/helpers/observed-runtime.js';
 import { assertFlooredDamageMultiplier, assertRoundedDamageMultiplier } from '#tests/helpers/rounded-damage.js';
 import { prepareSimulationConfig } from '#tests/helpers/simulation-config.js';
 import assert from 'node:assert/strict';
@@ -65,7 +65,9 @@ test('Lingering Thoughts spends available ammo before waiting for serial recharg
   );
   assert.equal(result.planningState.ammoBySkillId[ID.LINGERING_THOUGHTS].charges, 0);
   assert.deepEqual(
-    result.planningState.ammoBySkillId[ID.LINGERING_THOUGHTS].recharges.map((progress) => progress.work),
+    observedRuntime(result)
+      .cooldownController.readAmmo(ID.LINGERING_THOUGHTS)
+      .recharges.map((progress) => progress.work),
     [5, 5]
   );
 });

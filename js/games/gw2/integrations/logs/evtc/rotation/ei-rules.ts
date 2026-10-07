@@ -35,6 +35,8 @@ export interface EiInstantRule {
   readonly relatedHit?: number;
   readonly absentRelatedHits?: readonly number[];
   readonly gainedBuff?: number;
+  /** Buff-give checkers may distinguish self trait grants by duration while accepting grants to other agents. */
+  readonly selfAppliedDuration?: number;
 }
 export const EI_INSTANT_RULES: readonly EiInstantRule[] = [
   {
@@ -3212,6 +3214,16 @@ export const EI_INSTANT_RULES: readonly EiInstantRule[] = [
     signal: 49083,
     kind: 'buff-give',
     rule: 'ThiefHelper.BuffGiveCastFinder(SoulStoneVenomSkill)'
+  },
+  {
+    profession: 'thief',
+    skillId: 13037,
+    signal: 13036,
+    kind: 'buff-give',
+    rule: 'ThiefHelper.BuffGiveCastFinder(SpiderVenomSkill)',
+    // EI d7f186c excludes self Leeching Venoms grants using its strict server-delay duration check.
+    selfAppliedDuration: 24000,
+    notAccurate: true
   },
   {
     profession: 'thief',

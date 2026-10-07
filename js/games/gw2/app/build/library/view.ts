@@ -1,10 +1,9 @@
 import { escapeHtml as esc } from '#ui/shared/html.js';
-import type { BuildTemplatePreset } from '#gw2/app/build/types.js';
+import type { BuildTemplatePreset, BuildTemplateSection } from '#gw2/app/build/types.js';
 import type { ProfessionAppState } from '#gw2/app/types.js';
 import type { MyBuild } from '#gw2/app/build/library/storage.js';
 import {
   buildSignature,
-  normalizeTemplateSections,
   templateCategory,
   templateBoon,
   templateTileContent,
@@ -22,7 +21,7 @@ export function templateSnowCrowsLink(preset: Pick<BuildTemplatePreset, 'snowCro
     : '';
 }
 
-function templateButtonHtml(app: ProfessionAppState, preset: BuildTemplatePreset, section: string | null): string {
+function templateButtonHtml(app: ProfessionAppState, preset: BuildTemplatePreset, section: string): string {
   const index = app.templatePresets.push({ ...preset, section }) - 1;
   const label = esc(preset.label);
   const content = templateTileContent(preset);
@@ -104,13 +103,13 @@ export function applyTemplateFilter(
   if (emptyMessage) emptyMessage.hidden = visibleTemplates > 0;
 }
 
-function templateGroupsHtml(app: ProfessionAppState, manifest: unknown): string {
+function templateGroupsHtml(app: ProfessionAppState, manifest: readonly BuildTemplateSection[]): string {
   app.templatePresets = [];
-  return normalizeTemplateSections(manifest)
+  return manifest
     .map((section) => {
       // Boon builds belong to one support group; native details keep each category independently collapsible.
       const groups: Record<string, string[]> = { Power: [], Condition: [], Boon: [], Other: [] };
-      for (const preset of section.presets || []) {
+      for (const preset of section.presets) {
         const category = templateCategory(preset);
         const group =
           templateBoon(preset) !== 'none'
@@ -120,7 +119,7 @@ function templateGroupsHtml(app: ProfessionAppState, manifest: unknown): string 
               : category === 'condi'
                 ? 'Condition'
                 : 'Other';
-        groups[group].push(templateButtonHtml(app, preset, section.section || null));
+        groups[group].push(templateButtonHtml(app, preset, section.section));
       }
 
       const templates = Object.entries(groups)
@@ -133,7 +132,7 @@ function templateGroupsHtml(app: ProfessionAppState, manifest: unknown): string 
         )
         .join('');
       if (!templates) return '';
-      const label = section.section ? `<span class="presets-group-label">${esc(section.section)}</span>` : '';
+      const label = `<span class="presets-group-label">${esc(section.section)}</span>`;
       return `<div class="presets-group">${label}<div class="presets-group-btns template-preset-list">${templates}</div></div>`;
     })
     .join('');
@@ -265,7 +264,11 @@ export function updateTemplateSelection(app: ProfessionAppState): void {
 }
 
 /** Creates both dialogs while leaving focus, input, and loading actions to the controller. */
-export function createBuildLibraryView(app: ProfessionAppState, manifest: unknown, specializations: readonly string[]) {
+export function createBuildLibraryView(
+  app: ProfessionAppState,
+  manifest: readonly BuildTemplateSection[],
+  specializations: readonly string[]
+) {
   const groups = templateGroupsHtml(app, manifest);
   const container = document.createElement('section');
   container.className = 'build-templates';

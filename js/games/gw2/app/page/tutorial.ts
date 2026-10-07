@@ -72,12 +72,10 @@ export function activateTutorialPanel(
   return activeImage;
 }
 
-function tutorialTrigger(root: Document, prominent: boolean): HTMLButtonElement {
+function tutorialTrigger(root: Document): HTMLButtonElement {
   const trigger = root.createElement('button');
   trigger.type = 'button';
-  trigger.className = prominent
-    ? 'tutorial-trigger tutorial-trigger-primary'
-    : 'community-link tutorial-trigger tutorial-trigger-compact';
+  trigger.className = 'community-link tutorial-trigger tutorial-trigger-compact';
   trigger.setAttribute('aria-haspopup', 'dialog');
   trigger.setAttribute('aria-controls', TUTORIAL_DIALOG_ID);
   trigger.setAttribute('data-tutorial-trigger', '');
@@ -207,18 +205,15 @@ function tutorialDialog(root: Document): HTMLDialogElement {
 export function mountSimulatorTutorial(root: Document = document): void {
   if (root.getElementById(TUTORIAL_DIALOG_ID) || !root.body) return;
 
-  const landingHeader = root.querySelector('.landing-header');
-  const compactHost = root.querySelector('.community-actions');
-  // The shared title bar keeps the tutorial compact; the large landing trigger remains a fallback for older markup.
-  const host = compactHost || landingHeader;
+  // Page initialization mounts this shared header host before attaching the compact tutorial launcher.
+  const host = root.querySelector('.community-actions');
   if (!host) return;
 
-  const trigger = tutorialTrigger(root, !compactHost);
+  const trigger = tutorialTrigger(root);
   const dialog = tutorialDialog(root);
   let activeTutorialId = DEFAULT_TUTORIAL_ID;
 
-  if (compactHost) host.prepend(trigger);
-  else host.append(trigger);
+  host.prepend(trigger);
   root.body.append(dialog);
 
   const motionPreference = root.defaultView?.matchMedia?.('(prefers-reduced-motion: reduce)');

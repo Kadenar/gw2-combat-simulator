@@ -118,7 +118,7 @@ test('Warrior and Bladesworn stacks preserve self audience, caps, expiry, and sa
     time: 5,
     catalog: warriorCatalog,
     config: { boons: { 'fierce-as-fire': 25 } },
-    timeline: { timedStacks: () => 25, timedActive: () => true },
+    timeline: { buffStacksAt: () => 25, timedActive: () => true },
     runtime: { boons: new Map([]), buffs: new Map([['fierce-as-fire', applications]]) }
   };
   const rule = fierceAsFire.modifierRules.find(({ id }) => id === 'warrior.fierce-as-fire');

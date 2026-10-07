@@ -2,7 +2,7 @@ import { timedEffectState } from '#gw2/platform/combat/effect-state.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { thiefProfession } from '#gw2/professions/thief/profession.js';
-import { THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
+import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
 import { createObservedProfessionSimulator } from '#tests/helpers/observed-runtime.js';
 
 const simulate = createObservedProfessionSimulator(thiefProfession, {
@@ -47,7 +47,7 @@ test('ground axes accumulate per emitted projectile, cap at six, and expire inde
   const expired = simulate('Core', [
     'Spinning Axe',
     { type: 'wait', durationMs: 11000 },
-    'Spinning Axe',
+    { type: 'cast', skillId: ID.SPINNING_AXE },
     { type: 'wait', durationMs: 1000 }
   ]);
   assert.equal(activeState(expired)['thief-spinning-axes'], '1/6');

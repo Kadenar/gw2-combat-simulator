@@ -12,6 +12,23 @@ const axeConfig = { primaryWeapon: 'Axe', secondaryWeapon: 'Pistol' };
 const returned = (result, type) =>
   result.events.filter((event) => event.type === type && event.metadata?.recallSkillId);
 
+// Axe follows the shared chain contract: alternate on success and reset when another strike skill interrupts it.
+test('Spinning Axe alternates and uses normal autoattack chain resets', () => {
+  const opener = ID.SPINNING_AXE_ID_71967;
+  const followup = ID.SPINNING_AXE;
+  for (const [rotation, next] of [
+    [[opener], followup],
+    [[opener, followup], opener],
+    [[opener, ID.VENOMOUS_VOLLEY], opener],
+    [[opener, ID.STEAL], followup],
+    [[opener, { type: 'cast', skillId: followup, interruptAfterMs: 1 }], followup]
+  ]) {
+    const result = runThief(rotation, axeConfig);
+    assert.deepEqual(result.warnings, []);
+    assert.equal(result.planningState.profession.autoattackChains[opener] ?? opener, next);
+  }
+});
+
 // Revealed Training excludes the initial stealth attack, but includes its later return only while Revealed lasts.
 test('recalled Salvo receives live Revealed Training power without empowering the revealing hit', () => {
   for (const [specialization, skillId] of [
@@ -142,7 +159,7 @@ test('precast autoattack axes survive build loading and initialize a recallable 
   const initial = runThief([], config);
   const core = observedRuntime(initial).profession.core;
   assert.equal(core.initiative.value, 7);
-  assert.deepEqual(core.spinningAxes, Array(4).fill({ skillId: ID.SPINNING_AXE, expiresAt: 10 }));
+  assert.deepEqual(core.spinningAxes, Array(4).fill({ skillId: ID.SPINNING_AXE, expiresAt: Infinity }));
   assert.equal(initial.events.filter((event) => event.type === 'damage').length, 0);
   const control = resourceDisplayViews(profession, {
     build,
@@ -158,8 +175,36 @@ test('precast autoattack axes survive build loading and initialize a recallable 
   assert.deepEqual(recalled.warnings, []);
   assert.equal(returned(recalled, 'damage').length, 4);
   assert.deepEqual(observedRuntime(recalled).profession.core.spinningAxes, []);
-  const expired = runThief([{ type: 'wait', durationMs: 10000 }, 'Orchestrated Assault'], config);
+  const expired = runThief(
+    [{ type: 'combat-start' }, { type: 'wait', durationMs: 10000 }, 'Orchestrated Assault'],
+    config
+  );
   assert.equal(returned(expired, 'damage').length, 0);
+});
+
+// Opener waits never age starting or newly thrown axes; only combat entry starts their expiry clock.
+test('starting and precombat axes survive long setup and expire ten seconds into combat', () => {
+  for (const precast of [false, true]) {
+    const setup = [
+      ...(precast ? [{ type: 'cast', skillId: ID.VENOMOUS_VOLLEY, offTarget: true }] : []),
+      { type: 'wait', durationMs: 30000 },
+      { type: 'combat-start' }
+    ];
+    const config = { ...axeConfig, initialSpinningAxes: precast ? 0 : 3 };
+    const live = runThief([...setup, ID.ORCHESTRATED_ASSAULT, { type: 'wait', durationMs: 1000 }], config);
+    assert.deepEqual(live.warnings, []);
+    assert.equal(returned(live, 'damage').length, 3);
+    assert.ok(
+      returned(live, 'damage').every((event) => event.skillId === (precast ? ID.VENOMOUS_VOLLEY : ID.SPINNING_AXE))
+    );
+    assert.equal(
+      live.resolvedEvents.filter((event) => event.type === 'damage' && !event.metadata?.recallSkillId).length,
+      0
+    );
+    const expired = runThief([...setup, { type: 'wait', durationMs: 10000 }, ID.ORCHESTRATED_ASSAULT], config);
+    assert.deepEqual(expired.warnings, []);
+    assert.equal(returned(expired, 'damage').length, 0);
+  }
 });
 
 test('starting axes default to zero and accept only whole counts within the shared cap', () => {
@@ -210,6 +255,9 @@ test('the shared six-axe pool protects Salvo and Volley axes from lower-priority
         {
           initialize(runtime) {
             runtime.profession.core.spinningAxes = prior;
+            // Isolate each replacement formula with its tested autoattack stage already available.
+            if (skillId === ID.SPINNING_AXE)
+              runtime.profession.core.autoattackChains[ID.SPINNING_AXE_ID_71967] = skillId;
             if (skillId === salvo) runtime.profession.core.stealthUntil = 10;
           }
         }
@@ -236,7 +284,7 @@ test('the shared six-axe pool protects Salvo and Volley axes from lower-priority
 });
 
 test('an expired protected axe frees a slot for an autoattack before replacement is considered', () => {
-  const result = runThief([ID.SPINNING_AXE, { type: 'wait', durationMs: 1000 }], axeConfig, {
+  const result = runThief([ID.SPINNING_AXE_ID_71967, { type: 'wait', durationMs: 1000 }], axeConfig, {
     initialize(runtime) {
       runtime.profession.core.spinningAxes = Array.from({ length: 6 }, (_, index) => ({
         skillId: ID.VENOMOUS_VOLLEY,
@@ -247,7 +295,7 @@ test('an expired protected axe frees a slot for an autoattack before replacement
   assert.deepEqual(result.warnings, []);
   const axes = observedRuntime(result).profession.core.spinningAxes;
   assert.equal(axes.length, 6);
-  assert.equal(axes.at(-1).skillId, ID.SPINNING_AXE);
+  assert.equal(axes.at(-1).skillId, ID.SPINNING_AXE_ID_71967);
 });
 
 // Small scenarios verify projectile formulas and live pool transitions independently of the supplied benchmark.
