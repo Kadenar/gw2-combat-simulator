@@ -1,3 +1,4 @@
+import { createEffectExpansionBudget } from '#gw2/platform/effects/expansion-budget.js';
 import { createMechanicCombatServices } from '#gw2/platform/resolver/mechanic-services.js';
 import { createEffectEmissionService } from '#gw2/platform/effects/emission.js';
 import { applyBoonExtension } from '#gw2/platform/combat/boons.js';
@@ -153,6 +154,7 @@ function traitContext(selectedTraitIds = [], config = {}) {
       return event;
     },
     effects: createEffectEmissionService({
+      expansionBudget: createEffectExpansionBudget(),
       now: () => context.time,
       registerReaction: () => undefined,
       submit(event, delivery) {

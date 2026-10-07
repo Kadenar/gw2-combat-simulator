@@ -1,3 +1,4 @@
+import { createEffectExpansionBudget } from '#gw2/platform/effects/expansion-budget.js';
 import { assertFlooredDamageMultiplier } from '#tests/helpers/rounded-damage.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
@@ -589,6 +590,7 @@ test('environment damage can end a player sequence early without entering player
 
 test('environment scheduling preserves permanent status counts without duplicating runtime stacks', () => {
   const resolution = createGw2ConditionResolution({
+    expansionBudget: createEffectExpansionBudget(),
     reactions: { dispatch: () => {} },
     config: { target: { conditions: { Bleeding: 2 } } }
   });

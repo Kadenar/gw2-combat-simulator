@@ -307,6 +307,13 @@ The engine fails instead of silently truncating runaway work:
 
 - More than 100,000 normalized commands is rejected.
 - The runtime loop and same-time queue chains have action safety limits.
+- Effect expansion has a separate cumulative budget of 100,000 records per simulation: each emitted packet or
+  announcement costs one record, and each condition stack created at application costs one (a fractional final stack
+  also costs one). A profile reserves all its packets before materialization or submission; a condition application
+  reserves all its stacks before state insertion or reactions. Filtered and cancelled work is not refunded.
+- Hits and repeated applications require positive safe integers no greater than 100,000. Effect-list and explicit
+  tick-array lengths are bounded before traversal or copying, and standalone materialization enforces the same batch
+  ceiling. Oversized batches throw with source context rather than allocating or partially emitting the batch.
 - Unknown internal handlers, unserializable payloads, past work, and same-time phase rewinds throw.
 
 Stable insertion ordering and queue-local causal inheritance keep independent simulations deterministic. Stochastic

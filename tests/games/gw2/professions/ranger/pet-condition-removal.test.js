@@ -1,3 +1,4 @@
+import { createEffectExpansionBudget } from '#gw2/platform/effects/expansion-budget.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { createGw2CombatQuery } from '#gw2/platform/combat-calculation/combat-query.js';
@@ -13,7 +14,10 @@ import { effectStateValue } from '#gw2/platform/combat/effect-state.js';
 
 for (const reporting of [true, false]) {
   test(`pet retirement cancels independent conditions immediately with reporting=${reporting}`, () => {
-    const conditions = createGw2ConditionResolution({ reactions: { dispatch() {} } });
+    const conditions = createGw2ConditionResolution({
+      expansionBudget: createEffectExpansionBudget(),
+      reactions: { dispatch() {} }
+    });
     const context = createGw2ResolverRuntimeState({
       reporting,
       config: {},

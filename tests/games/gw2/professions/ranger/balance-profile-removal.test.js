@@ -1,3 +1,4 @@
+import { createEffectExpansionBudget } from '#gw2/platform/effects/expansion-budget.js';
 import { createEffectEmissionService } from '#gw2/platform/effects/emission.js';
 import { applyBalanceProfilePatch } from '#gw2/integrations/patches/authoring/patches.js';
 import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
@@ -109,6 +110,7 @@ function resolverContext(balanceProfiles, selectedTraitIds, specialization) {
     query: { statsAt: () => ({}) },
     queued,
     effects: createEffectEmissionService({
+      expansionBudget: createEffectExpansionBudget(),
       now: () => 0,
       registerReaction: () => undefined,
       submit: (event) => {

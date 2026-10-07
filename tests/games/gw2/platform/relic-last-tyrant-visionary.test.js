@@ -1,3 +1,4 @@
+import { createEffectExpansionBudget } from '#gw2/platform/effects/expansion-budget.js';
 import { captureEffectEmissions } from '#tests/helpers/effect-emission.js';
 import { recordProcStep } from '#gw2/platform/results/proc-steps.js';
 import { effectStateAt, effectSummary } from '#gw2/platform/results/effect-report.js';
@@ -25,7 +26,11 @@ import { testProfession } from '#tests/fixtures/profession.js';
 function conditionResolver() {
   const config = { relic: 'Last Tyrant' };
   const reactions = createGw2ResolverReactionRegistry({ contributions: createGw2EquipmentReactionContributions() });
-  const conditions = createGw2ConditionResolution({ config, reactions });
+  const conditions = createGw2ConditionResolution({
+    expansionBudget: createEffectExpansionBudget(),
+    config,
+    reactions
+  });
   const ctx = createGw2ResolverRuntimeState({
     config,
     horizon: 20,

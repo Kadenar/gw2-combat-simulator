@@ -42,6 +42,7 @@ import { createMechanicContext, createMechanicQueryContext } from '#gw2/platform
 import { createCombatExecution } from '#gw2/platform/simulation/combat-execution.js';
 import { createExecutionCoordinator } from '#gw2/platform/simulation/coordinator.js';
 import { createEffectEmissionService } from '#gw2/platform/effects/emission.js';
+import { createEffectExpansionBudget } from '#gw2/platform/effects/expansion-budget.js';
 import { createEffectReactions } from '#gw2/platform/resolver/effect-reactions.js';
 import { type EffectReactionStage } from '#gw2/platform/effects/reactions.js';
 import type {
@@ -189,9 +190,12 @@ export function runRuntime<T extends object>(
       return deliveryOwner.react(stage, context, event, details, actualReactions);
     }
   };
-  const conditions = createGw2ConditionResolution({ config, reactions });
+  // Packet creation and condition-stack expansion share a run budget independent of scheduler iteration limits.
+  const expansionBudget = createEffectExpansionBudget();
+  const conditions = createGw2ConditionResolution({ config, reactions, expansionBudget });
   // Emission owns transport; profession hooks select payloads and keep their gameplay rules.
   const effects = createEffectEmissionService({
+    expansionBudget,
     now: () => runtime.time,
     registerReaction: (profile, effect) => effectReactions.register(profile, effect),
     submit: (event, delivery) => deliveryOwner.submitEffect(event, delivery),

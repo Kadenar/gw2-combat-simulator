@@ -1,3 +1,4 @@
+import { createEffectExpansionBudget } from '#gw2/platform/effects/expansion-budget.js';
 import { captureEffectEmissions } from '#tests/helpers/effect-emission.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
@@ -126,6 +127,7 @@ test('condition stage runs once per stack after insertion, including profession 
     contributions: createGw2EquipmentReactionContributions()
   });
   const conditions = createGw2ConditionResolution({
+    expansionBudget: createEffectExpansionBudget(),
     reactions: reactions,
     config: { target: { conditions: { Bleeding: 1 } } }
   });

@@ -1,4 +1,5 @@
 import { reviseEffectState } from '#gw2/platform/combat/effect-state.js';
+import type { EffectExpansionBudget } from '#gw2/platform/effects/expansion-budget.js';
 import type { Gw2ConditionCalculation, SimulationEventBase } from '#gw2/platform/events/events.js';
 import { CONDITION_FORMULAS, conditionTickDamage } from '#gw2/platform/combat/formulas.js';
 import type { Gw2ModifierContribution } from '#gw2/platform/combat/modifiers.js';
@@ -20,6 +21,7 @@ import { canonicalEvent } from '#kernel/events/queue.js';
 import { roundHalfToEven } from '#kernel/core/numeric.js';
 
 interface CreateGw2ConditionResolutionOptions {
+  readonly expansionBudget: EffectExpansionBudget;
   readonly reactions: Gw2ResolverReactionRegistry;
   readonly config?: Gw2ResolverRuntime['config'];
 }
@@ -29,6 +31,7 @@ interface CreateGw2ConditionResolutionOptions {
  * Successful applications dispatch after state insertion and tick scheduling.
  */
 export function createGw2ConditionResolution({
+  expansionBudget,
   reactions,
   config = {}
 }: CreateGw2ConditionResolutionOptions): Readonly<Gw2ConditionResolution> {
@@ -368,10 +371,13 @@ export function createGw2ConditionResolution({
     if (!Number.isFinite(stacks)) throw new RangeError('Condition stacks must be finite.');
     if (!stacks || !duration) return [];
 
+    // Reserve every stack before inserting state or firing reactions, preserving a fractional final stack.
+    const stackCount = Math.ceil(stacks);
+    expansionBudget.reserve(stackCount, `condition=${name} source=${event.sourceId}`);
     // Every producer shares per-stack reactions; create applications directly without an intermediate packet array.
     // Preserve fractional weight on the final stack and dispatch before inserting the next one.
     const applications: Gw2ResolvedConditionApplication[] = [];
-    for (let index = 0; index < Math.ceil(stacks); index += 1) {
+    for (let index = 0; index < stackCount; index += 1) {
       const application = {
         ...event,
         sourceId: event.sourceId,
