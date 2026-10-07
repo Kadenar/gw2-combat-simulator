@@ -277,13 +277,14 @@ export function createGw2HitResolution({
   });
 }
 
-/** Aggregates resolved damage and critical-hit accounting for one skill or effect. */
+/** Owns resolved damage attribution and critical-hit accounting; presentation must not infer metadata from other events. */
 export interface Gw2DamageBreakdownEntry {
   name: string;
   sourceSkill: string;
   parentSkill: string;
   damageBreakdownName?: string;
   icon: string;
+  /** Null is valid for effects without a catalog skill ID; their source identity remains separate. */
   skillId?: import('#gw2/platform/skills/types.js').SkillId | null;
   sourceId?: import('#gw2/platform/skills/types.js').SkillId;
   actorType?: SimulationActorType;

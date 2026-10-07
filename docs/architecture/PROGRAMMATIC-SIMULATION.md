@@ -335,6 +335,8 @@ projection is detached from the live runtime and is not a resumable checkpoint. 
 snapshot.
 
 Use `skillBreakdownRows(result)` for a stable per-skill table instead of reimplementing aggregation over raw events.
+Breakdown entries own their source, parent, actor, display label, and icon metadata. A null `skillId` is intentional for
+effects without a catalog skill identity; do not infer it from another event with the same name or trait `sourceId`.
 
 `dpsWindow` ends at target death or the selected observation boundary, so an explicit observation tail can make it
 longer than `rotationEndTime`.
