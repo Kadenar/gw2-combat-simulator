@@ -19,6 +19,7 @@ import { GEAR_STATS } from '#gw2/platform/equipment/gear/prefixes/data.js';
 import { aggregateSigilSet, setWeaponSigil } from '#gw2/platform/equipment/sigils/loadout.js';
 import { mesmerAppAdapter } from '#gw2/professions/mesmer/app/app-definition.js';
 import { applyMesmerBuildAttributeRules } from '#gw2/professions/mesmer/build/attributes.js';
+import { MESMER_SKILL_IDS as ID } from '#gw2/professions/mesmer/data/ids.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
@@ -29,6 +30,9 @@ const calcAttributes = createCalculateAttributes(
 );
 const createDefaultBuild = () => createDefaultBuildFor(mesmerAppAdapter);
 const replaceBuild = (saved) => replaceBuildFor(saved, mesmerAppAdapter);
+
+// Canonical commands keep the intended specialization variant when skills share a display name.
+const cast = (skillId) => ({ type: 'cast', skillId });
 
 test('config preparation calculates each affected weapon set once and reuses the displayed set for hooks', () => {
   const calculatedSets = [];
@@ -436,7 +440,13 @@ test('Mesmer browser simulations allow weapons from other specializations', () =
   build.specializations[2] = { name: 'Mirage', traits: '1-1-1' };
   build.weapons = ['Dagger', 'Sword'];
   build.alternateWeapons = ['Axe', 'Sword'];
-  build.rotation = ['Flying Cutter', 'Unstable Bladestorm', 'Swap Weapons', 'Lingering Thoughts', 'Axes of Symmetry'];
+  build.rotation = [
+    ID.FLYING_CUTTER,
+    ID.UNSTABLE_BLADESTORM,
+    mesmerAppAdapter.profession.catalog.skillsByName.get('Swap Weapons').id,
+    ID.LINGERING_THOUGHTS,
+    ID.AXES_OF_SYMMETRY
+  ].map(cast);
   const app = {
     build,
     attributeData: calcAttributes(build, [])
@@ -508,7 +518,7 @@ test('simulation config does not multiply duplicate sigil effects', () => {
 test('modifier contributions compare the active build against each modifier removed', () => {
   const build = createDefaultBuild();
 
-  build.rotation = ['Bladecall'];
+  build.rotation = [cast(ID.BLADECALL)];
   build.relic = '';
   build.selectedSkillIds = {};
   const app = {
@@ -531,7 +541,7 @@ test('modifier contributions compare the active build against each modifier remo
 test('Accuracy comparisons remove its attribute and one-strike critical chance bonuses', () => {
   const build = createDefaultBuild();
 
-  build.rotation = ['Bladecall'];
+  build.rotation = [cast(ID.BLADECALL)];
   build.relic = '';
   build.food = '';
   build.selectedSkillIds = {};
@@ -559,7 +569,7 @@ test('Accuracy comparisons remove its attribute and one-strike critical chance b
 test('food comparisons remove both nourishment procs and attribute bonuses', () => {
   const build = createDefaultBuild();
 
-  build.rotation = ['Bladecall'];
+  build.rotation = [cast(ID.BLADECALL)];
   build.relic = '';
   build.food = 'Plate of Coq Au Vin with Salsa';
   build.selectedSkillIds = {};
@@ -584,7 +594,7 @@ test('food comparisons remove both nourishment procs and attribute bonuses', () 
 test('interactive simulation leaves contribution passes to the background worker', () => {
   const build = createDefaultBuild();
 
-  build.rotation = ['Bladecall'];
+  build.rotation = [cast(ID.BLADECALL)];
   build.relic = '';
   build.selectedSkillIds = {};
   const app = {
