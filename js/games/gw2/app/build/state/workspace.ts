@@ -1,7 +1,7 @@
 import { emptyBuildLibrarySession } from '#gw2/app/build/library/state.js';
 import { emptyRotationEditingSession } from '#gw2/app/rotation/editing/state.js';
 import { emptyRotationTimelineSession } from '#gw2/app/rotation/timeline/state.js';
-import { emptyRotationComparisonSession } from '#gw2/app/rotation/comparison-state.js';
+import { emptyRotationComparisonSession, queueRotationReference } from '#gw2/app/rotation/comparison-state.js';
 import { emptyResultViewState } from '#gw2/app/results/state.js';
 import { SelectedSkillMigrationError } from '#gw2/platform/builds/codec.js';
 import { createDefaultBuild, loadBuild, replaceBuild } from '#gw2/app/build/state/persistence.js';
@@ -149,6 +149,15 @@ export function captureActiveBuildTab(app: ProfessionAppState): void {
   ) as BuildTabSession;
   tab.resultsFresh =
     app.results !== null && app.resultRevision === app.buildRevision && app.simulationStatus === 'idle';
+}
+
+/** Shared simulation inputs invalidate inactive caches so activation refreshes Current and Reference together. */
+export function invalidateInactiveBuildTabs(app: ProfessionAppState): void {
+  for (const tab of app.workspace?.tabs ?? []) {
+    if (tab.id === app.workspace?.activeTabId) continue;
+    tab.resultsFresh = false;
+    queueRotationReference(tab.session);
+  }
 }
 
 /** Persists only durable inputs; caches and undo stacks stay in this browser session. */
