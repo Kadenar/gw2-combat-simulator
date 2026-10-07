@@ -13,7 +13,7 @@ import { rangerCoreModule } from '#gw2/professions/ranger/core/module.js';
 import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
 import { RANGER_PETS } from '#gw2/professions/ranger/data/ranger-pet-data.js';
 import { rangerProfession } from '#gw2/professions/ranger/profession.js';
-import { druidModule } from '#gw2/professions/ranger/specializations/druid/module.js';
+import { untamedModule } from '#gw2/professions/ranger/specializations/untamed/module.js';
 import { soulbeastModifiers } from '#gw2/professions/ranger/specializations/soulbeast/modifiers.js';
 import { soulbeastModule } from '#gw2/professions/ranger/specializations/soulbeast/module.js';
 import { createObservedProfessionSimulator } from '#tests/helpers/observed-runtime.js';
@@ -552,17 +552,17 @@ test('Ranger trait rules affect their owned damage and attributes', () => {
   assert.equal(coreOperations.has('ranger.loud-whistle-player'), false);
 
   const baseAttributes = { power: 0, precision: 0, conditionDamage: 0, toughness: 0, vitality: 1000, ferocity: 0 };
-  const druidContext = { config: {}, traits: new Set([TRAIT.NATURAL_FORTITUDE]) };
-  const druidAttributes = druidModule.modifiers.modifyAttributes(
-    { catalog: rangerCatalog, ...druidContext },
+  const untamedContext = { config: {}, traits: new Set([TRAIT.NATURAL_FORTITUDE]) };
+  const untamedAttributes = untamedModule.modifiers.modifyAttributes(
+    { catalog: rangerCatalog, ...untamedContext },
     baseAttributes
   );
   // Attribute checks consume the composed runtime hook, including ordered skill-owned attribute replacements.
   const coreAttributes = rangerProfession
     .runtimeFor({ specialization: 'Core' })
-    .modifyAttributes(druidContext, baseAttributes);
+    .modifyAttributes(untamedContext, baseAttributes);
 
-  assert.equal(druidAttributes.vitality, 1240);
+  assert.equal(untamedAttributes.vitality, 1240);
   assert.equal(coreAttributes.vitality, 1000);
 
   const soulbeastAttributes = soulbeastModifiers.modifyAttributes(
