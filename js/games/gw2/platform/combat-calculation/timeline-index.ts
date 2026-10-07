@@ -77,15 +77,33 @@ export function createGw2TimelineIndex({
     buffCache.clear();
   };
 
-  let alacrityWindows: readonly BoonWindow[] | undefined;
-  // Reuse received summon windows until a boon grant or extension changes them.
-  const summonAlacrityWindows = (): readonly BoonWindow[] => {
+  const alacrityWindows = new Map<string, readonly BoonWindow[]>();
+  // Cache each incarnation's pool and retain earned work before its retirement boundary.
+  const summonAlacrityWindows = (companionId: string): readonly BoonWindow[] => {
     refreshIndex();
-    return (alacrityWindows ??= prepareBoonWindows(events, 'alacrity', 'summon'));
+    const cached = alacrityWindows.get(companionId);
+    if (cached) return cached;
+    const retiredAt = retiredCompanions.get(companionId) ?? Infinity;
+    const windows = prepareBoonWindows(events, 'alacrity', 'summon', companionId)
+      .filter((window) => window.start < retiredAt)
+      .map((window) => ({ ...window, end: Math.min(window.end, retiredAt) }));
+    if (Number.isFinite(retiredAt)) windows.push({ start: retiredAt, end: Infinity, active: false });
+    alacrityWindows.set(companionId, windows);
+    return windows;
   };
 
-  const rechargeIntervals = (skill: Skill, start: number, end: number): Iterable<RateInterval> =>
-    gw2RechargeIntervals(playerAlacrityRechargeRate, summonAlacrityWindows, skill, start, end);
+  const rechargeIntervals = (skill: Skill, start: number, end: number, companionId?: string): Iterable<RateInterval> =>
+    gw2RechargeIntervals(
+      playerAlacrityRechargeRate,
+      () => {
+        // Summon recharges require an explicit owner; an aggregate audience is never a recharge owner.
+        if (!companionId) throw new TypeError(`Summon recharge for skill ${skill.id} requires a companion identity.`);
+        return summonAlacrityWindows(companionId);
+      },
+      skill,
+      start,
+      end
+    );
 
   let indexedLength = 0;
   let hasExtensions = false;
@@ -94,7 +112,7 @@ export function createGw2TimelineIndex({
     weaponSets.length = 0;
     indexedBuffs.clear();
     retiredCompanions.clear();
-    alacrityWindows = undefined;
+    alacrityWindows.clear();
     indexedLength = 0;
     hasExtensions = false;
   };
@@ -129,15 +147,19 @@ export function createGw2TimelineIndex({
     clearQueryCache();
     while (indexedLength < events.length) {
       const event = events[indexedLength++];
-      if (event.type === 'marker' && event.action === 'companion-retired' && event.summonOwner)
-        retiredCompanions.set(String(event.summonOwner), event.at);
+      if (event.type === 'marker' && event.action === 'companion-retired' && event.summonOwner) {
+        const companionId = String(event.summonOwner);
+        retiredCompanions.set(companionId, event.at);
+        alacrityWindows.delete(companionId);
+      }
+
       if (event.type === 'boon_extension') {
         hasExtensions = true;
-        alacrityWindows = undefined;
+        alacrityWindows.clear();
       }
 
       if (event.type === 'buff') {
-        if (event.kind === 'alacrity') alacrityWindows = undefined;
+        if (event.kind === 'alacrity') alacrityWindows.clear();
         indexBuff(event);
       }
 
@@ -268,7 +290,7 @@ export function createGw2TimelineIndex({
 }
 
 export interface Gw2TimelineIndex {
-  rechargeIntervals(skill: Skill, start: number, end: number): Iterable<RateInterval>;
+  rechargeIntervals(skill: Skill, start: number, end: number, companionId?: string): Iterable<RateInterval>;
   buffStacksAt(
     kind: string,
     time: number,

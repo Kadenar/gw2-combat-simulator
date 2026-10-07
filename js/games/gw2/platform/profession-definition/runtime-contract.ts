@@ -72,6 +72,8 @@ export interface RuntimeProfession<T extends object, TSkill extends Skill = Skil
   readonly resources?: Partial<Record<ResourceKey, ResourcePolicy<MechanicContext<T, TSkill>>>>;
   readonly endurance?: EndurancePolicy<MechanicContext<T, TSkill>>;
   reserveRecharge?(runtime: MechanicContext<T, TSkill>, skill: TSkill, work: number): number;
+  /** Selects the companion incarnation once at acceptance for received-boon recharge. */
+  rechargeCompanionId?(runtime: MechanicQueryContext<T, TSkill>, skill: TSkill): string | undefined;
   /** Resolve the currently selected action before catalog, equipment, chain, and recharge checks. */
   modifySkillId?(context: TraitSelectionContext, skillId: SkillId): SkillId;
   rechargeWork?(runtime: MechanicQueryContext<T, TSkill>, skill: TSkill, work: number): number;

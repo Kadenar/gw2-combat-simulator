@@ -6,6 +6,8 @@ import type { Skill } from '#gw2/platform/skills/types.js';
 export interface RechargeProgress {
   startedAt: number;
   work: number;
+  /** Captured incarnation owns received boons even after another companion becomes active. */
+  readonly companionId?: string;
 }
 
 type Gw2RechargeSkill = Pick<Skill, 'ammo' | 'ammoRecharge' | 'cooldown'>;

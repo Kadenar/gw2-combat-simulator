@@ -35,6 +35,11 @@ modifier queries, and pet modifiers. Core trait-only completion and swap dispatc
 consumers use `RANGER_TRAIT_IDS` directly; module `profiles.ts` files retain only skill and mechanic packages. Build
 calculators compose `rangerProfession.traitBuildAttributes` alongside skill passives and Soulbeast archetype attributes.
 
+Commanded pet recharge captures the accepting companion's incarnation and retains it through shared cooldown projection.
+Received Alacrity is integrated only from that companion's grants and extensions, ending at retirement while preserving
+earlier recharge work. Pet swaps keep existing cooldowns; replacement and returning incarnations cannot apply their
+boons to a previous incarnation's recharge.
+
 The following execution boundaries remain explicit to preserve ordering and actor ownership:
 
 - Core damage dispatch interleaves trait procs with weapon charges. Pet packet creation applies trait inheritance before

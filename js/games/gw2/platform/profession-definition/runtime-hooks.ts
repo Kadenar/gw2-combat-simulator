@@ -42,6 +42,7 @@ export type RuntimeHooks<State extends object, TSkill extends Skill = Skill> = P
     | 'rechargeStart'
     | 'maximumAmmo'
     | 'reserveRecharge'
+    | 'rechargeCompanionId'
     | 'traitTriggers'
     | 'rechargeRules'
   >
@@ -185,6 +186,15 @@ export function composeRuntimeHooks<State extends object, TSkill extends Skill =
       // Core and specialization modifiers compose before the runtime reserves the selected work.
       for (const hook of hooks) work = hook.rechargeWork?.(context, skill, work) ?? work;
       return work;
+    },
+    rechargeCompanionId(context, skill) {
+      // The first module owning this skill supplies its accepted companion incarnation.
+      for (const hook of hooks) {
+        const candidate = hook.rechargeCompanionId?.(context, skill);
+        if (candidate != null) return candidate;
+      }
+
+      return undefined;
     },
     rechargeStart(context, cast, at) {
       for (const hook of hooks) at = hook.rechargeStart?.(context, cast, at) ?? at;

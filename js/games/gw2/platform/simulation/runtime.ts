@@ -228,7 +228,8 @@ export function runRuntime<T extends object>(
     },
     rechargeDuration: (skill, at) => casts.rechargeWorkFor(skill) / cooldownController.rate(skill, at),
     maximumAmmo: (skill) => profession.maximumAmmo?.(maximumAmmoContext, skill, skill.ammo ?? 0) ?? skill.ammo ?? 0,
-    rechargeIntervals: (skill, start, end) => query.timeline.rechargeIntervals(skill, start, end),
+    rechargeIntervals: (skill, start, end, companionId) =>
+      query.timeline.rechargeIntervals(skill, start, end, companionId),
     skillFor: (id) => profession.catalog.skillsById.get(id)
   });
   runtime = Object.assign(base, {

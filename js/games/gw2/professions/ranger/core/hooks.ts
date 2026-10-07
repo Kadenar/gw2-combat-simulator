@@ -109,6 +109,8 @@ const coreLifecycle: RuntimeHooks<RangerRuntimeState, RangerSkill> = {
   endurance: rangerEndurance,
   availability: rangerCoreCastAvailability,
   castDurationMs: rangerPetCastDurationMs,
+  // Pet recharge belongs to the incarnation accepting the command, not whichever pet is active later.
+  rechargeCompanionId: (runtime, skill) => (skill.petSkill ? rangerPetCompanionId(runtime) : undefined),
   // Pet packets and delayed field creation end with their caster; existing fields and ranger-stat packets survive.
   effectOwner(_context, event) {
     if (

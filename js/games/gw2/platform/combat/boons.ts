@@ -273,7 +273,8 @@ export interface BoonWindow {
 export function prepareBoonWindows(
   events: readonly SimulationEvent[],
   kind: string,
-  audience: Gw2BuffAudience
+  audience: Gw2BuffAudience,
+  companionId?: string
 ): readonly BoonWindow[] {
   const applications = timedBuffApplicationsAt(
     events.filter((event) => !event.cancelled),
@@ -292,7 +293,8 @@ export function prepareBoonWindows(
   };
 
   for (const application of applications) {
-    if (!buffMatchesAudience(application, audience)) continue;
+    // Each companion has its own duration pool; unrelated recipients cannot extend its window.
+    if (!buffMatchesAudience(application, audience, companionId)) continue;
     const at = application.at;
     appendUntil(at);
     remaining = advanceDurationStack(remaining, application, start, maximum);

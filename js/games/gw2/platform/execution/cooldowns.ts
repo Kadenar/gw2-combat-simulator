@@ -14,7 +14,12 @@ import type { Skill, SkillId } from '#gw2/platform/skills/types.js';
 interface CooldownControllerOptions {
   readonly clock: { readonly time: number };
   readonly rechargeDuration: (skill: Skill, at: number) => number;
-  readonly rechargeIntervals?: (skill: Skill, start: number, end: number) => Iterable<RateInterval>;
+  readonly rechargeIntervals?: (
+    skill: Skill,
+    start: number,
+    end: number,
+    companionId?: string
+  ) => Iterable<RateInterval>;
   readonly skillFor?: (id: SkillId) => Skill | undefined;
   readonly maximumAmmo?: (skill: Skill) => number;
 }
@@ -52,7 +57,12 @@ export function createCooldownController({
   // Integrate elapsed work so later boon changes never alter progress already earned.
   const remaining = (skill: Skill, progress: RechargeProgress, at: number): number => {
     let work = progress.work;
-    for (const interval of rechargeIntervals(skill, progress.startedAt, Math.max(progress.startedAt, at))) {
+    for (const interval of rechargeIntervals(
+      skill,
+      progress.startedAt,
+      Math.max(progress.startedAt, at),
+      progress.companionId
+    )) {
       work -= (interval.end - interval.start) * interval.rate;
     }
 
@@ -60,10 +70,14 @@ export function createCooldownController({
   };
 
   const project = (skill: Skill, progress: RechargeProgress): number =>
-    projectRecharge(progress, rechargeIntervals(skill, progress.startedAt, Infinity));
+    projectRecharge(progress, rechargeIntervals(skill, progress.startedAt, Infinity, progress.companionId));
 
-  const startRecharge = (skill: Skill, at: number, work = rechargeDuration(skill, at) * rate(skill, at)): number => {
-    const progress = { startedAt: at, work: Math.max(0, work) };
+  const startRecharge = (skill: Skill, at: number, work?: number, companionId?: string): number => {
+    const progress = {
+      startedAt: at,
+      work: Math.max(0, work ?? rechargeDuration(skill, at) * rate(skill, at)),
+      ...(companionId == null ? {} : { companionId })
+    };
     rechargeProgress.set(skill.id, progress);
     const readyAt = project(skill, progress);
     cooldowns.set(skill.id, readyAt);

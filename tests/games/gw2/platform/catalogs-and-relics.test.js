@@ -174,6 +174,7 @@ test('summon-owned cooldowns use received Alacrity until it expires', () => {
   const profession = defineTestProfession({
     id: 'summon-alacrity-fixture',
     name: 'Summon Alacrity Fixture',
+    hooks: { rechargeCompanionId: () => 'fixture-summon' },
     catalog
   });
   const playerAlacrity = simulateGw2({
