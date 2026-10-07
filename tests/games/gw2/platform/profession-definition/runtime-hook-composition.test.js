@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
+import { createResourceClock } from '#gw2/platform/combat/resources/clock.js';
 import { composeRuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import {
   createCastDetailContext,
@@ -107,8 +108,14 @@ test('composition preserves notification order, transforms, suppression, and rea
 test('composition preserves retry boundaries, permanent denials, and exclusive policy precedence', () => {
   const retry = (retryAt) => ({ ready: false, retryAt, reason: 'wait', code: 'wait' });
   const denial = { ready: false, retryAt: null, reason: 'denied', code: 'denied' };
-  const early = { availability: () => retry(2), endurance: { maximum: () => 10 }, playerAlacrityRechargeRate: 1.2 };
-  const late = { availability: () => retry(5), endurance: { maximum: () => 20 }, playerAlacrityRechargeRate: 1.5 };
+  // Complete policies let this test exercise precedence after resource declaration validation.
+  const endurance = (maximum) => {
+    const state = createResourceClock(maximum);
+    return { state: () => state, maximum: () => maximum, regenerationRate: () => 0 };
+  };
+
+  const early = { availability: () => retry(2), endurance: endurance(10), playerAlacrityRechargeRate: 1.2 };
+  const late = { availability: () => retry(5), endurance: endurance(20), playerAlacrityRechargeRate: 1.5 };
   const hooks = composeRuntimeHooks([late, early]);
   assert.equal(hooks.availability({ time: 0 }, {}, {}).retryAt, 5);
   assert.equal(hooks.endurance, early.endurance);
