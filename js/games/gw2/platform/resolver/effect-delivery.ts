@@ -197,8 +197,8 @@ export function createEffectDelivery<T extends object>(
           throw new RangeError('Reaction settlement requires a condition, buff, or boon extension at the live clock.');
         withCause(packet, () => {
           if (packet.type === 'condition') applyConditionNow(packet);
-          else if (packet.type === 'buff') dispatchEvent(packet);
-          else handlers.dispatch(packet, runtime);
+          // Buffs and extensions settle immediately through the shared path so history records each application once.
+          else dispatchEvent(packet);
         });
       } else queue.enqueue(packet);
     }
