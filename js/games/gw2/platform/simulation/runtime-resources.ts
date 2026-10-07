@@ -186,7 +186,7 @@ export function createRuntimeEndurance<T extends object>(
 
   const intervals = (start: number, end: number) =>
     vigorEnduranceIntervals(
-      { events: runtime.history, config: runtime.config },
+      { events: runtime.history, config: runtime.config, resolved: true },
       start,
       end,
       (vigor, at) => policy!.regenerationRate(runtime.mechanics, vigor, at),

@@ -269,17 +269,20 @@ export interface BoonWindow {
   readonly active: boolean;
 }
 
-/** Sweep each audience's pool once, retaining application boundaries for time-dependent resource-rate callbacks. */
+/** Sweep each audience's pool once, preserving resolved application order and time-dependent resource boundaries. */
 export function prepareBoonWindows(
   events: readonly SimulationEvent[],
   kind: string,
   audience: Gw2BuffAudience,
-  companionId?: string
+  companionId?: string,
+  resolved = false
 ): readonly BoonWindow[] {
   const applications = timedBuffApplicationsAt(
     events.filter((event) => !event.cancelled),
     kind,
-    Infinity
+    Infinity,
+    0,
+    resolved
   );
   const windows: BoonWindow[] = [];
   const maximum = durationStackingBoonCapSeconds(kind);
@@ -329,7 +332,8 @@ export function* boonIntervals(
   start: number,
   end: number,
   permanent = false,
-  audience: Gw2BuffAudience = 'all'
+  audience: Gw2BuffAudience = 'all',
+  resolved = false
 ) {
   // Empty or reversed resource windows cannot accrue a boon, so avoid preparing their history.
   if (end <= start) return;
@@ -339,7 +343,7 @@ export function* boonIntervals(
     return;
   }
 
-  yield* boonIntervalsFromWindows(prepareBoonWindows(events, kind, audience), start, end);
+  yield* boonIntervalsFromWindows(prepareBoonWindows(events, kind, audience, undefined, resolved), start, end);
 }
 
 /** Apply extensions at their own timestamp, keeping past observations and other recipients unchanged. */
@@ -416,25 +420,31 @@ export function applyBoonExtension(boons: Map<string, Gw2TimedBuffApplication[]>
   }
 }
 
-/** Replay one kind's applications and extensions so scheduler/timeline queries share the resolver's rules. */
+/** Replay a kind's applications and extensions; resolved input is canonical execution history, otherwise scheduled. */
 export function timedBuffApplicationsAt(
   events: readonly SimulationEvent[],
   kind: string,
   time: number,
-  fallbackDuration = 0
+  fallbackDuration = 0,
+  resolved = false
 ): Gw2TimedBuffApplication[] {
   // Replay one accepted kind; extensions still apply only to standard boons.
   const applicationsByKind = new Map<string, Gw2TimedBuffApplication[]>();
-  const relevant = events
-    .map(canonicalEvent)
-    .filter(
-      (event) =>
-        event.at <= (time === Infinity ? Infinity : canonicalTime(time)) &&
-        ((event.type === 'buff' && String(event.kind).toLowerCase() === kind) ||
-          (event.type === 'boon_extension' && (!event.kind || event.kind === kind) && event.excludedKind !== kind))
-    )
-    .sort((left, right) => left.at - right.at || (eventCausalOrder(left) ?? 0) - (eventCausalOrder(right) ?? 0));
+  const through = time === Infinity ? Infinity : canonicalTime(time);
+  const includes = (event: SimulationEvent): boolean =>
+    ((event.type === 'buff' && String(event.kind).toLowerCase() === kind) ||
+      (event.type === 'boon_extension' && (!event.kind || event.kind === kind) && event.excludedKind !== kind)) &&
+    event.at <= through;
+  // Executed facts are already canonical and ordered by actual application, including priority and nested reactions.
+  // Stream that history without allocating or sorting a replay copy; unsorted scheduled input still needs ordering.
+  const relevant = resolved
+    ? events
+    : events
+        .map(canonicalEvent)
+        .filter(includes)
+        .sort((left, right) => left.at - right.at || (eventCausalOrder(left) ?? 0) - (eventCausalOrder(right) ?? 0));
   for (const event of relevant) {
+    if (resolved && !includes(event)) continue;
     if (event.type === 'buff')
       recordBuffApplication(applicationsByKind, { ...event, duration: event.duration ?? fallbackDuration });
     else applyBoonExtension(applicationsByKind, event);

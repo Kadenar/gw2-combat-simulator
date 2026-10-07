@@ -25,6 +25,7 @@ interface CreateGw2TimelineIndexOptions {
   readonly skillOnCooldown?: (skillId: SkillId, time: number) => boolean;
   readonly config?: Gw2Config;
   readonly events?: readonly SimulationEvent[];
+  /** Executed input retains its settled application order, including same-time priorities and nested reactions. */
   readonly resolved?: boolean;
 }
 
@@ -84,7 +85,7 @@ export function createGw2TimelineIndex({
     const cached = alacrityWindows.get(companionId);
     if (cached) return cached;
     const retiredAt = retiredCompanions.get(companionId) ?? Infinity;
-    const windows = prepareBoonWindows(events, 'alacrity', 'summon', companionId)
+    const windows = prepareBoonWindows(events, 'alacrity', 'summon', companionId, resolved)
       .filter((window) => window.start < retiredAt)
       .map((window) => ({ ...window, end: Math.min(window.end, retiredAt) }));
     if (Number.isFinite(retiredAt)) windows.push({ start: retiredAt, end: Infinity, active: false });
@@ -191,7 +192,7 @@ export function createGw2TimelineIndex({
     if (audience !== 'all' && companionId && time >= (retiredCompanions.get(companionId) ?? Infinity)) return 0;
     // Reuse chronological extension replay only for histories that contain an extension.
     if (hasExtensions && isStandardBoon(kind)) {
-      const applications = timedBuffApplicationsAt(events, kind.toLowerCase(), time, duration);
+      const applications = timedBuffApplicationsAt(events, kind.toLowerCase(), time, duration, resolved);
       return buffApplicationStacks(applications, kind, time, maximum, { audience, companionId });
     }
 

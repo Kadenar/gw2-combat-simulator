@@ -10,7 +10,11 @@ import type { ResourceClock } from '#gw2/platform/combat/resources/clock.js';
 
 /** Shares self-Vigor history for recovery and readiness while professions retain their rate policy. */
 export function* vigorEnduranceIntervals(
-  context: { readonly events: readonly SimulationEvent[]; readonly config: Pick<Gw2Config, 'boons'> },
+  context: {
+    readonly events: readonly SimulationEvent[];
+    readonly config: Pick<Gw2Config, 'boons'>;
+    readonly resolved?: boolean;
+  },
   start: number,
   end: number,
   rateAt: (vigor: boolean, at: number) => number,
@@ -19,7 +23,15 @@ export function* vigorEnduranceIntervals(
   // Timed profession bonuses split the same windows used by both recovery and affordability forecasts.
   const boundaries = [...new Set(rateBoundaries.filter((at) => at > start && at < end))].sort((a, b) => a - b);
   let index = 0;
-  for (const interval of boonIntervals(context.events, 'vigor', start, end, Boolean(context.config.boons?.vigor))) {
+  for (const interval of boonIntervals(
+    context.events,
+    'vigor',
+    start,
+    end,
+    Boolean(context.config.boons?.vigor),
+    'all',
+    context.resolved
+  )) {
     let from = interval.start;
     while (index < boundaries.length && boundaries[index] < interval.end) {
       const boundary = boundaries[index++];
