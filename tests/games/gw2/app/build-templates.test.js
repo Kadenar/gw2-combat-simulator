@@ -6,6 +6,7 @@ import { loadTemplateAction, undoTemplateLoad } from '#gw2/app/build/library/act
 import { templateBoon, templateCategory, templateSpecializations } from '#gw2/app/build/library/model.js';
 import { normalizeRotation } from '#gw2/platform/execution/rotation.js';
 import { mesmerAppAdapter } from '#gw2/professions/mesmer/app/app-definition.js';
+import { engineerAppAdapter } from '#gw2/professions/engineer/app/app-definition.js';
 import { MESMER_SKILL_IDS as MESMER_ID } from '#gw2/professions/mesmer/data/ids.js';
 import { loadPresetBundle } from '#gw2/app/build/library/assets.js';
 
@@ -240,6 +241,56 @@ test('template loading resolves duplicate Mesmer skill names before the first si
   assert.equal(app.build.rotation[1].skillId, MESMER_ID.LINGERING_THOUGHTS);
   assert.deepEqual(result.warnings, []);
   assert.equal(result.steps[1].skillId, MESMER_ID.LINGERING_THOUGHTS);
+});
+
+// Rotation-only imports preserve the user's loadout while resolving protocols moved between F2 and F4.
+test('Engineer rotation-only template loading resolves morph slots before simulation and supports undo', async (t) => {
+  const adapter = engineerAppAdapter;
+  const build = adapter.toApplicationBuild({
+    ...adapter.profession.createBuildDefaults(),
+    specializations: [
+      { name: 'Explosives', traits: '3-2-3' },
+      { name: 'Inventions', traits: '1-2-3' },
+      { name: 'Amalgam', traits: '3-2-1' }
+    ],
+    selectedMorphSkillIds: [76806, 77104, 76954]
+  });
+  const original = structuredClone(build);
+  t.mock.method(globalThis, 'fetch', async () => ({
+    ok: true,
+    json: async () => ({
+      rotation: [
+        { type: 'cast', skillId: 76927 },
+        { type: 'cast', skillId: 76705 }
+      ]
+    })
+  }));
+  const app = {
+    ...createApp(),
+    adapter,
+    profession: adapter.profession,
+    activeCatalog: adapter.profession.catalog,
+    build,
+    skillByName: adapter.profession.catalog.skillsByName,
+    skillById: adapter.profession.catalog.skillsById,
+    attributeWeaponSet: 1,
+    results: null,
+    patchId: 'current'
+  };
+  await loadTemplateAction(app, { label: 'Morph rotation', rotation: 'rotation.json' }, 'rotation', createButton());
+  assert.deepEqual(app.build, {
+    ...original,
+    rotation: [
+      { type: 'cast', skillId: 76954 },
+      { type: 'cast', skillId: 76806 }
+    ]
+  });
+  adapter.recalculate(app);
+  const result = adapter.simulateBuild(app.build.rotation, adapter.simulationConfig(app));
+  assert.deepEqual(result.warnings, []);
+  assert.ok(result.totalDamage > 0);
+  undoTemplateLoad(app);
+  assert.deepEqual(app.build, original);
 });
 
 test('a complete template without a rotation clears stale rotation state', async (t) => {

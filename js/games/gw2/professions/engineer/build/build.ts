@@ -1,4 +1,5 @@
 import {
+  AMALGAM_MORPH_KIND_BY_SKILL_ID,
   resolveAmalgamSkillId,
   DEFAULT_AMALGAM_MORPHS,
   normalizeAmalgamMorphs,
@@ -72,8 +73,9 @@ export function createEngineerBuildDefaults(): EngineerCanonicalBuild {
   };
 }
 
-/** Normalizes each raw command before rebinding legacy morph names to the selected IDs. */
+/** Resolves morph casts to the selected slot so imported rotations follow the build's protocol layout. */
 function normalizeMorphRotation(savedRotation: unknown, morphIds: readonly number[]): RotationCommand[] {
+  const selectedByKind = new Map(morphIds.map((id) => [AMALGAM_MORPH_KIND_BY_SKILL_ID.get(id), id]));
   const selectedByName = new Map<string, Skill>(
     morphIds
       .map((skillId) => {
@@ -83,7 +85,7 @@ function normalizeMorphRotation(savedRotation: unknown, morphIds: readonly numbe
       .filter(([name, skill]) => name && skill) as [string, Skill][]
   );
   const rawRotation = Array.isArray(savedRotation) ? savedRotation : [];
-  return rawRotation.flatMap((raw) => {
+  return rawRotation.flatMap<RotationCommand>((raw) => {
     // Normalize one raw entry at a time so dropping a malformed command cannot shift later name-based casts.
     const [command] = normalizeRotation([raw], engineerCatalog);
     if (!command) return [];
@@ -95,7 +97,10 @@ function normalizeMorphRotation(savedRotation: unknown, morphIds: readonly numbe
           ? rawCommand.name
           : null;
     const selected = legacyName == null ? undefined : selectedByName.get(legacyName);
-    return [command.type === 'cast' && selected ? { ...command, skillId: selected.id } : command];
+    if (command.type !== 'cast') return [command];
+    const kind = AMALGAM_MORPH_KIND_BY_SKILL_ID.get(command.skillId);
+    const selectedId = kind === undefined ? undefined : selectedByKind.get(kind);
+    return [{ ...command, skillId: selectedId ?? selected?.id ?? command.skillId }];
   });
 }
 
@@ -114,13 +119,13 @@ const engineerBuildCodec = createProfessionBuildCodec<EngineerCanonicalBuild>({
     }
   },
   normalizeExtra(build, { saved }) {
-    // Normalize the morph loadout first because legacy rotation entries depend on the selected IDs.
+    // Normalize the morph loadout first so rotation casts use its selected slot identities.
     const selectedMorphSkillIds = normalizeAmalgamMorphs(engineerCatalog, saved.selectedMorphSkillIds);
     const traits = new Set(getActiveTraits(build.specializations).map((trait) => trait.id));
     return {
       ...build,
       selectedMorphSkillIds,
-      // Rebind legacy names and saved variant IDs to the build's selected Evolve before UI rendering.
+      // Resolve morph slots and the selected Evolve variant before UI rendering.
       rotation: normalizeMorphRotation(saved.rotation, selectedMorphSkillIds).map((command) =>
         command.type === 'cast'
           ? { ...command, skillId: resolveAmalgamSkillId(hasTrait(traits, TRAIT.DOUBLE_HELIX), command.skillId) }

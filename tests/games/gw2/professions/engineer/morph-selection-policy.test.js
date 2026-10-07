@@ -7,6 +7,7 @@ import {
   validateEngineerBuild
 } from '#gw2/professions/engineer/build/build.js';
 import {
+  AMALGAM_MORPH_KIND_BY_SKILL_ID,
   DEFAULT_AMALGAM_MORPHS,
   amalgamProtocolOptions,
   normalizeAmalgamMorphs,
@@ -14,6 +15,31 @@ import {
   validAmalgamMorphs
 } from '#gw2/professions/engineer/specializations/amalgam/selection-policy.js';
 import { bindAmalgamUi } from '#gw2/professions/engineer/specializations/amalgam/presentation.js';
+
+// Slot-specific IDs refer to the same protocol; absent protocols must remain unavailable instead of changing kind.
+test('rotation normalization binds every morph variant to its selected slot and retains unselected kinds', () => {
+  const defaults = createEngineerBuildDefaults();
+  for (const slot of [2, 3, 4]) {
+    for (const selected of amalgamProtocolOptions(engineerCatalog, slot)) {
+      const selectedMorphSkillIds = selectAmalgamMorph(engineerCatalog, DEFAULT_AMALGAM_MORPHS, slot - 2, selected.id);
+      for (const [skillId, kind] of AMALGAM_MORPH_KIND_BY_SKILL_ID) {
+        const command = { type: 'cast', skillId, concurrentOffsetMs: 80 };
+        const build = migrateEngineerBuild({
+          ...defaults,
+          selectedMorphSkillIds,
+          rotation: [command, { type: 'wait', durationMs: 100 }]
+        });
+        const expectedId = selectedMorphSkillIds.find((id) => AMALGAM_MORPH_KIND_BY_SKILL_ID.get(id) === kind);
+        assert.deepEqual(build.rotation, [
+          { ...command, skillId: expectedId ?? skillId },
+          { type: 'wait', durationMs: 100 }
+        ]);
+        assert.deepEqual(build.selectedMorphSkillIds, selectedMorphSkillIds);
+        assert.deepEqual(migrateEngineerBuild(build), build);
+      }
+    }
+  }
+});
 
 // Both colliding labels and slot-specific translations must leave identity decisions unchanged.
 test('morph normalization, validation, option order, and UI swaps ignore display names', () => {
