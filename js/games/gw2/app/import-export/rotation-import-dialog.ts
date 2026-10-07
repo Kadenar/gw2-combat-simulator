@@ -53,6 +53,11 @@ interface RotationImportDialogElements {
   readonly closeButton: HTMLButtonElement;
 }
 
+/** Resolve build-specific names during strict validation without migrating or dropping explicit commands. */
+function normalizeImportedRotation(items: readonly unknown[], app: ProfessionAppState): RotationCommand[] {
+  return normalizeRotation(items, app.adapter.rotationImportLookup(app), { strict: true });
+}
+
 /** Reads and validates a rotation file without replacing the active rotation until the user applies the preview. */
 export async function previewRotationFile(file: File, app: ProfessionAppState): Promise<RotationImportPreview> {
   if (isJsonRotationFile(file)) {
@@ -61,7 +66,7 @@ export async function previewRotationFile(file: File, app: ProfessionAppState): 
     if (rotation) {
       // JSON rotations may use any historical interchange shape; app state stays canonical.
       return {
-        rotation: normalizeRotation(rotation, app.activeCatalog, { strict: true }),
+        rotation: normalizeImportedRotation(rotation, app),
         actionCount: rotation.length,
         description: `Loaded ${file.name}`,
         warnings: [],
@@ -126,14 +131,14 @@ export async function previewWingmanUrl(
 }
 
 /** Loads one manifest rotation through the same strict preview boundary as uploaded JSON. */
-async function previewManifestRotation(
+export async function previewManifestRotation(
   preset: BuildTemplatePreset,
   app: ProfessionAppState
 ): Promise<RotationImportPreview> {
   if (!preset.rotation) throw new Error('Rotation asset missing.');
   const items = getRotationItems(await fetchJsonAsset(preset.rotation));
   if (!items) throw new Error('Rotation array missing.');
-  const rotation = normalizeRotation(items, app.activeCatalog, { strict: true });
+  const rotation = normalizeImportedRotation(items, app);
   const name = preset.section ? `${preset.section} · ${preset.label}` : preset.label;
   return {
     rotation,
