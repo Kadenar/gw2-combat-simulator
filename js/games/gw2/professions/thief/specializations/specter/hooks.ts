@@ -23,6 +23,7 @@ import type { ResourcePolicy } from '#gw2/platform/combat/resources/resource-pol
 import type { AvailabilityResult } from '#gw2/platform/execution/availability.js';
 import { buildThiefBuff } from '#gw2/professions/thief/core/events.js';
 import { completeThiefSteal } from '#gw2/professions/thief/core/mechanics/steal.js';
+import { setThiefKneeling } from '#gw2/professions/thief/core/mechanics/resources.js';
 import { emitThiefStealTraits } from '#gw2/professions/thief/core/traits/steal.js';
 import { SPECTER_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/thief/specializations/specter/profiles.js';
 import { specterState } from '#gw2/professions/thief/specializations/specter/state.js';
@@ -66,6 +67,8 @@ const shadowForce: ResourcePolicy<ThiefRuntime> = {
 /** Shroud transitions block input for their recovery and publish the bar change like a weapon swap. */
 function setShadowShroud(runtime: ThiefRuntime, active: boolean, skill: { id: string | number; name: string }): void {
   lockTransitionInput(runtime, active ? 'shroudEntryMs' : 'shroudExitMs', skill);
+  // Entering shroud ends the rifle stance and its initiative bonus before the replacement bar becomes active.
+  if (active && runtime.profession.core.kneeling) setThiefKneeling(runtime, false);
   specterState.from(runtime).shadowShroudActive = active;
   runtime.resourceController.refresh('shadowForce');
   runtime.effects.emit({

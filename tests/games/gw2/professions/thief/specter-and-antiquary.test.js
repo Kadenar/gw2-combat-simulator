@@ -172,6 +172,27 @@ test('Specter Siphon, initiative spending, and Shadow Shroud share force', () =>
   assert.equal(result.events.filter((event) => event.type === 'weapon_set' && event.shroudSwap).length, 2);
 });
 
+// Shroud replaces the kneeling rifle stance and its initiative bonus; leaving shroud restores the standing bar.
+test('Specter Shadow Shroud ends rifle kneeling and its initiative regeneration bonus', () => {
+  const config = { primaryWeapon: 'Rifle', secondaryWeapon: '', initialShadowForce: 100 };
+  const kneeling = simulate('Specter', ['Kneel'], config);
+  assert.deepEqual(kneeling.warnings, []);
+  assert.equal(kneeling.planningState.profession.kneeling, true);
+  assert.equal(kneeling.planningState.profession.initiative.rate, 4 / 3);
+
+  const shrouded = simulate('Specter', ['Kneel', 'Enter Shadow Shroud'], config);
+  assert.deepEqual(shrouded.warnings, []);
+  assert.equal(shrouded.planningState.profession.shadowShroudActive, true);
+  assert.equal(shrouded.planningState.profession.kneeling, false);
+  assert.equal(shrouded.planningState.profession.initiative.rate, 1);
+
+  const exited = simulate('Specter', ['Kneel', 'Enter Shadow Shroud', 'Exit Shadow Shroud', 'Brutal Aim'], config);
+  assert.deepEqual(exited.warnings, []);
+  assert.equal(exited.planningState.profession.shadowShroudActive, false);
+  assert.equal(exited.planningState.profession.kneeling, false);
+  assert.equal(exited.planningState.profession.initiative.rate, 1);
+});
+
 test('Specter can use its shroud autoattack while stealth is active', () => {
   const result = simulate('Specter', ['Hide in Shadows', 'Enter Shadow Shroud', 'Haunt Shot'], {
     initialShadowForce: 100

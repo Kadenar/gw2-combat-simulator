@@ -10,6 +10,8 @@ test('APM updates with rotation edits and fits the 1130px workspace', async ({ p
     .locator('#rotation-dps-summary .res-stat')
     .filter({ has: page.locator('.res-label', { hasText: 'Actions / min' }) });
   await expect(metric.locator('.res-val')).toHaveText('—');
+  // Clear paints immediately, but palette input waits for the empty rotation's worker result.
+  await expect(page.locator('#rotation-palette')).toHaveAttribute('data-palette-pending', 'false');
   await page.locator('.pal-skill[data-skill="Bladecall"]').click();
   await page.waitForFunction(() => window.professionApp.buildRevision === window.professionApp.resultRevision);
   await expect(metric.locator('.res-val')).toHaveAttribute('title', /^1 non-autoattack actions/);

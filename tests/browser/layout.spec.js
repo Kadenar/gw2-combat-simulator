@@ -81,6 +81,8 @@ test('clearing a loading template lets new skills simulate without its old worke
   await expect(page.locator('#rotation-timeline .rotation-skeleton > div').first()).toHaveCSS('animation-name', 'none');
   await page.locator('#btn-sim-clear').click();
   await expect(page.locator('#rotation-timeline .rotation-skeleton')).toHaveCount(0);
+  // Removing the skeleton is immediate; the replacement worker must refresh the palette before input resumes.
+  await expect(page.locator('#rotation-palette')).toHaveAttribute('data-palette-pending', 'false');
   await page.locator('.pal-skill[data-skill-id]:not(.pal-context-disabled):not(.pal-disabled)').first().click();
   await expect
     .poll(() => page.evaluate(() => window.professionApp.buildRevision === window.professionApp.resultRevision))
@@ -513,13 +515,9 @@ test('empty and authored rotations keep a usable timeline and an open event log 
   await expect(timeline).toHaveClass(/is-empty/);
   const emptyHeight = await timeline.evaluate((element) => element.getBoundingClientRect().height);
 
-  const castAdded = await page.evaluate(() => {
-    const skill = [...document.querySelectorAll('.pal-skill')].find((element) => element.dataset.skill === 'Bladecall');
-    skill?.click();
-    return Boolean(skill);
-  });
-
-  expect(castAdded).toBe(true);
+  // An empty timeline can paint before its palette is ready to accept the next authored skill.
+  await expect(page.locator('#rotation-palette')).toHaveAttribute('data-palette-pending', 'false');
+  await page.locator('.pal-skill[data-skill="Bladecall"]').click();
   await expect(timeline).not.toHaveClass(/is-empty/);
   const authoredHeight = await timeline.evaluate((element) => element.getBoundingClientRect().height);
   expect(emptyHeight).toBeGreaterThanOrEqual(280);
