@@ -69,7 +69,7 @@
         "build": "data/gw2/builds/revenant/b-power-alac-renegade-sword-sword.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/revenant/power-alacrity-renegade-staff-sword-sword",
         "rotation": "data/gw2/rotations/revenant/r-power-alac-renegade-sword-sword-bench.json",
-        "benchmarkDps": 34463,
+        "benchmarkDps": 34469,
         "upToDate": true,
         "benchmarkApm": 42.1,
         "benchmarkDpsByHealth": {
@@ -90,8 +90,8 @@
             "phase": 34110
           },
           "20-0": {
-            "cumulative": 34463,
-            "phase": 37530
+            "cumulative": 34469,
+            "phase": 37566
           }
         }
       },

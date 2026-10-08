@@ -12,6 +12,7 @@ import type { SimulationEvent, SimulationEventBase } from '#gw2/platform/events/
 import type { Gw2ProcStep, Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import type { WorkOwner } from '#gw2/platform/simulation/work-contract.js';
 import type { BalanceProfile, Skill, SkillId } from '#gw2/platform/skills/types.js';
+import { cloneData } from '#kernel/core/clone.js';
 
 /** Attribution, duration sampling, and cancellation describe independent parts of one emission. */
 export interface EffectDelivery {
@@ -86,7 +87,7 @@ export interface EffectEmissionService {
 
 /** Receipts detach nested payloads so retaining causality cannot mutate pending combat work. */
 function immutableReceipt(event: SimulationEvent): SimulationEvent {
-  const receipt = structuredClone(event);
+  const receipt = cloneData(event);
   const seen = new WeakSet();
   function freeze(value: unknown): void {
     if (value == null || typeof value !== 'object' || seen.has(value)) return;
@@ -118,7 +119,7 @@ function deliverySnapshot(
       : cause,
     owner: request.owner ? { ...request.owner } : undefined,
     priority: request.priority,
-    durationContext: request.durationContext ? structuredClone(request.durationContext) : undefined,
+    durationContext: request.durationContext ? cloneData(request.durationContext) : undefined,
     settlement: request.settlement
   };
 }
@@ -159,15 +160,15 @@ export function createEffectEmissionService(host: {
         ...delivery,
         kind: 'announcement',
         log: request.log,
-        attribution: structuredClone(request.attribution),
-        announcement: structuredClone(request.announcement)
+        attribution: cloneData(request.attribution),
+        announcement: cloneData(request.announcement)
       });
       return request.receipt ? immutableReceipt(event) : undefined;
     }
 
     if (request.kind === 'packet') {
       host.expansionBudget.reserve(1, `packet=${request.event.type} source=${request.event.sourceId}`);
-      const event = host.submit(structuredClone(request.event), delivery);
+      const event = host.submit(cloneData(request.event), delivery);
       return request.receipt ? immutableReceipt(event) : undefined;
     }
 
@@ -199,7 +200,7 @@ export function createEffectEmissionService(host: {
       })) {
         const packet = request.transform ? request.transform(event, effect) : event;
         if (packet) {
-          const submitted = host.submit(structuredClone(packet), delivery);
+          const submitted = host.submit(cloneData(packet), delivery);
           if (events) events.push(immutableReceipt(submitted));
         }
       }

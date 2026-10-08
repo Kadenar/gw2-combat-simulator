@@ -202,30 +202,30 @@
         "label": "Power (Dagger/Mace + Sword/Axe)",
         "build": "data/gw2/builds/warrior/b-power-spellbreaker-dagger-mace-sword-axe.json",
         "rotation": "data/gw2/rotations/warrior/r-power-spellbreaker-dagger-mace-sword-axe-bench.json",
-        "benchmarkDps": 42813,
+        "benchmarkDps": 42888,
         "upToDate": true,
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/warrior/power-spellbreaker-dagger-mace-sword-axe",
         "benchmarkApm": 60.4,
         "benchmarkDpsByHealth": {
           "100-80": {
-            "cumulative": 45999,
-            "phase": 45999
+            "cumulative": 46244,
+            "phase": 46244
           },
           "80-60": {
-            "cumulative": 43779,
-            "phase": 41697
+            "cumulative": 43884,
+            "phase": 41680
           },
           "60-40": {
-            "cumulative": 42797,
-            "phase": 40972
+            "cumulative": 43033,
+            "phase": 41422
           },
           "40-20": {
-            "cumulative": 42556,
-            "phase": 41863
+            "cumulative": 42431,
+            "phase": 40711
           },
           "20-0": {
-            "cumulative": 42813,
-            "phase": 42813
+            "cumulative": 42888,
+            "phase": 42888
           }
         }
       },
@@ -233,30 +233,30 @@
         "label": "Power (Dagger/Mace + Sword/Dagger)",
         "build": "data/gw2/builds/warrior/b-power-spellbreaker-dagger-mace-sword-dagger.json",
         "rotation": "data/gw2/rotations/warrior/r-power-spellbreaker-dagger-mace-sword-dagger-bench.json",
-        "benchmarkDps": 43286,
+        "benchmarkDps": 43316,
         "upToDate": true,
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/warrior/power-spellbreaker-dagger-mace-sword-dagger",
         "benchmarkApm": 62.8,
         "benchmarkDpsByHealth": {
           "100-80": {
-            "cumulative": 47041,
-            "phase": 47041
+            "cumulative": 47144,
+            "phase": 47144
           },
           "80-60": {
-            "cumulative": 43920,
-            "phase": 41000
+            "cumulative": 43967,
+            "phase": 41006
           },
           "60-40": {
-            "cumulative": 43017,
-            "phase": 41317
+            "cumulative": 43098,
+            "phase": 41458
           },
           "40-20": {
-            "cumulative": 42430,
-            "phase": 40760
+            "cumulative": 42488,
+            "phase": 40756
           },
           "20-0": {
-            "cumulative": 43286,
-            "phase": 43286
+            "cumulative": 43316,
+            "phase": 43316
           }
         }
       },
@@ -300,30 +300,30 @@
         "label": "Power (Sword/Axe + Dagger/Mace)",
         "build": "data/gw2/builds/warrior/b-power-paragon-sword-axe-dagger-mace.json",
         "rotation": "data/gw2/rotations/warrior/r-power-paragon-sword-axe-dagger-mace-bench.json",
-        "benchmarkDps": 42306,
+        "benchmarkDps": 42322,
         "upToDate": true,
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/warrior/power-paragon-sword-axe-dagger-mace",
         "benchmarkApm": 57.8,
         "benchmarkDpsByHealth": {
           "100-80": {
-            "cumulative": 44413,
-            "phase": 44413
+            "cumulative": 44493,
+            "phase": 44493
           },
           "80-60": {
-            "cumulative": 42590,
-            "phase": 40896
+            "cumulative": 42629,
+            "phase": 40901
           },
           "60-40": {
-            "cumulative": 41794,
-            "phase": 40196
+            "cumulative": 41819,
+            "phase": 40194
           },
           "40-20": {
-            "cumulative": 41995,
-            "phase": 42599
+            "cumulative": 42013,
+            "phase": 42596
           },
           "20-0": {
-            "cumulative": 42306,
-            "phase": 43625
+            "cumulative": 42322,
+            "phase": 43629
           }
         }
       }

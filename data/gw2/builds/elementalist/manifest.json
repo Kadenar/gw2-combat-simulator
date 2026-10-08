@@ -259,7 +259,7 @@
         "label": "Power (Hammer) - Fresh Air",
         "build": "data/gw2/builds/elementalist/b-power-tempest-hammer.json",
         "rotation": "data/gw2/rotations/elementalist/r-power-tempest-hammer.json",
-        "benchmarkDps": 42273,
+        "benchmarkDps": 42267,
         "upToDate": true,
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/elementalist/power-tempest-hammer",
         "benchmarkApm": 73.8,
@@ -277,12 +277,12 @@
             "phase": 43656
           },
           "40-20": {
-            "cumulative": 42964,
-            "phase": 43062
+            "cumulative": 42966,
+            "phase": 43068
           },
           "20-0": {
-            "cumulative": 42273,
-            "phase": 39719
+            "cumulative": 42267,
+            "phase": 39681
           }
         }
       },
@@ -290,7 +290,7 @@
         "label": "Power (Dagger/Dagger) - Fresh Air",
         "build": "data/gw2/builds/elementalist/b-power-tempest-dagger.json",
         "rotation": "data/gw2/rotations/elementalist/r-power-tempest-dagger.json",
-        "benchmarkDps": 43415,
+        "benchmarkDps": 43435,
         "upToDate": true,
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/elementalist/power-tempest-dagger-dagger",
         "benchmarkApm": 81,
@@ -304,16 +304,16 @@
             "phase": 43582
           },
           "60-40": {
-            "cumulative": 44223,
-            "phase": 42099
+            "cumulative": 44256,
+            "phase": 42188
           },
           "40-20": {
-            "cumulative": 43375,
-            "phase": 41054
+            "cumulative": 43399,
+            "phase": 41056
           },
           "20-0": {
-            "cumulative": 43415,
-            "phase": 43582
+            "cumulative": 43435,
+            "phase": 43584
           }
         }
       },
@@ -352,30 +352,30 @@
         "label": "Power Alacrity (Hammer) - Fresh Air",
         "build": "data/gw2/builds/elementalist/b-power-alac-tempest-hammer.json",
         "rotation": "data/gw2/rotations/elementalist/r-power-alac-tempest-hammer.json",
-        "benchmarkDps": 29799,
+        "benchmarkDps": 29803,
         "upToDate": false,
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/elementalist/power-alacrity-tempest-hammer",
         "benchmarkApm": 67.8,
         "benchmarkDpsByHealth": {
           "100-80": {
-            "cumulative": 30782,
-            "phase": 30782
+            "cumulative": 30807,
+            "phase": 30807
           },
           "80-60": {
-            "cumulative": 28706,
-            "phase": 26865
+            "cumulative": 28716,
+            "phase": 26864
           },
           "60-40": {
-            "cumulative": 29436,
-            "phase": 31022
+            "cumulative": 29443,
+            "phase": 31023
           },
           "40-20": {
-            "cumulative": 29255,
-            "phase": 28723
+            "cumulative": 29260,
+            "phase": 28720
           },
           "20-0": {
-            "cumulative": 29799,
-            "phase": 29799
+            "cumulative": 29803,
+            "phase": 29803
           }
         }
       },
@@ -947,7 +947,7 @@
         "build": "data/gw2/builds/elementalist/b-power-evoker-hare.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/elementalist/power-evoker-scepter-dagger",
         "rotation": "data/gw2/rotations/elementalist/r-power-evoker-hare.json",
-        "benchmarkDps": 41945,
+        "benchmarkDps": 41955,
         "upToDate": true,
         "benchmarkApm": 147.7,
         "benchmarkDpsByHealth": {
@@ -956,20 +956,20 @@
             "phase": 46189
           },
           "80-60": {
-            "cumulative": 39944,
-            "phase": 35174
+            "cumulative": 39966,
+            "phase": 35207
           },
           "60-40": {
-            "cumulative": 39853,
-            "phase": 39671
+            "cumulative": 39867,
+            "phase": 39672
           },
           "40-20": {
-            "cumulative": 41305,
-            "phase": 46388
+            "cumulative": 41316,
+            "phase": 46387
           },
           "20-0": {
-            "cumulative": 41945,
-            "phase": 44731
+            "cumulative": 41955,
+            "phase": 44734
           }
         }
       },
@@ -977,30 +977,30 @@
         "label": "Power Quickness Hare (Scepter/Dagger)",
         "build": "data/gw2/builds/elementalist/b-power-quick-evoker-hare.json",
         "rotation": "data/gw2/rotations/elementalist/r-power-quick-evoker-hare.json",
-        "benchmarkDps": 32850,
+        "benchmarkDps": 32857,
         "upToDate": false,
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/elementalist/power-quickness-evoker-scepter-dagger",
         "benchmarkApm": 138.5,
         "benchmarkDpsByHealth": {
           "100-80": {
-            "cumulative": 33734,
-            "phase": 33734
+            "cumulative": 33764,
+            "phase": 33764
           },
           "80-60": {
-            "cumulative": 32327,
+            "cumulative": 32341,
             "phase": 31027
           },
           "60-40": {
-            "cumulative": 32591,
-            "phase": 33129
+            "cumulative": 32602,
+            "phase": 33131
           },
           "40-20": {
-            "cumulative": 32474,
-            "phase": 32124
+            "cumulative": 32482,
+            "phase": 32123
           },
           "20-0": {
-            "cumulative": 32850,
-            "phase": 32850
+            "cumulative": 32857,
+            "phase": 32857
           }
         }
       },
@@ -1224,29 +1224,29 @@
         "build": "data/gw2/builds/elementalist/b-condi-alac-evoker-pistol-warhorn-elemental-balance.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/elementalist/condition-alacrity-evoker-pistol-warhorn-elemental-balance",
         "rotation": "data/gw2/rotations/elementalist/r-condi-alac-evoker-pistol-warhorn-elemental-balance.json",
-        "benchmarkDps": 40441,
+        "benchmarkDps": 40363,
         "upToDate": true,
-        "benchmarkApm": 129.3,
+        "benchmarkApm": 129,
         "benchmarkDpsByHealth": {
           "100-80": {
-            "cumulative": 33387,
-            "phase": 33387
+            "cumulative": 33261,
+            "phase": 33261
           },
           "80-60": {
-            "cumulative": 37285,
-            "phase": 42699
+            "cumulative": 37244,
+            "phase": 42777
           },
           "60-40": {
-            "cumulative": 38865,
-            "phase": 42441
+            "cumulative": 38791,
+            "phase": 42291
           },
           "40-20": {
-            "cumulative": 39955,
-            "phase": 43710
+            "cumulative": 39885,
+            "phase": 43652
           },
           "20-0": {
-            "cumulative": 40441,
-            "phase": 42484
+            "cumulative": 40363,
+            "phase": 42376
           }
         }
       },

@@ -4,6 +4,7 @@ import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import { buildBoonGeneration, projectedPartyEffects } from '#gw2/platform/results/boon-generation.js';
 import { projectResolvedEvents } from '#gw2/platform/results/resolved-events.js';
 import type { Gw2ResolverResult, Gw2SimulationScore } from '#gw2/platform/results/types.js';
+import { cloneData } from '#kernel/core/clone.js';
 
 interface CastCount {
   readonly name: string;
@@ -121,12 +122,12 @@ export function buildCombatResult(
         damageTicks: entry.damageTicks.map((tick) => ({ ...tick }))
       }))
       .sort((left, right) => right.damage - left.damage),
-    events: structuredClone(effectiveEvents),
+    events: cloneData(effectiveEvents),
     resolvedEvents: projectResolvedEvents(
       ctx.resolved.filter((event) => event.at <= effectiveEnd),
       effectiveEnd
     ).sort((left, right) => left.at - right.at),
-    procSteps: structuredClone(
+    procSteps: cloneData(
       ctx.procSteps
         .filter((step) => step.start <= Math.round(effectiveEnd * 1000 + 0.1))
         .sort((left, right) => left.start - right.start)

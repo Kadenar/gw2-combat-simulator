@@ -56,15 +56,23 @@ export const CANONICAL_TARGET_CONDITIONS = Object.freeze(
   ].sort()
 );
 
+const canonicalConditionNames = new Map<string, string>();
+
 /**
  * Normalizes casing and whitespace; condition producers must use the canonical vocabulary.
  * Supplemental names retain a stable title-cased form without accepting obsolete synonyms.
  */
 export function canonicalTargetConditionName(value: unknown): string {
-  const text = String(value || '').trim();
-  if (!text) return '';
-  const normalized = text.toLowerCase();
-  return normalized.charAt(0).toUpperCase() + normalized.slice(1);
+  const text = String(value || '');
+  // Producers and queries reuse a small vocabulary, so each spelling is normalized once instead of per stack query.
+  let name = canonicalConditionNames.get(text);
+  if (name === undefined) {
+    const normalized = text.trim().toLowerCase();
+    name = normalized ? normalized.charAt(0).toUpperCase() + normalized.slice(1) : '';
+    canonicalConditionNames.set(text, name);
+  }
+
+  return name;
 }
 
 /** Checks damaging-condition membership independently of casing and whitespace. */

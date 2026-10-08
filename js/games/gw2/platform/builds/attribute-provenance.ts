@@ -23,7 +23,7 @@ export function attributeProvenance(config: Gw2Config = {}): Readonly<Gw2Attribu
   return createAttributeProvenance(config.attributeProvenance || {});
 }
 
-/** Reports whether profession static rules are already included in supplied attributes. */
+/** Reports whether profession static rules are already included; attribute hooks read this flag on every stat query. */
 export function professionStaticRulesApplied(config: Gw2Config = {}): boolean {
-  return attributeProvenance(config).professionStaticRulesApplied;
+  return config.attributeProvenance?.professionStaticRulesApplied === true;
 }

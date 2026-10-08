@@ -37,6 +37,27 @@ test('intensity queries preserve canonical visibility in unordered and ordered h
   }
 });
 
+// Live histories skip grants that expired by an earlier query, without hiding appended, historical, or summon grants.
+test('ordered intensity queries reuse expired history only for later instants', () => {
+  const self = { includesSelf: true, includesSummons: false, companionIds: [] };
+  const summons = { includesSelf: false, includesSummons: true, companionIds: [] };
+  const history = [
+    { at: 0, expiresAt: 1, stacks: 1, resolvedAudience: self },
+    { at: 0, expiresAt: 5, stacks: 2, resolvedAudience: summons }
+  ];
+  const stacks = (at, audience = 'all') =>
+    buffApplicationStacks(history, 'fencer', at, 25, { ordered: true, audience });
+  assert.equal(stacks(2), 0);
+  history.push({ at: 3, expiresAt: 6, stacks: 4, resolvedAudience: self });
+  assert.equal(stacks(4), 4);
+  assert.equal(stacks(4, 'summon'), 2);
+  assert.equal(stacks(0.5), 1);
+  assert.equal(stacks(7), 0);
+  assert.equal(stacks(4), 4);
+  history.push({ at: 8, expiresAt: 9, stacks: 8, resolvedAudience: self });
+  assert.equal(stacks(8.5), 8);
+});
+
 // Historical boon queries use the same index as live execution.
 function boonContext(events = []) {
   const history = events.map((event) => ({ source: 'fixture', sourceId: 'boon', actorType: 'player', ...event }));

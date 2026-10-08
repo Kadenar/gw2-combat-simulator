@@ -280,12 +280,12 @@ export function createGw2ConditionResolution({
     for (const state of ctx.conditionState.values()) {
       for (const group of state.groups?.values() ?? []) {
         for (const application of group.applications) {
+          // An off-grid expiry samples only its own tail; other applications retain their regular sampling times.
+          if (!onGrid && at !== application.naturalExpiresAt) continue;
+          if (isRemoved(application, at)) continue;
           // Optional trait damage belongs to the accepted application; ordinary conditions use their shared formula.
           const formula = application.conditionDamageFormula;
           const dealsDamage = formula != null || Object.hasOwn(CONDITION_FORMULAS, group.condition);
-          if (isRemoved(application, at)) continue;
-          // An off-grid expiry samples only its own tail; other applications retain their regular sampling times.
-          if (!onGrid && at !== application.naturalExpiresAt) continue;
           const through = Math.min(at, application.naturalExpiresAt);
           const elapsedUs = timeKey(through) - timeKey(application.settledThrough);
           // Expiry remainders sampled before Combat Start cannot fund a later in-combat payout.

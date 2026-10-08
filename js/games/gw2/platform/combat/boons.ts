@@ -65,6 +65,9 @@ interface BuffStackApplication extends BuffAudienceMetadata {
   readonly extension?: boolean;
 }
 
+// Per history: its first `length` grants have all expired by `at`, so later queries of that history skip them.
+const expiredGrantPrefixes = new WeakMap<readonly object[], { readonly at: number; readonly length: number }>();
+
 /** Query only the supplied history; callers retain ownership of phase visibility and permanent assumptions. */
 export function buffApplicationStacks<T extends BuffStackApplication>(
   applications: readonly T[],
@@ -98,23 +101,40 @@ export function buffApplicationStacks<T extends BuffStackApplication>(
   }
 
   let stacks = 0;
-  let at: number | undefined;
-  // Canonicalize the query instant once per history and reuse ordered start times in the visibility check.
-  for (let index = start; index < applications.length; index += 1) {
-    const application = applications[index];
-    const startsAt = ordered ? canonicalTime(application.at) : application.at;
-    if (ordered && startsAt > (at ??= canonicalTime(time))) break;
-    if (!includes(application)) continue;
-    const expiresAt =
+  if (start < applications.length) {
+    // Canonicalize the query instant once and reuse ordered start times in the visibility check.
+    const at = canonicalTime(time);
+    const expiryOf = (application: T): number =>
       application.expiresAt ??
       gw2EffectExpiresAt(application.at, duration ? duration(application) : application.duration || 0);
-    at ??= canonicalTime(time);
-    if (
-      (startsAt === -Infinity || (ordered ? startsAt : canonicalTime(startsAt)) <= at) &&
-      (expiresAt === Infinity || at < canonicalTime(expiresAt))
-    ) {
-      stacks += application.stacks || 1;
+    // Ordered accepted histories only append, so leading grants expired at one instant stay expired afterward.
+    const reusable = ordered && start === 0 && !duration;
+    const prefix = reusable ? expiredGrantPrefixes.get(applications) : undefined;
+    let expiredThrough = prefix && prefix.at <= at ? prefix.length : start;
+    for (let index = expiredThrough; index < applications.length; index += 1) {
+      const application = applications[index];
+      const startsAt = ordered ? canonicalTime(application.at) : application.at;
+      if (ordered && startsAt > at) break;
+      // Expiry hides a grant from every recipient, so the shared prefix grows before audience filtering.
+      if (reusable && expiredThrough === index) {
+        const expiresAt = expiryOf(application);
+        if (expiresAt !== Infinity && at >= canonicalTime(expiresAt)) {
+          expiredThrough += 1;
+          continue;
+        }
+      }
+
+      if (!includes(application)) continue;
+      const expiresAt = expiryOf(application);
+      if (
+        (startsAt === -Infinity || (ordered ? startsAt : canonicalTime(startsAt)) <= at) &&
+        (expiresAt === Infinity || at < canonicalTime(expiresAt))
+      )
+        stacks += application.stacks || 1;
     }
+
+    if (reusable && expiredThrough > (prefix?.length ?? 0))
+      expiredGrantPrefixes.set(applications, { at, length: expiredThrough });
   }
 
   return clamp(stacks, 0, Math.min(maximum, STANDARD_BOON_DEFINITIONS[kind]?.maximumStacks ?? Infinity));

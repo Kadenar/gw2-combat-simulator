@@ -1,6 +1,7 @@
 import { effectStateValue, type EffectState } from '#gw2/platform/combat/effect-state.js';
 import type { EffectMetadata, SimulationEvent, SimulationEventBase } from '#gw2/platform/events/events.js';
 import { canonicalTime } from '#kernel/core/clock.js';
+import { cloneData } from '#kernel/core/clone.js';
 
 /** Charts retain stable source identity and label inputs without carrying full combat payloads into every segment. */
 export interface EffectSource extends Pick<
@@ -209,7 +210,7 @@ export class EffectRecorder implements EffectReportObserver {
       (a, b) =>
         (a.segments[0]?.start ?? end) - (b.segments[0]?.start ?? end) || (a.id < b.id ? -1 : a.id > b.id ? 1 : 0)
     );
-    return structuredClone({ start: 0, end, tracks });
+    return cloneData({ start: 0, end, tracks });
   }
 }
 

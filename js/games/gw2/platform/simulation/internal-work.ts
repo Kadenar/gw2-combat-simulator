@@ -1,6 +1,7 @@
 import type { HandlerRegistry } from '#gw2/platform/resolver/handler-registry.js';
 import type { InternalWork, WorkInput } from '#gw2/platform/simulation/work-contract.js';
 import { canonicalTime } from '#kernel/core/clock.js';
+import { cloneData } from '#kernel/core/clone.js';
 
 /** Validate and detach work before it enters the shared heap; callbacks stay in the existing handler registry. */
 export function createInternalWorkFactory<TWork extends InternalWork>(
@@ -30,7 +31,7 @@ export function createInternalWorkFactory<TWork extends InternalWork>(
 
     let payload: unknown;
     try {
-      payload = structuredClone(input.payload);
+      payload = cloneData(input.payload);
     } catch {
       throw new TypeError(`Internal work ${input.type} payload must contain only serializable data.`);
     }
