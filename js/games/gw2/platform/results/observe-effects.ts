@@ -115,6 +115,15 @@ const retirementObservations = new WeakMap<
   { count: number; states: WeakMap<readonly EffectState[], readonly EffectState[]> }
 >();
 
+// Shared policies are fixed; only owner contributions need rebuilding as live profession tuning changes.
+const sharedPolicies: ReadonlyMap<string, BuffStatePolicy> = new Map([
+  ...GW2_STANDARD_BOONS.map((kind): [string, BuffStatePolicy] => [
+    kind,
+    { kind, maximumStacks: standardBoonPresentation(kind)?.maximumStacks }
+  ]),
+  ...['stealth', 'superspeed'].map((kind): [string, BuffStatePolicy] => [kind, { kind, maximumStacks: 1 }])
+]);
+
 /** Visit complete kind scopes; native observations replace only their own generic recipients. */
 function visitRuntimeEffects<T extends object>(
   runtime: Gw2Runtime<T>,
@@ -152,18 +161,15 @@ function visitRuntimeEffects<T extends object>(
     visitor(scope, clipped);
   };
 
-  const policies = new Map<string, BuffStatePolicy>(
-    GW2_STANDARD_BOONS.map((kind) => [kind, { kind, maximumStacks: standardBoonPresentation(kind)?.maximumStacks }])
-  );
-  for (const kind of ['stealth', 'superspeed']) policies.set(kind, { kind, maximumStacks: 1 });
+  const policies = new Map<string, BuffStatePolicy>();
   // Owners contribute live policies; dynamic profession caps continue following the selected balance profile.
-  const owners = new Map([...policies.keys()].map((kind) => [kind, 'shared']));
+  const owners = new Map<string, string>();
   for (const { owner, contributions } of [
     { owner: 'profession', contributions: profession.buffPolicies?.(runtime.mechanicQueries) ?? [] },
     { owner: 'equipment', contributions: runtime.equipmentBuffPolicies }
   ]) {
     for (const policy of contributions) {
-      const previous = owners.get(policy.kind);
+      const previous = sharedPolicies.has(policy.kind) ? 'shared' : owners.get(policy.kind);
       if (previous)
         throw new TypeError(`Duplicate ${owner} buff policy: ${policy.kind} (already owned by ${previous}).`);
       owners.set(policy.kind, owner);
@@ -171,15 +177,17 @@ function visitRuntimeEffects<T extends object>(
     }
   }
 
-  const owned = (profession.observeEffects?.(runtime.mechanicQueries) ?? []).map((state) => ({
-    ...state,
-    source:
-      state.source ??
-      (isStandardBoon(state.kind) ? runtime.boons : runtime.buffs)
-        .get(state.kind)
-        ?.filter((application) => application.at <= runtime.time)
-        .at(-1)?.event
-  }));
+  const owned = (profession.observeEffects?.(runtime.mechanicQueries) ?? []).map((state) => {
+    if (state.source != null) return { ...state };
+    const applications = (isStandardBoon(state.kind) ? runtime.boons : runtime.buffs).get(state.kind);
+    // Only the latest accepted source is needed; do not allocate a filtered copy of its entire history.
+    for (let index = (applications?.length ?? 0) - 1; index >= 0; index -= 1) {
+      const application = applications![index]!;
+      if (application.at <= runtime.time) return { ...state, source: application.event };
+    }
+
+    return { ...state, source: undefined };
+  });
   // Recipient membership uses existing strings rather than allocating a composite key for every observed track.
   const ownedRecipients = new Map<string, Set<string>>();
   for (const state of owned) {
@@ -209,7 +217,7 @@ function visitRuntimeEffects<T extends object>(
   for (const store of [runtime.boons, runtime.buffs])
     for (const [kind, applications] of store) {
       // Registration makes new reportable effects declare their owner instead of silently bypassing caps.
-      const policy = policies.get(kind);
+      const policy = policies.get(kind) ?? sharedPolicies.get(kind);
       if (!policy) throw new TypeError(`Missing buff policy: ${kind}`);
       if (policy.owner === 'profession') continue;
       const generic = observeGenericBuff(cache, kind, applications, runtime.time, policy);

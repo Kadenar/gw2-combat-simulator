@@ -17,7 +17,11 @@ import type { Gw2TimelineIndex } from '#gw2/platform/combat-calculation/timeline
 import { createGw2TimelineIndex } from '#gw2/platform/combat-calculation/timeline-index.js';
 import { gw2EventActorType } from '#gw2/platform/combat/state/event-ownership.js';
 import type { Gw2RuntimeStateLike } from '#gw2/platform/combat/state/targets.js';
-import { createPermanentTargetConditionStacks, targetConditionStacks } from '#gw2/platform/combat/state/targets.js';
+import {
+  createPermanentTargetConditionStacks,
+  targetConditionStacks,
+  targetHasCondition
+} from '#gw2/platform/combat/state/targets.js';
 import type { SimulationEvent } from '#gw2/platform/events/events.js';
 import type { NormalizedProfessionContract } from '#gw2/platform/profession-definition/types.js';
 import { UTILITY_STRIKE_DAMAGE_BONUSES } from '#gw2/platform/equipment/consumables/utilities.js';
@@ -696,7 +700,7 @@ export function createGw2CombatQuery({
     },
     targetConditionStacks: targetConditionStacksAt,
     targetHasCondition(condition: string, time: number, runtime: Gw2QueryRuntime | null = null) {
-      return targetConditionStacksAt(condition, time, runtime) > 0;
+      return targetHasCondition(config, condition, time, runtime, configuredTargetConditionStacks(condition));
     },
     timeline
   });

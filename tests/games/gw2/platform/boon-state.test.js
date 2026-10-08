@@ -2,16 +2,40 @@ import { captureEffectEmissions } from '#tests/helpers/effect-emission.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { activeBoonStacks, boonActive } from '#gw2/platform/combat/query/runtime-query.js';
-import { runtimeTargetConditionStacks } from '#gw2/platform/combat/state/targets.js';
+import { runtimeTargetConditionStacks, targetHasCondition } from '#gw2/platform/combat/state/targets.js';
 import { createGw2TimelineIndex } from '#gw2/platform/combat-calculation/timeline-index.js';
 
 import {
+  buffApplicationStacks,
   durationStackingBoonCapSeconds,
   isDurationStackingBoon,
   recordBuffApplication,
   remainingDurationStackSeconds,
   standardBoonPresentation
 } from '#gw2/platform/combat/boons.js';
+
+// Both scheduled and accepted histories use canonical, half-open visibility before applying audience and intensity caps.
+test('intensity queries preserve canonical visibility in unordered and ordered histories', () => {
+  const self = { includesSelf: true, includesSummons: false, companionIds: [] };
+  const history = [
+    { at: 2, expiresAt: 4, stacks: 30, resolvedAudience: self },
+    { at: 0.2, expiresAt: 0.56 + 0.04, stacks: 3, resolvedAudience: self },
+    { at: 0.2, expiresAt: 4, stacks: 8, resolvedAudience: { ...self, includesSelf: false } }
+  ];
+  for (const ordered of [false, true]) {
+    const applications = ordered ? [...history].sort((a, b) => a.at - b.at) : history;
+    for (const [at, stacks] of [
+      [0.199999, 0],
+      [0.2, 3],
+      [0.599999, 3],
+      [0.6, 0],
+      [2, 25],
+      [4, 0]
+    ])
+      assert.equal(buffApplicationStacks(applications, 'might', at, 100, { ordered }), stacks);
+    assert.equal(buffApplicationStacks(applications, 'might', 0.4, 2, { ordered }), 2);
+  }
+});
 
 // Historical boon queries use the same index as live execution.
 function boonContext(events = []) {
@@ -110,7 +134,25 @@ test('status queries retain the last microsecond and exclude canonical expiry', 
     }
 
     assert.equal(runtimeTargetConditionStacks(runtime, 'Bleeding', time), active);
+    assert.equal(targetHasCondition({}, ' bleeding ', time, runtime), Boolean(active));
   }
+});
+
+// Presence respects each accepted lifetime, including historical reads after newer stacks expire or are removed.
+test('condition presence preserves history, removals, same-time edits, and permanent assumptions', () => {
+  const older = { appliedAt: 0, expiresAt: 8, weight: 1 };
+  const newer = { appliedAt: 2, expiresAt: 6, removedAt: 4, weight: 2 };
+  const state = { conditionState: new Map([['Bleeding', { stacks: [older, newer] }]]) };
+  assert.equal(targetHasCondition({}, 'Bleeding', -1, state), false);
+  assert.equal(targetHasCondition({}, 'Bleeding', 1, state), true);
+  assert.equal(targetHasCondition({}, 'Bleeding', 4, state), true);
+  older.weight = 0;
+  assert.equal(targetHasCondition({}, 'Bleeding', 4, state), false);
+  assert.equal(targetHasCondition({}, 'Bleeding', 3, state), true);
+  newer.removedAt = 3;
+  assert.equal(targetHasCondition({}, 'Bleeding', 3, state), false);
+  assert.equal(targetHasCondition({ target: { conditions: { Bleeding: true } } }, 'Bleeding', 8, state), true);
+  assert.equal(targetHasCondition({}, 'Burning', 0, state), false);
 });
 
 // Prepared applications retain their audience and expired history for timestamp queries in either phase.

@@ -187,14 +187,20 @@ export function targetConditionStacks(
   return Math.min(maximum, permanentStacks + runtimeTargetConditionStacks(runtime, name, at || 0));
 }
 
-/** Reports whether permanent assumptions or runtime state give the target a condition. */
+/** Presence needs only one positive live stack; avoid summing a condition's full history for boolean queries. */
 export function targetHasCondition(
   config: Gw2Config,
   name: string,
   at: number,
-  runtime: Gw2RuntimeStateLike | null = null
+  runtime: Gw2RuntimeStateLike | null = null,
+  permanentStacks = permanentTargetConditionStacks(config, name)
 ): boolean {
-  return targetConditionStacks(config, name, at, runtime) > 0;
+  if (permanentStacks > 0) return true;
+  const stacks = runtime?.conditionState?.get(canonicalTargetConditionName(name))?.stacks;
+  if (!stacks) return false;
+  for (let index = stacks.length - 1; index >= 0; index -= 1)
+    if (activeRuntimeStackWeight(stacks[index]!, at || 0) > 0) return true;
+  return false;
 }
 
 export interface Gw2TargetConfig {

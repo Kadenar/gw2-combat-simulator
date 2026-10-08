@@ -98,14 +98,21 @@ export function buffApplicationStacks<T extends BuffStackApplication>(
   }
 
   let stacks = 0;
+  let at: number | undefined;
+  // Canonicalize the query instant once per history and reuse ordered start times in the visibility check.
   for (let index = start; index < applications.length; index += 1) {
     const application = applications[index];
-    if (ordered && canonicalTime(application.at) > canonicalTime(time)) break;
+    const startsAt = ordered ? canonicalTime(application.at) : application.at;
+    if (ordered && startsAt > (at ??= canonicalTime(time))) break;
     if (!includes(application)) continue;
     const expiresAt =
       application.expiresAt ??
       gw2EffectExpiresAt(application.at, duration ? duration(application) : application.duration || 0);
-    if (isTimeInWindow(time, application.at, expiresAt)) {
+    at ??= canonicalTime(time);
+    if (
+      (startsAt === -Infinity || (ordered ? startsAt : canonicalTime(startsAt)) <= at) &&
+      (expiresAt === Infinity || at < canonicalTime(expiresAt))
+    ) {
       stacks += application.stacks || 1;
     }
   }

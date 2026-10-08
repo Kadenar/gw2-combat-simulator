@@ -81,6 +81,29 @@ test('policy composition rejects duplicate owners and replacement of shared boon
   }
 });
 
+// Native attribution follows accepted history without replacing an owner's explicit source or exposing its state object.
+test('native observations attribute the latest accepted source while retaining explicit ownership', () => {
+  const state = runtime();
+  grant(state, 'charges', 0, 1, 5);
+  grant(state, 'charges', 2, 1, 5);
+  const native = timedEffectState('charges', [{ stacks: 1, expiresAt: 8 }]);
+  const profession = {
+    buffPolicies: () => [{ kind: 'charges', owner: 'profession' }],
+    observeEffects: () => [native]
+  };
+  const read = () => observeRuntimeEffects(state, profession)[0];
+  state.time = 2;
+  assert.equal(read().source.at, 2);
+  state.time = 1;
+  assert.equal(read().source.at, 0);
+  const explicit = { type: 'buff', kind: 'charges', at: 1 };
+  native.source = explicit;
+  assert.equal(read().source, explicit);
+  read().name = 'Edited observation';
+  assert.equal(native.name, undefined);
+  assert.equal(state.buffs.get('charges')[1].event.at, 2);
+});
+
 // Observation reuse must still see same-time grants, immutable replacements, removals, and expiry.
 test('generic observation follows grant-history changes and time boundaries for each recipient', () => {
   const state = runtime();
