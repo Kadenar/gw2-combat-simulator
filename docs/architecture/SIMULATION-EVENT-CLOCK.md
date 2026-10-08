@@ -41,16 +41,18 @@ Platform events additionally require a non-negative finite `at` value. They also
 and `actorType`. Common event types are registered by the platform; a custom type must contain a period, such as
 `profession.effect`.
 
-### Floating-point tolerance
+### Exact boundaries
 
-`EPSILON` is `0.0001` seconds, or 100 microseconds. It is used for readiness and boundary comparisons where metadata may
-contain floating-point residue. It is not the clock resolution and is not used to merge or sort events. Queue ordering
-always uses canonical microsecond keys.
+Timestamp comparisons use canonical microsecond instants, without a grace window. Canonicalize calculated deadlines
+before comparing them; elapsed interval counts use integer `timeKey` arithmetic. Recurring intervals must be finite and
+span at least one canonical microsecond. Invalid intervals are rejected instead of replaced with a tiny delay. Resource
+amounts use their own arithmetic policy and never borrow a clock tolerance.
 
 ### The 40 ms GW2 action tick
 
-The global event clock is not a 40 ms clock. The GW2 action-tick value is applied only where a mechanic explicitly
-requires it:
+The event queue retains canonical microsecond precision. Every rotation cast is accepted on an absolute 40 ms action
+tick, including instant and independent casts, concurrent inputs, and casts following off-grid waits or resource wakes.
+Cast completion and interruption reservations also round up to an action tick, capped by full completion. Additionally:
 
 - imported observed action timing can be rounded to the nearest 40 ms;
 - calculated positive action durations can be rounded up to the next 40 ms;
@@ -107,9 +109,9 @@ waitEnd = waitStart + durationMs / 1000
 For an accepted cast:
 
 ```text
-start        = earliest time allowed by its lane, input recovery, cooldowns, resources, and profession rules
-fullEnd      = canonicalTime(start + effectiveCastDurationSeconds)
-effectiveEnd = fullEnd, or min(fullEnd, canonicalTime(start + interruptAfterMs / 1000))
+start        = first absolute 40 ms tick allowed by lanes, input recovery, cooldowns, resources, and profession rules
+fullEnd      = gw2CooldownReadyAt(start + effectiveCastDurationSeconds)
+effectiveEnd = fullEnd, or min(fullEnd, gw2CooldownReadyAt(start + interruptAfterMs / 1000))
 ```
 
 `castTimeMs` is already the effective player duration stored in skill metadata. Shared game rules then profession rules
@@ -133,8 +135,8 @@ repeatAt = firstPacketAt + (applicationIndex - 1) * intervalMs / 1000
 Explicit tick arrays supply each packet's own offset. Aggregate multi-hit strikes share one timestamp. Cast-scaled
 effects project offsets onto the runtime cast duration; fixed effects preserve wall-clock offsets.
 
-Interruption filtering is applied after materialization. Per-packet channels keep packets through
-`effectiveEnd + EPSILON` and discard later packets. Commit-mode effects follow their skill/effect commit cutoff and
+Interruption filtering is applied after materialization. Per-packet channels keep packets through the canonical
+`effectiveEnd` inclusively and discard later packets. Commit-mode effects follow their skill/effect commit cutoff and
 persistence metadata.
 
 ### Resource and proc lifecycle
@@ -167,9 +169,9 @@ optional between-cast ammo lockout are independent deadlines; availability uses 
 
 Retryable availability does not fail the command. The GW2 rotation driver rounds a future retry deadline up to the first
 absolute 40 ms action tick at or after that deadline. The clock advances to the earlier of that tick and the next
-state-changing task, then checks again. The game-neutral kernel retains its microsecond event clock. Cost admission
-never borrows the clock epsilon to accept a future resource deadline; resource owners use their shared amount-rounding
-tolerance for readiness and payment. A non-retryable denial records an invalid zero-duration step.
+state-changing task, then checks again. The game-neutral kernel retains its microsecond event clock. Cost admission uses
+exact readiness deadlines; resource owners use their shared amount-rounding tolerance for readiness and payment. A
+non-retryable denial records an invalid zero-duration step.
 
 Ordinary cooldown availability uses the shared canonical readiness calculation. Internal proc cooldowns use a stricter
 contract: a previously armed cooldown remains blocked at its exact `readyAt` boundary and becomes ready only at a later

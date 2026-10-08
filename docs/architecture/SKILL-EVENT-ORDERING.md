@@ -38,9 +38,9 @@ aliases such as `0.56 + 0.04` and `0.6` equal without merging adjacent microseco
 rejected. This is numerical normalization, not a change to authored strike grids or projectile delays. Observation
 cutoffs are inclusive at the canonical instant; delayed completion effects need an explicit observation tail.
 
-`EPSILON` is only a tolerance for comparisons at numeric boundaries. Never add or subtract it from `at`, `duration`, or
-`expiresAt` to express ordering. Synthetic 0.1 ms gaps create false gameplay time and bypass the queue's ordering
-contract. The 40 ms action tick is also mechanic-specific; it is not a replacement for same-time priority.
+Clock comparisons use exact canonical instants. Never add or subtract a tolerance from `at`, `duration`, or `expiresAt`
+to express ordering. Synthetic 0.1 ms gaps create false gameplay time and bypass the queue's ordering contract. The 40
+ms action tick governs cast admission and reservations; same-time work still uses explicit queue priority.
 
 ```text
 at=1.000, priority=-10
@@ -175,7 +175,7 @@ Hook order does not move events on the timeline. Modifier order does not determi
 
 1. Leave events at priority `0` unless a same-time state dependency requires otherwise.
 2. Put real delays in `at`; do not simulate elapsed time with priority.
-3. Never use `EPSILON` to move an event, task, duration, or expiry. Use it only as a documented comparison tolerance.
+3. Compare canonical deadlines exactly. Never use a tolerance to move or extend an event, task, duration, or expiry.
 4. Set priority on the emission request or emitted event. Ordinary declarative effects use the default event priority.
 5. Keep priority relationships local to the owning mechanic and comment what must happen before or after what.
 6. Submit derived effects through `runtime.effects.emit({ kind: 'packet', cause, event })`; use `kind: 'profile'` for
