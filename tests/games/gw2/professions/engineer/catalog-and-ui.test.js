@@ -779,7 +779,7 @@ test('Scrapper F skills follow selected skill-slot order', () => {
   );
   const core = simulate('Core', ['Function Gyro']);
 
-  assert.match(core.warnings[0], /Function Gyro: Unknown skill/);
+  assert.match(core.warnings[0], /Function Gyro at 0\.000s: Unknown skill/);
 });
 
 test('Engineer slot selection excludes contextual and unsupported utilities', () => {

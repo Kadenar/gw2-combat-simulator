@@ -59,7 +59,7 @@ test('unknown imported skill diagnostics cannot create timeline attributes or el
     applyRotationImportPreview(app, await previewRotationFile(file, app));
   }, skillId);
   await page.waitForFunction(() => window.professionApp.buildRevision === window.professionApp.resultRevision);
-  expect(await page.evaluate(() => window.professionApp.results.warnings)).toContain(`${skillId}: ${reason}`);
+  expect(await page.evaluate(() => window.professionApp.results.warnings)).toContain(`${skillId} at 0.000s: ${reason}`);
 
   await page.evaluate(async () => {
     const { renderTimeline } = await import('/js/games/gw2/app/rotation/timeline/view.ts');

@@ -567,7 +567,9 @@ test('Mirage can queue an ambush before its window closes without extending the 
       assert.equal(ambush.start, 1600);
       assert.deepEqual(result.warnings, []);
     } else {
-      assert.deepEqual(result.warnings, ['Fractured Glass: Fractured Glass has no active Mirage Cloak ambush window.']);
+      assert.deepEqual(result.warnings, [
+        `Fractured Glass at ${(ambush.start / 1000).toFixed(3)}s: Fractured Glass has no active Mirage Cloak ambush window.`
+      ]);
     }
   }
 });

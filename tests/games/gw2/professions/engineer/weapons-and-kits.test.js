@@ -891,7 +891,8 @@ test('manual Mine Field detonation cannot add damage or toolbelt activations', (
       config
     );
 
-    assert.equal(result.warnings.length, 1);
+    // Identical rejections at one instant deduplicate; casting Mine Field separates the rejection times.
+    assert.equal(result.warnings.length, rotation.length ? 2 : 1);
     assert.ok(result.warnings.every((warning) => /unavailable for this build/.test(warning)));
     assert.equal(result.totalDamage, baseline.totalDamage);
     assert.equal(

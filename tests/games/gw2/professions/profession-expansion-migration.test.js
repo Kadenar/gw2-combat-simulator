@@ -292,7 +292,7 @@ test('profession registry entries conform to the shared contracts', async () => 
       config: {}
     });
 
-    assert.match(unknown.warnings.join(' '), /-999: Unknown skill/);
+    assert.match(unknown.warnings.join(' '), /-999 at 0\.000s: Unknown skill/);
 
     for (const specialization of ['Core', ...profession.catalog.specializations.map((value) => value.name)]) {
       assertUiContracts(entry, profession, specialization);

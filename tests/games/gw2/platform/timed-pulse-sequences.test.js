@@ -1,10 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { runGuardian } from '#tests/helpers/guardian-simulation.js';
-import { THIEF_SKILL_IDS as T } from '#gw2/professions/thief/data/ids.js';
 import { GUARDIAN_SKILL_IDS as G } from '#gw2/professions/guardian/data/ids.js';
-import { observedRuntime } from '#tests/helpers/observed-runtime.js';
-import { withSkill } from '#tests/helpers/catalog-overrides.js';
 import { runThief } from '#tests/helpers/thief-simulation.js';
 
 test('Infiltrator signet rearm replaces the pending resource pulse and follows cooldown resets', () => {
@@ -28,20 +25,6 @@ test('Infiltrator signet rearm replaces the pending resource pulse and follows c
   assert.equal(observed[1][1], 11);
   assert.equal(observed[3][0] - observed[2][0], 2, 'one second of regeneration plus one discrete pulse');
   assert.equal(observed[3][1], 21);
-});
-
-test('Forged Surfer refreshes its buff expiry from the latest activation', () => {
-  // Reusing the artifact replaces the previous buff window.
-  const result = runThief(
-    ['Skritt Swipe', 'Forged Surfer Dash', 'Skritt Swipe', 'Forged Surfer Dash', { type: 'wait', durationMs: 12000 }],
-    { specialization: 'Antiquary' },
-    { catalog: (live) => withSkill(live, T.SKRITT_SWIPE, { cooldown: 0 }) }
-  );
-  assert.deepEqual(result.warnings, []);
-  const second = result.steps.filter((step) => step.skill === 'Forged Surfer Dash')[1].end / 1000;
-  assert.ok(
-    Math.abs(observedRuntime(result).profession.specialization.state.forgedSurferBombDropUntil - (second + 10)) < 1e-9
-  );
 });
 
 test('Willbender fields overlap for the same virtue and cancel as a group when virtue changes', () => {

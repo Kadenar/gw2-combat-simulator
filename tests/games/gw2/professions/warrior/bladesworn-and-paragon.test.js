@@ -816,7 +816,9 @@ test('Dragon Trigger utilities expose defense, shadowstep ammo, and cooldown res
     { initialResource: 100 }
   );
 
-  assert.deepEqual(concurrentTrigger.warnings, ['Dragon Trigger: Dragon Trigger cannot be cast concurrently.']);
+  assert.deepEqual(concurrentTrigger.warnings, [
+    'Dragon Trigger at 0.000s: Dragon Trigger cannot be cast concurrently.'
+  ]);
   assert.equal(concurrentTrigger.steps.find((step) => step.skill === 'Dragon Trigger').invalid, true);
   const utility = simulate('Bladesworn', [ID.DRAGON_TRIGGER, ID.TRIGGERGUARD, ID.FLICKER_STEP], {
     initialResource: 100

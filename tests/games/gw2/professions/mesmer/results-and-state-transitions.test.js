@@ -226,18 +226,12 @@ test('rotation warnings use timeline-relative timestamps', () => {
   const invalidReason = 'Skill is unavailable.';
   const result = {
     events: [{ type: 'combat_start', at: 2 }],
-    steps: [
-      {
-        invalid: true,
-        invalidReason,
-        start: 3500
-      }
-    ],
-    warnings: [invalidReason, 'Bladesong skipped at 4.250s: no blades.']
+    // Rejection warnings carry their own occurrence time, including results without detailed steps.
+    warnings: [`Unavailable Skill at 3.500s: ${invalidReason}`, 'Bladesong skipped at 4.250s: no blades.']
   };
 
   assert.deepEqual(rotationWarningItems(result), [
-    { message: invalidReason, time: '1.500s' },
+    { message: `Unavailable Skill: ${invalidReason}`, time: '1.500s' },
     { message: 'Bladesong skipped: no blades.', time: '2.250s' }
   ]);
 });
