@@ -4,7 +4,7 @@ import { runGw2Runtime } from '#gw2/platform/simulation/runtime.js';
 import { ELEMENTALIST_TRAIT_IDS as ELE } from '#gw2/professions/elementalist/data/ids.js';
 import { elementalistProfession } from '#gw2/professions/elementalist/profession.js';
 import { CATALYST_BALANCE_PROFILE_IDS as CATALYST } from '#gw2/professions/elementalist/specializations/catalyst/profiles.js';
-import { EVOKER_BALANCE_PROFILE_IDS as EVOKER } from '#gw2/professions/elementalist/specializations/evoker/profiles.js';
+import { EVOKER_BALANCE_PROFILE_IDS as EVOKER } from '#gw2/professions/elementalist/specializations/evoker/mechanics/constants.js';
 import { ENGINEER_CORE_BALANCE_PROFILE_IDS as ENGINEER } from '#gw2/professions/engineer/core/profiles.js';
 import { ENGINEER_TRAIT_IDS as ENG, ENGINEER_SKILL_IDS as ENG_SKILL } from '#gw2/professions/engineer/data/ids.js';
 import { engineerProfession } from '#gw2/professions/engineer/profession.js';

@@ -87,8 +87,7 @@
       "Slow": true,
       "Weakness": true,
       "Vulnerability": 25
-    },
-    "forgedSurferBombsHit": "3"
+    }
   },
   "initialInitiative": 15,
   "initialShadowForce": 0,

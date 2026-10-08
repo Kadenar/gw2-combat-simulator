@@ -1,3 +1,4 @@
+import { grantElectricEnchantments } from '#gw2/professions/elementalist/specializations/evoker/mechanics/electric-enchantment.js';
 import { captureEffectEmissions } from '#tests/helpers/effect-emission.js';
 import { applyBalanceProfilePatch } from '#gw2/integrations/patches/authoring/patches.js';
 import { GW2_ALACRITY_RECHARGE_RATE, gw2BaseRecharge } from '#gw2/platform/combat/recharge.js';
@@ -6,14 +7,54 @@ import { ELEMENTALIST_TRAIT_IDS as TRAIT } from '#gw2/professions/elementalist/d
 import { elementalistCatalog, elementalistProfession } from '#gw2/professions/elementalist/profession.js';
 import { onAcceptedEvent } from '#gw2/professions/elementalist/specializations/evoker/mechanics/event-handlers.js';
 import {
+  beginFamiliarCast,
   captureIgniteTier,
+  modifyFamiliarEffects,
   selectIgniteEffects
-} from '#gw2/professions/elementalist/specializations/evoker/mechanics/familiars.js';
-import { evokerState, grantElectricEnchantments } from '#gw2/professions/elementalist/specializations/evoker/state.js';
+} from '#gw2/professions/elementalist/specializations/evoker/skills/familiar-skills.js';
+import { evokerState } from '#gw2/professions/elementalist/specializations/evoker/state.js';
 import { runElementalist, runNative } from '#tests/helpers/elementalist-simulation.js';
 import { observedRuntime } from '#tests/helpers/observed-runtime.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
+
+test('familiar replacement honors patched cancellation windows and preserves the boundary', () => {
+  // Exercise owner cancellation and replacement suppression without depending on native impact schedules.
+  for (const [basicName, empoweredName, profileId] of [
+    ['Ignite', 'Conflagration', 'elementalist.evoker.ignite'],
+    ['Splash', 'Buoyant Deluge', 'elementalist.evoker.splash'],
+    ['Zap', 'Lightning Blitz', 'elementalist.evoker.zap'],
+    ['Calcify', 'Seismic Impact', 'elementalist.evoker.calcify']
+  ]) {
+    for (const window of [0.5, 4]) {
+      const catalog = applyBalanceProfilePatch(elementalistCatalog, {
+        balanceProfiles: { [profileId]: { fields: { durationMultiplier: window } } }
+      });
+      const basic = catalog.skillsByName.get(basicName);
+      const empowered = catalog.skillsByName.get(empoweredName);
+      for (const elapsed of [window - 0.01, window]) {
+        const state = evokerState.create();
+        const cancelled = [];
+        const context = {
+          helpers: catalog,
+          profession: { specialization: { kind: 'Evoker', state } },
+          cancelOwner: (owner) => cancelled.push(owner)
+        };
+        beginFamiliarCast(context, { id: 'empowered', start: 0, effectiveEnd: 0 }, empowered);
+        const cast = { id: 'basic', start: elapsed, effectiveEnd: elapsed, skill: basic };
+        beginFamiliarCast(context, cast, basic);
+        const effects = [{ type: 'strike', coefficient: 1 }];
+        const withinWindow = elapsed < window;
+        assert.deepEqual(cancelled, withinWindow ? [{ id: 'empowered', generation: 0 }] : []);
+        assert.deepEqual(modifyFamiliarEffects(context, cast, effects), withinWindow ? [] : effects);
+        if (basicName === 'Ignite') {
+          captureIgniteTier(context, cast);
+          assert.equal(state.igniteTier, withinWindow ? 0 : 1);
+        }
+      }
+    }
+  }
+});
 
 test('Altruistic Aspect grants its meditation boon only when selected and the cast commits', () => {
   // Use one meditation with no other boon traits to expose the missing completion hook.
@@ -94,7 +135,14 @@ function enchantments({ hits, grants, timeline = [] }) {
         ...grants.map(([at, charges, duration]) => ({
           at,
           priority: -30,
-          run: (r) => grantElectricEnchantments(evokerState.from(r), at, charges, duration)
+          run: (r) =>
+            grantElectricEnchantments(r, {
+              at,
+              stacks: charges,
+              duration,
+              skill: { id: 42, name: 'Fixture' },
+              procType: 'skill'
+            })
         })),
         ...timeline
       ]

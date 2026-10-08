@@ -1,6 +1,4 @@
-import { activeChargeGrants, grantCharges, type ChargeGrant } from '#gw2/platform/combat/resources/charges.js';
-import { canonicalTime } from '#kernel/core/clock.js';
-import { gw2EffectExpiresAt } from '#gw2/platform/effects/timing.js';
+import type { ChargeGrant } from '#gw2/platform/combat/resources/charges.js';
 /**
  * Mutable Evoker specialization state.
  *
@@ -87,20 +85,6 @@ export const evokerState = defineProfessionSpecializationState(
     };
   }
 );
-
-/** Discards spent or expired grants at the scheduler clock, preserving future queued-hit eligibility. */
-export function expireElectricEnchantments(state: EvokerState, at: number): void {
-  state.electricEnchantmentGrants = activeChargeGrants(state.electricEnchantmentGrants, at);
-}
-
-/** Arms a separate lifetime for each grant; earliest-expiring eligible charges are spent first. */
-export function grantElectricEnchantments(state: EvokerState, at: number, stacks: number, duration: number): void {
-  state.electricEnchantmentGrants.push({
-    ...grantCharges(stacks, gw2EffectExpiresAt(at, duration)),
-    at: canonicalTime(at)
-  });
-  expireElectricEnchantments(state, at);
-}
 
 // Evoker publishes familiar resources and Elemental Balance windows.
 /** Contributed to the Elementalist family end-state projection. */

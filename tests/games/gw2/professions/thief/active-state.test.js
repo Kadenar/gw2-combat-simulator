@@ -112,12 +112,12 @@ test('Skritt Scuffle advances its next-pilfer countdown and clears it after the 
   assert.equal(activeState(ended, 'Antiquary')['antiquary-skritt-scuffle'], undefined);
 });
 
-test('Surfer exposes the buff window independently of the bomb-hit assumption', () => {
+test('Surfer exposes the selected buff window and hides it at expiry', () => {
   for (const [selectedTraitIds, duration] of [
     [[], 10],
-    [[TRAIT.METICULOUS_CUSTODIAN], 12]
+    [[TRAIT.METICULOUS_CUSTODIAN], 13]
   ]) {
-    const config = { selectedTraitIds, deterministicChoices: { forgedSurferBombsHit: 1 } };
+    const config = { selectedTraitIds };
     const rotation = ['Skritt Swipe', 'Forged Surfer Dash'];
     const active = simulate('Antiquary', rotation, config);
     assert.equal(activeState(active, 'Antiquary')['antiquary-forged-surfer-dash'], `${duration.toFixed(1)}s`);

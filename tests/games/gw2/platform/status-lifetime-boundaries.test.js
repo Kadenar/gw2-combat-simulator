@@ -11,9 +11,11 @@ import {
 } from '#gw2/professions/elementalist/specializations/catalyst/mechanics/reactions.js';
 import { grantCatalystElementalEmpowerment } from '#gw2/professions/elementalist/specializations/catalyst/traits/empowerment.js';
 import { onAcceptedEvent } from '#gw2/professions/elementalist/specializations/evoker/mechanics/event-handlers.js';
-import { grantElectricEnchantments } from '#gw2/professions/elementalist/specializations/evoker/state.js';
+import {
+  grantElectricEnchantments,
+  consumeElectricEnchantment
+} from '#gw2/professions/elementalist/specializations/evoker/mechanics/electric-enchantment.js';
 import { commitRechargeDuration } from '#gw2/professions/elementalist/specializations/evoker/traits/attunement-policy.js';
-import { consumeElectricEnchantment } from '#gw2/professions/elementalist/specializations/evoker/traits/enchantments.js';
 import { weaverHooks } from '#gw2/professions/elementalist/specializations/weaver/hooks.js';
 import { applyWeaveSelfAttunement } from '#gw2/professions/elementalist/specializations/weaver/mechanics/weave-self.js';
 import { ENGINEER_TRAIT_IDS as HT } from '#gw2/professions/engineer/data/ids.js';
@@ -159,14 +161,20 @@ test('Electric Enchantment cannot consume hits before its grant, at its exact bo
   for (const at of [0.300999, 0.301, 1.319999, 1.32]) {
     const context = elementalistContext('Evoker');
     const state = context.profession.specialization.state;
-    grantElectricEnchantments(state, 0.1 + 0.201, 1, 1);
+    grantElectricEnchantments(context, {
+      at: 0.1 + 0.201,
+      stacks: 1,
+      duration: 1,
+      skill: { id: E.HARES_AGILITY, name: "Hare's Agility" },
+      procType: 'skill'
+    });
     assert.equal(state.electricEnchantmentGrants[0].at, 0.301);
     assert.equal(state.electricEnchantmentGrants[0].expiresAt, 1.32);
     const event = { type: 'damage', at, actorType: 'player', coefficient: 1 };
     context.time = at;
-    consumeElectricEnchantment(context, state, event);
+    consumeElectricEnchantment(context, event);
     assert.equal(
-      context.events.some((event) => event.source === 'Electric Enchantment'),
+      context.events.some((event) => event.type === 'damage' && event.source === 'Electric Enchantment'),
       at >= 0.301 && at < 1.32
     );
   }

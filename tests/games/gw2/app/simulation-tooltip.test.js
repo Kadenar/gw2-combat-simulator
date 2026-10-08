@@ -72,6 +72,23 @@ test('Scourge life-force tooltip costs display whole points', () => {
   }
 });
 
+// Generic charge labels still identify the granted venom; lifetime retains its separate hourglass icon.
+test('Spider Venom charge and lifetime facts use their CDN icons', async () => {
+  const { thiefProfession } = await import('#gw2/professions/thief/profession.js');
+  const { thiefTooltips } = await import('#gw2/professions/thief/app/tooltips.js');
+  const context = withPatchPreview(thiefProfession, null).balanceContextFor();
+  const skill = context.catalog.skillsByName.get('Spider Venom');
+  const tooltip = describeSimulationSkill(context, skill, thiefTooltips);
+  assert.equal(
+    tooltip.facts.find(({ name }) => name === 'Charges granted per recipient').icon,
+    'https://render.guildwars2.com/file/39320C2D4AED963861F4540F59AEBB5E05AD2E1C/103513.png'
+  );
+  assert.equal(
+    tooltip.facts.find(({ name }) => name === 'Charge lifetime').icon,
+    'https://render.guildwars2.com/file/7B2193ACCF77E56C13E608191B082D68AA0FAA71/156659.png'
+  );
+});
+
 // Qualified attribute, adrenaline, and skill-recharge facts keep the game's matching glyphs.
 test('attribute bonuses, adrenaline, and skill recharge use game CDN icons', async () => {
   const { rangerProfession } = await import('#gw2/professions/ranger/profession.js');

@@ -57,7 +57,7 @@ export function applyExhilaratingEphemera(runtime: ThiefRuntime): void {
   }
 }
 
-/** Possessive Hoarder grants the artifact family's boon plus Alacrity. */
+/** Possessive Hoarder shares the artifact family's boon and Alacrity with the caster's five-player party. */
 export function applyPossessiveHoarder(
   runtime: ThiefRuntime,
   cast: RuntimeCast<ThiefSkill>,
@@ -82,6 +82,7 @@ export function applyPossessiveHoarder(
         name: 'Possessive Hoarder',
         kind: boon,
         boon,
+        audience: { recipients: 'party', maximumRecipients: 5 },
         duration: effectNumber(profile, effect, 'duration'),
         stacks: effectNumber(profile, effect, 'stacks')
       })

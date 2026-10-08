@@ -1,4 +1,4 @@
-import { grantCharges } from '#gw2/platform/combat/resources/charges.js';
+import { activeChargeGrants, appendChargeGrant, grantCharges } from '#gw2/platform/combat/resources/charges.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import {
   balanceProfileNumber,
@@ -23,6 +23,7 @@ import { antiquaryState } from '#gw2/professions/thief/specializations/antiquary
 import { applyRepeatRansacker } from '#gw2/professions/thief/specializations/antiquary/traits/behavior.js';
 import {
   artifactWindow,
+  forgedSurferProfile,
   meticulousKryptisDuration
 } from '#gw2/professions/thief/specializations/antiquary/traits/meticulous-custodian.js';
 import type { ThiefRuntimeState, ThiefSkill } from '#gw2/professions/thief/types.js';
@@ -88,8 +89,23 @@ export const antiquaryArtifactActions: NonNullable<RuntimeHooks<ThiefRuntimeStat
     'thief.chak'(runtime) {
       const state = antiquaryState.from(runtime);
       const at = runtime.time;
-      const { duration } = artifactWindow(runtime);
-      state.chakInitiativeRefundUntil = at + duration;
+      const { windows, duration } = artifactWindow(runtime);
+      // Three refunds are added up to four total; unused grants keep their own expiry instead of becoming permanent.
+      const grants = activeChargeGrants(state.chakInitiativeRefunds, at);
+      const remaining = grants.reduce((sum, grant) => sum + grant.charges, 0);
+      const added = Math.max(
+        0,
+        Math.min(
+          balanceProfileNumber(windows, 'resourceGain'),
+          balanceProfileNumber(windows, 'chakRefundMaximum') - remaining
+        )
+      );
+      state.chakInitiativeRefunds = appendChargeGrant(
+        grants,
+        grantCharges(added, at + duration),
+        at,
+        'earliest-expiry'
+      );
     },
     'thief.holo'(runtime) {
       const state = antiquaryState.from(runtime);
@@ -100,7 +116,13 @@ export const antiquaryArtifactActions: NonNullable<RuntimeHooks<ThiefRuntimeStat
     'thief.surfer-window'(runtime) {
       const state = antiquaryState.from(runtime);
       const at = runtime.time;
-      const { duration } = artifactWindow(runtime);
-      state.forgedSurferBombDropUntil = at + duration;
+      const duration = balanceProfileNumber(forgedSurferProfile(runtime), 'durationMultiplier');
+      const maximum = balanceProfileNumber(
+        requireBalanceProfileFromContext(runtime, PROFILE.forgedSurfer),
+        'maximumDuration'
+      );
+      // Surfer banks remaining duration up to its own cap, independently of the other artifact windows.
+      state.forgedSurferBombDropUntil =
+        at + Math.min(maximum, Math.max(0, state.forgedSurferBombDropUntil - at) + duration);
     }
   };

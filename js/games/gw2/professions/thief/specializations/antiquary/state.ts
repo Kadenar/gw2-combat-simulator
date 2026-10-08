@@ -1,4 +1,9 @@
-import { expireCharges, grantCharges, type ChargeGrant } from '#gw2/platform/combat/resources/charges.js';
+import {
+  activeChargeGrants,
+  expireCharges,
+  grantCharges,
+  type ChargeGrant
+} from '#gw2/platform/combat/resources/charges.js';
 import { purgeExpiredStacks } from '#gw2/platform/combat/resources/timed-stacks.js';
 import {
   defineProfessionSpecializationState,
@@ -8,8 +13,7 @@ import {
 } from '#gw2/platform/profession-definition/state.js';
 import type { SkillId } from '#gw2/platform/skills/types.js';
 import type { Gw2PlanningStateInput } from '#gw2/platform/results/types.js';
-import type { ThiefArtifactKind, ThiefConfig } from '#gw2/professions/thief/types.js';
-import { boundedNumber } from '#kernel/core/numeric.js';
+import type { ThiefArtifactKind } from '#gw2/professions/thief/types.js';
 
 export interface ThiefArtifactSlot {
   readonly kind: ThiefArtifactKind;
@@ -30,14 +34,13 @@ export interface AntiquaryState {
   combatHighExpirations: number[];
   mistburn: ChargeGrant;
   kryptisDamageUntil: number;
-  chakInitiativeRefundUntil: number;
+  chakInitiativeRefunds: ChargeGrant[];
   holoUtilityCooldownReductionExpirations: number[];
   forgedSurferBombDropUntil: number;
-  forgedSurferMaximumBombHits: number;
   canachCoinIndex: number;
 }
 
-export function createAntiquaryState(config: ThiefConfig = {}): AntiquaryState {
+export function createAntiquaryState(): AntiquaryState {
   return {
     initiativePipRows: 3,
     artifactSlots: [],
@@ -52,11 +55,9 @@ export function createAntiquaryState(config: ThiefConfig = {}): AntiquaryState {
     bonusStealthAttack: grantCharges(0, 0),
     mistburn: grantCharges(0, 0),
     kryptisDamageUntil: 0,
-    chakInitiativeRefundUntil: 0,
+    chakInitiativeRefunds: [],
     holoUtilityCooldownReductionExpirations: [],
     forgedSurferBombDropUntil: 0,
-    // clamped 1-5 at init so the bomb sequence never needs to bounds-check the assumption at runtime
-    forgedSurferMaximumBombHits: boundedNumber(config.deterministicChoices?.forgedSurferBombsHit || 5, 5, 1, 5),
     canachCoinIndex: 0
   };
 }
@@ -76,7 +77,7 @@ export const ANTIQUARY_PUBLIC_STATE_PROJECTION = definePublicStateDefaults({
   bonusStealthAttack: grantCharges(0, 0),
   mistburn: grantCharges(0, 0),
   kryptisDamageUntil: 0,
-  chakInitiativeRefundUntil: 0,
+  chakInitiativeRefunds: [],
   holoUtilityCooldownReductionExpirations: [],
   forgedSurferBombDropUntil: 0
 } satisfies Partial<AntiquaryState>);
@@ -87,6 +88,7 @@ export const antiquaryState = defineProfessionSpecializationState('Antiquary', c
 export function projectAntiquaryPlanningState(input: Gw2PlanningStateInput) {
   const state = snapshotProfessionState(input.profession) as AntiquaryState;
   expireCharges(state.mistburn, input.time);
+  state.chakInitiativeRefunds = activeChargeGrants(state.chakInitiativeRefunds, input.time);
   state.combatHighExpirations = purgeExpiredStacks(state.combatHighExpirations, input.time);
   state.holoUtilityCooldownReductionExpirations = purgeExpiredStacks(
     state.holoUtilityCooldownReductionExpirations,

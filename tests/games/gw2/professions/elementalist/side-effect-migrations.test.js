@@ -4,7 +4,7 @@ import { runElementalist } from '#tests/helpers/elementalist-simulation.js';
 import { withSkill, withProfile } from '#tests/helpers/catalog-overrides.js';
 import { observedRuntime } from '#tests/helpers/observed-runtime.js';
 import { elementalistProfession } from '#gw2/professions/elementalist/profession.js';
-import { EVOKER_BALANCE_PROFILE_IDS as EVOKER } from '#gw2/professions/elementalist/specializations/evoker/profiles.js';
+import { EVOKER_BALANCE_PROFILE_IDS as EVOKER } from '#gw2/professions/elementalist/specializations/evoker/mechanics/constants.js';
 import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';
 
 // Live skill fields remain the one amount source; eligibility is commitment, and the shared pool still caps rewards.
@@ -133,7 +133,11 @@ test("Fox's Fury retains fractional Burning and independent component removal", 
       { type: 'strike', name: 'Tier 3', coefficient: 4 },
       { type: 'condition', name: 'Tier 3', condition: 'Burning', stacks: 2.5, duration: 7 }
     ].filter((effect) => effect.type !== removed);
-    const result = fox({ might: 25, profile: { effects } });
+    // This fixture replaces damage tiers while retaining the same profile's independently committed boons.
+    const boons = elementalistProfession.catalog.balanceProfilesById
+      .get(EVOKER.foxsFury)
+      .effects.filter((effect) => effect.type === 'boon');
+    const result = fox({ might: 25, profile: { effects: [...boons, ...effects] } });
     assert.deepEqual(result.warnings, []);
     const packets = foxPackets(result);
     const hit = packets.find((event) => event.type === 'damage');

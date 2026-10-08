@@ -1,4 +1,3 @@
-import type { SimulationStep } from '#gw2/platform/results/types.js';
 import type { Gw2SimulationResult } from '#gw2/platform/results/types.js';
 import type { ProfessionAppState } from '#gw2/app/types.js';
 import { mountRotationWarnings } from '#ui/rotation/warnings.js';
@@ -16,27 +15,10 @@ export interface RotationWarningItem {
 }
 
 export function rotationWarningItems(result: Gw2SimulationResult | null | undefined): RotationWarningItem[] {
-  const invalidSteps = new Map<string, SimulationStep[]>();
-  for (const step of result?.steps || []) {
-    if (!step.invalid || !step.invalidReason) continue;
-    const matches = invalidSteps.get(step.invalidReason) || [];
-    matches.push(step);
-    invalidSteps.set(step.invalidReason, matches);
-  }
-
   return (result?.warnings || []).map((rawWarning) => {
     const message = String(rawWarning);
-    const step = invalidSteps.get(message)?.shift();
-    if (step && Number.isFinite(Number(step.start))) {
-      return {
-        message,
-        time: formatResultTimelineTime(step.start, result)
-      };
-    }
-
-    // Resolver diagnostics carry their absolute simulation time in the
-    // message instead of an invalid rotation step.
-    const embeddedTime = message.match(/(?:^|\s)at\s+(-?\d+(?:\.\d+)?)s(?=[:.,\s]|$)/i);
+    // Runtime diagnostics carry absolute simulation time; display it on the same combat-relative clock as the rotation.
+    const embeddedTime = message.match(/(?:^|\s)at\s+(-?\d+(?:\.\d+)?)s(?=[:;.,\s]|$)/i);
     if (!embeddedTime) return { message, time: '' };
     const matchIndex = embeddedTime.index ?? 0;
     const cleanedMessage = `${message.slice(

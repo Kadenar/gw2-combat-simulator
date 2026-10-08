@@ -4,6 +4,7 @@ import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import { denySkillCast } from '#gw2/platform/execution/availability.js';
 import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
+import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import { thiefRuntimeSpecializationState } from '#gw2/professions/thief/core/state-queries.js';
 import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
 import { ANTIQUARY_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/thief/specializations/antiquary/profiles.js';
@@ -105,6 +106,30 @@ export const exhilaratingEphemera = defineTrait({
 export const meticulousCustodian = defineTrait({
   id: TRAIT.METICULOUS_CUSTODIAN,
   name: 'Meticulous Custodian',
+  hooks: {
+    modifyEffects(runtime, cast, effects) {
+      if (cast.skill.id !== ID.SUMMON_KRYPTIS_TURRET || !hasTrait(runtime, TRAIT.METICULOUS_CUSTODIAN)) return effects;
+      // Enhance the base Torment duration before expertise and its cap; this is not a duration-stat bonus.
+      const multiplier = balanceProfileNumber(
+        requireBalanceProfileFromContext(runtime, TRAIT.METICULOUS_CUSTODIAN),
+        'kryptisTormentDurationMultiplier'
+      );
+      return effects.map((effect) =>
+        effect.type !== 'condition'
+          ? effect
+          : effect.ticks?.length
+            ? {
+                ...effect,
+                ticks: effect.ticks.map((tick) =>
+                  tick.condition === 'Torment' ? { ...tick, duration: tick.duration * multiplier } : tick
+                )
+              }
+            : effect.condition === 'Torment'
+              ? { ...effect, duration: Number(effect.duration) * multiplier }
+              : effect
+      );
+    }
+  },
   profiles: [
     {
       id: PROFILE.artifactWindows,
@@ -116,6 +141,7 @@ export const meticulousCustodian = defineTrait({
       threshold: 10,
       playerStacks: 5,
       resourceGain: 3,
+      chakRefundMaximum: 4,
       rechargeMultiplier: 0.2,
       effects: []
     },
@@ -124,9 +150,11 @@ export const meticulousCustodian = defineTrait({
       name: 'Forged Surfer Dash - Meticulous',
       profileKind: 'skill-variant',
       parentId: ID.FORGED_SURFER_DASH,
+      durationMultiplier: 13,
       effects: [
         { type: 'strike', name: 'Dash', coefficient: 2.8, hits: 1 },
-        { type: 'condition', name: 'Dash', condition: 'Burning', stacks: 2, duration: 12 },
+        // Meticulous replaces the dash burn with one eight-second stack before expertise.
+        { type: 'condition', name: 'Dash', condition: 'Burning', stacks: 1, duration: 8 },
         { type: 'strike', name: 'Bomb', coefficient: 1.4, hits: 1 },
         { type: 'condition', name: 'Bomb', condition: 'Burning', stacks: 1, duration: 4.5 }
       ]
@@ -150,8 +178,9 @@ export const meticulousCustodian = defineTrait({
         guitarFactor: 1.2 / 0.8,
         mortarFactor: 0.6 / 0.5,
         chakFactor: 1,
-        kryptisFactor: 3.84 / 2.8,
-        holoFactor: 3 / 2
+        // Meticulous grants 20% stronger turret and decoy strikes.
+        kryptisFactor: 3.36 / 2.8,
+        holoFactor: 2.4 / 2
       },
       factor: meticulousArtifactStrikeFactor,
       when: (context) =>
@@ -184,6 +213,7 @@ export const meticulousCustodian = defineTrait({
   balance: {
     // Enhanced artifact packets remain part of the artifact's measured cast.
     damagePreviewAttribution: 'skill',
+    kryptisTormentDurationMultiplier: 5 / 4,
     effects: [{ type: 'strike', name: 'Meticulous Custodian', coefficient: 0.3, hits: 1 }]
   }
 });

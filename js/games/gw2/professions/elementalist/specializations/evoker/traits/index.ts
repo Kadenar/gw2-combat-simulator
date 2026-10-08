@@ -13,7 +13,15 @@ import {
   SPECIALIZED_ELEMENTS_PROFILE_IDS,
   specializedElementsAvailability
 } from '#gw2/professions/elementalist/specializations/evoker/traits/attunement-policy.js';
-import type { ElementalistModifierContext } from '#gw2/professions/elementalist/types.js';
+import type {
+  ElementalistModifierContext,
+  ElementalistRuntime,
+  ElementalistSkill
+} from '#gw2/professions/elementalist/types.js';
+import type { Skill } from '#gw2/platform/skills/types.js';
+import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
+import { FAMILIAR_ELEMENTS } from '#gw2/professions/elementalist/specializations/evoker/mechanics/constants.js';
+import { grantElectricEnchantments } from '#gw2/professions/elementalist/specializations/evoker/mechanics/electric-enchantment.js';
 
 const boon = (name: string, boonName: string, stacks: number, duration: number): SkillEffect => ({
   type: 'boon',
@@ -78,6 +86,24 @@ export const specializedElements = defineTrait({
   ],
   hooks: { availability: specializedElementsAvailability }
 });
+
+/** Familiar completion grants trait enchantments before the skill's resource settlement. */
+export function applyGalvanicEnchantment(
+  context: ElementalistRuntime,
+  cast: RuntimeCast<ElementalistSkill>,
+  skill: Skill
+): void {
+  if (FAMILIAR_ELEMENTS.has(skill.id) && hasTrait(context, TRAIT.GALVANIC_ENCHANTMENT)) {
+    const profile = requireBalanceProfileFromContext(context, TRAIT.GALVANIC_ENCHANTMENT);
+    grantElectricEnchantments(context, {
+      at: cast.effectiveEnd,
+      stacks: balanceProfileNumber(profile, 'playerStacks'),
+      duration: balanceProfileNumber(profile, 'durationMultiplier'),
+      skill,
+      procType: 'trait'
+    });
+  }
+}
 
 /** Owns Galvanic Enchantment tuning at its existing execution boundaries. */
 export const galvanicEnchantment = defineTrait({

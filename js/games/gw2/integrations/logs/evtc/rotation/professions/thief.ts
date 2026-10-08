@@ -1,9 +1,133 @@
 import { THIEF_SKILL_IDS as ID } from '#gw2/professions/thief/data/ids.js';
 import { effectEvidence, isBuffApply } from '#gw2/integrations/logs/evtc/rotation/ei-inference.js';
+import { GW2_ACTION_TICK_MS } from '#gw2/platform/combat/action-tick.js';
 import type {
   EvtcProfessionReconstructionContext,
   EvtcRecordedRotationAction
 } from '#gw2/integrations/logs/evtc/rotation/professions/types.js';
+
+/** Supplement EI with owned needle visuals and damage when its circle is missing or its visual window is exceeded. */
+export function thiefThousandNeedlesActions(
+  context: EvtcProfessionReconstructionContext
+): EvtcRecordedRotationAction[] {
+  if (context.profile.professionId !== 'thief') return [];
+  const effects = effectEvidence(context.log).filter(({ event }) => event.source === context.playerAddress);
+  const damage = context.log.events.filter(
+    (event) =>
+      event.skillId === 56897 &&
+      event.source === context.playerAddress &&
+      event.stateChange === 0 &&
+      event.activation === 0 &&
+      event.buff === 0 &&
+      event.value > 0
+  );
+  const actions: EvtcRecordedRotationAction[] = [];
+  for (const { event, eventIndex, guid } of effects) {
+    if (guid !== '2125A13079C1C5479C150926EB60A15D') continue;
+    // The generic circle is ambiguous: require both needle visuals and a matching hit from this player.
+    const corroborated = ['9AF103E33FC235498190448A9496C98A', 'B8DC8C6736C8E0439295A9DBBADC6296'].every((secondary) =>
+      effects.some(
+        (other) =>
+          other.guid === secondary &&
+          Math.abs(other.event.time - event.time - 280) <= GW2_ACTION_TICK_MS &&
+          damage.some((hit) => Math.abs(hit.time - other.event.time) <= GW2_ACTION_TICK_MS)
+      )
+    );
+    if (
+      !corroborated ||
+      [...context.recordedActions, ...actions].some(
+        (action) =>
+          (action.rawSkillId === 56897 || action.rawSkillId === ID.THOUSAND_NEEDLES) &&
+          Math.abs(action.start - event.time) < 50
+      )
+    )
+      continue;
+    actions.push({
+      start: event.time,
+      end: event.time,
+      expectedDurationMs: 0,
+      rawSkillId: 56897,
+      rawName: 'Thousand Needles',
+      evidence: 'effect',
+      status: 'instant',
+      eventIndex,
+      metadataAccurate: false,
+      castOrigin: 'skill'
+    });
+  }
+
+  // An omitted activation circle does not erase an impact proven by both needle-specific visuals and owned damage.
+  // Infer the activation from EI's 280 ms impact delay, while preserving any earlier standard or circle-based action.
+  for (const { event, eventIndex, guid } of effects) {
+    if (guid !== '9AF103E33FC235498190448A9496C98A') continue;
+    const start = event.time - 280;
+    if (
+      !effects.some(
+        (other) => other.guid === 'B8DC8C6736C8E0439295A9DBBADC6296' && Math.abs(other.event.time - event.time) < 10
+      ) ||
+      !damage.some((hit) => Math.abs(hit.time - event.time) < 10) ||
+      [...context.recordedActions, ...actions].some(
+        (action) =>
+          (action.rawSkillId === 56897 || action.rawSkillId === ID.THOUSAND_NEEDLES) &&
+          Math.abs(action.start - start) < 50
+      )
+    )
+      continue;
+    actions.push({
+      start,
+      end: start,
+      expectedDurationMs: 0,
+      rawSkillId: 56897,
+      rawName: 'Thousand Needles',
+      evidence: 'effect',
+      status: 'instant',
+      eventIndex,
+      metadataAccurate: false,
+      castOrigin: 'skill'
+    });
+  }
+
+  return actions;
+}
+
+/** The shield's owned placement effect and fresh self refund buff corroborate an instant cast even without all EI visuals. */
+export function antiquaryChakShieldActions(context: EvtcProfessionReconstructionContext): EvtcRecordedRotationAction[] {
+  if (context.profile.professionId !== 'thief' || context.profile.specializationId !== 'antiquary') return [];
+  const actions: EvtcRecordedRotationAction[] = [];
+  for (const { event, eventIndex, guid } of effectEvidence(context.log)) {
+    if (
+      guid !== '1B48B91A5B0EC540BEA2765583412CBC' ||
+      event.source !== context.playerAddress ||
+      !context.log.events.some(
+        (buff) =>
+          buff.skillId === 78288 &&
+          buff.source === context.playerAddress &&
+          buff.target === context.playerAddress &&
+          buff.value > 0 &&
+          isBuffApply(context.log, buff) &&
+          Math.abs(buff.time - event.time) < 10
+      ) ||
+      [...context.recordedActions, ...actions].some(
+        (action) => action.rawSkillId === ID.CHAK_SHIELD && Math.abs(action.start - event.time) < 50
+      )
+    )
+      continue;
+    actions.push({
+      start: event.time,
+      end: event.time,
+      expectedDurationMs: 0,
+      rawSkillId: ID.CHAK_SHIELD,
+      rawName: 'Chak Shield',
+      evidence: 'effect',
+      status: 'instant',
+      eventIndex,
+      metadataAccurate: false,
+      castOrigin: 'skill'
+    });
+  }
+
+  return actions;
+}
 
 /**
  * The supplied core-thief log pairs this target effect with Serpent's Touch and Deadly Ambush.

@@ -12,16 +12,48 @@ import { evokerChargeProfile } from '#gw2/professions/elementalist/specializatio
  * familiar handlers; this module only accrues and reports them.
  */
 import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
-import type { Skill } from '#gw2/platform/skills/types.js';
+import type { BalanceProfile, Skill, SkillId } from '#gw2/platform/skills/types.js';
 import type { ElementalistRuntime, ElementalistSkill } from '#gw2/professions/elementalist/types.js';
 // Use Core's bundle names so conjure availability and familiar-charge exclusions agree.
 import { CONJURED_WEAPONS } from '#gw2/professions/elementalist/core/constants.js';
-import {
-  EVOKER_NO_CHARGE_SKILLS,
-  EVOKER_NO_CHARGE_SPEAR_SKILLS
-} from '#gw2/professions/elementalist/specializations/evoker/mechanics/constants.js';
-import { EVOKER_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/elementalist/specializations/evoker/profiles.js';
+import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';
+import { EVOKER_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/elementalist/specializations/evoker/mechanics/constants.js';
 import { evokerState, type EvokerState } from '#gw2/professions/elementalist/specializations/evoker/state.js';
+
+/** Charge capacity and gains belong to the resource policies while remaining patchable for every consumer. */
+export const evokerResourceProfile: BalanceProfile = Object.freeze({
+  id: PROFILE.resources,
+  name: 'Evoker Familiar Charges',
+  profileKind: 'mechanic',
+  maximumStacks: 6,
+  minimumStacks: 3,
+  playerStacks: 2,
+  allyStacks: 1,
+  recharge: 1.5,
+  effects: []
+});
+
+/** Weapon skills exempted from familiar charge generation despite sitting in slots 2-5. */
+const EVOKER_NO_CHARGE_SKILLS: ReadonlySet<SkillId> = new Set([
+  ID.TRANSMUTE_EARTH,
+  ID.HURL,
+  ID.TRANSMUTE_FROST,
+  ID.TRANSMUTE_LIGHTNING,
+  ID.TRANSMUTE_FIRE,
+  ID.GRAND_FINALE
+]);
+
+/** Lesser and completed spear etchings excluded from charge generation. */
+const EVOKER_NO_CHARGE_SPEAR_SKILLS: ReadonlySet<SkillId> = new Set([
+  ID.LESSER_VOLCANO,
+  ID.VOLCANO,
+  ID.LESSER_JO_KULHLAUP,
+  ID.JO_KULHLAUP,
+  ID.LESSER_DERECHO,
+  ID.DERECHO,
+  ID.LESSER_HABOOB,
+  ID.HABOOB
+]);
 
 /** Familiar pools have no passive recovery; traits select capacity before any initialization hooks run. */
 export const familiarChargePolicy: ResourcePolicy<ElementalistRuntime> = {

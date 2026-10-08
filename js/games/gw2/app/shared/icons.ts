@@ -49,10 +49,13 @@ export const MODIFIER_EFFECT_ICONS: Readonly<Record<string, string>> = {
   // Dragon Trigger's per-opportunity Flow spend and channel limit use the game's Flow Drain and Duration glyphs.
   'Flow cost': 'https://render.guildwars2.com/file/1BA1F3645206FB4BE92C5AD6326054250DC7D0DB/1770205.png',
   'Trigger duration': 'https://render.guildwars2.com/file/7B2193ACCF77E56C13E608191B082D68AA0FAA71/156659.png',
+  // Lifetime facts use the game's hourglass glyph to identify how long an effect remains active.
+  Lifetime: 'https://render.guildwars2.com/file/7B2193ACCF77E56C13E608191B082D68AA0FAA71/156659.png',
   'Energy cost': 'https://assets.gw2dat.com/156647.png',
   'Crushing Abyss': 'https://render.guildwars2.com/file/632F757C2309C12BCFE99FCCE4BB761FA59AECEE/3379187.png',
   'Battle Scars': 'https://render.guildwars2.com/file/12FFBBD82F3BB8C057E95AB7E907AD3EACFDF221/2261517.png',
   // Named profession buffs use their granting skill or trait icons in tooltip line items.
+  'Spider Venom': 'https://render.guildwars2.com/file/39320C2D4AED963861F4540F59AEBB5E05AD2E1C/103513.png',
   Berserk: 'https://render.guildwars2.com/file/1354D8FC07F9F859DC7F0E7B61C0724FD4927C4E/1058638.png',
   'Fierce as Fire': 'https://render.guildwars2.com/file/630362D11956CB69199DE9CE0EEA03232DC9DA38/2491547.png',
   'Signet Mastery': 'https://render.guildwars2.com/file/3D117C0158CD7A55BE740D6B072807A3121C90A1/1012775.png',

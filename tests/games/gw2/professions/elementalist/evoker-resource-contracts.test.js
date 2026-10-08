@@ -7,7 +7,7 @@ import {
   ELEMENTALIST_SKILL_IDS as ID,
   ELEMENTALIST_TRAIT_IDS as TRAIT
 } from '#gw2/professions/elementalist/data/ids.js';
-import { EVOKER_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/elementalist/specializations/evoker/profiles.js';
+import { EVOKER_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/elementalist/specializations/evoker/mechanics/constants.js';
 import { evokerUi } from '#gw2/professions/elementalist/specializations/evoker/presentation.js';
 import { evokerHooks } from '#gw2/professions/elementalist/specializations/evoker/hooks.js';
 import { withProfile, withSkill } from '#tests/helpers/catalog-overrides.js';
@@ -111,6 +111,27 @@ test('basic conversion publishes both final pools together and cancellation earn
   assert.deepEqual(canceled.warnings, []);
   assert.equal(canceled.planningState.profession.familiarCharges.value, 7.5);
   assert.equal(canceled.planningState.profession.empoweredCharges.value, 2);
+});
+
+test('basic familiar completion gates its empowered flip using the patched profile delay', () => {
+  // A profile override must reach the cooldown controller after the basic charge conversion commits.
+  for (const [basic, empowered, element, profile] of [
+    [ID.IGNITE, ID.CONFLAGRATION, 'Fire', PROFILE.ignite],
+    [ID.SPLASH, ID.BUOYANT_DELUGE, 'Water', PROFILE.splash],
+    [ID.ZAP, ID.LIGHTNING_BLITZ, 'Air', PROFILE.zap],
+    [ID.CALCIFY, ID.SEISMIC_IMPACT, 'Earth', PROFILE.calcify]
+  ]) {
+    const delay = 5;
+    const { result, runtime } = run(
+      [basic],
+      { evokerElement: element, startAttunement: element, initialEvokerEmpowered: 2 },
+      { [profile]: { initialDelay: delay } }
+    );
+    assert.deepEqual(result.warnings, []);
+    const conversion = result.events.find((event) => event.kind === 'evoker-charges');
+    assert.equal(conversion.empowered, 3);
+    assert.equal(runtime.mechanics.cooldownController.readyAt(empowered), conversion.at + delay);
+  }
 });
 
 test('overlapping weapon completion flushes its fractional reward after the familiar reset exactly once', () => {

@@ -1,7 +1,10 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { ROTATION_PROFILES } from '#gw2/integrations/logs/shared/rotation/profiles.js';
-import { thiefStealActions } from '#gw2/integrations/logs/evtc/rotation/professions/thief.js';
+import {
+  thiefStealActions,
+  thiefThousandNeedlesActions
+} from '#gw2/integrations/logs/evtc/rotation/professions/thief.js';
 import { eiInstantActions } from '#gw2/integrations/logs/evtc/rotation/ei-inference.js';
 import { reconstructEvtcRotation } from '#gw2/integrations/logs/evtc/rotation/index.js';
 import { thiefCatalog } from '#gw2/professions/thief/profession.js';
@@ -93,4 +96,65 @@ test('Thousand Needles requires both delayed same-owner effects after the generi
     []
   );
   assert.deepEqual(find(events.map((e) => (e.skillId === 79 && e.stateChange === 60 ? { ...e, time: 1500 } : e))), []);
+});
+
+// A wider visual window requires independent owned damage, so unrelated circles cannot invent a preparation trigger.
+test('Thousand Needles tolerates delayed visuals only with corroborated owned damage and no existing input', () => {
+  const events = [
+    mapping(77, '2125A13079C1C5479C150926EB60A15D'),
+    mapping(78, '9AF103E33FC235498190448A9496C98A'),
+    mapping(79, 'B8DC8C6736C8E0439295A9DBBADC6296'),
+    event({ time: 1500, stateChange: 60, skillId: 77 }),
+    event({ time: 1806, stateChange: 60, skillId: 78 }),
+    event({ time: 1809, stateChange: 60, skillId: 79 }),
+    event({ time: 1809, skillId: 56897, target: TARGET, value: 1000 })
+  ];
+  const ctx = context(events);
+  const actions = thiefThousandNeedlesActions(ctx);
+  assert.equal(actions.length, 1);
+  assert.equal(actions[0].rawSkillId, 56897);
+  assert.equal(actions[0].eiRule, undefined);
+  assert.deepEqual(thiefThousandNeedlesActions({ ...ctx, recordedActions: actions }), []);
+  assert.ok(reconstructEvtcRotation(ctx.log, thiefCatalog).rotation.some((command) => command.skillId === 56898));
+  const standard = context(events.map((e) => (e.time > 1500 ? { ...e, time: 1780 } : e)));
+  const eiActions = eiInstantActions(standard);
+  assert.ok(eiActions.some((action) => action.eiRule === 'ThiefHelper.EffectCastFinder(ThousandNeedles)'));
+  assert.deepEqual(thiefThousandNeedlesActions({ ...standard, recordedActions: eiActions }), []);
+  for (const rows of [
+    events.slice(0, -1),
+    events.filter((e) => e.skillId !== 79),
+    events.map((e) => (e.skillId === 56897 ? { ...e, source: TARGET } : e)),
+    events.map((e) => (e.skillId === 56897 ? { ...e, value: 0 } : e)),
+    events.map((e) => (e.skillId === 79 && e.stateChange === 60 ? { ...e, source: TARGET } : e)),
+    events.map((e) => (e.skillId === 79 && e.stateChange === 60 ? { ...e, time: 1900 } : e))
+  ])
+    assert.deepEqual(thiefThousandNeedlesActions(context(rows)), []);
+});
+
+// A recording can omit the generic circle; both specific impact effects and owned damage still identify one trigger.
+test('Thousand Needles recovers a missing circle only from paired owned impact evidence', () => {
+  const events = [
+    mapping(78, '9AF103E33FC235498190448A9496C98A'),
+    mapping(79, 'B8DC8C6736C8E0439295A9DBBADC6296'),
+    event({ time: 1780, stateChange: 60, skillId: 78 }),
+    event({ time: 1780, stateChange: 60, skillId: 79 }),
+    event({ time: 1780, skillId: 56897, target: TARGET, value: 1000 })
+  ];
+  const ctx = context(events);
+  assert.ok(!eiInstantActions(ctx).some((action) => action.rawSkillId === 56897));
+  const actions = thiefThousandNeedlesActions(ctx);
+  assert.equal(actions.length, 1);
+  assert.equal(actions[0].rawSkillId, 56897);
+  assert.ok(actions[0].start < events.at(-1).time, 'the activation must precede its corroborating impact');
+  assert.equal(actions[0].eiRule, undefined);
+  assert.deepEqual(thiefThousandNeedlesActions({ ...ctx, recordedActions: actions }), []);
+  for (const rows of [
+    events.slice(0, -1),
+    events.filter((event) => event.skillId !== 79),
+    events.map((event) => (event.skillId === 56897 ? { ...event, source: TARGET } : event)),
+    events.map((event) => (event.skillId === 56897 ? { ...event, value: 0 } : event)),
+    events.map((event) => (event.skillId === 79 && event.stateChange === 60 ? { ...event, source: TARGET } : event)),
+    events.map((event) => (event.skillId === 79 && event.stateChange === 60 ? { ...event, time: 2000 } : event))
+  ])
+    assert.deepEqual(thiefThousandNeedlesActions(context(rows)), []);
 });

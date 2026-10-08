@@ -24,7 +24,7 @@ test('Prodigious Pincher retains precombat gross spending, checks after Chak ref
         at,
         run(runtime) {
           const state = antiquaryState.from(runtime);
-          state.chakInitiativeRefundUntil = 10;
+          state.chakInitiativeRefunds = [{ charges: 3, expiresAt: 10 }];
           const original = runtime.mechanics.resourceController.grant;
           // Observe that the refund sees gross progress before the pilfer replaces artifacts and clears the cycle.
           const context = {
@@ -40,7 +40,7 @@ test('Prodigious Pincher retains precombat gross spending, checks after Chak ref
               }
             }
           };
-          antiquaryHooks.onCastStart(context, { skill: { initiativeCost: 10 } });
+          antiquaryHooks.onCastStart(context, { skill: { type: 'Weapon', initiativeCost: 10 } });
           assert.equal(state.initiativeSpentSincePilfer, at < 1 ? 10 : 0);
           assert.equal(prodigiousPincherReady(context), false);
         }

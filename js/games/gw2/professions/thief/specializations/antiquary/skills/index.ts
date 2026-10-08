@@ -84,6 +84,9 @@ export const ANTIQUARY_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>>
     movementSkill: true,
 
     castTimeMs: 200,
+    // The buff and bomb sequence commit before the dash ends, while its remaining animation still locks casting.
+    interruptCommitMs: 160,
+    retainsCastLockoutAfterInterrupt: true,
     cooldown: 0,
     initiativeCost: 0,
     // Share timing defaults while preserving each packet, effect order, and local schedule.
@@ -263,9 +266,12 @@ export const ANTIQUARY_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>>
     movementSkill: true,
 
     castTimeMs: 240,
+    // The arrival commits before the dash animation ends; its launched effects keep the remaining cast lockout.
+    interruptCommitMs: 160,
+    retainsCastLockoutAfterInterrupt: true,
     cooldown: 1,
     initiativeCost: 0,
-    effects: [
+    effects: impactEffects({ persistsAfterInterrupt: true }, [
       {
         type: 'strike',
         ticks: [{ atMs: 0, coefficient: 1.2 }],
@@ -288,7 +294,7 @@ export const ANTIQUARY_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>>
         duration: 5,
         actorType: 'player'
       }
-    ],
+    ]),
     artifactKind: 'defensive'
   },
   [ID.UNSTABLE_SKRITT_BOMB]: {

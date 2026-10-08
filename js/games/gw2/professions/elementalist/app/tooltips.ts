@@ -48,7 +48,7 @@ import {
   BASIC_FAMILIARS,
   FAMILIAR_ELEMENTS
 } from '#gw2/professions/elementalist/specializations/evoker/mechanics/constants.js';
-import { EVOKER_BALANCE_PROFILE_IDS as EVOKER } from '#gw2/professions/elementalist/specializations/evoker/profiles.js';
+import { EVOKER_BALANCE_PROFILE_IDS as EVOKER } from '#gw2/professions/elementalist/specializations/evoker/mechanics/constants.js';
 import { SPECIALIZED_ELEMENTS_PROFILE_IDS } from '#gw2/professions/elementalist/specializations/evoker/traits/attunement-policy.js';
 import { TEMPEST_BALANCE_PROFILE_IDS as TEMPEST } from '#gw2/professions/elementalist/specializations/tempest/profiles.js';
 import { WEAVER_BALANCE_PROFILE_IDS as WEAVER } from '#gw2/professions/elementalist/specializations/weaver/profiles.js';
@@ -485,11 +485,11 @@ export const elementalistTooltips: ProfessionTooltips = {
       (balanceContext) => [
         profileFact(balanceContext, EVOKER.foxsFury, 'threshold', 'Might stacks per additional tier'),
         ...simulationEffectFacts(
-          tooltipProfile(balanceContext, EVOKER.foxsFury).effects,
+          tooltipProfile(balanceContext, EVOKER.foxsFury).effects?.filter((effect) => effect.name?.startsWith('Tier ')),
           'mutually exclusive might tiers'
         ).facts,
         ...simulationEffectFacts(
-          tooltipProfile(balanceContext, EVOKER.familiarUtility)
+          tooltipProfile(balanceContext, EVOKER.foxsFury)
             .effects?.filter((effect) => effect.name?.startsWith('Fox'))
             .map((effect) => ({ ...effect, audience: { recipients: 'party' as const } })),
           'Fire Bonus is additional only in Fire'
@@ -499,9 +499,9 @@ export const elementalistTooltips: ProfessionTooltips = {
     [ID.HARES_AGILITY]: skillTooltip(
       'Gain Electric Enchantment charges that add strikes to familiar attacks. Trigger Altruistic Aspect when selected.',
       (balanceContext) => [
-        profileFact(balanceContext, EVOKER.familiarUtility, 'playerStacks', 'Electric Enchantment charges'),
+        profileFact(balanceContext, EVOKER.haresAgility, 'playerStacks', 'Electric Enchantment charges'),
         ...simulationEffectFacts(
-          tooltipProfile(balanceContext, EVOKER.familiarUtility).effects?.filter(
+          tooltipProfile(balanceContext, EVOKER.haresAgility).effects?.filter(
             (effect) => effect.name === 'Hare Enchantment'
           )
         ).facts
@@ -511,7 +511,7 @@ export const elementalistTooltips: ProfessionTooltips = {
       "Apply the meditation's effects. While attuned to Earth, additionally gain resistance. Trigger Altruistic Aspect when selected.",
       (balanceContext) =>
         simulationEffectFacts(
-          tooltipProfile(balanceContext, EVOKER.familiarUtility).effects?.filter(
+          tooltipProfile(balanceContext, EVOKER.toadsFortitude).effects?.filter(
             (effect) => effect.name === 'Toad Resistance'
           ),
           'only in Earth'
@@ -556,17 +556,15 @@ export const elementalistTooltips: ProfessionTooltips = {
       'Spend the full familiar charge bar, add an empowered stack, and strike with your familiar. Gain the Zap buff for eligible follow-up effects.',
       (balanceContext) =>
         simulationEffectFacts(
-          tooltipProfile(balanceContext, EVOKER.familiarUtility).effects?.filter(
-            (effect) => effect.name === 'Zap Window'
-          )
+          tooltipProfile(balanceContext, EVOKER.zap).effects?.filter((effect) => effect.name === 'Zap Window')
         ).facts
     ),
     [ID.LIGHTNING_BLITZ]: skillTooltip(
       'Spend your empowered familiar stacks and release the attack sequence. Gain an Electric Enchantment charge for additional familiar strikes.',
       (balanceContext) => [
-        profileFact(balanceContext, EVOKER.familiarUtility, 'resourceGain', 'Electric Enchantment charges'),
+        profileFact(balanceContext, EVOKER.lightningBlitz, 'resourceGain', 'Electric Enchantment charges'),
         ...simulationEffectFacts(
-          tooltipProfile(balanceContext, EVOKER.familiarUtility).effects?.filter(
+          tooltipProfile(balanceContext, EVOKER.lightningBlitz).effects?.filter(
             (effect) => effect.name === 'Lightning Blitz Enchantment'
           )
         ).facts

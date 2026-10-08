@@ -250,8 +250,7 @@ for (const id of [ANTIQUARY.forgedSurfer, ANTIQUARY.forgedSurferMeticulous]) {
       'Antiquary',
       ['Skritt Swipe', 'Forged Surfer Dash', { type: 'wait', durationMs: 5000 }],
       {
-        selectedTraitIds: id === ANTIQUARY.forgedSurfer ? [] : [TRAIT.METICULOUS_CUSTODIAN],
-        deterministicChoices: { forgedSurferBombsHit: 1 }
+        selectedTraitIds: id === ANTIQUARY.forgedSurfer ? [] : [TRAIT.METICULOUS_CUSTODIAN]
       }
     );
     const strikes = result.events.filter((event) => event.type === 'damage' && event.skillId === ID.FORGED_SURFER_DASH);

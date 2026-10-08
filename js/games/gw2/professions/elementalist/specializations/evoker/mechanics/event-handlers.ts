@@ -6,7 +6,7 @@ import {
 import type { SimulationEvent } from '#gw2/platform/events/events.js';
 import { applyEvokerAttunementRechargePolicy } from '#gw2/professions/elementalist/specializations/evoker/mechanics/attunements.js';
 import { evokerState } from '#gw2/professions/elementalist/specializations/evoker/state.js';
-import { consumeElectricEnchantment } from '#gw2/professions/elementalist/specializations/evoker/traits/enchantments.js';
+import { consumeElectricEnchantment } from '#gw2/professions/elementalist/specializations/evoker/mechanics/electric-enchantment.js';
 import type { ElementalistRuntime } from '#gw2/professions/elementalist/types.js';
 import {
   balanceProfileNumber,
@@ -15,7 +15,7 @@ import {
 } from '#gw2/platform/skills/balance-profiles.js';
 import { elementalistProfiledBuffRequest } from '#gw2/professions/elementalist/core/mechanics/effects.js';
 import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';
-import { EVOKER_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/elementalist/specializations/evoker/profiles.js';
+import { EVOKER_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/elementalist/specializations/evoker/mechanics/constants.js';
 
 /** Accepted player disables trigger the equipped Earth familiar's personal boon at most once per interval. */
 export function applyCalcifyProtection(context: ElementalistRuntime, event: SimulationEvent): void {
@@ -42,7 +42,7 @@ export function onAcceptedEvent(context: ElementalistRuntime, event: SimulationE
   applyEvocationBurning(context, event, undefined);
   // Spend an enchantment only after the shared runtime accepts this player hit.
   if (event.type === 'damage' && event.actorType === 'player' && Number(event.coefficient) > 0) {
-    consumeElectricEnchantment(context, state, event, undefined);
+    consumeElectricEnchantment(context, event);
   }
 
   applyEvokerEntryTraits(context, event);

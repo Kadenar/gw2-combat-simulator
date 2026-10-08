@@ -99,7 +99,7 @@ test('Zap emits the canonical buff consumed by its policy and damage modifier', 
     professions: {
       elementalist: {
         balanceProfiles: {
-          'elementalist.evoker.familiar-utility': { removeEffects: [{ type: 'buff', name: 'Zap Window' }] }
+          'elementalist.evoker.zap': { removeEffects: [{ type: 'buff', name: 'Zap Window' }] }
         }
       }
     }

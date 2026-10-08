@@ -34,10 +34,6 @@ export interface ThiefCanonicalBuild extends Gw2CanonicalBuild {
   initialShadowForce: number;
 }
 
-type ThiefDeterministicChoices = {
-  readonly forgedSurferBombsHit?: number;
-};
-
 export interface ThiefConfig extends Gw2Config {
   readonly assumptions?: ProfessionBuildAssumptions;
   readonly professionAssumptions?: ProfessionBuildAssumptions;
@@ -45,7 +41,6 @@ export interface ThiefConfig extends Gw2Config {
   readonly initialInitiative?: number;
   readonly initialSpinningAxes?: number;
   readonly initialShadowForce?: number;
-  readonly deterministicChoices?: ThiefDeterministicChoices;
 }
 
 export type ThiefArtifactKind = 'offensive' | 'defensive';

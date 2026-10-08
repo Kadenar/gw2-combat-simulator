@@ -14,19 +14,19 @@
     "Accessory1": "Viper's",
     "Accessory2": "Viper's",
     "Back": "Viper's",
-    "Weapon1": "Viper's",
-    "Weapon2": "Viper's"
+    "Weapon1": "Ritualist's",
+    "Weapon2": "Ritualist's"
   },
-  "weapons": ["Dagger", "Dagger"],
-  "alternateWeapons": ["Dagger", "Dagger"],
+  "weapons": ["Scepter", "Dagger"],
+  "alternateWeapons": ["Scepter", "Dagger"],
   "rune": "Trapper",
   "weaponSigils": [
-    ["Agony", "Doom"],
-    ["Agony", "Doom"]
+    ["Bursting", "Earth"],
+    ["Bursting", "Earth"]
   ],
   "relic": "Fractal",
-  "food": "Plate of Kimchi Pancakes",
-  "utility": "Toxic Tuning Crystal",
+  "food": "Cilantro and Cured Meat Flatbread",
+  "utility": "Tuning Icicle",
   "jadeBotCore": true,
   "infusions": [
     {
@@ -49,21 +49,21 @@
     },
     {
       "name": "Trickery",
-      "traits": "1-1-3"
+      "traits": "3-1-3"
     },
     {
-      "name": "Daredevil",
-      "traits": "1-2-1"
+      "name": "Antiquary",
+      "traits": "3-2-2"
     }
   ],
   "selectedSkillIds": {
-    "Heal": 30400,
-    "Utility1": 13028,
-    "Utility2": 13037,
-    "Utility3": 13026,
-    "Elite": 13082
+    "Heal": 13050,
+    "Utility1": 13037,
+    "Utility2": 13026,
+    "Utility3": 13028,
+    "Elite": 77255
   },
-  "selectedDodge": "Lotus Training",
+  "selectedDodge": "Dodge",
   "assumptions": {
     "might": 25,
     "fury": true,

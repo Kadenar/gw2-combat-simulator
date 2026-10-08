@@ -1,9 +1,8 @@
-import { activeChargeCount } from '#gw2/platform/combat/resources/charges.js';
+import { activeChargeCount, activeChargeGrants } from '#gw2/platform/combat/resources/charges.js';
 import { purgeExpiredStacks } from '#gw2/platform/combat/resources/timed-stacks.js';
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import type { RotationStateSnapshotItem } from '#gw2/platform/profession-presentation/types.js';
-import { THIEF_ANTIQUARY_ASSUMPTION_CONTROLS } from '#gw2/professions/thief/build/antiquary-assumptions.js';
 import { thiefUiState } from '#gw2/professions/thief/core/presentation.js';
 import {
   THIEF_SKILL_IDS as ID,
@@ -61,8 +60,7 @@ function antiquaryStateSnapshot(context: ThiefUiContext): RotationStateSnapshotI
   const timedEffects: readonly [string, string, number][] = [
     ['antiquary-exhilarating-ephemera', 'Exhilarating Ephemera', state.antiquaryDamageUntil || 0],
     ['antiquary-kryptis-turret', 'Kryptis Turret', state.kryptisDamageUntil || 0],
-    ['antiquary-forged-surfer-dash', 'Forged Surfer Dash', state.forgedSurferBombDropUntil || 0],
-    ['antiquary-chak-shield', 'Chak Shield', state.chakInitiativeRefundUntil || 0]
+    ['antiquary-forged-surfer-dash', 'Forged Surfer Dash', state.forgedSurferBombDropUntil || 0]
   ];
   for (const [id, label, expiresAt] of timedEffects) {
     const remaining = expiresAt - at;
@@ -76,16 +74,23 @@ function antiquaryStateSnapshot(context: ThiefUiContext): RotationStateSnapshotI
           ? 'Time remaining on the additional bomb-drop buff'
           : id === 'antiquary-kryptis-turret'
             ? 'Time remaining on the strike damage modifier'
-            : id === 'antiquary-chak-shield'
-              ? 'Time remaining on initiative refunds for weapon skills'
-              : `${label} artifact effect remaining`
+            : `${label} artifact effect remaining`
     });
   }
 
   // Artifact charge displays read canonical grants without expiring the live owner.
+  const chakRefunds = activeChargeGrants(state.chakInitiativeRefunds || [], at);
   for (const [id, label, grant] of [
     ['antiquary-metal-legion-guitar', 'Metal Legion Guitar', state.bonusStealthAttack],
-    ['antiquary-mistburn-mortar', 'Mistburn Mortar', state.mistburn]
+    ['antiquary-mistburn-mortar', 'Mistburn Mortar', state.mistburn],
+    [
+      'antiquary-chak-shield',
+      'Chak Shield',
+      {
+        charges: chakRefunds.reduce((sum, grant) => sum + grant.charges, 0),
+        expiresAt: Math.min(...chakRefunds.map((grant) => grant.expiresAt))
+      }
+    ]
   ] as const) {
     const remaining = (grant?.expiresAt || 0) - at;
     const charges = Math.trunc(activeChargeCount(grant, at));
@@ -128,7 +133,6 @@ export const antiquaryUi = Object.freeze({
       message: cardSwap ? 'All artifacts are already available to choose' : 'Requires the Card Swap trait'
     };
   },
-  assumptionControls: THIEF_ANTIQUARY_ASSUMPTION_CONTROLS,
   rotationStateSnapshot: antiquaryStateSnapshot,
   paletteGroups: () => {
     const artifactGroups: readonly [string, string, readonly number[], string][] = [

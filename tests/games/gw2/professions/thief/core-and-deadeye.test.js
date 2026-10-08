@@ -420,12 +420,10 @@ test('Thief defaults migrate deterministic assumptions and validate bars', () =>
       artifactDrawSequence: 'reverse',
       doubleEdgeOutcomeSequence: 'success',
       stolenSkillChoice: 'throw-gunk',
-      deadeyeStolenSkillChoice: 'steal-time',
-      forgedSurferBombsHit: '2'
+      deadeyeStolenSkillChoice: 'steal-time'
     }
   });
 
-  assert.equal(migrated.assumptions.forgedSurferBombsHit, '2');
   assert.equal(Object.hasOwn(migrated.assumptions, 'playerHealthPercent'), false);
   assert.equal(Object.hasOwn(migrated.assumptions, 'targetDistance'), false);
   assert.equal(
@@ -442,17 +440,6 @@ test('Thief defaults migrate deterministic assumptions and validate bars', () =>
   for (const specialization of ['Core', 'Daredevil', 'Deadeye', 'Specter', 'Antiquary']) {
     assert.equal(keysFor(specialization).has('stolenSkillChoice'), false);
     assert.equal(keysFor(specialization).has('deadeyeStolenSkillChoice'), false);
-  }
-
-  assert.equal(keysFor('Antiquary').has('forgedSurferBombsHit'), true);
-  assert.deepEqual(
-    thiefProfession.ui.assumptionControls
-      .filter((control) => ['forgedSurferBombsHit'].includes(control.key))
-      .map((control) => control.section),
-    ['Antiquary']
-  );
-  for (const specialization of ['Core', 'Daredevil', 'Deadeye', 'Specter']) {
-    assert.equal(keysFor(specialization).has('forgedSurferBombsHit'), false);
   }
 
   for (const specialization of ['Core', 'Daredevil', 'Deadeye', 'Specter', 'Antiquary']) {

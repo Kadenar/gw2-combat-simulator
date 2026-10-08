@@ -11,8 +11,9 @@ import { elementalistProfession } from '#gw2/professions/elementalist/profession
 import {
   captureIgniteTier,
   selectIgniteEffects
-} from '#gw2/professions/elementalist/specializations/evoker/mechanics/familiars.js';
+} from '#gw2/professions/elementalist/specializations/evoker/skills/familiar-skills.js';
 import { evokerState } from '#gw2/professions/elementalist/specializations/evoker/state.js';
+import { EVOKER_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/elementalist/specializations/evoker/mechanics/constants.js';
 import { runElementalist } from '#tests/helpers/elementalist-simulation.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
@@ -46,6 +47,66 @@ function simulate(profession, patchId, skillId, config = {}) {
   assert.deepEqual(result.warnings, []);
   return result;
 }
+
+test('skill-owned Evoker utility profiles project edits and removals into tooltips and combat', () => {
+  // Each skill owns its conditional reward; editing one profile must leave the other owners untouched.
+  const cases = [
+    [PROFILE.foxsFury, ID.FOXS_FURY, 'boon', 'Fox Fury', 'fury', 'Fire'],
+    [PROFILE.toadsFortitude, ID.TOADS_FORTITUDE, 'boon', 'Toad Resistance', 'resistance', 'Earth'],
+    [PROFILE.haresAgility, ID.HARES_AGILITY, 'buff', 'Hare Enchantment', 'hare enchantment', 'Air'],
+    [PROFILE.zap, ID.ZAP, 'buff', 'Zap Window', 'zap buff', 'Air'],
+    [
+      PROFILE.lightningBlitz,
+      ID.LIGHTNING_BLITZ,
+      'buff',
+      'Lightning Blitz Enchantment',
+      'lightning blitz enchantment',
+      'Air'
+    ]
+  ];
+  for (const [profileId, skillId, type, name, factName, element] of cases) {
+    for (const removed of [false, true]) {
+      const profession = preview({
+        balanceProfiles: {
+          [profileId]: removed ? { removeEffects: [{ type, name }] } : { effects: [{ type, name, duration: 9 }] }
+        }
+      });
+      const context = profession.balanceContextFor('tooltip-projection');
+      assert.equal(context.catalog.balanceProfilesById.get(profileId).parentId, skillId);
+      for (const [otherProfile] of cases) {
+        if (otherProfile === profileId) continue;
+        assert.deepEqual(
+          context.catalog.balanceProfilesById.get(otherProfile).effects,
+          profession.balanceContextFor('current').catalog.balanceProfilesById.get(otherProfile).effects
+        );
+      }
+
+      const facts = skillTooltip(context, skillId).facts.filter((fact) => fact.name.toLowerCase() === factName);
+      assert.equal(facts.length, removed ? 0 : 1);
+      if (!removed) assert.match(facts[0].detail, /^9s/);
+      const result = simulate(profession, 'tooltip-projection', skillId, {
+        evokerElement: element,
+        startAttunement: element,
+        initialEvokerEmpowered: skillId === ID.LIGHTNING_BLITZ ? 3 : 0,
+        selectedSkillIds: [skillId]
+      });
+      if (skillId === ID.HARES_AGILITY || skillId === ID.LIGHTNING_BLITZ) {
+        assert.equal(
+          result.events.some(
+            (event) => event.type === 'proc' && event.name === 'Electric Enchantment' && event.detail?.startsWith('+')
+          ),
+          !removed
+        );
+      } else {
+        const grants = result.resolvedEvents.filter(
+          (event) => event.type === 'buff' && event.skillId === skillId && event.kind === factName
+        );
+        assert.equal(grants.length, removed ? 0 : 1);
+        if (!removed) assert.equal(grants[0].duration, 9);
+      }
+    }
+  }
+});
 
 // Named boons retain their element groups when the first effect is removed or the profile order changes.
 test('Familiar blessing previews preserve the runtime element choice after removal and reordering', () => {

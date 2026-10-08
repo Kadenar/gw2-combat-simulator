@@ -9,6 +9,7 @@ import type { Skill } from '#gw2/platform/skills/types.js';
 export const THIEF_WEAPONS_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
   [ID.SHADOW_BOLT]: {
     castTimeMs: 520,
+    // Recorded shortened attempts do not launch a bolt; advance the chain only after the complete cast.
     cooldown: 0,
     initiativeCost: 0,
     effects: impactEffects({ atMs: 0, timingAnchor: 'castEnd', timingScale: 'fixed' }, [
@@ -156,9 +157,11 @@ export const THIEF_WEAPONS_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, Part
   },
   [ID.TWILIGHT_COMBO]: {
     castTimeMs: 760,
+    // The paired projectiles are committed before the remaining aftercast; the log permits the next input immediately.
+    interruptCommitMs: 720,
     cooldown: 0,
     initiativeCost: 4,
-    effects: [
+    effects: impactEffects({ persistsAfterInterrupt: true }, [
       {
         type: 'strike',
         ticks: [{ atMs: 640, coefficient: 1 }],
@@ -198,7 +201,7 @@ export const THIEF_WEAPONS_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, Part
         timingAnchor: 'castStart',
         timingScale: 'cast'
       }
-    ],
+    ]),
     requiredMainHand: 'Scepter',
     requiredOffHand: 'Dagger'
   },

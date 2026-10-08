@@ -277,9 +277,13 @@ const familyTooltips = {
     return profileTooltip(
       id,
       'Grant venom charges to yourself and configured allies. Each eligible player strike consumes one charge from each active venom. Recasts add independently expiring charges; allied applications follow the configured venom assumptions.',
-      [
-        ['maximumStacks', 'Charges granted per recipient'],
-        ['durationMultiplier', 'Charge lifetime', tooltipSeconds]
+      (context, profileId) => [
+        // Charge counts represent the granted venom, so use its skill icon even with a generic fact label.
+        {
+          ...profileFact(context, profileId, 'maximumStacks', 'Charges granted per recipient'),
+          icon: context.catalog.skillsById.get(entity.id)?.icon
+        },
+        profileFact(context, profileId, 'durationMultiplier', 'Charge lifetime', tooltipSeconds)
       ],
       'per consumed charge'
     )(balanceContext, entity);
@@ -519,11 +523,18 @@ const familyTooltips = {
   ),
   'thief.forged-surfer': (balanceContext) => ({
     description:
-      'Consume the artifact and schedule its dash followed by bombs. The configured bomb-hit assumption determines how many bombs connect. Recasting replaces the previous sequence. Meticulous Custodian substitutes its enhanced packets.',
+      'Consume the artifact and schedule its dash followed by bombs while the buff lasts. Recasting restarts the bomb cadence and adds buff duration up to thirteen seconds. Meticulous Custodian grants a thirteen-second window and substitutes its enhanced packets.',
     facts: [
       profileFact(balanceContext, ANTIQUARY.forgedSurfer, 'initialDelay', 'Dash delay', tooltipSeconds),
       profileFact(balanceContext, ANTIQUARY.forgedSurfer, 'pulseInterval', 'Bomb interval', tooltipSeconds),
-      profileFact(balanceContext, ANTIQUARY.forgedSurfer, 'maximumStacks', 'Maximum bomb hits'),
+      profileFact(balanceContext, ANTIQUARY.forgedSurfer, 'durationMultiplier', 'Base buff duration', tooltipSeconds),
+      profileFact(
+        balanceContext,
+        ANTIQUARY.forgedSurfer,
+        'maximumDuration',
+        'Maximum remaining buff duration',
+        tooltipSeconds
+      ),
       ...[ANTIQUARY.forgedSurfer, ANTIQUARY.forgedSurferMeticulous].flatMap((id) =>
         tooltipProfile(balanceContext, id).effects!.flatMap(
           (effect) =>
@@ -1072,7 +1083,7 @@ export const thiefTooltips: ProfessionTooltips = {
       ]
     ),
     [TRAIT.METICULOUS_CUSTODIAN]: traitTooltip(
-      'Enhance artifacts: extend their special-effect windows, improve eligible strikes and burning, and add a strike to Chak Shield.',
+      'Enhance artifacts: extend their special-effect windows, improve eligible strikes, burning and turret torment, and add a strike to Chak Shield.',
       [
         fromModifier(
           'thief.meticulous-custodian-artifact-strike',
@@ -1104,6 +1115,7 @@ export const thiefTooltips: ProfessionTooltips = {
           'Kryptis Turret strike damage',
           tooltipFactorChange
         ),
+        ['kryptisTormentDurationMultiplier', 'Kryptis Turret base torment duration', tooltipFactorChange],
         fromModifier(
           'thief.meticulous-custodian-mortar-burning',
           'factor',
@@ -1133,7 +1145,7 @@ export const thiefTooltips: ProfessionTooltips = {
     ),
     [TRAIT.POSSESSIVE_HOARDER]: (balanceContext, entity) => ({
       description:
-        'Using an artifact grants alacrity. Offensive artifacts also grant might; defensive artifacts grant protection instead.',
+        'Using an artifact grants alacrity to you and nearby allies, up to five targets. Offensive artifacts also grant might; defensive artifacts grant protection instead.',
       // Artifact categories follow the same named boons selected by combat.
       facts: [
         ['might', 'offensive artifact'],

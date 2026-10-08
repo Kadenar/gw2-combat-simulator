@@ -40,7 +40,9 @@ export const ANTIQUARY_BALANCE_PROFILES: readonly BalanceProfile[] = Object.free
     parentId: ID.FORGED_SURFER_DASH,
     initialDelay: 1,
     pulseInterval: 3,
-    maximumStacks: 5,
+    // Recasts add the selected buff duration, but never bank more than thirteen seconds of bomb drops.
+    durationMultiplier: 10,
+    maximumDuration: 13,
     effects: [
       { type: 'strike', name: 'Dash', coefficient: 2.4, hits: 1 },
       { type: 'condition', name: 'Dash', condition: 'Burning', stacks: 1, duration: 6 },

@@ -28,13 +28,7 @@ test('planning projections omit private mechanic state while retaining visible o
     ],
     [guardianProfession, 'Core', 'core', ['justiceHitCount', 'virtueReadyAt'], 'symbolicAvengerExpirations'],
     [rangerProfession, 'Core', 'core', ['petAutoNextAt', 'petAutoBusyUntil', 'petAutoRecharges'], 'activePetSlot'],
-    [
-      thiefProfession,
-      'Antiquary',
-      'specialization',
-      ['backfireState', 'forgedSurferMaximumBombHits', 'canachCoinIndex'],
-      'artifactSlots'
-    ],
+    [thiefProfession, 'Antiquary', 'specialization', ['backfireState', 'canachCoinIndex'], 'artifactSlots'],
     [revenantProfession, 'Conduit', 'specialization', ['beguilingHazeRecharge'], 'affinity']
   ]) {
     const config = { specialization };
@@ -427,7 +421,7 @@ test('Thief snapshots expose stealth gates, Bounding Dodger, Combat High, and ar
         bonusStealthAttack: { charges: 2, expiresAt: 8 },
         mistburn: { charges: 4, expiresAt: 10 },
         kryptisDamageUntil: 11,
-        chakInitiativeRefundUntil: 12,
+        chakInitiativeRefunds: [{ charges: 3, expiresAt: 12 }],
         holoUtilityCooldownReductionExpirations: [3, 13, 14]
       },
       4
@@ -438,7 +432,7 @@ test('Thief snapshots expose stealth gates, Bounding Dodger, Combat High, and ar
   assert.equal(antiquary['antiquary-metal-legion-guitar'], '2 charges · 4.0s');
   assert.equal(antiquary['antiquary-mistburn-mortar'], '4 charges · 6.0s');
   assert.equal(antiquary['antiquary-kryptis-turret'], '7.0s');
-  assert.equal(antiquary['antiquary-chak-shield'], '8.0s');
+  assert.equal(antiquary['antiquary-chak-shield'], '3 charges · 8.0s');
   assert.equal(antiquary['antiquary-holo-dancer-decoy'], '2 uses · 9.0s');
 });
 

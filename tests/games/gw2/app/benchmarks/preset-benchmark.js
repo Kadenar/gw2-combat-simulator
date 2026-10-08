@@ -80,6 +80,7 @@ export async function assertManifestRegressions(
       const result = simulate(adapter, build.rotation, config);
       const dpsError = relativeError(result.dps, preset.benchmarkDps);
 
+      // Every maintained preset must replay without hidden or exempted warnings.
       if (result.warnings.length) unexpectedWarnings.push({ label, warnings: result.warnings });
       if (!Number.isFinite(result.dps) || dpsError > 0.01) {
         mismatches.push({

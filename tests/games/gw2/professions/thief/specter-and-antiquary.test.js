@@ -40,6 +40,35 @@ test('Antiquary completion preserves rolled initiative and the consumed artifact
   assert.ok(artifact.events.some((event) => event.name === 'Possessive Hoarder' && event.kind === 'might'));
 });
 
+// Artifact family selects the additional boon; every grant includes the caster and the available party members.
+test('Possessive Hoarder shares alacrity and the artifact family boon with its party', () => {
+  for (const count of [0, 2, 4]) {
+    for (const [artifact, familyBoon] of [
+      ['Mistburn Mortar', 'might'],
+      ['Chak Shield', 'protection']
+    ]) {
+      const result = runThief(['Skritt Swipe', artifact], {
+        specialization: 'Antiquary',
+        selectedTraitIds: [TRAIT.POSSESSIVE_HOARDER],
+        allies: { count }
+      });
+      assert.deepEqual(result.warnings, []);
+      const grants = result.resolvedEvents.filter(
+        (event) => event.type === 'buff' && event.name === 'Possessive Hoarder'
+      );
+      assert.deepEqual(new Set(grants.map((event) => event.kind)), new Set([familyBoon, 'alacrity']));
+      for (const grant of grants) {
+        assert.equal(grant.resolvedAudience.includesSelf, true);
+        assert.equal(grant.resolvedAudience.alliedPlayerCount, count);
+        assert.equal(grant.resolvedAudience.recipientCount, count + 1);
+      }
+    }
+  }
+
+  const unselected = runThief(['Skritt Swipe', 'Chak Shield'], { specialization: 'Antiquary', allies: { count: 4 } });
+  assert.ok(!unselected.events.some((event) => event.name === 'Possessive Hoarder'));
+});
+
 test('allied Leeching Venoms triggers only for the first packet of an allied venom proc', () => {
   // Ally zero and later condition packets cannot duplicate the venom's life-steal reaction.
   for (const [skillId, triggeredByAlly, venomProcEffectIndex, eligible] of [
@@ -1386,8 +1415,7 @@ test('Holo-Dancer separates its initial Might from the shared explosion impact',
 test('Meticulous Custodian upgrades artifact packets and effect durations', () => {
   const config = {
     primaryWeapon: 'Sword',
-    secondaryWeapon: 'Pistol',
-    deterministicChoices: { forgedSurferBombsHit: '1' }
+    secondaryWeapon: 'Pistol'
   };
   const artifact = (name, meticulous = false) =>
     simulate('Antiquary', ['Skritt Swipe', name, { type: 'wait', durationMs: 6000 }], {
@@ -1412,10 +1440,10 @@ test('Meticulous Custodian upgrades artifact packets and effect durations', () =
   );
   assertMultiplier('Metal Legion Guitar', 1.2, 'Final Smash');
   assertMultiplier('Mistburn Mortar', 1.2);
-  assertMultiplier('Summon Kryptis Turret', 3.84 / 2.8);
+  assertMultiplier('Summon Kryptis Turret', 1.2);
   // Custodian adds a Chak Shield packet; each packet retains its original damage.
   assertMultiplier('Chak Shield', 1);
-  assertMultiplier('Holo-Dancer Decoy', 1.5);
+  assertMultiplier('Holo-Dancer Decoy', 1.2);
 
   const mortar = artifact('Mistburn Mortar', true);
   const turret = artifact('Summon Kryptis Turret', true);
@@ -1429,6 +1457,24 @@ test('Meticulous Custodian upgrades artifact packets and effect durations', () =
       artifact('Summon Kryptis Turret').planningState.profession.kryptisDamageUntil
   );
   assert.ok(sunCrystal.conditionDamage > artifact('Zephyrite Sun Crystal').conditionDamage * 1.8);
+});
+
+// The trait changes the native duration, so reaching the expertise cap must not clip away its enhancement.
+test('Meticulous Kryptis Torment scales its base duration before the condition-duration cap', () => {
+  for (const expertise of [0, 1500, 3000]) {
+    const duration = (selectedTraitIds) => {
+      const result = runThief(['Skritt Swipe', 'Summon Kryptis Turret', { type: 'wait', durationMs: 2000 }], {
+        specialization: 'Antiquary',
+        selectedTraitIds,
+        stats: { expertise }
+      });
+      return result.resolvedEvents.find(
+        (event) => event.skillId === ID.SUMMON_KRYPTIS_TURRET && event.type === 'condition'
+      ).effectiveDuration;
+    };
+
+    assert.equal(duration([TRAIT.METICULOUS_CUSTODIAN]), duration([]) * 1.25);
+  }
 });
 
 test('Fire for Effect limits the Deadeye stolen-skill palette', () => {

@@ -89,8 +89,7 @@
       "Vulnerability": 25,
       "Crippled": true
     },
-    "targetDefiant": true,
-    "forgedSurferBombsHit": "3"
+    "targetDefiant": true
   },
   "startingWeaponSet": 1,
   "targetHealth": 4000000,

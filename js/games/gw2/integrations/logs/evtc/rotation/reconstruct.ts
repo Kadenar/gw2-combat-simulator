@@ -24,7 +24,12 @@ import {
 
 import { EvtcError } from '#gw2/integrations/logs/evtc/errors.js';
 import { encounterEndTime, encounterStartTime } from '#gw2/integrations/logs/evtc/rotation/encounter.js';
-import { deadeyeMarkActions, thiefStealActions } from '#gw2/integrations/logs/evtc/rotation/professions/thief.js';
+import {
+  antiquaryChakShieldActions,
+  deadeyeMarkActions,
+  thiefThousandNeedlesActions,
+  thiefStealActions
+} from '#gw2/integrations/logs/evtc/rotation/professions/thief.js';
 
 import {
   EVTC_STATE_CHANGE,
@@ -316,6 +321,10 @@ function reconstructWithProfile(
     ...eiChronomancerShatters(professionContext),
     ...eiMinionSpawns(professionContext)
   ];
+  // Corroborated shield placements fill missing instant inputs without duplicating EI's complete visual evidence.
+  playerActions.push(...antiquaryChakShieldActions({ ...professionContext, recordedActions: playerActions }));
+  // Owned damage corroborates delayed preparation visuals without relaxing the upstream EI rules.
+  playerActions.push(...thiefThousandNeedlesActions({ ...professionContext, recordedActions: playerActions }));
   const sourceActions = [...playerActions.filter((action) => !petSkillIds.has(action.rawSkillId)), ...petActions].sort(
     (a, b) => a.start - b.start || a.eventIndex - b.eventIndex
   );

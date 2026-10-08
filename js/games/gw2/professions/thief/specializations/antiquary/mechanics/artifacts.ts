@@ -1,4 +1,5 @@
 import { addCounterProgress } from '#gw2/platform/combat/resources/counters.js';
+import { consumeChargeBatch } from '#gw2/platform/combat/resources/charges.js';
 import type { AvailabilityResult } from '#gw2/platform/execution/availability.js';
 import { denySkillCast } from '#gw2/platform/execution/availability.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
@@ -80,14 +81,16 @@ export function notifyArtifactTraits(runtime: ThiefRuntime, cast: RuntimeCast<Th
   applyMeticulousChakShield(runtime, cast);
 }
 
-/** Initiative spending feeds Prodigious Pincher, and Chak Shield refunds it while its window is open. */
+/** Gross initiative spending feeds Prodigious Pincher; each live Chak Shield charge refunds one paid weapon use. */
 export function spendAntiquaryInitiative(runtime: ThiefRuntime, cast: RuntimeCast<ThiefSkill>): void {
   const cost = cast.skill.initiativeCost || 0;
   if (!(cost > 0)) return;
   const state = antiquaryState.from(runtime);
   // Keep gross spending before Chak refunds; reward eligibility is checked separately against the live progress.
   state.initiativeSpentSincePilfer = addCounterProgress(state.initiativeSpentSincePilfer, cost);
-  if ((state.chakInitiativeRefundUntil || 0) > runtime.time) runtime.resourceController.grant('initiative', cost);
+  // Only paid weapon inputs consume a refund, so free skills and profession actions preserve the finite grant.
+  if (cast.skill.type === 'Weapon' && consumeChargeBatch(state.chakInitiativeRefunds, runtime.time))
+    runtime.resourceController.grant('initiative', cost);
   // Spending accrues before combat too, but it cannot trigger a pilfer until combat has begun.
   if (prodigiousPincherReady(runtime)) pilferArtifacts(runtime, 'initiative');
 }
