@@ -1,3 +1,4 @@
+import { ritualistPartyBoonPolicy } from '#gw2/professions/necromancer/specializations/ritualist/mechanics/party-boons.js';
 import { professionStaticRulesApplied } from '#gw2/platform/builds/attribute-provenance.js';
 import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
@@ -7,19 +8,16 @@ import {
   requireBalanceProfileFromContext,
   requireEffect
 } from '#gw2/platform/skills/balance-profiles.js';
-import type { Skill } from '#gw2/platform/skills/types.js';
 import type { SkillEffect } from '#gw2/platform/effects/types.js';
 import { buildResolverStrike } from '#gw2/platform/effects/packet-builders.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import { grantNecromancerLifeForce } from '#gw2/professions/necromancer/core/mechanics/life-force.js';
 import { cloneNecromancerAttributes } from '#gw2/professions/necromancer/core/mechanics/modifier-queries.js';
 import {
-  necromancerActiveBoonCompanionIds,
   registerCreatureSummonReaction,
   registerNecromancerCreatureStrikeMultiplier
 } from '#gw2/professions/necromancer/core/mechanics/state-helpers.js';
 import { NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
-import { attribution } from '#gw2/professions/necromancer/specializations/ritualist/mechanics/attribution.js';
 import { ritualistState } from '#gw2/professions/necromancer/specializations/ritualist/state.js';
 import type { NecromancerRuntime, NecromancerSkill } from '#gw2/professions/necromancer/types.js';
 
@@ -45,27 +43,11 @@ export function applyEmpoweringSpirits(
     for (const kind of ['quickness', key === 'anguish' ? 'might' : key === 'wanderlust' ? 'fury' : 'resolution']) {
       const effect = requireEffect(profile, 'boon', kind);
       if (effect) {
-        // Shared emission owns transport; the mechanic selects attribution and delivery.
-        const emissionRuntime: NecromancerRuntime = runtime;
-        const emissionCast: RuntimeCast<NecromancerSkill> = cast;
-        const emissionProfile: Skill = profile;
-        const emissionEffects: readonly SkillEffect[] = [effect];
-
-        emissionRuntime.effects.emit({
+        runtime.effects.emit({
           kind: 'profile',
-          profile: emissionProfile,
-          effects: emissionEffects,
-          attribution: { ...attribution(emissionCast), source: 'necromancer' },
-          transform: (event) => ({
-            ...event,
-            icon: emissionCast.skill.icon,
-            offTarget: emissionCast.command.offTarget,
-            audience: {
-              recipients: 'party',
-              maximumRecipients: 5,
-              eligibleCompanionIds: necromancerActiveBoonCompanionIds(emissionRuntime)
-            }
-          })
+          profile: profile,
+          effects: [effect],
+          ...ritualistPartyBoonPolicy(runtime, cast)
         });
       }
     }

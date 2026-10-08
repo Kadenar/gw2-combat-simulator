@@ -1,5 +1,5 @@
+import { ritualistPartyBoonPolicy } from '#gw2/professions/necromancer/specializations/ritualist/mechanics/party-boons.js';
 import { buildResolverStrike } from '#gw2/platform/effects/packet-builders.js';
-import type { SkillEffect } from '#gw2/platform/effects/types.js';
 import { gw2ActivePrimaryWeapon } from '#gw2/platform/equipment/weapons/loadout.js';
 import { weaponStrengthProfileForName } from '#gw2/platform/equipment/weapons/strength.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
@@ -10,8 +10,7 @@ import {
   requireBalanceProfileFromContext,
   requireEffect
 } from '#gw2/platform/skills/balance-profiles.js';
-import type { Skill, SkillId } from '#gw2/platform/skills/types.js';
-import { necromancerActiveBoonCompanionIds } from '#gw2/professions/necromancer/core/mechanics/state-helpers.js';
+import type { SkillId } from '#gw2/platform/skills/types.js';
 import { NECROMANCER_SKILL_IDS as ID } from '#gw2/professions/necromancer/data/ids.js';
 import {
   attribution,
@@ -169,27 +168,11 @@ export const ritualistSpiritActions: NonNullable<
     summonRitualistSpirit(runtime, cast, spirit);
     for (const effect of cast.skill.effects ?? [])
       if (effect.type === 'boon') {
-        // Shared emission owns transport; the mechanic selects attribution and delivery.
-        const emissionRuntime: NecromancerRuntime = runtime;
-        const emissionCast: RuntimeCast<NecromancerSkill> = cast;
-        const emissionProfile: Skill = cast.skill;
-        const emissionEffects: readonly SkillEffect[] = [effect];
-
-        emissionRuntime.effects.emit({
+        runtime.effects.emit({
           kind: 'profile',
-          profile: emissionProfile,
-          effects: emissionEffects,
-          attribution: { ...attribution(emissionCast), source: 'necromancer' },
-          transform: (event) => ({
-            ...event,
-            icon: emissionCast.skill.icon,
-            offTarget: emissionCast.command.offTarget,
-            audience: {
-              recipients: 'party',
-              maximumRecipients: 5,
-              eligibleCompanionIds: necromancerActiveBoonCompanionIds(emissionRuntime)
-            }
-          })
+          profile: cast.skill,
+          effects: [effect],
+          ...ritualistPartyBoonPolicy(runtime, cast)
         });
       }
   },
@@ -199,27 +182,11 @@ export const ritualistSpiritActions: NonNullable<
     const innervate = INNERVATE.get(cast.skill.id)!;
     for (const effect of cast.skill.effects ?? []) {
       if (effect.type === 'boon') {
-        // Shared emission owns transport; the mechanic selects attribution and delivery.
-        const emissionRuntime: NecromancerRuntime = runtime;
-        const emissionCast: RuntimeCast<NecromancerSkill> = cast;
-        const emissionProfile: Skill = cast.skill;
-        const emissionEffects: readonly SkillEffect[] = [effect];
-
-        emissionRuntime.effects.emit({
+        runtime.effects.emit({
           kind: 'profile',
-          profile: emissionProfile,
-          effects: emissionEffects,
-          attribution: { ...attribution(emissionCast), source: 'necromancer' },
-          transform: (event) => ({
-            ...event,
-            icon: emissionCast.skill.icon,
-            offTarget: emissionCast.command.offTarget,
-            audience: {
-              recipients: 'party',
-              maximumRecipients: 5,
-              eligibleCompanionIds: necromancerActiveBoonCompanionIds(emissionRuntime)
-            }
-          })
+          profile: cast.skill,
+          effects: [effect],
+          ...ritualistPartyBoonPolicy(runtime, cast)
         });
       } else
         runtime.effects.emit({
