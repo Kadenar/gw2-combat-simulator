@@ -40,6 +40,10 @@ export const WARRIOR_WEAPONS_LONGBOW_SKILL_MECHANICS: Readonly<Record<number, Pa
       }
     ],
     castTimeMs: 840,
+    // Preserve committed arrows and hold the cast lane through the remaining animation.
+    interruptCommitMs: 720,
+    interruptMode: 'commit',
+    retainsCastLockoutAfterInterrupt: true,
     effects: [
       {
         type: 'strike',
@@ -47,6 +51,7 @@ export const WARRIOR_WEAPONS_LONGBOW_SKILL_MECHANICS: Readonly<Record<number, Pa
           { atMs: 560, coefficient: 0.525 },
           { atMs: 600, coefficient: 0.525 }
         ],
+        persistsAfterInterrupt: true,
         timingAnchor: 'castStart',
         timingScale: 'fixed'
       }

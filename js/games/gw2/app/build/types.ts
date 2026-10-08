@@ -17,6 +17,12 @@ export interface BuildTemplatePreset {
   readonly benchmarkApm?: number;
   /** Cumulative and phase player DPS at each health band; non-killing runs use final overall DPS for 20-0%. */
   readonly benchmarkDpsByHealth?: TargetHealthBandDps;
+  /** Paired preview damage measurements; APM remains shared with the live benchmark. */
+  readonly patchPreview?: {
+    readonly patchId: string;
+    readonly benchmarkDps: number;
+    readonly benchmarkDpsByHealth: TargetHealthBandDps;
+  };
   readonly upToDate?: boolean;
   readonly section?: string;
 }

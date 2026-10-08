@@ -15,6 +15,46 @@ import {
   updateManifestBenchmarks
 } from '../../scripts/analysis/compare-supported-build-dps.mjs';
 import { parseGameOption } from '../../scripts/lib/game-data.mjs';
+import { simulateBenchmarkPreset } from '../../scripts/analysis/capture-supported-build-metrics.mjs';
+
+// Patch selection must precede attributes and config, and mutations from one run cannot contaminate its pair.
+test('capture selects patch catalogs before recalculating independent benchmark state', () => {
+  const catalogs = Object.fromEntries(
+    ['current', 'preview'].map((id) => [
+      id,
+      {
+        skillsByName: new Map([[id, id]]),
+        skillsById: new Map([[1, id]])
+      }
+    ])
+  );
+  const source = { assumptions: { might: 25 } };
+  const rotation = { rotation: [{ skillId: 1 }] };
+  const adapter = {
+    profession: { catalogFor: (id) => catalogs[id] },
+    toApplicationBuild: (build) => build,
+    recalculate(app) {
+      assert.equal(app.activeCatalog, catalogs[app.patchId]);
+      assert.equal(app.skillById.get(1), app.patchId);
+      assert.equal(app.skillByName.get(app.patchId), app.patchId);
+      assert.equal(app.build.assumptions.might, 25);
+      app.attributeData = app.patchId === 'current' ? 100 : 200;
+      app.build.assumptions.might = 0;
+    },
+    simulationConfig: (app) => ({ patchId: app.patchId, power: app.attributeData }),
+    simulateBuild(commands, config) {
+      commands.push({ skillId: 2 });
+      return config;
+    }
+  };
+  assert.deepEqual(simulateBenchmarkPreset(adapter, source, rotation).result, { patchId: 'current', power: 100 });
+  assert.deepEqual(simulateBenchmarkPreset(adapter, source, rotation, 'preview').result, {
+    patchId: 'preview',
+    power: 200
+  });
+  assert.equal(source.assumptions.might, 25);
+  assert.deepEqual(rotation, { rotation: [{ skillId: 1 }] });
+});
 
 test('analysis modules stay inert on import and execute their CLI when launched directly', () => {
   // Help and invalid arguments exercise entry points without reading logs or changing benchmark manifests.
@@ -162,6 +202,7 @@ test('commit mode writes simulated DPS and APM to matching manifest entries', as
     [
       {
         id: 'mesmer|Chronomancer|Power',
+        patchId: 'current',
         profession: 'mesmer',
         section: 'Chronomancer',
         label: 'Power',
@@ -197,6 +238,8 @@ test('commit mode writes simulated DPS and APM to matching manifest entries', as
     updatedEntries: 1,
     changedEntries: 1,
     manifestsWritten: 1,
+    previewUpdatedEntries: 0,
+    previewRemovedEntries: 0,
     skippedPresets: [
       {
         profession: 'mesmer',
@@ -211,6 +254,7 @@ test('commit mode writes simulated DPS and APM to matching manifest entries', as
   const metric = {
     ...section.presets[0],
     id: 'mesmer|Chronomancer|Power',
+    patchId: 'current',
     profession: 'mesmer',
     section: 'Chronomancer',
     dps: 40124,
@@ -244,4 +288,93 @@ test('commit mode writes simulated DPS and APM to matching manifest entries', as
     root
   );
   assert.equal(bandOnly.changedEntries, 1);
+});
+
+// Reconciliation replaces complete preview records and sweeps entries outside the simulated population.
+test('preview commits, dry runs, validation failures, and removal reconcile every manifest', async (context) => {
+  const root = await mkdtemp(path.join(tmpdir(), 'gw2-preview-update-'));
+  context.after(() => rm(root, { recursive: true, force: true }));
+  const builds = path.join(root, 'data/gw2/builds');
+  await mkdir(path.join(builds, 'mesmer'), { recursive: true });
+  await mkdir(path.join(builds, 'guardian'), { recursive: true });
+  await writeFile(
+    path.join(root, 'data/games.json'),
+    JSON.stringify({ games: [{ id: 'gw2', runtimeData: [{ kind: 'builds', source: 'data/gw2/builds' }] }] })
+  );
+  const mesmerPath = path.join(builds, 'mesmer/manifest.json');
+  const guardianPath = path.join(builds, 'guardian/manifest.json');
+  const bands = Object.fromEntries(
+    ['100-80', '80-60', '60-40', '40-20', '20-0'].map((id) => [id, { cumulative: null, phase: null }])
+  );
+  const metric = {
+    id: 'test',
+    profession: 'mesmer',
+    section: 'Chronomancer',
+    label: 'Power',
+    build: 'build.json',
+    rotation: 'rotation.json',
+    patchId: 'current',
+    dps: 10000,
+    apm: 40,
+    dpsByHealth: bands
+  };
+  const stale = { patchId: 'old', benchmarkDps: 12000, benchmarkDpsByHealth: bands };
+  await writeFile(
+    mesmerPath,
+    JSON.stringify([
+      {
+        section: 'Chronomancer',
+        presets: [{ label: metric.label, build: metric.build, rotation: metric.rotation, patchPreview: stale }]
+      }
+    ])
+  );
+  await writeFile(
+    guardianPath,
+    JSON.stringify([
+      {
+        section: 'Core',
+        presets: [{ label: 'No rotation', build: 'other.json', upToDate: false, patchPreview: stale }]
+      }
+    ])
+  );
+  const before = await Promise.all([readFile(mesmerPath, 'utf8'), readFile(guardianPath, 'utf8')]);
+  const preview = { id: 'preview' };
+  const previewMetric = { ...metric, patchId: preview.id, dps: 0 };
+  delete previewMetric.apm;
+  const options = { preview, previewMetrics: [previewMetric] };
+  const dry = await updateManifestBenchmarks([metric], root, 'gw2', { ...options, commit: false });
+  assert.equal(dry.previewUpdatedEntries, 1);
+  assert.equal(dry.previewRemovedEntries, 1);
+  assert.equal(dry.manifestsWritten, 0);
+  assert.deepEqual(await Promise.all([readFile(mesmerPath, 'utf8'), readFile(guardianPath, 'utf8')]), before);
+  for (const invalid of [
+    [],
+    [{ ...previewMetric, patchId: 'wrong' }],
+    [{ ...previewMetric, dps: NaN }],
+    [previewMetric, previewMetric]
+  ]) {
+    await assert.rejects(updateManifestBenchmarks([metric], root, 'gw2', { preview, previewMetrics: invalid }));
+    assert.deepEqual(await Promise.all([readFile(mesmerPath, 'utf8'), readFile(guardianPath, 'utf8')]), before);
+  }
+
+  await assert.rejects(updateManifestBenchmarks([metric, metric], root, 'gw2', options), /Duplicate/);
+  await updateManifestBenchmarks([metric], root, 'gw2', options);
+  const saved = JSON.parse(await readFile(mesmerPath, 'utf8'))[0].presets[0];
+  assert.deepEqual(saved.patchPreview, { patchId: 'preview', benchmarkDps: 0, benchmarkDpsByHealth: bands });
+  assert.equal(saved.benchmarkDps, 10000);
+  assert.equal(saved.benchmarkApm, 40);
+  assert.equal(Object.hasOwn(JSON.parse(await readFile(guardianPath, 'utf8'))[0].presets[0], 'patchPreview'), false);
+  assert.equal((await updateManifestBenchmarks([metric], root, 'gw2', options)).manifestsWritten, 0);
+  await updateManifestBenchmarks([metric], root, 'gw2', { preview, previewMetrics: [{ ...previewMetric, dps: 9000 }] });
+  assert.equal(JSON.parse(await readFile(mesmerPath, 'utf8'))[0].presets[0].patchPreview.benchmarkDps, 9000);
+  const cleanup = await updateManifestBenchmarks([metric], root);
+  assert.equal(cleanup.previewRemovedEntries, 1);
+  assert.equal(Object.hasOwn(JSON.parse(await readFile(mesmerPath, 'utf8'))[0].presets[0], 'patchPreview'), false);
+  // Cleanup also works when there are no simulated builds anywhere in the catalog.
+  await writeFile(mesmerPath, '[]');
+  await writeFile(
+    guardianPath,
+    JSON.stringify([{ section: 'Core', presets: [{ label: 'No rotation', build: 'other.json', patchPreview: stale }] }])
+  );
+  assert.equal((await updateManifestBenchmarks([], root)).previewRemovedEntries, 1);
 });

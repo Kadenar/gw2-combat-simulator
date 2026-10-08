@@ -56,13 +56,29 @@ function finalDamagingPacket(result) {
   return packets.sort((left, right) => left.at - right.at).at(-1) || null;
 }
 
-function runSupportedBenchmark(adapter, app) {
+/** Build independent patch state before recalculation so capture never mixes live attributes with preview effects. */
+export function simulateBenchmarkPreset(adapter, savedBuild, savedRotation, patchId = 'current') {
+  const build = adapter.toApplicationBuild({
+    ...structuredClone(savedBuild),
+    rotation: structuredClone(savedRotation.rotation ?? savedRotation)
+  });
+  const activeCatalog = adapter.profession.catalogFor(patchId);
+  const app = {
+    build,
+    adapter,
+    patchId,
+    activeCatalog,
+    profession: adapter.profession,
+    skillByName: activeCatalog.skillsByName,
+    skillById: activeCatalog.skillsById,
+    attributeWeaponSet: 1
+  };
+  adapter.recalculate(app);
   const config = adapter.simulationConfig(app);
-
-  return adapter.simulateBuild(app.build.rotation, config);
+  return { app, result: adapter.simulateBuild(app.build.rotation, config) };
 }
 
-async function captureProfession(professionId, gameId) {
+async function captureProfession(professionId, gameId, patchId) {
   if (gameId !== 'gw2') throw new TypeError(`Game "${gameId}" has no benchmark simulator.`);
   const data = resolveGameData(repoRoot, gameId);
   const [manifest, adapter] = await Promise.all([
@@ -78,26 +94,13 @@ async function captureProfession(professionId, gameId) {
     for (const preset of section.presets) {
       if (!preset.rotation) continue;
       const [savedBuild, savedRotation] = await Promise.all([readJson(preset.build), readJson(preset.rotation)]);
-      const build = adapter.toApplicationBuild({
-        ...savedBuild,
-        rotation: savedRotation.rotation ?? savedRotation
-      });
-      const app = {
-        build,
-        adapter,
-        profession: adapter.profession,
-        skillByName: adapter.profession.catalog.skillsByName,
-        skillById: adapter.profession.catalog.skillsById,
-        attributeWeaponSet: 1
-      };
-
-      adapter.recalculate(app);
-      const result = runSupportedBenchmark(adapter, app);
+      const { app, result } = simulateBenchmarkPreset(adapter, savedBuild, savedRotation, patchId);
       const finalPacket = finalDamagingPacket(result);
 
       metrics.push({
         id: `${professionId}|${section.section || ''}|${preset.label}`,
         profession: professionId,
+        patchId,
         section: section.section || '',
         label: preset.label,
         build: preset.build,
@@ -114,7 +117,7 @@ async function captureProfession(professionId, gameId) {
         lastHitTime: result.lastHitTime,
         dps: result.dps,
         // Reuse the simulator's input accounting rather than estimating actions from saved rotation length.
-        apm: result.rotationApm.apm,
+        ...(patchId === 'current' ? { apm: result.rotationApm.apm } : {}),
         // Measure each band within the same simulation, including its live target-health modifiers.
         dpsByHealth: targetHealthBandDps(result, app.build.targetHealth, app.build.targetStartingHealthPercent ?? 100),
         totalDamage: result.totalDamage,
@@ -129,7 +132,10 @@ async function captureProfession(professionId, gameId) {
   return metrics;
 }
 
-export async function captureSupportedBuildMetrics(professions = DEFAULT_PROFESSIONS, { gameId = 'gw2' } = {}) {
+export async function captureSupportedBuildMetrics(
+  professions = DEFAULT_PROFESSIONS,
+  { gameId = 'gw2', patchId = 'current' } = {}
+) {
   const unknown = professions.filter((profession) => !DEFAULT_PROFESSIONS.includes(profession));
 
   if (unknown.length) {
@@ -139,7 +145,7 @@ export async function captureSupportedBuildMetrics(professions = DEFAULT_PROFESS
   const metrics = [];
 
   for (const profession of professions) {
-    metrics.push(...(await captureProfession(profession, gameId)));
+    metrics.push(...(await captureProfession(profession, gameId, patchId)));
   }
 
   return metrics;

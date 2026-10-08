@@ -30,6 +30,8 @@ export const WARRIOR_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Part
   [ID.SEVER_ARTERY]: {
     castTimeMs: 360,
     dualWieldCastTimeMs: 280,
+    // Require the slash to commit before an interrupted cast can deal damage.
+    interruptCommitMs: 320,
     // Share impact timing while preserving independent payloads and declaration order.
     effects: impactEffects({ atMs: 200, timingAnchor: 'castStart', timingScale: 'cast' }, [
       {
@@ -76,25 +78,31 @@ export const WARRIOR_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Part
       }
     ],
     castTimeMs: 1000,
+    // Preserve the landing effects once the leap commits, even if the cast is interrupted.
+    interruptCommitMs: 960,
+    interruptMode: 'commit',
     // Share impact timing while preserving independent payloads and declaration order.
-    effects: impactEffects({ atMs: 800, timingAnchor: 'castStart', timingScale: 'fixed' }, [
-      {
-        type: 'strike',
-        coefficient: 2
-      },
-      {
-        type: 'condition',
-        condition: 'Crippled',
-        stacks: 1,
-        duration: 3
-      },
-      {
-        type: 'condition',
-        condition: 'Bleeding',
-        stacks: 3,
-        duration: 5
-      }
-    ])
+    effects: impactEffects(
+      { atMs: 800, timingAnchor: 'castStart', timingScale: 'fixed', persistsAfterInterrupt: true },
+      [
+        {
+          type: 'strike',
+          coefficient: 2
+        },
+        {
+          type: 'condition',
+          condition: 'Crippled',
+          stacks: 1,
+          duration: 3
+        },
+        {
+          type: 'condition',
+          condition: 'Bleeding',
+          stacks: 3,
+          duration: 5
+        }
+      ]
+    )
   },
   [ID.RIPOSTE]: {
     castTimeMs: 1500,

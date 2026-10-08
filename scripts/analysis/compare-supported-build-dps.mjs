@@ -6,8 +6,10 @@
  * Absolute-tolerance usage: npm run benchmarks:compare -- --absolute-dps
  * Commit usage: npm run benchmarks:compare -- --commit
  */
-import { readFile, writeFile } from 'node:fs/promises';
+import { readFile, readdir, writeFile } from 'node:fs/promises';
 import path from 'node:path';
+import { format, resolveConfig } from 'prettier';
+import { activePatchPreview } from '#gw2/integrations/patches/active-preview.js';
 
 import { captureSupportedBuildMetrics } from './capture-supported-build-metrics.mjs';
 import { parseGameOption, resolveGameData } from '../lib/game-data.mjs';
@@ -102,117 +104,139 @@ function presetKey(section, preset) {
   return [section, preset.label, preset.build, preset.rotation].join('\0');
 }
 
-/** Replace manifest benchmark values only after every simulated preset has matched its source entry. */
-export async function updateManifestBenchmarks(metrics, root = repoRoot, gameId = 'gw2') {
+/** Validate and round both target-health measurements without manufacturing values for missing bands. */
+function benchmarkDamage(metric, preview = false) {
+  if (!Number.isFinite(metric.dps) || (preview ? metric.dps < 0 : metric.dps <= 0)) {
+    throw new TypeError(metric.id + ' produced invalid DPS: ' + metric.dps + '.');
+  }
+
+  if (!metric.dpsByHealth || Object.keys(metric.dpsByHealth).length !== TARGET_HEALTH_BANDS.length) {
+    throw new TypeError(metric.id + ' produced invalid target-health DPS bands.');
+  }
+
+  const benchmarkDpsByHealth = Object.fromEntries(
+    TARGET_HEALTH_BANDS.map(({ id }) => {
+      const band = metric.dpsByHealth[id];
+      if (!band || Object.keys(band).length !== 2)
+        throw new TypeError(metric.id + ' produced invalid DPS for ' + id + '%.');
+      return [
+        id,
+        Object.fromEntries(
+          ['cumulative', 'phase'].map((mode) => {
+            const value = band[mode];
+            if (value !== null && (!Number.isFinite(value) || value < 0))
+              throw new TypeError(metric.id + ' produced invalid ' + mode + ' DPS for ' + id + '%.');
+            return [mode, value === null ? null : Math.round(value)];
+          })
+        )
+      ];
+    })
+  );
+  return { benchmarkDps: Math.round(metric.dps), benchmarkDpsByHealth };
+}
+
+/** Index exact source identities, rejecting duplicates before any manifest can be changed. */
+function indexMetrics(metrics) {
+  const indexed = new Map();
+  for (const metric of metrics) {
+    const key = [metric.profession, presetKey(metric.section, metric)].join('\0');
+    if (indexed.has(key)) throw new Error('Duplicate simulation result: ' + metric.id);
+    indexed.set(key, metric);
+  }
+
+  return indexed;
+}
+
+/** Reconcile every manifest, including entries without simulations, after validating complete live/preview pairs. */
+export async function updateManifestBenchmarks(
+  metrics,
+  root = repoRoot,
+  gameId = 'gw2',
+  { preview = null, previewMetrics = [], commit = true } = {}
+) {
   const data = resolveGameData(root, gameId);
-  // Match each profession's results against its own manifest before writing any updates.
-  const metricsByProfession = Map.groupBy(metrics, (metric) => metric.profession);
+  const liveResults = indexMetrics(metrics);
+  const previewResults = indexMetrics(previewMetrics);
+  if (!preview && previewResults.size) throw new Error('Preview results require an active preview.');
   const pendingWrites = [];
   const skippedPresets = [];
+  const seen = new Set();
   let updatedEntries = 0;
   let changedEntries = 0;
-
-  for (const [profession, professionMetrics] of metricsByProfession) {
+  let previewUpdatedEntries = 0;
+  let previewRemovedEntries = 0;
+  const professions = (await readdir(data.builds, { withFileTypes: true }))
+    .filter((entry) => entry.isDirectory())
+    .map((entry) => entry.name)
+    .sort();
+  for (const profession of professions) {
     const manifestPath = path.join(data.builds, profession, 'manifest.json');
-    const manifest = JSON.parse(await readFile(manifestPath, 'utf8'));
-    const unmatchedMetrics = new Map(professionMetrics.map((metric) => [presetKey(metric.section, metric), metric]));
-
+    const original = await readFile(manifestPath, 'utf8');
+    const manifest = JSON.parse(original);
+    const previous = JSON.stringify(manifest);
     for (const section of manifest) {
       for (const preset of section.presets) {
-        const key = presetKey(section.section || '', preset);
-        const metric = unmatchedMetrics.get(key);
+        const key = [profession, presetKey(section.section || '', preset)].join('\0');
+        if (seen.has(key)) throw new Error('Duplicate manifest entry: ' + key);
+        seen.add(key);
+        const before = JSON.stringify(preset);
+        if (!preview || !preset.rotation) {
+          if (Object.hasOwn(preset, 'patchPreview')) previewRemovedEntries += 1;
+          delete preset.patchPreview;
+        }
 
-        if (!metric) {
-          if (preset.rotation) {
-            throw new Error(
-              `${profession}|${section.section || ''}|${preset.label} has a rotation but no simulation result.`
-            );
-          }
-
-          if (!preset.rotation && Object.hasOwn(preset, 'benchmarkDps')) {
-            skippedPresets.push({
-              profession,
-              section: section.section || '',
-              label: preset.label
-            });
-          }
-
+        if (!preset.rotation) {
+          if (Object.hasOwn(preset, 'benchmarkDps'))
+            skippedPresets.push({ profession, section: section.section || '', label: preset.label });
+          if (before !== JSON.stringify(preset)) changedEntries += 1;
           continue;
         }
 
-        if (!Number.isFinite(metric.dps) || metric.dps <= 0) {
-          throw new TypeError(`${metric.id} produced invalid DPS: ${metric.dps}.`);
+        const metric = liveResults.get(key);
+        if (!metric)
+          throw new Error(
+            profession + '|' + section.section + '|' + preset.label + ' has a rotation but no simulation result.'
+          );
+        if (!Number.isFinite(metric.apm) || metric.apm < 0)
+          throw new TypeError(metric.id + ' produced invalid APM: ' + metric.apm + '.');
+        if (metric.patchId !== 'current') throw new Error(metric.id + ' is not a live result.');
+        Object.assign(preset, benchmarkDamage(metric), { benchmarkApm: Math.round(metric.apm * 10) / 10 });
+        liveResults.delete(key);
+        if (preview) {
+          const previewMetric = previewResults.get(key);
+          if (!previewMetric || previewMetric.patchId !== preview.id)
+            throw new Error(metric.id + ' has no matching preview result.');
+          // Replace the whole object so only the current preview's canonical damage fields survive.
+          const nextPreview = { patchId: preview.id, ...benchmarkDamage(previewMetric, true) };
+          if (JSON.stringify(preset.patchPreview) !== JSON.stringify(nextPreview)) previewUpdatedEntries += 1;
+          preset.patchPreview = nextPreview;
+          previewResults.delete(key);
         }
 
-        if (!Number.isFinite(metric.apm) || metric.apm < 0) {
-          throw new TypeError(`${metric.id} produced invalid APM: ${metric.apm}.`);
-        }
-
-        // Save whole DPS and one decimal of simulated APM to keep regenerated comparisons stable and readable.
-        const nextBenchmarkDps = Math.round(metric.dps);
-        const nextBenchmarkApm = Math.round(metric.apm * 10) / 10;
-        // Require both measurements for every band, preserving explicit gaps and the final-DPS non-kill value.
-        if (!metric.dpsByHealth || Object.keys(metric.dpsByHealth).length !== TARGET_HEALTH_BANDS.length) {
-          throw new TypeError(`${metric.id} produced invalid target-health DPS bands.`);
-        }
-
-        const nextBenchmarkDpsByHealth = Object.fromEntries(
-          TARGET_HEALTH_BANDS.map(({ id }) => {
-            const band = metric.dpsByHealth[id];
-            if (!band || Object.keys(band).length !== 2)
-              throw new TypeError(`${metric.id} produced invalid DPS for ${id}%.`);
-            return [
-              id,
-              Object.fromEntries(
-                ['cumulative', 'phase'].map((mode) => {
-                  const value = band[mode];
-                  if (value !== null && (!Number.isFinite(value) || value < 0)) {
-                    throw new TypeError(`${metric.id} produced invalid ${mode} DPS for ${id}%: ${value}.`);
-                  }
-
-                  return [mode, value === null ? null : Math.round(value)];
-                })
-              )
-            ];
-          })
-        );
-
-        if (
-          !Object.is(preset.benchmarkDps, nextBenchmarkDps) ||
-          !Object.is(preset.benchmarkApm, nextBenchmarkApm) ||
-          TARGET_HEALTH_BANDS.some(({ id }) =>
-            ['cumulative', 'phase'].some(
-              (mode) => preset.benchmarkDpsByHealth?.[id]?.[mode] !== nextBenchmarkDpsByHealth[id][mode]
-            )
-          )
-        )
-          changedEntries += 1;
-
-        preset.benchmarkDps = nextBenchmarkDps;
-        preset.benchmarkApm = nextBenchmarkApm;
-        preset.benchmarkDpsByHealth = nextBenchmarkDpsByHealth;
+        if (before !== JSON.stringify(preset)) changedEntries += 1;
         updatedEntries += 1;
-        unmatchedMetrics.delete(key);
       }
     }
 
-    if (unmatchedMetrics.size > 0) {
-      throw new Error(
-        `${profession} manifest entries were not found for: ${[...unmatchedMetrics.values()]
-          .map((metric) => metric.id)
-          .join(', ')}.`
-      );
+    if (previous !== JSON.stringify(manifest)) {
+      const options = await resolveConfig(manifestPath);
+      pendingWrites.push({
+        manifestPath,
+        contents: await format(JSON.stringify(manifest), { ...options, parser: 'json' })
+      });
     }
-
-    pendingWrites.push({ manifestPath, contents: `${JSON.stringify(manifest, null, 2)}\n` });
   }
 
-  await Promise.all(pendingWrites.map(({ manifestPath, contents }) => writeFile(manifestPath, contents, 'utf8')));
-
+  if (liveResults.size || previewResults.size)
+    throw new Error('Manifest entries were not found for simulation results.');
+  if (commit)
+    await Promise.all(pendingWrites.map(({ manifestPath, contents }) => writeFile(manifestPath, contents, 'utf8')));
   return {
     updatedEntries,
     changedEntries,
-    manifestsWritten: pendingWrites.length,
+    manifestsWritten: commit ? pendingWrites.length : 0,
+    previewUpdatedEntries,
+    previewRemovedEntries,
     skippedPresets
   };
 }
@@ -254,23 +278,55 @@ if (import.meta.main) {
   );
 
   const metrics = await captureSupportedBuildMetrics(undefined, { gameId });
+  const previewMetrics = activePatchPreview
+    ? await captureSupportedBuildMetrics(undefined, { gameId, patchId: activePatchPreview.id })
+    : [];
   // Keep each preset's simulation warnings visible when regenerating reference metrics.
-  for (const metric of metrics) {
-    for (const warning of metric.warnings) console.warn(`${metric.id}: ${warning}`);
+  for (const metric of [...metrics, ...previewMetrics]) {
+    for (const warning of metric.warnings) console.warn(`${metric.id} [${metric.patchId}]: ${warning}`);
   }
 
   const mismatches = printDpsComparison(metrics, MAXIMUM_RELATIVE_ERROR, maximumAbsoluteDpsError);
 
-  if (mode === 'commit') {
-    const update = await updateManifestBenchmarks(metrics, repoRoot, gameId);
+  const update = await updateManifestBenchmarks(metrics, repoRoot, gameId, {
+    preview: activePatchPreview,
+    previewMetrics,
+    commit: mode === 'commit'
+  });
+  console.log(
+    (mode === 'commit' ? 'Saved' : 'Would save') +
+      ' preview updates: ' +
+      update.previewUpdatedEntries +
+      '; preview removals: ' +
+      update.previewRemovedEntries +
+      '.'
+  );
+  if (activePatchPreview) {
+    const liveByKey = indexMetrics(metrics);
+    console.log('Patch preview: ' + activePatchPreview.label);
+    for (const metric of previewMetrics) {
+      const live = liveByKey.get([metric.profession, presetKey(metric.section, metric)].join('\0'));
+      console.log(
+        metric.id +
+          ': ' +
+          formatDps(live.dps) +
+          ' -> ' +
+          formatDps(metric.dps) +
+          ' (' +
+          formatSignedPercent((metric.dps - live.dps) / live.dps) +
+          ')'
+      );
+    }
+  }
 
+  if (mode === 'commit') {
     console.log(
       `Updated ${update.updatedEntries} DPS/APM/health-band benchmark entries (${update.changedEntries} changed) ` +
         `across ${update.manifestsWritten} manifests.`
     );
 
     if (update.skippedPresets.length > 0) {
-      console.log(`${update.skippedPresets.length} preset(s) without rotations were left unchanged:`);
+      console.log(`${update.skippedPresets.length} preset(s) without rotations retained their live values:`);
 
       for (const preset of update.skippedPresets) {
         console.log(`- ${preset.profession} / ${preset.section} / ${preset.label}`);

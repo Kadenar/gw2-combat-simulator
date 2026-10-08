@@ -1325,3 +1325,181 @@ test('standalone build previews load without profession modules or rotations and
   await expect(inspector.locator('.benchmark-preview-equipment')).toContainText('LegendaryRenegade');
   expect(forbidden).toEqual([]);
 });
+
+// Small captured fixtures keep UI contracts independent of whichever real preview is authored next.
+async function previewFixtures(page, state = { active: true, removePreview: false, failWarrior: false }) {
+  const preview = state.active ? { id: 'ui-preview', label: 'UI placeholder preview', professions: {} } : null;
+  await page.route('**/integrations/patches/active-preview.ts*', (route) =>
+    route.fulfill({
+      contentType: 'text/javascript',
+      body: `export const activePatchPreview = ${JSON.stringify(preview)};`
+    })
+  );
+  await page.route('**/data/gw2/builds/*/manifest.json', async (route) => {
+    const profession = route.request().url().split('/').at(-2);
+    if (state.failWarrior && profession === 'warrior') return route.fulfill({ status: 503, body: 'Unavailable' });
+    if (!['guardian', 'mesmer'].includes(profession)) return route.fulfill({ json: [] });
+    const response = await route.fetch();
+    const sections = await response.json();
+    const section = sections.find((entry) => entry.presets.some((preset) => preset.rotation));
+    const preset = { ...section.presets.find((entry) => entry.rotation) };
+    delete preset.patchPreview;
+    if (!state.removePreview)
+      preset.patchPreview = {
+        patchId: 'ui-preview',
+        benchmarkDps: preset.benchmarkDps + (profession === 'guardian' ? 100 : -100),
+        benchmarkDpsByHealth: preset.benchmarkDpsByHealth
+      };
+    const fixtures = [{ section: section.section, presets: [preset] }];
+    if (state.extraSpecialization && profession === 'guardian')
+      fixtures.push({
+        section: 'Second specialization',
+        presets: [
+          {
+            ...preset,
+            label: 'Second build',
+            patchPreview: { ...preset.patchPreview, benchmarkDps: preset.benchmarkDps }
+          }
+        ]
+      });
+    await route.fulfill({ response, json: fixtures });
+  });
+}
+
+// Native filters and grouped headings must work in both dashboard destinations without running simulations.
+for (const destination of ['/benchmarks.html', '/mesmer.html#benchmarks']) {
+  test('patch preview groups and shared selectors at ' + destination, async ({ page }) => {
+    await previewFixtures(page);
+    await page.goto(destination);
+    await expect(page.locator('[data-benchmark-dashboard]')).toHaveAttribute('aria-busy', 'false');
+    await page.getByRole('button', { name: 'Patch preview', exact: true }).click();
+    const panel = page.locator('[data-chart-panel="patch"]');
+    const profession = panel.locator('[data-patch-profession]');
+    await profession.selectOption('guardian');
+    await expect(panel.locator('[data-patch-group]')).toHaveCount(1);
+    await expect(panel.getByRole('button', { name: 'Guardian', exact: true })).toHaveAttribute(
+      'aria-expanded',
+      'false'
+    );
+    await panel.getByRole('button', { name: 'Guardian', exact: true }).click();
+    await expect(page.locator('[data-benchmark-profession="guardian"]')).toHaveAttribute('aria-pressed', 'true');
+    await expect(page.locator('[data-benchmark-profession="mesmer"]')).toHaveAttribute('aria-pressed', 'false');
+    await panel.locator('[data-patch-outcome]').selectOption('up');
+    await expect(panel.locator('[data-patch-row]').first()).toBeVisible();
+    await page.getByRole('button', { name: 'DPS by health', exact: true }).click();
+    const sharedStyle = await page.locator('[data-health-metric]').evaluate((node) => {
+      const style = getComputedStyle(node);
+      return [style.fontSize, style.backgroundColor, style.borderWidth, style.borderRadius];
+    });
+    await page.getByRole('button', { name: 'Patch preview', exact: true }).click();
+    expect(
+      await profession.evaluate((node) => {
+        const style = getComputedStyle(node);
+        return [style.fontSize, style.backgroundColor, style.borderWidth, style.borderRadius];
+      })
+    ).toEqual(sharedStyle);
+    await expect(profession).toHaveValue('guardian');
+    await expect(panel.locator('[data-patch-outcome]')).toHaveValue('up');
+    await page.setViewportSize({ width: 390, height: 844 });
+    const scroll = panel.getByRole('region', { name: 'Patch DPS changes' });
+    await expect(scroll).toBeVisible();
+    expect(await scroll.evaluate((node) => node.scrollWidth > node.clientWidth)).toBe(true);
+    expect(await panel.evaluate((node) => node.scrollWidth <= node.clientWidth)).toBe(true);
+    await page.getByRole('button', { name: 'Reset', exact: true }).click();
+    await expect(profession).toHaveValue('all');
+    await expect(panel.locator('[data-patch-outcome]')).toHaveValue('all');
+  });
+}
+
+// Eligibility is decided before filters; a reload that removes results must also recover keyboard focus.
+test('preview availability handles missing data, empty filters, and retry removal', async ({ page }) => {
+  const state = { active: true, removePreview: false, failWarrior: true };
+  await previewFixtures(page, state);
+  await page.goto('/benchmarks.html');
+  const button = page.getByRole('button', { name: 'Patch preview', exact: true });
+  await button.click();
+  await page.locator('#benchmark-search').fill('no such build');
+  await expect(button).toBeVisible();
+  await expect(page.locator('[data-chart-panel="patch"]')).toContainText('No preview benchmarks match');
+  state.removePreview = true;
+  // Trigger the existing retry without moving focus away from the selected tab.
+  await button.focus();
+  await page.locator('[data-benchmark-retry]').evaluate((node) => node.click());
+  await expect(button).toBeHidden();
+  await expect(page.locator('[data-benchmark-panel="builds"]')).toBeFocused();
+  await expect(page.locator('[data-chart-panel="builds"]')).toBeVisible();
+  await expect(page.locator('[data-benchmark-status]')).toContainText('not been captured');
+});
+
+// Removing the authored preview hides its entry point even when old results still exist in the manifests.
+test('inactive preview hides the panel despite saved preview results', async ({ page }) => {
+  await previewFixtures(page, { active: false, removePreview: false, failWarrior: false });
+  await page.goto('/benchmarks.html');
+  await expect(page.locator('[data-benchmark-dashboard]')).toHaveAttribute('aria-busy', 'false');
+  await expect(page.locator('[data-benchmark-panel="patch"]')).toBeHidden();
+  await expect(page.locator('[data-chart-panel="builds"]')).toBeVisible();
+});
+
+// Nested disclosure keeps keyboard focus and child choices through parent toggles and filtered rerenders.
+test('patch preview headers collapse independently and retain state through filters and sorting', async ({ page }) => {
+  await previewFixtures(page, { active: true, removePreview: false, failWarrior: false, extraSpecialization: true });
+  await page.goto('/benchmarks.html');
+  await page.getByRole('button', { name: 'Patch preview', exact: true }).click();
+  const panel = page.locator('[data-chart-panel="patch"]');
+  const group = panel.locator('[data-patch-group="guardian"]');
+  const parent = group.locator('.benchmark-patch-profession button');
+  const child = group.locator('.benchmark-patch-specialization button').first();
+  const secondChild = group.getByRole('button', { name: 'Second specialization', exact: true });
+  const firstBuild = group.locator('[data-patch-row]').first();
+  const secondBuild = group.locator('[data-patch-row]').last();
+  const blurb = group.locator('[data-patch-profession-summary]');
+  await expect(parent).toHaveAttribute('aria-expanded', 'false');
+  await expect(firstBuild).toBeHidden();
+  await expect(blurb).toBeVisible();
+  await expect(blurb).toContainText('1 higher');
+  await expect(blurb).toContainText('1 unchanged');
+  await expect(blurb).toContainText('Largest gain:');
+  await expect(blurb).toContainText('DPS)');
+  await parent.click();
+  await expect(blurb).toBeHidden();
+  await expect(child).toHaveAttribute('aria-expanded', 'true');
+  await child.focus();
+  await child.press('Space');
+  await expect(child).toBeFocused();
+  await expect(child).toHaveAttribute('aria-expanded', 'false');
+  await expect(firstBuild).toBeHidden();
+  await expect(secondBuild).toBeVisible();
+  await parent.click();
+  await expect(parent).toBeFocused();
+  await expect(parent).toHaveAttribute('aria-expanded', 'false');
+  await expect(child).toBeHidden();
+  await expect(secondChild).toBeHidden();
+  await expect(secondBuild).toBeHidden();
+  await parent.press('Enter');
+  await expect(parent).toBeFocused();
+  await expect(child).toHaveAttribute('aria-expanded', 'false');
+  await expect(firstBuild).toBeHidden();
+  await expect(secondBuild).toBeVisible();
+  await panel.locator('[data-patch-sort]').selectOption('losses');
+  await expect(child).toHaveAttribute('aria-expanded', 'false');
+  await page.locator('#benchmark-search').fill('Second build');
+  await expect(group.locator('.benchmark-patch-specialization button')).toHaveCount(1);
+  await page.locator('#benchmark-search').clear();
+  await expect(child).toHaveAttribute('aria-expanded', 'false');
+  await parent.click();
+  await panel.locator('[data-patch-profession]').selectOption('mesmer');
+  await panel.locator('[data-patch-profession]').selectOption('all');
+  await expect(parent).toHaveAttribute('aria-expanded', 'false');
+  await expect(blurb).toBeVisible();
+  await panel.locator('[data-patch-outcome]').selectOption('same');
+  await expect(blurb).toContainText('No DPS changes in 1 matching build.');
+  await page.getByRole('button', { name: 'Reset', exact: true }).click();
+  await expect(parent).toHaveAttribute('aria-expanded', 'false');
+  await expect(firstBuild).toBeHidden();
+  await expect(blurb).toContainText('Largest gain:');
+  await parent.click();
+  await expect(parent).toHaveAttribute('aria-expanded', 'true');
+  await expect(child).toHaveAttribute('aria-expanded', 'true');
+  await expect(firstBuild).toBeVisible();
+  await expect(secondBuild).toBeVisible();
+});

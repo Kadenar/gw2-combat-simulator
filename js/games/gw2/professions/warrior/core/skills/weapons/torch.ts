@@ -14,25 +14,32 @@ export const WARRIOR_WEAPONS_TORCH_SKILL_MECHANICS: Readonly<Record<number, Part
       }
     ],
     castTimeMs: 480,
+    // Preserve committed blast effects and hold the cast lane through the remaining animation.
+    interruptCommitMs: 440,
+    interruptMode: 'commit',
+    retainsCastLockoutAfterInterrupt: true,
     // Share impact timing while preserving independent payloads and declaration order.
-    effects: impactEffects({ atMs: 400, timingAnchor: 'castStart', timingScale: 'fixed' }, [
-      {
-        type: 'strike',
-        coefficient: 0.4
-      },
-      {
-        type: 'condition',
-        condition: 'Burning',
-        stacks: 1,
-        duration: 6
-      },
-      {
-        type: 'condition',
-        condition: 'Crippled',
-        stacks: 1,
-        duration: 3
-      }
-    ])
+    effects: impactEffects(
+      { atMs: 400, timingAnchor: 'castStart', timingScale: 'fixed', persistsAfterInterrupt: true },
+      [
+        {
+          type: 'strike',
+          coefficient: 0.4
+        },
+        {
+          type: 'condition',
+          condition: 'Burning',
+          stacks: 1,
+          duration: 6
+        },
+        {
+          type: 'condition',
+          condition: 'Crippled',
+          stacks: 1,
+          duration: 3
+        }
+      ]
+    )
   },
   [ID.FLAMES_OF_WAR]: {
     cooldown: 20,

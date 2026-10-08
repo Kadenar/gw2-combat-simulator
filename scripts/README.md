@@ -66,7 +66,11 @@ scratch script. `.lavish/` remains tool-managed review output, separate from man
   from player DPS. Unreached endpoints and zero-duration phases are `null`. When the target survives, both `20-0` values
   use the simulation's final overall DPS, even if it did not reach 20%. APM comes from the simulation's non-autoattack
   input count over its execution window, excluding precasts before an explicit combat boundary. Entries without
-  rotations remain unchanged. Simulation warnings identify their emitting presets.
+  rotations retain their live metrics. When `activePatchPreview` is authored, the command also simulates the same builds
+  under that patch and stores `patchPreview` with its `patchId`, `benchmarkDps`, and `benchmarkDpsByHealth`. APM remains
+  shared with live. Rerun with `--commit` after editing the preview. When the active preview is null, committing removes
+  `patchPreview` from every manifest entry, including entries without rotations. Dry runs report pending preview
+  updates/removals without writing files. Simulation warnings identify their emitting preset and patch.
 - `npm run build:modules && node scripts/analysis/capture-supported-build-metrics.mjs [profession...]` prints current
   deterministic preset metrics as JSON.
 - `npm run build:modules && node scripts/analysis/analyze-evtc.mjs <fight.evtc|fight.evtc.zip|fight.zevtc>` inspects a

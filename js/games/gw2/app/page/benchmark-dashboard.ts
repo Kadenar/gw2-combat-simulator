@@ -4,6 +4,8 @@ import { escapeHtml as html } from '#ui/shared/html.js';
 import { TARGET_HEALTH_BANDS } from '#gw2/app/results/summary-metrics.js';
 import { benchmarkBuildPreview } from '#gw2/app/page/benchmark-build-preview.js';
 import { mountHealthInteractions } from '#gw2/app/page/benchmark-health-interactions.js';
+import { activePatchPreview } from '#gw2/integrations/patches/active-preview.js';
+import { mountBenchmarkPatchPreview, patchBenchmarks } from '#gw2/app/page/benchmark-patch-preview.js';
 import { templateBoon, templateCategory } from '#gw2/app/build/library/model.js';
 import type { BenchmarkComparisonView } from '#gw2/app/page/benchmark-comparison/view.js';
 import {
@@ -31,6 +33,7 @@ export function mountBenchmarks(root: HTMLElement): void {
     <button type="button" data-benchmark-panel="apm" aria-pressed="false">DPS vs APM</button>
     <button type="button" data-benchmark-panel="health" aria-pressed="false">DPS by health</button>
     <button type="button" data-benchmark-panel="comparison" aria-pressed="false">Simulate comparison</button>
+    <button type="button" data-benchmark-panel="patch" aria-pressed="false" hidden>Patch preview</button>
     <div class="benchmark-view-switch" role="group" aria-label="Build benchmark view"><button type="button" data-build-view="cards" aria-pressed="true">Cards</button><button type="button" data-build-view="table" aria-pressed="false">Table</button></div>
   </div>
   <div class="benchmark-dashboard">
@@ -45,6 +48,7 @@ export function mountBenchmarks(root: HTMLElement): void {
     </section>
     <div class="benchmark-main">
       <section data-chart-panel="comparison" aria-label="Simulate comparison" hidden></section>
+      <section data-chart-panel="patch" aria-label="Patch preview" hidden></section>
       <section data-chart-panel="apm" aria-label="DPS vs APM" hidden>
         <div data-apm-chart></div>
       </section>
@@ -77,6 +81,16 @@ export function mountBenchmarks(root: HTMLElement): void {
   const role = root.querySelector<HTMLSelectElement>('#benchmark-role')!;
   const outdated = root.querySelector<HTMLInputElement>('#benchmark-outdated')!;
   const sort = root.querySelector<HTMLSelectElement>('#benchmark-sort')!;
+  // The compact preview dropdown edits the same profession selection used by every benchmark tab.
+  const patchView = mountBenchmarkPatchPreview(
+    root.querySelector('[data-chart-panel="patch"]')!,
+    activePatchPreview,
+    (id) => {
+      selected.clear();
+      professionRegistry.filter((entry) => id === 'all' || entry.id === id).forEach((entry) => selected.add(entry.id));
+      render();
+    }
+  );
   const status = root.querySelector<HTMLElement>('[data-benchmark-status]')!;
   const cards = root.querySelector<HTMLElement>('[data-benchmark-cards]')!;
   const buildTable = root.querySelector<HTMLElement>('[data-build-table]')!;
@@ -305,6 +319,21 @@ export function mountBenchmarks(root: HTMLElement): void {
       sort.value === 'apm' && !buildSortAscending ? 'Highest APM' : 'Lowest APM';
 
     status.textContent = failures.length ? `Could not load ${failures.join(', ')}.` : '';
+    const patchButton = root.querySelector<HTMLButtonElement>('[data-benchmark-panel="patch"]')!;
+    const hasPreview = patchBenchmarks(benchmarks, activePatchPreview?.id).length > 0;
+    // Gate on loaded data before filtering, and recover navigation if a reload removes the preview.
+    if (!hasPreview && root.dataset.benchmarkActivePanel === 'patch') {
+      const restoreFocus =
+        root.ownerDocument.activeElement === patchButton ||
+        root.querySelector('[data-chart-panel="patch"]')!.contains(root.ownerDocument.activeElement);
+      showPanel('builds');
+      if (restoreFocus) root.querySelector<HTMLButtonElement>('[data-benchmark-panel="builds"]')!.focus();
+    }
+
+    patchButton.hidden = !hasPreview;
+    if (activePatchPreview && !hasPreview)
+      status.textContent += ' Preview benchmarks have not been captured for the active patch.';
+    patchView.update(rows, professionScope);
     retry.hidden = failures.length === 0;
 
     // Every profession uses the same fixed-height scrolling list, so all builds are immediately available.
@@ -926,6 +955,7 @@ export function mountBenchmarks(root: HTMLElement): void {
     render();
   });
   root.querySelector('[data-reset-filters]')!.addEventListener('click', () => {
+    patchView.reset();
     search.value = '';
     damage.value = role.value = 'all';
     // Reset restores the same alphabetical profession order used on first opening the tool.

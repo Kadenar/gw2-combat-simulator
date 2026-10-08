@@ -3,6 +3,10 @@ body:not([data-simulator-view='benchmarks']) #benchmarks-view,
 body[data-simulator-view='benchmarks'] :is(.profession-layout, .build-editor) {
   display: none;
 }
+/* Saved benchmarks do not use workspace build controls or the selected game-data version. */
+body[data-simulator-view='benchmarks'] :is(.patch-preview-picker, #build-workspace-tabs) {
+  display: none;
+}
 #benchmarks-view {
   --benchmark-muted: #96928a;
   --benchmark-border: #262522;
@@ -143,6 +147,127 @@ body[data-simulator-view='benchmarks'] :is(.profession-layout, .build-editor) {
   font-size: 11px;
 }
 
+/* Preview results retain the shared selectors; profession tints distinguish groups without decorating DPS changes. */
+.benchmark-patch-scroll {
+  overflow-x: auto;
+  max-width: 100%;
+}
+.benchmark-patch-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+}
+.benchmark-patch-table th,
+.benchmark-patch-table td {
+  padding: 12px;
+  border-bottom: 1px solid var(--benchmark-border);
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+.benchmark-patch-table thead th {
+  color: var(--benchmark-muted);
+  font-weight: 500;
+  white-space: nowrap;
+}
+.benchmark-patch-table th:first-child,
+.benchmark-patch-table td:last-child,
+.benchmark-patch-table th:last-child {
+  text-align: left;
+}
+.benchmark-patch-table td {
+  white-space: nowrap;
+}
+.benchmark-patch-table [data-patch-row] th {
+  padding-left: 36px;
+  font-weight: 400;
+  min-width: 160px;
+}
+.benchmark-patch-profession th {
+  color: var(--profession-accent);
+  background: color-mix(in srgb, var(--profession-accent) 13%, var(--bg-panel-alt));
+  font-size: 15px;
+  padding: 0;
+}
+.benchmark-patch-specialization th {
+  background: color-mix(in srgb, var(--profession-accent) 4%, var(--bg-panel));
+  padding: 0;
+}
+/* Full-width disclosure buttons preserve the group colors and expose a compact expanded/collapsed indicator. */
+.benchmark-patch-toggle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 15px 18px;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.benchmark-patch-specialization .benchmark-patch-toggle {
+  padding: 12px 24px;
+  color: color-mix(in srgb, var(--profession-accent) 70%, white);
+}
+/* Collapsed profession summaries wrap beneath the name and remain readable within narrow benchmark panels. */
+.benchmark-patch-profession .benchmark-patch-toggle {
+  align-items: flex-start;
+}
+.benchmark-patch-profession .benchmark-patch-chevron {
+  margin-top: 3px;
+}
+.benchmark-patch-profession-heading {
+  min-width: 0;
+}
+.benchmark-patch-profession-summary {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  max-width: min(90ch, calc(100cqw - 80px));
+  margin-top: 7px;
+  color: var(--benchmark-muted);
+  font-size: 11px;
+  font-weight: 400;
+  line-height: 1.6;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+.benchmark-patch-profession-summary strong {
+  font-weight: 500;
+}
+.benchmark-patch-toggle:hover {
+  background: color-mix(in srgb, var(--profession-accent) 6%, transparent);
+}
+#benchmarks-view .benchmark-patch-toggle:focus-visible {
+  outline-offset: -3px;
+}
+.benchmark-patch-chevron {
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.benchmark-patch-toggle[aria-expanded='false'] .benchmark-patch-chevron {
+  transform: rotate(-90deg);
+}
+.benchmark-patch-specialization span {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: var(--radius);
+  color: color-mix(in srgb, var(--profession-accent) 70%, white);
+  background: color-mix(in srgb, var(--profession-accent) 8%, var(--bg-panel-alt));
+}
+.patch-up {
+  color: #97d9ac;
+}
+.patch-down {
+  color: #f4aaa7;
+}
 .benchmark-status-row {
   display: flex;
   gap: 12px;
