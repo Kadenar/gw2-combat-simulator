@@ -1,3 +1,4 @@
+import { canonicalTime } from '#kernel/core/clock.js';
 /**
  * Derives which visible event-log row caused each other row, using provenance the runtime already records.
  *
@@ -205,7 +206,7 @@ export function deriveEventLogOwnership(
     const trigger = parentId ? eventById.get(parentId) : undefined;
     const key = skillKey(event);
     if (!trigger || trigger.type === 'action' || !key || skillKey(trigger) === key) return undefined;
-    const cast = findLast(castsBySkill.get(key), (entry) => entry.at <= event.at + 1e-9);
+    const cast = findLast(castsBySkill.get(key), (entry) => canonicalTime(entry.at) <= canonicalTime(event.at));
     if (!cast || cast.id === parentId || (event.activationId != null && event.activationId === cast.activationId))
       return undefined;
     return cast.id;
@@ -240,10 +241,12 @@ export function deriveEventLogOwnership(
 
       if (!parentId && event.triggeredBy) {
         const entries = byName.get(event.triggeredBy);
-        const latest = findLast(entries, (entry) => entry.at <= event.at + 1e-9);
+        const latest = findLast(entries, (entry) => canonicalTime(entry.at) <= canonicalTime(event.at));
+        // Match exact canonical instants so an inferred owner cannot come from a future packet.
         // On-hit procs name the skill, not the packet; at one instant the strike is the likelier trigger.
         const trigger =
-          latest && (findLast(entries, (entry) => entry.hit && Math.abs(entry.at - latest.at) < 1e-9) ?? latest);
+          latest &&
+          (findLast(entries, (entry) => entry.hit && canonicalTime(entry.at) === canonicalTime(latest.at)) ?? latest);
         if (trigger) {
           parentId = trigger.id;
           parentLink = inferredFrom(event.triggeredBy);

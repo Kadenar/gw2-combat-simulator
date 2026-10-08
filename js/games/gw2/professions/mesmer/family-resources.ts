@@ -7,7 +7,7 @@ import { mesmerResourceDefinition } from '#gw2/professions/mesmer/family-state.j
 import { createMirageMechanics } from '#gw2/professions/mesmer/specializations/mirage/mechanics/runtime.js';
 import { reactToMirageResourceGain } from '#gw2/professions/mesmer/specializations/mirage/traits/behavior.js';
 import type { MesmerRuntime } from '#gw2/professions/mesmer/types.js';
-import { EPSILON } from '#kernel/core/clock.js';
+import { canonicalTime } from '#kernel/core/clock.js';
 
 export function mesmerActivePrimaryWeapon(context: MesmerRuntime): string {
   return gw2ActivePrimaryWeapon(context.config, context.activeWeaponSet === 1 ? 1 : 2) || '';
@@ -42,7 +42,13 @@ export function createMesmerIllusionRewards(context: MesmerRuntime) {
         );
     },
     scheduleResourceTask(candidate, delivery = {}) {
-      if (delivery.cast?.effectiveEnd != null && candidate.at > delivery.cast.effectiveEnd + EPSILON) return;
+      // An unbounded delivery belongs to an already committed actor; finite cutoffs remain exact.
+      if (
+        delivery.cast?.effectiveEnd != null &&
+        delivery.cast.effectiveEnd !== Infinity &&
+        canonicalTime(candidate.at) > canonicalTime(delivery.cast.effectiveEnd)
+      )
+        return;
       context.schedule('mesmer.resource-gain', Math.max(context.time, candidate.at), candidate);
     }
   });

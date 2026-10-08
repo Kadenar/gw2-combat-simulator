@@ -1,6 +1,6 @@
 import type { EffectDelivery } from '#gw2/platform/effects/emission.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
-import { EPSILON } from '#kernel/core/clock.js';
+import { canonicalTime } from '#kernel/core/clock.js';
 /**
  * Owns Primordial Stance's scheduled pulses against the live Weaver attunement pair.
  * Skill packet templates remain in `skills/slot-skills.ts`.
@@ -14,6 +14,7 @@ import { elementalistConditionRequest, elementalistStrikeRequest } from '#gw2/pr
 import { WEAVER_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/elementalist/specializations/weaver/profiles.js';
 import { weaverState } from '#gw2/professions/elementalist/specializations/weaver/state.js';
 import type { ElementalistRuntime, ElementalistSkill } from '#gw2/professions/elementalist/types.js';
+
 /** Reads canonical condition timing without emitting packets that the live-attunement tasks replace. */
 export function schedulePrimordialStance(
   context: ElementalistRuntime,
@@ -32,8 +33,8 @@ export function schedulePrimordialStance(
       baseEvent: { source: 'elementalist', sourceId: skill.id, actorType: 'player' }
     });
     for (const { at } of applications) {
-      // Preserve the activation-time exclusion and coalesce coincident condition applications.
-      if (at > cast.effectiveEnd + EPSILON) tickTimes.add(at);
+      // Exclude only the canonical activation instant and coalesce coincident condition applications.
+      if (canonicalTime(at) > cast.effectiveEnd) tickTimes.add(at);
     }
   }
 

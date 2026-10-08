@@ -34,7 +34,8 @@ import type {
   EngineerRuntimeState,
   EngineerSkill
 } from '#gw2/professions/engineer/types.js';
-import { EPSILON } from '#kernel/core/clock.js';
+import { canonicalTime } from '#kernel/core/clock.js';
+import { resourceAtLeast } from '#gw2/platform/combat/resources/pool.js';
 
 interface PhotonForgeHeatPayload {
   readonly amount: number;
@@ -70,10 +71,11 @@ function passiveCoolingPerTick(context: EngineerRuntime<HolosmithSkill>, at: num
   if ((state.photonForgeActive && !state.overheated) || state.forgeExitedAt == null) return 0;
   if (preservesPhotonicHeat(context)) return 0;
 
-  const elapsedSinceExit = at - state.forgeExitedAt;
-  if (elapsedSinceExit <= HOLOSMITH_HEAT.coolingDelay + EPSILON) return 0;
+  // Cooling phases use the same canonical deadlines as their scheduled work.
+  const elapsedSinceExit = canonicalTime(at - state.forgeExitedAt);
+  if (elapsedSinceExit <= HOLOSMITH_HEAT.coolingDelay) return 0;
   const coolingPerSecond =
-    elapsedSinceExit <= HOLOSMITH_HEAT.fastCoolingStartsAt + EPSILON
+    elapsedSinceExit <= HOLOSMITH_HEAT.fastCoolingStartsAt
       ? HOLOSMITH_HEAT.slowCoolingPerSecond
       : HOLOSMITH_HEAT.fastCoolingPerSecond;
 
@@ -142,7 +144,7 @@ function initializePhotonForgeHeat(context: EngineerRuntime<HolosmithSkill>): vo
   initializeEnhancedCapacityMight(context);
 
   // Preheated simulations start the same 100 ms cooling cadence as a Forge exit.
-  if (state.heat.value > EPSILON && state.forgeExitedAt != null) {
+  if (state.heat.value > 0 && state.forgeExitedAt != null) {
     startPassiveHeatCadence(context, Math.max(context.time, state.forgeExitedAt));
   }
 }
@@ -155,7 +157,7 @@ function applyPassiveHeat(context: EngineerRuntime<HolosmithSkill>, at: number):
   if (state.photonForgeActive && !state.overheated) {
     // The Forge-relative tick overheats only when heat was already capped at tick
     // start, so passive heat that fills the bar gets one final 100 ms window.
-    if (state.heat.value >= state.heat.maximum - EPSILON) {
+    if (resourceAtLeast(state.heat.value, state.heat.maximum)) {
       forceOverheat(context, at);
       return;
     }
@@ -168,7 +170,7 @@ function applyPassiveHeat(context: EngineerRuntime<HolosmithSkill>, at: number):
       'heat',
       Math.max(0, Math.round((previousHeat - passiveCoolingPerTick(context, at)) * 1e9) / 1e9)
     );
-    if (state.heat.value <= EPSILON) {
+    if (state.heat.value <= 0) {
       context.resourceController.replace('heat', 0);
       // Reaching zero cannot re-enable the exhausted Forge bar before its explicit exit.
       if (!state.photonForgeActive) state.overheated = false;
@@ -253,8 +255,7 @@ export function applyCoronaBurstHeat(
   cast: RuntimeCast<HolosmithSkill>
 ): void {
   if (!canApplyHeat(context, skill)) return;
-  const elapsedMs = Math.max(0, (cast.effectiveEnd - cast.start) * 1000);
-  if (elapsedMs + EPSILON * 1000 < CORONA_QUICKNESS_PULSE_OFFSETS_MS[0]) return;
+  if (cast.effectiveEnd < canonicalTime(cast.start + CORONA_QUICKNESS_PULSE_OFFSETS_MS[0] / 1000)) return;
   const heatPerPulse = Number(skill.heatGain) / CORONA_QUICKNESS_PULSE_OFFSETS_MS.length;
   scheduleHeatPulse(
     context,
@@ -274,13 +275,12 @@ function applyPhotonBlitzHeat(
   cast: RuntimeCast<HolosmithSkill>
 ): void {
   if (!canApplyHeat(context, skill)) return;
-  const elapsedMs = Math.max(0, (cast.effectiveEnd - cast.start) * 1000);
   const heatPerPulse = Number(skill.heatGain) / PHOTON_BLITZ_PULSE_OFFSETS_MS.length;
   scheduleHeatPulse(
     context,
-    PHOTON_BLITZ_PULSE_OFFSETS_MS.filter((offsetMs) => offsetMs <= elapsedMs + EPSILON * 1000).map(
-      (offsetMs) => cast.start + offsetMs / 1000
-    ),
+    PHOTON_BLITZ_PULSE_OFFSETS_MS.filter(
+      (offsetMs) => canonicalTime(cast.start + offsetMs / 1000) <= cast.effectiveEnd
+    ).map((offsetMs) => cast.start + offsetMs / 1000),
     heatPerPulse
   );
 }
@@ -292,10 +292,9 @@ function applyHeat(
   cast: RuntimeCast<HolosmithSkill>
 ): void {
   if (!canApplyHeat(context, skill)) return;
-  const elapsedMs = Math.max(0, (cast.effectiveEnd - cast.start) * 1000);
   if (castWasInterrupted(cast)) {
     const commitMs = Number(skill.interruptCommitMs);
-    if (!Number.isFinite(commitMs) || elapsedMs + EPSILON * 1000 < commitMs) return;
+    if (!Number.isFinite(commitMs) || cast.effectiveEnd < canonicalTime(cast.start + commitMs / 1000)) return;
   }
 
   // A Forge attack that crossed its interrupt commit point already fired; its
@@ -372,8 +371,8 @@ const photonForgeTasks: RuntimeProfession<EngineerRuntimeState, HolosmithSkill>[
     const coolingGrace =
       !state.photonForgeActive &&
       state.forgeExitedAt != null &&
-      context.time <= state.forgeExitedAt + HOLOSMITH_HEAT.coolingDelay + EPSILON;
-    if ((state.photonForgeActive && !state.overheated) || state.heat.value > EPSILON || coolingGrace)
+      context.time <= canonicalTime(state.forgeExitedAt + HOLOSMITH_HEAT.coolingDelay);
+    if ((state.photonForgeActive && !state.overheated) || state.heat.value > 0 || coolingGrace)
       startPassiveHeatCadence(context, context.time);
     else state.passiveHeatAt = null;
   },

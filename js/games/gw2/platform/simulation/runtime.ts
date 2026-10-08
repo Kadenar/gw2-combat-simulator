@@ -58,7 +58,7 @@ import type { Gw2Runtime } from '#gw2/platform/simulation/runtime-state.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import type { RuntimeWork } from '#gw2/platform/simulation/work-contract.js';
 import type { Gw2SimulationResult, Gw2SimulationScore } from '#gw2/platform/results/types.js';
-import { canonicalTime, EPSILON } from '#kernel/core/clock.js';
+import { canonicalTime } from '#kernel/core/clock.js';
 import { normalizeObservationPolicy } from '#kernel/execution/observation.js';
 
 /** The combat entry point assembles gameplay producers before entering the shared runtime. */
@@ -287,7 +287,7 @@ export function runRuntime<T extends object>(
       // Setup casts that complete at the marker's own instant stay precombat until the cursor consumes the marker.
       if (!runtime.hasExplicitCombatStart) return true;
       if (runtime.combatStartPending || runtime.cursor.command?.type === 'combat-start') return false;
-      return runtime.combatStartTime != null && at + EPSILON >= runtime.combatStartTime;
+      return runtime.combatStartTime != null && canonicalTime(at) >= runtime.combatStartTime;
     },
     schedule(name: string, at: number, data: unknown = null, owner?: { id: string; generation: number }, priority = 0) {
       if (!profession.tasks?.[name]) throw new TypeError(`No task handler registered for ${name}.`);
@@ -503,6 +503,6 @@ export function runRuntime<T extends object>(
       if (ownsEffect!(event) && event.naturalExpiresAt != null)
         // Owner condition clocks may pay their final buffered remainder after natural expiry.
         deadline = Math.max(deadline, Number(event.naturalExpiresAt) + 1.5);
-    return deadline;
+    return canonicalTime(deadline);
   }
 }

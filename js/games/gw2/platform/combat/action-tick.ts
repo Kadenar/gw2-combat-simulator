@@ -8,8 +8,10 @@ export const GW2_ACTION_TICK_MS = 40;
 /** Rounds a positive duration up to the next server/action interval. */
 export function quantizeGw2ActionDurationUp(value: number, interval = GW2_ACTION_TICK_MS): number {
   if (!(value > 0)) return 0;
-  // The epsilon keeps an exact boundary from rounding into the next action tick.
-  return Math.ceil(value / interval - 1e-9) * interval;
+  // Integer clock units preserve exact boundaries without admitting an earlier action tick.
+  const intervalKey = timeKey(interval / 1000);
+  if (intervalKey <= 0) throw new RangeError('Action intervals must span at least one canonical microsecond.');
+  return (Math.ceil(timeKey(value / 1000) / intervalKey) * intervalKey) / 1000;
 }
 
 /** Snaps observed timing to the nearest GW2 action tick so imported replay values do not retain false precision. */

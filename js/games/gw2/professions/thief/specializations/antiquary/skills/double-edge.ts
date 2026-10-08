@@ -3,14 +3,13 @@ import type { ThiefRuntime } from '#gw2/professions/thief/core/events.js';
 import { antiquaryState } from '#gw2/professions/thief/specializations/antiquary/state.js';
 import { consumeScoundrelsLuck } from '#gw2/professions/thief/specializations/antiquary/traits/behavior.js';
 import type { ThiefDoubleEdgeOutcome, ThiefSkill } from '#gw2/professions/thief/types.js';
-import { EPSILON } from '#kernel/core/clock.js';
 
 /** Accepted Canach coin initiative, held by cast identity until commitment or cancellation. */
 export const coinInitiative = new WeakMap<RuntimeCast<ThiefSkill>, number>();
 
 /** Double Edge is risky only while its recharge is running; Scoundrel's Luck turns one risky use into a success. */
 function acceptDoubleEdge(runtime: ThiefRuntime, cast: RuntimeCast<ThiefSkill>): ThiefDoubleEdgeOutcome {
-  if ((runtime.cooldownController.readyAt(cast.skill.id) || 0) <= runtime.time + EPSILON) return 'success';
+  if ((runtime.cooldownController.readyAt(cast.skill.id) || 0) <= runtime.time) return 'success';
   if (consumeScoundrelsLuck(runtime)) return 'success';
 
   return cast.command.doubleEdgeOutcome === 'backfire' ? 'backfire' : 'success';

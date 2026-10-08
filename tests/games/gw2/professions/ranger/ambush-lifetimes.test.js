@@ -43,7 +43,7 @@ test('Let Loose refresh survives the superseded expiry', () => {
 });
 
 test('an admitted ambush consumes the grant while its delayed effects finish', () => {
-  const result = runRanger([ID.UNLEASH_RANGER, wait(3999), ID.RELENTLESS_WHIRL], config, {
+  const result = runRanger([ID.UNLEASH_RANGER, wait(3960), ID.RELENTLESS_WHIRL], config, {
     observation: { kind: 'tail', durationMs: 3000 }
   });
   assert.deepEqual(result.warnings, []);

@@ -5,7 +5,7 @@ import {
   mesmerPacketOwner,
   buildMesmerConditions
 } from '#gw2/professions/mesmer/core/mechanics/packets.js';
-import { EPSILON } from '#kernel/core/clock.js';
+import { canonicalTime } from '#kernel/core/clock.js';
 /**
  * Emits phantasm-cast packets and tracks their eligible sword hits.
  * Effect ordering lives in `effect-controller.ts`; persistent illusion behavior lives under `mechanics/illusions/`.
@@ -169,7 +169,8 @@ export function createSkillDamageController({
         group.castProgress != null
           ? castStart + (at - castStart) * group.castProgress
           : timingOrigin + (firstPacketMs * firstPacketScale) / 1000;
-      if (hitAt > playerEffectEnd + EPSILON) continue;
+      // Uninterrupted actor work has no cutoff; interrupted player packets end at the canonical deadline.
+      if (playerEffectEnd !== Infinity && canonicalTime(hitAt) > canonicalTime(playerEffectEnd)) continue;
       schedulePlayerStrike(skill, group, at, castStart, delivery);
     }
 

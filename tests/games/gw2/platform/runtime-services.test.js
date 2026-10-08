@@ -498,7 +498,7 @@ test('resource grants, capacity limits and recovery use the one live pool at rea
     }
   });
   const result = run([cast(991007)], {}, profession);
-  assert.equal(result.rotationEndTime, 0.5);
+  assert.equal(result.rotationEndTime, 0.52);
   assert.equal(result.planningState.profession.energy.value, 0);
   assert.throws(
     () =>
@@ -729,7 +729,7 @@ test('Peitha effects wait for impact and cannot leak beyond the observation wind
 
 // Pending refreshes cannot replace live buff state; only landed applications change damage and observed expiry.
 test('Peitha shares its activation cooldown and retains ordinary buff lifetimes across delayed refreshes', () => {
-  const times = [0, 0.23, 0.24, 4.001, 4.23, 4.24, 5, 5.001, 9, 9.04];
+  const times = [0, 0.23, 0.24, 4.001, 4.23, 4.24, 5.039999, 5.04, 9.039999, 9.04];
   const active = [false, false, true, true, true, false, false, true, true, false];
   const profession = native({
     initialize(runtime) {
@@ -749,12 +749,12 @@ test('Peitha shares its activation cooldown and retains ordinary buff lifetimes 
     );
     assert.deepEqual(result.warnings, []);
     const runtime = observedRuntime(result);
-    assert.deepEqual(runtime.relic.state, { readyAt: 4.001 + 4 });
+    assert.deepEqual(runtime.relic.state, { readyAt: 8.04 });
     assert.deepEqual(
       runtime.buffs.get('relic-peitha').map(({ at, expiresAt }) => [at, expiresAt]),
       [
         [0.24, 4.24],
-        [5.001, 9.04]
+        [5.04, 9.04]
       ]
     );
     totals.push(result.totalDamage);
@@ -825,7 +825,7 @@ test('recharge entitlements are reserved once at acceptance and completion obser
     ['reserve', 0],
     ['complete', 1, 1.8],
     ['reserve', 1.8],
-    ['complete', 2.8, 2.8 + 0.8]
+    ['complete', 2.8, 3.6]
   ]);
   assert.equal(result.planningState.profession.grants, 2);
 });

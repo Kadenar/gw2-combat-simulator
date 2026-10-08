@@ -88,14 +88,14 @@ test('Revenant Brutality claims at swap completion and honors the exclusive ICD 
     assert.deepEqual({ ...observedRuntime(run([])).procs.snapshot() }, {});
     const result = run([REVENANT_TRAIT_IDS.BRUTALITY]);
     assert.deepEqual(result.warnings, []);
-    // The swap at the exact deadline is blocked; one millisecond later claims again from its own completion.
+    // The swap at the exact deadline is blocked; the next action tick claims again from its own completion.
     assert.deepEqual(
       result.events
         .filter((event) => event.type === 'buff' && event.skillId === REVENANT_TRAIT_IDS.BRUTALITY)
         .map((event) => event.at),
-      [1, 1 + duration + 0.001]
+      [1, 1 + duration + 0.04]
     );
-    closeTo(observedRuntime(result).procs.snapshot()['brutality'], 1 + duration + 0.001 + duration);
+    closeTo(observedRuntime(result).procs.snapshot()['brutality'], 1 + duration + 0.04 + duration);
   }
 });
 

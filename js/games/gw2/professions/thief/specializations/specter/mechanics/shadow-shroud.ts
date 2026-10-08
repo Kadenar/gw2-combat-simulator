@@ -12,7 +12,7 @@ import { THIEF_SKILL_IDS as ID } from '#gw2/professions/thief/data/ids.js';
 import { SPECTER_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/thief/specializations/specter/profiles.js';
 import { specterState } from '#gw2/professions/thief/specializations/specter/state.js';
 import type { ThiefConfig, ThiefSkill } from '#gw2/professions/thief/types.js';
-import { EPSILON } from '#kernel/core/clock.js';
+import { canonicalTime } from '#kernel/core/clock.js';
 
 export const SHADOW_DEPLETED = 'thief.shadow-shroud-depleted';
 
@@ -90,7 +90,7 @@ export function specterAvailability(runtime: MechanicQueriesOf<ThiefRuntime>, sk
 
   if (skill.id === ID.EXIT_SHADOW_SHROUD && !state.shadowShroudActive)
     return denySkillCast(skill, 'thief.not-in-shroud', 'Shadow Shroud is not active.');
-  if (skill.id === ID.EXIT_SHADOW_SHROUD && state.shadowShroudExitReadyAt > runtime.time + EPSILON)
+  if (skill.id === ID.EXIT_SHADOW_SHROUD && canonicalTime(state.shadowShroudExitReadyAt) > runtime.time)
     return denySkillCast(
       skill,
       'thief.shroud-exit-lockout',

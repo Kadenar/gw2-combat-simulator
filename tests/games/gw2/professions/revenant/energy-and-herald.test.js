@@ -303,10 +303,7 @@ test('Energy affordability rounds up to the absolute action tick regardless of i
     assert.deepEqual(result.warnings, []);
     assert.equal(
       result.steps.at(-1).start,
-      Math.max(
-        120,
-        waits.reduce((sum, wait) => sum + wait, 0)
-      )
+      Math.max(120, Math.ceil(waits.reduce((sum, wait) => sum + wait, 0) / 40) * 40)
     );
   }
 });
@@ -1145,7 +1142,7 @@ test('out-of-combat upkeep drain continues after activation', () => {
 });
 
 test('upkeep release settles the old drain rate before resuming regeneration', () => {
-  // 1.1 after activation, minus 0.15 drain, then plus 0.5 regeneration after release.
+  // 1.1 after activation, minus 0.16 drain, then plus 0.5 regeneration after release.
   const result = simulate(
     'Core',
     [
@@ -1158,7 +1155,7 @@ test('upkeep release settles the old drain rate before resuming regeneration', (
     { initialEnergy: 6.1 }
   );
   assert.deepEqual(result.warnings, []);
-  assert.ok(Math.abs(result.planningState.profession.energy.value - 1.45) < 1e-9);
+  assert.ok(Math.abs(result.planningState.profession.energy.value - 1.44) < 1e-9);
 });
 
 test('starvation waits for the absolute action tick and preserves its boundary across reads', () => {
@@ -1177,7 +1174,7 @@ test('starvation waits for the absolute action tick and preserves its boundary a
       assert.equal(starvationReadyAt, undefined);
     } else {
       // Shutdown at 120 ms starts the four-second starvation cooldown from that tick.
-      assert.equal(starvationReadyAt, 0.12 + 4 / 1.25);
+      assert.equal(starvationReadyAt, 3.32);
       assert.ok(Math.abs(result.planningState.profession.energy.value - 5 * (elapsedMs / 1000 - 0.12)) < 1e-9);
     }
   }

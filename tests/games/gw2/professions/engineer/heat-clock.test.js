@@ -7,6 +7,20 @@ import { runEngineer } from '#tests/helpers/engineer-simulation.js';
 import { observedRuntime } from '#tests/helpers/observed-runtime.js';
 import { withProfile } from '#tests/helpers/catalog-overrides.js';
 
+// Small real balances keep their cooling owner, and only a full bar triggers the overheat transition.
+test('Holosmith does not discard small heat or overheat below capacity', () => {
+  const cooling = runEngineer([], { specialization: 'Holosmith', initialHeat: 0.00005 });
+  assert.equal(cooling.planningState.profession.heat.value, 0.00005);
+  assert.notEqual(observedRuntime(cooling).profession.specialization.state.passiveHeatAt, null);
+  const almostFull = runEngineer([ID.ENGAGE_PHOTON_FORGE, { type: 'wait', durationMs: 100 }], {
+    specialization: 'Holosmith',
+    initialHeat: 99.99995
+  });
+  assert.deepEqual(almostFull.warnings, []);
+  assert.equal(almostFull.planningState.profession.heat.value, 100);
+  assert.equal(almostFull.planningState.profession.overheated, false);
+});
+
 // Capacity is selected before the initial balance and cooling anchor, and public observations own no live pool.
 test('Holosmith initializes one capped heat clock before preheated cooling', () => {
   for (const [selectedTraitIds, maximum] of [

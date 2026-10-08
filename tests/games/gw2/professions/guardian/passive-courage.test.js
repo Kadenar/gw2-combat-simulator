@@ -111,7 +111,8 @@ for (const owner of owners) {
       false
     );
     const resumed = events.find((event) => event.at >= resetAt);
-    assert.equal(resumed?.at, Math.ceil(resetAt / 2) * 2);
+    // A same-time passive wake settles before the reset completion, so the following cadence owns the first grant.
+    assert.equal(resumed?.at, (Math.floor(resetAt / 2) + 1) * 2);
     assert.ok(resumed.at < oldReadyAt, 'reset must make the passive eligible before its previous recharge deadline');
   });
 

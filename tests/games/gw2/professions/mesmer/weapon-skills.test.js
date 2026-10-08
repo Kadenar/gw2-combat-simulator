@@ -250,7 +250,7 @@ test('Clarity makes only an empowered Mental Collapse a control skill', () => {
   const normal = simulateMesmer(['Mental Collapse'], config);
   const empowered = simulateMesmer(['Mind the Gap', 'Mental Collapse'], config);
   const activeNearExpiry = simulateMesmer(
-    ['Mind the Gap', { name: '__wait', waitMs: 14999 }, 'Mental Collapse'],
+    ['Mind the Gap', { name: '__wait', waitMs: 14960 }, 'Mental Collapse'],
     config
   );
   const expired = simulateMesmer(['Mind the Gap', { name: '__wait', waitMs: 15000 }, 'Mental Collapse'], config);

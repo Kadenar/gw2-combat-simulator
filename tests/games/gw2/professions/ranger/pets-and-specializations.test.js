@@ -1193,7 +1193,7 @@ for (const [specialization, skillId, selectedPet, buffKind, multiplier] of [
     // Derive the tie from the impact so this tests buff ordering independently of authored cast durations.
     const impactOffsetMs = Math.round(baselineHit.at * 1000 - step.start);
 
-    for (const offsetMs of [-1, 0, 1]) {
+    for (const offsetMs of [-40, 0, 40]) {
       const result = simulate(
         specialization,
         [
@@ -1209,7 +1209,7 @@ for (const [specialization, skillId, selectedPet, buffKind, multiplier] of [
       assert.deepEqual(result.warnings, []);
       assert.equal(hit.at, baselineHit.at);
       assert.ok(buff);
-      assert.equal(Math.round((buff.at - hit.at) * 1000), offsetMs);
+      assert.equal(Math.round(buff.at * 1000), Math.ceil((impactOffsetMs + offsetMs) / 40) * 40);
       if (offsetMs < 0) {
         assertFlooredDamageMultiplier(hit.damage, baselineHit.damage, multiplier);
         assert.ok(result.resolvedEvents.indexOf(buff) < result.resolvedEvents.indexOf(hit));
@@ -1654,7 +1654,7 @@ test('Untamed Unleash forms share a fixed one-second recharge', () => {
     { initialUntamedState: 'Ranger' }
   );
 
-  assert.equal(refreshed.planningState.profession.ambushReadyUntil, 14.001);
+  assert.equal(refreshed.planningState.profession.ambushReadyUntil, 14.04);
 });
 
 // Both ambushes use the flat siphon formula and retain separate breakdown attribution.

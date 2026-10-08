@@ -1,3 +1,4 @@
+import { resourceAtLeast } from '#gw2/platform/combat/resources/pool.js';
 import type { AvailabilityResult } from '#gw2/platform/execution/availability.js';
 import { denySkillCast } from '#gw2/platform/execution/availability.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
@@ -56,7 +57,6 @@ import {
 import { VINDICATOR_JUMP_SKILL } from '#gw2/professions/revenant/data/vindicator-jump.js';
 import { revenantEnergyCost } from '#gw2/professions/revenant/family-state.js';
 import type { RevenantRuntimeState, RevenantSkill } from '#gw2/professions/revenant/types.js';
-import { EPSILON } from '#kernel/core/clock.js';
 
 const DODGE_IDS = new Set<SkillId>([SHARED_SKILL_IDS.DODGE, VINDICATOR_JUMP_SKILL.id]);
 
@@ -106,15 +106,17 @@ function revenantAvailability(
   const cost = revenantEnergyCost(runtime, skill);
   const energy = runtime.resourceController.value('energy');
   const energyReadyAt =
-    energy + EPSILON < cost && core.combatBeganAt == null ? null : runtime.resourceController.readyAt('energy', cost);
+    !resourceAtLeast(energy, cost) && core.combatBeganAt == null
+      ? null
+      : runtime.resourceController.readyAt('energy', cost);
   // A fractional balance can cross a cost between action ticks; wait until the shared grid permits spending it.
-  if (energy + EPSILON < cost || (energyReadyAt != null && energyReadyAt > now + EPSILON)) {
+  if (!resourceAtLeast(energy, cost) || (energyReadyAt != null && energyReadyAt > now)) {
     const cooldownReadyAt = runtime.cooldownController.readyAt(skill.id) || 0;
     return denySkillCast(
       skill,
       'revenant.insufficient-energy',
       `requires ${cost} energy.`,
-      cooldownReadyAt > now + EPSILON ? cooldownReadyAt : energyReadyAt
+      cooldownReadyAt > now ? cooldownReadyAt : energyReadyAt
     );
   }
 

@@ -68,7 +68,6 @@ import {
 } from '#gw2/professions/thief/core/traits/trickery/resource-queries.js';
 import { THIEF_SKILL_IDS as ID } from '#gw2/professions/thief/data/ids.js';
 import type { ThiefRuntimeState, ThiefSkill } from '#gw2/professions/thief/types.js';
-import { EPSILON } from '#kernel/core/clock.js';
 
 /**
  * Core gates for endurance, follow-up windows, spear stages, preparations, stealth replacements, rifle stance, stored
@@ -202,7 +201,7 @@ const coreLifecycle: RuntimeHooks<ThiefRuntimeState, ThiefSkill> = {
   rechargeWork: thiefRechargeWork,
   // A Double Edge recast while recharging keeps the running recharge instead of reserving a new one.
   reserveRecharge: (runtime, skill, work) =>
-    skill.usableWhileRecharging === true && (runtime.cooldownController.readyAt(skill.id) || 0) > runtime.time + EPSILON
+    skill.usableWhileRecharging === true && (runtime.cooldownController.readyAt(skill.id) || 0) > runtime.time
       ? 0
       : work,
   onCastStart(runtime, cast) {

@@ -1,5 +1,5 @@
 import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
-import { EPSILON } from '#kernel/core/clock.js';
+
 /**
  * Evoker cast gating.
  *
@@ -23,7 +23,7 @@ import type { ElementalistRuntime } from '#gw2/professions/elementalist/types.js
 export function availability(context: MechanicQueriesOf<ElementalistRuntime>, skill: Skill): AvailabilityResult {
   const state = evokerState.from(context);
   // Nothing may start until the familiar cast in flight ends.
-  if (state.activeFamiliarCast && context.time < state.activeFamiliarCast.endsAt - EPSILON) {
+  if (state.activeFamiliarCast && context.time < state.activeFamiliarCast.endsAt) {
     return retryCast(
       state.activeFamiliarCast.endsAt,
       'elementalist.evoker-familiar-cast',
@@ -49,8 +49,9 @@ export function availability(context: MechanicQueriesOf<ElementalistRuntime>, sk
       state.empoweredCharges.value < requiredEmpowered &&
       state.familiarCharges.value < state.familiarCharges.maximum
     ) {
+      // Even the next microsecond is future work that can make this command retryable.
       const pending = state.pendingWeaponCompletions
-        .filter((grant) => grant.at > context.time + EPSILON)
+        .filter((grant) => grant.at > context.time)
         .sort((left, right) => left.at - right.at);
       let charges = state.familiarCharges.value;
       for (const grant of pending) {

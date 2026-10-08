@@ -14,7 +14,7 @@ import type { RevenantUpkeepState } from '#gw2/professions/revenant/core/state.j
 import { REVENANT_SKILL_IDS as ID } from '#gw2/professions/revenant/data/ids.js';
 import { revenantEnergyCost } from '#gw2/professions/revenant/family-state.js';
 import type { RevenantSkill } from '#gw2/professions/revenant/types.js';
-import { canonicalTime, EPSILON, timeKey } from '#kernel/core/clock.js';
+import { canonicalTime, timeKey } from '#kernel/core/clock.js';
 
 export const REVENANT_UPKEEP_PULSE = 'revenant.upkeep-pulse';
 
@@ -195,10 +195,10 @@ export function activateRevenantUpkeep(runtime: RevenantRuntime, cast: RuntimeCa
   runtime.resourceController.refresh('energy');
   const release = skill.flipSkillId == null ? null : runtime.helpers.skillsById.get(Number(skill.flipSkillId));
   if (release) armSkillFlip(core.availableFlips, release.id, runtime.time);
-  // Core schedules only its packet producers; specialization cadences own their own deadlines.
+  // Core owns its packet cadence. The next whole second follows the exact canonical activation instant.
   const first =
     skill.id === ID.EMBRACE_THE_DARKNESS
-      ? Math.floor(runtime.time + EPSILON) + 1
+      ? Math.floor(canonicalTime(runtime.time)) + 1
       : VENGEFUL_HAMMERS_IDS.has(skill.id)
         ? runtime.time + Math.max(0, skill.pulseInterval ?? 1)
         : null;

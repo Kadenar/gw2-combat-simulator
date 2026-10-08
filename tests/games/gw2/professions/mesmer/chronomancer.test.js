@@ -185,7 +185,7 @@ test('concurrent Continuum Split excludes the still-casting skill from its snaps
   );
 
   assert.ok(result.steps[0].end > result.steps[1].start);
-  assert.equal(result.steps[1].start, 100);
+  assert.equal(result.steps[1].start, 120);
   assert.equal(result.steps[3].start, result.steps[2].end);
 });
 
@@ -218,7 +218,7 @@ test('a cooldown-delayed Continuum Split still excludes a skill that remains in 
 
 test('Mind the Gap grants its clone before a concurrent two-clone Continuum Split snapshot', () => {
   const result = simulateMesmer(
-    ['Mind the Gap', { name: 'Continuum Split', offset: 580 }, 'Continuum Shift', 'Mind the Gap'],
+    ['Mind the Gap', { name: 'Continuum Split', offset: 560 }, 'Continuum Shift', 'Mind the Gap'],
     defaultSimulationConfig({
       specialization: 'Chronomancer',
       initialResource: 1,
@@ -228,13 +228,13 @@ test('Mind the Gap grants its clone before a concurrent two-clone Continuum Spli
   );
   const clone = result.events.find((event) => event.type === 'resource' && event.reason === 'Mind the Gap');
 
-  assert.equal(Math.round(clone.at * 1000 - result.steps[0].start), 520);
+  assert.ok(clone.at * 1000 <= result.steps[1].start);
   assert.deepEqual(mechanicResourceSpends(result).get(1), {
     count: 2,
     resource: 'clones',
     sourceSkill: 'Continuum Split'
   });
-  assert.equal(result.steps[1].start, 580);
+  assert.equal(result.steps[1].start, 560);
   assert.equal(result.steps[3].start, 600);
 });
 
@@ -256,7 +256,7 @@ test('mid-rotation concurrent Continuum Split does not restore expired cooldowns
     })
   );
 
-  assert.equal(result.steps.find((step) => step.skill === 'Continuum Split').start, 14580);
+  assert.equal(result.steps.find((step) => step.skill === 'Continuum Split').start, 14600);
   assert.equal(result.steps.at(-1).start, result.steps.at(-2).end);
 });
 

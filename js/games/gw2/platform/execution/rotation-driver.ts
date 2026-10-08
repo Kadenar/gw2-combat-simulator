@@ -51,6 +51,8 @@ export function createRotationDriver<T extends object>(
           command.type === 'cast' ? runtime.inputReadyAt : 0,
           skill && !skill.independentCast && Number(skill.castTimeMs) > 0 && !skill.stunbreak ? cursor.selfStunUntil : 0
         );
+        // Every cast enters on an absolute action tick, even after an off-grid wait, overlap, or resource wake.
+        if (command.type === 'cast') nextCommandAt = gw2CooldownReadyAt(nextCommandAt);
         if (nextCommandAt <= runtime.time) {
           advanceFrontier('command');
           if (command.type === 'wait') {

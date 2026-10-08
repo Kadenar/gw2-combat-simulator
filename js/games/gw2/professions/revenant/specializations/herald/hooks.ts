@@ -35,7 +35,7 @@ import {
   syncCompassion
 } from '#gw2/professions/revenant/specializations/herald/traits/behavior.js';
 import type { RevenantRuntimeState, RevenantSkill } from '#gw2/professions/revenant/types.js';
-import { canonicalTime, EPSILON } from '#kernel/core/clock.js';
+import { canonicalTime, canonicalInterval } from '#kernel/core/clock.js';
 
 function facetPulse(runtime: RevenantRuntime, data: unknown): void {
   const { skillId } = data as { skillId: SkillId };
@@ -62,7 +62,7 @@ function facetPulse(runtime: RevenantRuntime, data: unknown): void {
       audience: { recipients: 'party' }
     }
   });
-  const next = canonicalTime(runtime.time + Math.max(EPSILON, skill.pulseInterval ?? 3));
+  const next = canonicalTime(runtime.time + canonicalInterval(skill.pulseInterval ?? 3));
   if (heraldFacetPassiveActive(runtime.profession.core, state, skillId, next))
     scheduleFacetPulse(runtime, skillId, next);
   else state.facetPulseReadyAt[skillId] = next;
@@ -77,7 +77,7 @@ function startFacet(runtime: RevenantRuntime, skill: RevenantSkill): void {
   const consumeId = revenantUpkeepConsumeId(skill, core.activeLegendId);
   if (consumeId != null) armSkillFlip(core.availableFlips, consumeId, runtime.time);
   if (!skill.upkeepPulse) return;
-  scheduleFacetPulse(runtime, skill.id, canonicalTime(runtime.time + Math.max(EPSILON, skill.pulseInterval ?? 3)));
+  scheduleFacetPulse(runtime, skill.id, canonicalTime(runtime.time + canonicalInterval(skill.pulseInterval ?? 3)));
 }
 
 // A committed consume's facet and prior activity are acceptance facts reused at its completion.

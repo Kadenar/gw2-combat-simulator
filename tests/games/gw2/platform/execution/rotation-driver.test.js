@@ -30,7 +30,6 @@ test('GW2 future retries round up to absolute 40 ms ticks without rounding a dea
     [0, 0.0400004, 0.08],
     [0, 0.28, 0.28],
     [0, 1.5, 1.52],
-    [0.039999, 0.0400004, 0.08],
     [9.99995, 10, 10],
     [-0.08, -0.0399996, 0]
   ]) {
@@ -43,6 +42,34 @@ test('GW2 future retries round up to absolute 40 ms ticks without rounding a dea
     assert.deepEqual(accepted, [expected]);
     assert.deepEqual(rejected, []);
   }
+});
+
+// Off-grid state changes can wake the driver, but only an action tick may accept the next command.
+test('ready casts wait for an absolute action tick after off-grid wakes and input recovery', () => {
+  for (const [time, inputReadyAt, expected] of [
+    [0.001, 0, 0.04],
+    [0.04, 0.040001, 0.08]
+  ]) {
+    const { driver, input, accepted, rejected } = retryFixture(time, 0);
+    input.runtime.inputReadyAt = inputReadyAt;
+    assert.equal(driver.advance(input), expected);
+    assert.deepEqual(accepted, []);
+    input.runtime.time = expected;
+    assert.equal(driver.advance(input), 'handled');
+    assert.deepEqual(accepted, [expected]);
+    assert.deepEqual(rejected, []);
+  }
+});
+
+test('an earlier state wake cannot bypass the action tick selected for readiness', () => {
+  const { driver, input, accepted } = retryFixture(0, 0.0400004);
+  assert.equal(driver.advance(input), 0.08);
+  input.runtime.time = 0.060001;
+  assert.equal(driver.advance(input), 0.08);
+  assert.deepEqual(accepted, []);
+  input.runtime.time = 0.08;
+  assert.equal(driver.advance(input), 'handled');
+  assert.deepEqual(accepted, [0.08]);
 });
 
 test('GW2 retry rounding does not repair nonfuture or nonfinite denials', () => {

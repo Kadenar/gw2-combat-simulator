@@ -65,7 +65,7 @@ test('Ashes buff history, expiry cleanup, and planning state share the effect-cl
   assert.deepEqual(result.warnings, []);
   const application = result.events.find((event) => event.kind === 'ashes-of-the-just');
   const [buff] = timedBuffApplicationsAt(result.events, 'ashes-of-the-just', application.at);
-  assert.ok(buff.expiresAt > application.at + application.duration);
+  assert.ok(buff.expiresAt >= application.at + application.duration);
   assert.equal(state(result).ashes.expiresAt, buff.expiresAt);
   assert.equal(result.planningState.profession.ashes.expiresAt, buff.expiresAt);
   assert.equal(state(result).ashes.charges, 0);

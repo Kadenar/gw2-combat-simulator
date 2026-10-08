@@ -1,5 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
+import { availability } from '#gw2/professions/elementalist/specializations/evoker/mechanics/availability.js';
+import { evokerState } from '#gw2/professions/elementalist/specializations/evoker/state.js';
 import { elementalistProfession } from '#gw2/professions/elementalist/profession.js';
 import {
   ELEMENTALIST_SKILL_IDS as ID,
@@ -21,6 +23,20 @@ function run(rotation = [], overrides = {}, profiles = {}, skills = {}) {
   const result = observeGw2Runtime({ profession: { ...native, catalog }, config, rotation });
   return { result, runtime: observedRuntime(result), catalog };
 }
+
+// Pending grants remain retryable until their actual instant; querying readiness cannot spend or grant charges.
+test('Evoker waits for a future charge grant even one microsecond before delivery', () => {
+  const state = evokerState.create();
+  state.familiarCharges.value = 2;
+  state.familiarCharges.maximum = 3;
+  state.empoweredCharges.maximum = 3;
+  state.pendingWeaponCompletions = [{ activationId: 'pending', at: 1.000001, gain: 1 }];
+  const context = { time: 1, profession: { core: {}, specialization: { kind: 'Evoker', state } } };
+  const result = availability(context, { id: ID.IGNITE, name: 'Ignite' });
+  assert.equal(result.ready, false);
+  assert.equal(result.retryAt, 1.000001);
+  assert.equal(state.familiarCharges.value, 2);
+});
 
 test('Evoker policies seed both clocks from isolated caps and project detached values', () => {
   for (const [maximumStacks, minimumStacks] of [

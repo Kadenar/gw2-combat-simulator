@@ -177,7 +177,7 @@ test('weapon spell replacement cancels old opportunities and the old expiry cann
   const result = run(rotation, { config, combatStartTime: 0 });
   assert.deepEqual(
     spellDamage(result, ID.NIGHTMARE_WEAPON).map((event) => event.at),
-    [5.94]
+    [5.96]
   );
   assert.equal(state(result).weaponSpells.nightmare.recipients['ally:1'].charges, 2);
   assert.equal(state(result).weaponSpells.nightmare.generation, 2);
@@ -282,7 +282,7 @@ test('spirit creation commits once and Soul Twisting refunds only the first comp
   const interrupted = run([cast(ID.RITUALISTS_SHROUD), { ...cast(ID.ANGUISH), interruptAfterMs: 100 }], { config });
   assert.deepEqual(state(interrupted).activeSpirits, {});
   assert.equal(state(interrupted).soulTwistingAvailable, true);
-  assert.equal(interrupted.planningState.profession.lifeForce.value, 39.7);
+  assert.equal(interrupted.planningState.profession.lifeForce.value, 39.64);
 });
 
 test('exit preserves committed attacks while autonomous spirit work ends on exit or Lingering depletion', () => {

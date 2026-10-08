@@ -16,7 +16,7 @@ import {
 } from '#gw2/platform/skills/balance-profiles.js';
 import type { RevenantRuntime } from '#gw2/professions/revenant/core/events.js';
 import { REVENANT_TRAIT_IDS as TRAIT } from '#gw2/professions/revenant/data/ids.js';
-import { canonicalTime, EPSILON } from '#kernel/core/clock.js';
+import { canonicalTime, canonicalInterval } from '#kernel/core/clock.js';
 
 /** Owns Assassin's Presence tuning and behavior at its established execution boundaries. */
 export const assassinsPresence = defineTrait({
@@ -216,7 +216,7 @@ export function revenantAssassinsPresencePulse(runtime: RevenantRuntime): void {
   const core = runtime.profession.core;
   runtime.schedule(
     REVENANT_ASSASSINS_PRESENCE,
-    canonicalTime(runtime.time + Math.max(EPSILON, balanceProfileNumber(profile, 'cooldown'))),
+    canonicalTime(runtime.time + canonicalInterval(balanceProfileNumber(profile, 'cooldown'))),
     null,
     { id: REVENANT_ASSASSINS_PRESENCE, generation: core.assassinsPresenceGeneration }
   );

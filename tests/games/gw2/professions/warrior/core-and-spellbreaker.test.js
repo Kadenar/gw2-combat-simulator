@@ -652,8 +652,8 @@ test('Outrage queued after a wait clears the remaining Head Butt self-stun', () 
     broken.steps.filter((step) => step.skillId != null).map((step) => [step.skill, step.start]),
     [
       ['Head Butt', 0],
-      ['Outrage', 877],
-      ['Sundering Leap', 877]
+      ['Outrage', 880],
+      ['Sundering Leap', 880]
     ]
   );
 });
@@ -1239,7 +1239,7 @@ test('Rifle Butt restores rifle ammunition and readies Kill Shot', () => {
     [2, 2, 2]
   );
   assert.equal(result.planningState.cooldowns[ID.KILL_SHOT], undefined);
-  assert.equal(result.planningState.cooldowns[ID.RIFLE_BUTT].remaining, 9620);
+  assert.equal(result.planningState.cooldowns[ID.RIFLE_BUTT].remaining, 9600);
 });
 
 test('Spellbreaker control grants independent Insight stacks and No Escape', () => {

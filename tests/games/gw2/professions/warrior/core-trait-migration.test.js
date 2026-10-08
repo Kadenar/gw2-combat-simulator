@@ -87,7 +87,12 @@ for (const [key, trait, trigger, literalDuration] of [
         assert.deepEqual(result.warnings, []);
         const runtime = observedRuntime(result);
         assert.equal(emitted > 0, expected);
-        assert.equal(runtime.procs.snapshot()[trait], expected ? canonicalTime(at + duration) : 1);
+        assert.equal(
+          runtime.procs.snapshot()[trait],
+          expected
+            ? canonicalTime((trigger === 'swap' ? Math.ceil(canonicalTime(at) / 0.04) * 0.04 : at) + duration)
+            : 1
+        );
         assert.equal(runtime.procs.snapshot()['unrelated'], 99);
       }
     }

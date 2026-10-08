@@ -35,7 +35,7 @@ import {
   rangerPetSkillsRequireCommands
 } from '#gw2/professions/ranger/data/pet-commands.js';
 import type { RangerRuntime, RangerSkill } from '#gw2/professions/ranger/types.js';
-import { EPSILON } from '#kernel/core/clock.js';
+import { canonicalTime } from '#kernel/core/clock.js';
 
 export { RANGER_PET_STRIKE_SCALING } from '#gw2/professions/ranger/core/mechanics/pet-profiles.js';
 
@@ -130,7 +130,7 @@ function schedulePet(context: RangerRuntime, at: number): void {
 export function startRangerPet(context: RangerRuntime): void {
   const state = context.profession.core;
   const profile = rangerPetAutoProfile(state.activePet);
-  if (!state.petActive || !profile || state.petAutoNextAt > context.time + EPSILON) return;
+  if (!state.petActive || !profile || state.petAutoNextAt > context.time) return;
   schedulePet(context, context.time + profile.openingDelay);
 }
 
@@ -286,7 +286,7 @@ function emitPetSkill(
           cast &&
           castWasInterrupted(cast) &&
           (timing || skill.interruptMode === 'per-packet') &&
-          at > cast.effectiveEnd + (start - cast.start) + EPSILON &&
+          canonicalTime(at) > canonicalTime(cast.effectiveEnd + (start - cast.start)) &&
           !effect.persistsAfterInterrupt
         )
           return null;
@@ -304,7 +304,7 @@ function petCommandStart(context: RangerRuntime, skill: RangerSkill): number {
   const interruptsAI = rangerPetSkillsRequireCommands(context.config.specialization || 'Core');
   const opening = interruptsAI ? undefined : profile?.opening || profile?.basic;
   const openingEnd =
-    opening && state.petAutoOpeningBasic && state.petAutoNextAt > context.time + EPSILON
+    opening && state.petAutoOpeningBasic && state.petAutoNextAt > context.time
       ? state.petAutoNextAt +
         petRecovery(opening.id, opening.recovery, petBoonActive(context, 'quickness')) +
         (profile?.openingRecoveryDelay || 0)
@@ -341,7 +341,7 @@ export const rangerPetTasks = {
   [PET_AUTO_TASK](context: RangerRuntime, data: unknown): void {
     const state = context.profession.core;
     if (!state.petActive || state.petAutoNextAt !== data) return;
-    if (context.time < state.petAutoBusyUntil - EPSILON) {
+    if (context.time < canonicalTime(state.petAutoBusyUntil)) {
       schedulePet(context, state.petAutoBusyUntil);
       return;
     }
@@ -448,7 +448,7 @@ export const rangerPetTasks = {
 
     // A queued command must still wait if autonomous work loses Alacrity or another pet action occupies the lane.
     const autoReadyAt = petAutonomousRechargeReadyAt(context, cast.skill.id);
-    if (context.time < state.petAutoBusyUntil - EPSILON || context.time < autoReadyAt) {
+    if (context.time < canonicalTime(state.petAutoBusyUntil) || context.time < autoReadyAt) {
       context.scheduleForCast(
         PET_COMMAND_START_TASK,
         Math.max(state.petAutoBusyUntil, autoReadyAt),

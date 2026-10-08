@@ -153,7 +153,7 @@ test('releasing Conduit upkeep ends both specialization cadences', () => {
   assert.deepEqual(result.warnings, []);
   assert.equal(affinity(result), 1);
   // Relinquish Power is itself an Assassin legend skill; only the upkeep's one-second cadence must stop.
-  assert.deepEqual(daggerTimes(result), [0.1]);
+  assert.deepEqual(daggerTimes(result), [0.12]);
   assert.equal(result.planningState.profession.activeUpkeeps.length, 0);
 });
 

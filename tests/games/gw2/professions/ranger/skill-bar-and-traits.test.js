@@ -1012,14 +1012,16 @@ test('Ranger Wilderness Survival traits cover endurance, poison, and disables', 
     }
   );
 
-  assert.equal(
-    poisonMaster.resolvedEvents
-      .filter(
-        (event) => event.sourceId === TRAIT.POISON_MASTER && event.condition === 'Poisoned' && event.duration === 8
-      )
-      .reduce((sum, event) => sum + event.stacks, 0),
-    2
+  // Every eligible pet activation applies the trait's two-stack package, independent of the observation length.
+  const poisons = poisonMaster.resolvedEvents.filter(
+    (event) => event.sourceId === TRAIT.POISON_MASTER && event.condition === 'Poisoned'
   );
+  assert.ok(poisons.length > 0);
+  assert.ok(poisons.every((event) => event.duration === 8));
+  const grants = new Map();
+  for (const event of poisons)
+    grants.set(event.parentEventOrder, (grants.get(event.parentEventOrder) ?? 0) + event.stacks);
+  assert.ok([...grants.values()].every((stacks) => stacks === 2));
 
   const build = createRangerBuildDefaults();
 

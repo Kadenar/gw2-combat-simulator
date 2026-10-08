@@ -30,7 +30,7 @@ import {
 } from '#gw2/professions/elementalist/data/ids.js';
 import { elementalistAttunementPolicy } from '#gw2/professions/elementalist/family-state.js';
 import type { ElementalistRuntime } from '#gw2/professions/elementalist/types.js';
-import { EPSILON } from '#kernel/core/clock.js';
+import { canonicalTime } from '#kernel/core/clock.js';
 
 function ready(): AvailabilityResult {
   return { ready: true };
@@ -148,8 +148,11 @@ export function elementalistCoreAvailability(
   const hammerElements = HAMMER_ORB_SKILLS[skillId] ? [HAMMER_ORB_SKILLS[skillId]] : null;
   if (hammerElements) {
     const hammerOrbsProfile = requireBalanceProfileFromContext(context, PROFILE.hammerOrbs);
-    const retryAt = state.hammerOrbLastCastAt + balanceProfileNumber(hammerOrbsProfile, 'initialDelay');
-    if (retryAt > context.time + EPSILON) {
+    // The unarmed negative-infinity sentinel stays ready; armed deadlines use the canonical clock.
+    const retryAt = Number.isFinite(state.hammerOrbLastCastAt)
+      ? canonicalTime(state.hammerOrbLastCastAt + balanceProfileNumber(hammerOrbsProfile, 'initialDelay'))
+      : state.hammerOrbLastCastAt;
+    if (retryAt > context.time) {
       return unavailable(
         skill,
         'elementalist.hammer-orb-lockout',

@@ -206,7 +206,7 @@ test('shift-queued Mirror Images after an instant action still grants clones', (
   });
   const result = simulateMesmer(['Feedback', { name: 'Mirror Images', offset: 100 }], config);
 
-  assert.equal(result.planningState.atSeconds * 1000, 100);
+  assert.equal(result.planningState.atSeconds * 1000, 120);
   assert.equal(result.planningState.profession.resource, 2);
 });
 
@@ -236,7 +236,7 @@ test('clones from shift-queued Mirror Images are available to the next shatter',
   const result = simulateMesmer(['Feedback', { name: 'Mirror Images', offset: 100 }, 'Mind Wrack'], config);
 
   assert.equal(result.steps.length, 3);
-  assert.equal(result.steps[2].start, 100);
+  assert.equal(result.steps[2].start, 120);
   assert.equal(result.planningState.profession.resource, 0);
 });
 

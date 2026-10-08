@@ -1,8 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { EPSILON } from '#kernel/core/clock.js';
-
 import { createCanonicalCatalog } from '#gw2/platform/skills/catalog.js';
 import { defineTestProfession } from '#tests/helpers/profession.js';
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
@@ -139,7 +137,7 @@ function contractProfession() {
       },
       tasks: {
         'fixture.persistent-actor': (context) => {
-          if (context.time > context.profession.actorActiveUntil + EPSILON) {
+          if (context.time > context.profession.actorActiveUntil) {
             return;
           }
 
@@ -299,9 +297,9 @@ test('event metadata cannot extend an unrelated condition', () => {
   });
 
   assert.equal(withMetadataBait.conditionDamage, clean.conditionDamage);
-  assert.equal(withMetadataBait.rotationEndTime, 0.2);
+  assert.equal(withMetadataBait.rotationEndTime, 0.24);
   assert.equal(
-    withMetadataBait.resolvedEvents.some((event) => event.at === 2.1),
+    withMetadataBait.resolvedEvents.some((event) => event.at === 2.12),
     false
   );
 });
@@ -324,7 +322,7 @@ test('persistent actors respect lifetime, observation end, and target death', ()
 
   assert.deepEqual(
     tailed.resolvedEvents.filter((event) => event.source === 'Persistent Actor').map((event) => event.at),
-    [1.1, 2.1]
+    [1.12, 2.12]
   );
 
   const longerThanLifetime = simulateGw2({
@@ -336,7 +334,7 @@ test('persistent actors respect lifetime, observation end, and target death', ()
 
   assert.deepEqual(
     longerThanLifetime.resolvedEvents.filter((event) => event.source === 'Persistent Actor').map((event) => event.at),
-    [1.1, 2.1, 3.1, 4.1]
+    [1.12, 2.12, 3.12, 4.12]
   );
 
   const deathClipped = simulateGw2({
@@ -346,9 +344,9 @@ test('persistent actors respect lifetime, observation end, and target death', ()
     observationPolicy: { kind: 'tail', durationMs: 10_000 }
   });
 
-  assert.equal(deathClipped.deathTime, 1.1);
+  assert.equal(deathClipped.deathTime, 1.12);
   assert.deepEqual(
     deathClipped.events.filter((event) => event.source === 'Persistent Actor').map((event) => event.at),
-    [1.1]
+    [1.12]
   );
 });

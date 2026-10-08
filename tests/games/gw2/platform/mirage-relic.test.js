@@ -126,7 +126,7 @@ test('Mirage dodge Torment uses normal duration scaling and stops when there are
   );
   assert.deepEqual(
     applications.map((event) => event.at),
-    [0, 0, 1.001, 1.001]
+    [0, 0, 1.04, 1.04]
   );
   assert.ok(applications.every((event) => event.effectiveDuration === 9));
   assert.ok(result.breakdown.some((entry) => entry.name.includes('Relic of the Mirage') && entry.conditionDamage > 0));

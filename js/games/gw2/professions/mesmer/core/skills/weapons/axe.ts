@@ -3,7 +3,7 @@ import {
   mesmerPacketOwner,
   buildMesmerConditions
 } from '#gw2/professions/mesmer/core/mechanics/packets.js';
-import { EPSILON } from '#kernel/core/clock.js';
+import { canonicalTime } from '#kernel/core/clock.js';
 import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
 import { axeCloneAttack } from '#gw2/professions/mesmer/core/skills/weapons/axe-clone.js';
 import { mesmerCastDelivery } from '#gw2/professions/mesmer/core/execution/cast-lifecycle.js';
@@ -172,7 +172,7 @@ export function scheduleAxesClones(state: MesmerRuntime, cast: RuntimeCast<Mesme
   {
     const delivery = mesmerCastDelivery(cast, skill);
     const axeClones = professionCoreState(state).clones.filter(
-      (clone) => clone.weapon === 'Axe' && clone.createdAt <= castStart + EPSILON
+      (clone) => clone.weapon === 'Axe' && canonicalTime(clone.createdAt) <= canonicalTime(castStart)
     );
     for (const clone of axeClones) {
       const impactAt = at - 0.04;
@@ -237,7 +237,9 @@ export function completeAxesConfusion(state: MesmerRuntime, cast: RuntimeCast<Me
   {
     const delivery = mesmerCastDelivery(cast, skill);
     // The non-Mirage variant adds one Confusion stack per cast-start clone; its declarative packet covers the player.
-    const clones = professionCoreState(state).clones.filter((clone) => clone.createdAt <= castStart + EPSILON);
+    const clones = professionCoreState(state).clones.filter(
+      (clone) => canonicalTime(clone.createdAt) <= canonicalTime(castStart)
+    );
     if (clones.length) {
       buildMesmerConditions(
         state,

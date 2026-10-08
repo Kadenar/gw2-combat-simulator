@@ -128,7 +128,7 @@ test('Light Aura refreshes on the effect clock and can be consumed only once bef
 test('Effulgent counts the final live microsecond but excludes its exact detonation timestamp', () => {
   const result = runGuardian([wait(1), ID.EFFULGENT_STANCE, wait(4100)], config, {
     initialize: (runtime) => {
-      for (const at of [4.000999, 4.001, 4.001001])
+      for (const at of [4.039999, 4.04, 4.040001])
         runtime.effects.emit({
           kind: 'packet',
           event: {
@@ -144,7 +144,7 @@ test('Effulgent counts the final live microsecond but excludes its exact detonat
     }
   });
   const detonation = result.resolvedEvents.find((event) => event.skillId === ID.EFFULGENT_STANCE_DAMAGE);
-  assert.equal(detonation.at, 4.001);
+  assert.equal(detonation.at, 4.04);
   assert.equal(detonation.coefficient, 0.85);
   assert.equal(state(result).effulgentActiveUntil, 0);
   assert.equal(state(result).effulgentStacks, 0);
@@ -154,9 +154,9 @@ test('Radiant Forge exits exactly once at its canonical form deadline', () => {
   const result = runGuardian([wait(1), ID.ENTER_RADIANT_FORGE, wait(20001)], config);
   const exits = result.events.filter((event) => event.type === 'weapon_set' && event.skillId === ID.EXIT_RADIANT_FORGE);
   assert.equal(exits.length, 1);
-  assert.equal(exits[0].at, 20.001);
+  assert.equal(exits[0].at, 20.04);
   assert.equal(state(result).radiantForge, false);
-  assert.equal(observedRuntime(result).cooldownController.readyAt(ID.ENTER_RADIANT_FORGE), 24.001);
+  assert.equal(observedRuntime(result).cooldownController.readyAt(ID.ENTER_RADIANT_FORGE), 24.04);
 });
 
 test('spear illumination expires before accepting a cast at its deadline', () => {

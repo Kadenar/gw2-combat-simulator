@@ -219,7 +219,7 @@ test('elemental boon candidacy includes the final impact timestamp without an ep
 
 test('Hurl consumes the barrier before expiry while its released projectiles finish afterward', () => {
   const result = runElementalist(
-    [ID.ROCK_BARRIER, { type: 'wait', durationMs: 29999 }, ID.HURL],
+    [ID.ROCK_BARRIER, { type: 'wait', durationMs: 29960 }, ID.HURL],
     { specialization: 'Core', primaryWeapon: 'Scepter', startAttunement: 'Earth' },
     { profession: elementalistProfession, observation: { kind: 'tail', durationMs: 2000 } }
   );

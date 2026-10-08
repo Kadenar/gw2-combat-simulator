@@ -128,7 +128,7 @@ test('fractional marker boundaries use exact activation seconds instead of round
     { type: 'wait', durationMs: 1000 }
   ]);
   assert.equal(metrics.actionCount, 1);
-  assert.equal(metrics.durationSeconds, 1);
+  assert.equal(metrics.durationSeconds, 1.36 - 0.333333);
 });
 
 test('empty, zero-duration, endpoint instant, and autoattack-only rotations have finite accounting', () => {
@@ -149,8 +149,8 @@ test('rolling 5s and 10s windows report sustained peaks with their actual timest
     { type: 'wait', durationMs: 8500 }
   ];
   const { metrics } = analyze(rotation);
-  assert.deepEqual(metrics.peak5s, { startSeconds: 7.5, endSeconds: 12.5, actionCount: 12, apm: 144 });
-  assert.deepEqual(metrics.peak10s, { startSeconds: 7.5, endSeconds: 17.5, actionCount: 12, apm: 72 });
+  assert.deepEqual(metrics.peak5s, { startSeconds: 7.52, endSeconds: 12.52, actionCount: 12, apm: 144 });
+  assert.deepEqual(metrics.peak10s, { startSeconds: 7.52, endSeconds: 17.52, actionCount: 12, apm: 72 });
   assert.equal(analyze(['Replacement']).metrics.peak5s, null);
   assert.equal(analyze([{ type: 'wait', durationMs: 5000 }]).metrics.peak10s, null);
   assert.equal(analyze(Array(10).fill('Standalone auto')).metrics.peak10s.apm, 0);

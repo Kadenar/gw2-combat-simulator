@@ -1,4 +1,4 @@
-import { EPSILON } from '#kernel/core/clock.js';
+import { canonicalTime } from '#kernel/core/clock.js';
 import { castRelativeEffectTimingScale } from '#gw2/platform/execution/cast-timing.js';
 import { THIEF_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/thief/core/profiles.js';
 /** Canonical Core thief skill fragments grouped by their GW2 owner. */
@@ -101,7 +101,7 @@ export const THIEF_WEAPONS_PISTOL_SKILL_MECHANICS: Readonly<Record<number, Parti
             bullets.timingScale === 'cast'
               ? castRelativeEffectTimingScale(cast.skill, (cast.fullEnd - cast.start) * 1000)
               : 1;
-          return Number.isFinite(offset) && cast.effectiveEnd + EPSILON >= cast.start + (offset * scale) / 1000;
+          return Number.isFinite(offset) && cast.effectiveEnd >= canonicalTime(cast.start + (offset * scale) / 1000);
         },
         do: {
           type: 'resourceGrant',

@@ -1,5 +1,5 @@
 /** Aristocracy relic rules. */
-import { EPSILON, isTimeInWindow } from '#kernel/core/clock.js';
+import { isTimeInWindow, canonicalTime } from '#kernel/core/clock.js';
 import { isInternalCooldownReady } from '#gw2/platform/combat/procs/registry.js';
 import { isGw2PlayerActorEvent } from '#gw2/platform/combat/state/event-ownership.js';
 import { missesTarget } from '#gw2/platform/combat/state/targets.js';
@@ -81,7 +81,7 @@ function aristocracyActivationAt(state: AristocracyState, at: number): Aristocra
 export const aristocracy = defineRelic({
   createState: createAristocracyState,
   condition(ctx, state, event) {
-    if (ctx.combatStartTime != null && event.at < ctx.combatStartTime - EPSILON) return;
+    if (ctx.combatStartTime != null && canonicalTime(event.at) < canonicalTime(ctx.combatStartTime)) return;
     // Accepted applications own the stack claim and report; isolated previews seed their own activation window.
     const activation = applyAristocracyTrigger(state as AristocracyState, event);
     if (activation)

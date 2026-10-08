@@ -60,8 +60,7 @@ export function castRelativeEffectTimingScale(skill: Skill, runtimeCastMs: numbe
   const referenceMs = referenceCastTimeMs(skill);
   if (!(referenceMs > 0)) return 1;
   const runtimeMs = Math.max(0, runtimeCastMs);
-  // Keep the measured runtime ratio even at nominal 1:1 speed. Its tiny
-  // clock-rounding residue preserves event ordering at exact packet boundaries.
+  // Preserve the runtime ratio while projecting packets; the materializer canonicalizes their absolute deadlines.
   return runtimeMs / referenceMs;
 }
 

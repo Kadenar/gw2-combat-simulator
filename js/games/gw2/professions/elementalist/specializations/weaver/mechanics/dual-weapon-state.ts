@@ -1,6 +1,6 @@
 import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
 import type { RuntimeProfession } from '#gw2/platform/profession-definition/runtime-contract.js';
-import { EPSILON } from '#kernel/core/clock.js';
+import { canonicalTime } from '#kernel/core/clock.js';
 /**
  * Owns Weaver dual-weapon state behavior for hammer orbs and pistol bullets.
  * The cataloged weapon fragments live in
@@ -74,8 +74,11 @@ export function weaverHammerAvailability(
   const state = professionCoreState(context);
   const hammerOrbsProfile = requireBalanceProfileFromContext(context, CORE_PROFILE.hammerOrbs);
   // Every dual hammer skill shares one short lockout after the last orb cast.
-  const retryAt = state.hammerOrbLastCastAt + balanceProfileNumber(hammerOrbsProfile, 'initialDelay');
-  if (retryAt > context.time + EPSILON) {
+  // The unarmed negative-infinity sentinel stays ready; armed deadlines use the canonical clock.
+  const retryAt = Number.isFinite(state.hammerOrbLastCastAt)
+    ? canonicalTime(state.hammerOrbLastCastAt + balanceProfileNumber(hammerOrbsProfile, 'initialDelay'))
+    : state.hammerOrbLastCastAt;
+  if (retryAt > context.time) {
     return retryCast(
       retryAt,
       'elementalist.hammer-orb-lockout',

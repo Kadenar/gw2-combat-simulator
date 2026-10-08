@@ -23,7 +23,7 @@ import {
 } from '#gw2/professions/revenant/specializations/herald/profiles.js';
 import { heraldState } from '#gw2/professions/revenant/specializations/herald/state.js';
 import type { RevenantSkill } from '#gw2/professions/revenant/types.js';
-import { canonicalTime, EPSILON } from '#kernel/core/clock.js';
+import { canonicalTime, canonicalInterval } from '#kernel/core/clock.js';
 
 /** Adds Core Value after the skill-authored boon extension. */
 export function coreValueExtension(runtime: RevenantRuntime): number {
@@ -108,7 +108,7 @@ export function grantCompassion(runtime: RevenantRuntime): void {
   });
   runtime.procs.setDeadline(
     'revenant.herald.elevatedCompassion',
-    canonicalTime(runtime.time + Math.max(EPSILON, balanceProfileNumber(profile, 'cooldown')))
+    canonicalTime(runtime.time + canonicalInterval(balanceProfileNumber(profile, 'cooldown')))
   );
 }
 
@@ -127,7 +127,7 @@ export function syncCompassion(runtime: RevenantRuntime): void {
 
   if (state.elevatedCompassionPulseAt != null && state.elevatedCompassionPulseAt >= runtime.time) return;
   const readyAt = Math.max(runtime.time, runtime.procs.deadline('revenant.herald.elevatedCompassion') || 0);
-  if (readyAt <= runtime.time + EPSILON) {
+  if (readyAt <= runtime.time) {
     grantCompassion(runtime);
     scheduleCompassion(runtime, runtime.procs.deadline('revenant.herald.elevatedCompassion'));
   } else scheduleCompassion(runtime, readyAt);

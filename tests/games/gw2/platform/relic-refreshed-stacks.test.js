@@ -9,6 +9,20 @@ function fixture(name, config = {}) {
   return { ...captured, relic: createRelicRuntime(name), config };
 }
 
+// A grant one canonical microsecond in the future cannot affect stats or leak into a completed report.
+test('Thorns and Nourys respect exact grant and reporting boundaries', () => {
+  const context = fixture('Thorns');
+  assert.equal(invokeRelicHook(context, 'conditionDamageBonus', 2.999999), 0);
+  assert.equal(invokeRelicHook(context, 'conditionDamageBonus', 3), 30);
+  for (const name of ['Thorns', 'Nourys']) {
+    const before = fixture(name);
+    invokeRelicHook(before, 'passiveTimeline', 2.999999);
+    assert.deepEqual(before.announcements, []);
+    invokeRelicHook(before, 'passiveTimeline', 3);
+    assert.equal(before.announcements.length, 1);
+  }
+});
+
 test('Thief relic refreshes all stacks at cap and rejects hits outside its weapon trigger', () => {
   const context = fixture('Thief');
   const skill = { type: 'Weapon', cooldown: 5 };

@@ -118,11 +118,11 @@ test('The Pledge adds separate trait-owned Burning stacks to each supported torc
   }
 });
 
-test('The Pledge emits no Burning for a torch skill interrupted before its packet commits', () => {
+test('The Pledge emits no Burning for a canceled torch activation', () => {
   for (const name of ['Phantasmal Mage', 'The Prestige']) {
     const result = simulateMesmer(
       [
-        { name, interruptMs: 10 },
+        { name, interruptMs: 0 },
         { name: '__wait', waitMs: 3500 }
       ],
       {

@@ -677,10 +677,10 @@ test('guild combat activation starts parallel streams once and replacement retir
   const packets = guildPackets(replaced);
   assert.deepEqual(
     packets.filter((event) => event.at > 2 && event.at < 3.5).map((event) => event.at),
-    [2.25, 2.75, 3.25]
+    [2.28, 2.78, 3.28]
   );
   assert.equal(new Set(packets.map((event) => event.activationId)).size, packets.length);
-  assert.ok(packets.every((event) => event.at < 8.25));
+  assert.ok(packets.every((event) => event.at < 8.28));
 });
 
 // Selected owners honor disabled previews, live patch data, and conditional build assumptions.

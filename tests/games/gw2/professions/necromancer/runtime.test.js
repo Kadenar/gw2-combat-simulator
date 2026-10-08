@@ -1324,9 +1324,9 @@ test('signet passives sample current recharge and only real shrouds enable Signe
 
 test('Eternal Life resumes at its original boundary after a shroud interval', () => {
   const config = { ...base, initialResource: 10, selectedTraitIds: [TRAIT.ETERNAL_LIFE] };
-  const during = simulate([cast(ID.REAPERS_SHROUD), wait(1500)], config);
+  const during = simulate([cast(ID.REAPERS_SHROUD), wait(1520)], config);
   assert.equal(observedRuntime(during).profession.core.passiveNextAt['eternal-life'], 2);
-  const rotation = [cast(ID.REAPERS_SHROUD), wait(1500), cast(ID.EXIT_REAPERS_SHROUD), wait(500)];
+  const rotation = [cast(ID.REAPERS_SHROUD), wait(1520), cast(ID.EXIT_REAPERS_SHROUD), wait(480)];
   const result = simulate(rotation, config);
   assert.equal(result.planningState.profession.activeShroud, '');
   assert.equal(result.planningState.profession.lifeForce.value, during.planningState.profession.lifeForce.value + 3);

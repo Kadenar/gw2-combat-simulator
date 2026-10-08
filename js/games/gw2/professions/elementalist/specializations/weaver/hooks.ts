@@ -60,7 +60,7 @@ import type {
   ElementalistRuntimeState,
   ElementalistSkill
 } from '#gw2/professions/elementalist/types.js';
-import { EPSILON } from '#kernel/core/clock.js';
+import { canonicalTime } from '#kernel/core/clock.js';
 
 const WEAVER_DUAL_ATTUNEMENT_RECHARGE_SECONDS = 4;
 // Seed the off-hand element from the build (falling back to the starting
@@ -148,7 +148,7 @@ function onAcceptedEvent(context: ElementalistRuntime, event: SimulationEvent): 
   applyElementsOfRageAttunement(context, event, undefined);
   applyWeaveSelfAttunement(context, at, target, source, sourceId, undefined);
   // Pre-combat setup swaps must not generate trait procs.
-  if (at < (context.combatStartTime || 0) - EPSILON) return;
+  if (canonicalTime(at) < (context.combatStartTime || 0)) return;
   applyWeaversProwess(context, event, undefined);
   // A normal Weaver swap moves both hands and so counts as two attunement
   // changes; under Unravel the hands move together and it counts as one.

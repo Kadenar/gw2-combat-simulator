@@ -7,7 +7,7 @@ import { THIEF_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/thie
 import { SIGNET_INITIATIVE } from '#gw2/professions/thief/core/traits/critical-strikes/index.js';
 import { THIEF_SKILL_IDS as ID } from '#gw2/professions/thief/data/ids.js';
 import type { ThiefRuntimeState, ThiefSkill } from '#gw2/professions/thief/types.js';
-import { canonicalTime, EPSILON } from '#kernel/core/clock.js';
+import { canonicalTime } from '#kernel/core/clock.js';
 
 // The prepared field's five packets begin after the activation-to-damage delay observed in EVTC.
 const THOUSAND_NEEDLES_INITIAL_DELAY_MS = 280;
@@ -486,7 +486,7 @@ function restartThiefInfiltratorsSignet(runtime: ThiefRuntime): void {
 function thiefInfiltratorsSignetPulse(runtime: ThiefRuntime, data: unknown): void {
   const core = runtime.profession.core;
   if ((data as { at: number }).at !== core.infiltratorsSignetPulseAt) return;
-  if ((runtime.cooldownController.readyAt(ID.INFILTRATORS_SIGNET) || 0) <= runtime.time + EPSILON)
+  if ((runtime.cooldownController.readyAt(ID.INFILTRATORS_SIGNET) || 0) <= runtime.time)
     runtime.resourceController.grant('initiative', 1);
   restartThiefInfiltratorsSignet(runtime);
 }

@@ -75,7 +75,7 @@ function internalCooldownClaims(traitId, action, duration, catalog) {
       initialize(runtime) {
         runtime.procs.setDeadline('unrelated', 99);
       },
-      probes: [1.0005, 1 + duration + 0.0005, 1 + duration + 0.0015].map((at) => [
+      probes: [1.0005, 1 + duration + 0.0005, 1 + duration + 0.0405].map((at) => [
         at,
         (runtime) => readyAt.push({ ...runtime.procs.snapshot() })
       ])
@@ -113,7 +113,7 @@ for (const [name, traitId, action, catalog, procs] of [
       // The first claim holds through the boundary cast; the strictly later cast claims again.
       assert.equal(readyAt[0][traitId], 1 + duration);
       assert.equal(readyAt[1][traitId], 1 + duration);
-      assert.equal(readyAt[2][traitId], 1 + duration + 0.001 + duration);
+      assert.equal(readyAt[2][traitId], 1 + duration + 0.04 + duration);
       for (const claims of readyAt) assert.equal(claims.unrelated, 99);
       if (procs) assert.equal(procs(result), 2);
     }

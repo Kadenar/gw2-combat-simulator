@@ -245,8 +245,8 @@ test('Master of Misdirection reduces shatter cooldowns by 15%', () => {
     })
   );
 
-  assert.ok(Math.abs(result.steps.find((step) => step.skillId != null).start - 2010) < 1e-9);
-  assert.equal(result.planningState.cooldowns[ID.CONTINUUM_SPLIT].readyAt, 61520);
+  assert.ok(Math.abs(result.steps.find((step) => step.skillId != null).start - 2040) < 1e-9);
+  assert.equal(result.planningState.cooldowns[ID.CONTINUUM_SPLIT].readyAt, 61560);
 });
 
 test('Chronomancer shatter-boon traits count the mesmer and scale per shattered clone', () => {
@@ -460,13 +460,13 @@ test('clones do not inherit permanent Might while phantasms remain player-owned'
   assert.ok(illusionDamage(withMight, 'Phantasm') > illusionDamage(withoutMight, 'Phantasm'));
 });
 
-test('Shift+click timeline form casts an instant skill 100ms into the prior cast', () => {
+test('Shift+click timeline form schedules a concurrent instant skill on the next action tick', () => {
   const result = simulateMesmer(
     ['Bladecall', { name: 'Bladesong Distortion', offset: 100 }],
     defaultSimulationConfig()
   );
 
-  assert.equal(result.steps[1].start, 100);
+  assert.equal(result.steps[1].start, 120);
   assert.equal(result.planningState.atSeconds * 1000, 440);
   assert.equal(result.planningState.cooldowns[ID.BLADESONG_DISTORTION].readyAt, 40120);
 });

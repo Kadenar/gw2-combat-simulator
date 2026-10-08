@@ -97,9 +97,9 @@ test('Flow Stabilizer reads accumulated self Fury and excludes its own activatio
 // Neither a future application nor an expired pooled boon can grant the conditional resource.
 test('Flow Stabilizer uses exact Fury application and expiry boundaries', () => {
   for (const [at, expected] of [
-    [0.999999, 0],
+    [0.96, 0],
     [1, 15],
-    [1.999999, 15],
+    [1.96, 15],
     [2, 0]
   ]) {
     assert.equal(stabilizedFlow(at, [{ at: 1, duration: 1, activationId: 'prior' }]), expected, 'cast at ' + at);

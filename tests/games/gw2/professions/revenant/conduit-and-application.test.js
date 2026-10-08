@@ -476,7 +476,7 @@ test('Form of the Mesmer modifies Demon skill costs and Banish cooldown', () => 
   assert.equal(expiringDuringCast.warnings.length, 0);
   assert.deepEqual(
     expiringDuringCast.steps.filter((step) => step.skill === 'Banish Enchantment').map((step) => step.start),
-    [0, 6740, 11200]
+    [0, 6760, 11200]
   );
   // Replaying each prefix exposes the reservation left by that cast; the post-expiry cast adds none.
   const expiringRotation = [
@@ -498,7 +498,7 @@ test('Form of the Mesmer modifies Demon skill costs and Banish cooldown', () => 
         SKILL.BANISH_ENCHANTMENT
       )
     ),
-    [4.44, 11.18, 11.18]
+    [4.44, 11.2, 11.2]
   );
 
   const blockedAnguish = simulate('Conduit', ['Cosmic Wisdom', 'Call to Anguish'], {
@@ -830,7 +830,7 @@ test('Twin Moon Sweep resolves both attackers and legend resonance', () => {
     boons: { quickness: true }
   });
 
-  assert.equal(swappedBeforeImpact.steps[1].start, 100);
+  assert.equal(swappedBeforeImpact.steps[1].start, 120);
   assert.equal(swappedBeforeImpact.planningState.profession.affinity.value, 2);
 });
 

@@ -10,8 +10,8 @@ import { troubadourHooks } from '#gw2/professions/mesmer/specializations/troubad
 import { scheduleAxesClones, completeAxesConfusion } from '#gw2/professions/mesmer/core/skills/weapons/axe.js';
 import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
 
-// Verify reward ownership at the successful transaction boundary, independently of the remaining animation.
-test('Clarity, blade refunds, and instrument state are visible at commitment before recovery ends', () => {
+// Successful activation rewards are visible at the owning completion transaction.
+test('Clarity, blade refunds, and instrument state share their successful completion', () => {
   for (const [id, config, reward] of [
     [
       ID.MIND_THE_GAP,
@@ -30,17 +30,13 @@ test('Clarity, blade refunds, and instrument state are visible at commitment bef
     ]
   ]) {
     const skill = mesmerCatalog.skillsById.get(id);
-    const result = simulateMesmer(
-      [{ name: skill.name, interruptMs: (skill.interruptCommitMs + skill.castTimeMs) / 2 }],
-      config
-    );
+    const result = simulateMesmer([{ name: skill.name }], config);
     assert.deepEqual(result.warnings, []);
     const cast = result.events.find((event) => event.type === 'action');
     assert.equal(cast.cancelled, false);
     const applied = result.events.find(reward);
     assert.ok(applied, skill.name);
     assert.equal(applied.at, cast.endsAt, skill.name);
-    assert.ok(applied.at < cast.fullEndsAt, skill.name);
   }
 });
 

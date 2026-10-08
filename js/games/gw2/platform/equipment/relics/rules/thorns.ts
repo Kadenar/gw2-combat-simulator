@@ -1,4 +1,4 @@
-import { EPSILON } from '#kernel/core/clock.js';
+import { timeKey } from '#kernel/core/clock.js';
 import {
   activeRefreshedStacks,
   grantRefreshedStacks,
@@ -20,10 +20,9 @@ const THORNS_DURATION = 30;
  */
 function thornsBuffAt(at: number, configuredInitialStacks: unknown = 0): RefreshedStacks {
   const initial = Math.min(THORNS_MAX_STACKS, Math.max(0, Math.trunc(Number(configuredInitialStacks) || 0)));
-  const grants =
-    at < THORNS_FIRST_STACK_AT - EPSILON
-      ? 0
-      : 1 + Math.floor((at - THORNS_FIRST_STACK_AT + EPSILON) / THORNS_STACK_INTERVAL);
+  // Count only elapsed grants using integer clock units; a future grant cannot improve current damage.
+  const elapsed = timeKey(at) - timeKey(THORNS_FIRST_STACK_AT);
+  const grants = elapsed < 0 ? 0 : 1 + Math.floor(elapsed / timeKey(THORNS_STACK_INTERVAL));
   const lastGrantAt = grants > 0 ? THORNS_FIRST_STACK_AT + (grants - 1) * THORNS_STACK_INTERVAL : 0;
   return grantRefreshedStacks(
     { stacks: 0, expiresAt: 0 },
@@ -58,7 +57,7 @@ export const thorns = defineRelic({
     const initial = thornsBuffAt(0, ctx.config.initialThornsStacks);
     if (initial.stacks > 0) reportThornsBuff(ctx, initial, 0, 'Initial state');
     // Continue refreshing after reaching the cap; otherwise finite reporting windows would expire during the assumption.
-    for (let at = THORNS_FIRST_STACK_AT; at <= rotationEndTime + EPSILON; at += THORNS_STACK_INTERVAL) {
+    for (let at = THORNS_FIRST_STACK_AT; timeKey(at) <= timeKey(rotationEndTime); at += THORNS_STACK_INTERVAL) {
       reportThornsBuff(ctx, thornsBuffAt(at, ctx.config.initialThornsStacks), at, 'Incoming enemy hit');
     }
   },

@@ -1,7 +1,7 @@
 import type { EffectDelivery } from '#gw2/platform/effects/emission.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import { gw2EffectExpiresAt } from '#gw2/platform/effects/timing.js';
-import { EPSILON } from '#kernel/core/clock.js';
+import { canonicalTime } from '#kernel/core/clock.js';
 /**
  * Owns Weave Self activation, Perfect Weave state, and attunement recharge changes.
  * Skill fragments remain in `skills/slot-skills.ts`.
@@ -17,6 +17,7 @@ import { WEAVER_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/elementa
 import { weaverState } from '#gw2/professions/elementalist/specializations/weaver/state.js';
 import type { ElementalistRuntime, ElementalistSkill } from '#gw2/professions/elementalist/types.js';
 export const WEAVE_SELF_ACTIVATION_TASK = 'elementalist.weave-self-activation';
+
 /** Schedules Weave Self at its profiled mid-cast activation point. */
 export function startWeaveSelfCast(
   context: ElementalistRuntime,
@@ -25,7 +26,8 @@ export function startWeaveSelfCast(
 ): void {
   const resourcesProfile = requireBalanceProfileFromContext(context, PROFILE.resources);
   const at = cast.start + (cast.fullEnd - cast.start) * balanceProfileNumber(resourcesProfile, 'firstPacketRatio');
-  if (at > cast.effectiveEnd + EPSILON) return;
+  // Activation must occur within the cast lifetime, including its exact final instant.
+  if (canonicalTime(at) > cast.effectiveEnd) return;
   context.schedule(WEAVE_SELF_ACTIVATION_TASK, at, skill.id, { id: cast.id, generation: 0 });
 }
 

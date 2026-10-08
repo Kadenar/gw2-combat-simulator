@@ -2,7 +2,7 @@ import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-h
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import type { RevenantRuntime } from '#gw2/professions/revenant/core/events.js';
 import type { RevenantRuntimeState, RevenantSkill } from '#gw2/professions/revenant/types.js';
-import { canonicalTime } from '#kernel/core/clock.js';
+import { canonicalTime, timeKey } from '#kernel/core/clock.js';
 import { armSkillFlip, consumeSkillFlip } from '#gw2/platform/execution/skill-flips.js';
 import type { StrikeEffect } from '#gw2/platform/effects/types.js';
 import { buildResolverCondition, buildResolverStrike } from '#gw2/platform/effects/packet-builders.js';
@@ -220,9 +220,15 @@ function detonateAura(runtime: RevenantRuntime, activationId?: string): void {
   const skill = auraSkill(runtime);
   const final = skill.effects?.find((effect) => effect.type === 'strike' && effect.name === 'Final Damage');
   if (final?.type !== 'strike') throw new Error('Blossoming Aura is missing its final strike.');
+  // Integer clock arithmetic counts only completed fuse intervals at detonation.
   const stacks = Math.min(
     3,
-    Math.max(0, Math.floor((runtime.time - expiresAt + Number(skill.duration) + 1e-9) / Number(skill.pulseInterval)))
+    Math.max(
+      0,
+      Math.floor(
+        (timeKey(runtime.time) - timeKey(expiresAt - Number(skill.duration))) / timeKey(Number(skill.pulseInterval))
+      )
+    )
   );
   const common = {
     at: runtime.time,

@@ -9,7 +9,7 @@
  * an explicitly named rule; that rule can discard either an existing stack or the incoming grant.
  *
  * The comparison is strict (`expiresAt > at`); a stack expiring exactly at `at` is gone. Callers that
- * need an epsilon tolerance own that decision and must not push it down here.
+ * need inclusive expiry own that decision and must not extend the canonical deadline.
  */
 
 import { boundedInteger } from '#kernel/core/numeric.js';

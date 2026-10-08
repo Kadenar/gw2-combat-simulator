@@ -36,7 +36,7 @@ test('native wells and uncommitted interrupted effects obey caller observation',
 
   const projectile = simulateNecromancer(
     'Reaper',
-    [{ name: 'Grasping Darkness', interruptAfterMs: 100 }, 'Death Spiral', 'Gravedigger'],
+    [{ name: 'Grasping Darkness', interruptAfterMs: 0 }, 'Death Spiral', 'Gravedigger'],
     { primaryWeapon: 'Greatsword', boons: { quickness: true } }
   );
   const projectileHit = projectile.resolvedEvents.find(

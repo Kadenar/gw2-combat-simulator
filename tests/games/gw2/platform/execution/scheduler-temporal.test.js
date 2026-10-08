@@ -245,7 +245,7 @@ test('tasks during a cast run before a later concurrent command', () => {
   assert.deepEqual(scheduled.planningState.profession.log, ['task', 'concurrent-start']);
   assert.deepEqual(
     scheduled.steps.map((step) => step.start),
-    [0, 500]
+    [0, 520]
   );
 });
 
@@ -266,16 +266,16 @@ test('consecutive concurrent casts chain offsets from the preceding cast', () =>
       .map((event) => [event.skillName, Math.round(event.at * 1000)]),
     [
       ['Long Cast', 0],
-      ['Gated Cast', 500],
-      ['Instant Cast', 600]
+      ['Gated Cast', 520],
+      ['Instant Cast', 640]
     ]
   );
   assert.deepEqual(
     scheduled.steps.map((step) => [step.ri, step.skill, step.start]),
     [
       [0, 'Long Cast', 0],
-      [1, 'Gated Cast', 500],
-      [2, 'Instant Cast', 600]
+      [1, 'Gated Cast', 520],
+      [2, 'Instant Cast', 640]
     ]
   );
   assert.deepEqual(scheduled.warnings, []);
@@ -414,7 +414,7 @@ test('queued instant casts use the combat marker when their requested overlap ha
     [
       ['Fixture Slash', 0],
       ['Combat Start', 500],
-      ['Fixture Charge', 500]
+      ['Fixture Charge', 520]
     ]
   );
 });

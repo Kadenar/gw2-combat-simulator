@@ -39,8 +39,8 @@ test('boon grants round durations to milliseconds and expirations up to action t
   assert.deepEqual(
     result.events.filter((event) => event.type === 'buff').map((event) => [event.kind, event.at, event.duration]),
     [
-      ['might', 0.375, 0.667],
-      ['custom', 0.375, 1.01]
+      ['might', 0.4, 0.667],
+      ['custom', 0.4, 1.01]
     ]
   );
   for (const kind of GW2_STANDARD_BOONS) {

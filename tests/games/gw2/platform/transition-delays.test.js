@@ -38,7 +38,7 @@ test('instant, concurrent, and independent inputs cannot bypass transition recov
   for (const command of ['Instant', { type: 'cast', skillId: 3, concurrentOffsetMs: 20 }, 'Independent input']) {
     const result = simulate(['Swap Weapons', command]);
     assert.deepEqual(result.warnings, []);
-    assert.equal(result.steps[1].start, 100);
+    assert.equal(result.steps[1].start, 120);
   }
 });
 
@@ -51,7 +51,7 @@ test('logged legacy waits and canonical waits count toward recovery instead of a
       const rotation = ['Swap Weapons', wait, 'Next cast'];
       const before = structuredClone(rotation);
       const result = simulate(rotation);
-      assert.equal(result.steps[2].start, Math.max(waitMs, 100));
+      assert.equal(result.steps[2].start, Math.ceil(Math.max(waitMs, 100) / 40) * 40);
       assert.equal(result.steps[1].start, 0);
       assert.equal(result.steps[1].end, waitMs);
       assert.deepEqual(rotation, before);
@@ -137,7 +137,7 @@ test('live form entry blocks the next authored input until its recovery ends', (
     });
     assert.deepEqual(result.warnings, [], specialization);
     const follow = result.events.find((event) => event.type === 'action' && event.name === exit);
-    assert.equal(follow.at, transitions[kind] / 1000, specialization);
+    assert.equal(follow.at, Math.ceil(transitions[kind] / 40) * 0.04, specialization);
   }
 });
 
@@ -188,7 +188,11 @@ test('transition recovery is occupied timeline time without an injected Wait sha
     result.steps.some((step) => step.skill === 'Wait'),
     false
   );
-  assert.deepEqual(timelineDeadTimeMarkers(result.steps, result.events), []);
+  // The cast waits another 20 ms for admission after the transition recovery ends.
+  assert.deepEqual(
+    timelineDeadTimeMarkers(result.steps, result.events).map(({ start, end }) => ({ start, end })),
+    [{ start: 100, end: 120 }]
+  );
   assert.deepEqual(timelineTransitionDelayMarkers(result.steps, result.events, result.planningState.atSeconds * 1000), [
     { start: 0, end: 100, durationMs: 100, insertionIndex: 1 }
   ]);

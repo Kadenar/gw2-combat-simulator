@@ -161,8 +161,8 @@ test('one live state spends an actual hit gain before its estimated retry, with 
   assert.equal([...contexts][0].queries, [...queries][0]);
   assert.equal('cursor' in [...contexts][0], false);
   assert.equal('queue' in [...contexts][0], false);
-  assert.deepEqual(attempts, [1, 1.5]);
-  assert.deepEqual(detailed.planningState.profession.accepted.at(-1), ['Spend', 1.5]);
+  assert.deepEqual(attempts, [1, 1.52]);
+  assert.deepEqual(detailed.planningState.profession.accepted.at(-1), ['Spend', 1.52]);
   assert.equal(detailed.planningState.profession.energy.value, 0);
   assert.equal(detailed.planningState.profession.hits, 1);
   const score = run(rotation, { profession, output: 'score' });
@@ -199,12 +199,12 @@ test('explicit overlaps use the previous player start and waits join independent
   const result = run([cast(990003), cast(990004, { concurrentOffsetMs: 500 }), cast(990005), wait(100), cast(990002)]);
   assert.deepEqual(result.planningState.profession.accepted, [
     ['Long', 0],
-    ['Instant', 0.5],
-    ['Independent', 0.5],
-    ['Spend', 2.1]
+    ['Instant', 0.52],
+    ['Independent', 0.52],
+    ['Spend', 2.16]
   ]);
-  assert.equal(result.rotationEndTime, 2.1);
-  assert.ok(result.events.some((event) => event.type === 'buff' && event.at === 0.5));
+  assert.equal(result.rotationEndTime, 2.16);
+  assert.ok(result.events.some((event) => event.type === 'buff' && event.at === 0.52));
   const backdated = run([cast(990003), wait(1000), cast(990001, { concurrentOffsetMs: 100 })]);
   assert.match(backdated.warnings[0], /cannot backdate/);
 });

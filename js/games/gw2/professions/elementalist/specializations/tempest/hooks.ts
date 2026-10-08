@@ -47,7 +47,7 @@ import type {
   ElementalistRuntimeState,
   ElementalistSkill
 } from '#gw2/professions/elementalist/types.js';
-import { EPSILON } from '#kernel/core/clock.js';
+import { canonicalTime } from '#kernel/core/clock.js';
 
 // Every attunement's overload is attributed to the profession mechanic rather than the held weapon.
 const OVERLOAD_SKILL_IDS = new Set<number>(Object.values(ELEMENTALIST_OVERLOAD_SKILL_IDS));
@@ -91,8 +91,9 @@ function availability(context: MechanicQueriesOf<ElementalistRuntime>, skill: Sk
   const dwell = tempestOverloadDwell(context);
   // The configured starting attunement carries a negative entry stamp and needs no dwell.
   const startingAttunementReady = state.attunementEnteredAt < 0;
-  const readyAt = startingAttunementReady ? context.time : state.attunementEnteredAt + dwell;
-  return readyAt > context.time + EPSILON
+  // Dwell readiness shares the queued canonical instant without allowing an early overload.
+  const readyAt = startingAttunementReady ? context.time : canonicalTime(state.attunementEnteredAt + dwell);
+  return readyAt > context.time
     ? retryCast(
         readyAt,
         'elementalist.tempest-dwell',

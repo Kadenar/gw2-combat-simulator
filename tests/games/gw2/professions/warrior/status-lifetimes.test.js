@@ -34,27 +34,27 @@ const wait = (durationMs) => ({ type: 'wait', durationMs });
 const combat = { type: 'combat-start' };
 const state = (result) => observedRuntime(result).profession.specialization.state;
 
-test('Tactical Reload rounds an off-grid application and closes exactly at its displayed deadline', () => {
+test('Tactical Reload follows an off-grid wait and closes exactly at its displayed deadline', () => {
   for (const [delay, charges] of [
-    [10038, 2],
-    [10039, 1],
+    [9960, 2],
+    [10000, 1],
     [10040, 1]
   ]) {
     const result = run('Bladesworn', [wait(1), ID.TACTICAL_RELOAD, wait(delay), ID.DRAGON_TRIGGER, wait(240), combat]);
     const application = result.events.find((event) => event.kind === 'tactical-reload');
     const [buff] = timedBuffApplicationsAt(result.events, 'tactical-reload', application.at);
-    assert.equal(Math.round((buff.expiresAt - buff.at) * 1000), 10039);
+    assert.equal(Math.round((buff.expiresAt - buff.at) * 1000), 10000);
     assert.equal(state(result).dragonCharges.value, charges);
     if (charges === 2) assert.equal(state(result).tacticalReloadUntil, 0);
     else assert.ok(state(result).tacticalReloadUntil <= observedRuntime(result).time);
   }
 });
 
-test('Positive Flow state and displayed expiry agree on off-grid applications', () => {
+test('Positive Flow state and displayed expiry agree after off-grid waits', () => {
   for (const source of ['trait', 'stabilizer']) {
     const skillId = source === 'trait' ? ID.UNSHEATHE_GUNSABER : ID.FLOW_STABILIZER;
     const result = run('Bladesworn', [combat, wait(1), skillId], [TRAIT.RIVERS_FLOW]);
-    const [buff] = timedBuffApplicationsAt(result.events, 'positive-flow', 0.001);
+    const [buff] = timedBuffApplicationsAt(result.events, 'positive-flow', 0.04);
     const until =
       source === 'trait' ? state(result).traitPositiveFlowUntil : state(result).flowStabilizerWindows[0].expiresAt;
     assert.equal(until, source === 'trait' ? 5.04 : 8.04);
@@ -64,7 +64,7 @@ test('Positive Flow state and displayed expiry agree on off-grid applications', 
 
 test('trait and combo fire auras detonate once before their exclusive rounded expiry', () => {
   for (const source of ['trait', 'combo']) {
-    for (const at of [5039, 5040, 5041]) {
+    for (const at of [5000, 5040, 5080]) {
       const result = run('Berserker', [wait(at), ID.BERSERK], [TRAIT.KING_OF_FIRES], (runtime) => {
         const event = {
           at: 0.001,

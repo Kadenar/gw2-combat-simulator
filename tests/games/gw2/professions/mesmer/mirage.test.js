@@ -77,7 +77,7 @@ test("Nomad's Endurance accelerates dodge recovery across application and expiry
   const dodge = { type: 'cast', skillId: ID.DODGE_MIRAGE_CLOAK };
   const wait = (durationMs) => ({ type: 'wait', durationMs });
   for (const [label, rotation, expected, vigor] of [
-    ['active at dodge', ['Mind Wrack', wait(100), dodge, dodge, dodge, dodge], [100, 100, 8680, 18680], false],
+    ['active at dodge', ['Mind Wrack', wait(100), dodge, dodge, dodge, dodge], [120, 120, 8680, 18680], false],
     ['gained during recovery', [dodge, dodge, wait(1000), 'Mind Wrack', dodge, dodge], [0, 0, 8520, 18520], false],
     [
       'stacked duration',
@@ -85,7 +85,7 @@ test("Nomad's Endurance accelerates dodge recovery across application and expiry
       [0, 0, 7000, 17000],
       false
     ],
-    ['expired before dodge', ['Mind Wrack', wait(3100), dodge, dodge, dodge], [3100, 3100, 13120], false],
+    ['expired before dodge', ['Mind Wrack', wait(3100), dodge, dodge, dodge], [3120, 3120, 13120], false],
     [
       'long wait across expiry',
       [dodge, dodge, 'Mind Wrack', wait(20000), dodge, dodge, dodge],

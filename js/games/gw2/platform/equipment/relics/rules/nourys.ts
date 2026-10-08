@@ -1,4 +1,4 @@
-import { EPSILON, timeKey } from '#kernel/core/clock.js';
+import { timeKey } from '#kernel/core/clock.js';
 import { gw2EffectExpiresAt } from '#gw2/platform/effects/timing.js';
 /** Nourys relic rules. */
 import { defineRelic, explicitCombatStartTime } from '#gw2/platform/equipment/relics/rules/shared.js';
@@ -34,7 +34,7 @@ export const nourys = defineRelic({
   passiveTimeline(ctx, state, rotationEndTime) {
     const combatStart = nourysCombatStart(ctx, state);
     let stacks = 0;
-    for (let at = combatStart + NOURYS_STACK_INTERVAL; at <= rotationEndTime + EPSILON;) {
+    for (let at = combatStart + NOURYS_STACK_INTERVAL; timeKey(at) <= timeKey(rotationEndTime);) {
       stacks += 1;
       ctx.effects.emit({
         kind: 'announcement',

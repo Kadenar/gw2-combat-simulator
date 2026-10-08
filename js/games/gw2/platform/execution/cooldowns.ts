@@ -1,6 +1,7 @@
 import type { RateInterval } from '#gw2/platform/combat/resources/pool.js';
 import { gw2CooldownReadyAt } from '#gw2/platform/combat/action-tick.js';
 import { clamp } from '#kernel/core/numeric.js';
+import { canonicalTime } from '#kernel/core/clock.js';
 import { projectRecharge, type RechargeProgress } from '#gw2/platform/combat/recharge.js';
 /**
  * Shared cooldown and ammo-charge recharge state machine. Owns the common
@@ -69,8 +70,14 @@ export function createCooldownController({
     return Math.max(0, work);
   };
 
-  const project = (skill: Skill, progress: RechargeProgress): number =>
-    projectRecharge(progress, rechargeIntervals(skill, progress.startedAt, Infinity, progress.companionId));
+  const project = (skill: Skill, progress: RechargeProgress): number => {
+    // Published readiness is a canonical deadline, even after fractional recharge reductions.
+    const deadline = projectRecharge(
+      progress,
+      rechargeIntervals(skill, progress.startedAt, Infinity, progress.companionId)
+    );
+    return Number.isFinite(deadline) ? canonicalTime(deadline) : deadline;
+  };
 
   const startRecharge = (skill: Skill, at: number, work?: number, companionId?: string): number => {
     const progress = {
@@ -86,7 +93,7 @@ export function createCooldownController({
 
   const setReadyAt = (skillId: SkillId, readyAt: number): void => {
     rechargeProgress.delete(skillId);
-    cooldowns.set(skillId, readyAt);
+    cooldowns.set(skillId, Number.isFinite(readyAt) ? canonicalTime(readyAt) : readyAt);
   };
 
   const clear = (skillId: SkillId): void => {

@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import { canonicalTime } from '#kernel/core/clock.js';
 import test from 'node:test';
 import { guardianCatalog } from '#gw2/professions/guardian/catalog.js';
 import { timedBuffApplicationsAt } from '#gw2/platform/combat/boons.js';
@@ -32,14 +33,14 @@ const strike = (runtime, at) =>
   });
 
 // Exercise actual hit delivery and state projections at inclusive virtue deadlines.
-test('Willbender virtue deadlines agree across delivered buffs and canonical snapshots for off-grid grants', () => {
+test('Willbender virtue deadlines agree across delivered buffs and canonical snapshots after off-grid waits', () => {
   for (const [virtue, skill] of virtues) {
     for (const selectedTraitIds of [[], [TRAIT.TYRANTS_MOMENTUM]]) {
       const result = runGuardian([wait(1), skill, wait(11000)], { ...config, selectedTraitIds });
       assert.deepEqual(result.warnings, []);
       const activation = result.events.find((event) => event.kind === `willbender-${virtue}`);
       const [buff] = timedBuffApplicationsAt(result.events, `willbender-${virtue}`, activation.at);
-      assert.ok(buff.expiresAt > activation.at + activation.duration);
+      assert.ok(buff.expiresAt >= canonicalTime(activation.at + activation.duration));
       assert.equal(result.planningState.profession[`${virtue}Until`], buff.expiresAt);
       assert.equal(state(result)[`${virtue}Until`], buff.expiresAt);
     }

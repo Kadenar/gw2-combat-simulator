@@ -66,7 +66,11 @@ test('Optimized Activation materializes delayed repeated Vigor and respects effe
     const boons = result.events.filter((event) => event.sourceId === TRAIT.OPTIMIZED_ACTIVATION);
     assert.deepEqual(
       boons.map((event) => event.at),
-      effects.length ? [0.8, 1] : []
+      effects.length
+        ? [0.5, 0.7].map((offset) =>
+            Number((result.events.find((event) => event.type === 'action').endsAt + offset).toFixed(6))
+          )
+        : []
     );
   }
 });

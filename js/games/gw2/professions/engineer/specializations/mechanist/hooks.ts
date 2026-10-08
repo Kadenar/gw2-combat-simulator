@@ -5,7 +5,7 @@ import { summonQuicknessCastTimeMs } from '#gw2/platform/execution/cast-timing.j
 import { engineerMechCriticalDefinitions } from '#gw2/professions/engineer/specializations/mechanist/traits/firearms.js';
 import { overclockRechargeRules } from '#gw2/professions/engineer/specializations/mechanist/skills/signet-skills.js';
 import { reactToMechArmDamage } from '#gw2/professions/engineer/specializations/mechanist/traits/behavior.js';
-import { EPSILON } from '#kernel/core/clock.js';
+import { canonicalTime } from '#kernel/core/clock.js';
 
 import { mechanistCastAvailability } from '#gw2/professions/engineer/specializations/mechanist/mechanics/availability.js';
 import { MECHANIST_ATTACK_TIMING } from '#gw2/professions/engineer/specializations/mechanist/mechanics/constants.js';
@@ -70,7 +70,8 @@ export const mechanistHooks: RuntimeHooks<EngineerRuntimeState, EngineerSkill> =
       const mech = mechanistState.from(runtime).mech;
       if (!mech.enabled || !mech.active) return;
       const phase = data as MechAttackPayload;
-      if (runtime.time < mech.busyUntil - EPSILON) {
+      // The autonomous attack waits until the same canonical instant as lane release.
+      if (runtime.time < canonicalTime(mech.busyUntil)) {
         runtime.schedule('engineer.mech-attack', mech.busyUntil, phase);
         return;
       }

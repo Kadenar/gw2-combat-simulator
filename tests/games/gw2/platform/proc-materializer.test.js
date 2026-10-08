@@ -208,13 +208,13 @@ test('computed combat boundaries admit opening procs but exclude the preceding m
   const config = { stats: { precision: 4000 }, sigilSets: [{ names: ['Air'] }] };
   const rotation = [{ type: 'wait', durationMs: 100 }, 'Strike', { type: 'combat-start', concurrentOffsetMs: 200 }];
   const scheduled = simulateGw2({ profession, config, rotation: rotation });
-  assert.equal(scheduled.combatStartTime, 0.3);
+  assert.equal(scheduled.combatStartTime, 0.32);
   const sigilTimes = (events) =>
     events
       .filter((event) => event.type === 'damage' && event.sourceId === `sigil.${SIGIL_IDS.AIR}`)
       .map((event) => event.at);
-  assert.deepEqual(sigilTimes(scheduled.events), [0.3]);
-  assert.deepEqual(sigilTimes(simulateGw2({ profession, config, rotation }).resolvedEvents), [0.3]);
+  assert.deepEqual(sigilTimes(scheduled.events), [0.32]);
+  assert.deepEqual(sigilTimes(simulateGw2({ profession, config, rotation }).resolvedEvents), [0.32]);
 });
 
 test('missed attacks leave consecutive swaps out of combat', () => {

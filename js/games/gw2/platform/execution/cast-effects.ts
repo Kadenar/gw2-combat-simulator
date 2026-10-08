@@ -4,7 +4,7 @@ import { castReachedFullDuration } from '#gw2/platform/execution/cast-timing.js'
 import type { MechanicContext } from '#gw2/platform/profession-definition/mechanic-context.js';
 import { requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
-import { EPSILON } from '#kernel/core/clock.js';
+import { canonicalTime } from '#kernel/core/clock.js';
 
 /** Which authored effects a cast fires: the variant selected at acceptance, and what survives an interruption. */
 
@@ -34,9 +34,12 @@ export function cancelledBeforeInterruptCommit(
   effectiveEnd: number
 ): boolean {
   if (skill.interruptMode === 'per-packet' || castReachedFullDuration({ fullEnd, effectiveEnd })) return false;
-  const elapsedMs = (effectiveEnd - start) * 1000;
+  // Compare absolute canonical launch deadlines so subtraction cannot create a grace window.
   const cutoffs = interruptCommitCutoffs(skill);
-  return cutoffs.length === 0 || cutoffs.every((cutoff) => elapsedMs + EPSILON * 1000 < cutoff);
+  return (
+    cutoffs.length === 0 ||
+    cutoffs.every((cutoff) => canonicalTime(effectiveEnd) < canonicalTime(start + cutoff / 1000))
+  );
 }
 
 /** Returns whether an interrupted cast ended before this persistent effect launched. */
@@ -50,6 +53,6 @@ export function cancelledBeforeEffectCommit(
   if (castReachedFullDuration({ fullEnd, effectiveEnd })) return false;
   const cutoff = effect.interruptCommitMs ?? skill.interruptCommitMs;
   if (cutoff == null) return true;
-  const elapsedMs = (effectiveEnd - start) * 1000;
-  return elapsedMs + EPSILON * 1000 < cutoff;
+  // Compare absolute canonical launch deadlines so subtraction cannot create a grace window.
+  return canonicalTime(effectiveEnd) < canonicalTime(start + cutoff / 1000);
 }

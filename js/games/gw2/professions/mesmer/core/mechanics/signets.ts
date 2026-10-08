@@ -9,7 +9,6 @@ import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
 import { mesmerShatterDefinition } from '#gw2/professions/mesmer/family-mechanics.js';
 import { createMesmerIllusionRewards, mesmerActivePrimaryWeapon } from '#gw2/professions/mesmer/family-resources.js';
 import type { MesmerRuntime } from '#gw2/professions/mesmer/types.js';
-import { EPSILON } from '#kernel/core/clock.js';
 
 const SIGNET_ILLUSIONS_OWNER = 'mesmer.signet-illusions-passive';
 
@@ -80,7 +79,7 @@ export function signetIllusionsPulse(context: MesmerRuntime, data: unknown): voi
   const skill = equippedSignetOfIllusions(context);
   if (!skill || context.combatStartPending) return;
   const ready = context.cooldownController.readyAt(skill.id) ?? 0;
-  if (ready > context.time + EPSILON) {
+  if (ready > context.time) {
     restartSignetIllusionsPassive(context, ready);
     return;
   }

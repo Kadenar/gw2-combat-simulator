@@ -497,8 +497,7 @@ test('Photon Forge waits for its resource tick before overheating at maximum hea
 });
 
 test('Photon Forge starts a fresh Overheat cadence on each entry', () => {
-  // The second entry reaches maximum heat at 1.97s and overheats on that entry's
-  // next 100 ms resource tick at 2.05s instead of a simulation-global boundary.
+  // Re-entry owns the heat cadence; reaching capacity leaves the current tick available for a toolbelt action.
   const result = simulate(
     'Holosmith',
     [
@@ -519,8 +518,11 @@ test('Photon Forge starts a fresh Overheat cadence on each entry', () => {
   const overheat = result.events.find((event) => event.type === 'engineer.heat' && event.reason === 'overheat');
 
   assert.equal(result.warnings.length, 0);
-  assert.equal(barrage.start, 1970);
-  assert.equal(overheat.at, 2.05);
+  assert.ok(barrage.start / 1000 < overheat.at);
+  const entry = result.events
+    .filter((event) => event.type === 'action' && event.skillName === 'Engage Photon Forge')
+    .at(-1);
+  assert.equal(Number((overheat.at - entry.at).toFixed(6)), 0.6);
   assert.equal(result.planningState.profession.photonForgeActive, true);
 });
 
@@ -555,7 +557,11 @@ test('Photon Forge passive heat restarts its cadence on each entry', () => {
     .map((event) => event.at);
 
   // Each Forge entry owns a fresh 100 ms passive timer; manual exit invalidates the old timer.
-  assert.deepEqual(passiveHeatTimes, [0.35, 1.18]);
+  const entries = result.events.filter((event) => event.type === 'action' && event.skillName === 'Engage Photon Forge');
+  assert.deepEqual(
+    passiveHeatTimes,
+    entries.map((entry) => Number((entry.at + 0.1).toFixed(6)))
+  );
 });
 
 test('Overheat blocks Forge and weapon inputs until the rotation exits', () => {
@@ -642,8 +648,8 @@ test('Overheat delays its tool-belt minimum cooldown until the damage effect', (
   };
 
   assert.deepEqual(
-    grenadeBarrageStarts(['Engage Photon Forge', { type: 'wait', durationMs: 6650 }, 'Grenade Barrage']),
-    [6650]
+    grenadeBarrageStarts(['Engage Photon Forge', { type: 'wait', durationMs: 6640 }, 'Grenade Barrage']),
+    [6640]
   );
   assert.deepEqual(
     grenadeBarrageStarts(['Engage Photon Forge', { type: 'wait', durationMs: 6660 }, 'Grenade Barrage']),

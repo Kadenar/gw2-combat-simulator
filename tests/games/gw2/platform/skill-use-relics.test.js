@@ -281,9 +281,9 @@ for (const [relic, skillType, cooldown, delay, multiplier] of [
 
     assert.deepEqual(
       procs.map((proc) => proc.start),
-      [(1 + delay) * 1000, (1 + cooldown + delay) * 1000 + 1]
+      [(1.04 + delay) * 1000, Math.round((1.08 + cooldown + delay) * 1000)]
     );
-    assert.equal(procs[0].expiresAt / 1000, 7 + delay);
+    assert.equal(procs[0].expiresAt / 1000, 7.04 + delay);
     const strike = (at, overrides = {}) =>
       relicStrikeMultiplier(ctx, {
         type: 'damage',
@@ -291,10 +291,10 @@ for (const [relic, skillType, cooldown, delay, multiplier] of [
         actorType: 'player',
         ...overrides
       });
-    assert.equal(strike(1 + delay - 0.001), 1);
-    assert.equal(strike(1 + delay), multiplier);
+    assert.equal(strike(1.04 + delay - 0.001), 1);
+    assert.equal(strike(1.04 + delay), multiplier);
     assert.equal(strike(4), multiplier);
-    assert.equal(strike(7 + delay), 1);
+    assert.equal(strike(7.04 + delay), 1);
     assert.equal(strike(4, { actorType: 'summon' }), 1);
     assert.equal(strike(4, { actorType: 'effect', ownerActorType: 'player' }), multiplier);
     if (relic === 'Director') {

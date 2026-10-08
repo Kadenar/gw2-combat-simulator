@@ -1,5 +1,6 @@
 /** Renders and exports generic event-log rows without simulation-specific knowledge. */
 import { escapeHtml } from '#ui/shared/html.js';
+import { timeKey } from '#kernel/core/clock.js';
 
 export interface EventLogDescriptor {
   readonly type: string;
@@ -286,8 +287,8 @@ function treeLineHtml<TRow extends EventLogRow>(
   const root = (node.root ?? node).row;
   const isChild = node.depth > 0;
   const offset = row.at - root.at;
-  // Children read as offsets from their group so delayed impacts and late reactions stand out.
-  const late = isChild && root.span != null && offset > root.span + 1e-6;
+  // Canonical offsets identify delayed impacts without extending the group's lifetime for display.
+  const late = isChild && root.span != null && timeKey(offset) > timeKey(root.span);
   const showOffset = isChild && context.state.timeMode === 'offset';
   const absolute = `${Number(row.at || 0).toFixed(3)}s`;
   const time = showOffset ? `+${Math.max(0, offset).toFixed(3)}` : absolute;

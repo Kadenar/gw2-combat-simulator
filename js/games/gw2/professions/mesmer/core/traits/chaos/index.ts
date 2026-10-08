@@ -20,7 +20,6 @@ import { mesmerProfiledTraitDamage, mesmerTraitDamageProfile } from '#gw2/profes
 import { MESMER_SKILL_IDS as ID, MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
 import type { MesmerEventExtra, MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
 import type { MesmerRuntime } from '#gw2/professions/mesmer/types.js';
-import { EPSILON } from '#kernel/core/clock.js';
 
 /** Own Chaotic Persistence tuning alongside its runtime behavior. */
 export const chaoticPersistence = defineTrait<MesmerSkill>({
@@ -126,7 +125,7 @@ export function triggerChaoticInterruption(context: MesmerRuntime, event: Simula
 
   // Only affects weapon skills that are recharging.
   const readyAt = context.cooldownController.readyAt(targetId) || 0;
-  if (!(readyAt > event.at + EPSILON)) return;
+  if (!(readyAt > event.at)) return;
   const chaoticInterruptionProfile = requireBalanceProfileFromContext(context, TRAIT.CHAOTIC_INTERRUPTION);
   const reduction = balanceProfileNumber(chaoticInterruptionProfile, 'recharge');
   const target = context.helpers.skillsById.get(targetId);

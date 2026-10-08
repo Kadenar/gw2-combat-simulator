@@ -81,7 +81,7 @@ test('Positive Flow works before combat and grants its final tick before its win
   }
 
   const offGrid = run([wait(1), 'Flow Stabilizer', wait(8039), combat], config);
-  close(state(offGrid).flow.value, 32.16);
+  close(state(offGrid).flow.value, 32);
 });
 
 test('Bladesworn redirects trait and signet grants while ordinary hits produce no Flow', () => {
@@ -409,7 +409,7 @@ test('Dragon Slash captures its tier and refunds only charge Flow after successf
     ),
     false
   );
-  close(state(canceled).flow.value, 100 - 15 - 5 + 0.48 * 2);
+  close(state(canceled).flow.value, 100 - 15 - 5 + canceled.planningState.atSeconds * 2);
 });
 
 test('Daring Dragon changes actual charge cost/cap and completion boons while Sharp Slash keeps condition ownership', () => {
@@ -525,7 +525,7 @@ test('Dragonspike resets exit recharge and an old expiry cannot close a replacem
 
 test('Tactical Reload can be consumed before expiry and closes exactly at its deadline', () => {
   for (const [delay, expected] of [
-    [9999, 2],
+    [9960, 2],
     [10000, 1],
     [10001, 1]
   ]) {

@@ -90,7 +90,7 @@ function enduranceThresholdAt(
   regenerationPerSecond: number
 ): number | null {
   const missing = Math.max(0, Math.max(0, cost) - currentEndurance);
-  // Only resource arithmetic drift is tolerated; the clock epsilon must not discount the cost.
+  // Only resource arithmetic drift is tolerated; timestamp precision must not discount the cost.
   if (resourceAtLeast(currentEndurance, Math.max(0, cost))) return at;
   return regenerationPerSecond > 0 ? at + missing / regenerationPerSecond : null;
 }

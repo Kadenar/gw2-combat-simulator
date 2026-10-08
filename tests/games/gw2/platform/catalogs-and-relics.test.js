@@ -647,15 +647,15 @@ test('Relic of the Brawler grants four seconds of strike damage with a strict ei
       'Grant Protection',
       { type: 'wait', durationMs: 1000 },
       'Brawler Fixture Strike',
-      { type: 'wait', durationMs: 3001 },
+      { type: 'wait', durationMs: 3000 },
       'Brawler Fixture Strike',
-      { type: 'wait', durationMs: 3999 },
+      { type: 'wait', durationMs: 4000 },
       'Grant Resolution',
-      { type: 'wait', durationMs: 1 },
+      { type: 'wait', durationMs: 40 },
       'Brawler Fixture Strike',
-      { type: 'wait', durationMs: 1 },
+      { type: 'wait', durationMs: 40 },
       'Grant Protection',
-      { type: 'wait', durationMs: 1 },
+      { type: 'wait', durationMs: 40 },
       'Brawler Fixture Strike'
     ],
     config: { relic: 'Brawler' }
@@ -665,7 +665,7 @@ test('Relic of the Brawler grants four seconds of strike damage with a strict ei
 
   assert.deepEqual(
     procs.map((step) => step.start),
-    [0, 8002]
+    [0, 8080]
   );
   assert.deepEqual(
     procs.map((step) => step.sourceSkill),
@@ -705,9 +705,9 @@ test('Relic of Mistburn grants one Might for eight seconds and applies its criti
     profession,
     rotation: [
       'Grant Might',
-      { type: 'wait', durationMs: 7999 },
+      { type: 'wait', durationMs: 7960 },
       'Mistburn Fixture Strike',
-      { type: 'wait', durationMs: 1 },
+      { type: 'wait', durationMs: 40 },
       'Mistburn Fixture Strike'
     ],
     config: {
@@ -1079,12 +1079,12 @@ test('Relic of the Shackles strikes five seconds after immobilize with a strict 
         sourceSkill: 'Fixture Immobilize'
       },
       {
-        start: 10001,
+        start: 10040,
         detail: 'tethered',
         sourceSkill: 'Fixture Immobilize'
       },
       {
-        start: 15001,
+        start: 15040,
         detail: 'damage',
         sourceSkill: 'Fixture Immobilize'
       }
@@ -1105,7 +1105,7 @@ test('Relic of the Shackles strikes five seconds after immobilize with a strict 
         triggeredBy: 'Fixture Immobilize'
       },
       {
-        at: 15.001,
+        at: 15.04,
         coefficient: 3,
         source: 'Relic',
         triggeredBy: 'Fixture Immobilize'
@@ -1127,7 +1127,7 @@ test('Relic of the Shackles strikes five seconds after immobilize with a strict 
         triggeredBy: 'Fixture Immobilize'
       },
       {
-        at: 15.001,
+        at: 15.04,
         controlKind: 'stun',
         source: 'Relic',
         triggeredBy: 'Fixture Immobilize'

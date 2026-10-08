@@ -19,7 +19,7 @@ import { RANGER_PET_STRIKE_SCALING } from '#gw2/professions/ranger/core/mechanic
 import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
 import { galeshotState } from '#gw2/professions/ranger/specializations/galeshot/state.js';
 import type { RangerRuntime, RangerSkill } from '#gw2/professions/ranger/types.js';
-import { EPSILON } from '#kernel/core/clock.js';
+import { canonicalTime } from '#kernel/core/clock.js';
 
 /** Shrike counts resolved projectile impacts, including returns, independently of Mistral. */
 export function applyShrike(context: RangerRuntime, event: Gw2ResolverEvent): void {
@@ -74,7 +74,7 @@ export function reactToGaleshotPet(context: RangerRuntime, event: Gw2ResolverEve
   if (
     !hasTrait(context.traits, TRAIT.WUTHERING_WIND) ||
     !state.wutheringWindReady ||
-    at + EPSILON < state.wutheringWindReadyAt
+    canonicalTime(at) < state.wutheringWindReadyAt
   ) {
     return;
   }

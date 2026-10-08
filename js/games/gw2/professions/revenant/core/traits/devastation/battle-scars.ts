@@ -14,7 +14,7 @@ import type { RevenantRuntime } from '#gw2/professions/revenant/core/events.js';
 import { REVENANT_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/revenant/core/profiles.js';
 import { REVENANT_TRAIT_IDS as TRAIT } from '#gw2/professions/revenant/data/ids.js';
 import type { RevenantSkill } from '#gw2/professions/revenant/types.js';
-import { EPSILON } from '#kernel/core/clock.js';
+import { canonicalInterval, canonicalTime, timeKey } from '#kernel/core/clock.js';
 
 /** Runs the trait at its original ordered mechanic boundary. */
 export function completeBattleScarred(runtime: RevenantRuntime, cast: RuntimeCast<RevenantSkill>): void {
@@ -136,21 +136,23 @@ export function thrillOfCombat(runtime: RevenantRuntime, event: Gw2ResolverEvent
   const buff = requireEffect(profile, 'buff', 'battle-scars');
   // The cadence exists only to grant this buff, so a removed buff neither grants nor advances it.
   if (!buff) return;
-  const interval = Math.max(EPSILON, balanceProfileNumber(profile, 'cooldown'));
+  const interval = canonicalInterval(balanceProfileNumber(profile, 'cooldown'));
   const duration = Math.max(0, effectNumber(profile, buff, 'duration'));
   const maximum = balanceProfileNumber(battleScars, 'maximumStacks');
-  if (core.nextThrillOfCombatAt == null) core.nextThrillOfCombatAt = (core.combatBeganAt ?? runtime.time) + interval;
+  if (core.nextThrillOfCombatAt == null)
+    core.nextThrillOfCombatAt = canonicalTime((core.combatBeganAt ?? runtime.time) + interval);
   const next = core.nextThrillOfCombatAt;
-  if (!Number.isFinite(next) || next > runtime.time + EPSILON) return;
-  const elapsed = Math.floor((runtime.time - next + EPSILON) / interval) + 1;
+  if (!Number.isFinite(next) || next > runtime.time) return;
+  // Count only elapsed canonical intervals, so a later grant never enters the live stack pool.
+  const elapsed = Math.floor((timeKey(runtime.time) - timeKey(next)) / timeKey(interval)) + 1;
   let granted = 0;
   for (let index = Math.max(0, elapsed - Math.ceil(duration / interval)); index < elapsed; index += 1) {
-    const result = addTimedStacks(core.battleScars, 1, next + index * interval, duration, maximum);
+    const result = addTimedStacks(core.battleScars, 1, canonicalTime(next + index * interval), duration, maximum);
     core.battleScars = result.expiries;
     granted += result.added;
   }
 
-  core.nextThrillOfCombatAt = next + elapsed * interval;
+  core.nextThrillOfCombatAt = canonicalTime(next + elapsed * interval);
   if (!granted) return;
   runtime.effects.emit({
     kind: 'packet',

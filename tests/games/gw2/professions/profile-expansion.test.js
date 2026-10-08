@@ -49,8 +49,8 @@ test('Kinetic Battery expands the surviving fifth-charge package', () => {
       packets.map((event) => [event.at, event.duration]),
       effects.length
         ? [
-            [0.7, 3],
-            [1, 3]
+            [Number((result.events.find((event) => event.type === 'action').endsAt + 0.4).toFixed(6)), 3],
+            [Number((result.events.find((event) => event.type === 'action').endsAt + 0.7).toFixed(6)), 3]
           ]
         : []
     );

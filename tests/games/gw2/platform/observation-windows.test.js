@@ -187,7 +187,7 @@ test('offset combat starts respect the clock and keep sigil procs aligned with r
     assert.equal(result.combatStartTime, expectedStart);
     assert.equal(result.events.find((event) => event.type === 'combat_start').at, expectedStart);
     assert.equal(result.steps.find((step) => step.skill === 'Combat Start').start, expectedStart * 1000);
-    assert.equal(result.firstHitTime, expectedStart + 1);
+    assert.equal(result.firstHitTime, Math.ceil(expectedStart / 0.04) * 0.04 + 1);
     assert.deepEqual(
       result.procSteps.filter((event) => event.skill === 'Sigil of Ice').map((event) => event.start / 1000),
       [result.firstHitTime]

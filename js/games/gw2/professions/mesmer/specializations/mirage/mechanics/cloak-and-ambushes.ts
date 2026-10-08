@@ -18,7 +18,7 @@ import {
   beginInfiniteHorizonAmbush
 } from '#gw2/professions/mesmer/specializations/mirage/traits/behavior.js';
 import type { MesmerRuntime } from '#gw2/professions/mesmer/types.js';
-import { canonicalTime, EPSILON, isTimeInWindow } from '#kernel/core/clock.js';
+import { canonicalTime, isTimeInWindow } from '#kernel/core/clock.js';
 /** Mirage-owned cloak, ambush, and deception behavior. */
 import {
   balanceProfileNumber,
@@ -369,8 +369,8 @@ export function mirageAvailability(context: MechanicQueriesOf<MesmerRuntime>, sk
       (action) =>
         action.actorType === 'player' &&
         action.at < state.ambushUntil &&
-        action.at < context.time - EPSILON &&
-        Number(action.castLockoutEndsAt ?? action.endsAt) >= context.time - EPSILON
+        action.at < context.time &&
+        canonicalTime(Number(action.castLockoutEndsAt ?? action.endsAt)) >= context.time
     );
   if (
     activeAmbush &&

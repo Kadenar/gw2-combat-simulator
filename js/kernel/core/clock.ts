@@ -3,12 +3,6 @@
  * comparisons on the same canonical clock.
  */
 
-/**
- * Shared floating-point tolerance for timeline comparisons inside the neutral
- * scheduler and resolver.
- */
-export const EPSILON = 0.0001;
-
 /** Integer microseconds make equality transitive without moving authored events onto a combat tick grid. */
 export function timeKey(seconds: number): number {
   const key = Math.round(seconds * 1_000_000);
@@ -22,6 +16,13 @@ export function timeKey(seconds: number): number {
 /** Public timestamps remain seconds; handlers and ordering must observe the same canonical instant. */
 export function canonicalTime(seconds: number): number {
   return timeKey(seconds) / 1_000_000;
+}
+
+/** Recurring work must advance the canonical clock; reject invalid intervals instead of inventing a delay. */
+export function canonicalInterval(seconds: number): number {
+  const interval = canonicalTime(seconds);
+  if (interval <= 0) throw new RangeError('Recurring intervals must span at least one canonical microsecond.');
+  return interval;
 }
 
 /** Half-open status windows allow explicit unbounded endpoints without converting infinity to a clock key. */

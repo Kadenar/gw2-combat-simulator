@@ -2,7 +2,7 @@ import type { ResourcePolicy } from '#gw2/platform/combat/resources/resource-pol
 import { boundedNumber } from '#kernel/core/numeric.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import { evokerChargeProfile } from '#gw2/professions/elementalist/specializations/evoker/traits/attunement-policy.js';
-import { EPSILON } from '#kernel/core/clock.js';
+
 /**
  * The Evoker familiar-charge economy.
  *
@@ -148,7 +148,7 @@ export function grantWeaponSkillCharges(
     state.activeFamiliarCast &&
     state.activeFamiliarCast.resetsCharges &&
     cast.id !== state.activeFamiliarCast.reservationId &&
-    cast.effectiveEnd <= state.activeFamiliarCast.endsAt + EPSILON
+    cast.effectiveEnd <= state.activeFamiliarCast.endsAt
   ) {
     state.pendingWeaponChargeGains.push(chargeGain);
     return;

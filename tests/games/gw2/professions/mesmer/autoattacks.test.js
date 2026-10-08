@@ -114,7 +114,7 @@ test('Ether Clone resolves its at-cap outcome from clone count at projectile tim
   });
   const resultAt = (offset) =>
     simulateMesmer(['Ether Bolt', 'Ether Blast', 'Ether Clone', { name: 'Split Second', offset }], config);
-  const freedBeforePacket = resultAt(439);
+  const freedBeforePacket = resultAt(400);
   const freedAfterPacket = resultAt(441);
   const hasCloneGain = (result) =>
     result.events.some((event) => event.type === 'resource' && event.reason === 'Ether Clone');

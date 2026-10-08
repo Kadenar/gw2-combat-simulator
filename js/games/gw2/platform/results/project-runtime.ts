@@ -7,7 +7,7 @@ import { rotationApm } from '#gw2/platform/results/rotation-apm.js';
 import type { DamageRuntimeResult, RuntimeExecution } from '#gw2/platform/simulation/run-contract.js';
 import type { Gw2Runtime } from '#gw2/platform/simulation/runtime-state.js';
 import type { Gw2SimulationResult, Gw2SimulationScore } from '#gw2/platform/results/types.js';
-import { EPSILON } from '#kernel/core/clock.js';
+import { canonicalTime } from '#kernel/core/clock.js';
 
 import type { SimulationEventBase } from '#gw2/platform/events/events.js';
 import type { RuntimeProfession } from '#gw2/platform/profession-definition/runtime-contract.js';
@@ -37,7 +37,8 @@ export function projectRuntimeResult<T extends object>(
     return {
       events: projectResolvedEvents(runtime.resolved.filter(ownsEffect), runtime.deathTime ?? runtime.horizon!),
       castSeconds: runtime.steps.length ? (runtime.steps[0].end - runtime.steps[0].start) / 1000 : 0,
-      complete: damageCompletionTime!() <= runtime.time + EPSILON
+      // Pending damage stays incomplete until its actual canonical deadline.
+      complete: damageCompletionTime!() <= runtime.time
     };
   }
 
@@ -69,7 +70,7 @@ export function projectRuntimeResult<T extends object>(
       start: Math.round(action.at * 1000),
       end: Math.round(action.endsAt * 1000),
       fullCastMs: Math.round((action.fullEndsAt - action.at) * 1000),
-      interrupted: action.endsAt < action.fullEndsAt - EPSILON
+      interrupted: canonicalTime(action.endsAt) < canonicalTime(action.fullEndsAt)
     };
   });
   const result = {

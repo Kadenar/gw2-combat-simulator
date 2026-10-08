@@ -6,7 +6,7 @@ import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mech
 import { armSkillFlip, consumeSkillFlip } from '#gw2/platform/execution/skill-flips.js';
 import type { EffectDelivery } from '#gw2/platform/effects/emission.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
-import { canonicalTime, EPSILON } from '#kernel/core/clock.js';
+import { canonicalTime } from '#kernel/core/clock.js';
 /**
  * Owns the summoned-elemental lifecycle for Glyph of Elementals (Fire / Earth).
  *
@@ -637,7 +637,8 @@ function stepElemental(
   }
 
   if (elemental.element === 'Earth') {
-    if (elemental.secondaryAttackReadyAt <= at + EPSILON) {
+    // Decisions compare the projected recharge to this canonical wake without early readiness.
+    if (canonicalTime(elemental.secondaryAttackReadyAt) <= canonicalTime(at)) {
       startSingleImpactAttack(
         context,
         at,
@@ -648,7 +649,7 @@ function stepElemental(
     } else {
       startSingleImpactAttack(context, at, EARTH_ELEMENTAL_EVTC_PROFILE.punch, 'Punch', 'punch');
     }
-  } else if (elemental.secondaryAttackReadyAt <= at + EPSILON) {
+  } else if (canonicalTime(elemental.secondaryAttackReadyAt) <= canonicalTime(at)) {
     startSingleImpactAttack(context, at, FIRE_ELEMENTAL_EVTC_PROFILE.flameBurst, 'Flame Burst', 'flame-burst');
   } else {
     startSingleImpactAttack(context, at, FIRE_ELEMENTAL_EVTC_PROFILE.fireball, 'Fireball', 'fireball');

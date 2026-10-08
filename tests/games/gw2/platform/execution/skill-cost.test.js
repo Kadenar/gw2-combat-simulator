@@ -142,7 +142,7 @@ test('native Dodge waits for funded recovery across fractional waits in both out
     assert.deepEqual(detailed.warnings, []);
     assert.deepEqual(score.warnings, []);
     const dodge = detailed.events.findLast((event) => event.type === 'action' && event.skillId === -5);
-    assert.equal(dodge.at, durationMs <= 8400 ? 10 : 10.000001);
+    assert.equal(dodge.at, durationMs <= 8400 ? 10 : 10.04);
     assert.equal(score.rotationEndTime, detailed.rotationEndTime);
   }
 });

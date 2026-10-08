@@ -205,11 +205,12 @@ export function createCastExecution<T extends object>(
     const durationMs = profession.castDurationMs?.(runtime.mechanicQueries, skill, baseDurationMs) ?? baseDurationMs;
     if (!Number.isFinite(durationMs) || durationMs < 0)
       throw new RangeError('Cast duration must be finite and non-negative.');
-    const fullEnd = canonicalTime(start + durationMs / 1000);
+    // Cast reservations finish on action ticks; effect packets retain their authored canonical timestamps.
+    const fullEnd = gw2CooldownReadyAt(start + durationMs / 1000);
     // Authored overrides replace the skill's default interruption; both occupy the same reservation and lane.
     const interruptAfterMs = command.interruptAfterMs ?? skill.defaultInterruptMs;
     const effectiveEnd =
-      interruptAfterMs == null ? fullEnd : canonicalTime(Math.min(fullEnd, start + interruptAfterMs / 1000));
+      interruptAfterMs == null ? fullEnd : Math.min(fullEnd, gw2CooldownReadyAt(start + interruptAfterMs / 1000));
     const cancelled = cancelledBeforeInterruptCommit(skill, start, fullEnd, effectiveEnd);
     const interrupted = castWasInterrupted({ fullEnd, effectiveEnd });
     const laneEnd = retainsInterruptedCastLockout(skill, cancelled) ? fullEnd : effectiveEnd;

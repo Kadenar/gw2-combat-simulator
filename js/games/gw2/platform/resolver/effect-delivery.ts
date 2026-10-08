@@ -30,7 +30,7 @@ import { recordProcStep } from '#gw2/platform/results/proc-steps.js';
 import type { RuntimeExecution } from '#gw2/platform/simulation/run-contract.js';
 import type { Gw2Runtime } from '#gw2/platform/simulation/runtime-state.js';
 import type { RuntimeWork, WorkInput } from '#gw2/platform/simulation/work-contract.js';
-import { EPSILON, canonicalTime } from '#kernel/core/clock.js';
+import { canonicalTime } from '#kernel/core/clock.js';
 
 /** Derived copies cannot reuse the parent's declaration, including after serialization or deferral. */
 function withoutInheritedReaction(event: SimulationEventBase, cause?: EffectDelivery['cause']): SimulationEventBase {
@@ -133,7 +133,9 @@ export function createEffectDelivery<T extends object>(
       };
     const cancelledByCast =
       delivery.cast?.effectiveEnd != null &&
-      event.at > delivery.cast.effectiveEnd + EPSILON &&
+      // Committed actor lifetimes explicitly use Infinity to allow their independent follow-up work.
+      delivery.cast.effectiveEnd !== Infinity &&
+      canonicalTime(event.at) > canonicalTime(delivery.cast.effectiveEnd) &&
       event.persistsAfterInterrupt !== true;
     if (cause)
       event = {
@@ -232,7 +234,10 @@ export function createEffectDelivery<T extends object>(
         ? { parentEventOrder: request.cause?.eventOrder ?? reactionParent({ type: 'proc', ...request.attribution }) }
         : {})
     });
-    const cancelled = request.cast?.effectiveEnd != null && at > request.cast.effectiveEnd + EPSILON;
+    const cancelled =
+      request.cast?.effectiveEnd != null &&
+      request.cast.effectiveEnd !== Infinity &&
+      canonicalTime(at) > canonicalTime(request.cast.effectiveEnd);
     if (cancelled) return event;
     // An owned activation at the current instant must remain cancellable until its heap turn.
     if (at < runtime.time || (at === runtime.time && !request.owner)) publishAnnouncement(request, event);
