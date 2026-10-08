@@ -314,5 +314,7 @@ export const THIEF_ARTIFACT_IDS = Object.freeze({
     76702, // Exalted Hammer
     76674, // Holo-Dancer Decoy
     76895 // Zephyrite Sun Crystal
-  ])
+  ]),
+  // Scuffle can supply a bomb instead of a regular artifact; other pilfers cannot grant it.
+  SCUFFLE_ONLY: Object.freeze([76909]) // Unstable Skritt Bomb
 });

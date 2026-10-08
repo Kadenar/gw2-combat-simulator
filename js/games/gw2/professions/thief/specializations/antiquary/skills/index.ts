@@ -298,8 +298,10 @@ export const ANTIQUARY_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>>
     artifactKind: 'defensive'
   },
   [ID.UNSTABLE_SKRITT_BOMB]: {
-    // The Double Edge skill owns this outcome; it cannot occupy a selected utility slot.
+    // Scuffle grants this manually activated backfire in place of an artifact; using it spends the held grant.
+    sideEffects: [{ on: 'castStart', do: { type: 'thief.artifact-spend' } }],
     slotSelectable: false,
+    artifactKind: 'unstable',
     castTimeMs: 0,
     cooldown: 0,
     initiativeCost: 0,
@@ -317,8 +319,7 @@ export const ANTIQUARY_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>>
         actorType: 'player',
         controlKind: 'knockback'
       }
-    ],
-    backfire: true
+    ]
   },
   [ID.RESHUFFLE]: {
     // The skill owns this transition at successful commitment.

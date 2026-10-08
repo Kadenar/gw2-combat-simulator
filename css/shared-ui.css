@@ -348,6 +348,11 @@ a.simulator-view-tab:focus-visible {
   border-radius: var(--radius);
 }
 
+/* The current rotation's DPS belongs to simulator tools, not the cross-build benchmark view. */
+body[data-simulator-view='benchmarks'] .header-dps {
+  display: none;
+}
+
 .header-dps-label {
   font-size: 9px;
   font-weight: 700;

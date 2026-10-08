@@ -502,6 +502,9 @@ const familyTooltips = {
     };
   },
   'thief.artifact': artifactTooltip,
+  'thief.unstable-skritt-bomb': skillTooltip(
+    'Consume a held Skritt Scuffle artifact grant to explode the bomb, dealing strike damage and knocking enemies back. This backfire does not trigger regular artifact-use traits. Self-damage and incoming-damage penalties are outside simulation scope.'
+  ),
   'thief.reshuffle': skillTooltip(
     'Replace the available artifact choices. Retains the number of artifact uses remaining. Requires the Card Swap trait.'
   ),
@@ -515,7 +518,7 @@ const familyTooltips = {
   ),
   'thief.skritt-scuffle': profileTooltip(
     ANTIQUARY.scuffle,
-    'Summon an assistant that immediately pilfers artifacts and repeats while active. Each pilfer replaces artifact choices and resets base uses. Multiple assistants run independently.',
+    'Summon an assistant that immediately pilfers artifacts and repeats while active. Each pilfer replaces artifact choices, including Unstable Skritt Bomb, and resets base uses. Multiple assistants run independently.',
     [
       ['durationMultiplier', 'Assistant duration', tooltipSeconds],
       ['pulseInterval', 'Pilfer interval', tooltipSeconds]
@@ -650,6 +653,7 @@ const FAMILY_SKILL_IDS: Readonly<Record<keyof typeof familyTooltips, readonly Sk
     ID.ZEPHYRITE_SUN_CRYSTAL_ID_76733
   ],
   'thief.reshuffle': [ID.RESHUFFLE],
+  'thief.unstable-skritt-bomb': [ID.UNSTABLE_SKRITT_BOMB],
   'thief.skritt-swipe': [ID.SKRITT_SWIPE],
   'thief.skritt-scuffle': [ID.SKRITT_SCUFFLE],
   'thief.forged-surfer': [ID.FORGED_SURFER_DASH],

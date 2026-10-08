@@ -137,7 +137,9 @@ export const antiquaryUi = Object.freeze({
   paletteGroups: () => {
     const artifactGroups: readonly [string, string, readonly number[], string][] = [
       ['thief-artifacts-offensive', 'Offensive', THIEF_ARTIFACT_IDS.OFFENSIVE, '#c65d68'],
-      ['thief-artifacts-defensive', 'Defensive', THIEF_ARTIFACT_IDS.DEFENSIVE, '#6f9cb8']
+      ['thief-artifacts-defensive', 'Defensive', THIEF_ARTIFACT_IDS.DEFENSIVE, '#6f9cb8'],
+      // Keep the Scuffle-only backfire discoverable while runtime inventory controls whether it can be used.
+      ['thief-artifacts-scuffle', 'Scuffle', THIEF_ARTIFACT_IDS.SCUFFLE_ONLY, '#c6a05d']
     ];
     return [
       {

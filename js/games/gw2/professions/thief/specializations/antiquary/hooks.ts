@@ -5,6 +5,7 @@ import { antiquaryResolverEventReactions } from '#gw2/professions/thief/speciali
 import {
   antiquaryAvailability,
   artifactSlotsUsed,
+  storeAntiquaryArtifacts,
   spendAntiquaryInitiative
 } from '#gw2/professions/thief/specializations/antiquary/mechanics/artifacts.js';
 import { ANTIQUARY_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/thief/specializations/antiquary/profiles.js';
@@ -16,10 +17,14 @@ import {
   skrittScufflePilfer
 } from '#gw2/professions/thief/specializations/antiquary/skills/skritt-scuffle.js';
 import { antiquaryState } from '#gw2/professions/thief/specializations/antiquary/state.js';
-import type { ThiefRuntimeState, ThiefSkill } from '#gw2/professions/thief/types.js';
+import type { ThiefConfig, ThiefRuntimeState, ThiefSkill } from '#gw2/professions/thief/types.js';
 
 /** Antiquary hooks: artifact pilfering and use, Double Edge outcomes, Skritt summons, and artifact-driven traits. */
 export const antiquaryHooks: RuntimeHooks<ThiefRuntimeState, ThiefSkill> = {
+  // A pre-steal supplies Swipe's inventory before setup while leaving cooldowns and temporary buffs untouched.
+  initialize(runtime) {
+    if ((runtime.config as ThiefConfig).initialPreSteal === 1) storeAntiquaryArtifacts(runtime, 'swipe');
+  },
   sideEffectHandlers: antiquaryArtifactActions,
 
   availability: antiquaryAvailability,

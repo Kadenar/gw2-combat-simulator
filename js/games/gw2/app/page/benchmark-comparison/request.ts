@@ -1,4 +1,4 @@
-import { loadPresetBundle } from '#gw2/app/build/library/assets.js';
+import { fetchJsonAsset, getRotationItems } from '#gw2/app/import-export/files.js';
 import { deterministicSimulationConfig } from '#gw2/app/simulation/build-config.js';
 import { loadProfessionAppAdapter } from '#gw2/profession-registry.js';
 import type { Benchmark } from '#gw2/app/page/benchmarks.js';
@@ -37,9 +37,12 @@ export function prepareComparisonRequest(
 }
 
 /** Load only requested preset assets; a missing rotation is an actionable failure, never an empty successful run. */
-export async function loadComparisonRequest(row: Benchmark): Promise<ComparisonRequest> {
+export async function loadComparisonRequest(row: Benchmark, buildData: unknown): Promise<ComparisonRequest> {
   if (!row.rotation) throw new Error('This preset has no saved rotation.');
-  const [adapter, bundle] = await Promise.all([loadProfessionAppAdapter(row.profession), loadPresetBundle(row)]);
+  const [adapter, rotationData] = await Promise.all([
+    loadProfessionAppAdapter(row.profession),
+    fetchJsonAsset(row.rotation, { optional: true })
+  ]);
   if (!adapter) throw new Error(`Unknown profession: ${row.profession}`);
-  return prepareComparisonRequest(adapter, bundle.buildData, bundle.rotationItems);
+  return prepareComparisonRequest(adapter, buildData, getRotationItems(rotationData));
 }

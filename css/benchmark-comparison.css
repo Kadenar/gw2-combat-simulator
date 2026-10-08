@@ -82,6 +82,33 @@
   border: 1px solid var(--bc-line);
   border-radius: 5px;
 }
+/* Each selected simulation owns its party control; narrow layouts wrap labels above their checkboxes. */
+.bc-party-settings {
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--bc-line);
+}
+.bc-party {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px 12px;
+  margin-top: 8px;
+  font-size: 12px;
+}
+.bc-party > span {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1 1 180px;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.bc-party > label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+}
 .bc-picker {
   min-width: 0;
   background: #19181b;

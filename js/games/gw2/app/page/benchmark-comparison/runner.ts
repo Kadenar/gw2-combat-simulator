@@ -8,12 +8,17 @@ export interface ComparisonEntry {
   error?: string;
 }
 
-export type RunComparisonBuild = (row: Benchmark, signal: AbortSignal) => Promise<ComparisonResult>;
+export type RunComparisonBuild = (
+  row: Benchmark,
+  signal: AbortSignal,
+  alliedPlayerCount: number | null
+) => Promise<ComparisonResult>;
 
 /** Bound concurrent work, cache successful runs, and reject late publications after cancel or restart. */
 export class ComparisonRunner {
   readonly entries = new Map<string, ComparisonEntry>();
   private controller: AbortController | null = null;
+  private readonly alliedPlayerCounts = new Map<string, number>();
   constructor(
     private readonly execute: RunComparisonBuild,
     private readonly changed: () => void
@@ -21,6 +26,25 @@ export class ComparisonRunner {
 
   get running(): boolean {
     return this.controller !== null;
+  }
+
+  alliedPlayerCount(row: Benchmark): number | null {
+    return this.alliedPlayerCounts.get(comparisonKey(row)) ?? null;
+  }
+
+  /** Invalidate only the edited simulation; other builds keep their settings and completed results. */
+  setAlliedPlayerCount(row: Benchmark, count: number | null): void {
+    if (count !== null && (!Number.isInteger(count) || count < 0 || count > 4)) {
+      throw new RangeError('Choose between 0 and 4 additional allied players.');
+    }
+
+    if (count === this.alliedPlayerCount(row)) return;
+    if (this.running) throw new Error('Cancel the current run before changing allies.');
+    const key = comparisonKey(row);
+    if (count === null) this.alliedPlayerCounts.delete(key);
+    else this.alliedPlayerCounts.set(key, count);
+    this.entries.delete(key);
+    this.changed();
   }
 
   async run(rows: readonly Benchmark[], force = false): Promise<void> {
@@ -40,7 +64,7 @@ export class ComparisonRunner {
         entry.status = 'running';
         this.changed();
         try {
-          const result = await this.execute(row, controller.signal);
+          const result = await this.execute(row, controller.signal, this.alliedPlayerCount(row));
           if (controller.signal.aborted) return;
           entry.result = result;
           entry.status = 'complete';

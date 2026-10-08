@@ -1357,7 +1357,7 @@ test('Antiquary exposes every artifact from Swipe and Scuffle', () => {
   );
   assert.deepEqual(
     paletteGroups.filter((group) => group.id.startsWith('thief-artifacts-')).map((group) => group.stackId),
-    ['thief-artifacts', 'thief-artifacts']
+    ['thief-artifacts', 'thief-artifacts', 'thief-artifacts']
   );
   assert.equal(paletteGroups.find((group) => group.id === 'thief-profession').skillIds.includes(ID.RESHUFFLE), false);
 
@@ -1385,7 +1385,7 @@ test('Antiquary exposes every artifact from Swipe and Scuffle', () => {
 
   assert.deepEqual(
     scuffle.planningState.profession.artifactSlots.map((slot) => slot.skillId),
-    expectedArtifactIds
+    [...expectedArtifactIds, ...THIEF_ARTIFACT_IDS.SCUFFLE_ONLY]
   );
 });
 

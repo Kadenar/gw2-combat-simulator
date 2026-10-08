@@ -1,10 +1,17 @@
 import { THIEF_SKILL_IDS as ID } from '#gw2/professions/thief/data/ids.js';
 import { effectEvidence, isBuffApply } from '#gw2/integrations/logs/evtc/rotation/ei-inference.js';
-import { GW2_ACTION_TICK_MS } from '#gw2/platform/combat/action-tick.js';
+import { GW2_ACTION_TICK_MS, quantizeGw2ActionTimingMs } from '#gw2/platform/combat/action-tick.js';
 import type {
   EvtcProfessionReconstructionContext,
   EvtcRecordedRotationAction
 } from '#gw2/integrations/logs/evtc/rotation/professions/types.js';
+
+/** Keep sub-480 ms Shadow Bolt attempts below that boundary; timeline alignment restores the saved time as idle. */
+export function thiefShadowBoltInterruptMs(action: EvtcRecordedRotationAction): number | null {
+  const observedMs = action.end - action.start;
+  if (action.rawSkillId !== ID.SHADOW_BOLT || observedMs >= 480) return null;
+  return Math.min(quantizeGw2ActionTimingMs(action.replayInterruptMs ?? observedMs), 480 - GW2_ACTION_TICK_MS);
+}
 
 /** Supplement EI with owned needle visuals and damage when its circle is missing or its visual window is exceeded. */
 export function thiefThousandNeedlesActions(

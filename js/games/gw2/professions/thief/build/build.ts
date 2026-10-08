@@ -64,6 +64,7 @@ export function createThiefBuildDefaults(): ThiefCanonicalBuild {
     }),
     initialInitiative: 12,
     initialSpinningAxes: 0,
+    initialPreSteal: 0,
     initialShadowForce: 0
   };
 }
@@ -76,6 +77,12 @@ const thiefBuildCodec = createProfessionBuildCodec<ThiefCanonicalBuild>({
   assumptionControls: THIEF_ASSUMPTION_CONTROLS,
   // Initiative, shadow force, and dodge choice share one persisted schema.
   extraFields: {
+    // One starting pip supplies a full pre-steal inventory using the selected traits.
+    initialPreSteal: {
+      type: 'integer',
+      minimum: 0,
+      maximum: 1
+    },
     // Precast autoattack axes occupy the same six slots as axes created during the rotation.
     initialSpinningAxes: {
       type: 'integer',

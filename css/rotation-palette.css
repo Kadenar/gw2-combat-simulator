@@ -373,6 +373,12 @@
   grid-row: 2;
 }
 
+/* Scuffle's special artifact sits below the two normal families without displacing initiative. */
+.antiquary-artifacts-scuffle {
+  grid-column: 2;
+  grid-row: 3;
+}
+
 .profession-resource-stack:has(> .profession-palette-stack[data-palette-stack='thief-artifacts'])
   .active-resource-group:has([data-resource-id='initiative']) {
   grid-column: 1;

@@ -232,6 +232,27 @@ export const thiefCoreUi = Object.freeze({
         shortLabel: 'Init',
         statusLabel: 'Current'
       },
+      // A single starting pip enables a full pre-steal grant for the supported specializations.
+      ...(['Core', 'Daredevil', 'Deadeye', 'Antiquary'].includes(
+        context.specialization || context.config?.specialization || 'Core'
+      )
+        ? [
+            {
+              id: 'pre-steal',
+              singular: 'pre-steal',
+              plural: 'pre-steal',
+              maximum: 1,
+              value: Number((state.storedStolenSkillCount || state.artifactUsesRemaining || 0) > 0),
+              canStart: true,
+              buildKey: 'initialPreSteal' as const,
+              step: 1,
+              displayMode: 'pips',
+              showInPalette: false,
+              shortLabel: 'Pre-steal',
+              statusLabel: 'Current'
+            }
+          ]
+        : []),
       // Reuse the starting-resource editor; the active-state bar already displays the live axe count.
       ...([
         context.build?.weapons?.[0],

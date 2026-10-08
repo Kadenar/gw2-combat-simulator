@@ -34,6 +34,10 @@ export function mountBenchmarkComparison(root: HTMLElement): BenchmarkComparison
         <p class="bc-catalog-heading" data-bc-catalog-count></p><div data-bc-catalog class="bc-catalog"></div>
       </aside>
       <div class="bc-analysis">
+        <section class="bc-party-settings" data-bc-party-settings aria-label="Allies for selected simulations" hidden>
+          <h3>Allies per simulation</h3>
+          <div data-bc-parties></div>
+        </section>
         <p class="bc-status" data-bc-status role="status" aria-live="polite"></p>
         <div class="bc-chart-section"><div class="bc-chart-heading"><div><h3 data-bc-title>Average DPS over time</h3><p data-bc-description>Total damage divided by time since first damage.</p></div><div class="bc-segmented" role="group" aria-label="DPS measurement"><button type="button" data-bc-mode="average" aria-pressed="true">Average</button><button type="button" data-bc-mode="1" aria-pressed="false">Last 1s</button><button type="button" data-bc-mode="5" aria-pressed="false">Last 5s</button></div></div>
           <div class="bc-chart-controls"><button type="button" data-bc-reset class="bc-quiet" disabled>Reset zoom</button></div>
@@ -52,6 +56,7 @@ export function mountBenchmarkComparison(root: HTMLElement): BenchmarkComparison
   const outdated = get<HTMLInputElement>('outdated');
   const runButton = get<HTMLButtonElement>('run');
   const selected = new Map<string, Benchmark>();
+  const savedParties = new Map<string, { count?: number; error?: string }>();
   const styleSlots = new Map<string, number>();
   const hidden = new Set<string>();
   const presented = new WeakSet<ComparisonResult>();
@@ -157,6 +162,37 @@ export function mountBenchmarkComparison(root: HTMLElement): BenchmarkComparison
         .join('') || '<tr><td colspan="5" class="bc-no-matches">Choose a build to start comparing.</td></tr>';
   }
 
+  /** Load only selected presets; unknown or failed settings stay disabled rather than showing a guessed default. */
+  async function loadParty(row: Benchmark): Promise<void> {
+    const state: { count?: number; error?: string } = {};
+    savedParties.set(comparisonKey(row), state);
+    renderParties();
+    try {
+      state.count = await executor.loadAlliedPlayerCount(row);
+    } catch (error) {
+      state.error = error instanceof Error ? error.message : String(error);
+    }
+
+    renderParties();
+  }
+
+  /** Keep party controls independent of cursor updates so chart inspection cannot replace a focused checkbox. */
+  function renderParties(): void {
+    const focused = get('parties').contains(root.ownerDocument.activeElement)
+      ? (root.ownerDocument.activeElement as HTMLElement).dataset.bcAllies
+      : undefined;
+    get('party-settings').hidden = selected.size === 0;
+    get('parties').innerHTML = [...selected.values()]
+      .map((row) => {
+        const saved = savedParties.get(comparisonKey(row));
+        const count = runner.alliedPlayerCount(row) ?? saved?.count;
+        return `<div class="bc-party" style="--bc-color:${html(color(row))}"><span><i class="bc-dot"></i>${html(fullName(row))}</span><label><input type="checkbox" data-bc-allies="${index(row)}" aria-label="With allies for ${html(fullName(row))}" ${count ? 'checked' : ''} ${runner.running || saved?.count === undefined ? 'disabled' : ''}> With allies${saved?.error ? ' (unavailable)' : count === undefined ? ' (loading…)' : count > 0 ? ` (${count})` : ''}</label>${saved?.error ? `<span class="bc-error">${html(saved.error)} <button type="button" data-bc-retry-allies="${index(row)}" ${runner.running ? 'disabled' : ''}>Retry</button></span>` : ''}</div>`;
+      })
+      .join('');
+    if (focused !== undefined)
+      root.querySelector<HTMLInputElement>(`[data-bc-allies="${focused}"]:enabled`)?.focus({ preventScroll: true });
+  }
+
   /** Keep preset warnings visible so problematic simulations cannot appear warning-free. */
   function renderWarnings(): void {
     const completed = [...selected.values()].filter((row) => resultFor(row));
@@ -255,16 +291,32 @@ export function mountBenchmarkComparison(root: HTMLElement): BenchmarkComparison
             ? 'Check the per-build errors below, then retry.'
             : 'Run comparison to see your selected builds on the chart.';
     renderValues();
+    renderParties();
     renderWarnings();
     chart.draw();
   }
 
   for (const input of [search, profession, outdated])
     input.addEventListener(input === search ? 'input' : 'change', renderCatalog);
+  // Editing one selected build queues only that build again and leaves all saved presets untouched.
+  get('parties').addEventListener('change', (event) => {
+    const input = event.target as HTMLInputElement;
+    const rowIndex = input.dataset.bcAllies;
+    if (rowIndex === undefined || runner.running) return;
+    cancelled = false;
+    const row = rows[Number(rowIndex)]!;
+    const savedCount = savedParties.get(comparisonKey(row))?.count;
+    if (savedCount === undefined) return;
+    const count = input.checked ? savedCount || 4 : 0;
+    runner.setAlliedPlayerCount(row, count === savedCount ? null : count);
+    chart.reset();
+    root.querySelector<HTMLInputElement>(`[data-bc-allies="${rowIndex}"]`)?.focus({ preventScroll: true });
+  });
   root.addEventListener('click', (event) => {
     const button = (event.target as Element).closest<HTMLButtonElement>('button');
     if (!button) return;
-    const { bcPick, bcFilter, bcMode, bcVisible } = button.dataset;
+    const { bcPick, bcFilter, bcMode, bcVisible, bcRetryAllies } = button.dataset;
+    if (bcRetryAllies !== undefined && !runner.running) void loadParty(rows[Number(bcRetryAllies)]!);
     // Native row buttons expose selection to keyboard and assistive technology without separate checkboxes.
     if (bcPick !== undefined && !runner.running) {
       const row = rows[Number(bcPick)]!;
@@ -272,7 +324,11 @@ export function mountBenchmarkComparison(root: HTMLElement): BenchmarkComparison
       if (selected.has(key)) {
         selected.delete(key);
         hidden.delete(key);
-      } else selected.set(key, row);
+      } else {
+        selected.set(key, row);
+        if (!savedParties.has(key)) void loadParty(row);
+      }
+
       cancelled = false;
       render();
       chart.reset();

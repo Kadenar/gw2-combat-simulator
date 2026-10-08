@@ -4,8 +4,22 @@ import type { Gw2ResolverResult } from '#gw2/platform/results/types.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
 import type { GameContentAddress } from '#browser/game/contracts.js';
 import type { RotationCommand } from '#gw2/platform/execution/rotation.js';
+import type { Gw2Build } from '#gw2/platform/builds/types.js';
+import { boundedInteger } from '#kernel/core/numeric.js';
 
 export type ComparisonMode = 'average' | '1' | '5';
+
+/** Read the canonical saved assumption without importing profession engines into the comparison UI. */
+export function savedComparisonAlliedPlayerCount(buildData: unknown): number {
+  if (!buildData || typeof buildData !== 'object' || Array.isArray(buildData)) throw new Error('Invalid saved build.');
+  return boundedInteger((buildData as Gw2Build).assumptions?.alliedPlayerCount ?? 0, 0, 0, 4);
+}
+
+/** Apply one simulation's party override without mutating the prepared preset shared by later runs. */
+export function comparisonConfig(config: Gw2Config, alliedPlayerCount: number | null): Gw2Config {
+  if (alliedPlayerCount === null) return config;
+  return { ...config, allies: { ...config.allies, count: alliedPlayerCount } };
+}
 
 export interface ComparisonRequest extends GameContentAddress {
   readonly rotation: readonly RotationCommand[];

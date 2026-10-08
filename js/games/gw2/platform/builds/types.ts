@@ -148,6 +148,7 @@ export interface Gw2BuildResources {
   initialShadowForce?: number;
   initialInitiative?: number;
   initialSpinningAxes?: number;
+  initialPreSteal?: number;
   initialEnergy?: number;
   initialCatalystEnergy?: number;
   initialEvokerCharges?: number;

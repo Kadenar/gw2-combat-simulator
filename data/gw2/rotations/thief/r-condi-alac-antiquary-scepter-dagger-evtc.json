@@ -21,15 +21,6 @@
       "10 casts were inferred using corroborated profession-specific EVTC evidence."
     ],
     "snowCrowsUrl": "https://snowcrows.com/builds/raids/thief/condition-alacrity-antiquary-scepter-dagger-only",
-    "notes": [
-      "The opening Thousand Needles impact precedes the first recorded preparation, establishing a pre-placed trap. Add preparation, a three-second arming wait, and cooldown reset before the recorded opener.",
-      "Standard Elite Insights rules run first. Additional owned effects and damage recover eight Chak Shields and two Thousand Needles activations. The opening trap lacks its generic circle; both needle-specific impact effects and owned damage establish activation at the standard 280 ms delay before impact.",
-      "Forged Surfer commits at 160 ms on the simulator action grid and retains its remaining cast lockout. The first recorded 141 ms cast grants its buff and deals damage.",
-      "Possessive Hoarder shares its artifact-family boon and alacrity with up to five party members. Meticulous Custodian enhances Kryptis Torment before expertise, and turret and decoy strikes use their corrected 20% enhancement.",
-      "The saved build follows the supplied equipment and trait selections. Master Tuning Crystal uses the existing canonical Tuning Icicle representation with identical combat stats.",
-      "Matching report: https://dps.report/R6Fh-20260724-175549_golem (36,713 recorded DPS over 106.962 seconds). The in-game final DPS has not been supplied; missing EVTC damage must not be treated as evidence of simulator overcounting.",
-      "Manifest DPS, APM, and health-band values describe the current simulator replay, not the source log or Snow Crows benchmark."
-    ],
     "simulationWarnings": []
   },
   "rotation": [

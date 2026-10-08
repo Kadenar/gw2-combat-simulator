@@ -6,7 +6,9 @@ import {
   comparisonResult,
   comparisonDamageAt,
   comparisonDpsAt,
-  comparisonCurve
+  comparisonCurve,
+  comparisonConfig,
+  savedComparisonAlliedPlayerCount
 } from '#gw2/app/page/benchmark-comparison/model.js';
 import { ComparisonRunner } from '#gw2/app/page/benchmark-comparison/runner.js';
 import { prepareComparisonRequest } from '#gw2/app/page/benchmark-comparison/request.js';
@@ -67,6 +69,55 @@ test('average and rolling DPS use partial windows and return no value after a ru
 
 const row = (id) => ({ profession: 'mesmer', build: `${id}.json`, rotation: `${id}-rotation.json`, label: id });
 const deferred = () => Promise.withResolvers();
+
+// Party overrides belong to one run and must never leak into the prepared preset or another selected build.
+test('comparison party defaults read saved assumptions and overrides preserve the prepared config', () => {
+  assert.equal(savedComparisonAlliedPlayerCount({ assumptions: { alliedPlayerCount: 2 } }), 2);
+  assert.equal(savedComparisonAlliedPlayerCount({ assumptions: { alliedPlayerCount: 0 } }), 0);
+  assert.equal(savedComparisonAlliedPlayerCount({}), 0);
+  const config = Object.freeze({ allies: Object.freeze({ count: 2, strikesPerSecond: 1 }), target: { health: 1000 } });
+  assert.equal(comparisonConfig(config, null), config);
+  assert.deepEqual(comparisonConfig(config, 0).allies, { count: 0, strikesPerSecond: 1 });
+  assert.deepEqual(comparisonConfig(config, 4).allies, { count: 4, strikesPerSecond: 1 });
+  assert.equal(comparisonConfig(config, 4).target, config.target);
+  assert.equal(config.allies.count, 2);
+});
+
+test('changing allies invalidates only that simulation and restores its saved default independently', async () => {
+  const jobs = [];
+  const runner = new ComparisonRunner(
+    async (preset, signal, count) => {
+      jobs.push({ preset, count });
+      return result();
+    },
+    () => {}
+  );
+  const rows = [row('solo'), row('party')];
+  await runner.run(rows);
+  const retained = runner.entries.get(comparisonKey(rows[1])).result;
+  assert.deepEqual(
+    jobs.map(({ count }) => count),
+    [null, null]
+  );
+  runner.setAlliedPlayerCount(rows[0], 4);
+  assert.equal(runner.entries.has(comparisonKey(rows[0])), false);
+  assert.equal(runner.entries.get(comparisonKey(rows[1])).result, retained);
+  await runner.run(rows);
+  assert.equal(jobs.length, 3);
+  assert.equal(jobs[2].count, 4);
+  runner.setAlliedPlayerCount(rows[0], 4);
+  await runner.run(rows);
+  assert.equal(jobs.length, 3);
+  runner.setAlliedPlayerCount(rows[1], 0);
+  await runner.run(rows);
+  assert.equal(jobs[3].count, 0);
+  assert.equal(runner.alliedPlayerCount(rows[0]), 4);
+  runner.setAlliedPlayerCount(rows[0], null);
+  await runner.run(rows);
+  assert.equal(jobs[4].count, null);
+  assert.equal(runner.alliedPlayerCount(rows[1]), 0);
+  for (const count of [-1, 5, 1.5, NaN]) assert.throws(() => runner.setAlliedPlayerCount(rows[0], count), RangeError);
+});
 
 test('comparison runner bounds concurrency, retains successful caches, and isolates failures', async () => {
   const jobs = [];

@@ -27,6 +27,7 @@ import { encounterEndTime, encounterStartTime } from '#gw2/integrations/logs/evt
 import {
   antiquaryChakShieldActions,
   deadeyeMarkActions,
+  thiefShadowBoltInterruptMs,
   thiefThousandNeedlesActions,
   thiefStealActions
 } from '#gw2/integrations/logs/evtc/rotation/professions/thief.js';
@@ -90,7 +91,7 @@ function observedInterruptMs(action: RecordedAction, skill: ReturnType<typeof fi
   if (sourceObservedMs === 0 && (action.status === 'instant' || action.status === 'unknown')) return null;
   const runtimeMs = action.replayDurationMs ?? referenceCastTimeMs(skill);
   // Snap every observed cancellation to the replay's 40 ms action grid, including per-packet channels.
-  const observedMs = quantizeGw2ActionTimingMs(sourceObservedMs);
+  const observedMs = thiefShadowBoltInterruptMs(action) ?? quantizeGw2ActionTimingMs(sourceObservedMs);
   return observedMs < runtimeMs ? observedMs : null;
 }
 
@@ -103,6 +104,12 @@ function applyObservedInterruptTiming(
 ): RecordedAction[] {
   return actions.map((action) => {
     const skill = recordedActionSkill(action, { catalog, profile });
+    const interruptMs = observedInterruptMs(action, skill);
+    // Apply Shadow Bolt's raw-duration guard before tolerant packet matching can promote a short attempt to completion.
+    if (interruptMs != null && thiefShadowBoltInterruptMs(action) != null) {
+      return { ...action, replayInterruptMs: interruptMs, replayCastEnd: undefined };
+    }
+
     const runtimeDuration = action.replayDurationMs ?? referenceCastTimeMs(skill);
     const packets = validatePackets(action);
     const falseZeroDurationCancellation =
@@ -119,7 +126,6 @@ function applyObservedInterruptTiming(
       };
     }
 
-    const interruptMs = observedInterruptMs(action, skill);
     if (interruptMs != null) {
       return { ...action, replayInterruptMs: interruptMs };
     }

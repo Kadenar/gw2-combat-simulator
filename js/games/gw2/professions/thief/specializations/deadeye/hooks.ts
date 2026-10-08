@@ -32,12 +32,12 @@ import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import type { ThiefRuntime } from '#gw2/professions/thief/core/events.js';
 import { buildThiefCondition, deferThiefCompletion } from '#gw2/professions/thief/core/events.js';
-import { completeThiefSteal } from '#gw2/professions/thief/core/mechanics/steal.js';
+import { completeThiefSteal, storeThiefStolenSkillChoices } from '#gw2/professions/thief/core/mechanics/steal.js';
 import { emitThiefStealTraits } from '#gw2/professions/thief/core/traits/steal.js';
 import { deadeyeCastAvailability } from '#gw2/professions/thief/specializations/deadeye/mechanics/availability.js';
 import { DEADEYE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/thief/specializations/deadeye/profiles.js';
 import { deadeyeState } from '#gw2/professions/thief/specializations/deadeye/state.js';
-import type { ThiefRuntimeState, ThiefSkill } from '#gw2/professions/thief/types.js';
+import type { ThiefConfig, ThiefRuntimeState, ThiefSkill } from '#gw2/professions/thief/types.js';
 
 const DEADEYE_COMPLETE = 'thief.deadeye-complete';
 const DEADEYE_MARK_EXPIRY = 'thief.deadeye-mark-expire';
@@ -163,6 +163,12 @@ function reactDeadeyeMalice(runtime: ThiefRuntime, event: Gw2ResolverEvent, hit?
 
 /** Deadeye hooks: the mark and malice, malicious attacks, stolen skills, Mercy, Shadow Flare, and cantrip traits. */
 export const deadeyeHooks: RuntimeHooks<ThiefRuntimeState, ThiefSkill> = {
+  // Pre-steal grants the selected stolen-skill pool without marking a target, gaining malice, or firing steal traits.
+  initialize(runtime) {
+    if ((runtime.config as ThiefConfig).initialPreSteal !== 1) return;
+    const grant = stolenSkillGrant(runtime);
+    storeThiefStolenSkillChoices(runtime, grant.skillIds, grant.forcedSkillId);
+  },
   // Malice has no passive recovery; only accepted mark and hit transactions earn its cycle rewards.
   resources: {
     malice: {

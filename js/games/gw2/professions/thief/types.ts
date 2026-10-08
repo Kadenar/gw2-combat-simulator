@@ -31,6 +31,7 @@ export interface ThiefCanonicalBuild extends Gw2CanonicalBuild {
   selectedDodge: ThiefDodge;
   initialInitiative: number;
   initialSpinningAxes: number;
+  initialPreSteal: number;
   initialShadowForce: number;
 }
 
@@ -40,10 +41,11 @@ export interface ThiefConfig extends Gw2Config {
   readonly selectedDodge?: ThiefDodge;
   readonly initialInitiative?: number;
   readonly initialSpinningAxes?: number;
+  readonly initialPreSteal?: number;
   readonly initialShadowForce?: number;
 }
 
-export type ThiefArtifactKind = 'offensive' | 'defensive';
+export type ThiefArtifactKind = 'offensive' | 'defensive' | 'unstable';
 export type ThiefDoubleEdgeOutcome = 'success' | 'backfire';
 
 export type ThiefState = ThiefCoreState & DaredevilState & DeadeyeState & SpecterState & AntiquaryState;

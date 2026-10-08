@@ -473,11 +473,13 @@ test('section navigation fits four tools on mobile and desktop', async ({ page }
   await page.keyboard.press('Enter');
   await expect(benchmarks).toHaveAttribute('aria-current', 'page');
   await expect(page.locator('#benchmarks-view')).toBeVisible();
+  await expect(page.locator('#header-dps')).toBeHidden();
   const workspace = navigation.getByRole('link', { name: 'Workspace', exact: true });
   await workspace.focus();
   await page.keyboard.press('Enter');
   await expect(workspace).toHaveAttribute('aria-current', 'page');
   await expect(page.locator('#build-workspace-tabs')).toBeVisible();
+  await expect(page.locator('#header-dps')).toBeVisible();
 });
 
 // Both responsive layouts keep all actions reachable without widening the iframe.

@@ -38,17 +38,25 @@ export function allArtifactChoices(): ThiefArtifactSlot[] {
   ];
 }
 
-/**
- * Replaces the held artifacts. Prolific Plunderer and Improvisation add a use only for a Skritt Swipe pilfer, which
- * also refreshes Scoundrel's Luck and Combat High and applies Improvisation's utility reduction.
- */
-export function pilferArtifacts(runtime: ThiefRuntime, source: 'swipe' | 'initiative' | 'scuffle'): void {
+/** Replace inventory with trait-derived uses; starting artifacts must not trigger live pilfer effects. */
+export function storeAntiquaryArtifacts(runtime: ThiefRuntime, source: 'swipe' | 'initiative' | 'scuffle'): void {
   const state = antiquaryState.from(runtime);
   state.artifactSlots = allArtifactChoices();
+  // Offer Scuffle's random bomb outcome as a choice, just like the normal randomized artifact pool.
+  if (source === 'scuffle')
+    state.artifactSlots.push(
+      ...THIEF_ARTIFACT_IDS.SCUFFLE_ONLY.map((skillId) => ({ kind: 'unstable' as const, skillId }))
+    );
   state.artifactUsesRemaining =
     balanceProfileNumber(requireBalanceProfileFromContext(runtime, PROFILE.resources), 'maximumStacks') +
     prolificPlundererUses(runtime, source) +
     improvisationArtifactUses(runtime, source);
+}
+
+/** Live pilfers reset spending; Swipe also grants its buffs and utility recharge reduction. */
+export function pilferArtifacts(runtime: ThiefRuntime, source: 'swipe' | 'initiative' | 'scuffle'): void {
+  storeAntiquaryArtifacts(runtime, source);
+  const state = antiquaryState.from(runtime);
   // Every pilfer starts fresh, including Swipe and Scuffle; excess spending never carries to a second pilfer.
   state.initiativeSpentSincePilfer = 0;
   if (source !== 'swipe') return;
@@ -113,7 +121,9 @@ export function antiquaryAvailability(runtime: MechanicQueriesOf<ThiefRuntime>, 
     return denySkillCast(
       skill,
       'thief.artifact',
-      'this artifact is not in an available artifact slot.',
+      skill.id === ID.UNSTABLE_SKRITT_BOMB
+        ? 'requires an unused artifact grant from Skritt Scuffle.'
+        : 'this artifact is not in an available artifact slot.',
       (state.nextSkrittScufflePilferAt || 0) > runtime.time ? state.nextSkrittScufflePilferAt : null
     );
   if (skill.backfire)

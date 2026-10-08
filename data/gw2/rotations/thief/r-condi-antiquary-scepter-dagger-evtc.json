@@ -21,15 +21,6 @@
       "8 casts were inferred using corroborated profession-specific EVTC evidence."
     ],
     "snowCrowsUrl": "https://snowcrows.com/builds/raids/thief/condition-antiquary-scepter-dagger",
-    "notes": [
-      "The opener adds the user-confirmed pre-placed Thousand Needles and cooldown reset. A three-second precombat wait arms it; its observed activation is recovered from EVTC effects and damage before combat entry.",
-      "Standard Elite Insights rules run first. Additional owned-effect and damage corroboration recovers two Thousand Needles activations whose delayed visuals fall outside the standard timing tolerance. Six Chak Shield activations are recovered from owned effects and fresh self-buff grants.",
-      "Shadow Bolt uses its complete cast: the recorded 467 ms attempt dealt no damage, so the provisional 480 ms interrupt-commit override was removed.",
-      "The saved build follows the supplied equipment and trait selections. Master Tuning Crystal uses the existing canonical Tuning Icicle representation with identical combat stats.",
-      "Manifest DPS, APM, and health-band values describe the current simulator replay, not the source log or Snow Crows benchmark.",
-      "The user reports 40,630 DPS in game for this run. The matching report is https://dps.report/7wyo-20260724-133429_golem and records 39,879 DPS with missing damage; use the in-game result for total-DPS comparison rather than tuning mechanics to the incomplete damage record.",
-      "Forged Surfer uses its buff lifetime and refresh cadence to determine additional bombs. Meticulous Custodian applies one eight-second dash Burning stack before expertise; the obsolete bomb-count assumption is removed."
-    ],
     "simulationWarnings": []
   },
   "rotation": [
@@ -250,12 +241,16 @@
     {
       "type": "cast",
       "skillId": 63066,
-      "interruptAfterMs": 480
+      "interruptAfterMs": 440
     },
     {
       "type": "cast",
       "skillId": 13037,
       "concurrentOffsetMs": 240
+    },
+    {
+      "type": "wait",
+      "durationMs": 40
     },
     {
       "type": "cast",

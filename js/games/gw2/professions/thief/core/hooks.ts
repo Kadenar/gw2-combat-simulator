@@ -41,6 +41,7 @@ import {
   completeThiefSteal,
   consumeThiefStolenSkill,
   storedStolenSkillChoices,
+  storeThiefStolenSkillChoices,
   THIEF_STOLEN_SKILL_IDS
 } from '#gw2/professions/thief/core/mechanics/steal.js';
 import {
@@ -67,7 +68,7 @@ import {
   sleightOfHandRechargeReduction
 } from '#gw2/professions/thief/core/traits/trickery/resource-queries.js';
 import { THIEF_SKILL_IDS as ID } from '#gw2/professions/thief/data/ids.js';
-import type { ThiefRuntimeState, ThiefSkill } from '#gw2/professions/thief/types.js';
+import type { ThiefConfig, ThiefRuntimeState, ThiefSkill } from '#gw2/professions/thief/types.js';
 
 /**
  * Core gates for endurance, follow-up windows, spear stages, preparations, stealth replacements, rifle stance, stored
@@ -151,6 +152,14 @@ function completeThiefCast(runtime: ThiefRuntime, cast: RuntimeCast<ThiefSkill>)
 /** Core hooks: initiative, endurance, stealth, steals, weapon follow-ups, utilities, and resolved trait reactions. */
 
 const coreLifecycle: RuntimeHooks<ThiefRuntimeState, ThiefSkill> = {
+  // Previously stolen inventory is available during setup without firing a steal or its trait effects.
+  initialize(runtime) {
+    if (
+      (runtime.config as ThiefConfig).initialPreSteal === 1 &&
+      ['Core', 'Daredevil'].includes(runtime.profession.specialization.kind)
+    )
+      storeThiefStolenSkillChoices(runtime, THIEF_STOLEN_SKILL_IDS);
+  },
   // Known damage payloads are invoked once without their activation requirements.
   damageEffects: VENOMS.map((venom) => ({
     id: `venom:${venom.skillId}`,

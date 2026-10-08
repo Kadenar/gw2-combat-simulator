@@ -9,10 +9,11 @@ import type { Skill } from '#gw2/platform/skills/types.js';
 export const THIEF_WEAPONS_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
   [ID.SHADOW_BOLT]: {
     castTimeMs: 520,
-    // Recorded shortened attempts do not launch a bolt; advance the chain only after the complete cast.
+    // The bolt commits before the aftercast ends; EVTC keeps raw sub-480 ms attempts below this grid boundary.
+    interruptCommitMs: 480,
     cooldown: 0,
     initiativeCost: 0,
-    effects: impactEffects({ atMs: 0, timingAnchor: 'castEnd', timingScale: 'fixed' }, [
+    effects: impactEffects({ atMs: 0, timingAnchor: 'castEnd', timingScale: 'fixed', persistsAfterInterrupt: true }, [
       {
         type: 'strike',
         coefficient: 0.33,

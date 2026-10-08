@@ -1,18 +1,44 @@
 import type { RunComparisonBuild } from '#gw2/app/page/benchmark-comparison/runner.js';
-import { comparisonKey, type ComparisonResult } from '#gw2/app/page/benchmark-comparison/model.js';
+import {
+  comparisonKey,
+  savedComparisonAlliedPlayerCount,
+  type ComparisonResult
+} from '#gw2/app/page/benchmark-comparison/model.js';
+import { fetchJsonAsset } from '#gw2/app/import-export/files.js';
+import type { Benchmark } from '#gw2/app/page/benchmarks.js';
 
 /** Reuse workers across the runner's bounded jobs so engines and prepared builds stay warm between comparisons. */
-export function createComparisonExecutor(baseUrl: string): { execute: RunComparisonBuild; dispose: () => void } {
+export function createComparisonExecutor(baseUrl: string): {
+  execute: RunComparisonBuild;
+  loadAlliedPlayerCount: (row: Benchmark) => Promise<number>;
+  dispose: () => void;
+} {
   const idle: Worker[] = [];
   const workers = new Set<Worker>();
   const preparedKeys = new WeakMap<Worker, Set<string>>();
   let nextId = 0;
+  const builds = new Map<string, Promise<unknown>>();
+  // Selected builds supply checkbox defaults and are then reused by workers without a second asset request.
+  const loadBuild = (row: Benchmark): Promise<unknown> => {
+    const url = new URL(row.build, baseUrl).href;
+    let pending = builds.get(url);
+    if (!pending) {
+      pending = fetchJsonAsset(url).catch((error: unknown) => {
+        builds.delete(url);
+        throw error;
+      });
+      builds.set(url, pending);
+    }
+
+    return pending;
+  };
+
   const discard = (worker: Worker): void => {
     workers.delete(worker);
     worker.terminate();
   };
 
-  const execute: RunComparisonBuild = (row, signal) => {
+  const execute: RunComparisonBuild = (row, signal, alliedPlayerCount) => {
     signal.throwIfAborted();
     return new Promise<ComparisonResult>((resolve, reject) => {
       const key = comparisonKey(row);
@@ -57,28 +83,35 @@ export function createComparisonExecutor(baseUrl: string): { execute: RunCompari
       worker.addEventListener('message', message);
       worker.addEventListener('error', failed);
       worker.addEventListener('messageerror', unreadable);
-      try {
-        // Absolute asset addresses support bundled workers and subdirectory hosting.
-        worker.postMessage({
-          requestId,
-          row: {
-            ...row,
-            build: new URL(row.build, baseUrl).href,
-            rotation: row.rotation ? new URL(row.rotation, baseUrl).href : undefined
-          }
+      void loadBuild(row)
+        .then((buildData) => {
+          if (settled) return;
+          // Absolute asset addresses support bundled workers and subdirectory hosting.
+          worker.postMessage({
+            requestId,
+            alliedPlayerCount,
+            buildData,
+            row: {
+              ...row,
+              build: new URL(row.build, baseUrl).href,
+              rotation: row.rotation ? new URL(row.rotation, baseUrl).href : undefined
+            }
+          });
+        })
+        .catch((error: unknown) => {
+          finish(undefined, error);
         });
-      } catch (error) {
-        finish(undefined, error);
-      }
     });
   };
 
   return {
     execute,
+    loadAlliedPlayerCount: async (row) => savedComparisonAlliedPlayerCount(await loadBuild(row)),
     dispose: () => {
       for (const worker of workers) worker.terminate();
       workers.clear();
       idle.length = 0;
+      builds.clear();
     }
   };
 }

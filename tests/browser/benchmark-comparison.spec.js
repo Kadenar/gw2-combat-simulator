@@ -12,6 +12,88 @@ async function pickFirst(page, profession) {
   await page.locator('[data-bc-pick]:enabled').first().click();
 }
 
+// Native checkboxes must reflect saved defaults and send only the edited simulation back through a worker.
+test('allies toggle per selected simulation using its saved default and preserve other results', async ({ page }) => {
+  test.setTimeout(120_000);
+  await page.addInitScript(() => {
+    window.comparisonParties = [];
+    const postMessage = Worker.prototype.postMessage;
+    Worker.prototype.postMessage = function (message, ...args) {
+      if (message.row)
+        window.comparisonParties.push({ profession: message.row.profession, count: message.alliedPlayerCount });
+      return postMessage.call(this, message, ...args);
+    };
+  });
+  await page.route('**/data/gw2/builds/*/b-*.json*', async (route) => {
+    const response = await route.fetch();
+    const build = await response.json();
+    build.assumptions = {
+      ...build.assumptions,
+      alliedPlayerCount: route.request().url().includes('/guardian/') ? 2 : 0
+    };
+    await route.fulfill({ response, json: build });
+  });
+  await openComparison(page);
+  await pickFirst(page, 'guardian');
+  await pickFirst(page, 'mesmer');
+  const guardian = page.locator('[data-bc-allies]').nth(0);
+  const mesmer = page.locator('[data-bc-allies]').nth(1);
+  await expect(guardian).toBeEnabled();
+  await expect(guardian).toBeChecked();
+  await expect(guardian.locator('..')).toContainText('(2)');
+  await expect(mesmer).toBeEnabled();
+  await expect(mesmer).not.toBeChecked();
+  const run = async () => {
+    await page.locator('[data-bc-run]').click();
+    await expect(page.locator('[data-bc-run]')).toHaveText('Run again', { timeout: 90_000 });
+  };
+
+  await run();
+  const retained = await page.locator('[data-bc-final]').nth(1).textContent();
+  await guardian.focus();
+  await guardian.press('Space');
+  await expect(guardian).not.toBeChecked();
+  await expect(guardian).toBeFocused();
+  await expect(mesmer).not.toBeChecked();
+  await expect(page.locator('[data-bc-run]')).toHaveText('Run comparison (1)');
+  await expect(page.locator('[data-bc-final]').nth(1)).toHaveText(retained);
+  await run();
+  await mesmer.check();
+  await expect(guardian).not.toBeChecked();
+  await expect(mesmer.locator('..')).toContainText('(4)');
+  await run();
+  await guardian.check();
+  await expect(guardian.locator('..')).toContainText('(2)');
+  await run();
+  expect(await page.evaluate(() => window.comparisonParties)).toEqual([
+    { profession: 'guardian', count: null },
+    { profession: 'mesmer', count: null },
+    { profession: 'guardian', count: 0 },
+    { profession: 'mesmer', count: 4 },
+    { profession: 'guardian', count: null }
+  ]);
+  await page.locator('[data-bc-search]').fill('no matching builds');
+  await expect(guardian).toBeChecked();
+  await expect(mesmer).toBeChecked();
+  await page.getByRole('button', { name: 'Build benchmarks', exact: true }).click();
+  await page.getByRole('button', { name: 'Simulate comparison', exact: true }).click();
+  await expect(mesmer).toBeChecked();
+  await page.setViewportSize({ width: 320, height: 1000 });
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+});
+
+test('failed saved ally settings can be retried without guessing the checkbox default', async ({ page }) => {
+  await openComparison(page);
+  const builds = '**/data/gw2/builds/guardian/b-*.json*';
+  await page.route(builds, (route) => route.fulfill({ status: 503, body: 'Unavailable' }));
+  await pickFirst(page, 'guardian');
+  await expect(page.locator('[data-bc-allies]')).toBeDisabled();
+  await expect(page.locator('[data-bc-parties]')).toContainText('unavailable');
+  await page.unroute(builds);
+  await page.getByRole('button', { name: 'Retry', exact: true }).click();
+  await expect(page.locator('[data-bc-allies]')).toBeEnabled();
+});
+
 // Same-profession curves need stable, distinguishable identities across all of the linked controls.
 test('same-profession comparisons retain distinct colors and line patterns while filtering and hiding builds', async ({
   page
@@ -95,7 +177,8 @@ test('comparison loads on demand, runs different professions, and keeps chart in
   await firstBuild.press('Enter');
   await expect(firstBuild).toHaveAttribute('aria-pressed', 'true');
   await pickFirst(page, 'mesmer');
-  expect(requests.some((url) => /\/data\/gw2\/builds\/[^/]+\/b-/.test(url))).toBe(false);
+  // Selection loads saved ally defaults, while rotations and engines still wait for an explicit run.
+  expect(requests.some((url) => /\/data\/gw2\/rotations\//.test(url))).toBe(false);
   expect(workers).toBe(0);
   await page.locator('[data-bc-run]').click();
   await expect(page.locator('[data-bc-run]')).toHaveText('Run again', { timeout: 90_000 });
@@ -190,7 +273,7 @@ test('leaving comparison terminates preparation and a later run uses a fresh wor
     workers++;
     activeWorker = worker;
   });
-  await page.route('**/data/gw2/builds/guardian/b-*.json*', async (route) => {
+  await page.route('**/data/gw2/rotations/guardian/*.json*', async (route) => {
     received();
     await gate;
     await route.continue();
@@ -257,6 +340,7 @@ test('fresh results reveal once while cached visibility changes stay immediate',
         window.comparisonJobs = [];
         export function createComparisonExecutor() {
           return {
+            loadAlliedPlayerCount: async () => 0,
             execute: () => new Promise(resolve => window.comparisonJobs.push(resolve)),
             dispose() {}
           };
