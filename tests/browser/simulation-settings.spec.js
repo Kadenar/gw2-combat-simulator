@@ -53,7 +53,8 @@ test('returning to a cached tab refreshes Current and Reference after a shared d
 });
 
 // Real controls must survive build switches, imports, reloads, and navigation to another profession.
-test('transition delay preferences are global and imported waits overlap them', async ({ page }) => {
+// Action-tick scheduling and wait overlap are covered by the Node transition-delay contracts.
+test('transition delay preferences persist globally and control imported rotation markers', async ({ page }) => {
   const warnings = [];
   page.on('console', (message) => {
     if (message.type() === 'warning') warnings.push(message.text());
@@ -74,19 +75,17 @@ test('transition delay preferences are global and imported waits overlap them', 
     applyRotationImportPreview(app, await previewRotationFile(file, app));
   });
   await page.waitForFunction(() => window.professionApp.buildRevision === window.professionApp.resultRevision);
-  const timing = await page.evaluate(() => {
+  const importedState = await page.evaluate(() => {
     const app = window.professionApp;
     return {
-      starts: app.results.steps.filter((step) => step.skill === 'Swap Weapons').map((step) => step.start),
       warnings: app.results.warnings,
       buildHasSettings: JSON.stringify(app.build).includes('transitionDelays'),
       settings: app.simulationSettings.transitionDelays
     };
   });
-  expect(timing.starts).toEqual([0, 100]);
-  expect(timing.warnings).toEqual([]);
-  expect(timing.buildHasSettings).toBe(false);
-  expect(Object.values(timing.settings)).toEqual([100, 100, 100, 100, 100]);
+  expect(importedState.warnings).toEqual([]);
+  expect(importedState.buildHasSettings).toBe(false);
+  expect(Object.values(importedState.settings)).toEqual([100, 100, 100, 100, 100]);
   const forced = page.locator('#rotation-timeline .rot-forced-delay');
   await expect(forced).toHaveCount(2);
   await expect(forced.first()).toHaveAttribute('title', /Forced transition delay: 20 ms/);
