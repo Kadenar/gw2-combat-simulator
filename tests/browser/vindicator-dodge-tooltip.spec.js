@@ -12,8 +12,11 @@ test('Vindicator dodge tooltip refreshes when the selected grandmaster changes',
     app.build = app.adapter.toApplicationBuild({ ...build, rotation: [] });
     app.changed();
   });
-  const dodge = page.locator('#rotation-palette [data-skill="Dodge Jump"]');
+  const palette = page.locator('#rotation-palette');
+  const dodge = palette.locator('[data-skill="Dodge Jump"]');
   const tooltip = page.locator('#wiki-tooltip');
+  // Wait for the worker's palette replacement so layout changes cannot move an adjacent tile under the pointer.
+  await expect(palette).toHaveAttribute('aria-busy', 'false');
   await dodge.hover();
   await expect(tooltip).toBeVisible();
   await expect(tooltip).toContainText('Death Drop');
@@ -24,6 +27,7 @@ test('Vindicator dodge tooltip refreshes when the selected grandmaster changes',
     app.build.specializations.find(({ name }) => name === 'Vindicator').traits = '1-1-3';
     app.changed();
   });
+  await expect(palette).toHaveAttribute('aria-busy', 'false');
   await dodge.hover();
   await expect(tooltip).toBeVisible();
   await expect(tooltip).toContainText('Alacrity');
