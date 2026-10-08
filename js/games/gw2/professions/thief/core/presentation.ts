@@ -18,6 +18,7 @@ import { SIMULATION_RANDOMNESS_ASSUMPTION_CONTROLS } from '#gw2/platform/builds/
 import { THIEF_CORE_ASSUMPTION_CONTROLS } from '#gw2/professions/thief/build/core-assumptions.js';
 import { THIEF_STOLEN_SKILL_IDS } from '#gw2/professions/thief/core/mechanics/steal.js';
 import { THIEF_SKILL_IDS as ID } from '#gw2/professions/thief/data/ids.js';
+import { preStealResourceView } from '#gw2/professions/thief/family-presentation.js';
 import type { ThiefSkill, ThiefState, ThiefUiContext } from '#gw2/professions/thief/types.js';
 
 export function thiefUiState(context: ThiefUiContext = {}): Partial<ThiefState> {
@@ -232,26 +233,9 @@ export const thiefCoreUi = Object.freeze({
         shortLabel: 'Init',
         statusLabel: 'Current'
       },
-      // A single starting pip enables a full pre-steal grant for the supported specializations.
-      ...(['Core', 'Daredevil', 'Deadeye', 'Antiquary'].includes(
-        context.specialization || context.config?.specialization || 'Core'
-      )
-        ? [
-            {
-              id: 'pre-steal',
-              singular: 'pre-steal',
-              plural: 'pre-steal',
-              maximum: 1,
-              value: Number((state.storedStolenSkillCount || state.artifactUsesRemaining || 0) > 0),
-              canStart: true,
-              buildKey: 'initialPreSteal' as const,
-              step: 1,
-              displayMode: 'pips',
-              showInPalette: false,
-              shortLabel: 'Pre-steal',
-              statusLabel: 'Current'
-            }
-          ]
+      // Core contributes its own starting inventory control; elite modules declare theirs independently.
+      ...((context.specialization || context.config?.specialization || 'Core') === 'Core'
+        ? [preStealResourceView(state.storedStolenSkillCount || 0)]
         : []),
       // Reuse the starting-resource editor; the active-state bar already displays the live axe count.
       ...([

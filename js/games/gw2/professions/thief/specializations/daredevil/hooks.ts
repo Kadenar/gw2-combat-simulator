@@ -14,6 +14,7 @@ import { skillFlipReady } from '#gw2/platform/execution/skill-flips.js';
 
 import { deferThiefCompletion } from '#gw2/professions/thief/core/events.js';
 import { thiefEndurance } from '#gw2/professions/thief/core/mechanics/resources.js';
+import { storeThiefStolenSkillChoices, THIEF_STOLEN_SKILL_IDS } from '#gw2/professions/thief/core/mechanics/steal.js';
 import { THIEF_SKILL_IDS as ID } from '#gw2/professions/thief/data/ids.js';
 
 import { DAREDEVIL_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/thief/specializations/daredevil/profiles.js';
@@ -21,7 +22,7 @@ import { DAREDEVIL_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/thief
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 
 import type { ThiefRuntime } from '#gw2/professions/thief/core/events.js';
-import type { ThiefRuntimeState, ThiefSkill } from '#gw2/professions/thief/types.js';
+import type { ThiefConfig, ThiefRuntimeState, ThiefSkill } from '#gw2/professions/thief/types.js';
 
 const DAREDEVIL_COMPLETE = 'thief.daredevil-complete';
 
@@ -39,6 +40,11 @@ function completeDaredevilCast(runtime: ThiefRuntime, cast: RuntimeCast<ThiefSki
 
 /** Daredevil hooks: the larger endurance pool, selected dodges, trait refunds, and Palm Strike. */
 export const daredevilHooks: RuntimeHooks<ThiefRuntimeState, ThiefSkill> = {
+  // Daredevil opts into Core's stolen inventory without triggering its steal or dodge traits during setup.
+  initialize(runtime) {
+    if ((runtime.config as ThiefConfig).initialPreSteal === 1)
+      storeThiefStolenSkillChoices(runtime, THIEF_STOLEN_SKILL_IDS);
+  },
   buffPolicies: daredevilBuffPolicies,
   // Daredevil replaces only the capacity while retaining Core's pool and regeneration.
   endurance: {

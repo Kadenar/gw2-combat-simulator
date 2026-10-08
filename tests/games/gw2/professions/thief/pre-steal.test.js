@@ -129,10 +129,12 @@ test('pre-steal persists as a bounded starting resource and is specialization sc
     const result = runThief([], { specialization, initialPreSteal: supported ? 0 : 1 });
     assert.equal(result.planningState.profession.storedStolenSkillCount, 0);
     assert.equal(result.planningState.profession.artifactUsesRemaining ?? 0, 0);
-    const control = resourceDisplayViews(profession, { build, specialization, catalog: profession.catalog }).find(
+    const controls = resourceDisplayViews(profession, { build, specialization, catalog: profession.catalog }).filter(
       (view) => view.id === 'pre-steal'
     );
-    assert.equal(Boolean(control), supported);
+    // Composition must expose exactly the active module's control, without Core duplicating an elite's contribution.
+    assert.equal(controls.length, supported ? 1 : 0);
+    const [control] = controls;
     if (control) {
       assert.equal(control.buildKey, 'initialPreSteal');
       assert.equal(control.maximum, 1);

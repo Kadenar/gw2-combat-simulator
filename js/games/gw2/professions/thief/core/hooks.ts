@@ -154,10 +154,7 @@ function completeThiefCast(runtime: ThiefRuntime, cast: RuntimeCast<ThiefSkill>)
 const coreLifecycle: RuntimeHooks<ThiefRuntimeState, ThiefSkill> = {
   // Previously stolen inventory is available during setup without firing a steal or its trait effects.
   initialize(runtime) {
-    if (
-      (runtime.config as ThiefConfig).initialPreSteal === 1 &&
-      ['Core', 'Daredevil'].includes(runtime.profession.specialization.kind)
-    )
+    if ((runtime.config as ThiefConfig).initialPreSteal === 1 && runtime.profession.specialization.kind === 'Core')
       storeThiefStolenSkillChoices(runtime, THIEF_STOLEN_SKILL_IDS);
   },
   // Known damage payloads are invoked once without their activation requirements.

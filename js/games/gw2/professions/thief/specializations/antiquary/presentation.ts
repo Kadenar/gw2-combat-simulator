@@ -4,6 +4,7 @@ import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import type { RotationStateSnapshotItem } from '#gw2/platform/profession-presentation/types.js';
 import { thiefUiState } from '#gw2/professions/thief/core/presentation.js';
+import { preStealResourceView } from '#gw2/professions/thief/family-presentation.js';
 import {
   THIEF_SKILL_IDS as ID,
   THIEF_ARTIFACT_IDS,
@@ -122,6 +123,10 @@ function antiquaryStateSnapshot(context: ThiefUiContext): RotationStateSnapshotI
 }
 
 export const antiquaryUi = Object.freeze({
+  // Antiquary's starting grant and displayed inventory are artifacts, owned by this specialization.
+  resourceViews: (context: ThiefUiContext) => [
+    preStealResourceView(context.professionState?.artifactUsesRemaining || 0)
+  ],
   // Reshuffle is queue-only; this veto affects direct palette insertion, never runtime legality.
   paletteOverride: (context: ThiefUiContext, skill: ThiefSkill) => {
     if (skill.id !== ID.RESHUFFLE) return;
