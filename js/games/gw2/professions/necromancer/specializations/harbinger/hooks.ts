@@ -1,14 +1,12 @@
+import { harbingerCastEmissionPolicy } from '#gw2/professions/necromancer/specializations/harbinger/mechanics/cast-emission-policy.js';
 import { harbingerBuffPolicies } from '#gw2/professions/necromancer/specializations/harbinger/effect-state.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import { timedEffectState } from '#gw2/platform/combat/effect-state.js';
 import { BLIGHT_MAXIMUM_STACKS } from '#gw2/professions/necromancer/specializations/harbinger/state.js';
-import { isHostileTargetEvent } from '#gw2/platform/combat/state/targets.js';
 import { effectFirstAt } from '#gw2/platform/effects/materializer.js';
-import { scaleCastBoundTiming } from '#gw2/platform/execution/cast-timing.js';
-import type { EffectMetadata, SimulationEvent } from '#gw2/platform/events/events.js';
-import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
-import type { Skill } from '#gw2/platform/skills/types.js';
 import type { SkillEffect } from '#gw2/platform/effects/types.js';
+import { scaleCastBoundTiming } from '#gw2/platform/execution/cast-timing.js';
+import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import { sideEffectAmount } from '#gw2/platform/effects/action-dispatch.js';
 import { quantizeGw2ActionTimingMs } from '#gw2/platform/combat/action-tick.js';
@@ -104,53 +102,15 @@ function launchMovement(runtime: NecromancerRuntime, cast: RuntimeCast<Necromanc
   const profile = empowered
     ? requireBalanceProfileFromContext(runtime, HARBINGER_EMPOWERED_PROFILE_BY_SKILL_ID[Number(cast.skill.id)])
     : cast.skill;
-  {
-    // Shared emission owns transport; the mechanic selects attribution and delivery.
-    const emissionRuntime: NecromancerRuntime = runtime;
-    const emissionSkill: Skill = cast.skill;
-    const emissionEffects: readonly SkillEffect[] = [
+  runtime.effects.emit({
+    kind: 'profile',
+    profile: cast.skill,
+    effects: [
       ...(profile.effects ?? []),
       ...(empowered ? (cast.skill.effects?.filter((effect) => effect.type === 'control') ?? []) : [])
-    ].map((effect) => doomApproachesControl(runtime, effect));
-    const emissionCast = cast;
-    const emissionMetadata: EffectMetadata | undefined = {
-      necromancerBlight: blight
-    };
-    const emissionCause: SimulationEvent | undefined = undefined;
-
-    emissionRuntime.effects.emit({
-      kind: 'profile',
-      cause: emissionCause,
-      profile: emissionSkill,
-      effects: emissionEffects,
-      attribution: (effect) => ({
-        source: effect.source ?? (emissionSkill.type === 'Trait' ? 'Trait' : 'necromancer'),
-        sourceId: effect.sourceId ?? emissionSkill.id,
-        skillId: emissionSkill.id,
-        skillName: emissionSkill.name,
-        actorType: effect.actorType ?? (emissionSkill.type === 'Trait' ? 'effect' : 'player'),
-        activationId:
-          emissionSkill.id !== emissionCast.skill.id
-            ? emissionCast.id + ':effect:' + emissionSkill.id
-            : emissionCast.id,
-        metadata: emissionMetadata
-      }),
-      skillWeaponFallback: 'Unequipped',
-      transform: (event) => ({
-        ...event,
-        parentSkillName: emissionCast.skill.id !== emissionSkill.id ? emissionCast.skill.name : undefined,
-        ...(event.type === 'damage' ? { name: emissionSkill.name } : {}),
-        ...(event.type === 'condition' ? { name: emissionSkill.name + ' — ' + event.condition } : {}),
-        offTarget: emissionCast.command.offTarget,
-        at: canonicalTime(
-          event.at +
-            (emissionSkill.id === emissionCast.skill.id && isHostileTargetEvent(event)
-              ? (emissionCast.command.impactDelayMs ?? 0) / 1000
-              : 0)
-        )
-      })
-    });
-  }
+    ].map((effect) => doomApproachesControl(runtime, effect)),
+    ...harbingerCastEmissionPolicy(cast, cast.skill, { necromancerBlight: blight })
+  });
 }
 
 /** Blight lives on the one runtime; shroud callbacks own every entry and exit, including automatic depletion. */
@@ -249,56 +209,18 @@ export const harbingerHooks: RuntimeHooks<NecromancerRuntimeState, NecromancerSk
       );
       addBlight(harbingerState.from(runtime), balanceProfileNumber(profile, 'blightGain'), runtime.time);
       publishBlight(runtime);
-      {
-        // Shared emission owns transport; the mechanic selects attribution and delivery.
-        const emissionRuntime: NecromancerRuntime = runtime;
-        const emissionSkill: Skill = cast.skill;
-        const emissionEffects: readonly SkillEffect[] = ((empowered ? profile : cast.skill).effects ?? []).map(
-          (effect) => ({
-            ...effect,
-            atMs: 0,
-            timingAnchor: 'castStart',
-            timingScale: 'fixed',
-            audience: twistedMedicineAudience(runtime, effect)
-          })
-        );
-        const emissionCast = cast;
-        const emissionMetadata: EffectMetadata | undefined = { necromancerBlight: blight };
-        const emissionCause: SimulationEvent | undefined = undefined;
-
-        emissionRuntime.effects.emit({
-          kind: 'profile',
-          cause: emissionCause,
-          profile: emissionSkill,
-          effects: emissionEffects,
-          attribution: (effect) => ({
-            source: effect.source ?? (emissionSkill.type === 'Trait' ? 'Trait' : 'necromancer'),
-            sourceId: effect.sourceId ?? emissionSkill.id,
-            skillId: emissionSkill.id,
-            skillName: emissionSkill.name,
-            actorType: effect.actorType ?? (emissionSkill.type === 'Trait' ? 'effect' : 'player'),
-            activationId:
-              emissionSkill.id !== emissionCast.skill.id
-                ? emissionCast.id + ':effect:' + emissionSkill.id
-                : emissionCast.id,
-            metadata: emissionMetadata
-          }),
-          skillWeaponFallback: 'Unequipped',
-          transform: (event) => ({
-            ...event,
-            parentSkillName: emissionCast.skill.id !== emissionSkill.id ? emissionCast.skill.name : undefined,
-            ...(event.type === 'damage' ? { name: emissionSkill.name } : {}),
-            ...(event.type === 'condition' ? { name: emissionSkill.name + ' — ' + event.condition } : {}),
-            offTarget: emissionCast.command.offTarget,
-            at: canonicalTime(
-              event.at +
-                (emissionSkill.id === emissionCast.skill.id && isHostileTargetEvent(event)
-                  ? (emissionCast.command.impactDelayMs ?? 0) / 1000
-                  : 0)
-            )
-          })
-        });
-      }
+      runtime.effects.emit({
+        kind: 'profile',
+        profile: cast.skill,
+        effects: ((empowered ? profile : cast.skill).effects ?? []).map((effect): SkillEffect => ({
+          ...effect,
+          atMs: 0,
+          timingAnchor: 'castStart',
+          timingScale: 'fixed',
+          audience: twistedMedicineAudience(runtime, effect)
+        })),
+        ...harbingerCastEmissionPolicy(cast, cast.skill, { necromancerBlight: blight })
+      });
     }
   },
   reactions: { 'damage.resolved': harbingerResolverEventReactions.damage }

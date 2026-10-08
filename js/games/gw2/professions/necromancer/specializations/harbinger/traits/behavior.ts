@@ -1,6 +1,6 @@
+import { harbingerCastEmissionPolicy } from '#gw2/professions/necromancer/specializations/harbinger/mechanics/cast-emission-policy.js';
 import { professionStaticRulesApplied } from '#gw2/platform/builds/attribute-provenance.js';
 import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
-import { isHostileTargetEvent } from '#gw2/platform/combat/state/targets.js';
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import { advanceCounter } from '#gw2/platform/combat/resources/counters.js';
 import type { EffectMetadata, SimulationEvent } from '#gw2/platform/events/events.js';
@@ -228,54 +228,20 @@ export function applyCascadingCorruption(
             sourceSkill: cast.skill.name
           }
         });
-        {
-          // Shared emission owns transport; the mechanic selects attribution and delivery.
-          const emissionRuntime: NecromancerRuntime = runtime;
-          const emissionSkill: Skill = { id: ID.CASCADING_CORRUPTION, name: 'Cascading Corruption', type: 'Trait' };
-          const emissionEffects: readonly SkillEffect[] = [meltdown, strike, torment]
+        const skill: Skill = { id: ID.CASCADING_CORRUPTION, name: 'Cascading Corruption', type: 'Trait' };
+        runtime.effects.emit({
+          kind: 'profile',
+          cause: proc,
+          profile: skill,
+          effects: [meltdown, strike, torment]
             .filter((effect) => effect != null)
             .map((effect) => ({
               ...effect,
               sourceId: TRAIT.CASCADING_CORRUPTION,
               atMs: quantizeGw2ActionTimingMs(effect.atMs ?? 0)
-            }));
-          const emissionCast = cast;
-          const emissionMetadata: EffectMetadata | undefined = undefined;
-          const emissionCause: SimulationEvent | undefined = proc;
-
-          emissionRuntime.effects.emit({
-            kind: 'profile',
-            cause: emissionCause,
-            profile: emissionSkill,
-            effects: emissionEffects,
-            attribution: (effect) => ({
-              source: effect.source ?? (emissionSkill.type === 'Trait' ? 'Trait' : 'necromancer'),
-              sourceId: effect.sourceId ?? emissionSkill.id,
-              skillId: emissionSkill.id,
-              skillName: emissionSkill.name,
-              actorType: effect.actorType ?? (emissionSkill.type === 'Trait' ? 'effect' : 'player'),
-              activationId:
-                emissionSkill.id !== emissionCast.skill.id
-                  ? emissionCast.id + ':effect:' + emissionSkill.id
-                  : emissionCast.id,
-              metadata: emissionMetadata
-            }),
-            skillWeaponFallback: 'Unequipped',
-            transform: (event) => ({
-              ...event,
-              parentSkillName: emissionCast.skill.id !== emissionSkill.id ? emissionCast.skill.name : undefined,
-              ...(event.type === 'damage' ? { name: emissionSkill.name } : {}),
-              ...(event.type === 'condition' ? { name: emissionSkill.name + ' — ' + event.condition } : {}),
-              offTarget: emissionCast.command.offTarget,
-              at: canonicalTime(
-                event.at +
-                  (emissionSkill.id === emissionCast.skill.id && isHostileTargetEvent(event)
-                    ? (emissionCast.command.impactDelayMs ?? 0) / 1000
-                    : 0)
-              )
-            })
-          });
-        }
+            })),
+          ...harbingerCastEmissionPolicy(cast, skill)
+        });
       }
     }
   }
@@ -285,55 +251,19 @@ export function applyCascadingCorruption(
 export function applyBolsteringBrew(runtime: NecromancerRuntime, cast: RuntimeCast<NecromancerSkill>): void {
   if (hasTrait(runtime, TRAIT.BOLSTERING_BREW)) {
     const profile = requireBalanceProfileFromContext(runtime, TRAIT.BOLSTERING_BREW);
-    {
-      // Shared emission owns transport; the mechanic selects attribution and delivery.
-      const emissionRuntime: NecromancerRuntime = runtime;
-      const emissionSkill: Skill = cast.skill;
-      const emissionEffects: readonly SkillEffect[] = (profile.effects ?? []).map((effect) => ({
+    runtime.effects.emit({
+      kind: 'profile',
+      profile: cast.skill,
+      effects: (profile.effects ?? []).map((effect) => ({
         ...effect,
         atMs: 0,
         // Elixir casting owns the timing; Bolstering Brew owns these additional grants.
         source: 'Trait',
         sourceId: TRAIT.BOLSTERING_BREW,
         audience: hasTrait(runtime, TRAIT.TWISTED_MEDICINE) ? party(runtime) : undefined
-      }));
-      const emissionCast = cast;
-      const emissionMetadata: EffectMetadata | undefined = undefined;
-      const emissionCause: SimulationEvent | undefined = undefined;
-
-      emissionRuntime.effects.emit({
-        kind: 'profile',
-        cause: emissionCause,
-        profile: emissionSkill,
-        effects: emissionEffects,
-        attribution: (effect) => ({
-          source: effect.source ?? (emissionSkill.type === 'Trait' ? 'Trait' : 'necromancer'),
-          sourceId: effect.sourceId ?? emissionSkill.id,
-          skillId: emissionSkill.id,
-          skillName: emissionSkill.name,
-          actorType: effect.actorType ?? (emissionSkill.type === 'Trait' ? 'effect' : 'player'),
-          activationId:
-            emissionSkill.id !== emissionCast.skill.id
-              ? emissionCast.id + ':effect:' + emissionSkill.id
-              : emissionCast.id,
-          metadata: emissionMetadata
-        }),
-        skillWeaponFallback: 'Unequipped',
-        transform: (event) => ({
-          ...event,
-          parentSkillName: emissionCast.skill.id !== emissionSkill.id ? emissionCast.skill.name : undefined,
-          ...(event.type === 'damage' ? { name: emissionSkill.name } : {}),
-          ...(event.type === 'condition' ? { name: emissionSkill.name + ' — ' + event.condition } : {}),
-          offTarget: emissionCast.command.offTarget,
-          at: canonicalTime(
-            event.at +
-              (emissionSkill.id === emissionCast.skill.id && isHostileTargetEvent(event)
-                ? (emissionCast.command.impactDelayMs ?? 0) / 1000
-                : 0)
-          )
-        })
-      });
-    }
+      })),
+      ...harbingerCastEmissionPolicy(cast, cast.skill)
+    });
   }
 }
 
