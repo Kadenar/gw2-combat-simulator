@@ -7,11 +7,11 @@ import { baseBreakdownName } from '#gw2/app/results/skill-breakdown.js';
 import {
   ACTION_ICONS,
   MODIFIER_EFFECT_ICONS,
-  PLACEHOLDER_ICON,
   RESULT_PROC_NAMES,
   resolveProcIcon,
   resolveRelicIcon
 } from '#gw2/app/shared/icons.js';
+import { PLACEHOLDER_ICON } from '#gw2/app/shared/placeholder-icon.js';
 
 export interface ResultIconRow {
   readonly name: string;

@@ -14,10 +14,10 @@ import {
   ACTION_ICONS,
   COMBAT_START_ICON,
   COOLDOWN_RESET_ICON,
-  PLACEHOLDER_ICON,
   WAIT_ICON,
   resolveProcIcon
 } from '#gw2/app/shared/icons.js';
+import { PLACEHOLDER_ICON } from '#gw2/app/shared/placeholder-icon.js';
 import {
   professionTimelineMarkers,
   formatConcurrentTimelineBadge,

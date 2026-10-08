@@ -240,20 +240,21 @@ Runtime profession state and the public `planningState.profession` projection ar
 
 A profession may intentionally expose only selected state fields.
 
-For example, Warrior projects a whitelist through:
+Warrior's Core state and each selected specialization own their public projections. For example, Berserker declares its
+public fields in:
 
 ```text
-js/games/gw2/professions/warrior/family-state.ts
+js/games/gw2/professions/warrior/specializations/berserker/state.ts
 ```
 
 using:
 
 ```ts
-WARRIOR_PUBLIC_END_STATE_KEYS;
+BERSERKER_PUBLIC_STATE_PROJECTION;
 ```
 
 If a runtime field exists but the snapshot cannot see it, first determine whether it is missing from the profession's
-public end-state projection.
+public planning-state projection.
 
 For a hypothetical timer:
 
@@ -276,15 +277,15 @@ The relevant profession or specialization state should define and initialize it:
 The simulation mechanics must update it when appropriate:
 
 ```ts
-state.battleFocusUntil = context.state.time + 5;
+state.battleFocusUntil = runtime.time + 5;
 ```
 
 Do not add a snapshot-only shadow copy of state that the simulator does not use.
 
-### 2. Expose it through the end-state projection
+### 2. Expose it through the owning module's projection
 
-Add the field and its inactive default to the owning slice's projection (for example,
-`BERSERKER_PUBLIC_STATE_PROJECTION` in `specializations/berserker/state.ts`):
+Add the field and its display default to the owning slice's projection (for example, `BERSERKER_PUBLIC_STATE_PROJECTION`
+in `specializations/berserker/state.ts`):
 
 ```ts
 export const BERSERKER_PUBLIC_STATE_PROJECTION = definePublicStateDefaults({
@@ -293,9 +294,21 @@ export const BERSERKER_PUBLIC_STATE_PROJECTION = definePublicStateDefaults({
 } satisfies Partial<BerserkerState>);
 ```
 
-`definePublicStateDefaults()` comes from `#gw2/platform/profession-definition/state.js`. Each module manifest passes its
-projection to `createPublicStateProjector()` as `state.project`, and `defineNativeProfession` merges the selected Core
-and elite projections into the planning state. There is no separate per-slice key list to maintain.
+`definePublicStateDefaults()` comes from `#gw2/platform/profession-definition/state.js`. It derives the public key list
+from the declared defaults. In the owning `specializations/berserker/module.ts`, register the projector alongside the
+runtime state factory:
+
+```ts
+state: {
+  create: berserkerState.create,
+  project: createPublicStateProjector(BERSERKER_PUBLIC_STATE_PROJECTION)
+},
+```
+
+`createPublicStateProjector()` comes from the same platform module. It selects and deeply clones declared fields, using
+display defaults only when a field is missing. `defineNativeProfession` merges projections from Core and the selected
+elite specialization into the planning state. Inactive specialization modules contribute no fields or defaults. There is
+no family-wide registration list to update.
 
 Now the value can reach:
 
@@ -494,21 +507,10 @@ family UI
 
 The active slices are combined automatically.
 
-This means a Core hook can display state common to every specialization:
-
-```ts
-export const warriorCoreUi = {
-  rotationStateSnapshot: warriorCoreStateSnapshot
-};
-```
-
-while Berserker can add:
-
-```ts
-export const berserkerUi = {
-  rotationStateSnapshot: berserkerStateSnapshot
-};
-```
+This means a Core hook can display state common to every specialization. Warrior's `warriorCoreUi` in
+`js/games/gw2/professions/warrior/core/presentation.ts` registers the local `warriorCoreStateSnapshot` callback.
+`berserkerUi` in `js/games/gw2/professions/warrior/specializations/berserker/presentation.ts` adds its own inline
+`rotationStateSnapshot` callback for Berserk mode, as shown in Case 1.
 
 Both lists appear in the same Active state bar.
 

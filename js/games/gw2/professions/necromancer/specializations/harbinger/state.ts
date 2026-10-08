@@ -23,7 +23,7 @@ export interface HarbingerState {
   meltdownUntil: number;
 }
 
-/** Declares Harbinger's public compatibility fields and inactive values. */
+/** Declares Harbinger's public fields and missing-state defaults, used only when Harbinger is selected. */
 export const HARBINGER_PUBLIC_STATE_PROJECTION = definePublicStateDefaults({
   blight: 0,
   blightExpiries: [],

@@ -1,10 +1,7 @@
+import { PLACEHOLDER_ICON } from '#gw2/app/shared/placeholder-icon.js';
+
 const GW2_RENDER_HOST = 'render.guildwars2.com';
 const BACKUP_ICON_BASE_URL = 'https://www.qjv.dev.br/armory/data/icons';
-
-export const GW2_ICON_PLACEHOLDER =
-  'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="64" ' +
-  'height="64"%3E%3Crect width="64" height="64" fill="%23232632"/%3E' +
-  '%3Cpath d="M17 46L32 13l15 33z" fill="%23a38ad5"/%3E%3C/svg%3E';
 
 export type Gw2IconFallbackStage = 'backup' | 'placeholder';
 
@@ -31,7 +28,7 @@ export function gw2BackupIconUrl(source: string): string {
 /** Selects the backup source, followed by the local placeholder. */
 export function nextGw2IconFallback(source: string, stage?: Gw2IconFallbackStage): Gw2IconFallback | null {
   if (stage === 'backup') {
-    return { source: GW2_ICON_PLACEHOLDER, stage: 'placeholder' };
+    return { source: PLACEHOLDER_ICON, stage: 'placeholder' };
   }
 
   if (stage === 'placeholder') return null;

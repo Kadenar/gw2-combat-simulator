@@ -6,7 +6,7 @@ import { mountDamageBreakdown, type DamageBreakdownOptions } from '#gw2/app/resu
 import { SKILL_COLS, type DamageBreakdownModel } from '#gw2/app/results/breakdown/model.js';
 import { mountResultCharts, type ResultChartsModel } from '#gw2/app/results/charts/section-view.js';
 import type { ChartOptions } from '#gw2/app/results/charts/time-series-view.js';
-import { PLACEHOLDER_ICON } from '#gw2/app/shared/icons.js';
+import { PLACEHOLDER_ICON } from '#gw2/app/shared/placeholder-icon.js';
 import { resultSkillIcon } from '#gw2/app/results/skill-icons.js';
 import { buildChartSeries, resultSummaryMetrics } from '#gw2/app/results/model.js';
 import { skillBreakdownRows } from '#gw2/app/results/skill-breakdown.js';

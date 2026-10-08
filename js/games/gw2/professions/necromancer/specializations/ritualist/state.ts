@@ -28,7 +28,7 @@ export interface RitualistState {
   painfulBondPulseAnchorAt: number;
 }
 
-/** Declares Ritualist's public compatibility fields and inactive values. */
+/** Declares Ritualist's public fields and missing-state defaults, used only when Ritualist is selected. */
 export const RITUALIST_PUBLIC_STATE_PROJECTION = definePublicStateDefaults({
   activeSpirits: {},
   soulTwistingAvailable: false

@@ -9,7 +9,7 @@ export interface ScourgeState {
   shades: number[];
 }
 
-/** Declares Scourge's public compatibility field and inactive value. */
+/** Declares Scourge's public field and missing-state default, used only when Scourge is selected. */
 export const SCOURGE_PUBLIC_STATE_PROJECTION = definePublicStateDefaults({
   shades: []
 } satisfies Partial<ScourgeState>);

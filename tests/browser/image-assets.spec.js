@@ -6,10 +6,12 @@ test('local artwork aliases resolve to loadable images', async ({ page }) => {
   const failures = await page.evaluate(async () => {
     const { professionRegistry } = await import('/js/games/gw2/profession-registry.ts');
     const tutorials = await import('/js/games/gw2/app/page/tutorial.ts');
+    const { PLACEHOLDER_ICON } = await import('/js/games/gw2/app/shared/placeholder-icon.ts');
     const sources = professionRegistry.flatMap(({ specializationArtwork = [] }) =>
       specializationArtwork.flatMap(({ conceptArt, image }) => [conceptArt, image])
     );
     sources.push(
+      PLACEHOLDER_ICON,
       tutorials.TUTORIAL_GIF_URL,
       tutorials.ROTATION_TUTORIAL_GIF_URL,
       tutorials.ANALYSIS_TUTORIAL_GIF_URL,

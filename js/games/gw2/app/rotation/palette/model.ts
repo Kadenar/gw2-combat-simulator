@@ -8,7 +8,8 @@ import {
   rotationUtilityHotkeyAction
 } from '#gw2/app/rotation/hotkeys.js';
 import { activeSpecialization, palettePlanningState, paletteProfessionState } from '#gw2/app/rotation/context.js';
-import { ACTION_ICONS, PLACEHOLDER_ICON } from '#gw2/app/shared/icons.js';
+import { ACTION_ICONS } from '#gw2/app/shared/icons.js';
+import { PLACEHOLDER_ICON } from '#gw2/app/shared/placeholder-icon.js';
 import { resultCombatReferenceMs } from '#gw2/app/shared/result-clock.js';
 import { summonQuicknessCastTimeMs } from '#gw2/platform/execution/cast-timing.js';
 import { ammoDisplayView, type AmmoDisplayView } from '#ui/rotation/ammo-display.js';

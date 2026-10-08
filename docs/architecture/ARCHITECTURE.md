@@ -22,7 +22,7 @@ commands, internal tasks, and same-time combat ordering.
 js/
   kernel/          game-neutral clock, events, queues, randomness, observation
   ui/              game-neutral view models and DOM/rotation primitives
-  app/             game-neutral page entry, game boundary, host integration, and shell
+  browser/         game-neutral page entry, game boundary, host integration, and shell
   games/gw2/
     platform/      shared GW2 engine, combat, builds, equipment, and simulation
     professions/   profession-owned builds, skills, state, mechanics, and UI
