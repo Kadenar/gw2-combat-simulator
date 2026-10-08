@@ -1,5 +1,5 @@
 import { evokerBuffPolicies } from '#gw2/professions/elementalist/specializations/evoker/effect-state.js';
-import { initializeSpecializedElements } from '#gw2/professions/elementalist/specializations/evoker/traits/attunements.js';
+import { initializeSpecializedElements } from '#gw2/professions/elementalist/specializations/evoker/traits/attunement-policy.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import type { SkillTaskData } from '#gw2/platform/execution/cast-contracts.js';
 import { damageInputEvent } from '#gw2/platform/skill-damage/occurrence-driver.js';

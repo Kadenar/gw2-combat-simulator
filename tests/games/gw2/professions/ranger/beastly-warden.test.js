@@ -1,9 +1,9 @@
-import assert from 'node:assert/strict';
-import test from 'node:test';
+import { rangerPetCombatMetadata } from '#gw2/professions/ranger/core/mechanics/pet-attributes.js';
 import { RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
-import { rangerPetCombatMetadata } from '#gw2/professions/ranger/core/mechanics/pets.js';
 import { runRanger } from '#tests/helpers/ranger-simulation.js';
 import { assertFlooredDamageMultiplier } from '#tests/helpers/rounded-damage.js';
+import assert from 'node:assert/strict';
+import test from 'node:test';
 
 // Minimal packets isolate the family multiplier from each pet's AI rotation and critical-hit RNG.
 function simulate(selectedPet, selected, swap = false) {

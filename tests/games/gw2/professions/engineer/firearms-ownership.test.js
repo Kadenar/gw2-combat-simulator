@@ -1,16 +1,16 @@
-import assert from 'node:assert/strict';
-import test from 'node:test';
-import { createSimulationRandom } from '#kernel/core/simulation-random.js';
+import { applyBalanceProfilePatch } from '#gw2/integrations/patches/authoring/patches.js';
 import { createProcRegistry } from '#gw2/platform/combat/procs/registry.js';
 import { criticalProcHandler } from '#gw2/platform/profession-definition/critical-proc-handler.js';
-import { applyBalanceProfilePatch } from '#gw2/integrations/patches/authoring/patches.js';
 import { engineerCatalog } from '#gw2/professions/engineer/catalog.js';
-import { engineerCoreCriticalHitDefinitions } from '#gw2/professions/engineer/core/traits/critical-procs.js';
-import { emitSerratedSteel } from '#gw2/professions/engineer/core/traits/firearms-emissions.js';
-import { engineerMechCriticalDefinitions } from '#gw2/professions/engineer/specializations/mechanist/traits/firearms.js';
+import { engineerCoreCriticalHitDefinitions } from '#gw2/professions/engineer/core/traits/firearms/critical-procs.js';
+import { emitSerratedSteel } from '#gw2/professions/engineer/core/traits/firearms/emissions.js';
 import { ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
+import { engineerMechCriticalDefinitions } from '#gw2/professions/engineer/specializations/mechanist/traits/firearms.js';
+import { createSimulationRandom } from '#kernel/core/simulation-random.js';
 import { withProfile } from '#tests/helpers/catalog-overrides.js';
 import { captureEffectEmissions } from '#tests/helpers/effect-emission.js';
+import assert from 'node:assert/strict';
+import test from 'node:test';
 
 const critical = { hitContext: { critical: { chance: 1, didCrit: true } } };
 const reactions = [...engineerCoreCriticalHitDefinitions, ...engineerMechCriticalDefinitions].map(criticalProcHandler);

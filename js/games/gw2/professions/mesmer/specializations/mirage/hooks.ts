@@ -1,16 +1,13 @@
-import { mirageBuffPolicies } from '#gw2/professions/mesmer/specializations/mirage/effect-state.js';
-import {
-  createMesmerIllusionRewards,
-  createMesmerActions,
-  mesmerActivePrimaryWeapon
-} from '#gw2/professions/mesmer/family-mechanics.js';
+import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
+import { skillTaskAt } from '#gw2/platform/execution/cast-timing.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import type { SkillTask } from '#gw2/platform/skills/types.js';
-import { skillTaskAt } from '#gw2/platform/execution/cast-timing.js';
-import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import { mesmerCastDelivery } from '#gw2/professions/mesmer/core/execution/cast-lifecycle.js';
-import { triggerDeceptiveEvasion } from '#gw2/professions/mesmer/core/traits/dueling.js';
+import { triggerDeceptiveEvasion } from '#gw2/professions/mesmer/core/traits/dueling/index.js';
 import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
+import { createMesmerActions } from '#gw2/professions/mesmer/family-mechanics.js';
+import { createMesmerIllusionRewards, mesmerActivePrimaryWeapon } from '#gw2/professions/mesmer/family-resources.js';
+import { mirageBuffPolicies } from '#gw2/professions/mesmer/specializations/mirage/effect-state.js';
 import {
   mirageAvailability,
   mirageEndurance

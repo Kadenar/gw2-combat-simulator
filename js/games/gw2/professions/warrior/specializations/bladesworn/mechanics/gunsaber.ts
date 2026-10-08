@@ -3,11 +3,12 @@ import { CAST_READY, denyCast } from '#gw2/platform/execution/availability.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import { lockTransitionInput } from '#gw2/platform/execution/transition-lockouts.js';
 import type { MechanicContext, MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
-import { resetSoldierFocus } from '#gw2/professions/warrior/core/traits/tactics.js';
+import { resetSoldierFocus } from '#gw2/professions/warrior/core/traits/tactics/index.js';
 import { WARRIOR_SKILL_IDS as ID } from '#gw2/professions/warrior/data/ids.js';
 import { bladeswornState } from '#gw2/professions/warrior/specializations/bladesworn/state.js';
 import { gunsaberEntryTraits } from '#gw2/professions/warrior/specializations/bladesworn/traits/behavior.js';
 import type { WarriorRuntimeState, WarriorSkill } from '#gw2/professions/warrior/types.js';
+
 type Runtime = MechanicContext<WarriorRuntimeState, WarriorSkill>;
 /** Both sides share the already committed recharge and notify equipment without changing the configured weapon set. */
 export function swapGunsaber(runtime: Runtime, cast: RuntimeCast<WarriorSkill>, active: boolean): void {

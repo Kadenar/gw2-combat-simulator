@@ -1,10 +1,13 @@
-import type { MesmerShatter, MesmerShatterResolution } from '#gw2/professions/mesmer/core/mechanics/shatter-types.js';
-import { triggerChaoticInterruption, triggerIllusionaryMembrane } from '#gw2/professions/mesmer/core/traits/chaos.js';
-import { triggerIneptitudeFromInterrupt } from '#gw2/professions/mesmer/core/traits/dueling.js';
 import type { SimulationEvent } from '#gw2/platform/events/events.js';
-import { triggerMaimTheDisillusioned } from '#gw2/professions/mesmer/core/traits/illusions.js';
+import type { MesmerShatter, MesmerShatterResolution } from '#gw2/professions/mesmer/core/mechanics/shatter-types.js';
+import {
+  triggerChaoticInterruption,
+  triggerIllusionaryMembrane
+} from '#gw2/professions/mesmer/core/traits/chaos/index.js';
+import { triggerRendingShatter } from '#gw2/professions/mesmer/core/traits/domination/index.js';
+import { triggerIneptitudeFromInterrupt } from '#gw2/professions/mesmer/core/traits/dueling/index.js';
+import { triggerMaimTheDisillusioned } from '#gw2/professions/mesmer/core/traits/illusions/index.js';
 import type { MesmerRuntime } from '#gw2/professions/mesmer/types.js';
-import { triggerRendingShatter } from '#gw2/professions/mesmer/core/traits/domination.js';
 
 /** Accepted control resolves Chaos recharge before Dueling's interrupt reaction at the same impact. */
 export function triggerMesmerControlTraits(context: MesmerRuntime, event: SimulationEvent): void {

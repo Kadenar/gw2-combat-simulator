@@ -1,5 +1,5 @@
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
-import { evocationAllowsAttunementTrait } from '#gw2/professions/elementalist/specializations/evoker/traits/attunements.js';
+import { evocationAllowsAttunementTrait } from '#gw2/professions/elementalist/specializations/evoker/traits/attunement-policy.js';
 /**
  * Evoker attunement behaviour layered over the Core Elementalist system.
  *

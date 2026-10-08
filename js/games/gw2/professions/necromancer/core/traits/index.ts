@@ -1,63 +1,63 @@
 import {
-  markOfEvasion,
-  lastRites,
-  vampiric,
-  vampiricPresence,
-  overflowingThirst,
   bansheesWail,
-  transfusion
-} from '#gw2/professions/necromancer/core/traits/blood-magic.js';
+  lastRites,
+  markOfEvasion,
+  overflowingThirst,
+  transfusion,
+  vampiric,
+  vampiricPresence
+} from '#gw2/professions/necromancer/core/traits/blood-magic/index.js';
 import {
   barbedPrecision,
   chillingDarkness,
-  insidiousDisruption,
   furiousDemise,
-  targetTheWeak,
+  insidiousDisruption,
   lingeringCurse,
-  weakeningShroud,
   masterOfCorruption,
   plagueSending,
-  terror
-} from '#gw2/professions/necromancer/core/traits/curses.js';
+  targetTheWeak,
+  terror,
+  weakeningShroud
+} from '#gw2/professions/necromancer/core/traits/curses/index.js';
 import {
-  necromanticCorruption,
-  fleshOfTheMaster,
-  deadlyStrength,
+  armoredShroud,
   corruptersFervor,
   darkDefense,
+  deadlyStrength,
+  fleshOfTheMaster,
+  necromanticCorruption,
+  putridDefense,
   shroudedRemoval,
-  soulComprehension,
-  armoredShroud,
-  putridDefense
-} from '#gw2/professions/necromancer/core/traits/death-magic.js';
+  soulComprehension
+} from '#gw2/professions/necromancer/core/traits/death-magic/index.js';
 import {
-  dhuumfire,
-  unyieldingBlast,
-  vitalPersistence,
-  sinisterShroud,
   deathPerception,
-  soulBarbs,
+  dhuumfire,
   eternalLife,
   fearOfDeath,
-  speedOfShadows,
-  soulMarks,
+  gluttony,
+  sinisterShroud,
+  soulBarbs,
   soulBattery,
-  gluttony
-} from '#gw2/professions/necromancer/core/traits/soul-reaping.js';
+  soulMarks,
+  speedOfShadows,
+  unyieldingBlast,
+  vitalPersistence
+} from '#gw2/professions/necromancer/core/traits/soul-reaping/index.js';
 import {
-  reapersMight,
-  siphonedPower,
-  chillOfDeath,
   awakenThePain,
-  spitefulFortitude,
-  signetsOfSuffering,
   bitterChill,
-  maliciousSwarm,
-  spitefulSpirit,
+  chillOfDeath,
+  closeToDeath,
   dread,
-  spitefulTalisman,
-  closeToDeath
-} from '#gw2/professions/necromancer/core/traits/spite.js';
+  maliciousSwarm,
+  reapersMight,
+  signetsOfSuffering,
+  siphonedPower,
+  spitefulFortitude,
+  spitefulSpirit,
+  spitefulTalisman
+} from '#gw2/professions/necromancer/core/traits/spite/index.js';
 
 /** Register each Core trait directly, preserving the execution order of its rules. */
 export const necromancerCoreTraits = [

@@ -1,11 +1,10 @@
-import { createMesmerIllusionRewards } from '#gw2/professions/mesmer/family-mechanics.js';
-import { createExecutedFacts } from '#gw2/platform/combat/history/executed-facts.js';
-import { captureEffectEmissions } from '#tests/helpers/effect-emission.js';
 import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
-import { createRuntimeEndurance, createRuntimeResources } from '#gw2/platform/simulation/runtime-resources.js';
+import { createExecutedFacts } from '#gw2/platform/combat/history/executed-facts.js';
 import { gw2BoonApplicationRecipients } from '#gw2/platform/combat/state/allied-players.js';
 import { applySkillSideEffects } from '#gw2/platform/effects/action-dispatch.js';
+import { createRuntimeEndurance, createRuntimeResources } from '#gw2/platform/simulation/runtime-resources.js';
 import { MESMER_SKILL_IDS as ID, MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
+import { createMesmerIllusionRewards } from '#gw2/professions/mesmer/family-resources.js';
 import { mesmerProfession } from '#gw2/professions/mesmer/profession.js';
 import { troubadourHooks } from '#gw2/professions/mesmer/specializations/troubadour/hooks.js';
 import { troubadourEndurance } from '#gw2/professions/mesmer/specializations/troubadour/mechanics/endurance.js';
@@ -14,6 +13,7 @@ import { troubadourModifierRules } from '#gw2/professions/mesmer/specializations
 import { troubadourUi } from '#gw2/professions/mesmer/specializations/troubadour/presentation.js';
 import { TROUBADOUR_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/mesmer/specializations/troubadour/profiles.js';
 import { applyTroubadourAttributes } from '#gw2/professions/mesmer/specializations/troubadour/traits/performance.js';
+import { captureEffectEmissions } from '#tests/helpers/effect-emission.js';
 import { runMesmer } from '#tests/helpers/mesmer-simulation.js';
 import { projectObservedState } from '#tests/helpers/observed-runtime.js';
 import assert from 'node:assert/strict';

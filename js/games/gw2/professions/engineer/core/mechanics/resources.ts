@@ -1,9 +1,8 @@
+import type { EndurancePolicy } from '#gw2/platform/combat/resources/resource-policy.js';
 import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
 import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
-import { adrenalImplantEnduranceBonus } from '#gw2/professions/engineer/core/traits/toolbelt.js';
-
-import type { EndurancePolicy } from '#gw2/platform/combat/resources/resource-policy.js';
 import { ENGINEER_CORE_BALANCE_PROFILE_IDS } from '#gw2/professions/engineer/core/profiles.js';
+import { adrenalImplantEnduranceBonus } from '#gw2/professions/engineer/core/traits/tools/toolbelt.js';
 import type { EngineerRuntime } from '#gw2/professions/engineer/types.js';
 
 /** Calculates an interval's endurance rate after Vigor and Adrenal Implant modifiers. */

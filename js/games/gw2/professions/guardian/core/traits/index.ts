@@ -1,46 +1,46 @@
 import {
-  invigoratedBulwark,
   empoweringMight,
-  protectorsRestoration,
-  writOfPersistence,
   forceOfWill,
-  honorableStaff
-} from '#gw2/professions/guardian/core/traits/honor.js';
+  honorableStaff,
+  invigoratedBulwark,
+  protectorsRestoration,
+  writOfPersistence
+} from '#gw2/professions/guardian/core/traits/honor/index.js';
 import {
-  innerFire,
-  healersResolution,
-  righteousInstincts,
-  rightHandStrength,
-  radiantPower,
-  radiantFire,
   amplifiedWrath,
-  perfectInscriptions,
+  healersResolution,
+  innerFire,
   justiceIsBlind,
-  retribution
-} from '#gw2/professions/guardian/core/traits/radiance.js';
-import { focusMastery, stalwartDefender } from '#gw2/professions/guardian/core/traits/valor.js';
+  perfectInscriptions,
+  radiantFire,
+  radiantPower,
+  retribution,
+  righteousInstincts,
+  rightHandStrength
+} from '#gw2/professions/guardian/core/traits/radiance/index.js';
+import { focusMastery, stalwartDefender } from '#gw2/professions/guardian/core/traits/valor/index.js';
 import {
   battlePresence,
-  permeatingWrath,
-  inspiredVirtue,
-  virtueOfResolution,
-  inspiringVirtue,
+  glacialHeart,
   indomitableCourage,
+  inspiredVirtue,
+  inspiringVirtue,
   masterOfConsecrations,
+  permeatingWrath,
   powerOfTheVirtuous,
   unscathedContender,
-  glacialHeart
-} from '#gw2/professions/guardian/core/traits/virtues.js';
+  virtueOfResolution
+} from '#gw2/professions/guardian/core/traits/virtues/index.js';
 import {
+  eternalArmory,
   fieryWrath,
   furiousFocus,
-  symbolicExposure,
-  symbolicAvenger,
-  zealotsResolution,
-  zealousBlade,
   kindledZeal,
-  eternalArmory
-} from '#gw2/professions/guardian/core/traits/zeal.js';
+  symbolicAvenger,
+  symbolicExposure,
+  zealotsResolution,
+  zealousBlade
+} from '#gw2/professions/guardian/core/traits/zeal/index.js';
 
 /** Register each Core trait directly, preserving the execution order of its rules. */
 export const guardianCoreTraits = [

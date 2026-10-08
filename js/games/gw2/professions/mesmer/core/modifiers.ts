@@ -1,14 +1,16 @@
-import { illusionSource } from '#gw2/professions/mesmer/core/mechanics/modifier-queries.js';
-import { chaoticPersistenceAttributes, prepareChaoticPersistence } from '#gw2/professions/mesmer/core/traits/chaos.js';
-import { fencersFinesseFerocity, prepareFencersFinesse } from '#gw2/professions/mesmer/core/traits/dueling.js';
-/** Applies Core Mesmer trait and equipment modifiers at the shared modifier boundary. */
 import { professionStaticRulesApplied } from '#gw2/platform/builds/attribute-provenance.js';
 import { selectedSkillIdSet } from '#gw2/platform/builds/selected-skills.js';
 import type { Gw2ModifierContext, Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
 import { createModifierHooks, MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import type { Gw2ResolvedStats } from '#gw2/platform/combat/stats.js';
 import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import { illusionSource } from '#gw2/professions/mesmer/core/mechanics/modifier-queries.js';
 import { MESMER_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/mesmer/core/profiles.js';
+import {
+  chaoticPersistenceAttributes,
+  prepareChaoticPersistence
+} from '#gw2/professions/mesmer/core/traits/chaos/index.js';
+import { fencersFinesseFerocity, prepareFencersFinesse } from '#gw2/professions/mesmer/core/traits/dueling/index.js';
 import { MESMER_SKILL_IDS as ID } from '#gw2/professions/mesmer/data/ids.js';
 
 /** Resolve immutable loadout and patched profile values once for each combat query. */

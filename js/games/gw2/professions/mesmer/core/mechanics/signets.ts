@@ -1,20 +1,15 @@
-import {
-  mesmerShatterDefinition,
-  createMesmerIllusionRewards,
-  mesmerActivePrimaryWeapon
-} from '#gw2/professions/mesmer/family-mechanics.js';
-import { buildMesmerPacket, mesmerPacketOwner } from '#gw2/professions/mesmer/core/mechanics/packets.js';
-import { EPSILON } from '#kernel/core/clock.js';
-/** Owns Signet of Illusions passive scheduling and Core Mesmer signet mechanic callbacks. */
-import { requireBalanceProfileFromContext, balanceProfileNumber } from '#gw2/platform/skills/balance-profiles.js';
 import { selectedSkillIdSet } from '#gw2/platform/builds/selected-skills.js';
-import { MESMER_SKILL_IDS as ID } from '#gw2/professions/mesmer/data/ids.js';
-import type { MesmerRuntime } from '#gw2/professions/mesmer/types.js';
 import { applySideEffect } from '#gw2/platform/effects/action-dispatch.js';
 import { type ActionContext } from '#gw2/platform/effects/actions.js';
+import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import { buildMesmerPacket, mesmerPacketOwner } from '#gw2/professions/mesmer/core/mechanics/packets.js';
 import { MESMER_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/mesmer/core/profiles.js';
-
+import { MESMER_SKILL_IDS as ID } from '#gw2/professions/mesmer/data/ids.js';
 import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
+import { mesmerShatterDefinition } from '#gw2/professions/mesmer/family-mechanics.js';
+import { createMesmerIllusionRewards, mesmerActivePrimaryWeapon } from '#gw2/professions/mesmer/family-resources.js';
+import type { MesmerRuntime } from '#gw2/professions/mesmer/types.js';
+import { EPSILON } from '#kernel/core/clock.js';
 
 const SIGNET_ILLUSIONS_OWNER = 'mesmer.signet-illusions-passive';
 

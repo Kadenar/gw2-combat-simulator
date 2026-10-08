@@ -1,10 +1,10 @@
-import { lifeForceGrant } from '#gw2/professions/necromancer/core/skills/life-force-grants.js';
 import { professionStaticRulesApplied } from '#gw2/platform/builds/attribute-provenance.js';
 import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
 import { hasSelectedSkillId } from '#gw2/platform/combat/query/runtime-query.js';
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
 import type { Gw2MutableStats } from '#gw2/platform/combat/stats.js';
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
+import { buildResolverStrike } from '#gw2/platform/effects/packet-builders.js';
 import { readProfessionCoreState } from '#gw2/platform/profession-definition/state.js';
 import {
   balanceProfileNumber,
@@ -13,18 +13,18 @@ import {
   requireEffect
 } from '#gw2/platform/skills/balance-profiles.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
-import { buildResolverStrike } from '#gw2/platform/effects/packet-builders.js';
 import { isCorruptionCompletionEffect } from '#gw2/professions/necromancer/core/mechanics/conditions.js';
 import { grantNecromancerLifeForce } from '#gw2/professions/necromancer/core/mechanics/life-force.js';
 import { NECROMANCER_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/necromancer/core/profiles.js';
+import { lifeForceGrant } from '#gw2/professions/necromancer/core/skills/life-force-grants.js';
 import type { NecromancerCoreState } from '#gw2/professions/necromancer/core/state.js';
-import { signetsOfSufferingPassive } from '#gw2/professions/necromancer/core/traits/behavior.js';
 import {
   masterOfCorruptionBloodIsPower,
   masterOfCorruptionConsumeConditions,
   masterOfCorruptionCorrosivePoisonCloud,
   masterOfCorruptionPlaguelands
-} from '#gw2/professions/necromancer/core/traits/conditions.js';
+} from '#gw2/professions/necromancer/core/traits/curses/skill-variants.js';
+import { signetsOfSufferingPassive } from '#gw2/professions/necromancer/core/traits/spite/behavior.js';
 import { NECROMANCER_SKILL_IDS as ID } from '#gw2/professions/necromancer/data/ids.js';
 import type { NecromancerRuntime } from '#gw2/professions/necromancer/types.js';
 

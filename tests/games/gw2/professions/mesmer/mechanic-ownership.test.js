@@ -1,8 +1,9 @@
+import { createMesmerActions } from '#gw2/professions/mesmer/family-mechanics.js';
+import { createMesmerIllusionRewards } from '#gw2/professions/mesmer/family-resources.js';
+import { mesmerProfession } from '#gw2/professions/mesmer/profession.js';
+import { captureEffectEmissions } from '#tests/helpers/effect-emission.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { mesmerProfession } from '#gw2/professions/mesmer/profession.js';
-import { createMesmerIllusionRewards, createMesmerActions } from '#gw2/professions/mesmer/family-mechanics.js';
-import { captureEffectEmissions } from '#tests/helpers/effect-emission.js';
 
 function fixture() {
   const config = { specialization: 'Core', primaryWeapon: 'Sword' };

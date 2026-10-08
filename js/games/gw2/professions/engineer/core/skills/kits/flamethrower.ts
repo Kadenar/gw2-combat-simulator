@@ -1,12 +1,11 @@
-import { buildResolverCondition } from '#gw2/platform/effects/packet-builders.js';
-import { applyAimAssistedRocket } from '#gw2/professions/engineer/core/traits/explosions.js';
 import { MODIFIER_TARGET, type Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
 import { targetConditionActive } from '#gw2/platform/combat/query/runtime-query.js';
-import type { EngineerResolverContext, EngineerResolverEvent } from '#gw2/professions/engineer/types.js';
-/** Core Engineer Flamethrower skill mechanics. */
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
-import { ENGINEER_SKILL_IDS as ID } from '#gw2/professions/engineer/data/ids.js';
+import { buildResolverCondition } from '#gw2/platform/effects/packet-builders.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
+import { applyAimAssistedRocket } from '#gw2/professions/engineer/core/traits/explosives/explosions.js';
+import { ENGINEER_SKILL_IDS as ID } from '#gw2/professions/engineer/data/ids.js';
+import type { EngineerResolverContext, EngineerResolverEvent } from '#gw2/professions/engineer/types.js';
 
 const NAPALM_TICK_OFFSETS_MS = [280, 440, 560, 680, 840, 960, 1080, 1240, 1360, 1480];
 

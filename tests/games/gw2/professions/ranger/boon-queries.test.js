@@ -1,16 +1,16 @@
+import { createGw2TimelineIndex } from '#gw2/platform/combat-calculation/timeline-index.js';
+import { recordBuffApplication } from '#gw2/platform/combat/boons.js';
 import { boonActive } from '#gw2/platform/combat/query/runtime-query.js';
+import { gw2BoonApplicationRecipients } from '#gw2/platform/combat/state/allied-players.js';
 import { createMechanicCombatServices } from '#gw2/platform/resolver/mechanic-services.js';
+import { handleRangerPetSwapped } from '#gw2/professions/ranger/core/mechanics/event-handlers.js';
+import { rangerPetCompanionId } from '#gw2/professions/ranger/core/mechanics/pet-attributes.js';
+import { createRangerCoreState } from '#gw2/professions/ranger/core/state.js';
+import { rangerActiveBoonCount } from '#gw2/professions/ranger/core/traits/modifier-queries.js';
+import { RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
+import { soulbeastModule } from '#gw2/professions/ranger/specializations/soulbeast/module.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { createGw2TimelineIndex } from '#gw2/platform/combat-calculation/timeline-index.js';
-import { gw2BoonApplicationRecipients } from '#gw2/platform/combat/state/allied-players.js';
-import { recordBuffApplication } from '#gw2/platform/combat/boons.js';
-import { createRangerCoreState } from '#gw2/professions/ranger/core/state.js';
-import { handleRangerPetSwapped } from '#gw2/professions/ranger/core/mechanics/event-handlers.js';
-import { rangerPetCompanionId } from '#gw2/professions/ranger/core/mechanics/pets.js';
-import { rangerActiveBoonCount } from '#gw2/professions/ranger/core/traits/modifier-queries.js';
-import { soulbeastModule } from '#gw2/professions/ranger/specializations/soulbeast/module.js';
-import { RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
 
 // Use production recipient selection so boon queries honor sharing policy and party caps.
 function buff(kind, audience, config = {}) {

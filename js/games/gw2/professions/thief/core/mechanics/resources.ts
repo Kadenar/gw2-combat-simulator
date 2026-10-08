@@ -1,11 +1,9 @@
-import { preparednessCapacityField } from '#gw2/professions/thief/core/traits/resource-queries.js';
-
 import type { EndurancePolicy, ResourcePolicy } from '#gw2/platform/combat/resources/resource-policy.js';
 import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import type { ThiefRuntime } from '#gw2/professions/thief/core/events.js';
 import { THIEF_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/thief/core/profiles.js';
 import type { ThiefCoreState } from '#gw2/professions/thief/core/state.js';
-
+import { preparednessCapacityField } from '#gw2/professions/thief/core/traits/trickery/resource-queries.js';
 import type { ThiefConfig } from '#gw2/professions/thief/types.js';
 
 /** Initiative regeneration: the selected base rate plus the kneeling bonus while kneeling. */

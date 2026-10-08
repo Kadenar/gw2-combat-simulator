@@ -1,6 +1,5 @@
-import type { EffectDelivery } from '#gw2/platform/effects/emission.js';
-import { buildMesmerPacket, mesmerPacketOwner } from '#gw2/professions/mesmer/core/mechanics/packets.js';
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
+import type { EffectDelivery } from '#gw2/platform/effects/emission.js';
 import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
 import type {
   MesmerClone,
@@ -9,12 +8,13 @@ import type {
   MesmerIllusionRewards,
   MesmerResourceGain
 } from '#gw2/professions/mesmer/core/mechanics/illusions/types.js';
+import { buildMesmerPacket, mesmerPacketOwner } from '#gw2/professions/mesmer/core/mechanics/packets.js';
 import type {
   MesmerPendingResource,
   MesmerResourceCause,
   MesmerResourceDefinition
 } from '#gw2/professions/mesmer/core/mechanics/resource-types.js';
-import { triggerCompoundingPower } from '#gw2/professions/mesmer/core/traits/illusions.js';
+import { triggerCompoundingPower } from '#gw2/professions/mesmer/core/traits/illusions/index.js';
 import { mesmerResourceKind } from '#gw2/professions/mesmer/family-state.js';
 import type { MesmerActivePrimaryWeapon, MesmerRuntime } from '#gw2/professions/mesmer/types.js';
 

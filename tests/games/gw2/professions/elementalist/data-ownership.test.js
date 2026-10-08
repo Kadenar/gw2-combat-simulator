@@ -8,7 +8,7 @@ import { catalystModule } from '#gw2/professions/elementalist/specializations/ca
 import { CATALYST_SKILL_MECHANICS } from '#gw2/professions/elementalist/specializations/catalyst/skills/index.js';
 import { evokerModule } from '#gw2/professions/elementalist/specializations/evoker/module.js';
 import { EVOKER_SKILL_MECHANICS } from '#gw2/professions/elementalist/specializations/evoker/skills/index.js';
-import { SPECIALIZED_ELEMENTS_PROFILE_IDS } from '#gw2/professions/elementalist/specializations/evoker/traits/attunements.js';
+import { SPECIALIZED_ELEMENTS_PROFILE_IDS } from '#gw2/professions/elementalist/specializations/evoker/traits/attunement-policy.js';
 import { tempestModule } from '#gw2/professions/elementalist/specializations/tempest/module.js';
 import { TEMPEST_SKILL_MECHANICS } from '#gw2/professions/elementalist/specializations/tempest/skills/index.js';
 import { weaverModule } from '#gw2/professions/elementalist/specializations/weaver/module.js';

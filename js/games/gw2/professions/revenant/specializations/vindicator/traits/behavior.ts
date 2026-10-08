@@ -1,17 +1,17 @@
 import { professionStaticRulesApplied } from '#gw2/platform/builds/attribute-provenance.js';
+import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
 import { playerHealthFraction } from '#gw2/platform/combat/query/runtime-query.js';
 import { resourceAtLeast } from '#gw2/platform/combat/resources/pool.js';
-import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import type { Gw2Stats } from '#gw2/platform/combat/stats.js';
+import type { SkillSideEffect } from '#gw2/platform/effects/actions.js';
+import { gw2EffectExpiresAt } from '#gw2/platform/effects/timing.js';
 import {
   balanceProfileNumber,
   effectNumber,
   requireBalanceProfileFromContext,
   requireEffect
 } from '#gw2/platform/skills/balance-profiles.js';
-import type { SkillSideEffect } from '#gw2/platform/effects/actions.js';
-import { gw2EffectExpiresAt } from '#gw2/platform/effects/timing.js';
 import type { RevenantRuntime } from '#gw2/professions/revenant/core/events.js';
 import { revenantRuntimeCoreState } from '#gw2/professions/revenant/core/state-queries.js';
 import { REVENANT_MAXIMUM_ENDURANCE } from '#gw2/professions/revenant/core/state.js';
@@ -134,13 +134,8 @@ export function saintsShieldDodge(runtime: Pick<RevenantRuntime, 'config' | 'tra
   return hasTrait(runtime, TRAIT.SAINT_OF_ZU_HELTZER) ? ID.SAINTS_SHIELD : undefined;
 }
 
-// Song replaces the live skill's endurance reward; the two declarations are mutually exclusive.
-export const energyMeldRewards: readonly SkillSideEffect[] = [
-  {
-    on: 'castCommit',
-    when: (runtime) => !hasTrait(runtime, TRAIT.SONG_OF_ARBOREUM),
-    do: { type: 'resourceGrant', resource: 'endurance', amount: { skillField: 'resourceGain' } }
-  },
+// Song supplies the traited replacement; the skill owner suppresses its baseline reward when this policy is selected.
+export const songOfArboreumRewards: readonly SkillSideEffect[] = [
   {
     on: 'castCommit',
     when: (runtime) => hasTrait(runtime, TRAIT.SONG_OF_ARBOREUM),
@@ -155,4 +150,9 @@ export const energyMeldRewards: readonly SkillSideEffect[] = [
 /** Overrides the dodge landing only while this grandmaster is selected. */
 export function imperialImpactDodge(runtime: Pick<RevenantRuntime, 'config' | 'traits'>) {
   return hasTrait(runtime, TRAIT.VASSALS_OF_THE_EMPIRE) ? ID.IMPERIAL_IMPACT : undefined;
+}
+
+/** The skill uses this policy to suppress its base reward when Song supplies the replacement. */
+export function songOfArboreumSelected(runtime: Parameters<typeof hasTrait>[0]): boolean {
+  return hasTrait(runtime, TRAIT.SONG_OF_ARBOREUM);
 }

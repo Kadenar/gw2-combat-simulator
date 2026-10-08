@@ -663,6 +663,36 @@ test('Plague Sending treats Scourge F5 as entering shroud', () => {
   assert.deepEqual(result.planningState.profession.selfConditions, []);
 });
 
+// Shared trait grants retain the triggering owner's attribution and selection gate across shroud implementations.
+test('Soul Barbs preserves Core trait attribution and Scourge cast attribution', () => {
+  for (const [specialization, skillName, source, sourceId] of [
+    ['Core', 'Death Shroud', 'Trait', TRAIT.SOUL_BARBS],
+    ['Scourge', 'Desert Shroud', 'necromancer', ID.DESERT_SHROUD]
+  ]) {
+    const result = simulate(specialization, [skillName], {
+      initialResource: 100,
+      selectedTraitIds: [TRAIT.SOUL_BARBS]
+    });
+    assert.deepEqual(result.warnings, []);
+    const grant = result.events.find((event) => event.type === 'buff' && event.kind === 'necromancer-soul-barbs');
+    assert.ok(grant, specialization);
+    assert.equal(grant.source, source);
+    assert.equal(grant.sourceId, sourceId);
+    if (specialization === 'Scourge') {
+      assert.equal(grant.skillId, ID.DESERT_SHROUD);
+      assert.equal(grant.skillName, skillName);
+      assert.ok(grant.activationId);
+    }
+
+    const unselected = simulate(specialization, [skillName], { initialResource: 100, selectedTraitIds: [] });
+    assert.deepEqual(unselected.warnings, []);
+    assert.equal(
+      unselected.events.some((event) => event.kind === 'necromancer-soul-barbs'),
+      false
+    );
+  }
+});
+
 test('Dhuumfire uses the specialization duration split and Scourge ICD', () => {
   const core = simulate('Core', ['Death Shroud', 'Life Blast', 'End Death Shroud'], {
     selectedTraitIds: [TRAIT.DHUUMFIRE]

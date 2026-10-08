@@ -104,29 +104,29 @@
         "label": "Power (Spear / Greatsword)",
         "build": "data/gw2/builds/mesmer/b-power-mirage-spear-greatsword.json",
         "rotation": "data/gw2/rotations/mesmer/r-power-mirage-spear-greatsword-bench.json",
-        "benchmarkDps": 40966,
+        "benchmarkDps": 40971,
         "upToDate": true,
         "benchmarkApm": 116.2,
         "benchmarkDpsByHealth": {
           "100-80": {
-            "cumulative": 41470,
-            "phase": 41470
+            "cumulative": 41502,
+            "phase": 41502
           },
           "80-60": {
-            "cumulative": 40599,
-            "phase": 39731
+            "cumulative": 40614,
+            "phase": 39728
           },
           "60-40": {
-            "cumulative": 40893,
-            "phase": 41474
+            "cumulative": 40902,
+            "phase": 41472
           },
           "40-20": {
-            "cumulative": 41290,
-            "phase": 42594
+            "cumulative": 41401,
+            "phase": 43063
           },
           "20-0": {
-            "cumulative": 40966,
-            "phase": 39730
+            "cumulative": 40971,
+            "phase": 39353
           }
         }
       },

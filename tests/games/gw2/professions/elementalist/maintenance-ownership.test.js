@@ -1,20 +1,20 @@
-import assert from 'node:assert/strict';
-import test from 'node:test';
-import { runElementalist } from '#tests/helpers/elementalist-simulation.js';
-import { withProfile } from '#tests/helpers/catalog-overrides.js';
-import { elementalistCatalog } from '#gw2/professions/elementalist/profession.js';
+import { applyElementalistAura } from '#gw2/professions/elementalist/core/mechanics/auras.js';
+import { beforeElementalStrike } from '#gw2/professions/elementalist/core/mechanics/elementals/lifecycle.js';
+import { completeElementalistGlyphCast } from '#gw2/professions/elementalist/core/mechanics/elementals/runtime.js';
+import { ELEMENTALIST_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/elementalist/core/profile-ids.js';
+import { applyWrittenInStone } from '#gw2/professions/elementalist/core/traits/earth/index.js';
 import {
   ELEMENTALIST_SKILL_IDS as ID,
   ELEMENTALIST_TRAIT_IDS as TRAIT
 } from '#gw2/professions/elementalist/data/ids.js';
-import { ELEMENTALIST_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/elementalist/core/profile-ids.js';
-import { completeElementalistGlyphCast } from '#gw2/professions/elementalist/core/mechanics/elementals/runtime.js';
-import { beforeElementalStrike } from '#gw2/professions/elementalist/core/mechanics/elementals/lifecycle.js';
+import { elementalistCatalog } from '#gw2/professions/elementalist/profession.js';
+import { applyEpitomeCombo } from '#gw2/professions/elementalist/specializations/catalyst/traits/auras.js';
 import { armElementalLightningJolt } from '#gw2/professions/elementalist/specializations/tempest/mechanics/lightning-jolt.js';
 import { tempestState } from '#gw2/professions/elementalist/specializations/tempest/state.js';
-import { applyElementalistAura } from '#gw2/professions/elementalist/core/mechanics/auras.js';
-import { applyWrittenInStone } from '#gw2/professions/elementalist/core/traits/earth.js';
-import { applyEpitomeCombo } from '#gw2/professions/elementalist/specializations/catalyst/traits/auras.js';
+import { withProfile } from '#tests/helpers/catalog-overrides.js';
+import { runElementalist } from '#tests/helpers/elementalist-simulation.js';
+import assert from 'node:assert/strict';
+import test from 'node:test';
 
 const glyph = elementalistCatalog.skillsByName.get('Glyph of Elementals');
 const summon = (runtime) => completeElementalistGlyphCast(runtime.mechanics, { effectiveEnd: runtime.time }, glyph);

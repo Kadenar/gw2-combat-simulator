@@ -22,15 +22,16 @@ are labels only — routing, resource causes, flips, trait decisions, and timing
 rotations are resolved at the build-migration boundary.
 
 All 66 implemented traits have one native definition: 29 Core, nine Chronomancer, ten Mirage, eight Virtuoso, and ten
-Troubadour. Core definitions live in `traits/chaos.ts`, `domination.ts`, `dueling.ts`, and `illusions.ts`; the Core
-index collects them in registration order. Each elite owns its definitions and registration array in `traits/index.ts`.
-Owners supply profiles, modifiers, build callbacks, triggers, recharge rules, hooks, and imperative decisions. Shared
-mechanics retain illusion entities, resources, and packet emission.
+Troubadour. Core definitions and helpers live in `traits/<line>/index.ts` for Chaos, Domination, Dueling, Inspiration,
+and Illusions; the Core index collects them in registration order. Each elite owns its definitions and registration
+array in `traits/index.ts`. Owners supply profiles, modifiers, build callbacks, triggers, recharge rules, hooks, and
+imperative decisions. Shared mechanics retain illusion entities, resources, and packet emission.
 
-Runtime callers import supporting `traits/behavior.ts` functions directly. Core's `traits/dispatch.ts` preserves
-post-shatter ordering; Chronomancer retains `traits/time-bomb.ts` for delayed explosions, and Troubadour retains
-`traits/performance.ts` and `traits/syncopate.ts` for instrument rewards and delayed waves. Behavior never imports trait
-definitions. The Core hook registry directly owns the observable phantasm event markers.
+Runtime callers import helpers from their owning trait line. Core's `traits/dispatch.ts` preserves post-shatter
+ordering; Chronomancer retains `traits/time-bomb.ts` for delayed explosions, and Troubadour retains
+`traits/performance.ts` and `traits/syncopate.ts` for instrument rewards and delayed waves. `family-resources.ts` binds
+clone scheduling and resource rewards independently of `family-mechanics.ts`, so Inspiration and elite trait callers do
+not create a cycle through family behavior. The Core hook registry directly owns the observable phantasm event markers.
 
 Critical reactions preserve Master Fencer before Sharper Images, then Fencer's Finesse; shatters preserve Maim before
 Illusionary Membrane. Master of Fragmentation owns each specialization's pre-emission transformation. Applied stack and

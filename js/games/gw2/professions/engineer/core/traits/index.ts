@@ -4,7 +4,7 @@ import {
   compoundingChemicals,
   equalAndOppositeReaction,
   hgh
-} from '#gw2/professions/engineer/core/traits/alchemy.js';
+} from '#gw2/professions/engineer/core/traits/alchemy/index.js';
 import {
   aimAssistedRocket,
   bigBoomer,
@@ -18,7 +18,7 @@ import {
   shortFuse,
   shrapnel,
   steelPackedPowder
-} from '#gw2/professions/engineer/core/traits/explosives.js';
+} from '#gw2/professions/engineer/core/traits/explosives/index.js';
 import {
   chemicalRounds,
   heavyMetal,
@@ -31,8 +31,8 @@ import {
   serratedSteel,
   sharpshooter,
   thermalVision
-} from '#gw2/professions/engineer/core/traits/firearms.js';
-import { energyAmplifier } from '#gw2/professions/engineer/core/traits/inventions.js';
+} from '#gw2/professions/engineer/core/traits/firearms/index.js';
+import { energyAmplifier } from '#gw2/professions/engineer/core/traits/inventions/index.js';
 import {
   adrenalImplant,
   excessiveEnergy,
@@ -44,7 +44,7 @@ import {
   staticDischarge,
   streamlinedKits,
   takedownRound
-} from '#gw2/professions/engineer/core/traits/tools.js';
+} from '#gw2/professions/engineer/core/traits/tools/index.js';
 
 /** Collects Core trait declarations; the trait dispatcher preserves runtime order. */
 export const engineerCoreTraits = [

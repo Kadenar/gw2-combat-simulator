@@ -1,12 +1,12 @@
-import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
-import { denySkillCast } from '#gw2/platform/execution/availability.js';
-import { gw2BaseRecharge } from '#gw2/platform/combat/recharge.js';
-import { armSkillFlip, consumeSkillFlip } from '#gw2/platform/execution/skill-flips.js';
-import type { SkillId } from '#gw2/platform/skills/types.js';
-import { buildResolverCondition, buildResolverStrike } from '#gw2/platform/effects/packet-builders.js';
-import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import { quantizeGw2ActionDurationUp } from '#gw2/platform/combat/action-tick.js';
+import { gw2BaseRecharge } from '#gw2/platform/combat/recharge.js';
+import { buildResolverCondition, buildResolverStrike } from '#gw2/platform/effects/packet-builders.js';
+import { denySkillCast } from '#gw2/platform/execution/availability.js';
+import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import { summonQuicknessCastTimeMs } from '#gw2/platform/execution/cast-timing.js';
+import { armSkillFlip, consumeSkillFlip } from '#gw2/platform/execution/skill-flips.js';
+import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
+import type { SkillId } from '#gw2/platform/skills/types.js';
 import {
   commandDefinitionFor,
   minionDefinitionFor,
@@ -20,7 +20,7 @@ import {
   runCreatureSummonReactions
 } from '#gw2/professions/necromancer/core/mechanics/state-helpers.js';
 import { NECROMANCER_MINION_PROFILE_BY_SKILL_ID } from '#gw2/professions/necromancer/core/profiles.js';
-import { necromanticCorruptionMultiplier } from '#gw2/professions/necromancer/core/traits/carapace.js';
+import { necromanticCorruptionMultiplier } from '#gw2/professions/necromancer/core/traits/death-magic/carapace.js';
 import type { NecromancerRuntime, NecromancerSkill } from '#gw2/professions/necromancer/types.js';
 import { canonicalTime } from '#kernel/core/clock.js';
 

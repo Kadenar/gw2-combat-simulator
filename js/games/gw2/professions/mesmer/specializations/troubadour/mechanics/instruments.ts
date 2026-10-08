@@ -1,20 +1,22 @@
-import { mesmerInstruments } from '#gw2/professions/mesmer/specializations/troubadour/mechanics/runtime.js';
-import { createMesmerActions } from '#gw2/professions/mesmer/family-mechanics.js';
 import type { EffectDelivery } from '#gw2/platform/effects/emission.js';
-import {
-  buildMesmerStrikes,
-  mesmerPacketOwner,
-  buildMesmerConditions,
-  buildMesmerPacket
-} from '#gw2/professions/mesmer/core/mechanics/packets.js';
+import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
+import { castWasInterrupted } from '#gw2/platform/execution/cast-timing.js';
 import {
   balanceProfileNumber,
   requireBalanceProfileFromContext,
   requireEffect
 } from '#gw2/platform/skills/balance-profiles.js';
-import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import { mesmerCastDelivery } from '#gw2/professions/mesmer/core/execution/cast-lifecycle.js';
-import { masterOfFragmentationCrescendo } from '#gw2/professions/mesmer/core/traits/illusions.js';
+import {
+  buildMesmerConditions,
+  buildMesmerPacket,
+  buildMesmerStrikes,
+  mesmerPacketOwner
+} from '#gw2/professions/mesmer/core/mechanics/packets.js';
+import { masterOfFragmentationCrescendo } from '#gw2/professions/mesmer/core/traits/illusions/index.js';
+import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
+import { createMesmerActions } from '#gw2/professions/mesmer/family-mechanics.js';
+import { mesmerInstruments } from '#gw2/professions/mesmer/specializations/troubadour/mechanics/runtime.js';
 import { TROUBADOUR_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/mesmer/specializations/troubadour/profiles.js';
 import {
   activeTroubadourInstrumentsAt,
@@ -31,9 +33,6 @@ import {
 import { scheduleSyncopateDrumWave } from '#gw2/professions/mesmer/specializations/troubadour/traits/syncopate.js';
 import type { MesmerInstrument, MesmerRuntime } from '#gw2/professions/mesmer/types.js';
 import { canonicalTime } from '#kernel/core/clock.js';
-
-import { castWasInterrupted } from '#gw2/platform/execution/cast-timing.js';
-import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
 
 /** Resolves an instrument's player or afterimage packets with their Troubadour trait interactions. */
 function instrumentAttack(

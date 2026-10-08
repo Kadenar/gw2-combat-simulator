@@ -1,13 +1,4 @@
-import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
-import { inertContainer } from '#tests/helpers/dom.js';
 import { skillBreakdownRows } from '#gw2/app/results/skill-breakdown.js';
-import { rangerCatalog } from '#gw2/professions/ranger/catalog.js';
-import { assertFlooredDamageMultiplier } from '#tests/helpers/rounded-damage.js';
-import { withActivePatchPreview } from '#gw2/integrations/patches/active-profession.js';
-import assert from 'node:assert/strict';
-import { readdir, readFile } from 'node:fs/promises';
-import { test } from 'node:test';
-import ts from 'typescript';
 import {
   currentAutoattackSkill,
   paletteActionSkills,
@@ -16,43 +7,51 @@ import {
 } from '#gw2/app/rotation/palette/model.js';
 import { activeResourceGroup, paletteSkillResourceView } from '#gw2/app/rotation/palette/resource-view.js';
 import { renderPalette } from '#gw2/app/rotation/palette/view.js';
-import { createObservedProfessionSimulator } from '#tests/helpers/observed-runtime.js';
-import { withSkill } from '#tests/helpers/catalog-overrides.js';
-import { runRanger } from '#tests/helpers/ranger-simulation.js';
-import { observedRuntime } from '#tests/helpers/observed-runtime.js';
+import { withActivePatchPreview } from '#gw2/integrations/patches/active-profession.js';
 import { applyBalanceProfilePatch, applySkillPatch } from '#gw2/integrations/patches/authoring/patches.js';
+import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
+import { rangerAppAdapter } from '#gw2/professions/ranger/app/app-definition.js';
 import {
   createRangerBuildDefaults,
   migrateRangerBuild,
   validateRangerBuild
 } from '#gw2/professions/ranger/build/build.js';
-import { rangerProfession } from '#gw2/professions/ranger/profession.js';
+import { rangerCatalog } from '#gw2/professions/ranger/catalog.js';
+import { rangerPetCombatMetadata } from '#gw2/professions/ranger/core/mechanics/pet-attributes.js';
+import { RANGER_CORE_PUBLIC_END_STATE_KEYS } from '#gw2/professions/ranger/core/state.js';
+import { RANGER_HAMMER_VARIANT_PAIRS } from '#gw2/professions/ranger/data/hammer-variants.js';
 import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
 import { RANGER_PETS } from '#gw2/professions/ranger/data/ranger-pet-data.js';
-import { RANGER_HAMMER_VARIANT_PAIRS } from '#gw2/professions/ranger/data/hammer-variants.js';
-import { RANGER_CORE_PUBLIC_END_STATE_KEYS } from '#gw2/professions/ranger/core/state.js';
-import { DRUID_BALANCE_PROFILE_IDS } from '#gw2/professions/ranger/specializations/druid/profiles.js';
+import { rangerProfession } from '#gw2/professions/ranger/profession.js';
 import { druidHooks } from '#gw2/professions/ranger/specializations/druid/hooks.js';
+import { DRUID_BALANCE_PROFILE_IDS } from '#gw2/professions/ranger/specializations/druid/profiles.js';
 import {
   createDruidState,
   DRUID_PUBLIC_STATE_PROJECTION
 } from '#gw2/professions/ranger/specializations/druid/state.js';
+import { GALESHOT_BALANCE_PROFILE_IDS } from '#gw2/professions/ranger/specializations/galeshot/profiles.js';
+import { GALESHOT_PUBLIC_STATE_PROJECTION } from '#gw2/professions/ranger/specializations/galeshot/state.js';
+import { soulbeastCastAvailability } from '#gw2/professions/ranger/specializations/soulbeast/mechanics/beastmode-effects.js';
 import { SOULBEAST_BALANCE_PROFILE_IDS } from '#gw2/professions/ranger/specializations/soulbeast/profiles.js';
 import {
   createSoulbeastState,
   SOULBEAST_PUBLIC_STATE_PROJECTION
 } from '#gw2/professions/ranger/specializations/soulbeast/state.js';
+import { untamedCastAvailability } from '#gw2/professions/ranger/specializations/untamed/mechanics/unleash-effects.js';
 import { UNTAMED_BALANCE_PROFILE_IDS } from '#gw2/professions/ranger/specializations/untamed/profiles.js';
 import {
   createUntamedState,
   UNTAMED_PUBLIC_STATE_PROJECTION
 } from '#gw2/professions/ranger/specializations/untamed/state.js';
-import { GALESHOT_BALANCE_PROFILE_IDS } from '#gw2/professions/ranger/specializations/galeshot/profiles.js';
-import { GALESHOT_PUBLIC_STATE_PROJECTION } from '#gw2/professions/ranger/specializations/galeshot/state.js';
-import { rangerPetCombatMetadata } from '#gw2/professions/ranger/core/mechanics/pets.js';
-import { soulbeastCastAvailability } from '#gw2/professions/ranger/specializations/soulbeast/mechanics/beastmode-effects.js';
-import { untamedCastAvailability } from '#gw2/professions/ranger/specializations/untamed/mechanics/unleash-effects.js';
-import { rangerAppAdapter } from '#gw2/professions/ranger/app/app-definition.js';
+import { withSkill } from '#tests/helpers/catalog-overrides.js';
+import { inertContainer } from '#tests/helpers/dom.js';
+import { createObservedProfessionSimulator, observedRuntime } from '#tests/helpers/observed-runtime.js';
+import { runRanger } from '#tests/helpers/ranger-simulation.js';
+import { assertFlooredDamageMultiplier } from '#tests/helpers/rounded-damage.js';
+import assert from 'node:assert/strict';
+import { readdir, readFile } from 'node:fs/promises';
+import { test } from 'node:test';
+import ts from 'typescript';
 
 const baseConfig = Object.freeze({
   initialAstralForce: 100,

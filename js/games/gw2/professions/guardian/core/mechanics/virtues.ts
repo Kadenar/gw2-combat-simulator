@@ -1,19 +1,18 @@
-import type { MechanicContext } from '#gw2/platform/profession-definition/mechanic-context.js';
-import { isGw2PlayerActorEvent, isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
-import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
+import { gw2CooldownReadyAt } from '#gw2/platform/combat/action-tick.js';
 import { advanceCounter } from '#gw2/platform/combat/resources/counters.js';
+import { isGw2PlayerActorEvent, isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
+import { buildResolverCondition } from '#gw2/platform/effects/packet-builders.js';
+import type { MechanicContext } from '#gw2/platform/profession-definition/mechanic-context.js';
+import type { NativeResolvedDamageDetails } from '#gw2/platform/profession-definition/module-types.js';
+import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
 import {
   effectNumber,
   requireBalanceProfileFromContext,
   requireEffect
 } from '#gw2/platform/skills/balance-profiles.js';
 import type { SkillId } from '#gw2/platform/skills/types.js';
-import type { NativeResolvedDamageDetails } from '#gw2/platform/profession-definition/module-types.js';
-import { buildResolverCondition } from '#gw2/platform/effects/packet-builders.js';
-
-import { gw2CooldownReadyAt } from '#gw2/platform/combat/action-tick.js';
 import { GUARDIAN_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/guardian/core/profiles.js';
-import { permeatingWrathThreshold } from '#gw2/professions/guardian/core/traits/behavior.js';
+import { permeatingWrathThreshold } from '#gw2/professions/guardian/core/traits/virtues/behavior.js';
 import { GUARDIAN_SKILL_IDS } from '#gw2/professions/guardian/data/ids.js';
 import type {
   GuardianResolverContext,

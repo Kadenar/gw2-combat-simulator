@@ -1,17 +1,16 @@
-import { warriorProfession } from '#gw2/professions/warrior/profession.js';
-import { observeGw2Runtime, observedRuntime } from '#tests/helpers/observed-runtime.js';
 import { warriorCatalog } from '#gw2/professions/warrior/catalog.js';
-import assert from 'node:assert/strict';
-import test from 'node:test';
+import { furiousBurst, modifyWarriorArmsAttributes } from '#gw2/professions/warrior/core/traits/arms/index.js';
 import {
-  warriorActiveBuffStacks,
   warriorActiveBoonCount,
+  warriorActiveBuffStacks,
   warriorBoonActive
 } from '#gw2/professions/warrior/core/traits/modifier-queries.js';
-import { modifyWarriorArmsAttributes } from '#gw2/professions/warrior/core/traits/arms.js';
-import { furiousBurst } from '#gw2/professions/warrior/core/traits/arms.js';
 import { WARRIOR_SKILL_IDS as ID, WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/professions/warrior/data/ids.js';
+import { warriorProfession } from '#gw2/professions/warrior/profession.js';
 import { fierceAsFire } from '#gw2/professions/warrior/specializations/bladesworn/traits/index.js';
+import { observeGw2Runtime, observedRuntime } from '#tests/helpers/observed-runtime.js';
+import assert from 'node:assert/strict';
+import test from 'node:test';
 
 // Warrior's modifiers share duration semantics without gaining visibility into future timeline applications.
 test('Warrior Fury modifiers and boon counts survive individual packet expiry', () => {

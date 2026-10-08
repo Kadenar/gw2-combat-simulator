@@ -1,25 +1,24 @@
-import { assertFlooredDamageMultiplier } from '#tests/helpers/rounded-damage.js';
-import assert from 'node:assert/strict';
-import { readFile } from 'node:fs/promises';
-import test from 'node:test';
-import { loadProfession, loadProfessionAppAdapter } from '#gw2/profession-registry.js';
+import { skillBreakdownRows } from '#gw2/app/results/skill-breakdown.js';
 import { weaponPaletteRows } from '#gw2/app/rotation/palette/model.js';
 import { createGw2CombatQuery } from '#gw2/platform/combat-calculation/combat-query.js';
 import { resolveProfessionContract } from '#gw2/platform/profession-definition/compile-contract.js';
-import { skillBreakdownRows } from '#gw2/app/results/skill-breakdown.js';
+import { loadProfession, loadProfessionAppAdapter } from '#gw2/profession-registry.js';
+import { thiefAppAdapter } from '#gw2/professions/thief/app/app-definition.js';
 import { createThiefBuildDefaults } from '#gw2/professions/thief/build/build.js';
-import { thiefCatalog, thiefProfession } from '#gw2/professions/thief/profession.js';
 import { thiefWeaponSkillMatchesSet } from '#gw2/professions/thief/build/weapon-matching.js';
+import { applyAlliedLeechingVenoms } from '#gw2/professions/thief/core/traits/shadow-arts/leeching-venoms.js';
 import {
-  THIEF_ARTIFACT_IDS,
   THIEF_SKILL_IDS as ID,
+  THIEF_ARTIFACT_IDS,
   THIEF_TRAIT_IDS as TRAIT
 } from '#gw2/professions/thief/data/ids.js';
-import { thiefAppAdapter } from '#gw2/professions/thief/app/app-definition.js';
+import { thiefCatalog, thiefProfession } from '#gw2/professions/thief/profession.js';
 import { createObservedProfessionSimulator, observedRuntime } from '#tests/helpers/observed-runtime.js';
+import { assertFlooredDamageMultiplier } from '#tests/helpers/rounded-damage.js';
 import { runThief } from '#tests/helpers/thief-simulation.js';
-
-import { applyAlliedLeechingVenoms } from '#gw2/professions/thief/core/traits/leeching-venoms.js';
+import assert from 'node:assert/strict';
+import { readFile } from 'node:fs/promises';
+import test from 'node:test';
 
 // Forced exits carry the depletion owner so they are distinct from an authored Exit Shadow Shroud.
 const DEPLETED = 'thief.shadow-shroud-depleted';

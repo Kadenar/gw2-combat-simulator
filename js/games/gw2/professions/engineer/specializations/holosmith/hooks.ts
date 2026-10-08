@@ -1,6 +1,6 @@
+import { grantCharges } from '#gw2/platform/combat/resources/charges.js';
 import { composeRuntimeHooks, type RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import { DamageCalculationError } from '#gw2/platform/skill-damage/errors.js';
-import { grantCharges } from '#gw2/platform/combat/resources/charges.js';
 import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import { ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
 import { photonForgeHooks } from '#gw2/professions/engineer/specializations/holosmith/mechanics/photon-forge.js';
@@ -29,13 +29,9 @@ export const holosmithHooks: RuntimeHooks<EngineerRuntimeState, HolosmithSkill> 
       if (!Number.isInteger(charges) || charges > balanceProfileNumber(profile, 'maximumStacks'))
         throw new DamageCalculationError('missing-input', 'Choose a valid Solar Focusing Lens charge count.');
       state.solarFocusingLens = grantCharges(charges, balanceProfileNumber(profile, 'durationMultiplier'));
-    },
-
-    prepareEvent: (runtime, event) => prepareHolosmithSwordEvent(runtime, prepareHolosmithSlotEvent(runtime, event)),
-
-    eventHandlers: {
-      ...holosmithSlotEventHandlers,
-      ...holosmithSwordEventHandlers
     }
-  }
+  },
+  // Slot preparation precedes sword preparation; separate owners expose registry collisions to the composer.
+  { prepareEvent: prepareHolosmithSlotEvent, eventHandlers: holosmithSlotEventHandlers },
+  { prepareEvent: prepareHolosmithSwordEvent, eventHandlers: holosmithSwordEventHandlers }
 ]);

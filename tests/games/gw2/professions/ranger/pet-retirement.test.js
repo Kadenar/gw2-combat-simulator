@@ -1,13 +1,16 @@
+import { createGw2TimelineIndex } from '#gw2/platform/combat-calculation/timeline-index.js';
+import { effectStateValue } from '#gw2/platform/combat/effect-state.js';
+import { observeRuntimeEffects } from '#gw2/platform/results/observe-effects.js';
+import {
+  rangerPetCombatMetadata,
+  rangerPetCompanionId
+} from '#gw2/professions/ranger/core/mechanics/pet-attributes.js';
+import { swapRangerPets } from '#gw2/professions/ranger/core/skills/actions.js';
+import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
+import { observedRuntime } from '#tests/helpers/observed-runtime.js';
+import { runRanger } from '#tests/helpers/ranger-simulation.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { runRanger } from '#tests/helpers/ranger-simulation.js';
-import { observedRuntime } from '#tests/helpers/observed-runtime.js';
-import { rangerPetCompanionId, rangerPetCombatMetadata } from '#gw2/professions/ranger/core/mechanics/pets.js';
-import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
-import { createGw2TimelineIndex } from '#gw2/platform/combat-calculation/timeline-index.js';
-import { observeRuntimeEffects } from '#gw2/platform/results/observe-effects.js';
-import { effectStateValue } from '#gw2/platform/combat/effect-state.js';
-import { swapRangerPets } from '#gw2/professions/ranger/core/skills/actions.js';
 
 const wait = (durationMs) => ({ type: 'wait', durationMs });
 const config = { selectedPet: 'Tiger', selectedPet2: 'Pig' };

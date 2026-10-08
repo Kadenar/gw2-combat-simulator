@@ -1,38 +1,30 @@
-import { conduitBuffPolicies } from '#gw2/professions/revenant/specializations/conduit/effect-state.js';
-import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
-import { materializeSkillEffectApplications } from '#gw2/platform/effects/materializer.js';
-import type { SimulationEventBase } from '#gw2/platform/events/events.js';
-import { denySkillCast } from '#gw2/platform/execution/availability.js';
-import {
-  balanceProfileNumber,
-  effectNumber,
-  requireBalanceProfileFromContext,
-  requireEffect
-} from '#gw2/platform/skills/balance-profiles.js';
-import type { Skill, SkillId } from '#gw2/platform/skills/types.js';
-import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
-import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import { gw2CooldownReadyAt } from '#gw2/platform/combat/action-tick.js';
-import type { RevenantRuntime } from '#gw2/professions/revenant/core/events.js';
+import { denySkillCast } from '#gw2/platform/execution/availability.js';
+import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
+import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import type { SkillId } from '#gw2/platform/skills/types.js';
 import { activeRevenantUpkeep } from '#gw2/professions/revenant/core/mechanics/upkeep.js';
 import { completeRevenantCastTraits } from '#gw2/professions/revenant/core/traits/dispatch.js';
 import { beguilingHazeCastDuration } from '#gw2/professions/revenant/data/beguiling-haze-timing.js';
 import { REVENANT_SKILL_IDS as ID, REVENANT_LEGEND_IDS as LEGEND } from '#gw2/professions/revenant/data/ids.js';
-import {
-  REVENANT_CONDUIT_FORM_BY_LEGEND,
-  REVENANT_RELEASE_POTENTIAL_SKILL_ID_BY_LEGEND
-} from '#gw2/professions/revenant/data/legends.js';
+import { REVENANT_RELEASE_POTENTIAL_SKILL_ID_BY_LEGEND } from '#gw2/professions/revenant/data/legends.js';
 import { isRevenantUpkeep } from '#gw2/professions/revenant/data/upkeep-skills.js';
-import { revenantEnergyCost } from '#gw2/professions/revenant/family-state.js';
-import { validateConduitMesmerEnergyCosts } from '#gw2/professions/revenant/specializations/conduit/mechanics/energy-cost.js';
+import { conduitBuffPolicies } from '#gw2/professions/revenant/specializations/conduit/effect-state.js';
+import {
+  UPKEEP_AFFINITY,
+  costAffinity,
+  upkeepAffinity
+} from '#gw2/professions/revenant/specializations/conduit/mechanics/affinity-gains.js';
 import {
   conduitAffinityPolicy,
   gainAffinity
 } from '#gw2/professions/revenant/specializations/conduit/mechanics/affinity.js';
+import { FORM_EXPIRY } from '#gw2/professions/revenant/specializations/conduit/mechanics/form-expiry.js';
 import {
-  FORM_EXPIRY,
-  scheduleFormExpiry
-} from '#gw2/professions/revenant/specializations/conduit/mechanics/form-expiry.js';
+  cosmicWisdom,
+  formExpiry,
+  swapLegend
+} from '#gw2/professions/revenant/specializations/conduit/mechanics/forms.js';
 import { CONDUIT_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/revenant/specializations/conduit/profiles.js';
 import {
   BEGUILING_HAZE_SKILL_IDS,
@@ -42,225 +34,28 @@ import {
   cleanseHexEater,
   completeBeguilingHaze
 } from '#gw2/professions/revenant/specializations/conduit/skills/entity-skills.js';
+import {
+  UPKEEP_DAGGERS,
+  dervishAttack,
+  dervishCasts,
+  lesserDaggers,
+  upkeepDaggers
+} from '#gw2/professions/revenant/specializations/conduit/skills/form-attacks.js';
+import {
+  MESMER_RELEASE,
+  mesmerRelease,
+  scheduleMesmerReleaseConditions
+} from '#gw2/professions/revenant/specializations/conduit/skills/mesmer-release.js';
 import { conduitState, revenantConduitFormIsActive } from '#gw2/professions/revenant/specializations/conduit/state.js';
 import {
-  effectiveConduitAffinity,
-  emitCosmicMistfire,
   enhancedLegendRecharge,
-  extendEnhancedEmbodiment,
-  grantConductiveArmaments,
-  grantFoundPurpose,
-  grantLingeringDetermination,
   kineticInsightRecharge
 } from '#gw2/professions/revenant/specializations/conduit/traits/behavior.js';
-import { numinousGift } from '#gw2/professions/revenant/specializations/conduit/traits/numinous-gift.js';
 import { completionSharedWisdom } from '#gw2/professions/revenant/specializations/conduit/traits/shared-wisdom.js';
 import type { RevenantRuntimeState, RevenantSkill } from '#gw2/professions/revenant/types.js';
 import { canonicalTime } from '#kernel/core/clock.js';
 
-const UPKEEP_AFFINITY = 'revenant.conduit-upkeep-affinity';
-
-const UPKEEP_DAGGERS = 'revenant.conduit-upkeep-daggers';
-
-const MESMER_RELEASE = 'revenant.release-mesmer-conditions';
-
 const RELEASE_POTENTIAL_IDS = new Set<SkillId>(Object.values(REVENANT_RELEASE_POTENTIAL_SKILL_ID_BY_LEGEND));
-
-// A cast started in Dervish form keeps its scythe through form expiry or a concurrent legend swap.
-const dervishCasts = new WeakSet<RuntimeCast<RevenantSkill>>();
-
-function conduit(runtime: RevenantRuntime) {
-  return conduitState.from(runtime);
-}
-
-function lesserDaggers(runtime: RevenantRuntime, source: Skill, cause?: Gw2ResolverEvent): void {
-  if (!revenantConduitFormIsActive(conduit(runtime), 'Assassin', runtime.time)) return;
-  const skill = runtime.helpers.skillsById.get(ID.LESSER_ENCHANTED_DAGGERS);
-  if (!skill) throw new Error('Missing Lesser Enchanted Daggers skill declaration.');
-  const hit = requireEffect(skill, 'strike', 'Lesser Enchanted Daggers');
-  if (!hit) return;
-  // Form procs retain player modifiers without recursively triggering player on-hit attacks.
-  runtime.effects.emit({
-    kind: 'profile',
-    profile: skill,
-    effects: [hit],
-    attribution: {
-      source: 'revenant',
-      sourceId: skill.id,
-      actorType: 'effect',
-      ownerActorType: 'player',
-      skillId: skill.id,
-      skillName: skill.name,
-      triggeredBy: source.name
-    },
-    cause,
-    transform: (event) => ({
-      ...event,
-      name: 'Lesser Enchanted Daggers',
-      skillWeapon: 'Unequipped',
-      icon: skill.icon || ''
-    })
-  });
-}
-
-function dervishAttack(runtime: RevenantRuntime, cast: RuntimeCast<RevenantSkill>, at: number, elite = false): void {
-  const skillId = elite ? ID.FORM_OF_THE_DERVISH_ATTACK_ELITE : ID.FORM_OF_THE_DERVISH_ATTACK;
-  const attack = runtime.helpers.skillsById.get(skillId);
-  if (!attack) throw new Error('Missing Form of the Dervish attack skill ' + skillId + '.');
-  const name = elite ? 'Form of the Dervish (Attack - Elite)' : 'Form of the Dervish (Attack)';
-  const hit = requireEffect(attack, 'strike', name);
-  if (!hit) return;
-  // A removed scythe leaves no attack; surviving hits keep their authored sequence.
-  runtime.effects.emit({
-    kind: 'profile',
-    profile: attack,
-    effects: [hit],
-    at,
-    attribution: {
-      source: 'revenant',
-      sourceId: attack.id,
-      actorType: 'effect',
-      ownerActorType: 'player',
-      skillId: attack.id,
-      skillName: 'Form of the Dervish',
-      activationId: cast.id,
-      triggeredBy: cast.skill.name
-    },
-    transform: (event) => ({ ...event, name, skillWeapon: 'Unequipped', icon: attack.icon || '' })
-  });
-}
-
-/** Schedule affinity-sensitive Mesmer conditions independently of its ordinary strike and daze. */
-function scheduleMesmerReleaseConditions(runtime: RevenantRuntime, cast: RuntimeCast<RevenantSkill>): void {
-  for (const effect of cast.skill.effects ?? []) {
-    if (effect.type !== 'condition') continue;
-    for (const { event } of materializeSkillEffectApplications({
-      skill: cast.skill,
-      effect,
-      start: cast.start,
-      fullEnd: cast.fullEnd,
-      reactionGroup: effect.reactions === undefined ? undefined : runtime.effectReactions.register(cast.skill, effect),
-      baseEvent: {
-        source: 'revenant',
-        sourceId: cast.skill.id,
-        actorType: 'player',
-        skillId: cast.skill.id,
-        skillName: cast.skill.name,
-        activationId: cast.id
-      }
-    }))
-      runtime.schedule(MESMER_RELEASE, event.at, {
-        event,
-        durationPerAffinity: effect.durationPerAffinity ?? 0,
-        durationReductionPerAffinity: effect.durationReductionPerAffinity ?? 0
-      });
-  }
-}
-
-/** Mesmer release Torment scales with impact-time affinity; one simulated enemy applies self-Torment once. */
-function mesmerRelease(runtime: RevenantRuntime, data: unknown): void {
-  const { event, durationPerAffinity, durationReductionPerAffinity } = data as {
-    event: SimulationEventBase;
-    durationPerAffinity: number;
-    durationReductionPerAffinity: number;
-  };
-  const affinity = effectiveConduitAffinity(runtime);
-  if (event.target === 'self') {
-    const duration = Number(event.duration) * Math.max(0, 1 - affinity * durationReductionPerAffinity);
-    runtime.profession.core.selfConditions.push({
-      condition: String(event.condition),
-      stacks: Number(event.stacks),
-      at: event.at,
-      expiresAt: event.at + duration,
-      sourceId: event.sourceId,
-      skillName: String(event.skillName)
-    });
-    return;
-  }
-
-  runtime.effects.emit({
-    kind: 'packet',
-    event: { ...event, duration: Number(event.duration) * (1 + affinity * durationPerAffinity) }
-  });
-}
-
-/** Clear expired or removed windows; otherwise select the current legend's form and validate its costs. */
-function updateConduitForm(runtime: RevenantRuntime): void {
-  const state = conduit(runtime);
-  if (state.cosmicWisdomUntil <= runtime.time) {
-    state.cosmicWisdomUntil = 0;
-    state.conduitForm = '';
-    return;
-  }
-
-  state.conduitForm = REVENANT_CONDUIT_FORM_BY_LEGEND[runtime.profession.core.activeLegendId] || '';
-  if (revenantConduitFormIsActive(state, 'Mesmer', runtime.time)) validateConduitMesmerEnergyCosts(runtime.helpers);
-}
-
-/** Form expiry clears the form and restores native Energy costs, unless an extension moved the deadline. */
-function formExpiry(runtime: RevenantRuntime, data: unknown): void {
-  const state = conduit(runtime);
-  if (state.cosmicWisdomUntil !== (data as { until: number }).until) return;
-  state.cosmicWisdomUntil = 0;
-  state.conduitForm = '';
-}
-
-/** Cosmic Wisdom resolves Mistfire, then opens the current legend's form and grants Numinous Gift. */
-function cosmicWisdom(runtime: RevenantRuntime, cast: RuntimeCast<RevenantSkill>): void {
-  const state = conduit(runtime);
-  emitCosmicMistfire(runtime, cast);
-
-  const window = requireEffect(cast.skill, 'buff', 'cosmic-wisdom');
-  // Only a positive window activates a form; the independent Numinous Gift still resolves.
-  state.cosmicWisdomUntil = canonicalTime(
-    runtime.time + (window ? Math.max(0, effectNumber(cast.skill, window, 'duration')) : 0)
-  );
-  updateConduitForm(runtime);
-  scheduleFormExpiry(runtime);
-  numinousGift(runtime, cast);
-}
-
-/** Legend swaps reset affinity, extend and re-select the form, and share Found Purpose. */
-function swapLegend(runtime: RevenantRuntime, cast: RuntimeCast<RevenantSkill>): void {
-  const state = conduit(runtime);
-  const combat = runtime.combatStartedAt();
-  // The form state before the reset decides Enhanced Embodiment and the form update.
-  const formActive = state.cosmicWisdomUntil > runtime.time;
-  runtime.resourceController.replace('affinity', 0);
-  grantLingeringDetermination(runtime, combat);
-  extendEnhancedEmbodiment(runtime, formActive);
-
-  if (formActive) updateConduitForm(runtime);
-
-  // Found Purpose shares invocation boons only once combat has started.
-  grantFoundPurpose(runtime, cast, combat);
-}
-
-/** Each committed Energy-costing legend or armed weapon cast builds affinity at acceptance. */
-function costAffinity(runtime: RevenantRuntime, cast: RuntimeCast<RevenantSkill>): void {
-  const skill = cast.skill;
-  const cost = revenantEnergyCost(runtime, skill);
-  if (!(cost > 0)) return;
-  // Legend skills whose affinity is deferred to hit time are excluded to avoid double-granting.
-  if (skill.legendId && !skill.affinityOnHit) gainAffinity(runtime, cost >= 25 ? 2 : 1);
-  else grantConductiveArmaments(runtime, skill);
-}
-
-/** Upkeep cadences grant affinity and Impossible Odds' Assassin daggers while their activation remains. */
-function upkeepAffinity(runtime: RevenantRuntime, data: unknown): void {
-  const { skillId, startsAt } = data as { skillId: SkillId; startsAt: number };
-  if (!activeRevenantUpkeep(runtime, skillId, startsAt) || !runtime.helpers.skillsById.has(skillId)) return;
-  gainAffinity(runtime, 1);
-  runtime.schedule(UPKEEP_AFFINITY, canonicalTime(runtime.time + 3), data, undefined, -200);
-}
-
-function upkeepDaggers(runtime: RevenantRuntime, data: unknown): void {
-  const { skillId, startsAt } = data as { skillId: SkillId; startsAt: number };
-  const skill = runtime.helpers.skillsById.get(skillId);
-  if (!activeRevenantUpkeep(runtime, skillId, startsAt) || !skill) return;
-  lesserDaggers(runtime, skill);
-  runtime.schedule(UPKEEP_DAGGERS, canonicalTime(runtime.time + 1), data, undefined, -190);
-}
 
 export const conduitHooks: RuntimeHooks<RevenantRuntimeState, RevenantSkill> = {
   resources: { affinity: conduitAffinityPolicy },
@@ -322,7 +117,10 @@ export const conduitHooks: RuntimeHooks<RevenantRuntimeState, RevenantSkill> = {
   onCastStart(runtime, cast) {
     const skill = cast.skill;
     costAffinity(runtime, cast);
-    if (skill.legendId === LEGEND.ENTITY && revenantConduitFormIsActive(conduit(runtime), 'Dervish', cast.start))
+    if (
+      skill.legendId === LEGEND.ENTITY &&
+      revenantConduitFormIsActive(conduitState.from(runtime), 'Dervish', cast.start)
+    )
       dervishCasts.add(cast);
   },
   onCastCommit(runtime, cast) {
@@ -372,8 +170,8 @@ export const conduitHooks: RuntimeHooks<RevenantRuntimeState, RevenantSkill> = {
   },
   onCooldownReset(runtime) {
     // A full cooldown reset makes Beguiling Haze immediately available.
-    conduit(runtime).beguilingHazeReadyAt = runtime.time;
-    conduit(runtime).beguilingHazeRecharge = null;
+    conduitState.from(runtime).beguilingHazeReadyAt = runtime.time;
+    conduitState.from(runtime).beguilingHazeRecharge = null;
   },
   tasks: {
     [FORM_EXPIRY]: formExpiry,

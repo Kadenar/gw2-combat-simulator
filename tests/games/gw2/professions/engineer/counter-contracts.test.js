@@ -1,13 +1,13 @@
-import assert from 'node:assert/strict';
-import test from 'node:test';
 import { applyBalanceProfilePatch } from '#gw2/integrations/patches/authoring/patches.js';
 import { createProcRegistry } from '#gw2/platform/combat/procs/registry.js';
 import { engineerCatalog } from '#gw2/professions/engineer/catalog.js';
 import { createEngineerCoreState } from '#gw2/professions/engineer/core/state.js';
-import { applyAimAssistedRocket } from '#gw2/professions/engineer/core/traits/explosions.js';
-import { applyEngineerToolbeltTraits } from '#gw2/professions/engineer/core/traits/toolbelt.js';
+import { applyAimAssistedRocket } from '#gw2/professions/engineer/core/traits/explosives/explosions.js';
+import { applyEngineerToolbeltTraits } from '#gw2/professions/engineer/core/traits/tools/toolbelt.js';
 import { ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
 import { captureEffectEmissions } from '#tests/helpers/effect-emission.js';
+import assert from 'node:assert/strict';
+import test from 'node:test';
 
 test('Kinetic Battery resets before its reward and admits only qualifying toolbelt casts', () => {
   // A fractional profile threshold distinguishes a full reset from retained overflow.

@@ -1,56 +1,51 @@
-import { composeRuntimeHooks, type RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
-import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
-import type { EndurancePolicy, ResourcePolicy } from '#gw2/platform/combat/resources/resource-policy.js';
-import { denySkillCast } from '#gw2/platform/execution/availability.js';
-import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
-import { armSkillFlip, skillFlipReady, weaponFlipBlock } from '#gw2/platform/execution/skill-flips.js';
-import type { Skill, SkillId } from '#gw2/platform/skills/types.js';
 import type { AvailabilityResult } from '#gw2/platform/execution/availability.js';
-import type { CastCommand } from '#gw2/platform/execution/rotation.js';
+import { denySkillCast } from '#gw2/platform/execution/availability.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
+import type { CastCommand } from '#gw2/platform/execution/rotation.js';
+import { armSkillFlip, skillFlipReady, weaponFlipBlock } from '#gw2/platform/execution/skill-flips.js';
+import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
+import { composeRuntimeHooks, type RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import { damageInputEvent } from '#gw2/platform/skill-damage/occurrence-driver.js';
 import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
+import type { Skill, SkillId } from '#gw2/platform/skills/types.js';
+import { revenantBuffPolicies, revenantEffectStates } from '#gw2/professions/revenant/core/effect-state.js';
 import type { RevenantRuntime } from '#gw2/professions/revenant/core/events.js';
 import { emitBattleScar } from '#gw2/professions/revenant/core/mechanics/battle-scars.js';
-import { enchantedDaggersLifecycle } from '#gw2/professions/revenant/core/skills/legends/assassin.js';
 import { modifyRevenantLifeSiphon } from '#gw2/professions/revenant/core/mechanics/life-siphon.js';
+import { reactRevenantPlayerStrike } from '#gw2/professions/revenant/core/mechanics/reactions.js';
+import { revenantEndurance, revenantEnergy } from '#gw2/professions/revenant/core/mechanics/resources.js';
 import {
   activateRevenantUpkeep,
   clearRevenantLegendFlips,
   empowerRevenantEmbrace,
   reactRevenantImpossibleOdds,
-  refreshRevenantStarvation,
   releaseRevenantUpkeep,
   removeRevenantUpkeep,
   REVENANT_ENERGY_DEPLETED,
   REVENANT_UPKEEP_PULSE,
-  revenantUpkeepDrain,
   revenantUpkeepPulse,
   startRevenantEmbrace,
   starveRevenantUpkeeps
 } from '#gw2/professions/revenant/core/mechanics/upkeep.js';
+import { enchantedDaggersLifecycle } from '#gw2/professions/revenant/core/skills/legends/assassin.js';
 import {
   greatswordLifecycle,
   imperialGuardAvailability
 } from '#gw2/professions/revenant/core/skills/weapons/greatsword.js';
 import { scepterLifecycle } from '#gw2/professions/revenant/core/skills/weapons/scepter.js';
 import { spearLifecycle } from '#gw2/professions/revenant/core/skills/weapons/spear.js';
-import { REVENANT_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/revenant/core/profiles.js';
-import { REVENANT_MAXIMUM_ENDURANCE } from '#gw2/professions/revenant/core/state.js';
+import { completeRevenantBrutality } from '#gw2/professions/revenant/core/traits/devastation/cast-rewards.js';
 import {
-  chargedMistsEnergy,
-  completeRevenantBrutality,
-  enduringRecoveryBonus,
   REVENANT_ASSASSINS_PRESENCE,
   revenantAssassinsPresencePulse,
   startRevenantAssassinsPresence
-} from '#gw2/professions/revenant/core/traits/behavior.js';
+} from '#gw2/professions/revenant/core/traits/devastation/index.js';
 import {
   applyRevenantInvocationTraits,
   completeRevenantCastTraits,
-  reactRevenantConditionTraits,
-  reactRevenantPlayerStrike
+  reactRevenantConditionTraits
 } from '#gw2/professions/revenant/core/traits/dispatch.js';
+import { chargedMistsEnergy } from '#gw2/professions/revenant/core/traits/invocation/behavior.js';
 import { REVENANT_SKILL_IDS as ID } from '#gw2/professions/revenant/data/ids.js';
 import { isLegalRevenantLegendId } from '#gw2/professions/revenant/data/legends.js';
 import {
@@ -60,7 +55,7 @@ import {
 } from '#gw2/professions/revenant/data/upkeep-skills.js';
 import { VINDICATOR_JUMP_SKILL } from '#gw2/professions/revenant/data/vindicator-jump.js';
 import { revenantEnergyCost } from '#gw2/professions/revenant/family-state.js';
-import type { RevenantConfig, RevenantRuntimeState, RevenantSkill } from '#gw2/professions/revenant/types.js';
+import type { RevenantRuntimeState, RevenantSkill } from '#gw2/professions/revenant/types.js';
 import { EPSILON } from '#kernel/core/clock.js';
 
 const DODGE_IDS = new Set<SkillId>([SHARED_SKILL_IDS.DODGE, VINDICATOR_JUMP_SKILL.id]);
@@ -72,39 +67,6 @@ const upkeepCosts = new WeakMap<RuntimeCast<RevenantSkill>, number>();
 function upkeepRelease(runtime: MechanicQueriesOf<RevenantRuntime>, skill: Skill): boolean {
   return isRevenantUpkeepRelease(skill, (id) => runtime.helpers.skillsById.get(id));
 }
-
-function resourceProfile(runtime: RevenantRuntime) {
-  return requireBalanceProfileFromContext(runtime, PROFILE.resources);
-}
-
-/** Capacity is distinct from the precombat recovery ceiling, which never discards larger grants. */
-const revenantEnergy: ResourcePolicy<RevenantRuntime> = {
-  kind: 'continuous',
-  state: (runtime) => runtime.profession.core.energy,
-  maximum: () => 100,
-  initial: (runtime) => (runtime.config as RevenantConfig).initialEnergy ?? 50,
-  recovery: (runtime) =>
-    balanceProfileNumber(resourceProfile(runtime), 'energyRegenerationPerSecond') - revenantUpkeepDrain(runtime),
-  recoveryMaximum: (runtime) => (runtime.profession.core.combatBeganAt == null ? 50 : 100),
-  depletion: { refresh: refreshRevenantStarvation, stop: refreshRevenantStarvation }
-};
-
-/** Vigor and Enduring Recovery add together; Vindicator shares the ten-per-second cap. */
-export function revenantEnduranceRate(runtime: RevenantRuntime, vigor: boolean): number {
-  const profile = resourceProfile(runtime);
-  const enduring = enduringRecoveryBonus(runtime);
-  return Math.min(
-    10,
-    balanceProfileNumber(profile, 'enduranceRegenerationPerSecond') *
-      ((vigor ? balanceProfileNumber(profile, 'vigorRegenerationMultiplier') : 1) + enduring)
-  );
-}
-
-const revenantEndurance: EndurancePolicy<RevenantRuntime> = {
-  state: (runtime) => runtime.profession.core.endurance,
-  maximum: () => REVENANT_MAXIMUM_ENDURANCE,
-  regenerationRate: (runtime, vigor) => revenantEnduranceRate(runtime, vigor)
-};
 
 /** Legend, flip, upkeep, endurance, and Energy gates read the one live state at the current instant. */
 function revenantAvailability(
@@ -197,7 +159,6 @@ function swapLegend(runtime: RevenantRuntime, cast: RuntimeCast<RevenantSkill>):
 }
 
 /** Core hooks: Energy, upkeeps, legends, weapon follow-ups, and actual hit/application trait reactions. */
-import { revenantBuffPolicies, revenantEffectStates } from '#gw2/professions/revenant/core/effect-state.js';
 
 const coreLifecycle: RuntimeHooks<RevenantRuntimeState, RevenantSkill> = {
   // Known damage payloads are invoked once without their activation requirements.

@@ -1,32 +1,33 @@
+import { buildTimeSeries, chartValueAt } from '#gw2/app/results/charts/time-series-model.js';
+import { createGw2TimelineIndex } from '#gw2/platform/combat-calculation/timeline-index.js';
+import {
+  applyBoonExtension,
+  boonIntervals,
+  boonIntervalsFromWindows,
+  prepareBoonWindows,
+  recordBuffApplication,
+  remainingDurationStackSeconds,
+  timedBuffApplicationsAt
+} from '#gw2/platform/combat/boons.js';
+import { assertSimulationEvent } from '#gw2/platform/events/events.js';
 import { createMechanicCombatServices } from '#gw2/platform/resolver/mechanic-services.js';
-import { effectFields } from '#tests/helpers/effect-report.js';
+import { elementalistProfession } from '#gw2/professions/elementalist/profession.js';
+import { mesmerProfession } from '#gw2/professions/mesmer/profession.js';
+import { RANGER_TRAIT_IDS } from '#gw2/professions/ranger/data/ids.js';
+import { REVENANT_LEGEND_IDS, REVENANT_SKILL_IDS } from '#gw2/professions/revenant/data/ids.js';
+import { noQuarterCriticalReaction } from '#gw2/professions/thief/core/traits/critical-strikes/critical-boons.js';
+import { THIEF_TRAIT_IDS } from '#gw2/professions/thief/data/ids.js';
+import { thiefProfession } from '#gw2/professions/thief/profession.js';
 import { captureEffectEmissions } from '#tests/helpers/effect-emission.js';
+import { effectFields } from '#tests/helpers/effect-report.js';
 import { runElementalist } from '#tests/helpers/elementalist-simulation.js';
 import { runMesmer } from '#tests/helpers/mesmer-simulation.js';
 import { observedRuntime } from '#tests/helpers/observed-runtime.js';
 import { runRanger } from '#tests/helpers/ranger-simulation.js';
+import { runRevenant } from '#tests/helpers/revenant-simulation.js';
 import { runThief } from '#tests/helpers/thief-simulation.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { recordBuffApplication, remainingDurationStackSeconds } from '#gw2/platform/combat/boons.js';
-import {
-  applyBoonExtension,
-  timedBuffApplicationsAt,
-  boonIntervals,
-  prepareBoonWindows,
-  boonIntervalsFromWindows
-} from '#gw2/platform/combat/boons.js';
-import { createGw2TimelineIndex } from '#gw2/platform/combat-calculation/timeline-index.js';
-import { buildTimeSeries, chartValueAt } from '#gw2/app/results/charts/time-series-model.js';
-import { assertSimulationEvent } from '#gw2/platform/events/events.js';
-import { RANGER_TRAIT_IDS } from '#gw2/professions/ranger/data/ids.js';
-import { noQuarterCriticalReaction } from '#gw2/professions/thief/core/traits/critical-boons.js';
-import { REVENANT_LEGEND_IDS, REVENANT_SKILL_IDS } from '#gw2/professions/revenant/data/ids.js';
-import { runRevenant } from '#tests/helpers/revenant-simulation.js';
-import { THIEF_TRAIT_IDS } from '#gw2/professions/thief/data/ids.js';
-import { thiefProfession } from '#gw2/professions/thief/profession.js';
-import { elementalistProfession } from '#gw2/professions/elementalist/profession.js';
-import { mesmerProfession } from '#gw2/professions/mesmer/profession.js';
 
 // Exercise real extension handlers and both phases with minimal duration/resource contracts.
 const self = {

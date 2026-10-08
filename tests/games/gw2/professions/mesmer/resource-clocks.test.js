@@ -1,19 +1,23 @@
-import assert from 'node:assert/strict';
-import test from 'node:test';
-import { createRuntimeResources } from '#gw2/platform/simulation/runtime-resources.js';
+import { simulationEventLogRows } from '#gw2/app/results/event-log.js';
 import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
-import { mesmerProfession } from '#gw2/professions/mesmer/profession.js';
-import { createMesmerActions, createMesmerIllusionRewards } from '#gw2/professions/mesmer/family-mechanics.js';
+import { createRuntimeResources } from '#gw2/platform/simulation/runtime-resources.js';
+import { completeMesmerCast, startMesmerCast } from '#gw2/professions/mesmer/core/execution/cast-lifecycle.js';
 import { mesmerIllusionHooks } from '#gw2/professions/mesmer/core/mechanics/illusions/lifecycle.js';
 import { MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
+import { createMesmerActions } from '#gw2/professions/mesmer/family-mechanics.js';
+import { createMesmerIllusionRewards } from '#gw2/professions/mesmer/family-resources.js';
+import { mesmerProfession } from '#gw2/professions/mesmer/profession.js';
 import { captureEffectEmissions } from '#tests/helpers/effect-emission.js';
 import { runMesmer } from '#tests/helpers/mesmer-simulation.js';
-import { simulationEventLogRows } from '#gw2/app/results/event-log.js';
+import assert from 'node:assert/strict';
+import test from 'node:test';
 
 // Exercise the real policies and reward owner without damage or cast-speed dependencies.
 function fixture(specialization, initialResource) {
   const config = { specialization, initialResource, primaryWeapon: 'Sword' };
   const profession = mesmerProfession.runtimeFor(config);
+  const scheduled = [];
+  const cancelled = [];
   const context = {
     config,
     time: 0,
@@ -21,7 +25,9 @@ function fixture(specialization, initialResource) {
     traits: new Set([TRAIT.COMPOUNDING_POWER]),
     profession: profession.createState(config),
     helpers: profession.catalog,
-    combat: { warn() {} }
+    combat: { warn() {} },
+    schedule: (type, at, data, owner) => scheduled.push({ type, at, data, owner }),
+    cancelOwner: (owner) => cancelled.push(owner)
   };
   const capture = captureEffectEmissions({ now: () => context.time });
   context.effects = capture.effects;
@@ -35,8 +41,78 @@ function fixture(specialization, initialResource) {
     profession
   );
   context.resourceController.initialize();
-  return { context, profession, ...capture };
+  return { context, profession, scheduled, cancelled, ...capture };
 }
+
+// Resource ownership follows canonical boundaries, including the last microsecond before completion.
+test('cast-start resources before completion are available to concurrent actions', () => {
+  const { context, scheduled } = fixture('Virtuoso', 0);
+  const skill = {
+    id: 'resource-boundary',
+    name: 'Resource boundary',
+    resource: {
+      mode: 'add',
+      timingAnchor: 'castStart',
+      atMs: 999.999,
+      count: 1
+    }
+  };
+  const cast = { id: 'resource-cast', start: 0, fullEnd: 1, effectiveEnd: 1, skill };
+  startMesmerCast(context, cast, skill);
+  assert.equal(scheduled.length, 1);
+  const task = scheduled[0];
+  assert.ok(task.at < cast.fullEnd);
+  context.time = task.at;
+  mesmerIllusionHooks.tasks[task.type](context, task.data);
+  assert.equal(context.resourceController.value('blades'), 1);
+});
+
+test('resource gain at completion belongs to completion rather than a second task', () => {
+  const { context, scheduled } = fixture('Virtuoso', 0);
+  const skill = {
+    id: 'resource-boundary',
+    name: 'Resource boundary',
+    resource: {
+      mode: 'add',
+      timingAnchor: 'castStart',
+      atMs: 200,
+      count: 1
+    }
+  };
+  const cast = { id: 'resource-cast', start: 0.1, fullEnd: 0.3, effectiveEnd: 0.3, skill };
+  startMesmerCast(context, cast, skill);
+  assert.deepEqual(scheduled, []);
+  assert.equal(context.profession.core.castDetails.get(cast.id).resourceScheduledDuringCast, false);
+});
+
+test('resource gain at an interrupted endpoint survives roundoff but a later gain loses its owner', () => {
+  for (const effectiveEnd of [0.299999, 0.3]) {
+    const { context, scheduled, cancelled } = fixture('Virtuoso', 0);
+    const skill = {
+      id: 'resource-boundary',
+      name: 'Resource boundary',
+      resource: {
+        mode: 'add',
+        timingAnchor: 'castStart',
+        atMs: 200,
+        count: 1
+      }
+    };
+    const cast = { id: 'resource-cast', start: 0.1, fullEnd: 1, effectiveEnd, cancelled: true, skill, command: {} };
+    startMesmerCast(context, cast, skill);
+    context.time = effectiveEnd;
+    completeMesmerCast(context, cast, skill);
+    assert.equal(context.profession.core.castDetails.has(cast.id), false);
+    if (effectiveEnd === 0.3) {
+      assert.equal(scheduled.length, 1);
+      assert.equal(scheduled[0].at, effectiveEnd);
+      assert.deepEqual(cancelled, []);
+    } else {
+      assert.deepEqual(scheduled, []);
+      assert.deepEqual(cancelled, [{ id: 'resource-cast:mesmer.resource', generation: 0 }]);
+    }
+  }
+});
 
 for (const [specialization, key, maximum] of [
   ['Virtuoso', 'blades', 5],

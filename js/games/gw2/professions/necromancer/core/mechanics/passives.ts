@@ -1,6 +1,6 @@
 import { selectedSkillIdSet } from '#gw2/platform/builds/selected-skills.js';
-import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import { gw2CooldownReadyAt } from '#gw2/platform/combat/action-tick.js';
+import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import {
   NECROMANCER_SIGNET_PASSIVES,
   applyNecromancerSignetPassive
@@ -8,12 +8,12 @@ import {
 import {
   necromancerAlliedTasks,
   startNecromancerAlliedOpportunities
-} from '#gw2/professions/necromancer/core/traits/life-steal.js';
+} from '#gw2/professions/necromancer/core/traits/blood-magic/life-steal.js';
 import {
   applyEternalLifePulse,
   eternalLifePassive,
   eternalLifeReadyAt
-} from '#gw2/professions/necromancer/core/traits/shroud.js';
+} from '#gw2/professions/necromancer/core/traits/soul-reaping/life-force.js';
 import type { NecromancerRuntime } from '#gw2/professions/necromancer/types.js';
 import { canonicalTime } from '#kernel/core/clock.js';
 

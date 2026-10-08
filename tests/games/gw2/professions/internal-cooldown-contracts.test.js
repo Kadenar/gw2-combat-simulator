@@ -1,5 +1,5 @@
-import { createMechanicCombatServices } from '#gw2/platform/resolver/mechanic-services.js';
 import { createProcRegistry } from '#gw2/platform/combat/procs/registry.js';
+import { createMechanicCombatServices } from '#gw2/platform/resolver/mechanic-services.js';
 import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
 import { createElementalistCoreState } from '#gw2/professions/elementalist/core/state.js';
 import { ELEMENTALIST_TRAIT_IDS } from '#gw2/professions/elementalist/data/ids.js';
@@ -12,16 +12,16 @@ import { ENGINEER_TRAIT_IDS } from '#gw2/professions/engineer/data/ids.js';
 import { engineerCatalog } from '#gw2/professions/engineer/profession.js';
 import { createGuardianCoreState } from '#gw2/professions/guardian/core/state.js';
 import { guardianCatalog } from '#gw2/professions/guardian/profession.js';
-import { reactToAshesHit } from '#gw2/professions/guardian/specializations/firebrand/mechanics/tomes.js';
 import { createFirebrandState } from '#gw2/professions/guardian/specializations/firebrand/initial-state.js';
-import { triggerIneptitudeFromInterrupt } from '#gw2/professions/mesmer/core/traits/dueling.js';
+import { reactToAshesHit } from '#gw2/professions/guardian/specializations/firebrand/mechanics/tomes.js';
+import { triggerIneptitudeFromInterrupt } from '#gw2/professions/mesmer/core/traits/dueling/index.js';
 import { MESMER_TRAIT_IDS } from '#gw2/professions/mesmer/data/ids.js';
 import { mesmerCatalog } from '#gw2/professions/mesmer/profession.js';
 import { createNecromancerCoreState } from '#gw2/professions/necromancer/core/initial-state.js';
 import {
   applyVampiricPresence,
   reactToVampiricPresenceAlliedHit
-} from '#gw2/professions/necromancer/core/traits/life-steal.js';
+} from '#gw2/professions/necromancer/core/traits/blood-magic/life-steal.js';
 import {
   reactToNecromancerCoreCondition,
   reactToNecromancerCoreDamage

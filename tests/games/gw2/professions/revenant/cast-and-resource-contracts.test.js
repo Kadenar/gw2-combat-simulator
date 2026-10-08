@@ -1,25 +1,25 @@
+import { applyBalanceProfilePatch, applySkillPatch } from '#gw2/integrations/patches/authoring/patches.js';
 import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
-import assert from 'node:assert/strict';
-import test from 'node:test';
-import { revenantProfession, revenantCatalog } from '#gw2/professions/revenant/profession.js';
+import { revenantEnduranceRate } from '#gw2/professions/revenant/core/mechanics/resources.js';
+import { REVENANT_CORE_BALANCE_PROFILE_IDS } from '#gw2/professions/revenant/core/profiles.js';
 import {
   REVENANT_LEGEND_IDS as LEGEND,
   REVENANT_SKILL_IDS as SKILL,
   REVENANT_TRAIT_IDS as TRAIT
 } from '#gw2/professions/revenant/data/ids.js';
+import { revenantCatalog, revenantProfession } from '#gw2/professions/revenant/profession.js';
+import { gainAffinity } from '#gw2/professions/revenant/specializations/conduit/mechanics/affinity.js';
+import { CONDUIT_BALANCE_PROFILE_IDS as CONDUIT } from '#gw2/professions/revenant/specializations/conduit/profiles.js';
+import {
+  effectiveConduitAffinity,
+  affinity as modifierAffinity
+} from '#gw2/professions/revenant/specializations/conduit/traits/behavior.js';
 import { RENEGADE_PROFILE_IDS } from '#gw2/professions/revenant/specializations/renegade/profiles.js';
-import { REVENANT_CORE_BALANCE_PROFILE_IDS } from '#gw2/professions/revenant/core/profiles.js';
-import { revenantEnduranceRate } from '#gw2/professions/revenant/core/hooks.js';
-import { applyBalanceProfilePatch, applySkillPatch } from '#gw2/integrations/patches/authoring/patches.js';
+import { withProfile, withSkill } from '#tests/helpers/catalog-overrides.js';
 import { createObservedProfessionSimulator, observedRuntime } from '#tests/helpers/observed-runtime.js';
 import { REVENANT_TEST_CONFIG as baseConfig, revenantHit, runRevenant } from '#tests/helpers/revenant-simulation.js';
-import { withProfile, withSkill } from '#tests/helpers/catalog-overrides.js';
-import { CONDUIT_BALANCE_PROFILE_IDS as CONDUIT } from '#gw2/professions/revenant/specializations/conduit/profiles.js';
-import { gainAffinity } from '#gw2/professions/revenant/specializations/conduit/mechanics/affinity.js';
-import {
-  affinity as modifierAffinity,
-  effectiveConduitAffinity
-} from '#gw2/professions/revenant/specializations/conduit/traits/behavior.js';
+import assert from 'node:assert/strict';
+import test from 'node:test';
 
 const simulate = createObservedProfessionSimulator(revenantProfession, baseConfig);
 const wait = (durationMs) => ({ type: 'wait', durationMs });

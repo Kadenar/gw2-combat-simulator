@@ -1,14 +1,13 @@
+import { normalizeSelectedTraitIds } from '#gw2/platform/builds/selected-traits.js';
 import type { ActivationClaims } from '#gw2/platform/combat/procs/activation-claims.js';
 import type { ChargePool } from '#gw2/platform/combat/resources/charges.js';
 import type { ResourceClock } from '#gw2/platform/combat/resources/clock.js';
 import { createResourceClock } from '#gw2/platform/combat/resources/clock.js';
 import { type SkillFlipWindows } from '#gw2/platform/execution/skill-flips.js';
 import { balanceProfileNumber } from '#gw2/platform/skills/balance-profiles.js';
-import { THIEF_CORE_RESOURCE_PROFILE } from '#gw2/professions/thief/core/profiles.js';
-import { preparednessCapacityField } from '#gw2/professions/thief/core/traits/resource-queries.js';
-
-import { normalizeSelectedTraitIds } from '#gw2/platform/builds/selected-traits.js';
 import type { SkillId } from '#gw2/platform/skills/types.js';
+import { THIEF_CORE_RESOURCE_PROFILE } from '#gw2/professions/thief/core/profiles.js';
+import { preparednessCapacityField } from '#gw2/professions/thief/core/traits/trickery/resource-queries.js';
 import { THIEF_SKILL_IDS as ID } from '#gw2/professions/thief/data/ids.js';
 import type { ThiefConfig } from '#gw2/professions/thief/types.js';
 import { boundedInteger, boundedNumber } from '#kernel/core/numeric.js';

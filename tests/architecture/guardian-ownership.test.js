@@ -48,16 +48,14 @@ test('Firebrand initialization and page tuning cannot reach active behavior or f
     visit(path.join(root, 'specializations/firebrand', entry), []);
 });
 
-test('Guardian Core cannot import elite behavior and consolidated trait owners do not depend on the dispatcher', () => {
+test('Guardian Core cannot import elite behavior or introduce value-import cycles', () => {
   const graph = new Map(guardianDependencies());
   const eliteRoot = path.join(root, 'specializations') + path.sep;
-  const dispatcher = path.join(root, 'core/traits/behavior.ts');
   for (const start of graph.keys()) {
     if (!start.startsWith(path.join(root, 'core') + path.sep)) continue;
     const visited = new Set();
     const visit = (file, chain) => {
       assert.ok(!file.startsWith(eliteRoot), chain.join(' -> '));
-      if (/[/\\]traits[/\\](radiance|honor)\.ts$/.test(start)) assert.notEqual(file, dispatcher, chain.join(' -> '));
       assert.ok(!chain.includes(path.relative(root, file)), [...chain, path.relative(root, file)].join(' -> '));
       if (visited.has(file)) return;
       visited.add(file);

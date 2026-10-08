@@ -27,13 +27,18 @@ its data, state, mechanics, and UI under `specializations/<name>/`.
 
 ## Trait ownership
 
-Core defines traits in its five trait-line files; its `traits/index.ts` registers them in their original order. Each
-elite owns its definitions and registration array in `traits/index.ts`: 43 Core, 5 Druid, 8 Soulbeast, 7 Untamed, and 8
-Galeshot definitions. Owners contain trait balance profiles, modifiers, triggers, recharge rules, and build
-contributions. Runtime callers import supporting behavior directly from `traits/behavior.ts`, Core pet behavior,
-modifier queries, and pet modifiers. Core trait-only completion and swap dispatch lives in `traits/dispatch.ts`. Profile
-consumers use `RANGER_TRAIT_IDS` directly; module `profiles.ts` files retain only skill and mechanic packages. Build
-calculators compose `rangerProfession.traitBuildAttributes` alongside skill passives and Soulbeast archetype attributes.
+Core defines traits in five `traits/<line>/index.ts` files; its `traits/index.ts` registers them in their original
+order. Each elite owns its definitions and registration array in `traits/index.ts`: 46 Core, 5 Druid, 8 Soulbeast, 7
+Untamed, and 8 Galeshot definitions. Owners contain trait balance profiles, modifiers, triggers, recharge rules, and
+build contributions. Runtime callers import named Core trait helpers for opening strikes, Beast skills, movement,
+critical procs, poison, attributes, and companion attributes inside their owning trait-line folders. Small helpers such
+as Lingering Magic's companion Concentration stay in the line's `index.ts`. Elite trait helpers remain beside their
+definitions. Pet identity and attribute snapshots live separately from scheduling in `core/mechanics/pet-attributes.ts`;
+the signet passive query does not load slot-skill execution. Soulbeast hooks and modifiers assemble merged-pet
+contributions before manifest registration. Core trait-only completion and swap dispatch lives in `traits/dispatch.ts`.
+Profile consumers use `RANGER_TRAIT_IDS` directly; module `profiles.ts` files retain only skill and mechanic packages.
+Build calculators compose `rangerProfession.traitBuildAttributes` alongside skill passives and Soulbeast archetype
+attributes.
 
 Commanded pet recharge captures the accepting companion's incarnation and retains it through shared cooldown projection.
 Received Alacrity is integrated only from that companion's grants and extensions, ending at retirement while preserving

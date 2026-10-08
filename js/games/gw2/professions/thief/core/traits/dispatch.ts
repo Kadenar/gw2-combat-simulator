@@ -1,34 +1,16 @@
-import { criticalProcHandler } from '#gw2/platform/profession-definition/critical-proc-handler.js';
-import type { NativeResolvedDamageDetails } from '#gw2/platform/profession-definition/module-types.js';
-import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
+import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
 import type { ThiefRuntime } from '#gw2/professions/thief/core/events.js';
-import { applyActiveVenoms } from '#gw2/professions/thief/core/mechanics/venoms.js';
 import {
   applyFluidStrikes,
   applyHardToCatch,
-  applyLeadAttacks,
   applyUpperHand
-} from '#gw2/professions/thief/core/traits/behavior.js';
-import {
-  applyUnrelentingStrikes,
-  noQuarterCriticalReaction
-} from '#gw2/professions/thief/core/traits/critical-boons.js';
-import { applyAlliedLeechingVenoms, applyLeechingVenoms } from '#gw2/professions/thief/core/traits/leeching-venoms.js';
-import {
-  applyDeadlyAmbition,
-  applyLotusPoison,
-  applyPanicStrike,
-  applyPanicStrikePoison
-} from '#gw2/professions/thief/core/traits/poison.js';
-import type { ThiefResolverContext, ThiefSkill } from '#gw2/professions/thief/types.js';
-
-const noQuarter = criticalProcHandler(noQuarterCriticalReaction);
-
-function resolverContext(runtime: ThiefRuntime): ThiefResolverContext {
-  return runtime;
-}
+} from '#gw2/professions/thief/core/traits/acrobatics/behavior.js';
+import { applyLotusPoison, applyPanicStrikePoison } from '#gw2/professions/thief/core/traits/deadly-arts/poison.js';
+import { applyAlliedLeechingVenoms } from '#gw2/professions/thief/core/traits/shadow-arts/leeching-venoms.js';
+import { applyLeadAttacks } from '#gw2/professions/thief/core/traits/trickery/behavior.js';
+import type { ThiefSkill } from '#gw2/professions/thief/types.js';
 
 /** Movement skills open Fluid Strikes' window and grant Hard to Catch's endurance. */
 function movementTraits(runtime: ThiefRuntime): void {
@@ -48,30 +30,9 @@ export function completeThiefCastTraits(
   if (cast.skill.movementSkill) movementTraits(runtime);
 }
 
-/** Landed strikes drive critical Fury traits, Deadly Arts, venoms, and Shadow Arts siphons in their established order. */
-export function reactThiefCoreDamage(
-  runtime: ThiefRuntime,
-  event: Gw2ResolverEvent,
-  details: Record<string, unknown>
-): void {
-  const context = resolverContext(runtime);
-  const resolved = details as unknown as NativeResolvedDamageDetails;
-  applyUnrelentingStrikes(context, event, resolved);
-  noQuarter(context, event, resolved);
-  // Returned projectile damage keeps its original skill label while the dual-wield recall owns this trait proc.
-  const recallId = event.metadata?.recallSkillId;
-  applyDeadlyAmbition(
-    context,
-    recallId == null ? event : { ...event, skillId: Number(recallId), sourceId: Number(recallId) }
-  );
-  // Multiple venom types consume their charges but share one siphon per player strike.
-  if (applyActiveVenoms(context, event) > 0) applyLeechingVenoms(context, event);
-  applyPanicStrike(context, event);
-}
-
 /** Applied conditions drive Lotus Poison, allied Leeching Venoms, Panic Strike, Cloaked in Shadow, then the skill bonus. */
 export function reactThiefCoreCondition(runtime: ThiefRuntime, application: Gw2ResolverEvent): void {
-  const context = resolverContext(runtime);
+  const context = runtime;
   applyLotusPoison(context, application);
   applyAlliedLeechingVenoms(context, application);
   applyPanicStrikePoison(context, application);

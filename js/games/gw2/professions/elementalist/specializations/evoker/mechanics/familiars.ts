@@ -2,7 +2,7 @@ import type { SkillEffect } from '#gw2/platform/effects/types.js';
 import type { RuntimeCast, SkillTaskData } from '#gw2/platform/execution/cast-contracts.js';
 import type { RuntimeProfession } from '#gw2/platform/profession-definition/runtime-contract.js';
 import type { ActionContext, SideEffectAction } from '#gw2/platform/effects/actions.js';
-import { applySpecializedElementsTrait } from '#gw2/professions/elementalist/specializations/evoker/traits/attunements.js';
+import { applySpecializedElementsTrait } from '#gw2/professions/elementalist/specializations/evoker/traits/attunement-policy.js';
 import { applyFamiliarTraitProcs } from '#gw2/professions/elementalist/specializations/evoker/traits/familiars.js';
 /**
  * Familiar cast lifecycle - the heart of the Evoker specialization.

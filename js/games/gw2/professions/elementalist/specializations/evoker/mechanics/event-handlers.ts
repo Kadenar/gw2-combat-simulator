@@ -1,7 +1,7 @@
 import {
   applyEvocationBurning,
   applyEvokerEntryTraits
-} from '#gw2/professions/elementalist/specializations/evoker/traits/attunements.js';
+} from '#gw2/professions/elementalist/specializations/evoker/traits/attunement-policy.js';
 /** Evoker trait and enchantment reactions consume actual transitions and accepted impacts. */
 import type { SimulationEvent } from '#gw2/platform/events/events.js';
 import { applyEvokerAttunementRechargePolicy } from '#gw2/professions/elementalist/specializations/evoker/mechanics/attunements.js';

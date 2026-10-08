@@ -40,7 +40,7 @@ test('Warrior Core value dependencies never reach an elite and trait lines never
     const visited = new Set();
     const visit = (file, chain) => {
       assert.ok(!file.startsWith(eliteRoot), chain.join(' -> '));
-      if (/[/\\]traits[/\\](arms|strength|defense|discipline|tactics)\.ts$/.test(start))
+      if (/[/\\]traits[/\\](arms|strength|defense|discipline|tactics)[/\\]index\.ts$/.test(start))
         assert.notEqual(file, dispatcher, chain.join(' -> '));
       if (visited.has(file)) return;
       visited.add(file);

@@ -1,12 +1,12 @@
-import { druidBuffPolicies } from '#gw2/professions/ranger/specializations/druid/effect-state.js';
-import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
-import { denySkillCast as deny } from '#gw2/platform/execution/availability.js';
-import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
-import { armSkillFlip, consumeSkillFlip } from '#gw2/platform/execution/skill-flips.js';
 import { resetAutoattackChains } from '#gw2/platform/execution/autoattack-chains.js';
+import { denySkillCast as deny } from '#gw2/platform/execution/availability.js';
+import { armSkillFlip, consumeSkillFlip } from '#gw2/platform/execution/skill-flips.js';
+import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
+import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import { buildRangerPacket } from '#gw2/professions/ranger/core/events.js';
-import { applyRangerWeaponSwapTraits } from '#gw2/professions/ranger/core/traits/behavior.js';
+import { applyRangerWeaponSwapTraits } from '#gw2/professions/ranger/core/traits/skirmishing/movement.js';
 import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
+import { druidBuffPolicies } from '#gw2/professions/ranger/specializations/druid/effect-state.js';
 import { DRUID_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/ranger/specializations/druid/profiles.js';
 import { druidState } from '#gw2/professions/ranger/specializations/druid/state.js';
 import {
@@ -14,7 +14,7 @@ import {
   avatarEffects,
   eclipseAstralForceMultiplier
 } from '#gw2/professions/ranger/specializations/druid/traits/behavior.js';
-import type { RangerSkill, RangerRuntime, RangerRuntimeState } from '#gw2/professions/ranger/types.js';
+import type { RangerRuntime, RangerRuntimeState, RangerSkill } from '#gw2/professions/ranger/types.js';
 import { canonicalTime } from '#kernel/core/clock.js';
 
 /** Avatar changes the one resource clock and bar; expiration cannot retire a later entry. */

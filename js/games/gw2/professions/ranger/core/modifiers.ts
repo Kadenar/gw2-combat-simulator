@@ -1,10 +1,11 @@
 import { professionStaticRulesApplied } from '#gw2/platform/builds/attribute-provenance.js';
 import type { Gw2ModifierContext, Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
-import type { Gw2NumericStatKey, Gw2ResolvedStats } from '#gw2/platform/combat/stats.js';
 import { hasSelectedSkillId } from '#gw2/platform/combat/query/runtime-query.js';
+import type { Gw2NumericStatKey, Gw2ResolvedStats } from '#gw2/platform/combat/stats.js';
 import { rangerAttackOfOpportunityModifier } from '#gw2/professions/ranger/core/mechanics/greatsword.js';
 import { rangerConsumingBiteModifier } from '#gw2/professions/ranger/core/skills/pets/fanged-iboga.js';
-import { modifyStormSpiritAttributes, signetOfTheWildBonus } from '#gw2/professions/ranger/core/skills/slot-skills.js';
+import { signetOfTheWildBonus } from '#gw2/professions/ranger/core/skills/signet-passives.js';
+import { modifyStormSpiritAttributes } from '#gw2/professions/ranger/core/skills/slot-skills.js';
 import { rangerStalkersStrikeModifier } from '#gw2/professions/ranger/core/skills/weapons/dagger.js';
 import {
   rangerHammerConditionsModifier,
@@ -12,21 +13,25 @@ import {
 } from '#gw2/professions/ranger/core/skills/weapons/hammer.js';
 import { rangerFalconsStoopModifier } from '#gw2/professions/ranger/core/skills/weapons/spear.js';
 import { rangerPounceModifier } from '#gw2/professions/ranger/core/skills/weapons/sword.js';
-import {
-  ambidexterityAttributeDelta,
-  applyArachnophobiaAttributes,
-  applyLingeringMagicAttributes,
-  applyViciousQuarryAttributes,
-  applyWellspringPlayerAttributes,
-  modifyRangerConditionBaseDuration,
-  stridersStrengthAttributeDelta
-} from '#gw2/professions/ranger/core/traits/behavior.js';
+import { honedAxesAttributeDelta } from '#gw2/professions/ranger/core/traits/beastmastery/pet-attributes.js';
 import { rangerPetEvent } from '#gw2/professions/ranger/core/traits/modifier-queries.js';
-import { honedAxesAttributeDelta } from '#gw2/professions/ranger/core/traits/pet-behavior.js';
+import {
+  applyLingeringMagicAttributes,
+  applyWellspringPlayerAttributes
+} from '#gw2/professions/ranger/core/traits/nature-magic/attributes.js';
 import {
   modifyRangerPetAttributes,
   rangerPetModifierRules
 } from '#gw2/professions/ranger/core/traits/pet-modifiers.js';
+import {
+  applyViciousQuarryAttributes,
+  modifyRangerConditionBaseDuration,
+  stridersStrengthAttributeDelta
+} from '#gw2/professions/ranger/core/traits/skirmishing/attributes.js';
+import {
+  ambidexterityAttributeDelta,
+  applyArachnophobiaAttributes
+} from '#gw2/professions/ranger/core/traits/wilderness-survival/attributes.js';
 import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
 
 function modifyRangerAttributes(context: Gw2ModifierContext, attributes: Gw2ResolvedStats): Gw2ResolvedStats {

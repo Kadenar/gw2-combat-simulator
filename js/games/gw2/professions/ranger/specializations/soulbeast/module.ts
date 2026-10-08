@@ -1,10 +1,5 @@
-import { createPublicStateProjector } from '#gw2/platform/profession-definition/state.js';
 import { defineNativeModule } from '#gw2/platform/profession-definition/profession.js';
-import {
-  bestialRageControl,
-  goForTheThroatMergedModifier,
-  loudWhistleMergedModifier
-} from '#gw2/professions/ranger/core/traits/beastmastery.js';
+import { createPublicStateProjector } from '#gw2/platform/profession-definition/state.js';
 import { createRangerModuleData } from '#gw2/professions/ranger/data/module-data.js';
 import { soulbeastHooks } from '#gw2/professions/ranger/specializations/soulbeast/hooks.js';
 import { soulbeastModifiers } from '#gw2/professions/ranger/specializations/soulbeast/modifiers.js';
@@ -26,14 +21,7 @@ export const soulbeastModule = defineNativeModule({
     balanceProfiles: SOULBEAST_BALANCE_PROFILES
   }),
   state: { create: soulbeastState.create, project: createPublicStateProjector(SOULBEAST_PUBLIC_STATE_PROJECTION) },
-  // Core owns these traits; this module preserves their original merged-pet composition order.
-  modifiers: {
-    ...soulbeastModifiers,
-    modifierRules: [loudWhistleMergedModifier, goForTheThroatMergedModifier, ...soulbeastModifiers.modifierRules]
-  },
-  hooks: {
-    ...soulbeastHooks,
-    reactions: { 'control.resolved': bestialRageControl, ...soulbeastHooks.reactions }
-  },
+  modifiers: soulbeastModifiers,
+  hooks: soulbeastHooks,
   presentation: bindSoulbeastUi
 });

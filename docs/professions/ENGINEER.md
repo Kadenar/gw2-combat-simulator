@@ -40,9 +40,11 @@ Holosmith, Mechanist, or Amalgam. Each specialization owns its data, state, mech
 - `core/skills/` and each specialization's `skills/` — skill packets, cooldowns, and timings.
 - `core/mechanics/` and specialization `mechanics/` directories — resources, availability, state transitions, and event
   behavior.
-- `core/traits/` — five trait-line files own 36 definitions; `index.ts` preserves their registration order.
-  `dispatch.ts` preserves cross-line reactions through `behavior.ts`, `explosions.ts`, and `toolbelt.ts`;
-  `critical-procs.ts` retains player/mech critical dispatch. Mechanics retain kit/toolbelt state and cooldown execution.
+- `core/traits/` — five trait-line folders own 36 definitions in their `index.ts` files; the parent `index.ts` preserves
+  registration order. `dispatch.ts` preserves cross-line reactions. Supporting behavior lives in the owning line:
+  `alchemy/elixirs.ts`, `explosives/explosions.ts`, `firearms/condition-procs.ts`, `firearms/modifiers.ts`,
+  `firearms/critical-procs.ts`, `firearms/emissions.ts`, and `tools/toolbelt.ts`. Mechanics retain kit/toolbelt state
+  and cooldown execution.
 - `specializations/scrapper/traits/index.ts` — eight registered definitions own gyro triggers, Function Gyro ammo, combo
   rewards, build conversion, and the live Stability pulse. `traits/behavior.ts` includes Kinetic Accelerators combo
   rewards; Scrapper state retains the pending pulse timestamp.

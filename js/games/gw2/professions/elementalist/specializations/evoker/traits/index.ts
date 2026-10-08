@@ -12,7 +12,7 @@ import {
   commitRechargeDuration,
   SPECIALIZED_ELEMENTS_PROFILE_IDS,
   specializedElementsAvailability
-} from '#gw2/professions/elementalist/specializations/evoker/traits/attunements.js';
+} from '#gw2/professions/elementalist/specializations/evoker/traits/attunement-policy.js';
 import type { ElementalistModifierContext } from '#gw2/professions/elementalist/types.js';
 
 const boon = (name: string, boonName: string, stacks: number, duration: number): SkillEffect => ({

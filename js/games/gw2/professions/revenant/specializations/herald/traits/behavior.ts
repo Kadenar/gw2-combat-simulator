@@ -1,5 +1,5 @@
-import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
+import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
 import {
   balanceProfileNumber,
   effectNumber,
@@ -13,8 +13,10 @@ import {
   revenantRuntimeSpecializationState
 } from '#gw2/professions/revenant/core/state-queries.js';
 import { REVENANT_TRAIT_IDS as TRAIT } from '#gw2/professions/revenant/data/ids.js';
-import { heraldFacetPassiveActive } from '#gw2/professions/revenant/specializations/herald/mechanics/facet-passives.js';
-import { scheduleFacetPulse } from '#gw2/professions/revenant/specializations/herald/mechanics/facets.js';
+import {
+  heraldFacetPassiveActive,
+  scheduleFacetPulse
+} from '#gw2/professions/revenant/specializations/herald/mechanics/facets.js';
 import {
   HERALD_DRACONIC_ECHO_PROFILE_ID,
   HERALD_ELEVATED_COMPASSION_PROFILE_ID

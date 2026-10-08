@@ -10,13 +10,13 @@ import {
   modifyLingeringCurseAttributes,
   modifyNecromancerConditionBaseDuration,
   modifyTargetTheWeakAttributes
-} from '#gw2/professions/necromancer/core/traits/conditions.js';
-import { modifyDeadlyStrengthAttributes } from '#gw2/professions/necromancer/core/traits/carapace.js';
-import { modifyVitalPersistenceAttributes } from '#gw2/professions/necromancer/core/traits/shroud.js';
+} from '#gw2/professions/necromancer/core/traits/curses/modifiers.js';
+import { modifyDeadlyStrengthAttributes } from '#gw2/professions/necromancer/core/traits/death-magic/carapace.js';
+import { modifyVitalPersistenceAttributes } from '#gw2/professions/necromancer/core/traits/soul-reaping/modifiers.js';
 import {
   modifyAwakenThePainAttributes,
   modifySpitefulFortitudeAttributes
-} from '#gw2/professions/necromancer/core/traits/behavior.js';
+} from '#gw2/professions/necromancer/core/traits/spite/behavior.js';
 
 /** Applies Core Necromancer static conversions and runtime-dependent attribute bonuses. */
 export function modifyNecromancerCoreAttributes(context: Gw2ModifierContext, attributes: Gw2Stats): Gw2Stats {
@@ -27,20 +27,14 @@ export function modifyNecromancerCoreAttributes(context: Gw2ModifierContext, att
 
   const staticRulesApplied = professionStaticRulesApplied(context.config);
   modifySignetOfSpiteAttributes(context, result);
-
   modifyDeadlyStrengthAttributes(context, result);
-
   modifyAwakenThePainAttributes(context, result);
 
   if (!staticRulesApplied) {
     modifySpitefulFortitudeAttributes(context, result);
-
     modifyFuriousDemiseAttributes(context, result);
-
     modifyTargetTheWeakAttributes(context, result);
-
     modifyLingeringCurseAttributes(context, result);
-
     modifyVitalPersistenceAttributes(context, result);
   }
 

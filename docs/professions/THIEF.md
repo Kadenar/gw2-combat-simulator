@@ -12,8 +12,8 @@ initiative, stealth, weapons, and traits; each specialization owns a complete ve
 - Runtime simulation is network-free. Initiative, skill mechanics, modifiers, and other non-API behavior are checked
   into owner-local `skills/`, `traits/`, and `mechanics/` modules.
 
-Core defines traits in `traits/acrobatics.ts`, `critical-strikes.ts`, `deadly-arts.ts`, `shadow-arts.ts`, and
-`trickery.ts`; its index registers them in their original order. Each elite defines and registers its traits in
+Core defines traits in `traits/<line>/index.ts` for Acrobatics, Critical Strikes, Deadly Arts, Shadow Arts, and
+Trickery; its index registers them in their original order. Each elite defines and registers its traits in
 `traits/index.ts`. Each `defineTrait` owner holds its balance profiles, modifiers, triggers, recharge rules, and build
 contributions. Runtime callers import supporting behavior directly from `traits/` helpers. Profile lookups retain
 selected-patch tuning and effect-removal behavior; numeric trait IDs are used directly rather than repeated profile
@@ -29,8 +29,10 @@ Core steals notify trait owners before acquisition and initiative; dodge packets
 windows; mark resets, stolen-skill replacement, and malice rewards retain their existing order. Specter emits its
 barrier before Dark Sentry's task and resolves Amplified Siphoning before Improvisation. Antiquary preserves
 artifact-grant ordering, Sun Crystal before Mistburn, and applied charge/window lifetimes after selection changes. The
-runtime dispatcher is `core/traits/dispatch.ts`. Core steal, poison, critical-boon, and venom behavior remain cohesive
-helpers; Daredevil dodge transformations and Antiquary artifact transformations retain their own behavior files.
+trait-only dispatcher is `core/traits/dispatch.ts`; mixed strike reactions live in `core/mechanics/reactions.ts`. Core
+steal rewards, poison, critical boons, stealth, and venoms live inside their owning trait-line folders, while
+`core/traits/steal.ts` preserves cross-line steal ordering. Daredevil dodge transformations and Antiquary artifact
+transformations retain their own behavior files.
 
 ## Implemented systems
 

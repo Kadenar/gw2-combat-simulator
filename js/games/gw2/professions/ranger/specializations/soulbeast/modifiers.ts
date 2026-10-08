@@ -4,9 +4,16 @@ import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import type { Gw2NumericStatKey, Gw2ResolvedStats } from '#gw2/platform/combat/stats.js';
 import { readProfessionCoreState } from '#gw2/platform/profession-definition/state.js';
 import { rangerPetByName } from '#gw2/professions/ranger/core/state.js';
-import { applyPackAlphaMerged, applyPetsProwessMerged } from '#gw2/professions/ranger/core/traits/pet-behavior.js';
-import { soulbeastArchetypeAttributes } from '#gw2/professions/ranger/specializations/soulbeast/mechanics/archetype-attributes.js';
+import {
+  goForTheThroatMergedModifier,
+  loudWhistleMergedModifier
+} from '#gw2/professions/ranger/core/traits/beastmastery/index.js';
+import {
+  applyPackAlphaMerged,
+  applyPetsProwessMerged
+} from '#gw2/professions/ranger/core/traits/beastmastery/pet-attributes.js';
 import { activeBuff, beastmodeActive } from '#gw2/professions/ranger/core/traits/modifier-queries.js';
+import { soulbeastArchetypeAttributes } from '#gw2/professions/ranger/specializations/soulbeast/mechanics/archetype-attributes.js';
 import type { RangerModifierContext } from '#gw2/professions/ranger/types.js';
 
 // Resolve the merged pet archetype's live attribute contribution, including
@@ -77,5 +84,6 @@ const soulbeastModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
 
 export const soulbeastModifiers = Object.freeze({
   modifyAttributes: modifySoulbeastAttributes,
-  modifierRules: soulbeastModifierRules
+  // Preserve the Core merged-pet contributions before skill-owned rules.
+  modifierRules: [loudWhistleMergedModifier, goForTheThroatMergedModifier, ...soulbeastModifierRules]
 });

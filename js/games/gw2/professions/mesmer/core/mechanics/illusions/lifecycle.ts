@@ -1,24 +1,23 @@
-import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import { sideEffectAmount } from '#gw2/platform/effects/action-dispatch.js';
+import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import {
   commitMesmerShatter,
   scheduleMesmerPhantasmEffects,
   startMesmerCast
 } from '#gw2/professions/mesmer/core/execution/cast-lifecycle.js';
+import { buildMesmerPacket, mesmerPacketOwner } from '#gw2/professions/mesmer/core/mechanics/packets.js';
 import type { MesmerPendingResource } from '#gw2/professions/mesmer/core/mechanics/resource-types.js';
 import { MESMER_SKILL_IDS as ID } from '#gw2/professions/mesmer/data/ids.js';
 import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
+import { mesmerShatterDefinition } from '#gw2/professions/mesmer/family-mechanics.js';
+import {
+  createMesmerCloneScheduler,
+  createMesmerIllusionRewards,
+  mesmerActivePrimaryWeapon
+} from '#gw2/professions/mesmer/family-resources.js';
+import { mesmerResourceDefinition, mesmerResourceKind } from '#gw2/professions/mesmer/family-state.js';
 import type { MesmerRuntimeState } from '#gw2/professions/mesmer/types.js';
 import { boundedNumber } from '#kernel/core/numeric.js';
-
-import {
-  createMesmerIllusionRewards,
-  createMesmerCloneScheduler,
-  mesmerActivePrimaryWeapon,
-  mesmerShatterDefinition
-} from '#gw2/professions/mesmer/family-mechanics.js';
-import { buildMesmerPacket, mesmerPacketOwner } from '#gw2/professions/mesmer/core/mechanics/packets.js';
-import { mesmerResourceDefinition, mesmerResourceKind } from '#gw2/professions/mesmer/family-state.js';
 
 /** Illusions share one resource transaction owner; tasks and cast selection travel with that lifecycle. */
 export const mesmerIllusionHooks = {

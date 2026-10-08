@@ -1,15 +1,16 @@
 import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
 import type { Gw2MutableStats, Gw2Stats } from '#gw2/platform/combat/stats.js';
 import { flameJetModifier } from '#gw2/professions/engineer/core/skills/kits/flamethrower.js';
-import { applyExplosiveTemperAttributes } from '#gw2/professions/engineer/core/traits/explosions.js';
+import { applyExplosiveTemperAttributes } from '#gw2/professions/engineer/core/traits/explosives/explosions.js';
 import {
   applyChemicalRoundsAttributes,
   applyChemicalRoundsConditionDuration,
   applyNoScopeAttributes,
   applySharpshooterConditionAttributes,
   applyThermalVisionAttributes
-} from '#gw2/professions/engineer/core/traits/behavior.js';
-import { applyEnergyAmplifierAttributes } from '#gw2/professions/engineer/core/traits/behavior.js';
+} from '#gw2/professions/engineer/core/traits/firearms/modifiers.js';
+import { applyEnergyAmplifierAttributes } from '#gw2/professions/engineer/core/traits/inventions/index.js';
+
 /** Trait attribute owners retain their original order before final damage calculations. */
 function modifyEngineerCoreAttributes(context: Gw2ModifierContext, attributes: Gw2Stats): Gw2Stats {
   const modified: Gw2MutableStats = { ...attributes };

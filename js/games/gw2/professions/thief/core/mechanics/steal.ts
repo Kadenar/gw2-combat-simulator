@@ -1,11 +1,10 @@
 import type { ReadonlyMechanicState } from '#gw2/platform/profession-definition/runtime-context.js';
-import { applyKleptomaniac, improvisationStolenUses } from '#gw2/professions/thief/core/traits/steal.js';
-
-import { THIEF_SKILL_IDS as ID } from '#gw2/professions/thief/data/ids.js';
-
 import type { SkillId } from '#gw2/platform/skills/types.js';
 import type { ThiefRuntime } from '#gw2/professions/thief/core/events.js';
 import type { ThiefCoreState } from '#gw2/professions/thief/core/state.js';
+import { improvisationStolenUses } from '#gw2/professions/thief/core/traits/deadly-arts/steal.js';
+import { applyKleptomaniac } from '#gw2/professions/thief/core/traits/trickery/steal.js';
+import { THIEF_SKILL_IDS as ID } from '#gw2/professions/thief/data/ids.js';
 import type { ThiefSkill } from '#gw2/professions/thief/types.js';
 
 // Each base Steal offers the same three supported stolen skills for the user to choose from.

@@ -1,14 +1,14 @@
 import { applyBalanceProfilePatch } from '#gw2/integrations/patches/authoring/patches.js';
+import { rangerCatalog } from '#gw2/professions/ranger/catalog.js';
+import { rangerPetCombatMetadata } from '#gw2/professions/ranger/core/mechanics/pet-attributes.js';
+import { RANGER_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/ranger/core/profile-ids.js';
+import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
+import { rangerProfession } from '#gw2/professions/ranger/profession.js';
+import { withSkill } from '#tests/helpers/catalog-overrides.js';
+import { observedRuntime } from '#tests/helpers/observed-runtime.js';
+import { runRanger } from '#tests/helpers/ranger-simulation.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { runRanger } from '#tests/helpers/ranger-simulation.js';
-import { observedRuntime } from '#tests/helpers/observed-runtime.js';
-import { withSkill } from '#tests/helpers/catalog-overrides.js';
-import { rangerCatalog } from '#gw2/professions/ranger/catalog.js';
-import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
-import { RANGER_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/ranger/core/profile-ids.js';
-import { rangerProfession } from '#gw2/professions/ranger/profession.js';
-import { rangerPetCombatMetadata } from '#gw2/professions/ranger/core/mechanics/pets.js';
 
 const wait = (durationMs) => ({ type: 'wait', durationMs });
 

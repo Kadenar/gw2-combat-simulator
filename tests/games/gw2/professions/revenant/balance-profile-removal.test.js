@@ -1,11 +1,14 @@
 import { applyBalanceProfilePatch } from '#gw2/integrations/patches/authoring/patches.js';
 import { REVENANT_CORE_BALANCE_PROFILE_IDS as CORE } from '#gw2/professions/revenant/core/profiles.js';
+import { revenantLifeSiphonBonus } from '#gw2/professions/revenant/core/traits/invocation/queries.js';
 import {
   REVENANT_SKILL_IDS as ID,
   REVENANT_LEGEND_IDS as LEGEND,
   REVENANT_TRAIT_IDS as TRAIT
 } from '#gw2/professions/revenant/data/ids.js';
+import { revenantCatalog, revenantProfession } from '#gw2/professions/revenant/profession.js';
 import { CONDUIT_BALANCE_PROFILE_IDS as CONDUIT } from '#gw2/professions/revenant/specializations/conduit/profiles.js';
+import { effectiveConduitAffinity } from '#gw2/professions/revenant/specializations/conduit/traits/behavior.js';
 import { HERALD_SHARED_EMPOWERMENT_PROFILE_ID } from '#gw2/professions/revenant/specializations/herald/profiles.js';
 import { RENEGADE_PROFILE_IDS as RENEGADE } from '#gw2/professions/revenant/specializations/renegade/profiles.js';
 import { withSkill } from '#tests/helpers/catalog-overrides.js';
@@ -13,10 +16,6 @@ import { observedRuntime } from '#tests/helpers/observed-runtime.js';
 import { revenantHit, runRevenant } from '#tests/helpers/revenant-simulation.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
-
-import { revenantLifeSiphonBonus } from '#gw2/professions/revenant/core/traits/behavior.js';
-import { revenantCatalog, revenantProfession } from '#gw2/professions/revenant/profession.js';
-import { effectiveConduitAffinity } from '#gw2/professions/revenant/specializations/conduit/traits/behavior.js';
 
 const remove = (type, name) => ({ removeEffects: [{ type, name }] });
 const patched = (balanceProfiles) => (catalog) => applyBalanceProfilePatch(catalog, { balanceProfiles });

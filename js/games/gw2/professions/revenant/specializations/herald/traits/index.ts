@@ -1,14 +1,15 @@
-import { countActiveBoons } from '#gw2/platform/combat/query/runtime-query.js';
+import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import { isStandardBoon } from '#gw2/platform/combat/boons.js';
+import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
+import { countActiveBoons } from '#gw2/platform/combat/query/runtime-query.js';
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
+import { defineTrait, traitAttributeEffects } from '#gw2/platform/profession-definition/traits.js';
 import {
   balanceProfileNumber,
   requireBalanceProfileFromContext,
   requireEffect
 } from '#gw2/platform/skills/balance-profiles.js';
-import { defineTrait, traitAttributeEffects } from '#gw2/platform/profession-definition/traits.js';
-
 import { revenantRuntimeCoreState } from '#gw2/professions/revenant/core/state-queries.js';
 import { REVENANT_SKILL_IDS as ID, REVENANT_TRAIT_IDS as TRAIT } from '#gw2/professions/revenant/data/ids.js';
 import {
@@ -205,3 +206,13 @@ export const traitDefinitions = [
   reinforcedPotency,
   forcefulPersistence
 ];
+
+/** Supplies the capped Echo boon-duration contribution for active Nature. */
+export function draconicEchoBoonDuration(context: Gw2ModifierContext): number {
+  return hasTrait(context, TRAIT.DRACONIC_ECHO)
+    ? balanceProfileNumber(
+        requireBalanceProfileFromContext(context, HERALD_DRACONIC_ECHO_PROFILE_ID),
+        'boonDurationBonus'
+      )
+    : 0;
+}

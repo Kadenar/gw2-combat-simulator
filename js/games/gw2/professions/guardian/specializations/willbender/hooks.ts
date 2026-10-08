@@ -1,33 +1,32 @@
-import {
-  willbenderBuffPolicies,
-  willbenderEffectStates
-} from '#gw2/professions/guardian/specializations/willbender/effect-state.js';
-import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
-import type { MechanicContext } from '#gw2/platform/profession-definition/mechanic-context.js';
-import { denySkillCast } from '#gw2/platform/execution/availability.js';
 import { advanceCounter } from '#gw2/platform/combat/resources/counters.js';
+import { buildResolverCondition, buildResolverStrike } from '#gw2/platform/effects/packet-builders.js';
+import { gw2EffectExpiresAt } from '#gw2/platform/effects/timing.js';
+import { SIGIL_IDS } from '#gw2/platform/equipment/sigils/data.js';
+import { denySkillCast } from '#gw2/platform/execution/availability.js';
+import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
+import { skillFlipReady } from '#gw2/platform/execution/skill-flips.js';
+import type { MechanicContext } from '#gw2/platform/profession-definition/mechanic-context.js';
+import type { NativeResolvedDamageDetails } from '#gw2/platform/profession-definition/module-types.js';
+import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
+import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import {
   effectNumber,
   requireBalanceProfileFromContext,
   requireEffect
 } from '#gw2/platform/skills/balance-profiles.js';
-import { skillFlipReady } from '#gw2/platform/execution/skill-flips.js';
-import { SIGIL_IDS } from '#gw2/platform/equipment/sigils/data.js';
-import type { NativeResolvedDamageDetails } from '#gw2/platform/profession-definition/module-types.js';
-import { buildResolverCondition, buildResolverStrike } from '#gw2/platform/effects/packet-builders.js';
-import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
-import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
-import { gw2EffectExpiresAt } from '#gw2/platform/effects/timing.js';
 import { guardianCastCause } from '#gw2/professions/guardian/core/mechanics/event-handlers.js';
 import { refreshGuardianVirtues } from '#gw2/professions/guardian/core/mechanics/virtues.js';
 import { GUARDIAN_CORE_BALANCE_PROFILE_IDS as CORE_PROFILE } from '#gw2/professions/guardian/core/profiles.js';
 import {
   applyGuardianVirtueActivationTraits,
-  permeatingWrathThreshold,
-  triggerGuardianFuriousFocus
-} from '#gw2/professions/guardian/core/traits/behavior.js';
+  permeatingWrathThreshold
+} from '#gw2/professions/guardian/core/traits/virtues/behavior.js';
+import { triggerGuardianFuriousFocus } from '#gw2/professions/guardian/core/traits/zeal/behavior.js';
 import { GUARDIAN_SKILL_IDS as ID } from '#gw2/professions/guardian/data/ids.js';
-
+import {
+  willbenderBuffPolicies,
+  willbenderEffectStates
+} from '#gw2/professions/guardian/specializations/willbender/effect-state.js';
 import { WILLBENDER_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/guardian/specializations/willbender/profiles.js';
 import {
   ACTIVATE,
@@ -37,9 +36,9 @@ import {
 import { willbenderState } from '#gw2/professions/guardian/specializations/willbender/state.js';
 import {
   applyWillbenderActivationTraits,
+  applyWillbenderTriggerTraits,
   gainLethalTempo,
   lethalTempoParameters,
-  applyWillbenderTriggerTraits,
   triggerPhoenixProtocol,
   willbenderVirtueWindowProfile
 } from '#gw2/professions/guardian/specializations/willbender/traits/behavior.js';

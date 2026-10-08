@@ -1,10 +1,10 @@
-import { coreAdrenalinePolicy } from '#gw2/professions/warrior/core/mechanics/adrenaline.js';
 import { resetAutoattackChains } from '#gw2/platform/execution/autoattack-chains.js';
 import type { MechanicContext } from '#gw2/platform/profession-definition/mechanic-context.js';
 import { composeRuntimeHooks, type RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
+import { coreAdrenalinePolicy } from '#gw2/professions/warrior/core/mechanics/adrenaline.js';
 import { warriorAmmunition } from '#gw2/professions/warrior/core/mechanics/ammunition.js';
-import { berserkersPowerDragonSlash } from '#gw2/professions/warrior/core/traits/strength.js';
+import { berserkersPowerDragonSlash } from '#gw2/professions/warrior/core/traits/strength/index.js';
 import { WARRIOR_SKILL_IDS as ID } from '#gw2/professions/warrior/data/ids.js';
 import {
   bladeswornBuffPolicies,

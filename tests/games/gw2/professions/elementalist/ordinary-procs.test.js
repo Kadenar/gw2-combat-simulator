@@ -1,18 +1,18 @@
-import { captureEffectEmissions } from '#tests/helpers/effect-emission.js';
 import { applyElementalistResolvedCondition } from '#gw2/professions/elementalist/core/mechanics/reactions.js';
+import { createElementalistCoreState } from '#gw2/professions/elementalist/core/state.js';
+import { triggerEvasiveArcana } from '#gw2/professions/elementalist/core/traits/arcane/index.js';
 import {
   applyGenericPostCast,
   observeElementalistTraitEvent
 } from '#gw2/professions/elementalist/core/traits/dispatch.js';
-import { createElementalistCoreState } from '#gw2/professions/elementalist/core/state.js';
-import { triggerEvasiveArcana } from '#gw2/professions/elementalist/core/traits/arcane.js';
 import { ELEMENTALIST_TRAIT_IDS as TRAIT } from '#gw2/professions/elementalist/data/ids.js';
 import { elementalistCatalog } from '#gw2/professions/elementalist/profession.js';
 import { catalystModule } from '#gw2/professions/elementalist/specializations/catalyst/module.js';
 import { catalystState } from '#gw2/professions/elementalist/specializations/catalyst/state.js';
 import { completeEvokerAttunement } from '#gw2/professions/elementalist/specializations/evoker/mechanics/attunements.js';
 import { evokerState } from '#gw2/professions/elementalist/specializations/evoker/state.js';
-import { triggerSpecializedElementEntry } from '#gw2/professions/elementalist/specializations/evoker/traits/attunements.js';
+import { triggerSpecializedElementEntry } from '#gw2/professions/elementalist/specializations/evoker/traits/attunement-policy.js';
+import { captureEffectEmissions } from '#tests/helpers/effect-emission.js';
 import { runElementalist } from '#tests/helpers/elementalist-simulation.js';
 import { observedRuntime } from '#tests/helpers/observed-runtime.js';
 import assert from 'node:assert/strict';

@@ -3,19 +3,19 @@ import {
   armPlagueSending,
   enterFuriousDemise,
   enterWeakeningShroud
-} from '#gw2/professions/necromancer/core/traits/conditions.js';
+} from '#gw2/professions/necromancer/core/traits/curses/procs.js';
 import {
   prepareArmoredShroud,
   prepareShroudedRemoval,
   prepareSoulComprehension
-} from '#gw2/professions/necromancer/core/traits/carapace.js';
+} from '#gw2/professions/necromancer/core/traits/death-magic/carapace.js';
 import {
   applySoulBarbs,
   enterEternalLife,
   enterSpeedOfShadows
-} from '#gw2/professions/necromancer/core/traits/shroud.js';
-import { enterAwakenThePain, enterSpitefulSpirit } from '#gw2/professions/necromancer/core/traits/behavior.js';
-import type { NecromancerSkill, NecromancerRuntime } from '#gw2/professions/necromancer/types.js';
+} from '#gw2/professions/necromancer/core/traits/soul-reaping/shroud.js';
+import { enterAwakenThePain, enterSpitefulSpirit } from '#gw2/professions/necromancer/core/traits/spite/behavior.js';
+import type { NecromancerRuntime, NecromancerSkill } from '#gw2/professions/necromancer/types.js';
 import { isTimeInWindow } from '#kernel/core/clock.js';
 
 /** Pre-entry grants observe the old Carapace before removals and the form transition. */

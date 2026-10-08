@@ -1,18 +1,17 @@
+import { buildResolverBuff, buildResolverCondition } from '#gw2/platform/effects/packet-builders.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
-import { buildResolverCondition, buildResolverBuff } from '#gw2/platform/effects/packet-builders.js';
+import {
+  effectNumber,
+  requireBalanceProfileFromContext,
+  requireEffect
+} from '#gw2/platform/skills/balance-profiles.js';
+import { rangerPetCompanionId } from '#gw2/professions/ranger/core/mechanics/pet-attributes.js';
+import { isPlayerStrike } from '#gw2/professions/ranger/core/mechanics/resolution-helpers.js';
+import { RANGER_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/ranger/core/profile-ids.js';
+import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
+import type { RangerResolverContext } from '#gw2/professions/ranger/types.js';
 
 /** Owns Core Ranger skill-armed hit reactions that are not trait-line definitions. */
-
-import {
-  requireBalanceProfileFromContext,
-  requireEffect,
-  effectNumber
-} from '#gw2/platform/skills/balance-profiles.js';
-import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
-import { rangerPetCompanionId } from '#gw2/professions/ranger/core/mechanics/pets.js';
-import { isPlayerStrike } from '#gw2/professions/ranger/core/mechanics/resolution-helpers.js';
-import type { RangerResolverContext } from '#gw2/professions/ranger/types.js';
-import { RANGER_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/ranger/core/profile-ids.js';
 
 // Mirror the active Strength of the Pack proc between Ranger and companion hits
 // while enforcing its event and cooldown guards.

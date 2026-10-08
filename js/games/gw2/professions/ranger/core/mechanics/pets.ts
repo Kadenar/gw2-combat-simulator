@@ -1,48 +1,40 @@
-import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
-import { selectedSkillIdSet } from '#gw2/platform/builds/selected-skills.js';
+import { gw2CooldownReadyAt, quantizeGw2ActionDurationUp } from '#gw2/platform/combat/action-tick.js';
 import { gw2BoonDurationMultiplier } from '#gw2/platform/combat/boons.js';
-import { STANDARD_TARGET_ARMOR } from '#gw2/platform/combat/formulas.js';
 import type { SimulationEventBase } from '#gw2/platform/events/events.js';
-import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
-import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
-import { cancelledBeforeEffectCommit } from '#gw2/platform/execution/cast-effects.js';
-import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
+import { cancelledBeforeEffectCommit } from '#gw2/platform/execution/cast-effects.js';
 import {
   castWasInterrupted,
   GW2_QUICKNESS_ACTION_RATE,
   scaleCastBoundTiming,
   summonQuicknessCastTimeMs
 } from '#gw2/platform/execution/cast-timing.js';
-import { gw2CooldownReadyAt, quantizeGw2ActionDurationUp } from '#gw2/platform/combat/action-tick.js';
+import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
+import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
+import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
 import {
-  rangerPetAutoProfile,
-  rangerPetBaseAttributes,
+  rangerPetCombatMetadata,
+  rangerPetCompanionId
+} from '#gw2/professions/ranger/core/mechanics/pet-attributes.js';
+import {
   RANGER_PET_SKILL_TIMINGS,
+  rangerPetAutoProfile,
   type PetAutoProfile,
   type PetAutoSkill
 } from '#gw2/professions/ranger/core/mechanics/pet-profiles.js';
 import { RANGER_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/ranger/core/profile-ids.js';
-import { signetOfTheWildBonus } from '#gw2/professions/ranger/core/skills/slot-skills.js';
 import {
-  applyArachnophobiaPet,
-  applyFangAndClawPet,
-  applyStridersStrengthPet
-} from '#gw2/professions/ranger/core/traits/behavior.js';
-import {
-  applyHonedAxesPet,
-  applyPackAlphaPet,
-  applyPetsProwessPet,
   beastlyWardenPetDamageMultiplier,
   packAlphaPetRecharge
-} from '#gw2/professions/ranger/core/traits/pet-behavior.js';
-import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
+} from '#gw2/professions/ranger/core/traits/beastmastery/pet-attributes.js';
+import { lingeringMagicConcentration } from '#gw2/professions/ranger/core/traits/nature-magic/index.js';
+import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
 import {
   rangerPetSkillCommandable,
   rangerPetSkillsRequireCommands
 } from '#gw2/professions/ranger/data/pet-commands.js';
-import type { RangerResolverContext, RangerRuntime, RangerSkill } from '#gw2/professions/ranger/types.js';
+import type { RangerRuntime, RangerSkill } from '#gw2/professions/ranger/types.js';
 import { EPSILON } from '#kernel/core/clock.js';
 
 export { RANGER_PET_STRIKE_SCALING } from '#gw2/professions/ranger/core/mechanics/pet-profiles.js';
@@ -51,60 +43,6 @@ const PET_AUTO_TASK = 'ranger.pet-autonomous-skill';
 const PET_COMMAND_START_TASK = 'ranger.pet-command-start';
 const PET_AUTO_OWNER = 'ranger.active-pet';
 const PET_AI_ATTACK_OWNER = 'ranger.pet-ai-attack';
-
-export function rangerPetCompanionId(context: Pick<MechanicQueriesOf<RangerRuntime>, 'profession'>): string {
-  const state = professionCoreState(context);
-  return `ranger-pet:${state.activePetSlot}:${state.petAutoGeneration}`;
-}
-
-function petHasSelectedSkill(context: RangerRuntime, skillId: number): boolean {
-  return selectedSkillIdSet(context.config.selectedSkillIds).has(skillId);
-}
-
-/** Snapshot independent-pet attributes after trait inheritance and the live signet passive. */
-function rangerPetAttributes(context: RangerRuntime | RangerResolverContext) {
-  const petName = professionCoreState(context).activePet;
-  const attributes = { ...rangerPetBaseAttributes(petName) };
-  applyPackAlphaPet(context, attributes);
-  applyStridersStrengthPet(context, attributes);
-  applyHonedAxesPet(context, attributes);
-  applyPetsProwessPet(context, attributes);
-  applyFangAndClawPet(context, attributes, petName);
-  applyArachnophobiaPet(context, attributes, petName);
-  const runtime = 'cooldownController' in context ? context : null;
-  if (runtime)
-    attributes.ferocity += signetOfTheWildBonus(
-      context,
-      petHasSelectedSkill(runtime, ID.SIGNET_OF_THE_WILD),
-      (runtime.cooldownController.readyAt(ID.SIGNET_OF_THE_WILD) || 0) <= runtime.time
-    );
-  return attributes;
-}
-
-/** Pet combat packets always retain the active companion's identity and trait-derived attributes. */
-export function rangerPetCombatMetadata(context: RangerRuntime | RangerResolverContext) {
-  const attributes = rangerPetAttributes(context);
-  return {
-    weaponStrength: undefined,
-    weaponStrengthProfileId: undefined,
-    independentSummonStrike: true,
-    independentConditionOwner: true,
-    summonUsesProfessionModifiers: true,
-    summonBasePower: attributes.power,
-    summonBasePrecision: attributes.precision,
-    summonBaseToughness: attributes.toughness,
-    summonBaseVitality: attributes.vitality,
-    summonBaseFerocity: attributes.ferocity,
-    summonBaseConditionDamage: attributes.conditionDamage,
-    summonBaseExpertise: attributes.expertise,
-    summonBaseHealingPower: attributes.healingPower,
-    summonOwner: rangerPetCompanionId(context),
-    summonCriticalChance: (attributes.precision - 1000) / 2100,
-    summonCriticalDamage: 1.5 + attributes.ferocity / 1500,
-    summonDamagePerCoefficient:
-      ((2880 * attributes.power) / STANDARD_TARGET_ARMOR) * beastlyWardenPetDamageMultiplier(context)
-  };
-}
 
 /** Stamps pet-owned packets before shared consumers such as combo finishers derive child events. */
 export function prepareRangerPetEvent(context: RangerRuntime, event: SimulationEventBase): SimulationEventBase {
@@ -574,8 +512,6 @@ export function rangerBoonDuration(
   scaledDuration: number
 ): number {
   if (event.source !== 'ranger-pet' || event.actorType !== 'summon') return scaledDuration;
-  const concentration = context.hasTrait(TRAIT.LINGERING_MAGIC)
-    ? balanceProfileNumber(context.requireBalanceProfile(TRAIT.LINGERING_MAGIC), 'attributeBonus')
-    : 0;
+  const concentration = lingeringMagicConcentration(context);
   return baseDuration * gw2BoonDurationMultiplier(String(event.kind), { concentration });
 }

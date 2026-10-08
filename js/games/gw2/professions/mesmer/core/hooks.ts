@@ -1,10 +1,10 @@
-import { createCriticalTraitDispatcher } from '#gw2/professions/mesmer/core/mechanics/illusions/critical-traits.js';
 import { prepareGw2BuffCompanionCandidates } from '#gw2/platform/combat/state/allied-players.js';
+import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import { armSkillFlip } from '#gw2/platform/execution/skill-flips.js';
 import type { NativeResolvedDamageDetails } from '#gw2/platform/profession-definition/module-types.js';
 import { composeRuntimeHooks, type RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import { OBSERVABLE_EVENT_HANDLER } from '#gw2/platform/resolver/handler-registry.js';
-import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
+import { mesmerBuffPolicies, mesmerEffectStates } from '#gw2/professions/mesmer/core/effect-state.js';
 import { completeMesmerCast, mesmerCastDelivery } from '#gw2/professions/mesmer/core/execution/cast-lifecycle.js';
 import { mesmerAvailability } from '#gw2/professions/mesmer/core/mechanics/availability.js';
 import { scheduleChaosStormPoison } from '#gw2/professions/mesmer/core/mechanics/chaos-storm.js';
@@ -15,6 +15,7 @@ import {
   extendMesmerParentRecharge,
   prepareMesmerMantra
 } from '#gw2/professions/mesmer/core/mechanics/flips.js';
+import { createCriticalTraitDispatcher } from '#gw2/professions/mesmer/core/mechanics/illusions/critical-traits.js';
 import { mesmerIllusionHooks } from '#gw2/professions/mesmer/core/mechanics/illusions/lifecycle.js';
 import { armMimic, completeMimicCast } from '#gw2/professions/mesmer/core/mechanics/mimic.js';
 import { mesmerMaximumAmmo, mesmerRechargeWork } from '#gw2/professions/mesmer/core/mechanics/recharge.js';
@@ -26,10 +27,10 @@ import {
 } from '#gw2/professions/mesmer/core/mechanics/signets.js';
 import { scheduleMesmerTrackedHits } from '#gw2/professions/mesmer/core/mechanics/tracked-hits.js';
 import { completeAxesConfusion, scheduleAxesClones } from '#gw2/professions/mesmer/core/skills/weapons/axe.js';
-import { applyFencersFinesse, triggerIneptitudeFromBlind } from '#gw2/professions/mesmer/core/traits/dueling.js';
-import { triggerThePledge } from '#gw2/professions/mesmer/core/traits/illusions.js';
-import { MESMER_SKILL_IDS as ID } from '#gw2/professions/mesmer/data/ids.js';
 import { triggerMesmerControlTraits } from '#gw2/professions/mesmer/core/traits/dispatch.js';
+import { applyFencersFinesse, triggerIneptitudeFromBlind } from '#gw2/professions/mesmer/core/traits/dueling/index.js';
+import { triggerThePledge } from '#gw2/professions/mesmer/core/traits/illusions/index.js';
+import { MESMER_SKILL_IDS as ID } from '#gw2/professions/mesmer/data/ids.js';
 import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
 import type { MesmerRuntime, MesmerRuntimeState } from '#gw2/professions/mesmer/types.js';
 
@@ -38,9 +39,6 @@ function complete(runtime: MesmerRuntime, cast: RuntimeCast<MesmerSkill>): void 
   completeMesmerCast(runtime, cast, cast.skill);
   completeMimicCast(runtime, cast);
 }
-
-/** Core owns casts, clones, and accepted impact reactions on the shared clock. */
-import { mesmerBuffPolicies, mesmerEffectStates } from '#gw2/professions/mesmer/core/effect-state.js';
 
 export const mesmerCoreHooks: RuntimeHooks<MesmerRuntimeState, MesmerSkill> = composeRuntimeHooks<
   MesmerRuntimeState,

@@ -1,22 +1,21 @@
 import type { EffectDelivery } from '#gw2/platform/effects/emission.js';
-import type { SimulationEventBase } from '#gw2/platform/events/events.js';
-import {
-  buildMesmerStrikes,
-  mesmerPacketOwner,
-  buildMesmerPacket,
-  buildMesmerConditions
-} from '#gw2/professions/mesmer/core/mechanics/packets.js';
 import { materializeSkillEffectApplications } from '#gw2/platform/effects/materializer.js';
-import { phantasmalHasteSpeed, triggerCompoundingPower } from '#gw2/professions/mesmer/core/traits/illusions.js';
-import type { MesmerRuntime } from '#gw2/professions/mesmer/types.js';
-import { canonicalTime } from '#kernel/core/clock.js';
-
+import type { SimulationEventBase } from '#gw2/platform/events/events.js';
 import type {
   MesmerPhantasmAttackTiming,
   MesmerPhantasmPolicy,
   MesmerQueueResources
 } from '#gw2/professions/mesmer/core/mechanics/illusions/types.js';
+import {
+  buildMesmerConditions,
+  buildMesmerPacket,
+  buildMesmerStrikes,
+  mesmerPacketOwner
+} from '#gw2/professions/mesmer/core/mechanics/packets.js';
+import { phantasmalHasteSpeed, triggerCompoundingPower } from '#gw2/professions/mesmer/core/traits/illusions/index.js';
 import type { MesmerConditionEffect, MesmerSkill, MesmerStrikeEffect } from '#gw2/professions/mesmer/data/types.js';
+import type { MesmerRuntime } from '#gw2/professions/mesmer/types.js';
+import { canonicalTime } from '#kernel/core/clock.js';
 
 export interface MesmerPhantasmExecution {
   readonly delivery: EffectDelivery;

@@ -1,39 +1,40 @@
+import { sideEffectAmount } from '#gw2/platform/effects/action-dispatch.js';
+import { criticalProcHandler } from '#gw2/platform/profession-definition/critical-proc-handler.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import { damageInputEvent } from '#gw2/platform/skill-damage/occurrence-driver.js';
-import { ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
-import {
-  emitGrenadier,
-  emitExplosiveEntrance,
-  emitAimAssistedRocket
-} from '#gw2/professions/engineer/core/traits/explosions.js';
-import { criticalProcHandler } from '#gw2/platform/profession-definition/critical-proc-handler.js';
-import { sideEffectAmount } from '#gw2/platform/effects/action-dispatch.js';
 import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
-import { reduceEngineerRecharge } from '#gw2/professions/engineer/core/mechanics/recharge.js';
-import { handleAirBlast } from '#gw2/professions/engineer/core/skills/kits/flamethrower.js';
-import { applyEngineerDodgeTraits } from '#gw2/professions/engineer/core/traits/toolbelt.js';
-
+import { engineerBuffPolicies } from '#gw2/professions/engineer/core/effect-state.js';
 import { buildEngineerPackets } from '#gw2/professions/engineer/core/events.js';
 import { engineerCoreCastAvailability } from '#gw2/professions/engineer/core/mechanics/availability.js';
+import { reduceEngineerRecharge } from '#gw2/professions/engineer/core/mechanics/recharge.js';
 import { engineerEndurance } from '#gw2/professions/engineer/core/mechanics/resources.js';
 import {
-  engineerSpearSideEffectHandlers,
-  engineerSpearTasks,
   engineerSpearEffects,
-  engineerSpearEventHandlers
+  engineerSpearEventHandlers,
+  engineerSpearSideEffectHandlers,
+  engineerSpearTasks
 } from '#gw2/professions/engineer/core/mechanics/spear.js';
 import {
   engineerTurretSideEffectHandlers,
   engineerTurretTasks
 } from '#gw2/professions/engineer/core/mechanics/turrets.js';
-import { engineerCoreCriticalHitDefinitions } from '#gw2/professions/engineer/core/traits/critical-procs.js';
+import { handleAirBlast } from '#gw2/professions/engineer/core/skills/kits/flamethrower.js';
 import {
   applyEngineerCastTraits,
   reactToEngineerCondition,
   reactToEngineerDamage
 } from '#gw2/professions/engineer/core/traits/dispatch.js';
-import { applyEngineerToolbeltTraits } from '#gw2/professions/engineer/core/traits/toolbelt.js';
-import { ENGINEER_SKILL_IDS as ID } from '#gw2/professions/engineer/data/ids.js';
+import {
+  emitAimAssistedRocket,
+  emitExplosiveEntrance,
+  emitGrenadier
+} from '#gw2/professions/engineer/core/traits/explosives/explosions.js';
+import { engineerCoreCriticalHitDefinitions } from '#gw2/professions/engineer/core/traits/firearms/critical-procs.js';
+import {
+  applyEngineerDodgeTraits,
+  applyEngineerToolbeltTraits
+} from '#gw2/professions/engineer/core/traits/tools/toolbelt.js';
+import { ENGINEER_SKILL_IDS as ID, ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
 import type { EngineerRuntime, EngineerRuntimeState, EngineerSkill } from '#gw2/professions/engineer/types.js';
 
 const critical = engineerCoreCriticalHitDefinitions.map(criticalProcHandler);
@@ -58,8 +59,6 @@ function detonatePrecastMines(runtime: EngineerRuntime): void {
     applyEngineerToolbeltTraits(runtime, detonation, runtime.time);
   }
 }
-
-import { engineerBuffPolicies } from '#gw2/professions/engineer/core/effect-state.js';
 
 export const engineerCoreHooks: RuntimeHooks<EngineerRuntimeState, EngineerSkill> = {
   damageEffects: [

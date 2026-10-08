@@ -1,11 +1,37 @@
-import { tempestBuffPolicies } from '#gw2/professions/elementalist/specializations/tempest/effect-state.js';
-import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
-import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
 import type { EffectDelivery } from '#gw2/platform/effects/emission.js';
+import type { SimulationEvent, SimulationEventBase } from '#gw2/platform/events/events.js';
+import type { AvailabilityResult } from '#gw2/platform/execution/availability.js';
+import { denySkillCast, retryCast } from '#gw2/platform/execution/availability.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
+import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
+import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
+import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
+import {
+  effectNumber,
+  requireBalanceProfileFromContext,
+  requireEffect
+} from '#gw2/platform/skills/balance-profiles.js';
+import type { Skill } from '#gw2/platform/skills/types.js';
+import { elementalistStrikeRequest } from '#gw2/professions/elementalist/core/events.js';
+import { elementalistAnnouncement } from '#gw2/professions/elementalist/core/mechanics/effects.js';
 import { registerElementalistEliteEvents } from '#gw2/professions/elementalist/core/mechanics/elite-events.js';
 import { isElementalistAttunement } from '#gw2/professions/elementalist/core/state.js';
+import { triggerElectricDischarge } from '#gw2/professions/elementalist/core/traits/air/attunement-entry.js';
+import { triggerSunspot } from '#gw2/professions/elementalist/core/traits/dispatch.js';
+import { triggerEarthenBlast } from '#gw2/professions/elementalist/core/traits/earth/attunement-entry.js';
+import { triggerFlameExpulsion } from '#gw2/professions/elementalist/core/traits/fire/attunement-transition.js';
+import {
+  ELEMENTALIST_ATTUNEMENT_SKILL_IDS,
+  ELEMENTALIST_OVERLOAD_SKILL_IDS,
+  ELEMENTALIST_SKILL_IDS as ID
+} from '#gw2/professions/elementalist/data/ids.js';
+import { tempestBuffPolicies } from '#gw2/professions/elementalist/specializations/tempest/effect-state.js';
+import {
+  armElementalLightningJolt,
+  registerTempestLightningJolt
+} from '#gw2/professions/elementalist/specializations/tempest/mechanics/lightning-jolt.js';
 import { tempestOverloadDwell } from '#gw2/professions/elementalist/specializations/tempest/mechanics/overload-dwell.js';
+import { TEMPEST_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/elementalist/specializations/tempest/profiles.js';
 import {
   applyGaleSong,
   applyLatentStamina,
@@ -16,45 +42,13 @@ import {
   applyLucidSingularity,
   applyUnstableConduit
 } from '#gw2/professions/elementalist/specializations/tempest/traits/conduits.js';
-import type { ElementalistRuntimeState, ElementalistSkill } from '#gw2/professions/elementalist/types.js';
-/**
- * Tempest hooks: the overload mechanic and its scheduler-phase traits.
- *
- * Owns the overload gate (the channeled element must be the current attunement and must have been
- * held long enough), the overload recharge adjustment, the conduit/singularity trait payloads fired
- * around a channel, the attunement lockout an overload leaves behind, and the aura/attunement event
- * reactions the specialization's remaining traits need.
- */
-import type { SimulationEvent, SimulationEventBase } from '#gw2/platform/events/events.js';
-import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
-import { denySkillCast, retryCast } from '#gw2/platform/execution/availability.js';
-import {
-  effectNumber,
-  requireBalanceProfileFromContext,
-  requireEffect
-} from '#gw2/platform/skills/balance-profiles.js';
-import type { Skill } from '#gw2/platform/skills/types.js';
-import type { AvailabilityResult } from '#gw2/platform/execution/availability.js';
-import { elementalistStrikeRequest } from '#gw2/professions/elementalist/core/events.js';
-import { elementalistAnnouncement } from '#gw2/professions/elementalist/core/mechanics/effects.js';
-import {
-  armElementalLightningJolt,
-  registerTempestLightningJolt
-} from '#gw2/professions/elementalist/specializations/tempest/mechanics/lightning-jolt.js';
-import {
-  triggerEarthenBlast,
-  triggerElectricDischarge,
-  triggerFlameExpulsion
-} from '#gw2/professions/elementalist/core/traits/attunements.js';
-import { triggerSunspot } from '#gw2/professions/elementalist/core/traits/dispatch.js';
-import {
-  ELEMENTALIST_ATTUNEMENT_SKILL_IDS,
-  ELEMENTALIST_OVERLOAD_SKILL_IDS,
-  ELEMENTALIST_SKILL_IDS as ID
-} from '#gw2/professions/elementalist/data/ids.js';
-import { TEMPEST_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/elementalist/specializations/tempest/profiles.js';
-import type { ElementalistRuntime } from '#gw2/professions/elementalist/types.js';
+import type {
+  ElementalistRuntime,
+  ElementalistRuntimeState,
+  ElementalistSkill
+} from '#gw2/professions/elementalist/types.js';
 import { EPSILON } from '#kernel/core/clock.js';
+
 // Every attunement's overload is attributed to the profession mechanic rather than the held weapon.
 const OVERLOAD_SKILL_IDS = new Set<number>(Object.values(ELEMENTALIST_OVERLOAD_SKILL_IDS));
 // Fire the traits that pay out as an overload begins: the conduit boons, and the core

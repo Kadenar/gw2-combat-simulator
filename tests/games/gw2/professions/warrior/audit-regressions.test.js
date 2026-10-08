@@ -1,20 +1,19 @@
+import { applyBalanceProfilePatch } from '#gw2/integrations/patches/authoring/patches.js';
+import { createCalculateAttributes } from '#gw2/platform/builds/attributes.js';
+import { warriorTooltips } from '#gw2/professions/warrior/app/tooltips.js';
+import { applyWarriorBuildAttributeRules } from '#gw2/professions/warrior/build/attributes.js';
+import { createWarriorBuildDefaults } from '#gw2/professions/warrior/build/build.js';
 import { warriorCatalog } from '#gw2/professions/warrior/catalog.js';
-import assert from 'node:assert/strict';
-import test from 'node:test';
+import { modifyWarriorStrengthAttributes } from '#gw2/professions/warrior/core/traits/strength/index.js';
+import { WARRIOR_SKILL_IDS as ID, WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/professions/warrior/data/ids.js';
+import { warriorProfession } from '#gw2/professions/warrior/profession.js';
 import {
   createObservedProfessionSimulator,
   observeGw2Runtime,
   observedRuntime
 } from '#tests/helpers/observed-runtime.js';
-import { warriorProfession } from '#gw2/professions/warrior/profession.js';
-import { WARRIOR_SKILL_IDS as ID, WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/professions/warrior/data/ids.js';
-
-import { createWarriorBuildDefaults } from '#gw2/professions/warrior/build/build.js';
-import { applyWarriorBuildAttributeRules } from '#gw2/professions/warrior/build/attributes.js';
-import { createCalculateAttributes } from '#gw2/platform/builds/attributes.js';
-import { modifyWarriorStrengthAttributes } from '#gw2/professions/warrior/core/traits/strength.js';
-import { warriorTooltips } from '#gw2/professions/warrior/app/tooltips.js';
-import { applyBalanceProfilePatch } from '#gw2/integrations/patches/authoring/patches.js';
+import assert from 'node:assert/strict';
+import test from 'node:test';
 
 const simulate = createObservedProfessionSimulator(warriorProfession, {
   stats: { power: 2000, precision: 4000, ferocity: 0, conditionDamage: 0, expertise: 0, vitality: 1000 },

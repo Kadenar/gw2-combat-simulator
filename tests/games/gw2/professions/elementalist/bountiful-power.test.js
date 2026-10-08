@@ -1,11 +1,11 @@
-import { captureEffectEmissions } from '#tests/helpers/effect-emission.js';
 import { applyBalanceProfilePatch } from '#gw2/integrations/patches/authoring/patches.js';
-import { triggerBountifulPower } from '#gw2/professions/elementalist/core/traits/attunements.js';
+import { triggerBountifulPower } from '#gw2/professions/elementalist/core/traits/arcane/attunement-swap.js';
 import {
   ELEMENTALIST_SKILL_IDS as ID,
   ELEMENTALIST_TRAIT_IDS as TRAIT
 } from '#gw2/professions/elementalist/data/ids.js';
 import { elementalistCatalog } from '#gw2/professions/elementalist/profession.js';
+import { captureEffectEmissions } from '#tests/helpers/effect-emission.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 

@@ -6,7 +6,7 @@ import {
   pactOfPain,
   seethingMalice,
   yearningEmpowerment
-} from '#gw2/professions/revenant/core/traits/corruption.js';
+} from '#gw2/professions/revenant/core/traits/corruption/index.js';
 import {
   assassinsPresence,
   battleScarred,
@@ -19,7 +19,7 @@ import {
   targetedDestruction,
   thrillOfCombatTrait,
   unsuspectingStrikes
-} from '#gw2/professions/revenant/core/traits/devastation.js';
+} from '#gw2/professions/revenant/core/traits/devastation/index.js';
 import {
   chargedMists,
   ferociousAggression,
@@ -29,14 +29,14 @@ import {
   roilingMists,
   songOfTheMists,
   spiritBoon
-} from '#gw2/professions/revenant/core/traits/invocation.js';
+} from '#gw2/professions/revenant/core/traits/invocation/index.js';
 import {
   dwarvenBattleTraining,
   enduringRecovery,
   versedInStone,
   viciousReprisalTrait
-} from '#gw2/professions/revenant/core/traits/retribution.js';
-import { lifeAttunement, sereneRejuvenation } from '#gw2/professions/revenant/core/traits/salvation.js';
+} from '#gw2/professions/revenant/core/traits/retribution/index.js';
+import { lifeAttunement, sereneRejuvenation } from '#gw2/professions/revenant/core/traits/salvation/index.js';
 
 export const traitDefinitions = [
   invokingTorment,

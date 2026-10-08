@@ -3,14 +3,14 @@ import {
   applyOverflowingThirstDamage,
   applyVampiric,
   applyVampiricPresence
-} from '#gw2/professions/necromancer/core/traits/life-steal.js';
+} from '#gw2/professions/necromancer/core/traits/blood-magic/life-steal.js';
 import {
   applyChillingDarkness,
   applyInsidiousDisruption,
   necromancerBarbedPrecisionReaction
-} from '#gw2/professions/necromancer/core/traits/conditions.js';
-import { applyCorruptorsFervor } from '#gw2/professions/necromancer/core/traits/carapace.js';
-import { applyDhuumfire, applyUnyieldingBlast } from '#gw2/professions/necromancer/core/traits/shroud.js';
+} from '#gw2/professions/necromancer/core/traits/curses/procs.js';
+import { applyCorruptorsFervor } from '#gw2/professions/necromancer/core/traits/death-magic/carapace.js';
+import { applyDhuumfire, applyUnyieldingBlast } from '#gw2/professions/necromancer/core/traits/soul-reaping/procs.js';
 import {
   applyBitterChill,
   applyChillOfDeath,
@@ -18,8 +18,9 @@ import {
   applyDreadWindow,
   applyReapersMight,
   applySiphonedPower
-} from '#gw2/professions/necromancer/core/traits/behavior.js';
+} from '#gw2/professions/necromancer/core/traits/spite/behavior.js';
 import type { NecromancerResolverContext, NecromancerResolverEvent } from '#gw2/professions/necromancer/types.js';
+
 /** Applies all Core Necromancer traits triggered by one resolved player or summon strike. */
 export function reactToNecromancerCoreDamage(
   context: NecromancerResolverContext,

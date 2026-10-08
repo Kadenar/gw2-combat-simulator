@@ -1,6 +1,5 @@
-import { gadgeteerMineVariant } from '#gw2/professions/engineer/core/traits/toolbelt.js';
-/** Canonical Core engineer skill fragments grouped by their GW2 owner. */
 import type { Skill } from '#gw2/platform/skills/types.js';
+import { gadgeteerMineVariant } from '#gw2/professions/engineer/core/traits/tools/toolbelt.js';
 import { ENGINEER_SKILL_IDS as ID } from '#gw2/professions/engineer/data/ids.js';
 
 // Cleansing Burst isn't linked to Healing Turret by the GW2 API's own flip-chain data, so the heal

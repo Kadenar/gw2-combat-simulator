@@ -15,14 +15,14 @@ state, skill handlers, modifier rules, and UI under `specializations/<name>/`.
 - The generator uses Wiki skill infoboxes to identify supplemental skills, then fetches their API metadata. It does not
   generate activation timings; those remain authored in the owning Core and specialization skill modules.
 
-Native modules register 73 trait owners: Core 39, Berserker 9, Spellbreaker 6, Bladesworn 10, and Paragon 9. Grouped
-trait-line files own profiles, modifier rules, triggers, recharge rules, build contributions, and trait decisions; Core
-`traits/index.ts` collects line declarations, while each elite `traits/index.ts` owns its definitions and registration
-array. `traits/behavior.ts` contains runtime helpers; Core keeps its shared modifier queries in
-`traits/modifier-queries.ts`. Consumers use numeric trait IDs. Build calculations combine the skill-owned signet
-callback with `warriorProfession.traitBuildAttributes`; callbacks read the active balance context.
+Native modules register 77 trait owners: Core 43, Berserker 9, Spellbreaker 6, Bladesworn 10, and Paragon 9. Grouped
+trait-line `traits/<line>/index.ts` files own profiles, modifier rules, triggers, recharge rules, build contributions,
+and trait decisions; Core `traits/index.ts` collects line declarations, while each elite `traits/index.ts` owns its
+definitions and registration array. `traits/behavior.ts` contains runtime helpers; Core keeps its shared modifier
+queries in `traits/modifier-queries.ts`. Consumers use numeric trait IDs. Build calculations combine the skill-owned
+signet callback with `warriorProfession.traitBuildAttributes`; callbacks read the active balance context.
 
-Versatile Power remains in `core/traits/discipline.ts`. Recharge order -1 keeps it before weapon rules and the
+Versatile Power remains in `core/traits/discipline/index.ts`. Recharge order -1 keeps it before weapon rules and the
 imperative weapon-swap cap. Explicit modifier orders preserve the former Strength/Tactics/Defense/Arms and skill-rule
 sequence. Burst Mastery owns its separate Bladesworn conversion profile under its existing patch identity.
 

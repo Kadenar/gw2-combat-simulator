@@ -1,17 +1,18 @@
-import type { RangerRuntime } from '#gw2/professions/ranger/types.js';
-import { rangerPetByName } from '#gw2/professions/ranger/core/state.js';
-import { handleRangerPetSwapped } from '#gw2/professions/ranger/core/mechanics/event-handlers.js';
-import { rangerPetCompanionId, resetRangerPet } from '#gw2/professions/ranger/core/mechanics/pets.js';
-import { buildRangerPacket } from '#gw2/professions/ranger/core/events.js';
 import { createDodgeSkill, createWeaponSwapSkill } from '#gw2/platform/skills/shared-actions.js';
+import type { Skill } from '#gw2/platform/skills/types.js';
+import { buildRangerPacket } from '#gw2/professions/ranger/core/events.js';
+import { handleRangerPetSwapped } from '#gw2/professions/ranger/core/mechanics/event-handlers.js';
+import { rangerPetCompanionId } from '#gw2/professions/ranger/core/mechanics/pet-attributes.js';
+import { resetRangerPet } from '#gw2/professions/ranger/core/mechanics/pets.js';
+import { RANGER_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/ranger/core/profile-ids.js';
+import { rangerPetByName } from '#gw2/professions/ranger/core/state.js';
+import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
+import type { RangerRuntime } from '#gw2/professions/ranger/types.js';
 
 /**
  * Owns synthetic Core Ranger actions that do not come from the GW2 skill catalog.
  * Runtime behavior remains in the named execution and mechanic owners.
  */
-import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
-import type { Skill } from '#gw2/platform/skills/types.js';
-import { RANGER_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/ranger/core/profile-ids.js';
 
 export const RANGER_CORE_ACTION_SKILLS: readonly Skill[] = Object.freeze([
   createDodgeSkill({

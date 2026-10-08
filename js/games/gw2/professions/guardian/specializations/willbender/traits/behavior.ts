@@ -1,7 +1,10 @@
-import { activeRefreshedStacks, grantRefreshedStacks } from '#gw2/platform/combat/resources/refreshed-stacks.js';
-import type { MechanicContext } from '#gw2/platform/profession-definition/mechanic-context.js';
-import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
+import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
+import { activeRefreshedStacks, grantRefreshedStacks } from '#gw2/platform/combat/resources/refreshed-stacks.js';
+import { gw2EffectExpiresAt } from '#gw2/platform/effects/timing.js';
+import { gw2ConfiguredWeaponSet } from '#gw2/platform/equipment/weapons/loadout.js';
+import type { MechanicContext } from '#gw2/platform/profession-definition/mechanic-context.js';
+import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import {
   balanceProfileNumber,
   effectNumber,
@@ -9,14 +12,9 @@ import {
   requireEffect
 } from '#gw2/platform/skills/balance-profiles.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
-import { gw2ConfiguredWeaponSet } from '#gw2/platform/equipment/weapons/loadout.js';
-import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
-
-import { gw2EffectExpiresAt } from '#gw2/platform/effects/timing.js';
-import { battlePresenceSharesBoons } from '#gw2/professions/guardian/core/traits/behavior.js';
 import { guardianTraitIcon } from '#gw2/professions/guardian/core/traits/metadata.js';
+import { battlePresenceSharesBoons } from '#gw2/professions/guardian/core/traits/virtues/behavior.js';
 import { GUARDIAN_TRAIT_IDS as TRAIT } from '#gw2/professions/guardian/data/ids.js';
-
 import { WILLBENDER_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/guardian/specializations/willbender/profiles.js';
 import type { GuardianWillbenderState } from '#gw2/professions/guardian/specializations/willbender/state.js';
 import { willbenderState } from '#gw2/professions/guardian/specializations/willbender/state.js';

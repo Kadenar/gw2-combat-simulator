@@ -1,4 +1,3 @@
-import { GUARDIAN_SKILL_IDS as ID } from '#gw2/professions/guardian/data/ids.js';
 import { attributeProvenance } from '#gw2/platform/builds/attribute-provenance.js';
 import type { Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
@@ -8,8 +7,8 @@ import {
   guardianSignetPassiveActive,
   modifyGuardianConditionBaseDuration,
   perfectInscriptionsMultiplier
-} from '#gw2/professions/guardian/core/traits/behavior.js';
-import { GUARDIAN_SKILL_IDS } from '#gw2/professions/guardian/data/ids.js';
+} from '#gw2/professions/guardian/core/traits/radiance/behavior.js';
+import { GUARDIAN_SKILL_IDS, GUARDIAN_SKILL_IDS as ID } from '#gw2/professions/guardian/data/ids.js';
 
 const guardianCoreModifierRules = Object.freeze<readonly Gw2ModifierRule[]>([
   {

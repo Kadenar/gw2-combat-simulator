@@ -1,15 +1,13 @@
 import { selectedSkillIdSet } from '#gw2/platform/builds/selected-skills.js';
-import { canonicalTime, EPSILON } from '#kernel/core/clock.js';
-import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
-import type { ThiefRuntime } from '#gw2/professions/thief/core/events.js';
-import type { ThiefRuntimeState, ThiefSkill } from '#gw2/professions/thief/types.js';
-import { SIGNET_INITIATIVE } from '#gw2/professions/thief/core/traits/behavior.js';
-/** Canonical Core thief skill fragments grouped by their GW2 owner. */
-
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
+import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
+import type { ThiefRuntime } from '#gw2/professions/thief/core/events.js';
 import { THIEF_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/thief/core/profiles.js';
+import { SIGNET_INITIATIVE } from '#gw2/professions/thief/core/traits/critical-strikes/index.js';
 import { THIEF_SKILL_IDS as ID } from '#gw2/professions/thief/data/ids.js';
+import type { ThiefRuntimeState, ThiefSkill } from '#gw2/professions/thief/types.js';
+import { canonicalTime, EPSILON } from '#kernel/core/clock.js';
 
 // The prepared field's five packets begin after the activation-to-damage delay observed in EVTC.
 const THOUSAND_NEEDLES_INITIAL_DELAY_MS = 280;

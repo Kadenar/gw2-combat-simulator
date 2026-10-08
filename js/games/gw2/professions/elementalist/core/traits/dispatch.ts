@@ -1,42 +1,47 @@
+import type { EffectDelivery } from '#gw2/platform/effects/emission.js';
+import type { SimulationEvent } from '#gw2/platform/events/events.js';
+import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import type { MechanicCombatContext } from '#gw2/platform/profession-definition/mechanic-context.js';
 import type { NativeResolvedDamageDetails } from '#gw2/platform/profession-definition/module-types.js';
-import type { EffectDelivery } from '#gw2/platform/effects/emission.js';
-import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
-import {
-  applyAirAttunementTraits,
-  applyArcaneAttunementTraits,
-  applyEarthAttunementTraits,
-  applyFireAttunementTraits
-} from '#gw2/professions/elementalist/core/traits/attunements.js';
-import {
-  arcanePrecisionCritical,
-  burningPrecisionCritical,
-  ragingStormCritical,
-  renewingStaminaCritical
-} from '#gw2/professions/elementalist/core/traits/critical-procs.js';
-import type { ElementalistResolverContext, ElementalistSkill } from '#gw2/professions/elementalist/types.js';
-/** Ordered public dispatcher for Core Elementalist trait behavior. */
-import type { SimulationEvent } from '#gw2/platform/events/events.js';
-import type { Skill } from '#gw2/platform/skills/types.js';
-
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
+import type { Skill } from '#gw2/platform/skills/types.js';
 import { applyElementalistAura } from '#gw2/professions/elementalist/core/mechanics/auras.js';
 import type { ElementalistAttunement } from '#gw2/professions/elementalist/core/state.js';
-import { triggerSunspot as triggerFireSunspot } from '#gw2/professions/elementalist/core/traits/attunements.js';
-import { applyArcaneLightning, applyElementalLockdown } from '#gw2/professions/elementalist/core/traits/arcane.js';
-import {
-  applyEarthsEmbrace,
-  applyResolverElementalShielding,
-  applyWrittenInStone
-} from '#gw2/professions/elementalist/core/traits/earth.js';
+import { applyAirAttunementTraits } from '#gw2/professions/elementalist/core/traits/air/attunement-entry.js';
+import { ragingStormCritical } from '#gw2/professions/elementalist/core/traits/air/critical-procs.js';
 import {
   applyInscriptionPostCast,
   applyLightningRod,
   applyResolverZephyrsBoon
-} from '#gw2/professions/elementalist/core/traits/air.js';
-import { applyPyromancersPuissance } from '#gw2/professions/elementalist/core/traits/fire.js';
-import { applySoothingIce } from '#gw2/professions/elementalist/core/traits/water.js';
-import type { ElementalistRuntime } from '#gw2/professions/elementalist/types.js';
+} from '#gw2/professions/elementalist/core/traits/air/index.js';
+import { applyArcaneAttunementTraits } from '#gw2/professions/elementalist/core/traits/arcane/attunement-swap.js';
+import {
+  arcanePrecisionCritical,
+  renewingStaminaCritical
+} from '#gw2/professions/elementalist/core/traits/arcane/critical-procs.js';
+import {
+  applyArcaneLightning,
+  applyElementalLockdown
+} from '#gw2/professions/elementalist/core/traits/arcane/index.js';
+import { applyEarthAttunementTraits } from '#gw2/professions/elementalist/core/traits/earth/attunement-entry.js';
+import {
+  applyEarthsEmbrace,
+  applyResolverElementalShielding,
+  applyWrittenInStone
+} from '#gw2/professions/elementalist/core/traits/earth/index.js';
+import {
+  applyFireAttunementTraits,
+  triggerSunspot as triggerFireSunspot
+} from '#gw2/professions/elementalist/core/traits/fire/attunement-transition.js';
+import { burningPrecisionCritical } from '#gw2/professions/elementalist/core/traits/fire/critical-procs.js';
+import { applyPyromancersPuissance } from '#gw2/professions/elementalist/core/traits/fire/index.js';
+import { applySoothingIce } from '#gw2/professions/elementalist/core/traits/water/index.js';
+import type {
+  ElementalistResolverContext,
+  ElementalistRuntime,
+  ElementalistSkill
+} from '#gw2/professions/elementalist/types.js';
+
 /** Public Sunspot entry point supplies the shared aura dispatcher before emitting its remaining effects. */
 export function triggerSunspot(
   context: ElementalistRuntime,

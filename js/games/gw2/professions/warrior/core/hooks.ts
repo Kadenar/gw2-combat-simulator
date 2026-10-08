@@ -1,44 +1,42 @@
 import { resourceAtLeast } from '#gw2/platform/combat/resources/pool.js';
 import { applySideEffect, sideEffectAmount } from '#gw2/platform/effects/action-dispatch.js';
 import { skillFlipReady } from '#gw2/platform/execution/skill-flips.js';
-import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
+import { composeRuntimeHooks, type RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import type { Gw2HitResolutionContext } from '#gw2/platform/resolver/hit-resolution.js';
 import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
+import { warriorBuffPolicies } from '#gw2/professions/warrior/core/effect-state.js';
 import {
   coreAdrenalinePolicy,
   warriorBurstSpends,
   warriorBurstTier
 } from '#gw2/professions/warrior/core/mechanics/adrenaline.js';
 import { spendWarriorMagazine } from '#gw2/professions/warrior/core/mechanics/ammunition.js';
-import { grantWarriorResource, warriorBurstRules } from '#gw2/professions/warrior/resource-rules.js';
-
 import { WARRIOR_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/warrior/core/profiles.js';
 import { combustiveShotFields } from '#gw2/professions/warrior/core/skills/profession-skills.js';
 import { signetOfRageLifecycle } from '#gw2/professions/warrior/core/skills/slot-skills.js';
 import { fierceBlowDamage } from '#gw2/professions/warrior/core/skills/weapons/hammer.js';
 import { counterblowActions } from '#gw2/professions/warrior/core/skills/weapons/mace.js';
-import { signetMasteryDamage, triggerOpportunist } from '#gw2/professions/warrior/core/traits/arms.js';
+import { signetMasteryDamage, triggerOpportunist } from '#gw2/professions/warrior/core/traits/arms/index.js';
 import {
   controlTraits,
   criticalTraits,
   firstBurstHit,
   weaponSwapTraits
 } from '#gw2/professions/warrior/core/traits/behavior.js';
-import { burstMasteryCommit } from '#gw2/professions/warrior/core/traits/discipline.js';
+import { burstMasteryCommit } from '#gw2/professions/warrior/core/traits/discipline/index.js';
 import {
   braveStrideCommit,
   peakPerformanceBuff,
   peakPerformanceStart
-} from '#gw2/professions/warrior/core/traits/strength.js';
-import { initializeEmpowerAllies } from '#gw2/professions/warrior/core/traits/tactics.js';
+} from '#gw2/professions/warrior/core/traits/strength/index.js';
+import { initializeEmpowerAllies } from '#gw2/professions/warrior/core/traits/tactics/index.js';
 import { WARRIOR_SKILL_IDS as ID } from '#gw2/professions/warrior/data/ids.js';
+import { grantWarriorResource, warriorBurstRules } from '#gw2/professions/warrior/resource-rules.js';
 import type { WarriorRuntimeState, WarriorSkill } from '#gw2/professions/warrior/types.js';
 
-import { warriorBuffPolicies } from '#gw2/professions/warrior/core/effect-state.js';
-
 /** Core dispatches shared burst packets through the burst rules selected by the Warrior family. */
-export const warriorCoreHooks: RuntimeHooks<WarriorRuntimeState, WarriorSkill> = {
+const coreLifecycle: RuntimeHooks<WarriorRuntimeState, WarriorSkill> = {
   resources: { adrenaline: coreAdrenalinePolicy },
   buffPolicies: warriorBuffPolicies,
   // Custom verbs keep specialization-dependent resource conversion and catalog-matched targets in their owner.
@@ -104,9 +102,6 @@ export const warriorCoreHooks: RuntimeHooks<WarriorRuntimeState, WarriorSkill> =
       );
     }
   },
-  onCombatStart: signetOfRageLifecycle.onCombatStart,
-  // Preserve the signet owner's distinction between its active cast and recurring passive work.
-  backgroundTasks: signetOfRageLifecycle.backgroundTasks,
 
   rechargeWork: (_runtime, skill, work) => (skill.id === SHARED_SKILL_IDS.SWAP_WEAPONS ? Math.min(5, work) : work),
 
@@ -162,9 +157,6 @@ export const warriorCoreHooks: RuntimeHooks<WarriorRuntimeState, WarriorSkill> =
     if (warriorBurstRules(runtime).resetEligible)
       runtime.resourceController.grant('adrenaline', runtime.profession.core.adrenaline.maximum);
   },
-  tasks: {
-    ...signetOfRageLifecycle.tasks
-  },
   reactions: {
     'damage.resolving': fierceBlowDamage,
     'damage.resolved'(runtime, event, details) {
@@ -189,3 +181,9 @@ export const warriorCoreHooks: RuntimeHooks<WarriorRuntimeState, WarriorSkill> =
     }
   }
 };
+
+/** Install the complete skill lifecycle so new signet callbacks retain their owner automatically. */
+export const warriorCoreHooks = composeRuntimeHooks<WarriorRuntimeState, WarriorSkill>([
+  coreLifecycle,
+  signetOfRageLifecycle
+]);

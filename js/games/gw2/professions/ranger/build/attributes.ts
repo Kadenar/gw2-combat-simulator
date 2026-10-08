@@ -4,7 +4,7 @@ import type {
   Gw2CommonAttributeResult
 } from '#gw2/platform/builds/types.js';
 import { rangerCatalog } from '#gw2/professions/ranger/catalog.js';
-import { signetOfTheWildBonus } from '#gw2/professions/ranger/core/skills/slot-skills.js';
+import { signetOfTheWildBonus } from '#gw2/professions/ranger/core/skills/signet-passives.js';
 import { selectedRangerPet } from '#gw2/professions/ranger/core/state.js';
 import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
 import { getActiveTraits } from '#gw2/professions/ranger/data/traits-data.js';

@@ -1,17 +1,17 @@
 import { MODIFIER_TARGET, type Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
+import { resetAutoattackChains } from '#gw2/platform/execution/autoattack-chains.js';
+import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
+import { castWasInterrupted } from '#gw2/platform/execution/cast-timing.js';
 import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
-import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
-import { resetAutoattackChains } from '#gw2/platform/execution/autoattack-chains.js';
-import { castWasInterrupted } from '#gw2/platform/execution/cast-timing.js';
 import { buildRangerPacket } from '#gw2/professions/ranger/core/events.js';
-import { applyRangerWeaponSwapTraits } from '#gw2/professions/ranger/core/traits/behavior.js';
+import { applyRangerWeaponSwapTraits } from '#gw2/professions/ranger/core/traits/skirmishing/movement.js';
 import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
 import { GALESHOT_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/ranger/specializations/galeshot/profiles.js';
 import { galeshotState } from '#gw2/professions/ranger/specializations/galeshot/state.js';
 import { cloudburstBlusterReset } from '#gw2/professions/ranger/specializations/galeshot/traits/behavior.js';
-import type { RangerSkill, RangerRuntime } from '#gw2/professions/ranger/types.js';
+import type { RangerRuntime, RangerSkill } from '#gw2/professions/ranger/types.js';
 import { canonicalTime } from '#kernel/core/clock.js';
 
 /** Explicit PvE skill mechanics owned by the Galeshot Ranger module. */

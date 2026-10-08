@@ -1,12 +1,13 @@
 import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
+import { buildRangerPacket } from '#gw2/professions/ranger/core/events.js';
 import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
-import { emitSoulbeastStance } from '#gw2/professions/ranger/specializations/soulbeast/traits/behavior.js';
+import { leaderOfThePackStance } from '#gw2/professions/ranger/specializations/soulbeast/traits/behavior.js';
 import type { RangerRuntime } from '#gw2/professions/ranger/types.js';
 
 /**
- * Owns Soulbeast stance skill fragments and their handler selection.
- * Stance runtime windows remain under `hooks.ts` and specialization mechanics.
+ * Owns Soulbeast stance declarations and activation packets, applying the trait-owned duration and sharing policy.
+ * Hooks register these actions; specialization mechanics retain window reactions.
  */
 
 export const SOULBEAST_STANCE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
@@ -32,12 +33,35 @@ export const SOULBEAST_STANCE_SKILL_MECHANICS: Readonly<Record<number, Partial<S
   }
 });
 
-/** The stance owns its activation; Leader of the Pack still owns duration and ally sharing. */
+/** Activate the ordinary personal stance, then deliver the trait-owned sharing policy. */
 export function activateSoulbeastStance(runtime: RangerRuntime, skill: Skill, kind: string, profileId: string): number {
-  return emitSoulbeastStance(
+  const { duration, sharedDuration } = leaderOfThePackStance(
     runtime,
-    skill,
-    kind,
     balanceProfileNumber(requireBalanceProfileFromContext(runtime, profileId), 'durationMultiplier')
   );
+  const application = {
+    at: runtime.time,
+    source: 'ranger',
+    sourceId: skill.id,
+    actorType: 'player' as const,
+    skillId: skill.id,
+    skillName: skill.name,
+    kind,
+    duration,
+    stacks: 1
+  };
+  runtime.effects.emit({ kind: 'packet', event: buildRangerPacket(application, 'buff') });
+  if (sharedDuration != null)
+    runtime.effects.emit({
+      kind: 'packet',
+      event: buildRangerPacket(
+        {
+          ...application,
+          duration: sharedDuration,
+          audience: { recipients: 'party', affectsSelf: false, maximumRecipients: 4, eligibleCompanionIds: [] }
+        },
+        'buff'
+      )
+    });
+  return duration;
 }

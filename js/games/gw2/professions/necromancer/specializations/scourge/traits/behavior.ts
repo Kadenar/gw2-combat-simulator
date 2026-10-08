@@ -1,37 +1,37 @@
 import { professionStaticRulesApplied } from '#gw2/platform/builds/attribute-provenance.js';
+import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
 import { isHostileTargetEvent } from '#gw2/platform/combat/state/targets.js';
-import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
+import { buildResolverCondition } from '#gw2/platform/effects/packet-builders.js';
 import type { SimulationEventBase } from '#gw2/platform/events/events.js';
 import { denySkillCast } from '#gw2/platform/execution/availability.js';
+import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
+import type { RuntimeProfession } from '#gw2/platform/profession-definition/runtime-contract.js';
+import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import {
   balanceProfileNumber,
   effectNumber,
   requireBalanceProfileFromContext,
   requireEffect
 } from '#gw2/platform/skills/balance-profiles.js';
-import { buildResolverCondition } from '#gw2/platform/effects/packet-builders.js';
-import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
-import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
-import type { RuntimeProfession } from '#gw2/platform/profession-definition/runtime-contract.js';
 import { grantNecromancerLifeForce } from '#gw2/professions/necromancer/core/mechanics/life-force.js';
 import {
   cloneNecromancerAttributes,
   necromancerRuntimeSpecializationState
 } from '#gw2/professions/necromancer/core/mechanics/modifier-queries.js';
-import type { NecromancerRuntime, NecromancerSkill } from '#gw2/professions/necromancer/types.js';
-import { canonicalTime } from '#kernel/core/clock.js';
-
-import { armScourgePlagueSending } from '#gw2/professions/necromancer/core/traits/conditions.js';
-import { applyScourgeSoulBarbs } from '#gw2/professions/necromancer/core/traits/shroud.js';
+import { armScourgePlagueSending } from '#gw2/professions/necromancer/core/traits/curses/procs.js';
+import { applySoulBarbs } from '#gw2/professions/necromancer/core/traits/soul-reaping/shroud.js';
 import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
 import { party } from '#gw2/professions/necromancer/specializations/scourge/mechanics/audiences.js';
 import { SCOURGE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/necromancer/specializations/scourge/profiles.js';
 import type {
   NecromancerResolverContext,
   NecromancerResolverEvent,
-  NecromancerRuntimeState
+  NecromancerRuntime,
+  NecromancerRuntimeState,
+  NecromancerSkill
 } from '#gw2/professions/necromancer/types.js';
+import { canonicalTime } from '#kernel/core/clock.js';
 
 /** Applies Fell Beacon at the original attribute-conversion position. */
 export function modifyFellBeaconAttributes(
@@ -150,7 +150,14 @@ export function shadeTraits(runtime: NecromancerRuntime, cast: RuntimeCast<Necro
   if (skill.id === ID.DESERT_SHROUD || skill.id === ID.SANDSTORM_SHROUD) {
     armScourgePlagueSending(runtime);
 
-    applyScourgeSoulBarbs(runtime, cast);
+    // Scourge's shroud-like cast owns the trigger attribution; Core supplies the shared Soul Barbs grant.
+    applySoulBarbs(runtime, {
+      source: 'necromancer',
+      sourceId: skill.id,
+      skillId: skill.id,
+      skillName: skill.name,
+      activationId: cast.id
+    });
   }
 
   if (skill.id === ID.NEFARIOUS_FAVOR && hasTrait(runtime, TRAIT.SADISTIC_SEARING)) {

@@ -1,31 +1,13 @@
-import { infiltratorsSignetLifecycle } from '#gw2/professions/thief/core/skills/slot-skills.js';
+import { gw2ConfiguredWeaponSet } from '#gw2/platform/equipment/weapons/loadout.js';
+import type { AvailabilityResult } from '#gw2/platform/execution/availability.js';
+import { denySkillCast } from '#gw2/platform/execution/availability.js';
+import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
+import { pruneSkillFlips, skillFlipReady, weaponFollowUpOpen } from '#gw2/platform/execution/skill-flips.js';
 import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
 import { composeRuntimeHooks, type RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import { damageInputEvent } from '#gw2/platform/skill-damage/occurrence-driver.js';
-import { emitVenom, VENOMS } from '#gw2/professions/thief/core/mechanics/venoms.js';
-import {
-  completeThiefStealthAttack,
-  completeThiefWeaponSwap,
-  startThiefDodge
-} from '#gw2/professions/thief/core/traits/behavior.js';
-import {
-  leadAttacksRechargeReduction,
-  sleightOfHandRechargeReduction
-} from '#gw2/professions/thief/core/traits/resource-queries.js';
-
-import { gw2ConfiguredWeaponSet } from '#gw2/platform/equipment/weapons/loadout.js';
 import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
-import { modifyThiefLifeSiphon } from '#gw2/professions/thief/core/traits/behavior.js';
-import { EPSILON } from '#kernel/core/clock.js';
-
-import { pruneSkillFlips, skillFlipReady, weaponFollowUpOpen } from '#gw2/platform/execution/skill-flips.js';
-
-import { denySkillCast } from '#gw2/platform/execution/availability.js';
-import { thiefSpearAvailability } from '#gw2/professions/thief/core/mechanics/spear.js';
-import { THIEF_SKILL_IDS as ID } from '#gw2/professions/thief/data/ids.js';
-
-import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
-import type { AvailabilityResult } from '#gw2/platform/execution/availability.js';
+import { thiefBuffPolicies, thiefEffectStates } from '#gw2/professions/thief/core/effect-state.js';
 import type { ThiefRuntime } from '#gw2/professions/thief/core/events.js';
 import { deferThiefCompletion } from '#gw2/professions/thief/core/events.js';
 import {
@@ -41,6 +23,7 @@ import {
   prepareTrap,
   thiefTrapAvailability
 } from '#gw2/professions/thief/core/mechanics/preparations.js';
+import { reactThiefCoreDamage } from '#gw2/professions/thief/core/mechanics/reactions.js';
 import { setThiefKneeling, thiefEndurance, thiefInitiative } from '#gw2/professions/thief/core/mechanics/resources.js';
 import {
   expireThiefScepterChain,
@@ -50,6 +33,7 @@ import {
 import { activateAssassinsSignet } from '#gw2/professions/thief/core/mechanics/signets.js';
 import {
   grantDistractingThrowWindow,
+  thiefSpearAvailability,
   unsuspectingStrikeBonus,
   updateSpearChain
 } from '#gw2/professions/thief/core/mechanics/spear.js';
@@ -68,14 +52,23 @@ import {
   thiefSameInstantStealthBreak,
   thiefStealthed
 } from '#gw2/professions/thief/core/mechanics/stealth.js';
-import { activateVenom } from '#gw2/professions/thief/core/mechanics/venoms.js';
-import {
-  completeThiefCastTraits,
-  reactThiefCoreCondition,
-  reactThiefCoreDamage
-} from '#gw2/professions/thief/core/traits/dispatch.js';
+import { activateVenom, emitVenom, VENOMS } from '#gw2/professions/thief/core/mechanics/venoms.js';
+import { infiltratorsSignetLifecycle } from '#gw2/professions/thief/core/skills/slot-skills.js';
+import { completeThiefCastTraits, reactThiefCoreCondition } from '#gw2/professions/thief/core/traits/dispatch.js';
+import { completeThiefStealthAttack } from '#gw2/professions/thief/core/traits/shadow-arts/stealth.js';
 import { emitThiefStealTraits } from '#gw2/professions/thief/core/traits/steal.js';
+import {
+  completeThiefWeaponSwap,
+  modifyThiefLifeSiphon,
+  startThiefDodge
+} from '#gw2/professions/thief/core/traits/trickery/behavior.js';
+import {
+  leadAttacksRechargeReduction,
+  sleightOfHandRechargeReduction
+} from '#gw2/professions/thief/core/traits/trickery/resource-queries.js';
+import { THIEF_SKILL_IDS as ID } from '#gw2/professions/thief/data/ids.js';
 import type { ThiefRuntimeState, ThiefSkill } from '#gw2/professions/thief/types.js';
+import { EPSILON } from '#kernel/core/clock.js';
 
 /**
  * Core gates for endurance, follow-up windows, spear stages, preparations, stealth replacements, rifle stance, stored
@@ -157,7 +150,6 @@ function completeThiefCast(runtime: ThiefRuntime, cast: RuntimeCast<ThiefSkill>)
 }
 
 /** Core hooks: initiative, endurance, stealth, steals, weapon follow-ups, utilities, and resolved trait reactions. */
-import { thiefBuffPolicies, thiefEffectStates } from '#gw2/professions/thief/core/effect-state.js';
 
 const coreLifecycle: RuntimeHooks<ThiefRuntimeState, ThiefSkill> = {
   // Known damage payloads are invoked once without their activation requirements.

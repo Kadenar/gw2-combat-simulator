@@ -1,6 +1,6 @@
-import { armSkillFlip, consumeSkillFlip } from '#gw2/platform/execution/skill-flips.js';
-import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import { resetAutoattackChains } from '#gw2/platform/execution/autoattack-chains.js';
+import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
+import { armSkillFlip, consumeSkillFlip } from '#gw2/platform/execution/skill-flips.js';
 import { lockTransitionInput } from '#gw2/platform/execution/transition-lockouts.js';
 import { grantNecromancerLifeForce } from '#gw2/professions/necromancer/core/mechanics/life-force.js';
 import { DEPLETION } from '#gw2/professions/necromancer/core/mechanics/resources.js';
@@ -11,10 +11,11 @@ import {
 } from '#gw2/professions/necromancer/core/mechanics/shroud-lifecycle.js';
 import { NECROMANCER_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/necromancer/core/profiles.js';
 import { prepareShroudEntry, shroudEntryEffects } from '#gw2/professions/necromancer/core/traits/shroud-entry.js';
-import { applySoulBarbs } from '#gw2/professions/necromancer/core/traits/shroud.js';
+import { applySoulBarbs } from '#gw2/professions/necromancer/core/traits/soul-reaping/shroud.js';
 import { NECROMANCER_SKILL_IDS as ID } from '#gw2/professions/necromancer/data/ids.js';
 import type { NecromancerRuntime, NecromancerSkill } from '#gw2/professions/necromancer/types.js';
 import { canonicalTime } from '#kernel/core/clock.js';
+
 /** Owns shroud and Lich transitions, their trait effects, and automatic exits on the live runtime. */
 
 const LICH_EXPIRY = 'necromancer.lich-expiry';

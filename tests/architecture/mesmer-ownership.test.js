@@ -39,8 +39,8 @@ test('Mirage controller and trait execution load without family construction cyc
 });
 
 test('consolidated Core trait owners load independently of family construction and cross-line dispatch', () => {
-  for (const line of ['chaos', 'domination', 'dueling', 'illusions'])
-    assertIndependentLoading(`core/traits/${line}.ts`);
+  for (const line of ['chaos', 'domination', 'dueling', 'illusions', 'inspiration'])
+    assertIndependentLoading(`core/traits/${line}/index.ts`);
 });
 
 // Tooltip projections must remain loadable without pulling runtime construction into presentation.

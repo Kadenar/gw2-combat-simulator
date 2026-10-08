@@ -9,7 +9,7 @@ import {
   petsProwess,
   resoundingTimbre,
   wiltingStrike
-} from '#gw2/professions/ranger/core/traits/beastmastery.js';
+} from '#gw2/professions/ranger/core/traits/beastmastery/index.js';
 import {
   alphaFocus,
   clarionBond,
@@ -21,7 +21,7 @@ import {
   predatorsOnslaught,
   remorseless,
   wolfsong
-} from '#gw2/professions/ranger/core/traits/marksmanship.js';
+} from '#gw2/professions/ranger/core/traits/marksmanship/index.js';
 import {
   bountifulHunter,
   fortifyingBond,
@@ -31,7 +31,7 @@ import {
   spiritedArrival,
   wellspring,
   windborneNotes
-} from '#gw2/professions/ranger/core/traits/nature-magic.js';
+} from '#gw2/professions/ranger/core/traits/nature-magic/index.js';
 import {
   fangAndClaw,
   furiousGrip,
@@ -44,7 +44,7 @@ import {
   tailWind,
   trappersExpertise,
   viciousQuarry
-} from '#gw2/professions/ranger/core/traits/skirmishing.js';
+} from '#gw2/professions/ranger/core/traits/skirmishing/index.js';
 import {
   ambidexterity,
   arachnophobia,
@@ -53,7 +53,7 @@ import {
   naturalVigor,
   poisonMaster,
   survivalInstincts
-} from '#gw2/professions/ranger/core/traits/wilderness-survival.js';
+} from '#gw2/professions/ranger/core/traits/wilderness-survival/index.js';
 
 /** Register authored owners in a fixed order; runtime boundaries stay explicit. */
 export const rangerCoreTraits = [

@@ -1,18 +1,17 @@
-import { rangerCatalog } from '#gw2/professions/ranger/catalog.js';
-import { withProfile } from '#tests/helpers/catalog-overrides.js';
-import assert from 'node:assert/strict';
-import test from 'node:test';
-
 import { skillBreakdownRows } from '#gw2/app/results/skill-breakdown.js';
 import { resultSkillIcon } from '#gw2/app/results/skill-icons.js';
 import { timelineWeaponRows } from '#gw2/app/rotation/timeline/model.js';
+import { rangerCatalog } from '#gw2/professions/ranger/catalog.js';
 import { rangerCoreModule } from '#gw2/professions/ranger/core/module.js';
-import { rangerCoreCriticalReactions } from '#gw2/professions/ranger/core/traits/behavior.js';
+import { rangerCoreCriticalReactions } from '#gw2/professions/ranger/core/traits/skirmishing/index.js';
 import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
 import { RANGER_PETS } from '#gw2/professions/ranger/data/ranger-pet-data.js';
 import { rangerProfession } from '#gw2/professions/ranger/profession.js';
 import { druidModule } from '#gw2/professions/ranger/specializations/druid/module.js';
+import { withProfile } from '#tests/helpers/catalog-overrides.js';
 import { observeGw2Runtime } from '#tests/helpers/observed-runtime.js';
+import assert from 'node:assert/strict';
+import test from 'node:test';
 
 const baseConfig = Object.freeze({
   initialAstralForce: 100,

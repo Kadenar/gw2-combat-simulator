@@ -1,17 +1,15 @@
-import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
 import { gw2BaseRecharge } from '#gw2/platform/combat/recharge.js';
+import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
+import type { MaximumAmmoContext } from '#gw2/platform/profession-definition/runtime-context.js';
+import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
-import { fencersFinesseRecharge } from '#gw2/professions/mesmer/core/traits/dueling.js';
+import { fencersFinesseRecharge } from '#gw2/professions/mesmer/core/traits/dueling/index.js';
 import {
   masterOfMisdirectionRecharge,
   shatterStormMaximumAmmo
-} from '#gw2/professions/mesmer/core/traits/illusions.js';
-/** Applies Core Mesmer availability, recharge, and shatter-ammunition policy. */
-import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
+} from '#gw2/professions/mesmer/core/traits/illusions/index.js';
 import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
-import type { MesmerRuntime } from '#gw2/professions/mesmer/types.js';
-import type { MesmerRuntimeState } from '#gw2/professions/mesmer/types.js';
-import type { MaximumAmmoContext } from '#gw2/platform/profession-definition/runtime-context.js';
+import type { MesmerRuntime, MesmerRuntimeState } from '#gw2/professions/mesmer/types.js';
 
 /**
  * Calculates Mesmer recharge with special handling for ammo lockouts, weapon

@@ -1,22 +1,22 @@
-import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
-import type { Gw2ResolvedStats } from '#gw2/platform/combat/stats.js';
-import { gw2AlliedPlayerAssumptions, gw2AlliedPlayerProcTimeline } from '#gw2/platform/combat/state/allied-players.js';
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
+import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
+import { gw2AlliedPlayerAssumptions, gw2AlliedPlayerProcTimeline } from '#gw2/platform/combat/state/allied-players.js';
+import type { Gw2ResolvedStats } from '#gw2/platform/combat/stats.js';
+import { buildResolverStrike } from '#gw2/platform/effects/packet-builders.js';
+import { gw2PrimaryWeapon } from '#gw2/platform/equipment/weapons/loadout.js';
+import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
+import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import {
   balanceProfileNumber,
   effectNumber,
   requireBalanceProfileFromContext,
   requireEffect
 } from '#gw2/platform/skills/balance-profiles.js';
-import { gw2PrimaryWeapon } from '#gw2/platform/equipment/weapons/loadout.js';
-import { buildResolverStrike } from '#gw2/platform/effects/packet-builders.js';
-import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import type { ThiefRuntime } from '#gw2/professions/thief/core/events.js';
-import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
-import { improvisationShadowForceMultiplier } from '#gw2/professions/thief/core/traits/steal.js';
-import { SPECTER_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/thief/specializations/specter/profiles.js';
 import { buildThiefBuff, buildThiefCondition } from '#gw2/professions/thief/core/events.js';
+import { improvisationShadowForceMultiplier } from '#gw2/professions/thief/core/traits/deadly-arts/steal.js';
 import { THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
+import { SPECTER_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/thief/specializations/specter/profiles.js';
 import { specterState } from '#gw2/professions/thief/specializations/specter/state.js';
 
 /** Resolve Siphon's selected tuning without mutation: add Amplified Siphoning before multiplying by Improvisation. */

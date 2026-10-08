@@ -1,12 +1,11 @@
-import { torchLifecycle } from '#gw2/professions/necromancer/core/skills/weapons/torch.js';
 import { skillForEvent } from '#gw2/platform/combat/query/runtime-query.js';
-import { composeRuntimeHooks, type RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
-import { emitVampirismPassive } from '#gw2/professions/necromancer/core/skills/slot-skills.js';
+import { sideEffectAmount } from '#gw2/platform/effects/action-dispatch.js';
 import { denySkillCast } from '#gw2/platform/execution/availability.js';
 import { skillFlipReady } from '#gw2/platform/execution/skill-flips.js';
+import { composeRuntimeHooks, type RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
-import { sideEffectAmount } from '#gw2/platform/effects/action-dispatch.js';
 import { damageInputEvent } from '#gw2/platform/skill-damage/occurrence-driver.js';
+import { necromancerBuffPolicies, necromancerEffectStates } from '#gw2/professions/necromancer/core/effect-state.js';
 import { reactToNecromancerAxeHealth } from '#gw2/professions/necromancer/core/mechanics/axe.js';
 import {
   completeNecromancerCorruption,
@@ -44,30 +43,33 @@ import {
 import {
   emitSoulShard,
   grantNecromancerSoulShards,
-  necromancerWeaponTasks,
+  soulShardTasks,
   perforate
-} from '#gw2/professions/necromancer/core/mechanics/weapons.js';
+} from '#gw2/professions/necromancer/core/mechanics/soul-shards.js';
 import { NECROMANCER_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/necromancer/core/profiles.js';
 import { NECROMANCER_LICH_SKILL_IDS } from '#gw2/professions/necromancer/core/skills/index.js';
+import { emitVampirismPassive } from '#gw2/professions/necromancer/core/skills/slot-skills.js';
+import { torchLifecycle } from '#gw2/professions/necromancer/core/skills/weapons/torch.js';
 import {
   necromancerLifeForceCostMultiplier,
   normalizedNecromancerLifeForceCost
 } from '#gw2/professions/necromancer/core/state.js';
-import { spitefulFortitudeLifeForce } from '#gw2/professions/necromancer/core/traits/behavior.js';
-import {
-  lingeringCurseAvailability,
-  reactToNecromancerConditions
-} from '#gw2/professions/necromancer/core/traits/conditions.js';
 import {
   reactToTasteForBloodGrant,
   startNecromancerAlliedOpportunities
-} from '#gw2/professions/necromancer/core/traits/life-steal.js';
+} from '#gw2/professions/necromancer/core/traits/blood-magic/life-steal.js';
+import { lingeringCurseAvailability } from '#gw2/professions/necromancer/core/traits/curses/skill-variants.js';
+import { reactToNecromancerConditions } from '#gw2/professions/necromancer/core/traits/curses/procs.js';
 import {
   reactToNecromancerCoreCondition,
   reactToNecromancerCoreControl,
   reactToNecromancerCoreDamage
 } from '#gw2/professions/necromancer/core/traits/reactions.js';
-import { applyFearOfDeath, soulMarksLifeForce } from '#gw2/professions/necromancer/core/traits/shroud.js';
+import {
+  applyFearOfDeath,
+  soulMarksLifeForce
+} from '#gw2/professions/necromancer/core/traits/soul-reaping/life-force.js';
+import { spitefulFortitudeLifeForce } from '#gw2/professions/necromancer/core/traits/spite/behavior.js';
 import { NECROMANCER_SKILL_IDS as DAMAGE_SKILL } from '#gw2/professions/necromancer/data/ids.js';
 import type {
   NecromancerRuntime,
@@ -84,9 +86,6 @@ function damage(runtime: NecromancerRuntime, event: Gw2ResolverEvent): void {
   // Combine trait rewards before the shared conversion and pool refresh, ahead of condition transfers.
   grantNecromancerLifeForce(runtime, soulMarksLifeForce(runtime, skill, event) + spitefulFortitudeLifeForce(runtime));
 }
-
-/** Core mechanics share one live queue and resource owner with the active specialization. */
-import { necromancerBuffPolicies, necromancerEffectStates } from '#gw2/professions/necromancer/core/effect-state.js';
 
 const coreLifecycle: RuntimeHooks<NecromancerRuntimeState, NecromancerSkill> = {
   // Known damage payloads are invoked once without their activation requirements.
@@ -265,7 +264,7 @@ const coreLifecycle: RuntimeHooks<NecromancerRuntimeState, NecromancerSkill> = {
   backgroundTasks: ['necromancer.minion-attack', ...Object.keys(necromancerPassiveTasks)],
   tasks: {
     ...necromancerSwordTasks,
-    ...necromancerWeaponTasks,
+    ...soulShardTasks,
     ...necromancerConditionTasks,
     ...necromancerMinionTasks,
     ...necromancerPassiveTasks,

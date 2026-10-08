@@ -1,11 +1,13 @@
-import type { SimulationEventBase } from '#gw2/platform/events/events.js';
 import type { ProfileEmission } from '#gw2/platform/effects/emission.js';
-import type { BalanceProfile } from '#gw2/platform/skills/types.js';
-import type { StatusEffect } from '#gw2/platform/effects/types.js';
-import type { ConditionEffect } from '#gw2/platform/effects/types.js';
 import { buildResolverCondition } from '#gw2/platform/effects/packet-builders.js';
+import type { ConditionEffect, StatusEffect } from '#gw2/platform/effects/types.js';
+import type { SimulationEventBase } from '#gw2/platform/events/events.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
-import { rangerPetCombatMetadata, rangerPetCompanionId } from '#gw2/professions/ranger/core/mechanics/pets.js';
+import type { BalanceProfile } from '#gw2/platform/skills/types.js';
+import {
+  rangerPetCombatMetadata,
+  rangerPetCompanionId
+} from '#gw2/professions/ranger/core/mechanics/pet-attributes.js';
 import type { RangerResolverContext } from '#gw2/professions/ranger/types.js';
 
 /** Restricts Stalker's Strike's bonus to its three documented movement-impairing conditions. */

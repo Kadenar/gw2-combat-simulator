@@ -1,13 +1,13 @@
-import { emitSerratedSteel, emitIncendiaryPowder } from '#gw2/professions/engineer/core/traits/firearms-emissions.js';
-import type { EngineerCriticalHitDefinition } from '#gw2/professions/engineer/core/traits/critical-procs.js';
-import { engineerMechResolverEvent } from '#gw2/professions/engineer/specializations/mechanist/mechanics/mech-ownership.js';
-import { ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import {
   balanceProfileNumber,
   procChanceFromContext,
   requireBalanceProfileFromContext
 } from '#gw2/platform/skills/balance-profiles.js';
+import type { EngineerCriticalHitDefinition } from '#gw2/professions/engineer/core/traits/firearms/critical-procs.js';
+import { emitIncendiaryPowder, emitSerratedSteel } from '#gw2/professions/engineer/core/traits/firearms/emissions.js';
+import { ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
+import { engineerMechResolverEvent } from '#gw2/professions/engineer/specializations/mechanist/mechanics/mech-ownership.js';
 
 // The mech owns independent Firearms proc trackers so its critical hits cannot consume the player's progress.
 export const engineerMechCriticalDefinitions: readonly EngineerCriticalHitDefinition[] = Object.freeze([

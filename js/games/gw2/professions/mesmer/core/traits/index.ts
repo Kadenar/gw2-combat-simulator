@@ -1,43 +1,43 @@
 import {
+  chaoticInterruption,
   chaoticPersistence,
   illusionaryMembrane,
-  chaoticInterruption,
   methodOfMadness
-} from '#gw2/professions/mesmer/core/traits/chaos.js';
+} from '#gw2/professions/mesmer/core/traits/chaos/index.js';
 import {
-  rendingShatter,
+  bountifulBlades,
   dazzling,
-  fragility,
-  viciousExpression,
-  empoweredIllusions,
-  mentalAnguish,
   egotism,
-  bountifulBlades
-} from '#gw2/professions/mesmer/core/traits/domination.js';
+  empoweredIllusions,
+  fragility,
+  mentalAnguish,
+  rendingShatter,
+  viciousExpression
+} from '#gw2/professions/mesmer/core/traits/domination/index.js';
 import {
+  blindingDissipation,
   criticalInfusion,
+  deceptiveEvasion,
   fencersFinesse,
   ineptitude,
   masterFencer,
-  sharperImages,
   phantasmalFury,
-  superiorityComplex,
-  blindingDissipation,
-  deceptiveEvasion
-} from '#gw2/professions/mesmer/core/traits/dueling.js';
+  sharperImages,
+  superiorityComplex
+} from '#gw2/professions/mesmer/core/traits/dueling/index.js';
 import {
   compoundingPower,
   cryOfPain,
   maimTheDisillusioned,
   maliciousSorcery,
-  masterOfMisdirection,
   masterOfFragmentation,
+  masterOfMisdirection,
+  phantasmalForce,
   phantasmalHaste,
   shatterStorm,
-  thePledge,
-  phantasmalForce
-} from '#gw2/professions/mesmer/core/traits/illusions.js';
-import { wardensFeedback, egoRestoration } from '#gw2/professions/mesmer/core/traits/inspiration.js';
+  thePledge
+} from '#gw2/professions/mesmer/core/traits/illusions/index.js';
+import { egoRestoration, wardensFeedback } from '#gw2/professions/mesmer/core/traits/inspiration/index.js';
 
 /** Register each Core trait directly, preserving the execution order of its rules. */
 export const mesmerCoreTraits = [

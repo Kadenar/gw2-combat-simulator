@@ -1,31 +1,22 @@
-import {
-  applyElementalistAura,
-  resolveElementalistAura,
-  acceptElementalistAuraReaction
-} from '#gw2/professions/elementalist/core/mechanics/auras.js';
-import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
-import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
-import {
-  ELEMENTALIST_TRAIT_IDS as DAMAGE_TRAIT,
-  ELEMENTALIST_SKILL_IDS as ID
-} from '#gw2/professions/elementalist/data/ids.js';
-import {
-  emitElectricDischarge,
-  emitEarthenBlast,
-  emitSunspot,
-  emitFlameExpulsion
-} from '#gw2/professions/elementalist/core/traits/attunements.js';
 import { prepareGw2BuffCompanionCandidates } from '#gw2/platform/combat/state/allied-players.js';
-import { requireBalanceProfileFromContext, requireEffect } from '#gw2/platform/skills/balance-profiles.js';
-import type { NativeResolvedDamageDetails } from '#gw2/platform/profession-definition/module-types.js';
-import { OBSERVABLE_EVENT_HANDLER } from '#gw2/platform/resolver/handler-registry.js';
 import type { SkillTaskData } from '#gw2/platform/execution/cast-contracts.js';
+import type { NativeResolvedDamageDetails } from '#gw2/platform/profession-definition/module-types.js';
+import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
+import { OBSERVABLE_EVENT_HANDLER } from '#gw2/platform/resolver/handler-registry.js';
+import { requireBalanceProfileFromContext, requireEffect } from '#gw2/platform/skills/balance-profiles.js';
+import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
 import {
   elementalistCoreSideEffectHandlers,
   elementalistOnCastCommit,
   elementalistOnCastStart
 } from '#gw2/professions/elementalist/core/cast-lifecycle.js';
 import { CONJURED_WEAPONS, HAMMER_ORB_SKILLS } from '#gw2/professions/elementalist/core/constants.js';
+import { elementalistBuffPolicies, elementalistEffectStates } from '#gw2/professions/elementalist/core/effect-state.js';
+import {
+  acceptElementalistAuraReaction,
+  applyElementalistAura,
+  resolveElementalistAura
+} from '#gw2/professions/elementalist/core/mechanics/auras.js';
 import { elementalistCoreAvailability } from '#gw2/professions/elementalist/core/mechanics/availability.js';
 import {
   elementalistElementalCompanionId,
@@ -41,7 +32,6 @@ import {
   applyElementalistResolvedCondition,
   applyElementalistResolvedDamage
 } from '#gw2/professions/elementalist/core/mechanics/reactions.js';
-import { applyShatteringStoneBuff } from '#gw2/professions/elementalist/core/skills/weapons/pistol.js';
 import {
   elementalistRechargeWork,
   reserveElementalistRecharge
@@ -56,26 +46,35 @@ import {
   observeElementalistAutoattackTransition
 } from '#gw2/professions/elementalist/core/mechanics/weapon-state.js';
 import { ELEMENTALIST_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/elementalist/core/profile-ids.js';
+import { applyShatteringStoneBuff } from '#gw2/professions/elementalist/core/skills/weapons/pistol.js';
 import {
   ELEMENTALIST_ATTUNEMENTS,
   resetElementalistAttunementCooldowns
 } from '#gw2/professions/elementalist/core/state.js';
+import { emitElectricDischarge } from '#gw2/professions/elementalist/core/traits/air/attunement-entry.js';
 import {
   applyFreshAirCritical,
   observeFreshAirCandidate
-} from '#gw2/professions/elementalist/core/traits/critical-procs.js';
+} from '#gw2/professions/elementalist/core/traits/air/critical-procs.js';
 import {
   applyElementalistResolverAuraTraits,
   observeElementalistTraitEvent,
   reactElementalistCoreCritical
 } from '#gw2/professions/elementalist/core/traits/dispatch.js';
+import { emitEarthenBlast } from '#gw2/professions/elementalist/core/traits/earth/attunement-entry.js';
+import {
+  emitFlameExpulsion,
+  emitSunspot
+} from '#gw2/professions/elementalist/core/traits/fire/attunement-transition.js';
+import {
+  ELEMENTALIST_TRAIT_IDS as DAMAGE_TRAIT,
+  ELEMENTALIST_SKILL_IDS as ID
+} from '#gw2/professions/elementalist/data/ids.js';
 import type {
   ElementalistRuntimeState,
   ElementalistSimulationEvent,
   ElementalistSkill
 } from '#gw2/professions/elementalist/types.js';
-/** Core casts, accepted hits, and owned expiry tasks share the runtime. */
-import { elementalistBuffPolicies, elementalistEffectStates } from '#gw2/professions/elementalist/core/effect-state.js';
 
 export const elementalistCoreHooks: RuntimeHooks<ElementalistRuntimeState, ElementalistSkill> = {
   damageEffects: [

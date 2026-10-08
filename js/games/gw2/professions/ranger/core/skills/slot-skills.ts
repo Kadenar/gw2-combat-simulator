@@ -1,41 +1,41 @@
-import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
-import type {
-  RangerRuntimeState,
-  RangerSkill,
-  RangerResolverContext,
-  RangerRuntime
-} from '#gw2/professions/ranger/types.js';
-import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
-import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
-import { defineSkillVariantProfile as variant } from '#gw2/platform/profession-definition/profile-authoring.js';
-import { grantSkillCharges } from '#gw2/professions/ranger/core/skills/charge-grants.js';
+import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
 import {
   activeChargeGrants,
-  consumeChargeBatch,
   appendChargeGrant,
+  consumeChargeBatch,
   grantCharges
 } from '#gw2/platform/combat/resources/charges.js';
-import { buildResolverCondition } from '#gw2/platform/effects/packet-builders.js';
-import { isPlayerStrike } from '#gw2/professions/ranger/core/mechanics/resolution-helpers.js';
-
-import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
 import type { Gw2ResolvedStats } from '#gw2/platform/combat/stats.js';
-import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
-import type { SimulationEventBase } from '#gw2/platform/events/events.js';
-import { rangerPetCompanionId } from '#gw2/professions/ranger/core/mechanics/pets.js';
-import { buildRangerPacket } from '#gw2/professions/ranger/core/events.js';
-import {
-  requireBalanceProfileFromContext,
-  requireEffect,
-  effectNumber,
-  balanceProfileNumber
-} from '#gw2/platform/skills/balance-profiles.js';
-import { RANGER_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/ranger/core/profile-ids.js';
-/** Canonical Core ranger skill fragments grouped by their GW2 owner. */
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
-import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
-import type { Skill } from '#gw2/platform/skills/types.js';
+import { buildResolverCondition } from '#gw2/platform/effects/packet-builders.js';
 import type { SkillEffect } from '#gw2/platform/effects/types.js';
+import type { SimulationEventBase } from '#gw2/platform/events/events.js';
+import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
+import { defineSkillVariantProfile as variant } from '#gw2/platform/profession-definition/profile-authoring.js';
+import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
+import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
+import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
+import {
+  balanceProfileNumber,
+  effectNumber,
+  requireBalanceProfileFromContext,
+  requireEffect
+} from '#gw2/platform/skills/balance-profiles.js';
+import type { Skill } from '#gw2/platform/skills/types.js';
+import { buildRangerPacket } from '#gw2/professions/ranger/core/events.js';
+import { rangerPetCompanionId } from '#gw2/professions/ranger/core/mechanics/pet-attributes.js';
+import { isPlayerStrike } from '#gw2/professions/ranger/core/mechanics/resolution-helpers.js';
+import { RANGER_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/ranger/core/profile-ids.js';
+import { grantSkillCharges } from '#gw2/professions/ranger/core/skills/charge-grants.js';
+import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
+import type {
+  RangerResolverContext,
+  RangerRuntime,
+  RangerRuntimeState,
+  RangerSkill
+} from '#gw2/professions/ranger/types.js';
+
+/** Canonical Core ranger skill fragments grouped by their GW2 owner. */
 
 /** The spirit supplies Power after player bonuses; Precision and Ferocity remain the Ranger's attributes. */
 export function modifyStormSpiritAttributes(
@@ -670,13 +670,6 @@ export function releaseFrostTrap(runtime: RangerRuntime): void {
         ...(event.type === 'combo_field' ? { expiresAt: Number(event.expiresAt) + delay } : {})
       }
     });
-}
-
-/** Selected Signet of the Wild grants ferocity only while ready; callers supply their own observation clock. */
-export function signetOfTheWildBonus(context: unknown, selected: boolean, ready = true): number {
-  return selected && ready
-    ? balanceProfileNumber(requireBalanceProfileFromContext(context, PROFILE.signetOfTheWild), 'attributeBonus')
-    : 0;
 }
 
 /** The owning skill supplies charge limits, lifetime, and the triggered condition packet. */

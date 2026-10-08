@@ -1,16 +1,16 @@
+import { mesmerConditionFromProfile } from '#gw2/professions/mesmer/core/mechanics/conditions.js';
 import {
   buildMesmerConditions,
   buildMesmerStrikes,
   mesmerPacketOwner
 } from '#gw2/professions/mesmer/core/mechanics/packets.js';
-import { mesmerConditionFromProfile } from '#gw2/professions/mesmer/core/mechanics/conditions.js';
 import { cloneShatterConfusion, cloneShatterTier } from '#gw2/professions/mesmer/core/mechanics/shatter-projection.js';
 import type {
   MesmerShatterResolverRequest,
   MesmerShatterTraitHit
 } from '#gw2/professions/mesmer/core/mechanics/shatter-types.js';
-import { applyCryOfPain } from '#gw2/professions/mesmer/core/traits/illusions.js';
-import { triggerBlindingDissipation } from '#gw2/professions/mesmer/core/traits/dueling.js';
+import { triggerBlindingDissipation } from '#gw2/professions/mesmer/core/traits/dueling/index.js';
+import { applyCryOfPain } from '#gw2/professions/mesmer/core/traits/illusions/index.js';
 import type { MesmerRuntime } from '#gw2/professions/mesmer/types.js';
 
 /** Resolves clone-based shatter packets while keeping repeat strikes ineligible for first-strike traits. */

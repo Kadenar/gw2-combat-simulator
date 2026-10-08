@@ -1,13 +1,13 @@
-import { vindicatorBuffPolicies } from '#gw2/professions/revenant/specializations/vindicator/effect-state.js';
-import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import { strikeEffectCoefficient } from '#gw2/platform/effects/authoring.js';
-import type { SkillId } from '#gw2/platform/skills/types.js';
 import { resetAutoattackChains } from '#gw2/platform/execution/autoattack-chains.js';
+import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
+import type { SkillId } from '#gw2/platform/skills/types.js';
 import type { RevenantRuntime } from '#gw2/professions/revenant/core/events.js';
-import { grantAllianceInvocationEndurance } from '#gw2/professions/revenant/core/traits/behavior.js';
+import { grantAllianceInvocationEndurance } from '#gw2/professions/revenant/core/traits/invocation/behavior.js';
 import { REVENANT_SKILL_IDS as ID } from '#gw2/professions/revenant/data/ids.js';
 import { VINDICATOR_AIRBORNE_MS, VINDICATOR_JUMP_SKILL } from '#gw2/professions/revenant/data/vindicator-jump.js';
+import { vindicatorBuffPolicies } from '#gw2/professions/revenant/specializations/vindicator/effect-state.js';
 import {
   VINDICATOR_LANDING_TASK,
   scheduleLanding,

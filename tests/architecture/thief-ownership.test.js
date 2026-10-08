@@ -54,7 +54,7 @@ test('Thief Core has no transitive elite dependency or value-import cycle', () =
 
 test('Thief capacity and state queries cannot reach reactions, modifiers, or resource mutation', () => {
   const graph = new Map(dependencies());
-  for (const entry of ['core/state.ts', 'core/state-queries.ts', 'core/traits/resource-queries.ts'])
+  for (const entry of ['core/state.ts', 'core/state-queries.ts', 'core/traits/trickery/resource-queries.ts'])
     inspect(graph, path.join(root, entry), (relative, trace) => {
       assert.ok(!/(?:hooks|modifiers|behavior|dispatch)\.ts$/.test(relative), trace.join(' -> '));
       assert.ok(!relative.startsWith('core/mechanics/'), trace.join(' -> '));

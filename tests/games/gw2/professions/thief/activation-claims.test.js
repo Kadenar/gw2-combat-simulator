@@ -1,10 +1,10 @@
+import { applyBalanceProfilePatch } from '#gw2/integrations/patches/authoring/patches.js';
+import { applyDeadlyAmbition } from '#gw2/professions/thief/core/traits/deadly-arts/poison.js';
+import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
+import { observedRuntime } from '#tests/helpers/observed-runtime.js';
+import { runThief, thiefHit } from '#tests/helpers/thief-simulation.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { runThief, thiefHit } from '#tests/helpers/thief-simulation.js';
-import { observedRuntime } from '#tests/helpers/observed-runtime.js';
-import { applyBalanceProfilePatch } from '#gw2/integrations/patches/authoring/patches.js';
-import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
-import { applyDeadlyAmbition } from '#gw2/professions/thief/core/traits/poison.js';
 
 // Rejected or removed packets leave the activation available; a surviving emission commits before reentry.
 test('Deadly Ambition preserves component eligibility and its ID-less identity rule', () => {

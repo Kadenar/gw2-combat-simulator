@@ -1,9 +1,10 @@
 import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
 import { boonActive } from '#gw2/platform/combat/query/runtime-query.js';
-import type { SimulationEvent } from '#gw2/platform/events/events.js';
-import { readProfessionCoreState } from '#gw2/platform/profession-definition/state.js';
 import { gw2PrimaryWeapon } from '#gw2/platform/equipment/weapons/loadout.js';
-import type { GuardianState } from '#gw2/professions/guardian/types.js';
+import type { SimulationEvent } from '#gw2/platform/events/events.js';
+import { professionCoreState, readProfessionCoreState } from '#gw2/platform/profession-definition/state.js';
+import type { GuardianCoreState } from '#gw2/professions/guardian/core/state.js';
+import type { GuardianResolverContext, GuardianState } from '#gw2/professions/guardian/types.js';
 
 export function guardianRuntimeState(context: Gw2ModifierContext): Partial<GuardianState> {
   return readProfessionCoreState<GuardianState>(context.runtime?.profession);
@@ -45,4 +46,8 @@ export function latestGuardianTimedBuff(context: Gw2ModifierContext, kind: strin
   }
 
   return latest;
+}
+
+export function guardianResolverState(context: GuardianResolverContext): GuardianCoreState {
+  return professionCoreState(context);
 }

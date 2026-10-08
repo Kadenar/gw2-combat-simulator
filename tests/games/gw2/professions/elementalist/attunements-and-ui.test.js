@@ -1,23 +1,20 @@
-import { planningFixture } from '#tests/helpers/observed-runtime.js';
-import { observedRuntime } from '#tests/helpers/observed-runtime.js';
-import assert from 'node:assert/strict';
-import { assertFlooredDamageMultiplier } from '#tests/helpers/rounded-damage.js';
-import test from 'node:test';
-
-import { inertContainer } from '#tests/helpers/dom.js';
-import { runNative, resolvedAndScheduledEvents } from '#tests/helpers/elementalist-simulation.js';
-import { timelineWeaponRows } from '#gw2/app/rotation/timeline/model.js';
-import { paletteSkillView } from '#gw2/app/rotation/palette/model.js';
-import { renderPalette } from '#gw2/app/rotation/palette/view.js';
+import { paletteSkillView, weaponPaletteRows } from '#gw2/app/rotation/palette/model.js';
 import { activeResourceGroup, renderStartResource } from '#gw2/app/rotation/palette/resource-view.js';
-import { weaponPaletteRows } from '#gw2/app/rotation/palette/model.js';
+import { renderPalette } from '#gw2/app/rotation/palette/view.js';
+import { timelineWeaponRows } from '#gw2/app/rotation/timeline/model.js';
 import { elementalistAppAdapter } from '#gw2/professions/elementalist/app/app-definition.js';
-import { elementalistCatalog, elementalistProfession } from '#gw2/professions/elementalist/profession.js';
+import { elementalistCoreHooks } from '#gw2/professions/elementalist/core/hooks.js';
 import { FIRE_ELEMENTAL_EVTC_PROFILE } from '#gw2/professions/elementalist/core/mechanics/elementals/profiles.js';
 import { createElementalistCoreState } from '#gw2/professions/elementalist/core/state.js';
-import { elementalistCoreHooks } from '#gw2/professions/elementalist/core/hooks.js';
-import { projectedFreshAirReadyAt } from '#gw2/professions/elementalist/core/traits/critical-procs.js';
+import { projectedFreshAirReadyAt } from '#gw2/professions/elementalist/core/traits/air/critical-procs.js';
 import { ELEMENTALIST_TRAIT_IDS as TRAIT } from '#gw2/professions/elementalist/data/ids.js';
+import { elementalistCatalog, elementalistProfession } from '#gw2/professions/elementalist/profession.js';
+import { inertContainer } from '#tests/helpers/dom.js';
+import { resolvedAndScheduledEvents, runNative } from '#tests/helpers/elementalist-simulation.js';
+import { observedRuntime, planningFixture } from '#tests/helpers/observed-runtime.js';
+import { assertFlooredDamageMultiplier } from '#tests/helpers/rounded-damage.js';
+import assert from 'node:assert/strict';
+import test from 'node:test';
 
 test('Fresh Air keeps only future strike wakes for selected builds', () => {
   // Wakes are candidates, including cancellable strikes; only resolved criticals reset recharge.

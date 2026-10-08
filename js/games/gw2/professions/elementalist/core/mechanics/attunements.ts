@@ -1,9 +1,4 @@
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
-import { elementalEnchantmentRecharge } from '#gw2/professions/elementalist/core/traits/arcane.js';
-/**
- * Owns Core Elementalist attunement selection, recharge, and cast-completion transitions.
- * Specializations may intercept the shared hooks but keep their extra state locally.
- */
 import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
 import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
@@ -18,9 +13,11 @@ import {
   setElementalistAttunementReadyAt,
   type ElementalistAttunement
 } from '#gw2/professions/elementalist/core/state.js';
+import { elementalEnchantmentRecharge } from '#gw2/professions/elementalist/core/traits/arcane/index.js';
 import { applyElementalistAttunementTraits } from '#gw2/professions/elementalist/core/traits/dispatch.js';
 import { ELEMENTALIST_ATTUNEMENT_SKILL_IDS } from '#gw2/professions/elementalist/data/ids.js';
 import type { ElementalistRuntime, ElementalistSkill } from '#gw2/professions/elementalist/types.js';
+
 /** Identifies one shared attunement-entry trait effect so a specialization can veto it. */
 export interface ElementalistAttunementTraitTrigger {
   readonly attunement: ElementalistAttunement;

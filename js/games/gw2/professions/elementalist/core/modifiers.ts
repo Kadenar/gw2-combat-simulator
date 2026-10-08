@@ -1,24 +1,18 @@
-import { activeBuffStacks } from '#gw2/platform/combat/query/runtime-query.js';
-import type { Gw2MutableStats, Gw2Stats } from '#gw2/platform/combat/stats.js';
-import { wieldedConjure } from '#gw2/professions/elementalist/core/mechanics/modifier-queries.js';
-import { applyAirTraitAttributes } from '#gw2/professions/elementalist/core/traits/air.js';
-import { applyArcaneTraitAttributes } from '#gw2/professions/elementalist/core/traits/arcane.js';
-import { applyFireTraitAttributes, applyInfernoAttributes } from '#gw2/professions/elementalist/core/traits/fire.js';
-import { reconcileSignetPassive } from '#gw2/professions/elementalist/core/traits/earth.js';
-import type { ElementalistModifierContext } from '#gw2/professions/elementalist/types.js';
-/**
- * Core Elementalist damage and attribute modifiers.
- *
- * Everything here runs at damage-evaluation time against the runtime snapshot,
- * not at build time: declarative `Gw2ModifierRule`s for strike/condition/crit
- * multipliers, plus `modifyElementalistAttributes` for stat changes that depend
- * on the attunement, timed buffs, or wielded bundle in force at that instant.
- * The shared query helpers are also re-used by the specialization modifier files.
- */
 import type { Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
+import { activeBuffStacks } from '#gw2/platform/combat/query/runtime-query.js';
+import type { Gw2MutableStats, Gw2Stats } from '#gw2/platform/combat/stats.js';
 import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import { wieldedConjure } from '#gw2/professions/elementalist/core/mechanics/modifier-queries.js';
 import { ELEMENTALIST_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/elementalist/core/profile-ids.js';
+import { applyAirTraitAttributes } from '#gw2/professions/elementalist/core/traits/air/index.js';
+import { applyArcaneTraitAttributes } from '#gw2/professions/elementalist/core/traits/arcane/index.js';
+import { reconcileSignetPassive } from '#gw2/professions/elementalist/core/traits/earth/index.js';
+import {
+  applyFireTraitAttributes,
+  applyInfernoAttributes
+} from '#gw2/professions/elementalist/core/traits/fire/index.js';
+import type { ElementalistModifierContext } from '#gw2/professions/elementalist/types.js';
 
 /**
  * Non-trait resource modifiers remain here; registered traits own their own rules.

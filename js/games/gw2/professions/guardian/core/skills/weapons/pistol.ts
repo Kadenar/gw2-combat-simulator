@@ -1,17 +1,16 @@
-import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
-import type { MechanicContext } from '#gw2/platform/profession-definition/mechanic-context.js';
 import { isGw2PlayerActorEvent } from '#gw2/platform/combat/state/event-ownership.js';
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
+import { buildResolverCondition } from '#gw2/platform/effects/packet-builders.js';
+import type { MechanicContext, MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
+import type { RuntimeProfession } from '#gw2/platform/profession-definition/runtime-contract.js';
 import {
   effectNumber,
   requireBalanceProfileFromContext,
   requireEffect
 } from '#gw2/platform/skills/balance-profiles.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
-import { buildResolverCondition } from '#gw2/platform/effects/packet-builders.js';
-import type { RuntimeProfession } from '#gw2/platform/profession-definition/runtime-contract.js';
+import { guardianResolverState } from '#gw2/professions/guardian/core/mechanics/modifier-queries.js';
 import { GUARDIAN_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/guardian/core/profiles.js';
-import { guardianResolverState } from '#gw2/professions/guardian/core/traits/behavior.js';
 import { GUARDIAN_SKILL_IDS as ID } from '#gw2/professions/guardian/data/ids.js';
 import type {
   GuardianResolverContext,

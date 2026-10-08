@@ -4,7 +4,7 @@ import {
   pumpingUp,
   swindlersEquilibrium,
   upperHand
-} from '#gw2/professions/thief/core/traits/acrobatics.js';
+} from '#gw2/professions/thief/core/traits/acrobatics/index.js';
 import {
   assassinsFury,
   deadlyAim,
@@ -17,7 +17,7 @@ import {
   sunderingShade,
   twinFangs,
   unrelentingStrikes
-} from '#gw2/professions/thief/core/traits/critical-strikes.js';
+} from '#gw2/professions/thief/core/traits/critical-strikes/index.js';
 import {
   daggerTraining,
   deadlyAmbition,
@@ -31,14 +31,14 @@ import {
   potentPoison,
   revealedTraining,
   serpentsTouch
-} from '#gw2/professions/thief/core/traits/deadly-arts.js';
+} from '#gw2/professions/thief/core/traits/deadly-arts/index.js';
 import {
   cloakedInShadow,
   hiddenThief,
   leechingVenoms,
   shadowSiphoning,
   shadowsRejuvenation
-} from '#gw2/professions/thief/core/traits/shadow-arts.js';
+} from '#gw2/professions/thief/core/traits/shadow-arts/index.js';
 import {
   bountifulTheft,
   burstOfAgility,
@@ -50,7 +50,7 @@ import {
   sleightOfHand,
   thrillOfTheCrime,
   uncatchable
-} from '#gw2/professions/thief/core/traits/trickery.js';
+} from '#gw2/professions/thief/core/traits/trickery/index.js';
 
 /** Native trait owners, in stable authoring order. */
 export const coreTraits = Object.freeze([

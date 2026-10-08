@@ -1,16 +1,15 @@
-import { reactToRighteousInstinctsBuff } from '#gw2/professions/guardian/core/traits/radiance.js';
-import { writOfPersistenceEffects, writOfPersistenceFields } from '#gw2/professions/guardian/core/traits/honor.js';
-import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
-import type { MechanicContext } from '#gw2/platform/profession-definition/mechanic-context.js';
 import { grantTimedStacks } from '#gw2/platform/combat/resources/timed-stacks.js';
-import { denySkillCast } from '#gw2/platform/execution/availability.js';
-import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
-import { skillFlipReady } from '#gw2/platform/execution/skill-flips.js';
-import type { NativeResolvedDamageDetails } from '#gw2/platform/profession-definition/module-types.js';
-import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import { applySideEffect } from '#gw2/platform/effects/action-dispatch.js';
-import { damageInputEvent } from '#gw2/platform/skill-damage/occurrence-driver.js';
+import { denySkillCast } from '#gw2/platform/execution/availability.js';
+import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import { castWasInterrupted } from '#gw2/platform/execution/cast-timing.js';
+import { skillFlipReady } from '#gw2/platform/execution/skill-flips.js';
+import type { MechanicContext } from '#gw2/platform/profession-definition/mechanic-context.js';
+import type { NativeResolvedDamageDetails } from '#gw2/platform/profession-definition/module-types.js';
+import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
+import { damageInputEvent } from '#gw2/platform/skill-damage/occurrence-driver.js';
+import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import { guardianBuffPolicies, guardianEffectStates } from '#gw2/professions/guardian/core/effect-state.js';
 import { guardianRechargeWork } from '#gw2/professions/guardian/core/mechanics/recharge.js';
 import { expireSpearIllumination, GUARDIAN_SPEAR_EXPIRY } from '#gw2/professions/guardian/core/mechanics/spear.js';
 import {
@@ -29,17 +28,26 @@ import {
 import { guardianSpearActions } from '#gw2/professions/guardian/core/skills/weapons/spear.js';
 import { guardianTorchActions } from '#gw2/professions/guardian/core/skills/weapons/torch.js';
 import {
-  applyGuardianVirtueActivationTraits,
-  completeHealersResolution,
   completeProtectorsRestoration,
-  eternalArmoryMaximumAmmo,
+  writOfPersistenceEffects,
+  writOfPersistenceFields
+} from '#gw2/professions/guardian/core/traits/honor/index.js';
+import {
+  completeHealersResolution,
+  radiantFireMaximumAmmo
+} from '#gw2/professions/guardian/core/traits/radiance/behavior.js';
+import { reactToRighteousInstinctsBuff } from '#gw2/professions/guardian/core/traits/radiance/index.js';
+import {
+  applyGuardianVirtueActivationTraits,
   glacialHeartAvailability,
   guardianResolutionMultiplier,
-  masterOfConsecrationsFields,
-  radiantFireMaximumAmmo,
+  masterOfConsecrationsFields
+} from '#gw2/professions/guardian/core/traits/virtues/behavior.js';
+import {
+  eternalArmoryMaximumAmmo,
   reactToZealDamage,
   triggerGuardianFuriousFocus
-} from '#gw2/professions/guardian/core/traits/behavior.js';
+} from '#gw2/professions/guardian/core/traits/zeal/behavior.js';
 import { GUARDIAN_TRAIT_IDS, GUARDIAN_SKILL_IDS as ID } from '#gw2/professions/guardian/data/ids.js';
 import type { GuardianRuntimeState, GuardianSkill, GuardianVirtue } from '#gw2/professions/guardian/types.js';
 
@@ -71,9 +79,6 @@ function clearTorchLockout(runtime: Runtime, cast: RuntimeCast<GuardianSkill>): 
   if (skill.id !== ID.ZEALOTS_FIRE && skill.type !== 'Action')
     runtime.castController.clearLockout('guardian-zealots-flame-after-fire');
 }
-
-/** Core hooks: accepted virtues, shared recharge, endurance grants, and temporary weapon state. */
-import { guardianBuffPolicies, guardianEffectStates } from '#gw2/professions/guardian/core/effect-state.js';
 
 export const guardianCoreHooks: RuntimeHooks<GuardianRuntimeState, GuardianSkill> = {
   // Known damage payloads are invoked once without their activation requirements.

@@ -1,24 +1,24 @@
-import { createMechanicCombatServices } from '#gw2/platform/resolver/mechanic-services.js';
-import { effectPlanningState } from '#tests/helpers/effect-report.js';
-import { captureEffectEmissions } from '#tests/helpers/effect-emission.js';
 import { applyBalanceProfilePatch } from '#gw2/integrations/patches/authoring/patches.js';
-import { withProfile } from '#tests/helpers/catalog-overrides.js';
-import { applyResolverElementalShielding } from '#gw2/professions/elementalist/core/traits/earth.js';
-import { applyResolverZephyrsBoon } from '#gw2/professions/elementalist/core/traits/air.js';
+import { createMechanicCombatServices } from '#gw2/platform/resolver/mechanic-services.js';
+import { applyResolverZephyrsBoon } from '#gw2/professions/elementalist/core/traits/air/index.js';
 import { applyElementalistAttunementTraits } from '#gw2/professions/elementalist/core/traits/dispatch.js';
+import { applyResolverElementalShielding } from '#gw2/professions/elementalist/core/traits/earth/index.js';
 import { ELEMENTALIST_TRAIT_IDS as TRAIT } from '#gw2/professions/elementalist/data/ids.js';
 import { elementalistCatalog } from '#gw2/professions/elementalist/profession.js';
-import { catalystModule } from '#gw2/professions/elementalist/specializations/catalyst/module.js';
-import { catalystState } from '#gw2/professions/elementalist/specializations/catalyst/state.js';
 import { catalystEffectStates } from '#gw2/professions/elementalist/specializations/catalyst/effect-state.js';
+import { catalystModule } from '#gw2/professions/elementalist/specializations/catalyst/module.js';
+import { catalystUi } from '#gw2/professions/elementalist/specializations/catalyst/presentation.js';
+import { catalystState } from '#gw2/professions/elementalist/specializations/catalyst/state.js';
 import {
   applyEmpoweringAura,
   applyEmpoweringAurasBuff,
   empoweringAuraStacks
 } from '#gw2/professions/elementalist/specializations/catalyst/traits/auras.js';
-import { catalystUi } from '#gw2/professions/elementalist/specializations/catalyst/presentation.js';
-import { triggerSpecializedElementEntry } from '#gw2/professions/elementalist/specializations/evoker/traits/attunements.js';
+import { triggerSpecializedElementEntry } from '#gw2/professions/elementalist/specializations/evoker/traits/attunement-policy.js';
 import { applyTempestResolverAura } from '#gw2/professions/elementalist/specializations/tempest/traits/auras.js';
+import { withProfile } from '#tests/helpers/catalog-overrides.js';
+import { captureEffectEmissions } from '#tests/helpers/effect-emission.js';
+import { effectPlanningState } from '#tests/helpers/effect-report.js';
 import { runElementalist, runNative } from '#tests/helpers/elementalist-simulation.js';
 import { observedRuntime } from '#tests/helpers/observed-runtime.js';
 import assert from 'node:assert/strict';

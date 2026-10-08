@@ -89,8 +89,12 @@ slots, weapon variants, resources, cooldowns, and dynamic state are separate che
 ### Source roles
 
 Generated API metadata carries identity and presentation only, never coefficients or conditions. Skill files hold the
-authoritative ID-keyed declarative fields; there is no production-wide skill aggregate, and tests compose inventories
-under `tests/`. The full list of file roles inside a profession is in [MODULES.md](./MODULES.md#profession-file-roles).
+authoritative ID-keyed declarations and intrinsic skill behavior. Trait policies remain with their trait owners;
+mechanics own shared state and hook files register those contributions. Tests compose cross-profession inventories under
+`tests/`. Elementalist is a catalog-generation exception: its `data/module-data.ts` aggregates all five module-owned
+skill inventories before partitioning them back into disjoint owners. That aggregate contains no separate source of
+skill tuning, and ESLint permits only the module skill-index imports at that boundary. The full list of file roles is in
+[MODULES.md](./MODULES.md#profession-file-roles).
 
 ### Authoring workflow
 
@@ -193,11 +197,12 @@ action-tick rounding.
 
 Dragon Trigger owns charging, release capture, charge-scaled packets, and expiry, with state defaults in its leaf state
 module. Its immutable release records are stored per run. Gunsaber transitions and Flow regeneration have separate
-owners. Photon Forge owns its task/action registration alongside the heat lifecycle. Mesmer's `family-mechanics.ts`
-binds separate resource, clone, shatter, and phantasm operations to explicit mechanic contexts. Selected definitions
-come from the build and patch; mutable counters and lifecycle state live in the profession's Core or specialization
-slice. No context-identity registry or shared controller aggregate is required. Specialization reactions dispatch
-explicitly after committed resource gains and shatters; Core completion still runs before Mimic.
+owners. Photon Forge owns its task/action registration alongside the heat lifecycle. Mesmer's `family-resources.ts`
+binds clone scheduling and resource rewards independently of `family-mechanics.ts`, which assembles shatter, phantasm,
+and skill operations. This keeps trait callers from cycling through family behavior. Selected definitions come from the
+build and patch; mutable counters and lifecycle state live in the profession's Core or specialization slice. No
+context-identity registry or shared controller aggregate is required. Specialization reactions dispatch explicitly after
+committed resource gains and shatters; Core completion still runs before Mimic.
 
 - One cursor, heap, profession/target state, resource controller, and RNG own the run.
 - Pending work is invisible to historical queries until it executes.

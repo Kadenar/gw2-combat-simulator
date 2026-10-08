@@ -7,16 +7,17 @@ import {
   armsCriticalRewards,
   burstPrecisionHit,
   triggerOpportunist
-} from '#gw2/professions/warrior/core/traits/arms.js';
-import { cullTheWeakBurst, mercilessHammerControl } from '#gw2/professions/warrior/core/traits/defense.js';
-import { axeMasteryCritical, versatileRageSwap } from '#gw2/professions/warrior/core/traits/discipline.js';
+} from '#gw2/professions/warrior/core/traits/arms/index.js';
+import { cullTheWeakBurst, mercilessHammerControl } from '#gw2/professions/warrior/core/traits/defense/index.js';
+import { axeMasteryCritical, versatileRageSwap } from '#gw2/professions/warrior/core/traits/discipline/index.js';
 import {
   berserkersPowerBurst,
   buildingMomentumBurst,
   forcefulGreatswordCritical
-} from '#gw2/professions/warrior/core/traits/strength.js';
-import { resetSoldierFocus, soldierFocusBurst } from '#gw2/professions/warrior/core/traits/tactics.js';
+} from '#gw2/professions/warrior/core/traits/strength/index.js';
+import { resetSoldierFocus, soldierFocusBurst } from '#gw2/professions/warrior/core/traits/tactics/index.js';
 import type { WarriorRuntimeState, WarriorSkill } from '#gw2/professions/warrior/types.js';
+
 /** Dispatch cross-line reactions in gameplay order; trait modules own their complete behavior. */
 
 type WarriorRuntime = MechanicContext<WarriorRuntimeState, WarriorSkill>;

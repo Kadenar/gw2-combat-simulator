@@ -1,24 +1,24 @@
-import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
+import { buildResolverCondition } from '#gw2/platform/effects/packet-builders.js';
+import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
+import { projectCastRelativeEffectTimingMs } from '#gw2/platform/execution/cast-timing.js';
+import { armSkillFlip, consumeSkillFlip, expireSkillFlip } from '#gw2/platform/execution/skill-flips.js';
 import type { MechanicContext } from '#gw2/platform/profession-definition/mechanic-context.js';
+import type { NativeResolvedDamageDetails } from '#gw2/platform/profession-definition/module-types.js';
+import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
+import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import {
   balanceProfileNumber,
   effectNumber,
   requireBalanceProfileFromContext,
   requireEffect
 } from '#gw2/platform/skills/balance-profiles.js';
-import { armSkillFlip, consumeSkillFlip, expireSkillFlip } from '#gw2/platform/execution/skill-flips.js';
-import type { NativeResolvedDamageDetails } from '#gw2/platform/profession-definition/module-types.js';
-import { buildResolverCondition } from '#gw2/platform/effects/packet-builders.js';
-import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
-import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
-import { projectCastRelativeEffectTimingMs } from '#gw2/platform/execution/cast-timing.js';
 import { createPassiveCourageTask } from '#gw2/professions/guardian/core/mechanics/passive-courage.js';
 import { guardianVirtueForSlot, refreshGuardianVirtues } from '#gw2/professions/guardian/core/mechanics/virtues.js';
 import {
   applyGuardianVirtueActivationTraits,
-  indomitableCourageInterval,
-  triggerGuardianFuriousFocus
-} from '#gw2/professions/guardian/core/traits/behavior.js';
+  indomitableCourageInterval
+} from '#gw2/professions/guardian/core/traits/virtues/behavior.js';
+import { triggerGuardianFuriousFocus } from '#gw2/professions/guardian/core/traits/zeal/behavior.js';
 import { GUARDIAN_SKILL_IDS as ID } from '#gw2/professions/guardian/data/ids.js';
 import { reactToDragonhunterJusticeHit } from '#gw2/professions/guardian/specializations/dragonhunter/mechanics/virtue-effects.js';
 import { DRAGONHUNTER_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/guardian/specializations/dragonhunter/profiles.js';

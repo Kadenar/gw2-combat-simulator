@@ -1,6 +1,7 @@
-import { createMechanicCombatServices } from '#gw2/platform/resolver/mechanic-services.js';
-import { snapshotProfessionState } from '#gw2/platform/profession-definition/state.js';
+import { applyBalanceProfilePatch } from '#gw2/integrations/patches/authoring/patches.js';
 import { applySkillSideEffects } from '#gw2/platform/effects/action-dispatch.js';
+import { snapshotProfessionState } from '#gw2/platform/profession-definition/state.js';
+import { createMechanicCombatServices } from '#gw2/platform/resolver/mechanic-services.js';
 import { applyElementalistResolvedDamage } from '#gw2/professions/elementalist/core/mechanics/reactions.js';
 import { applyShatteringStoneBuff } from '#gw2/professions/elementalist/core/skills/weapons/pistol.js';
 import { elementalistProfession } from '#gw2/professions/elementalist/profession.js';
@@ -8,22 +9,26 @@ import { ENGINEER_TRAIT_IDS as ENGINEER } from '#gw2/professions/engineer/data/i
 import { engineerProfession } from '#gw2/professions/engineer/profession.js';
 import { consumeSolarFocusingLens } from '#gw2/professions/engineer/specializations/holosmith/traits/behavior.js';
 import { solarFocusingLens } from '#gw2/professions/engineer/specializations/holosmith/traits/index.js';
-import { rangerCoreHooks } from '#gw2/professions/ranger/core/hooks.js';
-import { necromancerProfession } from '#gw2/professions/necromancer/profession.js';
-import { NECROMANCER_TRAIT_IDS as NECROMANCER } from '#gw2/professions/necromancer/data/ids.js';
-import {
-  reactToTasteForBloodGrant,
-  reactToTasteForBloodAlliedHit,
-  applyOverflowingThirstDamage
-} from '#gw2/professions/necromancer/core/traits/life-steal.js';
 import { necromancerEffectStates } from '#gw2/professions/necromancer/core/effect-state.js';
-import { RANGER_CORE_BALANCE_PROFILE_IDS as RANGER_PROFILE } from '#gw2/professions/ranger/core/profile-ids.js';
-import { handleRangerBloodThirst } from '#gw2/professions/ranger/core/skills/weapons/shortbow.js';
-import { handleRangerSharpeningStone } from '#gw2/professions/ranger/core/skills/slot-skills.js';
-import { handleRangerPoisonousStrikes } from '#gw2/professions/ranger/core/skills/weapons/dagger.js';
+import {
+  applyOverflowingThirstDamage,
+  reactToTasteForBloodAlliedHit,
+  reactToTasteForBloodGrant
+} from '#gw2/professions/necromancer/core/traits/blood-magic/life-steal.js';
+import { NECROMANCER_TRAIT_IDS as NECROMANCER } from '#gw2/professions/necromancer/data/ids.js';
+import { necromancerProfession } from '#gw2/professions/necromancer/profession.js';
+import { rangerCoreHooks } from '#gw2/professions/ranger/core/hooks.js';
 import { reactToRangerCoreDamage } from '#gw2/professions/ranger/core/mechanics/reactions.js';
-import { triggerPoisonousStrikes } from '#gw2/professions/ranger/core/skills/weapons/dagger.js';
-import { triggerSharpeningStone } from '#gw2/professions/ranger/core/skills/slot-skills.js';
+import { RANGER_CORE_BALANCE_PROFILE_IDS as RANGER_PROFILE } from '#gw2/professions/ranger/core/profile-ids.js';
+import {
+  handleRangerSharpeningStone,
+  triggerSharpeningStone
+} from '#gw2/professions/ranger/core/skills/slot-skills.js';
+import {
+  handleRangerPoisonousStrikes,
+  triggerPoisonousStrikes
+} from '#gw2/professions/ranger/core/skills/weapons/dagger.js';
+import { handleRangerBloodThirst } from '#gw2/professions/ranger/core/skills/weapons/shortbow.js';
 import { RANGER_SKILL_IDS as RANGER } from '#gw2/professions/ranger/data/ids.js';
 import { rangerProfession } from '#gw2/professions/ranger/profession.js';
 import { reactToSoulbeastDamage } from '#gw2/professions/ranger/specializations/soulbeast/mechanics/beastmode-effects.js';
@@ -31,7 +36,6 @@ import { THIEF_SKILL_IDS as THIEF } from '#gw2/professions/thief/data/ids.js';
 import { thiefProfession } from '#gw2/professions/thief/profession.js';
 import { antiquaryResolverEventReactions } from '#gw2/professions/thief/specializations/antiquary/mechanics/artifact-effects.js';
 import { withSkill } from '#tests/helpers/catalog-overrides.js';
-import { applyBalanceProfilePatch } from '#gw2/integrations/patches/authoring/patches.js';
 import { captureEffectEmissions } from '#tests/helpers/effect-emission.js';
 import { projectObservedState } from '#tests/helpers/observed-runtime.js';
 import { runThief } from '#tests/helpers/thief-simulation.js';

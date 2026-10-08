@@ -1,22 +1,22 @@
-import { createEffectExpansionBudget } from '#gw2/platform/effects/expansion-budget.js';
-import { createMechanicCombatServices } from '#gw2/platform/resolver/mechanic-services.js';
-import { createEffectEmissionService } from '#gw2/platform/effects/emission.js';
-import { applyBoonExtension } from '#gw2/platform/combat/boons.js';
 import { chartValueAt } from '#gw2/app/results/charts/time-series-model.js';
 import { buildChartSeries } from '#gw2/app/results/model.js';
 import { applyBalanceProfilePatch } from '#gw2/integrations/patches/authoring/patches.js';
-import { remainingDurationStackSeconds } from '#gw2/platform/combat/boons.js';
+import { applyBoonExtension, remainingDurationStackSeconds } from '#gw2/platform/combat/boons.js';
 import { createProcRegistry } from '#gw2/platform/combat/procs/registry.js';
 import { activeStackCount } from '#gw2/platform/combat/resources/timed-stacks.js';
+import { createEffectEmissionService } from '#gw2/platform/effects/emission.js';
+import { createEffectExpansionBudget } from '#gw2/platform/effects/expansion-budget.js';
+import { createMechanicCombatServices } from '#gw2/platform/resolver/mechanic-services.js';
 import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
+import { reactThiefCoreDamage } from '#gw2/professions/thief/core/mechanics/reactions.js';
 import { thiefCoreUi } from '#gw2/professions/thief/core/presentation.js';
 import { THIEF_CORE_BALANCE_PROFILE_IDS as CORE } from '#gw2/professions/thief/core/profiles.js';
 import { createThiefCoreState } from '#gw2/professions/thief/core/state.js';
 import {
   noQuarterCriticalReaction,
   unrelentingStrikesCriticalReaction
-} from '#gw2/professions/thief/core/traits/critical-boons.js';
-import { reactThiefCoreCondition, reactThiefCoreDamage } from '#gw2/professions/thief/core/traits/dispatch.js';
+} from '#gw2/professions/thief/core/traits/critical-strikes/critical-boons.js';
+import { reactThiefCoreCondition } from '#gw2/professions/thief/core/traits/dispatch.js';
 import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
 import { thiefCatalog } from '#gw2/professions/thief/profession.js';
 import { StableEventQueue } from '#kernel/events/queue.js';

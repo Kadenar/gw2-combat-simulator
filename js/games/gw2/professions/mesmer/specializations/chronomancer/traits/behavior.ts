@@ -1,5 +1,3 @@
-import { createMesmerIllusionRewards, mesmerActivePrimaryWeapon } from '#gw2/professions/mesmer/family-mechanics.js';
-import type { MesmerEventExtra } from '#gw2/professions/mesmer/data/types.js';
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import type { SimulationEvent } from '#gw2/platform/events/events.js';
 import {
@@ -10,6 +8,8 @@ import {
 import type { MesmerPhantasmPolicy } from '#gw2/professions/mesmer/core/mechanics/illusions/types.js';
 import type { MesmerShatterResolution } from '#gw2/professions/mesmer/core/mechanics/shatter-types.js';
 import { MESMER_SKILL_IDS as ID, MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
+import type { MesmerEventExtra } from '#gw2/professions/mesmer/data/types.js';
+import { createMesmerIllusionRewards, mesmerActivePrimaryWeapon } from '#gw2/professions/mesmer/family-resources.js';
 import type { MesmerRuntime } from '#gw2/professions/mesmer/types.js';
 
 /** Arms Danger Time from Chronomancer control packets and Delayed Reactions. */

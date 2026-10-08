@@ -1,16 +1,16 @@
-import { createEffectExpansionBudget } from '#gw2/platform/effects/expansion-budget.js';
-import assert from 'node:assert/strict';
-import test from 'node:test';
 import { createGw2CombatQuery } from '#gw2/platform/combat-calculation/combat-query.js';
-import { testProfession } from '#tests/fixtures/profession.js';
-import { StableEventQueue } from '#kernel/events/queue.js';
+import { effectStateValue } from '#gw2/platform/combat/effect-state.js';
+import { createEffectExpansionBudget } from '#gw2/platform/effects/expansion-budget.js';
 import { createGw2ConditionResolution } from '#gw2/platform/resolver/condition-resolution.js';
 import { createGw2ResolverRuntimeState } from '#gw2/platform/resolver/runtime-state.js';
-import { createRangerCoreState } from '#gw2/professions/ranger/core/state.js';
-import { handleRangerPetSwapped } from '#gw2/professions/ranger/core/mechanics/event-handlers.js';
-import { rangerPetCompanionId } from '#gw2/professions/ranger/core/mechanics/pets.js';
 import { observeRuntimeEffects } from '#gw2/platform/results/observe-effects.js';
-import { effectStateValue } from '#gw2/platform/combat/effect-state.js';
+import { handleRangerPetSwapped } from '#gw2/professions/ranger/core/mechanics/event-handlers.js';
+import { rangerPetCompanionId } from '#gw2/professions/ranger/core/mechanics/pet-attributes.js';
+import { createRangerCoreState } from '#gw2/professions/ranger/core/state.js';
+import { StableEventQueue } from '#kernel/events/queue.js';
+import { testProfession } from '#tests/fixtures/profession.js';
+import assert from 'node:assert/strict';
+import test from 'node:test';
 
 for (const reporting of [true, false]) {
   test(`pet retirement cancels independent conditions immediately with reporting=${reporting}`, () => {

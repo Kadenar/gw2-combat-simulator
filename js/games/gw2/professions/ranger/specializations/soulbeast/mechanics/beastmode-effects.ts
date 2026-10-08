@@ -1,9 +1,14 @@
 import { claimActivation } from '#gw2/platform/combat/procs/activation-claims.js';
-import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
+import { isInternalCooldownReady } from '#gw2/platform/combat/procs/registry.js';
 import { consumeCharge, expireCharges } from '#gw2/platform/combat/resources/charges.js';
 import { gw2AlliedPlayerProcTimeline } from '#gw2/platform/combat/state/allied-players.js';
-import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
+import { buildResolverCondition, buildResolverStrike } from '#gw2/platform/effects/packet-builders.js';
+import type { ConditionEffect, StatusEffect, StrikeEffect } from '#gw2/platform/effects/types.js';
+import type { AvailabilityResult } from '#gw2/platform/execution/availability.js';
 import { denySkillCast as deny } from '#gw2/platform/execution/availability.js';
+import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
+import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
+import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import {
   balanceProfileNumber,
   effectNumber,
@@ -11,11 +16,6 @@ import {
   requireEffect
 } from '#gw2/platform/skills/balance-profiles.js';
 import type { BalanceProfile } from '#gw2/platform/skills/types.js';
-import type { StatusEffect } from '#gw2/platform/effects/types.js';
-import type { ConditionEffect, StrikeEffect } from '#gw2/platform/effects/types.js';
-import type { AvailabilityResult } from '#gw2/platform/execution/availability.js';
-import { buildResolverCondition, buildResolverStrike } from '#gw2/platform/effects/packet-builders.js';
-import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import {
   isPlayerStrike,
   rangerBuffRequest,
@@ -27,7 +27,7 @@ import {
   triggerMergedGoForTheEyes,
   triggerMergedGoForTheThroat,
   triggerMergedWiltingStrike
-} from '#gw2/professions/ranger/core/traits/pet-behavior.js';
+} from '#gw2/professions/ranger/core/traits/beastmastery/pet-behavior.js';
 import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
 import { SOULBEAST_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/ranger/specializations/soulbeast/profiles.js';
 import { soulbeastState } from '#gw2/professions/ranger/specializations/soulbeast/state.js';
@@ -37,7 +37,6 @@ import {
 } from '#gw2/professions/ranger/specializations/soulbeast/traits/behavior.js';
 import type { RangerResolverContext, RangerRuntime, RangerSkill } from '#gw2/professions/ranger/types.js';
 import { canonicalTime } from '#kernel/core/clock.js';
-import { isInternalCooldownReady } from '#gw2/platform/combat/procs/registry.js';
 
 /** Soulbeast resolver-phase reactions and event handlers. */
 

@@ -1,6 +1,20 @@
+import type { SkillSideEffect } from '#gw2/platform/effects/actions.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
 import { REVENANT_SKILL_IDS as ID } from '#gw2/professions/revenant/data/ids.js';
-import { energyMeldRewards } from '#gw2/professions/revenant/specializations/vindicator/traits/behavior.js';
+import {
+  songOfArboreumRewards,
+  songOfArboreumSelected
+} from '#gw2/professions/revenant/specializations/vindicator/traits/behavior.js';
+
+/** Energy Meld grants its ordinary endurance unless the trait replaces that reward. */
+const energyMeldRewards: readonly SkillSideEffect[] = [
+  {
+    on: 'castCommit',
+    when: (runtime) => !songOfArboreumSelected(runtime),
+    do: { type: 'resourceGrant', resource: 'endurance', amount: { skillField: 'resourceGain' } }
+  },
+  ...songOfArboreumRewards
+];
 
 export const VINDICATOR_PROFESSION_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
   [ID.LEGENDARY_ALLIANCE_STANCE_ID_62749]: {

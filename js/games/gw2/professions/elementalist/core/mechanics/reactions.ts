@@ -1,11 +1,10 @@
-/** Resolver event classification and ordered reactions for Core Elementalist behavior. */
+import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import { triggerShatteringStone } from '#gw2/professions/elementalist/core/skills/weapons/pistol.js';
+import { applyStrengthOfStone } from '#gw2/professions/elementalist/core/traits/earth/index.js';
 import {
   applyPersistingFlamesCondition,
   applyPersistingFlamesDamage
-} from '#gw2/professions/elementalist/core/traits/persisting-flames.js';
-import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
-import { applyStrengthOfStone } from '#gw2/professions/elementalist/core/traits/earth.js';
+} from '#gw2/professions/elementalist/core/traits/fire/persisting-flames.js';
 import type { ElementalistResolverContext } from '#gw2/professions/elementalist/types.js';
 
 export {

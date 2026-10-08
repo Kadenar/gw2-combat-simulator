@@ -1,5 +1,3 @@
-import assert from 'node:assert/strict';
-import test from 'node:test';
 import { applyBalanceProfilePatch } from '#gw2/integrations/patches/authoring/patches.js';
 import { expireElementalistState } from '#gw2/professions/elementalist/core/mechanics/expiry.js';
 import {
@@ -9,7 +7,7 @@ import {
 } from '#gw2/professions/elementalist/core/mechanics/spear-empowerments.js';
 import { ELEMENTALIST_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/elementalist/core/profile-ids.js';
 import { createElementalistCoreState } from '#gw2/professions/elementalist/core/state.js';
-import { triggerBountifulPower } from '#gw2/professions/elementalist/core/traits/attunements.js';
+import { triggerBountifulPower } from '#gw2/professions/elementalist/core/traits/arcane/attunement-swap.js';
 import {
   ELEMENTALIST_SKILL_IDS as ID,
   ELEMENTALIST_TRAIT_IDS as TRAIT
@@ -19,8 +17,10 @@ import { evokerState } from '#gw2/professions/elementalist/specializations/evoke
 import {
   applyEvokerEntryTraits,
   commitRechargeDuration
-} from '#gw2/professions/elementalist/specializations/evoker/traits/attunements.js';
+} from '#gw2/professions/elementalist/specializations/evoker/traits/attunement-policy.js';
 import { captureEffectEmissions } from '#tests/helpers/effect-emission.js';
+import assert from 'node:assert/strict';
+import test from 'node:test';
 
 test('Bountiful Power resets at the cap and preserves progress earned by nested reward reactions', () => {
   // An oversized grant earns one reward; progress from a nested application belongs to the new cycle.

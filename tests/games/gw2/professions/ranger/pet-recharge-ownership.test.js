@@ -1,10 +1,10 @@
+import { gw2CooldownReadyAt } from '#gw2/platform/combat/action-tick.js';
+import { rangerPetCompanionId } from '#gw2/professions/ranger/core/mechanics/pet-attributes.js';
+import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
+import { rangerProfession } from '#gw2/professions/ranger/profession.js';
+import { runRanger } from '#tests/helpers/ranger-simulation.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { runRanger } from '#tests/helpers/ranger-simulation.js';
-import { rangerPetCompanionId } from '#gw2/professions/ranger/core/mechanics/pets.js';
-import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
-import { gw2CooldownReadyAt } from '#gw2/platform/combat/action-tick.js';
-import { rangerProfession } from '#gw2/professions/ranger/profession.js';
 
 // Natural pet skills must stay available independently of their same-named merged counterparts.
 test('Jacaranda Photosynthesize resolves to a companion skill outside and inside Soulbeast', () => {

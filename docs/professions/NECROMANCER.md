@@ -39,11 +39,16 @@ until entry; weapon/slot skills are disabled while a transformed bar is active.
 ## Trait ownership
 
 All implemented traits have registered `defineTrait` owners: 47 Core, 10 Reaper, 9 Scourge, 11 Harbinger, and 7
-Ritualist (84 total). Core groups definitions by trait line; each elite groups its definitions under its own `traits/`
-directory. Core `traits/index.ts` collects line definitions; each elite `traits/index.ts` owns its definitions and
-registration array. Runtime consumers import behavior directly from `traits/behavior.ts` or the Core life-steal,
-conditions, carapace, shroud, reactions, and shroud-entry helpers. Native modules expand their profiles, modifier rules,
-triggers, recharge rules, hooks, and build contributions once. Build calculators compose
+Ritualist (84 total). Core groups definitions in `traits/<line>/index.ts`; each elite groups its definitions under its
+own `traits/` directory. Core `traits/index.ts` collects line definitions; each elite `traits/index.ts` owns its
+definitions and registration array. Core supporting files live inside their line: Spite behavior, Blood Magic
+life-steal, Curses `procs.ts`/`modifiers.ts`/`skill-variants.ts`, and Death Magic carapace. Soul Reaping groups attack
+procs and the shared Dhuumfire tooltip projection in `procs.ts`, attribute/siphon bonuses in `modifiers.ts`, resource
+rewards in `life-force.ts`, and entry/exit rewards in `shroud.ts`. Scourge supplies its cast attribution to the shared
+Core Soul Barbs grant instead of requiring a specialization-specific helper in Core. Its `resource-queries.ts` remains
+independent of active handlers so resource accounting cannot import its callers. Reactions and shroud-entry dispatch
+stay at the shared Core `traits/` level; elite support stays beside its definitions. Native modules expand their
+profiles, modifier rules, triggers, recharge rules, hooks, and build contributions once. Build calculators compose
 `necromancerProfession.traitBuildAttributes`; the profession build wrapper retains the skill-owned Signet of Spite
 passive. `core/initial-state.ts` supplies canonical default trait tuning to state construction without making runtime
 state depend on definitions. Generated trait metadata and existing balance-profile identities remain unchanged.

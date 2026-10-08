@@ -1,32 +1,32 @@
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
+import { isExplosion } from '#gw2/professions/engineer/core/mechanics/resolution-helpers.js';
+import { applyHghAcidBomb } from '#gw2/professions/engineer/core/traits/alchemy/elixirs.js';
 import {
-  applyHghAcidBomb,
-  applyHematicFocus,
-  applySanguineArray,
-  applyThermalVision
-} from '#gw2/professions/engineer/core/traits/behavior.js';
-import {
-  applyGrenadier,
   applyAimAssistedRocket,
   applyExplosiveEntrance,
   applyExplosiveTemper,
   applyGrandEntrance,
+  applyGrenadier,
   applyShortFuse,
   applyShrapnel,
   applySteelPackedPowder
-} from '#gw2/professions/engineer/core/traits/explosions.js';
+} from '#gw2/professions/engineer/core/traits/explosives/explosions.js';
+import {
+  applyHematicFocus,
+  applySanguineArray,
+  applyThermalVision
+} from '#gw2/professions/engineer/core/traits/firearms/condition-procs.js';
 import {
   applyEngineerToolbeltTraits,
   applyStreamlinedKits,
   recordStaticDischargeProc
-} from '#gw2/professions/engineer/core/traits/toolbelt.js';
+} from '#gw2/professions/engineer/core/traits/tools/toolbelt.js';
 import type {
-  EngineerSkill,
-  EngineerRuntime,
   EngineerResolverContext,
-  EngineerResolverEvent
+  EngineerResolverEvent,
+  EngineerRuntime,
+  EngineerSkill
 } from '#gw2/professions/engineer/types.js';
-import { isExplosion } from '#gw2/professions/engineer/core/mechanics/resolution-helpers.js';
 
 /** Dispatches completed casts without regrouping the cross-line gameplay order. */
 export function applyEngineerCastTraits(context: EngineerRuntime, cast: RuntimeCast<EngineerSkill>): void {

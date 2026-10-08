@@ -11,7 +11,7 @@ import {
   stormsoul,
   zephyrsBoon,
   zephyrsSpeed
-} from '#gw2/professions/elementalist/core/traits/air.js';
+} from '#gw2/professions/elementalist/core/traits/air/index.js';
 import {
   arcaneLightning,
   arcanePrecision,
@@ -22,7 +22,7 @@ import {
   elementalLockdown,
   evasiveArcana,
   renewingStamina
-} from '#gw2/professions/elementalist/core/traits/arcane.js';
+} from '#gw2/professions/elementalist/core/traits/arcane/index.js';
 import {
   earthenBlast,
   earthsEmbrace,
@@ -32,7 +32,7 @@ import {
   serratedStones,
   strengthOfStone,
   writtenInStone
-} from '#gw2/professions/elementalist/core/traits/earth.js';
+} from '#gw2/professions/elementalist/core/traits/earth/index.js';
 import {
   burningPrecision,
   burningRage,
@@ -45,14 +45,14 @@ import {
   pyromancersTraining,
   smotheringAuras,
   sunspot
-} from '#gw2/professions/elementalist/core/traits/fire.js';
+} from '#gw2/professions/elementalist/core/traits/fire/index.js';
 import {
   aquamancersTraining,
   flowLikeWater,
   piercingShards,
   soothingIce,
   soothingPower
-} from '#gw2/professions/elementalist/core/traits/water.js';
+} from '#gw2/professions/elementalist/core/traits/water/index.js';
 
 /** Collects Core trait declarations; mechanics preserve ordered runtime dispatch. */
 export const elementalistCoreTraits = [

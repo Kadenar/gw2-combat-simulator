@@ -1,7 +1,7 @@
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
-import type { Skill } from '#gw2/platform/skills/types.js';
 import type { RuntimeProfession } from '#gw2/platform/profession-definition/runtime-contract.js';
-import { radiantFireDurationMultiplier } from '#gw2/professions/guardian/core/traits/behavior.js';
+import type { Skill } from '#gw2/platform/skills/types.js';
+import { radiantFireDurationMultiplier } from '#gw2/professions/guardian/core/traits/radiance/behavior.js';
 import { GUARDIAN_SKILL_IDS as ID } from '#gw2/professions/guardian/data/ids.js';
 import type { GuardianRuntimeState, GuardianSkill } from '#gw2/professions/guardian/types.js';
 import { canonicalTime } from '#kernel/core/clock.js';

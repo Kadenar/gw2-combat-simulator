@@ -1,10 +1,9 @@
-import { createMesmerIllusionRewards, mesmerActivePrimaryWeapon } from '#gw2/professions/mesmer/family-mechanics.js';
-import { buildMesmerPacket, mesmerPacketOwner } from '#gw2/professions/mesmer/core/mechanics/packets.js';
 import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import { buildMesmerPacket, mesmerPacketOwner } from '#gw2/professions/mesmer/core/mechanics/packets.js';
+import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
+import { createMesmerIllusionRewards, mesmerActivePrimaryWeapon } from '#gw2/professions/mesmer/family-resources.js';
 import { triggerRaconteur } from '#gw2/professions/mesmer/specializations/troubadour/traits/performance.js';
 import type { MesmerRuntime } from '#gw2/professions/mesmer/types.js';
-
-import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
 
 interface TroubadourTaleInvocation {
   readonly context: MesmerRuntime;

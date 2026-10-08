@@ -5,11 +5,12 @@ Core-first tuple from `catalog.ts`. A runtime contains Core plus at most one of 
 Luminary. Virtues, Firebrand tomes, Radiant Forge, and weapon state each own their cast validation, scheduler hooks,
 skill handlers, and resolver reactions under `core/` or `specializations/<name>/`.
 
-All 34 implemented Core traits are authored by trait line under `core/traits/` and registered through
+All 34 implemented Core traits are authored in `core/traits/<line>/index.ts` and registered through
 [`core/traits/index.ts`](../../js/games/gw2/professions/guardian/core/traits/index.ts). Each elite owns its definitions
 and ordered registration array in `specializations/<name>/traits/index.ts`: Dragonhunter has nine, Firebrand eleven,
 Willbender eight, and Luminary eight. Definitions own profiles, modifiers, build contributions, and hook registration.
-Supporting runtime functions live in each owner's `traits/behavior.ts`; mechanics import those functions directly and
+Supporting runtime functions live within their owning trait-line folders; shared symbol emission stays in
+`core/traits/symbols.ts`. Small helpers remain in each line's `index.ts`; mechanics import those functions directly and
 preserve virtue activation, page accounting, equip rewards, and proc ordering. Firebrand `initial-state.ts` supplies
 canonical default profiles to its state factory, keeping runtime state independent of trait definitions.
 

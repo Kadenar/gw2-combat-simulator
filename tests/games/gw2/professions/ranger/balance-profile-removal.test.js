@@ -1,14 +1,14 @@
-import { createEffectExpansionBudget } from '#gw2/platform/effects/expansion-budget.js';
-import { createEffectEmissionService } from '#gw2/platform/effects/emission.js';
 import { applyBalanceProfilePatch } from '#gw2/integrations/patches/authoring/patches.js';
 import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
 import { createProcRegistry } from '#gw2/platform/combat/procs/registry.js';
 import { grantCharges } from '#gw2/platform/combat/resources/charges.js';
+import { createEffectEmissionService } from '#gw2/platform/effects/emission.js';
+import { createEffectExpansionBudget } from '#gw2/platform/effects/expansion-budget.js';
 import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
-import { triggerPoisonousStrikes } from '#gw2/professions/ranger/core/skills/weapons/dagger.js';
 import { RANGER_CORE_BALANCE_PROFILE_IDS as CORE } from '#gw2/professions/ranger/core/profile-ids.js';
+import { triggerPoisonousStrikes } from '#gw2/professions/ranger/core/skills/weapons/dagger.js';
 import { createRangerCoreState } from '#gw2/professions/ranger/core/state.js';
-import { applyRangerWeaponSwapTraits } from '#gw2/professions/ranger/core/traits/behavior.js';
+import { applyRangerWeaponSwapTraits } from '#gw2/professions/ranger/core/traits/skirmishing/movement.js';
 import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
 import { rangerCatalog, rangerProfession } from '#gw2/professions/ranger/profession.js';
 import { SOULBEAST_BALANCE_PROFILE_IDS as SOULBEAST } from '#gw2/professions/ranger/specializations/soulbeast/profiles.js';

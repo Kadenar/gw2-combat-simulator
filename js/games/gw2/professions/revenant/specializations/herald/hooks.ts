@@ -1,25 +1,28 @@
-import { revenantFacetParents, revenantUpkeepConsumeId } from '#gw2/professions/revenant/data/upkeep-skills.js';
-import { heraldBuffPolicies } from '#gw2/professions/revenant/specializations/herald/effect-state.js';
-import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
+import { buildResolverStrike } from '#gw2/platform/effects/packet-builders.js';
 import type { EffectAudience } from '#gw2/platform/events/events.js';
 import { denySkillCast } from '#gw2/platform/execution/availability.js';
+import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
+import { armSkillFlip, consumeSkillFlip, skillFlipReady } from '#gw2/platform/execution/skill-flips.js';
+import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
+import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import {
   balanceProfileNumber,
   effectNumber,
   requireBalanceProfileFromContext,
   requireEffect
 } from '#gw2/platform/skills/balance-profiles.js';
-import { armSkillFlip, consumeSkillFlip, skillFlipReady } from '#gw2/platform/execution/skill-flips.js';
 import type { SkillId } from '#gw2/platform/skills/types.js';
-import { buildResolverStrike } from '#gw2/platform/effects/packet-builders.js';
-import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
-import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import type { RevenantRuntime } from '#gw2/professions/revenant/core/events.js';
 import { activeRevenantUpkeep, removeRevenantUpkeep } from '#gw2/professions/revenant/core/mechanics/upkeep.js';
 import { completeRevenantCastTraits } from '#gw2/professions/revenant/core/traits/dispatch.js';
 import { REVENANT_SKILL_IDS as ID, REVENANT_LEGEND_IDS as LEGEND } from '#gw2/professions/revenant/data/ids.js';
-import { heraldFacetPassiveActive } from '#gw2/professions/revenant/specializations/herald/mechanics/facet-passives.js';
-import { FACET_PULSE, scheduleFacetPulse } from '#gw2/professions/revenant/specializations/herald/mechanics/facets.js';
+import { revenantFacetParents, revenantUpkeepConsumeId } from '#gw2/professions/revenant/data/upkeep-skills.js';
+import { heraldBuffPolicies } from '#gw2/professions/revenant/specializations/herald/effect-state.js';
+import {
+  FACET_PULSE,
+  heraldFacetPassiveActive,
+  scheduleFacetPulse
+} from '#gw2/professions/revenant/specializations/herald/mechanics/facets.js';
 import { HERALD_NATURE_ASSASSIN_PROFILE_ID } from '#gw2/professions/revenant/specializations/herald/profiles.js';
 import { heraldState } from '#gw2/professions/revenant/specializations/herald/state.js';
 import {

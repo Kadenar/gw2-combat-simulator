@@ -41,43 +41,44 @@ shared application views
 
 ## Where should my change go?
 
-| You're adding or changing...                                          | Usually belongs in...                                                            |
-| --------------------------------------------------------------------- | -------------------------------------------------------------------------------- |
-| Skill coefficient, hit count, condition, boon, timing, cooldown, etc. | Owning `skills/index.ts` or `skills/<group>.ts`                                  |
-| Shared mechanic data used by several skills                           | The module's `profiles.ts`                                                       |
-| Profession runtime resource or state                                  | The module's `state.ts`                                                          |
-| Skill availability rule                                               | An `availability` hook in the owning mechanic or `hooks.ts`                      |
-| Resource gain/spend/regeneration                                      | `mechanics/<resource>.ts` (for example `mechanics/life-force.ts`)                |
-| Cast lifecycle behavior or delayed work                               | A cast hook or named task in the owning mechanic, assembled in `hooks.ts`        |
-| Declarative trait modifier                                            | Core `traits/<trait-line>.ts` or elite `traits/index.ts` through `defineTrait()` |
-| Complex trait proc or imperative behavior                             | Definition-local callbacks or `traits/behavior.ts` / concept helpers             |
-| Custom scheduled event definitions                                    | Core `events.ts` or the mechanic file that emits them                            |
-| Combat reaction or custom resolved event                              | The owning mechanic, registered under `hooks.reactions` / `hooks.eventHandlers`  |
-| Profession UI, palette, skill-bar, or active-state display            | The module's `presentation.ts`                                                   |
-| Trait and skill tooltip text                                          | `professions/<profession>/app/tooltips.ts`                                       |
-| New reusable GW2 mechanic                                             | `js/games/gw2/platform/`                                                         |
-| Generic scheduling primitive unrelated to GW2                         | `js/kernel/`                                                                     |
-| Game-neutral browser shell behavior                                   | `js/browser/`                                                                    |
-| GW2 browser behavior                                                  | `js/games/gw2/app/`                                                              |
-| Shared presentation/view-model behavior                               | `js/ui/`                                                                         |
-| Source-neutral log reconstruction within the GW2 integration          | `js/games/gw2/integrations/logs/shared/`                                         |
-| EVTC parsing or evidence inference                                    | `js/games/gw2/integrations/logs/evtc/`                                           |
-| dps.report / Elite Insights parsing or inference                      | `js/games/gw2/integrations/logs/dps-report/`                                     |
-| gw2wingman log fetch/reshape (rules stay in `dps-report/`)            | `js/games/gw2/integrations/logs/wingman/`                                        |
-| Upcoming balance changes                                              | Patch-preview system                                                             |
-| Build defaults, normalization, and validation                         | Profession `build/build.ts`                                                      |
-| New profession page/registry entry                                    | `js/games/gw2/profession-registry.ts`                                            |
+| You're adding or changing...                                          | Usually belongs in...                                                                  |
+| --------------------------------------------------------------------- | -------------------------------------------------------------------------------------- |
+| Skill coefficient, hit count, condition, boon, timing, cooldown, etc. | Owning `skills/index.ts` or `skills/<group>.ts`                                        |
+| Shared mechanic data used by several skills                           | The module's `profiles.ts`                                                             |
+| Profession runtime resource or state                                  | The module's `state.ts`                                                                |
+| Skill availability rule                                               | An `availability` hook in the owning mechanic or `hooks.ts`                            |
+| Resource gain/spend/regeneration                                      | `mechanics/<resource>.ts` (for example `mechanics/life-force.ts`)                      |
+| Cast lifecycle behavior or delayed work                               | A cast hook or named task in the owning mechanic, assembled in `hooks.ts`              |
+| Declarative trait modifier                                            | Core `traits/<trait-line>/index.ts` or elite `traits/index.ts` through `defineTrait()` |
+| Complex trait proc or imperative behavior                             | Definition-local callbacks or supporting files inside the owning trait-line folder     |
+| Custom scheduled event definitions                                    | Core `events.ts` or the mechanic file that emits them                                  |
+| Combat reaction or custom resolved event                              | The owning mechanic, registered under `hooks.reactions` / `hooks.eventHandlers`        |
+| Profession UI, palette, skill-bar, or active-state display            | The module's `presentation.ts`                                                         |
+| Trait and skill tooltip text                                          | `professions/<profession>/app/tooltips.ts`                                             |
+| New reusable GW2 mechanic                                             | `js/games/gw2/platform/`                                                               |
+| Generic scheduling primitive unrelated to GW2                         | `js/kernel/`                                                                           |
+| Game-neutral browser shell behavior                                   | `js/browser/`                                                                          |
+| GW2 browser behavior                                                  | `js/games/gw2/app/`                                                                    |
+| Shared presentation/view-model behavior                               | `js/ui/`                                                                               |
+| Source-neutral log reconstruction within the GW2 integration          | `js/games/gw2/integrations/logs/shared/`                                               |
+| EVTC parsing or evidence inference                                    | `js/games/gw2/integrations/logs/evtc/`                                                 |
+| dps.report / Elite Insights parsing or inference                      | `js/games/gw2/integrations/logs/dps-report/`                                           |
+| gw2wingman log fetch/reshape (rules stay in `dps-report/`)            | `js/games/gw2/integrations/logs/wingman/`                                              |
+| Upcoming balance changes                                              | Patch-preview system                                                                   |
+| Build defaults, normalization, and validation                         | Profession `build/build.ts`                                                            |
+| New profession page/registry entry                                    | `js/games/gw2/profession-registry.ts`                                                  |
 
 The main rule is:
 
 > Put behavior with the layer that owns the underlying game concept.
 
 Traits use `defineTrait()` under their Core or elite `traits/` directory and register once through the module's
-`traitDefinitions`. Core trait-line files own their definitions, and the Core `traits/index.ts` collects them in
-execution order. Each elite's `traits/index.ts` owns all its definitions and its registration array. Definitions own
-profiles, rules, triggers, hooks, and build effects. Short callbacks stay beside the definition; substantial or
-externally called behavior lives in `traits/behavior.ts` or a cohesive concept file, which mechanics import directly
-without importing definitions. Generated `data.traits` continues to own selection metadata.
+`traitDefinitions`. Core `traits/<line>/index.ts` files own their definitions, and the Core `traits/index.ts` collects
+them in execution order. Each elite's `traits/index.ts` owns all its definitions and its registration array. Definitions
+own profiles, rules, triggers, hooks, and build effects. Small helpers stay beside the definitions when their callers
+can load them without a dependency cycle. Substantial behavior and helpers that need a separate dependency boundary live
+in supporting files within the same trait-line folder. Calling a helper externally does not by itself justify another
+file. Generated `data.traits` continues to own selection metadata.
 
 Do not move profession-specific mechanics into shared platform code just because several files need them. Likewise, do
 not duplicate shared GW2 behavior inside individual professions.
@@ -406,8 +407,11 @@ module is active for an elite build. `defineNativeProfession()` composes them in
   profession.ts            native profession contract; re-exports catalog.ts
   catalog.ts               Core-first module tuple and assembled catalog
   types.ts                 shared family types; composes module state types
-  family-state.ts          optional: helpers combining Core and elite state (Mesmer, Revenant, Thief)
-  family-presentation.ts   optional: family-level presentation (Elementalist)
+  family-state.ts          optional: shared state queries (Elementalist, Mesmer, Revenant, Thief)
+  family-presentation.ts   optional: family-level presentation (Elementalist, Necromancer)
+  family-mechanics.ts      optional: Mesmer family mechanic construction
+  family-resources.ts      optional: Mesmer resource construction shared by Core and elites
+  resource-rules.ts        optional: Warrior family resource and burst selection
   app/                     app-definition.ts and tooltips.ts
   build/                   build.ts, attributes.ts, weapon-matching.ts where needed
   data/                    generated metadata, ids.ts, module-data.ts, traits-data.ts, pure helpers shared with integrations
@@ -424,8 +428,10 @@ module is active for an elite build. `defineNativeProfession()` composes them in
     mechanics/  modifiers.ts  types.ts        when the specialization needs them
 ```
 
-No other files belong at the profession root. `catalog.ts` stays separate from `profession.ts` because `profession.ts`
-imports `build/`, and `build/` reads the catalog at module load; merging them creates an initialization cycle.
+Keep module-local behavior inside its owning Core or elite directory. The family files above are explicit
+composition/query exceptions, not places for individual skill or trait implementations. `catalog.ts` stays separate from
+`profession.ts` because `profession.ts` imports `build/`, and `build/` reads the catalog at module load; merging them
+creates an initialization cycle.
 
 Code outside a profession folder imports only `profession.js`, `app/app-definition.js`, `build/build.js`,
 `build/attributes.js`, `types.js`, `data/**`, and `profiles.js` files. Log integrations import helpers from `data/`,
@@ -462,8 +468,9 @@ Ownership rules for the sections:
   Do not put temporary runtime mechanics into application build state just because the UI needs to show them.
 - **`modifiers` and `hooks`**: `modifiers.ts` assembles modifier rules and `modify*` callbacks; `hooks.ts` assembles
   availability, cast, recharge, resource, task, event, and reaction callbacks. All hooks receive the same live state and
-  clock. Only `module.ts` imports `hooks.ts`; helpers shared with other modules or presentation live in `mechanics/` or
-  `traits/`. Module validation rejects unknown fields, including retired `execution` and `resolution` sections.
+  clock. Only `module.ts` imports `hooks.ts`; shared helpers live with their owning skill, mechanic, or trait. Manifests
+  register assembled contributions rather than adding reactions or modifier ordering themselves. Module validation
+  rejects unknown fields, including retired `execution` and `resolution` sections.
 - **`presentation`**: palette groups, skill-bar groups, resource displays, active-state snapshot items, timeline and
   event-log presentation, and palette availability messages. Use a `bind…Ui(catalog)` factory (for example
   `bindGuardianCoreUi`) when the UI needs the completed catalog. Presentation reads simulation state and must not
@@ -471,38 +478,71 @@ Ownership rules for the sections:
 
 ### Profession file roles
 
-| File or folder                             | Owns                                                                                                       |
-| ------------------------------------------ | ---------------------------------------------------------------------------------------------------------- |
-| `data/<profession>-api-metadata.ts`        | Generated identity and presentation metadata from the GW2 API. Never coefficients or conditions.           |
-| `data/<profession>-supplemental-skills.ts` | Identity and presentation for skills missing from the API snapshot                                         |
-| `data/ids.ts`                              | Skill and trait ID constants; Engineer, Ranger, Revenant, and Warrior generate theirs from `scripts/data/` |
-| `data/traits-data.ts`                      | The only export of the flattened runtime `TRAITS`                                                          |
-| `data/module-data.ts`                      | Generated metadata selection, catalog transforms, and module data options                                  |
-| `skills/index.ts`, `skills/<group>.ts`     | Authoritative ID-keyed declarative skill fields, grouped by weapon, slot family, or another GW2 concept    |
-| `skills/actions.ts`                        | Profession-owned synthetic actions (Core modules)                                                          |
-| `profiles.ts`                              | Balance profiles shared by several skills or mechanics; patch previews edit these directly                 |
-| `state.ts`                                 | Module state, its factory, and its public projection                                                       |
-| `hooks.ts`                                 | Cast hooks, named tasks, and reactions for behavior that declarative effects cannot express                |
-| `modifiers.ts`                             | The module's modifier rules plus imperative `modify*` attribute and damage callbacks                       |
-| `mechanics/<concept>.ts`                   | Systems whose state or lifecycle spans casts, skills, traits, or events (`life-force.ts`, `pets.ts`, …)    |
-| `mechanics/resources.ts`                   | Profession resource policies, where a profession needs them                                                |
-| `events.ts`                                | Custom scheduled event definitions shared by several Core mechanics                                        |
-| `traits/`                                  | Trait definitions and supporting behavior (see below)                                                      |
-| `presentation.ts`                          | Profession presentation hooks                                                                              |
-| `app/tooltips.ts`                          | Simulation tooltip descriptions and facts for traits and special skills                                    |
-| `execution/`                               | Mesmer Core only: shatter, flip, phantasm, and effect commitment and packet emission                       |
+| File or folder                             | Owns                                                                                                             |
+| ------------------------------------------ | ---------------------------------------------------------------------------------------------------------------- |
+| `data/<profession>-api-metadata.ts`        | Generated identity and presentation metadata from the GW2 API. Never coefficients or conditions.                 |
+| `data/<profession>-supplemental-skills.ts` | Identity and presentation for skills missing from the API snapshot                                               |
+| `data/ids.ts`                              | Skill and trait ID constants; Engineer, Ranger, Revenant, and Warrior generate theirs from `scripts/data/`       |
+| `data/traits-data.ts`                      | The only export of the flattened runtime `TRAITS`                                                                |
+| `data/module-data.ts`                      | Generated metadata selection, catalog transforms, and module data options                                        |
+| `skills/index.ts`, `skills/<group>.ts`     | Authoritative skill declarations and intrinsic runtime helpers, grouped by weapon, slot family, or skill concept |
+| `skills/actions.ts`                        | Profession-owned synthetic actions (Core modules)                                                                |
+| `profiles.ts`                              | Balance profiles shared by several skills or mechanics; patch previews edit these directly                       |
+| `state.ts`                                 | Module state, its factory, and its public projection                                                             |
+| `hooks.ts`                                 | Registration and explicit sequencing of skill, trait, and mechanic callbacks                                     |
+| `modifiers.ts`                             | The module's modifier rules plus imperative `modify*` attribute and damage callbacks                             |
+| `mechanics/<concept>.ts`                   | Systems whose state or lifecycle spans casts, skills, traits, or events (`life-force.ts`, `pets.ts`, …)          |
+| `mechanics/resources.ts`                   | Profession resource policies, where a profession needs them                                                      |
+| `events.ts`                                | Custom scheduled event definitions shared by several Core mechanics                                              |
+| `traits/`                                  | Trait definitions and supporting behavior (see below)                                                            |
+| `presentation.ts`                          | Profession presentation hooks                                                                                    |
+| `app/tooltips.ts`                          | Simulation tooltip descriptions and facts for traits and special skills                                          |
+| `execution/`                               | Mesmer Core only: shatter, flip, phantasm, and effect commitment and packet emission                             |
 
 Traits:
 
-- Core: one definition file per implemented trait line; `traits/index.ts` registers definitions in their existing order.
+- Core: one folder per implemented trait line, with definitions and small helpers in `<line>/index.ts`;
+  `traits/index.ts` registers definitions in their existing order.
 - Elites: `traits/index.ts` owns every definition and the single registration array consumed by `module.ts`.
-- Optional `traits/behavior.ts` or concept files own substantial callbacks, proc dispatch, and helpers called by
-  mechanics. They contain no definitions and do not import definition files.
+- Supporting files belong inside their trait-line folder. Each elite's `traits/` directory already represents one trait
+  line, so it needs no redundant nested folder. Use descriptive names for substantial behavior or a necessary dependency
+  boundary; do not create a separate file for every trait.
+- Shared queries and dispatch across lines stay directly under Core `traits/`. A line must not import its dispatcher.
+  Supporting files must not import their own `index.ts` when that index imports them. Consumers may import helpers
+  directly from a line's `index.ts` when the dependency graph remains acyclic.
 
 Mechanics use GW2 concept names (`shatters.ts`, `continuum-split.ts`, `pets.ts`, `life-force.ts`, `attunements.ts`).
 Generic `rules.ts`, `handlers.ts`, and `resolver.ts` ownership files are retired. A cohesive `availability.ts` is fine
 when it expresses one module's cast gate; split unrelated behavior into a named mechanic, skill family, or trait line.
 Shared strike and condition resolution stays in `js/games/gw2/platform/resolver/`.
+
+### Runtime ownership and composition
+
+A skill owns its baseline effects, action handlers, and skill-specific lifecycle. Traits own the policy changes to those
+effects, including eligibility, replacement rewards, duration, and sharing. A skill may import a trait policy; untraited
+skill execution must not depend on a trait dispatcher. Put mixed skill/trait reaction sequences in a named mechanic
+dispatcher and preserve their established order. Trait-only dispatch can remain under `traits/`.
+
+Co-location means one clear behavior owner, not mandatory registration through `trait.hooks`. Trait definitions may
+supply modifiers, triggers, effect variants, or explicitly called helpers. Imperative callbacks must retain their own
+selection and lifetime checks. Trait modifier rules normally receive compiler selection gates, with an explicit
+`requiresSelection: false` exception for already-created effects. Imperative attribute modifiers stay under the module's
+modifier contract; `TraitHooks` does not expose `modifyAttributes`.
+
+When an owner exports a complete `RuntimeHooks` contribution, register it with `composeRuntimeHooks` rather than copying
+selected fields or spreading whole hook objects. The composer preserves notification/transform ordering and rejects
+duplicate named task, event, and action handlers. Spreading handler maps before composition hides duplicate keys; use
+separate contributions when owners should remain independent. Retain explicit dispatch where callbacks must interleave.
+Trait hooks run before explicit module hooks, and Core runs before the selected elite, so moving a callback between
+those locations requires reviewing its phase and ordering.
+
+Substantial resource lifecycles belong in `mechanics/resources.ts` or a named mechanic, including capacity, recovery,
+depletion, and wake scheduling. A small self-contained policy can remain inline; no placeholder file is required.
+Scrapper and Reaper can rely on trait expansion without a separate `hooks.ts`.
+
+Dependency tests should protect independent loading and prevent owners or state queries from importing hook/module
+assembly. `tests/helpers/profession-source-graph.js` supplies a shared value-import traversal for focused boundaries; it
+follows reexports and ignores type-only dependencies.
 
 ### Folder size
 
@@ -541,7 +581,10 @@ core/
 │   └── shroud-lifecycle.ts
 └── traits/
     ├── index.ts
-    └── <trait-line>.ts
+    ├── dispatch.ts           shared ordering across lines, when needed
+    └── <trait-line>/
+        ├── index.ts          definitions and small helpers
+        └── <concept>.ts      substantial support or an independent dependency boundary, when needed
 ```
 
 Split large mechanics into descriptive files when that makes ownership clearer. Do not split just to make professions

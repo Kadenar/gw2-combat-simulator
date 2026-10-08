@@ -2,7 +2,7 @@ import { quantizeGw2ActionDurationUp } from '#gw2/platform/combat/action-tick.js
 import type { SkillEffect } from '#gw2/platform/effects/types.js';
 import type { Skill, SkillTask } from '#gw2/platform/skills/types.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
-import { EPSILON, canonicalTime } from '#kernel/core/clock.js';
+import { canonicalTime } from '#kernel/core/clock.js';
 
 /** Quickness increases action rate by 50%, so duration is divided by 1.5. */
 export const GW2_QUICKNESS_ACTION_RATE = 1.5;
@@ -13,14 +13,22 @@ interface Gw2CastEndTimes {
   readonly effectiveEnd: number;
 }
 
-/** A cast that stopped before its full duration was interrupted or cancelled. */
+/** Compare scheduler instants so interruption has no grace window before completion. */
 export function castWasInterrupted(cast: Gw2CastEndTimes): boolean {
-  return cast.effectiveEnd < cast.fullEnd - EPSILON;
+  return (
+    Number.isFinite(cast.effectiveEnd) &&
+    Number.isFinite(cast.fullEnd) &&
+    canonicalTime(cast.effectiveEnd) < canonicalTime(cast.fullEnd)
+  );
 }
 
 /** A cast that reached its full duration. Stated as its own comparison so a non-finite end is neither. */
 export function castReachedFullDuration(cast: Gw2CastEndTimes): boolean {
-  return cast.effectiveEnd >= cast.fullEnd - EPSILON;
+  return (
+    Number.isFinite(cast.effectiveEnd) &&
+    Number.isFinite(cast.fullEnd) &&
+    canonicalTime(cast.effectiveEnd) >= canonicalTime(cast.fullEnd)
+  );
 }
 
 /** Cancelled attempts release the cast lane; only committed skills retain their aftercast. */

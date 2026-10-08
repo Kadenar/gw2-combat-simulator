@@ -1,17 +1,17 @@
-import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
+import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
 import type { Gw2MutableStats, Gw2Stats } from '#gw2/platform/combat/stats.js';
+import { buildResolverCondition, buildResolverStrike } from '#gw2/platform/effects/packet-builders.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import type { MechanicContext } from '#gw2/platform/profession-definition/mechanic-context.js';
 import { readProfessionSpecializationState } from '#gw2/platform/profession-definition/state.js';
-import { buildResolverCondition, buildResolverStrike } from '#gw2/platform/effects/packet-builders.js';
 import {
   balanceProfileNumber,
   effectNumber,
   requireBalanceProfileFromContext,
   requireEffect
 } from '#gw2/platform/skills/balance-profiles.js';
-import { convertBerserkPower } from '#gw2/professions/warrior/core/traits/strength.js';
+import { convertBerserkPower } from '#gw2/professions/warrior/core/traits/strength/index.js';
 import { WARRIOR_SKILL_IDS as ID, WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/professions/warrior/data/ids.js';
 import { BERSERKER_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/warrior/specializations/berserker/profiles.js';
 import { berserkerState } from '#gw2/professions/warrior/specializations/berserker/state.js';

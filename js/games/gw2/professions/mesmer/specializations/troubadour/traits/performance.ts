@@ -1,27 +1,26 @@
-import { createMesmerIllusionRewards, mesmerActivePrimaryWeapon } from '#gw2/professions/mesmer/family-mechanics.js';
-import type { EffectDelivery } from '#gw2/platform/effects/emission.js';
-import type { MesmerEventExtra } from '#gw2/professions/mesmer/data/types.js';
-import {
-  buildMesmerConditions,
-  mesmerPacketOwner,
-  buildMesmerPacket
-} from '#gw2/professions/mesmer/core/mechanics/packets.js';
+import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
 import type { Gw2ResolvedStats } from '#gw2/platform/combat/stats.js';
-import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
+import type { EffectDelivery } from '#gw2/platform/effects/emission.js';
+import type { StrikeEffect } from '#gw2/platform/effects/types.js';
+import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
+import { castWasInterrupted } from '#gw2/platform/execution/cast-timing.js';
 import {
   balanceProfileNumber,
   effectNumber,
   requireBalanceProfileFromContext,
   requireEffect
 } from '#gw2/platform/skills/balance-profiles.js';
-import type { StrikeEffect } from '#gw2/platform/effects/types.js';
-import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
-import { castWasInterrupted } from '#gw2/platform/execution/cast-timing.js';
 import { isCommittedInterruptedPhantasm } from '#gw2/professions/mesmer/core/execution/cast-lifecycle.js';
 import { mesmerConditionFromProfile } from '#gw2/professions/mesmer/core/mechanics/conditions.js';
+import {
+  buildMesmerConditions,
+  buildMesmerPacket,
+  mesmerPacketOwner
+} from '#gw2/professions/mesmer/core/mechanics/packets.js';
 import { MESMER_SKILL_IDS as ID, MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
-import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
+import type { MesmerEventExtra, MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
+import { createMesmerIllusionRewards, mesmerActivePrimaryWeapon } from '#gw2/professions/mesmer/family-resources.js';
 import { activeInstrumentCount } from '#gw2/professions/mesmer/specializations/troubadour/mechanics/instrument-queries.js';
 import { troubadourState } from '#gw2/professions/mesmer/specializations/troubadour/state.js';
 import type { MesmerInstrument, MesmerRuntime } from '#gw2/professions/mesmer/types.js';

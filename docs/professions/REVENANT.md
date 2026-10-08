@@ -34,15 +34,23 @@ secondary targets, and competitive (PvP/WvW) splits are out of model.
 
 Core and all four elites register 67 trait definitions: Core 32, Herald 6, Renegade 11, Vindicator 8, and Conduit 10.
 Each implemented trait owns its balance profiles, modifiers, triggers, build contributions, and imperative helpers under
-its module's `traits/` directory. Core definitions live in `corruption.ts`, `devastation.ts`, `invocation.ts`,
-`retribution.ts`, and `salvation.ts`; the Core index preserves their registration order. Each elite defines and
+its module's `traits/` directory. Core definitions live in `traits/<line>/index.ts` for Corruption, Devastation,
+Invocation, Retribution, and Salvation; the Core index preserves their registration order. Each elite defines and
 registers its traits in `traits/index.ts`. Generated selection metadata remains in `data/`; module profiles retain
 shared mechanics and skill variants.
 
-Runtime callers import `traits/behavior.ts` directly. Core retains `dispatch.ts` for ordered reactions; Conduit keeps
-Numinous Gift and Shared Wisdom behavior in named files, and Herald groups facet and upkeep behavior in `behavior.ts`.
-The Alliance Spirit Boon profile identifier lives directly in `family-state.ts` so its initialization is independent of
-Vindicator behavior. Renegade and Vindicator compose their attribute callbacks directly in `module.ts`.
+Core runtime callers import helpers from their owning trait-line folders. Assassin's Presence, Vicious Reprisal, and
+small Salvation helpers stay beside their definitions; substantial Battle Scars and invocation behavior have support
+files within their lines. Core `traits/dispatch.ts` retains trait-only sequencing; mixed skill and trait on-hit behavior
+lives in `mechanics/reactions.ts`. Energy and Endurance policies live in `mechanics/resources.ts`. Renegade's Heroic
+Command, warband, and Soulcleave behavior lives with skills. Conduit separates form transitions, Affinity policy/gains,
+and form attack/release skills. Its cap reward and Herald's Draconic Echo duration remain trait policies called at the
+existing mechanic boundary. Herald's Draconic Echo duration helper is co-located in `traits/index.ts`;
+`mechanics/facets.ts` owns facet scheduling and eligibility, and `modifiers.ts` assembles passive attributes. Conduit's
+`traits/cap-rewards.ts` remains separate to avoid a cycle through Affinity gains. Elite substantial helpers can still
+use `traits/behavior.ts`. The Alliance Spirit Boon profile identifier lives directly in `family-state.ts` so its
+initialization is independent of Vindicator behavior. Renegade and Vindicator compose their attribute callbacks directly
+in `module.ts`.
 
 The build finalizer composes `revenantProfession.traitBuildAttributes`; static contributions and live adjustments retain
 their existing provenance. Spirit Boon's legend-specific profiles now belong to its single Core definition; their stable

@@ -31,19 +31,21 @@ Unless noted otherwise, paths below are relative to `js/games/gw2/professions/el
 - `app/app-definition.ts` adapts the profession contract for the shared browser shell, including build-time attributes,
   starting resources, weapon selection, and skill availability.
 
-Persisting Flames is defined in `core/traits/fire.ts`; `core/traits/persisting-flames.ts` retains its pre-emission
-effect/field transformations. Ordered calls in `core/mechanics/reactions.ts` grant its buffs before Shattering Stone on
-damage and after Strength of Stone on Burning applications; shared resolver state retains the buff lifetime. Tooltips
-read the modifier's authoritative stack cap. The remaining Core definitions live in their five `core/traits/<line>.ts`
-owners.
+Persisting Flames is defined in `core/traits/fire/index.ts`; `core/traits/fire/persisting-flames.ts` retains its
+pre-emission effect/field transformations. Ordered calls in `core/mechanics/reactions.ts` grant its buffs before
+Shattering Stone on damage and after Strength of Stone on Burning applications; shared resolver state retains the buff
+lifetime. Tooltips read the modifier's authoritative stack cap. The remaining Core definitions live in their five
+`core/traits/<line>/index.ts` owners.
 
 Core registers 45 trait definitions; Tempest registers 11, Weaver 9, Catalyst 10, and Evoker 11 from their
 `specializations/<name>/traits/index.ts` owners, which also export each elite's registration array. Profiles,
 declarative modifiers, build contributions, and ordinary triggers live with those definitions. The Core index collects
 line definitions in registration order; `core/traits/dispatch.ts` preserves ordered runtime calls. Supporting behavior
-lives in `attunements.ts`, `critical-procs.ts`, and `behavior.ts`. Live attribute passes and critical procs retain
-explicit calls so resource and reaction order stay unchanged. Shared state still owns ICDs, Fresh Air wakes, Bountiful
-Power progress, and timed buff applications.
+lives inside the owning line's folder: Air and Earth use `attunement-entry.ts`, Arcane uses `attunement-swap.ts`, and
+Fire uses `attunement-transition.ts` for entry and exit effects. Lines also own `critical-procs.ts` where needed; only
+shared hit eligibility stays in `core/traits/critical-eligibility.ts`. Elite support stays beside its definitions. Live
+attribute passes and critical procs retain explicit calls so resource and reaction order stay unchanged. Shared state
+still owns ICDs, Fresh Air wakes, Bountiful Power progress, and timed buff applications.
 
 Tempest keeps overload availability, lockouts, Lightning Jolt, and scheduler work in mechanics. Its trait helpers own
 hit-derived alacrity, completion auras, shout rewards, and aura windows. The shared overload profile retains its

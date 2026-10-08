@@ -1,8 +1,4 @@
 import {
-  castLifeForceGrants,
-  effectLifeForceGrants
-} from '#gw2/professions/necromancer/core/skills/life-force-grants.js';
-import {
   fromModifier,
   fromProfile,
   modifierFact,
@@ -25,20 +21,24 @@ import {
   NECROMANCER_MINION_PROFILE_BY_SKILL_ID,
   NECROMANCER_CORE_BALANCE_PROFILE_IDS as PROFILE
 } from '#gw2/professions/necromancer/core/profiles.js';
-import { actualNecromancerLifeForceCost } from '#gw2/professions/necromancer/core/state.js';
-import { dhuumfireProjection } from '#gw2/professions/necromancer/core/traits/dhuumfire.js';
-import { darkBarrageEffects } from '#gw2/professions/necromancer/specializations/harbinger/mechanics/dark-barrage.js';
-import { shadeDhuumfireParameters } from '#gw2/professions/necromancer/specializations/scourge/mechanics/shade-projection.js';
 import {
-  RITUALIST_SPIRIT_SKILL_IDS,
-  spiritAttackEffects
-} from '#gw2/professions/necromancer/specializations/ritualist/mechanics/spirit-projection.js';
+  castLifeForceGrants,
+  effectLifeForceGrants
+} from '#gw2/professions/necromancer/core/skills/life-force-grants.js';
+import { actualNecromancerLifeForceCost } from '#gw2/professions/necromancer/core/state.js';
+import { dhuumfireProjection } from '#gw2/professions/necromancer/core/traits/soul-reaping/procs.js';
 import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
+import { darkBarrageEffects } from '#gw2/professions/necromancer/specializations/harbinger/mechanics/dark-barrage.js';
 import {
   HARBINGER_BALANCE_PROFILE_IDS as HARBINGER,
   HARBINGER_EMPOWERED_PROFILE_BY_SKILL_ID
 } from '#gw2/professions/necromancer/specializations/harbinger/profiles.js';
+import {
+  RITUALIST_SPIRIT_SKILL_IDS,
+  spiritAttackEffects
+} from '#gw2/professions/necromancer/specializations/ritualist/mechanics/spirit-projection.js';
 import { RITUALIST_BALANCE_PROFILE_IDS as RITUALIST } from '#gw2/professions/necromancer/specializations/ritualist/profiles.js';
+import { shadeDhuumfireParameters } from '#gw2/professions/necromancer/specializations/scourge/mechanics/shade-projection.js';
 import { SCOURGE_BALANCE_PROFILE_IDS as SCOURGE } from '#gw2/professions/necromancer/specializations/scourge/profiles.js';
 
 const lifeForce = (value: number) => `${value}% life force`;

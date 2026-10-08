@@ -11,13 +11,13 @@ import {
   sunderingBurst,
   unsuspectingFoe,
   woundingPrecision
-} from '#gw2/professions/warrior/core/traits/arms.js';
+} from '#gw2/professions/warrior/core/traits/arms/index.js';
 import {
   cullTheWeak,
   mercilessHammer,
   stalwartStrength,
   thickSkin
-} from '#gw2/professions/warrior/core/traits/defense.js';
+} from '#gw2/professions/warrior/core/traits/defense/index.js';
 import {
   axeMastery,
   burstMastery,
@@ -26,7 +26,7 @@ import {
   versatilePower,
   versatileRage,
   warriorsSprint
-} from '#gw2/professions/warrior/core/traits/discipline.js';
+} from '#gw2/professions/warrior/core/traits/discipline/index.js';
 import {
   aggressiveOnslaught,
   berserkersPower,
@@ -39,7 +39,7 @@ import {
   pinnacleOfStrength,
   recklessDodge,
   restorativeStrength
-} from '#gw2/professions/warrior/core/traits/strength.js';
+} from '#gw2/professions/warrior/core/traits/strength/index.js';
 import {
   empowerAllies,
   empowered,
@@ -50,7 +50,7 @@ import {
   soldiersComfort,
   vigorousShouts,
   warriorsCunning
-} from '#gw2/professions/warrior/core/traits/tactics.js';
+} from '#gw2/professions/warrior/core/traits/tactics/index.js';
 
 /** Register native owners once in declaration order. */
 export const warriorCoreTraits = [

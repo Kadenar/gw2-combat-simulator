@@ -1,12 +1,12 @@
-import { ENGINEER_SKILL_IDS as ID, ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
 import { professionStaticRulesApplied } from '#gw2/platform/builds/attribute-provenance.js';
-import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import { MIGHT_ATTRIBUTE_BONUS_PER_STACK } from '#gw2/platform/combat/boons.js';
 import type { Gw2ModifierContext, Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
 import type { Gw2MutableStats, Gw2Stats } from '#gw2/platform/combat/stats.js';
-import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
-import { noScopeBoonFerocity } from '#gw2/professions/engineer/core/traits/behavior.js';
+import { requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import { noScopeBoonFerocity } from '#gw2/professions/engineer/core/traits/firearms/modifiers.js';
+import { selectedFirearmsDurationBonuses } from '#gw2/professions/engineer/core/traits/firearms/index.js';
 import { activeBoonStacks } from '#gw2/professions/engineer/core/traits/query-helpers.js';
+import { ENGINEER_SKILL_IDS as ID } from '#gw2/professions/engineer/data/ids.js';
 import { engineerMechModifierEvent } from '#gw2/professions/engineer/specializations/mechanist/mechanics/mech-ownership.js';
 import { MECHANIST_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/engineer/specializations/mechanist/profiles.js';
 import {
@@ -46,18 +46,9 @@ function modifyMechanistAttributes(context: Gw2ModifierContext, attributes: Gw2S
 
   // Replacing player attributes removes panel-baked Firearms duration bonuses; restore only the mech's trait bonuses.
   // Direct configurations still receive these bonuses through the ordinary runtime trait rules.
-  const conditionDurationBonuses: Record<string, number> = {};
-  if (professionStaticRulesApplied(context.config)) {
-    for (const [condition, trait] of [
-      ['Bleeding', TRAIT.SERRATED_STEEL],
-      ['Burning', TRAIT.INCENDIARY_POWDER]
-    ] as const) {
-      if (hasTrait(context, trait)) {
-        conditionDurationBonuses[condition] =
-          100 * balanceProfileNumber(requireBalanceProfileFromContext(context, trait), 'durationMultiplier');
-      }
-    }
-  }
+  const conditionDurationBonuses = professionStaticRulesApplied(context.config)
+    ? selectedFirearmsDurationBonuses(context)
+    : {};
 
   return { ...mech, conditionDurationBonuses };
 }

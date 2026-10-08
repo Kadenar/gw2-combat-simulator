@@ -1,11 +1,11 @@
-import { runElementalist } from '#tests/helpers/elementalist-simulation.js';
-import { ELEMENTALIST_ATTUNEMENT_SKILL_IDS, ELEMENTALIST_TRAIT_IDS } from '#gw2/professions/elementalist/data/ids.js';
 import { elementalistStrikeRequest } from '#gw2/professions/elementalist/core/events.js';
+import { projectedFreshAirReadyAt } from '#gw2/professions/elementalist/core/traits/air/critical-procs.js';
+import { ELEMENTALIST_ATTUNEMENT_SKILL_IDS, ELEMENTALIST_TRAIT_IDS } from '#gw2/professions/elementalist/data/ids.js';
+import { runElementalist } from '#tests/helpers/elementalist-simulation.js';
+import { observedRuntime } from '#tests/helpers/observed-runtime.js';
+import { runRanger } from '#tests/helpers/ranger-simulation.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { projectedFreshAirReadyAt } from '#gw2/professions/elementalist/core/traits/critical-procs.js';
-import { runRanger } from '#tests/helpers/ranger-simulation.js';
-import { observedRuntime } from '#tests/helpers/observed-runtime.js';
 
 // Real profession selection and execution must preserve same-time ordering and replacement eligibility.
 test('Ranger stealth follows its granting strike and ignores off-target impacts', () => {

@@ -1,11 +1,11 @@
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
+import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import {
   balanceProfileNumber,
   effectNumber,
   requireBalanceProfileFromContext,
   requireEffect
 } from '#gw2/platform/skills/balance-profiles.js';
-import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import { buildRangerPacket } from '#gw2/professions/ranger/core/events.js';
 import { rangerBuffRequest } from '#gw2/professions/ranger/core/mechanics/resolution-helpers.js';
 import { RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
@@ -36,45 +36,16 @@ export function applyUnstoppableUnion(context: RangerRuntime, skill: RangerSkill
   });
 }
 
-/** Share half the player's extended stance window without shortening the personal application. */
-export function emitSoulbeastStance(
+/** Leader of the Pack extends the personal stance and shares half of that extended window. */
+export function leaderOfThePackStance(
   context: RangerRuntime,
-  skill: RangerSkill,
-  kind: string,
   baseDuration: number
-): number {
-  const shared = hasTrait(context, TRAIT.LEADER_OF_THE_PACK);
-  const duration = shared
-    ? baseDuration *
-      balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.LEADER_OF_THE_PACK), 'durationMultiplier')
-    : baseDuration;
-  const application = {
-    at: context.time,
-    source: 'ranger',
-    sourceId: skill.id,
-    actorType: 'player' as const,
-    skillId: skill.id,
-    skillName: skill.name,
-    kind,
-    duration,
-    stacks: 1
-  };
-  context.effects.emit({ kind: 'packet', event: buildRangerPacket(application, 'buff') });
-  if (shared) {
-    context.effects.emit({
-      kind: 'packet',
-      event: buildRangerPacket(
-        {
-          ...application,
-          duration: duration * 0.5,
-          audience: { recipients: 'party', affectsSelf: false, maximumRecipients: 4, eligibleCompanionIds: [] }
-        },
-        'buff'
-      )
-    });
-  }
-
-  return duration;
+): { duration: number; sharedDuration?: number } {
+  if (!hasTrait(context, TRAIT.LEADER_OF_THE_PACK)) return { duration: baseDuration };
+  const duration =
+    baseDuration *
+    balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.LEADER_OF_THE_PACK), 'durationMultiplier');
+  return { duration, sharedDuration: duration * 0.5 };
 }
 
 /** Runs once on the accepted first hit of the merged Beast ability. */

@@ -1,22 +1,19 @@
+import { activeChargeCount, consumeCharge } from '#gw2/platform/combat/resources/charges.js';
+import type { ActionContext } from '#gw2/platform/effects/actions.js';
+import type { SkillEffect } from '#gw2/platform/effects/types.js';
+import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
+import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
+import type { ThiefRuntime } from '#gw2/professions/thief/core/events.js';
+import { thiefSkill } from '#gw2/professions/thief/core/events.js';
+import { hiddenKillerLinger } from '#gw2/professions/thief/core/traits/critical-strikes/index.js';
+import { grantLeechingVenomCharges } from '#gw2/professions/thief/core/traits/shadow-arts/leeching-venoms.js';
 import {
   enterCloakedInShadow,
   enterShadowsRejuvenation,
-  exitShadowsRejuvenation,
-  hiddenKillerLinger
-} from '#gw2/professions/thief/core/traits/behavior.js';
-import { grantLeechingVenomCharges } from '#gw2/professions/thief/core/traits/leeching-venoms.js';
-
-import type { SkillEffect } from '#gw2/platform/effects/types.js';
-import type { ActionContext } from '#gw2/platform/effects/actions.js';
-
-import { thiefSkill } from '#gw2/professions/thief/core/events.js';
-
-import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
-import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
-import type { ThiefRuntime } from '#gw2/professions/thief/core/events.js';
+  exitShadowsRejuvenation
+} from '#gw2/professions/thief/core/traits/shadow-arts/stealth.js';
 import type { ThiefSkill } from '#gw2/professions/thief/types.js';
-import { activeChargeCount, consumeCharge } from '#gw2/platform/combat/resources/charges.js';
 
 /** Stealth is active from its entry instant until its expiry, unless Revealed blocks it. */
 export function thiefStealthed(runtime: MechanicQueriesOf<ThiefRuntime>, at = runtime.time): boolean {

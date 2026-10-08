@@ -49,7 +49,7 @@ import {
   FAMILIAR_ELEMENTS
 } from '#gw2/professions/elementalist/specializations/evoker/mechanics/constants.js';
 import { EVOKER_BALANCE_PROFILE_IDS as EVOKER } from '#gw2/professions/elementalist/specializations/evoker/profiles.js';
-import { SPECIALIZED_ELEMENTS_PROFILE_IDS } from '#gw2/professions/elementalist/specializations/evoker/traits/attunements.js';
+import { SPECIALIZED_ELEMENTS_PROFILE_IDS } from '#gw2/professions/elementalist/specializations/evoker/traits/attunement-policy.js';
 import { TEMPEST_BALANCE_PROFILE_IDS as TEMPEST } from '#gw2/professions/elementalist/specializations/tempest/profiles.js';
 import { WEAVER_BALANCE_PROFILE_IDS as WEAVER } from '#gw2/professions/elementalist/specializations/weaver/profiles.js';
 

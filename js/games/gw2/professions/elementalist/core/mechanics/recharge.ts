@@ -1,26 +1,21 @@
-import { reservePistolRecharge } from '#gw2/professions/elementalist/core/skills/weapons/pistol.js';
 import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
-import type { Skill } from '#gw2/platform/skills/types.js';
-import { aeromancersTrainingRecharge } from '#gw2/professions/elementalist/core/traits/air.js';
-import { aquamancersTrainingRecharge } from '#gw2/professions/elementalist/core/traits/water.js';
-import { geomancersTrainingRecharge } from '#gw2/professions/elementalist/core/traits/earth.js';
-import { pyromancersTrainingRecharge } from '#gw2/professions/elementalist/core/traits/fire.js';
-/**
- * Owns Core Elementalist cross-cast recharge policy and one-shot modifier consumption.
- * Skill fragments declare base cooldowns; persistent systems decide when and how they recharge.
- */
 import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
-import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import { compileRechargeRules } from '#gw2/platform/profession-definition/trigger-rules.js';
-
+import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import type { Skill } from '#gw2/platform/skills/types.js';
 import { skillWeapon } from '#gw2/professions/elementalist/core/mechanics/effects.js';
 import { elementalForGlyphId } from '#gw2/professions/elementalist/core/mechanics/elementals/attacks.js';
 import { ELEMENTALIST_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/elementalist/core/profile-ids.js';
+import { reservePistolRecharge } from '#gw2/professions/elementalist/core/skills/weapons/pistol.js';
+import { aeromancersTrainingRecharge } from '#gw2/professions/elementalist/core/traits/air/index.js';
+import { geomancersTrainingRecharge } from '#gw2/professions/elementalist/core/traits/earth/index.js';
+import { pyromancersTrainingRecharge } from '#gw2/professions/elementalist/core/traits/fire/index.js';
+import { aquamancersTrainingRecharge } from '#gw2/professions/elementalist/core/traits/water/index.js';
 import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';
 import type {
-  ElementalistSkill,
   ElementalistRuntime,
-  ElementalistRuntimeState
+  ElementalistRuntimeState,
+  ElementalistSkill
 } from '#gw2/professions/elementalist/types.js';
 
 // Weapon-only reductions share the compiler; delayed recharge and one-use reservations retain their owners.

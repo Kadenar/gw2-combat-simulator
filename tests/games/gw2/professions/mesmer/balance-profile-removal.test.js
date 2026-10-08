@@ -1,14 +1,14 @@
-import { observedRuntime } from '#tests/helpers/observed-runtime.js';
 import { applyBalanceProfilePatch } from '#gw2/integrations/patches/authoring/patches.js';
 import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
 import { mesmerTooltips } from '#gw2/professions/mesmer/app/tooltips.js';
 import { mesmerCoreUi } from '#gw2/professions/mesmer/core/presentation.js';
 import { mesmerProfiledShatter } from '#gw2/professions/mesmer/core/profiles.js';
 import { MESMER_CORE_SHATTERS } from '#gw2/professions/mesmer/core/skills/profession-skills.js';
-import { methodOfMadnessDamage } from '#gw2/professions/mesmer/core/traits/chaos.js';
+import { methodOfMadnessDamage } from '#gw2/professions/mesmer/core/traits/chaos/index.js';
 import { MESMER_SKILL_IDS as ID, MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
 import { mesmerCatalog, mesmerProfession } from '#gw2/professions/mesmer/profession.js';
 import { createDefaultConfig, runMesmer } from '#tests/helpers/mesmer-simulation.js';
+import { observedRuntime } from '#tests/helpers/observed-runtime.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 

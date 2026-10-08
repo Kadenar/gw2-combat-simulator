@@ -1,6 +1,6 @@
 import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
-import { rangerPetCompanionId } from '#gw2/professions/ranger/core/mechanics/pets.js';
+import { rangerPetCompanionId } from '#gw2/professions/ranger/core/mechanics/pet-attributes.js';
 import { rangerPetByName } from '#gw2/professions/ranger/core/state.js';
 import type { RangerResolverContext } from '#gw2/professions/ranger/types.js';
 

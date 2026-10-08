@@ -1,21 +1,21 @@
-import assert from 'node:assert/strict';
-import test from 'node:test';
 import { describeSimulationSkill, describeSimulationTrait } from '#gw2/app/shared/simulation-tooltip.js';
 import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
-import { elementalistProfession } from '#gw2/professions/elementalist/profession.js';
+import { CONDITION_FORMULAS } from '#gw2/platform/combat/formulas.js';
 import { elementalistTooltips } from '#gw2/professions/elementalist/app/tooltips.js';
-import { applyInfernoAttributes } from '#gw2/professions/elementalist/core/traits/fire.js';
+import { applyInfernoAttributes } from '#gw2/professions/elementalist/core/traits/fire/index.js';
 import {
   ELEMENTALIST_SKILL_IDS as ID,
   ELEMENTALIST_TRAIT_IDS as TRAIT
 } from '#gw2/professions/elementalist/data/ids.js';
+import { elementalistProfession } from '#gw2/professions/elementalist/profession.js';
 import {
   captureIgniteTier,
   selectIgniteEffects
 } from '#gw2/professions/elementalist/specializations/evoker/mechanics/familiars.js';
 import { evokerState } from '#gw2/professions/elementalist/specializations/evoker/state.js';
 import { runElementalist } from '#tests/helpers/elementalist-simulation.js';
-import { CONDITION_FORMULAS } from '#gw2/platform/combat/formulas.js';
+import assert from 'node:assert/strict';
+import test from 'node:test';
 
 const IGNITE_PROFILE = 'elementalist.evoker.ignite';
 

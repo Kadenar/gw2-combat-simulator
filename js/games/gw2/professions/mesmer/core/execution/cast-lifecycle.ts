@@ -1,20 +1,18 @@
+import type { EffectDelivery } from '#gw2/platform/effects/emission.js';
+import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
+import { castWasInterrupted } from '#gw2/platform/execution/cast-timing.js';
+import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
+import { methodOfMadnessDamage, triggerMethodOfMadness } from '#gw2/professions/mesmer/core/traits/chaos/index.js';
+import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
 import {
-  dispatchShatterResolved,
   createMesmerActions,
   createMesmerSkillEffects,
-  mesmerShatterDefinition,
-  mesmerActivePrimaryWeapon
+  dispatchShatterResolved,
+  mesmerShatterDefinition
 } from '#gw2/professions/mesmer/family-mechanics.js';
-import type { EffectDelivery } from '#gw2/platform/effects/emission.js';
-import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
-import { triggerMethodOfMadness, methodOfMadnessDamage } from '#gw2/professions/mesmer/core/traits/chaos.js';
-import { EPSILON } from '#kernel/core/clock.js';
-/** Commits Core Mesmer shatters, flips, phantasms, skill effects, and cast-local resource state. */
-import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
+import { mesmerActivePrimaryWeapon } from '#gw2/professions/mesmer/family-resources.js';
 import type { MesmerRuntime } from '#gw2/professions/mesmer/types.js';
-
-import { castWasInterrupted } from '#gw2/platform/execution/cast-timing.js';
-import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
+import { canonicalTime } from '#kernel/core/clock.js';
 
 /** Cast ownership is explicit data passed with each effect, never mutable ambient runtime state. */
 export function mesmerCastDelivery(
@@ -33,14 +31,15 @@ export function mesmerCastDelivery(
   };
 }
 
-/** Recognizes interrupted casts that reached their authored summon point using the caller's phase tolerance. */
+/** Summon ownership survives interruption only when the canonical summon instant was reached. */
 export function isCommittedInterruptedPhantasm(
   cast: Pick<RuntimeCast<MesmerSkill>, 'start' | 'fullEnd' | 'effectiveEnd'>,
   skill: Pick<MesmerSkill, 'phantasmSummonProgress'>
 ): boolean {
   const progress = Number(skill.phantasmSummonProgress);
-  const summonAt = cast.start + (cast.fullEnd - cast.start) * progress;
-  return castWasInterrupted(cast) && Number.isFinite(progress) && cast.effectiveEnd >= summonAt - EPSILON;
+  if (!Number.isFinite(progress) || !castWasInterrupted(cast)) return false;
+  const summonAt = canonicalTime(cast.start + (cast.fullEnd - cast.start) * progress);
+  return canonicalTime(cast.effectiveEnd) >= summonAt;
 }
 
 /** Registers phantasm packets at cast start so observers see their authored timeline in order. */
@@ -91,7 +90,7 @@ export function completeMesmerCast(context: MesmerRuntime, cast: RuntimeCast<Mes
   const details = context.profession.core.castDetails.get(cast.id) || {};
   const at = context.time;
   const interrupted = castWasInterrupted(cast);
-  if (interrupted && details.earlyResourceAt != null && cast.effectiveEnd < details.earlyResourceAt - EPSILON) {
+  if (interrupted && details.earlyResourceAt != null && canonicalTime(cast.effectiveEnd) < details.earlyResourceAt) {
     context.cancelOwner({ id: details.earlyResourceOwnerId!, generation: 0 });
   }
 
@@ -143,14 +142,17 @@ export function startMesmerCast(context: MesmerRuntime, cast: RuntimeCast<Mesmer
   let shatterSpent = null;
   const spendProgress = Number(shatter?.resourceSpendProgress);
   const delayedResourceSpend =
-    shatter?.consumesResources !== false && Number.isFinite(spendProgress) && cast.fullEnd > cast.start + EPSILON;
+    shatter?.consumesResources !== false &&
+    Number.isFinite(spendProgress) &&
+    canonicalTime(cast.fullEnd) > canonicalTime(cast.start);
+  // Resource eligibility and queued payloads must agree on the scheduler's exact instant.
   const earlyResourceAt =
     skill.resource?.mode === 'add' && skill.resource.timingAnchor === 'castStart'
-      ? cast.start + (skill.resource.atMs || 0) / 1000
+      ? canonicalTime(cast.start + (skill.resource.atMs || 0) / 1000)
       : null;
-  const resourceScheduledDuringCast = earlyResourceAt != null && earlyResourceAt < cast.fullEnd - EPSILON;
+  const resourceScheduledDuringCast = earlyResourceAt != null && earlyResourceAt < canonicalTime(cast.fullEnd);
   const earlyResourceOwnerId = `${cast.id}:mesmer.resource`;
-  if (resourceScheduledDuringCast && earlyResourceAt <= cast.effectiveEnd) {
+  if (resourceScheduledDuringCast && earlyResourceAt <= canonicalTime(cast.effectiveEnd)) {
     // Cast-start resource packets must resolve during the cast so concurrent shatters can consume them.
     context.schedule(
       'mesmer.resource-gain',
@@ -185,7 +187,7 @@ export function startMesmerCast(context: MesmerRuntime, cast: RuntimeCast<Mesmer
   if (delayedResourceSpend && !cast.cancelled) {
     context.schedule(
       'mesmer.blade-spend',
-      Math.min(cast.effectiveEnd, cast.start + (cast.fullEnd - cast.start) * spendProgress),
+      canonicalTime(Math.min(cast.effectiveEnd, cast.start + (cast.fullEnd - cast.start) * spendProgress)),
       cast.id,
       undefined,
       -110

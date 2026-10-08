@@ -1,51 +1,33 @@
-import { weaverBuffPolicies } from '#gw2/professions/elementalist/specializations/weaver/effect-state.js';
-import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
-import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
-import type { RuntimeCast, SkillTaskData } from '#gw2/platform/execution/cast-contracts.js';
-import { registerElementalistAttunementTransition } from '#gw2/professions/elementalist/core/mechanics/attunements.js';
-import { registerElementalistEliteEvents } from '#gw2/professions/elementalist/core/mechanics/elite-events.js';
-import {
-  applyElementsOfRageAttunement,
-  applyUnravelElementsOfRage,
-  applyWeaverCastTraits,
-  applyWeaversProwess,
-  flowStateAttunementReduction,
-  initializeElementsOfRage
-} from '#gw2/professions/elementalist/specializations/weaver/traits/attunements.js';
-import type { ElementalistRuntimeState, ElementalistSkill } from '#gw2/professions/elementalist/types.js';
-/**
- * Weaver hooks: the dual-attunement mechanic.
- *
- * The Elementalist core owns the main-hand (primary) attunement; this module
- * owns the off-hand element and everything that follows from the pair: the
- * slot-based cast gates, the shared attunement recharge an attunement cast
- * imposes, the Unravel / Weave Self / Perfect Weave windows, Primordial Stance
- * pulses, and the traits that react to swaps and dual-skill completions.
- */
 import type { SimulationEvent } from '#gw2/platform/events/events.js';
-import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
+import type { AvailabilityResult } from '#gw2/platform/execution/availability.js';
 import { denyCast, denySkillCast } from '#gw2/platform/execution/availability.js';
+import type { RuntimeCast, SkillTaskData } from '#gw2/platform/execution/cast-contracts.js';
+import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
+import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
+import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
 import {
   balanceProfileNumber,
   requireBalanceProfileFromContext,
   requireEffect
 } from '#gw2/platform/skills/balance-profiles.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
-import type { AvailabilityResult } from '#gw2/platform/execution/availability.js';
 import { elementalistBuffRequest } from '#gw2/professions/elementalist/core/events.js';
 import {
   elementalistAttunementRechargeDuration,
   onAttunementComplete,
+  registerElementalistAttunementTransition,
   targetAttunement
 } from '#gw2/professions/elementalist/core/mechanics/attunements.js';
 import { skillWeapon } from '#gw2/professions/elementalist/core/mechanics/effects.js';
+import { registerElementalistEliteEvents } from '#gw2/professions/elementalist/core/mechanics/elite-events.js';
 import {
   ELEMENTALIST_ATTUNEMENTS,
   isElementalistAttunement,
   setElementalistAttunementReadyAt
 } from '#gw2/professions/elementalist/core/state.js';
-import { triggerBountifulPower } from '#gw2/professions/elementalist/core/traits/attunements.js';
+import { triggerBountifulPower } from '#gw2/professions/elementalist/core/traits/arcane/attunement-swap.js';
 import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';
+import { weaverBuffPolicies } from '#gw2/professions/elementalist/specializations/weaver/effect-state.js';
 import {
   weaverDualAttunements,
   weaverHammerAvailability,
@@ -65,8 +47,21 @@ import {
 } from '#gw2/professions/elementalist/specializations/weaver/mechanics/weave-self.js';
 import { WEAVER_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/elementalist/specializations/weaver/profiles.js';
 import { weaverState } from '#gw2/professions/elementalist/specializations/weaver/state.js';
-import type { ElementalistRuntime } from '#gw2/professions/elementalist/types.js';
+import {
+  applyElementsOfRageAttunement,
+  applyUnravelElementsOfRage,
+  applyWeaverCastTraits,
+  applyWeaversProwess,
+  flowStateAttunementReduction,
+  initializeElementsOfRage
+} from '#gw2/professions/elementalist/specializations/weaver/traits/attunements.js';
+import type {
+  ElementalistRuntime,
+  ElementalistRuntimeState,
+  ElementalistSkill
+} from '#gw2/professions/elementalist/types.js';
 import { EPSILON } from '#kernel/core/clock.js';
+
 const WEAVER_DUAL_ATTUNEMENT_RECHARGE_SECONDS = 4;
 // Seed the off-hand element from the build (falling back to the starting
 // attunement) and, when both hands open on the same element, carry Elements of

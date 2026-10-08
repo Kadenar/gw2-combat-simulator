@@ -1,19 +1,17 @@
-import { createMesmerIllusionRewards, mesmerActivePrimaryWeapon } from '#gw2/professions/mesmer/family-mechanics.js';
-import type { MesmerEventExtra } from '#gw2/professions/mesmer/data/types.js';
 import { professionStaticRulesApplied } from '#gw2/platform/builds/attribute-provenance.js';
-import { advanceCriticalProc, criticalOpportunity } from '#gw2/platform/combat/procs/critical.js';
-import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
-import type { Gw2ResolvedStats } from '#gw2/platform/combat/stats.js';
-import { boonActive } from '#gw2/platform/combat/query/runtime-query.js';
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
+import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
+import { advanceCriticalProc, criticalOpportunity } from '#gw2/platform/combat/procs/critical.js';
+import { boonActive } from '#gw2/platform/combat/query/runtime-query.js';
+import type { Gw2ResolvedStats } from '#gw2/platform/combat/stats.js';
+import { buildResolverCondition } from '#gw2/platform/effects/packet-builders.js';
+import type { NativeResolvedDamageDetails } from '#gw2/platform/profession-definition/module-types.js';
+import type { RuntimeProfession } from '#gw2/platform/profession-definition/runtime-contract.js';
 import {
   balanceProfileNumber,
   requireBalanceProfileFromContext,
   requireEffect
 } from '#gw2/platform/skills/balance-profiles.js';
-import type { NativeResolvedDamageDetails } from '#gw2/platform/profession-definition/module-types.js';
-import { buildResolverCondition } from '#gw2/platform/effects/packet-builders.js';
-import type { RuntimeProfession } from '#gw2/platform/profession-definition/runtime-contract.js';
 import type {
   MesmerPhantasmPolicy,
   MesmerTraitDamage
@@ -21,7 +19,8 @@ import type {
 import type { MesmerShatterResolution } from '#gw2/professions/mesmer/core/mechanics/shatter-types.js';
 import { mesmerProfiledTraitDamage } from '#gw2/professions/mesmer/core/profiles.js';
 import { MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
-import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
+import type { MesmerEventExtra, MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
+import { createMesmerIllusionRewards, mesmerActivePrimaryWeapon } from '#gw2/professions/mesmer/family-resources.js';
 import type { MesmerRuntime, MesmerRuntimeState } from '#gw2/professions/mesmer/types.js';
 
 /** Activates Deadly Blades only after a successfully resolved Virtuoso Bladesong. */

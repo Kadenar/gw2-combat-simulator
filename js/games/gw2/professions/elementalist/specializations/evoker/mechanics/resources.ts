@@ -1,7 +1,7 @@
 import type { ResourcePolicy } from '#gw2/platform/combat/resources/resource-policy.js';
 import { boundedNumber } from '#kernel/core/numeric.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
-import { evokerChargeProfile } from '#gw2/professions/elementalist/specializations/evoker/traits/attunements.js';
+import { evokerChargeProfile } from '#gw2/professions/elementalist/specializations/evoker/traits/attunement-policy.js';
 import { EPSILON } from '#kernel/core/clock.js';
 /**
  * The Evoker familiar-charge economy.

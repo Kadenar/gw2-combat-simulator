@@ -1,10 +1,11 @@
-import { soulbeastBuffPolicies } from '#gw2/professions/ranger/specializations/soulbeast/effect-state.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import { setRangerPetActive } from '#gw2/professions/ranger/core/mechanics/pets.js';
 import { rangerPetByName } from '#gw2/professions/ranger/core/state.js';
+import { bestialRageControl } from '#gw2/professions/ranger/core/traits/beastmastery/index.js';
+import { applyMergedResoundingTimbre } from '#gw2/professions/ranger/core/traits/beastmastery/pet-behavior.js';
 import { applyRangerBeastSkillTraits } from '#gw2/professions/ranger/core/traits/dispatch.js';
-import { applyMergedResoundingTimbre } from '#gw2/professions/ranger/core/traits/pet-behavior.js';
 import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
+import { soulbeastBuffPolicies } from '#gw2/professions/ranger/specializations/soulbeast/effect-state.js';
 import {
   reactToRangerWinterBite,
   reactToSoulbeastBuff,
@@ -61,6 +62,8 @@ export const soulbeastHooks: RuntimeHooks<RangerRuntimeState, RangerSkill> = {
   },
   eventHandlers: soulbeastEventHandlers,
   reactions: {
+    // Core retains trait ownership; this elite registers its merged-pet control reaction.
+    'control.resolved': bestialRageControl,
     'damage.resolved'(runtime, event) {
       reactToSoulbeastDamage(runtime, event);
       reactToRangerWinterBite(runtime, event);

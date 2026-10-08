@@ -1,23 +1,23 @@
-import { denySkillCast } from '#gw2/platform/execution/availability.js';
 import type { AvailabilityResult } from '#gw2/platform/execution/availability.js';
+import { denySkillCast } from '#gw2/platform/execution/availability.js';
 import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
+import { mesmerConditionFromProfile } from '#gw2/professions/mesmer/core/mechanics/conditions.js';
 import {
   buildMesmerConditions,
   buildMesmerStrikes,
   mesmerPacketOwner
 } from '#gw2/professions/mesmer/core/mechanics/packets.js';
-import { mesmerConditionFromProfile } from '#gw2/professions/mesmer/core/mechanics/conditions.js';
-import {
-  bladesongConfusion,
-  bladesongTier
-} from '#gw2/professions/mesmer/specializations/virtuoso/mechanics/bladesong-projection.js';
 import type {
   MesmerShatterResolverRequest,
   MesmerShatterTraitHit
 } from '#gw2/professions/mesmer/core/mechanics/shatter-types.js';
-import { applyCryOfPain, masterOfFragmentationRequiem } from '#gw2/professions/mesmer/core/traits/illusions.js';
+import { applyCryOfPain, masterOfFragmentationRequiem } from '#gw2/professions/mesmer/core/traits/illusions/index.js';
 import { MESMER_SKILL_IDS as ID } from '#gw2/professions/mesmer/data/ids.js';
 import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
+import {
+  bladesongConfusion,
+  bladesongTier
+} from '#gw2/professions/mesmer/specializations/virtuoso/mechanics/bladesong-projection.js';
 import { virtuosoState } from '#gw2/professions/mesmer/specializations/virtuoso/state.js';
 import type { MesmerRuntime } from '#gw2/professions/mesmer/types.js';
 

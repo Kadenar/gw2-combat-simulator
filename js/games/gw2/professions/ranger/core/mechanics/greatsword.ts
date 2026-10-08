@@ -1,12 +1,12 @@
-import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
-import { buildResolverBuff } from '#gw2/platform/effects/packet-builders.js';
-import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
-import { requireBalanceProfileFromContext, balanceProfileNumber } from '#gw2/platform/skills/balance-profiles.js';
-import { RANGER_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/ranger/core/profile-ids.js';
-import { rangerPetCompanionId } from '#gw2/professions/ranger/core/mechanics/pets.js';
-import { isPetStrike, isPlayerStrike } from '#gw2/professions/ranger/core/mechanics/resolution-helpers.js';
 import type { Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
+import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
+import { buildResolverBuff } from '#gw2/platform/effects/packet-builders.js';
 import type { SimulationEvent } from '#gw2/platform/events/events.js';
+import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
+import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import { rangerPetCompanionId } from '#gw2/professions/ranger/core/mechanics/pet-attributes.js';
+import { isPetStrike, isPlayerStrike } from '#gw2/professions/ranger/core/mechanics/resolution-helpers.js';
+import { RANGER_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/ranger/core/profile-ids.js';
 import type { RangerResolverContext } from '#gw2/professions/ranger/types.js';
 
 // Only direct attacks spend the charge; trait and stance damage cannot steal it.

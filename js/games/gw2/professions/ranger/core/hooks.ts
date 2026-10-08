@@ -1,26 +1,21 @@
-import { bloodThirstLifecycle } from '#gw2/professions/ranger/core/skills/weapons/shortbow.js';
-import { poisonousStrikesLifecycle } from '#gw2/professions/ranger/core/skills/weapons/dagger.js';
-import { sharpeningStoneLifecycle } from '#gw2/professions/ranger/core/skills/slot-skills.js';
-import { composeRuntimeHooks, type RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import { prepareGw2BuffCompanionCandidates } from '#gw2/platform/combat/state/allied-players.js';
-
-import { criticalProcHandler } from '#gw2/platform/profession-definition/critical-proc-handler.js';
-import { OBSERVABLE_EVENT_HANDLER } from '#gw2/platform/resolver/handler-registry.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
+import { criticalProcHandler } from '#gw2/platform/profession-definition/critical-proc-handler.js';
+import { composeRuntimeHooks, type RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
+import { OBSERVABLE_EVENT_HANDLER } from '#gw2/platform/resolver/handler-registry.js';
 import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
-
+import { rangerBuffPolicies } from '#gw2/professions/ranger/core/effect-state.js';
 import { rangerCoreCastAvailability } from '#gw2/professions/ranger/core/mechanics/availability.js';
-
 import {
   grantMaulAttackOfOpportunity,
   reactToRangerGreatswordDamage
 } from '#gw2/professions/ranger/core/mechanics/greatsword.js';
+import { rangerPetCompanionId } from '#gw2/professions/ranger/core/mechanics/pet-attributes.js';
 import {
-  rangerBoonDuration,
-  consumeParalyzingVenom,
   beginRangerPetCommand,
+  consumeParalyzingVenom,
   prepareRangerPetEvent,
-  rangerPetCompanionId,
+  rangerBoonDuration,
   rangerPetCastDurationMs,
   rangerPetTasks,
   startRangerPet
@@ -28,34 +23,36 @@ import {
 import { reactToRangerCoreDamage } from '#gw2/professions/ranger/core/mechanics/reactions.js';
 import { rangerEndurance } from '#gw2/professions/ranger/core/mechanics/resources.js';
 import { triggerStalkersStrike } from '#gw2/professions/ranger/core/mechanics/skill-reactions.js';
-
 import { swapRangerPets } from '#gw2/professions/ranger/core/skills/actions.js';
 import {
   activateSicEm,
   copyHealingBoons,
-  emitSunSpiritBurning,
   emitStormSpiritSlam,
-  RANGER_SPIRIT_SLAM_DELAY_MS,
+  emitSunSpiritBurning,
   prepareFrostTrapEvent,
-  releaseFrostTrap
+  RANGER_SPIRIT_SLAM_DELAY_MS,
+  releaseFrostTrap,
+  sharpeningStoneLifecycle
 } from '#gw2/professions/ranger/core/skills/slot-skills.js';
 import { synchronizePathOfScarsRecharge } from '#gw2/professions/ranger/core/skills/weapons/axe.js';
+import { poisonousStrikesLifecycle } from '#gw2/professions/ranger/core/skills/weapons/dagger.js';
 import { synchronizeHammerRecharge } from '#gw2/professions/ranger/core/skills/weapons/hammer.js';
+import { bloodThirstLifecycle } from '#gw2/professions/ranger/core/skills/weapons/shortbow.js';
 import {
   armHuntersProwess,
   consumeSpearOpportunity,
   synchronizeSpearRecharge
 } from '#gw2/professions/ranger/core/skills/weapons/spear.js';
+import { applyRangerPetSwapTraits, completeRangerTraits } from '#gw2/professions/ranger/core/traits/dispatch.js';
+import { reactToRangerCoreBuff } from '#gw2/professions/ranger/core/traits/marksmanship/opening-strike.js';
+import { rangerCoreCriticalReactions } from '#gw2/professions/ranger/core/traits/skirmishing/index.js';
 import {
   applyRangerDodgeTraits,
-  applyRangerWeaponSwapTraits,
-  handleRangerBeastSkillUsed,
-  rangerCoreCriticalReactions,
-  reactToRangerCoreBuff
-} from '#gw2/professions/ranger/core/traits/behavior.js';
-import { applyRangerPetSwapTraits, completeRangerTraits } from '#gw2/professions/ranger/core/traits/dispatch.js';
+  applyRangerWeaponSwapTraits
+} from '#gw2/professions/ranger/core/traits/skirmishing/movement.js';
+import { handleRangerBeastSkillUsed } from '#gw2/professions/ranger/core/traits/wilderness-survival/poison.js';
 import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
-import type { RangerSkill, RangerRuntime, RangerRuntimeState } from '#gw2/professions/ranger/types.js';
+import type { RangerRuntime, RangerRuntimeState, RangerSkill } from '#gw2/professions/ranger/types.js';
 
 const critical = criticalProcHandler(rangerCoreCriticalReactions);
 
@@ -65,8 +62,6 @@ function completeWeapon(runtime: RangerRuntime, cast: RuntimeCast<RangerSkill>):
   synchronizeSpearRecharge(runtime, cast);
   synchronizePathOfScarsRecharge(runtime, cast);
 }
-
-import { rangerBuffPolicies } from '#gw2/professions/ranger/core/effect-state.js';
 
 const coreLifecycle: RuntimeHooks<RangerRuntimeState, RangerSkill> = {
   buffPolicies: rangerBuffPolicies,

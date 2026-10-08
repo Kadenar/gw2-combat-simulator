@@ -1,14 +1,13 @@
 import { createExecutedFacts } from '#gw2/platform/combat/history/executed-facts.js';
-import { captureEffectEmissions } from '#tests/helpers/effect-emission.js';
-import { createCooldownController } from '#gw2/platform/execution/cooldowns.js';
 import { applySkillSideEffects } from '#gw2/platform/effects/action-dispatch.js';
+import { createCooldownController } from '#gw2/platform/execution/cooldowns.js';
 import { mesmerCoreHooks } from '#gw2/professions/mesmer/core/hooks.js';
-import { projectObservedState } from '#tests/helpers/observed-runtime.js';
-import assert from 'node:assert/strict';
-import test from 'node:test';
-import { mesmerProfession } from '#gw2/professions/mesmer/profession.js';
-import { MESMER_SKILL_IDS as ID, MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
 import { completeMimicCast } from '#gw2/professions/mesmer/core/mechanics/mimic.js';
+import { MESMER_SKILL_IDS as ID, MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
+import { createMesmerIllusionRewards } from '#gw2/professions/mesmer/family-resources.js';
+import { mesmerProfession } from '#gw2/professions/mesmer/profession.js';
+import { mirageHooks } from '#gw2/professions/mesmer/specializations/mirage/hooks.js';
+import { mirageAvailability } from '#gw2/professions/mesmer/specializations/mirage/mechanics/cloak-and-ambushes.js';
 import {
   createMirageMechanics,
   mesmerAmbushAttacks
@@ -17,9 +16,10 @@ import {
   initializeMirageTraits,
   reactToMirageResourceGain
 } from '#gw2/professions/mesmer/specializations/mirage/traits/behavior.js';
-import { mirageAvailability } from '#gw2/professions/mesmer/specializations/mirage/mechanics/cloak-and-ambushes.js';
-import { mirageHooks } from '#gw2/professions/mesmer/specializations/mirage/hooks.js';
-import { createMesmerIllusionRewards } from '#gw2/professions/mesmer/family-mechanics.js';
+import { captureEffectEmissions } from '#tests/helpers/effect-emission.js';
+import { projectObservedState } from '#tests/helpers/observed-runtime.js';
+import assert from 'node:assert/strict';
+import test from 'node:test';
 
 // Real profiles and specialization initialization isolate the lifetime contracts from rotation and cast timing.
 function lifetimeContext(traits = []) {

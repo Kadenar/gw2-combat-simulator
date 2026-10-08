@@ -1,11 +1,11 @@
-import { captureEffectEmissions } from '#tests/helpers/effect-emission.js';
 import { createProcRegistry } from '#gw2/platform/combat/procs/registry.js';
 import { createMesmerCoreState } from '#gw2/professions/mesmer/core/state.js';
-import { triggerMesmerCriticalTraits } from '#gw2/professions/mesmer/core/traits/dueling.js';
 import { triggerMesmerControlTraits } from '#gw2/professions/mesmer/core/traits/dispatch.js';
+import { triggerMesmerCriticalTraits } from '#gw2/professions/mesmer/core/traits/dueling/index.js';
 import { MESMER_SKILL_IDS as ID, MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
 import { mesmerCatalog, mesmerProfession } from '#gw2/professions/mesmer/profession.js';
 import { withProfile, withSkill } from '#tests/helpers/catalog-overrides.js';
+import { captureEffectEmissions } from '#tests/helpers/effect-emission.js';
 import { defaultSimulationConfig } from '#tests/helpers/fixture-harness-core.js';
 import { simulateMesmer } from '#tests/helpers/mesmer-simulation.js';
 import { observeGw2Runtime } from '#tests/helpers/observed-runtime.js';

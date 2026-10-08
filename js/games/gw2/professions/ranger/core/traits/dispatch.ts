@@ -1,12 +1,11 @@
+import { applyRangerCommandTraits } from '#gw2/professions/ranger/core/traits/beastmastery/pet-behavior.js';
+import { applyClarionBond, applyWolfsong } from '#gw2/professions/ranger/core/traits/marksmanship/beast-skills.js';
 import {
-  applyClarionBond,
-  applyPoisonMasterBeastSkill,
   applyRejuvenation,
-  applySpiritedArrival,
-  applyWolfsong,
-  emitChildOfEarth
-} from '#gw2/professions/ranger/core/traits/behavior.js';
-import { applyRangerCommandTraits } from '#gw2/professions/ranger/core/traits/pet-behavior.js';
+  applySpiritedArrival
+} from '#gw2/professions/ranger/core/traits/nature-magic/beast-skills.js';
+import { emitChildOfEarth } from '#gw2/professions/ranger/core/traits/wilderness-survival/index.js';
+import { applyPoisonMasterBeastSkill } from '#gw2/professions/ranger/core/traits/wilderness-survival/poison.js';
 import type { RangerRuntime, RangerSkill } from '#gw2/professions/ranger/types.js';
 
 /** Shared trait dispatch recognizes commandable pet Beast skills and excludes family skills. */

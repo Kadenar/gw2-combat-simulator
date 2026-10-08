@@ -1,10 +1,10 @@
 import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
 import {
-  modifyCoreAttributes,
-  modifyCoreCriticalChance,
   pactOfPainDuration,
   yearningEmpowermentDuration
-} from '#gw2/professions/revenant/core/traits/behavior.js';
+} from '#gw2/professions/revenant/core/traits/corruption/behavior.js';
+import { modifyCoreAttributes } from '#gw2/professions/revenant/core/traits/devastation/attributes.js';
+import { modifyCoreCriticalChance } from '#gw2/professions/revenant/core/traits/invocation/queries.js';
 import type { RevenantConfig } from '#gw2/professions/revenant/types.js';
 
 interface RevenantModifierContext extends Gw2ModifierContext {

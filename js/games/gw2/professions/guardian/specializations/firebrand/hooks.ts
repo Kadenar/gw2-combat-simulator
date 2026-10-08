@@ -1,25 +1,24 @@
-import {
-  firebrandBuffPolicies,
-  firebrandEffectStates
-} from '#gw2/professions/guardian/specializations/firebrand/effect-state.js';
-import { firebrandPageTuning } from '#gw2/professions/guardian/specializations/firebrand/traits/page-tuning.js';
-import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
-import type { MechanicContext } from '#gw2/platform/profession-definition/mechanic-context.js';
 import { CAST_READY, denyCast } from '#gw2/platform/execution/availability.js';
-import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
-import type { NativeResolvedDamageDetails } from '#gw2/platform/profession-definition/module-types.js';
-import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import { castWasInterrupted } from '#gw2/platform/execution/cast-timing.js';
+import type { MechanicContext } from '#gw2/platform/profession-definition/mechanic-context.js';
+import type { NativeResolvedDamageDetails } from '#gw2/platform/profession-definition/module-types.js';
+import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
+import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import { damageInputEvent } from '#gw2/platform/skill-damage/occurrence-driver.js';
+import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import { guardianCastCause } from '#gw2/professions/guardian/core/mechanics/event-handlers.js';
 import { createPassiveCourageTask } from '#gw2/professions/guardian/core/mechanics/passive-courage.js';
 import {
   applyGuardianVirtueActivationTraits,
-  powerOfTheVirtuousRechargeMultiplier,
-  triggerGuardianFuriousFocus
-} from '#gw2/professions/guardian/core/traits/behavior.js';
+  powerOfTheVirtuousRechargeMultiplier
+} from '#gw2/professions/guardian/core/traits/virtues/behavior.js';
+import { triggerGuardianFuriousFocus } from '#gw2/professions/guardian/core/traits/zeal/behavior.js';
 import { GUARDIAN_SKILL_IDS as ID } from '#gw2/professions/guardian/data/ids.js';
+import {
+  firebrandBuffPolicies,
+  firebrandEffectStates
+} from '#gw2/professions/guardian/specializations/firebrand/effect-state.js';
 import {
   firebrandEffectTasks,
   startFirebrandAshes
@@ -44,6 +43,7 @@ import {
   resetSwiftScholar,
   stoicDemeanorRetainsCourage
 } from '#gw2/professions/guardian/specializations/firebrand/traits/behavior.js';
+import { firebrandPageTuning } from '#gw2/professions/guardian/specializations/firebrand/traits/page-tuning.js';
 import type { GuardianRuntimeState, GuardianSkill, GuardianVirtue } from '#gw2/professions/guardian/types.js';
 import { canonicalTime } from '#kernel/core/clock.js';
 

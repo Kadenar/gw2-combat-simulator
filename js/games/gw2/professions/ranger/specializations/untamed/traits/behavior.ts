@@ -1,18 +1,18 @@
+import { professionStaticRulesApplied } from '#gw2/platform/builds/attribute-provenance.js';
+import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
+import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
 import { claimActivation } from '#gw2/platform/combat/procs/activation-claims.js';
 import { grantRefreshedStacks } from '#gw2/platform/combat/resources/refreshed-stacks.js';
-import { professionStaticRulesApplied } from '#gw2/platform/builds/attribute-provenance.js';
-import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
 import type { Gw2ResolvedStats } from '#gw2/platform/combat/stats.js';
-import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
-import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import type { SkillEffect } from '#gw2/platform/effects/types.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
+import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import { rangerPetCompanionId } from '#gw2/professions/ranger/core/mechanics/pet-attributes.js';
 import { isPetStrike, isPlayerStrike } from '#gw2/professions/ranger/core/mechanics/resolution-helpers.js';
-import { rangerPetCompanionId } from '#gw2/professions/ranger/core/mechanics/pets.js';
 import { RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
 import { TRAITS } from '#gw2/professions/ranger/data/traits-data.js';
-import { untamedState } from '#gw2/professions/ranger/specializations/untamed/state.js';
 import { UNTAMED_AMBUSH_SKILL_IDS } from '#gw2/professions/ranger/data/untamed-ambushes.js';
+import { untamedState } from '#gw2/professions/ranger/specializations/untamed/state.js';
 import type { RangerResolverContext } from '#gw2/professions/ranger/types.js';
 
 /** Ambushes retain their authored first-hit timing and unconditional life-steal packet. */
