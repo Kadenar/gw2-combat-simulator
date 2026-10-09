@@ -1,3 +1,4 @@
+import { GW2_STANDARD_BOONS } from '#gw2/platform/combat/boons.js';
 import { professionStaticRulesApplied } from '#gw2/platform/builds/attribute-provenance.js';
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
@@ -150,8 +151,10 @@ export const empowered = defineTrait({
       id: 'warrior.empowered',
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: 'multiply',
-      parameters: { damagePerBoon: 0.01 },
-      factor: (context, _target, parameters) => 1 + warriorActiveBoonCount(context) * parameters.damagePerBoon,
+      // Count unique boons only up to the selected balance cap.
+      parameters: { damagePerBoon: 0.01, maximumBoons: GW2_STANDARD_BOONS.length },
+      factor: (context, _target, parameters) =>
+        1 + Math.min(parameters.maximumBoons, warriorActiveBoonCount(context)) * parameters.damagePerBoon,
       order: 90
     }
   ]

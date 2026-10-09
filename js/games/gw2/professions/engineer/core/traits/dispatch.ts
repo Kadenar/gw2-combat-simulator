@@ -1,5 +1,5 @@
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
-import { isExplosion } from '#gw2/professions/engineer/core/mechanics/resolution-helpers.js';
+import { isExplosion, resolverSkill } from '#gw2/professions/engineer/core/mechanics/resolution-helpers.js';
 import { applyHghAcidBomb } from '#gw2/professions/engineer/core/traits/alchemy/elixirs.js';
 import {
   applyAimAssistedRocket,
@@ -44,7 +44,7 @@ export function reactToEngineerDamage(context: EngineerResolverContext, event: E
   if (!(Number(event.coefficient) > 0)) return;
   recordStaticDischargeProc(context, event);
   applyExplosiveEntrance(context, event);
-  const explosion = isExplosion(context, event);
+  const explosion = isExplosion(event, resolverSkill(context, event.skillId ?? event.sourceId));
   applySteelPackedPowder(context, event, explosion);
   applyShortFuse(context, event, explosion);
   applyExplosiveTemper(context, event, explosion);

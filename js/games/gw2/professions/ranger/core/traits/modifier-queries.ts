@@ -64,8 +64,7 @@ export function activePetFamily(context: RangerModifierContext): string {
   return rangerPetByName(activePet || context.config?.selectedPet || 'Pig').family;
 }
 
-export function positional(context: Gw2ModifierContext): boolean {
-  // Defiant is the positional proxy: a defiant golem never rotates, so
-  // flanking/behind bonuses always apply and need no separate control.
+/** Defiant targets qualify for flanking/behind bonuses because simulated golems never rotate. */
+export function qualifiesForFlankingBonuses(context: Gw2ModifierContext): boolean {
   return Boolean(context.config?.target?.defiant);
 }

@@ -131,15 +131,32 @@ export function activateVenom(runtime: ThiefRuntime, cast: RuntimeCast<ThiefSkil
   const maximumStacks = balanceProfileNumber(profile, 'maximumStacks');
   const duration = balanceProfileNumber(profile, 'durationMultiplier');
   addVenomCharges(core, cast.skill.id, at, maximumStacks, duration);
+  const grant = { skillId: cast.skill.id, activationId: cast.id, charges: maximumStacks, expiresAt: at + duration };
+  if (runtime.combatActive) scheduleAlliedVenom(runtime, grant);
+  else core.pendingAlliedVenoms.push(grant);
+}
+
+/** Combat entry starts pending ally countdowns; preparation never spends charges or renews their lifetime. */
+export function startPendingAlliedVenoms(runtime: ThiefRuntime): void {
+  for (const grant of runtime.profession.core.pendingAlliedVenoms) scheduleAlliedVenom(runtime, grant);
+  runtime.profession.core.pendingAlliedVenoms = [];
+}
+
+/** Preserve cast order across stacked grants while bounding every ally sequence by its original expiry. */
+function scheduleAlliedVenom(runtime: ThiefRuntime, grant: ThiefCoreState['pendingAlliedVenoms'][number]): void {
+  const venom = venomForSkill(grant.skillId);
+  if (!venom || grant.expiresAt <= runtime.time) return;
+  const core = runtime.profession.core;
+  const profile = requireBalanceProfileFromContext(runtime, venom.profileId);
   // Recasts queue behind remaining ally charges, keeping one proc per assumed strike.
-  const alliedStart = Math.max(at, core.venomAllyLastProcAt[String(cast.skill.id)] ?? at);
+  const alliedStart = Math.max(runtime.time, core.venomAllyLastProcAt[String(grant.skillId)] ?? runtime.time);
   const alliedProcs = gw2AlliedPlayerProcTimeline(runtime.config, {
     start: alliedStart,
-    duration: Math.max(0, at + duration - alliedStart),
-    maximumPerAlly: maximumStacks
+    duration: Math.max(0, grant.expiresAt - alliedStart),
+    maximumPerAlly: grant.charges
   });
   if (alliedProcs.length)
-    core.venomAllyLastProcAt[String(cast.skill.id)] = Math.max(...alliedProcs.map((proc) => proc.at));
+    core.venomAllyLastProcAt[String(grant.skillId)] = Math.max(...alliedProcs.map((proc) => proc.at));
   const packets = conditionEffects(profile).map((effect) => ({
     effect,
     stacks: effectNumber(profile, effect, 'stacks'),
@@ -157,7 +174,7 @@ export function activateVenom(runtime: ThiefRuntime, cast: RuntimeCast<ThiefSkil
           condition: String(effect.condition),
           stacks,
           duration: conditionDuration,
-          activationId: `${cast.id}:ally:${proc.allyIndex}:${proc.procIndex}`,
+          activationId: `${grant.activationId}:ally:${proc.allyIndex}:${proc.procIndex}`,
           metadata: { triggeredByAlly: proc.allyIndex, venomProcEffectIndex: effectIndex }
         })
       });

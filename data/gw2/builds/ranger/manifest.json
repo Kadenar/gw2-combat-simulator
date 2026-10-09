@@ -3,6 +3,33 @@
     "section": "Druid",
     "presets": [
       {
+        "label": "Condition (Dagger-Torch / Axe-Dagger)",
+        "build": "data/gw2/builds/ranger/b-condi-druid-dagger-torch-axe-dagger.json",
+        "rotation": "data/gw2/rotations/ranger/r-condi-druid-dagger-torch-axe-dagger-evtc.json",
+        "snowCrowsUrl": "https://snowcrows.com/builds/raids/ranger/condition-druid-dagger-torch-axe-dagger",
+        "benchmarkDps": 42762,
+        "benchmarkApm": 100.8,
+        "benchmarkDpsByHealth": {
+          "100-80": { "cumulative": 38266, "phase": 38266 },
+          "80-60": { "cumulative": 40889, "phase": 43949 },
+          "60-40": { "cumulative": 41413, "phase": 42489 },
+          "40-20": { "cumulative": 42584, "phase": 46577 },
+          "20-0": { "cumulative": 42762, "phase": 43507 }
+        },
+        "upToDate": true,
+        "patchPreview": {
+          "patchId": "conduit-balance-preview",
+          "benchmarkDps": 43918,
+          "benchmarkDpsByHealth": {
+            "100-80": { "cumulative": 39564, "phase": 39564 },
+            "80-60": { "cumulative": 42108, "phase": 44958 },
+            "60-40": { "cumulative": 42746, "phase": 44093 },
+            "40-20": { "cumulative": 43661, "phase": 46676 },
+            "20-0": { "cumulative": 43918, "phase": 44961 }
+          }
+        }
+      },
+      {
         "label": "Condition Alacrity (Dagger-Torch / Axe-Dagger)",
         "build": "data/gw2/builds/ranger/b-condi-alac-druid-dagger-torch-axe-dagger.json",
         "rotation": "data/gw2/rotations/ranger/r-condi-alac-druid-dagger-torch-axe-dagger-bench.json",
@@ -11,25 +38,21 @@
         "upToDate": true,
         "benchmarkApm": 104.5,
         "benchmarkDpsByHealth": {
-          "100-80": {
-            "cumulative": 34946,
-            "phase": 34946
-          },
-          "80-60": {
-            "cumulative": 37453,
-            "phase": 40336
-          },
-          "60-40": {
-            "cumulative": 37616,
-            "phase": 37950
-          },
-          "40-20": {
-            "cumulative": 39153,
-            "phase": 44618
-          },
-          "20-0": {
-            "cumulative": 39245,
-            "phase": 39623
+          "100-80": { "cumulative": 34946, "phase": 34946 },
+          "80-60": { "cumulative": 37453, "phase": 40336 },
+          "60-40": { "cumulative": 37616, "phase": 37950 },
+          "40-20": { "cumulative": 39153, "phase": 44618 },
+          "20-0": { "cumulative": 39245, "phase": 39623 }
+        },
+        "patchPreview": {
+          "patchId": "conduit-balance-preview",
+          "benchmarkDps": 37170,
+          "benchmarkDpsByHealth": {
+            "100-80": { "cumulative": 32718, "phase": 32718 },
+            "80-60": { "cumulative": 35864, "phase": 39797 },
+            "60-40": { "cumulative": 36104, "phase": 36595 },
+            "40-20": { "cumulative": 36635, "phase": 38443 },
+            "20-0": { "cumulative": 37170, "phase": 37170 }
           }
         }
       }
@@ -47,25 +70,21 @@
         "upToDate": true,
         "benchmarkApm": 56.5,
         "benchmarkDpsByHealth": {
-          "100-80": {
-            "cumulative": 53785,
-            "phase": 53785
-          },
-          "80-60": {
-            "cumulative": 46781,
-            "phase": 41064
-          },
-          "60-40": {
-            "cumulative": 44333,
-            "phase": 40292
-          },
-          "40-20": {
-            "cumulative": 41800,
-            "phase": 35504
-          },
-          "20-0": {
-            "cumulative": 43152,
-            "phase": 43152
+          "100-80": { "cumulative": 53785, "phase": 53785 },
+          "80-60": { "cumulative": 46781, "phase": 41064 },
+          "60-40": { "cumulative": 44333, "phase": 40292 },
+          "40-20": { "cumulative": 41800, "phase": 35504 },
+          "20-0": { "cumulative": 43152, "phase": 43152 }
+        },
+        "patchPreview": {
+          "patchId": "conduit-balance-preview",
+          "benchmarkDps": 43152,
+          "benchmarkDpsByHealth": {
+            "100-80": { "cumulative": 53785, "phase": 53785 },
+            "80-60": { "cumulative": 46781, "phase": 41064 },
+            "60-40": { "cumulative": 44333, "phase": 40292 },
+            "40-20": { "cumulative": 41800, "phase": 35504 },
+            "20-0": { "cumulative": 43152, "phase": 43152 }
           }
         }
       },
@@ -78,25 +97,21 @@
         "upToDate": true,
         "benchmarkApm": 54.4,
         "benchmarkDpsByHealth": {
-          "100-80": {
-            "cumulative": 53084,
-            "phase": 53084
-          },
-          "80-60": {
-            "cumulative": 46797,
-            "phase": 41957
-          },
-          "60-40": {
-            "cumulative": 43909,
-            "phase": 38928
-          },
-          "40-20": {
-            "cumulative": 41673,
-            "phase": 36207
-          },
-          "20-0": {
-            "cumulative": 42995,
-            "phase": 42995
+          "100-80": { "cumulative": 53084, "phase": 53084 },
+          "80-60": { "cumulative": 46797, "phase": 41957 },
+          "60-40": { "cumulative": 43909, "phase": 38928 },
+          "40-20": { "cumulative": 41673, "phase": 36207 },
+          "20-0": { "cumulative": 42995, "phase": 42995 }
+        },
+        "patchPreview": {
+          "patchId": "conduit-balance-preview",
+          "benchmarkDps": 42995,
+          "benchmarkDpsByHealth": {
+            "100-80": { "cumulative": 53084, "phase": 53084 },
+            "80-60": { "cumulative": 46797, "phase": 41957 },
+            "60-40": { "cumulative": 43909, "phase": 38928 },
+            "40-20": { "cumulative": 41673, "phase": 36207 },
+            "20-0": { "cumulative": 42995, "phase": 42995 }
           }
         }
       },
@@ -109,25 +124,21 @@
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/ranger/power-soulbeast-spear-axe-axe",
         "benchmarkApm": 63.9,
         "benchmarkDpsByHealth": {
-          "100-80": {
-            "cumulative": 49618,
-            "phase": 49618
-          },
-          "80-60": {
-            "cumulative": 45008,
-            "phase": 41167
-          },
-          "60-40": {
-            "cumulative": 41803,
-            "phase": 36585
-          },
-          "40-20": {
-            "cumulative": 40460,
-            "phase": 36943
-          },
-          "20-0": {
-            "cumulative": 41023,
-            "phase": 41023
+          "100-80": { "cumulative": 49618, "phase": 49618 },
+          "80-60": { "cumulative": 45008, "phase": 41167 },
+          "60-40": { "cumulative": 41803, "phase": 36585 },
+          "40-20": { "cumulative": 40460, "phase": 36943 },
+          "20-0": { "cumulative": 41023, "phase": 41023 }
+        },
+        "patchPreview": {
+          "patchId": "conduit-balance-preview",
+          "benchmarkDps": 41023,
+          "benchmarkDpsByHealth": {
+            "100-80": { "cumulative": 49618, "phase": 49618 },
+            "80-60": { "cumulative": 45008, "phase": 41167 },
+            "60-40": { "cumulative": 41803, "phase": 36585 },
+            "40-20": { "cumulative": 40460, "phase": 36943 },
+            "20-0": { "cumulative": 41023, "phase": 41023 }
           }
         }
       }
@@ -145,25 +156,21 @@
         "upToDate": true,
         "benchmarkApm": 103.8,
         "benchmarkDpsByHealth": {
-          "100-80": {
-            "cumulative": 49596,
-            "phase": 49596
-          },
-          "80-60": {
-            "cumulative": 47042,
-            "phase": 44679
-          },
-          "60-40": {
-            "cumulative": 45315,
-            "phase": 42174
-          },
-          "40-20": {
-            "cumulative": 44609,
-            "phase": 42629
-          },
-          "20-0": {
-            "cumulative": 44626,
-            "phase": 44695
+          "100-80": { "cumulative": 49596, "phase": 49596 },
+          "80-60": { "cumulative": 47042, "phase": 44679 },
+          "60-40": { "cumulative": 45315, "phase": 42174 },
+          "40-20": { "cumulative": 44609, "phase": 42629 },
+          "20-0": { "cumulative": 44626, "phase": 44695 }
+        },
+        "patchPreview": {
+          "patchId": "conduit-balance-preview",
+          "benchmarkDps": 42989,
+          "benchmarkDpsByHealth": {
+            "100-80": { "cumulative": 48830, "phase": 48830 },
+            "80-60": { "cumulative": 44996, "phase": 41695 },
+            "60-40": { "cumulative": 44151, "phase": 42561 },
+            "40-20": { "cumulative": 42957, "phase": 39699 },
+            "20-0": { "cumulative": 42989, "phase": 42989 }
           }
         }
       },
@@ -176,25 +183,21 @@
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/ranger/power-quickness-untamed-hammer-sword-axe",
         "benchmarkApm": 79.6,
         "benchmarkDpsByHealth": {
-          "100-80": {
-            "cumulative": 38211,
-            "phase": 38211
-          },
-          "80-60": {
-            "cumulative": 35263,
-            "phase": 32683
-          },
-          "60-40": {
-            "cumulative": 33975,
-            "phase": 31668
-          },
-          "40-20": {
-            "cumulative": 34085,
-            "phase": 34417
-          },
-          "20-0": {
-            "cumulative": 33707,
-            "phase": 33707
+          "100-80": { "cumulative": 38211, "phase": 38211 },
+          "80-60": { "cumulative": 35263, "phase": 32683 },
+          "60-40": { "cumulative": 33975, "phase": 31668 },
+          "40-20": { "cumulative": 34085, "phase": 34417 },
+          "20-0": { "cumulative": 33707, "phase": 33707 }
+        },
+        "patchPreview": {
+          "patchId": "conduit-balance-preview",
+          "benchmarkDps": 33707,
+          "benchmarkDpsByHealth": {
+            "100-80": { "cumulative": 38211, "phase": 38211 },
+            "80-60": { "cumulative": 35263, "phase": 32683 },
+            "60-40": { "cumulative": 33975, "phase": 31668 },
+            "40-20": { "cumulative": 34085, "phase": 34417 },
+            "20-0": { "cumulative": 33707, "phase": 33707 }
           }
         }
       },
@@ -207,25 +210,21 @@
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/ranger/power-quickness-untamed-nature-magic-hammer-sword-axe",
         "benchmarkApm": 84,
         "benchmarkDpsByHealth": {
-          "100-80": {
-            "cumulative": 36273,
-            "phase": 36273
-          },
-          "80-60": {
-            "cumulative": 34207,
-            "phase": 32337
-          },
-          "60-40": {
-            "cumulative": 33770,
-            "phase": 32929
-          },
-          "40-20": {
-            "cumulative": 33728,
-            "phase": 33603
-          },
-          "20-0": {
-            "cumulative": 33683,
-            "phase": 33683
+          "100-80": { "cumulative": 36273, "phase": 36273 },
+          "80-60": { "cumulative": 34207, "phase": 32337 },
+          "60-40": { "cumulative": 33770, "phase": 32929 },
+          "40-20": { "cumulative": 33728, "phase": 33603 },
+          "20-0": { "cumulative": 33683, "phase": 33683 }
+        },
+        "patchPreview": {
+          "patchId": "conduit-balance-preview",
+          "benchmarkDps": 33528,
+          "benchmarkDpsByHealth": {
+            "100-80": { "cumulative": 35760, "phase": 35760 },
+            "80-60": { "cumulative": 33919, "phase": 32266 },
+            "60-40": { "cumulative": 33660, "phase": 33152 },
+            "40-20": { "cumulative": 33571, "phase": 33301 },
+            "20-0": { "cumulative": 33528, "phase": 33528 }
           }
         }
       }
@@ -243,25 +242,21 @@
         "upToDate": true,
         "benchmarkApm": 85.1,
         "benchmarkDpsByHealth": {
-          "100-80": {
-            "cumulative": 46351,
-            "phase": 46351
-          },
-          "80-60": {
-            "cumulative": 41769,
-            "phase": 37928
-          },
-          "60-40": {
-            "cumulative": 42764,
-            "phase": 44921
-          },
-          "40-20": {
-            "cumulative": 42461,
-            "phase": 41578
-          },
-          "20-0": {
-            "cumulative": 42422,
-            "phase": 42268
+          "100-80": { "cumulative": 46351, "phase": 46351 },
+          "80-60": { "cumulative": 41769, "phase": 37928 },
+          "60-40": { "cumulative": 42764, "phase": 44921 },
+          "40-20": { "cumulative": 42461, "phase": 41578 },
+          "20-0": { "cumulative": 42422, "phase": 42268 }
+        },
+        "patchPreview": {
+          "patchId": "conduit-balance-preview",
+          "benchmarkDps": 42422,
+          "benchmarkDpsByHealth": {
+            "100-80": { "cumulative": 46351, "phase": 46351 },
+            "80-60": { "cumulative": 41769, "phase": 37928 },
+            "60-40": { "cumulative": 42764, "phase": 44921 },
+            "40-20": { "cumulative": 42461, "phase": 41578 },
+            "20-0": { "cumulative": 42422, "phase": 42268 }
           }
         }
       },
@@ -274,25 +269,21 @@
         "upToDate": true,
         "benchmarkApm": 86.4,
         "benchmarkDpsByHealth": {
-          "100-80": {
-            "cumulative": 34712,
-            "phase": 34712
-          },
-          "80-60": {
-            "cumulative": 34874,
-            "phase": 35043
-          },
-          "60-40": {
-            "cumulative": 34898,
-            "phase": 34946
-          },
-          "40-20": {
-            "cumulative": 35196,
-            "phase": 36120
-          },
-          "20-0": {
-            "cumulative": 35111,
-            "phase": 35111
+          "100-80": { "cumulative": 34712, "phase": 34712 },
+          "80-60": { "cumulative": 34874, "phase": 35043 },
+          "60-40": { "cumulative": 34898, "phase": 34946 },
+          "40-20": { "cumulative": 35196, "phase": 36120 },
+          "20-0": { "cumulative": 35111, "phase": 35111 }
+        },
+        "patchPreview": {
+          "patchId": "conduit-balance-preview",
+          "benchmarkDps": 35111,
+          "benchmarkDpsByHealth": {
+            "100-80": { "cumulative": 34712, "phase": 34712 },
+            "80-60": { "cumulative": 34874, "phase": 35043 },
+            "60-40": { "cumulative": 34898, "phase": 34946 },
+            "40-20": { "cumulative": 35196, "phase": 36120 },
+            "20-0": { "cumulative": 35111, "phase": 35111 }
           }
         }
       }

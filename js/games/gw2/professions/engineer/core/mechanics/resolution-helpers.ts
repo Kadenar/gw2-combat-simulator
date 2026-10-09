@@ -1,7 +1,7 @@
 import type { ComboFieldType, ComboFinisherType } from '#gw2/platform/combos/types.js';
 import type { SimulationActorType } from '#gw2/platform/events/actors.js';
 import type { SimulationEventBase } from '#gw2/platform/events/events.js';
-import type { SkillId } from '#gw2/platform/skills/types.js';
+import type { Skill, SkillId } from '#gw2/platform/skills/types.js';
 import {
   buildResolverBuff,
   buildResolverCondition,
@@ -190,9 +190,8 @@ export function activeBoonStacks(context: EngineerResolverContext, kind: string,
   return context.combat.activeBoonStacks((kind || '').toLowerCase(), at, maximum);
 }
 
-// Keep shared explosion classification here so every later Explosives reaction consumes the same result.
-export function isExplosion(context: EngineerResolverContext, event: EngineerResolverEvent): boolean {
-  if (event.explosion || event.damageKind === 'explosion') return true;
-  const skill = resolverSkill(context, event.skillId ?? event.sourceId);
+// Damage modifiers and on-hit traits share the same explosion tags and skill-category classification.
+export function isExplosion(event: Partial<SimulationEventBase> | null | undefined, skill: Skill | undefined): boolean {
+  if (event?.explosion || event?.damageKind === 'explosion') return true;
   return Boolean(skill?.categories?.some((category) => category.toLowerCase() === 'explosion'));
 }

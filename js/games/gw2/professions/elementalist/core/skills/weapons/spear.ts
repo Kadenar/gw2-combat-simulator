@@ -100,6 +100,16 @@ export const ELEMENTALIST_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Pa
     ])
   },
   [ID.METEOR]: {
+    // The simulator assumes a center hit; keep its bonus independent of the base coefficient.
+    modifiers: [
+      {
+        id: 'elementalist.meteor-center-impact',
+        label: 'Meteor - center impact',
+        target: 'strikeDamage',
+        operation: 'multiply',
+        factor: 1.25
+      }
+    ],
     name: 'Meteor',
     type: 'Weapon',
     slot: 'Weapon_4',
@@ -116,7 +126,7 @@ export const ELEMENTALIST_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Pa
         ticks: [
           {
             atMs: 560,
-            coefficient: 3.375
+            coefficient: 2.7
           }
         ],
         timingAnchor: 'castStart',

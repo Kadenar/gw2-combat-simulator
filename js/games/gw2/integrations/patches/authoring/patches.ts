@@ -127,6 +127,8 @@ export interface SkillPatchEdit {
 
 /** Patches a non-skill balance profile using the same numeric/effect grammar. */
 export interface ModifierRulePatchEdit {
+  /** Retains provisional tuning context when patch notes are regenerated or saved. */
+  readonly assumption?: string;
   /** Direct numeric rule declarations. Resolver-backed fields use parameters. */
   readonly amount?: NumEdit;
   readonly factor?: NumEdit;
@@ -142,11 +144,22 @@ export interface ProfessionPatchPreview {
   readonly overview?: readonly PatchOverviewEntry[];
 }
 
+/** Patch-scoped reworks keep unsettled builds visible without publishing a misleading DPS comparison. */
+export interface PendingPatchBenchmark {
+  readonly profession: string;
+  readonly specialization: string;
+  readonly damage?: 'power' | 'condi';
+  /** Match a saved build path when a weapon-specific rework affects only part of a specialization. */
+  readonly build?: string;
+  readonly reason: string;
+}
+
 export interface PatchPreview {
   readonly id: string;
   readonly label: string;
   readonly publishedAt?: string;
   readonly sourceUrl?: string;
+  readonly pendingBenchmarks?: readonly PendingPatchBenchmark[];
   readonly professions?: Readonly<Record<string, ProfessionPatchPreview>>;
 }
 
@@ -296,7 +309,7 @@ export function applyNumEdit(current: number, edit: NumEdit, label = 'Patched va
   return numericValue(result, `${label} result`);
 }
 
-const MODIFIER_PATCH_FIELDS = new Set(['amount', 'factor', 'parameters']);
+const MODIFIER_PATCH_FIELDS = new Set(['amount', 'factor', 'parameters', 'assumption']);
 
 /** Rejects malformed or empty modifier edits before applying them to a declaration. */
 function assertModifierRulePatchEdit(id: string, edit: ModifierRulePatchEdit): void {
@@ -308,6 +321,10 @@ function assertModifierRulePatchEdit(id: string, edit: ModifierRulePatchEdit): v
     if (!MODIFIER_PATCH_FIELDS.has(field)) {
       throw new TypeError(`Modifier rule ${id} patch has unsupported field ${field}.`);
     }
+  }
+
+  if (edit.assumption !== undefined && (typeof edit.assumption !== 'string' || !edit.assumption.trim())) {
+    throw new TypeError(`Modifier rule ${id} assumption must be a nonempty string.`);
   }
 
   if (!Object.hasOwn(edit, 'amount') && !Object.hasOwn(edit, 'factor') && !Object.keys(edit.parameters || {}).length) {
@@ -819,6 +836,35 @@ export function validatePatchPreview(preview: PatchPreview): PatchPreview {
   for (const field of ['notes', 'constants']) {
     if (Object.hasOwn(preview, field)) {
       throw new TypeError(`Patch preview has unsupported field ${field}.`);
+    }
+  }
+
+  // Validate rework selectors before they can suppress comparisons in the preview dashboard.
+  if (preview.pendingBenchmarks !== undefined) {
+    if (!Array.isArray(preview.pendingBenchmarks)) {
+      throw new TypeError('Patch preview pending benchmarks must be an array.');
+    }
+
+    for (const entry of preview.pendingBenchmarks) {
+      if (
+        !entry ||
+        typeof entry !== 'object' ||
+        Array.isArray(entry) ||
+        Object.keys(entry).some(
+          (key) => !['profession', 'specialization', 'damage', 'build', 'reason'].includes(key)
+        ) ||
+        !['profession', 'specialization', 'reason'].every(
+          (key) =>
+            typeof entry[key as keyof PendingPatchBenchmark] === 'string' &&
+            entry[key as keyof PendingPatchBenchmark]!.trim()
+        ) ||
+        (entry.damage !== undefined && entry.damage !== 'power' && entry.damage !== 'condi') ||
+        (entry.build !== undefined && (typeof entry.build !== 'string' || !entry.build.trim()))
+      ) {
+        throw new TypeError(
+          'Patch preview pending benchmark requires profession, specialization, reason, and optional power/condi damage and nonempty build selectors.'
+        );
+      }
     }
   }
 

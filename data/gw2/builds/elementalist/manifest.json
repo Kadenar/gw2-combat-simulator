@@ -31,36 +31,88 @@
             "cumulative": 43566,
             "phase": 53408
           }
+        },
+        "patchPreview": {
+          "patchId": "conduit-balance-preview",
+          "benchmarkDps": 42464,
+          "benchmarkDpsByHealth": {
+            "100-80": {
+              "cumulative": 47782,
+              "phase": 47782
+            },
+            "80-60": {
+              "cumulative": 40843,
+              "phase": 35582
+            },
+            "60-40": {
+              "cumulative": 40057,
+              "phase": 38573
+            },
+            "40-20": {
+              "cumulative": 41280,
+              "phase": 45471
+            },
+            "20-0": {
+              "cumulative": 42464,
+              "phase": 42464
+            }
+          }
         }
       },
       {
         "label": "Power (Spear)",
         "build": "data/gw2/builds/elementalist/b-power-weaver-spear.json",
         "rotation": "data/gw2/rotations/elementalist/r-power-weaver-spear.json",
-        "benchmarkDps": 40484,
+        "benchmarkDps": 40465,
         "upToDate": true,
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/elementalist/power-weaver-spear",
         "benchmarkApm": 111.5,
         "benchmarkDpsByHealth": {
           "100-80": {
-            "cumulative": 44173,
-            "phase": 44173
+            "cumulative": 44149,
+            "phase": 44149
           },
           "80-60": {
-            "cumulative": 40100,
-            "phase": 36718
+            "cumulative": 40079,
+            "phase": 36699
           },
           "60-40": {
-            "cumulative": 38535,
-            "phase": 35753
+            "cumulative": 38513,
+            "phase": 35731
           },
           "40-20": {
-            "cumulative": 39542,
-            "phase": 42794
+            "cumulative": 39519,
+            "phase": 42766
           },
           "20-0": {
-            "cumulative": 40484,
+            "cumulative": 40465,
             "phase": 44954
+          }
+        },
+        "patchPreview": {
+          "patchId": "conduit-balance-preview",
+          "benchmarkDps": 40403,
+          "benchmarkDpsByHealth": {
+            "100-80": {
+              "cumulative": 44419,
+              "phase": 44419
+            },
+            "80-60": {
+              "cumulative": 40446,
+              "phase": 37132
+            },
+            "60-40": {
+              "cumulative": 38566,
+              "phase": 35258
+            },
+            "40-20": {
+              "cumulative": 39479,
+              "phase": 42499
+            },
+            "20-0": {
+              "cumulative": 40403,
+              "phase": 44571
+            }
           }
         }
       },
@@ -93,6 +145,32 @@
             "cumulative": 45723,
             "phase": 56049
           }
+        },
+        "patchPreview": {
+          "patchId": "conduit-balance-preview",
+          "benchmarkDps": 44169,
+          "benchmarkDpsByHealth": {
+            "100-80": {
+              "cumulative": 44965,
+              "phase": 44965
+            },
+            "80-60": {
+              "cumulative": 46201,
+              "phase": 47510
+            },
+            "60-40": {
+              "cumulative": 42945,
+              "phase": 37517
+            },
+            "40-20": {
+              "cumulative": 42528,
+              "phase": 41300
+            },
+            "20-0": {
+              "cumulative": 44169,
+              "phase": 44169
+            }
+          }
         }
       },
       {
@@ -124,6 +202,32 @@
             "cumulative": 43900,
             "phase": 51862
           }
+        },
+        "patchPreview": {
+          "patchId": "conduit-balance-preview",
+          "benchmarkDps": 42599,
+          "benchmarkDpsByHealth": {
+            "100-80": {
+              "cumulative": 42630,
+              "phase": 42630
+            },
+            "80-60": {
+              "cumulative": 41864,
+              "phase": 41099
+            },
+            "60-40": {
+              "cumulative": 41628,
+              "phase": 41179
+            },
+            "40-20": {
+              "cumulative": 41254,
+              "phase": 40117
+            },
+            "20-0": {
+              "cumulative": 42599,
+              "phase": 42599
+            }
+          }
         }
       },
       {
@@ -154,6 +258,32 @@
           "20-0": {
             "cumulative": 43934,
             "phase": 43934
+          }
+        },
+        "patchPreview": {
+          "patchId": "conduit-balance-preview",
+          "benchmarkDps": 42630,
+          "benchmarkDpsByHealth": {
+            "100-80": {
+              "cumulative": 44103,
+              "phase": 44103
+            },
+            "80-60": {
+              "cumulative": 44690,
+              "phase": 45281
+            },
+            "60-40": {
+              "cumulative": 41820,
+              "phase": 36899
+            },
+            "40-20": {
+              "cumulative": 41009,
+              "phase": 38779
+            },
+            "20-0": {
+              "cumulative": 42630,
+              "phase": 42630
+            }
           }
         }
       }
@@ -191,6 +321,32 @@
             "cumulative": 42135,
             "phase": 42135
           }
+        },
+        "patchPreview": {
+          "patchId": "conduit-balance-preview",
+          "benchmarkDps": 42225,
+          "benchmarkDpsByHealth": {
+            "100-80": {
+              "cumulative": 45915,
+              "phase": 45915
+            },
+            "80-60": {
+              "cumulative": 43930,
+              "phase": 42108
+            },
+            "60-40": {
+              "cumulative": 42119,
+              "phase": 38929
+            },
+            "40-20": {
+              "cumulative": 42579,
+              "phase": 44050
+            },
+            "20-0": {
+              "cumulative": 42225,
+              "phase": 42225
+            }
+          }
         }
       },
       {
@@ -221,6 +377,32 @@
           "20-0": {
             "cumulative": 41814,
             "phase": 43563
+          }
+        },
+        "patchPreview": {
+          "patchId": "conduit-balance-preview",
+          "benchmarkDps": 41833,
+          "benchmarkDpsByHealth": {
+            "100-80": {
+              "cumulative": 47504,
+              "phase": 47504
+            },
+            "80-60": {
+              "cumulative": 43206,
+              "phase": 39552
+            },
+            "60-40": {
+              "cumulative": 42425,
+              "phase": 40929
+            },
+            "40-20": {
+              "cumulative": 41492,
+              "phase": 38912
+            },
+            "20-0": {
+              "cumulative": 41833,
+              "phase": 43263
+            }
           }
         }
       },
@@ -253,6 +435,32 @@
             "cumulative": 42058,
             "phase": 42406
           }
+        },
+        "patchPreview": {
+          "patchId": "conduit-balance-preview",
+          "benchmarkDps": 42314,
+          "benchmarkDpsByHealth": {
+            "100-80": {
+              "cumulative": 42906,
+              "phase": 42906
+            },
+            "80-60": {
+              "cumulative": 42087,
+              "phase": 41295
+            },
+            "60-40": {
+              "cumulative": 42698,
+              "phase": 43974
+            },
+            "40-20": {
+              "cumulative": 42223,
+              "phase": 40863
+            },
+            "20-0": {
+              "cumulative": 42314,
+              "phase": 42671
+            }
+          }
         }
       },
       {
@@ -283,6 +491,32 @@
           "20-0": {
             "cumulative": 42267,
             "phase": 39681
+          }
+        },
+        "patchPreview": {
+          "patchId": "conduit-balance-preview",
+          "benchmarkDps": 42504,
+          "benchmarkDpsByHealth": {
+            "100-80": {
+              "cumulative": 45256,
+              "phase": 45256
+            },
+            "80-60": {
+              "cumulative": 42687,
+              "phase": 40373
+            },
+            "60-40": {
+              "cumulative": 43146,
+              "phase": 44102
+            },
+            "40-20": {
+              "cumulative": 43075,
+              "phase": 42865
+            },
+            "20-0": {
+              "cumulative": 42504,
+              "phase": 40348
+            }
           }
         }
       },
@@ -315,6 +549,32 @@
             "cumulative": 43435,
             "phase": 43584
           }
+        },
+        "patchPreview": {
+          "patchId": "conduit-balance-preview",
+          "benchmarkDps": 43551,
+          "benchmarkDpsByHealth": {
+            "100-80": {
+              "cumulative": 47410,
+              "phase": 47410
+            },
+            "80-60": {
+              "cumulative": 45495,
+              "phase": 43691
+            },
+            "60-40": {
+              "cumulative": 44278,
+              "phase": 42015
+            },
+            "40-20": {
+              "cumulative": 43516,
+              "phase": 41454
+            },
+            "20-0": {
+              "cumulative": 43551,
+              "phase": 43695
+            }
+          }
         }
       },
       {
@@ -345,6 +605,32 @@
           "20-0": {
             "cumulative": 32771,
             "phase": 34370
+          }
+        },
+        "patchPreview": {
+          "patchId": "conduit-balance-preview",
+          "benchmarkDps": 32804,
+          "benchmarkDpsByHealth": {
+            "100-80": {
+              "cumulative": 32362,
+              "phase": 32362
+            },
+            "80-60": {
+              "cumulative": 33377,
+              "phase": 34472
+            },
+            "60-40": {
+              "cumulative": 33421,
+              "phase": 33507
+            },
+            "40-20": {
+              "cumulative": 32481,
+              "phase": 29925
+            },
+            "20-0": {
+              "cumulative": 32804,
+              "phase": 34152
+            }
           }
         }
       },
@@ -377,36 +663,88 @@
             "cumulative": 29803,
             "phase": 29803
           }
+        },
+        "patchPreview": {
+          "patchId": "conduit-balance-preview",
+          "benchmarkDps": 29829,
+          "benchmarkDpsByHealth": {
+            "100-80": {
+              "cumulative": 30828,
+              "phase": 30828
+            },
+            "80-60": {
+              "cumulative": 28803,
+              "phase": 26988
+            },
+            "60-40": {
+              "cumulative": 29428,
+              "phase": 30763
+            },
+            "40-20": {
+              "cumulative": 29285,
+              "phase": 28867
+            },
+            "20-0": {
+              "cumulative": 29829,
+              "phase": 29829
+            }
+          }
         }
       },
       {
         "label": "Condition (Pistol/Warhorn)",
         "build": "data/gw2/builds/elementalist/b-condi-tempest-pistol-warhorn.json",
         "rotation": "data/gw2/rotations/elementalist/r-condi-tempest-pistol-warhorn.json",
-        "benchmarkDps": 41563,
+        "benchmarkDps": 41336,
         "upToDate": true,
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/elementalist/condition-tempest-pistol-warhorn",
-        "benchmarkApm": 79.9,
+        "benchmarkApm": 78.6,
         "benchmarkDpsByHealth": {
           "100-80": {
-            "cumulative": 37060,
-            "phase": 37060
+            "cumulative": 36206,
+            "phase": 36206
           },
           "80-60": {
-            "cumulative": 40867,
-            "phase": 45516
+            "cumulative": 40548,
+            "phase": 45855
           },
           "60-40": {
-            "cumulative": 40665,
-            "phase": 40271
+            "cumulative": 39996,
+            "phase": 38872
           },
           "40-20": {
-            "cumulative": 40873,
-            "phase": 41519
+            "cumulative": 40484,
+            "phase": 42030
           },
           "20-0": {
-            "cumulative": 41563,
-            "phase": 41563
+            "cumulative": 41336,
+            "phase": 41336
+          }
+        },
+        "patchPreview": {
+          "patchId": "conduit-balance-preview",
+          "benchmarkDps": 42673,
+          "benchmarkDpsByHealth": {
+            "100-80": {
+              "cumulative": 37078,
+              "phase": 37078
+            },
+            "80-60": {
+              "cumulative": 41271,
+              "phase": 46698
+            },
+            "60-40": {
+              "cumulative": 41157,
+              "phase": 40921
+            },
+            "40-20": {
+              "cumulative": 41898,
+              "phase": 44287
+            },
+            "20-0": {
+              "cumulative": 42673,
+              "phase": 46115
+            }
           }
         }
       },
@@ -414,30 +752,56 @@
         "label": "Condition (Scepter/Warhorn)",
         "build": "data/gw2/builds/elementalist/b-condi-tempest-scepter.json",
         "rotation": "data/gw2/rotations/elementalist/r-condi-tempest-scepter.json",
-        "benchmarkDps": 40533,
-        "upToDate": false,
+        "benchmarkDps": 39740,
+        "upToDate": true,
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/elementalist/condition-tempest-scepter-warhorn",
-        "benchmarkApm": 63.7,
+        "benchmarkApm": 63.2,
         "benchmarkDpsByHealth": {
           "100-80": {
-            "cumulative": 38765,
-            "phase": 38765
+            "cumulative": 39558,
+            "phase": 39558
           },
           "80-60": {
-            "cumulative": 40629,
-            "phase": 42804
+            "cumulative": 41309,
+            "phase": 43160
           },
           "60-40": {
-            "cumulative": 40698,
-            "phase": 40833
+            "cumulative": 40570,
+            "phase": 39130
           },
           "40-20": {
-            "cumulative": 40745,
-            "phase": 40892
+            "cumulative": 40229,
+            "phase": 39223
           },
           "20-0": {
-            "cumulative": 40533,
-            "phase": 40533
+            "cumulative": 39740,
+            "phase": 39740
+          }
+        },
+        "patchPreview": {
+          "patchId": "conduit-balance-preview",
+          "benchmarkDps": 41013,
+          "benchmarkDpsByHealth": {
+            "100-80": {
+              "cumulative": 40483,
+              "phase": 40483
+            },
+            "80-60": {
+              "cumulative": 42525,
+              "phase": 44793
+            },
+            "60-40": {
+              "cumulative": 41401,
+              "phase": 39266
+            },
+            "40-20": {
+              "cumulative": 41045,
+              "phase": 40011
+            },
+            "20-0": {
+              "cumulative": 41013,
+              "phase": 40881
+            }
           }
         }
       },
@@ -470,6 +834,32 @@
             "cumulative": 32594,
             "phase": 32594
           }
+        },
+        "patchPreview": {
+          "patchId": "conduit-balance-preview",
+          "benchmarkDps": 32872,
+          "benchmarkDpsByHealth": {
+            "100-80": {
+              "cumulative": 31914,
+              "phase": 31914
+            },
+            "80-60": {
+              "cumulative": 33303,
+              "phase": 34813
+            },
+            "60-40": {
+              "cumulative": 33329,
+              "phase": 33380
+            },
+            "40-20": {
+              "cumulative": 33007,
+              "phase": 32080
+            },
+            "20-0": {
+              "cumulative": 32872,
+              "phase": 32326
+            }
+          }
         }
       },
       {
@@ -500,6 +890,32 @@
           "20-0": {
             "cumulative": 33796,
             "phase": 33796
+          }
+        },
+        "patchPreview": {
+          "patchId": "conduit-balance-preview",
+          "benchmarkDps": 34041,
+          "benchmarkDpsByHealth": {
+            "100-80": {
+              "cumulative": 29893,
+              "phase": 29893
+            },
+            "80-60": {
+              "cumulative": 33146,
+              "phase": 37329
+            },
+            "60-40": {
+              "cumulative": 33640,
+              "phase": 34672
+            },
+            "40-20": {
+              "cumulative": null,
+              "phase": null
+            },
+            "20-0": {
+              "cumulative": 34041,
+              "phase": 34041
+            }
           }
         }
       },
@@ -532,6 +948,32 @@
             "cumulative": 41283,
             "phase": 41283
           }
+        },
+        "patchPreview": {
+          "patchId": "conduit-balance-preview",
+          "benchmarkDps": 41902,
+          "benchmarkDpsByHealth": {
+            "100-80": {
+              "cumulative": 40215,
+              "phase": 40215
+            },
+            "80-60": {
+              "cumulative": 40602,
+              "phase": 41005
+            },
+            "60-40": {
+              "cumulative": 40715,
+              "phase": 40940
+            },
+            "40-20": {
+              "cumulative": 40757,
+              "phase": 40887
+            },
+            "20-0": {
+              "cumulative": 41902,
+              "phase": 47168
+            }
+          }
         }
       },
       {
@@ -562,35 +1004,87 @@
             "cumulative": 41842,
             "phase": 41842
           }
+        },
+        "patchPreview": {
+          "patchId": "conduit-balance-preview",
+          "benchmarkDps": 42345,
+          "benchmarkDpsByHealth": {
+            "100-80": {
+              "cumulative": 43571,
+              "phase": 43571
+            },
+            "80-60": {
+              "cumulative": 41926,
+              "phase": 40371
+            },
+            "60-40": {
+              "cumulative": 41176,
+              "phase": 39738
+            },
+            "40-20": {
+              "cumulative": 41812,
+              "phase": 43859
+            },
+            "20-0": {
+              "cumulative": 42345,
+              "phase": 44597
+            }
+          }
         }
       },
       {
         "label": "Inferno Alacrity (Scepter/Focus)",
         "build": "data/gw2/builds/elementalist/b-inferno-alac-tempest.json",
         "rotation": "data/gw2/rotations/elementalist/r-inferno-alac-tempest.json",
-        "benchmarkDps": 34420,
-        "upToDate": false,
-        "benchmarkApm": 56.9,
+        "benchmarkDps": 35144,
+        "upToDate": true,
+        "benchmarkApm": 53.3,
         "benchmarkDpsByHealth": {
           "100-80": {
-            "cumulative": 33077,
-            "phase": 33077
+            "cumulative": 34708,
+            "phase": 34708
           },
           "80-60": {
-            "cumulative": 34004,
-            "phase": 34988
+            "cumulative": 34998,
+            "phase": 35298
           },
           "60-40": {
-            "cumulative": 34429,
-            "phase": 35313
+            "cumulative": 35076,
+            "phase": 35230
           },
           "40-20": {
-            "cumulative": 34320,
-            "phase": 33995
+            "cumulative": 34818,
+            "phase": 34051
           },
           "20-0": {
-            "cumulative": 34420,
-            "phase": 34828
+            "cumulative": 35144,
+            "phase": 35144
+          }
+        },
+        "patchPreview": {
+          "patchId": "conduit-balance-preview",
+          "benchmarkDps": 35457,
+          "benchmarkDpsByHealth": {
+            "100-80": {
+              "cumulative": 35013,
+              "phase": 35013
+            },
+            "80-60": {
+              "cumulative": 35326,
+              "phase": 35650
+            },
+            "60-40": {
+              "cumulative": 35660,
+              "phase": 36355
+            },
+            "40-20": {
+              "cumulative": 35172,
+              "phase": 33749
+            },
+            "20-0": {
+              "cumulative": 35457,
+              "phase": 35457
+            }
           }
         }
       }
@@ -628,6 +1122,32 @@
             "cumulative": 41546,
             "phase": 50390
           }
+        },
+        "patchPreview": {
+          "patchId": "conduit-balance-preview",
+          "benchmarkDps": 41546,
+          "benchmarkDpsByHealth": {
+            "100-80": {
+              "cumulative": 41981,
+              "phase": 41981
+            },
+            "80-60": {
+              "cumulative": 39233,
+              "phase": 36811
+            },
+            "60-40": {
+              "cumulative": 38603,
+              "phase": 37398
+            },
+            "40-20": {
+              "cumulative": 39778,
+              "phase": 43711
+            },
+            "20-0": {
+              "cumulative": 41546,
+              "phase": 50390
+            }
+          }
         }
       },
       {
@@ -657,6 +1177,32 @@
           "20-0": {
             "cumulative": 39157,
             "phase": 39786
+          }
+        },
+        "patchPreview": {
+          "patchId": "conduit-balance-preview",
+          "benchmarkDps": 39157,
+          "benchmarkDpsByHealth": {
+            "100-80": {
+              "cumulative": 44738,
+              "phase": 44738
+            },
+            "80-60": {
+              "cumulative": 39000,
+              "phase": 34506
+            },
+            "60-40": {
+              "cumulative": 40038,
+              "phase": 42277
+            },
+            "40-20": {
+              "cumulative": 39003,
+              "phase": 36162
+            },
+            "20-0": {
+              "cumulative": 39157,
+              "phase": 39786
+            }
           }
         }
       },
@@ -689,6 +1235,32 @@
             "cumulative": 41203,
             "phase": 41203
           }
+        },
+        "patchPreview": {
+          "patchId": "conduit-balance-preview",
+          "benchmarkDps": 41203,
+          "benchmarkDpsByHealth": {
+            "100-80": {
+              "cumulative": 39959,
+              "phase": 39959
+            },
+            "80-60": {
+              "cumulative": 37567,
+              "phase": 35420
+            },
+            "60-40": {
+              "cumulative": 39137,
+              "phase": 42631
+            },
+            "40-20": {
+              "cumulative": 40709,
+              "phase": 46443
+            },
+            "20-0": {
+              "cumulative": 41203,
+              "phase": 41203
+            }
+          }
         }
       },
       {
@@ -719,6 +1291,32 @@
           "20-0": {
             "cumulative": 41716,
             "phase": 47759
+          }
+        },
+        "patchPreview": {
+          "patchId": "conduit-balance-preview",
+          "benchmarkDps": 41755,
+          "benchmarkDpsByHealth": {
+            "100-80": {
+              "cumulative": 41681,
+              "phase": 41681
+            },
+            "80-60": {
+              "cumulative": 38673,
+              "phase": 36093
+            },
+            "60-40": {
+              "cumulative": 39661,
+              "phase": 41743
+            },
+            "40-20": {
+              "cumulative": 40542,
+              "phase": 43549
+            },
+            "20-0": {
+              "cumulative": 41755,
+              "phase": 47542
+            }
           }
         }
       },
@@ -751,6 +1349,32 @@
             "cumulative": 34502,
             "phase": 34122
           }
+        },
+        "patchPreview": {
+          "patchId": "conduit-balance-preview",
+          "benchmarkDps": 34502,
+          "benchmarkDpsByHealth": {
+            "100-80": {
+              "cumulative": 36170,
+              "phase": 36170
+            },
+            "80-60": {
+              "cumulative": 35210,
+              "phase": 34303
+            },
+            "60-40": {
+              "cumulative": 34599,
+              "phase": 33431
+            },
+            "40-20": {
+              "cumulative": 34597,
+              "phase": 34593
+            },
+            "20-0": {
+              "cumulative": 34502,
+              "phase": 34122
+            }
+          }
         }
       },
       {
@@ -781,6 +1405,32 @@
           "20-0": {
             "cumulative": 35449,
             "phase": 37438
+          }
+        },
+        "patchPreview": {
+          "patchId": "conduit-balance-preview",
+          "benchmarkDps": 35449,
+          "benchmarkDpsByHealth": {
+            "100-80": {
+              "cumulative": 35364,
+              "phase": 35364
+            },
+            "80-60": {
+              "cumulative": 33734,
+              "phase": 32224
+            },
+            "60-40": {
+              "cumulative": 34202,
+              "phase": 35159
+            },
+            "40-20": {
+              "cumulative": 34986,
+              "phase": 37639
+            },
+            "20-0": {
+              "cumulative": 35449,
+              "phase": 37438
+            }
           }
         }
       },
@@ -813,6 +1463,32 @@
             "cumulative": 37487,
             "phase": 37487
           }
+        },
+        "patchPreview": {
+          "patchId": "conduit-balance-preview",
+          "benchmarkDps": 37487,
+          "benchmarkDpsByHealth": {
+            "100-80": {
+              "cumulative": 31889,
+              "phase": 31889
+            },
+            "80-60": {
+              "cumulative": 34502,
+              "phase": 37581
+            },
+            "60-40": {
+              "cumulative": 35770,
+              "phase": 38546
+            },
+            "40-20": {
+              "cumulative": 36829,
+              "phase": 40377
+            },
+            "20-0": {
+              "cumulative": 37487,
+              "phase": 37487
+            }
+          }
         }
       },
       {
@@ -843,6 +1519,32 @@
           "20-0": {
             "cumulative": 34703,
             "phase": 34703
+          }
+        },
+        "patchPreview": {
+          "patchId": "conduit-balance-preview",
+          "benchmarkDps": 34453,
+          "benchmarkDpsByHealth": {
+            "100-80": {
+              "cumulative": 31029,
+              "phase": 31029
+            },
+            "80-60": {
+              "cumulative": 33286,
+              "phase": 35992
+            },
+            "60-40": {
+              "cumulative": 34151,
+              "phase": 36000
+            },
+            "40-20": {
+              "cumulative": 34645,
+              "phase": 36217
+            },
+            "20-0": {
+              "cumulative": 34453,
+              "phase": 34453
+            }
           }
         }
       },
@@ -875,6 +1577,32 @@
             "cumulative": 32676,
             "phase": 32676
           }
+        },
+        "patchPreview": {
+          "patchId": "conduit-balance-preview",
+          "benchmarkDps": 32676,
+          "benchmarkDpsByHealth": {
+            "100-80": {
+              "cumulative": 30127,
+              "phase": 30127
+            },
+            "80-60": {
+              "cumulative": 31910,
+              "phase": 33895
+            },
+            "60-40": {
+              "cumulative": 32385,
+              "phase": 33374
+            },
+            "40-20": {
+              "cumulative": 32577,
+              "phase": 33185
+            },
+            "20-0": {
+              "cumulative": 32676,
+              "phase": 32676
+            }
+          }
         }
       },
       {
@@ -905,6 +1633,32 @@
             "cumulative": 40690,
             "phase": 40690
           }
+        },
+        "patchPreview": {
+          "patchId": "conduit-balance-preview",
+          "benchmarkDps": 40690,
+          "benchmarkDpsByHealth": {
+            "100-80": {
+              "cumulative": 40449,
+              "phase": 40449
+            },
+            "80-60": {
+              "cumulative": 38525,
+              "phase": 36795
+            },
+            "60-40": {
+              "cumulative": 39079,
+              "phase": 40241
+            },
+            "40-20": {
+              "cumulative": 40697,
+              "phase": 46599
+            },
+            "20-0": {
+              "cumulative": 40690,
+              "phase": 40690
+            }
+          }
         }
       }
     ]
@@ -916,7 +1670,7 @@
         "label": "Power (Spear)",
         "build": "data/gw2/builds/elementalist/b-power-evoker-spear.json",
         "rotation": "data/gw2/rotations/elementalist/r-power-evoker-spear-evtc.json",
-        "benchmarkDps": 39506,
+        "benchmarkDps": 39513,
         "upToDate": true,
         "benchmarkApm": 122.2,
         "benchmarkDpsByHealth": {
@@ -929,16 +1683,42 @@
             "phase": 34141
           },
           "60-40": {
-            "cumulative": 37743,
-            "phase": 38722
+            "cumulative": 37754,
+            "phase": 38756
           },
           "40-20": {
-            "cumulative": 38679,
+            "cumulative": 38688,
             "phase": 41798
           },
           "20-0": {
-            "cumulative": 39506,
+            "cumulative": 39513,
             "phase": 43039
+          }
+        },
+        "patchPreview": {
+          "patchId": "conduit-balance-preview",
+          "benchmarkDps": 39813,
+          "benchmarkDpsByHealth": {
+            "100-80": {
+              "cumulative": 42183,
+              "phase": 42183
+            },
+            "80-60": {
+              "cumulative": 37799,
+              "phase": 34219
+            },
+            "60-40": {
+              "cumulative": 38922,
+              "phase": 41372
+            },
+            "40-20": {
+              "cumulative": 39540,
+              "phase": 41509
+            },
+            "20-0": {
+              "cumulative": 39813,
+              "phase": 40951
+            }
           }
         }
       },
@@ -971,6 +1751,32 @@
             "cumulative": 41955,
             "phase": 44734
           }
+        },
+        "patchPreview": {
+          "patchId": "conduit-balance-preview",
+          "benchmarkDps": 42872,
+          "benchmarkDpsByHealth": {
+            "100-80": {
+              "cumulative": 46847,
+              "phase": 46847
+            },
+            "80-60": {
+              "cumulative": 40233,
+              "phase": 35103
+            },
+            "60-40": {
+              "cumulative": 40776,
+              "phase": 41894
+            },
+            "40-20": {
+              "cumulative": 41966,
+              "phase": 46101
+            },
+            "20-0": {
+              "cumulative": 42872,
+              "phase": 46812
+            }
+          }
         }
       },
       {
@@ -1001,6 +1807,32 @@
           "20-0": {
             "cumulative": 32857,
             "phase": 32857
+          }
+        },
+        "patchPreview": {
+          "patchId": "conduit-balance-preview",
+          "benchmarkDps": 32857,
+          "benchmarkDpsByHealth": {
+            "100-80": {
+              "cumulative": 33764,
+              "phase": 33764
+            },
+            "80-60": {
+              "cumulative": 32341,
+              "phase": 31027
+            },
+            "60-40": {
+              "cumulative": 32602,
+              "phase": 33131
+            },
+            "40-20": {
+              "cumulative": 32482,
+              "phase": 32123
+            },
+            "20-0": {
+              "cumulative": 32857,
+              "phase": 32857
+            }
           }
         }
       },
@@ -1033,6 +1865,32 @@
             "cumulative": 34330,
             "phase": 35881
           }
+        },
+        "patchPreview": {
+          "patchId": "conduit-balance-preview",
+          "benchmarkDps": 34330,
+          "benchmarkDpsByHealth": {
+            "100-80": {
+              "cumulative": 38416,
+              "phase": 38416
+            },
+            "80-60": {
+              "cumulative": 34884,
+              "phase": 31966
+            },
+            "60-40": {
+              "cumulative": 34446,
+              "phase": 33585
+            },
+            "40-20": {
+              "cumulative": 33964,
+              "phase": 32604
+            },
+            "20-0": {
+              "cumulative": 34330,
+              "phase": 35881
+            }
+          }
         }
       },
       {
@@ -1064,6 +1922,32 @@
             "cumulative": 43038,
             "phase": 43597
           }
+        },
+        "patchPreview": {
+          "patchId": "conduit-balance-preview",
+          "benchmarkDps": 43038,
+          "benchmarkDpsByHealth": {
+            "100-80": {
+              "cumulative": 39996,
+              "phase": 39996
+            },
+            "80-60": {
+              "cumulative": 41556,
+              "phase": 43265
+            },
+            "60-40": {
+              "cumulative": 42608,
+              "phase": 44874
+            },
+            "40-20": {
+              "cumulative": 42904,
+              "phase": 43777
+            },
+            "20-0": {
+              "cumulative": 43038,
+              "phase": 43597
+            }
+          }
         }
       },
       {
@@ -1094,6 +1978,32 @@
             "cumulative": 43052,
             "phase": 45079
           }
+        },
+        "patchPreview": {
+          "patchId": "conduit-balance-preview",
+          "benchmarkDps": 42771,
+          "benchmarkDpsByHealth": {
+            "100-80": {
+              "cumulative": 39244,
+              "phase": 39244
+            },
+            "80-60": {
+              "cumulative": 41643,
+              "phase": 44441
+            },
+            "60-40": {
+              "cumulative": 42033,
+              "phase": 42878
+            },
+            "40-20": {
+              "cumulative": 42247,
+              "phase": 42888
+            },
+            "20-0": {
+              "cumulative": 42771,
+              "phase": 45115
+            }
+          }
         }
       },
       {
@@ -1123,6 +2033,32 @@
           "20-0": {
             "cumulative": 43327,
             "phase": 44564
+          }
+        },
+        "patchPreview": {
+          "patchId": "conduit-balance-preview",
+          "benchmarkDps": 43327,
+          "benchmarkDpsByHealth": {
+            "100-80": {
+              "cumulative": 37927,
+              "phase": 37927
+            },
+            "80-60": {
+              "cumulative": 41656,
+              "phase": 46007
+            },
+            "60-40": {
+              "cumulative": 42869,
+              "phase": 45651
+            },
+            "40-20": {
+              "cumulative": 43026,
+              "phase": 43514
+            },
+            "20-0": {
+              "cumulative": 43327,
+              "phase": 44564
+            }
           }
         }
       },
@@ -1155,6 +2091,32 @@
             "cumulative": 44232,
             "phase": 45539
           }
+        },
+        "patchPreview": {
+          "patchId": "conduit-balance-preview",
+          "benchmarkDps": 42905,
+          "benchmarkDpsByHealth": {
+            "100-80": {
+              "cumulative": 38676,
+              "phase": 38676
+            },
+            "80-60": {
+              "cumulative": 41264,
+              "phase": 44138
+            },
+            "60-40": {
+              "cumulative": 42522,
+              "phase": 45410
+            },
+            "40-20": {
+              "cumulative": 42407,
+              "phase": 42067
+            },
+            "20-0": {
+              "cumulative": 42905,
+              "phase": 44980
+            }
+          }
         }
       },
       {
@@ -1185,6 +2147,32 @@
           "20-0": {
             "cumulative": 40208,
             "phase": 42574
+          }
+        },
+        "patchPreview": {
+          "patchId": "conduit-balance-preview",
+          "benchmarkDps": 39646,
+          "benchmarkDpsByHealth": {
+            "100-80": {
+              "cumulative": 35221,
+              "phase": 35221
+            },
+            "80-60": {
+              "cumulative": 37473,
+              "phase": 40063
+            },
+            "60-40": {
+              "cumulative": 38019,
+              "phase": 39223
+            },
+            "40-20": {
+              "cumulative": 39146,
+              "phase": 42948
+            },
+            "20-0": {
+              "cumulative": 39646,
+              "phase": 41777
+            }
           }
         }
       },
@@ -1217,6 +2205,32 @@
             "cumulative": 38300,
             "phase": 40712
           }
+        },
+        "patchPreview": {
+          "patchId": "conduit-balance-preview",
+          "benchmarkDps": 38009,
+          "benchmarkDpsByHealth": {
+            "100-80": {
+              "cumulative": 32411,
+              "phase": 32411
+            },
+            "80-60": {
+              "cumulative": 36573,
+              "phase": 41793
+            },
+            "60-40": {
+              "cumulative": 37419,
+              "phase": 39279
+            },
+            "40-20": {
+              "cumulative": 37593,
+              "phase": 38126
+            },
+            "20-0": {
+              "cumulative": 38009,
+              "phase": 39774
+            }
+          }
         }
       },
       {
@@ -1248,6 +2262,32 @@
             "cumulative": 40363,
             "phase": 42376
           }
+        },
+        "patchPreview": {
+          "patchId": "conduit-balance-preview",
+          "benchmarkDps": 40126,
+          "benchmarkDpsByHealth": {
+            "100-80": {
+              "cumulative": 33073,
+              "phase": 33073
+            },
+            "80-60": {
+              "cumulative": 37026,
+              "phase": 42516
+            },
+            "60-40": {
+              "cumulative": 38564,
+              "phase": 42044
+            },
+            "40-20": {
+              "cumulative": 39600,
+              "phase": 42982
+            },
+            "20-0": {
+              "cumulative": 40126,
+              "phase": 42491
+            }
+          }
         }
       },
       {
@@ -1277,6 +2317,32 @@
           "20-0": {
             "cumulative": 41012,
             "phase": 41012
+          }
+        },
+        "patchPreview": {
+          "patchId": "conduit-balance-preview",
+          "benchmarkDps": 39590,
+          "benchmarkDpsByHealth": {
+            "100-80": {
+              "cumulative": 37581,
+              "phase": 37581
+            },
+            "80-60": {
+              "cumulative": 37801,
+              "phase": 38025
+            },
+            "60-40": {
+              "cumulative": 38777,
+              "phase": 40896
+            },
+            "40-20": {
+              "cumulative": 39282,
+              "phase": 40850
+            },
+            "20-0": {
+              "cumulative": 39590,
+              "phase": 39590
+            }
           }
         }
       }

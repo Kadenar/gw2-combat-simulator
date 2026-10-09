@@ -332,6 +332,60 @@ test('matches expertise-scaled 3-second Barbed Precision applications against cr
   });
 });
 
+// Sand Sage is dynamic, so duration inference must cover both shade states without changing saved stats.
+test('Barbed Precision includes profile-owned Sand Sage expertise on each weapon set', () => {
+  const config = {
+    selectedTraitIds: [NECROMANCER_TRAIT.BARBED_PRECISION, NECROMANCER_TRAIT.SAND_SAGE],
+    stats: { expertise: 500 },
+    weaponSetStats: [{ expertise: 0 }, {}]
+  };
+  const original = structuredClone(config);
+  for (const bonus of [225, 450]) {
+    const result = analyzeNecromancerBarbedPrecisionObservation(
+      fixture([
+        event(),
+        event({ time: 1_100 }),
+        event({ time: 1_200 }),
+        event({ time: 1_300 }),
+        condition(1_000, 736, 3_000),
+        condition(1_100, 736, 4_000),
+        condition(1_200, 736, 3_000 + bonus * 2),
+        condition(1_300, 736, 4_000 + bonus * 2),
+        condition(1_400, 736, 6_000)
+      ]),
+      PLAYER,
+      catalog([barbedPrecisionProfile, { id: NECROMANCER_TRAIT.SAND_SAGE, name: 'Sand Sage', attributeBonus: bonus }]),
+      config
+    );
+    assert.equal(result.matchedApplications, 4);
+    assert.deepEqual(result.matchedDurationsMs, [3_000, 3_000 + bonus * 2, 4_000, 4_000 + bonus * 2]);
+  }
+
+  assert.deepEqual(config, original);
+});
+
+test('Barbed Precision caps Sand Sage duration and counts overlapping durations only once', () => {
+  const profiles = catalog([
+    barbedPrecisionProfile,
+    { id: NECROMANCER_TRAIT.SAND_SAGE, name: 'Sand Sage', attributeBonus: 225 }
+  ]);
+  const log = fixture([event(), condition(1_000, 736, 6_000)]);
+  const config = {
+    selectedTraitIds: [NECROMANCER_TRAIT.BARBED_PRECISION],
+    stats: { expertise: 1_300 }
+  };
+  assert.equal(analyzeNecromancerBarbedPrecisionObservation(log, PLAYER, profiles, config).matchedApplications, 0);
+  for (const expertise of [1_300, 1_500]) {
+    const result = analyzeNecromancerBarbedPrecisionObservation(log, PLAYER, profiles, {
+      ...config,
+      selectedTraitIds: [...config.selectedTraitIds, NECROMANCER_TRAIT.SAND_SAGE],
+      stats: { expertise }
+    });
+    assert.equal(result.matchedApplications, 1);
+    assert.deepEqual(result.matchedDurationsMs, expertise === 1_300 ? [5_600, 6_000] : [6_000]);
+  }
+});
+
 test('pairs player-attributed Sharper Images applications across Signet of Midnight expertise states', () => {
   const result = analyzeMesmerSharperImagesObservation(
     fixture(

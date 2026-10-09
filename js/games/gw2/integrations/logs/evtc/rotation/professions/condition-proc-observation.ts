@@ -155,7 +155,8 @@ export function analyzeCriticalBleedingProcObservation(
   catalog: Readonly<CanonicalCatalog>,
   config: Gw2Config,
   traitId: string | number,
-  traitName: string
+  traitName: string,
+  additionalDurationConfigs: readonly Gw2Config[] = []
 ): CriticalBleedingProcObservation | null {
   if (!hasSelectedTrait(config, traitId)) return null;
   const profile = traitBalanceProfile(catalog, traitId, traitName);
@@ -167,7 +168,14 @@ export function analyzeCriticalBleedingProcObservation(
     profile.criticalChance !== undefined ? 'criticalChance' : 'procChance'
   );
   const baseDurationSeconds = bleedingDuration(profile);
-  const matchedDurationsMs = expectedConditionDurationsMs(baseDurationSeconds, 'Bleeding', config);
+  // Temporary profession bonuses can produce multiple valid durations alongside the static build stats.
+  const matchedDurationsMs = [
+    ...new Set(
+      [config, ...additionalDurationConfigs].flatMap((durationConfig) =>
+        expectedConditionDurationsMs(baseDurationSeconds, 'Bleeding', durationConfig)
+      )
+    )
+  ].sort((left, right) => left - right);
   if (!(expectedProcChance > 0) || !matchedDurationsMs.length) return null;
 
   const targetAddress = primaryStrikeTarget(log, playerAddress);

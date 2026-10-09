@@ -229,7 +229,8 @@ test('Conduit modifiers and Peitha follow all supported button IDs after renamin
     }
   };
   for (const [suffix, ids] of [
-    ['release-dervish-assassin-affinity', [R.RELEASE_POTENTIAL_DERVISH, R.RELEASE_POTENTIAL_ASSASSIN]],
+    ['release-dervish-affinity', [R.RELEASE_POTENTIAL_DERVISH]],
+    ['release-assassin-affinity', [R.RELEASE_POTENTIAL_ASSASSIN]],
     ['release-warrior-affinity', [R.RELEASE_POTENTIAL_WARRIOR]],
     ['beguiling-haze-assassin-resonance', [R.BEGUILING_HAZE, R.BEGUILING_HAZE_ID_76805]],
     ['twin-moon-assassin-resonance', [R.TWIN_MOON_SWEEP, R.TWIN_MOON_SWEEP_ID_77001]]

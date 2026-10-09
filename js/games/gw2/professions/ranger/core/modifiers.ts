@@ -6,7 +6,6 @@ import { rangerAttackOfOpportunityModifier } from '#gw2/professions/ranger/core/
 import { rangerConsumingBiteModifier } from '#gw2/professions/ranger/core/skills/pets/fanged-iboga.js';
 import { signetOfTheWildBonus } from '#gw2/professions/ranger/core/skills/signet-passives.js';
 import { modifyStormSpiritAttributes } from '#gw2/professions/ranger/core/skills/slot-skills.js';
-import { rangerStalkersStrikeModifier } from '#gw2/professions/ranger/core/skills/weapons/dagger.js';
 import {
   rangerHammerConditionsModifier,
   rangerHammerDisabledModifier
@@ -77,7 +76,6 @@ const rangerPlayerAndSharedModifierRules: readonly Gw2ModifierRule[] = [
   rangerHammerDisabledModifier,
   rangerPounceModifier,
   rangerFalconsStoopModifier,
-  rangerStalkersStrikeModifier,
   rangerHammerConditionsModifier,
   rangerConsumingBiteModifier
 ];

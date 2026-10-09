@@ -27,8 +27,15 @@ function templateButtonHtml(app: ProfessionAppState, preset: BuildTemplatePreset
   const content = templateTileContent(preset);
   const category = templateCategory(preset);
   const boon = templateBoon(preset);
-  // Boon groups mix damage types, so qualify their names while other groups supply that context.
-  const qualifier = boon === 'none' ? '' : category === 'power' ? 'Power ' : category === 'condi' ? 'Condition ' : '';
+  // Inferno already identifies its variant; other boon builds need a damage-type qualifier in the mixed group.
+  const qualifier =
+    boon === 'none' || /^Inferno\b/.test(content.weapons)
+      ? ''
+      : category === 'power'
+        ? 'Power '
+        : category === 'condi'
+          ? 'Condition '
+          : '';
   const rotationAction = preset.rotation
     ? `<button type="button" role="menuitem" data-template-action="rotation" data-template-index="${index}">Load rotation only</button>`
     : '';

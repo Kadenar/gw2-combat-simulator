@@ -13,6 +13,7 @@ import { ACTOR_TYPES } from '#gw2/platform/events/actors.js';
 import type { BalanceProfile, Skill } from '#gw2/platform/skills/types.js';
 import type { UnvalidatedFields } from '#kernel/core/unvalidated.js';
 import { weaponStrengthProfile } from '#gw2/platform/equipment/weapons/strength.js';
+import { normalizeSkillDamageModifiers } from '#gw2/platform/skills/modifiers.js';
 /** Validate authored effects and retain canonical immutable lists before any runtime consumes them. */
 
 // Closed vocabulary sets used for fast membership checks during catalog validation.
@@ -25,6 +26,7 @@ const TIMING_SCALES = new Set(['cast', 'fixed']);
 
 // Allowlist used to catch typos in hand-authored effect objects at catalog-build time.
 const EFFECT_FIELDS = new Set([
+  'modifiers',
   'type',
   'reactions',
   'when',
@@ -611,9 +613,15 @@ function normalizeEffectFields(effect: unknown, label: string): SkillEffect {
     }
   }
 
+  // Effect bonuses belong only to strikes and remain immutable when a cast derives its packets.
+  if (normalizedEffect.modifiers != null && normalizedEffect.type !== 'strike')
+    throw new TypeError(`${label} modifiers require a strike effect.`);
+  const modifiers =
+    normalizedEffect.modifiers == null ? undefined : normalizeSkillDamageModifiers(normalizedEffect.modifiers, label);
   // Spread normalized numeric fields on top so runtime consumers always get typed values.
   return Object.freeze({
     ...normalizedEffect,
+    ...(modifiers ? { modifiers } : {}),
     ...(normalizedEffect.type === 'strike' && !strikeTicks ? { hits: normalizedEffect.hits ?? 1 } : {}),
     ...(normalizedEffect.type === 'boon' || normalizedEffect.type === 'buff'
       ? { stacks: normalizedEffect.stacks ?? 1 }

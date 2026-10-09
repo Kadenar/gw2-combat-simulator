@@ -7,7 +7,7 @@ import { gw2PrimaryWeapon } from '#gw2/platform/equipment/weapons/loadout.js';
 import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import { rangerPetBaseAttributes } from '#gw2/professions/ranger/core/mechanics/pet-profiles.js';
 import { rangerPetByName } from '#gw2/professions/ranger/core/state.js';
-import { positional } from '#gw2/professions/ranger/core/traits/modifier-queries.js';
+import { qualifiesForFlankingBonuses } from '#gw2/professions/ranger/core/traits/modifier-queries.js';
 import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
 import type { RangerResolverContext, RangerRuntime } from '#gw2/professions/ranger/types.js';
 
@@ -43,14 +43,19 @@ export function modifyRangerConditionBaseDuration(context: Gw2ModifierContext, m
     );
   }
 
-  // Intrinsic positional bonuses apply without the trait; its extensions add to those base durations.
-  let extension =
-    skill?.id === ID.CROSSFIRE && context.condition === 'Bleeding' && !positional(context)
-      ? -1
-      : skill?.id === ID.POISON_VOLLEY && context.condition === 'Poisoned' && positional(context)
-        ? 2
-        : 0;
-  if (hasTrait(context, TRAIT.LIGHT_ON_YOUR_FEET) && positional(context)) {
+  // Intrinsic shortbow extensions remain native behavior, independent of preview duration overrides.
+  // TODO -> THESE WILL BE GOING AWAY IN NOVEMBER PATCH
+  let extension = 0;
+  if (qualifiesForFlankingBonuses(context)) {
+    if (skill?.id === ID.CROSSFIRE && context.condition === 'Bleeding') {
+      extension += 1;
+    } else if (skill?.id === ID.POISON_VOLLEY && context.condition === 'Poisoned') {
+      // Defiant foes already receive this intrinsic bonus in live; it is unchanged by the preview.
+      extension += 2;
+    }
+  }
+
+  if (hasTrait(context, TRAIT.LIGHT_ON_YOUR_FEET) && qualifiesForFlankingBonuses(context)) {
     if (skill?.id === ID.CROSSFIRE && context.condition === 'Bleeding') {
       extension += balanceProfileNumber(
         requireBalanceProfileFromContext(context, TRAIT.LIGHT_ON_YOUR_FEET),

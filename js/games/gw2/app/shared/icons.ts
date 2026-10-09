@@ -56,6 +56,9 @@ export const MODIFIER_EFFECT_ICONS: Readonly<Record<string, string>> = {
   'Battle Scars': 'https://render.guildwars2.com/file/12FFBBD82F3BB8C057E95AB7E907AD3EACFDF221/2261517.png',
   // Named profession buffs use their granting skill or trait icons in tooltip line items.
   'Spider Venom': 'https://render.guildwars2.com/file/39320C2D4AED963861F4540F59AEBB5E05AD2E1C/103513.png',
+  // Weapon-spell charge grants use the icon of the spell that provides them.
+  'Nightmare Weapon': 'https://render.guildwars2.com/file/B3CF370B0E35DA07C023A4BFAA791809C6A67437/3680180.png',
+  'Splinter Weapon': 'https://render.guildwars2.com/file/04294CE6BE3BBB314032BD430A631BC614D1E279/3680182.png',
   Berserk: 'https://render.guildwars2.com/file/1354D8FC07F9F859DC7F0E7B61C0724FD4927C4E/1058638.png',
   'Fierce as Fire': 'https://render.guildwars2.com/file/630362D11956CB69199DE9CE0EEA03232DC9DA38/2491547.png',
   'Signet Mastery': 'https://render.guildwars2.com/file/3D117C0158CD7A55BE740D6B072807A3121C90A1/1012775.png',
@@ -81,6 +84,8 @@ export const MODIFIER_EFFECT_ICONS: Readonly<Record<string, string>> = {
   // These temporary Ranger buffs use their granting traits' icons.
   'Quick Draw': 'https://render.guildwars2.com/file/CBCB2EC86BC85CC02DA7AAB25CBFB226B8956D1E/1012648.png',
   'Light on your Feet': 'https://render.guildwars2.com/file/4D37A694088038DA9266F6107C9604AD9CBC2752/1012649.png',
+  // Natural Balance's temporary buff uses its granting trait's icon in tooltip facts.
+  'Natural Balance': 'https://render.guildwars2.com/file/5F953BAC2C7EB3340B4EAA9A7D9633320BAB29A6/1128535.png',
   // Named Elementalist effects use their own icons in both buff rows and qualified facts.
   'Fresh Air': 'https://render.guildwars2.com/file/FA64C9F2750F986E52E8376F22EDBA3844A8C603/1012277.png',
   'Flame Expulsion': 'https://render.guildwars2.com/file/998095CB1FD2CF0164B8A36BABFDB911DF08DB02/1012313.png',

@@ -252,6 +252,46 @@ test('normalizes Galeshot swap, pet, and automatic report signals', () => {
   );
 });
 
+test('both log adapters preserve equipped weapons across Celestial Avatar transitions', () => {
+  // Transformation signals duplicate the bar change, while a later real swap must remain a replay input.
+  const report = reportFixture(
+    'Druid',
+    [
+      { id: 31869, skills: [{ castTime: 1000, duration: 0 }] },
+      { id: 31411, skills: [{ castTime: 4000, duration: 0 }] },
+      { id: -2, skills: [1001, 4001, 6000].map((castTime) => ({ castTime, duration: 0 })) }
+    ],
+    {
+      s31869: { name: 'Celestial Avatar', isInstantCast: true },
+      s31411: { name: 'Release Celestial Avatar', isInstantCast: true },
+      's-2': { name: 'Weapon Swap', isSwap: true, isInstantCast: true }
+    }
+  );
+  const player = { ...log().agents[0], profession: 4, elite: 5 };
+  const fixture = log({
+    agents: [player],
+    skills: [{ id: 31508, name: 'Celestial Avatar' }],
+    events: [
+      event({ time: 0, stateChange: 1 }),
+      event({ time: 1001, stateChange: 69, target: player.address, skillId: 31508, buff: 1, value: 15000 }),
+      event({ time: 1001, stateChange: 11, target: 3n }),
+      event({ time: 4001, stateChange: 72, target: player.address, skillId: 31508, buff: 1, buffRemove: 1 }),
+      event({ time: 4001, stateChange: 11, target: 4n }),
+      event({ time: 6000, stateChange: 11, target: 5n })
+    ]
+  });
+  for (const result of [
+    reconstructDpsReportRotation(report, rangerCatalog),
+    reconstructEvtcRotation(fixture, rangerCatalog)
+  ]) {
+    assert.deepEqual(
+      result.actions.map((action) => action.skillId),
+      [31869, 31411, -3]
+    );
+    assert.equal(result.actions.find((action) => action.skillId === -3).timestampMs, 6000);
+  }
+});
+
 test('both log adapters merge a spear follow-through without inventing another input', () => {
   // Two animations belong to one attack; use a minimal source sequence rather than a saved-log shape assertion.
   const rows = [

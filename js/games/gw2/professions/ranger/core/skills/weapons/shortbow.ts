@@ -72,7 +72,7 @@ export const RANGER_CORE_SHORTBOW_SKILL_MECHANICS: Readonly<Record<number, Parti
           type: 'condition',
           condition: 'Bleeding',
           stacks: 1,
-          duration: 3
+          duration: 2
         }
       ]
     ),

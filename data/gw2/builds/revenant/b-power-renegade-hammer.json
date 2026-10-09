@@ -80,7 +80,7 @@
       "Vulnerability": 25,
       "Weakness": true
     },
-    "hitboxSize": "large",
+    "hitboxSize": "small",
     "targetSkillActivationsPerSecond": 0
   },
   "startingWeaponSet": 1,

@@ -1,3 +1,4 @@
+import { CANONICAL_TARGET_CONDITIONS } from '#gw2/platform/combat/state/targets.js';
 import { professionStaticRulesApplied } from '#gw2/platform/builds/attribute-provenance.js';
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
@@ -253,9 +254,12 @@ export const modifiedAmmunition = defineTrait({
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: 'multiply',
       parameters: {
-        damagePerCondition: 0.01
+        damagePerCondition: 0.01,
+        maximumConditions: CANONICAL_TARGET_CONDITIONS.length
       },
-      factor: (context, _target, parameters) => 1 + targetConditionCount(context) * parameters.damagePerCondition,
+      // Count unique conditions only up to the selected balance cap.
+      factor: (context, _target, parameters) =>
+        1 + Math.min(parameters.maximumConditions, targetConditionCount(context)) * parameters.damagePerCondition,
       when: (context) => isGw2PlayerModifierOwnedEvent(context.event)
     }
   ]

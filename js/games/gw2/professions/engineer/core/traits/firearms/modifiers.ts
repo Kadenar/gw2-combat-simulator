@@ -1,7 +1,7 @@
 import { professionStaticRulesApplied } from '#gw2/platform/builds/attribute-provenance.js';
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
-import { powerScaledConditionAttributes } from '#gw2/platform/combat/modifiers.js';
+import { powerScaledConditionAttributes } from '#gw2/platform/combat-calculation/condition-attributes.js';
 import { skillForEvent } from '#gw2/platform/combat/query/runtime-query.js';
 import type { Gw2MutableStats, Gw2Stats } from '#gw2/platform/combat/stats.js';
 import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';

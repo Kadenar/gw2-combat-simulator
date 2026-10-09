@@ -11,7 +11,12 @@ import type {
 const UNLEASHED_OVERBEARING_SMASH_FINISH_ID = 63_224;
 const RANGER_PET_SPAWNED_ID = -28;
 const SIMULATOR_OWNED_SKILL_IDS: ReadonlySet<number> = new Set([ID.LESSER_SIC_EM, ID.WUTHERING_WIND]);
-const CYCLONE_BOW_TRANSITION_IDS: ReadonlySet<number> = new Set([ID.SUMMON_CYCLONE_BOW, ID.DISMISS_CYCLONE_BOW]);
+const WEAPON_BAR_TRANSITION_IDS: ReadonlySet<number> = new Set([
+  ID.SUMMON_CYCLONE_BOW,
+  ID.DISMISS_CYCLONE_BOW,
+  ID.CELESTIAL_AVATAR,
+  ID.RELEASE_CELESTIAL_AVATAR
+]);
 const SIGNAL_WINDOW_MS = 75;
 const DUPLICATE_SWAP_WINDOW_MS = 5;
 
@@ -79,15 +84,15 @@ function normalizeRangerSignals(
           }
         : action
     );
-  const bowTransitions = normalized.filter((action) => CYCLONE_BOW_TRANSITION_IDS.has(actionId(action)));
+  const barTransitions = normalized.filter((action) => WEAPON_BAR_TRANSITION_IDS.has(actionId(action)));
 
-  // EI adds a generic weapon-swap row one millisecond after every Cyclone Bow transition.
+  // Avatar and Cyclone Bow already change the skill bar; their duplicate swap signals must not swap equipped weapons.
   return normalized.filter(
     (action) =>
       !(
         action.isSwap &&
-        String(action.rawName).trim().toLowerCase() === 'weapon swap' &&
-        bowTransitions.some(
+        ['weapon swap', 'swap weapons'].includes(String(action.rawName).trim().toLowerCase()) &&
+        barTransitions.some(
           (transition) =>
             action.start >= transition.start && action.start - transition.start <= DUPLICATE_SWAP_WINDOW_MS
         )

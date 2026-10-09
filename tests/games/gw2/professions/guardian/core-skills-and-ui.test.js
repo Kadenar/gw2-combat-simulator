@@ -254,9 +254,9 @@ test('Guardian modules expose isolated balance-profile authoring', () => {
     for (const field of fields) assert.equal(Object.hasOwn(profile(moduleId, profileId).patchableFields, field), false);
   }
 
-  assert.deepEqual(
-    modules.get('Core').modifierRules.find((rule) => rule.id === 'guardian.inspired-virtue').parameters,
-    { damagePerBoon: 0.005 }
+  assert.equal(
+    modules.get('Core').modifierRules.find((rule) => rule.id === 'guardian.inspired-virtue').parameters.damagePerBoon,
+    0.005
   );
   assert.equal(profile('Firebrand', GUARDIAN_TRAIT_IDS.IMBUED_HASTE).patchableFields.attributeBonus, 250);
 

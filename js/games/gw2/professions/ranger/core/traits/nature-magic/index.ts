@@ -1,3 +1,4 @@
+import { GW2_STANDARD_BOONS } from '#gw2/platform/combat/boons.js';
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import { isStandardBoon } from '#gw2/platform/combat/boons.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
@@ -292,9 +293,11 @@ export const bountifulHunter = defineTrait({
       id: 'ranger.bountiful-hunter-player',
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: 'multiply',
-      parameters: { baseFactor: 1, damagePerBoon: 0.01 },
+      // Count unique boons only up to the selected balance cap.
+      parameters: { baseFactor: 1, damagePerBoon: 0.01, maximumBoons: GW2_STANDARD_BOONS.length },
       factor: (context, _target, parameters) =>
-        parameters.baseFactor + rangerActiveBoonCount(context, 'player') * parameters.damagePerBoon,
+        parameters.baseFactor +
+        Math.min(parameters.maximumBoons, rangerActiveBoonCount(context, 'player')) * parameters.damagePerBoon,
       when: (context) => isGw2PlayerModifierOwnedEvent(context.event)
     },
     {
@@ -302,9 +305,11 @@ export const bountifulHunter = defineTrait({
       id: 'ranger.bountiful-hunter-pet',
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: 'multiply',
-      parameters: { baseFactor: 1, damagePerBoon: 0.01 },
+      // Count unique boons only up to the selected balance cap.
+      parameters: { baseFactor: 1, damagePerBoon: 0.01, maximumBoons: GW2_STANDARD_BOONS.length },
       factor: (context, _target, parameters) =>
-        parameters.baseFactor + rangerActiveBoonCount(context, 'pet') * parameters.damagePerBoon,
+        parameters.baseFactor +
+        Math.min(parameters.maximumBoons, rangerActiveBoonCount(context, 'pet')) * parameters.damagePerBoon,
       when: (context) => rangerPetEvent(context)
     }
   ]

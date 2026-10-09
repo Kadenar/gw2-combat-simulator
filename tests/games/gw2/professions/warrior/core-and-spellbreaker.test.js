@@ -857,7 +857,7 @@ test('Berserker spear and greatsword packets use configured timing profiles', ()
   assert.equal(maimingSpear.cooldown, 5);
   assert.deepEqual(
     maimingSpear.effects.filter((effect) => effect.type === 'strike').map(strikeCoefficient),
-    [1.1, 1.125]
+    [1.1, 0.75]
   );
   assert.equal(
     disruptingThrow.effects.some(

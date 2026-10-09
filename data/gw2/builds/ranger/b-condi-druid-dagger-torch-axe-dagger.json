@@ -1,6 +1,6 @@
 {
   "schemaVersion": 5,
-  "profession": "elementalist",
+  "profession": "ranger",
   "gear": {
     "Helm": "Viper's",
     "Shoulders": "Viper's",
@@ -17,17 +17,16 @@
     "Weapon1": "Viper's",
     "Weapon2": "Viper's"
   },
-  "alternateWeaponPrefixes": ["Viper's", "Viper's"],
-  "weapons": ["Scepter", "Warhorn"],
-  "alternateWeapons": ["", ""],
+  "weapons": ["Dagger", "Torch"],
+  "alternateWeapons": ["Axe", "Dagger"],
   "rune": "Trapper",
   "weaponSigils": [
-    ["Malice", "Earth"],
-    ["Malice", "Earth"]
+    ["Bursting", "Doom"],
+    ["Bursting", "Geomancy"]
   ],
   "relic": "Fractal",
   "food": "Salsa-Topped Veggie Flatbread",
-  "utility": "Tuning Icicle",
+  "utility": "Potent Master Tuning Crystal",
   "jadeBotCore": true,
   "infusions": [
     {
@@ -39,38 +38,37 @@
       "count": 0
     },
     {
-      "stat": "Power",
-      "count": 0
-    },
-    {
-      "stat": "Condition Damage",
+      "stat": "Ferocity",
       "count": 0
     }
   ],
   "specializations": [
     {
-      "name": "Fire",
-      "traits": "1-1-1"
+      "name": "Skirmishing",
+      "traits": "1-3-2"
     },
     {
-      "name": "Earth",
-      "traits": "2-1-2"
+      "name": "Wilderness Survival",
+      "traits": "3-1-3"
     },
     {
-      "name": "Tempest",
-      "traits": "3-1-1"
+      "name": "Druid",
+      "traits": "3-3-3"
     }
   ],
   "selectedSkillIds": {
-    "Heal": 5503,
-    "Utility1": 5736,
-    "Utility2": 5542,
-    "Utility3": 5571,
-    "Elite": 25488
+    "Heal": 31914,
+    "Utility1": 12496,
+    "Utility2": 12498,
+    "Utility3": 12537,
+    "Elite": 12580
   },
+  "selectedPet": "Carrion Devourer",
+  "selectedPet2": "Jacaranda",
+  "initialAstralForce": 100,
+  "initialArrows": 8,
+  "startingWeaponSet": 1,
   "assumptions": {
-    "simulationMode": "deterministic",
-    "hitboxSize": "small",
     "might": 25,
     "fury": true,
     "quickness": true,
@@ -83,7 +81,7 @@
     "aegis": true,
     "targetMoving": false,
     "targetConditions": {
-      "Bleeding": 5,
+      "Bleeding": 1,
       "Burning": true,
       "Torment": 1,
       "Confusion": 1,
@@ -95,20 +93,6 @@
       "Vulnerability": 25
     }
   },
-  "startingWeaponSet": 1,
   "targetHealth": 4000000,
-  "targetArmor": 2597,
-  "rotation": [],
-  "startAttunement": "Earth",
-  "secondaryAttunement": "Air",
-  "initialCatalystEnergy": 30,
-  "evokerElement": "Fire",
-  "initialEvokerCharges": 6,
-  "initialEvokerEmpowered": 0,
-  "pistolBullets": {
-    "Fire": false,
-    "Water": false,
-    "Air": false,
-    "Earth": false
-  }
+  "targetArmor": 2597
 }

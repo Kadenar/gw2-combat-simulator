@@ -28,6 +28,7 @@ import {
 import { actualNecromancerLifeForceCost } from '#gw2/professions/necromancer/core/state.js';
 import { dhuumfireProjection } from '#gw2/professions/necromancer/core/traits/soul-reaping/procs.js';
 import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
+import { getActiveTraits } from '#gw2/professions/necromancer/data/traits-data.js';
 import { darkBarrageEffects } from '#gw2/professions/necromancer/specializations/harbinger/mechanics/dark-barrage.js';
 import {
   HARBINGER_BALANCE_PROFILE_IDS as HARBINGER,
@@ -132,23 +133,43 @@ const innervateTooltip: DescribeSimulationTooltip = skillTooltip(
   'Command the corresponding active spirit to apply its listed effects and restore life force. The spirit must be available for the command.'
 );
 
-const weaponSpellTooltip: DescribeSimulationTooltip = skillTooltip(
-  "Grant weapon-spell charges to yourself and eligible party recipients. Their qualifying strikes spend charges to trigger the listed attack, with an independent interval for each recipient. Wielder's Boon grants allies your full charge count.",
-  (balanceContext, entity) => {
-    const profileId = (
-      {
-        [ID.NIGHTMARE_WEAPON]: RITUALIST.nightmareWeaponProc,
-        [ID.SPLINTER_WEAPON]: RITUALIST.splinterWeaponProc
-      } as Record<number, string>
-    )[Number(entity.id)];
-    return profileId
-      ? [
-          ...simulationEffectFacts(tooltipProfile(balanceContext, profileId).effects, 'per charge spent').facts,
-          profileFact(balanceContext, profileId, 'internalCooldown', 'Minimum interval per recipient', tooltipSeconds)
-        ]
-      : [];
-  }
-);
+// Project charge grants from the selected build so the skill card agrees with Wielder's Boon's runtime grant.
+const weaponSpellTooltip: DescribeSimulationTooltip = (balanceContext, entity, _specialization, build) => {
+  const skill = balanceContext.catalog.skillsById.get(entity.id);
+  if (!skill) throw new Error(`Missing tooltip skill: ${entity.id}`);
+  const empowered = getActiveTraits(build?.specializations).some(({ id }) => id === TRAIT.WIELDERS_BOON);
+  const effects = (skill.effects ?? []).map((effect) => {
+    if (effect.type !== 'buff' || !['nightmare-weapon', 'splinter-weapon'].includes(String(effect.kind)))
+      return simulationEffectFacts([effect]);
+    const personal = tooltipNumber(effect, 'stacks');
+    const allied = empowered ? personal : tooltipNumber(effect, 'allyStacks');
+    return simulationEffectFacts(
+      [{ ...effect, allyStacks: undefined }],
+      `${personal} charges on yourself · ${allied} charges on each ally`
+    );
+  });
+  const profileId = (
+    {
+      [ID.NIGHTMARE_WEAPON]: RITUALIST.nightmareWeaponProc,
+      [ID.SPLINTER_WEAPON]: RITUALIST.splinterWeaponProc
+    } as Record<number, string>
+  )[Number(entity.id)];
+  return {
+    description:
+      'Grant weapon-spell charges to yourself and eligible party recipients. Their qualifying strikes spend charges to trigger the listed attack, with an independent interval for each recipient.' +
+      (empowered ? " Wielder's Boon is selected: allies receive your full charge count." : ''),
+    incomplete: effects.some((model) => model.incomplete),
+    facts: [
+      ...effects.flatMap((model) => model.facts),
+      ...(profileId
+        ? [
+            ...simulationEffectFacts(tooltipProfile(balanceContext, profileId).effects, 'per charge spent').facts,
+            profileFact(balanceContext, profileId, 'internalCooldown', 'Minimum interval per recipient', tooltipSeconds)
+          ]
+        : [])
+    ]
+  };
+};
 
 // Spirit owners select named attack roles; this layer formats their selected summon and command packets.
 const ritualistTooltip: DescribeSimulationTooltip = (balanceContext, entity) => {
@@ -621,7 +642,9 @@ export const necromancerTooltips: ProfessionTooltips = {
       'Gain condition damage from precision and critical-strike chance for each condition on the target.',
       [
         ['attributeConversion', 'Precision converted to condition damage', tooltipPercent],
-        ['criticalChancePerCondition', 'Critical chance per target condition', tooltipPercent]
+        ['criticalChancePerCondition', 'Critical chance per target condition', tooltipPercent],
+        // The selected profile exposes its condition cap alongside the per-condition critical chance.
+        ['maximumConditions', 'Maximum conditions counted']
       ]
     ),
     [TRAIT.INSIDIOUS_DISRUPTION]: traitTooltip('Applying a control effect inflicts torment.', undefined, 'on control'),
@@ -956,7 +979,21 @@ export const necromancerTooltips: ProfessionTooltips = {
     [TRAIT.SPIRITS_STRENGTH]: traitTooltip('Increase autonomous creature damage. Innervate attacks are excluded.', [
       ['damageMultiplier', 'Creature strike damage', tooltipFactorChange]
     ]),
-    [TRAIT.WIELDERS_BOON]: traitTooltip('Weapon spells grant allied recipients the same stack count as the player.'),
+    [TRAIT.WIELDERS_BOON]: traitTooltip(
+      'Nightmare Weapon and Splinter Weapon grant each eligible ally as many charges as you receive, replacing their reduced ally charge count. Your own charge count stays the same.',
+      // Read both counts from the selected skills so the explanation also follows balance previews.
+      (context) =>
+        [ID.NIGHTMARE_WEAPON, ID.SPLINTER_WEAPON].flatMap((id) => {
+          const skill = context.catalog.skillsById.get(id)!;
+          return (skill.effects ?? [])
+            .filter((effect) => effect.type === 'buff')
+            .map((effect) => ({
+              name: skill.name,
+              icon: skill.icon,
+              detail: `${tooltipNumber(effect, 'allyStacks')} → ${tooltipNumber(effect, 'stacks')} charges per ally`
+            }));
+        })
+    ),
     [TRAIT.LINGERING_SPIRITS]: traitTooltip(
       'Spirits persist through the modeled shroud transition. Active Anguish increases strike damage.',
       [fromModifier('necromancer.lingering-spirits', 'amount', 'Strike damage with Anguish active')]

@@ -5,6 +5,7 @@ import type { DamageEvent, EffectAudience, EffectMetadata } from '#gw2/platform/
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import type { MechanicQueryContext } from '#gw2/platform/profession-definition/mechanic-context.js';
 import type { SkillId } from '#gw2/platform/skills/types.js';
+import type { SkillDamageModifier } from '#gw2/platform/skills/modifiers.js';
 
 /**
  * Declarative skill-effect schemas (strike, condition, control, status, custom) so authored effects stay independent
@@ -75,6 +76,8 @@ export interface SkillEffectBase {
 
 export interface StrikeEffect extends SkillEffectBase {
   readonly type: 'strike';
+  /** Intrinsic bonuses apply to every strike packet from this effect, excluding sibling effects. */
+  readonly modifiers?: readonly SkillDamageModifier[];
   /** Autonomous summon animation, excluding idle time, for recipient-specific attack scheduling. */
   readonly castTimeMs?: number;
   /** Optional row label separates an effect's damage while preserving its source skill. */

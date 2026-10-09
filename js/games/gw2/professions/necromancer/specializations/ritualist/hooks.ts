@@ -61,7 +61,8 @@ const spiritLifecycle: RuntimeHooks<NecromancerRuntimeState, NecromancerSkill> =
         queueNightmareWeapon(
           runtime,
           damageInputEvent(runtime),
-          damageProfile(runtime, DAMAGE_PROFILE.nightmareWeaponProc)
+          damageProfile(runtime, DAMAGE_PROFILE.nightmareWeaponProc),
+          'personal'
         )
     },
     {

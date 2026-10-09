@@ -98,6 +98,9 @@ effectNames.set('signet-mastery', 'Signet Mastery');
 effectNames.set('ashes-of-the-just', 'Ashes of the Just');
 effectNames.set('lethal-tempo', 'Lethal Tempo');
 effectNames.set('enchanted-daggers', 'Enchanted Daggers');
+// Resolve weapon-spell charge kinds to their named skill icons.
+effectNames.set('nightmare-weapon', 'Nightmare Weapon');
+effectNames.set('splinter-weapon', 'Splinter Weapon');
 effectNames.set('burst-of-strength', 'Burst of Strength');
 effectNames.set('explosive-temper', 'Explosive Temper');
 effectNames.set('twice-as-vicious', 'Twice as Vicious');

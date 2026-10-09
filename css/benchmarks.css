@@ -182,11 +182,19 @@ body[data-simulator-view='benchmarks'] :is(.patch-preview-picker, #build-workspa
   font-weight: 400;
   min-width: 160px;
 }
-.benchmark-patch-profession th {
+/* Keep the build action inside its label cell so pending rows remain actionable without widening the table. */
+.benchmark-patch-table .benchmark-patch-workspace-link {
+  display: block;
+  width: fit-content;
+  margin: 6px 0 0;
+  font-size: 11px;
+}
+.benchmark-patch-profession {
   color: var(--profession-accent);
   background: color-mix(in srgb, var(--profession-accent) 13%, var(--bg-panel-alt));
   font-size: 15px;
   padding: 0;
+  border-bottom: 1px solid var(--benchmark-border);
 }
 .benchmark-patch-specialization th {
   background: color-mix(in srgb, var(--profession-accent) 4%, var(--bg-panel));
@@ -210,31 +218,101 @@ body[data-simulator-view='benchmarks'] :is(.patch-preview-picker, #build-workspa
   padding: 12px 24px;
   color: color-mix(in srgb, var(--profession-accent) 70%, white);
 }
-/* Collapsed profession summaries wrap beneath the name and remain readable within narrow benchmark panels. */
+/* Use the full row for comparable outcome and extreme columns, then stack them within narrow panels. */
 .benchmark-patch-profession .benchmark-patch-toggle {
-  align-items: flex-start;
+  display: grid;
+  grid-template-columns: 14px minmax(130px, 0.7fr) minmax(0, 3fr);
+  column-gap: 16px;
+  min-height: 76px;
+  padding: 12px 18px;
+  align-items: center;
 }
-.benchmark-patch-profession .benchmark-patch-chevron {
-  margin-top: 3px;
+.benchmark-patch-profession .benchmark-patch-toggle[aria-expanded='true'] {
+  min-height: 0;
 }
 .benchmark-patch-profession-heading {
   min-width: 0;
+  font-weight: 600;
+  overflow-wrap: anywhere;
 }
-.benchmark-patch-profession-summary {
+.benchmark-patch-profession-meta {
   display: flex;
   flex-direction: column;
   gap: 4px;
-  max-width: min(90ch, calc(100cqw - 80px));
-  margin-top: 7px;
+  margin-top: 5px;
+}
+.benchmark-patch-profession-summary,
+.benchmark-patch-profession-meta {
   color: var(--benchmark-muted);
   font-size: 11px;
   font-weight: 400;
-  line-height: 1.6;
+  line-height: 1.4;
   white-space: normal;
   overflow-wrap: anywhere;
 }
-.benchmark-patch-profession-summary strong {
-  font-weight: 500;
+.benchmark-patch-profession-summary {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 24px;
+  min-width: 0;
+  align-items: start;
+}
+.benchmark-patch-outcomes,
+.benchmark-patch-highlight {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+.benchmark-patch-summary-label {
+  font-size: 10px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+.benchmark-patch-highlight-value,
+.benchmark-patch-outcome-counts {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 4px 10px;
+}
+.benchmark-patch-highlight-value strong {
+  font-size: 18px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+.patch-tbd {
+  color: var(--warning, #d99b42);
+}
+.benchmark-patch-badge {
+  align-self: flex-start;
+  padding: 1px 6px;
+  border: 1px solid currentColor;
+  border-radius: 4px;
+}
+.benchmark-patch-pending-reason {
+  display: block;
+  margin-top: 4px;
+}
+@container benchmark-main (max-width: 1000px) {
+  .benchmark-patch-profession .benchmark-patch-toggle {
+    grid-template-columns: 14px minmax(0, 1fr);
+    row-gap: 12px;
+  }
+  .benchmark-patch-profession-meta {
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 6px 12px;
+  }
+  .benchmark-patch-profession-summary {
+    grid-column: 2;
+  }
+}
+@container benchmark-main (max-width: 600px) {
+  .benchmark-patch-profession-summary {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 16px;
+  }
 }
 .benchmark-patch-toggle:hover {
   background: color-mix(in srgb, var(--profession-accent) 6%, transparent);

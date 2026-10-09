@@ -11,25 +11,21 @@
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/warrior/power-bladesworn-faf-sword-pistol",
         "benchmarkApm": 71.8,
         "benchmarkDpsByHealth": {
-          "100-80": {
-            "cumulative": 61277,
-            "phase": 61277
-          },
-          "80-60": {
-            "cumulative": 47792,
-            "phase": 38266
-          },
-          "60-40": {
-            "cumulative": 44121,
-            "phase": 37915
-          },
-          "40-20": {
-            "cumulative": 42270,
-            "phase": 37205
-          },
-          "20-0": {
-            "cumulative": 41187,
-            "phase": 41187
+          "100-80": { "cumulative": 61277, "phase": 61277 },
+          "80-60": { "cumulative": 47792, "phase": 38266 },
+          "60-40": { "cumulative": 44121, "phase": 37915 },
+          "40-20": { "cumulative": 42270, "phase": 37205 },
+          "20-0": { "cumulative": 41187, "phase": 41187 }
+        },
+        "patchPreview": {
+          "patchId": "conduit-balance-preview",
+          "benchmarkDps": 40916,
+          "benchmarkDpsByHealth": {
+            "100-80": { "cumulative": 60821, "phase": 60821 },
+            "80-60": { "cumulative": 47440, "phase": 37986 },
+            "60-40": { "cumulative": 43829, "phase": 37725 },
+            "40-20": { "cumulative": 41989, "phase": 36956 },
+            "20-0": { "cumulative": 40916, "phase": 40916 }
           }
         }
       },
@@ -42,25 +38,21 @@
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/warrior/condition-bladesworn-sword-pistol",
         "benchmarkApm": 78.7,
         "benchmarkDpsByHealth": {
-          "100-80": {
-            "cumulative": 42651,
-            "phase": 42651
-          },
-          "80-60": {
-            "cumulative": 43027,
-            "phase": 43402
-          },
-          "60-40": {
-            "cumulative": 41555,
-            "phase": 38760
-          },
-          "40-20": {
-            "cumulative": 42054,
-            "phase": 43695
-          },
-          "20-0": {
-            "cumulative": 42429,
-            "phase": 43973
+          "100-80": { "cumulative": 42651, "phase": 42651 },
+          "80-60": { "cumulative": 43027, "phase": 43402 },
+          "60-40": { "cumulative": 41555, "phase": 38760 },
+          "40-20": { "cumulative": 42054, "phase": 43695 },
+          "20-0": { "cumulative": 42429, "phase": 43973 }
+        },
+        "patchPreview": {
+          "patchId": "conduit-balance-preview",
+          "benchmarkDps": 42429,
+          "benchmarkDpsByHealth": {
+            "100-80": { "cumulative": 42651, "phase": 42651 },
+            "80-60": { "cumulative": 43027, "phase": 43402 },
+            "60-40": { "cumulative": 41555, "phase": 38760 },
+            "40-20": { "cumulative": 42054, "phase": 43695 },
+            "20-0": { "cumulative": 42429, "phase": 43973 }
           }
         }
       }
@@ -78,25 +70,21 @@
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/warrior/power-berserker-tactics-spear-greatsword",
         "benchmarkApm": 73.8,
         "benchmarkDpsByHealth": {
-          "100-80": {
-            "cumulative": 51785,
-            "phase": 51785
-          },
-          "80-60": {
-            "cumulative": 46274,
-            "phase": 41829
-          },
-          "60-40": {
-            "cumulative": 43305,
-            "phase": 38225
-          },
-          "40-20": {
-            "cumulative": 42599,
-            "phase": 40607
-          },
-          "20-0": {
-            "cumulative": 42254,
-            "phase": 40944
+          "100-80": { "cumulative": 51785, "phase": 51785 },
+          "80-60": { "cumulative": 46274, "phase": 41829 },
+          "60-40": { "cumulative": 43305, "phase": 38225 },
+          "40-20": { "cumulative": 42599, "phase": 40607 },
+          "20-0": { "cumulative": 42254, "phase": 40944 }
+        },
+        "patchPreview": {
+          "patchId": "conduit-balance-preview",
+          "benchmarkDps": 42041,
+          "benchmarkDpsByHealth": {
+            "100-80": { "cumulative": 51415, "phase": 51415 },
+            "80-60": { "cumulative": 46031, "phase": 41688 },
+            "60-40": { "cumulative": 43178, "phase": 38346 },
+            "40-20": { "cumulative": 42321, "phase": 39935 },
+            "20-0": { "cumulative": 42041, "phase": 42041 }
           }
         }
       },
@@ -109,25 +97,21 @@
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/warrior/power-quickness-berserker-tactics-spear-greatsword",
         "benchmarkApm": 71.2,
         "benchmarkDpsByHealth": {
-          "100-80": {
-            "cumulative": 46183,
-            "phase": 46183
-          },
-          "80-60": {
-            "cumulative": 39874,
-            "phase": 34834
-          },
-          "60-40": {
-            "cumulative": 38132,
-            "phase": 35123
-          },
-          "40-20": {
-            "cumulative": 37118,
-            "phase": 34244
-          },
-          "20-0": {
-            "cumulative": 36604,
-            "phase": 34687
+          "100-80": { "cumulative": 46183, "phase": 46183 },
+          "80-60": { "cumulative": 39874, "phase": 34834 },
+          "60-40": { "cumulative": 38132, "phase": 35123 },
+          "40-20": { "cumulative": 37118, "phase": 34244 },
+          "20-0": { "cumulative": 36604, "phase": 34687 }
+        },
+        "patchPreview": {
+          "patchId": "conduit-balance-preview",
+          "benchmarkDps": 36495,
+          "benchmarkDpsByHealth": {
+            "100-80": { "cumulative": 45884, "phase": 45884 },
+            "80-60": { "cumulative": 39662, "phase": 34691 },
+            "60-40": { "cumulative": 37960, "phase": 35020 },
+            "40-20": { "cumulative": 37100, "phase": 34724 },
+            "20-0": { "cumulative": 36495, "phase": 36495 }
           }
         }
       },
@@ -140,25 +124,21 @@
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/warrior/power-berserker-hammer-axe-mace",
         "benchmarkApm": 92.8,
         "benchmarkDpsByHealth": {
-          "100-80": {
-            "cumulative": 43212,
-            "phase": 43212
-          },
-          "80-60": {
-            "cumulative": 42130,
-            "phase": 41107
-          },
-          "60-40": {
-            "cumulative": 42585,
-            "phase": 43536
-          },
-          "40-20": {
-            "cumulative": 42636,
-            "phase": 42789
-          },
-          "20-0": {
-            "cumulative": 42727,
-            "phase": 43090
+          "100-80": { "cumulative": 43212, "phase": 43212 },
+          "80-60": { "cumulative": 42130, "phase": 41107 },
+          "60-40": { "cumulative": 42585, "phase": 43536 },
+          "40-20": { "cumulative": 42636, "phase": 42789 },
+          "20-0": { "cumulative": 42727, "phase": 43090 }
+        },
+        "patchPreview": {
+          "patchId": "conduit-balance-preview",
+          "benchmarkDps": 42727,
+          "benchmarkDpsByHealth": {
+            "100-80": { "cumulative": 43212, "phase": 43212 },
+            "80-60": { "cumulative": 42130, "phase": 41107 },
+            "60-40": { "cumulative": 42585, "phase": 43536 },
+            "40-20": { "cumulative": 42636, "phase": 42789 },
+            "20-0": { "cumulative": 42727, "phase": 43090 }
           }
         }
       },
@@ -171,25 +151,21 @@
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/warrior/condition-berserker-longbow-sword-torch",
         "benchmarkApm": 93.6,
         "benchmarkDpsByHealth": {
-          "100-80": {
-            "cumulative": 41285,
-            "phase": 41285
-          },
-          "80-60": {
-            "cumulative": 43734,
-            "phase": 46615
-          },
-          "60-40": {
-            "cumulative": 43870,
-            "phase": 44150
-          },
-          "40-20": {
-            "cumulative": 44216,
-            "phase": 45335
-          },
-          "20-0": {
-            "cumulative": 44416,
-            "phase": 44416
+          "100-80": { "cumulative": 41285, "phase": 41285 },
+          "80-60": { "cumulative": 43734, "phase": 46615 },
+          "60-40": { "cumulative": 43870, "phase": 44150 },
+          "40-20": { "cumulative": 44216, "phase": 45335 },
+          "20-0": { "cumulative": 44416, "phase": 44416 }
+        },
+        "patchPreview": {
+          "patchId": "conduit-balance-preview",
+          "benchmarkDps": 44416,
+          "benchmarkDpsByHealth": {
+            "100-80": { "cumulative": 41285, "phase": 41285 },
+            "80-60": { "cumulative": 43734, "phase": 46615 },
+            "60-40": { "cumulative": 43870, "phase": 44150 },
+            "40-20": { "cumulative": 44216, "phase": 45335 },
+            "20-0": { "cumulative": 44416, "phase": 44416 }
           }
         }
       }
@@ -207,25 +183,21 @@
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/warrior/power-spellbreaker-dagger-mace-sword-axe",
         "benchmarkApm": 60.4,
         "benchmarkDpsByHealth": {
-          "100-80": {
-            "cumulative": 46244,
-            "phase": 46244
-          },
-          "80-60": {
-            "cumulative": 43884,
-            "phase": 41680
-          },
-          "60-40": {
-            "cumulative": 43033,
-            "phase": 41422
-          },
-          "40-20": {
-            "cumulative": 42431,
-            "phase": 40711
-          },
-          "20-0": {
-            "cumulative": 42888,
-            "phase": 42888
+          "100-80": { "cumulative": 46244, "phase": 46244 },
+          "80-60": { "cumulative": 43884, "phase": 41680 },
+          "60-40": { "cumulative": 43033, "phase": 41422 },
+          "40-20": { "cumulative": 42431, "phase": 40711 },
+          "20-0": { "cumulative": 42888, "phase": 42888 }
+        },
+        "patchPreview": {
+          "patchId": "conduit-balance-preview",
+          "benchmarkDps": 42888,
+          "benchmarkDpsByHealth": {
+            "100-80": { "cumulative": 46244, "phase": 46244 },
+            "80-60": { "cumulative": 43884, "phase": 41680 },
+            "60-40": { "cumulative": 43033, "phase": 41422 },
+            "40-20": { "cumulative": 42431, "phase": 40711 },
+            "20-0": { "cumulative": 42888, "phase": 42888 }
           }
         }
       },
@@ -238,25 +210,21 @@
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/warrior/power-spellbreaker-dagger-mace-sword-dagger",
         "benchmarkApm": 62.8,
         "benchmarkDpsByHealth": {
-          "100-80": {
-            "cumulative": 47144,
-            "phase": 47144
-          },
-          "80-60": {
-            "cumulative": 43967,
-            "phase": 41006
-          },
-          "60-40": {
-            "cumulative": 43098,
-            "phase": 41458
-          },
-          "40-20": {
-            "cumulative": 42488,
-            "phase": 40756
-          },
-          "20-0": {
-            "cumulative": 43316,
-            "phase": 43316
+          "100-80": { "cumulative": 47144, "phase": 47144 },
+          "80-60": { "cumulative": 43967, "phase": 41006 },
+          "60-40": { "cumulative": 43098, "phase": 41458 },
+          "40-20": { "cumulative": 42488, "phase": 40756 },
+          "20-0": { "cumulative": 43316, "phase": 43316 }
+        },
+        "patchPreview": {
+          "patchId": "conduit-balance-preview",
+          "benchmarkDps": 43316,
+          "benchmarkDpsByHealth": {
+            "100-80": { "cumulative": 47144, "phase": 47144 },
+            "80-60": { "cumulative": 43967, "phase": 41006 },
+            "60-40": { "cumulative": 43098, "phase": 41458 },
+            "40-20": { "cumulative": 42488, "phase": 40756 },
+            "20-0": { "cumulative": 43316, "phase": 43316 }
           }
         }
       },
@@ -269,25 +237,21 @@
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/warrior/power-spellbreaker-hammer-dagger-mace",
         "benchmarkApm": 65.6,
         "benchmarkDpsByHealth": {
-          "100-80": {
-            "cumulative": 47362,
-            "phase": 47362
-          },
-          "80-60": {
-            "cumulative": 44353,
-            "phase": 41706
-          },
-          "60-40": {
-            "cumulative": 43619,
-            "phase": 42192
-          },
-          "40-20": {
-            "cumulative": 43182,
-            "phase": 41903
-          },
-          "20-0": {
-            "cumulative": 42903,
-            "phase": 41825
+          "100-80": { "cumulative": 47362, "phase": 47362 },
+          "80-60": { "cumulative": 44353, "phase": 41706 },
+          "60-40": { "cumulative": 43619, "phase": 42192 },
+          "40-20": { "cumulative": 43182, "phase": 41903 },
+          "20-0": { "cumulative": 42903, "phase": 41825 }
+        },
+        "patchPreview": {
+          "patchId": "conduit-balance-preview",
+          "benchmarkDps": 42903,
+          "benchmarkDpsByHealth": {
+            "100-80": { "cumulative": 47362, "phase": 47362 },
+            "80-60": { "cumulative": 44353, "phase": 41706 },
+            "60-40": { "cumulative": 43619, "phase": 42192 },
+            "40-20": { "cumulative": 43182, "phase": 41903 },
+            "20-0": { "cumulative": 42903, "phase": 41825 }
           }
         }
       }
@@ -305,25 +269,21 @@
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/warrior/power-paragon-sword-axe-dagger-mace",
         "benchmarkApm": 57.8,
         "benchmarkDpsByHealth": {
-          "100-80": {
-            "cumulative": 44493,
-            "phase": 44493
-          },
-          "80-60": {
-            "cumulative": 42629,
-            "phase": 40901
-          },
-          "60-40": {
-            "cumulative": 41819,
-            "phase": 40194
-          },
-          "40-20": {
-            "cumulative": 42013,
-            "phase": 42596
-          },
-          "20-0": {
-            "cumulative": 42322,
-            "phase": 43629
+          "100-80": { "cumulative": 44493, "phase": 44493 },
+          "80-60": { "cumulative": 42629, "phase": 40901 },
+          "60-40": { "cumulative": 41819, "phase": 40194 },
+          "40-20": { "cumulative": 42013, "phase": 42596 },
+          "20-0": { "cumulative": 42322, "phase": 43629 }
+        },
+        "patchPreview": {
+          "patchId": "conduit-balance-preview",
+          "benchmarkDps": 42322,
+          "benchmarkDpsByHealth": {
+            "100-80": { "cumulative": 44493, "phase": 44493 },
+            "80-60": { "cumulative": 42629, "phase": 40901 },
+            "60-40": { "cumulative": 41819, "phase": 40194 },
+            "40-20": { "cumulative": 42013, "phase": 42596 },
+            "20-0": { "cumulative": 42322, "phase": 43629 }
           }
         }
       }

@@ -23,6 +23,12 @@ pending time-aware ownership.
 Thousand Needles uses EI's generic hostile circle plus both same-source needle effects 280 ms later. Missing either
 secondary effect leaves the cast unproven.
 
+Distress follows EI's `NecromancerHelper.EffectCastFinder`: the selected player's effect GUID
+`239BF9EA9B747B44ACC63B86DC49B0D0` requires a Distress buff (`72976`) remove-all event within strictly less than 10 ms.
+EI checks removals across all actors; the effect source identifies the caster. Neither the visual nor the buff removal
+alone establishes a cast. The ordinary effect finder retains EI's sliding 50 ms duplicate window and inaccurate
+skill-origin metadata.
+
 Spider Venom follows EI's `ThiefHelper.BuffGiveCastFinder`: a non-initial grant to another agent qualifies regardless of
 duration; a self grant must be within strictly less than 10 ms of 24 seconds. This excludes the trait's 30-second self
 grants. It uses final-master attribution, the shared sliding 50 ms duplicate window, and inaccurate skill-origin

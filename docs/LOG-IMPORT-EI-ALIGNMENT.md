@@ -25,6 +25,10 @@ corroborated by same-owner Serpent's Touch and Deadly Ambush condition bursts; s
 infer missing setup or alter dps.report timelines. Thousand Needles now uses the pinned EI finder with both delayed
 secondary visuals, rather than remaining in the unsupported checker list.
 
+Distress also uses the pinned EI finder: its caster-owned spear effect must coincide with a Distress buff remove-all
+event within the strict 10 ms server tolerance. The removal check spans all actors, matching EI; the visual supplies
+caster identity. It is no longer excluded as an unsupported custom checker.
+
 ## Required behavior
 
 | Concern                               | Contract                                                                                                                               |
@@ -194,9 +198,8 @@ as a generated diff of the current table:
   `Mesmer.Diversion`, `Mesmer.DistortionSkill`, `Mesmer.DistortionSkill`, `Mesmer.MantraOfRecovery`,
   `Mesmer.PowerCleanse`, `Virtuoso.BladesongDistortion`.
 - **Necromancer:** `Necromancer.SpitefulSpirit`, `Necromancer.SpectralRecallSkill`, `Necromancer.SpitefulRenewal`,
-  `Necromancer.DistressSkill`, `Reaper.MinionSpawnCastFinder(Rise, (int)MinionID.ShamblingHorror)  `,
-  `Scourge.SandCascadeSkill`, `Scourge.DesertShroud`, `Scourge.SandstormShroudSkill`,
-  `Scourge.SadisticSearingActivation`.
+  `Reaper.MinionSpawnCastFinder(Rise, (int)MinionID.ShamblingHorror)  `, `Scourge.SandCascadeSkill`,
+  `Scourge.DesertShroud`, `Scourge.SandstormShroudSkill`, `Scourge.SadisticSearingActivation`.
 - **Ranger:** `Ranger.SignetOfStone`, `Ranger.LesserSignetOfStone`, `Ranger.WindborneNotes`, `Ranger.InvigoratingBond`,
   `Ranger.EvasivePurity`, `Ranger.ProtectMe`, `Ranger.GuardSkill`, `Ranger.LesserGuardSkill`, `Ranger.RangerPetSpawned`,
   `Galeshot.SummonCycloneBow`.

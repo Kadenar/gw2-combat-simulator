@@ -48,7 +48,7 @@ function skillDeltas(comparison: PatchComparison) {
 
 function overviewRows(entries: readonly PatchOverviewEntry[]): string {
   if (!entries.length) {
-    return '<p class="patch-preview-empty">No skill or trait modifier changes are authored for this profession.</p>';
+    return '<p class="patch-preview-empty">No authored patch changes apply to this build.</p>';
   }
 
   return `<ul class="patch-note-list">${entries
@@ -117,34 +117,39 @@ export function renderPatchComparison(container: HTMLElement, app: ProfessionApp
   const delta = previewDps - currentDps;
   const percent = currentDps === 0 ? 0 : (delta / currentDps) * 100;
   const deltas = skillDeltas(comparison);
-  const overview = preview.professions?.[app.profession.id]?.overview || [];
+  // Include triggered sources from both runs, even when a preview removes an effect entirely.
+  const observedIds = [...comparison.current.events, ...comparison.preview.events].flatMap((event) =>
+    [event.skillId, event.sourceId].filter((id): id is string | number => id != null)
+  );
+  const overview = app.profession.patchOverviewFor(app.adapter.simulationConfig(app), observedIds);
   const selectedLabel = app.patchId === preview.id ? preview.label : 'Live game data';
   const sourceUrl = httpUrl(preview.sourceUrl);
-  const section = document.createElement('section');
+  // A native disclosure keeps overall DPS visible while detailed changes stay collapsed until requested.
+  const section = document.createElement('details');
   section.className = 'patch-comparison';
   section.setAttribute('aria-label', 'Patch preview comparison');
+  // Present the relevant patch notes before their measured per-skill damage impact.
   section.innerHTML = `
-    <div class="patch-comparison-header">
-      <div>
-        <span class="patch-comparison-eyebrow">Patch comparison</span>
-        <h3>Live vs ${escapeHtml(preview.label)}</h3>
-      </div>
-      <div class="patch-comparison-actions">
+    <summary class="patch-comparison-summary">
+      <div class="patch-comparison-header">
+        <div class="patch-comparison-title">
+          <span class="patch-comparison-eyebrow">Patch comparison</span>
+          <strong>Live vs ${escapeHtml(preview.label)}</strong>
+          <span class="patch-comparison-counts">${deltas.length} skill change${deltas.length === 1 ? '' : 's'} &middot; ${overview.length} patch change${overview.length === 1 ? '' : 's'}</span>
+        </div>
+        <div class="patch-comparison-metrics">
+          <span>Live <strong>${Math.round(currentDps).toLocaleString()}</strong> &rarr; Preview <strong>${Math.round(previewDps).toLocaleString()}</strong> DPS</span>
+          <strong class="${delta > 0 ? 'positive' : delta < 0 ? 'negative' : ''}">${signed(delta)} (${signed(percent, 2)}%)</strong>
+        </div>
         <span class="patch-selected-badge">Showing ${escapeHtml(selectedLabel)}</span>
-        ${
-          sourceUrl
-            ? `<a class="patch-source-link" href="${escapeHtml(sourceUrl)}" target="_blank" rel="noopener noreferrer">Official patch notes <span aria-hidden="true">↗</span></a>`
-            : ''
-        }
       </div>
-    </div>
-    <div class="patch-comparison-metrics">
-      <div><span>Live DPS</span><strong>${Math.round(currentDps).toLocaleString()}</strong></div>
-      <div><span>Preview DPS</span><strong>${Math.round(previewDps).toLocaleString()}</strong></div>
-      <div class="${delta > 0 ? 'positive' : delta < 0 ? 'negative' : ''}">
-        <span>Difference</span><strong>${signed(delta)} <small>(${signed(percent, 2)}%)</small></strong>
-      </div>
-    </div>
+    </summary>
+    <div class="patch-comparison-content" role="region" aria-label="Patch comparison details" tabindex="0">
+      ${sourceUrl ? `<a class="patch-source-link" href="${escapeHtml(sourceUrl)}" target="_blank" rel="noopener noreferrer">Official patch notes <span aria-hidden="true">&#8599;</span></a>` : ''}
+    <details class="patch-note-ledger">
+      <summary>Change overview (${overview.length})</summary>
+      ${overviewRows(overview)}
+    </details>
     <details class="patch-skill-deltas"${deltas.length ? ' open' : ''}>
       <summary>Per-skill DPS changes (${deltas.length})</summary>
       ${
@@ -161,9 +166,6 @@ export function renderPatchComparison(container: HTMLElement, app: ProfessionApp
           : '<p class="patch-preview-empty">This rotation is unaffected by the applied preview edits.</p>'
       }
     </details>
-    <details class="patch-note-ledger">
-      <summary>Change overview (${overview.length})</summary>
-      ${overviewRows(overview)}
-    </details>`;
+    </div>`;
   container.prepend(section);
 }

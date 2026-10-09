@@ -1,3 +1,5 @@
+import { buildRelevantPatch } from '#gw2/integrations/patches/authoring/build-overview.js';
+import { generatePatchOverview } from '#gw2/integrations/patches/app/model.js';
 import type { Gw2Build } from '#gw2/platform/builds/types.js';
 import type { ProfessionBalanceContext } from '#gw2/platform/profession-definition/balance-context.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
@@ -337,6 +339,23 @@ export function withPatchPreview<
     catalogFor,
     balanceContextFor,
     patchAuthoring,
+    // Generate from filtered edits so similarly named skill variants cannot leak unrelated notes into a build.
+    patchOverviewFor(config: Gw2Config, observedIds: readonly (string | number)[]) {
+      if (!preview || !professionPatch) return [];
+      const relevantPatch = buildRelevantPatch(
+        professionPatch,
+        config,
+        observedIds,
+        family.catalog,
+        modules,
+        patchAuthoring,
+        family.weaponSkillMatchesSet
+      );
+      return (
+        generatePatchOverview({ ...preview, professions: { [family.id]: relevantPatch } }, [patchAuthoring])
+          .professions?.[family.id]?.overview ?? []
+      );
+    },
     validatePatch,
     resolveProfession,
     runtimeFor,

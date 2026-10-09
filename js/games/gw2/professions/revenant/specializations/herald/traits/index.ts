@@ -1,3 +1,4 @@
+import { GW2_STANDARD_BOONS } from '#gw2/platform/combat/boons.js';
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import { isStandardBoon } from '#gw2/platform/combat/boons.js';
 import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
@@ -144,8 +145,10 @@ export const reinforcedPotency = defineTrait({
       order: 103,
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: 'damage-additive',
-      // +1% per unique active boon; capped at 12 boon types so the theoretical maximum is +12%.
-      amount: (context) => countActiveBoons(context) * 0.01,
+      // Count unique boons only up to the selected balance cap.
+      parameters: { damagePerBoon: 0.01, maximumBoons: GW2_STANDARD_BOONS.length },
+      amount: (context, _target, parameters) =>
+        Math.min(parameters.maximumBoons, countActiveBoons(context)) * parameters.damagePerBoon,
       when: (context) => isGw2PlayerModifierOwnedEvent(context.event)
     }
   ]

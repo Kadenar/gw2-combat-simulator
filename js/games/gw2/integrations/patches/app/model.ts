@@ -397,7 +397,9 @@ function modifierPatchSummary(edit: ModifierRulePatchEdit): string {
   }
 
   const summary = changes.join('; ');
-  return summary ? `${summary[0].toLocaleUpperCase()}${summary.slice(1)}.` : 'Modifier metadata changed.';
+  // Provisional percentages must stay visibly qualified whenever notes are rebuilt from numeric edits.
+  const text = summary ? `${summary[0].toLocaleUpperCase()}${summary.slice(1)}.` : 'Modifier metadata changed.';
+  return edit.assumption ? `${text} ${edit.assumption}` : text;
 }
 
 /** Generates overview entries for modifier-rule changes using declaration labels. */

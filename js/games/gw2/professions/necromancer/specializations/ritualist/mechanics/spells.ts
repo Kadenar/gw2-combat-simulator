@@ -154,8 +154,14 @@ function grantWeaponSpell(
     }
   });
   runtime.schedule(EXPIRE, expiresAt, { spell, generation }, owner(spell, generation), -20);
+  if (spell !== 'resilient') startAlliedWeaponSpell(runtime, spell);
+}
+
+/** Precombat grants wait for combat entry before starting their attack countdown, without extending their expiry. */
+function startAlliedWeaponSpell(runtime: NecromancerRuntime, spell: 'nightmare' | 'splinter'): void {
+  const active = ritualistState.from(runtime).weaponSpells[spell];
   const rate = gw2AlliedPlayerAssumptions(runtime.config).strikesPerSecond;
-  if (spell === 'resilient' || !rate) return;
+  if (!runtime.combatActive || !active || !rate || runtime.deathTime != null) return;
   const profile = requireBalanceProfileFromContext(
     runtime,
     spell === 'nightmare' ? PROFILE.nightmareWeaponProc : PROFILE.splinterWeaponProc
@@ -167,12 +173,24 @@ function grantWeaponSpell(
     return;
   // Model actual strikes on the allied cadence; the shared charge owner alone decides whether its ICD allows a proc.
   const interval = 1 / rate;
-  for (let allyIndex = 1; allyIndex <= audience.alliedPlayerCount; allyIndex++)
-    scheduleAlly(runtime, { spell, generation, allyIndex, anchor: runtime.time, pulse: 1, interval });
+  for (const recipient of Object.keys(active.recipients ?? {})) {
+    if (!recipient.startsWith('ally:')) continue;
+    scheduleAlly(runtime, {
+      spell,
+      generation: active.generation,
+      allyIndex: Number(recipient.slice(5)),
+      anchor: runtime.time,
+      pulse: 1,
+      interval
+    });
+  }
 }
 
 /** Weapon spells and Bond own their live grants and timers alongside the specialization's spirit lifecycle. */
 export const ritualistSpellHooks: RuntimeHooks<NecromancerRuntimeState, NecromancerSkill> = {
+  onCombatStart(runtime) {
+    for (const spell of ['nightmare', 'splinter'] as const) startAlliedWeaponSpell(runtime, spell);
+  },
   sideEffectHandlers: {
     'ritualist.nightmare-weapon'(runtime, context) {
       if (context.kind === 'cast') grantWeaponSpell(runtime, context.cast, 'nightmare');

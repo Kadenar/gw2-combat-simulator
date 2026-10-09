@@ -411,7 +411,8 @@ export function setNumericEdit(input: NumericEditInput): void {
     if (numericEdit) target[input.field] = numericEdit;
     else delete target[input.field];
     removeEmptyRecord(edit, 'parameters');
-    if (!Object.keys(edit).length) deleteModifierEdit(input.id);
+    // An assumption describes numeric tuning; remove it with the last tuning edit when restoring live values.
+    if (!Object.keys(edit).some((key) => key !== 'assumption')) deleteModifierEdit(input.id);
     return;
   }
 

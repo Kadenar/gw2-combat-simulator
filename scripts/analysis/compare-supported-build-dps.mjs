@@ -206,8 +206,11 @@ export async function updateManifestBenchmarks(
           const previewMetric = previewResults.get(key);
           if (!previewMetric || previewMetric.patchId !== preview.id)
             throw new Error(metric.id + ' has no matching preview result.');
-          // Replace the whole object so only the current preview's canonical damage fields survive.
-          const nextPreview = { patchId: preview.id, ...benchmarkDamage(previewMetric, true) };
+          // Persist only preview measurements; pending reworks are declared by the active patch.
+          const nextPreview = {
+            patchId: preview.id,
+            ...benchmarkDamage(previewMetric, true)
+          };
           if (JSON.stringify(preset.patchPreview) !== JSON.stringify(nextPreview)) previewUpdatedEntries += 1;
           preset.patchPreview = nextPreview;
           previewResults.delete(key);

@@ -15,7 +15,7 @@ import {
 import type { ElementalistModifierContext } from '#gw2/professions/elementalist/types.js';
 
 /**
- * Non-trait resource modifiers remain here; registered traits own their own rules.
+ * Shared resource modifiers remain here; skills and registered traits own their intrinsic rules.
  */
 export const elementalistCoreModifierRules = Object.freeze<readonly Gw2ModifierRule[]>([
   {
@@ -47,9 +47,7 @@ export function modifyElementalistAttributes(context: ElementalistModifierContex
   const modified: Gw2MutableStats = { ...attributes };
 
   applyFireTraitAttributes(context, modified);
-
   applyAirTraitAttributes(context, modified);
-
   applyArcaneTraitAttributes(context, modified);
 
   // Read equipped state at damage resolution so dropping or expiry also removes the bonuses from lingering hits.

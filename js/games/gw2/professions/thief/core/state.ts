@@ -45,6 +45,8 @@ export interface ThiefCoreState {
   outboundAxes: { id: string; skillId: SkillId; landsAt: number }[];
   venomChargeBatches: ChargePool['grants'];
   venomAllyLastProcAt: Record<string, number>;
+  /** Preserve precombat ally grants until combat entry, including each cast's original expiry. */
+  pendingAlliedVenoms: { skillId: SkillId; activationId: string; charges: number; expiresAt: number }[];
   activeThievesGuild: ThievesGuildState | null;
   assassinsSignetPassiveDisabledUntil: number;
   availableFlips: SkillFlipWindows;
@@ -108,6 +110,7 @@ export function createThiefCoreState(config: ThiefConfig = {}): ThiefCoreState {
     outboundAxes: [],
     venomChargeBatches: {},
     venomAllyLastProcAt: {},
+    pendingAlliedVenoms: [],
     activeThievesGuild: null,
     assassinsSignetPassiveDisabledUntil: 0,
     availableFlips: {},

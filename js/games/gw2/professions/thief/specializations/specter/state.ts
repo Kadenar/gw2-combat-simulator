@@ -10,6 +10,8 @@ export interface SpecterState {
   shadowShroudExitReadyAt: number;
   shadowClock: ResourceClock;
   shadowShroudActive: boolean;
+  /** Barrier-granted venom retains its expiry while waiting for combat to start allied attacks. */
+  pendingRotWallowVenoms: { allies: number[]; expiresAt: number }[];
 
   /** Owner generation of the queued live depletion wake; each gain or rate change replaces it. */
   shadowWakeGeneration: number;
@@ -25,6 +27,7 @@ function createSpecterState(config: ThiefConfig = {}): SpecterState {
       rate: 0
     },
     shadowShroudActive: false,
+    pendingRotWallowVenoms: [],
     shadowShroudExitReadyAt: 0,
     // Per-ally map so that a barrier given to ally 1 does not lock out ally 2.
 

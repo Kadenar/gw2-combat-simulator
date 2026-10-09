@@ -140,7 +140,6 @@ export const HARBINGER_SHROUD_SKILL_MECHANICS: Readonly<Record<number, Partial<S
     sideEffects: [{ on: 'castStart', do: { type: 'harbinger.movement-launch', amount: 0.75 } }],
     effectVariants: [{ when: () => true, transform: () => [] }],
     castTimeMs: 480,
-    // Devouring Cut commits at its impact frame before the default cast finishes.
     interruptCommitMs: 280,
     effects: [
       {

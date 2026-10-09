@@ -96,6 +96,26 @@ for (const [name, id, charges] of [
   ['Skale Venom', THIEF.SKALE_VENOM, 4],
   ['Devourer Venom', THIEF.DEVOURER_VENOM, 2]
 ]) {
+  // Setup must retain every ally charge until combat, while the original grant expiry still limits spending.
+  test(`${name} starts allied consumption at combat entry without losing precombat charges`, () => {
+    for (const interval of [1, 0.52]) {
+      const overrides = { allies: { count: 1, strikesPerSecond: 1 / interval } };
+      const result = thief('Core', [name, wait(2000), { type: 'combat-start' }, wait(7000)], overrides);
+      const procs = conditions(result, id).filter(
+        (event) => event.metadata?.triggeredByAlly && event.metadata.venomProcEffectIndex === 0
+      );
+      assert.equal(procs.length, charges);
+      assert.equal(procs[0].at, result.combatStartTime + interval);
+      assert.equal(liveVenomCharges(result, id), charges);
+      assert.deepEqual(result.warnings, []);
+    }
+
+    const expired = thief('Core', [name, wait(25000), { type: 'combat-start' }, wait(7000)], {
+      allies: { count: 1, strikesPerSecond: 1 }
+    });
+    assert.equal(conditions(expired, id).length, 0);
+  });
+
   test(`${name} preserves spent charges across recasts and expires each grant separately`, () => {
     const result = thief('Core', [name, 'Heartseeker', '__cooldown_reset', name, 'Heartseeker'], {
       selectedSkillIds: [thiefProfession.catalog.skillsByName.get(name).id]
@@ -112,10 +132,14 @@ for (const [name, id, charges] of [
 }
 
 test('recast ally venoms spend one charge per strike instead of overlapping proc sequences', () => {
-  const result = thief('Core', ['Spider Venom', '__cooldown_reset', 'Spider Venom', wait(13000)], {
-    selectedSkillIds: [13037],
-    allies: { count: 1, strikesPerSecond: 1 }
-  });
+  const result = thief(
+    'Core',
+    ['Spider Venom', '__cooldown_reset', 'Spider Venom', { type: 'combat-start' }, wait(13000)],
+    {
+      selectedSkillIds: [13037],
+      allies: { count: 1, strikesPerSecond: 1 }
+    }
+  );
   const procs = conditions(result, THIEF.SPIDER_VENOM).filter((event) => event.metadata?.triggeredByAlly);
   assert.equal(procs.length, 12);
   assert.deepEqual(
