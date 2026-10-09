@@ -1,73 +1,86 @@
 import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
 /** Canonical Core mesmer skill fragments grouped by their GW2 owner. */
+import { impactEffects } from '#gw2/platform/effects/authoring.js';
 import { MESMER_SKILL_IDS as ID } from '#gw2/professions/mesmer/data/ids.js';
 
 export const MESMER_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Partial<MesmerSkill>>> = Object.freeze({
   [ID.MIND_SLASH]: {
     nextChainId: ID.MIND_GASH,
+    interruptCommitMs: 240,
+    retainsCastLockoutAfterInterrupt: true,
     // Sword's opening hits apply their own vulnerability, independent of the equipped relic.
-    effects: [
+    effects: impactEffects({ timingAnchor: 'castStart', timingScale: 'fixed' }, [
       {
         type: 'strike',
         coefficient: 1,
         hits: 1,
+        atMs: 200,
         name: 'Damage',
         actorType: 'player',
         weapon: 'sword'
       },
-      { type: 'condition', condition: 'Vulnerability', stacks: 1, duration: 5 }
-    ],
+      { type: 'condition', condition: 'Vulnerability', stacks: 1, duration: 5, atMs: 200 }
+    ]),
     castTimeMs: 360
   },
   [ID.MIND_GASH]: {
     castTimeMs: 520,
+    interruptCommitMs: 360,
+    retainsCastLockoutAfterInterrupt: true,
     nextChainId: ID.MIND_SPIKE,
-    effects: [
+    effects: impactEffects({ timingAnchor: 'castStart', timingScale: 'fixed' }, [
       {
         type: 'strike',
         coefficient: 1,
         hits: 1,
+        atMs: 280,
         name: 'Damage',
         actorType: 'player',
         weapon: 'sword'
       },
-      { type: 'condition', condition: 'Vulnerability', stacks: 1, duration: 5 }
-    ]
+      { type: 'condition', condition: 'Vulnerability', stacks: 1, duration: 5, atMs: 280 }
+    ])
   },
   [ID.MIND_SPIKE]: {
     castTimeMs: 840,
+    interruptCommitMs: 440,
+    retainsCastLockoutAfterInterrupt: true,
     nextChainId: null,
-    effects: [
+    effects: impactEffects({ timingAnchor: 'castStart', timingScale: 'fixed' }, [
       {
         type: 'strike',
         // Mind Spike always receives its boonless-target coefficient.
         coefficient: 2,
         hits: 1,
+        atMs: 360,
         name: 'Damage',
         actorType: 'player',
         weapon: 'sword'
       }
-    ]
+    ])
   },
   [ID.ILLUSIONARY_LEAP]: {
     // Flip lifetime follows its parent's authored clock, with delayed readiness kept separate.
     flipArm: { skillId: ID.SWAP, duration: 5, delay: 0, anchor: 'castStart' },
     sideEffects: [{ on: 'castCommit', do: { type: 'mesmer.arm-flip' } }],
     castTimeMs: 400,
+    interruptCommitMs: 240,
     resource: {
       mode: 'add',
       count: 1
     },
-    effects: [
+    effects: impactEffects({ timingAnchor: 'castStart', timingScale: 'fixed' }, [
       {
         type: 'strike',
         coefficient: 0.003,
         hits: 1,
+        atMs: 920,
+        persistsAfterInterrupt: true,
         name: 'Damage',
         actorType: 'player',
         weapon: 'sword'
       }
-    ]
+    ])
   },
   [ID.PHANTASMAL_SWORDSMAN]: {
     sideEffects: [{ on: 'castStart', do: { type: 'mesmer.summon-phantasm' } }],
@@ -147,30 +160,39 @@ export const MESMER_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Parti
   [ID.BLURRED_FRENZY]: {
     interruptMode: 'per-packet',
     castTimeMs: 960,
-    effects: [
+    effects: impactEffects({ timingAnchor: 'castStart', timingScale: 'fixed' }, [
       {
         type: 'strike',
-        coefficient: 3.6,
-        hits: 8,
-        atMs: 0,
+        // The channel delivers four pairs; interruption keeps only packets already reached.
+        ticks: [
+          { atMs: 240, coefficient: 0.45 },
+          { atMs: 280, coefficient: 0.45 },
+          { atMs: 400, coefficient: 0.45 },
+          { atMs: 400, coefficient: 0.45 },
+          { atMs: 520, coefficient: 0.45 },
+          { atMs: 560, coefficient: 0.45 },
+          { atMs: 680, coefficient: 0.45 },
+          { atMs: 680, coefficient: 0.45 }
+        ],
         name: 'Damage',
         actorType: 'player',
         weapon: 'sword'
       }
-    ]
+    ])
   },
   [ID.BLADE_LEAP]: {
-    // Keep the player's action lane occupied through the leap's landing.
+    // Landing deals damage at 800 ms, followed by 200 ms of player aftercast.
     castTimeMs: 1000,
     resource: {
       mode: 'add',
       count: 1
     },
-    effects: [
+    effects: impactEffects({ timingAnchor: 'castStart', timingScale: 'fixed' }, [
       {
         type: 'strike',
         coefficient: 1.5,
         hits: 1,
+        atMs: 800,
         name: 'Damage',
         actorType: 'player',
         weapon: 'sword',
@@ -184,6 +206,6 @@ export const MESMER_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Parti
           }
         ]
       }
-    ]
+    ])
   }
 });
