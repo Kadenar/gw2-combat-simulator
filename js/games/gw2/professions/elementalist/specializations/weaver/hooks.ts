@@ -38,6 +38,7 @@ import {
   primordialStancePulse,
   schedulePrimordialStance
 } from '#gw2/professions/elementalist/specializations/weaver/mechanics/primordial-stance.js';
+import { triggerWeaverSpearFollowups } from '#gw2/professions/elementalist/specializations/weaver/mechanics/spear-followups.js';
 import {
   applyWeaveSelfAttunement,
   handleWeaveSelfActivation,
@@ -220,6 +221,7 @@ function onCastCommit(context: ElementalistRuntime, cast: RuntimeCast<Elementali
 /** Native tasks own Weave Self and stance pulses; actual controls and swaps own their trait reactions. */
 export const weaverHooks: RuntimeHooks<ElementalistRuntimeState, ElementalistSkill> = {
   buffPolicies: weaverBuffPolicies,
+  reactions: { 'damage.resolved': triggerWeaverSpearFollowups },
   initialize,
   availability,
   // The Air bullet and Flow State reductions compose without consuming bullet state during lookup.

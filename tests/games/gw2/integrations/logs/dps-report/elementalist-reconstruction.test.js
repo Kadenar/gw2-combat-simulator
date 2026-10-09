@@ -3,7 +3,10 @@ import test from 'node:test';
 
 import { parseDpsReport } from '#gw2/integrations/logs/dps-report/parser.js';
 import { reconstructDpsReportRotation } from '#gw2/integrations/logs/dps-report/rotation/index.js';
-import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';
+import {
+  ELEMENTALIST_SKILL_IDS as ID,
+  ELEMENTALIST_TRAIT_IDS as TRAIT
+} from '#gw2/professions/elementalist/data/ids.js';
 import { elementalistCatalog, elementalistProfession } from '#gw2/professions/elementalist/profession.js';
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
 import { defaultSimulationConfig } from '#tests/helpers/fixture-harness-core.js';
@@ -113,4 +116,64 @@ test('Aerial Agility keeps recorded IDs and leaves invalid chain steps to the si
     assert.equal(simulation.steps.at(-1).invalid, true);
     assert.match(simulation.warnings.join(' '), /is unavailable — cast Aerial Agility \(chain\) first/);
   }
+});
+
+test('EI Unravel identity synchronizes both hands without replaying its generated Dual input', () => {
+  // EI's inferred ID can collide with Fervent Stance; the named cast owns the fully attuned transition.
+  for (const rawId of [ID.FERVENT_STANCE, ID.UNRAVEL]) {
+    const report = reportFixture(
+      'Weaver',
+      [
+        { id: 42264, skills: [{ castTime: 100, duration: 0 }] },
+        { id: rawId, skills: [{ castTime: 100, duration: 0 }] },
+        { id: 43470, skills: [{ castTime: 400, duration: 0 }] },
+        { id: ID.METEOR, skills: [{ castTime: 500, duration: 680 }] }
+      ],
+      {
+        s42264: { name: 'Dual Air Attunement', isSwap: true },
+        [`s${rawId}`]: { name: 'Unravel', isInstantCast: true },
+        s43470: { name: 'Dual Fire Attunement', isSwap: true },
+        [`s${ID.METEOR}`]: { name: 'Meteor' }
+      }
+    );
+    const imported = reconstructDpsReportRotation(report, elementalistCatalog);
+    const unravel = imported.actions.find((action) => action.name === 'Unravel');
+    assert.equal(unravel.rawSkillId, rawId);
+    assert.equal(unravel.skillId, ID.UNRAVEL);
+    assert.equal(
+      imported.actions.some((action) => action.rawSkillId === 42264),
+      false
+    );
+    const simulation = simulateGw2({
+      profession: elementalistProfession,
+      rotation: imported.rotation,
+      config: defaultSimulationConfig({
+        specialization: 'Weaver',
+        primaryWeapon: 'Spear',
+        startAttunement: 'Air',
+        secondaryAttunement: 'Earth',
+        selectedTraitIds: [TRAIT.ELEMENTS_OF_RAGE]
+      })
+    });
+    assert.deepEqual(simulation.warnings, []);
+    assert.equal(simulation.planningState.profession.primaryAttunement, 'Fire');
+    assert.equal(simulation.planningState.profession.secondaryAttunement, 'Fire');
+  }
+});
+
+test('a report explicitly naming Fervent Stance retains its own skill and adjacent attunement', () => {
+  const report = reportFixture(
+    'Weaver',
+    [
+      { id: ID.FERVENT_STANCE, skills: [{ castTime: 100, duration: 0 }] },
+      { id: 42264, skills: [{ castTime: 100, duration: 0 }] }
+    ],
+    {
+      [`s${ID.FERVENT_STANCE}`]: { name: 'Fervent Stance', isInstantCast: true },
+      s42264: { name: 'Dual Air Attunement', isSwap: true }
+    }
+  );
+  const imported = reconstructDpsReportRotation(report, elementalistCatalog);
+  assert.equal(imported.actions.find((action) => action.name === 'Fervent Stance').skillId, ID.FERVENT_STANCE);
+  assert.equal(imported.actions.find((action) => action.rawSkillId === 42264).skillId, ID.AIR_ATTUNEMENT);
 });

@@ -1,4 +1,6 @@
 import { consumeOldestStacks } from '#gw2/platform/combat/resources/timed-stacks.js';
+import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
+import { THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import { antiquaryResolverEventReactions } from '#gw2/professions/thief/specializations/antiquary/mechanics/artifact-effects.js';
@@ -21,6 +23,15 @@ import type { ThiefConfig, ThiefRuntimeState, ThiefSkill } from '#gw2/profession
 
 /** Antiquary hooks: artifact pilfering and use, Double Edge outcomes, Skritt summons, and artifact-driven traits. */
 export const antiquaryHooks: RuntimeHooks<ThiefRuntimeState, ThiefSkill> = {
+  /** Seed non-expiring Combat High stacks for an isolated damage occurrence. */
+  prepareDamageState(runtime, _skill, inputs) {
+    if (!hasTrait(runtime, TRAIT.COMBAT_HIGH)) return;
+    const stacks = Number(inputs.combatHigh ?? 0);
+    const maximum = balanceProfileNumber(requireBalanceProfileFromContext(runtime, TRAIT.COMBAT_HIGH), 'maximumStacks');
+    if (!Number.isInteger(stacks) || stacks < 0 || stacks > maximum)
+      throw new RangeError('Combat High exceeds the selected build maximum.');
+    antiquaryState.from(runtime).combatHighExpirations = Array(stacks).fill(Infinity);
+  },
   // A pre-steal supplies Swipe's inventory before setup while leaving cooldowns and temporary buffs untouched.
   initialize(runtime) {
     if ((runtime.config as ThiefConfig).initialPreSteal === 1) storeAntiquaryArtifacts(runtime, 'swipe');

@@ -6,21 +6,32 @@
  * its pair in `attunement`, and Weaver availability only offers the skill when
  * both of those elements are currently attuned.
  *
- * Unlike the other Weaver weapons, every spear dual is instant: each entry has
- * a 0 ms cast and lands its whole payload in one packet at offset 0, so cast
- * scaling never moves these effects.
+ * Each instant activation grants its self benefits and arms a five-second buff.
+ * The additional strike and its conditions resolve on the next player strike.
  */
 
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
+import type { SkillEffect } from '#gw2/platform/effects/types.js';
+import { defineSkillVariantProfile } from '#gw2/platform/profession-definition/profile-authoring.js';
 import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';
-import type { Skill } from '#gw2/platform/skills/types.js';
+import type { BalanceProfile, Skill } from '#gw2/platform/skills/types.js';
+
+/** Stable buff and payload identities keep six independently armed follow-ups separate. */
+export const WEAVER_SPEAR_FOLLOWUPS: Readonly<Record<number, string>> = Object.freeze({
+  [ID.FROSTFIRE_WARD]: 'elementalist.weaver.spear.frostfire-ward',
+  [ID.GALVANIZE]: 'elementalist.weaver.spear.galvanize',
+  [ID.FIERY_IMPACT]: 'elementalist.weaver.spear.fiery-impact',
+  [ID.ELUTRIATE]: 'elementalist.weaver.spear.elutriate',
+  [ID.SOOTHING_BURST]: 'elementalist.weaver.spear.soothing-burst',
+  [ID.SHALE_STORM]: 'elementalist.weaver.spear.shale-storm'
+});
 
 /**
  * The six spear dual attacks, keyed by skill id and merged into
  * `WEAVER_SKILL_MECHANICS`: one entry per attunement pair.
  */
 // Shared impact timing keeps companion payloads independent and in their authored order.
-export const WEAVER_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
+const SPEAR_DUAL_DEFINITIONS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
   // Fire+Water. The only spear dual that grants an aura: `aura: 'Fire|3'` is
   // read by the core cast hook as a three-second Fire Aura on cast end.
   [ID.FROSTFIRE_WARD]: {
@@ -181,3 +192,39 @@ export const WEAVER_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill
     specialization: 'Weaver'
   }
 });
+
+/** Hostile payloads belong to the armed buff; activation-time boons and auras remain on the skill. */
+function followupEffect(effect: SkillEffect): boolean {
+  return effect.type === 'strike' || effect.type === 'condition';
+}
+
+export const WEAVER_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze(
+  Object.fromEntries(
+    Object.entries(SPEAR_DUAL_DEFINITIONS).map(([id, skill]) => [
+      id,
+      {
+        ...skill,
+        effects: [
+          ...(skill.effects ?? []).filter((effect) => !followupEffect(effect)),
+          {
+            type: 'buff',
+            kind: WEAVER_SPEAR_FOLLOWUPS[Number(id)],
+            name: skill.name,
+            stacks: 1,
+            duration: 5
+          }
+        ]
+      } satisfies Partial<Skill>
+    ])
+  )
+);
+
+/** Keep follow-up coefficients, conditions, and finishers patchable independently of the buff grant. */
+export const WEAVER_SPEAR_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freeze(
+  Object.entries(SPEAR_DUAL_DEFINITIONS).map(([id, skill]) =>
+    defineSkillVariantProfile(WEAVER_SPEAR_FOLLOWUPS[Number(id)], Number(id), `${skill.name} - Additional Strike`, {
+      weapon: 'Spear',
+      effects: (skill.effects ?? []).filter(followupEffect)
+    })
+  )
+);

@@ -868,28 +868,6 @@ export const activePatchPreview: PatchPreview = {
             }
           ]
         },
-        '72906': {
-          effects: [
-            {
-              type: 'strike',
-              coefficient: {
-                from: 1.5,
-                to: 2
-              }
-            }
-          ]
-        },
-        '72914': {
-          effects: [
-            {
-              type: 'strike',
-              coefficient: {
-                from: 1.75,
-                to: 2.25
-              }
-            }
-          ]
-        },
         '72988': {
           effects: [
             {
@@ -898,17 +876,6 @@ export const activePatchPreview: PatchPreview = {
               coefficient: {
                 from: 2.7,
                 to: 3
-              }
-            }
-          ]
-        },
-        '73104': {
-          effects: [
-            {
-              type: 'strike',
-              coefficient: {
-                from: 2.6,
-                to: 3.1
               }
             }
           ]
@@ -926,14 +893,14 @@ export const activePatchPreview: PatchPreview = {
           source: 'skill-diff'
         },
         {
-          subject: 'Shale Storm',
+          subject: 'Shale Storm - Additional Strike',
           text: 'Strike coefficient 1.5 → 2.',
-          source: 'skill-diff'
+          source: 'profile-diff'
         },
         {
-          subject: 'Fiery Impact',
+          subject: 'Fiery Impact - Additional Strike',
           text: 'Strike coefficient 1.75 → 2.25.',
-          source: 'skill-diff'
+          source: 'profile-diff'
         },
         {
           subject: 'Meteor',
@@ -941,9 +908,9 @@ export const activePatchPreview: PatchPreview = {
           source: 'skill-diff'
         },
         {
-          subject: 'Galvanize',
+          subject: 'Galvanize - Additional Strike',
           text: 'Strike coefficient 2.6 → 3.1.',
-          source: 'skill-diff'
+          source: 'profile-diff'
         },
         {
           subject: 'Specialized Elements - Empowered Familiar Recharge',
@@ -1011,6 +978,40 @@ export const activePatchPreview: PatchPreview = {
         }
       },
       balanceProfiles: {
+        // Spear dual skills arm buffs; patch the profiles that supply their deferred strikes.
+        'elementalist.weaver.spear.shale-storm': {
+          effects: [
+            {
+              type: 'strike',
+              coefficient: {
+                from: 1.5,
+                to: 2
+              }
+            }
+          ]
+        },
+        'elementalist.weaver.spear.fiery-impact': {
+          effects: [
+            {
+              type: 'strike',
+              coefficient: {
+                from: 1.75,
+                to: 2.25
+              }
+            }
+          ]
+        },
+        'elementalist.weaver.spear.galvanize': {
+          effects: [
+            {
+              type: 'strike',
+              coefficient: {
+                from: 2.6,
+                to: 3.1
+              }
+            }
+          ]
+        },
         'elementalist.evoker.specialized-elements.empowered-recharge': {
           fields: {
             rechargeMultiplier: {

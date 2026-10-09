@@ -33,26 +33,26 @@
         "label": "Power (Spear)",
         "build": "data/gw2/builds/elementalist/b-power-weaver-spear.json",
         "rotation": "data/gw2/rotations/elementalist/r-power-weaver-spear.json",
-        "benchmarkDps": 40465,
+        "benchmarkDps": 42136,
         "upToDate": true,
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/elementalist/power-weaver-spear",
-        "benchmarkApm": 111.5,
+        "benchmarkApm": 122.4,
         "benchmarkDpsByHealth": {
-          "100-80": { "cumulative": 44149, "phase": 44149 },
-          "80-60": { "cumulative": 40079, "phase": 36699 },
-          "60-40": { "cumulative": 38513, "phase": 35731 },
-          "40-20": { "cumulative": 39519, "phase": 42766 },
-          "20-0": { "cumulative": 40465, "phase": 44954 }
+          "100-80": { "cumulative": 47489, "phase": 47489 },
+          "80-60": { "cumulative": 41178, "phase": 36226 },
+          "60-40": { "cumulative": 40176, "phase": 38251 },
+          "40-20": { "cumulative": 41067, "phase": 43941 },
+          "20-0": { "cumulative": 42136, "phase": 42136 }
         },
         "patchPreview": {
           "patchId": "nov-10-balance-preview",
-          "benchmarkDps": 40403,
+          "benchmarkDps": 42365,
           "benchmarkDpsByHealth": {
-            "100-80": { "cumulative": 44419, "phase": 44419 },
-            "80-60": { "cumulative": 40446, "phase": 37132 },
-            "60-40": { "cumulative": 38566, "phase": 35258 },
-            "40-20": { "cumulative": 39479, "phase": 42499 },
-            "20-0": { "cumulative": 40403, "phase": 44571 }
+            "100-80": { "cumulative": 47636, "phase": 47636 },
+            "80-60": { "cumulative": 40918, "phase": 35598 },
+            "60-40": { "cumulative": 40362, "phase": 39310 },
+            "40-20": { "cumulative": 41289, "phase": 44426 },
+            "20-0": { "cumulative": 42365, "phase": 42365 }
           }
         }
       },

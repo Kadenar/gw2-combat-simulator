@@ -11,6 +11,8 @@ import {
   THIEF_TRAIT_IDS as TRAIT
 } from '#gw2/professions/thief/data/ids.js';
 import { getActiveTraits } from '#gw2/professions/thief/data/traits-data.js';
+import type { ProfessionAttributePreviewContext } from '#gw2/platform/profession-presentation/attribute-preview.js';
+import { createPreviewControls } from '#gw2/professions/shared/attribute-preview.js';
 
 import type { ThiefSkill, ThiefUiContext } from '#gw2/professions/thief/types.js';
 
@@ -123,6 +125,19 @@ function antiquaryStateSnapshot(context: ThiefUiContext): RotationStateSnapshotI
 }
 
 export const antiquaryUi = Object.freeze({
+  /** Expose Combat High's damage assumption only for builds that select the trait. */
+  previewControls(context: ProfessionAttributePreviewContext) {
+    const preview = createPreviewControls(context);
+    if (preview.has('Combat High'))
+      preview.trait('Combat High', {
+        key: 'combatHigh',
+        kind: 'special',
+        scope: ['damage'],
+        max: preview.maximumStacks('Combat High'),
+        description: 'Active stacks increasing strike and condition damage'
+      });
+    return preview.controls;
+  },
   // Antiquary's starting grant and displayed inventory are artifacts, owned by this specialization.
   resourceViews: (context: ThiefUiContext) => [
     preStealResourceView(context.professionState?.artifactUsesRemaining || 0)

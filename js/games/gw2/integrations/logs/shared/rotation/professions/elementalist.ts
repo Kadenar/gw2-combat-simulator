@@ -90,7 +90,7 @@ function inferStartingElement(context: LogActionNormalizationContext, actions: r
 function unravelTransitionSignals(actions: readonly RecordedLogAction[]): Set<RecordedLogAction> {
   const duals = actions.filter((action) => DUAL_ATTUNEMENT_NAME.test(action.rawName));
   const claimed = new Set<RecordedLogAction>();
-  for (const unravel of actions.filter((action) => action.rawSkillId === ID.UNRAVEL)) {
+  for (const unravel of actions.filter((action) => (action.canonicalSkillId ?? action.rawSkillId) === ID.UNRAVEL)) {
     let match: RecordedLogAction | null = null;
     for (const dual of duals) {
       const gap = Math.abs(dual.start - unravel.start);
@@ -105,8 +105,15 @@ function unravelTransitionSignals(actions: readonly RecordedLogAction[]): Set<Re
 }
 
 function normalizeRecordedActions(context: LogActionNormalizationContext): RecordedLogAction[] {
-  const unravelSignals = unravelTransitionSignals(context.recordedActions);
-  const sorted = context.recordedActions
+  // EI reports can label inferred Unravel casts with the ID now used by Fervent Stance.
+  // Resolve that explicit name before matching its generated Dual signal; genuine Fervent Stance keeps its ID.
+  const actions = context.recordedActions.map((action) =>
+    context.profile.specializationId === 'weaver' && normalized(action.rawName) === 'unravel'
+      ? canonicalize(action, { name: 'Unravel', skillId: ID.UNRAVEL })
+      : action
+  );
+  const unravelSignals = unravelTransitionSignals(actions);
+  const sorted = actions
     .filter((action) => !unravelSignals.has(action))
     .sort((left, right) => left.start - right.start || left.eventIndex - right.eventIndex);
   const result: RecordedLogAction[] = [];

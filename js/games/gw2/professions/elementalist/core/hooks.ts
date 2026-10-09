@@ -38,6 +38,7 @@ import {
 } from '#gw2/professions/elementalist/core/mechanics/recharge.js';
 import { elementalistRockBarrierTasks } from '#gw2/professions/elementalist/core/mechanics/rock-barrier.js';
 import {
+  completeElementalistSpearProgression,
   elementalistSpearMechanicHandlers,
   empowerElementalistSpearPacket
 } from '#gw2/professions/elementalist/core/mechanics/spear-empowerments.js';
@@ -178,6 +179,12 @@ export const elementalistCoreHooks: RuntimeHooks<ElementalistRuntimeState, Eleme
   onCastCommit(runtime, cast) {
     elementalistOnCastCommit(runtime, cast, cast.skill);
     // Authored strikes are prepared, and delayed sequences now own their snapshots.
+    delete runtime.profession.core.spearFollowups[cast.id];
+  },
+  onCastCancel(runtime, cast) {
+    // An activated skill still charges an etching when cancelled before its damage commits.
+    // Zero-length cancellations never progress a cast; rejected skills never reach this hook.
+    if (cast.effectiveEnd > cast.start) completeElementalistSpearProgression(runtime, cast.skill);
     delete runtime.profession.core.spearFollowups[cast.id];
   },
   onAutoattackChainTransition: observeElementalistAutoattackTransition,

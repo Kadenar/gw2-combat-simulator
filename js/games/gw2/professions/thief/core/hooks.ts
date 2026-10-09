@@ -1,4 +1,7 @@
 import { gw2ConfiguredWeaponSet } from '#gw2/platform/equipment/weapons/loadout.js';
+import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
+import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import { THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
 import type { AvailabilityResult } from '#gw2/platform/execution/availability.js';
 import { denySkillCast } from '#gw2/platform/execution/availability.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
@@ -152,6 +155,18 @@ function completeThiefCast(runtime: ThiefRuntime, cast: RuntimeCast<ThiefSkill>)
 /** Core hooks: initiative, endurance, stealth, steals, weapon follow-ups, utilities, and resolved trait reactions. */
 
 const coreLifecycle: RuntimeHooks<ThiefRuntimeState, ThiefSkill> = {
+  /** Seed non-expiring Lead Attacks stacks for an isolated damage occurrence. */
+  prepareDamageState(runtime, _skill, inputs) {
+    if (!hasTrait(runtime, TRAIT.LEAD_ATTACKS)) return;
+    const stacks = Number(inputs.leadAttacks ?? 0);
+    const maximum = balanceProfileNumber(
+      requireBalanceProfileFromContext(runtime, TRAIT.LEAD_ATTACKS),
+      'maximumStacks'
+    );
+    if (!Number.isInteger(stacks) || stacks < 0 || stacks > maximum)
+      throw new RangeError('Lead Attacks exceeds the selected build maximum.');
+    runtime.profession.core.leadAttackExpirations = Array(stacks).fill(Infinity);
+  },
   // Previously stolen inventory is available during setup without firing a steal or its trait effects.
   initialize(runtime) {
     if ((runtime.config as ThiefConfig).initialPreSteal === 1 && runtime.profession.specialization.kind === 'Core')

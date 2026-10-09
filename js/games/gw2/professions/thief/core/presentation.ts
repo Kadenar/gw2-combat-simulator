@@ -138,6 +138,16 @@ export const thiefCoreUi = Object.freeze({
   previewControls(context: ProfessionAttributePreviewContext) {
     const preview = createPreviewControls(context);
 
+    // Damage-only stack assumptions appear only while their owning trait is selected.
+    if (preview.has('Lead Attacks'))
+      preview.trait('Lead Attacks', {
+        key: 'leadAttacks',
+        kind: 'special',
+        scope: ['damage'],
+        max: preview.maximumStacks('Lead Attacks'),
+        description: 'Active stacks increasing strike and condition damage'
+      });
+
     // The existing starting-axe field lets recall skills consume a declared stock without manufacturing hits.
     if ([...context.weapons, ...context.build.alternateWeapons].includes('Axe'))
       preview.add({
