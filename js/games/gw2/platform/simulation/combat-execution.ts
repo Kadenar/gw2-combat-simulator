@@ -21,7 +21,10 @@ export function createCombatExecution<T extends object>(
     acceptsEffect: () => true,
     professionReactions: profession.reactions,
     spendCost: (runtime, skill) => spendSkillCost(runtime.mechanics, skill),
-    combatStart: (runtime) => profession.onCombatStart?.(runtime.mechanics),
+    combatStart(runtime) {
+      runtime.alliedStrikeController.start();
+      profession.onCombatStart?.(runtime.mechanics);
+    },
     bindProducers(getRuntime) {
       // Construct the shared capability before publishing any handler, preserving live service replacement.
       const sigils: SigilRuntimeContext = Object.freeze({

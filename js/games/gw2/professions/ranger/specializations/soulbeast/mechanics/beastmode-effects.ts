@@ -1,7 +1,6 @@
 import { claimActivation } from '#gw2/platform/combat/procs/activation-claims.js';
 import { isInternalCooldownReady } from '#gw2/platform/combat/procs/registry.js';
 import { consumeCharge, expireCharges } from '#gw2/platform/combat/resources/charges.js';
-import { gw2AlliedPlayerProcTimeline } from '#gw2/platform/combat/state/allied-players.js';
 import { buildResolverCondition, buildResolverStrike } from '#gw2/platform/effects/packet-builders.js';
 import type { ConditionEffect, StatusEffect, StrikeEffect } from '#gw2/platform/effects/types.js';
 import type { AvailabilityResult } from '#gw2/platform/execution/availability.js';
@@ -39,9 +38,6 @@ import type { RangerResolverContext, RangerRuntime, RangerSkill } from '#gw2/pro
 import { canonicalTime } from '#kernel/core/clock.js';
 
 /** Soulbeast resolver-phase reactions and event handlers. */
-
-/** Shared stance opportunities resolve against the one live stance cooldown. */
-export const soulbeastEventHandlers = Object.freeze({ 'ranger.shared-stance-hit': handleSharedStanceHit });
 
 export function activeSoulbeastBuff(context: RangerResolverContext, kind: string, at: number): boolean {
   // These personal stance queries cannot borrow a companion's or ally's application.
@@ -131,8 +127,17 @@ function queueVultureStanceEffects(
   poison: ConditionEffect | undefined,
   might: StatusEffect | undefined
 ): void {
-  if (poison) context.effects.emit(rangerConditionRequest(event, profile, poison, ID.VULTURE_STANCE, 'Vulture Stance'));
-  if (might) context.effects.emit(rangerBuffRequest(event, profile, might, 'Vulture Stance', ID.VULTURE_STANCE));
+  // Only shared stance output changes source; personal procs retain their trait presentation.
+  for (const request of [
+    poison && rangerConditionRequest(event, profile, poison, ID.VULTURE_STANCE, 'Vulture Stance'),
+    might && rangerBuffRequest(event, profile, might, 'Vulture Stance', ID.VULTURE_STANCE)
+  ]) {
+    if (request)
+      context.effects.emit({
+        ...request,
+        attribution: { ...request.attribution, source: event.metadata?.triggeredByAlly ? 'ranger' : 'Trait' }
+      });
+  }
 }
 
 /**
@@ -163,7 +168,7 @@ function queueStanceProc(
 }
 
 /** Allied stance cooldowns block their exact deadline independently, including across overlapping applications. */
-function handleSharedStanceHit(context: RangerResolverContext, event: Gw2ResolverEvent): void {
+export function handleSharedStanceHit(context: RangerResolverContext, event: Gw2ResolverEvent): void {
   const allyIndex = event.metadata?.triggeredByAlly;
   if (!allyIndex) return;
   const key = `${event.kind}:${allyIndex}`;
@@ -214,12 +219,6 @@ export function reactToSoulbeastDamage(context: RangerResolverContext, event: Gw
 export function reactToSoulbeastBuff(context: RangerResolverContext, event: Gw2ResolverEvent): void {
   const extension = essenceOfSpeedExtension(context, event);
   if (extension) context.effects.emit({ kind: 'packet', event: extension });
-  if (context.combatStartPending) {
-    if (event.kind === 'one-wolf-pack' || event.kind === 'vulture-stance')
-      soulbeastState.from(context).pendingSharedStances.push(event);
-    return;
-  }
-
   scheduleSharedStance(context, event);
 }
 
@@ -229,28 +228,28 @@ export function scheduleSharedStance(context: RangerResolverContext, event: Gw2R
   if (event.kind !== 'one-wolf-pack' && event.kind !== 'vulture-stance') return;
   const maximumAllies = event.resolvedAudience?.alliedPlayerCount ?? 0;
   if (!maximumAllies) return;
-  // Allies begin attacking in combat; waiting to engage never extends the shared stance's expiry.
-  // Keep every attack opportunity so the strict stance gate, rather than a prefiltered cadence, decides procs.
-  const start = Math.max(event.at, context.combatStartTime ?? event.at);
-  for (const proc of gw2AlliedPlayerProcTimeline(context.config, {
-    start,
-    duration: Math.max(0, event.at + (event.duration || 0) - start),
-    maximumAllies
-  })) {
-    context.effects.emit({
-      kind: 'packet',
-      event: {
-        type: 'ranger.shared-stance-hit',
-        at: proc.at,
-        source: 'ranger',
-        sourceId: event.sourceId,
-        kind: event.kind,
-        actorType: 'effect',
-        skillName: `Allied Player ${proc.allyIndex} Attack`,
-        metadata: { triggeredByAlly: proc.allyIndex }
+  // Live windows share the global strike cadence; the existing recipient ICD handles overlapping grants.
+  context.alliedStrikes.registerRecipients(
+    (allyIndex) => ({
+      id: `stance:${event.kind}:${event.activationId}:${event.at}:${allyIndex}`,
+      expiresAt: event.at + (event.duration || 0),
+      inclusiveExpiry: true,
+      trigger(proc) {
+        handleSharedStanceHit(context, {
+          type: 'proc',
+          at: proc.at,
+          source: 'ranger',
+          sourceId: event.sourceId,
+          kind: event.kind,
+          actorType: 'effect',
+          skillName: `Allied Player ${proc.allyIndex} Attack`,
+          activationId: proc.activationId,
+          metadata: { triggeredByAlly: proc.allyIndex }
+        });
       }
-    });
-  }
+    }),
+    { maximumAllies, alliedPlayerIndex: event.resolvedAudience?.alliedPlayerIndex }
+  );
 }
 
 // Winter's Bite fires once per weapon skill hit via the ranger core flag; the flag is cleared here

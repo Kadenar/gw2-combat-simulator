@@ -1,3 +1,4 @@
+import { autonomousActionsAllowed } from '#gw2/platform/combat/engagement.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import { requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import type { SkillId } from '#gw2/platform/skills/types.js';
@@ -59,13 +60,13 @@ export function createThievesGuildHooks(
       started: false
     };
     runtime.schedule(THIEF_GUILD_EXPIRY, expiresAt, { ownerId: core.activeThievesGuild.ownerId });
-    if (runtime.combatActive) startThievesGuild(runtime);
+    startThievesGuild(runtime);
   }
 
   /** Starts every authored attack stream once, at the accepted combat boundary or the summon itself. */
   function startThievesGuild(runtime: ThiefRuntime): void {
     const active = runtime.profession.core.activeThievesGuild;
-    if (!active || active.started || runtime.time >= active.expiresAt) return;
+    if (!autonomousActionsAllowed(runtime) || !active || active.started || runtime.time >= active.expiresAt) return;
     active.started = true;
     for (const [summonIndex, summon] of thievesGuildSummons(runtime).entries())
       for (const [attackIndex, attack] of (summon.attacks || []).entries()) {
@@ -84,7 +85,13 @@ export function createThievesGuildHooks(
   function thievesGuildAttack(runtime: ThiefRuntime, data: unknown): void {
     const work = data as GuildAttackWork;
     const active = runtime.profession.core.activeThievesGuild;
-    if (!active || active.ownerId !== work.ownerId || runtime.time >= active.expiresAt) return;
+    if (
+      !autonomousActionsAllowed(runtime) ||
+      !active ||
+      active.ownerId !== work.ownerId ||
+      runtime.time >= active.expiresAt
+    )
+      return;
     const skill: ThiefSkill | undefined = runtime.helpers.skillsById.get(ID.THIEVES_GUILD);
     const profile = skill?.summonAttack;
     const summon = thievesGuildSummons(runtime)[work.summonIndex];

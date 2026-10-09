@@ -1,4 +1,3 @@
-import { createPublicStateProjector } from '#gw2/platform/profession-definition/state.js';
 import { defineNativeModule } from '#gw2/platform/profession-definition/profession.js';
 import { createNecromancerModuleData } from '#gw2/professions/necromancer/data/module-data.js';
 import { ritualistHooks } from '#gw2/professions/necromancer/specializations/ritualist/hooks.js';
@@ -6,10 +5,7 @@ import { ritualistModifiers } from '#gw2/professions/necromancer/specializations
 import { bindRitualistUi } from '#gw2/professions/necromancer/specializations/ritualist/presentation.js';
 import { RITUALIST_BALANCE_PROFILES } from '#gw2/professions/necromancer/specializations/ritualist/profiles.js';
 import { RITUALIST_BASE_SKILL_MECHANICS } from '#gw2/professions/necromancer/specializations/ritualist/skills/index.js';
-import {
-  RITUALIST_PUBLIC_STATE_PROJECTION,
-  ritualistState
-} from '#gw2/professions/necromancer/specializations/ritualist/state.js';
+import { projectRitualistState, ritualistState } from '#gw2/professions/necromancer/specializations/ritualist/state.js';
 import { necromancerRitualistTraits } from '#gw2/professions/necromancer/specializations/ritualist/traits/index.js';
 
 export const ritualistModule = defineNativeModule({
@@ -20,7 +16,7 @@ export const ritualistModule = defineNativeModule({
     balanceProfiles: RITUALIST_BALANCE_PROFILES
   }),
   // One state factory supplies the live combat owner.
-  state: { create: ritualistState.create, project: createPublicStateProjector(RITUALIST_PUBLIC_STATE_PROJECTION) },
+  state: { create: ritualistState.create, project: projectRitualistState },
   hooks: ritualistHooks,
   modifiers: ritualistModifiers,
   presentation: bindRitualistUi

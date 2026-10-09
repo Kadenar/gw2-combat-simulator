@@ -1189,9 +1189,9 @@ for (const [specialization, skillId, selectedPet, buffKind, multiplier] of [
       result.resolvedEvents.find((event) => event.type === 'damage' && event.skillId === skillId);
     const baseline = simulate(specialization, [attack, { type: 'wait', durationMs: 2000 }], config);
     const baselineHit = strike(baseline);
-    const step = baseline.steps.find((step) => step.skillId === skillId);
     // Derive the tie from the impact so this tests buff ordering independently of authored cast durations.
-    const impactOffsetMs = Math.round(baselineHit.at * 1000 - step.start);
+    // Concurrent offsets start at player acceptance; pet commands may wait on their own lane.
+    const impactOffsetMs = Math.round(baselineHit.at * 1000);
 
     for (const offsetMs of [-40, 0, 40]) {
       const result = simulate(

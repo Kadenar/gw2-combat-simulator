@@ -6,7 +6,7 @@ import type { PatchPreview } from '#gw2/integrations/patches/authoring/patches.j
  * Augury retains melee damage doubling; healing is outside simulation scope.
  */
 export const activePatchPreview: PatchPreview = {
-  id: 'conduit-balance-preview',
+  id: 'nov-10-balance-preview',
   label: 'Balance Preview',
   // These reworks need updated implementations and rotations before their preview DPS can be compared.
   pendingBenchmarks: [

@@ -1,3 +1,5 @@
+import { createAlliedStrikeController } from '#gw2/platform/combat/state/allied-strikes.js';
+import { combatStartedAt } from '#gw2/platform/combat/engagement.js';
 import { applySideEffect } from '#gw2/platform/effects/action-dispatch.js';
 import { validateResourceGrantSupport } from '#gw2/platform/effects/action-validation.js';
 import { EffectRecorder } from '#gw2/platform/results/effect-report.js';
@@ -237,6 +239,14 @@ export function runRuntime<T extends object>(
     skillFor: (id) => profession.catalog.skillsById.get(id)
   });
   runtime = Object.assign(base, {
+    alliedStrikeController: createAlliedStrikeController(() => runtime, {
+      captureCause: coordinator.currentCause,
+      withCause,
+      schedule(at, sequence) {
+        // A shared clock has no parent; individual grants supply causality when they trigger.
+        enqueueWork(makeWork({ type: 'runtime.allied-strike', at, priority: -200, payload: { sequence } }), true);
+      }
+    }),
     precastRelics,
     equipmentBuffPolicies: [
       ...sigilBuffPolicies(config),
@@ -284,10 +294,7 @@ export function runRuntime<T extends object>(
       return consumeSkillFlip(flipWindows(), skillId);
     },
     combatStartedAt(at = runtime.time) {
-      // Setup casts that complete at the marker's own instant stay precombat until the cursor consumes the marker.
-      if (!runtime.hasExplicitCombatStart) return true;
-      if (runtime.combatStartPending || runtime.cursor.command?.type === 'combat-start') return false;
-      return runtime.combatStartTime != null && canonicalTime(at) >= runtime.combatStartTime;
+      return combatStartedAt(runtime, at);
     },
     schedule(name: string, at: number, data: unknown = null, owner?: { id: string; generation: number }, priority = 0) {
       if (!profession.tasks?.[name]) throw new TypeError(`No task handler registered for ${name}.`);
@@ -328,6 +335,9 @@ export function runRuntime<T extends object>(
   }) as unknown as Gw2Runtime<T>;
   Object.defineProperty(runtime, 'mechanics', { value: createMechanicContext(runtime), enumerable: true });
   Object.defineProperty(runtime, 'mechanicQueries', { value: createMechanicQueryContext(runtime), enumerable: true });
+  internal.register('runtime.allied-strike', (_context, work) => {
+    if (work.type === 'runtime.allied-strike') runtime.alliedStrikeController.strike(work.payload.sequence);
+  });
   internal.register('runtime.announcement', (_context, work) => {
     if (work.type === 'runtime.announcement')
       deliveryOwner.publishAnnouncement(work.payload.request, assertSimulationEvent(work.payload.event));
@@ -472,6 +482,7 @@ export function runRuntime<T extends object>(
     acceptCast: casts.acceptCast,
     reject: casts.reject
   };
+  const recurringPreviewDeadlines = new WeakMap<object, number>();
   coordinator.run(
     runtime,
     execution,
@@ -499,6 +510,16 @@ export function runRuntime<T extends object>(
     let deadline = runtime.rotationEndTime ?? runtime.time;
     for (const pending of coordinator.pendingEffects(executed, profession.backgroundTasks))
       if (ownsEffect!(pending.cause)) deadline = Math.max(deadline, pending.at);
+    for (const pending of runtime.alliedStrikeController.pendingEffects()) {
+      if (!ownsEffect!(pending.cause)) continue;
+      const { grant } = pending;
+      // Preview completion samples an open-ended grant without changing its combat lifetime or charges.
+      if (!Number.isFinite(grant.expiresAt) && !Number.isFinite(grant.charges)) {
+        if (!recurringPreviewDeadlines.has(grant)) recurringPreviewDeadlines.set(grant, pending.at);
+        deadline = Math.max(deadline, recurringPreviewDeadlines.get(grant)!);
+      } else deadline = Math.max(deadline, pending.at);
+    }
+
     for (const event of runtime.resolved)
       if (ownsEffect!(event) && event.naturalExpiresAt != null)
         // Owner condition clocks may pay their final buffered remainder after natural expiry.

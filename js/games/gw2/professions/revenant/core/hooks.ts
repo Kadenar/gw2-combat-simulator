@@ -187,7 +187,10 @@ const coreLifecycle: RuntimeHooks<RevenantRuntimeState, RevenantSkill> = {
       (entry) => entry.id === inputs.upkeepSkillId && entry.upkeepCost != null
     );
     if (upkeep)
-      state.activeUpkeeps = [{ skillId: upkeep.id, upkeepCost: Number(upkeep.upkeepCost), empoweredNextPulse: false }];
+      // Prepared upkeep needs the same activation identity as combat so depletion can retire its owner.
+      state.activeUpkeeps = [
+        { skillId: upkeep.id, upkeepCost: Number(upkeep.upkeepCost), startsAt: runtime.time, empoweredNextPulse: false }
+      ];
   },
 
   buffPolicies: revenantBuffPolicies,

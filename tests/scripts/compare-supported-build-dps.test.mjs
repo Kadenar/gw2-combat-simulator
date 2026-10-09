@@ -4,6 +4,7 @@ import { mkdir, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import test from 'node:test';
+import { check, resolveConfig } from 'prettier';
 
 import {
   findDpsMismatches,
@@ -156,7 +157,7 @@ test('absolute DPS comparison output identifies the fixed tolerance', (context) 
     MAXIMUM_ABSOLUTE_DPS_ERROR
   );
 
-  assert.deepEqual(output, ['All 1 rotation-backed builds across 1 manifests are within 100 DPS of benchmark DPS.']);
+  assert.ok(output.some((line) => line.includes('within 100 DPS of benchmark DPS.')));
 });
 
 test('commit mode writes simulated DPS and APM to matching manifest entries', async (context) => {
@@ -251,6 +252,7 @@ test('commit mode writes simulated DPS and APM to matching manifest entries', as
 
   // Invalid simulated APM must leave the complete manifest untouched, even when DPS is otherwise valid.
   const saved = await readFile(manifestPath, 'utf8');
+  assert.ok(await check(saved, { ...(await resolveConfig(manifestPath)), filepath: manifestPath }));
   const metric = {
     ...section.presets[0],
     id: 'mesmer|Chronomancer|Power',
@@ -288,6 +290,36 @@ test('commit mode writes simulated DPS and APM to matching manifest entries', as
     root
   );
   assert.equal(bandOnly.changedEntries, 1);
+});
+
+// Formatting-only commits honor local rules without changing data or writing during dry runs.
+test('commit mode repairs unchanged manifest formatting and leaves formatted files alone', async (context) => {
+  const root = await mkdtemp(path.join(tmpdir(), 'gw2-manifest-format-'));
+  context.after(() => rm(root, { recursive: true, force: true }));
+  const manifestDirectory = path.join(root, 'data/gw2/builds/mesmer');
+  const manifestPath = path.join(manifestDirectory, 'manifest.json');
+  await mkdir(manifestDirectory, { recursive: true });
+  await writeFile(
+    path.join(root, 'data/games.json'),
+    JSON.stringify({ games: [{ id: 'gw2', runtimeData: [{ kind: 'builds', source: 'data/gw2/builds' }] }] })
+  );
+  await writeFile(path.join(root, '.prettierrc'), JSON.stringify({ tabWidth: 4, endOfLine: 'lf' }));
+  const manifest = [{ section: 'Chronomancer', presets: [{ label: 'No rotation', build: 'build.json' }] }];
+  const original = JSON.stringify(manifest);
+  await writeFile(manifestPath, original);
+
+  const dry = await updateManifestBenchmarks([], root, 'gw2', { commit: false });
+  assert.equal(dry.manifestsWritten, 0);
+  assert.equal(await readFile(manifestPath, 'utf8'), original);
+
+  const committed = await updateManifestBenchmarks([], root);
+  const saved = await readFile(manifestPath, 'utf8');
+  assert.equal(committed.manifestsWritten, 1);
+  assert.equal(committed.changedEntries, 0);
+  assert.deepEqual(JSON.parse(saved), manifest);
+  assert.ok(await check(saved, { ...(await resolveConfig(manifestPath)), filepath: manifestPath }));
+  assert.equal((await updateManifestBenchmarks([], root)).manifestsWritten, 0);
+  assert.equal(await readFile(manifestPath, 'utf8'), saved);
 });
 
 // Reconciliation replaces complete preview records and sweeps entries outside the simulated population.

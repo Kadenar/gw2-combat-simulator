@@ -71,7 +71,9 @@ export function executeDamageOccurrence(
     if (effect.kind === 'skill')
       return (
         !['Trait', 'Relic', 'Sigil', 'Rune', 'Food'].includes(event.source) &&
-        event.procType !== 'profession' &&
+        // Only allied grants extend skill ownership to profession procs; unrelated personal reactions stay excluded.
+        (event.procType !== 'profession' ||
+          (event.metadata?.triggeredByAlly != null && event.sourceId === effect.id)) &&
         (event.skillId === effect.id ||
           event.sourceId === effect.id ||
           event.activationId?.startsWith('cast:') === true)

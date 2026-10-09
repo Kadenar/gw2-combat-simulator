@@ -12,12 +12,10 @@ import { SPECTER_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/thief/s
 import { grantBarrier } from '#gw2/professions/thief/specializations/specter/skills/barrier.js';
 import { completeSiphon } from '#gw2/professions/thief/specializations/specter/skills/siphon.js';
 import { specterState } from '#gw2/professions/thief/specializations/specter/state.js';
-import { startPendingRotWallowVenoms } from '#gw2/professions/thief/specializations/specter/traits/behavior.js';
 import type { ThiefRuntimeState, ThiefSkill } from '#gw2/professions/thief/types.js';
 
 /** Specter hooks: Shadow Force and its shroud, Siphon, shroud skill traits, Dark Sentry, and Larcenous Torment. */
 export const specterHooks: RuntimeHooks<ThiefRuntimeState, ThiefSkill> = {
-  onCombatStart: startPendingRotWallowVenoms,
   buffPolicies: specterBuffPolicies,
   /** Initialize only damage-relevant form and scaling state for one assumed occurrence. */
   prepareDamageState(runtime, skill, _inputs) {

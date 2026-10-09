@@ -5,10 +5,8 @@ import {
 } from '#gw2/platform/profession-definition/state.js';
 import { selectedRangerPet } from '#gw2/professions/ranger/core/state.js';
 import type { RangerConfig, RangerState } from '#gw2/professions/ranger/types.js';
-import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 
 export interface SoulbeastState {
-  pendingSharedStances: Gw2ResolverEvent[];
   beastmodeActive: boolean;
   archetype: string;
   oneWolfPackUntil: number;
@@ -26,7 +24,6 @@ export const SOULBEAST_PUBLIC_STATE_PROJECTION = definePublicStateDefaults({
 export function createSoulbeastState(config: RangerConfig = {}): SoulbeastState {
   const pet = selectedRangerPet(config);
   return {
-    pendingSharedStances: [],
     // Soulbeast starts merged — the rotation begins in Beastmode by default.
     beastmodeActive: true,
     archetype: pet?.archetype || '',

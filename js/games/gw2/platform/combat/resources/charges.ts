@@ -104,9 +104,9 @@ export function consumeChargeBatch<T extends ChargeGrant>(
 ): boolean {
   const index = grants.findIndex((grant) => eligible(grant) && grant.charges > 0 && grant.expiresAt > at);
   if (index < 0) return false;
-  const grant = { ...grants[index] };
+  // Registered consumers retain this batch reference and must observe its live charge count through exhaustion.
+  const grant = grants[index];
   if (!consumeCharge(grant, at)) return false;
   if (grant.charges === 0) grants.splice(index, 1);
-  else grants[index] = grant;
   return true;
 }

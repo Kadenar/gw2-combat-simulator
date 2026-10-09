@@ -34,6 +34,8 @@ export interface RangerCoreState {
   poisonousStrikes: ChargeGrant;
   sharpeningStoneGrants: ChargeGrant[];
   petAutoGeneration: number;
+  /** The current pet owns one autonomous loop, separate from command activity. */
+  petAutoStarted: boolean;
   petAutoNextAt: number;
   petAutoBusyUntil: number;
   petAutoAction: { activationId: string; endsAt: number } | null;
@@ -86,6 +88,7 @@ export function createRangerCoreState(config: RangerConfig = {}): RangerCoreStat
     poisonousStrikes: grantCharges(0, 0),
     sharpeningStoneGrants: [],
     petAutoGeneration: 0,
+    petAutoStarted: false,
     petAutoNextAt: 0,
     petAutoBusyUntil: 0,
     petAutoAction: null,

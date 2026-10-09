@@ -4,6 +4,7 @@ import type { SkillId } from '#gw2/platform/skills/types.js';
 import type { QueuedEvent } from '#kernel/events/queue.js';
 
 export type RuntimeWork =
+  | InternalWork<'runtime.allied-strike', { sequence: number }>
   | InternalWork<
       'runtime.announcement',
       {

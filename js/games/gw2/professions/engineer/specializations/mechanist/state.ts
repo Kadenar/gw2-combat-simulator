@@ -13,6 +13,8 @@ interface EngineerMechState {
   enabled: boolean;
   active: boolean;
   commandSkillIds: SkillId[];
+  /** Owns the autonomous loop independently of commands. */
+  attackLoopStarted: boolean;
   busyUntil: number;
 }
 
@@ -26,6 +28,7 @@ export const MECHANIST_PUBLIC_STATE_PROJECTION = definePublicStateDefaults({
     enabled: false,
     active: false,
     commandSkillIds: [],
+    attackLoopStarted: false,
     busyUntil: 0
   }
 } satisfies Partial<MechanistState>);
@@ -43,6 +46,7 @@ export function createMechanistState(config: EngineerConfig = {}): MechanistStat
       enabled: true,
       active: true,
       commandSkillIds: selectedMechCommands(traits),
+      attackLoopStarted: false,
       busyUntil: 0
     }
   };

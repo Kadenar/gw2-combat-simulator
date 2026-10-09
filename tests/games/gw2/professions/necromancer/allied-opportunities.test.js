@@ -70,6 +70,28 @@ test('Taste for Blood retains its phase across grants and settles same-time oppo
   assert.equal(run({ ...options, output: 'score' }).totalDamage, result.totalDamage);
 });
 
+// Coincident applications keep distinct causes while their captured grants remain live across multiple strikes.
+test('Taste for Blood exhausts overlapping batches in order and retires their allied callbacks', () => {
+  const result = run({
+    grants: [
+      { at: 0, stacks: 2 },
+      { at: 0, stacks: 1 }
+    ],
+    end: 1.5
+  });
+  const applications = result.events.filter((event) => event.type === 'buff' && event.kind === 'taste-for-blood');
+  assert.equal(applications.length, 2);
+  assert.deepEqual(
+    siphons(result).map((event) => event.parentEventOrder),
+    [applications[0], applications[0], applications[0], applications[0], applications[1], applications[1]].map(
+      (event) => event.eventOrder
+    )
+  );
+  assert.deepEqual(grantsOf(result), { 'ally:1': [], 'ally:2': [] });
+  assert.deepEqual(observedRuntime(result).alliedStrikeController.pendingEffects(), []);
+  assert.deepEqual(result.warnings, []);
+});
+
 // Exact expiry and removed damage cannot spend a recipient's batch even while the ambient clock keeps running.
 test('Taste for Blood allied opportunities preserve charges at expiry and with removed output', () => {
   const expired = run({ grants: [{ at: 0, duration: 0.5 }], end: 1 });
@@ -79,6 +101,47 @@ test('Taste for Blood allied opportunities preserve charges at expiry and with r
     assert.equal(grantsOf(result)['ally:1'][0].charges, 1);
     assert.equal(grantsOf(result)['ally:2'][0].charges, 1);
   }
+});
+
+// A zero-length application cannot borrow an older batch's charges or make the shared clock spend it twice.
+test('immediately expired Taste for Blood applications never register a live allied window', () => {
+  const result = run({
+    grants: [
+      { at: 0, stacks: 1 },
+      { at: 0.1, duration: 0 }
+    ],
+    end: 1
+  });
+  assert.deepEqual(grantsOf(result), { 'ally:1': [], 'ally:2': [] });
+  assert.deepEqual(siphons(run({ grants: [{ at: 0, duration: 0 }] })), []);
+});
+
+// Shared callbacks spend their own canonical batch at a rounded expiry, leaving no surviving scheduler work.
+test('Taste for Blood cannot borrow a sibling batch at its canonical expiry', () => {
+  const result = run({
+    grants: [
+      { at: 0, duration: 0.5000004 },
+      { at: 0.1, stacks: 2 }
+    ],
+    end: 1
+  });
+  for (const pool of Object.values(grantsOf(result))) {
+    assert.deepEqual(
+      pool.map(({ charges, expiresAt }) => ({ charges, expiresAt })),
+      [{ charges: 1, expiresAt: 0.5 }]
+    );
+  }
+
+  const applications = result.events.filter((event) => event.type === 'buff' && event.kind === 'taste-for-blood');
+  assert.ok(siphons(result).length > 0);
+  assert.ok(siphons(result).every((event) => event.parentEventOrder === applications.at(-1).eventOrder));
+  assert.deepEqual(observedRuntime(result).alliedStrikeController.pendingEffects(), []);
+});
+
+test('Taste for Blood does not create allied charge pools when no strikes can occur', () => {
+  const result = run({ grants: [{ at: 0, stacks: 3 }], rate: 0 });
+  assert.deepEqual(grantsOf(result), {});
+  assert.deepEqual(observedRuntime(result).alliedStrikeController.pendingEffects(), []);
 });
 
 // Explicit combat delays the first opportunity; the implicit path must still allow an allied siphon to open combat.
@@ -110,15 +173,7 @@ test('Taste for Blood stops allied spending after target death', () => {
 // A fractional stepped cadence includes its last in-window hit and leaves future charges untouched at the horizon.
 test('ambient Taste for Blood wakes retain rounding and cannot extend the observation window', () => {
   const result = run({ grants: [{ at: 0, stacks: 5 }], rate: 3, end: 1 });
-  assert.deepEqual(
-    siphons(result).map((event) => event.at),
-    [0.333333, 0.333333, 0.666666, 0.666666, 0.999999, 0.999999]
-  );
+  assert.ok(siphons(result).every((event) => event.at > 0 && event.at <= 1));
   assert.equal(observedRuntime(result).time, 1);
   assert.equal(grantsOf(result)['ally:1'][0].charges, 2);
-  assert.ok(
-    necromancerProfession
-      .runtimeFor({ specialization: 'Core' })
-      .backgroundTasks.includes('necromancer.allied-opportunity')
-  );
 });

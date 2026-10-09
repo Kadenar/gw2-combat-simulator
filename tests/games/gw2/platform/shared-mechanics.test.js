@@ -4,6 +4,7 @@ import {
   activeChargeGrants,
   activeChargeCount,
   consumeCharge,
+  consumeChargeBatch,
   expireCharges,
   grantCharges,
   grantChargePool
@@ -44,6 +45,29 @@ test('charge queries are read-only and distinguish exclusive from inclusive expi
   assert.equal(activeChargeCount(grant, 6, true), 0);
   assert.equal(activeChargeCount(grant, 4), 2);
   assert.equal(activeChargeCount(grantCharges(0, 5), 4), 0);
+});
+
+// Captured batch references stay authoritative after partial spending and observe exhaustion even after removal.
+test('batch consumption preserves identity and cannot spend a sibling through an exhausted or expired reference', () => {
+  const selected = grantCharges(2, 5);
+  const sibling = grantCharges(2, 5);
+  const grants = [selected, sibling];
+  const onlySelected = (grant) => grant === selected;
+  assert.equal(
+    consumeChargeBatch(grants, 1, () => false),
+    false
+  );
+  assert.equal(selected.charges, 2);
+  assert.equal(consumeChargeBatch(grants, 1, onlySelected), true);
+  assert.equal(grants[0], selected);
+  assert.equal(selected.charges, 1);
+  assert.equal(consumeChargeBatch(grants, 2, onlySelected), true);
+  assert.equal(selected.charges, 0);
+  assert.equal(grants.length, 1);
+  assert.equal(grants[0], sibling);
+  assert.equal(consumeChargeBatch(grants, 3, onlySelected), false);
+  assert.equal(consumeChargeBatch(grants, 5), false);
+  assert.equal(sibling.charges, 2);
 });
 
 test('anchored accrual queries retain their original anchor', () => {

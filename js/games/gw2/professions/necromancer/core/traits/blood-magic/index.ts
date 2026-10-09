@@ -68,6 +68,8 @@ export const vampiricPresence = defineTrait({
   name: 'Vampiric Presence',
   balance: {
     cooldown: 0.5,
+    // Vampiric Aura pulses on a free-running 3 s clock; the first in-combat pulse lands at its expected phase.
+    auraPulseInterval: 3,
     effects: [
       {
         name: 'base',

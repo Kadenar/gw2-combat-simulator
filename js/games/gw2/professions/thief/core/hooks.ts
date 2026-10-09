@@ -53,12 +53,7 @@ import {
   thiefSameInstantStealthBreak,
   thiefStealthed
 } from '#gw2/professions/thief/core/mechanics/stealth.js';
-import {
-  activateVenom,
-  emitVenom,
-  startPendingAlliedVenoms,
-  VENOMS
-} from '#gw2/professions/thief/core/mechanics/venoms.js';
+import { activateVenom, emitVenom, VENOMS } from '#gw2/professions/thief/core/mechanics/venoms.js';
 import { infiltratorsSignetLifecycle } from '#gw2/professions/thief/core/skills/slot-skills.js';
 import { completeThiefCastTraits, reactThiefCoreCondition } from '#gw2/professions/thief/core/traits/dispatch.js';
 import { completeThiefStealthAttack } from '#gw2/professions/thief/core/traits/shadow-arts/stealth.js';
@@ -208,7 +203,6 @@ const coreLifecycle: RuntimeHooks<ThiefRuntimeState, ThiefSkill> = {
   resources: { initiative: thiefInitiative },
   onCombatStart(runtime) {
     startThiefAxeExpiry(runtime);
-    startPendingAlliedVenoms(runtime);
   },
   endurance: thiefEndurance,
   availability: thiefAvailability,

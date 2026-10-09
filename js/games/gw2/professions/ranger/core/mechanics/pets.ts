@@ -1,3 +1,4 @@
+import { autonomousActionsAllowed } from '#gw2/platform/combat/engagement.js';
 import { gw2CooldownReadyAt, quantizeGw2ActionDurationUp } from '#gw2/platform/combat/action-tick.js';
 import { gw2BoonDurationMultiplier } from '#gw2/platform/combat/boons.js';
 import type { SimulationEventBase } from '#gw2/platform/events/events.js';
@@ -121,7 +122,9 @@ function petCommandRecovery(context: RangerRuntime, cast: RuntimeCast<RangerSkil
 }
 
 function schedulePet(context: RangerRuntime, at: number): void {
+  if (!autonomousActionsAllowed(context)) return;
   const state = context.profession.core;
+  state.petAutoStarted = true;
   state.petAutoNextAt = gw2CooldownReadyAt(Math.max(context.time, at, state.petAutoBusyUntil));
   context.schedule(PET_AUTO_TASK, state.petAutoNextAt, state.petAutoNextAt, owner(context), 10);
 }
@@ -130,7 +133,7 @@ function schedulePet(context: RangerRuntime, at: number): void {
 export function startRangerPet(context: RangerRuntime): void {
   const state = context.profession.core;
   const profile = rangerPetAutoProfile(state.activePet);
-  if (!state.petActive || !profile || state.petAutoNextAt > context.time) return;
+  if (!autonomousActionsAllowed(context) || !state.petActive || !profile || state.petAutoStarted) return;
   schedulePet(context, context.time + profile.openingDelay);
 }
 
@@ -142,10 +145,11 @@ export function resetRangerPet(context: RangerRuntime): void {
   context.cancelOwner(owner(context, PET_AI_ATTACK_OWNER));
   state.petAutoGeneration += 1;
   state.petAutoNextAt = 0;
+  state.petAutoStarted = false;
   state.petAutoBusyUntil = context.time;
   state.petAutoAction = null;
   state.petCommandReadyAt = context.time;
-  if (context.combatActive) startRangerPet(context);
+  startRangerPet(context);
 }
 
 export function setRangerPetActive(context: RangerRuntime, active: boolean): void {
@@ -340,7 +344,7 @@ export function beginRangerPetCommand(context: RangerRuntime, cast: RuntimeCast<
 export const rangerPetTasks = {
   [PET_AUTO_TASK](context: RangerRuntime, data: unknown): void {
     const state = context.profession.core;
-    if (!state.petActive || state.petAutoNextAt !== data) return;
+    if (!autonomousActionsAllowed(context) || !state.petActive || state.petAutoNextAt !== data) return;
     if (context.time < canonicalTime(state.petAutoBusyUntil)) {
       schedulePet(context, state.petAutoBusyUntil);
       return;

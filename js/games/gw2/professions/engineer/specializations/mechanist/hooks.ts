@@ -1,3 +1,4 @@
+import { autonomousActionsAllowed } from '#gw2/platform/combat/engagement.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import { prepareGw2BuffCompanionCandidates } from '#gw2/platform/combat/state/allied-players.js';
 import { criticalProcHandler } from '#gw2/platform/profession-definition/critical-proc-handler.js';
@@ -32,10 +33,10 @@ export const mechanistHooks: RuntimeHooks<EngineerRuntimeState, EngineerSkill> =
   // Completed commands grant player Quickness; mech recovery and Overclock retain their lifecycle owner.
 
   initialize(runtime) {
-    if (!runtime.combatStartPending) initializeEngineerMech(runtime);
+    initializeEngineerMech(runtime);
   },
   onCombatStart(runtime) {
-    if (runtime.hasExplicitCombatStart) initializeEngineerMech(runtime);
+    initializeEngineerMech(runtime);
   },
   availability: mechanistCastAvailability,
   rechargeRules: overclockRechargeRules,
@@ -68,7 +69,7 @@ export const mechanistHooks: RuntimeHooks<EngineerRuntimeState, EngineerSkill> =
   tasks: {
     'engineer.mech-attack'(runtime, data) {
       const mech = mechanistState.from(runtime).mech;
-      if (!mech.enabled || !mech.active) return;
+      if (!autonomousActionsAllowed(runtime) || !mech.enabled || !mech.active) return;
       const phase = data as MechAttackPayload;
       // The autonomous attack waits until the same canonical instant as lane release.
       if (runtime.time < canonicalTime(mech.busyUntil)) {
@@ -77,7 +78,7 @@ export const mechanistHooks: RuntimeHooks<EngineerRuntimeState, EngineerSkill> =
       }
 
       const next = stepMechAttack(runtime, runtime.time, phase);
-      if (next) runtime.schedule('engineer.mech-attack', next.at, next.state);
+      runtime.schedule('engineer.mech-attack', next.at, next.state);
     }
   },
   reactions: {

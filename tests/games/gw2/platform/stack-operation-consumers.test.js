@@ -75,6 +75,8 @@ test('Holo-Dancer commits spend grant order even when the newest charge expires 
 
 test('Sharpening Stone prunes excluded hits and spends the earliest surviving expiry on player strikes', () => {
   const prior = Object.freeze([1, 5, 30].map((expiresAt) => ({ charges: 1, expiresAt })));
+  // Copies of a pool retain live grant references; detached snapshots preserve historical values.
+  const snapshot = structuredClone(prior);
   const core = { sharpeningStoneGrants: prior };
   const queued = [];
   const context = {
@@ -93,8 +95,10 @@ test('Sharpening Stone prunes excluded hits and spends the earliest surviving ex
   assert.deepEqual(core.sharpeningStoneGrants, [{ charges: 1, expiresAt: 30 }]);
   assert.equal(queued.length, 1);
   assert.equal(queued[0].condition, 'Bleeding');
+  assert.equal(prior[1].charges, 0);
+  assert.equal(core.sharpeningStoneGrants[0], prior[2]);
   assert.deepEqual(
-    prior,
+    snapshot,
     [1, 5, 30].map((expiresAt) => ({ charges: 1, expiresAt }))
   );
 });

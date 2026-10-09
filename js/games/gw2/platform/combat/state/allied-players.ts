@@ -1,5 +1,4 @@
 import { normalizeEffectAudience } from '#gw2/platform/effects/audience-metadata-validation.js';
-import { canonicalTime } from '#kernel/core/clock.js';
 
 import type { EffectAudience, ResolvedEffectAudience, SimulationEventBase } from '#gw2/platform/events/events.js';
 import { boundedInteger, boundedNumber, clamp } from '#kernel/core/numeric.js';
@@ -22,29 +21,12 @@ interface Gw2AlliedPlayerConfig {
   readonly sharePlayerBoonsWithSummons?: boolean;
 }
 
-interface Gw2AlliedPlayerProcOptions {
-  readonly start: number;
-  readonly duration?: number;
-  readonly maximumAllies?: number;
-  readonly maximumPerAlly?: number;
-  readonly internalCooldown?: number;
-}
-
 interface Gw2BoonRecipientEvent {
   readonly type?: unknown;
   readonly actorType?: unknown;
   readonly summonOwner?: unknown;
   readonly audience?: EffectAudience;
   readonly resolvedAudience?: ResolvedEffectAudience;
-}
-
-/**
- * One deterministic allied strike opportunity within a buff window.
- */
-interface Gw2AlliedPlayerProc {
-  readonly allyIndex: number;
-  readonly procIndex: number;
-  readonly at: number;
 }
 
 /**
@@ -169,37 +151,4 @@ export function gw2BuffApplicationRecipients(
   event: Gw2BoonRecipientEvent = {}
 ): ResolvedEffectAudience {
   return gw2BoonApplicationRecipients({ ...config, sharePlayerBoonsWithSummons: true }, event);
-}
-
-/**
- * Materializes deterministic allied strike opportunities within a buff window.
- * A per-player ICD caps the effective trigger rate; strikes at expiry resolve before effect cleanup.
- */
-export function gw2AlliedPlayerProcTimeline(
-  config: Gw2AlliedPlayerConfig,
-  {
-    start,
-    duration,
-    maximumAllies = Number.POSITIVE_INFINITY,
-    maximumPerAlly = Number.POSITIVE_INFINITY,
-    internalCooldown = 0
-  }: Gw2AlliedPlayerProcOptions
-): Gw2AlliedPlayerProc[] {
-  const assumptions = gw2AlliedPlayerAssumptions(config);
-  const allyCount = boundedInteger(maximumAllies, 0, 0, assumptions.count);
-  if (!allyCount || !assumptions.strikesPerSecond) return [];
-  const interval = Math.max(internalCooldown || 0, 1 / assumptions.strikesPerSecond);
-  const end = canonicalTime(start + Math.max(0, duration || 0));
-  const limit = Math.max(0, Math.trunc(maximumPerAlly));
-  const events: Gw2AlliedPlayerProc[] = [];
-  for (let allyIndex = 1; allyIndex <= allyCount; allyIndex += 1) {
-    for (let procIndex = 1; procIndex <= limit; procIndex += 1) {
-      // Canonicalize each absolute opportunity without accumulating rounded interval drift.
-      const at = canonicalTime(start + procIndex * interval);
-      if (at > end) break;
-      events.push({ allyIndex, procIndex, at });
-    }
-  }
-
-  return events.sort((left, right) => left.at - right.at || left.allyIndex - right.allyIndex);
 }

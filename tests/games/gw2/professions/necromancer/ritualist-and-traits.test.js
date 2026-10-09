@@ -81,7 +81,7 @@ test('Ritualist spirits attack, empower Essence Blast, and innervate', () => {
   assert.deepEqual(result.planningState.profession.activeSpirits, {});
   assert.ok(result.planningState.profession.lifeForce.value > 50);
   assert.ok(result.breakdown.some((entry) => entry.name === 'Essence Blast'));
-  assert.equal(lingering.planningState.profession.activeSpirits.anguish, true);
+  assert.ok(lingering.planningState.profession.activeSpirits.anguish);
   assert.ok(lingering.planningState.profession.lifeForce.value < 90);
   assert.ok(lingering.breakdown.some((entry) => entry.name === 'Anguish Autoattack'));
 });
@@ -451,7 +451,7 @@ test('Ritualist weapon spells prioritize players, include minions, and exclude s
   );
 
   assert.deepEqual(result.warnings, []);
-  assert.equal(result.planningState.profession.activeSpirits.anguish, true);
+  assert.ok(result.planningState.profession.activeSpirits.anguish);
   assert.deepEqual(
     applications.map((event) => event.skillId),
     [ID.NIGHTMARE_WEAPON, ID.SPLINTER_WEAPON]

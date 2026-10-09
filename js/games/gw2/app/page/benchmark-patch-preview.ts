@@ -24,6 +24,20 @@ export type PatchBenchmark =
 
 type BenchmarkPreview = Pick<PatchPreview, 'id' | 'pendingBenchmarks'>;
 
+/** Share pending-rework selectors between benchmark views and CLI reports so incomplete previews stay labeled. */
+export function findPendingPatchBenchmark(
+  build: Pick<Benchmark, 'profession' | 'specialization' | 'label' | 'build'>,
+  patch: BenchmarkPreview
+) {
+  return patch.pendingBenchmarks?.find(
+    (entry) =>
+      entry.profession === build.profession &&
+      entry.specialization === build.specialization &&
+      (!entry.damage || entry.damage === templateCategory(build)) &&
+      (!entry.build || entry.build === build.build)
+  );
+}
+
 /** Preserve the sorted rows while collecting contiguous profession or specialization groups. */
 function groupRows(
   rows: readonly PatchBenchmark[],
@@ -49,13 +63,7 @@ export function patchBenchmarks(
   return rows.flatMap<PatchBenchmark>((build) => {
     if (!build.rotation || !Number.isFinite(build.benchmarkDps) || build.benchmarkDps <= 0) return [];
     // Reworks remain discoverable before capture; exact build selectors keep weapon-specific flags narrowly scoped.
-    const pending = patch.pendingBenchmarks?.find(
-      (entry) =>
-        entry.profession === build.profession &&
-        entry.specialization === build.specialization &&
-        (!entry.damage || entry.damage === templateCategory(build)) &&
-        (!entry.build || entry.build === build.build)
-    );
+    const pending = findPendingPatchBenchmark(build, patch);
     if (pending) return [{ build, outcome: 'tbd', reason: pending.reason }];
     const preview = build.patchPreview;
     if (

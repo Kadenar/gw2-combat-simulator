@@ -18,7 +18,7 @@
           "20-0": { "cumulative": 42059, "phase": 42059 }
         },
         "patchPreview": {
-          "patchId": "conduit-balance-preview",
+          "patchId": "nov-10-balance-preview",
           "benchmarkDps": 42839,
           "benchmarkDpsByHealth": {
             "100-80": { "cumulative": 47464, "phase": 47464 },
@@ -45,7 +45,7 @@
           "20-0": { "cumulative": 41995, "phase": 43198 }
         },
         "patchPreview": {
-          "patchId": "conduit-balance-preview",
+          "patchId": "nov-10-balance-preview",
           "benchmarkDps": 42135,
           "benchmarkDpsByHealth": {
             "100-80": { "cumulative": 41876, "phase": 41876 },
@@ -72,7 +72,7 @@
           "20-0": { "cumulative": 42311, "phase": 42112 }
         },
         "patchPreview": {
-          "patchId": "conduit-balance-preview",
+          "patchId": "nov-10-balance-preview",
           "benchmarkDps": 42455,
           "benchmarkDpsByHealth": {
             "100-80": { "cumulative": 41470, "phase": 41470 },
@@ -99,7 +99,7 @@
           "20-0": { "cumulative": 33556, "phase": 34844 }
         },
         "patchPreview": {
-          "patchId": "conduit-balance-preview",
+          "patchId": "nov-10-balance-preview",
           "benchmarkDps": 34136,
           "benchmarkDpsByHealth": {
             "100-80": { "cumulative": 34776, "phase": 34776 },
@@ -126,7 +126,7 @@
           "20-0": { "cumulative": 32956, "phase": 30878 }
         },
         "patchPreview": {
-          "patchId": "conduit-balance-preview",
+          "patchId": "nov-10-balance-preview",
           "benchmarkDps": 34074,
           "benchmarkDpsByHealth": {
             "100-80": { "cumulative": 36101, "phase": 36101 },
@@ -147,25 +147,25 @@
         "build": "data/gw2/builds/guardian/b-condi-firebrand.json",
         "rotation": "data/gw2/rotations/guardian/r-condi-firebrand-bench.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/guardian/condition-firebrand-axe-torch-pistol-pistol",
-        "benchmarkDps": 41074,
+        "benchmarkDps": 41284,
         "upToDate": true,
         "benchmarkApm": 114.4,
         "benchmarkDpsByHealth": {
           "100-80": { "cumulative": 39182, "phase": 39182 },
-          "80-60": { "cumulative": 41430, "phase": 43866 },
-          "60-40": { "cumulative": 41096, "phase": 40411 },
-          "40-20": { "cumulative": 41216, "phase": 41564 },
-          "20-0": { "cumulative": 41074, "phase": 40480 }
+          "80-60": { "cumulative": 41490, "phase": 43989 },
+          "60-40": { "cumulative": 41191, "phase": 40578 },
+          "40-20": { "cumulative": 41286, "phase": 41564 },
+          "20-0": { "cumulative": 41284, "phase": 41273 }
         },
         "patchPreview": {
-          "patchId": "conduit-balance-preview",
-          "benchmarkDps": 41074,
+          "patchId": "nov-10-balance-preview",
+          "benchmarkDps": 41284,
           "benchmarkDpsByHealth": {
             "100-80": { "cumulative": 39182, "phase": 39182 },
-            "80-60": { "cumulative": 41430, "phase": 43866 },
-            "60-40": { "cumulative": 41096, "phase": 40411 },
-            "40-20": { "cumulative": 41216, "phase": 41564 },
-            "20-0": { "cumulative": 41074, "phase": 40480 }
+            "80-60": { "cumulative": 41490, "phase": 43989 },
+            "60-40": { "cumulative": 41191, "phase": 40578 },
+            "40-20": { "cumulative": 41286, "phase": 41564 },
+            "20-0": { "cumulative": 41284, "phase": 41273 }
           }
         }
       },
@@ -174,25 +174,25 @@
         "build": "data/gw2/builds/guardian/b-condi-qfb-ritualists.json",
         "rotation": "data/gw2/rotations/guardian/r-condi-qfb-ritualists-bench.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/guardian/condition-quickness-firebrand-axe-torch-pistol-pistol",
-        "benchmarkDps": 35214,
+        "benchmarkDps": 35217,
         "upToDate": true,
         "benchmarkApm": 126,
         "benchmarkDpsByHealth": {
-          "100-80": { "cumulative": 33640, "phase": 33640 },
-          "80-60": { "cumulative": 35105, "phase": 36702 },
-          "60-40": { "cumulative": 34840, "phase": 34311 },
-          "40-20": { "cumulative": 35368, "phase": 37101 },
-          "20-0": { "cumulative": 35214, "phase": 34612 }
+          "100-80": { "cumulative": 33783, "phase": 33783 },
+          "80-60": { "cumulative": 35119, "phase": 36578 },
+          "60-40": { "cumulative": 34841, "phase": 34283 },
+          "40-20": { "cumulative": 35368, "phase": 37100 },
+          "20-0": { "cumulative": 35217, "phase": 34629 }
         },
         "patchPreview": {
-          "patchId": "conduit-balance-preview",
-          "benchmarkDps": 35276,
+          "patchId": "nov-10-balance-preview",
+          "benchmarkDps": 35280,
           "benchmarkDpsByHealth": {
-            "100-80": { "cumulative": 33707, "phase": 33707 },
-            "80-60": { "cumulative": 35168, "phase": 36763 },
-            "60-40": { "cumulative": 34902, "phase": 34371 },
-            "40-20": { "cumulative": 35431, "phase": 37167 },
-            "20-0": { "cumulative": 35276, "phase": 34671 }
+            "100-80": { "cumulative": 33849, "phase": 33849 },
+            "80-60": { "cumulative": 35183, "phase": 36638 },
+            "60-40": { "cumulative": 34903, "phase": 34343 },
+            "40-20": { "cumulative": 35431, "phase": 37165 },
+            "20-0": { "cumulative": 35280, "phase": 34688 }
           }
         }
       }
@@ -217,7 +217,7 @@
           "20-0": { "cumulative": 41743, "phase": 42697 }
         },
         "patchPreview": {
-          "patchId": "conduit-balance-preview",
+          "patchId": "nov-10-balance-preview",
           "benchmarkDps": 41743,
           "benchmarkDpsByHealth": {
             "100-80": { "cumulative": 46747, "phase": 46747 },
@@ -244,7 +244,7 @@
           "20-0": { "cumulative": 41929, "phase": 41929 }
         },
         "patchPreview": {
-          "patchId": "conduit-balance-preview",
+          "patchId": "nov-10-balance-preview",
           "benchmarkDps": 41929,
           "benchmarkDpsByHealth": {
             "100-80": { "cumulative": 45839, "phase": 45839 },
@@ -276,7 +276,7 @@
           "20-0": { "cumulative": 41395, "phase": 41395 }
         },
         "patchPreview": {
-          "patchId": "conduit-balance-preview",
+          "patchId": "nov-10-balance-preview",
           "benchmarkDps": 41975,
           "benchmarkDpsByHealth": {
             "100-80": { "cumulative": 47133, "phase": 47133 },
@@ -302,7 +302,7 @@
           "20-0": { "cumulative": 42074, "phase": 42074 }
         },
         "patchPreview": {
-          "patchId": "conduit-balance-preview",
+          "patchId": "nov-10-balance-preview",
           "benchmarkDps": 42880,
           "benchmarkDpsByHealth": {
             "100-80": { "cumulative": 51794, "phase": 51794 },
@@ -329,7 +329,7 @@
           "20-0": { "cumulative": 41424, "phase": 41424 }
         },
         "patchPreview": {
-          "patchId": "conduit-balance-preview",
+          "patchId": "nov-10-balance-preview",
           "benchmarkDps": 42206,
           "benchmarkDpsByHealth": {
             "100-80": { "cumulative": 44706, "phase": 44706 },
@@ -356,7 +356,7 @@
           "20-0": { "cumulative": 37179, "phase": 40242 }
         },
         "patchPreview": {
-          "patchId": "conduit-balance-preview",
+          "patchId": "nov-10-balance-preview",
           "benchmarkDps": 37179,
           "benchmarkDpsByHealth": {
             "100-80": { "cumulative": 40879, "phase": 40879 },

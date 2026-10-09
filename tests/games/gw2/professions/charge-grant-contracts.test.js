@@ -1,6 +1,7 @@
 import { applyBalanceProfilePatch } from '#gw2/integrations/patches/authoring/patches.js';
 import { applySkillSideEffects } from '#gw2/platform/effects/action-dispatch.js';
 import { snapshotProfessionState } from '#gw2/platform/profession-definition/state.js';
+import { createAlliedStrikeController } from '#gw2/platform/combat/state/allied-strikes.js';
 import { createMechanicCombatServices } from '#gw2/platform/resolver/mechanic-services.js';
 import { applyElementalistResolvedDamage } from '#gw2/professions/elementalist/core/mechanics/reactions.js';
 import { applyShatteringStoneBuff } from '#gw2/professions/elementalist/core/skills/weapons/pistol.js';
@@ -12,7 +13,6 @@ import { solarFocusingLens } from '#gw2/professions/engineer/specializations/hol
 import { necromancerEffectStates } from '#gw2/professions/necromancer/core/effect-state.js';
 import {
   applyOverflowingThirstDamage,
-  reactToTasteForBloodAlliedHit,
   reactToTasteForBloodGrant
 } from '#gw2/professions/necromancer/core/traits/blood-magic/life-steal.js';
 import { NECROMANCER_TRAIT_IDS as NECROMANCER } from '#gw2/professions/necromancer/data/ids.js';
@@ -44,7 +44,7 @@ import test from 'node:test';
 
 // Real state owners and catalogs isolate grant contracts without relying on saved rotation packets.
 function contextFor(profession, specialization, selectedTraitIds = []) {
-  const config = { specialization, selectedTraitIds };
+  const config = { specialization, selectedTraitIds, allies: { count: 1, strikesPerSecond: 0 } };
   const runtime = profession.resolveProfession(config);
   const state = runtime.createState(config);
   // Capture the real shared materialization boundary while keeping grant state transitions isolated.
@@ -66,6 +66,12 @@ function contextFor(profession, specialization, selectedTraitIds = []) {
     effectiveEnd: 1
   };
   context.combat = createMechanicCombatServices(context);
+  // Manual grant tests use the real recipient capability with no autonomous strike rate.
+  context.alliedStrikes = createAlliedStrikeController(() => context, {
+    schedule() {},
+    captureCause: () => null,
+    withCause: (_cause, run) => run()
+  }).grants;
   return context;
 }
 
@@ -75,6 +81,7 @@ test('Taste for Blood spends insertion-ordered batches independently with applic
   reactToTasteForBloodGrant(context, { at: 1, stacks: 2, duration: 10, resolvedAudience: audience });
   reactToTasteForBloodGrant(context, { at: 2, stacks: 1, duration: 3, resolvedAudience: audience });
   const pools = context.profession.core.tasteForBloodGrants;
+  const original = pools.self[0];
   const hit = (at, actorType = 'player', summonOwner) =>
     applyOverflowingThirstDamage(context, { at, actorType, summonOwner, skillName: 'Test strike' });
   hit(0);
@@ -83,6 +90,9 @@ test('Taste for Blood spends insertion-ordered batches independently with applic
     [2, 1]
   );
   hit(2);
+  // Shared consumption preserves the captured batch and updates its authoritative charge count.
+  assert.equal(original.charges, 1);
+  assert.equal(pools.self[0], original);
   assert.deepEqual(
     pools.self.map((grant) => [grant.charges, grant.expiresAt]),
     [
@@ -90,20 +100,12 @@ test('Taste for Blood spends insertion-ordered batches independently with applic
       [1, 5]
     ]
   );
-  assert.deepEqual(
-    pools['ally:1'].map((grant) => grant.charges),
-    [2, 1]
-  );
+  assert.equal(pools['ally:1'], undefined, 'zero strike rate creates no unusable allied batches');
   assert.deepEqual(
     pools['companion:minion:test'].map((grant) => grant.charges),
     [2, 1]
   );
-  reactToTasteForBloodAlliedHit(context, { at: 2, allyIndex: 1, skillName: 'Ally strike' });
   hit(2, 'summon', 'minion:test');
-  assert.deepEqual(
-    pools['ally:1'].map((grant) => grant.charges),
-    [1, 1]
-  );
   assert.deepEqual(
     pools['companion:minion:test'].map((grant) => grant.charges),
     [1, 1]
@@ -117,6 +119,7 @@ test('Taste for Blood spends insertion-ordered batches independently with applic
   ]);
   assert.deepEqual(pools, before);
   hit(3);
+  assert.equal(original.charges, 0, 'every reference observes exhaustion after the batch leaves its pool');
   assert.deepEqual(
     pools.self.map((grant) => grant.expiresAt),
     [5]
@@ -124,16 +127,16 @@ test('Taste for Blood spends insertion-ordered batches independently with applic
   const count = context.events.length;
   hit(5);
   assert.equal(context.events.length, count);
+  const expired = pools.self[0];
   // Appending prunes the closed batch without refreshing other recipients' grants.
   reactToTasteForBloodGrant(context, { at: 5, stacks: 1, duration: 2, resolvedAudience: { includesSelf: true } });
+  assert.equal(pools.self.includes(expired), false);
+  assert.equal(expired.expiresAt, 5, 'pruning leaves the captured expiry unchanged');
   assert.deepEqual(
     pools.self.map((grant) => grant.expiresAt),
     [7]
   );
-  assert.deepEqual(
-    pools['ally:1'].map((grant) => grant.expiresAt),
-    [11, 5]
-  );
+  assert.equal(pools['ally:1'], undefined);
   hit(5);
   assert.deepEqual(pools.self, []);
 });

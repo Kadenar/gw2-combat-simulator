@@ -20,6 +20,7 @@ import {
 } from '#gw2/professions/necromancer/specializations/ritualist/mechanics/spirit-effects.js';
 import {
   initializeRitualistSpiritLifecycle,
+  startRitualistSpirits,
   ritualistSpiritTasks
 } from '#gw2/professions/necromancer/specializations/ritualist/mechanics/spirit-lifecycle.js';
 import {
@@ -110,6 +111,7 @@ const spiritLifecycle: RuntimeHooks<NecromancerRuntimeState, NecromancerSkill> =
       }
     }
   },
+  onCombatStart: startRitualistSpirits,
   initialize(runtime) {
     initializeRitualistSpiritLifecycle(runtime);
     initializeRitualistSummonTraits(runtime);

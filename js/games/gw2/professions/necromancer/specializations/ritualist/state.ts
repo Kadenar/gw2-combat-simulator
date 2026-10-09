@@ -1,8 +1,10 @@
 import type { ChargeGrant } from '#gw2/platform/combat/resources/charges.js';
 import {
+  createPublicStateProjector,
   definePublicStateDefaults,
   defineProfessionSpecializationState
 } from '#gw2/platform/profession-definition/state.js';
+import type { Gw2PlanningStateInput } from '#gw2/platform/results/types.js';
 
 import type { SkillId } from '#gw2/platform/skills/types.js';
 
@@ -17,10 +19,19 @@ interface NecromancerWeaponSpellState {
 export interface RitualistState {
   weaponSpellGeneration: number;
   painfulBondGeneration: number;
-  activeSpirits: Record<string, boolean>;
-  spiritGenerations: Record<string, number>;
-  spiritInitialUntil: Record<string, number>;
-  spiritBusyUntil: Record<string, number>;
+  /** Each live spirit owns its identity, generation, recovery and autonomous startup together. */
+  activeSpirits: Record<
+    string,
+    {
+      skillId: SkillId;
+      activationId: string;
+      generation: number;
+      started: boolean;
+      initialUntil: number;
+      busyUntil: number;
+    }
+  >;
+  spiritGeneration: number;
   spiritAutoAnchorAt: number;
   resummonedSpiritAutoCycle: boolean;
   weaponSpells: Record<string, NecromancerWeaponSpellState>;
@@ -34,15 +45,24 @@ export const RITUALIST_PUBLIC_STATE_PROJECTION = definePublicStateDefaults({
   soulTwistingAvailable: false
 } satisfies Partial<RitualistState>);
 
+const projectPublicFields = createPublicStateProjector(RITUALIST_PUBLIC_STATE_PROJECTION);
+
+/** Public spirit membership omits the live actor's scheduler identity and recovery cursors. */
+export function projectRitualistState(input: Gw2PlanningStateInput) {
+  const projected = projectPublicFields(input);
+  return {
+    ...projected,
+    activeSpirits: Object.fromEntries(Object.keys(projected.activeSpirits as object).map((key) => [key, true]))
+  };
+}
+
 /** Creates Ritualist's spirit cadence, weapon-spell, and Painful Bond runtime state. */
 function createRitualistState(): RitualistState {
   const state: RitualistState = {
     weaponSpellGeneration: 0,
     painfulBondGeneration: 0,
     activeSpirits: {},
-    spiritGenerations: {},
-    spiritInitialUntil: {},
-    spiritBusyUntil: {},
+    spiritGeneration: 0,
     // NaN signals "no anchor established yet"; the first summon uses the resource profile's initialDelay
     spiritAutoAnchorAt: Number.NaN,
     // A re-summon uses the shorter resummonedSpiritAttackDelayMs profile value when establishing the next anchor.

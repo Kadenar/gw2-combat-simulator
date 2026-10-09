@@ -206,6 +206,10 @@ class MechanicCommands<T extends object, TSkill extends Skill> implements Mechan
     return this.#runtime.helpers;
   }
 
+  get alliedStrikes() {
+    return this.#runtime.alliedStrikeController.grants;
+  }
+
   get effects() {
     return this.#runtime.effects;
   }
