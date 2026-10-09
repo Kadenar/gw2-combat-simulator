@@ -71,6 +71,8 @@ export function bindDropdownSearch(
   const onKeyDown = (event: KeyboardEvent) => {
     if (event.ctrlKey || event.metaKey || event.altKey || event.isComposing) return;
     if (event.key === 'Escape') {
+      // A closed picker must leave Escape available to dismiss its surrounding dialog or popover.
+      if (!menu.checkVisibility()) return;
       event.preventDefault();
       event.stopPropagation();
       closeSearch();

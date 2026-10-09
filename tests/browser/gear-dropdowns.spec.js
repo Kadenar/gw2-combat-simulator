@@ -45,6 +45,25 @@ test.beforeEach(async ({ page }) => {
   await expect(page.locator('#loading-overlay')).toHaveClass(/hidden/);
 });
 
+// Escape dismisses the innermost open picker, then the weapon editor once its picker is closed.
+test('Escape closes nested weapon pickers one level at a time', async ({ page }) => {
+  const launcher = page.locator('.weapon-icon-trigger').first();
+  const editor = page.locator('#weapon-editor-1-0');
+  const display = page.locator('#sel-mh1').locator('..');
+  const trigger = display.locator('.gear-select-trigger');
+  const search = display.getByRole('searchbox');
+  await launcher.click();
+  await trigger.click();
+  await expect(search).toBeFocused();
+  await page.keyboard.press('Escape');
+  await expect(search).toBeHidden();
+  await expect(editor).toBeVisible();
+  await expect(trigger).toBeFocused();
+  await page.keyboard.press('Escape');
+  await expect(editor).toBeHidden();
+  await expect(launcher).toBeFocused();
+});
+
 // Opening must finish positioning before a paint, including after the viewport changes.
 test('equipment dropdowns are positioned synchronously on every open', async ({ page }) => {
   for (const width of [1440, 390]) {

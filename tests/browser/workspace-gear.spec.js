@@ -42,7 +42,10 @@ async function chooseEquipment(page, selector, value) {
   // Match the saved value exactly so empty weapon slots and similarly named choices remain selectable.
   await display.locator(`[role="option"][data-value="${value}"]`).click();
   await expect(page.locator(selector)).toHaveValue(value);
-  if ((await editor.count()) && (await editor.isVisible())) await page.keyboard.press('Escape');
+  if ((await editor.count()) && (await editor.isVisible())) {
+    await page.keyboard.press('Escape');
+    await expect(editor).toBeHidden();
+  }
 }
 
 // Replacement edits the equipped slot, preserves queued casts, and remains accessible without a mouse.
@@ -389,7 +392,10 @@ for (const profession of ['elementalist', 'engineer']) {
     const skill = page.locator(`#rotation-palette .pal-skill[data-skill="${alternateSkill}"]`).first();
     await expect(skill).toBeVisible();
     await expect(skill).not.toHaveClass(/unavailable/);
+    // Palette input is accepted only after the worker publishes the current build's state.
+    await expect(page.locator('#rotation-palette')).toHaveAttribute('data-palette-pending', 'false');
     await skill.click();
+    await expect(page.locator('#rotation-palette')).toHaveAttribute('data-palette-pending', 'false');
     expect(await page.evaluate(() => window.professionApp.results.planningState.activeWeaponSet)).toBe(2);
     expect(await page.evaluate(() => window.professionApp.results.warnings)).toEqual([]);
     if (profession === 'engineer') {
